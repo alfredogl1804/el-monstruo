@@ -1,375 +1,424 @@
 """
-El Monstruo — Kernel Engine (Día 1)
-=====================================
-Implementación soberana del KernelInterface.
-State machine propia — sin frameworks externos para el flujo.
+El Monstruo — Kernel Engine (LangGraph Rewrite)
+=================================================
+Sovereign kernel that uses LangGraph as the internal execution motor
+while exposing the KernelInterface contract.
 
-Flujo:
-    message_in → classify_intent → route_model → execute → emit_events → respond
+Architecture:
+    KernelInterface (OUR contract)
+        └── LangGraphKernel (this file)
+                └── StateGraph (LangGraph motor)
+                        └── 7 nodes (kernel/nodes.py)
+
+Principio: LangGraph es un motor intercambiable.
+Los contratos soberanos son permanentes.
 """
 
 from __future__ import annotations
 
-import time
+import asyncio
+from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Callable, Optional
 from uuid import UUID, uuid4
 
 import structlog
+from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.memory import MemorySaver
 
 from contracts.kernel_interface import (
-    Checkpoint,
-    IntentType,
     KernelInterface,
     RunInput,
     RunOutput,
     RunStatus,
+    IntentType,
 )
 from contracts.event_envelope import EventBuilder, EventCategory, Severity
+from kernel.state import MonstruoState
+from kernel.nodes import (
+    intake,
+    classify,
+    route,
+    enrich,
+    execute,
+    memory_write,
+    respond,
+    should_enrich,
+    check_hitl,
+)
 
-logger = structlog.get_logger("kernel")
-
-
-# ── Valid State Transitions ─────────────────────────────────────────
-
-VALID_TRANSITIONS: dict[RunStatus, set[RunStatus]] = {
-    RunStatus.PENDING: {RunStatus.ROUTING, RunStatus.CANCELLED, RunStatus.FAILED},
-    RunStatus.ROUTING: {RunStatus.EXECUTING, RunStatus.FAILED, RunStatus.CANCELLED},
-    RunStatus.EXECUTING: {
-        RunStatus.STREAMING,
-        RunStatus.AWAITING_TOOL,
-        RunStatus.AWAITING_HUMAN,
-        RunStatus.COMPLETED,
-        RunStatus.FAILED,
-        RunStatus.CANCELLED,
-    },
-    RunStatus.STREAMING: {RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED},
-    RunStatus.AWAITING_TOOL: {RunStatus.EXECUTING, RunStatus.FAILED, RunStatus.CANCELLED},
-    RunStatus.AWAITING_HUMAN: {RunStatus.EXECUTING, RunStatus.CANCELLED},
-    RunStatus.CHECKPOINTED: {RunStatus.EXECUTING, RunStatus.CANCELLED},
-    RunStatus.COMPLETED: set(),  # Terminal
-    RunStatus.FAILED: set(),     # Terminal
-    RunStatus.CANCELLED: set(),  # Terminal
-}
+logger = structlog.get_logger("kernel.engine")
 
 
-class KernelEngine(KernelInterface):
+class LangGraphKernel(KernelInterface):
     """
-    Implementación soberana del Kernel.
+    Sovereign kernel implementation backed by LangGraph.
 
-    Responsabilidades:
-        - Mantener el estado de cada run
-        - Validar transiciones de estado
-        - Coordinar router + ejecución + event emission
-        - Hooks para extensibilidad
+    The KernelInterface is OUR contract — it defines what the kernel
+    can do. LangGraph is the motor that executes the graph internally.
+    If LangGraph dies tomorrow, we swap the motor, not the interface.
+
+    Graph topology:
+        intake → classify → route → [enrich] → execute → [HITL] → memory_write → respond
+                                  ↓ (chat/system)        ↓ (failed)
+                                execute                  respond
     """
 
     def __init__(
         self,
-        router: Any = None,       # RouterInterface (Phase 2)
-        event_store: Any = None,   # EventStoreInterface (Phase 3)
+        router: Any = None,
+        event_store: Any = None,
+        memory: Any = None,
+        knowledge: Any = None,
+        checkpoint_store: Any = None,
     ) -> None:
-        self._runs: dict[UUID, _RunState] = {}
-        self._hooks: dict[str, list[Callable]] = {}
         self._router = router
         self._event_store = event_store
+        self._memory = memory
+        self._knowledge = knowledge
+        self._checkpoint_store = checkpoint_store
+        self._hooks: dict[str, list[Callable[..., Any]]] = {}
+        self._runs: dict[UUID, MonstruoState] = {}
 
-    # ── KernelInterface Implementation ──────────────────────────────
+        # Build the LangGraph graph
+        self._checkpointer = MemorySaver()
+        self._graph = self._build_graph()
+        self._compiled = self._graph.compile(
+            checkpointer=self._checkpointer,
+        )
+
+        logger.info("kernel_initialized", motor="langgraph", version="0.4.1")
+
+    def _build_graph(self) -> StateGraph:
+        """
+        Build the sovereign execution graph.
+
+        7 nodes, 2 conditional edges:
+            intake → classify → route → should_enrich? → execute → check_hitl? → memory_write → respond
+        """
+        graph = StateGraph(MonstruoState)
+
+        # Add all 7 nodes
+        graph.add_node("intake", intake)
+        graph.add_node("classify", classify)
+        graph.add_node("route", route)
+        graph.add_node("enrich", enrich)
+        graph.add_node("execute", execute)
+        graph.add_node("memory_write", memory_write)
+        graph.add_node("respond", respond)
+
+        # Set entry point
+        graph.set_entry_point("intake")
+
+        # Linear edges
+        graph.add_edge("intake", "classify")
+        graph.add_edge("classify", "route")
+
+        # Conditional: route → enrich or execute (skip enrichment for chat/system)
+        graph.add_conditional_edges(
+            "route",
+            should_enrich,
+            {
+                "enrich": "enrich",
+                "execute": "execute",
+            },
+        )
+
+        # enrich always goes to execute
+        graph.add_edge("enrich", "execute")
+
+        # Conditional: execute → memory_write or respond (on failure)
+        graph.add_conditional_edges(
+            "execute",
+            check_hitl,
+            {
+                "memory_write": "memory_write",
+                "respond": "respond",
+            },
+        )
+
+        # memory_write always goes to respond
+        graph.add_edge("memory_write", "respond")
+
+        # respond is terminal
+        graph.add_edge("respond", END)
+
+        return graph
+
+    # ── KernelInterface Implementation ─────────────────────────────
 
     async def start_run(self, input: RunInput) -> RunOutput:
         """
-        Full execution pipeline:
-        1. Create run state (PENDING)
-        2. Emit RUN_STARTED event
-        3. Classify intent (ROUTING)
-        4. Route to model (ROUTING → EXECUTING)
-        5. Execute with model (EXECUTING)
-        6. Emit RUN_COMPLETED event
-        7. Return RunOutput
+        Execute a complete run through the LangGraph graph.
+        This is the main entry point — message in, response out.
         """
         run_id = input.run_id
-        start_time = time.monotonic()
+        thread_id = str(run_id)
 
-        # 1. Create run state
-        run_state = _RunState(
-            run_id=run_id,
-            status=RunStatus.PENDING,
-            input=input,
-        )
-        self._runs[run_id] = run_state
+        # Fire pre-hooks
+        await self._fire_hook("pre_route", run_id, input)
 
-        # 2. Emit RUN_STARTED
-        await self._emit_event(
-            EventBuilder()
-            .category(EventCategory.RUN_STARTED)
-            .actor("kernel")
-            .action(f"Run started for user {input.user_id} on {input.channel}")
-            .for_run(run_id)
-            .for_user(input.user_id)
-            .on_channel(input.channel)
-            .with_payload({"message": input.message[:200]})
-            .build()
-        )
+        # Build initial state — NO non-serializable objects here
+        initial_state: MonstruoState = {
+            "run_id": str(run_id),
+            "user_id": input.user_id,
+            "channel": input.channel,
+            "message": input.message,
+            "attachments": input.attachments or [],
+            "context": input.context or {},
+            "parent_run_id": str(input.parent_run_id) if input.parent_run_id else None,
+        }
+
+        # Store run reference
+        self._runs[run_id] = initial_state
 
         try:
-            # 3. Classify intent
-            await self._transition(run_id, RunStatus.ROUTING)
-            await self._fire_hook("pre_route", run_id, input)
+            # Dependencies go in config["configurable"], NOT in state
+            # LangGraph never serializes config, only state
+            config = {
+                "configurable": {
+                    "thread_id": thread_id,
+                    "_router": self._router,
+                    "_memory": self._memory,
+                    "_knowledge": self._knowledge,
+                    "_event_store": self._event_store,
+                }
+            }
+            final_state = await self._compiled.ainvoke(initial_state, config)
 
-            intent, model = await self._route(input)
-            run_state.intent = intent
-            run_state.model = model
+            # Update stored state
+            self._runs[run_id] = final_state
 
-            await self._emit_event(
-                EventBuilder()
-                .category(EventCategory.ROUTE_DECIDED)
-                .actor("kernel")
-                .action(f"Routed to {model} with intent {intent.value}")
-                .for_run(run_id)
-                .for_user(input.user_id)
-                .with_payload({"intent": intent.value, "model": model})
-                .build()
-            )
-            await self._fire_hook("post_route", run_id, intent, model)
+            # Fire post-hooks
+            await self._fire_hook("post_execute", run_id, final_state)
 
-            # 4. Execute
-            await self._transition(run_id, RunStatus.EXECUTING)
-            await self._fire_hook("pre_execute", run_id, input, model)
+            # Build output
+            status_str = final_state.get("status", RunStatus.COMPLETED.value)
+            try:
+                status = RunStatus(status_str)
+            except ValueError:
+                status = RunStatus.COMPLETED
 
-            response, usage = await self._execute(input, model, intent)
-            run_state.response = response
-            run_state.usage = usage
-
-            await self._fire_hook("post_execute", run_id, response, usage)
-
-            # 5. Complete
-            await self._transition(run_id, RunStatus.COMPLETED)
-            elapsed_ms = (time.monotonic() - start_time) * 1000
+            intent_str = final_state.get("intent", IntentType.CHAT.value)
+            try:
+                intent = IntentType(intent_str)
+            except ValueError:
+                intent = IntentType.CHAT
 
             output = RunOutput(
                 run_id=run_id,
-                status=RunStatus.COMPLETED,
+                status=status,
                 intent=intent,
-                model_used=model,
-                response=response,
-                tokens_in=usage.get("prompt_tokens", 0),
-                tokens_out=usage.get("completion_tokens", 0),
-                cost_usd=usage.get("cost_usd", 0.0),
-                latency_ms=elapsed_ms,
-            )
-
-            # 6. Emit RUN_COMPLETED
-            await self._emit_event(
-                EventBuilder()
-                .category(EventCategory.RUN_COMPLETED)
-                .actor("kernel")
-                .action(f"Run completed in {elapsed_ms:.0f}ms using {model}")
-                .for_run(run_id)
-                .for_user(input.user_id)
-                .with_payload({
-                    "model": model,
-                    "intent": intent.value,
-                    "tokens_in": output.tokens_in,
-                    "tokens_out": output.tokens_out,
-                    "cost_usd": output.cost_usd,
-                    "latency_ms": elapsed_ms,
-                    "response_preview": response[:200],
-                })
-                .build()
+                model_used=final_state.get("model_used", ""),
+                response=final_state.get("final_response", ""),
+                tokens_in=final_state.get("tokens_in", 0),
+                tokens_out=final_state.get("tokens_out", 0),
+                cost_usd=final_state.get("cost_usd", 0.0),
+                latency_ms=final_state.get("latency_ms", 0.0),
+                tool_calls=final_state.get("tool_calls", []),
+                metadata={
+                    "enriched": final_state.get("enriched", False),
+                    "memory_written": final_state.get("memory_written", False),
+                    "execution_attempts": final_state.get("execution_attempts", 0),
+                    "route_reason": final_state.get("route_reason", ""),
+                    "events_count": len(final_state.get("events", [])),
+                },
             )
 
             logger.info(
                 "run_completed",
                 run_id=str(run_id),
-                model=model,
+                status=status.value,
                 intent=intent.value,
-                latency_ms=f"{elapsed_ms:.0f}",
+                model=output.model_used,
+                latency_ms=f"{output.latency_ms:.0f}",
             )
+
             return output
 
         except Exception as e:
-            # Handle failure
-            await self._transition(run_id, RunStatus.FAILED)
-            elapsed_ms = (time.monotonic() - start_time) * 1000
-
-            await self._emit_event(
-                EventBuilder()
-                .category(EventCategory.RUN_FAILED)
-                .severity(Severity.ERROR)
-                .actor("kernel")
-                .action(f"Run failed: {str(e)}")
-                .for_run(run_id)
-                .for_user(input.user_id)
-                .with_payload({"error": str(e), "error_type": type(e).__name__})
-                .build()
-            )
+            logger.error("run_failed", run_id=str(run_id), error=str(e))
             await self._fire_hook("on_error", run_id, e)
 
-            logger.error("run_failed", run_id=str(run_id), error=str(e))
+            # Emit failure event
+            if self._event_store:
+                event = EventBuilder() \
+                    .category(EventCategory.RUN_FAILED) \
+                    .severity(Severity.ERROR) \
+                    .actor("kernel.engine") \
+                    .action(f"Run failed: {str(e)[:200]}") \
+                    .for_run(run_id) \
+                    .with_payload({"error": str(e), "error_type": type(e).__name__}) \
+                    .build()
+                await self._event_store.append(event)
 
             return RunOutput(
                 run_id=run_id,
                 status=RunStatus.FAILED,
+                intent=IntentType.CHAT,
+                model_used="",
                 response=f"Error: {str(e)}",
-                latency_ms=elapsed_ms,
+                metadata={"error": str(e), "error_type": type(e).__name__},
             )
 
-    async def step(self, run_id: UUID, input: dict[str, Any]) -> RunOutput:
-        """Advance a multi-step run (tool results, human input, etc.)."""
-        run_state = self._runs.get(run_id)
-        if not run_state:
+    async def step(self, run_id: UUID, input: dict[str, Any] | None = None) -> RunOutput:
+        """
+        Continue a paused run (after HITL interrupt).
+        Sends the human response and resumes the graph.
+        """
+        thread_id = str(run_id)
+        config = {"configurable": {"thread_id": thread_id}}
+
+        # If there's human input, update the state
+        update = {}
+        if input:
+            update["human_response"] = input.get("response", "")
+            update["needs_human_approval"] = False
+
+        try:
+            final_state = await self._compiled.ainvoke(update or None, config)
+            self._runs[run_id] = final_state
+
+            status_str = final_state.get("status", RunStatus.COMPLETED.value)
+            try:
+                status = RunStatus(status_str)
+            except ValueError:
+                status = RunStatus.COMPLETED
+
+            intent_str = final_state.get("intent", IntentType.CHAT.value)
+            try:
+                intent = IntentType(intent_str)
+            except ValueError:
+                intent = IntentType.CHAT
+
+            return RunOutput(
+                run_id=run_id,
+                status=status,
+                intent=intent,
+                model_used=final_state.get("model_used", ""),
+                response=final_state.get("final_response", ""),
+            )
+        except Exception as e:
+            logger.error("step_failed", run_id=str(run_id), error=str(e))
+            return RunOutput(
+                run_id=run_id,
+                status=RunStatus.FAILED,
+                intent=IntentType.CHAT,
+                model_used="",
+                response=f"Step error: {str(e)}",
+            )
+
+    async def checkpoint(self, run_id: UUID) -> Any:
+        """
+        Create a checkpoint of the current run state.
+        LangGraph handles this internally via MemorySaver.
+        We also persist to our sovereign CheckpointStore.
+        """
+        state = self._runs.get(run_id)
+        if not state:
             raise ValueError(f"Run {run_id} not found")
 
-        await self._emit_event(
-            EventBuilder()
-            .category(EventCategory.RUN_STEP)
-            .actor("kernel")
-            .action(f"Step received for run {run_id}")
-            .for_run(run_id)
-            .with_payload(input)
-            .build()
-        )
+        if self._checkpoint_store:
+            from contracts.checkpoint_model import Checkpoint, CheckpointType
+            cp = Checkpoint(
+                run_id=run_id,
+                checkpoint_type=CheckpointType.MANUAL,
+                state=dict(state),
+                step=state.get("step_count", 0),
+            )
+            await self._checkpoint_store.save(cp)
+            logger.info("checkpoint_saved", run_id=str(run_id))
+            return cp
 
-        # For now, re-execute with the additional input as context
-        run_state.step_count += 1
-        original_input = run_state.input
+        return state
 
-        # Create new input with step context
-        step_input = RunInput(
-            run_id=run_id,
-            user_id=original_input.user_id,
-            channel=original_input.channel,
-            message=input.get("message", ""),
-            context={**original_input.context, "step": run_state.step_count, **input},
-        )
-
-        await self._transition(run_id, RunStatus.EXECUTING)
-        response, usage = await self._execute(
-            step_input, run_state.model, run_state.intent
-        )
-
-        await self._transition(run_id, RunStatus.COMPLETED)
-        return RunOutput(
-            run_id=run_id,
-            status=RunStatus.COMPLETED,
-            intent=run_state.intent,
-            model_used=run_state.model,
-            response=response,
-            tokens_in=usage.get("prompt_tokens", 0),
-            tokens_out=usage.get("completion_tokens", 0),
-            cost_usd=usage.get("cost_usd", 0.0),
-        )
-
-    async def checkpoint(self, run_id: UUID) -> Checkpoint:
-        """Save current run state for replay/recovery."""
-        run_state = self._runs.get(run_id)
-        if not run_state:
-            raise ValueError(f"Run {run_id} not found")
-
-        cp = Checkpoint(
-            run_id=run_id,
-            step=run_state.step_count,
-            status=RunStatus.CHECKPOINTED,
-            state={
-                "intent": run_state.intent.value if run_state.intent else None,
-                "model": run_state.model,
-                "response": run_state.response,
-                "usage": run_state.usage,
-            },
-        )
-
-        await self._emit_event(
-            EventBuilder()
-            .category(EventCategory.CHECKPOINT_CREATED)
-            .actor("kernel")
-            .action(f"Checkpoint created at step {run_state.step_count}")
-            .for_run(run_id)
-            .with_payload({"step": run_state.step_count})
-            .build()
-        )
-
-        return cp
-
-    async def resume(self, checkpoint: Checkpoint) -> RunOutput:
-        """Resume execution from a checkpoint."""
-        run_id = checkpoint.run_id
-        run_state = self._runs.get(run_id)
-        if not run_state:
-            raise ValueError(f"Run {run_id} not found for resume")
-
-        await self._emit_event(
-            EventBuilder()
-            .category(EventCategory.CHECKPOINT_RESTORED)
-            .actor("kernel")
-            .action(f"Resuming from checkpoint step {checkpoint.step}")
-            .for_run(run_id)
-            .build()
-        )
-
-        await self._transition(run_id, RunStatus.EXECUTING)
-        response, usage = await self._execute(
-            run_state.input, run_state.model, run_state.intent
-        )
-
-        await self._transition(run_id, RunStatus.COMPLETED)
-        return RunOutput(
-            run_id=run_id,
-            status=RunStatus.COMPLETED,
-            intent=run_state.intent,
-            model_used=run_state.model,
-            response=response,
-        )
+    async def resume(self, run_id: UUID) -> RunOutput:
+        """Resume a run from its last checkpoint."""
+        return await self.step(run_id)
 
     async def cancel(self, run_id: UUID, reason: str = "") -> bool:
         """Kill switch: cancel a run immediately."""
-        run_state = self._runs.get(run_id)
-        if not run_state:
+        state = self._runs.get(run_id)
+        if not state:
             return False
 
-        if run_state.status in {RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED}:
+        current_status = state.get("status", "")
+        if current_status in (RunStatus.COMPLETED.value, RunStatus.FAILED.value, RunStatus.CANCELLED.value):
             return False
 
-        await self._transition(run_id, RunStatus.CANCELLED)
-        await self._emit_event(
-            EventBuilder()
-            .category(EventCategory.RUN_CANCELLED)
-            .actor("kernel")
-            .action(f"Run cancelled: {reason or 'no reason given'}")
-            .for_run(run_id)
-            .with_payload({"reason": reason})
-            .build()
-        )
+        # Update state
+        state["cancelled"] = True
+        state["cancel_reason"] = reason
+        state["status"] = RunStatus.CANCELLED.value
+        self._runs[run_id] = state
+
+        # Emit cancellation event
+        if self._event_store:
+            event = EventBuilder() \
+                .category(EventCategory.RUN_CANCELLED) \
+                .actor("kernel.engine") \
+                .action(f"Run cancelled: {reason or 'no reason given'}") \
+                .for_run(run_id) \
+                .with_payload({"reason": reason}) \
+                .build()
+            await self._event_store.append(event)
+
         await self._fire_hook("on_cancel", run_id, reason)
-
         logger.warning("run_cancelled", run_id=str(run_id), reason=reason)
         return True
 
     async def stream(self, input: RunInput) -> AsyncIterator[str]:
-        """Stream tokens from model execution."""
+        """
+        Stream tokens from model execution.
+        Uses LangGraph's astream_events for real-time token streaming.
+        """
         run_id = input.run_id
-        run_state = _RunState(run_id=run_id, status=RunStatus.PENDING, input=input)
-        self._runs[run_id] = run_state
+        thread_id = str(run_id)
 
-        await self._transition(run_id, RunStatus.ROUTING)
-        intent, model = await self._route(input)
-        run_state.intent = intent
-        run_state.model = model
+        initial_state: MonstruoState = {
+            "run_id": str(run_id),
+            "user_id": input.user_id,
+            "channel": input.channel,
+            "message": input.message,
+            "attachments": input.attachments or [],
+            "context": {
+                **(input.context or {}),
+                "_router": self._router,
+                "_memory": self._memory,
+                "_knowledge": self._knowledge,
+                "_event_store": self._event_store,
+            },
+        }
 
-        await self._transition(run_id, RunStatus.STREAMING)
+        config = {"configurable": {"thread_id": thread_id}}
 
-        if self._router:
-            async for chunk in self._router.stream(input.message, model, intent):
-                yield chunk
-        else:
-            yield f"[stream-stub] Would stream from {model} for: {input.message}"
-
-        await self._transition(run_id, RunStatus.COMPLETED)
+        try:
+            async for event in self._compiled.astream(initial_state, config, stream_mode="updates"):
+                # Each event is a dict with node_name: state_update
+                for node_name, state_update in event.items():
+                    if node_name == "respond" and "final_response" in state_update:
+                        # Stream the final response in chunks
+                        response = state_update["final_response"]
+                        chunk_size = 50
+                        for i in range(0, len(response), chunk_size):
+                            yield response[i:i + chunk_size]
+                    elif node_name == "execute" and "response" in state_update:
+                        # Stream intermediate execution response
+                        yield f"[{node_name}] Processing..."
+        except Exception as e:
+            logger.error("stream_failed", run_id=str(run_id), error=str(e))
+            yield f"[error] {str(e)}"
 
     async def get_status(self, run_id: UUID) -> RunStatus:
         """Get current status of a run."""
-        run_state = self._runs.get(run_id)
-        if not run_state:
+        state = self._runs.get(run_id)
+        if not state:
             raise ValueError(f"Run {run_id} not found")
-        return run_state.status
+
+        status_str = state.get("status", RunStatus.PENDING.value)
+        try:
+            return RunStatus(status_str)
+        except ValueError:
+            return RunStatus.PENDING
 
     async def register_hook(self, event: str, callback: Callable[..., Any]) -> None:
         """Register a lifecycle hook."""
@@ -378,59 +427,23 @@ class KernelEngine(KernelInterface):
         self._hooks[event].append(callback)
         logger.debug("hook_registered", hook_event=event)
 
-    # ── Internal Methods ────────────────────────────────────────────
+    # ── Graph Visualization ────────────────────────────────────────
 
-    async def _route(self, input: RunInput) -> tuple[IntentType, str]:
-        """Classify intent and select model via router."""
-        if self._router:
-            return await self._router.route(input.message, input.channel, input.context)
-        # Fallback: basic intent classification without router
-        return _basic_intent_classify(input.message), "gpt-5"
+    def get_graph_mermaid(self) -> str:
+        """Export the graph as Mermaid diagram for debugging."""
+        try:
+            return self._compiled.get_graph().draw_mermaid()
+        except Exception:
+            return "graph TD\n  A[intake] --> B[classify] --> C[route] --> D{enrich?} --> E[execute] --> F{HITL?} --> G[memory_write] --> H[respond]"
 
-    async def _execute(
-        self,
-        input: RunInput,
-        model: str,
-        intent: IntentType,
-    ) -> tuple[str, dict[str, Any]]:
-        """Execute the request against the selected model."""
-        if self._router:
-            return await self._router.execute(input.message, model, intent, input.context)
-        # Fallback stub
-        return (
-            f"[stub] Model {model} would respond to: {input.message[:100]}",
-            {"prompt_tokens": 0, "completion_tokens": 0, "cost_usd": 0.0},
-        )
+    def get_graph_ascii(self) -> str:
+        """Export the graph as ASCII art."""
+        try:
+            return self._compiled.get_graph().draw_ascii()
+        except Exception:
+            return "intake → classify → route → enrich? → execute → HITL? → memory_write → respond"
 
-    async def _transition(self, run_id: UUID, new_status: RunStatus) -> None:
-        """Validate and execute a state transition."""
-        run_state = self._runs.get(run_id)
-        if not run_state:
-            raise ValueError(f"Run {run_id} not found")
-
-        current = run_state.status
-        allowed = VALID_TRANSITIONS.get(current, set())
-
-        if new_status not in allowed:
-            raise ValueError(
-                f"Invalid transition: {current.value} → {new_status.value}. "
-                f"Allowed: {[s.value for s in allowed]}"
-            )
-
-        run_state.status = new_status
-        logger.debug(
-            "state_transition",
-            run_id=str(run_id),
-            from_state=current.value,
-            to_state=new_status.value,
-        )
-
-    async def _emit_event(self, event: Any) -> None:
-        """Emit an event to the event store."""
-        if self._event_store:
-            await self._event_store.append(event)
-        else:
-            logger.debug("event_emitted", category=event.category.value, action=event.action)
+    # ── Internal Methods ───────────────────────────────────────────
 
     async def _fire_hook(self, event: str, *args: Any) -> None:
         """Fire all registered hooks for an event."""
@@ -441,55 +454,3 @@ class KernelEngine(KernelInterface):
                     await result
             except Exception as e:
                 logger.warning("hook_error", event=event, error=str(e))
-
-
-# ── Internal Run State ──────────────────────────────────────────────
-
-class _RunState:
-    """Mutable internal state for a run. Not exposed outside the kernel."""
-
-    __slots__ = (
-        "run_id", "status", "input", "intent", "model",
-        "response", "usage", "step_count",
-    )
-
-    def __init__(
-        self,
-        run_id: UUID,
-        status: RunStatus,
-        input: RunInput,
-    ) -> None:
-        self.run_id = run_id
-        self.status = status
-        self.input = input
-        self.intent: Optional[IntentType] = None
-        self.model: str = ""
-        self.response: str = ""
-        self.usage: dict[str, Any] = {}
-        self.step_count: int = 0
-
-
-# ── Basic Intent Classification (no router fallback) ────────────────
-
-def _basic_intent_classify(message: str) -> IntentType:
-    """
-    Simple keyword-based intent classification.
-    Used only when no router is available.
-    """
-    msg = message.lower().strip()
-
-    deep_keywords = {"analiza", "piensa", "razona", "explica", "compara", "evalúa",
-                     "analyze", "think", "reason", "explain", "compare", "evaluate"}
-    exec_keywords = {"haz", "ejecuta", "crea", "genera", "envía", "publica",
-                     "do", "execute", "create", "generate", "send", "publish"}
-    system_keywords = {"status", "health", "estado", "salud", "/start", "/help"}
-
-    words = set(msg.split())
-
-    if words & system_keywords or msg.startswith("/"):
-        return IntentType.SYSTEM
-    if words & exec_keywords:
-        return IntentType.EXECUTE
-    if words & deep_keywords or len(msg) > 500:
-        return IntentType.DEEP_THINK
-    return IntentType.CHAT

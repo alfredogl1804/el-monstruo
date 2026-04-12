@@ -28,11 +28,19 @@ class EventCategory(enum.Enum):
     RUN_CANCELLED = "run.cancelled"
 
     # Router events
+    INTENT_CLASSIFIED = "route.intent_classified"
     ROUTE_DECIDED = "route.decided"
     ROUTE_FALLBACK = "route.fallback"
 
+    # Enrichment events
+    CONTEXT_ENRICHED = "enrich.context_enriched"
+
+    # Model events
+    MODEL_CALLED = "model.called"
+
     # Memory events
     MEMORY_STORED = "memory.stored"
+    MEMORY_UPDATED = "memory.updated"
     MEMORY_SEARCHED = "memory.searched"
     ENTITY_CREATED = "memory.entity.created"
     RELATION_CREATED = "memory.relation.created"
@@ -159,6 +167,16 @@ class EventBuilder:
 
     def for_run(self, run_id: UUID) -> EventBuilder:
         self._kwargs["run_id"] = run_id
+        return self
+
+    def for_run_str(self, run_id: str) -> EventBuilder:
+        """Accept run_id as string (from LangGraph state serialization)."""
+        if run_id:
+            from uuid import UUID as UUIDType
+            try:
+                self._kwargs["run_id"] = UUIDType(run_id)
+            except (ValueError, AttributeError):
+                pass
         return self
 
     def for_user(self, user_id: str) -> EventBuilder:

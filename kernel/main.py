@@ -1,11 +1,22 @@
 """
-El Monstruo — FastAPI Application (Día 1)
-============================================
-API principal que conecta Kernel + Router + EventStore.
-Endpoints para: chat, stream, status, replay, health, cancel.
+El Monstruo — FastAPI Application (LangGraph Rewrite)
+======================================================
+HTTP API that connects the LangGraph Kernel with Memory,
+Knowledge Graph, and Event Store.
 
-Principio: Un mensaje entra, se routea, se ejecuta, se responde,
-y todo queda registrado.
+Endpoints:
+    POST /v1/chat          → Main chat (message → response)
+    POST /v1/chat/stream   → Streaming via SSE
+    POST /v1/step          → Continue HITL-paused run
+    POST /v1/cancel        → Kill switch
+    GET  /v1/status/{id}   → Run status
+    GET  /v1/replay/{id}   → Full run replay
+    GET  /v1/events/recent → Recent events
+    GET  /v1/events/errors → Recent errors
+    GET  /v1/stats         → System statistics
+    GET  /v1/graph         → Execution graph visualization
+    GET  /health           → Health check
+    GET  /                 → Root
 """
 
 from __future__ import annotations
@@ -23,10 +34,11 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from contracts.kernel_interface import IntentType, RunInput, RunStatus
-from kernel.engine import KernelEngine
-from router.engine import RouterEngine
+from contracts.event_envelope import EventBuilder, EventCategory, Severity
+from kernel.engine import LangGraphKernel
 from memory.event_store import EventStore
-from contracts.event_envelope import EventBuilder, EventCategory
+from memory.conversation import ConversationMemory
+from memory.knowledge_graph import KnowledgeGraph
 
 # ── Structured Logging ──────────────────────────────────────────────
 
@@ -40,24 +52,12 @@ structlog.configure(
 
 logger = structlog.get_logger("monstruo")
 
-
 # ── Global Instances ────────────────────────────────────────────────
 
-event_store = EventStore(
-    supabase_url=os.environ.get("SUPABASE_URL"),
-    supabase_key=os.environ.get("SUPABASE_SERVICE_KEY"),
-)
-
-router_engine = RouterEngine(
-    litellm_url=os.environ.get("LITELLM_URL", "http://localhost:4000"),
-    litellm_key=os.environ.get("LITELLM_MASTER_KEY", "sk-monstruo-dev"),
-)
-
-kernel = KernelEngine(
-    router=router_engine,
-    event_store=event_store,
-)
-
+kernel: Optional[LangGraphKernel] = None
+event_store: Optional[EventStore] = None
+conversation_memory: Optional[ConversationMemory] = None
+knowledge_graph: Optional[KnowledgeGraph] = None
 BOOT_TIME = datetime.now(timezone.utc)
 
 
@@ -65,28 +65,70 @@ BOOT_TIME = datetime.now(timezone.utc)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup and shutdown logic."""
-    logger.info("monstruo_starting", version="0.1.0-sprint1")
+    """Initialize all sovereign components on startup."""
+    global kernel, event_store, conversation_memory, knowledge_graph, BOOT_TIME
 
-    await event_store.initialize()
+    BOOT_TIME = datetime.now(timezone.utc)
+    logger.info("monstruo_starting", version="0.2.0-sprint1", motor="langgraph")
 
+    # Initialize sovereign components
+    event_store = EventStore()
+    conversation_memory = ConversationMemory()
+    knowledge_graph = KnowledgeGraph()
+
+    # Initialize router if LiteLLM is available
+    router = None
+    litellm_url = os.environ.get("LITELLM_URL", os.environ.get("LITELLM_BASE_URL"))
+    if litellm_url:
+        try:
+            from router.engine import RouterEngine
+            router = RouterEngine(
+                litellm_url=litellm_url,
+                litellm_key=os.environ.get("LITELLM_MASTER_KEY", "sk-monstruo-dev"),
+            )
+            logger.info("router_connected", url=litellm_url)
+        except Exception as e:
+            logger.warning("router_init_failed", error=str(e))
+
+    # Initialize the LangGraph Kernel with all dependencies
+    kernel = LangGraphKernel(
+        router=router,
+        event_store=event_store,
+        memory=conversation_memory,
+        knowledge=knowledge_graph,
+    )
+
+    # Emit startup event
     await event_store.append(
         EventBuilder()
         .category(EventCategory.SYSTEM_STARTUP)
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.1.0-sprint1",
-            "litellm_url": os.environ.get("LITELLM_URL", "http://localhost:4000"),
-            "supabase_configured": bool(os.environ.get("SUPABASE_URL")),
+            "version": "0.2.0-sprint1",
+            "motor": "langgraph",
+            "router": "connected" if router else "stub",
+            "memory": "active",
+            "knowledge": "active",
         })
         .build()
     )
 
-    logger.info("monstruo_ready")
+    logger.info(
+        "monstruo_ready",
+        motor="langgraph",
+        router="connected" if router else "stub",
+    )
+
     yield
 
-    await router_engine.close()
+    # Shutdown
+    if router:
+        try:
+            await router.close()
+        except Exception:
+            pass
+
     await event_store.append(
         EventBuilder()
         .category(EventCategory.SYSTEM_SHUTDOWN)
@@ -101,8 +143,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="El Monstruo",
-    description="Sistema de Inteligencia Artificial Soberana",
-    version="0.1.0-sprint1",
+    description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
+    version="0.2.0-sprint1",
     lifespan=lifespan,
 )
 
@@ -119,10 +161,11 @@ app.add_middleware(
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=32000)
-    user_id: str = Field(default="anonymous")
+    user_id: str = Field(default="alfredo")
     channel: str = Field(default="api")
     context: dict[str, Any] = Field(default_factory=dict)
     force_model: Optional[str] = None
+    run_id: Optional[str] = None
 
 class ChatResponse(BaseModel):
     run_id: str
@@ -130,14 +173,17 @@ class ChatResponse(BaseModel):
     intent: str
     model_used: str
     response: str
-    tokens_in: int
-    tokens_out: int
-    cost_usd: float
-    latency_ms: float
+    tokens_in: int = 0
+    tokens_out: int = 0
+    cost_usd: float = 0.0
+    latency_ms: float = 0.0
+    enriched: bool = False
+    memory_written: bool = False
+    events_count: int = 0
 
 class StepRequest(BaseModel):
     run_id: str
-    message: str = ""
+    response: Optional[str] = None
     data: dict[str, Any] = Field(default_factory=dict)
 
 class CancelRequest(BaseModel):
@@ -151,7 +197,8 @@ class CancelRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.1.0-sprint1",
+        "version": "0.2.0-sprint1",
+        "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
     }
@@ -161,15 +208,19 @@ async def root():
 async def chat(request: ChatRequest):
     """
     Main chat endpoint.
-    Message in → intent → model routing → execution → response.
-    Everything logged in event store.
+    Message enters → routes through 7-node LangGraph → response exits.
     """
+    if not kernel:
+        raise HTTPException(status_code=503, detail="Kernel not initialized")
+
     context = request.context.copy()
     if request.force_model:
         context["force_model"] = request.force_model
 
+    run_id = UUID(request.run_id) if request.run_id else uuid4()
+
     run_input = RunInput(
-        run_id=uuid4(),
+        run_id=run_id,
         user_id=request.user_id,
         channel=request.channel,
         message=request.message,
@@ -178,6 +229,7 @@ async def chat(request: ChatRequest):
 
     output = await kernel.start_run(run_input)
 
+    metadata = output.metadata or {}
     return ChatResponse(
         run_id=str(output.run_id),
         status=output.status.value,
@@ -188,18 +240,26 @@ async def chat(request: ChatRequest):
         tokens_out=output.tokens_out,
         cost_usd=output.cost_usd,
         latency_ms=round(output.latency_ms, 2),
+        enriched=metadata.get("enriched", False),
+        memory_written=metadata.get("memory_written", False),
+        events_count=metadata.get("events_count", 0),
     )
 
 
 @app.post("/v1/chat/stream", tags=["core"])
 async def chat_stream(request: ChatRequest):
     """Streaming chat endpoint with Server-Sent Events."""
+    if not kernel:
+        raise HTTPException(status_code=503, detail="Kernel not initialized")
+
     context = request.context.copy()
     if request.force_model:
         context["force_model"] = request.force_model
 
+    run_id = UUID(request.run_id) if request.run_id else uuid4()
+
     run_input = RunInput(
-        run_id=uuid4(),
+        run_id=run_id,
         user_id=request.user_id,
         channel=request.channel,
         message=request.message,
@@ -216,17 +276,23 @@ async def chat_stream(request: ChatRequest):
 
 @app.post("/v1/step", response_model=ChatResponse, tags=["core"])
 async def step(request: StepRequest):
-    """Continue a multi-step run."""
+    """Continue a HITL-paused run with human input."""
+    if not kernel:
+        raise HTTPException(status_code=503, detail="Kernel not initialized")
+
     try:
         run_id = UUID(request.run_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid run_id format")
 
+    input_data = {"response": request.response, **request.data} if request.response else request.data or None
+
     try:
-        output = await kernel.step(run_id, {"message": request.message, **request.data})
+        output = await kernel.step(run_id, input_data)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
+    metadata = output.metadata or {}
     return ChatResponse(
         run_id=str(output.run_id),
         status=output.status.value,
@@ -243,18 +309,27 @@ async def step(request: StepRequest):
 @app.post("/v1/cancel", tags=["core"])
 async def cancel(request: CancelRequest):
     """Kill switch: cancel a running execution."""
+    if not kernel:
+        raise HTTPException(status_code=503, detail="Kernel not initialized")
+
     try:
         run_id = UUID(request.run_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid run_id format")
 
     success = await kernel.cancel(run_id, request.reason)
-    return {"run_id": request.run_id, "cancelled": success}
+    if not success:
+        raise HTTPException(status_code=404, detail="Run not found or already terminal")
+
+    return {"run_id": request.run_id, "cancelled": True, "reason": request.reason}
 
 
 @app.get("/v1/status/{run_id}", tags=["core"])
 async def get_status(run_id: str):
     """Get current status of a run."""
+    if not kernel:
+        raise HTTPException(status_code=503, detail="Kernel not initialized")
+
     try:
         rid = UUID(run_id)
     except ValueError:
@@ -270,22 +345,31 @@ async def get_status(run_id: str):
 @app.get("/v1/replay/{run_id}", tags=["observability"])
 async def replay(run_id: str):
     """Replay a run: see every event in chronological order."""
+    if not event_store:
+        raise HTTPException(status_code=503, detail="Event store not initialized")
+
     try:
         rid = UUID(run_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid run_id format")
 
     events = await event_store.replay(rid)
-    if not events:
-        raise HTTPException(status_code=404, detail=f"No events found for run {run_id}")
+    # replay returns dicts, convert for consistent output
+    return {
+        "run_id": run_id,
+        "events_count": len(events),
+        "events": events,
+    }
 
-    return {"run_id": run_id, "event_count": len(events), "events": events}
 
 
 @app.get("/v1/events/recent", tags=["observability"])
 async def recent_events(limit: int = 50):
     """Get the most recent events."""
-    events = await event_store.get_recent(limit)
+    if not event_store:
+        raise HTTPException(status_code=503, detail="Event store not initialized")
+
+    events = await event_store.get_recent(limit=limit)
     return {
         "count": len(events),
         "events": [
@@ -296,6 +380,7 @@ async def recent_events(limit: int = 50):
                 "actor": e.actor,
                 "action": e.action,
                 "timestamp": e.timestamp.isoformat(),
+                "run_id": str(e.run_id) if e.run_id else None,
             }
             for e in events
         ],
@@ -305,52 +390,85 @@ async def recent_events(limit: int = 50):
 @app.get("/v1/events/errors", tags=["observability"])
 async def error_events(limit: int = 20):
     """Get recent error events."""
-    errors = await event_store.get_errors(limit)
+    if not event_store:
+        raise HTTPException(status_code=503, detail="Event store not initialized")
+
+    events = await event_store.get_errors(limit=limit)
     return {
-        "count": len(errors),
-        "errors": [
+        "count": len(events),
+        "events": [
             {
                 "event_id": str(e.event_id),
                 "category": e.category.value,
-                "severity": e.severity.value,
                 "actor": e.actor,
                 "action": e.action,
-                "payload": e.payload,
                 "timestamp": e.timestamp.isoformat(),
+                "payload": e.payload,
             }
-            for e in errors
+            for e in events
         ],
     }
 
 
 @app.get("/v1/stats", tags=["observability"])
 async def stats():
-    """Get event store and system statistics."""
-    store_stats = await event_store.get_stats()
+    """System statistics."""
+    if not event_store:
+        return {"status": "no_event_store"}
+
+    all_events = await event_store.get_recent(limit=10000)
+    categories: dict[str, int] = {}
+    for e in all_events:
+        cat = e.category.value
+        categories[cat] = categories.get(cat, 0) + 1
+
     now = datetime.now(timezone.utc)
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.1.0-sprint1",
+            "version": "0.2.0-sprint1",
+            "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
-        "event_store": store_stats,
+        "event_store": {
+            "total_events": len(all_events),
+            "categories": categories,
+        },
+        "memory": {
+            "conversations": await conversation_memory.count() if conversation_memory else 0,
+        },
+        "knowledge": {
+            "entities": knowledge_graph.entity_count if knowledge_graph else 0,
+            "relations": knowledge_graph.relation_count if knowledge_graph else 0,
+        },
+    }
+
+
+@app.get("/v1/graph", tags=["observability"])
+async def graph_visualization():
+    """Get the execution graph as Mermaid diagram."""
+    if not kernel:
+        raise HTTPException(status_code=503, detail="Kernel not initialized")
+
+    return {
+        "mermaid": kernel.get_graph_mermaid(),
+        "ascii": kernel.get_graph_ascii(),
     }
 
 
 @app.get("/health", tags=["system"])
 async def health():
     """Health check endpoint."""
-    litellm_health = await router_engine.health_check()
-    store_stats = await event_store.get_stats()
     now = datetime.now(timezone.utc)
-
-    overall = "ok" if litellm_health.get("status") == "ok" else "degraded"
-
     return {
-        "status": overall,
-        "version": "0.1.0-sprint1",
+        "status": "healthy" if kernel else "degraded",
+        "version": "0.2.0-sprint1",
+        "motor": "langgraph",
         "uptime_seconds": (now - BOOT_TIME).total_seconds(),
-        "litellm": litellm_health,
-        "event_store": store_stats,
+        "components": {
+            "kernel": "active" if kernel else "inactive",
+            "event_store": "active" if event_store else "inactive",
+            "memory": "active" if conversation_memory else "inactive",
+            "knowledge": "active" if knowledge_graph else "inactive",
+        },
     }
