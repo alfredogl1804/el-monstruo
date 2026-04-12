@@ -1,0 +1,82 @@
+# El Monstruo — LiteLLM Router Configuration
+# Sprint 1 — Los 6 Sabios + Fallback Chains
+# Policy: El Monstruo decide el routing. LiteLLM ejecuta.
+
+general_settings:
+  master_key: sk-monstruo-dev
+  completion_model: gpt-5
+
+model_list:
+  # ── Sabio 1: GPT-5.4 (Orquestador Principal) ───────────────────
+  - model_name: gpt-5
+    litellm_params:
+      model: openai/gpt-5
+      api_key: os.environ/OPENAI_API_KEY
+      api_base: os.environ/OPENAI_API_BASE
+      max_tokens: 16384
+      temperature: 0.7
+
+  # ── Sabio 2: Claude Sonnet 4 ────────────────────────────────────
+  - model_name: claude-sonnet
+    litellm_params:
+      model: anthropic/claude-sonnet-4-20250514
+      api_key: os.environ/ANTHROPIC_API_KEY
+      max_tokens: 16384
+
+  # ── Sabio 3: Gemini 2.5 Flash ──────────────────────────────────
+  - model_name: gemini-flash
+    litellm_params:
+      model: gemini/gemini-2.5-flash
+      api_key: os.environ/GEMINI_API_KEY
+      max_tokens: 16384
+
+  # ── Sabio 4: Grok ──────────────────────────────────────────────
+  - model_name: grok
+    litellm_params:
+      model: xai/grok-3-mini
+      api_key: os.environ/XAI_API_KEY
+      max_tokens: 16384
+
+  # ── Sabio 5: DeepSeek R1 (via OpenRouter) ──────────────────────
+  - model_name: deepseek-r1
+    litellm_params:
+      model: openrouter/deepseek/deepseek-r1
+      api_key: os.environ/OPENROUTER_API_KEY
+      max_tokens: 16384
+
+  # ── Sabio 6: Perplexity Sonar (Investigación) ─────────────────
+  - model_name: sonar-pro
+    litellm_params:
+      model: openrouter/perplexity/sonar-pro
+      api_key: os.environ/OPENROUTER_API_KEY
+      max_tokens: 8192
+
+  # ── Modelo ligero para chat rápido ─────────────────────────────
+  - model_name: fast-chat
+    litellm_params:
+      model: gemini/gemini-2.5-flash
+      api_key: os.environ/GEMINI_API_KEY
+      max_tokens: 4096
+      temperature: 0.5
+
+router_settings:
+  routing_strategy: least-busy
+  num_retries: 3
+  timeout: 120
+  retry_after: 5
+  fallbacks:
+    - gpt-5: [claude-sonnet, gemini-flash]
+    - claude-sonnet: [gpt-5, gemini-flash]
+    - gemini-flash: [gpt-5, claude-sonnet]
+    - grok: [gpt-5, deepseek-r1]
+    - deepseek-r1: [grok, gpt-5]
+    - sonar-pro: [gpt-5, gemini-flash]
+    - fast-chat: [gpt-5]
+
+litellm_settings:
+  drop_params: true
+  set_verbose: false
+  cache: true
+  cache_params:
+    type: local
+    ttl: 3600
