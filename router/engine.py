@@ -1,9 +1,12 @@
 """
-El Monstruo — Router Engine (Día 1)
-=====================================
+El Monstruo — Router Engine (Convergencia Sprint 1)
+=====================================================
 Cliente del proxy LiteLLM para routing inteligente de modelos.
 El Router NO decide las transiciones de estado — eso es del Kernel.
 El Router solo decide: qué modelo usar y ejecuta la llamada.
+
+Convergencia: Ahora usa model_catalog.py para aliases y fallbacks.
+System prompts vienen de prompts/system_prompts.py (6 cerebros).
 
 Principio: El Monstruo decide el routing. LiteLLM ejecuta.
 """
@@ -21,26 +24,43 @@ from contracts.kernel_interface import IntentType
 logger = structlog.get_logger("router")
 
 
-# ── Intent → Model Mapping ──────────────────────────────────────────
+# ── Intent → LiteLLM Alias Mapping ──────────────────────────────────
+# Maps kernel intents to litellm_config.yaml aliases
+# Now includes expanded models from convergence
 
-# Configurable mapping: intent → preferred model name (as defined in litellm_config.yaml)
 DEFAULT_MODEL_MAP: dict[IntentType, str] = {
-    IntentType.CHAT: "fast-chat",         # Gemini 3.1 Flash Lite — rápido y barato
-    IntentType.DEEP_THINK: "gpt-5",       # GPT-5.4 — razonamiento complejo
-    IntentType.EXECUTE: "claude-sonnet",   # Claude Sonnet 4.6 — código y ejecución
-    IntentType.BACKGROUND: "gemini-flash", # Gemini 3.1 Flash Lite — tareas largas
-    IntentType.SYSTEM: "fast-chat",        # Respuestas rápidas del sistema
+    IntentType.CHAT: "fast-chat",           # Gemini 3.1 Flash Lite — rápido y barato
+    IntentType.DEEP_THINK: "gpt-5",         # GPT-5.4 — razonamiento complejo
+    IntentType.EXECUTE: "claude-sonnet",     # Claude Sonnet 4.6 — código y ejecución
+    IntentType.BACKGROUND: "gemini-flash",   # Gemini 3.1 Flash Lite — tareas largas
+    IntentType.SYSTEM: "fast-chat",          # Respuestas rápidas del sistema
 }
 
-# Fallback chain per model
+# Brain → LiteLLM Alias mapping (from Bot thread's 6 cerebros)
+BRAIN_MODEL_MAP: dict[str, str] = {
+    "estratega":     "gpt-5",
+    "investigador":  "sonar-reasoning",
+    "arquitecto":    "claude-opus",
+    "creativo":      "gemini-pro",
+    "critico":       "grok",
+    "operador":      "fast-chat",
+}
+
+# Fallback chain per LiteLLM alias
 FALLBACK_CHAIN: dict[str, list[str]] = {
-    "gpt-5": ["claude-sonnet", "gemini-flash"],
-    "claude-sonnet": ["gpt-5", "gemini-flash"],
-    "gemini-flash": ["gpt-5", "claude-sonnet"],
-    "fast-chat": ["gpt-5"],
-    "grok": ["gpt-5", "deepseek"],
+    "gpt-5": ["claude-opus", "claude-sonnet", "gemini-pro"],
+    "claude-opus": ["gpt-5", "claude-sonnet", "gemini-pro"],
+    "claude-sonnet": ["gpt-5", "claude-opus", "gemini-flash"],
+    "gemini-flash": ["gpt-5-mini", "kimi", "gpt-5"],
+    "gemini-pro": ["gpt-5", "claude-opus", "gemini-flash"],
+    "grok": ["gpt-5", "deepseek-r1", "claude-opus"],
+    "deepseek-r1": ["grok", "gpt-5", "claude-opus"],
     "deepseek": ["grok", "gpt-5"],
-    "sonar-pro": ["gpt-5", "gemini-flash"],
+    "sonar-reasoning": ["sonar-pro", "gpt-5", "grok"],
+    "sonar-pro": ["sonar-reasoning", "gpt-5", "gemini-flash"],
+    "gpt-5-mini": ["kimi", "gemini-flash"],
+    "kimi": ["gemini-flash", "gpt-5-mini"],
+    "fast-chat": ["gpt-5-mini", "kimi"],
 }
 
 # Intent classification prompt
@@ -61,7 +81,7 @@ class RouterEngine:
 
     Responsibilities:
         - Classify intent from user message
-        - Map intent to optimal model
+        - Map intent to optimal model (or brain to model)
         - Execute requests via LiteLLM proxy
         - Handle fallbacks on failure
         - Track usage (tokens, cost)
@@ -107,13 +127,25 @@ class RouterEngine:
     ) -> tuple[IntentType, str]:
         """
         Classify intent and select model.
-        Returns (intent, model_name).
+        Returns (intent, model_alias).
         """
         # Classify intent
         if self._use_llm_classification:
             intent = await self._classify_intent_llm(message)
         else:
             intent = _classify_intent_local(message)
+
+        # If context specifies a brain, use brain→model mapping
+        if context and context.get("brain"):
+            brain = context["brain"]
+            model = BRAIN_MODEL_MAP.get(brain, "gpt-5")
+            logger.info(
+                "route_by_brain",
+                brain=brain,
+                model=model,
+                channel=channel,
+            )
+            return intent, model
 
         # Select model based on intent
         model = self._model_map.get(intent, "gpt-5")
@@ -314,10 +346,23 @@ def _get_system_prompt(
     intent: IntentType,
     context: Optional[dict[str, Any]] = None,
 ) -> str:
-    """Get the system prompt based on intent."""
+    """
+    Get the system prompt. If context has a 'brain' key, use the rich
+    brain prompt from prompts/system_prompts.py. Otherwise, use the
+    default intent-based prompt.
+    """
+    # If a brain is specified, use the rich prompt from the Bot thread
+    if context and context.get("brain"):
+        try:
+            from prompts.system_prompts import get_brain_prompt
+            return get_brain_prompt(context["brain"])
+        except ImportError:
+            pass  # Fall through to default
+
+    # Default intent-based prompts
     base_identity = (
         "Eres El Monstruo, un sistema de inteligencia artificial soberana "
-        "creado por Alfredo Góngora para Hive Business Center. "
+        "creado por Alfredo Gongora para Hive Business Center. "
         "Respondes en español a menos que te hablen en otro idioma. "
         "Eres directo, preciso y profesional."
     )

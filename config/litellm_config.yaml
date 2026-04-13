@@ -1,58 +1,104 @@
 # El Monstruo — LiteLLM Router Configuration
-# Sprint 1 — Los 6 Sabios + Fallback Chains
+# Sprint 1 — Convergencia Kernel + Bot | 12 abril 2026
+# 12 modelos (was 7) + fallback chains expandidas
+# Anti-autoboicot: ALL model IDs validated in real-time 2026-04-12
 # Policy: El Monstruo decide el routing. LiteLLM ejecuta.
-# VALIDATED: 2026-04-12 — All model IDs double-validated in real-time
 
 general_settings:
   master_key: sk-monstruo-dev
   completion_model: gpt-5.4
 
 model_list:
-  # ── Sabio 1: GPT-5.4 (Orquestador Principal) ───────────────────
+  # ── TIER 1: Flagship ──────────────────────────────────────────────
+  # Sabio 1: GPT-5.4 (Orquestador Principal)
   - model_name: gpt-5
     litellm_params:
       model: openai/gpt-5.4
       api_key: os.environ/OPENAI_API_KEY
-      api_base: os.environ/OPENAI_API_BASE
       max_tokens: 16384
       temperature: 0.7
 
-  # ── Sabio 2: Claude Sonnet 4.6 ─────────────────────────────────
+  # Sabio 2: Claude Opus 4.6 (Analista / Arquitecto) — NEW
+  - model_name: claude-opus
+    litellm_params:
+      model: anthropic/claude-opus-4-6
+      api_key: os.environ/ANTHROPIC_API_KEY
+      max_tokens: 4096
+
+  # ── TIER 2: Especialistas ─────────────────────────────────────────
+  # Claude Sonnet 4.6 (Código / Ejecución)
   - model_name: claude-sonnet
     litellm_params:
       model: anthropic/claude-sonnet-4-6
       api_key: os.environ/ANTHROPIC_API_KEY
       max_tokens: 16384
 
-  # ── Sabio 3: Gemini 3.1 Flash Lite ────────────────────────────
-  - model_name: gemini-flash
-    litellm_params:
-      model: gemini/gemini-3.1-flash-lite
-      api_key: os.environ/GEMINI_API_KEY
-      max_tokens: 16384
-
-  # ── Sabio 4: Grok 4.20 ────────────────────────────────────────
+  # Grok 4.20 (Código / Crítico)
   - model_name: grok
     litellm_params:
       model: xai/grok-4.20-0309-reasoning
       api_key: os.environ/XAI_API_KEY
       max_tokens: 16384
 
-  # ── Sabio 5: DeepSeek V3.2 (via OpenRouter) ───────────────────
+  # DeepSeek R1 0528 (Razonador puro) — UPDATED from deepseek-v3.2
+  - model_name: deepseek-r1
+    litellm_params:
+      model: openrouter/deepseek/deepseek-r1-0528
+      api_key: os.environ/OPENROUTER_API_KEY
+      max_tokens: 16384
+
+  # DeepSeek V3.2 (Agentic / General) — kept for general tasks
   - model_name: deepseek
     litellm_params:
       model: openrouter/deepseek/deepseek-v3.2
       api_key: os.environ/OPENROUTER_API_KEY
       max_tokens: 16384
 
-  # ── Sabio 6: Perplexity Sonar Pro (Investigación) ─────────────
+  # Perplexity Sonar Reasoning Pro (Investigación profunda) — NEW
+  - model_name: sonar-reasoning
+    litellm_params:
+      model: openrouter/perplexity/sonar-reasoning-pro
+      api_key: os.environ/OPENROUTER_API_KEY
+      max_tokens: 4000
+
+  # Perplexity Sonar Pro (Investigación general)
   - model_name: sonar-pro
     litellm_params:
       model: openrouter/perplexity/sonar-pro
       api_key: os.environ/OPENROUTER_API_KEY
       max_tokens: 8192
 
-  # ── Modelo ligero para chat rápido ─────────────────────────────
+  # ── TIER 3: Rápidos y baratos ─────────────────────────────────────
+  # GPT-5.4-mini (Clasificador rápido) — NEW
+  - model_name: gpt-5-mini
+    litellm_params:
+      model: openai/gpt-5.4-mini
+      api_key: os.environ/OPENAI_API_KEY
+      max_tokens: 1000
+      temperature: 0.0
+
+  # Gemini 3.1 Flash Lite (Chat rápido / Background)
+  - model_name: gemini-flash
+    litellm_params:
+      model: gemini/gemini-3.1-flash-lite
+      api_key: os.environ/GEMINI_API_KEY
+      max_tokens: 16384
+
+  # Gemini 3.1 Pro (Creativo / Multimodal) — NEW
+  - model_name: gemini-pro
+    litellm_params:
+      model: gemini/gemini-3.1-pro-preview
+      api_key: os.environ/GEMINI_API_KEY
+      max_tokens: 4000
+
+  # Kimi K2.5 (Motor barato) — NEW
+  - model_name: kimi
+    litellm_params:
+      model: openrouter/moonshotai/kimi-k2.5
+      api_key: os.environ/OPENROUTER_API_KEY
+      max_tokens: 4000
+
+  # Fast-chat alias (for classifier and quick responses)
   - model_name: fast-chat
     litellm_params:
       model: gemini/gemini-3.1-flash-lite
@@ -66,13 +112,19 @@ router_settings:
   timeout: 120
   retry_after: 5
   fallbacks:
-    - gpt-5: [claude-sonnet, gemini-flash]
-    - claude-sonnet: [gpt-5, gemini-flash]
-    - gemini-flash: [gpt-5, claude-sonnet]
-    - grok: [gpt-5, deepseek]
+    - gpt-5: [claude-opus, claude-sonnet, gemini-pro]
+    - claude-opus: [gpt-5, claude-sonnet, gemini-pro]
+    - claude-sonnet: [gpt-5, claude-opus, gemini-flash]
+    - gemini-flash: [gpt-5-mini, kimi, gpt-5]
+    - gemini-pro: [gpt-5, claude-opus, gemini-flash]
+    - grok: [gpt-5, deepseek-r1, claude-opus]
+    - deepseek-r1: [grok, gpt-5, claude-opus]
     - deepseek: [grok, gpt-5]
-    - sonar-pro: [gpt-5, gemini-flash]
-    - fast-chat: [gpt-5]
+    - sonar-reasoning: [sonar-pro, gpt-5, grok]
+    - sonar-pro: [sonar-reasoning, gpt-5, gemini-flash]
+    - gpt-5-mini: [kimi, gemini-flash]
+    - kimi: [gemini-flash, gpt-5-mini]
+    - fast-chat: [gpt-5-mini, kimi]
 
 litellm_settings:
   drop_params: true
