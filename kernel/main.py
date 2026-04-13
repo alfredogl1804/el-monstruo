@@ -10,6 +10,7 @@ Endpoints:
     POST /v1/step          → Continue HITL-paused run
     POST /v1/feedback      → HITL feedback (approve/reject/edit)
     POST /v1/cancel        → Kill switch
+    GET  /v1/history       → Conversation history
     GET  /v1/status/{id}   → Run status
     GET  /v1/replay/{id}   → Full run replay
     GET  /v1/events/recent → Recent events
@@ -179,6 +180,10 @@ class ChatRequest(BaseModel):
     context: dict[str, Any] = Field(default_factory=dict)
     force_model: Optional[str] = None
     run_id: Optional[str] = None
+    # Thin-client fields (Telegram bot convergence)
+    session_id: Optional[str] = None
+    brain: Optional[str] = None
+    metadata: Optional[dict[str, Any]] = None
 
 class ChatResponse(BaseModel):
     run_id: str
@@ -193,6 +198,12 @@ class ChatResponse(BaseModel):
     enriched: bool = False
     memory_written: bool = False
     events_count: int = 0
+    # Thin-client contract fields (Telegram bot convergence)
+    brain_used: str = ""
+    tokens: dict[str, int] = Field(default_factory=dict)
+    policy_decisions: list[dict[str, Any]] = Field(default_factory=list)
+    requires_approval: bool = False
+    duration_ms: int = 0
 
 class StepRequest(BaseModel):
     run_id: str
@@ -230,6 +241,7 @@ async def chat(request: ChatRequest):
     """
     Main chat endpoint.
     Message enters → routes through 7-node LangGraph → response exits.
+    Supports both direct API calls and thin-client (Telegram bot) calls.
     """
     if not kernel:
         raise HTTPException(status_code=503, detail="Kernel not initialized")
@@ -237,18 +249,32 @@ async def chat(request: ChatRequest):
     context = request.context.copy()
     if request.force_model:
         context["force_model"] = request.force_model
+    # Pass thin-client fields into context for kernel processing
+    if request.brain:
+        context["brain"] = request.brain
+    if request.metadata:
+        context["metadata"] = request.metadata
+    if request.session_id:
+        context["session_id"] = request.session_id
 
     run_id = UUID(request.run_id) if request.run_id else uuid4()
 
     # Start observability trace
     trace_ctx = None
+    obs_metadata = {}
+    if request.force_model:
+        obs_metadata["force_model"] = request.force_model
+    if request.brain:
+        obs_metadata["brain"] = request.brain
+    if request.channel:
+        obs_metadata["channel"] = request.channel
     if observability:
         trace_ctx = observability.start_trace(
             run_id=str(run_id),
             user_id=request.user_id,
             channel=request.channel,
             message=request.message,
-            metadata={"force_model": request.force_model} if request.force_model else None,
+            metadata=obs_metadata or None,
         )
 
     run_input = RunInput(
@@ -291,6 +317,12 @@ async def chat(request: ChatRequest):
         enriched=metadata.get("enriched", False),
         memory_written=metadata.get("memory_written", False),
         events_count=metadata.get("events_count", 0),
+        # Thin-client contract fields
+        brain_used=metadata.get("brain_used", context.get("brain", "auto")),
+        tokens={"input": output.tokens_in, "output": output.tokens_out},
+        policy_decisions=metadata.get("policy_decisions", []),
+        requires_approval=output.status == RunStatus.WAITING_HUMAN,
+        duration_ms=int(output.latency_ms),
     )
 
 
@@ -551,6 +583,33 @@ async def stats():
     }
 
 
+@app.get("/v1/history", tags=["core"])
+async def history(user_id: Optional[str] = None, limit: int = 20):
+    """Get conversation history. Used by thin client and consola PWA."""
+    if not event_store:
+        return []
+
+    all_events = await event_store.get_recent(limit=limit * 3)  # Get more to filter
+
+    # Filter for chat-related events
+    chat_events = [
+        {
+            "event_id": str(e.event_id),
+            "run_id": str(e.run_id) if e.run_id else None,
+            "actor": e.actor,
+            "action": e.action,
+            "category": e.category.value,
+            "timestamp": e.timestamp.isoformat(),
+            "payload": e.payload,
+        }
+        for e in all_events
+        if (not user_id or e.actor == user_id)
+        and e.category.value in ("llm_call", "run_started", "run_completed", "human_feedback")
+    ][:limit]
+
+    return chat_events
+
+
 @app.get("/v1/graph", tags=["observability"])
 async def graph_visualization():
     """Get the execution graph as Mermaid diagram."""
@@ -565,13 +624,27 @@ async def graph_visualization():
 
 @app.get("/health", tags=["system"])
 async def health():
-    """Health check endpoint."""
+    """Health check endpoint. Compatible with thin-client contract."""
     now = datetime.now(timezone.utc)
+    # Build models_available from model catalog if available
+    models_available = []
+    try:
+        from config.model_catalog import MODEL_CATALOG
+        models_available = list(MODEL_CATALOG.keys())
+    except ImportError:
+        models_available = ["gpt-5", "claude-sonnet", "sonar-pro"]
+
+    obs_status = "active" if (observability and (observability.langfuse_enabled or observability.otel_enabled)) else "inactive"
+
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.2.0-sprint1",
+        "version": "0.3.0-sprint1",
         "motor": "langgraph",
-        "uptime_seconds": (now - BOOT_TIME).total_seconds(),
+        "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
+        # Thin-client contract fields
+        "models_available": models_available,
+        "observability": obs_status,
+        # Detailed components (for consola PWA)
         "components": {
             "kernel": "active" if kernel else "inactive",
             "event_store": "active" if event_store else "inactive",

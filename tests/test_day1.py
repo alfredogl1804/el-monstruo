@@ -350,7 +350,11 @@ class TestFastAPIEndpoints:
         resp = client.get("/health")
         assert resp.status_code == 200
         data = resp.json()
-        assert data["version"] == "0.2.0-sprint1"
+        assert data["version"] == "0.3.0-sprint1"
+        # Verify thin-client contract fields
+        assert "models_available" in data
+        assert "observability" in data
+        assert isinstance(data["models_available"], list)
 
     def test_chat_endpoint(self, client):
         resp = client.post("/v1/chat", json={
