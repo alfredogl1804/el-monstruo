@@ -1,17 +1,14 @@
 # El Monstruo — Railway Config
-# Sprint 1 — validated 2026-04-12
-# Docs: https://docs.railway.com/config-as-code
+# Fix 2026-04-13: eliminado startCommand (causa ambigüedad con CMD del Dockerfile)
+# El arranque lo maneja run.py dentro del contenedor
+# Recomendación del Consejo de Sabios
 
 [build]
-# Use Dockerfile instead of Nixpacks
 builder = "DOCKERFILE"
-dockerfilePath = "./Dockerfile"
+dockerfilePath = "Dockerfile.web"
 
 [deploy]
-# Railway injects PORT env var automatically
-startCommand = "sh -c 'python -m uvicorn kernel.main:app --host 0.0.0.0 --port ${PORT:-8000}'"
 healthcheckPath = "/health"
-healthcheckTimeout = 30
+healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
-numReplicas = 1

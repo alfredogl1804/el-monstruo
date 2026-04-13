@@ -1,9 +1,12 @@
 # El Monstruo — Kernel Dockerfile
-# Sprint 1 — validated 2026-04-12
-# Base: python:3.12-slim (LTS, pushed 2 days ago on Docker Hub)
+# Sprint 1 — fix aplicado 2026-04-13 por recomendación del Consejo de Sabios
+# Cambios: run.py wrapper (evita shell expansion), CACHE_BUST, renombrado a .web
 # Deploy target: Railway
 
 FROM python:3.12-slim AS base
+
+# Cache bust — cambiar este valor fuerza rebuild completo
+ARG CACHE_BUST=2026-04-13-v2
 
 WORKDIR /app
 
@@ -28,14 +31,13 @@ COPY . .
 # Environment
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
-# Railway injects PORT automatically — default to 8000
-ENV PORT=8000
+ENV PYTHONDONTWRITEBYTECODE=1
 
-# Health check
+# Health check (hardcoded 8000 — Railway overrides PORT at runtime, run.py handles it)
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/health || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
-EXPOSE ${PORT}
+EXPOSE 8000
 
-# Shell form allows ${PORT} expansion — confirmed fix from Railway community
-CMD uvicorn kernel.main:app --host 0.0.0.0 --port ${PORT:-8000}
+# Wrapper Python lee PORT desde env — CERO dependencia de shell expansion
+CMD ["python", "run.py"]
