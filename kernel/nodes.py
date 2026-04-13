@@ -144,7 +144,7 @@ async def route(state: MonstruoState, config: dict) -> dict[str, Any]:
     context = state.get("context", {})
     router, _, _, _ = _deps(config)
 
-    model = "gpt-5"
+    model = "gpt-5.4"
     fallbacks: list[str] = []
     reason = "default"
 
@@ -296,7 +296,7 @@ async def execute(state: MonstruoState, config: dict) -> dict[str, Any]:
     Handles retries with fallback models.
     """
     message = state.get("message", "")
-    model = state.get("model", "gpt-5")
+    model = state.get("model", "gpt-5.4")
     fallbacks = state.get("fallback_models", [])
     intent = state.get("intent", "chat")
     context = state.get("context", {})
@@ -615,11 +615,11 @@ def _default_model_for_intent(intent: str) -> tuple[str, list[str]]:
     Returns (primary_model, fallback_chain).
     """
     INTENT_MODELS = {
-        "chat": ("gemini-2.5-flash", ["gpt-5", "claude-sonnet-4-6"]),
-        "deep_think": ("gpt-5", ["claude-sonnet-4-6", "gemini-2.5-flash"]),
-        "execute": ("gpt-5", ["claude-sonnet-4-6", "gemini-2.5-flash"]),
-        "background": ("claude-sonnet-4-6", ["gpt-5", "gemini-2.5-flash"]),
-        "system": ("gemini-2.5-flash", ["gpt-5", "claude-sonnet-4-6"]),
+        "chat": ("gemini-3.1-flash-lite", ["gpt-5.4", "claude-sonnet-4-6"]),
+        "deep_think": ("gpt-5.4", ["claude-sonnet-4-6", "gemini-3.1-flash-lite"]),
+        "execute": ("gpt-5.4", ["claude-sonnet-4-6", "gemini-3.1-flash-lite"]),
+        "background": ("claude-sonnet-4-6", ["gpt-5.4", "gemini-3.1-flash-lite"]),
+        "system": ("gemini-3.1-flash-lite", ["gpt-5.4", "claude-sonnet-4-6"]),
     }
     return INTENT_MODELS.get(intent, INTENT_MODELS["chat"])
 
@@ -628,7 +628,7 @@ def _get_fallback_chain(intent: str, primary_model: str) -> list[str]:
     """
     Build fallback chain excluding the primary model.
     """
-    all_models = ["gpt-5", "claude-sonnet-4-6", "gemini-2.5-flash"]
+    all_models = ["gpt-5.4", "claude-sonnet-4-6", "gemini-3.1-flash-lite"]
     return [m for m in all_models if m != primary_model][:2]
 
 

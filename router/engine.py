@@ -25,10 +25,10 @@ logger = structlog.get_logger("router")
 
 # Configurable mapping: intent → preferred model name (as defined in litellm_config.yaml)
 DEFAULT_MODEL_MAP: dict[IntentType, str] = {
-    IntentType.CHAT: "fast-chat",         # Gemini Flash — rápido y barato
-    IntentType.DEEP_THINK: "gpt-5",       # GPT-5 — razonamiento complejo
-    IntentType.EXECUTE: "claude-sonnet",   # Claude — código y ejecución
-    IntentType.BACKGROUND: "gemini-flash", # Gemini — tareas largas
+    IntentType.CHAT: "fast-chat",         # Gemini 3.1 Flash Lite — rápido y barato
+    IntentType.DEEP_THINK: "gpt-5",       # GPT-5.4 — razonamiento complejo
+    IntentType.EXECUTE: "claude-sonnet",   # Claude Sonnet 4.6 — código y ejecución
+    IntentType.BACKGROUND: "gemini-flash", # Gemini 3.1 Flash Lite — tareas largas
     IntentType.SYSTEM: "fast-chat",        # Respuestas rápidas del sistema
 }
 
@@ -38,8 +38,8 @@ FALLBACK_CHAIN: dict[str, list[str]] = {
     "claude-sonnet": ["gpt-5", "gemini-flash"],
     "gemini-flash": ["gpt-5", "claude-sonnet"],
     "fast-chat": ["gpt-5"],
-    "grok": ["gpt-5", "deepseek-r1"],
-    "deepseek-r1": ["grok", "gpt-5"],
+    "grok": ["gpt-5", "deepseek"],
+    "deepseek": ["grok", "gpt-5"],
     "sonar-pro": ["gpt-5", "gemini-flash"],
 }
 

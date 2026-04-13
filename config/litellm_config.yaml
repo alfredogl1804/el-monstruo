@@ -1,50 +1,51 @@
 # El Monstruo — LiteLLM Router Configuration
 # Sprint 1 — Los 6 Sabios + Fallback Chains
 # Policy: El Monstruo decide el routing. LiteLLM ejecuta.
+# VALIDATED: 2026-04-12 — All model IDs double-validated in real-time
 
 general_settings:
   master_key: sk-monstruo-dev
-  completion_model: gpt-5
+  completion_model: gpt-5.4
 
 model_list:
   # ── Sabio 1: GPT-5.4 (Orquestador Principal) ───────────────────
   - model_name: gpt-5
     litellm_params:
-      model: openai/gpt-5
+      model: openai/gpt-5.4
       api_key: os.environ/OPENAI_API_KEY
       api_base: os.environ/OPENAI_API_BASE
       max_tokens: 16384
       temperature: 0.7
 
-  # ── Sabio 2: Claude Sonnet 4 ────────────────────────────────────
+  # ── Sabio 2: Claude Sonnet 4.6 ─────────────────────────────────
   - model_name: claude-sonnet
     litellm_params:
-      model: anthropic/claude-sonnet-4-20250514
+      model: anthropic/claude-sonnet-4-6
       api_key: os.environ/ANTHROPIC_API_KEY
       max_tokens: 16384
 
-  # ── Sabio 3: Gemini 2.5 Flash ──────────────────────────────────
+  # ── Sabio 3: Gemini 3.1 Flash Lite ────────────────────────────
   - model_name: gemini-flash
     litellm_params:
-      model: gemini/gemini-2.5-flash
+      model: gemini/gemini-3.1-flash-lite
       api_key: os.environ/GEMINI_API_KEY
       max_tokens: 16384
 
-  # ── Sabio 4: Grok ──────────────────────────────────────────────
+  # ── Sabio 4: Grok 4.20 ────────────────────────────────────────
   - model_name: grok
     litellm_params:
-      model: xai/grok-3-mini
+      model: xai/grok-4.20-0309-reasoning
       api_key: os.environ/XAI_API_KEY
       max_tokens: 16384
 
-  # ── Sabio 5: DeepSeek R1 (via OpenRouter) ──────────────────────
-  - model_name: deepseek-r1
+  # ── Sabio 5: DeepSeek V3.2 (via OpenRouter) ───────────────────
+  - model_name: deepseek
     litellm_params:
-      model: openrouter/deepseek/deepseek-r1
+      model: openrouter/deepseek/deepseek-v3.2
       api_key: os.environ/OPENROUTER_API_KEY
       max_tokens: 16384
 
-  # ── Sabio 6: Perplexity Sonar (Investigación) ─────────────────
+  # ── Sabio 6: Perplexity Sonar Pro (Investigación) ─────────────
   - model_name: sonar-pro
     litellm_params:
       model: openrouter/perplexity/sonar-pro
@@ -54,7 +55,7 @@ model_list:
   # ── Modelo ligero para chat rápido ─────────────────────────────
   - model_name: fast-chat
     litellm_params:
-      model: gemini/gemini-2.5-flash
+      model: gemini/gemini-3.1-flash-lite
       api_key: os.environ/GEMINI_API_KEY
       max_tokens: 4096
       temperature: 0.5
@@ -68,8 +69,8 @@ router_settings:
     - gpt-5: [claude-sonnet, gemini-flash]
     - claude-sonnet: [gpt-5, gemini-flash]
     - gemini-flash: [gpt-5, claude-sonnet]
-    - grok: [gpt-5, deepseek-r1]
-    - deepseek-r1: [grok, gpt-5]
+    - grok: [gpt-5, deepseek]
+    - deepseek: [grok, gpt-5]
     - sonar-pro: [gpt-5, gemini-flash]
     - fast-chat: [gpt-5]
 

@@ -1,5 +1,5 @@
 # El Monstruo — Docker Compose (Development)
-# Sprint 1 — Día 0
+# Sprint 1 — Updated 2026-04-12 (all versions double-validated)
 # Policy: LiteLLM ONLY via Docker (supply chain risk mitigation)
 
 services:
@@ -7,7 +7,7 @@ services:
   # ── LiteLLM Proxy (Router) ──────────────────────────────────────
   # NEVER pip install litellm. Docker image only.
   litellm:
-    image: ghcr.io/berriai/litellm:main-v1.83.7.dev1
+    image: ghcr.io/berriai/litellm:main-v1.83.7.rc.1
     container_name: monstruo-litellm
     ports:
       - "4000:4000"
@@ -32,7 +32,7 @@ services:
 
   # ── Langfuse (Observability) ────────────────────────────────────
   langfuse:
-    image: langfuse/langfuse:2
+    image: langfuse/langfuse:3
     container_name: monstruo-langfuse
     ports:
       - "3001:3000"
@@ -50,7 +50,7 @@ services:
 
   # ── Langfuse Postgres ───────────────────────────────────────────
   langfuse-db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: monstruo-langfuse-db
     ports:
       - "5433:5432"

@@ -97,25 +97,25 @@ class TestIntentClassification:
 class TestModelRouting:
     def test_chat_model(self):
         model, fallbacks = _default_model_for_intent("chat")
-        assert model == "gemini-2.5-flash"
+        assert model == "gemini-3.1-flash-lite"
         assert len(fallbacks) == 2
 
     def test_deep_think_model(self):
         model, fallbacks = _default_model_for_intent("deep_think")
-        assert model == "gpt-5"
+        assert model == "gpt-5.4"
         assert "claude-sonnet-4-6" in fallbacks
 
     def test_execute_model(self):
         model, fallbacks = _default_model_for_intent("execute")
-        assert model == "gpt-5"
+        assert model == "gpt-5.4"
 
     def test_system_model(self):
         model, fallbacks = _default_model_for_intent("system")
-        assert model == "gemini-2.5-flash"
+        assert model == "gemini-3.1-flash-lite"
 
     def test_unknown_defaults_to_chat(self):
         model, _ = _default_model_for_intent("unknown")
-        assert model == "gemini-2.5-flash"
+        assert model == "gemini-3.1-flash-lite"
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -183,7 +183,7 @@ class TestKernelExecution:
         assert out.status == RunStatus.COMPLETED
         assert out.intent == IntentType.CHAT
         assert out.response
-        assert out.model_used == "gemini-2.5-flash"
+        assert out.model_used == "gemini-3.1-flash-lite"
 
     @pytest.mark.asyncio
     async def test_deep_think(self, kernel):
@@ -192,7 +192,7 @@ class TestKernelExecution:
         assert out.status == RunStatus.COMPLETED
         assert out.intent == IntentType.DEEP_THINK
         assert out.metadata.get("enriched") is True
-        assert out.model_used == "gpt-5"
+        assert out.model_used == "gpt-5.4"
 
     @pytest.mark.asyncio
     async def test_execute_intent(self, kernel):

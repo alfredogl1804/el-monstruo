@@ -86,7 +86,7 @@ class LangGraphKernel(KernelInterface):
             checkpointer=self._checkpointer,
         )
 
-        logger.info("kernel_initialized", motor="langgraph", version="0.4.1")
+        logger.info("kernel_initialized", motor="langgraph", version="1.1.6")
 
     def _build_graph(self) -> StateGraph:
         """

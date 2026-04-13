@@ -435,7 +435,7 @@ class TestCheckpointStore:
             active_runs=3,
             total_runs_today=42,
             total_cost_today_usd=1.23,
-            models_available=["gpt-5", "claude-sonnet"],
+            models_available=["gpt-5.4", "claude-sonnet"],
         )
 
         loop.run_until_complete(checkpoint_store.save_system_state(state))
