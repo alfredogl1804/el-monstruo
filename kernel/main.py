@@ -39,6 +39,7 @@ from kernel.engine import LangGraphKernel
 from memory.event_store import EventStore
 from memory.conversation import ConversationMemory
 from memory.knowledge_graph import KnowledgeGraph
+from observability.manager import ObservabilityManager
 
 # ── Structured Logging ──────────────────────────────────────────────
 
@@ -58,6 +59,7 @@ kernel: Optional[LangGraphKernel] = None
 event_store: Optional[EventStore] = None
 conversation_memory: Optional[ConversationMemory] = None
 knowledge_graph: Optional[KnowledgeGraph] = None
+observability: Optional[ObservabilityManager] = None
 BOOT_TIME = datetime.now(timezone.utc)
 
 
@@ -66,7 +68,7 @@ BOOT_TIME = datetime.now(timezone.utc)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize all sovereign components on startup."""
-    global kernel, event_store, conversation_memory, knowledge_graph, BOOT_TIME
+    global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
     logger.info("monstruo_starting", version="0.2.0-sprint1", motor="langgraph")
@@ -90,12 +92,18 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning("router_init_failed", error=str(e))
 
+    # Initialize observability (Langfuse v4 + OpenTelemetry)
+    observability = ObservabilityManager()
+    obs_status = await observability.initialize()
+    logger.info("observability_status", **obs_status)
+
     # Initialize the LangGraph Kernel with all dependencies
     kernel = LangGraphKernel(
         router=router,
         event_store=event_store,
         memory=conversation_memory,
         knowledge=knowledge_graph,
+        observability=observability,
     )
 
     # Emit startup event
@@ -128,6 +136,10 @@ async def lifespan(app: FastAPI):
             await router.close()
         except Exception:
             pass
+
+    # Shutdown observability
+    if observability:
+        await observability.shutdown()
 
     await event_store.append(
         EventBuilder()
@@ -219,6 +231,17 @@ async def chat(request: ChatRequest):
 
     run_id = UUID(request.run_id) if request.run_id else uuid4()
 
+    # Start observability trace
+    trace_ctx = None
+    if observability:
+        trace_ctx = observability.start_trace(
+            run_id=str(run_id),
+            user_id=request.user_id,
+            channel=request.channel,
+            message=request.message,
+            metadata={"force_model": request.force_model} if request.force_model else None,
+        )
+
     run_input = RunInput(
         run_id=run_id,
         user_id=request.user_id,
@@ -228,6 +251,22 @@ async def chat(request: ChatRequest):
     )
 
     output = await kernel.start_run(run_input)
+
+    # End observability trace
+    if observability and trace_ctx:
+        observability.end_trace(
+            ctx=trace_ctx,
+            output=output.response,
+            status=output.status.value,
+            metadata={
+                "model_used": output.model_used,
+                "tokens_in": output.tokens_in,
+                "tokens_out": output.tokens_out,
+                "cost_usd": output.cost_usd,
+                "latency_ms": output.latency_ms,
+            },
+        )
+        await observability.flush()
 
     metadata = output.metadata or {}
     return ChatResponse(
@@ -470,5 +509,7 @@ async def health():
             "event_store": "active" if event_store else "inactive",
             "memory": "active" if conversation_memory else "inactive",
             "knowledge": "active" if knowledge_graph else "inactive",
+            "langfuse": "active" if (observability and observability.langfuse_enabled) else "inactive",
+            "opentelemetry": "active" if (observability and observability.otel_enabled) else "inactive",
         },
     }

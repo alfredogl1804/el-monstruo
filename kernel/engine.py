@@ -70,12 +70,14 @@ class LangGraphKernel(KernelInterface):
         memory: Any = None,
         knowledge: Any = None,
         checkpoint_store: Any = None,
+        observability: Any = None,
     ) -> None:
         self._router = router
         self._event_store = event_store
         self._memory = memory
         self._knowledge = knowledge
         self._checkpoint_store = checkpoint_store
+        self._observability = observability
         self._hooks: dict[str, list[Callable[..., Any]]] = {}
         self._runs: dict[UUID, MonstruoState] = {}
 
