@@ -37,4 +37,5 @@ HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
 
 EXPOSE ${PORT}
 
-CMD ["python", "-m", "uvicorn", "kernel.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Shell form allows ${PORT} expansion — confirmed fix from Railway community
+CMD uvicorn kernel.main:app --host 0.0.0.0 --port ${PORT:-8000}
