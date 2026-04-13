@@ -8,6 +8,7 @@ Endpoints:
     POST /v1/chat          → Main chat (message → response)
     POST /v1/chat/stream   → Streaming via SSE
     POST /v1/step          → Continue HITL-paused run
+    POST /v1/feedback      → HITL feedback (approve/reject/edit)
     POST /v1/cancel        → Kill switch
     GET  /v1/status/{id}   → Run status
     GET  /v1/replay/{id}   → Full run replay
@@ -202,6 +203,14 @@ class CancelRequest(BaseModel):
     run_id: str
     reason: str = ""
 
+class FeedbackRequest(BaseModel):
+    """HITL feedback from Telegram or other channels."""
+    run_id: str
+    action: str = Field(..., description="approve | reject | edit | escalate")
+    user_id: str = Field(default="alfredo")
+    comment: Optional[str] = None
+    edited_response: Optional[str] = None
+
 
 # ── Endpoints ───────────────────────────────────────────────────────
 
@@ -361,6 +370,65 @@ async def cancel(request: CancelRequest):
         raise HTTPException(status_code=404, detail="Run not found or already terminal")
 
     return {"run_id": request.run_id, "cancelled": True, "reason": request.reason}
+
+
+@app.post("/v1/feedback", tags=["core"])
+async def feedback(request: FeedbackRequest):
+    """
+    HITL feedback endpoint.
+    The bot sends approval/rejection/edits here after user reviews a response.
+    """
+    if not kernel:
+        raise HTTPException(status_code=503, detail="Kernel not initialized")
+
+    try:
+        run_id = UUID(request.run_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid run_id format")
+
+    # Record feedback event
+    if event_store:
+        await event_store.append(
+            EventBuilder()
+            .category(EventCategory.HUMAN_FEEDBACK)
+            .actor(request.user_id)
+            .action(f"feedback:{request.action}")
+            .for_run(run_id)
+            .with_payload({
+                "action": request.action,
+                "comment": request.comment,
+                "edited_response": request.edited_response,
+            })
+            .build()
+        )
+
+    # If action is "approve" and run is paused, continue it
+    result = {"run_id": request.run_id, "action": request.action, "processed": True}
+
+    if request.action == "approve":
+        try:
+            status = await kernel.get_status(run_id)
+            if status == RunStatus.WAITING_HUMAN:
+                output = await kernel.step(run_id, {"response": "approved", "comment": request.comment})
+                result["continued"] = True
+                result["new_status"] = output.status.value
+        except ValueError:
+            result["continued"] = False
+            result["note"] = "Run not found or not in WAITING_HUMAN state"
+
+    elif request.action == "reject":
+        try:
+            await kernel.cancel(run_id, reason=request.comment or "Rejected by user")
+            result["cancelled"] = True
+        except Exception:
+            result["cancelled"] = False
+
+    elif request.action == "edit" and request.edited_response:
+        # Store the edited response as an override
+        result["edited"] = True
+        result["note"] = "Edited response recorded in event store"
+
+    return result
 
 
 @app.get("/v1/status/{run_id}", tags=["core"])

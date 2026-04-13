@@ -71,6 +71,11 @@ class EventCategory(enum.Enum):
     SYSTEM_SHUTDOWN = "system.shutdown"
     SYSTEM_HEALTH = "system.health"
 
+    # Human-in-the-loop events
+    HUMAN_FEEDBACK = "hitl.feedback"
+    HUMAN_APPROVED = "hitl.approved"
+    HUMAN_REJECTED = "hitl.rejected"
+
     # Channel events
     MESSAGE_RECEIVED = "channel.message.received"
     MESSAGE_SENT = "channel.message.sent"
