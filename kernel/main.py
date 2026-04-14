@@ -321,7 +321,7 @@ async def chat(request: ChatRequest):
         brain_used=metadata.get("brain_used", context.get("brain", "auto")),
         tokens={"input": output.tokens_in, "output": output.tokens_out},
         policy_decisions=metadata.get("policy_decisions", []),
-        requires_approval=output.status == RunStatus.WAITING_HUMAN,
+        requires_approval=output.status == RunStatus.AWAITING_HUMAN,
         duration_ms=int(output.latency_ms),
     )
 
@@ -440,13 +440,13 @@ async def feedback(request: FeedbackRequest):
     if request.action == "approve":
         try:
             status = await kernel.get_status(run_id)
-            if status == RunStatus.WAITING_HUMAN:
+            if status == RunStatus.AWAITING_HUMAN:
                 output = await kernel.step(run_id, {"response": "approved", "comment": request.comment})
                 result["continued"] = True
                 result["new_status"] = output.status.value
         except ValueError:
             result["continued"] = False
-            result["note"] = "Run not found or not in WAITING_HUMAN state"
+            result["note"] = "Run not found or not in AWAITING_HUMAN state"
 
     elif request.action == "reject":
         try:
