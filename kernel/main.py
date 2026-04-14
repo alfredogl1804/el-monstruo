@@ -75,9 +75,19 @@ async def lifespan(app: FastAPI):
     BOOT_TIME = datetime.now(timezone.utc)
     logger.info("monstruo_starting", version="0.2.0-sprint1", motor="langgraph")
 
-    # Initialize sovereign components
+    # Initialize Supabase client for persistence
+    from memory.supabase_client import SupabaseClient
+    db = SupabaseClient()
+    db_connected = await db.connect()
+    if db_connected:
+        logger.info("supabase_connected", url=db._url[:50])
+    else:
+        logger.warning("supabase_not_connected", msg="Memory will be in-memory only")
+
+    # Initialize sovereign components with Supabase persistence
     event_store = EventStore()
-    conversation_memory = ConversationMemory()
+    conversation_memory = ConversationMemory(db=db if db_connected else None)
+    await conversation_memory.initialize()
     knowledge_graph = KnowledgeGraph()
 
     # Initialize sovereign router (native SDKs, no LiteLLM proxy)

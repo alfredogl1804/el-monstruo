@@ -169,7 +169,7 @@ class ConversationMemory(MemoryInterface):
         memory_types: Optional[list[MemoryType]] = None,
         limit: int = 10,
     ) -> list[SearchResult]:
-        """Search by keywords (simple substring matching in-memory)."""
+        """Search by keywords. In-memory first, Supabase fallback."""
         query_lower = query.lower()
         query_words = set(query_lower.split())
         results = []
@@ -178,21 +178,59 @@ class ConversationMemory(MemoryInterface):
         if user_id:
             candidates = self._by_user.get(user_id, [])
 
-        for event in candidates:
-            if memory_types and event.memory_type not in memory_types:
-                continue
+        # If in-memory is empty, try Supabase
+        if not candidates and self._db and self._db.connected:
+            try:
+                filters = {}
+                if user_id:
+                    filters["user_id"] = user_id
+                rows = await self._db.select(
+                    "memory_events",
+                    columns="event_id,content,metadata,memory_type,user_id,channel,created_at",
+                    filters=filters,
+                    order_by="created_at",
+                    order_desc=True,
+                    limit=50,  # Get recent events for keyword search
+                )
+                for row in rows:
+                    content_lower = (row.get("content", "") or "").lower()
+                    content_words = set(content_lower.split())
+                    overlap = len(query_words & content_words)
+                    if overlap > 0:
+                        score = overlap / max(len(query_words), 1)
+                        # Create a lightweight MemoryEvent from DB row
+                        from datetime import datetime as dt
+                        event = MemoryEvent(
+                            event_id=UUID(row["event_id"]) if row.get("event_id") else uuid4(),
+                            memory_type=MemoryType(row.get("memory_type", "episodic")),
+                            user_id=row.get("user_id"),
+                            channel=row.get("channel"),
+                            content=row.get("content", ""),
+                            metadata=row.get("metadata", {}),
+                        )
+                        results.append(SearchResult(
+                            event=event,
+                            score=score,
+                            source="keyword_supabase",
+                        ))
+                logger.info("keyword_search_from_supabase", results=len(results), query=query[:50])
+            except Exception as e:
+                logger.warning("keyword_search_supabase_failed", error=str(e))
+        else:
+            for event in candidates:
+                if memory_types and event.memory_type not in memory_types:
+                    continue
 
-            content_lower = event.content.lower()
-            # Score based on word overlap
-            content_words = set(content_lower.split())
-            overlap = len(query_words & content_words)
-            if overlap > 0:
-                score = overlap / max(len(query_words), 1)
-                results.append(SearchResult(
-                    event=event,
-                    score=score,
-                    source="keyword",
-                ))
+                content_lower = event.content.lower()
+                content_words = set(content_lower.split())
+                overlap = len(query_words & content_words)
+                if overlap > 0:
+                    score = overlap / max(len(query_words), 1)
+                    results.append(SearchResult(
+                        event=event,
+                        score=score,
+                        source="keyword",
+                    ))
 
         # Sort by score descending
         results.sort(key=lambda r: r.score, reverse=True)
@@ -348,6 +386,7 @@ class ConversationMemory(MemoryInterface):
         """
         Build conversation context for LLM calls.
         Returns recent messages in OpenAI-compatible format.
+        Reads from in-memory first, falls back to Supabase for persistence.
         """
         user_events = self._by_user.get(user_id, [])
 
@@ -358,7 +397,38 @@ class ConversationMemory(MemoryInterface):
             and (not channel or e.channel == channel)
         ]
 
-        # Take the most recent
+        # If in-memory is empty but Supabase is connected, read from DB
+        if not relevant and self._db and self._db.connected:
+            try:
+                filters = {"user_id": user_id, "memory_type": "episodic"}
+                if channel:
+                    filters["channel"] = channel
+                rows = await self._db.select(
+                    "memory_events",
+                    columns="content,metadata,created_at",
+                    filters=filters,
+                    order_by="created_at",
+                    order_desc=False,
+                    limit=max_messages,
+                )
+                if rows:
+                    messages = []
+                    total_chars = 0
+                    char_limit = max_tokens * 4
+                    for row in rows[-max_messages:]:
+                        meta = row.get("metadata", {}) or {}
+                        role = meta.get("role", "user")
+                        content = row.get("content", "")
+                        if total_chars + len(content) > char_limit:
+                            break
+                        messages.append({"role": role, "content": content})
+                        total_chars += len(content)
+                    logger.info("conversation_context_from_supabase", messages=len(messages), user_id=user_id)
+                    return messages
+            except Exception as e:
+                logger.warning("conversation_context_supabase_failed", error=str(e))
+
+        # Take the most recent from in-memory
         recent = relevant[-max_messages:]
 
         # Build messages
