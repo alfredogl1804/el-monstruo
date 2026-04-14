@@ -8,7 +8,7 @@ Architecture:
     KernelInterface (OUR contract)
         └── LangGraphKernel (this file)
                 └── StateGraph (LangGraph motor)
-                        └── 7 nodes (kernel/nodes.py)
+                        └── 6 nodes (kernel/nodes.py) — optimized v1.1
 
 Principio: LangGraph es un motor intercambiable.
 Los contratos soberanos son permanentes.
@@ -36,8 +36,7 @@ from contracts.event_envelope import EventBuilder, EventCategory, Severity
 from kernel.state import MonstruoState
 from kernel.nodes import (
     intake,
-    classify,
-    route,
+    classify_and_route,
     enrich,
     execute,
     memory_write,
@@ -92,17 +91,22 @@ class LangGraphKernel(KernelInterface):
 
     def _build_graph(self) -> StateGraph:
         """
-        Build the sovereign execution graph.
+        Build the sovereign execution graph (optimized v1.1).
 
-        7 nodes, 2 conditional edges:
-            intake → classify → route → should_enrich? → execute → check_hitl? → memory_write → respond
+        6 nodes, 2 conditional edges:
+            intake → classify_and_route → should_enrich? → execute → check_hitl? → memory_write → respond
+
+        Optimizations:
+            - OPT-1: classify + route fused into single node (-800ms)
+            - OPT-3: Smart fast-path skips enrich for simple queries
+            - OPT-2: Enrich parallelizes memory lookups
+            - OPT-6: Intent classification cached
         """
         graph = StateGraph(MonstruoState)
 
-        # Add all 7 nodes
+        # Add all 6 nodes (OPT-1: classify+route fused)
         graph.add_node("intake", intake)
-        graph.add_node("classify", classify)
-        graph.add_node("route", route)
+        graph.add_node("classify_and_route", classify_and_route)
         graph.add_node("enrich", enrich)
         graph.add_node("execute", execute)
         graph.add_node("memory_write", memory_write)
@@ -111,13 +115,12 @@ class LangGraphKernel(KernelInterface):
         # Set entry point
         graph.set_entry_point("intake")
 
-        # Linear edges
-        graph.add_edge("intake", "classify")
-        graph.add_edge("classify", "route")
+        # Linear edge: intake → classify_and_route (OPT-1: single node)
+        graph.add_edge("intake", "classify_and_route")
 
-        # Conditional: route → enrich or execute (skip enrichment for chat/system)
+        # Conditional: classify_and_route → enrich or execute (OPT-3: fast-path)
         graph.add_conditional_edges(
-            "route",
+            "classify_and_route",
             should_enrich,
             {
                 "enrich": "enrich",

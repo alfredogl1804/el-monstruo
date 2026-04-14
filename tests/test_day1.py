@@ -294,12 +294,12 @@ class TestGraphExport:
     def test_mermaid_export(self, kernel):
         mermaid = kernel.get_graph_mermaid()
         assert len(mermaid) > 0
-        for node in ["intake", "classify", "route", "enrich", "execute", "memory_write", "respond"]:
+        for node in ["intake", "classify_and_route", "enrich", "execute", "memory_write", "respond"]:
             assert node in mermaid, f"Node {node} not found in graph"
 
     def test_graph_has_seven_nodes(self, kernel):
         mermaid = kernel.get_graph_mermaid()
-        node_names = ["intake", "classify", "route", "enrich", "execute", "memory_write", "respond"]
+        node_names = ["intake", "classify_and_route", "enrich", "execute", "memory_write", "respond"]
         for name in node_names:
             assert name in mermaid
 
