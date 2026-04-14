@@ -39,6 +39,17 @@ from contracts.kernel_interface import IntentType, RunStatus
 from contracts.event_envelope import EventBuilder, EventCategory, Severity
 from kernel.state import MonstruoState
 
+# Action Envelope v2.0 — Governance
+from core.action_envelope import (
+    ActionType,
+    ResourceKind,
+    ActorRef,
+    ResourceRef,
+    create_envelope,
+    envelope_to_dict,
+)
+from core.action_validator import validate_and_classify
+
 logger = structlog.get_logger("kernel.nodes")
 
 
@@ -357,6 +368,81 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
         }) \
         .build()
 
+    # ── Action Envelope v2.0: Governance ──────────────────────────
+    # Create and validate an ActionEnvelope for this request
+    envelope_dict = None
+    policy_decision_str = "ALLOW"
+    risk_level_str = "L1_SAFE"
+    trust_ring_str = "R2_USER_DELEGATED"
+    needs_hitl = False
+    hitl_reason = ""
+
+    try:
+        # Map intent to ActionType
+        intent_to_action_type = {
+            "chat": ActionType.READ,
+            "deep_think": ActionType.READ,
+            "execute": ActionType.EXECUTE,
+            "system": ActionType.READ,
+            "background": ActionType.READ,
+        }
+        action_type = intent_to_action_type.get(intent, ActionType.READ)
+
+        # Map intent to ResourceKind
+        intent_to_resource = {
+            "chat": ResourceKind.MEMORY,
+            "deep_think": ResourceKind.MEMORY,
+            "execute": ResourceKind.TOOL,
+            "system": ResourceKind.MEMORY,
+            "background": ResourceKind.MEMORY,
+        }
+        resource_kind = intent_to_resource.get(intent, ResourceKind.MEMORY)
+
+        # Determine actor type from channel
+        actor_type = "user" if channel in ("telegram", "console", "api") else "agent"
+
+        envelope = create_envelope(
+            session_id=state.get("run_id", str(uuid4())),
+            trace_id=state.get("run_id", str(uuid4())),
+            actor=ActorRef(actor_id=user_id, actor_type=actor_type),
+            action_type=action_type,
+            target=ResourceRef(
+                resource_kind=resource_kind,
+                resource_id=f"{intent}_{state.get('run_id', 'unknown')[:8]}",
+                locator=f"kernel://{intent}/execute",
+            ),
+            operation=f"{intent}_response",
+            payload={"message_preview": message[:100], "model": state.get("model", "unknown")},
+            intent_summary=f"{intent}: {message[:200]}",
+        )
+
+        # Validate and classify through policy engine
+        envelope, validation_result = validate_and_classify(envelope)
+
+        # Extract governance decisions
+        envelope_dict = envelope_to_dict(envelope)
+        if envelope.policy_decision:
+            policy_decision_str = envelope.policy_decision.decision
+            risk_level_str = envelope.policy_decision.risk_level.value
+            trust_ring_str = envelope.policy_decision.trust_ring.value
+            needs_hitl = envelope.policy_decision.requires_hitl
+            hitl_reason = envelope.policy_decision.reason
+
+        logger.info(
+            "action_envelope_created",
+            action_id=envelope.action_id,
+            action_type=envelope.action_type.value,
+            risk=risk_level_str,
+            trust=trust_ring_str,
+            decision=policy_decision_str,
+            requires_hitl=needs_hitl,
+            reclassified=validation_result.reclassified,
+        )
+
+    except Exception as e:
+        logger.warning("action_envelope_failed", error=str(e))
+        # Non-fatal: governance is advisory in Sprint 1, not blocking
+
     existing_events = state.get("events", [])
     return {
         "conversation_context": conversation_context,
@@ -365,10 +451,17 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
         "system_prompt": system_prompt,
         "enriched": True,
         "events": existing_events + [_event_to_dict(event)],
+        # Governance fields
+        "action_envelope": envelope_dict,
+        "policy_decision": policy_decision_str,
+        "risk_level": risk_level_str,
+        "trust_ring": trust_ring_str,
+        "needs_human_approval": needs_hitl,
+        "human_approval_reason": hitl_reason,
     }
 
 
-# ══════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════
 # Node 4: EXECUTE
 # ══════════════════════════════════════════════════════════════════════
 

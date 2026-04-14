@@ -88,3 +88,9 @@ class MonstruoState(TypedDict, total=False):
     needs_human_approval: bool     # Whether to pause for human review
     human_approval_reason: str     # Why approval is needed
     human_response: Optional[str]  # Response from human (after resume)
+
+    # ── Governance (set at enrich — Action Envelope v2.0) ─────────
+    action_envelope: Optional[dict[str, Any]]  # Serialized ActionEnvelope
+    policy_decision: Optional[str]             # ALLOW | HITL | BLOCK
+    risk_level: Optional[str]                  # L1_SAFE | L2_CAUTION | L3_SENSITIVE
+    trust_ring: Optional[str]                  # R0_KERNEL | R1_INTERNAL | R2_USER | R3_UNTRUSTED
