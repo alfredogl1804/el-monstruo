@@ -71,17 +71,15 @@ class ConversationMemory(MemoryInterface):
 
     async def initialize(self) -> None:
         """Initialize embedding client and DB connection."""
-        # Try to set up embedding generation
-        try:
-            import httpx
-            litellm_url = os.environ.get("LITELLM_URL", "http://localhost:4000")
-            self._embedding_client = httpx.AsyncClient(
-                base_url=litellm_url,
-                timeout=30.0,
-            )
-            logger.info("embedding_client_initialized", model=self._embedding_model)
-        except Exception as e:
-            logger.warning("embedding_client_failed", error=str(e))
+        # Embedding generation uses OpenAI or Gemini directly (no LiteLLM proxy)
+        openai_key = os.environ.get("OPENAI_API_KEY")
+        gemini_key = os.environ.get("GEMINI_API_KEY")
+        if openai_key:
+            logger.info("embedding_client_initialized", provider="openai", model=self._embedding_model)
+        elif gemini_key:
+            logger.info("embedding_client_initialized", provider="gemini", model="text-embedding-004")
+        else:
+            logger.warning("embedding_no_provider", msg="No OPENAI_API_KEY or GEMINI_API_KEY found")
 
         if self._db and self._db.connected:
             logger.info("conversation_memory_initialized", persistence="supabase")
@@ -430,35 +428,18 @@ class ConversationMemory(MemoryInterface):
     # ── Private Methods ────────────────────────────────────────────
 
     async def _generate_embedding(self, text: str) -> Optional[list[float]]:
-        """Generate embedding via LiteLLM proxy or OpenAI directly."""
+        """Generate embedding via OpenAI directly (sovereign, no LiteLLM proxy)."""
         if not text.strip():
             return None
 
-        # Try LiteLLM proxy first
-        if self._embedding_client:
-            try:
-                response = await self._embedding_client.post(
-                    "/v1/embeddings",
-                    json={
-                        "model": self._embedding_model,
-                        "input": text[:8000],  # Truncate to avoid token limits
-                    },
-                    headers={"Authorization": f"Bearer {os.environ.get('LITELLM_MASTER_KEY', 'sk-monstruo-dev')}"},
-                )
-                if response.status_code == 200:
-                    data = response.json()
-                    return data["data"][0]["embedding"]
-            except Exception:
-                pass
-
-        # Try OpenAI directly
+        # Try OpenAI directly (primary path — sovereign, no proxy)
         openai_key = os.environ.get("OPENAI_API_KEY")
         if openai_key:
             try:
                 import httpx
                 async with httpx.AsyncClient() as client:
                     response = await client.post(
-                        f"{os.environ.get('OPENAI_API_BASE', 'https://api.openai.com')}/v1/embeddings",
+                        "https://api.openai.com/v1/embeddings",
                         json={
                             "model": self._embedding_model,
                             "input": text[:8000],
@@ -469,9 +450,34 @@ class ConversationMemory(MemoryInterface):
                     if response.status_code == 200:
                         data = response.json()
                         return data["data"][0]["embedding"]
-            except Exception:
-                pass
+                    else:
+                        logger.warning("embedding_openai_error", status=response.status_code, body=response.text[:200])
+            except Exception as e:
+                logger.warning("embedding_openai_exception", error=str(e))
 
+        # Fallback: try Gemini embedding if available
+        gemini_key = os.environ.get("GEMINI_API_KEY")
+        if gemini_key:
+            try:
+                import httpx
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(
+                        f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={gemini_key}",
+                        json={
+                            "model": "models/text-embedding-004",
+                            "content": {"parts": [{"text": text[:8000]}]},
+                        },
+                        timeout=30.0,
+                    )
+                    if response.status_code == 200:
+                        data = response.json()
+                        embedding = data.get("embedding", {}).get("values", [])
+                        if embedding:
+                            return embedding
+            except Exception as e:
+                logger.warning("embedding_gemini_exception", error=str(e))
+
+        logger.warning("embedding_generation_failed", text_len=len(text))
         return None
 
     def _search_semantic_local(

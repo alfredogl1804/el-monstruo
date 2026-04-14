@@ -189,7 +189,8 @@ async def route(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
 async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
     Enrich the context with conversation history and knowledge graph.
-    Only runs for deep_think and execute intents.
+    Runs for chat, deep_think, and execute intents (filtered by should_enrich edge).
+    Chat gets lighter enrichment (fewer messages/memories) for speed.
     """
     intent = state.get("intent", "chat")
     user_id = state.get("user_id", "anonymous")
@@ -202,15 +203,17 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
     knowledge_entities: list[dict[str, Any]] = []
     system_prompt = _build_base_system_prompt()
 
-    if intent in ("deep_think", "execute") and memory:
+    # Read memory for ALL intents that reach enrich (chat, deep_think, execute)
+    # system/background are filtered out by should_enrich conditional edge
+    if memory:
         try:
             conversation_context = await memory.get_conversation_context(
                 user_id=user_id,
                 channel=channel,
-                max_messages=20,
-                max_tokens=4000,
+                max_messages=10 if intent == "chat" else 20,
+                max_tokens=2000 if intent == "chat" else 4000,
             )
-            logger.info("enrich_conversation", messages=len(conversation_context))
+            logger.info("enrich_conversation", messages=len(conversation_context), intent=intent)
         except Exception as e:
             logger.warning("enrich_conversation_failed", error=str(e))
 
@@ -218,7 +221,7 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
             results = await memory.search_hybrid(
                 query=message,
                 user_id=user_id,
-                limit=5,
+                limit=3 if intent == "chat" else 5,
             )
             relevant_memories = [
                 {
@@ -230,10 +233,11 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
                 }
                 for r in results
             ]
-            logger.info("enrich_memories", found=len(relevant_memories))
+            logger.info("enrich_memories", found=len(relevant_memories), intent=intent)
         except Exception as e:
             logger.warning("enrich_memories_failed", error=str(e))
 
+    # Knowledge graph only for deep_think and execute (heavier lookup)
     if intent in ("deep_think", "execute") and knowledge:
         try:
             entities = await knowledge.find_entities(query=message, limit=5)
@@ -549,13 +553,13 @@ async def respond(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
 def should_enrich(state: MonstruoState) -> str:
     """
     Conditional edge after route: should we enrich context?
-    - deep_think / execute → enrich (need context)
-    - chat / system → execute directly (speed)
+    - chat / deep_think / execute → enrich (need memory for personalized responses)
+    - system / background → execute directly (no context needed)
     """
     intent = state.get("intent", "chat")
-    if intent in ("deep_think", "execute"):
-        return "enrich"
-    return "execute"
+    if intent in ("system", "background"):
+        return "execute"
+    return "enrich"
 
 
 def check_hitl(state: MonstruoState) -> str:
