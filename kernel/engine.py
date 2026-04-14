@@ -196,6 +196,7 @@ class LangGraphKernel(KernelInterface):
                     "_memory": self._memory,
                     "_knowledge": self._knowledge,
                     "_event_store": self._event_store,
+                    "_observability": self._observability,
                 }
             }
             final_state = await self._compiled.ainvoke(initial_state, config)
@@ -290,6 +291,7 @@ class LangGraphKernel(KernelInterface):
                 "_memory": self._memory,
                 "_knowledge": self._knowledge,
                 "_event_store": self._event_store,
+                "_observability": self._observability,
             }
         }
 
@@ -429,6 +431,7 @@ class LangGraphKernel(KernelInterface):
                 "_memory": self._memory,
                 "_knowledge": self._knowledge,
                 "_event_store": self._event_store,
+                "_observability": self._observability,
             }
         }
 

@@ -99,6 +99,11 @@ def _deps(config: RunnableConfig) -> tuple[Any, Any, Any, Any]:
     )
 
 
+def _obs(config: RunnableConfig) -> Any:
+    """Extract observability manager from config. Returns None if not available."""
+    return config.get("configurable", {}).get("_observability")
+
+
 # ══════════════════════════════════════════════════════════════════════
 # Node 1: INTAKE
 # ══════════════════════════════════════════════════════════════════════
@@ -131,7 +136,24 @@ async def intake(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
         .with_payload({"message_preview": message[:200]}) \
         .build()
 
-    return {
+    # ── Observability: start trace for this run ──
+    obs = _obs(config)
+    trace_ctx = None
+    if obs:
+        trace_ctx = obs.start_trace(
+            run_id=run_id,
+            user_id=user_id,
+            channel=channel,
+            message=message,
+        )
+        obs.record_span(
+            ctx=trace_ctx,
+            name="intake",
+            input={"message_len": len(message), "channel": channel},
+            output={"status": "routing"},
+        )
+
+    result: dict[str, Any] = {
         "status": RunStatus.ROUTING.value,
         "started_at": datetime.now(timezone.utc).isoformat(),
         "step_count": 0,
@@ -142,6 +164,10 @@ async def intake(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
         "memory_written": False,
         "execution_attempts": 0,
     }
+    # Store trace context in state for downstream nodes
+    if trace_ctx:
+        result["_trace_ctx"] = trace_ctx
+    return result
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -583,6 +609,30 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
         tokens_out=usage.get("completion_tokens", 0),
     )
 
+    # ── Observability: record LLM generation ──
+    obs = _obs(config)
+    if obs:
+        trace_ctx = state.get("_trace_ctx")
+        if trace_ctx:
+            obs.record_generation(
+                ctx=trace_ctx,
+                name="execute",
+                model=model_used,
+                input_messages=[{"role": "user", "content": message[:500]}],
+                output=response[:500] if response else "",
+                usage={
+                    "input": usage.get("prompt_tokens", 0),
+                    "output": usage.get("completion_tokens", 0),
+                    "unit": "TOKENS",
+                },
+                metadata={
+                    "intent": intent,
+                    "attempts": attempts,
+                    "latency_ms": elapsed_ms,
+                    "cost_usd": usage.get("cost_usd", 0.0),
+                },
+            )
+
     event = EventBuilder() \
         .category(EventCategory.MODEL_CALLED) \
         .actor("kernel.execute") \
@@ -738,6 +788,23 @@ async def respond(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
         response_len=len(final_response),
         latency_ms=state.get("latency_ms", 0),
     )
+
+    # ── Observability: end trace ──
+    obs = _obs(config)
+    if obs:
+        trace_ctx = state.get("_trace_ctx")
+        if trace_ctx:
+            obs.end_trace(
+                ctx=trace_ctx,
+                output=final_response[:500],
+                status=status,
+                metadata={
+                    "model_used": model_used,
+                    "latency_ms": state.get("latency_ms", 0),
+                    "tokens_in": state.get("tokens_in", 0),
+                    "tokens_out": state.get("tokens_out", 0),
+                },
+            )
 
     return {
         "final_response": final_response,

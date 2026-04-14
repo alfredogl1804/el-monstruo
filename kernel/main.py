@@ -639,6 +639,16 @@ async def graph_visualization():
     }
 
 
+@app.get("/v1/hitl/pending", tags=["core"])
+async def hitl_pending():
+    """Get pending HITL reviews (for Telegram bot and consola PWA)."""
+    try:
+        from bot.hitl_handler import get_pending_reviews
+        return {"pending": get_pending_reviews()}
+    except ImportError:
+        return {"pending": {}, "note": "HITL handler not loaded"}
+
+
 @app.get("/health", tags=["system"])
 async def health():
     """Health check endpoint. Compatible with thin-client contract."""

@@ -3,6 +3,7 @@ Tests for the /v1/feedback endpoint and HITL event categories.
 Sprint 1 — Convergence Phase.
 """
 
+import os
 import pytest
 from uuid import uuid4
 
@@ -161,29 +162,29 @@ class TestFeedbackEndpoint:
 class TestDeploymentFiles:
     """Verify deployment files exist and have correct structure."""
 
+    REPO_ROOT = os.path.join(os.path.dirname(__file__), "..")
+
     def test_dockerfile_exists(self):
-        import os
-        assert os.path.exists("/home/ubuntu/el-monstruo/Dockerfile")
+        # Use Dockerfile.web which is the actual Dockerfile in the repo
+        assert os.path.exists(os.path.join(self.REPO_ROOT, "Dockerfile.web"))
 
     def test_railway_toml_exists(self):
-        import os
-        assert os.path.exists("/home/ubuntu/el-monstruo/railway.toml")
+        assert os.path.exists(os.path.join(self.REPO_ROOT, "railway.toml"))
 
     def test_env_example_exists(self):
-        import os
-        assert os.path.exists("/home/ubuntu/el-monstruo/.env.example")
+        assert os.path.exists(os.path.join(self.REPO_ROOT, ".env.example"))
 
     def test_dockerfile_uses_python312(self):
-        with open("/home/ubuntu/el-monstruo/Dockerfile") as f:
+        with open(os.path.join(self.REPO_ROOT, "Dockerfile.web")) as f:
             content = f.read()
         assert "python:3.12" in content
 
     def test_dockerfile_exposes_port(self):
-        with open("/home/ubuntu/el-monstruo/Dockerfile") as f:
+        with open(os.path.join(self.REPO_ROOT, "Dockerfile.web")) as f:
             content = f.read()
         assert "EXPOSE" in content
 
     def test_env_example_has_kernel_api_url(self):
-        with open("/home/ubuntu/el-monstruo/.env.example") as f:
+        with open(os.path.join(self.REPO_ROOT, ".env.example")) as f:
             content = f.read()
         assert "KERNEL_API_URL" in content

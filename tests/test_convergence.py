@@ -397,29 +397,29 @@ class TestRouterConvergence:
     def test_brain_model_map_exists(self):
         from router.engine import BRAIN_MODEL_MAP
         assert len(BRAIN_MODEL_MAP) == 6
-        assert BRAIN_MODEL_MAP["estratega"] == "gpt-5"
-        assert BRAIN_MODEL_MAP["investigador"] == "sonar-reasoning"
-        assert BRAIN_MODEL_MAP["arquitecto"] == "claude-opus"
+        assert BRAIN_MODEL_MAP["estratega"] == "gpt-5.4"
+        assert BRAIN_MODEL_MAP["investigador"] == "sonar-reasoning-pro"
+        assert BRAIN_MODEL_MAP["arquitecto"] == "claude-opus-4-6"
 
     def test_expanded_fallback_chain(self):
         from router.engine import FALLBACK_CHAIN
-        assert "claude-opus" in FALLBACK_CHAIN
-        assert "deepseek-r1" in FALLBACK_CHAIN
-        assert "sonar-reasoning" in FALLBACK_CHAIN
-        assert "kimi" in FALLBACK_CHAIN
-        assert "gpt-5-mini" in FALLBACK_CHAIN
+        assert "claude-opus-4-6" in FALLBACK_CHAIN
+        assert "deepseek-r1-0528" in FALLBACK_CHAIN
+        assert "sonar-reasoning-pro" in FALLBACK_CHAIN
+        assert "kimi-k2.5" in FALLBACK_CHAIN
+        assert "gpt-5.4-mini" in FALLBACK_CHAIN
 
     def test_fallback_chain_has_all_models(self):
         from router.engine import FALLBACK_CHAIN
-        assert len(FALLBACK_CHAIN) >= 12
+        assert len(FALLBACK_CHAIN) >= 11
 
     def test_default_model_map_unchanged(self):
         """Original intent→model mapping should still work"""
         from router.engine import DEFAULT_MODEL_MAP
         from contracts.kernel_interface import IntentType
-        assert DEFAULT_MODEL_MAP[IntentType.CHAT] == "fast-chat"
-        assert DEFAULT_MODEL_MAP[IntentType.DEEP_THINK] == "gpt-5"
-        assert DEFAULT_MODEL_MAP[IntentType.EXECUTE] == "claude-sonnet"
+        assert DEFAULT_MODEL_MAP[IntentType.CHAT] == "gemini-3.1-flash-lite"
+        assert DEFAULT_MODEL_MAP[IntentType.DEEP_THINK] == "gpt-5.4"
+        assert DEFAULT_MODEL_MAP[IntentType.EXECUTE] == "claude-sonnet-4-6"
 
 
 # ===================== LITELLM CONFIG TESTS =====================
