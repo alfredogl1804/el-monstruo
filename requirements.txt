@@ -23,7 +23,8 @@ anthropic==0.94.0
 google-genai==1.72.0
 
 # ── Bot / Telegram ──────────────────────────────────────────────────
-aiogram==3.27.0
+# Bot lives in separate repo (el-monstruo-bot) with python-telegram-bot
+# aiogram removed 2026-04-14 — was dead code, incompatible with bot repo
 
 # ── Web Framework (API + Console backend) ───────────────────────────
 fastapi==0.135.3

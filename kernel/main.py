@@ -220,6 +220,7 @@ class ChatResponse(BaseModel):
     tokens: dict[str, int] = Field(default_factory=dict)
     policy_decisions: list[dict[str, Any]] = Field(default_factory=list)
     requires_approval: bool = False
+    interrupt_payload: Optional[dict[str, Any]] = None  # HITL review details for bot
     duration_ms: int = 0
 
 class StepRequest(BaseModel):
@@ -339,6 +340,7 @@ async def chat(request: ChatRequest):
         tokens={"input": output.tokens_in, "output": output.tokens_out},
         policy_decisions=metadata.get("policy_decisions", []),
         requires_approval=output.status == RunStatus.AWAITING_HUMAN,
+        interrupt_payload=metadata.get("interrupt_payload") if output.status == RunStatus.AWAITING_HUMAN else None,
         duration_ms=int(output.latency_ms),
     )
 
@@ -451,31 +453,53 @@ async def feedback(request: FeedbackRequest):
             .build()
         )
 
-    # If action is "approve" and run is paused, continue it
+    # Resume the HITL-paused graph with the human's decision
+    # All actions (approve/reject/edit) go through step() with Command(resume=...)
+    # This ensures hitl_review node processes the decision correctly
+    # Fix validated 2026-04-14: previous code used cancel() for reject (wrong)
+    # and didn't resume for edit (graph stayed paused forever)
     result = {"run_id": request.run_id, "action": request.action, "processed": True}
 
+    try:
+        status = await kernel.get_status(run_id)
+    except ValueError:
+        result["processed"] = False
+        result["note"] = "Run not found"
+        return result
+
+    if status != RunStatus.AWAITING_HUMAN:
+        result["processed"] = False
+        result["note"] = f"Run is not awaiting human review (status: {status.value})"
+        return result
+
+    # Map feedback action to hitl_review decision contract
+    # hitl_review expects: {"decision": "approve"|"reject"|"modify", "modification": str|None}
     if request.action == "approve":
-        try:
-            status = await kernel.get_status(run_id)
-            if status == RunStatus.AWAITING_HUMAN:
-                output = await kernel.step(run_id, {"response": "approved", "comment": request.comment})
-                result["continued"] = True
-                result["new_status"] = output.status.value
-        except ValueError:
-            result["continued"] = False
-            result["note"] = "Run not found or not in AWAITING_HUMAN state"
-
+        step_input = {"decision": "approve"}
     elif request.action == "reject":
-        try:
-            await kernel.cancel(run_id, reason=request.comment or "Rejected by user")
-            result["cancelled"] = True
-        except Exception:
-            result["cancelled"] = False
+        step_input = {"decision": "reject"}
+    elif request.action in ("edit", "modify") and request.edited_response:
+        step_input = {
+            "decision": "modify",
+            "modification": request.edited_response,
+        }
+    elif request.action == "escalate":
+        # Escalate = reject with reason for now
+        step_input = {"decision": "reject"}
+    else:
+        result["processed"] = False
+        result["note"] = f"Unknown action: {request.action}"
+        return result
 
-    elif request.action == "edit" and request.edited_response:
-        # Store the edited response as an override
-        result["edited"] = True
-        result["note"] = "Edited response recorded in event store"
+    try:
+        output = await kernel.step(run_id, step_input)
+        result["continued"] = True
+        result["new_status"] = output.status.value
+        result["response"] = output.response
+    except Exception as e:
+        logger.error("feedback_step_failed", run_id=request.run_id, error=str(e))
+        result["continued"] = False
+        result["error"] = str(e)
 
     return result
 

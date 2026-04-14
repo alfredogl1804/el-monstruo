@@ -1,6 +1,7 @@
 """
-Tests for Sprint 1 Day 3 — HITL Telegram Handler, Observability, API Endpoint.
-14 abril 2026.
+Tests for Sprint 1 Day 3 — Observability, API Endpoint, Integration.
+Updated 14 abril 2026 — bot/hitl_handler.py removed (dead code, aiogram incompatible).
+HITL tests now focus on kernel-side (hitl.py, engine.py, main.py).
 """
 import os
 import sys
@@ -14,94 +15,71 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
 # ═══════════════════════════════════════════════════════════════════
-# 1. HITL Handler Tests
+# 1. HITL Kernel Tests (replaces bot/hitl_handler.py tests)
 # ═══════════════════════════════════════════════════════════════════
 
-class TestHITLHandler:
-    """Tests for bot/hitl_handler.py"""
+class TestHITLKernel:
+    """Tests for kernel-side HITL: hitl.py, engine.py v2 API."""
 
-    def test_import_hitl_handler(self):
-        """HITL handler module should import cleanly."""
-        from bot.hitl_handler import send_hitl_review, hitl_router, get_pending_reviews
-        assert send_hitl_review is not None
-        assert hitl_router is not None
-        assert callable(get_pending_reviews)
+    def test_hitl_gate_returns_respond_for_safe(self):
+        """hitl_gate should return 'respond' when no approval needed."""
+        from kernel.hitl import hitl_gate
+        state = {"status": "completed", "policy_decision": "ALLOW", "needs_human_approval": False}
+        assert hitl_gate(state) == "respond"
 
-    def test_risk_emoji_mapping(self):
-        """Risk emojis should map to all 5 risk levels."""
-        from bot.hitl_handler import RISK_EMOJI, RISK_LABEL
-        assert len(RISK_EMOJI) == 5
-        assert RISK_EMOJI["L1_SAFE"] == "🟢"
-        assert RISK_EMOJI["L4_CRITICAL"] == "🔴"
-        assert RISK_EMOJI["L5_FORBIDDEN"] == "⛔"
-        assert len(RISK_LABEL) == 5
+    def test_hitl_gate_returns_hitl_review_for_hitl_policy(self):
+        """hitl_gate should return 'hitl_review' when policy says HITL."""
+        from kernel.hitl import hitl_gate
+        state = {"status": "executing", "policy_decision": "HITL", "needs_human_approval": True}
+        assert hitl_gate(state) == "hitl_review"
 
-    def test_escape_html(self):
-        """HTML escaping should handle all special characters."""
-        from bot.hitl_handler import _escape_html
-        assert _escape_html("<script>alert('xss')</script>") == "&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;" or \
-               "&lt;script&gt;" in _escape_html("<script>alert('xss')</script>")
-        assert _escape_html("a & b") == "a &amp; b"
-        assert _escape_html('"quotes"') == "&quot;quotes&quot;"
+    def test_hitl_gate_returns_respond_for_failed(self):
+        """hitl_gate should skip HITL for failed runs."""
+        from kernel.hitl import hitl_gate
+        from contracts.kernel_interface import RunStatus
+        state = {"status": RunStatus.FAILED.value, "policy_decision": "HITL", "needs_human_approval": True}
+        assert hitl_gate(state) == "respond"
 
-    def test_get_pending_reviews_empty(self):
-        """Pending reviews should start empty."""
-        from bot.hitl_handler import get_pending_reviews, _pending_reviews
-        _pending_reviews.clear()
-        result = get_pending_reviews()
-        assert result == {}
-
-    def test_hitl_router_has_handlers(self):
-        """HITL router should have callback query handlers registered."""
-        from bot.hitl_handler import hitl_router
-        # Router should exist and be named
-        assert hitl_router.name == "hitl"
-
-    @pytest.mark.asyncio
-    async def test_send_hitl_review_formats_message(self):
-        """send_hitl_review should format and send a Telegram message."""
-        from bot.hitl_handler import send_hitl_review, _pending_reviews
-        _pending_reviews.clear()
-
-        mock_bot = AsyncMock()
-        mock_msg = MagicMock()
-        mock_msg.message_id = 12345
-        mock_bot.send_message = AsyncMock(return_value=mock_msg)
-
-        payload = {
-            "type": "hitl_review",
-            "run_id": "test-run-123",
-            "intent": "execute",
-            "message_preview": "Delete all files",
-            "proposed_response_preview": "I will delete all files now",
-            "risk_level": "L3_SENSITIVE",
-            "trust_ring": "R2_USER_DELEGATED",
-            "reason": "Destructive operation requires approval",
-            "timestamp": "2026-04-14T12:00:00Z",
+    def test_hitl_review_payload_structure(self):
+        """hitl_review interrupt payload should have required fields."""
+        # We can't call interrupt() in a test (it needs a graph context),
+        # but we can verify the payload builder logic
+        from kernel.hitl import _summarize_envelope
+        envelope = {
+            "action_type": "delete",
+            "target": {"resource_kind": "secret", "resource_id": "api_key_1"},
+            "operation": "DELETE",
+            "intent_summary": "Delete the API key",
         }
+        summary = _summarize_envelope(envelope)
+        assert summary["action_type"] == "delete"
+        assert summary["target"]["resource_kind"] == "secret"
+        assert summary["operation"] == "DELETE"
 
-        result = await send_hitl_review(mock_bot, 123456, payload)
+    def test_summarize_envelope_handles_none(self):
+        """_summarize_envelope should handle None gracefully."""
+        from kernel.hitl import _summarize_envelope
+        assert _summarize_envelope(None) is None
 
-        # Should have called send_message
-        mock_bot.send_message.assert_called_once()
-        call_kwargs = mock_bot.send_message.call_args.kwargs
-        assert call_kwargs["chat_id"] == 123456
-        assert call_kwargs["parse_mode"] == "HTML"
-        assert "HITL Review Required" in call_kwargs["text"]
-        assert "Sensitive" in call_kwargs["text"]
-        assert call_kwargs["reply_markup"] is not None
+    def test_event_to_dict_handles_dict(self):
+        """_event_to_dict should pass through dicts."""
+        from kernel.hitl import _event_to_dict
+        d = {"key": "value"}
+        assert _event_to_dict(d) == d
 
-        # Should be stored in pending reviews
-        assert "test-run-123" in _pending_reviews
-        assert _pending_reviews["test-run-123"]["status"] == "pending"
+    def test_engine_uses_v2_api(self):
+        """LangGraphKernel should use v2 API for interrupt detection."""
+        from kernel.engine import LangGraphKernel
+        import inspect
+        source = inspect.getsource(LangGraphKernel.start_run)
+        assert 'version="v2"' in source, "start_run must use v2 API"
 
-        _pending_reviews.clear()
-
-    def test_hitl_timeout_configurable(self):
-        """HITL timeout should be configurable via env var."""
-        from bot.hitl_handler import HITL_TIMEOUT_SECONDS
-        assert isinstance(HITL_TIMEOUT_SECONDS, int)
-        assert HITL_TIMEOUT_SECONDS > 0
+    def test_engine_step_uses_v2_api(self):
+        """LangGraphKernel.step() should use v2 API."""
+        from kernel.engine import LangGraphKernel
+        import inspect
+        source = inspect.getsource(LangGraphKernel.step)
+        assert 'version="v2"' in source, "step must use v2 API"
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -167,7 +145,7 @@ class TestObservabilityIntegration:
 # ═══════════════════════════════════════════════════════════════════
 
 class TestAPIEndpoints:
-    """Tests for new API endpoints added in Day 3."""
+    """Tests for API endpoints."""
 
     def test_hitl_pending_endpoint_exists(self):
         """GET /v1/hitl/pending endpoint should exist in the app."""
@@ -211,19 +189,44 @@ class TestAPIEndpoints:
         assert req.edited_response == "Modified response here"
         assert req.comment == "Changed tone"
 
+    def test_chat_response_has_interrupt_payload(self):
+        """ChatResponse should have interrupt_payload field."""
+        from kernel.main import ChatResponse
+        resp = ChatResponse(
+            run_id="test-123",
+            status="awaiting_human",
+            intent="execute",
+            model_used="gpt-5.4",
+            response="I will delete the file",
+            requires_approval=True,
+            interrupt_payload={"risk_level": "L4_CRITICAL", "reason": "Destructive op"},
+        )
+        assert resp.interrupt_payload is not None
+        assert resp.interrupt_payload["risk_level"] == "L4_CRITICAL"
+
+    def test_chat_response_no_interrupt_when_completed(self):
+        """ChatResponse should have None interrupt_payload when completed."""
+        from kernel.main import ChatResponse
+        resp = ChatResponse(
+            run_id="test-123",
+            status="completed",
+            intent="chat",
+            model_used="gpt-5.4",
+            response="Hello!",
+        )
+        assert resp.interrupt_payload is None
+
 
 # ═══════════════════════════════════════════════════════════════════
 # 4. State Schema Tests
 # ═══════════════════════════════════════════════════════════════════
 
 class TestStateSchema:
-    """Verify state schema supports new Day 3 fields."""
+    """Verify state schema supports Day 3 fields."""
 
     def test_state_supports_trace_ctx(self):
         """MonstruoState should accept _trace_ctx field."""
         from kernel.state import MonstruoState
-        # TypedDict should allow extra fields via total=False or NotRequired
-        # We just verify the type exists
         assert MonstruoState is not None
 
     def test_event_category_has_human_reviewed(self):
@@ -260,7 +263,7 @@ class TestIntegrationSmoke:
 
     def test_all_imports_clean(self):
         """All new modules should import without errors."""
-        import bot.hitl_handler
+        # bot/hitl_handler.py removed — was dead code (aiogram != python-telegram-bot)
         import core.composite_risk
         import core.policy_engine
         import kernel.hitl

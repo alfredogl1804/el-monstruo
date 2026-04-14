@@ -199,7 +199,60 @@ class LangGraphKernel(KernelInterface):
                     "_observability": self._observability,
                 }
             }
-            final_state = await self._compiled.ainvoke(initial_state, config)
+            # Use v2 API to properly detect interrupts (validated 2026-04-14)
+            # In v2, ainvoke returns GraphOutput with .value and .interrupts
+            # instead of raising GraphInterrupt exception
+            result = await self._compiled.ainvoke(
+                initial_state, config, version="v2"
+            )
+
+            # ── Check for HITL interrupt ──────────────────────────────
+            if result.interrupts:
+                # Graph paused at interrupt() — HITL review needed
+                interrupt_payloads = [
+                    i.value if hasattr(i, 'value') else str(i)
+                    for i in result.interrupts
+                ]
+                final_state = result.value
+                self._runs[run_id] = final_state
+
+                # Update state to reflect AWAITING_HUMAN
+                final_state["status"] = RunStatus.AWAITING_HUMAN.value
+                self._runs[run_id] = final_state
+
+                intent_str = final_state.get("intent", IntentType.CHAT.value)
+                try:
+                    intent = IntentType(intent_str)
+                except ValueError:
+                    intent = IntentType.CHAT
+
+                logger.info(
+                    "run_awaiting_human",
+                    run_id=str(run_id),
+                    intent=intent.value,
+                    interrupt_count=len(result.interrupts),
+                )
+
+                return RunOutput(
+                    run_id=run_id,
+                    status=RunStatus.AWAITING_HUMAN,
+                    intent=intent,
+                    model_used=final_state.get("model_used", ""),
+                    response=final_state.get("response", ""),
+                    tokens_in=final_state.get("tokens_in", 0),
+                    tokens_out=final_state.get("tokens_out", 0),
+                    cost_usd=final_state.get("cost_usd", 0.0),
+                    latency_ms=final_state.get("latency_ms", 0.0),
+                    metadata={
+                        "interrupt_payload": interrupt_payloads[0] if interrupt_payloads else {},
+                        "interrupt_count": len(interrupt_payloads),
+                        "enriched": final_state.get("enriched", False),
+                        "route_reason": final_state.get("route_reason", ""),
+                    },
+                )
+
+            # ── Normal completion (no interrupt) ─────────────────────
+            final_state = result.value
 
             # Update stored state
             self._runs[run_id] = final_state
@@ -304,10 +357,32 @@ class LangGraphKernel(KernelInterface):
             }
 
         try:
-            # Resume the graph using LangGraph Command(resume=...)
-            final_state = await self._compiled.ainvoke(
-                Command(resume=resume_value), config
+            # Resume the graph using LangGraph Command(resume=...) with v2 API
+            # validated 2026-04-14 against LangGraph 1.1.6 docs
+            result = await self._compiled.ainvoke(
+                Command(resume=resume_value), config, version="v2"
             )
+
+            # Check if another interrupt was triggered (multi-step HITL)
+            if result.interrupts:
+                interrupt_payloads = [
+                    i.value if hasattr(i, 'value') else str(i)
+                    for i in result.interrupts
+                ]
+                final_state = result.value
+                final_state["status"] = RunStatus.AWAITING_HUMAN.value
+                self._runs[run_id] = final_state
+
+                return RunOutput(
+                    run_id=run_id,
+                    status=RunStatus.AWAITING_HUMAN,
+                    intent=IntentType(final_state.get("intent", IntentType.CHAT.value)),
+                    model_used=final_state.get("model_used", ""),
+                    response=final_state.get("response", ""),
+                    metadata={"interrupt_payload": interrupt_payloads[0] if interrupt_payloads else {}},
+                )
+
+            final_state = result.value
             self._runs[run_id] = final_state
 
             status_str = final_state.get("status", RunStatus.COMPLETED.value)
