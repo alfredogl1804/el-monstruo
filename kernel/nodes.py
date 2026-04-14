@@ -416,17 +416,32 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
             intent_summary=f"{intent}: {message[:200]}",
         )
 
-        # Validate and classify through policy engine
+        # Step 1: Validate and classify through action_validator
         envelope, validation_result = validate_and_classify(envelope)
+
+        # Step 2: Run through PolicyEngine v1.0 (composite risk + Cedar rules)
+        from core.policy_engine import get_policy_engine
+        policy_engine = get_policy_engine()
+        policy_eval = policy_engine.evaluate(envelope)
+
+        # Step 3: Bridge PolicyEngine result to ActionEnvelope PolicyDecision
+        risk = envelope.policy_decision.risk_level if envelope.policy_decision else RiskLevel.L1_SAFE
+        trust = envelope.policy_decision.enforced_trust_ring if envelope.policy_decision else TrustRing.R2_USER_DELEGATED
+        final_policy = policy_engine.to_envelope_policy_decision(policy_eval, trust, risk)
+
+        # Use PolicyEngine decision (it includes composite risk)
+        from dataclasses import replace as dc_replace
+        from core.action_envelope import ActionStatus, transition
+        # Re-seal envelope with PolicyEngine decision
+        envelope = dc_replace(envelope, policy_decision=final_policy)
 
         # Extract governance decisions
         envelope_dict = envelope_to_dict(envelope)
-        if envelope.policy_decision:
-            policy_decision_str = envelope.policy_decision.decision
-            risk_level_str = envelope.policy_decision.risk_level.value
-            trust_ring_str = envelope.policy_decision.trust_ring.value
-            needs_hitl = envelope.policy_decision.requires_hitl
-            hitl_reason = envelope.policy_decision.reason
+        policy_decision_str = policy_eval.decision
+        risk_level_str = risk.value if hasattr(risk, 'value') else str(risk)
+        trust_ring_str = trust.value if hasattr(trust, 'value') else str(trust)
+        needs_hitl = policy_eval.requires_hitl
+        hitl_reason = policy_eval.decision_reason
 
         logger.info(
             "action_envelope_created",
@@ -437,6 +452,9 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
             decision=policy_decision_str,
             requires_hitl=needs_hitl,
             reclassified=validation_result.reclassified,
+            composite_risk=policy_eval.composite_risk,
+            composite_value=policy_eval.composite_value,
+            density_count=policy_eval.density_count,
         )
 
     except Exception as e:

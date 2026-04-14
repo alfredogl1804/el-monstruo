@@ -43,8 +43,8 @@ from kernel.nodes import (
     memory_write,
     respond,
     should_enrich,
-    check_hitl,
 )
+from kernel.hitl import hitl_gate, hitl_review
 
 logger = structlog.get_logger("kernel.engine")
 
@@ -133,16 +133,22 @@ class LangGraphKernel(KernelInterface):
         # enrich always goes to execute
         graph.add_edge("enrich", "execute")
 
-        # Conditional: execute → respond or respond (on failure)
-        # OPT-5: respond runs BEFORE memory_write so user gets response faster
+        # HITL node — real LangGraph interrupt()
+        graph.add_node("hitl_review", hitl_review)
+
+        # Conditional: execute → hitl_review or respond
+        # Uses hitl_gate from kernel/hitl.py (replaces check_hitl)
         graph.add_conditional_edges(
             "execute",
-            check_hitl,
+            hitl_gate,
             {
-                "memory_write": "respond",  # Normal flow: respond first
-                "respond": "respond",        # Error flow: respond directly
+                "hitl_review": "hitl_review",  # HITL needed: pause for human
+                "respond": "respond",            # Normal/error: respond directly
             },
         )
+
+        # hitl_review → respond (after human approves/rejects)
+        graph.add_edge("hitl_review", "respond")
 
         # OPT-5: respond → memory_write → END
         # User sees response immediately, memory persists after
@@ -272,19 +278,34 @@ class LangGraphKernel(KernelInterface):
     async def step(self, run_id: UUID, input: dict[str, Any] | None = None) -> RunOutput:
         """
         Continue a paused run (after HITL interrupt).
-        Sends the human response and resumes the graph.
+        Uses LangGraph Command(resume=...) to resume from interrupt().
         """
-        thread_id = str(run_id)
-        config = {"configurable": {"thread_id": thread_id}}
+        from langgraph.types import Command
 
-        # If there's human input, update the state
-        update = {}
+        thread_id = str(run_id)
+        config = {
+            "configurable": {
+                "thread_id": thread_id,
+                "_router": self._router,
+                "_memory": self._memory,
+                "_knowledge": self._knowledge,
+                "_event_store": self._event_store,
+            }
+        }
+
+        # Build resume payload for Command
+        resume_value = {"decision": "approve"}  # default
         if input:
-            update["human_response"] = input.get("response", "")
-            update["needs_human_approval"] = False
+            resume_value = {
+                "decision": input.get("decision", input.get("response", "approve")),
+                "modification": input.get("modification"),
+            }
 
         try:
-            final_state = await self._compiled.ainvoke(update or None, config)
+            # Resume the graph using LangGraph Command(resume=...)
+            final_state = await self._compiled.ainvoke(
+                Command(resume=resume_value), config
+            )
             self._runs[run_id] = final_state
 
             status_str = final_state.get("status", RunStatus.COMPLETED.value)

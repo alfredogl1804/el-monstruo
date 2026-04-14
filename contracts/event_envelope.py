@@ -75,6 +75,7 @@ class EventCategory(enum.Enum):
     HUMAN_FEEDBACK = "hitl.feedback"
     HUMAN_APPROVED = "hitl.approved"
     HUMAN_REJECTED = "hitl.rejected"
+    HUMAN_REVIEWED = "hitl.reviewed"
 
     # Channel events
     MESSAGE_RECEIVED = "channel.message.received"
