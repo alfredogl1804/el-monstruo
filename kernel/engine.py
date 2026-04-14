@@ -95,12 +95,13 @@ class LangGraphKernel(KernelInterface):
         Build the sovereign execution graph (optimized v1.1).
 
         6 nodes, 2 conditional edges:
-            intake → classify_and_route → should_enrich? → execute → check_hitl? → memory_write → respond
+            intake → classify_and_route → should_enrich? → execute → check_hitl? → respond → memory_write
 
         Optimizations:
             - OPT-1: classify + route fused into single node (-800ms)
-            - OPT-3: Smart fast-path skips enrich for simple queries
             - OPT-2: Enrich parallelizes memory lookups
+            - OPT-3: Smart fast-path skips enrich for simple queries
+            - OPT-5: respond BEFORE memory_write (user gets response faster)
             - OPT-6: Intent classification cached
         """
         graph = StateGraph(MonstruoState)
@@ -132,21 +133,23 @@ class LangGraphKernel(KernelInterface):
         # enrich always goes to execute
         graph.add_edge("enrich", "execute")
 
-        # Conditional: execute → memory_write or respond (on failure)
+        # Conditional: execute → respond or respond (on failure)
+        # OPT-5: respond runs BEFORE memory_write so user gets response faster
         graph.add_conditional_edges(
             "execute",
             check_hitl,
             {
-                "memory_write": "memory_write",
-                "respond": "respond",
+                "memory_write": "respond",  # Normal flow: respond first
+                "respond": "respond",        # Error flow: respond directly
             },
         )
 
-        # memory_write always goes to respond
-        graph.add_edge("memory_write", "respond")
+        # OPT-5: respond → memory_write → END
+        # User sees response immediately, memory persists after
+        graph.add_edge("respond", "memory_write")
 
-        # respond is terminal
-        graph.add_edge("respond", END)
+        # memory_write is terminal
+        graph.add_edge("memory_write", END)
 
         return graph
 
