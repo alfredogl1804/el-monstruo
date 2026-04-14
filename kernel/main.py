@@ -135,6 +135,18 @@ async def lifespan(app: FastAPI):
         router="connected" if router else "stub",
     )
 
+    # Warm-up: pre-heat LLM connections to eliminate cold start on first request
+    if router:
+        import asyncio
+        async def _warmup():
+            try:
+                logger.info("warmup_starting")
+                health = await router.health_check()
+                logger.info("warmup_completed", result=health.get("status", "unknown"))
+            except Exception as e:
+                logger.warning("warmup_failed", error=str(e))
+        asyncio.create_task(_warmup())
+
     yield
 
     # Shutdown

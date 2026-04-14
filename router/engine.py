@@ -73,14 +73,18 @@ FALLBACK_CHAIN: dict[str, list[str]] = {
 # Intent classification prompt
 INTENT_SYSTEM_PROMPT = """You are an intent classifier for El Monstruo AI system.
 Classify the user message into exactly ONE of these intents:
-- chat: Conversation, greetings, questions, personal queries, asking about projects/preferences/memories, small talk, opinions
-- deep_think: Complex analysis, reasoning, comparison, evaluation, research, long explanations, "why" questions
+- chat: Conversation, greetings, simple questions, personal queries, quick math (2+2, etc.), asking about projects/preferences/memories, small talk, opinions, short factual answers, translations, definitions
+- deep_think: ONLY for complex multi-step analysis, detailed comparisons, research reports, strategic planning, or questions requiring >500 word answers. NOT for simple "why" questions.
 - execute: Actions to perform (create, send, publish, generate, build, deploy, configure, delete)
 - background: Long-running tasks that should run asynchronously
 - system: ONLY literal system commands like /start /help /status /cancel, or explicit requests about bot health/version
 
-IMPORTANT: Questions like "what is my project?" or "what do you remember about me?" are CHAT, not system.
-Only classify as system if the user is asking about the AI system itself (health, version, status) or using a / command.
+RULES:
+- When in doubt, classify as chat (it's the fastest path)
+- Simple math, trivia, definitions, translations = chat
+- "What is X?" = chat. "Analyze X vs Y in depth" = deep_think
+- Questions about the user's projects, preferences, memories = chat
+- Only classify as system if using a / command or asking about bot health/version
 
 Respond with ONLY the intent name, nothing else."""
 
@@ -231,6 +235,74 @@ class RouterEngine:
         # All models failed
         raise RuntimeError(
             f"All models failed for intent {intent.value}. "
+            f"Tried: {models_to_try}. Last error: {last_error}"
+        )
+
+    async def execute_stream(
+        self,
+        message: str,
+        model: str,
+        intent: IntentType,
+        context: Optional[dict[str, Any]] = None,
+    ):
+        """
+        Streaming execute — yields text chunks as the LLM generates them.
+        Uses the same message construction and fallback logic as execute().
+        """
+        system_prompt = _get_system_prompt(intent, context)
+        messages = []
+
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": message})
+
+        # Add conversation history if provided
+        if context and context.get("history"):
+            history = context["history"]
+            messages = (
+                messages[:1]  # system prompt
+                + history
+                + messages[1:]  # current message
+            )
+
+        catalog_key = ALIAS_TO_CATALOG.get(model, model)
+        models_to_try = [catalog_key] + FALLBACK_CHAIN.get(catalog_key, [])
+
+        last_error = None
+        for attempt_model in models_to_try:
+            try:
+                model_config = MODELS.get(attempt_model)
+                if model_config is None:
+                    continue
+
+                if attempt_model != catalog_key:
+                    logger.warning(
+                        "stream_fallback_used",
+                        original_model=catalog_key,
+                        fallback_model=attempt_model,
+                    )
+
+                async for chunk in self._llm.chat_stream(
+                    model_config=model_config,
+                    messages=messages,
+                    temperature=0.7,
+                ):
+                    yield chunk
+
+                # If we get here, streaming succeeded
+                return
+
+            except Exception as e:
+                last_error = e
+                logger.warning(
+                    "stream_model_failed",
+                    model=attempt_model,
+                    error=str(e),
+                )
+                continue
+
+        raise RuntimeError(
+            f"All models failed for streaming intent {intent.value}. "
             f"Tried: {models_to_try}. Last error: {last_error}"
         )
 

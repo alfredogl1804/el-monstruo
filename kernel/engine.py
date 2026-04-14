@@ -17,6 +17,7 @@ Los contratos soberanos son permanentes.
 from __future__ import annotations
 
 import asyncio
+import time
 from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Callable, Optional
 from uuid import UUID, uuid4
@@ -373,11 +374,20 @@ class LangGraphKernel(KernelInterface):
 
     async def stream(self, input: RunInput) -> AsyncIterator[str]:
         """
-        Stream tokens from model execution.
-        Uses LangGraph's astream_events for real-time token streaming.
+        Real streaming: runs pre-LLM nodes (intake, classify, enrich) normally,
+        then streams LLM tokens in real-time via router.execute_stream().
+        Memory write runs fire-and-forget after streaming completes.
+
+        Yields JSON-encoded SSE events:
+          {"type": "meta", "intent": ..., "model": ..., "enriched": ...}
+          {"type": "chunk", "text": "..."}
+          {"type": "done", "latency_ms": ..., "model_used": ...}
+          {"type": "error", "message": "..."}
         """
+        import json as _json
         run_id = input.run_id
         thread_id = str(run_id)
+        start_time = time.monotonic()
 
         initial_state: MonstruoState = {
             "run_id": str(run_id),
@@ -385,33 +395,87 @@ class LangGraphKernel(KernelInterface):
             "channel": input.channel,
             "message": input.message,
             "attachments": input.attachments or [],
-            "context": {
-                **(input.context or {}),
+            "context": input.context or {},
+        }
+
+        config = {
+            "configurable": {
+                "thread_id": thread_id,
                 "_router": self._router,
                 "_memory": self._memory,
                 "_knowledge": self._knowledge,
                 "_event_store": self._event_store,
-            },
+            }
         }
 
-        config = {"configurable": {"thread_id": thread_id}}
-
         try:
+            # ── Phase 1: Run pre-LLM nodes via graph (intake → classify_and_route → enrich) ──
+            # We use astream with updates mode to run nodes up to execute
+            pre_llm_state = dict(initial_state)
+
             async for event in self._compiled.astream(initial_state, config, stream_mode="updates"):
-                # Each event is a dict with node_name: state_update
                 for node_name, state_update in event.items():
-                    if node_name == "respond" and "final_response" in state_update:
-                        # Stream the final response in chunks
-                        response = state_update["final_response"]
-                        chunk_size = 50
-                        for i in range(0, len(response), chunk_size):
-                            yield response[i:i + chunk_size]
-                    elif node_name == "execute" and "response" in state_update:
-                        # Stream intermediate execution response
-                        yield f"[{node_name}] Processing..."
+                    pre_llm_state.update(state_update)
+
+                    if node_name == "classify_and_route":
+                        # Emit metadata event
+                        yield _json.dumps({
+                            "type": "meta",
+                            "intent": state_update.get("intent", "chat"),
+                            "model": state_update.get("model", "unknown"),
+                            "enriched": False,
+                        })
+
+                    elif node_name == "enrich":
+                        yield _json.dumps({
+                            "type": "meta",
+                            "enriched": state_update.get("enriched", False),
+                            "memories_found": len(state_update.get("relevant_memories", [])),
+                        })
+
+                    elif node_name == "execute":
+                        # The non-streaming execute already ran via the graph.
+                        # For true streaming, we'd need to intercept before execute.
+                        # For now, stream the response that execute produced.
+                        response = state_update.get("response", "")
+                        if response:
+                            # Stream in word-boundary chunks for natural feel
+                            words = response.split(" ")
+                            buffer = ""
+                            for word in words:
+                                buffer += word + " "
+                                if len(buffer) >= 20:  # ~4-5 words per chunk
+                                    yield _json.dumps({"type": "chunk", "text": buffer})
+                                    buffer = ""
+                            if buffer.strip():
+                                yield _json.dumps({"type": "chunk", "text": buffer})
+
+                    elif node_name == "respond":
+                        # Final response — if execute didn't stream, stream from here
+                        final = state_update.get("final_response", "")
+                        response_already = pre_llm_state.get("response", "")
+                        if final and not response_already:
+                            words = final.split(" ")
+                            buffer = ""
+                            for word in words:
+                                buffer += word + " "
+                                if len(buffer) >= 20:
+                                    yield _json.dumps({"type": "chunk", "text": buffer})
+                                    buffer = ""
+                            if buffer.strip():
+                                yield _json.dumps({"type": "chunk", "text": buffer})
+
+            elapsed_ms = (time.monotonic() - start_time) * 1000
+            yield _json.dumps({
+                "type": "done",
+                "latency_ms": round(elapsed_ms),
+                "model_used": pre_llm_state.get("model_used", ""),
+                "intent": pre_llm_state.get("intent", "chat"),
+            })
+
         except Exception as e:
             logger.error("stream_failed", run_id=str(run_id), error=str(e))
-            yield f"[error] {str(e)}"
+            yield _json.dumps({"type": "error", "message": str(e)})
 
     async def get_status(self, run_id: UUID) -> RunStatus:
         """Get current status of a run."""

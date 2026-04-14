@@ -323,6 +323,197 @@ class LLMClient:
         logger.info("llm_call_ok", provider=provider, model=model_id, tokens=usage["total_tokens"])
         return content, usage
 
+    # ── Streaming Interface ──────────────────────────────────────
+
+    async def chat_stream(
+        self,
+        model_config: dict,
+        messages: list[dict[str, str]],
+        temperature: float = 0.7,
+        max_tokens: Optional[int] = None,
+    ):
+        """
+        Streaming chat completion — yields text chunks as they arrive.
+        
+        Yields:
+            str: Text chunks from the LLM response
+        
+        After iteration completes, usage info is NOT available
+        (streaming trades usage tracking for speed).
+        """
+        provider = model_config["provider"]
+        model_id = model_config["model_id"]
+        api_key = os.environ.get(model_config["api_key_env"], "")
+
+        if not api_key:
+            raise ValueError(f"API key not found: {model_config['api_key_env']}")
+
+        if max_tokens is None:
+            if model_config.get("use_max_completion_tokens"):
+                max_tokens = model_config.get("max_completion_tokens", 4000)
+            else:
+                max_tokens = model_config.get("max_tokens", 4096)
+
+        logger.info("llm_stream_start", provider=provider, model_id=model_id)
+
+        if provider == "openai":
+            async for chunk in self._stream_openai(model_id, api_key, messages, temperature, max_tokens, model_config):
+                yield chunk
+        elif provider == "anthropic":
+            async for chunk in self._stream_anthropic(model_id, api_key, messages, temperature, max_tokens):
+                yield chunk
+        elif provider == "google":
+            async for chunk in self._stream_google(model_id, api_key, messages, temperature, max_tokens):
+                yield chunk
+        elif provider in ("xai", "openrouter", "perplexity"):
+            base_url = model_config.get("base_url", "")
+            async for chunk in self._stream_openai_compatible(model_id, api_key, base_url, messages, temperature, max_tokens, provider):
+                yield chunk
+        else:
+            raise ValueError(f"Unknown provider: {provider}")
+
+    # ── Streaming: OpenAI ─────────────────────────────────────────
+
+    async def _stream_openai(
+        self, model_id, api_key, messages, temperature, max_tokens, model_config
+    ):
+        if self._openai_client is None:
+            from openai import AsyncOpenAI
+            self._openai_client = AsyncOpenAI(api_key=api_key)
+
+        kwargs: dict[str, Any] = {
+            "model": model_id,
+            "messages": messages,
+            "temperature": temperature,
+            "stream": True,
+        }
+        if model_config.get("use_max_completion_tokens"):
+            kwargs["max_completion_tokens"] = max_tokens
+        else:
+            kwargs["max_tokens"] = max_tokens
+
+        stream = await self._openai_client.chat.completions.create(**kwargs)
+        async for chunk in stream:
+            if chunk.choices and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
+
+    # ── Streaming: Anthropic ──────────────────────────────────────
+
+    async def _stream_anthropic(
+        self, model_id, api_key, messages, temperature, max_tokens
+    ):
+        if self._anthropic_client is None:
+            from anthropic import AsyncAnthropic
+            self._anthropic_client = AsyncAnthropic(api_key=api_key)
+
+        system_prompt = ""
+        user_messages = []
+        for msg in messages:
+            if msg["role"] == "system":
+                system_prompt = msg["content"]
+            else:
+                user_messages.append(msg)
+        if not user_messages:
+            user_messages = [{"role": "user", "content": "Hola"}]
+
+        kwargs: dict[str, Any] = {
+            "model": model_id,
+            "messages": user_messages,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "stream": True,
+        }
+        if system_prompt:
+            kwargs["system"] = system_prompt
+
+        async with self._anthropic_client.messages.stream(**kwargs) as stream:
+            async for text in stream.text_stream:
+                yield text
+
+    # ── Streaming: Google Gemini ──────────────────────────────────
+
+    async def _stream_google(
+        self, model_id, api_key, messages, temperature, max_tokens
+    ):
+        if self._google_client is None:
+            from google import genai
+            self._google_client = genai.Client(api_key=api_key)
+
+        system_instruction = ""
+        contents = []
+        for msg in messages:
+            if msg["role"] == "system":
+                system_instruction = msg["content"]
+            elif msg["role"] == "user":
+                contents.append({"role": "user", "parts": [{"text": msg["content"]}]})
+            elif msg["role"] == "assistant":
+                contents.append({"role": "model", "parts": [{"text": msg["content"]}]})
+        if not contents:
+            contents = [{"role": "user", "parts": [{"text": "Hola"}]}]
+
+        from google.genai import types
+        gen_config = types.GenerateContentConfig(
+            temperature=temperature,
+            max_output_tokens=max_tokens,
+        )
+        if system_instruction:
+            gen_config.system_instruction = system_instruction
+
+        async for chunk in await self._google_client.aio.models.generate_content_stream(
+            model=model_id,
+            contents=contents,
+            config=gen_config,
+        ):
+            if chunk.text:
+                yield chunk.text
+
+    # ── Streaming: OpenAI-Compatible (xAI, OpenRouter, Perplexity)
+
+    async def _stream_openai_compatible(
+        self, model_id, api_key, base_url, messages, temperature, max_tokens, provider
+    ):
+        if provider == "perplexity":
+            url = base_url
+        else:
+            url = f"{base_url}/chat/completions"
+
+        if provider not in self._httpx_clients:
+            self._httpx_clients[provider] = httpx.AsyncClient(timeout=120.0)
+        client = self._httpx_clients[provider]
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        if provider == "openrouter":
+            headers["HTTP-Referer"] = "https://elmonstruo.ai"
+            headers["X-Title"] = "El Monstruo"
+
+        payload = {
+            "model": model_id,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "stream": True,
+        }
+
+        async with client.stream("POST", url, json=payload, headers=headers) as resp:
+            resp.raise_for_status()
+            async for line in resp.aiter_lines():
+                if line.startswith("data: "):
+                    data_str = line[6:]
+                    if data_str.strip() == "[DONE]":
+                        break
+                    try:
+                        import json
+                        data = json.loads(data_str)
+                        delta = data.get("choices", [{}])[0].get("delta", {})
+                        content = delta.get("content", "")
+                        if content:
+                            yield content
+                    except (json.JSONDecodeError, IndexError, KeyError):
+                        continue
+
     # ── Helpers ───────────────────────────────────────────────────
 
     @staticmethod
