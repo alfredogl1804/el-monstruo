@@ -300,11 +300,21 @@ def _get_system_prompt(
     context: Optional[dict[str, Any]] = None,
 ) -> str:
     """
-    Get the system prompt. If context has a 'brain' key, use the rich
-    brain prompt from prompts/system_prompts.py. Otherwise, use the
-    default intent-based prompt.
+    Get the system prompt.
+    Priority:
+    1. Enriched system_prompt from kernel's enrich() node (has memory context)
+    2. Brain-specific prompt (if brain specified)
+    3. Default intent-based prompt
     """
-    # If a brain is specified, use the rich prompt from the Bot thread
+    # Priority 1: If enriched system_prompt from enrich() node, use it directly
+    # This contains the base identity + relevant memories + knowledge entities
+    if context and context.get("system_prompt"):
+        enriched = context["system_prompt"]
+        # Only use if it's the full enriched prompt (not a short custom instruction)
+        if len(enriched) > 100:  # Enriched prompts are always long
+            return enriched
+
+    # Priority 2: If a brain is specified, use the rich prompt
     if context and context.get("brain"):
         try:
             from prompts.system_prompts import get_brain_prompt
@@ -312,7 +322,7 @@ def _get_system_prompt(
         except ImportError:
             pass  # Fall through to default
 
-    # Default intent-based prompts
+    # Priority 3: Default intent-based prompts
     base_identity = (
         "Eres El Monstruo, un sistema de inteligencia artificial soberana "
         "creado por Alfredo Gongora para Hive Business Center. "
@@ -343,10 +353,10 @@ def _get_system_prompt(
         ),
     }
 
-    # Add custom system prompt from context if provided
+    # Add custom system prompt from context if provided (short instructions)
     custom = ""
-    if context and context.get("system_prompt"):
-        custom = f"\n\nInstrucciones adicionales: {context['system_prompt']}"
+    if context and context.get("custom_instructions"):
+        custom = f"\n\nInstrucciones adicionales: {context['custom_instructions']}"
 
     return base_identity + intent_additions.get(intent, "") + custom
 

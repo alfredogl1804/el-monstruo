@@ -299,12 +299,14 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
     """
     Call the LLM with the enriched context.
     Handles retries with fallback models.
+    
+    CRITICAL: Passes enriched system_prompt and conversation_context
+    to the router so the LLM sees memory and context from enrich().
     """
     message = state.get("message", "")
     model = state.get("model", "gpt-5.4")
     fallbacks = state.get("fallback_models", [])
     intent = state.get("intent", "chat")
-    context = state.get("context", {})
     system_prompt = state.get("system_prompt", _build_base_system_prompt())
     conversation_context = state.get("conversation_context", [])
     router, _, _, _ = _deps(config)
@@ -316,12 +318,21 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
     attempts = 0
     tool_calls: list[dict[str, Any]] = []
 
-    # Build messages array
-    messages = []
+    # Inject enriched context into router context dict
+    # The router uses context["history"] for conversation and
+    # context["system_prompt"] for the enriched system prompt
+    enriched_context = dict(state.get("context", {}))
+    if conversation_context:
+        enriched_context["history"] = conversation_context
     if system_prompt:
-        messages.append({"role": "system", "content": system_prompt})
-    messages.extend(conversation_context)
-    messages.append({"role": "user", "content": message})
+        enriched_context["system_prompt"] = system_prompt
+
+    logger.info(
+        "execute_context_injected",
+        history_messages=len(conversation_context),
+        has_enriched_prompt=bool(system_prompt),
+        intent=intent,
+    )
 
     # Try primary model, then fallbacks
     models_to_try = [model] + fallbacks
@@ -332,12 +343,12 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
         try:
             if router:
                 response, usage = await router.execute(
-                    message, m, IntentType(intent), context
+                    message, m, IntentType(intent), enriched_context
                 )
                 model_used = m
                 break
             else:
-                # Stub mode (no router/LiteLLM)
+                # Stub mode (no router)
                 response = f"[stub] {m} would respond to: {message[:100]}"
                 usage = {"prompt_tokens": 0, "completion_tokens": 0, "cost_usd": 0.0}
                 model_used = m
