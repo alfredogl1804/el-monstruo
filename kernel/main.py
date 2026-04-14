@@ -80,19 +80,14 @@ async def lifespan(app: FastAPI):
     conversation_memory = ConversationMemory()
     knowledge_graph = KnowledgeGraph()
 
-    # Initialize router if LiteLLM is available
+    # Initialize sovereign router (native SDKs, no LiteLLM proxy)
     router = None
-    litellm_url = os.environ.get("LITELLM_URL", os.environ.get("LITELLM_BASE_URL"))
-    if litellm_url:
-        try:
-            from router.engine import RouterEngine
-            router = RouterEngine(
-                litellm_url=litellm_url,
-                litellm_key=os.environ.get("LITELLM_MASTER_KEY", "sk-monstruo-dev"),
-            )
-            logger.info("router_connected", url=litellm_url)
-        except Exception as e:
-            logger.warning("router_init_failed", error=str(e))
+    try:
+        from router.engine import RouterEngine
+        router = RouterEngine()
+        logger.info("router_connected", mode="native_sdks")
+    except Exception as e:
+        logger.warning("router_init_failed", error=str(e))
 
     # Initialize observability (Langfuse v4 + OpenTelemetry)
     observability = ObservabilityManager()

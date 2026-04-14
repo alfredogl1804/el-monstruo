@@ -1,66 +1,73 @@
 """
-El Monstruo — Router Engine (Convergencia Sprint 1)
-=====================================================
-Cliente del proxy LiteLLM para routing inteligente de modelos.
-El Router NO decide las transiciones de estado — eso es del Kernel.
-El Router solo decide: qué modelo usar y ejecuta la llamada.
+El Monstruo — Router Engine (Sprint 1 — Soberano)
+====================================================
+Router inteligente de modelos con cliente multi-proveedor nativo.
+NO depende de LiteLLM proxy. Usa SDKs nativos + httpx.
 
-Convergencia: Ahora usa model_catalog.py para aliases y fallbacks.
+El Router decide: qué modelo usar y ejecuta la llamada.
+El Kernel decide: las transiciones de estado.
+
+Convergencia: Usa model_catalog.py para aliases y fallbacks.
 System prompts vienen de prompts/system_prompts.py (6 cerebros).
 
-Principio: El Monstruo decide el routing. LiteLLM ejecuta.
+Principio: El Monstruo decide el routing. Los SDKs ejecutan.
 """
 
 from __future__ import annotations
 
 import os
-from typing import Any, AsyncIterator, Optional
+from typing import Any, Optional
 
-import httpx
 import structlog
 
 from contracts.kernel_interface import IntentType
+from config.model_catalog import MODELS, FALLBACK_CHAINS
+from router.llm_client import LLMClient
 
 logger = structlog.get_logger("router")
 
 
-# ── Intent → LiteLLM Alias Mapping ──────────────────────────────────
-# Maps kernel intents to litellm_config.yaml aliases
-# Now includes expanded models from convergence
+# ── Intent → Catalog Model Mapping ──────────────────────────────────
+# Maps kernel intents to model_catalog.py keys (not litellm aliases)
 
 DEFAULT_MODEL_MAP: dict[IntentType, str] = {
-    IntentType.CHAT: "fast-chat",           # Gemini 3.1 Flash Lite — rápido y barato
-    IntentType.DEEP_THINK: "gpt-5",         # GPT-5.4 — razonamiento complejo
-    IntentType.EXECUTE: "claude-sonnet",     # Claude Sonnet 4.6 — código y ejecución
-    IntentType.BACKGROUND: "gemini-flash",   # Gemini 3.1 Flash Lite — tareas largas
-    IntentType.SYSTEM: "fast-chat",          # Respuestas rápidas del sistema
+    IntentType.CHAT: "gemini-3.1-flash-lite",       # Rápido y gratis
+    IntentType.DEEP_THINK: "gpt-5.4",               # Razonamiento complejo
+    IntentType.EXECUTE: "claude-sonnet-4-6",         # Código y ejecución
+    IntentType.BACKGROUND: "gemini-3.1-flash-lite",  # Tareas largas baratas
+    IntentType.SYSTEM: "gemini-3.1-flash-lite",      # Respuestas rápidas
 }
 
-# Brain → LiteLLM Alias mapping (from Bot thread's 6 cerebros)
+# Brain → Catalog Model mapping (6 cerebros del Monstruo)
 BRAIN_MODEL_MAP: dict[str, str] = {
-    "estratega":     "gpt-5",
-    "investigador":  "sonar-reasoning",
-    "arquitecto":    "claude-opus",
-    "creativo":      "gemini-pro",
-    "critico":       "grok",
-    "operador":      "fast-chat",
+    "estratega":     "gpt-5.4",
+    "investigador":  "sonar-reasoning-pro",
+    "arquitecto":    "claude-opus-4-6",
+    "creativo":      "gemini-3.1-pro",
+    "critico":       "grok-4.20",
+    "operador":      "gemini-3.1-flash-lite",
 }
 
-# Fallback chain per LiteLLM alias
+# Alias → Catalog key mapping (para compatibilidad con código existente)
+ALIAS_TO_CATALOG: dict[str, str] = {
+    cfg["litellm_alias"]: name
+    for name, cfg in MODELS.items()
+    if "litellm_alias" in cfg
+}
+
+# Fallback chain per catalog model name
 FALLBACK_CHAIN: dict[str, list[str]] = {
-    "gpt-5": ["claude-opus", "claude-sonnet", "gemini-pro"],
-    "claude-opus": ["gpt-5", "claude-sonnet", "gemini-pro"],
-    "claude-sonnet": ["gpt-5", "claude-opus", "gemini-flash"],
-    "gemini-flash": ["gpt-5-mini", "kimi", "gpt-5"],
-    "gemini-pro": ["gpt-5", "claude-opus", "gemini-flash"],
-    "grok": ["gpt-5", "deepseek-r1", "claude-opus"],
-    "deepseek-r1": ["grok", "gpt-5", "claude-opus"],
-    "deepseek": ["grok", "gpt-5"],
-    "sonar-reasoning": ["sonar-pro", "gpt-5", "grok"],
-    "sonar-pro": ["sonar-reasoning", "gpt-5", "gemini-flash"],
-    "gpt-5-mini": ["kimi", "gemini-flash"],
-    "kimi": ["gemini-flash", "gpt-5-mini"],
-    "fast-chat": ["gpt-5-mini", "kimi"],
+    "gpt-5.4": ["claude-opus-4-6", "claude-sonnet-4-6", "gemini-3.1-pro"],
+    "claude-opus-4-6": ["gpt-5.4", "claude-sonnet-4-6", "gemini-3.1-pro"],
+    "claude-sonnet-4-6": ["gpt-5.4", "claude-opus-4-6", "gemini-3.1-flash-lite"],
+    "gemini-3.1-flash-lite": ["gpt-5.4-mini", "kimi-k2.5", "gpt-5.4"],
+    "gemini-3.1-pro": ["gpt-5.4", "claude-opus-4-6", "gemini-3.1-flash-lite"],
+    "grok-4.20": ["gpt-5.4", "deepseek-r1-0528", "claude-opus-4-6"],
+    "deepseek-r1-0528": ["grok-4.20", "gpt-5.4", "claude-opus-4-6"],
+    "sonar-reasoning-pro": ["sonar-pro", "gpt-5.4", "grok-4.20"],
+    "sonar-pro": ["sonar-reasoning-pro", "gpt-5.4", "gemini-3.1-flash-lite"],
+    "gpt-5.4-mini": ["kimi-k2.5", "gemini-3.1-flash-lite"],
+    "kimi-k2.5": ["gemini-3.1-flash-lite", "gpt-5.4-mini"],
 }
 
 # Intent classification prompt
@@ -77,45 +84,28 @@ Respond with ONLY the intent name, nothing else."""
 
 class RouterEngine:
     """
-    Router that talks to LiteLLM proxy for model execution.
+    Router soberano que habla directamente con cada proveedor.
 
     Responsibilities:
         - Classify intent from user message
         - Map intent to optimal model (or brain to model)
-        - Execute requests via LiteLLM proxy
+        - Execute requests via SDKs nativos
         - Handle fallbacks on failure
         - Track usage (tokens, cost)
     """
 
     def __init__(
         self,
-        litellm_url: Optional[str] = None,
-        litellm_key: Optional[str] = None,
         model_map: Optional[dict[IntentType, str]] = None,
         use_llm_classification: bool = True,
     ) -> None:
-        self._base_url = (
-            litellm_url
-            or os.environ.get("LITELLM_URL", "http://localhost:4000")
-        )
-        self._api_key = (
-            litellm_key
-            or os.environ.get("LITELLM_MASTER_KEY", "sk-monstruo-dev")
-        )
         self._model_map = model_map or DEFAULT_MODEL_MAP
         self._use_llm_classification = use_llm_classification
-        self._client = httpx.AsyncClient(
-            base_url=self._base_url,
-            headers={
-                "Authorization": f"Bearer {self._api_key}",
-                "Content-Type": "application/json",
-            },
-            timeout=120.0,
-        )
+        self._llm = LLMClient()
 
     async def close(self) -> None:
-        """Close the HTTP client."""
-        await self._client.aclose()
+        """Close the LLM client."""
+        await self._llm.close()
 
     # ── Public Interface ────────────────────────────────────────────
 
@@ -127,7 +117,7 @@ class RouterEngine:
     ) -> tuple[IntentType, str]:
         """
         Classify intent and select model.
-        Returns (intent, model_alias).
+        Returns (intent, catalog_model_name).
         """
         # Classify intent
         if self._use_llm_classification:
@@ -138,7 +128,7 @@ class RouterEngine:
         # If context specifies a brain, use brain→model mapping
         if context and context.get("brain"):
             brain = context["brain"]
-            model = BRAIN_MODEL_MAP.get(brain, "gpt-5")
+            model = BRAIN_MODEL_MAP.get(brain, "gpt-5.4")
             logger.info(
                 "route_by_brain",
                 brain=brain,
@@ -148,11 +138,13 @@ class RouterEngine:
             return intent, model
 
         # Select model based on intent
-        model = self._model_map.get(intent, "gpt-5")
+        model = self._model_map.get(intent, "gpt-5.4")
 
         # Override: if context requests a specific model, use it
         if context and context.get("force_model"):
-            model = context["force_model"]
+            forced = context["force_model"]
+            # Resolve alias to catalog key if needed
+            model = ALIAS_TO_CATALOG.get(forced, forced)
 
         logger.info(
             "route_decided",
@@ -172,7 +164,7 @@ class RouterEngine:
         context: Optional[dict[str, Any]] = None,
     ) -> tuple[str, dict[str, Any]]:
         """
-        Execute a request against the selected model via LiteLLM proxy.
+        Execute a request against the selected model via native SDKs.
         Returns (response_text, usage_dict).
         """
         system_prompt = _get_system_prompt(intent, context)
@@ -184,7 +176,6 @@ class RouterEngine:
 
         # Add conversation history if provided
         if context and context.get("history"):
-            # Insert history before the current message
             history = context["history"]
             messages = (
                 messages[:1]  # system prompt
@@ -192,20 +183,36 @@ class RouterEngine:
                 + messages[1:]  # current message
             )
 
-        # Try primary model, then fallbacks
-        models_to_try = [model] + FALLBACK_CHAIN.get(model, [])
+        # Resolve model name: could be alias or catalog key
+        catalog_key = ALIAS_TO_CATALOG.get(model, model)
+
+        # Build models to try: primary + fallbacks
+        models_to_try = [catalog_key] + FALLBACK_CHAIN.get(catalog_key, [])
 
         last_error = None
         for attempt_model in models_to_try:
             try:
-                response, usage = await self._call_litellm(attempt_model, messages)
+                model_config = MODELS.get(attempt_model)
+                if model_config is None:
+                    logger.warning("model_not_in_catalog", model=attempt_model)
+                    continue
 
-                if attempt_model != model:
+                response, usage = await self._llm.chat(
+                    model_config=model_config,
+                    messages=messages,
+                    temperature=0.7,
+                )
+
+                if attempt_model != catalog_key:
                     logger.warning(
                         "fallback_used",
-                        original_model=model,
+                        original_model=catalog_key,
                         fallback_model=attempt_model,
                     )
+
+                # Enrich usage with model info
+                usage["model_used"] = attempt_model
+                usage["provider"] = model_config["provider"]
 
                 return response, usage
 
@@ -224,106 +231,49 @@ class RouterEngine:
             f"Tried: {models_to_try}. Last error: {last_error}"
         )
 
-    async def stream(
-        self,
-        message: str,
-        model: str,
-        intent: IntentType,
-    ) -> AsyncIterator[str]:
-        """Stream tokens from model execution."""
-        system_prompt = _get_system_prompt(intent)
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": message})
-
-        payload = {
-            "model": model,
-            "messages": messages,
-            "stream": True,
-        }
-
-        async with self._client.stream(
-            "POST",
-            "/v1/chat/completions",
-            json=payload,
-        ) as response:
-            response.raise_for_status()
-            async for line in response.aiter_lines():
-                if line.startswith("data: ") and line != "data: [DONE]":
-                    import json
-                    try:
-                        chunk = json.loads(line[6:])
-                        delta = chunk.get("choices", [{}])[0].get("delta", {})
-                        content = delta.get("content", "")
-                        if content:
-                            yield content
-                    except json.JSONDecodeError:
-                        continue
-
     async def health_check(self) -> dict[str, Any]:
-        """Check if LiteLLM proxy is healthy."""
+        """Check if at least one model is reachable."""
         try:
-            resp = await self._client.get("/health")
-            return {"status": "ok", "litellm": resp.json()}
+            # Quick test with the cheapest model
+            model_config = MODELS.get("gemini-3.1-flash-lite")
+            if model_config is None:
+                return {"status": "error", "error": "gemini-3.1-flash-lite not in catalog"}
+
+            response, usage = await self._llm.chat(
+                model_config=model_config,
+                messages=[{"role": "user", "content": "ping"}],
+                temperature=0.0,
+                max_tokens=10,
+            )
+            return {
+                "status": "ok",
+                "test_model": "gemini-3.1-flash-lite",
+                "response_preview": response[:50],
+                "tokens": usage.get("total_tokens", 0),
+            }
         except Exception as e:
             return {"status": "error", "error": str(e)}
 
     # ── Internal Methods ────────────────────────────────────────────
 
-    async def _call_litellm(
-        self,
-        model: str,
-        messages: list[dict[str, str]],
-    ) -> tuple[str, dict[str, Any]]:
-        """Make a chat completion call to LiteLLM proxy."""
-        payload = {
-            "model": model,
-            "messages": messages,
-            "temperature": 0.7,
-        }
-
-        resp = await self._client.post("/v1/chat/completions", json=payload)
-        resp.raise_for_status()
-        data = resp.json()
-
-        # Extract response
-        choices = data.get("choices", [])
-        if not choices:
-            raise ValueError("No choices in LiteLLM response")
-
-        content = choices[0].get("message", {}).get("content", "")
-
-        # Extract usage
-        usage_data = data.get("usage", {})
-        usage = {
-            "prompt_tokens": usage_data.get("prompt_tokens", 0),
-            "completion_tokens": usage_data.get("completion_tokens", 0),
-            "total_tokens": usage_data.get("total_tokens", 0),
-            "cost_usd": data.get("_hidden_params", {}).get("response_cost", 0.0),
-            "model_used": data.get("model", model),
-        }
-
-        return content, usage
-
     async def _classify_intent_llm(self, message: str) -> IntentType:
-        """Classify intent using a fast LLM call."""
+        """Classify intent using a fast LLM call (Gemini Flash Lite — free)."""
         try:
-            payload = {
-                "model": "fast-chat",
-                "messages": [
+            model_config = MODELS.get("gemini-3.1-flash-lite")
+            if model_config is None:
+                return _classify_intent_local(message)
+
+            response, _ = await self._llm.chat(
+                model_config=model_config,
+                messages=[
                     {"role": "system", "content": INTENT_SYSTEM_PROMPT},
                     {"role": "user", "content": message},
                 ],
-                "temperature": 0.0,
-                "max_tokens": 20,
-            }
+                temperature=0.0,
+                max_tokens=20,
+            )
 
-            resp = await self._client.post("/v1/chat/completions", json=payload)
-            resp.raise_for_status()
-            data = resp.json()
-
-            raw = data["choices"][0]["message"]["content"].strip().lower()
+            raw = response.strip().lower()
 
             intent_map = {
                 "chat": IntentType.CHAT,
