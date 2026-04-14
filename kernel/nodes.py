@@ -553,11 +553,12 @@ async def respond(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
 def should_enrich(state: MonstruoState) -> str:
     """
     Conditional edge after route: should we enrich context?
-    - chat / deep_think / execute → enrich (need memory for personalized responses)
-    - system / background → execute directly (no context needed)
+    Almost all intents go through enrich for memory-aware responses.
+    Only skip for background tasks (async, no user interaction).
+    Even system commands get light enrichment for context.
     """
     intent = state.get("intent", "chat")
-    if intent in ("system", "background"):
+    if intent == "background":
         return "execute"
     return "enrich"
 

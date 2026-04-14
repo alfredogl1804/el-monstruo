@@ -73,11 +73,14 @@ FALLBACK_CHAIN: dict[str, list[str]] = {
 # Intent classification prompt
 INTENT_SYSTEM_PROMPT = """You are an intent classifier for El Monstruo AI system.
 Classify the user message into exactly ONE of these intents:
-- chat: Simple conversation, greetings, quick questions
-- deep_think: Complex analysis, reasoning, comparison, evaluation, long explanations
-- execute: Actions to perform (create, send, publish, generate, build)
+- chat: Conversation, greetings, questions, personal queries, asking about projects/preferences/memories, small talk, opinions
+- deep_think: Complex analysis, reasoning, comparison, evaluation, research, long explanations, "why" questions
+- execute: Actions to perform (create, send, publish, generate, build, deploy, configure, delete)
 - background: Long-running tasks that should run asynchronously
-- system: System commands, status checks, health queries
+- system: ONLY literal system commands like /start /help /status /cancel, or explicit requests about bot health/version
+
+IMPORTANT: Questions like "what is my project?" or "what do you remember about me?" are CHAT, not system.
+Only classify as system if the user is asking about the AI system itself (health, version, status) or using a / command.
 
 Respond with ONLY the intent name, nothing else."""
 
