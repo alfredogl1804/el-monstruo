@@ -21,6 +21,7 @@ from typing import Any, Optional
 from uuid import uuid4
 
 import structlog
+from langchain_core.runnables import RunnableConfig
 
 from contracts.kernel_interface import IntentType, RunStatus
 from contracts.event_envelope import EventBuilder, EventCategory, Severity
@@ -31,7 +32,7 @@ logger = structlog.get_logger("kernel.nodes")
 
 # ── Helpers to extract dependencies from config ──────────────────────
 
-def _deps(config: dict) -> tuple[Any, Any, Any, Any]:
+def _deps(config: RunnableConfig) -> tuple[Any, Any, Any, Any]:
     """Extract (router, memory, knowledge, event_store) from config."""
     cfg = config.get("configurable", {})
     return (
@@ -46,7 +47,7 @@ def _deps(config: dict) -> tuple[Any, Any, Any, Any]:
 # Node 1: INTAKE
 # ══════════════════════════════════════════════════════════════════════
 
-async def intake(state: MonstruoState, config: dict) -> dict[str, Any]:
+async def intake(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
     Receive and normalize the incoming message.
     Sets up initial state, timestamps, and emits RUN_STARTED event.
@@ -91,7 +92,7 @@ async def intake(state: MonstruoState, config: dict) -> dict[str, Any]:
 # Node 2: CLASSIFY
 # ══════════════════════════════════════════════════════════════════════
 
-async def classify(state: MonstruoState, config: dict) -> dict[str, Any]:
+async def classify(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
     Determine the intent of the message.
     Uses the RouterEngine if available, falls back to keyword classification.
@@ -134,7 +135,7 @@ async def classify(state: MonstruoState, config: dict) -> dict[str, Any]:
 # Node 3: ROUTE
 # ══════════════════════════════════════════════════════════════════════
 
-async def route(state: MonstruoState, config: dict) -> dict[str, Any]:
+async def route(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
     Select the model and fallback chain based on intent.
     Uses RouterEngine for model selection if available.
@@ -185,7 +186,7 @@ async def route(state: MonstruoState, config: dict) -> dict[str, Any]:
 # Node 4: ENRICH
 # ══════════════════════════════════════════════════════════════════════
 
-async def enrich(state: MonstruoState, config: dict) -> dict[str, Any]:
+async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
     Enrich the context with conversation history and knowledge graph.
     Only runs for deep_think and execute intents.
@@ -290,7 +291,7 @@ async def enrich(state: MonstruoState, config: dict) -> dict[str, Any]:
 # Node 5: EXECUTE
 # ══════════════════════════════════════════════════════════════════════
 
-async def execute(state: MonstruoState, config: dict) -> dict[str, Any]:
+async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
     Call the LLM with the enriched context.
     Handles retries with fallback models.
@@ -417,7 +418,7 @@ async def execute(state: MonstruoState, config: dict) -> dict[str, Any]:
 # Node 6: MEMORY_WRITE
 # ══════════════════════════════════════════════════════════════════════
 
-async def memory_write(state: MonstruoState, config: dict) -> dict[str, Any]:
+async def memory_write(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
     Persist the conversation to memory and extract entities for the knowledge graph.
     """
@@ -507,7 +508,7 @@ async def memory_write(state: MonstruoState, config: dict) -> dict[str, Any]:
 # Node 7: RESPOND
 # ══════════════════════════════════════════════════════════════════════
 
-async def respond(state: MonstruoState, config: dict) -> dict[str, Any]:
+async def respond(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
     Build and emit the final response.
     """
