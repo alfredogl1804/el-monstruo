@@ -106,20 +106,22 @@ async def lifespan(app: FastAPI):
 
     # Initialize durable checkpointer (PostgresSaver → Supabase PostgreSQL)
     # Falls back to MemorySaver if SUPABASE_DB_URL is not set or connection fails
+    # IMPORTANT: from_conn_string is an @asynccontextmanager — must enter manually
     checkpointer = None
+    _checkpointer_cm = None  # context manager handle for cleanup
     supabase_db_url = os.environ.get("SUPABASE_DB_URL")
     if supabase_db_url:
         try:
             from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
-            from psycopg import AsyncConnection
-            # AsyncPostgresSaver needs a connection string
-            # .setup() creates the checkpoint tables if they don't exist
-            checkpointer = AsyncPostgresSaver.from_conn_string(supabase_db_url)
+            # from_conn_string is an async context manager, enter it manually
+            _checkpointer_cm = AsyncPostgresSaver.from_conn_string(supabase_db_url)
+            checkpointer = await _checkpointer_cm.__aenter__()
             await checkpointer.setup()
             logger.info("checkpointer_initialized", type="AsyncPostgresSaver", backend="supabase_postgresql")
         except Exception as e:
             logger.warning("postgres_checkpointer_failed", error=str(e), fallback="MemorySaver")
             checkpointer = None
+            _checkpointer_cm = None
     else:
         logger.warning("no_supabase_db_url", msg="Using MemorySaver (volatile). Set SUPABASE_DB_URL for durable state.")
 
@@ -170,7 +172,15 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    # Shutdown
+    # Shutdown checkpointer (close PostgreSQL connection)
+    if _checkpointer_cm:
+        try:
+            await _checkpointer_cm.__aexit__(None, None, None)
+            logger.info("checkpointer_shutdown", type="AsyncPostgresSaver")
+        except Exception:
+            pass
+
+    # Shutdown router
     if router:
         try:
             await router.close()
