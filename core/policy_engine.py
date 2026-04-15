@@ -140,6 +140,20 @@ DEFAULT_RULES: list[PolicyRule] = [
         priority=50,
         conditions={"composite_risk": RiskLevel.L3_SENSITIVE.value},
     ),
+    # R7: EXECUTE from user always requires HITL (Sprint 1 governance)
+    # Philosophy: when the Monstruo is about to DO something (not just read),
+    # the human must approve. This is the core of sovereign governance.
+    # validated 2026-04-14
+    PolicyRule(
+        rule_id="execute_user_hitl",
+        effect=PolicyEffect.FORBID,
+        description="EXECUTE actions from user always require HITL approval",
+        priority=60,
+        conditions={
+            "action_type": ActionType.EXECUTE.value,
+            "actor_type": "user",
+        },
+    ),
 ]
 
 
