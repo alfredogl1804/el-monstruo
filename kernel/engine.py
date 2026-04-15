@@ -26,6 +26,14 @@ import structlog
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 
+# PostgresSaver for durable state (Sprint 2)
+# Falls back to MemorySaver if SUPABASE_DB_URL is not set
+try:
+    from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+    _HAS_POSTGRES_SAVER = True
+except ImportError:
+    _HAS_POSTGRES_SAVER = False
+
 from contracts.kernel_interface import (
     KernelInterface,
     RunInput,
@@ -71,6 +79,7 @@ class LangGraphKernel(KernelInterface):
         knowledge: Any = None,
         checkpoint_store: Any = None,
         observability: Any = None,
+        checkpointer: Any = None,
     ) -> None:
         self._router = router
         self._event_store = event_store
@@ -81,14 +90,15 @@ class LangGraphKernel(KernelInterface):
         self._hooks: dict[str, list[Callable[..., Any]]] = {}
         self._runs: dict[UUID, MonstruoState] = {}
 
-        # Build the LangGraph graph
-        self._checkpointer = MemorySaver()
+        # Use injected checkpointer (PostgresSaver) or fallback to MemorySaver
+        self._checkpointer = checkpointer or MemorySaver()
         self._graph = self._build_graph()
         self._compiled = self._graph.compile(
             checkpointer=self._checkpointer,
         )
 
-        logger.info("kernel_initialized", motor="langgraph", version="1.1.6")
+        checkpointer_type = type(self._checkpointer).__name__
+        logger.info("kernel_initialized", motor="langgraph", version="1.1.6", checkpointer=checkpointer_type)
 
     def _build_graph(self) -> StateGraph:
         """
@@ -417,7 +427,7 @@ class LangGraphKernel(KernelInterface):
     async def checkpoint(self, run_id: UUID) -> Any:
         """
         Create a checkpoint of the current run state.
-        LangGraph handles this internally via MemorySaver.
+        LangGraph handles this internally via PostgresSaver (or MemorySaver fallback).
         We also persist to our sovereign CheckpointStore.
         """
         state = self._runs.get(run_id)

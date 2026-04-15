@@ -73,7 +73,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.2.0-sprint1", motor="langgraph")
+    logger.info("monstruo_starting", version="0.3.0-sprint2", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -104,6 +104,25 @@ async def lifespan(app: FastAPI):
     obs_status = await observability.initialize()
     logger.info("observability_status", **obs_status)
 
+    # Initialize durable checkpointer (PostgresSaver → Supabase PostgreSQL)
+    # Falls back to MemorySaver if SUPABASE_DB_URL is not set or connection fails
+    checkpointer = None
+    supabase_db_url = os.environ.get("SUPABASE_DB_URL")
+    if supabase_db_url:
+        try:
+            from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+            from psycopg import AsyncConnection
+            # AsyncPostgresSaver needs a connection string
+            # .setup() creates the checkpoint tables if they don't exist
+            checkpointer = AsyncPostgresSaver.from_conn_string(supabase_db_url)
+            await checkpointer.setup()
+            logger.info("checkpointer_initialized", type="AsyncPostgresSaver", backend="supabase_postgresql")
+        except Exception as e:
+            logger.warning("postgres_checkpointer_failed", error=str(e), fallback="MemorySaver")
+            checkpointer = None
+    else:
+        logger.warning("no_supabase_db_url", msg="Using MemorySaver (volatile). Set SUPABASE_DB_URL for durable state.")
+
     # Initialize the LangGraph Kernel with all dependencies
     kernel = LangGraphKernel(
         router=router,
@@ -111,6 +130,7 @@ async def lifespan(app: FastAPI):
         memory=conversation_memory,
         knowledge=knowledge_graph,
         observability=observability,
+        checkpointer=checkpointer,
     )
 
     # Emit startup event
@@ -120,11 +140,12 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.2.0-sprint1",
+            "version": "0.3.0-sprint2",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
             "knowledge": "active",
+            "checkpointer": "PostgresSaver" if checkpointer else "MemorySaver",
         })
         .build()
     )
@@ -175,7 +196,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.2.0-sprint1",
+    version="0.3.0-sprint2",
     lifespan=lifespan,
 )
 
@@ -186,6 +207,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# API Key authentication (Sprint 2)
+# If MONSTRUO_API_KEY env var is set, all /v1/* endpoints require it
+from kernel.auth import APIKeyAuthMiddleware
+app.add_middleware(APIKeyAuthMiddleware)
 
 
 # ── Request/Response Models ─────────────────────────────────────────
@@ -606,9 +632,9 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.2.0-sprint1",
-            "motor": "langgraph",
-            "uptime_seconds": (now - BOOT_TIME).total_seconds(),
+        "version": "0.3.0-sprint2",
+        "motor": "langgraph",
+        "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
         "event_store": {
             "total_events": len(all_events),
@@ -673,6 +699,84 @@ async def hitl_pending():
         return {"pending": {}, "note": "HITL handler not loaded"}
 
 
+# ── Sprint 2: Tool Endpoints (Las Manos) ──────────────────────────────
+
+
+@app.post("/v1/tools/web_search", tags=["tools"])
+async def tool_web_search(request: Request):
+    """Search the web using Perplexity Sonar API."""
+    body = await request.json()
+    query = body.get("query", "")
+    context = body.get("context", "")
+    if not query:
+        raise HTTPException(status_code=400, detail="query is required")
+
+    from tools.web_search import web_search
+    result = await web_search(query=query, context=context)
+    return result
+
+
+@app.post("/v1/tools/consult_sabios", tags=["tools"])
+async def tool_consult_sabios(request: Request):
+    """Consult the 6 Sabios (multi-model AI consultation)."""
+    body = await request.json()
+    prompt = body.get("prompt", "")
+    context = body.get("context", "")
+    sabios = body.get("sabios", None)  # Optional: list of sabio IDs
+    parallel = body.get("parallel", True)
+    if not prompt:
+        raise HTTPException(status_code=400, detail="prompt is required")
+
+    from tools.consult_sabios import consult_sabios
+    result = await consult_sabios(prompt=prompt, context=context, sabios=sabios, parallel=parallel)
+    return result
+
+
+@app.post("/v1/tools/email", tags=["tools"])
+async def tool_email(request: Request):
+    """Send an email via Gmail SMTP."""
+    body = await request.json()
+    to = body.get("to", "")
+    subject = body.get("subject", "")
+    body_text = body.get("body", "")
+    html_body = body.get("html_body", None)
+    cc = body.get("cc", None)
+    if not to or not subject or not body_text:
+        raise HTTPException(status_code=400, detail="to, subject, and body are required")
+
+    from tools.email_sender import send_email
+    result = await send_email(to=to, subject=subject, body=body_text, html_body=html_body, cc=cc)
+    return result
+
+
+@app.get("/v1/tools", tags=["tools"])
+async def list_tools():
+    """List available tools and their status."""
+    import os
+    return {
+        "tools": [
+            {
+                "name": "web_search",
+                "endpoint": "/v1/tools/web_search",
+                "status": "active" if os.environ.get("SONAR_API_KEY") else "no_api_key",
+                "description": "Search the web using Perplexity Sonar API",
+            },
+            {
+                "name": "consult_sabios",
+                "endpoint": "/v1/tools/consult_sabios",
+                "status": "active",
+                "description": "Consult the 6 Sabios (multi-model AI consultation)",
+            },
+            {
+                "name": "email",
+                "endpoint": "/v1/tools/email",
+                "status": "active" if os.environ.get("GMAIL_APP_PASSWORD") else "no_credentials",
+                "description": "Send email via Gmail SMTP",
+            },
+        ]
+    }
+
+
 @app.get("/health", tags=["system"])
 async def health():
     """Health check endpoint. Compatible with thin-client contract."""
@@ -689,7 +793,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.3.0-sprint1",
+        "version": "0.3.0-sprint2",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields
@@ -703,5 +807,6 @@ async def health():
             "knowledge": "active" if knowledge_graph else "inactive",
             "langfuse": "active" if (observability and observability.langfuse_enabled) else "inactive",
             "opentelemetry": "active" if (observability and observability.otel_enabled) else "inactive",
+            "checkpointer": type(kernel._checkpointer).__name__ if kernel else "unknown",
         },
     }

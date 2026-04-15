@@ -350,7 +350,7 @@ class TestFastAPIEndpoints:
         resp = client.get("/health")
         assert resp.status_code == 200
         data = resp.json()
-        assert data["version"] == "0.3.0-sprint1"
+        assert data["version"] == "0.3.0-sprint2"
         # Verify thin-client contract fields
         assert "models_available" in data
         assert "observability" in data
