@@ -51,9 +51,11 @@ def get_tool_specs():
         ToolSpec(
             name="web_search",
             description=(
-                "Search the web for current information, news, prices, facts, "
-                "or anything that requires up-to-date data. Returns an answer "
-                "with citations from web sources."
+                "Search the web for real-time information. MUST be called when "
+                "the user asks about: current prices, exchange rates, news, weather, "
+                "stock prices, sports scores, recent events, or ANY fact that may "
+                "have changed after your training cutoff. Returns an answer with "
+                "citations from web sources. When in doubt about freshness, call this."
             ),
             parameters={
                 "type": "object",
@@ -76,7 +78,8 @@ def get_tool_specs():
             description=(
                 "Consult the Council of 6 AI Sabios (GPT-5.4, Claude, Gemini, "
                 "Grok, DeepSeek, Perplexity) for multi-perspective expert analysis. "
-                "Use for complex questions that benefit from diverse AI viewpoints."
+                "MUST be called when the user explicitly asks to 'consult the sabios', "
+                "'ask the council', or requests multi-model consensus on a complex topic."
             ),
             parameters={
                 "type": "object",
@@ -97,8 +100,9 @@ def get_tool_specs():
         ToolSpec(
             name="email",
             description=(
-                "Send an email to a specified recipient. Only use when the user "
-                "explicitly asks to send an email."
+                "Send an email to a specified recipient. MUST be called ONLY when "
+                "the user explicitly requests to send, write, or draft an email. "
+                "Never call this tool unless the user provides a recipient address."
             ),
             parameters={
                 "type": "object",
@@ -282,25 +286,43 @@ async def tool_dispatch(state: MonstruoState, config: RunnableConfig) -> dict[st
 # ── Tool-Aware Prompt Suffix ──────────────────────────────────────────
 
 def get_tool_aware_prompt_suffix() -> str:
-    """Generate a system prompt suffix that describes available tools.
+    """Generate a system prompt suffix with date injection and tool directives.
 
-    This is injected into the system prompt so the LLM knows what tools
-    are available. The actual tool calling happens via native function
-    calling (not prompt-based), but this helps the LLM understand
-    capabilities for better decision-making.
+    Key design decisions (validated against real-time sources 2026-04-16):
+    1. Inject current date so model knows its training data is stale
+    2. Explicitly tell the model to use function calling (not text)
+    3. List clear trigger conditions for each tool
+    4. Never tell the model to 'respond normally' — that suppresses tool calls
     """
+    from datetime import datetime, timezone
+
     specs = get_tool_specs()
     if not specs:
         return ""
 
-    lines = ["\n\n## Herramientas Disponibles"]
-    lines.append("Puedes usar las siguientes herramientas cuando sea necesario:")
+    now = datetime.now(timezone.utc)
+    date_str = now.strftime("%Y-%m-%d %H:%M UTC")
+
+    lines = [
+        f"\n\n## Fecha y Hora Actual: {date_str}",
+        "Tu conocimiento tiene fecha de corte de entrenamiento. "
+        "Para cualquier información que pueda haber cambiado, "
+        "DEBES usar las herramientas disponibles en vez de responder de memoria.",
+        "",
+        "## Herramientas Disponibles (via function calling)",
+        "Tienes acceso a las siguientes herramientas. Cuando necesites usarlas, "
+        "invócalas directamente via function calling — NO describas lo que harías, "
+        "simplemente haz la llamada a la función.",
+    ]
     for spec in specs:
         risk_label = f" [riesgo: {spec.risk}]" if spec.risk != "low" else ""
         lines.append(f"- **{spec.name}**: {spec.description}{risk_label}")
-    lines.append("\nPara usar una herramienta, simplemente responde normalmente — "
-                 "el sistema detectará automáticamente cuándo necesitas una herramienta "
-                 "y la ejecutará por ti.")
+    lines.append("")
+    lines.append(
+        "REGLA CRÍTICA: Si el usuario pregunta por datos actuales (precios, "
+        "noticias, tipo de cambio, clima, eventos recientes, resultados deportivos), "
+        "SIEMPRE llama a web_search. NO respondas de memoria."
+    )
     return "\n".join(lines)
 
 
