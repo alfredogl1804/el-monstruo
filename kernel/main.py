@@ -820,3 +820,114 @@ async def health():
             "checkpointer": type(kernel._checkpointer).__name__ if kernel else "unknown",
         },
     }
+
+
+# ── TEMPORARY DEBUG ENDPOINT (remove after diagnosis) ─────────────────
+
+@app.get("/v1/debug/tool_calling", tags=["debug"])
+async def debug_tool_calling(request: Request):
+    """Temporary endpoint to diagnose tool calling issues in production.
+    Tests each LLM provider directly with tools and reports results.
+    DELETE THIS ENDPOINT after diagnosis is complete.
+    """
+    import traceback
+    from router.llm_client import LLMClient, ToolSpec
+
+    results = {}
+
+    # Define a simple test tool
+    test_tool = ToolSpec(
+        name="web_search",
+        description="Search the web for real-time information. MUST be called for current data.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Search query"},
+            },
+            "required": ["query"],
+        },
+        risk="low",
+    )
+
+    test_messages = [
+        {"role": "system", "content": "You are an assistant. Today is 2026-04-16. Use web_search for current data."},
+        {"role": "user", "content": "What is the USD/MXN exchange rate today?"},
+    ]
+
+    # Test each provider
+    providers = {
+        "gemini": ("gemini-3.1-flash-lite-preview", "GEMINI_API_KEY", "google"),
+        "openai": ("gpt-5.4-mini", "OPENAI_API_KEY", "openai"),
+        "anthropic": ("claude-sonnet-4-6", "ANTHROPIC_API_KEY", "anthropic"),
+        "xai": ("grok-4.20-0309-non-reasoning", "XAI_API_KEY", "openai_compat"),
+    }
+
+    client = LLMClient()
+
+    for name, (model_id, env_key, provider) in providers.items():
+        api_key = os.environ.get(env_key, "")
+        if not api_key:
+            results[name] = {"status": "SKIP", "reason": f"{env_key} not set"}
+            continue
+
+        try:
+            if provider == "google":
+                resp = await client._call_google(
+                    model_id=model_id,
+                    api_key=api_key,
+                    messages=test_messages,
+                    temperature=0.1,
+                    max_tokens=200,
+                    tools=[test_tool],
+                    tool_choice="auto",
+                )
+            elif provider == "openai":
+                resp = await client._call_openai(
+                    model_id=model_id,
+                    api_key=api_key,
+                    messages=test_messages,
+                    temperature=0.1,
+                    max_tokens=200,
+                    tools=[test_tool],
+                    tool_choice="auto",
+                )
+            elif provider == "anthropic":
+                resp = await client._call_anthropic(
+                    model_id=model_id,
+                    api_key=api_key,
+                    messages=test_messages,
+                    temperature=0.1,
+                    max_tokens=200,
+                    tools=[test_tool],
+                    tool_choice="auto",
+                )
+            elif provider == "openai_compat":
+                resp = await client._call_openai_compat(
+                    model_id=model_id,
+                    api_key=api_key,
+                    base_url="https://api.x.ai/v1",
+                    messages=test_messages,
+                    temperature=0.1,
+                    max_tokens=200,
+                    tools=[test_tool],
+                    tool_choice="auto",
+                )
+
+            results[name] = {
+                "status": "OK",
+                "model": model_id,
+                "finish_reason": resp.finish_reason,
+                "has_tool_calls": len(resp.tool_calls) > 0,
+                "tool_calls": [{"name": tc.name, "args": tc.arguments} for tc in resp.tool_calls],
+                "content_preview": resp.content[:100] if resp.content else "",
+                "usage": resp.usage,
+            }
+        except Exception as e:
+            results[name] = {
+                "status": "ERROR",
+                "model": model_id,
+                "error": str(e),
+                "traceback": traceback.format_exc()[-500:],
+            }
+
+    return {"debug_tool_calling": results}
