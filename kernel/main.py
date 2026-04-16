@@ -1011,3 +1011,15 @@ async def debug_chat_flow(request: Request):
 
     results["model_results"] = model_results
     return results
+
+
+@app.get("/v1/debug/error_log", tags=["debug"])
+async def debug_error_log(request: Request):
+    """Return the in-memory error log from the fallback chain.
+    This captures every model failure with full traceback.
+    """
+    from router.engine import _TOOL_ERROR_LOG
+    return {
+        "error_count": len(_TOOL_ERROR_LOG),
+        "errors": list(_TOOL_ERROR_LOG),
+    }

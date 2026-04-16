@@ -16,7 +16,11 @@ Principio: El Monstruo decide el routing. Los SDKs ejecutan.
 from __future__ import annotations
 
 import os
+import collections
 from typing import Any, Optional
+
+# In-memory ring buffer for debugging tool calling errors (last 50 entries)
+_TOOL_ERROR_LOG: collections.deque = collections.deque(maxlen=50)
 
 import structlog
 
@@ -324,17 +328,19 @@ class RouterEngine:
             except Exception as e:
                 import traceback as _tb
                 last_error = e
-                logger.error(
-                    "model_failed_with_tools",
-                    model=attempt_model,
-                    provider=model_config.get("provider", "unknown"),
-                    error=repr(e),
-                    error_type=type(e).__name__,
-                    traceback=_tb.format_exc()[-500:],
-                    message_count=len(messages),
-                    system_prompt_len=len(messages[0]["content"]) if messages else 0,
-                    tools_count=len(tools) if tools else 0,
-                )
+                error_entry = {
+                    "model": attempt_model,
+                    "provider": model_config.get("provider", "unknown") if model_config else "unknown",
+                    "error": repr(e),
+                    "error_type": type(e).__name__,
+                    "traceback": _tb.format_exc()[-800:],
+                    "message_count": len(messages),
+                    "system_prompt_len": len(messages[0]["content"]) if messages else 0,
+                    "tools_count": len(tools) if tools else 0,
+                    "timestamp": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+                }
+                _TOOL_ERROR_LOG.append(error_entry)
+                logger.error("model_failed_with_tools", **error_entry)
                 continue
 
         raise RuntimeError(
