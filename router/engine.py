@@ -22,6 +22,16 @@ from typing import Any, Optional
 # In-memory ring buffer for debugging tool calling errors (last 50 entries)
 _TOOL_ERROR_LOG: collections.deque = collections.deque(maxlen=50)
 
+# Fallback metrics: tracks how many times each model was used as primary vs fallback
+_FALLBACK_METRICS: dict[str, dict[str, int]] = collections.defaultdict(
+    lambda: {"primary_ok": 0, "primary_fail": 0, "fallback_ok": 0, "fallback_fail": 0}
+)
+
+
+def get_fallback_metrics() -> dict[str, dict[str, int]]:
+    """Return a copy of the fallback metrics for the stats endpoint."""
+    return dict(_FALLBACK_METRICS)
+
 import structlog
 
 from contracts.kernel_interface import IntentType
@@ -214,21 +224,30 @@ class RouterEngine:
                     temperature=0.7,
                 )
 
-                if attempt_model != catalog_key:
+                is_fallback = attempt_model != catalog_key
+                if is_fallback:
                     logger.warning(
                         "fallback_used",
                         original_model=catalog_key,
                         fallback_model=attempt_model,
                     )
+                    _FALLBACK_METRICS[attempt_model]["fallback_ok"] += 1
+                else:
+                    _FALLBACK_METRICS[attempt_model]["primary_ok"] += 1
 
                 # Enrich usage with model info
                 usage["model_used"] = attempt_model
                 usage["provider"] = model_config["provider"]
+                usage["is_fallback"] = is_fallback
 
                 return response, usage
 
             except Exception as e:
                 last_error = e
+                if attempt_model == catalog_key:
+                    _FALLBACK_METRICS[attempt_model]["primary_fail"] += 1
+                else:
+                    _FALLBACK_METRICS[attempt_model]["fallback_fail"] += 1
                 logger.warning(
                     "model_failed",
                     model=attempt_model,
@@ -334,22 +353,31 @@ class RouterEngine:
                     tool_choice="auto",
                 )
 
-                if attempt_model != catalog_key:
+                is_fallback = attempt_model != catalog_key
+                if is_fallback:
                     logger.warning(
                         "fallback_used",
                         original_model=catalog_key,
                         fallback_model=attempt_model,
                     )
+                    _FALLBACK_METRICS[attempt_model]["fallback_ok"] += 1
+                else:
+                    _FALLBACK_METRICS[attempt_model]["primary_ok"] += 1
 
                 # Enrich usage
                 llm_response.usage["model_used"] = attempt_model
                 llm_response.usage["provider"] = model_config["provider"]
+                llm_response.usage["is_fallback"] = is_fallback
 
                 return llm_response
 
             except Exception as e:
                 import traceback as _tb
                 last_error = e
+                if attempt_model == catalog_key:
+                    _FALLBACK_METRICS[attempt_model]["primary_fail"] += 1
+                else:
+                    _FALLBACK_METRICS[attempt_model]["fallback_fail"] += 1
                 error_entry = {
                     "model": attempt_model,
                     "provider": model_config.get("provider", "unknown") if model_config else "unknown",

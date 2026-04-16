@@ -626,6 +626,15 @@ async def error_events(limit: int = 20):
     }
 
 
+def _get_fallback_metrics() -> dict:
+    """Lazy import to avoid circular dependency."""
+    try:
+        from router.engine import get_fallback_metrics
+        return get_fallback_metrics()
+    except ImportError:
+        return {}
+
+
 @app.get("/v1/stats", tags=["observability"])
 async def stats():
     """System statistics."""
@@ -656,6 +665,9 @@ async def stats():
         "knowledge": {
             "entities": knowledge_graph.entity_count if knowledge_graph else 0,
             "relations": knowledge_graph.relation_count if knowledge_graph else 0,
+        },
+        "router": {
+            "fallback_metrics": _get_fallback_metrics(),
         },
     }
 
@@ -822,204 +834,76 @@ async def health():
     }
 
 
-# ── TEMPORARY DEBUG ENDPOINT (remove after diagnosis) ─────────────────
+# ── DEBUG ENDPOINTS (only active when DEBUG=true) ─────────────────────
 
-@app.get("/v1/debug/tool_calling", tags=["debug"])
-async def debug_tool_calling(request: Request):
-    """Temporary endpoint to diagnose tool calling issues in production.
-    Tests each LLM provider directly with tools and reports results.
-    DELETE THIS ENDPOINT after diagnosis is complete.
-    """
-    import traceback
-    from router.llm_client import LLMClient, ToolSpec
+_DEBUG_MODE = os.environ.get("DEBUG", "").lower() in ("true", "1", "yes")
 
-    results = {}
 
-    # Define a simple test tool
-    test_tool = ToolSpec(
-        name="web_search",
-        description="Search the web for real-time information. MUST be called for current data.",
-        parameters={
-            "type": "object",
-            "properties": {
-                "query": {"type": "string", "description": "Search query"},
+def _register_debug_endpoints(application: FastAPI) -> None:
+    """Register debug endpoints only when DEBUG mode is active."""
+
+    @application.get("/v1/debug/tool_calling", tags=["debug"])
+    async def debug_tool_calling(request: Request):
+        """Test each LLM provider directly with tools and report results."""
+        import traceback
+        from router.llm_client import LLMClient, ToolSpec
+
+        results = {}
+        test_tool = ToolSpec(
+            name="web_search",
+            description="Search the web for real-time information.",
+            parameters={
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Search query"},
+                },
+                "required": ["query"],
             },
-            "required": ["query"],
-        },
-        risk="low",
-    )
+            risk="low",
+        )
+        test_messages = [
+            {"role": "system", "content": "You are an assistant. Use web_search for current data."},
+            {"role": "user", "content": "What is the USD/MXN exchange rate today?"},
+        ]
+        providers = {
+            "gemini": ("gemini-3.1-flash-lite-preview", "GEMINI_API_KEY", "google"),
+            "openai": ("gpt-5.4-mini", "OPENAI_API_KEY", "openai"),
+            "anthropic": ("claude-sonnet-4-6", "ANTHROPIC_API_KEY", "anthropic"),
+            "xai": ("grok-4.20-0309-non-reasoning", "XAI_API_KEY", "openai_compat"),
+        }
+        client = LLMClient()
+        for name, (model_id, env_key, provider) in providers.items():
+            api_key = os.environ.get(env_key, "")
+            if not api_key:
+                results[name] = {"status": "SKIP", "reason": f"{env_key} not set"}
+                continue
+            try:
+                call_method = {
+                    "google": lambda: client._call_google(model_id=model_id, api_key=api_key, messages=test_messages, temperature=0.1, max_tokens=200, tools=[test_tool], tool_choice="auto"),
+                    "openai": lambda: client._call_openai(model_id=model_id, api_key=api_key, messages=test_messages, temperature=0.1, max_tokens=200, tools=[test_tool], tool_choice="auto"),
+                    "anthropic": lambda: client._call_anthropic(model_id=model_id, api_key=api_key, messages=test_messages, temperature=0.1, max_tokens=200, tools=[test_tool], tool_choice="auto"),
+                    "openai_compat": lambda: client._call_openai_compat(model_id=model_id, api_key=api_key, base_url="https://api.x.ai/v1", messages=test_messages, temperature=0.1, max_tokens=200, tools=[test_tool], tool_choice="auto"),
+                }[provider]
+                resp = await call_method()
+                results[name] = {
+                    "status": "OK", "model": model_id,
+                    "finish_reason": resp.finish_reason,
+                    "has_tool_calls": len(resp.tool_calls) > 0,
+                    "tool_calls": [{"name": tc.name, "args": tc.arguments} for tc in resp.tool_calls],
+                    "content_preview": resp.content[:100] if resp.content else "",
+                    "usage": resp.usage,
+                }
+            except Exception as e:
+                results[name] = {"status": "ERROR", "model": model_id, "error": str(e), "traceback": traceback.format_exc()[-500:]}
+        return {"debug_tool_calling": results}
 
-    test_messages = [
-        {"role": "system", "content": "You are an assistant. Today is 2026-04-16. Use web_search for current data."},
-        {"role": "user", "content": "What is the USD/MXN exchange rate today?"},
-    ]
-
-    # Test each provider
-    providers = {
-        "gemini": ("gemini-3.1-flash-lite-preview", "GEMINI_API_KEY", "google"),
-        "openai": ("gpt-5.4-mini", "OPENAI_API_KEY", "openai"),
-        "anthropic": ("claude-sonnet-4-6", "ANTHROPIC_API_KEY", "anthropic"),
-        "xai": ("grok-4.20-0309-non-reasoning", "XAI_API_KEY", "openai_compat"),
-    }
-
-    client = LLMClient()
-
-    for name, (model_id, env_key, provider) in providers.items():
-        api_key = os.environ.get(env_key, "")
-        if not api_key:
-            results[name] = {"status": "SKIP", "reason": f"{env_key} not set"}
-            continue
-
-        try:
-            if provider == "google":
-                resp = await client._call_google(
-                    model_id=model_id,
-                    api_key=api_key,
-                    messages=test_messages,
-                    temperature=0.1,
-                    max_tokens=200,
-                    tools=[test_tool],
-                    tool_choice="auto",
-                )
-            elif provider == "openai":
-                resp = await client._call_openai(
-                    model_id=model_id,
-                    api_key=api_key,
-                    messages=test_messages,
-                    temperature=0.1,
-                    max_tokens=200,
-                    tools=[test_tool],
-                    tool_choice="auto",
-                )
-            elif provider == "anthropic":
-                resp = await client._call_anthropic(
-                    model_id=model_id,
-                    api_key=api_key,
-                    messages=test_messages,
-                    temperature=0.1,
-                    max_tokens=200,
-                    tools=[test_tool],
-                    tool_choice="auto",
-                )
-            elif provider == "openai_compat":
-                resp = await client._call_openai_compat(
-                    model_id=model_id,
-                    api_key=api_key,
-                    base_url="https://api.x.ai/v1",
-                    messages=test_messages,
-                    temperature=0.1,
-                    max_tokens=200,
-                    tools=[test_tool],
-                    tool_choice="auto",
-                )
-
-            results[name] = {
-                "status": "OK",
-                "model": model_id,
-                "finish_reason": resp.finish_reason,
-                "has_tool_calls": len(resp.tool_calls) > 0,
-                "tool_calls": [{"name": tc.name, "args": tc.arguments} for tc in resp.tool_calls],
-                "content_preview": resp.content[:100] if resp.content else "",
-                "usage": resp.usage,
-            }
-        except Exception as e:
-            results[name] = {
-                "status": "ERROR",
-                "model": model_id,
-                "error": str(e),
-                "traceback": traceback.format_exc()[-500:],
-            }
-
-    return {"debug_tool_calling": results}
+    @application.get("/v1/debug/error_log", tags=["debug"])
+    async def debug_error_log(request: Request):
+        """Return the in-memory error log from the fallback chain."""
+        from router.engine import _TOOL_ERROR_LOG
+        return {"error_count": len(_TOOL_ERROR_LOG), "errors": list(_TOOL_ERROR_LOG)}
 
 
-@app.get("/v1/debug/chat_flow")
-async def debug_chat_flow(request: Request):
-    """
-    TEMPORARY DEBUG: Simulate the full chat flow and capture errors from each model.
-    Tests with the real enriched system prompt + tool specs.
-    """
-    import traceback as _tb
-    from kernel.tool_dispatch import get_tool_specs, get_tool_aware_prompt_suffix
-    from kernel.nodes import _build_base_system_prompt
-    from router.llm_client import LLMClient, LLMResponse
-    from config.model_catalog import MODELS, FALLBACK_CHAINS
-
-    results = {}
-
-    # 1. Build the same system prompt the real flow uses
-    system_prompt = _build_base_system_prompt()
-    results["system_prompt_length"] = len(system_prompt)
-    results["system_prompt_preview"] = system_prompt[:300] + "..."
-
-    # 2. Get tool specs
-    tool_specs = get_tool_specs()
-    results["tool_specs_count"] = len(tool_specs)
-    results["tool_specs_names"] = [t.name for t in tool_specs]
-
-    # 3. Build messages exactly like execute_with_tools does
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": "¿Cuál es el tipo de cambio USD/MXN hoy?"},
-    ]
-    results["total_message_chars"] = sum(len(m.get("content", "")) for m in messages)
-
-    # 4. Try each model in the gemini-3.1-flash-lite fallback chain
-    fallback_chain = ["gemini-3.1-flash-lite", "gpt-5.4-mini", "kimi-k2.5", "gpt-5.4"]
-    client = LLMClient()
-
-    model_results = {}
-    for model_name in fallback_chain:
-        model_config = MODELS.get(model_name)
-        if model_config is None:
-            model_results[model_name] = {"status": "NOT_IN_CATALOG"}
-            continue
-
-        api_key_env = model_config.get("api_key_env", "")
-        api_key = os.environ.get(api_key_env, "")
-        if not api_key:
-            model_results[model_name] = {"status": "NO_API_KEY", "env_var": api_key_env}
-            continue
-
-        try:
-            resp = await client.chat_with_tools(
-                model_config=model_config,
-                messages=messages,
-                temperature=0.7,
-                tools=tool_specs,
-                tool_choice="auto",
-            )
-            model_results[model_name] = {
-                "status": "OK",
-                "provider": model_config["provider"],
-                "model_id": model_config["model_id"],
-                "finish_reason": resp.finish_reason,
-                "has_tool_calls": resp.has_tool_calls,
-                "tool_calls": [tc.to_dict() for tc in resp.tool_calls],
-                "content_preview": resp.content[:200] if resp.content else "",
-                "usage": resp.usage,
-            }
-        except Exception as e:
-            model_results[model_name] = {
-                "status": "ERROR",
-                "provider": model_config["provider"],
-                "model_id": model_config["model_id"],
-                "error": repr(e),
-                "error_type": type(e).__name__,
-                "traceback": _tb.format_exc()[-800:],
-            }
-
-    results["model_results"] = model_results
-    return results
-
-
-@app.get("/v1/debug/error_log", tags=["debug"])
-async def debug_error_log(request: Request):
-    """Return the in-memory error log from the fallback chain.
-    This captures every model failure with full traceback.
-    """
-    from router.engine import _TOOL_ERROR_LOG
-    return {
-        "error_count": len(_TOOL_ERROR_LOG),
-        "errors": list(_TOOL_ERROR_LOG),
-    }
+if _DEBUG_MODE:
+    _register_debug_endpoints(app)
+    structlog.get_logger("monstruo").info("debug_endpoints_registered", mode="DEBUG")
