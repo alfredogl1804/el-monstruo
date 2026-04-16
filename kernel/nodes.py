@@ -511,26 +511,29 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
 
 async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
-    Call the LLM with the enriched context.
-    Handles retries with fallback models.
+    Call the LLM with the enriched context and tool definitions.
+    Sprint 2: Uses native function calling via execute_with_tools().
+
+    If tool_results exist in state (from a previous tool_dispatch cycle),
+    this is a follow-up call where the LLM receives tool results.
 
     CRITICAL: Passes enriched system_prompt and conversation_context
     to the router so the LLM sees memory and context from enrich().
     """
     message = state.get("message", "")
     model = state.get("model", "gpt-5.4")
-    fallbacks = state.get("fallback_models", [])
     intent = state.get("intent", "chat")
     system_prompt = state.get("system_prompt", _build_base_system_prompt())
     conversation_context = state.get("conversation_context", [])
+    tool_results = state.get("tool_results", [])  # From previous tool_dispatch
+    tool_loop_count = state.get("tool_loop_count", 0)
     router, _, _, _ = _deps(config)
 
     start_time = time.monotonic()
     response = ""
     usage: dict[str, Any] = {}
     model_used = model
-    attempts = 0
-    tool_calls: list[dict[str, Any]] = []
+    pending_tool_calls: list[dict[str, Any]] = []
 
     # Inject enriched context into router context dict
     enriched_context = dict(state.get("context", {}))
@@ -539,74 +542,101 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
     if system_prompt:
         enriched_context["system_prompt"] = system_prompt
 
+    is_followup = bool(tool_results)
     logger.info(
-        "execute_context_injected",
+        "execute_start",
         history_messages=len(conversation_context),
         has_enriched_prompt=bool(system_prompt),
         intent=intent,
         model=model,
+        is_tool_followup=is_followup,
+        tool_loop_count=tool_loop_count,
     )
 
-    # Try primary model, then fallbacks
-    models_to_try = [model] + fallbacks
-    last_error = None
+    # Get tool specs for native function calling
+    from kernel.tool_dispatch import get_tool_specs
+    tool_specs = get_tool_specs()
 
-    for m in models_to_try:
-        attempts += 1
-        try:
-            if router:
-                response, usage = await router.execute(
-                    message, m, IntentType(intent), enriched_context
+    try:
+        if router and hasattr(router, 'execute_with_tools'):
+            llm_response = await router.execute_with_tools(
+                message=message,
+                model=model,
+                intent=IntentType(intent),
+                context=enriched_context,
+                tools=tool_specs,
+                tool_results=tool_results if is_followup else None,
+            )
+
+            response = llm_response.content
+            usage = llm_response.usage
+            model_used = llm_response.usage.get("model_used", model)
+
+            # If LLM wants to use tools, store them as pending
+            if llm_response.has_tool_calls:
+                pending_tool_calls = [
+                    tc.to_dict() for tc in llm_response.tool_calls
+                ]
+                logger.info(
+                    "execute_tool_calls_requested",
+                    tool_count=len(pending_tool_calls),
+                    tools=[tc.name for tc in llm_response.tool_calls],
+                    loop_count=tool_loop_count,
                 )
-                model_used = m
-                break
-            else:
-                response = f"[stub] {m} would respond to: {message[:100]}"
-                usage = {"prompt_tokens": 0, "completion_tokens": 0, "cost_usd": 0.0}
-                model_used = m
-                break
-        except Exception as e:
-            last_error = e
-            logger.warning("execute_model_failed", model=m, error=str(e), attempt=attempts)
-            continue
 
-    elapsed_ms = (time.monotonic() - start_time) * 1000
+        elif router:
+            # Fallback to old execute() without tools
+            response, usage = await router.execute(
+                message, model, IntentType(intent), enriched_context
+            )
+            model_used = model
+        else:
+            response = f"[stub] {model} would respond to: {message[:100]}"
+            usage = {"prompt_tokens": 0, "completion_tokens": 0, "cost_usd": 0.0}
+            model_used = model
 
-    if not response and last_error:
-        logger.error("execute_all_models_failed", attempts=attempts, last_error=str(last_error))
+    except Exception as e:
+        logger.error("execute_failed", model=model, error=str(e))
         event = EventBuilder() \
             .category(EventCategory.RUN_FAILED) \
             .severity(Severity.ERROR) \
             .actor("kernel.execute") \
-            .action(f"All models failed after {attempts} attempts") \
+            .action(f"Execute failed: {str(e)[:200]}") \
             .for_run_str(state.get("run_id", "")) \
-            .with_payload({"error": str(last_error), "attempts": attempts}) \
+            .with_payload({"error": str(e)}) \
             .build()
 
         existing_events = state.get("events", [])
         return {
             "status": RunStatus.FAILED.value,
-            "error": str(last_error),
-            "error_type": type(last_error).__name__,
-            "execution_attempts": attempts,
-            "latency_ms": elapsed_ms,
+            "error": str(e),
+            "error_type": type(e).__name__,
+            "execution_attempts": state.get("execution_attempts", 0) + 1,
+            "latency_ms": (time.monotonic() - start_time) * 1000,
             "events": existing_events + [_event_to_dict(event)],
         }
 
-    # Check if HITL is needed
+    elapsed_ms = (time.monotonic() - start_time) * 1000
+
+    # Check if HITL is needed for high-risk tool calls
     needs_approval = False
     approval_reason = ""
-    if intent == "execute" and tool_calls:
-        needs_approval = True
-        approval_reason = f"Execute intent with {len(tool_calls)} tool calls requires approval"
+    if pending_tool_calls:
+        from router.llm_client import ToolSpec as _TS
+        high_risk_tools = {s.name for s in tool_specs if s.risk in ("medium", "high")}
+        requested_tools = {tc["name"] for tc in pending_tool_calls}
+        if requested_tools & high_risk_tools:
+            needs_approval = True
+            approval_reason = f"Tool calls include high-risk tools: {requested_tools & high_risk_tools}"
 
     logger.info(
         "execute_completed",
         model=model_used,
-        attempts=attempts,
         latency_ms=f"{elapsed_ms:.0f}",
         tokens_in=usage.get("prompt_tokens", 0),
         tokens_out=usage.get("completion_tokens", 0),
+        has_tool_calls=bool(pending_tool_calls),
+        tool_count=len(pending_tool_calls),
     )
 
     # ── Observability: record LLM generation ──
@@ -616,10 +646,10 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
         if trace_ctx:
             obs.record_generation(
                 ctx=trace_ctx,
-                name="execute",
+                name="execute" + ("_followup" if is_followup else ""),
                 model=model_used,
                 input_messages=[{"role": "user", "content": message[:500]}],
-                output=response[:500] if response else "",
+                output=response[:500] if response else f"tool_calls={len(pending_tool_calls)}",
                 usage={
                     "input": usage.get("prompt_tokens", 0),
                     "output": usage.get("completion_tokens", 0),
@@ -627,38 +657,42 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
                 },
                 metadata={
                     "intent": intent,
-                    "attempts": attempts,
                     "latency_ms": elapsed_ms,
                     "cost_usd": usage.get("cost_usd", 0.0),
+                    "tool_calls": len(pending_tool_calls),
+                    "is_followup": is_followup,
                 },
             )
 
     event = EventBuilder() \
         .category(EventCategory.MODEL_CALLED) \
         .actor("kernel.execute") \
-        .action(f"Executed on {model_used} in {elapsed_ms:.0f}ms") \
+        .action(f"Executed on {model_used} in {elapsed_ms:.0f}ms" + (f" (tools: {len(pending_tool_calls)})" if pending_tool_calls else "")) \
         .for_run_str(state.get("run_id", "")) \
         .with_payload({
             "model": model_used,
-            "attempts": attempts,
             "tokens_in": usage.get("prompt_tokens", 0),
             "tokens_out": usage.get("completion_tokens", 0),
             "cost_usd": usage.get("cost_usd", 0.0),
             "latency_ms": elapsed_ms,
+            "tool_calls": len(pending_tool_calls),
+            "is_followup": is_followup,
         }) \
         .build()
 
+    # Accumulate tokens across tool loops
     existing_events = state.get("events", [])
     return {
         "status": RunStatus.EXECUTING.value,
         "response": response,
-        "tool_calls": tool_calls,
-        "tokens_in": usage.get("prompt_tokens", 0),
-        "tokens_out": usage.get("completion_tokens", 0),
-        "cost_usd": usage.get("cost_usd", 0.0),
-        "latency_ms": elapsed_ms,
+        "pending_tool_calls": pending_tool_calls,
+        "tool_results": [],  # Clear tool_results after consuming them
+        "tokens_in": state.get("tokens_in", 0) + usage.get("prompt_tokens", 0),
+        "tokens_out": state.get("tokens_out", 0) + usage.get("completion_tokens", 0),
+        "cost_usd": state.get("cost_usd", 0.0) + usage.get("cost_usd", 0.0),
+        "latency_ms": state.get("latency_ms", 0) + elapsed_ms,
         "model_used": model_used,
-        "execution_attempts": attempts,
+        "execution_attempts": state.get("execution_attempts", 0) + 1,
         "needs_human_approval": needs_approval,
         "human_approval_reason": approval_reason,
         "events": existing_events + [_event_to_dict(event)],
@@ -943,7 +977,10 @@ def _get_fallback_chain(intent: str, primary_model: str) -> list[str]:
 def _build_base_system_prompt() -> str:
     """
     Build the base system prompt for El Monstruo.
+    Includes tool descriptions so the LLM can request tool usage.
     """
+    from kernel.tool_dispatch import get_tool_aware_prompt_suffix
+    tool_suffix = get_tool_aware_prompt_suffix()
     return """Eres El Monstruo, el asistente de inteligencia artificial soberana de Alfredo Góngora.
 
 ## Identidad
@@ -967,7 +1004,7 @@ def _build_base_system_prompt() -> str:
 - Sé conciso pero completo.
 - Usa tablas para comparaciones.
 - Usa listas para pasos.
-- Usa negrita para conceptos clave."""
+- Usa negrita para conceptos clave.""" + tool_suffix
 
 
 def _event_to_dict(event: Any) -> dict[str, Any]:

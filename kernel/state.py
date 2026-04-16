@@ -63,6 +63,11 @@ class MonstruoState(TypedDict, total=False):
     model_used: str                # Actual model used (may differ from selected if fallback)
     execution_attempts: int        # Number of attempts (retries)
 
+    # ── Tool Calling (Sprint 2 — Las Manos) ───────────────────────────
+    pending_tool_calls: list[dict[str, Any]]  # Tool calls awaiting execution
+    tool_results: list[dict[str, Any]]        # Results from executed tools
+    tool_loop_count: int                      # Number of execute↔tool_dispatch cycles (max 3)
+
     # ── Memory (set at memory_write) ───────────────────────────────
     memory_written: bool           # Whether memory was persisted
     entities_extracted: list[dict[str, Any]]  # Entities found in this run

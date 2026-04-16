@@ -52,7 +52,8 @@ from kernel.nodes import (
     respond,
     should_enrich,
 )
-from kernel.hitl import hitl_gate, hitl_review
+from kernel.hitl import hitl_review
+from kernel.tool_dispatch import tool_dispatch, should_loop_tools
 
 logger = structlog.get_logger("kernel.engine")
 
@@ -65,10 +66,9 @@ class LangGraphKernel(KernelInterface):
     can do. LangGraph is the motor that executes the graph internally.
     If LangGraph dies tomorrow, we swap the motor, not the interface.
 
-    Graph topology:
-        intake → classify → route → [enrich] → execute → [HITL] → memory_write → respond
-                                  ↓ (chat/system)        ↓ (failed)
-                                execute                  respond
+    Graph topology (Sprint 2 — Las Manos):
+        intake → classify_and_route → [enrich] → execute → [tool_dispatch → execute]* → [hitl_review] → respond → memory_write
+        * = tool calling loop (max 3 iterations)
     """
 
     def __init__(
@@ -100,12 +100,53 @@ class LangGraphKernel(KernelInterface):
         checkpointer_type = type(self._checkpointer).__name__
         logger.info("kernel_initialized", motor="langgraph", version="1.1.6", checkpointer=checkpointer_type)
 
+    @staticmethod
+    def _should_dispatch_tools_fn(state: MonstruoState) -> str:
+        """Unified conditional edge after execute (merges tool loop + HITL gate).
+
+        Returns:
+            "tool_dispatch" — LLM wants tools and we haven't exceeded max loops
+            "hitl_review"  — HITL approval required
+            "respond"      — normal flow, go to respond
+        """
+        from contracts.kernel_interface import RunStatus
+
+        # 1. Check for tools first (tool loop takes priority)
+        pending = state.get("pending_tool_calls", [])
+        loop_count = state.get("tool_loop_count", 0)
+
+        if pending and loop_count < 3:  # MAX_TOOL_LOOPS = 3
+            return "tool_dispatch"
+
+        # 2. Error flow: skip HITL, go to respond
+        status = state.get("status", "")
+        if status == RunStatus.FAILED.value:
+            return "respond"
+
+        # 3. Check HITL gate
+        policy_decision = state.get("policy_decision")
+        needs_approval = state.get("needs_human_approval", False)
+
+        if policy_decision == "HITL" or needs_approval:
+            return "hitl_review"
+
+        # 4. Normal flow
+        return "respond"
+
     def _build_graph(self) -> StateGraph:
         """
-        Build the sovereign execution graph (optimized v1.1).
+        Build the sovereign execution graph (Sprint 2 — Las Manos).
 
-        6 nodes, 2 conditional edges:
-            intake → classify_and_route → should_enrich? → execute → check_hitl? → respond → memory_write
+        8 nodes, 2 conditional edges:
+            intake → classify_and_route → should_enrich? → execute
+            execute → should_dispatch? → tool_dispatch → execute  (loop, max 3)
+            execute → should_dispatch? → hitl_review → respond  (HITL path)
+            execute → should_dispatch? → respond → memory_write  (normal path)
+
+        Sprint 2 additions:
+            - tool_dispatch node executes tools the LLM requested
+            - should_loop_tools conditional edge creates the tool calling loop
+            - Max 3 loops to prevent runaway chains
 
         Optimizations:
             - OPT-1: classify + route fused into single node (-800ms)
@@ -116,13 +157,15 @@ class LangGraphKernel(KernelInterface):
         """
         graph = StateGraph(MonstruoState)
 
-        # Add all 6 nodes (OPT-1: classify+route fused)
+        # Add all 8 nodes
         graph.add_node("intake", intake)
         graph.add_node("classify_and_route", classify_and_route)
         graph.add_node("enrich", enrich)
         graph.add_node("execute", execute)
-        graph.add_node("memory_write", memory_write)
+        graph.add_node("tool_dispatch", tool_dispatch)  # Sprint 2: Las Manos
+        graph.add_node("hitl_review", hitl_review)       # HITL — real LangGraph interrupt()
         graph.add_node("respond", respond)
+        graph.add_node("memory_write", memory_write)
 
         # Set entry point
         graph.set_entry_point("intake")
@@ -143,28 +186,30 @@ class LangGraphKernel(KernelInterface):
         # enrich always goes to execute
         graph.add_edge("enrich", "execute")
 
-        # HITL node — real LangGraph interrupt()
-        graph.add_node("hitl_review", hitl_review)
-
-        # Conditional: execute → hitl_review or respond
-        # Uses hitl_gate from kernel/hitl.py (replaces check_hitl)
+        # ── Sprint 2: Tool Calling Loop ──────────────────────────────
+        # Canonical ReAct pattern (validated against langchain-ai/react-agent
+        # and ai.google.dev/gemini-api/docs/langgraph-example, 2026-04-16):
+        #   execute → should_dispatch_tools? → tool_dispatch → execute (loop)
+        #   execute → should_dispatch_tools? → hitl_review → respond (HITL path)
+        #   execute → should_dispatch_tools? → respond (normal path)
         graph.add_conditional_edges(
             "execute",
-            hitl_gate,
+            LangGraphKernel._should_dispatch_tools_fn,
             {
-                "hitl_review": "hitl_review",  # HITL needed: pause for human
-                "respond": "respond",            # Normal/error: respond directly
+                "tool_dispatch": "tool_dispatch",  # LLM wants tools → dispatch
+                "hitl_review": "hitl_review",       # HITL needed → review
+                "respond": "respond",               # Normal → respond
             },
         )
 
-        # hitl_review → respond (after human approves/rejects)
+        # tool_dispatch always loops back to execute (canonical: tools → llm)
+        graph.add_edge("tool_dispatch", "execute")
+
+        # hitl_review always goes to respond (after human approves/rejects)
         graph.add_edge("hitl_review", "respond")
 
         # OPT-5: respond → memory_write → END
-        # User sees response immediately, memory persists after
         graph.add_edge("respond", "memory_write")
-
-        # memory_write is terminal
         graph.add_edge("memory_write", END)
 
         return graph

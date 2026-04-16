@@ -44,7 +44,7 @@ MODELS: dict = {
     # ─── TIER 2: Especialistas (código, investigación, razonamiento) ───
     "grok-4.20": {
         "provider": "xai",
-        "model_id": "grok-4.20-0309-reasoning",
+        "model_id": "grok-4.20-0309-non-reasoning",  # non-reasoning for tool calling compat — validated 2026-04-16
         "litellm_alias": "grok",
         "api_key_env": "XAI_API_KEY",
         "base_url": "https://api.x.ai/v1",

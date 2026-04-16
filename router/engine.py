@@ -238,6 +238,103 @@ class RouterEngine:
             f"Tried: {models_to_try}. Last error: {last_error}"
         )
 
+    async def execute_with_tools(
+        self,
+        message: str,
+        model: str,
+        intent: IntentType,
+        context: Optional[dict[str, Any]] = None,
+        tools: Optional[list] = None,
+        tool_results: Optional[list[dict[str, Any]]] = None,
+    ) -> "LLMResponse":
+        """
+        Sprint 2: Execute with native tool calling support.
+        Returns LLMResponse with potential tool_calls.
+
+        If tool_results is provided, this is a follow-up call where the LLM
+        receives the results of previously executed tools.
+        """
+        from router.llm_client import LLMResponse
+
+        system_prompt = _get_system_prompt(intent, context)
+        messages = []
+
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+
+        # Add conversation history if provided
+        if context and context.get("history"):
+            messages.extend(context["history"])
+
+        # Add user message
+        messages.append({"role": "user", "content": message})
+
+        # If we have tool results, add the assistant's tool_call message
+        # and the tool results as messages
+        if tool_results:
+            for tr in tool_results:
+                # Add tool result message (OpenAI format — LLMClient normalizes per provider)
+                result_content = tr.get("result", {})
+                if isinstance(result_content, dict):
+                    import json as _json
+                    result_str = _json.dumps(result_content, ensure_ascii=False)[:4000]
+                else:
+                    result_str = str(result_content)[:4000]
+
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tr.get("tool_call_id", ""),
+                    "name": tr.get("name", "tool"),
+                    "content": result_str,
+                })
+
+        # Resolve model
+        catalog_key = ALIAS_TO_CATALOG.get(model, model)
+        models_to_try = [catalog_key] + FALLBACK_CHAIN.get(catalog_key, [])
+
+        last_error = None
+        for attempt_model in models_to_try:
+            try:
+                model_config = MODELS.get(attempt_model)
+                if model_config is None:
+                    logger.warning("model_not_in_catalog", model=attempt_model)
+                    continue
+
+                llm_response = await self._llm.chat_with_tools(
+                    model_config=model_config,
+                    messages=messages,
+                    temperature=0.7,
+                    tools=tools,
+                    tool_choice="auto",
+                )
+
+                if attempt_model != catalog_key:
+                    logger.warning(
+                        "fallback_used",
+                        original_model=catalog_key,
+                        fallback_model=attempt_model,
+                    )
+
+                # Enrich usage
+                llm_response.usage["model_used"] = attempt_model
+                llm_response.usage["provider"] = model_config["provider"]
+
+                return llm_response
+
+            except Exception as e:
+                last_error = e
+                logger.warning(
+                    "model_failed_with_tools",
+                    model=attempt_model,
+                    error=str(e),
+                )
+                continue
+
+        raise RuntimeError(
+            f"All models failed for intent {intent.value} with tools. "
+            f"Tried: {models_to_try}. Last error: {last_error}"
+        )
+
     async def execute_stream(
         self,
         message: str,
