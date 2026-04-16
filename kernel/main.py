@@ -23,6 +23,7 @@ Endpoints:
 
 from __future__ import annotations
 
+import asyncio
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -63,6 +64,10 @@ conversation_memory: Optional[ConversationMemory] = None
 knowledge_graph: Optional[KnowledgeGraph] = None
 observability: Optional[ObservabilityManager] = None
 BOOT_TIME = datetime.now(timezone.utc)
+
+# ── Background Jobs Store ──────────────────────────────────────────
+background_jobs: dict[str, dict[str, Any]] = {}
+_MAX_JOBS = 100
 
 
 # ── Lifespan ────────────────────────────────────────────────────────
@@ -379,6 +384,184 @@ async def chat(request: ChatRequest):
         interrupt_payload=metadata.get("interrupt_payload") if output.status == RunStatus.AWAITING_HUMAN else None,
         duration_ms=int(output.latency_ms),
     )
+
+
+# ── Background Job Endpoints ───────────────────────────────────────
+
+class BackgroundJobRequest(BaseModel):
+    message: str = Field(..., min_length=1, max_length=32000)
+    user_id: str = Field(default="alfredo")
+    channel: str = Field(default="api")
+    brain: Optional[str] = None
+    session_id: Optional[str] = None
+    metadata: Optional[dict[str, Any]] = None
+    webhook_url: Optional[str] = None
+
+class BackgroundJobResponse(BaseModel):
+    job_id: str
+    status: str
+    message: str
+
+class BackgroundJobStatus(BaseModel):
+    job_id: str
+    status: str  # queued | running | completed | failed
+    created_at: str
+    completed_at: Optional[str] = None
+    result: Optional[dict[str, Any]] = None
+    error: Optional[str] = None
+
+
+async def _run_background_job(job_id: str, request: BackgroundJobRequest):
+    """Execute a kernel run in background and store the result."""
+    global background_jobs
+    try:
+        background_jobs[job_id]["status"] = "running"
+        logger.info("background_job_started", job_id=job_id, message=request.message[:80])
+
+        context: dict[str, Any] = {}
+        if request.brain:
+            context["brain"] = request.brain
+        if request.metadata:
+            context["metadata"] = request.metadata
+        if request.session_id:
+            context["session_id"] = request.session_id
+
+        run_id = uuid4()
+        run_input = RunInput(
+            run_id=run_id,
+            user_id=request.user_id,
+            channel=request.channel,
+            message=request.message,
+            context=context,
+        )
+
+        output = await kernel.start_run(run_input)
+
+        result_data = {
+            "run_id": str(output.run_id),
+            "status": output.status.value,
+            "intent": output.intent.value,
+            "model_used": output.model_used,
+            "response": output.response,
+            "tokens_in": output.tokens_in,
+            "tokens_out": output.tokens_out,
+            "cost_usd": output.cost_usd,
+            "latency_ms": round(output.latency_ms, 2),
+        }
+
+        background_jobs[job_id]["status"] = "completed"
+        background_jobs[job_id]["result"] = result_data
+        background_jobs[job_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
+        logger.info("background_job_completed", job_id=job_id, latency_ms=output.latency_ms)
+
+        # Webhook notification if configured
+        if request.webhook_url:
+            try:
+                import httpx
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    await client.post(request.webhook_url, json={
+                        "job_id": job_id,
+                        "status": "completed",
+                        "result": result_data,
+                    })
+            except Exception as wh_err:
+                logger.warning("background_webhook_failed", job_id=job_id, error=str(wh_err))
+
+    except Exception as e:
+        background_jobs[job_id]["status"] = "failed"
+        background_jobs[job_id]["error"] = str(e)
+        background_jobs[job_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
+        logger.error("background_job_failed", job_id=job_id, error=str(e))
+
+
+@app.post("/v1/background", response_model=BackgroundJobResponse, tags=["core"])
+async def create_background_job(request: BackgroundJobRequest):
+    """
+    Submit a task for background processing.
+    Returns immediately with a job_id. Poll /v1/background/{job_id} for results.
+    Optionally set webhook_url to receive a POST when the job completes.
+    """
+    if not kernel:
+        raise HTTPException(status_code=503, detail="Kernel not initialized")
+
+    if len(background_jobs) >= _MAX_JOBS:
+        oldest_key = next(iter(background_jobs))
+        del background_jobs[oldest_key]
+
+    job_id = str(uuid4())
+    background_jobs[job_id] = {
+        "status": "queued",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "completed_at": None,
+        "result": None,
+        "error": None,
+    }
+
+    asyncio.create_task(_run_background_job(job_id, request))
+
+    return BackgroundJobResponse(
+        job_id=job_id,
+        status="queued",
+        message="Job submitted. Poll /v1/background/{job_id} for status.",
+    )
+
+
+@app.get("/v1/background/{job_id}", response_model=BackgroundJobStatus, tags=["core"])
+async def get_background_job(job_id: str):
+    """Get the status and result of a background job."""
+    job = background_jobs.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return BackgroundJobStatus(
+        job_id=job_id,
+        status=job["status"],
+        created_at=job["created_at"],
+        completed_at=job.get("completed_at"),
+        result=job.get("result"),
+        error=job.get("error"),
+    )
+
+
+@app.get("/v1/background", tags=["core"])
+async def list_background_jobs(limit: int = 20):
+    """List recent background jobs."""
+    jobs = []
+    for jid, jdata in list(background_jobs.items())[-limit:]:
+        jobs.append({
+            "job_id": jid,
+            "status": jdata["status"],
+            "created_at": jdata["created_at"],
+            "completed_at": jdata.get("completed_at"),
+        })
+    return jobs
+
+
+# ── Backup Endpoint ───────────────────────────────────────────
+
+class BackupRequest(BaseModel):
+    tables: Optional[list[str]] = None
+    include_env: bool = True
+    upload_to_dropbox: bool = True
+
+@app.post("/v1/backup", tags=["admin"])
+async def trigger_backup(request: BackupRequest = BackupRequest()):
+    """
+    Trigger a manual backup of Supabase data and environment.
+    Backs up to Dropbox (if configured) and local filesystem.
+    """
+    try:
+        from scripts.backup import run_backup
+        result = await run_backup(
+            tables=request.tables,
+            include_env=request.include_env,
+            upload=request.upload_to_dropbox,
+        )
+        return result
+    except ImportError:
+        raise HTTPException(status_code=500, detail="Backup module not found")
+    except Exception as e:
+        logger.error("backup_endpoint_failed", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/v1/chat/stream", tags=["core"])
