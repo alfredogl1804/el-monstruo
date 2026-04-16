@@ -228,6 +228,10 @@ app.add_middleware(
 from kernel.auth import APIKeyAuthMiddleware
 app.add_middleware(APIKeyAuthMiddleware)
 
+# ── OpenAI-Compatible Adapter (Open WebUI integration) ────────────────
+from kernel.openai_adapter import router as openai_router
+app.include_router(openai_router)
+
 
 # ── Request/Response Models ─────────────────────────────────────────
 

@@ -80,8 +80,8 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
             # Auth disabled — dev mode
             return await call_next(request)
 
-        # Only enforce auth on /v1/* paths
-        if not request.url.path.startswith("/v1"):
+        # Enforce auth on /v1/* and /openai/v1/* paths
+        if not (request.url.path.startswith("/v1") or request.url.path.startswith("/openai/v1")):
             return await call_next(request)
 
         # Extract and validate token
