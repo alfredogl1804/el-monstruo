@@ -428,16 +428,14 @@ class LLMClient:
             elif role == "tool":
                 # Tool result for Gemini
                 from google.genai import types
-                # Gemini 3 models require id in function_response
-                fr_kwargs = {
-                    "name": msg.get("name", "tool"),
-                    "response": {"result": msg.get("content", "")},
-                }
-                if msg.get("tool_call_id"):
-                    fr_kwargs["id"] = msg["tool_call_id"]
+                # Note: Part.from_function_response only accepts name + response
+                # (no 'id' param in google-genai SDK installed on Railway)
                 contents.append({
                     "role": "user",
-                    "parts": [types.Part.from_function_response(**fr_kwargs)]
+                    "parts": [types.Part.from_function_response(
+                        name=msg.get("name", "tool"),
+                        response={"result": msg.get("content", "")},
+                    )]
                 })
 
         if not contents:

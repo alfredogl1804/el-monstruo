@@ -273,14 +273,36 @@ class RouterEngine:
         # Add user message
         messages.append({"role": "user", "content": message})
 
-        # If we have tool results, add the assistant's tool_call message
-        # and the tool results as messages
+        # If we have tool results, we need to reconstruct the conversation:
+        # 1. assistant message with tool_calls (the LLM's decision to call tools)
+        # 2. tool messages with results (one per tool call)
+        # OpenAI REQUIRES this ordering: assistant(tool_calls) → tool(result)
         if tool_results:
+            import json as _json
+
+            # Reconstruct the assistant message with tool_calls
+            # This represents what the LLM said in the previous turn
+            reconstructed_tool_calls = []
             for tr in tool_results:
-                # Add tool result message (OpenAI format — LLMClient normalizes per provider)
+                reconstructed_tool_calls.append({
+                    "id": tr.get("tool_call_id", f"call_{__import__('uuid').uuid4().hex[:8]}"),
+                    "type": "function",
+                    "function": {
+                        "name": tr.get("name", "tool"),
+                        "arguments": _json.dumps(tr.get("args", {}), ensure_ascii=False),
+                    },
+                })
+
+            messages.append({
+                "role": "assistant",
+                "content": None,
+                "tool_calls": reconstructed_tool_calls,
+            })
+
+            # Now add the tool result messages
+            for tr in tool_results:
                 result_content = tr.get("result", {})
                 if isinstance(result_content, dict):
-                    import json as _json
                     result_str = _json.dumps(result_content, ensure_ascii=False)[:4000]
                 else:
                     result_str = str(result_content)[:4000]

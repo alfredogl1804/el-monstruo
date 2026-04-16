@@ -241,9 +241,12 @@ async def tool_dispatch(state: MonstruoState, config: RunnableConfig) -> dict[st
         )
 
         # Store result for the follow-up LLM call
+        # Include 'args' so execute_with_tools can reconstruct the
+        # assistant tool_calls message (required by OpenAI API)
         all_results.append({
             "tool_call_id": tool_id,
             "name": tool_name,
+            "args": tool_args,
             "result": result,
         })
 
