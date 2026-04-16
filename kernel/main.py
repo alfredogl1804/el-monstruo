@@ -931,3 +931,83 @@ async def debug_tool_calling(request: Request):
             }
 
     return {"debug_tool_calling": results}
+
+
+@app.get("/v1/debug/chat_flow")
+async def debug_chat_flow(request: Request):
+    """
+    TEMPORARY DEBUG: Simulate the full chat flow and capture errors from each model.
+    Tests with the real enriched system prompt + tool specs.
+    """
+    import traceback as _tb
+    from kernel.tool_dispatch import get_tool_specs, get_tool_aware_prompt_suffix
+    from kernel.nodes import _build_base_system_prompt
+    from router.llm_client import LLMClient, LLMResponse
+    from config.model_catalog import MODELS, FALLBACK_CHAINS
+
+    results = {}
+
+    # 1. Build the same system prompt the real flow uses
+    system_prompt = _build_base_system_prompt()
+    results["system_prompt_length"] = len(system_prompt)
+    results["system_prompt_preview"] = system_prompt[:300] + "..."
+
+    # 2. Get tool specs
+    tool_specs = get_tool_specs()
+    results["tool_specs_count"] = len(tool_specs)
+    results["tool_specs_names"] = [t.name for t in tool_specs]
+
+    # 3. Build messages exactly like execute_with_tools does
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": "¿Cuál es el tipo de cambio USD/MXN hoy?"},
+    ]
+    results["total_message_chars"] = sum(len(m.get("content", "")) for m in messages)
+
+    # 4. Try each model in the gemini-3.1-flash-lite fallback chain
+    fallback_chain = ["gemini-3.1-flash-lite", "gpt-5.4-mini", "kimi-k2.5", "gpt-5.4"]
+    client = LLMClient()
+
+    model_results = {}
+    for model_name in fallback_chain:
+        model_config = MODELS.get(model_name)
+        if model_config is None:
+            model_results[model_name] = {"status": "NOT_IN_CATALOG"}
+            continue
+
+        api_key_env = model_config.get("api_key_env", "")
+        api_key = os.environ.get(api_key_env, "")
+        if not api_key:
+            model_results[model_name] = {"status": "NO_API_KEY", "env_var": api_key_env}
+            continue
+
+        try:
+            resp = await client.chat_with_tools(
+                model_config=model_config,
+                messages=messages,
+                temperature=0.7,
+                tools=tool_specs,
+                tool_choice="auto",
+            )
+            model_results[model_name] = {
+                "status": "OK",
+                "provider": model_config["provider"],
+                "model_id": model_config["model_id"],
+                "finish_reason": resp.finish_reason,
+                "has_tool_calls": resp.has_tool_calls,
+                "tool_calls": [tc.to_dict() for tc in resp.tool_calls],
+                "content_preview": resp.content[:200] if resp.content else "",
+                "usage": resp.usage,
+            }
+        except Exception as e:
+            model_results[model_name] = {
+                "status": "ERROR",
+                "provider": model_config["provider"],
+                "model_id": model_config["model_id"],
+                "error": repr(e),
+                "error_type": type(e).__name__,
+                "traceback": _tb.format_exc()[-800:],
+            }
+
+    results["model_results"] = model_results
+    return results

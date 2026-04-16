@@ -322,11 +322,18 @@ class RouterEngine:
                 return llm_response
 
             except Exception as e:
+                import traceback as _tb
                 last_error = e
-                logger.warning(
+                logger.error(
                     "model_failed_with_tools",
                     model=attempt_model,
-                    error=str(e),
+                    provider=model_config.get("provider", "unknown"),
+                    error=repr(e),
+                    error_type=type(e).__name__,
+                    traceback=_tb.format_exc()[-500:],
+                    message_count=len(messages),
+                    system_prompt_len=len(messages[0]["content"]) if messages else 0,
+                    tools_count=len(tools) if tools else 0,
                 )
                 continue
 
