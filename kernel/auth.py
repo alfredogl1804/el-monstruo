@@ -11,6 +11,10 @@ Strategy:
     - If MONSTRUO_API_KEY is not set, auth is DISABLED (dev mode)
 
 Sprint 2 — 2026-04-15
+Fix: 2026-04-16 — Use JSONResponse instead of raise HTTPException inside
+     BaseHTTPMiddleware.dispatch(). HTTPException raised inside middleware
+     is NOT caught by FastAPI's exception handlers and always returns 500.
+     See: https://github.com/fastapi/fastapi/issues/1125
 """
 
 from __future__ import annotations
@@ -19,8 +23,9 @@ import os
 from typing import Optional
 
 import structlog
-from fastapi import Request, HTTPException
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
 logger = structlog.get_logger("kernel.auth")
 
@@ -54,6 +59,10 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
     
     If MONSTRUO_API_KEY is not set, all requests are allowed (dev mode).
     This is intentional — Railway sets the env var in production.
+
+    IMPORTANT: Uses JSONResponse instead of HTTPException because
+    BaseHTTPMiddleware does not propagate HTTPException to FastAPI's
+    exception handlers — it always converts them to 500.
     """
 
     async def dispatch(self, request: Request, call_next):
@@ -78,11 +87,25 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
         # Extract and validate token
         provided_key = _extract_token(request)
         if not provided_key:
-            logger.warning("auth_missing_key", path=request.url.path, client=request.client.host if request.client else "unknown")
-            raise HTTPException(status_code=401, detail="Missing API key. Use X-API-Key header or Authorization: Bearer <key>")
+            logger.warning(
+                "auth_missing_key",
+                path=request.url.path,
+                client=request.client.host if request.client else "unknown",
+            )
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Missing API key. Use X-API-Key header or Authorization: Bearer <key>"},
+            )
 
         if provided_key != expected_key:
-            logger.warning("auth_invalid_key", path=request.url.path, client=request.client.host if request.client else "unknown")
-            raise HTTPException(status_code=403, detail="Invalid API key")
+            logger.warning(
+                "auth_invalid_key",
+                path=request.url.path,
+                client=request.client.host if request.client else "unknown",
+            )
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "Invalid API key"},
+            )
 
         return await call_next(request)
