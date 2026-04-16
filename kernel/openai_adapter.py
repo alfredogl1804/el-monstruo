@@ -347,6 +347,7 @@ async def _stream_response(
                 # Stream completed — capture usage data
                 tokens_in = event.get("tokens_in", 0)
                 tokens_out = event.get("tokens_out", 0)
+                cost_usd = event.get("cost_usd", 0.0)
                 logger.info(
                     "stream_done",
                     completion_id=completion_id,
@@ -354,7 +355,16 @@ async def _stream_response(
                     model_used=event.get("model_used"),
                     tokens_in=tokens_in,
                     tokens_out=tokens_out,
+                    cost_usd=cost_usd,
                 )
+                # Sprint 3: Record cost for rate limiter cost caps
+                if cost_usd > 0:
+                    try:
+                        from kernel.rate_limiter import record_cost, _get_client_id
+                        client_id = _get_client_id(raw_request)
+                        record_cost(client_id, cost_usd)
+                    except Exception:
+                        pass  # Non-fatal — don't break streaming
                 stream_done = True
 
             elif event_type == "error":

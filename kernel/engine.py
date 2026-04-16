@@ -628,6 +628,9 @@ class LangGraphKernel(KernelInterface):
                 "latency_ms": round(elapsed_ms),
                 "model_used": pre_llm_state.get("model_used", ""),
                 "intent": pre_llm_state.get("intent", "chat"),
+                "tokens_in": pre_llm_state.get("tokens_in", 0),
+                "tokens_out": pre_llm_state.get("tokens_out", 0),
+                "cost_usd": pre_llm_state.get("cost_usd", 0.0),
             })
 
         except Exception as e:

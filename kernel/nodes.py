@@ -292,6 +292,18 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
     knowledge_entities: list[dict[str, Any]] = []
     system_prompt = _build_base_system_prompt()
 
+    # P0.2: Inject external system prompts (from Open WebUI or other clients)
+    # These come via RunInput.context["system_prompts"] from the OpenAI adapter
+    external_system_prompts = state.get("context", {}).get("system_prompts", [])
+    if external_system_prompts:
+        combined_external = "\n".join(external_system_prompts)
+        system_prompt += f"\n\n## Client Instructions\n{combined_external}"
+        logger.info(
+            "enrich_external_system_prompts_injected",
+            count=len(external_system_prompts),
+            total_chars=len(combined_external),
+        )
+
     # OPT-2: Parallel memory + knowledge lookups
     if memory:
         # Build coroutines for parallel execution

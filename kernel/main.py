@@ -228,6 +228,12 @@ app.add_middleware(
 from kernel.auth import APIKeyAuthMiddleware
 app.add_middleware(APIKeyAuthMiddleware)
 
+# Rate limiting & cost caps (Sprint 3)
+# Protects against API key leaks and runaway LLM costs
+# Config: RATE_LIMIT_RPM, RATE_LIMIT_RPH, DAILY_COST_CAP_USD env vars
+from kernel.rate_limiter import RateLimiterMiddleware
+app.add_middleware(RateLimiterMiddleware)
+
 # ── OpenAI-Compatible Adapter (Open WebUI integration) ────────────────
 from kernel.openai_adapter import router as openai_router
 app.include_router(openai_router)
