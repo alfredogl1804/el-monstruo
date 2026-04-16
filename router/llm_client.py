@@ -414,18 +414,40 @@ class LLMClient:
             from google import genai
             self._google_client = genai.Client(api_key=api_key)
 
-        # Convert messages to Gemini format
+        # ── Convert OpenAI-format messages to Gemini contents ──────
+        # CRITICAL FIX (2026-04-16): Gemini API rejects Part with text=None
+        # or Part() with no data fields. This causes:
+        #   400 INVALID_ARGUMENT: contents[N].parts[0].data: required oneof
+        #   field 'data' must have one initialized field
+        # Root cause: conversation history from memory can contain messages
+        # with content=None (e.g., assistant msgs that were tool-call-only).
+        # msg.get("content", "") returns None when key exists with None value.
+        # Fix: use `msg.get("content") or ""` pattern everywhere, and skip
+        # any message that would produce a Part with no valid data.
+
+        from google.genai import types as _gtypes
+        import json as _json_g
+
         system_instruction = ""
         contents = []
         for msg in messages:
             role = msg.get("role", "user")
+
             if role == "system":
-                system_instruction = msg.get("content", "")
+                system_instruction = msg.get("content") or ""
+
             elif role == "user":
-                contents.append({"role": "user", "parts": [{"text": msg.get("content", "")}]})
+                # Sanitize: ensure content is never None
+                text = msg.get("content") or ""
+                if not isinstance(text, str):
+                    text = str(text)
+                # Skip user messages with empty content to avoid invalid Part
+                if text.strip():
+                    contents.append({"role": "user", "parts": [{"text": text}]})
+                else:
+                    logger.debug("gemini_skip_empty_user_msg", msg_keys=list(msg.keys()))
+
             elif role == "assistant":
-                from google.genai import types as _gtypes
-                import json as _json_g
                 # If assistant has tool_calls, convert to function_call Parts
                 tool_calls = msg.get("tool_calls", [])
                 if tool_calls:
@@ -433,40 +455,54 @@ class LLMClient:
                     for tc in tool_calls:
                         fn = tc.get("function", {})
                         fn_name = fn.get("name", "tool")
-                        fn_args_raw = fn.get("arguments", "{}")
+                        fn_args_raw = fn.get("arguments") or "{}"
                         if isinstance(fn_args_raw, str):
                             try:
                                 fn_args = _json_g.loads(fn_args_raw)
                             except Exception:
                                 fn_args = {"raw": fn_args_raw}
                         else:
-                            fn_args = fn_args_raw
+                            fn_args = fn_args_raw if isinstance(fn_args_raw, dict) else {}
                         parts.append(_gtypes.Part.from_function_call(
                             name=fn_name,
                             args=fn_args,
                         ))
-                    contents.append({"role": "model", "parts": parts})
+                    if parts:  # Only add if we have valid function call parts
+                        contents.append({"role": "model", "parts": parts})
                 else:
                     # Normal assistant text message — skip if content is empty/None
                     content = msg.get("content") or ""
+                    if not isinstance(content, str):
+                        content = str(content)
                     if content.strip():
                         contents.append({"role": "model", "parts": [{"text": content}]})
-                    # else: skip empty assistant messages to avoid Gemini 'data required' error
+                    else:
+                        logger.debug("gemini_skip_empty_assistant_msg", msg_keys=list(msg.keys()))
+
             elif role == "tool":
-                # Tool result for Gemini
-                from google.genai import types
-                # Note: Part.from_function_response only accepts name + response
-                # (no 'id' param in google-genai SDK installed on Railway)
+                # Tool result → Gemini function_response (role=user)
+                tool_name = msg.get("name") or "tool"
+                tool_content = msg.get("content") or ""
+                if not isinstance(tool_content, str):
+                    tool_content = str(tool_content)
                 contents.append({
                     "role": "user",
-                    "parts": [types.Part.from_function_response(
-                        name=msg.get("name", "tool"),
-                        response={"result": msg.get("content", "")},
+                    "parts": [_gtypes.Part.from_function_response(
+                        name=tool_name,
+                        response={"result": tool_content},
                     )]
                 })
 
         if not contents:
             contents = [{"role": "user", "parts": [{"text": "Hola"}]}]
+
+        # Debug: log contents structure for troubleshooting
+        logger.debug(
+            "gemini_contents_built",
+            count=len(contents),
+            roles=[c["role"] for c in contents],
+            parts_counts=[len(c["parts"]) for c in contents],
+        )
 
         from google.genai import types
         gen_config = types.GenerateContentConfig(
