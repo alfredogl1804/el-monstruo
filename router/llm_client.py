@@ -424,7 +424,34 @@ class LLMClient:
             elif role == "user":
                 contents.append({"role": "user", "parts": [{"text": msg.get("content", "")}]})
             elif role == "assistant":
-                contents.append({"role": "model", "parts": [{"text": msg.get("content", "")}]})
+                from google.genai import types as _gtypes
+                import json as _json_g
+                # If assistant has tool_calls, convert to function_call Parts
+                tool_calls = msg.get("tool_calls", [])
+                if tool_calls:
+                    parts = []
+                    for tc in tool_calls:
+                        fn = tc.get("function", {})
+                        fn_name = fn.get("name", "tool")
+                        fn_args_raw = fn.get("arguments", "{}")
+                        if isinstance(fn_args_raw, str):
+                            try:
+                                fn_args = _json_g.loads(fn_args_raw)
+                            except Exception:
+                                fn_args = {"raw": fn_args_raw}
+                        else:
+                            fn_args = fn_args_raw
+                        parts.append(_gtypes.Part.from_function_call(
+                            name=fn_name,
+                            args=fn_args,
+                        ))
+                    contents.append({"role": "model", "parts": parts})
+                else:
+                    # Normal assistant text message — skip if content is empty/None
+                    content = msg.get("content") or ""
+                    if content.strip():
+                        contents.append({"role": "model", "parts": [{"text": content}]})
+                    # else: skip empty assistant messages to avoid Gemini 'data required' error
             elif role == "tool":
                 # Tool result for Gemini
                 from google.genai import types
