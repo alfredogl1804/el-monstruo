@@ -50,10 +50,10 @@ SABIOS = {
         "env_key": "OPENAI_API_KEY",
     },
     "claude": {
-        "name": "Claude Sonnet 4",
+        "name": "Claude Sonnet 4.6",  # validated 2026-04-15
         "role": "Auditor analítico",
         "provider": "anthropic",
-        "model": "claude-sonnet-4-20250514",
+        "model": "claude-sonnet-4-6",  # validated 2026-04-15 — was claude-sonnet-4-20250514 (deprecated)
         "env_key": "ANTHROPIC_API_KEY",
     },
     "gemini": {
@@ -64,10 +64,10 @@ SABIOS = {
         "env_key": "GEMINI_API_KEY",
     },
     "grok": {
-        "name": "Grok",
+        "name": "Grok 4.20",  # validated 2026-04-15
         "role": "Red team adversarial",
         "provider": "xai",
-        "model": "grok-3",
+        "model": "grok-4.20",  # validated 2026-04-15 — was grok-3 (over 1 year old)
         "env_key": "XAI_API_KEY",
     },
     "deepseek": {
