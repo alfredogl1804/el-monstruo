@@ -204,6 +204,16 @@ class RouterEngine:
                 + messages[1:]  # current message
             )
 
+        # Intent-specific temperature
+        _TEMP_MAP = {
+            IntentType.DEEP_THINK: 0.3,
+            IntentType.EXECUTE: 0.4,
+            IntentType.CHAT: 0.7,
+            IntentType.BACKGROUND: 0.5,
+            IntentType.SYSTEM: 0.2,
+        }
+        temperature = _TEMP_MAP.get(intent, 0.7)
+
         # Resolve model name: could be alias or catalog key
         catalog_key = ALIAS_TO_CATALOG.get(model, model)
 
@@ -221,7 +231,7 @@ class RouterEngine:
                 response, usage = await self._llm.chat(
                     model_config=model_config,
                     messages=messages,
-                    temperature=0.7,
+                    temperature=temperature,
                 )
 
                 is_fallback = attempt_model != catalog_key
@@ -333,6 +343,18 @@ class RouterEngine:
                     "content": result_str,
                 })
 
+        # Intent-specific parameters for deep_think vs chat
+        _INTENT_PARAMS: dict[IntentType, dict[str, Any]] = {
+            IntentType.DEEP_THINK: {"temperature": 0.3, "max_tokens_override": 8000},
+            IntentType.EXECUTE: {"temperature": 0.4, "max_tokens_override": 4000},
+            IntentType.CHAT: {"temperature": 0.7, "max_tokens_override": None},
+            IntentType.BACKGROUND: {"temperature": 0.5, "max_tokens_override": 8000},
+            IntentType.SYSTEM: {"temperature": 0.2, "max_tokens_override": 1000},
+        }
+        intent_params = _INTENT_PARAMS.get(intent, {"temperature": 0.7, "max_tokens_override": None})
+        temperature = intent_params["temperature"]
+        max_tokens_override = intent_params["max_tokens_override"]
+
         # Resolve model
         catalog_key = ALIAS_TO_CATALOG.get(model, model)
         models_to_try = [catalog_key] + FALLBACK_CHAIN.get(catalog_key, [])
@@ -345,10 +367,17 @@ class RouterEngine:
                     logger.warning("model_not_in_catalog", model=attempt_model)
                     continue
 
+                # Override max_tokens for deep_think intent
+                effective_config = dict(model_config)
+                if max_tokens_override:
+                    effective_config["max_tokens"] = max_tokens_override
+                    if effective_config.get("use_max_completion_tokens"):
+                        effective_config["max_completion_tokens"] = max_tokens_override
+
                 llm_response = await self._llm.chat_with_tools(
-                    model_config=model_config,
+                    model_config=effective_config,
                     messages=messages,
-                    temperature=0.7,
+                    temperature=temperature,
                     tools=tools,
                     tool_choice="auto",
                 )
@@ -568,8 +597,17 @@ def _get_system_prompt(
             "Si la pregunta es simple, responde brevemente."
         ),
         IntentType.DEEP_THINK: (
-            " Analiza en profundidad. Usa razonamiento paso a paso. "
-            "Considera múltiples perspectivas. Cita fuentes cuando sea posible."
+            "\n\n## Modo Deep Think — Razonamiento Profundo\n"
+            "Estás en modo de análisis profundo. Sigue este protocolo:\n\n"
+            "1. **Descompón el problema** en sub-preguntas antes de responder.\n"
+            "2. **Razona paso a paso** — muestra tu cadena de pensamiento explícitamente.\n"
+            "3. **Considera múltiples perspectivas** — al menos 2 ángulos opuestos.\n"
+            "4. **Evalúa evidencia** — distingue hechos de suposiciones. Cita fuentes.\n"
+            "5. **Identifica incertidumbre** — señala lo que NO sabes o no puedes verificar.\n"
+            "6. **Sintetiza** — después del análisis, da una conclusión clara con nivel de confianza (alto/medio/bajo).\n\n"
+            "Formato: Usa headers ##, tablas comparativas, y bullet points para estructura.\n"
+            "Extensión: Sé exhaustivo. Este modo justifica respuestas largas y detalladas.\n"
+            "Si la pregunta requiere datos que no tienes, usa las herramientas disponibles para investigar."
         ),
         IntentType.EXECUTE: (
             " El usuario quiere que ejecutes una acción. "
