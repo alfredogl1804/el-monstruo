@@ -90,7 +90,8 @@ async def lifespan(app: FastAPI):
         logger.warning("supabase_not_connected", msg="Memory will be in-memory only")
 
     # Initialize sovereign components with Supabase persistence
-    event_store = EventStore()
+    event_store = EventStore(db=db if db_connected else None)
+    await event_store.initialize()
     conversation_memory = ConversationMemory(db=db if db_connected else None)
     await conversation_memory.initialize()
     knowledge_graph = KnowledgeGraph()

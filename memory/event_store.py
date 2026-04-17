@@ -1,8 +1,12 @@
 """
-El Monstruo — Event Store (Día 1)
-====================================
+El Monstruo — Event Store (Día 1 → Sprint 6 fix)
+====================================================
 Append-only event log. Source of truth for auditoría y replay.
 Dual mode: in-memory (always) + Supabase (when configured).
+
+Sprint 6 fix: Use shared SupabaseClient instead of creating a
+separate sync client. Previous bug: initialize() was never called,
+so _persist_enabled stayed False and 0 events reached Supabase.
 
 Principio: Todo lo que pasa se registra. Si no está en el log, no pasó.
 """
@@ -12,12 +16,15 @@ from __future__ import annotations
 import os
 from collections import defaultdict
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Optional, TYPE_CHECKING
 from uuid import UUID
 
 import structlog
 
 from contracts.event_envelope import EventEnvelope, EventCategory, Severity
+
+if TYPE_CHECKING:
+    from memory.supabase_client import SupabaseClient
 
 logger = structlog.get_logger("event_store")
 
@@ -34,35 +41,23 @@ class EventStore:
 
     def __init__(
         self,
-        supabase_url: Optional[str] = None,
-        supabase_key: Optional[str] = None,
+        db: Optional["SupabaseClient"] = None,
         buffer_size: int = 1000,
     ) -> None:
         self._events: list[EventEnvelope] = []
         self._by_run: dict[UUID, list[EventEnvelope]] = defaultdict(list)
         self._by_category: dict[EventCategory, list[EventEnvelope]] = defaultdict(list)
         self._buffer_size = buffer_size
-        self._supabase_url = supabase_url or os.environ.get("SUPABASE_URL")
-        self._supabase_key = supabase_key or os.environ.get("SUPABASE_SERVICE_KEY")
-        self._supabase_client = None
-        self._persist_enabled = False
+        self._db = db
+        self._persist_enabled = db is not None and db.connected
 
     async def initialize(self) -> None:
-        """Initialize Supabase connection if configured."""
-        if self._supabase_url and self._supabase_key:
-            try:
-                from supabase import create_client
-                self._supabase_client = create_client(
-                    self._supabase_url, self._supabase_key
-                )
-                self._persist_enabled = True
-                logger.info("event_store_initialized", persistence="supabase")
-            except Exception as e:
-                logger.warning(
-                    "supabase_init_failed",
-                    error=str(e),
-                    fallback="in-memory only",
-                )
+        """
+        Initialize persistence. If a SupabaseClient was passed and is
+        connected, persistence is already enabled. Otherwise log in-memory mode.
+        """
+        if self._persist_enabled:
+            logger.info("event_store_initialized", persistence="supabase")
         else:
             logger.info("event_store_initialized", persistence="in-memory")
 
@@ -207,8 +202,8 @@ class EventStore:
     # ── Supabase Persistence ────────────────────────────────────────
 
     async def _persist_event(self, event: EventEnvelope) -> None:
-        """Persist a single event to Supabase."""
-        if not self._supabase_client:
+        """Persist a single event to Supabase via the shared client."""
+        if not self._db or not self._db.connected:
             return
 
         try:
@@ -229,7 +224,7 @@ class EventStore:
                 "created_at": event.timestamp.isoformat(),
             }
 
-            self._supabase_client.table("events").insert(row).execute()
+            await self._db.insert("events", row)
 
         except Exception as e:
             logger.error(
