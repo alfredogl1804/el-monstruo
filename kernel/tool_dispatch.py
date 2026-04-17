@@ -175,6 +175,35 @@ def get_tool_specs():
             risk="medium",
         ),
         ToolSpec(
+            name="call_webhook",
+            description=(
+                "Call an external webhook endpoint to trigger actions in third-party "
+                "services like Zapier, Make.com, n8n, or Slack. Use when the user asks "
+                "to trigger an automation, send a notification to Slack, or execute "
+                "an external workflow. Only HTTPS URLs on whitelisted domains are allowed. "
+                "This tool ALWAYS requires human approval before execution."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "description": "The webhook URL (HTTPS only, must be on a whitelisted domain)",
+                    },
+                    "payload": {
+                        "type": "object",
+                        "description": "JSON payload to send to the webhook",
+                    },
+                    "method": {
+                        "type": "string",
+                        "description": "HTTP method: POST (default), PUT, or PATCH",
+                    },
+                },
+                "required": ["url", "payload"],
+            },
+            risk="high",
+        ),
+        ToolSpec(
             name="email",
             description=(
                 "Send an email to a specified recipient. MUST be called ONLY when "
@@ -241,6 +270,14 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             from tools.cidp import cancel_cidp_research
             return await cancel_cidp_research(
                 job_id=args.get("job_id", ""),
+            )
+        elif tool_name == "call_webhook":
+            from tools.webhook import call_webhook
+            return await call_webhook(
+                url=args.get("url", ""),
+                payload=args.get("payload", {}),
+                method=args.get("method", "POST"),
+                headers=args.get("headers"),
             )
         elif tool_name == "email":
             from tools.email_sender import send_email
