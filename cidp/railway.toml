@@ -1,5 +1,6 @@
 [build]
-dockerfilePath = "cidp/Dockerfile"
+# rootDirectory is /cidp, so Dockerfile path is relative to that
+dockerfilePath = "Dockerfile"
 
 [deploy]
 # NO startCommand — let Dockerfile CMD handle it via entrypoint.py
