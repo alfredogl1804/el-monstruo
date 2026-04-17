@@ -1,0 +1,32 @@
+# CIDP Microservice Dependencies
+# Anti-autoboicot validated 2026-04-17
+# ─────────────────────────────────
+
+# Web framework
+fastapi>=0.115.0,<1.0.0
+uvicorn[standard]>=0.34.0,<1.0.0
+
+# Async HTTP (CVE-2026-22815 patched in 3.13.4+)
+aiohttp>=3.13.4,<4.0.0
+
+# Data validation (comes with FastAPI but pin explicitly)
+pydantic>=2.11.0,<3.0.0
+
+# Logging
+structlog>=25.1.0,<26.0.0
+
+# YAML config parsing
+pyyaml>=6.0.2,<7.0.0
+
+# AI model clients (used by CIDP scripts)
+openai>=1.82.0,<2.0.0
+anthropic>=0.52.0,<1.0.0
+google-genai>=1.14.0,<2.0.0
+requests>=2.32.0,<3.0.0
+
+# Perplexity (uses requests directly)
+# DeepSeek (uses openai-compatible client)
+# Grok/xAI (uses openai-compatible client)
+
+# Database
+# SQLite is built-in to Python stdlib

@@ -1,0 +1,82 @@
+# CIDP 10x Score Weights — validated 2026-04-16
+# Función objetivo compuesta para medir "10x superior"
+# Cada peso es configurable por el usuario según el dominio
+
+score_function:
+  name: "10x Composite Score"
+  description: "Score compuesto que mide qué tan superior es la nueva solución vs la referencia"
+  scale: 0-100
+  threshold_10x: 80  # Score >= 80 se considera "10x superior"
+
+  components:
+    - id: user_value
+      name: "Valor para el Usuario"
+      weight: 0.20
+      description: "Mejora en la propuesta de valor para el usuario final"
+      metrics:
+        - "Feature completeness vs referencia"
+        - "Problemas resueltos que la referencia no resuelve"
+        - "NPS estimado"
+
+    - id: time_to_value
+      name: "Tiempo a Valor"
+      weight: 0.15
+      description: "Reducción en el tiempo que tarda el usuario en obtener valor"
+      metrics:
+        - "Onboarding time"
+        - "Time to first value"
+        - "Learning curve"
+
+    - id: quality_reliability
+      name: "Calidad/Fiabilidad"
+      weight: 0.15
+      description: "Mejora en calidad, estabilidad y confiabilidad"
+      metrics:
+        - "Error rate estimado"
+        - "Uptime target"
+        - "Test coverage"
+
+    - id: cost_per_task
+      name: "Costo por Tarea"
+      weight: 0.15
+      description: "Reducción en el costo total para el usuario"
+      metrics:
+        - "Pricing vs referencia"
+        - "TCO para el usuario"
+        - "Hidden costs eliminados"
+
+    - id: security_posture
+      name: "Seguridad"
+      weight: 0.10
+      description: "Mejora en la postura de seguridad"
+      metrics:
+        - "Vulnerabilidades conocidas eliminadas"
+        - "Compliance frameworks cubiertos"
+        - "Encryption standards"
+
+    - id: maintainability
+      name: "Mantenibilidad"
+      weight: 0.10
+      description: "Facilidad de mantener y evolucionar la solución"
+      metrics:
+        - "Code complexity"
+        - "Documentation coverage"
+        - "Dependency health"
+
+    - id: competitive_advantage
+      name: "Ventaja Competitiva"
+      weight: 0.10
+      description: "Diferenciación sostenible vs el mercado"
+      metrics:
+        - "Unique features"
+        - "Moat strength"
+        - "Innovation index"
+
+    - id: scalability_headroom
+      name: "Margen de Escalabilidad"
+      weight: 0.05
+      description: "Capacidad de crecer sin rediseño"
+      metrics:
+        - "Max concurrent users"
+        - "Data volume limits"
+        - "Geographic expansion readiness"

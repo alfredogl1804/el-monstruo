@@ -98,6 +98,83 @@ def get_tool_specs():
             risk="low",
         ),
         ToolSpec(
+            name="start_cidp_research",
+            description=(
+                "Start a deep, multi-iteration CIDP research cycle on a target "
+                "technology, platform, or topic. The CIDP (Ciclo de Investigación y "
+                "Descubrimiento Perpetuo) runs asynchronously as a microservice — "
+                "this tool starts the job and returns a job_id for tracking. "
+                "MUST be called when the user asks for deep research, investigation, "
+                "technology analysis, or explicitly requests a 'CIDP cycle'. "
+                "Use check_cidp_status to monitor progress after starting."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "target": {
+                        "type": "string",
+                        "description": "The software, platform, or topic to investigate (e.g. 'Supabase', 'LangGraph', 'Vector databases')",
+                    },
+                    "objective": {
+                        "type": "string",
+                        "description": "The 10x objective — what we want to achieve or discover (e.g. 'Design a 10x faster alternative')",
+                    },
+                    "max_iterations": {
+                        "type": "integer",
+                        "description": "Max research iterations (default 5, max 50)",
+                    },
+                    "budget_usd": {
+                        "type": "number",
+                        "description": "Max budget in USD for API calls (default $25)",
+                    },
+                    "research_only": {
+                        "type": "boolean",
+                        "description": "If true, only research — no build/prototype phase",
+                    },
+                },
+                "required": ["target", "objective"],
+            },
+            risk="medium",
+        ),
+        ToolSpec(
+            name="check_cidp_status",
+            description=(
+                "Check the status of a running CIDP research cycle. "
+                "Returns current iteration, stage, 10x score, cost, and artifacts. "
+                "Call this after start_cidp_research to monitor progress."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "job_id": {
+                        "type": "string",
+                        "description": "The CIDP job ID returned by start_cidp_research",
+                    },
+                },
+                "required": ["job_id"],
+            },
+            risk="low",
+        ),
+        ToolSpec(
+            name="cancel_cidp_research",
+            description=(
+                "Cancel a running CIDP research cycle. Triggers rollback and "
+                "releases any rented GPU resources. Use when the user wants to "
+                "stop an ongoing research cycle."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "job_id": {
+                        "type": "string",
+                        "description": "The CIDP job ID to cancel",
+                    },
+                },
+                "required": ["job_id"],
+            },
+            risk="medium",
+        ),
+        ToolSpec(
             name="email",
             description=(
                 "Send an email to a specified recipient. MUST be called ONLY when "
@@ -145,6 +222,25 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
                 context=args.get("context", ""),
                 sabios=args.get("sabios"),
                 parallel=args.get("parallel", True),
+            )
+        elif tool_name == "start_cidp_research":
+            from tools.cidp import start_cidp_research
+            return await start_cidp_research(
+                target=args.get("target", ""),
+                objective=args.get("objective", ""),
+                max_iterations=args.get("max_iterations", 5),
+                budget_usd=args.get("budget_usd", 25.0),
+                research_only=args.get("research_only", False),
+            )
+        elif tool_name == "check_cidp_status":
+            from tools.cidp import check_cidp_status
+            return await check_cidp_status(
+                job_id=args.get("job_id", ""),
+            )
+        elif tool_name == "cancel_cidp_research":
+            from tools.cidp import cancel_cidp_research
+            return await cancel_cidp_research(
+                job_id=args.get("job_id", ""),
             )
         elif tool_name == "email":
             from tools.email_sender import send_email
