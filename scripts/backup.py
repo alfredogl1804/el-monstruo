@@ -19,9 +19,10 @@ USAGE:
 
 REQUIREMENTS:
   - SUPABASE_URL and SUPABASE_SERVICE_KEY env vars
-  - DROPBOX_API_KEY env var (for cloud storage)
-  - supabase, dropbox pip packages
+  - DROPBOX_REFRESH_TOKEN, DROPBOX_APP_KEY, DROPBOX_APP_SECRET env vars (for cloud storage)
+  - supabase, dropbox, requests pip packages
   - Optional: SUPABASE_DB_URL for pg_dump mode
+  - Optional: DROPBOX_API_KEY (legacy, will be ignored if refresh token is set)
 
 SCHEDULE:
   Designed to run as a daily cron job or via the /v1/backup endpoint.
@@ -49,17 +50,18 @@ logger = structlog.get_logger("backup")
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL", "")
-DROPBOX_TOKEN = os.environ.get("DROPBOX_API_KEY", "")
 
-# Tables to backup (all Monstruo tables)
+# Dropbox OAuth2 refresh token flow (permanent, never expires)
+DROPBOX_REFRESH_TOKEN = os.environ.get("DROPBOX_REFRESH_TOKEN", "")
+DROPBOX_APP_KEY = os.environ.get("DROPBOX_APP_KEY", "")
+DROPBOX_APP_SECRET = os.environ.get("DROPBOX_APP_SECRET", "")
+DROPBOX_TOKEN = os.environ.get("DROPBOX_API_KEY", "")  # Legacy fallback
+
+# Tables to backup (actual Monstruo tables in Supabase)
 BACKUP_TABLES = [
-    "conversations",
-    "memories",
-    "events",
-    "knowledge_nodes",
-    "knowledge_edges",
     "checkpoints",
     "checkpoint_writes",
+    "events",
 ]
 
 BACKUP_DIR = "/monstruo-backups"  # Dropbox path
@@ -241,17 +243,51 @@ def export_env_vars() -> dict[str, str]:
     return env_vars
 
 
+# ── Dropbox Client ────────────────────────────────────────────────
+
+def get_dropbox_client():
+    """
+    Create a Dropbox client using refresh token (preferred) or legacy access token.
+    Refresh tokens never expire and auto-renew access tokens on each call.
+    """
+    import dropbox
+
+    if DROPBOX_REFRESH_TOKEN and DROPBOX_APP_KEY and DROPBOX_APP_SECRET:
+        logger.info("dropbox_auth", method="refresh_token")
+        return dropbox.Dropbox(
+            oauth2_refresh_token=DROPBOX_REFRESH_TOKEN,
+            app_key=DROPBOX_APP_KEY,
+            app_secret=DROPBOX_APP_SECRET,
+        )
+    elif DROPBOX_TOKEN:
+        logger.warning("dropbox_auth", method="legacy_access_token",
+                       hint="Migrate to refresh token — access tokens expire in ~4h")
+        return dropbox.Dropbox(DROPBOX_TOKEN)
+    else:
+        return None
+
+
+def is_dropbox_configured() -> bool:
+    """Check if Dropbox credentials are available."""
+    return bool(
+        (DROPBOX_REFRESH_TOKEN and DROPBOX_APP_KEY and DROPBOX_APP_SECRET)
+        or DROPBOX_TOKEN
+    )
+
+
 # ── Dropbox Upload ─────────────────────────────────────────────────
 
 def upload_to_dropbox(content: bytes, remote_path: str) -> Optional[str]:
     """Upload a file to Dropbox and return the shared link."""
-    if not DROPBOX_TOKEN:
-        logger.warning("dropbox_not_configured", hint="Set DROPBOX_API_KEY")
+    if not is_dropbox_configured():
+        logger.warning("dropbox_not_configured", hint="Set DROPBOX_REFRESH_TOKEN + APP_KEY + APP_SECRET")
         return None
 
     try:
         import dropbox
-        dbx = dropbox.Dropbox(DROPBOX_TOKEN)
+        dbx = get_dropbox_client()
+        if dbx is None:
+            return None
 
         # Upload file (overwrite if exists)
         dbx.files_upload(
@@ -281,12 +317,14 @@ def upload_to_dropbox(content: bytes, remote_path: str) -> Optional[str]:
 
 def enforce_retention(days: int = RETENTION_DAYS) -> int:
     """Delete backups older than `days` from Dropbox. Returns count deleted."""
-    if not DROPBOX_TOKEN:
+    if not is_dropbox_configured():
         return 0
 
     try:
         import dropbox
-        dbx = dropbox.Dropbox(DROPBOX_TOKEN)
+        dbx = get_dropbox_client()
+        if dbx is None:
+            return 0
 
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)
         deleted = 0
@@ -303,13 +341,18 @@ def enforce_retention(days: int = RETENTION_DAYS) -> int:
             entries.extend(result.entries)
 
         for entry in entries:
-            if hasattr(entry, "server_modified") and entry.server_modified < cutoff:
-                try:
-                    dbx.files_delete_v2(entry.path_lower)
-                    deleted += 1
-                    logger.info("retention_deleted", path=entry.path_lower, age_days=(datetime.now(timezone.utc) - entry.server_modified.replace(tzinfo=timezone.utc)).days)
-                except Exception as e:
-                    logger.warning("retention_delete_failed", path=entry.path_lower, error=str(e))
+            if hasattr(entry, "server_modified"):
+                # Ensure both datetimes are timezone-aware for comparison
+                entry_modified = entry.server_modified
+                if entry_modified.tzinfo is None:
+                    entry_modified = entry_modified.replace(tzinfo=timezone.utc)
+                if entry_modified < cutoff:
+                    try:
+                        dbx.files_delete_v2(entry.path_lower)
+                        deleted += 1
+                        logger.info("retention_deleted", path=entry.path_lower, age_days=(datetime.now(timezone.utc) - entry_modified).days)
+                    except Exception as e:
+                        logger.warning("retention_delete_failed", path=entry.path_lower, error=str(e))
 
         if deleted:
             logger.info("retention_complete", deleted=deleted, cutoff_days=days)
@@ -383,7 +426,7 @@ async def run_backup(
             }
             results["checksums"][data_filename] = data_checksum
 
-            if upload and DROPBOX_TOKEN:
+            if upload and is_dropbox_configured():
                 link = upload_to_dropbox(data_compressed, f"{BACKUP_DIR}/{data_filename}")
                 if link:
                     results["dropbox_links"].append(link)
@@ -410,7 +453,7 @@ async def run_backup(
             }
             results["checksums"][dump_filename] = dump_checksum
 
-            if upload and DROPBOX_TOKEN:
+            if upload and is_dropbox_configured():
                 link = upload_to_dropbox(dump_data, f"{BACKUP_DIR}/{dump_filename}")
                 if link:
                     results["dropbox_links"].append(link)
@@ -438,7 +481,7 @@ async def run_backup(
             }
             results["checksums"][env_filename] = env_checksum
 
-            if upload and DROPBOX_TOKEN:
+            if upload and is_dropbox_configured():
                 link = upload_to_dropbox(env_compressed, f"{BACKUP_DIR}/{env_filename}")
                 if link:
                     results["dropbox_links"].append(link)
@@ -451,7 +494,7 @@ async def run_backup(
             logger.error("env_backup_failed", error=str(e))
 
     # 4. Enforce retention policy
-    if upload and DROPBOX_TOKEN:
+    if upload and is_dropbox_configured():
         try:
             deleted = enforce_retention(RETENTION_DAYS)
             results["retention_deleted"] = deleted
@@ -471,7 +514,7 @@ async def run_backup(
     manifest_json = json.dumps(manifest, indent=2, default=str).encode("utf-8")
     manifest_filename = f"monstruo_manifest_{timestamp}.json"
 
-    if upload and DROPBOX_TOKEN:
+    if upload and is_dropbox_configured():
         upload_to_dropbox(manifest_json, f"{BACKUP_DIR}/{manifest_filename}")
 
     save_local_backup(manifest_json, manifest_filename)
