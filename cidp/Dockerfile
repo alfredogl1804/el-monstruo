@@ -18,6 +18,9 @@ COPY client.py ./cidp/client.py
 COPY scripts/ ./cidp/scripts/
 COPY config/ ./cidp/config/
 
+# Copy entrypoint script (reads PORT from os.environ)
+COPY entrypoint.py ./entrypoint.py
+
 # Create data directories
 RUN mkdir -p /app/cidp/data/telemetry /app/cidp/data/runs
 
@@ -25,7 +28,6 @@ RUN mkdir -p /app/cidp/data/telemetry /app/cidp/data/runs
 ENV PYTHONPATH=/app:/app/cidp/scripts
 ENV PYTHONUNBUFFERED=1
 
-# Railway injects PORT dynamically as env var.
-# Use python __main__ block which reads os.environ.get("PORT", "8080")
-# This avoids all shell variable expansion issues.
-CMD ["python", "-c", "import os; port = int(os.environ.get('PORT', '8080')); import uvicorn; uvicorn.run('cidp.api_server:app', host='0.0.0.0', port=port, log_level='info')"]
+# Start via entrypoint.py which reads PORT from os.environ
+# This avoids all shell variable expansion issues with $PORT
+CMD ["python", "entrypoint.py"]
