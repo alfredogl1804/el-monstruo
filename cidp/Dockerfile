@@ -28,24 +28,15 @@ COPY config/ ./cidp/config/
 # Create data directories
 RUN mkdir -p /app/cidp/data/telemetry /app/cidp/data/runs
 
+# Copy and prepare start script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 # Environment variables
 ENV PYTHONPATH=/app:/app/cidp/scripts
 ENV PYTHONUNBUFFERED=1
 
-# Expose default port
-EXPOSE 8080
+# Railway injects PORT dynamically — do NOT set EXPOSE or hardcode PORT
+# start.sh reads $PORT at runtime with fallback to 8080
 
-# Start script that reads PORT from env at runtime
-# Railway injects PORT as env var; uvicorn needs it as --port flag
-COPY <<'EOF' /app/start.py
-import os, subprocess, sys
-port = os.environ.get("PORT", "8080")
-sys.exit(subprocess.call([
-    sys.executable, "-m", "uvicorn",
-    "cidp.api_server:app",
-    "--host", "0.0.0.0",
-    "--port", port
-]))
-EOF
-
-CMD ["python", "/app/start.py"]
+CMD ["/app/start.sh"]
