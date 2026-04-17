@@ -1,8 +1,9 @@
 """
-El Monstruo — Policy Engine v1.0
+El Monstruo — Policy Engine v1.1
 ==================================
 Motor de políticas Python puro con interfaz compatible OPA/Cedar.
 Diseñado por el Consejo de 6 Sabios (Ciclo 3, 14 abril 2026).
+Sprint 5 update: R8 keyword-based HITL (17 abril 2026).
 
 Arquitectura:
   1. Reglas declarativas (dict-based, no DSL externo)
@@ -76,7 +77,44 @@ class PolicyEvalResult:
     requires_hitl: bool = False
 
 
-# ── Default Rules (Sprint 1) ────────────────────────────────────────
+# ── Action Keyword Detection (R8, Sprint 5) ─────────────────────────
+# Keywords that indicate the user wants the Monstruo to perform a
+# real-world action (send email, delete data, transfer money, etc.).
+# When detected, HITL is required regardless of how the router
+# classified the intent.
+
+_ACTION_KEYWORDS_ES = {
+    "envía", "envia", "enviar", "manda", "mandar",
+    "publica", "publicar", "postea", "postear",
+    "borra", "borrar", "elimina", "eliminar",
+    "transfiere", "transferir", "paga", "pagar",
+    "compra", "comprar", "cancela", "cancelar",
+    "suscribe", "suscribir", "agenda", "agendar",
+    "reserva", "reservar", "contrata", "contratar",
+    "ejecuta", "ejecutar", "despliega", "desplegar",
+    "deploy", "modifica", "modificar", "actualiza", "actualizar",
+}
+
+_ACTION_KEYWORDS_EN = {
+    "send", "post", "publish", "delete", "remove",
+    "transfer", "pay", "buy", "purchase", "cancel",
+    "subscribe", "schedule", "book", "hire",
+    "execute", "deploy", "create", "drop", "wipe",
+    "update", "modify",
+}
+
+_ACTION_KEYWORDS = _ACTION_KEYWORDS_ES | _ACTION_KEYWORDS_EN
+
+
+def _contains_action_keywords(intent_summary: str) -> bool:
+    """Check if intent_summary contains action keywords suggesting real-world actions."""
+    if not intent_summary:
+        return False
+    words = set(intent_summary.lower().split())
+    return bool(words & _ACTION_KEYWORDS)
+
+
+# ── Default Rules (Sprint 1 + Sprint 5) ─────────────────────────────
 
 DEFAULT_RULES: list[PolicyRule] = [
     # R1: Kernel bypass — kernel actions always permitted
@@ -140,6 +178,22 @@ DEFAULT_RULES: list[PolicyRule] = [
         priority=50,
         conditions={"composite_risk": RiskLevel.L3_SENSITIVE.value},
     ),
+    # R8: Keyword-based HITL for action requests (Sprint 5)
+    # Catches cases where router classifies as 'chat' but user is requesting
+    # a real-world action (send email, delete data, transfer money, etc.)
+    # Uses callable condition to scan intent_summary for action keywords.
+    # Priority 55 = evaluated BEFORE R7, so it catches chat-classified actions.
+    # Added 2026-04-17 after E2E testing showed policy gap.
+    PolicyRule(
+        rule_id="action_keyword_hitl",
+        effect=PolicyEffect.FORBID,
+        description="User message contains action keywords requiring HITL approval",
+        priority=55,
+        conditions={
+            "intent_summary": _contains_action_keywords,
+            "actor_type": "user",
+        },
+    ),
     # R7: EXECUTE from user always requires HITL (Sprint 1 governance)
     # Philosophy: when the Monstruo is about to DO something (not just read),
     # the human must approve. This is the core of sovereign governance.
@@ -174,7 +228,7 @@ class PolicyEngine:
 
     def __init__(self, rules: list[PolicyRule] | None = None) -> None:
         self._rules = sorted(rules or DEFAULT_RULES, key=lambda r: r.priority)
-        self._version = "v1.0.0-sprint1-day2"
+        self._version = "v1.1.0-sprint5"
 
     @property
     def version(self) -> str:
@@ -294,6 +348,7 @@ class PolicyEngine:
             "contains_sensitive_data": envelope.target.contains_sensitive_data,
             "actor_type": envelope.actor.actor_type,
             "session_id": envelope.session_id,
+            "intent_summary": envelope.intent_summary,
         }
 
     @staticmethod
