@@ -49,6 +49,16 @@ class KnowledgeGraph:
         # Persistence
         self._db = db
 
+    @property
+    def entity_count(self) -> int:
+        """Return total number of entities in the graph."""
+        return len(self._entities)
+
+    @property
+    def relation_count(self) -> int:
+        """Return total number of relations in the graph."""
+        return len(self._relations)
+
     async def initialize(self) -> None:
         """Load existing graph from Supabase if available."""
         if self._db and self._db.connected:

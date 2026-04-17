@@ -396,12 +396,19 @@ class TestHistoryAndEvents:
             logger.info(f"History: {len(data)} entries")
 
     def test_recent_events(self, client):
-        """Recent events endpoint should return event list."""
+        """Recent events endpoint should return event list or dict with events."""
         resp = client.get("/v1/events/recent", params={"limit": 5})
         assert resp.status_code == 200
         data = resp.json()
-        assert isinstance(data, list)
-        logger.info(f"Recent events: {len(data)} entries")
+        # API may return a list directly or a dict with {count, events}
+        if isinstance(data, dict):
+            assert "events" in data, f"Expected 'events' key in dict, got: {list(data.keys())}"
+            events = data["events"]
+            assert isinstance(events, list)
+            logger.info(f"Recent events: {data.get('count', len(events))} entries")
+        else:
+            assert isinstance(data, list)
+            logger.info(f"Recent events: {len(data)} entries")
 
 
 # ══════════════════════════════════════════════════════════════════════

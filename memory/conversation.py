@@ -69,6 +69,10 @@ class ConversationMemory(MemoryInterface):
         self._embedding_model = embedding_model
         self._embedding_client = None
 
+    async def count(self) -> int:
+        """Return total number of memory events stored."""
+        return len(self._events)
+
     async def initialize(self) -> None:
         """Initialize embedding client and DB connection."""
         # Embedding generation uses OpenAI or Gemini directly (no LiteLLM proxy)
