@@ -97,6 +97,12 @@ class LangGraphKernel(KernelInterface):
             checkpointer=self._checkpointer,
         )
 
+        # Sprint 4: Streaming graph — interrupts before execute for real LLM streaming
+        self._compiled_streaming = self._graph.compile(
+            checkpointer=self._checkpointer,
+            interrupt_before=["execute"],
+        )
+
         checkpointer_type = type(self._checkpointer).__name__
         logger.info("kernel_initialized", motor="langgraph", version="1.1.6", checkpointer=checkpointer_type)
 
@@ -530,19 +536,28 @@ class LangGraphKernel(KernelInterface):
 
     async def stream(self, input: RunInput) -> AsyncIterator[str]:
         """
-        Real streaming: runs pre-LLM nodes (intake, classify, enrich) normally,
-        then streams LLM tokens in real-time via router.execute_stream().
-        Memory write runs fire-and-forget after streaming completes.
+        Sprint 4: REAL streaming via interrupt_before=["execute"].
+
+        Strategy (validated by 6 Sabios consensus):
+          Phase 1: Run pre-LLM nodes (intake → classify → enrich) via streaming graph
+          Phase 2: Graph interrupts before execute → extract enriched state
+          Phase 3: Call router.execute_stream() directly → yield real LLM tokens
+          Phase 4: Inject response into state via update_state() → resume for post-LLM
+          Phase 5: Post-LLM nodes (respond → memory_write) run to completion
+
+        Fallback policy: only before first token. After first token, fail gracefully.
+        Memory write: blocked if stream fails (no partial contamination).
 
         Yields JSON-encoded SSE events:
           {"type": "meta", "intent": ..., "model": ..., "enriched": ...}
           {"type": "chunk", "text": "..."}
-          {"type": "done", "latency_ms": ..., "model_used": ...}
+          {"type": "done", "latency_ms": ..., "model_used": ..., "tokens_in": ..., "tokens_out": ...}
           {"type": "error", "message": "..."}
         """
         import json as _json
         run_id = input.run_id
-        thread_id = str(run_id)
+        # Use a unique thread_id for streaming to avoid checkpoint conflicts
+        thread_id = f"stream-{run_id}"
         start_time = time.monotonic()
 
         initial_state: MonstruoState = {
@@ -566,16 +581,18 @@ class LangGraphKernel(KernelInterface):
         }
 
         try:
-            # ── Phase 1: Run pre-LLM nodes via graph (intake → classify_and_route → enrich) ──
-            # We use astream with updates mode to run nodes up to execute
-            pre_llm_state = dict(initial_state)
+            # ══ Phase 1: Run pre-LLM nodes ══════════════════════════════════════════
+            # Graph runs intake → classify_and_route → enrich, then STOPS before execute
+            logger.info("stream_phase1_start", run_id=str(run_id))
 
-            async for event in self._compiled.astream(initial_state, config, stream_mode="updates"):
+            pre_llm_state = dict(initial_state)
+            async for event in self._compiled_streaming.astream(
+                initial_state, config, stream_mode="updates"
+            ):
                 for node_name, state_update in event.items():
                     pre_llm_state.update(state_update)
 
                     if node_name == "classify_and_route":
-                        # Emit metadata event
                         yield _json.dumps({
                             "type": "meta",
                             "intent": state_update.get("intent", "chat"),
@@ -590,47 +607,159 @@ class LangGraphKernel(KernelInterface):
                             "memories_found": len(state_update.get("relevant_memories", [])),
                         })
 
-                    elif node_name == "execute":
-                        # The non-streaming execute already ran via the graph.
-                        # For true streaming, we'd need to intercept before execute.
-                        # For now, stream the response that execute produced.
-                        response = state_update.get("response", "")
-                        if response:
-                            # Stream in word-boundary chunks for natural feel
-                            words = response.split(" ")
-                            buffer = ""
-                            for word in words:
-                                buffer += word + " "
-                                if len(buffer) >= 20:  # ~4-5 words per chunk
-                                    yield _json.dumps({"type": "chunk", "text": buffer})
-                                    buffer = ""
-                            if buffer.strip():
-                                yield _json.dumps({"type": "chunk", "text": buffer})
+            # ══ Phase 2: Extract enriched state from checkpoint ════════════════════
+            # Graph is now paused before execute. Read the full state.
+            graph_state = await self._compiled_streaming.aget_state(config)
+            current_state = graph_state.values if graph_state else pre_llm_state
 
-                    elif node_name == "respond":
-                        # Final response — if execute didn't stream, stream from here
-                        final = state_update.get("final_response", "")
-                        response_already = pre_llm_state.get("response", "")
-                        if final and not response_already:
-                            words = final.split(" ")
-                            buffer = ""
-                            for word in words:
-                                buffer += word + " "
-                                if len(buffer) >= 20:
-                                    yield _json.dumps({"type": "chunk", "text": buffer})
-                                    buffer = ""
-                            if buffer.strip():
-                                yield _json.dumps({"type": "chunk", "text": buffer})
+            model = current_state.get("model", "gpt-5.4")
+            intent = current_state.get("intent", "chat")
+            system_prompt = current_state.get("system_prompt", "")
+            conversation_context = current_state.get("conversation_context", [])
+            message = current_state.get("message", input.message)
 
+            logger.info(
+                "stream_phase2_state_extracted",
+                run_id=str(run_id),
+                model=model,
+                intent=intent,
+                has_system_prompt=bool(system_prompt),
+                history_len=len(conversation_context),
+            )
+
+            # Build enriched context for the router
+            enriched_context = dict(current_state.get("context", {}))
+            if conversation_context:
+                enriched_context["history"] = conversation_context
+            if system_prompt:
+                enriched_context["system_prompt"] = system_prompt
+
+            # ══ Phase 3: REAL LLM Streaming ═════════════════════════════════════
+            # Call router.execute_stream() directly — yields real LLM tokens
+            logger.info("stream_phase3_llm_start", run_id=str(run_id), model=model)
+            llm_start = time.monotonic()
+
+            accumulated_response = ""
+            first_token_emitted = False
+            stream_failed = False
+
+            try:
+                if self._router and hasattr(self._router, 'execute_stream'):
+                    async for chunk in self._router.execute_stream(
+                        message=message,
+                        model=model,
+                        intent=IntentType(intent),
+                        context=enriched_context,
+                    ):
+                        accumulated_response += chunk
+                        first_token_emitted = True
+                        yield _json.dumps({"type": "chunk", "text": chunk})
+                elif self._router:
+                    # Fallback: non-streaming execute, then fake-stream
+                    logger.warning("stream_fallback_to_sync", run_id=str(run_id))
+                    response, usage = await self._router.execute(
+                        message, model, IntentType(intent), enriched_context
+                    )
+                    accumulated_response = response
+                    # Emit in one chunk
+                    yield _json.dumps({"type": "chunk", "text": response})
+                    first_token_emitted = True
+                else:
+                    accumulated_response = f"[stub] {model} would respond to: {message[:100]}"
+                    yield _json.dumps({"type": "chunk", "text": accumulated_response})
+                    first_token_emitted = True
+
+            except Exception as llm_err:
+                stream_failed = True
+                logger.error(
+                    "stream_llm_failed",
+                    run_id=str(run_id),
+                    model=model,
+                    error=str(llm_err),
+                    first_token_emitted=first_token_emitted,
+                )
+                if not first_token_emitted:
+                    # Fallback policy: before first token, we can retry or error
+                    yield _json.dumps({
+                        "type": "error",
+                        "message": f"LLM streaming failed: {type(llm_err).__name__}",
+                    })
+                    return
+                else:
+                    # After first token: graceful termination
+                    yield _json.dumps({
+                        "type": "error",
+                        "message": "Stream interrupted. Partial response delivered.",
+                    })
+
+            llm_elapsed_ms = (time.monotonic() - llm_start) * 1000
+            logger.info(
+                "stream_phase3_llm_done",
+                run_id=str(run_id),
+                response_len=len(accumulated_response),
+                llm_latency_ms=round(llm_elapsed_ms),
+                stream_failed=stream_failed,
+            )
+
+            # ══ Phase 4: Inject response and resume graph ═════════════════════
+            # Update state with the streamed response, then let post-LLM nodes run
+            if not stream_failed and accumulated_response:
+                try:
+                    await self._compiled_streaming.aupdate_state(
+                        config,
+                        {
+                            "response": accumulated_response,
+                            "model_used": model,
+                            "status": RunStatus.EXECUTING.value,
+                            "latency_ms": llm_elapsed_ms,
+                            # Note: token counts from streaming are estimated;
+                            # exact counts come from provider callbacks
+                            "tokens_in": 0,
+                            "tokens_out": 0,
+                            "cost_usd": 0.0,
+                        },
+                        as_node="execute",  # Pretend this update came from execute node
+                    )
+
+                    # ══ Phase 5: Run post-LLM nodes (respond → memory_write) ══════
+                    # Resume the graph — it will run respond → memory_write → END
+                    logger.info("stream_phase5_post_llm", run_id=str(run_id))
+                    async for event in self._compiled_streaming.astream(
+                        None, config, stream_mode="updates"
+                    ):
+                        # Post-LLM nodes run silently; we don't yield their output
+                        for node_name, state_update in event.items():
+                            if node_name == "respond":
+                                # Capture final state for done event
+                                pre_llm_state.update(state_update)
+                            elif node_name == "memory_write":
+                                pre_llm_state.update(state_update)
+
+                except Exception as post_err:
+                    # Post-LLM failure shouldn't affect the user's response
+                    logger.error(
+                        "stream_post_llm_failed",
+                        run_id=str(run_id),
+                        error=str(post_err),
+                    )
+            elif stream_failed:
+                logger.warning(
+                    "stream_memory_write_blocked",
+                    run_id=str(run_id),
+                    reason="stream_failed_no_contamination",
+                )
+
+            # ══ Emit done event ════════════════════════════════════════════════
             elapsed_ms = (time.monotonic() - start_time) * 1000
             yield _json.dumps({
                 "type": "done",
                 "latency_ms": round(elapsed_ms),
-                "model_used": pre_llm_state.get("model_used", ""),
-                "intent": pre_llm_state.get("intent", "chat"),
+                "model_used": model,
+                "intent": intent,
                 "tokens_in": pre_llm_state.get("tokens_in", 0),
                 "tokens_out": pre_llm_state.get("tokens_out", 0),
                 "cost_usd": pre_llm_state.get("cost_usd", 0.0),
+                "streaming": True,
             })
 
         except Exception as e:
