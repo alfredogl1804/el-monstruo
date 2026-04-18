@@ -8,7 +8,7 @@ Anti-autoboicot: 2 correcciones aplicadas vs. export original:
   - Kimi K2.5 pricing: $0.60/M → $0.3827/M (verificado OpenRouter)
 """
 
-# ===================== CATÁLOGO VALIDADO 12 ABRIL 2026 =====================
+# ===================== CATÁLOGO VALIDADO 18 ABRIL 2026 =====================
 
 MODELS: dict = {
     # ─── TIER 1: Flagship (razonamiento complejo, agéntico) ───
@@ -26,10 +26,24 @@ MODELS: dict = {
         "validated": "2026-04-12",
         "source": "https://developers.openai.com/api/docs/models",
     },
+    "claude-opus-4-7": {
+        "provider": "anthropic",
+        "model_id": "claude-opus-4-7",
+        "litellm_alias": "claude-opus",
+        "api_key_env": "ANTHROPIC_API_KEY",
+        "base_url": None,
+        "context_window": 1_000_000,  # 1M — validated 2026-04-18
+        "max_tokens": 4096,
+        "use_max_completion_tokens": False,
+        "pricing": {"input": 5.00, "output": 25.00},
+        "roles": ["analisis", "critico", "arquitecto", "codigo"],
+        "validated": "2026-04-18",
+        "source": "https://www.anthropic.com/news/claude-opus-4-7",
+    },
     "claude-opus-4-6": {
         "provider": "anthropic",
         "model_id": "claude-opus-4-6",
-        "litellm_alias": "claude-opus",
+        "litellm_alias": "claude-opus-prev",
         "api_key_env": "ANTHROPIC_API_KEY",
         "base_url": None,
         "context_window": 1_000_000,  # 1M — validated 2026-04-12
@@ -188,19 +202,19 @@ MODELS: dict = {
 # ===================== FALLBACK CHAINS (by role) =====================
 
 FALLBACK_CHAINS: dict[str, list[str]] = {
-    "estratega":     ["gpt-5.4", "claude-opus-4-6", "gemini-3.1-pro"],
+    "estratega":     ["gpt-5.4", "claude-opus-4-7", "claude-opus-4-6", "gemini-3.1-pro"],
     "investigador":  ["sonar-reasoning-pro", "sonar-pro", "grok-4.20", "gpt-5.4"],
-    "razonador":     ["deepseek-r1-0528", "gpt-5.4", "claude-opus-4-6"],
-    "sintetizador":  ["gpt-5.4", "claude-opus-4-6", "gemini-3.1-pro"],
-    "critico":       ["grok-4.20", "deepseek-r1-0528", "claude-opus-4-6"],
-    "creativo":      ["gemini-3.1-pro", "gpt-5.4", "claude-opus-4-6"],
-    "codigo":        ["grok-4.20", "claude-sonnet-4-6", "deepseek-r1-0528"],
-    "analisis":      ["claude-opus-4-6", "gpt-5.4", "deepseek-r1-0528"],
+    "razonador":     ["deepseek-r1-0528", "gpt-5.4", "claude-opus-4-7"],
+    "sintetizador":  ["gpt-5.4", "claude-opus-4-7", "gemini-3.1-pro"],
+    "critico":       ["grok-4.20", "deepseek-r1-0528", "claude-opus-4-7"],
+    "creativo":      ["gemini-3.1-pro", "gpt-5.4", "claude-opus-4-7"],
+    "codigo":        ["claude-opus-4-7", "claude-sonnet-4-6", "grok-4.20", "deepseek-r1-0528"],
+    "analisis":      ["claude-opus-4-7", "gpt-5.4", "deepseek-r1-0528"],
     "motor_barato":  ["kimi-k2.5", "gemini-3.1-flash-lite", "gpt-5.4-mini"],
     "clasificador":  ["gpt-5.4-mini", "kimi-k2.5", "gemini-3.1-flash-lite"],
-    "planificador":  ["gpt-5.4", "claude-opus-4-6", "gemini-3.1-pro"],
+    "planificador":  ["gpt-5.4", "claude-opus-4-7", "gemini-3.1-pro"],
     "ejecutor":      ["gpt-5.4", "claude-sonnet-4-6", "grok-4.20"],
-    "arquitecto":    ["claude-opus-4-6", "gpt-5.4", "grok-4.20"],
+    "arquitecto":    ["claude-opus-4-7", "gpt-5.4", "grok-4.20"],
     "chat_rapido":   ["gemini-3.1-flash-lite", "gpt-5.4-mini", "kimi-k2.5"],
 }
 

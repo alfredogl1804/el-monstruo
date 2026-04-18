@@ -258,6 +258,52 @@ def get_tool_specs():
             risk="medium",
         ),
         ToolSpec(
+            name="delegate_task",
+            description=(
+                "Delegate a cognitive sub-task to a specialized AI role. "
+                "Available roles: estratega, investigador, razonador, critico, "
+                "creativo, arquitecto, codigo, sintetizador, verificador. "
+                "Use when you need a different perspective, specialized analysis, "
+                "or want to break a complex task into sub-tasks handled by experts. "
+                "Supports single role or parallel mode (multiple roles + synthesis). "
+                "Delegates have NO access to tools — they use only their knowledge "
+                "and the context you provide. This tool is auto-approved (no HITL)."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "task": {
+                        "type": "string",
+                        "description": "Clear description of the sub-task for the delegate",
+                    },
+                    "role": {
+                        "type": "string",
+                        "description": "The specialist role: estratega, investigador, razonador, critico, creativo, arquitecto, codigo, sintetizador, verificador",
+                    },
+                    "mode": {
+                        "type": "string",
+                        "description": "'single' (one role) or 'parallel' (multiple roles with synthesis). Default: single",
+                    },
+                    "relevant_context": {
+                        "type": "string",
+                        "description": "Curated context for the delegate (NOT full conversation — only what's relevant)",
+                    },
+                    "constraints": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of constraints for the delegate (e.g., 'Responde en español', 'Máximo 5 bullets')",
+                    },
+                    "parallel_roles": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Roles to use in parallel mode (overrides 'role' param)",
+                    },
+                },
+                "required": ["task", "role"],
+            },
+            risk="low",
+        ),
+        ToolSpec(
             name="email",
             description=(
                 "Send an email to a specified recipient. MUST be called ONLY when "
@@ -349,6 +395,18 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             )
             import json as _json
             return _json.loads(result_str)
+        elif tool_name == "delegate_task":
+            from tools.delegate import delegate_task
+            return await delegate_task(
+                task=args.get("task", ""),
+                role=args.get("role", "estratega"),
+                mode=args.get("mode", "single"),
+                relevant_context=args.get("relevant_context", ""),
+                constraints=args.get("constraints"),
+                parallel_roles=args.get("parallel_roles"),
+                model_hint=args.get("model_hint"),
+                timeout_s=args.get("timeout_s"),
+            )
         elif tool_name == "email":
             from tools.email_sender import send_email
             return await send_email(
@@ -523,11 +581,42 @@ def get_tool_aware_prompt_suffix() -> str:
     for spec in specs:
         risk_label = f" [riesgo: {spec.risk}]" if spec.risk != "low" else ""
         lines.append(f"- **{spec.name}**: {spec.description}{risk_label}")
+
+    # ── Tool Trigger Conditions (Sprint 7: prompt engineering) ──
+    lines.append("")
+    lines.append("## Cuándo Usar Cada Herramienta")
     lines.append("")
     lines.append(
-        "REGLA CRÍTICA: Si el usuario pregunta por datos actuales (precios, "
-        "noticias, tipo de cambio, clima, eventos recientes, resultados deportivos), "
-        "SIEMPRE llama a web_search. NO respondas de memoria."
+        "**web_search**: Datos actuales (precios, noticias, tipo de cambio, clima, "
+        "eventos recientes, resultados deportivos, cualquier dato post-2025). "
+        "SIEMPRE usa web_search para información que pueda haber cambiado."
+    )
+    lines.append(
+        "**github**: Cuando el usuario mencione repositorios, código, commits, issues, "
+        "PRs, o cualquier operación de GitHub. Acciones: list_repos, get_repo, "
+        "list_issues, create_issue, list_commits, get_file, search_code."
+    )
+    lines.append(
+        "**notion**: Cuando el usuario mencione notas, documentos, bases de datos, "
+        "páginas, wiki, o cualquier contenido de Notion. Acciones: search, get_page, "
+        "get_page_content, query_database, create_page, update_page, append_content."
+    )
+    lines.append(
+        "**delegate_task**: Cuando necesites una perspectiva especializada, análisis "
+        "profundo, o quieras dividir una tarea compleja en sub-tareas. Roles disponibles: "
+        "estratega, investigador, razonador, critico, creativo, arquitecto, codigo, "
+        "sintetizador, verificador. Usa mode='parallel' para consultar múltiples roles."
+    )
+    lines.append(
+        "**consult_sabios**: Cuando necesites consenso de múltiples IAs sobre un tema "
+        "complejo. Diferente de delegate_task: sabios consulta modelos externos, "
+        "delegate_task usa roles internos del Monstruo."
+    )
+    lines.append("")
+    lines.append(
+        "REGLA CRÍTICA: Cuando el usuario pida información actual, SIEMPRE usa "
+        "web_search. Cuando pida operaciones sobre GitHub o Notion, SIEMPRE usa "
+        "la herramienta correspondiente. NO describas lo que harías — haz la llamada."
     )
     return "\n".join(lines)
 
