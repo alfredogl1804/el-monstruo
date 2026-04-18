@@ -257,13 +257,13 @@ class AutonomousRunner:
         Re-enter the kernel to execute the job's instruction.
         Uses the kernel's run() method with a synthetic RunInput.
         """
-        from contracts.kernel_interface import RunInput, IntentType
+        from contracts.kernel_interface import RunInput
 
         run_input = RunInput(
             message=instruction,
             user_id=user_id,
-            intent=IntentType.EXECUTE,
-            metadata={
+            channel="autonomous",
+            context={
                 "source": source,
                 "scheduled_job_id": job_id,
                 "autonomous": True,
