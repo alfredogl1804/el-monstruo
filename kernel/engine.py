@@ -80,6 +80,7 @@ class LangGraphKernel(KernelInterface):
         checkpoint_store: Any = None,
         observability: Any = None,
         checkpointer: Any = None,
+        db: Any = None,
     ) -> None:
         self._router = router
         self._event_store = event_store
@@ -87,6 +88,7 @@ class LangGraphKernel(KernelInterface):
         self._knowledge = knowledge
         self._checkpoint_store = checkpoint_store
         self._observability = observability
+        self._db = db  # Sprint 9: SupabaseClient for dossier injection
         self._hooks: dict[str, list[Callable[..., Any]]] = {}
         self._runs: dict[UUID, MonstruoState] = {}
 
@@ -258,6 +260,7 @@ class LangGraphKernel(KernelInterface):
                     "_knowledge": self._knowledge,
                     "_event_store": self._event_store,
                     "_observability": self._observability,
+                    "_db": self._db,  # Sprint 9: for dossier injection
                 }
             }
             # Use v2 API to properly detect interrupts (validated 2026-04-14)
@@ -406,6 +409,7 @@ class LangGraphKernel(KernelInterface):
                 "_knowledge": self._knowledge,
                 "_event_store": self._event_store,
                 "_observability": self._observability,
+                "_db": self._db,
             }
         }
 
@@ -577,6 +581,7 @@ class LangGraphKernel(KernelInterface):
                 "_knowledge": self._knowledge,
                 "_event_store": self._event_store,
                 "_observability": self._observability,
+                "_db": self._db,
             }
         }
 

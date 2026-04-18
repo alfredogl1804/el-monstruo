@@ -139,6 +139,7 @@ async def lifespan(app: FastAPI):
         knowledge=knowledge_graph,
         observability=observability,
         checkpointer=checkpointer,
+        db=db if db_connected else None,  # Sprint 9: for dossier injection
     )
 
     # Emit startup event
@@ -192,6 +193,20 @@ async def lifespan(app: FastAPI):
         logger.info("autonomy_routes_registered")
     except Exception as e:
         logger.warning("autonomy_routes_failed", error=str(e))
+
+    # Sprint 9: Wire mission control and dossier routes
+    try:
+        from kernel.mission_routes import (
+            router as mission_router,
+            dossier_router,
+            set_dependencies as set_mission_deps,
+        )
+        set_mission_deps(db=db if db_connected else None)
+        app.include_router(mission_router)
+        app.include_router(dossier_router)
+        logger.info("mission_dossier_routes_registered")
+    except Exception as e:
+        logger.warning("mission_dossier_routes_failed", error=str(e))
 
     logger.info(
         "monstruo_ready",

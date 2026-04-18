@@ -347,6 +347,63 @@ def get_tool_specs():
             risk="low",
         ),
         ToolSpec(
+            name="user_dossier",
+            description=(
+                "Read or update the user's persistent profile (dossier) and manage active missions. "
+                "Actions: get_dossier (read full profile), update_dossier (update fields), "
+                "list_missions (list active projects), update_mission (change status/priority), "
+                "create_mission (add new project). Use this when the user mentions their profile, "
+                "preferences, projects, missions, or when you need to remember something about the user."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "description": "Action to perform: get_dossier, update_dossier, list_missions, update_mission, create_mission",
+                        "enum": ["get_dossier", "update_dossier", "list_missions", "update_mission", "create_mission"],
+                    },
+                    "user_id": {
+                        "type": "string",
+                        "description": "User ID. Default: 'alfredo'",
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "For list_missions: filter by status (active, paused, completed, all). Default: active",
+                    },
+                    "mission_name": {
+                        "type": "string",
+                        "description": "For update_mission: name of the mission to update",
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "For create_mission: name of the new mission",
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "For create_mission/update_mission: description text",
+                    },
+                    "priority": {
+                        "type": "integer",
+                        "description": "Priority 1-10 (10=highest). For create_mission or update_mission.",
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Tags for the mission",
+                    },
+                    "full_name": {"type": "string", "description": "For update_dossier"},
+                    "company": {"type": "string", "description": "For update_dossier"},
+                    "location": {"type": "string", "description": "For update_dossier"},
+                    "role": {"type": "string", "description": "For update_dossier"},
+                    "email": {"type": "string", "description": "For update_dossier"},
+                    "github_username": {"type": "string", "description": "For update_dossier"},
+                },
+                "required": ["action"],
+            },
+            risk="low",
+        ),
+        ToolSpec(
             name="email",
             description=(
                 "Send an email to a specified recipient. MUST be called ONLY when "
@@ -470,6 +527,12 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
                     "source": "user",
                 },
             )
+        elif tool_name == "user_dossier":
+            from tools.user_dossier import execute
+            action = args.pop("action", "get_dossier")
+            result_str = await execute(action=action, args=args, db=_tool_db)
+            import json as _json
+            return _json.loads(result_str)
         elif tool_name == "email":
             from tools.email_sender import send_email
             return await send_email(
@@ -669,6 +732,11 @@ def get_tool_aware_prompt_suffix() -> str:
         "profundo, o quieras dividir una tarea compleja en sub-tareas. Roles disponibles: "
         "estratega, investigador, razonador, critico, creativo, arquitecto, codigo, "
         "sintetizador, verificador. Usa mode='parallel' para consultar múltiples roles."
+    )
+    lines.append(
+        "**user_dossier**: Cuando el usuario mencione su perfil, preferencias, "
+        "proyectos activos, misiones, o cuando necesites recordar/actualizar algo sobre "
+        "el usuario. También úsalo para crear nuevas misiones o cambiar prioridades."
     )
     lines.append(
         "**schedule_task**: Cuando el usuario pida hacer algo EN EL FUTURO: "

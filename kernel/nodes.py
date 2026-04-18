@@ -292,6 +292,24 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
     knowledge_entities: list[dict[str, Any]] = []
     system_prompt = _build_base_system_prompt()
 
+    # Sprint 9: Inject dynamic user dossier from Supabase
+    db = config.get("configurable", {}).get("_db")
+    if db:
+        try:
+            from tools.user_dossier import get_prompt_dossier
+            dynamic_dossier = await get_prompt_dossier(db, user_id="alfredo")
+            system_prompt += f"\n\n{dynamic_dossier}"
+            logger.info("enrich_dossier_injected", source="supabase", chars=len(dynamic_dossier))
+        except Exception as e:
+            # Fallback to hardcoded dossier
+            from prompts.system_prompts import USER_DOSSIER
+            system_prompt += f"\n\n{USER_DOSSIER}"
+            logger.warning("enrich_dossier_fallback", error=str(e))
+    else:
+        # No DB — use hardcoded dossier
+        from prompts.system_prompts import USER_DOSSIER
+        system_prompt += f"\n\n{USER_DOSSIER}"
+
     # P0.2: Inject external system prompts (from Open WebUI or other clients)
     # These come via RunInput.context["system_prompts"] from the OpenAI adapter
     external_system_prompts = state.get("context", {}).get("system_prompts", [])
