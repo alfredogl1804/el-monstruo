@@ -78,7 +78,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.4.0-sprint8", motor="langgraph")
+    logger.info("monstruo_starting", version="0.5.0-sprint10", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -208,11 +208,50 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("mission_dossier_routes_failed", error=str(e))
 
+    # ── Sprint 10: Tool Registry + Usage Tracker ──────────────────
+    tool_registry = None
+    usage_tracker = None
+    try:
+        from kernel.tool_registry import ToolRegistry
+        from kernel.usage_tracker import UsageTracker
+
+        tool_registry = ToolRegistry(db=db if db_connected else None)
+        await tool_registry.initialize()
+        app.state.tool_registry = tool_registry
+
+        usage_tracker = UsageTracker(db=db if db_connected else None)
+        await usage_tracker.initialize()
+        app.state.usage_tracker = usage_tracker
+
+        # Inject into kernel for automatic tracking
+        if kernel:
+            kernel._usage_tracker = usage_tracker
+            kernel._tool_registry = tool_registry
+
+        logger.info(
+            "sprint10_initialized",
+            registry_tools=tool_registry.get_stats().get("total_tools", 0),
+            tracker_today_cost=usage_tracker.get_stats().get("today_cost_usd", 0),
+        )
+    except Exception as e:
+        logger.warning("sprint10_init_failed", error=str(e))
+
+    # Wire usage & registry routes
+    try:
+        from kernel.usage_routes import router as usage_router
+        app.include_router(usage_router)
+        logger.info("usage_registry_routes_registered")
+    except Exception as e:
+        logger.warning("usage_registry_routes_failed", error=str(e))
+
     logger.info(
         "monstruo_ready",
+        version="0.5.0-sprint10",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
+        registry="active" if tool_registry and tool_registry.initialized else "inactive",
+        tracker="active" if usage_tracker and usage_tracker.initialized else "inactive",
     )
 
     # Warm-up: pre-heat LLM connections to eliminate cold start on first request
@@ -271,7 +310,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.4.0-sprint8",
+    version="0.5.0-sprint10",
     lifespan=lifespan,
 )
 

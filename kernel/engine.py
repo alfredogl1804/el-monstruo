@@ -89,6 +89,8 @@ class LangGraphKernel(KernelInterface):
         self._checkpoint_store = checkpoint_store
         self._observability = observability
         self._db = db  # Sprint 9: SupabaseClient for dossier injection
+        self._usage_tracker = None  # Sprint 10: injected post-init
+        self._tool_registry = None  # Sprint 10: injected post-init
         self._hooks: dict[str, list[Callable[..., Any]]] = {}
         self._runs: dict[UUID, MonstruoState] = {}
 
@@ -366,6 +368,9 @@ class LangGraphKernel(KernelInterface):
                 latency_ms=f"{output.latency_ms:.0f}",
             )
 
+            # Sprint 10: Log usage to persistent tracker
+            await self._log_usage(output, final_state)
+
             return output
 
         except Exception as e:
@@ -384,7 +389,7 @@ class LangGraphKernel(KernelInterface):
                     .build()
                 await self._event_store.append(event)
 
-            return RunOutput(
+            error_output = RunOutput(
                 run_id=run_id,
                 status=RunStatus.FAILED,
                 intent=IntentType.CHAT,
@@ -392,6 +397,51 @@ class LangGraphKernel(KernelInterface):
                 response=f"Error: {str(e)}",
                 metadata={"error": str(e), "error_type": type(e).__name__},
             )
+            # Sprint 10: Log failed request too
+            await self._log_usage(error_output, {}, status="failed", error_message=str(e))
+            return error_output
+
+    async def _log_usage(
+        self,
+        output: RunOutput,
+        state: dict,
+        status: str = "completed",
+        error_message: str = "",
+    ) -> None:
+        """Sprint 10: Log request to UsageTracker and record tool invocations."""
+        try:
+            if self._usage_tracker:
+                # Determine provider from model_catalog
+                provider = ""
+                try:
+                    from config.model_catalog import MODELS
+                    model_info = MODELS.get(output.model_used, {})
+                    provider = model_info.get("provider", "")
+                except Exception:
+                    pass
+
+                await self._usage_tracker.log_request(
+                    thread_id=state.get("thread_id", ""),
+                    model_used=output.model_used or "unknown",
+                    provider=provider,
+                    role_used=state.get("role_used", ""),
+                    tokens_in=output.tokens_in,
+                    tokens_out=output.tokens_out,
+                    cost_usd=output.cost_usd,
+                    latency_ms=int(output.latency_ms),
+                    tool_calls=[tc.get("name", "") if isinstance(tc, dict) else str(tc) for tc in (output.tool_calls or [])],
+                    status=status,
+                    error_message=error_message,
+                )
+
+            # Record tool invocations in registry
+            if self._tool_registry and output.tool_calls:
+                for tc in output.tool_calls:
+                    tool_name = tc.get("name", "") if isinstance(tc, dict) else str(tc)
+                    if tool_name:
+                        await self._tool_registry.record_invocation(tool_name)
+        except Exception as e:
+            logger.warning("usage_tracking_failed", error=str(e))
 
     async def step(self, run_id: UUID, input: dict[str, Any] | None = None) -> RunOutput:
         """
