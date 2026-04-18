@@ -304,6 +304,49 @@ def get_tool_specs():
             risk="low",
         ),
         ToolSpec(
+            name="schedule_task",
+            description=(
+                "Schedule a task for future autonomous execution. The Monstruo will "
+                "execute the task at the specified time WITHOUT user presence. "
+                "MUST be called when the user says: 'remind me', 'tomorrow at X', "
+                "'in 3 hours do Y', 'schedule', 'program', 'recuérdame', 'mañana a las', "
+                "'en X horas', or any request involving a future time. "
+                "Supports: ISO 8601, 'tomorrow 8am', 'in 3 hours'. "
+                "Max scheduling window: 30 days. One-shot by default."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Short title for the scheduled task (e.g., 'Send update to Juan')",
+                    },
+                    "instruction": {
+                        "type": "string",
+                        "description": "Full instruction for the Monstruo to execute at the scheduled time. Be specific and complete.",
+                    },
+                    "run_at": {
+                        "type": "string",
+                        "description": "When to execute. Formats: ISO 8601 ('2026-04-19T08:00'), relative ('in 3 hours'), natural ('tomorrow 8am')",
+                    },
+                    "timezone": {
+                        "type": "string",
+                        "description": "User's timezone. Default: America/Mexico_City. Also accepts: 'cdmx', 'utc', 'est', 'pst'",
+                    },
+                    "channel": {
+                        "type": "string",
+                        "description": "Notification channel for results. Default: 'telegram'. Options: telegram, api, webhook",
+                    },
+                    "recurrence": {
+                        "type": "string",
+                        "description": "Optional: 'daily' for daily repeat, null/omit for one-shot execution",
+                    },
+                },
+                "required": ["title", "instruction", "run_at"],
+            },
+            risk="low",
+        ),
+        ToolSpec(
             name="email",
             description=(
                 "Send an email to a specified recipient. MUST be called ONLY when "
@@ -406,6 +449,17 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
                 parallel_roles=args.get("parallel_roles"),
                 model_hint=args.get("model_hint"),
                 timeout_s=args.get("timeout_s"),
+            )
+        elif tool_name == "schedule_task":
+            from tools.schedule_task import execute_schedule_task
+            return await execute_schedule_task(
+                params=tool_args,
+                context={
+                    "user_id": "alfredo",  # TODO: extract from state
+                    "thread_id": "",
+                    "db": None,  # Will be injected by the dispatch node
+                    "source": "user",
+                },
             )
         elif tool_name == "email":
             from tools.email_sender import send_email
@@ -606,6 +660,12 @@ def get_tool_aware_prompt_suffix() -> str:
         "profundo, o quieras dividir una tarea compleja en sub-tareas. Roles disponibles: "
         "estratega, investigador, razonador, critico, creativo, arquitecto, codigo, "
         "sintetizador, verificador. Usa mode='parallel' para consultar múltiples roles."
+    )
+    lines.append(
+        "**schedule_task**: Cuando el usuario pida hacer algo EN EL FUTURO: "
+        "'recuérdame mañana', 'en 3 horas haz X', 'programa para las 8am', "
+        "'tomorrow at 9am send Y'. Siempre usa schedule_task para tareas futuras. "
+        "NO digas 'no puedo programar' — SÍ puedes, usa esta herramienta."
     )
     lines.append(
         "**consult_sabios**: Cuando necesites consenso de múltiples IAs sobre un tema "

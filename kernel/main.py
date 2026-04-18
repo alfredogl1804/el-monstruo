@@ -78,7 +78,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.3.0-sprint2", motor="langgraph")
+    logger.info("monstruo_starting", version="0.4.0-sprint8", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -158,10 +158,37 @@ async def lifespan(app: FastAPI):
         .build()
     )
 
+    # ── Sprint 8: Autonomous Runner ──────────────────────────────────
+    autonomous_runner = None
+    try:
+        from kernel.runner.telegram_notifier import TelegramNotifier
+        from kernel.runner.autonomous_runner import AutonomousRunner
+
+        notifier = TelegramNotifier()
+        autonomous_runner = AutonomousRunner(
+            db=db if db_connected else None,
+            kernel=kernel,
+            notifier=notifier if notifier.enabled else None,
+        )
+        await autonomous_runner.start()
+        logger.info("autonomous_runner_started", notifier="telegram" if notifier.enabled else "disabled")
+    except Exception as e:
+        logger.warning("autonomous_runner_init_failed", error=str(e))
+
+    # Wire autonomy routes
+    try:
+        from kernel.autonomy_routes import router as autonomy_router, set_dependencies as set_autonomy_deps
+        set_autonomy_deps(db=db if db_connected else None, runner=autonomous_runner)
+        app.include_router(autonomy_router)
+        logger.info("autonomy_routes_registered")
+    except Exception as e:
+        logger.warning("autonomy_routes_failed", error=str(e))
+
     logger.info(
         "monstruo_ready",
         motor="langgraph",
         router="connected" if router else "stub",
+        autonomy="active" if autonomous_runner else "inactive",
     )
 
     # Warm-up: pre-heat LLM connections to eliminate cold start on first request
@@ -183,6 +210,14 @@ async def lifespan(app: FastAPI):
         try:
             await _checkpointer_cm.__aexit__(None, None, None)
             logger.info("checkpointer_shutdown", type="AsyncPostgresSaver")
+        except Exception:
+            pass
+
+    # Shutdown autonomous runner
+    if autonomous_runner:
+        try:
+            await autonomous_runner.stop()
+            logger.info("autonomous_runner_shutdown")
         except Exception:
             pass
 
@@ -212,7 +247,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.3.0-sprint2",
+    version="0.4.0-sprint8",
     lifespan=lifespan,
 )
 
@@ -845,7 +880,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-        "version": "0.3.0-sprint2",
+        "version": "0.4.0-sprint8",
         "motor": "langgraph",
         "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1009,7 +1044,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.3.0-sprint2",
+        "version": "0.4.0-sprint8",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields
