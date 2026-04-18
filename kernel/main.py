@@ -158,6 +158,15 @@ async def lifespan(app: FastAPI):
         .build()
     )
 
+    # ── Inject DB into tool_dispatch for schedule_task ─────────────
+    try:
+        from kernel.tool_dispatch import set_tool_db
+        if db_connected:
+            set_tool_db(db)
+            logger.info("tool_db_injected")
+    except Exception as e:
+        logger.warning("tool_db_injection_failed", error=str(e))
+
     # ── Sprint 8: Autonomous Runner ──────────────────────────────────
     autonomous_runner = None
     try:

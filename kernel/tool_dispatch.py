@@ -378,6 +378,15 @@ def get_tool_specs():
 
 # ── Tool Execution ─────────────────────────────────────────────────────
 
+# Module-level DB reference (set by main.py during startup)
+_tool_db = None
+
+def set_tool_db(db: Any) -> None:
+    """Inject the SupabaseClient for tools that need persistence."""
+    global _tool_db
+    _tool_db = db
+
+
 async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
     """Execute a tool by name and return the result."""
     try:
@@ -453,11 +462,11 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
         elif tool_name == "schedule_task":
             from tools.schedule_task import execute_schedule_task
             return await execute_schedule_task(
-                params=tool_args,
+                params=args,
                 context={
                     "user_id": "alfredo",  # TODO: extract from state
                     "thread_id": "",
-                    "db": None,  # Will be injected by the dispatch node
+                    "db": _tool_db,  # Injected by main.py via set_tool_db()
                     "source": "user",
                 },
             )
