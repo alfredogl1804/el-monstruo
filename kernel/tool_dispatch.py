@@ -204,6 +204,60 @@ def get_tool_specs():
             risk="high",
         ),
         ToolSpec(
+            name="github",
+            description=(
+                "Interact with GitHub repositories. Available actions: "
+                "search_repos, search_code, get_file, list_issues, list_prs, "
+                "create_issue, update_issue, create_or_update_file. "
+                "Use when the user asks about code, repos, issues, PRs, or "
+                "wants to create/update files in a GitHub repository. "
+                "Write operations (create_issue, update_issue, create_or_update_file) "
+                "require human approval."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "description": "The GitHub action to perform: search_repos, search_code, get_file, list_issues, list_prs, create_issue, update_issue, create_or_update_file",
+                    },
+                    "params": {
+                        "type": "object",
+                        "description": "Parameters for the action. Common: repo (owner/name), query, path, title, body, labels, state, limit",
+                    },
+                },
+                "required": ["action", "params"],
+            },
+            risk="high",
+        ),
+        ToolSpec(
+            name="notion",
+            description=(
+                "Interact with the Notion workspace. Available actions: "
+                "search, get_page, get_page_content, query_database, "
+                "create_page, update_page, append_content. "
+                "Use when the user asks about Notion pages, databases, notes, "
+                "documents, or wants to search, read, create, or update content "
+                "in Notion. Read operations are safe; write operations "
+                "(create_page, update_page, append_content) require human approval."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "description": "The Notion action to perform: search, get_page, get_page_content, query_database, create_page, update_page, append_content",
+                    },
+                    "params": {
+                        "type": "object",
+                        "description": "Parameters for the action. Common: query, page_id, database_id, filter_type (page/database), properties, content_blocks, filter_obj, sorts, limit",
+                    },
+                },
+                "required": ["action", "params"],
+            },
+            risk="medium",
+        ),
+        ToolSpec(
             name="email",
             description=(
                 "Send an email to a specified recipient. MUST be called ONLY when "
@@ -279,6 +333,22 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
                 method=args.get("method", "POST"),
                 headers=args.get("headers"),
             )
+        elif tool_name == "github":
+            from tools.github import execute_github
+            result_str = await execute_github(
+                action=args.get("action", ""),
+                params=args.get("params", {}),
+            )
+            import json as _json
+            return _json.loads(result_str)
+        elif tool_name == "notion":
+            from tools.notion import execute_notion
+            result_str = await execute_notion(
+                action=args.get("action", ""),
+                params=args.get("params", {}),
+            )
+            import json as _json
+            return _json.loads(result_str)
         elif tool_name == "email":
             from tools.email_sender import send_email
             return await send_email(
