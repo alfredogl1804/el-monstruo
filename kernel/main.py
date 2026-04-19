@@ -291,6 +291,15 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("agui_adapter_failed", error=str(e))
 
+    # ── Sprint 14: Sovereign Alert System ────────────────────────────
+    alert_monitor = None
+    try:
+        from kernel.alerts.routes import router as alerts_router
+        app.include_router(alerts_router)
+        logger.info("sovereign_alerts_registered")
+    except Exception as e:
+        logger.warning("sovereign_alerts_failed", error=str(e))
+
     logger.info(
         "monstruo_ready",
         version="0.8.0-sprint13",
@@ -302,6 +311,7 @@ async def lifespan(app: FastAPI):
         broker="active" if tool_broker else "inactive",
         thoughts="active" if thoughts_store else "inactive",
         agui="active",
+        alerts="registered",
     )
 
     # Warm-up: pre-heat LLM connections to eliminate cold start on first request
