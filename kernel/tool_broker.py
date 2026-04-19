@@ -13,6 +13,8 @@ Anti-autoboicot: validated 2026-04-18
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import time
 import uuid
@@ -20,6 +22,8 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 import structlog
+
+from kernel.output_sanitizer import sanitize_tool_output, sanitize_tool_output_dict
 
 logger = structlog.get_logger("kernel.tool_broker")
 
@@ -72,11 +76,19 @@ class ToolBroker:
     4. Execution audit trail per-tool-call in Supabase
     """
 
+    # ── Circuit Breaker Configuration ──────────────────────────────
+    MAX_CALLS_PER_RUN = int(os.environ.get("BROKER_MAX_CALLS_PER_RUN", "50"))
+    INPUT_HASH_REPEAT_LIMIT = 3  # Same input_hash repeated N times = loop
+
     def __init__(self, db=None, bindings: Optional[list[ToolBinding]] = None):
         self._db = db
         self._bindings: dict[str, ToolBinding] = {}
         self._execution_cache: dict[str, ExecutionRecord] = {}
         self._call_counts: dict[str, int] = {}  # tool_name -> calls this request
+        # Circuit breaker state (per-run)
+        self._run_call_count: int = 0  # total calls in current run
+        self._input_hashes: dict[str, int] = {}  # hash -> count
+        self._circuit_breaker_trips: int = 0
         
         if bindings:
             for b in bindings:
@@ -203,7 +215,35 @@ class ToolBroker:
             await self._persist_execution(record)
             return {"error": record.error_message, "_untrusted": True}
 
-        # 2. Check rate limit
+        # 2. Circuit breaker: max calls per run
+        self._run_call_count += 1
+        if self._run_call_count > self.MAX_CALLS_PER_RUN:
+            record.status = "failed"
+            record.error_message = f"Circuit breaker: max {self.MAX_CALLS_PER_RUN} tool calls per run exceeded"
+            self._circuit_breaker_trips += 1
+            await self._persist_execution(record)
+            await self._log_circuit_breaker(
+                run_id=run_id, thread_id=thread_id, tool_name=tool_name,
+                reason="max_calls_per_run", call_count=self._run_call_count,
+            )
+            return {"error": record.error_message, "_untrusted": True}
+
+        # 3. Circuit breaker: input_hash loop detection
+        input_hash = hashlib.sha256(json.dumps(args, sort_keys=True, default=str).encode()).hexdigest()[:16]
+        self._input_hashes[input_hash] = self._input_hashes.get(input_hash, 0) + 1
+        if self._input_hashes[input_hash] > self.INPUT_HASH_REPEAT_LIMIT:
+            record.status = "failed"
+            record.error_message = f"Circuit breaker: identical input repeated {self._input_hashes[input_hash]} times (loop detected)"
+            self._circuit_breaker_trips += 1
+            await self._persist_execution(record)
+            await self._log_circuit_breaker(
+                run_id=run_id, thread_id=thread_id, tool_name=tool_name,
+                reason="input_hash_loop", call_count=self._input_hashes[input_hash],
+                input_hash=input_hash,
+            )
+            return {"error": record.error_message, "_untrusted": True}
+
+        # 4. Check rate limit (per-tool daily)
         if not self.check_rate_limit(tool_name):
             record.status = "failed"
             record.error_message = f"Rate limit exceeded for '{tool_name}'"
@@ -241,10 +281,16 @@ class ToolBroker:
             result = {"error": str(e)}
             logger.error("broker_execution_failed", tool=tool_name, error=str(e))
 
-        # 6. Persist execution record
+        # 6. Sanitize output before it enters LLM context
+        if isinstance(result, dict):
+            result = sanitize_tool_output_dict(result, tool_name=tool_name)
+        elif isinstance(result, str):
+            result = sanitize_tool_output(result, tool_name=tool_name)
+
+        # 7. Persist execution record
         await self._persist_execution(record)
 
-        # 7. Mark output as untrusted (ADR requirement)
+        # 8. Mark output as untrusted (ADR requirement)
         result["_untrusted"] = True
         result["_broker_exec_id"] = exec_id
 
@@ -285,6 +331,45 @@ class ToolBroker:
             logger.error("broker_persist_failed", exec_id=record.execution_id, error=str(e))
             self._execution_cache[record.execution_id] = record
 
+    # ── Circuit Breaker Logging ────────────────────────────────────
+
+    async def _log_circuit_breaker(
+        self,
+        *,
+        run_id: str,
+        thread_id: str = "",
+        tool_name: str,
+        reason: str,
+        call_count: int = 0,
+        input_hash: str = "",
+    ) -> None:
+        """Log a circuit breaker trip to Supabase and structlog."""
+        logger.warning(
+            "circuit_breaker_tripped",
+            tool=tool_name,
+            reason=reason,
+            call_count=call_count,
+            input_hash=input_hash,
+        )
+        if not self._db:
+            return
+        try:
+            await self._db.insert("circuit_breaker_log", {
+                "run_id": run_id or str(uuid.uuid4()),
+                "thread_id": thread_id,
+                "tool_name": tool_name,
+                "trigger_reason": reason,
+                "call_count": call_count,
+                "input_hash": input_hash,
+            })
+        except Exception as e:
+            logger.error("circuit_breaker_log_failed", error=str(e))
+
+    def reset_run_state(self) -> None:
+        """Reset per-run circuit breaker state. Call at the start of each new run."""
+        self._run_call_count = 0
+        self._input_hashes.clear()
+
     # ── Stats ─────────────────────────────────────────────────────────
 
     def get_stats(self) -> dict:
@@ -303,6 +388,12 @@ class ToolBroker:
             ],
             "calls_this_session": dict(self._call_counts),
             "cached_executions": len(self._execution_cache),
+            "circuit_breaker": {
+                "max_calls_per_run": self.MAX_CALLS_PER_RUN,
+                "input_hash_repeat_limit": self.INPUT_HASH_REPEAT_LIMIT,
+                "current_run_calls": self._run_call_count,
+                "total_trips": self._circuit_breaker_trips,
+            },
         }
 
 

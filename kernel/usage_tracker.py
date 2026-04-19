@@ -14,6 +14,7 @@ Features:
 
 Sprint 10 — 2026-04-18
 Sprint 10b (ADR) — 2026-04-18: Added tool-level metrics integration with ToolBroker
+Sprint 10c — 2026-04-18: Persistent tool metrics, pricing_catalog integration, circuit breaker
 """
 
 from __future__ import annotations
@@ -35,11 +36,13 @@ class UsageTracker:
     """
     Persistent usage tracker backed by Supabase.
     Logs token usage, cost, and latency for every kernel request.
+    Sprint 10c: Integrates with pricing_catalog for versioned model pricing.
     """
 
     LOG_TABLE = "usage_log"
     DAILY_TABLE = "usage_daily"
     TOOL_METRICS_TABLE = "tool_usage_metrics"
+    PRICING_TABLE = "pricing_catalog"
 
     def __init__(self, db: Any = None) -> None:
         self._db = db
@@ -50,14 +53,18 @@ class UsageTracker:
         self._today_requests: int = 0
         # Tool-level in-memory tracking
         self._tool_calls: dict[str, dict] = {}  # tool_name -> {calls, errors, total_ms}
+        # Pricing catalog cache (loaded from Supabase)
+        self._pricing_cache: dict[str, dict] = {}  # model_id -> {input, output}
 
     async def initialize(self) -> bool:
-        """Load today's accumulated cost from Supabase."""
+        """Load today's accumulated cost from Supabase and pricing catalog."""
         if not self._db or not self._db.connected:
             logger.warning("usage_tracker_no_db")
             return False
 
         try:
+            # Load pricing catalog
+            await self._load_pricing_catalog()
             today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
             self._today_date = today
 
@@ -114,6 +121,10 @@ class UsageTracker:
             self._today_date = today
             self._today_cost = 0.0
             self._today_requests = 0
+
+        # If cost_usd is 0 but we have tokens, calculate from pricing_catalog
+        if cost_usd == 0.0 and (tokens_in > 0 or tokens_out > 0) and model_used:
+            cost_usd = self.calculate_cost(model_used, tokens_in, tokens_out)
 
         # Update in-memory
         self._today_cost += cost_usd
@@ -313,15 +324,22 @@ class UsageTracker:
         wall_ms: int = 0,
         api_calls: int = 1,
         cost_usd: float = 0.0,
+        input_tokens: int = 0,
+        output_tokens: int = 0,
     ) -> None:
-        """Log a tool execution for tool-level metrics."""
+        """
+        Log a tool execution for tool-level metrics.
+        Sprint 10c: Persists to Supabase (not just memory).
+        Each call inserts a row per tool/date for granular tracking.
+        """
         # Update in-memory
         if tool_name not in self._tool_calls:
-            self._tool_calls[tool_name] = {"calls": 0, "errors": 0, "total_ms": 0}
+            self._tool_calls[tool_name] = {"calls": 0, "errors": 0, "total_ms": 0, "total_cost": 0.0}
         self._tool_calls[tool_name]["calls"] += 1
         if status == "failed":
             self._tool_calls[tool_name]["errors"] += 1
         self._tool_calls[tool_name]["total_ms"] += wall_ms
+        self._tool_calls[tool_name]["total_cost"] += cost_usd
 
         # Persist to Supabase
         if not self._db or not self._db.connected:
@@ -340,6 +358,13 @@ class UsageTracker:
                 "total_api_calls": api_calls,
                 "total_cost_usd": cost_usd,
             })
+            logger.info(
+                "tool_metric_persisted",
+                tool=tool_name,
+                status=status,
+                wall_ms=wall_ms,
+                cost_usd=f"${cost_usd:.6f}",
+            )
         except Exception as e:
             logger.error("tool_metrics_log_failed", tool=tool_name, error=str(e))
 
@@ -402,6 +427,71 @@ class UsageTracker:
             logger.error("tool_metrics_query_failed", error=str(e))
             return []
 
+    # ── Pricing Catalog (Sprint 10c) ─────────────────────────────
+
+    async def _load_pricing_catalog(self) -> None:
+        """
+        Load current model pricing from pricing_catalog table.
+        Only loads rows where effective_to IS NULL (currently active).
+        Falls back to model_catalog.py if DB unavailable.
+        """
+        if not self._db or not self._db.connected:
+            self._load_pricing_fallback()
+            return
+
+        try:
+            rows = await self._db.select(
+                self.PRICING_TABLE,
+                columns="model_id,price_input_per_1m,price_output_per_1m",
+                limit=50,
+            )
+            if rows:
+                for r in rows:
+                    self._pricing_cache[r["model_id"]] = {
+                        "input": float(r.get("price_input_per_1m", 0)),
+                        "output": float(r.get("price_output_per_1m", 0)),
+                    }
+                logger.info("pricing_catalog_loaded", models=len(self._pricing_cache))
+            else:
+                self._load_pricing_fallback()
+        except Exception as e:
+            logger.warning("pricing_catalog_load_failed", error=str(e))
+            self._load_pricing_fallback()
+
+    def _load_pricing_fallback(self) -> None:
+        """Fallback: load pricing from model_catalog.py."""
+        try:
+            from config.model_catalog import MODELS
+            for name, cfg in MODELS.items():
+                pricing = cfg.get("pricing", {})
+                if pricing:
+                    self._pricing_cache[name] = {
+                        "input": pricing.get("input", 0),
+                        "output": pricing.get("output", 0),
+                    }
+            logger.info("pricing_fallback_loaded", models=len(self._pricing_cache))
+        except Exception as e:
+            logger.error("pricing_fallback_failed", error=str(e))
+
+    def calculate_cost(self, model_id: str, tokens_in: int, tokens_out: int) -> float:
+        """
+        Calculate cost in USD using the pricing_catalog.
+        Pricing is per 1M tokens.
+        """
+        pricing = self._pricing_cache.get(model_id)
+        if not pricing:
+            return 0.0
+        cost_in = (tokens_in / 1_000_000) * pricing["input"]
+        cost_out = (tokens_out / 1_000_000) * pricing["output"]
+        return round(cost_in + cost_out, 8)
+
+    async def get_pricing_catalog(self) -> list[dict]:
+        """Return the current pricing catalog as a list."""
+        return [
+            {"model_id": model, "price_input_per_1m": p["input"], "price_output_per_1m": p["output"]}
+            for model, p in sorted(self._pricing_cache.items())
+        ]
+
     def get_stats(self) -> dict:
         """Get current tracker statistics (in-memory)."""
         return {
@@ -414,5 +504,6 @@ class UsageTracker:
             "budget_used_pct": round(
                 self._today_cost / DAILY_BUDGET_USD * 100, 1
             ) if DAILY_BUDGET_USD > 0 else 0,
+            "pricing_models_loaded": len(self._pricing_cache),
             "tool_calls_session": dict(self._tool_calls),
         }

@@ -15,6 +15,7 @@ Endpoints:
 
 Sprint 10 — 2026-04-18
 Sprint 10b (ADR) — 2026-04-18: Added broker stats and tool metrics endpoints
+Sprint 10c — 2026-04-18: Added pricing catalog endpoint
 """
 
 from __future__ import annotations
@@ -90,6 +91,21 @@ async def usage_tools(request: Request, days: int = Query(default=7, ge=1, le=36
 
     metrics = await tracker.get_tool_metrics(days=days)
     return JSONResponse({"tools": metrics, "period_days": days})
+
+
+@router.get("/usage/pricing")
+async def usage_pricing(request: Request):
+    """Get the current pricing catalog for all models."""
+    tracker = getattr(request.app.state, "usage_tracker", None)
+    if not tracker:
+        return JSONResponse({"error": "Usage tracker not initialized"}, status_code=503)
+
+    catalog = await tracker.get_pricing_catalog()
+    return JSONResponse({
+        "models": catalog,
+        "total": len(catalog),
+        "source": "supabase" if tracker._pricing_cache else "fallback",
+    })
 
 
 @router.get("/broker/stats")
