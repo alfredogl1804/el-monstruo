@@ -262,15 +262,46 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("tool_broker_init_failed", error=str(e))
 
+    # ── Sprint 12: Persistent Memory (ThoughtsStore) ────────────────
+    thoughts_store = None
+    try:
+        from memory.thoughts import ThoughtsStore
+        thoughts_store = ThoughtsStore(db=db if db_connected else None)
+        await thoughts_store.initialize()
+        app.state.thoughts_store = thoughts_store
+        logger.info("thoughts_store_initialized")
+    except Exception as e:
+        logger.warning("thoughts_store_init_failed", error=str(e))
+
+    # Wire memory routes
+    try:
+        from kernel.memory_routes import router as memory_router, set_dependencies as set_memory_deps
+        set_memory_deps(thoughts_store=thoughts_store)
+        app.include_router(memory_router)
+        logger.info("memory_routes_registered")
+    except Exception as e:
+        logger.warning("memory_routes_failed", error=str(e))
+
+    # Wire AG-UI adapter
+    try:
+        from kernel.agui_adapter import router as agui_router, set_dependencies as set_agui_deps
+        set_agui_deps(kernel=kernel, thoughts_store=thoughts_store)
+        app.include_router(agui_router)
+        logger.info("agui_adapter_registered")
+    except Exception as e:
+        logger.warning("agui_adapter_failed", error=str(e))
+
     logger.info(
         "monstruo_ready",
-        version="0.5.1-sprint10b-adr",
+        version="0.6.0-sprint12",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
         registry="active" if tool_registry and tool_registry.initialized else "inactive",
         tracker="active" if usage_tracker and usage_tracker.initialized else "inactive",
         broker="active" if tool_broker else "inactive",
+        thoughts="active" if thoughts_store else "inactive",
+        agui="active",
     )
 
     # Warm-up: pre-heat LLM connections to eliminate cold start on first request
@@ -329,7 +360,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.5.0-sprint10",
+    version="0.6.0-sprint12",
     lifespan=lifespan,
 )
 
