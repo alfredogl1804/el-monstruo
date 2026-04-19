@@ -78,7 +78,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.5.0-sprint10", motor="langgraph")
+    logger.info("monstruo_starting", version="0.5.1-sprint10b-adr", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -244,14 +244,33 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("usage_registry_routes_failed", error=str(e))
 
+    # ── Sprint 10b (ADR): Tool Broker ────────────────────────────
+    tool_broker = None
+    try:
+        from kernel.tool_broker import ToolBroker
+        from kernel.tool_dispatch import set_tool_broker
+
+        tool_broker = ToolBroker(db=db if db_connected else None)
+        await tool_broker.initialize(tenant_id="alfredo")
+        set_tool_broker(tool_broker)
+        app.state.tool_broker = tool_broker
+
+        logger.info(
+            "tool_broker_initialized",
+            bindings=tool_broker.get_stats().get("bindings_loaded", 0),
+        )
+    except Exception as e:
+        logger.warning("tool_broker_init_failed", error=str(e))
+
     logger.info(
         "monstruo_ready",
-        version="0.5.0-sprint10",
+        version="0.5.1-sprint10b-adr",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
         registry="active" if tool_registry and tool_registry.initialized else "inactive",
         tracker="active" if usage_tracker and usage_tracker.initialized else "inactive",
+        broker="active" if tool_broker else "inactive",
     )
 
     # Warm-up: pre-heat LLM connections to eliminate cold start on first request

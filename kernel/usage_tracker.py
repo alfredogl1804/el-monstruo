@@ -13,6 +13,7 @@ Features:
     - Budget alerts (configurable daily cap)
 
 Sprint 10 — 2026-04-18
+Sprint 10b (ADR) — 2026-04-18: Added tool-level metrics integration with ToolBroker
 """
 
 from __future__ import annotations
@@ -38,6 +39,7 @@ class UsageTracker:
 
     LOG_TABLE = "usage_log"
     DAILY_TABLE = "usage_daily"
+    TOOL_METRICS_TABLE = "tool_usage_metrics"
 
     def __init__(self, db: Any = None) -> None:
         self._db = db
@@ -46,6 +48,8 @@ class UsageTracker:
         self._today_cost: float = 0.0
         self._today_date: str = ""
         self._today_requests: int = 0
+        # Tool-level in-memory tracking
+        self._tool_calls: dict[str, dict] = {}  # tool_name -> {calls, errors, total_ms}
 
     async def initialize(self) -> bool:
         """Load today's accumulated cost from Supabase."""
@@ -298,6 +302,106 @@ class UsageTracker:
             logger.error("usage_recent_query_failed", error=str(e))
             return []
 
+    # ── Tool-Level Metrics ──────────────────────────────────────────
+
+    async def log_tool_execution(
+        self,
+        *,
+        tool_name: str,
+        run_id: str = "",
+        status: str = "success",
+        wall_ms: int = 0,
+        api_calls: int = 1,
+        cost_usd: float = 0.0,
+    ) -> None:
+        """Log a tool execution for tool-level metrics."""
+        # Update in-memory
+        if tool_name not in self._tool_calls:
+            self._tool_calls[tool_name] = {"calls": 0, "errors": 0, "total_ms": 0}
+        self._tool_calls[tool_name]["calls"] += 1
+        if status == "failed":
+            self._tool_calls[tool_name]["errors"] += 1
+        self._tool_calls[tool_name]["total_ms"] += wall_ms
+
+        # Persist to Supabase
+        if not self._db or not self._db.connected:
+            return
+
+        try:
+            today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            await self._db.insert(self.TOOL_METRICS_TABLE, {
+                "date": today,
+                "tool_name": tool_name,
+                "invocation_count": 1,
+                "success_count": 1 if status == "success" else 0,
+                "error_count": 1 if status == "failed" else 0,
+                "total_wall_ms": wall_ms,
+                "avg_wall_ms": wall_ms,
+                "total_api_calls": api_calls,
+                "total_cost_usd": cost_usd,
+            })
+        except Exception as e:
+            logger.error("tool_metrics_log_failed", tool=tool_name, error=str(e))
+
+    async def get_tool_metrics(self, days: int = 7) -> list[dict]:
+        """Get tool-level usage metrics for the last N days."""
+        if not self._db or not self._db.connected:
+            # Return in-memory data
+            return [
+                {
+                    "tool_name": name,
+                    "calls": stats["calls"],
+                    "errors": stats["errors"],
+                    "avg_ms": stats["total_ms"] // max(stats["calls"], 1),
+                    "source": "in_memory",
+                }
+                for name, stats in self._tool_calls.items()
+            ]
+
+        try:
+            cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+            rows = await self._db.select(
+                self.TOOL_METRICS_TABLE,
+                columns="*",
+                order_by="date",
+                order_desc=True,
+                limit=days * 20,
+            )
+
+            filtered = [r for r in (rows or []) if r.get("date", "") >= cutoff]
+
+            # Aggregate by tool
+            tools: dict[str, dict] = {}
+            for r in filtered:
+                t = r["tool_name"]
+                if t not in tools:
+                    tools[t] = {
+                        "tool_name": t,
+                        "invocations": 0,
+                        "successes": 0,
+                        "errors": 0,
+                        "total_wall_ms": 0,
+                        "total_cost_usd": 0.0,
+                    }
+                tools[t]["invocations"] += r.get("invocation_count", 0)
+                tools[t]["successes"] += r.get("success_count", 0)
+                tools[t]["errors"] += r.get("error_count", 0)
+                tools[t]["total_wall_ms"] += r.get("total_wall_ms", 0)
+                tools[t]["total_cost_usd"] += float(r.get("total_cost_usd", 0))
+
+            result = []
+            for t in tools.values():
+                t["avg_wall_ms"] = t["total_wall_ms"] // max(t["invocations"], 1)
+                t["success_rate"] = round(
+                    t["successes"] / max(t["invocations"], 1) * 100, 1
+                )
+                result.append(t)
+
+            return sorted(result, key=lambda x: x["invocations"], reverse=True)
+        except Exception as e:
+            logger.error("tool_metrics_query_failed", error=str(e))
+            return []
+
     def get_stats(self) -> dict:
         """Get current tracker statistics (in-memory)."""
         return {
@@ -310,4 +414,5 @@ class UsageTracker:
             "budget_used_pct": round(
                 self._today_cost / DAILY_BUDGET_USD * 100, 1
             ) if DAILY_BUDGET_USD > 0 else 0,
+            "tool_calls_session": dict(self._tool_calls),
         }

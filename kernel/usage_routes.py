@@ -14,6 +14,7 @@ Endpoints:
     GET  /v1/registry/stats     — Registry statistics
 
 Sprint 10 — 2026-04-18
+Sprint 10b (ADR) — 2026-04-18: Added broker stats and tool metrics endpoints
 """
 
 from __future__ import annotations
@@ -78,6 +79,28 @@ async def usage_stats(request: Request):
         return JSONResponse({"error": "Usage tracker not initialized"}, status_code=503)
 
     return JSONResponse(tracker.get_stats())
+
+
+@router.get("/usage/tools")
+async def usage_tools(request: Request, days: int = Query(default=7, ge=1, le=365)):
+    """Get tool-level usage metrics for the last N days."""
+    tracker = getattr(request.app.state, "usage_tracker", None)
+    if not tracker:
+        return JSONResponse({"error": "Usage tracker not initialized"}, status_code=503)
+
+    metrics = await tracker.get_tool_metrics(days=days)
+    return JSONResponse({"tools": metrics, "period_days": days})
+
+
+@router.get("/broker/stats")
+async def broker_stats(request: Request):
+    """Get ToolBroker statistics."""
+    from kernel.tool_dispatch import get_tool_broker
+    broker = get_tool_broker()
+    if not broker:
+        return JSONResponse({"error": "ToolBroker not initialized"}, status_code=503)
+
+    return JSONResponse(broker.get_stats())
 
 
 # ─── Registry Endpoints ──────────────────────────────────────

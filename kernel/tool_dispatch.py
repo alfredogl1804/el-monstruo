@@ -437,11 +437,21 @@ def get_tool_specs():
 
 # Module-level DB reference (set by main.py during startup)
 _tool_db = None
+_tool_broker = None
 
 def set_tool_db(db: Any) -> None:
     """Inject the SupabaseClient for tools that need persistence."""
     global _tool_db
     _tool_db = db
+
+def set_tool_broker(broker) -> None:
+    """Inject the ToolBroker instance (set by main.py during startup)."""
+    global _tool_broker
+    _tool_broker = broker
+
+def get_tool_broker():
+    """Get the current ToolBroker instance."""
+    return _tool_broker
 
 
 async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
@@ -608,13 +618,33 @@ async def tool_dispatch(state: MonstruoState, config: RunnableConfig) -> dict[st
     all_records = []
     total_latency_ms = 0.0
 
+    # Get broker for request-scoped execution (ADR pattern)
+    broker = _tool_broker
+    thread_id = state.get("thread_id", "")
+
     for tc in pending:
         tool_name = tc.get("name", "")
         tool_args = tc.get("arguments", {})
         tool_id = tc.get("id", "")
 
         start_time = time.monotonic()
-        result = await _execute_tool(tool_name, tool_args)
+
+        # Route through ToolBroker if available (ADR pattern)
+        if broker:
+            result = await broker.execute(
+                tool_name=tool_name,
+                args=tool_args,
+                run_id=run_id,
+                thread_id=thread_id,
+                tenant_id="alfredo",
+                executor_fn=_execute_tool,
+            )
+            # Remove broker metadata before passing to LLM
+            result.pop("_untrusted", None)
+            result.pop("_broker_exec_id", None)
+        else:
+            result = await _execute_tool(tool_name, tool_args)
+
         latency_ms = (time.monotonic() - start_time) * 1000
         total_latency_ms += latency_ms
 
@@ -625,6 +655,7 @@ async def tool_dispatch(state: MonstruoState, config: RunnableConfig) -> dict[st
             tool_call_id=tool_id,
             latency_ms=f"{latency_ms:.0f}",
             has_error="error" in result,
+            brokered=broker is not None,
         )
 
         # Store result for the follow-up LLM call
