@@ -1,10 +1,12 @@
-# El Monstruo — Sprint 8 Dependencies (Pinned)
-# Updated: 2026-04-18 — ALL versions validated in real-time via PyPI
+# El Monstruo — Sprint 13 Dependencies (Pinned)
+# Updated: 2026-04-19 — ALL versions validated in real-time via PyPI
 # Policy: ALL versions pinned. NO floating ranges.
 
 # ── Kernel / Orchestration ──────────────────────────────────────────
-langgraph==1.1.6
+langgraph==1.1.8
+langgraph-checkpoint==4.0.2
 langgraph-checkpoint-postgres==3.0.5
+langsmith==0.7.32
 psycopg[binary]==3.3.3
 pydantic>=2.12.0,<2.13
 pydantic-settings>=2.13.0,<2.14

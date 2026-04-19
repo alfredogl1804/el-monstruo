@@ -87,23 +87,27 @@ class ObservabilityManager:
         channel: str,
         message: str,
         metadata: Optional[dict[str, Any]] = None,
+        session_id: Optional[str] = None,
     ) -> TraceContext:
         """
         Start a new trace for a kernel run.
         Creates trace objects in both Langfuse and OTel.
+
+        Sprint 13: Added session_id for Langfuse session grouping.
         """
         ctx = TraceContext(run_id=run_id)
 
-        # Langfuse trace
+        # Langfuse trace (Sprint 13: with session_id)
         ctx.langfuse_trace = self._langfuse.trace_run_start(
             run_id=run_id,
             user_id=user_id,
             channel=channel,
             message=message,
             metadata=metadata,
+            session_id=session_id,
         )
 
-        logger.debug("trace_started", run_id=run_id)
+        logger.debug("trace_started", run_id=run_id, session_id=session_id or "none")
         return ctx
 
     def record_span(
@@ -219,6 +223,18 @@ class ObservabilityManager:
     async def flush(self) -> None:
         """Flush pending events to all backends."""
         await self._langfuse.flush()
+
+    def get_callback_handler(self) -> Any:
+        """
+        Sprint 13: Get a Langfuse CallbackHandler for LangGraph deep tracing.
+
+        Returns a langfuse.langchain.CallbackHandler that automatically captures
+        all LangGraph node executions, LLM calls, and tool invocations when
+        passed to LangGraph via config["callbacks"].
+
+        Returns None if Langfuse is not enabled.
+        """
+        return self._langfuse.get_callback_handler()
 
     async def shutdown(self) -> None:
         """Shutdown all observability bridges."""

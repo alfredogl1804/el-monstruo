@@ -78,7 +78,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.5.1-sprint10b-adr", motor="langgraph")
+    logger.info("monstruo_starting", version="0.8.0-sprint13", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -149,7 +149,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.3.0-sprint2",
+            "version": "0.8.0-sprint13",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -293,7 +293,7 @@ async def lifespan(app: FastAPI):
 
     logger.info(
         "monstruo_ready",
-        version="0.6.0-sprint12",
+        version="0.8.0-sprint13",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -360,7 +360,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.6.0-sprint12",
+    version="0.8.0-sprint13",
     lifespan=lifespan,
 )
 
@@ -447,7 +447,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.2.0-sprint1",
+        "version": "0.8.0-sprint13",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -493,6 +493,7 @@ async def chat(request: ChatRequest):
             channel=request.channel,
             message=request.message,
             metadata=obs_metadata or None,
+            session_id=request.session_id,  # Sprint 13: propagate session_id
         )
 
     run_input = RunInput(
@@ -993,7 +994,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-        "version": "0.4.0-sprint8",
+        "version": "0.8.0-sprint13",
         "motor": "langgraph",
         "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1157,7 +1158,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.4.0-sprint8",
+        "version": "0.8.0-sprint13",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields

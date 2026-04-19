@@ -108,7 +108,7 @@ class LangGraphKernel(KernelInterface):
         )
 
         checkpointer_type = type(self._checkpointer).__name__
-        logger.info("kernel_initialized", motor="langgraph", version="1.1.6", checkpointer=checkpointer_type)
+        logger.info("kernel_initialized", motor="langgraph", version="1.1.8", checkpointer=checkpointer_type)
 
     @staticmethod
     def _should_dispatch_tools_fn(state: MonstruoState) -> str:
@@ -254,7 +254,7 @@ class LangGraphKernel(KernelInterface):
         try:
             # Dependencies go in config["configurable"], NOT in state
             # LangGraph never serializes config, only state
-            config = {
+            config: dict[str, Any] = {
                 "configurable": {
                     "thread_id": thread_id,
                     "_router": self._router,
@@ -265,6 +265,24 @@ class LangGraphKernel(KernelInterface):
                     "_db": self._db,  # Sprint 9: for dossier injection
                 }
             }
+
+            # ── Sprint 13: Langfuse CallbackHandler for deep tracing ──────
+            # Injects langfuse.langchain.CallbackHandler into LangGraph config
+            # so every node execution, LLM call, and tool invocation is
+            # automatically traced in Langfuse with full nesting.
+            if self._observability:
+                langfuse_handler = self._observability.get_callback_handler()
+                if langfuse_handler:
+                    config["callbacks"] = [langfuse_handler]
+                    # Propagate session_id and user_id via metadata
+                    # (Langfuse v4 pattern: metadata.langfuse_session_id)
+                    session_id = input.context.get("session_id", "") if input.context else ""
+                    config["metadata"] = {
+                        "langfuse_session_id": session_id or str(run_id),
+                        "langfuse_user_id": input.user_id,
+                    }
+                    logger.debug("langfuse_callback_injected", run_id=str(run_id))
+
             # Use v2 API to properly detect interrupts (validated 2026-04-14)
             # In v2, ainvoke returns GraphOutput with .value and .interrupts
             # instead of raising GraphInterrupt exception

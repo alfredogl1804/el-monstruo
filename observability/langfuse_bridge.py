@@ -1,21 +1,4 @@
-"""
-El Monstruo — Langfuse Bridge
-===============================
-Mirrors sovereign EventStore events to Langfuse v4 for visualization.
-
-Langfuse is a COMMODITY — our EventStore is the source of truth.
-This bridge sends a copy to Langfuse for its UI/analytics.
-
-Usage:
-    bridge = LangfuseBridge()
-    await bridge.initialize()
-
-    # Mirror a complete run
-    await bridge.trace_run(run_output, events)
-
-    # Mirror a single LLM call
-    await bridge.trace_generation(model, prompt, response, usage)
-"""
+"""\nEl Monstruo — Langfuse Bridge (Sprint 13: Observabilidad Total)\n================================================================\nMirrors sovereign EventStore events to Langfuse v4 for visualization.\n\nSprint 13 additions:\n  - get_callback_handler() → returns langfuse.langchain.CallbackHandler\n    for automatic LangGraph node-level tracing\n  - session_id propagation from JWT claims into trace metadata\n  - Version string updated to 0.8.0-sprint13\n\nLangfuse is a COMMODITY — our EventStore is the source of truth.\nThis bridge sends a copy to Langfuse for its UI/analytics.\n"""
 
 from __future__ import annotations
 
@@ -27,6 +10,23 @@ import structlog
 
 logger = structlog.get_logger("observability.langfuse")
 
+# Sprint 13: Lazy import of CallbackHandler to avoid hard dependency
+_CallbackHandler = None
+
+
+def _get_callback_handler_class():
+    """Lazy import of langfuse.langchain.CallbackHandler (v4 SDK path)."""
+    global _CallbackHandler
+    if _CallbackHandler is None:
+        try:
+            from langfuse.langchain import CallbackHandler
+            _CallbackHandler = CallbackHandler
+        except ImportError:
+            logger.warning("langfuse_callback_handler_not_available",
+                           hint="pip install langfuse")
+            _CallbackHandler = False  # sentinel: tried and failed
+    return _CallbackHandler if _CallbackHandler is not False else None
+
 
 class LangfuseBridge:
     """
@@ -35,6 +35,8 @@ class LangfuseBridge:
     Langfuse v4 SDK is imported lazily — if not installed or not configured,
     the bridge silently degrades to no-op mode. This ensures the kernel
     never depends on Langfuse being available.
+
+    Sprint 13: Added get_callback_handler() for LangGraph deep tracing.
     """
 
     def __init__(self) -> None:
@@ -79,31 +81,67 @@ class LangfuseBridge:
         channel: str,
         message: str,
         metadata: Optional[dict[str, Any]] = None,
+        session_id: Optional[str] = None,
     ) -> Any:
         """
         Start a Langfuse trace for a new run.
         Returns the trace object (or None if disabled).
+
+        Sprint 13: Added session_id parameter for session grouping in Langfuse.
         """
         if not self._enabled or not self._client:
             return None
 
         try:
-            trace = self._client.trace(
-                id=run_id,
-                name="monstruo.run",
-                user_id=user_id,
-                input={"message": message, "channel": channel},
-                metadata={
+            trace_kwargs: dict[str, Any] = {
+                "id": run_id,
+                "name": "monstruo.run",
+                "user_id": user_id,
+                "input": {"message": message, "channel": channel},
+                "metadata": {
                     "channel": channel,
                     "system": "el-monstruo",
-                    "version": "0.2.0-sprint1",
+                    "version": "0.8.0-sprint13",
                     **(metadata or {}),
                 },
-            )
-            logger.debug("langfuse_trace_started", run_id=run_id)
+            }
+            # Sprint 13: Propagate session_id for Langfuse session grouping
+            if session_id:
+                trace_kwargs["session_id"] = session_id
+
+            trace = self._client.trace(**trace_kwargs)
+            logger.debug("langfuse_trace_started", run_id=run_id,
+                         session_id=session_id or "none")
             return trace
         except Exception as e:
             logger.warning("langfuse_trace_error", error=str(e))
+            return None
+
+    def get_callback_handler(self) -> Any:
+        """
+        Sprint 13: Create a Langfuse CallbackHandler for LangGraph deep tracing.
+
+        Returns a langfuse.langchain.CallbackHandler instance that automatically
+        captures all LangGraph node executions, LLM calls, and tool invocations.
+
+        The handler is passed to LangGraph via config["callbacks"].
+        Session/user attribution is done via config["metadata"] at invocation time.
+
+        Returns None if Langfuse is not enabled or CallbackHandler is not available.
+        """
+        if not self._enabled:
+            return None
+
+        handler_cls = _get_callback_handler_class()
+        if handler_cls is None:
+            return None
+
+        try:
+            handler = handler_cls()
+            logger.debug("langfuse_callback_handler_created")
+            return handler
+        except Exception as e:
+            logger.warning("langfuse_callback_handler_error", error=str(e))
             return None
 
     def trace_span(
