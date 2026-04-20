@@ -79,7 +79,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.10.0-sprint16", motor="langgraph")
+    logger.info("monstruo_starting", version="0.11.0-sprint17", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -159,16 +159,14 @@ async def lifespan(app: FastAPI):
         .category(EventCategory.SYSTEM_STARTUP)
         .actor("system")
         .action("El Monstruo started")
-        .with_payload(
-            {
-                "version": "0.10.0-sprint16",
-                "motor": "langgraph",
-                "router": "connected" if router else "stub",
-                "memory": "active",
-                "knowledge": "active",
-                "checkpointer": "PostgresSaver" if checkpointer else "MemorySaver",
-            }
-        )
+        .with_payload({
+            "version": "0.11.0-sprint17",
+            "motor": "langgraph",
+            "router": "connected" if router else "stub",
+            "memory": "active",
+            "knowledge": "active",
+            "checkpointer": "PostgresSaver" if checkpointer else "MemorySaver",
+        })
         .build()
     )
 
@@ -361,9 +359,42 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("sovereign_alerts_failed", error=str(e))
 
+    # ── Sprint 17: MCP Client Manager ──────────────────────────────
+    mcp_manager = None
+    try:
+        from kernel.mcp_client import MCPClientManager, load_mcp_configs_from_env
+        from kernel.tool_dispatch import set_mcp_manager
+
+        mcp_configs = load_mcp_configs_from_env()
+        if mcp_configs:
+            mcp_manager = MCPClientManager(mcp_configs)
+            mcp_status = await mcp_manager.initialize()
+            set_mcp_manager(mcp_manager)
+            app.state.mcp_manager = mcp_manager
+            logger.info(
+                "mcp_manager_initialized",
+                servers=len(mcp_configs),
+                tools=len(mcp_manager.tools),
+                status=mcp_status,
+            )
+        else:
+            logger.info("mcp_manager_skipped", reason="no MCP servers configured")
+    except Exception as e:
+        logger.warning("mcp_manager_init_failed", error=str(e))
+
+    # ── Sprint 17: Honcho User Modeling ─────────────────────────────
+    honcho_active = False
+    try:
+        from memory.honcho_bridge import get_honcho_status
+        honcho_status = await get_honcho_status()
+        honcho_active = honcho_status.get("active", False)
+        logger.info("honcho_status", **honcho_status)
+    except Exception as e:
+        logger.warning("honcho_init_failed", error=str(e))
+
     logger.info(
         "monstruo_ready",
-        version="0.10.0-sprint16",
+        version="0.11.0-sprint17",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -374,6 +405,8 @@ async def lifespan(app: FastAPI):
         finops="active" if finops else "inactive",
         agui="active",
         alerts="registered",
+        mcp="active" if mcp_manager else "inactive",
+        honcho="active" if honcho_active else "inactive",
     )
 
     # Warm-up: pre-heat LLM connections to eliminate cold start on first request
@@ -434,7 +467,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.10.0-sprint16",
+    version="0.11.0-sprint17",
     lifespan=lifespan,
 )
 
@@ -531,7 +564,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.10.0-sprint16",
+        "version": "0.11.0-sprint17",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -1091,7 +1124,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.10.0-sprint16",
+            "version": "0.11.0-sprint17",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1263,7 +1296,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.10.0-sprint16",
+        "version": "0.11.0-sprint17",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields

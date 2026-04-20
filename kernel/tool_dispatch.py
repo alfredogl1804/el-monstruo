@@ -1,7 +1,8 @@
 """
-El Monstruo — Tool Dispatch Node (Sprint 2 — Opción E)
-========================================================
+El Monstruo — Tool Dispatch Node (Sprint 17)
+=============================================
 Executes tool calls that the LLM requested via native function calling.
+Now includes MCP (Model Context Protocol) tool routing.
 
 Strategy (validated by Consejo de 6 Sabios, 2026-04-16):
   - LLMClient sends tool definitions to the LLM via native function calling
@@ -10,18 +11,20 @@ Strategy (validated by Consejo de 6 Sabios, 2026-04-16):
   - Graph loops back to execute, which makes a follow-up LLM call with results
   - Max 3 loops to prevent runaway tool chains
 
+Sprint 17 additions:
+  - MCP tools are routed via MCPClientManager (kernel/mcp_client.py)
+  - MCP tools are prefixed with "mcp__" (e.g., mcp__filesystem__read_file)
+  - Native tools remain unchanged — MCP is additive, not a replacement
+
 Graph topology:
     execute → should_loop_tools? → tool_dispatch → execute  (if tool_calls)
     execute → should_loop_tools? → hitl_gate → respond      (if no tool_calls)
 
 Anti-autoboicot: validated 2026-04-20 against LangGraph 1.1.8, langchain-core 1.3.0,
-langchain-openai 1.1.14, langchain-anthropic 1.4.1, langchain-google-genai 4.2.2.
+langchain-openai 1.1.14, langchain-anthropic 1.4.1, langchain-google-genai 4.2.2,
+mcp 1.27.0, honcho-ai 2.1.1, deepeval 3.9.7.
 
-TODO Sprint 17: Audit if tools can be wrapped as MCP (Model Context Protocol) servers
-    to enable any model (Claude, GPT-5.4, DeepSeek) to consume them without glue code.
-    Reference: modelcontextprotocol/servers (84K+ stars, ADOPTAR).
-
-Principio: Las Manos son soberanas. El dispatch es nuestro.
+Principio: Las Manos son soberanas. El dispatch es nuestro. MCP es un protocolo, no un framework.
 """
 
 from __future__ import annotations
@@ -454,6 +457,7 @@ def get_tool_specs():
 # Module-level DB reference (set by main.py during startup)
 _tool_db = None
 _tool_broker = None
+_tool_mcp_manager = None  # Sprint 17: MCPClientManager instance
 
 
 def set_tool_db(db: Any) -> None:
@@ -467,6 +471,14 @@ def set_tool_broker(broker) -> None:
     global _tool_broker
     _tool_broker = broker
 
+def set_mcp_manager(manager) -> None:
+    """Inject the MCPClientManager instance (set by main.py during startup, Sprint 17)."""
+    global _tool_mcp_manager
+    _tool_mcp_manager = manager
+
+def get_mcp_manager():
+    """Get the current MCPClientManager instance."""
+    return _tool_mcp_manager
 
 def get_tool_broker():
     """Get the current ToolBroker instance."""
@@ -586,6 +598,12 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
                 html_body=args.get("html_body"),
                 cc=args.get("cc"),
             )
+        elif tool_name.startswith("mcp__"):
+            # Route to MCP Client Manager (Sprint 17)
+            mcp_mgr = _tool_mcp_manager
+            if not mcp_mgr:
+                return {"error": "MCP manager not initialized", "tool": tool_name}
+            return await mcp_mgr.execute_tool(tool_name, args)
         else:
             return {"error": f"Unknown tool: {tool_name}"}
     except Exception as e:

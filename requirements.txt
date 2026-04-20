@@ -1,8 +1,8 @@
-# El Monstruo — Sprint 16 Dependencies (Pinned)
+# El Monstruo — Sprint 17 Dependencies (Pinned)
 # Updated: 2026-04-20 — ALL versions validated in real-time via PyPI
 # Policy: ALL versions pinned. NO floating ranges.
 # Validation: /protocolo-operativo-core + /validacion-tiempo-real applied
-# Sprint 16: langchain v1.x migration + garak + ragas
+# Sprint 17: MCP native + Honcho user modeling + DeepEval skill evaluator
 
 # ── Kernel / Orchestration ──────────────────────────────────────────
 langgraph==1.1.8
@@ -35,6 +35,17 @@ google-genai==1.73.1
 
 # ── AG-UI Protocol (CopilotKit) ────────────────────────────────────
 copilotkit==0.1.87  # validated 2026-04-19 (PyPI latest, was 0.1.40)
+
+# ── MCP (Model Context Protocol) — Sprint 17 ──────────────────────
+# SDK for connecting to MCP servers (stdio + SSE transports)
+# MIT license — validated 2026-04-20 via PyPI (latest)
+mcp==1.27.0
+
+# ── Honcho (Dialectic User Modeling) — Sprint 17 ──────────────────
+# SDK for persistent user profiles + preference learning
+# Apache-2.0 (SDK) — server is AGPL-3.0 but we only use the SDK
+# Pattern: same as MongoDB (server SSPL, driver Apache-2.0)
+honcho-ai==2.1.1
 
 # ── Auth ────────────────────────────────────────────────────────────
 PyJWT==2.12.1
@@ -70,3 +81,9 @@ python-dateutil==2.9.0.post0
 pytest==9.0.3
 pytest-asyncio==1.3.0
 pytest-cov==7.1.0
+
+# ── Evaluation (prod-safe, no torch) — Sprint 17 ──────────────────────
+# DeepEval: ToolCorrectness + TaskCompletion metrics for skill evaluation
+# Apache-2.0 — validated 2026-04-20 via PyPI (latest)
+# NOTE: deepeval may pull optional heavy deps; we use core metrics only
+deepeval==3.9.7
