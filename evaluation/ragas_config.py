@@ -1,13 +1,17 @@
 """
-El Monstruo — Ragas RAG Evaluation Configuration (Sprint 15)
+El Monstruo — Ragas RAG Evaluation Configuration (Sprint 16)
 ============================================================
-Configures Ragas v0.2.16 for evaluating RAG pipeline quality.
+Configures Ragas v0.4.3 for evaluating RAG pipeline quality.
 Metrics: faithfulness, answer_relevancy, context_precision, context_recall.
 
 Usage:
     python -m evaluation.ragas_config --run
     
-Requires: pip install ragas==0.2.16
+Requires: pip install ragas==0.4.3
+
+TODO Sprint 17: Evaluate infiniflow/ragflow (78K+ stars, Score 8.46)
+    as complement/replacement for the RAG knowledge engine.
+    ragflow provides a more robust end-to-end RAG pipeline.
 """
 
 from __future__ import annotations

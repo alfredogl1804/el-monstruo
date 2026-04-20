@@ -14,8 +14,12 @@ Graph topology:
     execute → should_loop_tools? → tool_dispatch → execute  (if tool_calls)
     execute → should_loop_tools? → hitl_gate → respond      (if no tool_calls)
 
-Anti-autoboicot: validated 2026-04-16 against LangGraph 1.1.6, google-genai 1.73.0,
-openai 2.30.0, anthropic 0.94.1.
+Anti-autoboicot: validated 2026-04-20 against LangGraph 1.1.8, langchain-core 1.3.0,
+langchain-openai 1.1.14, langchain-anthropic 1.4.1, langchain-google-genai 4.2.2.
+
+TODO Sprint 17: Audit if tools can be wrapped as MCP (Model Context Protocol) servers
+    to enable any model (Claude, GPT-5.4, DeepSeek) to consume them without glue code.
+    Reference: modelcontextprotocol/servers (84K+ stars, ADOPTAR).
 
 Principio: Las Manos son soberanas. El dispatch es nuestro.
 """

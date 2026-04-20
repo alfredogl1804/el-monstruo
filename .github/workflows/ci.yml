@@ -73,7 +73,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trivy — Filesystem Vulnerability Scan
-        uses: aquasecurity/trivy-action@0.35.0
+        # PINNED BY SHA — CVE-2026-33634: trivy-action tags were compromised via supply chain attack (2026-03-19)
+        # This SHA corresponds to the safe 0.35.0 release, created AFTER the incident
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
           scan-type: fs
           scan-ref: .
@@ -92,7 +94,8 @@ jobs:
         run: docker build -f Dockerfile.web -t monstruo-kernel:ci .
 
       - name: Trivy — Container Scan
-        uses: aquasecurity/trivy-action@0.35.0
+        # PINNED BY SHA — CVE-2026-33634
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
           image-ref: monstruo-kernel:ci
           severity: CRITICAL,HIGH

@@ -1,5 +1,5 @@
 """
-El Monstruo — OpenTelemetry Configuration (Sprint 15)
+El Monstruo — OpenTelemetry Configuration (Sprint 16)
 =====================================================
 Configures OTel tracing and metrics export.
 Dual export: Langfuse (primary) + OTLP (optional secondary).

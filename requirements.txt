@@ -1,13 +1,17 @@
-# El Monstruo — Sprint 15 Dependencies (Pinned)
-# Updated: 2026-04-19 — ALL versions validated in real-time via PyPI
+# El Monstruo — Sprint 16 Dependencies (Pinned)
+# Updated: 2026-04-20 — ALL versions validated in real-time via PyPI
 # Policy: ALL versions pinned. NO floating ranges.
 # Validation: /protocolo-operativo-core + /validacion-tiempo-real applied
+# Sprint 16: langchain v1.x migration + garak + ragas
 
 # ── Kernel / Orchestration ──────────────────────────────────────────
 langgraph==1.1.8
-# NOTE: langgraph 1.1.8 requires langchain-core>=1.3.0,<2 (transitive)
-#        pip resolves to langchain-core==1.3.0 automatically
-#        Also pulls: langgraph-checkpoint==4.0.2, langgraph-prebuilt==1.0.10
+# langgraph 1.1.8 pulls langchain-core==1.3.0 as transitive dep
+# Sprint 16: explicit pin of langchain-core + provider SDKs (v1.x migration)
+langchain-core==1.3.0
+langchain-openai==1.1.14       # fixes SSRF GHSA-r7w7-9xr2-qq2r
+langchain-anthropic==1.4.1
+langchain-google-genai==4.2.2
 langgraph-checkpoint==4.0.2
 langgraph-checkpoint-postgres==3.0.5
 langsmith==0.7.32
@@ -57,7 +61,11 @@ uuid-v7==1.0.0
 # ── Autonomy (Sprint 8) ─────────────────────────────────────────────
 python-dateutil==2.9.0.post0
 
-# ── Testing ─────────────────────────────────────────────────────────
+# ── Evaluation ────────────────────────────────────────────────────────────
+ragas==0.4.3                   # RAG evaluation metrics. TODO Sprint 17: evaluate ragflow as complement
+garak==0.14.1                  # Red teaming (NVIDIA). Native LangChain 1.x support
+
+# ── Testing ─────────────────────────────────────────────────────────────
 pytest==9.0.3
 pytest-asyncio==1.3.0
 pytest-cov==7.1.0
