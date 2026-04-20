@@ -1,5 +1,5 @@
 """
-El Monstruo — Skill Evaluator (Sprint 17)
+El Monstruo — Skill Evaluator (Sprint 17 → 18)
 ==========================================
 Closed Learning Loop using DeepEval metrics.
 

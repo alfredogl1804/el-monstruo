@@ -1,8 +1,8 @@
 """
-El Monstruo — Tool Dispatch Node (Sprint 17)
+El Monstruo — Tool Dispatch Node (Sprint 18)
 =============================================
 Executes tool calls that the LLM requested via native function calling.
-Now includes MCP (Model Context Protocol) tool routing.
+Now includes MCP (Model Context Protocol) tool routing with preset server configs.
 
 Strategy (validated by Consejo de 6 Sabios, 2026-04-16):
   - LLMClient sends tool definitions to the LLM via native function calling
@@ -16,12 +16,17 @@ Sprint 17 additions:
   - MCP tools are prefixed with "mcp__" (e.g., mcp__filesystem__read_file)
   - Native tools remain unchanged — MCP is additive, not a replacement
 
+Sprint 18 additions:
+  - Preset MCP server configs: github, filesystem, supabase (IVD-validated)
+  - /v1/mcp/status endpoint for monitoring
+  - build_mcp_configs() merges presets + env custom configs
+
 Graph topology:
     execute → should_loop_tools? → tool_dispatch → execute  (if tool_calls)
     execute → should_loop_tools? → hitl_gate → respond      (if no tool_calls)
 
 Anti-autoboicot: validated 2026-04-20 against LangGraph 1.1.8, langchain-core 1.3.0,
-langchain-openai 1.1.14, langchain-anthropic 1.4.1, langchain-google-genai 4.2.2,
+langchain-openai 1.1.15, langchain-anthropic 1.4.1, langchain-google-genai 4.2.2,
 mcp 1.27.0, honcho-ai 2.1.1, deepeval 3.9.7.
 
 Principio: Las Manos son soberanas. El dispatch es nuestro. MCP es un protocolo, no un framework.

@@ -1,5 +1,5 @@
 """
-El Monstruo — Honcho Bridge (Sprint 17)
+El Monstruo — Honcho Bridge (Sprint 17 → 18)
 ========================================
 Dialectic User Modeling via honcho-ai SDK.
 

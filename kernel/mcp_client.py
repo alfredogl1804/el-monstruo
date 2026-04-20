@@ -1,7 +1,14 @@
 """
-El Monstruo — MCP Client Manager (Sprint 17)
+El Monstruo — MCP Client Manager (Sprint 18)
 =============================================
 Native integration with Model Context Protocol (MCP) servers.
+
+Sprint 18 additions:
+  - Preset configs for 3 IVD-validated MCP servers:
+    * @modelcontextprotocol/server-github (2025.4.8)
+    * @modelcontextprotocol/server-filesystem (2026.1.14)
+    * @supabase/mcp-server-supabase (0.7.0)
+  - MemPalace evaluation TODO (48K stars, Apache-2.0)
 
 Supports two transports:
   - stdio: Local MCP servers launched as subprocesses
@@ -18,6 +25,7 @@ The MCPClientManager is a singleton initialized in main.py lifespan.
 tool_dispatch.py calls execute_mcp_tool() for any tool prefixed with "mcp__".
 
 Validated against: mcp==1.27.0 (MIT, PyPI latest 2026-04-20)
+Sprint 18 IVD: checkout@v6.0.2, setup-python@v6.2.0 SHAs confirmed
 Reference: https://github.com/modelcontextprotocol/python-sdk
 
 Principio: MCP es un protocolo, no un framework. Nosotros controlamos el dispatch.
@@ -346,3 +354,92 @@ def load_mcp_configs_from_env() -> list[MCPServerConfig]:
             logger.info("mcp_config_loaded", server=name, transport=transport)
 
     return configs
+
+
+# ── Presets: IVD-Validated MCP Server Configs ────────────────────────────
+
+def get_preset_configs() -> list[MCPServerConfig]:
+    """
+    Return preset MCP server configs for the 3 IVD-validated servers.
+
+    These are activated ONLY if the corresponding env vars are set:
+      - GITHUB_PERSONAL_ACCESS_TOKEN → enables server-github
+      - MCP_FILESYSTEM_PATHS → enables server-filesystem
+      - SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY → enables mcp-server-supabase
+
+    IVD Validated 2026-04-20:
+      - @modelcontextprotocol/server-github: 2025.4.8 (npm)
+      - @modelcontextprotocol/server-filesystem: 2026.1.14 (npm)
+      - @supabase/mcp-server-supabase: 0.7.0 (npm)
+      - @modelcontextprotocol/server-git: DOES NOT EXIST (npm 404)
+    """
+    presets = []
+
+    # ── GitHub MCP Server ──────────────────────────────────────────
+    github_token = os.environ.get("GITHUB_PERSONAL_ACCESS_TOKEN")
+    if github_token:
+        presets.append(MCPServerConfig(
+            name="github",
+            transport="stdio",
+            command="npx",
+            args=["-y", "@modelcontextprotocol/server-github"],
+            env={"GITHUB_PERSONAL_ACCESS_TOKEN": github_token},
+            timeout_s=30.0,
+        ))
+        logger.info("mcp_preset_enabled", server="github", pkg="server-github@2025.4.8")
+
+    # ── Filesystem MCP Server ──────────────────────────────────────
+    fs_paths = os.environ.get("MCP_FILESYSTEM_PATHS")
+    if fs_paths:
+        # fs_paths is comma-separated list of allowed directories
+        path_list = [p.strip() for p in fs_paths.split(",") if p.strip()]
+        presets.append(MCPServerConfig(
+            name="filesystem",
+            transport="stdio",
+            command="npx",
+            args=["-y", "@modelcontextprotocol/server-filesystem"] + path_list,
+            timeout_s=30.0,
+        ))
+        logger.info("mcp_preset_enabled", server="filesystem", pkg="server-filesystem@2026.1.14", paths=path_list)
+
+    # ── Supabase MCP Server ────────────────────────────────────────
+    supabase_url = os.environ.get("SUPABASE_URL")
+    supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    if supabase_url and supabase_key:
+        presets.append(MCPServerConfig(
+            name="supabase",
+            transport="stdio",
+            command="npx",
+            args=["-y", "@supabase/mcp-server-supabase",
+                  "--supabase-url", supabase_url,
+                  "--supabase-key", supabase_key],
+            timeout_s=30.0,
+        ))
+        logger.info("mcp_preset_enabled", server="supabase", pkg="mcp-server-supabase@0.7.0")
+
+    return presets
+
+
+def build_mcp_configs() -> list[MCPServerConfig]:
+    """
+    Build the final MCP config list: presets + env-based custom configs.
+    Presets are loaded first, then any custom configs from env vars.
+    Duplicates (by name) are resolved in favor of env-based configs.
+    """
+    preset_configs = get_preset_configs()
+    env_configs = load_mcp_configs_from_env()
+
+    # Merge: env configs override presets by name
+    merged = {c.name: c for c in preset_configs}
+    for c in env_configs:
+        merged[c.name] = c  # env overrides preset
+
+    final = list(merged.values())
+    logger.info(
+        "mcp_configs_built",
+        preset_count=len(preset_configs),
+        env_count=len(env_configs),
+        total=len(final),
+        servers=[c.name for c in final],
+    )
+    return final

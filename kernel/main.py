@@ -79,7 +79,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.11.0-sprint17", motor="langgraph")
+    logger.info("monstruo_starting", version="0.12.0-sprint18", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -160,7 +160,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.11.0-sprint17",
+            "version": "0.12.0-sprint18",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -362,10 +362,11 @@ async def lifespan(app: FastAPI):
     # ── Sprint 17: MCP Client Manager ──────────────────────────────
     mcp_manager = None
     try:
-        from kernel.mcp_client import MCPClientManager, load_mcp_configs_from_env
+        from kernel.mcp_client import MCPClientManager, build_mcp_configs
         from kernel.tool_dispatch import set_mcp_manager
 
-        mcp_configs = load_mcp_configs_from_env()
+        # Sprint 18: build_mcp_configs() = presets (github, filesystem, supabase) + env custom
+        mcp_configs = build_mcp_configs()
         if mcp_configs:
             mcp_manager = MCPClientManager(mcp_configs)
             mcp_status = await mcp_manager.initialize()
@@ -394,7 +395,7 @@ async def lifespan(app: FastAPI):
 
     logger.info(
         "monstruo_ready",
-        version="0.11.0-sprint17",
+        version="0.12.0-sprint18",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -467,7 +468,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.11.0-sprint17",
+    version="0.12.0-sprint18",
     lifespan=lifespan,
 )
 
@@ -564,7 +565,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.11.0-sprint17",
+        "version": "0.12.0-sprint18",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -1124,7 +1125,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.11.0-sprint17",
+            "version": "0.12.0-sprint18",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1296,7 +1297,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.11.0-sprint17",
+        "version": "0.12.0-sprint18",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields
@@ -1312,6 +1313,29 @@ async def health():
             "opentelemetry": "active" if (observability and observability.otel_enabled) else "inactive",
             "checkpointer": type(kernel._checkpointer).__name__ if kernel else "unknown",
         },
+    }
+
+
+# ── Sprint 18: MCP Status Endpoint ─────────────────────────────
+
+
+@app.get("/v1/mcp/status", tags=["mcp"])
+async def mcp_status():
+    """Return MCP server connection status and available tools."""
+    mcp_mgr = getattr(app.state, "mcp_manager", None)
+    if mcp_mgr:
+        return {
+            "status": "active",
+            "servers": mcp_mgr.get_status(),
+        }
+    return {
+        "status": "inactive",
+        "reason": "No MCP servers configured. Set env vars to enable presets.",
+        "available_presets": [
+            {"name": "github", "env": "GITHUB_PERSONAL_ACCESS_TOKEN", "pkg": "@modelcontextprotocol/server-github@2025.4.8"},
+            {"name": "filesystem", "env": "MCP_FILESYSTEM_PATHS", "pkg": "@modelcontextprotocol/server-filesystem@2026.1.14"},
+            {"name": "supabase", "env": "SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY", "pkg": "@supabase/mcp-server-supabase@0.7.0"},
+        ],
     }
 
 
