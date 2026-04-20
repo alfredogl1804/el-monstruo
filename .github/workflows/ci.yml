@@ -73,7 +73,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trivy — Filesystem Vulnerability Scan
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: fs
           scan-ref: .
@@ -92,7 +92,7 @@ jobs:
         run: docker build -f Dockerfile.web -t monstruo-kernel:ci .
 
       - name: Trivy — Container Scan
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: monstruo-kernel:ci
           severity: CRITICAL,HIGH
