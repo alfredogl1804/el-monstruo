@@ -1,0 +1,28 @@
+{
+  "sprint": "sprint16",
+  "timestamp": "2026-04-20T06:50:15.417064+00:00",
+  "phases": {
+    "ivd": {
+      "status": "PASS",
+      "checked": 50,
+      "pass": 39,
+      "fail": 0,
+      "warn": 11,
+      "outdated": 0
+    },
+    "sabios": {
+      "status": "SKIPPED"
+    },
+    "repair": {
+      "status": "WARN",
+      "issues_found": 5,
+      "issues_fixed": 0,
+      "issues_unfixable": 3
+    },
+    "deploy": {
+      "status": "SKIPPED"
+    }
+  },
+  "overall": "WARN",
+  "elapsed_seconds": 14.0
+}

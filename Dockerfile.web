@@ -6,7 +6,7 @@
 FROM python:3.12-slim AS base
 
 # Cache bust — cambiar este valor fuerza rebuild completo
-ARG CACHE_BUST=2026-04-20-sprint16-ivd
+ARG CACHE_BUST=2026-04-20-sprint16-fix-garak
 
 WORKDIR /app
 
@@ -17,7 +17,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Python deps (exclude test packages for production image)
+# Python deps — production only (eval deps in requirements-eval.txt)
+# Excludes: pytest, garak, ragas (they pull torch/transformers ~2GB)
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     grep -v "^#" requirements.txt | \

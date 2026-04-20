@@ -1,0 +1,89 @@
+{
+  "timestamp": "2026-04-20T06:50:29.320284+00:00",
+  "issues_found": [
+    {
+      "category": "dependency",
+      "severity": "medium",
+      "file": "/home/ubuntu/el-monstruo-kernel/requirements.txt",
+      "line": 19,
+      "description": "pydantic uses range constraint instead of exact pin",
+      "auto_fixable": true,
+      "fix_applied": false,
+      "fix_description": null
+    },
+    {
+      "category": "dependency",
+      "severity": "medium",
+      "file": "/home/ubuntu/el-monstruo-kernel/requirements.txt",
+      "line": 20,
+      "description": "pydantic-settings uses range constraint instead of exact pin",
+      "auto_fixable": true,
+      "fix_applied": false,
+      "fix_description": null
+    },
+    {
+      "category": "action",
+      "severity": "critical",
+      "file": "/home/ubuntu/el-monstruo-kernel/.github/workflows/ci.yml",
+      "line": 71,
+      "description": "gitleaks/gitleaks-action@v2 \u2014 MUST be SHA-pinned (supply chain risk)",
+      "auto_fixable": false,
+      "fix_applied": false,
+      "fix_description": null
+    },
+    {
+      "category": "action",
+      "severity": "critical",
+      "file": "/home/ubuntu/el-monstruo-kernel/.github/workflows/ci.yml",
+      "line": 78,
+      "description": "aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 \u2014 MUST be SHA-pinned (supply chain risk)",
+      "auto_fixable": false,
+      "fix_applied": false,
+      "fix_description": null
+    },
+    {
+      "category": "action",
+      "severity": "critical",
+      "file": "/home/ubuntu/el-monstruo-kernel/.github/workflows/ci.yml",
+      "line": 98,
+      "description": "aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 \u2014 MUST be SHA-pinned (supply chain risk)",
+      "auto_fixable": false,
+      "fix_applied": false,
+      "fix_description": null
+    }
+  ],
+  "issues_fixed": [],
+  "issues_unfixable": [
+    {
+      "category": "action",
+      "severity": "critical",
+      "file": "/home/ubuntu/el-monstruo-kernel/.github/workflows/ci.yml",
+      "line": 71,
+      "description": "gitleaks/gitleaks-action@v2 \u2014 MUST be SHA-pinned (supply chain risk)",
+      "auto_fixable": false,
+      "fix_applied": false,
+      "fix_description": null
+    },
+    {
+      "category": "action",
+      "severity": "critical",
+      "file": "/home/ubuntu/el-monstruo-kernel/.github/workflows/ci.yml",
+      "line": 78,
+      "description": "aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 \u2014 MUST be SHA-pinned (supply chain risk)",
+      "auto_fixable": false,
+      "fix_applied": false,
+      "fix_description": null
+    },
+    {
+      "category": "action",
+      "severity": "critical",
+      "file": "/home/ubuntu/el-monstruo-kernel/.github/workflows/ci.yml",
+      "line": 98,
+      "description": "aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 \u2014 MUST be SHA-pinned (supply chain risk)",
+      "auto_fixable": false,
+      "fix_applied": false,
+      "fix_description": null
+    }
+  ],
+  "deploy_status": null
+}

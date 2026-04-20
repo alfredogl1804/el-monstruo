@@ -61,9 +61,10 @@ uuid-v7==1.0.0
 # ── Autonomy (Sprint 8) ─────────────────────────────────────────────
 python-dateutil==2.9.0.post0
 
-# ── Evaluation ────────────────────────────────────────────────────────────
-ragas==0.4.3                   # RAG evaluation metrics. TODO Sprint 17: evaluate ragflow as complement
-garak==0.14.1                  # Red teaming (NVIDIA). Native LangChain 1.x support
+# ── Evaluation (moved to requirements-eval.txt) ─────────────────────────
+# garak + ragas require torch>=2.6, transformers>=5.0, datasets<4.0 (~2GB+)
+# These MUST NOT be in production image — use requirements-eval.txt for CI/local
+# See: requirements-eval.txt
 
 # ── Testing ─────────────────────────────────────────────────────────────
 pytest==9.0.3

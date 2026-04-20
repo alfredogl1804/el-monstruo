@@ -1,0 +1,15 @@
+# El Monstruo — Evaluation Dependencies (NOT for production)
+# Sprint 16: separated from requirements.txt to avoid bloating Docker image
+# These packages pull torch>=2.6, transformers>=5.0, datasets (~2GB+)
+# Usage: pip install -r requirements-eval.txt (CI, local dev, eval runs only)
+# Validated: 2026-04-20 via IVD Engine (PyPI real-time)
+
+-r requirements.txt
+
+# ── Evaluation ────────────────────────────────────────────────────────────
+ragas==0.4.3                   # RAG evaluation metrics (4 metrics configured)
+garak==0.14.1                  # Red teaming (NVIDIA). Requires datasets<4.0
+datasets==3.6.0                # HuggingFace datasets — pinned <4.0 for garak compat
+
+# ── Evaluation Transitive Deps (explicit pins) ───────────────────────────
+# torch, transformers, accelerate pulled by garak — versions managed by pip resolver
