@@ -1,0 +1,46 @@
+# ============================================================
+# El Monstruo — SAST with Semgrep (Sprint 15)
+# ============================================================
+# Static Application Security Testing using Semgrep v1.115.0
+# Runs on every PR and push to main
+# ============================================================
+
+name: SAST (Semgrep)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config auto \
+            --config p/python \
+            --config p/security-audit \
+            --config p/owasp-top-ten \
+            --sarif --output semgrep-results.sarif \
+            --error \
+            --severity ERROR \
+            .
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+      - name: Upload SARIF results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep-results.sarif

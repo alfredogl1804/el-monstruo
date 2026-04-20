@@ -1,0 +1,46 @@
+# ============================================================
+# El Monstruo — SBOM Generation (Sprint 15)
+# ============================================================
+# Generates Software Bill of Materials using Syft v1.42.4
+# Runs on every push to main and weekly schedule
+# Output: CycloneDX JSON format
+# ============================================================
+
+name: SBOM Generation
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday at 6 AM UTC
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin v1.42.4
+
+      - name: Generate SBOM (Python dependencies)
+        run: |
+          syft dir:. -o cyclonedx-json=sbom-python.json
+
+      - name: Generate SBOM (Docker image)
+        if: hashFiles('Dockerfile') != ''
+        run: |
+          docker build -t el-monstruo-kernel:sbom .
+          syft el-monstruo-kernel:sbom -o cyclonedx-json=sbom-docker.json
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-reports
+          path: sbom-*.json
+          retention-days: 90

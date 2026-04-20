@@ -91,6 +91,7 @@ class LangGraphKernel(KernelInterface):
         self._db = db  # Sprint 9: SupabaseClient for dossier injection
         self._usage_tracker = None  # Sprint 10: injected post-init
         self._tool_registry = None  # Sprint 10: injected post-init
+        self._finops = None  # Sprint 15: FinOps controller
         self._hooks: dict[str, list[Callable[..., Any]]] = {}
         self._runs: dict[UUID, MonstruoState] = {}
 
@@ -100,6 +101,9 @@ class LangGraphKernel(KernelInterface):
         self._compiled = self._graph.compile(
             checkpointer=self._checkpointer,
         )
+
+        # Sprint 15: Apply recursion_limit to prevent runaway graphs
+        self._compiled.recursion_limit = 25
 
         # Sprint 4: Streaming graph — interrupts before execute for real LLM streaming
         self._compiled_streaming = self._graph.compile(
@@ -125,7 +129,7 @@ class LangGraphKernel(KernelInterface):
         pending = state.get("pending_tool_calls", [])
         loop_count = state.get("tool_loop_count", 0)
 
-        if pending and loop_count < 3:  # MAX_TOOL_LOOPS = 3
+        if pending and loop_count < 5:  # MAX_TOOL_LOOPS = 5 (Sprint 15: raised from 3)
             return "tool_dispatch"
 
         # 2. Error flow: skip HITL, go to respond
@@ -233,6 +237,20 @@ class LangGraphKernel(KernelInterface):
         """
         run_id = input.run_id
         thread_id = str(run_id)
+
+        # Sprint 15: Budget hard stop — block run if daily budget exceeded
+        if self._finops:
+            budget_check = self._finops.check_budget()
+            if not budget_check.get("allowed", True):
+                logger.warning("run_blocked_budget", run_id=str(run_id), reason=budget_check["reason"])
+                return RunOutput(
+                    run_id=run_id,
+                    status=RunStatus.FAILED,
+                    intent=IntentType.CHAT,
+                    model_used="",
+                    response=f"Run blocked: {budget_check['reason']}. Contact admin.",
+                    metadata={"budget_block": True, **budget_check},
+                )
 
         # Fire pre-hooks
         await self._fire_hook("pre_route", run_id, input)
@@ -388,6 +406,19 @@ class LangGraphKernel(KernelInterface):
 
             # Sprint 10: Log usage to persistent tracker
             await self._log_usage(output, final_state)
+
+            # Sprint 15: Record per-run cost in FinOps
+            if self._finops:
+                await self._finops.record_run_cost(
+                    run_id=str(run_id),
+                    model_used=output.model_used or "unknown",
+                    tokens_in=output.tokens_in,
+                    tokens_out=output.tokens_out,
+                    cost_usd=output.cost_usd,
+                    latency_ms=int(output.latency_ms),
+                    tool_count=len(output.tool_calls or []),
+                    status="completed",
+                )
 
             return output
 

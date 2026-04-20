@@ -78,7 +78,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.8.0-sprint13", motor="langgraph")
+    logger.info("monstruo_starting", version="0.9.0-sprint15", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -244,6 +244,35 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("usage_registry_routes_failed", error=str(e))
 
+    # ── Sprint 15: FinOps Soberano ────────────────────────────────
+    finops = None
+    try:
+        from kernel.finops import FinOpsController
+        from kernel.alerts.sovereign_alerts import SovereignAlertMonitor
+
+        # Create alert monitor for cost spike notifications
+        alert_monitor_finops = SovereignAlertMonitor()
+
+        finops = FinOpsController(
+            db=db if db_connected else None,
+            usage_tracker=usage_tracker,
+            alerts=alert_monitor_finops,
+        )
+        await finops.initialize()
+        app.state.finops = finops
+
+        # Inject into kernel for budget hard stop
+        if kernel:
+            kernel._finops = finops
+
+        logger.info(
+            "finops_initialized",
+            daily_limit=finops.get_status()["daily_hard_limit_usd"],
+            hard_stop=finops.get_status()["hard_stop_enabled"],
+        )
+    except Exception as e:
+        logger.warning("finops_init_failed", error=str(e))
+
     # ── Sprint 10b (ADR): Tool Broker ────────────────────────────
     tool_broker = None
     try:
@@ -302,7 +331,7 @@ async def lifespan(app: FastAPI):
 
     logger.info(
         "monstruo_ready",
-        version="0.8.0-sprint13",
+        version="0.9.0-sprint15",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -310,6 +339,7 @@ async def lifespan(app: FastAPI):
         tracker="active" if usage_tracker and usage_tracker.initialized else "inactive",
         broker="active" if tool_broker else "inactive",
         thoughts="active" if thoughts_store else "inactive",
+        finops="active" if finops else "inactive",
         agui="active",
         alerts="registered",
     )
