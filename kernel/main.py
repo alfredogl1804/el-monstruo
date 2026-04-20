@@ -149,7 +149,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.8.0-sprint13",
+            "version": "0.9.0-sprint15",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -249,9 +249,11 @@ async def lifespan(app: FastAPI):
     try:
         from kernel.finops import FinOpsController
         from kernel.alerts.sovereign_alerts import SovereignAlertMonitor
+        from kernel.runner.telegram_notifier import TelegramNotifier as _TN
 
-        # Create alert monitor for cost spike notifications
-        alert_monitor_finops = SovereignAlertMonitor()
+        # Reuse existing notifier or create one for FinOps alerts
+        _finops_notifier = _TN()
+        alert_monitor_finops = SovereignAlertMonitor(notifier=_finops_notifier)
 
         finops = FinOpsController(
             db=db if db_connected else None,
@@ -400,7 +402,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.8.0-sprint13",
+    version="0.9.0-sprint15",
     lifespan=lifespan,
 )
 
@@ -487,7 +489,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.8.0-sprint13",
+        "version": "0.9.0-sprint15",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -1034,7 +1036,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-        "version": "0.8.0-sprint13",
+        "version": "0.9.0-sprint15",
         "motor": "langgraph",
         "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1198,7 +1200,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.8.0-sprint13",
+        "version": "0.9.0-sprint15",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields
