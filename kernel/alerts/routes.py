@@ -16,7 +16,7 @@ from __future__ import annotations
 from typing import Optional
 
 import structlog
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 from pydantic import BaseModel
 
 logger = structlog.get_logger("alerts.routes")
@@ -31,7 +31,7 @@ def _get_monitor():
     """Lazy-init the SovereignAlertMonitor singleton."""
     global _monitor
     if _monitor is None:
-        from kernel.alerts.sovereign_alerts import SovereignAlertMonitor, AlertConfig
+        from kernel.alerts.sovereign_alerts import AlertConfig, SovereignAlertMonitor
         from kernel.runner.telegram_notifier import TelegramNotifier
 
         notifier = TelegramNotifier()
@@ -74,9 +74,7 @@ async def alert_status():
         error_rate_threshold=config.error_rate_threshold,
         latency_p95_threshold_s=config.latency_p95_threshold_s,
         eval_pass_rate_threshold=config.eval_pass_rate_threshold,
-        active_cooldowns={
-            k: round(v, 1) for k, v in monitor._cooldowns.items()
-        },
+        active_cooldowns={k: round(v, 1) for k, v in monitor._cooldowns.items()},
     )
 
 
@@ -120,5 +118,7 @@ async def test_alert():
     success = await monitor._send_alert(test_alert)
     return {
         "success": success,
-        "message": "Test alert sent to Telegram" if success else "Failed to send test alert (check TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID)",
+        "message": "Test alert sent to Telegram"
+        if success
+        else "Failed to send test alert (check TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID)",
     }

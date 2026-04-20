@@ -11,6 +11,7 @@ Centralized tool execution with:
 ADR Reference: ADR_SPRINT_10_Tool_Registry.md
 Anti-autoboicot: validated 2026-04-18
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -30,9 +31,11 @@ logger = structlog.get_logger("kernel.tool_broker")
 
 # ── Data Classes ──────────────────────────────────────────────────────
 
+
 @dataclass
 class ToolBinding:
     """Represents a tool binding for a specific tenant."""
+
     binding_id: str
     tool_name: str
     tenant_id: str
@@ -47,6 +50,7 @@ class ToolBinding:
 @dataclass
 class ExecutionRecord:
     """Tracks a single tool execution."""
+
     execution_id: str
     run_id: str
     thread_id: str
@@ -65,10 +69,11 @@ class ExecutionRecord:
 
 # ── Tool Broker ───────────────────────────────────────────────────────
 
+
 class ToolBroker:
     """
     Centralized tool execution broker.
-    
+
     Security guarantees:
     1. Real adapters never injected into LangGraph state
     2. Secrets resolved JIT — never enter the StateGraph
@@ -89,7 +94,7 @@ class ToolBroker:
         self._run_call_count: int = 0  # total calls in current run
         self._input_hashes: dict[str, int] = {}  # hash -> count
         self._circuit_breaker_trips: int = 0
-        
+
         if bindings:
             for b in bindings:
                 self._bindings[b.tool_name] = b
@@ -108,7 +113,7 @@ class ToolBroker:
                 columns="id, tool_name, tenant_id, is_enabled, capabilities, rate_limit",
                 filters={"tenant_id": tenant_id, "is_enabled": True},
             )
-            
+
             # Also get secret_env_var from tool_registry
             registry_rows = await self._db.select(
                 "tool_registry",
@@ -116,8 +121,8 @@ class ToolBroker:
                 filters={"is_active": True},
             )
             registry_map = {r["tool_name"]: r for r in (registry_rows or [])}
-            
-            for row in (rows or []):
+
+            for row in rows or []:
                 tool_name = row["tool_name"]
                 reg = registry_map.get(tool_name, {})
                 self._bindings[tool_name] = ToolBinding(
@@ -131,7 +136,7 @@ class ToolBroker:
                     risk_level=reg.get("risk_level", "low"),
                     requires_hitl=reg.get("requires_hitl", False),
                 )
-            
+
             logger.info("broker_initialized", tenant=tenant_id, bindings=len(self._bindings))
         except Exception as e:
             logger.error("broker_init_failed", error=str(e))
@@ -156,14 +161,14 @@ class ToolBroker:
     def resolve_secret(self, tool_name: str) -> Optional[str]:
         """
         Resolve the secret for a tool Just-In-Time.
-        
+
         SECURITY: The secret is resolved from env vars at execution time,
         never stored in LangGraph state, and never passed to the LLM.
         """
         binding = self._bindings.get(tool_name)
         if not binding or not binding.secret_env_var:
             return None
-        
+
         secret = os.environ.get(binding.secret_env_var)
         if not secret:
             logger.warning(
@@ -186,7 +191,7 @@ class ToolBroker:
     ) -> dict[str, Any]:
         """
         Execute a tool through the broker.
-        
+
         Flow:
         1. Validate binding and rate limit
         2. Create execution record (pending)
@@ -223,8 +228,11 @@ class ToolBroker:
             self._circuit_breaker_trips += 1
             await self._persist_execution(record)
             await self._log_circuit_breaker(
-                run_id=run_id, thread_id=thread_id, tool_name=tool_name,
-                reason="max_calls_per_run", call_count=self._run_call_count,
+                run_id=run_id,
+                thread_id=thread_id,
+                tool_name=tool_name,
+                reason="max_calls_per_run",
+                call_count=self._run_call_count,
             )
             return {"error": record.error_message, "_untrusted": True}
 
@@ -233,12 +241,17 @@ class ToolBroker:
         self._input_hashes[input_hash] = self._input_hashes.get(input_hash, 0) + 1
         if self._input_hashes[input_hash] > self.INPUT_HASH_REPEAT_LIMIT:
             record.status = "failed"
-            record.error_message = f"Circuit breaker: identical input repeated {self._input_hashes[input_hash]} times (loop detected)"
+            record.error_message = (
+                f"Circuit breaker: identical input repeated {self._input_hashes[input_hash]} times (loop detected)"
+            )
             self._circuit_breaker_trips += 1
             await self._persist_execution(record)
             await self._log_circuit_breaker(
-                run_id=run_id, thread_id=thread_id, tool_name=tool_name,
-                reason="input_hash_loop", call_count=self._input_hashes[input_hash],
+                run_id=run_id,
+                thread_id=thread_id,
+                tool_name=tool_name,
+                reason="input_hash_loop",
+                call_count=self._input_hashes[input_hash],
                 input_hash=input_hash,
             )
             return {"error": record.error_message, "_untrusted": True}
@@ -251,7 +264,7 @@ class ToolBroker:
             return {"error": record.error_message, "_untrusted": True}
 
         # 3. Resolve secret JIT
-        secret = self.resolve_secret(tool_name)
+        self.resolve_secret(tool_name)
 
         # 4. Execute
         start_time = time.monotonic()
@@ -260,19 +273,19 @@ class ToolBroker:
                 result = await executor_fn(tool_name, args)
             else:
                 result = {"error": f"No executor for '{tool_name}'"}
-            
+
             wall_ms = int((time.monotonic() - start_time) * 1000)
-            
+
             # 5. Record success
             record.status = "success" if "error" not in result else "failed"
             record.wall_ms = wall_ms
             record.output_summary = str(result)[:500]
             if "error" in result:
                 record.error_message = str(result["error"])[:500]
-            
+
             # Track call count
             self._call_counts[tool_name] = self._call_counts.get(tool_name, 0) + 1
-            
+
         except Exception as e:
             wall_ms = int((time.monotonic() - start_time) * 1000)
             record.status = "failed"
@@ -313,20 +326,23 @@ class ToolBroker:
             return
 
         try:
-            await self._db.insert("tool_executions", {
-                "id": record.execution_id,
-                "run_id": record.run_id or str(uuid.uuid4()),
-                "thread_id": record.thread_id,
-                "tenant_id": record.tenant_id,
-                "tool_name": record.tool_name,
-                "status": record.status,
-                "input_args": record.input_args,
-                "output_summary": record.output_summary,
-                "error_message": record.error_message,
-                "wall_ms": record.wall_ms,
-                "api_calls": record.api_calls,
-                "cost_usd": float(record.cost_usd),
-            })
+            await self._db.insert(
+                "tool_executions",
+                {
+                    "id": record.execution_id,
+                    "run_id": record.run_id or str(uuid.uuid4()),
+                    "thread_id": record.thread_id,
+                    "tenant_id": record.tenant_id,
+                    "tool_name": record.tool_name,
+                    "status": record.status,
+                    "input_args": record.input_args,
+                    "output_summary": record.output_summary,
+                    "error_message": record.error_message,
+                    "wall_ms": record.wall_ms,
+                    "api_calls": record.api_calls,
+                    "cost_usd": float(record.cost_usd),
+                },
+            )
         except Exception as e:
             logger.error("broker_persist_failed", exec_id=record.execution_id, error=str(e))
             self._execution_cache[record.execution_id] = record
@@ -354,14 +370,17 @@ class ToolBroker:
         if not self._db:
             return
         try:
-            await self._db.insert("circuit_breaker_log", {
-                "run_id": run_id or str(uuid.uuid4()),
-                "thread_id": thread_id,
-                "tool_name": tool_name,
-                "trigger_reason": reason,
-                "call_count": call_count,
-                "input_hash": input_hash,
-            })
+            await self._db.insert(
+                "circuit_breaker_log",
+                {
+                    "run_id": run_id or str(uuid.uuid4()),
+                    "thread_id": thread_id,
+                    "tool_name": tool_name,
+                    "trigger_reason": reason,
+                    "call_count": call_count,
+                    "input_hash": input_hash,
+                },
+            )
         except Exception as e:
             logger.error("circuit_breaker_log_failed", error=str(e))
 
@@ -399,13 +418,14 @@ class ToolBroker:
 
 # ── BrokeredTool (Request-Scoped Wrapper) ─────────────────────────────
 
+
 class BrokeredTool:
     """
     Request-scoped tool wrapper that the LLM interacts with.
-    
+
     ADR Pattern: The LLM never sees the real adapter. It only sees
     BrokeredTool instances which route execution through the ToolBroker.
-    
+
     This wrapper is created fresh for each request in the execute node,
     ensuring request isolation.
     """
@@ -440,6 +460,7 @@ class BrokeredTool:
 
 # ── Factory Function ──────────────────────────────────────────────────
 
+
 def create_brokered_tools(
     broker: ToolBroker,
     tool_names: list[str],
@@ -450,7 +471,7 @@ def create_brokered_tools(
 ) -> dict[str, BrokeredTool]:
     """
     Create request-scoped BrokeredTool instances for the execute node.
-    
+
     Called at the start of each tool_dispatch execution to create
     fresh wrappers that route through the broker.
     """

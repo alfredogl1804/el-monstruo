@@ -27,6 +27,7 @@ REQUIREMENTS:
 SCHEDULE:
   Designed to run as a daily cron job or via the /v1/backup endpoint.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -37,7 +38,6 @@ import json
 import os
 import shutil
 import subprocess
-import sys
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
@@ -71,6 +71,7 @@ MAX_CONCURRENT_EXPORTS = 4  # Parallel table exports
 
 # ── Integrity ─────────────────────────────────────────────────────
 
+
 def compute_sha256(data: bytes) -> str:
     """Compute SHA-256 hash of data."""
     return hashlib.sha256(data).hexdigest()
@@ -86,10 +87,12 @@ def compress_gzip(data: bytes) -> bytes:
 
 # ── Supabase Data Export ───────────────────────────────────────────
 
+
 async def export_table_data(table_name: str) -> list[dict]:
     """Export all rows from a Supabase table via REST API."""
     try:
         from supabase import create_client
+
         client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
         # Paginate through all rows (1000 at a time)
@@ -98,12 +101,7 @@ async def export_table_data(table_name: str) -> list[dict]:
         page_size = 1000
 
         while True:
-            response = (
-                client.table(table_name)
-                .select("*")
-                .range(offset, offset + page_size - 1)
-                .execute()
-            )
+            response = client.table(table_name).select("*").range(offset, offset + page_size - 1).execute()
             rows = response.data or []
             all_rows.extend(rows)
 
@@ -164,6 +162,7 @@ async def export_all_tables(tables: Optional[list[str]] = None) -> dict[str, Any
 
 # ── pg_dump Export ────────────────────────────────────────────────
 
+
 def run_pg_dump() -> Optional[bytes]:
     """
     Run pg_dump against Supabase for a complete logical backup.
@@ -207,7 +206,7 @@ def run_pg_dump() -> Optional[bytes]:
             "pg_dump_complete",
             raw_size=len(dump_bytes),
             compressed_size=len(compressed),
-            ratio=f"{len(compressed)/max(len(dump_bytes),1):.2%}",
+            ratio=f"{len(compressed) / max(len(dump_bytes), 1):.2%}",
         )
         return compressed
 
@@ -221,14 +220,27 @@ def run_pg_dump() -> Optional[bytes]:
 
 # ── Environment Variables Backup ───────────────────────────────────
 
+
 def export_env_vars() -> dict[str, str]:
     """Export relevant environment variables (redacted secrets)."""
     env_vars = {}
     relevant_prefixes = [
-        "SUPABASE_", "KERNEL_", "MONSTRUO_", "LANGFUSE_",
-        "OPENAI_", "ANTHROPIC_", "GOOGLE_", "PERPLEXITY_",
-        "XAI_", "DEEPSEEK_", "MOONSHOT_", "ELEVENLABS_",
-        "HEYGEN_", "TELEGRAM_", "NOTION_", "DROPBOX_",
+        "SUPABASE_",
+        "KERNEL_",
+        "MONSTRUO_",
+        "LANGFUSE_",
+        "OPENAI_",
+        "ANTHROPIC_",
+        "GOOGLE_",
+        "PERPLEXITY_",
+        "XAI_",
+        "DEEPSEEK_",
+        "MOONSHOT_",
+        "ELEVENLABS_",
+        "HEYGEN_",
+        "TELEGRAM_",
+        "NOTION_",
+        "DROPBOX_",
     ]
 
     for key, value in os.environ.items():
@@ -245,6 +257,7 @@ def export_env_vars() -> dict[str, str]:
 
 # ── Dropbox Client ────────────────────────────────────────────────
 
+
 def get_dropbox_client():
     """
     Create a Dropbox client using refresh token (preferred) or legacy access token.
@@ -260,8 +273,11 @@ def get_dropbox_client():
             app_secret=DROPBOX_APP_SECRET,
         )
     elif DROPBOX_TOKEN:
-        logger.warning("dropbox_auth", method="legacy_access_token",
-                       hint="Migrate to refresh token — access tokens expire in ~4h")
+        logger.warning(
+            "dropbox_auth",
+            method="legacy_access_token",
+            hint="Migrate to refresh token — access tokens expire in ~4h",
+        )
         return dropbox.Dropbox(DROPBOX_TOKEN)
     else:
         return None
@@ -269,22 +285,24 @@ def get_dropbox_client():
 
 def is_dropbox_configured() -> bool:
     """Check if Dropbox credentials are available."""
-    return bool(
-        (DROPBOX_REFRESH_TOKEN and DROPBOX_APP_KEY and DROPBOX_APP_SECRET)
-        or DROPBOX_TOKEN
-    )
+    return bool((DROPBOX_REFRESH_TOKEN and DROPBOX_APP_KEY and DROPBOX_APP_SECRET) or DROPBOX_TOKEN)
 
 
 # ── Dropbox Upload ─────────────────────────────────────────────────
 
+
 def upload_to_dropbox(content: bytes, remote_path: str) -> Optional[str]:
     """Upload a file to Dropbox and return the shared link."""
     if not is_dropbox_configured():
-        logger.warning("dropbox_not_configured", hint="Set DROPBOX_REFRESH_TOKEN + APP_KEY + APP_SECRET")
+        logger.warning(
+            "dropbox_not_configured",
+            hint="Set DROPBOX_REFRESH_TOKEN + APP_KEY + APP_SECRET",
+        )
         return None
 
     try:
         import dropbox
+
         dbx = get_dropbox_client()
         if dbx is None:
             return None
@@ -315,6 +333,7 @@ def upload_to_dropbox(content: bytes, remote_path: str) -> Optional[str]:
 
 # ── Dropbox Retention ──────────────────────────────────────────────
 
+
 def enforce_retention(days: int = RETENTION_DAYS) -> int:
     """Delete backups older than `days` from Dropbox. Returns count deleted."""
     if not is_dropbox_configured():
@@ -322,6 +341,7 @@ def enforce_retention(days: int = RETENTION_DAYS) -> int:
 
     try:
         import dropbox
+
         dbx = get_dropbox_client()
         if dbx is None:
             return 0
@@ -350,9 +370,17 @@ def enforce_retention(days: int = RETENTION_DAYS) -> int:
                     try:
                         dbx.files_delete_v2(entry.path_lower)
                         deleted += 1
-                        logger.info("retention_deleted", path=entry.path_lower, age_days=(datetime.now(timezone.utc) - entry_modified).days)
+                        logger.info(
+                            "retention_deleted",
+                            path=entry.path_lower,
+                            age_days=(datetime.now(timezone.utc) - entry_modified).days,
+                        )
                     except Exception as e:
-                        logger.warning("retention_delete_failed", path=entry.path_lower, error=str(e))
+                        logger.warning(
+                            "retention_delete_failed",
+                            path=entry.path_lower,
+                            error=str(e),
+                        )
 
         if deleted:
             logger.info("retention_complete", deleted=deleted, cutoff_days=days)
@@ -364,6 +392,7 @@ def enforce_retention(days: int = RETENTION_DAYS) -> int:
 
 
 # ── Local Backup (Fallback) ────────────────────────────────────────
+
 
 def save_local_backup(content: bytes, filename: str) -> str:
     """Save backup locally as fallback when Dropbox is unavailable."""
@@ -379,6 +408,7 @@ def save_local_backup(content: bytes, filename: str) -> str:
 
 
 # ── Main Backup Orchestrator ───────────────────────────────────────
+
 
 async def run_backup(
     tables: Optional[list[str]] = None,
@@ -421,7 +451,7 @@ async def run_backup(
                 "total_rows": backup_data["metadata"]["total_rows"],
                 "raw_size_bytes": len(data_json),
                 "compressed_size_bytes": len(data_compressed),
-                "compression_ratio": f"{len(data_compressed)/max(len(data_json),1):.2%}",
+                "compression_ratio": f"{len(data_compressed) / max(len(data_json), 1):.2%}",
                 "sha256": data_checksum,
             }
             results["checksums"][data_filename] = data_checksum
@@ -547,10 +577,12 @@ if __name__ == "__main__":
         env_data = export_env_vars()
         print(json.dumps(env_data, indent=2))
     else:
-        result = asyncio.run(run_backup(
-            tables=args.tables,
-            include_env=True,
-            include_pg_dump=args.pg_dump,
-            upload=not args.no_upload,
-        ))
+        result = asyncio.run(
+            run_backup(
+                tables=args.tables,
+                include_env=True,
+                include_pg_dump=args.pg_dump,
+                upload=not args.no_upload,
+            )
+        )
         print(json.dumps(result, indent=2, default=str))

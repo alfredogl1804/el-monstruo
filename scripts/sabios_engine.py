@@ -27,9 +27,8 @@ from __future__ import annotations
 import json
 import os
 import re
-import sys
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -109,7 +108,10 @@ def call_openrouter(model: str, prompt: str, api_key: str) -> str:
         json={
             "model": model,
             "messages": [
-                {"role": "system", "content": "Eres un experto técnico. Responde con datos específicos: versiones exactas, fechas, URLs. NO inventes datos."},
+                {
+                    "role": "system",
+                    "content": "Eres un experto técnico. Responde con datos específicos: versiones exactas, fechas, URLs. NO inventes datos.",  # noqa: E501
+                },
                 {"role": "user", "content": prompt},
             ],
             "max_tokens": 1500,
@@ -133,7 +135,7 @@ def call_anthropic(model: str, prompt: str, api_key: str) -> str:
         json={
             "model": model,
             "max_tokens": 1500,
-            "system": "Eres un experto técnico. Responde con datos específicos: versiones exactas, fechas, URLs. NO inventes datos.",
+            "system": "Eres un experto técnico. Responde con datos específicos: versiones exactas, fechas, URLs. NO inventes datos.",  # noqa: E501
             "messages": [{"role": "user", "content": prompt}],
         },
         timeout=30,
@@ -171,7 +173,10 @@ def call_perplexity(model: str, prompt: str, api_key: str) -> str:
         json={
             "model": model,
             "messages": [
-                {"role": "system", "content": "Eres un experto técnico. Responde con datos específicos y cita fuentes."},
+                {
+                    "role": "system",
+                    "content": "Eres un experto técnico. Responde con datos específicos y cita fuentes.",
+                },
                 {"role": "user", "content": prompt},
             ],
             "max_tokens": 1500,
@@ -193,7 +198,10 @@ def call_xai(model: str, prompt: str, api_key: str) -> str:
         json={
             "model": model,
             "messages": [
-                {"role": "system", "content": "Eres un experto técnico. Responde con datos específicos: versiones exactas, fechas, URLs."},
+                {
+                    "role": "system",
+                    "content": "Eres un experto técnico. Responde con datos específicos: versiones exactas, fechas, URLs.",  # noqa: E501
+                },
                 {"role": "user", "content": prompt},
             ],
             "max_tokens": 1500,
@@ -286,7 +294,7 @@ def consult_sabios(
 ) -> ConsultationReport:
     """
     Consult the sabios and validate their outputs in real-time.
-    
+
     This is the core function that ENFORCES the validation protocol:
     1. Call each sabio API
     2. Extract factual claims from responses
@@ -302,11 +310,11 @@ def consult_sabios(
         timestamp=datetime.now(timezone.utc).isoformat(),
     )
 
-    print(f"\n{'='*70}")
-    print(f"  SABIOS ENGINE — Consulta con Validación en Tiempo Real")
+    print(f"\n{'=' * 70}")
+    print("  SABIOS ENGINE — Consulta con Validación en Tiempo Real")
     print(f"  Prompt: {prompt[:80]}...")
     print(f"  Sabios: {', '.join(sabios)}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     # ── Call each sabio ────────────────────────────────────────────
     for sabio_key in sabios:
@@ -318,10 +326,14 @@ def consult_sabios(
         api_key = os.environ.get(config["key_env"], "")
         if not api_key:
             print(f"  ⚠️  {config['name']}: No API key ({config['key_env']})")
-            report.sabios_consulted.append(SabioResponse(
-                sabio=sabio_key, model=config["model"],
-                response_text="", error=f"Missing API key: {config['key_env']}"
-            ))
+            report.sabios_consulted.append(
+                SabioResponse(
+                    sabio=sabio_key,
+                    model=config["model"],
+                    response_text="",
+                    error=f"Missing API key: {config['key_env']}",
+                )
+            )
             continue
 
         print(f"  📡 Consulting {config['name']}...")
@@ -370,10 +382,15 @@ def consult_sabios(
         except Exception as e:
             latency = int((time.time() - start) * 1000)
             print(f"      ❌ Error ({latency}ms): {e}")
-            report.sabios_consulted.append(SabioResponse(
-                sabio=sabio_key, model=config["model"],
-                response_text="", latency_ms=latency, error=str(e)
-            ))
+            report.sabios_consulted.append(
+                SabioResponse(
+                    sabio=sabio_key,
+                    model=config["model"],
+                    response_text="",
+                    latency_ms=latency,
+                    error=str(e),
+                )
+            )
 
     # ── Consensus analysis ─────────────────────────────────────────
     all_verified = {}
@@ -391,11 +408,11 @@ def consult_sabios(
     ]
 
     # Summary
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"  CONSENSUS: {len(report.consensus_claims)} claims verified by 2+ sabios")
     for c in report.consensus_claims:
         print(f"    ✅ {c}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     # Save report
     REPORT_DIR.mkdir(exist_ok=True)
@@ -412,7 +429,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Sabios Consultation Engine")
     parser.add_argument("--prompt", required=True, help="Question to ask the sabios")
-    parser.add_argument("--sabios", default=None, help="Comma-separated list of sabios (gpt,claude,gemini,grok,perplexity)")
+    parser.add_argument(
+        "--sabios",
+        default=None,
+        help="Comma-separated list of sabios (gpt,claude,gemini,grok,perplexity)",
+    )
     parser.add_argument("--no-validate", action="store_true", help="Skip real-time validation")
     args = parser.parse_args()
 

@@ -14,7 +14,7 @@ from __future__ import annotations
 from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any, Optional
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import structlog
 
@@ -64,18 +64,14 @@ class KnowledgeGraph:
         if self._db and self._db.connected:
             try:
                 # Load entities
-                entity_rows = await self._db.select(
-                    "entities", order_by="last_seen", order_desc=True, limit=1000
-                )
+                entity_rows = await self._db.select("entities", order_by="last_seen", order_desc=True, limit=1000)
                 for row in entity_rows:
                     entity = self._row_to_entity(row)
                     if entity:
                         self._index_entity(entity)
 
                 # Load relations
-                relation_rows = await self._db.select(
-                    "relations", order_by="valid_from", order_desc=True, limit=5000
-                )
+                relation_rows = await self._db.select("relations", order_by="valid_from", order_desc=True, limit=5000)
                 for row in relation_rows:
                     relation = self._row_to_relation(row)
                     if relation:
@@ -212,18 +208,11 @@ class KnowledgeGraph:
         if direction in ("incoming", "both"):
             relation_ids.update(self._incoming.get(entity_id, []))
 
-        relations = [
-            self._relations[rid]
-            for rid in relation_ids
-            if rid in self._relations
-        ]
+        relations = [self._relations[rid] for rid in relation_ids if rid in self._relations]
 
         # Filter to currently valid relations
         now = datetime.now(timezone.utc)
-        return [
-            r for r in relations
-            if r.valid_to is None or r.valid_to > now
-        ]
+        return [r for r in relations if r.valid_to is None or r.valid_to > now]
 
     async def invalidate_relation(self, relation_id: UUID) -> bool:
         """Mark a relation as no longer valid (temporal graph)."""
@@ -289,24 +278,12 @@ class KnowledgeGraph:
                 visited_relations.add(relation.relation_id)
 
                 # Queue the other end of the relation
-                other_id = (
-                    relation.target_id
-                    if relation.source_id == current_id
-                    else relation.source_id
-                )
+                other_id = relation.target_id if relation.source_id == current_id else relation.source_id
                 if other_id not in visited_entities:
                     queue.append((other_id, current_depth + 1))
 
-        entities = [
-            self._entities[eid]
-            for eid in visited_entities
-            if eid in self._entities
-        ]
-        relations = [
-            self._relations[rid]
-            for rid in visited_relations
-            if rid in self._relations
-        ]
+        entities = [self._entities[eid] for eid in visited_entities if eid in self._entities]
+        relations = [self._relations[rid] for rid in visited_relations if rid in self._relations]
 
         return entities, relations
 
@@ -337,11 +314,7 @@ class KnowledgeGraph:
             # Get neighbors
             relations = await self.get_relations(current)
             for relation in relations:
-                neighbor = (
-                    relation.target_id
-                    if relation.source_id == current
-                    else relation.source_id
-                )
+                neighbor = relation.target_id if relation.source_id == current else relation.source_id
                 if neighbor not in visited:
                     queue.append(path + [neighbor])
 
@@ -352,10 +325,7 @@ class KnowledgeGraph:
     async def get_stats(self) -> dict[str, Any]:
         """Get knowledge graph statistics."""
         now = datetime.now(timezone.utc)
-        valid_relations = [
-            r for r in self._relations.values()
-            if r.valid_to is None or r.valid_to > now
-        ]
+        valid_relations = [r for r in self._relations.values() if r.valid_to is None or r.valid_to > now]
 
         type_counts = {}
         for eid_list in self._entities_by_type.values():
@@ -410,10 +380,10 @@ class KnowledgeGraph:
             "name": entity.name,
             "attributes": entity.attributes,
             "first_seen": entity.first_seen.isoformat()
-            if hasattr(entity.first_seen, 'isoformat')
+            if hasattr(entity.first_seen, "isoformat")
             else str(entity.first_seen),
             "last_seen": entity.last_seen.isoformat()
-            if hasattr(entity.last_seen, 'isoformat')
+            if hasattr(entity.last_seen, "isoformat")
             else str(entity.last_seen),
         }
 
@@ -428,10 +398,10 @@ class KnowledgeGraph:
             "weight": relation.weight,
             "metadata": relation.metadata,
             "valid_from": relation.valid_from.isoformat()
-            if hasattr(relation.valid_from, 'isoformat')
+            if hasattr(relation.valid_from, "isoformat")
             else str(relation.valid_from),
             "valid_to": relation.valid_to.isoformat()
-            if relation.valid_to and hasattr(relation.valid_to, 'isoformat')
+            if relation.valid_to and hasattr(relation.valid_to, "isoformat")
             else None,
         }
 
@@ -440,6 +410,7 @@ class KnowledgeGraph:
         """Convert Supabase row to Entity."""
         try:
             from uuid import UUID as _UUID
+
             return Entity(
                 entity_id=_UUID(row["entity_id"]),
                 entity_type=EntityType(row.get("entity_type", "custom")),
@@ -460,6 +431,7 @@ class KnowledgeGraph:
         """Convert Supabase row to Relation."""
         try:
             from uuid import UUID as _UUID
+
             return Relation(
                 relation_id=_UUID(row["relation_id"]),
                 source_id=_UUID(row["source_id"]),

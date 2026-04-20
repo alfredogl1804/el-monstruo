@@ -44,6 +44,7 @@ class TraceContext:
     Holds references to active trace objects across both bridges.
     Passed through the kernel run as a lightweight context carrier.
     """
+
     run_id: str
     langfuse_trace: Any = None
     otel_spans: dict[str, Any] = field(default_factory=dict)

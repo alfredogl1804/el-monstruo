@@ -16,9 +16,9 @@ HITL: Required for write operations (create_page, update_page, append_content)
 Uses httpx (async) — same as web_search, consult_sabios, webhook tools.
 """
 
-import os
 import json
 import logging
+import os
 from typing import Any
 
 import httpx
@@ -58,6 +58,7 @@ async def _request(method: str, path: str, body: dict | None = None) -> dict:
 
 
 # ── Read Operations ──────────────────────────────────────────────
+
 
 async def search(query: str, filter_type: str | None = None, limit: int = 10) -> dict:
     """Search Notion workspace for pages and databases."""
@@ -113,8 +114,12 @@ async def get_page_content(page_id: str, limit: int = 50) -> dict:
     }
 
 
-async def query_database(database_id: str, filter_obj: dict | None = None,
-                         sorts: list | None = None, limit: int = 20) -> dict:
+async def query_database(
+    database_id: str,
+    filter_obj: dict | None = None,
+    sorts: list | None = None,
+    limit: int = 20,
+) -> dict:
     """Query a Notion database with optional filters and sorts."""
     body: dict[str, Any] = {"page_size": min(limit, 100)}
     if filter_obj:
@@ -142,8 +147,8 @@ async def query_database(database_id: str, filter_obj: dict | None = None,
 
 # ── Write Operations (HITL required) ────────────────────────────
 
-async def create_page(parent_database_id: str, properties: dict,
-                      content_blocks: list | None = None) -> dict:
+
+async def create_page(parent_database_id: str, properties: dict, content_blocks: list | None = None) -> dict:
     """Create a new page in a Notion database. HITL required."""
     body: dict[str, Any] = {
         "parent": {"database_id": parent_database_id},
@@ -165,6 +170,7 @@ async def append_content(page_id: str, blocks: list) -> dict:
 
 
 # ── Helpers ──────────────────────────────────────────────────────
+
 
 def _extract_title(obj: dict) -> str:
     """Extract title from a Notion page or database object."""
@@ -266,6 +272,7 @@ def _simplify_block(block: dict) -> dict:
 
 # ── Dispatch Entry Point ────────────────────────────────────────
 
+
 async def execute_notion(action: str, params: dict[str, Any]) -> str:
     """Main dispatch for Notion tool calls from the kernel."""
     actions = {
@@ -280,9 +287,7 @@ async def execute_notion(action: str, params: dict[str, Any]) -> str:
 
     fn = actions.get(action)
     if not fn:
-        return json.dumps({
-            "error": f"Unknown Notion action: {action}. Available: {list(actions.keys())}"
-        })
+        return json.dumps({"error": f"Unknown Notion action: {action}. Available: {list(actions.keys())}"})
 
     try:
         result = await fn(**params)

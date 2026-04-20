@@ -16,9 +16,7 @@ all persistent memory. Every memory operation goes through this store."
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
 from typing import Any, Optional
-from uuid import UUID, uuid4
 
 import structlog
 
@@ -37,6 +35,7 @@ class ThoughtsStore:
         """Initialize the store and OpenAI client for embeddings."""
         try:
             from openai import AsyncOpenAI
+
             api_key = os.environ.get("OPENAI_API_KEY", "")
             if api_key:
                 self._openai_client = AsyncOpenAI(api_key=api_key)
@@ -339,11 +338,14 @@ class ThoughtsStore:
             return []
         # Use Supabase textSearch
         try:
-            q = self._db._client.table("thoughts").select(
-                "id,content,summary,layer,importance,tags,project,created_at"
-            ).eq("user_id", user_id).eq("superseded", False).text_search(
-                "content_tsv", query, config="spanish"
-            ).limit(limit)
+            q = (
+                self._db._client.table("thoughts")
+                .select("id,content,summary,layer,importance,tags,project,created_at")
+                .eq("user_id", user_id)
+                .eq("superseded", False)
+                .text_search("content_tsv", query, config="spanish")
+                .limit(limit)
+            )
 
             if layer:
                 q = q.eq("layer", layer)

@@ -15,7 +15,6 @@ Principio: El Monstruo decide el routing. Los SDKs ejecutan.
 
 from __future__ import annotations
 
-import os
 import collections
 from typing import Any, Optional
 
@@ -32,11 +31,12 @@ def get_fallback_metrics() -> dict[str, dict[str, int]]:
     """Return a copy of the fallback metrics for the stats endpoint."""
     return dict(_FALLBACK_METRICS)
 
+
 import structlog
 
+from config.model_catalog import MODELS
 from contracts.kernel_interface import IntentType
-from config.model_catalog import MODELS, FALLBACK_CHAINS
-from router.llm_client import LLMClient
+from router.llm_client import LLMClient, LLMResponse
 
 logger = structlog.get_logger("router")
 
@@ -45,28 +45,26 @@ logger = structlog.get_logger("router")
 # Maps kernel intents to model_catalog.py keys (not litellm aliases)
 
 DEFAULT_MODEL_MAP: dict[IntentType, str] = {
-    IntentType.CHAT: "gemini-3.1-flash-lite",       # Rápido y gratis
-    IntentType.DEEP_THINK: "gpt-5.4",               # Razonamiento complejo
-    IntentType.EXECUTE: "claude-sonnet-4-6",         # Código y ejecución
+    IntentType.CHAT: "gemini-3.1-flash-lite",  # Rápido y gratis
+    IntentType.DEEP_THINK: "gpt-5.4",  # Razonamiento complejo
+    IntentType.EXECUTE: "claude-sonnet-4-6",  # Código y ejecución
     IntentType.BACKGROUND: "gemini-3.1-flash-lite",  # Tareas largas baratas
-    IntentType.SYSTEM: "gemini-3.1-flash-lite",      # Respuestas rápidas
+    IntentType.SYSTEM: "gemini-3.1-flash-lite",  # Respuestas rápidas
 }
 
 # Brain → Catalog Model mapping (6 cerebros del Monstruo)
 BRAIN_MODEL_MAP: dict[str, str] = {
-    "estratega":     "gpt-5.4",
-    "investigador":  "sonar-reasoning-pro",
-    "arquitecto":    "claude-opus-4-6",
-    "creativo":      "gemini-3.1-pro",
-    "critico":       "grok-4.20",
-    "operador":      "gemini-3.1-flash-lite",
+    "estratega": "gpt-5.4",
+    "investigador": "sonar-reasoning-pro",
+    "arquitecto": "claude-opus-4-6",
+    "creativo": "gemini-3.1-pro",
+    "critico": "grok-4.20",
+    "operador": "gemini-3.1-flash-lite",
 }
 
 # Alias → Catalog key mapping (para compatibilidad con código existente)
 ALIAS_TO_CATALOG: dict[str, str] = {
-    cfg["litellm_alias"]: name
-    for name, cfg in MODELS.items()
-    if "litellm_alias" in cfg
+    cfg["litellm_alias"]: name for name, cfg in MODELS.items() if "litellm_alias" in cfg
 }
 
 # Fallback chain per catalog model name
@@ -88,8 +86,12 @@ FALLBACK_CHAIN: dict[str, list[str]] = {
 # Intent classification prompt
 INTENT_SYSTEM_PROMPT = """You are an intent classifier for El Monstruo AI system.
 Classify the user message into exactly ONE of these intents:
-- chat: Conversation, greetings, simple questions, personal queries, quick math (2+2, etc.), asking about projects/preferences/memories, small talk, opinions, short factual answers, translations, definitions
-- deep_think: ONLY for complex multi-step analysis, detailed comparisons, research reports, strategic planning, or questions requiring >500 word answers. NOT for simple "why" questions.
+- chat: Conversation, greetings, simple questions, personal queries,
+  quick math, projects/preferences/memories, small talk, opinions,
+  short factual answers, translations, definitions
+- deep_think: ONLY for complex multi-step analysis, detailed comparisons,
+  research reports, strategic planning, or questions requiring >500 word
+  answers. NOT for simple "why" questions.
 - execute: Actions to perform (create, send, publish, generate, build, deploy, configure, delete)
 - background: Long-running tasks that should run asynchronously
 - system: ONLY literal system commands like /start /help /status /cancel, or explicit requests about bot health/version
@@ -268,8 +270,7 @@ class RouterEngine:
 
         # All models failed
         raise RuntimeError(
-            f"All models failed for intent {intent.value}. "
-            f"Tried: {models_to_try}. Last error: {last_error}"
+            f"All models failed for intent {intent.value}. Tried: {models_to_try}. Last error: {last_error}"
         )
 
     async def execute_with_tools(
@@ -288,7 +289,6 @@ class RouterEngine:
         If tool_results is provided, this is a follow-up call where the LLM
         receives the results of previously executed tools.
         """
-        from router.llm_client import LLMResponse
 
         system_prompt = _get_system_prompt(intent, context)
         messages = []
@@ -314,20 +314,24 @@ class RouterEngine:
             # This represents what the LLM said in the previous turn
             reconstructed_tool_calls = []
             for tr in tool_results:
-                reconstructed_tool_calls.append({
-                    "id": tr.get("tool_call_id", f"call_{__import__('uuid').uuid4().hex[:8]}"),
-                    "type": "function",
-                    "function": {
-                        "name": tr.get("name", "tool"),
-                        "arguments": _json.dumps(tr.get("args", {}), ensure_ascii=False),
-                    },
-                })
+                reconstructed_tool_calls.append(
+                    {
+                        "id": tr.get("tool_call_id", f"call_{__import__('uuid').uuid4().hex[:8]}"),
+                        "type": "function",
+                        "function": {
+                            "name": tr.get("name", "tool"),
+                            "arguments": _json.dumps(tr.get("args", {}), ensure_ascii=False),
+                        },
+                    }
+                )
 
-            messages.append({
-                "role": "assistant",
-                "content": None,
-                "tool_calls": reconstructed_tool_calls,
-            })
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": None,
+                    "tool_calls": reconstructed_tool_calls,
+                }
+            )
 
             # Now add the tool result messages
             for tr in tool_results:
@@ -337,12 +341,14 @@ class RouterEngine:
                 else:
                     result_str = str(result_content)[:4000]
 
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tr.get("tool_call_id", ""),
-                    "name": tr.get("name", "tool"),
-                    "content": result_str,
-                })
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tr.get("tool_call_id", ""),
+                        "name": tr.get("name", "tool"),
+                        "content": result_str,
+                    }
+                )
 
         # Intent-specific parameters for deep_think vs chat
         _INTENT_PARAMS: dict[IntentType, dict[str, Any]] = {
@@ -403,6 +409,7 @@ class RouterEngine:
 
             except Exception as e:
                 import traceback as _tb
+
                 last_error = e
                 if attempt_model == catalog_key:
                     _FALLBACK_METRICS[attempt_model]["primary_fail"] += 1
@@ -424,8 +431,7 @@ class RouterEngine:
                 continue
 
         raise RuntimeError(
-            f"All models failed for intent {intent.value} with tools. "
-            f"Tried: {models_to_try}. Last error: {last_error}"
+            f"All models failed for intent {intent.value} with tools. Tried: {models_to_try}. Last error: {last_error}"
         )
 
     async def execute_stream(
@@ -492,8 +498,7 @@ class RouterEngine:
                 continue
 
         raise RuntimeError(
-            f"All models failed for streaming intent {intent.value}. "
-            f"Tried: {models_to_try}. Last error: {last_error}"
+            f"All models failed for streaming intent {intent.value}. Tried: {models_to_try}. Last error: {last_error}"
         )
 
     async def health_check(self) -> dict[str, Any]:
@@ -502,7 +507,10 @@ class RouterEngine:
             # Quick test with the cheapest model
             model_config = MODELS.get("gemini-3.1-flash-lite")
             if model_config is None:
-                return {"status": "error", "error": "gemini-3.1-flash-lite not in catalog"}
+                return {
+                    "status": "error",
+                    "error": "gemini-3.1-flash-lite not in catalog",
+                }
 
             response, usage = await self._llm.chat(
                 model_config=model_config,
@@ -557,6 +565,7 @@ class RouterEngine:
 
 # ── System Prompts per Intent ───────────────────────────────────────
 
+
 def _get_system_prompt(
     intent: IntentType,
     context: Optional[dict[str, Any]] = None,
@@ -580,6 +589,7 @@ def _get_system_prompt(
     if context and context.get("brain"):
         try:
             from prompts.system_prompts import get_brain_prompt
+
             return get_brain_prompt(context["brain"])
         except ImportError:
             pass  # Fall through to default
@@ -593,10 +603,7 @@ def _get_system_prompt(
     )
 
     intent_additions = {
-        IntentType.CHAT: (
-            " Mantén las respuestas concisas y útiles. "
-            "Si la pregunta es simple, responde brevemente."
-        ),
+        IntentType.CHAT: (" Mantén las respuestas concisas y útiles. Si la pregunta es simple, responde brevemente."),
         IntentType.DEEP_THINK: (
             "\n\n## Modo Deep Think — Razonamiento Profundo\n"
             "Estás en modo de análisis profundo. Sigue este protocolo:\n\n"
@@ -605,7 +612,7 @@ def _get_system_prompt(
             "3. **Considera múltiples perspectivas** — al menos 2 ángulos opuestos.\n"
             "4. **Evalúa evidencia** — distingue hechos de suposiciones. Cita fuentes.\n"
             "5. **Identifica incertidumbre** — señala lo que NO sabes o no puedes verificar.\n"
-            "6. **Sintetiza** — después del análisis, da una conclusión clara con nivel de confianza (alto/medio/bajo).\n\n"
+            "6. **Sintetiza** — después del análisis, da una conclusión clara con nivel de confianza (alto/medio/bajo).\n\n"  # noqa: E501
             "Formato: Usa headers ##, tablas comparativas, y bullet points para estructura.\n"
             "Extensión: Sé exhaustivo. Este modo justifica respuestas largas y detalladas.\n"
             "Si la pregunta requiere datos que no tienes, usa las herramientas disponibles para investigar."
@@ -616,12 +623,9 @@ def _get_system_prompt(
             "Si necesitas más información, pregunta."
         ),
         IntentType.BACKGROUND: (
-            " Esta es una tarea de fondo. Sé exhaustivo y detallado. "
-            "Proporciona un resumen ejecutivo al final."
+            " Esta es una tarea de fondo. Sé exhaustivo y detallado. Proporciona un resumen ejecutivo al final."
         ),
-        IntentType.SYSTEM: (
-            " Responde con información del sistema de forma clara y estructurada."
-        ),
+        IntentType.SYSTEM: (" Responde con información del sistema de forma clara y estructurada."),
     }
 
     # Add custom system prompt from context if provided (short instructions)
@@ -634,23 +638,57 @@ def _get_system_prompt(
 
 # ── Local Intent Classification (no LLM) ───────────────────────────
 
+
 def _classify_intent_local(message: str) -> IntentType:
     """Keyword-based intent classification. Fast, free, offline."""
     msg = message.lower().strip()
 
     deep_keywords = {
-        "analiza", "piensa", "razona", "explica", "compara", "evalúa",
-        "investiga", "profundiza", "detalla", "por qué",
-        "analyze", "think", "reason", "explain", "compare", "evaluate",
+        "analiza",
+        "piensa",
+        "razona",
+        "explica",
+        "compara",
+        "evalúa",
+        "investiga",
+        "profundiza",
+        "detalla",
+        "por qué",
+        "analyze",
+        "think",
+        "reason",
+        "explain",
+        "compare",
+        "evaluate",
     }
     exec_keywords = {
-        "haz", "ejecuta", "crea", "genera", "envía", "publica",
-        "construye", "despliega", "configura", "instala",
-        "do", "execute", "create", "generate", "send", "publish",
+        "haz",
+        "ejecuta",
+        "crea",
+        "genera",
+        "envía",
+        "publica",
+        "construye",
+        "despliega",
+        "configura",
+        "instala",
+        "do",
+        "execute",
+        "create",
+        "generate",
+        "send",
+        "publish",
     }
     system_keywords = {
-        "status", "health", "estado", "salud", "/start", "/help",
-        "/status", "/cancel", "/stop",
+        "status",
+        "health",
+        "estado",
+        "salud",
+        "/start",
+        "/help",
+        "/status",
+        "/cancel",
+        "/stop",
     }
 
     words = set(msg.split())

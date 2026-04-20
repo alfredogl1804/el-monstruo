@@ -31,37 +31,85 @@ logger = structlog.get_logger("policy.matrix")
 
 # Clase 1: Financiera (dinero real)
 FINANCIAL_ACTIONS = {
-    "pagar", "transferir", "comprar", "invertir", "reembolsar",
-    "pay", "transfer", "buy", "invest", "refund",
-    "cobrar", "facturar", "cotizar",
+    "pagar",
+    "transferir",
+    "comprar",
+    "invertir",
+    "reembolsar",
+    "pay",
+    "transfer",
+    "buy",
+    "invest",
+    "refund",
+    "cobrar",
+    "facturar",
+    "cotizar",
 }
 
 # Clase 2: Comunicación externa (reputación)
 COMMS_ACTIONS = {
-    "publicar", "enviar", "responder", "postear", "tuitear",
-    "publish", "send", "reply", "post", "tweet",
-    "email", "whatsapp", "telegram",
+    "publicar",
+    "enviar",
+    "responder",
+    "postear",
+    "tuitear",
+    "publish",
+    "send",
+    "reply",
+    "post",
+    "tweet",
+    "email",
+    "whatsapp",
+    "telegram",
 }
 
 # Clase 3: Datos sensibles (privacidad)
 DATA_ACTIONS = {
-    "borrar", "eliminar", "modificar", "exportar", "compartir",
-    "delete", "remove", "modify", "export", "share",
-    "migrar", "resetear",
+    "borrar",
+    "eliminar",
+    "modificar",
+    "exportar",
+    "compartir",
+    "delete",
+    "remove",
+    "modify",
+    "export",
+    "share",
+    "migrar",
+    "resetear",
 }
 
 # Clase 4: Infraestructura (estabilidad)
 INFRA_ACTIONS = {
-    "desplegar", "deploy", "rollback", "escalar", "reiniciar",
-    "scale", "restart", "shutdown", "update", "upgrade",
-    "configurar", "instalar",
+    "desplegar",
+    "deploy",
+    "rollback",
+    "escalar",
+    "reiniciar",
+    "scale",
+    "restart",
+    "shutdown",
+    "update",
+    "upgrade",
+    "configurar",
+    "instalar",
 }
 
 # Clase 5: Información (bajo riesgo)
 INFO_ACTIONS = {
-    "buscar", "analizar", "resumir", "investigar", "comparar",
-    "search", "analyze", "summarize", "research", "compare",
-    "listar", "consultar", "explicar",
+    "buscar",
+    "analizar",
+    "resumir",
+    "investigar",
+    "comparar",
+    "search",
+    "analyze",
+    "summarize",
+    "research",
+    "compare",
+    "listar",
+    "consultar",
+    "explicar",
 }
 
 
@@ -107,6 +155,7 @@ CLASS_RISK: dict[str, dict[str, Any]] = {
 
 
 # ===================== POLICY HOOKS (implementing PolicyHook ABC) =====================
+
 
 class PolicyMatrixHook(PolicyHook):
     """
@@ -183,8 +232,7 @@ class CostGuardHook(PolicyHook):
             return PolicyDecision(
                 policy_name=self.name,
                 verdict=PolicyVerdict.BLOCK,
-                reason=f"Límite diario de ${self._daily_limit} USD alcanzado. "
-                       f"Costo acumulado: ${self._daily_cost:.2f}",
+                reason=f"Límite diario de ${self._daily_limit} USD alcanzado. Costo acumulado: ${self._daily_cost:.2f}",
             )
 
         return PolicyDecision(
@@ -209,9 +257,9 @@ class ContentFilterHook(PolicyHook):
 
     SENSITIVE_PATTERNS = [
         r"\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b",  # Credit card numbers
-        r"\b[A-Z]{4}\d{6}[A-Z0-9]{8}\b",                  # CURP (Mexico)
-        r"\b\d{3}-?\d{2}-?\d{4}\b",                        # SSN
-        r"(?i)contraseña|password|secret|api.?key",         # Credentials
+        r"\b[A-Z]{4}\d{6}[A-Z0-9]{8}\b",  # CURP (Mexico)
+        r"\b\d{3}-?\d{2}-?\d{4}\b",  # SSN
+        r"(?i)contraseña|password|secret|api.?key",  # Credentials
     ]
 
     @property
@@ -252,6 +300,7 @@ class ContentFilterHook(PolicyHook):
 
 
 # ===================== POLICY PIPELINE IMPLEMENTATION =====================
+
 
 class PolicyMatrixPipeline(PolicyPipeline):
     """
@@ -309,11 +358,13 @@ class PolicyMatrixPipeline(PolicyPipeline):
                     error=str(e),
                 )
                 # On error, allow but log
-                decisions.append(PolicyDecision(
-                    policy_name=hook.name,
-                    verdict=PolicyVerdict.LOG_ONLY,
-                    reason=f"Error evaluando política: {e}",
-                ))
+                decisions.append(
+                    PolicyDecision(
+                        policy_name=hook.name,
+                        verdict=PolicyVerdict.LOG_ONLY,
+                        reason=f"Error evaluando política: {e}",
+                    )
+                )
 
         return decisions
 
@@ -330,6 +381,7 @@ class PolicyMatrixPipeline(PolicyPipeline):
 
 # ===================== HELPER FUNCTIONS =====================
 
+
 def classify_action(message: str) -> str:
     """
     Classify a message into one of the 5 action classes.
@@ -339,7 +391,13 @@ def classify_action(message: str) -> str:
     words = set(msg_lower.split())
 
     # Check each class in risk order (highest first)
-    for class_name in ["financial", "communications", "data", "infrastructure", "information"]:
+    for class_name in [
+        "financial",
+        "communications",
+        "data",
+        "infrastructure",
+        "information",
+    ]:
         keywords = CLASS_RISK[class_name]["keywords"]
         if words & keywords:
             return class_name

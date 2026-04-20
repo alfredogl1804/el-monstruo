@@ -12,11 +12,10 @@ These endpoints are an alternative to the schedule_task tool —
 the tool is used by the LLM during conversation, while these
 endpoints can be used by the bot or external clients directly.
 """
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from typing import Any, Optional
-from uuid import uuid4
 
 import structlog
 from fastapi import APIRouter, HTTPException
@@ -27,6 +26,7 @@ logger = structlog.get_logger("api.autonomy")
 router = APIRouter(prefix="/v1/autonomy", tags=["autonomy"])
 
 # ── Request/Response Models ─────────────────────────────────────────
+
 
 class ScheduleRequest(BaseModel):
     title: str = Field(..., description="Short title for the task")
@@ -87,6 +87,7 @@ def set_dependencies(db: Any, runner: Any) -> None:
 
 # ── Endpoints ───────────────────────────────────────────────────────
 
+
 @router.post("/schedule", response_model=ScheduleResponse)
 async def schedule_job(request: ScheduleRequest):
     """Create a new scheduled job via API."""
@@ -94,6 +95,7 @@ async def schedule_job(request: ScheduleRequest):
         raise HTTPException(status_code=503, detail="Database not available")
 
     from tools.schedule_task import execute_schedule_task
+
     result = await execute_schedule_task(
         params={
             "title": request.title,
@@ -187,14 +189,18 @@ async def cancel_job(job_id: str):
             detail=f"Cannot cancel job with status '{job.get('status')}'. Only 'scheduled' jobs can be cancelled.",
         )
 
-    result = await _db.update(
+    await _db.update(
         "scheduled_jobs",
         {"status": "cancelled"},
         {"id": job_id},
     )
 
     logger.info("job_cancelled", job_id=job_id)
-    return {"success": True, "job_id": job_id, "message": f"Job '{job.get('title')}' cancelled."}
+    return {
+        "success": True,
+        "job_id": job_id,
+        "message": f"Job '{job.get('title')}' cancelled.",
+    }
 
 
 @router.get("/stats", response_model=RunnerStats)

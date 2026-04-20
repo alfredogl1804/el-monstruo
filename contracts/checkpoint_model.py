@@ -19,15 +19,17 @@ from uuid import UUID, uuid4
 
 class CheckpointType(Enum):
     """Tipos de checkpoint."""
-    AUTO = "auto"           # Creado automáticamente por el sistema
-    MANUAL = "manual"       # Creado por solicitud explícita
-    PRE_TOOL = "pre_tool"   # Antes de ejecutar una herramienta
-    ON_ERROR = "on_error"   # Cuando ocurre un error
-    PERIODIC = "periodic"   # Checkpoint periódico programado
+
+    AUTO = "auto"  # Creado automáticamente por el sistema
+    MANUAL = "manual"  # Creado por solicitud explícita
+    PRE_TOOL = "pre_tool"  # Antes de ejecutar una herramienta
+    ON_ERROR = "on_error"  # Cuando ocurre un error
+    PERIODIC = "periodic"  # Checkpoint periódico programado
 
 
 class SystemHealth(Enum):
     """Estado de salud del sistema."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -41,6 +43,7 @@ class CheckpointData:
     Contiene todo lo necesario para reconstruir el estado
     exacto del sistema en un momento dado.
     """
+
     checkpoint_id: UUID = field(default_factory=uuid4)
     checkpoint_type: CheckpointType = CheckpointType.AUTO
     run_id: Optional[UUID] = None
@@ -69,6 +72,7 @@ class SystemState:
     Estado global del sistema en un momento dado.
     Usado para health checks y monitoreo.
     """
+
     state_id: UUID = field(default_factory=uuid4)
     health: SystemHealth = SystemHealth.HEALTHY
     active_runs: int = 0
@@ -83,6 +87,7 @@ class SystemState:
 
 
 # ── Checkpoint Store Contract ───────────────────────────────────────
+
 
 class CheckpointStore(ABC):
     """

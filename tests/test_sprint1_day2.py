@@ -9,34 +9,31 @@ Tests for:
 
 Run: pytest tests/test_sprint1_day2.py -v
 """
-from __future__ import annotations
 
-import pytest
+from __future__ import annotations
 
 from core.action_envelope import (
     ActionType,
+    ActorRef,
+    ResourceKind,
+    ResourceRef,
     RiskLevel,
     TrustRing,
-    ResourceKind,
-    ActorRef,
-    ResourceRef,
     create_envelope,
-    envelope_to_dict,
 )
 from core.action_validator import validate_and_classify
 from core.composite_risk import CompositeRiskCalculator
 from core.policy_engine import (
+    PolicyEffect,
     PolicyEngine,
     PolicyRule,
-    PolicyEffect,
-    PolicyEvalResult,
     get_policy_engine,
 )
-
 
 # ══════════════════════════════════════════════════════════════════════
 # Helpers
 # ══════════════════════════════════════════════════════════════════════
+
 
 def _make_envelope(
     action_type: ActionType = ActionType.READ,
@@ -66,6 +63,7 @@ def _make_envelope(
 # ══════════════════════════════════════════════════════════════════════
 # 1. CompositeRiskCalculator Tests
 # ══════════════════════════════════════════════════════════════════════
+
 
 class TestCompositeRiskCalculator:
     """Tests for core/composite_risk.py"""
@@ -159,6 +157,7 @@ class TestCompositeRiskCalculator:
 # 2. PolicyEngine Tests
 # ══════════════════════════════════════════════════════════════════════
 
+
 class TestPolicyEngine:
     """Tests for core/policy_engine.py"""
 
@@ -243,15 +242,13 @@ class TestPolicyEngine:
         """Bridge method should produce valid PolicyDecision."""
         envelope = _make_envelope()
         result = self.engine.evaluate(envelope)
-        pd = self.engine.to_envelope_policy_decision(
-            result, TrustRing.R2_USER_DELEGATED, RiskLevel.L1_SAFE
-        )
+        pd = self.engine.to_envelope_policy_decision(result, TrustRing.R2_USER_DELEGATED, RiskLevel.L1_SAFE)
         assert pd.decision in ("ALLOW", "DENY", "HITL")
         assert pd.policy_version == self.engine.version
 
     def test_version(self):
         """Engine should report its version."""
-        assert "v1.0.0" in self.engine.version
+        assert "v1.1.0" in self.engine.version
 
     def test_singleton(self):
         """get_policy_engine should return same instance."""
@@ -264,12 +261,14 @@ class TestPolicyEngine:
 # 3. HITL Gate Tests
 # ══════════════════════════════════════════════════════════════════════
 
+
 class TestHITLGate:
     """Tests for kernel/hitl.py hitl_gate function."""
 
     def test_normal_flow_goes_to_respond(self):
         """Non-HITL actions should go to respond."""
         from kernel.hitl import hitl_gate
+
         state = {
             "status": "executing",
             "policy_decision": "ALLOW",
@@ -280,6 +279,7 @@ class TestHITLGate:
     def test_hitl_policy_goes_to_review(self):
         """HITL policy decision should route to hitl_review."""
         from kernel.hitl import hitl_gate
+
         state = {
             "status": "executing",
             "policy_decision": "HITL",
@@ -291,6 +291,7 @@ class TestHITLGate:
     def test_failed_status_goes_to_respond(self):
         """Failed execution should skip HITL and go to respond."""
         from kernel.hitl import hitl_gate
+
         state = {
             "status": "failed",
             "policy_decision": "HITL",
@@ -301,6 +302,7 @@ class TestHITLGate:
     def test_needs_approval_flag_alone(self):
         """needs_human_approval flag alone should trigger HITL."""
         from kernel.hitl import hitl_gate
+
         state = {
             "status": "executing",
             "policy_decision": "ALLOW",
@@ -312,6 +314,7 @@ class TestHITLGate:
 # ══════════════════════════════════════════════════════════════════════
 # 4. End-to-End Governance Pipeline
 # ══════════════════════════════════════════════════════════════════════
+
 
 class TestEndToEndGovernance:
     """Integration tests for the full governance pipeline."""
@@ -333,7 +336,8 @@ class TestEndToEndGovernance:
         )
         assert envelope.policy_decision is not None
         assert envelope.policy_decision.risk_level in (
-            RiskLevel.L2_CAUTION, RiskLevel.L3_SENSITIVE
+            RiskLevel.L2_CAUTION,
+            RiskLevel.L3_SENSITIVE,
         )
 
     def test_delete_secret_full_pipeline(self):
@@ -347,6 +351,7 @@ class TestEndToEndGovernance:
         assert result.requires_hitl
         # Verify hitl_gate would route correctly
         from kernel.hitl import hitl_gate
+
         state = {
             "status": "executing",
             "policy_decision": result.decision,

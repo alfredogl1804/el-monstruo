@@ -21,28 +21,31 @@ from uuid import UUID, uuid4
 
 class PolicyVerdict(enum.Enum):
     """Resultado de la evaluación de una política."""
-    ALLOW = "allow"           # Acción permitida, continuar
-    BLOCK = "block"           # Acción bloqueada, no ejecutar
-    MODIFY = "modify"         # Acción permitida con modificaciones
-    ESCALATE = "escalate"     # Requiere aprobación humana
-    LOG_ONLY = "log_only"     # Permitir pero registrar para auditoría
+
+    ALLOW = "allow"  # Acción permitida, continuar
+    BLOCK = "block"  # Acción bloqueada, no ejecutar
+    MODIFY = "modify"  # Acción permitida con modificaciones
+    ESCALATE = "escalate"  # Requiere aprobación humana
+    LOG_ONLY = "log_only"  # Permitir pero registrar para auditoría
 
 
 class PolicyPhase(enum.Enum):
     """Fase del ciclo de vida donde se evalúa la política."""
-    PRE_ROUTE = "pre_route"       # Antes de decidir qué modelo usar
-    POST_ROUTE = "post_route"     # Después de routing, antes de ejecución
-    PRE_EXECUTE = "pre_execute"   # Antes de ejecutar con el modelo
-    POST_EXECUTE = "post_execute" # Después de ejecutar, antes de responder
-    PRE_TOOL = "pre_tool"         # Antes de llamar una herramienta
-    POST_TOOL = "post_tool"       # Después de llamar una herramienta
-    PRE_RESPOND = "pre_respond"   # Antes de enviar respuesta al usuario
-    ON_ERROR = "on_error"         # Cuando ocurre un error
+
+    PRE_ROUTE = "pre_route"  # Antes de decidir qué modelo usar
+    POST_ROUTE = "post_route"  # Después de routing, antes de ejecución
+    PRE_EXECUTE = "pre_execute"  # Antes de ejecutar con el modelo
+    POST_EXECUTE = "post_execute"  # Después de ejecutar, antes de responder
+    PRE_TOOL = "pre_tool"  # Antes de llamar una herramienta
+    POST_TOOL = "post_tool"  # Después de llamar una herramienta
+    PRE_RESPOND = "pre_respond"  # Antes de enviar respuesta al usuario
+    ON_ERROR = "on_error"  # Cuando ocurre un error
 
 
 @dataclass(frozen=True)
 class PolicyContext:
     """Contexto completo para evaluar una política."""
+
     run_id: UUID = field(default_factory=uuid4)
     user_id: str = ""
     channel: str = ""
@@ -61,6 +64,7 @@ class PolicyContext:
 @dataclass
 class PolicyDecision:
     """Resultado de evaluar una política."""
+
     decision_id: UUID = field(default_factory=uuid4)
     policy_name: str = ""
     verdict: PolicyVerdict = PolicyVerdict.ALLOW
@@ -71,6 +75,7 @@ class PolicyDecision:
 
 
 # ── Policy Hook Contract ────────────────────────────────────────────
+
 
 class PolicyHook(ABC):
     """
@@ -120,6 +125,7 @@ class PolicyHook(ABC):
 
 
 # ── Policy Pipeline ─────────────────────────────────────────────────
+
 
 class PolicyPipeline(ABC):
     """

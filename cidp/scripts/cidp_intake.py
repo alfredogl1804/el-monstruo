@@ -6,11 +6,8 @@ Normaliza el input del usuario, clasifica el software objetivo,
 define el scope, presupuesto, guardrails y métricas 10x.
 """
 
-import asyncio
 import json
-import os
 import sys
-import yaml
 from pathlib import Path
 
 sys.path.insert(0, "/home/ubuntu/skills/consulta-sabios/scripts")
@@ -23,8 +20,7 @@ Tu trabajo es analizar un software/plataforma objetivo y producir una especifica
 Responde SOLO con JSON válido, sin markdown ni explicaciones."""
 
 
-async def run_intake(target: str, objective: str, dimensions: dict,
-                     budget_usd: float, output_dir: Path) -> dict:
+async def run_intake(target: str, objective: str, dimensions: dict, budget_usd: float, output_dir: Path) -> dict:
     """Execute Stage 1: Intake & Scope."""
     print(f"  Analizando target: {target}")
     print(f"  Objetivo: {objective}")
@@ -68,7 +64,8 @@ Responde con este JSON exacto:
         result = json.loads(text)
     except json.JSONDecodeError:
         import re
-        match = re.search(r'\{[\s\S]*\}', text)
+
+        match = re.search(r"\{[\s\S]*\}", text)
         if match:
             result = json.loads(match.group())
         else:
@@ -106,7 +103,9 @@ Responde con este JSON exacto:
         if result.get("success_metrics"):
             f.write("## Métricas de Éxito\n\n")
             for m in result["success_metrics"]:
-                f.write(f"- **{m.get('name', 'N/A')}**: {m.get('current_estimate', '?')} → {m.get('target_10x', '?')} {m.get('unit', '')}\n")
+                f.write(
+                    f"- **{m.get('name', 'N/A')}**: {m.get('current_estimate', '?')} → {m.get('target_10x', '?')} {m.get('unit', '')}\n"  # noqa: E501
+                )
         if result.get("guardrails"):
             f.write("\n## Guardrails\n\n")
             for g in result["guardrails"]:

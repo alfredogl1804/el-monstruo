@@ -18,11 +18,12 @@ from datetime import datetime
 from typing import Any, AsyncIterator, Callable, Optional
 from uuid import UUID, uuid4
 
-
 # ── Run States ──────────────────────────────────────────────────────
+
 
 class RunStatus(enum.Enum):
     """Estados posibles de una ejecución del Kernel."""
+
     PENDING = "pending"
     ROUTING = "routing"
     EXECUTING = "executing"
@@ -37,6 +38,7 @@ class RunStatus(enum.Enum):
 
 class IntentType(enum.Enum):
     """Tipos de intención detectados por el Router."""
+
     CHAT = "chat"
     DEEP_THINK = "deep_think"
     EXECUTE = "execute"
@@ -46,9 +48,11 @@ class IntentType(enum.Enum):
 
 # ── Data Models ─────────────────────────────────────────────────────
 
+
 @dataclass(frozen=True)
 class RunInput:
     """Entrada canónica para iniciar una ejecución."""
+
     run_id: UUID = field(default_factory=uuid4)
     user_id: str = ""
     channel: str = "telegram"  # telegram | console | api
@@ -62,6 +66,7 @@ class RunInput:
 @dataclass
 class RunOutput:
     """Salida canónica de una ejecución."""
+
     run_id: UUID = field(default_factory=uuid4)
     status: RunStatus = RunStatus.COMPLETED
     intent: IntentType = IntentType.CHAT
@@ -79,6 +84,7 @@ class RunOutput:
 @dataclass(frozen=True)
 class Checkpoint:
     """Snapshot del estado de una ejecución para replay y recovery."""
+
     checkpoint_id: UUID = field(default_factory=uuid4)
     run_id: UUID = field(default_factory=uuid4)
     step: int = 0
@@ -88,6 +94,7 @@ class Checkpoint:
 
 
 # ── Kernel Contract ─────────────────────────────────────────────────
+
 
 class KernelInterface(ABC):
     """

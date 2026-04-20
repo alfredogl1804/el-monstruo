@@ -7,17 +7,19 @@ XSS payloads, and excessive data from polluting the conversation.
 
 Anti-autoboicot: validated 2026-04-18
 """
+
 from __future__ import annotations
 
 import re
+
 import structlog
 
 logger = structlog.get_logger("kernel.output_sanitizer")
 
 # ── Configuration ────────────────────────────────────────────────
 MAX_OUTPUT_CHARS = 8_000  # Truncate tool outputs beyond this
-MAX_ITEMS_IN_LIST = 50    # Cap list results
-STRIP_HTML_TAGS = True    # Remove HTML/script tags from output
+MAX_ITEMS_IN_LIST = 50  # Cap list results
+STRIP_HTML_TAGS = True  # Remove HTML/script tags from output
 
 # ── Dangerous patterns ───────────────────────────────────────────
 _SCRIPT_RE = re.compile(r"<script[^>]*>.*?</script>", re.IGNORECASE | re.DOTALL)
@@ -38,7 +40,7 @@ _LONG_URL_RE = re.compile(r"https?://[^\s]{500,}")
 def sanitize_tool_output(output: str, *, tool_name: str = "") -> str:
     """
     Sanitize a tool output string before it enters the LLM context.
-    
+
     Steps:
     1. Strip <script> and <style> blocks
     2. Strip remaining HTML tags (optional)
@@ -46,7 +48,7 @@ def sanitize_tool_output(output: str, *, tool_name: str = "") -> str:
     4. Remove excessively long URLs
     5. Detect and defang prompt injection attempts
     6. Truncate to MAX_OUTPUT_CHARS
-    
+
     Returns the sanitized string.
     """
     if not output:
@@ -100,7 +102,7 @@ def sanitize_tool_output(output: str, *, tool_name: str = "") -> str:
             tool=tool_name,
             original_len=original_len,
             sanitized_len=len(result),
-            reduction_pct=f"{(1 - len(result)/original_len)*100:.1f}%",
+            reduction_pct=f"{(1 - len(result) / original_len) * 100:.1f}%",
         )
 
     return result

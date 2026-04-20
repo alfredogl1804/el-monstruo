@@ -6,7 +6,7 @@ Metrics: faithfulness, answer_relevancy, context_precision, context_recall.
 
 Usage:
     python -m evaluation.ragas_config --run
-    
+
 Requires: pip install ragas==0.4.3
 
 TODO Sprint 17: Evaluate infiniflow/ragflow (78K+ stars, Score 8.46)
@@ -16,8 +16,8 @@ TODO Sprint 17: Evaluate infiniflow/ragflow (78K+ stars, Score 8.46)
 
 from __future__ import annotations
 
-import os
 import json
+import os
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -27,24 +27,28 @@ class RagasConfig:
     """Configuration for Ragas evaluation runs."""
 
     # Metrics to evaluate
-    metrics: list[str] = field(default_factory=lambda: [
-        "faithfulness",
-        "answer_relevancy",
-        "context_precision",
-        "context_recall",
-    ])
+    metrics: list[str] = field(
+        default_factory=lambda: [
+            "faithfulness",
+            "answer_relevancy",
+            "context_precision",
+            "context_recall",
+        ]
+    )
 
     # LLM for evaluation (uses same key as kernel)
     eval_model: str = "gpt-4o-mini"
     embedding_model: str = "text-embedding-3-small"
 
     # Thresholds for pass/fail
-    thresholds: dict = field(default_factory=lambda: {
-        "faithfulness": 0.7,
-        "answer_relevancy": 0.7,
-        "context_precision": 0.6,
-        "context_recall": 0.6,
-    })
+    thresholds: dict = field(
+        default_factory=lambda: {
+            "faithfulness": 0.7,
+            "answer_relevancy": 0.7,
+            "context_precision": 0.6,
+            "context_recall": 0.6,
+        }
+    )
 
     # Output path
     output_dir: str = "evaluation/results"
@@ -71,14 +75,14 @@ RAGAS_TEST_CASES = [
     {
         "question": "¿Qué herramientas tiene disponible El Monstruo?",
         "contexts": [
-            "El Monstruo tiene acceso a: búsqueda web, ejecución de código, gestión de archivos, base de datos Supabase, y APIs de múltiples LLMs."
+            "El Monstruo tiene acceso a: búsqueda web, ejecución de código, gestión de archivos, base de datos Supabase, y APIs de múltiples LLMs."  # noqa: E501
         ],
-        "ground_truth": "El Monstruo tiene búsqueda web, ejecución de código, gestión de archivos, Supabase, y APIs de LLMs.",
+        "ground_truth": "El Monstruo tiene búsqueda web, ejecución de código, gestión de archivos, Supabase, y APIs de LLMs.",  # noqa: E501
     },
     {
         "question": "¿Cuál es el presupuesto diario del kernel?",
         "contexts": [
-            "El FinOps Soberano establece un hard limit de $5.00 USD diarios para el kernel, con alertas al 80% ($4.00)."
+            "El FinOps Soberano establece un hard limit de $5.00 USD diarios para el kernel, con alertas al 80% ($4.00)."  # noqa: E501
         ],
         "ground_truth": "El presupuesto diario es $5.00 USD con alertas al 80%.",
     },
@@ -92,7 +96,7 @@ RAGAS_TEST_CASES = [
     {
         "question": "¿Cómo funciona el sistema de alertas?",
         "contexts": [
-            "El sistema de Alertas Soberanas monitorea 5 tipos: cost_spike, error_rate, latency_spike, eval_failure, health_down. Las alertas se envían a Telegram vía @MounstroOC_bot."
+            "El sistema de Alertas Soberanas monitorea 5 tipos: cost_spike, error_rate, latency_spike, eval_failure, health_down. Las alertas se envían a Telegram vía @MounstroOC_bot."  # noqa: E501
         ],
         "ground_truth": "Monitorea 5 tipos de alertas y las envía a Telegram vía @MounstroOC_bot.",
     },
@@ -111,22 +115,24 @@ async def run_ragas_evaluation(
     test_cases = test_cases or RAGAS_TEST_CASES
 
     try:
+        from datasets import Dataset
         from ragas import evaluate
         from ragas.metrics import (
-            faithfulness,
             answer_relevancy,
             context_precision,
             context_recall,
+            faithfulness,
         )
-        from datasets import Dataset
 
         # Build dataset
-        dataset = Dataset.from_dict({
-            "question": [tc["question"] for tc in test_cases],
-            "contexts": [tc["contexts"] for tc in test_cases],
-            "ground_truth": [tc["ground_truth"] for tc in test_cases],
-            "answer": [tc.get("answer", "") for tc in test_cases],
-        })
+        dataset = Dataset.from_dict(
+            {
+                "question": [tc["question"] for tc in test_cases],
+                "contexts": [tc["contexts"] for tc in test_cases],
+                "ground_truth": [tc["ground_truth"] for tc in test_cases],
+                "answer": [tc.get("answer", "") for tc in test_cases],
+            }
+        )
 
         # Select metrics
         metric_map = {
@@ -183,5 +189,6 @@ async def run_ragas_evaluation(
 
 if __name__ == "__main__":
     import asyncio
+
     result = asyncio.run(run_ragas_evaluation())
     print(json.dumps(result, indent=2))

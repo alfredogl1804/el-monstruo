@@ -16,14 +16,12 @@ Usage:
 Validated: 2026-04-16
 """
 
+import json
+import logging
 import os
 import sys
-import json
 import time
-import asyncio
-import logging
 from typing import Optional
-from dataclasses import dataclass, field
 
 import httpx
 import pytest
@@ -40,6 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 # ── Helpers ─────────────────────────────────────────────────────────
+
 
 def _headers() -> dict:
     """Build request headers with optional API key."""
@@ -70,6 +69,7 @@ def _chat_payload(
 
 # ── Fixtures ────────────────────────────────────────────────────────
 
+
 @pytest.fixture(scope="session")
 def client():
     """Synchronous httpx client for the test session."""
@@ -94,6 +94,7 @@ def async_client():
 # ══════════════════════════════════════════════════════════════════════
 # SECTION 1: HEALTH & AUTH
 # ══════════════════════════════════════════════════════════════════════
+
 
 class TestHealthAndAuth:
     """Test health endpoint and auth middleware behavior."""
@@ -153,6 +154,7 @@ class TestHealthAndAuth:
 # SECTION 2: CHAT — INTENT CLASSIFICATION
 # ══════════════════════════════════════════════════════════════════════
 
+
 class TestChatIntents:
     """Test that different message types are classified and routed correctly."""
 
@@ -175,9 +177,12 @@ class TestChatIntents:
         assert resp.status_code == 200
         data = resp.json()
         assert data["response"], "Response should not be empty"
-        assert "París" in data["response"] or "Paris" in data["response"], \
+        assert "París" in data["response"] or "Paris" in data["response"], (
             f"Expected 'París' in response, got: {data['response'][:200]}"
-        logger.info(f"Quick Q: intent={data['intent']}, model={data['model_used']}, latency={data.get('latency_ms', 0)}ms")
+        )
+        logger.info(
+            f"Quick Q: intent={data['intent']}, model={data['model_used']}, latency={data.get('latency_ms', 0)}ms"
+        )
 
     def test_deep_think_analysis(self, client):
         """Analytical question should trigger deep_think intent."""
@@ -191,8 +196,7 @@ class TestChatIntents:
         assert resp.status_code == 200
         data = resp.json()
         assert data["response"], "Response should not be empty"
-        assert len(data["response"]) > 200, \
-            f"Deep think response should be detailed, got {len(data['response'])} chars"
+        assert len(data["response"]) > 200, f"Deep think response should be detailed, got {len(data['response'])} chars"
         logger.info(f"Deep think: intent={data['intent']}, model={data['model_used']}, len={len(data['response'])}")
 
     def test_system_command_memory_clear(self, client):
@@ -210,6 +214,7 @@ class TestChatIntents:
 # ══════════════════════════════════════════════════════════════════════
 # SECTION 3: BRAIN OVERRIDE
 # ══════════════════════════════════════════════════════════════════════
+
 
 class TestBrainOverride:
     """Test that brain parameter forces specific model routing."""
@@ -246,6 +251,7 @@ class TestBrainOverride:
 # ══════════════════════════════════════════════════════════════════════
 # SECTION 4: STREAMING
 # ══════════════════════════════════════════════════════════════════════
+
 
 class TestStreaming:
     """Test SSE streaming endpoint."""
@@ -300,6 +306,7 @@ class TestStreaming:
 # SECTION 5: ERROR HANDLING
 # ══════════════════════════════════════════════════════════════════════
 
+
 class TestErrorHandling:
     """Test error handling and edge cases."""
 
@@ -327,13 +334,13 @@ class TestErrorHandling:
             json=_chat_payload(long_msg),
         )
         # Should either succeed or return a clear error, not 500
-        assert resp.status_code in (200, 422, 413), \
-            f"Expected 200/422/413, got {resp.status_code}"
+        assert resp.status_code in (200, 422, 413), f"Expected 200/422/413, got {resp.status_code}"
 
 
 # ══════════════════════════════════════════════════════════════════════
 # SECTION 6: CONVERSATION CONTEXT
 # ══════════════════════════════════════════════════════════════════════
+
 
 class TestConversationContext:
     """Test that conversation memory works across messages."""
@@ -371,14 +378,16 @@ class TestConversationContext:
         data2 = resp2.json()
         # The response should reference "azul" if memory works
         response_lower = data2["response"].lower()
-        assert "azul" in response_lower or "blue" in response_lower, \
+        assert "azul" in response_lower or "blue" in response_lower, (
             f"Expected 'azul' in response, got: {data2['response'][:300]}"
-        logger.info(f"Multi-turn context: OK — response mentions 'azul'")
+        )
+        logger.info("Multi-turn context: OK — response mentions 'azul'")
 
 
 # ══════════════════════════════════════════════════════════════════════
 # SECTION 7: HISTORY & EVENTS
 # ══════════════════════════════════════════════════════════════════════
+
 
 class TestHistoryAndEvents:
     """Test history and events endpoints."""
@@ -415,27 +424,32 @@ class TestHistoryAndEvents:
 # SECTION 8: FULL E2E SMOKE TEST
 # ══════════════════════════════════════════════════════════════════════
 
+
 class TestFullE2ESmoke:
     """
     Full smoke test: send 5 different intent types and verify
     each gets a valid response with correct metadata.
     """
 
-    @pytest.mark.parametrize("message,expected_min_len", [
-        ("Hola", 5),
-        ("¿Cuál es el tipo de cambio del dólar hoy?", 20),
-        ("Analiza las implicaciones de la IA en el empleo", 100),
-        ("Recuérdame que tengo una junta mañana a las 10am", 10),
-        ("Resume en 3 puntos qué es blockchain", 30),
-    ])
+    @pytest.mark.parametrize(
+        "message,expected_min_len",
+        [
+            ("Hola", 5),
+            ("¿Cuál es el tipo de cambio del dólar hoy?", 20),
+            ("Analiza las implicaciones de la IA en el empleo", 100),
+            ("Recuérdame que tengo una junta mañana a las 10am", 10),
+            ("Resume en 3 puntos qué es blockchain", 30),
+        ],
+    )
     def test_smoke_various_intents(self, client, message, expected_min_len):
         """Each message type should get a valid response."""
         resp = client.post("/v1/chat", json=_chat_payload(message))
         assert resp.status_code == 200, f"Failed for '{message}': {resp.status_code}"
         data = resp.json()
         assert data["response"], f"Empty response for '{message}'"
-        assert len(data["response"]) >= expected_min_len, \
+        assert len(data["response"]) >= expected_min_len, (
             f"Response too short for '{message}': {len(data['response'])} chars"
+        )
         assert data["model_used"], f"No model_used for '{message}'"
         logger.info(
             f"Smoke [{data['intent']}]: "
@@ -451,10 +465,14 @@ class TestFullE2ESmoke:
 
 if __name__ == "__main__":
     """Run tests directly with python."""
-    sys.exit(pytest.main([
-        __file__,
-        "-v",
-        "--tb=short",
-        "-x",  # Stop on first failure
-        "--log-cli-level=INFO",
-    ]))
+    sys.exit(
+        pytest.main(
+            [
+                __file__,
+                "-v",
+                "--tb=short",
+                "-x",  # Stop on first failure
+                "--log-cli-level=INFO",
+            ]
+        )
+    )

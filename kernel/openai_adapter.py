@@ -45,27 +45,28 @@ router = APIRouter(prefix="/openai/v1", tags=["openai-compat"])
 # ── Model → Brain Mapping ────────────────────────────────────────────
 
 OPENAI_MODEL_TO_BRAIN: dict[str, Optional[str]] = {
-    "monstruo-auto":       None,           # Router decides
-    "monstruo-estratega":  "estratega",    # GPT-5.4
+    "monstruo-auto": None,  # Router decides
+    "monstruo-estratega": "estratega",  # GPT-5.4
     "monstruo-investigador": "investigador",  # Sonar Reasoning Pro
-    "monstruo-arquitecto": "arquitecto",   # Claude Opus 4.6
-    "monstruo-creativo":   "creativo",     # Gemini 3.1 Pro
-    "monstruo-critico":    "critico",      # Grok 4.20
-    "monstruo-rapido":     "operador",     # Gemini 3.1 Flash Lite
+    "monstruo-arquitecto": "arquitecto",  # Claude Opus 4.6
+    "monstruo-creativo": "creativo",  # Gemini 3.1 Pro
+    "monstruo-critico": "critico",  # Grok 4.20
+    "monstruo-rapido": "operador",  # Gemini 3.1 Flash Lite
 }
 
 MODEL_DESCRIPTIONS: dict[str, str] = {
-    "monstruo-auto":       "Modo automático — el router soberano decide el mejor modelo",
-    "monstruo-estratega":  "Estratega (GPT-5.4) — análisis profundo y razonamiento complejo",
+    "monstruo-auto": "Modo automático — el router soberano decide el mejor modelo",
+    "monstruo-estratega": "Estratega (GPT-5.4) — análisis profundo y razonamiento complejo",
     "monstruo-investigador": "Investigador (Sonar Pro) — búsqueda web y datos en tiempo real",
     "monstruo-arquitecto": "Arquitecto (Claude Opus) — diseño de sistemas y código complejo",
-    "monstruo-creativo":   "Creativo (Gemini Pro) — escritura, ideas, contenido original",
-    "monstruo-critico":    "Crítico (Grok) — análisis contrario, devil's advocate",
-    "monstruo-rapido":     "Rápido (Gemini Flash) — respuestas instantáneas, tareas simples",
+    "monstruo-creativo": "Creativo (Gemini Pro) — escritura, ideas, contenido original",
+    "monstruo-critico": "Crítico (Grok) — análisis contrario, devil's advocate",
+    "monstruo-rapido": "Rápido (Gemini Flash) — respuestas instantáneas, tareas simples",
 }
 
 
 # ── Helpers ─────────────────────────────────────────────────────────
+
 
 def _extract_text(content: Any) -> str:
     """
@@ -104,14 +105,18 @@ def _safe_error_message(e: Exception) -> str:
 
 # ── Request/Response Models (OpenAI format) ──────────────────────────
 
+
 class StreamOptions(BaseModel):
     """OpenAI stream_options for usage reporting. validated 2026-04-16"""
+
     include_usage: bool = False
+
 
 class OpenAIChatMessage(BaseModel):
     role: str
     content: Optional[Union[str, list]] = None  # Fix #1: str or multimodal list
     name: Optional[str] = None
+
 
 class OpenAIChatRequest(BaseModel):
     model: str = "monstruo-auto"
@@ -130,25 +135,29 @@ class OpenAIChatRequest(BaseModel):
 
 # ── GET /openai/v1/models ────────────────────────────────────────────
 
+
 @router.get("/models")
 async def list_models():
     """Return available models in OpenAI format for Open WebUI dropdown."""
     models = []
     for model_id, description in MODEL_DESCRIPTIONS.items():
-        models.append({
-            "id": model_id,
-            "object": "model",
-            "created": 1713200000,  # 2026-04-16 approx
-            "owned_by": "el-monstruo",
-            "permission": [],
-            "root": model_id,
-            "parent": None,
-            "description": description,
-        })
+        models.append(
+            {
+                "id": model_id,
+                "object": "model",
+                "created": 1713200000,  # 2026-04-16 approx
+                "owned_by": "el-monstruo",
+                "permission": [],
+                "root": model_id,
+                "parent": None,
+                "description": description,
+            }
+        )
     return {"object": "list", "data": models}
 
 
 # ── POST /openai/v1/chat/completions ─────────────────────────────────
+
 
 @router.post("/chat/completions")
 async def chat_completions(request: OpenAIChatRequest, raw_request: Request):
@@ -193,7 +202,12 @@ async def chat_completions(request: OpenAIChatRequest, raw_request: Request):
     if not user_message:
         return JSONResponse(
             status_code=400,
-            content={"error": {"message": "No user message found", "type": "invalid_request_error"}},
+            content={
+                "error": {
+                    "message": "No user message found",
+                    "type": "invalid_request_error",
+                }
+            },
         )
 
     # Map model to brain
@@ -210,6 +224,7 @@ async def chat_completions(request: OpenAIChatRequest, raw_request: Request):
 
     # Build RunInput
     from contracts.kernel_interface import RunInput
+
     run_id = uuid.uuid4()
     run_input = RunInput(
         run_id=run_id,
@@ -222,15 +237,15 @@ async def chat_completions(request: OpenAIChatRequest, raw_request: Request):
     completion_id = f"chatcmpl-{run_id.hex[:24]}"
 
     if request.stream:
-        include_usage = (
-            request.stream_options.include_usage
-            if request.stream_options
-            else False
-        )
+        include_usage = request.stream_options.include_usage if request.stream_options else False
         return StreamingResponse(
             _stream_response(
-                kernel, run_input, completion_id, request.model,
-                raw_request, include_usage,  # Fix #4 + #5
+                kernel,
+                run_input,
+                completion_id,
+                request.model,
+                raw_request,
+                include_usage,  # Fix #4 + #5
             ),
             media_type="text/event-stream",
             headers={
@@ -243,8 +258,13 @@ async def chat_completions(request: OpenAIChatRequest, raw_request: Request):
         return await _sync_response(kernel, run_input, completion_id, request.model)
 
 
-def _make_sse_chunk(completion_id: str, created: int, model: str,
-                    content: Optional[str] = None, finish_reason: Optional[str] = None) -> str:
+def _make_sse_chunk(
+    completion_id: str,
+    created: int,
+    model: str,
+    content: Optional[str] = None,
+    finish_reason: Optional[str] = None,
+) -> str:
     """Build a single OpenAI-format SSE data line."""
     delta: dict[str, Any] = {}
     if content is not None:
@@ -258,18 +278,24 @@ def _make_sse_chunk(completion_id: str, created: int, model: str,
         "object": "chat.completion.chunk",
         "created": created,
         "model": model,
-        "choices": [{
-            "index": 0,
-            "delta": delta,
-            "finish_reason": finish_reason,
-        }],
+        "choices": [
+            {
+                "index": 0,
+                "delta": delta,
+                "finish_reason": finish_reason,
+            }
+        ],
     }
     return f"data: {json.dumps(sse_data)}\n\n"
 
 
 async def _stream_response(
-    kernel, run_input, completion_id: str, model: str,
-    raw_request: Request, include_usage: bool = False,  # Fix #4 + #5
+    kernel,
+    run_input,
+    completion_id: str,
+    model: str,
+    raw_request: Request,
+    include_usage: bool = False,  # Fix #4 + #5
 ):
     """
     Stream kernel response in OpenAI SSE format.
@@ -288,11 +314,13 @@ async def _stream_response(
         "object": "chat.completion.chunk",
         "created": created,
         "model": model,
-        "choices": [{
-            "index": 0,
-            "delta": {"role": "assistant", "content": ""},
-            "finish_reason": None,
-        }],
+        "choices": [
+            {
+                "index": 0,
+                "delta": {"role": "assistant", "content": ""},
+                "finish_reason": None,
+            }
+        ],
     }
     yield f"data: {json.dumps(role_chunk)}\n\n"
 
@@ -310,9 +338,7 @@ async def _stream_response(
 
             try:
                 # Timeout for heartbeat: if kernel takes >15s, send keepalive
-                raw_chunk = await asyncio.wait_for(
-                    stream_iter.__anext__(), timeout=15.0
-                )
+                raw_chunk = await asyncio.wait_for(stream_iter.__anext__(), timeout=15.0)
             except asyncio.TimeoutError:
                 # Fix #4: SSE comment keepalive — invisible to client
                 yield ": keepalive\n\n"
@@ -360,7 +386,8 @@ async def _stream_response(
                 # Sprint 3: Record cost for rate limiter cost caps
                 if cost_usd > 0:
                     try:
-                        from kernel.rate_limiter import record_cost, _get_client_id
+                        from kernel.rate_limiter import _get_client_id, record_cost
+
                         client_id = _get_client_id(raw_request)
                         record_cost(client_id, cost_usd)
                     except Exception:
@@ -375,7 +402,11 @@ async def _stream_response(
 
             else:
                 # Unknown event type — log and skip
-                logger.warning("unknown_stream_event", event_type=event_type, raw=str(raw_chunk)[:200])
+                logger.warning(
+                    "unknown_stream_event",
+                    event_type=event_type,
+                    raw=str(raw_chunk)[:200],
+                )
 
         # Fix #5: Emit usage chunk if requested
         if include_usage and (tokens_in or tokens_out):
@@ -400,8 +431,12 @@ async def _stream_response(
     except Exception as e:
         # Fix #2: Never expose internals
         logger.error("openai_stream_error", error=str(e), exc_info=True)
-        yield _make_sse_chunk(completion_id, created, model,
-                              content=f"\n\n[Error: {_safe_error_message(e)}]")
+        yield _make_sse_chunk(
+            completion_id,
+            created,
+            model,
+            content=f"\n\n[Error: {_safe_error_message(e)}]",
+        )
         yield _make_sse_chunk(completion_id, created, model, finish_reason="stop")
         yield "data: [DONE]\n\n"
 
@@ -413,26 +448,30 @@ async def _sync_response(kernel, run_input, completion_id: str, model: str):
     try:
         output = await kernel.start_run(run_input)
 
-        return JSONResponse(content={
-            "id": completion_id,
-            "object": "chat.completion",
-            "created": created,
-            "model": model,
-            "choices": [{
-                "index": 0,
-                "message": {
-                    "role": "assistant",
-                    "content": output.response,
+        return JSONResponse(
+            content={
+                "id": completion_id,
+                "object": "chat.completion",
+                "created": created,
+                "model": model,
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "content": output.response,
+                        },
+                        "finish_reason": "stop",
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": output.tokens_in,
+                    "completion_tokens": output.tokens_out,
+                    "total_tokens": output.tokens_in + output.tokens_out,
                 },
-                "finish_reason": "stop",
-            }],
-            "usage": {
-                "prompt_tokens": output.tokens_in,
-                "completion_tokens": output.tokens_out,
-                "total_tokens": output.tokens_in + output.tokens_out,
-            },
-            "system_fingerprint": f"monstruo-{output.model_used}",
-        })
+                "system_fingerprint": f"monstruo-{output.model_used}",
+            }
+        )
 
     except Exception as e:
         # Fix #2: Sanitize errors in sync mode too

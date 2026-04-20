@@ -17,8 +17,8 @@ We use it as a transport layer — our EventStore remains the source of truth.
 from __future__ import annotations
 
 import os
-from typing import Any, Optional
 from contextlib import contextmanager
+from typing import Any, Optional
 
 import structlog
 
@@ -54,12 +54,12 @@ class OTelBridge:
 
         try:
             from opentelemetry import trace
-            from opentelemetry.sdk.trace import TracerProvider
-            from opentelemetry.sdk.trace.export import BatchSpanProcessor
-            from opentelemetry.sdk.resources import Resource
             from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
                 OTLPSpanExporter,
             )
+            from opentelemetry.sdk.resources import Resource
+            from opentelemetry.sdk.trace import TracerProvider
+            from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
             resource = Resource.create(
                 {
@@ -125,9 +125,7 @@ class OTelBridge:
         try:
             if hasattr(span, "record_exception"):
                 span.record_exception(exception)
-                span.set_status(
-                    _get_error_status()
-                )
+                span.set_status(_get_error_status())
         except Exception:
             pass
 
@@ -164,7 +162,8 @@ class _NoOpSpan:
 def _get_error_status():
     """Get OTel error status, handling import gracefully."""
     try:
-        from opentelemetry.trace import StatusCode, Status
+        from opentelemetry.trace import Status, StatusCode
+
         return Status(StatusCode.ERROR)
     except ImportError:
         return None

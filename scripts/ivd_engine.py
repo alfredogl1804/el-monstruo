@@ -23,11 +23,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
 import sys
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -134,6 +133,7 @@ def validate_pypi_package(package: str, claimed_version: str) -> ValidationResul
             min_safe = cve_info.get("min_safe_version")
             if min_safe:
                 from packaging.version import Version
+
                 try:
                     if Version(claimed_version) < Version(min_safe):
                         result.cve_check = f"VULNERABLE: {cve_info['cve']} — min safe: {min_safe}"
@@ -256,7 +256,7 @@ def generate_report(report: IVDReport, sprint_name: str) -> Path:
         f.write(f"# IVD Report — {sprint_name}\n\n")
         f.write(f"**Generated:** {report.timestamp}\n\n")
         f.write(f"**Overall:** {report.overall_status}\n\n")
-        f.write(f"| Metric | Count |\n|--------|-------|\n")
+        f.write("| Metric | Count |\n|--------|-------|\n")
         f.write(f"| Checked | {report.total_checked} |\n")
         f.write(f"| PASS | {report.total_pass} |\n")
         f.write(f"| FAIL | {report.total_fail} |\n")
@@ -289,12 +289,12 @@ def generate_report(report: IVDReport, sprint_name: str) -> Path:
 # ── Main Orchestrator ──────────────────────────────────────────────
 def run_ivd(sprint_name: str = "sprint16", fix: bool = False, ci: bool = False) -> IVDReport:
     """Run the full IVD validation pipeline."""
-    print(f"\n{'='*70}")
-    print(f"  IVD ENGINE — Investigación, Validación, Descubrimiento")
+    print(f"\n{'=' * 70}")
+    print("  IVD ENGINE — Investigación, Validación, Descubrimiento")
     print(f"  Sprint: {sprint_name}")
     print(f"  Timestamp: {datetime.now(timezone.utc).isoformat()}")
     print(f"  Mode: {'CI (strict)' if ci else 'Interactive'} | Fix: {fix}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     report = IVDReport(
         sprint=sprint_name,
@@ -317,7 +317,13 @@ def run_ivd(sprint_name: str = "sprint16", fix: bool = False, ci: bool = False) 
         result = validate_pypi_package(pkg, version)
         report.python_packages.append(result)
 
-        icon = {"PASS": "✅", "FAIL": "❌", "WARN": "⚠️", "OUTDATED": "🔶", "NOT_FOUND": "❌"}.get(result.status, "?")
+        icon = {
+            "PASS": "✅",
+            "FAIL": "❌",
+            "WARN": "⚠️",
+            "OUTDATED": "🔶",
+            "NOT_FOUND": "❌",
+        }.get(result.status, "?")
         extra = f" (latest: {result.latest_version})" if result.latest_version != version else ""
         cve_note = f" | {result.cve_check}" if result.cve_check else ""
         print(f"      {icon} {pkg}=={version}{extra}{cve_note}")
@@ -366,11 +372,13 @@ def run_ivd(sprint_name: str = "sprint16", fix: bool = False, ci: bool = False) 
     md_path = generate_report(report, sprint_name)
 
     # Summary
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"  RESULT: {report.overall_status}")
-    print(f"  Checked: {report.total_checked} | Pass: {report.total_pass} | Fail: {report.total_fail} | Warn: {report.total_warn} | Outdated: {report.total_outdated}")
+    print(
+        f"  Checked: {report.total_checked} | Pass: {report.total_pass} | Fail: {report.total_fail} | Warn: {report.total_warn} | Outdated: {report.total_outdated}"  # noqa: E501
+    )
     print(f"  Report: {md_path}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     # CI mode: exit with error code if failures
     if ci and report.total_fail > 0:

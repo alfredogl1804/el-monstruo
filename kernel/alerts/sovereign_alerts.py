@@ -34,7 +34,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Optional
+from typing import Optional
 
 import httpx
 import structlog
@@ -43,6 +43,7 @@ logger = structlog.get_logger("alerts.sovereign")
 
 
 # ── Alert Types ──────────────────────────────────────────────────────
+
 
 class AlertType(str, Enum):
     COST_SPIKE = "cost_spike"
@@ -55,6 +56,7 @@ class AlertType(str, Enum):
 @dataclass
 class Alert:
     """Represents a triggered alert."""
+
     alert_type: AlertType
     severity: str  # "critical", "warning", "info"
     title: str
@@ -66,9 +68,11 @@ class Alert:
 
 # ── Configuration ────────────────────────────────────────────────────
 
+
 @dataclass
 class AlertConfig:
     """Alert thresholds and configuration, all from env vars."""
+
     # Cost alerts
     daily_cost_budget_usd: float = float(os.environ.get("ALERT_DAILY_COST_USD", "5.0"))
 
@@ -98,6 +102,7 @@ class AlertConfig:
 
 
 # ── Sovereign Alert Monitor ─────────────────────────────────────────
+
 
 class SovereignAlertMonitor:
     """
@@ -167,8 +172,11 @@ class SovereignAlertMonitor:
                 self._cooldowns[alert.alert_type.value] = time.time()
 
         if triggered:
-            logger.info("alerts_triggered", count=len(triggered),
-                       types=[a.alert_type.value for a in triggered])
+            logger.info(
+                "alerts_triggered",
+                count=len(triggered),
+                types=[a.alert_type.value for a in triggered],
+            )
 
         return triggered
 
@@ -210,10 +218,13 @@ class SovereignAlertMonitor:
 
     async def _check_cost_spike(self) -> Optional[Alert]:
         """Check if daily cost exceeds budget."""
-        data = await self._langfuse_get("/api/public/metrics/daily", params={
-            "traceName": None,
-            "fromTimestamp": datetime.now(timezone.utc).replace(hour=0, minute=0, second=0).isoformat(),
-        })
+        data = await self._langfuse_get(
+            "/api/public/metrics/daily",
+            params={
+                "traceName": None,
+                "fromTimestamp": datetime.now(timezone.utc).replace(hour=0, minute=0, second=0).isoformat(),
+            },
+        )
         if not data:
             return None
 
@@ -235,10 +246,13 @@ class SovereignAlertMonitor:
 
     async def _check_error_rate(self) -> Optional[Alert]:
         """Check error rate in recent traces."""
-        data = await self._langfuse_get("/api/public/traces", params={
-            "limit": 50,
-            "orderBy": "timestamp.desc",
-        })
+        data = await self._langfuse_get(
+            "/api/public/traces",
+            params={
+                "limit": 50,
+                "orderBy": "timestamp.desc",
+            },
+        )
         if not data:
             return None
 
@@ -254,7 +268,7 @@ class SovereignAlertMonitor:
                 alert_type=AlertType.ERROR_RATE,
                 severity="critical" if error_rate > 30 else "warning",
                 title="High Error Rate Detected",
-                message=f"Error rate: {error_rate:.1f}% ({error_count}/{len(traces)} traces). Threshold: {self._config.error_rate_threshold}%",
+                message=f"Error rate: {error_rate:.1f}% ({error_count}/{len(traces)} traces). Threshold: {self._config.error_rate_threshold}%",  # noqa: E501
                 value=error_rate,
                 threshold=self._config.error_rate_threshold,
             )
@@ -262,10 +276,13 @@ class SovereignAlertMonitor:
 
     async def _check_latency_spike(self) -> Optional[Alert]:
         """Check P95 latency of recent traces."""
-        data = await self._langfuse_get("/api/public/traces", params={
-            "limit": 50,
-            "orderBy": "timestamp.desc",
-        })
+        data = await self._langfuse_get(
+            "/api/public/traces",
+            params={
+                "limit": 50,
+                "orderBy": "timestamp.desc",
+            },
+        )
         if not data:
             return None
 
@@ -295,10 +312,13 @@ class SovereignAlertMonitor:
 
     async def _check_eval_failure(self) -> Optional[Alert]:
         """Check if Boolean evaluator pass rates drop below threshold."""
-        data = await self._langfuse_get("/api/public/scores", params={
-            "limit": 100,
-            "dataType": "BOOLEAN",
-        })
+        data = await self._langfuse_get(
+            "/api/public/scores",
+            params={
+                "limit": 100,
+                "dataType": "BOOLEAN",
+            },
+        )
         if not data:
             return None
 
@@ -314,7 +334,7 @@ class SovereignAlertMonitor:
                 alert_type=AlertType.EVAL_FAILURE,
                 severity="warning",
                 title="Evaluation Pass Rate Drop",
-                message=f"Boolean eval pass rate: {pass_rate:.1%} below threshold of {self._config.eval_pass_rate_threshold:.1%} ({true_count}/{len(scores)} passed)",
+                message=f"Boolean eval pass rate: {pass_rate:.1%} below threshold of {self._config.eval_pass_rate_threshold:.1%} ({true_count}/{len(scores)} passed)",  # noqa: E501
                 value=pass_rate,
                 threshold=self._config.eval_pass_rate_threshold,
             )
@@ -349,11 +369,11 @@ class SovereignAlertMonitor:
     async def _send_alert(self, alert: Alert) -> bool:
         """Format and send alert to Telegram."""
         severity_emoji = {
-            "critical": "\U0001F6A8",  # 🚨
+            "critical": "\U0001f6a8",  # 🚨
             "warning": "\u26a0\ufe0f",  # ⚠️
             "info": "\u2139\ufe0f",  # ℹ️
         }
-        emoji = severity_emoji.get(alert.severity, "\U0001F514")  # 🔔
+        emoji = severity_emoji.get(alert.severity, "\U0001f514")  # 🔔
 
         message = (
             f"{emoji} *Alerta Soberana — {alert.severity.upper()}*\n\n"

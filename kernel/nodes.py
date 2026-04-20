@@ -26,7 +26,6 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-import os
 import time
 from datetime import datetime, timezone
 from typing import Any, Optional
@@ -35,20 +34,22 @@ from uuid import uuid4
 import structlog
 from langchain_core.runnables import RunnableConfig
 
-from contracts.kernel_interface import IntentType, RunStatus
 from contracts.event_envelope import EventBuilder, EventCategory, Severity
-from kernel.state import MonstruoState
+from contracts.kernel_interface import IntentType, RunStatus
 
 # Action Envelope v2.0 — Governance
 from core.action_envelope import (
     ActionType,
-    ResourceKind,
     ActorRef,
+    ResourceKind,
     ResourceRef,
+    RiskLevel,
+    TrustRing,
     create_envelope,
     envelope_to_dict,
 )
 from core.action_validator import validate_and_classify
+from kernel.state import MonstruoState
 
 logger = structlog.get_logger("kernel.nodes")
 
@@ -88,6 +89,7 @@ def _cache_set_intent(message: str, intent_str: str) -> None:
 
 # ── Helpers to extract dependencies from config ──────────────────────
 
+
 def _deps(config: RunnableConfig) -> tuple[Any, Any, Any, Any]:
     """Extract (router, memory, knowledge, event_store) from config."""
     cfg = config.get("configurable", {})
@@ -108,6 +110,7 @@ def _obs(config: RunnableConfig) -> Any:
 # Node 1: INTAKE
 # ══════════════════════════════════════════════════════════════════════
 
+
 async def intake(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
     Receive and normalize the incoming message.
@@ -126,15 +129,17 @@ async def intake(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
         message_len=len(message),
     )
 
-    event = EventBuilder() \
-        .category(EventCategory.RUN_STARTED) \
-        .actor("kernel.intake") \
-        .action(f"Run started for user {user_id} on {channel}") \
-        .for_run_str(run_id) \
-        .for_user(user_id) \
-        .on_channel(channel) \
-        .with_payload({"message_preview": message[:200]}) \
+    event = (
+        EventBuilder()
+        .category(EventCategory.RUN_STARTED)
+        .actor("kernel.intake")
+        .action(f"Run started for user {user_id} on {channel}")
+        .for_run_str(run_id)
+        .for_user(user_id)
+        .on_channel(channel)
+        .with_payload({"message_preview": message[:200]})
         .build()
+    )
 
     # ── Observability: start trace for this run ──
     obs = _obs(config)
@@ -173,6 +178,7 @@ async def intake(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
 # ══════════════════════════════════════════════════════════════════════
 # Node 2: CLASSIFY_AND_ROUTE (OPT-1: Fused classify + route)
 # ══════════════════════════════════════════════════════════════════════
+
 
 async def classify_and_route(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
@@ -241,20 +247,24 @@ async def classify_and_route(state: MonstruoState, config: RunnableConfig) -> di
     )
 
     # Emit combined event
-    event = EventBuilder() \
-        .category(EventCategory.INTENT_CLASSIFIED) \
-        .actor("kernel.classify_and_route") \
-        .action(f"Intent={intent_str}, Model={model} ({reason})") \
-        .for_run_str(state.get("run_id", "")) \
-        .with_payload({
-            "intent": intent_str,
-            "model": model,
-            "fallbacks": fallbacks,
-            "reason": reason,
-            "cache_hit": cache_hit,
-            "classify_route_ms": elapsed_ms,
-        }) \
+    event = (
+        EventBuilder()
+        .category(EventCategory.INTENT_CLASSIFIED)
+        .actor("kernel.classify_and_route")
+        .action(f"Intent={intent_str}, Model={model} ({reason})")
+        .for_run_str(state.get("run_id", ""))
+        .with_payload(
+            {
+                "intent": intent_str,
+                "model": model,
+                "fallbacks": fallbacks,
+                "reason": reason,
+                "cache_hit": cache_hit,
+                "classify_route_ms": elapsed_ms,
+            }
+        )
         .build()
+    )
 
     existing_events = state.get("events", [])
     return {
@@ -269,6 +279,7 @@ async def classify_and_route(state: MonstruoState, config: RunnableConfig) -> di
 # ══════════════════════════════════════════════════════════════════════
 # Node 3: ENRICH (OPT-2: Parallelized lookups)
 # ══════════════════════════════════════════════════════════════════════
+
 
 async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
@@ -297,17 +308,20 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
     if db:
         try:
             from tools.user_dossier import get_prompt_dossier
+
             dynamic_dossier = await get_prompt_dossier(db, user_id="alfredo")
             system_prompt += f"\n\n{dynamic_dossier}"
             logger.info("enrich_dossier_injected", source="supabase", chars=len(dynamic_dossier))
         except Exception as e:
             # Fallback to hardcoded dossier
             from prompts.system_prompts import USER_DOSSIER
+
             system_prompt += f"\n\n{USER_DOSSIER}"
             logger.warning("enrich_dossier_fallback", error=str(e))
     else:
         # No DB — use hardcoded dossier
         from prompts.system_prompts import USER_DOSSIER
+
         system_prompt += f"\n\n{USER_DOSSIER}"
 
     # P0.2: Inject external system prompts (from Open WebUI or other clients)
@@ -325,7 +339,6 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
     # OPT-2: Parallel memory + knowledge lookups
     if memory:
         # Build coroutines for parallel execution
-        coros = []
 
         # Conversation context
         async def _get_conversation():
@@ -354,7 +367,8 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
                         "score": r.score,
                         "type": r.event.memory_type.value,
                         "created_at": r.event.created_at.isoformat()
-                        if hasattr(r.event.created_at, "isoformat") else str(r.event.created_at),
+                        if hasattr(r.event.created_at, "isoformat")
+                        else str(r.event.created_at),
                     }
                     for r in results
                 ]
@@ -380,7 +394,11 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
             return []
 
         # OPT-2: Execute ALL lookups in parallel
-        conversation_context, relevant_memories, knowledge_entities = await asyncio.gather(
+        (
+            conversation_context,
+            relevant_memories,
+            knowledge_entities,
+        ) = await asyncio.gather(
             _get_conversation(),
             _search_memories(),
             _get_knowledge(),
@@ -396,33 +414,36 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
 
     # Build enriched system prompt
     if relevant_memories:
-        memory_context = "\n".join(
-            f"- [{m['type']}] {m['content']}" for m in relevant_memories[:3]
-        )
+        memory_context = "\n".join(f"- [{m['type']}] {m['content']}" for m in relevant_memories[:3])
         system_prompt += f"\n\n## Relevant Context\n{memory_context}"
 
     if knowledge_entities:
         entity_context = "\n".join(
-            f"- {e['name']} ({e['type']}): {e.get('attributes', {})}"
-            for e in knowledge_entities[:3]
+            f"- {e['name']} ({e['type']}): {e.get('attributes', {})}" for e in knowledge_entities[:3]
         )
         system_prompt += f"\n\n## Known Entities\n{entity_context}"
 
     elapsed_ms = (time.monotonic() - start_time) * 1000
 
-    event = EventBuilder() \
-        .category(EventCategory.CONTEXT_ENRICHED) \
-        .actor("kernel.enrich") \
-        .action(f"Enriched with {len(conversation_context)} msgs, {len(relevant_memories)} memories, {len(knowledge_entities)} entities in {elapsed_ms:.0f}ms") \
-        .for_run_str(state.get("run_id", "")) \
-        .with_payload({
-            "conversation_messages": len(conversation_context),
-            "memories": len(relevant_memories),
-            "entities": len(knowledge_entities),
-            "intent": intent,
-            "enrich_ms": elapsed_ms,
-        }) \
+    event = (
+        EventBuilder()
+        .category(EventCategory.CONTEXT_ENRICHED)
+        .actor("kernel.enrich")
+        .action(
+            f"Enriched with {len(conversation_context)} msgs, {len(relevant_memories)} memories, {len(knowledge_entities)} entities in {elapsed_ms:.0f}ms"  # noqa: E501
+        )
+        .for_run_str(state.get("run_id", ""))
+        .with_payload(
+            {
+                "conversation_messages": len(conversation_context),
+                "memories": len(relevant_memories),
+                "entities": len(knowledge_entities),
+                "intent": intent,
+                "enrich_ms": elapsed_ms,
+            }
+        )
         .build()
+    )
 
     # ── Action Envelope v2.0: Governance ──────────────────────────
     # Create and validate an ActionEnvelope for this request
@@ -468,7 +489,10 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
                 locator=f"kernel://{intent}/execute",
             ),
             operation=f"{intent}_response",
-            payload={"message_preview": message[:100], "model": state.get("model", "unknown")},
+            payload={
+                "message_preview": message[:100],
+                "model": state.get("model", "unknown"),
+            },
             intent_summary=f"{intent}: {message[:200]}",
         )
 
@@ -477,25 +501,28 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
 
         # Step 2: Run through PolicyEngine v1.0 (composite risk + Cedar rules)
         from core.policy_engine import get_policy_engine
+
         policy_engine = get_policy_engine()
         policy_eval = policy_engine.evaluate(envelope)
 
         # Step 3: Bridge PolicyEngine result to ActionEnvelope PolicyDecision
         risk = envelope.policy_decision.risk_level if envelope.policy_decision else RiskLevel.L1_SAFE
-        trust = envelope.policy_decision.enforced_trust_ring if envelope.policy_decision else TrustRing.R2_USER_DELEGATED
+        trust = (
+            envelope.policy_decision.enforced_trust_ring if envelope.policy_decision else TrustRing.R2_USER_DELEGATED
+        )
         final_policy = policy_engine.to_envelope_policy_decision(policy_eval, trust, risk)
 
         # Use PolicyEngine decision (it includes composite risk)
         from dataclasses import replace as dc_replace
-        from core.action_envelope import ActionStatus, transition
+
         # Re-seal envelope with PolicyEngine decision
         envelope = dc_replace(envelope, policy_decision=final_policy)
 
         # Extract governance decisions
         envelope_dict = envelope_to_dict(envelope)
         policy_decision_str = policy_eval.decision
-        risk_level_str = risk.value if hasattr(risk, 'value') else str(risk)
-        trust_ring_str = trust.value if hasattr(trust, 'value') else str(trust)
+        risk_level_str = risk.value if hasattr(risk, "value") else str(risk)
+        trust_ring_str = trust.value if hasattr(trust, "value") else str(trust)
         needs_hitl = policy_eval.requires_hitl
         hitl_reason = policy_eval.decision_reason
 
@@ -538,6 +565,7 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
 # ══════════════════════════════════════════════════════════════════
 # Node 4: EXECUTE
 # ══════════════════════════════════════════════════════════════════════
+
 
 async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
@@ -585,10 +613,11 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
 
     # Get tool specs for native function calling
     from kernel.tool_dispatch import get_tool_specs
+
     tool_specs = get_tool_specs()
 
     try:
-        if router and hasattr(router, 'execute_with_tools'):
+        if router and hasattr(router, "execute_with_tools"):
             llm_response = await router.execute_with_tools(
                 message=message,
                 model=model,
@@ -604,9 +633,7 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
 
             # If LLM wants to use tools, store them as pending
             if llm_response.has_tool_calls:
-                pending_tool_calls = [
-                    tc.to_dict() for tc in llm_response.tool_calls
-                ]
+                pending_tool_calls = [tc.to_dict() for tc in llm_response.tool_calls]
                 logger.info(
                     "execute_tool_calls_requested",
                     tool_count=len(pending_tool_calls),
@@ -616,9 +643,7 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
 
         elif router:
             # Fallback to old execute() without tools
-            response, usage = await router.execute(
-                message, model, IntentType(intent), enriched_context
-            )
+            response, usage = await router.execute(message, model, IntentType(intent), enriched_context)
             model_used = model
         else:
             response = f"[stub] {model} would respond to: {message[:100]}"
@@ -627,14 +652,16 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
 
     except Exception as e:
         logger.error("execute_failed", model=model, error=str(e))
-        event = EventBuilder() \
-            .category(EventCategory.RUN_FAILED) \
-            .severity(Severity.ERROR) \
-            .actor("kernel.execute") \
-            .action(f"Execute failed: {str(e)[:200]}") \
-            .for_run_str(state.get("run_id", "")) \
-            .with_payload({"error": str(e)}) \
+        event = (
+            EventBuilder()
+            .category(EventCategory.RUN_FAILED)
+            .severity(Severity.ERROR)
+            .actor("kernel.execute")
+            .action(f"Execute failed: {str(e)[:200]}")
+            .for_run_str(state.get("run_id", ""))
+            .with_payload({"error": str(e)})
             .build()
+        )
 
         existing_events = state.get("events", [])
         return {
@@ -652,7 +679,6 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
     needs_approval = False
     approval_reason = ""
     if pending_tool_calls:
-        from router.llm_client import ToolSpec as _TS
         high_risk_tools = {s.name for s in tool_specs if s.risk in ("medium", "high")}
         requested_tools = {tc["name"] for tc in pending_tool_calls}
         if requested_tools & high_risk_tools:
@@ -694,21 +720,28 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
                 },
             )
 
-    event = EventBuilder() \
-        .category(EventCategory.MODEL_CALLED) \
-        .actor("kernel.execute") \
-        .action(f"Executed on {model_used} in {elapsed_ms:.0f}ms" + (f" (tools: {len(pending_tool_calls)})" if pending_tool_calls else "")) \
-        .for_run_str(state.get("run_id", "")) \
-        .with_payload({
-            "model": model_used,
-            "tokens_in": usage.get("prompt_tokens", 0),
-            "tokens_out": usage.get("completion_tokens", 0),
-            "cost_usd": usage.get("cost_usd", 0.0),
-            "latency_ms": elapsed_ms,
-            "tool_calls": len(pending_tool_calls),
-            "is_followup": is_followup,
-        }) \
+    event = (
+        EventBuilder()
+        .category(EventCategory.MODEL_CALLED)
+        .actor("kernel.execute")
+        .action(
+            f"Executed on {model_used} in {elapsed_ms:.0f}ms"
+            + (f" (tools: {len(pending_tool_calls)})" if pending_tool_calls else "")
+        )
+        .for_run_str(state.get("run_id", ""))
+        .with_payload(
+            {
+                "model": model_used,
+                "tokens_in": usage.get("prompt_tokens", 0),
+                "tokens_out": usage.get("completion_tokens", 0),
+                "cost_usd": usage.get("cost_usd", 0.0),
+                "latency_ms": elapsed_ms,
+                "tool_calls": len(pending_tool_calls),
+                "is_followup": is_followup,
+            }
+        )
         .build()
+    )
 
     # Accumulate tokens across tool loops
     existing_events = state.get("events", [])
@@ -732,6 +765,7 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
 # ══════════════════════════════════════════════════════════════════════
 # Node 5: MEMORY_WRITE (OPT-5: fire-and-forget from respond)
 # ══════════════════════════════════════════════════════════════════════
+
 
 async def memory_write(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
@@ -757,8 +791,9 @@ async def memory_write(state: MonstruoState, config: RunnableConfig) -> dict[str
     # Write to conversation memory
     if memory:
         try:
-            from contracts.memory_interface import MemoryEvent, MemoryType
             from uuid import UUID as UUIDType
+
+            from contracts.memory_interface import MemoryEvent, MemoryType
 
             user_event = MemoryEvent(
                 memory_type=MemoryType.EPISODIC,
@@ -793,27 +828,33 @@ async def memory_write(state: MonstruoState, config: RunnableConfig) -> dict[str
     if event_store:
         try:
             for evt_dict in state.get("events", []):
-                event = EventBuilder() \
-                    .category(EventCategory(evt_dict.get("category", "run.started"))) \
-                    .actor(evt_dict.get("actor", "kernel")) \
-                    .action(evt_dict.get("action", "")) \
-                    .for_run_str(run_id) \
-                    .for_user(user_id) \
+                event = (
+                    EventBuilder()
+                    .category(EventCategory(evt_dict.get("category", "run.started")))
+                    .actor(evt_dict.get("actor", "kernel"))
+                    .action(evt_dict.get("action", ""))
+                    .for_run_str(run_id)
+                    .for_user(user_id)
                     .build()
+                )
                 await event_store.append(event)
         except Exception as e:
             logger.warning("event_store_write_failed", error=str(e))
 
-    event = EventBuilder() \
-        .category(EventCategory.MEMORY_UPDATED) \
-        .actor("kernel.memory_write") \
-        .action(f"Memory written for run {run_id}") \
-        .for_run_str(state.get("run_id", "")) \
-        .with_payload({
-            "entities_extracted": len(entities_extracted),
-            "relations_extracted": len(relations_extracted),
-        }) \
+    event = (
+        EventBuilder()
+        .category(EventCategory.MEMORY_UPDATED)
+        .actor("kernel.memory_write")
+        .action(f"Memory written for run {run_id}")
+        .for_run_str(state.get("run_id", ""))
+        .with_payload(
+            {
+                "entities_extracted": len(entities_extracted),
+                "relations_extracted": len(relations_extracted),
+            }
+        )
         .build()
+    )
 
     existing_events = state.get("events", [])
     return {
@@ -827,6 +868,7 @@ async def memory_write(state: MonstruoState, config: RunnableConfig) -> dict[str
 # ══════════════════════════════════════════════════════════════════════
 # Node 6: RESPOND
 # ══════════════════════════════════════════════════════════════════════
+
 
 async def respond(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
@@ -882,6 +924,7 @@ async def respond(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
 # Conditional Edge Functions
 # ══════════════════════════════════════════════════════════════════════
 
+
 def should_enrich(state: MonstruoState) -> str:
     """
     OPT-3: Smart conditional edge after classify_and_route.
@@ -912,13 +955,34 @@ def should_enrich(state: MonstruoState) -> str:
     # OPT-3: Fast-path for simple chat
     # Check if message needs personal/memory context
     personal_markers = {
-        "mi ", "mis ", "tu ", "nuestro", "nuestra",
-        "recuerda", "recuerdas", "sabes", "sabías",
-        "proyecto", "cip", "monstruo", "hive",
-        "ayer", "antes", "pasado", "semana", "mes",
-        "dije", "dijiste", "hablamos", "mencioné",
-        "color favorito", "gato", "perro", "mascota",
-        "alfredo", "góngora",
+        "mi ",
+        "mis ",
+        "tu ",
+        "nuestro",
+        "nuestra",
+        "recuerda",
+        "recuerdas",
+        "sabes",
+        "sabías",
+        "proyecto",
+        "cip",
+        "monstruo",
+        "hive",
+        "ayer",
+        "antes",
+        "pasado",
+        "semana",
+        "mes",
+        "dije",
+        "dijiste",
+        "hablamos",
+        "mencioné",
+        "color favorito",
+        "gato",
+        "perro",
+        "mascota",
+        "alfredo",
+        "góngora",
     }
 
     if intent == "chat" and len(message) < 80:
@@ -950,6 +1014,7 @@ def check_hitl(state: MonstruoState) -> str:
 # Helper Functions
 # ══════════════════════════════════════════════════════════════════════
 
+
 def _local_classify(message: str) -> IntentType:
     """
     Keyword-based intent classification (fallback when no router/LLM).
@@ -960,18 +1025,47 @@ def _local_classify(message: str) -> IntentType:
         return IntentType.SYSTEM
 
     execute_keywords = [
-        "ejecuta", "haz", "crea", "deploy", "instala", "configura",
-        "borra", "elimina", "actualiza", "publica", "envía", "manda",
-        "run", "execute", "do", "create", "delete", "update", "send",
+        "ejecuta",
+        "haz",
+        "crea",
+        "deploy",
+        "instala",
+        "configura",
+        "borra",
+        "elimina",
+        "actualiza",
+        "publica",
+        "envía",
+        "manda",
+        "run",
+        "execute",
+        "do",
+        "create",
+        "delete",
+        "update",
+        "send",
     ]
     if any(kw in msg for kw in execute_keywords):
         return IntentType.EXECUTE
 
     think_keywords = [
-        "analiza", "piensa", "evalúa", "compara", "investiga",
-        "explica", "por qué", "cómo funciona", "qué opinas",
-        "analyze", "think", "evaluate", "compare", "research",
-        "explain", "why", "how does",
+        "analiza",
+        "piensa",
+        "evalúa",
+        "compara",
+        "investiga",
+        "explica",
+        "por qué",
+        "cómo funciona",
+        "qué opinas",
+        "analyze",
+        "think",
+        "evaluate",
+        "compare",
+        "research",
+        "explain",
+        "why",
+        "how does",
     ]
     if any(kw in msg for kw in think_keywords):
         return IntentType.DEEP_THINK
@@ -1010,8 +1104,10 @@ def _build_base_system_prompt() -> str:
     Includes tool descriptions so the LLM can request tool usage.
     """
     from kernel.tool_dispatch import get_tool_aware_prompt_suffix
+
     tool_suffix = get_tool_aware_prompt_suffix()
-    return """Eres El Monstruo, el asistente de inteligencia artificial soberana de Alfredo Góngora.
+    return (
+        """Eres El Monstruo, el asistente de inteligencia artificial soberana de Alfredo Góngora.
 
 ## Identidad
 - Nombre: El Monstruo
@@ -1034,7 +1130,9 @@ def _build_base_system_prompt() -> str:
 - Sé conciso pero completo.
 - Usa tablas para comparaciones.
 - Usa listas para pasos.
-- Usa negrita para conceptos clave.""" + tool_suffix
+- Usa negrita para conceptos clave."""
+        + tool_suffix
+    )
 
 
 def _event_to_dict(event: Any) -> dict[str, Any]:

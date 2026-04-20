@@ -28,6 +28,7 @@ Reglas de interrupt():
 
 Dependencias: langgraph>=1.1.6, core/action_envelope.py, core/policy_engine.py
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -44,6 +45,7 @@ logger = structlog.get_logger("kernel.hitl")
 
 
 # ── HITL Gate (conditional edge function) ────────────────────────────
+
 
 def hitl_gate(state: MonstruoState) -> str:
     """Conditional edge after execute: decide if HITL review is needed.
@@ -79,6 +81,7 @@ def hitl_gate(state: MonstruoState) -> str:
 
 
 # ── HITL Review Node ─────────────────────────────────────────────────
+
 
 async def hitl_review(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """HITL review node — pauses execution using LangGraph interrupt().
@@ -152,24 +155,29 @@ async def hitl_review(state: MonstruoState, config: RunnableConfig) -> dict[str,
     )
 
     # Build event
-    event = EventBuilder() \
-        .category(EventCategory.HUMAN_REVIEWED) \
-        .actor("kernel.hitl_review") \
-        .action(f"Human decision: {decision}") \
-        .for_run_str(run_id) \
-        .severity(Severity.INFO if decision == "approve" else Severity.WARNING) \
-        .with_payload({
-            "decision": decision,
-            "risk_level": risk_level,
-            "reason": approval_reason,
-            "has_modification": modification is not None,
-        }) \
+    event = (
+        EventBuilder()
+        .category(EventCategory.HUMAN_REVIEWED)
+        .actor("kernel.hitl_review")
+        .action(f"Human decision: {decision}")
+        .for_run_str(run_id)
+        .severity(Severity.INFO if decision == "approve" else Severity.WARNING)
+        .with_payload(
+            {
+                "decision": decision,
+                "risk_level": risk_level,
+                "reason": approval_reason,
+                "has_modification": modification is not None,
+            }
+        )
         .build()
+    )
 
     existing_events = state.get("events", [])
 
     if decision == "reject":
         from contracts.kernel_interface import RunStatus
+
         return {
             "status": RunStatus.FAILED.value,
             "needs_human_approval": False,
@@ -196,6 +204,7 @@ async def hitl_review(state: MonstruoState, config: RunnableConfig) -> dict[str,
 
 
 # ── Helpers ──────────────────────────────────────────────────────────
+
 
 def _summarize_envelope(envelope_dict: dict[str, Any] | None) -> dict[str, Any] | None:
     """Extract key fields from serialized ActionEnvelope for human review."""

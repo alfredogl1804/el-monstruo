@@ -7,11 +7,11 @@ knowledge graph, and checkpoint persistence.
 All data is owned. No external framework is source of truth.
 """
 
-from memory.event_store import EventStore
-from memory.supabase_client import SupabaseClient
-from memory.conversation import ConversationMemory
 from memory.checkpoint_store import SovereignCheckpointStore
+from memory.conversation import ConversationMemory
+from memory.event_store import EventStore
 from memory.knowledge_graph import KnowledgeGraph
+from memory.supabase_client import SupabaseClient
 
 __all__ = [
     "EventStore",

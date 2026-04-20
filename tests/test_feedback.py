@@ -4,13 +4,14 @@ Sprint 1 — Convergence Phase.
 """
 
 import os
-import pytest
 from uuid import uuid4
 
-from contracts.event_envelope import EventCategory, EventBuilder
+import pytest
 
+from contracts.event_envelope import EventBuilder, EventCategory
 
 # ── EventCategory HITL Tests ──────────────────────────────────────
+
 
 class TestHITLEventCategories:
     """Test that HITL event categories exist and have correct values."""
@@ -40,11 +41,13 @@ class TestHITLEventCategories:
             .actor("alfredo_telegram")
             .action("feedback:approve")
             .for_run(run_id)
-            .with_payload({
-                "action": "approve",
-                "comment": "Looks good",
-                "edited_response": None,
-            })
+            .with_payload(
+                {
+                    "action": "approve",
+                    "comment": "Looks good",
+                    "edited_response": None,
+                }
+            )
             .build()
         )
         assert event.category == EventCategory.HUMAN_FEEDBACK
@@ -61,10 +64,12 @@ class TestHITLEventCategories:
             .actor("alfredo_telegram")
             .action("feedback:reject")
             .for_run(run_id)
-            .with_payload({
-                "action": "reject",
-                "comment": "Not what I asked for",
-            })
+            .with_payload(
+                {
+                    "action": "reject",
+                    "comment": "Not what I asked for",
+                }
+            )
             .build()
         )
         assert event.category == EventCategory.HUMAN_REJECTED
@@ -73,11 +78,13 @@ class TestHITLEventCategories:
 
 # ── FeedbackRequest Model Tests ───────────────────────────────────
 
+
 class TestFeedbackRequestModel:
     """Test the FeedbackRequest Pydantic model from main.py."""
 
     def test_import_feedback_request(self):
         from kernel.main import FeedbackRequest
+
         req = FeedbackRequest(
             run_id=str(uuid4()),
             action="approve",
@@ -91,6 +98,7 @@ class TestFeedbackRequestModel:
 
     def test_feedback_request_with_edit(self):
         from kernel.main import FeedbackRequest
+
         req = FeedbackRequest(
             run_id=str(uuid4()),
             action="edit",
@@ -102,6 +110,7 @@ class TestFeedbackRequestModel:
 
     def test_feedback_request_minimal(self):
         from kernel.main import FeedbackRequest
+
         req = FeedbackRequest(
             run_id=str(uuid4()),
             action="reject",
@@ -113,6 +122,7 @@ class TestFeedbackRequestModel:
     def test_feedback_actions(self):
         """Verify all 4 expected actions can be created."""
         from kernel.main import FeedbackRequest
+
         for action in ["approve", "reject", "edit", "escalate"]:
             req = FeedbackRequest(run_id=str(uuid4()), action=action)
             assert req.action == action
@@ -120,44 +130,57 @@ class TestFeedbackRequestModel:
 
 # ── FastAPI Endpoint Tests ────────────────────────────────────────
 
+
 class TestFeedbackEndpoint:
     """Test the /v1/feedback endpoint via TestClient."""
 
     @pytest.fixture
     def client(self):
         from fastapi.testclient import TestClient
+
         from kernel.main import app
+
         return TestClient(app)
 
     def test_feedback_returns_503_when_kernel_not_initialized(self, client):
         """Without lifespan, kernel is None → 503."""
-        response = client.post("/v1/feedback", json={
-            "run_id": str(uuid4()),
-            "action": "approve",
-        })
+        response = client.post(
+            "/v1/feedback",
+            json={
+                "run_id": str(uuid4()),
+                "action": "approve",
+            },
+        )
         assert response.status_code == 503
 
     def test_feedback_invalid_run_id(self, client):
         """Invalid UUID format → 400 (if kernel were initialized)."""
         # Without kernel, we get 503 first
-        response = client.post("/v1/feedback", json={
-            "run_id": "not-a-uuid",
-            "action": "approve",
-        })
+        response = client.post(
+            "/v1/feedback",
+            json={
+                "run_id": "not-a-uuid",
+                "action": "approve",
+            },
+        )
         # 503 because kernel is not initialized in test mode
         assert response.status_code == 503
 
     def test_feedback_endpoint_exists(self, client):
         """Verify the endpoint exists and accepts POST."""
-        response = client.post("/v1/feedback", json={
-            "run_id": str(uuid4()),
-            "action": "approve",
-        })
+        response = client.post(
+            "/v1/feedback",
+            json={
+                "run_id": str(uuid4()),
+                "action": "approve",
+            },
+        )
         # Should be 503 (kernel not init), NOT 404 (route not found)
         assert response.status_code != 404
 
 
 # ── Dockerfile Existence Tests ────────────────────────────────────
+
 
 class TestDeploymentFiles:
     """Verify deployment files exist and have correct structure."""

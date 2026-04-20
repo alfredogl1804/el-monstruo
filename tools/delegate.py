@@ -17,7 +17,6 @@ Principio: El Monstruo orquesta. Los delegados ejecutan.
 from __future__ import annotations
 
 import asyncio
-import json
 import time
 from typing import Any, Optional
 
@@ -26,11 +25,11 @@ import structlog
 logger = structlog.get_logger("tools.delegate")
 
 # ── Guards ─────────────────────────────────────────────────────────────
-MAX_DELEGATION_DEPTH = 1       # Delegates cannot delegate
-MAX_DELEGATIONS_PER_TURN = 3   # Max parallel delegations in one call
-MAX_TASK_LENGTH = 4000         # Max chars for task description
-MAX_CONTEXT_LENGTH = 8000      # Max chars for relevant_context
-DELEGATE_TIMEOUT_S = 60        # Default timeout per delegation
+MAX_DELEGATION_DEPTH = 1  # Delegates cannot delegate
+MAX_DELEGATIONS_PER_TURN = 3  # Max parallel delegations in one call
+MAX_TASK_LENGTH = 4000  # Max chars for task description
+MAX_CONTEXT_LENGTH = 8000  # Max chars for relevant_context
+DELEGATE_TIMEOUT_S = 60  # Default timeout per delegation
 
 # ── Role → Model Mapping ──────────────────────────────────────────────
 # Uses FALLBACK_CHAINS from model_catalog.py for automatic fallback.
@@ -153,7 +152,7 @@ async def delegate_task(
     Returns:
         Dict with role, response, model_used, latency_ms, and metadata
     """
-    start_time = time.monotonic()
+    time.monotonic()
 
     # ── Input validation ──────────────────────────────────────────────
     if not task or not task.strip():
@@ -236,7 +235,8 @@ async def _single_delegate(
 
     try:
         # Import router components
-        from config.model_catalog import MODELS, FALLBACK_CHAINS as ROLE_FALLBACKS
+        from config.model_catalog import FALLBACK_CHAINS as ROLE_FALLBACKS
+        from config.model_catalog import MODELS
         from router.llm_client import LLMClient
 
         llm = LLMClient()
@@ -416,6 +416,7 @@ async def _parallel_delegate(
 
 # ── Prompt Builders ───────────────────────────────────────────────────
 
+
 def _build_delegate_prompt(
     role: str,
     role_config: dict[str, Any],
@@ -429,6 +430,7 @@ def _build_delegate_prompt(
     if prompt_key:
         try:
             from prompts.system_prompts import get_brain_prompt
+
             base_prompt = get_brain_prompt(prompt_key)
         except Exception:
             pass
@@ -447,9 +449,7 @@ def _build_delegate_prompt(
     # Add constraints
     constraints_section = ""
     if constraints:
-        constraints_section = "\n\n## Restricciones\n" + "\n".join(
-            f"- {c}" for c in constraints
-        )
+        constraints_section = "\n\n## Restricciones\n" + "\n".join(f"- {c}" for c in constraints)
 
     return base_prompt + delegation_header + constraints_section
 
@@ -482,9 +482,7 @@ def _build_synthesis_input(task: str, responses: list[dict]) -> str:
 
 # ── Public API for tool_dispatch ──────────────────────────────────────
 
+
 def get_available_roles() -> list[dict[str, str]]:
     """Return list of available roles with descriptions."""
-    return [
-        {"role": role, "description": config["description"]}
-        for role, config in ROLE_CONFIGS.items()
-    ]
+    return [{"role": role, "description": config["description"]} for role, config in ROLE_CONFIGS.items()]

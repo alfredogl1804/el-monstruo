@@ -17,7 +17,19 @@ python_functions = ["test_*"]
 
 [tool.ruff]
 target-version = "py311"
-line-length = 88
+line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W"]
+ignore = [
+    "N806",   # Variable in function should be lowercase (intentional for config maps)
+    "N811",   # Constant imported as non-constant (intentional aliases)
+    "N814",   # Camelcase imported as constant (intentional)
+    "E741",   # Ambiguous variable name (context-clear in our codebase)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"kernel/main.py" = ["E402"]
+"router/engine.py" = ["E402"]
+"cidp/scripts/run_cidp.py" = ["E402"]
+"scripts/*" = ["E402"]

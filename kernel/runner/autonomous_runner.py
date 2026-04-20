@@ -18,6 +18,7 @@ Architecture:
   lifespan(startup) → asyncio.create_task(runner.start())
   runner.start() → poll loop → _execute_job() → kernel.run() → notify
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -40,7 +41,7 @@ JOB_TIMEOUT_S = int(os.environ.get("AUTONOMY_JOB_TIMEOUT", "300"))  # 5 min per 
 class AutonomousRunner:
     """
     Background runner that executes scheduled jobs autonomously.
-    
+
     Dependencies (injected at init):
         - db: SupabaseClient for reading/writing jobs
         - kernel: LangGraphKernel for re-entry execution
@@ -122,7 +123,8 @@ class AutonomousRunner:
             # Filter to only due jobs
             now = datetime.now(timezone.utc)
             due_jobs = [
-                j for j in due_jobs
+                j
+                for j in due_jobs
                 if j.get("run_at") and datetime.fromisoformat(j["run_at"].replace("Z", "+00:00")) <= now
             ]
             # Claim them by updating status
@@ -162,12 +164,15 @@ class AutonomousRunner:
             )
 
             # Record execution start
-            await self._db.insert("job_executions", {
-                "id": execution_id,
-                "scheduled_job_id": job_id,
-                "started_at": started_at.isoformat(),
-                "status": "running",
-            })
+            await self._db.insert(
+                "job_executions",
+                {
+                    "id": execution_id,
+                    "scheduled_job_id": job_id,
+                    "started_at": started_at.isoformat(),
+                    "status": "running",
+                },
+            )
 
             try:
                 # Re-enter the kernel with the job's instruction
@@ -419,11 +424,7 @@ class AutonomousRunner:
         if channel == "telegram" and self._notifier:
             try:
                 emoji = "\u2705" if status == "completed" else "\u274c"
-                message = (
-                    f"{emoji} **Tarea Autónoma: {title}**\n\n"
-                    f"Estado: {status}\n\n"
-                    f"{result[:1500]}"
-                )
+                message = f"{emoji} **Tarea Autónoma: {title}**\n\nEstado: {status}\n\n{result[:1500]}"
                 await self._notifier.send_message(user_id, message)
             except Exception as e:
                 logger.error("notification_failed", channel=channel, error=str(e))

@@ -89,13 +89,25 @@ SABIOS = {
 
 # ── Individual Sabio Callers ──────────────────────────────────────────
 
+
 async def _call_openai(model: str, system: str, user: str, api_key: str) -> str:
     """Call OpenAI-compatible API (GPT-5.4)."""
     async with httpx.AsyncClient(timeout=120.0) as client:
         resp = await client.post(
             "https://api.openai.com/v1/chat/completions",
-            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-            json={"model": model, "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}], "max_tokens": 2048, "temperature": 0.3},
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                "max_tokens": 2048,
+                "temperature": 0.3,
+            },
         )
         resp.raise_for_status()
         return resp.json()["choices"][0]["message"]["content"]
@@ -106,8 +118,18 @@ async def _call_anthropic(model: str, system: str, user: str, api_key: str) -> s
     async with httpx.AsyncClient(timeout=120.0) as client:
         resp = await client.post(
             "https://api.anthropic.com/v1/messages",
-            headers={"x-api-key": api_key, "anthropic-version": "2023-06-01", "Content-Type": "application/json"},
-            json={"model": model, "system": system, "messages": [{"role": "user", "content": user}], "max_tokens": 2048, "temperature": 0.3},
+            headers={
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": model,
+                "system": system,
+                "messages": [{"role": "user", "content": user}],
+                "max_tokens": 2048,
+                "temperature": 0.3,
+            },
         )
         resp.raise_for_status()
         data = resp.json()
@@ -136,8 +158,19 @@ async def _call_xai(model: str, system: str, user: str, api_key: str) -> str:
     async with httpx.AsyncClient(timeout=120.0) as client:
         resp = await client.post(
             "https://api.x.ai/v1/chat/completions",
-            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-            json={"model": model, "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}], "max_tokens": 2048, "temperature": 0.3},
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                "max_tokens": 2048,
+                "temperature": 0.3,
+            },
         )
         resp.raise_for_status()
         return resp.json()["choices"][0]["message"]["content"]
@@ -148,8 +181,19 @@ async def _call_openrouter(model: str, system: str, user: str, api_key: str) -> 
     async with httpx.AsyncClient(timeout=120.0) as client:
         resp = await client.post(
             "https://openrouter.ai/api/v1/chat/completions",
-            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-            json={"model": model, "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}], "max_tokens": 2048, "temperature": 0.3},
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                "max_tokens": 2048,
+                "temperature": 0.3,
+            },
         )
         resp.raise_for_status()
         return resp.json()["choices"][0]["message"]["content"]
@@ -160,8 +204,19 @@ async def _call_perplexity(model: str, system: str, user: str, api_key: str) -> 
     async with httpx.AsyncClient(timeout=120.0) as client:
         resp = await client.post(
             "https://api.perplexity.ai/chat/completions",
-            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-            json={"model": model, "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}], "max_tokens": 2048, "temperature": 0.2},
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                "max_tokens": 2048,
+                "temperature": 0.2,
+            },
         )
         resp.raise_for_status()
         return resp.json()["choices"][0]["message"]["content"]
@@ -179,6 +234,7 @@ _CALLERS = {
 
 
 # ── Main Consultation Function ────────────────────────────────────────
+
 
 async def _consult_single_sabio(
     sabio_id: str,
@@ -257,13 +313,13 @@ async def consult_sabios(
 ) -> dict[str, Any]:
     """
     Consult the 6 Sabios (or a subset) and return their responses.
-    
+
     Args:
         prompt: The question or task for the sabios
         context: Additional context to help them respond
         sabios: List of sabio IDs to consult (default: all 6)
         parallel: Whether to consult in parallel (True) or sequential (False)
-    
+
     Returns:
         dict with keys: responses (list), synthesis, total_latency_ms, errors
     """
@@ -283,10 +339,7 @@ async def consult_sabios(
 
     # Consult sabios
     if parallel:
-        tasks = [
-            _consult_single_sabio(sid, sabio, prompt, context)
-            for sid, sabio in selected.items()
-        ]
+        tasks = [_consult_single_sabio(sid, sabio, prompt, context) for sid, sabio in selected.items()]
         responses = await asyncio.gather(*tasks)
     else:
         responses = []

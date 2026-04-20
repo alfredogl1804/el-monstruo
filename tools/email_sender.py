@@ -17,8 +17,8 @@ from __future__ import annotations
 
 import os
 import smtplib
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from typing import Any, Optional
 
 import structlog
@@ -38,14 +38,14 @@ async def send_email(
 ) -> dict[str, Any]:
     """
     Send an email via Gmail SMTP.
-    
+
     Args:
         to: Recipient email address
         subject: Email subject
         body: Plain text body
         html_body: Optional HTML body (if provided, email is multipart)
         cc: Optional CC address
-    
+
     Returns:
         dict with keys: sent (bool), error (str or None), recipient
     """

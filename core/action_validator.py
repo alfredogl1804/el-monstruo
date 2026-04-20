@@ -13,28 +13,28 @@ Responsabilidades:
 
 Dependencias: Solo stdlib Python 3.11+ y core/action_envelope.py
 """
+
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import Any
 
 from core.action_envelope import (
     ActionEnvelope,
     ActionStatus,
     ActionType,
+    PolicyDecision,
+    ResourceKind,
     RiskLevel,
     TrustRing,
-    ResourceKind,
-    PolicyDecision,
     transition,
-    utcnow,
 )
-
 
 # ── Validation errors ─────────────────────────────────────────────
 
+
 class ValidationError(Exception):
     """Error de validación del envelope."""
+
     def __init__(self, field: str, message: str):
         self.field = field
         self.message = message
@@ -43,6 +43,7 @@ class ValidationError(Exception):
 
 class ValidationResult:
     """Resultado acumulativo de validación."""
+
     __slots__ = ("errors", "warnings", "reclassified")
 
     def __init__(self):
@@ -112,6 +113,7 @@ def validate_schema(envelope: ActionEnvelope, result: ValidationResult) -> None:
 
     # payload size
     import json
+
     payload_bytes = len(json.dumps(dict(envelope.payload), default=str).encode("utf-8"))
     if payload_bytes > MAX_PAYLOAD_SIZE_BYTES:
         result.add_error("payload", f"Size {payload_bytes}B exceeds max {MAX_PAYLOAD_SIZE_BYTES}B")
@@ -128,18 +130,34 @@ def validate_schema(envelope: ActionEnvelope, result: ValidationResult) -> None:
 # ── Semantic validation + reclassification ────────────────────────
 
 # Operations that imply EXECUTE even when declared as READ
-EXECUTE_IMPLYING_OPERATIONS = frozenset({
-    "invoke", "call", "trigger", "run", "execute",
-    "send", "post", "submit", "dispatch", "deploy",
-    "create", "update", "delete", "mutate", "patch",
-})
+EXECUTE_IMPLYING_OPERATIONS = frozenset(
+    {
+        "invoke",
+        "call",
+        "trigger",
+        "run",
+        "execute",
+        "send",
+        "post",
+        "submit",
+        "dispatch",
+        "deploy",
+        "create",
+        "update",
+        "delete",
+        "mutate",
+        "patch",
+    }
+)
 
 # Resource kinds that trigger READ→EXECUTE reclassification
-EXECUTE_RESOURCE_KINDS = frozenset({
-    ResourceKind.API,
-    ResourceKind.TOOL,
-    ResourceKind.AGENT,
-})
+EXECUTE_RESOURCE_KINDS = frozenset(
+    {
+        ResourceKind.API,
+        ResourceKind.TOOL,
+        ResourceKind.AGENT,
+    }
+)
 
 
 def validate_semantic(envelope: ActionEnvelope, result: ValidationResult) -> ActionEnvelope:
@@ -168,20 +186,25 @@ def validate_semantic(envelope: ActionEnvelope, result: ValidationResult) -> Act
     # ── Coherencia action_type vs operation ───────────────────────
     # DELETE debe tener operación que implique eliminación
     if envelope.action_type == ActionType.DELETE:
-        delete_keywords = {"delete", "remove", "drop", "purge", "destroy", "clear", "erase"}
+        delete_keywords = {
+            "delete",
+            "remove",
+            "drop",
+            "purge",
+            "destroy",
+            "clear",
+            "erase",
+        }
         if not any(kw in operation_lower for kw in delete_keywords):
             result.add_warning(
-                f"DELETE action but operation '{envelope.operation}' "
-                f"doesn't contain delete-related keywords"
+                f"DELETE action but operation '{envelope.operation}' doesn't contain delete-related keywords"
             )
 
     # WRITE a SECRET siempre es sensible
-    if (envelope.action_type in (ActionType.WRITE, ActionType.DELETE)
-            and target.resource_kind == ResourceKind.SECRET):
+    if envelope.action_type in (ActionType.WRITE, ActionType.DELETE) and target.resource_kind == ResourceKind.SECRET:
         if not target.contains_sensitive_data:
             result.add_warning(
-                "WRITE/DELETE on SECRET resource but contains_sensitive_data=False. "
-                "Auto-correcting to True."
+                "WRITE/DELETE on SECRET resource but contains_sensitive_data=False. Auto-correcting to True."
             )
             corrected_target = replace(target, contains_sensitive_data=True)
             envelope = replace(envelope, target=corrected_target)
@@ -190,6 +213,7 @@ def validate_semantic(envelope: ActionEnvelope, result: ValidationResult) -> Act
 
 
 # ── Risk classification (determinista) ────────────────────────────
+
 
 def classify_risk(envelope: ActionEnvelope) -> RiskLevel:
     """
@@ -202,9 +226,15 @@ def classify_risk(envelope: ActionEnvelope) -> RiskLevel:
     # L3: Siempre sensible
     if target.resource_kind == ResourceKind.SECRET:
         return RiskLevel.L3_SENSITIVE
-    if target.contains_sensitive_data and action_type in (ActionType.WRITE, ActionType.DELETE):
+    if target.contains_sensitive_data and action_type in (
+        ActionType.WRITE,
+        ActionType.DELETE,
+    ):
         return RiskLevel.L3_SENSITIVE
-    if action_type == ActionType.DELETE and target.resource_kind in (ResourceKind.DB, ResourceKind.FILE):
+    if action_type == ActionType.DELETE and target.resource_kind in (
+        ResourceKind.DB,
+        ResourceKind.FILE,
+    ):
         return RiskLevel.L3_SENSITIVE
     if target.external_network and action_type == ActionType.EXECUTE:
         return RiskLevel.L3_SENSITIVE
@@ -222,6 +252,7 @@ def classify_risk(envelope: ActionEnvelope) -> RiskLevel:
 
 
 # ── Trust ring enforcement ────────────────────────────────────────
+
 
 def enforce_trust_ring(envelope: ActionEnvelope) -> TrustRing:
     """
@@ -251,6 +282,7 @@ def enforce_trust_ring(envelope: ActionEnvelope) -> TrustRing:
 
 # ── HITL determination ────────────────────────────────────────────
 
+
 def requires_hitl(risk: RiskLevel, trust_ring: TrustRing, action_type: ActionType) -> bool:
     """
     Determina si la acción requiere aprobación humana.
@@ -276,7 +308,9 @@ def requires_hitl(risk: RiskLevel, trust_ring: TrustRing, action_type: ActionTyp
 POLICY_VERSION = "v2.0.0-sprint1"
 
 
-def validate_and_classify(envelope: ActionEnvelope) -> tuple[ActionEnvelope, ValidationResult]:
+def validate_and_classify(
+    envelope: ActionEnvelope,
+) -> tuple[ActionEnvelope, ValidationResult]:
     """
     Pipeline completo de validación:
     1. Schema validation

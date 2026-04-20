@@ -20,8 +20,7 @@ Anti-autoboicot: aiohttp>=3.13.4 (CVE-2026-22815)
 
 from __future__ import annotations
 
-import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import structlog
 

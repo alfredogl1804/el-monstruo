@@ -10,24 +10,24 @@ Tests for:
 - New tool endpoints
 - Version bumps
 """
-import asyncio
-import sys
+
 import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import pytest_asyncio
-from unittest.mock import patch, AsyncMock, MagicMock
-from uuid import uuid4
 
-from contracts.kernel_interface import RunInput, RunOutput, RunStatus, IntentType
 from kernel.engine import LangGraphKernel
-from memory.event_store import EventStore
 from memory.conversation import ConversationMemory
+from memory.event_store import EventStore
 from memory.knowledge_graph import KnowledgeGraph
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────
+
 
 @pytest_asyncio.fixture
 async def event_store():
@@ -35,9 +35,11 @@ async def event_store():
     await store.initialize()
     return store
 
+
 @pytest.fixture
 def memory():
     return ConversationMemory()
+
 
 @pytest.fixture
 def knowledge():
@@ -45,6 +47,7 @@ def knowledge():
 
 
 # ── PostgresSaver Tests ───────────────────────────────────────────────
+
 
 class TestPostgresSaver:
     """Tests for PostgresSaver integration."""
@@ -56,7 +59,7 @@ class TestPostgresSaver:
         # Verify the kernel constructor accepts checkpointer
         # (It will fail to compile with a mock, but the parameter is accepted)
         try:
-            kernel = LangGraphKernel(
+            LangGraphKernel(
                 event_store=event_store,
                 memory=memory,
                 knowledge=knowledge,
@@ -80,6 +83,7 @@ class TestPostgresSaver:
         """langgraph-checkpoint-postgres should be importable."""
         try:
             from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+
             assert AsyncPostgresSaver is not None
         except ImportError:
             pytest.skip("langgraph-checkpoint-postgres not installed in test env")
@@ -87,17 +91,20 @@ class TestPostgresSaver:
     def test_has_postgres_saver_flag(self):
         """The _HAS_POSTGRES_SAVER flag should exist in engine module."""
         from kernel.engine import _HAS_POSTGRES_SAVER
+
         assert isinstance(_HAS_POSTGRES_SAVER, bool)
 
 
 # ── Auth Middleware Tests ─────────────────────────────────────────────
+
 
 class TestAuthMiddleware:
     """Tests for API Key authentication middleware."""
 
     def test_auth_module_importable(self):
         """Auth module should be importable."""
-        from kernel.auth import APIKeyAuthMiddleware, PUBLIC_PATHS
+        from kernel.auth import PUBLIC_PATHS, APIKeyAuthMiddleware
+
         assert APIKeyAuthMiddleware is not None
         assert "/" in PUBLIC_PATHS
         assert "/health" in PUBLIC_PATHS
@@ -105,6 +112,7 @@ class TestAuthMiddleware:
     def test_public_paths_defined(self):
         """Public paths should include health and root."""
         from kernel.auth import PUBLIC_PATHS
+
         assert "/health" in PUBLIC_PATHS
         assert "/" in PUBLIC_PATHS
         assert "/docs" in PUBLIC_PATHS
@@ -112,6 +120,7 @@ class TestAuthMiddleware:
     def test_extract_token_from_x_api_key(self):
         """Should extract token from X-API-Key header."""
         from kernel.auth import _extract_token
+
         mock_request = MagicMock()
         mock_request.headers = {"X-API-Key": "test-key-123"}
         assert _extract_token(mock_request) == "test-key-123"
@@ -119,6 +128,7 @@ class TestAuthMiddleware:
     def test_extract_token_from_bearer(self):
         """Should extract token from Authorization: Bearer header."""
         from kernel.auth import _extract_token
+
         mock_request = MagicMock()
         # Use a real dict-like object for headers
         headers = {"Authorization": "Bearer my-secret-key"}
@@ -129,12 +139,14 @@ class TestAuthMiddleware:
     def test_get_api_key_from_env(self):
         """Should read API key from environment."""
         from kernel.auth import _get_api_key
+
         with patch.dict(os.environ, {"MONSTRUO_API_KEY": "test-key"}):
             assert _get_api_key() == "test-key"
 
     def test_get_api_key_returns_none_when_not_set(self):
         """Should return None when MONSTRUO_API_KEY is not set."""
         from kernel.auth import _get_api_key
+
         with patch.dict(os.environ, {}, clear=True):
             # Remove the key if it exists
             os.environ.pop("MONSTRUO_API_KEY", None)
@@ -143,12 +155,14 @@ class TestAuthMiddleware:
 
 # ── Web Search Tool Tests ─────────────────────────────────────────────
 
+
 class TestWebSearch:
     """Tests for the web_search tool."""
 
     def test_web_search_importable(self):
         """Web search module should be importable."""
-        from tools.web_search import web_search, multi_search, SONAR_MODELS
+        from tools.web_search import SONAR_MODELS, multi_search, web_search
+
         assert web_search is not None
         assert multi_search is not None
         assert "sonar-pro" in SONAR_MODELS
@@ -159,6 +173,7 @@ class TestWebSearch:
         with patch.dict(os.environ, {}, clear=True):
             os.environ.pop("SONAR_API_KEY", None)
             from tools.web_search import web_search
+
             result = await web_search("test query")
             assert result["error"] is not None
             assert "SONAR_API_KEY" in result["error"]
@@ -169,6 +184,7 @@ class TestWebSearch:
         """Should return dict with expected keys."""
         with patch.dict(os.environ, {"SONAR_API_KEY": "fake-key"}):
             from tools.web_search import web_search
+
             # Mock the HTTP call
             with patch("tools.web_search.httpx.AsyncClient") as mock_client:
                 mock_response = MagicMock()
@@ -194,18 +210,21 @@ class TestWebSearch:
 
 # ── Consult Sabios Tool Tests ─────────────────────────────────────────
 
+
 class TestConsultSabios:
     """Tests for the consult_sabios tool."""
 
     def test_consult_sabios_importable(self):
         """Consult sabios module should be importable."""
-        from tools.consult_sabios import consult_sabios, SABIOS
+        from tools.consult_sabios import SABIOS, consult_sabios
+
         assert consult_sabios is not None
         assert len(SABIOS) == 6
 
     def test_all_six_sabios_defined(self):
         """All 6 sabios should be defined with correct structure."""
         from tools.consult_sabios import SABIOS
+
         expected_ids = {"gpt54", "claude", "gemini", "grok", "deepseek", "perplexity"}
         assert set(SABIOS.keys()) == expected_ids
         for sid, sabio in SABIOS.items():
@@ -217,18 +236,30 @@ class TestConsultSabios:
 
     def test_sabio_providers_have_callers(self):
         """Each provider should have a corresponding caller function."""
-        from tools.consult_sabios import SABIOS, _CALLERS
+        from tools.consult_sabios import _CALLERS, SABIOS
+
         for sid, sabio in SABIOS.items():
             assert sabio["provider"] in _CALLERS, f"No caller for {sabio['provider']}"
 
     @pytest.mark.asyncio
     async def test_consult_sabios_no_keys(self):
         """Should return errors when no API keys are set."""
-        env_clean = {k: v for k, v in os.environ.items()
-                     if k not in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY",
-                                  "XAI_API_KEY", "OPENROUTER_API_KEY", "SONAR_API_KEY")}
+        env_clean = {
+            k: v
+            for k, v in os.environ.items()
+            if k
+            not in (
+                "OPENAI_API_KEY",
+                "ANTHROPIC_API_KEY",
+                "GEMINI_API_KEY",
+                "XAI_API_KEY",
+                "OPENROUTER_API_KEY",
+                "SONAR_API_KEY",
+            )
+        }
         with patch.dict(os.environ, env_clean, clear=True):
             from tools.consult_sabios import consult_sabios
+
             result = await consult_sabios("test prompt", sabios=["gpt54"])
             assert result["failed_count"] >= 0  # May or may not have key in env
             assert "responses" in result
@@ -238,11 +269,13 @@ class TestConsultSabios:
     async def test_consult_sabios_empty_sabios_list(self):
         """Should handle empty sabio selection gracefully."""
         from tools.consult_sabios import consult_sabios
+
         result = await consult_sabios("test", sabios=["nonexistent"])
         assert result["errors"] == ["No valid sabios selected"]
 
 
 # ── Email Sender Tool Tests ───────────────────────────────────────────
+
 
 class TestEmailSender:
     """Tests for the email_sender tool."""
@@ -250,6 +283,7 @@ class TestEmailSender:
     def test_email_sender_importable(self):
         """Email sender module should be importable."""
         from tools.email_sender import send_email
+
         assert send_email is not None
 
     @pytest.mark.asyncio
@@ -259,6 +293,7 @@ class TestEmailSender:
             os.environ.pop("GMAIL_ADDRESS", None)
             os.environ.pop("GMAIL_APP_PASSWORD", None)
             from tools.email_sender import send_email
+
             result = await send_email(
                 to="test@example.com",
                 subject="Test",
@@ -270,16 +305,17 @@ class TestEmailSender:
 
 # ── Version and Integration Tests ─────────────────────────────────────
 
+
 class TestVersionAndIntegration:
     """Tests for version bumps and integration."""
 
     def test_version_is_sprint2(self):
-        """Version should be 0.3.0-sprint2 in main.py."""
+        """Version should be 0.10.0-sprint16 in main.py."""
         # Check in main.py where the version is defined
         main_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "kernel", "main.py")
         with open(main_path) as f:
             content = f.read()
-        assert "0.3.0-sprint2" in content
+        assert "0.10.0-sprint16" in content
 
     def test_tools_directory_exists(self):
         """Tools directory should exist with all modules."""

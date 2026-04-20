@@ -18,13 +18,13 @@ Sprint 3 — 2026-04-16
 Validated by 6 Sabios consensus: "Rate limiting is P1 — a leaked key
 without limits burns your entire LLM budget in hours."
 """
+
 from __future__ import annotations
 
 import os
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Optional
 
 import structlog
 from fastapi import Request
@@ -45,9 +45,11 @@ EXEMPT_PATHS = frozenset({"/", "/health", "/docs", "/openapi.json", "/redoc"})
 
 # ── Sliding Window Counter ─────────────────────────────────────────
 
+
 @dataclass
 class SlidingWindow:
     """Sliding window rate counter with automatic cleanup."""
+
     timestamps: list[float] = field(default_factory=list)
 
     def add(self, now: float) -> None:
@@ -64,6 +66,7 @@ class SlidingWindow:
 @dataclass
 class DailyCost:
     """Track daily cost accumulation."""
+
     date: str = ""
     total_usd: float = 0.0
 
@@ -141,6 +144,7 @@ def get_rate_stats(client_id: str) -> dict:
 
 
 # ── Middleware ─────────────────────────────────────────────────────
+
 
 class RateLimiterMiddleware(BaseHTTPMiddleware):
     """

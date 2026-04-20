@@ -20,13 +20,14 @@ Sprint 10c — 2026-04-18: Added pricing catalog endpoint
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Request, Query
+from fastapi import APIRouter, Query, Request
 from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/v1", tags=["usage", "registry"])
 
 
 # ─── Usage Endpoints ─────────────────────────────────────────
+
 
 @router.get("/usage/today")
 async def usage_today(request: Request):
@@ -101,17 +102,20 @@ async def usage_pricing(request: Request):
         return JSONResponse({"error": "Usage tracker not initialized"}, status_code=503)
 
     catalog = await tracker.get_pricing_catalog()
-    return JSONResponse({
-        "models": catalog,
-        "total": len(catalog),
-        "source": "supabase" if tracker._pricing_cache else "fallback",
-    })
+    return JSONResponse(
+        {
+            "models": catalog,
+            "total": len(catalog),
+            "source": "supabase" if tracker._pricing_cache else "fallback",
+        }
+    )
 
 
 @router.get("/broker/stats")
 async def broker_stats(request: Request):
     """Get ToolBroker statistics."""
     from kernel.tool_dispatch import get_tool_broker
+
     broker = get_tool_broker()
     if not broker:
         return JSONResponse({"error": "ToolBroker not initialized"}, status_code=503)
@@ -120,6 +124,7 @@ async def broker_stats(request: Request):
 
 
 # ─── Registry Endpoints ──────────────────────────────────────
+
 
 @router.get("/registry/")
 async def registry_list(request: Request):
@@ -132,24 +137,28 @@ async def registry_list(request: Request):
     # Serialize for JSON (remove non-serializable fields)
     clean = []
     for t in tools:
-        clean.append({
-            "tool_name": t.get("tool_name"),
-            "display_name": t.get("display_name"),
-            "category": t.get("category"),
-            "description": t.get("description"),
-            "risk_level": t.get("risk_level"),
-            "requires_hitl": t.get("requires_hitl"),
-            "is_active": t.get("is_active"),
-            "invocation_count": t.get("invocation_count", 0),
-            "last_invoked_at": t.get("last_invoked_at"),
-            "metadata": t.get("metadata", {}),
-        })
+        clean.append(
+            {
+                "tool_name": t.get("tool_name"),
+                "display_name": t.get("display_name"),
+                "category": t.get("category"),
+                "description": t.get("description"),
+                "risk_level": t.get("risk_level"),
+                "requires_hitl": t.get("requires_hitl"),
+                "is_active": t.get("is_active"),
+                "invocation_count": t.get("invocation_count", 0),
+                "last_invoked_at": t.get("last_invoked_at"),
+                "metadata": t.get("metadata", {}),
+            }
+        )
 
-    return JSONResponse({
-        "tools": clean,
-        "total": len(clean),
-        "active": sum(1 for t in clean if t.get("is_active")),
-    })
+    return JSONResponse(
+        {
+            "tools": clean,
+            "total": len(clean),
+            "active": sum(1 for t in clean if t.get("is_active")),
+        }
+    )
 
 
 @router.get("/registry/stats")
@@ -173,19 +182,21 @@ async def registry_get_tool(request: Request, tool_name: str):
     if not tool:
         return JSONResponse({"error": f"Tool '{tool_name}' not found"}, status_code=404)
 
-    return JSONResponse({
-        "tool_name": tool.get("tool_name"),
-        "display_name": tool.get("display_name"),
-        "category": tool.get("category"),
-        "description": tool.get("description"),
-        "risk_level": tool.get("risk_level"),
-        "requires_hitl": tool.get("requires_hitl"),
-        "is_active": tool.get("is_active"),
-        "invocation_count": tool.get("invocation_count", 0),
-        "last_invoked_at": tool.get("last_invoked_at"),
-        "parameters": tool.get("parameters", {}),
-        "metadata": tool.get("metadata", {}),
-    })
+    return JSONResponse(
+        {
+            "tool_name": tool.get("tool_name"),
+            "display_name": tool.get("display_name"),
+            "category": tool.get("category"),
+            "description": tool.get("description"),
+            "risk_level": tool.get("risk_level"),
+            "requires_hitl": tool.get("requires_hitl"),
+            "is_active": tool.get("is_active"),
+            "invocation_count": tool.get("invocation_count", 0),
+            "last_invoked_at": tool.get("last_invoked_at"),
+            "parameters": tool.get("parameters", {}),
+            "metadata": tool.get("metadata", {}),
+        }
+    )
 
 
 @router.post("/registry/{tool_name}/toggle")
@@ -203,10 +214,12 @@ async def registry_toggle_tool(request: Request, tool_name: str):
     success = await registry.set_active(tool_name, new_status)
 
     if success:
-        return JSONResponse({
-            "tool_name": tool_name,
-            "is_active": new_status,
-            "message": f"Tool {'enabled' if new_status else 'disabled'}",
-        })
+        return JSONResponse(
+            {
+                "tool_name": tool_name,
+                "is_active": new_status,
+                "message": f"Tool {'enabled' if new_status else 'disabled'}",
+            }
+        )
     else:
         return JSONResponse({"error": "Failed to toggle tool"}, status_code=500)

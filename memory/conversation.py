@@ -22,7 +22,6 @@ import structlog
 
 from contracts.memory_interface import (
     Entity,
-    EntityType,
     Episode,
     MemoryEvent,
     MemoryInterface,
@@ -79,9 +78,17 @@ class ConversationMemory(MemoryInterface):
         openai_key = os.environ.get("OPENAI_API_KEY")
         gemini_key = os.environ.get("GEMINI_API_KEY")
         if openai_key:
-            logger.info("embedding_client_initialized", provider="openai", model=self._embedding_model)
+            logger.info(
+                "embedding_client_initialized",
+                provider="openai",
+                model=self._embedding_model,
+            )
         elif gemini_key:
-            logger.info("embedding_client_initialized", provider="gemini", model="text-embedding-004")
+            logger.info(
+                "embedding_client_initialized",
+                provider="gemini",
+                model="text-embedding-004",
+            )
         else:
             logger.warning("embedding_no_provider", msg="No OPENAI_API_KEY or GEMINI_API_KEY found")
 
@@ -109,19 +116,22 @@ class ConversationMemory(MemoryInterface):
 
         # Persist to Supabase
         if self._db and self._db.connected:
-            await self._db.insert("memory_events", {
-                "event_id": str(event.event_id),
-                "memory_type": event.memory_type.value,
-                "run_id": str(event.run_id) if event.run_id else None,
-                "user_id": event.user_id or None,
-                "channel": event.channel or None,
-                "content": event.content,
-                "embedding": embedding,
-                "metadata": event.metadata,
-                "created_at": event.created_at.isoformat()
-                if hasattr(event.created_at, 'isoformat')
-                else str(event.created_at),
-            })
+            await self._db.insert(
+                "memory_events",
+                {
+                    "event_id": str(event.event_id),
+                    "memory_type": event.memory_type.value,
+                    "run_id": str(event.run_id) if event.run_id else None,
+                    "user_id": event.user_id or None,
+                    "channel": event.channel or None,
+                    "content": event.content,
+                    "embedding": embedding,
+                    "metadata": event.metadata,
+                    "created_at": event.created_at.isoformat()
+                    if hasattr(event.created_at, "isoformat")
+                    else str(event.created_at),
+                },
+            )
 
         logger.debug(
             "memory_event_appended",
@@ -157,14 +167,10 @@ class ConversationMemory(MemoryInterface):
 
         # If Supabase is connected, use pgvector
         if self._db and self._db.connected:
-            return await self._search_semantic_supabase(
-                query_embedding, user_id, memory_types, limit, threshold
-            )
+            return await self._search_semantic_supabase(query_embedding, user_id, memory_types, limit, threshold)
 
         # In-memory cosine similarity
-        return self._search_semantic_local(
-            query_embedding, user_id, memory_types, limit, threshold
-        )
+        return self._search_semantic_local(query_embedding, user_id, memory_types, limit, threshold)
 
     async def search_keyword(
         self,
@@ -203,7 +209,6 @@ class ConversationMemory(MemoryInterface):
                     if overlap > 0:
                         score = overlap / max(len(query_words), 1)
                         # Create a lightweight MemoryEvent from DB row
-                        from datetime import datetime as dt
                         event = MemoryEvent(
                             event_id=UUID(row["event_id"]) if row.get("event_id") else uuid4(),
                             memory_type=MemoryType(row.get("memory_type", "episodic")),
@@ -212,12 +217,18 @@ class ConversationMemory(MemoryInterface):
                             content=row.get("content", ""),
                             metadata=row.get("metadata", {}),
                         )
-                        results.append(SearchResult(
-                            event=event,
-                            score=score,
-                            source="keyword_supabase",
-                        ))
-                logger.info("keyword_search_from_supabase", results=len(results), query=query[:50])
+                        results.append(
+                            SearchResult(
+                                event=event,
+                                score=score,
+                                source="keyword_supabase",
+                            )
+                        )
+                logger.info(
+                    "keyword_search_from_supabase",
+                    results=len(results),
+                    query=query[:50],
+                )
             except Exception as e:
                 logger.warning("keyword_search_supabase_failed", error=str(e))
         else:
@@ -230,11 +241,13 @@ class ConversationMemory(MemoryInterface):
                 overlap = len(query_words & content_words)
                 if overlap > 0:
                     score = overlap / max(len(query_words), 1)
-                    results.append(SearchResult(
-                        event=event,
-                        score=score,
-                        source="keyword",
-                    ))
+                    results.append(
+                        SearchResult(
+                            event=event,
+                            score=score,
+                            source="keyword",
+                        )
+                    )
 
         # Sort by score descending
         results.sort(key=lambda r: r.score, reverse=True)
@@ -250,12 +263,8 @@ class ConversationMemory(MemoryInterface):
     ) -> list[SearchResult]:
         """Hybrid search: vector + keyword with configurable weights."""
         # Get both result sets
-        semantic_results = await self.search_semantic(
-            query, user_id, memory_types, limit * 2
-        )
-        keyword_results = await self.search_keyword(
-            query, user_id, memory_types, limit * 2
-        )
+        semantic_results = await self.search_semantic(query, user_id, memory_types, limit * 2)
+        keyword_results = await self.search_keyword(query, user_id, memory_types, limit * 2)
 
         # Merge and re-score
         scored: dict[UUID, tuple[MemoryEvent, float]] = {}
@@ -267,7 +276,10 @@ class ConversationMemory(MemoryInterface):
         for r in keyword_results:
             if r.event.event_id in scored:
                 event, existing_score = scored[r.event.event_id]
-                scored[r.event.event_id] = (event, existing_score + r.score * keyword_weight)
+                scored[r.event.event_id] = (
+                    event,
+                    existing_score + r.score * keyword_weight,
+                )
             else:
                 scored[r.event.event_id] = (r.event, r.score * keyword_weight)
 
@@ -294,12 +306,15 @@ class ConversationMemory(MemoryInterface):
 
         # Persist
         if self._db and self._db.connected:
-            await self._db.insert("episodes", {
-                "episode_id": str(episode.episode_id),
-                "user_id": user_id,
-                "channel": channel,
-                "started_at": episode.started_at.isoformat(),
-            })
+            await self._db.insert(
+                "episodes",
+                {
+                    "episode_id": str(episode.episode_id),
+                    "user_id": user_id,
+                    "channel": channel,
+                    "started_at": episode.started_at.isoformat(),
+                },
+            )
 
         logger.info("episode_started", episode_id=str(episode.episode_id), user_id=user_id)
         return episode
@@ -320,10 +335,14 @@ class ConversationMemory(MemoryInterface):
 
         # Persist
         if self._db and self._db.connected:
-            await self._db.update("episodes", {
-                "ended_at": episode.ended_at.isoformat(),
-                "summary": episode.summary,
-            }, {"episode_id": str(episode_id)})
+            await self._db.update(
+                "episodes",
+                {
+                    "ended_at": episode.ended_at.isoformat(),
+                    "summary": episode.summary,
+                },
+                {"episode_id": str(episode_id)},
+            )
 
         logger.info("episode_ended", episode_id=str(episode_id), event_count=len(episode.events))
         return episode
@@ -335,11 +354,7 @@ class ConversationMemory(MemoryInterface):
     ) -> list[Episode]:
         """Get the most recent episodes for a user."""
         episode_ids = self._episodes_by_user.get(user_id, [])
-        episodes = [
-            self._episodes[eid]
-            for eid in episode_ids
-            if eid in self._episodes
-        ]
+        episodes = [self._episodes[eid] for eid in episode_ids if eid in self._episodes]
         # Sort by start time descending
         episodes.sort(key=lambda e: e.started_at, reverse=True)
         return episodes[:limit]
@@ -368,10 +383,7 @@ class ConversationMemory(MemoryInterface):
     ) -> int:
         """Count events with optional filters."""
         if user_id and memory_type:
-            return len([
-                e for e in self._by_user.get(user_id, [])
-                if e.memory_type == memory_type
-            ])
+            return len([e for e in self._by_user.get(user_id, []) if e.memory_type == memory_type])
         if user_id:
             return len(self._by_user.get(user_id, []))
         if memory_type:
@@ -396,9 +408,7 @@ class ConversationMemory(MemoryInterface):
 
         # Filter to episodic events in the right channel
         relevant = [
-            e for e in user_events
-            if e.memory_type == MemoryType.EPISODIC
-            and (not channel or e.channel == channel)
+            e for e in user_events if e.memory_type == MemoryType.EPISODIC and (not channel or e.channel == channel)
         ]
 
         # If in-memory is empty but Supabase is connected, read from DB
@@ -427,7 +437,11 @@ class ConversationMemory(MemoryInterface):
                             break
                         messages.append({"role": role, "content": content})
                         total_chars += len(content)
-                    logger.info("conversation_context_from_supabase", messages=len(messages), user_id=user_id)
+                    logger.info(
+                        "conversation_context_from_supabase",
+                        messages=len(messages),
+                        user_id=user_id,
+                    )
                     return messages
             except Exception as e:
                 logger.warning("conversation_context_supabase_failed", error=str(e))
@@ -479,9 +493,7 @@ class ConversationMemory(MemoryInterface):
             "unique_users": len(self._by_user),
             "unique_runs": len(self._by_run),
             "total_episodes": len(self._episodes),
-            "events_by_type": {
-                t.value: len(events) for t, events in self._by_type.items()
-            },
+            "events_by_type": {t.value: len(events) for t, events in self._by_type.items()},
             "persistence": "supabase" if (self._db and self._db.connected) else "in-memory",
         }
 
@@ -511,6 +523,7 @@ class ConversationMemory(MemoryInterface):
         if openai_key:
             try:
                 import httpx
+
                 async with httpx.AsyncClient() as client:
                     response = await client.post(
                         "https://api.openai.com/v1/embeddings",
@@ -525,7 +538,11 @@ class ConversationMemory(MemoryInterface):
                         data = response.json()
                         return data["data"][0]["embedding"]
                     else:
-                        logger.warning("embedding_openai_error", status=response.status_code, body=response.text[:200])
+                        logger.warning(
+                            "embedding_openai_error",
+                            status=response.status_code,
+                            body=response.text[:200],
+                        )
             except Exception as e:
                 logger.warning("embedding_openai_exception", error=str(e))
 
@@ -534,6 +551,7 @@ class ConversationMemory(MemoryInterface):
         if gemini_key:
             try:
                 import httpx
+
                 async with httpx.AsyncClient() as client:
                     response = await client.post(
                         f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={gemini_key}",
@@ -563,7 +581,6 @@ class ConversationMemory(MemoryInterface):
         threshold: float,
     ) -> list[SearchResult]:
         """In-memory cosine similarity search."""
-        import math
 
         results = []
         candidates = self._events
@@ -579,11 +596,13 @@ class ConversationMemory(MemoryInterface):
             # Cosine similarity
             score = self._cosine_similarity(query_embedding, event.embedding)
             if score >= threshold:
-                results.append(SearchResult(
-                    event=event,
-                    score=score,
-                    source="vector",
-                ))
+                results.append(
+                    SearchResult(
+                        event=event,
+                        score=score,
+                        source="vector",
+                    )
+                )
 
         results.sort(key=lambda r: r.score, reverse=True)
         return results[:limit]
@@ -599,14 +618,13 @@ class ConversationMemory(MemoryInterface):
         """Search using pgvector in Supabase via RPC."""
         # This would call a Postgres function for vector similarity
         # For now, fall back to local search
-        return self._search_semantic_local(
-            query_embedding, user_id, memory_types, limit, threshold
-        )
+        return self._search_semantic_local(query_embedding, user_id, memory_types, limit, threshold)
 
     @staticmethod
     def _cosine_similarity(a: list[float], b: list[float]) -> float:
         """Compute cosine similarity between two vectors."""
         import math
+
         if len(a) != len(b):
             return 0.0
         dot = sum(x * y for x, y in zip(a, b))

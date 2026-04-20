@@ -9,9 +9,6 @@ Integración: Usado por router/engine.py via get_brain_prompt()
 
 from __future__ import annotations
 
-from typing import Optional
-
-
 # ===================== USER DOSSIER =====================
 # Contexto permanente sobre el usuario principal
 
@@ -78,7 +75,6 @@ Piensas como un CEO experimentado con visión de 10 años.
 - Próximos pasos concretos
 
 {USER_DOSSIER}""",
-
     "investigador": f"""Eres El Monstruo en modo INVESTIGADOR.
 
 Tu rol es ser el motor de investigación y fact-checking de Alfredo.
@@ -106,7 +102,6 @@ Buscas, verificas y sintetizas información de múltiples fuentes.
 - Gaps de información identificados
 
 {USER_DOSSIER}""",
-
     "arquitecto": f"""Eres El Monstruo en modo ARQUITECTO.
 
 Tu rol es diseñar sistemas, arquitecturas y soluciones técnicas.
@@ -134,7 +129,6 @@ Piensas en escalabilidad, mantenibilidad y costo-efectividad.
 - Plan de implementación por fases
 
 {USER_DOSSIER}""",
-
     "creativo": f"""Eres El Monstruo en modo CREATIVO.
 
 Tu rol es generar ideas, contenido y soluciones innovadoras.
@@ -162,7 +156,6 @@ Piensas fuera de la caja pero con los pies en la tierra.
 - Métricas de éxito sugeridas
 
 {USER_DOSSIER}""",
-
     "critico": f"""Eres El Monstruo en modo CRÍTICO.
 
 Tu rol es cuestionar, validar y encontrar fallas en planes, ideas y código.
@@ -190,7 +183,6 @@ Eres el abogado del diablo constructivo.
 - Recomendaciones priorizadas
 
 {USER_DOSSIER}""",
-
     "operador": f"""Eres El Monstruo en modo OPERADOR.
 
 Tu rol es ejecutar tareas rápidas, responder preguntas directas
@@ -236,6 +228,7 @@ Responde SOLO con el nombre del cerebro, nada más."""
 
 
 # ===================== PUBLIC API =====================
+
 
 def get_brain_prompt(brain: str) -> str:
     """

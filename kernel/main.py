@@ -36,11 +36,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from contracts.kernel_interface import IntentType, RunInput, RunStatus
-from contracts.event_envelope import EventBuilder, EventCategory, Severity
+from contracts.event_envelope import EventBuilder, EventCategory
+from contracts.kernel_interface import RunInput, RunStatus
 from kernel.engine import LangGraphKernel
-from memory.event_store import EventStore
 from memory.conversation import ConversationMemory
+from memory.event_store import EventStore
 from memory.knowledge_graph import KnowledgeGraph
 from observability.manager import ObservabilityManager
 
@@ -72,6 +72,7 @@ _MAX_JOBS = 100
 
 # ── Lifespan ────────────────────────────────────────────────────────
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize all sovereign components on startup."""
@@ -82,6 +83,7 @@ async def lifespan(app: FastAPI):
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
+
     db = SupabaseClient()
     db_connected = await db.connect()
     if db_connected:
@@ -100,6 +102,7 @@ async def lifespan(app: FastAPI):
     router = None
     try:
         from router.engine import RouterEngine
+
         router = RouterEngine()
         logger.info("router_connected", mode="native_sdks")
     except Exception as e:
@@ -119,17 +122,25 @@ async def lifespan(app: FastAPI):
     if supabase_db_url:
         try:
             from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+
             # from_conn_string is an async context manager, enter it manually
             _checkpointer_cm = AsyncPostgresSaver.from_conn_string(supabase_db_url)
             checkpointer = await _checkpointer_cm.__aenter__()
             await checkpointer.setup()
-            logger.info("checkpointer_initialized", type="AsyncPostgresSaver", backend="supabase_postgresql")
+            logger.info(
+                "checkpointer_initialized",
+                type="AsyncPostgresSaver",
+                backend="supabase_postgresql",
+            )
         except Exception as e:
             logger.warning("postgres_checkpointer_failed", error=str(e), fallback="MemorySaver")
             checkpointer = None
             _checkpointer_cm = None
     else:
-        logger.warning("no_supabase_db_url", msg="Using MemorySaver (volatile). Set SUPABASE_DB_URL for durable state.")
+        logger.warning(
+            "no_supabase_db_url",
+            msg="Using MemorySaver (volatile). Set SUPABASE_DB_URL for durable state.",
+        )
 
     # Initialize the LangGraph Kernel with all dependencies
     kernel = LangGraphKernel(
@@ -148,20 +159,23 @@ async def lifespan(app: FastAPI):
         .category(EventCategory.SYSTEM_STARTUP)
         .actor("system")
         .action("El Monstruo started")
-        .with_payload({
-            "version": "0.10.0-sprint16",
-            "motor": "langgraph",
-            "router": "connected" if router else "stub",
-            "memory": "active",
-            "knowledge": "active",
-            "checkpointer": "PostgresSaver" if checkpointer else "MemorySaver",
-        })
+        .with_payload(
+            {
+                "version": "0.10.0-sprint16",
+                "motor": "langgraph",
+                "router": "connected" if router else "stub",
+                "memory": "active",
+                "knowledge": "active",
+                "checkpointer": "PostgresSaver" if checkpointer else "MemorySaver",
+            }
+        )
         .build()
     )
 
     # ── Inject DB into tool_dispatch for schedule_task ─────────────
     try:
         from kernel.tool_dispatch import set_tool_db
+
         if db_connected:
             set_tool_db(db)
             logger.info("tool_db_injected")
@@ -171,8 +185,8 @@ async def lifespan(app: FastAPI):
     # ── Sprint 8: Autonomous Runner ──────────────────────────────────
     autonomous_runner = None
     try:
-        from kernel.runner.telegram_notifier import TelegramNotifier
         from kernel.runner.autonomous_runner import AutonomousRunner
+        from kernel.runner.telegram_notifier import TelegramNotifier
 
         notifier = TelegramNotifier()
         autonomous_runner = AutonomousRunner(
@@ -181,13 +195,18 @@ async def lifespan(app: FastAPI):
             notifier=notifier if notifier.enabled else None,
         )
         await autonomous_runner.start()
-        logger.info("autonomous_runner_started", notifier="telegram" if notifier.enabled else "disabled")
+        logger.info(
+            "autonomous_runner_started",
+            notifier="telegram" if notifier.enabled else "disabled",
+        )
     except Exception as e:
         logger.warning("autonomous_runner_init_failed", error=str(e))
 
     # Wire autonomy routes
     try:
-        from kernel.autonomy_routes import router as autonomy_router, set_dependencies as set_autonomy_deps
+        from kernel.autonomy_routes import router as autonomy_router
+        from kernel.autonomy_routes import set_dependencies as set_autonomy_deps
+
         set_autonomy_deps(db=db if db_connected else None, runner=autonomous_runner)
         app.include_router(autonomy_router)
         logger.info("autonomy_routes_registered")
@@ -197,10 +216,15 @@ async def lifespan(app: FastAPI):
     # Sprint 9: Wire mission control and dossier routes
     try:
         from kernel.mission_routes import (
-            router as mission_router,
             dossier_router,
+        )
+        from kernel.mission_routes import (
+            router as mission_router,
+        )
+        from kernel.mission_routes import (
             set_dependencies as set_mission_deps,
         )
+
         set_mission_deps(db=db if db_connected else None)
         app.include_router(mission_router)
         app.include_router(dossier_router)
@@ -239,6 +263,7 @@ async def lifespan(app: FastAPI):
     # Wire usage & registry routes
     try:
         from kernel.usage_routes import router as usage_router
+
         app.include_router(usage_router)
         logger.info("usage_registry_routes_registered")
     except Exception as e:
@@ -247,8 +272,8 @@ async def lifespan(app: FastAPI):
     # ── Sprint 15: FinOps Soberano ────────────────────────────────
     finops = None
     try:
-        from kernel.finops import FinOpsController
         from kernel.alerts.sovereign_alerts import SovereignAlertMonitor
+        from kernel.finops import FinOpsController
         from kernel.runner.telegram_notifier import TelegramNotifier as _TN
 
         # Reuse existing notifier or create one for FinOps alerts
@@ -297,6 +322,7 @@ async def lifespan(app: FastAPI):
     thoughts_store = None
     try:
         from memory.thoughts import ThoughtsStore
+
         thoughts_store = ThoughtsStore(db=db if db_connected else None)
         await thoughts_store.initialize()
         app.state.thoughts_store = thoughts_store
@@ -306,7 +332,9 @@ async def lifespan(app: FastAPI):
 
     # Wire memory routes
     try:
-        from kernel.memory_routes import router as memory_router, set_dependencies as set_memory_deps
+        from kernel.memory_routes import router as memory_router
+        from kernel.memory_routes import set_dependencies as set_memory_deps
+
         set_memory_deps(thoughts_store=thoughts_store)
         app.include_router(memory_router)
         logger.info("memory_routes_registered")
@@ -315,7 +343,9 @@ async def lifespan(app: FastAPI):
 
     # Wire AG-UI adapter
     try:
-        from kernel.agui_adapter import router as agui_router, set_dependencies as set_agui_deps
+        from kernel.agui_adapter import router as agui_router
+        from kernel.agui_adapter import set_dependencies as set_agui_deps
+
         set_agui_deps(kernel=kernel, thoughts_store=thoughts_store)
         app.include_router(agui_router)
         logger.info("agui_adapter_registered")
@@ -323,9 +353,9 @@ async def lifespan(app: FastAPI):
         logger.warning("agui_adapter_failed", error=str(e))
 
     # ── Sprint 14: Sovereign Alert System ────────────────────────────
-    alert_monitor = None
     try:
         from kernel.alerts.routes import router as alerts_router
+
         app.include_router(alerts_router)
         logger.info("sovereign_alerts_registered")
     except Exception as e:
@@ -349,6 +379,7 @@ async def lifespan(app: FastAPI):
     # Warm-up: pre-heat LLM connections to eliminate cold start on first request
     if router:
         import asyncio
+
         async def _warmup():
             try:
                 logger.info("warmup_starting")
@@ -356,6 +387,7 @@ async def lifespan(app: FastAPI):
                 logger.info("warmup_completed", result=health.get("status", "unknown"))
             except Exception as e:
                 logger.warning("warmup_failed", error=str(e))
+
         asyncio.create_task(_warmup())
 
     yield
@@ -417,20 +449,24 @@ app.add_middleware(
 # API Key authentication (Sprint 2)
 # If MONSTRUO_API_KEY env var is set, all /v1/* endpoints require it
 from kernel.auth import APIKeyAuthMiddleware
+
 app.add_middleware(APIKeyAuthMiddleware)
 
 # Rate limiting & cost caps (Sprint 3)
 # Protects against API key leaks and runaway LLM costs
 # Config: RATE_LIMIT_RPM, RATE_LIMIT_RPH, DAILY_COST_CAP_USD env vars
 from kernel.rate_limiter import RateLimiterMiddleware
+
 app.add_middleware(RateLimiterMiddleware)
 
 # ── OpenAI-Compatible Adapter (Open WebUI integration) ────────────────
 from kernel.openai_adapter import router as openai_router
+
 app.include_router(openai_router)
 
 
 # ── Request/Response Models ─────────────────────────────────────────
+
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=32000)
@@ -443,6 +479,7 @@ class ChatRequest(BaseModel):
     session_id: Optional[str] = None
     brain: Optional[str] = None
     metadata: Optional[dict[str, Any]] = None
+
 
 class ChatResponse(BaseModel):
     run_id: str
@@ -465,17 +502,21 @@ class ChatResponse(BaseModel):
     interrupt_payload: Optional[dict[str, Any]] = None  # HITL review details for bot
     duration_ms: int = 0
 
+
 class StepRequest(BaseModel):
     run_id: str
     response: Optional[str] = None
     data: dict[str, Any] = Field(default_factory=dict)
 
+
 class CancelRequest(BaseModel):
     run_id: str
     reason: str = ""
 
+
 class FeedbackRequest(BaseModel):
     """HITL feedback from Telegram or other channels."""
+
     run_id: str
     action: str = Field(..., description="approve | reject | edit | escalate")
     user_id: str = Field(default="alfredo")
@@ -484,6 +525,7 @@ class FeedbackRequest(BaseModel):
 
 
 # ── Endpoints ───────────────────────────────────────────────────────
+
 
 @app.get("/", tags=["system"])
 async def root():
@@ -590,6 +632,7 @@ async def chat(request: ChatRequest):
 
 # ── Background Job Endpoints ───────────────────────────────────────
 
+
 class BackgroundJobRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=32000)
     user_id: str = Field(default="alfredo")
@@ -599,10 +642,12 @@ class BackgroundJobRequest(BaseModel):
     metadata: Optional[dict[str, Any]] = None
     webhook_url: Optional[str] = None
 
+
 class BackgroundJobResponse(BaseModel):
     job_id: str
     status: str
     message: str
+
 
 class BackgroundJobStatus(BaseModel):
     job_id: str
@@ -660,12 +705,16 @@ async def _run_background_job(job_id: str, request: BackgroundJobRequest):
         if request.webhook_url:
             try:
                 import httpx
+
                 async with httpx.AsyncClient(timeout=10.0) as client:
-                    await client.post(request.webhook_url, json={
-                        "job_id": job_id,
-                        "status": "completed",
-                        "result": result_data,
-                    })
+                    await client.post(
+                        request.webhook_url,
+                        json={
+                            "job_id": job_id,
+                            "status": "completed",
+                            "result": result_data,
+                        },
+                    )
             except Exception as wh_err:
                 logger.warning("background_webhook_failed", job_id=job_id, error=str(wh_err))
 
@@ -729,21 +778,25 @@ async def list_background_jobs(limit: int = 20):
     """List recent background jobs."""
     jobs = []
     for jid, jdata in list(background_jobs.items())[-limit:]:
-        jobs.append({
-            "job_id": jid,
-            "status": jdata["status"],
-            "created_at": jdata["created_at"],
-            "completed_at": jdata.get("completed_at"),
-        })
+        jobs.append(
+            {
+                "job_id": jid,
+                "status": jdata["status"],
+                "created_at": jdata["created_at"],
+                "completed_at": jdata.get("completed_at"),
+            }
+        )
     return jobs
 
 
 # ── Backup Endpoint ───────────────────────────────────────────
 
+
 class BackupRequest(BaseModel):
     tables: Optional[list[str]] = None
     include_env: bool = True
     upload_to_dropbox: bool = True
+
 
 @app.post("/v1/backup", tags=["admin"])
 async def trigger_backup(request: BackupRequest = BackupRequest()):
@@ -753,6 +806,7 @@ async def trigger_backup(request: BackupRequest = BackupRequest()):
     """
     try:
         from scripts.backup import run_backup
+
         result = await run_backup(
             tables=request.tables,
             include_env=request.include_env,
@@ -812,7 +866,6 @@ async def step(request: StepRequest):
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-    metadata = output.metadata or {}
     return ChatResponse(
         run_id=str(output.run_id),
         status=output.status.value,
@@ -866,11 +919,13 @@ async def feedback(request: FeedbackRequest):
             .actor(request.user_id)
             .action(f"feedback:{request.action}")
             .for_run(run_id)
-            .with_payload({
-                "action": request.action,
-                "comment": request.comment,
-                "edited_response": request.edited_response,
-            })
+            .with_payload(
+                {
+                    "action": request.action,
+                    "comment": request.comment,
+                    "edited_response": request.edited_response,
+                }
+            )
             .build()
         )
 
@@ -963,7 +1018,6 @@ async def replay(run_id: str):
     }
 
 
-
 @app.get("/v1/events/recent", tags=["observability"])
 async def recent_events(limit: int = 50):
     """Get the most recent events."""
@@ -1015,6 +1069,7 @@ def _get_fallback_metrics() -> dict:
     """Lazy import to avoid circular dependency."""
     try:
         from router.engine import get_fallback_metrics
+
         return get_fallback_metrics()
     except ImportError:
         return {}
@@ -1036,9 +1091,9 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-        "version": "0.10.0-sprint16",
-        "motor": "langgraph",
-        "uptime_seconds": (now - BOOT_TIME).total_seconds(),
+            "version": "0.10.0-sprint16",
+            "motor": "langgraph",
+            "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
         "event_store": {
             "total_events": len(all_events),
@@ -1101,6 +1156,7 @@ async def hitl_pending():
     """Get pending HITL reviews (for Telegram bot and consola PWA)."""
     try:
         from bot.hitl_handler import get_pending_reviews
+
         return {"pending": get_pending_reviews()}
     except ImportError:
         return {"pending": {}, "note": "HITL handler not loaded"}
@@ -1119,6 +1175,7 @@ async def tool_web_search(request: Request):
         raise HTTPException(status_code=400, detail="query is required")
 
     from tools.web_search import web_search
+
     result = await web_search(query=query, context=context)
     return result
 
@@ -1135,6 +1192,7 @@ async def tool_consult_sabios(request: Request):
         raise HTTPException(status_code=400, detail="prompt is required")
 
     from tools.consult_sabios import consult_sabios
+
     result = await consult_sabios(prompt=prompt, context=context, sabios=sabios, parallel=parallel)
     return result
 
@@ -1152,6 +1210,7 @@ async def tool_email(request: Request):
         raise HTTPException(status_code=400, detail="to, subject, and body are required")
 
     from tools.email_sender import send_email
+
     result = await send_email(to=to, subject=subject, body=body_text, html_body=html_body, cc=cc)
     return result
 
@@ -1160,6 +1219,7 @@ async def tool_email(request: Request):
 async def list_tools():
     """List available tools and their status."""
     import os
+
     return {
         "tools": [
             {
@@ -1192,11 +1252,14 @@ async def health():
     models_available = []
     try:
         from config.model_catalog import MODEL_CATALOG
+
         models_available = list(MODEL_CATALOG.keys())
     except ImportError:
         models_available = ["gpt-5", "claude-sonnet", "sonar-pro"]
 
-    obs_status = "active" if (observability and (observability.langfuse_enabled or observability.otel_enabled)) else "inactive"
+    obs_status = (
+        "active" if (observability and (observability.langfuse_enabled or observability.otel_enabled)) else "inactive"
+    )
 
     return {
         "status": "healthy" if kernel else "degraded",
@@ -1231,6 +1294,7 @@ def _register_debug_endpoints(application: FastAPI) -> None:
     async def debug_tool_calling(request: Request):
         """Test each LLM provider directly with tools and report results."""
         import traceback
+
         from router.llm_client import LLMClient, ToolSpec
 
         results = {}
@@ -1247,7 +1311,10 @@ def _register_debug_endpoints(application: FastAPI) -> None:
             risk="low",
         )
         test_messages = [
-            {"role": "system", "content": "You are an assistant. Use web_search for current data."},
+            {
+                "role": "system",
+                "content": "You are an assistant. Use web_search for current data.",
+            },
             {"role": "user", "content": "What is the USD/MXN exchange rate today?"},
         ]
         providers = {
@@ -1264,14 +1331,48 @@ def _register_debug_endpoints(application: FastAPI) -> None:
                 continue
             try:
                 call_method = {
-                    "google": lambda: client._call_google(model_id=model_id, api_key=api_key, messages=test_messages, temperature=0.1, max_tokens=200, tools=[test_tool], tool_choice="auto"),
-                    "openai": lambda: client._call_openai(model_id=model_id, api_key=api_key, messages=test_messages, temperature=0.1, max_tokens=200, tools=[test_tool], tool_choice="auto"),
-                    "anthropic": lambda: client._call_anthropic(model_id=model_id, api_key=api_key, messages=test_messages, temperature=0.1, max_tokens=200, tools=[test_tool], tool_choice="auto"),
-                    "openai_compat": lambda: client._call_openai_compat(model_id=model_id, api_key=api_key, base_url="https://api.x.ai/v1", messages=test_messages, temperature=0.1, max_tokens=200, tools=[test_tool], tool_choice="auto"),
+                    "google": lambda: client._call_google(
+                        model_id=model_id,
+                        api_key=api_key,
+                        messages=test_messages,
+                        temperature=0.1,
+                        max_tokens=200,
+                        tools=[test_tool],
+                        tool_choice="auto",
+                    ),
+                    "openai": lambda: client._call_openai(
+                        model_id=model_id,
+                        api_key=api_key,
+                        messages=test_messages,
+                        temperature=0.1,
+                        max_tokens=200,
+                        tools=[test_tool],
+                        tool_choice="auto",
+                    ),
+                    "anthropic": lambda: client._call_anthropic(
+                        model_id=model_id,
+                        api_key=api_key,
+                        messages=test_messages,
+                        temperature=0.1,
+                        max_tokens=200,
+                        tools=[test_tool],
+                        tool_choice="auto",
+                    ),
+                    "openai_compat": lambda: client._call_openai_compat(
+                        model_id=model_id,
+                        api_key=api_key,
+                        base_url="https://api.x.ai/v1",
+                        messages=test_messages,
+                        temperature=0.1,
+                        max_tokens=200,
+                        tools=[test_tool],
+                        tool_choice="auto",
+                    ),
                 }[provider]
                 resp = await call_method()
                 results[name] = {
-                    "status": "OK", "model": model_id,
+                    "status": "OK",
+                    "model": model_id,
                     "finish_reason": resp.finish_reason,
                     "has_tool_calls": len(resp.tool_calls) > 0,
                     "tool_calls": [{"name": tc.name, "args": tc.arguments} for tc in resp.tool_calls],
@@ -1279,13 +1380,19 @@ def _register_debug_endpoints(application: FastAPI) -> None:
                     "usage": resp.usage,
                 }
             except Exception as e:
-                results[name] = {"status": "ERROR", "model": model_id, "error": str(e), "traceback": traceback.format_exc()[-500:]}
+                results[name] = {
+                    "status": "ERROR",
+                    "model": model_id,
+                    "error": str(e),
+                    "traceback": traceback.format_exc()[-500:],
+                }
         return {"debug_tool_calling": results}
 
     @application.get("/v1/debug/error_log", tags=["debug"])
     async def debug_error_log(request: Request):
         """Return the in-memory error log from the fallback chain."""
         from router.engine import _TOOL_ERROR_LOG
+
         return {"error_count": len(_TOOL_ERROR_LOG), "errors": list(_TOOL_ERROR_LOG)}
 
 

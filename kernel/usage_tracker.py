@@ -209,9 +209,11 @@ class UsageTracker:
                     "budget": {
                         "daily_limit": DAILY_BUDGET_USD,
                         "used_pct": round(
-                            float(sum(float(r.get("total_cost_usd", 0)) for r in rows))
-                            / DAILY_BUDGET_USD * 100, 1
-                        ) if DAILY_BUDGET_USD > 0 else 0,
+                            float(sum(float(r.get("total_cost_usd", 0)) for r in rows)) / DAILY_BUDGET_USD * 100,
+                            1,
+                        )
+                        if DAILY_BUDGET_USD > 0
+                        else 0,
                     },
                 }
 
@@ -271,7 +273,12 @@ class UsageTracker:
             for r in filtered:
                 m = r["model"]
                 if m not in models:
-                    models[m] = {"model": m, "requests": 0, "cost_usd": 0.0, "tokens": 0}
+                    models[m] = {
+                        "model": m,
+                        "requests": 0,
+                        "cost_usd": 0.0,
+                        "tokens": 0,
+                    }
                 models[m]["requests"] += r.get("request_count", 0)
                 models[m]["cost_usd"] += float(r.get("total_cost_usd", 0))
                 models[m]["tokens"] += r.get("total_tokens_in", 0) + r.get("total_tokens_out", 0)
@@ -303,7 +310,7 @@ class UsageTracker:
         try:
             rows = await self._db.select(
                 self.LOG_TABLE,
-                columns="id, model_used, provider, role_used, tokens_in, tokens_out, cost_usd, latency_ms, tool_calls, status, created_at",
+                columns="id, model_used, provider, role_used, tokens_in, tokens_out, cost_usd, latency_ms, tool_calls, status, created_at",  # noqa: E501
                 order_by="created_at",
                 order_desc=True,
                 limit=limit,
@@ -334,7 +341,12 @@ class UsageTracker:
         """
         # Update in-memory
         if tool_name not in self._tool_calls:
-            self._tool_calls[tool_name] = {"calls": 0, "errors": 0, "total_ms": 0, "total_cost": 0.0}
+            self._tool_calls[tool_name] = {
+                "calls": 0,
+                "errors": 0,
+                "total_ms": 0,
+                "total_cost": 0.0,
+            }
         self._tool_calls[tool_name]["calls"] += 1
         if status == "failed":
             self._tool_calls[tool_name]["errors"] += 1
@@ -347,17 +359,20 @@ class UsageTracker:
 
         try:
             today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-            await self._db.insert(self.TOOL_METRICS_TABLE, {
-                "date": today,
-                "tool_name": tool_name,
-                "invocation_count": 1,
-                "success_count": 1 if status == "success" else 0,
-                "error_count": 1 if status == "failed" else 0,
-                "total_wall_ms": wall_ms,
-                "avg_wall_ms": wall_ms,
-                "total_api_calls": api_calls,
-                "total_cost_usd": cost_usd,
-            })
+            await self._db.insert(
+                self.TOOL_METRICS_TABLE,
+                {
+                    "date": today,
+                    "tool_name": tool_name,
+                    "invocation_count": 1,
+                    "success_count": 1 if status == "success" else 0,
+                    "error_count": 1 if status == "failed" else 0,
+                    "total_wall_ms": wall_ms,
+                    "avg_wall_ms": wall_ms,
+                    "total_api_calls": api_calls,
+                    "total_cost_usd": cost_usd,
+                },
+            )
             logger.info(
                 "tool_metric_persisted",
                 tool=tool_name,
@@ -417,9 +432,7 @@ class UsageTracker:
             result = []
             for t in tools.values():
                 t["avg_wall_ms"] = t["total_wall_ms"] // max(t["invocations"], 1)
-                t["success_rate"] = round(
-                    t["successes"] / max(t["invocations"], 1) * 100, 1
-                )
+                t["success_rate"] = round(t["successes"] / max(t["invocations"], 1) * 100, 1)
                 result.append(t)
 
             return sorted(result, key=lambda x: x["invocations"], reverse=True)
@@ -462,6 +475,7 @@ class UsageTracker:
         """Fallback: load pricing from model_catalog.py."""
         try:
             from config.model_catalog import MODELS
+
             for name, cfg in MODELS.items():
                 pricing = cfg.get("pricing", {})
                 if pricing:
@@ -488,7 +502,11 @@ class UsageTracker:
     async def get_pricing_catalog(self) -> list[dict]:
         """Return the current pricing catalog as a list."""
         return [
-            {"model_id": model, "price_input_per_1m": p["input"], "price_output_per_1m": p["output"]}
+            {
+                "model_id": model,
+                "price_input_per_1m": p["input"],
+                "price_output_per_1m": p["output"],
+            }
             for model, p in sorted(self._pricing_cache.items())
         ]
 
@@ -501,9 +519,7 @@ class UsageTracker:
             "today_requests": self._today_requests,
             "daily_budget_usd": DAILY_BUDGET_USD,
             "monthly_budget_usd": MONTHLY_BUDGET_USD,
-            "budget_used_pct": round(
-                self._today_cost / DAILY_BUDGET_USD * 100, 1
-            ) if DAILY_BUDGET_USD > 0 else 0,
+            "budget_used_pct": round(self._today_cost / DAILY_BUDGET_USD * 100, 1) if DAILY_BUDGET_USD > 0 else 0,
             "pricing_models_loaded": len(self._pricing_cache),
             "tool_calls_session": dict(self._tool_calls),
         }

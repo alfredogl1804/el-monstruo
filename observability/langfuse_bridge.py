@@ -1,10 +1,9 @@
-"""\nEl Monstruo — Langfuse Bridge (Sprint 13: Observabilidad Total)\n================================================================\nMirrors sovereign EventStore events to Langfuse v4 for visualization.\n\nSprint 13 additions:\n  - get_callback_handler() → returns langfuse.langchain.CallbackHandler\n    for automatic LangGraph node-level tracing\n  - session_id propagation from JWT claims into trace metadata\n  - Version string updated to 0.8.0-sprint13\n\nLangfuse is a COMMODITY — our EventStore is the source of truth.\nThis bridge sends a copy to Langfuse for its UI/analytics.\n"""
+"""\nEl Monstruo — Langfuse Bridge (Sprint 13: Observabilidad Total)\n================================================================\nMirrors sovereign EventStore events to Langfuse v4 for visualization.\n\nSprint 13 additions:\n  - get_callback_handler() → returns langfuse.langchain.CallbackHandler\n    for automatic LangGraph node-level tracing\n  - session_id propagation from JWT claims into trace metadata\n  - Version string updated to 0.8.0-sprint13\n\nLangfuse is a COMMODITY — our EventStore is the source of truth.\nThis bridge sends a copy to Langfuse for its UI/analytics.\n"""  # noqa: E501
 
 from __future__ import annotations
 
 import os
 from typing import Any, Optional
-from datetime import datetime, timezone
 
 import structlog
 
@@ -20,10 +19,10 @@ def _get_callback_handler_class():
     if _CallbackHandler is None:
         try:
             from langfuse.langchain import CallbackHandler
+
             _CallbackHandler = CallbackHandler
         except ImportError:
-            logger.warning("langfuse_callback_handler_not_available",
-                           hint="pip install langfuse")
+            logger.warning("langfuse_callback_handler_not_available", hint="pip install langfuse")
             _CallbackHandler = False  # sentinel: tried and failed
     return _CallbackHandler if _CallbackHandler is not False else None
 
@@ -110,8 +109,7 @@ class LangfuseBridge:
                 trace_kwargs["session_id"] = session_id
 
             trace = self._client.trace(**trace_kwargs)
-            logger.debug("langfuse_trace_started", run_id=run_id,
-                         session_id=session_id or "none")
+            logger.debug("langfuse_trace_started", run_id=run_id, session_id=session_id or "none")
             return trace
         except Exception as e:
             logger.warning("langfuse_trace_error", error=str(e))

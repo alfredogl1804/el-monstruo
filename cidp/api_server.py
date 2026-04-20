@@ -33,7 +33,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import structlog
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -64,6 +64,7 @@ async def verify_api_key(authorization: Optional[str] = Header(None)):
 
 
 # ── Models ────────────────────────────────────────────────────────────
+
 
 class JobStatus(str, Enum):
     QUEUED = "queued"
@@ -130,6 +131,7 @@ app.add_middleware(
 
 # ── Background job runner ─────────────────────────────────────────────
 
+
 async def _run_cidp_job(job_id: str, request: JobRequest):
     """Execute CIDP cycle as background task."""
     job = _jobs[job_id]
@@ -138,8 +140,9 @@ async def _run_cidp_job(job_id: str, request: JobRequest):
 
     try:
         # Import CIDP runner
-        from run_cidp import run_cycle
         import argparse
+
+        from run_cidp import run_cycle
 
         # Build args namespace matching run_cidp expectations
         args = argparse.Namespace(
@@ -202,6 +205,7 @@ async def _run_cidp_job(job_id: str, request: JobRequest):
 
 # ── Endpoints ─────────────────────────────────────────────────────────
 
+
 @app.get("/health")
 async def health():
     """Health check endpoint."""
@@ -214,8 +218,12 @@ async def health():
     }
 
 
-@app.post("/api/v1/jobs", response_model=JobResponse, status_code=202,
-          dependencies=[Depends(verify_api_key)])
+@app.post(
+    "/api/v1/jobs",
+    response_model=JobResponse,
+    status_code=202,
+    dependencies=[Depends(verify_api_key)],
+)
 async def start_job(request: JobRequest):
     """Start a new CIDP investigation cycle."""
     job_id = f"cidp_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
@@ -254,8 +262,11 @@ async def start_job(request: JobRequest):
     )
 
 
-@app.get("/api/v1/jobs/{job_id}", response_model=JobStatusResponse,
-         dependencies=[Depends(verify_api_key)])
+@app.get(
+    "/api/v1/jobs/{job_id}",
+    response_model=JobStatusResponse,
+    dependencies=[Depends(verify_api_key)],
+)
 async def get_job_status(job_id: str):
     """Get the current status of a CIDP job."""
     if job_id not in _jobs:
@@ -276,8 +287,11 @@ async def get_job_status(job_id: str):
     )
 
 
-@app.delete("/api/v1/jobs/{job_id}", response_model=JobStatusResponse,
-            dependencies=[Depends(verify_api_key)])
+@app.delete(
+    "/api/v1/jobs/{job_id}",
+    response_model=JobStatusResponse,
+    dependencies=[Depends(verify_api_key)],
+)
 async def cancel_job(job_id: str):
     """Cancel a running CIDP job with rollback."""
     if job_id not in _jobs:
@@ -315,8 +329,12 @@ async def cancel_job(job_id: str):
     )
 
 
-@app.post("/api/v1/jobs/{job_id}/resume", response_model=JobResponse, status_code=202,
-          dependencies=[Depends(verify_api_key)])
+@app.post(
+    "/api/v1/jobs/{job_id}/resume",
+    response_model=JobResponse,
+    status_code=202,
+    dependencies=[Depends(verify_api_key)],
+)
 async def resume_job(job_id: str):
     """Resume a paused or failed CIDP job from the last checkpoint."""
     if job_id not in _jobs:
@@ -348,6 +366,7 @@ async def resume_job(job_id: str):
 
 
 # ── List all jobs ─────────────────────────────────────────────────────
+
 
 @app.get("/api/v1/jobs", dependencies=[Depends(verify_api_key)])
 async def list_jobs(status: Optional[str] = None, limit: int = 20):

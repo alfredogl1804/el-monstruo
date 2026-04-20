@@ -15,7 +15,7 @@ Sprint 2 — 2026-04-15
 from __future__ import annotations
 
 import os
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 import structlog
@@ -37,14 +37,14 @@ async def web_search(
 ) -> dict[str, Any]:
     """
     Search the web using Perplexity Sonar API.
-    
+
     Args:
         query: The search query or research question
         context: Optional context to help Perplexity understand the query better
         model: Perplexity model to use (sonar-pro or sonar)
         max_tokens: Maximum tokens in response
         temperature: Response temperature (lower = more factual)
-    
+
     Returns:
         dict with keys: answer, citations, model_used, tokens_used, error
     """
@@ -140,11 +140,11 @@ async def multi_search(
 ) -> list[dict[str, Any]]:
     """
     Execute multiple searches in sequence (not parallel to respect rate limits).
-    
+
     Args:
         queries: List of search queries
         context: Shared context for all queries
-    
+
     Returns:
         List of search results
     """

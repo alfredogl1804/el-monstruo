@@ -16,6 +16,7 @@ Principios:
 
 Dependencias: Solo stdlib Python 3.11+ (time, collections, typing)
 """
+
 from __future__ import annotations
 
 import time
@@ -27,8 +28,8 @@ from core.action_envelope import RiskLevel
 # ── Configuration ────────────────────────────────────────────────────
 
 WINDOW_SECONDS: int = 10
-MAX_DENSITY_FACTOR: float = 0.5   # Max 5 similar actions = +50%
-MAX_WINDOW_SIZE: int = 200        # Prevents memory leak (Claude falla #3)
+MAX_DENSITY_FACTOR: float = 0.5  # Max 5 similar actions = +50%
+MAX_WINDOW_SIZE: int = 200  # Prevents memory leak (Claude falla #3)
 
 # Map RiskLevel enum to numeric value for arithmetic
 RISK_NUMERIC: dict[str, float] = {
@@ -43,6 +44,7 @@ DENSITY_THRESHOLD: float = 0.5  # L2_CAUTION
 
 
 # ── Composite Risk Calculator ────────────────────────────────────────
+
 
 class CompositeRiskCalculator:
     """Calcula riesgo compuesto sobre cadenas de acciones en ventana temporal.
@@ -102,9 +104,11 @@ class CompositeRiskCalculator:
         # Count similar actions with risk >= DENSITY_THRESHOLD (Claude falla #2)
         similar_count = 0
         for _, a_type, r_kind, r_level in window:
-            if (a_type == action_type
-                    and r_kind == resource_kind
-                    and RISK_NUMERIC.get(r_level, 0.0) >= DENSITY_THRESHOLD):
+            if (
+                a_type == action_type
+                and r_kind == resource_kind
+                and RISK_NUMERIC.get(r_level, 0.0) >= DENSITY_THRESHOLD
+            ):
                 similar_count += 1
 
         # Formula: density multiplicative (DeepSeek)

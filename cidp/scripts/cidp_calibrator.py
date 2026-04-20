@@ -9,7 +9,6 @@ Recalibra semanalmente o bajo demanda.
 
 import asyncio
 import json
-import os
 import sys
 import time
 from datetime import datetime, timedelta
@@ -24,24 +23,46 @@ CALIBRATION_PATH = SKILL_DIR / "data" / "calibration_results.json"
 # Calibration challenges
 CHALLENGES = {
     "code_generation": {
-        "prompt": "Write a Python function that implements a thread-safe LRU cache with TTL support. Include type hints and docstrings. Respond with ONLY the code, no explanations.",
-        "eval_criteria": ["has_class_or_function", "has_type_hints", "has_docstring", "handles_threading"],
+        "prompt": "Write a Python function that implements a thread-safe LRU cache with TTL support. Include type hints and docstrings. Respond with ONLY the code, no explanations.",  # noqa: E501
+        "eval_criteria": [
+            "has_class_or_function",
+            "has_type_hints",
+            "has_docstring",
+            "handles_threading",
+        ],
     },
     "architecture_design": {
-        "prompt": "Design a microservice architecture for a real-time collaborative document editor supporting 10K concurrent users. Respond with a structured JSON describing services, communication patterns, and data stores.",
-        "eval_criteria": ["has_services", "has_communication", "has_data_stores", "addresses_scalability"],
+        "prompt": "Design a microservice architecture for a real-time collaborative document editor supporting 10K concurrent users. Respond with a structured JSON describing services, communication patterns, and data stores.",  # noqa: E501
+        "eval_criteria": [
+            "has_services",
+            "has_communication",
+            "has_data_stores",
+            "addresses_scalability",
+        ],
     },
     "factual_accuracy": {
-        "prompt": "What are the current (April 2026) top 3 most used JavaScript frameworks for web development, their latest stable versions, and their key differentiators? Respond with JSON.",
-        "eval_criteria": ["names_frameworks", "includes_versions", "includes_differentiators"],
+        "prompt": "What are the current (April 2026) top 3 most used JavaScript frameworks for web development, their latest stable versions, and their key differentiators? Respond with JSON.",  # noqa: E501
+        "eval_criteria": [
+            "names_frameworks",
+            "includes_versions",
+            "includes_differentiators",
+        ],
     },
     "adversarial_review": {
-        "prompt": "Review this architecture decision: 'We chose MongoDB as our primary database for a banking application handling millions of daily transactions.' Identify all potential issues, risks, and suggest alternatives. Respond with JSON.",
-        "eval_criteria": ["identifies_acid_issues", "mentions_alternatives", "quantifies_risks"],
+        "prompt": "Review this architecture decision: 'We chose MongoDB as our primary database for a banking application handling millions of daily transactions.' Identify all potential issues, risks, and suggest alternatives. Respond with JSON.",  # noqa: E501
+        "eval_criteria": [
+            "identifies_acid_issues",
+            "mentions_alternatives",
+            "quantifies_risks",
+        ],
     },
     "optimization": {
-        "prompt": "Given a Python function that processes 1M records from a CSV file, identify 5 specific optimizations that would reduce processing time by at least 10x. Provide before/after code snippets. Respond with JSON.",
-        "eval_criteria": ["has_optimizations", "has_code_snippets", "quantifies_improvement"],
+        "prompt": "Given a Python function that processes 1M records from a CSV file, identify 5 specific optimizations that would reduce processing time by at least 10x. Provide before/after code snippets. Respond with JSON.",  # noqa: E501
+        "eval_criteria": [
+            "has_optimizations",
+            "has_code_snippets",
+            "quantifies_improvement",
+        ],
     },
 }
 
@@ -63,7 +84,8 @@ def _simple_eval(response_text: str, criteria: list) -> float:
         score += 0.2
     except json.JSONDecodeError:
         import re
-        if re.search(r'\{[\s\S]*\}', response_text):
+
+        if re.search(r"\{[\s\S]*\}", response_text):
             score += 0.1
 
     # Criteria-based scoring

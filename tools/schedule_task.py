@@ -13,10 +13,12 @@ Guardrails:
     - Rate limit: 20 jobs per user per day
     - HITL required for high-risk instructions (delegated to Policy Engine at execution time)
 """
+
 from __future__ import annotations
 
 import re
-from datetime import datetime, timedelta, timezone as tz
+from datetime import datetime, timedelta
+from datetime import timezone as tz
 from typing import Any, Optional
 from uuid import uuid4
 
@@ -63,6 +65,7 @@ def _parse_run_at(run_at_str: str, user_tz: str) -> Optional[datetime]:
             # Assume user's timezone if no tz info
             try:
                 from zoneinfo import ZoneInfo
+
                 user_zone = ZoneInfo(user_tz)
                 dt = dt.replace(tzinfo=user_zone)
             except Exception:
@@ -98,6 +101,7 @@ def _parse_run_at(run_at_str: str, user_tz: str) -> Optional[datetime]:
             hour = 0
         try:
             from zoneinfo import ZoneInfo
+
             user_zone = ZoneInfo(user_tz)
             tomorrow_local = (datetime.now(user_zone) + timedelta(days=1)).replace(
                 hour=hour, minute=minute, second=0, microsecond=0
@@ -150,7 +154,10 @@ async def execute_schedule_task(
     if not instruction:
         return {"error": "instruction is required", "success": False}
     if not run_at_str:
-        return {"error": "run_at is required (e.g., 'tomorrow 8am', 'in 3 hours', '2026-04-19T08:00')", "success": False}
+        return {
+            "error": "run_at is required (e.g., 'tomorrow 8am', 'in 3 hours', '2026-04-19T08:00')",
+            "success": False,
+        }
 
     # Anti-recursion: block scheduling from within a scheduled job
     if source == "scheduled_job":
@@ -164,11 +171,17 @@ async def execute_schedule_task(
 
     # Validate channel
     if channel not in VALID_CHANNELS:
-        return {"error": f"Invalid channel '{channel}'. Valid: {VALID_CHANNELS}", "success": False}
+        return {
+            "error": f"Invalid channel '{channel}'. Valid: {VALID_CHANNELS}",
+            "success": False,
+        }
 
     # Validate recurrence
     if recurrence and recurrence not in VALID_RECURRENCES:
-        return {"error": f"Invalid recurrence '{recurrence}'. Valid: {VALID_RECURRENCES}", "success": False}
+        return {
+            "error": f"Invalid recurrence '{recurrence}'. Valid: {VALID_RECURRENCES}",
+            "success": False,
+        }
 
     # Parse run_at
     run_at_utc = _parse_run_at(run_at_str, user_tz)
@@ -181,9 +194,15 @@ async def execute_schedule_task(
     # Validate TTL (max 30 days)
     now = datetime.now(tz.utc)
     if run_at_utc < now:
-        return {"error": "run_at is in the past. Please specify a future time.", "success": False}
+        return {
+            "error": "run_at is in the past. Please specify a future time.",
+            "success": False,
+        }
     if (run_at_utc - now).days > MAX_TTL_DAYS:
-        return {"error": f"run_at is too far in the future. Maximum: {MAX_TTL_DAYS} days.", "success": False}
+        return {
+            "error": f"run_at is too far in the future. Maximum: {MAX_TTL_DAYS} days.",
+            "success": False,
+        }
 
     # Rate limit: check existing jobs for this user today
     if db:
@@ -223,11 +242,16 @@ async def execute_schedule_task(
             return {"error": "Failed to save job to database", "success": False}
         logger.info("job_scheduled", job_id=job_id, title=title, run_at=run_at_utc.isoformat())
     else:
-        logger.warning("job_scheduled_no_db", job_id=job_id, msg="No database — job will not persist across restarts")
+        logger.warning(
+            "job_scheduled_no_db",
+            job_id=job_id,
+            msg="No database — job will not persist across restarts",
+        )
 
     # Format human-readable time in user's timezone
     try:
         from zoneinfo import ZoneInfo
+
         user_zone = ZoneInfo(user_tz)
         run_at_local = run_at_utc.astimezone(user_zone)
         human_time = run_at_local.strftime("%A %d de %B, %Y a las %H:%M %Z")

@@ -6,6 +6,19 @@ Cualquier implementación DEBE cumplir estos contratos.
 Si el motor cambia, los contratos permanecen.
 """
 
+from .checkpoint_model import (
+    CheckpointData,
+    CheckpointStore,
+    CheckpointType,
+    SystemHealth,
+    SystemState,
+)
+from .event_envelope import (
+    EventBuilder,
+    EventCategory,
+    EventEnvelope,
+    Severity,
+)
 from .kernel_interface import (
     Checkpoint,
     IntentType,
@@ -24,12 +37,6 @@ from .memory_interface import (
     Relation,
     SearchResult,
 )
-from .event_envelope import (
-    EventBuilder,
-    EventCategory,
-    EventEnvelope,
-    Severity,
-)
 from .policy_hook import (
     PolicyContext,
     PolicyDecision,
@@ -38,27 +45,40 @@ from .policy_hook import (
     PolicyPipeline,
     PolicyVerdict,
 )
-from .checkpoint_model import (
-    CheckpointData,
-    CheckpointStore,
-    CheckpointType,
-    SystemHealth,
-    SystemState,
-)
 
 __all__ = [
     # Kernel
-    "KernelInterface", "RunInput", "RunOutput", "RunStatus",
-    "IntentType", "Checkpoint",
+    "KernelInterface",
+    "RunInput",
+    "RunOutput",
+    "RunStatus",
+    "IntentType",
+    "Checkpoint",
     # Memory
-    "MemoryInterface", "MemoryEvent", "MemoryType", "Entity",
-    "EntityType", "Relation", "Episode", "SearchResult",
+    "MemoryInterface",
+    "MemoryEvent",
+    "MemoryType",
+    "Entity",
+    "EntityType",
+    "Relation",
+    "Episode",
+    "SearchResult",
     # Events
-    "EventEnvelope", "EventCategory", "EventBuilder", "Severity",
+    "EventEnvelope",
+    "EventCategory",
+    "EventBuilder",
+    "Severity",
     # Policy
-    "PolicyHook", "PolicyPipeline", "PolicyContext",
-    "PolicyDecision", "PolicyVerdict", "PolicyPhase",
+    "PolicyHook",
+    "PolicyPipeline",
+    "PolicyContext",
+    "PolicyDecision",
+    "PolicyVerdict",
+    "PolicyPhase",
     # Checkpoint
-    "CheckpointStore", "CheckpointData", "CheckpointType",
-    "SystemState", "SystemHealth",
+    "CheckpointStore",
+    "CheckpointData",
+    "CheckpointType",
+    "SystemState",
+    "SystemHealth",
 ]

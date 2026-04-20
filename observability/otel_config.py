@@ -42,20 +42,24 @@ def configure_otel() -> Optional[dict]:
 
     try:
         from opentelemetry import trace
-        from opentelemetry.sdk.trace import TracerProvider
         from opentelemetry.sdk.resources import Resource
+        from opentelemetry.sdk.trace import TracerProvider
 
-        resource = Resource.create({
-            "service.name": OTEL_SERVICE_NAME,
-            "service.version": "0.9.0-sprint15",
-            "deployment.environment": os.environ.get("RAILWAY_ENVIRONMENT", "development"),
-        })
+        resource = Resource.create(
+            {
+                "service.name": OTEL_SERVICE_NAME,
+                "service.version": "0.9.0-sprint15",
+                "deployment.environment": os.environ.get("RAILWAY_ENVIRONMENT", "development"),
+            }
+        )
 
         provider = TracerProvider(resource=resource)
 
         # Add OTLP exporter if endpoint configured
         if OTEL_ENDPOINT:
-            from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+            from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
+                OTLPSpanExporter,
+            )
             from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
             exporter = OTLPSpanExporter(endpoint=OTEL_ENDPOINT)
@@ -77,7 +81,11 @@ def configure_otel() -> Optional[dict]:
         }
 
     except ImportError as e:
-        logger.warning("otel_import_failed", error=str(e), hint="pip install opentelemetry-sdk opentelemetry-exporter-otlp")
+        logger.warning(
+            "otel_import_failed",
+            error=str(e),
+            hint="pip install opentelemetry-sdk opentelemetry-exporter-otlp",
+        )
         return {"enabled": False, "error": "missing_dependencies"}
     except Exception as e:
         logger.error("otel_config_failed", error=str(e))

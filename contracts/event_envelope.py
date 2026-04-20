@@ -84,6 +84,7 @@ class EventCategory(enum.Enum):
 
 class Severity(enum.Enum):
     """Severidad del evento para filtrado y alertas."""
+
     DEBUG = "debug"
     INFO = "info"
     WARNING = "warning"
@@ -119,14 +120,15 @@ class EventEnvelope:
         timestamp   → Momento exacto del evento (UTC)
         version     → Versión del schema del evento
     """
+
     event_id: UUID = field(default_factory=uuid4)
     category: EventCategory = EventCategory.RUN_STARTED
     severity: Severity = Severity.INFO
     run_id: Optional[UUID] = None
     user_id: str = ""
     channel: str = ""
-    actor: str = ""          # "kernel", "router", "memory", "bot", etc.
-    action: str = ""         # Human-readable description
+    actor: str = ""  # "kernel", "router", "memory", "bot", etc.
+    action: str = ""  # Human-readable description
     payload: dict[str, Any] = field(default_factory=dict)
     parent_id: Optional[UUID] = None
     trace_id: Optional[str] = None
@@ -136,6 +138,7 @@ class EventEnvelope:
 
 
 # ── Event Builder ───────────────────────────────────────────────────
+
 
 class EventBuilder:
     """
@@ -179,6 +182,7 @@ class EventBuilder:
         """Accept run_id as string (from LangGraph state serialization)."""
         if run_id:
             from uuid import UUID as UUIDType
+
             try:
                 self._kwargs["run_id"] = UUIDType(run_id)
             except (ValueError, AttributeError):

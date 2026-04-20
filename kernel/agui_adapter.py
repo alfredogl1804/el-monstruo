@@ -22,9 +22,7 @@ endpoint and translates events into AG-UI protocol format."
 
 from __future__ import annotations
 
-import asyncio
 import json
-import time
 from typing import Any, Optional
 from uuid import uuid4
 
@@ -51,8 +49,10 @@ def set_dependencies(kernel=None, thoughts_store=None):
 
 # ── Request Model ─────────────────────────────────────────────────
 
+
 class AGUIRunRequest(BaseModel):
     """AG-UI run request."""
+
     thread_id: Optional[str] = None
     run_id: Optional[str] = None
     messages: list[dict[str, Any]] = Field(default_factory=list)
@@ -62,6 +62,7 @@ class AGUIRunRequest(BaseModel):
 
 
 # ── SSE Helpers ───────────────────────────────────────────────────
+
 
 def _sse_event(event_type: str, data: dict) -> str:
     """Format an SSE event string."""
@@ -76,6 +77,7 @@ def _heartbeat() -> str:
 
 # ── AG-UI Event Types ────────────────────────────────────────────
 
+
 class AGUIEventType:
     RUN_STARTED = "RUN_STARTED"
     TEXT_MESSAGE_START = "TEXT_MESSAGE_START"
@@ -89,6 +91,7 @@ class AGUIEventType:
 
 
 # ── Main SSE Endpoint ────────────────────────────────────────────
+
 
 @router.post("/run")
 async def agui_run(req: AGUIRunRequest, request: Request):
@@ -110,9 +113,7 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                 user_message = content
             elif isinstance(content, list):
                 # Handle structured content
-                user_message = " ".join(
-                    p.get("text", "") for p in content if p.get("type") == "text"
-                )
+                user_message = " ".join(p.get("text", "") for p in content if p.get("type") == "text")
             break
 
     if not user_message:
@@ -122,20 +123,27 @@ async def agui_run(req: AGUIRunRequest, request: Request):
         """Generate AG-UI SSE events from kernel execution."""
         try:
             # RUN_STARTED
-            yield _sse_event(AGUIEventType.RUN_STARTED, {
-                "runId": run_id,
-                "threadId": thread_id,
-            })
+            yield _sse_event(
+                AGUIEventType.RUN_STARTED,
+                {
+                    "runId": run_id,
+                    "threadId": thread_id,
+                },
+            )
 
             # TEXT_MESSAGE_START
             message_id = str(uuid4())
-            yield _sse_event(AGUIEventType.TEXT_MESSAGE_START, {
-                "messageId": message_id,
-                "role": "assistant",
-            })
+            yield _sse_event(
+                AGUIEventType.TEXT_MESSAGE_START,
+                {
+                    "messageId": message_id,
+                    "role": "assistant",
+                },
+            )
 
             # Execute through kernel
             from contracts.kernel_interface import RunInput
+
             run_input = RunInput(
                 message=user_message,
                 user_id=req.forwarded_props.get("user_id", "alfredo"),
@@ -161,36 +169,51 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                     if chunk_type == "token":
                         # Streaming text token
                         full_response += chunk_data
-                        yield _sse_event(AGUIEventType.TEXT_MESSAGE_CONTENT, {
-                            "messageId": message_id,
-                            "delta": chunk_data,
-                        })
+                        yield _sse_event(
+                            AGUIEventType.TEXT_MESSAGE_CONTENT,
+                            {
+                                "messageId": message_id,
+                                "delta": chunk_data,
+                            },
+                        )
 
                     elif chunk_type == "tool_start":
                         # Tool invocation started
                         tool_call_id = str(uuid4())
                         tool_calls_emitted.append(tool_call_id)
-                        yield _sse_event(AGUIEventType.TOOL_CALL_START, {
-                            "toolCallId": tool_call_id,
-                            "toolCallName": chunk_data.get("name", "unknown"),
-                        })
-                        if chunk_data.get("args"):
-                            yield _sse_event(AGUIEventType.TOOL_CALL_ARGS, {
+                        yield _sse_event(
+                            AGUIEventType.TOOL_CALL_START,
+                            {
                                 "toolCallId": tool_call_id,
-                                "delta": json.dumps(chunk_data["args"]),
-                            })
+                                "toolCallName": chunk_data.get("name", "unknown"),
+                            },
+                        )
+                        if chunk_data.get("args"):
+                            yield _sse_event(
+                                AGUIEventType.TOOL_CALL_ARGS,
+                                {
+                                    "toolCallId": tool_call_id,
+                                    "delta": json.dumps(chunk_data["args"]),
+                                },
+                            )
 
                     elif chunk_type == "tool_end":
                         if tool_calls_emitted:
-                            yield _sse_event(AGUIEventType.TOOL_CALL_END, {
-                                "toolCallId": tool_calls_emitted[-1],
-                                "result": str(chunk_data.get("result", ""))[:1000],
-                            })
+                            yield _sse_event(
+                                AGUIEventType.TOOL_CALL_END,
+                                {
+                                    "toolCallId": tool_calls_emitted[-1],
+                                    "result": str(chunk_data.get("result", ""))[:1000],
+                                },
+                            )
 
                     elif chunk_type == "error":
-                        yield _sse_event(AGUIEventType.RUN_ERROR, {
-                            "message": str(chunk_data),
-                        })
+                        yield _sse_event(
+                            AGUIEventType.RUN_ERROR,
+                            {
+                                "message": str(chunk_data),
+                            },
+                        )
                         return
 
             except AttributeError:
@@ -200,27 +223,39 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                 full_response = result.response if hasattr(result, "response") else str(result)
 
                 # Emit full response as single chunk
-                yield _sse_event(AGUIEventType.TEXT_MESSAGE_CONTENT, {
-                    "messageId": message_id,
-                    "delta": full_response,
-                })
+                yield _sse_event(
+                    AGUIEventType.TEXT_MESSAGE_CONTENT,
+                    {
+                        "messageId": message_id,
+                        "delta": full_response,
+                    },
+                )
 
             # TEXT_MESSAGE_END
-            yield _sse_event(AGUIEventType.TEXT_MESSAGE_END, {
-                "messageId": message_id,
-            })
+            yield _sse_event(
+                AGUIEventType.TEXT_MESSAGE_END,
+                {
+                    "messageId": message_id,
+                },
+            )
 
             # RUN_FINISHED
-            yield _sse_event(AGUIEventType.RUN_FINISHED, {
-                "runId": run_id,
-                "threadId": thread_id,
-            })
+            yield _sse_event(
+                AGUIEventType.RUN_FINISHED,
+                {
+                    "runId": run_id,
+                    "threadId": thread_id,
+                },
+            )
 
         except Exception as e:
             logger.error("agui_stream_error", run_id=run_id, error=str(e))
-            yield _sse_event(AGUIEventType.RUN_ERROR, {
-                "message": f"Internal error: {str(e)}",
-            })
+            yield _sse_event(
+                AGUIEventType.RUN_ERROR,
+                {
+                    "message": f"Internal error: {str(e)}",
+                },
+            )
 
     return StreamingResponse(
         event_stream(),
@@ -235,6 +270,7 @@ async def agui_run(req: AGUIRunRequest, request: Request):
 
 
 # ── Health/Info Endpoint ──────────────────────────────────────────
+
 
 @router.get("/info")
 async def agui_info():

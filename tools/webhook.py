@@ -16,10 +16,10 @@ Env vars:
 
 Sprint 5 — 2026-04-17
 """
+
 from __future__ import annotations
 
 import os
-import json
 from typing import Any, Optional
 from urllib.parse import urlparse
 
@@ -31,9 +31,7 @@ logger = structlog.get_logger("tools.webhook")
 # Whitelisted domains for security
 DEFAULT_ALLOWED_DOMAINS = "hooks.zapier.com,hook.us1.make.com,hook.eu1.make.com,n8n.cloud,hooks.slack.com"
 ALLOWED_DOMAINS = set(
-    d.strip()
-    for d in os.environ.get("WEBHOOK_ALLOWED_DOMAINS", DEFAULT_ALLOWED_DOMAINS).split(",")
-    if d.strip()
+    d.strip() for d in os.environ.get("WEBHOOK_ALLOWED_DOMAINS", DEFAULT_ALLOWED_DOMAINS).split(",") if d.strip()
 )
 
 TIMEOUT = int(os.environ.get("WEBHOOK_TIMEOUT", "30"))

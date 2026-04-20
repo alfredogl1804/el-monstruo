@@ -4,7 +4,9 @@ Lee PORT desde variable de entorno (Railway lo inyecta).
 Evita depender de shell expansion en Dockerfile CMD.
 Recomendación del Consejo de Sabios — 13 abril 2026.
 """
+
 import os
+
 import uvicorn
 
 port = int(os.getenv("PORT", "8000"))

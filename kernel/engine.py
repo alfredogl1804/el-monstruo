@@ -16,44 +16,43 @@ Los contratos soberanos son permanentes.
 
 from __future__ import annotations
 
-import asyncio
 import time
-from datetime import datetime, timezone
-from typing import Any, AsyncIterator, Callable, Optional
-from uuid import UUID, uuid4
+from typing import Any, AsyncIterator, Callable
+from uuid import UUID
 
 import structlog
-from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, StateGraph
 
 # PostgresSaver for durable state (Sprint 2)
 # Falls back to MemorySaver if SUPABASE_DB_URL is not set
 try:
-    from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+    from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver  # noqa: F401
+
     _HAS_POSTGRES_SAVER = True
 except ImportError:
     _HAS_POSTGRES_SAVER = False
 
+from contracts.event_envelope import EventBuilder, EventCategory, Severity
 from contracts.kernel_interface import (
+    IntentType,
     KernelInterface,
     RunInput,
     RunOutput,
     RunStatus,
-    IntentType,
 )
-from contracts.event_envelope import EventBuilder, EventCategory, Severity
-from kernel.state import MonstruoState
+from kernel.hitl import hitl_review
 from kernel.nodes import (
-    intake,
     classify_and_route,
     enrich,
     execute,
+    intake,
     memory_write,
     respond,
     should_enrich,
 )
-from kernel.hitl import hitl_review
-from kernel.tool_dispatch import tool_dispatch, should_loop_tools
+from kernel.state import MonstruoState
+from kernel.tool_dispatch import tool_dispatch
 
 logger = structlog.get_logger("kernel.engine")
 
@@ -67,7 +66,8 @@ class LangGraphKernel(KernelInterface):
     If LangGraph dies tomorrow, we swap the motor, not the interface.
 
     Graph topology (Sprint 2 — Las Manos):
-        intake → classify_and_route → [enrich] → execute → [tool_dispatch → execute]* → [hitl_review] → respond → memory_write
+        intake → classify_and_route → [enrich] → execute
+        → [tool_dispatch → execute]* → [hitl_review] → respond → memory_write
         * = tool calling loop (max 3 iterations)
     """
 
@@ -112,7 +112,12 @@ class LangGraphKernel(KernelInterface):
         )
 
         checkpointer_type = type(self._checkpointer).__name__
-        logger.info("kernel_initialized", motor="langgraph", version="1.1.8", checkpointer=checkpointer_type)
+        logger.info(
+            "kernel_initialized",
+            motor="langgraph",
+            version="1.1.8",
+            checkpointer=checkpointer_type,
+        )
 
     @staticmethod
     def _should_dispatch_tools_fn(state: MonstruoState) -> str:
@@ -177,7 +182,7 @@ class LangGraphKernel(KernelInterface):
         graph.add_node("enrich", enrich)
         graph.add_node("execute", execute)
         graph.add_node("tool_dispatch", tool_dispatch)  # Sprint 2: Las Manos
-        graph.add_node("hitl_review", hitl_review)       # HITL — real LangGraph interrupt()
+        graph.add_node("hitl_review", hitl_review)  # HITL — real LangGraph interrupt()
         graph.add_node("respond", respond)
         graph.add_node("memory_write", memory_write)
 
@@ -211,8 +216,8 @@ class LangGraphKernel(KernelInterface):
             LangGraphKernel._should_dispatch_tools_fn,
             {
                 "tool_dispatch": "tool_dispatch",  # LLM wants tools → dispatch
-                "hitl_review": "hitl_review",       # HITL needed → review
-                "respond": "respond",               # Normal → respond
+                "hitl_review": "hitl_review",  # HITL needed → review
+                "respond": "respond",  # Normal → respond
             },
         )
 
@@ -242,7 +247,11 @@ class LangGraphKernel(KernelInterface):
         if self._finops:
             budget_check = self._finops.check_budget()
             if not budget_check.get("allowed", True):
-                logger.warning("run_blocked_budget", run_id=str(run_id), reason=budget_check["reason"])
+                logger.warning(
+                    "run_blocked_budget",
+                    run_id=str(run_id),
+                    reason=budget_check["reason"],
+                )
                 return RunOutput(
                     run_id=run_id,
                     status=RunStatus.FAILED,
@@ -304,17 +313,12 @@ class LangGraphKernel(KernelInterface):
             # Use v2 API to properly detect interrupts (validated 2026-04-14)
             # In v2, ainvoke returns GraphOutput with .value and .interrupts
             # instead of raising GraphInterrupt exception
-            result = await self._compiled.ainvoke(
-                initial_state, config, version="v2"
-            )
+            result = await self._compiled.ainvoke(initial_state, config, version="v2")
 
             # ── Check for HITL interrupt ──────────────────────────────
             if result.interrupts:
                 # Graph paused at interrupt() — HITL review needed
-                interrupt_payloads = [
-                    i.value if hasattr(i, 'value') else str(i)
-                    for i in result.interrupts
-                ]
+                interrupt_payloads = [i.value if hasattr(i, "value") else str(i) for i in result.interrupts]
                 final_state = result.value
                 self._runs[run_id] = final_state
 
@@ -428,14 +432,16 @@ class LangGraphKernel(KernelInterface):
 
             # Emit failure event
             if self._event_store:
-                event = EventBuilder() \
-                    .category(EventCategory.RUN_FAILED) \
-                    .severity(Severity.ERROR) \
-                    .actor("kernel.engine") \
-                    .action(f"Run failed: {str(e)[:200]}") \
-                    .for_run(run_id) \
-                    .with_payload({"error": str(e), "error_type": type(e).__name__}) \
+                event = (
+                    EventBuilder()
+                    .category(EventCategory.RUN_FAILED)
+                    .severity(Severity.ERROR)
+                    .actor("kernel.engine")
+                    .action(f"Run failed: {str(e)[:200]}")
+                    .for_run(run_id)
+                    .with_payload({"error": str(e), "error_type": type(e).__name__})
                     .build()
+                )
                 await self._event_store.append(event)
 
             error_output = RunOutput(
@@ -464,6 +470,7 @@ class LangGraphKernel(KernelInterface):
                 provider = ""
                 try:
                     from config.model_catalog import MODELS
+
                     model_info = MODELS.get(output.model_used, {})
                     provider = model_info.get("provider", "")
                 except Exception:
@@ -478,7 +485,9 @@ class LangGraphKernel(KernelInterface):
                     tokens_out=output.tokens_out,
                     cost_usd=output.cost_usd,
                     latency_ms=int(output.latency_ms),
-                    tool_calls=[tc.get("name", "") if isinstance(tc, dict) else str(tc) for tc in (output.tool_calls or [])],
+                    tool_calls=[
+                        tc.get("name", "") if isinstance(tc, dict) else str(tc) for tc in (output.tool_calls or [])
+                    ],
                     status=status,
                     error_message=error_message,
                 )
@@ -523,16 +532,11 @@ class LangGraphKernel(KernelInterface):
         try:
             # Resume the graph using LangGraph Command(resume=...) with v2 API
             # validated 2026-04-14 against LangGraph 1.1.6 docs
-            result = await self._compiled.ainvoke(
-                Command(resume=resume_value), config, version="v2"
-            )
+            result = await self._compiled.ainvoke(Command(resume=resume_value), config, version="v2")
 
             # Check if another interrupt was triggered (multi-step HITL)
             if result.interrupts:
-                interrupt_payloads = [
-                    i.value if hasattr(i, 'value') else str(i)
-                    for i in result.interrupts
-                ]
+                interrupt_payloads = [i.value if hasattr(i, "value") else str(i) for i in result.interrupts]
                 final_state = result.value
                 final_state["status"] = RunStatus.AWAITING_HUMAN.value
                 self._runs[run_id] = final_state
@@ -590,6 +594,7 @@ class LangGraphKernel(KernelInterface):
 
         if self._checkpoint_store:
             from contracts.checkpoint_model import Checkpoint, CheckpointType
+
             cp = Checkpoint(
                 run_id=run_id,
                 checkpoint_type=CheckpointType.MANUAL,
@@ -613,7 +618,11 @@ class LangGraphKernel(KernelInterface):
             return False
 
         current_status = state.get("status", "")
-        if current_status in (RunStatus.COMPLETED.value, RunStatus.FAILED.value, RunStatus.CANCELLED.value):
+        if current_status in (
+            RunStatus.COMPLETED.value,
+            RunStatus.FAILED.value,
+            RunStatus.CANCELLED.value,
+        ):
             return False
 
         # Update state
@@ -624,13 +633,15 @@ class LangGraphKernel(KernelInterface):
 
         # Emit cancellation event
         if self._event_store:
-            event = EventBuilder() \
-                .category(EventCategory.RUN_CANCELLED) \
-                .actor("kernel.engine") \
-                .action(f"Run cancelled: {reason or 'no reason given'}") \
-                .for_run(run_id) \
-                .with_payload({"reason": reason}) \
+            event = (
+                EventBuilder()
+                .category(EventCategory.RUN_CANCELLED)
+                .actor("kernel.engine")
+                .action(f"Run cancelled: {reason or 'no reason given'}")
+                .for_run(run_id)
+                .with_payload({"reason": reason})
                 .build()
+            )
             await self._event_store.append(event)
 
         await self._fire_hook("on_cancel", run_id, reason)
@@ -658,6 +669,7 @@ class LangGraphKernel(KernelInterface):
           {"type": "error", "message": "..."}
         """
         import json as _json
+
         run_id = input.run_id
         # Use a unique thread_id for streaming to avoid checkpoint conflicts
         thread_id = f"stream-{run_id}"
@@ -690,26 +702,28 @@ class LangGraphKernel(KernelInterface):
             logger.info("stream_phase1_start", run_id=str(run_id))
 
             pre_llm_state = dict(initial_state)
-            async for event in self._compiled_streaming.astream(
-                initial_state, config, stream_mode="updates"
-            ):
+            async for event in self._compiled_streaming.astream(initial_state, config, stream_mode="updates"):
                 for node_name, state_update in event.items():
                     pre_llm_state.update(state_update)
 
                     if node_name == "classify_and_route":
-                        yield _json.dumps({
-                            "type": "meta",
-                            "intent": state_update.get("intent", "chat"),
-                            "model": state_update.get("model", "unknown"),
-                            "enriched": False,
-                        })
+                        yield _json.dumps(
+                            {
+                                "type": "meta",
+                                "intent": state_update.get("intent", "chat"),
+                                "model": state_update.get("model", "unknown"),
+                                "enriched": False,
+                            }
+                        )
 
                     elif node_name == "enrich":
-                        yield _json.dumps({
-                            "type": "meta",
-                            "enriched": state_update.get("enriched", False),
-                            "memories_found": len(state_update.get("relevant_memories", [])),
-                        })
+                        yield _json.dumps(
+                            {
+                                "type": "meta",
+                                "enriched": state_update.get("enriched", False),
+                                "memories_found": len(state_update.get("relevant_memories", [])),
+                            }
+                        )
 
             # ══ Phase 2: Extract enriched state from checkpoint ════════════════════
             # Graph is now paused before execute. Read the full state.
@@ -748,7 +762,7 @@ class LangGraphKernel(KernelInterface):
             stream_failed = False
 
             try:
-                if self._router and hasattr(self._router, 'execute_stream'):
+                if self._router and hasattr(self._router, "execute_stream"):
                     async for chunk in self._router.execute_stream(
                         message=message,
                         model=model,
@@ -761,9 +775,7 @@ class LangGraphKernel(KernelInterface):
                 elif self._router:
                     # Fallback: non-streaming execute, then fake-stream
                     logger.warning("stream_fallback_to_sync", run_id=str(run_id))
-                    response, usage = await self._router.execute(
-                        message, model, IntentType(intent), enriched_context
-                    )
+                    response, usage = await self._router.execute(message, model, IntentType(intent), enriched_context)
                     accumulated_response = response
                     # Emit in one chunk
                     yield _json.dumps({"type": "chunk", "text": response})
@@ -784,17 +796,21 @@ class LangGraphKernel(KernelInterface):
                 )
                 if not first_token_emitted:
                     # Fallback policy: before first token, we can retry or error
-                    yield _json.dumps({
-                        "type": "error",
-                        "message": f"LLM streaming failed: {type(llm_err).__name__}",
-                    })
+                    yield _json.dumps(
+                        {
+                            "type": "error",
+                            "message": f"LLM streaming failed: {type(llm_err).__name__}",
+                        }
+                    )
                     return
                 else:
                     # After first token: graceful termination
-                    yield _json.dumps({
-                        "type": "error",
-                        "message": "Stream interrupted. Partial response delivered.",
-                    })
+                    yield _json.dumps(
+                        {
+                            "type": "error",
+                            "message": "Stream interrupted. Partial response delivered.",
+                        }
+                    )
 
             llm_elapsed_ms = (time.monotonic() - llm_start) * 1000
             logger.info(
@@ -828,9 +844,7 @@ class LangGraphKernel(KernelInterface):
                     # ══ Phase 5: Run post-LLM nodes (respond → memory_write) ══════
                     # Resume the graph — it will run respond → memory_write → END
                     logger.info("stream_phase5_post_llm", run_id=str(run_id))
-                    async for event in self._compiled_streaming.astream(
-                        None, config, stream_mode="updates"
-                    ):
+                    async for event in self._compiled_streaming.astream(None, config, stream_mode="updates"):
                         # Post-LLM nodes run silently; we don't yield their output
                         for node_name, state_update in event.items():
                             if node_name == "respond":
@@ -855,16 +869,18 @@ class LangGraphKernel(KernelInterface):
 
             # ══ Emit done event ════════════════════════════════════════════════
             elapsed_ms = (time.monotonic() - start_time) * 1000
-            yield _json.dumps({
-                "type": "done",
-                "latency_ms": round(elapsed_ms),
-                "model_used": model,
-                "intent": intent,
-                "tokens_in": pre_llm_state.get("tokens_in", 0),
-                "tokens_out": pre_llm_state.get("tokens_out", 0),
-                "cost_usd": pre_llm_state.get("cost_usd", 0.0),
-                "streaming": True,
-            })
+            yield _json.dumps(
+                {
+                    "type": "done",
+                    "latency_ms": round(elapsed_ms),
+                    "model_used": model,
+                    "intent": intent,
+                    "tokens_in": pre_llm_state.get("tokens_in", 0),
+                    "tokens_out": pre_llm_state.get("tokens_out", 0),
+                    "cost_usd": pre_llm_state.get("cost_usd", 0.0),
+                    "streaming": True,
+                }
+            )
 
         except Exception as e:
             logger.error("stream_failed", run_id=str(run_id), error=str(e))
@@ -896,7 +912,7 @@ class LangGraphKernel(KernelInterface):
         try:
             return self._compiled.get_graph().draw_mermaid()
         except Exception:
-            return "graph TD\n  A[intake] --> B[classify] --> C[route] --> D{enrich?} --> E[execute] --> F{HITL?} --> G[memory_write] --> H[respond]"
+            return "graph TD\n  A[intake] --> B[classify] --> C[route] --> D{enrich?} --> E[execute] --> F{HITL?} --> G[memory_write] --> H[respond]"  # noqa: E501
 
     def get_graph_ascii(self) -> str:
         """Export the graph as ASCII art."""

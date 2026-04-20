@@ -19,10 +19,10 @@ Endpoints:
 from __future__ import annotations
 
 from typing import Any, Optional
-from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel, Field
 
 import structlog
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel, Field
 
 logger = structlog.get_logger("memory_routes")
 
@@ -39,6 +39,7 @@ def set_dependencies(thoughts_store=None):
 
 
 # ── Request/Response Models ───────────────────────────────────────
+
 
 class CreateThoughtRequest(BaseModel):
     user_id: str = Field(default="alfredo")
@@ -85,6 +86,7 @@ class SearchRequest(BaseModel):
 
 
 # ── Routes ────────────────────────────────────────────────────────
+
 
 @router.post("/thoughts")
 async def create_thought(req: CreateThoughtRequest):

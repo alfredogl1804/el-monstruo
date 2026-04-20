@@ -24,8 +24,8 @@ from __future__ import annotations
 import json
 import os
 import uuid
-from typing import Any, Optional
 from dataclasses import dataclass, field
+from typing import Any, Optional
 
 import httpx
 import structlog
@@ -35,9 +35,11 @@ logger = structlog.get_logger("llm_client")
 
 # ── Normalized Response Contract (Sabios consensus) ─────────────────
 
+
 @dataclass
 class ToolCall:
     """Normalized tool call — provider-agnostic."""
+
     id: str
     name: str
     arguments: dict[str, Any]
@@ -50,11 +52,12 @@ class ToolCall:
 class LLMResponse:
     """
     Normalized LLM response — the single contract between LLMClient and the graph.
-    
+
     If tool_calls is non-empty, the LLM wants to use tools.
     If content is non-empty, the LLM is responding with text.
     Both can be present (e.g., text + tool calls).
     """
+
     content: str = ""
     tool_calls: list[ToolCall] = field(default_factory=list)
     finish_reason: str = ""  # "stop", "tool_calls", "length", "end_turn"
@@ -80,9 +83,11 @@ class LLMResponse:
 
 # ── Tool Spec (for sending to providers) ────────────────────────────
 
+
 @dataclass
 class ToolSpec:
     """Tool specification — provider-agnostic."""
+
     name: str
     description: str
     parameters: dict[str, Any]  # JSON Schema
@@ -96,7 +101,7 @@ class ToolSpec:
                 "name": self.name,
                 "description": self.description,
                 "parameters": self.parameters,
-            }
+            },
         }
 
     def to_anthropic_format(self) -> dict:
@@ -110,6 +115,7 @@ class ToolSpec:
     def to_gemini_declarations(self):
         """Convert to Google Gemini FunctionDeclaration."""
         from google.genai import types
+
         return types.FunctionDeclaration(
             name=self.name,
             description=self.description,
@@ -157,7 +163,7 @@ class LLMClient:
         """
         Backward-compatible chat interface.
         Returns (response_text, usage_dict) — same as Sprint 1.
-        
+
         For tool calling, use chat_with_tools() instead.
         """
         response = await self.chat_with_tools(
@@ -182,7 +188,7 @@ class LLMClient:
         """
         Sprint 2: Chat with native tool calling support.
         Returns normalized LLMResponse with tool_calls if the model wants to use tools.
-        
+
         Args:
             model_config: Entry from MODEL_CATALOG
             messages: List of messages [{role, content}] — also accepts tool results
@@ -196,10 +202,7 @@ class LLMClient:
         api_key = os.environ.get(model_config["api_key_env"], "")
 
         if not api_key:
-            raise ValueError(
-                f"API key not found: {model_config['api_key_env']}. "
-                f"Set it as an environment variable."
-            )
+            raise ValueError(f"API key not found: {model_config['api_key_env']}. Set it as an environment variable.")
 
         if max_tokens is None:
             if model_config.get("use_max_completion_tokens"):
@@ -222,15 +225,48 @@ class LLMClient:
         )
 
         if provider == "openai":
-            return await self._call_openai(model_id, api_key, messages, temperature, max_tokens, model_config, effective_tools, tool_choice)
+            return await self._call_openai(
+                model_id,
+                api_key,
+                messages,
+                temperature,
+                max_tokens,
+                model_config,
+                effective_tools,
+                tool_choice,
+            )
         elif provider == "anthropic":
-            return await self._call_anthropic(model_id, api_key, messages, temperature, max_tokens, effective_tools, tool_choice)
+            return await self._call_anthropic(
+                model_id,
+                api_key,
+                messages,
+                temperature,
+                max_tokens,
+                effective_tools,
+                tool_choice,
+            )
         elif provider == "google":
-            return await self._call_google(model_id, api_key, messages, temperature, max_tokens, effective_tools, tool_choice)
+            return await self._call_google(
+                model_id,
+                api_key,
+                messages,
+                temperature,
+                max_tokens,
+                effective_tools,
+                tool_choice,
+            )
         elif provider in ("xai", "openrouter", "perplexity"):
             base_url = model_config.get("base_url", "")
             return await self._call_openai_compatible(
-                model_id, api_key, base_url, messages, temperature, max_tokens, provider, effective_tools, tool_choice
+                model_id,
+                api_key,
+                base_url,
+                messages,
+                temperature,
+                max_tokens,
+                provider,
+                effective_tools,
+                tool_choice,
             )
         else:
             raise ValueError(f"Unknown provider: {provider}")
@@ -250,6 +286,7 @@ class LLMClient:
     ) -> LLMResponse:
         if self._openai_client is None:
             from openai import AsyncOpenAI
+
             self._openai_client = AsyncOpenAI(api_key=api_key)
 
         kwargs: dict[str, Any] = {
@@ -277,17 +314,29 @@ class LLMClient:
         if msg.tool_calls:
             for tc in msg.tool_calls:
                 try:
-                    args = json.loads(tc.function.arguments) if isinstance(tc.function.arguments, str) else tc.function.arguments
+                    args = (
+                        json.loads(tc.function.arguments)
+                        if isinstance(tc.function.arguments, str)
+                        else tc.function.arguments
+                    )
                 except json.JSONDecodeError:
                     args = {"raw": tc.function.arguments}
-                tool_calls.append(ToolCall(
-                    id=tc.id,
-                    name=tc.function.name,
-                    arguments=args,
-                ))
+                tool_calls.append(
+                    ToolCall(
+                        id=tc.id,
+                        name=tc.function.name,
+                        arguments=args,
+                    )
+                )
 
         usage = self._extract_usage(response.usage, model_id)
-        logger.info("llm_call_ok", provider="openai", model=model_id, tokens=usage.get("total_tokens", 0), tool_calls=len(tool_calls))
+        logger.info(
+            "llm_call_ok",
+            provider="openai",
+            model=model_id,
+            tokens=usage.get("total_tokens", 0),
+            tool_calls=len(tool_calls),
+        )
 
         return LLMResponse(
             content=content,
@@ -312,6 +361,7 @@ class LLMClient:
     ) -> LLMResponse:
         if self._anthropic_client is None:
             from anthropic import AsyncAnthropic
+
             self._anthropic_client = AsyncAnthropic(api_key=api_key)
 
         # Anthropic separates system prompt from messages
@@ -322,14 +372,18 @@ class LLMClient:
                 system_prompt = msg.get("content", "")
             elif msg.get("role") == "tool":
                 # Convert tool result to Anthropic format
-                user_messages.append({
-                    "role": "user",
-                    "content": [{
-                        "type": "tool_result",
-                        "tool_use_id": msg.get("tool_call_id", ""),
-                        "content": msg.get("content", ""),
-                    }]
-                })
+                user_messages.append(
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": msg.get("tool_call_id", ""),
+                                "content": msg.get("content", ""),
+                            }
+                        ],
+                    }
+                )
             elif msg.get("role") == "assistant" and isinstance(msg.get("content"), list):
                 # Pass through assistant messages with tool_use blocks
                 user_messages.append(msg)
@@ -367,11 +421,13 @@ class LLMClient:
             if hasattr(block, "text"):
                 content += block.text
             elif hasattr(block, "type") and block.type == "tool_use":
-                tool_calls.append(ToolCall(
-                    id=block.id,
-                    name=block.name,
-                    arguments=block.input if isinstance(block.input, dict) else {},
-                ))
+                tool_calls.append(
+                    ToolCall(
+                        id=block.id,
+                        name=block.name,
+                        arguments=block.input if isinstance(block.input, dict) else {},
+                    )
+                )
 
         usage = {
             "prompt_tokens": response.usage.input_tokens,
@@ -387,7 +443,13 @@ class LLMClient:
         elif finish_reason == "end_turn":
             finish_reason = "stop"
 
-        logger.info("llm_call_ok", provider="anthropic", model=model_id, tokens=usage["total_tokens"], tool_calls=len(tool_calls))
+        logger.info(
+            "llm_call_ok",
+            provider="anthropic",
+            model=model_id,
+            tokens=usage["total_tokens"],
+            tool_calls=len(tool_calls),
+        )
 
         return LLMResponse(
             content=content,
@@ -412,6 +474,7 @@ class LLMClient:
     ) -> LLMResponse:
         if self._google_client is None:
             from google import genai
+
             self._google_client = genai.Client(api_key=api_key)
 
         # ── Convert OpenAI-format messages to Gemini contents ──────
@@ -425,8 +488,9 @@ class LLMClient:
         # Fix: use `msg.get("content") or ""` pattern everywhere, and skip
         # any message that would produce a Part with no valid data.
 
-        from google.genai import types as _gtypes
         import json as _json_g
+
+        from google.genai import types as _gtypes
 
         system_instruction = ""
         contents = []
@@ -463,10 +527,12 @@ class LLMClient:
                                 fn_args = {"raw": fn_args_raw}
                         else:
                             fn_args = fn_args_raw if isinstance(fn_args_raw, dict) else {}
-                        parts.append(_gtypes.Part.from_function_call(
-                            name=fn_name,
-                            args=fn_args,
-                        ))
+                        parts.append(
+                            _gtypes.Part.from_function_call(
+                                name=fn_name,
+                                args=fn_args,
+                            )
+                        )
                     if parts:  # Only add if we have valid function call parts
                         contents.append({"role": "model", "parts": parts})
                 else:
@@ -485,13 +551,17 @@ class LLMClient:
                 tool_content = msg.get("content") or ""
                 if not isinstance(tool_content, str):
                     tool_content = str(tool_content)
-                contents.append({
-                    "role": "user",
-                    "parts": [_gtypes.Part.from_function_response(
-                        name=tool_name,
-                        response={"result": tool_content},
-                    )]
-                })
+                contents.append(
+                    {
+                        "role": "user",
+                        "parts": [
+                            _gtypes.Part.from_function_response(
+                                name=tool_name,
+                                response={"result": tool_content},
+                            )
+                        ],
+                    }
+                )
 
         if not contents:
             contents = [{"role": "user", "parts": [{"text": "Hola"}]}]
@@ -505,6 +575,7 @@ class LLMClient:
         )
 
         from google.genai import types
+
         gen_config = types.GenerateContentConfig(
             temperature=temperature,
             max_output_tokens=max_tokens,
@@ -513,9 +584,7 @@ class LLMClient:
             gen_config.system_instruction = system_instruction
 
         if tools:
-            gemini_tools = [types.Tool(function_declarations=[
-                t.to_gemini_declarations() for t in tools
-            ])]
+            gemini_tools = [types.Tool(function_declarations=[t.to_gemini_declarations() for t in tools])]
             gen_config.tools = gemini_tools
 
             if tool_choice == "auto":
@@ -549,12 +618,14 @@ class LLMClient:
                     fc = part.function_call
                     args = dict(fc.args) if fc.args else {}
                     # Gemini 3 provides its own id; fallback to uuid for older models
-                    fc_id = getattr(fc, 'id', None) or f"call_{uuid.uuid4().hex[:8]}"
-                    tool_calls.append(ToolCall(
-                        id=fc_id,
-                        name=fc.name,
-                        arguments=args,
-                    ))
+                    fc_id = getattr(fc, "id", None) or f"call_{uuid.uuid4().hex[:8]}"
+                    tool_calls.append(
+                        ToolCall(
+                            id=fc_id,
+                            name=fc.name,
+                            arguments=args,
+                        )
+                    )
 
         # Extract usage
         usage_meta = getattr(response, "usage_metadata", None)
@@ -567,7 +638,13 @@ class LLMClient:
 
         finish_reason = "tool_calls" if tool_calls else "stop"
 
-        logger.info("llm_call_ok", provider="google", model=model_id, tokens=usage["total_tokens"], tool_calls=len(tool_calls))
+        logger.info(
+            "llm_call_ok",
+            provider="google",
+            model=model_id,
+            tokens=usage["total_tokens"],
+            tool_calls=len(tool_calls),
+        )
 
         return LLMResponse(
             content=content,
@@ -639,14 +716,20 @@ class LLMClient:
             for tc in raw_tool_calls:
                 func = tc.get("function", {})
                 try:
-                    args = json.loads(func.get("arguments", "{}")) if isinstance(func.get("arguments"), str) else func.get("arguments", {})
+                    args = (
+                        json.loads(func.get("arguments", "{}"))
+                        if isinstance(func.get("arguments"), str)
+                        else func.get("arguments", {})
+                    )
                 except json.JSONDecodeError:
                     args = {"raw": func.get("arguments", "")}
-                tool_calls.append(ToolCall(
-                    id=tc.get("id", f"call_{uuid.uuid4().hex[:8]}"),
-                    name=func.get("name", ""),
-                    arguments=args,
-                ))
+                tool_calls.append(
+                    ToolCall(
+                        id=tc.get("id", f"call_{uuid.uuid4().hex[:8]}"),
+                        name=func.get("name", ""),
+                        arguments=args,
+                    )
+                )
 
         # Normalize finish_reason
         if finish_reason == "tool_calls" or (tool_calls and finish_reason != "stop"):
@@ -660,7 +743,13 @@ class LLMClient:
             "model_used": data.get("model", model_id),
         }
 
-        logger.info("llm_call_ok", provider=provider, model=model_id, tokens=usage["total_tokens"], tool_calls=len(tool_calls))
+        logger.info(
+            "llm_call_ok",
+            provider=provider,
+            model=model_id,
+            tokens=usage["total_tokens"],
+            tool_calls=len(tool_calls),
+        )
 
         return LLMResponse(
             content=content,
@@ -712,7 +801,9 @@ class LLMClient:
                 yield chunk
         elif provider in ("xai", "openrouter", "perplexity"):
             base_url = model_config.get("base_url", "")
-            async for chunk in self._stream_openai_compatible(model_id, api_key, base_url, messages, temperature, max_tokens, provider):
+            async for chunk in self._stream_openai_compatible(
+                model_id, api_key, base_url, messages, temperature, max_tokens, provider
+            ):
                 yield chunk
         else:
             raise ValueError(f"Unknown provider: {provider}")
@@ -722,6 +813,7 @@ class LLMClient:
     async def _stream_openai(self, model_id, api_key, messages, temperature, max_tokens, model_config):
         if self._openai_client is None:
             from openai import AsyncOpenAI
+
             self._openai_client = AsyncOpenAI(api_key=api_key)
 
         kwargs: dict[str, Any] = {
@@ -745,6 +837,7 @@ class LLMClient:
     async def _stream_anthropic(self, model_id, api_key, messages, temperature, max_tokens):
         if self._anthropic_client is None:
             from anthropic import AsyncAnthropic
+
             self._anthropic_client = AsyncAnthropic(api_key=api_key)
 
         system_prompt = ""
@@ -776,6 +869,7 @@ class LLMClient:
     async def _stream_google(self, model_id, api_key, messages, temperature, max_tokens):
         if self._google_client is None:
             from google import genai
+
             self._google_client = genai.Client(api_key=api_key)
 
         system_instruction = ""
@@ -791,6 +885,7 @@ class LLMClient:
             contents = [{"role": "user", "parts": [{"text": "Hola"}]}]
 
         from google.genai import types
+
         gen_config = types.GenerateContentConfig(
             temperature=temperature,
             max_output_tokens=max_tokens,
@@ -855,7 +950,12 @@ class LLMClient:
     @staticmethod
     def _extract_usage(usage_obj: Any, model_id: str) -> dict[str, Any]:
         if usage_obj is None:
-            return {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "model_used": model_id}
+            return {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+                "model_used": model_id,
+            }
         return {
             "prompt_tokens": getattr(usage_obj, "prompt_tokens", 0),
             "completion_tokens": getattr(usage_obj, "completion_tokens", 0),

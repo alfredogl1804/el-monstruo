@@ -14,20 +14,23 @@ Arquitectura:
 
 Dependencias: Solo stdlib + core/action_envelope.py + core/composite_risk.py
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any, Callable
+from typing import Any
 
 import structlog
 
 from core.action_envelope import (
     ActionEnvelope,
     ActionType,
+    ResourceKind,
     RiskLevel,
     TrustRing,
-    ResourceKind,
+)
+from core.action_envelope import (
     PolicyDecision as EnvelopePolicyDecision,
 )
 from core.composite_risk import get_composite_calculator
@@ -37,13 +40,16 @@ logger = structlog.get_logger("policy.engine")
 
 # ── Policy Effect (Cedar-compatible) ────────────────────────────────
 
+
 class PolicyEffect(StrEnum):
     """Cedar-compatible policy effects."""
+
     PERMIT = "PERMIT"
     FORBID = "FORBID"
 
 
 # ── Policy Rule ──────────────────────────────────────────────────────
+
 
 @dataclass(frozen=True)
 class PolicyRule:
@@ -56,6 +62,7 @@ class PolicyRule:
         priority: Lower = evaluated first (0-999)
         conditions: Dict of field_name -> expected_value or callable
     """
+
     rule_id: str
     effect: PolicyEffect
     description: str
@@ -65,10 +72,12 @@ class PolicyRule:
 
 # ── Evaluation Result ────────────────────────────────────────────────
 
+
 @dataclass
 class PolicyEvalResult:
     """Result of evaluating the policy engine against an envelope."""
-    decision: str           # "ALLOW" | "DENY" | "HITL"
+
+    decision: str  # "ALLOW" | "DENY" | "HITL"
     decision_reason: str
     matched_rule: str | None = None
     composite_risk: str | None = None
@@ -84,23 +93,68 @@ class PolicyEvalResult:
 # classified the intent.
 
 _ACTION_KEYWORDS_ES = {
-    "envía", "envia", "enviar", "manda", "mandar",
-    "publica", "publicar", "postea", "postear",
-    "borra", "borrar", "elimina", "eliminar",
-    "transfiere", "transferir", "paga", "pagar",
-    "compra", "comprar", "cancela", "cancelar",
-    "suscribe", "suscribir", "agenda", "agendar",
-    "reserva", "reservar", "contrata", "contratar",
-    "ejecuta", "ejecutar", "despliega", "desplegar",
-    "deploy", "modifica", "modificar", "actualiza", "actualizar",
+    "envía",
+    "envia",
+    "enviar",
+    "manda",
+    "mandar",
+    "publica",
+    "publicar",
+    "postea",
+    "postear",
+    "borra",
+    "borrar",
+    "elimina",
+    "eliminar",
+    "transfiere",
+    "transferir",
+    "paga",
+    "pagar",
+    "compra",
+    "comprar",
+    "cancela",
+    "cancelar",
+    "suscribe",
+    "suscribir",
+    "agenda",
+    "agendar",
+    "reserva",
+    "reservar",
+    "contrata",
+    "contratar",
+    "ejecuta",
+    "ejecutar",
+    "despliega",
+    "desplegar",
+    "deploy",
+    "modifica",
+    "modificar",
+    "actualiza",
+    "actualizar",
 }
 
 _ACTION_KEYWORDS_EN = {
-    "send", "post", "publish", "delete", "remove",
-    "transfer", "pay", "buy", "purchase", "cancel",
-    "subscribe", "schedule", "book", "hire",
-    "execute", "deploy", "create", "drop", "wipe",
-    "update", "modify",
+    "send",
+    "post",
+    "publish",
+    "delete",
+    "remove",
+    "transfer",
+    "pay",
+    "buy",
+    "purchase",
+    "cancel",
+    "subscribe",
+    "schedule",
+    "book",
+    "hire",
+    "execute",
+    "deploy",
+    "create",
+    "drop",
+    "wipe",
+    "update",
+    "modify",
 }
 
 _ACTION_KEYWORDS = _ACTION_KEYWORDS_ES | _ACTION_KEYWORDS_EN
@@ -212,6 +266,7 @@ DEFAULT_RULES: list[PolicyRule] = [
 
 
 # ── Policy Engine ────────────────────────────────────────────────────
+
 
 class PolicyEngine:
     """Python-pure policy engine with Cedar-like semantics.

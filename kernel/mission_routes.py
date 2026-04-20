@@ -9,6 +9,7 @@ Endpoints:
   GET  /dossier/          — Get user dossier
   PUT  /dossier/          — Update user dossier
 """
+
 from __future__ import annotations
 
 import json
@@ -33,6 +34,7 @@ def set_dependencies(db: Any) -> None:
 
 
 # ── Pydantic Models ──────────────────────────────────────────────────
+
 
 class MissionCreate(BaseModel):
     name: str
@@ -67,6 +69,7 @@ class DossierUpdate(BaseModel):
 
 # ── Mission Endpoints ─────────────────────────────────────────────────
 
+
 @router.get("/")
 async def list_missions(status: str = "active", user_id: str = "alfredo"):
     """List missions filtered by status."""
@@ -80,17 +83,19 @@ async def list_missions(status: str = "active", user_id: str = "alfredo"):
     rows = await _db.select("active_missions", filters=filters, limit=50)
     missions = []
     for row in rows:
-        missions.append({
-            "id": row.get("id"),
-            "name": row.get("name"),
-            "description": row.get("description"),
-            "status": row.get("status"),
-            "priority": row.get("priority"),
-            "tags": row.get("tags", []),
-            "metadata": row.get("metadata", {}),
-            "started_at": str(row.get("started_at", "")),
-            "updated_at": str(row.get("updated_at", "")),
-        })
+        missions.append(
+            {
+                "id": row.get("id"),
+                "name": row.get("name"),
+                "description": row.get("description"),
+                "status": row.get("status"),
+                "priority": row.get("priority"),
+                "tags": row.get("tags", []),
+                "metadata": row.get("metadata", {}),
+                "started_at": str(row.get("started_at", "")),
+                "updated_at": str(row.get("updated_at", "")),
+            }
+        )
 
     # Sort by priority descending
     missions.sort(key=lambda m: m.get("priority", 0), reverse=True)
@@ -149,6 +154,7 @@ async def update_mission(mission_id: str, body: MissionUpdate):
 
 # ── Dossier Endpoints ─────────────────────────────────────────────────
 
+
 @dossier_router.get("/")
 async def get_dossier(user_id: str = "alfredo"):
     """Get the user dossier."""
@@ -186,8 +192,17 @@ async def update_dossier(body: DossierUpdate, user_id: str = "alfredo"):
         raise HTTPException(503, "Database not available")
 
     updates = {}
-    for field in ("full_name", "company", "location", "role", "industry",
-                  "email", "github_username", "telegram_id", "timezone"):
+    for field in (
+        "full_name",
+        "company",
+        "location",
+        "role",
+        "industry",
+        "email",
+        "github_username",
+        "telegram_id",
+        "timezone",
+    ):
         val = getattr(body, field, None)
         if val is not None:
             updates[field] = val

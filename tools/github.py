@@ -13,9 +13,9 @@ Risk: HIGH (can modify repos)
 HITL: Required for write operations
 """
 
-import os
 import json
 import logging
+import os
 from typing import Any
 
 import aiohttp
@@ -48,13 +48,17 @@ async def _request(method: str, path: str, body: dict | None = None) -> dict:
             text = await resp.text()
             if resp.status >= 400:
                 logger.error(f"GitHub API {resp.status}: {text[:500]}")
-                return {"error": f"GitHub API returned {resp.status}", "detail": text[:500]}
+                return {
+                    "error": f"GitHub API returned {resp.status}",
+                    "detail": text[:500],
+                }
             if text:
                 return json.loads(text)
             return {"status": "ok"}
 
 
 # ── Read Operations ──────────────────────────────────────────────
+
 
 async def search_repos(query: str, limit: int = 5) -> dict:
     """Search GitHub repositories."""
@@ -101,6 +105,7 @@ async def search_code(query: str, repo: str | None = None, limit: int = 10) -> d
 async def get_file(repo: str, path: str, ref: str = "main") -> dict:
     """Get file contents from a repo."""
     import base64
+
     data = await _request("GET", f"/repos/{repo}/contents/{path}?ref={ref}")
     if "error" in data:
         return data
@@ -135,7 +140,8 @@ async def list_issues(repo: str, state: str = "open", limit: int = 10) -> dict:
                 "created_at": i["created_at"],
                 "url": i["html_url"],
             }
-            for i in data if "pull_request" not in i
+            for i in data
+            if "pull_request" not in i
         ]
     }
 
@@ -162,6 +168,7 @@ async def list_prs(repo: str, state: str = "open", limit: int = 10) -> dict:
 
 # ── Write Operations (HITL required) ────────────────────────────
 
+
 async def create_issue(repo: str, title: str, body: str, labels: list[str] | None = None) -> dict:
     """Create an issue in a repo. HITL required."""
     payload = {"title": title, "body": body}
@@ -176,10 +183,16 @@ async def update_issue(repo: str, issue_number: int, **kwargs) -> dict:
 
 
 async def create_or_update_file(
-    repo: str, path: str, content: str, message: str, sha: str | None = None, branch: str = "main"
+    repo: str,
+    path: str,
+    content: str,
+    message: str,
+    sha: str | None = None,
+    branch: str = "main",
 ) -> dict:
     """Create or update a file in a repo (self_modify). HITL required."""
     import base64
+
     payload = {
         "message": message,
         "content": base64.b64encode(content.encode()).decode(),
@@ -191,6 +204,7 @@ async def create_or_update_file(
 
 
 # ── Dispatch Entry Point ────────────────────────────────────────
+
 
 async def execute_github(action: str, params: dict[str, Any]) -> str:
     """Main dispatch for GitHub tool calls from the kernel."""

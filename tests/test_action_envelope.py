@@ -4,50 +4,50 @@ El Monstruo — Tests: Action Envelope v2.0
 Tests unitarios para core/action_envelope.py y core/action_validator.py
 Sprint 1 Día 1 — 14 abril 2026
 """
-import sys
-import os
+
 import json
+import os
+import sys
+from datetime import timezone
+
 import pytest
-from datetime import datetime, timezone, timedelta
 
 # Ensure project root is in path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.action_envelope import (
+    TERMINAL_STATUSES,
+    VALID_TRANSITIONS,
     ActionEnvelope,
-    ActionType,
     ActionStatus,
+    ActionType,
+    ActorRef,
+    InvalidTransitionError,
+    ResourceKind,
+    ResourceRef,
     RiskLevel,
     TrustRing,
-    ResourceKind,
-    ActorRef,
-    ResourceRef,
-    EnvelopeTimestamps,
-    PolicyDecision,
-    create_envelope,
-    transition,
-    is_terminal,
-    is_expired,
-    envelope_to_dict,
     build_action_fingerprint,
     build_idempotency,
-    InvalidTransitionError,
-    VALID_TRANSITIONS,
-    TERMINAL_STATUSES,
+    create_envelope,
+    envelope_to_dict,
+    is_expired,
+    is_terminal,
+    transition,
 )
 from core.action_validator import (
-    validate_and_classify,
-    validate_schema,
-    validate_semantic,
+    POLICY_VERSION,
+    ValidationResult,
     classify_risk,
     enforce_trust_ring,
     requires_hitl,
-    ValidationResult,
-    POLICY_VERSION,
+    validate_and_classify,
+    validate_schema,
+    validate_semantic,
 )
 
-
 # ── Fixtures ──────────────────────────────────────────────────────
+
 
 def make_actor(actor_type: str = "user", actor_id: str = "alfredo_telegram") -> ActorRef:
     return ActorRef(actor_id=actor_id, actor_type=actor_type)
@@ -86,6 +86,7 @@ def make_envelope(**overrides) -> ActionEnvelope:
 # ══════════════════════════════════════════════════════════════════
 # TESTS: Action Envelope creation
 # ══════════════════════════════════════════════════════════════════
+
 
 class TestCreateEnvelope:
     def test_creates_with_proposed_status(self):
@@ -159,6 +160,7 @@ class TestCreateEnvelope:
 # TESTS: Lifecycle transitions
 # ══════════════════════════════════════════════════════════════════
 
+
 class TestTransitions:
     def test_proposed_to_validated(self):
         env = make_envelope()
@@ -212,6 +214,7 @@ class TestTransitions:
     def test_updated_at_changes_on_transition(self):
         env = make_envelope()
         import time
+
         time.sleep(0.01)
         env2 = transition(env, ActionStatus.VALIDATED)
         assert env2.timestamps.updated_at >= env.timestamps.updated_at
@@ -220,6 +223,7 @@ class TestTransitions:
 # ══════════════════════════════════════════════════════════════════
 # TESTS: Expiration
 # ══════════════════════════════════════════════════════════════════
+
 
 class TestExpiration:
     def test_not_expired_when_not_awaiting(self):
@@ -237,6 +241,7 @@ class TestExpiration:
 # ══════════════════════════════════════════════════════════════════
 # TESTS: Serialization
 # ══════════════════════════════════════════════════════════════════
+
 
 class TestSerialization:
     def test_envelope_to_dict_roundtrip(self):
@@ -265,6 +270,7 @@ class TestSerialization:
 # TESTS: Validator — Schema
 # ══════════════════════════════════════════════════════════════════
 
+
 class TestSchemaValidation:
     def test_valid_envelope_passes(self):
         env = make_envelope()
@@ -283,6 +289,7 @@ class TestSchemaValidation:
 # ══════════════════════════════════════════════════════════════════
 # TESTS: Validator — Semantic + Reclassification
 # ══════════════════════════════════════════════════════════════════
+
 
 class TestSemanticValidation:
     def test_read_on_memory_stays_read(self):
@@ -349,6 +356,7 @@ class TestSemanticValidation:
 # TESTS: Validator — Risk Classification
 # ══════════════════════════════════════════════════════════════════
 
+
 class TestRiskClassification:
     def test_read_memory_is_l1(self):
         env = make_envelope()
@@ -391,6 +399,7 @@ class TestRiskClassification:
 # TESTS: Validator — Trust Ring
 # ══════════════════════════════════════════════════════════════════
 
+
 class TestTrustRing:
     def test_kernel_is_r0(self):
         env = make_envelope(actor=make_actor(actor_type="kernel"))
@@ -412,6 +421,7 @@ class TestTrustRing:
 # TESTS: Validator — HITL
 # ══════════════════════════════════════════════════════════════════
 
+
 class TestHITL:
     def test_l3_user_requires_hitl(self):
         assert requires_hitl(RiskLevel.L3_SENSITIVE, TrustRing.R2_USER_DELEGATED, ActionType.DELETE)
@@ -432,6 +442,7 @@ class TestHITL:
 # ══════════════════════════════════════════════════════════════════
 # TESTS: Validator — Full Pipeline
 # ══════════════════════════════════════════════════════════════════
+
 
 class TestFullPipeline:
     def test_safe_read_passes_and_allows(self):
@@ -476,6 +487,7 @@ class TestFullPipeline:
 # ══════════════════════════════════════════════════════════════════
 # TESTS: Fingerprint & Idempotency
 # ══════════════════════════════════════════════════════════════════
+
 
 class TestFingerprint:
     def test_same_inputs_same_fingerprint(self):

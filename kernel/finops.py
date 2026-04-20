@@ -68,9 +68,7 @@ class FinOpsController:
             if rows:
                 # Filter by today (created_at starts with today's date)
                 self._daily_cost = sum(
-                    float(r.get("total_cost_usd", 0))
-                    for r in rows
-                    if str(r.get("created_at", "")).startswith(today)
+                    float(r.get("total_cost_usd", 0)) for r in rows if str(r.get("created_at", "")).startswith(today)
                 )
 
             logger.info(

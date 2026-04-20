@@ -38,10 +38,7 @@ class CIDPClient:
         api_key: Optional[str] = None,
         timeout_seconds: int = 30,
     ):
-        self.base_url = (
-            base_url
-            or os.environ.get("CIDP_SERVICE_URL", "http://localhost:8000/api/v1")
-        ).rstrip("/")
+        self.base_url = (base_url or os.environ.get("CIDP_SERVICE_URL", "http://localhost:8000/api/v1")).rstrip("/")
         self.api_key = api_key or os.environ.get("CIDP_API_KEY", "")
         self.timeout = aiohttp.ClientTimeout(total=timeout_seconds)
 
@@ -83,12 +80,8 @@ class CIDPClient:
         if webhook_url:
             payload["webhook_url"] = webhook_url
 
-        async with aiohttp.ClientSession(
-            headers=self._headers(), timeout=self.timeout
-        ) as session:
-            async with session.post(
-                f"{self.base_url}/jobs", json=payload
-            ) as response:
+        async with aiohttp.ClientSession(headers=self._headers(), timeout=self.timeout) as session:
+            async with session.post(f"{self.base_url}/jobs", json=payload) as response:
                 response.raise_for_status()
                 data = await response.json()
                 job_id = data["job_id"]
@@ -108,23 +101,15 @@ class CIDPClient:
             Dict with: job_id, status, current_iteration, current_stage,
                        cost_usd, score, artifacts, error
         """
-        async with aiohttp.ClientSession(
-            headers=self._headers(), timeout=self.timeout
-        ) as session:
-            async with session.get(
-                f"{self.base_url}/jobs/{job_id}"
-            ) as response:
+        async with aiohttp.ClientSession(headers=self._headers(), timeout=self.timeout) as session:
+            async with session.get(f"{self.base_url}/jobs/{job_id}") as response:
                 response.raise_for_status()
                 return await response.json()
 
     async def cancel_job(self, job_id: str) -> Dict[str, Any]:
         """Cancel a running job (triggers rollback and GPU teardown)."""
-        async with aiohttp.ClientSession(
-            headers=self._headers(), timeout=self.timeout
-        ) as session:
-            async with session.delete(
-                f"{self.base_url}/jobs/{job_id}"
-            ) as response:
+        async with aiohttp.ClientSession(headers=self._headers(), timeout=self.timeout) as session:
+            async with session.delete(f"{self.base_url}/jobs/{job_id}") as response:
                 response.raise_for_status()
                 result = await response.json()
                 logger.info("cidp_job_cancelled", job_id=job_id)
@@ -132,12 +117,8 @@ class CIDPClient:
 
     async def resume_job(self, job_id: str) -> Dict[str, Any]:
         """Resume a paused or failed job from the last checkpoint."""
-        async with aiohttp.ClientSession(
-            headers=self._headers(), timeout=self.timeout
-        ) as session:
-            async with session.post(
-                f"{self.base_url}/jobs/{job_id}/resume"
-            ) as response:
+        async with aiohttp.ClientSession(headers=self._headers(), timeout=self.timeout) as session:
+            async with session.post(f"{self.base_url}/jobs/{job_id}/resume") as response:
                 response.raise_for_status()
                 result = await response.json()
                 logger.info("cidp_job_resumed", job_id=job_id)
@@ -185,17 +166,14 @@ class CIDPClient:
             elapsed += poll_interval
 
         raise TimeoutError(
-            f"CIDP job {job_id} did not complete within {timeout}s "
-            f"(last status: {status.get('status', 'unknown')})"
+            f"CIDP job {job_id} did not complete within {timeout}s (last status: {status.get('status', 'unknown')})"
         )
 
     async def health(self) -> Dict[str, Any]:
         """Check CIDP service health."""
         # Health endpoint is at root, not under /api/v1
         base = self.base_url.replace("/api/v1", "")
-        async with aiohttp.ClientSession(
-            headers=self._headers(), timeout=self.timeout
-        ) as session:
+        async with aiohttp.ClientSession(headers=self._headers(), timeout=self.timeout) as session:
             async with session.get(f"{base}/health") as response:
                 response.raise_for_status()
                 return await response.json()

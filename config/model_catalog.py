@@ -22,7 +22,13 @@ MODELS: dict = {
         "max_completion_tokens": 4000,
         "use_max_completion_tokens": True,
         "pricing": {"input": 2.50, "output": 10.00},  # $/M tokens
-        "roles": ["estratega", "sintetizador", "clasificador", "planificador", "ejecutor"],
+        "roles": [
+            "estratega",
+            "sintetizador",
+            "clasificador",
+            "planificador",
+            "ejecutor",
+        ],
         "validated": "2026-04-12",
         "source": "https://developers.openai.com/api/docs/models",
     },
@@ -54,7 +60,6 @@ MODELS: dict = {
         "validated": "2026-04-12",
         "source": "https://platform.claude.com/docs/en/about-claude/models/overview",
     },
-
     # ─── TIER 2: Especialistas (código, investigación, razonamiento) ───
     "grok-4.20": {
         "provider": "xai",
@@ -98,7 +103,6 @@ MODELS: dict = {
         "validated": "2026-04-12",
         "source": "https://docs.perplexity.ai/docs/sonar/models",
     },
-
     # ─── TIER 3: Rápidos y baratos (clasificación, tareas masivas) ───
     "gpt-5.4-mini": {
         "provider": "openai",
@@ -165,7 +169,10 @@ MODELS: dict = {
         "context_window": 262_000,
         "max_tokens": 4000,
         "use_max_completion_tokens": False,
-        "pricing": {"input": 0.3827, "output": 1.72},  # CORREGIDO: $0.38 no $0.60 — validated 2026-04-12
+        "pricing": {
+            "input": 0.3827,
+            "output": 1.72,
+        },  # CORREGIDO: $0.38 no $0.60 — validated 2026-04-12
         "roles": ["motor_barato", "background"],
         "validated": "2026-04-12",
         "source": "https://openrouter.ai/moonshotai/kimi-k2.5",
@@ -184,7 +191,6 @@ MODELS: dict = {
         "validated": "2026-04-12",
         "source": "https://docs.perplexity.ai/docs/sonar/models",
     },
-
     # ─── EMBEDDINGS ───
     "text-embedding-3-small": {
         "provider": "openai",
@@ -202,24 +208,25 @@ MODELS: dict = {
 # ===================== FALLBACK CHAINS (by role) =====================
 
 FALLBACK_CHAINS: dict[str, list[str]] = {
-    "estratega":     ["gpt-5.4", "claude-opus-4-7", "claude-opus-4-6", "gemini-3.1-pro"],
-    "investigador":  ["sonar-reasoning-pro", "sonar-pro", "grok-4.20", "gpt-5.4"],
-    "razonador":     ["deepseek-r1-0528", "gpt-5.4", "claude-opus-4-7"],
-    "sintetizador":  ["gpt-5.4", "claude-opus-4-7", "gemini-3.1-pro"],
-    "critico":       ["grok-4.20", "deepseek-r1-0528", "claude-opus-4-7"],
-    "creativo":      ["gemini-3.1-pro", "gpt-5.4", "claude-opus-4-7"],
-    "codigo":        ["claude-opus-4-7", "claude-sonnet-4-6", "grok-4.20", "deepseek-r1-0528"],
-    "analisis":      ["claude-opus-4-7", "gpt-5.4", "deepseek-r1-0528"],
-    "motor_barato":  ["kimi-k2.5", "gemini-3.1-flash-lite", "gpt-5.4-mini"],
-    "clasificador":  ["gpt-5.4-mini", "kimi-k2.5", "gemini-3.1-flash-lite"],
-    "planificador":  ["gpt-5.4", "claude-opus-4-7", "gemini-3.1-pro"],
-    "ejecutor":      ["gpt-5.4", "claude-sonnet-4-6", "grok-4.20"],
-    "arquitecto":    ["claude-opus-4-7", "gpt-5.4", "grok-4.20"],
-    "chat_rapido":   ["gemini-3.1-flash-lite", "gpt-5.4-mini", "kimi-k2.5"],
+    "estratega": ["gpt-5.4", "claude-opus-4-7", "claude-opus-4-6", "gemini-3.1-pro"],
+    "investigador": ["sonar-reasoning-pro", "sonar-pro", "grok-4.20", "gpt-5.4"],
+    "razonador": ["deepseek-r1-0528", "gpt-5.4", "claude-opus-4-7"],
+    "sintetizador": ["gpt-5.4", "claude-opus-4-7", "gemini-3.1-pro"],
+    "critico": ["grok-4.20", "deepseek-r1-0528", "claude-opus-4-7"],
+    "creativo": ["gemini-3.1-pro", "gpt-5.4", "claude-opus-4-7"],
+    "codigo": ["claude-opus-4-7", "claude-sonnet-4-6", "grok-4.20", "deepseek-r1-0528"],
+    "analisis": ["claude-opus-4-7", "gpt-5.4", "deepseek-r1-0528"],
+    "motor_barato": ["kimi-k2.5", "gemini-3.1-flash-lite", "gpt-5.4-mini"],
+    "clasificador": ["gpt-5.4-mini", "kimi-k2.5", "gemini-3.1-flash-lite"],
+    "planificador": ["gpt-5.4", "claude-opus-4-7", "gemini-3.1-pro"],
+    "ejecutor": ["gpt-5.4", "claude-sonnet-4-6", "grok-4.20"],
+    "arquitecto": ["claude-opus-4-7", "gpt-5.4", "grok-4.20"],
+    "chat_rapido": ["gemini-3.1-flash-lite", "gpt-5.4-mini", "kimi-k2.5"],
 }
 
 
 # ===================== HELPER FUNCTIONS =====================
+
 
 def get_model(name: str) -> dict:
     """Get model config by catalog name. Raises KeyError if not found."""

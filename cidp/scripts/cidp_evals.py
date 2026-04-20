@@ -6,7 +6,6 @@ Evalúa la solución construida contra la función objetivo 10x
 usando múltiples modelos para cross-validation.
 """
 
-import asyncio
 import json
 import sys
 from pathlib import Path
@@ -15,8 +14,9 @@ sys.path.insert(0, "/home/ubuntu/skills/consulta-sabios/scripts")
 from conector_sabios import consultar_sabio
 
 
-async def evaluate_solution(solution_spec: str, target_description: str,
-                            success_metrics: list, output_dir: Path) -> dict:
+async def evaluate_solution(
+    solution_spec: str, target_description: str, success_metrics: list, output_dir: Path
+) -> dict:
     """
     Evaluate the proposed solution against the reference and success metrics.
 
@@ -76,11 +76,16 @@ Responde con JSON:
                 eval_result = json.loads(text)
             except json.JSONDecodeError:
                 import re
-                match = re.search(r'\{[\s\S]*\}', text)
+
+                match = re.search(r"\{[\s\S]*\}", text)
                 if match:
                     eval_result = json.loads(match.group())
                 else:
-                    eval_result = {"overall_score": 50, "confidence": 0.3, "raw": text[:500]}
+                    eval_result = {
+                        "overall_score": 50,
+                        "confidence": 0.3,
+                        "raw": text[:500],
+                    }
 
             results[sabio_id] = eval_result
             total_cost += response.get("tokens_total", 0) * 0.00001

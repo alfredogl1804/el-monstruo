@@ -83,9 +83,7 @@ class SovereignCheckpointStore(CheckpointStore):
         # In-memory
         self._checkpoints[checkpoint.checkpoint_id] = checkpoint
         if checkpoint.run_id:
-            self._by_run.setdefault(checkpoint.run_id, []).append(
-                checkpoint.checkpoint_id
-            )
+            self._by_run.setdefault(checkpoint.run_id, []).append(checkpoint.checkpoint_id)
 
         # Persist to Supabase
         if self._db and self._db.connected:
@@ -145,9 +143,9 @@ class SovereignCheckpointStore(CheckpointStore):
 
         # Get the most recent overall
         valid = [
-            cp for cp in self._checkpoints.values()
-            if not self._is_expired(cp)
-            and (run_id is None or cp.run_id == run_id)
+            cp
+            for cp in self._checkpoints.values()
+            if not self._is_expired(cp) and (run_id is None or cp.run_id == run_id)
         ]
         if valid:
             return max(valid, key=lambda c: c.created_at)
@@ -199,10 +197,7 @@ class SovereignCheckpointStore(CheckpointStore):
             cp = self._checkpoints.pop(checkpoint_id)
             # Remove from run index
             if cp.run_id and cp.run_id in self._by_run:
-                self._by_run[cp.run_id] = [
-                    cid for cid in self._by_run[cp.run_id]
-                    if cid != checkpoint_id
-                ]
+                self._by_run[cp.run_id] = [cid for cid in self._by_run[cp.run_id] if cid != checkpoint_id]
 
         # Delete from Supabase
         if self._db and self._db.connected:
@@ -213,11 +208,7 @@ class SovereignCheckpointStore(CheckpointStore):
 
     async def cleanup_expired(self) -> int:
         """Delete expired checkpoints. Returns count deleted."""
-        expired_ids = [
-            cp.checkpoint_id
-            for cp in self._checkpoints.values()
-            if self._is_expired(cp)
-        ]
+        expired_ids = [cp.checkpoint_id for cp in self._checkpoints.values() if self._is_expired(cp)]
 
         for cid in expired_ids:
             await self.delete(cid)
@@ -239,21 +230,24 @@ class SovereignCheckpointStore(CheckpointStore):
 
         # Persist to Supabase
         if self._db and self._db.connected:
-            await self._db.insert("system_state", {
-                "state_id": str(state.state_id),
-                "health": state.health.value,
-                "active_runs": state.active_runs,
-                "total_runs_today": state.total_runs_today,
-                "total_cost_today_usd": state.total_cost_today_usd,
-                "total_tokens_today": state.total_tokens_today,
-                "models_available": state.models_available,
-                "models_degraded": state.models_degraded,
-                "last_error": state.last_error,
-                "uptime_seconds": state.uptime_seconds,
-                "checked_at": state.checked_at.isoformat()
-                if hasattr(state.checked_at, 'isoformat')
-                else str(state.checked_at),
-            })
+            await self._db.insert(
+                "system_state",
+                {
+                    "state_id": str(state.state_id),
+                    "health": state.health.value,
+                    "active_runs": state.active_runs,
+                    "total_runs_today": state.total_runs_today,
+                    "total_cost_today_usd": state.total_cost_today_usd,
+                    "total_tokens_today": state.total_tokens_today,
+                    "models_available": state.models_available,
+                    "models_degraded": state.models_degraded,
+                    "last_error": state.last_error,
+                    "uptime_seconds": state.uptime_seconds,
+                    "checked_at": state.checked_at.isoformat()
+                    if hasattr(state.checked_at, "isoformat")
+                    else str(state.checked_at),
+                },
+            )
 
         logger.debug(
             "system_state_saved",
@@ -335,9 +329,7 @@ class SovereignCheckpointStore(CheckpointStore):
             "conversation_context": cp.conversation_context,
             "reason": cp.reason,
             "ttl_hours": cp.ttl_hours,
-            "created_at": cp.created_at.isoformat()
-            if hasattr(cp.created_at, 'isoformat')
-            else str(cp.created_at),
+            "created_at": cp.created_at.isoformat() if hasattr(cp.created_at, "isoformat") else str(cp.created_at),
         }
 
     @staticmethod
@@ -345,6 +337,7 @@ class SovereignCheckpointStore(CheckpointStore):
         """Convert Supabase row to CheckpointData."""
         try:
             from uuid import UUID as _UUID
+
             return CheckpointData(
                 checkpoint_id=_UUID(row["checkpoint_id"]),
                 checkpoint_type=CheckpointType(row.get("checkpoint_type", "auto")),
@@ -370,6 +363,7 @@ class SovereignCheckpointStore(CheckpointStore):
     def _row_to_system_state(row: dict) -> SystemState:
         """Convert Supabase row to SystemState."""
         from uuid import UUID as _UUID
+
         return SystemState(
             state_id=_UUID(row.get("state_id", str(uuid4()))),
             health=SystemHealth(row.get("health", "healthy")),

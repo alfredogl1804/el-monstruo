@@ -8,7 +8,6 @@ consulta-sabios. Incluye calibración opcional de capacidades.
 
 import asyncio
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -22,7 +21,7 @@ ROLE_DESCRIPTIONS = {
     "gpt54": "Eres un arquitecto de software y planificador estratégico de primer nivel.",
     "claude": "Eres un experto en arquitectura de software, calidad de código y detección de patrones anti-autoboicot.",
     "gemini": "Eres un verificador factual con acceso a Google Search grounding y experto en UX/visión.",
-    "grok": "Eres un revisor adversarial y estratega de producto. Tu trabajo es encontrar debilidades y proponer alternativas contrarian.",
+    "grok": "Eres un revisor adversarial y estratega de producto. Tu trabajo es encontrar debilidades y proponer alternativas contrarian.",  # noqa: E501
     "deepseek": "Eres un optimizador de rendimiento y generador de código de alta calidad.",
     "perplexity": "Eres un investigador en tiempo real con acceso a información actualizada del mercado.",
 }
@@ -40,7 +39,7 @@ async def execute_task(task: dict) -> dict:
     prompt = f"""TAREA: {title}
 
 ID: {task_id}
-PRIORIDAD: {task.get('priority', 'P1')}
+PRIORIDAD: {task.get("priority", "P1")}
 
 CRITERIOS DE ACEPTACIÓN:
 {json.dumps(criteria, ensure_ascii=False)}
@@ -65,7 +64,8 @@ Responde con JSON:
             result = json.loads(text)
         except json.JSONDecodeError:
             import re
-            match = re.search(r'\{[\s\S]*\}', text)
+
+            match = re.search(r"\{[\s\S]*\}", text)
             if match:
                 try:
                     result = json.loads(match.group())
@@ -164,7 +164,8 @@ Sé honesto sobre tus capacidades reales."""
                 results[sabio_id] = json.loads(text)
             except json.JSONDecodeError:
                 import re
-                match = re.search(r'\{[\s\S]*\}', text)
+
+                match = re.search(r"\{[\s\S]*\}", text)
                 if match:
                     results[sabio_id] = json.loads(match.group())
                 else:
@@ -181,8 +182,7 @@ Sé honesto sobre tus capacidades reales."""
     return results
 
 
-async def run_swarm(tasks: list, config: dict, skip_calibration: bool,
-                    output_dir: Path) -> dict:
+async def run_swarm(tasks: list, config: dict, skip_calibration: bool, output_dir: Path) -> dict:
     """Execute Stage 4: Swarm Execution."""
     # Calibration (if needed)
     cal_path = SKILL_DIR / "data" / "calibration_results.json"
@@ -204,11 +204,8 @@ async def run_swarm(tasks: list, config: dict, skip_calibration: bool,
     total_cost = 0.0
 
     for i in range(0, len(tasks), 4):
-        batch = tasks[i:i+4]
-        results = await asyncio.gather(
-            *[execute_task(t) for t in batch],
-            return_exceptions=True
-        )
+        batch = tasks[i : i + 4]
+        results = await asyncio.gather(*[execute_task(t) for t in batch], return_exceptions=True)
         for r in results:
             if isinstance(r, Exception):
                 all_responses.append({"status": "error", "error": str(r)})

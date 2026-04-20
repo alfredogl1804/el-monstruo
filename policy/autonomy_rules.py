@@ -12,11 +12,12 @@ Safety rules for autonomous job execution:
 
 These rules are checked BEFORE the autonomous runner executes a job.
 """
+
 from __future__ import annotations
 
 import re
 from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 
@@ -55,7 +56,7 @@ class AutonomyGuardrails:
         """
         instruction = job.get("instruction", "")
         user_id = job.get("user_id", "unknown")
-        run_at_str = job.get("run_at", "")
+        job.get("run_at", "")
         created_at_str = job.get("created_at", "")
 
         # 1. Check for empty instruction
@@ -68,14 +69,20 @@ class AutonomyGuardrails:
                 created_at = datetime.fromisoformat(created_at_str.replace("Z", "+00:00"))
                 age = datetime.now(timezone.utc) - created_at
                 if age.days > MAX_TTL_DAYS:
-                    return False, f"Job expired: created {age.days} days ago (max {MAX_TTL_DAYS})"
+                    return (
+                        False,
+                        f"Job expired: created {age.days} days ago (max {MAX_TTL_DAYS})",
+                    )
             except (ValueError, TypeError):
                 pass
 
         # 3. Check dangerous patterns
         for pattern in DANGEROUS_PATTERNS:
             if re.search(pattern, instruction):
-                return False, f"Dangerous instruction detected: matches pattern '{pattern}'"
+                return (
+                    False,
+                    f"Dangerous instruction detected: matches pattern '{pattern}'",
+                )
 
         # 4. Check instruction length (sanity)
         if len(instruction) > 10_000:
@@ -84,9 +91,7 @@ class AutonomyGuardrails:
         # 5. Rate limit check
         if db and db.connected:
             try:
-                today_start = datetime.now(timezone.utc).replace(
-                    hour=0, minute=0, second=0, microsecond=0
-                )
+                today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
                 all_jobs = await db.select(
                     "scheduled_jobs",
                     filters={"user_id": user_id},
@@ -94,10 +99,7 @@ class AutonomyGuardrails:
                     order_desc=True,
                     limit=100,
                 )
-                today_count = sum(
-                    1 for j in all_jobs
-                    if j.get("created_at", "") >= today_start.isoformat()
-                )
+                today_count = sum(1 for j in all_jobs if j.get("created_at", "") >= today_start.isoformat())
                 if today_count > MAX_JOBS_PER_USER_PER_DAY * 2:  # 2x for execution (more lenient)
                     return False, f"Rate limit: user has {today_count} jobs today"
             except Exception as e:

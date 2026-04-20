@@ -33,8 +33,8 @@ from pathlib import Path
 
 # Import our engines
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from scripts.ivd_engine import run_ivd
 from scripts.auto_repair import run_repair
+from scripts.ivd_engine import run_ivd
 
 REPORT_DIR = Path(__file__).parent.parent / "reports"
 
@@ -48,7 +48,7 @@ def run_full_validation(
     sabios_prompt: str | None = None,
 ) -> dict:
     """Run the complete validation pipeline."""
-    
+
     start_time = time.time()
     results = {
         "sprint": sprint,
@@ -57,18 +57,18 @@ def run_full_validation(
         "overall": "PENDING",
     }
 
-    print(f"\n{'#'*70}")
-    print(f"#  SPRINT VALIDATOR — Master Orchestrator")
+    print(f"\n{'#' * 70}")
+    print("#  SPRINT VALIDATOR — Master Orchestrator")
     print(f"#  Sprint: {sprint}")
     print(f"#  Timestamp: {results['timestamp']}")
     print(f"#  Phases: IVD{'+ Sabios' if include_sabios else ''} + Repair{' + Deploy' if deploy else ''}")
-    print(f"{'#'*70}\n")
+    print(f"{'#' * 70}\n")
 
     # ── Phase 1: IVD Engine ────────────────────────────────────────
-    print(f"\n{'━'*70}")
-    print(f"  PHASE 1: IVD Engine — Real-Time Dependency Validation")
-    print(f"{'━'*70}")
-    
+    print(f"\n{'━' * 70}")
+    print("  PHASE 1: IVD Engine — Real-Time Dependency Validation")
+    print(f"{'━' * 70}")
+
     try:
         ivd_report = run_ivd(sprint_name=sprint, fix=fix, ci=False)
         results["phases"]["ivd"] = {
@@ -85,26 +85,23 @@ def run_full_validation(
 
     # ── Phase 2: Sabios Engine (optional) ──────────────────────────
     if include_sabios:
-        print(f"\n{'━'*70}")
-        print(f"  PHASE 2: Sabios Engine — Consultation + Validation")
-        print(f"{'━'*70}")
+        print(f"\n{'━' * 70}")
+        print("  PHASE 2: Sabios Engine — Consultation + Validation")
+        print(f"{'━' * 70}")
 
         try:
             from scripts.sabios_engine import consult_sabios
+
             prompt = sabios_prompt or (
-                f"Para El Monstruo (orquestador de agentes IA con LangGraph), "
-                f"¿cuáles son las versiones correctas y más recientes de: "
-                f"langchain-core, langchain-openai, langchain-anthropic, "
-                f"langchain-google-genai, langgraph, ragas, garak? "
-                f"Dame versiones exactas con formato package==version."
+                "Para El Monstruo (orquestador de agentes IA con LangGraph), "
+                "¿cuáles son las versiones correctas y más recientes de: "
+                "langchain-core, langchain-openai, langchain-anthropic, "
+                "langchain-google-genai, langgraph, ragas, garak? "
+                "Dame versiones exactas con formato package==version."
             )
             sabios_report = consult_sabios(prompt, validate=True)
-            
-            trust_scores = {
-                s.sabio: s.trust_score 
-                for s in sabios_report.sabios_consulted 
-                if not s.error
-            }
+
+            trust_scores = {s.sabio: s.trust_score for s in sabios_report.sabios_consulted if not s.error}
             results["phases"]["sabios"] = {
                 "status": "PASS" if trust_scores else "SKIP",
                 "trust_scores": trust_scores,
@@ -114,13 +111,13 @@ def run_full_validation(
             results["phases"]["sabios"] = {"status": "ERROR", "error": str(e)}
             print(f"  ❌ Sabios Engine failed: {e}")
     else:
-        print(f"\n  ⏭️  Phase 2 (Sabios) skipped — use --full to include")
+        print("\n  ⏭️  Phase 2 (Sabios) skipped — use --full to include")
         results["phases"]["sabios"] = {"status": "SKIPPED"}
 
     # ── Phase 3: Auto-Repair ───────────────────────────────────────
-    print(f"\n{'━'*70}")
-    print(f"  PHASE 3: Auto-Repair Engine — Scan + Fix")
-    print(f"{'━'*70}")
+    print(f"\n{'━' * 70}")
+    print("  PHASE 3: Auto-Repair Engine — Scan + Fix")
+    print(f"{'━' * 70}")
 
     try:
         repair_report = run_repair(
@@ -140,12 +137,13 @@ def run_full_validation(
 
     # ── Phase 4: Deploy Verification ───────────────────────────────
     if deploy:
-        print(f"\n{'━'*70}")
-        print(f"  PHASE 4: Deploy Verification — Railway Health Check")
-        print(f"{'━'*70}")
+        print(f"\n{'━' * 70}")
+        print("  PHASE 4: Deploy Verification — Railway Health Check")
+        print(f"{'━' * 70}")
 
         try:
             from scripts.auto_repair import verify_deploy
+
             deploy_result = verify_deploy(expected_version)
             results["phases"]["deploy"] = {
                 "status": "PASS" if deploy_result["verified"] else "FAIL",
@@ -157,7 +155,7 @@ def run_full_validation(
             results["phases"]["deploy"] = {"status": "ERROR", "error": str(e)}
             print(f"  ❌ Deploy verification failed: {e}")
     else:
-        print(f"\n  ⏭️  Phase 4 (Deploy) skipped — use --deploy to include")
+        print("\n  ⏭️  Phase 4 (Deploy) skipped — use --deploy to include")
         results["phases"]["deploy"] = {"status": "SKIPPED"}
 
     # ── Final Verdict ──────────────────────────────────────────────
@@ -173,13 +171,19 @@ def run_full_validation(
 
     results["elapsed_seconds"] = round(elapsed, 1)
 
-    print(f"\n{'#'*70}")
+    print(f"\n{'#' * 70}")
     print(f"#  FINAL VERDICT: {results['overall']}")
     print(f"#  Elapsed: {elapsed:.1f}s")
     for phase, data in results["phases"].items():
-        icon = {"PASS": "✅", "FAIL": "❌", "WARN": "⚠️", "ERROR": "💥", "SKIPPED": "⏭️"}.get(data["status"], "?")
+        icon = {
+            "PASS": "✅",
+            "FAIL": "❌",
+            "WARN": "⚠️",
+            "ERROR": "💥",
+            "SKIPPED": "⏭️",
+        }.get(data["status"], "?")
         print(f"#    {icon} {phase}: {data['status']}")
-    print(f"{'#'*70}\n")
+    print(f"{'#' * 70}\n")
 
     # Save master report
     REPORT_DIR.mkdir(exist_ok=True)

@@ -11,9 +11,7 @@ Backend: SQLite local para persistencia entre ejecuciones.
 """
 
 import json
-import os
 import sqlite3
-from datetime import datetime
 from pathlib import Path
 
 
@@ -73,7 +71,7 @@ class CIDPMemory:
                 created_at TEXT DEFAULT (datetime('now'))
             );
 
-            
+
             CREATE TABLE IF NOT EXISTS checkpoints (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 run_id TEXT NOT NULL,
@@ -91,13 +89,19 @@ class CIDPMemory:
         """)
         self.conn.commit()
 
-    def store_fact(self, category: str, data, key: str = None,
-                   confidence: float = 0.5, source: str = None):
+    def store_fact(
+        self,
+        category: str,
+        data,
+        key: str = None,
+        confidence: float = 0.5,
+        source: str = None,
+    ):
         """Store a fact in permanent memory."""
         value = json.dumps(data, ensure_ascii=False) if isinstance(data, (dict, list)) else str(data)
         self.conn.execute(
             "INSERT INTO facts (category, key, value, confidence, source) VALUES (?, ?, ?, ?, ?)",
-            (category, key, value, confidence, source)
+            (category, key, value, confidence, source),
         )
         self.conn.commit()
 
@@ -106,13 +110,10 @@ class CIDPMemory:
         if category:
             rows = self.conn.execute(
                 "SELECT * FROM facts WHERE category = ? ORDER BY created_at DESC LIMIT ?",
-                (category, limit)
+                (category, limit),
             ).fetchall()
         else:
-            rows = self.conn.execute(
-                "SELECT * FROM facts ORDER BY created_at DESC LIMIT ?",
-                (limit,)
-            ).fetchall()
+            rows = self.conn.execute("SELECT * FROM facts ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
 
         results = []
         for row in rows:
@@ -120,16 +121,18 @@ class CIDPMemory:
                 value = json.loads(row["value"])
             except (json.JSONDecodeError, TypeError):
                 value = row["value"]
-            results.append({
-                "id": row["id"],
-                "category": row["category"],
-                "key": row["key"],
-                "value": value,
-                "confidence": row["confidence"],
-                "source": row["source"],
-                "verified": bool(row["verified"]),
-                "created_at": row["created_at"],
-            })
+            results.append(
+                {
+                    "id": row["id"],
+                    "category": row["category"],
+                    "key": row["key"],
+                    "value": value,
+                    "confidence": row["confidence"],
+                    "source": row["source"],
+                    "verified": bool(row["verified"]),
+                    "created_at": row["created_at"],
+                }
+            )
         return results
 
     def store_decision(self, decision_id: str, data: dict, rationale: str = None):
@@ -138,16 +141,13 @@ class CIDPMemory:
         self.conn.execute(
             """INSERT OR REPLACE INTO decisions (decision_id, data, rationale)
                VALUES (?, ?, ?)""",
-            (decision_id, value, rationale)
+            (decision_id, value, rationale),
         )
         self.conn.commit()
 
     def get_decisions(self, limit: int = 10) -> list:
         """Retrieve recent decisions."""
-        rows = self.conn.execute(
-            "SELECT * FROM decisions ORDER BY created_at DESC LIMIT ?",
-            (limit,)
-        ).fetchall()
+        rows = self.conn.execute("SELECT * FROM decisions ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
 
         results = []
         for row in rows:
@@ -155,12 +155,14 @@ class CIDPMemory:
                 data = json.loads(row["data"])
             except (json.JSONDecodeError, TypeError):
                 data = row["data"]
-            results.append({
-                "decision_id": row["decision_id"],
-                "data": data,
-                "rationale": row["rationale"],
-                "created_at": row["created_at"],
-            })
+            results.append(
+                {
+                    "decision_id": row["decision_id"],
+                    "data": data,
+                    "rationale": row["rationale"],
+                    "created_at": row["created_at"],
+                }
+            )
         return results
 
     def store_contradiction(self, contradiction: dict):
@@ -174,7 +176,7 @@ class CIDPMemory:
                 contradiction.get("claim_2", ""),
                 contradiction.get("sabio_1", contradiction.get("sabio", "")),
                 contradiction.get("sabio_2", ""),
-            )
+            ),
         )
         self.conn.commit()
 
@@ -183,12 +185,12 @@ class CIDPMemory:
         if resolved is not None:
             rows = self.conn.execute(
                 "SELECT * FROM contradictions WHERE resolved = ? ORDER BY created_at DESC LIMIT ?",
-                (int(resolved), limit)
+                (int(resolved), limit),
             ).fetchall()
         else:
             rows = self.conn.execute(
                 "SELECT * FROM contradictions ORDER BY created_at DESC LIMIT ?",
-                (limit,)
+                (limit,),
             ).fetchall()
 
         return [dict(row) for row in rows]
@@ -197,7 +199,7 @@ class CIDPMemory:
         """Mark a contradiction as resolved."""
         self.conn.execute(
             "UPDATE contradictions SET resolved = 1, resolution = ? WHERE id = ?",
-            (resolution, contradiction_id)
+            (resolution, contradiction_id),
         )
         self.conn.commit()
 
@@ -205,7 +207,7 @@ class CIDPMemory:
         """Store an iteration summary in historical memory."""
         self.conn.execute(
             "INSERT INTO history (run_id, iteration, summary, score) VALUES (?, ?, ?, ?)",
-            (run_id, iteration, summary, score)
+            (run_id, iteration, summary, score),
         )
         self.conn.commit()
 
@@ -214,24 +216,27 @@ class CIDPMemory:
         if run_id:
             rows = self.conn.execute(
                 "SELECT * FROM history WHERE run_id = ? ORDER BY iteration ASC LIMIT ?",
-                (run_id, limit)
+                (run_id, limit),
             ).fetchall()
         else:
-            rows = self.conn.execute(
-                "SELECT * FROM history ORDER BY created_at DESC LIMIT ?",
-                (limit,)
-            ).fetchall()
+            rows = self.conn.execute("SELECT * FROM history ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
 
         return [dict(row) for row in rows]
 
-    
-    def save_checkpoint(self, run_id: str, iteration: int, stage: str, state_data: dict, status: str = "completed"):
+    def save_checkpoint(
+        self,
+        run_id: str,
+        iteration: int,
+        stage: str,
+        state_data: dict,
+        status: str = "completed",
+    ):
         """Save a checkpoint for a specific stage."""
         value = json.dumps(state_data, ensure_ascii=False)
         self.conn.execute(
             """INSERT OR REPLACE INTO checkpoints (run_id, iteration, stage, state_data, status)
                VALUES (?, ?, ?, ?, ?)""",
-            (run_id, iteration, stage, value, status)
+            (run_id, iteration, stage, value, status),
         )
         self.conn.commit()
 
@@ -239,12 +244,12 @@ class CIDPMemory:
         """Retrieve a specific checkpoint."""
         row = self.conn.execute(
             "SELECT * FROM checkpoints WHERE run_id = ? AND iteration = ? AND stage = ?",
-            (run_id, iteration, stage)
+            (run_id, iteration, stage),
         ).fetchone()
-        
+
         if not row:
             return None
-            
+
         try:
             return json.loads(row["state_data"])
         except (json.JSONDecodeError, TypeError):
@@ -254,17 +259,17 @@ class CIDPMemory:
         """Get the most recent checkpoint for a run to resume from."""
         row = self.conn.execute(
             "SELECT * FROM checkpoints WHERE run_id = ? ORDER BY iteration DESC, id DESC LIMIT 1",
-            (run_id,)
+            (run_id,),
         ).fetchone()
-        
+
         if not row:
             return None
-            
+
         return {
             "iteration": row["iteration"],
             "stage": row["stage"],
             "status": row["status"],
-            "state_data": json.loads(row["state_data"])
+            "state_data": json.loads(row["state_data"]),
         }
 
     def get_stats(self) -> dict:
@@ -272,9 +277,7 @@ class CIDPMemory:
         facts_count = self.conn.execute("SELECT COUNT(*) FROM facts").fetchone()[0]
         decisions_count = self.conn.execute("SELECT COUNT(*) FROM decisions").fetchone()[0]
         contradictions_count = self.conn.execute("SELECT COUNT(*) FROM contradictions").fetchone()[0]
-        unresolved = self.conn.execute(
-            "SELECT COUNT(*) FROM contradictions WHERE resolved = 0"
-        ).fetchone()[0]
+        unresolved = self.conn.execute("SELECT COUNT(*) FROM contradictions WHERE resolved = 0").fetchone()[0]
         history_count = self.conn.execute("SELECT COUNT(*) FROM history").fetchone()[0]
 
         return {

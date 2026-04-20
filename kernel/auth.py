@@ -56,7 +56,7 @@ def _extract_token(request: Request) -> Optional[str]:
 class APIKeyAuthMiddleware(BaseHTTPMiddleware):
     """
     Middleware that enforces API key authentication on /v1/* endpoints.
-    
+
     If MONSTRUO_API_KEY is not set, all requests are allowed (dev mode).
     This is intentional — Railway sets the env var in production.
 

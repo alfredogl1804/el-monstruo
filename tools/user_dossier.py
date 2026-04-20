@@ -13,11 +13,12 @@ Actions:
   - create_mission: Create a new mission
   - get_prompt_dossier: Get formatted dossier for system prompt injection
 """
+
 from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger("monstruo.tools.user_dossier")
 
@@ -90,8 +91,17 @@ async def _update_dossier(db, user_id: str, args: dict) -> str:
     """Update specific fields in the user dossier."""
     # Allowed top-level fields
     allowed_fields = {
-        "full_name", "company", "rfc", "location", "role", "industry",
-        "timezone", "email", "github_username", "telegram_id", "phone",
+        "full_name",
+        "company",
+        "rfc",
+        "location",
+        "role",
+        "industry",
+        "timezone",
+        "email",
+        "github_username",
+        "telegram_id",
+        "phone",
     }
 
     updates = {}
@@ -112,12 +122,20 @@ async def _update_dossier(db, user_id: str, args: dict) -> str:
                 updates[jsonb_field] = json.dumps(current)
 
     if not updates:
-        return json.dumps({"error": "No valid fields to update. Allowed: " + ", ".join(sorted(allowed_fields | {"communication_prefs", "context", "custom_fields"}))})
+        return json.dumps(
+            {
+                "error": "No valid fields to update. Allowed: "
+                + ", ".join(sorted(allowed_fields | {"communication_prefs", "context", "custom_fields"}))
+            }
+        )
 
     result = await db.update("user_dossier", updates, filters={"user_id": user_id})
     if result:
         logger.info("dossier_updated", user_id=user_id, fields=list(updates.keys()))
-        return json.dumps({"success": True, "updated_fields": list(updates.keys())}, ensure_ascii=False)
+        return json.dumps(
+            {"success": True, "updated_fields": list(updates.keys())},
+            ensure_ascii=False,
+        )
     else:
         return json.dumps({"error": "Update failed — user not found or no changes made"})
 
@@ -131,15 +149,17 @@ async def _list_missions(db, user_id: str, status: str = "active") -> str:
     rows = await db.select("active_missions", filters=filters, limit=20)
     missions = []
     for row in rows:
-        missions.append({
-            "id": row.get("id"),
-            "name": row.get("name"),
-            "description": row.get("description"),
-            "status": row.get("status"),
-            "priority": row.get("priority"),
-            "tags": row.get("tags", []),
-            "started_at": str(row.get("started_at", "")),
-        })
+        missions.append(
+            {
+                "id": row.get("id"),
+                "name": row.get("name"),
+                "description": row.get("description"),
+                "status": row.get("status"),
+                "priority": row.get("priority"),
+                "tags": row.get("tags", []),
+                "started_at": str(row.get("started_at", "")),
+            }
+        )
 
     # Sort by priority descending
     missions.sort(key=lambda m: m.get("priority", 0), reverse=True)
@@ -175,8 +195,15 @@ async def _update_mission(db, args: dict) -> str:
         result = await db.update("active_missions", updates, filters={"name": mission_name})
 
     if result:
-        logger.info("mission_updated", mission=mission_name or mission_id, fields=list(updates.keys()))
-        return json.dumps({"success": True, "updated_fields": list(updates.keys())}, ensure_ascii=False)
+        logger.info(
+            "mission_updated",
+            mission=mission_name or mission_id,
+            fields=list(updates.keys()),
+        )
+        return json.dumps(
+            {"success": True, "updated_fields": list(updates.keys())},
+            ensure_ascii=False,
+        )
     else:
         return json.dumps({"error": "Mission not found or no changes made"})
 
@@ -200,7 +227,10 @@ async def _create_mission(db, user_id: str, args: dict) -> str:
     result = await db.insert("active_missions", data)
     if result:
         logger.info("mission_created", name=name, user_id=user_id)
-        return json.dumps({"success": True, "mission_id": result.get("id"), "name": name}, ensure_ascii=False)
+        return json.dumps(
+            {"success": True, "mission_id": result.get("id"), "name": name},
+            ensure_ascii=False,
+        )
     else:
         return json.dumps({"error": "Failed to create mission"})
 
@@ -216,6 +246,7 @@ async def get_prompt_dossier(db, user_id: str = "alfredo") -> str:
         if not rows:
             # Fallback to hardcoded dossier
             from prompts.system_prompts import USER_DOSSIER
+
             return USER_DOSSIER
 
         d = rows[0]
@@ -232,38 +263,41 @@ async def get_prompt_dossier(db, user_id: str = "alfredo") -> str:
             mission_rows = await db.select(
                 "active_missions",
                 filters={"user_id": user_id, "status": "active"},
-                limit=10
+                limit=10,
             )
             if mission_rows:
                 sorted_missions = sorted(mission_rows, key=lambda m: m.get("priority", 0), reverse=True)
                 missions_lines = []
                 for m in sorted_missions:
                     tags = ", ".join(m.get("tags", []))
-                    missions_lines.append(f"- **{m['name']}** (P{m.get('priority', 5)}) — {m.get('description', '')}" + (f" [{tags}]" if tags else ""))
+                    missions_lines.append(
+                        f"- **{m['name']}** (P{m.get('priority', 5)}) — {m.get('description', '')}"
+                        + (f" [{tags}]" if tags else "")
+                    )
                 missions_text = "\n".join(missions_lines)
         except Exception:
             missions_text = "No se pudieron cargar las misiones activas."
 
         # Build formatted dossier
         dossier = f"""## Dossier del Usuario Principal (Dinámico)
-**Nombre:** {d.get('full_name', 'Desconocido')}
-**Empresa:** {d.get('company', '')}
-**Ubicación:** {d.get('location', '')}
-**Rol:** {d.get('role', '')}
-**Industria:** {d.get('industry', '')}
-**Timezone:** {d.get('timezone', 'America/Merida')}
-**Email:** {d.get('email', '')}
-**GitHub:** {d.get('github_username', '')}
+**Nombre:** {d.get("full_name", "Desconocido")}
+**Empresa:** {d.get("company", "")}
+**Ubicación:** {d.get("location", "")}
+**Rol:** {d.get("role", "")}
+**Industria:** {d.get("industry", "")}
+**Timezone:** {d.get("timezone", "America/Merida")}
+**Email:** {d.get("email", "")}
+**GitHub:** {d.get("github_username", "")}
 
 **Preferencias de comunicación:**
-- Idioma: {prefs.get('language', 'es-MX')}
-- Formato preferido: {prefs.get('format', 'bullet_points')}
-- Estilo: {prefs.get('style', 'direct')}
-- Incluir en propuestas: {', '.join(prefs.get('include_in_proposals', ['cost', 'time', 'risk']))}
-- Horario de trabajo: {prefs.get('working_hours', '07:00-23:00 CST')}
+- Idioma: {prefs.get("language", "es-MX")}
+- Formato preferido: {prefs.get("format", "bullet_points")}
+- Estilo: {prefs.get("style", "direct")}
+- Incluir en propuestas: {", ".join(prefs.get("include_in_proposals", ["cost", "time", "risk"]))}
+- Horario de trabajo: {prefs.get("working_hours", "07:00-23:00 CST")}
 
 **Misiones activas:**
-{missions_text or 'Sin misiones activas registradas.'}
+{missions_text or "Sin misiones activas registradas."}
 
 **Contexto operativo:**
 - Gestiona múltiples empresas y proyectos simultáneamente
@@ -277,4 +311,5 @@ async def get_prompt_dossier(db, user_id: str = "alfredo") -> str:
         logger.error("get_prompt_dossier_error", error=str(e))
         # Fallback to hardcoded
         from prompts.system_prompts import USER_DOSSIER
+
         return USER_DOSSIER

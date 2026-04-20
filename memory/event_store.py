@@ -13,15 +13,14 @@ Principio: Todo lo que pasa se registra. Si no está en el log, no pasó.
 
 from __future__ import annotations
 
-import os
 from collections import defaultdict
 from datetime import datetime, timezone
-from typing import Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 from uuid import UUID
 
 import structlog
 
-from contracts.event_envelope import EventEnvelope, EventCategory, Severity
+from contracts.event_envelope import EventCategory, EventEnvelope, Severity
 
 if TYPE_CHECKING:
     from memory.supabase_client import SupabaseClient
@@ -82,7 +81,7 @@ class EventStore:
 
         # Trim in-memory buffer if needed
         if len(self._events) > self._buffer_size * 2:
-            self._events = self._events[-self._buffer_size:]
+            self._events = self._events[-self._buffer_size :]
 
         logger.debug(
             "event_appended",
@@ -122,10 +121,7 @@ class EventStore:
 
     async def get_errors(self, limit: int = 20) -> list[EventEnvelope]:
         """Get recent error events."""
-        errors = [
-            e for e in self._events
-            if e.severity in {Severity.ERROR, Severity.CRITICAL}
-        ]
+        errors = [e for e in self._events if e.severity in {Severity.ERROR, Severity.CRITICAL}]
         return errors[-limit:]
 
     async def replay(self, run_id: UUID) -> list[dict[str, Any]]:
@@ -163,10 +159,7 @@ class EventStore:
         now = datetime.now(timezone.utc)
 
         # Count events by category
-        category_counts = {
-            cat.value: len(events)
-            for cat, events in self._by_category.items()
-        }
+        category_counts = {cat.value: len(events) for cat, events in self._by_category.items()}
 
         # Count active runs
         active_runs = set()
@@ -190,10 +183,7 @@ class EventStore:
             "active_runs": len(active_runs),
             "completed_runs": len(completed_runs),
             "events_by_category": category_counts,
-            "error_count": len([
-                e for e in self._events
-                if e.severity in {Severity.ERROR, Severity.CRITICAL}
-            ]),
+            "error_count": len([e for e in self._events if e.severity in {Severity.ERROR, Severity.CRITICAL}]),
             "persistence": "supabase" if self._persist_enabled else "in-memory",
             "buffer_size": self._buffer_size,
             "checked_at": now.isoformat(),

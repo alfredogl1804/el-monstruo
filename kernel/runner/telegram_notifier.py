@@ -12,6 +12,7 @@ The bot token and chat ID are read from environment variables.
 Architecture:
   AutonomousRunner → TelegramNotifier.send_message() → Telegram Bot API
 """
+
 from __future__ import annotations
 
 import os
@@ -31,7 +32,7 @@ TELEGRAM_API_BASE = "https://api.telegram.org/bot"
 class TelegramNotifier:
     """
     Sends messages to a Telegram user via the Bot API.
-    
+
     Uses httpx for async HTTP calls. No external Telegram SDK needed.
     """
 
@@ -65,13 +66,13 @@ class TelegramNotifier:
     ) -> bool:
         """
         Send a text message to a Telegram chat.
-        
+
         Args:
             user_id: User identifier (used for logging, not for routing)
             text: Message text (supports Markdown)
             chat_id: Override chat ID (defaults to TELEGRAM_CHAT_ID)
             parse_mode: "Markdown" or "HTML"
-        
+
         Returns:
             True if sent successfully, False otherwise
         """
@@ -150,7 +151,7 @@ class TelegramNotifier:
     ) -> bool:
         """
         Send a formatted job notification.
-        
+
         Args:
             title: Job title
             status: "started", "completed", or "failed"
@@ -159,17 +160,13 @@ class TelegramNotifier:
             chat_id: Override chat ID
         """
         emoji_map = {
-            "started": "\u23f3",    # hourglass
+            "started": "\u23f3",  # hourglass
             "completed": "\u2705",  # green check
-            "failed": "\u274c",     # red X
+            "failed": "\u274c",  # red X
         }
         emoji = emoji_map.get(status, "\u2139\ufe0f")
 
-        message = (
-            f"{emoji} *Tarea Autónoma*\n\n"
-            f"*{title}*\n"
-            f"Estado: {status}\n"
-        )
+        message = f"{emoji} *Tarea Autónoma*\n\n*{title}*\nEstado: {status}\n"
 
         if result:
             # Truncate result for Telegram

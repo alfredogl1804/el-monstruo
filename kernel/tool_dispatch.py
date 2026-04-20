@@ -26,14 +26,13 @@ Principio: Las Manos son soberanas. El dispatch es nuestro.
 
 from __future__ import annotations
 
-import json
 import time
 from typing import Any
 
 import structlog
 from langchain_core.runnables import RunnableConfig
 
-from contracts.event_envelope import EventBuilder, EventCategory, Severity
+from contracts.event_envelope import EventBuilder, EventCategory
 from kernel.state import MonstruoState
 
 logger = structlog.get_logger("kernel.tool_dispatch")
@@ -43,6 +42,7 @@ MAX_TOOL_LOOPS = 3
 
 
 # ── Tool Spec Definitions (for LLM function calling) ─────────────────
+
 
 def get_tool_specs():
     """
@@ -117,11 +117,11 @@ def get_tool_specs():
                 "properties": {
                     "target": {
                         "type": "string",
-                        "description": "The software, platform, or topic to investigate (e.g. 'Supabase', 'LangGraph', 'Vector databases')",
+                        "description": "The software, platform, or topic to investigate (e.g. 'Supabase', 'LangGraph', 'Vector databases')",  # noqa: E501
                     },
                     "objective": {
                         "type": "string",
-                        "description": "The 10x objective — what we want to achieve or discover (e.g. 'Design a 10x faster alternative')",
+                        "description": "The 10x objective — what we want to achieve or discover (e.g. 'Design a 10x faster alternative')",  # noqa: E501
                     },
                     "max_iterations": {
                         "type": "integer",
@@ -223,11 +223,11 @@ def get_tool_specs():
                 "properties": {
                     "action": {
                         "type": "string",
-                        "description": "The GitHub action to perform: search_repos, search_code, get_file, list_issues, list_prs, create_issue, update_issue, create_or_update_file",
+                        "description": "The GitHub action to perform: search_repos, search_code, get_file, list_issues, list_prs, create_issue, update_issue, create_or_update_file",  # noqa: E501
                     },
                     "params": {
                         "type": "object",
-                        "description": "Parameters for the action. Common: repo (owner/name), query, path, title, body, labels, state, limit",
+                        "description": "Parameters for the action. Common: repo (owner/name), query, path, title, body, labels, state, limit",  # noqa: E501
                     },
                 },
                 "required": ["action", "params"],
@@ -250,11 +250,11 @@ def get_tool_specs():
                 "properties": {
                     "action": {
                         "type": "string",
-                        "description": "The Notion action to perform: search, get_page, get_page_content, query_database, create_page, update_page, append_content",
+                        "description": "The Notion action to perform: search, get_page, get_page_content, query_database, create_page, update_page, append_content",  # noqa: E501
                     },
                     "params": {
                         "type": "object",
-                        "description": "Parameters for the action. Common: query, page_id, database_id, filter_type (page/database), properties, content_blocks, filter_obj, sorts, limit",
+                        "description": "Parameters for the action. Common: query, page_id, database_id, filter_type (page/database), properties, content_blocks, filter_obj, sorts, limit",  # noqa: E501
                     },
                 },
                 "required": ["action", "params"],
@@ -282,20 +282,20 @@ def get_tool_specs():
                     },
                     "role": {
                         "type": "string",
-                        "description": "The specialist role: estratega, investigador, razonador, critico, creativo, arquitecto, codigo, sintetizador, verificador",
+                        "description": "The specialist role: estratega, investigador, razonador, critico, creativo, arquitecto, codigo, sintetizador, verificador",  # noqa: E501
                     },
                     "mode": {
                         "type": "string",
-                        "description": "'single' (one role) or 'parallel' (multiple roles with synthesis). Default: single",
+                        "description": "'single' (one role) or 'parallel' (multiple roles with synthesis). Default: single",  # noqa: E501
                     },
                     "relevant_context": {
                         "type": "string",
-                        "description": "Curated context for the delegate (NOT full conversation — only what's relevant)",
+                        "description": "Curated context for the delegate (NOT full conversation — only what's relevant)",  # noqa: E501
                     },
                     "constraints": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "List of constraints for the delegate (e.g., 'Responde en español', 'Máximo 5 bullets')",
+                        "description": "List of constraints for the delegate (e.g., 'Responde en español', 'Máximo 5 bullets')",  # noqa: E501
                     },
                     "parallel_roles": {
                         "type": "array",
@@ -327,19 +327,19 @@ def get_tool_specs():
                     },
                     "instruction": {
                         "type": "string",
-                        "description": "Full instruction for the Monstruo to execute at the scheduled time. Be specific and complete.",
+                        "description": "Full instruction for the Monstruo to execute at the scheduled time. Be specific and complete.",  # noqa: E501
                     },
                     "run_at": {
                         "type": "string",
-                        "description": "When to execute. Formats: ISO 8601 ('2026-04-19T08:00'), relative ('in 3 hours'), natural ('tomorrow 8am')",
+                        "description": "When to execute. Formats: ISO 8601 ('2026-04-19T08:00'), relative ('in 3 hours'), natural ('tomorrow 8am')",  # noqa: E501
                     },
                     "timezone": {
                         "type": "string",
-                        "description": "User's timezone. Default: America/Mexico_City. Also accepts: 'cdmx', 'utc', 'est', 'pst'",
+                        "description": "User's timezone. Default: America/Mexico_City. Also accepts: 'cdmx', 'utc', 'est', 'pst'",  # noqa: E501
                     },
                     "channel": {
                         "type": "string",
-                        "description": "Notification channel for results. Default: 'telegram'. Options: telegram, api, webhook",
+                        "description": "Notification channel for results. Default: 'telegram'. Options: telegram, api, webhook",  # noqa: E501
                     },
                     "recurrence": {
                         "type": "string",
@@ -364,8 +364,14 @@ def get_tool_specs():
                 "properties": {
                     "action": {
                         "type": "string",
-                        "description": "Action to perform: get_dossier, update_dossier, list_missions, update_mission, create_mission",
-                        "enum": ["get_dossier", "update_dossier", "list_missions", "update_mission", "create_mission"],
+                        "description": "Action to perform: get_dossier, update_dossier, list_missions, update_mission, create_mission",  # noqa: E501
+                        "enum": [
+                            "get_dossier",
+                            "update_dossier",
+                            "list_missions",
+                            "update_mission",
+                            "create_mission",
+                        ],
                     },
                     "user_id": {
                         "type": "string",
@@ -373,7 +379,7 @@ def get_tool_specs():
                     },
                     "status": {
                         "type": "string",
-                        "description": "For list_missions: filter by status (active, paused, completed, all). Default: active",
+                        "description": "For list_missions: filter by status (active, paused, completed, all). Default: active",  # noqa: E501
                     },
                     "mission_name": {
                         "type": "string",
@@ -396,12 +402,18 @@ def get_tool_specs():
                         "items": {"type": "string"},
                         "description": "Tags for the mission",
                     },
-                    "full_name": {"type": "string", "description": "For update_dossier"},
+                    "full_name": {
+                        "type": "string",
+                        "description": "For update_dossier",
+                    },
                     "company": {"type": "string", "description": "For update_dossier"},
                     "location": {"type": "string", "description": "For update_dossier"},
                     "role": {"type": "string", "description": "For update_dossier"},
                     "email": {"type": "string", "description": "For update_dossier"},
-                    "github_username": {"type": "string", "description": "For update_dossier"},
+                    "github_username": {
+                        "type": "string",
+                        "description": "For update_dossier",
+                    },
                 },
                 "required": ["action"],
             },
@@ -443,15 +455,18 @@ def get_tool_specs():
 _tool_db = None
 _tool_broker = None
 
+
 def set_tool_db(db: Any) -> None:
     """Inject the SupabaseClient for tools that need persistence."""
     global _tool_db
     _tool_db = db
 
+
 def set_tool_broker(broker) -> None:
     """Inject the ToolBroker instance (set by main.py during startup)."""
     global _tool_broker
     _tool_broker = broker
+
 
 def get_tool_broker():
     """Get the current ToolBroker instance."""
@@ -463,12 +478,14 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
     try:
         if tool_name == "web_search":
             from tools.web_search import web_search
+
             return await web_search(
                 query=args.get("query", ""),
                 context=args.get("context", ""),
             )
         elif tool_name == "consult_sabios":
             from tools.consult_sabios import consult_sabios
+
             return await consult_sabios(
                 prompt=args.get("prompt", ""),
                 context=args.get("context", ""),
@@ -477,6 +494,7 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             )
         elif tool_name == "start_cidp_research":
             from tools.cidp import start_cidp_research
+
             return await start_cidp_research(
                 target=args.get("target", ""),
                 objective=args.get("objective", ""),
@@ -486,16 +504,19 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             )
         elif tool_name == "check_cidp_status":
             from tools.cidp import check_cidp_status
+
             return await check_cidp_status(
                 job_id=args.get("job_id", ""),
             )
         elif tool_name == "cancel_cidp_research":
             from tools.cidp import cancel_cidp_research
+
             return await cancel_cidp_research(
                 job_id=args.get("job_id", ""),
             )
         elif tool_name == "call_webhook":
             from tools.webhook import call_webhook
+
             return await call_webhook(
                 url=args.get("url", ""),
                 payload=args.get("payload", {}),
@@ -504,22 +525,27 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             )
         elif tool_name == "github":
             from tools.github import execute_github
+
             result_str = await execute_github(
                 action=args.get("action", ""),
                 params=args.get("params", {}),
             )
             import json as _json
+
             return _json.loads(result_str)
         elif tool_name == "notion":
             from tools.notion import execute_notion
+
             result_str = await execute_notion(
                 action=args.get("action", ""),
                 params=args.get("params", {}),
             )
             import json as _json
+
             return _json.loads(result_str)
         elif tool_name == "delegate_task":
             from tools.delegate import delegate_task
+
             return await delegate_task(
                 task=args.get("task", ""),
                 role=args.get("role", "estratega"),
@@ -532,6 +558,7 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             )
         elif tool_name == "schedule_task":
             from tools.schedule_task import execute_schedule_task
+
             return await execute_schedule_task(
                 params=args,
                 context={
@@ -543,12 +570,15 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             )
         elif tool_name == "user_dossier":
             from tools.user_dossier import execute
+
             action = args.pop("action", "get_dossier")
             result_str = await execute(action=action, args=args, db=_tool_db)
             import json as _json
+
             return _json.loads(result_str)
         elif tool_name == "email":
             from tools.email_sender import send_email
+
             return await send_email(
                 to=args.get("to", ""),
                 subject=args.get("subject", ""),
@@ -564,6 +594,7 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
 
 
 # ── Conditional Edge: should we loop back to execute? ──────────────────
+
 
 def should_loop_tools(state: MonstruoState) -> str:
     """
@@ -593,6 +624,7 @@ def should_loop_tools(state: MonstruoState) -> str:
 
 
 # ── Tool Dispatch Node ─────────────────────────────────────────────────
+
 
 async def tool_dispatch(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]:
     """
@@ -665,35 +697,43 @@ async def tool_dispatch(state: MonstruoState, config: RunnableConfig) -> dict[st
         # Store result for the follow-up LLM call
         # Include 'args' so execute_with_tools can reconstruct the
         # assistant tool_calls message (required by OpenAI API)
-        all_results.append({
-            "tool_call_id": tool_id,
-            "name": tool_name,
-            "args": tool_args,
-            "result": result,
-        })
+        all_results.append(
+            {
+                "tool_call_id": tool_id,
+                "name": tool_name,
+                "args": tool_args,
+                "result": result,
+            }
+        )
 
         # Record for audit trail
-        all_records.append({
-            "tool": tool_name,
-            "tool_call_id": tool_id,
-            "args": tool_args,
-            "result_preview": str(result)[:500],
-            "latency_ms": latency_ms,
-            "success": "error" not in result,
-        })
+        all_records.append(
+            {
+                "tool": tool_name,
+                "tool_call_id": tool_id,
+                "args": tool_args,
+                "result_preview": str(result)[:500],
+                "latency_ms": latency_ms,
+                "success": "error" not in result,
+            }
+        )
 
     # Build event
-    event = EventBuilder() \
-        .category(EventCategory.TOOL_CALLED) \
-        .actor("kernel.tool_dispatch") \
-        .action(f"Executed {len(pending)} tools in {total_latency_ms:.0f}ms") \
-        .for_run_str(run_id) \
-        .with_payload({
-            "tools": [r["tool"] for r in all_records],
-            "total_latency_ms": total_latency_ms,
-            "all_success": all(r["success"] for r in all_records),
-        }) \
+    event = (
+        EventBuilder()
+        .category(EventCategory.TOOL_CALLED)
+        .actor("kernel.tool_dispatch")
+        .action(f"Executed {len(pending)} tools in {total_latency_ms:.0f}ms")
+        .for_run_str(run_id)
+        .with_payload(
+            {
+                "tools": [r["tool"] for r in all_records],
+                "total_latency_ms": total_latency_ms,
+                "all_success": all(r["success"] for r in all_records),
+            }
+        )
         .build()
+    )
 
     existing_tool_calls = state.get("tool_calls", [])
     existing_events = state.get("events", [])
@@ -709,6 +749,7 @@ async def tool_dispatch(state: MonstruoState, config: RunnableConfig) -> dict[st
 
 
 # ── Tool-Aware Prompt Suffix ──────────────────────────────────────────
+
 
 def get_tool_aware_prompt_suffix() -> str:
     """Generate a system prompt suffix with date injection and tool directives.
@@ -794,6 +835,7 @@ def get_tool_aware_prompt_suffix() -> str:
 
 
 # ── Helpers ────────────────────────────────────────────────────────────
+
 
 def _event_to_dict(event: Any) -> dict[str, Any]:
     """Convert an event to a serializable dict."""

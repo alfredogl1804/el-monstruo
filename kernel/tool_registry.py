@@ -16,7 +16,6 @@ Sprint 10 — 2026-04-18
 
 from __future__ import annotations
 
-import asyncio
 from datetime import datetime, timezone
 from typing import Any, Optional
 
@@ -78,10 +77,7 @@ class ToolRegistry:
 
     def get_tools_by_category(self, category: str) -> list[dict]:
         """Get tools filtered by category."""
-        return [
-            t for t in self._cache.values()
-            if t.get("category") == category and t.get("is_active", True)
-        ]
+        return [t for t in self._cache.values() if t.get("category") == category and t.get("is_active", True)]
 
     def list_all(self) -> list[dict]:
         """Get all tools regardless of status."""
@@ -96,9 +92,7 @@ class ToolRegistry:
 
         # Update cache
         if tool_name in self._cache:
-            self._cache[tool_name]["invocation_count"] = (
-                self._cache[tool_name].get("invocation_count", 0) + 1
-            )
+            self._cache[tool_name]["invocation_count"] = self._cache[tool_name].get("invocation_count", 0) + 1
             self._cache[tool_name]["last_invoked_at"] = now
 
         # Update Supabase (fire-and-forget, don't block the request)
@@ -172,7 +166,14 @@ class ToolRegistry:
             cat = tool.get("category", "general")
             categories.setdefault(cat, []).append(tool)
 
-        category_order = ["read", "write", "orchestration", "autonomy", "awareness", "general"]
+        category_order = [
+            "read",
+            "write",
+            "orchestration",
+            "autonomy",
+            "awareness",
+            "general",
+        ]
         for cat in category_order:
             tools = categories.get(cat, [])
             if not tools:
@@ -200,8 +201,7 @@ class ToolRegistry:
             "total_invocations": total_invocations,
             "categories": list(set(t.get("category", "general") for t in active)),
             "most_used": sorted(
-                [{"name": t["tool_name"], "count": t.get("invocation_count", 0)}
-                 for t in self._cache.values()],
+                [{"name": t["tool_name"], "count": t.get("invocation_count", 0)} for t in self._cache.values()],
                 key=lambda x: x["count"],
                 reverse=True,
             )[:5],

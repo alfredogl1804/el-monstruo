@@ -17,21 +17,23 @@ from enum import Enum
 from typing import Any, Optional
 from uuid import UUID, uuid4
 
-
 # ── Memory Types ────────────────────────────────────────────────────
+
 
 class MemoryType(Enum):
     """Tipos de memoria que El Monstruo puede almacenar."""
-    EPISODIC = "episodic"       # Conversaciones, interacciones
-    SEMANTIC = "semantic"       # Hechos, conocimiento, entidades
-    PROCEDURAL = "procedural"   # Cómo hacer cosas, workflows aprendidos
-    POLICY = "policy"           # Decisiones de gobernanza, reglas aplicadas
-    TOOL_CALL = "tool_call"     # Historial de herramientas ejecutadas
-    INCIDENT = "incident"       # Errores, fallos, recuperaciones
+
+    EPISODIC = "episodic"  # Conversaciones, interacciones
+    SEMANTIC = "semantic"  # Hechos, conocimiento, entidades
+    PROCEDURAL = "procedural"  # Cómo hacer cosas, workflows aprendidos
+    POLICY = "policy"  # Decisiones de gobernanza, reglas aplicadas
+    TOOL_CALL = "tool_call"  # Historial de herramientas ejecutadas
+    INCIDENT = "incident"  # Errores, fallos, recuperaciones
 
 
 class EntityType(Enum):
     """Tipos de entidades en el grafo de conocimiento."""
+
     PERSON = "person"
     ORGANIZATION = "organization"
     PROJECT = "project"
@@ -44,12 +46,14 @@ class EntityType(Enum):
 
 # ── Data Models ─────────────────────────────────────────────────────
 
+
 @dataclass(frozen=True)
 class MemoryEvent:
     """
     Unidad atómica de memoria. Todo lo que El Monstruo recuerda
     pasa por aquí. Event sourcing: nunca se borra, solo se agrega.
     """
+
     event_id: UUID = field(default_factory=uuid4)
     memory_type: MemoryType = MemoryType.EPISODIC
     run_id: Optional[UUID] = None
@@ -64,6 +68,7 @@ class MemoryEvent:
 @dataclass(frozen=True)
 class Entity:
     """Entidad en el grafo de conocimiento soberano."""
+
     entity_id: UUID = field(default_factory=uuid4)
     entity_type: EntityType = EntityType.CUSTOM
     name: str = ""
@@ -75,6 +80,7 @@ class Entity:
 @dataclass(frozen=True)
 class Relation:
     """Relación entre dos entidades en el grafo."""
+
     relation_id: UUID = field(default_factory=uuid4)
     source_id: UUID = field(default_factory=uuid4)
     target_id: UUID = field(default_factory=uuid4)
@@ -91,6 +97,7 @@ class Episode:
     Agrupación de eventos en un episodio coherente.
     Una conversación completa, una sesión de trabajo, etc.
     """
+
     episode_id: UUID = field(default_factory=uuid4)
     user_id: str = ""
     channel: str = ""
@@ -103,12 +110,14 @@ class Episode:
 @dataclass
 class SearchResult:
     """Resultado de búsqueda en memoria."""
+
     event: MemoryEvent
     score: float = 0.0
     source: str = ""  # "vector", "keyword", "graph", "hybrid"
 
 
 # ── Memory Contract ─────────────────────────────────────────────────
+
 
 class MemoryInterface(ABC):
     """

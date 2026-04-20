@@ -13,18 +13,19 @@ Principios rectores:
 
 Dependencias: Solo stdlib Python 3.11+ (dataclasses, enum, uuid, hashlib, json, datetime)
 """
+
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass, replace
+from datetime import datetime, timedelta, timezone
 from enum import StrEnum
 from typing import Any, Mapping
 from uuid import uuid4
-from datetime import datetime, timezone, timedelta
-import hashlib
-import json
-
 
 # ── Utilidades ────────────────────────────────────────────────────
+
 
 def utcnow() -> datetime:
     """Timestamp UTC timezone-aware."""
@@ -48,8 +49,10 @@ def normalize_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
 
 # ── Enums ─────────────────────────────────────────────────────────
 
+
 class ActionType(StrEnum):
     """4 tipos de acción canónicos. MEMORY es ResourceKind, no ActionType."""
+
     READ = "READ"
     WRITE = "WRITE"
     DELETE = "DELETE"
@@ -58,6 +61,7 @@ class ActionType(StrEnum):
 
 class RiskLevel(StrEnum):
     """3 niveles de riesgo. L4 diferido para Sprint 2+."""
+
     L1_SAFE = "L1_SAFE"
     L2_CAUTION = "L2_CAUTION"
     L3_SENSITIVE = "L3_SENSITIVE"
@@ -65,6 +69,7 @@ class RiskLevel(StrEnum):
 
 class TrustRing(StrEnum):
     """3 anillos de confianza. R1 diferido para Sprint 2+."""
+
     R0_KERNEL = "R0_KERNEL"
     R2_USER_DELEGATED = "R2_USER_DELEGATED"
     R3_UNTRUSTED_INPUT = "R3_UNTRUSTED_INPUT"
@@ -72,6 +77,7 @@ class TrustRing(StrEnum):
 
 class ActionStatus(StrEnum):
     """Lifecycle cerrado — sin strings libres."""
+
     PROPOSED = "PROPOSED"
     VALIDATED = "VALIDATED"
     POLICY_CHECKED = "POLICY_CHECKED"
@@ -87,6 +93,7 @@ class ActionStatus(StrEnum):
 
 class ResourceKind(StrEnum):
     """Tipos de recurso target. MEMORY es recurso, no acción."""
+
     FILE = "FILE"
     DB = "DB"
     API = "API"
@@ -99,9 +106,11 @@ class ResourceKind(StrEnum):
 
 # ── Tipos estructurados ──────────────────────────────────────────
 
+
 @dataclass(slots=True, frozen=True)
 class ActorRef:
     """Referencia al actor que propone la acción."""
+
     actor_id: str
     actor_type: str  # "user" | "agent" | "service" | "kernel"
     declared_trust_ring: TrustRing | None = None
@@ -110,6 +119,7 @@ class ActorRef:
 @dataclass(slots=True, frozen=True)
 class ResourceRef:
     """Referencia al recurso target de la acción."""
+
     resource_kind: ResourceKind
     resource_id: str
     locator: str
@@ -121,6 +131,7 @@ class ResourceRef:
 @dataclass(slots=True, frozen=True)
 class EnvelopeTimestamps:
     """Timestamps del lifecycle del envelope."""
+
     created_at: datetime
     updated_at: datetime
     expires_at: datetime | None = None
@@ -129,6 +140,7 @@ class EnvelopeTimestamps:
 @dataclass(slots=True, frozen=True)
 class PolicyDecision:
     """Decisión sellada por el policy engine — NUNCA editable por el actor."""
+
     enforced_trust_ring: TrustRing
     risk_level: RiskLevel
     requires_hitl: bool
@@ -139,12 +151,14 @@ class PolicyDecision:
 
 # ── Action Envelope v2.0 ─────────────────────────────────────────
 
+
 @dataclass(slots=True, frozen=True)
 class ActionEnvelope:
     """
     Contrato universal de gobernanza del Monstruo.
     Frozen (inmutable) — las transiciones crean nuevas instancias via replace().
     """
+
     # Identidad
     action_id: str
     trace_id: str
@@ -215,6 +229,7 @@ TERMINAL_STATUSES = {
 
 class InvalidTransitionError(Exception):
     """Transición de estado inválida."""
+
     pass
 
 
@@ -226,10 +241,7 @@ def transition(envelope: ActionEnvelope, new_status: ActionStatus, **overrides: 
     """
     valid = VALID_TRANSITIONS.get(envelope.status, set())
     if new_status not in valid:
-        raise InvalidTransitionError(
-            f"Transición inválida: {envelope.status} -> {new_status}. "
-            f"Válidas: {valid}"
-        )
+        raise InvalidTransitionError(f"Transición inválida: {envelope.status} -> {new_status}. Válidas: {valid}")
 
     now = utcnow()
     new_timestamps = replace(envelope.timestamps, updated_at=now)
@@ -244,6 +256,7 @@ def transition(envelope: ActionEnvelope, new_status: ActionStatus, **overrides: 
 
 # ── Builder functions ─────────────────────────────────────────────
 
+
 def build_action_fingerprint(
     action_type: ActionType,
     target: ResourceRef,
@@ -251,16 +264,18 @@ def build_action_fingerprint(
     payload: Mapping[str, Any],
 ) -> str:
     """Fingerprint semántico de la acción para idempotencia."""
-    material = canonical_json({
-        "action_type": action_type.value,
-        "target": {
-            "resource_kind": target.resource_kind.value,
-            "resource_id": target.resource_id,
-            "locator": target.locator,
-        },
-        "operation": operation,
-        "payload": normalize_payload(payload),
-    })
+    material = canonical_json(
+        {
+            "action_type": action_type.value,
+            "target": {
+                "resource_kind": target.resource_kind.value,
+                "resource_id": target.resource_id,
+                "locator": target.locator,
+            },
+            "operation": operation,
+            "payload": normalize_payload(payload),
+        }
+    )
     return sha256_str(material)
 
 
@@ -349,7 +364,9 @@ def envelope_to_dict(envelope: ActionEnvelope) -> dict[str, Any]:
         "actor": {
             "actor_id": envelope.actor.actor_id,
             "actor_type": envelope.actor.actor_type,
-            "declared_trust_ring": envelope.actor.declared_trust_ring.value if envelope.actor.declared_trust_ring else None,
+            "declared_trust_ring": envelope.actor.declared_trust_ring.value
+            if envelope.actor.declared_trust_ring
+            else None,
         },
         "action_type": envelope.action_type.value,
         "target": {
@@ -375,7 +392,9 @@ def envelope_to_dict(envelope: ActionEnvelope) -> dict[str, Any]:
             "decision": envelope.policy_decision.decision,
             "decision_reason": envelope.policy_decision.decision_reason,
             "policy_version": envelope.policy_decision.policy_version,
-        } if envelope.policy_decision else None,
+        }
+        if envelope.policy_decision
+        else None,
         "timestamps": {
             "created_at": envelope.timestamps.created_at.isoformat(),
             "updated_at": envelope.timestamps.updated_at.isoformat(),

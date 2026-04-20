@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import os
 from typing import Any, Optional
-from uuid import UUID
 
 import structlog
 
@@ -44,11 +43,15 @@ class SupabaseClient:
     async def connect(self) -> bool:
         """Initialize the Supabase connection."""
         if not self._url or not self._key:
-            logger.warning("supabase_not_configured", hint="Set SUPABASE_URL and SUPABASE_SERVICE_KEY")
+            logger.warning(
+                "supabase_not_configured",
+                hint="Set SUPABASE_URL and SUPABASE_SERVICE_KEY",
+            )
             return False
 
         try:
             from supabase import create_client
+
             self._client = create_client(self._url, self._key)
             self._connected = True
             logger.info("supabase_connected", url=self._url[:50])
@@ -79,7 +82,12 @@ class SupabaseClient:
             result = self._client.table(table).insert(rows).execute()
             return result.data or []
         except Exception as e:
-            logger.error("supabase_batch_insert_failed", table=table, count=len(rows), error=str(e))
+            logger.error(
+                "supabase_batch_insert_failed",
+                table=table,
+                count=len(rows),
+                error=str(e),
+            )
             return []
 
     async def select(

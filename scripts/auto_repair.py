@@ -30,10 +30,8 @@ import ast
 import json
 import os
 import re
-import subprocess
-import sys
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -72,12 +70,16 @@ def scan_dependencies() -> list[Issue]:
     """Scan requirements.txt for issues."""
     issues = []
     if not REQUIREMENTS_PATH.exists():
-        issues.append(Issue(
-            category="dependency", severity="critical",
-            file=str(REQUIREMENTS_PATH), line=None,
-            description="requirements.txt not found",
-            auto_fixable=False,
-        ))
+        issues.append(
+            Issue(
+                category="dependency",
+                severity="critical",
+                file=str(REQUIREMENTS_PATH),
+                line=None,
+                description="requirements.txt not found",
+                auto_fixable=False,
+            )
+        )
         return issues
 
     for i, line in enumerate(REQUIREMENTS_PATH.read_text().splitlines(), 1):
@@ -89,23 +91,31 @@ def scan_dependencies() -> list[Issue]:
         if ">=" in stripped and "==" not in stripped:
             match = re.match(r"^([a-zA-Z0-9_-]+)", stripped)
             pkg = match.group(1) if match else stripped
-            issues.append(Issue(
-                category="dependency", severity="medium",
-                file=str(REQUIREMENTS_PATH), line=i,
-                description=f"{pkg} uses range constraint instead of exact pin",
-                auto_fixable=True,
-            ))
+            issues.append(
+                Issue(
+                    category="dependency",
+                    severity="medium",
+                    file=str(REQUIREMENTS_PATH),
+                    line=i,
+                    description=f"{pkg} uses range constraint instead of exact pin",
+                    auto_fixable=True,
+                )
+            )
 
         # Check for known banned packages
         banned = {"litellm": "CVE-2026-35030 — SSRF in proxy mode"}
         for pkg, reason in banned.items():
             if stripped.lower().startswith(pkg):
-                issues.append(Issue(
-                    category="dependency", severity="critical",
-                    file=str(REQUIREMENTS_PATH), line=i,
-                    description=f"BANNED package: {pkg} — {reason}",
-                    auto_fixable=True,
-                ))
+                issues.append(
+                    Issue(
+                        category="dependency",
+                        severity="critical",
+                        file=str(REQUIREMENTS_PATH),
+                        line=i,
+                        description=f"BANNED package: {pkg} — {reason}",
+                        auto_fixable=True,
+                    )
+                )
 
     return issues
 
@@ -134,12 +144,16 @@ def scan_gh_actions() -> list[Issue]:
             ref = match.group(2).strip()
 
             if action in must_pin and not sha_pattern.match(ref):
-                issues.append(Issue(
-                    category="action", severity="critical",
-                    file=str(yml_file), line=i,
-                    description=f"{action}@{ref} — MUST be SHA-pinned (supply chain risk)",
-                    auto_fixable=False,
-                ))
+                issues.append(
+                    Issue(
+                        category="action",
+                        severity="critical",
+                        file=str(yml_file),
+                        line=i,
+                        description=f"{action}@{ref} — MUST be SHA-pinned (supply chain risk)",
+                        auto_fixable=False,
+                    )
+                )
 
     return issues
 
@@ -156,12 +170,16 @@ def scan_imports() -> list[Issue]:
         try:
             tree = ast.parse(py_file.read_text())
         except SyntaxError as e:
-            issues.append(Issue(
-                category="import", severity="critical",
-                file=str(py_file), line=e.lineno,
-                description=f"Syntax error: {e.msg}",
-                auto_fixable=False,
-            ))
+            issues.append(
+                Issue(
+                    category="import",
+                    severity="critical",
+                    file=str(py_file),
+                    line=e.lineno,
+                    description=f"Syntax error: {e.msg}",
+                    auto_fixable=False,
+                )
+            )
             continue
 
         for node in ast.walk(tree):
@@ -174,12 +192,16 @@ def scan_imports() -> list[Issue]:
                 }
                 for deprecated, suggestion in deprecated_imports.items():
                     if node.module.startswith(deprecated):
-                        issues.append(Issue(
-                            category="import", severity="medium",
-                            file=str(py_file), line=node.lineno,
-                            description=f"Deprecated import: {node.module} — {suggestion}",
-                            auto_fixable=False,
-                        ))
+                        issues.append(
+                            Issue(
+                                category="import",
+                                severity="medium",
+                                file=str(py_file),
+                                line=node.lineno,
+                                description=f"Deprecated import: {node.module} — {suggestion}",
+                                auto_fixable=False,
+                            )
+                        )
 
     return issues
 
@@ -288,11 +310,11 @@ def run_repair(
     import_check: bool = False,
 ) -> RepairReport:
     """Run the full auto-repair pipeline."""
-    print(f"\n{'='*70}")
-    print(f"  AUTO-REPAIR ENGINE")
+    print(f"\n{'=' * 70}")
+    print("  AUTO-REPAIR ENGINE")
     print(f"  Timestamp: {datetime.now(timezone.utc).isoformat()}")
     print(f"  Mode: {'Fix' if fix else 'Scan only'}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     report = RepairReport(timestamp=datetime.now(timezone.utc).isoformat())
 
@@ -334,15 +356,15 @@ def run_repair(
     report.issues_unfixable = [i for i in report.issues_found if not i.auto_fixable]
 
     # Summary
-    print(f"\n{'='*70}")
-    print(f"  SUMMARY")
+    print(f"\n{'=' * 70}")
+    print("  SUMMARY")
     print(f"  Issues found: {len(report.issues_found)}")
     print(f"  Issues fixed: {len(report.issues_fixed)}")
     print(f"  Issues unfixable: {len(report.issues_unfixable)}")
     if report.deploy_status:
         status = "✅ VERIFIED" if report.deploy_status.get("verified") else "❌ NOT VERIFIED"
         print(f"  Deploy: {status}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     # Save report
     REPORT_DIR.mkdir(exist_ok=True)

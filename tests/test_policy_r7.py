@@ -2,19 +2,21 @@
 Test R7: EXECUTE from user always requires HITL.
 Validates the fix for the HITL pipeline not triggering.
 """
+
 import pytest
+
 from core.action_envelope import (
     ActionEnvelope,
     ActionType,
+    ActorRef,
+    PolicyDecision,
+    ResourceKind,
+    ResourceRef,
     RiskLevel,
     TrustRing,
-    ResourceKind,
-    ActorRef,
-    ResourceRef,
-    PolicyDecision,
     create_envelope,
 )
-from core.policy_engine import PolicyEngine, DEFAULT_RULES
+from core.policy_engine import PolicyEngine
 
 
 @pytest.fixture
@@ -49,14 +51,18 @@ def _make_envelope(
     )
     # Pre-set policy_decision so _extract_facts gets the right values
     from dataclasses import replace
-    env = replace(env, policy_decision=PolicyDecision(
-        enforced_trust_ring=trust_ring,
-        risk_level=risk_level,
-        requires_hitl=False,
-        decision="PENDING",
-        decision_reason="pre-evaluation",
-        policy_version="test",
-    ))
+
+    env = replace(
+        env,
+        policy_decision=PolicyDecision(
+            enforced_trust_ring=trust_ring,
+            risk_level=risk_level,
+            requires_hitl=False,
+            decision="PENDING",
+            decision_reason="pre-evaluation",
+            policy_version="test",
+        ),
+    )
     return env
 
 
