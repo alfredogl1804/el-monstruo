@@ -6,7 +6,7 @@
 FROM python:3.12-slim AS base
 
 # Cache bust — cambiar este valor fuerza rebuild completo
-ARG CACHE_BUST=2026-04-14-v3-fix-awaiting-human
+ARG CACHE_BUST=2026-04-20-sprint16-ivd
 
 WORKDIR /app
 
