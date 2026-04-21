@@ -6,7 +6,7 @@
 FROM python:3.12-slim AS base
 
 # Cache bust — cambiar este valor fuerza rebuild completo
-ARG CACHE_BUST=20260420_sprint18-04-20-sprint17-mcp-honcho-deepeval
+ARG CACHE_BUST=20260421_sprint19-mempalace-multiagent-deepeval-ci
 
 WORKDIR /app
 

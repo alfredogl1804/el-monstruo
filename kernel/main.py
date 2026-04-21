@@ -79,7 +79,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.12.0-sprint18", motor="langgraph")
+    logger.info("monstruo_starting", version="0.13.0-sprint19", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -160,7 +160,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.12.0-sprint18",
+            "version": "0.13.0-sprint19",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -395,7 +395,7 @@ async def lifespan(app: FastAPI):
 
     logger.info(
         "monstruo_ready",
-        version="0.12.0-sprint18",
+        version="0.13.0-sprint19",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -468,7 +468,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.12.0-sprint18",
+    version="0.13.0-sprint19",
     lifespan=lifespan,
 )
 
@@ -565,7 +565,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.12.0-sprint18",
+        "version": "0.13.0-sprint19",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -1125,7 +1125,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.12.0-sprint18",
+            "version": "0.13.0-sprint19",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1297,7 +1297,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.12.0-sprint18",
+        "version": "0.13.0-sprint19",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields
@@ -1337,6 +1337,47 @@ async def mcp_status():
             {"name": "supabase", "env": "SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY", "pkg": "@supabase/mcp-server-supabase@0.7.0"},
         ],
     }
+
+
+@app.get("/v1/memory/status", tags=["memory"])
+async def memory_status():
+    """Return MemPalace + Honcho memory system status. Sprint 19."""
+    result = {"layers": {}}
+
+    # MemPalace (episodic + semantic)
+    try:
+        from memory.mempalace_bridge import get_stats
+        result["layers"]["mempalace"] = await get_stats()
+    except Exception as e:
+        result["layers"]["mempalace"] = {"status": "error", "error": str(e)}
+
+    # Honcho (user modeling)
+    try:
+        from memory.honcho_bridge import get_stats as honcho_stats
+        result["layers"]["honcho"] = await honcho_stats()
+    except Exception:
+        result["layers"]["honcho"] = {"status": "not_configured"}
+
+    # PostgresSaver (checkpoints)
+    result["layers"]["checkpointer"] = {
+        "status": "active" if kernel else "inactive",
+        "type": "AsyncPostgresSaver",
+    }
+
+    result["total_layers"] = len(result["layers"])
+    active = sum(1 for v in result["layers"].values() if v.get("status") in ("active", "not_configured"))
+    result["active_layers"] = active
+    return result
+
+
+@app.get("/v1/agents/status", tags=["agents"])
+async def agents_status():
+    """Return Multi-Agent Dispatcher registry status. Sprint 19."""
+    try:
+        from kernel.multi_agent import get_registry_status
+        return get_registry_status()
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 
 # ── DEBUG ENDPOINTS (only active when DEBUG=true) ─────────────────────

@@ -1,14 +1,10 @@
 """
-El Monstruo — MCP Client Manager (Sprint 18)
+El Monstruo — MCP Client Manager (Sprint 19)
 =============================================
 Native integration with Model Context Protocol (MCP) servers.
 
-Sprint 18 additions:
-  - Preset configs for 3 IVD-validated MCP servers:
-    * @modelcontextprotocol/server-github (2025.4.8)
-    * @modelcontextprotocol/server-filesystem (2026.1.14)
-    * @supabase/mcp-server-supabase (0.7.0)
-  - MemPalace evaluation TODO (48K stars, Apache-2.0)
+Sprint 18: Preset configs for 3 IVD-validated MCP servers.
+Sprint 19: MemPalace integrated (memory/mempalace_bridge.py), not MCP.
 
 Supports two transports:
   - stdio: Local MCP servers launched as subprocesses

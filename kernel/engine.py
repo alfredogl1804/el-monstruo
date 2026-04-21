@@ -8,7 +8,9 @@ Architecture:
     KernelInterface (OUR contract)
         └── LangGraphKernel (this file)
                 └── StateGraph (LangGraph motor)
-                        └── 6 nodes (kernel/nodes.py) — optimized v1.1
+                        └── 8 nodes (kernel/nodes.py) — Sprint 19
+                        └── Multi-Agent Dispatcher (kernel/multi_agent.py)
+                        └── MemPalace Bridge (memory/mempalace_bridge.py)
 
 Principio: LangGraph es un motor intercambiable.
 Los contratos soberanos son permanentes.

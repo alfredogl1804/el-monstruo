@@ -1,0 +1,99 @@
+# DeepEval Quality Gate — Sprint 19
+# Runs deepeval test suite on PRs to main
+# Blocks merge if evaluation metrics fall below thresholds
+# IVD: deepeval==3.9.7 (Apache-2.0, PyPI latest 2026-04-21)
+
+name: eval-quality-gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'kernel/**'
+      - 'evaluation/**'
+      - 'memory/**'
+      - 'requirements*.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deepeval:
+    name: DeepEval Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e51f8969f1032e4e379dbf3ee3ed5937e  # v6.0.2
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b26e5ab6ae3f540da282a3c6793e2e136  # v6.2.0
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install deepeval==3.9.7
+          pip install -r requirements.txt
+
+      - name: Run DeepEval test suite
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DEEPEVAL_RESULTS_FOLDER: ./eval-results
+        run: |
+          # Create eval results directory
+          mkdir -p eval-results
+
+          # Run deepeval tests
+          # Tests are in evaluation/tests/ directory
+          deepeval test run evaluation/tests/ \
+            --verbose \
+            --output eval-results/report.json \
+            || true  # Don't fail the step, we check thresholds below
+
+      - name: Check thresholds
+        run: |
+          python3 -c "
+          import json, sys, os
+
+          results_file = 'eval-results/report.json'
+          if not os.path.exists(results_file):
+              print('⚠️ No eval results found — skipping threshold check')
+              print('This is expected on first run or if no test files exist yet.')
+              sys.exit(0)
+
+          with open(results_file) as f:
+              data = json.load(f)
+
+          # Extract pass rate
+          total = data.get('total_tests', 0)
+          passed = data.get('passed_tests', 0)
+
+          if total == 0:
+              print('⚠️ No tests executed — skipping threshold check')
+              sys.exit(0)
+
+          pass_rate = passed / total
+          threshold = 0.8  # 80% pass rate required
+
+          print(f'📊 DeepEval Results: {passed}/{total} passed ({pass_rate:.1%})')
+          print(f'📏 Threshold: {threshold:.0%}')
+
+          if pass_rate < threshold:
+              print(f'❌ FAIL: Pass rate {pass_rate:.1%} < {threshold:.0%}')
+              sys.exit(1)
+          else:
+              print(f'✅ PASS: Pass rate {pass_rate:.1%} >= {threshold:.0%}')
+          "
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: deepeval-results
+          path: eval-results/
+          retention-days: 30

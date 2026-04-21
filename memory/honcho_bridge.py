@@ -237,6 +237,11 @@ async def update_user_model(
         return {"updated": False, "error": str(e)}
 
 
+async def get_stats() -> dict[str, Any]:
+    """Alias for get_honcho_status (used by /v1/memory/status)."""
+    return await get_honcho_status()
+
+
 async def get_honcho_status() -> dict[str, Any]:
     """Return Honcho connection status for health checks."""
     try:

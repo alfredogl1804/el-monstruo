@@ -1,8 +1,8 @@
 """
-El Monstruo — Tool Dispatch Node (Sprint 18)
+El Monstruo — Tool Dispatch Node (Sprint 19)
 =============================================
 Executes tool calls that the LLM requested via native function calling.
-Now includes MCP (Model Context Protocol) tool routing with preset server configs.
+Includes MCP tool routing + Multi-Agent Dispatcher integration.
 
 Strategy (validated by Consejo de 6 Sabios, 2026-04-16):
   - LLMClient sends tool definitions to the LLM via native function calling
@@ -20,6 +20,11 @@ Sprint 18 additions:
   - Preset MCP server configs: github, filesystem, supabase (IVD-validated)
   - /v1/mcp/status endpoint for monitoring
   - build_mcp_configs() merges presets + env custom configs
+
+Sprint 19 additions:
+  - Multi-Agent Dispatcher (kernel/multi_agent.py) classifies tasks
+  - Dispatch result enriches execute node with specialized system_prompt + tools
+  - MemPalace recall enriches context in intake node
 
 Graph topology:
     execute → should_loop_tools? → tool_dispatch → execute  (if tool_calls)
