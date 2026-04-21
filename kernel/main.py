@@ -79,7 +79,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.13.0-sprint19", motor="langgraph")
+    logger.info("monstruo_starting", version="0.14.0-sprint21", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -160,7 +160,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.13.0-sprint19",
+            "version": "0.14.0-sprint21",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -359,6 +359,21 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("sovereign_alerts_failed", error=str(e))
 
+    # ── Sprint 21: MemPalace Warm-up ──────────────────────────────
+    mempalace_ready = False
+    try:
+        from memory.mempalace_bridge import _get_palace
+
+        palace = _get_palace()
+        if palace is not None:
+            mempalace_ready = True
+            app.state._mempalace_ready = True
+            logger.info("mempalace_warmed_up", backend="chromadb")
+        else:
+            logger.warning("mempalace_warmup_skipped", reason="not_available")
+    except Exception as e:
+        logger.warning("mempalace_warmup_failed", error=str(e))
+
     # ── Sprint 17: MCP Client Manager ──────────────────────────────
     mcp_manager = None
     try:
@@ -395,7 +410,7 @@ async def lifespan(app: FastAPI):
 
     logger.info(
         "monstruo_ready",
-        version="0.13.0-sprint19",
+        version="0.14.0-sprint21",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -408,6 +423,7 @@ async def lifespan(app: FastAPI):
         alerts="registered",
         mcp="active" if mcp_manager else "inactive",
         honcho="active" if honcho_active else "inactive",
+        mempalace="active" if mempalace_ready else "inactive",
     )
 
     # Warm-up: pre-heat LLM connections to eliminate cold start on first request
@@ -468,7 +484,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.13.0-sprint19",
+    version="0.14.0-sprint21",
     lifespan=lifespan,
 )
 
@@ -565,7 +581,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.13.0-sprint19",
+        "version": "0.14.0-sprint21",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -1125,7 +1141,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.13.0-sprint19",
+            "version": "0.14.0-sprint21",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1148,13 +1164,31 @@ async def stats():
 
 @app.get("/v1/history", tags=["core"])
 async def history(user_id: Optional[str] = None, limit: int = 20):
-    """Get conversation history. Used by thin client and consola PWA."""
+    """Get conversation history. Used by thin client and consola PWA.
+
+    Sprint 21 fix: expanded category filter to include all relevant event types
+    that the kernel actually emits (run.started, model.called, memory.updated,
+    intent.classified, context.enriched, human.reviewed, human.feedback).
+    Previous filter only matched 'llm_call' etc. which didn't match the actual
+    EventCategory enum values.
+    """
     if not event_store:
         return []
 
-    all_events = await event_store.get_recent(limit=limit * 3)  # Get more to filter
+    all_events = await event_store.get_recent(limit=limit * 5)  # Get more to filter
 
-    # Filter for chat-related events
+    # Sprint 21: Expanded filter to match actual EventCategory enum values
+    # The kernel emits: run.started, intent.classified, context.enriched,
+    # model.called, run.completed, run.failed, memory.updated, human.reviewed, human.feedback
+    history_categories = {
+        "run.started", "run.completed", "run.failed",
+        "model.called", "memory.updated",
+        "human.reviewed", "human.feedback",
+        "intent.classified",
+        # Legacy names (in case any old events use them)
+        "llm_call", "human_feedback",
+    }
+
     chat_events = [
         {
             "event_id": str(e.event_id),
@@ -1166,8 +1200,8 @@ async def history(user_id: Optional[str] = None, limit: int = 20):
             "payload": e.payload,
         }
         for e in all_events
-        if (not user_id or e.actor == user_id)
-        and e.category.value in ("llm_call", "run_started", "run_completed", "human_feedback")
+        if (not user_id or e.actor == user_id or e.user_id == user_id)
+        and e.category.value in history_categories
     ][:limit]
 
     return chat_events
@@ -1187,13 +1221,17 @@ async def graph_visualization():
 
 @app.get("/v1/hitl/pending", tags=["core"])
 async def hitl_pending():
-    """Get pending HITL reviews (for Telegram bot and consola PWA)."""
-    try:
-        from bot.hitl_handler import get_pending_reviews
+    """Get pending HITL reviews (for Telegram bot and consola PWA).
 
-        return {"pending": get_pending_reviews()}
+    Sprint 21: Now uses bot.hitl_handler with in-memory pending store.
+    """
+    try:
+        from bot.hitl_handler import get_pending_count, get_pending_reviews
+
+        reviews = get_pending_reviews()
+        return {"pending": reviews, "count": get_pending_count()}
     except ImportError:
-        return {"pending": {}, "note": "HITL handler not loaded"}
+        return {"pending": {}, "count": 0, "note": "HITL handler not loaded"}
 
 
 # ── Sprint 2: Tool Endpoints (Las Manos) ──────────────────────────────
@@ -1297,7 +1335,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.13.0-sprint19",
+        "version": "0.14.0-sprint21",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields
@@ -1312,6 +1350,10 @@ async def health():
             "langfuse": "active" if (observability and observability.langfuse_enabled) else "inactive",
             "opentelemetry": "active" if (observability and observability.otel_enabled) else "inactive",
             "checkpointer": type(kernel._checkpointer).__name__ if kernel else "unknown",
+            "mempalace": "active" if getattr(app.state, "_mempalace_ready", False) else "inactive",
+            "multi_agent": "active",  # Sprint 21: always available (keyword-based, no external deps)
+            "finops": "active" if getattr(app.state, "finops", None) else "inactive",
+            "mcp": "active" if getattr(app.state, "mcp_manager", None) else "inactive",
         },
     }
 
@@ -1334,7 +1376,7 @@ async def mcp_status():
         "available_presets": [
             {"name": "github", "env": "GITHUB_PERSONAL_ACCESS_TOKEN", "pkg": "@modelcontextprotocol/server-github@2025.4.8"},
             {"name": "filesystem", "env": "MCP_FILESYSTEM_PATHS", "pkg": "@modelcontextprotocol/server-filesystem@2026.1.14"},
-            {"name": "supabase", "env": "SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY", "pkg": "@supabase/mcp-server-supabase@0.7.0"},
+            {"name": "supabase", "env": "SUPABASE_URL + SUPABASE_SERVICE_KEY (or SUPABASE_SERVICE_ROLE_KEY)", "pkg": "@supabase/mcp-server-supabase@0.7.0"},
         ],
     }
 
@@ -1376,6 +1418,30 @@ async def agents_status():
     try:
         from kernel.multi_agent import get_registry_status
         return get_registry_status()
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
+# ── Sprint 21: FinOps Status Endpoint ──────────────────────────
+
+
+@app.get("/v1/finops/status", tags=["finops"])
+async def finops_status(request: Request):
+    """Return FinOps controller status: daily spend, limits, alerts.
+
+    Sprint 21: Registered route. Previously returned 404.
+    Requires valid auth (same as other /v1/* endpoints).
+    """
+    finops = getattr(app.state, "finops", None)
+    if not finops:
+        return {
+            "status": "unavailable",
+            "reason": "FinOps controller not initialized",
+            "hint": "Ensure FINOPS_DAILY_LIMIT_USD is set in environment",
+        }
+    try:
+        status = finops.get_status()
+        return {"status": "active", **status}
     except Exception as e:
         return {"status": "error", "error": str(e)}
 

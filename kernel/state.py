@@ -94,6 +94,11 @@ class MonstruoState(TypedDict, total=False):
     human_approval_reason: str  # Why approval is needed
     human_response: Optional[str]  # Response from human (after resume)
 
+    # ── Multi-Agent (Sprint 21) ──────────────────────────────
+    agent_type: Optional[str]  # research | code | analysis | creative | ops | default
+    agent_system_prompt: Optional[str]  # Agent-specific system prompt
+    agent_tools: list[str]  # Agent-specific tool names
+
     # ── Governance (set at enrich — Action Envelope v2.0) ─────────
     action_envelope: Optional[dict[str, Any]]  # Serialized ActionEnvelope
     policy_decision: Optional[str]  # ALLOW | HITL | BLOCK

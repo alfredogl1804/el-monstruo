@@ -235,6 +235,43 @@ async def classify_and_route(state: MonstruoState, config: RunnableConfig) -> di
         model, fallbacks = _default_model_for_intent(intent_str)
         reason = f"no router, default for intent={intent_str}"
 
+    # ── Sprint 21: Multi-Agent Dispatcher Integration ──────────────
+    # After intent classification, run the multi-agent dispatcher to
+    # determine which specialized agent should handle the task.
+    # The dispatcher enriches the execute node with agent-specific
+    # system prompt, tools, and model preference.
+    agent_type = None
+    agent_name = None
+    agent_system_prompt = None
+    agent_tools: list[str] = []
+    agent_model_preference = None
+
+    try:
+        from kernel.multi_agent import dispatch as multi_agent_dispatch
+
+        dispatch_result = multi_agent_dispatch(message)
+        agent_type = dispatch_result.agent_type.value
+        agent_name = dispatch_result.agent_name
+        agent_system_prompt = dispatch_result.system_prompt
+        agent_tools = dispatch_result.tools
+        agent_model_preference = dispatch_result.model_preference
+
+        # If dispatcher has a model preference, use it (unless router already chose)
+        if agent_model_preference and not cache_hit:
+            model = agent_model_preference
+            fallbacks = _get_fallback_chain(intent_str, model)
+            reason += f", agent={agent_name} overrode model"
+
+        logger.info(
+            "multi_agent_dispatched",
+            agent_type=agent_type,
+            agent_name=agent_name,
+            agent_model=agent_model_preference,
+            agent_tools=len(agent_tools),
+        )
+    except Exception as e:
+        logger.warning("multi_agent_dispatch_failed", error=str(e))
+
     elapsed_ms = (time.monotonic() - start_time) * 1000
 
     logger.info(
@@ -244,6 +281,7 @@ async def classify_and_route(state: MonstruoState, config: RunnableConfig) -> di
         cache_hit=cache_hit,
         latency_ms=f"{elapsed_ms:.0f}",
         message_preview=message[:80],
+        agent=agent_name or "none",
     )
 
     # Emit combined event
@@ -251,7 +289,7 @@ async def classify_and_route(state: MonstruoState, config: RunnableConfig) -> di
         EventBuilder()
         .category(EventCategory.INTENT_CLASSIFIED)
         .actor("kernel.classify_and_route")
-        .action(f"Intent={intent_str}, Model={model} ({reason})")
+        .action(f"Intent={intent_str}, Model={model}, Agent={agent_name or 'none'} ({reason})")
         .for_run_str(state.get("run_id", ""))
         .with_payload(
             {
@@ -261,19 +299,32 @@ async def classify_and_route(state: MonstruoState, config: RunnableConfig) -> di
                 "reason": reason,
                 "cache_hit": cache_hit,
                 "classify_route_ms": elapsed_ms,
+                "agent_type": agent_type,
+                "agent_name": agent_name,
+                "agent_tools": agent_tools,
             }
         )
         .build()
     )
 
     existing_events = state.get("events", [])
-    return {
+    result: dict[str, Any] = {
         "intent": intent_str,
         "model": model,
         "fallback_models": fallbacks,
         "route_reason": reason,
         "events": existing_events + [_event_to_dict(event)],
     }
+
+    # Sprint 21: Inject agent context into state for execute node
+    if agent_system_prompt:
+        result["agent_system_prompt"] = agent_system_prompt
+    if agent_type:
+        result["agent_type"] = agent_type
+    if agent_tools:
+        result["agent_tools"] = agent_tools
+
+    return result
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -393,22 +444,50 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
                     logger.warning("enrich_knowledge_failed", error=str(e))
             return []
 
-        # OPT-2: Execute ALL lookups in parallel
+        # Sprint 21: MemPalace long-term memory recall
+        async def _recall_mempalace():
+            try:
+                from memory.mempalace_bridge import recall
+
+                results = await recall(
+                    query=message,
+                    user_id=user_id,
+                    n_results=3 if intent == "chat" else 5,
+                )
+                return results
+            except Exception as e:
+                logger.warning("enrich_mempalace_failed", error=str(e))
+                return []
+
+        # OPT-2: Execute ALL lookups in parallel (Sprint 21: +MemPalace)
         (
             conversation_context,
             relevant_memories,
             knowledge_entities,
+            mempalace_memories,
         ) = await asyncio.gather(
             _get_conversation(),
             _search_memories(),
             _get_knowledge(),
+            _recall_mempalace(),
         )
+
+        # Sprint 21: Merge MemPalace results into relevant_memories
+        if mempalace_memories:
+            for mem in mempalace_memories:
+                relevant_memories.append({
+                    "content": mem.get("content", ""),
+                    "score": 1.0 - (mem.get("distance", 0.5)),  # Convert distance to score
+                    "type": mem.get("metadata", {}).get("type", "mempalace"),
+                    "source": "mempalace",
+                })
 
         logger.info(
             "enrich_parallel_complete",
             conversation=len(conversation_context),
             memories=len(relevant_memories),
             entities=len(knowledge_entities),
+            mempalace=len(mempalace_memories),
             intent=intent,
         )
 
@@ -586,6 +665,22 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
     tool_results = state.get("tool_results", [])  # From previous tool_dispatch
     tool_loop_count = state.get("tool_loop_count", 0)
     router, _, _, _ = _deps(config)
+
+    # Sprint 21: Multi-Agent — inject agent-specific system prompt
+    agent_system_prompt = state.get("agent_system_prompt")
+    agent_type = state.get("agent_type")
+    if agent_system_prompt:
+        # Prepend agent specialization to the enriched system prompt
+        system_prompt = (
+            f"## Agent Role: {agent_type or 'general'}\n"
+            f"{agent_system_prompt}\n\n"
+            f"{system_prompt}"
+        )
+        logger.info(
+            "execute_agent_prompt_injected",
+            agent_type=agent_type,
+            prompt_len=len(agent_system_prompt),
+        )
 
     start_time = time.monotonic()
     response = ""
@@ -823,6 +918,26 @@ async def memory_write(state: MonstruoState, config: RunnableConfig) -> dict[str
             logger.info("memory_write_conversation", run_id=run_id, events_written=2)
         except Exception as e:
             logger.warning("memory_write_failed", error=str(e))
+
+    # Sprint 21: Write to MemPalace long-term memory
+    try:
+        from memory.mempalace_bridge import store_episode
+
+        episode_content = f"User ({intent}): {message}\nAssistant: {response[:500]}" if response else message
+        await store_episode(
+            user_id=user_id,
+            session_id=run_id,
+            content=episode_content,
+            metadata={
+                "intent": intent,
+                "model": state.get("model_used", ""),
+                "channel": channel,
+                "agent_type": state.get("agent_type", "default"),
+            },
+        )
+        logger.info("mempalace_episode_stored", run_id=run_id)
+    except Exception as e:
+        logger.warning("mempalace_store_failed", error=str(e))
 
     # Write events to sovereign event store
     if event_store:

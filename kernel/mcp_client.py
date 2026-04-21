@@ -400,7 +400,9 @@ def get_preset_configs() -> list[MCPServerConfig]:
 
     # ── Supabase MCP Server ────────────────────────────────────────
     supabase_url = os.environ.get("SUPABASE_URL")
-    supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    # Sprint 21: Railway has SUPABASE_SERVICE_KEY, not SUPABASE_SERVICE_ROLE_KEY
+    # Accept both names for compatibility
+    supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_SERVICE_KEY")
     if supabase_url and supabase_key:
         presets.append(MCPServerConfig(
             name="supabase",
