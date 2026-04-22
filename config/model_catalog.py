@@ -1,24 +1,25 @@
-"""
-El Monstruo — Catálogo de Modelos Unificado
-Sprint 1 | Convergencia Kernel + Bot | 12 abril 2026
+"""El Monstruo — Catálogo de Modelos Unificado
+Sprint 25 | Baseline de Verdad | 22 abril 2026
 
-CADA model_id fue verificado en la fuente oficial del proveedor.
-Anti-autoboicot: 2 correcciones aplicadas vs. export original:
-  - GPT-5.4 context: 1,050,000 → 1,000,000 (verificado OpenAI docs)
-  - Kimi K2.5 pricing: $0.60/M → $0.3827/M (verificado OpenRouter)
-"""
+CADA model_id fue verificado contra la API real del proveedor.
+Sprint 25 changes:
+  - gpt-5.4 model_id: gpt-5.4 → gpt-5.4-pro-2026-03-05 (flagship pinned)
+  - claude-opus-4-7 confirmed as latest opus (validated Anthropic /v1/models)
+  - gemini-3.1-pro-preview confirmed (validated Google generativelanguage API)
+  - All validated dates updated to 2026-04-22
+""""
 
-# ===================== CATÁLOGO VALIDADO 22 ABRIL 2026 (Auditoría Total v1.0) =====================
+# ===================== CATÁLOGO VALIDADO 22 ABRIL 2026 (Sprint 25 Baseline) =====================
 
 MODELS: dict = {
     # ─── TIER 1: Flagship (razonamiento complejo, agéntico) ───
     "gpt-5.4": {
         "provider": "openai",
-        "model_id": "gpt-5.4",
-        "litellm_alias": "gpt-5",  # alias en litellm_config.yaml
+        "model_id": "gpt-5.4-pro-2026-03-05",  # Sprint 25: pinned to flagship snapshot — validated OpenAI /v1/models 2026-04-22
+        "litellm_alias": "gpt-5",
         "api_key_env": "OPENAI_API_KEY",
         "base_url": None,
-        "context_window": 1_000_000,  # CORREGIDO: 1M, no 1.05M — validated 2026-04-12
+        "context_window": 1_000_000,
         "max_completion_tokens": 4000,
         "use_max_completion_tokens": True,
         "pricing": {"input": 2.50, "output": 10.00},  # $/M tokens
@@ -29,21 +30,21 @@ MODELS: dict = {
             "planificador",
             "ejecutor",
         ],
-        "validated": "2026-04-12",
+        "validated": "2026-04-22",
         "source": "https://developers.openai.com/api/docs/models",
     },
     "claude-opus-4-7": {
         "provider": "anthropic",
-        "model_id": "claude-opus-4-7",
+        "model_id": "claude-opus-4-7",  # Sprint 25: confirmed latest opus — validated Anthropic /v1/models 2026-04-22
         "litellm_alias": "claude-opus",
         "api_key_env": "ANTHROPIC_API_KEY",
         "base_url": None,
-        "context_window": 1_000_000,  # 1M — validated 2026-04-18
+        "context_window": 1_000_000,
         "max_tokens": 4096,
         "use_max_completion_tokens": False,
         "pricing": {"input": 5.00, "output": 25.00},
         "roles": ["analisis", "critico", "arquitecto", "codigo"],
-        "validated": "2026-04-18",
+        "validated": "2026-04-22",
         "source": "https://www.anthropic.com/news/claude-opus-4-7",
     },
     "claude-opus-4-6": {
@@ -148,7 +149,7 @@ MODELS: dict = {
     },
     "gemini-3.1-pro": {
         "provider": "google",
-        "model_id": "gemini-3.1-pro-preview",
+        "model_id": "gemini-3.1-pro-preview",  # Sprint 25: confirmed — validated Google generativelanguage API 2026-04-22
         "litellm_alias": "gemini-pro",
         "api_key_env": "GEMINI_API_KEY",
         "base_url": None,
@@ -157,7 +158,7 @@ MODELS: dict = {
         "use_max_completion_tokens": False,
         "pricing": {"input": 1.25, "output": 5.00},
         "roles": ["creativo", "multimodal"],
-        "validated": "2026-04-12",
+        "validated": "2026-04-22",
         "source": "https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview",
     },
     "kimi-k2.5": {
@@ -268,3 +269,7 @@ SPRINT2_CANDIDATES: dict = {
         "source": "https://ai.google.dev/gemini-api/docs/models",
     },
 }
+
+
+# ===================== ALIAS (for health endpoint import) =====================
+MODEL_CATALOG = MODELS

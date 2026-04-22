@@ -1,8 +1,8 @@
-# El Monstruo — Sprint 24 Dependencies (Pinned)
+# El Monstruo — Sprint 25 Dependencies (Pinned)
 # Updated: 2026-04-22 — ALL versions validated in real-time via PyPI JSON API
 # Policy: ALL versions pinned. NO floating ranges.
 # Validation: /protocolo-operativo-core + /validacion-tiempo-real applied
-# Sprint 24: MemPalace migrated ChromaDB→pgvector + LightRAG connected to LangGraph flow
+# Sprint 25: LightRAG migrated to pgvector + Honcho rewritten HTTP-only + model baseline
 
 # ── Kernel / Orchestration ──────────────────────────────────────────
 langgraph==1.1.9  # IVD auto-update Sprint 22 (was 1.1.8) — validated PyPI 2026-04-21
@@ -41,11 +41,11 @@ copilotkit==0.1.87  # validated 2026-04-19 (PyPI latest, was 0
 # MIT license — validated 2026-04-20 via PyPI (latest)
 mcp==1.27.0
 
-# ── Honcho (Dialectic User Modeling) — Sprint 17 ──────────────────
-# SDK for persistent user profiles + preference learning
-# Apache-2.0 (SDK) — server is AGPL-3.0 but we only use the SDK
-# Pattern: same as MongoDB (server SSPL, driver Apache-2.0)
-honcho-ai==2.1.1
+# ── Honcho (Dialectic User Modeling) — Sprint 17 → Sprint 25 HTTP-only ──
+# Sprint 25: SDK REMOVED to avoid AGPL-3.0 contamination risk
+# Bridge rewritten to use httpx (already in deps) against self-hosted Honcho API
+# Server: honcho-railway.railway.internal:8000 (Railway private network)
+# honcho-ai==2.1.1  # REMOVED Sprint 25
 
 # ── Auth ────────────────────────────────────────────────────────────
 PyJWT==2.12.1
@@ -94,10 +94,12 @@ deepeval==3.9.7
 # mempalace package REMOVED — bridge uses psycopg + pgvector directly
 # Tables: mempalace_episodes, mempalace_semantic (vector(1536) columns)
 # Embeddings: OpenAI text-embedding-3-small via httpx (already in deps)
-# ── Knowledge Graph RAG (LightRAG) — Sprint 23 ──────────────────
+# ── Knowledge Graph RAG (LightRAG) — Sprint 23 → Sprint 25 pgvector ────
 # Dual-level retrieval: local (entity) + global (theme) via knowledge graph
 # MIT license — validated 2026-04-22 via PyPI (latest=1.4.15)
 # CVE-2026-39413: JWT in API server only — we don't use the server
-# Core deps: nano-vectordb, networkx, tiktoken (lightweight)
+# Sprint 25: MIGRATED from /tmp file storage to pgvector (Supabase)
+# Uses PGKVStorage, PGVectorStorage, PGGraphStorage, PGDocStatusStorage
+# Requires POSTGRES_* env vars (auto-injected from SUPABASE_DB_URL in bridge)
 # GitHub: HKUDS/LightRAG
 lightrag-hku==1.4.15

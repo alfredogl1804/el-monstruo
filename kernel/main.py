@@ -79,7 +79,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.17.0-sprint24", motor="langgraph")
+    logger.info("monstruo_starting", version="0.18.0-sprint25", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -160,7 +160,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.17.0-sprint24",
+            "version": "0.18.0-sprint25",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -409,19 +409,18 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("mcp_manager_init_failed", error=str(e))
 
-    # ── Sprint 17: Honcho User Modeling ─────────────────────────────
+    # ── Sprint 17 → Sprint 25: Honcho User Modeling (HTTP-only) ──────
     honcho_active = False
     try:
-        from memory.honcho_bridge import get_honcho_status
-        honcho_status = await get_honcho_status()
-        honcho_active = honcho_status.get("active", False)
-        logger.info("honcho_status", **honcho_status)
+        from memory.honcho_bridge import ensure_workspace as honcho_ensure_workspace
+        honcho_active = await honcho_ensure_workspace()
+        logger.info("honcho_status", active=honcho_active, transport="httpx", api="v3")
     except Exception as e:
         logger.warning("honcho_init_failed", error=str(e))
 
     logger.info(
         "monstruo_ready",
-        version="0.17.0-sprint24",
+        version="0.18.0-sprint25",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -495,7 +494,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.17.0-sprint24",
+    version="0.18.0-sprint25",
     lifespan=lifespan,
 )
 
@@ -592,7 +591,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.17.0-sprint24",
+        "version": "0.18.0-sprint25",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -1152,7 +1151,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.17.0-sprint24",
+            "version": "0.18.0-sprint25",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1334,11 +1333,17 @@ async def health():
     # Build models_available from model catalog if available
     models_available = []
     try:
-        from config.model_catalog import MODEL_CATALOG
+        from config.model_catalog import MODELS as MODEL_CATALOG
 
-        models_available = list(MODEL_CATALOG.keys())
+        # Show flagship model_ids (not catalog keys) for external consumers
+        flagship_keys = ["gpt-5.4", "claude-opus-4-7", "gemini-3.1-pro", "sonar-reasoning-pro"]
+        models_available = [
+            MODEL_CATALOG[k]["model_id"]
+            for k in flagship_keys
+            if k in MODEL_CATALOG
+        ]
     except ImportError:
-        models_available = ["gpt-5", "claude-sonnet", "sonar-reasoning-pro"]
+        models_available = ["gpt-5.4-pro-2026-03-05", "claude-opus-4-7", "sonar-reasoning-pro"]
 
     obs_status = (
         "active" if (observability and (observability.langfuse_enabled or observability.otel_enabled)) else "inactive"
@@ -1346,7 +1351,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.17.0-sprint24",
+        "version": "0.18.0-sprint25",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields

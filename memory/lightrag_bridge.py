@@ -1,20 +1,30 @@
 """
 LightRAG Bridge — Knowledge Graph RAG for El Monstruo
-Sprint 24 | v0.17.0-sprint24
+Sprint 25 | v0.18.0-sprint25
 IVD: lightrag-hku==1.4.15 (MIT, PyPI latest 2026-04-22)
 CVE-2026-39413: JWT in API server only — we don't use the server.
 
 Architecture:
   - LightRAG builds a knowledge graph from ingested documents
   - Supports dual-level retrieval: local (entity-centric) + global (theme-centric)
-  - Storage: nano-vectordb (default, file-based in working_dir)
+  - Storage: pgvector via Supabase (Sprint 25 — migrated from /tmp file-based)
   - Embeddings: Uses OpenAI API via OPENAI_API_KEY env var (auto-detected)
 
+Sprint 25 Migration (CRITICAL):
+  - BEFORE: working_dir=/tmp/monstruo_lightrag (NanoVectorDB + NetworkX + JSON)
+    → Data LOST on every Railway deploy (ephemeral filesystem)
+  - AFTER: PGKVStorage + PGVectorStorage + PGGraphStorage + PGDocStatusStorage
+    → Persistent in Supabase PostgreSQL with pgvector extension
+  - Connection: LightRAG's ClientManager reads POSTGRES_* env vars automatically
+    Required env vars: POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER,
+    POSTGRES_PASSWORD, POSTGRES_DATABASE, POSTGRES_WORKSPACE
+  - LightRAG auto-creates tables on first init via its own migration system
+
 API validated locally 2026-04-22:
-  - LightRAG(working_dir, llm_model_func=openai_complete, llm_model_name, embedding_func=openai_embed)
-  - openai_embed is an EmbeddingFunc instance (not a plain function)
-  - openai_complete is a callable
-  - OPENAI_API_KEY is read automatically from env by the openai SDK
+  - PGKVStorage, PGVectorStorage, PGGraphStorage, PGDocStatusStorage
+    from lightrag.kg.postgres_impl
+  - ClientManager.get_config() reads POSTGRES_* env vars
+  - LightRAG constructor: kv_storage, vector_storage, graph_storage, doc_status_storage
 
 Integration:
   - /v1/knowledge/ingest → ingest documents into the knowledge graph
@@ -29,6 +39,7 @@ from __future__ import annotations
 import logging
 import os
 from typing import Any, Optional
+from urllib.parse import urlparse, parse_qs
 
 logger = logging.getLogger("monstruo.memory.lightrag")
 
@@ -38,8 +49,47 @@ _rag_init_attempted = False
 _rag_init_error: str | None = None
 
 
+def _inject_postgres_env_from_db_url() -> bool:
+    """
+    Parse SUPABASE_DB_URL and set POSTGRES_* env vars that LightRAG's
+    ClientManager.get_config() expects. Returns True if successful.
+
+    This bridges the gap between our single SUPABASE_DB_URL and LightRAG's
+    expectation of individual POSTGRES_* env vars.
+    Only sets vars if they are not already set (respects explicit overrides).
+    """
+    db_url = os.getenv("SUPABASE_DB_URL", "")
+    if not db_url:
+        return False
+
+    parsed = urlparse(db_url)
+    qs = parse_qs(parsed.query)
+
+    env_map = {
+        "POSTGRES_HOST": parsed.hostname or "localhost",
+        "POSTGRES_PORT": str(parsed.port or 5432),
+        "POSTGRES_USER": parsed.username or "postgres",
+        "POSTGRES_PASSWORD": parsed.password or "",
+        "POSTGRES_DATABASE": (parsed.path or "/postgres").lstrip("/"),
+        "POSTGRES_WORKSPACE": os.getenv("LIGHTRAG_WORKSPACE", "monstruo"),
+    }
+
+    # SSL mode from query params
+    ssl_mode = qs.get("sslmode", [None])[0]
+    if ssl_mode:
+        env_map["POSTGRES_SSL_MODE"] = ssl_mode
+
+    # Only set if not already defined (allow explicit overrides)
+    for key, value in env_map.items():
+        if not os.getenv(key):
+            os.environ[key] = value
+            logger.debug("lightrag_env_set", extra={"key": key, "value": "***" if "PASSWORD" in key else value})
+
+    return True
+
+
 async def _get_rag(force_retry: bool = False):
-    """Lazy-initialize LightRAG instance. Returns None if unavailable."""
+    """Lazy-initialize LightRAG instance with pgvector storage. Returns None if unavailable."""
     global _rag, _rag_init_attempted, _rag_init_error
 
     if _rag is not None:
@@ -54,6 +104,12 @@ async def _get_rag(force_retry: bool = False):
     try:
         from lightrag import LightRAG
         from lightrag.llm.openai import openai_complete, openai_embed
+        from lightrag.kg.postgres_impl import (
+            PGKVStorage,
+            PGVectorStorage,
+            PGGraphStorage,
+            PGDocStatusStorage,
+        )
 
         api_key = os.getenv("OPENAI_API_KEY", "")
         if not api_key:
@@ -61,25 +117,42 @@ async def _get_rag(force_retry: bool = False):
             logger.warning("lightrag_disabled", extra={"reason": _rag_init_error})
             return None
 
-        working_dir = os.getenv("LIGHTRAG_WORKING_DIR", "/tmp/monstruo_lightrag")
+        # Inject POSTGRES_* env vars from SUPABASE_DB_URL
+        # LightRAG's ClientManager.get_config() reads these automatically
+        if not _inject_postgres_env_from_db_url():
+            # Check if POSTGRES_* vars are already set directly
+            if not os.getenv("POSTGRES_HOST"):
+                _rag_init_error = "No SUPABASE_DB_URL or POSTGRES_HOST — cannot use pgvector storage"
+                logger.warning("lightrag_disabled", extra={"reason": _rag_init_error})
+                return None
+
         model = os.getenv("LIGHTRAG_MODEL", "gpt-4o-mini")
 
+        # Still need a working_dir for LightRAG internals (temp files, logs)
+        # But actual data goes to PostgreSQL now
+        working_dir = os.getenv("LIGHTRAG_WORKING_DIR", "/tmp/monstruo_lightrag")
         os.makedirs(working_dir, exist_ok=True)
 
-        # LightRAG 1.4.15 correct API (validated locally):
-        # - llm_model_func: callable (openai_complete)
-        # - llm_model_name: str (model name for the LLM)
-        # - embedding_func: EmbeddingFunc instance (openai_embed)
-        # - OPENAI_API_KEY is auto-read from env by the openai SDK
+        # LightRAG 1.4.15 with pgvector storage (validated locally 2026-04-22):
+        # - kv_storage: PGKVStorage (replaces JsonKVStorage)
+        # - vector_storage: PGVectorStorage (replaces NanoVectorDBStorage)
+        # - graph_storage: PGGraphStorage (replaces NetworkXStorage)
+        # - doc_status_storage: PGDocStatusStorage (replaces JsonDocStatusStorage)
+        # - ClientManager.get_config() reads POSTGRES_* env vars automatically
+        # - Tables are auto-created by LightRAG on initialize_storages()
         rag = LightRAG(
             working_dir=working_dir,
             llm_model_func=openai_complete,
             llm_model_name=model,
             embedding_func=openai_embed,
+            kv_storage=PGKVStorage,
+            vector_storage=PGVectorStorage,
+            graph_storage=PGGraphStorage,
+            doc_status_storage=PGDocStatusStorage,
         )
 
         # LightRAG 1.4.15 requires explicit storage initialization
-        # See: https://github.com/HKUDS/LightRAG#important-initialization-requirements
+        # This creates the PostgreSQL tables if they don't exist
         await rag.initialize_storages()
 
         _rag = rag
@@ -88,6 +161,10 @@ async def _get_rag(force_retry: bool = False):
             extra={
                 "working_dir": working_dir,
                 "model": model,
+                "storage": "pgvector",
+                "host": os.getenv("POSTGRES_HOST", "unknown"),
+                "database": os.getenv("POSTGRES_DATABASE", "unknown"),
+                "workspace": os.getenv("POSTGRES_WORKSPACE", "monstruo"),
             },
         )
         return _rag
@@ -207,15 +284,11 @@ async def get_stats() -> dict[str, Any]:
         }
 
     try:
-        working_dir = os.getenv("LIGHTRAG_WORKING_DIR", "/tmp/monstruo_lightrag")
-        kg_exists = os.path.exists(
-            os.path.join(working_dir, "graph_chunk_entity_relation.graphml")
-        )
-
         return {
             "status": "active",
-            "working_dir": working_dir,
-            "knowledge_graph_exists": kg_exists,
+            "storage": "pgvector",
+            "host": os.getenv("POSTGRES_HOST", "unknown"),
+            "workspace": os.getenv("POSTGRES_WORKSPACE", "monstruo"),
             "model": os.getenv("LIGHTRAG_MODEL", "gpt-4o-mini"),
         }
     except Exception as exc:
