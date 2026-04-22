@@ -1,14 +1,20 @@
 """
 LightRAG Bridge — Knowledge Graph RAG for El Monstruo
-Sprint 23 | v0.16.0-sprint23
+Sprint 24 | v0.17.0-sprint24
 IVD: lightrag-hku==1.4.15 (MIT, PyPI latest 2026-04-22)
 CVE-2026-39413: JWT in API server only — we don't use the server.
 
 Architecture:
   - LightRAG builds a knowledge graph from ingested documents
   - Supports dual-level retrieval: local (entity-centric) + global (theme-centric)
-  - Storage: nano-vectordb (default) or pgvector (via Supabase)
-  - Embeddings: Uses OpenAI-compatible API (routed through our existing config)
+  - Storage: nano-vectordb (default, file-based in working_dir)
+  - Embeddings: Uses OpenAI API via OPENAI_API_KEY env var (auto-detected)
+
+API validated locally 2026-04-22:
+  - LightRAG(working_dir, llm_model_func=openai_complete, llm_model_name, embedding_func=openai_embed)
+  - openai_embed is an EmbeddingFunc instance (not a plain function)
+  - openai_complete is a callable
+  - OPENAI_API_KEY is read automatically from env by the openai SDK
 
 Integration:
   - /v1/knowledge/ingest → ingest documents into the knowledge graph
@@ -29,11 +35,12 @@ logger = logging.getLogger("monstruo.memory.lightrag")
 # ── Lazy singleton ────────────────────────────────────────────────────
 _rag = None
 _rag_init_attempted = False
+_rag_init_error: str | None = None
 
 
 async def _get_rag(force_retry: bool = False):
     """Lazy-initialize LightRAG instance. Returns None if unavailable."""
-    global _rag, _rag_init_attempted
+    global _rag, _rag_init_attempted, _rag_init_error
 
     if _rag is not None:
         return _rag
@@ -42,39 +49,33 @@ async def _get_rag(force_retry: bool = False):
         return None  # Don't retry if init already failed (unless forced)
 
     _rag_init_attempted = True
+    _rag_init_error = None
 
     try:
-        from lightrag import LightRAG, QueryParam
+        from lightrag import LightRAG
         from lightrag.llm.openai import openai_complete, openai_embed
 
-        working_dir = os.getenv("LIGHTRAG_WORKING_DIR", "/tmp/monstruo_lightrag")
-        os.makedirs(working_dir, exist_ok=True)
-
-        # Use the same OpenAI-compatible endpoint as the kernel router
-        # This routes through our existing model configuration
         api_key = os.getenv("OPENAI_API_KEY", "")
-        api_base = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
-        model = os.getenv("LIGHTRAG_MODEL", "gpt-4o-mini")
-        embed_model = os.getenv("LIGHTRAG_EMBED_MODEL", "text-embedding-3-small")
-
         if not api_key:
-            logger.warning("lightrag_disabled", reason="OPENAI_API_KEY not set")
+            _rag_init_error = "OPENAI_API_KEY not set"
+            logger.warning("lightrag_disabled", extra={"reason": _rag_init_error})
             return None
 
+        working_dir = os.getenv("LIGHTRAG_WORKING_DIR", "/tmp/monstruo_lightrag")
+        model = os.getenv("LIGHTRAG_MODEL", "gpt-4o-mini")
+
+        os.makedirs(working_dir, exist_ok=True)
+
+        # LightRAG 1.4.15 correct API (validated locally):
+        # - llm_model_func: callable (openai_complete)
+        # - llm_model_name: str (model name for the LLM)
+        # - embedding_func: EmbeddingFunc instance (openai_embed)
+        # - OPENAI_API_KEY is auto-read from env by the openai SDK
         rag = LightRAG(
             working_dir=working_dir,
             llm_model_func=openai_complete,
             llm_model_name=model,
-            llm_model_kwargs={
-                "api_key": api_key,
-                "base_url": api_base,
-            },
             embedding_func=openai_embed,
-            embedding_model_name=embed_model,
-            embedding_model_kwargs={
-                "api_key": api_key,
-                "base_url": api_base,
-            },
         )
 
         _rag = rag
@@ -83,17 +84,21 @@ async def _get_rag(force_retry: bool = False):
             extra={
                 "working_dir": working_dir,
                 "model": model,
-                "embed_model": embed_model,
             },
         )
         return _rag
 
     except ImportError as ie:
-        logger.warning("lightrag_import_failed", extra={"error": str(ie), "detail": "lightrag-hku package not installed or missing dependency"})
+        _rag_init_error = f"ImportError: {ie}"
+        logger.warning("lightrag_import_failed", extra={"error": str(ie)})
         return None
     except Exception as exc:
         import traceback
-        logger.error("lightrag_init_failed", extra={"error": str(exc), "traceback": traceback.format_exc()[:500]})
+        _rag_init_error = f"{type(exc).__name__}: {exc}"
+        logger.error(
+            "lightrag_init_failed",
+            extra={"error": str(exc), "traceback": traceback.format_exc()[:500]},
+        )
         return None
 
 
@@ -113,12 +118,15 @@ async def ingest_document(
 
     Returns dict with status and details.
     """
-    rag = await _get_rag(force_retry=True)  # Retry on explicit calls
+    rag = await _get_rag(force_retry=True)
     if rag is None:
-        return {"ingested": False, "reason": "lightrag_unavailable"}
+        return {
+            "ingested": False,
+            "reason": "lightrag_unavailable",
+            "error": _rag_init_error,
+        }
 
     try:
-        # LightRAG's insert method processes the document and builds the KG
         await rag.ainsert(content)
 
         logger.info(
@@ -148,14 +156,18 @@ async def query_knowledge(
 
     Args:
         query: Natural language query
-        mode: Retrieval mode \u2014 "local", "global", "hybrid", or "naive"
+        mode: Retrieval mode — "local", "global", "hybrid", or "naive"
         top_k: Max results to return
 
     Returns dict with results and metadata.
     """
-    rag = await _get_rag(force_retry=True)  # Retry on explicit calls
+    rag = await _get_rag(force_retry=True)
     if rag is None:
-        return {"results": [], "reason": "lightrag_unavailable"}
+        return {
+            "results": [],
+            "reason": "lightrag_unavailable",
+            "error": _rag_init_error,
+        }
 
     try:
         from lightrag import QueryParam
@@ -185,19 +197,22 @@ async def get_stats() -> dict[str, Any]:
     """Return LightRAG status for health checks."""
     rag = await _get_rag()
     if rag is None:
-        return {"status": "unavailable", "reason": "not_initialized"}
+        return {
+            "status": "unavailable",
+            "reason": _rag_init_error or "not_initialized",
+        }
 
     try:
         working_dir = os.getenv("LIGHTRAG_WORKING_DIR", "/tmp/monstruo_lightrag")
-        # Check if knowledge graph files exist
-        kg_exists = os.path.exists(os.path.join(working_dir, "graph_chunk_entity_relation.graphml"))
+        kg_exists = os.path.exists(
+            os.path.join(working_dir, "graph_chunk_entity_relation.graphml")
+        )
 
         return {
             "status": "active",
             "working_dir": working_dir,
             "knowledge_graph_exists": kg_exists,
             "model": os.getenv("LIGHTRAG_MODEL", "gpt-4o-mini"),
-            "embed_model": os.getenv("LIGHTRAG_EMBED_MODEL", "text-embedding-3-small"),
         }
     except Exception as exc:
         return {"status": "error", "error": str(exc)}
