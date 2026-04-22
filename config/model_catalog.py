@@ -8,7 +8,7 @@ Anti-autoboicot: 2 correcciones aplicadas vs. export original:
   - Kimi K2.5 pricing: $0.60/M → $0.3827/M (verificado OpenRouter)
 """
 
-# ===================== CATÁLOGO VALIDADO 18 ABRIL 2026 =====================
+# ===================== CATÁLOGO VALIDADO 22 ABRIL 2026 (Auditoría Total v1.0) =====================
 
 MODELS: dict = {
     # ─── TIER 1: Flagship (razonamiento complejo, agéntico) ───

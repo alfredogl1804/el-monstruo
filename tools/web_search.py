@@ -3,8 +3,8 @@ El Monstruo — Web Search Tool (Perplexity Sonar API)
 =====================================================
 Gives El Monstruo the ability to research the internet in real-time.
 
-Uses Perplexity's sonar-pro model for grounded, cited answers.
-Falls back to sonar (smaller, faster) if sonar-pro fails.
+Uses Perplexity's sonar-reasoning-pro model for grounded, cited answers.
+Falls back to sonar-pro then sonar (smaller, faster) if primary fails.
 
 Env vars required:
     SONAR_API_KEY — Perplexity API key
@@ -25,13 +25,13 @@ logger = structlog.get_logger("tools.web_search")
 PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions"
 
 # Models validated on PyPI/docs 2026-04-15
-SONAR_MODELS = ["sonar-pro", "sonar"]
+SONAR_MODELS = ["sonar-reasoning-pro", "sonar-pro", "sonar"]
 
 
 async def web_search(
     query: str,
     context: str = "",
-    model: str = "sonar-pro",
+    model: str = "sonar-reasoning-pro",
     max_tokens: int = 2048,
     temperature: float = 0.2,
 ) -> dict[str, Any]:
@@ -41,7 +41,7 @@ async def web_search(
     Args:
         query: The search query or research question
         context: Optional context to help Perplexity understand the query better
-        model: Perplexity model to use (sonar-pro or sonar)
+        model: Perplexity model to use (sonar-reasoning-pro, sonar-pro, or sonar)
         max_tokens: Maximum tokens in response
         temperature: Response temperature (lower = more factual)
 
@@ -74,7 +74,9 @@ async def web_search(
 
     # Try primary model, fallback to secondary
     models_to_try = [model] if model in SONAR_MODELS else SONAR_MODELS
-    if model == "sonar-pro":
+    if model == "sonar-reasoning-pro":
+        models_to_try = ["sonar-reasoning-pro", "sonar-pro", "sonar"]
+    elif model == "sonar-pro":
         models_to_try = ["sonar-pro", "sonar"]
     elif model == "sonar":
         models_to_try = ["sonar"]

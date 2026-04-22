@@ -79,7 +79,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.16.0-sprint23", motor="langgraph")
+    logger.info("monstruo_starting", version="0.16.1-sprint23", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -160,7 +160,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.16.0-sprint23",
+            "version": "0.16.1-sprint23",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -410,7 +410,7 @@ async def lifespan(app: FastAPI):
 
     logger.info(
         "monstruo_ready",
-        version="0.16.0-sprint23",
+        version="0.16.1-sprint23",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -484,7 +484,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.16.0-sprint23",
+    version="0.16.1-sprint23",
     lifespan=lifespan,
 )
 
@@ -581,7 +581,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.16.0-sprint23",
+        "version": "0.16.1-sprint23",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -1141,7 +1141,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.16.0-sprint23",
+            "version": "0.16.1-sprint23",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1335,7 +1335,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.16.0-sprint23",
+        "version": "0.16.1-sprint23",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields
@@ -1349,7 +1349,7 @@ async def health():
             "knowledge": "active" if knowledge_graph else "inactive",
             "langfuse": "active" if (observability and observability.langfuse_enabled) else "inactive",
             "opentelemetry": "active" if (observability and observability.otel_enabled) else "inactive",
-            "checkpointer": type(kernel._checkpointer).__name__ if kernel else "unknown",
+            "checkpointer": "active (AsyncPostgresSaver)" if (kernel and type(kernel._checkpointer).__name__ == "AsyncPostgresSaver") else "inactive (MemorySaver)" if kernel else "unknown",
             "mempalace": "active" if getattr(app.state, "_mempalace_ready", False) else "inactive",
             "multi_agent": "active",  # Sprint 21: always available (keyword-based, no external deps)
             "finops": "active" if getattr(app.state, "finops", None) else "inactive",
@@ -1427,9 +1427,12 @@ async def memory_status():
         result["layers"]["lightrag"] = {"status": "not_configured"}
 
     # PostgresSaver (checkpoints)
+    _cp_type = type(kernel._checkpointer).__name__ if kernel else "none"
+    _cp_is_postgres = _cp_type == "AsyncPostgresSaver"
     result["layers"]["checkpointer"] = {
-        "status": "active" if kernel else "inactive",
-        "type": "AsyncPostgresSaver",
+        "status": "active" if _cp_is_postgres else "fallback",
+        "type": _cp_type,
+        "durable": _cp_is_postgres,
     }
 
     result["total_layers"] = len(result["layers"])

@@ -62,9 +62,9 @@ SABIOS_CONFIG = {
         "key_env": "XAI_API_KEY",
     },
     "perplexity": {
-        "name": "Perplexity (Sonar)",
+        "name": "Perplexity (Sonar Reasoning Pro)",
         "api_url": "https://api.perplexity.ai/chat/completions",
-        "model": "sonar-pro",
+        "model": "sonar-reasoning-pro",
         "key_env": "SONAR_API_KEY",
     },
 }

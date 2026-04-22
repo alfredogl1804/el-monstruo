@@ -1,9 +1,14 @@
 """
 MemPalace Bridge — Episodic + Semantic Memory for El Monstruo
-Sprint 23 | v0.16.0-sprint23
-IVD: mempalace==3.3.2 (MIT, PyPI latest 2026-04-22)
-Fix: chromadb>=1.5.4 has regression (issue #1006) — added defensive init + health probe
-GitHub: MemPalace/mempalace (48K+ stars)
+Sprint 23-fix | v0.16.1-sprint23
+
+CORRECTED: Previous bridge used a hallucinated `MemPalace` class that does not exist.
+MemPalace is a CLI/MCP tool. The Python API is:
+  - mempalace.palace.get_collection(path, name) → ChromaDB Collection
+  - collection.add(documents, metadatas, ids) → store
+  - collection.query(query_texts, n_results) → search
+
+Tested locally: chromadb 1.5.8 works correctly. No regression.
 
 Architecture:
   - MemPalace stores long-term episodic memories (conversations, decisions, outcomes)
@@ -27,81 +32,78 @@ from typing import Any, Optional
 
 logger = logging.getLogger("monstruo.memory.mempalace")
 
-# ── Lazy import to avoid import-time failures ──────────────────────
-_palace = None
+# ── Lazy-loaded collections ──────────────────────────────────────────
+_episodes_col = None
+_semantic_col = None
+_initialized = False
+_init_error: Optional[str] = None
 
 
-def _get_palace():
-    """Lazy-load MemPalace instance. Returns None if unavailable.
+def _ensure_initialized():
+    """Lazy-init both collections. Returns True if ready."""
+    global _episodes_col, _semantic_col, _initialized, _init_error
 
-    Sprint 23: Added health probe after init to catch chromadb 1.5.x
-    regression (issue #1006) where writes silently fail.
-    """
-    global _palace
-    if _palace is not None:
-        return _palace
+    if _initialized:
+        return _episodes_col is not None
+
+    _initialized = True  # prevent retry loops
 
     try:
-        from mempalace import MemPalace
+        from mempalace.palace import get_collection
+    except ImportError:
+        _init_error = "mempalace package not installed"
+        logger.warning("mempalace_not_installed")
+        return False
 
-        # MemPalace uses ChromaDB as backend — no API key required
-        # Storage path configurable via env
-        storage_path = os.getenv(
-            "MEMPALACE_STORAGE_PATH", "/tmp/monstruo_mempalace"
+    storage_path = os.getenv("MEMPALACE_STORAGE_PATH", "/tmp/monstruo_mempalace")
+    os.makedirs(storage_path, exist_ok=True)
+
+    try:
+        _episodes_col = get_collection(
+            storage_path, collection_name="monstruo_episodes", create=True
         )
-        palace = MemPalace(
-            storage_path=storage_path,
-            collection_name=os.getenv("MEMPALACE_COLLECTION", "monstruo_v1"),
+        _semantic_col = get_collection(
+            storage_path, collection_name="monstruo_semantic", create=True
         )
 
-        # Sprint 23: Health probe — verify chromadb actually works
-        _test_id = "__healthcheck__"
-        palace.add(
-            documents=["mempalace health probe"],
+        # Health probe: verify write + read roundtrip
+        _episodes_col.add(
+            documents=["__healthcheck__"],
             metadatas=[{"type": "healthcheck"}],
-            ids=[_test_id],
+            ids=["__hc__"],
         )
-        probe = palace.query(
-            query_texts=["mempalace health probe"],
-            n_results=1,
-        )
-        probe_docs = probe.get("documents", [[]])[0] if probe else []
-        probe_metas = probe.get("metadatas", [[]])[0] if probe else []
+        probe = _episodes_col.query(query_texts=["__healthcheck__"], n_results=1)
+        docs = probe.documents[0] if hasattr(probe, "documents") else probe.get("documents", [[]])[0]
 
-        if not probe_docs or probe_docs[0] is None:
-            logger.error(
-                "mempalace_chromadb_regression_detected",
-                extra={
-                    "issue": "chromadb 1.5.x regression — writes silently broken",
-                    "ref": "https://github.com/MemPalace/mempalace/issues/1006",
-                },
-            )
-            return None
+        if not docs or docs[0] != "__healthcheck__":
+            _init_error = "health probe write/read mismatch"
+            logger.error("mempalace_health_probe_failed", extra={"detail": _init_error})
+            _episodes_col = None
+            _semantic_col = None
+            return False
 
-        if not probe_metas or probe_metas[0] is None:
-            logger.warning(
-                "mempalace_metadata_degraded",
-                extra={"detail": "query returns None metadata — partial regression"},
-            )
-
-        # Clean up health probe
+        # Cleanup probe
         try:
-            palace._collection.delete(ids=[_test_id])
+            _episodes_col.delete(ids=["__hc__"])
         except Exception:
-            pass  # Non-critical
+            pass
 
-        _palace = palace
         logger.info(
             "mempalace_initialized",
-            extra={"storage_path": storage_path, "health_probe": "passed"},
+            extra={
+                "storage_path": storage_path,
+                "episodes_count": _episodes_col.count(),
+                "semantic_count": _semantic_col.count(),
+            },
         )
-        return _palace
-    except ImportError:
-        logger.warning("mempalace package not installed — memory disabled")
-        return None
+        return True
+
     except Exception as exc:
-        logger.error("mempalace_init_failed", extra={"error": str(exc)})
-        return None
+        _init_error = str(exc)
+        logger.error("mempalace_init_failed", extra={"error": _init_error})
+        _episodes_col = None
+        _semantic_col = None
+        return False
 
 
 # ── Public API ─────────────────────────────────────────────────────
@@ -113,14 +115,8 @@ async def store_episode(
     content: str,
     metadata: Optional[dict[str, Any]] = None,
 ) -> bool:
-    """
-    Store an episodic memory (conversation turn, decision, outcome).
-    Called from memory_write node.
-
-    Returns True if stored successfully, False otherwise (fail-silent).
-    """
-    palace = _get_palace()
-    if palace is None:
+    """Store an episodic memory. Called from memory_write node. Fail-silent."""
+    if not _ensure_initialized():
         return False
 
     try:
@@ -130,10 +126,11 @@ async def store_episode(
             "type": "episode",
             **(metadata or {}),
         }
-        palace.add(
+        doc_id = f"{session_id}_{hash(content) & 0xFFFFFFFF:08x}"
+        _episodes_col.add(
             documents=[content],
             metadatas=[doc_metadata],
-            ids=[f"{session_id}_{hash(content) & 0xFFFFFFFF:08x}"],
+            ids=[doc_id],
         )
         logger.debug(
             "episode_stored",
@@ -150,14 +147,8 @@ async def store_semantic(
     content: str,
     metadata: Optional[dict[str, Any]] = None,
 ) -> bool:
-    """
-    Store a semantic memory (fact, learned pattern, skill outcome).
-    Called after skill_evaluator produces insights.
-
-    Returns True if stored successfully, False otherwise.
-    """
-    palace = _get_palace()
-    if palace is None:
+    """Store a semantic memory (fact, pattern, insight). Fail-silent."""
+    if not _ensure_initialized():
         return False
 
     try:
@@ -166,10 +157,11 @@ async def store_semantic(
             "type": "semantic",
             **(metadata or {}),
         }
-        palace.add(
+        doc_id = f"sem_{topic}_{hash(content) & 0xFFFFFFFF:08x}"
+        _semantic_col.add(
             documents=[content],
             metadatas=[doc_metadata],
-            ids=[f"sem_{topic}_{hash(content) & 0xFFFFFFFF:08x}"],
+            ids=[doc_id],
         )
         logger.debug("semantic_stored", extra={"topic": topic, "len": len(content)})
         return True
@@ -184,50 +176,38 @@ async def recall(
     n_results: int = 5,
     memory_type: Optional[str] = None,
 ) -> list[dict[str, Any]]:
-    """
-    Recall relevant memories by semantic search.
-    Called from intake node to enrich context.
-
-    Args:
-        query: Natural language query
-        user_id: Optional filter by user
-        n_results: Max results to return
-        memory_type: Optional filter ("episode" or "semantic")
-
-    Returns list of dicts with 'content', 'metadata', 'distance'.
-    Returns empty list on failure (fail-silent).
-    """
-    palace = _get_palace()
-    if palace is None:
+    """Recall relevant memories by semantic search. Fail-silent."""
+    if not _ensure_initialized():
         return []
 
     try:
+        # Choose collection based on memory_type
+        col = _semantic_col if memory_type == "semantic" else _episodes_col
+
         where_filter = {}
         if user_id:
             where_filter["user_id"] = user_id
-        if memory_type:
+        if memory_type and memory_type != "semantic":
             where_filter["type"] = memory_type
 
-        results = palace.query(
+        results = col.query(
             query_texts=[query],
             n_results=n_results,
             where=where_filter if where_filter else None,
         )
 
         memories = []
-        if results and results.get("documents"):
-            docs = results["documents"][0]
-            metas = results.get("metadatas", [[]])[0]
-            dists = results.get("distances", [[]])[0]
+        docs = results.documents[0] if hasattr(results, "documents") else results.get("documents", [[]])[0]
+        metas = results.metadatas[0] if hasattr(results, "metadatas") else results.get("metadatas", [[]])[0]
+        dists = results.distances[0] if hasattr(results, "distances") else results.get("distances", [[]])[0]
 
-            for i, doc in enumerate(docs):
-                memories.append(
-                    {
-                        "content": doc,
-                        "metadata": metas[i] if i < len(metas) else {},
-                        "distance": dists[i] if i < len(dists) else None,
-                    }
-                )
+        for i, doc in enumerate(docs):
+            if doc is not None:
+                memories.append({
+                    "content": doc,
+                    "metadata": metas[i] if i < len(metas) else {},
+                    "distance": dists[i] if i < len(dists) else None,
+                })
 
         logger.debug(
             "recall_complete",
@@ -241,18 +221,18 @@ async def recall(
 
 async def get_stats() -> dict[str, Any]:
     """Return MemPalace stats for /v1/memory/status endpoint."""
-    palace = _get_palace()
-    if palace is None:
-        return {"status": "unavailable", "reason": "not_initialized"}
+    if not _ensure_initialized():
+        return {
+            "status": "unavailable",
+            "reason": _init_error or "not_initialized",
+        }
 
     try:
-        # ChromaDB collection count
-        count = palace._collection.count() if hasattr(palace, "_collection") else -1
         return {
             "status": "active",
             "backend": "chromadb",
-            "collection": os.getenv("MEMPALACE_COLLECTION", "monstruo_v1"),
-            "document_count": count,
+            "episodes_count": _episodes_col.count(),
+            "semantic_count": _semantic_col.count(),
             "storage_path": os.getenv("MEMPALACE_STORAGE_PATH", "/tmp/monstruo_mempalace"),
         }
     except Exception as exc:

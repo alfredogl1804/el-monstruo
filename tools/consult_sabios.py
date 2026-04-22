@@ -10,7 +10,7 @@ The 6 Sabios (validated 2026-04-15):
     3. Gemini 2.5 Flash (Google) — Cartographer, technical mapping
     4. Grok (xAI) — Red team, adversarial thinking
     5. DeepSeek R1 (via OpenRouter) — Normalizer, structured data
-    6. Perplexity sonar-pro — Verifier, real-time web grounding
+    6. Perplexity sonar-reasoning-pro — Verifier, real-time web grounding
 
 Each sabio is called via its native SDK. Falls back gracefully
 if any sabio is unavailable.
@@ -78,10 +78,10 @@ SABIOS = {
         "env_key": "OPENROUTER_API_KEY",
     },
     "perplexity": {
-        "name": "Perplexity Sonar Pro",
+        "name": "Perplexity Sonar Reasoning Pro",
         "role": "Verificador en tiempo real",
         "provider": "perplexity",
-        "model": "sonar-pro",
+        "model": "sonar-reasoning-pro",
         "env_key": "SONAR_API_KEY",
     },
 }
@@ -200,7 +200,7 @@ async def _call_openrouter(model: str, system: str, user: str, api_key: str) -> 
 
 
 async def _call_perplexity(model: str, system: str, user: str, api_key: str) -> str:
-    """Call Perplexity API (sonar-pro)."""
+    """Call Perplexity API (sonar-reasoning-pro)."""
     async with httpx.AsyncClient(timeout=120.0) as client:
         resp = await client.post(
             "https://api.perplexity.ai/chat/completions",
