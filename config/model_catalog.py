@@ -7,7 +7,7 @@ Sprint 25 changes:
   - claude-opus-4-7 confirmed as latest opus (validated Anthropic /v1/models)
   - gemini-3.1-pro-preview confirmed (validated Google generativelanguage API)
   - All validated dates updated to 2026-04-22
-""""
+"""
 
 # ===================== CATÁLOGO VALIDADO 22 ABRIL 2026 (Sprint 25 Baseline) =====================
 
