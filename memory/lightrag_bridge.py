@@ -158,6 +158,10 @@ async def _get_rag(force_retry: bool = False):
         # - doc_status_storage: PGDocStatusStorage (replaces JsonDocStatusStorage)
         # - ClientManager.get_config() reads POSTGRES_* env vars automatically
         # - Tables are auto-created by LightRAG on initialize_storages()
+        # NOTE: PGGraphStorage requires Apache AGE extension which Supabase doesn't have.
+        # Use NetworkXStorage for graph (file-based, ephemeral but functional)
+        # while keeping pgvector for KV, Vector, and DocStatus (persistent).
+        # Graph data is rebuilt from documents on restart — acceptable tradeoff.
         rag = LightRAG(
             working_dir=working_dir,
             llm_model_func=openai_complete,
@@ -165,7 +169,7 @@ async def _get_rag(force_retry: bool = False):
             embedding_func=openai_embed,
             kv_storage="PGKVStorage",
             vector_storage="PGVectorStorage",
-            graph_storage="PGGraphStorage",
+            graph_storage="NetworkXStorage",  # No AGE extension on Supabase
             doc_status_storage="PGDocStatusStorage",
         )
 
