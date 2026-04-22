@@ -74,10 +74,12 @@ def _inject_postgres_env_from_db_url() -> bool:
         "POSTGRES_WORKSPACE": os.getenv("LIGHTRAG_WORKSPACE", "monstruo"),
     }
 
-    # SSL mode from query params
+    # SSL mode: Supabase uses self-signed certs, so we need "require" (not "verify-full")
+    # LightRAG's PostgreSQLDB.initdb() handles ssl_mode="require" by setting ssl=True
+    # which tells asyncpg to use SSL without verifying the certificate chain
     ssl_mode = qs.get("sslmode", [None])[0]
-    if ssl_mode:
-        env_map["POSTGRES_SSL_MODE"] = ssl_mode
+    # Default to "require" for Supabase — avoids CERTIFICATE_VERIFY_FAILED
+    env_map["POSTGRES_SSL_MODE"] = ssl_mode or "require"
 
     # Only set if not already defined (allow explicit overrides)
     for key, value in env_map.items():
