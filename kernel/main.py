@@ -372,8 +372,20 @@ async def lifespan(app: FastAPI):
             logger.warning("mempalace_warmup_skipped", reason="init_returned_false")
     except Exception as e:
         logger.warning("mempalace_warmup_failed", error=str(e))
+    # ── Sprint 24: LightRAG Warm-up ──────────────────────────────────
+    try:
+        from memory.lightrag_bridge import get_stats as lightrag_stats
 
-    # ── Sprint 17: MCP Client Manager ──────────────────────────────
+        lr_status = await lightrag_stats()
+        if lr_status.get("status") == "active":
+            app.state._lightrag_ready = True
+            logger.info("lightrag_warmed_up", model=lr_status.get("model", "unknown"))
+        else:
+            logger.info("lightrag_warmup_deferred", reason=lr_status.get("reason", "not_initialized"))
+    except Exception as e:
+        logger.warning("lightrag_warmup_failed", error=str(e))
+
+    # ── Sprint 17: MCP Client Manager ──────────────────────────────────
     mcp_manager = None
     try:
         from kernel.mcp_client import MCPClientManager, build_mcp_configs
@@ -1326,7 +1338,7 @@ async def health():
 
         models_available = list(MODEL_CATALOG.keys())
     except ImportError:
-        models_available = ["gpt-5", "claude-sonnet", "sonar-pro"]
+        models_available = ["gpt-5", "claude-sonnet", "sonar-reasoning-pro"]
 
     obs_status = (
         "active" if (observability and (observability.langfuse_enabled or observability.otel_enabled)) else "inactive"
@@ -1350,6 +1362,7 @@ async def health():
             "opentelemetry": "active" if (observability and observability.otel_enabled) else "inactive",
             "checkpointer": "active (AsyncPostgresSaver)" if (kernel and type(kernel._checkpointer).__name__ == "AsyncPostgresSaver") else "inactive (MemorySaver)" if kernel else "unknown",
             "mempalace": "active" if getattr(app.state, "_mempalace_ready", False) else "inactive",
+            "lightrag": "active" if getattr(app.state, "_lightrag_ready", False) else "inactive",
             "multi_agent": "active",  # Sprint 21: always available (keyword-based, no external deps)
             "finops": "active" if getattr(app.state, "finops", None) else "inactive",
             "mcp": "active" if getattr(app.state, "mcp_manager", None) else "inactive",

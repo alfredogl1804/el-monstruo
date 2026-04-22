@@ -352,6 +352,7 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
     conversation_context: list[dict[str, str]] = []
     relevant_memories: list[dict[str, Any]] = []
     knowledge_entities: list[dict[str, Any]] = []
+    lightrag_result: dict[str, Any] = {}  # Sprint 24: LightRAG KG context
     system_prompt = _build_base_system_prompt()
 
     # Sprint 9: Inject dynamic user dossier from Supabase
@@ -469,19 +470,39 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
                 logger.warning("enrich_mempalace_failed", error=str(e))
                 return []
 
-        # OPT-2: Execute ALL lookups in parallel (Sprint 23: +Honcho)
+        # Sprint 24: LightRAG knowledge graph retrieval
+        async def _query_lightrag():
+            try:
+                from memory.lightrag_bridge import query_knowledge
+
+                mode = "hybrid" if intent in ("deep_think", "execute") else "local"
+                result = await query_knowledge(
+                    query=message,
+                    mode=mode,
+                    top_k=3 if intent == "chat" else 5,
+                )
+                if result.get("results") and not result.get("error"):
+                    return result
+                return {}
+            except Exception as e:
+                logger.warning("enrich_lightrag_failed", error=str(e))
+                return {}
+
+        # OPT-2: Execute ALL lookups in parallel (Sprint 24: +LightRAG)
         (
             conversation_context,
             relevant_memories,
             knowledge_entities,
             mempalace_memories,
             honcho_context,
+            lightrag_result,
         ) = await asyncio.gather(
             _get_conversation(),
             _search_memories(),
             _get_knowledge(),
             _recall_mempalace(),
             _get_honcho_context(),
+            _query_lightrag(),
         )
 
         # Sprint 21: Merge MemPalace results into relevant_memories
@@ -500,6 +521,7 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
             memories=len(relevant_memories),
             entities=len(knowledge_entities),
             mempalace=len(mempalace_memories),
+            lightrag=bool(lightrag_result),
             intent=intent,
         )
 
@@ -513,6 +535,15 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
             f"- {e['name']} ({e['type']}): {e.get('attributes', {})}" for e in knowledge_entities[:3]
         )
         system_prompt += f"\n\n## Known Entities\n{entity_context}"
+
+    # Sprint 24: Inject LightRAG knowledge graph context
+    if lightrag_result and lightrag_result.get("results"):
+        rag_text = lightrag_result["results"]
+        if isinstance(rag_text, str) and rag_text.strip():
+            # Truncate to avoid blowing up context window
+            rag_truncated = rag_text[:2000] if len(rag_text) > 2000 else rag_text
+            system_prompt += f"\n\n## Knowledge Graph Context (LightRAG)\n{rag_truncated}"
+            logger.info("enrich_lightrag_injected", chars=len(rag_truncated), mode=lightrag_result.get("mode", "unknown"))
 
     # Sprint 23: Inject Honcho user profile into system prompt
     if honcho_context and honcho_context.get("honcho_active"):
