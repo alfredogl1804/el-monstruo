@@ -1,0 +1,93 @@
+# ============================================================
+# El Monstruo — License Compliance Audit (Sprint 22)
+# ============================================================
+# Blocks viral licenses (AGPL, GPL, SSPL, EUPL, OSL) from
+# entering the dependency tree. Runs on every PR.
+# Policy: Only permissive licenses allowed in production.
+# ============================================================
+
+name: License Audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  license-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pip-licenses
+
+      - name: Run license audit
+        run: |
+          echo "=== License Audit Report ==="
+          echo "Date: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo ""
+          
+          # Generate full license report
+          pip-licenses --format=json --with-urls --with-description > license-report.json
+          pip-licenses --format=table --with-urls > license-report.txt
+          
+          echo "--- Full License Report ---"
+          cat license-report.txt
+          echo ""
+          
+          # Define viral/copyleft licenses to block
+          VIRAL_LICENSES="AGPL|GPL-3|GPL-2|SSPL|EUPL|OSL|CPAL|RPL|Sleepycat|Watcom"
+          
+          # Check for viral licenses
+          echo "--- Checking for viral licenses ---"
+          VIOLATIONS=$(pip-licenses --format=json | python3 -c "
+          import json, sys, re
+          data = json.load(sys.stdin)
+          viral = re.compile(r'($VIRAL_LICENSES)', re.IGNORECASE)
+          violations = []
+          for pkg in data:
+              lic = pkg.get('License', 'UNKNOWN')
+              # Skip packages with dual licenses where one is permissive
+              if viral.search(lic):
+                  # Check if it also has a permissive option
+                  if not any(p in lic for p in ['MIT', 'BSD', 'Apache', 'ISC', 'PSF']):
+                      violations.append(f\"  {pkg['Name']}=={pkg['Version']}: {lic}\")
+          if violations:
+              print('VIRAL LICENSE VIOLATIONS FOUND:')
+              for v in violations:
+                  print(v)
+              sys.exit(1)
+          else:
+              print('All licenses are permissive. No violations found.')
+              sys.exit(0)
+          ")
+          
+          echo "$VIOLATIONS"
+
+      - name: Upload license report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: license-audit-report
+          path: |
+            license-report.json
+            license-report.txt

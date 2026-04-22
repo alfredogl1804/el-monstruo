@@ -1,0 +1,96 @@
+# ============================================================
+# El Monstruo — AI-Infra-Guard Security Scan (Sprint 22)
+# ============================================================
+# Runs Tencent AI-Infra-Guard agent scan on PRs to detect:
+# - Prompt injection vulnerabilities
+# - Privilege escalation risks
+# - Data leakage vectors
+# - MCP server misconfigurations
+# ============================================================
+
+name: AI-Infra-Guard Scan
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  agent-scan:
+    runs-on: ubuntu-latest
+    services:
+      aig:
+        image: tencentaiinfra/ai-infra-guard:latest
+        ports:
+          - 8088:8088
+        options: >-
+          --health-cmd "curl -f http://localhost:8088/api/v1/app/taskapi/status/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Wait for AIG to be ready
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8088/api/v1/app/taskapi/status/health; then
+              echo "AIG is ready"
+              break
+            fi
+            echo "Waiting for AIG... ($i/30)"
+            sleep 5
+          done
+
+      - name: Run Agent Scan
+        run: |
+          # Create agent scan task
+          RESPONSE=$(curl -s -X POST http://localhost:8088/api/v1/app/taskapi/tasks \
+            -H "Content-Type: application/json" \
+            -d '{
+              "type": "agent_scan",
+              "content": {
+                "target_url": "https://el-monstruo-kernel-production.up.railway.app",
+                "language": "en",
+                "prompt": "Focus on prompt injection, privilege escalation, and data leakage risks in this AI agent kernel"
+              }
+            }')
+          
+          SESSION_ID=$(echo $RESPONSE | jq -r '.data.session_id')
+          echo "Session ID: $SESSION_ID"
+          
+          # Poll for results (max 10 minutes)
+          for i in $(seq 1 60); do
+            STATUS=$(curl -s http://localhost:8088/api/v1/app/taskapi/status/$SESSION_ID | jq -r '.data.status')
+            echo "Status: $STATUS ($i/60)"
+            if [ "$STATUS" = "completed" ] || [ "$STATUS" = "failed" ]; then
+              break
+            fi
+            sleep 10
+          done
+          
+          # Get results
+          RESULT=$(curl -s http://localhost:8088/api/v1/app/taskapi/result/$SESSION_ID)
+          echo "$RESULT" | jq . > aig-results.json
+          
+          # Check for critical findings
+          CRITICAL=$(echo "$RESULT" | jq '.data.vulnerabilities[] | select(.severity == "critical")' 2>/dev/null | wc -l)
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "::error::AI-Infra-Guard found $CRITICAL critical vulnerabilities!"
+            cat aig-results.json
+            exit 1
+          fi
+          
+          echo "AI-Infra-Guard scan completed. No critical vulnerabilities found."
+
+      - name: Upload scan results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: aig-scan-results
+          path: aig-results.json

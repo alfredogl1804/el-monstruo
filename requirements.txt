@@ -1,12 +1,12 @@
-# El Monstruo — Sprint 19 Dependencies (Pinned)
-# Updated: 2026-04-21 — ALL versions validated in real-time via PyPI
+# El Monstruo — Sprint 22 Dependencies (Pinned)
+# Updated: 2026-04-21 — ALL versions validated in real-time via PyPI JSON API
 # Policy: ALL versions pinned. NO floating ranges.
 # Validation: /protocolo-operativo-core + /validacion-tiempo-real applied
-# Sprint 19: MemPalace deep memory + Multi-Agent dispatcher + DeepEval CI gate
+# Sprint 22: Security fix (fail-closed auth) + dependency updates + AI-Infra-Guard
 
 # ── Kernel / Orchestration ──────────────────────────────────────────
-langgraph==1.1.8
-  # langgraph 1.1.8 pulls langchain-core==1.
+langgraph==1.1.9  # IVD auto-update Sprint 22 (was 1.1.8) — validated PyPI 2026-04-21
+  # langgraph 1.1.9 pulls langchain-core==1.
 # Sprint 16: explicit pin of langchain-core + provider SDKs (v1.x migration)
 langchain-core==1.3.0
 langchain-openai==1.1.15  # IVD auto-update 2026-04-20 (was 1.1.14)
@@ -59,7 +59,7 @@ python-multipart==0.0.26
 opentelemetry-api==1.41.0
 opentelemetry-sdk==1.41.0
 opentelemetry-exporter-otlp==1.41.0
-langfuse==4.3.1  # validated 2026-04-19 (PyPI latest)
+langfuse==4.5.0  # IVD auto-update Sprint 22 (was 4.3.1) — validated PyPI 2026-04-21
 
 # ── Utilities ───────────────────────────────────────────────────────
 httpx==0.28.1
@@ -90,7 +90,7 @@ deepeval==3.9.7
 
 # ── Deep Memory (MemPalace) — Sprint 19 ───────────────────
 # Episodic + Semantic memory system. Complements Honcho (user modeling).
-# MIT license — validated 2026-04-21 via PyPI (latest=3.3.1)
+# MIT license — validated 2026-04-21 via PyPI (latest=3.3.2)
 # Deps: chromadb + pyyaml (lightweight, no torch)
 # GitHub: MemPalace/mempalace (48K+ stars)
-mempalace==3.3.1
+mempalace==3.3.2  # IVD auto-update Sprint 22 (was 3.3.1) — validated PyPI 2026-04-21

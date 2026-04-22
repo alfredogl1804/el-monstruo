@@ -1,7 +1,7 @@
 # ============================================================
 # El Monstruo — SAST with Semgrep (Sprint 15)
 # ============================================================
-# Static Application Security Testing using Semgrep v1.115.0
+# Static Application Security Testing using Semgrep (latest=1.160.0 as of Sprint 22)
 # Runs on every PR and push to main
 # ============================================================
 
