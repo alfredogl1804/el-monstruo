@@ -109,6 +109,26 @@ async def _get_rag(force_retry: bool = False):
         # LightRAG 1.4.15: storage params expect STRING class names, not class references
         # Validated 2026-04-22: type hint is `str`, default is "JsonKVStorage"
 
+        # ── SSL fix for Supabase (self-signed cert chain) ──────────────
+        # LightRAG's PostgreSQLDB._create_ssl_context returns None for ssl_mode="require",
+        # then initdb sets connection_params["ssl"] = True, which makes asyncpg create
+        # a default SSL context that VERIFIES certificates → fails with Supabase.
+        # Fix: monkey-patch _create_ssl_context to return a no-verify context.
+        import ssl as _ssl
+        from lightrag.kg.postgres_impl import PostgreSQLDB
+        _original_create_ssl = PostgreSQLDB._create_ssl_context
+
+        def _patched_create_ssl(self_db):
+            if self_db.ssl_mode and self_db.ssl_mode.lower() in ("require", "prefer", "allow"):
+                ctx = _ssl.create_default_context()
+                ctx.check_hostname = False
+                ctx.verify_mode = _ssl.CERT_NONE
+                return ctx
+            return _original_create_ssl(self_db)
+
+        PostgreSQLDB._create_ssl_context = _patched_create_ssl
+        logger.info("lightrag_ssl_patched", extra={"mode": "no-verify for require/prefer/allow"})
+
         api_key = os.getenv("OPENAI_API_KEY", "")
         if not api_key:
             _rag_init_error = "OPENAI_API_KEY not set"
