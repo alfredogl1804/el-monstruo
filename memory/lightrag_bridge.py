@@ -31,15 +31,15 @@ _rag = None
 _rag_init_attempted = False
 
 
-async def _get_rag():
+async def _get_rag(force_retry: bool = False):
     """Lazy-initialize LightRAG instance. Returns None if unavailable."""
     global _rag, _rag_init_attempted
 
     if _rag is not None:
         return _rag
 
-    if _rag_init_attempted:
-        return None  # Don't retry if init already failed
+    if _rag_init_attempted and not force_retry:
+        return None  # Don't retry if init already failed (unless forced)
 
     _rag_init_attempted = True
 
@@ -88,11 +88,12 @@ async def _get_rag():
         )
         return _rag
 
-    except ImportError:
-        logger.warning("lightrag-hku package not installed — RAG disabled")
+    except ImportError as ie:
+        logger.warning("lightrag_import_failed", extra={"error": str(ie), "detail": "lightrag-hku package not installed or missing dependency"})
         return None
     except Exception as exc:
-        logger.error("lightrag_init_failed", extra={"error": str(exc)})
+        import traceback
+        logger.error("lightrag_init_failed", extra={"error": str(exc), "traceback": traceback.format_exc()[:500]})
         return None
 
 
@@ -112,7 +113,7 @@ async def ingest_document(
 
     Returns dict with status and details.
     """
-    rag = await _get_rag()
+    rag = await _get_rag(force_retry=True)  # Retry on explicit calls
     if rag is None:
         return {"ingested": False, "reason": "lightrag_unavailable"}
 
@@ -147,12 +148,12 @@ async def query_knowledge(
 
     Args:
         query: Natural language query
-        mode: Retrieval mode — "local", "global", "hybrid", or "naive"
+        mode: Retrieval mode \u2014 "local", "global", "hybrid", or "naive"
         top_k: Max results to return
 
     Returns dict with results and metadata.
     """
-    rag = await _get_rag()
+    rag = await _get_rag(force_retry=True)  # Retry on explicit calls
     if rag is None:
         return {"results": [], "reason": "lightrag_unavailable"}
 
