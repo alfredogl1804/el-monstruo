@@ -79,7 +79,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.16.1-sprint23", motor="langgraph")
+    logger.info("monstruo_starting", version="0.17.0-sprint24", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -160,7 +160,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.16.1-sprint23",
+            "version": "0.17.0-sprint24",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -359,18 +359,17 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("sovereign_alerts_failed", error=str(e))
 
-    # ── Sprint 21: MemPalace Warm-up ──────────────────────────────
+    # ── Sprint 24: MemPalace Warm-up (pgvector) ────────────────────
     mempalace_ready = False
     try:
-        from memory.mempalace_bridge import _get_palace
+        from memory.mempalace_bridge import _ensure_initialized
 
-        palace = _get_palace()
-        if palace is not None:
+        if _ensure_initialized():
             mempalace_ready = True
             app.state._mempalace_ready = True
-            logger.info("mempalace_warmed_up", backend="chromadb")
+            logger.info("mempalace_warmed_up", backend="pgvector")
         else:
-            logger.warning("mempalace_warmup_skipped", reason="not_available")
+            logger.warning("mempalace_warmup_skipped", reason="init_returned_false")
     except Exception as e:
         logger.warning("mempalace_warmup_failed", error=str(e))
 
@@ -410,7 +409,7 @@ async def lifespan(app: FastAPI):
 
     logger.info(
         "monstruo_ready",
-        version="0.16.1-sprint23",
+        version="0.17.0-sprint24",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -484,7 +483,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.16.1-sprint23",
+    version="0.17.0-sprint24",
     lifespan=lifespan,
 )
 
@@ -581,7 +580,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.16.1-sprint23",
+        "version": "0.17.0-sprint24",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -1141,7 +1140,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.16.1-sprint23",
+            "version": "0.17.0-sprint24",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1335,7 +1334,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.16.1-sprint23",
+        "version": "0.17.0-sprint24",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields

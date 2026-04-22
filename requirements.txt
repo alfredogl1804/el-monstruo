@@ -1,8 +1,8 @@
-# El Monstruo — Sprint 23 Dependencies (Pinned)
+# El Monstruo — Sprint 24 Dependencies (Pinned)
 # Updated: 2026-04-22 — ALL versions validated in real-time via PyPI JSON API
 # Policy: ALL versions pinned. NO floating ranges.
 # Validation: /protocolo-operativo-core + /validacion-tiempo-real applied
-# Sprint 23: MemPalace activation + Honcho LangGraph integration + LightRAG + langchain-openai update
+# Sprint 24: MemPalace migrated ChromaDB→pgvector + LightRAG connected to LangGraph flow
 
 # ── Kernel / Orchestration ──────────────────────────────────────────
 langgraph==1.1.9  # IVD auto-update Sprint 22 (was 1.1.8) — validated PyPI 2026-04-21
@@ -88,12 +88,12 @@ pytest-cov==7.1.0
 # NOTE: deepeval may pull optional heavy deps; we use core metrics only
 deepeval==3.9.7
 
-# ── Deep Memory (MemPalace) — Sprint 19 ───────────────────
+## ── Deep Memory (MemPalace) — Sprint 24 ───────────────
 # Episodic + Semantic memory system. Complements Honcho (user modeling).
-# MIT license — validated 2026-04-21 via PyPI (latest=3.3.2)
-# Deps: chromadb + pyyaml (lightweight, no torch)
-# GitHub: MemPalace/mempalace (48K+ stars)
-mempalace==3.3.2  # IVD auto-update Sprint 22 (was 3.3.1) — validated PyPI 2026-04-21
+# Sprint 24: MIGRATED from ChromaDB to pgvector (Supabase)
+# mempalace package REMOVED — bridge uses psycopg + pgvector directly
+# Tables: mempalace_episodes, mempalace_semantic (vector(1536) columns)
+# Embeddings: OpenAI text-embedding-3-small via httpx (already in deps)
 # ── Knowledge Graph RAG (LightRAG) — Sprint 23 ──────────────────
 # Dual-level retrieval: local (entity) + global (theme) via knowledge graph
 # MIT license — validated 2026-04-22 via PyPI (latest=1.4.15)

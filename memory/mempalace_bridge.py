@@ -1,14 +1,15 @@
 """
 MemPalace Bridge — Episodic + Semantic Memory for El Monstruo
-Sprint 23-fix | v0.16.1-sprint23
+Sprint 24 | v0.17.0-sprint24
 
-CORRECTED: Previous bridge used a hallucinated `MemPalace` class that does not exist.
-MemPalace is a CLI/MCP tool. The Python API is:
-  - mempalace.palace.get_collection(path, name) → ChromaDB Collection
-  - collection.add(documents, metadatas, ids) → store
-  - collection.query(query_texts, n_results) → search
+MIGRATED: ChromaDB → pgvector (Supabase).
+  - ChromaDB used /tmp/ in Railway (ephemeral, lost on every deploy)
+  - pgvector uses Supabase PostgreSQL (persistent, already hosts checkpointer)
+  - Embeddings via OpenAI text-embedding-3-small (1536 dims)
 
-Tested locally: chromadb 1.5.8 works correctly. No regression.
+Tables:
+  - mempalace_episodes: user conversations, decisions, outcomes
+  - mempalace_semantic: facts, patterns, insights
 
 Architecture:
   - MemPalace stores long-term episodic memories (conversations, decisions, outcomes)
@@ -30,70 +31,109 @@ import logging
 import os
 from typing import Any, Optional
 
+import httpx
+
 logger = logging.getLogger("monstruo.memory.mempalace")
 
-# ── Lazy-loaded collections ──────────────────────────────────────────
-_episodes_col = None
-_semantic_col = None
+# ── State ───────────────────────────────────────────────────────────
 _initialized = False
 _init_error: Optional[str] = None
+_db_url: Optional[str] = None
+_openai_api_key: Optional[str] = None
+_conn = None
 
 
-def _ensure_initialized():
-    """Lazy-init both collections. Returns True if ready."""
-    global _episodes_col, _semantic_col, _initialized, _init_error
+def _get_connection():
+    """Get or create a psycopg v3 connection to Supabase."""
+    global _conn
+    if _conn is not None:
+        try:
+            _conn.execute("SELECT 1")
+            return _conn
+        except Exception:
+            try:
+                _conn.close()
+            except Exception:
+                pass
+            _conn = None
+
+    import psycopg
+    _conn = psycopg.connect(_db_url, autocommit=True)
+    return _conn
+
+
+def _get_embedding(text: str) -> Optional[list[float]]:
+    """Get embedding from OpenAI text-embedding-3-small. Synchronous for simplicity."""
+    if not _openai_api_key:
+        return None
+    try:
+        api_base = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
+        resp = httpx.post(
+            f"{api_base}/embeddings",
+            headers={"Authorization": f"Bearer {_openai_api_key}"},
+            json={"model": "text-embedding-3-small", "input": text},
+            timeout=15.0,
+        )
+        resp.raise_for_status()
+        return resp.json()["data"][0]["embedding"]
+    except Exception as exc:
+        logger.warning("embedding_failed", extra={"error": str(exc)})
+        return None
+
+
+def _ensure_initialized() -> bool:
+    """Lazy-init pgvector connection. Returns True if ready."""
+    global _initialized, _init_error, _db_url, _openai_api_key
 
     if _initialized:
-        return _episodes_col is not None
+        return _db_url is not None
 
-    _initialized = True  # prevent retry loops
+    _initialized = True
 
-    try:
-        from mempalace.palace import get_collection
-    except ImportError:
-        _init_error = "mempalace package not installed"
-        logger.warning("mempalace_not_installed")
+    _db_url = os.getenv("SUPABASE_DB_URL")
+    if not _db_url:
+        _init_error = "SUPABASE_DB_URL not set"
+        logger.warning("mempalace_no_db_url")
         return False
 
-    storage_path = os.getenv("MEMPALACE_STORAGE_PATH", "/tmp/monstruo_mempalace")
-    os.makedirs(storage_path, exist_ok=True)
+    _openai_api_key = os.getenv("OPENAI_API_KEY")
+    if not _openai_api_key:
+        _init_error = "OPENAI_API_KEY not set (needed for embeddings)"
+        logger.warning("mempalace_no_openai_key")
+        return False
 
     try:
-        _episodes_col = get_collection(
-            storage_path, collection_name="monstruo_episodes", create=True
-        )
-        _semantic_col = get_collection(
-            storage_path, collection_name="monstruo_semantic", create=True
-        )
+        conn = _get_connection()
 
-        # Health probe: verify write + read roundtrip
-        _episodes_col.add(
-            documents=["__healthcheck__"],
-            metadatas=[{"type": "healthcheck"}],
-            ids=["__hc__"],
-        )
-        probe = _episodes_col.query(query_texts=["__healthcheck__"], n_results=1)
-        docs = probe.documents[0] if hasattr(probe, "documents") else probe.get("documents", [[]])[0]
-
-        if not docs or docs[0] != "__healthcheck__":
-            _init_error = "health probe write/read mismatch"
-            logger.error("mempalace_health_probe_failed", extra={"detail": _init_error})
-            _episodes_col = None
-            _semantic_col = None
+        # Health probe: verify tables exist
+        result = conn.execute(
+            "SELECT EXISTS (SELECT 1 FROM information_schema.tables "
+            "WHERE table_name = 'mempalace_episodes')"
+        ).fetchone()
+        if not result[0]:
+            _init_error = "mempalace_episodes table not found"
+            logger.error("mempalace_table_missing")
+            _db_url = None
             return False
 
-        # Cleanup probe
-        try:
-            _episodes_col.delete(ids=["__hc__"])
-        except Exception:
-            pass
+        # Test embedding generation
+        test_emb = _get_embedding("health check")
+        if not test_emb or len(test_emb) != 1536:
+            _init_error = "embedding generation failed or wrong dimensions"
+            logger.error("mempalace_embedding_test_failed")
+            _db_url = None
+            return False
+
+        # Count existing records
+        ep_count = conn.execute("SELECT count(*) FROM mempalace_episodes").fetchone()[0]
+        sem_count = conn.execute("SELECT count(*) FROM mempalace_semantic").fetchone()[0]
 
         logger.info(
             "mempalace_initialized",
             extra={
-                "storage_path": storage_path,
-                "episodes_count": _episodes_col.count(),
-                "semantic_count": _semantic_col.count(),
+                "backend": "pgvector",
+                "episodes_count": ep_count,
+                "semantic_count": sem_count,
             },
         )
         return True
@@ -101,8 +141,7 @@ def _ensure_initialized():
     except Exception as exc:
         _init_error = str(exc)
         logger.error("mempalace_init_failed", extra={"error": _init_error})
-        _episodes_col = None
-        _semantic_col = None
+        _db_url = None
         return False
 
 
@@ -120,18 +159,29 @@ async def store_episode(
         return False
 
     try:
-        doc_metadata = {
-            "user_id": user_id,
-            "session_id": session_id,
-            "type": "episode",
-            **(metadata or {}),
-        }
+        import json as _json
+        embedding = _get_embedding(content)
         doc_id = f"{session_id}_{hash(content) & 0xFFFFFFFF:08x}"
-        _episodes_col.add(
-            documents=[content],
-            metadatas=[doc_metadata],
-            ids=[doc_id],
-        )
+        meta_json = _json.dumps(metadata or {})
+
+        conn = _get_connection()
+
+        if embedding:
+            conn.execute(
+                """INSERT INTO mempalace_episodes (id, user_id, session_id, content, embedding, metadata)
+                   VALUES (%s, %s, %s, %s, %s::vector, %s::jsonb)
+                   ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content,
+                   embedding = EXCLUDED.embedding, metadata = EXCLUDED.metadata""",
+                (doc_id, user_id, session_id, content, str(embedding), meta_json),
+            )
+        else:
+            conn.execute(
+                """INSERT INTO mempalace_episodes (id, user_id, session_id, content, metadata)
+                   VALUES (%s, %s, %s, %s, %s::jsonb)
+                   ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content, metadata = EXCLUDED.metadata""",
+                (doc_id, user_id, session_id, content, meta_json),
+            )
+
         logger.debug(
             "episode_stored",
             extra={"user_id": user_id, "session_id": session_id, "len": len(content)},
@@ -152,17 +202,29 @@ async def store_semantic(
         return False
 
     try:
-        doc_metadata = {
-            "topic": topic,
-            "type": "semantic",
-            **(metadata or {}),
-        }
+        import json as _json
+        embedding = _get_embedding(content)
         doc_id = f"sem_{topic}_{hash(content) & 0xFFFFFFFF:08x}"
-        _semantic_col.add(
-            documents=[content],
-            metadatas=[doc_metadata],
-            ids=[doc_id],
-        )
+        meta_json = _json.dumps(metadata or {})
+
+        conn = _get_connection()
+
+        if embedding:
+            conn.execute(
+                """INSERT INTO mempalace_semantic (id, topic, content, embedding, metadata)
+                   VALUES (%s, %s, %s, %s::vector, %s::jsonb)
+                   ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content,
+                   embedding = EXCLUDED.embedding, metadata = EXCLUDED.metadata""",
+                (doc_id, topic, content, str(embedding), meta_json),
+            )
+        else:
+            conn.execute(
+                """INSERT INTO mempalace_semantic (id, topic, content, metadata)
+                   VALUES (%s, %s, %s, %s::jsonb)
+                   ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content, metadata = EXCLUDED.metadata""",
+                (doc_id, topic, content, meta_json),
+            )
+
         logger.debug("semantic_stored", extra={"topic": topic, "len": len(content)})
         return True
     except Exception as exc:
@@ -176,38 +238,42 @@ async def recall(
     n_results: int = 5,
     memory_type: Optional[str] = None,
 ) -> list[dict[str, Any]]:
-    """Recall relevant memories by semantic search. Fail-silent."""
+    """Recall relevant memories by semantic search using pgvector. Fail-silent."""
     if not _ensure_initialized():
         return []
 
     try:
-        # Choose collection based on memory_type
-        col = _semantic_col if memory_type == "semantic" else _episodes_col
+        embedding = _get_embedding(query)
+        if not embedding:
+            return []
 
-        where_filter = {}
-        if user_id:
-            where_filter["user_id"] = user_id
-        if memory_type and memory_type != "semantic":
-            where_filter["type"] = memory_type
+        table = "mempalace_semantic" if memory_type == "semantic" else "mempalace_episodes"
+        emb_str = str(embedding)
 
-        results = col.query(
-            query_texts=[query],
-            n_results=n_results,
-            where=where_filter if where_filter else None,
-        )
+        # Build query with optional filters
+        if user_id and table == "mempalace_episodes":
+            sql = f"""SELECT id, content, metadata, 1 - (embedding <=> %s::vector) AS similarity
+                      FROM {table} WHERE user_id = %s
+                      ORDER BY embedding <=> %s::vector LIMIT %s"""
+            params = (emb_str, user_id, emb_str, n_results)
+        else:
+            sql = f"""SELECT id, content, metadata, 1 - (embedding <=> %s::vector) AS similarity
+                      FROM {table}
+                      ORDER BY embedding <=> %s::vector LIMIT %s"""
+            params = (emb_str, emb_str, n_results)
+
+        conn = _get_connection()
+        rows = conn.execute(sql, params).fetchall()
 
         memories = []
-        docs = results.documents[0] if hasattr(results, "documents") else results.get("documents", [[]])[0]
-        metas = results.metadatas[0] if hasattr(results, "metadatas") else results.get("metadatas", [[]])[0]
-        dists = results.distances[0] if hasattr(results, "distances") else results.get("distances", [[]])[0]
-
-        for i, doc in enumerate(docs):
-            if doc is not None:
-                memories.append({
-                    "content": doc,
-                    "metadata": metas[i] if i < len(metas) else {},
-                    "distance": dists[i] if i < len(dists) else None,
-                })
+        for row in rows:
+            doc_id, content, meta, similarity = row
+            memories.append({
+                "content": content,
+                "metadata": meta or {},
+                "similarity": round(float(similarity), 4) if similarity else None,
+                "id": doc_id,
+            })
 
         logger.debug(
             "recall_complete",
@@ -228,12 +294,16 @@ async def get_stats() -> dict[str, Any]:
         }
 
     try:
+        conn = _get_connection()
+        ep_count = conn.execute("SELECT count(*) FROM mempalace_episodes").fetchone()[0]
+        sem_count = conn.execute("SELECT count(*) FROM mempalace_semantic").fetchone()[0]
+
         return {
             "status": "active",
-            "backend": "chromadb",
-            "episodes_count": _episodes_col.count(),
-            "semantic_count": _semantic_col.count(),
-            "storage_path": os.getenv("MEMPALACE_STORAGE_PATH", "/tmp/monstruo_mempalace"),
+            "backend": "pgvector",
+            "episodes_count": ep_count,
+            "semantic_count": sem_count,
+            "db": "supabase",
         }
     except Exception as exc:
         return {"status": "error", "error": str(exc)}
