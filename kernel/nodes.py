@@ -387,6 +387,16 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
             total_chars=len(combined_external),
         )
 
+    # Sprint 23: Honcho user context retrieval (parallel with other lookups)
+    honcho_context = {}
+    async def _get_honcho_context():
+        try:
+            from memory.honcho_bridge import get_user_context
+            return await get_user_context(user_id=user_id)
+        except Exception as e:
+            logger.warning("enrich_honcho_failed", error=str(e))
+            return {}
+
     # OPT-2: Parallel memory + knowledge lookups
     if memory:
         # Build coroutines for parallel execution
@@ -459,17 +469,19 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
                 logger.warning("enrich_mempalace_failed", error=str(e))
                 return []
 
-        # OPT-2: Execute ALL lookups in parallel (Sprint 21: +MemPalace)
+        # OPT-2: Execute ALL lookups in parallel (Sprint 23: +Honcho)
         (
             conversation_context,
             relevant_memories,
             knowledge_entities,
             mempalace_memories,
+            honcho_context,
         ) = await asyncio.gather(
             _get_conversation(),
             _search_memories(),
             _get_knowledge(),
             _recall_mempalace(),
+            _get_honcho_context(),
         )
 
         # Sprint 21: Merge MemPalace results into relevant_memories
@@ -501,6 +513,23 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
             f"- {e['name']} ({e['type']}): {e.get('attributes', {})}" for e in knowledge_entities[:3]
         )
         system_prompt += f"\n\n## Known Entities\n{entity_context}"
+
+    # Sprint 23: Inject Honcho user profile into system prompt
+    if honcho_context and honcho_context.get("honcho_active"):
+        honcho_parts = []
+        if honcho_context.get("communication_style"):
+            honcho_parts.append(f"Communication style: {honcho_context['communication_style']}")
+        if honcho_context.get("expertise_areas"):
+            honcho_parts.append(f"Expertise: {', '.join(honcho_context['expertise_areas'])}")
+        if honcho_context.get("preferences"):
+            prefs = honcho_context["preferences"]
+            if isinstance(prefs, dict) and prefs:
+                honcho_parts.append(f"Preferences: {prefs}")
+        if honcho_context.get("interaction_count", 0) > 0:
+            honcho_parts.append(f"Previous interactions: {honcho_context['interaction_count']}")
+        if honcho_parts:
+            system_prompt += f"\n\n## User Profile (Honcho)\n" + "\n".join(f"- {p}" for p in honcho_parts)
+            logger.info("enrich_honcho_injected", fields=len(honcho_parts))
 
     elapsed_ms = (time.monotonic() - start_time) * 1000
 
@@ -938,6 +967,29 @@ async def memory_write(state: MonstruoState, config: RunnableConfig) -> dict[str
         logger.info("mempalace_episode_stored", run_id=run_id)
     except Exception as e:
         logger.warning("mempalace_store_failed", error=str(e))
+
+    # Sprint 23: Update Honcho user model with interaction summary
+    try:
+        from memory.honcho_bridge import update_user_model
+
+        interaction_summary = (
+            f"Intent: {intent}. User asked about: {message[:200]}. "
+            f"Assistant responded with {len(response)} chars. "
+            f"Model: {state.get('model_used', 'unknown')}. "
+            f"Channel: {channel}."
+        ) if response else f"Intent: {intent}. Message: {message[:200]}"
+
+        honcho_result = await update_user_model(
+            user_id=user_id,
+            interaction_summary=interaction_summary,
+            thread_id=run_id,
+        )
+        if honcho_result.get("updated"):
+            logger.info("honcho_user_updated", run_id=run_id, session_id=honcho_result.get("session_id"))
+        else:
+            logger.debug("honcho_update_skipped", reason=honcho_result.get("reason", "unknown"))
+    except Exception as e:
+        logger.warning("honcho_update_failed", error=str(e))
 
     # Write events to sovereign event store
     if event_store:

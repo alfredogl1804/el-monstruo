@@ -1,15 +1,15 @@
-# El Monstruo — Sprint 22 Dependencies (Pinned)
-# Updated: 2026-04-21 — ALL versions validated in real-time via PyPI JSON API
+# El Monstruo — Sprint 23 Dependencies (Pinned)
+# Updated: 2026-04-22 — ALL versions validated in real-time via PyPI JSON API
 # Policy: ALL versions pinned. NO floating ranges.
 # Validation: /protocolo-operativo-core + /validacion-tiempo-real applied
-# Sprint 22: Security fix (fail-closed auth) + dependency updates + AI-Infra-Guard
+# Sprint 23: MemPalace activation + Honcho LangGraph integration + LightRAG + langchain-openai update
 
 # ── Kernel / Orchestration ──────────────────────────────────────────
 langgraph==1.1.9  # IVD auto-update Sprint 22 (was 1.1.8) — validated PyPI 2026-04-21
   # langgraph 1.1.9 pulls langchain-core==1.
 # Sprint 16: explicit pin of langchain-core + provider SDKs (v1.x migration)
 langchain-core==1.3.0
-langchain-openai==1.1.15  # IVD auto-update 2026-04-20 (was 1.1.14)
+langchain-openai==1.1.16  # IVD auto-update Sprint 23 (was 1.1.15) — validated PyPI 2026-04-22
 langchain-anthropic==1.4.1
 langchain-google-genai==4.2.2
 langgraph-checkpoint==4.0.2
@@ -94,3 +94,10 @@ deepeval==3.9.7
 # Deps: chromadb + pyyaml (lightweight, no torch)
 # GitHub: MemPalace/mempalace (48K+ stars)
 mempalace==3.3.2  # IVD auto-update Sprint 22 (was 3.3.1) — validated PyPI 2026-04-21
+# ── Knowledge Graph RAG (LightRAG) — Sprint 23 ──────────────────
+# Dual-level retrieval: local (entity) + global (theme) via knowledge graph
+# MIT license — validated 2026-04-22 via PyPI (latest=1.4.15)
+# CVE-2026-39413: JWT in API server only — we don't use the server
+# Core deps: nano-vectordb, networkx, tiktoken (lightweight)
+# GitHub: HKUDS/LightRAG
+lightrag-hku==1.4.15

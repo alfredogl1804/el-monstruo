@@ -1,7 +1,8 @@
 """
 MemPalace Bridge — Episodic + Semantic Memory for El Monstruo
-Sprint 19 | v0.13.0-sprint19
-IVD: mempalace==3.3.1 (MIT, PyPI latest 2026-04-21)
+Sprint 23 | v0.16.0-sprint23
+IVD: mempalace==3.3.2 (MIT, PyPI latest 2026-04-22)
+Fix: chromadb>=1.5.4 has regression (issue #1006) — added defensive init + health probe
 GitHub: MemPalace/mempalace (48K+ stars)
 
 Architecture:
@@ -31,7 +32,11 @@ _palace = None
 
 
 def _get_palace():
-    """Lazy-load MemPalace instance. Returns None if unavailable."""
+    """Lazy-load MemPalace instance. Returns None if unavailable.
+
+    Sprint 23: Added health probe after init to catch chromadb 1.5.x
+    regression (issue #1006) where writes silently fail.
+    """
     global _palace
     if _palace is not None:
         return _palace
@@ -44,13 +49,51 @@ def _get_palace():
         storage_path = os.getenv(
             "MEMPALACE_STORAGE_PATH", "/tmp/monstruo_mempalace"
         )
-        _palace = MemPalace(
+        palace = MemPalace(
             storage_path=storage_path,
             collection_name=os.getenv("MEMPALACE_COLLECTION", "monstruo_v1"),
         )
+
+        # Sprint 23: Health probe — verify chromadb actually works
+        _test_id = "__healthcheck__"
+        palace.add(
+            documents=["mempalace health probe"],
+            metadatas=[{"type": "healthcheck"}],
+            ids=[_test_id],
+        )
+        probe = palace.query(
+            query_texts=["mempalace health probe"],
+            n_results=1,
+        )
+        probe_docs = probe.get("documents", [[]])[0] if probe else []
+        probe_metas = probe.get("metadatas", [[]])[0] if probe else []
+
+        if not probe_docs or probe_docs[0] is None:
+            logger.error(
+                "mempalace_chromadb_regression_detected",
+                extra={
+                    "issue": "chromadb 1.5.x regression — writes silently broken",
+                    "ref": "https://github.com/MemPalace/mempalace/issues/1006",
+                },
+            )
+            return None
+
+        if not probe_metas or probe_metas[0] is None:
+            logger.warning(
+                "mempalace_metadata_degraded",
+                extra={"detail": "query returns None metadata — partial regression"},
+            )
+
+        # Clean up health probe
+        try:
+            palace._collection.delete(ids=[_test_id])
+        except Exception:
+            pass  # Non-critical
+
+        _palace = palace
         logger.info(
             "mempalace_initialized",
-            extra={"storage_path": storage_path},
+            extra={"storage_path": storage_path, "health_probe": "passed"},
         )
         return _palace
     except ImportError:

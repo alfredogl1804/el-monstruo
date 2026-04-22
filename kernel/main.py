@@ -79,7 +79,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.14.0-sprint21", motor="langgraph")
+    logger.info("monstruo_starting", version="0.16.0-sprint23", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -160,7 +160,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.15.0-sprint22",
+            "version": "0.16.0-sprint23",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -410,7 +410,7 @@ async def lifespan(app: FastAPI):
 
     logger.info(
         "monstruo_ready",
-        version="0.14.0-sprint21",
+        version="0.16.0-sprint23",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -484,7 +484,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.14.0-sprint21",
+    version="0.16.0-sprint23",
     lifespan=lifespan,
 )
 
@@ -581,7 +581,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.15.0-sprint22",
+        "version": "0.16.0-sprint23",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -1141,7 +1141,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.15.0-sprint22",
+            "version": "0.16.0-sprint23",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1335,7 +1335,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.15.0-sprint22",
+        "version": "0.16.0-sprint23",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields
@@ -1402,7 +1402,7 @@ async def mcp_status():
 
 @app.get("/v1/memory/status", tags=["memory"])
 async def memory_status():
-    """Return MemPalace + Honcho memory system status. Sprint 19."""
+    """Return MemPalace + Honcho + LightRAG memory system status. Sprint 23."""
     result = {"layers": {}}
 
     # MemPalace (episodic + semantic)
@@ -1419,6 +1419,13 @@ async def memory_status():
     except Exception:
         result["layers"]["honcho"] = {"status": "not_configured"}
 
+    # Sprint 23: LightRAG (knowledge graph RAG)
+    try:
+        from memory.lightrag_bridge import get_stats as lightrag_stats
+        result["layers"]["lightrag"] = await lightrag_stats()
+    except Exception as e:
+        result["layers"]["lightrag"] = {"status": "not_configured"}
+
     # PostgresSaver (checkpoints)
     result["layers"]["checkpointer"] = {
         "status": "active" if kernel else "inactive",
@@ -1429,6 +1436,58 @@ async def memory_status():
     active = sum(1 for v in result["layers"].values() if v.get("status") in ("active", "not_configured"))
     result["active_layers"] = active
     return result
+
+
+# ── Sprint 23: Knowledge Ingest + Query Endpoints ────────────────
+
+
+class IngestRequest(BaseModel):
+    """Request body for document ingestion."""
+    content: str = Field(..., min_length=10, description="Document text to ingest")
+    source: Optional[str] = Field(None, description="Source identifier (filename, URL, etc.)")
+    doc_type: Optional[str] = Field(None, description="Document type (pdf, markdown, text, etc.)")
+
+
+class KnowledgeQueryRequest(BaseModel):
+    """Request body for knowledge graph query."""
+    query: str = Field(..., min_length=3, description="Natural language query")
+    mode: str = Field("hybrid", description="Retrieval mode: local, global, hybrid, naive")
+    top_k: int = Field(5, ge=1, le=20, description="Max results")
+
+
+@app.post("/v1/knowledge/ingest", tags=["knowledge"])
+async def knowledge_ingest(req: IngestRequest, request: Request):
+    """Ingest a document into the LightRAG knowledge graph. Sprint 23."""
+    try:
+        from memory.lightrag_bridge import ingest_document
+
+        result = await ingest_document(
+            content=req.content,
+            metadata={"source": req.source, "doc_type": req.doc_type},
+        )
+        if result.get("ingested"):
+            return {"status": "ok", **result}
+        return {"status": "error", **result}
+    except Exception as e:
+        logger.error("knowledge_ingest_endpoint_failed", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/v1/knowledge/query", tags=["knowledge"])
+async def knowledge_query(req: KnowledgeQueryRequest, request: Request):
+    """Query the LightRAG knowledge graph. Sprint 23."""
+    try:
+        from memory.lightrag_bridge import query_knowledge
+
+        result = await query_knowledge(
+            query=req.query,
+            mode=req.mode,
+            top_k=req.top_k,
+        )
+        return {"status": "ok", **result}
+    except Exception as e:
+        logger.error("knowledge_query_endpoint_failed", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/v1/agents/status", tags=["agents"])
