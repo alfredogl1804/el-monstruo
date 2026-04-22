@@ -160,7 +160,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.14.0-sprint21",
+            "version": "0.15.0-sprint22",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -581,7 +581,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.14.0-sprint21",
+        "version": "0.15.0-sprint22",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -1141,7 +1141,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.14.0-sprint21",
+            "version": "0.15.0-sprint22",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1335,7 +1335,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.14.0-sprint21",
+        "version": "0.15.0-sprint22",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields
@@ -1355,6 +1355,25 @@ async def health():
             "finops": "active" if getattr(app.state, "finops", None) else "inactive",
             "mcp": "active" if getattr(app.state, "mcp_manager", None) else "inactive",
         },
+    }
+
+
+# ── Sprint 22: Auth Health Check ──────────────────────────────────
+
+
+@app.get("/health/auth", tags=["system"])
+async def auth_health():
+    """Auth configuration health check. Sprint 22 — monitoring endpoint."""
+    api_key = os.environ.get("MONSTRUO_API_KEY")
+    key_configured = bool(api_key)
+    key_length = len(api_key) if api_key else 0
+    expected_length = 36  # UUID format
+    return {
+        "auth_configured": key_configured,
+        "key_length": key_length,
+        "key_format_valid": key_length == expected_length,
+        "status": "healthy" if key_configured and key_length == expected_length else "degraded",
+        "mode": "fail-closed" if not key_configured else "enforcing",
     }
 
 
