@@ -78,6 +78,10 @@ async def _get_rag(force_retry: bool = False):
             embedding_func=openai_embed,
         )
 
+        # LightRAG 1.4.15 requires explicit storage initialization
+        # See: https://github.com/HKUDS/LightRAG#important-initialization-requirements
+        await rag.initialize_storages()
+
         _rag = rag
         logger.info(
             "lightrag_initialized",
