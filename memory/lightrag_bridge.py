@@ -104,12 +104,8 @@ async def _get_rag(force_retry: bool = False):
     try:
         from lightrag import LightRAG
         from lightrag.llm.openai import openai_complete, openai_embed
-        from lightrag.kg.postgres_impl import (
-            PGKVStorage,
-            PGVectorStorage,
-            PGGraphStorage,
-            PGDocStatusStorage,
-        )
+        # LightRAG 1.4.15: storage params expect STRING class names, not class references
+        # Validated 2026-04-22: type hint is `str`, default is "JsonKVStorage"
 
         api_key = os.getenv("OPENAI_API_KEY", "")
         if not api_key:
@@ -145,10 +141,10 @@ async def _get_rag(force_retry: bool = False):
             llm_model_func=openai_complete,
             llm_model_name=model,
             embedding_func=openai_embed,
-            kv_storage=PGKVStorage,
-            vector_storage=PGVectorStorage,
-            graph_storage=PGGraphStorage,
-            doc_status_storage=PGDocStatusStorage,
+            kv_storage="PGKVStorage",
+            vector_storage="PGVectorStorage",
+            graph_storage="PGGraphStorage",
+            doc_status_storage="PGDocStatusStorage",
         )
 
         # LightRAG 1.4.15 requires explicit storage initialization
