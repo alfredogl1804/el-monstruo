@@ -388,15 +388,18 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
             total_chars=len(combined_external),
         )
 
-    # Sprint 23: Honcho user context retrieval (parallel with other lookups)
-    honcho_context = {}
-    async def _get_honcho_context():
+    # Sprint 27: Mem0 episodic memory retrieval (replaces Honcho)
+    mem0_context = {}
+    async def _get_mem0_context():
         try:
-            from memory.honcho_bridge import get_user_context
-            return await get_user_context(user_id=user_id)
+            from memory.mem0_bridge import search_memory
+            results = await search_memory(query=message, user_id=user_id, limit=3)
+            if results:
+                return {"mem0_active": True, "memories": results}
+            return {"mem0_active": False}
         except Exception as e:
-            logger.warning("enrich_honcho_failed", error=str(e))
-            return {}
+            logger.warning("enrich_mem0_failed", error=str(e))
+            return {"mem0_active": False}
 
     # OPT-2: Parallel memory + knowledge lookups
     if memory:
@@ -494,14 +497,14 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
             relevant_memories,
             knowledge_entities,
             mempalace_memories,
-            honcho_context,
+            mem0_context,
             lightrag_result,
         ) = await asyncio.gather(
             _get_conversation(),
             _search_memories(),
             _get_knowledge(),
             _recall_mempalace(),
-            _get_honcho_context(),
+            _get_mem0_context(),
             _query_lightrag(),
         )
 
@@ -545,22 +548,18 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
             system_prompt += f"\n\n## Knowledge Graph Context (LightRAG)\n{rag_truncated}"
             logger.info("enrich_lightrag_injected", chars=len(rag_truncated), mode=lightrag_result.get("mode", "unknown"))
 
-    # Sprint 23: Inject Honcho user profile into system prompt
-    if honcho_context and honcho_context.get("honcho_active"):
-        honcho_parts = []
-        if honcho_context.get("communication_style"):
-            honcho_parts.append(f"Communication style: {honcho_context['communication_style']}")
-        if honcho_context.get("expertise_areas"):
-            honcho_parts.append(f"Expertise: {', '.join(honcho_context['expertise_areas'])}")
-        if honcho_context.get("preferences"):
-            prefs = honcho_context["preferences"]
-            if isinstance(prefs, dict) and prefs:
-                honcho_parts.append(f"Preferences: {prefs}")
-        if honcho_context.get("interaction_count", 0) > 0:
-            honcho_parts.append(f"Previous interactions: {honcho_context['interaction_count']}")
-        if honcho_parts:
-            system_prompt += f"\n\n## User Profile (Honcho)\n" + "\n".join(f"- {p}" for p in honcho_parts)
-            logger.info("enrich_honcho_injected", fields=len(honcho_parts))
+    # Sprint 27: Inject Mem0 episodic memories into system prompt
+    if mem0_context and mem0_context.get("mem0_active"):
+        mem0_memories = mem0_context.get("memories", [])
+        if mem0_memories:
+            mem0_parts = []
+            for mem in mem0_memories[:5]:
+                mem_text = mem.get("memory", "")
+                if mem_text:
+                    mem0_parts.append(f"- {mem_text}")
+            if mem0_parts:
+                system_prompt += f"\n\n## User Memory (Mem0)\n" + "\n".join(mem0_parts)
+                logger.info("enrich_mem0_injected", count=len(mem0_parts))
 
     elapsed_ms = (time.monotonic() - start_time) * 1000
 
@@ -999,28 +998,27 @@ async def memory_write(state: MonstruoState, config: RunnableConfig) -> dict[str
     except Exception as e:
         logger.warning("mempalace_store_failed", error=str(e))
 
-    # Sprint 23: Update Honcho user model with interaction summary
+    # Sprint 27: Store interaction in Mem0 (replaces Honcho update_user_model)
     try:
-        from memory.honcho_bridge import update_user_model
+        from memory.mem0_bridge import add_memory
 
-        interaction_summary = (
-            f"Intent: {intent}. User asked about: {message[:200]}. "
-            f"Assistant responded with {len(response)} chars. "
-            f"Model: {state.get('model_used', 'unknown')}. "
-            f"Channel: {channel}."
-        ) if response else f"Intent: {intent}. Message: {message[:200]}"
+        mem0_messages = [
+            {"role": "user", "content": message[:500]},
+        ]
+        if response:
+            mem0_messages.append({"role": "assistant", "content": response[:500]})
 
-        honcho_result = await update_user_model(
+        mem0_result = await add_memory(
+            messages=mem0_messages,
             user_id=user_id,
-            interaction_summary=interaction_summary,
-            thread_id=run_id,
+            metadata={"intent": intent, "channel": channel, "run_id": run_id},
         )
-        if honcho_result.get("updated"):
-            logger.info("honcho_user_updated", run_id=run_id, session_id=honcho_result.get("session_id"))
+        if mem0_result.get("added", 0) > 0:
+            logger.info("mem0_memory_stored", run_id=run_id, added=mem0_result["added"])
         else:
-            logger.debug("honcho_update_skipped", reason=honcho_result.get("reason", "unknown"))
+            logger.debug("mem0_store_skipped", reason=mem0_result.get("error", "no_facts_extracted"))
     except Exception as e:
-        logger.warning("honcho_update_failed", error=str(e))
+        logger.warning("mem0_store_failed", error=str(e))
 
     # Write events to sovereign event store
     if event_store:

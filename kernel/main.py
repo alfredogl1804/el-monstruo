@@ -79,7 +79,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.19.0-sprint26", motor="langgraph")
+    logger.info("monstruo_starting", version="0.20.0-sprint27", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -160,7 +160,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.19.0-sprint26",
+            "version": "0.20.0-sprint27",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -411,7 +411,21 @@ async def lifespan(app: FastAPI):
 
     # ── Sprint 26: Honcho DISABLED (service deleted from Railway) ──────
     honcho_active = False
-    logger.info("honcho_disabled", reason="service_deleted_sprint26")
+    logger.info("honcho_disabled", reason="replaced_by_mem0_sprint27")
+
+    # ── Sprint 27: Mem0 2.0.0 — Episodic Memory (replaces Honcho) ──────
+    mem0_active = False
+    try:
+        from memory.mem0_bridge import get_stats as mem0_stats
+        _mem0_check = await mem0_stats()
+        mem0_active = _mem0_check.get("status") == "active"
+        if mem0_active:
+            logger.info("mem0_initialized", provider="pgvector", version="2.0.0")
+        else:
+            logger.warning("mem0_init_inactive", detail=_mem0_check)
+    except Exception as e:
+        logger.warning("mem0_init_failed", error=str(e))
+    app.state._mem0_active = mem0_active
 
     # ── Sprint 26: FastMCP Server (internal tool exposure via MCP) ──────
     fastmcp_server = None
@@ -429,7 +443,7 @@ async def lifespan(app: FastAPI):
 
     logger.info(
         "monstruo_ready",
-        version="0.19.0-sprint26",
+        version="0.20.0-sprint27",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -442,7 +456,7 @@ async def lifespan(app: FastAPI):
         alerts="registered",
         mcp="active" if mcp_manager else "inactive",
         fastmcp="active" if fastmcp_server else "inactive",
-        honcho="disabled (deleted sprint26)",
+        mem0="active" if mem0_active else "inactive",
         mempalace="active" if mempalace_ready else "inactive",
     )
 
@@ -504,7 +518,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.19.0-sprint26",
+    version="0.20.0-sprint27",
     lifespan=lifespan,
 )
 
@@ -601,7 +615,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.19.0-sprint26",
+        "version": "0.20.0-sprint27",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -1161,7 +1175,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.19.0-sprint26",
+            "version": "0.20.0-sprint27",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1361,7 +1375,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.19.0-sprint26",
+        "version": "0.20.0-sprint27",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields
@@ -1382,6 +1396,7 @@ async def health():
             "finops": "active" if getattr(app.state, "finops", None) else "inactive",
             "mcp": "active" if getattr(app.state, "mcp_manager", None) else "inactive",
             "fastmcp": "active" if getattr(app.state, "fastmcp_server", None) else "inactive",
+            "mem0": "active" if getattr(app.state, "_mem0_active", False) else "inactive",
         },
     }
 
@@ -1430,7 +1445,7 @@ async def mcp_status():
 
 @app.get("/v1/memory/status", tags=["memory"])
 async def memory_status():
-    """Return MemPalace + Honcho + LightRAG memory system status. Sprint 23."""
+    """Return MemPalace + Mem0 + LightRAG memory system status. Sprint 27."""
     result = {"layers": {}}
 
     # MemPalace (episodic + semantic)
@@ -1440,12 +1455,12 @@ async def memory_status():
     except Exception as e:
         result["layers"]["mempalace"] = {"status": "error", "error": str(e)}
 
-    # Honcho (user modeling)
+    # Mem0 (episodic memory — replaces Honcho, Sprint 27)
     try:
-        from memory.honcho_bridge import get_stats as honcho_stats
-        result["layers"]["honcho"] = await honcho_stats()
-    except Exception:
-        result["layers"]["honcho"] = {"status": "not_configured"}
+        from memory.mem0_bridge import get_stats as mem0_stats
+        result["layers"]["mem0"] = await mem0_stats()
+    except Exception as e:
+        result["layers"]["mem0"] = {"status": "not_configured", "error": str(e)}
 
     # Sprint 23: LightRAG (knowledge graph RAG)
     try:
