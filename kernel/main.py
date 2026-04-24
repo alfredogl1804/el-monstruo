@@ -79,7 +79,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.18.0-sprint25", motor="langgraph")
+    logger.info("monstruo_starting", version="0.19.0-sprint26", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -160,7 +160,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.18.0-sprint25",
+            "version": "0.19.0-sprint26",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -409,18 +409,27 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("mcp_manager_init_failed", error=str(e))
 
-    # ── Sprint 17 → Sprint 25: Honcho User Modeling (HTTP-only) ──────
+    # ── Sprint 26: Honcho DISABLED (service deleted from Railway) ──────
     honcho_active = False
+    logger.info("honcho_disabled", reason="service_deleted_sprint26")
+
+    # ── Sprint 26: FastMCP Server (internal tool exposure via MCP) ──────
+    fastmcp_server = None
     try:
-        from memory.honcho_bridge import ensure_workspace as honcho_ensure_workspace
-        honcho_active = await honcho_ensure_workspace()
-        logger.info("honcho_status", active=honcho_active, transport="httpx", api="v3")
+        from kernel.fastmcp_server import create_fastmcp_server, get_status as fastmcp_status
+        fastmcp_server = create_fastmcp_server()
+        if fastmcp_server:
+            # Mount FastMCP SSE endpoint on the FastAPI app
+            # FastMCP 3.2.4: http_app(transport='sse') returns a Starlette ASGI app
+            app.mount("/mcp", fastmcp_server.http_app(transport="sse"))
+            app.state.fastmcp_server = fastmcp_server
+            logger.info("fastmcp_mounted", path="/mcp", transport="sse", tools=3)
     except Exception as e:
-        logger.warning("honcho_init_failed", error=str(e))
+        logger.warning("fastmcp_init_failed", error=str(e))
 
     logger.info(
         "monstruo_ready",
-        version="0.18.0-sprint25",
+        version="0.19.0-sprint26",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -432,7 +441,8 @@ async def lifespan(app: FastAPI):
         agui="active",
         alerts="registered",
         mcp="active" if mcp_manager else "inactive",
-        honcho="active" if honcho_active else "inactive",
+        fastmcp="active" if fastmcp_server else "inactive",
+        honcho="disabled (deleted sprint26)",
         mempalace="active" if mempalace_ready else "inactive",
     )
 
@@ -494,7 +504,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.18.0-sprint25",
+    version="0.19.0-sprint26",
     lifespan=lifespan,
 )
 
@@ -591,7 +601,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.18.0-sprint25",
+        "version": "0.19.0-sprint26",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -1151,7 +1161,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.18.0-sprint25",
+            "version": "0.19.0-sprint26",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1351,7 +1361,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.18.0-sprint25",
+        "version": "0.19.0-sprint26",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields
@@ -1371,6 +1381,7 @@ async def health():
             "multi_agent": "active",  # Sprint 21: always available (keyword-based, no external deps)
             "finops": "active" if getattr(app.state, "finops", None) else "inactive",
             "mcp": "active" if getattr(app.state, "mcp_manager", None) else "inactive",
+            "fastmcp": "active" if getattr(app.state, "fastmcp_server", None) else "inactive",
         },
     }
 

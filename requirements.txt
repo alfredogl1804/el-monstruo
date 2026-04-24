@@ -1,8 +1,8 @@
-# El Monstruo — Sprint 25 Dependencies (Pinned)
-# Updated: 2026-04-22 — ALL versions validated in real-time via PyPI JSON API
+# El Monstruo — Sprint 26 Dependencies (Pinned)
+# Updated: 2026-04-24 — ALL versions validated in real-time via PyPI JSON API
 # Policy: ALL versions pinned. NO floating ranges.
 # Validation: /protocolo-operativo-core + /validacion-tiempo-real applied
-# Sprint 25: LightRAG migrated to pgvector + Honcho rewritten HTTP-only + model baseline
+# Sprint 26: Honcho DELETED + FastMCP 3.2.4 adopted + version 0.19.0
 
 # ── Kernel / Orchestration ──────────────────────────────────────────
 langgraph==1.1.9  # IVD auto-update Sprint 22 (was 1.1.8) — validated PyPI 2026-04-21
@@ -36,16 +36,20 @@ google-genai==1.73.1
 # ── AG-UI Protocol (CopilotKit) ────────────────────────────────────
 copilotkit==0.1.87  # validated 2026-04-19 (PyPI latest, was 0
 
-# ── MCP (Model Context Protocol) — Sprint 17 ──────────────────────
-# SDK for connecting to MCP servers (stdio + SSE transports)
+# ── MCP (Model Context Protocol) — Sprint 17 + Sprint 26 FastMCP ──────
+# mcp: SDK for connecting to MCP servers (stdio + SSE transports)
 # MIT license — validated 2026-04-20 via PyPI (latest)
 mcp==1.27.0
+# fastmcp: Framework for EXPOSING kernel tools as MCP server
+# Apache-2.0 — validated 2026-04-24 via PyPI (latest=3.2.4)
+# Sprint 26: Internal MCP server mounted at /mcp (SSE transport)
+fastmcp==3.2.4
 
-# ── Honcho (Dialectic User Modeling) — Sprint 17 → Sprint 25 HTTP-only ──
-# Sprint 25: SDK REMOVED to avoid AGPL-3.0 contamination risk
-# Bridge rewritten to use httpx (already in deps) against self-hosted Honcho API
-# Server: honcho-railway.railway.internal:8000 (Railway private network)
-# honcho-ai==2.1.1  # REMOVED Sprint 25
+# ── Honcho — DELETED Sprint 26 ────────────────────────────────────────
+# Sprint 26: Service DELETED from Railway (Swagger UI exposed = P0 security)
+# Bridge rewritten as dead stub (no network calls)
+# AGPL-3.0 license risk eliminated
+# honcho-ai==2.1.1  # REMOVED Sprint 25, SERVICE DELETED Sprint 26
 
 # ── Auth ────────────────────────────────────────────────────────────
 PyJWT==2.12.1
