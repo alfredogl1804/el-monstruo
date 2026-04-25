@@ -111,6 +111,7 @@ async def add_memory(
 
         # Mem0's add() is synchronous — run in thread to not block event loop
         import asyncio
+
         result = await asyncio.to_thread(m.add, messages, **kwargs)
 
         added_count = len(result.get("results", [])) if isinstance(result, dict) else 0
@@ -136,19 +137,20 @@ async def search_memory(
     try:
         m = _get_mem0()
         import asyncio
-        result = await asyncio.to_thread(
-            m.search, query, user_id=user_id, limit=limit
-        )
+
+        result = await asyncio.to_thread(m.search, query, user_id=user_id, limit=limit)
 
         memories = []
         raw_results = result.get("results", []) if isinstance(result, dict) else result
         for r in raw_results:
-            memories.append({
-                "id": r.get("id", ""),
-                "memory": r.get("memory", ""),
-                "score": r.get("score", 0.0),
-                "created_at": r.get("created_at", ""),
-            })
+            memories.append(
+                {
+                    "id": r.get("id", ""),
+                    "memory": r.get("memory", ""),
+                    "score": r.get("score", 0.0),
+                    "created_at": r.get("created_at", ""),
+                }
+            )
 
         logger.info("mem0_search_success", user_id=user_id, results=len(memories))
         return memories
@@ -168,17 +170,20 @@ async def get_user_profile(user_id: str) -> dict:
     try:
         m = _get_mem0()
         import asyncio
+
         result = await asyncio.to_thread(m.get_all, user_id=user_id)
 
         raw_results = result.get("results", []) if isinstance(result, dict) else result
         memories = []
         for r in raw_results:
-            memories.append({
-                "id": r.get("id", ""),
-                "memory": r.get("memory", ""),
-                "categories": r.get("categories", []),
-                "created_at": r.get("created_at", ""),
-            })
+            memories.append(
+                {
+                    "id": r.get("id", ""),
+                    "memory": r.get("memory", ""),
+                    "categories": r.get("categories", []),
+                    "created_at": r.get("created_at", ""),
+                }
+            )
 
         return {
             "mem0_active": True,

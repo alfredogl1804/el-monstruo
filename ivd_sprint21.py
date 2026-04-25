@@ -15,6 +15,7 @@ PASS = 0
 FAIL = 0
 WARN = 0
 
+
 def check(name, condition, detail=""):
     global PASS, FAIL
     if condition:
@@ -24,10 +25,12 @@ def check(name, condition, detail=""):
         FAIL += 1
         print(f"  ❌ FAIL: {name} — {detail}")
 
+
 def warn(name, detail=""):
     global WARN
     WARN += 1
     print(f"  ⚠️  WARN: {name} — {detail}")
+
 
 print("=" * 70)
 print("IVD Sprint 21 — Post-Implementation Validation")
@@ -66,6 +69,7 @@ print("\n📋 2. IMPORT VALIDATION")
 # bot.hitl_handler
 try:
     from bot.hitl_handler import get_pending_count, get_pending_reviews
+
     check("bot.hitl_handler imports", True)
     check("get_pending_reviews() returns dict", isinstance(get_pending_reviews(), dict))
     check("get_pending_count() returns int", isinstance(get_pending_count(), int))
@@ -75,6 +79,7 @@ except Exception as e:
 # kernel.multi_agent
 try:
     from kernel.multi_agent import AgentType, classify_task, dispatch, get_registry_status
+
     check("kernel.multi_agent imports", True)
 
     # Test classify_task
@@ -108,6 +113,7 @@ except Exception as e:
 # kernel.state — check new fields
 try:
     from kernel.state import MonstruoState
+
     annotations = MonstruoState.__annotations__
     check("MonstruoState has agent_type", "agent_type" in annotations)
     check("MonstruoState has agent_system_prompt", "agent_system_prompt" in annotations)
@@ -124,7 +130,11 @@ with open("/home/ubuntu/el-monstruo-kernel/kernel/main.py") as f:
 version_count = main_content.count("0.14.0-sprint21")
 old_version_count = main_content.count("0.13.0-sprint19")
 check(f"Version 0.14.0-sprint21 appears {version_count} times", version_count >= 5)
-check(f"Old version 0.13.0-sprint19 appears {old_version_count} times", old_version_count == 0, f"Found {old_version_count} occurrences")  # noqa: E501
+check(
+    f"Old version 0.13.0-sprint19 appears {old_version_count} times",
+    old_version_count == 0,
+    f"Found {old_version_count} occurrences",
+)  # noqa: E501
 
 # ── 4. Route Registration ────────────────────────────────────────────
 print("\n📋 4. ROUTE REGISTRATION")
@@ -160,7 +170,10 @@ with open("/home/ubuntu/el-monstruo-kernel/kernel/mcp_client.py") as f:
     mcp_content = f.read()
 
 check("SUPABASE_SERVICE_KEY fallback", "SUPABASE_SERVICE_KEY" in mcp_content)
-check("Both env var names accepted", 'os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_SERVICE_KEY")' in mcp_content)  # noqa: E501
+check(
+    "Both env var names accepted",
+    'os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_SERVICE_KEY")' in mcp_content,
+)  # noqa: E501
 
 # ── 7. MemPalace Warm-up in Lifespan ─────────────────────────────────
 print("\n📋 7. MEMPALACE WARM-UP")

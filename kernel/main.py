@@ -159,14 +159,16 @@ async def lifespan(app: FastAPI):
         .category(EventCategory.SYSTEM_STARTUP)
         .actor("system")
         .action("El Monstruo started")
-        .with_payload({
-            "version": "0.20.0-sprint27",
-            "motor": "langgraph",
-            "router": "connected" if router else "stub",
-            "memory": "active",
-            "knowledge": "active",
-            "checkpointer": "PostgresSaver" if checkpointer else "MemorySaver",
-        })
+        .with_payload(
+            {
+                "version": "0.20.0-sprint27",
+                "motor": "langgraph",
+                "router": "connected" if router else "stub",
+                "memory": "active",
+                "knowledge": "active",
+                "checkpointer": "PostgresSaver" if checkpointer else "MemorySaver",
+            }
+        )
         .build()
     )
 
@@ -417,6 +419,7 @@ async def lifespan(app: FastAPI):
     mem0_active = False
     try:
         from memory.mem0_bridge import get_stats as mem0_stats
+
         _mem0_check = await mem0_stats()
         mem0_active = _mem0_check.get("status") == "active"
         if mem0_active:
@@ -431,6 +434,7 @@ async def lifespan(app: FastAPI):
     fastmcp_server = None
     try:
         from kernel.fastmcp_server import create_fastmcp_server
+
         fastmcp_server = create_fastmcp_server()
         if fastmcp_server:
             # Mount FastMCP SSE endpoint on the FastAPI app
@@ -1215,12 +1219,17 @@ async def history(user_id: Optional[str] = None, limit: int = 20):
     # The kernel emits: run.started, intent.classified, context.enriched,
     # model.called, run.completed, run.failed, memory.updated, human.reviewed, human.feedback
     history_categories = {
-        "run.started", "run.completed", "run.failed",
-        "model.called", "memory.updated",
-        "human.reviewed", "human.feedback",
+        "run.started",
+        "run.completed",
+        "run.failed",
+        "model.called",
+        "memory.updated",
+        "human.reviewed",
+        "human.feedback",
         "intent.classified",
         # Legacy names (in case any old events use them)
-        "llm_call", "human_feedback",
+        "llm_call",
+        "human_feedback",
     }
 
     chat_events = [
@@ -1234,8 +1243,7 @@ async def history(user_id: Optional[str] = None, limit: int = 20):
             "payload": e.payload,
         }
         for e in all_events
-        if (not user_id or e.actor == user_id or e.user_id == user_id)
-        and e.category.value in history_categories
+        if (not user_id or e.actor == user_id or e.user_id == user_id) and e.category.value in history_categories
     ][:limit]
 
     return chat_events
@@ -1361,11 +1369,7 @@ async def health():
 
         # Show flagship model_ids (not catalog keys) for external consumers
         flagship_keys = ["gpt-5.4", "claude-opus-4-7", "gemini-3.1-pro", "sonar-reasoning-pro"]
-        models_available = [
-            MODEL_CATALOG[k]["model_id"]
-            for k in flagship_keys
-            if k in MODEL_CATALOG
-        ]
+        models_available = [MODEL_CATALOG[k]["model_id"] for k in flagship_keys if k in MODEL_CATALOG]
     except ImportError:
         models_available = ["gpt-5.4-pro-2026-03-05", "claude-opus-4-7", "sonar-reasoning-pro"]
 
@@ -1389,7 +1393,11 @@ async def health():
             "knowledge": "active" if knowledge_graph else "inactive",
             "langfuse": "active" if (observability and observability.langfuse_enabled) else "inactive",
             "opentelemetry": "active" if (observability and observability.otel_enabled) else "inactive",
-            "checkpointer": "active (AsyncPostgresSaver)" if (kernel and type(kernel._checkpointer).__name__ == "AsyncPostgresSaver") else "inactive (MemorySaver)" if kernel else "unknown",  # noqa: E501
+            "checkpointer": "active (AsyncPostgresSaver)"
+            if (kernel and type(kernel._checkpointer).__name__ == "AsyncPostgresSaver")
+            else "inactive (MemorySaver)"
+            if kernel
+            else "unknown",  # noqa: E501
             "mempalace": "active" if getattr(app.state, "_mempalace_ready", False) else "inactive",
             "lightrag": "active" if getattr(app.state, "_lightrag_ready", False) else "inactive",
             "multi_agent": "active",  # Sprint 21: always available (keyword-based, no external deps)
@@ -1436,9 +1444,21 @@ async def mcp_status():
         "status": "inactive",
         "reason": "No MCP servers configured. Set env vars to enable presets.",
         "available_presets": [
-            {"name": "github", "env": "GITHUB_PERSONAL_ACCESS_TOKEN", "pkg": "@modelcontextprotocol/server-github@2025.4.8"},  # noqa: E501
-            {"name": "filesystem", "env": "MCP_FILESYSTEM_PATHS", "pkg": "@modelcontextprotocol/server-filesystem@2026.1.14"},  # noqa: E501
-            {"name": "supabase", "env": "SUPABASE_URL + SUPABASE_SERVICE_KEY (or SUPABASE_SERVICE_ROLE_KEY)", "pkg": "@supabase/mcp-server-supabase@0.7.0"},  # noqa: E501
+            {
+                "name": "github",
+                "env": "GITHUB_PERSONAL_ACCESS_TOKEN",
+                "pkg": "@modelcontextprotocol/server-github@2025.4.8",
+            },  # noqa: E501
+            {
+                "name": "filesystem",
+                "env": "MCP_FILESYSTEM_PATHS",
+                "pkg": "@modelcontextprotocol/server-filesystem@2026.1.14",
+            },  # noqa: E501
+            {
+                "name": "supabase",
+                "env": "SUPABASE_URL + SUPABASE_SERVICE_KEY (or SUPABASE_SERVICE_ROLE_KEY)",
+                "pkg": "@supabase/mcp-server-supabase@0.7.0",
+            },  # noqa: E501
         ],
     }
 
@@ -1451,6 +1471,7 @@ async def memory_status():
     # MemPalace (episodic + semantic)
     try:
         from memory.mempalace_bridge import get_stats
+
         result["layers"]["mempalace"] = await get_stats()
     except Exception as e:
         result["layers"]["mempalace"] = {"status": "error", "error": str(e)}
@@ -1458,6 +1479,7 @@ async def memory_status():
     # Mem0 (episodic memory — replaces Honcho, Sprint 27)
     try:
         from memory.mem0_bridge import get_stats as mem0_stats
+
         result["layers"]["mem0"] = await mem0_stats()
     except Exception as e:
         result["layers"]["mem0"] = {"status": "not_configured", "error": str(e)}
@@ -1465,6 +1487,7 @@ async def memory_status():
     # Sprint 23: LightRAG (knowledge graph RAG)
     try:
         from memory.lightrag_bridge import get_stats as lightrag_stats
+
         result["layers"]["lightrag"] = await lightrag_stats()
     except Exception:
         result["layers"]["lightrag"] = {"status": "not_configured"}
@@ -1489,6 +1512,7 @@ async def memory_status():
 
 class IngestRequest(BaseModel):
     """Request body for document ingestion."""
+
     content: str = Field(..., min_length=10, description="Document text to ingest")
     source: Optional[str] = Field(None, description="Source identifier (filename, URL, etc.)")
     doc_type: Optional[str] = Field(None, description="Document type (pdf, markdown, text, etc.)")
@@ -1496,6 +1520,7 @@ class IngestRequest(BaseModel):
 
 class KnowledgeQueryRequest(BaseModel):
     """Request body for knowledge graph query."""
+
     query: str = Field(..., min_length=3, description="Natural language query")
     mode: str = Field("hybrid", description="Retrieval mode: local, global, hybrid, naive")
     top_k: int = Field(5, ge=1, le=20, description="Max results")
@@ -1541,6 +1566,7 @@ async def agents_status():
     """Return Multi-Agent Dispatcher registry status. Sprint 19."""
     try:
         from kernel.multi_agent import get_registry_status
+
         return get_registry_status()
     except Exception as e:
         return {"status": "error", "error": str(e)}

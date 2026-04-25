@@ -18,6 +18,7 @@ from deepeval.test_case import LLMTestCase
 
 # ── Fixtures ───────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def relevancy_metric():
     return AnswerRelevancyMetric(threshold=0.7, model="gpt-4o-mini")
@@ -29,6 +30,7 @@ def hallucination_metric():
 
 
 # ── Answer Relevancy Tests ─────────────────────────────────────────
+
 
 class TestAnswerRelevancy:
     """Verify that kernel responses are relevant to user queries."""
@@ -64,6 +66,7 @@ class TestAnswerRelevancy:
 
 
 # ── Hallucination Tests ────────────────────────────────────────────
+
 
 class TestHallucination:
     """Verify that kernel responses don't hallucinate facts."""

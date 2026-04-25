@@ -41,19 +41,21 @@ logger = structlog.get_logger("kernel.mcp_client")
 @dataclass
 class MCPServerConfig:
     """Configuration for a single MCP server connection."""
-    name: str                          # Unique server name (e.g., "filesystem", "github")
-    transport: str                     # "stdio" or "sse"
-    command: Optional[str] = None      # For stdio: command to launch (e.g., "npx")
+
+    name: str  # Unique server name (e.g., "filesystem", "github")
+    transport: str  # "stdio" or "sse"
+    command: Optional[str] = None  # For stdio: command to launch (e.g., "npx")
     args: list[str] = field(default_factory=list)  # For stdio: command arguments
     env: dict[str, str] = field(default_factory=dict)  # Extra env vars for subprocess
-    url: Optional[str] = None          # For sse: server URL
+    url: Optional[str] = None  # For sse: server URL
     headers: dict[str, str] = field(default_factory=dict)  # For sse: auth headers
-    timeout_s: float = 30.0            # Connection timeout
+    timeout_s: float = 30.0  # Connection timeout
 
 
 @dataclass
 class MCPTool:
     """A tool discovered from an MCP server."""
+
     server_name: str
     name: str
     description: str
@@ -82,9 +84,9 @@ class MCPClientManager:
 
     def __init__(self, configs: list[MCPServerConfig]):
         self._configs = {c.name: c for c in configs}
-        self._sessions: dict[str, Any] = {}       # server_name → ClientSession
-        self._transports: dict[str, Any] = {}     # server_name → transport context
-        self._tools: dict[str, MCPTool] = {}       # qualified_name → MCPTool
+        self._sessions: dict[str, Any] = {}  # server_name → ClientSession
+        self._transports: dict[str, Any] = {}  # server_name → transport context
+        self._tools: dict[str, MCPTool] = {}  # qualified_name → MCPTool
         self._initialized = False
 
     @property
@@ -97,12 +99,14 @@ class MCPClientManager:
         """Tool specs in the format expected by tool_dispatch.py / LLM."""
         specs = []
         for tool in self._tools.values():
-            specs.append({
-                "name": tool.qualified_name,
-                "description": f"[MCP:{tool.server_name}] {tool.description}",
-                "parameters": tool.input_schema,
-                "risk": "medium",  # MCP tools are external → medium risk
-            })
+            specs.append(
+                {
+                    "name": tool.qualified_name,
+                    "description": f"[MCP:{tool.server_name}] {tool.description}",
+                    "parameters": tool.input_schema,
+                    "risk": "medium",  # MCP tools are external → medium risk
+                }
+            )
         return specs
 
     async def initialize(self) -> dict[str, Any]:
@@ -243,10 +247,7 @@ class MCPClientManager:
                 name: {
                     "connected": name in self._sessions,
                     "transport": self._configs[name].transport,
-                    "tools": [
-                        t.name for t in self._tools.values()
-                        if t.server_name == name
-                    ],
+                    "tools": [t.name for t in self._tools.values() if t.server_name == name],
                 }
                 for name in self._configs
             },
@@ -304,6 +305,7 @@ class MCPClientManager:
 
 # ── Factory: Load MCP configs from environment ──────────────────────────
 
+
 def load_mcp_configs_from_env() -> list[MCPServerConfig]:
     """
     Load MCP server configurations from environment variables.
@@ -353,6 +355,7 @@ def load_mcp_configs_from_env() -> list[MCPServerConfig]:
 
 # ── Presets: IVD-Validated MCP Server Configs ────────────────────────────
 
+
 def get_preset_configs() -> list[MCPServerConfig]:
     """
     Return preset MCP server configs for the 3 IVD-validated servers.
@@ -373,14 +376,16 @@ def get_preset_configs() -> list[MCPServerConfig]:
     # ── GitHub MCP Server ──────────────────────────────────────────
     github_token = os.environ.get("GITHUB_PERSONAL_ACCESS_TOKEN")
     if github_token:
-        presets.append(MCPServerConfig(
-            name="github",
-            transport="stdio",
-            command="npx",
-            args=["-y", "@modelcontextprotocol/server-github"],
-            env={"GITHUB_PERSONAL_ACCESS_TOKEN": github_token},
-            timeout_s=30.0,
-        ))
+        presets.append(
+            MCPServerConfig(
+                name="github",
+                transport="stdio",
+                command="npx",
+                args=["-y", "@modelcontextprotocol/server-github"],
+                env={"GITHUB_PERSONAL_ACCESS_TOKEN": github_token},
+                timeout_s=30.0,
+            )
+        )
         logger.info("mcp_preset_enabled", server="github", pkg="server-github@2025.4.8")
 
     # ── Filesystem MCP Server ──────────────────────────────────────
@@ -388,13 +393,15 @@ def get_preset_configs() -> list[MCPServerConfig]:
     if fs_paths:
         # fs_paths is comma-separated list of allowed directories
         path_list = [p.strip() for p in fs_paths.split(",") if p.strip()]
-        presets.append(MCPServerConfig(
-            name="filesystem",
-            transport="stdio",
-            command="npx",
-            args=["-y", "@modelcontextprotocol/server-filesystem"] + path_list,
-            timeout_s=30.0,
-        ))
+        presets.append(
+            MCPServerConfig(
+                name="filesystem",
+                transport="stdio",
+                command="npx",
+                args=["-y", "@modelcontextprotocol/server-filesystem"] + path_list,
+                timeout_s=30.0,
+            )
+        )
         logger.info("mcp_preset_enabled", server="filesystem", pkg="server-filesystem@2026.1.14", paths=path_list)
 
     # ── Supabase MCP Server ────────────────────────────────────────
@@ -403,15 +410,22 @@ def get_preset_configs() -> list[MCPServerConfig]:
     # Accept both names for compatibility
     supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_SERVICE_KEY")
     if supabase_url and supabase_key:
-        presets.append(MCPServerConfig(
-            name="supabase",
-            transport="stdio",
-            command="npx",
-            args=["-y", "@supabase/mcp-server-supabase",
-                  "--supabase-url", supabase_url,
-                  "--supabase-key", supabase_key],
-            timeout_s=30.0,
-        ))
+        presets.append(
+            MCPServerConfig(
+                name="supabase",
+                transport="stdio",
+                command="npx",
+                args=[
+                    "-y",
+                    "@supabase/mcp-server-supabase",
+                    "--supabase-url",
+                    supabase_url,
+                    "--supabase-key",
+                    supabase_key,
+                ],
+                timeout_s=30.0,
+            )
+        )
         logger.info("mcp_preset_enabled", server="supabase", pkg="mcp-server-supabase@0.7.0")
 
     return presets

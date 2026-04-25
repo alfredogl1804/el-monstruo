@@ -42,7 +42,7 @@ MODELS: dict = {
         "pricing": {"input": 30.00, "output": 180.00},  # $/1M tokens — validated 25 abril 2026 via Perplexity
         "validated": "2026-04-25",
         "api_type": "responses",  # CRITICAL: uses /v1/responses, NOT /v1/chat/completions
-        "notes": "Sprint 28: Added as flagship. Uses Responses API only."
+        "notes": "Sprint 28: Added as flagship. Uses Responses API only.",
     },
     "claude-opus-4-7": {
         "provider": "anthropic",

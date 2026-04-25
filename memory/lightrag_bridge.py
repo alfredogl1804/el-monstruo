@@ -116,6 +116,7 @@ async def _get_rag(force_retry: bool = False):
         from lightrag import LightRAG
         from lightrag.kg.postgres_impl import PostgreSQLDB
         from lightrag.llm.openai import openai_complete, openai_embed
+
         _original_create_ssl = PostgreSQLDB._create_ssl_context
 
         def _patched_create_ssl(self_db):
@@ -197,6 +198,7 @@ async def _get_rag(force_retry: bool = False):
         return None
     except Exception as exc:
         import traceback
+
         _rag_init_error = f"{type(exc).__name__}: {exc}"
         logger.error(
             "lightrag_init_failed",

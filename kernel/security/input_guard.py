@@ -7,6 +7,7 @@ Uses pattern-based detection + optional llm-guard integration.
 Sprint 28: Pattern-based detection (zero dependencies).
 Sprint 29+: Integrate llm-guard if Sabios recommend it after benchmark.
 """
+
 import logging
 import re
 from typing import Optional
@@ -32,6 +33,7 @@ COMPILED_PATTERNS = [re.compile(p, re.IGNORECASE) for p in INJECTION_PATTERNS]
 
 class InputGuardResult:
     """Result of input guard check."""
+
     def __init__(self, safe: bool, risk_score: float, matched_patterns: list[str], sanitized: Optional[str] = None):
         self.safe = safe
         self.risk_score = risk_score
@@ -65,12 +67,9 @@ def check_input(text: str, threshold: float = 0.5) -> InputGuardResult:
     if not safe:
         logger.warning(
             "input_guard_triggered",
-            extra={"risk_score": risk_score, "patterns": len(matched), "input_length": len(text)}
+            extra={"risk_score": risk_score, "patterns": len(matched), "input_length": len(text)},
         )
 
     return InputGuardResult(
-        safe=safe,
-        risk_score=risk_score,
-        matched_patterns=matched,
-        sanitized=text if safe else None
+        safe=safe, risk_score=risk_score, matched_patterns=matched, sanitized=text if safe else None
     )

@@ -481,14 +481,17 @@ def set_tool_broker(broker) -> None:
     global _tool_broker
     _tool_broker = broker
 
+
 def set_mcp_manager(manager) -> None:
     """Inject the MCPClientManager instance (set by main.py during startup, Sprint 17)."""
     global _tool_mcp_manager
     _tool_mcp_manager = manager
 
+
 def get_mcp_manager():
     """Get the current MCPClientManager instance."""
     return _tool_mcp_manager
+
 
 def get_tool_broker():
     """Get the current ToolBroker instance."""

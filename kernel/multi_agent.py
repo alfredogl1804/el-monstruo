@@ -43,6 +43,7 @@ logger = logging.getLogger("monstruo.kernel.multi_agent")
 
 class AgentType(str, Enum):
     """Available agent specializations."""
+
     RESEARCH = "research"
     CODE = "code"
     ANALYSIS = "analysis"
@@ -54,6 +55,7 @@ class AgentType(str, Enum):
 @dataclass
 class AgentConfig:
     """Configuration for a specialized agent."""
+
     agent_type: AgentType
     name: str
     description: str
@@ -209,6 +211,7 @@ def classify_task(user_message: str) -> AgentType:
 @dataclass
 class DispatchResult:
     """Result from dispatching a task to a specialized agent."""
+
     agent_type: AgentType
     agent_name: str
     system_prompt: str

@@ -58,6 +58,7 @@ def _get_connection():
             _conn = None
 
     import psycopg
+
     _conn = psycopg.connect(_db_url, autocommit=True)
     return _conn
 
@@ -107,8 +108,7 @@ def _ensure_initialized() -> bool:
 
         # Health probe: verify tables exist
         result = conn.execute(
-            "SELECT EXISTS (SELECT 1 FROM information_schema.tables "
-            "WHERE table_name = 'mempalace_episodes')"
+            "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'mempalace_episodes')"
         ).fetchone()
         if not result[0]:
             _init_error = "mempalace_episodes table not found"
@@ -160,6 +160,7 @@ async def store_episode(
 
     try:
         import json as _json
+
         embedding = _get_embedding(content)
         doc_id = f"{session_id}_{hash(content) & 0xFFFFFFFF:08x}"
         meta_json = _json.dumps(metadata or {})
@@ -203,6 +204,7 @@ async def store_semantic(
 
     try:
         import json as _json
+
         embedding = _get_embedding(content)
         doc_id = f"sem_{topic}_{hash(content) & 0xFFFFFFFF:08x}"
         meta_json = _json.dumps(metadata or {})
@@ -268,12 +270,14 @@ async def recall(
         memories = []
         for row in rows:
             doc_id, content, meta, similarity = row
-            memories.append({
-                "content": content,
-                "metadata": meta or {},
-                "similarity": round(float(similarity), 4) if similarity else None,
-                "id": doc_id,
-            })
+            memories.append(
+                {
+                    "content": content,
+                    "metadata": meta or {},
+                    "similarity": round(float(similarity), 4) if similarity else None,
+                    "id": doc_id,
+                }
+            )
 
         logger.debug(
             "recall_complete",

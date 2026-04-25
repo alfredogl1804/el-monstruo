@@ -60,13 +60,9 @@ def main():
         if VIRAL_PATTERN.search(license_str):
             # Check if dual-licensed with a permissive option
             if PERMISSIVE_PATTERN.search(license_str):
-                warnings.append(
-                    f"  ⚠️  {name}=={version}: {license_str} (dual-license, permissive option available)"
-                )
+                warnings.append(f"  ⚠️  {name}=={version}: {license_str} (dual-license, permissive option available)")
             else:
-                violations.append(
-                    f"  ❌ {name}=={version}: {license_str}"
-                )
+                violations.append(f"  ❌ {name}=={version}: {license_str}")
         elif license_str in ("UNKNOWN", ""):
             warnings.append(f"  ❓ {name}=={version}: License UNKNOWN")
         else:
@@ -82,14 +78,14 @@ def main():
     print(f"Violations: {len(violations)}")
 
     if violations:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("❌ VIRAL LICENSE VIOLATIONS")
         print("=" * 60)
         for v in violations:
             print(v)
 
     if warnings:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("⚠️  WARNINGS")
         print("=" * 60)
         for w in warnings:

@@ -446,6 +446,7 @@ class TestFastAPIEndpoints:
         data = resp.json()
         # Sprint 27.5 fix: version changes every sprint, check format not value
         import re
+
         assert re.match(r"^\d+\.\d+\.\d+-sprint\d+$", data["version"]), f"Invalid version format: {data['version']}"
         # Verify thin-client contract fields
         assert "models_available" in data

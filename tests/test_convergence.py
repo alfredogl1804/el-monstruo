@@ -127,8 +127,9 @@ class TestModelCatalog:
         for name, cfg in MODELS.items():
             if "validated" in cfg:
                 date_str = cfg["validated"]
-                assert date_str.startswith("2026-04"), \
+                assert date_str.startswith("2026-04"), (
                     f"Model {name} has stale validation date: {date_str} (expected 2026-04-XX)"
+                )
 
 
 # ===================== POLICY MATRIX TESTS =====================

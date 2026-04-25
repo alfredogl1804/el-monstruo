@@ -390,9 +390,11 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
 
     # Sprint 27: Mem0 episodic memory retrieval (replaces Honcho)
     mem0_context = {}
+
     async def _get_mem0_context():
         try:
             from memory.mem0_bridge import search_memory
+
             results = await search_memory(query=message, user_id=user_id, limit=3)
             if results:
                 return {"mem0_active": True, "memories": results}
@@ -511,12 +513,14 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
         # Sprint 21: Merge MemPalace results into relevant_memories
         if mempalace_memories:
             for mem in mempalace_memories:
-                relevant_memories.append({
-                    "content": mem.get("content", ""),
-                    "score": 1.0 - (mem.get("distance", 0.5)),  # Convert distance to score
-                    "type": mem.get("metadata", {}).get("type", "mempalace"),
-                    "source": "mempalace",
-                })
+                relevant_memories.append(
+                    {
+                        "content": mem.get("content", ""),
+                        "score": 1.0 - (mem.get("distance", 0.5)),  # Convert distance to score
+                        "type": mem.get("metadata", {}).get("type", "mempalace"),
+                        "source": "mempalace",
+                    }
+                )
 
         logger.info(
             "enrich_parallel_complete",
@@ -546,7 +550,9 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
             # Truncate to avoid blowing up context window
             rag_truncated = rag_text[:2000] if len(rag_text) > 2000 else rag_text
             system_prompt += f"\n\n## Knowledge Graph Context (LightRAG)\n{rag_truncated}"
-            logger.info("enrich_lightrag_injected", chars=len(rag_truncated), mode=lightrag_result.get("mode", "unknown"))  # noqa: E501
+            logger.info(
+                "enrich_lightrag_injected", chars=len(rag_truncated), mode=lightrag_result.get("mode", "unknown")
+            )  # noqa: E501
 
     # Sprint 27: Inject Mem0 episodic memories into system prompt
     if mem0_context and mem0_context.get("mem0_active"):
@@ -730,11 +736,7 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
     agent_type = state.get("agent_type")
     if agent_system_prompt:
         # Prepend agent specialization to the enriched system prompt
-        system_prompt = (
-            f"## Agent Role: {agent_type or 'general'}\n"
-            f"{agent_system_prompt}\n\n"
-            f"{system_prompt}"
-        )
+        system_prompt = f"## Agent Role: {agent_type or 'general'}\n{agent_system_prompt}\n\n{system_prompt}"
         logger.info(
             "execute_agent_prompt_injected",
             agent_type=agent_type,
