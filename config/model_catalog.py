@@ -15,7 +15,7 @@ MODELS: dict = {
     # ─── TIER 1: Flagship (razonamiento complejo, agéntico) ───
     "gpt-5.4": {
         "provider": "openai",
-        "model_id": "gpt-5.4-pro-2026-03-05",  # Sprint 25: pinned to flagship snapshot — validated OpenAI /v1/models 2026-04-22
+        "model_id": "gpt-5.4-pro-2026-03-05",  # Sprint 25 pinned
         "litellm_alias": "gpt-5",
         "api_key_env": "OPENAI_API_KEY",
         "base_url": None,
@@ -160,7 +160,7 @@ MODELS: dict = {
     },
     "gemini-3.1-pro": {
         "provider": "google",
-        "model_id": "gemini-3.1-pro-preview",  # Sprint 25: confirmed — validated Google generativelanguage API 2026-04-22
+        "model_id": "gemini-3.1-pro-preview",  # Sprint 25 confirmed
         "litellm_alias": "gemini-pro",
         "api_key_env": "GEMINI_API_KEY",
         "base_url": None,

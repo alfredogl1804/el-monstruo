@@ -14,11 +14,16 @@ Timeline:
 """
 
 from __future__ import annotations
-import warnings
-warnings.warn("honcho_bridge is deprecated since Sprint 26. Will be removed in Sprint 30.", DeprecationWarning, stacklevel=2)
 
 import logging
+import warnings
 from typing import Any, Optional
+
+warnings.warn(
+    "honcho_bridge deprecated since Sprint 26. Removal: Sprint 30.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 logger = logging.getLogger("monstruo.memory.honcho")
 

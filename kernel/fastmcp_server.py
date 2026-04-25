@@ -26,7 +26,7 @@ Reference: https://gofastmcp.com/v2/servers/tools
 from __future__ import annotations
 
 import os
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 
@@ -125,7 +125,9 @@ def create_fastmcp_server():
     ) -> str:
         """Execute GitHub API operations."""
         try:
+
             import json
+
             from tools.github import execute as gh_execute
             parsed_params = json.loads(params) if isinstance(params, str) else params
             result = await gh_execute({
@@ -147,6 +149,61 @@ def create_fastmcp_server():
         tools_registered=3,
         version="3.2.4",
     )
+
+
+    # ── Sprint 28: MCP Database Query Tool ──────────────────
+    @mcp.tool(
+        annotations={"title": "Database Query", "readOnlyHint": True},
+    )
+    async def database_query(
+        query: str, table_hint: str = "",
+    ) -> str:
+        """Query the Monstruo Supabase database."""
+        import json as _json
+
+        import httpx
+
+        supabase_url = os.environ.get("SUPABASE_URL", "")
+        supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "")
+        if not supabase_url or not supabase_key:
+            return "Error: Supabase credentials not configured"
+        table_map = {
+            "events": "event_store",
+            "memories": "mem0_memories",
+            "knowledge": "knowledge_entities",
+            "conversations": "conversation_episodes",
+            "tools": "tool_usage_log",
+            "costs": "finops_log",
+        }
+        table = (
+            table_map.get(table_hint, table_hint)
+            if table_hint
+            else "event_store"
+        )
+        try:
+            async with httpx.AsyncClient(timeout=15) as client:
+                resp = await client.get(
+                    f"{supabase_url}/rest/v1/{table}"
+                    "?select=*&limit=10&order=created_at.desc",
+                    headers={
+                        "apikey": supabase_key,
+                        "Authorization": f"Bearer {supabase_key}",
+                    },
+                )
+                if resp.status_code == 200:
+                    rows = resp.json()
+                    if rows:
+                        data = _json.dumps(
+                            rows[:5], indent=2, default=str,
+                        )
+                        return (
+                            f"## {table} ({len(rows)} rows)"
+                            f"\n```json\n{data}\n```"
+                        )
+                    return f"No data found in {table}"
+                return f"Error: HTTP {resp.status_code}"
+        except Exception as e:
+            return f"Database error: {e}"
 
     return mcp
 
@@ -170,50 +227,3 @@ def get_status() -> dict[str, Any]:
     }
 
 
-# ── Sprint 28: MCP Database Query Tool ────────────────────────────
-@mcp.tool()
-async def database_query(query: str, table_hint: str = "") -> str:
-    """Query the Monstruo's Supabase database for operational data.
-    
-    Args:
-        query: Natural language description of what to find
-        table_hint: Optional table name hint (e.g., 'events', 'memories', 'knowledge')
-    
-    Returns:
-        Query results as formatted text
-    """
-    import httpx
-    supabase_url = os.environ.get("SUPABASE_URL", "")
-    supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "")
-    if not supabase_url or not supabase_key:
-        return "Error: Supabase credentials not configured"
-    
-    # Map natural language to known tables
-    table_map = {
-        "events": "event_store",
-        "memories": "mem0_memories",
-        "knowledge": "knowledge_entities",
-        "conversations": "conversation_episodes",
-        "tools": "tool_usage_log",
-        "costs": "finops_log",
-    }
-    
-    table = table_map.get(table_hint, table_hint) if table_hint else "event_store"
-    
-    try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.get(
-                f"{supabase_url}/rest/v1/{table}?select=*&limit=10&order=created_at.desc",
-                headers={
-                    "apikey": supabase_key,
-                    "Authorization": f"Bearer {supabase_key}",
-                }
-            )
-            if resp.status_code == 200:
-                rows = resp.json()
-                if rows:
-                    return f"## {table} (latest {len(rows)} rows)\n\n```json\n{json.dumps(rows[:5], indent=2, default=str)}\n```"
-                return f"No data found in {table}"
-            return f"Error querying {table}: HTTP {resp.status_code}"
-    except Exception as e:
-        return f"Database error: {e}"
