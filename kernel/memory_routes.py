@@ -42,7 +42,7 @@ def set_dependencies(thoughts_store=None):
 
 
 class CreateThoughtRequest(BaseModel):
-    user_id: str = Field(default="alfredo")
+    user_id: str = Field(default="anonymous")  # Sprint 29 DT-8
     layer: str = Field(..., description="episodic | semantic | procedural")
     content: str = Field(..., min_length=1, max_length=50000)
     summary: Optional[str] = None
@@ -77,7 +77,7 @@ class SupersedeRequest(BaseModel):
 
 
 class SearchRequest(BaseModel):
-    user_id: str = Field(default="alfredo")
+    user_id: str = Field(default="anonymous")  # Sprint 29 DT-8
     query: str = Field(..., min_length=1, max_length=2000)
     layer: Optional[str] = None
     project: Optional[str] = None
@@ -120,7 +120,7 @@ async def create_thought(req: CreateThoughtRequest):
 
 @router.get("/thoughts")
 async def list_thoughts(
-    user_id: str = Query(default="alfredo"),
+    user_id: str = Query(default="anonymous")  # Sprint 29 DT-8 FIX,
     layer: Optional[str] = Query(default=None),
     project: Optional[str] = Query(default=None),
     include_superseded: bool = Query(default=False),
@@ -157,7 +157,7 @@ async def get_thought(thought_id: str):
 
 
 @router.patch("/thoughts/{thought_id}")
-async def update_thought(thought_id: str, req: UpdateThoughtRequest, user_id: str = Query(default="alfredo")):
+async def update_thought(thought_id: str, req: UpdateThoughtRequest, user_id: str = Query(default="anonymous")  # Sprint 29 DT-8 FIX):
     """Update a thought. Regenerates embedding if content/summary changed."""
     if not _thoughts_store:
         raise HTTPException(503, "Thoughts store not initialized")
@@ -174,7 +174,7 @@ async def update_thought(thought_id: str, req: UpdateThoughtRequest, user_id: st
 
 
 @router.delete("/thoughts/{thought_id}")
-async def delete_thought(thought_id: str, user_id: str = Query(default="alfredo")):
+async def delete_thought(thought_id: str, user_id: str = Query(default="anonymous")  # Sprint 29 DT-8 FIX):
     """Delete a thought."""
     if not _thoughts_store:
         raise HTTPException(503, "Thoughts store not initialized")
@@ -190,7 +190,7 @@ async def delete_thought(thought_id: str, user_id: str = Query(default="alfredo"
 async def supersede_thought(
     thought_id: str,
     req: SupersedeRequest,
-    user_id: str = Query(default="alfredo"),
+    user_id: str = Query(default="anonymous")  # Sprint 29 DT-8 FIX,
 ):
     """Supersede an old thought with a new one."""
     if not _thoughts_store:
@@ -249,7 +249,7 @@ async def semantic_search(req: SearchRequest):
 
 @router.get("/boot")
 async def boot_sequence(
-    user_id: str = Query(default="alfredo"),
+    user_id: str = Query(default="anonymous")  # Sprint 29 DT-8 FIX,
     project: Optional[str] = Query(default=None),
     procedural_limit: int = Query(default=5, ge=1, le=20),
     semantic_limit: int = Query(default=5, ge=1, le=20),
@@ -279,7 +279,7 @@ async def boot_sequence(
 
 
 @router.get("/stats")
-async def memory_stats(user_id: str = Query(default="alfredo")):
+async def memory_stats(user_id: str = Query(default="anonymous")  # Sprint 29 DT-8 FIX):
     """Get memory statistics."""
     if not _thoughts_store:
         raise HTTPException(503, "Thoughts store not initialized")

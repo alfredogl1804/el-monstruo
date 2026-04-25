@@ -146,7 +146,7 @@ async def agui_run(req: AGUIRunRequest, request: Request):
 
             run_input = RunInput(
                 message=user_message,
-                user_id=req.forwarded_props.get("user_id", "alfredo"),
+                user_id=req.forwarded_props.get("user_id", "anonymous"),
                 channel="command-center",
                 context={"thread_id": thread_id, "agui": True},
                 session_id=thread_id,

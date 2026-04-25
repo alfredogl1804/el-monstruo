@@ -1,8 +1,8 @@
-# El Monstruo — Sprint 27 Dependencies (Pinned)
-# Updated: 2026-04-24 — ALL versions validated in real-time via PyPI JSON API
+# El Monstruo — Sprint 29 Dependencies (Pinned)
+# Updated: 2026-04-25 — ALL versions validated in real-time via PyPI JSON API
 # Policy: ALL versions pinned. NO floating ranges.
 # Validation: /protocolo-operativo-core + /validacion-tiempo-real applied
-# Sprint 27: Mem0 2.0.0 adopted + langchain-openai 1.2.1 + langfuse 4.5.1
+# Sprint 29: Opik 2.0.14, Groq 1.2.0, Together 2.10.0, GPT-5.5 flagship
 
 # ── Kernel / Orchestration ──────────────────────────────────────────
 langgraph==1.1.9  # IVD auto-update Sprint 22 (was 1.1.8) — validated PyPI 2026-04-21
@@ -67,6 +67,11 @@ opentelemetry-api==1.41.0
 opentelemetry-sdk==1.41.0
 opentelemetry-exporter-otlp==1.41.0
 langfuse==4.5.1  # IVD auto-update Sprint 27 (was 4.5.0) — validated PyPI 2026-04-24
+opik==2.0.14  # Sprint 29 Épica 2: Opik Cloud observability — validated PyPI 2026-04-25
+
+# ── Fallback Providers (Épica 5 — Sprint 29) ──────────────────────
+groq==1.2.0  # Sprint 29: Groq fallback for OpenAI/Anthropic outages — validated PyPI 2026-04-25
+together==2.10.0  # Sprint 29: Together fallback — validated PyPI 2026-04-25
 
 # ── Utilities ───────────────────────────────────────────────────────
 httpx==0.28.1

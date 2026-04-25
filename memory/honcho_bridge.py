@@ -36,13 +36,13 @@ async def ensure_workspace() -> bool:
     return False
 
 
-async def get_user_context(user_id: str = "alfredo") -> dict[str, Any]:
+async def get_user_context(user_id: str = "anonymous") -> dict[str, Any]:
     """Return empty context. Honcho service was deleted in Sprint 26."""
     return {"honcho_active": False, "reason": _DISABLED_REASON}
 
 
 async def update_user_model(
-    user_id: str = "alfredo",
+    user_id: str = "anonymous",
     interaction_summary: str = "",
     preferences_update: Optional[dict[str, Any]] = None,
     thread_id: str = "",

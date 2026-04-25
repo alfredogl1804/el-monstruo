@@ -732,7 +732,7 @@ class LangGraphKernel(KernelInterface):
             graph_state = await self._compiled_streaming.aget_state(config)
             current_state = graph_state.values if graph_state else pre_llm_state
 
-            model = current_state.get("model", "gpt-5.4")
+            model = current_state.get("model", "gpt-5.5")
             intent = current_state.get("intent", "chat")
             system_prompt = current_state.get("system_prompt", "")
             conversation_context = current_state.get("conversation_context", [])

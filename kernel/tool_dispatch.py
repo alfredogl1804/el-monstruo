@@ -388,7 +388,7 @@ def get_tool_specs():
                     },
                     "user_id": {
                         "type": "string",
-                        "description": "User ID. Default: 'alfredo'",
+                        "description": "User ID. Default: 'anonymous'",
                     },
                     "status": {
                         "type": "string",
@@ -481,17 +481,14 @@ def set_tool_broker(broker) -> None:
     global _tool_broker
     _tool_broker = broker
 
-
 def set_mcp_manager(manager) -> None:
     """Inject the MCPClientManager instance (set by main.py during startup, Sprint 17)."""
     global _tool_mcp_manager
     _tool_mcp_manager = manager
 
-
 def get_mcp_manager():
     """Get the current MCPClientManager instance."""
     return _tool_mcp_manager
-
 
 def get_tool_broker():
     """Get the current ToolBroker instance."""
@@ -587,7 +584,7 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             return await execute_schedule_task(
                 params=args,
                 context={
-                    "user_id": state.get("user_id", "alfredo"),  # noqa: F821, E501
+                    "user_id": state.get("user_id", "anonymous"),  # Sprint 29 DT-8 FIX: was hardcoded "alfredo"
                     "thread_id": "",
                     "db": _tool_db,  # Injected by main.py via set_tool_db()
                     "source": "user",
@@ -703,7 +700,7 @@ async def tool_dispatch(state: MonstruoState, config: RunnableConfig) -> dict[st
                 args=tool_args,
                 run_id=run_id,
                 thread_id=thread_id,
-                tenant_id="alfredo",
+                tenant_id=state.get("user_id", "anonymous"),  # Sprint 29 DT-8 FIX
                 executor_fn=_execute_tool,
             )
             # Remove broker metadata before passing to LLM

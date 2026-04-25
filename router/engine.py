@@ -46,7 +46,7 @@ logger = structlog.get_logger("router")
 
 DEFAULT_MODEL_MAP: dict[IntentType, str] = {
     IntentType.CHAT: "gemini-3.1-flash-lite",  # Rápido y gratis
-    IntentType.DEEP_THINK: "gpt-5.4",  # Razonamiento complejo
+    IntentType.DEEP_THINK: "gpt-5.5",  # Razonamiento complejo
     IntentType.EXECUTE: "claude-sonnet-4-6",  # Código y ejecución
     IntentType.BACKGROUND: "gemini-3.1-flash-lite",  # Tareas largas baratas
     IntentType.SYSTEM: "gemini-3.1-flash-lite",  # Respuestas rápidas
@@ -54,7 +54,7 @@ DEFAULT_MODEL_MAP: dict[IntentType, str] = {
 
 # Brain → Catalog Model mapping (6 cerebros del Monstruo)
 BRAIN_MODEL_MAP: dict[str, str] = {
-    "estratega": "gpt-5.4",
+    "estratega": "gpt-5.5",
     "investigador": "sonar-reasoning-pro",
     "arquitecto": "claude-opus-4-6",
     "creativo": "gemini-3.1-pro",
@@ -69,18 +69,18 @@ ALIAS_TO_CATALOG: dict[str, str] = {
 
 # Fallback chain per catalog model name
 FALLBACK_CHAIN: dict[str, list[str]] = {
-    "gpt-5.4": ["claude-opus-4-7", "claude-sonnet-4-6", "gemini-3.1-pro"],
-    "claude-opus-4-7": ["claude-opus-4-6", "gpt-5.4", "claude-sonnet-4-6"],
-    "claude-opus-4-6": ["claude-opus-4-7", "gpt-5.4", "claude-sonnet-4-6"],
-    "claude-sonnet-4-6": ["gpt-5.4", "claude-opus-4-7", "gemini-3.1-flash-lite"],
-    "gemini-3.1-flash-lite": ["gpt-5.4-mini", "kimi-k2.5", "gpt-5.4"],
-    "gemini-3.1-pro": ["gpt-5.4", "claude-opus-4-7", "gemini-3.1-flash-lite"],
-    "grok-4.20": ["gpt-5.4", "deepseek-r1-0528", "claude-opus-4-7"],
-    "deepseek-r1-0528": ["grok-4.20", "gpt-5.4", "claude-opus-4-7"],
-    "sonar-reasoning-pro": ["sonar-pro", "gpt-5.4", "grok-4.20"],
+    "gpt-5.5": ["claude-opus-4-7", "claude-sonnet-4-6", "gemini-3.1-pro"],
+    "claude-opus-4-7": ["claude-opus-4-6", "gpt-5.5", "claude-sonnet-4-6"],
+    "claude-opus-4-6": ["claude-opus-4-7", "gpt-5.5", "claude-sonnet-4-6"],
+    "claude-sonnet-4-6": ["gpt-5.5", "claude-opus-4-7", "gemini-3.1-flash-lite"],
+    "gemini-3.1-flash-lite": ["gpt-4.1-mini", "kimi-k2.5", "gpt-5.4"],
+    "gemini-3.1-pro": ["gpt-5.5", "claude-opus-4-7", "gemini-3.1-flash-lite"],
+    "grok-4.20": ["gpt-5.5", "deepseek-r1-0528", "claude-opus-4-7"],
+    "deepseek-r1-0528": ["grok-4.20", "gpt-5.5", "claude-opus-4-7"],
+    "sonar-reasoning-pro": ["sonar-pro", "gpt-5.5", "grok-4.20"],
     "sonar-pro": ["sonar-reasoning-pro", "gpt-5.4", "gemini-3.1-flash-lite"],
-    "gpt-5.4-mini": ["kimi-k2.5", "gemini-3.1-flash-lite"],
-    "kimi-k2.5": ["gemini-3.1-flash-lite", "gpt-5.4-mini"],
+    "gpt-4.1-mini": ["kimi-k2.5", "gemini-3.1-flash-lite"],
+    "kimi-k2.5": ["gemini-3.1-flash-lite", "gpt-4.1-mini"],
 }
 
 # Intent classification prompt
@@ -152,7 +152,7 @@ class RouterEngine:
         # If context specifies a brain, use brain→model mapping
         if context and context.get("brain"):
             brain = context["brain"]
-            model = BRAIN_MODEL_MAP.get(brain, "gpt-5.4")
+            model = BRAIN_MODEL_MAP.get(brain, "gpt-5.5")
             logger.info(
                 "route_by_brain",
                 brain=brain,
@@ -162,7 +162,7 @@ class RouterEngine:
             return intent, model
 
         # Select model based on intent
-        model = self._model_map.get(intent, "gpt-5.4")
+        model = self._model_map.get(intent, "gpt-5.5")
 
         # Override: if context requests a specific model, use it
         if context and context.get("force_model"):

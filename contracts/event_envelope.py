@@ -151,7 +151,7 @@ class EventBuilder:
             .action("Started new run")
             .for_run(run_id)
             .for_user(user_id)
-            .with_payload({"model": "gpt-5.4", "intent": "chat"})
+            .with_payload({"model": "gpt-5.5", "intent": "chat"})
             .build())
     """
 

@@ -61,7 +61,7 @@ class AgentConfig:
     description: str
     system_prompt: str
     tools: list[str] = field(default_factory=list)
-    model_preference: Optional[str] = None  # e.g., "gpt-5.4" for research
+    model_preference: Optional[str] = None  # e.g., "gpt-5.5" for research
     max_steps: int = 10
     enabled: bool = True
 

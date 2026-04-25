@@ -71,7 +71,7 @@ class DossierUpdate(BaseModel):
 
 
 @router.get("/")
-async def list_missions(status: str = "active", user_id: str = "alfredo"):
+async def list_missions(status: str = "active", user_id: str = "anonymous"):
     """List missions filtered by status."""
     if not _db:
         raise HTTPException(503, "Database not available")
@@ -103,7 +103,7 @@ async def list_missions(status: str = "active", user_id: str = "alfredo"):
 
 
 @router.post("/")
-async def create_mission(body: MissionCreate, user_id: str = "alfredo"):
+async def create_mission(body: MissionCreate, user_id: str = "anonymous"):
     """Create a new active mission."""
     if not _db:
         raise HTTPException(503, "Database not available")
@@ -156,7 +156,7 @@ async def update_mission(mission_id: str, body: MissionUpdate):
 
 
 @dossier_router.get("/")
-async def get_dossier(user_id: str = "alfredo"):
+async def get_dossier(user_id: str = "anonymous"):
     """Get the user dossier."""
     if not _db:
         raise HTTPException(503, "Database not available")
@@ -186,7 +186,7 @@ async def get_dossier(user_id: str = "alfredo"):
 
 
 @dossier_router.put("/")
-async def update_dossier(body: DossierUpdate, user_id: str = "alfredo"):
+async def update_dossier(body: DossierUpdate, user_id: str = "anonymous"):
     """Update the user dossier."""
     if not _db:
         raise HTTPException(503, "Database not available")

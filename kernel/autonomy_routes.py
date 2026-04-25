@@ -35,7 +35,7 @@ class ScheduleRequest(BaseModel):
     timezone: str = Field(default="America/Mexico_City", description="User timezone")
     channel: str = Field(default="telegram", description="Notification channel")
     recurrence: Optional[str] = Field(default=None, description="null, 'daily', or 'weekly'")
-    user_id: str = Field(default="alfredo", description="User ID")
+    user_id: str = Field(default="anonymous", description="User ID")
 
 
 class ScheduleResponse(BaseModel):
@@ -117,7 +117,7 @@ async def schedule_job(request: ScheduleRequest):
 
 @router.get("/jobs")
 async def list_jobs(
-    user_id: str = "alfredo",
+    user_id: str = "anonymous",
     status: Optional[str] = None,
     limit: int = 50,
 ):

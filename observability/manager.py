@@ -34,6 +34,7 @@ import structlog
 
 from observability.langfuse_bridge import LangfuseBridge
 from observability.otel_bridge import OTelBridge
+from observability.opik_bridge import OpikBridge
 
 logger = structlog.get_logger("observability.manager")
 
@@ -41,13 +42,15 @@ logger = structlog.get_logger("observability.manager")
 @dataclass
 class TraceContext:
     """
-    Holds references to active trace objects across both bridges.
+    Holds references to active trace objects across all bridges.
     Passed through the kernel run as a lightweight context carrier.
+    Sprint 29: Added opik_trace for dual observability.
     """
 
     run_id: str
     langfuse_trace: Any = None
     otel_spans: dict[str, Any] = field(default_factory=dict)
+    opik_trace: Any = None  # Sprint 29: Opik Cloud trace
 
 
 class ObservabilityManager:
@@ -64,6 +67,7 @@ class ObservabilityManager:
     def __init__(self) -> None:
         self._langfuse = LangfuseBridge()
         self._otel = OTelBridge()
+        self._opik = OpikBridge()  # Sprint 29: Opik Cloud
 
     async def initialize(self) -> dict[str, bool]:
         """
@@ -72,10 +76,12 @@ class ObservabilityManager:
         """
         langfuse_ok = await self._langfuse.initialize()
         otel_ok = await self._otel.initialize()
+        opik_ok = await self._opik.initialize()  # Sprint 29
 
         status = {
             "langfuse": langfuse_ok,
             "opentelemetry": otel_ok,
+            "opik": opik_ok,  # Sprint 29
         }
 
         logger.info("observability_initialized", **status)
@@ -108,6 +114,15 @@ class ObservabilityManager:
             session_id=session_id,
         )
 
+        # Sprint 29: Opik Cloud trace
+        ctx.opik_trace = self._opik.trace_start(
+            run_id=run_id,
+            user_id=user_id,
+            channel=channel,
+            message=message,
+            metadata=metadata,
+        )
+
         logger.debug("trace_started", run_id=run_id, session_id=session_id or "none")
         return ctx
 
@@ -133,6 +148,15 @@ class ObservabilityManager:
             level=level,
         )
 
+        # Sprint 29: Opik span
+        self._opik.record_span(
+            trace=ctx.opik_trace,
+            name=name,
+            input_data=input,
+            output_data=output,
+            metadata=metadata,
+        )
+
         logger.debug("span_recorded", run_id=ctx.run_id, name=name)
 
     def record_generation(
@@ -151,6 +175,17 @@ class ObservabilityManager:
         """
         self._langfuse.trace_generation(
             trace=ctx.langfuse_trace,
+            name=name,
+            model=model,
+            input_messages=input_messages,
+            output=output,
+            usage=usage,
+            metadata=metadata,
+        )
+
+        # Sprint 29: Opik generation
+        self._opik.record_generation(
+            trace=ctx.opik_trace,
             name=name,
             model=model,
             input_messages=input_messages,
@@ -219,11 +254,20 @@ class ObservabilityManager:
             metadata=metadata,
         )
 
+        # Sprint 29: End Opik trace
+        self._opik.trace_end(
+            trace=ctx.opik_trace,
+            output=output,
+            status=status,
+            metadata=metadata,
+        )
+
         logger.debug("trace_ended", run_id=ctx.run_id, status=status)
 
     async def flush(self) -> None:
         """Flush pending events to all backends."""
         await self._langfuse.flush()
+        self._opik.flush()  # Sprint 29
 
     def get_callback_handler(self) -> Any:
         """
@@ -241,6 +285,7 @@ class ObservabilityManager:
         """Shutdown all observability bridges."""
         await self._langfuse.shutdown()
         await self._otel.shutdown()
+        await self._opik.shutdown()  # Sprint 29
         logger.info("observability_shutdown")
 
     @property
@@ -250,3 +295,11 @@ class ObservabilityManager:
     @property
     def otel_enabled(self) -> bool:
         return self._otel.enabled
+
+    @property
+    def opik_enabled(self) -> bool:
+        return self._opik.enabled
+
+    def get_opik_status(self) -> dict:
+        """Sprint 29: Get Opik status for /health."""
+        return self._opik.get_status()

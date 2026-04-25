@@ -228,7 +228,7 @@ async def chat_completions(request: OpenAIChatRequest, raw_request: Request):
     run_id = uuid.uuid4()
     run_input = RunInput(
         run_id=run_id,
-        user_id=request.user or "alfredo",
+        user_id=request.user or "anonymous",
         channel="openwebui",
         message=user_message,
         context=context,

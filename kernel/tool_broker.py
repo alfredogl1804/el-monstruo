@@ -101,7 +101,7 @@ class ToolBroker:
 
     # ── Public API ────────────────────────────────────────────────────
 
-    async def initialize(self, tenant_id: str = "alfredo"):
+    async def initialize(self, tenant_id: str = "anonymous"):
         """Load bindings from Supabase for the given tenant."""
         if not self._db:
             logger.warning("broker_no_db", msg="No DB — using static bindings")
@@ -186,7 +186,7 @@ class ToolBroker:
         args: dict[str, Any],
         run_id: str = "",
         thread_id: str = "",
-        tenant_id: str = "alfredo",
+        tenant_id: str = "anonymous",
         executor_fn=None,
     ) -> dict[str, Any]:
         """
@@ -436,7 +436,7 @@ class BrokeredTool:
         broker: ToolBroker,
         run_id: str = "",
         thread_id: str = "",
-        tenant_id: str = "alfredo",
+        tenant_id: str = "anonymous",
         executor_fn=None,
     ):
         self.name = name
@@ -466,7 +466,7 @@ def create_brokered_tools(
     tool_names: list[str],
     run_id: str = "",
     thread_id: str = "",
-    tenant_id: str = "alfredo",
+    tenant_id: str = "anonymous",
     executor_fn=None,
 ) -> dict[str, BrokeredTool]:
     """

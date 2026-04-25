@@ -100,7 +100,7 @@ class OTelBridge:
         Create an OpenTelemetry span as a context manager.
 
         Usage:
-            with otel.span("think_node", {"model": "gpt-5.4"}) as span:
+            with otel.span("think_node", {"model": "gpt-5.5"}) as span:
                 result = await think(state)
                 span.set_attribute("tokens", result.tokens)
         """

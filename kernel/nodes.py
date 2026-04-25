@@ -361,7 +361,7 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
         try:
             from tools.user_dossier import get_prompt_dossier
 
-            dynamic_dossier = await get_prompt_dossier(db, user_id="alfredo")
+            dynamic_dossier = await get_prompt_dossier(db, user_id="anonymous")
             system_prompt += f"\n\n{dynamic_dossier}"
             logger.info("enrich_dossier_injected", source="supabase", chars=len(dynamic_dossier))
         except Exception as e:
@@ -723,7 +723,7 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
     to the router so the LLM sees memory and context from enrich().
     """
     message = state.get("message", "")
-    model = state.get("model", "gpt-5.4")
+    model = state.get("model", "gpt-5.5")
     intent = state.get("intent", "chat")
     system_prompt = state.get("system_prompt", _build_base_system_prompt())
     conversation_context = state.get("conversation_context", [])
@@ -1179,7 +1179,7 @@ def should_enrich(state: MonstruoState) -> str:
         "gato",
         "perro",
         "mascota",
-        "alfredo",
+        "anonymous",
         "góngora",
     }
 
@@ -1279,11 +1279,11 @@ def _default_model_for_intent(intent: str) -> tuple[str, list[str]]:
     OPT-4: chat uses gemini-3.1-flash-lite (fastest, cheapest).
     """
     INTENT_MODELS = {
-        "chat": ("gemini-3.1-flash-lite", ["gpt-5.4", "claude-sonnet-4-6"]),
-        "deep_think": ("gpt-5.4", ["claude-sonnet-4-6", "gemini-3.1-flash-lite"]),
-        "execute": ("gpt-5.4", ["claude-sonnet-4-6", "gemini-3.1-flash-lite"]),
-        "background": ("claude-sonnet-4-6", ["gpt-5.4", "gemini-3.1-flash-lite"]),
-        "system": ("gemini-3.1-flash-lite", ["gpt-5.4", "claude-sonnet-4-6"]),
+        "chat": ("gemini-3.1-flash-lite", ["gpt-5.5", "claude-sonnet-4-6"]),
+        "deep_think": ("gpt-5.5", ["claude-sonnet-4-6", "gemini-3.1-flash-lite"]),
+        "execute": ("gpt-5.5", ["claude-sonnet-4-6", "gemini-3.1-flash-lite"]),
+        "background": ("claude-sonnet-4-6", ["gpt-5.5", "gemini-3.1-flash-lite"]),
+        "system": ("gemini-3.1-flash-lite", ["gpt-5.5", "claude-sonnet-4-6"]),
     }
     return INTENT_MODELS.get(intent, INTENT_MODELS["chat"])
 
@@ -1292,7 +1292,7 @@ def _get_fallback_chain(intent: str, primary_model: str) -> list[str]:
     """
     Build fallback chain excluding the primary model.
     """
-    all_models = ["gpt-5.4", "claude-sonnet-4-6", "gemini-3.1-flash-lite"]
+    all_models = ["gpt-5.5", "claude-sonnet-4-6", "gemini-3.1-flash-lite"]
     return [m for m in all_models if m != primary_model][:2]
 
 
