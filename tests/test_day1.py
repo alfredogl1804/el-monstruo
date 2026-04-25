@@ -470,11 +470,11 @@ class TestFastAPIEndpoints:
 
     def test_stats_endpoint(self, client):
         resp = client.get("/v1/stats")
-        assert resp.status_code == 200
-        data = resp.json()
-        # May return {"status": "no_event_store"} if lifespan didn't run,
-        # or full stats if it did
-        assert "event_store" in data or "status" in data
+        # Sprint 27.5: 503 if lifespan not initialized (no event_store)
+        assert resp.status_code in [200, 503]
+        if resp.status_code == 200:
+            data = resp.json()
+            assert "event_store" in data or "status" in data
 
     def test_recent_events(self, client):
         resp = client.get("/v1/events/recent")
