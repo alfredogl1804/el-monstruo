@@ -33,6 +33,17 @@ MODELS: dict = {
         "validated": "2026-04-22",
         "source": "https://developers.openai.com/api/docs/models",
     },
+    "gpt-5.5-pro": {
+        "provider": "openai",
+        "model_id": "gpt-5.5-pro",
+        "litellm_alias": "openai/gpt-5.5-pro",
+        "roles": ["estratega", "sintetizador", "planificador", "analisis"],
+        "context_window": 1_050_000,
+        "pricing": {"input": 30.00, "output": 180.00},  # $/1M tokens — validated 25 abril 2026 via Perplexity
+        "validated": "2026-04-25",
+        "api_type": "responses",  # CRITICAL: uses /v1/responses, NOT /v1/chat/completions
+        "notes": "Sprint 28: Added as flagship. Uses Responses API only."
+    },
     "claude-opus-4-7": {
         "provider": "anthropic",
         "model_id": "claude-opus-4-7",  # Sprint 25: confirmed latest opus — validated Anthropic /v1/models 2026-04-22

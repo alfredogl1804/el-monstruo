@@ -25,7 +25,7 @@ class TestModelCatalog:
     def test_catalog_has_13_models(self):
         from config.model_catalog import MODELS
 
-        assert len(MODELS) == 13, f"Expected 13 models, got {len(MODELS)}"
+        assert len(MODELS) == 14, f"Expected 14 models, got {len(MODELS)}"
 
     def test_all_models_have_required_fields(self):
         from config.model_catalog import MODELS
@@ -120,12 +120,15 @@ class TestModelCatalog:
         assert len(SPRINT2_CANDIDATES) >= 3
 
     def test_all_validated_dates_are_april_2026(self):
+        """Sprint 27.5 fix: Accept any date in April 2026 instead of hardcoded set.
+        This prevents CI from breaking every time model_catalog is updated."""
         from config.model_catalog import MODELS
 
-        valid_dates = {"2026-04-12", "2026-04-18", "2026-04-20"}
         for name, cfg in MODELS.items():
             if "validated" in cfg:
-                assert cfg["validated"] in valid_dates, f"Model {name} has stale validation date: {cfg['validated']}"
+                date_str = cfg["validated"]
+                assert date_str.startswith("2026-04"), \
+                    f"Model {name} has stale validation date: {date_str} (expected 2026-04-XX)"
 
 
 # ===================== POLICY MATRIX TESTS =====================

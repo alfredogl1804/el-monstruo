@@ -168,3 +168,52 @@ def get_status() -> dict[str, Any]:
         "transport": "sse",
         "mount_path": "/mcp",
     }
+
+
+# ── Sprint 28: MCP Database Query Tool ────────────────────────────
+@mcp.tool()
+async def database_query(query: str, table_hint: str = "") -> str:
+    """Query the Monstruo's Supabase database for operational data.
+    
+    Args:
+        query: Natural language description of what to find
+        table_hint: Optional table name hint (e.g., 'events', 'memories', 'knowledge')
+    
+    Returns:
+        Query results as formatted text
+    """
+    import httpx
+    supabase_url = os.environ.get("SUPABASE_URL", "")
+    supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "")
+    if not supabase_url or not supabase_key:
+        return "Error: Supabase credentials not configured"
+    
+    # Map natural language to known tables
+    table_map = {
+        "events": "event_store",
+        "memories": "mem0_memories",
+        "knowledge": "knowledge_entities",
+        "conversations": "conversation_episodes",
+        "tools": "tool_usage_log",
+        "costs": "finops_log",
+    }
+    
+    table = table_map.get(table_hint, table_hint) if table_hint else "event_store"
+    
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.get(
+                f"{supabase_url}/rest/v1/{table}?select=*&limit=10&order=created_at.desc",
+                headers={
+                    "apikey": supabase_key,
+                    "Authorization": f"Bearer {supabase_key}",
+                }
+            )
+            if resp.status_code == 200:
+                rows = resp.json()
+                if rows:
+                    return f"## {table} (latest {len(rows)} rows)\n\n```json\n{json.dumps(rows[:5], indent=2, default=str)}\n```"
+                return f"No data found in {table}"
+            return f"Error querying {table}: HTTP {resp.status_code}"
+    except Exception as e:
+        return f"Database error: {e}"

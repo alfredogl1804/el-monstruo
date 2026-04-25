@@ -500,16 +500,16 @@ class ConversationMemory(MemoryInterface):
     # ── Knowledge Graph stubs (delegated to graph module) ──────────
 
     async def upsert_entity(self, entity: Entity) -> UUID:
-        raise NotImplementedError("Use KnowledgeGraph module directly")
+        raise DeprecationWarning("Delegated to KnowledgeGraph module. Import from memory.knowledge_graph directly.")
 
     async def add_relation(self, relation: Relation) -> UUID:
-        raise NotImplementedError("Use KnowledgeGraph module directly")
+        raise DeprecationWarning("Delegated to KnowledgeGraph module. Import from memory.knowledge_graph directly.")
 
     async def get_entity_graph(self, entity_id: UUID, depth: int = 2):
-        raise NotImplementedError("Use KnowledgeGraph module directly")
+        raise DeprecationWarning("Delegated to KnowledgeGraph module. Import from memory.knowledge_graph directly.")
 
     async def find_entities(self, query: str, entity_type=None, limit: int = 10):
-        raise NotImplementedError("Use KnowledgeGraph module directly")
+        raise DeprecationWarning("Delegated to KnowledgeGraph module. Import from memory.knowledge_graph directly.")
 
     # ── Private Methods ────────────────────────────────────────────
 

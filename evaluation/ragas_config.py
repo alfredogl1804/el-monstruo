@@ -9,7 +9,7 @@ Usage:
 
 Requires: pip install ragas==0.4.3
 
-TODO Sprint 17: Evaluate infiniflow/ragflow (78K+ stars, Score 8.46)
+DEFERRED Sprint 29+: ragflow evaluation (78K+ stars). LightRAG covers current needs.
     as complement/replacement for the RAG knowledge engine.
     ragflow provides a more robust end-to-end RAG pipeline.
 """

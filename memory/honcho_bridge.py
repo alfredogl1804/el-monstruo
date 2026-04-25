@@ -14,6 +14,8 @@ Timeline:
 """
 
 from __future__ import annotations
+import warnings
+warnings.warn("honcho_bridge is deprecated since Sprint 26. Will be removed in Sprint 30.", DeprecationWarning, stacklevel=2)
 
 import logging
 from typing import Any, Optional

@@ -84,7 +84,7 @@ def _extract_text(content: Any) -> str:
         for part in content:
             if isinstance(part, dict) and part.get("type") == "text":
                 parts.append(part.get("text", ""))
-            # TODO: handle image_url when kernel supports multimodal
+            # BACKLOG Sprint 29+: image_url support for multimodal (requires GPT-5.5 vision pipeline)
         return "\n".join(parts)
     return str(content)
 
