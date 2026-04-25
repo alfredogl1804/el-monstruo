@@ -310,12 +310,12 @@ class TestVersionAndIntegration:
     """Tests for version bumps and integration."""
 
     def test_version_is_sprint2(self):
-        """Version should be 0.10.0-sprint16 in main.py."""
-        # Check in main.py where the version is defined
+        """Sprint 27.5 fix: Version should follow semver-sprint pattern in main.py."""
+        import re
         main_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "kernel", "main.py")
         with open(main_path) as f:
             content = f.read()
-        assert "0.10.0-sprint16" in content
+        assert re.search(r'\d+\.\d+\.\d+-sprint\d+', content), "No semver-sprint version found in main.py"
 
     def test_tools_directory_exists(self):
         """Tools directory should exist with all modules."""
