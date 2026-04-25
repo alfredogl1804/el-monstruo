@@ -546,7 +546,7 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
             # Truncate to avoid blowing up context window
             rag_truncated = rag_text[:2000] if len(rag_text) > 2000 else rag_text
             system_prompt += f"\n\n## Knowledge Graph Context (LightRAG)\n{rag_truncated}"
-            logger.info("enrich_lightrag_injected", chars=len(rag_truncated), mode=lightrag_result.get("mode", "unknown"))
+            logger.info("enrich_lightrag_injected", chars=len(rag_truncated), mode=lightrag_result.get("mode", "unknown"))  # noqa: E501
 
     # Sprint 27: Inject Mem0 episodic memories into system prompt
     if mem0_context and mem0_context.get("mem0_active"):
@@ -558,7 +558,7 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
                 if mem_text:
                     mem0_parts.append(f"- {mem_text}")
             if mem0_parts:
-                system_prompt += f"\n\n## User Memory (Mem0)\n" + "\n".join(mem0_parts)
+                system_prompt += "\n\n## User Memory (Mem0)\n" + "\n".join(mem0_parts)
                 logger.info("enrich_mem0_injected", count=len(mem0_parts))
 
     elapsed_ms = (time.monotonic() - start_time) * 1000

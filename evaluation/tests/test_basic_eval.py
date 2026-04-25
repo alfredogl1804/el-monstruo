@@ -10,12 +10,11 @@ These tests validate core kernel behaviors:
 
 import pytest
 from deepeval import assert_test
-from deepeval.test_case import LLMTestCase
 from deepeval.metrics import (
     AnswerRelevancyMetric,
     HallucinationMetric,
 )
-
+from deepeval.test_case import LLMTestCase
 
 # ── Fixtures ───────────────────────────────────────────────────────
 

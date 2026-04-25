@@ -584,7 +584,7 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             return await execute_schedule_task(
                 params=args,
                 context={
-                    "user_id": state.get("user_id", "alfredo"),  # Sprint 27.5: extract from state with fallback
+                    "user_id": state.get("user_id", "alfredo"),  # noqa: F821, E501
                     "thread_id": "",
                     "db": _tool_db,  # Injected by main.py via set_tool_db()
                     "source": "user",

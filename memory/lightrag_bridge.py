@@ -39,7 +39,7 @@ from __future__ import annotations
 import logging
 import os
 from typing import Any, Optional
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 logger = logging.getLogger("monstruo.memory.lightrag")
 
@@ -104,18 +104,18 @@ async def _get_rag(force_retry: bool = False):
     _rag_init_error = None
 
     try:
-        from lightrag import LightRAG
-        from lightrag.llm.openai import openai_complete, openai_embed
         # LightRAG 1.4.15: storage params expect STRING class names, not class references
         # Validated 2026-04-22: type hint is `str`, default is "JsonKVStorage"
-
         # ── SSL fix for Supabase (self-signed cert chain) ──────────────
         # LightRAG's PostgreSQLDB._create_ssl_context returns None for ssl_mode="require",
         # then initdb sets connection_params["ssl"] = True, which makes asyncpg create
         # a default SSL context that VERIFIES certificates → fails with Supabase.
         # Fix: monkey-patch _create_ssl_context to return a no-verify context.
         import ssl as _ssl
+
+        from lightrag import LightRAG
         from lightrag.kg.postgres_impl import PostgreSQLDB
+        from lightrag.llm.openai import openai_complete, openai_embed
         _original_create_ssl = PostgreSQLDB._create_ssl_context
 
         def _patched_create_ssl(self_db):

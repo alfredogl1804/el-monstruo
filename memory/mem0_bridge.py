@@ -16,8 +16,8 @@ API:
   - get_stats() → dict
 """
 
-import os
 import logging
+import os
 from urllib.parse import urlparse
 
 logger = logging.getLogger("monstruo.mem0")

@@ -410,7 +410,7 @@ async def lifespan(app: FastAPI):
         logger.warning("mcp_manager_init_failed", error=str(e))
 
     # ── Sprint 26: Honcho DISABLED (service deleted from Railway) ──────
-    honcho_active = False
+    _ = False  # honcho_active removed Sprint 27.5
     logger.info("honcho_disabled", reason="replaced_by_mem0_sprint27")
 
     # ── Sprint 27: Mem0 2.0.0 — Episodic Memory (replaces Honcho) ──────
@@ -430,7 +430,7 @@ async def lifespan(app: FastAPI):
     # ── Sprint 26: FastMCP Server (internal tool exposure via MCP) ──────
     fastmcp_server = None
     try:
-        from kernel.fastmcp_server import create_fastmcp_server, get_status as fastmcp_status
+        from kernel.fastmcp_server import create_fastmcp_server
         fastmcp_server = create_fastmcp_server()
         if fastmcp_server:
             # Mount FastMCP SSE endpoint on the FastAPI app
@@ -1389,7 +1389,7 @@ async def health():
             "knowledge": "active" if knowledge_graph else "inactive",
             "langfuse": "active" if (observability and observability.langfuse_enabled) else "inactive",
             "opentelemetry": "active" if (observability and observability.otel_enabled) else "inactive",
-            "checkpointer": "active (AsyncPostgresSaver)" if (kernel and type(kernel._checkpointer).__name__ == "AsyncPostgresSaver") else "inactive (MemorySaver)" if kernel else "unknown",
+            "checkpointer": "active (AsyncPostgresSaver)" if (kernel and type(kernel._checkpointer).__name__ == "AsyncPostgresSaver") else "inactive (MemorySaver)" if kernel else "unknown",  # noqa: E501
             "mempalace": "active" if getattr(app.state, "_mempalace_ready", False) else "inactive",
             "lightrag": "active" if getattr(app.state, "_lightrag_ready", False) else "inactive",
             "multi_agent": "active",  # Sprint 21: always available (keyword-based, no external deps)
@@ -1436,9 +1436,9 @@ async def mcp_status():
         "status": "inactive",
         "reason": "No MCP servers configured. Set env vars to enable presets.",
         "available_presets": [
-            {"name": "github", "env": "GITHUB_PERSONAL_ACCESS_TOKEN", "pkg": "@modelcontextprotocol/server-github@2025.4.8"},
-            {"name": "filesystem", "env": "MCP_FILESYSTEM_PATHS", "pkg": "@modelcontextprotocol/server-filesystem@2026.1.14"},
-            {"name": "supabase", "env": "SUPABASE_URL + SUPABASE_SERVICE_KEY (or SUPABASE_SERVICE_ROLE_KEY)", "pkg": "@supabase/mcp-server-supabase@0.7.0"},
+            {"name": "github", "env": "GITHUB_PERSONAL_ACCESS_TOKEN", "pkg": "@modelcontextprotocol/server-github@2025.4.8"},  # noqa: E501
+            {"name": "filesystem", "env": "MCP_FILESYSTEM_PATHS", "pkg": "@modelcontextprotocol/server-filesystem@2026.1.14"},  # noqa: E501
+            {"name": "supabase", "env": "SUPABASE_URL + SUPABASE_SERVICE_KEY (or SUPABASE_SERVICE_ROLE_KEY)", "pkg": "@supabase/mcp-server-supabase@0.7.0"},  # noqa: E501
         ],
     }
 
@@ -1466,7 +1466,7 @@ async def memory_status():
     try:
         from memory.lightrag_bridge import get_stats as lightrag_stats
         result["layers"]["lightrag"] = await lightrag_stats()
-    except Exception as e:
+    except Exception:
         result["layers"]["lightrag"] = {"status": "not_configured"}
 
     # PostgresSaver (checkpoints)

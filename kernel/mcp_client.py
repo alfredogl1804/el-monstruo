@@ -29,7 +29,6 @@ Principio: MCP es un protocolo, no un framework. Nosotros controlamos el dispatc
 
 from __future__ import annotations
 
-import asyncio
 import os
 from dataclasses import dataclass, field
 from typing import Any, Optional

@@ -77,8 +77,8 @@ class SkillEvaluator:
                 return False
 
             from deepeval.metrics import (
-                ToolCorrectnessMetric,
                 AnswerRelevancyMetric,
+                ToolCorrectnessMetric,
             )
             from deepeval.test_case import LLMTestCase
 
