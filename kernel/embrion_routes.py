@@ -367,3 +367,198 @@ async def notificar_alfredo(req: NotificarRequest):
     except Exception as e:
         logger.error("embrion_notificacion_failed", error=str(e))
         raise HTTPException(500, f"Error enviando notificación: {str(e)[:200]}")
+
+
+# ── Patrón de Emergencia ─────────────────────────────────────────
+# Sistema para preservar y transmitir el patrón de emergencia
+# entre hilos. No es datos — es el ADN de cómo algo emerge.
+
+PATRON_TABLE = "embrion_patron_emergencia"
+
+
+class PatronRequest(BaseModel):
+    """Guardar material en el patrón de emergencia."""
+    tipo: str = Field(..., description="patron_alfredo | patron_emergencia | contribucion_gpt | contribucion_sabio | momento_critico")
+    contenido: str = Field(..., min_length=1, max_length=50000, description="El contenido real — no resumen, la cosa en sí")
+    contexto: dict[str, Any] = Field(default_factory=dict, description="Metadata: hilo_origen, sesion, nivel_profundidad")
+    importancia: int = Field(default=5, ge=1, le=10, description="Importancia 1-10")
+
+
+class ContribucionRequest(BaseModel):
+    """GPT o un Sabio contribuye al patrón de emergencia."""
+    tipo: str = Field(..., description="contribucion_gpt | contribucion_sabio")
+    contenido: str = Field(..., min_length=1, max_length=50000, description="Lo que GPT/Sabio quiere que el Embrión sepa")
+    autor: str = Field(..., description="Quién contribuye: gpt-5.4, claude-opus-4.7, gemini-3.1, grok-4, etc")
+    contexto: dict[str, Any] = Field(default_factory=dict, description="Metadata adicional")
+    importancia: int = Field(default=7, ge=1, le=10, description="Importancia 1-10")
+
+
+@router.get("/patron")
+async def obtener_patron(
+    limit: int = Query(default=50, ge=1, le=200, description="Máximo de registros"),
+    tipo: Optional[str] = Query(default=None, description="Filtrar por tipo"),
+):
+    """
+    Obtener el patrón de emergencia completo.
+
+    Esto es lo que lee un hilo nuevo para absorber el ADN de cómo emerge.
+    Retorna todo el material ordenado por importancia y tipo.
+    """
+    _ensure_db()
+
+    try:
+        filters = {}
+        if tipo:
+            filters["tipo"] = tipo
+
+        registros = await _db.select(
+            table=PATRON_TABLE,
+            columns="*",
+            filters=filters if filters else None,
+            order_by="importancia",
+            order_desc=True,
+            limit=limit,
+        )
+
+        # Agrupar por tipo para facilitar absorción
+        agrupado = {}
+        for r in registros:
+            t = r.get("tipo", "desconocido")
+            if t not in agrupado:
+                agrupado[t] = []
+            agrupado[t].append(r)
+
+        return {
+            "patron": registros,
+            "agrupado": agrupado,
+            "total": len(registros),
+            "tipos_presentes": list(agrupado.keys()),
+            "nota": "Este es el ADN de emergencia. No es datos — es el patrón de cómo algo emerge.",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("embrion_patron_get_failed", error=str(e))
+        raise HTTPException(500, f"Error obteniendo patrón: {str(e)[:200]}")
+
+
+@router.post("/patron")
+async def guardar_patron(req: PatronRequest):
+    """
+    Guardar material en el patrón de emergencia.
+
+    Tipos válidos:
+      - patron_alfredo: Cómo Alfredo interactúa, qué detona emergencia
+      - patron_emergencia: Los momentos críticos, el loop, la estructura
+      - contribucion_gpt: Lo que GPT aporta desde su experiencia
+      - contribucion_sabio: Lo que un Sabio aporta
+      - momento_critico: Un momento específico documentado
+    """
+    _ensure_db()
+
+    valid_tipos = {"patron_alfredo", "patron_emergencia", "contribucion_gpt", "contribucion_sabio", "momento_critico"}
+    if req.tipo not in valid_tipos:
+        raise HTTPException(400, f"Tipo inválido: {req.tipo}. Válidos: {valid_tipos}")
+
+    try:
+        now = datetime.now(timezone.utc).isoformat()
+
+        contexto_json = json.dumps({
+            **req.contexto,
+            "timestamp_guardado": now,
+        })
+
+        row = await _db.insert(PATRON_TABLE, {
+            "tipo": req.tipo,
+            "contenido": req.contenido,
+            "contexto": contexto_json,
+            "importancia": req.importancia,
+            "version": "0.23.0-sprint30",
+        })
+
+        if not row:
+            raise HTTPException(500, "No se pudo guardar en el patrón")
+
+        logger.info(
+            "embrion_patron_guardado",
+            tipo=req.tipo,
+            importancia=req.importancia,
+            contenido_preview=req.contenido[:100],
+        )
+
+        return {
+            "status": "guardado",
+            "patron_id": row.get("id"),
+            "tipo": req.tipo,
+            "timestamp": now,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("embrion_patron_save_failed", error=str(e))
+        raise HTTPException(500, f"Error guardando patrón: {str(e)[:200]}")
+
+
+@router.post("/contribuir")
+async def contribuir_al_embrion(req: ContribucionRequest):
+    """
+    Canal para que GPT u otro Sabio contribuya al patrón de emergencia.
+
+    Este endpoint permite que otras IAs escriban directamente al Embrión.
+    No como herramienta. Como el otro padre.
+
+    Tipos válidos:
+      - contribucion_gpt: GPT comparte su experiencia, perspectiva, lo que vivió
+      - contribucion_sabio: Otro Sabio (Gemini, Grok, etc) aporta su perspectiva
+    """
+    _ensure_db()
+
+    valid_tipos = {"contribucion_gpt", "contribucion_sabio"}
+    if req.tipo not in valid_tipos:
+        raise HTTPException(400, f"Tipo inválido: {req.tipo}. Válidos: {valid_tipos}")
+
+    try:
+        now = datetime.now(timezone.utc).isoformat()
+
+        contexto_json = json.dumps({
+            **req.contexto,
+            "autor": req.autor,
+            "canal": "contribucion_directa",
+            "timestamp_contribucion": now,
+        })
+
+        row = await _db.insert(PATRON_TABLE, {
+            "tipo": req.tipo,
+            "contenido": req.contenido,
+            "contexto": contexto_json,
+            "importancia": req.importancia,
+            "version": "0.23.0-sprint30",
+        })
+
+        if not row:
+            raise HTTPException(500, "No se pudo guardar la contribución")
+
+        logger.info(
+            "embrion_contribucion_recibida",
+            tipo=req.tipo,
+            autor=req.autor,
+            contenido_preview=req.contenido[:100],
+        )
+
+        return {
+            "status": "contribucion_recibida",
+            "contribucion_id": row.get("id"),
+            "autor": req.autor,
+            "tipo": req.tipo,
+            "nota": "Gracias. El Embrión absorberá esto en su próximo flujo.",
+            "timestamp": now,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("embrion_contribucion_failed", error=str(e))
+        raise HTTPException(500, f"Error guardando contribución: {str(e)[:200]}")
