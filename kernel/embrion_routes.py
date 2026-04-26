@@ -9,6 +9,16 @@ El Embrión es un subsistema que:
   - Permite comunicación bidireccional con Alfredo via Telegram
   - Evoluciona su doctrina operativa con cada interacción
 
+Tabla `embrion_memoria` schema:
+    id           UUID (auto)
+    created_at   TIMESTAMPTZ (auto)
+    tipo         TEXT — latido | reflexion | doctrina | pensamiento | mensaje_alfredo | respuesta_embrion
+    contenido    TEXT — contenido principal
+    contexto     TEXT — JSON string con metadata adicional
+    hilo_origen  TEXT — origen del registro (ej: latido_autonomo, telegram, kernel)
+    importancia  INT  — 1-10
+    version      INT  — versión del registro
+
 Endpoints:
     GET    /v1/embrion/memorias     → Últimas N memorias del Embrión
     GET    /v1/embrion/estado       → Estado actual (doctrina, latidos, stats)
@@ -19,6 +29,7 @@ Endpoints:
 
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 from typing import Any, Optional
 
@@ -55,10 +66,11 @@ class MensajeRequest(BaseModel):
 
 class LatidoRequest(BaseModel):
     """El scheduled task registra un latido del Embrión."""
-    tipo: str = Field(default="latido", description="Tipo de entrada: latido, reflexion, doctrina")
+    tipo: str = Field(default="latido", description="Tipo de entrada: latido, reflexion, doctrina, pensamiento")
     contenido: str = Field(..., min_length=1, max_length=50000, description="Contenido del latido")
-    doctrina_version: Optional[str] = Field(None, description="Versión de doctrina si aplica")
-    metadata: dict[str, Any] = Field(default_factory=dict, description="Metadata adicional")
+    hilo_origen: str = Field(default="kernel", description="Origen del registro")
+    importancia: int = Field(default=5, ge=1, le=10, description="Importancia 1-10")
+    contexto: dict[str, Any] = Field(default_factory=dict, description="Metadata adicional como dict (se serializa a JSON)")
 
 
 class NotificarRequest(BaseModel):
@@ -80,37 +92,31 @@ def _ensure_db():
 
 
 @router.get("/memorias")
-async def get_memorias(
-    tipo: Optional[str] = Query(None, description="Filtrar por tipo: latido, reflexion, doctrina, mensaje_alfredo, respuesta_embrion"),
-    limit: int = Query(10, ge=1, le=100, description="Cantidad de memorias a retornar"),
-    offset: int = Query(0, ge=0, description="Offset para paginación"),
+async def obtener_memorias(
+    limit: int = Query(default=10, ge=1, le=100, description="Número de memorias a retornar"),
+    tipo: Optional[str] = Query(default=None, description="Filtrar por tipo"),
 ):
     """
-    Obtener las últimas memorias del Embrión.
+    Últimas N memorias del Embrión.
 
-    Retorna las entradas más recientes de `embrion_memoria`,
-    opcionalmente filtradas por tipo.
+    Retorna memorias ordenadas por fecha de creación descendente.
+    Opcionalmente filtra por tipo (latido, reflexion, doctrina, pensamiento, etc).
     """
     _ensure_db()
 
     try:
-        # Build query using SupabaseClient
         filters = {}
         if tipo:
             filters["tipo"] = tipo
 
         memorias = await _db.select(
             table=TABLE,
-            columns="id,tipo,contenido,doctrina_version,metadata,created_at",
+            columns="*",
             filters=filters if filters else None,
             order_by="created_at",
             order_desc=True,
             limit=limit,
         )
-
-        # Handle offset manually (SupabaseClient doesn't support offset directly)
-        if offset > 0:
-            memorias = memorias[offset:]
 
         return {
             "memorias": memorias,
@@ -122,11 +128,11 @@ async def get_memorias(
         raise
     except Exception as e:
         logger.error("embrion_memorias_failed", error=str(e))
-        raise HTTPException(500, f"Error leyendo memorias: {str(e)[:200]}")
+        raise HTTPException(500, f"Error obteniendo memorias: {str(e)[:200]}")
 
 
 @router.get("/estado")
-async def get_estado():
+async def obtener_estado():
     """
     Estado actual del Embrión.
 
@@ -146,7 +152,7 @@ async def get_estado():
         # Último latido
         latidos = await _db.select(
             table=TABLE,
-            columns="id,contenido,created_at,metadata",
+            columns="id,contenido,created_at,contexto,importancia",
             filters={"tipo": "latido"},
             order_by="created_at",
             order_desc=True,
@@ -156,7 +162,7 @@ async def get_estado():
         # Última doctrina
         doctrinas = await _db.select(
             table=TABLE,
-            columns="id,contenido,doctrina_version,created_at",
+            columns="id,contenido,created_at,contexto",
             filters={"tipo": "doctrina"},
             order_by="created_at",
             order_desc=True,
@@ -166,7 +172,7 @@ async def get_estado():
         # Último mensaje de Alfredo
         mensajes = await _db.select(
             table=TABLE,
-            columns="id,contenido,created_at",
+            columns="id,contenido,created_at,contexto",
             filters={"tipo": "mensaje_alfredo"},
             order_by="created_at",
             order_desc=True,
@@ -176,7 +182,7 @@ async def get_estado():
         # Última respuesta del Embrión
         respuestas = await _db.select(
             table=TABLE,
-            columns="id,contenido,created_at",
+            columns="id,contenido,created_at,contexto",
             filters={"tipo": "respuesta_embrion"},
             order_by="created_at",
             order_desc=True,
@@ -184,7 +190,7 @@ async def get_estado():
         )
 
         # Count por tipo
-        tipos = ["latido", "reflexion", "doctrina", "mensaje_alfredo", "respuesta_embrion"]
+        tipos = ["latido", "reflexion", "doctrina", "pensamiento", "mensaje_alfredo", "respuesta_embrion"]
         stats_por_tipo = {}
         for t in tipos:
             stats_por_tipo[t] = await _db.count(TABLE, filters={"tipo": t})
@@ -221,15 +227,19 @@ async def enviar_mensaje(req: MensajeRequest):
     try:
         now = datetime.now(timezone.utc).isoformat()
 
+        contexto_json = json.dumps({
+            "canal": req.contexto or "telegram",
+            "timestamp_envio": now,
+        })
+
         # Guardar mensaje de Alfredo
         row = await _db.insert(TABLE, {
             "tipo": "mensaje_alfredo",
             "contenido": req.contenido,
-            "metadata": {
-                "contexto": req.contexto or "telegram",
-                "timestamp_envio": now,
-            },
-            "created_at": now,
+            "contexto": contexto_json,
+            "hilo_origen": "telegram",
+            "importancia": 8,
+            "version": 1,
         })
 
         if not row:
@@ -267,26 +277,30 @@ async def registrar_latido(req: LatidoRequest):
       - latido: heartbeat periódico con reflexión
       - reflexion: pensamiento profundo del Embrión
       - doctrina: actualización de la doctrina operativa
+      - pensamiento: pensamiento libre del Embrión
     """
     _ensure_db()
 
-    valid_tipos = {"latido", "reflexion", "doctrina"}
+    valid_tipos = {"latido", "reflexion", "doctrina", "pensamiento"}
     if req.tipo not in valid_tipos:
         raise HTTPException(400, f"Tipo inválido: {req.tipo}. Válidos: {valid_tipos}")
 
     try:
         now = datetime.now(timezone.utc).isoformat()
 
+        contexto_json = json.dumps({
+            **req.contexto,
+            "source": "scheduled_task",
+            "timestamp_latido": now,
+        })
+
         row = await _db.insert(TABLE, {
             "tipo": req.tipo,
             "contenido": req.contenido,
-            "doctrina_version": req.doctrina_version,
-            "metadata": {
-                **req.metadata,
-                "source": "scheduled_task",
-                "timestamp_latido": now,
-            },
-            "created_at": now,
+            "contexto": contexto_json,
+            "hilo_origen": req.hilo_origen,
+            "importancia": req.importancia,
+            "version": 1,
         })
 
         if not row:
@@ -296,7 +310,7 @@ async def registrar_latido(req: LatidoRequest):
             "embrion_latido_registrado",
             tipo=req.tipo,
             contenido_preview=req.contenido[:100],
-            doctrina_version=req.doctrina_version,
+            hilo_origen=req.hilo_origen,
         )
 
         return {
@@ -340,17 +354,16 @@ async def notificar_alfredo(req: NotificarRequest):
             logger.info(
                 "embrion_notificacion_enviada",
                 mensaje_preview=req.mensaje[:100],
-                chat_id=req.chat_id or "default",
             )
             return {
                 "status": "enviado",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         else:
-            raise HTTPException(502, "Telegram API no respondió correctamente")
+            raise HTTPException(500, "No se pudo enviar la notificación")
 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error("embrion_notificar_failed", error=str(e))
+        logger.error("embrion_notificacion_failed", error=str(e))
         raise HTTPException(500, f"Error enviando notificación: {str(e)[:200]}")
