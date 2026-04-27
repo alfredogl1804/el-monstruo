@@ -1,13 +1,20 @@
 """
 GitHub integration tool for El Monstruo kernel.
-Uses GitHub REST API v2022-11-28 (validated 2026-04-17).
+Uses GitHub REST API v2022-11-28 (validated 2026-04-27).
 
 Capabilities:
 - Search repos, issues, code
 - Create/read/update issues
 - Read file contents
-- Create commits (self_modify)
+- Create branches (commit loop)
+- Create/update files (self_modify)
+- Create pull requests (commit loop)
 - List PRs
+
+Commit Loop (MVP Sprint 28):
+  1. create_branch → creates feature branch from main
+  2. create_or_update_file → writes changes to the branch
+  3. create_pull_request → opens PR for human review
 
 Risk: HIGH (can modify repos)
 HITL: Required for write operations
@@ -169,6 +176,45 @@ async def list_prs(repo: str, state: str = "open", limit: int = 10) -> dict:
 # ── Write Operations (HITL required) ────────────────────────────
 
 
+async def create_branch(repo: str, branch: str, from_branch: str = "main") -> dict:
+    """Create a new branch from an existing branch. HITL required."""
+    # Step 1: Get the SHA of the source branch
+    ref_data = await _request("GET", f"/repos/{repo}/git/ref/heads/{from_branch}")
+    if "error" in ref_data:
+        return ref_data
+    sha = ref_data.get("object", {}).get("sha", "")
+    if not sha:
+        return {"error": f"Could not get SHA for branch '{from_branch}'"}
+    # Step 2: Create the new branch ref
+    payload = {
+        "ref": f"refs/heads/{branch}",
+        "sha": sha,
+    }
+    result = await _request("POST", f"/repos/{repo}/git/refs", payload)
+    if "error" not in result:
+        result["branch"] = branch
+        result["from_branch"] = from_branch
+        result["sha"] = sha
+    return result
+
+
+async def create_pull_request(
+    repo: str,
+    title: str,
+    head: str,
+    base: str = "main",
+    body: str = "",
+) -> dict:
+    """Create a pull request. HITL required."""
+    payload = {
+        "title": title,
+        "head": head,
+        "base": base,
+        "body": body,
+    }
+    return await _request("POST", f"/repos/{repo}/pulls", payload)
+
+
 async def create_issue(repo: str, title: str, body: str, labels: list[str] | None = None) -> dict:
     """Create an issue in a repo. HITL required."""
     payload = {"title": title, "body": body}
@@ -216,6 +262,8 @@ async def execute_github(action: str, params: dict[str, Any]) -> str:
         "list_prs": list_prs,
         "create_issue": create_issue,
         "update_issue": update_issue,
+        "create_branch": create_branch,
+        "create_pull_request": create_pull_request,
         "create_or_update_file": create_or_update_file,
     }
 
