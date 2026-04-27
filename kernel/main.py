@@ -75,6 +75,7 @@ BOOT_TIME = datetime.now(timezone.utc)
 # ── Background Jobs Store ──────────────────────────────────────────
 background_jobs: dict[str, dict[str, Any]] = {}
 _MAX_JOBS = 100
+_jobs_lock = asyncio.Lock()  # Sprint 32: protect concurrent access to background_jobs
 
 
 # ── Lifespan ────────────────────────────────────────────────────────
@@ -86,7 +87,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.24.0-sprint31", motor="langgraph")
+    logger.info("monstruo_starting", version="0.25.0-sprint32", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -103,7 +104,8 @@ async def lifespan(app: FastAPI):
     await event_store.initialize()
     conversation_memory = ConversationMemory(db=db if db_connected else None)
     await conversation_memory.initialize()
-    knowledge_graph = KnowledgeGraph()
+    knowledge_graph = KnowledgeGraph(db=db if db_connected else None)
+    await knowledge_graph.initialize()
 
     # Initialize sovereign router (native SDKs, no LiteLLM proxy)
     router = None
@@ -167,7 +169,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.24.0-sprint31",
+            "version": "0.25.0-sprint32",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -464,7 +466,7 @@ async def lifespan(app: FastAPI):
 
     logger.info(
         "monstruo_ready",
-        version="0.24.0-sprint31",
+        version="0.25.0-sprint32",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -540,7 +542,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.24.0-sprint31",
+    version="0.25.0-sprint32",
     lifespan=lifespan,
 )
 
@@ -637,7 +639,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.24.0-sprint31",
+        "version": "0.25.0-sprint32",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -768,7 +770,8 @@ async def _run_background_job(job_id: str, request: BackgroundJobRequest):
     """Execute a kernel run in background and store the result."""
     global background_jobs
     try:
-        background_jobs[job_id]["status"] = "running"
+        async with _jobs_lock:
+            background_jobs[job_id]["status"] = "running"
         logger.info("background_job_started", job_id=job_id, message=request.message[:80])
 
         context: dict[str, Any] = {}
@@ -802,9 +805,10 @@ async def _run_background_job(job_id: str, request: BackgroundJobRequest):
             "latency_ms": round(output.latency_ms, 2),
         }
 
-        background_jobs[job_id]["status"] = "completed"
-        background_jobs[job_id]["result"] = result_data
-        background_jobs[job_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
+        async with _jobs_lock:
+            background_jobs[job_id]["status"] = "completed"
+            background_jobs[job_id]["result"] = result_data
+            background_jobs[job_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
         logger.info("background_job_completed", job_id=job_id, latency_ms=output.latency_ms)
 
         # Webhook notification if configured
@@ -825,9 +829,10 @@ async def _run_background_job(job_id: str, request: BackgroundJobRequest):
                 logger.warning("background_webhook_failed", job_id=job_id, error=str(wh_err))
 
     except Exception as e:
-        background_jobs[job_id]["status"] = "failed"
-        background_jobs[job_id]["error"] = str(e)
-        background_jobs[job_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
+        async with _jobs_lock:
+            background_jobs[job_id]["status"] = "failed"
+            background_jobs[job_id]["error"] = str(e)
+            background_jobs[job_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
         logger.error("background_job_failed", job_id=job_id, error=str(e))
 
 
@@ -841,18 +846,19 @@ async def create_background_job(request: BackgroundJobRequest):
     if not kernel:
         raise HTTPException(status_code=503, detail="Kernel not initialized")
 
-    if len(background_jobs) >= _MAX_JOBS:
-        oldest_key = next(iter(background_jobs))
-        del background_jobs[oldest_key]
+    async with _jobs_lock:
+        if len(background_jobs) >= _MAX_JOBS:
+            oldest_key = next(iter(background_jobs))
+            del background_jobs[oldest_key]
 
-    job_id = str(uuid4())
-    background_jobs[job_id] = {
-        "status": "queued",
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "completed_at": None,
-        "result": None,
-        "error": None,
-    }
+        job_id = str(uuid4())
+        background_jobs[job_id] = {
+            "status": "queued",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "completed_at": None,
+            "result": None,
+            "error": None,
+        }
 
     asyncio.create_task(_run_background_job(job_id, request))
 
@@ -866,7 +872,8 @@ async def create_background_job(request: BackgroundJobRequest):
 @app.get("/v1/background/{job_id}", response_model=BackgroundJobStatus, tags=["core"])
 async def get_background_job(job_id: str):
     """Get the status and result of a background job."""
-    job = background_jobs.get(job_id)
+    async with _jobs_lock:
+        job = background_jobs.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return BackgroundJobStatus(
@@ -883,7 +890,9 @@ async def get_background_job(job_id: str):
 async def list_background_jobs(limit: int = 20):
     """List recent background jobs."""
     jobs = []
-    for jid, jdata in list(background_jobs.items())[-limit:]:
+    async with _jobs_lock:
+        snapshot = list(background_jobs.items())[-limit:]
+    for jid, jdata in snapshot:
         jobs.append(
             {
                 "job_id": jid,
@@ -1197,7 +1206,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.24.0-sprint31",
+            "version": "0.25.0-sprint32",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1397,7 +1406,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.24.0-sprint31",
+        "version": "0.25.0-sprint32",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields
