@@ -728,14 +728,17 @@ async def tool_dispatch(state: MonstruoState, config: RunnableConfig) -> dict[st
         # Store result for the follow-up LLM call
         # Include 'args' so execute_with_tools can reconstruct the
         # assistant tool_calls message (required by OpenAI API)
-        all_results.append(
-            {
-                "tool_call_id": tool_id,
-                "name": tool_name,
-                "args": tool_args,
-                "result": result,
-            }
-        )
+        result_entry = {
+            "tool_call_id": tool_id,
+            "name": tool_name,
+            "args": tool_args,
+            "result": result,
+        }
+        # Gemini 3.x: Propagate thought_signature from the original tool call
+        # so it can be echoed back in the next turn's reconstructed Part.
+        if tc.get("thought_signature"):
+            result_entry["thought_signature"] = tc["thought_signature"]
+        all_results.append(result_entry)
 
         # Record for audit trail
         all_records.append(
