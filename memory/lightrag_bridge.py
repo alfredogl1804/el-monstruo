@@ -21,6 +21,8 @@ Sprint 31 Migration History:
     → Fast ingest (<10s), fast queries (<5s), good entity extraction
     → $0.10/$0.40 per MTok — cheaper than gpt-4o-mini
     → Compatible with existing pgvector data (text-embedding-3-small tables)
+    → Transaction mode (port 6543) — fixes MaxClientsInSessionMode pool exhaustion
+    → statement_cache_size=0 — required for Supavisor transaction pooling
 
 Sprint 25 Migration (Storage):
   - BEFORE: working_dir=/tmp/monstruo_lightrag (NanoVectorDB + NetworkX + JSON)
@@ -69,13 +71,29 @@ def _inject_postgres_env_from_db_url() -> bool:
     parsed = urlparse(db_url)
     qs = parse_qs(parsed.query)
 
+    # Force Transaction mode (port 6543) to avoid MaxClientsInSessionMode errors.
+    # Validated in real-time: port 6543 + statement_cache_size=0 works with asyncpg
+    # and all LightRAG operations (read/write chunks, entities, relations).
+    # Session mode (5432) has a hard pool limit that gets exhausted during
+    # concurrent ingest+query operations. Transaction mode recycles connections.
+    raw_port = parsed.port or 5432
+    forced_port = 6543  # Transaction mode — validated 2026-04-27
+    if raw_port != forced_port:
+        logger.info(
+            "lightrag_forcing_transaction_mode",
+            extra={"original_port": raw_port, "forced_port": forced_port},
+        )
+
     env_map = {
         "POSTGRES_HOST": parsed.hostname or "localhost",
-        "POSTGRES_PORT": str(parsed.port or 5432),
+        "POSTGRES_PORT": str(forced_port),
         "POSTGRES_USER": parsed.username or "postgres",
         "POSTGRES_PASSWORD": parsed.password or "",
         "POSTGRES_DATABASE": (parsed.path or "/postgres").lstrip("/"),
         "POSTGRES_WORKSPACE": os.getenv("LIGHTRAG_WORKSPACE", "monstruo"),
+        # Disable prepared statements — required for Transaction mode (Supavisor)
+        # asyncpg uses prepared statements by default; setting cache to 0 disables them.
+        "POSTGRES_STATEMENT_CACHE_SIZE": "0",
     }
 
     # SSL mode: Supabase uses self-signed certs, so we need "require" (not "verify-full")
