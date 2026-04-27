@@ -17,7 +17,6 @@ Usage:
 Target repo: The user's own el-monstruo repo (auto-detected).
 """
 import asyncio
-import json
 import os
 import sys
 import time
@@ -29,8 +28,6 @@ from tools.github import (
     create_branch,
     create_or_update_file,
     create_pull_request,
-    execute_github,
-    list_prs,
 )
 
 # Auto-detect repo owner from GITHUB_TOKEN
@@ -82,7 +79,7 @@ async def test_commit_loop():
     print(f"  SUCCESS: Branch created (SHA: {result.get('sha', 'unknown')[:8]})")
 
     # Step 2: Create file in branch
-    print(f"\n[2] Creating test file in branch...")
+    print("\n[2] Creating test file in branch...")
     file_content = (
         f"# Commit Loop Test\n\n"
         f"This file was created by El Monstruo's commit loop.\n\n"
@@ -100,10 +97,10 @@ async def test_commit_loop():
     if "error" in result:
         print(f"  FAILED: {result}")
         return False
-    print(f"  SUCCESS: File created at tests/commit_loop_proof.md")
+    print("  SUCCESS: File created at tests/commit_loop_proof.md")
 
     # Step 3: Create PR
-    print(f"\n[3] Creating pull request...")
+    print("\n[3] Creating pull request...")
     result = await create_pull_request(
         repo=REPO,
         title=f"[MVP Test] Commit Loop Verification - {BRANCH_NAME}",
@@ -135,9 +132,9 @@ async def test_commit_loop():
     print("  COMMIT LOOP TEST: ALL 3 STEPS PASSED")
     print("=" * 60)
     print(f"\n  Branch: {BRANCH_NAME}")
-    print(f"  File: tests/commit_loop_proof.md")
+    print("  File: tests/commit_loop_proof.md")
     print(f"  PR: #{pr_number} → {pr_url}")
-    print(f"\n  The Monstruo can now modify its own code.")
+    print("\n  The Monstruo can now modify its own code.")
     print("=" * 60)
 
     return True
