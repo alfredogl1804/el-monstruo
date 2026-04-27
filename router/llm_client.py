@@ -43,9 +43,20 @@ class ToolCall:
     id: str
     name: str
     arguments: dict[str, Any]
+    # Gemini 3.x thought signatures: MANDATORY for multi-turn function calling.
+    # The thought_signature from the response Part must be echoed back in the
+    # next turn's Part to maintain the model's reasoning context.
+    # See: https://ai.google.dev/gemini-api/docs/function-calling
+    thought_signature: Optional[bytes] = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {"id": self.id, "name": self.name, "arguments": self.arguments}
+        d = {"id": self.id, "name": self.name, "arguments": self.arguments}
+        if self.thought_signature is not None:
+            # Serialize bytes as base64 for JSON compatibility
+            import base64
+
+            d["thought_signature"] = base64.b64encode(self.thought_signature).decode("ascii")
+        return d
 
 
 @dataclass
@@ -384,11 +395,43 @@ class LLMClient:
                         ],
                     }
                 )
+            elif msg.get("role") == "assistant" and msg.get("tool_calls"):
+                # Convert OpenAI-format tool_calls to Anthropic tool_use content blocks.
+                # engine.py reconstructs assistant messages in OpenAI format:
+                #   {"role": "assistant", "content": None, "tool_calls": [...]}
+                # Anthropic requires:
+                #   {"role": "assistant", "content": [{"type": "tool_use", ...}]}
+                import json as _json_a
+
+                content_blocks = []
+                # Include text content if present
+                text_content = msg.get("content")
+                if text_content and isinstance(text_content, str) and text_content.strip():
+                    content_blocks.append({"type": "text", "text": text_content})
+                for tc in msg["tool_calls"]:
+                    fn = tc.get("function", {})
+                    fn_args_raw = fn.get("arguments", "{}")
+                    if isinstance(fn_args_raw, str):
+                        try:
+                            fn_args = _json_a.loads(fn_args_raw)
+                        except Exception:
+                            fn_args = {"raw": fn_args_raw}
+                    else:
+                        fn_args = fn_args_raw if isinstance(fn_args_raw, dict) else {}
+                    content_blocks.append(
+                        {
+                            "type": "tool_use",
+                            "id": tc.get("id", ""),
+                            "name": fn.get("name", "tool"),
+                            "input": fn_args,
+                        }
+                    )
+                user_messages.append({"role": "assistant", "content": content_blocks})
             elif msg.get("role") == "assistant" and isinstance(msg.get("content"), list):
-                # Pass through assistant messages with tool_use blocks
+                # Pass through assistant messages with tool_use blocks (already Anthropic format)
                 user_messages.append(msg)
             else:
-                user_messages.append({"role": msg.get("role", "user"), "content": msg.get("content", "")})
+                user_messages.append({"role": msg.get("role", "user"), "content": msg.get("content") or ""})
 
         if not user_messages:
             user_messages = [{"role": "user", "content": "Hola"}]
@@ -527,12 +570,48 @@ class LLMClient:
                                 fn_args = {"raw": fn_args_raw}
                         else:
                             fn_args = fn_args_raw if isinstance(fn_args_raw, dict) else {}
-                        parts.append(
-                            _gtypes.Part.from_function_call(
-                                name=fn_name,
-                                args=fn_args,
+
+                        # Gemini 3.x: Reconstruct Part WITH thought_signature if available.
+                        # Part.from_function_call() does NOT accept thought_signature,
+                        # so we construct the Part directly.
+                        thought_sig_raw = tc.get("thought_signature")
+                        thought_sig_bytes = None
+                        if thought_sig_raw:
+                            if isinstance(thought_sig_raw, bytes):
+                                thought_sig_bytes = thought_sig_raw
+                            elif isinstance(thought_sig_raw, str):
+                                import base64 as _b64
+
+                                try:
+                                    thought_sig_bytes = _b64.b64decode(thought_sig_raw)
+                                except Exception:
+                                    thought_sig_bytes = None
+
+                        fc_obj = _gtypes.FunctionCall(name=fn_name, args=fn_args)
+                        # Include id if available (Gemini 3.x)
+                        fc_id = tc.get("id")
+                        if fc_id:
+                            fc_obj.id = fc_id
+
+                        if thought_sig_bytes:
+                            parts.append(
+                                _gtypes.Part(
+                                    function_call=fc_obj,
+                                    thought_signature=thought_sig_bytes,
+                                )
                             )
-                        )
+                            logger.debug(
+                                "gemini_thought_signature_echoed",
+                                fn_name=fn_name,
+                                sig_len=len(thought_sig_bytes),
+                            )
+                        else:
+                            parts.append(
+                                _gtypes.Part.from_function_call(
+                                    name=fn_name,
+                                    args=fn_args,
+                                )
+                            )
                     if parts:  # Only add if we have valid function call parts
                         contents.append({"role": "model", "parts": parts})
                 else:
@@ -551,15 +630,18 @@ class LLMClient:
                 tool_content = msg.get("content") or ""
                 if not isinstance(tool_content, str):
                     tool_content = str(tool_content)
+                # Gemini 3.x: Include id in FunctionResponse to map result to call
+                fr_obj = _gtypes.FunctionResponse(
+                    name=tool_name,
+                    response={"result": tool_content},
+                )
+                tool_call_id = msg.get("tool_call_id")
+                if tool_call_id:
+                    fr_obj.id = tool_call_id
                 contents.append(
                     {
                         "role": "user",
-                        "parts": [
-                            _gtypes.Part.from_function_response(
-                                name=tool_name,
-                                response={"result": tool_content},
-                            )
-                        ],
+                        "parts": [_gtypes.Part(function_response=fr_obj)],
                     }
                 )
 
@@ -619,11 +701,22 @@ class LLMClient:
                     args = dict(fc.args) if fc.args else {}
                     # Gemini 3 provides its own id; fallback to uuid for older models
                     fc_id = getattr(fc, "id", None) or f"call_{uuid.uuid4().hex[:8]}"
+                    # Gemini 3.x thought signatures: MANDATORY for multi-turn tool calling.
+                    # The thought_signature is on the Part, not on the FunctionCall.
+                    # Must be echoed back in the next turn to maintain reasoning context.
+                    thought_sig = getattr(part, "thought_signature", None)
+                    if thought_sig:
+                        logger.debug(
+                            "gemini_thought_signature_captured",
+                            fc_name=fc.name,
+                            sig_len=len(thought_sig),
+                        )
                     tool_calls.append(
                         ToolCall(
                             id=fc_id,
                             name=fc.name,
                             arguments=args,
+                            thought_signature=thought_sig,
                         )
                     )
 

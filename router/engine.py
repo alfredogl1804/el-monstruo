@@ -314,16 +314,19 @@ class RouterEngine:
             # This represents what the LLM said in the previous turn
             reconstructed_tool_calls = []
             for tr in tool_results:
-                reconstructed_tool_calls.append(
-                    {
-                        "id": tr.get("tool_call_id", f"call_{__import__('uuid').uuid4().hex[:8]}"),
-                        "type": "function",
-                        "function": {
-                            "name": tr.get("name", "tool"),
-                            "arguments": _json.dumps(tr.get("args", {}), ensure_ascii=False),
-                        },
-                    }
-                )
+                tc_entry = {
+                    "id": tr.get("tool_call_id", f"call_{__import__('uuid').uuid4().hex[:8]}"),
+                    "type": "function",
+                    "function": {
+                        "name": tr.get("name", "tool"),
+                        "arguments": _json.dumps(tr.get("args", {}), ensure_ascii=False),
+                    },
+                }
+                # Gemini 3.x: Propagate thought_signature so _call_google() can
+                # reconstruct the Part with the signature for multi-turn tool calling.
+                if tr.get("thought_signature"):
+                    tc_entry["thought_signature"] = tr["thought_signature"]
+                reconstructed_tool_calls.append(tc_entry)
 
             messages.append(
                 {
