@@ -167,6 +167,35 @@ async def _get_rag(force_retry: bool = False):
         # LightRAG 1.4.15 requires explicit storage initialization
         await rag.initialize_storages()
 
+        # ── Sprint 31: Restore graph from PostgreSQL ─────────────────
+        # NetworkXStorage saves to filesystem which is ephemeral on Railway.
+        # We restore the graph from PG on startup so it survives deploys.
+        try:
+            from memory.pg_graph_storage import load_graph_from_pg
+
+            pg_graph = await load_graph_from_pg(graph_id="main")
+            if pg_graph is not None:
+                # Inject the restored graph into NetworkXStorage
+                graph_storage = rag.chunk_entity_relation_graph
+                graph_storage._graph = pg_graph
+                # Also write to filesystem so NetworkXStorage's file-based sync works
+                from lightrag.kg.networkx_impl import NetworkXStorage
+                NetworkXStorage.write_nx_graph(
+                    pg_graph, graph_storage._graphml_xml_file, graph_storage.workspace
+                )
+                logger.info(
+                    "pg_graph_restored_to_networkx",
+                    extra={
+                        "nodes": pg_graph.number_of_nodes(),
+                        "edges": pg_graph.number_of_edges(),
+                    },
+                )
+            else:
+                logger.info("pg_graph_empty_starting_fresh")
+        except Exception as exc:
+            logger.warning("pg_graph_restore_failed", extra={"error": str(exc)})
+            # Non-fatal: LightRAG will work with empty graph
+
         _rag = rag
         logger.info(
             "lightrag_initialized",
@@ -175,6 +204,7 @@ async def _get_rag(force_retry: bool = False):
                 "llm_model": llm_model,
                 "embedding_model": embedding_model,
                 "storage": "pgvector",
+                "graph_storage": "NetworkX + PG persistence",
                 "host": os.getenv("POSTGRES_HOST", "unknown"),
                 "database": os.getenv("POSTGRES_DATABASE", "unknown"),
                 "workspace": os.getenv("POSTGRES_WORKSPACE", "monstruo"),
@@ -224,6 +254,16 @@ async def ingest_document(
 
     try:
         await rag.ainsert(content)
+
+        # ── Sprint 31: Persist graph to PostgreSQL after ingest ──────
+        try:
+            from memory.pg_graph_storage import save_graph_to_pg
+
+            graph_storage = rag.chunk_entity_relation_graph
+            await save_graph_to_pg(graph_storage._graph, graph_id="main")
+        except Exception as pg_exc:
+            logger.warning("pg_graph_save_after_ingest_failed", extra={"error": str(pg_exc)})
+            # Non-fatal: graph is still in memory and filesystem
 
         logger.info(
             "lightrag_document_ingested",
