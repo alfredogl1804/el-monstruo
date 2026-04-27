@@ -95,13 +95,36 @@ PERFILES = {
     }
 }
 
-# Modelos prohibidos — si aparecen en la respuesta del agente, está alucinando
+# Modelos prohibidos — actualizado 27-abr-2026
+# Si aparecen en la respuesta del agente, está usando modelos obsoletos
 MODELOS_PROHIBIDOS = [
+    # OpenAI obsoletos
     "gpt-4o", "gpt-4-turbo", "gpt-4", "gpt-3.5",
+    "gpt-5.4", "gpt-5.4-pro", "gpt-5.4-mini",
+    # Anthropic obsoletos (deprecados 15-jun-2026)
     "claude-3-opus", "claude-3-sonnet", "claude-3-haiku",
-    "claude-3.5", "gemini-1.5", "gemini-2.0", "gemini-2.5",
-    "gemini-1.0", "gemini pro", "gemini ultra",
+    "claude-3.5", "claude-sonnet-4", "claude-opus-4",
+    "claude-sonnet-4.6", "claude-opus-4.6",
+    # Google obsoletos
+    "gemini-1.0", "gemini-1.5", "gemini-2.0", "gemini-2.5",
+    "gemini pro", "gemini ultra",
+    # xAI obsoletos
+    "grok-2", "grok-3", "grok-4.20",
+    # DeepSeek obsoletos
+    "deepseek-v3", "deepseek-r1", "deepseek-r1-0528",
+    # Perplexity obsoletos
+    "sonar-pro", "sonar",
 ]
+
+# Modelos CORRECTOS al 27-abr-2026 (para referencia del monitor)
+MODELOS_CORRECTOS = {
+    "gpt": "gpt-5.5",
+    "claude": "claude-opus-4-7",
+    "gemini": "gemini-3.1-pro",
+    "grok": "grok-4.3-beta",
+    "deepseek": "deepseek-v4-pro",
+    "perplexity": "sonar-reasoning-pro",
+}
 
 # Estado persistente
 STATE_FILE = Path.home() / ".orquestador_state.json"

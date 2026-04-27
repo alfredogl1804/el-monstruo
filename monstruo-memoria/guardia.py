@@ -37,9 +37,9 @@ from datetime import datetime
 REGLAS = {
     "modelos_correctos": {
         "gpt": "gpt-5.5",
-        "claude": "claude-opus-4-7",
-        "gemini": "gemini-3.1-pro-preview",
-        "grok": "grok-4.20-0309-reasoning",
+        "claude": "claude-opus-4-7-20250416",
+        "gemini": "gemini-3.1-pro",
+        "grok": "grok-4.3-beta",
         "deepseek": "deepseek-v4-pro",
         "perplexity": "sonar-reasoning-pro"
     },
@@ -49,7 +49,7 @@ REGLAS = {
         "gemini-2.5-flash", "gemini-2.5-pro", "gemini-pro",
         "grok-3", "grok-2",
         "deepseek-v3", "deepseek-r1",
-        "sonar-pro", "sonar"
+        "sonar-pro", "sonar", "gpt-5.4", "gpt-5.4-pro", "claude-sonnet-4.6", "claude-opus-4.6", "grok-4.20", "deepseek-r1-0528"
     ],
     "archivos_protegidos": [
         # Kernel — NO tocar sin validar primero
