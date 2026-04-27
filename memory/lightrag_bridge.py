@@ -1,6 +1,7 @@
 """
 LightRAG Bridge — Knowledge Graph RAG for El Monstruo
-Sprint 25 | v0.22.0-sprint29
+Sprint 31 | v0.24.0-sprint31
+
 IVD: lightrag-hku==1.4.15 (MIT, PyPI latest 2026-04-22)
 CVE-2026-39413: JWT in API server only — we don't use the server.
 
@@ -8,23 +9,25 @@ Architecture:
   - LightRAG builds a knowledge graph from ingested documents
   - Supports dual-level retrieval: local (entity-centric) + global (theme-centric)
   - Storage: pgvector via Supabase (Sprint 25 — migrated from /tmp file-based)
-  - Embeddings: Uses OpenAI API via OPENAI_API_KEY env var (auto-detected)
+  - LLM: Gemini 2.5 Flash via GEMINI_API_KEY (Sprint 31 — migrated from gpt-4o-mini)
+  - Embeddings: gemini-embedding-001 via GEMINI_API_KEY (Sprint 31 — migrated from OpenAI)
 
-Sprint 25 Migration (CRITICAL):
+Sprint 31 Migration (LLM + Embeddings):
+  - BEFORE: gpt-4o-mini for both LLM and embeddings via OPENAI_API_KEY
+    → Low quality entity extraction, basic embeddings (MTEB 62.26)
+  - AFTER: Gemini 2.5 Flash (LLM) + gemini-embedding-001 (embeddings) via GEMINI_API_KEY
+    → Superior entity extraction with thinking, best commercial embeddings (MTEB 68.32)
+    → Same or lower cost: Flash $0.30/$2.50 per MTok, embeddings $0.15/MTok
+  - LightRAG has native Gemini support: lightrag.llm.gemini module
+  - Functions: gemini_model_complete (LLM), gemini_embed (embeddings)
+  - Auth: reads GEMINI_API_KEY env var automatically
+
+Sprint 25 Migration (Storage):
   - BEFORE: working_dir=/tmp/monstruo_lightrag (NanoVectorDB + NetworkX + JSON)
     → Data LOST on every Railway deploy (ephemeral filesystem)
-  - AFTER: PGKVStorage + PGVectorStorage + PGGraphStorage + PGDocStatusStorage
-    → Persistent in Supabase PostgreSQL with pgvector extension
+  - AFTER: PGKVStorage + PGVectorStorage + PGDocStatusStorage (persistent in Supabase)
+    → NetworkXStorage for graph (no Apache AGE on Supabase, rebuilt on restart)
   - Connection: LightRAG's ClientManager reads POSTGRES_* env vars automatically
-    Required env vars: POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER,
-    POSTGRES_PASSWORD, POSTGRES_DATABASE, POSTGRES_WORKSPACE
-  - LightRAG auto-creates tables on first init via its own migration system
-
-API validated locally 2026-04-22:
-  - PGKVStorage, PGVectorStorage, PGGraphStorage, PGDocStatusStorage
-    from lightrag.kg.postgres_impl
-  - ClientManager.get_config() reads POSTGRES_* env vars
-  - LightRAG constructor: kv_storage, vector_storage, graph_storage, doc_status_storage
 
 Integration:
   - /v1/knowledge/ingest → ingest documents into the knowledge graph
@@ -75,10 +78,7 @@ def _inject_postgres_env_from_db_url() -> bool:
     }
 
     # SSL mode: Supabase uses self-signed certs, so we need "require" (not "verify-full")
-    # LightRAG's PostgreSQLDB.initdb() handles ssl_mode="require" by setting ssl=True
-    # which tells asyncpg to use SSL without verifying the certificate chain
     ssl_mode = qs.get("sslmode", [None])[0]
-    # Default to "require" for Supabase — avoids CERTIFICATE_VERIFY_FAILED
     env_map["POSTGRES_SSL_MODE"] = ssl_mode or "require"
 
     # Only set if not already defined (allow explicit overrides)
@@ -91,7 +91,7 @@ def _inject_postgres_env_from_db_url() -> bool:
 
 
 async def _get_rag(force_retry: bool = False):
-    """Lazy-initialize LightRAG instance with pgvector storage. Returns None if unavailable."""
+    """Lazy-initialize LightRAG instance with pgvector storage and Gemini models."""
     global _rag, _rag_init_attempted, _rag_init_error
 
     if _rag is not None:
@@ -104,18 +104,14 @@ async def _get_rag(force_retry: bool = False):
     _rag_init_error = None
 
     try:
-        # LightRAG 1.4.15: storage params expect STRING class names, not class references
-        # Validated 2026-04-22: type hint is `str`, default is "JsonKVStorage"
         # ── SSL fix for Supabase (self-signed cert chain) ──────────────
-        # LightRAG's PostgreSQLDB._create_ssl_context returns None for ssl_mode="require",
-        # then initdb sets connection_params["ssl"] = True, which makes asyncpg create
-        # a default SSL context that VERIFIES certificates → fails with Supabase.
-        # Fix: monkey-patch _create_ssl_context to return a no-verify context.
         import ssl as _ssl
 
         from lightrag import LightRAG
         from lightrag.kg.postgres_impl import PostgreSQLDB
-        from lightrag.llm.openai import openai_complete, openai_embed
+
+        # ── Import Gemini functions (Sprint 31) ──────────────────────
+        from lightrag.llm.gemini import gemini_embed, gemini_model_complete
 
         _original_create_ssl = PostgreSQLDB._create_ssl_context
 
@@ -130,44 +126,38 @@ async def _get_rag(force_retry: bool = False):
         PostgreSQLDB._create_ssl_context = _patched_create_ssl
         logger.info("lightrag_ssl_patched", extra={"mode": "no-verify for require/prefer/allow"})
 
-        api_key = os.getenv("OPENAI_API_KEY", "")
-        if not api_key:
-            _rag_init_error = "OPENAI_API_KEY not set"
+        # ── Validate GEMINI_API_KEY ──────────────────────────────────
+        gemini_key = os.getenv("GEMINI_API_KEY", "")
+        if not gemini_key:
+            _rag_init_error = "GEMINI_API_KEY not set — required for LightRAG Gemini models"
             logger.warning("lightrag_disabled", extra={"reason": _rag_init_error})
             return None
 
-        # Inject POSTGRES_* env vars from SUPABASE_DB_URL
-        # LightRAG's ClientManager.get_config() reads these automatically
+        # ── Inject POSTGRES_* env vars from SUPABASE_DB_URL ──────────
         if not _inject_postgres_env_from_db_url():
-            # Check if POSTGRES_* vars are already set directly
             if not os.getenv("POSTGRES_HOST"):
                 _rag_init_error = "No SUPABASE_DB_URL or POSTGRES_HOST — cannot use pgvector storage"
                 logger.warning("lightrag_disabled", extra={"reason": _rag_init_error})
                 return None
 
-        model = os.getenv("LIGHTRAG_MODEL", "gpt-4o-mini")
+        # ── Model configuration ──────────────────────────────────────
+        # LLM: Gemini 2.5 Flash — superior entity extraction with thinking
+        # Embeddings: gemini-embedding-001 — MTEB 68.32, best commercial
+        llm_model = os.getenv("LIGHTRAG_MODEL", "gemini-2.5-flash")
+        embedding_model = os.getenv("LIGHTRAG_EMBEDDING_MODEL", "gemini-embedding-001")
 
         # Still need a working_dir for LightRAG internals (temp files, logs)
-        # But actual data goes to PostgreSQL now
         working_dir = os.getenv("LIGHTRAG_WORKING_DIR", "/tmp/monstruo_lightrag")
         os.makedirs(working_dir, exist_ok=True)
 
-        # LightRAG 1.4.15 with pgvector storage (validated locally 2026-04-22):
-        # - kv_storage: PGKVStorage (replaces JsonKVStorage)
-        # - vector_storage: PGVectorStorage (replaces NanoVectorDBStorage)
-        # - graph_storage: PGGraphStorage (replaces NetworkXStorage)
-        # - doc_status_storage: PGDocStatusStorage (replaces JsonDocStatusStorage)
-        # - ClientManager.get_config() reads POSTGRES_* env vars automatically
-        # - Tables are auto-created by LightRAG on initialize_storages()
-        # NOTE: PGGraphStorage requires Apache AGE extension which Supabase doesn't have.
-        # Use NetworkXStorage for graph (file-based, ephemeral but functional)
-        # while keeping pgvector for KV, Vector, and DocStatus (persistent).
-        # Graph data is rebuilt from documents on restart — acceptable tradeoff.
+        # ── Initialize LightRAG with Gemini ──────────────────────────
+        # Sprint 31: Migrated from openai_complete/openai_embed to
+        # gemini_model_complete/gemini_embed for better quality at similar cost
         rag = LightRAG(
             working_dir=working_dir,
-            llm_model_func=openai_complete,
-            llm_model_name=model,
-            embedding_func=openai_embed,
+            llm_model_func=gemini_model_complete,
+            llm_model_name=llm_model,
+            embedding_func=gemini_embed,
             kv_storage="PGKVStorage",
             vector_storage="PGVectorStorage",
             graph_storage="NetworkXStorage",  # No AGE extension on Supabase
@@ -175,7 +165,6 @@ async def _get_rag(force_retry: bool = False):
         )
 
         # LightRAG 1.4.15 requires explicit storage initialization
-        # This creates the PostgreSQL tables if they don't exist
         await rag.initialize_storages()
 
         _rag = rag
@@ -183,11 +172,13 @@ async def _get_rag(force_retry: bool = False):
             "lightrag_initialized",
             extra={
                 "working_dir": working_dir,
-                "model": model,
+                "llm_model": llm_model,
+                "embedding_model": embedding_model,
                 "storage": "pgvector",
                 "host": os.getenv("POSTGRES_HOST", "unknown"),
                 "database": os.getenv("POSTGRES_DATABASE", "unknown"),
                 "workspace": os.getenv("POSTGRES_WORKSPACE", "monstruo"),
+                "provider": "gemini",
             },
         )
         return _rag
@@ -313,7 +304,9 @@ async def get_stats() -> dict[str, Any]:
             "storage": "pgvector",
             "host": os.getenv("POSTGRES_HOST", "unknown"),
             "workspace": os.getenv("POSTGRES_WORKSPACE", "monstruo"),
-            "model": os.getenv("LIGHTRAG_MODEL", "gpt-4o-mini"),
+            "llm_model": os.getenv("LIGHTRAG_MODEL", "gemini-2.5-flash"),
+            "embedding_model": os.getenv("LIGHTRAG_EMBEDDING_MODEL", "gemini-embedding-001"),
+            "provider": "gemini",
         }
     except Exception as exc:
         return {"status": "error", "error": str(exc)}
