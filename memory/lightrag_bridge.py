@@ -10,17 +10,19 @@ Architecture:
   - Supports dual-level retrieval: local (entity-centric) + global (theme-centric)
   - Storage: pgvector via Supabase (Sprint 25 — migrated from /tmp file-based)
   - LLM: Gemini 2.5 Flash via GEMINI_API_KEY (Sprint 31 — migrated from gpt-4o-mini)
-  - Embeddings: gemini-embedding-001 via GEMINI_API_KEY (Sprint 31 — migrated from OpenAI)
+  - Embeddings: OpenAI text-embedding-3-small via OPENAI_API_KEY (stable, MTEB 62.26)
 
 Sprint 31 Migration (LLM + Embeddings):
   - BEFORE: gpt-4o-mini for both LLM and embeddings via OPENAI_API_KEY
-    → Low quality entity extraction, basic embeddings (MTEB 62.26)
-  - AFTER: Gemini 2.5 Flash (LLM) + gemini-embedding-001 (embeddings) via GEMINI_API_KEY
-    → Superior entity extraction with thinking, best commercial embeddings (MTEB 68.32)
-    → Same or lower cost: Flash $0.30/$2.50 per MTok, embeddings $0.15/MTok
+    → Low quality entity extraction, basic embeddings
+  - AFTER: Gemini 2.5 Flash (LLM) + OpenAI text-embedding-3-small (embeddings)
+    → Superior entity extraction with thinking via Gemini
+    → Stable, proven embeddings via OpenAI (compatible with existing pgvector data)
+    → Hybrid approach: best LLM + most stable embeddings
   - LightRAG has native Gemini support: lightrag.llm.gemini module
-  - Functions: gemini_model_complete (LLM), gemini_embed (embeddings)
-  - Auth: reads GEMINI_API_KEY env var automatically
+  - gemini_embed has a bug with EmbeddingFunc wrapper (vector count mismatch)
+    → Using OpenAI embeddings until LightRAG fixes the Gemini embed wrapper
+  - Auth: GEMINI_API_KEY for LLM, OPENAI_API_KEY for embeddings
 
 Sprint 25 Migration (Storage):
   - BEFORE: working_dir=/tmp/monstruo_lightrag (NanoVectorDB + NetworkX + JSON)
@@ -110,8 +112,13 @@ async def _get_rag(force_retry: bool = False):
         from lightrag import LightRAG
         from lightrag.kg.postgres_impl import PostgreSQLDB
 
-        # ── Import Gemini functions (Sprint 31) ──────────────────────
-        from lightrag.llm.gemini import gemini_embed, gemini_model_complete
+        # ── Import model functions (Sprint 31) ──────────────────────
+        # LLM: Gemini 2.5 Flash (superior entity extraction)
+        from lightrag.llm.gemini import gemini_model_complete
+        # Embeddings: OpenAI text-embedding-3-small (stable, compatible with existing data)
+        # Note: gemini_embed has a bug with LightRAG's EmbeddingFunc wrapper
+        # (returns 2 vectors for 1 input). Using OpenAI until fixed upstream.
+        from lightrag.llm.openai import openai_embed
 
         _original_create_ssl = PostgreSQLDB._create_ssl_context
 
@@ -126,10 +133,15 @@ async def _get_rag(force_retry: bool = False):
         PostgreSQLDB._create_ssl_context = _patched_create_ssl
         logger.info("lightrag_ssl_patched", extra={"mode": "no-verify for require/prefer/allow"})
 
-        # ── Validate GEMINI_API_KEY ──────────────────────────────────
+        # ── Validate API keys ──────────────────────────────────────────
         gemini_key = os.getenv("GEMINI_API_KEY", "")
+        openai_key = os.getenv("OPENAI_API_KEY", "")
         if not gemini_key:
-            _rag_init_error = "GEMINI_API_KEY not set — required for LightRAG Gemini models"
+            _rag_init_error = "GEMINI_API_KEY not set — required for LightRAG LLM"
+            logger.warning("lightrag_disabled", extra={"reason": _rag_init_error})
+            return None
+        if not openai_key:
+            _rag_init_error = "OPENAI_API_KEY not set — required for LightRAG embeddings"
             logger.warning("lightrag_disabled", extra={"reason": _rag_init_error})
             return None
 
@@ -142,22 +154,24 @@ async def _get_rag(force_retry: bool = False):
 
         # ── Model configuration ──────────────────────────────────────
         # LLM: Gemini 2.5 Flash — superior entity extraction with thinking
-        # Embeddings: gemini-embedding-001 — MTEB 68.32, best commercial
+        # Embeddings: OpenAI text-embedding-3-small — stable, proven, compatible
         llm_model = os.getenv("LIGHTRAG_MODEL", "gemini-2.5-flash")
-        embedding_model = os.getenv("LIGHTRAG_EMBEDDING_MODEL", "gemini-embedding-001")
+        embedding_model = os.getenv("LIGHTRAG_EMBEDDING_MODEL", "text-embedding-3-small")
 
         # Still need a working_dir for LightRAG internals (temp files, logs)
         working_dir = os.getenv("LIGHTRAG_WORKING_DIR", "/tmp/monstruo_lightrag")
         os.makedirs(working_dir, exist_ok=True)
 
-        # ── Initialize LightRAG with Gemini ──────────────────────────
-        # Sprint 31: Migrated from openai_complete/openai_embed to
-        # gemini_model_complete/gemini_embed for better quality at similar cost
+        # ── Initialize LightRAG with hybrid config ────────────────────
+        # Sprint 31: Gemini 2.5 Flash for LLM + OpenAI for embeddings
+        # This hybrid approach gives us:
+        #   - Superior entity extraction (Gemini thinking)
+        #   - Stable embeddings compatible with existing pgvector data
         rag = LightRAG(
             working_dir=working_dir,
             llm_model_func=gemini_model_complete,
             llm_model_name=llm_model,
-            embedding_func=gemini_embed,
+            embedding_func=openai_embed,
             kv_storage="PGKVStorage",
             vector_storage="PGVectorStorage",
             graph_storage="NetworkXStorage",  # No AGE extension on Supabase
@@ -208,7 +222,7 @@ async def _get_rag(force_retry: bool = False):
                 "host": os.getenv("POSTGRES_HOST", "unknown"),
                 "database": os.getenv("POSTGRES_DATABASE", "unknown"),
                 "workspace": os.getenv("POSTGRES_WORKSPACE", "monstruo"),
-                "provider": "gemini",
+                "provider": "gemini_llm+openai_embed",
             },
         )
         return _rag
@@ -345,8 +359,8 @@ async def get_stats() -> dict[str, Any]:
             "host": os.getenv("POSTGRES_HOST", "unknown"),
             "workspace": os.getenv("POSTGRES_WORKSPACE", "monstruo"),
             "llm_model": os.getenv("LIGHTRAG_MODEL", "gemini-2.5-flash"),
-            "embedding_model": os.getenv("LIGHTRAG_EMBEDDING_MODEL", "gemini-embedding-001"),
-            "provider": "gemini",
+            "embedding_model": os.getenv("LIGHTRAG_EMBEDDING_MODEL", "text-embedding-3-small"),
+            "provider": "gemini_llm+openai_embed",
         }
     except Exception as exc:
         return {"status": "error", "error": str(exc)}
