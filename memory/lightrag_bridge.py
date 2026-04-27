@@ -9,20 +9,22 @@ Architecture:
   - LightRAG builds a knowledge graph from ingested documents
   - Supports dual-level retrieval: local (entity-centric) + global (theme-centric)
   - Storage: pgvector via Supabase (Sprint 25 — migrated from /tmp file-based)
-  - LLM: Gemini 2.5 Flash via GEMINI_API_KEY (Sprint 31 — migrated from gpt-4o-mini)
+  - LLM (ingest): Gemini 2.5 Flash via GEMINI_API_KEY (entity extraction with thinking)
+  - LLM (query): gpt-4.1-mini via OPENAI_API_KEY (fast synthesis, <5s response)
   - Embeddings: OpenAI text-embedding-3-small via OPENAI_API_KEY (stable, MTEB 62.26)
 
 Sprint 31 Migration (LLM + Embeddings):
   - BEFORE: gpt-4o-mini for both LLM and embeddings via OPENAI_API_KEY
     → Low quality entity extraction, basic embeddings
-  - AFTER: Gemini 2.5 Flash (LLM) + OpenAI text-embedding-3-small (embeddings)
-    → Superior entity extraction with thinking via Gemini
+  - AFTER: Gemini 2.5 Flash (ingest LLM) + gpt-4.1-mini (query LLM) + OpenAI embeddings
+    → Superior entity extraction with thinking via Gemini (ingest only)
+    → Fast query synthesis via gpt-4.1-mini (<5s vs 60s+ with Gemini)
     → Stable, proven embeddings via OpenAI (compatible with existing pgvector data)
-    → Hybrid approach: best LLM + most stable embeddings
+    → Triple-hybrid: best extraction + fast queries + stable embeddings
   - LightRAG has native Gemini support: lightrag.llm.gemini module
   - gemini_embed has a bug with EmbeddingFunc wrapper (vector count mismatch)
     → Using OpenAI embeddings until LightRAG fixes the Gemini embed wrapper
-  - Auth: GEMINI_API_KEY for LLM, OPENAI_API_KEY for embeddings
+  - Auth: GEMINI_API_KEY for ingest LLM, OPENAI_API_KEY for query LLM + embeddings
 
 Sprint 25 Migration (Storage):
   - BEFORE: working_dir=/tmp/monstruo_lightrag (NanoVectorDB + NetworkX + JSON)
@@ -113,12 +115,11 @@ async def _get_rag(force_retry: bool = False):
         from lightrag.kg.postgres_impl import PostgreSQLDB
 
         # ── Import model functions (Sprint 31) ──────────────────────
-        # LLM: Gemini 2.5 Flash (superior entity extraction)
+        # LLM (ingest): Gemini 2.5 Flash (superior entity extraction with thinking)
         from lightrag.llm.gemini import gemini_model_complete
+        # LLM (query): OpenAI gpt-4.1-mini (fast synthesis <5s)
         # Embeddings: OpenAI text-embedding-3-small (stable, compatible with existing data)
-        # Note: gemini_embed has a bug with LightRAG's EmbeddingFunc wrapper
-        # (returns 2 vectors for 1 input). Using OpenAI until fixed upstream.
-        from lightrag.llm.openai import openai_embed
+        from lightrag.llm.openai import openai_complete, openai_embed
 
         _original_create_ssl = PostgreSQLDB._create_ssl_context
 
@@ -153,24 +154,27 @@ async def _get_rag(force_retry: bool = False):
                 return None
 
         # ── Model configuration ──────────────────────────────────────
-        # LLM: Gemini 2.5 Flash — superior entity extraction with thinking
+        # LLM (ingest): Gemini 2.5 Flash — superior entity extraction with thinking
+        # LLM (query): gpt-4.1-mini — fast synthesis for queries (<5s)
         # Embeddings: OpenAI text-embedding-3-small — stable, proven, compatible
-        llm_model = os.getenv("LIGHTRAG_MODEL", "gemini-2.5-flash")
+        llm_model_ingest = os.getenv("LIGHTRAG_MODEL_INGEST", "gemini-2.5-flash")
+        llm_model_query = os.getenv("LIGHTRAG_MODEL_QUERY", "gpt-4.1-mini")
         embedding_model = os.getenv("LIGHTRAG_EMBEDDING_MODEL", "text-embedding-3-small")
 
         # Still need a working_dir for LightRAG internals (temp files, logs)
         working_dir = os.getenv("LIGHTRAG_WORKING_DIR", "/tmp/monstruo_lightrag")
         os.makedirs(working_dir, exist_ok=True)
 
-        # ── Initialize LightRAG with hybrid config ────────────────────
-        # Sprint 31: Gemini 2.5 Flash for LLM + OpenAI for embeddings
-        # This hybrid approach gives us:
-        #   - Superior entity extraction (Gemini thinking)
+        # ── Initialize LightRAG with triple-hybrid config ─────────────
+        # Sprint 31: Gemini for ingest LLM + OpenAI for query LLM + embeddings
+        # This triple-hybrid approach gives us:
+        #   - Superior entity extraction (Gemini thinking) during ingest
+        #   - Fast query synthesis (gpt-4.1-mini <5s) during queries
         #   - Stable embeddings compatible with existing pgvector data
         rag = LightRAG(
             working_dir=working_dir,
             llm_model_func=gemini_model_complete,
-            llm_model_name=llm_model,
+            llm_model_name=llm_model_ingest,
             embedding_func=openai_embed,
             kv_storage="PGKVStorage",
             vector_storage="PGVectorStorage",
@@ -215,7 +219,8 @@ async def _get_rag(force_retry: bool = False):
             "lightrag_initialized",
             extra={
                 "working_dir": working_dir,
-                "llm_model": llm_model,
+                "llm_model_ingest": llm_model_ingest,
+                "llm_model_query": llm_model_query,
                 "embedding_model": embedding_model,
                 "storage": "pgvector",
                 "graph_storage": "NetworkX + PG persistence",
@@ -322,8 +327,24 @@ async def query_knowledge(
     try:
         from lightrag import QueryParam
 
+        # Override LLM to gpt-4.1-mini for fast query synthesis
+        # Gemini 2.5 Flash is too slow for queries (60s+), but great for ingest
+        query_model = os.getenv("LIGHTRAG_MODEL_QUERY", "gpt-4.1-mini")
+        original_model_name = rag.llm_model_name
+        original_model_func = rag.llm_model_func
+        try:
+            from lightrag.llm.openai import openai_complete
+            rag.llm_model_func = openai_complete
+            rag.llm_model_name = query_model
+        except Exception:
+            pass  # Fall back to whatever is configured
+
         param = QueryParam(mode=mode, top_k=top_k)
         result = await rag.aquery(query, param=param)
+
+        # Restore original model for future ingests
+        rag.llm_model_func = original_model_func
+        rag.llm_model_name = original_model_name
 
         logger.info(
             "lightrag_query_complete",
@@ -358,7 +379,8 @@ async def get_stats() -> dict[str, Any]:
             "storage": "pgvector",
             "host": os.getenv("POSTGRES_HOST", "unknown"),
             "workspace": os.getenv("POSTGRES_WORKSPACE", "monstruo"),
-            "llm_model": os.getenv("LIGHTRAG_MODEL", "gemini-2.5-flash"),
+            "llm_model_ingest": os.getenv("LIGHTRAG_MODEL_INGEST", "gemini-2.5-flash"),
+            "llm_model_query": os.getenv("LIGHTRAG_MODEL_QUERY", "gpt-4.1-mini"),
             "embedding_model": os.getenv("LIGHTRAG_EMBEDDING_MODEL", "text-embedding-3-small"),
             "provider": "gemini_llm+openai_embed",
         }
