@@ -225,18 +225,21 @@ def get_tool_specs():
             description=(
                 "Interact with GitHub repositories. Available actions: "
                 "search_repos, search_code, get_file, list_issues, list_prs, "
-                "create_issue, update_issue, create_or_update_file. "
-                "Use when the user asks about code, repos, issues, PRs, or "
-                "wants to create/update files in a GitHub repository. "
-                "Write operations (create_issue, update_issue, create_or_update_file) "
-                "require human approval."
+                "create_issue, update_issue, create_branch, create_pull_request, "
+                "create_or_update_file. "
+                "Use when the user asks about code, repos, issues, PRs, branches, "
+                "or wants to create/update files in a GitHub repository. "
+                "For the COMMIT LOOP (self-modify): use create_branch to create a "
+                "feature branch, create_or_update_file to write changes, then "
+                "create_pull_request to open a PR for review. "
+                "Write operations require human approval."
             ),
             parameters={
                 "type": "object",
                 "properties": {
                     "action": {
                         "type": "string",
-                        "description": "The GitHub action to perform: search_repos, search_code, get_file, list_issues, list_prs, create_issue, update_issue, create_or_update_file",  # noqa: E501
+                        "description": "The GitHub action to perform: search_repos, search_code, get_file, list_issues, list_prs, create_issue, update_issue, create_branch, create_pull_request, create_or_update_file",  # noqa: E501
                     },
                     "params": {
                         "type": "object",
