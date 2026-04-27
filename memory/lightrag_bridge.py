@@ -1,6 +1,6 @@
 """
 LightRAG Bridge — Knowledge Graph RAG for El Monstruo
-Sprint 31 | v0.24.0-sprint31
+Sprint 31 | v0.25.0-sprint32
 
 IVD: lightrag-hku==1.4.15 (MIT, PyPI latest 2026-04-22)
 CVE-2026-39413: JWT in API server only — we don't use the server.
@@ -42,6 +42,7 @@ Principio: LightRAG is an optional enhancement. Fails silently, never blocks.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from typing import Any, Optional
@@ -49,10 +50,11 @@ from urllib.parse import parse_qs, urlparse
 
 logger = logging.getLogger("monstruo.memory.lightrag")
 
-# ── Lazy singleton ────────────────────────────────────────────────────
+# ── Lazy singleton (protected by asyncio.Lock) ───────────────────────
 _rag = None
 _rag_init_attempted = False
 _rag_init_error: str | None = None
+_rag_lock = asyncio.Lock()
 
 
 def _inject_postgres_env_from_db_url() -> bool:
@@ -110,141 +112,151 @@ def _inject_postgres_env_from_db_url() -> bool:
 
 
 async def _get_rag(force_retry: bool = False):
-    """Lazy-initialize LightRAG instance with pgvector storage and OpenAI models."""
+    """Lazy-initialize LightRAG instance with pgvector storage and OpenAI models.
+    
+    Protected by asyncio.Lock to prevent race condition when multiple
+    concurrent requests trigger init simultaneously (Sprint 32 fix).
+    """
     global _rag, _rag_init_attempted, _rag_init_error
 
+    # Fast path: already initialized (no lock needed)
     if _rag is not None:
         return _rag
 
-    if _rag_init_attempted and not force_retry:
-        return None  # Don't retry if init already failed (unless forced)
+    async with _rag_lock:
+        # Double-check after acquiring lock (another coroutine may have initialized)
+        if _rag is not None:
+            return _rag
 
-    _rag_init_attempted = True
-    _rag_init_error = None
+        if _rag_init_attempted and not force_retry:
+            return None  # Don't retry if init already failed (unless forced)
 
-    try:
-        # ── SSL fix for Supabase (self-signed cert chain) ──────────────
-        import ssl as _ssl
+        _rag_init_attempted = True
+        _rag_init_error = None
 
-        from lightrag import LightRAG
-        from lightrag.kg.postgres_impl import PostgreSQLDB
+        try:
+            # ── SSL fix for Supabase (self-signed cert chain) ──────────────
+            import ssl as _ssl
 
-        # ── Import OpenAI model functions ──────────────────────────────
-        # LLM: gpt-4.1-mini — fast, cheap, good quality for entity extraction
-        # Embeddings: text-embedding-3-small — stable, proven, compatible
-        from lightrag.llm.openai import openai_complete, openai_embed
+            from lightrag import LightRAG
+            from lightrag.kg.postgres_impl import PostgreSQLDB
 
-        _original_create_ssl = PostgreSQLDB._create_ssl_context
+            # ── Import OpenAI model functions ──────────────────────────────
+            # LLM: gpt-4.1-mini — fast, cheap, good quality for entity extraction
+            # Embeddings: text-embedding-3-small — stable, proven, compatible
+            from lightrag.llm.openai import openai_complete, openai_embed
 
-        def _patched_create_ssl(self_db):
-            if self_db.ssl_mode and self_db.ssl_mode.lower() in ("require", "prefer", "allow"):
-                ctx = _ssl.create_default_context()
-                ctx.check_hostname = False
-                ctx.verify_mode = _ssl.CERT_NONE
-                return ctx
-            return _original_create_ssl(self_db)
+            _original_create_ssl = PostgreSQLDB._create_ssl_context
 
-        PostgreSQLDB._create_ssl_context = _patched_create_ssl
-        logger.info("lightrag_ssl_patched", extra={"mode": "no-verify for require/prefer/allow"})
+            def _patched_create_ssl(self_db):
+                if self_db.ssl_mode and self_db.ssl_mode.lower() in ("require", "prefer", "allow"):
+                    ctx = _ssl.create_default_context()
+                    ctx.check_hostname = False
+                    ctx.verify_mode = _ssl.CERT_NONE
+                    return ctx
+                return _original_create_ssl(self_db)
 
-        # ── Validate OPENAI_API_KEY ────────────────────────────────────
-        openai_key = os.getenv("OPENAI_API_KEY", "")
-        if not openai_key:
-            _rag_init_error = "OPENAI_API_KEY not set — required for LightRAG"
-            logger.warning("lightrag_disabled", extra={"reason": _rag_init_error})
-            return None
+            PostgreSQLDB._create_ssl_context = _patched_create_ssl
+            logger.info("lightrag_ssl_patched", extra={"mode": "no-verify for require/prefer/allow"})
 
-        # ── Inject POSTGRES_* env vars from SUPABASE_DB_URL ──────────
-        if not _inject_postgres_env_from_db_url():
-            if not os.getenv("POSTGRES_HOST"):
-                _rag_init_error = "No SUPABASE_DB_URL or POSTGRES_HOST — cannot use pgvector storage"
+            # ── Validate OPENAI_API_KEY ────────────────────────────────────
+            openai_key = os.getenv("OPENAI_API_KEY", "")
+            if not openai_key:
+                _rag_init_error = "OPENAI_API_KEY not set — required for LightRAG"
                 logger.warning("lightrag_disabled", extra={"reason": _rag_init_error})
                 return None
 
-        # ── Model configuration ──────────────────────────────────────
-        # gpt-4.1-mini: $0.10/$0.40 per MTok, fast (<5s), good extraction
-        # text-embedding-3-small: $0.02/MTok, 1536d, stable
-        llm_model = os.getenv("LIGHTRAG_MODEL", "gpt-4.1-mini")
-        embedding_model = os.getenv("LIGHTRAG_EMBEDDING_MODEL", "text-embedding-3-small")
+            # ── Inject POSTGRES_* env vars from SUPABASE_DB_URL ──────────
+            if not _inject_postgres_env_from_db_url():
+                if not os.getenv("POSTGRES_HOST"):
+                    _rag_init_error = "No SUPABASE_DB_URL or POSTGRES_HOST — cannot use pgvector storage"
+                    logger.warning("lightrag_disabled", extra={"reason": _rag_init_error})
+                    return None
 
-        # Still need a working_dir for LightRAG internals (temp files, logs)
-        working_dir = os.getenv("LIGHTRAG_WORKING_DIR", "/tmp/monstruo_lightrag")
-        os.makedirs(working_dir, exist_ok=True)
+            # ── Model configuration ──────────────────────────────────────
+            # gpt-4.1-mini: $0.10/$0.40 per MTok, fast (<5s), good extraction
+            # text-embedding-3-small: $0.02/MTok, 1536d, stable
+            llm_model = os.getenv("LIGHTRAG_MODEL", "gpt-4.1-mini")
+            embedding_model = os.getenv("LIGHTRAG_EMBEDDING_MODEL", "text-embedding-3-small")
 
-        # ── Initialize LightRAG ──────────────────────────────────────
-        rag = LightRAG(
-            working_dir=working_dir,
-            llm_model_func=openai_complete,
-            llm_model_name=llm_model,
-            embedding_func=openai_embed,
-            kv_storage="PGKVStorage",
-            vector_storage="PGVectorStorage",
-            graph_storage="NetworkXStorage",  # No AGE extension on Supabase
-            doc_status_storage="PGDocStatusStorage",
-        )
+            # Still need a working_dir for LightRAG internals (temp files, logs)
+            working_dir = os.getenv("LIGHTRAG_WORKING_DIR", "/tmp/monstruo_lightrag")
+            os.makedirs(working_dir, exist_ok=True)
 
-        # LightRAG 1.4.15 requires explicit storage initialization
-        await rag.initialize_storages()
+            # ── Initialize LightRAG ──────────────────────────────────────
+            rag = LightRAG(
+                working_dir=working_dir,
+                llm_model_func=openai_complete,
+                llm_model_name=llm_model,
+                embedding_func=openai_embed,
+                kv_storage="PGKVStorage",
+                vector_storage="PGVectorStorage",
+                graph_storage="NetworkXStorage",  # No AGE extension on Supabase
+                doc_status_storage="PGDocStatusStorage",
+            )
 
-        # ── Sprint 31: Restore graph from PostgreSQL ─────────────────
-        # NetworkXStorage saves to filesystem which is ephemeral on Railway.
-        # We restore the graph from PG on startup so it survives deploys.
-        try:
-            from memory.pg_graph_storage import load_graph_from_pg
+            # LightRAG 1.4.15 requires explicit storage initialization
+            await rag.initialize_storages()
 
-            pg_graph = await load_graph_from_pg(graph_id="main")
-            if pg_graph is not None:
-                # Inject the restored graph into NetworkXStorage
-                graph_storage = rag.chunk_entity_relation_graph
-                graph_storage._graph = pg_graph
-                # Also write to filesystem so NetworkXStorage's file-based sync works
-                from lightrag.kg.networkx_impl import NetworkXStorage
-                NetworkXStorage.write_nx_graph(
-                    pg_graph, graph_storage._graphml_xml_file, graph_storage.workspace
-                )
-                logger.info(
-                    "pg_graph_restored_to_networkx",
-                    extra={
-                        "nodes": pg_graph.number_of_nodes(),
-                        "edges": pg_graph.number_of_edges(),
-                    },
-                )
-            else:
-                logger.info("pg_graph_empty_starting_fresh")
+            # ── Sprint 31: Restore graph from PostgreSQL ─────────────────
+            # NetworkXStorage saves to filesystem which is ephemeral on Railway.
+            # We restore the graph from PG on startup so it survives deploys.
+            try:
+                from memory.pg_graph_storage import load_graph_from_pg
+
+                pg_graph = await load_graph_from_pg(graph_id="main")
+                if pg_graph is not None:
+                    # Inject the restored graph into NetworkXStorage
+                    graph_storage = rag.chunk_entity_relation_graph
+                    graph_storage._graph = pg_graph
+                    # Also write to filesystem so NetworkXStorage's file-based sync works
+                    from lightrag.kg.networkx_impl import NetworkXStorage
+                    NetworkXStorage.write_nx_graph(
+                        pg_graph, graph_storage._graphml_xml_file, graph_storage.workspace
+                    )
+                    logger.info(
+                        "pg_graph_restored_to_networkx",
+                        extra={
+                            "nodes": pg_graph.number_of_nodes(),
+                            "edges": pg_graph.number_of_edges(),
+                        },
+                    )
+                else:
+                    logger.info("pg_graph_empty_starting_fresh")
+            except Exception as exc:
+                logger.warning("pg_graph_restore_failed", extra={"error": str(exc)})
+                # Non-fatal: LightRAG will work with empty graph
+
+            _rag = rag
+            logger.info(
+                "lightrag_initialized",
+                extra={
+                    "working_dir": working_dir,
+                    "llm_model": llm_model,
+                    "embedding_model": embedding_model,
+                    "storage": "pgvector",
+                    "graph_storage": "NetworkX + PG persistence",
+                    "host": os.getenv("POSTGRES_HOST", "unknown"),
+                    "database": os.getenv("POSTGRES_DATABASE", "unknown"),
+                    "workspace": os.getenv("POSTGRES_WORKSPACE", "monstruo"),
+                    "provider": "openai",
+                },
+            )
+            return _rag
+
+        except ImportError as ie:
+            _rag_init_error = f"ImportError: {ie}"
+            logger.warning("lightrag_import_failed", extra={"error": str(ie)})
+            return None
         except Exception as exc:
-            logger.warning("pg_graph_restore_failed", extra={"error": str(exc)})
-            # Non-fatal: LightRAG will work with empty graph
+            import traceback
 
-        _rag = rag
-        logger.info(
-            "lightrag_initialized",
-            extra={
-                "working_dir": working_dir,
-                "llm_model": llm_model,
-                "embedding_model": embedding_model,
-                "storage": "pgvector",
-                "graph_storage": "NetworkX + PG persistence",
-                "host": os.getenv("POSTGRES_HOST", "unknown"),
-                "database": os.getenv("POSTGRES_DATABASE", "unknown"),
-                "workspace": os.getenv("POSTGRES_WORKSPACE", "monstruo"),
-                "provider": "openai",
-            },
-        )
-        return _rag
-
-    except ImportError as ie:
-        _rag_init_error = f"ImportError: {ie}"
-        logger.warning("lightrag_import_failed", extra={"error": str(ie)})
-        return None
-    except Exception as exc:
-        import traceback
-
-        _rag_init_error = f"{type(exc).__name__}: {exc}"
-        logger.error(
-            "lightrag_init_failed",
-            extra={"error": str(exc), "traceback": traceback.format_exc()[:500]},
-        )
-        return None
+            _rag_init_error = f"{type(exc).__name__}: {exc}"
+            logger.error(
+                "lightrag_init_failed",
+                extra={"error": str(exc), "traceback": traceback.format_exc()[:500]},
+            )
+            return None
 
 
 # ── Public API ─────────────────────────────────────────────────────

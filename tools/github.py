@@ -18,8 +18,15 @@ Commit Loop (MVP Sprint 28):
 
 Risk: HIGH (can modify repos)
 HITL: Required for write operations
+
+Sprint 32 Fixes:
+- [1] Shared aiohttp.ClientSession (connection pooling)
+- [2] Token validated at module init (fail-fast)
+- [3] Retry with exponential backoff for transient errors
+- [8] Explicit HITL gate for write operations
 """
 
+import asyncio
 import json
 import logging
 import os
@@ -30,38 +37,106 @@ import aiohttp
 logger = logging.getLogger("monstruo.tools.github")
 
 GITHUB_API = "https://api.github.com"
-API_VERSION = "2022-11-28"  # validated 2026-04-17
+API_VERSION = "2022-11-28"  # validated 2026-04-27
+
+# ── Token Validation (fail-fast at import) ────────────────────────
+_GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "").strip()
+if not _GITHUB_TOKEN:
+    logger.critical("GITHUB_TOKEN not configured — github tool will not work")
 
 
 def _headers() -> dict:
-    token = os.environ.get("GITHUB_TOKEN", "")
-    if not token:
-        raise RuntimeError("GITHUB_TOKEN not configured")
+    if not _GITHUB_TOKEN:
+        raise RuntimeError("GITHUB_TOKEN not configured in environment")
     return {
-        "Authorization": f"Bearer {token}",
+        "Authorization": f"Bearer {_GITHUB_TOKEN}",
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": API_VERSION,
     }
 
 
+# ── Shared Session (connection pooling) ───────────────────────────
+_session: aiohttp.ClientSession | None = None
+_session_lock = asyncio.Lock()
+
+
+async def _get_session() -> aiohttp.ClientSession:
+    """Get or create a shared aiohttp session with connection pooling."""
+    global _session
+    if _session is None or _session.closed:
+        async with _session_lock:
+            if _session is None or _session.closed:
+                connector = aiohttp.TCPConnector(
+                    limit=10,           # max 10 concurrent connections
+                    ttl_dns_cache=300,  # cache DNS for 5 min
+                    keepalive_timeout=30,
+                )
+                _session = aiohttp.ClientSession(
+                    connector=connector,
+                    headers=_headers(),
+                    timeout=aiohttp.ClientTimeout(total=30),
+                )
+    return _session
+
+
+# ── Retry with Exponential Backoff ────────────────────────────────
+RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+MAX_RETRIES = 3
+BASE_DELAY = 1.0  # seconds
+
+
 async def _request(method: str, path: str, body: dict | None = None) -> dict:
-    """Make authenticated request to GitHub API."""
+    """Make authenticated request to GitHub API with retry and backoff."""
     url = f"{GITHUB_API}{path}"
-    async with aiohttp.ClientSession() as session:
-        kwargs = {"headers": _headers()}
-        if body:
-            kwargs["json"] = body
-        async with session.request(method, url, **kwargs) as resp:
-            text = await resp.text()
-            if resp.status >= 400:
+    session = await _get_session()
+
+    last_error = None
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            kwargs: dict[str, Any] = {}
+            if body:
+                kwargs["json"] = body
+            async with session.request(method, url, **kwargs) as resp:
+                text = await resp.text()
+
+                # Success
+                if resp.status < 400:
+                    if text:
+                        return json.loads(text)
+                    return {"status": "ok"}
+
+                # Rate limited — respect Retry-After header
+                if resp.status == 429:
+                    retry_after = int(resp.headers.get("Retry-After", BASE_DELAY * (2 ** attempt)))
+                    logger.warning(f"GitHub rate limited, retry after {retry_after}s (attempt {attempt+1})")
+                    if attempt < MAX_RETRIES:
+                        await asyncio.sleep(retry_after)
+                        continue
+
+                # Retryable server error
+                if resp.status in RETRYABLE_STATUS and attempt < MAX_RETRIES:
+                    delay = BASE_DELAY * (2 ** attempt)
+                    logger.warning(f"GitHub {resp.status}, retrying in {delay}s (attempt {attempt+1})")
+                    await asyncio.sleep(delay)
+                    continue
+
+                # Non-retryable error
                 logger.error(f"GitHub API {resp.status}: {text[:500]}")
                 return {
                     "error": f"GitHub API returned {resp.status}",
                     "detail": text[:500],
                 }
-            if text:
-                return json.loads(text)
-            return {"status": "ok"}
+
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            last_error = str(e)
+            if attempt < MAX_RETRIES:
+                delay = BASE_DELAY * (2 ** attempt)
+                logger.warning(f"GitHub request error: {e}, retrying in {delay}s (attempt {attempt+1})")
+                await asyncio.sleep(delay)
+            else:
+                logger.error(f"GitHub request failed after {MAX_RETRIES+1} attempts: {e}")
+
+    return {"error": f"Request failed after {MAX_RETRIES+1} attempts: {last_error}"}
 
 
 # ── Read Operations ──────────────────────────────────────────────
@@ -249,11 +324,44 @@ async def create_or_update_file(
     return await _request("PUT", f"/repos/{repo}/contents/{path}", payload)
 
 
+# ── HITL Gate ───────────────────────────────────────────────────
+# Sprint 32: Explicit HITL gate for write operations.
+# Write actions MUST NOT execute unless the caller has already passed
+# through the HITL approval flow. This is a defense-in-depth layer
+# that prevents accidental or malicious writes even if the kernel's
+# HITL interrupt is bypassed.
+
+WRITE_ACTIONS = frozenset({
+    "create_branch",
+    "create_pull_request",
+    "create_issue",
+    "update_issue",
+    "create_or_update_file",
+})
+
+READ_ACTIONS = frozenset({
+    "search_repos",
+    "search_code",
+    "get_file",
+    "list_issues",
+    "list_prs",
+})
+
+
 # ── Dispatch Entry Point ────────────────────────────────────────
 
 
-async def execute_github(action: str, params: dict[str, Any]) -> str:
-    """Main dispatch for GitHub tool calls from the kernel."""
+async def execute_github(action: str, params: dict[str, Any], hitl_approved: bool = False) -> str:
+    """Main dispatch for GitHub tool calls from the kernel.
+    
+    Args:
+        action: The GitHub action to execute.
+        params: Parameters for the action.
+        hitl_approved: Whether HITL approval was granted for this call.
+                       Write operations REQUIRE hitl_approved=True.
+                       This flag must be set by the kernel's HITL flow,
+                       never by the LLM itself.
+    """
     actions = {
         "search_repos": search_repos,
         "search_code": search_code,
@@ -271,8 +379,27 @@ async def execute_github(action: str, params: dict[str, Any]) -> str:
     if not fn:
         return json.dumps({"error": f"Unknown GitHub action: {action}. Available: {list(actions.keys())}"})
 
+    # ── HITL Gate: Block writes without explicit approval ─────────
+    if action in WRITE_ACTIONS and not hitl_approved:
+        logger.warning(
+            "github_write_blocked_no_hitl",
+            extra={"action": action, "params_keys": list(params.keys())},
+        )
+        return json.dumps({
+            "error": "HITL_REQUIRED",
+            "message": f"Write action '{action}' requires human approval. "
+                       f"This request was blocked because hitl_approved=False.",
+            "action": action,
+            "risk_level": "HIGH",
+        })
+
     try:
         result = await fn(**params)
+        if action in WRITE_ACTIONS:
+            logger.info(
+                "github_write_executed",
+                extra={"action": action, "hitl_approved": True},
+            )
         return json.dumps(result, default=str, ensure_ascii=False)
     except Exception as e:
         logger.error(f"GitHub tool error: {e}")
