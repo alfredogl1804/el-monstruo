@@ -219,7 +219,7 @@ async def agui_run(req: AGUIRunRequest, request: Request):
             except AttributeError:
                 # Kernel doesn't have stream method, fall back to sync
                 logger.info("agui_fallback_sync", run_id=run_id)
-                result = await _kernel.run(run_input)
+                result = await _kernel.start_run(run_input)
                 full_response = result.response if hasattr(result, "response") else str(result)
 
                 # Emit full response as single chunk

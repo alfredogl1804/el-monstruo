@@ -16,7 +16,7 @@ Guardrails:
 
 Architecture:
   lifespan(startup) → asyncio.create_task(runner.start())
-  runner.start() → poll loop → _execute_job() → kernel.run() → notify
+  runner.start() → poll loop → _execute_job() → kernel.start_run() → notify
 """
 
 from __future__ import annotations
@@ -260,7 +260,7 @@ class AutonomousRunner:
     ) -> dict[str, Any]:
         """
         Re-enter the kernel to execute the job's instruction.
-        Uses the kernel's run() method with a synthetic RunInput.
+        Uses the kernel's start_run() method with a synthetic RunInput.
         """
         from contracts.kernel_interface import RunInput
 
@@ -276,7 +276,7 @@ class AutonomousRunner:
         )
 
         try:
-            result = await self._kernel.run(run_input)
+            result = await self._kernel.start_run(run_input)
             return {
                 "response": result.response if hasattr(result, "response") else str(result),
                 "tokens_used": getattr(result, "tokens_used", 0),
