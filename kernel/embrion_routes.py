@@ -281,7 +281,7 @@ async def registrar_latido(req: LatidoRequest):
     """
     _ensure_db()
 
-    valid_tipos = {"latido", "reflexion", "doctrina", "pensamiento"}
+    valid_tipos = {"latido", "reflexion", "doctrina", "pensamiento", "respuesta_embrion"}
     if req.tipo not in valid_tipos:
         raise HTTPException(400, f"Tipo inválido: {req.tipo}. Válidos: {valid_tipos}")
 
