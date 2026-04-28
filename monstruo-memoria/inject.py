@@ -95,36 +95,21 @@ def scan_key_files():
 def query_kernel_fast(query, timeout=12):
     """Consulta al kernel con timeout agresivo. No bloquea si falla."""
     try:
-        resp = requests.post(
-            f"{KERNEL_URL}/v1/knowledge/query",
-            headers={
-                "X-API-Key": KERNEL_KEY,
-                "Content-Type": "application/json"
-            },
-            json={"query": query, "mode": "naive", "top_k": 3},
-            timeout=timeout
-        )
-        if resp.status_code == 200:
-            data = resp.json()
-            answer = data.get("results", data.get("answer", data.get("response", "")))
-            if answer and "no tengo suficiente" not in str(answer).lower():
-                return str(answer)
+        from kernel_client import knowledge_query
+        data = knowledge_query(query=query)
+        answer = data.get("results", data.get("answer", data.get("response", "")))
+        if answer and "no tengo suficiente" not in str(answer).lower():
+            return str(answer)
         return None
     except Exception:
         return None
 
 
 def check_kernel_health():
-    """Verifica que el kernel esté vivo (timeout 5s)."""
+    """Verifica que el kernel esté vivo."""
     try:
-        resp = requests.get(
-            f"{KERNEL_URL}/health",
-            headers={"X-API-Key": KERNEL_KEY},
-            timeout=5
-        )
-        if resp.status_code == 200:
-            return resp.json()
-        return None
+        from kernel_client import health
+        return health()
     except Exception:
         return None
 

@@ -199,23 +199,20 @@ def upload_to_kernel_chunked(recovery_doc, findings):
             "doc_type": "heartbeat_snapshot"
         }
 
-        # Retry con backoff
+        # Retry con backoff via kernel_client
         for attempt in range(3):
             try:
-                resp = requests.post(
-                    f"{KERNEL_URL}/v1/knowledge/ingest",
-                    headers={
-                        "X-API-Key": KERNEL_KEY,
-                        "Content-Type": "application/json"
-                    },
-                    json=payload,
-                    timeout=20  # Timeout corto por chunk
+                from kernel_client import knowledge_ingest
+                result = knowledge_ingest(
+                    content=chunk,
+                    source=payload["source"],
+                    doc_type="heartbeat_snapshot"
                 )
-                if resp.status_code == 200:
+                if result.get("ingested"):
                     success_count += 1
                     break
                 else:
-                    print(f"[heartbeat] Chunk {idx}: HTTP {resp.status_code}")
+                    print(f"[heartbeat] Chunk {idx}: no ingested")
             except requests.exceptions.Timeout:
                 wait = 2 ** attempt
                 print(f"[heartbeat] Chunk {idx}: timeout, retry en {wait}s...")

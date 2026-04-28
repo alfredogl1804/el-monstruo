@@ -52,32 +52,26 @@ def collect_new_knowledge():
 
 
 def deposit_to_kernel(content, source, doc_type="legacy"):
-    """Deposita un documento en el kernel con retry."""
+    """Deposita un documento en el kernel via wrapper con retry."""
     for attempt in range(3):
         try:
-            resp = requests.post(
-                f"{KERNEL_URL}/v1/knowledge/ingest",
-                headers={
-                    "X-API-Key": KERNEL_KEY,
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "content": content[:3000],  # Chunks más pequeños para evitar timeout
-                    "source": source,
-                    "doc_type": doc_type
-                },
-                timeout=20
+            from kernel_client import knowledge_ingest
+            result = knowledge_ingest(
+                content=content[:3000],
+                source=source,
+                doc_type=doc_type
             )
-            if resp.status_code == 200:
+            if result.get("ingested"):
                 return True
-            print(f"[legacy] HTTP {resp.status_code} en intento {attempt + 1}")
-        except requests.exceptions.Timeout:
-            wait = 2 ** attempt
-            print(f"[legacy] Timeout, retry en {wait}s...")
-            time_mod.sleep(wait)
+            print(f"[legacy] No ingested en intento {attempt + 1}")
         except Exception as e:
-            print(f"[legacy] Error: {e}")
-            return False
+            if "timeout" in str(e).lower() or "Timeout" in str(e):
+                wait = 2 ** attempt
+                print(f"[legacy] Timeout, retry en {wait}s...")
+                time_mod.sleep(wait)
+            else:
+                print(f"[legacy] Error: {e}")
+                return False
     return False
 
 

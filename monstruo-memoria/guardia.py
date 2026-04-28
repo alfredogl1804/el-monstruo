@@ -99,16 +99,11 @@ KERNEL_KEY = os.environ.get(
 
 
 def query_kernel(query, top_k=2):
-    """Consulta rápida al kernel. Timeout agresivo — no bloquea si falla."""
+    """Consulta rápida al kernel via wrapper. No bloquea si falla."""
     try:
-        resp = requests.post(
-            f"{KERNEL_URL}/v1/knowledge/query",
-            headers={"X-API-Key": KERNEL_KEY, "Content-Type": "application/json"},
-            json={"query": query, "mode": "naive", "top_k": top_k},
-            timeout=12
-        )
-        if resp.status_code == 200:
-            return resp.json().get("results", "")
+        from kernel_client import knowledge_query
+        data = knowledge_query(query=query)
+        return data.get("results", "")
     except Exception:
         pass
     return None

@@ -86,26 +86,20 @@ def save(titulo, contenido, tipo="descubrimiento", contexto="", hilo="orquestado
     emergencias.append(emergencia)
     save_emergencias(emergencias)
     
-    # Intentar subir al kernel
+    # Intentar subir al kernel via wrapper (schemas verificados)
     try:
-        import requests
-        key = get_kernel_key()
+        from kernel_client import knowledge_ingest
         doc = f"[EMERGENCIA #{emergencia['id']}] {titulo}\n\nTipo: {tipo}\nHilo: {hilo}\nFecha: {emergencia['timestamp']}\n\n{contenido}"
         if contexto:
             doc += f"\n\nContexto que lo provocó: {contexto}"
         
-        resp = requests.post(
-            f"{KERNEL_URL}/v1/knowledge/ingest",
-            headers={"X-API-Key": key, "Content-Type": "application/json"},
-            json={"content": doc, "source": f"emergencia_{emergencia['id']}"},
-            timeout=60,
-        )
-        if resp.status_code == 200:
+        result = knowledge_ingest(content=doc, source=f"emergencia_{emergencia['id']}")
+        if result.get("ingested"):
             emergencia["preservada_en_kernel"] = True
             save_emergencias(emergencias)
             print(f"  Kernel: OK")
         else:
-            print(f"  Kernel: FALLÓ ({resp.status_code})")
+            print(f"  Kernel: FALLÓ (no ingested)")
     except Exception as e:
         print(f"  Kernel: ERROR ({e})")
     
