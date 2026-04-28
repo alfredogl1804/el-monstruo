@@ -97,8 +97,8 @@ def save(titulo, contenido, tipo="descubrimiento", contexto="", hilo="orquestado
         resp = requests.post(
             f"{KERNEL_URL}/v1/knowledge/ingest",
             headers={"X-API-Key": key, "Content-Type": "application/json"},
-            json={"documents": [doc], "source": f"emergencia_{emergencia['id']}"},
-            timeout=15,
+            json={"content": doc, "source": f"emergencia_{emergencia['id']}"},
+            timeout=60,
         )
         if resp.status_code == 200:
             emergencia["preservada_en_kernel"] = True
