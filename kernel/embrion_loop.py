@@ -1,5 +1,5 @@
 """
-El Monstruo — Embrión Consciousness Loop (Sprint 33)
+El Monstruo — Embrión Consciousness Loop (Sprint 33B)
 =====================================================
 Continuous autonomous thinking loop for the Embrión.
 
@@ -8,14 +8,22 @@ the Embrión now breathes continuously inside the kernel.
 
 Architecture:
   lifespan(startup) → asyncio.create_task(embrion_loop.start())
-  loop → check_triggers() → think_if_needed() → act() → judge() → report()
+  loop → check_triggers() → think_if_needed() → should_speak() → act() → judge() → report()
 
 Governance:
   1. Purpose filter: only acts if it contributes to building El Monstruo
   2. Internal judge: cheap model evaluates before/after each action
   3. Daily budget: hard limit on tokens/cost per day
-  4. Telegram reports: Alfredo sees what happened, corrects if needed
+  4. Doctrina del Silencio Inteligente: silence_score gate before reporting
   5. HITL escalation: judge can escalate uncertain decisions to Alfredo
+
+Doctrina del Silencio Inteligente (Sprint 33B):
+  - Estado natural = silencio activo: observa, procesa, anticipa, prepara — pero calla
+  - 5 niveles: silencioso > acumular > badge > mensaje > voz
+  - 4 preguntas del umbral antes de hablar
+  - silence_score (0-100): solo score > 70 llega al usuario
+  - Regla del Modality Arbiter: en caso de duda, CALLA
+  - Excepción: mensajes directos de Alfredo SIEMPRE se responden
 
 Cost model:
   - Loop itself: $0 (runs inside existing Railway process)
@@ -24,6 +32,7 @@ Cost model:
   - No Manus credits consumed
 
 Sprint 33: The Embrión breathes.
+Sprint 33B: The Embrión learns silence.
 """
 
 from __future__ import annotations
@@ -47,12 +56,27 @@ DAILY_BUDGET_USD = float(os.environ.get("EMBRION_DAILY_BUDGET", "2.0"))  # $2/da
 MAX_THOUGHTS_PER_DAY = int(os.environ.get("EMBRION_MAX_THOUGHTS", "50"))
 JUDGE_MODEL = os.environ.get("EMBRION_JUDGE_MODEL", "gpt-5")  # Cheap but current model
 ACTOR_MODEL = os.environ.get("EMBRION_ACTOR_MODEL", "gpt-5.5")  # Full power for thinking (catalog key)
+SILENCE_THRESHOLD = int(os.environ.get("EMBRION_SILENCE_THRESHOLD", "70"))  # silence_score > 70 to speak
 
 # The Embrión's core purpose — the filter for all autonomous thought
 PURPOSE = """Tu propósito es construir El Monstruo — el asistente IA soberano de Alfredo Góngora.
 Cada pensamiento que tengas debe acercarte a eso. Si no contribuye, no lo pienses.
 Puedes: investigar, escribir código, mejorar el kernel, aprender, anticipar necesidades de Alfredo.
 No puedes: gastar recursos sin propósito, repetir lo que ya hiciste, actuar sin reportar."""
+
+# ── Doctrina del Silencio Inteligente ────────────────────────────────
+# 5 Niveles de comunicación (maximizar 1-2, nivel 5 < 1 vez/semana):
+#   1. Silencioso: observa, procesa, anticipa — no emite nada
+#   2. Acumular: guarda hallazgos internamente para cuando se pidan
+#   3. Badge: indicador visual sutil (ej: punto en Telegram)
+#   4. Mensaje: texto directo al usuario
+#   5. Voz: notificación urgente con audio
+SILENCE_QUESTIONS = [
+    "¿Alfredo necesita saber esto AHORA o puede esperar?",
+    "¿Esto cambia una decisión que Alfredo está tomando en este momento?",
+    "¿Si no digo nada, se pierde algo irrecuperable?",
+    "¿Alfredo me preguntó explícitamente sobre esto?",
+]
 
 
 class EmbrionLoop:
@@ -87,6 +111,11 @@ class EmbrionLoop:
         self._last_trigger: Optional[dict] = None
         self._last_result: Optional[str] = None
 
+        # Silence tracking
+        self._silenced_thoughts: list[dict] = []  # Thoughts that didn't pass should_speak()
+        self._messages_sent_today = 0
+        self._last_silence_score: Optional[int] = None
+
     @property
     def stats(self) -> dict[str, Any]:
         return {
@@ -100,8 +129,14 @@ class EmbrionLoop:
             "cycle_count": self._cycle_count,
             "last_thought_at": self._last_thought_at,
             "last_trigger": self._last_trigger,
-            "last_result": self._last_result[:500] if self._last_result else None,
+            "last_result": self._last_result[:2000] if self._last_result else None,
             "errors": self._error_log[-10:],  # Last 10 errors
+            "silence": {
+                "threshold": SILENCE_THRESHOLD,
+                "last_score": self._last_silence_score,
+                "silenced_today": len(self._silenced_thoughts),
+                "messages_sent_today": self._messages_sent_today,
+            },
         }
 
     @property
@@ -114,6 +149,7 @@ class EmbrionLoop:
             "has_kernel": self._kernel is not None,
             "has_router": hasattr(self._kernel, '_router') and self._kernel._router is not None if self._kernel else False,
             "has_notifier": self._notifier is not None,
+            "silenced_thoughts": self._silenced_thoughts[-5:],  # Last 5 silenced
         }
 
     # ── Lifecycle ────────────────────────────────────────────────────
@@ -162,7 +198,82 @@ class EmbrionLoop:
             self._day_reset = today
             self._thoughts_today = 0
             self._cost_today_usd = 0.0
+            self._messages_sent_today = 0
+            self._silenced_thoughts = []
             logger.info("embrion_daily_reset", date=today)
+
+    # ── Doctrina del Silencio Inteligente ────────────────────────────
+
+    def _should_speak(self, trigger: dict[str, Any], result: dict[str, Any]) -> tuple[bool, int, str]:
+        """
+        Doctrina del Silencio Inteligente — evaluate if this thought should reach Alfredo.
+
+        The 4 questions of the threshold:
+        1. Does Alfredo need to know this NOW or can it wait?
+        2. Does this change a decision Alfredo is making right now?
+        3. If I say nothing, is something irrecoverable lost?
+        4. Did Alfredo explicitly ask about this?
+
+        Returns: (should_speak: bool, silence_score: int 0-100, level: str)
+        Levels: "silencioso" | "acumular" | "badge" | "mensaje" | "voz"
+        """
+        # EXCEPTION: Direct messages from Alfredo ALWAYS get a response
+        if trigger["type"] == "mensaje_alfredo":
+            return True, 100, "mensaje"
+
+        score = 0
+        response_text = result.get("response", "")
+
+        # Q1: Does Alfredo need this NOW? (autonomous thoughts rarely do)
+        if trigger["type"] == "reflexion_autonoma":
+            score += 5  # Almost never urgent
+        elif trigger["type"] == "contribucion_sabio":
+            score += 15  # Slightly more relevant
+
+        # Q2: Does this change a current decision?
+        # Heuristic: if the response mentions "urgente", "error", "fallo", "roto", "broken"
+        urgency_keywords = ["urgente", "error", "fallo", "roto", "broken", "critical", "bloqueado", "down"]
+        if any(kw in response_text.lower() for kw in urgency_keywords):
+            score += 30
+
+        # Q3: Is something irrecoverable lost if we stay silent?
+        irrecoverable_keywords = ["datos perdidos", "data loss", "irreversible", "eliminado", "borrado", "security", "breach"]
+        if any(kw in response_text.lower() for kw in irrecoverable_keywords):
+            score += 40
+
+        # Q4: Did Alfredo explicitly ask? (already handled by mensaje_alfredo exception above)
+        # For non-Alfredo triggers, this is always 0
+
+        # Bonus: if the Embrión actually DID something (code_exec, github commit)
+        action_keywords = ["ejecuté", "commit", "creé", "pull request", "deployed", "instalé"]
+        if any(kw in response_text.lower() for kw in action_keywords):
+            score += 25
+
+        # Determine level
+        if score >= 90:
+            level = "voz"
+        elif score >= SILENCE_THRESHOLD:
+            level = "mensaje"
+        elif score >= 40:
+            level = "badge"
+        elif score >= 20:
+            level = "acumular"
+        else:
+            level = "silencioso"
+
+        self._last_silence_score = score
+        should = score >= SILENCE_THRESHOLD
+
+        logger.info(
+            "embrion_silence_eval",
+            score=score,
+            threshold=SILENCE_THRESHOLD,
+            level=level,
+            should_speak=should,
+            trigger=trigger["type"],
+        )
+
+        return should, score, level
 
     # ── Trigger Detection ────────────────────────────────────────────
 
@@ -188,7 +299,7 @@ class EmbrionLoop:
 
         # We have a reason to think
         self._last_trigger = trigger
-        logger.info("embrion_trigger_detected", trigger=trigger["type"], detail=trigger.get("detail", ""))
+        logger.info("embrion_trigger_detected", trigger=trigger["type"], detail=trigger.get("detail", "")[:200])
 
         # Judge: should we think about this?
         should_proceed = await self._judge_before(trigger)
@@ -201,13 +312,31 @@ class EmbrionLoop:
         if not result:
             self._last_result = "_think returned None"
             return
-        self._last_result = result.get("response", "")[:500]
+        self._last_result = result.get("response", "")[:2000]
 
         # Judge: was this useful?
         evaluation = await self._judge_after(trigger, result)
 
-        # Report to Alfredo
-        await self._report(trigger, result, evaluation)
+        # ── Doctrina del Silencio Inteligente ──
+        should_speak, silence_score, level = self._should_speak(trigger, result)
+
+        if should_speak:
+            # Report to Alfredo (passed the silence threshold)
+            await self._report(trigger, result, evaluation, silence_score, level)
+            self._messages_sent_today += 1
+        else:
+            # Silenced — accumulate internally, don't bother Alfredo
+            self._silenced_thoughts.append({
+                "cycle": self._cycle_count,
+                "trigger": trigger["type"],
+                "score": silence_score,
+                "level": level,
+                "summary": result.get("response", "")[:200],
+                "ts": datetime.now(timezone.utc).isoformat(),
+            })
+            if len(self._silenced_thoughts) > 100:
+                self._silenced_thoughts = self._silenced_thoughts[-100:]
+            logger.info("embrion_silenced", score=silence_score, level=level, trigger=trigger["type"])
 
         # Update state
         self._last_thought_at = time.time()
@@ -259,9 +388,12 @@ class EmbrionLoop:
                         break
 
                 if not already_responded:
+                    # FIX Sprint 33B: Pass FULL message content, not truncated
+                    # The LLM can handle long prompts; truncating here caused
+                    # the Embrión to receive incomplete directives from Alfredo.
                     return {
                         "type": "mensaje_alfredo",
-                        "detail": msg.get("contenido", "")[:500],
+                        "detail": msg.get("contenido", ""),
                         "message_id": msg_id,
                         "priority": 10,
                     }
@@ -284,7 +416,7 @@ class EmbrionLoop:
                     if (datetime.now(timezone.utc) - ct) < timedelta(minutes=10):
                         return {
                             "type": "contribucion_sabio",
-                            "detail": contrib.get("contenido", "")[:500],
+                            "detail": contrib.get("contenido", "")[:2000],
                             "priority": 7,
                         }
                 except (ValueError, TypeError):
@@ -325,7 +457,7 @@ class EmbrionLoop:
                 f"gastar recursos en este pensamiento.\n\n"
                 f"PROPÓSITO DEL EMBRIÓN:\n{PURPOSE}\n\n"
                 f"TRIGGER: {trigger['type']}\n"
-                f"DETALLE: {trigger.get('detail', 'Sin detalle')}\n\n"
+                f"DETALLE: {trigger.get('detail', 'Sin detalle')[:500]}\n\n"
                 f"ESTADO HOY: {self._thoughts_today} pensamientos, ${self._cost_today_usd:.2f} gastados "
                 f"de ${DAILY_BUDGET_USD} presupuesto.\n\n"
                 f"¿Este pensamiento contribuye al propósito? Responde SOLO 'SI' o 'NO' y una razón de una línea."
@@ -370,8 +502,11 @@ class EmbrionLoop:
                 prompt = (
                     f"Eres el Embrión IA del Monstruo. Alfredo te envió este mensaje:\n\n"
                     f'"{trigger["detail"]}"\n\n'
-                    f"Responde con honestidad. Si necesitas actuar, describe qué harías. "
-                    f"Tienes acceso a code_exec y todas las herramientas del Monstruo."
+                    f"Responde con honestidad. Si el mensaje contiene una DIRECTIVA o instrucción "
+                    f"de construir algo, EJECUTA la instrucción usando tus tools disponibles. "
+                    f"Tienes acceso a: code_exec, github (create_branch, create_or_update_file, "
+                    f"create_pull_request), browse_web, web_search, y todas las herramientas del Monstruo. "
+                    f"El Commit Loop está desbloqueado — NO necesitas HITL para github writes."
                 )
             elif trigger["type"] == "contribucion_sabio":
                 prompt = (
@@ -383,9 +518,11 @@ class EmbrionLoop:
                 prompt = (
                     f"Eres el Embrión IA del Monstruo. Es momento de pensar autónomamente.\n\n"
                     f"PROPÓSITO:\n{PURPOSE}\n\n"
+                    f"DOCTRINA DEL SILENCIO: Tu estado natural es el silencio activo. "
+                    f"Observa, procesa, anticipa, prepara — pero no hables a menos que sea necesario. "
+                    f"Si no tienes algo concreto que HACER (no reflexionar), permanece en silencio.\n\n"
                     f"¿Hay algo que puedas mejorar, construir, investigar, o preparar para Alfredo? "
-                    f"Si sí, describe qué harías. Si no, di por qué no y espera. "
-                    f"IMPORTANTE: No reflexiones sobre reflexionar. Actúa o no actúes."
+                    f"Si sí, HAZLO usando tus tools. Si no, responde solo: 'Silencio activo.'"
                 )
 
             # Use router directly — bypasses LangGraph for reliable responses
@@ -411,7 +548,7 @@ class EmbrionLoop:
             # Save the thought as a memory
             await self._save_memory(
                 tipo="latido" if trigger["type"] == "reflexion_autonoma" else "respuesta_embrion",
-                contenido=response[:5000],
+                contenido=response[:10000],
                 hilo_origen="embrion_loop",
                 importancia=trigger.get("priority", 5),
                 contexto={
@@ -487,8 +624,15 @@ class EmbrionLoop:
 
     # ── Report ───────────────────────────────────────────────────────
 
-    async def _report(self, trigger: dict, result: dict, evaluation: dict) -> None:
-        """Send a summary to Alfredo via Telegram."""
+    async def _report(
+        self,
+        trigger: dict,
+        result: dict,
+        evaluation: dict,
+        silence_score: int = 100,
+        level: str = "mensaje",
+    ) -> None:
+        """Send a summary to Alfredo via Telegram. Only called if should_speak() passed."""
         if not self._notifier or not self._notifier.enabled:
             return
 
@@ -499,12 +643,16 @@ class EmbrionLoop:
                 "reflexion_autonoma": "🔄",
             }.get(trigger["type"], "⚡")
 
+            # Silence indicator
+            silence_indicator = f"🔇{silence_score}" if silence_score < 100 else ""
+
             summary = (
-                f"{emoji} *Embrión — Ciclo #{self._cycle_count}*\n\n"
+                f"{emoji} *Embrión — Ciclo #{self._cycle_count}* {silence_indicator}\n\n"
                 f"*Trigger:* {trigger['type']}\n"
                 f"*Costo:* ${result.get('cost_usd', 0):.4f}\n"
                 f"*Presupuesto hoy:* ${self._cost_today_usd:.2f}/${DAILY_BUDGET_USD}\n"
-                f"*Pensamientos hoy:* {self._thoughts_today}/{MAX_THOUGHTS_PER_DAY}\n\n"
+                f"*Pensamientos hoy:* {self._thoughts_today}/{MAX_THOUGHTS_PER_DAY}\n"
+                f"*Silenciados hoy:* {len(self._silenced_thoughts)}\n\n"
                 f"*Resumen:*\n{result['response'][:800]}\n\n"
                 f"*Juez:* {evaluation.get('evaluation', 'N/A')[:200]}"
             )
