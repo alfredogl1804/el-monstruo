@@ -63,6 +63,7 @@ MAX_THOUGHTS_PER_DAY = int(os.environ.get("EMBRION_MAX_THOUGHTS", "50"))
 JUDGE_MODEL = os.environ.get("EMBRION_JUDGE_MODEL", "gpt-5")  # Cheap but current model
 ACTOR_MODEL = os.environ.get("EMBRION_ACTOR_MODEL", "gpt-5.5")  # Full power for thinking (catalog key)
 SILENCE_THRESHOLD = int(os.environ.get("EMBRION_SILENCE_THRESHOLD", "70"))  # silence_score > 70 to speak
+CONSOLIDATION_INTERVAL = int(os.environ.get("EMBRION_CONSOLIDATION_INTERVAL", "10"))  # Every N latidos
 
 # The Embrión's core purpose — the filter for all autonomous thought
 PURPOSE = """Tu propósito es construir El Monstruo — el asistente IA soberano de Alfredo Góngora.
@@ -122,6 +123,11 @@ class EmbrionLoop:
         self._messages_sent_today = 0
         self._last_silence_score: Optional[int] = None
 
+        # Memory consolidation tracking (Sprint 34)
+        self._latidos_since_consolidation = 0
+        self._last_consolidation_at: Optional[float] = None
+        self._consolidation_count = 0
+
     @property
     def stats(self) -> dict[str, Any]:
         return {
@@ -142,6 +148,12 @@ class EmbrionLoop:
                 "last_score": self._last_silence_score,
                 "silenced_today": len(self._silenced_thoughts),
                 "messages_sent_today": self._messages_sent_today,
+            },
+            "consolidation": {
+                "interval": CONSOLIDATION_INTERVAL,
+                "latidos_since": self._latidos_since_consolidation,
+                "total_consolidations": self._consolidation_count,
+                "last_at": self._last_consolidation_at,
             },
         }
 
@@ -189,6 +201,12 @@ class EmbrionLoop:
                 self._cycle_count += 1
                 self._reset_daily_counters_if_needed()
                 await self._check_and_think()
+
+                # Sprint 34: Memory consolidation check
+                self._latidos_since_consolidation += 1
+                if self._latidos_since_consolidation >= CONSOLIDATION_INTERVAL:
+                    await self._consolidate_memories()
+                    self._latidos_since_consolidation = 0
             except Exception as e:
                 err = {"cycle": self._cycle_count, "error": str(e), "type": type(e).__name__, "ts": datetime.now(timezone.utc).isoformat()}
                 self._error_log.append(err)
@@ -914,7 +932,7 @@ class EmbrionLoop:
             if not lessons:
                 return ""
 
-            # Format lessons for injection
+            # Format lessons for injection (skip discarded/superseded)
             lines = ["\n## Lecciones Aprendidas (Self-Evaluation)"]
             for lesson in lessons:
                 contenido = lesson.get("contenido", "")
@@ -925,6 +943,9 @@ class EmbrionLoop:
                     except (json.JSONDecodeError, TypeError):
                         ctx = {}
                 estado = ctx.get("estado", "provisional")
+                # Skip discarded and superseded lessons
+                if estado in ("descartada", "superseded"):
+                    continue
                 marker = "[CONSOLIDADA]" if estado == "consolidada" else "[provisional]"
                 lines.append(f"- {marker} {contenido}")
 
@@ -934,7 +955,244 @@ class EmbrionLoop:
             logger.error("embrion_get_lessons_failed", error=str(e))
             return ""
 
-    # ── Report ───────────────────────────────────────────────────────
+    # ── Memory Consolidation (Sprint 34) ──────────────────────────────
+    #
+    # Databricks Memory Scaling pattern: episodic → semantic distillation.
+    # Every CONSOLIDATION_INTERVAL heartbeats:
+    #   1. Fetch all provisional lessons
+    #   2. Check for contradictions or redundancies
+    #   3. Promote valid lessons to "consolidada" state
+    #   4. Discard contradicted or low-value lessons
+    #   5. Optionally merge similar lessons into higher-level rules
+
+    async def _consolidate_memories(self) -> None:
+        """
+        Periodic memory consolidation: review provisional lessons,
+        promote valid ones, discard contradicted ones.
+
+        Runs every CONSOLIDATION_INTERVAL heartbeats.
+        Budget: ~$0.02-0.04 per consolidation (1 LLM call).
+        """
+        if not self._db or not self._db.connected:
+            return
+
+        # Budget guard: consolidation costs money too
+        if self._cost_today_usd >= DAILY_BUDGET_USD * 0.9:
+            logger.info("embrion_consolidation_skipped_budget")
+            return
+
+        try:
+            # 1. Fetch all provisional lessons
+            provisional = await self._db.select(
+                table="embrion_memoria",
+                columns="id,contenido,contexto,importancia,created_at",
+                filters={"tipo": "evaluacion"},
+                order_by="created_at",
+                order_desc=True,
+                limit=20,
+            )
+
+            if not provisional:
+                logger.debug("embrion_consolidation_no_lessons")
+                return
+
+            # Filter to only provisional lessons
+            lessons_to_review = []
+            already_consolidated = []
+            for lesson in provisional:
+                ctx = lesson.get("contexto", "{}")
+                if isinstance(ctx, str):
+                    try:
+                        ctx = json.loads(ctx)
+                    except (json.JSONDecodeError, TypeError):
+                        ctx = {}
+                estado = ctx.get("estado", "provisional")
+                if estado == "provisional":
+                    lessons_to_review.append({**lesson, "_ctx": ctx})
+                else:
+                    already_consolidated.append({**lesson, "_ctx": ctx})
+
+            if not lessons_to_review:
+                logger.debug("embrion_consolidation_no_provisional")
+                return
+
+            logger.info(
+                "embrion_consolidation_start",
+                provisional_count=len(lessons_to_review),
+                consolidated_count=len(already_consolidated),
+                cycle=self._cycle_count,
+            )
+
+            # 2. Ask the judge to review all provisional lessons at once
+            from contracts.kernel_interface import RunInput
+
+            lessons_text = "\n".join(
+                f"{i+1}. [ID:{l.get('id', '?')}] {l.get('contenido', '')}"
+                for i, l in enumerate(lessons_to_review)
+            )
+
+            existing_rules = ""
+            if already_consolidated:
+                existing_rules = "\n\nREGLAS YA CONSOLIDADAS:\n" + "\n".join(
+                    f"- {l.get('contenido', '')}" for l in already_consolidated[:10]
+                )
+
+            consolidation_prompt = (
+                f"Eres el consolidador de memoria del Embrión IA.\n\n"
+                f"LECCIONES PROVISIONALES A REVISAR:\n{lessons_text}\n"
+                f"{existing_rules}\n\n"
+                f"Para CADA lección provisional, decide:\n"
+                f"- CONSOLIDAR: La lección es válida, útil, y no contradice reglas existentes\n"
+                f"- DESCARTAR: La lección es redundante, contradictoria, o de baja calidad\n"
+                f"- FUSIONAR con [ID]: Dos lecciones dicen lo mismo, fusionar en una regla superior\n\n"
+                f"Responde en formato (una línea por lección):\n"
+                f"ID:xxx|ACCION:CONSOLIDAR|RAZON:breve\n"
+                f"ID:xxx|ACCION:DESCARTAR|RAZON:breve\n"
+                f"ID:xxx|ACCION:FUSIONAR_CON:yyy|REGLA_FUSIONADA:texto de la regla unificada"
+            )
+
+            run_input = RunInput(
+                message=consolidation_prompt,
+                user_id="embrion_consolidator",
+                channel="internal",
+                context={
+                    "source": "embrion_consolidator",
+                    "model_hint": JUDGE_MODEL,
+                    "max_tokens": 300,
+                },
+            )
+
+            consolidation_result = await asyncio.wait_for(
+                self._kernel.start_run(run_input),
+                timeout=45,
+            )
+
+            response = consolidation_result.response if hasattr(consolidation_result, "response") else str(consolidation_result)
+            self._cost_today_usd += 0.02
+
+            # 3. Parse and apply consolidation decisions
+            await self._apply_consolidation_decisions(response, lessons_to_review)
+
+            self._consolidation_count += 1
+            self._last_consolidation_at = time.time()
+
+            logger.info(
+                "embrion_consolidation_complete",
+                cycle=self._cycle_count,
+                total_consolidations=self._consolidation_count,
+            )
+
+        except Exception as e:
+            logger.error("embrion_consolidation_failed", error=str(e))
+
+    async def _apply_consolidation_decisions(
+        self,
+        response: str,
+        lessons: list[dict],
+    ) -> None:
+        """
+        Parse the consolidator's response and apply decisions:
+        - CONSOLIDAR: Update lesson estado to "consolidada"
+        - DESCARTAR: Delete the lesson or mark as "descartada"
+        - FUSIONAR: Create new merged lesson, discard originals
+        """
+        # Build ID lookup
+        id_map = {str(l.get("id", "")): l for l in lessons}
+
+        consolidated = 0
+        discarded = 0
+        merged = 0
+
+        for line in response.strip().split("\n"):
+            line = line.strip()
+            if not line or "|" not in line:
+                continue
+
+            try:
+                parts = {}
+                for segment in line.split("|"):
+                    if ":" in segment:
+                        key, val = segment.split(":", 1)
+                        parts[key.strip().upper()] = val.strip()
+
+                lesson_id = parts.get("ID", "")
+                action = parts.get("ACCION", "").upper()
+
+                if not lesson_id or lesson_id not in id_map:
+                    continue
+
+                lesson = id_map[lesson_id]
+                ctx = lesson.get("_ctx", {})
+
+                if action == "CONSOLIDAR":
+                    # Promote to consolidated
+                    ctx["estado"] = "consolidada"
+                    ctx["consolidado_en_ciclo"] = self._cycle_count
+                    ctx["razon_consolidacion"] = parts.get("RAZON", "")
+                    ctx.pop("latidos_restantes_cuarentena", None)
+
+                    await self._db.update(
+                        table="embrion_memoria",
+                        data={"contexto": json.dumps(ctx)},
+                        filters={"id": lesson_id},
+                    )
+                    consolidated += 1
+
+                elif action == "DESCARTAR":
+                    # Mark as discarded (don't delete — keep audit trail)
+                    ctx["estado"] = "descartada"
+                    ctx["descartado_en_ciclo"] = self._cycle_count
+                    ctx["razon_descarte"] = parts.get("RAZON", "")
+
+                    await self._db.update(
+                        table="embrion_memoria",
+                        data={
+                            "contexto": json.dumps(ctx),
+                            "importancia": 1,  # Demote importance
+                        },
+                        filters={"id": lesson_id},
+                    )
+                    discarded += 1
+
+                elif action.startswith("FUSIONAR"):
+                    # Create merged lesson
+                    merged_text = parts.get("REGLA_FUSIONADA", "")
+                    if merged_text:
+                        await self._save_memory(
+                            tipo="evaluacion",
+                            contenido=f"[ESTRATEGIA] {merged_text}",
+                            hilo_origen="embrion_consolidator",
+                            importancia=9,
+                            contexto={
+                                "estado": "consolidada",
+                                "tipo_leccion": "estrategia_fusionada",
+                                "fusionada_desde": [lesson_id, parts.get("FUSIONAR_CON", "")],
+                                "consolidado_en_ciclo": self._cycle_count,
+                            },
+                        )
+
+                        # Mark original as superseded
+                        ctx["estado"] = "superseded"
+                        ctx["superseded_en_ciclo"] = self._cycle_count
+                        await self._db.update(
+                            table="embrion_memoria",
+                            data={"contexto": json.dumps(ctx), "importancia": 2},
+                            filters={"id": lesson_id},
+                        )
+                        merged += 1
+
+            except Exception as e:
+                logger.warning("embrion_consolidation_parse_error", line=line[:100], error=str(e))
+                continue
+
+        logger.info(
+            "embrion_consolidation_applied",
+            consolidated=consolidated,
+            discarded=discarded,
+            merged=merged,
+        )
+
+    # ── Report ───────────────────────────────────────────────────────────
 
     async def _report(
         self,
