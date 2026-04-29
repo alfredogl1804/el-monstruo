@@ -17,13 +17,19 @@ Commit Loop (MVP Sprint 28):
   3. create_pull_request → opens PR for human review
 
 Risk: HIGH (can modify repos)
-HITL: Required for write operations
+HITL: Required for destructive write operations (create_issue, update_issue)
+      Auto-approved for Commit Loop (create_branch, create_or_update_file, create_pull_request)
+      because the PR review by Alfredo IS the human gate.
 
 Sprint 32 Fixes:
 - [1] Shared aiohttp.ClientSession (connection pooling)
 - [2] Token validated at module init (fail-fast)
 - [3] Retry with exponential backoff for transient errors
 - [8] Explicit HITL gate for write operations
+
+Sprint 33 Changes:
+- Commit Loop actions (branch + file + PR) auto-approved — PR is the gate
+- HITL retained for create_issue, update_issue (non-PR-gated writes)
 """
 
 import asyncio
@@ -331,13 +337,23 @@ async def create_or_update_file(
 # that prevents accidental or malicious writes even if the kernel's
 # HITL interrupt is bypassed.
 
-WRITE_ACTIONS = frozenset({
+# Sprint 33: Commit Loop actions are auto-approved.
+# The PR itself IS the human gate — Alfredo reviews and merges.
+# No need for double approval (HITL + PR review).
+COMMIT_LOOP_ACTIONS = frozenset({
     "create_branch",
+    "create_or_update_file",
     "create_pull_request",
+})
+
+# These write actions STILL require HITL (destructive or non-PR-gated)
+HITL_WRITE_ACTIONS = frozenset({
     "create_issue",
     "update_issue",
-    "create_or_update_file",
 })
+
+# All write actions (union of both sets)
+WRITE_ACTIONS = COMMIT_LOOP_ACTIONS | HITL_WRITE_ACTIONS
 
 READ_ACTIONS = frozenset({
     "search_repos",
@@ -379,8 +395,10 @@ async def execute_github(action: str, params: dict[str, Any], hitl_approved: boo
     if not fn:
         return json.dumps({"error": f"Unknown GitHub action: {action}. Available: {list(actions.keys())}"})
 
-    # ── HITL Gate: Block writes without explicit approval ─────────
-    if action in WRITE_ACTIONS and not hitl_approved:
+    # ── HITL Gate: Block destructive writes without explicit approval ──
+    # Sprint 33: Commit Loop actions (branch + file + PR) are auto-approved.
+    # The PR review by Alfredo IS the human gate. No double approval needed.
+    if action in HITL_WRITE_ACTIONS and not hitl_approved:
         logger.warning(
             "github_write_blocked_no_hitl",
             extra={"action": action, "params_keys": list(params.keys())},
@@ -392,6 +410,12 @@ async def execute_github(action: str, params: dict[str, Any], hitl_approved: boo
             "action": action,
             "risk_level": "HIGH",
         })
+
+    if action in COMMIT_LOOP_ACTIONS:
+        logger.info(
+            "github_commit_loop_auto_approved",
+            extra={"action": action, "params_keys": list(params.keys())},
+        )
 
     try:
         result = await fn(**params)
