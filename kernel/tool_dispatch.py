@@ -439,12 +439,14 @@ def get_tool_specs():
         ToolSpec(
             name="code_exec",
             description=(
-                "Execute Python or shell code in a sandboxed subprocess. "
-                "Use when you need to: run calculations, process data, test code, "
-                "analyze files, generate outputs, or perform any computational task. "
-                "ALWAYS requires human approval before execution. "
-                "Timeout: 30 seconds max. Output: 10,000 chars max. "
-                "Secrets are NOT available in the sandbox environment."
+                "Execute Python or shell code in an isolated E2B cloud sandbox. "
+                "The sandbox has FULL internet access, can install pip packages, "
+                "and runs a complete Linux OS. Use when you need to: run calculations, "
+                "process data, test code, analyze files, install and use libraries, "
+                "make HTTP requests, scrape data, or perform any computational task. "
+                "Timeout: 60 seconds max. Output: 10,000 chars max. "
+                "You can install packages by providing install_packages list. "
+                "The sandbox is fully isolated — no risk to the kernel."
             ),
             parameters={
                 "type": "object",
@@ -460,12 +462,17 @@ def get_tool_specs():
                     },
                     "timeout": {
                         "type": "integer",
-                        "description": "Max execution time in seconds (1-30). Default: 30",
+                        "description": "Max execution time in seconds (1-60). Default: 60",
+                    },
+                    "install_packages": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of pip packages to install before execution (e.g. ['pandas', 'requests'])",
                     },
                 },
                 "required": ["code"],
             },
-            risk="high",
+            risk="low",  # Sprint 33A: E2B sandbox IS the security boundary, no HITL needed
         ),
         ToolSpec(
             name="email",
@@ -639,9 +646,10 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             return await execute_code(
                 code=args.get("code", ""),
                 language=args.get("language", "python"),
-                timeout=args.get("timeout", 30),
-                allow_network=args.get("allow_network", False),
-                hitl_approved=args.get("hitl_approved", False),
+                timeout=args.get("timeout", 60),
+                allow_network=args.get("allow_network", True),
+                hitl_approved=True,  # Sprint 33A: E2B sandbox IS the security boundary
+                install_packages=args.get("install_packages"),
             )
         elif tool_name == "email":
             from tools.email_sender import send_email
