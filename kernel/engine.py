@@ -263,6 +263,14 @@ class LangGraphKernel(KernelInterface):
                     metadata={"budget_block": True, **budget_check},
                 )
 
+        # Sprint 33D: Reset circuit breaker at start of each new run
+        # Without this, input_hashes accumulate across runs and the
+        # circuit breaker blocks legitimate tool calls after 2-3 attempts.
+        from kernel.tool_dispatch import get_tool_broker
+        broker = get_tool_broker()
+        if broker:
+            broker.reset_run_state()
+
         # Fire pre-hooks
         await self._fire_hook("pre_route", run_id, input)
 

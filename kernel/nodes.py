@@ -202,38 +202,72 @@ async def classify_and_route(state: MonstruoState, config: RunnableConfig) -> di
     reason = "default"
     cache_hit = False
 
-    # OPT-6: Check intent cache first
-    cached_intent = _cache_get_intent(message)
+    # ── Sprint 33D: Respect intent_override and model_hint from context ──
+    # When the Embrión (or any autonomous agent) sends a directive through
+    # the graph, it knows the intent and model better than the classifier.
+    # This is a UNIVERSAL mechanism — any caller can override via context.
+    intent_override = context.get("intent_override")
+    model_hint = context.get("model_hint")
 
-    if cached_intent:
-        intent_str = cached_intent
-        cache_hit = True
-        # Use cached intent to select model without LLM call
-        if router:
-            model = router._model_map.get(IntentType(intent_str), "gemini-3.1-flash-lite")
+    if intent_override:
+        try:
+            intent_str = IntentType(intent_override).value
+        except ValueError:
+            intent_str = intent_override
+        if model_hint:
+            model = model_hint
         else:
             model, fallbacks = _default_model_for_intent(intent_str)
         fallbacks = _get_fallback_chain(intent_str, model)
-        reason = f"cache hit, intent={intent_str}"
-    elif router:
-        try:
-            # SINGLE call to router.route() — gets both intent AND model
-            intent_obj, selected_model = await router.route(message, channel, context)
-            intent_str = intent_obj.value
-            model = selected_model
+        reason = f"context override: intent={intent_str}, model={model}"
+        logger.info(
+            "classify_override_from_context",
+            intent=intent_str,
+            model=model,
+            source=context.get("source", "unknown"),
+        )
+        # Skip all classification logic — go directly to agent dispatch
+        elapsed_ms = (time.monotonic() - start_time) * 1000
+        # Still run multi-agent dispatch below (falls through)
+    elif model_hint and not intent_override:
+        # Model hint without intent override — classify normally but use hinted model
+        pass  # Will be applied after classification
+
+    # OPT-6: Check intent cache first (only if no override)
+    if not intent_override:
+        cached_intent = _cache_get_intent(message)
+
+        if cached_intent:
+            intent_str = cached_intent
+            cache_hit = True
+            # Use cached intent to select model without LLM call
+            if model_hint:
+                model = model_hint
+            elif router:
+                model = router._model_map.get(IntentType(intent_str), "gemini-3.1-flash-lite")
+            else:
+                model, fallbacks = _default_model_for_intent(intent_str)
             fallbacks = _get_fallback_chain(intent_str, model)
-            reason = f"router: intent={intent_str}"
-            # Cache the result for future similar messages
-            _cache_set_intent(message, intent_str)
-        except Exception as e:
-            logger.warning("classify_and_route_failed", error=str(e))
+            reason = f"cache hit, intent={intent_str}"
+        elif router:
+            try:
+                # SINGLE call to router.route() — gets both intent AND model
+                intent_obj, selected_model = await router.route(message, channel, context)
+                intent_str = intent_obj.value
+                model = model_hint or selected_model
+                fallbacks = _get_fallback_chain(intent_str, model)
+                reason = f"router: intent={intent_str}"
+                # Cache the result for future similar messages
+                _cache_set_intent(message, intent_str)
+            except Exception as e:
+                logger.warning("classify_and_route_failed", error=str(e))
+                intent_str = _local_classify(message).value
+                model, fallbacks = _default_model_for_intent(intent_str)
+                reason = f"fallback: router error ({str(e)[:50]})"
+        else:
             intent_str = _local_classify(message).value
             model, fallbacks = _default_model_for_intent(intent_str)
-            reason = f"fallback: router error ({str(e)[:50]})"
-    else:
-        intent_str = _local_classify(message).value
-        model, fallbacks = _default_model_for_intent(intent_str)
-        reason = f"no router, default for intent={intent_str}"
+            reason = f"no router, default for intent={intent_str}"
 
     # ── Sprint 21: Multi-Agent Dispatcher Integration ──────────────
     # After intent classification, run the multi-agent dispatcher to
@@ -832,9 +866,14 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
     elapsed_ms = (time.monotonic() - start_time) * 1000
 
     # Check if HITL is needed for high-risk tool calls
+    # Sprint 33D: Skip HITL when context.autonomous=True (Embrión loop)
+    # The Embrión operates without a human in the loop — HITL would
+    # cause an infinite interrupt() that blocks the graph forever.
+    # This is UNIVERSAL: any autonomous caller can set autonomous=True.
+    is_autonomous = state.get("context", {}).get("autonomous", False)
     needs_approval = False
     approval_reason = ""
-    if pending_tool_calls:
+    if pending_tool_calls and not is_autonomous:
         high_risk_tools = {s.name for s in tool_specs if s.risk in ("medium", "high")}
         requested_tools = {tc["name"] for tc in pending_tool_calls}
         if requested_tools & high_risk_tools:
