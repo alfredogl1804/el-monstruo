@@ -13,13 +13,18 @@ import '../models/tool_event.dart';
 
 final _log = Logger('KernelService');
 
-/// Manages all communication with El Monstruo's kernel on Railway.
-/// Supports both REST (for commands) and WebSocket (for streaming).
+/// Manages all communication with El Monstruo via the AG-UI Gateway.
+///
+/// Architecture:
+///   [This Service] → [Gateway (REST + WS)] → [Kernel /v1/*]
+///
+/// REST: Simple request/response for commands and queries.
+/// WebSocket: Real-time streaming for chat (AG-UI events).
 class KernelService {
   KernelService({Dio? dio})
       : _dio = dio ??
             Dio(BaseOptions(
-              baseUrl: AppConfig.kernelBaseUrl,
+              baseUrl: AppConfig.gatewayBaseUrl,
               connectTimeout: AppConfig.connectTimeout,
               receiveTimeout: AppConfig.receiveTimeout,
               headers: {
@@ -52,7 +57,7 @@ class KernelService {
     }
   }
 
-  // ─── Send Message (REST) ───
+  // ─── Send Message (REST, non-streaming) ───
   Future<void> sendMessage(String message, {String? threadId}) async {
     try {
       final response = await _dio.post(
@@ -60,8 +65,6 @@ class KernelService {
         data: {
           'message': message,
           'thread_id': threadId,
-          'source': 'mobile_app',
-          'stream': false,
         },
       );
 
@@ -75,34 +78,12 @@ class KernelService {
     }
   }
 
-  // ─── Start Run (LangGraph with tools) ───
-  Future<String> startRun(String directive, {String? threadId}) async {
-    try {
-      final response = await _dio.post(
-        AppConfig.runEndpoint,
-        data: {
-          'directive': directive,
-          'thread_id': threadId,
-          'source': 'mobile_app',
-        },
-      );
-
-      return response.data['run_id'] as String;
-    } catch (e) {
-      _log.severe('Failed to start run', e);
-      rethrow;
-    }
-  }
-
   // ─── WebSocket Streaming Connection ───
   Future<void> connectStreaming({String? threadId}) async {
     _connectionStateController.add(ConnectionState.connecting);
 
     try {
-      final uri = Uri.parse(
-        '${AppConfig.gatewayWsUrl}${threadId != null ? '?thread_id=$threadId' : ''}',
-      );
-
+      final uri = Uri.parse(AppConfig.gatewayWsUrl);
       _wsChannel = WebSocketChannel.connect(uri);
       await _wsChannel!.ready;
 
@@ -136,29 +117,48 @@ class KernelService {
       final eventType = data['type'] as String?;
 
       switch (eventType) {
-        case 'message_chunk':
+        // Text streaming
+        case 'text_chunk':
           _messageController.add(ChatMessage.streamChunk(data));
           break;
-        case 'message_complete':
+        case 'message_start':
+          // New message starting
+          break;
+        case 'message_end':
           _messageController.add(ChatMessage.fromKernelResponse(data));
           break;
-        case 'tool_call_start':
-        case 'tool_call_result':
-        case 'tool_call_error':
+
+        // Tool calls
+        case 'tool_start':
+        case 'tool_args':
+        case 'tool_end':
           _toolEventController.add(ToolEvent.fromJson(data));
           break;
+
+        // Run lifecycle
         case 'run_start':
-        case 'run_complete':
-        case 'run_error':
+        case 'run_end':
           _toolEventController.add(ToolEvent.fromJson(data));
           break;
+
+        // Errors
+        case 'error':
+          _toolEventController.add(ToolEvent.fromJson({
+            'type': 'run_error',
+            'message': data['message'] ?? 'Unknown error',
+          }));
+          break;
+
+        // GenUI component
         case 'genui_component':
-          // A2UI component — forward to GenUI renderer
           _messageController.add(ChatMessage.genuiComponent(data));
           break;
+
+        // Heartbeat
         case 'heartbeat':
-          // Keep-alive, ignore
+        case 'pong':
           break;
+
         default:
           _log.warning('Unknown WS event type: $eventType');
       }
@@ -175,7 +175,7 @@ class KernelService {
     }
 
     _wsChannel!.sink.add(jsonEncode({
-      'type': 'user_message',
+      'type': 'message',
       'content': message,
       'thread_id': threadId,
       'timestamp': DateTime.now().toUtc().toIso8601String(),
@@ -186,7 +186,7 @@ class KernelService {
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = Timer.periodic(
-      const Duration(seconds: 30),
+      const Duration(seconds: 25),
       (_) {
         if (_wsChannel != null) {
           _wsChannel!.sink.add(jsonEncode({'type': 'ping'}));
@@ -216,14 +216,28 @@ class KernelService {
     });
   }
 
-  // ─── Memory ───
-  Future<Map<String, dynamic>> getMemoryContext() async {
+  // ─── Memory Stats ───
+  Future<Map<String, dynamic>> getMemoryStats() async {
     try {
-      final response = await _dio.get(AppConfig.memoryEndpoint);
+      final response = await _dio.get(AppConfig.memoryStatsEndpoint);
       return response.data as Map<String, dynamic>;
     } catch (e) {
-      _log.warning('Failed to get memory context', e);
+      _log.warning('Failed to get memory stats', e);
       return {};
+    }
+  }
+
+  // ─── Memory Search ───
+  Future<List<dynamic>> searchMemory(String query) async {
+    try {
+      final response = await _dio.post(
+        AppConfig.memorySearchEndpoint,
+        data: {'query': query, 'limit': 20},
+      );
+      return response.data['results'] as List<dynamic>? ?? [];
+    } catch (e) {
+      _log.warning('Failed to search memory', e);
+      return [];
     }
   }
 
@@ -249,6 +263,47 @@ class KernelService {
     }
   }
 
+  // ─── FinOps ───
+  Future<Map<String, dynamic>> getFinOps({String period = 'today'}) async {
+    try {
+      final response = await _dio.get(
+        AppConfig.finopsEndpoint,
+        queryParameters: {'period': period},
+      );
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      _log.warning('Failed to get finops data', e);
+      return {};
+    }
+  }
+
+  // ─── AG-UI Info ───
+  Future<Map<String, dynamic>> getAGUIInfo() async {
+    try {
+      final response = await _dio.get(AppConfig.aguiInfoEndpoint);
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      _log.warning('Failed to get AG-UI info', e);
+      return {};
+    }
+  }
+
+  // ─── Push Token Registration ───
+  Future<void> registerPushToken(String token, String platform, {String? deviceId}) async {
+    try {
+      await _dio.post(
+        AppConfig.pushRegisterEndpoint,
+        data: {
+          'token': token,
+          'platform': platform,
+          'device_id': deviceId,
+        },
+      );
+    } catch (e) {
+      _log.warning('Failed to register push token', e);
+    }
+  }
+
   // ─── Cleanup ───
   void dispose() {
     _heartbeatTimer?.cancel();
@@ -268,7 +323,7 @@ enum ConnectionState {
   failed,
 }
 
-// ─── Riverpod Provider ───
+// ─── Riverpod Providers ───
 final kernelServiceProvider = Provider<KernelService>((ref) {
   final service = KernelService();
   ref.onDispose(() => service.dispose());

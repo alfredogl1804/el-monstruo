@@ -1,15 +1,25 @@
 """
-El Monstruo — AG-UI Gateway
-============================
-Bridges the Flutter mobile app (AG-UI protocol) to the Monstruo kernel on Railway.
+El Monstruo — AG-UI Mobile Gateway
+====================================
+Bridges the Flutter mobile app to the Monstruo kernel on Railway.
 
-Handles:
-- WebSocket streaming (AG-UI events ↔ kernel chat/run)
-- REST proxy for health, memory, tools, files
-- A2UI component generation
-- Connection management and heartbeat
+The kernel already exposes:
+  - POST /v1/agui/run       → AG-UI SSE streaming (main chat)
+  - GET  /v1/agui/info      → AG-UI capabilities
+  - GET  /v1/memory/stats   → Memory statistics
+  - POST /v1/memory/search  → Semantic memory search
+  - GET  /v1/memory/boot    → Boot context
+  - GET  /v1/embrion/*      → Embrión status
+  - GET  /v1/usage/*        → FinOps data
+  - GET  /health            → Kernel health
 
-Deploy: Railway or same server as kernel.
+This gateway:
+  1. Translates kernel SSE → WebSocket (for Flutter real-time)
+  2. Adds connection management, heartbeat, reconnection
+  3. Handles push notification registration
+  4. Provides mobile-optimized REST wrappers
+
+Deploy: Railway (same project, separate service).
 """
 
 import asyncio
@@ -18,16 +28,17 @@ import os
 import time
 from contextlib import asynccontextmanager
 from typing import Optional
+from uuid import uuid4
 
 import httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # ─── Config ───
 KERNEL_URL = os.getenv("KERNEL_URL", "https://el-monstruo-kernel-production.up.railway.app")
 GATEWAY_PORT = int(os.getenv("PORT", "8090"))
-HEARTBEAT_INTERVAL = 30  # seconds
+HEARTBEAT_INTERVAL = 25  # seconds (< Railway's 30s timeout)
 MAX_CONNECTIONS = 50
 
 # ─── State ───
@@ -49,8 +60,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="El Monstruo AG-UI Gateway",
-    version="0.1.0",
+    title="El Monstruo Mobile Gateway",
+    version="0.2.0",
     lifespan=lifespan,
 )
 
@@ -64,16 +75,31 @@ app.add_middleware(
 
 
 # ─── Models ───
-class ChatRequest(BaseModel):
+class ChatMessage(BaseModel):
+    role: str = "user"
+    content: str
+
+
+class AGUIRequest(BaseModel):
+    """Matches kernel's AGUIRunRequest format."""
+    thread_id: Optional[str] = None
+    run_id: Optional[str] = None
+    messages: list[dict] = Field(default_factory=list)
+    tools: list[dict] = Field(default_factory=list)
+    context: list[dict] = Field(default_factory=list)
+    forwarded_props: dict = Field(default_factory=dict)
+
+
+class SimpleChatRequest(BaseModel):
+    """Simplified chat request for mobile — auto-wraps into AG-UI format."""
     message: str
     thread_id: Optional[str] = None
-    source: str = "mobile_app"
 
 
-class RunRequest(BaseModel):
-    directive: str
-    thread_id: Optional[str] = None
-    source: str = "mobile_app"
+class PushTokenRequest(BaseModel):
+    token: str
+    platform: str  # "ios" | "android"
+    device_id: Optional[str] = None
 
 
 # ─── Health ───
@@ -89,59 +115,77 @@ async def gateway_health():
     return {
         "gateway": {
             "status": "healthy",
-            "version": "0.1.0",
+            "version": "0.2.0",
             "active_connections": len(active_connections),
         },
         "kernel": kernel_health,
     }
 
 
-# ─── REST Proxy Endpoints ───
+# ─── REST Endpoints (Mobile-optimized wrappers) ───
+
 @app.post("/api/chat")
-async def proxy_chat(req: ChatRequest):
-    """Proxy chat request to kernel."""
+async def mobile_chat(req: SimpleChatRequest):
+    """
+    Simple chat endpoint for mobile.
+    Wraps message into AG-UI format and calls kernel /v1/agui/run.
+    Returns full response (non-streaming) for simple use cases.
+    """
+    agui_payload = {
+        "thread_id": req.thread_id or str(uuid4()),
+        "run_id": str(uuid4()),
+        "messages": [{"role": "user", "content": req.message}],
+        "forwarded_props": {"user_id": "alfredo", "source": "mobile_app"},
+    }
+
     try:
-        resp = await http_client.post(
-            "/api/chat",
-            json=req.model_dump(),
-        )
-        return resp.json()
+        # Call kernel AG-UI endpoint (SSE) and collect full response
+        full_response = ""
+        tool_calls = []
+
+        async with http_client.stream("POST", "/v1/agui/run", json=agui_payload) as response:
+            async for line in response.aiter_lines():
+                if not line.startswith("data: "):
+                    continue
+                data_str = line[6:]
+                try:
+                    event = json.loads(data_str)
+                except json.JSONDecodeError:
+                    continue
+
+                event_type = event.get("type", "")
+                if event_type == "TEXT_MESSAGE_CONTENT":
+                    full_response += event.get("delta", "")
+                elif event_type == "TOOL_CALL_START":
+                    tool_calls.append(event.get("toolCallName", "unknown"))
+
+        return {
+            "response": full_response,
+            "thread_id": agui_payload["thread_id"],
+            "tool_calls": tool_calls,
+        }
+
     except httpx.TimeoutException:
         raise HTTPException(504, "Kernel timeout")
     except Exception as e:
         raise HTTPException(502, f"Kernel error: {e}")
 
 
-@app.post("/api/run")
-async def proxy_run(req: RunRequest):
-    """Proxy run request (LangGraph with tools) to kernel."""
+@app.get("/api/memory/stats")
+async def proxy_memory_stats():
+    """Proxy memory stats from kernel."""
     try:
-        resp = await http_client.post(
-            "/api/run",
-            json=req.model_dump(),
-        )
-        return resp.json()
-    except httpx.TimeoutException:
-        raise HTTPException(504, "Kernel timeout")
-    except Exception as e:
-        raise HTTPException(502, f"Kernel error: {e}")
-
-
-@app.get("/api/memory")
-async def proxy_memory():
-    """Proxy memory context request."""
-    try:
-        resp = await http_client.get("/api/memory")
+        resp = await http_client.get("/v1/memory/stats")
         return resp.json()
     except Exception as e:
         raise HTTPException(502, f"Kernel error: {e}")
 
 
-@app.get("/api/tools")
-async def proxy_tools():
-    """Proxy available tools list."""
+@app.post("/api/memory/search")
+async def proxy_memory_search(query: dict):
+    """Proxy semantic memory search."""
     try:
-        resp = await http_client.get("/api/tools")
+        resp = await http_client.post("/v1/memory/search/semantic", json=query)
         return resp.json()
     except Exception as e:
         raise HTTPException(502, f"Kernel error: {e}")
@@ -151,38 +195,89 @@ async def proxy_tools():
 async def proxy_embrion():
     """Proxy embrion status."""
     try:
-        resp = await http_client.get("/api/embrion")
+        resp = await http_client.get("/v1/embrion/status")
         return resp.json()
     except Exception as e:
-        raise HTTPException(502, f"Kernel error: {e}")
+        # Fallback to health endpoint
+        try:
+            resp = await http_client.get("/health")
+            health = resp.json()
+            embrion_data = health.get("components", {}).get("embrion", {})
+            return embrion_data if embrion_data else {"status": "unknown"}
+        except Exception:
+            raise HTTPException(502, f"Kernel error: {e}")
 
 
-@app.get("/api/files")
-async def proxy_files():
-    """Proxy files list."""
+@app.get("/api/finops")
+async def proxy_finops(period: str = "today"):
+    """Proxy FinOps data."""
     try:
-        resp = await http_client.get("/api/files")
+        resp = await http_client.get(f"/v1/usage/summary?period={period}")
+        return resp.json()
+    except Exception as e:
+        # Fallback to health endpoint for basic cost data
+        try:
+            resp = await http_client.get("/health")
+            health = resp.json()
+            embrion = health.get("components", {}).get("embrion", {})
+            return {
+                "total_cost": embrion.get("cost_today", 0),
+                "budget": embrion.get("budget_daily", 2.0),
+                "by_model": {},
+                "by_component": {},
+                "period": period,
+            }
+        except Exception:
+            raise HTTPException(502, f"Kernel error: {e}")
+
+
+@app.get("/api/tools")
+async def proxy_tools():
+    """Proxy available tools list."""
+    try:
+        resp = await http_client.get("/v1/tools")
+        return resp.json()
+    except httpx.HTTPStatusError:
+        # Fallback: extract from health
+        try:
+            resp = await http_client.get("/health")
+            health = resp.json()
+            components = health.get("components", {})
+            tools = [k for k, v in components.items() if v.get("status") == "active"]
+            return {"tools": tools}
+        except Exception as e:
+            raise HTTPException(502, f"Kernel error: {e}")
+    except Exception as e:
+        raise HTTPException(502, f"Kernel error: {e}")
+
+
+@app.get("/api/agui/info")
+async def proxy_agui_info():
+    """Proxy AG-UI adapter info."""
+    try:
+        resp = await http_client.get("/v1/agui/info")
         return resp.json()
     except Exception as e:
         raise HTTPException(502, f"Kernel error: {e}")
 
 
-# ─── WebSocket Streaming (AG-UI Protocol) ───
-@app.websocket("/agui/stream")
-async def agui_stream(ws: WebSocket):
+# ─── WebSocket Streaming (AG-UI → WS bridge for Flutter) ───
+
+@app.websocket("/ws/chat")
+async def ws_chat(ws: WebSocket):
     """
-    AG-UI WebSocket endpoint.
+    WebSocket endpoint for Flutter real-time chat.
 
     Protocol:
-    - Client sends: { type: "user_message", content: "...", thread_id: "..." }
-    - Server sends: { type: "message_chunk|message_complete|tool_call_start|..." }
-    - Heartbeat: server sends { type: "heartbeat" } every 30s
+    - Client sends: { "type": "message", "content": "...", "thread_id": "..." }
+    - Server sends AG-UI events translated to WS frames:
+      { "type": "text_chunk|tool_start|tool_end|run_start|run_end|error|heartbeat" }
     """
     await ws.accept()
     connection_id = f"conn_{int(time.time() * 1000)}"
     active_connections[connection_id] = ws
 
-    # Start heartbeat task
+    # Start heartbeat
     heartbeat_task = asyncio.create_task(_heartbeat(ws, connection_id))
 
     try:
@@ -192,13 +287,13 @@ async def agui_stream(ws: WebSocket):
             msg_type = data.get("type", "")
 
             if msg_type == "ping":
-                await ws.send_json({"type": "pong"})
+                await ws.send_json({"type": "pong", "ts": time.time()})
                 continue
 
-            if msg_type == "user_message":
-                # Forward to kernel and stream response back
+            if msg_type == "message":
+                # Stream kernel response via AG-UI SSE → WebSocket
                 asyncio.create_task(
-                    _stream_kernel_response(
+                    _stream_agui_to_ws(
                         ws=ws,
                         message=data.get("content", ""),
                         thread_id=data.get("thread_id"),
@@ -228,128 +323,147 @@ async def _heartbeat(ws: WebSocket, connection_id: str):
         pass
 
 
-async def _stream_kernel_response(
+async def _stream_agui_to_ws(
     ws: WebSocket,
     message: str,
     thread_id: Optional[str],
     connection_id: str,
 ):
     """
-    Send message to kernel and stream the response back via WebSocket.
-
-    Translates kernel SSE/streaming events into AG-UI WebSocket events.
+    Call kernel /v1/agui/run (SSE) and translate events to WebSocket frames.
     """
+    thread_id = thread_id or str(uuid4())
+    run_id = str(uuid4())
+
+    agui_payload = {
+        "thread_id": thread_id,
+        "run_id": run_id,
+        "messages": [{"role": "user", "content": message}],
+        "forwarded_props": {"user_id": "alfredo", "source": "mobile_app"},
+    }
+
     try:
-        # Notify client that processing started
         await ws.send_json({
             "type": "run_start",
-            "tool_name": "kernel",
-            "timestamp": time.time(),
+            "run_id": run_id,
+            "thread_id": thread_id,
+            "ts": time.time(),
         })
 
-        # Stream from kernel
-        async with http_client.stream(
-            "POST",
-            "/api/chat/stream",
-            json={
-                "message": message,
-                "thread_id": thread_id,
-                "source": "mobile_app",
-                "stream": True,
-            },
-        ) as response:
-            message_id = f"msg_{int(time.time() * 1000)}"
-            full_content = ""
+        full_content = ""
+        message_id = str(uuid4())
 
+        async with http_client.stream("POST", "/v1/agui/run", json=agui_payload) as response:
             async for line in response.aiter_lines():
-                if not line.strip():
+                # Check if connection still active
+                if connection_id not in active_connections:
+                    return
+
+                if not line.startswith("data: "):
                     continue
 
-                # Parse SSE format
-                if line.startswith("data: "):
-                    data_str = line[6:]
-                    if data_str == "[DONE]":
-                        break
+                data_str = line[6:]
+                try:
+                    event = json.loads(data_str)
+                except json.JSONDecodeError:
+                    continue
 
-                    try:
-                        event = json.loads(data_str)
-                    except json.JSONDecodeError:
-                        continue
+                event_type = event.get("type", "")
 
-                    event_type = event.get("type", "chunk")
+                if event_type == "TEXT_MESSAGE_CONTENT":
+                    delta = event.get("delta", "")
+                    full_content += delta
+                    await ws.send_json({
+                        "type": "text_chunk",
+                        "message_id": message_id,
+                        "delta": delta,
+                    })
 
-                    if event_type in ("chunk", "content"):
-                        chunk = event.get("content", event.get("chunk", ""))
-                        full_content += chunk
-                        await ws.send_json({
-                            "type": "message_chunk",
-                            "message_id": message_id,
-                            "chunk": chunk,
-                        })
+                elif event_type == "TEXT_MESSAGE_START":
+                    message_id = event.get("messageId", message_id)
+                    await ws.send_json({
+                        "type": "message_start",
+                        "message_id": message_id,
+                    })
 
-                    elif event_type == "tool_call":
-                        await ws.send_json({
-                            "type": "tool_call_start",
-                            "tool_name": event.get("name", "unknown"),
-                            "args": event.get("args", {}),
-                        })
+                elif event_type == "TEXT_MESSAGE_END":
+                    await ws.send_json({
+                        "type": "message_end",
+                        "message_id": message_id,
+                        "full_content": full_content,
+                    })
 
-                    elif event_type == "tool_result":
-                        await ws.send_json({
-                            "type": "tool_call_result",
-                            "tool_name": event.get("name", "unknown"),
-                            "result": event.get("result", ""),
-                        })
+                elif event_type == "TOOL_CALL_START":
+                    await ws.send_json({
+                        "type": "tool_start",
+                        "tool_name": event.get("toolCallName", "unknown"),
+                        "tool_call_id": event.get("toolCallId", ""),
+                    })
 
-                    elif event_type == "genui":
-                        await ws.send_json({
-                            "type": "genui_component",
-                            "id": event.get("id", message_id),
-                            "component": event.get("component", {}),
-                            "description": event.get("description", ""),
-                        })
+                elif event_type == "TOOL_CALL_ARGS":
+                    await ws.send_json({
+                        "type": "tool_args",
+                        "tool_call_id": event.get("toolCallId", ""),
+                        "args": event.get("delta", ""),
+                    })
 
-            # Send complete message
-            await ws.send_json({
-                "type": "message_complete",
-                "id": message_id,
-                "content": full_content,
-                "model": event.get("model") if 'event' in dir() else None,
-                "token_count": event.get("token_count") if 'event' in dir() else None,
-                "cost": event.get("cost") if 'event' in dir() else None,
-            })
+                elif event_type == "TOOL_CALL_END":
+                    await ws.send_json({
+                        "type": "tool_end",
+                        "tool_call_id": event.get("toolCallId", ""),
+                        "result": event.get("result", ""),
+                    })
 
-            await ws.send_json({
-                "type": "run_complete",
-                "tool_name": "kernel",
-                "timestamp": time.time(),
-            })
+                elif event_type == "RUN_ERROR":
+                    await ws.send_json({
+                        "type": "error",
+                        "message": event.get("message", "Unknown error"),
+                    })
+                    return
+
+        # Run complete
+        await ws.send_json({
+            "type": "run_end",
+            "run_id": run_id,
+            "thread_id": thread_id,
+            "full_content": full_content,
+            "ts": time.time(),
+        })
 
     except httpx.TimeoutException:
         await ws.send_json({
-            "type": "run_error",
-            "tool_name": "kernel",
-            "error": "Kernel timeout — el agente está tardando más de lo esperado",
+            "type": "error",
+            "message": "Kernel timeout — el agente está tardando más de lo esperado",
         })
     except Exception as e:
         await ws.send_json({
-            "type": "run_error",
-            "tool_name": "kernel",
-            "error": str(e),
+            "type": "error",
+            "message": f"Gateway error: {str(e)}",
         })
 
 
 # ─── Push Notification Registration ───
-class PushTokenRequest(BaseModel):
-    token: str
-    platform: str  # "ios" | "android"
-    device_id: Optional[str] = None
-
 
 @app.post("/api/push/register")
 async def register_push_token(req: PushTokenRequest):
     """Register FCM/APNs token for push notifications."""
-    # TODO: Store in kernel's memory or dedicated DB
+    # Store in kernel memory for later use
+    try:
+        await http_client.post(
+            "/v1/memory/thoughts",
+            json={
+                "content": f"Push token registered: platform={req.platform}, device={req.device_id}",
+                "type": "system",
+                "metadata": {
+                    "push_token": req.token,
+                    "platform": req.platform,
+                    "device_id": req.device_id,
+                },
+            },
+        )
+    except Exception:
+        pass  # Non-critical
+
     return {"status": "registered", "platform": req.platform}
 
 
@@ -360,5 +474,5 @@ if __name__ == "__main__":
         "server:app",
         host="0.0.0.0",
         port=GATEWAY_PORT,
-        reload=True,
+        reload=os.getenv("ENV", "production") != "production",
     )
