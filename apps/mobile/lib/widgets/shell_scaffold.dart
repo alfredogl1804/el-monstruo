@@ -30,6 +30,8 @@ class ShellScaffold extends ConsumerWidget {
 
     return Scaffold(
       body: child,
+      // Drawer for secondary screens
+      drawer: _MonstruoDrawer(),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           border: Border(
@@ -66,6 +68,204 @@ class ShellScaffold extends ConsumerWidget {
                         label: tab.label,
                       ))
                   .toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MonstruoDrawer extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: MonstruoTheme.background,
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    MonstruoTheme.primary.withValues(alpha: 0.15),
+                    MonstruoTheme.secondary.withValues(alpha: 0.08),
+                  ],
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [MonstruoTheme.primary, MonstruoTheme.secondary],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'M',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'El Monstruo',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: MonstruoTheme.onBackground,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Agente IA Soberano',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: MonstruoTheme.onSurfaceDim,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // Navigation items
+            _DrawerItem(
+              icon: Icons.auto_awesome,
+              label: 'Generative UI',
+              subtitle: 'Interfaces dinámicas del agente',
+              color: MonstruoTheme.primary,
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/genui');
+              },
+            ),
+            _DrawerItem(
+              icon: Icons.psychology,
+              label: 'Embrión',
+              subtitle: 'Agente autónomo 24/7',
+              color: MonstruoTheme.success,
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/embrion');
+              },
+            ),
+            _DrawerItem(
+              icon: Icons.memory,
+              label: 'Memoria Soberana',
+              subtitle: 'Buscar y explorar memorias',
+              color: const Color(0xFF7C4DFF),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/memory');
+              },
+            ),
+            _DrawerItem(
+              icon: Icons.analytics,
+              label: 'FinOps',
+              subtitle: 'Costos y uso de modelos',
+              color: MonstruoTheme.warning,
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/finops');
+              },
+            ),
+
+            const Spacer(),
+
+            // Version info
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'v0.1.0-alpha',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: MonstruoTheme.onSurfaceDim.withValues(alpha: 0.5),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DrawerItem extends StatelessWidget {
+  const _DrawerItem({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, size: 20, color: color),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: MonstruoTheme.onBackground,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: MonstruoTheme.onSurfaceDim,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: MonstruoTheme.onSurfaceDim,
             ),
           ],
         ),
