@@ -34,7 +34,7 @@ from datetime import datetime, timezone
 from typing import Any, Optional
 
 import structlog
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 logger = structlog.get_logger("embrion_routes")
@@ -211,6 +211,34 @@ async def obtener_estado():
     except Exception as e:
         logger.error("embrion_estado_failed", error=str(e))
         raise HTTPException(500, f"Error obteniendo estado: {str(e)[:200]}")
+
+
+@router.get("/debug")
+async def embrion_debug(request: Request):
+    """
+    Debug info for the Embrión consciousness loop.
+    Returns loop stats, errors, and dependency status.
+    """
+    try:
+        loop = getattr(request.app.state, '_embrion_loop', None)
+
+        if loop:
+            return {
+                "status": "loop_found",
+                "debug": loop.debug if hasattr(loop, 'debug') else "no debug property",
+                "stats": loop.stats if hasattr(loop, 'stats') else "no stats property",
+            }
+        else:
+            return {
+                "status": "loop_not_found",
+                "note": "EmbrionLoop not in app.state. It may have failed to initialize.",
+            }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "type": type(e).__name__,
+        }
 
 
 @router.post("/mensaje")

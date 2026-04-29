@@ -83,6 +83,9 @@ class EmbrionLoop:
         self._cost_today_usd = 0.0
         self._day_reset: Optional[str] = None  # YYYY-MM-DD
         self._cycle_count = 0
+        self._error_log: list[dict] = []  # Last N errors for debug
+        self._last_trigger: Optional[dict] = None
+        self._last_result: Optional[str] = None
 
     @property
     def stats(self) -> dict[str, Any]:
@@ -96,6 +99,21 @@ class EmbrionLoop:
             "daily_budget_usd": DAILY_BUDGET_USD,
             "cycle_count": self._cycle_count,
             "last_thought_at": self._last_thought_at,
+            "last_trigger": self._last_trigger,
+            "last_result": self._last_result[:500] if self._last_result else None,
+            "errors": self._error_log[-10:],  # Last 10 errors
+        }
+
+    @property
+    def debug(self) -> dict[str, Any]:
+        return {
+            "stats": self.stats,
+            "actor_model": ACTOR_MODEL,
+            "judge_model": JUDGE_MODEL,
+            "has_db": self._db is not None and getattr(self._db, 'connected', False),
+            "has_kernel": self._kernel is not None,
+            "has_router": hasattr(self._kernel, '_router') and self._kernel._router is not None if self._kernel else False,
+            "has_notifier": self._notifier is not None,
         }
 
     # ── Lifecycle ────────────────────────────────────────────────────
@@ -130,6 +148,10 @@ class EmbrionLoop:
                 self._reset_daily_counters_if_needed()
                 await self._check_and_think()
             except Exception as e:
+                err = {"cycle": self._cycle_count, "error": str(e), "type": type(e).__name__, "ts": datetime.now(timezone.utc).isoformat()}
+                self._error_log.append(err)
+                if len(self._error_log) > 50:
+                    self._error_log = self._error_log[-50:]
                 logger.error("embrion_loop_error", error=str(e), cycle=self._cycle_count)
             await asyncio.sleep(CHECK_INTERVAL_S)
 
@@ -165,6 +187,7 @@ class EmbrionLoop:
             return
 
         # We have a reason to think
+        self._last_trigger = trigger
         logger.info("embrion_trigger_detected", trigger=trigger["type"], detail=trigger.get("detail", ""))
 
         # Judge: should we think about this?
@@ -176,7 +199,9 @@ class EmbrionLoop:
         # Think
         result = await self._think(trigger)
         if not result:
+            self._last_result = "_think returned None"
             return
+        self._last_result = result.get("response", "")[:500]
 
         # Judge: was this useful?
         evaluation = await self._judge_after(trigger, result)
