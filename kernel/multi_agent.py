@@ -91,7 +91,7 @@ AGENT_REGISTRY: dict[AgentType, AgentConfig] = {
             "error handling and type hints. Prefer composition over inheritance."
         ),
         tools=["code_exec", "mcp__github", "mcp__filesystem"],
-        model_preference="claude-sonnet-4-20250514",
+        model_preference="claude-opus-4-7",
     ),
     AgentType.ANALYSIS: AgentConfig(
         agent_type=AgentType.ANALYSIS,
