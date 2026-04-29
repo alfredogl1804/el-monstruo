@@ -464,9 +464,24 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("embrion_routes_failed", error=str(e))
 
+    # ── Sprint 33: Embrión Consciousness Loop ──────────────────────
+    embrion_loop = None
+    try:
+        from kernel.embrion_loop import EmbrionLoop
+
+        embrion_loop = EmbrionLoop(
+            db=db if db_connected else None,
+            kernel=kernel,
+            notifier=_embrion_notifier if '_embrion_notifier' in dir() else None,
+        )
+        await embrion_loop.start()
+        logger.info("embrion_loop_started")
+    except Exception as e:
+        logger.warning("embrion_loop_init_failed", error=str(e))
+
     logger.info(
         "monstruo_ready",
-        version="0.25.0-sprint32",
+        version="0.26.0-sprint33",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -482,6 +497,7 @@ async def lifespan(app: FastAPI):
         mem0="active" if mem0_active else "inactive",
         mempalace="active" if mempalace_ready else "inactive",
         embrion="registered",
+        embrion_loop="active" if embrion_loop else "inactive",
     )
 
     # Warm-up: pre-heat LLM connections to eliminate cold start on first request
@@ -505,6 +521,14 @@ async def lifespan(app: FastAPI):
         try:
             await _checkpointer_cm.__aexit__(None, None, None)
             logger.info("checkpointer_shutdown", type="AsyncPostgresSaver")
+        except Exception:
+            pass
+
+    # Shutdown Embrión consciousness loop
+    if embrion_loop:
+        try:
+            await embrion_loop.stop()
+            logger.info("embrion_loop_shutdown")
         except Exception:
             pass
 
