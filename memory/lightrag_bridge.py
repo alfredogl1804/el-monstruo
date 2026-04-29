@@ -1,6 +1,6 @@
 """
 LightRAG Bridge — Knowledge Graph RAG for El Monstruo
-Sprint 31 | v0.25.0-sprint32
+Sprint 33 | v0.26.0-sprint33
 
 IVD: lightrag-hku==1.4.15 (MIT, PyPI latest 2026-04-22)
 CVE-2026-39413: JWT in API server only — we don't use the server.
