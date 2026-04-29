@@ -46,7 +46,7 @@ THINK_COOLDOWN_S = int(os.environ.get("EMBRION_THINK_COOLDOWN", "300"))  # Min 5
 DAILY_BUDGET_USD = float(os.environ.get("EMBRION_DAILY_BUDGET", "2.0"))  # $2/day max
 MAX_THOUGHTS_PER_DAY = int(os.environ.get("EMBRION_MAX_THOUGHTS", "50"))
 JUDGE_MODEL = os.environ.get("EMBRION_JUDGE_MODEL", "gpt-5")  # Cheap but current model
-ACTOR_MODEL = os.environ.get("EMBRION_ACTOR_MODEL", "gpt-5.5-pro")  # Full power for thinking
+ACTOR_MODEL = os.environ.get("EMBRION_ACTOR_MODEL", "gpt-5.5")  # Full power for thinking (catalog key)
 
 # The Embrión's core purpose — the filter for all autonomous thought
 PURPOSE = """Tu propósito es construir El Monstruo — el asistente IA soberano de Alfredo Góngora.
@@ -431,9 +431,13 @@ class EmbrionLoop:
             }
 
         except asyncio.TimeoutError:
+            err = {"cycle": self._cycle_count, "error": "Timeout (120s)", "type": "TimeoutError", "ts": datetime.now(timezone.utc).isoformat()}
+            self._error_log.append(err)
             logger.error("embrion_think_timeout", trigger=trigger["type"])
             return None
         except Exception as e:
+            err = {"cycle": self._cycle_count, "error": str(e)[:500], "type": type(e).__name__, "ts": datetime.now(timezone.utc).isoformat()}
+            self._error_log.append(err)
             logger.error("embrion_think_failed", error=str(e), trigger=trigger["type"])
             return None
 
