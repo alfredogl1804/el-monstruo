@@ -536,6 +536,40 @@ def get_tool_specs():
             },
             risk="medium",
         ),
+        ToolSpec(
+            name="manus_bridge",
+            description=(
+                "Delegate complex tasks to Manus AI agents via the Manus API. "
+                "Use when you need browser-based research, multi-step code execution, "
+                "or any task that benefits from a full Manus agent session. "
+                "Actions: create_task (start a new task), get_status (check progress), "
+                "create_and_wait (start and wait for completion). "
+                "Rate limited to 5 calls/hour. Requires MANUS_API_KEY env vars."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "description": "The action to perform: create_task, get_status, or create_and_wait",
+                    },
+                    "prompt": {
+                        "type": "string",
+                        "description": "The instruction/prompt for the Manus agent (required for create_task and create_and_wait)",
+                    },
+                    "task_id": {
+                        "type": "string",
+                        "description": "The Manus task ID (required for get_status)",
+                    },
+                    "account": {
+                        "type": "string",
+                        "description": "Which Manus account to use: 'google' (default) or 'apple'",
+                    },
+                },
+                "required": ["action"],
+            },
+            risk="medium",
+        ),
     ]
 
 
@@ -707,6 +741,18 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
                 body=args.get("body", ""),
                 html_body=args.get("html_body"),
                 cc=args.get("cc"),
+            )
+        elif tool_name == "manus_bridge":
+            from tools.manus_bridge import execute_manus_bridge
+
+            return await execute_manus_bridge(
+                action=args.get("action", ""),
+                prompt=args.get("prompt", ""),
+                task_id=args.get("task_id", ""),
+                account=args.get("account", "google"),
+                project_id=args.get("project_id"),
+                timeout=args.get("timeout", 30.0),
+                wait_timeout=args.get("wait_timeout", 600.0),
             )
         elif tool_name.startswith("mcp__"):
             # Route to MCP Client Manager (Sprint 17)
@@ -955,6 +1001,13 @@ def get_tool_aware_prompt_suffix() -> str:
         "**consult_sabios**: Cuando necesites consenso de múltiples IAs sobre un tema "
         "complejo. Diferente de delegate_task: sabios consulta modelos externos, "
         "delegate_task usa roles internos del Monstruo."
+    )
+    lines.append(
+        "**manus_bridge**: Cuando necesites delegar tareas complejas a un agente Manus "
+        "(investigación con navegador, ejecución de código multi-paso, workflows complejos). "
+        "Acciones: create_task (crear tarea), get_status (verificar progreso), "
+        "create_and_wait (crear y esperar resultado). Limitado a 5 llamadas/hora. "
+        "[riesgo: medium]"
     )
     lines.append("")
     lines.append(
