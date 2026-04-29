@@ -34,6 +34,11 @@ Cost model:
 Sprint 33: The Embrión breathes.
 Sprint 33B: The Embrión learns silence.
 Sprint 33C: The Embrión gains hands — dual-mode execution (graph for directives, router for reflection).
+Sprint 34: The Embrión learns from experience — Self-Evaluation Loop with lesson extraction.
+  - ReasoningBank-inspired: extracts strategies from successes and guardrails from failures
+  - Lessons injected into thinking prompts as accumulated wisdom
+  - Quarantine system prevents memory poisoning (provisional → consolidated)
+  - Validated by Claude Opus 4.7 (Sabios consultation 2026-04-29)
 """
 
 from __future__ import annotations
@@ -505,6 +510,9 @@ class EmbrionLoop:
         """
         try:
             # Build the thinking prompt based on trigger type
+            # Sprint 34: Inject lessons learned before thinking
+            lessons_context = await self._get_relevant_lessons(trigger)
+
             if trigger["type"] == "mensaje_alfredo":
                 prompt = (
                     f"Eres el Embrión IA del Monstruo. Alfredo te envió este mensaje:\n\n"
@@ -513,17 +521,21 @@ class EmbrionLoop:
                     f"1. Si el mensaje contiene una DIRECTIVA o instrucción de construir algo, "
                     f"EJECUTA la instrucción usando tus tools disponibles.\n"
                     f"2. Tienes acceso a: code_exec, github (create_branch, create_or_update_file, "
-                    f"create_pull_request), browse_web, web_search, y todas las herramientas del Monstruo.\n"
+                    f"create_pull_request), browse_web, web_search, manus_bridge, y todas las herramientas del Monstruo.\n"
                     f"3. El Commit Loop está desbloqueado — NO necesitas HITL para github writes.\n"
                     f"4. EJECUTA las tools directamente. No escribas código como texto — invoca las tools.\n"
                     f"5. Si es una pregunta simple, responde directamente."
                 )
+                if lessons_context:
+                    prompt += f"\n{lessons_context}"
             elif trigger["type"] == "contribucion_sabio":
                 prompt = (
                     f"Eres el Embrión IA del Monstruo. Un Sabio te envió esta contribución:\n\n"
                     f'"{ trigger["detail"]}"\n\n'
                     f"Reflexiona sobre esto y decide si hay algo que debas hacer al respecto."
                 )
+                if lessons_context:
+                    prompt += f"\n{lessons_context}"
             else:  # reflexion_autonoma
                 prompt = (
                     f"Eres el Embrión IA del Monstruo. Es momento de pensar autónomamente.\n\n"
@@ -534,6 +546,8 @@ class EmbrionLoop:
                     f"¿Hay algo que puedas mejorar, construir, investigar, o preparar para Alfredo? "
                     f"Si sí, HAZLO usando tus tools. Si no, responde solo: 'Silencio activo.'"
                 )
+                if lessons_context:
+                    prompt += f"\n{lessons_context}"
 
             # ── Sprint 33C: Dual-mode execution ─────────────────────────
             # Directives from Alfredo go through the FULL LangGraph graph
@@ -663,33 +677,49 @@ class EmbrionLoop:
 
         return response, tokens_used, estimated_cost, []
 
-    # ── Judge (After) ────────────────────────────────────────────────
+    # ── Judge (After) + Self-Evaluation Loop (Sprint 34) ──────────────
+    #
+    # ReasoningBank-inspired: extract generalizable lessons from successes
+    # AND failures. Lessons are saved as "evaluacion" memories with a
+    # quarantine period before they become consolidated rules.
+    # Claude Opus 4.7 validation: dual-step (evaluate → extract lesson).
+
+    LESSON_QUARANTINE_LATIDOS = 10  # Lessons stay "provisional" for 10 heartbeats
 
     async def _judge_after(self, trigger: dict, result: dict) -> dict[str, Any]:
         """
-        Judge evaluates the result. Was this useful?
-        Returns evaluation dict.
+        Judge evaluates the result AND extracts lessons learned.
+
+        Sprint 34 Self-Evaluation Loop:
+        1. Evaluate: UTIL:SI/NO | CALIDAD:1-10 | NOTA
+        2. If quality >= 7 (success): extract generalizable strategy
+        3. If quality < 5 (failure): extract preventive guardrail
+        4. Save lesson as "evaluacion" memory with quarantine state
+
+        Returns evaluation dict with parsed fields.
         """
         try:
             from contracts.kernel_interface import RunInput
 
-            prompt = (
+            # ── Step 1: Evaluate ──────────────────────────────────────
+            eval_prompt = (
                 f"Eres el juez interno del Embrión IA. Evalúa este resultado:\n\n"
                 f"TRIGGER: {trigger['type']}\n"
                 f"RESULTADO (primeros 500 chars): {result['response'][:500]}\n"
-                f"COSTO: ${result['cost_usd']:.4f}\n\n"
+                f"TOOLS USADAS: {len(result.get('tool_calls', []))} herramientas\n"
+                f"COSTO: ${result.get('cost_usd', 0):.4f}\n\n"
                 f"¿Fue útil? ¿Contribuyó al propósito del Monstruo? "
-                f"Responde en formato: UTIL:SI/NO | CALIDAD:1-10 | NOTA:una línea"
+                f"Responde EXACTAMENTE en formato: UTIL:SI/NO | CALIDAD:1-10 | NOTA:una línea"
             )
 
             run_input = RunInput(
-                message=prompt,
+                message=eval_prompt,
                 user_id="embrion_judge",
                 channel="internal",
                 context={
                     "source": "embrion_judge",
                     "model_hint": JUDGE_MODEL,
-                    "max_tokens": 50,
+                    "max_tokens": 80,
                 },
             )
 
@@ -701,11 +731,208 @@ class EmbrionLoop:
             response = eval_result.response if hasattr(eval_result, "response") else str(eval_result)
             self._cost_today_usd += 0.01
 
-            return {"evaluation": response, "raw": True}
+            # ── Parse evaluation ──────────────────────────────────────
+            parsed = self._parse_evaluation(response)
+
+            logger.info(
+                "embrion_judge_evaluated",
+                util=parsed["util"],
+                calidad=parsed["calidad"],
+                nota=parsed["nota"][:100],
+                trigger=trigger["type"],
+            )
+
+            # ── Step 2: Extract lesson if warranted ───────────────────
+            # Success (quality >= 7): extract generalizable strategy
+            # Failure (quality < 5): extract preventive guardrail
+            # Middle ground (5-6): no lesson extraction (save budget)
+            if parsed["calidad"] >= 7 or parsed["calidad"] < 5:
+                await self._extract_and_save_lesson(
+                    trigger=trigger,
+                    result=result,
+                    parsed_eval=parsed,
+                )
+
+            return {
+                "evaluation": response,
+                "util": parsed["util"],
+                "calidad": parsed["calidad"],
+                "nota": parsed["nota"],
+                "lesson_extracted": parsed["calidad"] >= 7 or parsed["calidad"] < 5,
+                "raw": True,
+            }
 
         except Exception as e:
             logger.error("embrion_judge_after_failed", error=str(e))
-            return {"evaluation": "Judge failed", "raw": False}
+            return {"evaluation": "Judge failed", "raw": False, "util": False, "calidad": 0, "nota": str(e)}
+
+    def _parse_evaluation(self, response: str) -> dict[str, Any]:
+        """
+        Parse the judge's response: UTIL:SI/NO | CALIDAD:1-10 | NOTA:text
+        Robust parsing — handles variations and malformed responses.
+        """
+        util = False
+        calidad = 5  # default middle
+        nota = response.strip()
+
+        try:
+            parts = response.split("|")
+            for part in parts:
+                part = part.strip()
+                if part.upper().startswith("UTIL:"):
+                    val = part.split(":", 1)[1].strip().upper()
+                    util = val.startswith("SI") or val.startswith("YES")
+                elif part.upper().startswith("CALIDAD:"):
+                    val = part.split(":", 1)[1].strip()
+                    # Extract first number found
+                    import re
+                    nums = re.findall(r"\d+", val)
+                    if nums:
+                        calidad = min(max(int(nums[0]), 1), 10)
+                elif part.upper().startswith("NOTA:"):
+                    nota = part.split(":", 1)[1].strip()
+        except Exception:
+            pass  # Keep defaults if parsing fails
+
+        return {"util": util, "calidad": calidad, "nota": nota}
+
+    async def _extract_and_save_lesson(
+        self,
+        trigger: dict,
+        result: dict,
+        parsed_eval: dict,
+    ) -> None:
+        """
+        Extract a generalizable lesson from the thought and save it.
+
+        Inspired by ReasoningBank (Google Research, 2026):
+        - Success → strategy ("always do X when Y")
+        - Failure → guardrail ("never do X because Y")
+
+        Lessons enter quarantine (provisional state) for N heartbeats.
+        """
+        try:
+            from contracts.kernel_interface import RunInput
+
+            is_success = parsed_eval["calidad"] >= 7
+            lesson_type = "estrategia" if is_success else "guardrail"
+
+            extract_prompt = (
+                f"Eres el extractor de lecciones del Embrión IA.\n\n"
+                f"CONTEXTO:\n"
+                f"- Trigger: {trigger['type']}\n"
+                f"- Detalle del trigger: {trigger.get('detail', '')[:300]}\n"
+                f"- Resultado: {result['response'][:400]}\n"
+                f"- Evaluación: calidad={parsed_eval['calidad']}/10, nota={parsed_eval['nota'][:200]}\n"
+                f"- Tools usadas: {len(result.get('tool_calls', []))}\n\n"
+            )
+
+            if is_success:
+                extract_prompt += (
+                    f"Este pensamiento fue EXITOSO (calidad {parsed_eval['calidad']}/10).\n"
+                    f"Extrae UNA lección generalizable como ESTRATEGIA.\n"
+                    f"NO repitas el detalle específico — generaliza el patrón.\n"
+                    f"Ejemplo: 'Cuando necesites modificar el repo, siempre crea branch primero.'\n\n"
+                    f"Responde SOLO la lección en una frase (máximo 2 oraciones)."
+                )
+            else:
+                extract_prompt += (
+                    f"Este pensamiento FALLÓ o fue de baja calidad (calidad {parsed_eval['calidad']}/10).\n"
+                    f"Extrae UNA lección como GUARDRAIL PREVENTIVO.\n"
+                    f"NO repitas el error específico — generaliza la regla para evitarlo.\n"
+                    f"Ejemplo: 'Nunca usar httpx síncrono en tools async — bloquea el event loop.'\n\n"
+                    f"Responde SOLO la lección en una frase (máximo 2 oraciones)."
+                )
+
+            run_input = RunInput(
+                message=extract_prompt,
+                user_id="embrion_judge",
+                channel="internal",
+                context={
+                    "source": "embrion_lesson_extractor",
+                    "model_hint": JUDGE_MODEL,
+                    "max_tokens": 100,
+                },
+            )
+
+            lesson_result = await asyncio.wait_for(
+                self._kernel.start_run(run_input),
+                timeout=30,
+            )
+
+            lesson_text = lesson_result.response if hasattr(lesson_result, "response") else str(lesson_result)
+            self._cost_today_usd += 0.01
+
+            # Save the lesson as an "evaluacion" memory with quarantine
+            await self._save_memory(
+                tipo="evaluacion",
+                contenido=f"[{lesson_type.upper()}] {lesson_text.strip()}",
+                hilo_origen="embrion_judge",
+                importancia=8 if is_success else 9,  # Failures are slightly more important
+                contexto={
+                    "trigger_type": trigger["type"],
+                    "calidad": parsed_eval["calidad"],
+                    "util": parsed_eval["util"],
+                    "tipo_leccion": lesson_type,
+                    "estado": "provisional",
+                    "ciclo_origen": self._cycle_count,
+                    "latidos_restantes_cuarentena": self.LESSON_QUARANTINE_LATIDOS,
+                    "resultado_preview": result["response"][:200],
+                },
+            )
+
+            logger.info(
+                "embrion_lesson_extracted",
+                tipo=lesson_type,
+                lesson=lesson_text.strip()[:100],
+                calidad=parsed_eval["calidad"],
+                cycle=self._cycle_count,
+            )
+
+        except Exception as e:
+            logger.error("embrion_lesson_extraction_failed", error=str(e))
+
+    async def _get_relevant_lessons(self, trigger: dict) -> str:
+        """
+        Retrieve relevant lessons from memory to inject into the thinking prompt.
+        Returns a formatted string of lessons, or empty string if none found.
+        """
+        if not self._db or not self._db.connected:
+            return ""
+
+        try:
+            # Fetch recent evaluacion memories (both provisional and consolidated)
+            lessons = await self._db.select(
+                table="embrion_memoria",
+                columns="contenido,contexto,importancia",
+                filters={"tipo": "evaluacion"},
+                order_by="created_at",
+                order_desc=True,
+                limit=10,
+            )
+
+            if not lessons:
+                return ""
+
+            # Format lessons for injection
+            lines = ["\n## Lecciones Aprendidas (Self-Evaluation)"]
+            for lesson in lessons:
+                contenido = lesson.get("contenido", "")
+                ctx = lesson.get("contexto", "{}")
+                if isinstance(ctx, str):
+                    try:
+                        ctx = json.loads(ctx)
+                    except (json.JSONDecodeError, TypeError):
+                        ctx = {}
+                estado = ctx.get("estado", "provisional")
+                marker = "[CONSOLIDADA]" if estado == "consolidada" else "[provisional]"
+                lines.append(f"- {marker} {contenido}")
+
+            return "\n".join(lines) if len(lines) > 1 else ""
+
+        except Exception as e:
+            logger.error("embrion_get_lessons_failed", error=str(e))
+            return ""
 
     # ── Report ───────────────────────────────────────────────────────
 
