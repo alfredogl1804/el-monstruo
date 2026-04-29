@@ -443,8 +443,13 @@ async def lifespan(app: FastAPI):
         fastmcp_server = create_fastmcp_server()
         if fastmcp_server:
             # Mount FastMCP Streamable HTTP endpoint on the FastAPI app
-            # FastMCP 3.2.4: http_app(transport='streamable-http') for modern MCP clients
-            app.mount("/mcp", fastmcp_server.http_app(transport="streamable-http"))
+            # FastMCP 3.2.4: path='/' avoids double-prefix (/mcp/mcp)
+            # since app.mount("/mcp") already provides the prefix.
+            mcp_asgi = fastmcp_server.http_app(
+                path="/",
+                transport="streamable-http",
+            )
+            app.mount("/mcp", mcp_asgi)
             app.state.fastmcp_server = fastmcp_server
             logger.info("fastmcp_mounted", path="/mcp", transport="streamable-http", tools=5)
     except Exception as e:
