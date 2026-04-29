@@ -11,7 +11,7 @@ Sprint 33B CHANGES:
 
 Architecture:
     FastAPI (main.py)
-        └── /mcp  → FastMCP SSE server
+        └── /mcp  → FastMCP Streamable HTTP server
                 ├── web_search      → Perplexity Sonar API
                 ├── consult_sabios  → 6 AI model APIs
                 ├── github_ops      → GitHub REST API
@@ -459,7 +459,7 @@ def get_status() -> dict[str, Any]:
         "active": _initialized and _mcp_server is not None,
         "version": "3.2.4" if _initialized else None,
         "tools": 5 if _initialized else 0,
-        "transport": "sse",
+        "transport": "streamable-http",
         "mount_path": "/mcp",
         "real_tools": [
             "web_search (Perplexity Sonar)",

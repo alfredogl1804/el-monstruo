@@ -442,11 +442,11 @@ async def lifespan(app: FastAPI):
         from kernel.fastmcp_server import create_fastmcp_server, get_status as fastmcp_status
         fastmcp_server = create_fastmcp_server()
         if fastmcp_server:
-            # Mount FastMCP SSE endpoint on the FastAPI app
-            # FastMCP 3.2.4: http_app(transport='sse') returns a Starlette ASGI app
-            app.mount("/mcp", fastmcp_server.http_app(transport="sse"))
+            # Mount FastMCP Streamable HTTP endpoint on the FastAPI app
+            # FastMCP 3.2.4: http_app(transport='streamable-http') for modern MCP clients
+            app.mount("/mcp", fastmcp_server.http_app(transport="streamable-http"))
             app.state.fastmcp_server = fastmcp_server
-            logger.info("fastmcp_mounted", path="/mcp", transport="sse", tools=3)
+            logger.info("fastmcp_mounted", path="/mcp", transport="streamable-http", tools=5)
     except Exception as e:
         logger.warning("fastmcp_init_failed", error=str(e))
 
