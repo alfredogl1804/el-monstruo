@@ -87,7 +87,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.25.0-sprint32", motor="langgraph")
+    logger.info("monstruo_starting", version="0.26.0-sprint33", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -169,7 +169,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.25.0-sprint32",
+            "version": "0.26.0-sprint33",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -475,6 +475,7 @@ async def lifespan(app: FastAPI):
             notifier=_embrion_notifier if '_embrion_notifier' in dir() else None,
         )
         await embrion_loop.start()
+        app.state._embrion_loop = embrion_loop
         logger.info("embrion_loop_started")
     except Exception as e:
         logger.warning("embrion_loop_init_failed", error=str(e))
@@ -566,7 +567,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.25.0-sprint32",
+    version="0.26.0-sprint33",
     lifespan=lifespan,
 )
 
@@ -663,7 +664,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.25.0-sprint32",
+        "version": "0.26.0-sprint33",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -1230,7 +1231,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.25.0-sprint32",
+            "version": "0.26.0-sprint33",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1430,7 +1431,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.25.0-sprint32",
+        "version": "0.26.0-sprint33",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields
@@ -1452,7 +1453,8 @@ async def health():
             "mcp": "active" if getattr(app.state, "mcp_manager", None) else "inactive",
             "fastmcp": "active" if getattr(app.state, "fastmcp_server", None) else "inactive",
             "mem0": "active" if getattr(app.state, "_mem0_active", False) else "inactive",
-            "embrion": "registered",
+            "embrion": "active" if getattr(app.state, "_embrion_loop", None) else "registered",
+            "embrion_loop": getattr(app.state, "_embrion_loop", None) and getattr(app.state._embrion_loop, "stats", None) or "inactive",
         },
     }
 
