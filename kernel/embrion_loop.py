@@ -606,6 +606,7 @@ class EmbrionLoop:
                 "autonomous": True,
                 "embrion_directive": True,
                 "model_hint": ACTOR_MODEL,
+                "intent_override": "execute",  # Sprint 33D: Force execute intent
             },
         )
 
