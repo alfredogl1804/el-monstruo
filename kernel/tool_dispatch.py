@@ -232,7 +232,8 @@ def get_tool_specs():
                 "For the COMMIT LOOP (self-modify): use create_branch to create a "
                 "feature branch, create_or_update_file to write changes, then "
                 "create_pull_request to open a PR for review. "
-                "Write operations require human approval."
+                "Commit Loop actions (branch + file + PR) are auto-approved. "
+                "The PR review by Alfredo is the human gate."
             ),
             parameters={
                 "type": "object",
@@ -248,7 +249,7 @@ def get_tool_specs():
                 },
                 "required": ["action", "params"],
             },
-            risk="high",
+            risk="medium",  # Sprint 33: lowered from high — commit loop is auto-approved, PR is the gate
         ),
         ToolSpec(
             name="notion",
