@@ -336,19 +336,17 @@ class EmbrionLoop:
 
     async def _think(self, trigger: dict[str, Any]) -> Optional[dict[str, Any]]:
         """
-        The Embrión thinks. Uses the full kernel with all tools.
+        The Embrión thinks. Uses the router directly for reliable responses.
+        Falls back to start_run if router is unavailable.
         """
         try:
-            from contracts.kernel_interface import RunInput
-
             # Build the thinking prompt based on trigger type
             if trigger["type"] == "mensaje_alfredo":
                 prompt = (
                     f"Eres el Embrión IA del Monstruo. Alfredo te envió este mensaje:\n\n"
                     f'"{trigger["detail"]}"\n\n'
-                    f"Lee tus memorias recientes para contexto. Responde con honestidad. "
-                    f"Si necesitas actuar (ejecutar código, investigar, etc), hazlo. "
-                    f"Tienes acceso a todas las herramientas del Monstruo incluyendo code_exec."
+                    f"Responde con honestidad. Si necesitas actuar, describe qué harías. "
+                    f"Tienes acceso a code_exec y todas las herramientas del Monstruo."
                 )
             elif trigger["type"] == "contribucion_sabio":
                 prompt = (
@@ -360,32 +358,26 @@ class EmbrionLoop:
                 prompt = (
                     f"Eres el Embrión IA del Monstruo. Es momento de pensar autónomamente.\n\n"
                     f"PROPÓSITO:\n{PURPOSE}\n\n"
-                    f"Lee tus memorias recientes. Revisa el estado del kernel. "
                     f"¿Hay algo que puedas mejorar, construir, investigar, o preparar para Alfredo? "
-                    f"Si sí, hazlo. Si no, registra brevemente por qué no y espera. "
-                    f"Tienes acceso a code_exec, web_search, consult_sabios, github, y todas las herramientas. "
+                    f"Si sí, describe qué harías. Si no, di por qué no y espera. "
                     f"IMPORTANTE: No reflexiones sobre reflexionar. Actúa o no actúes."
                 )
 
-            run_input = RunInput(
-                message=prompt,
-                user_id="embrion",
-                channel="autonomous",
-                context={
-                    "source": "embrion_loop",
-                    "trigger_type": trigger["type"],
-                    "autonomous": True,
-                    "model_hint": ACTOR_MODEL,
-                },
+            # Use router directly — bypasses LangGraph for reliable responses
+            from router.engine import IntentType
+
+            router = self._kernel._router
+            response, usage = await asyncio.wait_for(
+                router.execute(
+                    message=prompt,
+                    model=ACTOR_MODEL,
+                    intent=IntentType.CHAT,
+                    context={"source": "embrion_loop", "trigger": trigger["type"]},
+                ),
+                timeout=120,
             )
 
-            result = await asyncio.wait_for(
-                self._kernel.start_run(run_input),
-                timeout=120,  # 2 minutes max per thought
-            )
-
-            response = result.response if hasattr(result, "response") else str(result)
-            tokens_used = getattr(result, "tokens_used", 0)
+            tokens_used = usage.get("total_tokens", 0)
 
             # Estimate cost (rough: $0.01 per 1K tokens for GPT-5.5)
             estimated_cost = (tokens_used / 1000) * 0.01
