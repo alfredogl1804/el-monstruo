@@ -438,6 +438,7 @@ async def lifespan(app: FastAPI):
 
     # ── Sprint 26: FastMCP Server (internal tool exposure via MCP) ──────
     fastmcp_server = None
+    _mcp_lifespan_cm = None
     try:
         from kernel.fastmcp_server import create_fastmcp_server, get_status as fastmcp_status
         fastmcp_server = create_fastmcp_server()
@@ -449,8 +450,14 @@ async def lifespan(app: FastAPI):
                 path="/",
                 transport="streamable-http",
             )
+            # Manually enter MCP lifespan so StreamableHTTPSessionManager
+            # initializes. app.mount() does NOT propagate sub-app lifespans.
+            # Validated locally: without this, POST /mcp/ returns 500.
+            _mcp_lifespan_cm = mcp_asgi.lifespan(app)
+            await _mcp_lifespan_cm.__aenter__()
             app.mount("/mcp", mcp_asgi)
             app.state.fastmcp_server = fastmcp_server
+            app.state._mcp_lifespan_cm = _mcp_lifespan_cm
             logger.info("fastmcp_mounted", path="/mcp", transport="streamable-http", tools=5)
     except Exception as e:
         logger.warning("fastmcp_init_failed", error=str(e))
@@ -521,6 +528,14 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(_warmup())
 
     yield
+
+    # Shutdown FastMCP lifespan (StreamableHTTPSessionManager)
+    if _mcp_lifespan_cm:
+        try:
+            await _mcp_lifespan_cm.__aexit__(None, None, None)
+            logger.info("fastmcp_lifespan_shutdown")
+        except Exception:
+            pass
 
     # Shutdown checkpointer (close PostgreSQL connection)
     if _checkpointer_cm:
