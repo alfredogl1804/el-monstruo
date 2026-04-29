@@ -437,6 +437,41 @@ def get_tool_specs():
             risk="low",
         ),
         ToolSpec(
+            name="browse_web",
+            description=(
+                "Browse a web page and extract its content using Cloudflare Browser Run. "
+                "Renders JavaScript fully before extraction. Available actions: "
+                "'markdown' (default, best for reading — returns clean Markdown), "
+                "'content' (returns fully rendered HTML), "
+                "'scrape' (extract specific elements via CSS selectors — requires selectors param), "
+                "'links' (retrieve all links from a page). "
+                "Use when you need to READ a web page, extract documentation, "
+                "check a website's content, or gather structured data from a URL. "
+                "For searching the web, use web_search instead."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "description": "The URL to browse (must include https://)",
+                    },
+                    "action": {
+                        "type": "string",
+                        "description": "What to extract: 'markdown' (default), 'content', 'scrape', 'links'",
+                        "enum": ["markdown", "content", "scrape", "links"],
+                    },
+                    "selectors": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "CSS selectors for 'scrape' action (e.g. ['h1', 'a', '.price'])",
+                    },
+                },
+                "required": ["url"],
+            },
+            risk="low",
+        ),
+        ToolSpec(
             name="code_exec",
             description=(
                 "Execute Python or shell code in a sandboxed subprocess. "
@@ -643,6 +678,18 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
                 allow_network=args.get("allow_network", False),
                 hitl_approved=args.get("hitl_approved", False),
             )
+        elif tool_name == "browse_web":
+            from tools.browser import browse_web
+
+            result_str = await browse_web(
+                url=args.get("url", ""),
+                action=args.get("action", "markdown"),
+                selectors=args.get("selectors"),
+                wait_for_js=args.get("wait_for_js", True),
+            )
+            import json as _json
+
+            return _json.loads(result_str)
         elif tool_name == "email":
             from tools.email_sender import send_email
 
