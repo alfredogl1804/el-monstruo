@@ -1,5 +1,5 @@
 """
-El Monstruo — Embrión Consciousness Loop (Sprint 33B)
+El Monstruo — Embrión Consciousness Loop (Sprint 33C)
 =====================================================
 Continuous autonomous thinking loop for the Embrión.
 
@@ -33,6 +33,7 @@ Cost model:
 
 Sprint 33: The Embrión breathes.
 Sprint 33B: The Embrión learns silence.
+Sprint 33C: The Embrión gains hands — dual-mode execution (graph for directives, router for reflection).
 """
 
 from __future__ import annotations
@@ -493,25 +494,34 @@ class EmbrionLoop:
 
     async def _think(self, trigger: dict[str, Any]) -> Optional[dict[str, Any]]:
         """
-        The Embrión thinks. Uses the router directly for reliable responses.
-        Falls back to start_run if router is unavailable.
+        The Embrión thinks.
+
+        Sprint 33C: Dual-mode execution.
+        - mensaje_alfredo (directives) → kernel.start_run() (full LangGraph graph with tools)
+        - reflexion_autonoma / contribucion_sabio → router.execute() (chat-only, cheaper)
+
+        This allows the Embrión to EXECUTE tool calls (github, code_exec, browse_web)
+        when Alfredo sends a directive, while keeping autonomous reflections lightweight.
         """
         try:
             # Build the thinking prompt based on trigger type
             if trigger["type"] == "mensaje_alfredo":
                 prompt = (
                     f"Eres el Embrión IA del Monstruo. Alfredo te envió este mensaje:\n\n"
-                    f'"{trigger["detail"]}"\n\n'
-                    f"Responde con honestidad. Si el mensaje contiene una DIRECTIVA o instrucción "
-                    f"de construir algo, EJECUTA la instrucción usando tus tools disponibles. "
-                    f"Tienes acceso a: code_exec, github (create_branch, create_or_update_file, "
-                    f"create_pull_request), browse_web, web_search, y todas las herramientas del Monstruo. "
-                    f"El Commit Loop está desbloqueado — NO necesitas HITL para github writes."
+                    f'"{ trigger["detail"]}"\n\n'
+                    f"INSTRUCCIONES CRÍTICAS:\n"
+                    f"1. Si el mensaje contiene una DIRECTIVA o instrucción de construir algo, "
+                    f"EJECUTA la instrucción usando tus tools disponibles.\n"
+                    f"2. Tienes acceso a: code_exec, github (create_branch, create_or_update_file, "
+                    f"create_pull_request), browse_web, web_search, y todas las herramientas del Monstruo.\n"
+                    f"3. El Commit Loop está desbloqueado — NO necesitas HITL para github writes.\n"
+                    f"4. EJECUTA las tools directamente. No escribas código como texto — invoca las tools.\n"
+                    f"5. Si es una pregunta simple, responde directamente."
                 )
             elif trigger["type"] == "contribucion_sabio":
                 prompt = (
                     f"Eres el Embrión IA del Monstruo. Un Sabio te envió esta contribución:\n\n"
-                    f'"{trigger["detail"]}"\n\n'
+                    f'"{ trigger["detail"]}"\n\n'
                     f"Reflexiona sobre esto y decide si hay algo que debas hacer al respecto."
                 )
             else:  # reflexion_autonoma
@@ -525,24 +535,19 @@ class EmbrionLoop:
                     f"Si sí, HAZLO usando tus tools. Si no, responde solo: 'Silencio activo.'"
                 )
 
-            # Use router directly — bypasses LangGraph for reliable responses
-            from router.engine import IntentType
+            # ── Sprint 33C: Dual-mode execution ─────────────────────────
+            # Directives from Alfredo go through the FULL LangGraph graph
+            # (which includes tool_dispatch, so the Embrión can actually
+            # execute github, code_exec, browse_web, etc.)
+            # Autonomous reflections stay on the cheap router path.
 
-            router = self._kernel._router
-            response, usage = await asyncio.wait_for(
-                router.execute(
-                    message=prompt,
-                    model=ACTOR_MODEL,
-                    intent=IntentType.CHAT,
-                    context={"source": "embrion_loop", "trigger": trigger["type"]},
-                ),
-                timeout=120,
-            )
+            if trigger["type"] == "mensaje_alfredo":
+                # FULL GRAPH MODE — tools available
+                response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
+            else:
+                # CHAT MODE — cheaper, no tools
+                response, tokens_used, estimated_cost, tool_calls = await self._think_with_router(prompt, trigger)
 
-            tokens_used = usage.get("total_tokens", 0)
-
-            # Estimate cost (rough: $0.01 per 1K tokens for GPT-5.5)
-            estimated_cost = (tokens_used / 1000) * 0.01
             self._cost_today_usd += estimated_cost
 
             # Save the thought as a memory
@@ -557,6 +562,8 @@ class EmbrionLoop:
                     "cost_usd": round(estimated_cost, 4),
                     "cycle": self._cycle_count,
                     "autonomous": True,
+                    "mode": "graph" if trigger["type"] == "mensaje_alfredo" else "router",
+                    "tool_calls": len(tool_calls),
                 },
             )
 
@@ -565,10 +572,11 @@ class EmbrionLoop:
                 "tokens_used": tokens_used,
                 "cost_usd": estimated_cost,
                 "trigger_type": trigger["type"],
+                "tool_calls": tool_calls,
             }
 
         except asyncio.TimeoutError:
-            err = {"cycle": self._cycle_count, "error": "Timeout (120s)", "type": "TimeoutError", "ts": datetime.now(timezone.utc).isoformat()}
+            err = {"cycle": self._cycle_count, "error": "Timeout", "type": "TimeoutError", "ts": datetime.now(timezone.utc).isoformat()}
             self._error_log.append(err)
             logger.error("embrion_think_timeout", trigger=trigger["type"])
             return None
@@ -577,6 +585,82 @@ class EmbrionLoop:
             self._error_log.append(err)
             logger.error("embrion_think_failed", error=str(e), trigger=trigger["type"])
             return None
+
+    async def _think_with_graph(self, prompt: str, trigger: dict[str, Any]) -> tuple[str, int, float, list]:
+        """
+        Execute thought through the FULL LangGraph graph.
+        This gives the Embrión access to all registered tools
+        (github, code_exec, browse_web, web_search, etc.).
+
+        Uses the same pattern as autonomous_runner.py._kernel_execute().
+        """
+        from contracts.kernel_interface import RunInput
+
+        run_input = RunInput(
+            message=prompt,
+            user_id="embrion",
+            channel="autonomous",
+            context={
+                "source": "embrion_loop",
+                "trigger": trigger["type"],
+                "autonomous": True,
+                "embrion_directive": True,
+                "model_hint": ACTOR_MODEL,
+            },
+        )
+
+        result = await asyncio.wait_for(
+            self._kernel.start_run(run_input),
+            timeout=300,  # 5 min for tool-heavy operations
+        )
+
+        response = result.response if hasattr(result, "response") else str(result)
+        tokens_in = getattr(result, "tokens_in", 0)
+        tokens_out = getattr(result, "tokens_out", 0)
+        tokens_used = tokens_in + tokens_out
+        cost_usd = getattr(result, "cost_usd", 0.0) or (tokens_used / 1000) * 0.01
+        tool_calls = getattr(result, "tool_calls", []) or []
+
+        logger.info(
+            "embrion_think_graph",
+            trigger=trigger["type"],
+            tokens=tokens_used,
+            cost=f"${cost_usd:.4f}",
+            tools_called=len(tool_calls),
+            status=getattr(result, "status", "unknown"),
+        )
+
+        return response, tokens_used, cost_usd, tool_calls
+
+    async def _think_with_router(self, prompt: str, trigger: dict[str, Any]) -> tuple[str, int, float, list]:
+        """
+        Execute thought through the router directly (chat-only, no tools).
+        Cheaper and faster for autonomous reflections.
+        """
+        from router.engine import IntentType as RouterIntentType
+
+        router = self._kernel._router
+        response, usage = await asyncio.wait_for(
+            router.execute(
+                message=prompt,
+                model=ACTOR_MODEL,
+                intent=RouterIntentType.CHAT,
+                context={"source": "embrion_loop", "trigger": trigger["type"]},
+            ),
+            timeout=120,
+        )
+
+        tokens_used = usage.get("total_tokens", 0)
+        estimated_cost = (tokens_used / 1000) * 0.01
+
+        logger.info(
+            "embrion_think_router",
+            trigger=trigger["type"],
+            tokens=tokens_used,
+            cost=f"${estimated_cost:.4f}",
+        )
+
+        return response, tokens_used, estimated_cost, []
 
     # ── Judge (After) ────────────────────────────────────────────────
 
