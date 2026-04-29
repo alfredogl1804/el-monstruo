@@ -81,6 +81,13 @@ tenacity==9.1.4
 orjson==3.11.8
 uuid-v7==1.0.0
 
+# ── Code Execution Sandbox (Sprint 33A) ────────────────────────────────
+# E2B Code Interpreter: cloud sandbox with internet, pip, full Linux
+# MIT license — validated 2026-04-29 via PyPI (latest=2.6.1)
+# Primary backend for tools/code_exec.py (replaces subprocess)
+# Requires E2B_API_KEY env var in Railway
+e2b-code-interpreter==2.6.1
+
 # ── Autonomy (Sprint 8) ─────────────────────────────────────────────
 python-dateutil==2.9.0.post0
 
