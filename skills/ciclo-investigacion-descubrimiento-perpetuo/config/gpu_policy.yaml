@@ -1,0 +1,89 @@
+# CIDP GPU Broker Policy — validated 2026-04-16
+# Precios validados en tiempo real, NO hardcodeados como verdad estática
+
+providers:
+  vastai:
+    name: "Vast.ai"
+    api_base: "https://console.vast.ai/api/v0"
+    env_key: "VASTAI_API_KEY"
+    priority: 1
+    notes: "Open beta Python workflow, endpoints OpenAI-compatible"
+    # Precios de referencia (abril 2026, VOLÁTILES — siempre consultar en tiempo real)
+    reference_pricing:
+      b200: {min_usd_hr: 3.41, typical_usd_hr: 3.75, note: "p25 puede ser 3.41, típico 3.69-3.81"}
+      h100: {min_usd_hr: 1.50, typical_usd_hr: 2.50, note: "Varía por disponibilidad"}
+    features:
+      - spot_instances
+      - on_demand
+      - openai_compatible_endpoints
+      - python_workflow_beta
+
+  runpod:
+    name: "RunPod"
+    api_base: "https://api.runpod.io/v2"
+    env_key: "RUNPOD_API_KEY"
+    priority: 2
+    notes: "Fallback principal. Precios validados menores a lo reportado por sabios"
+    reference_pricing:
+      h100: {min_usd_hr: 1.99, typical_usd_hr: 2.50, note: "Validado abril 2026, NO 5.12-5.49"}
+    features:
+      - serverless
+      - pods
+      - templates
+
+  coreweave:
+    name: "CoreWeave"
+    api_base: null
+    env_key: "COREWEAVE_API_KEY"
+    priority: 3
+    notes: "Futuro — requiere cuenta enterprise"
+    enabled: false
+
+  lambda:
+    name: "Lambda Labs"
+    api_base: null
+    env_key: "LAMBDA_API_KEY"
+    priority: 4
+    notes: "Futuro — buena relación precio/rendimiento"
+    enabled: false
+
+selection_policy:
+  # Pesos para selección automática de proveedor
+  weights:
+    price: 0.40
+    availability: 0.25
+    reliability: 0.20
+    preemption_risk: 0.15
+
+  # Guardrails de costo
+  cost_guardrails:
+    max_hourly_usd: 10.0
+    max_total_usd: 100.0
+    auto_teardown_idle_minutes: 30
+    alert_at_percent: 80
+
+  # Reglas de selección
+  rules:
+    - "SIEMPRE consultar precios en tiempo real antes de provisionar"
+    - "NUNCA confiar en precios de referencia como verdad — son solo orientación"
+    - "Preferir spot/preemptible para workloads tolerantes a interrupciones"
+    - "Usar on-demand solo para workloads críticos con SLA"
+    - "Verificar disponibilidad de GPU antes de comprometer presupuesto"
+
+workload_profiles:
+  fine_tuning:
+    min_vram_gb: 80
+    preferred_gpu: b200
+    duration_estimate: "2-24 hours"
+    preemptible_ok: false
+  inference:
+    min_vram_gb: 24
+    preferred_gpu: h100
+    duration_estimate: "1-4 hours"
+    preemptible_ok: true
+  training_from_scratch:
+    min_vram_gb: 80
+    preferred_gpu: b200
+    duration_estimate: "24-168 hours"
+    preemptible_ok: false
+    multi_gpu: true

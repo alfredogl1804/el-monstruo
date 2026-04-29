@@ -1,0 +1,55 @@
+# El Monstruo Toolkit — Configuración del Skill
+version: "1.0"
+name: "el-monstruo-toolkit"
+description: "Arsenal operativo pre-configurado para El Monstruo"
+author: "Alfredo + Manus"
+created: "2026-04-09"
+last_verified: "2026-04-09"
+ttl_days: 30
+
+dependencies:
+  skills:
+    - api-context-injector  # Fuente de verdad de APIs
+    - el-monstruo           # Contexto del corpus
+    - el-monstruo-plan      # Blueprint Sprint 1
+    - el-monstruo-bot       # Estado del bot en producción
+    - consulta-sabios       # Consultas con los 6 Sabios
+
+  env_vars_required:
+    - OPENAI_API_KEY
+    - SONAR_API_KEY
+    - XAI_API_KEY
+    - OPENROUTER_API_KEY
+
+  env_vars_optional:
+    - ANTHROPIC_API_KEY
+    - GEMINI_API_KEY
+    - ELEVENLABS_API_KEY
+    - HEYGEN_API_KEY
+    - DROPBOX_API_KEY
+    - CLOUDFLARE_API_TOKEN
+
+  python_packages:
+    - openai
+    - anthropic
+    - google-genai
+    - elevenlabs
+    - requests
+
+triggers:
+  - "construir el monstruo"
+  - "modificar el bot"
+  - "deploy del monstruo"
+  - "sprint 1"
+  - "monstruo toolkit"
+  - "configurar cerebros"
+  - "inyectar secrets monstruo"
+
+file_index:
+  SKILL.md: "Cerebro del skill — decisión rápida y documentación completa"
+  references/brain_configs.yaml: "Configuración exacta de los 6 cerebros"
+  references/service_configs.yaml: "Configuración de Supabase, Notion, Railway, etc."
+  references/connection_snippets.py: "Código copy-paste para cada servicio"
+  references/mcp_commands.yaml: "Comandos MCP listos para copiar"
+  templates/monstruo_manifest.yaml: "Manifiesto de secrets pre-configurado"
+  config/skill_config.yaml: "Este archivo — metadata del skill"

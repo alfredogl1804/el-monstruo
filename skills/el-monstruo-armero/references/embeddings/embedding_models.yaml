@@ -1,0 +1,94 @@
+# Modelos de Embedding para El Monstruo — Benchmark Abril 2026
+# Investigado: 2026-04-09 | TTL: 30 días
+# Fuente: dev.to/chen_zhang, MTEB leaderboard, openrouter.ai
+
+current_model:
+  name: "text-embedding-3-small"
+  provider: OpenAI
+  dimensions: 1536
+  env_var: OPENAI_API_KEY
+  cost: "$0.02 / 1M tokens"
+  status: "En producción — funciona bien, pero hay mejores opciones"
+
+recommended_upgrades:
+  for_cross_lingual:
+    name: "gemini-embedding-002"
+    provider: Google
+    dimensions: 3072
+    env_var: GEMINI_API_KEY
+    cost: "Gratis hasta 1500 RPM"
+    why: |
+      Domina cross-lingual (español-inglés) en benchmarks abril 2026.
+      El Monstruo opera en español pero mucha info es en inglés.
+      Gemini Embedding 2 entiende ambos idiomas nativamente.
+    code: |
+      from google import genai
+      client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+      result = client.models.embed_content(
+          model="models/gemini-embedding-002",
+          content="texto a embeddear"
+      )
+      embedding = result.embedding  # 3072 dims
+
+  for_multimodal:
+    name: "Qwen3-VL-2B"
+    provider: "Via OpenRouter (gratis)"
+    dimensions: 1024
+    env_var: OPENROUTER_API_KEY
+    cost: "GRATIS"
+    why: |
+      Supera a Gemini en cross-modal embeddings (texto + imagen).
+      Útil si El Monstruo necesita buscar por imágenes en memoria.
+      2B parámetros = rápido y eficiente.
+
+  for_rag_reranking:
+    name: "rerank-v4.0-pro"
+    provider: "Cohere via OpenRouter"
+    env_var: OPENROUTER_API_KEY
+    cost: "GRATIS"
+    why: |
+      Reranking post-retrieval mejora precisión de RAG 15-30%.
+      100+ idiomas incluyendo español. Ideal para El Monstruo.
+    code: |
+      from openai import OpenAI
+      client = OpenAI(
+          api_key=os.environ["OPENROUTER_API_KEY"],
+          base_url="https://openrouter.ai/api/v1"
+      )
+      # Reranking de documentos recuperados
+      response = client.chat.completions.create(
+          model="cohere/rerank-v4.0-pro:free",
+          messages=[{
+              "role": "user",
+              "content": f"Rerank these documents for query '{query}': {docs}"
+          }]
+      )
+
+migration_strategy: |
+  Sprint 1: Mantener text-embedding-3-small (ya funciona, no romper)
+  Sprint 1.5: Agregar Gemini Embedding 002 para nuevos documentos
+  Sprint 2: Migrar embeddings existentes a Gemini (re-embed 23K chunks)
+  Sprint 2: Agregar Cohere Rerank como post-processing en RAG pipeline
+
+  IMPORTANTE: Si cambias modelo de embedding, DEBES re-embeddear todo.
+  No mezclar embeddings de diferentes modelos en la misma tabla.
+  Crear tabla nueva o columna nueva para el nuevo modelo.
+
+benchmark_comparison:
+  # MTEB Leaderboard abril 2026
+  text_embedding_3_small:
+    mteb_avg: 62.3
+    cross_lingual: "Medio"
+    cost_1m: "$0.02"
+  gemini_embedding_002:
+    mteb_avg: 68.7
+    cross_lingual: "Excelente (#1)"
+    cost_1m: "Gratis"
+  voyage_3_large:
+    mteb_avg: 67.2
+    cross_lingual: "Bueno"
+    cost_1m: "$0.06"
+  cohere_embed_v4:
+    mteb_avg: 66.8
+    cross_lingual: "Bueno"
+    cost_1m: "$0.01"

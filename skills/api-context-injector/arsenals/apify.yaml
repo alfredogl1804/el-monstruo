@@ -1,0 +1,163 @@
+# Arsenal: Apify — Gateway a 23,000+ Actors de Scraping y Automatización
+# Última actualización: 2026-04-08
+# Credencial: notion:Apify (plan Scale $39/mes)
+# Base URL: https://api.apify.com/v2
+# Console: https://console.apify.com
+
+connector: apify
+type: gateway
+ecosystem_size: "23,000+ actors"
+credential_ref: notion:apify
+plan: "Scale ($39/mes)"
+base_url: https://api.apify.com/v2
+
+connection_pattern: |
+  import requests, os
+  # API Key: obtener de Notion DB y exportar como env var
+  APIFY_TOKEN = os.environ.get("APIFY_TOKEN", "")
+  assert APIFY_TOKEN, "APIFY_TOKEN no configurado — obtener de Notion"
+  
+  # Ejecutar un actor
+  response = requests.post(
+      f"https://api.apify.com/v2/acts/ACTOR_ID/runs",
+      params={"token": APIFY_TOKEN},
+      json={"startUrls": [{"url": "https://example.com"}]}
+  )
+  run_id = response.json()["data"]["id"]
+  
+  # Obtener resultados
+  results = requests.get(
+      f"https://api.apify.com/v2/actor-runs/{run_id}/dataset/items",
+      params={"token": APIFY_TOKEN}
+  ).json()
+
+categories:
+
+  social_media:
+    description: "Scraping de redes sociales"
+    actors:
+      - id: apify/instagram-scraper
+        name: Instagram Scraper
+        best_for: [perfiles, posts, hashtags, comentarios, seguidores, reels]
+        triggers: [instagram_scrape, instagram_data, ig_perfiles, ig_posts]
+        cost_estimate: "~$0.50/1000 results"
+        priority: top
+
+      - id: apify/facebook-pages-scraper
+        name: Facebook Pages Scraper
+        best_for: [paginas_empresa, posts, reviews, info_contacto]
+        triggers: [facebook_scrape, fb_paginas, fb_reviews]
+        cost_estimate: "~$0.40/1000 results"
+        priority: high
+
+      - id: clockworks/tiktok-scraper
+        name: TikTok Scraper
+        best_for: [videos, perfiles, hashtags, tendencias, sonidos]
+        triggers: [tiktok_scrape, tiktok_trends, tiktok_videos]
+        cost_estimate: "~$0.30/1000 results"
+        priority: high
+
+      - id: anchor/linkedin-profile-scraper
+        name: LinkedIn Scraper
+        best_for: [perfiles, empresas, empleados, ofertas_trabajo]
+        triggers: [linkedin_scrape, linkedin_perfiles, linkedin_empresas]
+        cost_estimate: "~$1.00/1000 results"
+        priority: high
+
+      - id: apify/twitter-scraper
+        name: Twitter/X Scraper
+        best_for: [tweets, perfiles, hashtags, tendencias]
+        triggers: [twitter_scrape, x_scrape, tweets]
+        cost_estimate: "~$0.50/1000 results"
+
+  local_business:
+    description: "Datos de negocios locales y mapas"
+    actors:
+      - id: compass/crawler-google-places
+        name: Google Maps Scraper
+        best_for: [negocios_locales, reviews, contactos, coordenadas, horarios, fotos]
+        triggers: [google_maps, maps_reviews, negocios_locales, maps_scrape]
+        input_hint: '{"searchStringsArray": ["restaurants in Miami"], "maxCrawledPlaces": 100}'
+        cost_estimate: "~$1.00/1000 places"
+        priority: top
+        note: "Muy valioso para investigación inmobiliaria y de mercado"
+
+      - id: apify/yelp-scraper
+        name: Yelp Scraper
+        best_for: [negocios, reviews, ratings, contactos]
+        triggers: [yelp_scrape, yelp_reviews]
+        cost_estimate: "~$0.50/1000 results"
+
+  ecommerce:
+    description: "Datos de comercio electrónico"
+    actors:
+      - id: junglee/amazon-crawler
+        name: Amazon Product Scraper
+        best_for: [productos, precios, reviews, rankings, sellers, BSR]
+        triggers: [amazon_scrape, amazon_productos, amazon_precios]
+        cost_estimate: "~$0.80/1000 products"
+        priority: high
+
+      - id: apify/shopify-scraper
+        name: Shopify Store Scraper
+        best_for: [productos, precios, inventario, tiendas_competencia]
+        triggers: [shopify_scrape, shopify_productos, tienda_online]
+        cost_estimate: "~$0.30/1000 products"
+
+      - id: apify/aliexpress-scraper
+        name: AliExpress Scraper
+        best_for: [productos, precios, vendedores, reviews]
+        triggers: [aliexpress_scrape, aliexpress_productos]
+        cost_estimate: "~$0.40/1000 products"
+
+  web_general:
+    description: "Scraping web general"
+    actors:
+      - id: apify/web-scraper
+        name: Web Scraper (Puppeteer)
+        best_for: [cualquier_web, javascript_heavy, SPAs, formularios]
+        triggers: [web_scrape_general, scrape_javascript, SPA_scrape]
+        cost_estimate: "~$0.10/page"
+        note: "Más flexible, soporta JS rendering"
+
+      - id: apify/cheerio-scraper
+        name: Cheerio Scraper
+        best_for: [webs_estaticas, HTML_parsing, velocidad, alto_volumen]
+        triggers: [scrape_rapido, html_estatico, alto_volumen]
+        cost_estimate: "~$0.05/page"
+        note: "10x más rápido que Puppeteer para webs estáticas"
+
+  lead_generation:
+    description: "Generación de leads y datos de contacto"
+    actors:
+      - id: apify/google-search-scraper
+        name: Google Search Scraper
+        best_for: [SERPs, resultados_busqueda, SEO_research]
+        triggers: [google_search_scrape, SERP, SEO_data]
+        cost_estimate: "~$0.50/1000 results"
+
+      - id: apify/email-extractor
+        name: Email Extractor
+        best_for: [emails_de_webs, contactos, lead_gen]
+        triggers: [extraer_emails, email_scrape, lead_generation]
+        cost_estimate: "~$0.20/1000 pages"
+
+  real_estate:
+    description: "Datos inmobiliarios"
+    actors:
+      - id: apify/zillow-scraper
+        name: Zillow Scraper
+        best_for: [propiedades, precios, estimados, historial]
+        triggers: [zillow_scrape, inmobiliario_usa, propiedades_usa]
+        cost_estimate: "~$1.00/1000 listings"
+        priority: high
+        note: "Relevante para proyecto CIP"
+
+routing_hints:
+  instagram: "apify/instagram-scraper"
+  facebook: "apify/facebook-pages-scraper"
+  google_maps: "compass/crawler-google-places"
+  amazon: "junglee/amazon-crawler"
+  any_website: "apify/web-scraper (JS) o apify/cheerio-scraper (estático)"
+  leads: "apify/email-extractor + apify/google-search-scraper"
+  real_estate: "apify/zillow-scraper"

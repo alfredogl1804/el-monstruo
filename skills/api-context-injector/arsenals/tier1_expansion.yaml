@@ -1,0 +1,247 @@
+# ============================================================
+# TIER-1 EXPANSION ARSENAL — Herramientas prioritarias recomendadas por los 6 Sabios
+# Estas son las herramientas que el ecosistema NECESITA pero aún no tiene integradas
+# Prioridad: Playwright MCP > Composio > DuckDB > Firecrawl > fal.ai/Replicate
+# ============================================================
+
+metadata:
+  version: "1.0"
+  created: "2026-04-09"
+  recommended_by: "Consejo de 6 Sabios (consenso unánime)"
+  status: "PLANNED — no integradas aún"
+  ttl_days: 30
+
+# ============================================================
+# 1. PLAYWRIGHT MCP — Browser Automation Avanzada
+# ============================================================
+playwright_mcp:
+  priority: 1
+  status: "NOT_INSTALLED"
+  category: "browser_automation"
+  
+  what: "Servidor MCP oficial para Playwright — automatización de browser programática"
+  why: "El browser nativo de Manus es bueno para navegación, pero Playwright permite scraping estructurado, testing E2E, screenshots programáticos, PDF generation, y workflows multi-paso complejos"
+  
+  source:
+    repo: "nicobailon/mcp-playwright"
+    type: "mcp_server"
+    license: "MIT"
+    trust: "high"
+    stars: "1000+"
+    
+  capabilities:
+    - browser_automation_advanced
+    - e2e_testing
+    - structured_scraping
+    - pdf_generation
+    - screenshot_capture
+    - form_filling_complex
+    - multi_tab_workflows
+    
+  fills_gap: "domains_NOT_covered.browser_automation_advanced"
+  
+  installation:
+    method: "npm install + MCP config"
+    command: "npx @nicobailon/mcp-playwright"
+    env_vars_needed: []
+    estimated_time: "15 min"
+    
+  synergy:
+    - "Apify actors que requieren browser → Playwright como motor local"
+    - "skill-factory: testing E2E de skills con UI"
+    - "Web scraping avanzado sin depender de APIs externas"
+
+# ============================================================
+# 2. COMPOSIO — Orquestación Unificada de APIs
+# ============================================================
+composio:
+  priority: 2
+  status: "NOT_INSTALLED"
+  category: "api_orchestration"
+  
+  what: "Plataforma de integración unificada — 500+ herramientas, 850+ conectores"
+  why: "Reduce la complejidad de manejar múltiples APIs individualmente. Un SDK unifica autenticación, rate limiting, error handling para cientos de servicios"
+  
+  source:
+    repo: "ComposioHQ/composio"
+    type: "sdk_python"
+    license: "Apache-2.0"
+    trust: "high"
+    stars: "15000+"
+    
+  capabilities:
+    - unified_api_orchestration
+    - multi_service_workflows
+    - oauth_management
+    - rate_limit_handling
+    - error_normalization
+    
+  fills_gap: "domains_NOT_covered.unified_api_orchestration"
+  
+  top_integrations:
+    - { name: "GitHub", category: "dev" }
+    - { name: "Slack", category: "communication" }
+    - { name: "Google Workspace", category: "productivity" }
+    - { name: "Salesforce", category: "crm" }
+    - { name: "Jira", category: "project_management" }
+    - { name: "Linear", category: "project_management" }
+    - { name: "Notion", category: "knowledge" }
+    - { name: "Airtable", category: "database" }
+    - { name: "Twilio", category: "communication" }
+    - { name: "SendGrid", category: "email" }
+    
+  installation:
+    method: "pip install composio-core"
+    env_vars_needed: ["COMPOSIO_API_KEY"]
+    note: "API key needed — check Notion DB or sign up"
+    estimated_time: "20 min"
+    
+  synergy:
+    - "api-context-injector: Composio como meta-conector para servicios no cubiertos"
+    - "skill-factory: skills que necesitan múltiples APIs → Composio simplifica"
+    - "Zapier alternative para workflows que necesitan más control"
+
+# ============================================================
+# 3. DUCKDB — Analytics Local de Alto Rendimiento
+# ============================================================
+duckdb:
+  priority: 3
+  status: "NOT_INSTALLED"
+  category: "local_analytics"
+  
+  what: "Motor de base de datos analítico embebido — SQL sobre CSV, Parquet, JSON sin servidor"
+  why: "Procesamiento de datos local sin enviar datos a APIs externas. Perfecto para análisis de datos sensibles, reportes rápidos, ETL local. Cero costo, cero latencia de red, residencia de datos garantizada"
+  
+  source:
+    package: "duckdb"
+    type: "python_package"
+    license: "MIT"
+    trust: "very_high"
+    
+  capabilities:
+    - local_sql_analytics
+    - csv_parquet_json_processing
+    - zero_cost_data_analysis
+    - data_residency_guaranteed
+    - etl_local
+    
+  fills_gap: "domains_NOT_covered.local_analytics"
+  
+  use_cases:
+    - "Analizar CSVs grandes sin pandas memory issues"
+    - "SQL queries sobre archivos Parquet"
+    - "Joins entre múltiples fuentes de datos locales"
+    - "Agregaciones y reportes sin enviar datos a la nube"
+    - "ETL pipeline local antes de cargar a Supabase"
+    
+  installation:
+    method: "pip install duckdb"
+    env_vars_needed: []
+    estimated_time: "2 min"
+    
+  synergy:
+    - "Supabase: ETL local → carga optimizada"
+    - "Apify: procesar datasets scrapeados localmente"
+    - "GDPR/compliance: análisis sin transferencia internacional"
+
+# ============================================================
+# 4. FIRECRAWL — Web Crawling & Extraction Avanzado
+# ============================================================
+firecrawl:
+  priority: 4
+  status: "NOT_INSTALLED"
+  category: "web_crawling"
+  
+  what: "API de crawling y extracción web — convierte sitios completos a Markdown/datos estructurados"
+  why: "Va más allá del scraping de una página: crawl de sitios completos, extracción de datos estructurados, manejo de JavaScript rendering, rate limiting inteligente"
+  
+  source:
+    repo: "mendableai/firecrawl-mcp-server"
+    type: "mcp_server + api"
+    license: "AGPL-3.0"
+    trust: "high"
+    stars: "5000+"
+    note: "AGPL — requiere evaluación de licencia para redistribución"
+    
+  capabilities:
+    - deep_web_crawling
+    - site_to_markdown
+    - structured_data_extraction
+    - javascript_rendering
+    - batch_crawling
+    
+  fills_gap: "domains_NOT_covered.deep_web_crawling"
+  
+  use_cases:
+    - "Crawl sitio completo de competidor para análisis"
+    - "Extraer documentación técnica a Markdown"
+    - "Scraping de e-commerce con JavaScript rendering"
+    - "Monitoreo de cambios en sitios web"
+    - "Research: convertir papers/blogs a datos estructurados"
+    
+  installation:
+    method: "API key + MCP server"
+    env_vars_needed: ["FIRECRAWL_API_KEY"]
+    note: "API key needed — check pricing. AGPL license requires isolation"
+    estimated_time: "15 min"
+    
+  synergy:
+    - "Apify: Firecrawl para crawling profundo, Apify para scraping específico"
+    - "skill-factory: research_domain.py puede usar Firecrawl para dossiers más ricos"
+    - "consulta-sabios: investigar_contexto.py puede crawlear fuentes primarias"
+
+# ============================================================
+# 5. FAL.AI / REPLICATE — Multimedia AI Models
+# ============================================================
+fal_ai:
+  priority: 5
+  status: "NOT_INSTALLED"
+  category: "multimedia_ai"
+  
+  what: "Plataformas de inference para modelos de IA multimedia (imágenes, video, audio, 3D)"
+  why: "Acceso a modelos especializados que no están en OpenAI/Anthropic: Stable Diffusion, Flux, Whisper large, modelos 3D, video generation avanzado"
+  
+  source:
+    fal: { package: "fal-client", license: "Apache-2.0" }
+    replicate: { package: "replicate", license: "Apache-2.0" }
+    
+  capabilities:
+    - image_generation_specialized
+    - video_generation_advanced
+    - audio_processing
+    - 3d_model_generation
+    - model_fine_tuning
+    
+  top_models:
+    - { name: "Flux Pro", category: "image", via: "fal.ai" }
+    - { name: "Stable Diffusion 3.5", category: "image", via: "replicate" }
+    - { name: "Kling 2.0", category: "video", via: "fal.ai" }
+    - { name: "Whisper Large v3", category: "audio", via: "replicate" }
+    - { name: "TripoSR", category: "3d", via: "replicate" }
+    
+  installation:
+    fal: "pip install fal-client"
+    replicate: "pip install replicate"
+    env_vars_needed: ["FAL_KEY", "REPLICATE_API_TOKEN"]
+    note: "Check Notion DB for existing credentials (Replicate entry exists)"
+    estimated_time: "10 min"
+    
+  synergy:
+    - "HeyGen: video avatars + fal.ai background generation"
+    - "ElevenLabs: audio + Replicate music generation"
+    - "skill-factory: skills de multimedia más potentes"
+
+# ============================================================
+# RESUMEN DE PRIORIZACIÓN
+# ============================================================
+priority_summary:
+  immediate:  # Esta semana
+    - { tool: "DuckDB", reason: "2 min install, zero cost, immediate value", effort: "minimal" }
+    
+  short_term:  # 1-2 semanas
+    - { tool: "Playwright MCP", reason: "Fills biggest capability gap", effort: "low" }
+    - { tool: "Firecrawl", reason: "Massive research improvement", effort: "low" }
+    
+  medium_term:  # 2-4 semanas
+    - { tool: "Composio", reason: "Meta-connector, requires API key setup", effort: "medium" }
+    - { tool: "fal.ai/Replicate", reason: "Multimedia expansion", effort: "medium" }

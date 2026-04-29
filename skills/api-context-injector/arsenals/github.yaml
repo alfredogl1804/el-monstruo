@@ -1,0 +1,91 @@
+# Arsenal: GitHub — Gateway a Código, CI/CD y Open Source
+# Última actualización: 2026-04-08
+# Credencial: GH_TOKEN (activa en sandbox, gh CLI pre-configurado)
+# CLI: gh (pre-instalado y autenticado)
+
+connector: github
+type: gateway
+ecosystem_size: "Millones de repos + CI/CD + Packages"
+credential_ref: env:GH_TOKEN
+access_method: cli_and_api
+
+connection_pattern: |
+  # Via CLI (método preferido — ya autenticado)
+  gh repo list
+  gh repo clone owner/repo
+  gh issue create --title "..." --body "..."
+  gh pr create --title "..." --body "..."
+  
+  # Via API
+  import requests, os
+  headers = {"Authorization": f"token {os.environ['GH_TOKEN']}"}
+  repos = requests.get("https://api.github.com/user/repos", headers=headers).json()
+
+categories:
+
+  repositories:
+    description: "Gestión de repositorios"
+    capabilities:
+      - id: repo_management
+        name: Gestión de Repos
+        actions: [crear, clonar, fork, buscar, listar, eliminar]
+        triggers: [crear_repo, clonar_repo, buscar_codigo, github_repo]
+        priority: top
+
+      - id: open_source_search
+        name: Búsqueda Open Source
+        best_for: [encontrar_soluciones, librerias, frameworks, templates]
+        triggers: [buscar_open_source, libreria, framework, solucion_existente]
+        note: "Siempre buscar soluciones open source antes de construir desde cero"
+        priority: top
+
+  collaboration:
+    description: "Colaboración y code review"
+    capabilities:
+      - id: pull_requests
+        name: Pull Requests
+        actions: [crear_PR, revisar_PR, merge, comentar]
+        triggers: [pull_request, code_review, merge, PR]
+        priority: high
+
+      - id: issues
+        name: Issues & Projects
+        actions: [crear_issue, asignar, etiquetar, cerrar, project_boards]
+        triggers: [issue, bug_report, feature_request, project_board]
+
+  automation:
+    description: "CI/CD y automatización"
+    capabilities:
+      - id: actions
+        name: GitHub Actions
+        best_for: [CI_CD, testing, deployment, scheduled_tasks, automation]
+        triggers: [ci_cd, github_actions, deploy_automatico, test_automatico]
+        pricing: "Free: 2000 min/mes"
+        priority: high
+
+      - id: pages
+        name: GitHub Pages
+        best_for: [static_hosting, documentation, portfolio]
+        triggers: [github_pages, hosting_gratis, documentacion]
+        pricing: "Free"
+
+  packages:
+    description: "Registro de paquetes"
+    capabilities:
+      - id: packages
+        name: GitHub Packages
+        best_for: [npm_registry, docker_registry, maven, nuget]
+        triggers: [publicar_paquete, docker_registry, npm_privado]
+        pricing: "Free: 500MB storage"
+
+      - id: container_registry
+        name: Container Registry
+        best_for: [docker_images, container_hosting]
+        triggers: [docker_image, container, registro_contenedores]
+
+routing_hints:
+  find_solution: "gh search repos 'query' — buscar open source primero"
+  deploy_code: "GitHub Actions (CI/CD automático)"
+  host_docs: "GitHub Pages (gratis)"
+  manage_project: "Issues + Projects (kanban)"
+  publish_package: "GitHub Packages (npm, docker)"

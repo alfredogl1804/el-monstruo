@@ -1,0 +1,172 @@
+# El Monstruo — Configuración Exacta de los 6 Cerebros
+# Fuente de verdad para model_ids, endpoints, parámetros y anti-errores
+# Última verificación: 2026-04-09
+
+cerebros:
+  gpt54:
+    nombre: "GPT-5.4"
+    proveedor: "OpenAI"
+    rol_primario: ["estratega", "sintetizador", "clasificador"]
+    env_var: "OPENAI_API_KEY"
+    sdk: "openai"
+    endpoint: "https://api.openai.com/v1"
+    model_id: "gpt-5.4"
+    model_id_actual_bot: "gpt-4o"  # DESACTUALIZADO — migrar
+    contexto_tokens: 1050000
+    max_output_tokens: 32768
+    parametros:
+      max_completion_tokens: 4000  # NUNCA usar max_tokens
+      temperature: 0.7
+    anti_errores:
+      - "NUNCA usar max_tokens — solo max_completion_tokens"
+      - "model_id es gpt-5.4, NO gpt-5 ni gpt-5.4-turbo"
+    fallbacks: ["claude-opus-4-6", "grok-4.20-0309-reasoning"]
+    costo_estimado:
+      input_1M: "$2.00"
+      output_1M: "$8.00"
+
+  claude:
+    nombre: "Claude Opus 4.6"
+    proveedor: "Anthropic"
+    rol_primario: ["arquitecto", "critico", "code_review"]
+    env_var: "ANTHROPIC_API_KEY"
+    sdk: "anthropic"
+    endpoint: "https://api.anthropic.com"
+    model_id: "claude-opus-4-6"
+    model_id_actual_bot: null  # NO integrado aún
+    contexto_tokens: 1000000
+    max_output_tokens: 32768
+    parametros:
+      max_tokens: 4096
+      temperature: 0.7
+    anti_errores:
+      - "model_id es claude-opus-4-6, NO claude-4-20250514"
+      - "SDK propio: import anthropic, NO OpenAI SDK"
+      - "Límite imágenes: 3.75MB, documentos: 4.5MB"
+    fallbacks: ["gpt-5.4", "grok-4.20-0309-reasoning"]
+    costo_estimado:
+      input_1M: "$15.00"
+      output_1M: "$75.00"
+
+  gemini:
+    nombre: "Gemini 3.1 Pro"
+    proveedor: "Google"
+    rol_primario: ["creativo", "multimodal", "grounding"]
+    env_var: "GEMINI_API_KEY"
+    sdk: "google-genai"
+    endpoint: "https://generativelanguage.googleapis.com"
+    model_id: "gemini-3.1-pro-preview"
+    model_id_actual_bot: null  # NO integrado aún
+    contexto_tokens: 1000000
+    max_output_tokens: 65536
+    parametros:
+      temperature: 0.8
+    anti_errores:
+      - "SDK es google-genai, NO google-generativeai (deprecated)"
+      - "Soporta grounding con Google Search nativo"
+      - "Multimodal: texto, imagen, video, audio"
+    fallbacks: ["gpt-5.4", "claude-opus-4-6"]
+    costo_estimado:
+      input_1M: "$1.25"
+      output_1M: "$10.00"
+
+  grok:
+    nombre: "Grok 4.20"
+    proveedor: "xAI"
+    rol_primario: ["codigo", "creativo", "tiempo_real", "critico"]
+    env_var: "XAI_API_KEY"
+    sdk: "openai"  # Compatible con OpenAI SDK
+    endpoint: "https://api.x.ai/v1"
+    model_id: "grok-4.20-0309-reasoning"
+    model_id_actual_bot: "grok-3-latest"  # DESACTUALIZADO — migrar
+    contexto_tokens: 2000000  # El más largo
+    max_output_tokens: 32768
+    parametros:
+      max_tokens: 2000
+      temperature: 0.7
+    anti_errores:
+      - "model_id es grok-4.20-0309-reasoning, NO grok-4-latest"
+      - "Usa OpenAI SDK con base_url=https://api.x.ai/v1"
+      - "Contexto 2M tokens — el más largo de todos"
+    fallbacks: ["deepseek/deepseek-r1", "claude-opus-4-6"]
+    costo_estimado:
+      input_1M: "$3.00"
+      output_1M: "$15.00"
+
+  deepseek:
+    nombre: "DeepSeek R1"
+    proveedor: "DeepSeek (via OpenRouter)"
+    rol_primario: ["razonador", "analista", "matematicas"]
+    env_var: "OPENROUTER_API_KEY"
+    sdk: "openai"  # Via OpenRouter
+    endpoint: "https://openrouter.ai/api/v1"
+    model_id: "deepseek/deepseek-r1"
+    model_id_actual_bot: "deepseek/deepseek-r1"  # Correcto
+    contexto_tokens: 128000
+    max_output_tokens: 32768
+    parametros:
+      max_tokens: 2000
+      temperature: 0.6
+    anti_errores:
+      - "SIEMPRE via OpenRouter, no tiene API directa accesible"
+      - "Usa OpenAI SDK con base_url=https://openrouter.ai/api/v1"
+      - "Contexto limitado a 128K — no enviar documentos enormes"
+    fallbacks: ["gpt-5.4", "claude-opus-4-6"]
+    costo_estimado:
+      input_1M: "$0.55"
+      output_1M: "$2.19"
+
+  perplexity:
+    nombre: "Perplexity Sonar Reasoning Pro"
+    proveedor: "Perplexity"
+    rol_primario: ["investigador", "verificador", "leads"]
+    env_var: "SONAR_API_KEY"
+    sdk: "requests"  # NO usar OpenAI SDK
+    endpoint: "https://api.perplexity.ai/chat/completions"
+    model_id: "sonar-reasoning-pro"
+    model_id_actual_bot: "sonar-pro"  # DESACTUALIZADO — migrar
+    contexto_tokens: 128000
+    max_output_tokens: 8192
+    parametros:
+      timeout: 120
+    anti_errores:
+      - "NUNCA usar SDK de OpenAI — solo requests directo"
+      - "Timeout de 120s mínimo — las búsquedas son lentas"
+      - "Incluye citations en la respuesta automáticamente"
+      - "model_id es sonar-reasoning-pro, NO sonar-pro"
+    fallbacks: ["grok-4.20-0309-reasoning", "gpt-5.4"]
+    costo_estimado:
+      input_1M: "$2.00"
+      output_1M: "$8.00"
+
+# Modelos gratuitos via OpenRouter (para tareas de bajo riesgo)
+modelos_gratis:
+  nvidia_nemotron:
+    model_id: "nvidia/nemotron-3-super:free"
+    contexto: 1000000
+    mejor_para: ["finanzas", "codigo"]
+    nota: "120B MoE, Finance #18, Programming #9"
+
+  gemma4_26b:
+    model_id: "google/gemma-4-26b-it:free"
+    contexto: 256000
+    mejor_para: ["multimodal", "tool_calling"]
+    nota: "Multimodal, 140+ idiomas"
+
+  gemma4_31b:
+    model_id: "google/gemma-4-31b-it:free"
+    contexto: 256000
+    mejor_para: ["codigo", "multilingue"]
+    nota: "Código, 140+ idiomas"
+
+  llama4_scout:
+    model_id: "meta-llama/llama-4-scout:free"
+    contexto: 512000
+    mejor_para: ["contexto_largo"]
+    nota: "512K contexto gratis"
+
+  cohere_rerank:
+    model_id: "cohere/rerank-v4.0:free"
+    contexto: 33000
+    mejor_para: ["rag_reranking"]
+    nota: "Reranking para RAG, 100+ idiomas"

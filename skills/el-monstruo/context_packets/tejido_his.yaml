@@ -1,0 +1,179 @@
+domain: HIS
+title: 'Dominio HIS: Histórico'
+type: Tejido (Domain Context)
+summary: El ecosistema El Monstruo se desarrolla a través de una serie de documentos
+  que abordan la evolución histórica, la arquitectura y la implementación de soluciones
+  de inteligencia artificial. La tabla maestra del ecosistema presenta herramientas
+  como Dify y Langflow, evaluando su madurez y riesgos, mientras que el 'Ranking Registry'
+  clasifica 69 herramientas de IA según su calidad y evidencia. La gobernabilidad
+  y la usabilidad son pilares fundamentales, enfatizando la necesidad de una arquitectura
+  modular que permita la adaptación a la obsolescencia y la continuidad operativa.
+  Además, se identifican riesgos en la dependencia de componentes y la falta de mecanismos
+  de recuperación, lo que subraya la importancia de una transición cuidadosa hacia
+  una infraestructura AI-native que transforme hábitos y operaciones a gran escala.
+key_documents:
+- id: doc_000333
+  title: 'Biblia v4.1: Magnitude'
+  summary: Magnitude es un agente de navegador de código abierto que utiliza modelos
+    de lenguaje visualmente fundamentados para automatizar tareas en el navegador.
+  keywords:
+  - Magnitude
+  - agente de navegador
+  - código abierto
+- id: doc_000315
+  title: 'Biblia v4.1: Microsoft Edge Copilot'
+  summary: Microsoft Edge Copilot es un asistente de IA integrado en el navegador
+    Edge que mejora la productividad y creatividad de los usuarios.
+  keywords:
+  - Microsoft Edge Copilot
+  - asistente de IA
+  - productividad
+- id: doc_000408
+  title: 'Biblia v4.1: Perplexity Computer'
+  summary: Perplexity Computer es un agente de IA de propósito general que orquesta
+    múltiples modelos de IA para tareas complejas, lanzado por Perplexity AI en 2026.
+  keywords:
+  - Perplexity Computer
+  - inteligencia artificial
+  - orquestación de modelos
+- id: doc_000294
+  title: 'Biblia v4.1: Adept ACT-2'
+  summary: Adept ACT-2 es una IA empresarial diseñada para automatizar flujos de trabajo,
+    aumentando la capacidad humana en diversas industrias.
+  keywords:
+  - Adept ACT-2
+  - inteligencia artificial
+  - automatización
+- id: doc_000447
+  title: 'Biblia v4.1: Ecosistema de IA de Opera (Opera AI y Neon)'
+  summary: Opera AI y Neon son las dos iniciativas de IA de Opera Software, enfocadas
+    en la navegación web y la interacción proactiva.
+  keywords:
+  - Opera Software
+  - Opera AI
+  - Opera Neon
+- id: doc_000307
+  title: 'Biblia v4.1: CoACT-1'
+  summary: CoAct-1 es un sistema multi-agente que integra ejecución de código y GUI
+    para automatizar flujos de trabajo digitales complejos.
+  keywords:
+  - CoAct-1
+  - automación
+  - multi-agente
+- id: doc_000311
+  title: 'Biblia v4.1: Devin | Cognition AI | Extremo A7 | AI Software Engineer |
+    USA'
+  summary: Devin es un ingeniero de software de IA autónomo que optimiza el desarrollo
+    de software, aunque enfrenta desafíos de seguridad y adopción.
+  keywords:
+  - Devin
+  - Cognition AI
+  - IA autónoma
+- id: doc_000396
+  title: 'Biblia v0.3.1: Magnitude'
+  summary: Magnitude es una herramienta de automatización de navegador de código abierto
+    que utiliza modelos de lenguaje visualmente fundamentados para interactuar con
+    interfaces web.
+  keywords:
+  - Magnitude
+  - automatización
+  - navegador
+- id: doc_000349
+  title: 'Biblia v4.1-Infra: promptfoo'
+  summary: promptfoo es una plataforma de evaluación de LLMs que promueve un desarrollo
+    basado en pruebas, ofreciendo integración con múltiples proveedores y herramientas
+    de CI/CD.
+  keywords:
+  - promptfoo
+  - LLMs
+  - evaluación
+- id: doc_000347
+  title: 'Biblia v4.1: pydanticai'
+  summary: PydanticAI es un framework de IA de código abierto para Python, que facilita
+    la creación de aplicaciones de IA generativa seguras y robustas.
+  keywords:
+  - PydanticAI
+  - framework
+  - IA generativa
+- id: doc_000376
+  title: 'Biblia v4.1: CoACT-1'
+  summary: CoAct-1 es un sistema multi-agente de IA que integra ejecución de código
+    y GUI para automatizar flujos de trabajo complejos.
+  keywords:
+  - CoAct-1
+  - IA
+  - automatización
+- id: doc_000453
+  title: 'Biblia v4.1: Sigma AI Browser'
+  summary: Sigma AI Browser es un navegador de IA que prioriza la privacidad y el
+    procesamiento local de datos, fundado en 2024 en Estonia.
+  keywords:
+  - Sigma AI Browser
+  - privacidad
+  - procesamiento local
+- id: doc_000231
+  title: 'Biblia v4.1: Microsoft AutoGen'
+  summary: Microsoft AutoGen es un framework de código abierto para crear aplicaciones
+    de IA con múltiples agentes, lanzado en 2023 y en evolución rápida.
+  keywords:
+  - Microsoft AutoGen
+  - framework
+  - código abierto
+- id: doc_000340
+  title: biblia v41 open interpreter
+  summary: Open Interpreter es una herramienta de código abierto que permite a los
+    LLM ejecutar código localmente, transformando tareas en agentes activos.
+  keywords:
+  - Open Interpreter
+  - LLM
+  - código abierto
+- id: doc_000418
+  title: 'Biblia v4.1: surfer-2'
+  summary: Surfer 2 es una arquitectura de agente de IA de H Company que opera mediante
+    observaciones visuales, permitiendo interacción con cualquier GUI sin ajustes
+    específicos.
+  keywords:
+  - Surfer 2
+  - H Company
+  - agente de IA
+- id: doc_000456
+  title: 'Biblia v4.1-Infra: Temporal'
+  summary: Temporal es una plataforma de código abierto para la ejecución duradera
+    de flujos de trabajo, fundada en 2019 en EE.UU.
+  keywords:
+  - Temporal
+  - flujos de trabajo
+  - código abierto
+- id: doc_000325
+  title: 'Biblia v4.1: Jace AI (Zeta Labs)'
+  summary: JACE, un agente autónomo de navegador de Zeta Labs, busca automatizar tareas
+    complejas en la web, pero su futuro es incierto tras redirecciones de su sitio.
+  keywords:
+  - JACE
+  - Zeta Labs
+  - agente autónomo
+- id: doc_000329
+  title: 'Biblia v4.1-Infra: LlamaIndex'
+  summary: LlamaIndex es un framework de código abierto para aplicaciones de IA generativa,
+    fundado en 2023 en EE.UU., con un enfoque en la orquestación de datos para RAG.
+  keywords:
+  - LlamaIndex
+  - IA generativa
+  - código abierto
+- id: doc_000420
+  title: 'Biblia v4.1: Writer Action Agent'
+  summary: Writer Action Agent es un agente de IA autónomo que redefine la productividad
+    empresarial mediante la automatización de flujos de trabajo complejos.
+  keywords:
+  - IA autónoma
+  - productividad empresarial
+  - automatización
+- id: doc_000413
+  title: 'Biblia v4.1: rtrvr.ai v2 | rtrvr.ai | Consumer A5 | Chrome Extension Agent
+    | USA'
+  summary: rtrvr.ai es una plataforma de IA que automatiza flujos de trabajo web utilizando
+    un enfoque nativo de DOM, ofreciendo un modelo freemium y opciones de personalización.
+  keywords:
+  - rtrvr.ai
+  - IA
+  - DOM

@@ -1,0 +1,288 @@
+# ============================================================
+# Router de Decisión v3.0 — Capability-Routed
+# api-context-injector v3.0
+# ============================================================
+# TODAS las rutas tienen "primary" explícito.
+# Para routing avanzado por capacidades: capability_registry.yaml
+# Para tareas multi-dominio: pipeline_templates.yaml
+# ============================================================
+
+version: "3.0"
+last_verified: "2026-04-08"
+ttl_days: 30
+
+routes:
+
+  # === LLM & IA ===
+  text_generation:
+    primary: {connector: openai, model: "gpt-5.4"}
+    alternatives:
+      - {connector: openrouter, model: "anthropic/claude-sonnet-4-6"}
+      - {connector: openrouter, model: "meta-llama/llama-4-maverick"}
+    budget: {connector: openrouter, model: "google/gemma-3-27b-it:free"}
+
+  complex_reasoning:
+    primary: {connector: openai, model: "gpt-5.4"}
+    alternatives:
+      - {connector: openrouter, model: "anthropic/claude-sonnet-4-6"}
+      - {connector: gemini, model: "gemini-2.5-flash"}
+    specialist: {connector: openrouter, model: "deepseek/deepseek-r1"}
+
+  coding:
+    primary: {connector: openrouter, model: "anthropic/claude-sonnet-4-6"}
+    alternatives:
+      - {connector: openai, model: "gpt-5.4"}
+      - {connector: openrouter, model: "qwen/qwen-2.5-coder-32b-instruct"}
+    budget: {connector: openrouter, model: "deepseek/deepseek-r1"}
+    edge: {connector: cloudflare, service: "workers_ai", model: "kimi-k2.5"}
+
+  vision_analysis:
+    primary: {connector: openai, model: "gpt-5.4"}
+    alternatives:
+      - {connector: gemini, model: "gemini-2.5-flash"}
+      - {connector: openrouter, model: "anthropic/claude-sonnet-4-6"}
+    aws: {connector: aws, service: "rekognition"}
+
+  ultra_long_context:
+    primary: {connector: openrouter, model: "meta-llama/llama-4-scout", context: "10M"}
+    alternatives:
+      - {connector: gemini, model: "gemini-2.5-flash", context: "1M"}
+      - {connector: openrouter, model: "openrouter/hunter-alpha", context: "1M+"}
+
+  multi_model_consensus:
+    primary: {connector: consulta_sabios, method: "6 Sabios via semilla v7.3"}
+    note: "Usar skill consulta-sabios para consenso multi-modelo"
+
+  research_with_citations:
+    primary: {connector: perplexity, model: "sonar-reasoning-pro"}
+    alternatives:
+      - {connector: openrouter, model: "perplexity/sonar-deep-research"}
+      - {connector: xai, model: "grok-4.20-0309-reasoning", note: "tiene web access"}
+
+  # === MEDIA & GENERACIÓN ===
+  text_to_speech:
+    primary: {connector: elevenlabs, method: "SDK Python"}
+    alternatives:
+      - {connector: openai, method: "tts-1-hd"}
+    budget: {connector: aws, service: "polly"}
+
+  speech_to_text:
+    primary: {connector: manus_native, tool: "manus-speech-to-text"}
+    alternatives:
+      - {connector: openai, model: "whisper-1"}
+
+  voice_cloning:
+    primary: {connector: elevenlabs, method: "SDK Python, voice cloning API"}
+
+  video_avatar_generation:
+    primary: {connector: heygen, method: "REST API v2"}
+    alternative: {connector: atlas_cloud, method: "Notion credential"}
+
+  video_analysis:
+    primary: {connector: manus_native, tool: "manus-analyze-video"}
+
+  image_generation:
+    primary: {connector: manus_native, tool: "generate mode"}
+    alternatives:
+      - {connector: openai, model: "dall-e-3"}
+      - {connector: replicate, method: "Notion credential, flux models"}
+    edge: {connector: cloudflare, service: "workers_ai", model: "stable-diffusion-xl"}
+    budget: {connector: novita, method: "Notion credential"}
+
+  model_3d_generation:
+    primary: {connector: meshy, method: "Notion credential"}
+
+  # === SCRAPING & DATA ===
+  scraping_static_sites:
+    primary: {connector: apify, actor: "apify/cheerio-scraper"}
+    alternative: {connector: python_native, method: "requests + beautifulsoup4"}
+    note: "Cheerio 10x más rápido que Puppeteer para HTML estático"
+
+  scraping_dynamic_sites:
+    primary: {connector: apify, actor: "apify/web-scraper"}
+    alternative: {connector: manus_native, tool: "browser"}
+    note: "Para sitios con JavaScript rendering"
+
+  scraping_at_scale:
+    primary: {connector: apify, actor: "apify/website-content-crawler"}
+    note: "Para crawlear sitios completos"
+
+  instagram_scraping:
+    primary: {connector: apify, actor: "apify/instagram-scraper"}
+    alternative: {connector: instagram_mcp, method: "MCP para insights propios"}
+
+  google_maps_scraping:
+    primary: {connector: apify, actor: "compass/crawler-google-places"}
+
+  facebook_scraping:
+    primary: {connector: apify, actor: "apify/facebook-pages-scraper"}
+
+  tiktok_scraping:
+    primary: {connector: apify, actor: "clockworks/tiktok-scraper"}
+
+  linkedin_scraping:
+    primary: {connector: apify, actor: "anchor/linkedin-profile-scraper"}
+
+  amazon_scraping:
+    primary: {connector: apify, actor: "junglee/amazon-crawler"}
+
+  youtube_scraping:
+    primary: {connector: apify, actor: "bernardo/youtube-scraper"}
+
+  lead_generation:
+    primary: {connector: apify, actor: "apify/email-extractor"}
+    serp: {connector: apify, actor: "apify/google-search-scraper"}
+    crm: {connector: zapier, app: "HubSpot o Salesforce"}
+
+  real_estate_data:
+    primary: {connector: apify, actor: "apify/zillow-scraper"}
+    note: "Relevante para proyecto CIP"
+
+  social_listening:
+    primary: {connector: brandmentions, method: "REST API"}
+    alternative: {connector: mentionlytics, method: "REST API v2"}
+
+  price_tracking:
+    primary: {connector: keepa, method: "Notion credential, REST API"}
+
+  # === EMAIL & COMMUNICATION ===
+  send_email_personal:
+    primary: {connector: gmail, method: "MCP"}
+    alternative: {connector: outlook, method: "MCP"}
+
+  send_email_transactional:
+    primary: {connector: aws, service: "ses", cost: "$0.10/1000"}
+    alternative: {connector: zapier, app: "SendGrid"}
+
+  send_email_marketing:
+    primary: {connector: zapier, app: "Mailchimp"}
+    alternative: {connector: zapier, app: "ConvertKit"}
+
+  schedule_meeting:
+    primary: {connector: google_calendar, method: "MCP"}
+
+  # === DATABASE & STORAGE ===
+  database_relational:
+    primary: {connector: supabase, service: "postgresql"}
+    alternative: {connector: cloudflare, service: "d1"}
+
+  database_vector_rag:
+    primary: {connector: supabase, service: "pgvector"}
+    alternative: {connector: cloudflare, service: "vectorize"}
+
+  database_key_value:
+    primary: {connector: cloudflare, service: "kv"}
+
+  store_files:
+    primary: {connector: dropbox, method: "SDK Python"}
+    alternatives:
+      - {connector: google_drive, method: "gws CLI"}
+      - {connector: cloudflare, service: "r2", note: "zero egress"}
+      - {connector: aws, service: "s3"}
+      - {connector: supabase, service: "storage"}
+
+  # === INFRASTRUCTURE & DEPLOY ===
+  deploy_api_endpoint:
+    primary: {connector: cloudflare, service: "workers"}
+    alternatives:
+      - {connector: aws, service: "lambda + api_gateway"}
+      - {connector: vercel, method: "MCP functions"}
+
+  deploy_static_site:
+    primary: {connector: vercel, method: "MCP"}
+    alternatives:
+      - {connector: cloudflare, service: "pages"}
+      - {connector: github, service: "pages", note: "gratuito"}
+
+  edge_ai_inference:
+    primary: {connector: cloudflare, service: "workers_ai", note: "50+ modelos, sin costo por token"}
+
+  gpu_compute:
+    primary: {connector: runpod, method: "Notion credential"}
+    alternative: {connector: aws, service: "ec2-gpu"}
+
+  domain_management:
+    primary: {connector: cloudflare, service: "dns + ssl"}
+    alternatives:
+      - {connector: aws, service: "route53"}
+      - {connector: vercel, method: "MCP domains"}
+    registrar: {connector: godaddy, method: "REST API, sso-key auth"}
+    hosting: {connector: railway, method: "GraphQL API, custom domains"}
+    note: "Flujo completo: GoDaddy(registrar) -> Cloudflare(DNS/SSL) -> Railway(hosting). SIEMPRE via API, NUNCA via UI."
+
+  # === AUTOMATION & WORKFLOWS ===
+  cross_app_automation:
+    primary: {connector: zapier, method: "MCP"}
+    note: "8000+ apps. Zapier es el puente universal."
+
+  project_management:
+    primary: {connector: asana, method: "MCP"}
+    alternative: {connector: zapier, app: "Trello/Monday/ClickUp"}
+
+  document_management:
+    primary: {connector: notion, method: "MCP"}
+    alternative: {connector: google_drive, method: "gws docs"}
+
+  spreadsheet_operations:
+    primary: {connector: google_drive, method: "gws sheets"}
+
+  # === PAYMENTS & COMMERCE ===
+  payment_processing:
+    primary: {connector: paypal, method: "MCP"}
+    alternative: {connector: stripe, method: "Notion credential"}
+
+  subscription_management:
+    primary: {connector: revenuecat, method: "MCP"}
+
+  # === SOCIAL MEDIA ===
+  social_media_posting:
+    primary: {connector: instagram_mcp, method: "MCP", note: "Posts, Stories, Reels"}
+    multi_platform: {connector: zapier, apps: "Twitter, LinkedIn, Facebook"}
+
+  # === CODE & REPOS ===
+  code_repository:
+    primary: {connector: github, method: "gh CLI"}
+
+  find_open_source:
+    primary: {connector: github, method: "gh search repos"}
+    note: "SIEMPRE buscar open source antes de construir desde cero"
+
+  ci_cd:
+    primary: {connector: github, service: "actions"}
+    alternative: {connector: vercel, method: "auto-deploy on push"}
+
+  # === SECURITY & INTELLIGENCE ===
+  domain_intelligence:
+    primary: {connector: securitytrails, method: "Notion credential, REST API"}
+    note: "DNS history, subdominios, WHOIS, infraestructura"
+
+  virtual_try_on:
+    primary: {connector: fashn, method: "Notion credential"}
+
+  # === SECRET MANAGEMENT (NUEVO v3.1) ===
+  secret_injection_local:
+    primary: {connector: inject_secrets, method: "script --target sandbox"}
+    note: "Inyecta secrets en .env.local del proyecto. Detecta scaffold automáticamente."
+
+  secret_injection_vercel:
+    primary: {connector: inject_secrets, method: "script --target vercel"}
+    alternative: {connector: vercel, method: "MCP create-environment-variable"}
+    note: "Inyecta secrets en Vercel. Usa encrypted type."
+
+  secret_injection_cloudflare:
+    primary: {connector: inject_secrets, method: "script --target cloudflare"}
+    alternative: {connector: cloudflare, method: "wrangler secret put"}
+    note: "Inyecta secrets en Cloudflare Workers."
+
+  secret_injection_supabase:
+    primary: {connector: inject_secrets, method: "script --target supabase"}
+    alternative: {connector: supabase, method: "MCP execute_sql vault.create_secret()"}
+    note: "Inyecta secrets en Supabase Vault."
+
+  project_secret_audit:
+    primary: {connector: inject_secrets, method: "script --audit"}
+    note: "Audita secrets de un proyecto: qué tiene, qué falta, qué está expuesto."
+
+  scaffold_detection:
+    primary: {connector: inject_secrets, method: "script --detect"}
+    note: "Detecta tipo de scaffold para determinar estrategia de secrets."

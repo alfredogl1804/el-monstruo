@@ -1,0 +1,139 @@
+# El Monstruo — Configuración de Servicios de Infraestructura
+# Última verificación: 2026-04-09
+
+servicios:
+  supabase:
+    nombre: "Supabase (Golden Record)"
+    tipo: "BaaS"
+    project_id: "xsumzuhwmivjgftsneov"
+    url: "https://xsumzuhwmivjgftsneov.supabase.co"
+    dashboard: "https://supabase.com/dashboard/project/xsumzuhwmivjgftsneov"
+    env_vars:
+      - "SUPABASE_URL"
+      - "SUPABASE_SERVICE_KEY"
+    acceso_sandbox: "Via MCP (manus-mcp-cli --server supabase)"
+    tablas:
+      monstruo_memory:
+        descripcion: "Memoria semántica del bot"
+        columnas: ["user_id", "role", "content", "task_type", "brain_used", "metadata", "embedding", "created_at"]
+        vector_column: "embedding"
+        embedding_model: "text-embedding-3-small"
+        embedding_dimensions: 1536
+    funciones_rpc:
+      match_memories:
+        descripcion: "Búsqueda vectorial de memorias"
+        parametros: ["query_embedding", "match_threshold", "match_count", "filter_user_id"]
+        threshold_recomendado: 0.3
+    corpus:
+      total_docs: 578
+      total_chunks: 25573
+      total_embeddings: 23473
+    conexion:
+      headers:
+        apikey: "${SUPABASE_SERVICE_KEY}"
+        Authorization: "Bearer ${SUPABASE_SERVICE_KEY}"
+        Content-Type: "application/json"
+      guardar: "POST ${SUPABASE_URL}/rest/v1/monstruo_memory"
+      buscar: "POST ${SUPABASE_URL}/rest/v1/rpc/match_memories"
+      recientes: "GET ${SUPABASE_URL}/rest/v1/monstruo_memory?user_id=eq.{id}&order=created_at.desc&limit=5"
+
+  notion:
+    nombre: "Notion (Workspace Alfredo)"
+    tipo: "Knowledge Base + CRM"
+    api_version: "2022-06-28"
+    acceso_sandbox: "Via MCP (manus-mcp-cli --server notion)"
+    databases:
+      api_keys:
+        id: "54b9d97704bc408d8453c1524fbfec9b"
+        descripcion: "Inventario de API Keys y Credenciales"
+      leads:
+        id: "auto-creada"
+        nombre: "Leads - El Monstruo"
+        descripcion: "CRM de leads investigados por el bot"
+    paginas_clave:
+      dashboard: "33a14c6f8bba813d998dcbb1bf88bdd9"
+      semilla_v73: "Semilla v7.3 — configuración de los 6 Sabios"
+      biblia_manus: "Guía exhaustiva de capacidades de Manus"
+      mapa_expansion: "Mapa de Expansión vía APIs y MCPs"
+    comandos_mcp:
+      buscar: 'manus-mcp-cli tool call notion-search --server notion --input ''{"query": "TERMINO"}'''
+      leer: 'manus-mcp-cli tool call notion-fetch --server notion --input ''{"pageId": "ID"}'''
+      crear: 'manus-mcp-cli tool call notion-create-page --server notion --input ''{"...": "..."}'''
+
+  railway:
+    nombre: "Railway (Deploy Backend)"
+    tipo: "PaaS"
+    project_id: "1dcb47ee-6c01-44bb-baff-d89812382fee"
+    repo: "github.com/alfredogl1804/el-monstruo-bot"
+    branch: "master"
+    auto_deploy: true
+    runtime: "Python 3.11"
+    limitaciones:
+      - "15 min timeout en conexiones HTTP/WS"
+      - "Usar SSE en vez de WebSockets"
+    deploy_flow:
+      - "pkill -f 'python.*bot.py' 2>/dev/null"
+      - "cd /home/ubuntu/monstruo-deploy"
+      - "git add . && git commit -m 'descripción'"
+      - "git push origin master"
+      - "Railway redeploya automáticamente"
+
+  vercel:
+    nombre: "Vercel (Consola Web — Sprint 1)"
+    tipo: "Frontend Hosting"
+    acceso_sandbox: "Via MCP (manus-mcp-cli --server vercel)"
+    stack_sprint1:
+      framework: "Next.js 16"
+      ui: "shadcn/ui"
+      ai_sdk: "Vercel AI SDK"
+      runtime: "Edge Runtime"
+    deploy_via_mcp: true
+
+  github:
+    nombre: "GitHub (Repositorios)"
+    tipo: "Source Control"
+    acceso_sandbox: "Via gh CLI (pre-configurado)"
+    repos:
+      bot:
+        nombre: "alfredogl1804/el-monstruo-bot"
+        privado: true
+        branch: "master"
+    comandos:
+      clonar: "gh repo clone alfredogl1804/el-monstruo-bot"
+      push: "git push origin master"
+      crear: "gh repo create nombre --private"
+
+  elevenlabs:
+    nombre: "ElevenLabs"
+    tipo: "Audio/Voz"
+    env_var: "ELEVENLABS_API_KEY"
+    sdk: "elevenlabs"
+    capacidades:
+      - "Text-to-Speech (TTS)"
+      - "Voice Cloning"
+      - "Speech-to-Text"
+      - "Dubbing"
+    uso_monstruo: "Generar audio para respuestas del bot, clonar voz de Alfredo"
+    conexion: |
+      from elevenlabs import ElevenLabs
+      client = ElevenLabs(api_key=os.environ["ELEVENLABS_API_KEY"])
+      audio = client.text_to_speech.convert(
+          text="...",
+          voice_id="...",
+          model_id="eleven_multilingual_v2"
+      )
+
+  heygen:
+    nombre: "HeyGen"
+    tipo: "Video AI"
+    env_var: "HEYGEN_API_KEY"
+    endpoint: "https://api.heygen.com/v2/video/generate"
+    capacidades:
+      - "Text-to-Video con avatares"
+      - "Audio-to-Video"
+      - "Múltiples escenas"
+    uso_monstruo: "Generar videos con avatar para contenido automatizado"
+    conexion: |
+      headers = {"X-Api-Key": os.environ["HEYGEN_API_KEY"]}
+      # POST https://api.heygen.com/v2/video/generate
+      # GET https://api.heygen.com/v1/video_status.get?video_id={ID}

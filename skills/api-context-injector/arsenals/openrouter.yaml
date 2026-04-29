@@ -1,0 +1,154 @@
+# Arsenal: OpenRouter — Gateway a 500+ modelos de IA
+# Última actualización: 2026-04-08
+# Credencial: env:OPENROUTER_API_KEY (activa en sandbox)
+# Base URL: https://openrouter.ai/api/v1
+# Compatibilidad: OpenAI SDK (base_url override)
+
+connector: openrouter
+type: gateway
+ecosystem_size: "500+ AI models"
+credential_ref: env:OPENROUTER_API_KEY
+base_url: https://openrouter.ai/api/v1
+api_compatibility: openai_sdk
+
+connection_pattern: |
+  from openai import OpenAI
+  client = OpenAI(
+      api_key=os.environ["OPENROUTER_API_KEY"],
+      base_url="https://openrouter.ai/api/v1"
+  )
+  response = client.chat.completions.create(
+      model="MODEL_ID_HERE",
+      messages=[{"role": "user", "content": "..."}]
+  )
+
+# Los 6 Sabios ya están en llm-registry.yaml.
+# Aquí catalogamos modelos ADICIONALES de alto valor accesibles via OpenRouter.
+
+categories:
+
+  frontier_reasoning:
+    description: "Modelos frontier de razonamiento avanzado"
+    models:
+      - id: "openrouter/hunter-alpha"
+        name: "Hunter Alpha (OpenRouter)"
+        params: "1T+"
+        context: "1M+"
+        best_for: [agentic_planning, long_horizon, complex_reasoning]
+        triggers: [agente_autonomo, planificacion_compleja, razonamiento_largo]
+        cost: "varies"
+
+      - id: "openrouter/healer-alpha"
+        name: "Healer Alpha (OpenRouter)"
+        params: "1T+"
+        context: "1M+"
+        best_for: [dynamic_routing, feature_detection, smart_filtering]
+        triggers: [routing_inteligente, seleccion_modelo]
+        cost: "varies"
+
+  open_source_leaders:
+    description: "Mejores modelos open source"
+    models:
+      - id: "meta-llama/llama-4-maverick"
+        name: "Llama 4 Maverick (Meta)"
+        params: "400B MoE"
+        context: "1M"
+        best_for: [general_purpose, coding, multilingual]
+        triggers: [tarea_general, codigo, multilingue]
+        cost: "$0.20/$0.60 per M tokens"
+
+      - id: "meta-llama/llama-4-scout"
+        name: "Llama 4 Scout (Meta)"
+        params: "109B MoE"
+        context: "10M"
+        best_for: [ultra_long_context, document_analysis, massive_codebases]
+        triggers: [contexto_masivo, analisis_documentos_largos, 10M_tokens]
+        cost: "$0.15/$0.40 per M tokens"
+        note: "10M de contexto — el más largo disponible"
+
+      - id: "qwen/qwen-2.5-coder-32b-instruct"
+        name: "Qwen 2.5 Coder 32B"
+        params: "32B"
+        context: "128K"
+        best_for: [coding, code_review, refactoring]
+        triggers: [codigo_especializado, refactoring, code_review]
+        cost: "low"
+
+      - id: "mistralai/mistral-large-2411"
+        name: "Mistral Large"
+        params: "123B"
+        context: "128K"
+        best_for: [multilingual, european_languages, coding]
+        triggers: [frances, aleman, europeo, multilingue]
+        cost: "$2/$6 per M tokens"
+
+  chinese_frontier:
+    description: "Modelos frontier chinos"
+    models:
+      - id: "deepseek/deepseek-r1"
+        name: "DeepSeek R1"
+        context: "128K"
+        best_for: [math, code, reasoning, budget_friendly]
+        triggers: [matematicas, optimizacion, analisis_tecnico]
+        cost: "$0.55/$2.19 per M tokens"
+        note: "Ya es Sabio — acceso via OpenRouter"
+
+      - id: "moonshotai/kimi-k2.5"
+        name: "Kimi K2.5 (Moonshot)"
+        context: "128K"
+        best_for: [agentic_coding, tool_use, long_context]
+        triggers: [agente_codigo, tool_calling, kimi]
+        cost: "$0.20/$0.60 per M tokens"
+        note: "Excelente para coding agentic. También en Cloudflare Workers AI."
+
+  vision_models:
+    description: "Modelos con capacidad de visión"
+    models:
+      - id: "google/gemini-2.5-flash-preview"
+        name: "Gemini 2.5 Flash"
+        context: "1M"
+        best_for: [fast_vision, image_analysis, cheap_multimodal]
+        triggers: [vision_rapida, analisis_imagen_barato]
+        cost: "very low"
+
+      - id: "anthropic/claude-3.5-sonnet"
+        name: "Claude 3.5 Sonnet"
+        context: "200K"
+        best_for: [vision, document_analysis, charts]
+        triggers: [leer_documento, analizar_grafico, OCR]
+        cost: "$3/$15 per M tokens"
+
+  free_models:
+    description: "Modelos gratuitos (sin costo)"
+    models:
+      - id: "google/gemma-3-27b-it:free"
+        name: "Gemma 3 27B (Free)"
+        context: "96K"
+        best_for: [quick_tasks, drafts, testing]
+        triggers: [tarea_rapida, borrador, prueba_gratis]
+        cost: "FREE"
+
+      - id: "meta-llama/llama-4-scout:free"
+        name: "Llama 4 Scout (Free)"
+        context: "512K"
+        best_for: [free_long_context, testing, prototyping]
+        triggers: [gratis, prototipo, contexto_largo_gratis]
+        cost: "FREE"
+
+  specialized:
+    description: "Modelos especializados"
+    models:
+      - id: "perplexity/sonar-deep-research"
+        name: "Sonar Deep Research"
+        context: "128K"
+        best_for: [deep_research, multi_source, citations]
+        triggers: [investigacion_profunda, multiples_fuentes]
+        cost: "$2/$8 per M tokens"
+
+# Routing hints para el Router de Decisión
+routing_hints:
+  ultra_long_context: "llama-4-scout (10M tokens)"
+  budget_coding: "qwen-2.5-coder-32b o deepseek-r1"
+  free_tier: "gemma-3-27b:free o llama-4-scout:free"
+  agentic: "hunter-alpha o kimi-k2.5"
+  european_languages: "mistral-large"

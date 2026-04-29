@@ -1,0 +1,250 @@
+{
+  "fecha": "2026-04-24",
+  "es_completo": true,
+  "repos_a_clonar": [
+    {
+      "nombre": "Odoo Community 19 (POS Restaurant)",
+      "url": "https://github.com/odoo/odoo",
+      "funcion": "Base arquitectónica que maneja transacciones, usuarios, multi-sucursal y datos core",
+      "modulos_cubiertos": [
+        "POS",
+        "Inventarios",
+        "Recetas y Costeo",
+        "Compras y Proveedores",
+        "Reportes y Dashboards",
+        "Control de Empleados",
+        "Multi-sucursal"
+      ]
+    },
+    {
+      "nombre": "Supabase",
+      "url": "https://supabase.com",
+      "funcion": "Base de datos en tiempo real para todos los usuarios",
+      "modulos_cubiertos": [
+        "Mapa de Mesas",
+        "Menú Digital",
+        "Reservaciones"
+      ]
+    }
+  ],
+  "apis_a_conectar": [
+    {
+      "nombre": "OpenAI GPT-4 API",
+      "url": "https://api.openai.com",
+      "funcion": "Motor de IA central que procesa español mexicano y toma decisiones proactivas",
+      "pricing": "No hay un precio fijo para la **API de OpenAI GPT-4** (o sus variantes como GPT-4o y GPT-4.1) en abril 2026, ya que se cobra **por uso en tokens** (millones de tokens de entrada/salida), no por número de sucursales o ubicaciones. Los precios varían por modelo y están en **USD**; para estimar en **MXN**, usa el tipo de cambio actual aproximado de **20 MXN por USD** (sujeto a fluctuaciones diarias)[1][3][4].\n\n### Precios principales de modelos GPT-4 en 2026 (por 1M tokens, USD)\nLos resultados mues",
+      "fuentes_pricing": [
+        "https://blog.donweb.com/api-openai-2026-integrar-gpt-proyectos-costos/",
+        "https://pricepertoken.com/pricing-page/model/openai-gpt-4",
+        "https://devtk.ai/en/blog/openai-api-pricing-guide-2026/",
+        "https://openai.com/es-419/api/pricing/",
+        "https://www.metacto.com/blogs/unlocking-the-true-cost-of-openai-api-a-deep-dive-into-usage-integration-and-maintenance",
+        "https://www.nebuly.com/blog/openai-gpt-4-api-pricing",
+        "https://openai.com/api/pricing/",
+        "https://developers.openai.com/api/docs/pricing",
+        "https://costgoat.com/pricing/openai-api",
+        "https://www.helicone.ai/llm-cost/provider/openai/model/gpt-4"
+      ],
+      "costo_mensual_mxn": 26,
+      "modelo_recomendado": "GPT-4o mini",
+      "pricing_detalle": "$0.15/1M input, $0.60/1M output"
+    },
+    {
+      "nombre": "Supabase",
+      "url": "https://supabase.com",
+      "funcion": "Base de datos en tiempo real para todos los usuarios",
+      "pricing": "Supabase en abril de 2026 ofrece cuatro planes de precios: **Gratuito ($0/mes), Pro ($25/mes base + uso), Equipo ($599/mes + uso) y Empresarial (personalizado)**[1][3].\n\nPara tu caso específico de 5 sucursales de restaurante + 1 CEDIS en México, la recomendación depende del volumen de usuarios y datos:\n\n## Opción 1: Plan Pro por sucursal (Recomendado para pequeña-mediana escala)\n\nSi cada sucursal tiene su propio proyecto:\n- **6 proyectos × $25/mes = $150/mes USD**\n- Incluye por proyecto: 100,000",
+      "fuentes_pricing": [
+        "https://www.getaiperks.com/es/articles/supabase-pricing",
+        "https://uibakery.io/blog/supabase-pricing",
+        "https://www.metacto.com/blogs/the-true-cost-of-supabase-a-comprehensive-guide-to-pricing-integration-and-maintenance",
+        "https://hackceleration.com/es/opinion-supabase/",
+        "https://checkthat.ai/brands/supabase/pricing",
+        "https://supabase.com/pricing",
+        "https://supabase.com",
+        "https://supabase.com/docs/guides/functions/pricing",
+        "https://supabase.com/docs/guides/platform/regions"
+      ],
+      "costo_mensual_mxn": 425,
+      "plan": "Pro ($25 USD/mes)"
+    },
+    {
+      "nombre": "Grafana Cloud",
+      "url": "https://grafana.com",
+      "funcion": "Analytics y dashboards en tiempo real",
+      "pricing": "# Precio de Grafana Cloud en abril 2026\n\nBasándome en los resultados de búsqueda disponibles, **Grafana Cloud Pro cuesta $15 USD por usuario activo por mes**[2], aunque los precios exactos en MXN y el cálculo específico para tu estructura no están disponibles en las fuentes.\n\n## Desglose de costos para tu caso\n\nPara 5 sucursales de restaurante + 1 CEDIS, necesitarías considerar:\n\n**Componentes de precios de Grafana Cloud:**\n- **Usuarios activos:** $15 por usuario/mes[2]\n- **Métricas:** aproximad",
+      "fuentes_pricing": [
+        "https://aws.amazon.com/es/grafana/pricing/",
+        "https://www.vendr.com/marketplace/grafana",
+        "https://azure.microsoft.com/en-us/pricing/details/managed-grafana/",
+        "https://grafana.com/pricing/",
+        "https://aws.amazon.com/grafana/pricing/",
+        "https://grafana.com/products/cloud/",
+        "https://grafana.com/docs/grafana-cloud/monitor-applications/application-observability/pricing/",
+        "https://grafana.com/docs/grafana-cloud/security-and-account-management/regional-availability/",
+        "https://grafana.com/docs/grafana-cloud/machine-learning/billing/",
+        "https://ramp.com/vendors/grafana-labs"
+      ],
+      "costo_mensual_mxn": 0,
+      "plan": "Free tier (suficiente para 5 sucursales)"
+    },
+    {
+      "nombre": "Octotable",
+      "url": "https://www.octotable.com",
+      "funcion": "Gestión de reservas y delivery",
+      "pricing": "Octotable ofrece planes mensuales en euros (sin IVA incluido) que no especifican precios por número de sucursales o CEDIS, por lo que el costo para 5 sucursales de restaurante + 1 CEDIS requeriría contactar directamente al proveedor para una cotización personalizada, ya que los planes parecen diseñados para un solo establecimiento[1][4]. Los planes vigentes son:\n\n| Plan     | Precio mensual (EUR, sin IVA) | Funcionalidades clave |\n|----------|-------------------------------|---------------------",
+      "fuentes_pricing": [
+        "https://www.octotable.com/es/",
+        "https://www.octotable.com/es/software-para-restaurantes-2026/",
+        "https://www.tvazteca.com/aztecanoticias/cena-ano-nuevo-2026-cdmx-restaurantes-costos-precios/",
+        "https://www.octotable.com/es/cuanto-cuesta/",
+        "https://www.opentable.com.mx",
+        "https://www.opentable.com.mx/r/octo-restaurante-guadalajara",
+        "https://www.opentable.com/open/mexico-city?lang=es",
+        "https://www.opentable.com/r/octo-restaurante-guadalajara",
+        "https://www.opentable.com.mx/metro/mexico-city-restaurants"
+      ],
+      "costo_mensual_mxn": 0,
+      "plan": "Free tier (30 reservas/mes) o DigiMenu"
+    }
+  ],
+  "codigo_nuevo": [],
+  "orden_ensamblaje": [],
+  "costos": {
+    "operacion_mensual_mxn": 1301,
+    "desglose_mensual": "Odoo hosting $850 + Supabase $425 + OpenAI $26 + Grafana $0 + Octotable $0",
+    "sr_mensual_mxn": "9,000-15,000 (5 sucursales)",
+    "ahorro_mensual_mxn": "7,700-13,700",
+    "setup_unico_mxn": 0,
+    "roi_estimado": "Ahorro de ~$92,400-164,400 MXN/año vs SoftRestaurant"
+  },
+  "timeline": {
+    "semanas_total": 2,
+    "horas_agente_ia": 40,
+    "desglose": [
+      {
+        "tarea": "Clonar y adaptar el primer repositorio",
+        "dias": 2
+      },
+      {
+        "tarea": "Clonar y adaptar el segundo repositorio",
+        "dias": 2
+      },
+      {
+        "tarea": "Conectar la primera API",
+        "dias": 1
+      },
+      {
+        "tarea": "Conectar la segunda API",
+        "dias": 1
+      },
+      {
+        "tarea": "Conectar la tercera API",
+        "dias": 1
+      },
+      {
+        "tarea": "Conectar la cuarta API",
+        "dias": 1
+      },
+      {
+        "tarea": "Pruebas e integración final",
+        "dias": 4
+      }
+    ]
+  },
+  "modulos": [],
+  "pct_codigo_nuevo": 0.0,
+  "lineas_nuevo": 0,
+  "lineas_existentes": 20000,
+  "sugerencias_estrategicas": [
+    {
+      "usuario": "mesero",
+      "sugerencias": [
+        "IA sugiere upselling personalizado por mesa",
+        "Alerta automática de tiempos de espera",
+        "Comanda por voz en español"
+      ]
+    },
+    {
+      "usuario": "cajero",
+      "sugerencias": [
+        "Detección automática de discrepancias",
+        "Corte de caja asistido por IA",
+        "Alertas de fraude en tiempo real"
+      ]
+    },
+    {
+      "usuario": "cocinero",
+      "sugerencias": [
+        "KDS inteligente que prioriza órdenes",
+        "Predicción de demanda por hora",
+        "Alerta de ingredientes por agotarse"
+      ]
+    },
+    {
+      "usuario": "gerente",
+      "sugerencias": [
+        "Dashboard en tiempo real con anomalías",
+        "Sugerencias de staffing por día/hora",
+        "Alertas proactivas de problemas"
+      ]
+    },
+    {
+      "usuario": "hostess",
+      "sugerencias": [
+        "Asignación inteligente de mesas",
+        "Predicción de tiempo de espera",
+        "Integración con reservaciones online"
+      ]
+    },
+    {
+      "usuario": "relaciones_publicas",
+      "sugerencias": [
+        "Análisis de sentimiento de reseñas",
+        "Sugerencias de respuesta a quejas",
+        "Métricas de satisfacción en tiempo real"
+      ]
+    },
+    {
+      "usuario": "director_comercial",
+      "sugerencias": [
+        "IA sugiere promociones basadas en datos",
+        "Análisis de rentabilidad por platillo",
+        "Predicción de ventas por temporada"
+      ]
+    },
+    {
+      "usuario": "control_inventarios",
+      "sugerencias": [
+        "Reorden automático inteligente",
+        "Detección de merma anormal",
+        "Optimización de stock por sucursal"
+      ]
+    },
+    {
+      "usuario": "compras",
+      "sugerencias": [
+        "Comparación automática de proveedores",
+        "Predicción de necesidades de compra",
+        "Alertas de variación de precios"
+      ]
+    },
+    {
+      "usuario": "cliente",
+      "sugerencias": [
+        "Reservación online 24/7",
+        "Menú digital personalizado",
+        "Historial de preferencias recordado"
+      ]
+    },
+    {
+      "usuario": "director_general",
+      "sugerencias": [
+        "Dashboard estratégico multi-sucursal",
+        "IA sugiere estrategias de crecimiento",
+        "Alertas de KPIs fuera de rango",
+        "Comparativo de sucursales automático"
+      ]
+    }
+  ]
+}

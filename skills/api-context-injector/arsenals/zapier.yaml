@@ -1,0 +1,152 @@
+# Arsenal: Zapier — Gateway a 8,000+ Apps via Automatización
+# Última actualización: 2026-04-08
+# Credencial: MCP activo (acceso directo via manus-mcp-cli)
+# Console: https://zapier.com
+
+connector: zapier
+type: gateway
+ecosystem_size: "8,000+ apps"
+credential_ref: mcp:zapier
+access_method: mcp
+
+connection_pattern: |
+  # Via MCP (método preferido)
+  manus-mcp-cli tool list --server zapier
+  manus-mcp-cli tool call TOOL_NAME --server zapier --input '{"param": "value"}'
+  
+  # Zapier MCP permite ejecutar acciones en cualquiera de las 8000+ apps
+  # Las herramientas disponibles dependen de lo que el usuario haya configurado
+
+categories:
+
+  crm_sales:
+    description: "CRM y ventas"
+    top_apps:
+      - name: Salesforce
+        actions: [crear_lead, actualizar_contacto, crear_oportunidad]
+        triggers: [salesforce, crm, leads, oportunidades]
+      - name: HubSpot
+        actions: [crear_contacto, crear_deal, enviar_email_marketing]
+        triggers: [hubspot, marketing_automation, deals]
+      - name: Pipedrive
+        actions: [crear_deal, actualizar_persona, crear_actividad]
+        triggers: [pipedrive, pipeline, ventas]
+
+  email_marketing:
+    description: "Email marketing y newsletters"
+    top_apps:
+      - name: Mailchimp
+        actions: [agregar_suscriptor, enviar_campaña, crear_lista]
+        triggers: [mailchimp, newsletter, email_marketing]
+      - name: SendGrid
+        actions: [enviar_email, crear_template, gestionar_contactos]
+        triggers: [sendgrid, email_transaccional]
+      - name: ConvertKit
+        actions: [agregar_suscriptor, crear_secuencia, tag_subscriber]
+        triggers: [convertkit, creator_economy, newsletter]
+
+  project_management:
+    description: "Gestión de proyectos (complementa Asana MCP)"
+    top_apps:
+      - name: Trello
+        actions: [crear_tarjeta, mover_tarjeta, agregar_comentario]
+        triggers: [trello, kanban, tarjetas]
+      - name: Monday.com
+        actions: [crear_item, actualizar_status, crear_board]
+        triggers: [monday, gestion_proyectos]
+      - name: ClickUp
+        actions: [crear_tarea, actualizar_tarea, crear_lista]
+        triggers: [clickup, tareas]
+      - name: Jira
+        actions: [crear_issue, actualizar_issue, transicionar_issue]
+        triggers: [jira, bugs, sprints, desarrollo]
+
+  communication:
+    description: "Comunicación y mensajería"
+    top_apps:
+      - name: Slack
+        actions: [enviar_mensaje, crear_canal, enviar_DM]
+        triggers: [slack, mensaje_equipo, notificacion_slack]
+        priority: high
+      - name: Microsoft Teams
+        actions: [enviar_mensaje, crear_canal, programar_reunion]
+        triggers: [teams, microsoft_teams]
+      - name: Discord
+        actions: [enviar_mensaje, crear_canal]
+        triggers: [discord, comunidad]
+      - name: Telegram
+        actions: [enviar_mensaje, enviar_foto, enviar_documento]
+        triggers: [telegram, bot_telegram]
+
+  ecommerce:
+    description: "E-commerce y pagos"
+    top_apps:
+      - name: Shopify
+        actions: [crear_producto, actualizar_inventario, crear_orden]
+        triggers: [shopify, tienda_online, ecommerce]
+        priority: high
+      - name: WooCommerce
+        actions: [crear_producto, actualizar_orden, gestionar_clientes]
+        triggers: [woocommerce, wordpress_tienda]
+      - name: Stripe
+        actions: [crear_cargo, crear_cliente, crear_suscripcion]
+        triggers: [stripe_zapier, pagos, suscripciones]
+
+  social_media:
+    description: "Redes sociales (complementa Instagram MCP)"
+    top_apps:
+      - name: Twitter/X
+        actions: [publicar_tweet, buscar_tweets, seguir_usuario]
+        triggers: [twitter_zapier, x_post, tweet]
+      - name: LinkedIn
+        actions: [publicar_post, compartir_articulo]
+        triggers: [linkedin_post, linkedin_compartir]
+      - name: Facebook Pages
+        actions: [publicar_post, crear_evento, responder_mensaje]
+        triggers: [facebook_zapier, fb_post]
+      - name: YouTube
+        actions: [subir_video, actualizar_metadata]
+        triggers: [youtube_zapier, subir_video]
+
+  productivity:
+    description: "Productividad y documentos"
+    top_apps:
+      - name: Google Sheets
+        actions: [agregar_fila, actualizar_fila, buscar_fila]
+        triggers: [sheets_zapier, spreadsheet, hoja_calculo]
+        note: "Puente entre apps — muy usado como 'base de datos ligera'"
+        priority: high
+      - name: Airtable
+        actions: [crear_registro, actualizar_registro, buscar_registro]
+        triggers: [airtable, base_datos_visual]
+      - name: Calendly
+        actions: [crear_evento, cancelar_evento]
+        triggers: [calendly, agendar_cita, reservar]
+
+  accounting:
+    description: "Contabilidad y finanzas"
+    top_apps:
+      - name: QuickBooks
+        actions: [crear_factura, crear_gasto, crear_cliente]
+        triggers: [quickbooks, facturacion, contabilidad]
+      - name: Xero
+        actions: [crear_factura, crear_contacto, crear_pago]
+        triggers: [xero, contabilidad_xero]
+
+  customer_support:
+    description: "Soporte al cliente"
+    top_apps:
+      - name: Zendesk
+        actions: [crear_ticket, actualizar_ticket, agregar_comentario]
+        triggers: [zendesk, soporte, tickets]
+      - name: Intercom
+        actions: [crear_usuario, enviar_mensaje, crear_conversacion]
+        triggers: [intercom, chat_soporte, onboarding]
+
+routing_hints:
+  send_to_slack: "Zapier → Slack (enviar_mensaje)"
+  sync_crm: "Zapier → Salesforce/HubSpot"
+  email_marketing: "Zapier → Mailchimp/SendGrid"
+  ecommerce_automation: "Zapier → Shopify (inventario, órdenes)"
+  cross_app_workflow: "Zapier es el puente universal entre apps"
+  data_sync: "Zapier → Google Sheets como hub central"

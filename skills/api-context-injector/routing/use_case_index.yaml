@@ -1,0 +1,117 @@
+# Índice Invertido: Caso de Uso → Herramientas Disponibles
+# Permite búsqueda rápida: "¿qué tengo para X?"
+# Última actualización: 2026-04-08
+
+version: "1.0"
+
+# Cada entrada lista TODAS las herramientas disponibles para ese caso de uso
+# Ordenadas por prioridad (primera = recomendada)
+
+use_cases:
+
+  # --- IA y Modelos ---
+  generar_texto:
+    tools: [openai/gpt-5, anthropic/claude, gemini/2.5-flash, grok/grok-4, openrouter/500+modelos]
+    free: [openrouter/gemma-3-27b:free, openrouter/llama-4-scout:free]
+
+  analizar_imagen:
+    tools: [gemini/2.5-flash, openai/gpt-5, anthropic/claude-3.5-sonnet, aws/rekognition]
+
+  generar_voz:
+    tools: [elevenlabs/SDK, aws/polly]
+
+  generar_video:
+    tools: [heygen/API]
+
+  generar_imagen:
+    tools: [manus/generate, cloudflare/workers-ai/stable-diffusion, aws/bedrock/stability-ai]
+
+  embeddings:
+    tools: [supabase/pgvector, cloudflare/vectorize, cloudflare/workers-ai/bge]
+
+  investigacion_profunda:
+    tools: [perplexity/sonar-pro, openrouter/sonar-deep-research, consulta-sabios/6-sabios]
+
+  # --- Scraping ---
+  scraping_instagram:
+    tools: [apify/instagram-scraper, instagram-mcp]
+
+  scraping_google_maps:
+    tools: [apify/google-maps-scraper]
+
+  scraping_facebook:
+    tools: [apify/facebook-pages-scraper]
+
+  scraping_tiktok:
+    tools: [apify/tiktok-scraper]
+
+  scraping_linkedin:
+    tools: [apify/linkedin-profile-scraper]
+
+  scraping_amazon:
+    tools: [apify/amazon-crawler]
+
+  scraping_web_general:
+    tools: [apify/web-scraper, apify/cheerio-scraper]
+
+  scraping_inmobiliario:
+    tools: [apify/zillow-scraper]
+
+  # --- Almacenamiento ---
+  almacenar_archivos:
+    tools: [cloudflare/r2, aws/s3, supabase/storage, dropbox/SDK, google-drive/gws]
+    cheapest: cloudflare/r2 (zero egress)
+
+  base_de_datos:
+    tools: [supabase/postgresql, aws/rds, aws/dynamodb, cloudflare/d1, cloudflare/kv]
+
+  # --- Deploy ---
+  deploy_api:
+    tools: [cloudflare/workers, aws/lambda, vercel/MCP]
+
+  deploy_sitio:
+    tools: [cloudflare/pages, vercel/MCP, github/pages]
+
+  # --- Comunicación ---
+  enviar_email:
+    tools: [gmail/MCP, outlook/MCP, aws/ses, zapier/sendgrid, zapier/mailchimp]
+
+  gestionar_calendario:
+    tools: [google-calendar/MCP]
+
+  enviar_mensaje_equipo:
+    tools: [zapier/slack, zapier/teams, zapier/discord, zapier/telegram]
+
+  # --- Negocio ---
+  gestionar_proyectos:
+    tools: [asana/MCP, zapier/trello, zapier/monday, zapier/clickup, zapier/jira]
+
+  procesar_pagos:
+    tools: [paypal/MCP, zapier/stripe]
+
+  gestionar_suscripciones:
+    tools: [revenuecat/MCP]
+
+  crm_ventas:
+    tools: [zapier/salesforce, zapier/hubspot, zapier/pipedrive]
+
+  social_media_posting:
+    tools: [instagram/MCP, zapier/twitter, zapier/linkedin, zapier/facebook]
+
+  social_listening:
+    tools: [brandmentions/API, mentionlytics/API]
+
+  # --- Código ---
+  gestionar_repos:
+    tools: [github/gh-cli]
+
+  ci_cd:
+    tools: [github/actions, vercel/auto-deploy]
+
+  buscar_open_source:
+    tools: [github/search]
+
+  # --- Automatización ---
+  conectar_apps:
+    tools: [zapier/MCP-8000+apps]
+    note: "Zapier es el puente universal entre cualquier par de apps"

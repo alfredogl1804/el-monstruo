@@ -1,0 +1,183 @@
+domain: INV
+title: 'Dominio INV: Investigación'
+type: Tejido (Domain Context)
+summary: El informe sobre El Monstruo destaca las deficiencias en los sistemas de
+  IA agéntica actuales, identificando problemas como la falta de separación entre
+  estado, memoria y acción, lo que compromete la continuidad y la eficacia operativa.
+  Se propone que El Monstruo no sea solo un framework, sino un sistema operativo cognitivo
+  que integre un control plane robusto y una memoria persistente para mejorar la gobernanza
+  y la auto-mejora de los agentes. La Capa de Cognición Latente se presenta como una
+  solución para permitir que las IAs operen proactivamente, utilizando ciclos de cómputo
+  inactivo para mejorar su entendimiento del contexto del usuario. Además, se analizan
+  diversas herramientas y frameworks open source que pueden ser utilizados para la
+  orquestación de agentes, destacando la importancia de un enfoque modular y flexible
+  para garantizar la soberanía y la adaptabilidad del sistema.
+key_documents:
+- id: doc_000052
+  title: 'B01: Kernel/Orquestador de Agentes Open Source'
+  summary: 'Frameworks open source para orquestación de agentes de IA: LangGraph,
+    AutoGen, CrewAI, Agent Orchestrator y MetaGPT, cada uno con características únicas
+    y alta relevancia para "El Monstruo v2.0".'
+  keywords:
+  - orquestación
+  - agentes IA
+  - open source
+- id: doc_000067
+  title: AREAS OPORTUNIDAD OR openai gpt 5.4 pro
+  summary: Las IAs agénticas actuales presentan fallas estructurales profundas, como
+    la falta de un modelo de estado operativo real y control plane soberano, lo que
+    limita su efectividad.
+  keywords:
+  - IA agéntica
+  - fallas estructurales
+  - modelo de estado
+- id: doc_000073
+  title: AREAS OPORTUNIDAD OR x ai grok 4.20 multi agent
+  summary: Las IAs agénticas actuales presentan fallas superficiales y profundas,
+    siendo la falta de maduración operativa continua la mayor área de oportunidad
+    no atendida.
+  keywords:
+  - IA agéntica
+  - maduración operativa
+  - fallas estructurales
+- id: doc_000068
+  title: AREAS OPORTUNIDAD OR openai o3
+  summary: 'Las IAs agénticas actuales presentan fallas estructurales críticas en
+    tres niveles: sintomático, arquitectónico y epistémico, afectando su efectividad
+    y gobernanza.'
+  keywords:
+  - IA
+  - agentes
+  - fallas estructurales
+- id: doc_000055
+  title: all reports
+  summary: Investigación sobre usabilidad de sistemas multiagente y AI OS para El
+    Monstruo v2.0, analizando soluciones como CrewAI, AutoGen, Dify y Flowise.
+  keywords:
+  - usabilidad
+  - sistemas multiagente
+  - AI OS
+- id: doc_000047
+  title: 19 respuestas etiquetadas
+  summary: Las fallas en IAs agénticas actuales se deben a una arquitectura deficiente
+    que no separa adecuadamente los componentes del sistema, afectando su operatividad
+    y confiabilidad.
+  keywords:
+  - IA agéntica
+  - fallas estructurales
+  - arquitectura
+- id: doc_000059
+  title: HALLAZGOS DE BÚSQUEDA REAL — Abril 2026
+  summary: Hallazgos sobre fallas y oportunidades en IAs agénticas revelan problemas
+    de arquitectura, gobernanza y persistencia en producción.
+  keywords:
+  - IA agéntica
+  - arquitectura
+  - gobernanza
+- id: doc_000076
+  title: AREAS OPORTUNIDAD SABIO GEMINI
+  summary: El informe destaca fallas estructurales en IAs agénticas y propone oportunidades
+    de mejora en maduración operativa y capacidades arquitectónicas para 'El Monstruo'.
+  keywords:
+  - IA
+  - agentes
+  - maduración operativa
+- id: doc_000056
+  title: all 50 reports
+  summary: Se presentan seis frameworks de orquestación de agentes de IA, destacando
+    LangGraph y MetaGPT por su relevancia para 'El Monstruo v2.0'.
+  keywords:
+  - orquestación
+  - agentes IA
+  - frameworks
+- id: doc_000079
+  title: AREAS OPORTUNIDAD SABIO GROK
+  summary: Las IAs agénticas actuales fallan por ser simuladores de agencia, careciendo
+    de persistencia y continuidad operativa, lo que limita su efectividad y autonomía.
+  keywords:
+  - IA
+  - agencia
+  - persistencia
+- id: doc_000053
+  title: areas oportunidad 25 ias
+  summary: Las IAs agénticas actuales fallan en continuidad operativa y gobernanza;
+    El Monstruo propone capacidades soberanas para superarlas.
+  keywords:
+  - IA
+  - gobernanza
+  - continuidad operativa
+- id: doc_000063
+  title: AREAS OPORTUNIDAD OR amazon nova pro v1
+  summary: El Monstruo debe abordar fallas en IAs agénticas actuales, enfocándose
+    en gobernanza en tiempo real y conciencia persistente para mejorar su eficacia.
+  keywords:
+  - IA agéntica
+  - gobernanza
+  - conciencia persistente
+- id: doc_000072
+  title: AREAS OPORTUNIDAD OR x ai grok 4.1 fast
+  summary: Identifica fallas estructurales en IAs agénticas, destacando oportunidades
+    en conciencia operativa persistente y capacidades necesarias para un sistema superior
+    como El Monstruo.
+  keywords:
+  - IA agéntica
+  - fallas estructurales
+  - conciencia operativa
+- id: doc_000057
+  title: Apify GitHub Scraper — Input Schema
+  summary: El Apify GitHub Scraper permite obtener detalles de repositorios específicos,
+    pero enfrenta limitaciones de tasa en la API de GitHub.
+  keywords:
+  - Apify
+  - GitHub
+  - scraper
+- id: doc_000062
+  title: AREAS OPORTUNIDAD OR arcee ai trinity large thinking
+  summary: Identificación de fallas estructurales en IAs agénticas y áreas de oportunidad
+    en gobernanza de corpus y capacidades necesarias para un sistema superior como
+    'El Monstruo'.
+  keywords:
+  - IA agéntica
+  - gobernanza
+  - corpus
+- id: doc_000046
+  title: 1. Resumen ejecutivo
+  summary: La arquitectura insuficiente y la falta de control plane son las principales
+    fallas en los sistemas de IA actuales, limitando su agencia y continuidad operativa.
+  keywords:
+  - arquitectura insuficiente
+  - control plane
+  - agencia confiable
+- id: doc_000565
+  title: 8 PXXkavMQlr6fuioHS3SLXv 1775365955651 na1fn L2hvbWUvdWJ1bnR1L2RldGFpbGVkX3JlcG9ydA
+  summary: Reporte sobre soluciones arquitectónicas para El Monstruo v2.0, incluyendo
+    marcos de IA nativa y herramientas para desarrolladores independientes.
+  keywords:
+  - AI-Native
+  - Agentic Workspace
+  - Indie Dev Toolkit
+- id: doc_000048
+  title: 24 respuestas etiquetadas
+  summary: La Capa de Cognición Latente transforma IAs reactivas en sistemas proactivos
+    mediante orquestación asíncrona, mejorando la eficiencia operativa.
+  keywords:
+  - Capa de Cognición Latente
+  - Motor de Maduración Asíncrona
+  - orquestación asíncrona
+- id: doc_000502
+  title: Análisis Comparativo de las 3 Conexiones de GitHub en Manus AI
+  summary: Manus AI presenta un análisis de 3 conexiones a GitHub, recomendando usar
+    la Conexión 2 para memoria persistente en El Monstruo.
+  keywords:
+  - Manus AI
+  - GitHub
+  - conexiones
+- id: doc_000562
+  title: Análisis de Soluciones para Ejecución Técnica en "El Monstruo v2.0"
+  summary: 'Se proponen tres soluciones para la ejecución técnica en ''El Monstruo
+    v2.0'': RAG Evolution Patterns, Perplexity API y LangChain, integrándolas para
+    optimizar el sistema.'
+  keywords:
+  - Ejecución Técnica
+  - RAG Evolution Patterns
+  - Perplexity API

@@ -1,0 +1,225 @@
+# LLM Registry — Modelos de IA disponibles
+# Fuente: Semilla v7.3 + Notion DB + Env Vars
+# Última actualización: 2026-04-08
+# NUNCA incluir API keys aquí — solo nombres de env vars
+
+providers:
+  openai:
+    name: OpenAI
+    model_id: gpt-5.4
+    sdk: openai
+    context_window: 1050000
+    max_completion_tokens: 16000
+    auth:
+      method: api_key
+      env_var: OPENAI_API_KEY
+      base_url_env: OPENAI_BASE_URL
+      base_url_default: https://api.openai.com/v1
+    capabilities:
+      - planning
+      - synthesis
+      - writing
+      - code_generation
+      - orchestration
+      - vision
+      - embeddings
+    roles:
+      - orchestrator
+      - synthesizer
+      - writer
+    sabio_group: completo
+    sabio_id: gpt54
+    anti_errors:
+      - "Usar max_completion_tokens, NUNCA max_tokens"
+    status: active
+    cost_tier: premium
+    notes: "ChatGPT Pro — GPT-5.4, DALL-E, Whisper"
+    console_url: https://platform.openai.com
+
+  anthropic:
+    name: Anthropic (Claude Sonnet 4.6)
+    model_id: anthropic/claude-sonnet-4-6
+    model_id_direct: claude-opus-4-6
+    sdk: openrouter  # Vía OpenRouter (Opus tiene timeouts vía API directa — lección #1)
+    sdk_direct: anthropic  # Solo para fallback manual
+    context_window: 1000000
+    max_tokens: 8192
+    auth:
+      method: api_key
+      env_var: OPENROUTER_API_KEY  # Primario: vía OpenRouter
+      env_var_direct: ANTHROPIC_API_KEY  # Fallback: API directa
+      endpoint: https://openrouter.ai/api/v1
+      endpoint_direct: https://api.anthropic.com
+    capabilities:
+      - long_analysis
+      - critique
+      - agents
+      - documents
+      - code_review
+      - legal_analysis
+    roles:
+      - analyst
+      - critic
+      - agent_builder
+    sabio_group: completo
+    sabio_id: claude
+    anti_errors:
+      - "USAR anthropic/claude-sonnet-4-6 vía OpenRouter (Opus tiene timeouts)"
+      - "NUNCA usar Claude Opus vía API directa para prompts >50K chars"
+      - "Si se necesita API directa, model_id es claude-opus-4-6, NO 4-20250514"
+    status: active
+    cost_tier: premium
+    notes: "Claude Sonnet 4.6 vía OpenRouter (aprobado por Alfredo). Opus disponible como fallback directo."
+    console_url: https://console.anthropic.com
+
+  google:
+    name: Google Gemini
+    model_id: gemini-3.1-pro-preview
+    sdk: google-genai
+    context_window: 1048576
+    max_output_tokens: 65536
+    auth:
+      method: api_key
+      env_var: GEMINI_API_KEY
+    capabilities:
+      - multimodal
+      - vision
+      - audio_analysis
+      - video_analysis
+      - long_context
+      - contrast_analysis
+    roles:
+      - multimodal_analyst
+      - contrast_checker
+    sabio_group: completo
+    sabio_id: gemini
+    anti_errors: []
+    status: active
+    cost_tier: standard
+    notes: "Gemini 3.1 Pro — YouTube/Google integration"
+    console_url: https://aistudio.google.com
+
+  xai:
+    name: xAI (Grok)
+    model_id: grok-4.20-0309-reasoning
+    sdk: openai
+    context_window: 2000000
+    auth:
+      method: api_key
+      env_var: XAI_API_KEY
+      base_url: https://api.x.ai/v1
+    capabilities:
+      - brainstorming
+      - lateral_thinking
+      - tool_calling
+      - reasoning
+      - unconventional_angles
+    roles:
+      - brainstormer
+      - creative_thinker
+    sabio_group: completo
+    sabio_id: grok
+    anti_errors:
+      - "Model ID es grok-4.20-0309-reasoning, NO grok-4-latest"
+      - "Flagship Mar 2026"
+    status: active
+    cost_tier: premium
+    notes: "Grok 4.20 — 2M context, reasoning flagship"
+    console_url: https://x.ai
+
+  deepseek:
+    name: DeepSeek R1
+    model_id: deepseek/deepseek-r1
+    sdk: openai
+    context_window: 128000
+    auth:
+      method: api_key
+      env_var: OPENROUTER_API_KEY
+      base_url: https://openrouter.ai/api/v1
+    capabilities:
+      - deep_technical_analysis
+      - optimization
+      - mathematics
+      - code_generation
+      - reasoning_chains
+    roles:
+      - technical_analyst
+      - optimizer
+    sabio_group: condensado
+    sabio_id: deepseek
+    anti_errors:
+      - "Via OpenRouter, NO directo"
+    status: active
+    cost_tier: budget
+    notes: "DeepSeek R1 via OpenRouter"
+
+  perplexity:
+    name: Perplexity Sonar
+    model_id: sonar-reasoning-pro
+    sdk: requests
+    context_window: 128000
+    auth:
+      method: api_key
+      env_var: SONAR_API_KEY
+      endpoint: https://api.perplexity.ai/chat/completions
+    capabilities:
+      - web_search
+      - real_time_data
+      - citations
+      - fact_checking
+      - current_events
+    roles:
+      - researcher
+      - fact_checker
+    sabio_group: condensado
+    sabio_id: perplexity
+    anti_errors:
+      - "PROHIBIDO SDK OpenAI — SOLO requests"
+      - "PING usa sonar-pro, consultas usan sonar-reasoning-pro"
+    status: active
+    cost_tier: standard
+    notes: "Plan Max — Sonar API. F-score 0.858 fidelidad fáctica"
+    console_url: https://api.perplexity.ai
+
+  openrouter:
+    name: OpenRouter (Multi-model)
+    model_id: varies
+    sdk: openai
+    auth:
+      method: api_key
+      env_var: OPENROUTER_API_KEY
+      base_url: https://openrouter.ai/api/v1
+    available_models:
+      - deepseek/deepseek-r1
+      - moonshotai/kimi-k2.5
+      - anthropic/claude-sonnet-4-6
+      - many_more
+    capabilities:
+      - multi_model_routing
+      - cost_optimization
+      - fallback_chains
+    status: active
+    cost_tier: variable
+    notes: "Free tier para Kimi K2.5. Input $0.45/1M, Output $2.20/1M"
+    console_url: https://openrouter.ai/settings/keys
+
+# Routing rules
+routing:
+  planning_synthesis: [openai, anthropic, xai]
+  long_analysis: [anthropic, openai, xai]
+  multimodal: [google, openai]
+  brainstorming: [xai, openai, google]
+  technical_deep: [deepseek, google, openai]
+  web_research: [perplexity, google]
+  code_generation: [openai, deepseek, anthropic]
+  legal_analysis: [anthropic, openai]
+  creative_writing: [xai, openai, google]
+
+# Fallback chains
+fallbacks:
+  openai: [anthropic, xai]
+  anthropic: [openai, google]
+  google: [openai, anthropic]
+  xai: [openai, anthropic]
+  deepseek: [google, openai]
+  perplexity: [google, openai]

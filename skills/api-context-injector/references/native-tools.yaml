@@ -1,0 +1,106 @@
+# Native Sandbox Tools Registry
+# Última actualización: 2026-04-08
+
+tools:
+  manus_render_diagram:
+    command: manus-render-diagram
+    syntax: "manus-render-diagram <input_file> <output_file>"
+    description: Renderizar diagramas a PNG
+    input_formats: [.d2, .mmd, .puml, .md]
+    output_format: PNG
+    notes: "Usar D2 para arquitectura/complejos, Mermaid para el resto"
+
+  manus_md_to_pdf:
+    command: manus-md-to-pdf
+    syntax: "manus-md-to-pdf <input_file> <output_file>"
+    description: Convertir Markdown a PDF
+    input_formats: [.md]
+    output_format: PDF
+
+  manus_speech_to_text:
+    command: manus-speech-to-text
+    syntax: "manus-speech-to-text <input_file>"
+    description: Transcribir audio/video a texto
+    input_formats: [.mp3, .wav, .mp4, .webm]
+
+  manus_mcp_cli:
+    command: manus-mcp-cli
+    syntax: "manus-mcp-cli <command> [args...]"
+    description: Interactuar con servidores MCP
+    subcommands:
+      - "tool list --server <name>"
+      - "tool call <tool> --server <name> --input '<json>'"
+
+  manus_upload_file:
+    command: manus-upload-file
+    syntax: "manus-upload-file <file1> [file2 ...]"
+    description: Subir archivos a S3 y obtener URLs públicas
+
+  manus_export_slides:
+    command: manus-export-slides
+    syntax: "manus-export-slides <slides_uri> <format>"
+    description: Exportar slides a PDF o PPT
+    output_formats: [.pdf, .ppt]
+
+  manus_analyze_video:
+    command: manus-analyze-video
+    syntax: 'manus-analyze-video "<url_or_path>" "<prompt>"'
+    description: Analizar video con LLM multimodal
+    input_types: [youtube_url, remote_url, local_path]
+
+  gws:
+    command: gws
+    syntax: "gws <command> [args...]"
+    description: CLI para Google Workspace (Drive, Docs, Sheets, Slides)
+    notes: "Ejecutar gws --help antes del primer uso"
+
+  rclone:
+    command: rclone
+    syntax: "rclone <command> [args...] --config /home/ubuntu/.gdrive-rclone.ini"
+    description: Sync con Google Drive
+    remote_name: manus_google_drive
+    notes: "Fallback para bulk sync o upload/download binario"
+
+  gh:
+    command: gh
+    syntax: "gh <command> [args...]"
+    description: GitHub CLI
+    capabilities:
+      - repo_management
+      - issues
+      - pull_requests
+      - releases
+      - actions
+    notes: "Pre-configurado y autenticado"
+
+# Python environment
+python:
+  version: "3.11.0rc1"
+  commands: [python3.11, pip3]
+  install: "sudo pip3 install <package>"
+  preinstalled:
+    - beautifulsoup4
+    - fastapi
+    - flask
+    - fpdf2
+    - markdown
+    - matplotlib
+    - numpy
+    - openpyxl
+    - pandas
+    - pdf2image
+    - pillow
+    - plotly
+    - reportlab
+    - requests
+    - seaborn
+    - tabulate
+    - uvicorn
+    - weasyprint
+    - xhtml2pdf
+
+# Node.js environment
+nodejs:
+  version: "22.13.0"
+  commands: [node, pnpm]
+  preinstalled: [pnpm, yarn]

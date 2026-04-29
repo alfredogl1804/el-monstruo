@@ -1,0 +1,137 @@
+domain: ARQ
+title: 'Dominio ARQ: Arquitectura técnica'
+type: Tejido (Domain Context)
+summary: El Monstruo es un sistema de IA soberana que busca operar de manera autónoma,
+  evitando la dependencia de herramientas externas. Su arquitectura se basa en un
+  núcleo soberano que gestiona la lógica de negocio, memoria y políticas, mientras
+  que absorbe capacidades externas de forma controlada. Esto permite mantener la soberanía
+  sobre los datos y la lógica, facilitando adaptaciones sin reescribir el sistema.
+  La documentación incluye un esquema SQL para la base de datos de Supabase, un respaldo
+  completo de la arquitectura de absorción soberana, y un análisis de diversas soluciones
+  open source, priorizando la integración de componentes maduros y la gobernanza a
+  través de la nueva capa de Maduración Operativa Continua (MOC). Se presentan flujos
+  de trabajo que optimizan la interacción entre IAs y el usuario, así como metodologías
+  para la gestión del contexto y la memoria operativa.
+key_documents:
+- id: doc_000026
+  title: Arquitectura de Absorción Soberana de El Monstruo v2.0
+  summary: Arquitectura de Absorción Soberana de El Monstruo v2.0 prioriza un núcleo
+    soberano y control total sobre datos y decisiones.
+  keywords:
+  - Arquitectura
+  - Absorción Soberana
+  - Núcleo Soberano
+- id: doc_000029
+  title: ARQUITECTURA ABSORCION v2 FINAL
+  summary: Arquitectura de Absorción Soberana v2.0 fusiona visión estratégica y datos
+    de 121 repositorios para implementar soberanía tecnológica.
+  keywords:
+  - Arquitectura
+  - Absorción Soberana
+  - open-source
+- id: doc_000001
+  title: 01 arq absorcion soberana definitiva
+  summary: El Monstruo es una infraestructura de IA soberana que optimiza el trabajo
+    cognitivo y la automatización sin depender de proveedores externos.
+  keywords:
+  - IA soberana
+  - automación
+  - arquitectura
+- id: doc_000031
+  title: DOCUMENTO DEFINITIVO DE CONSOLIDACIÓN
+  summary: La consulta a 24 IAs revela la necesidad de una nueva capa operativa en
+    El Monstruo v2.0, denominada "Maduración Operativa Continua".
+  keywords:
+  - Evolución Perpetua
+  - Maduración Operativa Continua
+  - El Monstruo v2.0
+- id: doc_000028
+  title: Arquitectura de Absorción Soberana del Monstruo v2.0 — Versión Definitiva
+  summary: El Monstruo es una infraestructura de IA soberana que optimiza el trabajo
+    cognitivo y la automatización sin depender de proveedores externos.
+  keywords:
+  - IA soberana
+  - automación
+  - memoria
+- id: doc_000027
+  title: Arquitectura de Absorción Soberana v2.0
+  summary: Arquitectura de Absorción Soberana v2.0 optimiza la integración de herramientas
+    LLM con un enfoque en la sostenibilidad y la flexibilidad.
+  keywords:
+  - arquitectura
+  - absorción
+  - soberana
+- id: doc_000030
+  title: TABLA MAESTRA DEFINITIVA GPT54
+  summary: Evaluación de soluciones para el ecosistema El Monstruo, priorizando madurez,
+    uso real y riesgo.
+  keywords:
+  - ecosistema
+  - El Monstruo
+  - soluciones open source
+- id: doc_000025
+  title: ARQUITECTURA ABSORCION v2.1 FINAL
+  summary: Arquitectura de Absorción Soberana v2.1 integra insights de Sabios y datos
+    de 121 repositorios para una implementación estratégica.
+  keywords:
+  - Arquitectura de Absorción
+  - Soberanía
+  - Sabios
+- id: doc_000141
+  title: 'Arquitectura del Sistema: Capa de Consciencia de Herramientas (Tool-Awareness
+    Layer)'
+  summary: La Capa de Consciencia de Herramientas permite a un agente de IA gestionar
+    y orquestar herramientas de manera semántica y dinámica para resolver tareas complejas.
+  keywords:
+  - IA
+  - arquitectura
+  - orquestación
+- id: doc_000577
+  title: 'METODOLOGÍA DE ABSORCIÓN DE CONTEXTO: EL MONSTRUO'
+  summary: Metodología de Absorción de Contexto para El Monstruo, que propone una
+    arquitectura híbrida con memoria jerárquica operativa en 4 capas, optimizando
+    la recuperación y síntesis de información.
+  keywords:
+  - arquitectura híbrida
+  - memoria jerárquica
+  - Context Packet
+- id: doc_000019
+  title: 22 arquitectura maoc
+  summary: Arquitectura MAOC INTEGRADO conecta IAs de Alfredo mediante memoria compartida
+    y permite control local a través de Manus.
+  keywords:
+  - Arquitectura MAOC
+  - IAs
+  - Memoria compartida
+- id: doc_000011
+  title: 11 mvp supabase schema
+  summary: Esquema SQL para la base de datos de Supabase del proyecto 'El Monstruo',
+    incluyendo tablas, índices y checklist de implementación.
+  keywords:
+  - Supabase
+  - SQL
+  - PostgreSQL
+- id: doc_000012
+  title: 15 arq absorcion respaldo completo
+  summary: Respaldo completo de la arquitectura de absorción soberana, incluyendo
+    artefactos finales y valiosos, realizado en abril de 2026.
+  keywords:
+  - arquitectura
+  - absorción
+  - respaldo
+- id: doc_000508
+  title: 'Arquitectura Integrada: Manus + Claude Desktop + PC Local'
+  summary: Arquitectura integrada que combina Manus, Claude Desktop y un PC local
+    para tareas autónomas e interactivas.
+  keywords:
+  - Arquitectura integrada
+  - Manus
+  - Claude Desktop
+- id: doc_000000
+  title: 01 arq absorcion soberana
+  summary: El documento aborda la absorción soberana en arquitectura, analizando su
+    impacto y relevancia.
+  keywords:
+  - absorción soberana
+  - arquitectura
+  - diseño

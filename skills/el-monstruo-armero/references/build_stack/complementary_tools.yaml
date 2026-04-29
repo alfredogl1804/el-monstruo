@@ -1,0 +1,133 @@
+# Herramientas Complementarias para El Monstruo
+# Investigado: 2026-04-09 | TTL: 30 días
+
+# ============================================================
+# COMPOSIO — Conectar El Monstruo a 850+ Apps
+# ============================================================
+composio:
+  identity:
+    name: Composio
+    role: tool_integration_layer
+    pip_install: "composio-core composio-langgraph"
+    license: "Open Source + Cloud"
+    repo: "https://github.com/ComposioHQ/composio"
+    docs: "https://docs.composio.dev/"
+
+  why_relevant: |
+    Composio permite que un agente LangGraph ejecute acciones en 850+
+    apps externas (GitHub, Slack, Google, Salesforce, etc.) sin escribir
+    código de integración. Cada app se expone como "tool" que LangGraph
+    puede invocar. Ideal para Sprint 2 cuando El Monstruo necesite
+    ejecutar acciones en el mundo real.
+
+  env_vars_needed:
+    - name: COMPOSIO_API_KEY
+      description: "API key de Composio"
+      available_in_sandbox: false
+      create_how: "Registrarse en composio.dev"
+
+  integration_snippet: |
+    from composio_langgraph import Action, ComposioToolSet
+
+    toolset = ComposioToolSet(api_key=os.environ["COMPOSIO_API_KEY"])
+    tools = toolset.get_tools(
+        actions=[
+            Action.GITHUB_CREATE_ISSUE,
+            Action.SLACK_SEND_MESSAGE,
+            Action.GOOGLE_CALENDAR_CREATE_EVENT
+        ]
+    )
+    # Inyectar tools en un nodo LangGraph
+    # El agente puede decidir cuándo usar cada tool
+
+  sprint_target: "Sprint 2 (no necesario para Sprint 1)"
+
+# ============================================================
+# DUCKDB — Análisis de Datos Local
+# ============================================================
+duckdb:
+  identity:
+    name: DuckDB
+    role: analytics_engine
+    pip_install: "duckdb"
+    license: MIT
+    docs: "https://duckdb.org/docs/"
+
+  why_relevant: |
+    Motor SQL analítico in-process. El Monstruo puede analizar CSVs,
+    Parquet, JSON directamente sin necesidad de base de datos externa.
+    Ideal para cuando Alfredo pida "analiza este Excel" o "dame métricas
+    de este dataset".
+
+  env_vars_needed: []  # No necesita API key
+
+  integration_snippet: |
+    import duckdb
+
+    # Analizar CSV directamente
+    result = duckdb.sql("""
+        SELECT category, COUNT(*), AVG(price)
+        FROM read_csv_auto('data.csv')
+        GROUP BY category
+        ORDER BY COUNT(*) DESC
+    """).fetchall()
+
+  sprint_target: "Sprint 1 (ya disponible, sin costo)"
+
+# ============================================================
+# CRAWL4AI — Web Scraping Open Source (Alternativa a Firecrawl)
+# ============================================================
+crawl4ai:
+  identity:
+    name: Crawl4AI
+    role: web_scraping_oss
+    pip_install: "crawl4ai"
+    license: Apache-2.0
+    repo: "https://github.com/unclecode/crawl4ai"
+
+  why_relevant: |
+    Alternativa gratuita a Firecrawl. Convierte páginas web a Markdown.
+    Usa Playwright internamente para JS rendering. Sin límite de créditos.
+    Ideal como fallback cuando Firecrawl se quede sin créditos.
+
+  env_vars_needed: []  # Gratis, sin API key
+
+  sprint_target: "Sprint 1 (fallback de Firecrawl)"
+
+# ============================================================
+# PLAYWRIGHT MCP — Automatización de Browser
+# ============================================================
+playwright_mcp:
+  identity:
+    name: "Playwright MCP Server"
+    role: browser_automation
+    npm_install: "@anthropic/playwright-mcp"
+    license: MIT
+    repo: "https://github.com/anthropics/playwright-mcp"
+    note: "Comunitario, no oficial de Microsoft"
+
+  why_relevant: |
+    Permite que El Monstruo controle un browser programáticamente.
+    Útil para: scraping de sitios con JS, automatización de tareas web,
+    testing de la consola web.
+
+  env_vars_needed: []  # No necesita API key
+
+  sprint_target: "Sprint 2"
+
+# ============================================================
+# GALILEO — AI Agent Governance (Evaluación)
+# ============================================================
+galileo:
+  identity:
+    name: "Galileo Agent Control"
+    role: agent_governance
+    license: "Open Source (recién lanzado)"
+    repo: "https://github.com/rungalileo/agent-control"
+
+  why_relevant: |
+    Framework de governance para agentes IA. Evalúa calidad de respuestas,
+    detecta alucinaciones, mide adherencia a instrucciones. Complementa
+    Langfuse (que es tracing) con evaluación de calidad.
+
+  sprint_target: "Sprint 3 (nice to have, Langfuse cubre lo básico)"

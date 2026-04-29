@@ -1,0 +1,171 @@
+# Media & Generation APIs Registry
+# Última actualización: 2026-04-08
+# NUNCA incluir API keys — solo nombres de env vars o referencia a Notion
+
+providers:
+  heygen:
+    name: HeyGen
+    category: video_avatar
+    auth:
+      method: api_key
+      env_var: HEYGEN_API_KEY
+      header: X-Api-Key
+      endpoint: https://api.heygen.com/v2/video/generate
+      status_endpoint: https://api.heygen.com/v1/video_status.get
+    capabilities:
+      - text_to_video
+      - audio_to_video
+      - avatar_customization
+      - multi_scene
+      - background_customization
+    use_cases:
+      - Videos con avatares realistas
+      - Presentaciones automatizadas
+      - Content marketing
+    status: active
+    env_available: true
+    notion_id: 32f14c6f8bba819cb926f4fe842ae1b0
+
+  elevenlabs:
+    name: ElevenLabs
+    category: voice_audio
+    auth:
+      method: api_key
+      env_var: ELEVENLABS_API_KEY
+      sdk: elevenlabs
+    capabilities:
+      - text_to_speech
+      - voice_cloning
+      - dubbing
+      - speech_to_text
+      - multilingual
+      - low_latency
+    use_cases:
+      - Generación de voz alta calidad
+      - Clonación de voz
+      - Doblaje automático
+      - Podcasts
+    status: active
+    env_available: true
+    sdk_install: "pip install elevenlabs"
+    docs: https://elevenlabs.io/docs/api-reference
+
+  together_ai:
+    name: Together AI
+    category: image_generation
+    auth:
+      method: api_key
+      env_var_source: notion
+      endpoint: https://api.together.ai/v1/images/generations
+    capabilities:
+      - image_generation_flux
+      - open_source_models
+      - fast_inference
+    use_cases:
+      - Generación de imágenes (FLUX)
+      - Modelos open-source
+    status: active
+    env_available: false
+    notion_id: 32f14c6f8bba8114bb9add4db5ba12c9
+
+  replicate:
+    name: Replicate
+    category: multi_model
+    auth:
+      method: token
+      env_var_source: notion
+      header: Authorization
+      endpoint: https://api.replicate.com
+    capabilities:
+      - idm_vton
+      - flux_image
+      - video_generation
+      - on_demand_models
+    use_cases:
+      - Virtual try-on (IDM-VTON)
+      - Generación de imágenes
+      - Modelos on-demand
+    status: active
+    env_available: false
+    notion_id: 32f14c6f8bba8151ba38e88badd10544
+
+  novita_ai:
+    name: Novita AI
+    category: video_generation
+    auth:
+      method: api_key
+      env_var_source: notion
+      endpoint: https://api.novita.ai/v3/async/
+    capabilities:
+      - kling_v3
+      - minimax_hailuo
+      - seedance
+      - wan_i2v
+      - img2img
+      - inpainting
+    use_cases:
+      - Generación de video AI
+      - Image-to-image
+      - Inpainting
+    status: active
+    env_available: false
+    notion_id: 32f14c6f8bba81e8bca6edcd68b0fc62
+
+  atlas_cloud:
+    name: Atlas Cloud
+    category: video_generation
+    auth:
+      method: api_key
+      env_var_source: notion
+      endpoint: https://api.atlascloud.ai
+    capabilities:
+      - video_generation
+    use_cases:
+      - Generación de video AI
+    status: active
+    env_available: false
+    notion_id: 32f14c6f8bba819b9066efd2c5ed9eed
+
+  meshy_ai:
+    name: Meshy AI
+    category: 3d_generation
+    auth:
+      method: api_key
+      env_var_source: notion
+      endpoint: https://api.meshy.ai
+    capabilities:
+      - text_to_3d
+      - image_to_3d
+    use_cases:
+      - Generación de modelos 3D
+      - Prototipos rápidos
+    status: active
+    env_available: false
+    notion_id: d022b3979b9e4677a2f5f07a7d1facec
+
+  fashn_ai:
+    name: Fashn AI
+    category: virtual_tryon
+    auth:
+      method: api_key
+      env_var_source: notion
+      endpoint: https://api.fashn.ai
+      cdn: https://cdn.fashn.ai
+    capabilities:
+      - virtual_tryon
+      - clothing_swap
+    use_cases:
+      - Virtual try-on de ropa
+      - E-commerce fashion
+    status: active
+    env_available: false
+    notion_id: 32f14c6f8bba817299a2e4b125eabc36
+
+# Routing por tipo de media
+routing:
+  video_avatar: [heygen, atlas_cloud]
+  video_generative: [novita_ai, atlas_cloud]
+  voice_tts: [elevenlabs]
+  image_generation: [together_ai, replicate, novita_ai]
+  model_3d: [meshy_ai]
+  virtual_tryon: [fashn_ai, replicate]

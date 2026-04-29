@@ -1,0 +1,178 @@
+domain: BIB
+title: 'Dominio BIB: Biblias y guías'
+type: Tejido (Domain Context)
+summary: El ecosistema El Monstruo se fundamenta en la integración de Model Context
+  Protocols (MCPs) y la utilización de herramientas de software avanzadas. Documentos
+  como la 'biblia MCPs monstruo v1' destacan la investigación sobre 8 MCPs integrados
+  y 10 priorizados, enfatizando la necesidad de una integración quirúrgica para optimizar
+  el desarrollo del sistema. Además, se presenta un análisis exhaustivo de 46 herramientas,
+  recomendando crear biblias para las más prometedoras. La funcionalidad de Manus,
+  un agente autónomo, se detalla en guías que explican su capacidad para ejecutar
+  tareas complejas en un entorno controlado, diferenciándose de los chatbots tradicionales.
+  Las auditorías de contenido, como las de Claude Opus, revelan inconsistencias que
+  requieren atención para asegurar la integridad del sistema. Finalmente, se proponen
+  estrategias para implementar capas de consciencia de herramientas y un Motor de
+  Maduración Asíncrona, buscando mejorar la interacción con IA y la gobernanza operativa.
+key_documents:
+- id: doc_000242
+  title: 'Biblia v4.1: Cline'
+  summary: Cline es un agente de codificación de IA de código abierto que prioriza
+    la privacidad y el control del usuario, integrándose en entornos de desarrollo
+    locales.
+  keywords:
+  - Cline
+  - IA
+  - código abierto
+- id: doc_000306
+  title: 'Biblia v4.1: cline-mcp'
+  summary: Cline es un agente de codificación de IA de código abierto que prioriza
+    la privacidad y el control del usuario, ejecutándose localmente en entornos de
+    desarrollo.
+  keywords:
+  - Cline
+  - IA
+  - código abierto
+- id: doc_000040
+  title: prompt
+  summary: La "Evolución Perpetua" es una capa necesaria para la continuidad y maduración
+    de IAs, pero puede ser más un principio rector que una capa independiente.
+  keywords:
+  - Evolución Perpetua
+  - IA
+  - gobernanza
+- id: doc_000038
+  title: todas las respuestas
+  summary: Propuesta de Motor de Maduración Asíncrona (MMA) para optimizar la interacción
+    con IA, abordando carga cognitiva y estancamiento del conocimiento.
+  keywords:
+  - Motor de Maduración Asíncrona
+  - interacción IA
+  - carga cognitiva
+- id: doc_000034
+  title: 'FASE 1: Clasificación y Deduplicación por Gemini 3.1 Pro Preview'
+  summary: Fase 1 de clasificación y deduplicación del corpus de Gemini 3.1 Pro, revelando
+    un ecosistema fragmentado y contradicciones críticas.
+  keywords:
+  - Gemini 3.1 Pro
+  - clasificación
+  - deduplicación
+- id: doc_000139
+  title: Capa de Consciencia de Herramientas (Tool-Awareness Layer)
+  summary: Diseño de una Capa de Consciencia para que agentes de IA comprendan y orquesten
+    herramientas de forma semántica.
+  keywords:
+  - IA
+  - Capa de Consciencia
+  - Taxonomía de Capacidades
+- id: doc_000036
+  title: Auditoría Claude Opus 4.6 — PARTE 2 de 2
+  summary: Auditoría de coherencia de Claude Opus 4.6 revela duplicados, contradicciones
+    internas y cruzadas en el corpus, afectando la integridad de la información.
+  keywords:
+  - auditoría
+  - duplicados
+  - contradicciones
+- id: doc_000521
+  title: INVENTARIO CONSOLIDADO DE HERRAMIENTAS — Consenso de los 4 Sabios
+  summary: Inventario consolidado de herramientas para recolección, monitoreo y análisis
+    de datos, consensuado por expertos.
+  keywords:
+  - inventario
+  - herramientas
+  - recolección
+- id: doc_000020
+  title: 13 biblia manus v2
+  summary: La Biblia de Manus AI (v2.0) es un documento exhaustivo sobre las capacidades
+    de Manus AI, generado el 13 de febrero de 2026.
+  keywords:
+  - Manus AI
+  - documento
+  - investigación
+- id: doc_000032
+  title: ENTREGABLE 4y5 PUENTE CONCEPTOS
+  summary: El documento establece la convergencia entre SOP y EPIA en la implementación
+    de El Monstruo, definiendo roles, tensiones y conceptos clave para su desarrollo.
+  keywords:
+  - SOP
+  - EPIA
+  - El Monstruo
+- id: doc_000013
+  title: 12 biblia manus guia exhaustiva
+  summary: Guía exhaustiva sobre Manus, un agente autónomo de ejecución en un entorno
+    Linux con capacidades avanzadas y múltiples APIs.
+  keywords:
+  - Manus
+  - agente autónomo
+  - sandbox Linux
+- id: doc_000042
+  title: SEMILLA v7.3 — Configuración de 6 Sabios (confirmada desde Notion 5-Abr-2026)
+  summary: Configuración de 6 Sabios para SEMILLA v7.3, incluyendo proveedores y funciones
+    específicas.
+  keywords:
+  - SEMILLA
+  - Sabios
+  - OpenAI
+- id: doc_000008
+  title: 08 explorador piezas herramientas
+  summary: Investigación sobre herramientas para El Monstruo, destacando 46 herramientas
+    en 6 categorías, con 5 piezas clave identificadas.
+  keywords:
+  - El Monstruo
+  - herramientas
+  - frameworks
+- id: doc_000466
+  title: 'Informe de Validación: biblia_v41_cline-mcp.md'
+  summary: Informe de validación de Cline + MCP revela incompletitudes en varias capas,
+    con calificación general C.
+  keywords:
+  - Cline
+  - MCP
+  - validación
+- id: doc_000044
+  title: semilla v73 models
+  summary: SEMILLA v7.3 presenta un diccionario de modelos de IA con especificaciones
+    y usos para diferentes SDKs.
+  keywords:
+  - SEMILLA v7.3
+  - modelos de IA
+  - OpenAI
+- id: doc_000039
+  title: Inventario completo del corpus — Arquitectura de Absorción Soberana
+  summary: Inventario del corpus sobre Arquitectura de Absorción Soberana enviado
+    a GPT-5.4, con materiales seleccionados y excluidos por redundancia.
+  keywords:
+  - Arquitectura de Absorción Soberana
+  - GPT-5.4
+  - material enviado
+- id: doc_000033
+  title: Documento Final de Compilación — Investigación WIDE para **El Monstruo v2.0**
+  summary: El Monstruo v2.0 debe integrar soluciones existentes y construir una capa
+    soberana de integración para optimizar su arquitectura.
+  keywords:
+  - El Monstruo v2.0
+  - integración
+  - soluciones existentes
+- id: doc_000014
+  title: 13 biblia manus v2 feb2026
+  summary: La Biblia de Manus AI v2.0 es un documento exhaustivo sobre las capacidades
+    de Manus AI, generado el 13 de febrero de 2026.
+  keywords:
+  - Manus AI
+  - documento
+  - investigación
+- id: doc_000007
+  title: 07 biblia MCPs monstruo v1
+  summary: La Biblia de MCPs para El Monstruo v1.0 detalla la integración y priorización
+    de MCPs para mejorar sus capacidades.
+  keywords:
+  - MCP
+  - El Monstruo
+  - integración
+- id: doc_000035
+  title: Auditoría Claude Opus 4.6 — PARTE 1 de 2
+  summary: Auditoría parcial de Claude Opus 4.6 revela duplicados, contradicciones
+    críticas y clasificaciones cuestionables en el corpus procesado.
+  keywords:
+  - auditoría
+  - duplicados
+  - contradicciones

@@ -1,0 +1,162 @@
+# Arsenal: AWS — Gateway a 200+ Servicios Cloud
+# Última actualización: 2026-04-08
+# Credencial: notion:AWS (Access Key + Secret Key)
+# Console: https://console.aws.amazon.com
+
+connector: aws
+type: gateway
+ecosystem_size: "200+ services"
+credential_ref: notion:aws
+note: "Credenciales en Notion. No hay env var en sandbox — requiere configuración manual."
+
+connection_pattern: |
+  import boto3, os
+  # Credenciales: obtener de Notion DB y exportar como env vars
+  session = boto3.Session(
+      aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID", ""),
+      aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY", ""),
+      region_name=os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
+  )
+  assert session.get_credentials(), "AWS credentials no configuradas — obtener de Notion"
+  # Luego usar el servicio específico
+  s3 = session.client('s3')
+
+categories:
+
+  ai_ml:
+    description: "IA y Machine Learning"
+    services:
+      - id: bedrock
+        name: Amazon Bedrock
+        best_for: [multi_model_inference, Claude_via_AWS, Llama, Titan, Stability]
+        triggers: [bedrock, aws_ai, claude_aws, llama_aws, multi_modelo_aws]
+        pricing: "Pay per token"
+        note: "Acceso a Claude, GPT, Llama, Mistral, Titan, Cohere, Stability AI"
+        priority: top
+        available_models:
+          - "Anthropic Claude 3.5/4"
+          - "Meta Llama 3/4"
+          - "Mistral Large"
+          - "Amazon Titan"
+          - "Stability AI SDXL"
+          - "Cohere Command R+"
+
+      - id: rekognition
+        name: Amazon Rekognition
+        best_for: [image_analysis, face_detection, object_detection, OCR, video_analysis]
+        triggers: [reconocimiento_facial, detectar_objetos, analisis_imagen_aws, OCR_aws]
+        pricing: "$1/1000 images"
+
+      - id: polly
+        name: Amazon Polly
+        best_for: [text_to_speech, multiple_languages, neural_voices]
+        triggers: [tts_aws, voz_sintetica_aws, polly]
+        pricing: "$4/1M chars"
+        note: "Alternativa a ElevenLabs, más barata para volumen alto"
+
+      - id: transcribe
+        name: Amazon Transcribe
+        best_for: [speech_to_text, meeting_transcription, subtitles]
+        triggers: [transcripcion_aws, audio_a_texto_aws, subtitulos]
+        pricing: "$0.024/min"
+
+      - id: comprehend
+        name: Amazon Comprehend
+        best_for: [NLP, sentiment_analysis, entity_extraction, language_detection]
+        triggers: [nlp_aws, sentimiento_aws, entidades_aws]
+        pricing: "$0.0001/unit"
+
+  storage:
+    description: "Almacenamiento"
+    services:
+      - id: s3
+        name: Amazon S3
+        best_for: [object_storage, backups, media, data_lake, static_hosting]
+        triggers: [almacenar_aws, s3, backup, data_lake]
+        pricing: "$0.023/GB/mes + egress fees"
+        note: "El estándar de la industria. Considerar R2 de Cloudflare para zero egress."
+        priority: high
+
+  compute:
+    description: "Cómputo"
+    services:
+      - id: lambda
+        name: AWS Lambda
+        best_for: [serverless_functions, event_driven, API_backend, cron_jobs]
+        triggers: [lambda, serverless_aws, funcion_aws, cron_aws]
+        pricing: "Free: 1M req/mes. Paid: $0.20/1M req"
+        priority: high
+
+      - id: ec2
+        name: Amazon EC2
+        best_for: [virtual_servers, GPU_instances, persistent_compute]
+        triggers: [servidor_aws, gpu_aws, vm_aws]
+        pricing: "Varies by instance type"
+
+  database:
+    description: "Bases de datos"
+    services:
+      - id: rds
+        name: Amazon RDS
+        best_for: [managed_database, PostgreSQL, MySQL, SQL_Server]
+        triggers: [base_datos_aws, rds, postgresql_aws, mysql_aws]
+        pricing: "From $15/mes"
+
+      - id: dynamodb
+        name: Amazon DynamoDB
+        best_for: [NoSQL, key_value, high_throughput, serverless_db]
+        triggers: [nosql_aws, dynamodb, key_value_aws]
+        pricing: "Free: 25GB + 25 WCU/RCU"
+
+  messaging:
+    description: "Mensajería y notificaciones"
+    services:
+      - id: ses
+        name: Amazon SES
+        best_for: [transactional_email, bulk_email, email_marketing]
+        triggers: [email_masivo, ses, email_transaccional_aws]
+        pricing: "$0.10/1000 emails"
+        note: "Muy barato para email masivo. Alternativa a SendGrid."
+        priority: high
+
+      - id: sns
+        name: Amazon SNS
+        best_for: [push_notifications, SMS, pub_sub]
+        triggers: [notificaciones_push, sms_aws, sns]
+        pricing: "$0.50/1M requests"
+
+      - id: sqs
+        name: Amazon SQS
+        best_for: [message_queues, async_processing, decoupling]
+        triggers: [cola_mensajes, procesamiento_asincrono, sqs]
+        pricing: "Free: 1M req/mes"
+
+  networking:
+    description: "Red y distribución"
+    services:
+      - id: cloudfront
+        name: Amazon CloudFront
+        best_for: [CDN, content_delivery, caching, streaming]
+        triggers: [cdn_aws, cloudfront, distribucion_contenido]
+        pricing: "Free: 1TB/mes"
+
+      - id: route53
+        name: Amazon Route 53
+        best_for: [DNS, domain_registration, health_checks]
+        triggers: [dns_aws, dominio_aws, route53]
+        pricing: "$0.50/hosted zone/mes"
+
+      - id: api_gateway
+        name: Amazon API Gateway
+        best_for: [REST_API, WebSocket_API, API_management]
+        triggers: [api_gateway_aws, rest_api_aws, websocket_aws]
+        pricing: "$1/1M API calls"
+
+routing_hints:
+  ai_multi_model: "Bedrock (Claude, Llama, Mistral, Titan)"
+  cheap_email: "SES ($0.10/1000 emails)"
+  serverless: "Lambda (funciones) + API Gateway (endpoints)"
+  storage: "S3 (estándar) — pero considerar Cloudflare R2 para zero egress"
+  database: "RDS (SQL) o DynamoDB (NoSQL)"
+  image_analysis: "Rekognition (faces, objects, OCR)"
+  tts_volume: "Polly (más barato que ElevenLabs para volumen)"

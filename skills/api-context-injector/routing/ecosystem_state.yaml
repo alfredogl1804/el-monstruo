@@ -1,0 +1,517 @@
+# ============================================================
+# ECOSYSTEM STATE — Contrato Compartido v2.0
+# Fuente de verdad operativa de TODO el ecosistema de skills
+# Generado: 2026-04-09 | TTL: 30 días | Próxima revisión: 2026-05-09
+# ============================================================
+
+metadata:
+  version: "2.0"
+  generated: "2026-04-09"
+  ttl_days: 30
+  owner: "api-context-injector"
+  consumers: ["skill-factory", "consulta-sabios", "el-monstruo", "ALL_SKILLS"]
+  purpose: "Registro completo de los 14 skills y sus capacidades para que cualquier tarea sepa qué existe"
+
+# ============================================================
+# 1. SKILL REGISTRY — Los 14 skills del ecosistema
+# ============================================================
+skills:
+  # --- INFRAESTRUCTURA (3) — Skills que potencian a otros skills ---
+  api-context-injector:
+    version: "4.0"
+    category: infrastructure
+    description: "Registro centralizado de APIs, credenciales, arsenal expandido, routing inteligente e inyección de secrets"
+    triggers:
+      - "decidir qué IA usar"
+      - "verificar credenciales"
+      - "inyectar secrets en proyecto"
+      - "buscar skills externas"
+      - "evaluar herramienta con TRUST+FIT"
+    capabilities: [api_routing, secret_injection, skill_scouting, capability_mapping]
+    depends_on: []
+    feeds_into: [skill-factory, consulta-sabios, el-monstruo]
+    files: 38
+    key_assets:
+      - "routing/capability_registry.yaml (52 capabilities)"
+      - "routing/decision_router.yaml (59 rutas)"
+      - "arsenals/ (8 conectores-puerta → 31,700+ herramientas)"
+      - "scripts/inject_secrets.py"
+      - "scripts/skill_scout.py"
+
+  skill-factory:
+    version: "2.0"
+    category: infrastructure
+    description: "Pipeline completo para crear skills: intake, benchmark, investigación, diseño, generación, validación"
+    triggers:
+      - "crear skill nueva"
+      - "construir habilidad"
+      - "necesito un skill para"
+      - "evaluar si comprar o construir skill"
+    capabilities: [skill_creation, benchmark_analysis, gap_analysis, marketplace_evaluation]
+    depends_on: [api-context-injector]
+    feeds_into: ["ALL_SKILLS"]
+    files: 54
+    key_assets:
+      - "scripts/benchmark_before_build.py"
+      - "references/api-capability-matrix.md"
+      - "references/recipes/marketplace.md"
+
+  consulta-sabios:
+    version: "2.1"
+    category: infrastructure
+    description: "Consulta al Consejo de 6 Sabios con investigación pre/post, validación post-síntesis (7 pasos)"
+    triggers:
+      - "consultar sabios"
+      - "necesito opinión de múltiples IAs"
+      - "consenso multi-modelo"
+      - "investigación profunda"
+      - "enjambre"
+    capabilities: [multi_model_consensus, real_time_research, fact_checking, synthesis]
+    depends_on: [api-context-injector]
+    feeds_into: ["ALL_SKILLS"]
+    files: 67
+    key_assets:
+      - "scripts/run_consulta_sabios.py (7 pasos)"
+      - "scripts/validar_sintesis.py (Paso 7)"
+      - "config/skill_config.yaml"
+    sabios: ["gpt54", "claude", "gemini", "grok", "deepseek", "perplexity"]
+
+  # --- EL MONSTRUO (3) — Ecosistema del asistente IA soberano ---
+  el-monstruo:
+    version: "1.0"
+    category: core_project
+    description: "Sistema de absorción de contexto soberano (SOP, EPIA, MAOC, arquitectura, gobernanza)"
+    triggers:
+      - "El Monstruo"
+      - "SOP"
+      - "EPIA"
+      - "MAOC"
+      - "Absorción Soberana"
+      - "ecosistema IA de Alfredo"
+    capabilities: [context_absorption, hierarchical_loading, semantic_search]
+    depends_on: []
+    feeds_into: [el-monstruo-plan, el-monstruo-bot]
+    key_assets:
+      - "Genoma (core context)"
+      - "Tejidos (domain contexts)"
+      - "Supabase semantic search"
+
+  el-monstruo-plan:
+    version: "1.0"
+    category: core_project
+    description: "Blueprint de implementación Sprint 1 — stack técnico, versiones verificadas, alertas de seguridad"
+    triggers:
+      - "construir El Monstruo"
+      - "arquitectura del Monstruo"
+      - "sprint plan"
+      - "LangGraph"
+      - "Mem0"
+      - "LiteLLM"
+      - "Langfuse"
+    capabilities: [architecture_decisions, sprint_planning, component_selection]
+    depends_on: [el-monstruo, api-context-injector]
+    feeds_into: [el-monstruo-bot]
+    key_assets:
+      - "6 módulos + 4 modos"
+      - "Day-by-day build plan (WAP mode)"
+      - "Verified component versions"
+
+  el-monstruo-bot:
+    version: "1.0"
+    category: core_project
+    description: "Contexto de desarrollo del Telegram Bot MVP — arquitectura, repo, deploy en Railway"
+    triggers:
+      - "bot de Telegram"
+      - "Monstruo bot"
+      - "actualizar bot"
+      - "desplegar bot"
+      - "Railway"
+    capabilities: [bot_development, deployment, telegram_integration]
+    depends_on: [el-monstruo, el-monstruo-plan]
+    feeds_into: []
+    key_assets:
+      - "Current architecture"
+      - "Repository info"
+      - "Railway deployment status"
+
+  # --- NEGOCIO E INVERSIÓN (2) ---
+  creacion-cip:
+    version: "1.0"
+    category: business
+    description: "Plataforma de inversión inmobiliaria fraccionada con tokens anclados a bienes raíces reales"
+    triggers:
+      - "CIP"
+      - "tokenización inmobiliaria"
+      - "crowdfunding inmobiliario"
+      - "inversión fraccionada"
+    capabilities: [tokenization_design, real_estate_analysis, regulatory_compliance, platform_architecture]
+    depends_on: [api-context-injector]
+    feeds_into: [proyecto-renders]
+    key_assets:
+      - "Diseño de plataforma completo"
+      - "Marco regulatorio"
+      - "Modelo financiero"
+
+  proyecto-renders:
+    version: "1.0"
+    category: business
+    description: "Pipeline de inteligencia inmobiliaria: análisis de terreno → benchmarks → modelo de negocio → plan financiero → 8 renders"
+    triggers:
+      - "analizar terreno"
+      - "uso de suelo"
+      - "plan de negocio inmobiliario"
+      - "renders arquitectónicos"
+      - "renders fotorrealistas"
+    capabilities: [land_analysis, market_benchmarking, financial_modeling, photorealistic_rendering]
+    depends_on: [api-context-injector]
+    feeds_into: [creacion-cip]
+    key_assets:
+      - "7 módulos pipeline"
+      - "Generación de renders con IA"
+      - "Modelo financiero automatizado"
+
+  # --- CONTENIDO Y MEDIA (2) ---
+  tiktok-trend-creator:
+    version: "1.0"
+    category: content
+    description: "Crear conceptos virales de TikTok y videos semilla desde clips de música"
+    triggers:
+      - "TikTok"
+      - "tendencia viral"
+      - "video de parejas"
+      - "video de humor"
+      - "crear trend"
+    capabilities: [trend_analysis, video_scripting, music_sync, text_overlay_editing]
+    depends_on: [api-context-injector]
+    feeds_into: []
+    key_assets:
+      - "Trend concept generator"
+      - "Seed video producer"
+      - "Music viral potential analyzer"
+
+  bgm-prompter:
+    version: "1.0"
+    category: content
+    description: "Framework de prompts para generación de música con IA"
+    triggers:
+      - "generar música"
+      - "crear canción"
+      - "background music"
+      - "jingle"
+      - "soundtrack"
+    capabilities: [music_prompt_crafting, multi_clip_strategy, structure_syntax]
+    depends_on: []
+    feeds_into: [tiktok-trend-creator]
+    key_assets:
+      - "Prompt crafting framework"
+      - "Structure syntax guide"
+      - "Multi-clip strategy"
+
+  # --- SEGURIDAD Y CRISIS (2) ---
+  media-crisis-control:
+    version: "1.0"
+    category: security
+    description: "Alerta temprana, diagnóstico y recomendación táctica para crisis en medios (LATAM)"
+    triggers:
+      - "crisis mediática"
+      - "escándalo"
+      - "nota negativa"
+      - "control de daños"
+      - "figura pública"
+      - "político"
+    capabilities: [early_warning, crisis_diagnosis, tactical_recommendations, media_monitoring]
+    depends_on: [api-context-injector, consulta-sabios]
+    feeds_into: []
+    key_assets:
+      - "Framework LATAM-POLICRIS v1"
+      - "5 preguntas clave de crisis"
+      - "Recomendaciones tácticas"
+
+  aliexpress-mx-validator:
+    version: "1.0"
+    category: security
+    description: "Validación multi-capa de seguridad de compras en AliExpress para México"
+    triggers:
+      - "AliExpress"
+      - "verificar producto"
+      - "compra segura"
+      - "analizar vendedor"
+    capabilities: [seller_analysis, product_validation, shipping_risk_assessment]
+    depends_on: [api-context-injector]
+    feeds_into: []
+    key_assets:
+      - "Análisis multi-capa con IA"
+      - "Específico para envíos a México"
+
+  # --- UTILIDADES (2) ---
+  gws-best-practices:
+    version: "1.0"
+    category: utility
+    description: "Mejores prácticas para usar gws CLI con Google Workspace (Drive, Docs, Sheets, Slides)"
+    triggers:
+      - "Google Drive"
+      - "Google Docs"
+      - "Google Sheets"
+      - "Google Slides"
+      - "gws"
+    capabilities: [google_workspace_operations, document_management, spreadsheet_management]
+    depends_on: []
+    feeds_into: []
+    key_assets:
+      - "Reglas críticas por servicio"
+      - "Prevención de errores comunes"
+
+  skill-creator:
+    version: "1.0"
+    category: utility
+    description: "Guía para crear o actualizar skills que extienden Manus"
+    triggers:
+      - "crear skill simple"
+      - "actualizar skill existente"
+      - "modificar SKILL.md"
+    capabilities: [skill_creation_guide, update_workflow]
+    depends_on: []
+    feeds_into: [skill-factory]
+    note: "Para skills complejas, usar skill-factory en su lugar"
+
+# ============================================================
+# 2. CAPABILITY SUMMARY — Qué puede hacer el ecosistema
+# ============================================================
+capability_summary:
+  total_direct_resources: 82
+  total_capabilities: 52
+  total_pipelines: 15
+  total_routes: 59
+  total_arsenal_reach: "31,700+"
+  total_skills: 14
+
+  categories:
+    infrastructure: 3
+    core_project: 3
+    business: 2
+    content: 2
+    security: 2
+    utility: 2
+
+  domains_covered:
+    - text_generation
+    - code_generation
+    - image_generation
+    - video_generation
+    - audio_generation
+    - speech_synthesis
+    - speech_transcription
+    - web_scraping
+    - data_analysis
+    - database_management
+    - file_storage
+    - email_automation
+    - calendar_management
+    - project_management
+    - payment_processing
+    - subscription_management
+    - social_media_publishing
+    - social_listening
+    - dns_management
+    - edge_computing
+    - ci_cd_deployment
+    - document_processing
+    - real_time_search
+    - multi_model_consensus
+    - secret_management
+    - workflow_automation
+    - real_estate_analysis
+    - crisis_management
+    - content_creation
+    - music_generation
+    - tokenization
+    - bot_development
+
+  domains_NOT_covered:
+    - browser_automation_advanced
+    - unified_api_orchestration
+    - local_analytics
+    - deep_web_crawling
+    - blockchain_operations
+    - iot_device_control
+    - ar_vr_generation
+    - real_time_collaboration
+
+# ============================================================
+# 3. COST & RELIABILITY MATRIX
+# ============================================================
+cost_reliability:
+  llm_tier_1:
+    models: ["gpt-5.4", "anthropic/claude-sonnet-4-6", "gemini-3.1-pro-preview", "grok-4.20-0309-reasoning"]
+    avg_cost_per_1k_tokens: "$0.01-0.06"
+    avg_latency_ms: 3000-8000
+    availability: "99.5%+"
+    fallback_depth: 3
+
+  llm_tier_2:
+    models: ["deepseek-r1", "sonar-reasoning-pro"]
+    avg_cost_per_1k_tokens: "$0.002-0.01"
+    avg_latency_ms: 5000-15000
+    availability: "98%+"
+    fallback_depth: 2
+
+  llm_tier_3:
+    models: ["llama-4-maverick", "kimi-k2.5", "qwen-coder-plus", "mistral-large"]
+    avg_cost_per_1k_tokens: "$0.00-0.03"
+    avg_latency_ms: 2000-20000
+    availability: "95%+"
+    fallback_depth: 1
+    note: "Some models free tier available"
+
+  media_apis:
+    heygen: { cost: "$0.10/min video", latency: "60-300s", reliability: "high" }
+    elevenlabs: { cost: "$0.30/1K chars", latency: "1-5s", reliability: "very_high" }
+
+  infra_apis:
+    cloudflare: { cost: "free-$0.05/M requests", latency: "<50ms edge", reliability: "99.99%" }
+    vercel: { cost: "free-$20/mo", latency: "<100ms", reliability: "99.9%" }
+    supabase: { cost: "free-$25/mo", latency: "<50ms", reliability: "99.9%" }
+
+# ============================================================
+# 4. SECRETS & DEPLOYMENT MATRIX
+# ============================================================
+secrets_deployment:
+  sandbox_env_vars:
+    available: 14
+    list:
+      - { name: "OPENAI_API_KEY", service: "OpenAI/GPT-5.4", classification: "critical" }
+      - { name: "ANTHROPIC_API_KEY", service: "Anthropic/Claude", classification: "critical" }
+      - { name: "GEMINI_API_KEY", service: "Google Gemini", classification: "critical" }
+      - { name: "XAI_API_KEY", service: "xAI/Grok", classification: "critical" }
+      - { name: "SONAR_API_KEY", service: "Perplexity", classification: "critical" }
+      - { name: "OPENROUTER_API_KEY", service: "OpenRouter (500+ models)", classification: "critical" }
+      - { name: "HEYGEN_API_KEY", service: "HeyGen video", classification: "high" }
+      - { name: "ELEVENLABS_API_KEY", service: "ElevenLabs audio", classification: "high" }
+      - { name: "CLOUDFLARE_API_TOKEN", service: "Cloudflare infra", classification: "high" }
+      - { name: "DROPBOX_API_KEY", service: "Dropbox storage", classification: "medium" }
+      - { name: "OPENAI_API_BASE", service: "OpenAI base URL", classification: "low" }
+
+  notion_db_only:
+    db_id: "54b9d97704bc408d8453c1524fbfec9b"
+    services: ["Together AI", "Replicate", "Novita AI", "Atlas Cloud", "Meshy AI", "Fashn AI", "RunPod", "AWS", "Keepa", "Best Buy", "SecurityTrails", "HIBP", "BrandMentions", "Mentionlytics", "Apify", "Stripe"]
+
+  injection_targets:
+    sandbox: { method: ".env.local", risk: "low", automation: "full" }
+    vercel: { method: "MCP env vars", risk: "medium", automation: "full" }
+    cloudflare: { method: "wrangler secret put", risk: "medium", automation: "full" }
+    supabase: { method: "vault.create_secret()", risk: "medium", automation: "full" }
+
+  scaffold_rules:
+    web-static: "BLOCKED — no secrets allowed"
+    web-db-user: "BACKEND_ONLY — server/ directory"
+    mobile-app: "BLOCKED — use backend proxy"
+    cloudflare-worker: "ALLOWED — worker secrets"
+    next-vercel: "ALLOWED — server-side only"
+
+# ============================================================
+# 5. SKILL DEPENDENCY GRAPH
+# ============================================================
+dependency_graph:
+  # Quién depende de quién (para saber qué activar)
+  roots: [api-context-injector, el-monstruo, bgm-prompter, gws-best-practices, skill-creator]
+  
+  chains:
+    monstruo_chain: [el-monstruo, el-monstruo-plan, el-monstruo-bot]
+    real_estate_chain: [api-context-injector, proyecto-renders, creacion-cip]
+    content_chain: [bgm-prompter, tiktok-trend-creator]
+    factory_chain: [api-context-injector, skill-factory, skill-creator]
+    sabios_chain: [api-context-injector, consulta-sabios]
+
+  # Cuándo activar múltiples skills juntos
+  common_combos:
+    strategic_decision: [consulta-sabios, api-context-injector]
+    build_new_skill: [skill-factory, api-context-injector, consulta-sabios]
+    real_estate_project: [proyecto-renders, creacion-cip, api-context-injector]
+    monstruo_development: [el-monstruo, el-monstruo-plan, api-context-injector]
+    crisis_response: [media-crisis-control, consulta-sabios, api-context-injector]
+
+# ============================================================
+# 6. POLICY & COMPLIANCE MATRIX
+# ============================================================
+policy_compliance:
+  data_handling:
+    gdpr_applicable: true
+    data_residency_default: "US (most APIs)"
+    international_transfer_risk: "medium"
+    pii_processing_apis: ["OpenAI", "Anthropic", "Gemini", "ElevenLabs", "HeyGen"]
+
+  eu_ai_act:
+    effective_date: "2026-08-02"
+    impact: "high for agentic systems"
+    high_risk_domains: ["health", "finance", "legal", "employment", "education"]
+
+  licensing:
+    internal_use: "all APIs licensed for internal use"
+    redistribution: "requires per-API review"
+    open_source_skills: "MIT/Apache preferred, GPL requires isolation"
+
+  security_rules:
+    - "Never expose secrets in frontend code"
+    - "Never use VITE_/NEXT_PUBLIC_ prefixes for real secrets"
+    - "Always include .env* in .gitignore"
+    - "Zero-trust for external skills"
+    - "Sandbox isolation for untested skills"
+
+# ============================================================
+# 7. EXTERNAL SKILL INDEX
+# ============================================================
+external_skill_sources:
+  verified_sources:
+    - name: "GitHub Official Repos"
+      type: "primary"
+      trust_level: "high"
+    - name: "MCP Market"
+      type: "primary"
+      trust_level: "medium-high"
+      url: "https://mcpmarket.com"
+    - name: "awesome-agent-skills"
+      type: "curated_directory"
+      trust_level: "medium-high"
+      url: "https://github.com/heilcheng/awesome-agent-skills"
+
+  unverified_sources:
+    - name: "SkillsMP"
+      type: "marketplace"
+      trust_level: "unverified"
+      claimed_count: "784,822"
+
+  evaluation_methodology: "TRUST+FIT"
+  evaluation_file: "routing/trust_fit_evaluator.yaml"
+
+# ============================================================
+# 8. SKILL DECISION FRAMEWORK
+# ============================================================
+skill_decision:
+  before_building_any_skill:
+    step_1: "Check skills registry in this file (section 1)"
+    step_2: "Check capability_registry for existing coverage"
+    step_3: "Scout external sources (GitHub, MCP Market)"
+    step_4: "Evaluate with TRUST+FIT if external candidate found"
+    step_5: "Decide: install / fork / compose / build"
+
+  decision_matrix:
+    install: "Commodity skill, trusted source, compatible license, low risk"
+    fork_and_harden: "Good base but needs adaptation or security hardening"
+    compose: ">60% of capability exists in internal pieces"
+    build: "High differentiation, sensitive data, or no viable external option"
+    reject: "Fails hard gates (security, license, compliance)"
+
+# ============================================================
+# 9. TELEMETRY HOOKS
+# ============================================================
+telemetry:
+  sources:
+    - skill: "consulta-sabios"
+      data: "data/runs/*/telemetry.json"
+      metrics: ["tokens", "duration", "cost", "sabio_scores"]
+    - skill: "skill-factory"
+      data: "data/creation_history.jsonl"
+      metrics: ["skills_created", "complexity", "duration"]
+    - skill: "api-context-injector"
+      data: "scripts/inject_secrets.py --audit"
+      metrics: ["secrets_injected", "targets", "security_violations"]

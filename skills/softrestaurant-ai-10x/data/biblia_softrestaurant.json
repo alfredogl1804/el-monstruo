@@ -1,0 +1,708 @@
+{
+  "fecha": "2026-04-24",
+  "fuente": "investigacion_tiempo_real",
+  "modulos": [
+    {
+      "nombre": "POS - Punto de Venta",
+      "investigacion": "### Sub-funciones específicas del módulo POS - Punto de Venta de SoftRestaurant\n\nEl módulo **POS - Punto de Venta** de SoftRestaurant (desarrollado por National Soft de México) actúa como el núcleo operativo para restaurantes, gestionando pedidos, mesas, cobros y reportes en tiempo real. Incluye las siguientes sub-funciones específicas, basadas en su documentación y descripciones oficiales[1][2][3][5][7][8]:\n\n- **Apertura de turno**: El cajero registra el fondo de caja inicial para iniciar operaciones[1].\n- **Registro de pedidos**: Ingreso manual o recepción desde comandero digital/móvil; soporta comedor, domicilio y servicio rápido[1][3][7][10].\n- **Gestión de mesas visual**: Mapa del salón con estados (libre/verde, ocupada/rojo, por cobrar/amarillo), tiempo de ocupación, mesero asignado y cuenta acumulada[1].\n- **Asignación a mesa**: Vincula pedidos a mesas específicas para rastreo de consumo[1].\n- **Cobro y formas de pago**: Divide cuentas, aplica descuentos/promociones (porcentaje, monto fijo, 2x1, happy hour), propinas, pagos mixtos (efectivo, tarjetas débito/crédito, QR como Mercado Pago/Sr. Pago), cortesías (con autorización de gerente) y cargo a habitación (integrado con PMS para hoteles)[1][2][3].\n- **Facturación electrónica**: Genera facturas automáticas (electrónicas/preimpresas), timbra en tiempo real con SAT (SIFEN en algunos contextos), emite KUDE y maneja notas de crédito/anulaciones[1][5].\n- **Cierre de turno y corte de caja**: Resumen de ventas brutas/netas, desglose por pago, transacciones, descuentos, propinas, anulaciones y diferencias de caja[1].\n- **Integraciones operativas**: Conexión con ERP para envío de ventas/almacenes, PMS para cargos a habitación (consultar/cancelar/realizar cargo), monitor de producción y notificaciones a meseros[2][3].\n- **Fidelización**: Sistemas de puntos con Rest Card para promociones/clientes[5].\n- **Reportes**: Ventas, caja, almacén; versión PRO con Add On Analytics para metas/objetivos[5].\n- **Otras**: Control de comisionistas, reservaciones, notificaciones de órdenes finalizadas (con comandero/monitor)[3].\n\nEstas funciones cubren comedor, domicilio, rápido y se extienden a inventarios/costos vía módulos integrados[7].\n\n### Limitaciones conocidas y quejas de usuarios\n\nLos resultados de búsqueda no detallan quejas específicas de usuarios ni limitaciones documentadas de forma explícita para el módulo POS de SoftRestaurant. Sin embargo, se infieren algunas basadas en descripciones:\n\n- **Dependencia de hardware/local**: Principalmente on-premise (no cloud nativo como NS POS, su variante para microempresas)[4][9]; requiere estaciones fijas y configuración manual de almacenes/estaciones[2].\n- **Ausencia de menciones a problemas comunes**: No se reportan fallos en facturación SAT, lentitud o crashes en fuentes oficiales; quejas genéricas en foros no aparecen en resultados, sugiriendo estabilidad en México donde es el POS más usado[5][7].\n- **Licencias limitadas**: Funciones avanzadas (facturación en línea, reportes extras) requieren add-ons o versión PRO[5].\n\nNo hay datos reales de quejas recientes (hasta 2026); usuarios destacan su robustez para operaciones tradicionales[1][3].\n\n### Qué le falta comparado con software moderno con IA\n\nSoftRestaurant POS es sólido para operaciones básicas pero carece de **IA moderna** presente en competidores como Toast, Square o Lightspeed (2026 standards):\n\n- **Sin IA predictiva**: No menciona pronósticos de demanda, optimización de inventario por ML o detección automática de fraudes[1-10]; usa reglas manuales para stock/promociones[3].\n- **Ausencia de personalización IA**: No chatbots para pedidos, recomendaciones de upsell basadas en IA (e.g., \"clientes como tú pidieron X\") o análisis de sentimientos en reseñas[1-10].\n- **Reportes estáticos**: Analytics básicos (Add On PRO), sin IA para insights automáticos como churn prediction o pricing dinámico[5].\n- **No voice/AR**: Falta integración con voz para comandos o AR para mesas virtuales, común en POS IA 2026[1-10].\n- **Cloud limitado**: Principalmente local; NS POS es cloud básico sin IA[4][9].\n\nLe falta escalabilidad IA para big data, automatización predictiva y UX touchless.\n\n### Flujo de trabajo típico del usuario en este módulo\n\nEl flujo estándar en el **POS de SoftRestaurant** sigue un ciclo lineal por turno, operable desde terminal/comandero[1][2][7][10]:\n\n1. **Apertura**: Cajero/mesero inicia turno, ingresa fondo inicial[1].\n2. **Registro pedido**: Ingreso vía POS/comandero; asigna mesa/zona/mesero; envía a cocina (con monitor si aplica)[1][3].\n3. **Gestión en mesa**: Monitorea visualmente (estado/tiempo/consumo); agrega items/promociones[1].\n4. **Cobro**: Cliente pide cuenta → genera total, divide/aplica descuentos/propinas/pagos mixtos/cargo habitación[1][2].\n5. **Facturación/pago**: Emite factura electrónica, procesa pago (QR/tarjeta/efectivo), imprime/envía[1][3].\n6. **Cierre**: Finaliza venta; al fin de turno, genera corte de caja con reportes[1].\n7. **Post-venta**: Integra a ERP/PMS si configurado; consulta ventas/reservas[2][5].\n\nToma ~1-2 min por mesa en picos; personalizable por estación[2][8].",
+      "fuentes": [
+        "https://blog.softrestaurant.net/articulo/punto-de-venta-restaurante-pos",
+        "https://softrestaurant.zohodesk.com/portal/es/kb/articles/m%C3%B3dulo-de-integraci%C3%B3n-erp-y-psm",
+        "https://softrestaurant.com/blog-restaurantero/9-funciones-que-soft-restaurant-le-ofrece-a-tu-restaurante",
+        "https://www.youtube.com/watch?v=IVi_WXGzZu0",
+        "https://softrestaurant-mexico.com/punto-de-venta-preguntas-frecuentes/",
+        "https://es.slideshare.net/slideshow/soft-restaurant-60-manual-de-referencia/239105819",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://nationalsoft.com.mx/images/calendario/files/Temario_Punto_de_Venta__Soft_Restaurant.pdf",
+        "https://www.youtube.com/watch?v=kxRZiylOHKk",
+        "https://es.scribd.com/document/332304087/Des-mnl-Sr9-Manual-de-Referencia-Soft-Restaurant-Professional-1"
+      ],
+      "sub_features": [
+        "Apertura de turno",
+        "Registro de pedidos",
+        "Gestión de mesas visual",
+        "Asignación a mesa",
+        "Cobro y formas de pago",
+        "Facturación electrónica",
+        "Cierre de turno y corte de caja",
+        "Integraciones operativas",
+        "Fidelización",
+        "Reportes",
+        "Otras"
+      ],
+      "limitaciones": [
+        "Dependencia de hardware/local",
+        "Ausencia de menciones a problemas comunes",
+        "Licencias limitadas"
+      ],
+      "dolor_usuario": [],
+      "oportunidad_10x": []
+    },
+    {
+      "nombre": "Mapa de Mesas",
+      "investigacion": "# Módulo Mapa de Mesas de SoftRestaurant\n\nEl **Mapa de Mesas** es un módulo de SoftRestaurant que permite visualizar la disposición física de las mesas en cada área del restaurante, gestionar su disponibilidad y monitorear el consumo en tiempo real[4]. Es una herramienta central para el control operativo del servicio en comedor.\n\n## Sub-funciones específicas\n\n**Diseño y configuración del mapa:**\n- Crear y editar mapas de mesas por área de venta (comedor, terraza, etc.)[3]\n- Definir tipos de mesa con clave única, descripción, número máximo de comensales e icono personalizado[1]\n- Posicionar mesas en el mapa mediante un diseñador gráfico con opciones de escala y movimiento[3]\n- Agregar objetos adicionales como vegetación, baños, puertas, ventanas y texto descriptivo[1]\n- Copiar mapas entre áreas, cargando automáticamente las mesas del área destino[1]\n\n**Gestión operativa de mesas:**\n- **Bloqueo/desbloqueo de mesas**: Los meseros, comanderos o administradores pueden mantener presionada una mesa y seleccionar \"habilitar/deshabilitar\" para bloquearla (se colorea de gris), permitiendo abrir solo las mesas designadas para el servicio[2]\n- Apertura y cierre de cuentas directamente desde el mapa[1]\n- Visualización de reservaciones[1]\n\n**Monitoreo de indicadores:**\nEl mapa muestra cuatro indicadores por mesa[2]:\n- Consumo total de cada mesa\n- Consumo por comensal\n- Tiempo transcurrido desde que se abrió la mesa\n- Tiempo desde la última orden capturada\n\n**Acceso desde el Comandero:**\nLos meseros pueden acceder directamente al mapa de mesas si se activa la casilla \"accesar directamente a mapa de mesas\" en su perfil de usuario[5]. Al ingresar al comandero, visualizan automáticamente el mapa diseñado para su área[5].\n\n## Limitaciones conocidas y quejas de usuarios\n\nLos resultados de búsqueda no incluyen información específica sobre limitaciones documentadas o quejas de usuarios respecto al módulo Mapa de Mesas. Los materiales disponibles son principalmente tutoriales y documentación oficial que presentan funcionalidades sin mencionar deficiencias o problemas reportados por usuarios.\n\n## Comparación con software moderno con IA\n\nLos resultados de búsqueda no contienen información sobre comparativas entre SoftRestaurant y software moderno con inteligencia artificial, ni sobre capacidades de IA que pudieran faltar en este módulo. Para proporcionar un análisis preciso sobre esta brecha, sería necesario acceder a evaluaciones comparativas o análisis de mercado actualizados.\n\n## Flujo de trabajo típico del usuario\n\n**Fase de configuración inicial (administrador):**\n\n1. Crear áreas de venta en Configuración > Áreas de ventas (ej: \"Comedor\", \"Terraza\")[3]\n2. Definir tipos de mesa en Catálogo > Mesas con clave, descripción y capacidad[3]\n3. Generar mesas individuales asignadas a cada área (ej: C1, C2, C3 para comedor; T10 para terraza)[3]\n4. Acceder a Catálogo > Mapa de mesas y crear un nuevo mapa[3]\n5. Usar el diseñador de mapas para posicionar las mesas, ajustar escala y agregar elementos adicionales (baños, plantas, comandero)[3]\n6. Guardar el mapa en el diseñador y luego guardar permanentemente en el catálogo[1]\n7. Editar el área de venta para asignar el mapa como predeterminado[5]\n8. Activar en cada perfil de mesero la opción \"accesar directamente a mapa de mesas\"[5]\n\n**Fase operativa (mesero/comandero):**\n\n1. Ingresar al Comandero con credenciales[5]\n2. Visualizar automáticamente el mapa de mesas del área asignada[5]\n3. Seleccionar una mesa disponible para abrir una cuenta[5]\n4. Consultar en tiempo real el estatus de cada mesa (ocupada, libre, bloqueada)[5]\n5. Ver indicadores de consumo, tiempo de mesa y última orden[2]\n6. Cerrar la cuenta al finalizar el servicio, liberando automáticamente la mesa[5]\n\n**Fase de control (administrador/gerente):**\n\n- Monitorear el aforo del restaurante visualizando mesas ocupadas y disponibles[2]\n- Bloquear mesas específicas para mantenimiento o para controlar la capacidad de servicio[2]\n- Consultar consumo por mesa y por comensal para análisis de desempeño[2]",
+      "fuentes": [
+        "https://es.scribd.com/document/401081054/Manual-de-Usuario-Soft-Restaurant-Movil-v-1-0-20160613-1",
+        "https://www.youtube.com/watch?v=x4ruO3BxGYk",
+        "https://www.youtube.com/watch?v=vrKSd8pvJzo",
+        "https://softrestaurant.com/blog-restaurantero/9-funciones-que-soft-restaurant-le-ofrece-a-tu-restaurante",
+        "https://www.youtube.com/watch?v=IleaNWAykcw",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://www.youtube.com/watch?v=kS8ngwpfc9c"
+      ],
+      "sub_features": [
+        "Crear y editar mapas de mesas por área de venta (comedor, terraza, etc.)",
+        "Definir tipos de mesa con clave única, descripción, número máximo de comensales e icono personalizado",
+        "Posicionar mesas en el mapa mediante un diseñador gráfico con opciones de escala y movimiento",
+        "Agregar objetos adicionales como vegetación, baños, puertas, ventanas y texto descriptivo",
+        "Copiar mapas entre áreas, cargando automáticamente las mesas del área destino",
+        "Bloqueo/desbloqueo de mesas",
+        "Apertura y cierre de cuentas directamente desde el mapa",
+        "Visualización de reservaciones",
+        "Monitoreo de indicadores: Consumo total de cada mesa, Consumo por comensal, Tiempo transcurrido desde que se abrió la mesa, Tiempo desde la última orden capturada",
+        "Acceso desde el Comandero"
+      ],
+      "limitaciones": [],
+      "dolor_usuario": [],
+      "oportunidad_10x": []
+    },
+    {
+      "nombre": "Inventarios",
+      "investigacion": "# Módulo de Inventarios de SoftRestaurant\n\n## Funciones Principales\n\nEl módulo de **Inventarios** de SoftRestaurant de National Soft es una herramienta integral para gestionar el control de existencias en restaurantes[3]. Sus sub-funciones específicas incluyen:\n\n- **Costeo de recetas**: Calcula automáticamente el costo de cada platillo basado en los insumos utilizados[3]\n- **Órdenes de compra automáticas**: Genera órdenes cuando el stock cae por debajo del mínimo establecido[3]\n- **Explosión de productos**: Permite preparar grandes cantidades de productos para eventos, desglosando automáticamente los insumos necesarios[3]\n- **Cálculo de insumos consumidos**: Descuenta automáticamente los insumos de las recetas cuando se venden productos[1][2]\n- **Insumos elaborados**: Gestiona productos intermedios que se preparan a partir de otros insumos[3]\n- **Inventarios físicos**: Permite registrar conteos manuales de existencias[1][2]\n- **Reportes de existencias en tiempo real**: Genera reportes detallados de stock disponible por almacén[1]\n- **Traspasos de almacén**: Facilita movimientos de insumos entre diferentes áreas o sucursales[3]\n- **Impresión de movimientos**: Genera tickets con compras, movimientos e inventarios[3]\n\n## Flujo de Trabajo Típico\n\nEl proceso estándar en SoftRestaurant funciona así[1][2]:\n\n1. **Configuración inicial**: Se crean grupos de insumos (como \"abarrotes\") y se registran todos los productos con sus precios de costo y rendimiento\n\n2. **Creación de recetas**: Se editan productos de venta, se selecciona \"agregar receta\" y se especifica cada insumo con su cantidad a descontar[1]\n\n3. **Inventario físico base**: Se realiza un conteo inicial registrando cantidades existentes (ejemplo: aceite de oliva 5L, azúcar 4kg, harina seca 5kg, sal 5kg)[1]\n\n4. **Venta y descuento automático**: Al vender un producto (como una \"picadilla de pollo\"), el sistema descuenta automáticamente todos los insumos de su receta[1]\n\n5. **Consulta de existencias**: Se accede a Reportes > Almacén > Existencias para ver el stock en tiempo real por grupo de insumos y almacén[1]\n\n6. **Registro de compras**: Se ingresan compras de insumos, que se suman automáticamente al inventario disponible[2]\n\n## Limitaciones y Quejas de Usuarios\n\nAunque los resultados de búsqueda no documentan explícitamente quejas de usuarios, sí revelan limitaciones operativas:\n\n- **Requiere dedicación manual significativa**: Necesita \"una persona dedicada a alimentar el sistema por semana o por mes\" con todas las recetas, proveedores, precios, mínimos y máximos[1]\n\n- **Dependencia de datos precisos**: El sistema solo funciona correctamente si todas las recetas están \"ya acomodadas\" previamente; cualquier error en la configuración inicial afecta todos los cálculos[1]\n\n- **Configuración compleja inicial**: Requiere establecer grupos de insumos, asignar almacenes por estación, y vincular recetas a productos antes de poder usar el módulo efectivamente[2][4]\n\n## Comparación con Software Moderno con IA\n\nLos resultados de búsqueda no contienen información sobre comparativas con software moderno o capacidades de IA. Sin embargo, basándome en lo documentado, SoftRestaurant carece de:\n\n- **Automatización predictiva**: No hay evidencia de pronósticos de demanda o sugerencias automáticas de compra basadas en patrones\n- **Optimización inteligente**: No menciona análisis de mermas o detección automática de anomalías\n- **Integración avanzada**: Aunque existe un módulo ERP/PMS[4], no se describe integración con sistemas de IA para análisis de datos\n\n## Requisitos Previos Críticos\n\nPara que el módulo funcione correctamente, el usuario debe tener[1][6]:\n\n- **Fichas técnicas estandarizadas** de todos los platillos\n- **Todas las recetas documentadas** con cantidades exactas\n- **Catálogo completo de proveedores** con precios actualizados\n- **Definición de stock mínimo y máximo** por insumo\n- **Clasificación de productos** en grupos organizados\n\nLa efectividad del módulo depende directamente de la calidad y actualización de estos datos base.",
+      "fuentes": [
+        "https://www.youtube.com/watch?v=PlKK0GMv4wM",
+        "https://www.youtube.com/watch?v=IqQXHnHB25E",
+        "https://softrestaurant.com/blog-restaurantero/9-funciones-que-soft-restaurant-le-ofrece-a-tu-restaurante",
+        "https://softrestaurant.zohodesk.com/portal/es/kb/articles/m%C3%B3dulo-de-integraci%C3%B3n-erp-y-psm",
+        "https://www.scribd.com/document/564280160/Soft-Restaurant-2011-Inventarios-Guia-rapida",
+        "https://softrestaurant.com/blog-restaurantero/como-llevar-el-control-de-inventarios-en-un-restaurante",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://es.slideshare.net/slideshow/soft-restaurant-60-manual-de-referencia/239105819",
+        "https://www.youtube.com/watch?v=yx8n2MvRHQQ",
+        "https://www.softpaqi.net/soft-restaurant/PRESENTACION-2019.pdf"
+      ],
+      "sub_features": [
+        "Costeo de recetas",
+        "Órdenes de compra automáticas",
+        "Explosión de productos",
+        "Cálculo de insumos consumidos",
+        "Insumos elaborados",
+        "Inventarios físicos",
+        "Reportes de existencias en tiempo real",
+        "Traspasos de almacén",
+        "Impresión de movimientos"
+      ],
+      "limitaciones": [
+        "Requiere dedicación manual significativa",
+        "Dependencia de datos precisos",
+        "Configuración compleja inicial"
+      ],
+      "dolor_usuario": [],
+      "oportunidad_10x": []
+    },
+    {
+      "nombre": "Recetas y Costeo",
+      "investigacion": "# Módulo de Recetas y Costeo de SoftRestaurant\n\n## Sub-funciones específicas\n\nEl módulo de Recetas y Costeo de SoftRestaurant cuenta con las siguientes funcionalidades:[1][3][5]\n\n- **Catálogo de insumos:** Captura de todos los insumos que formarán parte de las recetas del negocio con sus precios unitarios por medida estándar (kilogramo o litro)[1]\n- **Creación de recetas:** Elaboración de recetas estándar con lista de ingredientes, cantidades específicas y precios de cada componente[1]\n- **Cálculo automático de costos:** Genera el costo total de cada receta dependiendo del precio de los productos que la componen[1]\n- **Costeo por porción:** Determina el costo individual por cada porción elaborada[1]\n- **Reportes de recetas:** Visualización de costos basados en promedio o último costo registrado[1]\n- **Descargar inventario por recetas:** Descuenta automáticamente del inventario los insumos utilizados al vender un producto[1][3]\n- **Explosión de productos:** Función para preparar grandes cantidades de productos en eventos, desglosando automáticamente los insumos requeridos[3]\n- **Cálculo de insumos consumidos:** Registra y controla qué insumos se utilizan en cada elaboración[3]\n- **Insumos elaborados:** Gestiona productos que son resultado de procesos intermedios dentro del restaurante[3][5]\n- **Órdenes de compra automáticas:** Genera órdenes basadas en stock mínimo y máximo configurado[3]\n- **Comentarios en recetas:** Campo para agregar notas sobre forma de preparación, facilitando la estandarización[1]\n\n## Limitaciones conocidas y quejas de usuarios\n\nLos resultados de búsqueda **no contienen información específica sobre limitaciones conocidas o quejas de usuarios** respecto al módulo de Recetas y Costeo de SoftRestaurant. Los documentos disponibles se enfocan en las funcionalidades positivas del sistema sin mencionar problemas reportados, restricciones técnicas o retroalimentación negativa de usuarios.\n\n## Comparación con software moderno con IA\n\nLos resultados de búsqueda **no incluyen comparativas entre SoftRestaurant y software moderno con inteligencia artificial**, ni mencionan qué capacidades basadas en IA podrían faltarle al sistema. Esta información no está disponible en las fuentes proporcionadas.\n\n## Flujo de trabajo típico del usuario\n\nEl proceso estándar en el módulo de Recetas y Costeo es:[1]\n\n1. **Agregar productos al catálogo de insumos:** Se capturan todos los insumos disponibles con sus precios unitarios\n2. **Crear la receta:** Se completa la lista con ingredientes específicos, cantidades y precios de cada componente\n3. **Agregar comentarios:** Se incluyen notas sobre la forma de preparación para estandarizar el proceso\n4. **Mostrar costeo de la receta:** El sistema calcula automáticamente el costo total basado en los componentes\n5. **Consultar reportes:** Se visualiza el costo de recetas mediante el reporte de recetas, eligiendo entre costo promedio o último costo\n6. **Descontar del inventario:** Al vender un producto, el sistema automáticamente descuenta los insumos utilizados del inventario en las cantidades configuradas[1]\n\n**Recomendación de uso:** SoftRestaurant sugiere mantener una única receta estándar por platillo o bebida, modificándola solo cuando sea necesario actualizar costos de insumos, para garantizar consistencia en los cálculos[1]",
+      "fuentes": [
+        "https://softrestaurant.com/blog-restaurantero/como-hacer-el-costeo-de-recetas-en-un-restaurante",
+        "https://www.youtube.com/watch?v=xGnDcrmJQc8",
+        "https://softrestaurant.com/blog-restaurantero/9-funciones-que-soft-restaurant-le-ofrece-a-tu-restaurante",
+        "https://www.softpaqi.net/soft-restaurant/PRESENTACION-2019.pdf",
+        "https://solucionespararestaurantes.mx/softrestaurant",
+        "https://es.scribd.com/document/605974731/Manual-de-Referencia-Soft-Restaurant",
+        "https://www.youtube.com/watch?v=Q6Jm0eqHG-0",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://es.slideshare.net/slideshow/soft-restaurant-60-manual-de-referencia/239105819"
+      ],
+      "sub_features": [
+        "Catálogo de insumos",
+        "Creación de recetas",
+        "Cálculo automático de costos",
+        "Costeo por porción",
+        "Reportes de recetas",
+        "Descargar inventario por recetas",
+        "Explosión de productos",
+        "Cálculo de insumos consumidos",
+        "Insumos elaborados",
+        "Órdenes de compra automáticas",
+        "Comentarios en recetas"
+      ],
+      "limitaciones": [],
+      "dolor_usuario": [],
+      "oportunidad_10x": []
+    },
+    {
+      "nombre": "Compras y Proveedores",
+      "investigacion": "### Sub-funciones específicas del módulo 'Compras y Proveedores'\n\nEl módulo 'Compras y Proveedores' de SoftRestaurant, accesible desde el menú principal bajo \"Almacén\" o iconos superiores, permite gestionar compras manuales, automáticas y desde CFDI, integradas con inventarios y contabilidad. Sus sub-funciones incluyen:[1][3][5]\n\n- **Registro y búsqueda de proveedores**: Catálogo de proveedores con directorio para buscar por nombre o iniciales; registra datos como crédito disponible para generar órdenes automáticas.[3][4]\n- **Nueva compra**: Crea compras seleccionando proveedor vía buscador, agregando insumos individuales con cantidad, precio y unidad; soporta captura manual de productos.[3]\n- **Órdenes de compra automáticas**: Genera órdenes basadas en stock mínimo/máximo configurado en inventarios.[1][4]\n- **Compras desde CFDI**: Importa facturas electrónicas (CFDI) directamente al módulo para registrar compras validadas fiscalmente.[5]\n- **Control de gastos y proveedores**: Registra gastos (renta, luz, etc.) vinculados a proveedores; gestiona cuentas por pagar, saldos a proveedores, abonos y pólizas contables diarias.[1][4]\n- **Integraciones con inventarios**: Costeo de recetas, explosión de productos para eventos, cálculo de insumos consumidos/elaborados, movimientos de almacén entre sucursales y transferencias.[1][2]\n- **Impresiones y reportes**: Imprime compras, movimientos e inventarios en formato ticket; refleja datos en contabilidad.[1]\n- **Integración ERP/PSM**: Envía datos de compras a ERP para pólizas de egresos, gestión de CXP y presupuestos; gobierna catálogos desde ERP (proveedores, insumos, recetas no se alimentan en SR).[2]\n\n### Limitaciones conocidas y quejas de usuarios\n\nNo hay quejas explícitas en fuentes disponibles, pero se infieren limitaciones operativas como dependencia de catálogos manuales (proveedores e insumos deben preconfigurarse con permisos de seguridad elevados) y flujos no totalmente automatizados sin ERP.[2][4] Otras restricciones incluyen:\n\n- Búsquedas básicas por texto/iniciales sin filtros avanzados (e.g., por zona o historial).[3]\n- No soporta compras masivas o importación automática sin CFDI; requiere clics manuales por insumo.[3]\n- Catálogos de proveedores/insumos no se actualizan dinámicamente sin integración ERP, lo que complica multi-sucursal.[2]\n- Ausencia de validaciones en tiempo real para duplicados o alertas de sobrestock durante captura.[3][4]\n\n### Qué le falta comparado con software moderno con IA\n\nSoftRestaurant carece de IA nativa, enfocándose en reglas fijas vs. software como Toast o Lightspeed con IA (2023+), que ofrecen predicción de demanda y automatización inteligente. Falta:[1][2]\n\n- **Predicción de compras con IA**: Análisis de ventas históricas para sugerir órdenes óptimas (e.g., ML para stock mínimo dinámico basado en tendencias estacionales).\n- **Reconocimiento automático de facturas**: OCR/IA para extraer CFDI sin carga manual, vs. solo importación básica.[5]\n- **Chatbots o asistentes IA**: Consulta verbal de saldos proveedores o generación de órdenes por voz.\n- **Análisis predictivo**: Alertas IA por proveedores riesgosos (retrasos históricos) o optimización de rutas de entrega.\n- **Integración API abierta con IA externa**: Limitado a JSON/ERP específico, sin plugins para tools como Google Cloud AI para forecasting.[2]\n\n### Flujo de trabajo típico del usuario\n\n1. Accede al módulo: Menú principal > Almacén > Compras (o icono superior).[1][3][5]\n2. Catálogo proveedores: Catálogos > Proveedores (requiere permisos); busca/alta proveedor por nombre/iniciales.[3][4]\n3. Nueva compra: Clic \"Nueva compra\" > Busca proveedor > Selecciona insumos uno a uno vía buscador > Ingresa cantidad/precio > Guarda.[3]\n4. Alternativa CFDI: Almacén > Compras desde CFDI > Importa factura > Valida y registra.[5]\n5. Procesos automáticos: Sistema genera orden por stock bajo > Captura llegada > Actualiza inventario, saldos y pólizas.[1][2][4]\n6. Reportes: Imprime ticket > Consulta saldos/abonos en cuentas por pagar.[1] \n\nCon ERP, compras se sincronizan automáticamente para contabilidad y multi-almacén.[2]",
+      "fuentes": [
+        "https://softrestaurant.com/blog-restaurantero/9-funciones-que-soft-restaurant-le-ofrece-a-tu-restaurante",
+        "https://softrestaurant.zohodesk.com/portal/es/kb/articles/m%C3%B3dulo-de-integraci%C3%B3n-erp-y-psm",
+        "https://www.youtube.com/watch?v=KMBw7VCoOyw",
+        "https://www.youtube.com/watch?v=dgO_p14oeAA",
+        "https://softrestaurant.com/recursos/manuales?download=212%3Asr12-manual-compras-cfdi&start=15",
+        "https://nationalsoft.com.mx/index.php?option=com_sppagebuilder&view=page&id=111",
+        "https://www.youtube.com/watch?v=0l9gL2Cl2WA",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://es.slideshare.net/slideshow/soft-restaurant-60-manual-de-referencia/239105819",
+        "https://www.softpaqi.net/soft-restaurant/PRESENTACION-2019.pdf"
+      ],
+      "sub_features": [
+        "Registro y búsqueda de proveedores",
+        "Nueva compra",
+        "Órdenes de compra automáticas",
+        "Compras desde CFDI",
+        "Control de gastos y proveedores",
+        "Integraciones con inventarios",
+        "Impresiones y reportes",
+        "Integración ERP/PSM"
+      ],
+      "limitaciones": [
+        "Dependencia de catálogos manuales",
+        "Flujos no totalmente automatizados sin ERP",
+        "Búsquedas básicas por texto/iniciales sin filtros avanzados",
+        "No soporta compras masivas o importación automática sin CFDI",
+        "Catálogos de proveedores/insumos no se actualizan dinámicamente sin integración ERP",
+        "Ausencia de validaciones en tiempo real para duplicados o alertas de sobrestock durante captura"
+      ],
+      "dolor_usuario": [],
+      "oportunidad_10x": [
+        "Predicción de compras con IA",
+        "Reconocimiento automático de facturas",
+        "Chatbots o asistentes virtuales"
+      ]
+    },
+    {
+      "nombre": "Reportes y Dashboards",
+      "investigacion": "### Sub-funciones específicas del módulo 'Reportes y Dashboards' (Soft Restaurant Analytics)\n\nEl módulo **Soft Restaurant Analytics**, incluido en la licencia estándar de Soft Restaurant de National Soft, proporciona un dashboard inicial para métricas en tiempo real y más de 20-30 reportes gerenciales accesibles desde cualquier dispositivo, permitiendo consultas por una o varias sucursales simultáneamente[2][3]. Las sub-funciones específicas incluyen:\n\n- **Ventas en tiempo real y comparativas**: Visualización de ventas por periodo (diario, mensual, anual), comparativas con meses/días/años anteriores, proyecciones y % vs. año anterior; acumulado de ventas con metas diarias, mensuales y anuales, incluyendo % de cumplimiento[2][3].\n- **Productos más vendidos**: Reportes de platillos/productos por ventas, con filtros por fecha, empresa o categoría (ej. alimentos)[2][3].\n- **Ventas por estación**: Análisis por estación de servicio (mostrador, comedor, servicio a domicilio)[2].\n- **Clientes y ticket promedio**: Clientes atendidos, ticket promedio por hora/cliente, consumo por cuenta/mesa, mesas ocupadas/desocupadas, cortesías y descuentos aplicados[2][3].\n- **Ventas por meseros/empleados**: Identificación del mejor mesero across sucursales, ventas individuales[3].\n- **Reportes adicionales de ventas**: Descuentos/cortesías, gráficos/tablas personalizables, exportación a PDF/Excel[3].\n- **Integración con otros módulos**: Reportes de inventarios (existencias, stock mínimo/máximo, costeo de recetas, órdenes de compra, insumos consumidos/elaborados), asistencia de personal (por periodo/turno/empleado, horas trabajadas), control de gastos (tipos de gastos, cuentas por cobrar/pagar, saldos proveedores), y contabilidad (pólizas diarias de egreso/ingreso)[1][5][6].\n- **Acceso móvil y alertas**: Consulta de reportes vía app móvil, alertas de stock mínimo, antifraude y cortes de caja por email[1].\n- **Opciones de visualización**: Gráficos, tablas, filtros por fecha/empresa/grupo/marca, generación por periodo específico (ej. mes de junio/julio)[3].\n\nEstos reportes se actualizan en tiempo real y permiten decisiones operativas como ajustar ventas o identificar top performers[2][3].\n\n### Limitaciones conocidas y quejas de usuarios\n\nLos reportes dependen de módulos activados (ej. sin inventarios, no hay reportes de almacén/costos/compras), limitando la disponibilidad[5]. No hay mención directa de quejas en fuentes, pero usuarios destacan dependencia de configuración manual para filtros y exportaciones (PDF/Excel), sin automatización avanzada nativa[3]. Integraciones externas como Factor BI son necesarias para consolidación en nube y métricas extras (mix alcohol, tiempos cocina, marcación), indicando gaps en el módulo base[4]. Acceso móvil existe, pero enfocado en consulta básica, no edición profunda[1].\n\n### Qué le falta comparado con software moderno con IA\n\nSoft Restaurant Analytics carece de **inteligencia artificial** para predicciones automáticas, análisis predictivo (ej. forecasting de demanda basado en patrones), detección anómala (fraude/ desperdicios) o recomendaciones accionables (ej. \"aumenta stock de X por tendencia\")[2][3]. Software modernos como Lightspeed o Toast con IA ofrecen:\n- Predicciones de ventas/inventario vía machine learning.\n- Segmentación automática de clientes (RFM analysis).\n- Optimización de precios dinámicos y personalización de menús.\n- Chatbots para insights naturales y alertas proactivas.\nAquí, todo es reactivo: metas manuales, comparativas básicas sin IA para proyecciones automáticas o causalidad (ej. impacto de promociones)[2][3]. No hay procesamiento en nube nativo ni integración ERP profunda sin add-ons[4].\n\n### Flujo de trabajo típico del usuario\n\n1. **Acceso**: Iniciar desde dashboard principal de Soft Restaurant Analytics (web/móvil/app), seleccionar sucursales/empresas/grupos[2][3].\n2. **Filtros**: Elegir periodo (ej. día/mes/año específico como 1-30 junio), tipo de reporte (ventas, productos, meseros), visualización (gráfica/tabla)[3].\n3. **Análisis**: Revisar métricas clave (total ventas, clientes, ticket promedio, % metas, comparativas vs. anterior); identificar top productos/meseros/estaciones[2][3].\n4. **Acciones**: Establecer/actualizar metas, exportar PDF/Excel para contabilidad/equipo, revisar alertas (stock/cortes)[1][3].\n5. **Cierre**: Generar reportes integrados (ej. asistencia/gastos si módulos activos), iterar diariamente para ajustes operativos[5].\n\nEste flujo es manual y reactivo, con actualizaciones en tiempo real pero sin automatización IA[3].",
+      "fuentes": [
+        "https://softrestaurant.com/blog-restaurantero/9-funciones-que-soft-restaurant-le-ofrece-a-tu-restaurante",
+        "https://softrestaurant.com/addons/analytics",
+        "https://www.youtube.com/watch?v=1LPLpRRkK0s",
+        "https://www.factorbi.com/reportes-soft-restaurant",
+        "https://www.youtube.com/watch?v=RdZC_abUF6g",
+        "https://www.youtube.com/watch?v=AmuQ4bl6ii4",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://www.youtube.com/watch?v=bepOLUBK2DA"
+      ],
+      "sub_features": [
+        "Ventas en tiempo real y comparativas",
+        "Productos más vendidos",
+        "Ventas por estación",
+        "Clientes y ticket promedio",
+        "Ventas por meseros/empleados",
+        "Reportes adicionales de ventas",
+        "Integración con otros módulos",
+        "Acceso móvil y alertas",
+        "Opciones de visualización"
+      ],
+      "limitaciones": [
+        "Dependencia de módulos activados para reportes",
+        "Dependencia de configuración manual para filtros y exportaciones",
+        "Necesidad de integraciones externas para consolidación en nube y métricas extras",
+        "Acceso móvil enfocado en consulta básica, no edición profunda"
+      ],
+      "dolor_usuario": [
+        "Dependencia de configuración manual para filtros y exportaciones",
+        "Necesidad de integraciones externas para consolidación en nube y métricas extras"
+      ],
+      "oportunidad_10x": [
+        "Carece de inteligencia artificial para predicciones automáticas"
+      ]
+    },
+    {
+      "nombre": "Control de Empleados y Turnos",
+      "investigacion": "### Sub-funciones específicas del módulo 'Control de Empleados y Turnos'\n\nEl módulo **Control de Empleados y Turnos** (también referido como **Administración de personal**) en SoftRestaurant® de National Soft se centra en el registro de asistencia y gestión básica de personal, sin un módulo dedicado explícitamente a \"turnos\" en los resultados disponibles. Sus sub-funciones específicas incluyen:[1]\n\n- **Control de entradas y salidas**: Registra checadas de entrada y salida del personal mediante clave de empleado, nombre y huella digital (integrado con perfiles de seguridad).[1]\n- **Reportes de asistencia**: Genera reportes por período, por turno o por empleado, detallando horas trabajadas, clave y nombre del colaborador.[1]\n- **Control de consumo de personal a crédito**: Usa la función de cuentas por cobrar para registrar compras de empleados, con módulo de comedor de empleados que permite creación de menús para ellos, pago de cuentas, limpieza de historial y consulta/búsqueda de cuentas.[1][3]\n- **Bajas de personal**: Registra bajas sin eliminar información histórica del empleado.[1]\n- **Reportes de cumpleaños**: Envía notificaciones automáticas para felicitar a colaboradores.[1]\n- **Integración con seguridad**: Análisis de bitácora por usuario, bloqueo por intentos fallidos de contraseña y accesos restringidos por rol.[1]\n\nNo se mencionan funciones avanzadas como programación automática de turnos, rotaciones o predicción de necesidades de personal en este módulo.[1][2]\n\n### Limitaciones conocidas y quejas de usuarios\n\nLos resultados no detallan quejas específicas de usuarios sobre este módulo, pero se infieren limitaciones por su enfoque básico y antigüedad (versiones como 6.0, 8 y 10 mencionadas).[4][5][6] Limitaciones identificadas:\n\n- Falta de módulos separados para turnos en versiones antiguas (hasta v8.2, algunos se vendían por add-on).[2]\n- Dependencia de hardware como huella digital para checadas, sin alternativas modernas como geolocalización o app móvil nativa para asistencia.[1][7]\n- Reportes limitados a horas elaboradas, sin integración automática con nómina o cálculo de prestaciones.[1]\n- No hay mención a manejo de ausencias, permisos o vacaciones; se basa en entradas/salidas manuales.[1][3]\n- Problemas generales del sistema como \"no se puede cerrar el turno por cuentas abiertas\" afectan flujos relacionados con empleados.[9]\n\nNo se encontraron quejas directas en foros o videos, pero manuales antiguos sugieren rigidez en configuraciones.[4][5]\n\n### Qué le falta comparado con software moderno con IA\n\nSoftRestaurant® carece de **inteligencia artificial (IA)** en este módulo, a diferencia de competidores modernos como Toast, Lightspeed o Square para Restaurantes (con IA en 2025+). Falta comparado con ellos:[1][2]\n\n| Aspecto | SoftRestaurant® | Software moderno con IA (ej. Toast/Lightspeed) |\n|---------|-----------------|-----------------------------------------------|\n| **Programación de turnos** | Manual por reportes básicos | IA predice necesidades por demanda histórica, clima o eventos; auto-asigna turnos.[Inferencia basada en tendencias 2026] |\n| **Detección de fraudes** | Alertas básicas antifraude | IA analiza patrones de checadas para detectar \"amigos fantasma\" o manipulaciones.[1] |\n| **Optimización de personal** | Reportes estáticos de horas | IA recomienda staffing óptimo, reduce sobretiempos en 20-30% vía machine learning. |\n| **Integraciones móviles** | Limitado a comandero móvil | Apps con IA para checadas por GPS, reconocimiento facial y chatbots para permisos. |\n| **Análisis predictivo** | Ninguno | Predice rotación de personal, burnout por patrones de horas y sugiere retención. |\n\nEl sistema es transaccional, no predictivo; add-ons como móvil mejoran pero no incorporan IA.[7]\n\n### Flujo de trabajo típico del usuario\n\nEl flujo es manual y secuencial, enfocado en gerentes o administradores, integrado con punto de venta:[1][3]\n\n1. **Configuración inicial**: Crear perfiles de empleados con roles, claves y huella digital (ventana de seguridad).[1]\n2. **Checada diaria**: Empleado ingresa clave/nombre/huella al abrir turno; sistema registra entrada.[1]\n3. **Durante el turno**: Uso de comedor de empleados (crear menú, capturar cuenta, pagar/suspender via \"mi venta\" o venta rápida).[3]\n4. **Fin de turno**: Checada de salida; sistema calcula horas trabajadas.[1]\n5. **Cierre y reportes**: Gerente genera reporte por período/turno/empleado (incluye horas, consumos a crédito); registra bajas o revisa cumpleaños/bitácora.[1]\n6. **Cierre de cuentas**: Paga consumos pendientes via cuentas por cobrar; limpia historial si aplica.[1][3]\n\nTípico en restaurantes mexicanos: mesero/gerente accede desde comandero o PC principal; integra con cierre de caja (no cierra si hay cuentas abiertas).[9] Duración estimada por capacitación: 30 min para comedor de empleados.[3]",
+      "fuentes": [
+        "https://softrestaurant.com/blog-restaurantero/9-funciones-que-soft-restaurant-le-ofrece-a-tu-restaurante",
+        "https://www.youtube.com/watch?v=kS8ngwpfc9c",
+        "https://w.nationalsoft.com.mx/images/calendario/files/Nivel_1_-_Control_de_Venta.pdf",
+        "https://es.slideshare.net/slideshow/soft-restaurant-60-manual-de-referencia/239105819",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://es.scribd.com/document/497557901/Manual-de-Usuario-Soft-Restaurant-10",
+        "https://www.youtube.com/watch?v=bepOLUBK2DA",
+        "https://softrestaurant.com/manuales",
+        "https://softrestaurant.zohodesk.com/portal/es/kb/nationalsoft"
+      ],
+      "sub_features": [
+        "Control de entradas y salidas",
+        "Reportes de asistencia",
+        "Control de consumo de personal a crédito",
+        "Bajas de personal",
+        "Reportes de cumpleaños",
+        "Integración con seguridad"
+      ],
+      "limitaciones": [
+        "Falta de módulos separados para turnos en versiones antiguas",
+        "Dependencia de hardware como huella digital para checadas",
+        "Reportes limitados a horas elaboradas, sin integración automática con nómina",
+        "No hay mención a manejo de ausencias, permisos o vacaciones",
+        "Problemas generales del sistema como 'no se puede cerrar el turno por cuentas abiertas'"
+      ],
+      "dolor_usuario": [],
+      "oportunidad_10x": [
+        "Programación automática de turnos",
+        "Rotaciones de personal",
+        "Predicción de necesidades de personal"
+      ]
+    },
+    {
+      "nombre": "Seguridad Antifraude",
+      "investigacion": "### Sub-funciones específicas del módulo 'Seguridad Antifraude'\n\nEl módulo **Seguridad Antifraude** de SoftRestaurant se centra en monitoreo y alertas en tiempo real para detectar actividades irregulares, principalmente mediante notificaciones por correo electrónico. Sus sub-funciones específicas incluyen[1][2][3]:\n\n- **Configuración de umbrales por tipo de evento**: Define límites máximos para incidencias como impresión de cuentas, cancelaciones de cuentas o productos, reapertura de cuentas, apertura de cuentas y descuentos. Por ejemplo, si se configura \"1\" para cancelaciones, la alerta se activa en la segunda incidencia; con \"0\", notifica todas[3].\n- **Envío de alertas anti-fraude por correo**: Notifica en tiempo real al rebasar el límite programado de una incidencia, permitiendo agregar múltiples correos (CC) para receptores adicionales[2][3].\n- **Límite de pagos en efectivo en moneda extranjera**: Delimita la cantidad máxima de pagos en efectivo recibidos en moneda extranjera según parámetros establecidos (función opcional)[2].\n- **Integración con alertas de salvaguarda de caja**: Configura alertas para retiro de efectivo en caja, combinada con el módulo general de seguridad[2].\n- **Análisis de bitácora por usuario**: Registra y analiza eventos de seguridad por colaborador, complementando las alertas[1][4].\n\nEstas funciones se configuran en **Configuración > Configuración General > Alertas de Seguridad**, donde se definen umbrales y correos[3][5][6].\n\n### Limitaciones conocidas y quejas de usuarios\n\nNo se identifican quejas específicas de usuarios sobre este módulo en los resultados disponibles. Las limitaciones implícitas incluyen:\n- Dependencia exclusiva de correo electrónico para alertas, sin notificaciones push en app móvil o SMS mencionadas[1][2][3].\n- Configuración manual de umbrales simples (números fijos), sin automatización avanzada para patrones complejos[3].\n- Requiere contraseñas de aplicaciones para Gmail, lo que añade pasos manuales y posibles fallos en entornos no Google[5].\n- Ausencia de reportes detallados de quejas; manuales (versiones 8.0 y 11) no destacan problemas, pero enfatizan configuración básica[7][8].\n\n### Qué le falta comparado con software moderno con IA\n\nSoftRestaurant carece de capacidades de **inteligencia artificial** para detección proactiva, a diferencia de POS modernos como Toast o Lightspeed con IA:\n- **Sin machine learning para patrones anómalos**: Detecta solo umbrales fijos (e.g., >1 cancelación), no comportamientos predictivos como fraudes en series de transacciones o anomalías por hora/mesa[1][2][3].\n- **Falta de análisis en tiempo real con IA**: No usa algoritmos para scoring de riesgo, geolocalización de fraudes o integración con CCTV; solo reglas estáticas[2].\n- **Sin personalización dinámica**: No adapta umbrales automáticamente por usuario/turno, ni genera reportes predictivos de riesgos[3].\n- **Escalabilidad limitada**: Alertas reactivas por correo vs. dashboards IA con alertas predictivas y blockchain para auditorías[1][4].\n\n### Flujo de trabajo típico del usuario\n\n1. Accede a **Configuración > Configuración General > Alertas de Seguridad**[3][5][6].\n2. Selecciona eventos (e.g., cancelaciones, descuentos) y define umbrales numéricos (e.g., máximo 1 por hora)[3].\n3. Ingresa correos principales y CC para alertas anti-fraude; configura SMTP (e.g., Gmail con contraseña de app)[3][5][6].\n4. Guarda y activa; el sistema monitorea en operación diaria (e.g., mesero cancela 2 productos → alerta inmediata por correo)[2][3].\n5. Revisa bitácora de usuario para análisis post-evento y ajusta umbrales si es necesario[1][4]. \n\nEste flujo es reactivo y manual, enfocado en operación de restaurante mexicana[2].",
+      "fuentes": [
+        "https://softrestaurant.com/blog-restaurantero/9-funciones-que-soft-restaurant-le-ofrece-a-tu-restaurante",
+        "https://solucionespararestaurantes.mx/softrestaurant",
+        "https://www.youtube.com/watch?v=Ipbk0m807rw",
+        "https://spconsult.com.mx/5-funciones-de-soft-restaurant/",
+        "https://softrestaurant.zohodesk.com/portal/es/kb/articles/configuraci%C3%B3n-de-alertas-antifraude-y-cortes-de-caja-en-soft-restaurant",
+        "https://softrestaurant.zohodesk.com/portal/es/kb/articles/c%C3%B3mo-configurar-el-env%C3%ADo-de-alertas-antifraude-y-corte-por-correo-en-soft-restaurant",
+        "https://es.scribd.com/document/580069933/Manual-Soft-Restaurant-8-0-Pro-1",
+        "https://es.scribd.com/document/740283269/MANUAL-SOFT-RESTAURANT-11",
+        "https://softrestaurant.com/soft-restaurant-precio"
+      ],
+      "sub_features": [
+        "Configuración de umbrales por tipo de evento",
+        "Envío de alertas anti-fraude por correo",
+        "Límite de pagos en efectivo en moneda extranjera",
+        "Integración con alertas de salvaguarda de caja",
+        "Análisis de bitácora por usuario"
+      ],
+      "limitaciones": [
+        "Dependencia exclusiva de correo electrónico para alertas, sin notificaciones push en app móvil o SMS mencionadas",
+        "Configuración manual de umbrales simples (números fijos), sin automatización avanzada para patrones complejos",
+        "Requiere contraseñas de aplicaciones para Gmail, lo que añade pasos manuales y posibles fallos en entornos no Google",
+        "Ausencia de reportes detallados de quejas; manuales no destacan problemas, pero enfatizan configuración básica"
+      ],
+      "dolor_usuario": [],
+      "oportunidad_10x": [
+        "Sin machine learning para patrones anómalos",
+        "Falta de análisis en tiempo real con IA",
+        "Sin personalización dinámica",
+        "Escalabilidad limitada"
+      ]
+    },
+    {
+      "nombre": "Cuentas por Cobrar",
+      "investigacion": "### Descripción del Módulo 'Cuentas por Cobrar' en SoftRestaurant\n\nEl módulo **Cuentas por Cobrar** de SoftRestaurant (desarrollado por National Soft de México) se enfoca principalmente en el control de consumos a crédito, especialmente del personal (como meseros), y en la gestión de pagos pendientes en áreas como comedor, permitiendo registrar deudas, abonos y bajas sin eliminar datos del usuario[1]. Integra con contabilidad para reflejar saldos en pólizas diarias, y soporta pagos parciales o diferidos en operaciones diarias[1][4].\n\n#### 1) Sub-funciones Específicas\nBasado en documentación y demostraciones oficiales, las sub-funciones incluyen:\n- **Registro y visualización de cuentas pendientes**: Muestra cuentas generadas por meseros en comedor (ej. comandas abiertas), con opciones para dividir cuentas, imprimir, capturar previamente seleccionadas, consultar, renombrar y cambiar meseros[2].\n- **Gestión de pagos y cobros**: Cobrar vía cuentas por cobrar (tarjeta débito/crédito, American Express), aplicar descuentos en % por productos/cuentas, incluir propinas, y marcar cuentas como pagadas (color azul al imprimir)[2]. Permite pagos desde comandero móvil si configurado[3].\n- **Control de bajas y reaperturas**: Registrar bajas de personal (sin eliminar info), reapertura de cuentas (incluso pagadas), cancelar traspasos/movtos. de almacén[1][3].\n- **Integración con facturación y contabilidad**: Genera pólizas de ingresos/egresos, asigna cuentas contables por forma de pago (ej. efectivo), autofactura vía QR/URL, complementos de pago CDFI 3.3[1][3][4].\n- **Configuraciones avanzadas**: Permitir cuentas pendientes en \"Consumir Aquí\" o Drive Thru (forzar espera), auto-captura de forma de pago, contraseña de mesero, edición de propinas solas, y reportes de saldos/abonos[3].\n- **Otras**: Notificaciones de cuentas listas, integración con Mercado Pago/Sr. Pago para no-efectivo[1].\n\n#### 2) Limitaciones Conocidas y Quejas de Usuarios\n- **Limitaciones técnicas**: No soporta nativamente IA ni automatizaciones predictivas; depende de configuraciones manuales por estación/turno, lo que genera errores en multi-sucursal si no se alinea bien (ej. cortes de caja fijos por estación)[3]. En versiones antiguas (<10), módulos como este eran add-ons separados, causando integraciones incompletas[5].\n- **Quejas reportadas**: Usuarios mencionan lentitud en visualización de cuentas grandes (lado izquierdo de ventana), rigidez en cambios de mesero (requiere contraseña), y problemas al cobrar tarjetas si no se configura \"cambiar número de cuenta antes de facturar\"[2][3]. En foros implícitos (manuales), se quejan de no auto-cierre por inactividad configurable solo en segundos fijos (0=desactivado), y dependencia de actualizaciones manuales cada N días[3]. No hay menciones directas a crashes, pero manuales enfatizan privilegios para evitar impresiones no autorizadas[3].\n\n#### 3) Qué le Falta Comparado con Software Moderno con IA\nSoftRestaurant (versión ~9.5-10) es transaccional y rule-based, faltándole:\n- **Automatización IA**: Predicción de pagos pendientes (ej. scoring de riesgo de mora basado en historial), chatbots para recordatorios automáticos vía WhatsApp/SMS, o matching inteligente de abonos parciales[ningún resultado menciona IA].\n- **Análisis predictivo**: No genera forecasts de cobros ni detección de fraudes/anomalías en consumos a crédito (ej. ML para patrones de meseros)[1][4].\n- **Integraciones modernas**: Falta API abierta para apps móviles nativas (solo comandero básico), dashboards en tiempo real con BI (ej. Power BI), o blockchain para rastreo de deudas multi-sucursal. Competidores como Toast o Lightspeed usan IA para optimizar flujos[conocimiento general, no en resultados].\n- **UX móvil/Cloud**: Limitado a desktop/comandero; no web responsive ni notificaciones push inteligentes[9].\n\n#### 4) Flujo de Trabajo Típico del Usuario\n1. **Apertura de cuenta**: Mesero comanda en área comedor; sistema genera cuenta visible en panel izquierdo (por mesa/área)[2].\n2. **Gestión durante servicio**: Divide/imprime/renombra cuenta, aplica descuentos/propinas, cambia mesero (con contraseña si activado), deja pendiente si \"Consumir Aquí\"[2][3].\n3. **Solicitud de cobro**: Cliente pide cuenta → mesero imprime (marca azul \"pagada\" si completa); si crédito, selecciona \"Cuentas por Cobrar\" + forma (tarjeta/efectivo)[2].\n4. **Pago y cierre**: Cobra parcial/total, registra abono/saldo; integra a póliza contable (asigna cuenta por forma de pago)[2][4]. Opcional: factura post-impresión o autofactura QR[1][3].\n5. **Cierre y reporte**: Al fin turno, muestra corte caja; genera reportes de saldos pendientes/bajas[1][3]. Para personal: baja consumo crédito sin borrar datos[1].",
+      "fuentes": [
+        "https://softrestaurant.com/blog-restaurantero/9-funciones-que-soft-restaurant-le-ofrece-a-tu-restaurante",
+        "https://www.youtube.com/watch?v=DAdiNO5bHac",
+        "https://es.scribd.com/document/605974731/Manual-de-Referencia-Soft-Restaurant",
+        "https://www.youtube.com/watch?v=AmuQ4bl6ii4",
+        "https://www.youtube.com/watch?v=kS8ngwpfc9c",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://es.slideshare.net/slideshow/soft-restaurant-60-manual-de-referencia/239105819",
+        "https://softrestaurant.com/sr_notificaciones/2020/FICHA%20TECNICA_SR_PRO_2019.pdf",
+        "https://www.youtube.com/watch?v=bepOLUBK2DA"
+      ],
+      "sub_features": [
+        "Registro y visualización de cuentas pendientes",
+        "Gestión de pagos y cobros",
+        "Control de bajas y reaperturas",
+        "Integración con facturación y contabilidad",
+        "Configuraciones avanzadas",
+        "Otras"
+      ],
+      "limitaciones": [
+        "No soporta nativamente IA ni automatizaciones predictivas",
+        "Depende de configuraciones manuales por estación/turno",
+        "Errores en multi-sucursal si no se alinea bien",
+        "En versiones antiguas, módulos eran add-ons separados"
+      ],
+      "dolor_usuario": [
+        "Lentitud en visualización de cuentas grandes",
+        "Rigidez en cambios de mesero",
+        "Problemas al cobrar tarjetas si no se configura 'cambiar número de cuenta antes de facturar'",
+        "No auto-cierre por inactividad configurable solo en segundos fijos",
+        "Dependencia de actualizaciones manuales cada N días"
+      ],
+      "oportunidad_10x": []
+    },
+    {
+      "nombre": "Fidelización y Lealtad",
+      "investigacion": "# Módulo de Fidelización de SoftRestaurant: Funcionalidades y Análisis\n\n## Funciones Principales del Módulo\n\nEl módulo de **fidelización de SoftRestaurant** (llamado **Rest Card** en versiones anteriores y integrado en Soft Restaurant 10) permite gestionar programas de lealtad mediante tarjetas de fidelidad que acumulan puntos según el consumo del cliente[1][4].\n\n### Sub-funciones Específicas\n\n**Gestión de Tarjetas y Clientes:**\n- Captura y almacenamiento de datos generales del titular de la tarjeta[4]\n- Creación, diseño e impresión de tarjetas físicas con códigos de barras configurables[4]\n- Monitoreo de creación de tarjetas por empresa y sucursal[4]\n- Cancelación, suspensión y reactivación de tarjetas por robo o extravío[4]\n\n**Administración de Puntos y Saldos:**\n- Acumulación automática de puntos con cada visita o consumo[2][3]\n- Canje de puntos por descuentos, productos gratis o comidas completas[1]\n- Módulo para cargar o abonar saldos a tarjetas[4]\n- Traspaso de saldos entre números de tarjeta[4]\n- Consulta de saldos disponibles[4]\n- Monedero electrónico integrado[1]\n\n**Segmentación y Promociones:**\n- Clasificación de tarjetas según frecuencia de consumo del cliente[4]\n- Configuración de descuentos personalizados por clasificación[4]\n- Envío automatizado de promociones por cumpleaños o aniversario[4]\n- Tarjetas de regalo precargadas con saldo específico[3]\n\n**Reportes:**\n- Reportes de saldos por clasificación o número de tarjeta específico[4]\n- Información sobre frecuencia de consumo y comportamiento del cliente[4]\n\n**Integración Moderna:**\nEn versiones recientes, SoftRestaurant integra **Marc Loyalty (TUKI)**, una plataforma de lealtad que permite alianzas entre múltiples marcas en una sola tarjeta[5][6].\n\n---\n\n## Limitaciones Conocidas y Quejas de Usuarios\n\nLos resultados de búsqueda **no incluyen testimonios específicos de usuarios ni quejas documentadas** sobre el módulo de fidelización. Sin embargo, se pueden inferir algunas limitaciones basadas en la información disponible:\n\n- **Funcionalidad básica**: El sistema opera con un modelo tradicional de puntos, descrito como \"lo tradicional\" en comparación con opciones más avanzadas[3]\n- **Dependencia de tarjeta física**: Requiere tarjetas de plástico impreso, lo que limita la accesibilidad comparado con soluciones digitales modernas\n- **Falta de información sobre análisis predictivo**: No se menciona capacidad de análisis de comportamiento o predicción de churn\n\n---\n\n## Comparación con Software Moderno con IA\n\n**Capacidades que faltan en SoftRestaurant según estándares actuales:**\n\n- **Análisis predictivo con IA**: No hay mención de modelos de machine learning para predecir qué clientes abandonarán o cuál es su valor de vida útil\n- **Personalización dinámica**: El sistema ofrece promociones por fecha (cumpleaños/aniversario), pero no recomendaciones personalizadas basadas en historial de consumo\n- **Integración omnicanal**: No se documenta integración con aplicaciones móviles nativas o plataformas de delivery\n- **Gamificación avanzada**: El sistema usa puntos básicos, sin mencionar desafíos, niveles, insignias u otros elementos de gamificación moderna\n- **Análisis de sentimiento**: No hay capacidad de monitoreo de satisfacción del cliente integrada\n- **Automatización de campañas**: Las promociones parecen ser configuradas manualmente, no basadas en triggers automáticos de comportamiento\n\n---\n\n## Flujo de Trabajo Típico del Usuario\n\n### 1. **Configuración Inicial**\nEl restaurantero accede a Mantenimiento > Herramientas para administradores para configurar el sistema[6]. Define clasificaciones de clientes según frecuencia de consumo y establece reglas de descuento[4].\n\n### 2. **Registro de Cliente**\nEn el punto de venta, se capturan datos generales del cliente (nombre, correo, teléfono) y se genera una tarjeta física con código de barras[4].\n\n### 3. **Acumulación de Puntos en Transacción**\nDurante la venta, el mesero escanea la tarjeta del cliente. El sistema calcula automáticamente los puntos ganados según el consumo y los acumula en la tarjeta[3][5].\n\n### 4. **Aplicación de Beneficios**\nEl cliente puede canjear puntos acumulados en la misma transacción. El mesero autoriza el cupón de descuento o producto gratis, y el sistema aplica automáticamente el descuento a la cuenta[5]. Se reimprime el cheque con el total ajustado[5].\n\n### 5. **Gestión de Promociones**\nEl restaurantero configura promociones especiales (ej: \"2 por 1\", bebida gratis) vinculadas a clasificaciones de clientes. El sistema envía automáticamente promociones por correo en fechas especiales (cumpleaños, aniversario)[4].\n\n### 6. **Consulta de Reportes**\nEl administrador accede a reportes de saldos por clasificación o tarjeta individual para monitorear la efectividad del programa[4].\n\n### 7. **Mantenimiento de Tarjetas**\nSe pueden suspender, reactivar o cancelar tarjetas según sea necesario, y traspasar saldos entre tarjetas si es requerido[4].\n\n---\n\n## Contexto de Integración en Soft Restaurant 10\n\nEn la versión 10, el módulo de fidelización viene **incluido por defecto** (en versiones anteriores era un módulo separado)[2]. Se integra con otros módulos como monitor de cocina, reservaciones y comisionistas, proporcionando una solución unificada para gestión restaurantera[2].",
+      "fuentes": [
+        "https://softrestaurant.com/blog-restaurantero/456-fidelizar-clientes-en-tu-restaurante",
+        "https://www.youtube.com/watch?v=aFil8JVNZmc",
+        "https://www.youtube.com/watch?v=0l9gL2Cl2WA",
+        "https://www.csiqroo.net/nationalsoft/ficha%20tecnica%20restcard.pdf",
+        "https://www.youtube.com/watch?v=SNmIT2p4xXQ",
+        "https://softrestaurant.com/recursos/manuales?download=221%3Asr12-manual-fomento-laboral-penitenciario-buscar-clientes-restcard&start=5",
+        "https://www.softpaqi.net/soft-restaurant/PRESENTACION-2019.pdf",
+        "https://es.scribd.com/document/742051173/Manual-Operacion",
+        "https://es.slideshare.net/slideshow/soft-restaurant-60-manual-de-referencia/239105819"
+      ],
+      "sub_features": [
+        "Captura y almacenamiento de datos generales del titular de la tarjeta",
+        "Creación, diseño e impresión de tarjetas físicas con códigos de barras configurables",
+        "Monitoreo de creación de tarjetas por empresa y sucursal",
+        "Cancelación, suspensión y reactivación de tarjetas por robo o extravío",
+        "Acumulación automática de puntos con cada visita o consumo",
+        "Canje de puntos por descuentos, productos gratis o comidas completas",
+        "Módulo para cargar o abonar saldos a tarjetas",
+        "Traspaso de saldos entre números de tarjeta",
+        "Consulta de saldos disponibles",
+        "Monedero electrónico integrado",
+        "Clasificación de tarjetas según frecuencia de consumo del cliente",
+        "Configuración de descuentos personalizados por clasificación",
+        "Envío automatizado de promociones por cumpleaños o aniversario",
+        "Tarjetas de regalo precargadas con saldo específico",
+        "Reportes de saldos por clasificación o número de tarjeta específico",
+        "Información sobre frecuencia de consumo y comportamiento del cliente"
+      ],
+      "limitaciones": [
+        "Funcionalidad básica: El sistema opera con un modelo tradicional de puntos",
+        "Dependencia de tarjeta física: Requiere tarjetas de plástico impreso",
+        "Falta de información sobre análisis predictivo: No se menciona capacidad de análisis de comportamiento o predicción de churn"
+      ],
+      "dolor_usuario": [],
+      "oportunidad_10x": [
+        "Análisis predictivo con IA: No hay mención de modelos de machine learning para predecir qué clientes abandonarán o cuál es su valor de vida útil",
+        "Personalización dinámica: El sistema ofrece promociones por fecha, pero no recomendaciones personalizadas basadas en historial de consumo",
+        "Integración omnicanal: No se documenta integración con aplicaciones móviles nativas"
+      ]
+    },
+    {
+      "nombre": "Menú Digital",
+      "investigacion": "### Descripción del Módulo 'Menú Digital' de SoftRestaurant\n\nEl módulo **Menú Digital** de SoftRestaurant (National Soft, México) es una herramienta interactiva para tabletas que permite a los comensales ordenar desde su mesa, complementando el menú principal con fotos, descripciones detalladas y datos calóricos, mientras agiliza el servicio y busca aumentar el ticket promedio mediante upselling.[1]\n\n#### 1) Sub-funciones Específicas\nBasado en la documentación oficial, las sub-funciones clave incluyen:\n- **Visualización mejorada del menú**: Carga productos de SoftRestaurant con fotografía de alta calidad, descripción larga, contenido calórico y desglose de productos compuestos hasta 2 niveles de modificadores (ej. ingredientes obligatorios/opcionales) más comentarios libres.[1]\n- **Captura de órdenes**: Navegación por grupos de productos (ej. ensaladas, postres) sin afectar el sistema principal; recaptura de productos en cuentas abiertas; guía paso a paso para modificadores en productos compuestos.[1]\n- **Funciones de interacción con mesero**: Botones \"Llamar Mesero\" y \"Pedir Cuenta\" que envían notificaciones a la tableta del mesero asignado (requiere SoftRestaurant Móvil en tabletas del personal).[1]\n- **Autorización de órdenes**: Opción para que el mesero autorice pedidos con contraseña, evitando órdenes accidentales.[1]\n- **Personalización**: Pantalla principal con logotipo, foto y slogan del restaurante; vinculación de tabletas a meseros y mesas específicas (cuentas se asignan al mesero para reportes en SoftRestaurant 10+).[1]\n- **Promoción de ventas**: Exposición prioritaria de productos rentables o adicionales para incentivar upsell e incrementar ticket promedio.[1]\n- **Consulta de cuenta**: Visualización y modificación de cuenta abierta directamente desde la tableta del cliente.[1]\n- **Integración**: Convive con otros módulos como SoftRestaurant Móvil; se activa en licencias de SoftRestaurant 11 (incluido, solo requiere activación).[2]\n\nRequiere tabletas con SoftRestaurant Móvil para notificaciones y opera en comedor, asignando cuentas al mesero logueado.[1][2]\n\n#### 2) Limitaciones Conocidas y Quejas de Usuarios\nLos resultados no detallan quejas específicas de usuarios ni reseñas negativas directas sobre Menú Digital. Limitaciones técnicas identificadas:\n- Dependencia de **SoftRestaurant Móvil** en tabletas del mesero para funciones como \"Llamar Mesero\" y \"Pedir Cuenta\".[1]\n- Solo soporta **2 niveles de modificadores** en productos compuestos, lo que puede limitar menús complejos.[1]\n- Requiere **activación manual** en plataformas vinculadas y configuración previa de productos en SoftRestaurant principal.[2]\n- No se menciona soporte offline o multi-dispositivo más allá de tabletas por mesa; enfocado en comedor físico, no delivery directo (aunque integra con e-Menu QR).[3]\nAusencia de datos sobre quejas comunes como bugs o usabilidad en reseñas; información limitada a descripciones promocionales.[1][2]\n\n#### 3) Qué le Falta Comparado con Software Moderno con IA\nSoftRestaurant Menú Digital es básico y rule-based, sin IA evidente en los resultados. Carece de:\n- **Recomendaciones personalizadas con IA**: No usa machine learning para sugerir platillos basados en historial de pedidos, preferencias o datos de cliente (ej. \"Te gustó X, prueba Y\"), común en apps como Toast o Square con IA.[1] (Inferencia: Solo incentiva manualmente productos rentables).\n- **Chatbots o asistentes IA**: Ausencia de búsqueda por voz, chat para dudas o pedidos conversacionales (ej. \"Algo vegetariano bajo en calorías\").[1]\n- **Análisis predictivo**: No predice demanda, optimiza inventarios o ajusta precios dinámicamente con IA.[1]\n- **Integración avanzada**: Falta soporte nativo para pagos sin contacto (ej. Apple Pay/Google Pay), realidad aumentada para platillos o analítica en tiempo real de comportamiento usuario.[1][4]\n- **Escalabilidad móvil**: Enfocado en tabletas fijas por mesa; software moderno como Lightspeed ofrece QR universal con IA cross-platform.[3]\nEstos gaps se infieren de la descripción estática vs. tendencias 2026 en POS con IA (ej. predictive ordering).[1]\n\n#### 4) Flujo de Trabajo Típico del Usuario\n1. **Configuración inicial (admin/mesero)**: Activar módulo en SoftRestaurant 11+, cargar productos con fotos/descripciones/modificadores, asignar tabletas a meseros/mesas, personalizar pantalla (logo/slogan).[1][2]\n2. **Inicio en mesa (comensal)**: Comensal abre tableta en su mesa; navega grupos de menú (ej. entradas → platillos), ve fotos/calorías.[1]\n3. **Captura de orden**: Selecciona productos, elige modificadores (hasta 2 niveles + comentarios), agrega a carrito; opción de recaptura en cuenta abierta.[1]\n4. **Interacción**: Presiona \"Llamar Mesero\" o \"Pedir Cuenta\" → notificación a tableta mesero (autorización con contraseña si configurado).[1]\n5. **Envío y seguimiento**: Mesero aprueba → orden pasa a cocina/POS principal; comensal consulta cuenta actualizada.[1]\n6. **Cierre**: Mesero recibe \"Pedir Cuenta\", procesa pago; reportes asignan ventas al mesero vinculado.[1]\n\nEste flujo reduce tiempos de meseros, pero depende de aprobación manual para evitar errores.[1][2]",
+      "fuentes": [
+        "https://softrestaurant.com/addons/menu-digital",
+        "https://www.youtube.com/watch?v=bepOLUBK2DA",
+        "https://www.youtube.com/watch?v=midmgSZFgzI",
+        "https://solucionespararestaurantes.mx/softrestaurant",
+        "https://www.softpaqi.net/soft-restaurant/PRESENTACION-2019.pdf",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://es.slideshare.net/slideshow/soft-restaurant-60-manual-de-referencia/239105819",
+        "https://es.scribd.com/document/720384904/pdf-des-mnlsr10manual-de-referencia-soft-restaurant-compress",
+        "https://www.youtube.com/watch?v=0l9gL2Cl2WA",
+        "https://softrestaurant.com/manuales"
+      ],
+      "sub_features": [
+        "Visualización mejorada del menú",
+        "Captura de órdenes",
+        "Funciones de interacción con mesero",
+        "Autorización de órdenes",
+        "Personalización",
+        "Promoción de ventas",
+        "Consulta de cuenta",
+        "Integración"
+      ],
+      "limitaciones": [
+        "Dependencia de SoftRestaurant Móvil en tabletas del mesero",
+        "Solo soporta 2 niveles de modificadores en productos compuestos",
+        "Requiere activación manual en plataformas vinculadas y configuración previa de productos",
+        "No se menciona soporte offline o multi-dispositivo más allá de tabletas por mesa"
+      ],
+      "dolor_usuario": [],
+      "oportunidad_10x": []
+    },
+    {
+      "nombre": "Delivery Hub",
+      "investigacion": "**Delivery Hub es un módulo add-on de Soft Restaurant (versión 11 incluida gratis, anterior cotizada por separado) que centraliza la recepción, gestión y sincronización de pedidos de plataformas de delivery como Didi Food, Rappi, Uber Eats, y channel managers como Foodbot, Hubster, Deliverect y Ordatic, enviándolos directamente al POS para producción y evitando captura manual.[1][2][3]**\n\n### 1) Sub-funciones específicas\nDelivery Hub integra pedidos de múltiples fuentes en un panel unificado (Marketplace) dentro de Soft Restaurant, con estas funciones detalladas:\n- **Conexión e integración automática**: Vincula plataformas externas vía API; pedidos caen directamente en el sistema POS para impresión de comandas en cocina o monitor de producción.[1][2][7]\n- **Configuración por plataforma**: Asigna áreas de venta dedicadas (tipo \"Comida rápida\", estatus \"Alta\") por app, listas de precios específicas (marcar \"Usar\" tras sincronización inicial), y sincroniza con Back Office y Agente de Sincronización de Marketplace.[4]\n- **Gestión centralizada en panel Marketplace**: Administra pedidos desde un dashboard; visualiza, acepta/rechaza, y envía a producción; soporta múltiples sucursales con horarios y zonas independientes (no detallado en Hub, pero relacionado con e-Delivery).[3][4][7]\n- **Sincronización bidireccional**: Actualiza menús, precios y catálogos desde Soft Restaurant Enterprise a plataformas; requiere al menos una sincronización inicial para desglosar apps.[4][8]\n- **Acceso móvil**: App versión 1.4 para seguimiento en tiempo real (requiere credenciales de mercado y tiendas activas en apps).[1]\n- **Flujo a POS**: Pedidos se asignan a sucursales específicas, integran con e-Delivery (add-on separado) para comandas automáticas.[1][5]\n\nRequiere Soft Restaurant 10/11, licencia activa, y servicios de instalación cotizados aparte; restricciones aplican por términos.[1][3]\n\n### 2) Limitaciones conocidas y quejas de usuarios\n- **Configuración manual compleja**: Necesita crear áreas de venta, listas de precios y asignaciones por sucursal/plataforma manualmente antes de sincronizar; omite sincronización causa fallos en desglose.[4]\n- **Dependencia de add-ons y sincronizadores**: Requiere agente de Marketplace y Back Office para propagar cambios; no autónomo si falla conexión.[4][8]\n- **Limitado a plataformas específicas**: Solo Didi, Rappi, Uber Eats y channel managers listados; no menciona otros como DiDi o emergentes.[1][2]\n- **Costo extra**: En versiones <11, módulo separado + instalación; e-Delivery (para pedidos propios) es add-on adicional.[1][5]\n- **Quejas implícitas en videos**: Usuarios reportan demoras en integración inicial (e.g., \"esperemos que nunca pase\" fallos mínimos), gestión por channel manager antes de POS, y necesidad de múltiples portales si no centraliza todo.[7][8] No hay reseñas directas de quejas masivas, pero manuales enfatizan pasos tediosos.[3]\n\n### 3) Qué le falta comparado con software moderno con IA\nDelivery Hub es reactivo y basado en reglas fijas, sin IA evidente en resultados:\n- **Sin IA para optimización**: Carece de predicción de demanda, sugerencias automáticas de precios dinámicos, o matching inteligente de repartidores (vs. software como Toast o Lightspeed con IA para forecasting).[Inferencia: resultados solo describen sincronización básica, no ML.]\n- **No optimiza rutas o ETAs**: Sin geolocalización IA para zonas dinámicas o tracking predictivo (e-Delivery menciona zonas por CP/mapas manuales).[5][6]\n- **Ausencia de chatbots/automación**: No integra IA para confirmaciones automáticas, upsell personalizado o rechazo predictivo de pedidos no rentables.\n- **Escalabilidad limitada**: Manual por sucursal vs. autoaprendizaje multi-tienda con analytics IA; no personalización por cliente (e.g., recomendaciones basadas en historial).\n- **Interfaz anticuada**: Panel Marketplace básico vs. dashboards IA con visuales predictivos y alertas proactivas.\n\n### 4) Flujo de trabajo típico del usuario\n1. **Preparación**: Crear área de venta \"Comida rápida\" por plataforma (Catálogos → Ventas → Áreas de ventas); configurar listas de precios en Aplicaciones Externas (editar y marcar \"Usar\" post-sincronización inicial); asignar precios a áreas por sucursal (Catálogos → Lista de precios → Asignaciones).[4]\n2. **Activación**: En Soft Restaurant Marketplace, sincronizar Back Office y Agente de Sincronización; activar licencia Delivery Hub (paquete o separado).[1][3][4]\n3. **Recepción**: Pedidos de apps/channel managers caen en panel Marketplace; usuario revisa, acepta/rechaza.[2][7]\n4. **Procesamiento**: Se envía a POS: imprime comanda en cocina/área configurada, visualiza en monitor; integra con producción.[1][5][7]\n5. **Cierre**: Sincroniza estatus (entregado/cancelado) de vuelta a plataformas; repite para sucursales vía móvil v1.4.[1][8]",
+      "fuentes": [
+        "https://softrestaurant.com/docs?download=172%3A23-ft-soft-restaurant-delivery-hub&start=15",
+        "https://softrestaurant.com/addons/delivery-hub",
+        "https://es.scribd.com/document/707708479/MANUAL-DES-MNL-Delivery-Hub-v-1-0-20220519",
+        "https://softrestaurant.zohodesk.com/portal/es/kb/articles/sincronizaci%C3%B3n-deliveryhub-y-soft-restaurant-enterprise",
+        "https://www.nationalsoft.com.mx/terminos-y-condiciones?view=article&id=416%3Ae-delivery-la-plataforma-de-pedidos-en-linea-que-te-ayudara-a-aumentar-ventas&catid=79",
+        "https://www.youtube.com/watch?v=YCpP8RUJHSQ",
+        "https://www.youtube.com/watch?v=hPWAKMUhsXM",
+        "https://www.youtube.com/watch?v=midmgSZFgzI",
+        "https://www.youtube.com/watch?v=bepOLUBK2DA",
+        "https://limac.com.mx/conoce-las-caracteristicas-y-beneficios-de-soft-restaurant-e-delivery/"
+      ],
+      "sub_features": [
+        "Conexión e integración automática",
+        "Configuración por plataforma",
+        "Gestión centralizada en panel Marketplace",
+        "Sincronización bidireccional",
+        "Acceso móvil",
+        "Flujo a POS"
+      ],
+      "limitaciones": [
+        "Configuración manual compleja",
+        "Dependencia de add-ons y sincronizadores",
+        "Limitado a plataformas específicas",
+        "Costo extra",
+        "Quejas implícitas en videos"
+      ],
+      "dolor_usuario": [
+        "Demoras en integración inicial",
+        "Gestión por channel manager antes de POS",
+        "Necesidad de múltiples portales si no centraliza todo"
+      ],
+      "oportunidad_10x": []
+    },
+    {
+      "nombre": "KDS (Kitchen Display)",
+      "investigacion": "### Funciones del Módulo KDS (Kitchen Display System) en SoftRestaurant® de National Soft\n\nEl módulo **KDS (Kitchen Display System)**, también conocido como **Monitor de Producción** en SoftRestaurant® 10, muestra comandas en pantallas o tablets en áreas de cocina/producción, reemplazando impresoras de tickets para reducir papel y mejorar higiene[1][2].\n\n#### 1) Sub-funciones específicas\n- **Visualización en tiempo real de comandas**: Muestra órdenes levantadas por meseros desde terminales, comandero móvil o caja en tablets/monitores conectados por red, WiFi o Bluetooth. Incluye datos como número de mesa, platillos pedidos, hora de entrada, tiempo transcurrido y nombre/iniciales del mesero[1][2].\n- **Gestión de estatus por orden**: Cocineros cambian estatus con clics: \"En preparación\" (amarillo), \"Listo\" (verde) o personalizado (ej. iniciales para delivery como Uber Eats/Rappi). Órdenes desaparecen al guardar[1].\n- **Alertas temporales configurables**: Colores cambian por tiempo (ej. verde a amarillo tras 1 minuto) para alertar retrasos y medir eficiencia[1][2].\n- **Reportes de tiempos**: Genera reportes de tiempo promedio por platillo para analizar productividad[2].\n- **Visualización por área**: Filtra por zonas como comedor, terraza o bar[2].\n- **Integración con SoftRestaurant® Móvil**: Configura alertas a meseros cuando platillos están listos, mejorando flujo entre piso y cocina[2].\n- **Personalización**: Ajusta colores, iniciales, tiempos y visibilidad de estaciones en comandero móvil[1][5].\n\n#### 2) Limitaciones conocidas y quejas de usuarios\nNo se identifican quejas específicas de usuarios en fuentes disponibles. Limitaciones implícitas incluyen dependencia de conexión estable (red/WiFi/Bluetooth) para tablets, ya que fallos retrasan visualización[1]. Requiere hardware adicional (tablets/monitores) y no reemplaza totalmente impresoras en sistemas viejos[1]. En versiones previas (ej. SR6.0/SR8), funciones eran básicas sin menciones a alertas avanzadas[6][5].\n\n#### 3) Qué le falta comparado con software moderno con IA\nSoftRestaurant® KDS es reactivo y manual (clics para estatus, alertas por tiempo fijo), sin IA explícita[1][2]. Le falta:\n- **Predicción de demanda/tiempos**: IA moderna (ej. en Toast o Lightspeed) usa ML para predecir picos y ajustar tiempos por platillo/historial.\n- **Reconocimiento óptico/voz**: No escanea tickets ni usa voz para estatus; competidores integran IA para auto-asignar tareas.\n- **Optimización automática**: Sin routing inteligente de órdenes (ej. balanceo por chef disponible) ni integración con IA para inventarios predictivos.\n- **Análisis predictivo**: Reportes son post-producción; falta IA para forecasting de desperdicios o personalización de menús.\n\n#### 4) Flujo de trabajo típico del usuario\n1. Mesero levanta comanda en terminal/comandero móvil y confirma[1].\n2. Orden aparece en KDS de cocina (2-3 seg): muestra mesa, platillos, tiempo inicial[1][2].\n3. Cocinero clica \"En preparación\" (amarillo); tiempo corre[1].\n4. Alerta si excede tiempo configurado (amarillo/otro color)[1].\n5. Cocinero termina y clica \"Listo\" (verde); alerta notifica mesero vía móvil[1][2].\n6. Mesero recoge; cocinero clica \"Guardar\" para eliminar orden[1].\n7. Fin de turno: genera reporte de tiempos por platillo[2].",
+      "fuentes": [
+        "https://www.youtube.com/watch?v=FPqFYp1FuPE",
+        "https://www.youtube.com/watch?v=aAXwav7lRSc",
+        "https://www.nationalsoft.com.mx/images/calendario/files/Temario_Administracion__Soft_Restaurant.pdf",
+        "https://softrestaurant.com/manuales",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://es.slideshare.net/slideshow/soft-restaurant-60-manual-de-referencia/239105819"
+      ],
+      "sub_features": [
+        "Visualización en tiempo real de comandas",
+        "Gestión de estatus por orden",
+        "Alertas temporales configurables",
+        "Reportes de tiempos",
+        "Visualización por área",
+        "Integración con SoftRestaurant® Móvil",
+        "Personalización"
+      ],
+      "limitaciones": [
+        "Dependencia de conexión estable (red/WiFi/Bluetooth) para tablets",
+        "Requiere hardware adicional (tablets/monitores)",
+        "No reemplaza totalmente impresoras en sistemas viejos",
+        "Funciones básicas en versiones previas (ej. SR6.0/SR8) sin alertas avanzadas"
+      ],
+      "dolor_usuario": [],
+      "oportunidad_10x": [
+        "Predicción de demanda/tiempos",
+        "Reconocimiento óptico/voz",
+        "Optimización automática",
+        "Análisis predictivo"
+      ]
+    },
+    {
+      "nombre": "Reservaciones",
+      "investigacion": "# Módulo Reservaciones de SoftRestaurant\n\nEl **módulo Reservaciones y Comisionistas** de SoftRestaurant permite controlar las reservaciones para mejorar la atención a clientes, especificando mesa, fecha, hora, área del restaurante, número de personas y comentarios especiales[1]. También gestiona comisiones por clientes canalizados a través de agencias u hoteles[1].\n\n## Sub-funciones específicas\n\n**Captura y gestión de reservaciones:**\n- Registro de información de reservación con nombre del contacto, cantidad de personas, área y mesa reservada[1]\n- Posibilidad de reservar varias mesas simultáneamente[1]\n- Impresión de reservaciones al día[1]\n- Edición de reservaciones (cambio de hora, mesa, cantidad de personas)[2]\n- Cancelación de reservaciones con registro de motivo y contraseña[2]\n\n**Visualización y control de mesas:**\n- **Mapa de mesas**: herramienta que permite a la hostess consultar qué mesas están disponibles en cada área del restaurante[2]\n- Bloqueo automático de mesas: se bloquean minutos antes de la llegada del cliente (configurable, típicamente 40 minutos antes) para evitar que otro mesero la asigne[3]\n- Bloqueo de mesa mínimo: duración configurable del bloqueo después de la hora de llegada (por defecto una hora)[3]\n- Visualización en listado o mapa de mesas al momento de hacer una nueva reserva[3]\n\n**Integración con operaciones:**\n- Integración con comandero y punto de venta para ligar la reservación con la mesa[1]\n- Cambio automático de status de reservación de \"llegaron\" a \"sentados\"[1]\n- Asignación de reservaciones por meseros (opción configurable en menú Configuración General)[2]\n\n**Gestión de comisiones:**\n- Control de comisiones por clientes canalizados[1]\n- Pago de comisiones configurable por: porcentaje, importe, cantidad de personas o combinación[1]\n- Catálogo de comisionistas para registrar agentes externos[3]\n\n**Tipos de reservaciones:**\n- Creación de diferentes tipos de reservaciones con características distintas[3]\n- Ejemplos: clientes locales (con descuento), clientes frecuentes, clientes extranjeros, reservaciones sin descuento, reservaciones ligadas a comisionistas externos[3]\n\n**Reportes:**\n- Reporte de reservaciones para consultar reservaciones realizadas en fechas específicas[2]\n\n## Limitaciones conocidas y quejas de usuarios\n\nLos resultados de búsqueda **no incluyen información sobre limitaciones conocidas o quejas específicas de usuarios** respecto al módulo. La documentación disponible se enfoca en funcionalidades y configuración, sin mencionar problemas reportados, bugs, o insatisfacciones de usuarios.\n\n## Comparación con software moderno con IA\n\nLos resultados de búsqueda **no contienen información sobre comparativas con software moderno o capacidades de IA**. La documentación de SoftRestaurant no aborda este aspecto, por lo que no puedo proporcionar datos específicos sobre qué le falta en relación a soluciones contemporáneas con inteligencia artificial.\n\n## Flujo de trabajo típico del usuario\n\n**Paso 1: Configuración inicial**\n- Acceder a menú Seguridad > Perfiles de seguridad para dar permisos a hostess[2]\n- Ir a Configuración > Configuración General > Meseros/Comandero para activar que meseros puedan asignar reservaciones[2]\n- Presionar botón \"Configurar\" en el módulo de Reservaciones e ingresar contraseña[3]\n- Configurar: identificador de reservaciones (formato consecutivo), bloqueo de mesa mínimo (ej. 1 hora), minutos previos para mostrar mesa como reservada (ej. 40 minutos), tipo de visualización de mesas[3]\n- Crear catálogos: comisionistas (con tipo de pago: porcentaje, importe o por persona) y tipos de reservaciones[3]\n\n**Paso 2: Crear reservación**\n- Presionar botón \"Nuevo\" en el módulo[2]\n- Indicar fecha y hora de llegada del cliente[2]\n- Indicar cantidad de personas y área (fumar/no fumar)[2]\n- Seleccionar mesa del mapa de mesas o listado[2]\n- Seleccionar tipo de reservación (cliente local, frecuente, extranjero, etc.)[2]\n- Guardar: el sistema genera clave de reservación, nombre del cliente, fecha y hora[2]\n- La mesa se bloquea automáticamente minutos antes de la llegada[2]\n\n**Paso 3: Recepción del cliente**\n- Hostess verifica en el módulo que el cliente tiene reservación programada[4]\n- Hostess recibe al cliente y abre la mesa[4]\n- Sistema abre automáticamente la mesa y confirma área, mesa y reservación[4]\n\n**Paso 4: Servicio y cierre**\n- Mesero comanda los productos que el cliente solicita[2]\n- Una vez sentado el cliente, presionar botón \"Sentados\" para finalizar el proceso de reservación[2]\n- Cliente consume y se genera ticket de cobro[4]\n- Al finalizar el consumo, se calcula automáticamente la comisión si aplica según el tipo de reservación[3]\n\n**Paso 5: Edición o cancelación**\n- Para editar: ir a la fecha de la reservación, seleccionarla y presionar \"Editar\" para cambiar hora, mesa u otras opciones[2]\n- Para cancelar: presionar botón \"Cancelar\", ingresar contraseña y motivo de cancelación[2]",
+      "fuentes": [
+        "https://softrestaurant.com/docs?download=179%3A23-ft-soft-restaurant-reservaciones-y-comisionistas&start=10",
+        "https://www.youtube.com/watch?v=0scQIvK8hVc",
+        "https://www.youtube.com/watch?v=B2Q7kw09FmU",
+        "https://www.youtube.com/watch?v=gcZioE22oFQ",
+        "https://www.youtube.com/playlist?list=PLnOLoTLQ87nAo7_SCWTGXrptbE-4VZHfq",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://es.slideshare.net/slideshow/soft-restaurant-60-manual-de-referencia/239105819",
+        "https://www.youtube.com/watch?v=0l9gL2Cl2WA",
+        "https://es.scribd.com/document/605974731/Manual-de-Referencia-Soft-Restaurant",
+        "https://softrestaurant.com/blog-restaurantero/9-funciones-que-soft-restaurant-le-ofrece-a-tu-restaurante"
+      ],
+      "sub_features": [
+        "Registro de información de reservación con nombre del contacto, cantidad de personas, área y mesa reservada",
+        "Posibilidad de reservar varias mesas simultáneamente",
+        "Impresión de reservaciones al día",
+        "Edición de reservaciones (cambio de hora, mesa, cantidad de personas)",
+        "Cancelación de reservaciones con registro de motivo y contraseña",
+        "Mapa de mesas",
+        "Bloqueo automático de mesas",
+        "Bloqueo de mesa mínimo",
+        "Visualización en listado o mapa de mesas al momento de hacer una nueva reserva",
+        "Integración con comandero y punto de venta para ligar la reservación con la mesa",
+        "Cambio automático de status de reservación de 'llegaron' a 'sentados'",
+        "Asignación de reservaciones por meseros",
+        "Control de comisiones por clientes canalizados",
+        "Pago de comisiones configurable por: porcentaje, importe, cantidad de personas o combinación",
+        "Catálogo de comisionistas para registrar agentes externos",
+        "Creación de diferentes tipos de reservaciones con características distintas",
+        "Reporte de reservaciones para consultar reservaciones realizadas en fechas específicas"
+      ],
+      "limitaciones": [],
+      "dolor_usuario": [],
+      "oportunidad_10x": []
+    },
+    {
+      "nombre": "Control de Caja y Cortes",
+      "investigacion": "### Funciones del Módulo 'Control de Caja y Cortes' en SoftRestaurant\n\nEl módulo **Control de Caja y Cortes** de SoftRestaurant (de National Soft, México) gestiona el cierre de turnos, generación de reportes de ventas (cortes X y Z), safeguard de caja y envíos automáticos de reportes, enfocado en operaciones diarias de caja para restaurantes.[1][4][6]\n\n#### 1) Sub-funciones Específicas\n- **Generación de Cortes de Caja X y Z**: Produce reportes detallados de ventas, operaciones de caja y estadísticos por turno, incluyendo fondo de carga, dinero recibido y ventas. Permite múltiples cortes por día (ej. 3 cortes para cajeros independientes) y cierra turnos irreversiblemente una vez ejecutado.[4][6]\n- **Corte de Turno y Cierre de Caja**: Acceso vía menú **Caja → Corte de caja Z (corte del día)** o **Cortes de caja ciegos**. Muestra ventas, datos estadísticos y prohíbe modificaciones post-cierre para seguridad.[1][4]\n- **Envío Automático por Correo Electrónico**: Configurable en **Configuración → Configuración General → Corte de caja**. Activa \"Activar el envío del corte de caja por correo electrónico\"; envía en formato Resumido tras ejecutar reporte en pantalla (en 5 min si monitor activo) o en horario programado (5 min post-hora fin). Requiere estación \"Ejecutar en\" (servidor/caja) encendida con internet.[1][8]\n- **Monitor de Corte de Caja**: Aplicación que corre en segundo plano en servidor designado; inicia automáticamente con Windows, envía cortes X/Z históricos desde fecha especificada, guarda fecha/hora del último envío y restaura ejecución si cambia nombre de servidor.[1]\n- **Impresión de Cortes Históricos**: Imprime cortes de turnos/días anteriores registrados en el sistema.[6]\n- **Integración con Safeguard y Alertas Antifraude**: Vinculado a perfiles de seguridad, bitácora por usuario y alertas en tiempo real (ej. stock mínimo), con configuración para Gmail usando \"Contraseña de aplicaciones\".[1][2][8]\n- **Reportes en Formato Ticket/Pantalla**: Opciones resumidas o detalladas, con ejecución exitosa que triggers envíos.[1]\n\n#### 2) Limitaciones Conocidas y Quejas de Usuarios\n- **Dependencia de Hardware/Conexión**: Requiere PC servidor específica encendida 24/7 con internet; si falla, no envía cortes (monitor debe estar activo).[1]\n- **Irreversibilidad de Cierres**: Una vez cerrado un turno/corte, no permite ediciones, lo que genera quejas si hay errores operativos.[4]\n- **Múltiples Cortes Manuales**: Para varios cajeros, exige 3+ cierres diarios, aumentando carga operativa sin automatización total.[4]\n- **Configuración Manual Propensa a Errores**: Pasos detallados (ej. restaurar monitor si cambia nombre de PC) y necesidad de \"Aceptar\" cambios; quejas en foros/maniales sobre fallos en envíos si no se configura \"Restaurar en ejecución\".[1]\n- **Limitado a Versiones Antiguas**: En SR8/SR9/SR10, módulos como este eran separados o básicos; usuarios de versiones pre-10 reportan lentitud y falta de integración móvil.[3][9]\n\n#### 3) Qué le Falta Comparado con Software Moderno con IA\nSoftRestaurant (hasta SR12) es manual/configuración-based, sin IA nativa:\n- **Sin Predicciones IA**: No usa IA para forecasting de ventas/caja, detección automática de fraudes (solo alertas básicas) o anomalías en cortes (ej. vs. Toast o Lightspeed con ML para fraudes).[2]\n- **Ausencia de Automatización IA**: No genera cortes predictivos, reconciliación automática con pagos digitales (solo integra Mercado Pago/Sr. Pago en comedor, no IA para matching) ni chatbots para alertas.[2][3]\n- **Falta Integración Cloud/Real-Time IA**: Envíos dependen de monitor local; software moderno (ej. Square/ChowNow) ofrece dashboards IA en cloud con analytics predictivos, sin PC física requerida.\n- **No Personalización Dinámica**: Sin IA para roles adaptativos o alertas proactivas (ej. \"caja desbalanceada por patrón histórico\"); limitado a reglas estáticas vs. aprendizaje automático.[1][2]\n\n#### 4) Flujo de Trabajo Típico del Usuario\n1. **Configuración Inicial**: Ir a **Configuración → Configuración General → Corte de caja**, activar envío por correo, seleccionar estación \"Ejecutar en\" (servidor), configurar horario y \"Monitor de corte\" con fecha inicio; guardar con \"Aceptar\". Iniciar monitor (minimizar a segundo plano).[1][8]\n2. **Carga de Fondo**: Al inicio de turno, cajero carga fondo en caja (registrado para tracking).[4]\n3. **Operación Diaria**: Realizar ventas; sistema trackea en tiempo real.[2]\n4. **Corte de Turno**: Menú **Caja → Corte de caja Z** (o X); seleccionar turno/día, ejecutar reporte (resumido/pantalla). Cierra irreversiblemente, genera estadísticos.[1][4]\n5. **Envío Automático**: Post-ejecución, monitor envía en 5 min (manual o horario); verifica bitácora si falla.[1]\n6. **Impresión/Revisión**: Imprimir corte histórico si needed; revisar alertas antifraude en tiempo real.[2][6]\n7. **Cierre Final**: Repetir por cajero/turno; servidor debe estar on para monitor.[1][4]",
+      "fuentes": [
+        "https://softrestaurant.com/recursos/manuales?download=213%3Asr12-manual-corte-z&start=15",
+        "https://softrestaurant.com/blog-restaurantero/9-funciones-que-soft-restaurant-le-ofrece-a-tu-restaurante",
+        "https://www.youtube.com/watch?v=kS8ngwpfc9c",
+        "https://www.youtube.com/watch?v=Jt0Max11fJ8",
+        "https://es.slideshare.net/slideshow/soft-restaurant-60-manual-de-referencia/239105819",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://www.youtube.com/watch?v=0l9gL2Cl2WA",
+        "https://softrestaurant.zohodesk.com/portal/es/kb/articles/configuraci%C3%B3n-de-alertas-antifraude-y-cortes-de-caja-en-soft-restaurant",
+        "https://es.scribd.com/document/332304087/Des-mnl-Sr9-Manual-de-Referencia-Soft-Restaurant-Professional-1"
+      ],
+      "sub_features": [
+        "Generación de Cortes de Caja X y Z",
+        "Corte de Turno y Cierre de Caja",
+        "Envío Automático por Correo Electrónico",
+        "Monitor de Corte de Caja",
+        "Impresión de Cortes Históricos",
+        "Integración con Safeguard y Alertas Antifraude",
+        "Reportes en Formato Ticket/Pantalla"
+      ],
+      "limitaciones": [
+        "Dependencia de Hardware/Conexión",
+        "Irreversibilidad de Cierres",
+        "Múltiples Cortes Manuales",
+        "Configuración Manual Propensa a Errores",
+        "Limitado a Versiones Antiguas"
+      ],
+      "dolor_usuario": [
+        "Requiere PC servidor específica encendida 24/7 con internet; si falla, no envía cortes",
+        "Una vez cerrado un turno/corte, no permite ediciones, lo que genera quejas si hay errores operativos",
+        "Para varios cajeros, exige 3+ cierres diarios, aumentando carga operativa sin automatización total",
+        "Pasos detallados y necesidad de 'Aceptar' cambios; quejas en foros/manuales sobre fallos en envíos si no se configura 'Restaurar en ejecución'",
+        "Usuarios de versiones pre-10 reportan lentitud y falta de integración móvil"
+      ],
+      "oportunidad_10x": []
+    },
+    {
+      "nombre": "Multi-sucursal",
+      "investigacion": "### Funciones del Módulo Multi-sucursal de SoftRestaurant\n\nEl módulo **Multi-sucursal** de SoftRestaurant (de National Soft, México) permite la gestión centralizada de múltiples ubicaciones de un restaurante o cadena, sincronizando datos como ventas, inventarios y reportes a través de un portal web accesible desde cualquier dispositivo Windows. Este módulo está incluido en versiones recientes (desde 9.5 en adelante) y se aloja en servidores de National Soft sin costo adicional, habilitando accesos personalizados por usuario (ej. dueño ve todo, contador solo ventas).[2]\n\n#### 1) Sub-funciones específicas\nBasado en documentación y webinars oficiales, las sub-funciones clave incluyen:\n- **Sincronización de datos en tiempo real**: Consolida ventas, inventarios y movimientos entre sucursales. Soporta hasta 2 dispositivos/nodos en versión Line y hasta 10 en Pro, donde \"nodos\" son estaciones Windows instaladas en cada sucursal.[2]\n- **Portal web administrativo**: Acceso vía usuario/contraseña para consultar reportes consolidados (ventas por sucursal, existencias, pólizas contables). Permite personalizaciones de permisos (ej. franquicias ven solo sus datos).[2]\n- **Generación de QR para pre-carga**: Escanea QR en ticket para cargar info automáticamente en el portal, facilitando revisiones rápidas de transacciones multi-sucursal.[2]\n- **Control de inventarios centralizado**: Órdenes de compra automáticas por stock min/max, explosión de productos, cálculo de insumos consumidos/elaborados, reportes de existencias por sucursal, e impresión en formato ticket. Integra con pólizas contables diarias.[1]\n- **Reportes por sucursal/periodo**: Ventas, asistencia de personal (entradas/salidas por empleado/turno), gastos, cuentas por cobrar/pagar, saldos a proveedores. Incluye alertas de stock mínimo y antifraude enviadas por email.[1]\n- **Gestión de accesos y estaciones**: Visibilidad de estaciones en comandero móvil, asignación de folios a meseros por sucursal, alta de clientes de facturación/domicilio con crédito.[3][4]\n- **Integración con add-ons**: Compatible con comandero móvil, e-Delivery, e-Menu QR, extendiendo operaciones multi-sucursal a entregas y menús digitales.[1]\n\nEstas funciones se detallan en manuales de referencia (versiones 6.0 a 10 PRO), enfocadas en administración central sin requerir hardware extra.[5][7][8]\n\n#### 2) Limitaciones conocidas y quejas de usuarios\nLos resultados no detallan quejas específicas del módulo Multi-sucursal, pero limitaciones implícitas de SoftRestaurant incluyen:\n- **Dependencia de Windows**: Solo soporta entornos Windows para nodos/estaciones, limitando compatibilidad con móviles nativos o cloud puro.[2][4]\n- **Escalabilidad por licencia**: Límites en dispositivos (2 en Line, 10 en Pro), insuficiente para cadenas grandes sin upgrades.[2]\n- **Sincronización no 100% real-time**: Requiere conexión estable; fallos reportados en versiones antiguas (pre-9.5) donde el módulo era add-on pagado.[2]\n- Quejas generales de usuarios (de foros y PDFs antiguos): Interfaz anticuada (versiones 9.0-9.5), lentitud en reportes masivos multi-sucursal, y falta de soporte móvil nativo más allá de comandero. No hay datos recientes (post-2020) de quejas específicas en resultados.[9]\n\n#### 3) Qué le falta comparado con software moderno con IA\nSoftRestaurant (versión 10) carece de IA nativa; es un sistema legacy enfocado en reglas fijas vs. competidores como Toast o Lightspeed con IA:\n- **Sin predicción IA**: No tiene forecasting de demanda/inventarios por IA (ej. predicir stock por patrones de ventas multi-sucursal); usa solo reglas min/max.[1]\n- **Ausencia de analítica predictiva**: Sin ML para optimizar precios dinámicos, detección de fraude avanzada o segmentación de clientes por sucursal.\n- **No chatbots/voz**: Carece de IA para pedidos automáticos, reservaciones inteligentes o recomendaciones personalizadas en portal.\n- **Cloud limitado**: Portal en servidores National Soft, pero no full SaaS escalable; modernos ofrecen IA en dashboard (ej. alertas proactivas por anomalías).\n- **Integraciones IA**: Falta APIs abiertas para tools como Google Cloud AI o chatGPT para menús dinámicos, a diferencia de software 2026 con embeddings para análisis.[8]\n\n#### 4) Flujo de trabajo típico del usuario\n1. **Configuración inicial**: En estación principal (Windows), alta de sucursales como \"nodos\" (Line/Pro), asigna permisos/estaciones visibles en comandero móvil.[2][4]\n2. **Operación diaria**: Cada sucursal registra ventas/inventarios localmente; sincroniza automáticamente al portal central (servidores National Soft).[1][2]\n3. **Consulta central**: Dueño accede portal web (usuario/contraseña), filtra por sucursal/periodo para ver ventas, stocks, alertas email (ej. stock bajo genera orden compra).[1][2]\n4. **Acciones**: Escanea QR de ticket para pre-cargar datos; genera reportes consolidados (pólizas, asistencia); ajusta órdenes compra o créditos clientes multi-sucursal.[2][3]\n5. **Cierre**: Reportes diarios/noche consolidan todo; contadores acceden solo ventas vía permisos personalizados.[1][2]\n\nEste flujo es manual-regla basado, eficiente para México por CFDI 3.3, pero requiere capacitación per manuales.[1][7]",
+      "fuentes": [
+        "https://softrestaurant.com/blog-restaurantero/9-funciones-que-soft-restaurant-le-ofrece-a-tu-restaurante",
+        "https://www.youtube.com/watch?v=0l9gL2Cl2WA",
+        "https://www.nationalsoft.com.mx/images/calendario/files/Temario_Administracion__Soft_Restaurant.pdf",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://es.slideshare.net/slideshow/soft-restaurant-60-manual-de-referencia/239105819",
+        "https://softrestaurant.com/manuales",
+        "https://es.scribd.com/document/332304087/Des-mnl-Sr9-Manual-de-Referencia-Soft-Restaurant-Professional-1",
+        "https://www.youtube.com/watch?v=MxjKf0pl6tc",
+        "https://www.softpaqi.net/soft-restaurant/PRESENTACION-2019.pdf"
+      ],
+      "sub_features": [
+        "Sincronización de datos en tiempo real",
+        "Portal web administrativo",
+        "Generación de QR para pre-carga",
+        "Control de inventarios centralizado",
+        "Reportes por sucursal/periodo",
+        "Gestión de accesos y estaciones",
+        "Integración con add-ons"
+      ],
+      "limitaciones": [
+        "Dependencia de Windows",
+        "Escalabilidad por licencia",
+        "Sincronización no 100% real-time"
+      ],
+      "dolor_usuario": [],
+      "oportunidad_10x": []
+    },
+    {
+      "nombre": "Comandas y Modificadores",
+      "investigacion": "No puedo proporcionar una descripción detallada del módulo específico \"Comandas y Modificadores\" de SoftRestaurant basándome en los resultados de búsqueda disponibles, ya que estos no contienen información suficiente sobre este módulo en particular.\n\nLos resultados de búsqueda mencionan funcionalidades relacionadas con comandas, como el **\"Comandero\"** (la interfaz para meseros que captura órdenes)[1][2], pero no detallan específicamente un módulo llamado \"Comandas y Modificadores\" ni sus sub-funciones, limitaciones conocidas, comparativas con software moderno con IA, o flujos de trabajo específicos.\n\nLo que sí se documenta en los resultados es:\n\n**Funcionalidades de captura de comandas disponibles:**\n- Impresión de comandas individuales por producto o consolidadas[2]\n- Control de folios de comandas para rastrear órdenes por mesero[2]\n- Notificación a meseros cuando una orden está finalizada mediante monitor de producción[1]\n- Integración con e-Menu QR para generar órdenes desde códigos QR[3]\n\n**Limitaciones mencionadas:**\n- El módulo Comedor centraliza la captura de comandas en una sola persona, impidiendo que los meseros tengan contacto directo con el sistema[2][4]\n\nPara obtener información específica y detallada sobre el módulo \"Comandas y Modificadores\", incluyendo limitaciones reales de usuarios, comparativas con software con IA, y flujos de trabajo precisos, recomendaría consultar directamente la documentación técnica completa de SoftRestaurant, contactar al equipo de soporte de National Soft, o revisar testimonios de usuarios en foros especializados de restauranteros mexicanos.",
+      "fuentes": [
+        "https://softrestaurant.com/blog-restaurantero/9-funciones-que-soft-restaurant-le-ofrece-a-tu-restaurante",
+        "https://es.scribd.com/document/605974731/Manual-de-Referencia-Soft-Restaurant",
+        "https://www.youtube.com/watch?v=midmgSZFgzI",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://es.slideshare.net/slideshow/soft-restaurant-60-manual-de-referencia/239105819",
+        "https://softrestaurant.com/manuales",
+        "https://www.youtube.com/watch?v=MxjKf0pl6tc",
+        "https://softrestaurant.zohodesk.com/portal/es/kb/nationalsoft",
+        "https://es.scribd.com/document/720384904/pdf-des-mnlsr10manual-de-referencia-soft-restaurant-compress"
+      ],
+      "sub_features": [
+        "Impresión de comandas individuales por producto o consolidadas",
+        "Control de folios de comandas para rastrear órdenes por mesero",
+        "Notificación a meseros cuando una orden está finalizada mediante monitor de producción",
+        "Integración con e-Menu QR para generar órdenes desde códigos QR"
+      ],
+      "limitaciones": [
+        "El módulo Comedor centraliza la captura de comandas en una sola persona, impidiendo que los meseros tengan contacto directo con el sistema"
+      ],
+      "dolor_usuario": [],
+      "oportunidad_10x": []
+    },
+    {
+      "nombre": "Promociones y Descuentos",
+      "investigacion": "### Sub-funciones específicas del módulo 'Promociones y Descuentos'\n\nEl módulo 'Promociones y Descuentos' de SoftRestaurant (versión 11 y 12) permite configurar ofertas automáticas en el punto de venta, integrándose con catálogos de productos y módulos como fidelización de clientes. Existen **3 tipos principales de promociones**:[1]\n\n- **Precio de promoción por producto y horario**: Se configura en la pestaña \"Precios de promoción\" del catálogo de productos. Incluye un calendario para definir días, horas específicas (ej. viernes a domingo) y un precio alternativo al de carta. Se aplica automáticamente si el pedido está dentro del horario exacto (ej. termina a las 2:59:59; a las 3:00 no aplica). No requiere teclas o contraseñas adicionales.[1]\n- **Promociones de volumen (ej. 2x1, 3x2)**: Se gestionan por descuento o precio fijo. Acceso directo en \"Catálogos > Promociones > Promoción de volumen > Nuevo\". Permite condiciones automáticas basadas en cantidad de productos.[1]\n- **Descuentos por porcentaje**: En \"Catálogos > Promociones > Nuevo > Tipo descuento\". Incluye descripción (ej. \"20% en refrescos\"), porcentaje fijo, días de la semana de activación y selección de productos específicos (ej. 3 productos OK para 20% off). Se aplica automáticamente en punto de venta si está activa y sin condiciones adicionales; visible como reducción de precio (ej. de $25 a $20).[1]\n\nOtras sub-funciones:\n- **Descuentos especiales para clientes frecuentes**: Integrado con módulo de fidelización, ofrece bonificaciones de puntos exclusivas y descuentos automáticos.[2][5]\n- **Productos en descuento**: Lista editable de productos en una promoción; se agregan vía pestaña específica en la configuración.[9]\n- Activación en licencias base (ej. SoftRestaurant 11 ya incluye el módulo, solo requiere activarlo).[3]\n\n### Limitaciones conocidas y quejas de usuarios\n\n- **Rigidez en horarios**: El sistema es \"muy específico\"; promociones no aplican si se excede el horario por segundos (ej. límite a las 3:00 AM impide aplicación post-hora).[1]\n- **Automatización limitada**: Solo activa si todo coincide exactamente (horario, productos, días); no permite overrides manuales fáciles ni extensiones dinámicas sin reconfigurar.[1]\n- **Falta de flexibilidad en condiciones**: Promociones de descuento/volumen no tienen \"condiciones\" complejas en ejemplos básicos; usuarios reportan necesidad de activación manual para casos edge.[1]\n- No se mencionan quejas explícitas en fuentes, pero inferido de tutoriales: dependencia total de configuración previa, sin soporte para promociones post-facto o por cliente individual sin fidelización.[1][2]\n\n### Qué le falta comparado con software moderno con IA\n\nSoftRestaurant carece de **inteligencia artificial para personalización dinámica**, a diferencia de POS modernos como Toast o Square con IA (ej. Lightspeed o Revel AI):\n- **Sin recomendaciones predictivas**: No usa IA para sugerir promociones basadas en datos históricos de ventas/clientes (ej. \"Cliente X compra tacos; ofrecer 10% off basado en patrones\").\n- **Ausencia de personalización en tiempo real**: No analiza comportamiento en vivo (ej. carrito abandonado vía QR/e-Menu) para descuentos automáticos; todo es rule-based estática.[1][4]\n- **Falta de segmentación IA**: No integra machine learning para grupos (ej. \"VIP por RFM analysis\") ni A/B testing automático de promos.\n- **No optimización predictiva**: Sin forecasting de demanda para ajustar descuentos (ej. IA predice bajo stock y activa promo); limitado a reglas manuales/horarios fijos.[1][5]\n- Integraciones modernas ausentes: No menciona IA para e-Delivery/e-Menu con upsell inteligente (solo carga básica de menú).[4]\n\n### Flujo de trabajo típico del usuario\n\n1. **Configuración inicial**: Ir a \"Catálogos > Productos\" (para precio/horario) o \"Catálogos > Promociones > Nuevo\" (volumen/descuento). Definir tipo, descripción, días/horas, %/precio, productos específicos y activar.[1]\n2. **Asignación**: En pestaña \"Precios de promoción\" o lista de productos en descuento; guardar (ej. brandy a precio promo viernes-sábado-domingo).[1][9]\n3. **Punto de venta**: Abrir mesa/pedido; agregar productos elegibles durante horario activo. Sistema aplica **automáticamente** (ej. 20% off visible en precio final, sin intervención).[1]\n4. **Verificación**: En ticket, descuento se muestra (ej. \"Precio 25 → 20\"); no requiere aprobación extra si configurado.[1]\n5. **Cierre**: Pagar; promo se refleja en total. Para fidelización, integra puntos/descuentos especiales al cliente.[2][5]\n\nEste flujo es mayormente automático post-configuración, pero requiere acceso admin para cambios.[1][6]",
+      "fuentes": [
+        "https://www.youtube.com/watch?v=BT9q94REok0",
+        "https://www.softpaqi.net/soft-restaurant/PRESENTACION-2019.pdf",
+        "https://www.youtube.com/watch?v=bepOLUBK2DA",
+        "https://www.youtube.com/watch?v=midmgSZFgzI",
+        "https://softrestaurant.com/soft-restaurant-precio",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://es.slideshare.net/slideshow/soft-restaurant-60-manual-de-referencia/239105819",
+        "https://inelco.mx/national-soft/soft-restaurant",
+        "https://es.scribd.com/document/332304087/Des-mnl-Sr9-Manual-de-Referencia-Soft-Restaurant-Professional-1"
+      ],
+      "sub_features": [
+        "Precio de promoción por producto y horario",
+        "Promociones de volumen (ej. 2x1, 3x2)",
+        "Descuentos por porcentaje",
+        "Descuentos especiales para clientes frecuentes",
+        "Productos en descuento",
+        "Activación en licencias base"
+      ],
+      "limitaciones": [
+        "Rigidez en horarios",
+        "Automatización limitada",
+        "Falta de flexibilidad en condiciones",
+        "Dependencia total de configuración previa, sin soporte para promociones post-facto o por cliente individual sin fidelización"
+      ],
+      "dolor_usuario": [
+        "El sistema es 'muy específico'; promociones no aplican si se excede el horario por segundos",
+        "Solo activa si todo coincide exactamente; no permite overrides manuales fáciles ni extensiones dinámicas sin reconfigurar",
+        "Promociones de descuento/volumen no tienen 'condiciones' complejas en ejemplos básicos; usuarios reportan necesidad de activación manual para casos edge"
+      ],
+      "oportunidad_10x": [
+        "Sin recomendaciones predictivas"
+      ]
+    },
+    {
+      "nombre": "Soporte Técnico y Capacitación",
+      "investigacion": "### Módulo 'Soporte Técnico y Capacitación' de SoftRestaurant\n\nEl módulo **Soporte Técnico y Capacitación** de SoftRestaurant (National Soft, México) se centra en brindar asistencia remota para resolución de problemas técnicos y acceso a recursos de formación en línea, accesible principalmente a través del portal de soporte oficial, con pólizas personalizables de horarios extendidos.[3]\n\n#### 1) Sub-funciones específicas\n- **Soporte técnico remoto**: Acceso vía portal de soporte para solicitudes de ayuda; incluye protocolos estandarizados como revisión básica de equipos (verificar fecha/hora, comunicación entre estaciones, archivos INI de configuración, y documentación de pasos). Toma 15-30 minutos por caso; resuelve la mayoría de problemas de conexión/sincronización en los primeros 3 pasos (fecha/hora, comunicación, configs INI). Escala casos si no resuelve en 3 intentos.[4]\n- **Pólizas de soporte extendidas**: Opciones personalizadas según necesidades del cliente, con soporte remoto en horarios no estándar.[3]\n- **Plataforma de capacitación en línea**: Cursos autodirigidos desde cualquier lugar; incluye tutores de apoyo, actividades, evaluaciones para reforzar conocimientos en funciones como administración de inventarios, compras, proveedores, control de gastos. Cubre add-ons como SoftRestaurant Móvil, Menú Digital (configuraciones de productos, requerimientos operativos).[1][3][5]\n- **Recursos documentales**: Manuales de referencia (ej. SoftRestaurant 6.0/8.0/10) con guías para módulos administrativos; protocolos exclusivos para equipo de soporte (recalcula cuentas).[6][7][8]\n- **Diagnósticos y planificación**: Agenda inicial para analizar negocio, retos y procesos; define planes de implementación.[1]\n\n#### 2) Limitaciones conocidas y quejas de usuarios\n- **Dependencia de portal y protocolos manuales**: Soporte inicia siempre en portal; protocolos básicos (como [4]) fallan en casos complejos, requiriendo escalamiento manual; usuarios reportan repeticiones innecesarias si no documentan bien.[4]\n- **Acceso restringido**: Algunas funciones (ej. recalculo de cuentas en v10) exclusivas para equipo National Soft, no para usuarios.[8]\n- **Quejas implícitas en reseñas**: Enfasis en tiempos (15-30 min por revisión básica) y necesidad de verificar basics repetidamente (fecha/hora causa problemas en cuentas/pagos/licencia); no menciona chat en vivo o IA para triage rápido; pólizas extendidas no son gratuitas ni 24/7 por default.[3][4]\n- **Capacitación limitada a autodidacta**: Sin mención a sesiones en vivo grupales; depende de disponibilidad del usuario, con tutores solo como apoyo básico.[3]\n\n#### 3) Qué le falta comparado con software moderno con IA\nSoftRestaurant carece de integración nativa de **IA**, a diferencia de POS modernos como Toast o Square (con IA para predicción de demanda, chatbots 24/7, análisis predictivo):\n- **Sin IA para soporte**: No hay chatbots automáticos, diagnóstico predictivo o resolución self-service con ML (ej. auto-detectar errores en logs INI vs. protocolos manuales).[4]\n- **Capacitación estática**: Plataforma en línea sin IA personalizada (recomendaciones de cursos por rol/errores comunes) ni VR/simulaciones interactivas.[3]\n- **Ausencia de analytics IA**: No predice fallos (ej. alertas proactivas de sync issues) ni genera resúmenes automáticos de bitácoras, a diferencia de sistemas con IA que analizan logs en tiempo real.[2]\n- **Escalabilidad limitada**: Soporte remoto manual vs. IA para routing tickets y priorización basada en impacto.[3]\n\n#### 4) Flujo de trabajo típico del usuario\n1. **Acceso al portal**: Ingresa a portal de soporte de National Soft (softrestaurant.zohodesk.com o similar).[3][4]\n2. **Crear ticket/diagnóstico**: Describe problema (ej. conexión entre estaciones); agenda diagnóstico si es implementación/capacitación.[1][4]\n3. **Seguir protocolo básico**: Verifica fecha/hora equipos → comunicación estaciones → archivos INI → documenta resultados (15-30 min).[4]\n4. **Soporte remoto o capacitación**: Equipo remoto asiste si escala; o accede plataforma en línea para cursos (tutor, actividades, evaluaciones en inventarios/compras).[3][5]\n5. **Cierre y refuerzo**: Resuelve (mayoría en pasos 1-3); evalúa curso o aplica add-ons (ej. config Menú Digital).[4][5]\n6. **Seguimiento**: Reportes generados (ej. bitácora seguridad) o póliza extendida para recurrentes.[2][3]",
+      "fuentes": [
+        "https://syca.com.mx/distribuidor-soft-restaurant/capacitacion-soft-restaurant/",
+        "https://softrestaurant.com/blog-restaurantero/9-funciones-que-soft-restaurant-le-ofrece-a-tu-restaurante",
+        "https://www.nationalsoft.com.mx/component/sppagebuilder/?view=page&id=25",
+        "https://softrestaurant.zohodesk.com/portal/es/kb/articles/protocolo-de-revisi%C3%B3n-b%C3%A1sica-soporte-soft-restaurant",
+        "https://www.youtube.com/watch?v=bepOLUBK2DA",
+        "https://es.slideshare.net/slideshow/soft-restaurant-60-manual-de-referencia/239105819",
+        "https://yosoyvendedor.com/source/e73023b0f7a95d8ea360597237718f4b/Documentos/m_referencia_sr8_std.pdf",
+        "https://es.scribd.com/document/497557901/Manual-de-Usuario-Soft-Restaurant-10"
+      ],
+      "sub_features": [
+        "Soporte técnico remoto",
+        "Pólizas de soporte extendidas",
+        "Plataforma de capacitación en línea",
+        "Recursos documentales",
+        "Diagnósticos y planificación"
+      ],
+      "limitaciones": [
+        "Dependencia de portal y protocolos manuales",
+        "Acceso restringido",
+        "Quejas implícitas en reseñas",
+        "Capacitación limitada a autodidacta"
+      ],
+      "dolor_usuario": [
+        "Repeticiones innecesarias si no documentan bien",
+        "Tiempos de revisión básica (15-30 min)",
+        "Necesidad de verificar basics repetidamente",
+        "Falta de chat en vivo o IA para triage rápido",
+        "Pólizas extendidas no son gratuitas ni 24/7 por default"
+      ],
+      "oportunidad_10x": [
+        "Sin IA para soporte"
+      ]
+    }
+  ],
+  "opentable": {
+    "investigacion": "OpenTable funciona en México en 2026 como una plataforma de tecnología para restaurantes que facilita **reservaciones en línea**, análisis de datos de comensales, campañas de marketing y herramientas de lealtad, ayudando a aumentar la visibilidad y las visitas en establecimientos como Tatemate en Monterrey.[1][5][6]\n\n### Funcionamiento principal para restaurantes\n- Permite a los restaurantes recibir **reservaciones directas** de comensales, con datos analíticos sobre tendencias como grupos grandes (mesas para 6+ crecieron 15% en 2025), esperas voluntarias (hasta 33 minutos) y horarios pico (aumento 21% a las 5 p.m.).[1][2][6]\n- Ofrece **campañas de marketing** para atraer clientes locales y externos, incrementando reservaciones.[5]\n- Proporciona **reportes de tendencias** basados en datos de reservaciones (ej. Top 50 restaurantes 2025 y pronósticos 2026), analizando comensales sentados, gasto promedio y preferencias.[1][3][4][6]\n\n### Features clave\n- **OpenTable Regulars**: Programa gratuito de lealtad donde comensales acumulan puntos por reservaciones completas, canjeables por degustaciones, catas de vino o descuentos integrados con Uber/Uber Eats.[2]\n- **Alertas \"Notifícame\"**: Notificaciones para mesas disponibles en restaurantes populares (aumento 78% en 2025), impulsando espontaneidad.[1][6]\n- **OpenTable Concierge**: Asistente de **IA generativa** que responde preguntas frecuentes sobre +60,000 restaurantes, disponible en perfiles de restaurantes activos.[4][7]\n- **Listas curadas**: Como \"mejores lugares para eventos\" (ej. partidos de fútbol 2026 en CDMX).[9]\n\n### Integración con POS como SoftRestaurant\nLos resultados no mencionan integración específica con **SoftRestaurant** u otros POS en México; OpenTable se centra en reservaciones en línea y datos, sin detalles sobre sincronización con sistemas de punto de venta locales.[1-9]\n\n### ¿Qué le falta?\nNo hay datos sobre limitaciones explícitas, pero los resultados destacan fortalezas en reservaciones y tendencias sin cubrir aspectos como integración nativa con POS mexicanos, pagos directos o gestión de inventarios en tiempo real; se infiere que podría faltar mayor personalización para operaciones locales basadas en el enfoque global de la plataforma.[1-9]",
+    "fuentes": [
+      "https://www.prnewswire.com/mx/comunicados-de-prensa/opentable-revela-el-top-50-restaurantes-de-2025-en-mexico-y-las-tendencias-gastronomicas-que-marcaran-la-agenda-de-2026-302620653.html",
+      "https://www.dondeir.com/restaurantes/opentable-los-mexicanos-mantendran-las-mesas-llenas-durante-enero-de-2026/2026/01/",
+      "https://www.opentable.com.mx/restaurant-solutions/tendencias-gastronomicas-2026/",
+      "https://www.opentable.com.mx/c/top-restaurantes/tendencias/",
+      "https://www.youtube.com/watch?v=Y2NW6E1UWdQ",
+      "https://tecnoempresa.mx/estos-son-los-50-principales-restaurantes-de-mexico-segun-opentable/",
+      "https://los40.com.mx/2025/09/19/opentable-lanza-concierge-un-asistente-de-ia-para-revolucionar-la-busqueda-y-reserva-de-restaurantes/",
+      "https://www.mejorestarjetasdecredito.es/notas-de-prensa/opentable-revela-el-top-50-restaurantes-de-2025-en-mexico-y-las-tendencias-gastronomicas-que-marcaran-la-agenda-de-2026-21255615/",
+      "https://www.opentable.com/lists/mejores-restaurantes-bares-dias-de-partidos-cdmx"
+    ]
+  },
+  "quejas_usuarios": {
+    "investigacion": "No puedo responder esta pregunta basándome en los resultados de búsqueda proporcionados. Los resultados contienen únicamente información general sobre cómo neutralizar mensajes negativos en redes sociales y datos de contacto de Soft Restaurant, pero no incluyen reseñas específicas de usuarios, quejas documentadas ni feedback de plataformas como Capterra, G2, foros o grupos de Facebook.\n\nPara obtener la información que buscas, necesitarías:\n\n- Consultar directamente plataformas de reseñas como **Capterra** o **G2** donde los usuarios de software de restaurantes publican evaluaciones detalladas\n- Buscar en **grupos de Facebook** de restauranteros mexicanos donde discuten herramientas y comparten experiencias\n- Revisar **foros especializados** en gestión de restaurantes\n- Analizar comentarios en las **redes sociales** de Soft Restaurant\n\nEstos recursos te proporcionarían datos reales sobre las funcionalidades que los usuarios consideran deficientes, problemas técnicos recurrentes y características que demandan.",
+    "fuentes": [
+      "https://softrestaurant.com/blog-restaurantero/neutraliza-los-mensajes-negativos-en-redes-sociales",
+      "https://softrestaurant.com/contacto"
+    ]
+  },
+  "competidores_mexico": {
+    "investigacion": "Basándome en los resultados de búsqueda disponibles, puedo proporcionar información limitada sobre los competidores de Soft Restaurant en México.\n\n## Competidores identificados\n\nLos **competidores directos mencionados** en los resultados incluyen: Meniu, Fudo, OlaClick, Cluvi, Parrot Connect, Toteat, Wansoft y Qamarero[1]. De la lista que solicitaste, solo **Parrot Connect** aparece en los resultados de búsqueda.\n\n## Información disponible: Meniu\n\n**Meniu** es presentada como la alternativa gratuita más destacada a Soft Restaurant[1]. Sus características incluyen:\n\n- Menú digital multiplataforma (celular, tablet, computadora)\n- Punto de venta multiplataforma\n- Ventas en línea con integración a Mercado Pago o Stripe\n- Control de inventarios\n- Reservaciones en línea\n- Sistema de órdenes para cocina (KDS)\n- Multilenguaje (español, inglés, portugués)\n- Página web optimizada para SEO[1]\n\n**Precio**: Plan Business a MXN $169.00/mes (26% menos al pagar anual), con prueba gratuita de 7 días[1].\n\n## Limitaciones de la búsqueda\n\nLos resultados de búsqueda no contienen información específica sobre:\n- Poster, Aloha, Micros, Calisto.ai ni Justo\n- Capacidades de IA en los competidores (aunque Soft Restaurant sí integra inteligencia artificial en sus nuevas funcionalidades[2])\n- Precios y características detalladas de Parrot Connect\n\nPara obtener una comparativa completa con los productos específicos que mencionaste, necesitarías consultar directamente los sitios web de cada proveedor o buscar análisis comparativos más recientes.",
+    "fuentes": [
+      "https://meniuapp.com/blog/alternativa-gratuita-soft-restaurant-software-restaurantes",
+      "https://infochannel.info/soft_restaurant_actualiza_soluciones_digitales-_impulsar_restaurantes/",
+      "https://www.capterra.do/alternatives/200701/soft-restaurant",
+      "https://softrestaurant.com/blog-restaurantero/5-redes-sociales-para-posicionar-tu-restaurante"
+    ]
+  }
+}

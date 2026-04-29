@@ -1,0 +1,28 @@
+{
+  "input_file": "clip.mp4",
+  "background_color": "black",
+  "width": 1080,
+  "height": 1920,
+  "texts": [
+    {
+      "text": "POV: Tu texto aquí",
+      "start": 0.0,
+      "end": 3.0,
+      "position": "top",
+      "fontsize": 60,
+      "color": "white",
+      "border_w": 3,
+      "shadow_color": "black"
+    },
+    {
+      "text": "Segundo texto aquí",
+      "start": 3.0,
+      "end": 7.0,
+      "position": "bottom",
+      "fontsize": 48,
+      "color": "yellow",
+      "border_w": 2,
+      "shadow_color": "black"
+    }
+  ]
+}

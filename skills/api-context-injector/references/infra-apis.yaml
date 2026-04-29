@@ -1,0 +1,201 @@
+# Infrastructure & Cloud APIs Registry
+# Última actualización: 2026-04-12
+
+providers:
+  cloudflare:
+    name: Cloudflare
+    category: cdn_security
+    auth:
+      method: token
+      env_var: CLOUDFLARE_API_TOKEN
+      endpoint: https://api.cloudflare.com/client/v4
+      account_id: 3e48dec9cc75b17987c08eaacd9e9a47
+      dns_token_env: CLOUDFLARE_DNS_TOKEN
+      dns_token_note: "cfat_ tokens en Notion (sin restricción de IP, Zone:DNS:Edit)"
+    capabilities:
+      - dns_management
+      - cdn
+      - workers
+      - pages
+      - security
+      - certificates
+      - traffic_monitoring
+    zones:
+      ticketlike_mx: 39e9dd80166f87b54075825e54e76262
+    status: active
+    env_available: true
+    notion_id: 32914c6f8bba81438461f0331e0cfcdd
+
+  dropbox:
+    name: Dropbox
+    category: storage
+    auth:
+      method: api_key
+      env_var: DROPBOX_API_KEY
+      sdk: dropbox
+    capabilities:
+      - file_upload
+      - file_download
+      - folder_management
+      - sharing
+      - sync
+    status: active
+    env_available: true
+    sdk_install: "pip install dropbox"
+
+  github:
+    name: GitHub
+    category: code_management
+    auth:
+      method: token
+      env_var: GH_TOKEN
+      cli: gh
+    capabilities:
+      - repo_management
+      - issues
+      - pull_requests
+      - actions
+      - releases
+      - code_search
+    status: active
+    env_available: true
+
+  google_drive:
+    name: Google Drive
+    category: storage
+    auth:
+      method: oauth2
+      env_var: GOOGLE_DRIVE_TOKEN
+      cli: gws
+      rclone_remote: manus_google_drive
+    capabilities:
+      - file_storage
+      - docs
+      - sheets
+      - slides
+      - sharing
+    status: active
+    env_available: true
+
+  google_workspace:
+    name: Google Workspace
+    category: productivity
+    auth:
+      method: oauth2
+      env_var: GOOGLE_WORKSPACE_CLI_TOKEN
+      cli: gws
+    capabilities:
+      - gmail
+      - calendar
+      - drive
+      - docs
+      - sheets
+      - slides
+    status: active
+    env_available: true
+
+  aws:
+    name: AWS (Amazon Web Services)
+    category: cloud
+    auth:
+      method: credentials
+      env_var_source: notion
+      region: us-east-1
+    capabilities:
+      - s3_storage
+      - cloud_services
+    status: active
+    env_available: false
+    notion_id: 31514c6f8bba81c2b620f186d31d125f
+
+  vercel:
+    name: Vercel
+    category: deployment
+    auth:
+      method: token
+      env_var_source: notion
+      endpoint: https://api.vercel.com
+    capabilities:
+      - web_deployment
+      - serverless_functions
+      - domains
+      - analytics
+    status: active
+    env_available: false
+    notion_id: 33714c6f8bba81d9aff6f11633ea485c
+    mcp_available: true
+
+  runpod:
+    name: RunPod
+    category: gpu_cloud
+    auth:
+      method: api_key
+      env_var_source: notion
+      endpoint: https://api.runpod.io
+    capabilities:
+      - gpu_pods
+      - serverless_gpu
+      - ai_workloads
+    status: active
+    env_available: false
+    notion_id: 32f14c6f8bba81af9abaf8aa4bc3980f
+
+  supabase:
+    name: Supabase (Golden Record)
+    category: backend
+    auth:
+      method: credentials
+      env_var_source: notion
+      project_url: https://xsumzuhwmivjgftsneov.supabase.co
+      region: us-east-2
+    capabilities:
+      - postgresql
+      - auth
+      - storage
+      - edge_functions
+      - realtime
+      - vector_search
+    status: active
+    env_available: false
+    notion_id: 31a14c6f8bba81768d3bf10115e0b96c
+    mcp_available: true
+    cost_monthly: 25
+
+  railway:
+    name: Railway
+    category: deployment
+    auth:
+      method: token
+      env_var_source: notion
+      endpoint: https://backboard.railway.com/graphql/v2
+      api_type: graphql
+    capabilities:
+      - web_deployment
+      - custom_domains
+      - environment_management
+      - service_management
+      - deployments
+    status: active
+    env_available: false
+    notion_id: 34014c6f8bba81179332fb92a020df0c
+    projects:
+      liketickets: e9f5d5f6-61ac-4efb-92d2-5c63dc93f1f4
+
+  godaddy:
+    name: GoDaddy
+    category: domain_registrar
+    auth:
+      method: api_key
+      env_var_source: notion
+      endpoint: https://api.godaddy.com
+      header_format: "Authorization: sso-key KEY:SECRET"
+    capabilities:
+      - domain_management
+      - nameserver_management
+      - dns_records
+      - domain_info
+    status: active
+    env_available: false
+    notion_id: 34014c6f8bba810bb889f4a6210127ac
+    domains:
+      - ticketlike.mx

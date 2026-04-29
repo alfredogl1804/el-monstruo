@@ -1,0 +1,43 @@
+{
+  "site_metadata": {
+    "name": "",
+    "coordinates": {"lat": 0.0, "lng": 0.0},
+    "radius_m": 300,
+    "target_reality_date": "",
+    "reconstruction_date": ""
+  },
+  "source_registry": [],
+  "site_conditions": {
+    "terrain": "",
+    "climate": "",
+    "elevation": 0,
+    "vegetation_type": ""
+  },
+  "surrounding_context": {
+    "north": {"description": "", "buildings": "", "heights": "", "land_use": "", "confidence": 0.0, "evidence_ids": []},
+    "south": {"description": "", "buildings": "", "heights": "", "land_use": "", "confidence": 0.0, "evidence_ids": []},
+    "east": {"description": "", "buildings": "", "heights": "", "land_use": "", "confidence": 0.0, "evidence_ids": []},
+    "west": {"description": "", "buildings": "", "heights": "", "land_use": "", "confidence": 0.0, "evidence_ids": []}
+  },
+  "visual_observations": [],
+  "blind_spots": [],
+  "render_constraints": {
+    "must_include": [],
+    "must_not_include": [],
+    "height_limits": [],
+    "landscape_constraints": [],
+    "color_palette": [],
+    "materials": []
+  },
+  "overall_confidence": {
+    "core_site": "low",
+    "immediate_context": "low",
+    "extended_context": "low",
+    "coverage_mode": "sparse"
+  },
+  "validation_rules": {
+    "critical": [],
+    "major": [],
+    "minor": []
+  }
+}

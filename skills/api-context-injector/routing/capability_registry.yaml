@@ -1,0 +1,453 @@
+# ============================================================
+# CAPABILITY REGISTRY — Ontología de Capacidades Normalizadas
+# api-context-injector v3.0
+# ============================================================
+# Cada capacidad atómica mapea a herramientas específicas.
+# El router usa esto como capa intermedia:
+#   tarea → capability(ies) → herramienta(s)
+# ============================================================
+
+version: "3.0"
+last_verified: "2026-04-08"
+ttl_days: 30
+
+# ============================================================
+# DOMINIO: TEXT & LLM
+# ============================================================
+capabilities:
+
+  text_generation_premium:
+    description: "Generación de texto de máxima calidad (razonamiento complejo, análisis profundo)"
+    providers:
+      primary: {id: "openai/gpt-5.4", via: "env:OPENAI_API_KEY"}
+      alternatives:
+        - {id: "anthropic/claude-sonnet-4-6", via: "env:ANTHROPIC_API_KEY"}
+        - {id: "google/gemini-2.5-flash", via: "env:GEMINI_API_KEY"}
+      budget: {id: "deepseek/deepseek-r1", via: "openrouter"}
+    triggers: ["análisis complejo", "razonamiento", "planificación estratégica"]
+
+  text_generation_fast:
+    description: "Generación rápida y económica para tareas simples"
+    providers:
+      primary: {id: "google/gemini-2.5-flash", via: "env:GEMINI_API_KEY"}
+      alternatives:
+        - {id: "openai/gpt-4.1-mini", via: "env:OPENAI_API_KEY"}
+      budget: {id: "meta-llama/llama-4-maverick", via: "openrouter", cost: "gratis"}
+    triggers: ["resumen rápido", "clasificación", "extracción simple"]
+
+  text_generation_long_context:
+    description: "Procesamiento de documentos largos (100K+ tokens)"
+    providers:
+      primary: {id: "google/gemini-2.5-flash", via: "env:GEMINI_API_KEY", context: "1M tokens"}
+      alternatives:
+        - {id: "anthropic/claude-sonnet-4-6", via: "env:ANTHROPIC_API_KEY", context: "200K"}
+    triggers: ["documento largo", "libro completo", "análisis de corpus"]
+
+  code_generation:
+    description: "Generación y análisis de código"
+    providers:
+      primary: {id: "anthropic/claude-sonnet-4-6", via: "env:ANTHROPIC_API_KEY"}
+      alternatives:
+        - {id: "openai/gpt-5.4", via: "env:OPENAI_API_KEY"}
+      budget: {id: "qwen/qwen3-235b-a22b", via: "openrouter"}
+    triggers: ["escribir código", "debug", "refactoring", "code review"]
+
+  real_time_web_research:
+    description: "Búsqueda web con citas en tiempo real"
+    providers:
+      primary: {id: "perplexity/sonar-pro", via: "env:SONAR_API_KEY"}
+      alternatives:
+        - {id: "xai/grok-3", via: "env:XAI_API_KEY"}
+      budget: {id: "perplexity/sonar", via: "env:SONAR_API_KEY"}
+    triggers: ["investigar", "buscar info actual", "verificar hechos", "noticias"]
+
+  multi_model_consensus:
+    description: "Consulta a múltiples IAs para consenso (Consejo de Sabios)"
+    providers:
+      primary: {id: "consulta-sabios", via: "skill"}
+      alternatives:
+        - {id: "openrouter", via: "env:OPENROUTER_API_KEY", note: "500+ modelos"}
+    triggers: ["consultar sabios", "consenso", "segunda opinión", "enjambre"]
+
+# ============================================================
+# DOMINIO: VISION & IMAGE
+# ============================================================
+
+  image_analysis:
+    description: "Análisis y comprensión de imágenes"
+    providers:
+      primary: {id: "openai/gpt-5.4", via: "env:OPENAI_API_KEY"}
+      alternatives:
+        - {id: "google/gemini-2.5-flash", via: "env:GEMINI_API_KEY"}
+        - {id: "anthropic/claude-sonnet-4-6", via: "env:ANTHROPIC_API_KEY"}
+    triggers: ["analizar imagen", "OCR", "describir foto", "extraer de screenshot"]
+
+  image_generation:
+    description: "Generación de imágenes desde texto"
+    providers:
+      primary: {id: "manus-native/generate", via: "native"}
+      alternatives:
+        - {id: "openai/dall-e-3", via: "env:OPENAI_API_KEY"}
+        - {id: "replicate/flux", via: "notion:replicate"}
+      budget: {id: "novita-ai", via: "notion:novita"}
+    triggers: ["crear imagen", "generar ilustración", "render", "diseño"]
+
+  image_3d_generation:
+    description: "Generación de modelos 3D desde imágenes o texto"
+    providers:
+      primary: {id: "meshy", via: "notion:meshy"}
+    triggers: ["modelo 3D", "render 3D", "objeto 3D"]
+
+# ============================================================
+# DOMINIO: AUDIO & VOICE
+# ============================================================
+
+  text_to_speech:
+    description: "Conversión de texto a voz realista"
+    providers:
+      primary: {id: "elevenlabs", via: "env:ELEVENLABS_API_KEY"}
+      alternatives:
+        - {id: "aws/polly", via: "notion:aws"}
+      budget: {id: "openai/tts", via: "env:OPENAI_API_KEY"}
+    triggers: ["generar voz", "narración", "audio", "locución", "TTS"]
+
+  speech_to_text:
+    description: "Transcripción de audio/video a texto"
+    providers:
+      primary: {id: "manus-native/speech-to-text", via: "native"}
+      alternatives:
+        - {id: "openai/whisper", via: "env:OPENAI_API_KEY"}
+    triggers: ["transcribir", "audio a texto", "STT"]
+
+  voice_cloning:
+    description: "Clonación de voz personalizada"
+    providers:
+      primary: {id: "elevenlabs", via: "env:ELEVENLABS_API_KEY"}
+    triggers: ["clonar voz", "voz personalizada", "mi voz"]
+
+# ============================================================
+# DOMINIO: VIDEO
+# ============================================================
+
+  avatar_video_generation:
+    description: "Videos con avatares IA realistas"
+    providers:
+      primary: {id: "heygen", via: "env:HEYGEN_API_KEY"}
+    triggers: ["video con avatar", "presentador virtual", "video explicativo"]
+
+  video_analysis:
+    description: "Análisis de contenido de video"
+    providers:
+      primary: {id: "manus-native/analyze-video", via: "native"}
+    triggers: ["analizar video", "resumir video", "extraer de video"]
+
+# ============================================================
+# DOMINIO: WEB SCRAPING & DATA EXTRACTION
+# ============================================================
+
+  web_scraping_static:
+    description: "Scraping de páginas HTML estáticas"
+    providers:
+      primary: {id: "python/requests+beautifulsoup", via: "native"}
+      alternatives:
+        - {id: "apify/cheerio-scraper", via: "notion:apify"}
+    triggers: ["scraping simple", "extraer HTML", "página estática"]
+
+  web_scraping_dynamic:
+    description: "Scraping de páginas con JavaScript rendering"
+    providers:
+      primary: {id: "apify/web-scraper", via: "notion:apify"}
+      alternatives:
+        - {id: "manus-native/browser", via: "native"}
+    triggers: ["scraping JS", "página dinámica", "SPA"]
+
+  web_scraping_platform_specific:
+    description: "Scraping optimizado por plataforma"
+    providers:
+      instagram: {id: "apify/instagram-scraper", via: "notion:apify"}
+      google_maps: {id: "apify/google-maps-scraper", via: "notion:apify"}
+      amazon: {id: "apify/amazon-scraper", via: "notion:apify"}
+      linkedin: {id: "apify/linkedin-scraper", via: "notion:apify"}
+      tiktok: {id: "apify/tiktok-scraper", via: "notion:apify"}
+      youtube: {id: "apify/youtube-scraper", via: "notion:apify"}
+      zillow: {id: "apify/zillow-scraper", via: "notion:apify"}
+      facebook: {id: "apify/facebook-scraper", via: "notion:apify"}
+    triggers: ["scraping de {plataforma}", "extraer datos de {plataforma}"]
+
+  web_crawling_bulk:
+    description: "Crawling masivo de sitios completos"
+    providers:
+      primary: {id: "apify/website-content-crawler", via: "notion:apify"}
+    triggers: ["crawlear sitio completo", "indexar web", "extraer sitio entero"]
+
+  social_listening:
+    description: "Monitoreo de menciones y sentimiento en redes"
+    providers:
+      primary: {id: "brandmentions", via: "notion:brandmentions"}
+      alternatives:
+        - {id: "mentionlytics", via: "notion:mentionlytics"}
+    triggers: ["monitorear menciones", "sentimiento social", "brand monitoring"]
+
+  price_tracking:
+    description: "Seguimiento de precios en e-commerce"
+    providers:
+      primary: {id: "keepa", via: "notion:keepa"}
+    triggers: ["seguimiento de precios", "historial de precios Amazon"]
+
+# ============================================================
+# DOMINIO: EMAIL & COMMUNICATION
+# ============================================================
+
+  email_send_personal:
+    description: "Envío de emails personales desde cuenta del usuario"
+    providers:
+      primary: {id: "gmail-mcp", via: "mcp:gmail"}
+      alternatives:
+        - {id: "outlook-mcp", via: "mcp:outlook-mail"}
+    triggers: ["enviar email personal", "responder correo", "email desde mi cuenta"]
+
+  email_send_transactional:
+    description: "Envío de emails transaccionales/automatizados"
+    providers:
+      primary: {id: "aws/ses", via: "notion:aws"}
+      alternatives:
+        - {id: "zapier/email-action", via: "mcp:zapier"}
+    triggers: ["email automatizado", "notificación por email", "email masivo"]
+
+  calendar_management:
+    description: "Gestión de calendario y eventos"
+    providers:
+      primary: {id: "google-calendar-mcp", via: "mcp:google-calendar"}
+    triggers: ["agendar", "crear evento", "calendario", "reunión"]
+
+# ============================================================
+# DOMINIO: DATABASE & STORAGE
+# ============================================================
+
+  database_relational:
+    description: "Operaciones en base de datos relacional (PostgreSQL)"
+    providers:
+      primary: {id: "supabase/postgresql", via: "mcp:supabase"}
+    triggers: ["query SQL", "base de datos", "tabla", "insertar datos"]
+
+  database_vector_search:
+    description: "Búsqueda semántica con embeddings"
+    providers:
+      primary: {id: "supabase/pgvector", via: "mcp:supabase"}
+      alternatives:
+        - {id: "cloudflare/vectorize", via: "env:CLOUDFLARE_API_TOKEN"}
+    triggers: ["búsqueda semántica", "embeddings", "RAG", "similar a"]
+
+  file_storage_cloud:
+    description: "Almacenamiento de archivos en la nube"
+    providers:
+      primary: {id: "dropbox", via: "env:DROPBOX_API_KEY"}
+      alternatives:
+        - {id: "google-drive", via: "native:gws"}
+        - {id: "cloudflare/r2", via: "env:CLOUDFLARE_API_TOKEN"}
+        - {id: "aws/s3", via: "notion:aws"}
+    triggers: ["guardar archivo", "almacenar", "subir a la nube", "backup"]
+
+  realtime_subscriptions:
+    description: "Suscripciones en tiempo real a cambios de datos"
+    providers:
+      primary: {id: "supabase/realtime", via: "mcp:supabase"}
+    triggers: ["tiempo real", "websocket", "cambios en vivo"]
+
+# ============================================================
+# DOMINIO: INFRASTRUCTURE & DEPLOY
+# ============================================================
+
+  web_deploy:
+    description: "Deploy de aplicaciones web"
+    providers:
+      primary: {id: "vercel", via: "mcp:vercel"}
+      alternatives:
+        - {id: "cloudflare/pages", via: "env:CLOUDFLARE_API_TOKEN"}
+    triggers: ["deploy", "publicar web", "hosting"]
+
+  serverless_functions:
+    description: "Ejecución de funciones serverless en el edge"
+    providers:
+      primary: {id: "cloudflare/workers", via: "env:CLOUDFLARE_API_TOKEN"}
+      alternatives:
+        - {id: "aws/lambda", via: "notion:aws"}
+        - {id: "vercel/functions", via: "mcp:vercel"}
+    triggers: ["función serverless", "worker", "edge function", "API endpoint"]
+
+  dns_domain_management:
+    description: "Gestión de DNS y dominios"
+    providers:
+      primary: {id: "cloudflare/dns", via: "env:CLOUDFLARE_API_TOKEN"}
+    triggers: ["DNS", "dominio", "registro A", "CNAME"]
+
+  edge_database:
+    description: "Base de datos en el edge (SQLite distribuido)"
+    providers:
+      primary: {id: "cloudflare/d1", via: "env:CLOUDFLARE_API_TOKEN"}
+    triggers: ["base de datos edge", "SQLite distribuido", "D1"]
+
+  edge_kv_store:
+    description: "Key-value store distribuido"
+    providers:
+      primary: {id: "cloudflare/kv", via: "env:CLOUDFLARE_API_TOKEN"}
+    triggers: ["key-value", "caché distribuido", "KV store"]
+
+  edge_ai_inference:
+    description: "Inferencia de IA en el edge (sin costo por token)"
+    providers:
+      primary: {id: "cloudflare/workers-ai", via: "env:CLOUDFLARE_API_TOKEN"}
+    triggers: ["inferencia edge", "IA sin costo", "modelo local edge"]
+
+  gpu_compute:
+    description: "Computación GPU para ML/IA pesado"
+    providers:
+      primary: {id: "runpod", via: "notion:runpod"}
+      alternatives:
+        - {id: "aws/ec2-gpu", via: "notion:aws"}
+    triggers: ["GPU", "entrenamiento ML", "fine-tuning", "computación pesada"]
+
+# ============================================================
+# DOMINIO: AUTOMATION & WORKFLOWS
+# ============================================================
+
+  workflow_automation:
+    description: "Automatización de flujos entre aplicaciones"
+    providers:
+      primary: {id: "zapier", via: "mcp:zapier"}
+    triggers: ["automatizar", "conectar apps", "workflow", "si esto entonces aquello"]
+
+  project_management:
+    description: "Gestión de proyectos y tareas"
+    providers:
+      primary: {id: "asana", via: "mcp:asana"}
+    triggers: ["crear tarea", "proyecto", "asignar", "seguimiento"]
+
+  document_management:
+    description: "Gestión de documentos y notas"
+    providers:
+      primary: {id: "notion", via: "mcp:notion"}
+      alternatives:
+        - {id: "google-docs", via: "native:gws"}
+    triggers: ["crear página", "documentar", "nota", "wiki"]
+
+  spreadsheet_operations:
+    description: "Operaciones en hojas de cálculo"
+    providers:
+      primary: {id: "google-sheets", via: "native:gws"}
+    triggers: ["hoja de cálculo", "spreadsheet", "tabla de datos", "Excel"]
+
+# ============================================================
+# DOMINIO: PAYMENTS & COMMERCE
+# ============================================================
+
+  payment_processing:
+    description: "Procesamiento de pagos y facturación"
+    providers:
+      primary: {id: "paypal-mcp", via: "mcp:paypal-for-business"}
+      alternatives:
+        - {id: "stripe", via: "notion:stripe"}
+    triggers: ["cobrar", "factura", "pago", "refund"]
+
+  subscription_management:
+    description: "Gestión de suscripciones en apps"
+    providers:
+      primary: {id: "revenuecat", via: "mcp:revenuecat"}
+    triggers: ["suscripción", "plan", "paywall", "in-app purchase"]
+
+# ============================================================
+# DOMINIO: SOCIAL MEDIA
+# ============================================================
+
+  social_media_publish:
+    description: "Publicación de contenido en redes sociales"
+    providers:
+      instagram: {id: "instagram-mcp", via: "mcp:instagram"}
+      multi_platform: {id: "zapier", via: "mcp:zapier"}
+    triggers: ["publicar en Instagram", "post en redes", "story", "reel"]
+
+# ============================================================
+# DOMINIO: CODE & REPOS
+# ============================================================
+
+  code_repository:
+    description: "Gestión de repositorios de código"
+    providers:
+      primary: {id: "github", via: "native:gh"}
+    triggers: ["repositorio", "commit", "pull request", "GitHub"]
+
+  ci_cd_pipeline:
+    description: "Pipelines de integración/despliegue continuo"
+    providers:
+      primary: {id: "github/actions", via: "native:gh"}
+    triggers: ["CI/CD", "pipeline", "GitHub Actions", "deploy automático"]
+
+# ============================================================
+# DOMINIO: SECURITY & INTELLIGENCE
+# ============================================================
+
+  domain_intelligence:
+    description: "Inteligencia sobre dominios, DNS, infraestructura"
+    providers:
+      primary: {id: "securitytrails", via: "notion:securitytrails"}
+    triggers: ["investigar dominio", "DNS history", "subdominios", "WHOIS"]
+
+  virtual_try_on:
+    description: "Prueba virtual de ropa con IA"
+    providers:
+      primary: {id: "fashn", via: "notion:fashn"}
+    triggers: ["probar ropa", "virtual try-on", "outfit"]
+
+# ============================================================
+# DOMINIO: SECRET MANAGEMENT (NUEVO v3.1)
+# ============================================================
+
+  secret_injection_sandbox:
+    description: "Inyectar secrets en proyecto local del sandbox (.env.local)"
+    providers:
+      primary: {id: "inject_secrets.py", via: "script:inject_secrets.py --target sandbox"}
+    triggers: ["inyectar secrets", "configurar env vars", "setup proyecto", "agregar API keys"]
+    pre_requisites: ["scaffold detection", "security validation"]
+    security_policy: "routing/security_policy.yaml"
+
+  secret_injection_vercel:
+    description: "Inyectar secrets en proyecto Vercel via MCP"
+    providers:
+      primary: {id: "inject_secrets.py", via: "script:inject_secrets.py --target vercel"}
+      fallback: {id: "vercel_mcp", via: "mcp:vercel"}
+    triggers: ["deploy vercel con secrets", "configurar vercel env", "vercel environment variables"]
+    pre_requisites: ["scaffold detection", "vercel project exists"]
+
+  secret_injection_cloudflare:
+    description: "Inyectar secrets en Cloudflare Workers via wrangler o API"
+    providers:
+      primary: {id: "inject_secrets.py", via: "script:inject_secrets.py --target cloudflare"}
+      fallback: {id: "wrangler_cli", via: "wrangler secret put"}
+    triggers: ["cloudflare worker secrets", "wrangler secrets", "configurar worker"]
+    pre_requisites: ["wrangler.toml exists", "CLOUDFLARE_API_TOKEN available"]
+
+  secret_injection_supabase:
+    description: "Inyectar secrets en Supabase Vault via MCP SQL"
+    providers:
+      primary: {id: "inject_secrets.py", via: "script:inject_secrets.py --target supabase"}
+      fallback: {id: "supabase_mcp", via: "mcp:supabase execute_sql"}
+    triggers: ["supabase vault", "guardar secret en supabase", "supabase secrets"]
+    pre_requisites: ["supabase project exists", "vault extension enabled"]
+
+  scaffold_detection:
+    description: "Detectar tipo de scaffold de un proyecto para determinar estrategia de secrets"
+    providers:
+      primary: {id: "inject_secrets.py", via: "script:inject_secrets.py --detect"}
+    triggers: ["qué tipo de proyecto es", "detectar scaffold", "analizar proyecto"]
+
+  secret_audit:
+    description: "Auditar secrets de un proyecto: qué tiene, qué falta, qué está expuesto"
+    providers:
+      primary: {id: "inject_secrets.py", via: "script:inject_secrets.py --audit"}
+    triggers: ["auditar secrets", "revisar seguridad", "qué secrets faltan", "secrets expuestos"]
+
+  manifest_generation:
+    description: "Auto-generar manifiesto de secrets necesarios para un proyecto"
+    providers:
+      primary: {id: "inject_secrets.py", via: "script:inject_secrets.py --generate-manifest"}
+    triggers: ["generar manifiesto", "qué secrets necesita", "listar dependencias de API"]

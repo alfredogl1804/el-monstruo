@@ -1,0 +1,211 @@
+# ============================================================
+# TRUST+FIT EVALUATOR — Metodología para evaluar skills externas
+# Diseñado por el Consejo de 6 Sabios (2026-04-09)
+# ============================================================
+
+metadata:
+  version: "1.0"
+  created: "2026-04-09"
+  methodology: "TRUST+FIT"
+  purpose: "Evaluar si vale la pena instalar/comprar/fork una skill externa"
+
+# ============================================================
+# FASE 1: HARD GATES — Si falla cualquiera, RECHAZAR
+# ============================================================
+hard_gates:
+  - id: HG1
+    name: "No hardcoded secrets"
+    check: "grep -rn 'sk-|api_key.*=.*[A-Za-z0-9]{20,}|token.*=.*[A-Za-z0-9]{20,}' en archivos"
+    fail_action: "REJECT — security risk"
+    
+  - id: HG2
+    name: "No arbitrary shell execution"
+    check: "Buscar curl|bash, eval(), exec() sin sandboxing, subprocess.call(shell=True)"
+    fail_action: "REJECT — code injection risk"
+    
+  - id: HG3
+    name: "No data exfiltration"
+    check: "Buscar requests.post/put a dominios no declarados en SKILL.md"
+    fail_action: "REJECT — data exfiltration risk"
+    
+  - id: HG4
+    name: "Compatible license"
+    check: "Verificar LICENSE file: MIT, Apache-2.0, BSD OK. GPL requiere aislamiento. No license = WARN"
+    fail_action: "REJECT if GPL without isolation plan, or proprietary without permission"
+    
+  - id: HG5
+    name: "Manus sandbox compatible"
+    check: "No requiere Docker, no requiere root, no requiere GPU, funciona en Ubuntu 22.04"
+    fail_action: "REJECT — incompatible with Manus sandbox"
+    
+  - id: HG6
+    name: "No payment access without approval"
+    check: "Buscar acceso a APIs de pago (Stripe, PayPal) sin gate de aprobación humana"
+    fail_action: "REJECT — financial risk"
+    
+  - id: HG7
+    name: "Data residency compliance"
+    check: "Si procesa PII, verificar que no transfiere a jurisdicciones no autorizadas"
+    fail_action: "REJECT if transfers PII to non-compliant jurisdictions"
+
+# ============================================================
+# FASE 2: SCORECARD — Puntuación 0-100
+# ============================================================
+scorecard:
+  dimensions:
+    - name: "Security Hygiene"
+      weight: 20
+      criteria:
+        - "Input validation present"
+        - "Error handling without info leak"
+        - "Dependencies pinned (no floating versions)"
+        - "No known CVEs in dependencies"
+        - "Secrets handled via env vars only"
+      scoring: "0-5 per criterion, weighted to 0-20"
+      
+    - name: "Provenance & Trust"
+      weight: 10
+      criteria:
+        - "Author is known/verified organization"
+        - "Repository has >100 stars or official org"
+        - "Commit history shows active maintenance"
+        - "Has SECURITY.md or vulnerability policy"
+        - "Code signed or verifiable provenance"
+      scoring: "0-5 per criterion, weighted to 0-10"
+      
+    - name: "License Compatibility"
+      weight: 10
+      criteria:
+        - "License explicitly declared"
+        - "Compatible with internal use"
+        - "Compatible with redistribution if needed"
+        - "No viral copyleft contamination"
+        - "Clear contribution/CLA terms"
+      scoring: "0-5 per criterion, weighted to 0-10"
+      
+    - name: "Manus Compatibility"
+      weight: 10
+      criteria:
+        - "Has valid SKILL.md with frontmatter"
+        - "Scripts use Python 3.11+ or Node 22+"
+        - "Dependencies installable via pip/pnpm"
+        - "No hardcoded paths outside /home/ubuntu/"
+        - "Works in sandbox without internet (if offline mode)"
+      scoring: "0-5 per criterion, weighted to 0-10"
+      
+    - name: "Functional Fit"
+      weight: 15
+      criteria:
+        - "Solves a real gap in ecosystem (check ecosystem_state.yaml)"
+        - "Quality of implementation (code review)"
+        - "Documentation completeness"
+        - "Error handling and edge cases"
+        - "Test coverage or validation scripts"
+      scoring: "0-5 per criterion, weighted to 0-15"
+      
+    - name: "Maintainability"
+      weight: 10
+      criteria:
+        - "Last commit within 90 days"
+        - "Responsive to issues (if public)"
+        - "Clean code structure"
+        - "Modular design (easy to fork/adapt)"
+        - "Changelog or version history"
+      scoring: "0-5 per criterion, weighted to 0-10"
+      
+    - name: "Performance & Cost"
+      weight: 10
+      criteria:
+        - "Reasonable token/API consumption"
+        - "Execution time acceptable"
+        - "No unnecessary API calls"
+        - "Caching where appropriate"
+        - "Cost predictable and bounded"
+      scoring: "0-5 per criterion, weighted to 0-10"
+      
+    - name: "Compliance & Data"
+      weight: 10
+      criteria:
+        - "GDPR compatible"
+        - "Data residency documented"
+        - "PII handling explicit"
+        - "AI Act compatible (if applicable)"
+        - "Audit trail capability"
+      scoring: "0-5 per criterion, weighted to 0-10"
+      
+    - name: "ROI & Replacement Value"
+      weight: 5
+      criteria:
+        - "Time saved vs building internally"
+        - "Replaces manual process"
+        - "Enables new capability"
+        - "Reduces error rate"
+        - "Compounds with other skills"
+      scoring: "0-5 per criterion, weighted to 0-5"
+
+# ============================================================
+# FASE 3: DECISIÓN
+# ============================================================
+decision_thresholds:
+  install: 
+    min_score: 75
+    description: "Commodity, trusted source, compatible, low risk"
+    action: "Install directly, add to skills-registry.yaml"
+    
+  fork_and_harden:
+    min_score: 55
+    description: "Good base but needs adaptation or security hardening"
+    action: "Fork repo, apply fixes, install hardened version"
+    
+  use_as_reference:
+    min_score: 40
+    description: "Interesting patterns but not installable as-is"
+    action: "Extract patterns for skill-factory pattern_library"
+    
+  compose:
+    min_score: 0
+    description: ">60% of capability exists internally"
+    action: "Use skill-factory to compose from existing pieces"
+    
+  reject:
+    min_score: -1
+    description: "Failed hard gates or score < 40"
+    action: "Log rejection reason, monitor for improvements"
+
+# ============================================================
+# FASE 4: PROCESO OPERATIVO
+# ============================================================
+operational_process:
+  step_1_discovery:
+    sources: ["GitHub search", "MCP Market", "awesome-agent-skills", "Perplexity search"]
+    query_template: "SKILL.md {capability_needed} agent skill"
+    max_candidates: 10
+    
+  step_2_triage:
+    automated: true
+    checks: ["has SKILL.md", "has LICENSE", "last commit < 180 days", "stars > 10 or official org"]
+    pass_to_next: "top 5 candidates"
+    
+  step_3_static_scan:
+    automated: true
+    checks: ["hard_gates HG1-HG7", "dependency audit", "code complexity"]
+    
+  step_4_sandbox_test:
+    automated: true
+    method: "Install in isolated directory, run with canary inputs"
+    timeout: 300
+    checks: ["no network calls to undeclared hosts", "no file access outside skill dir", "correct output format"]
+    
+  step_5_compatibility:
+    semi_automated: true
+    checks: ["SKILL.md frontmatter valid", "scripts executable", "no conflicts with existing skills"]
+    
+  step_6_scoring:
+    automated: true
+    method: "Apply scorecard dimensions"
+    output: "trust_fit_report.yaml"
+    
+  step_7_decision:
+    human_approval_required: true
+    options: ["install", "fork_and_harden", "use_as_reference", "compose", "reject"]
+    log_to: "data/skill_evaluations.jsonl"

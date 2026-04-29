@@ -1,0 +1,186 @@
+system: El Monstruo
+version: 1.0.0
+type: Genoma (Core Context)
+description: Núcleo cognitivo base del ecosistema. Se carga al inicio de cada sesión.
+global_state:
+  summary: 'El Monstruo es un sistema de inteligencia artificial soberana diseñado
+    para operar de manera autónoma, evitando la dependencia de herramientas externas.
+    Su arquitectura se centra en un núcleo soberano que gestiona la lógica de negocio,
+    la memoria y las políticas, permitiendo una integración controlada de capacidades
+    externas. Esto asegura la soberanía sobre los datos y facilita adaptaciones sin
+    necesidad de reescribir el sistema. La implementación de la Maduración Operativa
+    Continua (MOC) es fundamental para optimizar la interacción entre IAs y usuarios,
+    así como para abordar problemas arquitectónicos que limitan la efectividad del
+    sistema.
+
+
+    El ecosistema se ha desarrollado a través de una serie de documentos que analizan
+    su evolución histórica, la gobernanza y la usabilidad de las herramientas de IA.
+    Se han identificado riesgos relacionados con la dependencia de componentes y la
+    falta de mecanismos de recuperación, lo que resalta la importancia de una transición
+    cuidadosa hacia una infraestructura AI-native. A pesar de los avances, se requieren
+    revisiones significativas en la infraestructura y la implementación de soluciones
+    adaptadas a las nuevas realidades del mercado de IA.
+
+
+    La documentación del ecosistema refleja una alta madurez doctrinal, pero aún presenta
+    brechas en su ejecución. Se enfatiza la necesidad de consolidar el corpus, formalizar
+    el kernel y establecer métricas operativas claras. Las auditorías han revelado
+    tanto la solidez doctrinal del proyecto como vacíos críticos en su gobernanza,
+    lo que requiere un enfoque proactivo para cerrar la brecha entre teoría y práctica.
+    En general, se busca garantizar que El Monstruo se convierta en una máquina de
+    evolución perpetua, maximizando la eficiencia y minimizando riesgos.'
+  keywords:
+  - inteligencia artificial
+  - soberanía
+  - arquitectura
+  - Maduración Operativa Continua
+  - gobernanza
+  - continuidad operativa
+  - integración
+  - memoria
+  - adaptación
+  - documentación
+  - auditorías
+  - usabilidad
+  - framework
+  - agentes
+  - sistemas operativos
+domains:
+  ARQ:
+    name: 'Dominio ARQ: Arquitectura técnica'
+    description: El ecosistema de El Monstruo se centra en la arquitectura técnica
+      soberana, integrando herramientas como Supabase y LangGraph, y priorizando la
+      autonomía y la adaptabilidad. Se enfatiza la absorción soberana, donde el núcleo
+      controla la lógica de negocio y la memoria, evitando dependencias externas.
+      La documentación abarca desde esquemas de bases de datos hasta metodologías
+      de absorción de contexto, destacando la importancia de la gobernanza y la maduración
+      operativa continua.
+    doc_count: 15
+    keywords:
+    - arquitectura técnica
+    - absorción soberana
+    - Supabase
+    - LangGraph
+    - IA soberana
+  HIS:
+    name: 'Dominio HIS: Histórico'
+    description: El ecosistema El Monstruo se centra en la integración y orquestación
+      de herramientas de inteligencia artificial, priorizando la usabilidad, gobernabilidad
+      y la adaptación de soluciones existentes. Se destacan documentos clave que analizan
+      la evolución del sistema, la clasificación de herramientas de IA y la importancia
+      de la arquitectura modular para maximizar el potencial de la IA en diversas
+      aplicaciones.
+    doc_count: 365
+    keywords:
+    - ecosistema El Monstruo
+    - inteligencia artificial
+    - usabilidad
+    - gobernabilidad
+    - arquitectura modular
+  GEN:
+    name: 'Dominio GEN: General'
+    description: El Monstruo es un ecosistema de Inteligencia Aumentada que busca
+      integrar diversas IAs en un sistema colaborativo y autónomo, enfrentando desafíos
+      arquitectónicos y de gobernanza. Se propone la creación de una macro-capa operativa
+      para asegurar la continuidad y evolución de las interacciones, evitando la fragmentación
+      y dependencia de la intervención humana. La documentación refleja una evolución
+      significativa en la estructura y principios del sistema, aunque se identifican
+      áreas críticas que requieren atención para mejorar su operatividad y efectividad.
+    doc_count: 48
+    keywords:
+    - Inteligencia Aumentada
+    - gobernanza
+    - maduración operativa
+    - continuidad
+    - arquitectura
+  AUD:
+    name: 'Dominio AUD: Auditoría'
+    description: El ecosistema El Monstruo se centra en la integración de múltiples
+      IAs y la optimización de su gobernanza y operatividad. Se destacan recomendaciones
+      para la construcción de su arquitectura, la necesidad de formalizar protocolos
+      y métricas, y la importancia de mantener un núcleo soberano en su diseño. Las
+      auditorías realizadas revelan tanto fortalezas como áreas críticas que requieren
+      atención para asegurar la efectividad y continuidad del sistema.
+    doc_count: 28
+    keywords:
+    - El Monstruo
+    - IA
+    - gobernanza
+    - arquitectura
+    - soberanía
+  BIB:
+    name: 'Dominio BIB: Biblias y guías'
+    description: El ecosistema El Monstruo incluye una serie de documentos que abordan
+      la integración de Model Context Protocols (MCPs), herramientas de software,
+      y la funcionalidad de agentes autónomos como Manus. Se destacan auditorías de
+      contenido, la implementación de capas de consciencia de herramientas, y la optimización
+      de interacciones con IA a través de subsistemas como el Motor de Maduración
+      Asíncrona. La documentación también incluye guías sobre configuraciones de modelos
+      de IA y la creación de biblias para herramientas específicas, buscando maximizar
+      la eficiencia y la gobernanza en el desarrollo del sistema.
+    doc_count: 21
+    keywords:
+    - MCPs
+    - Manus
+    - auditorías
+    - herramientas de software
+    - integración
+  MAOC:
+    name: 'Dominio MAOC: Meta-Agente Orquestador Cognitivo'
+    description: El MAOC (Meta-Agente Orquestador Cognitivo) es una solución que mejora
+      la memoria y proactividad de agentes de IA, utilizando Notion como núcleo de
+      conocimiento. Se abordan problemas de pasividad mediante un protocolo de consulta
+      automática y se proponen implementaciones escalables y automatizadas para optimizar
+      la gestión de información y tareas. Se presentan casos de uso avanzados y testimonios
+      de usuarios que reflejan la necesidad de alternativas ante la insatisfacción
+      con herramientas actuales como ChatGPT.
+    doc_count: 9
+    keywords:
+    - MAOC
+    - memoria
+    - proactividad
+    - Notion
+    - protocolo de consulta
+  SOP:
+    name: 'Dominio SOP: Standard Operating Procedure'
+    description: El ecosistema SOP y EPIA busca establecer un marco robusto de gobernanza
+      operativa y arquitectónica para la integración de inteligencias artificiales,
+      asegurando continuidad, trazabilidad y optimización en la toma de decisiones.
+      Se identifican brechas críticas en la ejecutabilidad y se proponen reestructuraciones
+      y validaciones técnicas para mejorar la operatividad. La documentación abarca
+      desde principios fundacionales hasta protocolos específicos de implementación
+      y evaluación, con un enfoque en la mejora continua y la adaptación a entornos
+      complejos.
+    doc_count: 42
+    keywords:
+    - SOP
+    - EPIA
+    - gobernanza operativa
+    - inteligencia artificial
+    - validación técnica
+  INV:
+    name: 'Dominio INV: Investigación'
+    description: El ecosistema de El Monstruo se centra en la mejora de la arquitectura
+      de sistemas de IA agéntica, abordando fallas estructurales críticas como la
+      falta de continuidad, gobernanza y memoria persistente. Se proponen soluciones
+      innovadoras como la Capa de Cognición Latente y la Arquitectura de Absorción
+      Soberana, que buscan transformar la forma en que los agentes operan y se gestionan,
+      enfatizando la necesidad de un control plane robusto y un enfoque en la auto-mejora.
+      Además, se presentan comparativas de herramientas y frameworks open source que
+      pueden ser integrados para optimizar la orquestación y la funcionalidad de El
+      Monstruo.
+    doc_count: 49
+    keywords:
+    - IA agéntica
+    - El Monstruo
+    - arquitectura
+    - gobernanza
+    - memoria persistente
+core_rules:
+- 'PII = 0: Nunca almacenar ni procesar información personal identificable.'
+- 'Absorción Soberana: Construir solo el núcleo (identidad, memoria, reglas) y absorber
+  herramientas externas como commodities.'
+- 'Decisiones registradas: Toda decisión arquitectónica debe quedar en el Governance
+  Operations Log.'
+- Toda tarea es un mini-proyecto de entrenamiento.

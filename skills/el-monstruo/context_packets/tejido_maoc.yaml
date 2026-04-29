@@ -1,0 +1,93 @@
+domain: MAOC
+title: 'Dominio MAOC: Meta-Agente Orquestador Cognitivo'
+type: Tejido (Domain Context)
+summary: 'El MAOC (Meta-Agente Orquestador Cognitivo) se centra en mejorar la memoria
+  y la proactividad de los agentes de IA mediante la externalización de la memoria
+  a Notion, creando un Núcleo de Conocimiento que incluye recursos y un protocolo
+  de consulta automática. Este enfoque busca resolver problemas de pasividad en el
+  comportamiento del agente y optimizar la gestión de información en interacciones.
+  La implementación se desarrolla en fases, con un tiempo estimado de 8 a 14 días
+  para su desarrollo inicial.
+
+
+  Además, se presentan diversas automatizaciones y casos de uso avanzados que demuestran
+  cómo integrar sistemas locales y en la nube para automatizar tareas, como el monitoreo
+  de competidores y la generación de contenido gráfico. Sin embargo, los testimonios
+  de usuarios sobre el Modo Agente de ChatGPT indican insatisfacción, lo que sugiere
+  una necesidad urgente de soluciones más efectivas y eficientes en el ámbito de la
+  inteligencia artificial.'
+key_documents:
+- id: doc_000506
+  title: 'Blueprint Técnico: Variante Pro/Escalable'
+  summary: Blueprint para implementar un sistema de productividad personal Pro/Escalable,
+    centrado en memoria canónica y automatizaciones.
+  keywords:
+  - productividad
+  - memoria canónica
+  - automatizaciones
+- id: doc_000524
+  title: 'MAOC: Memoria Aumentada y Orquestación de Capacidades'
+  summary: MAOC es una solución que externaliza la memoria y automatiza la conciencia
+    de capacidades en agentes de IA, utilizando Notion como núcleo de conocimiento.
+  keywords:
+  - MAOC
+  - Memoria Aumentada
+  - Orquestación de Capacidades
+- id: doc_000517
+  title: GPT 5.2 - ORQUESTADOR PRINCIPAL
+  summary: El documento presenta un plan para evaluar y ejecutar una operación de
+    análisis mediático, enfocándose en la normalización de datos, deduplicación y
+    atribución de contenido relacionado con CONADE y figuras clave, mediante un enfoque
+    estructurado en cuatro capas.
+  keywords:
+  - análisis mediático
+  - normalización de datos
+  - deduplicación
+- id: doc_000511
+  title: 'Casos de Uso Avanzados: Arquitectura Integrada'
+  summary: Automatización avanzada de tareas mediante integración de sistemas locales
+    y en la nube.
+  keywords:
+  - automatización
+  - integración
+  - competencia
+- id: doc_000512
+  title: Las 3 Automatizaciones n8n que Cambian la Vida
+  summary: Tres automatizaciones n8n para optimizar la gestión de proyectos y tareas
+    en Notion, mejorando la integración con IA.
+  keywords:
+  - n8n
+  - automatizaciones
+  - Notion
+- id: doc_000017
+  title: 20 maoc documento maestro
+  summary: Documento maestro sobre MAOC, que aborda la memoria aumentada y la orquestación
+    de capacidades en IA.
+  keywords:
+  - MAOC
+  - memoria aumentada
+  - orquestación de capacidades
+- id: doc_000510
+  title: Testimonios REALES de Usuarios sobre ChatGPT Agent Mode
+  summary: El Modo Agente de ChatGPT ha empeorado, siendo lento, poco confiable y
+    con fallas técnicas, lo que lleva a los usuarios a buscar alternativas.
+  keywords:
+  - ChatGPT
+  - Modo Agente
+  - testimonios
+- id: doc_000509
+  title: 'Hallazgos: Integración Manus ↔ Claude Desktop'
+  summary: Manus soporta Custom MCP Servers, permitiendo ejecutar acciones en PCs
+    locales a través de conexiones seguras.
+  keywords:
+  - Manus
+  - Claude Desktop
+  - Custom MCP Servers
+- id: doc_000507
+  title: 'Comparativa: Manus con Acceso a PC vs Claude Desktop'
+  summary: 'Comparativa entre Claude Desktop y Manus + Custom MCP: Claude es asistente
+    conversacional, Manus es agente autónomo que trabaja sin intervención del usuario.'
+  keywords:
+  - Claude Desktop
+  - Manus
+  - agente autónomo

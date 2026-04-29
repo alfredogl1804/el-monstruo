@@ -1,0 +1,60 @@
+# Consola Web del Monstruo — Stack Frontend Sprint 1
+# Investigado: 2026-04-09 | TTL: 30 días
+
+identity:
+  name: "Monstruo Console"
+  role: consola_web_pwa
+  stack:
+    framework: "Next.js 16"
+    ui: "shadcn/ui + Tailwind CSS"
+    ai_sdk: "Vercel AI SDK v6"
+    deploy: "Vercel"
+
+why_chosen: |
+  Next.js 16 es el framework React de producción estándar.
+  shadcn/ui proporciona componentes accesibles y personalizables.
+  Vercel AI SDK v6 tiene streaming nativo para LLM responses.
+  Vercel deploy es gratuito para proyectos personales.
+
+env_vars_needed:
+  - name: NEXT_PUBLIC_SUPABASE_URL
+    description: "URL pública de Supabase (safe para frontend)"
+    value: "https://xsumzuhwmivjgftsneov.supabase.co"
+  - name: NEXT_PUBLIC_SUPABASE_ANON_KEY
+    description: "Anon key de Supabase (safe para frontend)"
+    source: "supabase.com/dashboard → Settings → API"
+    security: "SAFE — anon key es pública por diseño, protegida por RLS"
+  # NUNCA poner SUPABASE_SERVICE_KEY en frontend
+
+key_packages:
+  next: "16.2.2"
+  react: "19.x"
+  shadcn_ui: "latest"
+  tailwindcss: "4.x"
+  ai: "4.x (Vercel AI SDK)"
+  supabase_js: "2.x"
+
+integration_with_monstruo:
+  architecture: |
+    Consola Web (Next.js en Vercel)
+        ↓ API Routes (server-side)
+        ↓ Llama al backend del Monstruo (Railway)
+        ↓ Streaming response via Vercel AI SDK
+        ↓ UI actualiza en tiempo real
+
+  scaffold_command: |
+    npx create-next-app@latest monstruo-consola \
+      --typescript --tailwind --eslint --app --src-dir
+
+  key_features:
+    - "Chat interface con streaming"
+    - "Dashboard de métricas (Langfuse embed)"
+    - "Historial de conversaciones (Supabase)"
+    - "PWA para acceso móvil"
+    - "Auth via Supabase Auth"
+
+security_rules:
+  - "NUNCA poner API keys de LLMs en el frontend"
+  - "Todas las llamadas a LLMs van por API Routes (server-side)"
+  - "Usar SUPABASE_ANON_KEY + RLS en frontend"
+  - "SUPABASE_SERVICE_KEY solo en API Routes"

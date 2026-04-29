@@ -1,0 +1,449 @@
+{
+  "fecha": "2026-04-24",
+  "repos_github": [
+    {
+      "nombre": "Odoo Community (POS Restaurant)",
+      "url": "https://github.com/odoo/odoo",
+      "tipo": "repo",
+      "stars": "35000+",
+      "descripcion": "ERP completo open source con módulo POS Restaurant: mesas, comandas, KDS, inventarios, compras, empleados, reportes, multi-sucursal, delivery. Odoo 18/19 tiene todo.",
+      "es_open_source": true,
+      "licencia": "LGPL-3.0",
+      "modulos_sr_cubiertos": [
+        "POS",
+        "Mapa de Mesas",
+        "Inventarios",
+        "Recetas y Costeo",
+        "Compras y Proveedores",
+        "Reportes y Dashboards",
+        "Control de Empleados y Turnos",
+        "Fidelización y Lealtad",
+        "Menú Digital",
+        "Delivery Hub",
+        "KDS",
+        "Control de Caja y Cortes",
+        "Multi-sucursal",
+        "Comandas y Modificadores",
+        "Promociones y Descuentos"
+      ],
+      "tiene_ia": false,
+      "nota": "Cubre 15 de 19 módulos de SR. Es el esqueleto más completo. Open source = funciona en México."
+    },
+    {
+      "nombre": "URY (ERPNext Restaurant)",
+      "url": "https://github.com/ury-erp/ury",
+      "tipo": "repo",
+      "descripcion": "Sistema de gestión de restaurantes construido sobre ERPNext. POS, mesas, KDS, inventarios.",
+      "es_open_source": true,
+      "licencia": "MIT",
+      "modulos_sr_cubiertos": [
+        "POS",
+        "Mapa de Mesas",
+        "KDS",
+        "Inventarios",
+        "Comandas"
+      ],
+      "tiene_ia": false
+    },
+    {
+      "nombre": "Floreant POS",
+      "url": "https://github.com/floreantpos/floreantpos",
+      "tipo": "repo",
+      "descripcion": "POS open source para restaurantes. Java. Mesas, comandas, KDS, reportes.",
+      "es_open_source": true,
+      "licencia": "ORUPL",
+      "modulos_sr_cubiertos": [
+        "POS",
+        "Mapa de Mesas",
+        "KDS",
+        "Comandas",
+        "Reportes"
+      ],
+      "tiene_ia": false,
+      "nota": "Antiguo, Java, menos módulos que Odoo"
+    },
+    {
+      "nombre": "NutrixPOS",
+      "url": "https://github.com/nutrixpos/pos",
+      "tipo": "repo",
+      "descripcion": "POS open source moderno. Inventarios, ventas, productos.",
+      "es_open_source": true,
+      "modulos_sr_cubiertos": [
+        "POS",
+        "Inventarios"
+      ],
+      "tiene_ia": false
+    },
+    {
+      "nombre": "Kasirku",
+      "url": "https://github.com/rezadrian01/Kasirku",
+      "tipo": "repo",
+      "descripcion": "POS moderno para restaurantes con menú digital, pagos, impresora térmica, tracking en tiempo real.",
+      "es_open_source": true,
+      "modulos_sr_cubiertos": [
+        "POS",
+        "Menú Digital",
+        "Comandas"
+      ],
+      "tiene_ia": false
+    }
+  ],
+  "plataformas_saas": [
+    {
+      "query": "software restaurante inteligencia artificial México 2026 disponible",
+      "respuesta": "**Calisto, Bookline y Octotable son las plataformas principales de software para restaurantes con inteligencia artificial disponibles en México en 2026, enfocadas en optimización operativa, reservas y personalización.** Estas ofrecen evidencia clara de disponibilidad local: casos de uso en ciudades mexicanas como Guadalajara, Ciudad de México y Polanco, con soporte en español y funciones adaptadas al mercado local.[1][3][4]\n\n### Plataformas con IA Específica para Restaurantes\n- **Calisto**: Proporciona IA para predicción de demanda (89% precisión en carne asada, considerando clima y eventos locales), gestión de inventarios en tiempo real (órdenes automáticas de frijoles), personalización de menús (sugerencias basadas en preferencias como tacos sin piña o veganos) y optimización de personal por horarios pico. Usada en taquerías de Polanco y fondas de Coyoacán, con ahorros del 23% en desperdicio y 31% más satisfacción del cliente. Sitio en español, casos mexicanos reales.[1]\n- **Bookline**: Agente de voz IA 24/7 multilingüe para reservas, recordatorios automáticos, cambios/cancelaciones y reducción de no-shows. Integra con sistemas locales como Reservándonos y Cover Manager. Enfocada en Ciudad de México, posicionada como imperativo para restaurantes innovadores.[3]\n- **Octotable**: Asistente AI 24/7 para responder teléfono, gestionar reservas/modificaciones, confirmaciones vía WhatsApp/email/SMS y lista de espera para rotación de mesas. Optimiza flujo de clientes; disponible en español para México en 2026.[4]\n\n### Otras Opciones con IA o Mención en México\nEstas integran o planean IA, con fuerte presencia local (precios en MXN, cumplimiento normativo mexicano):\n| Plataforma | Funciones IA/Relevantes | Evidencia de Disponibilidad en México | Precios/Ejemplos |\n|------------|--------------------------|---------------------------------------|------------------|\n| **Magokoro** | Optimización de inventario, desperdicio (hasta 30% menos), staffing (15% menos), chatbots NLP, análisis de reseñas. | Casos y costos en MXN para restaurantes mexicanos; presupuestos desde $20,000 MXN (chatbot básico) hasta $1,500,000 MXN setup enterprise.[5] |\n| **Q2B Studio** | Asistentes conversacionales para pedidos/reservas, algoritmos de costos; desarrollo a medida con AWS/Azure. | Socio tecnológico para restaurantes mexicanos, cumplimiento normativo local.[6] |\n| **OlaClick** | Menú digital, pedidos WhatsApp (potencial IA en ventas). | Top para pequeños/medianos en México; enfocado en ventas directas, interfaz en español.[2] |\n\nPlataformas como Toast POS o Lightspeed son robustas pero sin mención explícita de IA en resultados locales; Idoo Restaurant e integra facturación mexicana sin IA destacada.[2][7] Para enterprise grandes, proveedores como PAR Technology ofrecen suites completas desde $800,000 MXN setup.[5] Implementa por presupuesto: bajo ($20k-50k MXN) para chatbots básicos con ROI en 3-6 meses.[5]",
+      "fuentes": [
+        "https://calisto.ai/es/blog/ia-transforma-operaciones-restauranteras-en-mexico-2026",
+        "https://olaclick.com/es/integraciones/como-hacer-el-mejor-software-de-restaurantes-para-mexico/",
+        "https://bookline.ai/blog/ia-para-restaurantes-en-ciudad-de-mexico-la-solucion-definitiva/",
+        "https://www.octotable.com/es/software-para-restaurantes-2026/",
+        "https://www.magokoro.mx/blog/ia-restaurantes-optimizar-operaciones-inteligencia-artificial",
+        "https://www.q2bstudio.com/nuestro-blog/537193/descubre-como-la-inteligencia-artificial-revolucionara-la-industria-de-restaurantes-en-2026-permitiendo-una-optimizacion-de-costos-y-servicio-sin-precedentes",
+        "https://www.unileverfoodsolutions.com.mx/tendencias/software-pos.html",
+        "https://bistrosoft.com/software-de-comida-la-herramienta-que-esta-transformando-la-gestion-de-negocios/"
+      ]
+    },
+    {
+      "query": "restaurant AI platform available Mexico Latin America 2026",
+      "respuesta": "No platforms specifically for **restaurant AI** (e.g., menu optimization, scheduling, or operations) are confirmed available in Mexico with evidence like MXN pricing, Spanish support, or local clients[1][2][4][8].\n\n### Closest Related Options in Mexico/LATAM (2026 Context)\nThese general AI or restaurant-adjacent platforms operate in Mexico but lack restaurant-specific AI focus or required availability proof:\n\n- **RobinFood**: Leader in cloud-restaurants with presence in Mexico, Colombia, and Brazil. Focuses on virtual kitchens, not explicit AI for restaurants[4].\n- **numia (formerly Debmedia)**: B2B SaaS for customer journeys using AI automation + human interaction. Serves retailers (potentially including restaurants) in LATAM; no Mexico-specific evidence[4].\n- **CLUVI**: Digitalizes restaurant sales channels and uses data/AI to boost sales. Investor-backed in LATAM; availability in Mexico unconfirmed[4].\n- **Twilio Conversational AI**: 36% of Mexican businesses use it for customer service (e.g., WhatsApp automation, relevant for restaurant orders). Leads LATAM adoption; supports Spanish and has Mexico focus[3].\n\n### Market Context\n- LATAM AI-driven **restaurant menu optimization** market is small ($110M), growing slowly due to infrastructure challenges[2].\n- Mexico's AI adoption is strong (66% population use, 34.4% CAGR to 2033), but restaurant-specific tools lag[1][2].\n- General AI expansion in Mexico City positions it as a hub, with firms like Abbacus Technologies aiding SaaS deployment[1].\n\nSearch results lack platforms meeting criteria (e.g., no MXN prices or Mexican offices for restaurant AI). Broader adoption expected by 2026, but no direct matches[1][2][3][4].",
+      "fuentes": [
+        "https://www.abbacustechnologies.com/ai-development-abbacus-technologies-in-mexico-city-2026-latin-america-ai-expansion-partners/",
+        "https://dataintelo.com/report/ai-driven-restaurant-menu-optimization-market",
+        "https://www.twilio.com/en-us/press/releases/mexico-convo-ai",
+        "https://shizune.co/investors/restaurants-investors-latam",
+        "https://www.linuxfoundation.org/blog/latin-americas-ai-opportunity-from-adoption-to-co-creation-through-open-source",
+        "https://mexicobusiness.news/cloudanddata/news/most-latin-american-e-commerce-platforms-lag-ai-adoption",
+        "https://www.intelligentcio.com/latam/2026/03/11/blend-expands-into-mexico-to-accelerate-enterprise-ai-adoption-across-the-americas/",
+        "https://www.youtube.com/watch?v=csnplGsewKg"
+      ]
+    },
+    {
+      "query": "POS restaurante México con IA proactiva predicción",
+      "respuesta": "**Magokoro ofrece un sistema POS para restaurantes en México con IA proactiva que predice demanda, optimiza inventarios y ajusta operaciones en tiempo real, adaptándose a patrones locales como Día de Muertos o temporadas turísticas.**[1] Este sistema analiza datos históricos multianuales, variables externas (clima, eventos, redes sociales) y reservaciones en vivo para pronosticar afluencia con hasta **92% de precisión**, como en una cadena de casual dining en Ciudad de México que redujo costos de nómina en 14%.[1]\n\n### Evidencia de disponibilidad en México\n- **Clientes mexicanos y casos reales:** Implementado en restaurantes de Guadalajara y Ciudad de México, con ejemplos como una cadena japonesa que bajó desperdicio de pescado de 22% a 8%, ahorrando **$45,000 MXN mensuales**.[1]\n- **Soporte en español y adaptación local:** El sitio está en español, enfocado en dinámicas mexicanas (festividades, regiones costeras), con refinamiento que alcanza **95% de precisión en 6 meses**.[1]\n- **Precios en MXN implícitos:** Ahorros cuantificados en pesos mexicanos, confirmando orientación al mercado local.[1]\n\n**Rappi Merchants integra IA predictiva con POS para prever demanda y reducir desperdicio hasta 40%, disponible para restaurantes mexicanos vía su plataforma.**[2] Analiza datos de POS, pedidos Rappi, clima y eventos locales para ajustar compras, staff y producción dinámicamente.\n\n### Evidencia de disponibilidad en México\n- **Clientes y integración local:** Diseñado para restaurantes en México, con integración directa a POS y Rappi (plataforma dominante en el país).[2]\n- **Soporte en español:** Todo el contenido en español.mx, enfocado en días festivos y eventos mexicanos.[2]\n- **Precios en MXN:** Optimización de costos y rentabilidad en contexto mexicano, sin precios específicos listados pero con recuperación rápida de inversión.[2]\n\n**AutoFlujo proporciona POS con IA para predicción de tendencias de ventas y comportamientos de clientes, procesando pagos y detectando fraudes en tiempo real.**[3] Predice popularidad de platillos por época o eventos, optimizando menús y marketing.\n\n### Evidencia de disponibilidad en México\n- **Clientes mexicanos:** Enfocado en restaurantes mexicanos, con .com pero contenido adaptado al mercado local.[3]\n- **Soporte en español:** Artículo completo en español sobre aplicación en restaurantes locales.[3]\n\nOtras menciones como OpenTable con IA para reservas y operaciones (crecimiento 13% en 2025, paneles comparativos y sugerencias proactivas) están disponibles en México vía restaurantes locales, pero no se detalla como POS integral.[4] No se identifican plataformas con oficinas físicas en México en los resultados, pero las tres principales operan con clientes y soporte locales. Para implementación, recolecta datos de POS históricos y entrena modelos con variables mexicanas.[1][2]",
+      "fuentes": [
+        "https://www.magokoro.mx/blog/ia-restaurantes-optimizar-operaciones-inteligencia-artificial",
+        "https://merchants.rappi.com/es-mx/uso-inteligencia-artificial-prever-demanda-reducir-desperdicio-restaurante",
+        "https://autoflujo.com/como-aplicar-inteligencia-artificial-restaurantes-ventas-experiencia/",
+        "https://expansion.mx/tecnologia/2025/08/13/la-ia-activa-el-modo-foodie-en-los-restaurantes-mexicanos",
+        "https://retailers.mx/tendencias-2025-la-ia-sera-tu-nuevo-anfitrion-en-el-restaurante/",
+        "https://bookline.ai/blog/ia-para-restaurantes-en-ciudad-de-mexico-la-solucion-definitiva/"
+      ]
+    },
+    {
+      "query": "mejores sistemas punto de venta restaurante México 2026 inteligente",
+      "respuesta": "Los mejores sistemas de punto de venta (POS) inteligentes para restaurantes en México en 2026 son **ANOVA, Square TPV, Soft Restaurant, Lightspeed Restaurant y OlaClick**, destacando por su integración de inteligencia de negocios, automatización de operaciones, gestión de mesas/pedidos y adaptabilidad local con precios en MXN, soporte en español y presencia en el mercado mexicano.[1][2][3][5][7]\n\n### Comparativa de los principales sistemas POS inteligentes para restaurantes\nEstos sistemas priorizan funciones **inteligentes** como análisis predictivo, automatización de inventarios, integración con delivery (Uber Eats, Didi Food) y reportes en tiempo real, todos disponibles en México con evidencia local:\n\n| Sistema | Funciones clave inteligentes | Evidencia de disponibilidad en México | Precios aproximados (MXN) |\n|---------|------------------------------|---------------------------------------|---------------------------|\n| **ANOVA** | Inteligencia de negocios para automatizar operaciones en restaurantes, taquerías y fast food; gestión completa en un solo lugar.[1] | Sitio en español, enfocado en negocios mexicanos como taquerías y food trucks; clientes locales implícitos.[1] | No especificado en resultados; planes desde ~500 MXN/mes (inferido de comparativas locales).[2] |\n| **Square TPV** | Gestión ágil de mesas, precisión en pedidos, evita errores; ideal para 8 mesas o más.[1] | Disponible en México con precios en MXN, soporte en español y clientes restaurantes mexicanos.[1][2] | Transacciones desde 2.9% + IVA; hardware ~1,000-5,000 MXN.[2] |\n| **Soft Restaurant** | Centraliza operaciones, facturación e inventarios en tiempo real; guía completa para 2026.[5] | Desarrollado para negocios de comida en México, con integración local y soporte en español.[5][6] | Planes desde 999 MXN/mes; licencias perpetuas ~10,000 MXN.[6] |\n| **Lightspeed Restaurant** | POS adaptable con análisis en tiempo real; para operaciones eficientes en restaurantes mexicanos.[7] | Oficinas y clientes en México; mercado en crecimiento 2024-2026 con demanda local.[7] | Desde 1,500 MXN/mes; adaptado a MXN.[7] |\n| **OlaClick** | Top para restaurantes mexicanos; integra pedidos, ventas e inventarios inteligentemente.[3] | Enfocado en México, compara con otros locales; soporte en español.[3] | Planes desde 600 MXN/mes para pymes.[3] |\n\n### Otras opciones destacadas\n- **Lavu POS**: Conecta con Uber Eats/Didi Food; disponible en México con soporte español y uso en restaurantes locales.[4]\n- **SIFO POS**: Reconocido en top México 2026; gestión integral para negocios.[2]\n\nElige según tamaño: ANOVA/Square para pequeños (taquerías/fast food), Soft/Lightspeed para medianos/grandes. Verifica pruebas gratuitas en sitios mexicanos para integración con CFDI y SAT.[2][6] Conflicto menor: listas varían por enfoque (ej. [1] prioriza Square, [3] OlaClick), pero consenso en automatización inteligente.[1][2][3]",
+      "fuentes": [
+        "https://ingenieriademenu.com/punto-de-venta-para-restaurantes/",
+        "https://puntodeventa.com.mx/blog/top-8-mejores-puntos-de-venta.php",
+        "https://olaclick.com/es/integraciones/como-hacer-el-mejor-software-de-restaurantes-para-mexico/",
+        "https://www.cursosgastronomia.com.mx/blog/consejos/software-para-restaurantes/",
+        "https://www.unileverfoodsolutions.com.mx/tendencias/software-pos.html",
+        "https://programascontabilidad.com/comparativas-de-software/pos/sistemas-pos-mexico/",
+        "https://thepreheated.com/empresas-de-software-de-punto-de-venta-para-restaurantes/",
+        "https://www.getapp.com.mx/directory/197/restaurant-pos/software"
+      ]
+    },
+    {
+      "query": "restaurant management software AI Mexico pricing MXN",
+      "respuesta": "**UMAI Restaurant Software** starts at **$80/month** and is listed among the top restaurant management options available in Mexico, with features like AI-driven reservations, dynamic seating, guest data analytics, and personalized marketing to boost revenue.[2]\n\n**NimbusRMS by Foodng PLumenSoft Technologies** starts at **$19/month** and ranks highly for restaurant management in Mexico, supporting operations for food businesses.[2]\n\n**Poster POS** offers fast, reliable restaurant management for iPad/Android in Mexico, as proven by its case study with Selvablanca restaurant; exact MXN pricing unavailable in results, but positioned as inexpensive for local use.[7]\n\nOther options in Mexico include software starting at **$11.47/month**, **$19/month**, **$25/month**, **$29/month**, **$29.99/month**, **$33/user for 3 months**, **$49/month**, **$50/month**, **$59/month**, **$69/month**, **$69.99/user/month**, **$89/month**, **$99/month**, **$99/user/month**, **$150/month**, and **$500 one-time/user**, or **1.9% per order**; these appear on Mexico-specific directories without detailed MXN conversions or explicit AI mentions beyond general listings.[2]\n\n**Price Studio by RMS** provides **AI-powered pricing optimization** for multi-location restaurants using POS data, competitor insights, and predictive analytics to maximize margins, but lacks explicit Mexico availability evidence like MXN pricing or local support.[1]\n\n**IvePOS** is an **AI-fueled cloud POS** highlighted for Mexico, though specific pricing and MXN details are not provided.[4]\n\n**Dineo by SpiderX** is an **AI agent** for automating restaurant orders, reservations, and interactions, with no pricing or confirmed Mexico evidence in results.[6]\n\nThese platforms are confirmed available in Mexico via listings on SourceForge (2026 rankings), Slashdot, and TechnologyCounter directories focused on the region; however, search results lack direct MXN prices (e.g., $80 ≈1,600 MXN at current rates), Spanish support mentions, or Mexican client proofs beyond contextual placements.[2][3][4] For precise MXN quotes, check vendor sites directly.",
+      "fuentes": [
+        "https://www.revenuemanage.com/price-studio/",
+        "https://sourceforge.net/software/restaurant-management/mexico/",
+        "https://slashdot.org/software/restaurant-management/in-mexico/",
+        "https://technologycounter.com/point-of-sale-software/mexico",
+        "https://www.aurorainbox.com/en/2026/01/31/best-crm-whatsapp-mexico/",
+        "https://spiderx.ai/dineo",
+        "https://joinposter.com/en/case-study/selvablanca",
+        "https://www.capterra.ae/directory/20026/restaurant-management/software",
+        "https://emkt.mx/en/about/pricing/"
+      ]
+    }
+  ],
+  "apis_ia_globales": [
+    {
+      "query": "OpenAI API GPT-5 disponible México precios",
+      "respuesta": "**Sí, la API de OpenAI con modelos GPT-5 (incluyendo variantes como GPT-5, GPT-5-mini y GPT-5 Pro) está disponible globalmente, por lo que es accesible en México sin restricciones regionales específicas mencionadas.**[2][3][4]\n\n### Precios de la API de GPT-5 (en USD por 1 millón de tokens)\nLos precios varían según el modelo y hay discrepancias leves entre fuentes (posiblemente por actualizaciones o variantes como GPT-5.4); se listan los más consistentes y oficiales de OpenAI:\n\n| Modelo       | Entrada (USD) | Salida (USD) | Entrada en caché (USD) | Fuente |\n|--------------|---------------|--------------|------------------------|--------|\n| **gpt-5**   | 1.25         | 10.00       | 0.125                 | [1][2][4] |\n| **gpt-5-mini** | 0.25      | 2.00        | 0.025                 | [1][2][3][8] |\n| **gpt-5-nano** | 0.05      | 0.40        | 0.005                 | [1][2] |\n| **gpt-5-pro** | 15.00      | 120.00      | No especificado       | [1] |\n| **GPT-5.4** | 2.50-5.00    | 10.00-15.00 | 0.25                  | [2][3][8] |\n\n- Estos son costos por uso (pay-as-you-go), facturados en USD; en México, se aplican conversiones al tipo de cambio actual más IVA (16%) si usas métodos de pago locales.[2][3]\n- **gpt-5** es el estándar para tareas complejas; **mini/nano** para usos eficientes y de bajo costo.[4]\n\n### Acceso vía suscripciones ChatGPT (no API, pero incluyen GPT-5)\nDisponibles en México (precios en USD globales, o equivalentes locales en BRL en algunas páginas, pero convertibles):\n\n| Plan     | Precio mensual (USD aprox.) | Acceso a GPT-5                  |\n|----------|-----------------------------|---------------------------------|\n| **Free** | 0                          | Limitado (default GPT-5)[4][6] |\n| **Go**   | 5                          | Ampliado[5]                    |\n| **Plus** | 20                         | Estable y extendido[4][6]      |\n| **Pro**  | 200                        | Ilimitado, incluye GPT-5 Pro[1][4][6] |\n\n- Para API, crea una cuenta en platform.openai.com, genera clave API y paga por uso (mínimo saldo inicial ~5-10 USD).[2][8]\n- No hay menciones de bloqueos en México; el acceso es worldwide vía web.[2][3][6][7] Conflicto en precios exactos (ej. GPT-5.4 varía); verifica en openai.com/api/pricing para lo más actual.[2][3]",
+      "fuentes": [
+        "https://www.eesel.ai/es/blog/gpt-5-pro-in-the-api-pricing",
+        "https://openai.com/es-419/api/pricing/",
+        "https://openai.com/es-ES/api/pricing/",
+        "https://www.merca20.com/como-acceder-y-cuanto-cuesta-gpt-5-el-modelo-de-ia-mas-potente-de-chatgpt-y-openai/",
+        "https://openwebinars.net/blog/chatgpt-go-la-suscripcion-economica-que-llega-con-gpt-5",
+        "https://openai.com/es-ES/business/chatgpt-pricing/",
+        "https://openai.com/es-419/business/chatgpt-pricing/",
+        "https://www.xataka.com/basics/api-chatgpt-que-sirve-precios-como-puedes-obtener-para-usarla-tus-proyectos",
+        "https://www.youtube.com/shorts/lN6GWUrZ5hg"
+      ]
+    },
+    {
+      "query": "Google Gemini API disponible México restaurantes",
+      "respuesta": "**Sí, la Google Gemini API está disponible en México.** Puedes acceder a ella directamente a través de Google AI Studio y la API de Gemini, ya que México se encuentra en la lista oficial de regiones soportadas[4].\n\n### Aplicaciones para restaurantes en México\nLa API de Gemini se utiliza en proyectos locales para recomendaciones de restaurantes:\n- **Gemifood**: Una app que emplea la Gemini API para sugerir restaurantes cercanos basados en preferencias del usuario, analizando descripciones y opiniones para personalizar gustos y recomendaciones[1].\n- **Campaña Samsung México y Google Gemini**: Impulsa la gastronomía mexicana con IA, recomendando platillos emblemáticos, mercados locales y experiencias culinarias en una industria con más de 4.8 millones de unidades económicas[2].\n- **Integración con Google Maps**: Permite recomendaciones locales de restaurantes mediante \"Grounding with Google Maps\" en la API de Gemini o Vertex AI, usando datos geoespaciales en tiempo real para apps de discovery, delivery y guías turísticas[3].\n\n### Cómo empezar\n- Accede vía **Vertex AI Studio** (cuota inicial de 10,000 prompts) o la **API de Gemini** con coordenadas geográficas para contextualizar respuestas[3][4].\n- Documentación y ejemplos de código están disponibles para integraciones en México[3].\n\nSi necesitas implementar algo específico para restaurantes, la API soporta casos como estos sin restricciones regionales en el país[1][2][3][4].",
+      "fuentes": [
+        "https://ai.google.dev/competition/projects/gemifood?hl=es-419",
+        "https://news.samsung.com/mx/samsung-mexico-y-google-gemini-impulsan-con-ia-sectores-economicos-clave-para-mexico-cultura-gastronomia-y-turismo",
+        "https://ecosistemastartup.com/google-maps-gemini-nueva-era-para-apps-con-ia-contextual/",
+        "https://ai.google.dev/gemini-api/docs/available-regions?hl=es-419",
+        "https://gemini.google/es/overview/?hl=es"
+      ]
+    },
+    {
+      "query": "APIs de visión por computadora para inventario restaurante cocina 2026",
+      "respuesta": "Las **APIs de visión por computadora para gestión de inventario en restaurantes** en 2026 se centran principalmente en soluciones de detección de objetos en tiempo real y monitoreo automático de existencias, integrando tecnologías como YOLO11 y sistemas de sensores inteligentes.\n\n## Aplicaciones principales\n\n**Detección y seguimiento de inventario**\n\nLos restaurantes utilizan modelos de visión por computadora como **YOLO11** para identificar alimentos y productos en tiempo real[1]. Samsung ha presentado su línea Bespoke con heladeras que usan visión artificial para monitorear inventario automáticamente, sabiendo exactamente qué comida hay y cuánto tiempo lleva almacenada, además de predecir caducidad y generar listas de compra sincronizadas con el teléfono[3].\n\n**Reducción de desperdicio**\n\nLa plataforma **Winnow** combina básculas inteligentes con visión artificial para identificar automáticamente qué alimentos se desechan en hoteles, comedores y restaurantes[2]. Estos datos permiten ajustar compras, rediseñar menús y mejorar preparaciones, documentando reducciones de desperdicio de hasta un 50% tras la implementación[2].\n\n**Control de calidad en producción**\n\nEn la producción de pizzas, por ejemplo, se utilizan modelos como YOLO11 para inspeccionar en tiempo real y detectar problemas como ingredientes incorrectos o faltantes antes de que salgan de la cocina[1]. YOLO11 es compatible con detección de objetos y segmentación de instancias, identificando y etiquetando individualmente cada topping[1].\n\n## Desafíos de integración\n\nLa integración de visión artificial con sistemas existentes de restaurantes, como herramientas de seguimiento de inventario o gestión de cocina, puede ser complicada y llevar mucho tiempo[1]. Las soluciones más efectivas combinan agentes de IA para interacción con clientes y motores predictivos que analizan datos históricos junto con variables externas como clima o eventos locales[7].",
+      "fuentes": [
+        "https://www.ultralytics.com/es/blog/streamlining-operations-using-vision-ai-in-restaurants",
+        "https://gastronomia360.bculinary.com/veinte-cosas-que-la-ia-ya-es-capaz-de-hacer-en-gastronomia/",
+        "https://blog.donweb.com/ia-todos-lados-2026/",
+        "https://www.imcb.info/noticia/32258/aeg-define-la-cocina-del-futuro-con-la-ia-y-sus-sistemas-de-coccion-a.html",
+        "https://www.diegocoquillat.com/cuando-la-ia-entra-en-la-cocina-goodbytz-gana-el-robotics-award-2026/",
+        "https://mexico.gastronomia.com/noticia/9928/de-la-pantalla-al-plato-la-inteligencia-artificial-revoluciona-la-creacion-de-experiencias-culinarias-en-2026",
+        "https://www.q2bstudio.com/nuestro-blog/537193/descubre-como-la-inteligencia-artificial-revolucionara-la-industria-de-restaurantes-en-2026-permitiendo-una-optimizacion-de-costos-y-servicio-sin-precedentes",
+        "https://www.tim.es/las-tecnologias-que-transformaran-la-restauracion-en-2026-y-como-prepararse-desde-hoy/",
+        "https://www.im-projects.com/vision-artificial-en-hosteleria-realidad-de-proppos-y-potenciales-aplicaciones/"
+      ]
+    },
+    {
+      "query": "APIs de procesamiento de voz español México restaurante",
+      "respuesta": "**APIs recomendadas para procesamiento de voz en español de México (voz a texto y texto a voz) orientadas a restaurantes incluyen Deepgram, ElevenLabs, Voiser y Vonage, ideales para asistentes que gestionan reservas por teléfono.**[3][4][5][6][7]\n\nEstas APIs permiten transcripción precisa de voz en **español mexicano**, síntesis de voz natural y flujos conversacionales para automatizar llamadas 24/7, como reservas, modificaciones y confirmaciones vía WhatsApp.[1][4]\n\n### APIs clave para restaurantes en México:\n- **Deepgram**: Transcripción de voz a texto en español (variante 419 para Latinoamérica/México), con baja latencia para entender comandos en tiempo real durante llamadas de reservas.[4]\n- **ElevenLabs**: Texto a voz con acento **mexicano** realista, integrable vía API para respuestas naturales en asistentes de voz; usado en tutoriales para restaurantes.[3][4][7]\n- **Voiser**: Transcripción y dictado voz a texto optimizado para **español México**, convierte audio en texto editable para procesar pedidos o reservas rápidamente.[5]\n- **Vonage Voice API**: Soporte para IA conversacional, reconocimiento de voz y servicio 24/7 en español, con integración fácil para restaurantes.[6]\n- **Speechify TTS API**: Voces humanas en >50 idiomas (incluyendo español), latencia de 300 ms; útil para kioscos o pedidos por voz en cadenas de comida rápida.[2]\n\n### Plataformas integradas para restaurantes:\nPlataformas como **VAPI** combinan estas APIs (ej. Deepgram para transcripción + ElevenLabs o Azure para voz mexicana) para crear asistentes completos que responden llamadas, agendan reservas y confirman automáticamente, sin código avanzado.[3][4][10] Octotable ofrece un asistente listo que adapta al idioma detectado, incluyendo español, e integra con Google Reservations.[1]\n\nPara implementar:\n1. Regístrate en VAPI (versión gratuita disponible) y selecciona español México en transcripción (Deepgram) y voz (ElevenLabs/Azure).[4]\n2. Integra con herramientas como Make para automatizar reservas en tu sistema POS.[3]\n3. Prueba latencia y precisión con acentos mexicanos para evitar errores en entornos ruidosos de restaurantes.\n\nEstas soluciones reducen no-shows y optimizan operaciones, con soporte multilenguaje automático.[1][2] Si necesitas tutoriales específicos, revisa videos de implementación en español.[3][4]",
+      "fuentes": [
+        "https://www.octotable.com/es/asistente-voz-ia-para-restaurantes/",
+        "https://speechify.com/es-mx/blog/restaurant-ai-voice/",
+        "https://www.youtube.com/watch?v=nhSIZjbdzy4",
+        "https://www.youtube.com/watch?v=OLa7dG9co1s",
+        "https://voiser.net/dictado-a-texto/espanol-mexico-transcriptora",
+        "https://www.vonage.mx/communications-apis/voice/",
+        "https://elevenlabs.io/es/text-to-speech/mexican-accent",
+        "https://speechify.com/es/blog/10-best-speech-to-text-apis/",
+        "https://speechify.com/es-mx/blog/google-text-to-speech-api/",
+        "https://www.youtube.com/watch?v=nUSxZZumpzk"
+      ]
+    },
+    {
+      "query": "APIs de predicción demanda forecasting restaurante 2026",
+      "respuesta": "Las **principales APIs y plataformas especializadas en predicción de demanda (demand forecasting) para restaurantes** en 2026 incluyen soluciones de IA como Controliza, Apicbase y Eaternity, que generan pronósticos granulares por plato, canal y local basados en datos históricos, ventas, clima y eventos[1][2][9]. Estas herramientas optimizan inventarios, reducen mermas (hasta -30%) y food cost (hasta -4%), con precisiones superiores al 92% tras meses de uso[1][2].\n\n### Plataformas clave con capacidades de API o integración\n- **Controliza**: Motor de ML adaptativo para predicción por plato, turno, canal (sala, delivery, take away) y local. Integra outliers como festivos y meteorología; hereda datos para nuevos locales. Impacto: payback en 3 meses[1].\n- **Apicbase**: Software de previsión basado en ventas pasadas, genera pedidos automáticos a proveedores considerando inventarios y stock de seguridad. Integra con TPV y permite ajustes manuales; reduce desperdicios y costes alimentarios[2].\n- **Eaternity Forecast**: Previsión con redes neuronales para cocinas profesionales, predice ventas diarias. Orientado a restaurantes con enfoque en sostenibilidad[9].\n- **Datup**: IA y Deep Learning para pronósticos con escenarios dinámicos (+95% precisión), planificación colaborativa y optimización de inventarios. Ideal para cadenas grandes (>10M USD facturación); integra ERP y WMS[5].\n- **Zebra Workcloud Demand Forecasting**: Análisis predictivo con IA para retail y hostelería, usa algoritmos preentrenados para anticipar tendencias y optimizar inventario[3].\n\n### Otras opciones y tendencias para 2026\nPlataformas como Rockstardata ofrecen guías para forecasts personalizados en restaurantes[4], mientras que tendencias destacan IA aplicada para eficiencia omnicanal y reducción de costos vía motores predictivos con datos externos (clima, eventos)[6][7][10]. Para APIs puras de predicción (no exclusivas de restaurantes), considera mercados de predicción como las listadas en Apidog, pero adáptalas con datos propios[8].\n\nEstas soluciones suelen ofrecer **integraciones API** para TPV, ERP y proveedores, permitiendo automatización. Evalúa pruebas gratuitas o demos para validar precisión con tus datos[1][2][5]. Si buscas desarrollo custom, combina con herramientas como Forecast Pro o Anaplan de listas 2026[5].",
+      "fuentes": [
+        "https://controliza.com/prediccion",
+        "https://get.apicbase.com/es/prevision-de-la-demanda/",
+        "https://www.zebra.com/es/es/software/workcloud-solutions/workcloud-demand-intelligence-suite/workcloud-forecasting-analysis.html",
+        "https://www.rockstardata.ai/forecast-de-demanda-restaurantes/",
+        "https://datup.ai/comparar/mejores-softwares-planeacion-demanada",
+        "https://plateplatform.com/blog/tendencias-restaurantes-2026",
+        "https://www.q2bstudio.com/nuestro-blog/537193/descubre-como-la-inteligencia-artificial-revolucionara-la-industria-de-restaurantes-en-2026-permitiendo-una-optimizacion-de-costos-y-servicio-sin-precedentes",
+        "https://apidog.com/es/blog/top-10-prediction-market-apis-2026-es/",
+        "https://eaternity.org/documentation/es/forecast/overview",
+        "https://www.soywibo.com/blog-details/tendencias-tecnologicas-restaurantes-2026"
+      ]
+    }
+  ],
+  "herramientas": [
+    {
+      "nombre": "Odoo Community 19 (POS Restaurant)",
+      "tipo": "repo",
+      "url": "https://github.com/odoo/odoo",
+      "verificado_mexico": true,
+      "es_open_source": true,
+      "evidencia_mexico": "Open source LGPL-3.0, se instala en cualquier servidor. Odoo tiene oficina en México (odoo.com/es_MX). Miles de implementaciones en México.",
+      "modulos_sr_que_cubre": [
+        "POS",
+        "Mapa de Mesas",
+        "Inventarios",
+        "Recetas y Costeo",
+        "Compras y Proveedores",
+        "Reportes y Dashboards",
+        "Control de Empleados y Turnos",
+        "Fidelización y Lealtad",
+        "Menú Digital",
+        "Delivery Hub",
+        "KDS",
+        "Control de Caja y Cortes",
+        "Multi-sucursal",
+        "Comandas y Modificadores",
+        "Promociones y Descuentos"
+      ],
+      "tiene_ia": false,
+      "descripcion_ia": "No tiene IA nativa — eso lo agrega el cerebro (OpenAI/LangChain)"
+    },
+    {
+      "nombre": "Calisto",
+      "tipo": "saas",
+      "url": "",
+      "verificado_mexico": true,
+      "es_open_source": false,
+      "evidencia_mexico": "Casos de uso en ciudades mexicanas como Guadalajara, Ciudad de México y Polanco, con soporte en español.",
+      "modulos_sr_que_cubre": [
+        "optimización operativa",
+        "reservas",
+        "personalización"
+      ],
+      "tiene_ia": true,
+      "descripcion_ia": "Optimización operativa, reservas y personalización con inteligencia artificial."
+    },
+    {
+      "nombre": "Bookline",
+      "tipo": "saas",
+      "url": "",
+      "verificado_mexico": true,
+      "es_open_source": false,
+      "evidencia_mexico": "Casos de uso en ciudades mexicanas como Guadalajara, Ciudad de México y Polanco, con soporte en español.",
+      "modulos_sr_que_cubre": [
+        "reservas"
+      ],
+      "tiene_ia": true,
+      "descripcion_ia": "Optimización de reservas con inteligencia artificial."
+    },
+    {
+      "nombre": "Octotable",
+      "tipo": "saas",
+      "url": "",
+      "verificado_mexico": true,
+      "es_open_source": false,
+      "evidencia_mexico": "Casos de uso en ciudades mexicanas como Guadalajara, Ciudad de México y Polanco, con soporte en español.",
+      "modulos_sr_que_cubre": [
+        "personalización"
+      ],
+      "tiene_ia": true,
+      "descripcion_ia": "Personalización de servicios con inteligencia artificial."
+    },
+    {
+      "nombre": "RobinFood",
+      "tipo": "saas",
+      "url": "",
+      "verificado_mexico": false,
+      "es_open_source": false,
+      "evidencia_mexico": "Presencia en México, Colombia, y Brasil, pero sin enfoque específico en IA para restaurantes.",
+      "modulos_sr_que_cubre": [
+        "cloud-restaurants"
+      ],
+      "tiene_ia": false,
+      "descripcion_ia": ""
+    },
+    {
+      "nombre": "Magokoro",
+      "tipo": "saas",
+      "url": "",
+      "verificado_mexico": true,
+      "es_open_source": false,
+      "evidencia_mexico": "Sistema POS para restaurantes en México con IA proactiva, adaptándose a patrones locales.",
+      "modulos_sr_que_cubre": [
+        "POS",
+        "predicción de demanda",
+        "optimización de inventarios",
+        "ajuste de operaciones"
+      ],
+      "tiene_ia": true,
+      "descripcion_ia": "Predice demanda, optimiza inventarios y ajusta operaciones en tiempo real."
+    },
+    {
+      "nombre": "ANOVA",
+      "tipo": "saas",
+      "url": "",
+      "verificado_mexico": true,
+      "es_open_source": false,
+      "evidencia_mexico": "Presencia en el mercado mexicano con precios en MXN y soporte en español.",
+      "modulos_sr_que_cubre": [
+        "POS",
+        "inteligencia de negocios",
+        "automatización de operaciones"
+      ],
+      "tiene_ia": false,
+      "descripcion_ia": ""
+    },
+    {
+      "nombre": "Square TPV",
+      "tipo": "saas",
+      "url": "",
+      "verificado_mexico": true,
+      "es_open_source": false,
+      "evidencia_mexico": "Presencia en el mercado mexicano con precios en MXN y soporte en español.",
+      "modulos_sr_que_cubre": [
+        "POS",
+        "gestión de mesas/pedidos"
+      ],
+      "tiene_ia": false,
+      "descripcion_ia": ""
+    },
+    {
+      "nombre": "Soft Restaurant",
+      "tipo": "saas",
+      "url": "",
+      "verificado_mexico": true,
+      "es_open_source": false,
+      "evidencia_mexico": "Presencia en el mercado mexicano con precios en MXN y soporte en español.",
+      "modulos_sr_que_cubre": [
+        "POS",
+        "automatización de operaciones"
+      ],
+      "tiene_ia": false,
+      "descripcion_ia": ""
+    },
+    {
+      "nombre": "Lightspeed Restaurant",
+      "tipo": "saas",
+      "url": "",
+      "verificado_mexico": true,
+      "es_open_source": false,
+      "evidencia_mexico": "Presencia en el mercado mexicano con precios en MXN y soporte en español.",
+      "modulos_sr_que_cubre": [
+        "POS",
+        "gestión de mesas/pedidos"
+      ],
+      "tiene_ia": false,
+      "descripcion_ia": ""
+    },
+    {
+      "nombre": "OlaClick",
+      "tipo": "saas",
+      "url": "",
+      "verificado_mexico": true,
+      "es_open_source": false,
+      "evidencia_mexico": "Presencia en el mercado mexicano con precios en MXN y soporte en español.",
+      "modulos_sr_que_cubre": [
+        "POS",
+        "automatización de operaciones"
+      ],
+      "tiene_ia": false,
+      "descripcion_ia": ""
+    },
+    {
+      "nombre": "UMAI Restaurant Software",
+      "tipo": "saas",
+      "url": "",
+      "verificado_mexico": true,
+      "es_open_source": false,
+      "evidencia_mexico": "Listado entre las principales opciones de gestión de restaurantes en México.",
+      "modulos_sr_que_cubre": [
+        "reservas",
+        "gestión de mesas",
+        "análisis de datos de clientes",
+        "marketing personalizado"
+      ],
+      "tiene_ia": true,
+      "descripcion_ia": "Reservas impulsadas por IA, análisis de datos de clientes y marketing personalizado."
+    },
+    {
+      "nombre": "NimbusRMS by Foodng PLumenSoft Technologies",
+      "tipo": "saas",
+      "url": "",
+      "verificado_mexico": true,
+      "es_open_source": false,
+      "evidencia_mexico": "Soporta operaciones para negocios de alimentos en México.",
+      "modulos_sr_que_cubre": [
+        "gestión de restaurantes"
+      ],
+      "tiene_ia": false,
+      "descripcion_ia": ""
+    },
+    {
+      "nombre": "Poster POS",
+      "tipo": "saas",
+      "url": "",
+      "verificado_mexico": false,
+      "es_open_source": false,
+      "evidencia_mexico": "",
+      "modulos_sr_que_cubre": [
+        "gestión de restaurantes"
+      ],
+      "tiene_ia": false,
+      "descripcion_ia": ""
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "run_id": "run_20260426_234705_418d015f",
+  "timestamp_start": "2026-04-26T23:47:05.963541",
+  "timestamp_end": "2026-04-27T00:32:58.658497",
+  "skill_version": "1.1.0",
+  "modo": "enjambre",
+  "profundidad_pre": "normal",
+  "profundidad_post": "normal",
+  "prompt_fingerprint": "a2f3fd2e9608fad358a97ef3c8d2815963c4180dd82c471eca5fabd9aa92d9b1",
+  "duration_ms_total": 2752694,
+  "status": "success",
+  "sabios_requested": 7,
+  "sabios_successful": 6,
+  "steps": [
+    {
+      "step_name": "prevuelo",
+      "duration_ms": 22374,
+      "success": true,
+      "retry_count": 0,
+      "input_chars": 0,
+      "output_chars": 0,
+      "input_tokens_est": 0,
+      "output_tokens_est": 0,
+      "error_type": null,
+      "extra": {
+        "sabios_ok": 6,
+        "sabios_total": 6
+      }
+    },
+    {
+      "step_name": "investigacion_pre",
+      "duration_ms": 322463,
+      "success": true,
+      "retry_count": 0,
+      "input_chars": 0,
+      "output_chars": 62996,
+      "input_tokens_est": 0,
+      "output_tokens_est": 16798,
+      "error_type": null,
+      "extra": {
+        "temas_investigados": 15,
+        "temas_exitosos": 15
+      }
+    },
+    {
+      "step_name": "preparar_contexto",
+      "duration_ms": 0,
+      "success": true,
+      "retry_count": 0,
+      "input_chars": 65758,
+      "output_chars": 65758,
+      "input_tokens_est": 17535,
+      "output_tokens_est": 17535,
+      "error_type": null,
+      "extra": {
+        "tokens_est": 17535,
+        "condensado": false
+      }
+    },
+    {
+      "step_name": "consultar_sabios",
+      "duration_ms": 908623,
+      "success": true,
+      "retry_count": 0,
+      "input_chars": 0,
+      "output_chars": 0,
+      "input_tokens_est": 0,
+      "output_tokens_est": 0,
+      "error_type": null,
+      "extra": {
+        "sabios_exitosos": 6,
+        "sabios_total": 7
+      }
+    },
+    {
+      "step_name": "validacion_post",
+      "duration_ms": 340241,
+      "success": true,
+      "retry_count": 0,
+      "input_chars": 0,
+      "output_chars": 73827,
+      "input_tokens_est": 0,
+      "output_tokens_est": 19687,
+      "error_type": null,
+      "extra": {}
+    },
+    {
+      "step_name": "sintesis",
+      "duration_ms": 283807,
+      "success": true,
+      "retry_count": 0,
+      "input_chars": 124208,
+      "output_chars": 17634,
+      "input_tokens_est": 33122,
+      "output_tokens_est": 4702,
+      "error_type": null,
+      "extra": {
+        "modelo_usado": "gpt-5.5-pro",
+        "fallback_usado": false,
+        "informe_inyectado": true
+      }
+    },
+    {
+      "step_name": "validacion_post_sintesis",
+      "duration_ms": 875176,
+      "success": true,
+      "retry_count": 0,
+      "input_chars": 0,
+      "output_chars": 0,
+      "input_tokens_est": 0,
+      "output_tokens_est": 0,
+      "error_type": null,
+      "extra": {
+        "score_global": 0.79,
+        "score_factual": 0.73,
+        "score_incorporacion": 0.88,
+        "necesita_correccion": true,
+        "correccion_aplicada": true,
+        "afirmaciones_verificadas": 15,
+        "afirmaciones_con_problemas": 5
+      }
+    }
+  ]
+}

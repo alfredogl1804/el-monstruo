@@ -1,0 +1,97 @@
+# ═══════════════════════════════════════════════════════════════
+# model_registry.yaml — Registro versionado de modelos
+# Separado de conector_sabios.py para que cambios de modelo
+# no requieran cambios de código.
+# Última actualización: 2026-04-16
+# Fuente: semilla v7.3 + validación en tiempo real (anti-autoboicot)
+# ═══════════════════════════════════════════════════════════════
+
+registry_version: "2026-04-16"
+
+sabios:
+  gpt54:
+    nombre: "GPT-5.4"
+    modelo: "gpt-5.4"
+    proveedor: "openai"
+    contexto_tokens: 1050000
+    contexto_chars: 3500000
+    grupo: "completo"
+    roles: [sabio, orquestador, sintetizador, condensador]
+    costo_estimado_1k_input: 0.005
+    costo_estimado_1k_output: 0.015
+    soporta_structured_output: true
+    notas: "Doble rol: sabio + orquestador final. validated 2026-04-16"
+
+  claude:
+    nombre: "Claude Opus 4.7"
+    modelo: "anthropic/claude-opus-4.7"
+    proveedor: "openrouter"
+    contexto_tokens: 1000000
+    contexto_chars: 3300000
+    grupo: "completo"
+    roles: [sabio, fallback_sintetizador]
+    costo_estimado_1k_input: 0.005
+    costo_estimado_1k_output: 0.025
+    soporta_structured_output: false
+    notas: "Opus 4.7 lanzado 16 abril 2026. Reemplaza Sonnet 4.6. Usar vía OpenRouter. validated 2026-04-16"
+
+  gemini:
+    nombre: "Gemini 3.1 Pro"
+    modelo: "gemini-3.1-pro-preview"
+    proveedor: "google"
+    contexto_tokens: 1000000
+    contexto_chars: 3300000
+    grupo: "completo"
+    roles: [sabio]
+    costo_estimado_1k_input: 0.00125
+    costo_estimado_1k_output: 0.005
+    soporta_structured_output: true
+    notas: "Buen balance costo/calidad. SDK google-genai. validated 2026-04-16"
+
+  grok:
+    nombre: "Grok 4.20 Reasoning"
+    modelo: "grok-4.20-0309-reasoning"
+    proveedor: "xai"
+    contexto_tokens: 2000000
+    contexto_chars: 6600000
+    grupo: "completo"
+    roles: [sabio, fallback_sintetizador]
+    costo_estimado_1k_input: 0.003
+    costo_estimado_1k_output: 0.015
+    soporta_structured_output: false
+    notas: "Mayor contexto de todos. Fallback #2 para síntesis. validated 2026-04-16"
+
+  deepseek:
+    nombre: "DeepSeek R1"
+    modelo: "deepseek/deepseek-r1"
+    proveedor: "openrouter"
+    contexto_tokens: 128000
+    contexto_chars: 420000
+    grupo: "condensado"
+    roles: [sabio]
+    costo_estimado_1k_input: 0.0008
+    costo_estimado_1k_output: 0.002
+    soporta_structured_output: false
+    notas: "Requiere prompt condensado. Bueno en razonamiento técnico. validated 2026-04-16"
+
+  perplexity:
+    nombre: "Perplexity Sonar Reasoning Pro"
+    modelo: "sonar-reasoning-pro"
+    proveedor: "perplexity"
+    contexto_tokens: 128000
+    contexto_chars: 420000
+    grupo: "condensado"
+    roles: [sabio, investigador_tiempo_real]
+    costo_estimado_1k_input: 0.001
+    costo_estimado_1k_output: 0.005
+    soporta_structured_output: false
+    notas: "Doble rol: sabio + motor de investigación en tiempo real. Limitar concurrencia a 4. validated 2026-04-16"
+
+# ─── Historial de cambios ────────────────────────────────────
+changelog:
+  - fecha: "2026-04-16"
+    cambio: "Claude actualizado de Sonnet 4.6 a Opus 4.7 (lanzado hoy). Costos actualizados ($5/M input, $25/M output). Todas las versiones revalidadas en tiempo real."
+    motivo: "Auditoría anti-autoboicot: Opus 4.7 es el nuevo flagship de Anthropic"
+  - fecha: "2026-04-08"
+    cambio: "Registro inicial basado en semilla v7.3"
+    motivo: "Creación de la skill consulta-sabios"

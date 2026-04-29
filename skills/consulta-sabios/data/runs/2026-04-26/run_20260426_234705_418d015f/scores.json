@@ -1,0 +1,128 @@
+[
+  {
+    "sabio_id": "gpt55",
+    "grade": "insufficient",
+    "score": 0.0,
+    "subscores": {},
+    "reasons": [
+      "No respondió: Falló tras 3 intentos: "
+    ],
+    "recommendation": "exclude",
+    "chars": 0,
+    "words": 0
+  },
+  {
+    "sabio_id": "claude",
+    "grade": "ok",
+    "score": 0.976,
+    "subscores": {
+      "length": 1.0,
+      "structure": 1.0,
+      "evasion": 1.0,
+      "density": 1.0,
+      "alignment": 0.841,
+      "repetition": 1.0
+    },
+    "reasons": [
+      "Respuesta de calidad aceptable"
+    ],
+    "recommendation": "include",
+    "chars": 9171,
+    "words": 1334
+  },
+  {
+    "sabio_id": "gemini",
+    "grade": "ok",
+    "score": 0.971,
+    "subscores": {
+      "length": 1.0,
+      "structure": 1.0,
+      "evasion": 1.0,
+      "density": 1.0,
+      "alignment": 0.805,
+      "repetition": 1.0
+    },
+    "reasons": [
+      "Respuesta de calidad aceptable"
+    ],
+    "recommendation": "include",
+    "chars": 6947,
+    "words": 1071
+  },
+  {
+    "sabio_id": "grok",
+    "grade": "ok",
+    "score": 1.0,
+    "subscores": {
+      "length": 1.0,
+      "structure": 1.0,
+      "evasion": 1.0,
+      "density": 1.0,
+      "alignment": 1.0,
+      "repetition": 1.0
+    },
+    "reasons": [
+      "Respuesta de calidad aceptable"
+    ],
+    "recommendation": "include",
+    "chars": 8630,
+    "words": 1196
+  },
+  {
+    "sabio_id": "deepseek",
+    "grade": "ok",
+    "score": 0.923,
+    "subscores": {
+      "length": 1.0,
+      "structure": 1.0,
+      "evasion": 1.0,
+      "density": 1.0,
+      "alignment": 0.488,
+      "repetition": 1.0
+    },
+    "reasons": [
+      "Respuesta de calidad aceptable"
+    ],
+    "recommendation": "include",
+    "chars": 3507,
+    "words": 469
+  },
+  {
+    "sabio_id": "perplexity",
+    "grade": "ok",
+    "score": 0.918,
+    "subscores": {
+      "length": 1.0,
+      "structure": 1.0,
+      "evasion": 1.0,
+      "density": 1.0,
+      "alignment": 0.451,
+      "repetition": 1.0
+    },
+    "reasons": [
+      "Respuesta de calidad aceptable"
+    ],
+    "recommendation": "include",
+    "chars": 4397,
+    "words": 649
+  },
+  {
+    "sabio_id": "gpt54",
+    "grade": "ok",
+    "score": 1.0,
+    "subscores": {
+      "length": 1.0,
+      "structure": 1.0,
+      "evasion": 1.0,
+      "density": 1.0,
+      "alignment": 1.0,
+      "repetition": 1.0
+    },
+    "reasons": [
+      "Respuesta de calidad aceptable"
+    ],
+    "recommendation": "include",
+    "chars": 13916,
+    "words": 1870
+  }
+]

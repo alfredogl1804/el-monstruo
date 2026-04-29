@@ -1,0 +1,14 @@
+# api-context-injector v4.0 — Dependencias externas
+# Instalar: pip install -r requirements.txt
+
+# Core
+pyyaml>=6.0            # Carga de registros YAML
+requests>=2.31         # HTTP para health checks (HeyGen, ElevenLabs)
+
+# SDKs de los 6 Sabios
+openai>=1.30           # GPT-5.4, Grok (compatible), DeepSeek vía OpenRouter
+google-genai>=1.0      # Gemini 3.1 Pro
+
+# SDKs opcionales (fallback directo, no requeridos para flujo normal)
+# anthropic>=0.30      # Claude vía API directa (solo fallback — primario es OpenRouter)
+# elevenlabs>=1.0      # ElevenLabs TTS (solo si se usa media)

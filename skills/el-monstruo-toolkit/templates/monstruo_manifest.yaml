@@ -1,0 +1,134 @@
+# El Monstruo — Manifiesto de Secrets Pre-Configurado
+# Usar con: python3.11 inject_secrets.py --manifest /path/to/monstruo_manifest.yaml
+# Última verificación: 2026-04-09
+
+project:
+  name: "el-monstruo"
+  scaffold: "custom"  # No es scaffold estándar de Manus
+  injection_mode: "BACKEND_ONLY"
+  description: "Orquestador de IAs — Bot Telegram + Backend + Consola Web"
+
+# Secrets obligatorios — el bot no funciona sin estos
+required_secrets:
+  - env_var: "TELEGRAM_BOT_TOKEN"
+    service: "Telegram Bot API"
+    source: "railway_only"  # NO está en sandbox
+    description: "Token del bot de Telegram"
+    security: "CRITICAL — nunca exponer"
+
+  - env_var: "OPENAI_API_KEY"
+    service: "OpenAI (GPT-5.4 + Embeddings)"
+    source: "sandbox"
+    description: "Clasificador, estrategia, síntesis, embeddings para memoria"
+    used_by: ["classify_task", "generate_plan", "execute_task", "get_embedding"]
+
+  - env_var: "SONAR_API_KEY"
+    service: "Perplexity Sonar Pro"
+    source: "sandbox"
+    description: "Investigación en tiempo real, leads"
+    used_by: ["execute_task", "research_lead"]
+
+  - env_var: "XAI_API_KEY"
+    service: "xAI (Grok 4.20)"
+    source: "sandbox"
+    description: "Código, creatividad, tiempo real"
+    used_by: ["execute_task"]
+
+  - env_var: "OPENROUTER_API_KEY"
+    service: "OpenRouter (DeepSeek R1 + modelos gratis)"
+    source: "sandbox"
+    description: "Análisis técnico, razonamiento, modelos gratuitos"
+    used_by: ["execute_task"]
+
+  - env_var: "SUPABASE_URL"
+    service: "Supabase"
+    source: "hardcoded"
+    default: "https://xsumzuhwmivjgftsneov.supabase.co"
+    description: "URL del proyecto Supabase"
+
+  - env_var: "SUPABASE_SERVICE_KEY"
+    service: "Supabase"
+    source: "railway_only"  # NO está en sandbox
+    description: "Service key para memoria semántica"
+    security: "CRITICAL — acceso total a la DB"
+
+# Secrets opcionales — funcionalidad extendida
+optional_secrets:
+  - env_var: "ANTHROPIC_API_KEY"
+    service: "Anthropic (Claude Opus 4.6)"
+    source: "sandbox"
+    description: "Arquitectura, code review, fallback de GPT-5.4"
+
+  - env_var: "GEMINI_API_KEY"
+    service: "Google (Gemini 3.1 Pro)"
+    source: "sandbox"
+    description: "Contenido creativo, multimodal, grounding"
+
+  - env_var: "ELEVENLABS_API_KEY"
+    service: "ElevenLabs"
+    source: "sandbox"
+    description: "Text-to-speech, voice cloning"
+
+  - env_var: "HEYGEN_API_KEY"
+    service: "HeyGen"
+    source: "sandbox"
+    description: "Video con avatares AI"
+
+  - env_var: "DROPBOX_API_KEY"
+    service: "Dropbox"
+    source: "sandbox"
+    description: "Almacenamiento de archivos"
+
+  - env_var: "CLOUDFLARE_API_TOKEN"
+    service: "Cloudflare"
+    source: "sandbox"
+    description: "Workers, CDN, DNS"
+
+  - env_var: "NOTION_API_KEY"
+    service: "Notion"
+    source: "mcp_only"
+    description: "Leads DB, dashboard. Acceso via MCP, no env var directa"
+
+# Secrets de Sprint 1 — crear cuando se implemente
+sprint1_secrets:
+  - env_var: "LANGFUSE_PUBLIC_KEY"
+    service: "Langfuse"
+    source: "crear_en_langfuse.com"
+    description: "Observabilidad — clave pública"
+
+  - env_var: "LANGFUSE_SECRET_KEY"
+    service: "Langfuse"
+    source: "crear_en_langfuse.com"
+    description: "Observabilidad — clave secreta"
+
+  - env_var: "LANGFUSE_HOST"
+    service: "Langfuse"
+    source: "static"
+    default: "https://cloud.langfuse.com"
+    description: "Host de Langfuse Cloud"
+
+# Targets de deploy
+targets:
+  sandbox:
+    method: "dotenv"
+    file: ".env.local"
+    secrets: ["required_secrets", "optional_secrets"]
+
+  railway:
+    method: "env_vars"
+    project_id: "1dcb47ee-6c01-44bb-baff-d89812382fee"
+    secrets: ["required_secrets", "optional_secrets"]
+    nota: "Configurar via Railway dashboard o CLI"
+
+  vercel:
+    method: "mcp"
+    secrets: ["optional_secrets", "sprint1_secrets"]
+    nota: "Solo para consola web Sprint 1"
+
+# Reglas de seguridad
+security_rules:
+  - "NUNCA inyectar TELEGRAM_BOT_TOKEN en sandbox (solo Railway)"
+  - "NUNCA inyectar SUPABASE_SERVICE_KEY en frontend"
+  - "NUNCA exponer secrets en web-static scaffold"
+  - "SIEMPRE usar injection_mode BACKEND_ONLY"
+  - "SIEMPRE verificar que .env.local está en .gitignore"

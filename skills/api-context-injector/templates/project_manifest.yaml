@@ -1,0 +1,130 @@
+# ============================================================
+# Project Secrets Manifest — Template
+# api-context-injector v3.1
+# ============================================================
+# Copiar este archivo al root del proyecto como:
+#   .secrets-manifest.yaml
+# Luego ejecutar:
+#   python3.11 inject_secrets.py --project /path/to/project
+# ============================================================
+
+version: "1.0"
+
+# Metadata del proyecto
+project:
+  name: "mi-proyecto"
+  scaffold: "auto"          # auto | web-static | web-db-user | mobile-app | cloudflare-worker | next-vercel | custom
+  type: "auto"              # auto | frontend_only | fullstack | mobile | edge
+  injection_mode: "auto"    # auto | BACKEND_ONLY | WRANGLER_SECRETS | VERCEL_ENV | MANUAL_REVIEW
+
+# Destinos de inyección (puede ser múltiple)
+targets:
+  - type: "sandbox"         # sandbox | vercel | cloudflare | supabase
+    enabled: true
+  # - type: "vercel"
+  #   enabled: true
+  #   project_id: "prj_xxxx"  # Opcional: ID del proyecto en Vercel
+  # - type: "cloudflare"
+  #   enabled: true
+  #   account_id: "xxxx"      # Requerido para Cloudflare API
+  #   worker_name: "my-worker"
+  # - type: "supabase"
+  #   enabled: true
+  #   project_id: "xxxx"      # Requerido para Supabase Vault
+
+# Secrets requeridos por el proyecto
+# Cada secret especifica: fuente, si es requerido, y para qué se usa
+secrets:
+
+  # === LLMs ===
+  OPENAI_API_KEY:
+    service: "OpenAI"
+    category: "llm"
+    source: "sandbox_env"     # sandbox_env | notion_db | manual
+    required: true
+    used_for: "Chat completions, embeddings"
+    inject_as: "env_var"      # env_var | secret | vault
+
+  # ANTHROPIC_API_KEY:
+  #   service: "Anthropic"
+  #   category: "llm"
+  #   source: "sandbox_env"
+  #   required: false
+  #   used_for: "Fallback LLM"
+
+  # === Media ===
+  # ELEVENLABS_API_KEY:
+  #   service: "ElevenLabs"
+  #   category: "media"
+  #   source: "sandbox_env"
+  #   required: false
+  #   used_for: "Text-to-speech"
+
+  # HEYGEN_API_KEY:
+  #   service: "HeyGen"
+  #   category: "media"
+  #   source: "sandbox_env"
+  #   required: false
+  #   used_for: "Video generation with avatars"
+
+  # === Infraestructura ===
+  # CLOUDFLARE_API_TOKEN:
+  #   service: "Cloudflare"
+  #   category: "infra"
+  #   source: "sandbox_env"
+  #   required: false
+  #   used_for: "Workers, R2, D1"
+
+  # SUPABASE_URL:
+  #   service: "Supabase"
+  #   category: "database"
+  #   source: "notion_db"
+  #   required: true
+  #   used_for: "Database, Auth, Storage"
+
+  # SUPABASE_ANON_KEY:
+  #   service: "Supabase"
+  #   category: "database"
+  #   source: "notion_db"
+  #   required: true
+  #   used_for: "Client-side Supabase access"
+
+  # === Pagos ===
+  # STRIPE_SECRET_KEY:
+  #   service: "Stripe"
+  #   category: "payments"
+  #   source: "notion_db"
+  #   required: false
+  #   used_for: "Payment processing"
+
+  # === Scraping ===
+  # APIFY_API_TOKEN:
+  #   service: "Apify"
+  #   category: "scraping"
+  #   source: "notion_db"
+  #   required: false
+  #   used_for: "Web scraping actors"
+
+# Reglas de seguridad (override defaults)
+security:
+  # Archivos/dirs donde NUNCA deben aparecer secrets
+  forbidden_locations:
+    - "src/"
+    - "public/"
+    - "static/"
+    - "dist/"
+    - "*.html"
+    - "*.css"
+  # Archivos/dirs donde SÍ pueden estar
+  allowed_locations:
+    - ".env"
+    - ".env.local"
+    - ".env.production"
+    - "server/"
+    - "api/"
+  # Prefijos que exponen al frontend (Vite, Next.js, etc.)
+  dangerous_prefixes:
+    - "VITE_"
+    - "NEXT_PUBLIC_"
+    - "REACT_APP_"
+    - "EXPO_PUBLIC_"

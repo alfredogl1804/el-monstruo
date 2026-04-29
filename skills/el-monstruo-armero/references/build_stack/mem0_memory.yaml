@@ -1,0 +1,204 @@
+# Mem0 OSS + Supabase pgvector — Sistema de Memoria del Monstruo
+# Investigado: 2026-04-09 | TTL: 30 días
+# Fuente: mem0.ai, pulsemcp.com, github.com/mem0ai/mem0
+
+identity:
+  name: Mem0 OSS
+  role: memoria_persistente
+  version_target: "latest"
+  pip_install: "mem0ai"
+  license: Apache-2.0
+  repo: "https://github.com/mem0ai/mem0"
+  docs: "https://docs.mem0.ai/"
+
+why_chosen: |
+  Mem0 proporciona memoria a largo plazo para agentes IA. Almacena hechos,
+  preferencias e historial de conversaciones de forma semántica. Se integra
+  nativamente con Supabase pgvector, que ya es la base de datos del Monstruo.
+  La versión OSS es gratuita (Mem0 Cloud cobra hasta 7 cents/mensaje).
+
+vector_store:
+  provider: supabase_pgvector
+  project_id: xsumzuhwmivjgftsneov
+  url: "https://xsumzuhwmivjgftsneov.supabase.co"
+  extension: "pgvector 0.8.2"
+  existing_table: monstruo_memory
+  existing_rpc: match_memories
+  corpus_stats:
+    documents: 578
+    chunks: 25573
+    embeddings: 23473
+
+env_vars_needed:
+  - name: SUPABASE_URL
+    description: "URL del proyecto Supabase"
+    value: "https://xsumzuhwmivjgftsneov.supabase.co"
+    available_in_sandbox: false  # Hardcoded en bot actual
+  - name: SUPABASE_SERVICE_KEY
+    description: "Service role key de Supabase (NUNCA exponer en frontend)"
+    required: true
+    available_in_sandbox: false  # Solo en Railway
+
+known_bugs:
+  - id: "#4596"
+    description: "Bug con .single() en Mem0 + Supabase"
+    workaround: |
+      Usar .execute() en vez de .single() cuando se consulta memoria.
+      O usar la API REST directa de Supabase como fallback.
+
+integration_with_monstruo:
+  setup_supabase: |
+    -- Ejecutar en Supabase SQL Editor:
+    -- 1. Habilitar pgvector
+    CREATE EXTENSION IF NOT EXISTS vector;
+
+    -- 2. Crear tabla de memorias (si no existe)
+    CREATE TABLE IF NOT EXISTS monstruo_memory (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        content TEXT NOT NULL,
+        embedding VECTOR(1536),
+        metadata JSONB DEFAULT '{}',
+        memory_type TEXT DEFAULT 'episodic',
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- 3. Crear índice HNSW (OBLIGATORIO para performance)
+    CREATE INDEX IF NOT EXISTS monstruo_memory_embedding_idx
+    ON monstruo_memory
+    USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+
+    -- 4. Función de búsqueda vectorial
+    CREATE OR REPLACE FUNCTION match_memories(
+        query_embedding VECTOR(1536),
+        match_threshold FLOAT DEFAULT 0.7,
+        match_count INT DEFAULT 5,
+        filter_user TEXT DEFAULT NULL
+    )
+    RETURNS TABLE (
+        id UUID,
+        content TEXT,
+        metadata JSONB,
+        similarity FLOAT
+    )
+    LANGUAGE plpgsql AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            m.id, m.content, m.metadata,
+            1 - (m.embedding <=> query_embedding) AS similarity
+        FROM monstruo_memory m
+        WHERE
+            (filter_user IS NULL OR m.user_id = filter_user)
+            AND 1 - (m.embedding <=> query_embedding) > match_threshold
+        ORDER BY m.embedding <=> query_embedding
+        LIMIT match_count;
+    END;
+    $$;
+
+  code_with_mem0: |
+    from mem0 import Memory
+    import os
+
+    # Configuración Mem0 con Supabase pgvector
+    config = {
+        "vector_store": {
+            "provider": "supabase",
+            "config": {
+                "url": os.environ["SUPABASE_URL"],
+                "key": os.environ["SUPABASE_SERVICE_KEY"],
+                "table_name": "monstruo_memory",
+                "embedding_dimension": 1536
+            }
+        },
+        "embedder": {
+            "provider": "openai",
+            "config": {
+                "model": "text-embedding-3-small",
+                "api_key": os.environ["OPENAI_API_KEY"]
+            }
+        }
+    }
+
+    memory = Memory.from_config(config)
+
+    # Guardar memoria
+    memory.add(
+        "Alfredo prefiere análisis concisos con tablas comparativas",
+        user_id="alfredo",
+        metadata={"type": "preference", "source": "observation"}
+    )
+
+    # Buscar memorias relevantes
+    results = memory.search(
+        "¿Cómo le gusta a Alfredo recibir información?",
+        user_id="alfredo",
+        limit=5
+    )
+
+  code_direct_supabase: |
+    # Fallback: conexión directa a Supabase sin Mem0
+    import requests
+    from openai import OpenAI
+
+    openai_client = OpenAI()
+    SUPABASE_URL = os.environ["SUPABASE_URL"]
+    SUPABASE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    def store_memory(content, user_id, metadata=None):
+        embedding = openai_client.embeddings.create(
+            model="text-embedding-3-small",
+            input=content[:8000]
+        ).data[0].embedding
+
+        payload = {
+            "user_id": user_id,
+            "content": content,
+            "embedding": embedding,
+            "metadata": metadata or {}
+        }
+        return requests.post(
+            f"{SUPABASE_URL}/rest/v1/monstruo_memory",
+            headers=headers, json=payload
+        )
+
+    def search_memory(query, user_id=None, limit=5):
+        embedding = openai_client.embeddings.create(
+            model="text-embedding-3-small",
+            input=query[:8000]
+        ).data[0].embedding
+
+        return requests.post(
+            f"{SUPABASE_URL}/rest/v1/rpc/match_memories",
+            headers=headers,
+            json={
+                "query_embedding": embedding,
+                "match_count": limit,
+                "filter_user": user_id
+            }
+        ).json()
+
+memory_types:
+  episodic: "Conversaciones y eventos específicos"
+  semantic: "Hechos y conocimiento general"
+  procedural: "Cómo hacer cosas (workflows aprendidos)"
+  preference: "Preferencias del usuario"
+
+alternatives_evaluated:
+  zep:
+    verdict: "Enterprise, más caro, menos control"
+  letta:
+    verdict: "Self-editing memory, interesante pero inmaduro"
+  mengram:
+    verdict: "3 tipos de memoria + procedures que evolucionan. Evaluar para Sprint 2"
+  lancedb:
+    verdict: "Rápido y local, pero black box. No se integra con Supabase"
+  mem0_cloud:
+    verdict: "Hasta 7 cents/msg. Innecesario — OSS + Supabase es gratis"

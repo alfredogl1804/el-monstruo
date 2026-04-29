@@ -1,0 +1,146 @@
+# Skills Registry — Todas las skills disponibles
+# Última actualización: 2026-04-09
+# Sincronizado con ecosystem_state.yaml v2.0
+
+skills:
+  api-context-injector:
+    name: api-context-injector
+    version: "4.0"
+    category: infrastructure
+    description: "Registro centralizado de APIs, credenciales, arsenal expandido, routing inteligente e inyección de secrets"
+    path: /home/ubuntu/skills/api-context-injector/
+    entrypoint: SKILL.md
+    apis_used: [openai, openrouter, gemini, xai, perplexity, heygen, elevenlabs, cloudflare, dropbox]
+    env_vars_required: [OPENAI_API_KEY, OPENROUTER_API_KEY, GEMINI_API_KEY, XAI_API_KEY, SONAR_API_KEY]
+    scripts_count: 7
+    use_when: "Decidir qué IA/API usar, verificar credenciales, inyectar secrets, buscar skills externas"
+
+  skill-factory:
+    name: skill-factory
+    version: "2.0"
+    category: infrastructure
+    description: "Pipeline de ingeniería para crear skills complejas: intake, benchmark, investigación, diseño, generación, validación"
+    path: /home/ubuntu/skills/skill-factory/
+    entrypoint: scripts/create_skill.py
+    apis_used: [openai, perplexity, openrouter]
+    env_vars_required: [OPENAI_API_KEY, SONAR_API_KEY, OPENROUTER_API_KEY]
+    scripts_count: 20
+    use_when: "Crear nuevas skills en cualquier dominio"
+
+  consulta-sabios:
+    name: consulta-sabios
+    version: "2.1"
+    category: infrastructure
+    description: "Consultar al Consejo de 6 Sabios con investigación pre/post, validación post-síntesis (7 pasos)"
+    path: /home/ubuntu/skills/consulta-sabios/
+    entrypoint: scripts/run_consulta_sabios.py
+    apis_used: [openai, openrouter, gemini, xai, perplexity]
+    env_vars_required: [OPENAI_API_KEY, OPENROUTER_API_KEY, GEMINI_API_KEY, XAI_API_KEY, SONAR_API_KEY]
+    scripts_count: 26
+    use_when: "Consultar 6 sabios, enjambre, consenso multi-modelo, investigación profunda"
+
+  el-monstruo:
+    name: el-monstruo
+    version: "1.0"
+    category: core_project
+    description: "Sistema de absorción de contexto soberano (SOP, EPIA, MAOC, arquitectura, gobernanza)"
+    path: /home/ubuntu/skills/el-monstruo/
+    use_when: "Tareas del ecosistema Monstruo, absorción soberana, SOP, EPIA, MAOC"
+
+  el-monstruo-plan:
+    name: el-monstruo-plan
+    version: "1.0"
+    category: core_project
+    description: "Blueprint de implementación Sprint 1 — stack técnico, versiones verificadas, alertas de seguridad"
+    path: /home/ubuntu/skills/el-monstruo-plan/
+    use_when: "Construir, modificar o debuggear componentes del Monstruo"
+
+  el-monstruo-bot:
+    name: el-monstruo-bot
+    version: "1.0"
+    category: core_project
+    description: "Contexto de desarrollo del Telegram Bot MVP — arquitectura, repo, deploy en Railway"
+    path: /home/ubuntu/skills/el-monstruo-bot/
+    use_when: "Actualizar, modificar o redeploy del bot Telegram"
+
+  # --- NUEVOS: Faltaban en el registry anterior ---
+  el-monstruo-armero:
+    name: el-monstruo-armero
+    version: "1.0"
+    category: core_project
+    description: "Arsenal futuro pre-investigado para construir El Monstruo — herramientas, frameworks, APIs con config lista"
+    path: /home/ubuntu/skills/el-monstruo-armero/
+    use_when: "Construir El Monstruo de verdad, seleccionar herramientas del arsenal"
+
+  el-monstruo-toolkit:
+    name: el-monstruo-toolkit
+    version: "1.0"
+    category: core_project
+    description: "Arsenal operativo pre-configurado — todas las herramientas, APIs, secrets y patrones de conexión"
+    path: /home/ubuntu/skills/el-monstruo-toolkit/
+    use_when: "Construir, modificar, desplegar o debuggear cualquier componente del Monstruo"
+
+  media-crisis-control:
+    name: media-crisis-control
+    version: "1.0"
+    category: security
+    description: "Alerta temprana, diagnóstico y recomendación táctica para crisis en medios (LATAM)"
+    path: /home/ubuntu/skills/media-crisis-control/
+    use_when: "Crisis mediática, escándalo, nota negativa, control de daños, figura pública"
+
+  # --- Existentes ---
+  creacion-cip:
+    name: creacion-cip
+    version: "1.0"
+    category: business
+    description: "Plataforma de inversión inmobiliaria fraccionada con tokens anclados a bienes raíces reales"
+    path: /home/ubuntu/skills/creacion-cip/
+    use_when: "Diseñar, construir o analizar CIP, tokenización inmobiliaria"
+
+  proyecto-renders:
+    name: proyecto-renders
+    version: "1.0"
+    category: business
+    description: "Pipeline de inteligencia inmobiliaria: análisis de terreno → benchmarks → modelo de negocio → renders"
+    path: /home/ubuntu/skills/proyecto-renders/
+    use_when: "Analizar terrenos, proponer uso de suelo, renders arquitectónicos"
+
+  tiktok-trend-creator:
+    name: tiktok-trend-creator
+    version: "1.0"
+    category: content
+    description: "Crear conceptos virales de TikTok y videos semilla desde clips de música"
+    path: /home/ubuntu/skills/tiktok-trend-creator/
+    use_when: "Generar trends de TikTok, videos seed, análisis viral"
+
+  bgm-prompter:
+    name: bgm-prompter
+    version: "1.0"
+    category: content
+    description: "Framework de prompts para generación de música con IA"
+    path: /home/ubuntu/skills/bgm-prompter/
+    use_when: "Antes de generar música, crafting de prompts musicales"
+
+  aliexpress-mx-validator:
+    name: aliexpress-mx-validator
+    version: "1.0"
+    category: security
+    description: "Validar seguridad de compras AliExpress para México"
+    path: /home/ubuntu/skills/aliexpress-mx-validator/
+    use_when: "Verificar productos AliExpress, analizar vendedores"
+
+  gws-best-practices:
+    name: gws-best-practices
+    version: "1.0"
+    category: utility
+    description: "Best practices para Google Workspace CLI (Drive, Docs, Sheets, Slides)"
+    path: /home/ubuntu/skills/gws-best-practices/
+    use_when: "Operaciones con gws CLI"
+
+  skill-creator:
+    name: skill-creator
+    version: "1.0"
+    category: utility
+    description: "Guía para crear o actualizar skills que extienden Manus"
+    path: /home/ubuntu/skills/skill-creator/
+    use_when: "Crear o modificar skills existentes (para skills simples)"

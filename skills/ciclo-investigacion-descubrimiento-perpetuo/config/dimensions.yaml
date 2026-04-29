@@ -1,0 +1,174 @@
+# CIDP Dimensions Configuration — validated 2026-04-16
+# 19 dimensiones de investigación definidas por consenso del Consejo de Sabios
+
+dimensions:
+  - id: functionality
+    name: Funcionalidad
+    description: "Features, completitud, edge cases, feature parity"
+    research_prompts:
+      - "Analiza todas las funcionalidades principales y secundarias de {target}"
+      - "Identifica features faltantes, edge cases no cubiertos, y limitaciones conocidas"
+    weight: 1.0
+    mandatory: true
+
+  - id: robustness
+    name: Robustez
+    description: "Manejo de errores, resiliencia, recovery, fault tolerance"
+    research_prompts:
+      - "Evalúa la robustez de {target}: manejo de errores, recuperación ante fallos"
+      - "Investiga incidentes conocidos, downtime histórico, y estrategias de recovery"
+    weight: 0.9
+    mandatory: true
+
+  - id: scalability
+    name: Escalabilidad
+    description: "Horizontal, vertical, límites, bottlenecks"
+    research_prompts:
+      - "Analiza la arquitectura de escalabilidad de {target}"
+      - "Identifica límites conocidos, bottlenecks, y estrategias de scaling"
+    weight: 0.9
+    mandatory: true
+
+  - id: security
+    name: Seguridad
+    description: "Vulnerabilidades, autenticación, cifrado, auditorías"
+    research_prompts:
+      - "Investiga el historial de seguridad de {target}: CVEs, breaches, auditorías"
+      - "Analiza mecanismos de autenticación, cifrado, y prácticas de seguridad"
+    weight: 1.0
+    mandatory: true
+
+  - id: aesthetics_ui
+    name: "Estética/UI"
+    description: "Diseño visual, consistencia, modernidad, design system"
+    research_prompts:
+      - "Evalúa el diseño visual y la consistencia de UI de {target}"
+      - "Compara con las mejores prácticas de diseño actuales (abril 2026)"
+    weight: 0.7
+    mandatory: true
+
+  - id: ux_accessibility
+    name: "UX/Accesibilidad"
+    description: "Flujos de usuario, a11y, inclusividad, WCAG"
+    research_prompts:
+      - "Analiza la experiencia de usuario de {target}: flujos, friction points"
+      - "Evalúa accesibilidad (WCAG 2.2+), inclusividad, y soporte multi-idioma"
+    weight: 0.8
+    mandatory: true
+
+  - id: architecture_tech_debt
+    name: "Arquitectura/Deuda Técnica"
+    description: "Patrones, acoplamiento, mantenibilidad, tech stack"
+    research_prompts:
+      - "Investiga la arquitectura técnica de {target}: stack, patrones, dependencias"
+      - "Identifica deuda técnica conocida, decisiones arquitectónicas cuestionables"
+    weight: 0.9
+    mandatory: true
+
+  - id: data_ai_evals
+    name: "Datos/IA/Grounding/Evals"
+    description: "Modelos, datasets, evaluaciones, data pipeline"
+    research_prompts:
+      - "Analiza el uso de IA/ML en {target}: modelos, datos, evaluaciones"
+      - "Investiga la calidad de datos, pipelines, y estrategias de evaluación"
+    weight: 0.8
+    mandatory: false
+
+  - id: observability_ops
+    name: "Observabilidad/Operaciones"
+    description: "Logging, monitoring, alertas, SRE practices"
+    research_prompts:
+      - "Evalúa las prácticas de observabilidad de {target}"
+      - "Investiga herramientas de monitoring, logging, y alertas utilizadas"
+    weight: 0.7
+    mandatory: false
+
+  - id: regulatory_compliance
+    name: "Cumplimiento Regulatorio"
+    description: "GDPR, AI Act, NIS2 por fase/obligación"
+    research_prompts:
+      - "Analiza el cumplimiento regulatorio de {target}: GDPR, AI Act, NIS2"
+      - "Identifica obligaciones por fecha y jurisdicción aplicables"
+    weight: 0.8
+    mandatory: true
+
+  - id: licensing_ip
+    name: "Licencias/PI"
+    description: "Open source, patentes, ToS, copyright"
+    research_prompts:
+      - "Investiga las licencias de {target}: open source, patentes, restricciones"
+      - "Analiza ToS, restricciones de uso, y riesgos de PI"
+    weight: 0.7
+    mandatory: true
+
+  - id: economics_finops
+    name: "Economía/FinOps"
+    description: "Costos de infra, ROI, TCO, pricing model"
+    research_prompts:
+      - "Analiza la estructura de costos de {target}: pricing, TCO, unit economics"
+      - "Investiga costos de infraestructura y oportunidades de optimización"
+    weight: 0.8
+    mandatory: true
+
+  - id: business_model
+    name: "Modelo de Negocio"
+    description: "Monetización, pricing, unit economics, revenue"
+    research_prompts:
+      - "Investiga el modelo de negocio de {target}: revenue, pricing tiers"
+      - "Analiza la sostenibilidad del modelo y oportunidades de mejora"
+    weight: 0.7
+    mandatory: false
+
+  - id: ecosystem_integrations
+    name: "Ecosistema/Integraciones"
+    description: "APIs, plugins, marketplace, partnerships"
+    research_prompts:
+      - "Analiza el ecosistema de {target}: APIs, integraciones, marketplace"
+      - "Identifica partnerships clave y oportunidades de integración"
+    weight: 0.8
+    mandatory: true
+
+  - id: dx_extensibility
+    name: "DX/Extensibilidad"
+    description: "SDK, docs, onboarding de devs, developer experience"
+    research_prompts:
+      - "Evalúa la experiencia de desarrollador de {target}: SDK, docs, onboarding"
+      - "Compara con las mejores prácticas de DX actuales"
+    weight: 0.7
+    mandatory: false
+
+  - id: competitive_positioning
+    name: "Posicionamiento Competitivo"
+    description: "Market share, diferenciadores, SWOT"
+    research_prompts:
+      - "Analiza el posicionamiento competitivo de {target} en su mercado"
+      - "Identifica diferenciadores clave, debilidades vs competidores"
+    weight: 0.8
+    mandatory: true
+
+  - id: strategic_risk
+    name: "Riesgo Estratégico"
+    description: "Vendor lock-in, dependencias, obsolescencia"
+    research_prompts:
+      - "Evalúa los riesgos estratégicos de {target}: lock-in, dependencias"
+      - "Identifica señales de obsolescencia o riesgos existenciales"
+    weight: 0.7
+    mandatory: false
+
+  - id: sustainability_efficiency
+    name: "Sostenibilidad/Eficiencia"
+    description: "Consumo energético, eficiencia operativa, green computing"
+    research_prompts:
+      - "Investiga la eficiencia operativa y sostenibilidad de {target}"
+      - "Analiza consumo energético y prácticas de green computing"
+    weight: 0.5
+    mandatory: false
+
+  - id: domain_10x_levers
+    name: "Palancas 10x del Dominio"
+    description: "Oportunidades específicas del sector para mejora 10x"
+    research_prompts:
+      - "Identifica las palancas específicas del dominio de {target} para lograr mejora 10x"
+      - "Investiga innovaciones recientes (2025-2026) que podrían aplicarse"
+    weight: 1.0
+    mandatory: true

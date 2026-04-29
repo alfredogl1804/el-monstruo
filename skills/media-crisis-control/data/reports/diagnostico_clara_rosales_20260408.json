@@ -1,0 +1,135 @@
+{
+  "person": "Clara Paola Rosales Montiel",
+  "date": "2026-04-08",
+  "crisis_level": "NARANJA",
+  "severity_score": 72,
+  "trend": "creciente",
+  "crisis_type": "Acusación de vínculos con narcotráfico",
+  "damage_axes": [
+    "reputacional",
+    "legal",
+    "electoral",
+    "partidista"
+  ],
+  "accusation_types": [
+    "vínculos con narcotráfico",
+    "negligencia en due diligence",
+    "incompetencia legislativa"
+  ],
+  "evidence_state": "acusaciones no verificadas con alta viralización",
+  "propagation_mode": "redes sociales orgánico + medios locales",
+  "contagion_level": "regional contenido",
+  "confirmed_facts": [
+    "Firmó alianza con Carlos Guadalupe Koyoc Uribe junto a funcionarios estatales",
+    "Koyoc Uribe tiene proceso penal por amenazas a periodistas ante FEADLE",
+    "Koyoc Uribe fue candidato del PT en Kanasín 2021",
+    "Su iniciativa de VIH tiene respaldo de organizaciones civiles y precedentes legales",
+    "Otras diputadas de oposición se adhirieron a su iniciativa de VIH"
+  ],
+  "unverified_claims": [
+    "Koyoc Uribe es 'principal distribuidor de drogas de Kanasín'",
+    "Múltiples detenciones por drogas y armas (sin documentación oficial)",
+    "Existencia de 'vasta red de distribución de drogas'",
+    "Negligencia deliberada en verificación de antecedentes"
+  ],
+  "narratives": [
+    {
+      "narrative": "Diputada vinculada a narcotráfico",
+      "share_of_voice": 0.6,
+      "momentum": "up",
+      "evidence_status": "no verificado"
+    },
+    {
+      "narrative": "Legisladora progresista pro-derechos humanos",
+      "share_of_voice": 0.3,
+      "momentum": "stable",
+      "evidence_status": "confirmado"
+    },
+    {
+      "narrative": "Incompetencia legislativa",
+      "share_of_voice": 0.1,
+      "momentum": "down",
+      "evidence_status": "opinión"
+    }
+  ],
+  "attack_vectors": [
+    {
+      "actor": "Noticias Al Punto",
+      "type": "medio local",
+      "platform": "Facebook",
+      "narrative": "vínculos narcotráfico",
+      "risk": "alto"
+    },
+    {
+      "actor": "Grupos Facebook virales",
+      "type": "ciudadanos organizados",
+      "platform": "Facebook",
+      "narrative": "corrupción gubernamental",
+      "risk": "alto"
+    },
+    {
+      "actor": "PAN Yucatán",
+      "type": "oposición política",
+      "platform": "Instagram",
+      "narrative": "incompetencia Morena",
+      "risk": "medio"
+    },
+    {
+      "actor": "Noticias y Más Mid",
+      "type": "medio local",
+      "platform": "Facebook",
+      "narrative": "incompetencia legislativa",
+      "risk": "bajo"
+    }
+  ],
+  "allies": [
+    {
+      "actor": "Morena Yucatán",
+      "type": "partido político",
+      "strength": "moderado"
+    },
+    {
+      "actor": "CEDISEX y organizaciones LGBTQ+",
+      "type": "sociedad civil",
+      "strength": "fuerte"
+    },
+    {
+      "actor": "Yaaj México / Colectivo S3D",
+      "type": "sociedad civil",
+      "strength": "moderado"
+    },
+    {
+      "actor": "Diputadas de PAN, MC adheridas a iniciativa VIH",
+      "type": "oposición política",
+      "strength": "débil"
+    }
+  ],
+  "critical_window": "48-72 horas",
+  "immediate_actions_24h": [
+    "Solicitar formalmente a autoridades competentes información oficial sobre estatus legal de Koyoc Uribe",
+    "Documentar proceso de selección y criterios utilizados para la alianza",
+    "Activar red de organizaciones civiles aliadas para testimonios de apoyo",
+    "Monitoreo intensivo de redes sociales para detectar bots o coordinación artificial"
+  ],
+  "strategy_72h": [
+    "Conferencia de prensa con evidencia documental del proceso de alianza",
+    "Presentar formalmente denuncia por difamación si acusaciones resultan falsas",
+    "Publicar timeline completo de la iniciativa VIH con respaldos internacionales",
+    "Coordinar con Morena estatal estrategia de comunicación unificada"
+  ],
+  "campaign_7d": [
+    "Campaña de logros legislativos con testimonios de beneficiarios",
+    "Tour mediático en medios nacionales especializados en derechos humanos",
+    "Activación de influencers progresistas y académicos",
+    "Documentales cortos sobre impacto de sus iniciativas"
+  ],
+  "what_not_to_do": [
+    "No negar categóricamente sin evidencia - genera efecto Streisand",
+    "No atacar directamente a medios locales que aún no han tomado posición",
+    "No sobredimensionar importancia de Koyoc Uribe en la alianza",
+    "No utilizar la iniciativa VIH como distractor de las acusaciones principales"
+  ],
+  "spokesperson_recommendation": "Clara Rosales como vocera principal + líder de Morena estatal como respaldo",
+  "tone_recommendation": "transparente, firme, basado en hechos, sin victimización",
+  "executive_summary": "Crisis de nivel NARANJA con acusaciones graves pero no verificadas sobre vínculos con narcotráfico que están viralizándose rápidamente en redes sociales locales. La principal vulnerabilidad es la falta de due diligence documentada en la selección de aliados, mientras que su fortaleza radica en un historial legislativo sólido en derechos humanos con respaldo de organizaciones especializadas. La ventana crítica es de 48-72 horas antes de que la narrativa se consolide o escale a medios nacionales. Estrategia recomendada: transparencia total con evidencia, no negación defensiva."
+}

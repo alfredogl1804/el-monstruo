@@ -1,0 +1,169 @@
+## Site Reality Reconstructor — Configuration
+## v2.0 — 2026-04-11
+
+## General
+default_radius_m: 300
+default_confidence_threshold: 0.6
+max_evidence_images: 50
+target_date: "today"
+
+## APIs
+gemini:
+  model_grounding: "gemini-2.5-flash"
+  model_vision: "gemini-2.5-flash"
+  maps_grounding_enabled: true
+  max_grounding_queries: 10
+  free_daily_limit: 500
+
+perplexity:
+  model: "sonar-pro"
+  max_queries: 5
+
+openai:
+  model: "gpt-5.4"
+  max_completion_tokens: 16000
+
+overpass:
+  endpoint: "https://overpass-api.de/api/interpreter"
+  timeout: 30
+  max_retries: 3
+
+## Photo Processor (v2.0)
+photo_processor:
+  max_photos: 100
+  batch_size: 5  # Photos per Gemini Vision batch
+  supported_formats: [".jpg", ".jpeg", ".png", ".webp", ".heic", ".tiff", ".bmp"]
+  extract_exif: true
+  extract_gps: true
+  classify_zones: true
+  analyze_with_vision: true
+
+## Social Media Collector (v2.0)
+social_media:
+  search_google_images: true
+  search_youtube: true
+  search_instagram: true
+  max_youtube_videos_to_analyze: 3
+  max_social_queries: 4
+  youtube_analysis_timeout_s: 120
+
+## SketchUp Analyzer (v2.0)
+sketchup:
+  max_renders_to_analyze: 40
+  max_pdf_pages: 5
+  max_pdfs: 5
+  analyze_skp_metadata: true
+  analyze_renders: true
+  analyze_pdfs: true
+
+## Spatial Model Builder (v2.0)
+spatial_model:
+  enabled: true
+  cardinal_zones: ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+  position_rings: ["interior", "perimeter", "exterior", "far"]
+  max_evidence_chars: 40000  # Max chars to send to GPT-5.4
+
+## Coverage Thresholds
+coverage:
+  green_threshold: 0.7
+  yellow_threshold: 0.4
+  # Below yellow = red (request more evidence)
+
+## Evidence Hierarchy (rank 1 = highest priority)
+evidence_hierarchy:
+  - rank: 1
+    type: "user_photo"
+    label: "Fotos/videos del usuario"
+    max_confidence: 0.95
+    max_age_days: 90
+  - rank: 2
+    type: "pdf_plan"
+    label: "Plano técnico PDF"
+    max_confidence: 0.92
+    max_age_days: null
+  - rank: 3
+    type: "sketchup_model"
+    label: "Modelo SketchUp"
+    max_confidence: 0.88
+    max_age_days: null
+  - rank: 4
+    type: "existing_render"
+    label: "Render existente del proyecto"
+    max_confidence: 0.85
+    max_age_days: null
+  - rank: 5
+    type: "street_view"
+    label: "Street View / street-level"
+    max_confidence: 0.82
+    max_age_days: 365
+  - rank: 6
+    type: "satellite"
+    label: "Imagen satelital"
+    max_confidence: 0.80
+    max_age_days: 180
+  - rank: 7
+    type: "youtube_video"
+    label: "Video de YouTube"
+    max_confidence: 0.75
+    max_age_days: 180
+  - rank: 8
+    type: "osm"
+    label: "OpenStreetMap"
+    max_confidence: 0.72
+    max_age_days: null
+  - rank: 9
+    type: "maps_grounding"
+    label: "Gemini Maps Grounding"
+    max_confidence: 0.70
+    max_age_days: 30
+  - rank: 10
+    type: "google_images_search"
+    label: "Google Images"
+    max_confidence: 0.65
+    max_age_days: 180
+  - rank: 11
+    type: "instagram_search"
+    label: "Instagram/TikTok"
+    max_confidence: 0.60
+    max_age_days: 90
+  - rank: 12
+    type: "web_research"
+    label: "Web / noticias"
+    max_confidence: 0.58
+    max_age_days: 180
+  - rank: 13
+    type: "inference"
+    label: "Inferencia conservadora"
+    max_confidence: 0.40
+    max_age_days: null
+
+## Blind Spot Policies
+blind_spot_policies:
+  - status: "confirmed_visible"
+    render_policy: "render_as_observed"
+  - status: "mapped_not_visible"
+    render_policy: "neutral_mass"
+  - status: "high_confidence_inferred"
+    render_policy: "low_detail_context"
+  - status: "low_confidence_inferred"
+    render_policy: "neutral_mass"
+  - status: "unknown_do_not_detail"
+    render_policy: "omit"
+
+## Render Validation
+validation:
+  critical_violation_auto_fail: true
+  min_pass_score: 0.65
+  max_regeneration_attempts: 3
+
+## Critical Rules (auto-fail if violated)
+critical_rules:
+  - "NO inventar edificio donde el lote está vacío"
+  - "NO subir contexto de 1-2 niveles a 5+ niveles"
+  - "NO añadir paisajismo exuberante inexistente"
+  - "NO cambiar superficie de tierra/estacionamiento por boulevard premium"
+  - "NO omitir elemento marcado como must_include"
+  - "NO inventar cuerpos de agua inexistentes"
+  - "NO añadir transporte masivo inexistente"
+  - "NO poner casas donde hay terreno baldío"
+  - "NO inventar vegetación densa donde hay suelo seco"

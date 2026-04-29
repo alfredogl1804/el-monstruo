@@ -1,0 +1,136 @@
+# El Monstruo Sprint 1 — Environment Variables Template
+# Generado: 2026-04-09
+# Usar con inject_secrets.py de api-context-injector
+
+# ============================================================
+# OBLIGATORIOS — El Monstruo NO arranca sin estos
+# ============================================================
+required:
+  TELEGRAM_BOT_TOKEN:
+    description: "Token del bot de Telegram"
+    source: "BotFather en Telegram"
+    available_sandbox: false
+    available_railway: true
+    security: "CRITICAL — nunca exponer"
+
+  OPENAI_API_KEY:
+    description: "GPT-5.4 (estratega, clasificador, embeddings)"
+    source: "platform.openai.com"
+    available_sandbox: true
+    available_railway: true
+
+  SONAR_API_KEY:
+    description: "Perplexity Sonar Reasoning Pro (investigador)"
+    source: "perplexity.ai/settings/api"
+    available_sandbox: true
+    available_railway: true
+
+  XAI_API_KEY:
+    description: "Grok 4.20 (código, creativo, tiempo real)"
+    source: "console.x.ai"
+    available_sandbox: true
+    available_railway: true
+
+  OPENROUTER_API_KEY:
+    description: "DeepSeek R1 + modelos gratis (razonador)"
+    source: "openrouter.ai/settings/keys"
+    available_sandbox: true
+    available_railway: true
+
+  SUPABASE_URL:
+    description: "URL del proyecto Supabase"
+    value: "https://xsumzuhwmivjgftsneov.supabase.co"
+    available_sandbox: false
+    available_railway: true
+
+  SUPABASE_SERVICE_KEY:
+    description: "Service role key (NUNCA en frontend)"
+    source: "supabase.com/dashboard → Settings → API"
+    available_sandbox: false
+    available_railway: true
+    security: "CRITICAL — da acceso total a la DB"
+
+# ============================================================
+# SPRINT 1 — Nuevos para la evolución
+# ============================================================
+sprint1_new:
+  ANTHROPIC_API_KEY:
+    description: "Claude Opus 4.6 (arquitecto, crítico)"
+    source: "console.anthropic.com"
+    available_sandbox: true
+    available_railway: false  # Agregar en Railway
+
+  GEMINI_API_KEY:
+    description: "Gemini 3.1 Pro (creativo, multimodal, embeddings)"
+    source: "aistudio.google.com"
+    available_sandbox: true
+    available_railway: false  # Agregar en Railway
+
+  LANGFUSE_PUBLIC_KEY:
+    description: "Langfuse observabilidad (public key)"
+    source: "cloud.langfuse.com → Settings → API Keys"
+    available_sandbox: false
+    available_railway: false  # Crear cuenta primero
+
+  LANGFUSE_SECRET_KEY:
+    description: "Langfuse observabilidad (secret key)"
+    source: "cloud.langfuse.com → Settings → API Keys"
+    available_sandbox: false
+    available_railway: false
+
+  LANGFUSE_HOST:
+    description: "Host de Langfuse"
+    value: "https://cloud.langfuse.com"
+    available_sandbox: false
+    available_railway: false
+
+  LITELLM_MASTER_KEY:
+    description: "Master key para LiteLLM proxy"
+    source: "Generar UUID: python -c 'import uuid; print(uuid.uuid4())'"
+    available_sandbox: false
+    available_railway: false
+
+# ============================================================
+# OPCIONALES — Funcionalidad extendida
+# ============================================================
+optional:
+  ELEVENLABS_API_KEY:
+    description: "ElevenLabs (voz, clonación, audio)"
+    available_sandbox: true
+
+  HEYGEN_API_KEY:
+    description: "HeyGen (video con avatares IA)"
+    available_sandbox: true
+
+  DROPBOX_API_KEY:
+    description: "Dropbox (almacenamiento de archivos)"
+    available_sandbox: true
+
+  CLOUDFLARE_API_TOKEN:
+    description: "Cloudflare (Workers, R2, CDN)"
+    available_sandbox: true
+
+  FIRECRAWL_API_KEY:
+    description: "Firecrawl (web scraping para RAG)"
+    available_sandbox: false
+    create_how: "Registrarse en firecrawl.dev"
+
+# ============================================================
+# INYECCIÓN RÁPIDA
+# ============================================================
+injection_commands:
+  sandbox: |
+    python3.11 /home/ubuntu/skills/api-context-injector/scripts/inject_secrets.py \
+      --project /home/ubuntu/monstruo-sprint1 --target sandbox
+
+  railway: |
+    # Usar Railway CLI o dashboard para agregar env vars
+    # railway variables set ANTHROPIC_API_KEY=xxx
+    # railway variables set GEMINI_API_KEY=xxx
+    # railway variables set LANGFUSE_PUBLIC_KEY=xxx
+    # railway variables set LANGFUSE_SECRET_KEY=xxx
+    # railway variables set LANGFUSE_HOST=https://cloud.langfuse.com
+
+  vercel_consola: |
+    python3.11 /home/ubuntu/skills/api-context-injector/scripts/inject_secrets.py \
+      --project /home/ubuntu/monstruo-consola --target vercel --dry-run

@@ -1,0 +1,479 @@
+# ============================================================
+# PIPELINE TEMPLATES — Recetas Multi-Dominio
+# api-context-injector v3.0
+# ============================================================
+# Para tareas que cruzan ≥2 dominios, consultar AQUÍ primero.
+# Cada pipeline define pasos, herramientas, y fallbacks.
+# ============================================================
+
+version: "3.0"
+last_verified: "2026-04-08"
+ttl_days: 60
+
+pipelines:
+
+  # ---- DOCUMENTO → VIDEO ----
+  document_to_avatar_video:
+    description: "Convierte documento/PDF a video con avatar IA"
+    trigger_patterns:
+      - "video desde documento"
+      - "explica este PDF en video"
+      - "crear video explicativo"
+    domains: [text, voice, video]
+    steps:
+      1_extract:
+        capability: text_generation_premium
+        action: "Extraer puntos clave y crear guion de video"
+        output: script_text
+      2_voice:
+        capability: text_to_speech
+        action: "Generar narración del guion"
+        input: script_text
+        output: audio_file
+      3_video:
+        capability: avatar_video_generation
+        action: "Crear video con avatar + audio"
+        input: [audio_file, script_text]
+        output: video_url
+    estimated_cost: "$0.50-3.00"
+    estimated_time: "60-180s"
+
+  # ---- CHATBOT CON VOZ + EMAIL ----
+  voice_chatbot_email_responder:
+    description: "Chatbot que responde con voz y envía por email"
+    trigger_patterns:
+      - "chatbot con voz que responda emails"
+      - "asistente de voz para email"
+    domains: [text, voice, email]
+    steps:
+      1_analyze:
+        capability: text_generation_premium
+        action: "Analizar email entrante y generar respuesta"
+        output: response_text
+      2_voice:
+        capability: text_to_speech
+        action: "Convertir respuesta a audio"
+        input: response_text
+        output: audio_file
+      3_send:
+        capability: email_send_personal
+        action: "Enviar respuesta por email con audio adjunto"
+        input: [response_text, audio_file]
+    estimated_cost: "$0.05-0.50"
+    estimated_time: "15-45s"
+
+  # ---- SCRAPING → DB → ALERTAS ----
+  scraping_to_db_alerts:
+    description: "Scraping de datos → almacenar en DB → alertas por email"
+    trigger_patterns:
+      - "monitorear web y guardar en base de datos"
+      - "extraer datos y alertar si cambian"
+      - "scraping con almacenamiento"
+    domains: [scraping, database, email]
+    steps:
+      1_scrape:
+        capability: web_scraping_dynamic
+        action: "Extraer datos de la fuente web"
+        output: raw_data
+      2_process:
+        capability: text_generation_fast
+        action: "Estructurar y limpiar datos extraídos"
+        input: raw_data
+        output: structured_data
+      3_store:
+        capability: database_relational
+        action: "Insertar datos en Supabase"
+        input: structured_data
+        output: db_result
+      4_alert:
+        capability: email_send_personal
+        action: "Enviar alerta si hay cambios significativos"
+        input: db_result
+    estimated_cost: "$0.01-0.10"
+    estimated_time: "10-60s"
+
+  # ---- RESEARCH → SYNTHESIS → PUBLISH ----
+  research_to_social_post:
+    description: "Investigar tema → sintetizar → publicar en redes"
+    trigger_patterns:
+      - "investigar y publicar"
+      - "crear post basado en investigación"
+    domains: [research, text, social]
+    steps:
+      1_research:
+        capability: real_time_web_research
+        action: "Investigar el tema con fuentes actuales"
+        output: research_findings
+      2_synthesize:
+        capability: text_generation_premium
+        action: "Sintetizar hallazgos en contenido para redes"
+        input: research_findings
+        output: social_content
+      3_image:
+        capability: image_generation
+        action: "Generar imagen para acompañar el post"
+        input: social_content
+        output: post_image
+      4_publish:
+        capability: social_media_publish
+        action: "Publicar en la plataforma indicada"
+        input: [social_content, post_image]
+    estimated_cost: "$0.10-1.00"
+    estimated_time: "30-120s"
+
+  # ---- LEAD ENRICHMENT → OUTREACH ----
+  lead_enrichment_outreach:
+    description: "Enriquecer leads con datos web → outreach automatizado"
+    trigger_patterns:
+      - "enriquecer leads y contactar"
+      - "prospección automatizada"
+    domains: [scraping, text, email]
+    steps:
+      1_scrape:
+        capability: web_scraping_platform_specific
+        action: "Extraer datos del lead (LinkedIn, web)"
+        output: lead_data
+      2_enrich:
+        capability: text_generation_premium
+        action: "Analizar datos y generar perfil enriquecido"
+        input: lead_data
+        output: enriched_profile
+      3_compose:
+        capability: text_generation_premium
+        action: "Redactar email personalizado"
+        input: enriched_profile
+        output: email_draft
+      4_send:
+        capability: email_send_personal
+        action: "Enviar email de outreach"
+        input: email_draft
+    estimated_cost: "$0.05-0.30"
+    estimated_time: "20-60s"
+
+  # ---- TRANSCRIPCIÓN → RESUMEN → CRM ----
+  meeting_to_crm:
+    description: "Transcribir reunión → resumir → actualizar CRM/tareas"
+    trigger_patterns:
+      - "transcribir reunión y crear tareas"
+      - "resumen de meeting a Asana"
+    domains: [audio, text, project_management]
+    steps:
+      1_transcribe:
+        capability: speech_to_text
+        action: "Transcribir audio de la reunión"
+        output: transcript
+      2_summarize:
+        capability: text_generation_premium
+        action: "Extraer resumen, action items, decisiones"
+        input: transcript
+        output: meeting_summary
+      3_tasks:
+        capability: project_management
+        action: "Crear tareas en Asana desde action items"
+        input: meeting_summary
+      4_document:
+        capability: document_management
+        action: "Guardar resumen en Notion"
+        input: meeting_summary
+    estimated_cost: "$0.05-0.50"
+    estimated_time: "30-90s"
+
+  # ---- DOCUMENTO → TRADUCCIÓN → LOCUCIÓN → VIDEO ----
+  document_translate_dub_video:
+    description: "Documento → traducir → locución multilingüe → video"
+    trigger_patterns:
+      - "traducir documento a video en otro idioma"
+      - "video multilingüe desde documento"
+    domains: [text, voice, video]
+    steps:
+      1_extract:
+        capability: text_generation_premium
+        action: "Extraer contenido y crear guion"
+        output: script_original
+      2_translate:
+        capability: text_generation_premium
+        action: "Traducir guion al idioma destino"
+        input: script_original
+        output: script_translated
+      3_voice:
+        capability: text_to_speech
+        action: "Generar locución en idioma destino"
+        input: script_translated
+        output: audio_translated
+      4_video:
+        capability: avatar_video_generation
+        action: "Crear video con avatar + audio traducido"
+        input: [audio_translated, script_translated]
+        output: video_url
+    estimated_cost: "$1.00-5.00"
+    estimated_time: "120-300s"
+
+  # ---- MONITORIZACIÓN → CLASIFICACIÓN → RESPUESTA ----
+  brand_monitor_respond:
+    description: "Monitorear menciones → clasificar sentimiento → responder"
+    trigger_patterns:
+      - "monitorear marca y responder"
+      - "gestión de reputación automatizada"
+    domains: [social_listening, text, email]
+    steps:
+      1_monitor:
+        capability: social_listening
+        action: "Obtener menciones recientes de la marca"
+        output: mentions
+      2_classify:
+        capability: text_generation_fast
+        action: "Clasificar sentimiento y prioridad"
+        input: mentions
+        output: classified_mentions
+      3_respond:
+        capability: text_generation_premium
+        action: "Generar respuestas para menciones prioritarias"
+        input: classified_mentions
+        output: responses
+      4_notify:
+        capability: email_send_personal
+        action: "Enviar reporte de menciones por email"
+        input: [classified_mentions, responses]
+    estimated_cost: "$0.10-0.50"
+    estimated_time: "30-90s"
+
+  # ---- PDF → DATOS ESTRUCTURADOS → GRÁFICOS ----
+  pdf_to_structured_charts:
+    description: "Extraer datos de PDF → estructurar → generar visualizaciones"
+    trigger_patterns:
+      - "extraer datos de PDF y graficar"
+      - "análisis visual de documento"
+    domains: [text, data, visualization]
+    steps:
+      1_extract:
+        capability: text_generation_long_context
+        action: "Extraer tablas y datos del PDF"
+        output: raw_data
+      2_structure:
+        capability: text_generation_fast
+        action: "Convertir a formato estructurado (JSON/CSV)"
+        input: raw_data
+        output: structured_data
+      3_analyze:
+        capability: code_generation
+        action: "Generar código Python para visualizaciones"
+        input: structured_data
+        output: charts_code
+      4_execute:
+        capability: code_generation
+        action: "Ejecutar código y generar gráficos"
+        input: charts_code
+        output: chart_images
+    estimated_cost: "$0.05-0.30"
+    estimated_time: "30-120s"
+
+  # ---- INMOBILIARIO: TERRENO → ANÁLISIS → RENDERS ----
+  real_estate_analysis_renders:
+    description: "Analizar terreno → benchmark → plan financiero → renders"
+    trigger_patterns:
+      - "analizar terreno"
+      - "propuesta inmobiliaria"
+      - "renders de proyecto"
+    domains: [research, text, image]
+    steps:
+      1_analyze:
+        capability: real_time_web_research
+        action: "Investigar ubicación, zonificación, mercado"
+        output: market_research
+      2_benchmark:
+        capability: web_scraping_platform_specific
+        action: "Scraping de comparables en la zona"
+        input: market_research
+        output: benchmarks
+      3_plan:
+        capability: text_generation_premium
+        action: "Generar modelo de negocio y plan financiero"
+        input: [market_research, benchmarks]
+        output: business_plan
+      4_renders:
+        capability: image_generation
+        action: "Generar renders arquitectónicos"
+        input: business_plan
+        output: render_images
+    estimated_cost: "$1.00-10.00"
+    estimated_time: "300-600s"
+    note: "Usar skill proyecto-renders para pipeline completo"
+
+  # ---- ECOMMERCE: VALIDAR PRODUCTO → COMPARAR → DECIDIR ----
+  ecommerce_purchase_validation:
+    description: "Validar producto → comparar precios → decidir compra"
+    trigger_patterns:
+      - "validar compra en AliExpress"
+      - "comparar precios de producto"
+    domains: [scraping, data, text]
+    steps:
+      1_scrape:
+        capability: web_scraping_platform_specific
+        action: "Extraer datos del producto y vendedor"
+        output: product_data
+      2_compare:
+        capability: price_tracking
+        action: "Comparar historial de precios"
+        input: product_data
+        output: price_history
+      3_analyze:
+        capability: text_generation_premium
+        action: "Evaluar riesgo y recomendar"
+        input: [product_data, price_history]
+        output: recommendation
+    estimated_cost: "$0.05-0.20"
+    estimated_time: "15-60s"
+    note: "Usar skill aliexpress-mx-validator para México"
+
+  # ---- TIKTOK: CONCEPTO → EDICIÓN → PUBLICACIÓN ----
+  tiktok_trend_creation:
+    description: "Crear concepto viral → editar video → publicar"
+    trigger_patterns:
+      - "crear tendencia TikTok"
+      - "video viral para TikTok"
+    domains: [text, video, social]
+    steps:
+      1_concept:
+        capability: text_generation_premium
+        action: "Diseñar concepto viral con timing musical"
+        output: concept
+      2_script:
+        capability: text_generation_premium
+        action: "Crear guion detallado con marcas de tiempo"
+        input: concept
+        output: script
+      3_edit:
+        capability: avatar_video_generation
+        action: "Editar video con overlays y efectos"
+        input: script
+        output: video
+    estimated_cost: "$0.50-3.00"
+    estimated_time: "120-300s"
+    note: "Usar skill tiktok-trend-creator para pipeline completo"
+
+  # ---- CRISIS: DETECTAR → DIAGNOSTICAR → RESPONDER ----
+  media_crisis_response:
+    description: "Detectar crisis mediática → diagnosticar → plan de respuesta"
+    trigger_patterns:
+      - "crisis en medios"
+      - "respuesta a crisis mediática"
+    domains: [social_listening, research, text]
+    steps:
+      1_detect:
+        capability: social_listening
+        action: "Detectar y cuantificar la crisis"
+        output: crisis_data
+      2_research:
+        capability: real_time_web_research
+        action: "Investigar contexto y precedentes"
+        input: crisis_data
+        output: context
+      3_diagnose:
+        capability: multi_model_consensus
+        action: "Consultar sabios para diagnóstico"
+        input: [crisis_data, context]
+        output: diagnosis
+      4_respond:
+        capability: text_generation_premium
+        action: "Generar plan táctico de respuesta"
+        input: diagnosis
+        output: response_plan
+    estimated_cost: "$1.00-5.00"
+    estimated_time: "120-300s"
+    note: "Usar skill media-crisis-control para framework LATAM-POLICRIS"
+
+
+  # ============================================================
+  # PIPELINE: PROJECT SETUP WITH SECRETS (NUEVO v3.1)
+  # ============================================================
+  project_setup_with_secrets:
+    trigger_patterns:
+      - "crear proyecto con APIs"
+      - "setup completo de proyecto"
+      - "inicializar app con secrets"
+      - "deploy con credenciales"
+    steps:
+      1_detect:
+        capability: scaffold_detection
+        action: "Detectar tipo de scaffold del proyecto"
+        input: project_path
+        output: scaffold_info
+      2_audit:
+        capability: secret_audit
+        action: "Auditar estado actual de secrets"
+        input: [project_path, scaffold_info]
+        output: audit_report
+      3_manifest:
+        capability: manifest_generation
+        action: "Generar manifiesto de secrets necesarios"
+        input: [project_path, audit_report]
+        output: manifest
+      4_resolve:
+        capability: secret_injection_sandbox
+        action: "Resolver secrets desde env vars y Notion DB"
+        input: manifest
+        output: resolved_secrets
+      5_inject_local:
+        capability: secret_injection_sandbox
+        action: "Inyectar secrets en .env.local del proyecto"
+        input: [project_path, resolved_secrets]
+        output: local_injection_report
+      6_inject_remote:
+        capability: secret_injection_vercel
+        action: "Inyectar secrets en plataforma de deploy (si aplica)"
+        input: [project_path, resolved_secrets, scaffold_info]
+        output: remote_injection_report
+        conditional: "Solo si target es vercel, cloudflare, o supabase"
+    estimated_cost: "$0 (solo operaciones de configuración)"
+    estimated_time: "30-120s"
+    note: "Ejecutar SIEMPRE en dry-run primero. Nunca inyectar en web-static."
+
+  # ============================================================
+  # PIPELINE: FULL DEPLOY WITH SECRETS
+  # ============================================================
+  full_deploy_with_secrets:
+    trigger_patterns:
+      - "deploy completo con todo"
+      - "subir a producción con APIs"
+      - "deploy a vercel con secrets"
+      - "deploy a cloudflare con secrets"
+    steps:
+      1_detect:
+        capability: scaffold_detection
+        action: "Detectar scaffold y validar seguridad"
+        input: project_path
+        output: scaffold_info
+      2_manifest:
+        capability: manifest_generation
+        action: "Generar manifiesto de secrets"
+        input: project_path
+        output: manifest
+      3_resolve:
+        capability: secret_injection_sandbox
+        action: "Resolver todos los secrets"
+        input: manifest
+        output: resolved_secrets
+      4_inject_local:
+        capability: secret_injection_sandbox
+        action: "Inyectar en local para testing"
+        input: [project_path, resolved_secrets]
+        output: local_report
+      5_deploy:
+        capability: web_deploy
+        action: "Deploy del proyecto"
+        input: project_path
+        output: deploy_url
+        note: "Usar capability correcta según scaffold (deploy_api_endpoint, deploy_static_site, etc.)"
+      6_inject_remote:
+        capability: secret_injection_vercel
+        action: "Inyectar secrets en plataforma de producción"
+        input: [deploy_url, resolved_secrets]
+        output: remote_report
+      7_verify:
+        capability: secret_audit
+        action: "Verificar que todo funciona en producción"
+        input: [deploy_url, manifest]
+        output: verification_report
+    estimated_cost: "$0 (configuración) + costo de deploy"
+    estimated_time: "120-300s"
+    note: "Pipeline completo: local → deploy → secrets remotos → verificación"

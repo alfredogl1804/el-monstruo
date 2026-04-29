@@ -1,0 +1,181 @@
+domain: GEN
+title: 'Dominio GEN: General'
+type: Tejido (Domain Context)
+summary: 'El Monstruo es un ecosistema de Inteligencia Aumentada (EPIA) que integra
+  múltiples IAs bajo un marco de gobernanza (SOP). Su objetivo es superar las limitaciones
+  de las IAs convencionales, permitiendo un aprendizaje y adaptación continuos. Se
+  han identificado problemas arquitectónicos, como la falta de continuidad operativa
+  y la dependencia de la intervención humana, que limitan la efectividad del sistema.
+  Para abordar estos desafíos, se propone la implementación de una macro-capa operativa
+  llamada ''Maduración Operativa Continua'', que facilitaría el progreso útil entre
+  sesiones y evitaría la autonomía descontrolada de las IAs.
+
+
+  La documentación del ecosistema ha evolucionado, reflejando una alta madurez doctrinal,
+  pero aún presenta brechas en su ejecución. Se destaca la necesidad de consolidar
+  el corpus, formalizar el kernel y establecer métricas operativas claras. A pesar
+  de los avances, se requiere una revisión significativa de la infraestructura y la
+  implementación de soluciones adaptadas a las nuevas realidades del mercado de IA,
+  asegurando que El Monstruo se convierta en una máquina de evolución perpetua.'
+key_documents:
+- id: doc_000006
+  title: 06 plan construccion monstruo v01
+  summary: Plan de construcción de El Monstruo, un ecosistema de IA, dividido en fases
+    para resolver problemas de orquestación y memoria.
+  keywords:
+  - El Monstruo
+  - Inteligencia Artificial
+  - orquestación
+- id: doc_000537
+  title: Pasted content 39
+  summary: Arquitectura de absorción soberana para El Monstruo v2.0, integrando soluciones
+    externas sin perder soberanía.
+  keywords:
+  - El Monstruo
+  - arquitectura
+  - absorción soberana
+- id: doc_000004
+  title: 04 areas oportunidad universales 19IAs
+  summary: Identifica fallas en arquitectura de IA, enfatizando la necesidad de control
+    plane y continuidad operativa para mejorar la agencia y evitar contaminación de
+    memoria.
+  keywords:
+  - IA
+  - control plane
+  - continuidad operativa
+- id: doc_000541
+  title: Pasted content 42
+  summary: El Monstruo debe abordar fallas estructurales de las IAs agenticas actuales,
+    enfocándose en continuidad, verificación y evolución para superarlas.
+  keywords:
+  - IAs agenticas
+  - El Monstruo
+  - oportunidades
+- id: doc_000574
+  title: 'El Monstruo: Resumen Ejecutivo y Guía de Navegación'
+  summary: El Monstruo es un ecosistema de Inteligencia Aumentada que integra múltiples
+    IA y herramientas para operar de forma colaborativa y autónoma.
+  keywords:
+  - Ecosistema
+  - Inteligencia Aumentada
+  - SOP
+- id: doc_000543
+  title: SOP - Reflexiones para integrar
+  summary: Reflexiones sobre el SOP, su origen, propósito, implicaciones para IAs
+    y diseño del Monstruo.
+  keywords:
+  - SOP
+  - IA
+  - gobernanza
+- id: doc_000116
+  title: extract deep reasoning
+  summary: El Monstruo requiere depuración arquitectónica y selección cuidadosa de
+    herramientas para su evolución efectiva.
+  keywords:
+  - arquitectura
+  - stack tecnológico
+  - simplificación
+- id: doc_000140
+  title: Taxonomía de Capacidades y Combinaciones Sinérgicas
+  summary: Taxonomía de capacidades que permite al agente combinar herramientas para
+    crear sinergias efectivas en tareas complejas.
+  keywords:
+  - Taxonomía de Capacidades
+  - sinergias
+  - herramientas
+- id: doc_000525
+  title: Pasted content 32
+  summary: Evaluación de 60 herramientas para El Monstruo v2.0, destacando 21 adoptadas
+    por su bajo costo y efectividad.
+  keywords:
+  - herramientas
+  - evaluación
+  - Monstruo v2.0
+- id: doc_000003
+  title: 03 consolidacion evolucion perpetua 24IAs
+  summary: La consulta a 24 IAs revela la necesidad de una nueva capa arquitectónica
+    para El Monstruo v2.0, denominada 'Maduración Operativa Continua'.
+  keywords:
+  - Evolución Perpetua
+  - Maduración Operativa Continua
+  - IA
+- id: doc_000536
+  title: Pasted content 37
+  summary: Investigación sobre soluciones existentes para El Monstruo v2.0, priorizando
+    evidencia real y madurez.
+  keywords:
+  - IA
+  - infraestructura
+  - soluciones existentes
+- id: doc_000142
+  title: Investigación de Candidatos para Construir El Monstruo
+  summary: Investigación de candidatos para construir El Monstruo, incluyendo agentes
+    autónomos y herramientas de automatización.
+  keywords:
+  - Manus AI
+  - agentes autónomos
+  - automatización
+- id: doc_000575
+  title: EL MONSTRUO — PAQUETE DE CONTEXTO COMPLETO PARA EVALUACIÓN
+  summary: Evaluación del ecosistema El Monstruo revela madurez doctrinal alta y brechas
+    en implementación y operatividad.
+  keywords:
+  - ecosistema
+  - El Monstruo
+  - madurez doctrinal
+- id: doc_000115
+  title: RAZONAMIENTOS CRITICOS
+  summary: El documento resume 143 momentos críticos sobre la evolución arquitectónica
+    de 'El Monstruo', priorizando depuración y modularidad en su desarrollo.
+  keywords:
+  - arquitectura
+  - simplificación
+  - modularidad
+- id: doc_000118
+  title: 00 PROMPT PROGRAMATICO DEFINITIVO
+  summary: El Monstruo v2.0 busca consolidar un sistema operativo cognitivo soberano,
+    integrando modelos y herramientas en un ecosistema gobernable y continuo.
+  keywords:
+  - El Monstruo
+  - soberanía operativa
+  - continuidad
+- id: doc_000518
+  title: INVENTARIO EXHAUSTIVO DEL HILO
+  summary: Inventario exhaustivo de archivos relacionados con auditoría, arquitectura
+    y consultas en el ecosistema Manus.
+  keywords:
+  - auditoría
+  - suscripciones
+  - arquitectura
+- id: doc_000126
+  title: CHATGPT 08 Bitacora de cambios Monstruo
+  summary: Registro de cambios en documentos fundacionales del proyecto Monstruo,
+    incluyendo creaciones y consolidaciones de archivos clave.
+  keywords:
+  - Monstruo
+  - documentos fundacionales
+  - cambios
+- id: doc_000102
+  title: ÍNDICE DE REUBICACIÓN — MANUS × MONSTRUO
+  summary: Índice de reubicación de 81 archivos del ecosistema Monstruo, con detalles
+    de ubicación, tipo y estado.
+  keywords:
+  - reubicación
+  - Monstruo
+  - archivos
+- id: doc_000114
+  title: ENTREGABLE 1 — HALLAZGOS PREVIOS A LA REDACCIÓN
+  summary: El corpus presenta una doctrina estable pero fragmentada, con contradicciones
+    y vacíos que requieren resolución y documentación formalizada.
+  keywords:
+  - doctrina
+  - contradicciones
+  - vacíos
+- id: doc_000136
+  title: CHATGPT 16 Reflexiones clave Monstruo
+  summary: Reflexiones clave sobre el SOP y la mejora continua de IAs en el ecosistema
+    El Monstruo.
+  keywords:
+  - SOP
+  - mejora continua
+  - IA

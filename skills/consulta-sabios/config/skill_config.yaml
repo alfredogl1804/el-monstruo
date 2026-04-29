@@ -1,0 +1,161 @@
+# ═══════════════════════════════════════════════════════════════
+# skill_config.yaml — Configuración centralizada de consulta-sabios
+# Versión: 1.3.0
+# Fecha: 2026-04-16
+# ═══════════════════════════════════════════════════════════════
+
+version: "2.2.0"
+
+# ─── Modos de consulta ────────────────────────────────────────
+modos:
+  enjambre:
+    sabios: [gpt54, claude, gemini, grok, deepseek, perplexity]
+    paralelo: true
+    descripcion: "6 sabios en paralelo — default"
+  consejo:
+    sabios: [gpt54, claude, gemini, grok]
+    paralelo: true
+    descripcion: "Solo sabios de 1M+ contexto"
+  iterativo:
+    sabios: [gpt54, claude, gemini, grok, deepseek, perplexity]
+    paralelo: false
+    descripcion: "Secuencial, cada sabio ve respuestas anteriores"
+
+modo_default: enjambre
+
+# ─── Profundidad de investigación ─────────────────────────────
+profundidad:
+  rapida:
+    temas_pre: 8
+    afirmaciones_post: 10
+  normal:
+    temas_pre: 15
+    afirmaciones_post: 20
+  profunda:
+    temas_pre: 25
+    afirmaciones_post: 35
+
+profundidad_default_pre: normal
+profundidad_default_post: normal
+
+# ─── Timeouts (segundos) ─────────────────────────────────────
+timeouts:
+  ping: 15
+  sabio_individual: 300
+  investigacion_tema: 30
+  validacion_afirmacion: 30
+  condensacion: 120
+  sintesis: 300
+
+# ─── Concurrencia ────────────────────────────────────────────
+concurrencia:
+  perplexity_max_paralelo: 4
+  sabios_max_paralelo: 6
+  investigacion_max_paralelo: 4
+
+# ─── Quality Gate ────────────────────────────────────────────
+quality_gate:
+  umbral_excellent: 0.85
+  umbral_ok: 0.60
+  umbral_poor: 0.40
+  # Respuestas con score < umbral_poor se excluyen de síntesis
+  excluir_reject: true
+  pesos:
+    length: 0.15
+    structure: 0.20
+    evasion: 0.20
+    density: 0.15
+    alignment: 0.20
+    repetition: 0.10
+
+# ─── Presupuesto de contexto (caracteres) ────────────────────
+contexto:
+  # Umbral para activar condensación
+  umbral_condensacion: 100000
+  # Máximo de caracteres para prompt condensado
+  max_chars_condensado: 30000
+  # Presupuesto por sabio (chars)
+  presupuesto_por_sabio:
+    gpt54: 3500000      # ~1.05M tokens
+    claude: 3300000      # ~1M tokens
+    gemini: 3300000      # ~1M tokens
+    grok: 6600000        # ~2M tokens
+    deepseek: 420000     # ~128K tokens
+    perplexity: 420000   # ~128K tokens
+
+# ─── Síntesis ────────────────────────────────────────────────
+sintesis:
+  orquestador_primario: gpt54
+  fallback_chain: [gpt54, claude, grok]
+  inyectar_validacion: true
+  prompt_version: "v1"
+
+# ─── Validación Post-Síntesis (Paso 7) ───────────────────────────────────
+paso7:
+  habilitado: true
+  profundidad_default: normal
+  correccion_automatica: true
+  # Verificadores (NO usa Perplexity para evitar dependencia circular)
+  extractor: grok           # Extrae afirmaciones (evita auto-eval de GPT-5.4)
+  extractor_fallback: claude
+  verificador_primario: gemini    # Verifica con Google Search grounding
+  segunda_opinion: grok           # Solo para riesgo alto con problemas
+  cross_validator: claude         # Compara síntesis vs informe (neutral)
+  corrector: gpt54                # Corrige la síntesis (mejor editor)
+  corrector_fallback: claude
+  # Umbrales para activar corrección automática
+  umbral_problemas_para_corregir: 3
+  umbral_graves_ignoradas: 1
+  umbral_score_incorporacion: 0.6
+  # Timeouts
+  timeout_extraccion: 120
+  timeout_verificacion: 60
+  timeout_cross_validation: 120
+  timeout_correccion: 300
+  # Concurrencia de verificaciones
+  max_verificaciones_paralelas: 3
+
+# ─── Telemetría ──────────────────────────────────────────────────────
+telemetria:
+  habilitada: true
+  storage_backend: "jsonl"  # jsonl | sqlite | supabase
+  sqlite_path: "data/analytics.db"
+  supabase_sync: false
+  supabase_table_prefix: "sabios_"
+
+# ─── Caché ───────────────────────────────────────────────────
+cache:
+  habilitado: true
+  ttl_horas: 24
+  max_entries: 500
+  directorio: "data/cache"
+
+# ─── Retención y privacidad ──────────────────────────────────
+retencion:
+  dias_retencion_runs: 90
+  dias_retencion_history: 365
+  anonimizar_pii: true
+  excluir_campos_sensibles: [api_key, token, password, secret]
+  cifrar_en_reposo: false  # Fase futura
+
+# ─── Experimentación ────────────────────────────────────────
+experimentacion:
+  habilitada: true
+  min_runs_para_evaluar: 30
+  criterios_aceptacion:
+    mejora_validation_pass_rate: 0.05   # ≥ 5%
+    max_aumento_costo: 0.10             # ≤ 10%
+    max_aumento_latencia: 0.15          # ≤ 15%
+    min_sabios_exitosos: 4
+
+# ─── Routing adaptativo ─────────────────────────────────────
+routing:
+  habilitado: false  # Se activa cuando hay suficientes datos
+  min_runs_para_activar: 50
+  tipos_consulta:
+    tecnica: [gpt54, claude, deepseek]
+    regulatoria: [gpt54, claude, perplexity]
+    estrategica: [gpt54, gemini, grok]
+    creativa: [claude, gemini, grok]
+    investigacion: [perplexity, gpt54, gemini]
+  fallback_universal: [gpt54, claude]

@@ -1,0 +1,122 @@
+# Arsenal: Cloudflare — Gateway a Infraestructura Edge Global
+# Última actualización: 2026-04-08
+# Credencial: env:CLOUDFLARE_API_TOKEN (activa en sandbox)
+# Dashboard: https://dash.cloudflare.com
+
+connector: cloudflare
+type: gateway
+ecosystem_size: "15+ productos cloud"
+credential_ref: env:CLOUDFLARE_API_TOKEN
+base_url: https://api.cloudflare.com/client/v4
+
+categories:
+
+  compute:
+    description: "Compute serverless en 200+ ciudades"
+    services:
+      - id: workers
+        name: Cloudflare Workers
+        best_for: [serverless_functions, edge_compute, API_endpoints, middleware]
+        triggers: [edge_function, serverless, api_endpoint_rapido, middleware]
+        pricing: "Free: 100K req/día. Paid: $5/mes + $0.50/M req"
+        note: "JavaScript/TypeScript/Rust/Python. Deploy en segundos."
+        priority: top
+
+      - id: pages
+        name: Cloudflare Pages
+        best_for: [static_sites, JAMstack, frontend_deploy, preview_deploys]
+        triggers: [deploy_estatico, landing_page, frontend, JAMstack]
+        pricing: "Free: 500 builds/mes. Pro: $20/mes"
+        note: "Integración directa con GitHub"
+        priority: high
+
+      - id: durable_objects
+        name: Durable Objects
+        best_for: [stateful_serverless, websockets, collaboration, gaming]
+        triggers: [estado_persistente, websocket, colaboracion_tiempo_real]
+        pricing: "Included in Workers Paid"
+
+  storage:
+    description: "Almacenamiento cloud"
+    services:
+      - id: r2
+        name: Cloudflare R2
+        best_for: [object_storage, S3_compatible, zero_egress, media_storage]
+        triggers: [almacenar_archivos, S3_barato, media_storage, zero_egress]
+        pricing: "Free: 10GB. Paid: $0.015/GB/mes. ZERO egress fees"
+        note: "S3-compatible API. Sin costos de egress — enorme ventaja vs AWS S3"
+        priority: top
+
+      - id: kv
+        name: Workers KV
+        best_for: [key_value_store, config, cache, feature_flags]
+        triggers: [cache_global, key_value, configuracion_distribuida]
+        pricing: "Free: 100K reads/día"
+
+      - id: d1
+        name: Cloudflare D1
+        best_for: [SQLite_serverless, edge_database, lightweight_db]
+        triggers: [base_datos_ligera, sqlite_cloud, edge_database]
+        pricing: "Free: 5M rows read/día"
+        note: "SQLite en el edge. Ideal para apps ligeras."
+
+  ai:
+    description: "IA en el edge"
+    services:
+      - id: workers_ai
+        name: Workers AI
+        best_for: [inference_edge, LLM_local, image_generation, embeddings]
+        triggers: [ia_edge, inferencia_local, embeddings_baratos, llm_serverless]
+        pricing: "Free: 10K neurons/día. Paid: varies"
+        note: "50+ modelos incluyendo Kimi K2.5, LLaMA, Mistral, Stable Diffusion"
+        priority: high
+        available_models:
+          - "moonshotai/kimi-k2.5 (coding, agentic)"
+          - "meta/llama-3.3-70b-instruct (general)"
+          - "mistral/mistral-7b-instruct (fast, multilingual)"
+          - "stabilityai/stable-diffusion-xl (image gen)"
+          - "baai/bge-base-en-v1.5 (embeddings)"
+
+      - id: ai_gateway
+        name: AI Gateway
+        best_for: [api_proxy, rate_limiting, caching, logging, fallbacks]
+        triggers: [proxy_ia, cache_llm, rate_limit_ia, logging_ia]
+        pricing: "Free: 100K logs/día"
+        note: "Proxy para OpenAI/Anthropic/etc. con cache, retry, analytics"
+
+      - id: vectorize
+        name: Vectorize
+        best_for: [vector_database, RAG, semantic_search, embeddings_store]
+        triggers: [vector_db, RAG, busqueda_semantica, embeddings]
+        pricing: "Free: 5M vectors queried/mes"
+
+  security_and_network:
+    description: "Seguridad y red"
+    services:
+      - id: dns
+        name: Cloudflare DNS
+        best_for: [domain_management, DNS_records, fast_resolution]
+        triggers: [gestionar_dominio, DNS, registros_DNS]
+        pricing: "Free"
+        priority: high
+
+      - id: ssl_tls
+        name: SSL/TLS
+        best_for: [https, certificates, encryption]
+        triggers: [certificado_ssl, https, encriptacion]
+        pricing: "Free"
+
+      - id: waf
+        name: Web Application Firewall
+        best_for: [security, ddos_protection, bot_management]
+        triggers: [proteccion_ddos, firewall, seguridad_web]
+        pricing: "Pro: $20/mes"
+
+routing_hints:
+  deploy_api: "Workers (serverless) o Pages (estático)"
+  store_files: "R2 (zero egress, S3-compatible)"
+  edge_database: "D1 (SQLite) o KV (key-value)"
+  ai_inference: "Workers AI (50+ modelos, edge)"
+  cache_ai_calls: "AI Gateway (proxy + cache)"
+  vector_search: "Vectorize (RAG, embeddings)"
+  domain_management: "DNS + SSL/TLS (free)"

@@ -1,0 +1,101 @@
+# CIDP Configuration — validated 2026-04-16
+# Ciclo de Investigación y Descubrimiento Perpetuo
+
+general:
+  name: cidp
+  version: "1.0.0"
+  max_iterations: 10
+  default_budget_usd: 50.0
+  convergence_threshold: 0.8
+  min_evidence_score: 0.6
+
+orchestrator:
+  primary_model: gpt54
+  fallback_models: [claude, grok]
+  system_prompt_path: config/orchestrator_system.md
+  max_context_tokens: 128000  # Conservative, not relying on 1M experimental
+  summary_strategy: hierarchical  # permanent -> working -> historical
+
+sabios:
+  calibration_required: true
+  calibration_interval_hours: 168  # Weekly recalibration
+  roles:
+    gpt54:
+      primary: [orchestration, synthesis, planning]
+      secondary: [architecture, strategy]
+    claude:
+      primary: [architecture, code_quality, anti_autoboicot_patterns]
+      secondary: [documentation, legal_review]
+    gemini:
+      primary: [verification, ux_vision, grounding]
+      secondary: [evaluation, accessibility]
+    grok:
+      primary: [contrarian_review, strategy, risk_analysis]
+      secondary: [product_design, market_analysis]
+    deepseek:
+      primary: [optimization, code_generation, cost_analysis]
+      secondary: [performance, algorithms]
+    perplexity:
+      primary: [realtime_research, market_intelligence, pricing]
+      secondary: [factual_grounding, trend_analysis]
+
+validation:
+  anti_autoboicot: true
+  min_sources_per_claim: 2
+  freshness_max_days: 30
+  quarantine_threshold: 3  # Claims quarantined after 3 failed verifications
+  contradiction_resolution: evidence_weighted
+
+memory:
+  backend: sqlite
+  db_path: data/cidp_memory.db
+  working_memory_max_tokens: 50000
+  history_compression_ratio: 0.2
+  facts_ttl_days: 90
+
+gpu_broker:
+  enabled: false
+  default_budget_usd: 100.0
+  providers:
+    vastai:
+      enabled: true
+      priority: 1
+      api_base: "https://console.vast.ai/api/v0"
+    runpod:
+      enabled: true
+      priority: 2
+      api_base: "https://api.runpod.io/v2"
+  selection_policy:
+    weight_price: 0.4
+    weight_availability: 0.25
+    weight_reliability: 0.2
+    weight_preemption_risk: 0.15
+  cost_guardrails:
+    max_hourly_usd: 10.0
+    auto_teardown_idle_minutes: 30
+
+convergence:
+  gates:
+    - name: scope_gate
+      stage: intake
+      criteria: "Scope defined, metrics set, budget approved"
+    - name: evidence_gate
+      stage: research
+      criteria: "Min 70% dimensions covered with confidence > 0.6"
+    - name: validation_gate
+      stage: validation
+      criteria: "Min 80% claims verified, 0 critical contradictions"
+    - name: build_gate
+      stage: build
+      criteria: "Specs complete, tests defined, resources available"
+    - name: convergence_gate
+      stage: convergence
+      criteria: "10x score improved, risk acceptable, budget within limits"
+
+telemetry:
+  enabled: true
+  output_dir: data/telemetry
+  track_tokens: true
+  track_cost: true
+  track_convergence: true
+  track_time: true

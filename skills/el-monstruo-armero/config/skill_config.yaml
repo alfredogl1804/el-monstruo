@@ -1,0 +1,38 @@
+name: el-monstruo-armero
+version: "1.0"
+description: >
+  Arsenal futuro pre-investigado para construir El Monstruo.
+  Herramientas, frameworks, APIs y configuraciones listas para inyectar
+  cuando se construya el Monstruo real (Sprint 1+).
+category: core_project
+triggers:
+  - construir el monstruo
+  - build monstruo
+  - sprint 1 monstruo
+  - arsenal monstruo
+  - herramientas monstruo
+  - stack monstruo
+depends_on:
+  - api-context-injector
+  - el-monstruo
+  - el-monstruo-plan
+feeds_into:
+  - El hilo que construya El Monstruo real
+files:
+  skill_md: SKILL.md
+  build_stack:
+    - references/build_stack/langgraph.yaml
+    - references/build_stack/litellm.yaml
+    - references/build_stack/mem0_memory.yaml
+    - references/build_stack/langfuse.yaml
+    - references/build_stack/firecrawl.yaml
+    - references/build_stack/console_web.yaml
+    - references/build_stack/complementary_tools.yaml
+  embeddings:
+    - references/embeddings/embedding_models.yaml
+  templates:
+    - templates/sprint1/architecture_skeleton.py
+    - templates/sprint1/env_template.yaml
+    - templates/sprint1/requirements.txt
+last_verified: "2026-04-09"
+ttl_days: 30

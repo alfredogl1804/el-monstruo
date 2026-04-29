@@ -1,0 +1,115 @@
+# LangGraph — Kernel de Orquestación del Monstruo
+# Investigado: 2026-04-09 | TTL: 30 días
+# Fuente: gurusup.com, langchain.com, scylladb.com, towardsai.net
+
+identity:
+  name: LangGraph
+  role: kernel_orquestacion
+  version_target: "1.1.6"
+  pip_install: "langgraph==1.1.6"
+  license: MIT
+  repo: "https://github.com/langchain-ai/langgraph"
+  docs: "https://langchain-ai.github.io/langgraph/"
+  monthly_searches: 27100
+  ranking: "#1 multi-agent framework 2026"
+
+why_chosen: |
+  LangGraph es el estándar de producción para orquestación de agentes en 2026.
+  Modela workflows como grafos dirigidos con estado tipado. Cada nodo es un agente
+  o función, cada edge define transiciones (incluyendo routing condicional).
+  Es model-agnostic: diferentes LLMs en diferentes nodos (exactamente lo que
+  El Monstruo necesita con sus 6 cerebros).
+
+key_features:
+  checkpointing: |
+    Cada transición de estado se persiste automáticamente.
+    Permite: time-travel debugging, human-in-the-loop (pausar grafo,
+    esperar input humano, resumir), y crash recovery.
+  sub_graphs: |
+    Un grafo completo puede ser un nodo dentro de un grafo padre.
+    Ideal para El Monstruo: grafo principal → sub-grafos por dominio.
+  streaming: "Token streaming desde cualquier nodo del grafo"
+  model_agnostic: "Diferentes LLM providers en diferentes nodos"
+  state_management: "Estado tipado compartido que fluye por el grafo"
+
+env_vars_needed: []  # LangGraph no necesita API key propia
+
+integration_with_monstruo:
+  pattern: |
+    El Monstruo como grafo principal:
+    - Nodo clasificador (GPT-5.4) → determina intent
+    - Edge condicional → ruta a sub-grafo especializado
+    - Sub-grafo investigación (Perplexity + Grok)
+    - Sub-grafo análisis (DeepSeek + Claude)
+    - Sub-grafo creativo (Gemini + GPT-5.4)
+    - Nodo sintetizador (GPT-5.4) → respuesta final
+    - Checkpoint en cada transición → crash recovery
+
+  code_skeleton: |
+    from langgraph.graph import StateGraph, END
+    from typing import TypedDict, Annotated
+    import operator
+
+    class MonstruoState(TypedDict):
+        messages: Annotated[list, operator.add]
+        intent: str
+        cerebro_activo: str
+        memoria_contexto: list
+        resultado: str
+
+    graph = StateGraph(MonstruoState)
+
+    # Nodos
+    graph.add_node("clasificador", clasificar_intent)
+    graph.add_node("investigar", sub_grafo_investigacion)
+    graph.add_node("analizar", sub_grafo_analisis)
+    graph.add_node("crear", sub_grafo_creativo)
+    graph.add_node("sintetizar", sintetizar_respuesta)
+
+    # Edges condicionales
+    graph.add_conditional_edges(
+        "clasificador",
+        router_por_intent,
+        {
+            "investigacion": "investigar",
+            "analisis": "analizar",
+            "creativo": "crear",
+            "directo": "sintetizar"
+        }
+    )
+
+    # Todos convergen en sintetizador
+    graph.add_edge("investigar", "sintetizar")
+    graph.add_edge("analizar", "sintetizar")
+    graph.add_edge("crear", "sintetizar")
+    graph.add_edge("sintetizar", END)
+
+    graph.set_entry_point("clasificador")
+    app = graph.compile(checkpointer=MemorySaver())
+
+  persistence_backend: |
+    # Para producción, usar Supabase como checkpointer:
+    # pip install langgraph-checkpoint-postgres
+    from langgraph.checkpoint.postgres import PostgresSaver
+    checkpointer = PostgresSaver.from_conn_string(
+        os.environ["SUPABASE_POSTGRES_URL"]
+    )
+    app = graph.compile(checkpointer=checkpointer)
+
+alternatives_evaluated:
+  crewai:
+    verdict: "Descartado — sin checkpointing, control limitado"
+    searches: 14800
+  autogen_ag2:
+    verdict: "Descartado — costoso en tokens (20+ LLM calls por debate)"
+  openai_agents_sdk:
+    verdict: "Descartado — locked to OpenAI, sin portabilidad"
+  google_adk:
+    verdict: "Descartado — ecosistema inmaduro, cloud-native only"
+  claude_agent_sdk:
+    verdict: "Descartado — locked to Claude, ligero en orquestación"
+
+security_notes:
+  - "LangGraph es MIT license — sin restricciones"
+  - "No tiene vulnerabilidades conocidas a abril 2026"
+  - "Checkpointer persiste estado — asegurar que Supabase tenga RLS habilitado"

@@ -1,0 +1,116 @@
+[
+  {
+    "sabio_id": "gpt54",
+    "grade": "ok",
+    "score": 1.0,
+    "subscores": {
+      "length": 1.0,
+      "structure": 1.0,
+      "evasion": 1.0,
+      "density": 1.0,
+      "alignment": 1.0,
+      "repetition": 1.0
+    },
+    "reasons": [
+      "Respuesta de calidad aceptable"
+    ],
+    "recommendation": "include",
+    "chars": 20589,
+    "words": 2675
+  },
+  {
+    "sabio_id": "claude",
+    "grade": "ok",
+    "score": 1.0,
+    "subscores": {
+      "length": 1.0,
+      "structure": 1.0,
+      "evasion": 1.0,
+      "density": 1.0,
+      "alignment": 1.0,
+      "repetition": 1.0
+    },
+    "reasons": [
+      "Respuesta de calidad aceptable"
+    ],
+    "recommendation": "include",
+    "chars": 50382,
+    "words": 5325
+  },
+  {
+    "sabio_id": "gemini",
+    "grade": "ok",
+    "score": 0.998,
+    "subscores": {
+      "length": 1.0,
+      "structure": 1.0,
+      "evasion": 1.0,
+      "density": 1.0,
+      "alignment": 0.983,
+      "repetition": 1.0
+    },
+    "reasons": [
+      "Respuesta de calidad aceptable"
+    ],
+    "recommendation": "include",
+    "chars": 7673,
+    "words": 1061
+  },
+  {
+    "sabio_id": "grok",
+    "grade": "ok",
+    "score": 0.956,
+    "subscores": {
+      "length": 1.0,
+      "structure": 1.0,
+      "evasion": 1.0,
+      "density": 1.0,
+      "alignment": 0.707,
+      "repetition": 1.0
+    },
+    "reasons": [
+      "Respuesta de calidad aceptable"
+    ],
+    "recommendation": "include",
+    "chars": 6238,
+    "words": 769
+  },
+  {
+    "sabio_id": "deepseek",
+    "grade": "ok",
+    "score": 0.978,
+    "subscores": {
+      "length": 1.0,
+      "structure": 1.0,
+      "evasion": 1.0,
+      "density": 1.0,
+      "alignment": 0.851,
+      "repetition": 1.0
+    },
+    "reasons": [
+      "Respuesta de calidad aceptable"
+    ],
+    "recommendation": "include",
+    "chars": 9155,
+    "words": 1077
+  },
+  {
+    "sabio_id": "perplexity",
+    "grade": "ok",
+    "score": 0.903,
+    "subscores": {
+      "length": 1.0,
+      "structure": 1.0,
+      "evasion": 1.0,
+      "density": 1.0,
+      "alignment": 0.354,
+      "repetition": 1.0
+    },
+    "reasons": [
+      "Respuesta de calidad aceptable"
+    ],
+    "recommendation": "include",
+    "chars": 2123,
+    "words": 294
+  }
+]

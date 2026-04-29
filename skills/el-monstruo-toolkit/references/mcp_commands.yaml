@@ -1,0 +1,85 @@
+# El Monstruo — Comandos MCP Listos para Copiar
+# Última verificación: 2026-04-09
+
+mcp_servers:
+  notion:
+    uso_monstruo: "Leads DB, dashboard operativo, conocimiento"
+    comandos:
+      buscar: |
+        manus-mcp-cli tool call notion-search --server notion --input '{"query": "TERMINO"}'
+      leer_pagina: |
+        manus-mcp-cli tool call notion-fetch --server notion --input '{"pageId": "PAGE_ID"}'
+      crear_pagina: |
+        manus-mcp-cli tool call notion-create-page --server notion --input '{"title": "TITULO", "parentId": "PARENT_ID", "content": "CONTENIDO"}'
+      actualizar: |
+        manus-mcp-cli tool call notion-update-page --server notion --input '{"pageId": "PAGE_ID", "content": "CONTENIDO"}'
+      listar_tools: |
+        manus-mcp-cli tool list --server notion
+
+  supabase:
+    uso_monstruo: "Memoria semántica, estado, vector search, corpus"
+    comandos:
+      listar_proyectos: |
+        manus-mcp-cli tool call list_projects --server supabase
+      listar_tablas: |
+        manus-mcp-cli tool call list_tables --server supabase --input '{"project_id": "xsumzuhwmivjgftsneov"}'
+      ejecutar_sql: |
+        manus-mcp-cli tool call execute_sql --server supabase --input '{"project_id": "xsumzuhwmivjgftsneov", "query": "SELECT * FROM monstruo_memory LIMIT 5"}'
+      listar_tools: |
+        manus-mcp-cli tool list --server supabase
+
+  gmail:
+    uso_monstruo: "Enviar emails desde el bot, notificaciones"
+    comandos:
+      listar_tools: |
+        manus-mcp-cli tool list --server gmail
+
+  google-calendar:
+    uso_monstruo: "Gestionar agenda de Alfredo, programar reuniones"
+    comandos:
+      listar_tools: |
+        manus-mcp-cli tool list --server google-calendar
+
+  asana:
+    uso_monstruo: "Gestión de tareas y proyectos"
+    comandos:
+      listar_tools: |
+        manus-mcp-cli tool list --server asana
+
+  zapier:
+    uso_monstruo: "Automatizaciones cross-app (8000+ apps)"
+    comandos:
+      listar_tools: |
+        manus-mcp-cli tool list --server zapier
+
+  vercel:
+    uso_monstruo: "Deploy consola web Sprint 1"
+    comandos:
+      listar_proyectos: |
+        manus-mcp-cli tool call list-projects --server vercel
+      listar_tools: |
+        manus-mcp-cli tool list --server vercel
+
+  instagram:
+    uso_monstruo: "Publicar contenido automatizado"
+    comandos:
+      listar_tools: |
+        manus-mcp-cli tool list --server instagram
+
+  outlook-mail:
+    uso_monstruo: "Email corporativo"
+    comandos:
+      listar_tools: |
+        manus-mcp-cli tool list --server outlook-mail
+
+  paypal-for-business:
+    uso_monstruo: "Pagos, facturas, suscripciones"
+    comandos:
+      listar_tools: |
+        manus-mcp-cli tool list --server paypal-for-business
+
+  revenuecat:
+    uso_monstruo: "Gestión de suscripciones de apps"
+    comandos:
+      listar_tools: |
+        manus-mcp-cli tool list --server revenuecat

@@ -1,0 +1,86 @@
+# Firecrawl — Web Scraping para RAG del Monstruo
+# Investigado: 2026-04-09 | TTL: 30 días
+# Fuente: firecrawl.dev, scribehow.com, alterlab.io
+
+identity:
+  name: Firecrawl
+  role: web_scraping_rag
+  version_target: "latest"
+  pip_install: "firecrawl-py"
+  license: AGPL-3.0 (self-hosted) / SaaS
+  repo: "https://github.com/mendableai/firecrawl"
+  docs: "https://docs.firecrawl.dev/"
+  mcp_server: "firecrawl-mcp-server"
+
+why_chosen: |
+  Firecrawl convierte cualquier URL en Markdown limpio, ideal para RAG.
+  El Monstruo necesita ingestar contenido web para investigación.
+  Free tier (500 credits) suficiente para Sprint 1.
+  MCP server disponible para integración directa.
+
+env_vars_needed:
+  - name: FIRECRAWL_API_KEY
+    description: "API key de Firecrawl"
+    required: false  # Solo si usa API directa, no MCP
+    available_in_sandbox: false
+    create_how: "Registrarse en firecrawl.dev → Dashboard → API Keys"
+
+pricing:
+  free: "500 credits one-time, 2 concurrent"
+  hobby: "$16/mo, 3000 credits"
+  standard: "$49/mo, 50K credits"
+  note: "1 scrape = 1 credit típicamente"
+
+integration_with_monstruo:
+  via_mcp: |
+    # Usar Firecrawl MCP (si está configurado):
+    manus-mcp-cli tool call firecrawl_scrape \
+      --server firecrawl \
+      --input '{"url": "https://example.com", "format": "markdown"}'
+
+  via_api: |
+    from firecrawl import FirecrawlApp
+
+    app = FirecrawlApp(api_key=os.environ.get("FIRECRAWL_API_KEY"))
+
+    # Scrape una URL → Markdown limpio
+    result = app.scrape_url(
+        "https://example.com/article",
+        params={"formats": ["markdown"]}
+    )
+    markdown_content = result["markdown"]
+
+    # Crawl un sitio completo (para RAG masivo)
+    crawl_result = app.crawl_url(
+        "https://docs.example.com",
+        params={
+            "limit": 100,
+            "formats": ["markdown"],
+            "includePaths": ["/docs/*"]
+        }
+    )
+
+  in_rag_pipeline: |
+    # Pipeline: URL → Firecrawl → Markdown → Chunks → Embeddings → Supabase
+    def ingest_url_to_memory(url, user_id="system"):
+        # 1. Scrape
+        result = firecrawl.scrape_url(url, params={"formats": ["markdown"]})
+        markdown = result["markdown"]
+
+        # 2. Chunk (simple split por headers)
+        chunks = markdown.split("\n## ")
+
+        # 3. Embed y guardar
+        for chunk in chunks:
+            if len(chunk.strip()) > 50:
+                store_memory(chunk, user_id, metadata={"source": url})
+
+alternatives:
+  crawl4ai:
+    verdict: "Open source, gratis, pero menos confiable en JS-heavy sites"
+    pip: "crawl4ai"
+  apify:
+    verdict: "23K+ actors, más potente pero más complejo. Usar para escala"
+    env_var: "No disponible en sandbox"
+  bright_data:
+    verdict: "Enterprise, proxies premium. Overkill para Sprint 1"

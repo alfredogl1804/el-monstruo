@@ -1,0 +1,83 @@
+{
+  "investigacion_id": 3,
+  "nombre": "COSTOS REALES (NO OPTIMISTAS)",
+  "fecha_verificacion": "2026-04-24T17:53:21.404573",
+  "respuestas": [
+    {
+      "pregunta": "¿Cuánto cuesta un servidor para ERPNext + URY? (mínimo specs)",
+      "respuesta": "HTTPSConnectionPool(host='api.perplexity.ai', port=443): Max retries exceeded with url: /chat/completions (Caused by SSLError(SSLZeroReturnError(6, 'TLS/SSL connection has been closed (EOF) (_ssl.c:992)')))",
+      "atajos_detectados": 0,
+      "status": "error"
+    },
+    {
+      "pregunta": "¿Cuánto cuesta hosting en Railway vs DigitalOcean vs Hetzner para ERPNext?",
+      "respuesta": "HTTPSConnectionPool(host='api.perplexity.ai', port=443): Max retries exceeded with url: /chat/completions (Caused by SSLError(SSLZeroReturnError(6, 'TLS/SSL connection has been closed (EOF) (_ssl.c:992)')))",
+      "atajos_detectados": 0,
+      "status": "error"
+    },
+    {
+      "pregunta": "¿Cuánto cuesta Supabase REALMENTE para 5 sucursales con tráfico real?",
+      "respuesta": "**No es posible calcular un costo **exacto** y verificable para Supabase con 5 sucursales y \"tráfico real\", ya que los precios dependen de variables no especificadas como usuarios activos mensuales (MAU), tamaño de base de datos, egreso de datos, cómputo y funciones usadas.**[1][2]\n\n### Precios base de Supabase (2026, según fuentes oficiales y análisis):\n- **Plan Gratuito**: 0 $/mes. Incluye 500 MB base de datos, 50.000 MAU, 5 GB egreso.[2]\n- **Plan Pro** (recomendado para producción): **25 $/mes base** + 10 $ en créditos de cómputo. Incluye 8 GB base de datos, **100.000 MAU**, 250 GB egreso, 100 GB archivos. Excedentes: 0,125 $/GB disco, **0,00325 $/MAU extra**, **0,09 $/GB egreso extra**.[1][2]\n- **Plan Equipo**: **599 $/mes base** + uso. Para equipos con soporte prioritario.[1]\n- **Cómputo adicional** (por proyecto): Desde 10 $ (1 GB RAM / 2 núcleos) hasta 3.730 $ (16XL, 48 núcleos).[2]\n- **Funciones (Edge Functions)**: Pro incluye 2 millones invocaciones; excedentes 2 $/millón.[3]\n\n### Para 5 sucursales (5 proyectos):\n- **Costo mínimo (Plan Pro, uso dentro de cuotas)**: 5 × 25 $ = **125 $/mes** (sin excedentes).[1][2]\n- **Ejemplo con tráfico alto** (por [1], app popular en 1 proyecto): 599 $ (Equipo) + 61 $ cómputo + 5,25 $ disco (50 GB) + 1.300 $ (500.000 MAU) + 49,50 $ egreso (800 GB) = **~2.015 $/mes por proyecto**. Para 5: **~10.075 $/mes** (NO VERIFICADO para tu caso; solo ilustrativo).\n- Para 100.000 MAU exactos (1 proyecto): ~25-35 $/mes (base + cómputo mínimo).[1]\n\n**Recomendación**: Usa la calculadora oficial de Supabase (no detallada en resultados) o contacta ventas para estimado personalizado. Sin datos de tráfico (ej. MAU por sucursal, GB transferidos), cualquier cifra es **NO VERIFICADO**. Fuentes: [1] getaiperks.com (análisis 2026), [2] supabase.com/pricing (oficial).[1][2]",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Cuánto cuestan las API calls de DeepSeek + GPT-5.4 para 5 sucursales × 30 días?",
+      "respuesta": "**NO VERIFICADO.** No se puede calcular el costo exacto de las API calls de DeepSeek + GPT-5.4 para 5 sucursales × 30 días (150 sucursal-días), ya que la consulta no especifica el número de llamadas, tokens por llamada (entrada/salida), ni el volumen total consumido[1][2][3][4].\n\n### Precios verificados por millón de tokens (abril 2026):\n| Proveedor / Modelo | Entrada (por 1M tokens) | Salida (por 1M tokens) | Fuente |\n|--------------------|--------------------------|-------------------------|--------|\n| **DeepSeek-V4**   | $0.28 - $0.30 (cache miss)<br>$0.028 (cache hit) | $0.42 - $0.50 | [1][4] |\n| **GPT-5.4**       | $2.50 | $10.00 - $15.00 | [1][2][4] |\n\n- Ejemplo de [4]: 100 requests (2K system + 500 user input tokens; 1K output) cuestan ~$0.29 en DeepSeek-V4 (sin cache) vs. ~$3.75 en GPT-5.4.\n- Para estimar: multiplica tokens totales por tarifas. Ej. 1M tokens entrada/salida en DeepSeek-V4: ~$0.70 - $0.80; en GPT-5.4: ~$12.50 - $25.00[1][4].\n- Descuentos posibles: cache reduce entrada en DeepSeek (~10x más barato)[4]; tiers OpenAI suben precios >272K tokens/día[2]. Freemium inicial en DeepSeek (~5M tokens gratis)[1][6].",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Cuánto cuesta el dominio + SSL + CDN?",
+      "respuesta": "El costo de un **dominio + SSL + CDN** varía ampliamente según el proveedor, el tipo de SSL (gratuito o pago, DV/OV/EV, dominio único/wildcard) y si se incluyen promociones o paquetes de hosting, con rangos típicos de **10-100 €/año para opciones básicas** y hasta cientos de euros para premium[1][2][3][5][6].\n\n### Costos aproximados por componente (precios anuales en 2026, en € o $ equivalentes):\n- **Dominio**: No especificado directamente en resultados, pero comúnmente 10-15 €/año para .com/.es en registradores como DonDominio o IONOS (inferido de contexto de ventas combinadas)[3].\n- **SSL** (certificado de seguridad HTTPS):\n  | Tipo | Rango de precio | Ejemplos de proveedores |\n  |------|-----------------|-------------------------|\n  | Gratuito (DV, Let's Encrypt) | 0 € | Cloudflare, hosting incluidos[1] |\n  | DV dominio único | 3-100 € | DonDominio 8.95 €, IONOS 35 €, Sectigo 99 $[2][3][5] |\n  | Wildcard (subdominios) | 60-185 € | DonDominio 64.95 €, cdmon 184 €, IONOS 85 €[3][5][7] |\n  | OV/EV/Multidominio | 20-3.000 € | Sectigo 210-840 €, rangos generales[1][2] |\n- **CDN** (red de distribución de contenido):\n  | Proveedor | Precio mensual/anual |\n  |-----------|----------------------|\n  | OVHcloud Basic | 2.79 €/mes (suscripción anual)[6] |\n  | OVHcloud Security | 6.59 €/mes (incluye Basic)[6] |\n  | Cloudflare | Gratuito en plan básico; Pro/Business desde ~20 $/mes[10] |\n  | AWS CloudFront (SSL dedicado) | 600 USD/mes fijo por certificado[8] |\n\n**Paquetes combinados**: Proveedores como Cloudflare ofrecen **SSL + CDN gratuitos** en planes básicos[1][10]; hosting con OVH incluye CDN gratis en planes Performance[6]. Para estimación mínima verificada: dominio ~10 € + SSL gratuito + CDN 33 €/año (OVH) = ~43 €/año. Precios exactos dependen del proveedor; verifica sitios como DonDominio o IONOS para cotizaciones actuales[3][5][6]. NO VERIFICADO para dominios específicos sin proveedor nombrado.",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Cuánto cuesta el backup diario?",
+      "respuesta": "No hay un precio fijo único para un **backup diario**, ya que depende del proveedor, el volumen de datos, el tipo de recurso protegido y el modelo de facturación (generalmente por GiB/hora almacenado o gestionado).[1][2][6]\n\n### Precios clave de proveedores principales (en USD o EUR, sin IVA donde se indica):\n| Proveedor/Servicio | Detalle de precio | Notas[1][3][4][6][7] |\n|--------------------|-------------------|----------------------|\n| **Google Cloud Backup & DR** | Almacenamiento: 0,000061644 USD/GiB (largo plazo, estándar).<br>Gestión Cloud SQL: 0,000068493 USD/GiB-hora.<br>Gestión AlloyDB: 0,00010274 USD/GiB-hora. | Basado en consumo; ejemplo VMware: 331 USD/mes por nodo (24h x 30 días x 0,46 USD). |\n| **Backup365** | Backup diurno (09h-15h): 0 €/mes adicional.<br>Unidad mínima: 10 GB. | Horario estándar 15h-06h; contactar 900 831 135. |\n| **Llanos Cloud Backup** | 5 GB: 75 €/año.<br>10 GB: 115 €/año.<br>Acronis 250 GB: 180 €/año. | Gratuito con mantenimiento integral. |\n| **Datos101** | 1 TB: 6,95 € (precio promocional). | Para empresas; demo gratuita. |\n| **Azure Backup** | Variable por instancia/almacenamiento; usa calculadora oficial. | Estimación vía Microsoft Learn. |\n| **NAKIVO (Microsoft 365)** | Por licencia/usuario (suscripción anual). | Incluye licencias, almacenamiento y recuperación. |\n\nPara costos exactos, usa calculadoras de Google Cloud[1], Azure[6] o contacta proveedores. NO VERIFICADO para otros servicios sin detalles específicos en resultados.",
+      "atajos_detectados": 1,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Cuánto cuesta el desarrollo inicial (horas × tarifa)?",
+      "respuesta": "El **costo del desarrollo inicial (horas × tarifa)** varía según la complejidad de la app, el nivel del desarrollador y el modelo (freelance o agencia en España), con tarifas horarias entre **25€ y 120€/h** (sin IVA) en 2026[1][4][7].\n\n### Rangos típicos para desarrollo inicial (MVP o app básica):\n| Tipo de app | Horas estimadas | Tarifa/h (España) | Costo estimado (sin IVA) |\n|-------------|-----------------|-------------------|---------------------------|\n| **MVP/App básica** | 150-350 h | 25-80 €/h | 3.000-8.000 € (freelance) a 12.000-28.000 € (agencia)[4] |\n| **App complejidad media** | 350-700 h | 35-85 €/h | 7.000-20.000 € (básica) a 24.500-59.500 €[1][4] |\n\n- **Tarifas por experiencia (España, freelance)**: Junior (0-2 años): 25-40 €/h; Mid-level (2-5 años): 40-60 €/h; Senior (5-8 años): 60-85 €/h; Expert (+8 años): 85-120 €/h[1].\n- **Agencias locales**: 40-80 €/h, con equipos completos (diseño, QA)[4].\n- **Factores que afectan el costo**: Tecnología (ej. iOS/Android +10-15%[1]), ubicación (Madrid/Barcelona más caras[4]), IVA 21% (factura final +21%, ej. 52 €/h → 62,92 €/h[1]).\n- **Horas facturables reales**: 1.100-1.200/año, no 2.000[1].\n\nPara un cálculo preciso, multiplica horas estimadas por tarifa específica + IVA + gastos (cuota autónomos, IRPF)[1][2][6]. Ejemplo verificado: 200 h × 50 €/h = 10.000 € (sin IVA)[4]. NO VERIFICADO: Costos exactos sin detalles del proyecto (complejidad, stack tecnológico). Fuentes: Tarifas 2026 España[1][4][7].",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Cuánto cuesta el mantenimiento mensual?",
+      "respuesta": "El **coste de mantenimiento mensual de un coche en España ronda entre 75 € y 125 €**[2], aunque puede variar según el tipo de vehículo, antigüedad y uso.\n\nSi consideramos solo las revisiones, aceite y filtros, el coste mensual estimado es de **80 € a 125 €**[1]. Sin embargo, si incluyes otros gastos asociados como seguro, ITV, impuestos, neumáticos y combustible, el coste mensual total se sitúa entre **250 € y 505 €**[1].\n\nLa variación depende de varios factores[3]:\n- **Kilómetros anuales**: Con 15.000 km al año, el coste total mensual promedio es de aproximadamente **188 € a 367 €**\n- **Antigüedad del vehículo**: Los coches más antiguos requieren más mantenimiento y reparaciones\n- **Tipo de taller**: Los talleres multimarca suelen ser más económicos que los oficiales[4]\n\nPara una **planificación financiera más precisa**, considera que el mantenimiento anual medio se sitúa entre **900 € y 1.500 €**[1][2], lo que equivale a unos **75 € a 125 € mensuales** solo en mantenimiento básico.",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Cuánto cuesta OpenTable API (si tiene costo adicional)?",
+      "respuesta": "**NO VERIFICADO.** No hay información pública verificable sobre el costo específico de la **OpenTable API** en los resultados de búsqueda disponibles. \n\nLos resultados detallan precios de planes para restaurantes (Basic: $149/mes, Core: $299/mes, Pro: $499/mes, con fees por cover)[1][6][7], pero no especifican costos adicionales para acceso a la API. Se menciona que la integración API requiere partnerships empresariales[3], con posibles \"OpenTable API usage fees\" y costos de implementación (ej. $2,000/mes en ejemplos genéricos), sin cifras concretas[3]. \n\nPara datos exactos, consulta directamente con OpenTable vía https://www.opentable.com/restaurant-solutions/ o su documentación en https://docs.opentable.com[8]. Los precios de planes pueden variar (última actualización en algunos casos: 2022)[2].",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Cuál es el costo TOTAL mensual REAL vs el $1,187 MXN que dijimos?",
+      "respuesta": "**NO VERIFICADO.**\n\nNo hay datos en las fuentes proporcionadas sobre el **costo TOTAL mensual** de ningún servicio, producto o contexto específico (como renta, suscripción o gasto). Las fuentes solo muestran tasas de cambio actuales aproximadas:\n\n- 1 BRL ≈ **3.42 MXN** (Xe)[1], **3.36 MXN** (Wise)[5].\n- 1 MXN ≈ **0.29-0.30 BRL** (Revolut, Wise)[2][3][4].\n\nSin detalles del costo base en BRL (o equivalente) ni comisiones reales (ej. transferencias), no se puede calcular ni comparar con **$1,187 MXN**. Proporciona más datos verificables del gasto para un cálculo preciso.",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Cuál es el costo de setup inicial (one-time)?",
+      "respuesta": "**NO VERIFICADO.** \n\nLa consulta no especifica el servicio, proveedor o contexto (ej. hosting, software de control horario o plataforma concreta), por lo que no hay un costo de setup inicial único definido[1][2][3]. \n\nEjemplos de costos one-time setup en resultados de búsqueda:\n- Timenet: **60 €** de alta[4].\n- Control Laboral: **149 €** (rebajado a **99 €**)[4].\n- TodoAlojamiento: Equivalente al **primer mes de abono**, pagado una sola vez[3].\n- ClickBank: **$49.95** USD[2].\n- Medeora (on our server): **480 €** one-time[5].\n\nPara un valor exacto, proporciona más detalles del servicio y consulta directamente al proveedor con URLs como https://controlhorario.com/software/precio/ [4] o https://www.todoalojamiento.com/terminos-y-condiciones [3]. El \"one-time setup fee\" es un cobro único por activación o configuración inicial, no recurrente[1][2].",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Cuánto cuesta SoftRestaurant REALMENTE? (verificar $9,000-15,000)",
+      "respuesta": "SoftRestaurant cuesta **entre $650 y $1,158 MXN mensuales + IVA para licencias renta (Lite o Pro, según nodos y proveedor)**, o **$7,150-$12,747 MXN para anuales/perpetuas**, sin incluir instalación ($980-$19,890 MXN extra).[1][2][3]\n\n### Detalles por versión y proveedor (precios en MXN, 2025-2026):\n| Versión/Plan | Mensual (+IVA) | Anual/Perpetua (+IVA) | Nodos | Proveedor | Notas |\n|--------------|----------------|-----------------------|-------|-----------|-------|\n| **12 Lite** | $699 | No especificado | No detalla | softrestaurant.com[2] | Soporte y capacitación gratis. |\n| **12 Pro** | $999-$1,099 | No especificado | No detalla | softrestaurant.com[2] | Precio base. |\n| **11 Lite** | $650 | $7,150 | 2 | SYCA[3] | Solo licencia. |\n| **11 Pro** | $950 | $10,450 | 10 | SYCA[3] | Solo licencia. |\n| **11 Pro (10 nodos)** | $1,158.84 (IVA incl.) | $12,747.24 (IVA incl.) | 10 | nationalsoft.store[1] | Incluye Analytics/Delivery gratis; instalación aparte. |\n| **Paquete Estándar (instalación)** | - | $10,980 | - | SYCA[3] | +5 horas soporte. |\n| **Paquete Profesional** | - | $19,890 | - | SYCA[3] | +10 horas soporte. |\n\n- Rango general mensual: **$500-$1,158 MXN** (pequeños a 10 nodos).[5][1]\n- Anual PRO: **$11,540** (12 meses, pagas 10.5).[6]\n- **Verificación del rango $9,000-15,000**: Coincide con **anuales/perpetuas Pro ($10,450-$12,747) o paquetes con instalación ($10,980-$19,890)**, pero no con renta mensual básica ($650-$1,158).[1][3]\n- En España: **Gratis** (versión básica).[4]\n- Fuentes oficiales varían por revendedor; cotiza directamente para 2026. No verificado: precios exactos post-2026 o descuentos actuales.",
+      "atajos_detectados": 0,
+      "status": "ok"
+    }
+  ],
+  "evidencias": [],
+  "datos_numericos": [],
+  "conclusion": "",
+  "total_atajos": 1
+}

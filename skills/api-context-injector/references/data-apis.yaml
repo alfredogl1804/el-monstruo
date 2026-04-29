@@ -1,0 +1,134 @@
+# Data, Monitoring & Scraping APIs Registry
+# Última actualización: 2026-04-08
+# CORRECCIÓN: BrandMentions es el servicio principal ($499/mes), Mentionlytics también existe.
+# AGREGADO: Apify (scraping Facebook/Instagram, plan Starter $39/mes)
+
+providers:
+  bestbuy:
+    name: Best Buy Developer API
+    category: ecommerce_data
+    auth:
+      method: api_key
+      env_var_source: notion
+      endpoint: https://api.bestbuy.com/v1/
+      docs: https://bestbuyapis.github.io/api-documentation/
+    capabilities:
+      - product_search
+      - pricing
+      - inventory
+      - open_box
+    status: active
+    env_available: false
+    notion_id: 2fe14c6f8bba81b49c7acabdf0eeec23
+
+  keepa:
+    name: Keepa
+    category: price_tracking
+    auth:
+      method: credentials
+      env_var_source: notion
+      endpoint: https://keepa.com/#!api
+    capabilities:
+      - amazon_price_history
+      - price_alerts
+      - product_tracking
+    status: active
+    env_available: false
+    notion_id: 4c79205431d34af9baea50babb218de2
+
+  securitytrails:
+    name: SecurityTrails
+    category: security
+    auth:
+      method: api_key
+      env_var_source: notion
+      endpoint: https://api.securitytrails.com/v1/
+      header: apikey
+    capabilities:
+      - dns_records
+      - whois
+      - subdomains
+      - ip_history
+    status: active
+    env_available: false
+    notion_id: 31a14c6f8bba814e9073d4474faae1ee
+    tier: "Free - 50 queries/mes"
+
+  hibp:
+    name: Have I Been Pwned (HIBP)
+    category: security
+    auth:
+      method: api_key
+      env_var_source: notion
+      endpoint: https://haveibeenpwned.com/api/v3
+      header: hibp-api-key
+    capabilities:
+      - breach_check_email
+      - breach_check_domain
+      - paste_search
+    status: active
+    env_available: false
+    notion_id: 31a14c6f8bba81788c59d75eca482e3f
+
+  brandmentions:
+    name: BrandMentions
+    category: social_listening
+    auth:
+      method: api_key
+      env_var_source: notion
+      endpoint: https://api.brandmentions.com/v1/mentions
+      console: https://app.brandmentions.com
+    capabilities:
+      - mention_monitoring
+      - sentiment_analysis
+      - social_listening
+      - brand_monitoring
+      - competitor_tracking
+    status: active
+    env_available: false
+    notion_id: 2cd14c6f8bba81259bacd8d020db0fd6
+    cost_monthly: 499
+    plan: Expert con API
+
+  mentionlytics:
+    name: Mentionlytics
+    category: social_listening
+    auth:
+      method: api_key
+      env_var_source: notion
+      endpoint_v1: https://app.mentionlytics.com/api
+      endpoint_v2: https://api.mentionlytics.com/v2
+      docs: https://api.mentionlytics.com/v2/docs
+    capabilities:
+      - mention_monitoring
+      - sentiment_analysis
+      - social_listening
+      - brand_monitoring
+    status: active
+    env_available: false
+    notion_id: 2cd14c6f8bba81d09939c5382e4447e7
+
+  apify:
+    name: Apify
+    category: web_scraping
+    auth:
+      method: api_key
+      env_var_source: notion
+      console: https://console.apify.com
+    capabilities:
+      - web_scraping
+      - facebook_scraping
+      - instagram_scraping
+      - data_extraction
+      - automation
+      - actors_marketplace
+    use_cases:
+      - Scraping de Facebook e Instagram
+      - Extracción de datos web a escala
+      - Automatización de scraping
+      - Actors pre-construidos para múltiples plataformas
+    status: active
+    env_available: false
+    notion_id: 2cd14c6f8bba81fb9ededef256e32f96
+    cost_monthly: 39
+    plan: Scale

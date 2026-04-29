@@ -1,0 +1,55 @@
+{
+  "fecha": "2026-04-24",
+  "fuente": "investigacion_tiempo_real",
+  "tipo_cambio_usd_mxn": 17.0,
+  "componentes": {
+    "odoo_community_19": {
+      "licencia": "LGPL-3.0 (GRATIS)",
+      "hosting_self_hosted": "~$50 USD/mes en Hetzner (~$850 MXN/mes) para 10 usuarios",
+      "hosting_odoo_sh": "$72 USD/worker/mes",
+      "recomendacion": "Self-hosted en VPS (Hetzner/DigitalOcean) = $850 MXN/mes para 5 sucursales",
+      "costo_mensual_mxn": 850
+    },
+    "openai_gpt4o_mini": {
+      "modelo": "GPT-4o mini (mejor costo/beneficio para restaurante)",
+      "input": "$0.15/1M tokens",
+      "output": "$0.60/1M tokens",
+      "estimacion_restaurante": "~50K tokens/día × 30 = 1.5M tokens/mes",
+      "costo_mensual_usd": 1.5,
+      "costo_mensual_mxn": 26,
+      "nota": "GPT-4o mini es suficiente para sugerencias de restaurante. GPT-5 solo si se necesita razonamiento complejo."
+    },
+    "supabase": {
+      "plan": "Pro ($25 USD/mes/proyecto)",
+      "incluye": "100K MAUs, 8GB DB, 250GB bandwidth, daily backups",
+      "costo_mensual_usd": 25,
+      "costo_mensual_mxn": 425,
+      "nota": "Free tier suficiente para desarrollo. Pro para producción."
+    },
+    "grafana_cloud": {
+      "plan": "Free tier",
+      "incluye": "10K métricas, 50GB logs, 50GB traces, ML gratis",
+      "costo_mensual_usd": 0,
+      "costo_mensual_mxn": 0,
+      "nota": "Free tier es suficiente para 5 sucursales. Pro solo si escala a 50+."
+    },
+    "octotable": {
+      "plan_free": "30 reservas/mes + menú digital básico",
+      "plan_digimenu": "Reservas ilimitadas + menú avanzado",
+      "plan_premium": "Todo + CRM + marketing",
+      "costo_mensual_mxn": 0,
+      "nota": "Free tier para empezar. Se puede reemplazar con módulo de reservas de Odoo si no es suficiente."
+    }
+  },
+  "costo_total_mensual": {
+    "mxn": 1301,
+    "usd": 76.5,
+    "desglose": "Odoo hosting $850 + Supabase Pro $425 + OpenAI $26 + Grafana $0 + Octotable $0",
+    "vs_softrestaurant": "SoftRestaurant cuesta ~$9,000-15,000 MXN/mes para 5 sucursales",
+    "ahorro_mensual_mxn": "~$7,700-13,700 MXN/mes"
+  },
+  "costo_setup_unico": {
+    "mxn": 0,
+    "nota": "Todo es open source o SaaS con free tier. El setup lo hace el agente IA (Cursor + Claude Code)."
+  }
+}

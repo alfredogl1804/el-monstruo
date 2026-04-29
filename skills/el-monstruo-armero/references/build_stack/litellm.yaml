@@ -1,0 +1,140 @@
+# LiteLLM — Router Unificado de Modelos del Monstruo
+# Investigado: 2026-04-09 | TTL: 15 días (ALERTA SEGURIDAD ACTIVA)
+# Fuente: docs.litellm.ai, thehackernews.com, securityboulevard.com
+
+identity:
+  name: LiteLLM
+  role: router_modelos
+  version_target: "1.83.3"
+  pip_install: "litellm==1.83.3"
+  license: MIT
+  repo: "https://github.com/BerriAI/litellm"
+  docs: "https://docs.litellm.ai/"
+
+why_chosen: |
+  LiteLLM es un proxy unificado que permite llamar a 100+ LLM providers
+  con la misma interfaz OpenAI-compatible. El Monstruo necesita routing
+  dinámico entre 6 cerebros + modelos gratis de OpenRouter. LiteLLM
+  centraliza esto con fallbacks automáticos, load balancing, y cost tracking.
+
+# ============================================================
+# ALERTA DE SEGURIDAD CRÍTICA — LEER ANTES DE INSTALAR
+# ============================================================
+security_alerts:
+  - severity: CRITICAL
+    date: "2026-03-24"
+    title: "Supply Chain Attack — Malware en PyPI"
+    detail: |
+      TeamPCP comprometió versiones 1.82.7 y 1.82.8 en PyPI.
+      Inyectaron infostealer malware que se activa al instalar/actualizar.
+      ROBA CREDENCIALES de la máquina del desarrollador.
+      CVE: CVE-2026-35029, CVE-2026-35030
+    source: "https://thehackernews.com/2026/04/how-litellm-turned-developer-machines.html"
+    mitigation: |
+      1. ANCLAR litellm==1.83.3 (reconstruida con CI/CD aislado)
+      2. NUNCA usar >= o ~= para LiteLLM
+      3. Verificar hash post-instalación
+      4. Habilitar Dependabot en el repo
+      5. Si instalaste 1.82.7 o 1.82.8, ROTAR TODAS LAS CREDENCIALES
+
+  - severity: HIGH
+    date: "2026-04-03"
+    title: "Vulnerabilidades adicionales en hardening"
+    detail: |
+      v1.83.0 corrigió el supply chain pero se descubrieron más vulns:
+      - Missing authorization check en /config/update
+      - OIDC bypass
+    source: "https://docs.litellm.ai/blog/security-hardening-april-2026"
+    mitigation: "Usar v1.83.3 que incluye todos los fixes"
+
+env_vars_needed:
+  - name: LITELLM_MASTER_KEY
+    description: "Master key para el proxy LiteLLM"
+    required: true
+    create_how: "Generar UUID: python -c 'import uuid; print(uuid.uuid4())'"
+    available_in_sandbox: false
+
+key_features:
+  unified_interface: "Misma API OpenAI-compatible para todos los providers"
+  fallbacks: "Si GPT-5.4 falla, redirige automáticamente a Claude"
+  load_balancing: "Distribuir carga entre múltiples API keys"
+  cost_tracking: "Tracking de costos por modelo, por usuario, por request"
+  caching: "Cache de respuestas para reducir costos"
+  rate_limiting: "Límites por usuario/modelo configurables"
+
+integration_with_monstruo:
+  config_yaml: |
+    # litellm_config.yaml para El Monstruo
+    model_list:
+      # === CEREBRO 1: Estratega ===
+      - model_name: estratega
+        litellm_params:
+          model: openai/gpt-5.4
+          api_key: os.environ/OPENAI_API_KEY
+          max_tokens: 4000
+
+      # === CEREBRO 2: Arquitecto ===
+      - model_name: arquitecto
+        litellm_params:
+          model: anthropic/claude-opus-4-6
+          api_key: os.environ/ANTHROPIC_API_KEY
+
+      # === CEREBRO 3: Creativo ===
+      - model_name: creativo
+        litellm_params:
+          model: gemini/gemini-3.1-pro-preview
+          api_key: os.environ/GEMINI_API_KEY
+
+      # === CEREBRO 4: Código ===
+      - model_name: codigo
+        litellm_params:
+          model: xai/grok-4.20-0309-reasoning
+          api_key: os.environ/XAI_API_KEY
+          api_base: https://api.x.ai/v1
+
+      # === CEREBRO 5: Razonador ===
+      - model_name: razonador
+        litellm_params:
+          model: openrouter/deepseek/deepseek-r1
+          api_key: os.environ/OPENROUTER_API_KEY
+
+      # === CEREBRO 6: Investigador ===
+      - model_name: investigador
+        litellm_params:
+          model: perplexity/sonar-reasoning-pro
+          api_key: os.environ/SONAR_API_KEY
+
+    # Fallback chains
+    router_settings:
+      routing_strategy: "simple-shuffle"
+      num_retries: 2
+      timeout: 120
+      fallbacks:
+        - estratega: [arquitecto, codigo]
+        - arquitecto: [estratega, razonador]
+        - investigador: [codigo, estratega]
+
+  code_snippet: |
+    import litellm
+
+    # Usar el router directamente en LangGraph nodes:
+    def nodo_estratega(state):
+        response = litellm.completion(
+            model="estratega",  # Resuelve a gpt-5.4
+            messages=state["messages"],
+            fallbacks=["arquitecto", "codigo"]
+        )
+        return {"resultado": response.choices[0].message.content}
+
+  install_verification: |
+    # Verificar que la versión es segura:
+    pip show litellm | grep Version
+    # DEBE mostrar: Version: 1.83.3
+    # Si muestra 1.82.7 o 1.82.8: DESINSTALAR INMEDIATAMENTE
+    # pip uninstall litellm -y && pip install litellm==1.83.3
+
+alternatives_evaluated:
+  direct_api_calls:
+    verdict: "Funcional pero no escalable — cada cerebro necesita su propio código"
+  openrouter_only:
+    verdict: "Posible pero pierde control fino sobre fallbacks y cost tracking"

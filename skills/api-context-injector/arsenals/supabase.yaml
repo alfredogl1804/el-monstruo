@@ -1,0 +1,92 @@
+# Arsenal: Supabase — Gateway a Backend-as-a-Service Completo
+# Última actualización: 2026-04-08
+# Credencial: MCP activo + Notion (proyecto Golden Record)
+# Dashboard: https://supabase.com/dashboard
+# Proyecto: Golden Record (El Monstruo)
+
+connector: supabase
+type: gateway
+ecosystem_size: "PostgreSQL + Auth + Storage + Realtime + Vector + Edge Functions"
+credential_ref: mcp:supabase
+access_method: mcp_and_api
+project: "Golden Record"
+
+connection_pattern: |
+  # Via MCP (método preferido)
+  manus-mcp-cli tool list --server supabase
+  manus-mcp-cli tool call list_tables --server supabase --input '{"project_id": "PROJECT_ID"}'
+  manus-mcp-cli tool call execute_sql --server supabase --input '{"project_id": "PROJECT_ID", "query": "SELECT * FROM tabla LIMIT 10"}'
+  
+  # Via Python SDK (credenciales desde env vars, NUNCA hardcodeadas)
+  import os
+  from supabase import create_client
+  SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+  SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+  assert SUPABASE_URL and SUPABASE_KEY, "SUPABASE_URL/KEY no configuradas — obtener de Notion"
+  supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+  data = supabase.table("tabla").select("*").execute()
+
+categories:
+
+  database:
+    description: "Base de datos PostgreSQL completa"
+    services:
+      - id: postgresql
+        name: PostgreSQL
+        best_for: [relational_data, complex_queries, ACID, full_text_search]
+        triggers: [base_datos, postgresql, sql, consulta_datos, golden_record]
+        note: "PostgreSQL completo con extensiones. Proyecto Golden Record activo."
+        priority: top
+
+      - id: realtime
+        name: Realtime
+        best_for: [websockets, live_updates, presence, broadcast]
+        triggers: [tiempo_real, websocket, actualizaciones_vivas, chat]
+        note: "Cambios en DB se propagan en tiempo real a clientes"
+
+  auth:
+    description: "Autenticación y autorización"
+    services:
+      - id: auth
+        name: Supabase Auth
+        best_for: [user_auth, OAuth, magic_links, RLS, JWT]
+        triggers: [autenticacion, login, registro_usuarios, OAuth, auth]
+        note: "Row Level Security (RLS) integrado con PostgreSQL"
+        priority: high
+
+  storage:
+    description: "Almacenamiento de archivos"
+    services:
+      - id: storage
+        name: Supabase Storage
+        best_for: [file_uploads, images, videos, documents, CDN]
+        triggers: [subir_archivo_supabase, storage_supabase, imagenes]
+        note: "Con CDN integrado y transformaciones de imagen"
+
+  ai_vector:
+    description: "IA y búsqueda vectorial"
+    services:
+      - id: vector
+        name: pgvector
+        best_for: [embeddings, RAG, semantic_search, similarity]
+        triggers: [vector_supabase, embeddings, RAG, busqueda_semantica]
+        note: "pgvector extension. Ideal para RAG con El Monstruo."
+        priority: top
+
+  serverless:
+    description: "Funciones serverless"
+    services:
+      - id: edge_functions
+        name: Edge Functions
+        best_for: [serverless, webhooks, API_endpoints, background_jobs]
+        triggers: [edge_function_supabase, webhook, api_supabase]
+        note: "Deno runtime. Deploy desde CLI."
+
+routing_hints:
+  store_data: "PostgreSQL (SQL completo, RLS)"
+  user_auth: "Supabase Auth (OAuth, magic links)"
+  file_storage: "Supabase Storage (CDN integrado)"
+  vector_search: "pgvector (RAG, embeddings)"
+  realtime: "Realtime (websockets, live updates)"
+  serverless_backend: "Edge Functions (Deno)"
+  el_monstruo: "Golden Record es el proyecto principal"

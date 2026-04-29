@@ -1,0 +1,19 @@
+# CIDP API Server - Requirements
+# validated 2026-04-17 via PyPI
+
+# Core API
+fastapi>=0.136.0  # validated 2026-04-17 — latest on PyPI
+uvicorn>=0.44.0   # validated 2026-04-17 — latest on PyPI
+pydantic>=2.11.0  # validated 2026-04-17 — bundled with FastAPI
+
+# HTTP clients (for sabios + research)
+aiohttp>=3.11.0   # validated 2026-04-17
+requests>=2.32.0  # validated 2026-04-17
+
+# AI SDKs
+openai>=1.70.0    # validated 2026-04-17
+google-genai>=1.10.0  # validated 2026-04-17
+
+# Data
+pyyaml>=6.0.2     # validated 2026-04-17
+tiktoken>=0.9.0   # validated 2026-04-17

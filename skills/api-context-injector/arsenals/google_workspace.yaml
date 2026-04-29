@@ -1,0 +1,82 @@
+# Arsenal: Google Workspace — Gateway a Productividad y Colaboración
+# Última actualización: 2026-04-08
+# Credencial: tokens activos (gws CLI pre-configurado)
+# CLI: gws (pre-instalado y autenticado)
+
+connector: google_workspace
+type: gateway
+ecosystem_size: "Drive + Docs + Sheets + Slides + Calendar + Gmail"
+credential_ref: gws_cli_tokens
+access_method: cli_and_mcp
+
+connection_pattern: |
+  # Via gws CLI (método preferido)
+  gws --help  # Ver comandos disponibles
+  gws drive list
+  gws docs create "Título"
+  gws sheets read SPREADSHEET_ID
+  
+  # Via MCP (Gmail y Calendar)
+  manus-mcp-cli tool list --server gmail
+  manus-mcp-cli tool list --server google-calendar
+
+categories:
+
+  storage:
+    description: "Almacenamiento de archivos"
+    services:
+      - id: drive
+        name: Google Drive
+        best_for: [file_storage, sharing, collaboration, backup]
+        triggers: [google_drive, almacenar_archivo, compartir_archivo, drive]
+        access: "gws CLI + rclone"
+        priority: top
+
+  documents:
+    description: "Documentos y presentaciones"
+    services:
+      - id: docs
+        name: Google Docs
+        best_for: [documents, reports, collaboration, templates]
+        triggers: [google_docs, documento, reporte, informe]
+        access: "gws CLI"
+        priority: high
+
+      - id: sheets
+        name: Google Sheets
+        best_for: [spreadsheets, data_analysis, dashboards, pseudo_database]
+        triggers: [google_sheets, hoja_calculo, datos, spreadsheet]
+        access: "gws CLI"
+        note: "Funciona como base de datos ligera. Integrable con Zapier."
+        priority: high
+
+      - id: slides
+        name: Google Slides
+        best_for: [presentations, pitch_decks, reports]
+        triggers: [google_slides, presentacion, pitch_deck]
+        access: "gws CLI"
+
+  communication:
+    description: "Email y calendario"
+    services:
+      - id: gmail
+        name: Gmail
+        best_for: [email, search_inbox, send_email, drafts]
+        triggers: [gmail, email, correo, bandeja_entrada]
+        access: "MCP: gmail"
+        priority: top
+
+      - id: calendar
+        name: Google Calendar
+        best_for: [scheduling, events, reminders, availability]
+        triggers: [google_calendar, calendario, agendar, evento, recordatorio]
+        access: "MCP: google-calendar"
+        priority: high
+
+routing_hints:
+  store_file: "Drive (gws drive upload)"
+  create_report: "Docs (gws docs create)"
+  data_analysis: "Sheets (gws sheets)"
+  send_email: "Gmail MCP"
+  schedule_meeting: "Calendar MCP"
+  presentation: "Slides (gws slides) o Manus slides nativo"

@@ -1,0 +1,103 @@
+{
+  "run_id": "run_20260408_183559_51498337",
+  "timestamp_start": "2026-04-08T18:35:59.246108",
+  "timestamp_end": "2026-04-08T18:42:28.419864",
+  "skill_version": "1.1.0",
+  "modo": "enjambre",
+  "profundidad_pre": "rapida",
+  "profundidad_post": "rapida",
+  "prompt_fingerprint": "b98f250c8cfa8a2c9f8494959a2a21ac94075f13c8af4732d5752ec6ec919738",
+  "duration_ms_total": 389173,
+  "status": "success",
+  "sabios_requested": 6,
+  "sabios_successful": 6,
+  "steps": [
+    {
+      "step_name": "prevuelo",
+      "duration_ms": 12215,
+      "success": true,
+      "retry_count": 0,
+      "input_chars": 0,
+      "output_chars": 0,
+      "input_tokens_est": 0,
+      "output_tokens_est": 0,
+      "error_type": null,
+      "extra": {
+        "sabios_ok": 6,
+        "sabios_total": 6
+      }
+    },
+    {
+      "step_name": "investigacion_pre",
+      "duration_ms": 0,
+      "success": true,
+      "retry_count": 0,
+      "input_chars": 0,
+      "output_chars": 0,
+      "input_tokens_est": 0,
+      "output_tokens_est": 0,
+      "error_type": null,
+      "extra": {
+        "skipped": true
+      }
+    },
+    {
+      "step_name": "preparar_contexto",
+      "duration_ms": 0,
+      "success": true,
+      "retry_count": 0,
+      "input_chars": 4286,
+      "output_chars": 4286,
+      "input_tokens_est": 1142,
+      "output_tokens_est": 1142,
+      "error_type": null,
+      "extra": {
+        "tokens_est": 1142,
+        "condensado": false
+      }
+    },
+    {
+      "step_name": "consultar_sabios",
+      "duration_ms": 238508,
+      "success": true,
+      "retry_count": 0,
+      "input_chars": 0,
+      "output_chars": 0,
+      "input_tokens_est": 0,
+      "output_tokens_est": 0,
+      "error_type": null,
+      "extra": {
+        "sabios_exitosos": 6,
+        "sabios_total": 6
+      }
+    },
+    {
+      "step_name": "validacion_post",
+      "duration_ms": 51985,
+      "success": true,
+      "retry_count": 0,
+      "input_chars": 0,
+      "output_chars": 22645,
+      "input_tokens_est": 0,
+      "output_tokens_est": 6038,
+      "error_type": null,
+      "extra": {}
+    },
+    {
+      "step_name": "sintesis",
+      "duration_ms": 86462,
+      "success": true,
+      "retry_count": 0,
+      "input_chars": 103895,
+      "output_chars": 24324,
+      "input_tokens_est": 27705,
+      "output_tokens_est": 6486,
+      "error_type": null,
+      "extra": {
+        "modelo_usado": "gpt-5.4",
+        "fallback_usado": false,
+        "informe_inyectado": true
+      }
+    }
+  ]
+}

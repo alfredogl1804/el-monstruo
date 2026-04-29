@@ -1,0 +1,7 @@
+{
+  "OpenAI": "gpt-5.4",
+  "Anthropic": "claude-opus-4-7-20250514",
+  "Google": "gemini-3.1-pro-preview",
+  "xAI": "grok-4.20-0309-reasoning",
+  "OpenRouter/DeepSeek": "deepseek/deepseek-r1"
+}

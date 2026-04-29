@@ -1,0 +1,300 @@
+# Manus Connectors & MCP Servers Registry
+# Última actualización: 2026-04-08
+# Fuente: Screenshots de Conectores de Manus (27 conectores activos)
+# Uso MCP: manus-mcp-cli tool call <tool_name> --server <server_name> --input '<json>'
+#
+# NOTA: Los conectores de Manus se dividen en 3 tipos:
+#   1. MCPs (Model Context Protocol) — interacción via manus-mcp-cli
+#   2. APIs con env var — acceso directo via SDK/requests
+#   3. Integraciones nativas — acceso via CLI o browser
+
+# ============================================================
+# TIPO 1: MCPs (interacción via manus-mcp-cli)
+# ============================================================
+
+mcp_servers:
+  notion:
+    name: Notion
+    connector_description: "Busca contenido del espacio de trabajo, actualiza notas y automatiza flujos de trabajo"
+    mcp_server: notion
+    tools_count: 14
+    key_tools:
+      - notion-search
+      - notion-fetch
+      - notion-create-pages
+      - notion-update-page
+      - notion-create-database
+    use_cases:
+      - Buscar información en workspace
+      - Crear/actualizar páginas
+      - Gestionar bases de datos
+      - Consultar semilla v7.3
+      - Acceder a API Keys DB
+    status: active
+
+  supabase:
+    name: Supabase
+    connector_description: "Administra proyectos de Supabase, consulta bases de datos y organiza datos"
+    mcp_server: supabase
+    tools_count: 29
+    key_tools:
+      - execute_sql
+      - apply_migration
+      - list_tables
+      - deploy_edge_function
+      - list_projects
+    use_cases:
+      - Ejecutar SQL
+      - Gestionar migraciones
+      - Deploy edge functions
+      - Gestionar branches
+    status: active
+
+  gmail:
+    name: Gmail
+    connector_description: "Redacta respuestas, busca en tu bandeja de entrada y resume hilos de correo"
+    mcp_server: gmail
+    use_cases:
+      - Enviar emails
+      - Leer bandeja de entrada
+      - Buscar mensajes
+      - Resumir hilos
+    status: active
+
+  google-calendar:
+    name: Google Calendar
+    connector_description: "Comprende tu horario, administra eventos y optimiza tu tiempo"
+    mcp_server: google-calendar
+    use_cases:
+      - Crear eventos
+      - Verificar disponibilidad
+      - Programar reuniones
+      - Optimizar agenda
+    status: active
+
+  asana:
+    name: Asana
+    connector_description: "Simplifica la gestión de proyectos y tareas con Asana"
+    mcp_server: asana
+    use_cases:
+      - Crear/actualizar tareas
+      - Gestionar proyectos
+      - Tracking de goals
+      - Coordinación de equipos
+    status: active
+
+  zapier:
+    name: Zapier
+    connector_description: "Conecta Manus y automatiza flujos de trabajo entre miles de aplicaciones"
+    mcp_server: zapier
+    use_cases:
+      - Conectar aplicaciones
+      - Automatizar procesos
+      - Sincronizar datos entre apps
+    status: active
+    note: "Conecta 5000+ aplicaciones"
+
+  vercel:
+    name: Vercel
+    connector_description: "Administra proyectos, implementaciones y dominios de Vercel"
+    mcp_server: vercel
+    use_cases:
+      - Listar proyectos
+      - Ver deployments
+      - Gestionar dominios
+      - Debug de fallos
+    status: active
+
+  paypal-for-business:
+    name: PayPal para Empresas
+    connector_description: "Gestione transacciones, facturas y operaciones comerciales de manera eficiente"
+    mcp_server: paypal-for-business
+    use_cases:
+      - Capturar órdenes
+      - Generar facturas
+      - Gestionar suscripciones
+      - Tracking de envíos
+    status: active
+
+  revenuecat:
+    name: RevenueCat
+    connector_description: "Administre aplicaciones de suscripción, controle las autorizaciones y automatice"
+    mcp_server: revenuecat
+    use_cases:
+      - Gestionar productos
+      - Configurar entitlements
+      - Crear offerings/packages
+      - Gestionar paywalls
+    status: active
+
+  instagram:
+    name: Instagram
+    connector_description: "Generate and publish Posts, Stories, or Reels to Instagram"
+    mcp_server: instagram
+    use_cases:
+      - Publicar Posts, Stories, Reels
+      - Obtener info de cuenta
+      - Ver posts e insights
+    status: active
+    note: "Beta"
+
+  outlook-mail:
+    name: Correo de Outlook
+    connector_description: "Escribe, busca y gestiona tus correos electrónicos de Outlook sin problemas"
+    mcp_server: outlook-mail
+    use_cases:
+      - Enviar emails
+      - Leer bandeja
+      - Buscar mensajes
+    status: active
+
+# ============================================================
+# TIPO 2: APIs con env var (acceso directo via SDK/requests)
+# ============================================================
+
+api_connectors:
+  openai:
+    name: OpenAI
+    connector_description: "Aprovecha la serie de modelos GPT para generación y procesamiento inteligente"
+    access_method: sdk
+    env_var: OPENAI_API_KEY
+    registry_file: llm-registry.yaml
+    status: active
+
+  anthropic:
+    name: Anthropic
+    connector_description: "Accede a servicios confiables de asistentes de IA con conversaciones seguras"
+    access_method: sdk
+    env_var: ANTHROPIC_API_KEY
+    registry_file: llm-registry.yaml
+    status: active
+
+  google-gemini:
+    name: Google Gemini
+    connector_description: "Procesa contenido multimodal, incluyendo texto, imágenes y código"
+    access_method: sdk
+    env_var: GEMINI_API_KEY
+    registry_file: llm-registry.yaml
+    status: active
+
+  perplexity:
+    name: Perplexity
+    connector_description: "Busca información en tiempo real y obtén respuestas precisas con citas confiables"
+    access_method: requests
+    env_var: SONAR_API_KEY
+    registry_file: llm-registry.yaml
+    status: active
+    note: "PROHIBIDO SDK OpenAI — SOLO requests"
+
+  elevenlabs:
+    name: ElevenLabs
+    connector_description: "Genera voces realistas, clona voz y crea contenido de audio personalizado"
+    access_method: sdk
+    env_var: ELEVENLABS_API_KEY
+    registry_file: media-apis.yaml
+    status: active
+
+  grok:
+    name: Grok
+    connector_description: "Accede a información en tiempo real y participa en conversaciones inteligentes"
+    access_method: sdk
+    env_var: XAI_API_KEY
+    registry_file: llm-registry.yaml
+    status: active
+
+  openrouter:
+    name: OpenRouter
+    connector_description: "Accede a múltiples modelos de IA y gestiona las llamadas API a través de una interfaz unificada"
+    access_method: sdk
+    env_var: OPENROUTER_API_KEY
+    registry_file: llm-registry.yaml
+    status: active
+
+  dropbox:
+    name: Dropbox
+    connector_description: "Gestiona archivos, carpetas y compartición en Dropbox"
+    access_method: sdk
+    env_var: DROPBOX_API_KEY
+    registry_file: infra-apis.yaml
+    status: active
+
+  cloudflare:
+    name: API de Cloudflare
+    connector_description: "Automatiza y gestiona tu infraestructura web con la API de Cloudflare"
+    access_method: api
+    env_var: CLOUDFLARE_API_TOKEN
+    registry_file: infra-apis.yaml
+    status: active
+
+  heygen:
+    name: API de HeyGen
+    connector_description: "Genera videos impulsados por IA con avatares realistas"
+    access_method: api
+    env_var: HEYGEN_API_KEY
+    registry_file: media-apis.yaml
+    status: active
+
+# ============================================================
+# TIPO 3: Integraciones nativas (CLI, browser, integración directa)
+# ============================================================
+
+native_connectors:
+  mi-navegador:
+    name: Mi navegador
+    connector_description: "Accede a la web en tu propio navegador"
+    access_method: browser
+    use_cases:
+      - Navegación web autenticada
+      - Automatización de browser
+      - Login persistente en sitios
+      - Scraping visual
+    status: active
+    note: "Mantiene estado de login entre tareas"
+
+  google-drive:
+    name: Google Drive
+    connector_description: "Access your files, search instantly, and let Manus help you manage documents"
+    access_method: cli
+    cli_tool: gws
+    env_var: GOOGLE_DRIVE_TOKEN
+    use_cases:
+      - Acceder a archivos
+      - Buscar documentos
+      - Gestionar carpetas
+      - Sync bidireccional
+    status: active
+    note: "También disponible via rclone para bulk sync"
+
+  github:
+    name: GitHub
+    connector_description: "Gestiona repositorios, realiza seguimiento de los cambios en el código"
+    access_method: cli
+    cli_tool: gh
+    env_var: GH_TOKEN
+    use_cases:
+      - Gestionar repos
+      - Issues y PRs
+      - GitHub Actions
+      - Code search
+    status: active
+
+# ============================================================
+# Resumen de conectores
+# ============================================================
+
+summary:
+  total_connectors: 27
+  mcp_servers: 11
+  api_connectors: 10
+  native_connectors: 3
+  all_from_screenshots: true
+
+# Cómo usar MCPs
+usage:
+  list_tools: "manus-mcp-cli tool list --server {server_name}"
+  call_tool: "manus-mcp-cli tool call {tool_name} --server {server_name} --input '{json_args}'"
+  notes:
+    - "Cada llamada debe ser un comando shell separado"
+    - "OAuth se activa automáticamente cuando es necesario"
+    - "--server flag es OBLIGATORIO"
+    - "Argumentos deben ser JSON válido con --input"

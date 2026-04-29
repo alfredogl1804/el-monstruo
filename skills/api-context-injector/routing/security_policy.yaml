@@ -1,0 +1,191 @@
+# ============================================================
+# Security Policy v3.1 — Reglas de Manejo de Secrets
+# api-context-injector
+# ============================================================
+# Este archivo define las reglas inquebrantables para el manejo
+# de credenciales, tokens, y API keys en todo el ecosistema.
+# ============================================================
+
+version: "3.1"
+last_verified: "2026-04-08"
+ttl_days: 30
+
+# ============================================================
+# REGLAS ABSOLUTAS (nunca override)
+# ============================================================
+absolute_rules:
+  - id: "SEC-001"
+    rule: "NUNCA imprimir API keys, tokens, o secrets en texto plano en logs, chat, o archivos públicos"
+    severity: "CRITICAL"
+    enforcement: "BLOCK"
+
+  - id: "SEC-002"
+    rule: "NUNCA inyectar secrets en scaffolds frontend-only (web-static)"
+    severity: "CRITICAL"
+    enforcement: "BLOCK"
+    reason: "Todo el código frontend es visible al usuario final"
+
+  - id: "SEC-003"
+    rule: "NUNCA usar prefijos VITE_, NEXT_PUBLIC_, REACT_APP_, EXPO_PUBLIC_ para secrets reales"
+    severity: "CRITICAL"
+    enforcement: "BLOCK"
+    reason: "Estos prefijos exponen la variable al bundle del cliente"
+
+  - id: "SEC-004"
+    rule: "SIEMPRE incluir .env* en .gitignore antes de inyectar"
+    severity: "HIGH"
+    enforcement: "AUTO_FIX"
+
+  - id: "SEC-005"
+    rule: "NUNCA hardcodear secrets en código fuente"
+    severity: "CRITICAL"
+    enforcement: "SCAN_AND_BLOCK"
+
+  - id: "SEC-006"
+    rule: "SIEMPRE usar encrypted/secret type al inyectar en plataformas externas"
+    severity: "HIGH"
+    enforcement: "AUTO"
+    details:
+      vercel: "type: encrypted"
+      cloudflare: "wrangler secret put (no wrangler vars)"
+      supabase: "vault.create_secret()"
+
+# ============================================================
+# SCAFFOLD SECURITY MATRIX
+# ============================================================
+scaffold_matrix:
+  web-static:
+    can_receive_secrets: false
+    action: "BLOCK"
+    alternative: "Crear Cloudflare Worker o Vercel Function como proxy backend"
+    dangerous_patterns:
+      - "import.meta.env.VITE_*_KEY"
+      - "process.env.* en archivos .tsx/.jsx"
+
+  web-db-user:
+    can_receive_secrets: true
+    allowed_locations: ["server/", ".env", ".env.local", ".env.production"]
+    blocked_locations: ["src/", "public/", "client/"]
+    injection_method: "env_file"
+    notes: "El scaffold web-db-user de Manus tiene server/ separado. Secrets SOLO ahí."
+
+  mobile-app:
+    can_receive_secrets: false
+    action: "BACKEND_PROXY"
+    alternative: "Secrets en el backend API, nunca en el bundle de la app"
+    reason: "APK/IPA son descompilables. Cualquier secret embebido es público."
+
+  cloudflare-worker:
+    can_receive_secrets: true
+    injection_method: "wrangler_secret"
+    allowed_locations: ["wrangler.toml (solo [vars] no-sensibles)"]
+    notes: "Usar 'wrangler secret put' para secrets, [vars] solo para config no-sensible"
+
+  next-vercel:
+    can_receive_secrets: true
+    injection_method: "vercel_env"
+    allowed_locations: [".env.local", "Vercel Dashboard"]
+    blocked_prefixes: ["NEXT_PUBLIC_"]
+    notes: "NEXT_PUBLIC_ expone al cliente. Usar solo para config pública."
+
+# ============================================================
+# SECRET CLASSIFICATION
+# ============================================================
+secret_classification:
+  critical:
+    description: "Acceso completo a servicios de pago o datos sensibles"
+    examples: ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "STRIPE_SECRET_KEY", "AWS_SECRET_ACCESS_KEY"]
+    handling: "Solo en backend, encrypted, con rotation policy"
+    max_exposure: "server-side only"
+
+  high:
+    description: "Acceso a servicios con costos o datos de usuario"
+    examples: ["ELEVENLABS_API_KEY", "HEYGEN_API_KEY", "SONAR_API_KEY", "APIFY_API_TOKEN"]
+    handling: "Backend preferido, rate limiting recomendado"
+    max_exposure: "server-side only"
+
+  medium:
+    description: "Acceso a servicios con datos limitados"
+    examples: ["SUPABASE_ANON_KEY", "CLOUDFLARE_API_TOKEN"]
+    handling: "Anon keys pueden ir al frontend si tienen RLS"
+    max_exposure: "frontend con RLS, backend sin RLS"
+
+  low:
+    description: "Configuración no-sensible"
+    examples: ["SUPABASE_URL", "OPENAI_API_BASE", "APP_URL"]
+    handling: "Puede ir al frontend"
+    max_exposure: "anywhere"
+
+# ============================================================
+# INJECTION TARGETS — PROTOCOLOS
+# ============================================================
+injection_protocols:
+
+  sandbox:
+    method: "Escribir en .env.local del proyecto"
+    pre_checks:
+      - "Verificar scaffold no es web-static"
+      - "Verificar .gitignore incluye .env*"
+      - "Escanear código por hardcoded secrets"
+    post_checks:
+      - "Verificar .env.local no tiene permisos world-readable"
+      - "Verificar secrets no usan prefijos peligrosos"
+
+  vercel:
+    method: "MCP vercel → create-environment-variable"
+    pre_checks:
+      - "Verificar proyecto existe en Vercel"
+      - "Verificar no se usa NEXT_PUBLIC_ para secrets"
+    parameters:
+      type: "encrypted"
+      target: ["production", "preview", "development"]
+    post_checks:
+      - "Verificar variable aparece en Vercel dashboard"
+
+  cloudflare:
+    method: "wrangler secret put o Cloudflare API"
+    pre_checks:
+      - "Verificar wrangler.toml existe"
+      - "Verificar worker está deployed"
+    post_checks:
+      - "Verificar secret no aparece en wrangler.toml [vars]"
+
+  supabase:
+    method: "MCP supabase → execute_sql → vault.create_secret()"
+    pre_checks:
+      - "Verificar proyecto Supabase existe"
+      - "Verificar extensión vault está habilitada"
+    post_checks:
+      - "Verificar secret existe en vault.decrypted_secrets"
+
+# ============================================================
+# ROTATION POLICY
+# ============================================================
+rotation_policy:
+  default_ttl_days: 90
+  critical_ttl_days: 30
+  alerts:
+    - at_days_remaining: 14
+      action: "WARN"
+      message: "Secret expira en 14 días"
+    - at_days_remaining: 3
+      action: "CRITICAL"
+      message: "Secret expira en 3 días — rotar inmediatamente"
+    - at_days_remaining: 0
+      action: "BLOCK"
+      message: "Secret expirado — bloquear uso hasta rotación"
+
+# ============================================================
+# AUDIT TRAIL
+# ============================================================
+audit_trail:
+  enabled: true
+  log_location: ".secrets-audit.log"
+  log_format: "{timestamp} | {action} | {secret_name} | {target} | {status}"
+  events_to_log:
+    - "INJECT"
+    - "ROTATE"
+    - "REVOKE"
+    - "AUDIT"
+    - "BLOCK"
+    - "SECURITY_VIOLATION"

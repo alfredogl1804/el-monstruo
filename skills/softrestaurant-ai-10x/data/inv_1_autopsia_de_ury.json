@@ -1,0 +1,71 @@
+{
+  "investigacion_id": 1,
+  "nombre": "AUTOPSIA DE URY",
+  "fecha_verificacion": "2026-04-24T17:50:19.494885",
+  "respuestas": [
+    {
+      "pregunta": "¿Cuántos commits tiene URY en los últimos 90 días?",
+      "respuesta": "NO VERIFICADO. Los resultados de búsqueda no contienen información específica sobre \"URY\" ni el número de commits en sus repositorios en los últimos 90 días.[1][2][3][4][5][6][7][8]",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Cuántos contribuidores activos tiene?",
+      "respuesta": "**NO VERIFICADO.**\n\nLa consulta no especifica a qué proyecto, plataforma o contexto se refiere (ej. Wikipedia, Oracle EDMCS, criptomonedas como Bitcoin/Ethereum/Solana, o impuestos).[1][2][5] Los resultados de búsqueda no proporcionan un número total de contribuidores activos para un tema concreto:\n\n- En **Wikipedia en español**, se listan los **1000 usuarios más activos** en los últimos 7 días (excluyendo bots), pero no el total general.[2]\n- En **Oracle Enterprise Data Management Cloud**, el panel muestra hasta **100 contribuidores más activos** según filtros, sin total global.[1]\n- En **Bitcoin, Ethereum y Solana**, los contribuidores activos crecieron un **71.6% anual** desde 2018, sin cifra absoluta actual.[5]\n\nSin más detalles del usuario, no hay datos verificables ni URLs con números concretos totales al 24 de abril de 2026. Proporciona contexto adicional para una respuesta precisa.",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Qué versión de ERPNext requiere?",
+      "respuesta": "**La versión recomendada de ERPNext es la v16**, que es la última versión LTS (Long Term Support) con soporte activo, parches de seguridad y todas las mejoras actuales[1]. \n\n### Detalles por versión:\n- **v16**: Última estable con soporte a largo plazo (LTS). Recomendada para nuevos despliegues o actualizaciones[1].\n- **v15**: Recibe parches de seguridad en mantenimiento, compatible con Ubuntu 24.04/Linux Mint 22.x y Windows vía WSL2[2][3][4].\n- **v14 o anterior**: Sin soporte oficial (legacy). Se recomienda actualizar inmediatamente[1].\n\nERPNext funciona mejor en Linux (Ubuntu 20.04 LTS o superior, Debian 10/11, CentOS/RHEL 7/8), con soporte limitado en Windows vía WSL2 (requiere Windows 10/11 versión 2004+)[3][6]. La v14 se lanzó en agosto de 2022[5]. Para producción, usa la última versión compatible con tu SO; verifica en https://erpnext.com para confirmación oficial (NO VERIFICADO más allá de fuentes citadas).",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Tiene tests automatizados?",
+      "respuesta": "**NO VERIFICADO.** \n\nLa consulta no especifica qué software, proyecto o sistema se refiere con \"tiene tests automatizados\", por lo que no es posible confirmar su implementación con datos verificables de fuentes concretas[1][2][3][4][5][6]. \n\nLos resultados de búsqueda definen el **testing automatizado** como el uso de herramientas y scripts para ejecutar pruebas repetitivas de software de forma autónoma, verificando funcionalidades, regresiones y rendimiento, pero no mencionan un contexto particular ni proporcionan URLs o números concretos sobre un caso específico[1][2][3][4][5][6]. Si proporcionas más detalles (ej. nombre del proyecto), puedo buscar información verificable.",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Qué módulos de los 19 de SR cubre REALMENTE (no lo que dice el README)?",
+      "respuesta": "**NO VERIFICADO.**\n\nLos resultados de búsqueda no proporcionan información específica sobre \"SR\" (posiblemente Servicios de Prevención de Riesgos Laborales u otro acrónimo), sus 19 módulos ni qué cubre \"REALMENTE\" un proyecto o herramienta llamada \"REALMENTE\" más allá de lo indicado en su README. Solo [1] menciona el Artículo 19 de la LPRL (Ley de Prevención de Riesgos Laborales) en contexto de formación obligatoria en PRL, impartida por personal cualificado, con una parte troncal común en convenios como el de la Construcción, que requiere complementos por riesgos específicos, equipos y circunstancias de la obra[1]. Ningún otro resultado [2]-[10] detalla módulos o cubre el tema. Sin datos verificables concretos, URLs adicionales o números sobre los 19 módulos de SR, no es posible confirmar la cobertura real.",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Qué módulos NO cubre y necesitaríamos construir?",
+      "respuesta": "**En el contexto de vivienda protegida en la Comunidad de Madrid, el \"módulo\" (precio máximo por m², fijado en 1.940 €/m² en capital desde 2008) no cubre los elevados costes actuales de construcción ni el precio del suelo, que lo supera ampliamente, haciendo inviables más de 75.000 viviendas públicas planeadas.[1]**\n\nPor tanto, se necesitarían construir o implementar los siguientes elementos adicionales para viabilizar estos proyectos:\n\n- **Limitación del precio del suelo**: Actualmente no está regulado, y en Madrid capital \"se comería\" todo el módulo, requiriendo que valga \"menos de cero\" para rentabilidad.[1]\n- **Actualización del precio del módulo**: No se ha revisado desde 2008 pese a inflación en costes; promotores urgen un \"plan de choque\" para desarrollarlo.[1]\n- **Reducción de plazos en concesión de licencias**: Actúa como \"tributo invisible\" que encarece la producción.[1]\n- **Bonificaciones fiscales y financieras**: Antes existían en IBI, tipos de interés y exenciones en AJD; hoy \"no hay nada\" y se necesitan más herramientas.[1]\n\nOtros resultados mencionan módulos en formación ecológica (ej. Gaia Education cubre sistemas alimentarios, agua, energía, construcción ecológica)[2] o planes urbanos sostenibles (sin detalles sobre carencias específicas),[3][4][5] pero no responden directamente a la inviabilidad económica de vivienda pública. Si el contexto es otro, aclara para verificar.",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Tiene documentación de API?",
+      "respuesta": "**No, no tengo documentación de API pública disponible como Perplexity.**[1][2][3]\n\nLa documentación de API es un conjunto de instrucciones detalladas que explica cómo interactuar con una interfaz de programación de aplicaciones (API), incluyendo endpoints, métodos HTTP, parámetros, respuestas, códigos de error, autenticación y ejemplos de código en lenguajes como JavaScript, Python o PHP.[1][2][3] Debe ser clara, completa y actualizada para facilitar su uso por desarrolladores, con secciones como introducción, casos de uso y muestras prácticas.[1][3]\n\nHerramientas comunes para crearla incluyen Swagger/OpenAPI (para documentación interactiva), Postman (para pruebas y colecciones), Redoc o Slate (para versiones estáticas), y plataformas como Document360 o AppMaster que automatizan su generación.[2][3][4][5] Por ejemplo, DRF-Spectacular genera documentación automática para APIs REST en Python.[5]\n\nSi Perplexity ofreciera una API (NO VERIFICADO en resultados), seguiría estas mejores prácticas, pero no se menciona ninguna en las fuentes proporcionadas.[1][6][7][8] Para más detalles generales, consulta guías como las de Document360 o KeepCoding.[1][3]",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Hay issues abiertos críticos?",
+      "respuesta": "No puedo responder a tu pregunta porque **falta contexto crítico**: no especificaste en qué sistema, proyecto o plataforma deseas verificar los issues abiertos.\n\nLos resultados de búsqueda proporcionados incluyen información general sobre:\n- Ciberseguridad e infraestructuras críticas[1][2]\n- Documentación de GitHub Projects[4]\n- Herramientas de seguimiento de issues[5][6][7]\n\nSin embargo, **no contienen datos específicos sobre issues abiertos en ningún repositorio o sistema particular**.\n\nPara obtener una respuesta verificable, necesito que especifiques:\n- **¿En qué plataforma?** (GitHub, GitLab, Jira, etc.)\n- **¿En qué proyecto o repositorio?**\n- **¿Qué criterios definen \"crítico\"?** (etiquetas, prioridad, asignación, etc.)\n\nCon esa información, podré ayudarte a identificar los issues abiertos críticos.",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Funciona con la última versión de ERPNext?",
+      "respuesta": "**NO VERIFICADO.**\n\nNo hay información específica en las fuentes proporcionadas que confirme si \"esto\" (el contexto no especifica qué app, plugin o integración) funciona con la **última versión de ERPNext**, identificada como **v16** (lanzada a finales de 2025, con mejoras en rendimiento como Frappe Caffeine y UI moderna).[2][4] Las fuentes describen actualizaciones generales (ej. comandos como `bench upgrade` para v15+)[1], historial de versiones hasta v14[3] y características de v16[2][4], pero no mencionan compatibilidad explícita con herramientas externas. Verifica en la documentación oficial de Frappe/ERPNext o el repositorio del producto en cuestión para datos concretos.",
+      "atajos_detectados": 0,
+      "status": "ok"
+    },
+    {
+      "pregunta": "¿Tiene soporte para español/México?",
+      "respuesta": "**Sí, Perplexity tiene soporte completo para español, incluyendo variantes como el español de México (es-MX), ya que responde en español y maneja consultas regionales con precisión cultural y lingüística.**\n\nEste soporte se evidencia en la capacidad de procesar y responder consultas en español mexicano, adaptando términos locales cuando es relevante, sin necesidad de paquetes adicionales como en Office para Mac (donde es-MX no está disponible)[1][6]. Por ejemplo, servicios de traducción y apps reconocen y priorizan el español mexicano para audiencias específicas[2][7]. En dispositivos como Android de ASUS, se puede configurar es-MX fácilmente en ajustes de idioma[5]. Si necesitas soporte técnico o localización específica, confirma detalles del contexto (ej. app o plataforma). NO VERIFICADO para integraciones no listadas en resultados.",
+      "atajos_detectados": 0,
+      "status": "ok"
+    }
+  ],
+  "evidencias": [],
+  "datos_numericos": [],
+  "conclusion": "",
+  "total_atajos": 0
+}

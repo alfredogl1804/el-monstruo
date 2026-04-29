@@ -1,0 +1,179 @@
+domain: SOP
+title: 'Dominio SOP: Standard Operating Procedure'
+type: Tejido (Domain Context)
+summary: El ecosistema SOP y EPIA ha sido diseñado para abordar la fragmentación y
+  falta de continuidad en el uso de inteligencia artificial, estableciendo un marco
+  de gobernanza operativa que promueve la trazabilidad y la coherencia en la toma
+  de decisiones. A través de la identificación de brechas críticas y contradicciones
+  en la documentación, se han propuesto reestructuraciones que priorizan la claridad
+  y la formalización de procesos. La validación técnica de herramientas como DeepSeek
+  R1 ha revelado la necesidad de protocolos de seguridad y contención, mientras que
+  el análisis de la usabilidad y la auditoría de procesos han permitido establecer
+  métricas y KPIs que aseguran la efectividad del sistema. En conjunto, estos documentos
+  constituyen una guía integral para la implementación y mejora continua del ecosistema,
+  garantizando que cada acción esté debidamente registrada y validada, y que se eviten
+  improvisaciones y dependencias excesivas del operador humano.
+key_documents:
+- id: doc_000045
+  title: EPIA — DOCUMENTO FUNDACIONAL MAESTRO
+  summary: EPIA es un ecosistema de IAs externas que integra capacidades para superar
+    las limitaciones de modelos aislados, promoviendo una inteligencia acumulativa
+    y soberana.
+  keywords:
+  - EPIA
+  - ecosistema
+  - inteligencias externas
+- id: doc_000531
+  title: EPIA SOP4.0parte2
+  summary: El documento establece normas y procedimientos para el flujo de trabajo
+    en el ecosistema SOP, enfatizando la transparencia y la seguridad en la gestión
+    de datos.
+  keywords:
+  - SOP
+  - reglas
+  - transparencia
+- id: doc_000548
+  title: EPIA-SOP Framework v3.3.2
+  summary: EPIA-SOP Framework v3.3.2 estandariza y optimiza flujos de trabajo de IA
+    en empresas, garantizando calidad, seguridad y ROI.
+  keywords:
+  - EPIA-SOP
+  - IA
+  - gobernanza
+- id: doc_000119
+  title: 02 EPIA fundacional completo v1
+  summary: EPIA es un ecosistema de IAs externas que busca integrar inteligencias,
+    memorias y herramientas para superar las limitaciones de sistemas aislados.
+  keywords:
+  - EPIA
+  - ecosistema
+  - inteligencias externas
+- id: doc_000084
+  title: ENTREGABLE 2 — DOCUMENTO FUNDACIONAL SOP
+  summary: SOP es el marco de gobernanza que asegura continuidad y control en el ecosistema
+    El Monstruo, evitando improvisaciones y contradicciones operativas.
+  keywords:
+  - SOP
+  - gobernanza
+  - ecosistema
+- id: doc_000551
+  title: SOP‑MDC (lite) — Exploradores + Cerebros · **v1.1 con redlines**
+  summary: SOP-MDC v1.1 establece un proceso iterativo para mejorar hallazgos existentes
+    mediante IA, generando acciones operables con KPIs.
+  keywords:
+  - SOP-MDC
+  - IA
+  - exploradores
+- id: doc_000528
+  title: EPIA SOP4.0parte1
+  summary: EPIA SOP4.0parte1 establece reglas para la gestión de propuestas y entregables,
+    priorizando API-FIRST, PII=0 y eficiencia en la comunicación técnica.
+  keywords:
+  - API-FIRST
+  - PII=0
+  - RuleMint
+- id: doc_000505
+  title: Respaldo SOP  13 de sep 25
+  summary: Respaldo SOP del 13 de sep 25 establece reglas para mejora continua, confirmación
+    de conceptos, transparencia, y eficiencia en procesos de investigación y colaboración.
+  keywords:
+  - mejora continua
+  - confirmación de conceptos
+  - transparencia
+- id: doc_000081
+  title: ENTREGABLE 2 — DOCUMENTO FUNDACIONAL SOP
+  summary: SOP es el marco de gobernanza que asegura continuidad y control en el ecosistema
+    operativo de El Monstruo, evitando improvisaciones y contradicciones.
+  keywords:
+  - gobernanza
+  - continuidad
+  - coherencia
+- id: doc_000147
+  title: 'COMPILACIÓN DEFINITIVA: SOP y EPIA (Abril 2026)'
+  summary: SOP es el marco de gobernanza operativa del ecosistema El Monstruo, asegurando
+    continuidad y control en la toma de decisiones.
+  keywords:
+  - SOP
+  - gobernanza
+  - ecosistema
+- id: doc_000021
+  title: SOP+EPIA — REESTRUCTURACIÓN Y EVOLUCIÓN (Abril 2026)
+  summary: El ecosistema SOP+EPIA presenta alta madurez doctrinal pero baja ejecutabilidad,
+    con brechas críticas en implementación y evidencia operativa.
+  keywords:
+  - SOP
+  - EPIA
+  - madurez doctrinal
+- id: doc_000555
+  title: Modo de Mejora Continua Viva (MCV) — EPIA–SOP v3.3.2
+  summary: El Modo de Mejora Continua Viva (MCV) optimiza el ecosistema sin interrupciones,
+    controlando riesgos y garantizando trazabilidad SOP.
+  keywords:
+  - mejora continua
+  - optimización
+  - sandbox
+- id: doc_000547
+  title: 'Investigación: IAs de Nicho y Estratégicas para EPIA-SOP'
+  summary: Investigación sobre IAs especializadas para EPIA-SOP, abarcando nichos
+    en video, audio, búsqueda, finanzas, legal y salud.
+  keywords:
+  - IAs especializadas
+  - EPIA-SOP
+  - video intelligence
+- id: doc_000117
+  title: 04 Identidad del Monstruo fundacional v1
+  summary: El Monstruo es una infraestructura soberana de inteligencia operativa que
+    integra múltiples herramientas y memorias para mejorar la continuidad y capacidad
+    del operador humano.
+  keywords:
+  - El Monstruo
+  - inteligencia operativa
+  - SOP
+- id: doc_000082
+  title: ENTREGABLE 1 — HALLAZGOS PREVIOS A LA REDACCIÓN
+  summary: El corpus auditado es consistente filosóficamente pero fragmentado operativamente,
+    con contradicciones y vacíos que requieren resolución y documentación adecuada.
+  keywords:
+  - SOP
+  - El Monstruo
+  - contradicciones
+- id: doc_000576
+  title: 'COMPILACIÓN DEFINITIVA: SOP y EPIA (Abril 2026)'
+  summary: SOP es el marco de gobernanza operativa que asegura continuidad y control
+    en el ecosistema El Monstruo, evitando improvisación y contradicciones.
+  keywords:
+  - SOP
+  - gobernanza
+  - continuidad
+- id: doc_000128
+  title: 'Genealogía Completa: SOP y EPIA — Todos los Archivos Encontrados'
+  summary: Genealogía de SOP y EPIA con 32 archivos documentales, abarcando desde
+    versiones históricas hasta canónicas vigentes.
+  keywords:
+  - SOP
+  - EPIA
+  - genealogía
+- id: doc_000120
+  title: 03 ANEXOS OPERATIVOS USABILIDAD V3
+  summary: Documento sobre KPIs y gobernanza de usabilidad en El Monstruo.
+  keywords:
+  - KPIs
+  - usabilidad
+  - gobernanza
+- id: doc_000570
+  title: DAX measures SOP v1 5
+  summary: Medidas DAX para evaluar el rendimiento de líderes en Power BI, incluyendo
+    adherencia y bonificaciones trimestrales.
+  keywords:
+  - DAX
+  - Power BI
+  - KPI
+- id: doc_000553
+  title: SOP MDC Exploradores Cerebros v1
+  summary: SOP-MDC para Exploradores y Cerebros, enfocado en mejorar estrategias con
+    IA, generando acciones operables a través de un ciclo iterativo de investigación
+    y síntesis.
+  keywords:
+  - SOP-MDC
+  - IA
+  - Exploradores

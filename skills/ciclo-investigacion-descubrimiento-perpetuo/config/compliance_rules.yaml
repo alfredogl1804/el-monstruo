@@ -1,0 +1,99 @@
+# CIDP Compliance Rules — validated 2026-04-16
+# Gates regulatorios por obligación y fecha (NO checkbox genérico)
+
+frameworks:
+  gdpr:
+    name: "GDPR"
+    jurisdiction: EU
+    status: "Fully applicable"
+    key_obligations:
+      - id: data_minimization
+        description: "Solo recopilar datos necesarios para el propósito"
+        applicable: always
+      - id: right_to_erasure
+        description: "Implementar borrado de datos personales"
+        applicable: always
+      - id: data_portability
+        description: "Permitir exportación de datos del usuario"
+        applicable: always
+      - id: privacy_by_design
+        description: "Integrar privacidad desde el diseño"
+        applicable: always
+      - id: dpia
+        description: "Data Protection Impact Assessment para procesamiento de alto riesgo"
+        applicable: "Si procesa datos personales a escala"
+
+  ai_act:
+    name: "EU AI Act"
+    jurisdiction: EU
+    status: "Phased implementation"
+    # CORREGIDO: No es "plenamente aplicable desde agosto 2026"
+    timeline:
+      - date: "2025-02-02"
+        description: "Prohibiciones de prácticas inaceptables"
+        status: active
+      - date: "2025-08-02"
+        description: "Obligaciones de gobernanza y modelos GPAI"
+        status: active
+      - date: "2026-08-02"
+        description: "Mayoría de obligaciones para sistemas de alto riesgo"
+        status: upcoming
+      - date: "2027-08-02"
+        description: "Plena aplicabilidad para todos los apartados"
+        status: future
+    key_obligations:
+      - id: risk_classification
+        description: "Clasificar el sistema IA según nivel de riesgo"
+        applicable: "Desde agosto 2025"
+      - id: transparency
+        description: "Informar al usuario que interactúa con IA"
+        applicable: "Desde agosto 2025"
+      - id: high_risk_conformity
+        description: "Evaluación de conformidad para sistemas de alto riesgo"
+        applicable: "Desde agosto 2026"
+
+  nis2:
+    name: "NIS2 Directive"
+    jurisdiction: EU
+    status: "Implementation varies by member state"
+    key_obligations:
+      - id: incident_reporting
+        description: "Reportar incidentes de seguridad en 24h"
+        applicable: "Si es entidad esencial o importante"
+      - id: risk_management
+        description: "Implementar medidas de gestión de riesgos"
+        applicable: "Si es entidad esencial o importante"
+
+  reverse_engineering:
+    name: "Reverse Engineering Legal Boundaries"
+    jurisdiction: varies
+    status: "Requires case-by-case analysis"
+    notes: "NO automatizar reverse engineering sin análisis legal específico"
+    rules:
+      - "Benchmarking legítimo: generalmente permitido"
+      - "Scraping competitivo: zona gris, verificar ToS"
+      - "Decompilación: restringida en la mayoría de jurisdicciones"
+      - "API analysis: generalmente permitido si cumple ToS"
+      - "SIEMPRE verificar ToS del software objetivo antes de investigar"
+
+compliance_gates:
+  - stage: intake
+    checks:
+      - "Verificar ToS del software objetivo"
+      - "Clasificar nivel de riesgo regulatorio"
+      - "Identificar jurisdicciones aplicables"
+  - stage: research
+    checks:
+      - "No violar ToS durante investigación"
+      - "No almacenar datos personales sin base legal"
+      - "Documentar fuentes de información"
+  - stage: build
+    checks:
+      - "Privacy by design implementado"
+      - "Transparencia de IA si aplica"
+      - "No copiar código protegido"
+  - stage: deploy
+    checks:
+      - "DPIA completado si procesa datos personales"
+      - "Conformidad AI Act si sistema de alto riesgo"
+      - "Incident reporting configurado si NIS2 aplica"

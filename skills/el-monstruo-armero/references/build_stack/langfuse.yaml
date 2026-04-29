@@ -1,0 +1,113 @@
+# Langfuse — Observabilidad del Monstruo
+# Investigado: 2026-04-09 | TTL: 30 días
+# Fuente: langfuse.com, medium.com, dev.to/apssouza22
+
+identity:
+  name: Langfuse
+  role: observabilidad_tracing
+  version_target: "latest"
+  pip_install: "langfuse"
+  license: MIT (self-hosted) / Cloud (free tier)
+  repo: "https://github.com/langfuse/langfuse"
+  docs: "https://langfuse.com/docs"
+
+why_chosen: |
+  Langfuse es la plataforma de observabilidad #1 para LLM apps en 2026.
+  Tracing completo de cada llamada a LLM, evaluaciones automáticas,
+  prompt management, y cost tracking. Se integra con LangGraph en 3-5
+  líneas de código. Free tier en cloud es suficiente para Sprint 1.
+
+env_vars_needed:
+  - name: LANGFUSE_PUBLIC_KEY
+    description: "Public key del proyecto Langfuse"
+    required: true
+    available_in_sandbox: false
+    create_how: "Registrarse en langfuse.com → Settings → API Keys"
+  - name: LANGFUSE_SECRET_KEY
+    description: "Secret key del proyecto Langfuse"
+    required: true
+    available_in_sandbox: false
+    create_how: "Registrarse en langfuse.com → Settings → API Keys"
+  - name: LANGFUSE_HOST
+    description: "Host de Langfuse"
+    required: true
+    default_value: "https://cloud.langfuse.com"
+    available_in_sandbox: false
+
+key_features:
+  tracing: "Traza completa de cada request: input → LLM calls → output"
+  evaluations: "Evaluaciones automáticas de calidad de respuestas"
+  prompt_management: "Versionado de prompts con A/B testing"
+  cost_tracking: "Costo por trace, por modelo, por usuario"
+  dashboards: "Dashboards de latencia, costos, calidad"
+  langgraph_native: "Callback handler nativo para LangGraph"
+
+integration_with_monstruo:
+  setup_cloud: |
+    # 1. Ir a https://cloud.langfuse.com
+    # 2. Crear cuenta (free tier)
+    # 3. Crear proyecto "el-monstruo"
+    # 4. Copiar Public Key y Secret Key
+    # 5. Agregar a Railway env vars:
+    #    LANGFUSE_PUBLIC_KEY=pk-lf-...
+    #    LANGFUSE_SECRET_KEY=sk-lf-...
+    #    LANGFUSE_HOST=https://cloud.langfuse.com
+
+  code_with_langgraph: |
+    from langfuse.callback import CallbackHandler
+
+    # Crear handler de Langfuse
+    langfuse_handler = CallbackHandler(
+        public_key=os.environ["LANGFUSE_PUBLIC_KEY"],
+        secret_key=os.environ["LANGFUSE_SECRET_KEY"],
+        host=os.environ.get("LANGFUSE_HOST", "https://cloud.langfuse.com")
+    )
+
+    # Inyectar en LangGraph
+    app = graph.compile(checkpointer=checkpointer)
+    result = app.invoke(
+        {"messages": [user_message]},
+        config={"callbacks": [langfuse_handler]}
+    )
+    # Langfuse captura automáticamente:
+    # - Cada nodo del grafo ejecutado
+    # - Cada llamada a LLM (modelo, tokens, costo, latencia)
+    # - Input/output de cada step
+    # - Errores y retries
+
+  code_standalone: |
+    from langfuse import Langfuse
+
+    langfuse = Langfuse(
+        public_key=os.environ["LANGFUSE_PUBLIC_KEY"],
+        secret_key=os.environ["LANGFUSE_SECRET_KEY"],
+        host=os.environ.get("LANGFUSE_HOST", "https://cloud.langfuse.com")
+    )
+
+    # Tracing manual (para código fuera de LangGraph)
+    trace = langfuse.trace(name="monstruo_request", user_id="alfredo")
+    span = trace.span(name="clasificacion")
+    # ... hacer la llamada al LLM ...
+    span.end(output={"intent": "investigacion"})
+    trace.update(output={"respuesta": "..."})
+
+    # Flush al final
+    langfuse.flush()
+
+deployment_strategy:
+  sprint1: "Langfuse Cloud free tier (10K traces/mes)"
+  sprint2: "Evaluar si necesita self-hosted (Docker Compose)"
+  self_hosted_note: |
+    Docker Compose es la forma más fácil de self-host.
+    Requiere PostgreSQL. Puede correr en Railway o un VPS.
+    Solo necesario si supera 10K traces/mes o requiere data residency.
+
+alternatives_evaluated:
+  langsmith:
+    verdict: "Managed only, locked to LangChain ecosystem, más caro"
+  arize_phoenix:
+    verdict: "Enterprise, overkill para Sprint 1"
+  datadog_llm:
+    verdict: "Enterprise pricing, no justificado"
+  aegra:
+    verdict: "Open source drop-in replacement para LangSmith. Evaluar Sprint 2"
