@@ -1,17 +1,13 @@
 """
-El Monstruo — FastMCP Tool Server (Sprint 29 — Épica 3)
-========================================================
+El Monstruo — FastMCP Tool Server (Sprint 33B)
+===============================================
 Exposes El Monstruo's native tools as an MCP-compliant server
 using FastMCP 3.2.4.
 
-Sprint 29 CHANGES (BUG-5 FIX):
-  - web_search: NOW calls Perplexity Sonar API (real search, not stub)
-  - consult_sabios: NOW calls 6 sabios APIs (real multi-model, not stub)
-  - github_ops: NOW calls GitHub REST API via httpx (real operations)
-  - database_query: NEW — queries Supabase via REST API
-  - web_browse: NEW — Épica 4 stub (returns structured info)
-
-Gate Épica 3: Each tool executes a REAL operation (not stub).
+Sprint 33B CHANGES:
+  - web_browse: UPGRADED from httpx stub → Cloudflare Browser Run
+    (full JS rendering, Markdown extraction, CSS scraping, link extraction)
+    Falls back to httpx if CF credentials not configured.
 
 Architecture:
     FastAPI (main.py)
@@ -20,9 +16,9 @@ Architecture:
                 ├── consult_sabios  → 6 AI model APIs
                 ├── github_ops      → GitHub REST API
                 ├── database_query  → Supabase REST API
-                └── web_browse      → Stub (Épica 4)
+                └── web_browse      → Cloudflare Browser Run API
 
-Sprint 29 | 0.22.0-sprint29 | 25 abril 2026
+Sprint 33B | 0.27.0-sprint33 | 29 abril 2026
 Validated: fastmcp==3.2.4 (Apache-2.0, PyPI 2026-04-13)
 """
 
@@ -400,68 +396,35 @@ def create_fastmcp_server():
             logger.error("fastmcp_db_query_error", table=table, error=str(e))
             return json.dumps({"error": str(e), "table": table})
 
-    # ── Tool 5: Web Browse (Épica 4 — Smart Stub) ─────────────────────
+    # ── Tool 5: Web Browse (REAL — Cloudflare Browser Run) ────────────
     @mcp.tool(
         name="web_browse",
         description=(
-            "Browse a web page and extract its content. "
-            "Currently returns structured metadata about the URL. "
-            "Full browser integration planned for Sprint 30."
+            "Browse a web page and extract its content using Cloudflare Browser Run. "
+            "Renders JavaScript fully before extraction. "
+            "Actions: 'markdown' (default, clean Markdown), 'content' (rendered HTML), "
+            "'scrape' (CSS selector extraction), 'links' (all page links). "
+            "Falls back to httpx if Cloudflare is not configured."
         ),
         tags={"browse", "read-only"},
     )
-    async def web_browse(url: str, extract: str = "text") -> str:
-        """Browse a web page and extract content."""
-        import httpx
-
+    async def web_browse(
+        url: str,
+        action: str = "markdown",
+        selectors: Optional[list[str]] = None,
+    ) -> str:
+        """Browse a web page via Cloudflare Browser Run and extract content."""
         try:
-            async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-                r = await client.get(url, headers={"User-Agent": "ElMonstruo/0.22.0"})
-                r.raise_for_status()
+            from tools.browser import browse_web
 
-                # Extract basic info
-                content_type = r.headers.get("content-type", "")
-                content_length = len(r.content)
-
-                # Simple text extraction
-                if "text/html" in content_type:
-                    from html.parser import HTMLParser
-
-                    class TextExtractor(HTMLParser):
-                        def __init__(self):
-                            super().__init__()
-                            self.text_parts = []
-                            self._skip = False
-
-                        def handle_starttag(self, tag, attrs):
-                            if tag in ("script", "style", "noscript"):
-                                self._skip = True
-
-                        def handle_endtag(self, tag):
-                            if tag in ("script", "style", "noscript"):
-                                self._skip = False
-
-                        def handle_data(self, data):
-                            if not self._skip:
-                                text = data.strip()
-                                if text:
-                                    self.text_parts.append(text)
-
-                    extractor = TextExtractor()
-                    extractor.feed(r.text[:50000])
-                    text = " ".join(extractor.text_parts)[:3000]
-                else:
-                    text = r.text[:3000]
-
-                result = {
-                    "url": str(r.url),
-                    "status": r.status_code,
-                    "content_type": content_type,
-                    "content_length": content_length,
-                    "text": text,
-                }
-                logger.info("fastmcp_web_browse_ok", url=url[:50], status=r.status_code)
-                return json.dumps(result, ensure_ascii=False)
+            result_str = await browse_web(
+                url=url,
+                action=action,
+                selectors=selectors,
+                wait_for_js=True,
+            )
+            logger.info("fastmcp_web_browse_ok", url=url[:50], action=action, backend="cloudflare")
+            return result_str
 
         except Exception as e:
             logger.error("fastmcp_web_browse_error", url=url[:50], error=str(e))
@@ -475,8 +438,8 @@ def create_fastmcp_server():
         name="El Monstruo Kernel",
         tools_registered=5,
         version="3.2.4",
-        sprint="29",
-        real_tools=["web_search", "consult_sabios", "github_ops", "database_query", "web_browse"],
+        sprint="33B",
+        real_tools=["web_search", "consult_sabios", "github_ops", "database_query", "web_browse (Cloudflare Browser Run)"],
     )
 
     return mcp
@@ -503,6 +466,6 @@ def get_status() -> dict[str, Any]:
             "consult_sabios (6 AI models)",
             "github_ops (GitHub REST API)",
             "database_query (Supabase REST)",
-            "web_browse (httpx + HTML parser)",
+            "web_browse (Cloudflare Browser Run)",
         ] if _initialized else [],
     }
