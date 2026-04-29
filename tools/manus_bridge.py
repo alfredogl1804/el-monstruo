@@ -1,7 +1,13 @@
-"""Manus M2M Bridge — Machine-to-Machine task delegation via Manus API v1.
+"""Manus M2M Bridge — Async Machine-to-Machine task delegation via Manus API v1.
 
 Allows El Monstruo to delegate complex tasks (browser research, code execution,
 multi-step workflows) to Manus agents via their REST API.
+
+Sprint 34 rewrite:
+  - Fully async (httpx.AsyncClient) — no sync blocking in event loop
+  - Registered in tool_dispatch.py as a first-class tool
+  - Rate-limited to 5 calls/hour via ToolBroker
+  - Follows repo patterns from tools/browser.py and tools/webhook.py
 
 ENV VARS (set in Railway):
     MANUS_API_KEY_GOOGLE  — API key for Google-linked Manus account
@@ -10,14 +16,14 @@ ENV VARS (set in Railway):
 Usage:
     from tools.manus_bridge import create_task, get_task_status, wait_for_completion
 
-    task = create_task("Research the top 5 AI frameworks in 2026", account="google")
-    result = wait_for_completion(task["task_id"], timeout=300)
+    task = await create_task("Research the top 5 AI frameworks in 2026", account="google")
+    result = await wait_for_completion(task["task_id"], timeout=300)
 """
 
 from __future__ import annotations
 
+import asyncio
 import os
-import time
 import logging
 from typing import Any, Literal, Optional
 
@@ -28,6 +34,9 @@ import httpx
 # ---------------------------------------------------------------------------
 
 MANUS_BASE_URL = "https://api.manus.im/v1"
+DEFAULT_TIMEOUT = 30.0
+POLL_INTERVAL = 5.0
+MAX_WAIT_TIMEOUT = 600.0
 
 _API_KEYS: dict[str, str] = {
     "google": "MANUS_API_KEY_GOOGLE",
@@ -37,6 +46,8 @@ _API_KEYS: dict[str, str] = {
 logger = logging.getLogger("monstruo.manus_bridge")
 
 AccountType = Literal["google", "apple"]
+
+TERMINAL_STATES = {"completed", "failed", "cancelled"}
 
 
 # ---------------------------------------------------------------------------
@@ -66,15 +77,15 @@ def _headers(account: AccountType) -> dict[str, str]:
 
 
 # ---------------------------------------------------------------------------
-# Public API
+# Public API (fully async)
 # ---------------------------------------------------------------------------
 
 
-def create_task(
+async def create_task(
     prompt: str,
     account: AccountType = "google",
     project_id: Optional[str] = None,
-    timeout: float = 30.0,
+    timeout: float = DEFAULT_TIMEOUT,
 ) -> dict[str, Any]:
     """Create a new Manus task.
 
@@ -97,8 +108,8 @@ def create_task(
 
     logger.info("Creating Manus task (account=%s): %.120s...", account, prompt)
 
-    with httpx.Client(timeout=timeout) as client:
-        resp = client.post(
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        resp = await client.post(
             f"{MANUS_BASE_URL}/tasks",
             headers=_headers(account),
             json=payload,
@@ -110,7 +121,7 @@ def create_task(
     return data
 
 
-def get_task_status(
+async def get_task_status(
     task_id: str,
     account: AccountType = "google",
     timeout: float = 15.0,
@@ -127,8 +138,8 @@ def get_task_status(
     """
     logger.debug("Polling Manus task %s", task_id)
 
-    with httpx.Client(timeout=timeout) as client:
-        resp = client.get(
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        resp = await client.get(
             f"{MANUS_BASE_URL}/tasks/{task_id}",
             headers=_headers(account),
         )
@@ -137,13 +148,13 @@ def get_task_status(
     return resp.json()
 
 
-def wait_for_completion(
+async def wait_for_completion(
     task_id: str,
     account: AccountType = "google",
-    timeout: float = 600.0,
-    poll_interval: float = 5.0,
+    timeout: float = MAX_WAIT_TIMEOUT,
+    poll_interval: float = POLL_INTERVAL,
 ) -> dict[str, Any]:
-    """Block until a Manus task reaches a terminal state or times out.
+    """Async wait until a Manus task reaches a terminal state or times out.
 
     Terminal states: 'completed', 'failed', 'cancelled'.
 
@@ -159,7 +170,8 @@ def wait_for_completion(
     Raises:
         TimeoutError: If the task doesn't finish within `timeout` seconds.
     """
-    terminal_states = {"completed", "failed", "cancelled"}
+    import time
+
     start = time.monotonic()
 
     logger.info("Waiting for Manus task %s (timeout=%ss)", task_id, timeout)
@@ -172,22 +184,87 @@ def wait_for_completion(
                 f"Last poll at {elapsed:.1f}s."
             )
 
-        status = get_task_status(task_id, account=account)
+        status = await get_task_status(task_id, account=account)
         current = status.get("status", "unknown")
 
         logger.debug("Task %s status: %s (%.1fs elapsed)", task_id, current, elapsed)
 
-        if current in terminal_states:
+        if current in TERMINAL_STATES:
             logger.info(
                 "Manus task %s finished: %s (%.1fs)", task_id, current, elapsed
             )
             return status
 
-        time.sleep(poll_interval)
+        # Non-blocking sleep — does NOT block the event loop
+        await asyncio.sleep(poll_interval)
 
 
 # ---------------------------------------------------------------------------
-# CLI quick-test
+# Tool dispatch entry point
+# ---------------------------------------------------------------------------
+
+
+async def execute_manus_bridge(
+    action: str,
+    prompt: str = "",
+    task_id: str = "",
+    account: str = "google",
+    project_id: Optional[str] = None,
+    timeout: float = DEFAULT_TIMEOUT,
+    wait_timeout: float = MAX_WAIT_TIMEOUT,
+) -> dict[str, Any]:
+    """Unified entry point for tool_dispatch.py.
+
+    Actions:
+        create_task: Create a new Manus task (requires prompt).
+        get_status:  Check status of an existing task (requires task_id).
+        create_and_wait: Create a task and wait for completion (requires prompt).
+
+    Returns:
+        dict with result or error.
+    """
+    try:
+        acct: AccountType = account if account in ("google", "apple") else "google"
+
+        if action == "create_task":
+            if not prompt:
+                return {"error": "prompt is required for create_task action"}
+            return await create_task(prompt, account=acct, project_id=project_id, timeout=timeout)
+
+        elif action == "get_status":
+            if not task_id:
+                return {"error": "task_id is required for get_status action"}
+            return await get_task_status(task_id, account=acct, timeout=timeout)
+
+        elif action == "create_and_wait":
+            if not prompt:
+                return {"error": "prompt is required for create_and_wait action"}
+            task = await create_task(prompt, account=acct, project_id=project_id, timeout=timeout)
+            tid = task.get("task_id")
+            if not tid:
+                return {"error": "create_task did not return a task_id", "raw": task}
+            result = await wait_for_completion(tid, account=acct, timeout=wait_timeout)
+            return result
+
+        else:
+            return {"error": f"Unknown action: {action!r}. Use: create_task, get_status, create_and_wait"}
+
+    except httpx.HTTPStatusError as e:
+        logger.error("Manus API HTTP error: %s", e)
+        return {"error": f"HTTP {e.response.status_code}: {e.response.text[:500]}"}
+    except EnvironmentError as e:
+        logger.error("Manus bridge env error: %s", e)
+        return {"error": str(e)}
+    except TimeoutError as e:
+        logger.error("Manus bridge timeout: %s", e)
+        return {"error": str(e)}
+    except Exception as e:
+        logger.error("Manus bridge unexpected error: %s", e)
+        return {"error": f"Unexpected: {str(e)}"}
+
+
+# ---------------------------------------------------------------------------
+# CLI quick-test (async)
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
@@ -203,9 +280,12 @@ if __name__ == "__main__":
     _prompt = sys.argv[1]
     _account: AccountType = sys.argv[2] if len(sys.argv) > 2 else "google"  # type: ignore[assignment]
 
-    task_resp = create_task(_prompt, account=_account)
-    print(json.dumps(task_resp, indent=2))
+    async def _main():
+        task_resp = await create_task(_prompt, account=_account)
+        print(json.dumps(task_resp, indent=2))
 
-    if task_resp.get("task_id"):
-        result = wait_for_completion(task_resp["task_id"], account=_account, timeout=300)
-        print(json.dumps(result, indent=2))
+        if task_resp.get("task_id"):
+            result = await wait_for_completion(task_resp["task_id"], account=_account, timeout=300)
+            print(json.dumps(result, indent=2))
+
+    asyncio.run(_main())
