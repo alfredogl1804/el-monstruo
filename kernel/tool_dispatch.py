@@ -436,6 +436,37 @@ def get_tool_specs():
             risk="low",
         ),
         ToolSpec(
+            name="code_exec",
+            description=(
+                "Execute Python or shell code in a sandboxed subprocess. "
+                "Use when you need to: run calculations, process data, test code, "
+                "analyze files, generate outputs, or perform any computational task. "
+                "ALWAYS requires human approval before execution. "
+                "Timeout: 30 seconds max. Output: 10,000 chars max. "
+                "Secrets are NOT available in the sandbox environment."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "description": "The code to execute",
+                    },
+                    "language": {
+                        "type": "string",
+                        "description": "Programming language: 'python' or 'shell'. Default: python",
+                        "enum": ["python", "shell"],
+                    },
+                    "timeout": {
+                        "type": "integer",
+                        "description": "Max execution time in seconds (1-30). Default: 30",
+                    },
+                },
+                "required": ["code"],
+            },
+            risk="high",
+        ),
+        ToolSpec(
             name="email",
             description=(
                 "Send an email to a specified recipient. MUST be called ONLY when "
@@ -601,6 +632,16 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             import json as _json
 
             return _json.loads(result_str)
+        elif tool_name == "code_exec":
+            from tools.code_exec import execute_code
+
+            return await execute_code(
+                code=args.get("code", ""),
+                language=args.get("language", "python"),
+                timeout=args.get("timeout", 30),
+                allow_network=args.get("allow_network", False),
+                hitl_approved=args.get("hitl_approved", False),
+            )
         elif tool_name == "email":
             from tools.email_sender import send_email
 
