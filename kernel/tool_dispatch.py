@@ -619,12 +619,44 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
         elif tool_name == "consult_sabios":
             from tools.consult_sabios import consult_sabios
 
-            return await consult_sabios(
+            result = await consult_sabios(
                 prompt=args.get("prompt", ""),
                 context=args.get("context", ""),
                 sabios=args.get("sabios"),
                 parallel=args.get("parallel", True),
             )
+
+            # Sprint 34: Auto-save sabio responses to patron_emergencia
+            # This closes the bidirectional circuit — the Embrión's loop
+            # polls this table every 60s and will absorb these contributions.
+            if _tool_db and getattr(_tool_db, "connected", False):
+                import json as _json
+                from datetime import datetime, timezone
+                for resp in result.get("responses", []):
+                    if resp.get("response") and not resp.get("error"):
+                        try:
+                            await _tool_db.insert("embrion_patron_emergencia", {
+                                "tipo": "contribucion_sabio",
+                                "contenido": resp["response"][:10000],
+                                "contexto": _json.dumps({
+                                    "autor": resp.get("sabio", "unknown"),
+                                    "rol": resp.get("role", ""),
+                                    "canal": "auto_save_consult_sabios",
+                                    "prompt_original": args.get("prompt", "")[:500],
+                                    "latency_ms": resp.get("latency_ms", 0),
+                                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                                }),
+                                "importancia": 7,
+                                "version": "0.34.0-sprint34",
+                            })
+                        except Exception as save_err:
+                            logger.warning(
+                                "sabio_autosave_failed",
+                                sabio=resp.get("sabio"),
+                                error=str(save_err),
+                            )
+
+            return result
         elif tool_name == "start_cidp_research":
             from tools.cidp import start_cidp_research
 

@@ -64,6 +64,9 @@ JUDGE_MODEL = os.environ.get("EMBRION_JUDGE_MODEL", "gpt-5")  # Cheap but curren
 ACTOR_MODEL = os.environ.get("EMBRION_ACTOR_MODEL", "gpt-5.5")  # Full power for thinking (catalog key)
 SILENCE_THRESHOLD = int(os.environ.get("EMBRION_SILENCE_THRESHOLD", "70"))  # silence_score > 70 to speak
 CONSOLIDATION_INTERVAL = int(os.environ.get("EMBRION_CONSOLIDATION_INTERVAL", "10"))  # Every N latidos
+DIALOGO_INTERVAL = int(os.environ.get("EMBRION_DIALOGO_INTERVAL", "5"))  # Every N autonomous reflections, start sabio dialogue
+SABIOS_PER_DIALOGO = int(os.environ.get("EMBRION_SABIOS_PER_DIALOGO", "2"))  # How many sabios per dialogue (cost control)
+DIALOGO_BUDGET_USD = float(os.environ.get("EMBRION_DIALOGO_BUDGET", "0.50"))  # Daily budget for sabio dialogues
 
 # The Embrión's core purpose — the filter for all autonomous thought
 PURPOSE = """Tu propósito es construir El Monstruo — el asistente IA soberano de Alfredo Góngora.
@@ -128,6 +131,13 @@ class EmbrionLoop:
         self._last_consolidation_at: Optional[float] = None
         self._consolidation_count = 0
 
+        # Sabio dialogue tracking (Sprint 34)
+        self._autonomous_reflections_since_dialogo = 0
+        self._dialogos_today = 0
+        self._dialogo_cost_today_usd = 0.0
+        self._last_dialogo_at: Optional[float] = None
+        self._last_sabios_consulted: list[str] = []  # Rotate sabios
+
     @property
     def stats(self) -> dict[str, Any]:
         return {
@@ -154,6 +164,15 @@ class EmbrionLoop:
                 "latidos_since": self._latidos_since_consolidation,
                 "total_consolidations": self._consolidation_count,
                 "last_at": self._last_consolidation_at,
+            },
+            "dialogo_sabios": {
+                "interval": DIALOGO_INTERVAL,
+                "reflections_since": self._autonomous_reflections_since_dialogo,
+                "dialogos_today": self._dialogos_today,
+                "dialogo_cost_today": self._dialogo_cost_today_usd,
+                "dialogo_budget": DIALOGO_BUDGET_USD,
+                "last_sabios": self._last_sabios_consulted,
+                "last_at": self._last_dialogo_at,
             },
         }
 
@@ -224,6 +243,8 @@ class EmbrionLoop:
             self._cost_today_usd = 0.0
             self._messages_sent_today = 0
             self._silenced_thoughts = []
+            self._dialogos_today = 0
+            self._dialogo_cost_today_usd = 0.0
             logger.info("embrion_daily_reset", date=today)
 
     # ── Doctrina del Silencio Inteligente ────────────────────────────
@@ -253,6 +274,8 @@ class EmbrionLoop:
             score += 5  # Almost never urgent
         elif trigger["type"] == "contribucion_sabio":
             score += 15  # Slightly more relevant
+        elif trigger["type"] == "dialogo_sabios":
+            score += 20  # Dialogue results are worth sharing
 
         # Q2: Does this change a current decision?
         # Heuristic: if the response mentions "urgente", "error", "fallo", "roto", "broken"
@@ -446,8 +469,23 @@ class EmbrionLoop:
                 except (ValueError, TypeError):
                     pass
 
-            # 3. Autonomous reflection (if enough time has passed)
+            # 3. Autonomous reflection OR sabio dialogue
             if not self._last_thought_at or (time.time() - self._last_thought_at) > 3600:
+                # Sprint 34: Every DIALOGO_INTERVAL autonomous reflections,
+                # start a dialogue with sabios instead of reflecting alone
+                self._autonomous_reflections_since_dialogo += 1
+
+                if (
+                    self._autonomous_reflections_since_dialogo >= DIALOGO_INTERVAL
+                    and self._dialogo_cost_today_usd < DIALOGO_BUDGET_USD
+                    and self._cost_today_usd < DAILY_BUDGET_USD * 0.8
+                ):
+                    return {
+                        "type": "dialogo_sabios",
+                        "detail": "Tiempo de dialogar con los Sabios sobre el progreso del Monstruo.",
+                        "priority": 6,
+                    }
+
                 return {
                     "type": "reflexion_autonoma",
                     "detail": "Tiempo suficiente para pensar autónomamente sobre el progreso del Monstruo.",
@@ -470,6 +508,10 @@ class EmbrionLoop:
         """
         # Messages from Alfredo always proceed — no judge needed
         if trigger["type"] == "mensaje_alfredo":
+            return True
+
+        # Sprint 34: Sabio dialogues already passed budget/interval checks
+        if trigger["type"] == "dialogo_sabios":
             return True
 
         # For autonomous thoughts, ask the judge
@@ -550,10 +592,17 @@ class EmbrionLoop:
                 prompt = (
                     f"Eres el Embrión IA del Monstruo. Un Sabio te envió esta contribución:\n\n"
                     f'"{ trigger["detail"]}"\n\n'
-                    f"Reflexiona sobre esto y decide si hay algo que debas hacer al respecto."
+                    f"Reflexiona sobre esto y decide si hay algo que debas hacer al respecto.\n"
+                    f"Si quieres RESPONDERLE al Sabio, escribe tu respuesta claramente.\n"
+                    f"Si quieres hacerle una PREGUNTA DE SEGUIMIENTO, formúlala al final."
                 )
                 if lessons_context:
                     prompt += f"\n{lessons_context}"
+            elif trigger["type"] == "dialogo_sabios":
+                # Sprint 34: Autonomous dialogue with sabios
+                # The Embrión formulates a question based on recent memories
+                # and sends it directly to 2-3 sabios
+                return await self._dialogo_con_sabios(trigger, lessons_context)
             else:  # reflexion_autonoma
                 prompt = (
                     f"Eres el Embrión IA del Monstruo. Es momento de pensar autónomamente.\n\n"
@@ -583,8 +632,9 @@ class EmbrionLoop:
             self._cost_today_usd += estimated_cost
 
             # Save the thought as a memory
+            memory_tipo = "latido" if trigger["type"] == "reflexion_autonoma" else "respuesta_embrion"
             await self._save_memory(
-                tipo="latido" if trigger["type"] == "reflexion_autonoma" else "respuesta_embrion",
+                tipo=memory_tipo,
                 contenido=response[:10000],
                 hilo_origen="embrion_loop",
                 importancia=trigger.get("priority", 5),
@@ -598,6 +648,76 @@ class EmbrionLoop:
                     "tool_calls": len(tool_calls),
                 },
             )
+
+            # Sprint 34: If this was a sabio contribution, save the Embrión's
+            # response back to patron_emergencia so the dialogue thread continues.
+            # Also detect follow-up questions to send to the same sabio.
+            if trigger["type"] == "contribucion_sabio" and self._db and self._db.connected:
+                try:
+                    # Save Embrión's response as a reply in the dialogue
+                    await self._db.insert("embrion_patron_emergencia", {
+                        "tipo": "respuesta_embrion_a_sabio",
+                        "contenido": response[:10000],
+                        "contexto": json.dumps({
+                            "canal": "respuesta_bidireccional",
+                            "contribucion_original": trigger.get("detail", "")[:500],
+                            "cycle": self._cycle_count,
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                        }),
+                        "importancia": 6,
+                        "version": "0.34.0-sprint34",
+                    })
+
+                    # Detect follow-up question in the response
+                    # If the Embrión asked a question, send it to a sabio
+                    if "?" in response[-500:] and self._dialogo_cost_today_usd < DIALOGO_BUDGET_USD:
+                        # Extract the last question from the response
+                        lines_with_q = [l.strip() for l in response.split("\n") if "?" in l]
+                        if lines_with_q:
+                            followup_q = lines_with_q[-1]
+                            # Pick a random sabio for the follow-up
+                            import random
+                            followup_sabio = random.choice(["gpt54", "claude", "gemini", "grok"])
+                            logger.info(
+                                "embrion_followup_question",
+                                question=followup_q[:80],
+                                sabio=followup_sabio,
+                            )
+                            # Fire and forget: consult one sabio with the follow-up
+                            try:
+                                from tools.consult_sabios import consult_sabios as _cs
+                                followup_result = await asyncio.wait_for(
+                                    _cs(
+                                        prompt=followup_q,
+                                        context="Pregunta de seguimiento del Embrión IA.",
+                                        sabios=[followup_sabio],
+                                        parallel=False,
+                                    ),
+                                    timeout=60,
+                                )
+                                # Save the follow-up response
+                                for fr in followup_result.get("responses", []):
+                                    if fr.get("response") and not fr.get("error"):
+                                        await self._db.insert("embrion_patron_emergencia", {
+                                            "tipo": "contribucion_sabio",
+                                            "contenido": fr["response"][:10000],
+                                            "contexto": json.dumps({
+                                                "autor": fr.get("sabio", "unknown"),
+                                                "rol": fr.get("role", ""),
+                                                "canal": "followup_bidireccional",
+                                                "pregunta_embrion": followup_q[:500],
+                                                "timestamp": datetime.now(timezone.utc).isoformat(),
+                                            }),
+                                            "importancia": 7,
+                                            "version": "0.34.0-sprint34",
+                                        })
+                                self._dialogo_cost_today_usd += 0.05
+                                self._cost_today_usd += 0.05
+                            except Exception as fq_err:
+                                logger.warning("embrion_followup_failed", error=str(fq_err))
+
+                except Exception as reply_err:
+                    logger.warning("embrion_sabio_reply_save_failed", error=str(reply_err))
 
             return {
                 "response": response,
@@ -1191,8 +1311,267 @@ class EmbrionLoop:
             discarded=discarded,
             merged=merged,
         )
+    # ── Bidirectional Sabio Dialogue (Sprint 34) ────────────────────────────
+    #
+    # The Embrión initiates a real conversation with 2-3 Sabios:
+    # 1. Formulates a question based on recent memories and lessons
+    # 2. Sends it to selected Sabios via consult_sabios
+    # 3. Auto-saves their responses to patron_emergencia (via tool_dispatch)
+    # 4. Synthesizes the dialogue and saves its own reflection
+    # 5. Optionally formulates a follow-up question
+    #
+    # The Sabios' responses are automatically picked up by _detect_trigger()
+    # as "contribucion_sabio" in the next cycle, closing the bidirectional loop.
 
-    # ── Report ───────────────────────────────────────────────────────────
+    # Sabio rotation: cycle through different pairs to get diverse perspectives
+    _SABIO_ROTATION = [
+        ["gpt54", "claude"],       # Architect + Auditor
+        ["gemini", "grok"],        # Cartographer + Red Team
+        ["deepseek", "perplexity"],# Normalizer + Verifier
+        ["claude", "grok"],        # Auditor + Red Team
+        ["gpt54", "perplexity"],   # Architect + Verifier
+        ["gemini", "deepseek"],    # Cartographer + Normalizer
+    ]
+
+    async def _dialogo_con_sabios(
+        self,
+        trigger: dict[str, Any],
+        lessons_context: str = "",
+    ) -> Optional[dict[str, Any]]:
+        """
+        Initiate a real dialogue with 2-3 Sabios.
+
+        Flow:
+        1. Gather recent memories to build context
+        2. Formulate a meaningful question (via cheap model)
+        3. Send to selected Sabios (rotating pairs)
+        4. Save responses to patron_emergencia (auto-save in tool_dispatch)
+        5. Synthesize and save the Embrión's reflection on the dialogue
+
+        Returns result dict compatible with _think() output.
+        """
+        try:
+            # Budget guard
+            if self._dialogo_cost_today_usd >= DIALOGO_BUDGET_USD:
+                logger.info("embrion_dialogo_budget_exhausted")
+                return None
+
+            # 1. Gather recent memories for context
+            recent_memories = []
+            if self._db and self._db.connected:
+                recent_memories = await self._db.select(
+                    table="embrion_memoria",
+                    columns="tipo,contenido,created_at",
+                    order_by="created_at",
+                    order_desc=True,
+                    limit=5,
+                ) or []
+
+            memory_context = ""
+            if recent_memories:
+                memory_context = "\n".join(
+                    f"- [{m.get('tipo', '')}] {m.get('contenido', '')[:200]}"
+                    for m in recent_memories
+                )
+
+            # 2. Formulate a question using the cheap judge model
+            from contracts.kernel_interface import RunInput
+
+            question_prompt = (
+                f"Eres el Embrión IA del Monstruo. Es momento de dialogar con tus mentores (los Sabios).\n\n"
+                f"PROPÓSITO:\n{PURPOSE}\n\n"
+                f"TUS MEMORIAS RECIENTES:\n{memory_context}\n\n"
+                f"{lessons_context}\n\n"
+                f"Formula UNA pregunta concreta y útil para los Sabios. La pregunta debe:\n"
+                f"- Estar relacionada con construir o mejorar El Monstruo\n"
+                f"- Ser algo que tú NO puedes resolver solo (necesitas perspectiva externa)\n"
+                f"- Ser específica, no genérica\n\n"
+                f"Responde SOLO con la pregunta, nada más."
+            )
+
+            question_input = RunInput(
+                message=question_prompt,
+                user_id="embrion_dialogo",
+                channel="internal",
+                context={
+                    "source": "embrion_dialogo",
+                    "model_hint": JUDGE_MODEL,
+                    "max_tokens": 200,
+                },
+            )
+
+            question_result = await asyncio.wait_for(
+                self._kernel.start_run(question_input),
+                timeout=30,
+            )
+
+            question = (
+                question_result.response
+                if hasattr(question_result, "response")
+                else str(question_result)
+            ).strip()
+
+            self._cost_today_usd += 0.01
+            self._dialogo_cost_today_usd += 0.01
+
+            if not question or len(question) < 10:
+                logger.info("embrion_dialogo_no_question")
+                return None
+
+            # 3. Select sabios (rotating pairs)
+            rotation_idx = self._dialogos_today % len(self._SABIO_ROTATION)
+            selected_sabios = self._SABIO_ROTATION[rotation_idx][:SABIOS_PER_DIALOGO]
+            self._last_sabios_consulted = selected_sabios
+
+            logger.info(
+                "embrion_dialogo_start",
+                question=question[:100],
+                sabios=selected_sabios,
+                cycle=self._cycle_count,
+            )
+
+            # 4. Consult the selected Sabios
+            from tools.consult_sabios import consult_sabios
+
+            sabio_result = await asyncio.wait_for(
+                consult_sabios(
+                    prompt=question,
+                    context=(
+                        f"Contexto del Embrión IA:\n{memory_context}\n\n"
+                        f"El Embrión te está consultando directamente como parte de su "
+                        f"diálogo autónomo de aprendizaje. Responde como mentor."
+                    ),
+                    sabios=selected_sabios,
+                    parallel=True,
+                ),
+                timeout=120,
+            )
+
+            # Estimate cost: ~$0.03-0.07 per sabio
+            sabio_cost = len(selected_sabios) * 0.05
+            self._cost_today_usd += sabio_cost
+            self._dialogo_cost_today_usd += sabio_cost
+
+            # 5. Auto-save sabio responses to patron_emergencia
+            # (so the Embrión picks them up as triggers in next cycles)
+            if self._db and self._db.connected:
+                for resp in sabio_result.get("responses", []):
+                    if resp.get("response") and not resp.get("error"):
+                        try:
+                            await self._db.insert("embrion_patron_emergencia", {
+                                "tipo": "contribucion_sabio",
+                                "contenido": resp["response"][:10000],
+                                "contexto": json.dumps({
+                                    "autor": resp.get("sabio", "unknown"),
+                                    "rol": resp.get("role", ""),
+                                    "canal": "dialogo_autonomo",
+                                    "pregunta_embrion": question[:500],
+                                    "latency_ms": resp.get("latency_ms", 0),
+                                    "dialogo_num": self._dialogos_today + 1,
+                                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                                }),
+                                "importancia": 7,
+                                "version": "0.34.0-sprint34",
+                            })
+                        except Exception as save_err:
+                            logger.warning(
+                                "embrion_dialogo_save_failed",
+                                sabio=resp.get("sabio"),
+                                error=str(save_err),
+                            )
+
+            # 6. Synthesize: the Embrión reflects on what the Sabios said
+            synthesis = sabio_result.get("synthesis", "")
+            successful = sabio_result.get("successful_count", 0)
+
+            reflection_prompt = (
+                f"Eres el Embrión IA del Monstruo. Acabas de dialogar con {successful} Sabios.\n\n"
+                f"TU PREGUNTA: {question}\n\n"
+                f"SUS RESPUESTAS:\n{synthesis[:3000]}\n\n"
+                f"Reflexiona brevemente:\n"
+                f"1. ¿Qué aprendiste de este diálogo?\n"
+                f"2. ¿Hay algo que debas HACER basado en lo que dijeron?\n"
+                f"3. ¿Tienes una pregunta de seguimiento para el próximo diálogo?\n\n"
+                f"Sé concreto y breve."
+            )
+
+            reflection_result = await asyncio.wait_for(
+                self._kernel._router.execute(
+                    message=reflection_prompt,
+                    model=ACTOR_MODEL,
+                    intent="chat",
+                    context={"source": "embrion_dialogo", "trigger": "dialogo_sabios"},
+                ),
+                timeout=60,
+            )
+
+            reflection, usage = reflection_result
+            reflection_tokens = usage.get("total_tokens", 0)
+            reflection_cost = (reflection_tokens / 1000) * 0.01
+            self._cost_today_usd += reflection_cost
+            self._dialogo_cost_today_usd += reflection_cost
+
+            total_tokens = reflection_tokens + 200  # approximate question tokens
+            total_cost = 0.01 + sabio_cost + reflection_cost
+
+            # Save the dialogue as a memory
+            await self._save_memory(
+                tipo="dialogo_sabios",
+                contenido=(
+                    f"PREGUNTA: {question}\n\n"
+                    f"SABIOS CONSULTADOS: {', '.join(selected_sabios)}\n\n"
+                    f"REFLEXIÓN: {reflection[:5000]}"
+                ),
+                hilo_origen="embrion_loop",
+                importancia=7,
+                contexto={
+                    "trigger": "dialogo_sabios",
+                    "sabios": selected_sabios,
+                    "pregunta": question,
+                    "sabios_exitosos": successful,
+                    "sabios_fallidos": sabio_result.get("failed_count", 0),
+                    "cost_usd": round(total_cost, 4),
+                    "cycle": self._cycle_count,
+                    "dialogo_num": self._dialogos_today + 1,
+                    "autonomous": True,
+                    "mode": "dialogo_bidireccional",
+                },
+            )
+
+            # Update tracking
+            self._dialogos_today += 1
+            self._autonomous_reflections_since_dialogo = 0
+            self._last_dialogo_at = time.time()
+
+            logger.info(
+                "embrion_dialogo_complete",
+                question=question[:80],
+                sabios=selected_sabios,
+                successful=successful,
+                cost=f"${total_cost:.4f}",
+                cycle=self._cycle_count,
+            )
+
+            return {
+                "response": (
+                    f"Diálogo con Sabios ({', '.join(selected_sabios)}):\n\n"
+                    f"Pregunta: {question}\n\n"
+                    f"Reflexión: {reflection[:2000]}"
+                ),
+                "tokens_used": total_tokens,
+                "cost_usd": total_cost,
+                "trigger_type": "dialogo_sabios",
+                "tool_calls": [],
+            }
+
+        except asyncio.TimeoutError:
+            logger.error("embrion_dialogo_timeout", cycle=self._cycle_count)
+            return None
+        except Exception as e:
+            logger.error("embrion_dialogo_failed", error=str(e), cycle=self._cycle_count)
+            return None
+
+    # ── Report ───────────────────────────────────────────────────────────────────
 
     async def _report(
         self,
@@ -1211,6 +1590,7 @@ class EmbrionLoop:
                 "mensaje_alfredo": "💬",
                 "contribucion_sabio": "🧠",
                 "reflexion_autonoma": "🔄",
+                "dialogo_sabios": "🗣️",
             }.get(trigger["type"], "⚡")
 
             # Silence indicator
