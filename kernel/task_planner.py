@@ -580,6 +580,23 @@ Formato obligatorio:
                 "required": ["content"],
             },
         },
+        {
+            "name": "consult_sabios",
+            "description": "Sprint 44: Consultar a los 6 Sabios (GPT-5.4, Claude, Gemini, Grok, DeepSeek, Perplexity) en paralelo para obtener perspectivas múltiples sobre un problema. Usar cuando la tarea requiere análisis profundo, validación cruzada, o decisión estratégica importante.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "prompt": {"type": "string", "description": "La pregunta o tarea para los Sabios"},
+                    "context": {"type": "string", "description": "Contexto adicional para los Sabios (opcional)"},
+                    "sabios": {
+                        "type": "array",
+                        "items": {"type": "string", "enum": ["gpt54", "claude", "gemini", "grok", "deepseek", "perplexity"]},
+                        "description": "Subset de Sabios a consultar (default: todos los 6)",
+                    },
+                },
+                "required": ["prompt"],
+            },
+        },
     ]
 
     async def _execute_tool_direct(self, tool_name: str, args: dict) -> str:
@@ -684,6 +701,26 @@ Formato obligatorio:
                     content_length=len(args.get("content", "")),
                 )
                 return json.dumps(result, ensure_ascii=False)
+
+            elif tool_name == "consult_sabios":
+                # Sprint 44: Consultar los 6 Sabios en paralelo
+                from tools.consult_sabios import consult_sabios
+                result = await consult_sabios(
+                    prompt=args.get("prompt", ""),
+                    context=args.get("context", ""),
+                    sabios=args.get("sabios"),  # None = todos los 6
+                    parallel=True,
+                )
+                logger.info(
+                    "task_planner_consult_sabios",
+                    prompt=args.get("prompt", "")[:80],
+                    successful=result.get("successful_count", 0),
+                    failed=result.get("failed_count", 0),
+                    latency_ms=result.get("total_latency_ms", 0),
+                )
+                # Retornar solo la síntesis para no saturar el contexto de Claude
+                synthesis = result.get("synthesis", "")
+                return synthesis[:6000] if synthesis else json.dumps({"error": "No sabios responded", "errors": result.get("errors", [])})
 
             else:
                 return json.dumps({"error": f"Tool '{tool_name}' not available in planner executor"})
