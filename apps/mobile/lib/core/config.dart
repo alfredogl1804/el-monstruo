@@ -14,12 +14,12 @@ class AppConfig {
   // The gateway handles all mobile communication
   static String gatewayBaseUrl = const String.fromEnvironment(
     'GATEWAY_URL',
-    defaultValue: 'https://el-monstruo-gateway-production.up.railway.app',
+    defaultValue: 'https://ag-ui-gateway-production.up.railway.app',
   );
 
   static String gatewayWsUrl = const String.fromEnvironment(
     'GATEWAY_WS_URL',
-    defaultValue: 'wss://el-monstruo-gateway-production.up.railway.app/ws/chat',
+    defaultValue: 'wss://ag-ui-gateway-production.up.railway.app/ws/chat',
   );
 
   // ─── Kernel Direct (fallback / health) ───
