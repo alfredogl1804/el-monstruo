@@ -72,7 +72,10 @@ knowledge_graph: Optional[KnowledgeGraph] = None
 observability: Optional[ObservabilityManager] = None
 BOOT_TIME = datetime.now(timezone.utc)
 
-# ── Background Jobs Store ──────────────────────────────────────────
+# ── Background Jobs Store (Sprint 35: Supabase persistence) ──────────
+# _bg_store is initialized in lifespan; falls back to in-memory if Supabase unavailable
+_bg_store: Optional[Any] = None  # BackgroundStore instance
+# Legacy in-memory dict kept for backward compat (used by _bg_store fallback)
 background_jobs: dict[str, dict[str, Any]] = {}
 _MAX_JOBS = 100
 _jobs_lock = asyncio.Lock()  # Sprint 32: protect concurrent access to background_jobs
@@ -462,6 +465,16 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("fastmcp_init_failed", error=str(e))
 
+    # ── Sprint 35: Background Store (Supabase persistence) ──────────
+    global _bg_store
+    try:
+        from kernel.background_store import BackgroundStore
+        _bg_store = BackgroundStore(db=db if db_connected else None)
+        app.state._bg_store = _bg_store
+        logger.info("background_store_initialized", backend="supabase" if db_connected else "in_memory")
+    except Exception as e:
+        logger.warning("background_store_init_failed", error=str(e))
+
     # ── Sprint 30: Embrión IA Routes ────────────────────────────────
     try:
         from kernel.embrion_routes import router as embrion_router
@@ -511,6 +524,7 @@ async def lifespan(app: FastAPI):
         mempalace="active" if mempalace_ready else "inactive",
         embrion="registered",
         embrion_loop="active" if embrion_loop else "inactive",
+        background_store="supabase" if (_bg_store and _bg_store._use_db()) else "in_memory",
     )
 
     # Warm-up: pre-heat LLM connections to eliminate cold start on first request
@@ -812,12 +826,23 @@ class BackgroundJobStatus(BaseModel):
 
 
 async def _run_background_job(job_id: str, request: BackgroundJobRequest):
-    """Execute a kernel run in background and store the result."""
-    global background_jobs
+    """Execute a kernel run in background and store the result (Sprint 35)."""
+    store = _bg_store
     try:
-        async with _jobs_lock:
-            background_jobs[job_id]["status"] = "running"
+        # Mark as running
+        if store:
+            await store.set_running(job_id)
+            await store.append_progress(job_id, 5, "Iniciando kernel run")
+        else:
+            async with _jobs_lock:
+                background_jobs[job_id]["status"] = "running"
         logger.info("background_job_started", job_id=job_id, message=request.message[:80])
+
+        # Check cancellation before starting
+        if store and await store.is_cancel_requested(job_id):
+            await store.set_cancelled(job_id)
+            logger.info("background_job_cancelled_before_start", job_id=job_id)
+            return
 
         context: dict[str, Any] = {}
         if request.brain:
@@ -836,6 +861,9 @@ async def _run_background_job(job_id: str, request: BackgroundJobRequest):
             context=context,
         )
 
+        if store:
+            await store.append_progress(job_id, 20, "Procesando con LangGraph")
+
         output = await kernel.start_run(run_input)
 
         result_data = {
@@ -850,10 +878,13 @@ async def _run_background_job(job_id: str, request: BackgroundJobRequest):
             "latency_ms": round(output.latency_ms, 2),
         }
 
-        async with _jobs_lock:
-            background_jobs[job_id]["status"] = "completed"
-            background_jobs[job_id]["result"] = result_data
-            background_jobs[job_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
+        if store:
+            await store.set_completed(job_id, result_data)
+        else:
+            async with _jobs_lock:
+                background_jobs[job_id]["status"] = "completed"
+                background_jobs[job_id]["result"] = result_data
+                background_jobs[job_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
         logger.info("background_job_completed", job_id=job_id, latency_ms=output.latency_ms)
 
         # Webhook notification if configured
@@ -874,36 +905,53 @@ async def _run_background_job(job_id: str, request: BackgroundJobRequest):
                 logger.warning("background_webhook_failed", job_id=job_id, error=str(wh_err))
 
     except Exception as e:
-        async with _jobs_lock:
-            background_jobs[job_id]["status"] = "failed"
-            background_jobs[job_id]["error"] = str(e)
-            background_jobs[job_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
+        if store:
+            await store.set_failed(job_id, str(e))
+        else:
+            async with _jobs_lock:
+                background_jobs[job_id]["status"] = "failed"
+                background_jobs[job_id]["error"] = str(e)
+                background_jobs[job_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
         logger.error("background_job_failed", job_id=job_id, error=str(e))
 
 
 @app.post("/v1/background", response_model=BackgroundJobResponse, tags=["core"])
 async def create_background_job(request: BackgroundJobRequest):
     """
-    Submit a task for background processing.
+    Submit a task for background processing (Sprint 35).
     Returns immediately with a job_id. Poll /v1/background/{job_id} for results.
     Optionally set webhook_url to receive a POST when the job completes.
+    Progress available via GET /v1/background/{job_id}/progress (SSE).
     """
     if not kernel:
         raise HTTPException(status_code=503, detail="Kernel not initialized")
 
-    async with _jobs_lock:
-        if len(background_jobs) >= _MAX_JOBS:
-            oldest_key = next(iter(background_jobs))
-            del background_jobs[oldest_key]
+    job_id = str(uuid4())
 
-        job_id = str(uuid4())
-        background_jobs[job_id] = {
-            "status": "queued",
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "completed_at": None,
-            "result": None,
-            "error": None,
-        }
+    if _bg_store:
+        await _bg_store.create(
+            job_id=job_id,
+            message=request.message,
+            user_id=request.user_id,
+            channel=request.channel,
+            brain=request.brain,
+            session_id=request.session_id,
+            metadata=request.metadata,
+            webhook_url=request.webhook_url,
+        )
+    else:
+        # Fallback: in-memory
+        async with _jobs_lock:
+            if len(background_jobs) >= _MAX_JOBS:
+                oldest_key = next(iter(background_jobs))
+                del background_jobs[oldest_key]
+            background_jobs[job_id] = {
+                "status": "queued",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "completed_at": None,
+                "result": None,
+                "error": None,
+            }
 
     asyncio.create_task(_run_background_job(job_id, request))
 
@@ -916,9 +964,12 @@ async def create_background_job(request: BackgroundJobRequest):
 
 @app.get("/v1/background/{job_id}", response_model=BackgroundJobStatus, tags=["core"])
 async def get_background_job(job_id: str):
-    """Get the status and result of a background job."""
-    async with _jobs_lock:
-        job = background_jobs.get(job_id)
+    """Get the status and result of a background job (Sprint 35: reads from Supabase)."""
+    if _bg_store:
+        job = await _bg_store.get(job_id)
+    else:
+        async with _jobs_lock:
+            job = background_jobs.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return BackgroundJobStatus(
@@ -931,9 +982,77 @@ async def get_background_job(job_id: str):
     )
 
 
+@app.delete("/v1/background/{job_id}", tags=["core"])
+async def cancel_background_job(job_id: str):
+    """Request cancellation of a queued or running background job (Sprint 35)."""
+    if _bg_store:
+        cancelled = await _bg_store.request_cancel(job_id)
+    else:
+        async with _jobs_lock:
+            job = background_jobs.get(job_id)
+            cancelled = False
+            if job and job.get("status") in ("queued", "running"):
+                job["cancel_requested"] = True
+                cancelled = True
+    if not cancelled:
+        raise HTTPException(status_code=404, detail="Job not found or not cancellable")
+    return {"job_id": job_id, "cancel_requested": True}
+
+
+@app.get("/v1/background/{job_id}/progress", tags=["core"])
+async def stream_background_job_progress(job_id: str):
+    """
+    SSE stream of progress updates for a background job (Sprint 35).
+    Client receives: data: {pct, msg, ts}\n\n
+    Stream ends when job reaches completed/failed/cancelled.
+    """
+    import json
+
+    async def event_generator():
+        terminal = {"completed", "failed", "cancelled"}
+        last_idx = 0
+        while True:
+            if _bg_store:
+                job = await _bg_store.get(job_id)
+            else:
+                async with _jobs_lock:
+                    job = background_jobs.get(job_id)
+            if not job:
+                yield f"data: {json.dumps({'error': 'job_not_found'})}\n\n"
+                return
+            log = job.get("progress_log") or []
+            # Send new entries since last_idx
+            for entry in log[last_idx:]:
+                yield f"data: {json.dumps(entry)}\n\n"
+                last_idx = len(log)
+            if job.get("status") in terminal:
+                yield f"data: {json.dumps({'status': job['status'], 'pct': 100})}\n\n"
+                return
+            await asyncio.sleep(2)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
 @app.get("/v1/background", tags=["core"])
-async def list_background_jobs(limit: int = 20):
-    """List recent background jobs."""
+async def list_background_jobs(limit: int = 20, user_id: Optional[str] = None):
+    """List recent background jobs (Sprint 35: reads from Supabase)."""
+    if _bg_store:
+        jobs_data = await _bg_store.list_jobs(limit=limit, user_id=user_id)
+        return [
+            {
+                "job_id": j.get("id", j.get("job_id", "")),
+                "status": j["status"],
+                "created_at": j["created_at"],
+                "completed_at": j.get("completed_at"),
+                "progress": j.get("progress", 0),
+            }
+            for j in jobs_data
+        ]
+    # Fallback: in-memory
     jobs = []
     async with _jobs_lock:
         snapshot = list(background_jobs.items())[-limit:]
@@ -944,6 +1063,7 @@ async def list_background_jobs(limit: int = 20):
                 "status": jdata["status"],
                 "created_at": jdata["created_at"],
                 "completed_at": jdata.get("completed_at"),
+                "progress": 0,
             }
         )
     return jobs
