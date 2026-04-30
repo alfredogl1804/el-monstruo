@@ -491,6 +491,11 @@ async def lifespan(app: FastAPI):
         await moc.start()
         app.state._moc = moc
         logger.info("moc_started", synthesis_interval_h=moc.stats["synthesis_interval_h"])
+
+        # Sprint 37: Inyectar MOC en el Runner para priorización real
+        if autonomous_runner is not None:
+            autonomous_runner.set_moc(moc)
+            logger.info("runner_moc_wired")
     except Exception as e:
         logger.warning("moc_init_failed", error=str(e))
 
@@ -1420,6 +1425,20 @@ async def stats():
         "router": {
             "fallback_metrics": _get_fallback_metrics(),
         },
+        # Sprint 37: Métricas del MOC y del Runner
+        "moc": (
+            {
+                "enabled": True,
+                **app.state._moc.stats,
+            }
+            if hasattr(app.state, "_moc") and app.state._moc is not None
+            else {"enabled": False}
+        ),
+        "autonomous_runner": (
+            autonomous_runner.stats
+            if autonomous_runner is not None
+            else {"running": False}
+        ),
     }
 
 
