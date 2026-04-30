@@ -39,10 +39,14 @@ TERMINAL_STATUSES = frozenset({"completed", "failed", "cancelled", "error"})
 DEFAULT_POLL_INTERVAL = 5.0   # seconds between status checks
 DEFAULT_TIMEOUT = 300.0       # max wait time in seconds
 MAX_RETRIES = 3
+RATE_LIMIT_PER_HOUR = 5
 
 logger = logging.getLogger("monstruo.manus_bridge")
 
 AccountType = Literal["google", "apple"]
+
+# Simple in-memory rate limiter
+_call_timestamps: list[float] = []
 
 
 # ---------------------------------------------------------------------------
@@ -62,9 +66,29 @@ class ManusTaskFailedError(ManusBridgeError):
     """Raised when a Manus task ends in failed/error status."""
 
 
+class ManusRateLimitError(ManusBridgeError):
+    """Raised when rate limit (5 calls/hour) is exceeded."""
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+
+def _check_rate_limit() -> None:
+    """Enforce max 5 create_task calls per hour."""
+    now = time.time()
+    cutoff = now - 3600.0
+    # Prune old timestamps
+    _call_timestamps[:] = [t for t in _call_timestamps if t > cutoff]
+    if len(_call_timestamps) >= RATE_LIMIT_PER_HOUR:
+        oldest = _call_timestamps[0]
+        wait_seconds = int(3600 - (now - oldest)) + 1
+        raise ManusRateLimitError(
+            f"Rate limit reached ({RATE_LIMIT_PER_HOUR}/hour). "
+            f"Try again in {wait_seconds}s."
+        )
+    _call_timestamps.append(now)
 
 
 def _get_api_key(account: AccountType) -> str:
@@ -115,22 +139,17 @@ def _request_with_retry(
                 return resp.json()
         except (httpx.HTTPStatusError, httpx.TransportError) as exc:
             last_error = exc
+            wait = 2 ** attempt
+            logger.warning(
+                "Manus API %s %s attempt %d/%d failed: %s — retrying in %ds",
+                method.upper(), url, attempt, retries, exc, wait,
+            )
             if attempt < retries:
-                wait = 2 ** attempt
-                logger.warning(
-                    "Manus API %s %s attempt %d/%d failed: %s — retrying in %ds",
-                    method, url, attempt, retries, exc, wait,
-                )
                 time.sleep(wait)
-            else:
-                logger.error(
-                    "Manus API %s %s failed after %d attempts: %s",
-                    method, url, retries, exc,
-                )
 
     raise ManusBridgeError(
         f"Manus API request failed after {retries} attempts: {last_error}"
-    )
+    ) from last_error
 
 
 # ---------------------------------------------------------------------------
@@ -144,7 +163,7 @@ def create_task(
     account: AccountType = "google",
     project_id: Optional[str] = None,
 ) -> dict[str, Any]:
-    """Create a new task on Manus.
+    """Create a new Manus task.
 
     Args:
         prompt: The instruction/prompt for the Manus agent.
@@ -152,17 +171,21 @@ def create_task(
         project_id: Optional Manus project ID to associate the task with.
 
     Returns:
-        dict with at least {"task_id": str, "status": str}.
+        dict with at least: {"task_id": str, "status": str}
 
     Raises:
-        ManusBridgeError: If the API call fails after retries.
-        EnvironmentError: If the API key env var is missing.
+        ManusRateLimitError: If 5 calls/hour limit is exceeded.
+        ManusBridgeError: On API failure after retries.
     """
+    _check_rate_limit()
+
     payload: dict[str, Any] = {"prompt": prompt}
     if project_id:
         payload["project_id"] = project_id
 
-    logger.info("Creating Manus task (account=%s): %.120s...", account, prompt)
+    logger.info(
+        "Creating Manus task (account=%s): %.80s...", account, prompt
+    )
 
     result = _request_with_retry(
         "POST",
@@ -184,17 +207,14 @@ def get_task_status(
     *,
     account: AccountType = "google",
 ) -> dict[str, Any]:
-    """Get the current status of a Manus task.
+    """Check the status of a Manus task.
 
     Args:
         task_id: The Manus task ID.
         account: Which Manus account to use.
 
     Returns:
-        dict with {"task_id", "status", "output", ...}.
-
-    Raises:
-        ManusBridgeError: If the API call fails after retries.
+        dict with at least: {"task_id": str, "status": str, "output": ...}
     """
     return _request_with_retry(
         "GET",
@@ -213,104 +233,117 @@ def wait_for_completion(
     """Poll a Manus task until it reaches a terminal status.
 
     Args:
-        task_id: The Manus task ID to monitor.
+        task_id: The Manus task ID.
         account: Which Manus account to use.
         timeout: Max seconds to wait before raising ManusTimeoutError.
-        poll_interval: Seconds between status polls.
+        poll_interval: Seconds between status checks.
 
     Returns:
-        Final task dict with {"task_id", "status", "output", ...}.
+        Final task dict with output.
 
     Raises:
         ManusTimeoutError: If timeout is exceeded.
-        ManusTaskFailedError: If the task ends in failed/error/cancelled.
-        ManusBridgeError: If a status poll fails after retries.
+        ManusTaskFailedError: If task ends in failed/error/cancelled.
     """
-    logger.info(
-        "Waiting for Manus task %s (timeout=%ds, poll=%ds)",
-        task_id, timeout, poll_interval,
-    )
-    deadline = time.monotonic() + timeout
+    start = time.time()
+    logger.info("Waiting for Manus task %s (timeout=%ds)...", task_id, timeout)
 
     while True:
-        status_data = get_task_status(task_id, account=account)
-        current_status = status_data.get("status", "unknown")
-
-        logger.debug("Task %s status: %s", task_id, current_status)
-
-        if current_status in TERMINAL_STATUSES:
-            if current_status == "completed":
-                logger.info("Manus task %s completed successfully.", task_id)
-                return status_data
-            raise ManusTaskFailedError(
-                f"Manus task {task_id} ended with status: {current_status}. "
-                f"Output: {status_data.get('output', 'N/A')}"
+        elapsed = time.time() - start
+        if elapsed > timeout:
+            raise ManusTimeoutError(
+                f"Task {task_id} did not complete within {timeout}s "
+                f"(last poll at {elapsed:.0f}s)."
             )
 
-        if time.monotonic() >= deadline:
-            raise ManusTimeoutError(
-                f"Manus task {task_id} did not complete within {timeout}s. "
-                f"Last status: {current_status}"
+        result = get_task_status(task_id, account=account)
+        status = result.get("status", "unknown")
+
+        logger.debug(
+            "Task %s status=%s (%.0fs elapsed)", task_id, status, elapsed
+        )
+
+        if status in TERMINAL_STATUSES:
+            if status == "completed":
+                logger.info(
+                    "Task %s completed in %.0fs.", task_id, elapsed
+                )
+                return result
+            raise ManusTaskFailedError(
+                f"Task {task_id} ended with status={status!r}. "
+                f"Output: {result.get('output', 'N/A')}"
             )
 
         time.sleep(poll_interval)
 
 
 # ---------------------------------------------------------------------------
-# Convenience: create + wait in one call
+# Handler for El Monstruo tool system
 # ---------------------------------------------------------------------------
 
 
-def create_and_wait(
-    prompt: str,
-    *,
-    account: AccountType = "google",
-    project_id: Optional[str] = None,
-    timeout: float = DEFAULT_TIMEOUT,
-    poll_interval: float = DEFAULT_POLL_INTERVAL,
-) -> dict[str, Any]:
-    """Create a Manus task and wait for its completion.
+def handle_manus_bridge(params: dict[str, Any]) -> dict[str, Any]:
+    """Entry point called by El Monstruo's tool dispatcher.
 
-    Combines create_task + wait_for_completion for simple use cases.
-
-    Args:
-        prompt: The instruction for the Manus agent.
-        account: Which Manus account to use.
-        project_id: Optional Manus project ID.
-        timeout: Max seconds to wait.
-        poll_interval: Seconds between polls.
+    Params:
+        action: 'create_task' | 'get_status' | 'create_and_wait'
+        prompt: str (required for create_task / create_and_wait)
+        task_id: str (required for get_status)
+        account: 'google' | 'apple' (default: 'google')
+        project_id: optional str
+        timeout: optional float (default 300)
 
     Returns:
-        Final task dict with output.
-
-    Raises:
-        ManusTimeoutError: If timeout exceeded.
-        ManusTaskFailedError: If task fails.
-        ManusBridgeError: If API calls fail.
+        dict with task info or error.
     """
-    task = create_task(prompt, account=account, project_id=project_id)
-    task_id = task.get("task_id")
-    if not task_id:
-        raise ManusBridgeError(
-            f"Manus create_task did not return a task_id. Response: {task}"
-        )
-    return wait_for_completion(
-        task_id,
-        account=account,
-        timeout=timeout,
-        poll_interval=poll_interval,
-    )
+    action = params.get("action", "create_task")
+    account: AccountType = params.get("account", "google")  # type: ignore[assignment]
+    prompt = params.get("prompt", "")
+    task_id = params.get("task_id", "")
+    project_id = params.get("project_id")
+    timeout = float(params.get("timeout", DEFAULT_TIMEOUT))
 
+    try:
+        if action == "create_task":
+            if not prompt:
+                return {"error": "Missing 'prompt' parameter for create_task."}
+            return create_task(
+                prompt, account=account, project_id=project_id
+            )
 
-# ---------------------------------------------------------------------------
-# CLI quick-test
-# ---------------------------------------------------------------------------
+        elif action == "get_status":
+            if not task_id:
+                return {"error": "Missing 'task_id' parameter for get_status."}
+            return get_task_status(task_id, account=account)
 
-if __name__ == "__main__":
-    import sys
+        elif action == "create_and_wait":
+            if not prompt:
+                return {"error": "Missing 'prompt' parameter for create_and_wait."}
+            task = create_task(
+                prompt, account=account, project_id=project_id
+            )
+            tid = task.get("task_id", "")
+            if not tid:
+                return {"error": "create_task did not return a task_id.", "raw": task}
+            return wait_for_completion(
+                tid, account=account, timeout=timeout
+            )
 
-    logging.basicConfig(level=logging.DEBUG)
-    prompt_text = " ".join(sys.argv[1:]) or "Hello Manus — ping test from El Monstruo."
-    print(f"Sending prompt: {prompt_text}")
-    result = create_and_wait(prompt_text, timeout=120)
-    print(f"Result: {result}")
+        else:
+            return {"error": f"Unknown action: {action!r}. Use: create_task, get_status, create_and_wait."}
+
+    except ManusRateLimitError as exc:
+        logger.warning("Rate limit hit: %s", exc)
+        return {"error": str(exc), "type": "rate_limit"}
+    except ManusTimeoutError as exc:
+        logger.warning("Timeout: %s", exc)
+        return {"error": str(exc), "type": "timeout"}
+    except ManusTaskFailedError as exc:
+        logger.error("Task failed: %s", exc)
+        return {"error": str(exc), "type": "task_failed"}
+    except ManusBridgeError as exc:
+        logger.error("Bridge error: %s", exc)
+        return {"error": str(exc), "type": "bridge_error"}
+    except Exception as exc:
+        logger.exception("Unexpected error in manus_bridge")
+        return {"error": f"Unexpected error: {exc}", "type": "unexpected"}
