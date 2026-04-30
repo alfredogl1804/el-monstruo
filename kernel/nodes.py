@@ -689,40 +689,95 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
             intent=intent,
         )
 
-    # Build enriched system prompt
-    if relevant_memories:
-        memory_context = "\n".join(f"- [{m['type']}] {m['content']}" for m in relevant_memories[:3])
-        system_prompt += f"\n\n## Relevant Context\n{memory_context}"
+    # ══ Sprint 45: Context Distillation via ZeroEntropy Zerank-2 ════════════
+    # Rerank ALL candidate chunks against the user's query before injecting
+    # into the system prompt. This reduces context from ~80K to ~8-10K tokens,
+    # cutting LLM prefill from 30-45s to 2-4s.
+    #
+    # Architecture: retrievers → reranker.distill_context() → system_prompt
+    # Fallback: If reranker unavailable, uses original score-based sorting.
+    from kernel.reranker import distill_context
 
-    if knowledge_entities:
-        entity_context = "\n".join(
-            f"- {e['name']} ({e['type']}): {e.get('attributes', {})}" for e in knowledge_entities[:3]
-        )
-        system_prompt += f"\n\n## Known Entities\n{entity_context}"
+    # Collect all text candidates into a unified pool for reranking
+    _all_candidates: list[dict[str, Any]] = []
 
-    # Sprint 24: Inject LightRAG knowledge graph context
+    # Add semantic memories (from pgvector hybrid search + MemPalace)
+    for m in relevant_memories:
+        _all_candidates.append({
+            "content": m.get("content", ""),
+            "score": m.get("score", 0),
+            "type": m.get("type", "memory"),
+            "source": m.get("source", "semantic"),
+        })
+
+    # Add Mem0 episodic memories
+    if mem0_context and mem0_context.get("mem0_active"):
+        for mem in mem0_context.get("memories", []):
+            mem_text = mem.get("memory", "")
+            if mem_text:
+                _all_candidates.append({
+                    "content": mem_text,
+                    "score": mem.get("score", 0.5),
+                    "type": "episodic",
+                    "source": "mem0",
+                })
+
+    # Add LightRAG knowledge graph text (as a single document)
     if lightrag_result and lightrag_result.get("results"):
         rag_text = lightrag_result["results"]
         if isinstance(rag_text, str) and rag_text.strip():
-            # Truncate to avoid blowing up context window
-            rag_truncated = rag_text[:2000] if len(rag_text) > 2000 else rag_text
-            system_prompt += f"\n\n## Knowledge Graph Context (LightRAG)\n{rag_truncated}"
-            logger.info(
-                "enrich_lightrag_injected", chars=len(rag_truncated), mode=lightrag_result.get("mode", "unknown")
-            )  # noqa: E501
+            _all_candidates.append({
+                "content": rag_text[:3000],  # Cap individual chunk
+                "score": 0.7,
+                "type": "knowledge_graph",
+                "source": "lightrag",
+            })
 
-    # Sprint 27: Inject Mem0 episodic memories into system prompt
-    if mem0_context and mem0_context.get("mem0_active"):
-        mem0_memories = mem0_context.get("memories", [])
-        if mem0_memories:
-            mem0_parts = []
-            for mem in mem0_memories[:5]:
-                mem_text = mem.get("memory", "")
-                if mem_text:
-                    mem0_parts.append(f"- {mem_text}")
-            if mem0_parts:
-                system_prompt += "\n\n## User Memory (Mem0)\n" + "\n".join(mem0_parts)
-                logger.info("enrich_mem0_injected", count=len(mem0_parts))
+    # Add knowledge entities as text
+    if knowledge_entities:
+        for e in knowledge_entities:
+            entity_text = f"{e['name']} ({e['type']}): {e.get('attributes', {})}"
+            _all_candidates.append({
+                "content": entity_text,
+                "score": 0.6,
+                "type": "entity",
+                "source": "knowledge_graph",
+            })
+
+    # Determine top_n based on tier
+    _rerank_top_n = 3 if supervisor_tier in ("SIMPLE", "MODERATE") else 5
+
+    # Rerank if we have candidates worth filtering
+    if len(_all_candidates) > _rerank_top_n:
+        _reranked = await distill_context(
+            query=message,
+            candidates=_all_candidates,
+            top_n=_rerank_top_n,
+            instruction="Prioritize personal memories and facts about the user over general knowledge. Rank by direct relevance to the query.",
+        )
+        logger.info(
+            "enrich_reranked",
+            candidates_in=len(_all_candidates),
+            candidates_out=len(_reranked),
+            tier=supervisor_tier,
+        )
+    else:
+        _reranked = _all_candidates
+
+    # ── Build enriched system prompt from reranked results ──────────
+    if _reranked:
+        context_parts = []
+        for chunk in _reranked:
+            source_tag = chunk.get("source", "memory")
+            type_tag = chunk.get("type", "")
+            content = chunk.get("content", "")
+            score_info = f" (relevance: {chunk.get('rerank_score', chunk.get('score', 0)):.2f})"
+            context_parts.append(f"- [{source_tag}/{type_tag}]{score_info}: {content}")
+        system_prompt += "\n\n## Relevant Context (Reranked)\n" + "\n".join(context_parts)
+    elif relevant_memories:
+        # Fallback: no candidates to rerank, use raw memories
+        memory_context = "\n".join(f"- [{m['type']}] {m['content']}" for m in relevant_memories[:3])
+        system_prompt += f"\n\n## Relevant Context\n{memory_context}"
 
     # Sprint 36: Inject deep_think specialized prompt section
     if intent == IntentType.DEEP_THINK.value:
