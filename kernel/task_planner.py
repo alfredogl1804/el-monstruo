@@ -265,23 +265,20 @@ RESPONDE ÚNICAMENTE con un JSON válido en este formato exacto:
 No incluyas texto fuera del JSON. Solo el JSON."""
 
         try:
-            from contracts.kernel_interface import RunInput
-            run_input = RunInput(
-                message=planning_prompt,
-                user_id=user_id,
-                channel="internal",
-                context={
-                    "source": "task_planner",
-                    "model_hint": PLANNER_MODEL,
-                    "max_tokens": 2000,
-                    "intent_override": "deep_think",  # task_planning no existe en IntentType — usar deep_think
-                },
-            )
-            result = await asyncio.wait_for(
-                self._kernel.start_run(run_input),
+            # Sprint 41 FIX: llamar al LLMClient directamente para obtener JSON puro
+            # (pasar por el grafo LangGraph hace que el LLM responda en modo conversacional)
+            from router.llm_client import LLMClient
+            from config.model_catalog import MODELS
+            llm = LLMClient()
+            model_config = MODELS.get(PLANNER_MODEL) or MODELS.get("gpt-5.5")
+            response_text, _usage = await asyncio.wait_for(
+                llm.chat(
+                    model_config=model_config,
+                    messages=[{"role": "user", "content": planning_prompt}],
+                    max_tokens=2000,
+                ),
                 timeout=60,
             )
-            response_text = result.response if hasattr(result, "response") else str(result)
 
             # Parse JSON response
             steps_data = self._parse_plan_response(response_text)
