@@ -174,7 +174,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.42.0-sprint42",
+            "version": "0.43.0-sprint43",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -757,7 +757,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.42.0-sprint42",
+        "version": "0.43.0-sprint43",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -1430,7 +1430,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.42.0-sprint42",
+            "version": "0.43.0-sprint43",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -1644,7 +1644,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.42.0-sprint42",
+        "version": "0.43.0-sprint43",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields

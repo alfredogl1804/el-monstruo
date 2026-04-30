@@ -135,6 +135,7 @@ class TaskPlan:
         self.finished_at: Optional[str] = None
         self.total_tokens = 0
         self.total_cost_usd = 0.0
+        self.total_tool_calls = 0  # Sprint 43: track actual tool executions
         self.revision_count = 0
         self.final_summary: Optional[str] = None
         self._kernel: Optional[Any] = None  # Injected at execution time
@@ -173,6 +174,7 @@ class TaskPlan:
             "failed_steps": len(self.failed_steps),
             "total_tokens": self.total_tokens,
             "total_cost_usd": round(self.total_cost_usd, 4),
+            "total_tool_calls": self.total_tool_calls,  # Sprint 43
             "revision_count": self.revision_count,
             "created_at": self.created_at,
             "started_at": self.started_at,
@@ -574,10 +576,21 @@ Formato obligatorio:
                 return result_str[:3000]
 
             elif tool_name == "send_message":
-                # Log the message — in production this would send via Telegram
+                # Sprint 43: Actually send via TelegramNotifier (not just log)
                 msg = args.get("message", "")
                 logger.info("task_planner_send_message", message=msg[:200])
-                return json.dumps({"sent": True, "message": msg[:200]})
+                try:
+                    from kernel.runner.telegram_notifier import TelegramNotifier
+                    _notifier = TelegramNotifier()
+                    if _notifier.enabled:
+                        await _notifier.send_message(user_id="embrion", text=msg)
+                        return json.dumps({"sent": True, "channel": "telegram", "message": msg[:200]})
+                    else:
+                        logger.warning("task_planner_send_message_notifier_disabled")
+                        return json.dumps({"sent": False, "reason": "telegram_notifier_disabled", "message": msg[:200]})
+                except Exception as e:
+                    logger.error("task_planner_send_message_error", error=str(e))
+                    return json.dumps({"sent": False, "error": str(e), "message": msg[:200]})
 
             else:
                 return json.dumps({"error": f"Tool '{tool_name}' not available in planner executor"})
@@ -679,6 +692,7 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                                 tool_result = await self._execute_tool_direct(
                                     block.name, block.input
                                 )
+                                plan.total_tool_calls += 1  # Sprint 43: track real executions
                                 tool_results.append({
                                     "type": "tool_result",
                                     "tool_use_id": block.id,

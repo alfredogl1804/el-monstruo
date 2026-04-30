@@ -594,7 +594,9 @@ class EmbrionLoop:
                         response = plan_result.get("final_summary", str(plan_result)[:2000])
                         tokens_used = plan_result.get("total_tokens", 0)
                         estimated_cost = plan_result.get("total_cost_usd", 0.0)
-                        tool_calls = []
+                        # Sprint 43: propagate real tool_calls count from planner
+                        _tc = plan_result.get("total_tool_calls", 0)
+                        tool_calls = [f"planner_tool_{i}" for i in range(_tc)]
                     else:
                         # FULL GRAPH MODE — single-shot execution
                         response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
@@ -619,7 +621,7 @@ class EmbrionLoop:
                     "cost_usd": round(estimated_cost, 4),
                     "cycle": self._cycle_count,
                     "autonomous": True,
-                    "mode": "graph" if trigger["type"] == "mensaje_alfredo" else "router",
+                    "mode": "task_planner" if (trigger["type"] == "mensaje_alfredo" and tool_calls and tool_calls[0].startswith("planner_tool_")) else ("graph" if trigger["type"] == "mensaje_alfredo" else "router"),
                     "tool_calls": len(tool_calls),
                 },
             )
