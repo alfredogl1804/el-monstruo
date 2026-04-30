@@ -12,6 +12,7 @@ import '../features/embrion/embrion_screen.dart';
 import '../features/memory/memory_screen.dart';
 import '../features/finops/finops_screen.dart';
 import '../features/genui/genui_screen.dart';
+import '../features/moc/moc_screen.dart';
 import '../widgets/shell_scaffold.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -68,6 +69,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/genui',
         builder: (context, state) => const GenUIScreen(),
+      ),
+      GoRoute(
+        path: '/moc',
+        builder: (context, state) => const MocScreen(),
       ),
       GoRoute(
         path: '/file-viewer',

@@ -863,9 +863,12 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
             response, usage = await router.execute(message, model, IntentType(intent), enriched_context)
             model_used = model
         else:
-            response = f"[stub] {model} would respond to: {message[:100]}"
-            usage = {"prompt_tokens": 0, "completion_tokens": 0, "cost_usd": 0.0}
-            model_used = model
+            # Sprint 38: router no disponible — error real en lugar de stub silencioso
+            logger.error("execute_no_router", model=model, run_id=state.get("run_id", ""))
+            raise RuntimeError(
+                f"Router no disponible. No se puede ejecutar el modelo '{model}'. "
+                "Verifica que el sistema esté correctamente inicializado."
+            )
 
     except Exception as e:
         logger.error("execute_failed", model=model, error=str(e))

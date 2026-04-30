@@ -34,6 +34,7 @@ class AppConfig {
   static const String toolsEndpoint = '/api/tools';
   static const String embrionEndpoint = '/api/embrion';
   static const String finopsEndpoint = '/api/finops';
+  static const String mocEndpoint = '/api/moc';
   static const String pushRegisterEndpoint = '/api/push/register';
   static const String aguiInfoEndpoint = '/api/agui/info';
 

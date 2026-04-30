@@ -791,9 +791,13 @@ class LangGraphKernel(KernelInterface):
                     yield _json.dumps({"type": "chunk", "text": response})
                     first_token_emitted = True
                 else:
-                    accumulated_response = f"[stub] {model} would respond to: {message[:100]}"
-                    yield _json.dumps({"type": "chunk", "text": accumulated_response})
-                    first_token_emitted = True
+                    # Sprint 38: router no disponible — error real en lugar de stub silencioso
+                    logger.error("stream_no_router", run_id=str(run_id), model=model)
+                    yield _json.dumps({
+                        "type": "error",
+                        "message": "Router no disponible. El sistema no puede procesar la solicitud en este momento.",
+                    })
+                    return
 
             except Exception as llm_err:
                 stream_failed = True

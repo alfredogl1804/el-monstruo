@@ -743,17 +743,21 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
                 cc=args.get("cc"),
             )
         elif tool_name == "manus_bridge":
-            from tools.manus_bridge import execute_manus_bridge
+            # Sprint 38: handle_manus_bridge es síncrona — ejecutar en threadpool
+            import asyncio
+            from tools.manus_bridge import handle_manus_bridge
 
-            return await execute_manus_bridge(
-                action=args.get("action", ""),
-                prompt=args.get("prompt", ""),
-                task_id=args.get("task_id", ""),
-                account=args.get("account", "google"),
-                project_id=args.get("project_id"),
-                timeout=args.get("timeout", 30.0),
-                wait_timeout=args.get("wait_timeout", 600.0),
-            )
+            params = {
+                "action": args.get("action", ""),
+                "prompt": args.get("prompt", ""),
+                "task_id": args.get("task_id", ""),
+                "account": args.get("account", "google"),
+                "project_id": args.get("project_id"),
+                "timeout": args.get("timeout", 300.0),
+                "poll_interval": args.get("poll_interval", 5.0),
+            }
+            loop = asyncio.get_event_loop()
+            return await loop.run_in_executor(None, handle_manus_bridge, params)
         elif tool_name.startswith("mcp__"):
             # Route to MCP Client Manager (Sprint 17)
             mcp_mgr = _tool_mcp_manager

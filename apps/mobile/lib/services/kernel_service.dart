@@ -276,6 +276,27 @@ class KernelService {
     }
   }
 
+  // ─── MOC (Motor de Orquestación Central) ───
+  Future<Map<String, dynamic>> getMocStatus() async {
+    try {
+      final response = await _dio.get(AppConfig.mocEndpoint);
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      _log.warning('Failed to get MOC status', e);
+      return {};
+    }
+  }
+
+  Future<Map<String, dynamic>> triggerMocSynthesis() async {
+    try {
+      final response = await _dio.post('${AppConfig.mocEndpoint}/sintetizar');
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      _log.warning('Failed to trigger MOC synthesis', e);
+      return {'error': e.toString()};
+    }
+  }
+
   // ─── AG-UI Info ───
   Future<Map<String, dynamic>> getAGUIInfo() async {
     try {

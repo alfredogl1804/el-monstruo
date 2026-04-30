@@ -215,25 +215,44 @@ async def proxy_embrion():
 
 @app.get("/api/finops")
 async def proxy_finops(period: str = "today"):
-    """Proxy FinOps data."""
+    """Proxy FinOps dashboard — Sprint 38: usa /v1/finops/summary real."""
     try:
-        resp = await http_client.get(f"/v1/usage/summary?period={period}")
+        resp = await http_client.get("/v1/finops/summary")
         return resp.json()
     except Exception as e:
-        # Fallback to health endpoint for basic cost data
+        # Fallback al status básico
         try:
-            resp = await http_client.get("/health")
-            health = resp.json()
-            embrion = health.get("components", {}).get("embrion", {})
-            return {
-                "total_cost": embrion.get("cost_today", 0),
-                "budget": embrion.get("budget_daily", 2.0),
-                "by_model": {},
-                "by_component": {},
-                "period": period,
-            }
+            resp = await http_client.get("/v1/finops/status")
+            return resp.json()
         except Exception:
             raise HTTPException(502, f"Kernel error: {e}")
+
+
+@app.get("/api/moc")
+async def proxy_moc_status():
+    """Proxy MOC status and latest insights — Sprint 38."""
+    try:
+        resp = await http_client.get("/v1/moc/status")
+        status = resp.json()
+        # Enrich with latest insights
+        try:
+            insights_resp = await http_client.get("/v1/moc/insights?limit=5")
+            status["latest_insights"] = insights_resp.json().get("insights", [])
+        except Exception:
+            status["latest_insights"] = []
+        return status
+    except Exception as e:
+        raise HTTPException(502, f"Kernel error: {e}")
+
+
+@app.post("/api/moc/sintetizar")
+async def proxy_moc_sintetizar():
+    """Trigger manual MOC synthesis — Sprint 38."""
+    try:
+        resp = await http_client.post("/v1/moc/sintetizar")
+        return resp.json()
+    except Exception as e:
+        raise HTTPException(502, f"Kernel error: {e}")
 
 
 @app.get("/api/tools")

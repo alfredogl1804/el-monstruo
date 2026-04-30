@@ -308,6 +308,17 @@ async def lifespan(app: FastAPI):
             daily_limit=finops.get_status()["daily_hard_limit_usd"],
             hard_stop=finops.get_status()["hard_stop_enabled"],
         )
+
+        # Sprint 38: Registrar FinOps dashboard routes
+        try:
+            from kernel.finops_routes import router as finops_router
+            from kernel.finops_routes import set_finops_deps
+
+            set_finops_deps(db=db if db_connected else None, finops=finops)
+            app.include_router(finops_router)
+            logger.info("finops_dashboard_routes_registered")
+        except Exception as fe:
+            logger.warning("finops_dashboard_routes_failed", error=str(fe))
     except Exception as e:
         logger.warning("finops_init_failed", error=str(e))
 

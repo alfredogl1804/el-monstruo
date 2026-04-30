@@ -186,6 +186,16 @@ class _MonstruoDrawer extends StatelessWidget {
                 context.push('/finops');
               },
             ),
+            _DrawerItem(
+              icon: Icons.hub,
+              label: 'MOC',
+              subtitle: 'Motor de Orquestación Central',
+              color: const Color(0xFF00BCD4),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/moc');
+              },
+            ),
 
             const Spacer(),
 
