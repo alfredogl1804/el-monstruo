@@ -523,7 +523,15 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("moc_routes_failed", error=str(e))
 
-    # ── Sprint 30: Embrión IA Routes ────────────────────────────────
+    # ── Sprint 40: Task Planner Routes ───────────────────────────────
+    try:
+        from kernel.planner_routes import router as planner_router
+        app.include_router(planner_router)
+        logger.info("planner_routes_registered")
+    except Exception as e:
+        logger.warning("planner_routes_failed", error=str(e))
+
+    # ── Sprint 30: Embrión IA Routes ──────────────────────────────────────
     try:
         from kernel.embrion_routes import router as embrion_router
         from kernel.embrion_routes import set_dependencies as set_embrion_deps

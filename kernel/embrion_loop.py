@@ -572,10 +572,35 @@ class EmbrionLoop:
             # (which includes tool_dispatch, so the Embrión can actually
             # execute github, code_exec, browse_web, etc.)
             # Autonomous reflections stay on the cheap router path.
+            # ── Sprint 40: Task Planner — complex objectives get decomposed ──
 
             if trigger["type"] == "mensaje_alfredo":
-                # FULL GRAPH MODE — tools available
-                response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
+                detail = trigger.get("detail", "")
+                try:
+                    from kernel.task_planner import TaskPlanner
+                    _planner = TaskPlanner(kernel=self._kernel, db=self._db)
+                    if _planner.is_complex_objective(detail):
+                        logger.info(
+                            "embrion_task_planner_activated",
+                            objective=detail[:80],
+                            cycle=self._cycle_count,
+                        )
+                        plan = await _planner.plan(
+                            objective=detail,
+                            context={"trigger": trigger["type"], "cycle": self._cycle_count},
+                            user_id="embrion",
+                        )
+                        plan_result = await _planner.execute(plan, user_id="embrion")
+                        response = plan_result.get("final_summary", str(plan_result)[:2000])
+                        tokens_used = plan_result.get("total_tokens", 0)
+                        estimated_cost = plan_result.get("total_cost_usd", 0.0)
+                        tool_calls = []
+                    else:
+                        # FULL GRAPH MODE — single-shot execution
+                        response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
+                except ImportError:
+                    # Fallback if task_planner not available
+                    response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
             else:
                 # CHAT MODE — cheaper, no tools
                 response, tokens_used, estimated_cost, tool_calls = await self._think_with_router(prompt, trigger)
