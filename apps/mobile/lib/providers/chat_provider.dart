@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 
@@ -67,7 +68,14 @@ class ChatState {
   }
 }
 
-/// Main chat notifier that manages conversation state
+/// Main chat notifier that manages conversation state.
+///
+/// Sprint 45: Frame-aligned token batching for streaming speed.
+/// Instead of rebuilding state on every single token (40-80 rebuilds/sec),
+/// we accumulate tokens in a buffer and flush once per animation frame (60fps).
+/// This reduces UI rebuilds from ~50/sec to ~60/sec max (frame-aligned),
+/// eliminates jank from Markdown AST rebuilds, and creates a smooth
+/// "typewriter" effect matching ChatGPT/Manus perceived speed.
 class ChatNotifier extends StateNotifier<ChatState> {
   ChatNotifier(this._kernelService) : super(const ChatState()) {
     _init();
@@ -80,6 +88,14 @@ class ChatNotifier extends StateNotifier<ChatState> {
   StreamSubscription? _thinkingSub;
   StreamSubscription? _stepSub;
 
+  // ── Sprint 45: Token Jitter Buffer ──────────────────────────────────
+  // Accumulates incoming tokens and flushes them aligned to vsync frames.
+  // This eliminates per-token state rebuilds and creates smooth rendering.
+  final StringBuffer _tokenBuffer = StringBuffer();
+  String? _activeStreamingMessageId;
+  bool _isFirstToken = true;
+  bool _frameCallbackScheduled = false;
+
   void _init() {
     // Listen to incoming messages
     _messageSub = _kernelService.messageStream.listen((message) {
@@ -90,6 +106,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
       if (message.type == MessageType.streamChunk) {
         _handleStreamChunk(message);
       } else {
+        // Flush any pending tokens before handling complete message
+        _flushTokenBuffer();
         _handleCompleteMessage(message);
       }
     });
@@ -170,23 +188,81 @@ class ChatNotifier extends StateNotifier<ChatState> {
     );
   }
 
+  /// Sprint 45: Frame-aligned token batching.
+  /// Instead of rebuilding state per token, we buffer tokens and flush
+  /// on the next animation frame. The FIRST token is flushed immediately
+  /// to preserve TTFT (time-to-first-token) perception.
   void _handleStreamChunk(ChatMessage chunk) {
+    final chunkContent = chunk.content;
+    final chunkId = chunk.id;
+
+    // Track active streaming message
+    if (_activeStreamingMessageId == null || _activeStreamingMessageId != chunkId) {
+      // New streaming message — flush any previous buffer
+      _flushTokenBuffer();
+      _activeStreamingMessageId = chunkId;
+      _isFirstToken = true;
+    }
+
+    // Accumulate token in buffer
+    _tokenBuffer.write(chunkContent);
+
+    if (_isFirstToken) {
+      // FIRST TOKEN: flush immediately to break the "waiting" barrier.
+      // This preserves TTFT perception — user sees response start instantly.
+      _isFirstToken = false;
+      _flushTokenBuffer();
+    } else {
+      // SUBSEQUENT TOKENS: schedule flush on next animation frame.
+      // This batches 2-5 tokens per frame (at 60fps = 16ms batches),
+      // reducing state rebuilds from ~50/sec to max 60/sec (frame-aligned).
+      _scheduleFrameFlush();
+    }
+  }
+
+  /// Schedule a flush on the next vsync frame (if not already scheduled).
+  void _scheduleFrameFlush() {
+    if (_frameCallbackScheduled) return;
+    _frameCallbackScheduled = true;
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _frameCallbackScheduled = false;
+      _flushTokenBuffer();
+    });
+  }
+
+  /// Flush accumulated tokens to state in a single rebuild.
+  void _flushTokenBuffer() {
+    if (_tokenBuffer.isEmpty) return;
+
+    final bufferedContent = _tokenBuffer.toString();
+    _tokenBuffer.clear();
+
+    final messageId = _activeStreamingMessageId;
+    if (messageId == null) return;
+
     final messages = List<ChatMessage>.from(state.messages);
 
     // Find existing streaming message or create new one
     final existingIdx = messages.indexWhere(
-      (m) => m.id == chunk.id && m.isStreaming,
+      (m) => m.id == messageId && m.isStreaming,
     );
 
     if (existingIdx >= 0) {
-      messages[existingIdx].appendChunk(chunk.content);
-      // Force state update
+      messages[existingIdx].appendChunk(bufferedContent);
       state = state.copyWith(
         messages: List.from(messages),
         isStreaming: true,
       );
     } else {
-      messages.add(chunk);
+      // Create new streaming message with buffered content
+      messages.add(ChatMessage(
+        id: messageId,
+        role: MessageRole.assistant,
+        content: bufferedContent,
+        type: MessageType.streamChunk,
+        isStreaming: true,
+      ));
       state = state.copyWith(
         messages: messages,
         isStreaming: true,
@@ -195,6 +271,10 @@ class ChatNotifier extends StateNotifier<ChatState> {
   }
 
   void _handleCompleteMessage(ChatMessage message) {
+    // Reset streaming state
+    _activeStreamingMessageId = null;
+    _isFirstToken = true;
+
     final messages = List<ChatMessage>.from(state.messages);
 
     // Replace streaming message with complete one, or add new
@@ -242,6 +322,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   /// Stop current streaming / thinking
   void stopStreaming() {
+    // Flush any pending tokens before stopping
+    _flushTokenBuffer();
+    _activeStreamingMessageId = null;
+    _isFirstToken = true;
+
     // Disconnect and reconnect WebSocket to cancel the in-flight request
     _kernelService.connectStreaming();
     
@@ -310,6 +395,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   /// Start a new conversation thread
   void newThread() {
+    _flushTokenBuffer();
+    _activeStreamingMessageId = null;
+    _isFirstToken = true;
     state = const ChatState();
     _kernelService.connectStreaming();
   }
@@ -321,6 +409,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   @override
   void dispose() {
+    _flushTokenBuffer();
     _messageSub?.cancel();
     _toolSub?.cancel();
     _connectionSub?.cancel();

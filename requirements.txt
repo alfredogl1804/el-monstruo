@@ -74,7 +74,7 @@ groq==1.2.0  # Sprint 29: Groq fallback for OpenAI/Anthropic outages — validat
 together==2.10.0  # Sprint 29: Together fallback — validated PyPI 2026-04-25
 
 # ── Utilities ───────────────────────────────────────────────────────
-httpx==0.28.1
+httpx[http2]==0.28.1  # Sprint 45: HTTP/2 for faster LLM provider streaming
 python-dotenv==1.2.2
 structlog==25.5.0
 tenacity==9.1.4

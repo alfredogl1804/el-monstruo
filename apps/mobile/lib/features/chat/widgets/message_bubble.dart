@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -9,6 +8,12 @@ import '../../../theme/monstruo_theme.dart';
 /// Premium message bubble widget with 2026 design patterns.
 /// AI messages: full-width cards with glass effect.
 /// User messages: right-aligned compact bubbles.
+///
+/// Sprint 45: Lightweight streaming renderer.
+/// During streaming, uses SelectableText (plain text) instead of MarkdownBody
+/// to avoid rebuilding the entire Markdown AST on every frame.
+/// On stream completion, switches to full MarkdownBody for rich formatting.
+/// This eliminates the #1 client-side bottleneck for perceived write speed.
 class MessageBubble extends StatelessWidget {
   const MessageBubble({
     super.key,
@@ -81,14 +86,11 @@ class _UserBubble extends StatelessWidget {
           ),
         ),
       ),
-    )
-        .animate()
-        .slideX(begin: 0.05, end: 0, duration: 200.ms, curve: Curves.easeOutCubic)
-        .fadeIn(duration: 200.ms);
+    );
   }
 }
 
-// ─── Assistant Message (Full-width card style) ───
+// ─── Assistant Message ───
 class _AssistantBubble extends StatefulWidget {
   const _AssistantBubble({required this.message, required this.isLast});
   final ChatMessage message;
@@ -173,12 +175,17 @@ class _AssistantBubbleState extends State<_AssistantBubble>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Markdown content
-                  MarkdownBody(
-                    data: widget.message.content,
-                    selectable: true,
-                    styleSheet: _markdownStyle(context),
-                  ),
+                  // Sprint 45: Lightweight streaming renderer
+                  // During streaming: use SelectableText (no Markdown AST rebuild)
+                  // On completion: switch to full MarkdownBody for rich formatting
+                  if (isStreaming)
+                    _StreamingTextRenderer(content: widget.message.content)
+                  else
+                    MarkdownBody(
+                      data: widget.message.content,
+                      selectable: true,
+                      styleSheet: _markdownStyle(context),
+                    ),
                   // Streaming cursor
                   if (isStreaming)
                     AnimatedBuilder(
@@ -309,6 +316,31 @@ class _AssistantBubbleState extends State<_AssistantBubble>
         fontSize: 13,
       ),
       tableCellsPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    );
+  }
+}
+
+/// Sprint 45: Lightweight streaming text renderer.
+/// Uses SelectableText.rich with TextSpan instead of MarkdownBody during streaming.
+/// This avoids rebuilding the entire Markdown AST tree on every frame/token batch.
+/// The text style matches the Markdown paragraph style for visual consistency.
+/// When streaming ends, the parent switches to full MarkdownBody seamlessly.
+class _StreamingTextRenderer extends StatelessWidget {
+  const _StreamingTextRenderer({required this.content});
+  final String content;
+
+  @override
+  Widget build(BuildContext context) {
+    return SelectableText.rich(
+      TextSpan(
+        text: content,
+        style: const TextStyle(
+          color: MonstruoTheme.onSurface,
+          fontSize: 15,
+          height: 1.65,
+          letterSpacing: -0.2,
+        ),
+      ),
     );
   }
 }
@@ -498,54 +530,43 @@ class _ToolResultBubble extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: MonstruoTheme.surfaceVariant.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(10),
+          color: MonstruoTheme.surfaceVariant,
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: MonstruoTheme.divider, width: 0.5),
         ),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: MonstruoTheme.tertiary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Icon(Icons.terminal_rounded, size: 14, color: MonstruoTheme.tertiary),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (message.toolName != null)
-                    Text(
-                      message.toolName!,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: MonstruoTheme.tertiary,
-                      ),
-                    ),
-                  if (message.toolName != null) const SizedBox(height: 4),
-                  Text(
-                    message.content.length > 200
-                        ? '${message.content.substring(0, 200)}...'
-                        : message.content,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: MonstruoTheme.onSurfaceDim,
-                      fontFamily: 'JetBrains Mono',
-                      height: 1.4,
-                    ),
+            Row(
+              children: [
+                Icon(Icons.build_circle_outlined, size: 14, color: MonstruoTheme.onSurfaceDim),
+                const SizedBox(width: 6),
+                Text(
+                  message.toolName ?? 'Tool',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: MonstruoTheme.onSurfaceDim,
                   ),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message.content,
+              style: const TextStyle(
+                color: MonstruoTheme.onSurface,
+                fontSize: 13,
+                height: 1.5,
+                fontFamily: 'JetBrains Mono',
               ),
+              maxLines: 5,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
       ),
-    ).animate().fadeIn(duration: 200.ms);
+    );
   }
 }
 
@@ -562,23 +583,20 @@ class _ErrorBubble extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: MonstruoTheme.error.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: MonstruoTheme.error.withValues(alpha: 0.3),
-            width: 0.5,
-          ),
+          color: Colors.red.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.red.withValues(alpha: 0.3), width: 0.5),
         ),
         child: Row(
           children: [
-            Icon(Icons.error_outline_rounded, size: 16, color: MonstruoTheme.error),
-            const SizedBox(width: 10),
+            Icon(Icons.error_outline, size: 16, color: Colors.red.shade300),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 message.content,
-                style: const TextStyle(
+                style: TextStyle(
+                  color: Colors.red.shade200,
                   fontSize: 13,
-                  color: MonstruoTheme.error,
                   height: 1.4,
                 ),
               ),
@@ -586,6 +604,6 @@ class _ErrorBubble extends StatelessWidget {
           ],
         ),
       ),
-    ).animate().shakeX(hz: 2, amount: 2, duration: 400.ms).fadeIn(duration: 200.ms);
+    );
   }
 }

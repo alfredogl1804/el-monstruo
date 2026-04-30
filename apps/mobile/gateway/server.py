@@ -377,6 +377,14 @@ async def _stream_agui_to_ws(
         full_content = ""
         message_id = str(uuid4())
 
+        # Sprint 45: Token coalescing — buffer tokens for up to 30ms
+        # before sending a WebSocket frame. FIRST token bypasses buffer
+        # to preserve TTFT (time-to-first-token) perception.
+        _token_buffer = ""
+        _first_token_sent = False
+        _last_flush_time = time.time()
+        _COALESCE_MS = 0.030  # 30ms coalescing window
+
         async with http_client.stream(
             "POST", "/v1/agui/run",
             json=agui_payload,
@@ -434,11 +442,29 @@ async def _stream_agui_to_ws(
                         elif event_type == "TEXT_MESSAGE_CONTENT":
                             delta = event.get("delta", "")
                             full_content += delta
-                            await ws.send_json({
-                                "type": "text_chunk",
-                                "message_id": message_id,
-                                "content": delta,
-                            })
+
+                            # Sprint 45: Token coalescing
+                            if not _first_token_sent:
+                                # FIRST TOKEN: send immediately (TTFT priority)
+                                _first_token_sent = True
+                                await ws.send_json({
+                                    "type": "text_chunk",
+                                    "message_id": message_id,
+                                    "content": delta,
+                                })
+                                _last_flush_time = time.time()
+                            else:
+                                # SUBSEQUENT: accumulate and flush every 30ms
+                                _token_buffer += delta
+                                now = time.time()
+                                if (now - _last_flush_time) >= _COALESCE_MS:
+                                    await ws.send_json({
+                                        "type": "text_chunk",
+                                        "message_id": message_id,
+                                        "content": _token_buffer,
+                                    })
+                                    _token_buffer = ""
+                                    _last_flush_time = now
 
                         elif event_type == "TEXT_MESSAGE_START":
                             message_id = event.get("messageId", message_id)
@@ -448,6 +474,14 @@ async def _stream_agui_to_ws(
                             })
 
                         elif event_type == "TEXT_MESSAGE_END":
+                            # Flush any remaining buffered tokens
+                            if _token_buffer:
+                                await ws.send_json({
+                                    "type": "text_chunk",
+                                    "message_id": message_id,
+                                    "content": _token_buffer,
+                                })
+                                _token_buffer = ""
                             await ws.send_json({
                                 "type": "message_end",
                                 "message_id": message_id,
