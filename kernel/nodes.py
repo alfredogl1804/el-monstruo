@@ -341,12 +341,39 @@ async def classify_and_route(state: MonstruoState, config: RunnableConfig) -> di
         .build()
     )
 
+    # Sprint 39 Opt-1: Llamar al Supervisor para determinar tier y skip_enrich
+    skip_enrich = False
+    supervisor_tier = "MODERATE"
+    try:
+        from kernel.supervisor import analyze_complexity
+        supervisor_decision = analyze_complexity(
+            message=state.get("message", ""),
+            intent=intent_str,
+            channel=state.get("channel", "api"),
+        )
+        skip_enrich = supervisor_decision.skip_enrich
+        supervisor_tier = supervisor_decision.tier.value if hasattr(supervisor_decision.tier, 'value') else str(supervisor_decision.tier)
+        # Override model with supervisor's recommendation if it's more specific
+        if supervisor_decision.model and not cache_hit:
+            model = supervisor_decision.model
+            fallbacks = _get_fallback_chain(intent_str, model)
+        logger.info(
+            "supervisor_decision",
+            tier=supervisor_tier,
+            skip_enrich=skip_enrich,
+            model=model,
+        )
+    except Exception as e:
+        logger.warning("supervisor_failed", error=str(e))
+
     existing_events = state.get("events", [])
     result: dict[str, Any] = {
         "intent": intent_str,
         "model": model,
         "fallback_models": fallbacks,
         "route_reason": reason,
+        "skip_enrich": skip_enrich,
+        "supervisor_tier": supervisor_tier,
         "events": existing_events + [_event_to_dict(event)],
     }
 
@@ -390,13 +417,20 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
     system_prompt = _build_base_system_prompt()
 
     # Sprint 9: Inject dynamic user dossier from Supabase
+    # Sprint 39 Opt-3: Dossier cache con TTL 5min — evita fetch de Supabase en cada request
+    from kernel import dossier_cache
     db = config.get("configurable", {}).get("_db")
-    if db:
+    cached_dossier = dossier_cache.get(user_id)
+    if cached_dossier:
+        system_prompt += f"\n\n{cached_dossier}"
+        logger.debug("enrich_dossier_from_cache", user_id=user_id, chars=len(cached_dossier))
+    elif db:
         try:
             from tools.user_dossier import get_prompt_dossier
 
             dynamic_dossier = await get_prompt_dossier(db, user_id="anonymous")
             system_prompt += f"\n\n{dynamic_dossier}"
+            dossier_cache.store(user_id, dynamic_dossier)  # Cache para próximas requests
             logger.info("enrich_dossier_injected", source="supabase", chars=len(dynamic_dossier))
         except Exception as e:
             # Fallback to hardcoded dossier
@@ -815,6 +849,29 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
         tool_loop_count=tool_loop_count,
     )
 
+    # Sprint 39 Opt-2: Response cache check — skip LLM call on hit
+    if not is_followup:
+        from kernel import response_cache
+        cached_response = response_cache.get(message, intent)
+        if cached_response:
+            logger.info("execute_cache_hit", intent=intent, preview=message[:50])
+            existing_events = state.get("events", [])
+            return {
+                "status": RunStatus.EXECUTING.value,
+                "response": cached_response,
+                "pending_tool_calls": [],
+                "tool_results": [],
+                "tokens_in": state.get("tokens_in", 0),
+                "tokens_out": state.get("tokens_out", 0),
+                "cost_usd": state.get("cost_usd", 0.0),
+                "latency_ms": 1,
+                "model_used": "cache",
+                "execution_attempts": state.get("execution_attempts", 0) + 1,
+                "needs_human_approval": False,
+                "human_approval_reason": None,
+                "events": existing_events,
+            }
+
     # Get tool specs for native function calling
     from kernel.tool_dispatch import get_tool_specs
 
@@ -967,6 +1024,11 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
         )
         .build()
     )
+
+    # Sprint 39 Opt-2: Store response in cache for future hits
+    if response and not is_followup and not pending_tool_calls:
+        from kernel import response_cache
+        response_cache.store(message, intent, response)
 
     # Accumulate tokens across tool loops
     existing_events = state.get("events", [])
@@ -1213,6 +1275,12 @@ def should_enrich(state: MonstruoState) -> str:
 
     # Always skip for background
     if intent == "background":
+        return "execute"
+
+    # Sprint 39 Opt-1: Respetar skip_enrich del Supervisor (tier SIMPLE)
+    # El supervisor ya decidió que este mensaje no necesita contexto de memoria
+    if state.get("skip_enrich", False):
+        logger.info("fast_path_supervisor_skip_enrich", intent=intent, message_preview=message[:60])
         return "execute"
 
     # Always enrich for heavy intents

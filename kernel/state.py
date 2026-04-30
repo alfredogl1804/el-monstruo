@@ -94,6 +94,9 @@ class MonstruoState(TypedDict, total=False):
     human_approval_reason: str  # Why approval is needed
     human_response: Optional[str]  # Response from human (after resume)
 
+    # ── Supervisor (Sprint 39) ──────────────────────────────────
+    skip_enrich: bool  # True when supervisor tier is SIMPLE
+    supervisor_tier: str  # SIMPLE | MODERATE | COMPLEX | DEEP
     # ── Multi-Agent (Sprint 21) ──────────────────────────────
     agent_type: Optional[str]  # research | code | analysis | creative | ops | default
     agent_system_prompt: Optional[str]  # Agent-specific system prompt
