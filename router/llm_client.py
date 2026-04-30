@@ -457,7 +457,29 @@ class LLMClient:
             kwargs["output_config"] = {"effort": "high"}
 
         if system_prompt:
-            kwargs["system"] = system_prompt
+            # ══ Sprint 45: Anthropic Prompt Caching (non-streaming path) ══════
+            DYNAMIC_MARKERS = [
+                "## Relevant Context",
+                "## Known Entities",
+                "## Knowledge Graph Context",
+                "## User Memory (Mem0)",
+                "## Client Instructions",
+            ]
+            split_idx = len(system_prompt)
+            for marker in DYNAMIC_MARKERS:
+                idx = system_prompt.find(marker)
+                if idx != -1 and idx < split_idx:
+                    split_idx = idx
+            stable_prefix = system_prompt[:split_idx].rstrip()
+            dynamic_suffix = system_prompt[split_idx:].strip()
+            
+            if len(stable_prefix) >= 500:
+                system_blocks = [{"type": "text", "text": stable_prefix, "cache_control": {"type": "ephemeral"}}]
+                if dynamic_suffix:
+                    system_blocks.append({"type": "text", "text": dynamic_suffix})
+                kwargs["system"] = system_blocks
+            else:
+                kwargs["system"] = system_prompt
 
         if tools:
             kwargs["tools"] = [t.to_anthropic_format() for t in tools]
@@ -974,7 +996,53 @@ class LLMClient:
             kwargs["thinking"] = {"type": "adaptive", "display": "summarized"}
             kwargs["output_config"] = {"effort": "high"}
         if system_prompt:
-            kwargs["system"] = system_prompt
+            # ══ Sprint 45: Anthropic Prompt Caching ══════════════════════
+            # Split system prompt into stable prefix (cacheable) and dynamic suffix.
+            # The stable prefix (base instructions + dossier) gets cached across requests,
+            # reducing prefill from 30-45s to <1s on subsequent queries.
+            # Anthropic caches prompts >= 1024 tokens for 5 minutes.
+            # See: https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching
+            #
+            # Strategy: Everything before "## Relevant Context" is stable (cacheable).
+            # Everything after is dynamic (changes per query).
+            DYNAMIC_MARKERS = [
+                "## Relevant Context",
+                "## Known Entities",
+                "## Knowledge Graph Context",
+                "## User Memory (Mem0)",
+                "## Client Instructions",
+            ]
+            
+            # Find the earliest dynamic section
+            split_idx = len(system_prompt)
+            for marker in DYNAMIC_MARKERS:
+                idx = system_prompt.find(marker)
+                if idx != -1 and idx < split_idx:
+                    split_idx = idx
+            
+            stable_prefix = system_prompt[:split_idx].rstrip()
+            dynamic_suffix = system_prompt[split_idx:].strip()
+            
+            # Build structured system blocks with cache_control
+            system_blocks = []
+            if stable_prefix:
+                system_blocks.append({
+                    "type": "text",
+                    "text": stable_prefix,
+                    "cache_control": {"type": "ephemeral"},
+                })
+            if dynamic_suffix:
+                system_blocks.append({
+                    "type": "text",
+                    "text": dynamic_suffix,
+                })
+            
+            # Use structured blocks if we have a meaningful stable prefix (>= 500 chars)
+            # Otherwise fall back to plain string (for very short system prompts)
+            if len(stable_prefix) >= 500 and system_blocks:
+                kwargs["system"] = system_blocks
+            else:
+                kwargs["system"] = system_prompt
 
         async with self._anthropic_client.messages.stream(**kwargs) as stream:
             async for text in stream.text_stream:
