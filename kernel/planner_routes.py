@@ -222,11 +222,13 @@ async def test_planner(body: PlanRequest, request: Request) -> dict:
     """Test endpoint: only checks if objective is complex and generates a plan (no execution)."""
     _check_auth(request)
     try:
-        from kernel.task_planner import TaskPlanner, is_complex_objective
+        from kernel.task_planner import TaskPlanner
         kernel = request.app.state.kernel if hasattr(request.app.state, "kernel") else None
         db = request.app.state.db if hasattr(request.app.state, "db") else None
 
-        is_complex = is_complex_objective(body.objective)
+        # is_complex_objective is an instance method — create a temporary planner to call it
+        _tmp_planner = TaskPlanner(kernel=None, db=None)
+        is_complex = _tmp_planner.is_complex_objective(body.objective)
         if not is_complex:
             return {
                 "is_complex": False,
