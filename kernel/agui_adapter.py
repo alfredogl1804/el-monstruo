@@ -1,19 +1,18 @@
 """
-El Monstruo — AG-UI SSE Adapter (Sprint 12 → Sprint 42 Streaming Fix)
-======================================================================
+El Monstruo — AG-UI SSE Adapter (Sprint 12 → Sprint 42 Streaming Fix v2)
+=========================================================================
 Streams kernel events in AG-UI protocol format over SSE.
 This adapter translates LangGraph kernel events into the
 AG-UI event stream that CopilotKit/Command Center consumes.
 
-Sprint 42 Fix: Heartbeat-enabled streaming to prevent Railway proxy buffering.
-Root cause (diagnosed by Los 3 Sabios): Phase 1 pre-LLM processing yields
-nothing for several seconds, causing Railway's proxy to buffer the entire
-response until the first chunk arrives. Fix: emit an immediate SSE event
-at connection time + periodic heartbeat comments during processing gaps.
+Sprint 42 Fix v2: Safe heartbeat-enabled streaming to prevent Railway
+proxy buffering. Uses asyncio.Queue to decouple kernel streaming from
+heartbeat emission — avoids asyncio.wait_for() which cancels the
+underlying async generator and corrupts its state.
 
 AG-UI Events emitted:
   - RUN_STARTED       → When a new run begins
-  - THINKING_STATE    → Processing status updates (new in Sprint 42)
+  - THINKING_STATE    → Processing status updates
   - TEXT_MESSAGE_START → When assistant starts responding
   - TEXT_MESSAGE_CONTENT → Streaming text chunks
   - TEXT_MESSAGE_END   → When assistant finishes
@@ -49,7 +48,10 @@ _kernel = None
 _thoughts_store = None
 
 # ── Heartbeat Configuration ───────────────────────────────────────
-_HEARTBEAT_INTERVAL_S = 3.0  # Send heartbeat every 3s during silence
+_HEARTBEAT_INTERVAL_S = 2.5  # Send heartbeat every 2.5s during silence
+
+# ── Sentinel for stream end ───────────────────────────────────────
+_STREAM_END = object()
 
 
 def set_dependencies(kernel=None, thoughts_store=None):
@@ -114,8 +116,8 @@ async def agui_run(req: AGUIRunRequest, request: Request):
     Accepts AG-UI protocol messages, runs through the kernel,
     and streams back AG-UI events.
 
-    Sprint 42: Uses heartbeat-interleaved streaming to prevent
-    Railway proxy buffering during pre-LLM processing phases."""
+    Sprint 42 v2: Uses asyncio.Queue to safely interleave heartbeats
+    without corrupting the kernel's async generator."""
     if not _kernel:
         raise HTTPException(503, "Kernel not initialized")
 
@@ -140,23 +142,15 @@ async def agui_run(req: AGUIRunRequest, request: Request):
     async def event_stream():
         """Generate AG-UI SSE events from kernel execution.
 
-        Strategy (Sprint 42 — Los 3 Sabios consensus):
-        1. Emit RUN_STARTED immediately to open the stream
-        2. Start a heartbeat task that sends SSE comments every 3s
-        3. Each real event resets the heartbeat timer
-        4. Heartbeats keep Railway's proxy in streaming mode
+        Strategy (Sprint 42 v2 — safe heartbeat):
+        1. Emit RUN_STARTED + TEXT_MESSAGE_START immediately
+        2. Spawn a background task that reads from the kernel async generator
+           and pushes chunks into an asyncio.Queue
+        3. The main generator reads from the queue with a timeout
+        4. On timeout → yield heartbeat; on item → process and yield SSE event
+        5. This avoids asyncio.wait_for() which cancels __anext__() and
+           corrupts the async generator state
         """
-        last_yield_time = time.monotonic()
-
-        async def _maybe_heartbeat():
-            """Yield heartbeat if we haven't sent anything recently."""
-            nonlocal last_yield_time
-            now = time.monotonic()
-            if now - last_yield_time >= _HEARTBEAT_INTERVAL_S:
-                last_yield_time = now
-                return _heartbeat()
-            return None
-
         try:
             # ── IMMEDIATE: RUN_STARTED (opens the stream) ──────────
             yield _sse_event(
@@ -166,7 +160,6 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                     "threadId": thread_id,
                 },
             )
-            last_yield_time = time.monotonic()
 
             # TEXT_MESSAGE_START
             message_id = str(uuid4())
@@ -177,7 +170,6 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                     "role": "assistant",
                 },
             )
-            last_yield_time = time.monotonic()
 
             # Execute through kernel
             from contracts.kernel_interface import RunInput
@@ -194,118 +186,157 @@ async def agui_run(req: AGUIRunRequest, request: Request):
             tool_calls_emitted = []
 
             try:
-                # ── Stream with heartbeat interleaving ──────────────
-                # We use asyncio.wait_for with a timeout to interleave
-                # heartbeats when the kernel is slow to yield.
-                kernel_stream = _kernel.stream(run_input).__aiter__()
-                stream_exhausted = False
+                # ── Queue-based heartbeat interleaving ─────────────
+                # The kernel's async generator runs in a background task
+                # that pushes items into a queue. The main loop reads
+                # from the queue with a timeout for heartbeats.
+                queue: asyncio.Queue = asyncio.Queue()
 
-                while not stream_exhausted:
-                    # Check if client disconnected
-                    if await request.is_disconnected():
-                        logger.info("agui_client_disconnected", run_id=run_id)
-                        return
-
+                async def _pump_kernel():
+                    """Read from kernel stream and push into queue."""
                     try:
-                        # Wait for next chunk with timeout
-                        raw_chunk = await asyncio.wait_for(
-                            kernel_stream.__anext__(),
-                            timeout=_HEARTBEAT_INTERVAL_S,
-                        )
-                    except asyncio.TimeoutError:
-                        # No chunk received within interval — send heartbeat
-                        yield _heartbeat()
-                        last_yield_time = time.monotonic()
-                        continue
-                    except StopAsyncIteration:
-                        stream_exhausted = True
-                        break
+                        async for raw_chunk in _kernel.stream(run_input):
+                            await queue.put(raw_chunk)
+                    except Exception as pump_err:
+                        await queue.put(pump_err)
+                    finally:
+                        await queue.put(_STREAM_END)
 
-                    # Process the chunk
-                    if isinstance(raw_chunk, str):
+                # Start the kernel pump as a background task
+                pump_task = asyncio.create_task(_pump_kernel())
+
+                try:
+                    while True:
+                        # Check if client disconnected
+                        if await request.is_disconnected():
+                            logger.info("agui_client_disconnected", run_id=run_id)
+                            pump_task.cancel()
+                            return
+
                         try:
-                            chunk = json.loads(raw_chunk)
-                        except (json.JSONDecodeError, TypeError):
+                            item = await asyncio.wait_for(
+                                queue.get(),
+                                timeout=_HEARTBEAT_INTERVAL_S,
+                            )
+                        except asyncio.TimeoutError:
+                            # Queue empty for too long — send heartbeat
+                            yield _heartbeat()
                             continue
-                    else:
-                        chunk = raw_chunk
 
-                    chunk_type = chunk.get("type", "")
+                        # Check for stream end
+                        if item is _STREAM_END:
+                            break
 
-                    if chunk_type in ("chunk", "token"):
-                        # Real LLM streaming token
-                        chunk_data = chunk.get("text", chunk.get("data", ""))
-                        full_response += chunk_data
-                        yield _sse_event(
-                            AGUIEventType.TEXT_MESSAGE_CONTENT,
-                            {
-                                "messageId": message_id,
-                                "delta": chunk_data,
-                            },
-                        )
-                        last_yield_time = time.monotonic()
-
-                    elif chunk_type == "meta":
-                        # Forward meta events as THINKING_STATE for Flutter
-                        yield _sse_event(
-                            AGUIEventType.THINKING_STATE,
-                            {
-                                "messageId": message_id,
-                                "intent": chunk.get("intent", ""),
-                                "model": chunk.get("model", ""),
-                                "enriched": chunk.get("enriched", False),
-                                "memoriesFound": chunk.get("memories_found", 0),
-                            },
-                        )
-                        last_yield_time = time.monotonic()
-
-                    elif chunk_type == "tool_start":
-                        # Tool invocation started
-                        chunk_data = chunk.get("data", {})
-                        tool_call_id = str(uuid4())
-                        tool_calls_emitted.append(tool_call_id)
-                        yield _sse_event(
-                            AGUIEventType.TOOL_CALL_START,
-                            {
-                                "toolCallId": tool_call_id,
-                                "toolCallName": chunk_data.get("name", "unknown") if isinstance(chunk_data, dict) else "unknown",
-                            },
-                        )
-                        last_yield_time = time.monotonic()
-                        if isinstance(chunk_data, dict) and chunk_data.get("args"):
+                        # Check for errors from pump
+                        if isinstance(item, Exception):
+                            logger.error("agui_pump_error", run_id=run_id, error=str(item))
                             yield _sse_event(
-                                AGUIEventType.TOOL_CALL_ARGS,
+                                AGUIEventType.RUN_ERROR,
+                                {"message": f"Kernel stream error: {str(item)}"},
+                            )
+                            break
+
+                        # Process the chunk
+                        raw_chunk = item
+                        if isinstance(raw_chunk, str):
+                            try:
+                                chunk = json.loads(raw_chunk)
+                            except (json.JSONDecodeError, TypeError):
+                                continue
+                        else:
+                            chunk = raw_chunk
+
+                        chunk_type = chunk.get("type", "")
+
+                        if chunk_type in ("chunk", "token"):
+                            # Real LLM streaming token
+                            chunk_data = chunk.get("text", chunk.get("data", ""))
+                            full_response += chunk_data
+                            yield _sse_event(
+                                AGUIEventType.TEXT_MESSAGE_CONTENT,
+                                {
+                                    "messageId": message_id,
+                                    "delta": chunk_data,
+                                },
+                            )
+
+                        elif chunk_type == "meta":
+                            # Forward meta events as THINKING_STATE for Flutter
+                            yield _sse_event(
+                                AGUIEventType.THINKING_STATE,
+                                {
+                                    "messageId": message_id,
+                                    "intent": chunk.get("intent", ""),
+                                    "model": chunk.get("model", ""),
+                                    "enriched": chunk.get("enriched", False),
+                                    "memoriesFound": chunk.get("memories_found", 0),
+                                },
+                            )
+
+                        elif chunk_type == "progress":
+                            # Sprint 42: Progress events from kernel phases
+                            # Forward as THINKING_STATE so Flutter shows status
+                            yield _sse_event(
+                                AGUIEventType.THINKING_STATE,
+                                {
+                                    "messageId": message_id,
+                                    "phase": chunk.get("phase", ""),
+                                    "detail": chunk.get("detail", ""),
+                                },
+                            )
+
+                        elif chunk_type == "tool_start":
+                            # Tool invocation started
+                            chunk_data = chunk.get("data", {})
+                            tool_call_id = str(uuid4())
+                            tool_calls_emitted.append(tool_call_id)
+                            yield _sse_event(
+                                AGUIEventType.TOOL_CALL_START,
                                 {
                                     "toolCallId": tool_call_id,
-                                    "delta": json.dumps(chunk_data["args"]),
+                                    "toolCallName": chunk_data.get("name", "unknown") if isinstance(chunk_data, dict) else "unknown",
                                 },
                             )
-                            last_yield_time = time.monotonic()
+                            if isinstance(chunk_data, dict) and chunk_data.get("args"):
+                                yield _sse_event(
+                                    AGUIEventType.TOOL_CALL_ARGS,
+                                    {
+                                        "toolCallId": tool_call_id,
+                                        "delta": json.dumps(chunk_data["args"]),
+                                    },
+                                )
 
-                    elif chunk_type == "tool_end":
-                        chunk_data = chunk.get("data", {})
-                        if tool_calls_emitted:
+                        elif chunk_type == "tool_end":
+                            chunk_data = chunk.get("data", {})
+                            if tool_calls_emitted:
+                                yield _sse_event(
+                                    AGUIEventType.TOOL_CALL_END,
+                                    {
+                                        "toolCallId": tool_calls_emitted[-1],
+                                        "result": str(chunk_data.get("result", "") if isinstance(chunk_data, dict) else chunk_data)[:1000],
+                                    },
+                                )
+
+                        elif chunk_type in ("error",):
                             yield _sse_event(
-                                AGUIEventType.TOOL_CALL_END,
+                                AGUIEventType.RUN_ERROR,
                                 {
-                                    "toolCallId": tool_calls_emitted[-1],
-                                    "result": str(chunk_data.get("result", "") if isinstance(chunk_data, dict) else chunk_data)[:1000],
+                                    "message": str(chunk.get("message", chunk.get("data", "Unknown error"))),
                                 },
                             )
-                            last_yield_time = time.monotonic()
 
-                    elif chunk_type in ("error",):
-                        yield _sse_event(
-                            AGUIEventType.RUN_ERROR,
-                            {
-                                "message": str(chunk.get("message", chunk.get("data", "Unknown error"))),
-                            },
-                        )
-                        last_yield_time = time.monotonic()
+                        elif chunk_type == "done":
+                            # Done event from kernel — stream is about to end
+                            continue
 
-                    elif chunk_type == "done":
-                        # Done event from kernel — stream is about to end
-                        continue
+                finally:
+                    # Ensure pump task is cleaned up
+                    if not pump_task.done():
+                        pump_task.cancel()
+                        try:
+                            await pump_task
+                        except (asyncio.CancelledError, Exception):
+                            pass
 
             except AttributeError:
                 # Kernel doesn't have stream method, fall back to sync
