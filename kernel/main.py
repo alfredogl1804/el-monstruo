@@ -475,6 +475,36 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("background_store_init_failed", error=str(e))
 
+    # ── Sprint 36: MOC (Motor de Orquestación Central) ─────────────
+    moc = None
+    try:
+        from kernel.moc import MOC
+        from kernel.runner.telegram_notifier import TelegramNotifier as _MocTN
+
+        _moc_notifier = _MocTN()
+        moc = MOC(
+            db=db if db_connected else None,
+            router=router,
+            runner=autonomous_runner,
+            notifier=_moc_notifier if _moc_notifier.enabled else None,
+        )
+        await moc.start()
+        app.state._moc = moc
+        logger.info("moc_started", synthesis_interval_h=moc.stats["synthesis_interval_h"])
+    except Exception as e:
+        logger.warning("moc_init_failed", error=str(e))
+
+    # Wire MOC routes
+    try:
+        from kernel.moc_routes import router as moc_router
+        from kernel.moc_routes import set_dependencies as set_moc_deps
+
+        set_moc_deps(moc=moc)
+        app.include_router(moc_router)
+        logger.info("moc_routes_registered")
+    except Exception as e:
+        logger.warning("moc_routes_failed", error=str(e))
+
     # ── Sprint 30: Embrión IA Routes ────────────────────────────────
     try:
         from kernel.embrion_routes import router as embrion_router
@@ -525,6 +555,7 @@ async def lifespan(app: FastAPI):
         embrion="registered",
         embrion_loop="active" if embrion_loop else "inactive",
         background_store="supabase" if (_bg_store and _bg_store._use_db()) else "in_memory",
+        moc="active" if moc else "inactive",
     )
 
     # Warm-up: pre-heat LLM connections to eliminate cold start on first request

@@ -601,6 +601,20 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
                 system_prompt += "\n\n## User Memory (Mem0)\n" + "\n".join(mem0_parts)
                 logger.info("enrich_mem0_injected", count=len(mem0_parts))
 
+    # Sprint 36: Inject deep_think specialized prompt section
+    if intent == IntentType.DEEP_THINK.value:
+        system_prompt += (
+            "\n\n## Modo Deep Think — Protocolo de Razonamiento\n"
+            "Estás en modo de análisis profundo multi-paso. El pipeline ejecutará:\n"
+            "1. **Planificación**: Genera un marco de análisis antes de responder.\n"
+            "2. **Consulta a Sabios**: Claude (Arquitecto/Crítico) y Gemini (Investigador/Creativo) aportarán perspectivas.\n"
+            "3. **Síntesis**: Integra todas las perspectivas en una respuesta final estructurada.\n\n"
+            "Usa la memoria y el contexto proporcionado arriba. "
+            "Cita fuentes cuando las tengas. Señala incertidumbre explícitamente. "
+            "Termina con nivel de confianza: alto/medio/bajo."
+        )
+        logger.info("enrich_deep_think_prompt_injected")
+
     elapsed_ms = (time.monotonic() - start_time) * 1000
 
     event = (
@@ -807,7 +821,20 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
     tool_specs = get_tool_specs()
 
     try:
-        if router and hasattr(router, "execute_with_tools"):
+        # Sprint 36: deep_think usa pipeline multi-paso con consulta a Sabios
+        if intent == IntentType.DEEP_THINK.value and router and not is_followup:
+            from kernel.deep_think_pipeline import run_deep_think_pipeline
+
+            logger.info("execute_deep_think_pipeline", model=model)
+            response, usage = await run_deep_think_pipeline(
+                message=message,
+                context=enriched_context,
+                router=router,
+                model=model,
+            )
+            model_used = usage.get("model_used", model)
+
+        elif router and hasattr(router, "execute_with_tools"):
             llm_response = await router.execute_with_tools(
                 message=message,
                 model=model,
