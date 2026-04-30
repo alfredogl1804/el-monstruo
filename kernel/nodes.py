@@ -346,10 +346,12 @@ async def classify_and_route(state: MonstruoState, config: RunnableConfig) -> di
     supervisor_tier = "MODERATE"
     try:
         from kernel.supervisor import analyze_complexity
+        conversation_context = state.get("conversation_context", [])
         supervisor_decision = analyze_complexity(
             message=state.get("message", ""),
+            conversation_depth=len(conversation_context) if conversation_context else 0,
+            has_tool_history=bool(state.get("tool_results", [])),
             intent=intent_str,
-            channel=state.get("channel", "api"),
         )
         skip_enrich = supervisor_decision.skip_enrich
         supervisor_tier = supervisor_decision.tier.value if hasattr(supervisor_decision.tier, 'value') else str(supervisor_decision.tier)
