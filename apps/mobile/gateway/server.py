@@ -377,23 +377,48 @@ async def _stream_agui_to_ws(
         full_content = ""
         message_id = str(uuid4())
 
-        # Sprint 45: Token coalescing — buffer tokens for up to 30ms
-        # before sending a WebSocket frame. FIRST token bypasses buffer
-        # to preserve TTFT (time-to-first-token) perception.
-        _token_buffer = ""
+        # Sprint 45 (fix): Token coalescing with background flush.
+        # BUG FIX: Original implementation only flushed when a NEW token arrived
+        # after 30ms elapsed. If the LLM paused (thinking between paragraphs),
+        # buffered tokens would never flush until the next token or message_end.
+        # FIX: Background asyncio task flushes buffer every 30ms independently.
+        _token_buffer_list = []  # Use list for thread-safe append
         _first_token_sent = False
-        _last_flush_time = time.time()
+        _flush_lock = asyncio.Lock()
+        _stream_done = False
         _COALESCE_MS = 0.030  # 30ms coalescing window
 
-        async with http_client.stream(
-            "POST", "/v1/agui/run",
-            json=agui_payload,
-            headers={
-                "Accept": "text/event-stream",
-                "Cache-Control": "no-cache",
-                "X-Accel-Buffering": "no",
-            },
-        ) as response:
+        async def _periodic_flush():
+            """Background task: flush token buffer every 30ms."""
+            nonlocal _token_buffer_list, _stream_done
+            while not _stream_done:
+                await asyncio.sleep(_COALESCE_MS)
+                async with _flush_lock:
+                    if _token_buffer_list and connection_id in active_connections:
+                        batch = "".join(_token_buffer_list)
+                        _token_buffer_list.clear()
+                        try:
+                            await ws.send_json({
+                                "type": "text_chunk",
+                                "message_id": message_id,
+                                "content": batch,
+                            })
+                        except Exception:
+                            _stream_done = True
+                            return
+
+        flush_task = asyncio.create_task(_periodic_flush())
+
+        try:
+          async with http_client.stream(
+              "POST", "/v1/agui/run",
+              json=agui_payload,
+              headers={
+                  "Accept": "text/event-stream",
+                  "Cache-Control": "no-cache",
+                  "X-Accel-Buffering": "no",
+              },
+          ) as response:
             # Use aiter_bytes + manual SSE parsing to avoid Railway buffering
             sse_buffer = ""
             async for raw_bytes in response.aiter_bytes():
@@ -411,6 +436,7 @@ async def _stream_agui_to_ws(
 
                         # Check if connection still active
                         if connection_id not in active_connections:
+                            _stream_done = True
                             return
 
                         event_type = event.get("type", "")
@@ -443,7 +469,7 @@ async def _stream_agui_to_ws(
                             delta = event.get("delta", "")
                             full_content += delta
 
-                            # Sprint 45: Token coalescing
+                            # Sprint 45: Token coalescing with background flush
                             if not _first_token_sent:
                                 # FIRST TOKEN: send immediately (TTFT priority)
                                 _first_token_sent = True
@@ -452,19 +478,10 @@ async def _stream_agui_to_ws(
                                     "message_id": message_id,
                                     "content": delta,
                                 })
-                                _last_flush_time = time.time()
                             else:
-                                # SUBSEQUENT: accumulate and flush every 30ms
-                                _token_buffer += delta
-                                now = time.time()
-                                if (now - _last_flush_time) >= _COALESCE_MS:
-                                    await ws.send_json({
-                                        "type": "text_chunk",
-                                        "message_id": message_id,
-                                        "content": _token_buffer,
-                                    })
-                                    _token_buffer = ""
-                                    _last_flush_time = now
+                                # SUBSEQUENT: add to buffer, background task flushes
+                                async with _flush_lock:
+                                    _token_buffer_list.append(delta)
 
                         elif event_type == "TEXT_MESSAGE_START":
                             message_id = event.get("messageId", message_id)
@@ -474,14 +491,17 @@ async def _stream_agui_to_ws(
                             })
 
                         elif event_type == "TEXT_MESSAGE_END":
-                            # Flush any remaining buffered tokens
-                            if _token_buffer:
-                                await ws.send_json({
-                                    "type": "text_chunk",
-                                    "message_id": message_id,
-                                    "content": _token_buffer,
-                                })
-                                _token_buffer = ""
+                            # Stop background flush and drain remaining buffer
+                            _stream_done = True
+                            async with _flush_lock:
+                                if _token_buffer_list:
+                                    batch = "".join(_token_buffer_list)
+                                    _token_buffer_list.clear()
+                                    await ws.send_json({
+                                        "type": "text_chunk",
+                                        "message_id": message_id,
+                                        "content": batch,
+                                    })
                             await ws.send_json({
                                 "type": "message_end",
                                 "message_id": message_id,
@@ -525,6 +545,15 @@ async def _stream_agui_to_ws(
                             # Already sent run_start above
                             pass
 
+        finally:
+            # Always cancel the background flush task
+            _stream_done = True
+            flush_task.cancel()
+            try:
+                await flush_task
+            except asyncio.CancelledError:
+                pass
+
         # Run complete
         await ws.send_json({
             "type": "run_end",
@@ -535,11 +564,15 @@ async def _stream_agui_to_ws(
         })
 
     except httpx.TimeoutException:
+        _stream_done = True
+        flush_task.cancel()
         await ws.send_json({
             "type": "error",
             "message": "Kernel timeout — el agente está tardando más de lo esperado",
         })
     except Exception as e:
+        _stream_done = True
+        flush_task.cancel()
         await ws.send_json({
             "type": "error",
             "message": f"Gateway error: {str(e)}",
