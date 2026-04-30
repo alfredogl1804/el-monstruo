@@ -548,6 +548,55 @@ Formato obligatorio:
                 "required": ["action", "prompt"],
             },
         },
+        {
+            "name": "query_knowledge",
+            "description": "Sprint 44: Consultar el knowledge graph del Embrión (LightRAG). Usar para recuperar contexto previo, lecciones aprendidas, decisiones pasadas, o cualquier información almacenada en la memoria del sistema.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Consulta en lenguaje natural"},
+                    "mode": {
+                        "type": "string",
+                        "description": "Modo de búsqueda: hybrid (default), local, global, naive",
+                        "enum": ["hybrid", "local", "global", "naive"],
+                    },
+                    "top_k": {"type": "integer", "description": "Máximo de resultados a retornar (default: 5)"},
+                },
+                "required": ["query"],
+            },
+        },
+        {
+            "name": "ingest_knowledge",
+            "description": "Sprint 44: Ingestar un documento o texto al knowledge graph del Embrión (LightRAG). Usar para guardar resultados importantes, aprendizajes, o información que debe persistir en la memoria del sistema.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "content": {"type": "string", "description": "Texto o documento a ingestar"},
+                    "metadata": {
+                        "type": "object",
+                        "description": "Metadatos opcionales: source, type, sprint, etc.",
+                    },
+                },
+                "required": ["content"],
+            },
+        },
+        {
+            "name": "consult_sabios",
+            "description": "Sprint 44: Consultar a los 6 Sabios (GPT-5.4, Claude, Gemini, Grok, DeepSeek, Perplexity) en paralelo para obtener perspectivas múltiples sobre un problema. Usar cuando la tarea requiere análisis profundo, validación cruzada, o decisión estratégica importante.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "prompt": {"type": "string", "description": "La pregunta o tarea para los Sabios"},
+                    "context": {"type": "string", "description": "Contexto adicional para los Sabios (opcional)"},
+                    "sabios": {
+                        "type": "array",
+                        "items": {"type": "string", "enum": ["gpt54", "claude", "gemini", "grok", "deepseek", "perplexity"]},
+                        "description": "Subset de Sabios a consultar (default: todos los 6)",
+                    },
+                },
+                "required": ["prompt"],
+            },
+        },
     ]
 
     async def _execute_tool_direct(self, tool_name: str, args: dict) -> str:
@@ -624,6 +673,54 @@ Formato obligatorio:
                 except Exception as e:
                     logger.error("task_planner_send_message_error", error=str(e))
                     return json.dumps({"sent": False, "error": str(e), "message": msg[:200]})
+
+            elif tool_name == "query_knowledge":
+                # Sprint 44: Consultar el knowledge graph del Embrión
+                from memory.lightrag_bridge import query_knowledge
+                result = await query_knowledge(
+                    query=args.get("query", ""),
+                    mode=args.get("mode", "hybrid"),
+                    top_k=args.get("top_k", 5),
+                )
+                logger.info(
+                    "task_planner_query_knowledge",
+                    query=args.get("query", "")[:80],
+                    mode=args.get("mode", "hybrid"),
+                )
+                return json.dumps(result, ensure_ascii=False)[:4000]
+
+            elif tool_name == "ingest_knowledge":
+                # Sprint 44: Ingestar documento al knowledge graph del Embrión
+                from memory.lightrag_bridge import ingest_document
+                result = await ingest_document(
+                    content=args.get("content", ""),
+                    metadata=args.get("metadata"),
+                )
+                logger.info(
+                    "task_planner_ingest_knowledge",
+                    content_length=len(args.get("content", "")),
+                )
+                return json.dumps(result, ensure_ascii=False)
+
+            elif tool_name == "consult_sabios":
+                # Sprint 44: Consultar los 6 Sabios en paralelo
+                from tools.consult_sabios import consult_sabios
+                result = await consult_sabios(
+                    prompt=args.get("prompt", ""),
+                    context=args.get("context", ""),
+                    sabios=args.get("sabios"),  # None = todos los 6
+                    parallel=True,
+                )
+                logger.info(
+                    "task_planner_consult_sabios",
+                    prompt=args.get("prompt", "")[:80],
+                    successful=result.get("successful_count", 0),
+                    failed=result.get("failed_count", 0),
+                    latency_ms=result.get("total_latency_ms", 0),
+                )
+                # Retornar solo la síntesis para no saturar el contexto de Claude
+                synthesis = result.get("synthesis", "")
+                return synthesis[:6000] if synthesis else json.dumps({"error": "No sabios responded", "errors": result.get("errors", [])})
 
             else:
                 return json.dumps({"error": f"Tool '{tool_name}' not available in planner executor"})
@@ -740,6 +837,35 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                             if hasattr(block, "text"):
                                 final_response += block.text
                         break
+
+                # Si Claude terminó los loops usando herramientas pero sin generar texto final,
+                # hacer una llamada final SIN herramientas para forzar el resumen.
+                if not final_response and messages and messages[-1]["role"] == "user":
+                    try:
+                        summary_resp = await asyncio.wait_for(
+                            client.messages.create(
+                                model="claude-opus-4-7",
+                                max_tokens=1000,
+                                system=system_prompt,
+                                messages=messages,  # Sin tools= para forzar end_turn
+                            ),
+                            timeout=30,
+                        )
+                        total_tokens += summary_resp.usage.input_tokens + summary_resp.usage.output_tokens
+                        for block in summary_resp.content:
+                            if hasattr(block, "text"):
+                                final_response += block.text
+                        logger.info(
+                            "task_planner_react_summary_generated",
+                            plan_id=plan.plan_id,
+                            step=step.index,
+                            length=len(final_response),
+                        )
+                    except Exception as summary_err:
+                        logger.warning(
+                            "task_planner_react_summary_failed",
+                            error=str(summary_err),
+                        )
 
                 if not final_response:
                     final_response = f"Paso ejecutado (sin respuesta de texto). Loops ReAct: {loop_i + 1}"
