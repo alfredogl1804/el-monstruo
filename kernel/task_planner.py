@@ -741,6 +741,35 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                                 final_response += block.text
                         break
 
+                # Si Claude terminó los loops usando herramientas pero sin generar texto final,
+                # hacer una llamada final SIN herramientas para forzar el resumen.
+                if not final_response and messages and messages[-1]["role"] == "user":
+                    try:
+                        summary_resp = await asyncio.wait_for(
+                            client.messages.create(
+                                model="claude-opus-4-7",
+                                max_tokens=1000,
+                                system=system_prompt,
+                                messages=messages,  # Sin tools= para forzar end_turn
+                            ),
+                            timeout=30,
+                        )
+                        total_tokens += summary_resp.usage.input_tokens + summary_resp.usage.output_tokens
+                        for block in summary_resp.content:
+                            if hasattr(block, "text"):
+                                final_response += block.text
+                        logger.info(
+                            "task_planner_react_summary_generated",
+                            plan_id=plan.plan_id,
+                            step=step.index,
+                            length=len(final_response),
+                        )
+                    except Exception as summary_err:
+                        logger.warning(
+                            "task_planner_react_summary_failed",
+                            error=str(summary_err),
+                        )
+
                 if not final_response:
                     final_response = f"Paso ejecutado (sin respuesta de texto). Loops ReAct: {loop_i + 1}"
 
