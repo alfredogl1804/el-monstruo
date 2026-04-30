@@ -436,12 +436,26 @@ class LLMClient:
         if not user_messages:
             user_messages = [{"role": "user", "content": "Hola"}]
 
+        # claude-opus-4-7 breaking API changes (Anthropic migration guide, Apr 16 2026):
+        # 1. temperature / top_p / top_k removed — sending any value returns HTTP 400
+        # 2. thinking: {type: "enabled"} removed — use {type: "adaptive"} instead
+        # 3. output_config.effort replaces budget_tokens for thinking depth control
+        # Source: https://platform.claude.com/docs/en/about-claude/models/migration-guide
+        _is_opus_47 = "opus-4-7" in model_id or "opus-4.7" in model_id
+
         kwargs: dict[str, Any] = {
             "model": model_id,
             "messages": user_messages,
             "max_tokens": max_tokens,
-            "temperature": temperature,
         }
+        # Only send temperature for models that support it (not opus-4-7)
+        if not _is_opus_47:
+            kwargs["temperature"] = temperature
+        # Enable adaptive thinking for opus-4-7 with high effort (best for agentic tasks)
+        if _is_opus_47:
+            kwargs["thinking"] = {"type": "adaptive", "display": "summarized"}
+            kwargs["output_config"] = {"effort": "high"}
+
         if system_prompt:
             kwargs["system"] = system_prompt
 
@@ -943,13 +957,18 @@ class LLMClient:
         if not user_messages:
             user_messages = [{"role": "user", "content": "Hola"}]
 
+        # claude-opus-4-7: temperature removed, use adaptive thinking
+        _is_opus_47 = "opus-4-7" in model_id or "opus-4.7" in model_id
         kwargs: dict[str, Any] = {
             "model": model_id,
             "messages": user_messages,
             "max_tokens": max_tokens,
-            "temperature": temperature,
-            "stream": True,
         }
+        if not _is_opus_47:
+            kwargs["temperature"] = temperature
+        if _is_opus_47:
+            kwargs["thinking"] = {"type": "adaptive", "display": "summarized"}
+            kwargs["output_config"] = {"effort": "high"}
         if system_prompt:
             kwargs["system"] = system_prompt
 
