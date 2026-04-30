@@ -1,13 +1,13 @@
 ---
 name: el-monstruo-plan
-description: "Blueprint de implementación del Monstruo — el asistente IA soberano de Alfredo. Use when building, modifying, or debugging any component of El Monstruo's technical stack, when making architecture decisions, when selecting or configuring tools (LangGraph, Supabase, Langfuse), or when planning sprints. Contains verified component versions, security alerts, fallback chains, build plan calibrated to WAP mode, and orchestration evaluation (Temporal DESCARTADO, PostgresSaver GANADOR). ACTUALIZADO 24 abril 2026 (Sprint 27 completado)."
+description: "Blueprint de implementación del Monstruo — el asistente IA soberano de Alfredo. Use when building, modifying, or debugging any component of El Monstruo's technical stack, when making architecture decisions, when selecting or configuring tools (LangGraph, Supabase, Langfuse), or when planning sprints. Contains verified component versions, security alerts, fallback chains, build plan calibrated to WAP mode, and orchestration evaluation (Temporal DESCARTADO, PostgresSaver GANADOR). ACTUALIZADO 29 abril 2026 (Sprint 33 en producción)."
 ---
 
-# El Monstruo — Plan de Implementación (Actualizado 24 abril 2026)
+# El Monstruo — Plan de Implementación (Actualizado 29 abril 2026)
 
 Blueprint verificado contra código real en producción, Railway LIVE, y endpoints testeados. Cada componente fue cruzado contra repos reales, no contra planes previos.
 
-> **ESTADO ACTUAL (Sprint 27):** 14/14 componentes activos, 31+ endpoints, 64+ tablas Supabase. Mem0 activo en pgvector. FastMCP integrado. Honcho eliminado. LightRAG activo. Auth fail-closed. Versión: `0.20.0-sprint27`.
+> **ESTADO ACTUAL (Sprint 33):** 16/16 componentes activos, versión `0.26.0-sprint33`. Embrión activo con 435+ ciclos. Manus M2M Bridge (tools/manus_bridge.py) en main. Self-Evaluation Loop y Memory Consolidation completados en Sprint 34.
 
 > **REGLA ANTI-DESVÍO:** Este skill refleja lo que REALMENTE está construido y desplegado. NO lo que se planeó originalmente. Si hay divergencia entre este skill y el código real, el código real gana.
 
@@ -28,20 +28,30 @@ Blueprint verificado contra código real en producción, Railway LIVE, y endpoin
 | Durable Execution | Temporal (evaluado) | **LangGraph PostgresSaver** (nativo) | Temporal DESCARTADO: rompe con LLM calls (requiere determinismo). |
 | Auth | Fail-open (dev mode) | **Fail-closed** (503 si no hay key) | Sprint 22. NUNCA volver a fail-open. |
 | Consola PWA | Next.js 16 + Vercel | **Open WebUI v0.8.12** | Railway. Conectada via adaptador OpenAI. |
+| M2M Bridge | No planeado | **tools/manus_bridge.py v2.1** | Embrión puede delegar tareas a Manus via API. Sprint 30. |
 
-## Stack Técnico REAL (verificado 24 abril 2026)
+## Stack Técnico REAL (verificado 29 abril 2026)
 
 | Módulo | Herramienta | Versión | Notas |
 |---|---|---|---|
-| Kernel | LangGraph | 1.1.9 | 8 nodos, HITL v2, **31+ endpoints HTTP** |
+| Kernel | LangGraph | 1.1.9 | 8 nodos, HITL v2, 31+ endpoints HTTP |
 | Router | **Router soberano** (SDKs nativos) | N/A | OpenAI, Anthropic, Google, xAI, Perplexity, OpenRouter. NO LiteLLM. |
 | Memoria | **Implementación jerárquica** | N/A | Checkpointer + MemPalace (pgvector) + LightRAG + Mem0 (pgvector). Honcho eliminado. |
 | Estado | Supabase Postgres | pgvector 0.8.0 | 64+ tablas. MemPalace usa pgvector directo. |
 | Observabilidad | Langfuse | 4.5.0 | Bridge pattern: EventStore soberano + Langfuse como copia commodity. |
 | Gobernanza | **Policy Engine propio** | N/A | 7 reglas, Composite Risk Scoring, Action Envelope + Validator. |
 | Interfaz | Telegram (@MounstroOC_bot) | python-telegram-bot 22.7 | Bot thin client con HITL inline keyboard. |
-| Deploy | Railway | **4 servicios** | kernel (web) + honcho (internal) + bot (worker) + open-webui (web). |
+| Deploy | Railway | **4 servicios** | kernel (web) + bot (worker) + open-webui (web) + embrion (loop). |
 | CI/CD | GitHub Actions | SHA-pinned | AI-Infra-Guard, license-audit, Semgrep, SBOM (Syft), DeepEval. |
+| Embrión | Loop autónomo Python | Sprint 33 | 435+ ciclos, 15 latidos, 128 memorias, activo 24/7. |
+| M2M Bridge | tools/manus_bridge.py | v2.1 | Dual account (Google/Apple), retry, polling. En main desde Sprint 30. |
+
+### Modelos disponibles en producción (verificado /health 29 abril 2026)
+
+- `gpt-5.5`
+- `claude-opus-4-7`
+- `gemini-3.1-pro-preview`
+- `sonar-reasoning-pro`
 
 ### Alerta Permanente: NO usar LiteLLM ni Temporal
 
@@ -55,20 +65,20 @@ Blueprint verificado contra código real en producción, Railway LIVE, y endpoin
 
 | Rol | Primario | Fallback 1 | Fallback 2 | Fallback 3 |
 |---|---|---|---|---|
-| Estratega | gpt-5.4-pro-2026-03-05 (gpt-5.5-pro en Sprint 28) | claude-opus-4-7 | gemini-3.1-pro | - |
-| Investigador | **sonar-reasoning-pro** | sonar-pro | grok-4.20 | gpt-5.4 |
-| Razonador | deepseek-r1-0528 | gpt-5.4 | claude-opus-4-7 | - |
-| Sintetizador | gpt-5.4 | claude-opus-4-7 | gemini-3.1-pro | - |
+| Estratega | gpt-5.5 | claude-opus-4-7 | gemini-3.1-pro | - |
+| Investigador | **sonar-reasoning-pro** | sonar-pro | grok-4.20 | gpt-5.5 |
+| Razonador | deepseek-r1-0528 | gpt-5.5 | claude-opus-4-7 | - |
+| Sintetizador | gpt-5.5 | claude-opus-4-7 | gemini-3.1-pro | - |
 | Crítico | grok-4.20 | deepseek-r1-0528 | claude-opus-4-7 | - |
-| Creativo | gemini-3.1-pro | gpt-5.4 | claude-opus-4-7 | - |
-| Código | claude-sonnet-4-6 | gpt-5.4 | deepseek-r1-0528 | - |
-| Análisis | gpt-5.4 | claude-opus-4-7 | sonar-reasoning-pro | - |
-| Motor barato | gemini-3.1-flash-lite | gpt-5.4-mini | kimi-k2.5 | - |
-| Clasificador | gemini-3.1-flash-lite | gpt-5.4-mini | - | - |
-| Planificador | gpt-5.4 | claude-opus-4-7 | - | - |
-| Ejecutor | claude-sonnet-4-6 | gpt-5.4 | - | - |
-| Arquitecto | claude-opus-4-7 | gpt-5.4 | - | - |
-| Chat rápido | gemini-3.1-flash-lite | gpt-5.4-mini | - | - |
+| Creativo | gemini-3.1-pro | gpt-5.5 | claude-opus-4-7 | - |
+| Código | claude-sonnet-4-6 | gpt-5.5 | deepseek-r1-0528 | - |
+| Análisis | gpt-5.5 | claude-opus-4-7 | sonar-reasoning-pro | - |
+| Motor barato | gemini-3.1-flash-lite-preview | gpt-5.5-mini | kimi-k2.5 | - |
+| Clasificador | gemini-3.1-flash-lite-preview | gpt-5.5-mini | - | - |
+| Planificador | gpt-5.5 | claude-opus-4-7 | - | - |
+| Ejecutor | claude-sonnet-4-6 | gpt-5.5 | - | - |
+| Arquitecto | claude-opus-4-7 | gpt-5.5 | - | - |
+| Chat rápido | gemini-3.1-flash-lite-preview | gpt-5.5-mini | - | - |
 
 **NOTA:** `gemini-3.1-flash-lite` es un alias interno. El `model_id` real es `gemini-3.1-flash-lite-preview`. Sin `-preview` retorna 404 en Google API.
 
@@ -89,7 +99,7 @@ intake → classify_and_route → enrich → execute → hitl_review → respond
 
 El nodo `enrich` ejecuta en paralelo via `asyncio.gather`: MemPalace recall, Mem0 search, LightRAG query, knowledge entities, conversation context, semantic search.
 
-## Gaps Cerrados (Sprints 2-24)
+## Gaps Cerrados (Sprints 2-34)
 
 | # | Gap | Estado | Sprint |
 |---|---|---|---|
@@ -103,18 +113,26 @@ El nodo `enrich` ejecuta en paralelo via `asyncio.gather`: MemPalace recall, Mem
 | 8 | MemPalace activo (persistente) | **CERRADO** | Sprint 24 (pgvector) |
 | 9 | LightRAG activo (knowledge graph) | **CERRADO** | Sprint 24 |
 | 10 | CI Security (AIG + license-audit) | **CERRADO** | Sprint 22 |
+| 11 | FastMCP integrado | **CERRADO** | Sprint 27 |
+| 12 | Mem0 integrado (pgvector soberano) | **CERRADO** | Sprint 27 |
+| 13 | Embrión — loop autónomo | **CERRADO** | Sprint 30 |
+| 14 | Manus M2M Bridge (tools/manus_bridge.py) | **CERRADO** | Sprint 30 |
+| 15 | Self-Evaluation Loop | **CERRADO** | Sprint 34 |
+| 16 | Memory Consolidation (episodic → semantic) | **CERRADO** | Sprint 34 |
+| 17 | Manus Bridge async + tool_dispatch | **CERRADO** | Sprint 34 |
 
 ## Gaps Restantes
 
 | # | Gap | Severidad | Sprint Estimado |
 |---|---|---|---|
-| 1 | FastMCP Operativo (Validación SDK + 2 servers reales + Hardening) | ALTA | Sprint 28 |
-| 2 | Upgrade a GPT-5.5 (Benchmark Soberano + Gates de promoción) | ALTA | Sprint 28 |
-| 3 | Seguridad Continua (Validación Garak + Pipeline ofensivo/defensivo) | ALTA | Sprint 28 |
-| 4 | Persistencia LightRAG (migrar /tmp → pgvector) | MEDIA | Sprint 29 |
-| 5 | Command Center propio (PWA) | MEDIA | Sprint 29+ |
-| 6 | Ejecución Durable (cron, recovery) | MEDIA | Sprint 30+ |
-| 7 | Observabilidad total (alertas automáticas) | MEDIA | Sprint 30+ |
+| 1 | Modo `deep_think` completo (60% → 100%) | ALTA | Sprint 35 |
+| 2 | Modo `background` completo (10% → 100%) | ALTA | Sprint 35 |
+| 3 | Benchmark soberano para modelos (gates de promoción) | ALTA | Sprint 35 |
+| 4 | Seguridad Continua (Validación Garak + Pipeline ofensivo/defensivo) | ALTA | Sprint 35 |
+| 5 | Persistencia LightRAG (migrar /tmp → pgvector) | MEDIA | Sprint 36 |
+| 6 | Command Center propio (PWA) | MEDIA | Sprint 36+ |
+| 7 | Observabilidad total (alertas automáticas) | MEDIA | Sprint 36+ |
+| 8 | Emergencias → Embrión (inyección de contexto operativo) | MEDIA | Pendiente decisión Alfredo |
 
 ## Evaluación de Orquestación Durable (15 abril 2026)
 
@@ -122,11 +140,9 @@ El nodo `enrich` ejecuta en paralelo via `asyncio.gather`: MemPalace recall, Mem
 |---|---|---|---|
 | **LangGraph PostgresSaver** | MIT/Apache | **GANADOR** | Nativo, 0 infra extra, checkpoint caching |
 | **Hatchet** | MIT | **Plan B futuro** | Solo PostgreSQL, diseñado para AI agents |
-| Temporal | MIT | **DESCARTADO PERMANENTE** | Rompe con LLM calls (journal replay). Decisión ratificada tras cruce con radar 24 abril. |
+| Temporal | MIT | **DESCARTADO PERMANENTE** | Rompe con LLM calls (journal replay). ADR formal pendiente Sprint 35. |
 | Restate | BSL 1.1 | **DESCARTADO** | Licencia no open source |
 | Windmill | AGPL | **DESCARTADO** | 3 CVEs graves abril 2026 |
 
-**Nota sobre Temporal:** El radar automatizado (24 abril 2026) recomendó adoptar `temporalio/temporal` por su popularidad (19.8k stars). El Motor Determinista de Cruce rechazó esta recomendación, ratificando la decisión arquitectónica firme de que el journal replay es incompatible con el no-determinismo de los LLMs. Se emitirá un ADR formal en el Sprint 28 para blindar esta decisión contra futuros radares.
-
 ---
-*Última revisión: 24 abril 2026 (Sprint 27). Método: curl /health, Railway CLI, git log, PyPI JSON API, tests E2E. IVD Sprint 27: 38/38 PASS (100%).*
+*Última revisión: 29 abril 2026 (Sprint 33 en producción, Sprint 34 mergeado). Método: curl /health, git log, API GitHub. Embrión: 435 ciclos activos.*
