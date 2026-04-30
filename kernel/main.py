@@ -205,6 +205,7 @@ async def lifespan(app: FastAPI):
             notifier=notifier if notifier.enabled else None,
         )
         await autonomous_runner.start()
+        app.state._autonomous_runner = autonomous_runner  # Sprint 37: exponer en app.state
         logger.info(
             "autonomous_runner_started",
             notifier="telegram" if notifier.enabled else "disabled",
@@ -493,8 +494,9 @@ async def lifespan(app: FastAPI):
         logger.info("moc_started", synthesis_interval_h=moc.stats["synthesis_interval_h"])
 
         # Sprint 37: Inyectar MOC en el Runner para priorización real
-        if autonomous_runner is not None:
-            autonomous_runner.set_moc(moc)
+        _runner = getattr(app.state, "_autonomous_runner", None) or autonomous_runner
+        if _runner is not None:
+            _runner.set_moc(moc)
             logger.info("runner_moc_wired")
     except Exception as e:
         logger.warning("moc_init_failed", error=str(e))
@@ -1435,8 +1437,8 @@ async def stats():
             else {"enabled": False}
         ),
         "autonomous_runner": (
-            autonomous_runner.stats
-            if autonomous_runner is not None
+            app.state._autonomous_runner.stats
+            if hasattr(app.state, "_autonomous_runner") and app.state._autonomous_runner is not None
             else {"running": False}
         ),
     }
