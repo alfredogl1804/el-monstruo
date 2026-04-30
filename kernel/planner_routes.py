@@ -52,6 +52,28 @@ class PlanAndRunRequest(BaseModel):
     max_steps: int = 10
 
 
+def _get_global_planner(request: Request):
+    """
+    Get or create a singleton TaskPlanner stored in app.state.
+    This ensures plans created in /plan are accessible in /execute/{id}.
+    Sprint 42 fix: previously each request created a new planner instance,
+    losing the plan between /plan and /execute/{id} calls.
+    """
+    from kernel.task_planner import TaskPlanner
+    kernel = request.app.state.kernel if hasattr(request.app.state, "kernel") else None
+    db = request.app.state.db if hasattr(request.app.state, "db") else None
+
+    if not hasattr(request.app.state, "_task_planner") or request.app.state._task_planner is None:
+        request.app.state._task_planner = TaskPlanner(kernel=kernel, db=db)
+        logger.info("task_planner_singleton_created")
+
+    # Update kernel/db references in case they changed
+    planner = request.app.state._task_planner
+    planner._kernel = kernel
+    planner._db = db
+    return planner
+
+
 # ── Endpoints ────────────────────────────────────────────────────────
 
 @router.post("/plan")
@@ -59,20 +81,19 @@ async def create_plan(body: PlanRequest, request: Request) -> dict:
     """Create a new task plan for the given objective (without executing)."""
     _check_auth(request)
     try:
-        from kernel.task_planner import TaskPlanner
         kernel = request.app.state.kernel if hasattr(request.app.state, "kernel") else None
-        db = request.app.state.db if hasattr(request.app.state, "db") else None
-
         if not kernel:
             raise HTTPException(status_code=503, detail="Kernel not available")
 
-        planner = TaskPlanner(kernel=kernel, db=db)
+        planner = _get_global_planner(request)
         plan = await planner.plan(
             objective=body.objective,
             context=body.context,
             user_id=body.user_id,
             max_steps=body.max_steps,
         )
+        # Store plan in singleton planner's active_plans dict
+        planner._active_plans[plan.plan_id] = plan
         return {
             "success": True,
             "plan": plan.to_dict(),
@@ -86,20 +107,17 @@ async def create_plan(body: PlanRequest, request: Request) -> dict:
 
 @router.post("/execute/{plan_id}")
 async def execute_plan(plan_id: str, request: Request) -> dict:
-    """Execute an existing plan by ID."""
+    """Execute an existing plan by ID (blocking — waits for completion)."""
     _check_auth(request)
     try:
-        from kernel.task_planner import TaskPlanner
         kernel = request.app.state.kernel if hasattr(request.app.state, "kernel") else None
-        db = request.app.state.db if hasattr(request.app.state, "db") else None
-
         if not kernel:
             raise HTTPException(status_code=503, detail="Kernel not available")
 
-        planner = TaskPlanner(kernel=kernel, db=db)
+        planner = _get_global_planner(request)
         plan = planner.get_plan(plan_id)
         if not plan:
-            raise HTTPException(status_code=404, detail=f"Plan {plan_id} not found in active plans")
+            raise HTTPException(status_code=404, detail=f"Plan {plan_id} not found. Use /plan first to create it.")
 
         result = await planner.execute(plan)
         return {
@@ -113,25 +131,76 @@ async def execute_plan(plan_id: str, request: Request) -> dict:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/plan_and_run")
-async def plan_and_run(body: PlanAndRunRequest, request: Request) -> dict:
-    """Create and execute a plan in a single step (async — returns immediately with plan_id)."""
+@router.post("/execute_sync")
+async def execute_sync(body: PlanAndRunRequest, request: Request) -> dict:
+    """
+    Sprint 42: Create AND execute a plan synchronously in a single HTTP call.
+    Blocks until all steps complete. Use for short plans (< 5 min).
+    For long plans, use /plan_and_run (async) instead.
+    """
     _check_auth(request)
     try:
-        from kernel.task_planner import TaskPlanner
         kernel = request.app.state.kernel if hasattr(request.app.state, "kernel") else None
-        db = request.app.state.db if hasattr(request.app.state, "db") else None
-
         if not kernel:
             raise HTTPException(status_code=503, detail="Kernel not available")
 
-        planner = TaskPlanner(kernel=kernel, db=db)
+        planner = _get_global_planner(request)
+
+        # Step 1: Generate plan
         plan = await planner.plan(
             objective=body.objective,
             context=body.context,
             user_id=body.user_id,
             max_steps=body.max_steps,
         )
+        planner._active_plans[plan.plan_id] = plan
+
+        logger.info(
+            "planner_execute_sync_start",
+            plan_id=plan.plan_id,
+            steps=len(plan.steps),
+            objective=body.objective[:100],
+        )
+
+        # Step 2: Execute all steps (blocking)
+        result = await planner.execute(plan, user_id=body.user_id)
+
+        return {
+            "success": True,
+            "plan_id": plan.plan_id,
+            "status": result.get("status"),
+            "progress_pct": result.get("progress_pct"),
+            "done_steps": result.get("done_steps"),
+            "total_steps": result.get("total_steps"),
+            "failed_steps": result.get("failed_steps"),
+            "total_cost_usd": result.get("total_cost_usd"),
+            "final_summary": result.get("final_summary"),
+            "steps": result.get("steps", []),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("planner_execute_sync_error", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/plan_and_run")
+async def plan_and_run(body: PlanAndRunRequest, request: Request) -> dict:
+    """Create and execute a plan asynchronously (returns immediately with plan_id, executes in background)."""
+    _check_auth(request)
+    try:
+        kernel = request.app.state.kernel if hasattr(request.app.state, "kernel") else None
+        if not kernel:
+            raise HTTPException(status_code=503, detail="Kernel not available")
+
+        planner = _get_global_planner(request)
+        plan = await planner.plan(
+            objective=body.objective,
+            context=body.context,
+            user_id=body.user_id,
+            max_steps=body.max_steps,
+        )
+        planner._active_plans[plan.plan_id] = plan
 
         # Execute asynchronously — don't block the HTTP response
         asyncio.create_task(planner.execute(plan, user_id=body.user_id))
@@ -158,14 +227,7 @@ async def list_plans(request: Request) -> dict:
     """List all active plans in memory."""
     _check_auth(request)
     try:
-        from kernel.task_planner import TaskPlanner
-        kernel = request.app.state.kernel if hasattr(request.app.state, "kernel") else None
-        db = request.app.state.db if hasattr(request.app.state, "db") else None
-
-        if not kernel:
-            return {"plans": [], "total": 0}
-
-        planner = TaskPlanner(kernel=kernel, db=db)
+        planner = _get_global_planner(request)
         plans = planner.get_active_plans()
         return {
             "plans": plans,
@@ -181,14 +243,8 @@ async def get_plan(plan_id: str, request: Request) -> dict:
     """Get the current state of a plan by ID."""
     _check_auth(request)
     try:
-        from kernel.task_planner import TaskPlanner
-        kernel = request.app.state.kernel if hasattr(request.app.state, "kernel") else None
+        planner = _get_global_planner(request)
         db = request.app.state.db if hasattr(request.app.state, "db") else None
-
-        if not kernel:
-            raise HTTPException(status_code=503, detail="Kernel not available")
-
-        planner = TaskPlanner(kernel=kernel, db=db)
         plan = planner.get_plan(plan_id)
         if not plan:
             # Try to load from DB

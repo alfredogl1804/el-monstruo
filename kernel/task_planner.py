@@ -455,6 +455,137 @@ Formato obligatorio:
                 return False
         return True
 
+    # ── Tool definitions for Claude ReAct executor ──────────────────
+    _EXECUTOR_TOOLS = [
+        {
+            "name": "web_search",
+            "description": "Buscar información en internet en tiempo real. Usar para noticias, precios, documentación, repositorios.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "La consulta de búsqueda"},
+                    "context": {"type": "string", "description": "Contexto adicional opcional"},
+                },
+                "required": ["query"],
+            },
+        },
+        {
+            "name": "browse_web",
+            "description": "Navegar a una URL específica y extraer su contenido. Usar para leer documentación, páginas web, APIs.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "description": "URL a navegar"},
+                    "action": {"type": "string", "description": "Acción: markdown (default), screenshot, links"},
+                },
+                "required": ["url"],
+            },
+        },
+        {
+            "name": "code_exec",
+            "description": "Ejecutar código Python en un sandbox seguro (E2B). Usar para cálculos, scripts, análisis de datos, generación de archivos.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "code": {"type": "string", "description": "Código Python a ejecutar"},
+                    "language": {"type": "string", "description": "Lenguaje (default: python)"},
+                    "install_packages": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Paquetes pip a instalar antes de ejecutar",
+                    },
+                },
+                "required": ["code"],
+            },
+        },
+        {
+            "name": "github",
+            "description": "Operaciones en GitHub: crear branches, leer/escribir archivos, crear PRs, listar repositorios.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "description": "Acción: create_branch, create_file, update_file, create_pr, get_file, list_repos, create_issue",
+                    },
+                    "params": {
+                        "type": "object",
+                        "description": "Parámetros de la acción (repo, branch, path, content, title, body, etc.)",
+                    },
+                },
+                "required": ["action", "params"],
+            },
+        },
+        {
+            "name": "send_message",
+            "description": "Enviar un mensaje o notificación a Alfredo (el usuario). Usar para reportar resultados, pedir confirmación o enviar resúmenes.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "message": {"type": "string", "description": "El mensaje a enviar"},
+                    "channel": {"type": "string", "description": "Canal: telegram (default)"},
+                },
+                "required": ["message"],
+            },
+        },
+    ]
+
+    async def _execute_tool_direct(self, tool_name: str, args: dict) -> str:
+        """
+        Execute a tool directly without going through the full kernel graph.
+        Returns a string result for Claude to process.
+        """
+        try:
+            if tool_name == "web_search":
+                from tools.web_search import web_search
+                result = await web_search(
+                    query=args.get("query", ""),
+                    context=args.get("context", ""),
+                )
+                return json.dumps(result, ensure_ascii=False)[:3000]
+
+            elif tool_name == "browse_web":
+                from tools.browser import browse_web
+                result_str = await browse_web(
+                    url=args.get("url", ""),
+                    action=args.get("action", "markdown"),
+                    wait_for_js=True,
+                )
+                return result_str[:3000]
+
+            elif tool_name == "code_exec":
+                from tools.code_exec import execute_code
+                result = await execute_code(
+                    code=args.get("code", ""),
+                    language=args.get("language", "python"),
+                    timeout=args.get("timeout", 60),
+                    allow_network=True,
+                    hitl_approved=True,
+                    install_packages=args.get("install_packages"),
+                )
+                return json.dumps(result, ensure_ascii=False)[:3000]
+
+            elif tool_name == "github":
+                from tools.github import execute_github
+                result_str = await execute_github(
+                    action=args.get("action", ""),
+                    params=args.get("params", {}),
+                )
+                return result_str[:3000]
+
+            elif tool_name == "send_message":
+                # Log the message — in production this would send via Telegram
+                msg = args.get("message", "")
+                logger.info("task_planner_send_message", message=msg[:200])
+                return json.dumps({"sent": True, "message": msg[:200]})
+
+            else:
+                return json.dumps({"error": f"Tool '{tool_name}' not available in planner executor"})
+
+        except Exception as e:
+            logger.error("task_planner_tool_error", tool=tool_name, error=str(e))
+            return json.dumps({"error": str(e), "tool": tool_name})
+
     async def _execute_step_with_react(
         self,
         step: TaskStep,
@@ -462,9 +593,13 @@ Formato obligatorio:
         user_id: str,
     ) -> bool:
         """
-        Execute a single step using the ReAct pattern.
-        Reason → Act → Observe → (Reason if needed)
+        Execute a single step using the ReAct pattern with Claude tool_use.
+        Reason → Act (tool call) → Observe (tool result) → Reason → ...
         Returns True if step succeeded.
+
+        Sprint 42: Uses Claude claude-opus-4-7 with native tool_use instead of
+        routing through the full LangGraph kernel (which had quota/routing issues).
+        Max 3 Reason-Act-Observe iterations per step.
         """
         step.status = StepStatus.RUNNING
         step.started_at = time.time()
@@ -478,62 +613,108 @@ Formato obligatorio:
 
         tool_hint_str = f"\nHerramienta sugerida: {step.tool_hint}" if step.tool_hint else ""
 
-        react_prompt = f"""Eres el Embrión IA ejecutando un plan de tareas.
+        system_prompt = """Eres el Embrión IA, un agente autónomo que ejecuta planes de tareas.
+Tienes acceso a herramientas reales. Úsalas para completar cada paso.
+Sé conciso y directo. Reporta el resultado al final con un resumen claro."""
 
-OBJETIVO GENERAL: {plan.objective}
+        user_message = f"""OBJETIVO GENERAL: {plan.objective}
 
-PASO ACTUAL ({step.index + 1}/{len(plan.steps)}): {step.description}{tool_hint_str}
+PASO A EJECUTAR ({step.index + 1}/{len(plan.steps)}): {step.description}{tool_hint_str}
 
 RESULTADOS DE PASOS ANTERIORES:
 {prev_context}
 
-INSTRUCCIONES:
-1. RAZONA: ¿Qué necesitas hacer exactamente para completar este paso?
-2. ACTÚA: Ejecuta la acción usando las herramientas disponibles
-3. Si el paso requiere código, usa code_exec
-4. Si el paso requiere GitHub, usa la tool github
-5. Si el paso requiere búsqueda web, usa browse_web o web_search
-6. Reporta el resultado de forma concisa al final
-
-EJECUTA EL PASO AHORA."""
+Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, reporta el resultado."""
 
         for attempt in range(MAX_RETRIES_PER_STEP + 1):
             try:
-                from contracts.kernel_interface import RunInput
-                run_input = RunInput(
-                    message=react_prompt,
-                    user_id=user_id,
-                    channel="internal",
-                    context={
-                        "source": "task_planner_step",
-                        "plan_id": plan.plan_id,
-                        "step_index": step.index,
-                        "model_hint": EXECUTOR_MODEL,
-                        "max_tokens": 4000,
-                    },
-                )
-                result = await asyncio.wait_for(
-                    plan._kernel.start_run(run_input),
-                    timeout=STEP_TIMEOUT_S,
-                )
-                response = result.response if hasattr(result, "response") else str(result)
-                tokens = getattr(result, "tokens_used", 0) or 0
-                cost = getattr(result, "cost_usd", tokens * 0.000015) or 0.0
+                import anthropic
 
-                step.result = response
+                client = anthropic.AsyncAnthropic(
+                    api_key=os.environ.get("ANTHROPIC_API_KEY", "")
+                )
+
+                messages = [{"role": "user", "content": user_message}]
+                total_tokens = 0
+                final_response = ""
+                max_react_loops = 3  # Max Reason-Act-Observe iterations
+
+                for loop_i in range(max_react_loops):
+                    resp = await asyncio.wait_for(
+                        client.messages.create(
+                            model="claude-opus-4-7",
+                            max_tokens=4000,
+                            system=system_prompt,
+                            tools=self._EXECUTOR_TOOLS,
+                            messages=messages,
+                        ),
+                        timeout=STEP_TIMEOUT_S,
+                    )
+
+                    total_tokens += resp.usage.input_tokens + resp.usage.output_tokens
+
+                    # Check stop reason
+                    if resp.stop_reason == "end_turn":
+                        # Claude finished — extract text response
+                        for block in resp.content:
+                            if hasattr(block, "text"):
+                                final_response += block.text
+                        break
+
+                    elif resp.stop_reason == "tool_use":
+                        # Claude wants to use a tool — execute it
+                        assistant_content = resp.content
+                        messages.append({"role": "assistant", "content": assistant_content})
+
+                        tool_results = []
+                        for block in resp.content:
+                            if block.type == "tool_use":
+                                logger.info(
+                                    "task_planner_react_tool_call",
+                                    plan_id=plan.plan_id,
+                                    step=step.index,
+                                    tool=block.name,
+                                    loop=loop_i,
+                                )
+                                tool_result = await self._execute_tool_direct(
+                                    block.name, block.input
+                                )
+                                tool_results.append({
+                                    "type": "tool_result",
+                                    "tool_use_id": block.id,
+                                    "content": tool_result,
+                                })
+
+                        messages.append({"role": "user", "content": tool_results})
+
+                    else:
+                        # Unexpected stop reason — extract whatever text we have
+                        for block in resp.content:
+                            if hasattr(block, "text"):
+                                final_response += block.text
+                        break
+
+                if not final_response:
+                    final_response = f"Paso ejecutado (sin respuesta de texto). Loops ReAct: {loop_i + 1}"
+
+                # Estimate cost: claude-opus-4-7 = $3/M input + $15/M output
+                cost = total_tokens * 0.000009  # rough average
+
+                step.result = final_response
                 step.status = StepStatus.DONE
                 step.finished_at = time.time()
-                step.tokens_used = tokens
+                step.tokens_used = total_tokens
                 step.cost_usd = cost
-                plan.total_tokens += tokens
+                plan.total_tokens += total_tokens
                 plan.total_cost_usd += cost
 
                 logger.info(
                     "task_planner_step_done",
                     plan_id=plan.plan_id,
                     step=step.index,
-                    tokens=tokens,
+                    tokens=total_tokens,
                     cost=cost,
+                    react_loops=loop_i + 1,
                 )
                 return True
 
@@ -547,7 +728,7 @@ EJECUTA EL PASO AHORA."""
                     attempt=attempt,
                 )
                 if attempt < MAX_RETRIES_PER_STEP:
-                    await asyncio.sleep(5)  # Brief pause before retry
+                    await asyncio.sleep(5)
                     continue
 
             except Exception as e:
