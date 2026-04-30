@@ -37,6 +37,7 @@ from pydantic import BaseModel, Field
 
 # ─── Config ───
 KERNEL_URL = os.getenv("KERNEL_URL", "https://el-monstruo-kernel-production.up.railway.app")
+KERNEL_API_KEY = os.getenv("KERNEL_API_KEY", "")
 GATEWAY_PORT = int(os.getenv("PORT", "8090"))
 HEARTBEAT_INTERVAL = 25  # seconds (< Railway's 30s timeout)
 MAX_CONNECTIONS = 50
@@ -50,8 +51,12 @@ http_client: Optional[httpx.AsyncClient] = None
 async def lifespan(app: FastAPI):
     """Manage HTTP client lifecycle."""
     global http_client
+    headers = {}
+    if KERNEL_API_KEY:
+        headers["X-API-Key"] = KERNEL_API_KEY
     http_client = httpx.AsyncClient(
         base_url=KERNEL_URL,
+        headers=headers,
         timeout=httpx.Timeout(120.0, connect=10.0),
         limits=httpx.Limits(max_connections=100),
     )
