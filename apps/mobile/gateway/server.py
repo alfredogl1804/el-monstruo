@@ -419,6 +419,18 @@ async def _stream_agui_to_ws(
                                 "ts": time.time(),
                             })
 
+                        elif event_type == "STEP":
+                            # Sprint 43: Forward structured step events to Flutter
+                            await ws.send_json({
+                                "type": "step",
+                                "message_id": event.get("messageId", message_id),
+                                "step_id": event.get("stepId", ""),
+                                "status": event.get("status", "in_progress"),
+                                "label": event.get("label", ""),
+                                "icon": event.get("icon", ""),
+                                "ts": time.time(),
+                            })
+
                         elif event_type == "TEXT_MESSAGE_CONTENT":
                             delta = event.get("delta", "")
                             full_content += delta

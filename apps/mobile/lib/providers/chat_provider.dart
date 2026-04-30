@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 
+import '../features/chat/widgets/typing_indicator.dart';
 import '../models/chat_message.dart';
 import '../models/tool_event.dart';
 import '../services/kernel_service.dart';
@@ -20,6 +21,7 @@ class ChatState {
     this.thinkingModel,
     this.thinkingIntent,
     this.thinkingStartTime,
+    this.thinkingSteps = const [],
     this.currentThreadId,
     this.error,
   });
@@ -32,6 +34,7 @@ class ChatState {
   final String? thinkingModel;
   final String? thinkingIntent;
   final DateTime? thinkingStartTime;
+  final List<ThinkingStep> thinkingSteps;
   final String? currentThreadId;
   final String? error;
 
@@ -44,6 +47,7 @@ class ChatState {
     String? thinkingModel,
     String? thinkingIntent,
     DateTime? thinkingStartTime,
+    List<ThinkingStep>? thinkingSteps,
     String? currentThreadId,
     String? error,
   }) {
@@ -56,6 +60,7 @@ class ChatState {
       thinkingModel: thinkingModel ?? this.thinkingModel,
       thinkingIntent: thinkingIntent ?? this.thinkingIntent,
       thinkingStartTime: thinkingStartTime ?? this.thinkingStartTime,
+      thinkingSteps: thinkingSteps ?? this.thinkingSteps,
       currentThreadId: currentThreadId ?? this.currentThreadId,
       error: error,
     );
@@ -73,6 +78,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   StreamSubscription? _toolSub;
   StreamSubscription? _connectionSub;
   StreamSubscription? _thinkingSub;
+  StreamSubscription? _stepSub;
 
   void _init() {
     // Listen to incoming messages
@@ -93,9 +99,14 @@ class ChatNotifier extends StateNotifier<ChatState> {
       _handleToolEvent(event);
     });
 
-    // Listen to thinking state
+    // Listen to thinking state (legacy — backward compat)
     _thinkingSub = _kernelService.thinkingStream.listen((data) {
       _handleThinkingState(data);
+    });
+
+    // Listen to step events (Sprint 43 — structured thinking steps)
+    _stepSub = _kernelService.stepStream.listen((data) {
+      _handleStepEvent(data);
     });
 
     // Listen to connection state
@@ -117,7 +128,45 @@ class ChatNotifier extends StateNotifier<ChatState> {
       isStreaming: true,
       thinkingModel: model.isNotEmpty ? model : null,
       thinkingIntent: intent.isNotEmpty ? intent : null,
-      thinkingStartTime: DateTime.now(),
+      thinkingStartTime: state.thinkingStartTime ?? DateTime.now(),
+    );
+  }
+
+  /// Sprint 43: Handle structured step events from the kernel pipeline.
+  void _handleStepEvent(Map<String, dynamic> data) {
+    final stepId = data['step_id'] as String? ?? '';
+    final status = data['status'] as String? ?? 'in_progress';
+    final label = data['label'] as String? ?? '';
+    final icon = data['icon'] as String? ?? '';
+
+    if (stepId.isEmpty) return;
+
+    final steps = List<ThinkingStep>.from(state.thinkingSteps);
+
+    // Find existing step by id
+    final existingIdx = steps.indexWhere((s) => s.id == stepId);
+
+    if (existingIdx >= 0) {
+      // Update existing step (e.g., in_progress → completed)
+      steps[existingIdx] = steps[existingIdx].copyWith(
+        status: status,
+        label: label.isNotEmpty ? label : null,
+      );
+    } else {
+      // Add new step
+      steps.add(ThinkingStep(
+        id: stepId,
+        label: label,
+        icon: icon,
+        status: status,
+      ));
+    }
+
+    state = state.copyWith(
+      isThinking: true,
+      isStreaming: true,
+      thinkingSteps: steps,
+      thinkingStartTime: state.thinkingStartTime ?? DateTime.now(),
     );
   }
 
@@ -211,6 +260,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
       thinkingModel: null,
       thinkingIntent: null,
       thinkingStartTime: null,
+      thinkingSteps: [],
       activeTools: [],
     );
   }
@@ -226,6 +276,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
       isStreaming: true,
       isThinking: true,
       thinkingStartTime: DateTime.now(),
+      thinkingSteps: [], // Reset steps for new message
       error: null,
     );
 
@@ -274,6 +325,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     _toolSub?.cancel();
     _connectionSub?.cancel();
     _thinkingSub?.cancel();
+    _stepSub?.cancel();
     super.dispose();
   }
 }
@@ -299,6 +351,10 @@ final thinkingModelProvider = Provider<String?>((ref) {
 
 final thinkingStartTimeProvider = Provider<DateTime?>((ref) {
   return ref.watch(chatProvider).thinkingStartTime;
+});
+
+final thinkingStepsProvider = Provider<List<ThinkingStep>>((ref) {
+  return ref.watch(chatProvider).thinkingSteps;
 });
 
 final activeToolsProvider = Provider<List<ToolEvent>>((ref) {

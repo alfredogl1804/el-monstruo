@@ -80,6 +80,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         intent: chatState.thinkingIntent,
                         startTime: chatState.thinkingStartTime,
                         isThinking: true,
+                        steps: chatState.thinkingSteps,
                       );
                     }
 

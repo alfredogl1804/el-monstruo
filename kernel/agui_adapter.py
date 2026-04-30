@@ -97,6 +97,7 @@ def _heartbeat() -> str:
 class AGUIEventType:
     RUN_STARTED = "RUN_STARTED"
     THINKING_STATE = "THINKING_STATE"
+    STEP = "STEP"  # Sprint 43: Structured thinking step events
     TEXT_MESSAGE_START = "TEXT_MESSAGE_START"
     TEXT_MESSAGE_CONTENT = "TEXT_MESSAGE_CONTENT"
     TEXT_MESSAGE_END = "TEXT_MESSAGE_END"
@@ -273,9 +274,22 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                                 },
                             )
 
+                        elif chunk_type == "step":
+                            # Sprint 43: Structured step events for thinking indicator
+                            yield _sse_event(
+                                AGUIEventType.STEP,
+                                {
+                                    "messageId": message_id,
+                                    "stepId": chunk.get("id", ""),
+                                    "status": chunk.get("status", "in_progress"),
+                                    "label": chunk.get("label", ""),
+                                    "icon": chunk.get("icon", ""),
+                                },
+                            )
+
                         elif chunk_type == "progress":
-                            # Sprint 42: Progress events from kernel phases
-                            # Forward as THINKING_STATE so Flutter shows status
+                            # Sprint 42: Legacy progress events (backward compat)
+                            # Forward as THINKING_STATE so older Flutter versions still work
                             yield _sse_event(
                                 AGUIEventType.THINKING_STATE,
                                 {

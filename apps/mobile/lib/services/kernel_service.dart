@@ -42,11 +42,13 @@ class KernelService {
   final _toolEventController = StreamController<ToolEvent>.broadcast();
   final _connectionStateController = StreamController<KernelConnectionState>.broadcast();
   final _thinkingStateController = StreamController<Map<String, dynamic>>.broadcast();
+  final _stepController = StreamController<Map<String, dynamic>>.broadcast();
 
   Stream<ChatMessage> get messageStream => _messageController.stream;
   Stream<ToolEvent> get toolEventStream => _toolEventController.stream;
   Stream<KernelConnectionState> get connectionStream => _connectionStateController.stream;
   Stream<Map<String, dynamic>> get thinkingStream => _thinkingStateController.stream;
+  Stream<Map<String, dynamic>> get stepStream => _stepController.stream;
 
   // ─── Health Check ───
   Future<KernelHealth> checkHealth() async {
@@ -140,6 +142,11 @@ class KernelService {
         // Thinking/routing state from kernel
         case 'thinking_state':
           _thinkingStateController.add(data);
+          break;
+
+        // Sprint 43: Structured thinking step events
+        case 'step':
+          _stepController.add(data);
           break;
 
         // Run lifecycle (not tool events)
@@ -339,6 +346,7 @@ class KernelService {
     _toolEventController.close();
     _connectionStateController.close();
     _thinkingStateController.close();
+    _stepController.close();
   }
 }
 

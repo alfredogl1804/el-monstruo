@@ -5,11 +5,44 @@ import 'package:flutter/material.dart';
 
 import '../../../theme/monstruo_theme.dart';
 
-/// Premium thinking indicator that shows:
-/// 1. Animated orbs while waiting for first token
-/// 2. Model name (e.g., "GPT-5.5") when available
-/// 3. Elapsed timer counting up
-/// 4. Phase text (e.g., "Pensando con GPT-5.5")
+/// Structured thinking step from the kernel pipeline.
+class ThinkingStep {
+  ThinkingStep({
+    required this.id,
+    required this.label,
+    required this.icon,
+    required this.status,
+    DateTime? startTime,
+  }) : startTime = startTime ?? DateTime.now();
+
+  final String id;
+  final String label;
+  final String icon;
+  final String status; // 'in_progress' or 'completed'
+  final DateTime startTime;
+
+  bool get isCompleted => status == 'completed';
+  bool get isInProgress => status == 'in_progress';
+
+  ThinkingStep copyWith({String? status, String? label}) {
+    return ThinkingStep(
+      id: id,
+      label: label ?? this.label,
+      icon: icon,
+      status: status ?? this.status,
+      startTime: startTime,
+    );
+  }
+}
+
+/// Premium thinking indicator with single-line crossfade and expandable history.
+///
+/// Design (Gemini 3 Pro recommendation — Sprint 43):
+///   - Single active step visible at a time with smooth crossfade
+///   - Tap to expand/collapse history of completed steps
+///   - Prevents flickering with fast 1.56s TTFT
+///   - Model badge + elapsed timer
+///   - Animated orbs spinner
 class ThinkingIndicator extends StatefulWidget {
   const ThinkingIndicator({
     super.key,
@@ -17,12 +50,14 @@ class ThinkingIndicator extends StatefulWidget {
     this.intent,
     this.startTime,
     this.isThinking = true,
+    this.steps = const [],
   });
 
   final String? model;
   final String? intent;
   final DateTime? startTime;
   final bool isThinking;
+  final List<ThinkingStep> steps;
 
   @override
   State<ThinkingIndicator> createState() => _ThinkingIndicatorState();
@@ -34,6 +69,7 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
   late AnimationController _pulseController;
   Timer? _elapsedTimer;
   Duration _elapsed = Duration.zero;
+  bool _isExpanded = false;
 
   @override
   void initState() {
@@ -84,12 +120,26 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
     return '${seconds.toStringAsFixed(1)}s';
   }
 
-  String get _phaseText {
+  /// Get the current (most recent) step label, or fallback to legacy behavior.
+  String get _currentLabel {
+    if (widget.steps.isNotEmpty) {
+      return widget.steps.last.label;
+    }
+    // Legacy fallback: no step events, use model name
     final badge = _modelBadge;
     if (badge.isNotEmpty) {
       return 'Pensando con $badge';
     }
     return 'Pensando...';
+  }
+
+  /// Completed steps (all except the last one if it's in_progress).
+  List<ThinkingStep> get _completedSteps {
+    if (widget.steps.length <= 1) return [];
+    return widget.steps
+        .sublist(0, widget.steps.length - 1)
+        .where((s) => s.isCompleted)
+        .toList();
   }
 
   String get _modelBadge {
@@ -104,6 +154,23 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
       return model.split('/').last.split('-').take(3).join('-');
     }
     return '';
+  }
+
+  IconData _iconForStep(String iconName) {
+    switch (iconName) {
+      case 'brain':
+        return Icons.psychology;
+      case 'memory':
+        return Icons.folder_open;
+      case 'sparkles':
+        return Icons.auto_awesome;
+      case 'search':
+        return Icons.search;
+      case 'build':
+        return Icons.build;
+      default:
+        return Icons.hourglass_empty;
+    }
   }
 
   @override
@@ -126,66 +193,168 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
               width: 0.5,
             ),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Animated orbs
-              _AnimatedOrbs(controller: _orbController),
-              const SizedBox(width: 12),
-
-              // Phase text + elapsed time
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              // ── Active step row (always visible) ──
+              GestureDetector(
+                onTap: _completedSteps.isNotEmpty
+                    ? () => setState(() => _isExpanded = !_isExpanded)
+                    : null,
+                behavior: HitTestBehavior.opaque,
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _phaseText,
-                          style: const TextStyle(
-                            color: MonstruoTheme.onSurfaceDim,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: -0.2,
-                          ),
-                        ),
-                        if (_modelBadge.isNotEmpty) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: MonstruoTheme.primary.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              _modelBadge,
-                              style: TextStyle(
-                                color: MonstruoTheme.primary,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.3,
+                    // Animated orbs
+                    _AnimatedOrbs(controller: _orbController),
+                    const SizedBox(width: 12),
+
+                    // Single-line crossfade label
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Smooth crossfade between step labels
+                              Flexible(
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 300),
+                                  transitionBuilder: (child, animation) {
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: SlideTransition(
+                                        position: Tween<Offset>(
+                                          begin: const Offset(0.0, 0.3),
+                                          end: Offset.zero,
+                                        ).animate(CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves.easeOut,
+                                        )),
+                                        child: child,
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    _currentLabel,
+                                    key: ValueKey<String>(_currentLabel),
+                                    style: const TextStyle(
+                                      color: MonstruoTheme.onSurfaceDim,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      letterSpacing: -0.2,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ),
-                            ),
+                              if (_modelBadge.isNotEmpty) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: MonstruoTheme.primary
+                                        .withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    _modelBadge,
+                                    style: TextStyle(
+                                      color: MonstruoTheme.primary,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _elapsedText,
+                                style: TextStyle(
+                                  color: MonstruoTheme.onSurfaceDim
+                                      .withValues(alpha: 0.6),
+                                  fontSize: 11,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures()
+                                  ],
+                                ),
+                              ),
+                              // Expand/collapse chevron (only if there are completed steps)
+                              if (_completedSteps.isNotEmpty) ...[
+                                const SizedBox(width: 6),
+                                Icon(
+                                  _isExpanded
+                                      ? Icons.expand_less
+                                      : Icons.expand_more,
+                                  size: 14,
+                                  color: MonstruoTheme.onSurfaceDim
+                                      .withValues(alpha: 0.4),
+                                ),
+                              ],
+                            ],
                           ),
                         ],
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _elapsedText,
-                      style: TextStyle(
-                        color: MonstruoTheme.onSurfaceDim.withValues(alpha: 0.6),
-                        fontSize: 11,
-                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                   ],
                 ),
+              ),
+
+              // ── Expandable history of completed steps ──
+              AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: _isExpanded && _completedSteps.isNotEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 10, left: 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: _completedSteps.map((step) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle_outline,
+                                    size: 14,
+                                    color: const Color(0xFF4CAF50)
+                                        .withValues(alpha: 0.8),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Flexible(
+                                    child: Text(
+                                      step.label,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: MonstruoTheme.onSurfaceDim
+                                            .withValues(alpha: 0.5),
+                                        letterSpacing: -0.1,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
               ),
             ],
           ),
@@ -226,7 +395,8 @@ class _AnimatedOrbs extends StatelessWidget {
                     color: MonstruoTheme.primary.withValues(alpha: opacity),
                     boxShadow: [
                       BoxShadow(
-                        color: MonstruoTheme.primary.withValues(alpha: opacity * 0.4),
+                        color:
+                            MonstruoTheme.primary.withValues(alpha: opacity * 0.4),
                         blurRadius: 6,
                         spreadRadius: 1,
                       ),

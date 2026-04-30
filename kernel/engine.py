@@ -712,9 +712,9 @@ class LangGraphKernel(KernelInterface):
         }
 
         try:
-            # ══ Phase 0: Immediate progress event ═══════════════════════════════
-            # Sprint 42: Yield immediately so the SSE stream opens at the proxy
-            yield _json.dumps({"type": "progress", "phase": "starting", "detail": "Procesando..."})
+            # ══ Phase 0: Immediate step event ═══════════════════════════════
+            # Sprint 42+43: Structured step events for thinking indicator
+            yield _json.dumps({"type": "step", "id": "classify", "status": "in_progress", "label": "Analizando solicitud...", "icon": "brain"})
 
             # ══ Phase 1: Run pre-LLM nodes ══════════════════════════════════════════
             # Graph runs intake → classify_and_route → enrich, then STOPS before execute
@@ -726,6 +726,9 @@ class LangGraphKernel(KernelInterface):
                     pre_llm_state.update(state_update)
 
                     if node_name == "classify_and_route":
+                        # Step: classify completed
+                        yield _json.dumps({"type": "step", "id": "classify", "status": "completed", "label": "Solicitud analizada", "icon": "brain"})
+                        # Meta event for model/intent (backward compat)
                         yield _json.dumps(
                             {
                                 "type": "meta",
@@ -734,8 +737,13 @@ class LangGraphKernel(KernelInterface):
                                 "enriched": False,
                             }
                         )
+                        # Step: enrich starting
+                        yield _json.dumps({"type": "step", "id": "enrich", "status": "in_progress", "label": "Buscando en tu memoria...", "icon": "memory"})
 
                     elif node_name == "enrich":
+                        # Step: enrich completed
+                        yield _json.dumps({"type": "step", "id": "enrich", "status": "completed", "label": "Contexto preparado", "icon": "memory"})
+                        # Meta event (backward compat)
                         yield _json.dumps(
                             {
                                 "type": "meta",
@@ -744,8 +752,8 @@ class LangGraphKernel(KernelInterface):
                             }
                         )
 
-            # Sprint 42: Progress event between Phase 1 and Phase 2
-            yield _json.dumps({"type": "progress", "phase": "enriching", "detail": "Preparando contexto..."})
+            # Sprint 42+43: Step event — context extraction phase
+            # (no separate step needed — enrich already completed above)
 
             # ══ Phase 2: Extract enriched state from checkpoint ════════════════════
             # Graph is now paused before execute. Read the full state.
@@ -774,8 +782,8 @@ class LangGraphKernel(KernelInterface):
             if system_prompt:
                 enriched_context["system_prompt"] = system_prompt
 
-            # Sprint 42: Progress event before LLM streaming starts
-            yield _json.dumps({"type": "progress", "phase": "generating", "detail": f"Generando con {model}..."})
+            # Sprint 42+43: Step event — LLM generation starting
+            yield _json.dumps({"type": "step", "id": "generate", "status": "in_progress", "label": f"Pensando con {model}...", "icon": "sparkles"})
 
             # ══ Phase 3: REAL LLM Streaming ═════════════════════════════════════
             # Call router.execute_stream() directly — yields real LLM tokens
