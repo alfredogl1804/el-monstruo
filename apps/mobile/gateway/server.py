@@ -57,7 +57,7 @@ async def lifespan(app: FastAPI):
     http_client = httpx.AsyncClient(
         base_url=KERNEL_URL,
         headers=headers,
-        timeout=httpx.Timeout(120.0, connect=10.0),
+        timeout=httpx.Timeout(180.0, connect=10.0, read=180.0),
         limits=httpx.Limits(max_connections=100),
     )
     yield
@@ -377,85 +377,94 @@ async def _stream_agui_to_ws(
         full_content = ""
         message_id = str(uuid4())
 
-        async with http_client.stream("POST", "/v1/agui/run", json=agui_payload) as response:
-            async for line in response.aiter_lines():
-                # Check if connection still active
-                if connection_id not in active_connections:
-                    return
+        async with http_client.stream(
+            "POST", "/v1/agui/run",
+            json=agui_payload,
+            headers={"Accept": "text/event-stream", "Cache-Control": "no-cache"},
+        ) as response:
+            # Use aiter_bytes + manual SSE parsing to avoid Railway buffering
+            sse_buffer = ""
+            async for raw_bytes in response.aiter_bytes():
+                sse_buffer += raw_bytes.decode("utf-8", errors="replace")
+                while "\n\n" in sse_buffer:
+                    frame, sse_buffer = sse_buffer.split("\n\n", 1)
+                    for line in frame.split("\n"):
+                        if not line.startswith("data: "):
+                            continue
+                        data_str = line[6:]
+                        try:
+                            event = json.loads(data_str)
+                        except json.JSONDecodeError:
+                            continue
 
-                if not line.startswith("data: "):
-                    continue
+                        # Check if connection still active
+                        if connection_id not in active_connections:
+                            return
 
-                data_str = line[6:]
-                try:
-                    event = json.loads(data_str)
-                except json.JSONDecodeError:
-                    continue
+                        event_type = event.get("type", "")
 
-                event_type = event.get("type", "")
+                        if event_type == "THINKING_STATE":
+                            # Forward thinking/routing metadata to Flutter
+                            await ws.send_json({
+                                "type": "thinking_state",
+                                "message_id": event.get("messageId", message_id),
+                                "intent": event.get("intent", ""),
+                                "model": event.get("model", ""),
+                                "enriched": event.get("enriched", False),
+                                "memories_found": event.get("memoriesFound", 0),
+                                "ts": time.time(),
+                            })
 
-                if event_type == "THINKING_STATE":
-                    # Forward thinking/routing metadata to Flutter
-                    await ws.send_json({
-                        "type": "thinking_state",
-                        "message_id": event.get("messageId", message_id),
-                        "intent": event.get("intent", ""),
-                        "model": event.get("model", ""),
-                        "enriched": event.get("enriched", False),
-                        "memories_found": event.get("memoriesFound", 0),
-                        "ts": time.time(),
-                    })
+                        elif event_type == "TEXT_MESSAGE_CONTENT":
+                            delta = event.get("delta", "")
+                            full_content += delta
+                            await ws.send_json({
+                                "type": "text_chunk",
+                                "message_id": message_id,
+                                "content": delta,
+                            })
 
-                elif event_type == "TEXT_MESSAGE_CONTENT":
-                    delta = event.get("delta", "")
-                    full_content += delta
-                    await ws.send_json({
-                        "type": "text_chunk",
-                        "message_id": message_id,
-                        "content": delta,
-                    })
+                        elif event_type == "TEXT_MESSAGE_START":
+                            message_id = event.get("messageId", message_id)
+                            await ws.send_json({
+                                "type": "message_start",
+                                "message_id": message_id,
+                            })
 
-                elif event_type == "TEXT_MESSAGE_START":
-                    message_id = event.get("messageId", message_id)
-                    await ws.send_json({
-                        "type": "message_start",
-                        "message_id": message_id,
-                    })
+                        elif event_type == "TEXT_MESSAGE_END":
+                            await ws.send_json({
+                                "type": "message_end",
+                                "message_id": message_id,
+                                "content": full_content,
+                            })
 
-                elif event_type == "TEXT_MESSAGE_END":
-                    await ws.send_json({
-                        "type": "message_end",
-                        "message_id": message_id,
-                        "content": full_content,
-                    })
+                        elif event_type == "TOOL_CALL_START":
+                            await ws.send_json({
+                                "type": "tool_start",
+                                "tool_name": event.get("toolCallName", "unknown"),
+                                "tool_call_id": event.get("toolCallId", ""),
+                            })
 
-                elif event_type == "TOOL_CALL_START":
-                    await ws.send_json({
-                        "type": "tool_start",
-                        "tool_name": event.get("toolCallName", "unknown"),
-                        "tool_call_id": event.get("toolCallId", ""),
-                    })
+                        elif event_type == "TOOL_CALL_ARGS":
+                            await ws.send_json({
+                                "type": "tool_args",
+                                "tool_call_id": event.get("toolCallId", ""),
+                                "args": event.get("delta", ""),
+                            })
 
-                elif event_type == "TOOL_CALL_ARGS":
-                    await ws.send_json({
-                        "type": "tool_args",
-                        "tool_call_id": event.get("toolCallId", ""),
-                        "args": event.get("delta", ""),
-                    })
+                        elif event_type == "TOOL_CALL_END":
+                            await ws.send_json({
+                                "type": "tool_end",
+                                "tool_call_id": event.get("toolCallId", ""),
+                                "result": event.get("result", ""),
+                            })
 
-                elif event_type == "TOOL_CALL_END":
-                    await ws.send_json({
-                        "type": "tool_end",
-                        "tool_call_id": event.get("toolCallId", ""),
-                        "result": event.get("result", ""),
-                    })
-
-                elif event_type == "RUN_ERROR":
-                    await ws.send_json({
-                        "type": "error",
-                        "message": event.get("message", "Unknown error"),
-                    })
-                    return
+                        elif event_type == "RUN_ERROR":
+                            await ws.send_json({
+                                "type": "error",
+                                "message": event.get("message", "Unknown error"),
+                            })
+                            return
 
         # Run complete
         await ws.send_json({

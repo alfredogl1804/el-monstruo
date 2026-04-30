@@ -157,17 +157,26 @@ async def agui_run(req: AGUIRunRequest, request: Request):
             tool_calls_emitted = []
 
             try:
-                async for chunk in _kernel.stream(run_input):
+                async for raw_chunk in _kernel.stream(run_input):
                     # Check if client disconnected
                     if await request.is_disconnected():
                         logger.info("agui_client_disconnected", run_id=run_id)
                         return
 
-                    chunk_type = chunk.get("type", "")
-                    chunk_data = chunk.get("data", "")
+                    # Kernel yields JSON strings — parse them
+                    if isinstance(raw_chunk, str):
+                        try:
+                            chunk = json.loads(raw_chunk)
+                        except (json.JSONDecodeError, TypeError):
+                            continue
+                    else:
+                        chunk = raw_chunk
 
-                    if chunk_type == "token":
-                        # Streaming text token
+                    chunk_type = chunk.get("type", "")
+
+                    if chunk_type in ("chunk", "token"):
+                        # Real LLM streaming token
+                        chunk_data = chunk.get("text", chunk.get("data", ""))
                         full_response += chunk_data
                         yield _sse_event(
                             AGUIEventType.TEXT_MESSAGE_CONTENT,
@@ -179,16 +188,17 @@ async def agui_run(req: AGUIRunRequest, request: Request):
 
                     elif chunk_type == "tool_start":
                         # Tool invocation started
+                        chunk_data = chunk.get("data", {})
                         tool_call_id = str(uuid4())
                         tool_calls_emitted.append(tool_call_id)
                         yield _sse_event(
                             AGUIEventType.TOOL_CALL_START,
                             {
                                 "toolCallId": tool_call_id,
-                                "toolCallName": chunk_data.get("name", "unknown"),
+                                "toolCallName": chunk_data.get("name", "unknown") if isinstance(chunk_data, dict) else "unknown",
                             },
                         )
-                        if chunk_data.get("args"):
+                        if isinstance(chunk_data, dict) and chunk_data.get("args"):
                             yield _sse_event(
                                 AGUIEventType.TOOL_CALL_ARGS,
                                 {
@@ -198,23 +208,26 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                             )
 
                     elif chunk_type == "tool_end":
+                        chunk_data = chunk.get("data", {})
                         if tool_calls_emitted:
                             yield _sse_event(
                                 AGUIEventType.TOOL_CALL_END,
                                 {
                                     "toolCallId": tool_calls_emitted[-1],
-                                    "result": str(chunk_data.get("result", ""))[:1000],
+                                    "result": str(chunk_data.get("result", "") if isinstance(chunk_data, dict) else chunk_data)[:1000],
                                 },
                             )
 
-                    elif chunk_type == "error":
+                    elif chunk_type in ("error",):
                         yield _sse_event(
                             AGUIEventType.RUN_ERROR,
                             {
-                                "message": str(chunk_data),
+                                "message": str(chunk.get("message", chunk.get("data", "Unknown error"))),
                             },
                         )
-                        return
+                    elif chunk_type in ("meta", "done"):
+                        # Meta/done events from kernel - skip silently
+                        continue
 
             except AttributeError:
                 # Kernel doesn't have stream method, fall back to sync
