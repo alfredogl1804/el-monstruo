@@ -112,7 +112,7 @@ async def moc_priorizar(request: Request, body: PriorizarRequest):
 
 # ── Sprint 39: Cache stats endpoint ──────────────────────────────────────────
 
-@router.get("/v1/cache/stats")
+@router.get("/cache/stats")
 async def get_cache_stats(request: Request):
     """Estadísticas del response cache y dossier cache (Sprint 39)."""
     _require_api_key(request)
@@ -123,7 +123,7 @@ async def get_cache_stats(request: Request):
     }
 
 
-@router.delete("/v1/cache")
+@router.delete("/cache")
 async def clear_cache(request: Request, intent: str = None):
     """Invalida el response cache. Útil tras cambios de prompt."""
     _require_api_key(request)
