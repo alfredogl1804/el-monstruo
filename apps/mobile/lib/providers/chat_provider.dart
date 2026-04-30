@@ -16,6 +16,10 @@ class ChatState {
     this.activeTools = const [],
     this.isConnected = false,
     this.isStreaming = false,
+    this.isThinking = false,
+    this.thinkingModel,
+    this.thinkingIntent,
+    this.thinkingStartTime,
     this.currentThreadId,
     this.error,
   });
@@ -24,6 +28,10 @@ class ChatState {
   final List<ToolEvent> activeTools;
   final bool isConnected;
   final bool isStreaming;
+  final bool isThinking;
+  final String? thinkingModel;
+  final String? thinkingIntent;
+  final DateTime? thinkingStartTime;
   final String? currentThreadId;
   final String? error;
 
@@ -32,6 +40,10 @@ class ChatState {
     List<ToolEvent>? activeTools,
     bool? isConnected,
     bool? isStreaming,
+    bool? isThinking,
+    String? thinkingModel,
+    String? thinkingIntent,
+    DateTime? thinkingStartTime,
     String? currentThreadId,
     String? error,
   }) {
@@ -40,6 +52,10 @@ class ChatState {
       activeTools: activeTools ?? this.activeTools,
       isConnected: isConnected ?? this.isConnected,
       isStreaming: isStreaming ?? this.isStreaming,
+      isThinking: isThinking ?? this.isThinking,
+      thinkingModel: thinkingModel ?? this.thinkingModel,
+      thinkingIntent: thinkingIntent ?? this.thinkingIntent,
+      thinkingStartTime: thinkingStartTime ?? this.thinkingStartTime,
       currentThreadId: currentThreadId ?? this.currentThreadId,
       error: error,
     );
@@ -56,10 +72,15 @@ class ChatNotifier extends StateNotifier<ChatState> {
   StreamSubscription? _messageSub;
   StreamSubscription? _toolSub;
   StreamSubscription? _connectionSub;
+  StreamSubscription? _thinkingSub;
 
   void _init() {
     // Listen to incoming messages
     _messageSub = _kernelService.messageStream.listen((message) {
+      // First token arrived — stop thinking indicator
+      if (state.isThinking) {
+        state = state.copyWith(isThinking: false);
+      }
       if (message.type == MessageType.streamChunk) {
         _handleStreamChunk(message);
       } else {
@@ -72,6 +93,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
       _handleToolEvent(event);
     });
 
+    // Listen to thinking state
+    _thinkingSub = _kernelService.thinkingStream.listen((data) {
+      _handleThinkingState(data);
+    });
+
     // Listen to connection state
     _connectionSub = _kernelService.connectionStream.listen((connState) {
       state = state.copyWith(
@@ -81,6 +107,18 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
     // Connect WebSocket
     _kernelService.connectStreaming();
+  }
+
+  void _handleThinkingState(Map<String, dynamic> data) {
+    final model = data['model'] as String? ?? '';
+    final intent = data['intent'] as String? ?? '';
+    state = state.copyWith(
+      isThinking: true,
+      isStreaming: true,
+      thinkingModel: model.isNotEmpty ? model : null,
+      thinkingIntent: intent.isNotEmpty ? intent : null,
+      thinkingStartTime: DateTime.now(),
+    );
   }
 
   void _handleStreamChunk(ChatMessage chunk) {
@@ -161,6 +199,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
     state = state.copyWith(
       messages: [...state.messages, userMessage],
       isStreaming: true,
+      isThinking: true,
+      thinkingStartTime: DateTime.now(),
       error: null,
     );
 
@@ -208,6 +248,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     _messageSub?.cancel();
     _toolSub?.cancel();
     _connectionSub?.cancel();
+    _thinkingSub?.cancel();
     super.dispose();
   }
 }
@@ -221,6 +262,18 @@ final chatProvider = StateNotifierProvider<ChatNotifier, ChatState>((ref) {
 
 final isStreamingProvider = Provider<bool>((ref) {
   return ref.watch(chatProvider).isStreaming;
+});
+
+final isThinkingProvider = Provider<bool>((ref) {
+  return ref.watch(chatProvider).isThinking;
+});
+
+final thinkingModelProvider = Provider<String?>((ref) {
+  return ref.watch(chatProvider).thinkingModel;
+});
+
+final thinkingStartTimeProvider = Provider<DateTime?>((ref) {
+  return ref.watch(chatProvider).thinkingStartTime;
 });
 
 final activeToolsProvider = Provider<List<ToolEvent>>((ref) {

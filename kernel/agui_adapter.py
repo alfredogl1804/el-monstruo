@@ -155,40 +155,71 @@ async def agui_run(req: AGUIRunRequest, request: Request):
             # Try streaming first
             full_response = ""
             tool_calls_emitted = []
+            stream_meta = {}
 
             try:
-                async for chunk in _kernel.stream(run_input):
+                async for raw_chunk in _kernel.stream(run_input):
                     # Check if client disconnected
                     if await request.is_disconnected():
                         logger.info("agui_client_disconnected", run_id=run_id)
                         return
 
-                    chunk_type = chunk.get("type", "")
-                    chunk_data = chunk.get("data", "")
+                    # kernel.stream() yields JSON strings — parse them
+                    if isinstance(raw_chunk, str):
+                        try:
+                            chunk = json.loads(raw_chunk)
+                        except json.JSONDecodeError:
+                            chunk = {"type": "token", "data": raw_chunk}
+                    elif isinstance(raw_chunk, dict):
+                        chunk = raw_chunk
+                    else:
+                        continue
 
-                    if chunk_type == "token":
-                        # Streaming text token
-                        full_response += chunk_data
+                    chunk_type = chunk.get("type", "")
+
+                    # ── META: routing/thinking info (BEFORE first token) ──
+                    if chunk_type == "meta":
+                        stream_meta.update(chunk)
                         yield _sse_event(
-                            AGUIEventType.TEXT_MESSAGE_CONTENT,
+                            "THINKING_STATE",
                             {
                                 "messageId": message_id,
-                                "delta": chunk_data,
+                                "intent": chunk.get("intent", ""),
+                                "model": chunk.get("model", ""),
+                                "enriched": chunk.get("enriched", False),
+                                "memoriesFound": chunk.get("memories_found", 0),
                             },
                         )
 
+                    # ── CHUNK/TOKEN: real LLM tokens ──
+                    elif chunk_type in ("chunk", "token"):
+                        text = chunk.get("text", "") or chunk.get("data", "")
+                        if text:
+                            full_response += text
+                            yield _sse_event(
+                                AGUIEventType.TEXT_MESSAGE_CONTENT,
+                                {
+                                    "messageId": message_id,
+                                    "delta": text,
+                                },
+                            )
+
+                    # ── DONE: stream complete with metadata ──
+                    elif chunk_type == "done":
+                        stream_meta.update(chunk)
+
                     elif chunk_type == "tool_start":
-                        # Tool invocation started
+                        chunk_data = chunk.get("data", {})
                         tool_call_id = str(uuid4())
                         tool_calls_emitted.append(tool_call_id)
                         yield _sse_event(
                             AGUIEventType.TOOL_CALL_START,
                             {
                                 "toolCallId": tool_call_id,
-                                "toolCallName": chunk_data.get("name", "unknown"),
+                                "toolCallName": chunk_data.get("name", "unknown") if isinstance(chunk_data, dict) else "unknown",
                             },
                         )
-                        if chunk_data.get("args"):
+                        if isinstance(chunk_data, dict) and chunk_data.get("args"):
                             yield _sse_event(
                                 AGUIEventType.TOOL_CALL_ARGS,
                                 {
@@ -198,12 +229,13 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                             )
 
                     elif chunk_type == "tool_end":
+                        chunk_data = chunk.get("data", {})
                         if tool_calls_emitted:
                             yield _sse_event(
                                 AGUIEventType.TOOL_CALL_END,
                                 {
                                     "toolCallId": tool_calls_emitted[-1],
-                                    "result": str(chunk_data.get("result", ""))[:1000],
+                                    "result": str(chunk_data.get("result", ""))[:1000] if isinstance(chunk_data, dict) else str(chunk_data)[:1000],
                                 },
                             )
 
@@ -211,7 +243,7 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                         yield _sse_event(
                             AGUIEventType.RUN_ERROR,
                             {
-                                "message": str(chunk_data),
+                                "message": str(chunk.get("data", "") or chunk.get("message", "Unknown error")),
                             },
                         )
                         return
@@ -231,11 +263,16 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                     },
                 )
 
-            # TEXT_MESSAGE_END
+            # TEXT_MESSAGE_END — include model metadata
             yield _sse_event(
                 AGUIEventType.TEXT_MESSAGE_END,
                 {
                     "messageId": message_id,
+                    "model": stream_meta.get("model_used", stream_meta.get("model", "")),
+                    "intent": stream_meta.get("intent", ""),
+                    "latencyMs": stream_meta.get("latency_ms", 0),
+                    "tokensIn": stream_meta.get("tokens_in", 0),
+                    "tokensOut": stream_meta.get("tokens_out", 0),
                 },
             )
 

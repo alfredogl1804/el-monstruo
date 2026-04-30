@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../models/chat_message.dart';
 import '../../providers/chat_provider.dart';
-import '../../services/kernel_service.dart';
 import '../../theme/monstruo_theme.dart';
 import 'widgets/chat_input.dart';
 import 'widgets/message_bubble.dart';
@@ -28,12 +26,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+          );
+        }
       });
     }
   }
@@ -42,122 +42,65 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatProvider);
     final messages = chatState.messages;
-    final isStreaming = chatState.isStreaming;
     final activeTools = chatState.activeTools;
-    final connectionState = ref.watch(connectionStateProvider);
+    final isThinking = chatState.isThinking;
+    final isStreaming = chatState.isStreaming;
 
-    // Auto-scroll when new messages arrive
+    // Auto-scroll when messages change or thinking state changes
     ref.listen(chatProvider, (prev, next) {
-      if (prev?.messages.length != next.messages.length || next.isStreaming) {
+      if (prev?.messages.length != next.messages.length ||
+          prev?.isThinking != next.isThinking ||
+          prev?.isStreaming != next.isStreaming) {
         _scrollToBottom();
       }
     });
 
-    return Scaffold(
-      backgroundColor: MonstruoTheme.background,
-      appBar: _buildAppBar(context, connectionState),
-      body: Column(
-        children: [
-          // Active tools bar
-          if (activeTools.isNotEmpty)
-            ToolActivityBar(tools: activeTools),
+    return Column(
+      children: [
+        // Tool activity bar
+        if (activeTools.isNotEmpty)
+          ToolActivityBar(tools: activeTools),
 
-          // Messages list
-          Expanded(
-            child: messages.isEmpty
-                ? _buildEmptyState()
-                : _buildMessageList(messages, isStreaming),
-          ),
+        // Messages list
+        Expanded(
+          child: messages.isEmpty && !isThinking
+              ? _buildEmptyState()
+              : ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.only(
+                    top: 16,
+                    bottom: 8,
+                  ),
+                  itemCount: messages.length + (isThinking ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    // Thinking indicator at the bottom
+                    if (isThinking && index == messages.length) {
+                      return ThinkingIndicator(
+                        model: chatState.thinkingModel,
+                        intent: chatState.thinkingIntent,
+                        startTime: chatState.thinkingStartTime,
+                        isThinking: true,
+                      );
+                    }
 
-          // Input bar
-          ChatInput(
-            onSend: (text) {
-              ref.read(chatProvider.notifier).sendMessage(text);
-            },
-            isStreaming: isStreaming,
-          ),
-        ],
-      ),
-    );
-  }
+                    final message = messages[index];
+                    return MessageBubble(
+                      key: ValueKey(message.id),
+                      message: message,
+                    );
+                  },
+                ),
+        ),
 
-  PreferredSizeWidget _buildAppBar(
-    BuildContext context,
-    AsyncValue<KernelConnectionState> connectionState,
-  ) {
-    return AppBar(
-      backgroundColor: MonstruoTheme.background,
-      title: Row(
-        children: [
-          // Monstruo avatar with connection indicator
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              gradient: MonstruoTheme.agentGradient,
-              borderRadius: BorderRadius.circular(MonstruoTheme.radiusMd),
-            ),
-            child: const Center(
-              child: Text(
-                'M',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'El Monstruo',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                  color: MonstruoTheme.onBackground,
-                ),
-              ),
-              connectionState.when(
-                data: (state) => Text(
-                  state == KernelConnectionState.connected
-                      ? 'Kernel conectado'
-                      : 'Desconectado',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: state == KernelConnectionState.connected
-                        ? MonstruoTheme.success
-                        : MonstruoTheme.onSurfaceDim,
-                  ),
-                ),
-                loading: () => const Text(
-                  'Conectando...',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: MonstruoTheme.warning,
-                  ),
-                ),
-                error: (_, __) => const Text(
-                  'Error',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: MonstruoTheme.error,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.add_circle_outline, color: MonstruoTheme.onSurfaceDim),
-          onPressed: () {
-            ref.read(chatProvider.notifier).newThread();
+        // Input bar
+        ChatInput(
+          onSend: (content) {
+            ref.read(chatProvider.notifier).sendMessage(content);
           },
-          tooltip: 'Nueva conversación',
+          isStreaming: isStreaming,
+          onStop: () {
+            // TODO: implement stop streaming
+          },
         ),
       ],
     );
@@ -165,149 +108,93 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   Widget _buildEmptyState() {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(MonstruoTheme.spacingXl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Monstruo logo
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                gradient: MonstruoTheme.agentGradient,
-                borderRadius: BorderRadius.circular(MonstruoTheme.radiusXl),
-              ),
-              child: const Center(
-                child: Text(
-                  'M',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 40,
-                  ),
-                ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Logo
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  MonstruoTheme.primary.withValues(alpha: 0.3),
+                  MonstruoTheme.secondary.withValues(alpha: 0.3),
+                ],
               ),
             ),
-            const SizedBox(height: MonstruoTheme.spacingLg),
-            const Text(
-              'El Monstruo',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w700,
-                color: MonstruoTheme.onBackground,
+            child: const Center(
+              child: Text(
+                'M',
+                style: TextStyle(
+                  color: MonstruoTheme.primary,
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            const SizedBox(height: MonstruoTheme.spacingSm),
-            const Text(
-              'Tu agente IA soberano',
-              style: TextStyle(
-                fontSize: 16,
-                color: MonstruoTheme.onSurfaceDim,
-              ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'El Monstruo',
+            style: TextStyle(
+              color: MonstruoTheme.onBackground,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.5,
             ),
-            const SizedBox(height: MonstruoTheme.spacingXl),
-            // Quick action chips
-            Wrap(
-              spacing: MonstruoTheme.spacingSm,
-              runSpacing: MonstruoTheme.spacingSm,
-              alignment: WrapAlignment.center,
-              children: [
-                _QuickAction(
-                  label: 'Estado del kernel',
-                  icon: Icons.monitor_heart_outlined,
-                  onTap: () => ref.read(chatProvider.notifier).sendMessage(
-                    '¿Cuál es el estado actual del kernel?',
-                  ),
-                ),
-                _QuickAction(
-                  label: 'Estado del Embrión',
-                  icon: Icons.psychology_outlined,
-                  onTap: () => ref.read(chatProvider.notifier).sendMessage(
-                    '¿Qué ha hecho el Embrión hoy?',
-                  ),
-                ),
-                _QuickAction(
-                  label: 'Buscar en web',
-                  icon: Icons.language,
-                  onTap: () => ref.read(chatProvider.notifier).sendMessage(
-                    'Investiga las últimas noticias de IA de hoy',
-                  ),
-                ),
-                _QuickAction(
-                  label: 'Ejecutar código',
-                  icon: Icons.terminal,
-                  onTap: () => ref.read(chatProvider.notifier).sendMessage(
-                    'Ejecuta un script de Python que muestre la fecha y hora actual',
-                  ),
-                ),
-              ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Tu agente IA soberano',
+            style: TextStyle(
+              color: MonstruoTheme.onSurfaceDim,
+              fontSize: 15,
+              letterSpacing: -0.2,
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMessageList(List<ChatMessage> messages, bool isStreaming) {
-    return ListView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.symmetric(
-        horizontal: MonstruoTheme.spacingMd,
-        vertical: MonstruoTheme.spacingSm,
-      ),
-      itemCount: messages.length + (isStreaming ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index == messages.length && isStreaming) {
-          return const TypingIndicator();
-        }
-        return MessageBubble(
-          message: messages[index],
-          isLast: index == messages.length - 1,
-        );
-      },
-    );
-  }
-}
-
-class _QuickAction extends StatelessWidget {
-  const _QuickAction({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: MonstruoTheme.surfaceVariant,
-      borderRadius: BorderRadius.circular(MonstruoTheme.radiusFull),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(MonstruoTheme.radiusFull),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          ),
+          const SizedBox(height: 32),
+          // Quick action chips
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
             children: [
-              Icon(icon, size: 16, color: MonstruoTheme.primary),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: MonstruoTheme.onSurface,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              _buildQuickAction('Estado del kernel', Icons.dns_outlined),
+              _buildQuickAction('Estado del Embrión', Icons.psychology_outlined),
+              _buildQuickAction('Buscar en web', Icons.language),
+              _buildQuickAction('Ejecutar código', Icons.terminal),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickAction(String label, IconData icon) {
+    return ActionChip(
+      avatar: Icon(icon, size: 16, color: MonstruoTheme.primary),
+      label: Text(
+        label,
+        style: const TextStyle(
+          color: MonstruoTheme.onSurfaceDim,
+          fontSize: 13,
         ),
       ),
+      backgroundColor: MonstruoTheme.surface,
+      side: BorderSide(
+        color: MonstruoTheme.primary.withValues(alpha: 0.2),
+        width: 0.5,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      onPressed: () {
+        ref.read(chatProvider.notifier).sendMessage(label);
+      },
     );
   }
 }

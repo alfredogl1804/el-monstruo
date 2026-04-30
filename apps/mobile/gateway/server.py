@@ -394,7 +394,19 @@ async def _stream_agui_to_ws(
 
                 event_type = event.get("type", "")
 
-                if event_type == "TEXT_MESSAGE_CONTENT":
+                if event_type == "THINKING_STATE":
+                    # Forward thinking/routing metadata to Flutter
+                    await ws.send_json({
+                        "type": "thinking_state",
+                        "message_id": event.get("messageId", message_id),
+                        "intent": event.get("intent", ""),
+                        "model": event.get("model", ""),
+                        "enriched": event.get("enriched", False),
+                        "memories_found": event.get("memoriesFound", 0),
+                        "ts": time.time(),
+                    })
+
+                elif event_type == "TEXT_MESSAGE_CONTENT":
                     delta = event.get("delta", "")
                     full_content += delta
                     await ws.send_json({
