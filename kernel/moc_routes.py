@@ -111,26 +111,29 @@ async def moc_priorizar(request: Request, body: PriorizarRequest):
 
 
 # ── Sprint 39: Cache stats endpoint ──────────────────────────────────────────
-
 @router.get("/cache/stats")
 async def get_cache_stats(request: Request):
     """Estadísticas del response cache y dossier cache (Sprint 39)."""
-    _require_api_key(request)
-    from kernel import response_cache, dossier_cache
-    return {
-        "response_cache": response_cache.stats(),
-        "dossier_cache": dossier_cache.stats(),
-    }
+    try:
+        from kernel import response_cache, dossier_cache
+        return {
+            "response_cache": response_cache.stats(),
+            "dossier_cache": dossier_cache.stats(),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/cache")
-async def clear_cache(request: Request, intent: str = None):
+async def clear_cache(request: Request):
     """Invalida el response cache. Útil tras cambios de prompt."""
-    _require_api_key(request)
-    from kernel import response_cache, dossier_cache
-    rc_cleared = response_cache.invalidate(intent)
-    dc_cleared = dossier_cache.invalidate()
-    return {
-        "response_cache_cleared": rc_cleared,
-        "dossier_cache_cleared": dc_cleared,
-    }
+    try:
+        from kernel import response_cache, dossier_cache
+        rc_cleared = response_cache.invalidate()
+        dc_cleared = dossier_cache.invalidate()
+        return {
+            "response_cache_cleared": rc_cleared,
+            "dossier_cache_cleared": dc_cleared,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
