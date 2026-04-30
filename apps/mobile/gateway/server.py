@@ -381,7 +381,7 @@ async def _stream_agui_to_ws(
                     await ws.send_json({
                         "type": "text_chunk",
                         "message_id": message_id,
-                        "delta": delta,
+                        "content": delta,
                     })
 
                 elif event_type == "TEXT_MESSAGE_START":
@@ -395,7 +395,7 @@ async def _stream_agui_to_ws(
                     await ws.send_json({
                         "type": "message_end",
                         "message_id": message_id,
-                        "full_content": full_content,
+                        "content": full_content,
                     })
 
                 elif event_type == "TOOL_CALL_START":
@@ -431,7 +431,7 @@ async def _stream_agui_to_ws(
             "type": "run_end",
             "run_id": run_id,
             "thread_id": thread_id,
-            "full_content": full_content,
+            "content": full_content,
             "ts": time.time(),
         })
 
