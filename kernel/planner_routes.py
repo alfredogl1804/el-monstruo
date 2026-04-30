@@ -217,6 +217,54 @@ async def get_plan(plan_id: str, request: Request) -> dict:
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/test")
+async def test_planner(body: PlanRequest, request: Request) -> dict:
+    """Test endpoint: only checks if objective is complex and generates a plan (no execution)."""
+    _check_auth(request)
+    try:
+        from kernel.task_planner import TaskPlanner, is_complex_objective
+        kernel = request.app.state.kernel if hasattr(request.app.state, "kernel") else None
+        db = request.app.state.db if hasattr(request.app.state, "db") else None
+
+        is_complex = is_complex_objective(body.objective)
+        if not is_complex:
+            return {
+                "is_complex": False,
+                "message": "El objetivo no es complejo — se ejecutaría directamente sin planificador",
+                "objective": body.objective,
+            }
+
+        if not kernel:
+            return {
+                "is_complex": True,
+                "message": "Objetivo complejo detectado pero kernel no disponible para generar plan",
+                "objective": body.objective,
+            }
+
+        planner = TaskPlanner(kernel=kernel, db=db)
+        plan = await planner.plan(
+            objective=body.objective,
+            context=body.context,
+            user_id=body.user_id,
+            max_steps=body.max_steps,
+        )
+        return {
+            "is_complex": True,
+            "plan_id": plan.plan_id,
+            "steps": len(plan.steps),
+            "plan_summary": [
+                {"index": s.index, "description": s.description[:120], "tool_hint": s.tool_hint}
+                for s in plan.steps
+            ],
+            "message": f"Plan generado con {len(plan.steps)} pasos (no ejecutado)",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("planner_test_error", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/history")
 async def get_plan_history(request: Request, limit: int = 20) -> dict:
     """Get plan execution history from Supabase."""

@@ -165,6 +165,8 @@ async def lifespan(app: FastAPI):
         db=db if db_connected else None,  # Sprint 9: for dossier injection
     )
 
+    app.state.kernel = kernel  # Sprint 41: expose kernel in app.state for planner_routes
+    app.state.db = db if db_connected else None  # Sprint 41: expose db in app.state for planner_routes
     # Emit startup event
     await event_store.append(
         EventBuilder()
