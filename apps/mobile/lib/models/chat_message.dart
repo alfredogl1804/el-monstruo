@@ -49,7 +49,7 @@ class ChatMessage {
     return ChatMessage(
       id: data['id'] as String? ?? _uuid.v4(),
       role: MessageRole.assistant,
-      content: data['content'] as String? ?? data['message'] as String? ?? '',
+      content: data['full_content'] as String? ?? data['content'] as String? ?? data['message'] as String? ?? '',
       type: MessageType.text,
       model: data['model'] as String?,
       tokenCount: data['token_count'] as int?,
@@ -61,7 +61,7 @@ class ChatMessage {
     return ChatMessage(
       id: data['message_id'] as String? ?? _uuid.v4(),
       role: MessageRole.assistant,
-      content: data['chunk'] as String? ?? data['content'] as String? ?? '',
+      content: data['chunk'] as String? ?? data['delta'] as String? ?? data['content'] as String? ?? '',
       type: MessageType.streamChunk,
       isStreaming: true,
     );
