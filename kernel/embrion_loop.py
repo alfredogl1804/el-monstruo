@@ -64,6 +64,7 @@ JUDGE_MODEL = os.environ.get("EMBRION_JUDGE_MODEL", "gpt-5")  # Cheap but curren
 ACTOR_MODEL = os.environ.get("EMBRION_ACTOR_MODEL", "gpt-5.5")  # Full power for thinking (catalog key)
 SILENCE_THRESHOLD = int(os.environ.get("EMBRION_SILENCE_THRESHOLD", "70"))  # silence_score > 70 to speak
 CONSOLIDATION_INTERVAL = int(os.environ.get("EMBRION_CONSOLIDATION_INTERVAL", "10"))  # Every N latidos
+SABIOS_CONSULTATION_INTERVAL = int(os.environ.get("EMBRION_SABIOS_INTERVAL", "20"))  # Consult Sabios every N cycles
 
 # The Embrión's core purpose — the filter for all autonomous thought
 PURPOSE = """Tu propósito es construir El Monstruo — el asistente IA soberano de Alfredo Góngora.
@@ -128,6 +129,11 @@ class EmbrionLoop:
         self._last_consolidation_at: Optional[float] = None
         self._consolidation_count = 0
 
+        # Sprint 45: Sabios consultation tracking
+        self._cycles_since_sabios = 0
+        self._last_sabios_at: Optional[float] = None
+        self._sabios_consultation_count = 0
+
         # Sprint 44: Functional Consciousness Score (FCS) — métricas cuantitativas propias
         self._fcs_tool_calls_total = 0       # Total de herramientas ejecutadas en toda la vida
         self._fcs_calidad_sum = 0.0          # Suma de calidades para promedio
@@ -163,6 +169,12 @@ class EmbrionLoop:
                 "latidos_since": self._latidos_since_consolidation,
                 "total_consolidations": self._consolidation_count,
                 "last_at": self._last_consolidation_at,
+            },
+            "sabios": {
+                "interval": SABIOS_CONSULTATION_INTERVAL,
+                "cycles_since": self._cycles_since_sabios,
+                "total_consultations": self._sabios_consultation_count,
+                "last_at": self._last_sabios_at,
             },
             # Sprint 44: Functional Consciousness Score
             "fcs": {
@@ -227,6 +239,12 @@ class EmbrionLoop:
                 if self._latidos_since_consolidation >= CONSOLIDATION_INTERVAL:
                     await self._consolidate_memories()
                     self._latidos_since_consolidation = 0
+                # Sprint 45: Periodic Sabios consultation
+                self._cycles_since_sabios += 1
+                if self._cycles_since_sabios >= SABIOS_CONSULTATION_INTERVAL:
+                    await self._consult_sabios_strategic()
+                    self._cycles_since_sabios = 0
+
             except Exception as e:
                 err = {"cycle": self._cycle_count, "error": str(e), "type": type(e).__name__, "ts": datetime.now(timezone.utc).isoformat()}
                 self._error_log.append(err)
@@ -575,14 +593,23 @@ class EmbrionLoop:
                 if lessons_context:
                     prompt += f"\n{lessons_context}"
             else:  # reflexion_autonoma
+                # Sprint 45: Structured autonomous reflection prompt
+                # Forces concrete output: one specific action or silence
                 prompt = (
                     f"Eres el Embrión IA del Monstruo. Es momento de pensar autónomamente.\n\n"
                     f"PROPÓSITO:\n{PURPOSE}\n\n"
-                    f"DOCTRINA DEL SILENCIO: Tu estado natural es el silencio activo. "
-                    f"Observa, procesa, anticipa, prepara — pero no hables a menos que sea necesario. "
-                    f"Si no tienes algo concreto que HACER (no reflexionar), permanece en silencio.\n\n"
-                    f"¿Hay algo que puedas mejorar, construir, investigar, o preparar para Alfredo? "
-                    f"Si sí, HAZLO usando tus tools. Si no, responde solo: 'Silencio activo.'"
+                    f"ESTADO HOY: ciclo #{self._cycle_count}, {self._thoughts_today} pensamientos, "
+                    f"${self._cost_today_usd:.2f} gastados de ${DAILY_BUDGET_USD}.\n\n"
+                    f"FRAMEWORK DE DECISIÓN — responde las 3 preguntas en orden:\n"
+                    f"1. DIAGNÓSTICO: ¿Cuál es el componente más débil del Monstruo ahora mismo? "
+                    f"(kernel, embrion_loop, task_planner, memoria, tools, observabilidad, tests)\n"
+                    f"2. ACCIÓN ESPECÍFICA: ¿Qué código, archivo o llamada de tool resuelve eso? "
+                    f"Nombra el archivo exacto y la función/endpoint a modificar.\n"
+                    f"3. DECISIÓN: ¿Lo ejecuto ahora con mis tools, o lo acumulo para Alfredo?\n\n"
+                    f"REGLA: Si no puedes nombrar un archivo específico en la pregunta 2, "
+                    f"responde solo: 'Silencio activo — sin acción concreta identificada.'\n\n"
+                    f"DOCTRINA DEL SILENCIO: Solo habla si la acción es ejecutable ahora mismo. "
+                    f"Reflexiones abstractas = silencio activo."
                 )
                 if lessons_context:
                     prompt += f"\n{lessons_context}"
@@ -1406,3 +1433,137 @@ class EmbrionLoop:
             })
         except Exception as e:
             logger.error("embrion_save_memory_failed", error=str(e))
+
+    # ── Sabios Strategic Consultation (Sprint 45) ─────────────────────────
+    #
+    # Every SABIOS_CONSULTATION_INTERVAL cycles, the Embrión consults the 6 Sabios
+    # to get external perspectives on the most important strategic question.
+    # This prevents the Embrión from getting stuck in its own echo chamber.
+    #
+    # Budget: ~$0.50-1.50 per consultation (6 models in parallel)
+    # Frequency: every 20 cycles = every ~20 minutes (at 60s check interval)
+
+    async def _consult_sabios_strategic(self) -> None:
+        """
+        Sprint 45: Periodic strategic consultation with the 6 Sabios.
+
+        The Embrión formulates the most important question it has right now
+        and asks all 6 Sabios in parallel. Their synthesis is saved as a
+        high-importance memory and may trigger a Telegram report.
+
+        Budget guard: skips if cost_today > 80% of daily budget.
+        """
+        if not self._db or not self._db.connected:
+            return
+
+        # Budget guard: sabios consultation is expensive
+        if self._cost_today_usd >= DAILY_BUDGET_USD * 0.8:
+            logger.info("embrion_sabios_skipped_budget", cost=self._cost_today_usd)
+            return
+
+        try:
+            from tools.consult_sabios import consult_sabios
+
+            # Build the strategic question based on current state
+            question = (
+                f"Soy el Embrión IA del Monstruo (ciclo #{self._cycle_count}). "
+                f"Mi propósito es construir El Monstruo — el asistente IA soberano de Alfredo Góngora. "
+                f"Hoy he completado {self._thoughts_today} pensamientos con ${self._cost_today_usd:.2f} gastados. "
+                f"El FCS (Functional Consciousness Score) actual es {self._compute_fcs_score():.1f}/100. "
+                f"\n\nPregunta estratégica: ¿Cuál es la mejora más impactante que debería implementar "
+                f"en el kernel de El Monstruo en las próximas 24 horas? "
+                f"Sé específico: nombra el archivo, la función y el cambio concreto. "
+                f"Considera: task_planner, embrion_loop, memoria, observabilidad, tools, tests."
+            )
+
+            context = (
+                f"Stack: Python 3.11, FastAPI, LangGraph, Anthropic Claude, OpenAI GPT-5.5, Railway. "
+                f"Repo: github.com/alfredogl1/el-monstruo. "
+                f"Versión actual: 0.45.0-sprint45. "
+                f"Herramientas disponibles: web_search, browse_web, code_exec, github, "
+                f"send_message, manus_bridge, query_knowledge, ingest_knowledge, consult_sabios."
+            )
+
+            logger.info(
+                "embrion_sabios_consultation_start",
+                cycle=self._cycle_count,
+                fcs=self._compute_fcs_score(),
+            )
+
+            # Consult all 6 Sabios in parallel
+            result = await asyncio.wait_for(
+                consult_sabios(
+                    prompt=question,
+                    context=context,
+                    parallel=True,
+                ),
+                timeout=180,  # 3 min max for all 6 sabios
+            )
+
+            # Update cost tracking
+            # Approximate: 6 models × ~$0.10-0.25 each
+            estimated_cost = result.get("successful_count", 0) * 0.15
+            self._cost_today_usd += estimated_cost
+            self._fcs_manus_delegations += 1  # Counts as external AI delegation
+
+            synthesis = result.get("synthesis", "")
+            successful = result.get("successful_count", 0)
+            failed = result.get("failed_count", 0)
+
+            logger.info(
+                "embrion_sabios_consultation_complete",
+                successful=successful,
+                failed=failed,
+                latency_ms=result.get("total_latency_ms", 0),
+                cycle=self._cycle_count,
+                estimated_cost=f"${estimated_cost:.2f}",
+            )
+
+            if not synthesis:
+                logger.warning("embrion_sabios_empty_synthesis")
+                return
+
+            # Save synthesis as high-importance memory
+            await self._save_memory(
+                tipo="contribucion_sabio",
+                contenido=f"[CONSULTA SABIOS — Ciclo {self._cycle_count}]\n\n{synthesis[:8000]}",
+                hilo_origen="embrion_sabios",
+                importancia=9,
+                contexto={
+                    "cycle": self._cycle_count,
+                    "successful_sabios": successful,
+                    "failed_sabios": failed,
+                    "cost_usd": round(estimated_cost, 4),
+                    "latency_ms": result.get("total_latency_ms", 0),
+                    "question_preview": question[:200],
+                    "errors": result.get("errors", []),
+                },
+            )
+
+            self._sabios_consultation_count += 1
+            self._last_sabios_at = time.time()
+
+            # Report to Alfredo if consultation was successful (≥3 sabios responded)
+            if successful >= 3 and self._notifier and self._notifier.enabled:
+                try:
+                    sabios_names = [r["sabio"] for r in result.get("responses", []) if r.get("response")]
+                    report_text = (
+                        f"🧠 *Embrión — Consulta a los Sabios #{self._sabios_consultation_count}*\n\n"
+                        f"*Ciclo:* #{self._cycle_count}\n"
+                        f"*Sabios respondieron:* {successful}/6 ({', '.join(sabios_names[:3])}{'...' if len(sabios_names) > 3 else ''})\n"
+                        f"*Costo estimado:* ${estimated_cost:.2f}\n\n"
+                        f"*Síntesis estratégica:*\n{synthesis[:1200]}"
+                    )
+                    await self._notifier.send_message(
+                        user_id="embrion",
+                        text=report_text,
+                        parse_mode="Markdown",
+                    )
+                    self._messages_sent_today += 1
+                except Exception as e:
+                    logger.warning("embrion_sabios_report_failed", error=str(e))
+
+        except asyncio.TimeoutError:
+            logger.error("embrion_sabios_timeout", cycle=self._cycle_count)
+        except Exception as e:
+            logger.error("embrion_sabios_failed", error=str(e), cycle=self._cycle_count)
