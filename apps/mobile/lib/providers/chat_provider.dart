@@ -190,6 +190,31 @@ class ChatNotifier extends StateNotifier<ChatState> {
     state = state.copyWith(activeTools: activeTools);
   }
 
+
+  /// Stop current streaming / thinking
+  void stopStreaming() {
+    // Disconnect and reconnect WebSocket to cancel the in-flight request
+    _kernelService.connectStreaming();
+    
+    // Mark any streaming messages as complete
+    final messages = List<ChatMessage>.from(state.messages);
+    for (var i = 0; i < messages.length; i++) {
+      if (messages[i].isStreaming) {
+        messages[i] = messages[i].copyWith(isStreaming: false);
+      }
+    }
+    
+    state = state.copyWith(
+      messages: messages,
+      isStreaming: false,
+      isThinking: false,
+      thinkingModel: null,
+      thinkingIntent: null,
+      thinkingStartTime: null,
+      activeTools: [],
+    );
+  }
+
   /// Send a user message
   Future<void> sendMessage(String content) async {
     if (content.trim().isEmpty) return;

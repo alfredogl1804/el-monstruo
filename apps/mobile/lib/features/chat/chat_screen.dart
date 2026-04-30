@@ -99,7 +99,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           },
           isStreaming: isStreaming,
           onStop: () {
-            // TODO: implement stop streaming
+            ref.read(chatProvider.notifier).stopStreaming();
           },
         ),
       ],
