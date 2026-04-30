@@ -115,6 +115,38 @@ MODELS: dict = {
         "source": "https://docs.perplexity.ai/docs/sonar/models",
     },
     # ─── TIER 3: Rápidos y baratos (clasificación, tareas masivas) ───
+    # Sprint 42: Added gpt-4.1-nano and grok-4.1-fast for TTFT optimization
+    # BenchLM April 2026: gpt-4.1-nano=0.63s TTFT, grok-4.1-fast=0.54s TTFT
+    "gpt-4.1-nano": {
+        "provider": "openai",
+        "model_id": "gpt-4.1-nano",
+        "litellm_alias": "gpt-4-nano",
+        "api_key_env": "OPENAI_API_KEY",
+        "base_url": None,
+        "context_window": 1_048_576,
+        "max_tokens": 16_384,
+        "use_max_completion_tokens": True,
+        "supports_temperature": True,
+        "pricing": {"input": 0.10, "output": 0.40},
+        "roles": ["clasificador_rapido", "worker_economico", "chat_rapido"],
+        "validated": "2026-04-30",
+        "source": "https://developers.openai.com/api/docs/models",
+    },
+    "grok-4.1-fast": {
+        "provider": "xai",
+        "model_id": "grok-4-1-fast-non-reasoning",
+        "litellm_alias": "grok-fast",
+        "api_key_env": "XAI_API_KEY",
+        "base_url": "https://api.x.ai/v1",
+        "context_window": 131_072,
+        "max_tokens": 4096,
+        "use_max_completion_tokens": False,
+        "supports_temperature": True,
+        "pricing": {"input": 0.30, "output": 1.00},
+        "roles": ["chat_rapido", "clasificador_rapido", "worker_economico"],
+        "validated": "2026-04-30",
+        "source": "https://docs.x.ai/developers/models",
+    },
     "gpt-4.1-mini": {
         "provider": "openai",
         "model_id": "gpt-4.1-mini",  # Sprint 29: replaces gpt-5.4-mini as worker económico
@@ -262,11 +294,11 @@ FALLBACK_CHAINS: dict[str, list[str]] = {
     "codigo": ["claude-opus-4-7", "claude-sonnet-4-6", "grok-4.20", "deepseek-r1-0528", "together-llama-scout"],
     "analisis": ["claude-opus-4-7", "gpt-5.5", "deepseek-r1-0528", "groq-llama-scout"],
     "motor_barato": ["kimi-k2.5", "gemini-3.1-flash-lite", "gpt-4.1-mini", "groq-llama-scout", "together-llama-scout"],
-    "clasificador": ["gpt-4.1-mini", "kimi-k2.5", "gemini-3.1-flash-lite", "groq-llama-scout"],
+    "clasificador": ["gpt-4.1-nano", "grok-4.1-fast", "gpt-4.1-mini", "gemini-3.1-flash-lite", "groq-llama-scout"],
     "planificador": ["gpt-5.5", "claude-opus-4-7", "gemini-3.1-pro", "groq-llama-scout"],
     "ejecutor": ["gpt-5.5", "claude-sonnet-4-6", "grok-4.20", "together-llama-scout"],
     "arquitecto": ["claude-opus-4-7", "gpt-5.5", "grok-4.20", "together-llama-scout"],
-    "chat_rapido": ["gemini-3.1-flash-lite", "gpt-4.1-mini", "kimi-k2.5", "groq-llama-scout"],
+    "chat_rapido": ["grok-4.1-fast", "gpt-4.1-nano", "gemini-3.1-flash-lite", "gpt-4.1-mini", "groq-llama-scout"],
     "fallback": ["groq-llama-scout", "together-llama-scout", "gemini-3.1-flash-lite", "gpt-4.1-mini"],
     "worker_economico": ["gemini-3.1-flash-lite", "gpt-4.1-mini", "groq-llama-scout", "together-llama-scout"],
 }

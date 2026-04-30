@@ -61,15 +61,20 @@ class SupervisorDecision:
 
 # ── Tier → Model Mapping ─────────────────────────────────────────────
 
+# Sprint 42: Model selection optimized for TTFT based on BenchLM April 2026 data.
+# Consensus from Los 3 Sabios (Gemini 3 Pro + Perplexity Sonar Pro):
+#   - SIMPLE: grok-4.1-fast (0.54s TTFT, score 70) — blazing fast for greetings/short Q
+#   - MODERATE: gpt-4.1-nano (0.63s TTFT, score 27) — fast with good quality for multi-step
+#   - COMPLEX/DEEP: unchanged (gpt-5.5, claude-opus-4-7 for max quality)
 TIER_MODEL_MAP: dict[ComplexityTier, dict[str, Any]] = {
     ComplexityTier.SIMPLE: {
-        "primary": "gemini-3.1-flash-lite",
-        "fallbacks": ["gpt-4.1-mini", "groq-llama-scout", "kimi-k2.5"],
+        "primary": "grok-4.1-fast",
+        "fallbacks": ["gpt-4.1-nano", "gemini-3.1-flash-lite", "groq-llama-scout"],
         "skip_enrich": True,
     },
     ComplexityTier.MODERATE: {
-        "primary": "gpt-4.1-mini",
-        "fallbacks": ["claude-sonnet-4-6", "gemini-3.1-flash-lite", "groq-llama-scout"],
+        "primary": "gpt-4.1-nano",
+        "fallbacks": ["grok-4.1-fast", "gpt-4.1-mini", "gemini-3.1-flash-lite"],
         "skip_enrich": False,
     },
     ComplexityTier.COMPLEX: {
