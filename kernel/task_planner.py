@@ -265,20 +265,60 @@ RESPONDE ÚNICAMENTE con un JSON válido en este formato exacto:
 No incluyas texto fuera del JSON. Solo el JSON."""
 
         try:
-            # Sprint 41 FIX: llamar al LLMClient directamente para obtener JSON puro
-            # (pasar por el grafo LangGraph hace que el LLM responda en modo conversacional)
-            from router.llm_client import LLMClient
-            from config.model_catalog import MODELS
-            llm = LLMClient()
-            model_config = MODELS.get(PLANNER_MODEL) or MODELS.get("gpt-5.5")
-            response_text, _usage = await asyncio.wait_for(
-                llm.chat(
-                    model_config=model_config,
-                    messages=[{"role": "user", "content": planning_prompt}],
-                    max_tokens=2000,
+            # Sprint 41 FIX v2: usar Responses API directamente con text.format json_schema
+            # gpt-5.5 usa /v1/responses (NO chat.completions) — confirmado en docs OpenAI 2026
+            # Structured Outputs garantiza JSON válido sin necesidad de parseo
+            import os
+            from openai import AsyncOpenAI
+
+            # JSON Schema para el plan
+            plan_schema = {
+                "type": "object",
+                "properties": {
+                    "steps": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "index": {"type": "integer"},
+                                "description": {"type": "string"},
+                                "tool_hint": {"type": "string"},
+                                "depends_on": {"type": "array", "items": {"type": "integer"}}
+                            },
+                            "required": ["index", "description", "tool_hint", "depends_on"],
+                            "additionalProperties": False
+                        }
+                    },
+                    "rationale": {"type": "string"}
+                },
+                "required": ["steps", "rationale"],
+                "additionalProperties": False
+            }
+
+            openai_client = AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY", ""))
+            resp = await asyncio.wait_for(
+                openai_client.responses.create(
+                    model="gpt-5.5",
+                    input=planning_prompt,
+                    text={
+                        "format": {
+                            "type": "json_schema",
+                            "name": "TaskPlan",
+                            "strict": True,
+                            "schema": plan_schema,
+                        }
+                    },
+                    max_output_tokens=2000,
                 ),
-                timeout=60,
+                timeout=90,
             )
+            # Extraer texto de la respuesta
+            response_text = ""
+            for item in resp.output:
+                if hasattr(item, "content"):
+                    for part in item.content:
+                        if hasattr(part, "text"):
+                            response_text += part.text
 
             # Parse JSON response
             steps_data = self._parse_plan_response(response_text)
