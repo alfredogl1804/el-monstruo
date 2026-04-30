@@ -274,7 +274,7 @@ No incluyas texto fuera del JSON. Solo el JSON."""
                     "source": "task_planner",
                     "model_hint": PLANNER_MODEL,
                     "max_tokens": 2000,
-                    "intent_override": "task_planning",
+                    "intent_override": "deep_think",  # task_planning no existe en IntentType — usar deep_think
                 },
             )
             result = await asyncio.wait_for(
