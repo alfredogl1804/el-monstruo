@@ -548,6 +548,38 @@ Formato obligatorio:
                 "required": ["action", "prompt"],
             },
         },
+        {
+            "name": "query_knowledge",
+            "description": "Sprint 44: Consultar el knowledge graph del Embrión (LightRAG). Usar para recuperar contexto previo, lecciones aprendidas, decisiones pasadas, o cualquier información almacenada en la memoria del sistema.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Consulta en lenguaje natural"},
+                    "mode": {
+                        "type": "string",
+                        "description": "Modo de búsqueda: hybrid (default), local, global, naive",
+                        "enum": ["hybrid", "local", "global", "naive"],
+                    },
+                    "top_k": {"type": "integer", "description": "Máximo de resultados a retornar (default: 5)"},
+                },
+                "required": ["query"],
+            },
+        },
+        {
+            "name": "ingest_knowledge",
+            "description": "Sprint 44: Ingestar un documento o texto al knowledge graph del Embrión (LightRAG). Usar para guardar resultados importantes, aprendizajes, o información que debe persistir en la memoria del sistema.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "content": {"type": "string", "description": "Texto o documento a ingestar"},
+                    "metadata": {
+                        "type": "object",
+                        "description": "Metadatos opcionales: source, type, sprint, etc.",
+                    },
+                },
+                "required": ["content"],
+            },
+        },
     ]
 
     async def _execute_tool_direct(self, tool_name: str, args: dict) -> str:
@@ -624,6 +656,34 @@ Formato obligatorio:
                 except Exception as e:
                     logger.error("task_planner_send_message_error", error=str(e))
                     return json.dumps({"sent": False, "error": str(e), "message": msg[:200]})
+
+            elif tool_name == "query_knowledge":
+                # Sprint 44: Consultar el knowledge graph del Embrión
+                from memory.lightrag_bridge import query_knowledge
+                result = await query_knowledge(
+                    query=args.get("query", ""),
+                    mode=args.get("mode", "hybrid"),
+                    top_k=args.get("top_k", 5),
+                )
+                logger.info(
+                    "task_planner_query_knowledge",
+                    query=args.get("query", "")[:80],
+                    mode=args.get("mode", "hybrid"),
+                )
+                return json.dumps(result, ensure_ascii=False)[:4000]
+
+            elif tool_name == "ingest_knowledge":
+                # Sprint 44: Ingestar documento al knowledge graph del Embrión
+                from memory.lightrag_bridge import ingest_document
+                result = await ingest_document(
+                    content=args.get("content", ""),
+                    metadata=args.get("metadata"),
+                )
+                logger.info(
+                    "task_planner_ingest_knowledge",
+                    content_length=len(args.get("content", "")),
+                )
+                return json.dumps(result, ensure_ascii=False)
 
             else:
                 return json.dumps({"error": f"Tool '{tool_name}' not available in planner executor"})
