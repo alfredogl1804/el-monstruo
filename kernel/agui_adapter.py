@@ -1,12 +1,19 @@
 """
-El Monstruo — AG-UI SSE Adapter (Sprint 12)
-=============================================
+El Monstruo — AG-UI SSE Adapter (Sprint 12 → Sprint 42 Streaming Fix)
+======================================================================
 Streams kernel events in AG-UI protocol format over SSE.
 This adapter translates LangGraph kernel events into the
 AG-UI event stream that CopilotKit/Command Center consumes.
 
+Sprint 42 Fix: Heartbeat-enabled streaming to prevent Railway proxy buffering.
+Root cause (diagnosed by Los 3 Sabios): Phase 1 pre-LLM processing yields
+nothing for several seconds, causing Railway's proxy to buffer the entire
+response until the first chunk arrives. Fix: emit an immediate SSE event
+at connection time + periodic heartbeat comments during processing gaps.
+
 AG-UI Events emitted:
   - RUN_STARTED       → When a new run begins
+  - THINKING_STATE    → Processing status updates (new in Sprint 42)
   - TEXT_MESSAGE_START → When assistant starts responding
   - TEXT_MESSAGE_CONTENT → Streaming text chunks
   - TEXT_MESSAGE_END   → When assistant finishes
@@ -22,7 +29,9 @@ endpoint and translates events into AG-UI protocol format."
 
 from __future__ import annotations
 
+import asyncio
 import json
+import time
 from typing import Any, Optional
 from uuid import uuid4
 
@@ -38,6 +47,9 @@ router = APIRouter(prefix="/v1/agui", tags=["ag-ui"])
 # ── Module-level dependency ───────────────────────────────────────
 _kernel = None
 _thoughts_store = None
+
+# ── Heartbeat Configuration ───────────────────────────────────────
+_HEARTBEAT_INTERVAL_S = 3.0  # Send heartbeat every 3s during silence
 
 
 def set_dependencies(kernel=None, thoughts_store=None):
@@ -71,7 +83,9 @@ def _sse_event(event_type: str, data: dict) -> str:
 
 
 def _heartbeat() -> str:
-    """SSE heartbeat to keep connection alive."""
+    """SSE heartbeat comment to keep connection alive.
+    SSE comments (lines starting with ':') are ignored by clients
+    but force the proxy to flush its buffer."""
     return ": heartbeat\n\n"
 
 
@@ -80,6 +94,7 @@ def _heartbeat() -> str:
 
 class AGUIEventType:
     RUN_STARTED = "RUN_STARTED"
+    THINKING_STATE = "THINKING_STATE"
     TEXT_MESSAGE_START = "TEXT_MESSAGE_START"
     TEXT_MESSAGE_CONTENT = "TEXT_MESSAGE_CONTENT"
     TEXT_MESSAGE_END = "TEXT_MESSAGE_END"
@@ -97,7 +112,10 @@ class AGUIEventType:
 async def agui_run(req: AGUIRunRequest, request: Request):
     """AG-UI compatible SSE endpoint.
     Accepts AG-UI protocol messages, runs through the kernel,
-    and streams back AG-UI events."""
+    and streams back AG-UI events.
+
+    Sprint 42: Uses heartbeat-interleaved streaming to prevent
+    Railway proxy buffering during pre-LLM processing phases."""
     if not _kernel:
         raise HTTPException(503, "Kernel not initialized")
 
@@ -120,9 +138,27 @@ async def agui_run(req: AGUIRunRequest, request: Request):
         raise HTTPException(400, "No user message found")
 
     async def event_stream():
-        """Generate AG-UI SSE events from kernel execution."""
+        """Generate AG-UI SSE events from kernel execution.
+
+        Strategy (Sprint 42 — Los 3 Sabios consensus):
+        1. Emit RUN_STARTED immediately to open the stream
+        2. Start a heartbeat task that sends SSE comments every 3s
+        3. Each real event resets the heartbeat timer
+        4. Heartbeats keep Railway's proxy in streaming mode
+        """
+        last_yield_time = time.monotonic()
+
+        async def _maybe_heartbeat():
+            """Yield heartbeat if we haven't sent anything recently."""
+            nonlocal last_yield_time
+            now = time.monotonic()
+            if now - last_yield_time >= _HEARTBEAT_INTERVAL_S:
+                last_yield_time = now
+                return _heartbeat()
+            return None
+
         try:
-            # RUN_STARTED
+            # ── IMMEDIATE: RUN_STARTED (opens the stream) ──────────
             yield _sse_event(
                 AGUIEventType.RUN_STARTED,
                 {
@@ -130,6 +166,7 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                     "threadId": thread_id,
                 },
             )
+            last_yield_time = time.monotonic()
 
             # TEXT_MESSAGE_START
             message_id = str(uuid4())
@@ -140,6 +177,7 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                     "role": "assistant",
                 },
             )
+            last_yield_time = time.monotonic()
 
             # Execute through kernel
             from contracts.kernel_interface import RunInput
@@ -149,7 +187,6 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                 user_id=req.forwarded_props.get("user_id", "anonymous"),
                 channel="command-center",
                 context={"thread_id": thread_id, "agui": True},
-
             )
 
             # Try streaming first
@@ -157,13 +194,34 @@ async def agui_run(req: AGUIRunRequest, request: Request):
             tool_calls_emitted = []
 
             try:
-                async for raw_chunk in _kernel.stream(run_input):
+                # ── Stream with heartbeat interleaving ──────────────
+                # We use asyncio.wait_for with a timeout to interleave
+                # heartbeats when the kernel is slow to yield.
+                kernel_stream = _kernel.stream(run_input).__aiter__()
+                stream_exhausted = False
+
+                while not stream_exhausted:
                     # Check if client disconnected
                     if await request.is_disconnected():
                         logger.info("agui_client_disconnected", run_id=run_id)
                         return
 
-                    # Kernel yields JSON strings — parse them
+                    try:
+                        # Wait for next chunk with timeout
+                        raw_chunk = await asyncio.wait_for(
+                            kernel_stream.__anext__(),
+                            timeout=_HEARTBEAT_INTERVAL_S,
+                        )
+                    except asyncio.TimeoutError:
+                        # No chunk received within interval — send heartbeat
+                        yield _heartbeat()
+                        last_yield_time = time.monotonic()
+                        continue
+                    except StopAsyncIteration:
+                        stream_exhausted = True
+                        break
+
+                    # Process the chunk
                     if isinstance(raw_chunk, str):
                         try:
                             chunk = json.loads(raw_chunk)
@@ -185,6 +243,21 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                                 "delta": chunk_data,
                             },
                         )
+                        last_yield_time = time.monotonic()
+
+                    elif chunk_type == "meta":
+                        # Forward meta events as THINKING_STATE for Flutter
+                        yield _sse_event(
+                            AGUIEventType.THINKING_STATE,
+                            {
+                                "messageId": message_id,
+                                "intent": chunk.get("intent", ""),
+                                "model": chunk.get("model", ""),
+                                "enriched": chunk.get("enriched", False),
+                                "memoriesFound": chunk.get("memories_found", 0),
+                            },
+                        )
+                        last_yield_time = time.monotonic()
 
                     elif chunk_type == "tool_start":
                         # Tool invocation started
@@ -198,6 +271,7 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                                 "toolCallName": chunk_data.get("name", "unknown") if isinstance(chunk_data, dict) else "unknown",
                             },
                         )
+                        last_yield_time = time.monotonic()
                         if isinstance(chunk_data, dict) and chunk_data.get("args"):
                             yield _sse_event(
                                 AGUIEventType.TOOL_CALL_ARGS,
@@ -206,6 +280,7 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                                     "delta": json.dumps(chunk_data["args"]),
                                 },
                             )
+                            last_yield_time = time.monotonic()
 
                     elif chunk_type == "tool_end":
                         chunk_data = chunk.get("data", {})
@@ -217,6 +292,7 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                                     "result": str(chunk_data.get("result", "") if isinstance(chunk_data, dict) else chunk_data)[:1000],
                                 },
                             )
+                            last_yield_time = time.monotonic()
 
                     elif chunk_type in ("error",):
                         yield _sse_event(
@@ -225,8 +301,10 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                                 "message": str(chunk.get("message", chunk.get("data", "Unknown error"))),
                             },
                         )
-                    elif chunk_type in ("meta", "done"):
-                        # Meta/done events from kernel - skip silently
+                        last_yield_time = time.monotonic()
+
+                    elif chunk_type == "done":
+                        # Done event from kernel — stream is about to end
                         continue
 
             except AttributeError:
@@ -274,9 +352,11 @@ async def agui_run(req: AGUIRunRequest, request: Request):
         event_stream(),
         media_type="text/event-stream",
         headers={
-            "Cache-Control": "no-cache",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
+            "Pragma": "no-cache",
+            "Expires": "0",
             "Access-Control-Allow-Origin": "*",
         },
     )
@@ -290,9 +370,10 @@ async def agui_info():
     """AG-UI adapter info and capabilities."""
     return {
         "protocol": "ag-ui",
-        "version": "0.1",
+        "version": "0.2",
         "capabilities": {
             "streaming": True,
+            "heartbeat": True,
             "tool_calls": True,
             "memory": _thoughts_store is not None,
         },

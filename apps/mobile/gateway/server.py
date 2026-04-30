@@ -1,7 +1,6 @@
-"""
-El Monstruo — AG-UI Mobile Gateway
-====================================
-Bridges the Flutter mobile app to the Monstruo kernel on Railway.
+"""El Monstruo — AG-UI Mobile Gateway (Sprint 42 Streaming Fix)
+=================================================================
+Bridges the Flutter mobile app to the Monstruo kernel on Railway..
 
 The kernel already exposes:
   - POST /v1/agui/run       → AG-UI SSE streaming (main chat)
@@ -59,6 +58,7 @@ async def lifespan(app: FastAPI):
         headers=headers,
         timeout=httpx.Timeout(180.0, connect=10.0, read=180.0),
         limits=httpx.Limits(max_connections=100),
+        http2=False,  # Sprint 42: Force HTTP/1.1 for SSE compatibility
     )
     yield
     await http_client.aclose()
@@ -380,7 +380,11 @@ async def _stream_agui_to_ws(
         async with http_client.stream(
             "POST", "/v1/agui/run",
             json=agui_payload,
-            headers={"Accept": "text/event-stream", "Cache-Control": "no-cache"},
+            headers={
+                "Accept": "text/event-stream",
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+            },
         ) as response:
             # Use aiter_bytes + manual SSE parsing to avoid Railway buffering
             sse_buffer = ""
@@ -403,7 +407,7 @@ async def _stream_agui_to_ws(
 
                         event_type = event.get("type", "")
 
-                        if event_type == "THINKING_STATE":
+                        if event_type in ("THINKING_STATE", "THINKING"):
                             # Forward thinking/routing metadata to Flutter
                             await ws.send_json({
                                 "type": "thinking_state",
@@ -459,12 +463,21 @@ async def _stream_agui_to_ws(
                                 "result": event.get("result", ""),
                             })
 
+                        elif event_type == "RUN_FINISHED":
+                            # Run completed normally — don't return yet,
+                            # let the stream close naturally
+                            pass
+
                         elif event_type == "RUN_ERROR":
                             await ws.send_json({
                                 "type": "error",
                                 "message": event.get("message", "Unknown error"),
                             })
                             return
+
+                        elif event_type == "RUN_STARTED":
+                            # Already sent run_start above
+                            pass
 
         # Run complete
         await ws.send_json({

@@ -660,20 +660,25 @@ class LangGraphKernel(KernelInterface):
 
     async def stream(self, input: RunInput) -> AsyncIterator[str]:
         """
-        Sprint 4: REAL streaming via interrupt_before=["execute"].
+        Sprint 4 → Sprint 42: REAL streaming via interrupt_before=["execute"].
 
-        Strategy (validated by 6 Sabios consensus):
+        Strategy (validated by 6 Sabios consensus + Sprint 42 streaming fix):
           Phase 1: Run pre-LLM nodes (intake → classify → enrich) via streaming graph
           Phase 2: Graph interrupts before execute → extract enriched state
           Phase 3: Call router.execute_stream() directly → yield real LLM tokens
           Phase 4: Inject response into state via update_state() → resume for post-LLM
           Phase 5: Post-LLM nodes (respond → memory_write) run to completion
 
+        Sprint 42 Fix: Yield progress events between phases to prevent
+        Railway proxy buffering. The adapter layer (agui_adapter.py) also
+        sends heartbeat comments every 3s during gaps.
+
         Fallback policy: only before first token. After first token, fail gracefully.
         Memory write: blocked if stream fails (no partial contamination).
 
         Yields JSON-encoded SSE events:
           {"type": "meta", "intent": ..., "model": ..., "enriched": ...}
+          {"type": "progress", "phase": ..., "detail": ...}
           {"type": "chunk", "text": "..."}
           {"type": "done", "latency_ms": ..., "model_used": ..., "tokens_in": ..., "tokens_out": ...}
           {"type": "error", "message": "..."}
@@ -707,6 +712,10 @@ class LangGraphKernel(KernelInterface):
         }
 
         try:
+            # ══ Phase 0: Immediate progress event ═══════════════════════════════
+            # Sprint 42: Yield immediately so the SSE stream opens at the proxy
+            yield _json.dumps({"type": "progress", "phase": "starting", "detail": "Procesando..."})
+
             # ══ Phase 1: Run pre-LLM nodes ══════════════════════════════════════════
             # Graph runs intake → classify_and_route → enrich, then STOPS before execute
             logger.info("stream_phase1_start", run_id=str(run_id))
@@ -735,6 +744,9 @@ class LangGraphKernel(KernelInterface):
                             }
                         )
 
+            # Sprint 42: Progress event between Phase 1 and Phase 2
+            yield _json.dumps({"type": "progress", "phase": "enriching", "detail": "Preparando contexto..."})
+
             # ══ Phase 2: Extract enriched state from checkpoint ════════════════════
             # Graph is now paused before execute. Read the full state.
             graph_state = await self._compiled_streaming.aget_state(config)
@@ -761,6 +773,9 @@ class LangGraphKernel(KernelInterface):
                 enriched_context["history"] = conversation_context
             if system_prompt:
                 enriched_context["system_prompt"] = system_prompt
+
+            # Sprint 42: Progress event before LLM streaming starts
+            yield _json.dumps({"type": "progress", "phase": "generating", "detail": f"Generando con {model}..."})
 
             # ══ Phase 3: REAL LLM Streaming ═════════════════════════════════════
             # Call router.execute_stream() directly — yields real LLM tokens
