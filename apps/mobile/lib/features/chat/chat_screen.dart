@@ -83,7 +83,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   PreferredSizeWidget _buildAppBar(
     BuildContext context,
-    AsyncValue<ConnectionState> connectionState,
+    AsyncValue<KernelConnectionState> connectionState,
   ) {
     return AppBar(
       backgroundColor: MonstruoTheme.background,
@@ -122,12 +122,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
               connectionState.when(
                 data: (state) => Text(
-                  state == ConnectionState.connected
+                  state == KernelConnectionState.connected
                       ? 'Kernel conectado'
                       : 'Desconectado',
                   style: TextStyle(
                     fontSize: 12,
-                    color: state == ConnectionState.connected
+                    color: state == KernelConnectionState.connected
                         ? MonstruoTheme.success
                         : MonstruoTheme.onSurfaceDim,
                   ),

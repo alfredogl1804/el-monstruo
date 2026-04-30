@@ -91,15 +91,8 @@ class GenUIScreen extends ConsumerWidget {
                       ),
                     ),
                     // GenUI component
-                    GenUIRenderer(
-                      payload: msg.genuiPayload!,
-                      onAction: (action, data) {
-                        // Send action back to kernel via chat
-                        ref.read(chatProvider.notifier).sendMessage(
-                          '[GenUI Action] $action: ${data.toString()}',
-                        );
-                      },
-                    ),
+                    // GenUI component
+                    GenUIRenderer(payload: msg.genuiPayload!),
                     // Description if available
                     if (msg.content.isNotEmpty)
                       Padding(

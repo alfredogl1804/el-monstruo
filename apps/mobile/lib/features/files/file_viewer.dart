@@ -435,3 +435,24 @@ class _UnknownViewer extends StatelessWidget {
     );
   }
 }
+
+class _TextViewer extends StatelessWidget {
+  const _TextViewer({required this.content});
+  final String content;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: SelectableText(
+        content,
+        style: const TextStyle(
+          fontSize: 14,
+          height: 1.6,
+          color: Colors.white70,
+          fontFamily: 'monospace',
+        ),
+      ),
+    );
+  }
+}

@@ -32,9 +32,9 @@ dependencies:
   web_socket_channel: ^3.0.2
 
   # GenUI / A2UI (Generative UI)
-  genui: ^0.1.0
-  genui_a2a: ^0.1.0
-  a2a: ^0.1.0
+  # genui: ^0.1.0  # TODO: add when available
+  # genui_a2a: ^0.1.0  # TODO: add when available
+  # a2a: ^0.1.0  # TODO: add when available
 
   # Storage & Persistence
   shared_preferences: ^2.5.3

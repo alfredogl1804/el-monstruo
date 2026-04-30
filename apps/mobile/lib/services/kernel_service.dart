@@ -40,11 +40,11 @@ class KernelService {
   // ─── Stream Controllers ───
   final _messageController = StreamController<ChatMessage>.broadcast();
   final _toolEventController = StreamController<ToolEvent>.broadcast();
-  final _connectionStateController = StreamController<ConnectionState>.broadcast();
+  final _connectionStateController = StreamController<KernelConnectionState>.broadcast();
 
   Stream<ChatMessage> get messageStream => _messageController.stream;
   Stream<ToolEvent> get toolEventStream => _toolEventController.stream;
-  Stream<ConnectionState> get connectionStream => _connectionStateController.stream;
+  Stream<KernelConnectionState> get connectionStream => _connectionStateController.stream;
 
   // ─── Health Check ───
   Future<KernelHealth> checkHealth() async {
@@ -80,7 +80,7 @@ class KernelService {
 
   // ─── WebSocket Streaming Connection ───
   Future<void> connectStreaming({String? threadId}) async {
-    _connectionStateController.add(ConnectionState.connecting);
+    _connectionStateController.add(KernelConnectionState.connecting);
 
     try {
       final uri = Uri.parse(AppConfig.gatewayWsUrl);
@@ -88,25 +88,25 @@ class KernelService {
       await _wsChannel!.ready;
 
       _reconnectAttempts = 0;
-      _connectionStateController.add(ConnectionState.connected);
+      _connectionStateController.add(KernelConnectionState.connected);
       _startHeartbeat();
 
       _wsChannel!.stream.listen(
         (data) => _handleWsMessage(data),
         onError: (error) {
           _log.warning('WebSocket error', error);
-          _connectionStateController.add(ConnectionState.error);
+          _connectionStateController.add(KernelConnectionState.error);
           _attemptReconnect(threadId: threadId);
         },
         onDone: () {
           _log.info('WebSocket closed');
-          _connectionStateController.add(ConnectionState.disconnected);
+          _connectionStateController.add(KernelConnectionState.disconnected);
           _attemptReconnect(threadId: threadId);
         },
       );
     } catch (e) {
       _log.severe('WebSocket connection failed', e);
-      _connectionStateController.add(ConnectionState.error);
+      _connectionStateController.add(KernelConnectionState.error);
       _attemptReconnect(threadId: threadId);
     }
   }
@@ -201,7 +201,7 @@ class KernelService {
 
     if (_reconnectAttempts >= AppConfig.wsMaxReconnectAttempts) {
       _log.severe('Max reconnect attempts reached');
-      _connectionStateController.add(ConnectionState.failed);
+      _connectionStateController.add(KernelConnectionState.failed);
       return;
     }
 
@@ -209,7 +209,7 @@ class KernelService {
     final delay = AppConfig.wsReconnectDelay * _reconnectAttempts;
     _log.info('Reconnecting in ${delay.inSeconds}s (attempt $_reconnectAttempts)');
 
-    _connectionStateController.add(ConnectionState.reconnecting);
+    _connectionStateController.add(KernelConnectionState.reconnecting);
 
     Future.delayed(delay, () {
       connectStreaming(threadId: threadId);
@@ -314,7 +314,7 @@ class KernelService {
   }
 }
 
-enum ConnectionState {
+enum KernelConnectionState {
   disconnected,
   connecting,
   connected,
@@ -335,7 +335,7 @@ final kernelHealthProvider = FutureProvider<KernelHealth>((ref) async {
   return service.checkHealth();
 });
 
-final connectionStateProvider = StreamProvider<ConnectionState>((ref) {
+final connectionStateProvider = StreamProvider<KernelConnectionState>((ref) {
   final service = ref.watch(kernelServiceProvider);
   return service.connectionStream;
 });

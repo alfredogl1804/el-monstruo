@@ -24,12 +24,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _pageController = PageController();
   int _currentPage = 0;
   final _kernelUrlController = TextEditingController(
-    text: AppConfig.kernelUrl,
+    text: AppConfig.gatewayBaseUrl,
   );
   bool _connecting = false;
   bool _connected = false;
   String? _connectionError;
-  Map<String, dynamic>? _kernelHealth;
+  dynamic _kernelHealth;
 
   @override
   void dispose() {
@@ -108,7 +108,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
 
     try {
-      final health = await KernelService().getHealth();
+      final health = await KernelService().checkHealth();
       setState(() {
         _connecting = false;
         _connected = true;

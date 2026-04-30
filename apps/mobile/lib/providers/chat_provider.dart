@@ -75,7 +75,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     // Listen to connection state
     _connectionSub = _kernelService.connectionStream.listen((connState) {
       state = state.copyWith(
-        isConnected: connState == ConnectionState.connected,
+        isConnected: connState == KernelConnectionState.connected,
       );
     });
 

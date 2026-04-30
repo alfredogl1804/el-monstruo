@@ -47,14 +47,14 @@ class ShellScaffold extends ConsumerWidget {
             // Connection status indicator
             connectionState.when(
               data: (state) {
-                if (state == ConnectionState.connected) {
+                if (state == KernelConnectionState.connected) {
                   return const SizedBox.shrink();
                 }
                 return _ConnectionBanner(state: state);
               },
               loading: () => const SizedBox.shrink(),
               error: (_, __) => const _ConnectionBanner(
-                state: ConnectionState.error,
+                state: KernelConnectionState.error,
               ),
             ),
             // Bottom nav
@@ -291,32 +291,32 @@ class _TabItem {
 class _ConnectionBanner extends StatelessWidget {
   const _ConnectionBanner({required this.state});
 
-  final ConnectionState state;
+  final KernelConnectionState state;
 
   @override
   Widget build(BuildContext context) {
     final (color, text, icon) = switch (state) {
-      ConnectionState.connecting => (
+      KernelConnectionState.connecting => (
           MonstruoTheme.warning,
           'Conectando al kernel...',
           Icons.sync,
         ),
-      ConnectionState.reconnecting => (
+      KernelConnectionState.reconnecting => (
           MonstruoTheme.warning,
           'Reconectando...',
           Icons.sync,
         ),
-      ConnectionState.error => (
+      KernelConnectionState.error => (
           MonstruoTheme.error,
           'Error de conexión',
           Icons.error_outline,
         ),
-      ConnectionState.failed => (
+      KernelConnectionState.failed => (
           MonstruoTheme.error,
           'Sin conexión al kernel',
           Icons.cloud_off,
         ),
-      ConnectionState.disconnected => (
+      KernelConnectionState.disconnected => (
           MonstruoTheme.onSurfaceDim,
           'Desconectado',
           Icons.cloud_off,
