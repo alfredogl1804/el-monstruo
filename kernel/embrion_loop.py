@@ -58,7 +58,7 @@ logger = structlog.get_logger("embrion.loop")
 # ── Configuration ────────────────────────────────────────────────────
 CHECK_INTERVAL_S = int(os.environ.get("EMBRION_CHECK_INTERVAL", "60"))  # Check every 60s
 THINK_COOLDOWN_S = int(os.environ.get("EMBRION_THINK_COOLDOWN", "300"))  # Min 5 min between thoughts
-DAILY_BUDGET_USD = float(os.environ.get("EMBRION_DAILY_BUDGET", "2.0"))  # $2/day max
+DAILY_BUDGET_USD = float(os.environ.get("EMBRION_DAILY_BUDGET", "30.0"))  # $30/day max (configurable via EMBRION_DAILY_BUDGET env var)
 MAX_THOUGHTS_PER_DAY = int(os.environ.get("EMBRION_MAX_THOUGHTS", "50"))
 JUDGE_MODEL = os.environ.get("EMBRION_JUDGE_MODEL", "gpt-5")  # Cheap but current model
 ACTOR_MODEL = os.environ.get("EMBRION_ACTOR_MODEL", "gpt-5.5")  # Full power for thinking (catalog key)
