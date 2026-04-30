@@ -125,7 +125,7 @@ class KernelService {
           // New message starting
           break;
         case 'message_end':
-          _messageController.add(ChatMessage.fromKernelResponse(data));
+          _messageController.add(ChatMessage.streamEnd(data));
           break;
 
         // Tool calls
@@ -135,10 +135,9 @@ class KernelService {
           _toolEventController.add(ToolEvent.fromJson(data));
           break;
 
-        // Run lifecycle
+        // Run lifecycle (not tool events)
         case 'run_start':
         case 'run_end':
-          _toolEventController.add(ToolEvent.fromJson(data));
           break;
 
         // Errors

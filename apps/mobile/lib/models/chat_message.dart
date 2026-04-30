@@ -67,6 +67,18 @@ class ChatMessage {
     );
   }
 
+  /// Signals that a streaming message is complete (from message_end event).
+  /// Uses the same message_id to match the streaming chunk and mark it done.
+  factory ChatMessage.streamEnd(Map<String, dynamic> data) {
+    return ChatMessage(
+      id: data['message_id'] as String? ?? _uuid.v4(),
+      role: MessageRole.assistant,
+      content: data['full_content'] as String? ?? data['content'] as String? ?? '',
+      type: MessageType.text,
+      isStreaming: false,
+    );
+  }
+
   factory ChatMessage.genuiComponent(Map<String, dynamic> data) {
     return ChatMessage(
       id: data['id'] as String? ?? _uuid.v4(),
