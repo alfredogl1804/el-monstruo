@@ -471,11 +471,19 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
             logger.warning("enrich_mem0_failed", error=str(e))
             return {"mem0_active": False}
 
-    # OPT-2: Parallel memory + knowledge lookups
-    if memory:
-        # Build coroutines for parallel execution
+    # ══ Sprint 42: Tiered Enrichment + SLA Timeouts ══════════════════════
+    # Consensus from Los 3 Sabios (Gemini 3 Pro + Perplexity Sonar Pro, 2026-04-30):
+    #   - MODERATE: Only fast retrievers (conversation + semantic search) with 1.5s SLA
+    #   - COMPLEX/DEEP: All 6 retrievers with 4.0s/8.0s SLA
+    #   - Cancel any task exceeding SLA → use whatever completed in time
+    # This reduces TTFT from ~16s to ~3s for MODERATE queries.
 
-        # Conversation context
+    # Determine complexity tier from supervisor decision
+    supervisor_tier = state.get("supervisor_tier", "MODERATE").upper()
+
+    if memory:
+        # ── Define all retriever coroutines ──────────────────────────
+
         async def _get_conversation():
             try:
                 return await memory.get_conversation_context(
@@ -488,7 +496,6 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
                 logger.warning("enrich_conversation_failed", error=str(e))
                 return []
 
-        # Semantic/keyword search
         async def _search_memories():
             try:
                 results = await memory.search_hybrid(
@@ -511,7 +518,6 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
                 logger.warning("enrich_memories_failed", error=str(e))
                 return []
 
-        # Knowledge graph (only for heavy intents)
         async def _get_knowledge():
             if intent in ("deep_think", "execute") and knowledge:
                 try:
@@ -528,7 +534,6 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
                     logger.warning("enrich_knowledge_failed", error=str(e))
             return []
 
-        # Sprint 21: MemPalace long-term memory recall
         async def _recall_mempalace():
             try:
                 from memory.mempalace_bridge import recall
@@ -543,7 +548,6 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
                 logger.warning("enrich_mempalace_failed", error=str(e))
                 return []
 
-        # Sprint 24: LightRAG knowledge graph retrieval
         async def _query_lightrag():
             try:
                 from memory.lightrag_bridge import query_knowledge
@@ -561,22 +565,75 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
                 logger.warning("enrich_lightrag_failed", error=str(e))
                 return {}
 
-        # OPT-2: Execute ALL lookups in parallel (Sprint 24: +LightRAG)
-        (
-            conversation_context,
-            relevant_memories,
-            knowledge_entities,
-            mempalace_memories,
-            mem0_context,
-            lightrag_result,
-        ) = await asyncio.gather(
-            _get_conversation(),
-            _search_memories(),
-            _get_knowledge(),
-            _recall_mempalace(),
-            _get_mem0_context(),
-            _query_lightrag(),
+        # ── Sprint 42: Tiered task selection ─────────────────────────
+        # SIMPLE tier should never reach enrich (skip_enrich=True),
+        # but handle it defensively.
+        tasks_by_name: dict[str, Any] = {}
+
+        if supervisor_tier in ("SIMPLE", "MODERATE"):
+            # FAST PATH: Only conversation context + semantic memory search
+            # These are pure pgvector/Supabase queries — typically <500ms
+            tasks_by_name["conversation"] = asyncio.create_task(_get_conversation(), name="conversation")
+            tasks_by_name["memories"] = asyncio.create_task(_search_memories(), name="memories")
+            sla_timeout = 1.5  # 1.5s hard SLA for MODERATE
+            logger.info("enrich_tiered_moderate", retrievers=2, sla_timeout=sla_timeout)
+        elif supervisor_tier == "COMPLEX":
+            # MEDIUM PATH: Add MemPalace + Mem0 (skip LightRAG which is slowest)
+            tasks_by_name["conversation"] = asyncio.create_task(_get_conversation(), name="conversation")
+            tasks_by_name["memories"] = asyncio.create_task(_search_memories(), name="memories")
+            tasks_by_name["mempalace"] = asyncio.create_task(_recall_mempalace(), name="mempalace")
+            tasks_by_name["mem0"] = asyncio.create_task(_get_mem0_context(), name="mem0")
+            sla_timeout = 4.0  # 4s SLA for COMPLEX
+            logger.info("enrich_tiered_complex", retrievers=4, sla_timeout=sla_timeout)
+        else:
+            # DEEP PATH: All 6 retrievers — full pipeline
+            tasks_by_name["conversation"] = asyncio.create_task(_get_conversation(), name="conversation")
+            tasks_by_name["memories"] = asyncio.create_task(_search_memories(), name="memories")
+            tasks_by_name["knowledge"] = asyncio.create_task(_get_knowledge(), name="knowledge")
+            tasks_by_name["mempalace"] = asyncio.create_task(_recall_mempalace(), name="mempalace")
+            tasks_by_name["mem0"] = asyncio.create_task(_get_mem0_context(), name="mem0")
+            tasks_by_name["lightrag"] = asyncio.create_task(_query_lightrag(), name="lightrag")
+            sla_timeout = 8.0  # 8s SLA for DEEP
+            logger.info("enrich_tiered_deep", retrievers=6, sla_timeout=sla_timeout)
+
+        # ── Sprint 42: SLA Enforcement via asyncio.wait() ────────────
+        done, pending = await asyncio.wait(
+            tasks_by_name.values(),
+            timeout=sla_timeout,
+            return_when=asyncio.ALL_COMPLETED,
         )
+
+        # Cancel tasks that exceeded SLA
+        cancelled_names = []
+        for task in pending:
+            task_name = task.get_name()
+            cancelled_names.append(task_name)
+            task.cancel()
+        if cancelled_names:
+            logger.warning(
+                "enrich_sla_timeout",
+                cancelled=cancelled_names,
+                sla_timeout=sla_timeout,
+                tier=supervisor_tier,
+            )
+
+        # ── Collect results from completed tasks ─────────────────────
+        def _safe_result(task_name: str, default=None):
+            """Get result from a named task, or default if it didn't complete."""
+            task = tasks_by_name.get(task_name)
+            if task and task in done:
+                try:
+                    return task.result()
+                except Exception as e:
+                    logger.warning(f"enrich_{task_name}_exception", error=str(e))
+            return default if default is not None else ([] if task_name != "lightrag" else {})
+
+        conversation_context = _safe_result("conversation", [])
+        relevant_memories = _safe_result("memories", [])
+        knowledge_entities = _safe_result("knowledge", [])
+        mempalace_memories = _safe_result("mempalace", [])
+        mem0_context = _safe_result("mem0", {})
+        lightrag_result = _safe_result("lightrag", {})
 
         # Sprint 21: Merge MemPalace results into relevant_memories
         if mempalace_memories:
@@ -584,18 +641,21 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
                 relevant_memories.append(
                     {
                         "content": mem.get("content", ""),
-                        "score": 1.0 - (mem.get("distance", 0.5)),  # Convert distance to score
+                        "score": 1.0 - (mem.get("distance", 0.5)),
                         "type": mem.get("metadata", {}).get("type", "mempalace"),
                         "source": "mempalace",
                     }
                 )
 
         logger.info(
-            "enrich_parallel_complete",
+            "enrich_tiered_complete",
+            tier=supervisor_tier,
+            sla_timeout=sla_timeout,
+            completed=len(done),
+            cancelled=len(pending),
             conversation=len(conversation_context),
             memories=len(relevant_memories),
             entities=len(knowledge_entities),
-            mempalace=len(mempalace_memories),
             lightrag=bool(lightrag_result),
             intent=intent,
         )
