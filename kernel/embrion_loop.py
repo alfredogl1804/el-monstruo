@@ -128,6 +128,15 @@ class EmbrionLoop:
         self._last_consolidation_at: Optional[float] = None
         self._consolidation_count = 0
 
+        # Sprint 44: Functional Consciousness Score (FCS) — métricas cuantitativas propias
+        self._fcs_tool_calls_total = 0       # Total de herramientas ejecutadas en toda la vida
+        self._fcs_calidad_sum = 0.0          # Suma de calidades para promedio
+        self._fcs_calidad_count = 0          # Número de evaluaciones
+        self._fcs_lecciones_estrategia = 0   # Lecciones de estrategia aprendidas
+        self._fcs_guardrails = 0             # Guardrails activos extraídos
+        self._fcs_manus_delegations = 0      # Tareas delegadas a Manus
+        self._fcs_write_policy_rejected = 0  # Memorias rechazadas por write policy
+
     @property
     def stats(self) -> dict[str, Any]:
         return {
@@ -154,6 +163,17 @@ class EmbrionLoop:
                 "latidos_since": self._latidos_since_consolidation,
                 "total_consolidations": self._consolidation_count,
                 "last_at": self._last_consolidation_at,
+            },
+            # Sprint 44: Functional Consciousness Score
+            "fcs": {
+                "tool_calls_total": self._fcs_tool_calls_total,
+                "calidad_promedio": round(self._fcs_calidad_sum / self._fcs_calidad_count, 2) if self._fcs_calidad_count > 0 else None,
+                "evaluaciones_totales": self._fcs_calidad_count,
+                "lecciones_estrategia": self._fcs_lecciones_estrategia,
+                "guardrails_activos": self._fcs_guardrails,
+                "manus_delegations": self._fcs_manus_delegations,
+                "write_policy_rejected": self._fcs_write_policy_rejected,
+                "score": self._compute_fcs_score(),
             },
         }
 
@@ -722,6 +742,50 @@ class EmbrionLoop:
 
         return response, tokens_used, estimated_cost, []
 
+    def _compute_fcs_score(self) -> float:
+        """
+        Sprint 44: Functional Consciousness Score (FCS).
+        Metric inspired by Bergmann (Preprints, April 2026).
+        Measures architectural inspectability, not real consciousness.
+
+        Components (0-100 scale):
+        - Tool execution rate: % of cycles that used at least 1 tool
+        - Quality average: normalized calidad_promedio (0-10 → 0-40 pts)
+        - Learning rate: lecciones + guardrails accumulated (0-30 pts)
+        - Manus delegation: bonus for using external AI (0-10 pts)
+        - Write policy discipline: bonus for memory hygiene (0-10 pts)
+        - Silence discipline: ratio of silenced vs sent (0-10 pts)
+        """
+        score = 0.0
+
+        # Quality component (max 40 pts)
+        if self._fcs_calidad_count > 0:
+            avg = self._fcs_calidad_sum / self._fcs_calidad_count
+            score += (avg / 10.0) * 40.0
+
+        # Learning component (max 30 pts)
+        total_lessons = self._fcs_lecciones_estrategia + self._fcs_guardrails
+        score += min(total_lessons * 2.0, 30.0)
+
+        # Manus delegation bonus (max 10 pts)
+        score += min(self._fcs_manus_delegations * 2.0, 10.0)
+
+        # Write policy discipline (max 10 pts)
+        # More rejections = better discipline (up to a point)
+        score += min(self._fcs_write_policy_rejected * 0.5, 10.0)
+
+        # Silence discipline (max 10 pts)
+        total_thoughts = self._thoughts_today + len(self._silenced_thoughts)
+        if total_thoughts > 0:
+            silence_ratio = len(self._silenced_thoughts) / total_thoughts
+            # Ideal: 40-70% silenced (not too chatty, not too quiet)
+            if 0.4 <= silence_ratio <= 0.7:
+                score += 10.0
+            elif 0.2 <= silence_ratio < 0.4 or 0.7 < silence_ratio <= 0.85:
+                score += 5.0
+
+        return round(min(score, 100.0), 1)
+
     # ── Judge (After) + Self-Evaluation Loop (Sprint 34) ──────────────
     #
     # ReasoningBank-inspired: extract generalizable lessons from successes
@@ -779,15 +843,20 @@ class EmbrionLoop:
             # ── Parse evaluation ──────────────────────────────────────
             parsed = self._parse_evaluation(response)
 
+            # Sprint 44: Update FCS quality metrics
+            self._fcs_calidad_sum += parsed["calidad"]
+            self._fcs_calidad_count += 1
+
             logger.info(
                 "embrion_judge_evaluated",
                 util=parsed["util"],
                 calidad=parsed["calidad"],
                 nota=parsed["nota"][:100],
                 trigger=trigger["type"],
+                fcs_score=self._compute_fcs_score(),
             )
 
-            # ── Step 2: Extract lesson if warranted ───────────────────
+            # ── Step 2: Extract lesson if warranted ─────────────────────────────
             # Success (quality >= 7): extract generalizable strategy
             # Failure (quality < 5): extract preventive guardrail
             # Middle ground (5-6): no lesson extraction (save budget)
@@ -926,12 +995,20 @@ class EmbrionLoop:
                 },
             )
 
+            # Sprint 44: Update FCS lesson counters
+            if lesson_type == "estrategia":
+                self._fcs_lecciones_estrategia += 1
+            else:
+                self._fcs_guardrails += 1
+
             logger.info(
                 "embrion_lesson_extracted",
                 tipo=lesson_type,
                 lesson=lesson_text.strip()[:100],
                 calidad=parsed_eval["calidad"],
                 cycle=self._cycle_count,
+                fcs_lecciones=self._fcs_lecciones_estrategia,
+                fcs_guardrails=self._fcs_guardrails,
             )
 
         except Exception as e:
@@ -1273,9 +1350,50 @@ class EmbrionLoop:
         importancia: int = 5,
         contexto: Optional[dict] = None,
     ) -> None:
-        """Save a memory to Supabase."""
+        """
+        Save a memory to Supabase.
+        Sprint 44: Write Policy — prevents memory bloat by rejecting low-value duplicates.
+        """
         if not self._db or not self._db.connected:
             return
+
+        # ── Sprint 44: Write Policy ──────────────────────────────────────────
+        # Rule 1: Never save memories with importancia < 3 (noise)
+        if importancia < 3:
+            self._fcs_write_policy_rejected += 1
+            logger.debug("embrion_write_policy_rejected", reason="importancia_too_low", tipo=tipo, importancia=importancia)
+            return
+
+        # Rule 2: For respuesta_embrion with tool_calls=0 and cost=0, skip if already have 3+ today
+        if tipo == "respuesta_embrion" and contexto:
+            ctx_cost = contexto.get("cost_usd", 1.0)
+            ctx_tools = contexto.get("tool_calls", 1)
+            if ctx_cost == 0.0 and ctx_tools == 0:
+                # Count today's empty responses
+                today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+                try:
+                    count_result = await self._db.count(
+                        "embrion_memoria",
+                        filters={"tipo": "respuesta_embrion"},
+                    )
+                    if count_result and count_result > 50:  # Safety: only enforce if we have many memories
+                        self._fcs_write_policy_rejected += 1
+                        logger.debug("embrion_write_policy_rejected", reason="empty_response_flood", tipo=tipo)
+                        return
+                except Exception:
+                    pass  # If count fails, allow the write
+
+        # Rule 3: For latidos, max 1 per hour (prevent latido spam)
+        if tipo == "latido" and self._last_thought_at:
+            time_since_last = time.time() - self._last_thought_at
+            if time_since_last < 3600 and self._thoughts_today > 1:  # Less than 1 hour and not first thought
+                # Check if there's already a latido in the last hour
+                # (Only enforce if we have many latidos — don't block early ones)
+                if self._fcs_calidad_count > 5:  # Only after 5+ evaluations
+                    self._fcs_write_policy_rejected += 1
+                    logger.debug("embrion_write_policy_rejected", reason="latido_too_frequent", tipo=tipo)
+                    return
+        # ── End Write Policy ─────────────────────────────────────────────────
 
         try:
             await self._db.insert("embrion_memoria", {

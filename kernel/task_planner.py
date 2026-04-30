@@ -530,6 +530,24 @@ Formato obligatorio:
                 "required": ["message"],
             },
         },
+        {
+            "name": "manus_bridge",
+            "description": "Sprint 44: Delegar una tarea compleja a un agente Manus externo. Usar cuando la tarea requiere capacidades avanzadas de Manus (browser research, multi-step workflows, análisis profundo). Manus ejecuta la tarea de forma autónoma y devuelve el resultado.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "description": "Acción: create_task (solo crear), create_and_wait (crear y esperar resultado)",
+                        "enum": ["create_task", "create_and_wait"],
+                    },
+                    "prompt": {"type": "string", "description": "La tarea a delegar a Manus en lenguaje natural"},
+                    "account": {"type": "string", "description": "Cuenta Manus a usar: google (default) o apple"},
+                    "timeout": {"type": "number", "description": "Timeout en segundos para create_and_wait (default: 300)"},
+                },
+                "required": ["action", "prompt"],
+            },
+        },
     ]
 
     async def _execute_tool_direct(self, tool_name: str, args: dict) -> str:
@@ -574,6 +592,21 @@ Formato obligatorio:
                     params=args.get("params", {}),
                 )
                 return result_str[:3000]
+
+            elif tool_name == "manus_bridge":
+                # Sprint 44: Delegate task to Manus external agent
+                import asyncio as _asyncio
+                from tools.manus_bridge import handle_manus_bridge
+                loop = _asyncio.get_event_loop()
+                manus_params = {
+                    "action": args.get("action", "create_and_wait"),
+                    "prompt": args.get("prompt", ""),
+                    "account": args.get("account", "google"),
+                    "timeout": args.get("timeout", 300),
+                }
+                logger.info("task_planner_manus_bridge", action=manus_params["action"], prompt=manus_params["prompt"][:100])
+                result = await loop.run_in_executor(None, handle_manus_bridge, manus_params)
+                return json.dumps(result, ensure_ascii=False)[:3000]
 
             elif tool_name == "send_message":
                 # Sprint 43: Actually send via TelegramNotifier (not just log)
