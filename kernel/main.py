@@ -822,6 +822,39 @@ async def lifespan(app: FastAPI):
             app.state.embrion_vigia = None
         # ── /Sprint 58.5 ──────────────────────────────────────────────────────────
 
+        # ── Sprint 59: El Monstruo Habla al Mundo ────────────────────────────────
+        try:
+            from kernel.embriones.embrion_creativo import EmbrionCreativo
+            from kernel.embriones.embrion_estratega import EmbrionEstratega
+            from kernel.ux.conversational import ConversationalUX
+            from kernel.emergent_tracker import init_emergent_tracker
+
+            embrion_creativo = EmbrionCreativo(_sabios=sabios if 'sabios' in dir() else None)
+            app.state.embrion_creativo = embrion_creativo
+            logger.info("embrion_creativo_ready", specialization="diseño y branding")
+
+            embrion_estratega = EmbrionEstratega(_sabios=sabios if 'sabios' in dir() else None)
+            app.state.embrion_estratega = embrion_estratega
+            logger.info("embrion_estratega_ready", specialization="estrategia y mercado")
+
+            conversational_ux = ConversationalUX()
+            app.state.conversational_ux = conversational_ux
+            logger.info("conversational_ux_ready", quick_commands=len(conversational_ux.to_dict().get('quick_commands_disponibles', [])))
+
+            emergent_tracker = init_emergent_tracker(
+                supabase_client=db if db_connected else None
+            )
+            app.state.emergent_tracker = emergent_tracker
+            logger.info("emergent_tracker_ready", persistencia="supabase" if db_connected else "in_memory")
+
+        except Exception as _s59_err:
+            logger.warning("sprint59_init_partial", error=str(_s59_err))
+            app.state.embrion_creativo = None
+            app.state.embrion_estratega = None
+            app.state.conversational_ux = None
+            app.state.emergent_tracker = None
+        # ── /Sprint 59 ───────────────────────────────────────────────────────────
+
         await embrion_scheduler.start()  # Inicia loop asyncio (revisa cada 60s)
         app.state.embrion_scheduler = embrion_scheduler
         logger.info(
@@ -861,6 +894,10 @@ async def lifespan(app: FastAPI):
         sovereign_llm="active" if getattr(app.state, 'sovereign_llm', None) else "inactive",
         embrion_metrics="active" if getattr(app.state, 'embrion_metrics', None) else "inactive",
         embrion_ventas="active" if getattr(app.state, 'embrion_ventas', None) else "inactive",
+        embrion_creativo="active" if getattr(app.state, 'embrion_creativo', None) else "inactive",
+        embrion_estratega="active" if getattr(app.state, 'embrion_estratega', None) else "inactive",
+        conversational_ux="active" if getattr(app.state, 'conversational_ux', None) else "inactive",
+        emergent_tracker="active" if getattr(app.state, 'emergent_tracker', None) else "inactive",
         visual_quality_gate="active" if getattr(app.state, 'visual_quality_gate', None) else "inactive",
         background_store="supabase" if (_bg_store and _bg_store._use_db()) else "in_memory",
         moc="active" if moc else "inactive",
