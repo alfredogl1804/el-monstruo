@@ -139,6 +139,32 @@ async def lifespan(app: FastAPI):
         logger.warning("causal_kb_init_failed", error=str(_ckb_err))
         app.state.causal_kb = None
 
+    # ── Sprint 55.4: CausalDecomposer ─────────────────────────────────────────
+    try:
+        from kernel.causal_decomposer import init_causal_decomposer
+        causal_decomposer = init_causal_decomposer(
+            causal_kb=app.state.causal_kb,
+        )
+        app.state.causal_decomposer = causal_decomposer
+        logger.info("causal_decomposer_initialized", engine="multi-model+openai_fallback")
+    except Exception as _cd_err:
+        logger.warning("causal_decomposer_init_failed", error=str(_cd_err))
+        app.state.causal_decomposer = None
+    # ── /Sprint 55.4 ──────────────────────────────────────────────────────
+
+    # ── Sprint 55.5: CausalSimulator (Monte Carlo) ─────────────────────────
+    try:
+        from kernel.causal_simulator import init_causal_simulator
+        causal_simulator = init_causal_simulator(
+            causal_kb=app.state.causal_kb,
+        )
+        app.state.causal_simulator = causal_simulator
+        logger.info("causal_simulator_initialized", engine="monte_carlo_beta", n=10_000)
+    except Exception as _cs2_err:
+        logger.warning("causal_simulator_init_failed", error=str(_cs2_err))
+        app.state.causal_simulator = None
+    # ── /Sprint 55.5 ──────────────────────────────────────────────────────
+
     # Initialize sovereign router (native SDKs, no LiteLLM proxy)
     router = None
     try:
@@ -695,6 +721,24 @@ async def lifespan(app: FastAPI):
             app.state.prediction_validator = None
         # ── /Sprint 56.2 ──────────────────────────────────────────────────────
 
+        # ── Sprint 55.2: A2A Registry ─────────────────────────────────────────
+        try:
+            from kernel.a2a_registry import init_a2a_registry
+            from kernel.a2a_routes import router as a2a_router, set_registry
+            a2a_registry = await init_a2a_registry(db=db if db_connected else None)
+            set_registry(a2a_registry)
+            app.include_router(a2a_router)
+            app.state.a2a_registry = a2a_registry
+            logger.info(
+                "a2a_registry_initialized",
+                agents=a2a_registry.get_stats()["total_agents"],
+                persistence="supabase" if db_connected else "in-memory",
+            )
+        except Exception as _a2a_err:
+            logger.warning("a2a_registry_init_failed", error=str(_a2a_err))
+            app.state.a2a_registry = None
+        # ── /Sprint 55.2 ──────────────────────────────────────────────────────
+
         await embrion_scheduler.start()  # Inicia loop asyncio (revisa cada 60s)
         app.state.embrion_scheduler = embrion_scheduler
         logger.info(
@@ -728,6 +772,9 @@ async def lifespan(app: FastAPI):
         embrion_scheduler="active" if embrion_scheduler else "inactive",
         causal_seeder="active" if getattr(app.state, 'causal_seeder', None) else "inactive",
         prediction_validator="active" if getattr(app.state, 'prediction_validator', None) else "inactive",
+        a2a_registry="active" if getattr(app.state, 'a2a_registry', None) else "inactive",
+        causal_decomposer="active" if getattr(app.state, 'causal_decomposer', None) else "inactive",
+        causal_simulator="active" if getattr(app.state, 'causal_simulator', None) else "inactive",
         background_store="supabase" if (_bg_store and _bg_store._use_db()) else "in_memory",
         moc="active" if moc else "inactive",
     )
@@ -1770,6 +1817,33 @@ async def list_tools():
                 "description": "Send email via Gmail SMTP",
             },
         ]
+    }
+
+
+@app.get("/.well-known/agent.json", tags=["a2a"])
+async def agent_card():
+    """A2A Agent Card — Discovery endpoint para El Monstruo (T1)."""
+    return {
+        "name": "El Monstruo",
+        "description": (
+            "Sovereign AI orchestrator. Creates digital businesses, "
+            "predicts futures, never repeats mistakes."
+        ),
+        "version": "0.55.0",
+        "protocol": "a2a/1.0",
+        "capabilities": [
+            "web_search", "code_generation", "web_development",
+            "multi_model_consultation", "causal_analysis",
+            "autonomous_operation", "business_creation",
+            "wide_research", "spec_driven_planning",
+        ],
+        "input_modes": ["text/plain", "application/json"],
+        "output_modes": ["text/plain", "application/json", "text/html"],
+        "endpoint": os.environ.get(
+            "A2A_ENDPOINT", "https://el-monstruo.up.railway.app/v1/a2a"
+        ),
+        "auth_schemes": ["bearer"],
+        "owner": "Alfredo Gongora",
     }
 
 
