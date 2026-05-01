@@ -1,20 +1,20 @@
-# BIBLIA DE Claude 3.5 Haiku v7.3
+# BIBLIA DE Llama 4 v7.3
 ## System Prompt & Agent Architecture Analysis
 **Fecha de Actualización:** 30 de Abril de 2026
-**Versión Analizada:** 3.5 Haiku
+**Versión Analizada:** 4
 
 ---
 
 ## L01. Identidad y Propósito Core
-**Nombre:** Claude 3.5 Haiku
-**Versión:** 3.5 Haiku
-**Propósito Principal:** Aplicaciones en tiempo real, codificación y desarrollo, escritura creativa, creación de contenido y marketing, análisis técnico, investigación científica, traducción multilingüe.
+**Nombre:** Llama 4
+**Versión:** 4
+**Propósito Principal:** Asistente general, análisis de datos, programación
 
 ## L02. Capacidades Clave
-Respuestas rápidas, razonamiento mejorado, precisión en codificación, uso de herramientas.
+Razonamiento avanzado, multimodalidad, ejecución de código
 
 ## L03. Limitaciones y Debilidades
-No soporta entradas de imagen.
+Requiere hardware potente para ejecución local
 
 ## L04. Arquitectura de Memoria
 (Información no disponible en el resumen, requiere análisis profundo)
@@ -44,10 +44,10 @@ No soporta entradas de imagen.
 (Información no disponible en el resumen, requiere análisis profundo)
 
 ## L13. Casos de Uso Ideales
-Aplicaciones en tiempo real, codificación y desarrollo, escritura creativa, creación de contenido y marketing, análisis técnico, investigación científica, traducción multilingüe.
+Asistente general, análisis de datos, programación
 
 ## L14. Casos de Uso No Recomendados
-No soporta entradas de imagen.
+Requiere hardware potente para ejecución local
 
 ## L15. Conclusión y Veredicto
-El agente Claude 3.5 Haiku en su versión 3.5 Haiku destaca por sus capacidades en Respuestas rápidas, razonamiento mejorado, precisión en codificación, uso de herramientas., siendo ideal para Aplicaciones en tiempo real, codificación y desarrollo, escritura creativa, creación de contenido y marketing, análisis técnico, investigación científica, traducción multilingüe.. Sin embargo, se deben considerar sus limitaciones en No soporta entradas de imagen..
+El agente Llama 4 en su versión 4 destaca por sus capacidades en Razonamiento avanzado, multimodalidad, ejecución de código, siendo ideal para Asistente general, análisis de datos, programación. Sin embargo, se deben considerar sus limitaciones en Requiere hardware potente para ejecución local.

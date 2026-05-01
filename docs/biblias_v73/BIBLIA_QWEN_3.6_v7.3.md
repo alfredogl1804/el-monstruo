@@ -1,20 +1,20 @@
-# BIBLIA DE Claude Opus 4.7 v7.3
+# BIBLIA DE Qwen 3.6 v7.3
 ## System Prompt & Agent Architecture Analysis
 **Fecha de Actualización:** 30 de Abril de 2026
-**Versión Analizada:** 4.7
+**Versión Analizada:** 3.6
 
 ---
 
 ## L01. Identidad y Propósito Core
-**Nombre:** Claude Opus 4.7
-**Versión:** 4.7
-**Propósito Principal:** Investigación profunda, desarrollo de software complejo, análisis financiero
+**Nombre:** Qwen 3.6
+**Versión:** 3.6
+**Propósito Principal:** Asistente general, análisis de imágenes y video, desarrollo de software
 
 ## L02. Capacidades Clave
-Razonamiento complejo, análisis de documentos largos, programación avanzada
+Multimodalidad avanzada, razonamiento lógico, programación
 
 ## L03. Limitaciones y Debilidades
-Costo elevado, latencia mayor que modelos más pequeños
+Menor adopción en ecosistemas occidentales
 
 ## L04. Arquitectura de Memoria
 (Información no disponible en el resumen, requiere análisis profundo)
@@ -44,10 +44,10 @@ Costo elevado, latencia mayor que modelos más pequeños
 (Información no disponible en el resumen, requiere análisis profundo)
 
 ## L13. Casos de Uso Ideales
-Investigación profunda, desarrollo de software complejo, análisis financiero
+Asistente general, análisis de imágenes y video, desarrollo de software
 
 ## L14. Casos de Uso No Recomendados
-Costo elevado, latencia mayor que modelos más pequeños
+Menor adopción en ecosistemas occidentales
 
 ## L15. Conclusión y Veredicto
-El agente Claude Opus 4.7 en su versión 4.7 destaca por sus capacidades en Razonamiento complejo, análisis de documentos largos, programación avanzada, siendo ideal para Investigación profunda, desarrollo de software complejo, análisis financiero. Sin embargo, se deben considerar sus limitaciones en Costo elevado, latencia mayor que modelos más pequeños.
+El agente Qwen 3.6 en su versión 3.6 destaca por sus capacidades en Multimodalidad avanzada, razonamiento lógico, programación, siendo ideal para Asistente general, análisis de imágenes y video, desarrollo de software. Sin embargo, se deben considerar sus limitaciones en Menor adopción en ecosistemas occidentales.
