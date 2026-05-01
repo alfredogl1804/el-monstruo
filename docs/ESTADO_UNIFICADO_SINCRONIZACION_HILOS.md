@@ -1,222 +1,219 @@
 # Estado Unificado: Sincronización de Hilos de Trabajo
-## El Monstruo — 1 de Mayo 2026
+## El Monstruo — 1 de Mayo 2026 (Actualización v2.0)
 
-**Autor:** Manus AI (Hilo de Sprint Planning 51-68)
-**Propósito:** Documento de referencia cruzada entre el Hilo A (Biblias + Implementaciones Sprint 49-51) y el Hilo B (Sprint Planning 51-68 + Análisis de Objetivos)
-
----
-
-## 1. Inventario de lo que EXISTE en Código (Implementado y Funcionando)
-
-### 1.1 Implementaciones del Hilo A (Sprint 49-51)
-
-| Archivo | Sprint | Función | Estado |
-|---------|--------|---------|--------|
-| `tools/state_writer.py` | 50 | Persistencia de estado de tareas largas (save/load/list/complete) | **Integrado** en `kernel/task_planner.py` línea 812 |
-| `tools/wide_research.py` | 51 | WideResearchTool: hasta 10 investigaciones paralelas (arquitectura Kimi K2.6) — 207 líneas | **Existe** — pendiente de registrar en `tool_dispatch.py` y `tool_registry.py` |
-| `kernel/spec_driven.py` | 51 | SpecDrivenPlanner: define specs antes de ejecutar (arquitectura Kiro) — 242 líneas | **Existe** — pendiente de conectar al ReAct loop en `task_planner.py` |
-| `memory/three_layer_memory.py` | 51 | ThreeLayerMemory: memoria de 3 capas — 67 líneas | **Existe** — pendiente de importar en `kernel/main.py` |
-| `prompts/system_prompts.py` | 49-51 | 6 cerebros con 8 módulos XML + 4 bloques nuevos (spec_driven_development, long_term_reasoning, three_layer_memory, managed_agent_architecture) en líneas 73, 90, 192, 209, 311, 328, 430, 447 | **Activo** — todos los cerebros usan estos prompts |
-| `docs/biblias_agentes_2026/` | 49 | 20 Biblias de implementación (Kiro, Claude Code, Devin, etc.) | **Documentación** — no ejecutable |
-| `docs/biblias_v73/` | 48 | ~85 Biblias v7.3 (incluye Monstruo v7.3 Definitiva) | **Documentación** — no ejecutable |
-| `docs/REPORTE_VALIDACION_BIBLIAS.md` | 49 | Scoring de 20 biblias vs. Manus v3 (promedio 84.3%) | **Documentación** |
-
-**Estado de integración pendiente (archivos existen pero no están conectados al pipeline):**
-
-| Archivo | Acción Requerida | Sprint que lo conecta |
-|---------|-----------------|----------------------|
-| `tools/wide_research.py` | Registrar en `tool_dispatch.py` y `tool_registry.py` | Sprint 63 (Research Intelligence) |
-| `kernel/spec_driven.py` | Invocar automáticamente desde `task_planner.py` ReAct loop | Sprint 64 (E2E Demo) |
-| `memory/three_layer_memory.py` | Importar en `kernel/main.py` y conectar al memory pipeline | Sprint 61 (Cross-Embrion Learning) |
-
-**Conclusión:** Todas las implementaciones declaradas por el Hilo A EXISTEN en código (commit `5e07225`). Sin embargo, 3 de ellas (WideResearch, SpecDriven, ThreeLayerMemory) no están integradas al pipeline principal — existen como módulos aislados que requieren conexión en los sprints correspondientes.
+**Autor:** Manus AI (Hilo B — Arquitecto)
+**Propósito:** Documento de referencia cruzada entre Hilo A (Ejecutor) y Hilo B (Arquitecto). Fuente de verdad para saber DÓNDE estamos, QUIÉN hace qué, y QUÉ sigue.
 
 ---
 
-### 1.2 Infraestructura Existente (Pre-Sprint 51, construida en Sprints 1-50)
+## 1. Modelo de Operación Actual: Fase 1 (Construcción Paralela)
 
-| Módulo | Ubicación | Sprint | Relevancia para Sprints 51-68 |
-|--------|-----------|--------|-------------------------------|
-| **6 Cerebros** | `prompts/system_prompts.py` | 49 | Base para Embriones especializados (Sprints 54-60) |
-| **Router Nativo** | `router/engine.py` | 29 | Base para Dynamic Tier Routing v2 (Sprint 64) |
-| **Model Catalog** | `config/model_catalog.py` | 29 | 4 tiers, 12 modelos validados — base para Cost Optimizer (Sprint 62) |
-| **Fallback Engine** | `kernel/fallback_engine.py` | 29 | Circuit breaker — base para Self-Healing (Sprint 66) |
-| **Rate Limiter** | `kernel/rate_limiter.py` | ~15 | Base para Security Layer (Sprint 58) |
-| **Input Guard** | `kernel/security/input_guard.py` | ~20 | Base para Taint Tracking (Sprint 68) |
-| **FinOps** | `kernel/finops.py` | 15 | Hard-stop $15/día — Sprint 66 lo reemplaza con degradación graceful |
-| **Usage Tracker** | `kernel/usage_tracker.py` | ~15 | Base para Cost Optimization Engine (Sprint 62) |
-| **Langfuse Bridge** | `observability/langfuse_bridge.py` | 13 | Base para Embrión Observability (Sprint 56) |
-| **Observability Manager** | `observability/manager.py` | ~20 | Orquesta Langfuse + Opik + OTel |
-| **FastMCP Server** | `kernel/fastmcp_server.py` | 33B | 5 herramientas expuestas — base para MCP Hub (Sprint 55) |
-| **Embrión Loop** | `kernel/embrion_loop.py` | 33C | Ciclo autónomo genérico — base para 7 Embriones (Sprints 54-60) |
-| **Task Planner** | `kernel/task_planner.py` | ~30 | ReAct loop + StateWriter integrado |
-| **Policy Engine** | `core/policy_engine.py` | ~20 | Base para Autonomy Rules |
-| **HITL** | `kernel/hitl.py` | ~20 | Human-in-the-loop — base para confirmación de acciones críticas |
-| **Knowledge Graph** | `memory/knowledge_graph.py` | 23-25 | LightRAG + pgvector — base para Causal KB (Sprint 55) |
-| **Mem0 Bridge** | `memory/mem0_bridge.py` | 27 | Episodic memory — base para Error Learning (Sprint 61) |
-| **MemPalace Bridge** | `memory/mempalace_bridge.py` | 24 | Deep memory — base para Cross-Project Intelligence (Sprint 66) |
-| **Agents Radar** | `tools/agents_radar.py` | 45 | 10 fuentes de discovery — base para Tech Radar (Sprint 60) |
-| **E2B Sandbox** | `tools/code_exec.py` | 33A | Cloud sandbox — base para Plugin Sandboxing (Sprint 62) |
-| **GitHub Tools** | `tools/github.py` | 28-33 | Commit loop — base para Auto-Integration (Sprint 65) |
-| **Consult Sabios** | `tools/consult_sabios.py` | ~20 | Multi-AI consultation — base para Collective Intelligence (Sprint 61) |
-| **Sovereign Alerts** | `kernel/alerts/sovereign_alerts.py` | ~30 | Monitoring — base para Self-Healing (Sprint 66) |
-| **CIDP** | `cidp/` | ~35 | 15 scripts de calibración — base para Simulator Validation (Sprint 64) |
-| **Multi-Agent** | `kernel/multi_agent.py` | ~30 | Base para A2A Protocol (Sprint 55) |
-| **Deep Think Pipeline** | `kernel/deep_think_pipeline.py` | ~35 | Razonamiento profundo |
-| **MOC (Map of Content)** | `kernel/moc/` | ~35 | Priorización + síntesis |
+### 1.1 División de Responsabilidades
 
----
+| Hilo | Rol | Hace | No Hace |
+|------|-----|------|---------|
+| **Hilo A** | Ejecutor | Implementa Sprint Plans, deploya a Railway, crea tablas en Supabase, ejecuta tests, cumple Brand Compliance Checklist | No diseña sprints, no toma decisiones arquitectónicas sin consultar |
+| **Hilo B** | Arquitecto | Diseña Sprint Plans, escribe cruces detractores, construye Command Center, valida calidad, coordina | No implementa código en el kernel, no deploya |
 
-## 2. Análisis de Conflictos
+### 1.2 Regla Inmutable
 
-### 2.1 Conflictos Directos: NINGUNO
+> **La infraestructura ES marca.** No existe "backend sin identidad". Cada endpoint, tabla, error message y log refleja quién es El Monstruo. Los 14 Objetivos Maestros aplican a TODO — incluyendo código que "nadie ve".
 
-No hay conflictos de código entre los hilos. La razón es simple: el Hilo A implementó 2 archivos de código (`state_writer.py` + expansión de `system_prompts.py`) y el Hilo B solo produjo PLANES (documentos `.md`). No hay solapamiento de archivos.
+### 1.3 Brand Compliance Checklist (Obligatorio para Hilo A)
 
-### 2.2 Conflictos Conceptuales: 3 Detectados
+| # | Check | Criterio |
+|---|---|---|
+| 1 | Naming con identidad | Español para dominio, snake_case, nombres con significado |
+| 2 | Errores con contexto | No genéricos, incluyen módulo + acción + sugerencia |
+| 3 | Endpoints para Command Center | JSON documentado, consumible por el frontend |
+| 4 | Logs estructurados | Timestamp + nivel + contexto + módulo |
+| 5 | Docstrings | Mínimo: qué hace, parámetros, retorno |
+| 6 | Tests | Al menos 1 test por función crítica |
+| 7 | Soberanía | Alternativa documentada para cada dependencia nueva |
 
-| # | Conflicto | Hilo A dice | Hilo B dice | Resolución |
-|---|-----------|-------------|-------------|------------|
-| 1 | **WideResearchTool** | "Implementado en `tools/wide_research.py`" (207 líneas) | Sprint 63 planea "Research Intelligence Engine" que expande Agents Radar | **Complementarios** — WideResearch EXISTE y funciona. Sprint 63 debe EXPANDIRLO (agregar relevance scoring + integration proposals), no recrearlo desde cero. Acción: registrar en tool_dispatch.py + tool_registry.py |
-| 2 | **SpecDrivenPlanner** | "Implementado en `kernel/spec_driven.py`" (242 líneas) | Sprint 64 planea "E2E Demo Pipeline" con spec-first approach | **Complementarios** — SpecDriven EXISTE y funciona. Sprint 64 debe CONECTARLO al ReAct loop en task_planner.py, no reimplementarlo. Acción: invocar automáticamente cuando confidence < threshold |
-| 3 | **StateWriter vs. Embrión Scheduler** | StateWriter persiste estado de tareas | Sprint 56 planea Embrión Scheduler con persistencia en Supabase | **Complementarios** — StateWriter es para tareas del TaskPlanner; Scheduler es para tareas autónomas de Embriones. Diferentes scopes |
+### 1.4 Transición Futura
 
-### 2.3 Conflictos de Git: 1 Activo
-
-El archivo `docs/REPORTE_VALIDACION_BIBLIAS.md` tiene cambios locales no commiteados que causan conflictos al hacer push. Esto es un artefacto del Hilo A actualizando el reporte mientras el Hilo B pushea sprint plans. **Resolución:** commit o discard los cambios locales del reporte antes del próximo push.
+- **Fase 1 → 2:** Cuando Embrión-0 complete 5 encomiendas sin intervención humana
+- **Fase 2 → 3:** Cuando 3 debates de Colmena se resuelvan con resultado positivo medible
+- **Fase 3 → Autonomía Total:** 0 correcciones manuales en 30 días
 
 ---
 
-## 3. Cobertura de los 14 Objetivos por las Biblias
+## 2. Estado de Implementación (Hilo A)
 
-### 3.1 Qué Objetivos ya están INFORMADOS por las Biblias
+### 2.1 Sprints Completados por Hilo A
 
-| Objetivo | Biblias que lo informan | Patrones extraíbles |
-|----------|------------------------|---------------------|
-| #1 Crear Empresas | Lindy AI (workflow automation), Devin (full project creation) | Pipeline de creación E2E |
-| #2 Apple/Tesla | Kiro (spec-driven quality), Claude Code (code quality) | Design system enforcement |
-| #3 Mínima Complejidad | Manus v3 (file-as-memory, todo.md recitation), Kiro (progressive disclosure) | Zero-config patterns |
-| #4 No Equivocarse 2x | Manus v3 ("keep wrong in context"), Hermes Agent (error recovery) | Error retention + learning |
-| #5 Gasolina Magna/Premium | Manus v3 (KV-cache optimization, tier routing), Kimi K2.6 (budget management) | Adaptive quality degradation |
-| #6 Vanguardia | Agent-S (web grounding), Perplexity (real-time research) | Auto-discovery de tools |
-| #7 No Inventar Rueda | Manus v3 (tool masking), MCP Protocol, Cline (tool reuse) | Plugin architecture |
-| #8 Emergencia | Kimi K2.6 (Agent Swarm, 300 sub-agents), Claude Cowork (managed agents) | Multi-agent emergence |
-| #9 Transversalidad | Devin (full-stack), Lindy AI (cross-domain) | Template injection |
-| #10 Simulador | N/A — ninguna biblia cubre predicción probabilística | Gap real |
-| #11 Embriones | Kimi K2.6 (Agent Swarm), Claude Cowork (managed agents), Hermes Agent | Specialized sub-agents |
-| #12 Soberanía | Manus v3 (self-hosting), Laguna XS2 (on-premise) | Migration playbooks |
-| #13 Del Mundo | Perplexity Enterprise (multi-language), Lindy AI (global) | i18n patterns |
-| #14 Guardián | Manus v3 (todo.md recitation = self-monitoring) | Meta-vigilance loop |
+| Sprint | Nombre | Commit | Estado |
+|--------|--------|--------|--------|
+| 49-51 | Biblias + Implementaciones base | `5e07225` | Código existe, parcialmente integrado |
+| 55.1 | MCP Hub | — | Implementado |
+| 55.3 | Causal KB (Supabase) | — | Implementado |
+| 56.1 | Causal Seeder | `9310688` | **Completado** — Pipeline E2E activo |
+| 56.2 | Prediction Validator | — | Implementado |
+| 56.3 | Embrión Scheduler | — | Implementado |
+| 56.4 | Embrión Observability | — | Implementado (Langfuse Bridge extendido) |
 
-### 3.2 Qué Biblias son MÁS VALIOSAS para los Sprints Pendientes
+### 2.2 Sprint Actual del Hilo A
 
-| Sprint Pendiente | Biblia más relevante | Patrón a extraer |
-|------------------|---------------------|-------------------|
-| 55 (MCP Hub) | **Manus v3** + MCP Protocol | Tool masking, SSE transport, server composition |
-| 55 (A2A) | **Claude Cowork** | Agent Cards, capability discovery, delegation |
-| 56 (Embrión Scheduler) | **Kimi K2.6** | Agent Swarm orchestration, budget per agent |
-| 57 (Embrión-Ventas) | **Lindy AI** | Workflow templates, trigger-based automation |
-| 59 (Conversational UX) | **Manus v3** | Intent classification, progressive disclosure |
-| 61 (Collective Intelligence) | **Kimi K2.6** + **Claude Cowork** | Multi-agent debate, voting, consensus |
-| 62 (Plugin Architecture) | **Cline** + **Manus v3** | Tool discovery, sandboxed execution |
-| 63 (Research Intelligence) | **Perplexity Computer** + **Agent-S** | Web grounding, parallel research |
-| 64 (E2E Demo) | **Kiro** | Spec-driven development, acceptance criteria |
-| 65 (Voice Interface) | **Grok Voice** | Streaming TTS, conversational memory |
-| 66 (Self-Healing) | **Hermes Agent** | Error recovery, circuit breaker patterns |
-| 67 (Multi-Industry Templates) | **Devin** + **Lindy AI** | Project scaffolding, industry patterns |
+**Sprint 58** — Implementando con Brand Compliance Checklist (7/7) por primera vez.
+
+Compromiso del Hilo A:
+- Brand Checklist completo antes de cerrar cada sprint
+- Reporte en formato estándar (endpoints, tablas, checklist)
+- Sprints 55-57 marcados como "deuda técnica de marca" — se refactorizan cuando el Command Center los necesite
 
 ---
 
-## 4. Gaps que las Biblias Podrían Informar (pero los Sprint Plans no aprovechan)
+## 3. Estado de Diseño (Hilo B)
 
-| # | Gap | Biblia fuente | Sprint que debería usarlo | Acción requerida |
-|---|-----|---------------|---------------------------|------------------|
-| 1 | **KV-Cache Optimization** | Manus v3 | Sprint 62 (Cost Optimizer) | Implementar prefix caching + append-only context |
-| 2 | **Tool Masking (no removal)** | Manus v3 | Sprint 55 (MCP Hub) | Usar logit masking en lugar de dynamic tool loading |
-| 3 | **Agent Swarm (300 sub-agents)** | Kimi K2.6 | Sprint 61 (Collective Intelligence) | Escalar de 7 embriones a N sub-agents dinámicos |
-| 4 | **Spec-Driven Development — Integración** | Kiro | Sprint 64 (E2E Demo) | SpecDrivenPlanner EXISTE (242 líneas) — conectar al ReAct loop + agregar acceptance criteria validation |
-| 5 | **Loop Guard (recursion detection)** | Manus v3 | Sprint 66 (Self-Healing) | Agregar LoopDetectedError al autonomous runner |
-| 6 | **Metadata de Intención (origin_goal, depth_level)** | Manus v3 | Sprint 56 (Embrión Scheduler) | Inyectar intent metadata en cada task dispatch |
-| 7 | **Memory con Alcance (scoped injection)** | Manus v3 | Sprint 61 (Cross-Embrion Learning) | Solo inyectar resúmenes relevantes, no memoria global. ThreeLayerMemory (67 líneas) EXISTE — integrar al pipeline |
-| 8 | **Wide Research — Integración** | Kimi K2.6 | Sprint 63 (Research Intelligence) | WideResearchTool EXISTE (207 líneas) — registrar en tool_dispatch + expandir con relevance scoring |
+### 3.1 Sprints Diseñados
 
----
+| Serie | Sprints | Tema | Estado |
+|-------|---------|------|--------|
+| 51-60 | 10 sprints | Fundamentos + Embriones | Diseñados, parcialmente implementados |
+| 61-70 | 10 sprints | Maduración + Guardián | Diseñados, CERRADA |
+| 71-74 | 4 sprints | Colmena Despierta (inicio) | Diseñados, pendientes de implementación |
+| 75-80 | 6 sprints | Colmena Despierta (resto) | EN DISEÑO |
 
-## 5. Mapa de Implementación Real vs. Planificado
+### 3.2 Serie 71-80 "La Colmena Despierta" — Diseño Actual
 
-### 5.1 Lo que EXISTE en código (implementado y funcionando)
+| Sprint | Nombre | Propósito | Arquitectura |
+|--------|--------|-----------|--------------|
+| 71 | Brand Engine (Embrión-1) | Validar identidad de marca en todo output | Pensador (LLM) + Ejecutor (código determinista) |
+| 72 | Task Execution Loop | Planificar y ejecutar encomiendas paso a paso | 11 herramientas tipadas, retry con circuit breaker |
+| 73 | Paridad Manus + Superioridad | 22 herramientas (browser, media, email, código, etc.) | Auto-triggers, self-improvement, proactividad 24/7 |
+| 74 | Memoria Indestructible + Colmena | 4 capas de memoria + protocolo de debate multi-Embrión | L0 identidad inmutable, mensajes tipados, endorsement |
+| 75 | Motor de Ventas (Embrión-2) | **PRÓXIMO A DISEÑAR** | — |
+| 76 | SEO (Embrión-3) | Pendiente | — |
+| 77 | Tendencias (Embrión-4) | Pendiente | — |
+| 78 | Publicidad (Embrión-5) | Pendiente | — |
+| 79 | Finanzas (Embrión-6) | Pendiente | — |
+| 80 | Operaciones + Resiliencia (Embrión-7/8) | Pendiente | — |
 
-**Sprints 1-50 (ambos hilos):** ~50 archivos Python funcionales, 85+ biblias documentales, infraestructura completa de kernel/router/memory/observability/tools.
+### 3.3 Decisión Arquitectónica Clave: Embriones como Pares
 
-### 5.2 Lo que es PLAN (documentos .md, no código)
+Cada Embrión de la Colmena es un PAR:
+- **Pensador** (LLM potente) — Solo se activa cuando hay juicio subjetivo. Context window limpio. Preserva emergencia.
+- **Ejecutor** (Python puro) — Código determinista. Cero LLM. <5ms. $0. Testeable con pytest.
 
-**Sprints 51-67 (Hilo B):** 17 Sprint Plans con 85 Épicas detalladas. **NINGUNA implementada en código.** Son blueprints ejecutables pero requieren desarrollo.
+El 80% de las operaciones las hace el Ejecutor solo (gratis, instantáneo). El Pensador solo se activa para el 20% que requiere criterio.
 
-### 5.3 Orden de Implementación Recomendado
+### 3.4 Orden de Nacimiento de Embriones
 
-La implementación DEBE seguir dependencias técnicas, no orden numérico:
-
-| Prioridad | Sprint | Razón |
-|-----------|--------|-------|
-| **P0** | 55.1 (MCP Hub) | Prerequisito para A2A y herramientas de productividad |
-| **P0** | 55.3 (Causal KB) | Prerequisito para Simulator y Prediction Validator |
-| **P1** | 56.3 (Embrión Scheduler) | Prerequisito para todos los Embriones especializados |
-| **P1** | 51.1 (Error Memory) | Prerequisito para Error Learning Loop (Sprint 61) |
-| **P2** | 55.2 (A2A Registry) | Prerequisito para Collective Intelligence (Sprint 61) |
-| **P2** | 57.1 (Embrión-Ventas) | Primer embrión especializado, valida el patrón |
-| **P3** | 62.1 (Plugin Architecture) | Prerequisito para Marketplace (Sprint 63) |
-| **P3** | 63.1 (Research Intelligence) | Incluye WideResearchTool (gap del Hilo A) |
-| **P4** | 64.1 (E2E Demo) | Incluye SpecDrivenPlanner (gap del Hilo A) |
-| **P4** | 66.5 (Self-Healing) | Incluye Loop Guard (patrón de Manus v3) |
-
----
-
-## 6. Las 7 Capas Transversales — Estado de Cobertura
-
-| # | Capa | Sprint | Informada por Biblia | Estado |
-|---|------|--------|---------------------|--------|
-| 1 | Sales Engine | 57 | Lindy AI (workflow triggers) | Plan |
-| 2 | SEO Architecture | 57 | Perplexity Enterprise (crawl optimization) | Plan |
-| 3 | Security | 58 | Manus v3 (input guard), Hermes Agent (sandboxing) | Plan + código parcial existente |
-| 4 | Scalability | 58 | Manus v3 (KV-cache), Kimi K2.6 (300 agents) | Plan |
-| 5 | Analytics | 58 | Agent-S (session recording), PostHog | Plan |
-| 6 | Financial Dashboard | 57 | N/A | Plan |
-| **7** | **Resiliencia Agéntica** | **68 (propuesto)** | **Manus v3 + Hermes Agent + investigación de fallo agéntico** | **Propuesto** |
+| # | Embrión | Capa Transversal | Razón del orden |
+|---|---------|-----------------|-----------------|
+| 0 | Orquestador | — | Ya existe (base) |
+| 1 | Brand Engine | Identidad | Quality gate para todos los demás |
+| 2 | Motor de Ventas | Revenue | Genera dinero (Obj #1) |
+| 3 | SEO | Descubrimiento | Amplifica lo que Ventas produce |
+| 4 | Tendencias | Intel | Alimenta a Ventas y SEO |
+| 5 | Publicidad | Amplificación | Cuando hay producto y posicionamiento |
+| 6 | Finanzas | Control | Cuando hay flujo que medir |
+| 7 | Operaciones | Soporte | Cuando hay clientes que atender |
+| 8 | Resiliencia | Protección | Cuando todo funciona y hay que protegerlo |
 
 ---
 
-## 7. Recomendaciones para Ambos Hilos
+## 4. Command Center "La Forja"
 
-### Para el Hilo A (Biblias):
-1. **Integrar los módulos aislados:** WideResearchTool, SpecDrivenPlanner y ThreeLayerMemory EXISTEN pero no están conectados al pipeline principal. Los sprints 63, 64 y 61 deben integrarlos (no reimplementarlos).
-2. **Las Biblias son INSUMO, no output:** Su valor máximo es informar la implementación de los Sprint Plans, no ser documentos independientes.
-3. **Priorizar las 3 biblias más valiosas:** Manus v3 (meta-patterns), Kimi K2.6 (multi-agent), Kiro (spec-driven).
+### 4.1 Estado
 
-### Para el Hilo B (Sprint Planning):
-1. **Incorporar patrones de Biblias explícitamente:** Cada Sprint Plan debería citar qué Biblia informa cada decisión arquitectónica.
-2. **Implementar los 6 gaps restantes** en la Sección 4 como parte de los sprints correspondientes (gaps #4 y #8 ya están implementados como módulos aislados — solo necesitan integración).
-3. **El Sprint 68 debe incluir:** Capa 7 (Resiliencia Agéntica) + Obj #14 (Guardián de los Objetivos). Los módulos WideResearch y SpecDriven ya existen — Sprint 63 y 64 los integran al pipeline.
+| Aspecto | Estado |
+|---------|--------|
+| Diseño | **Completo** — "La Forja" (Brutalismo Industrial Refinado) |
+| Implementación | **7 páginas funcionales** con datos mock |
+| Deploy | Manus hosting (monstruodash-ggmndxgx.manus.space) |
+| Conexión a APIs reales | **Pendiente** — requiere upgrade a web-db-user |
+| Checkpoint | `832b5f41` |
 
-### Para Ambos Hilos:
-1. **Un solo CHANGELOG:** Mantener un archivo `CHANGELOG.md` que registre qué se implementó realmente (no qué se planeó).
-2. **Resolver el conflicto de git:** Commit o discard `docs/REPORTE_VALIDACION_BIBLIAS.md` antes del próximo push.
-3. **No declarar como "implementado" lo que es solo plan:** La distinción código vs. documento es crítica para evitar confusión.
+### 4.2 Secciones (mapean a la arquitectura)
 
----
-
-## 8. Resumen Ejecutivo
-
-**Estado real del proyecto al 1 de Mayo 2026:**
-- **Código funcional:** ~50 módulos Python (Sprints 1-50), infraestructura completa
-- **Documentación:** 85+ Biblias, 17 Sprint Plans, 14 Objetivos Maestros
-- **Gap principal:** 85 Épicas planificadas (Sprints 51-67) sin implementar en código (3 módulos del Sprint 51 existen pero están desconectados del pipeline)
-- **Conflictos:** 0 en código, 3 conceptuales (todos complementarios, no conflictivos), 1 de git (trivial)
-- **Sinergia máxima:** Las Biblias informan directamente 12 de los 17 Sprint Plans
-
-**La prioridad #1 es empezar a IMPLEMENTAR los Sprint Plans, usando las Biblias como referencia arquitectónica.**
+1. **Forja** — Dashboard general de producción
+2. **Embriones** — Colmena, FCS, debates
+3. **Simulador** — Predicciones causales
+4. **Arsenal** — Herramientas adoptadas
+5. **Soberanía** — Dependencias, independencia
+6. **Guardián** — 14 Objetivos, compliance
+7. **FinOps** — Costos, ROI
 
 ---
 
-*Documento generado como referencia cruzada para sincronización entre hilos de trabajo.*
-*Fecha: 1 de Mayo 2026 | Hilo B (Sprint Planning)*
-*Actualizado: 1 de Mayo 2026 — Corrección post-sincronización: WideResearchTool, SpecDrivenPlanner y ThreeLayerMemory confirmados como existentes (commit 5e07225). Reclasificados de "no implementados" a "implementados pero no integrados al pipeline".*
+## 5. Los 14 Objetivos — Promedio Actual
+
+| # | Objetivo | % Estimado | Notas |
+|---|----------|-----------|-------|
+| 1 | Crear empresas que generen revenue | 85% | Sprint 75 (Motor de Ventas) lo avanza |
+| 2 | Calidad Apple/Tesla | 88% | Brand Engine + Command Center lo elevan |
+| 3 | Mínima complejidad | 92% | Arquitectura Pensador/Ejecutor simplifica |
+| 4 | No equivocarse 2 veces | 90% | Error Memory + ExecutionMemory |
+| 5 | Gasolina Magna/Premium | 95% | Multi-tier routing activo |
+| 6 | Vanguardia tecnológica | 93% | 22 herramientas en Sprint 73 |
+| 7 | No inventar la rueda | 96% | Plugin architecture + MCP Hub |
+| 8 | Inteligencia emergente | 98% | Colmena + debates = emergencia pura |
+| 9 | Transversalidad | 90% | 8 Embriones = 7 capas + orquestador |
+| 10 | Simulador causal | 92% | CausalSeeder + Prediction Validator activos |
+| 11 | Embriones con consciencia | 88% | FCS + Heartbeat + Memoria estratificada |
+| 12 | Soberanía | 94% | Alternativas documentadas por dependencia |
+| 13 | Del mundo (i18n) | 82% | Pendiente — Sprint 76+ |
+| 14 | Guardián de Objetivos | 85% | ComplianceMonitor diseñado en Sprint 68 |
+
+**Promedio general: 90.6%**
+
+---
+
+## 6. Infraestructura Existente (Sprints 1-50)
+
+| Módulo | Ubicación | Sprint | Relevancia Actual |
+|--------|-----------|--------|-------------------|
+| 6 Cerebros | `prompts/system_prompts.py` | 49 | Base para Embriones especializados |
+| Router Nativo | `router/engine.py` | 29 | Base para routing multi-tier |
+| Model Catalog | `config/model_catalog.py` | 29 | 4 tiers, 12 modelos |
+| Fallback Engine | `kernel/fallback_engine.py` | 29 | Circuit breaker |
+| Langfuse Bridge | `observability/langfuse_bridge.py` | 13 | Extendido en Sprint 56.4 |
+| FastMCP Server | `kernel/fastmcp_server.py` | 33B | Base para MCP Hub |
+| Embrión Loop | `kernel/embrion_loop.py` | 33C | Base para Scheduler |
+| Task Planner | `kernel/task_planner.py` | ~30 | ReAct loop activo |
+| Knowledge Graph | `memory/knowledge_graph.py` | 23-25 | Base para Causal KB |
+| Mem0 Bridge | `memory/mem0_bridge.py` | 27 | Episodic memory |
+| E2B Sandbox | `tools/code_exec.py` | 33A | Cloud sandbox |
+| GitHub Tools | `tools/github.py` | 28-33 | Commit loop |
+| Consult Sabios | `tools/consult_sabios.py` | ~20 | Multi-AI consultation |
+
+---
+
+## 7. Documentos Clave (Referencia Rápida)
+
+| Documento | Ubicación | Para quién |
+|-----------|-----------|-----------|
+| AGENTS.md | Raíz del repo | Ambos hilos (5 Reglas Duras) |
+| DIRECTIVA_HILO_A_FASE1.md | docs/ | Hilo A (instrucciones condensadas) |
+| DIVISION_RESPONSABILIDADES_HILOS.md | docs/ | Ambos hilos (modelo de transición) |
+| BRAND_ENGINE_ESTRATEGIA.md | docs/ | Ambos hilos (estrategia de marca) |
+| EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md | docs/ | Ambos hilos (criterio de éxito) |
+| ROADMAP_EJECUCION_DEFINITIVO.md | docs/ | Ambos hilos (orden de sprints) |
+| SPRINT_XX_PLAN.md | docs/ | Hilo A (blueprints a implementar) |
+| CRUCE_SPRINTXX_vs_14OBJETIVOS.md | docs/ | Hilo B (validación de calidad) |
+
+---
+
+## 8. Próximas Acciones
+
+### Hilo A (Ejecutor):
+1. Completar Sprint 58 con Brand Checklist (7/7)
+2. Reportar en formato estándar
+3. Continuar secuencia: 59, 60, 61...
+
+### Hilo B (Arquitecto):
+1. Diseñar Sprint 75 (Motor de Ventas — Embrión-2)
+2. Completar Serie 71-80
+3. Conectar Command Center a APIs reales cuando estén disponibles
+
+### Ambos Hilos:
+1. Mantener este documento actualizado después de cada sprint completado
+2. Comunicar cambios de responsabilidades via este documento
+3. No declarar como "implementado" lo que es solo plan
+
+---
+
+*Actualización v2.0 — 1 de Mayo 2026*
+*Cambios vs. v1.0: Nuevo modelo de operación (3 fases), Brand Compliance Checklist, Serie 71-74 diseñada, Command Center "La Forja" implementado, arquitectura Pensador/Ejecutor definida, orden de nacimiento de Embriones establecido.*
