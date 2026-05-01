@@ -65,6 +65,7 @@ ACTOR_MODEL = os.environ.get("EMBRION_ACTOR_MODEL", "gpt-5.5")  # Full power for
 SILENCE_THRESHOLD = int(os.environ.get("EMBRION_SILENCE_THRESHOLD", "70"))  # silence_score > 70 to speak
 CONSOLIDATION_INTERVAL = int(os.environ.get("EMBRION_CONSOLIDATION_INTERVAL", "10"))  # Every N latidos
 SABIOS_CONSULTATION_INTERVAL = int(os.environ.get("EMBRION_SABIOS_INTERVAL", "20"))  # Consult Sabios every N cycles
+RADAR_INTERVAL = int(os.environ.get("EMBRION_RADAR_INTERVAL", "48"))  # Check agents-radar every N cycles (~48 min with 60s interval)
 
 # The Embrión's core purpose — the filter for all autonomous thought
 PURPOSE = """Tu propósito es construir El Monstruo — el asistente IA soberano de Alfredo Góngora.
@@ -133,6 +134,10 @@ class EmbrionLoop:
         self._cycles_since_sabios = 0
         self._last_sabios_at: Optional[float] = None
         self._sabios_consultation_count = 0
+        # Sprint 45: Agents Radar tracking
+        self._cycles_since_radar = 0
+        self._total_radar_checks = 0
+        self._last_radar_at: Optional[str] = None
 
         # Sprint 44: Functional Consciousness Score (FCS) — métricas cuantitativas propias
         self._fcs_tool_calls_total = 0       # Total de herramientas ejecutadas en toda la vida
@@ -244,6 +249,11 @@ class EmbrionLoop:
                 if self._cycles_since_sabios >= SABIOS_CONSULTATION_INTERVAL:
                     await self._consult_sabios_strategic()
                     self._cycles_since_sabios = 0
+                # Sprint 45: Agents Radar check
+                self._cycles_since_radar += 1
+                if self._cycles_since_radar >= RADAR_INTERVAL:
+                    await self._check_agents_radar()
+                    self._cycles_since_radar = 0
 
             except Exception as e:
                 err = {"cycle": self._cycle_count, "error": str(e), "type": type(e).__name__, "ts": datetime.now(timezone.utc).isoformat()}
@@ -1567,3 +1577,100 @@ class EmbrionLoop:
             logger.error("embrion_sabios_timeout", cycle=self._cycle_count)
         except Exception as e:
             logger.error("embrion_sabios_failed", error=str(e), cycle=self._cycle_count)
+
+    # ── Agents Radar ──────────────────────────────────────────────────────────
+    # Every RADAR_INTERVAL cycles, the Embrión reads the daily AI ecosystem digest
+    # from agents-radar (https://github.com/duanyytop/agents-radar).
+    # This keeps the Embrión updated on new tools, models, and frameworks without
+    # requiring manual research.
+
+    async def _check_agents_radar(self) -> None:
+        """
+        Consulta el radar diario de agentes de IA y guarda los hallazgos en memoria.
+        Se ejecuta cada RADAR_INTERVAL ciclos (~48 min por defecto).
+        """
+        from tools.agents_radar import get_daily_digest
+
+        logger.info("embrion_radar_check_start", cycle=self._cycle_count)
+
+        # Budget guard: skip if > 80% of daily budget consumed
+        if self._cost_today >= DAILY_BUDGET_USD * 0.8:
+            logger.warning("embrion_radar_budget_guard", cost_today=self._cost_today)
+            return
+
+        try:
+            async with asyncio.timeout(120):  # 2 min max
+                digest = await get_daily_digest()
+
+                self._total_radar_checks += 1
+                self._last_radar_at = datetime.now(timezone.utc).isoformat()
+
+                # Combine trending + HN for a concise summary
+                trending_text = digest.get("trending", "")[:2000]
+                hn_text = digest.get("hn", "")[:1000]
+
+                if not trending_text and not hn_text:
+                    logger.warning("embrion_radar_empty_digest")
+                    return
+
+                # Ask the Embrión to reflect on the radar findings
+                from router.llm_client import call_llm
+                reflection_prompt = f"""Eres el Embrión de El Monstruo. Acabas de leer el radar diario de IA del {datetime.now(timezone.utc).strftime('%Y-%m-%d')}.
+
+RADAR TRENDING:
+{trending_text}
+
+HACKER NEWS:
+{hn_text}
+
+Responde en máximo 3 oraciones:
+1. ¿Hay alguna herramienta, modelo o framework que El Monstruo debería integrar o monitorear?
+2. ¿Hay alguna amenaza o cambio de paradigma que afecte la arquitectura actual?
+3. ¿Qué acción concreta (archivo, función) tomarías basado en esto?
+
+Si nada es relevante, responde solo: "Sin hallazgos relevantes hoy."
+"""
+                reflection = await call_llm(
+                    model=JUDGE_MODEL,
+                    messages=[{"role": "user", "content": reflection_prompt}],
+                    max_tokens=300,
+                )
+
+                reflection_text = reflection.get("content", "Sin reflexión generada.")
+
+                # Save to memory
+                await self._save_memory(
+                    content=f"[Radar {datetime.now(timezone.utc).strftime('%Y-%m-%d')}] {reflection_text}",
+                    tipo="radar_insight",
+                    importancia=6,
+                    tags=["radar", "ecosystem", "daily"],
+                )
+
+                logger.info(
+                    "embrion_radar_check_done",
+                    cycle=self._cycle_count,
+                    total_checks=self._total_radar_checks,
+                    reflection_chars=len(reflection_text),
+                )
+
+                # Report to Telegram if there's something actionable
+                if "Sin hallazgos" not in reflection_text and len(reflection_text) > 50:
+                    try:
+                        report_text = (
+                            f"📡 *Embrión — Radar Diario #{self._total_radar_checks}*\n\n"
+                            f"*Ciclo:* #{self._cycle_count} | *Fecha:* {datetime.now(timezone.utc).strftime('%Y-%m-%d')}\n\n"
+                            f"*Hallazgo:*\n{reflection_text[:800]}"
+                        )
+                        await self._notifier.send_message(
+                            user_id="embrion",
+                            text=report_text,
+                            parse_mode="Markdown",
+                        )
+                        self._messages_sent_today += 1
+                    except Exception as e:
+                        logger.warning("embrion_radar_report_failed", error=str(e))
+
+        except asyncio.TimeoutError:
+            logger.error("embrion_radar_timeout", cycle=self._cycle_count)
+        except Exception as e:
+            logger.error("embrion_radar_failed", error=str(e), cycle=self._cycle_count)
