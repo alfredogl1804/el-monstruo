@@ -1,67 +1,161 @@
-## L01 — IDENTIDAD Y ANÁLISIS ESTRATÉGICO
-<br>
-<table header-row="true">
-<tr>
-<td>Atributo</td>
-<td>Descripción</td>
-</tr>
-<tr>
-<td>Nombre oficial</td>
-<td>AgentForce (Salesforce)</td>
-</tr>
-<tr>
-<td>Versión Actual</td>
-<td>Spring '26 (actualizaciones continuas)</td>
-</tr>
-<tr>
-<td>Estado Actual</td>
-<td>Activo</td>
-</tr>
-<tr>
-<td>Precio Actual</td>
-<td>Salesforce Foundations: $0 (incluye Agent Builder, Prompt Builder, 200k Flex Credits, 250K Data Cloud credits, Agentforce Vibes).
-Flex Credits: $500 USD por 100k créditos (pago por acción).
-Conversations: $2 USD por conversación (pago por conversación).
-Add-ons de Agentforce (Ventas, Servicio, Field Service): $125 USD/Usuario/Mes (uso ilimitado para empleados).
-Add-ons de Agentforce Industries: $150 USD/Usuario/Mes (uso ilimitado para empleados, incluye add-ons de Ventas y Servicio).
-Agentforce 1 Editions: desde $550 USD/Usuario/Mes (incluye add-on de Agentforce, 1M Flex Credits/org/año, 2.5M Data 360 Credits/org/año).
-Licencia de Usuario de Agentforce: $5 USD/Usuario/Mes (requiere Flex Credits, acceso a objetos CRM limitados y uso medido).</td>
-</tr>
-<tr>
-<td>Posicionamiento Competitivo</td>
-<td>AgentForce se posiciona como la única solución de IA agéntica empresarial que eleva cada experiencia al integrar humanos, aplicaciones, agentes de IA y datos. Se diferencia por su Atlas Reasoning Engine, que garantiza resultados precisos y confiables, y por sus guardrails de seguridad integrados. Se integra profundamente con el ecosistema de Salesforce, aprovechando los flujos de trabajo y datos existentes para automatizar tareas en ventas, servicio, marketing y operaciones, ofreciendo una plataforma completa y extensible para construir y desplegar mano de obra digital a escala.</td>
-</tr>
-</table>
-<br>
-## L02 — NOVEDADES Y CAMBIOS RECIENTES (ABRIL 2026)
-<br>
-<table header-row="true">
-<tr>
-<td>Atributo</td>
-<td>Descripción</td>
-</tr>
-<tr>
-<td>Cambios Clave desde Marzo 2026</td>
-<td>Desde marzo de 2026, AgentForce ha lanzado Agentforce Operations para optimizar procesos de back-office, expandido Agent Fabric para un plano de control de agentes multi-proveedor, e introducido Headless 360 para flujos de trabajo empresariales centrados en agentes. Se ha integrado con Google Cloud para permitir que los agentes de IA actúen en ambas plataformas. Agentforce Vibes pasará a un modelo de pago el 1 de junio, con actualizaciones en el nivel gratuito desde el 13 de abril. También se ha destacado Agent Script, un lenguaje de especificación de agentes de código abierto.</td>
-</tr>
-<tr>
-<td>Noticia Más Relevante</td>
-<td></td>
-</tr>
-<tr>
-<td>Dato Sorprendente</td>
-<td>Salesforce ha lanzado Agentforce Operations, una plataforma que busca eliminar los cuellos de botella en los procesos de back-office con IA, prometiendo reducir los tiempos de ciclo hasta en un 70% y los errores manuales en un 80%. Esto demuestra un enfoque agresivo en la automatización de tareas internas más allá de las interacciones con el cliente.</td>
-</tr>
-<tr>
-<td>GitHub Stars</td>
-<td>204</td>
-</tr>
-</table>
-<br>
-## L03 a L15 — (Estructura estándar heredada de v7.0)
-<br>
-*Nota: Las capas L03 a L15 mantienen la estructura analítica profunda de la versión v7.0, actualizada con los datos de L01 y L02.*
+# BIBLIA DE AGENTFORCE_SALESFORCE v7.3
 
----
-**Fuentes Consultadas (Abril 2026):**
-https://www.salesforce.com/agentforce/,https://help.salesforce.com/s/articleView?id=release-notes.salesforce_release_notes.htm&language=en_US&release=260&type=5,https://www.salesforce.com/agentforce/pricing/,https://www.salesforce.com/news/stories/agentforce-operations-announcement/,https://www.salesforce.com/news/stories/agent-fabric-control-plane-announcement/,https://www.cio.com/article/4159536/salesforce-launches-headless-360-to-support-agent-first-enterprise-workflows.html,https://www.salesforce.com/news/stories/salesforce-headless-360-announcement/,https://www.prnewswire.com/news-releases/salesforce-and-google-cloud-enable-ai-agents-to-act-across-both-platforms-with-deep-context-and-end-to-end-workflows-302749804.html,https://www.reddit.com/r/salesforce/comments/1sy34yb/heads_up_agentforce_vibes_is_moving_to_a_paid/,https://github.com/salesforce/agentscript
+**Fecha de Actualización:** 30 de Abril de 2026
+
+## L01 — IDENTIDAD Y ANÁLISIS ESTRATÉGICO
+
+<table header-row="true">
+<tr><td>Nombre oficial</td><td>Agentforce (parte de Salesforce)</td></tr>
+<tr><td>Desarrollador</td><td>Salesforce, Inc.</td></tr>
+<tr><td>País de Origen</td><td>Estados Unidos (San Francisco, California)</td></tr>
+<tr><td>Inversión y Financiamiento</td><td>Salesforce ha invertido $15 mil millones en IA. Agentforce y Data 360 ARR alcanzaron casi $1.4 mil millones, con Agentforce ARR superando los $500 millones.</td></tr>
+<tr><td>Modelo de Precios</td><td>Basado en consumo (Flex Credits o Conversaciones) o licencias por usuario.</td></tr>
+<tr><td>Posicionamiento Estratégico</td><td>Plataforma de IA agentica empresarial completa, extensible y abierta. Solución #1 de AI CRM que une humanos, aplicaciones, agentes de IA y datos para construir y desplegar agentes de IA autónomos para clientes y empleados 24/7.</td></tr>
+<tr><td>Gráfico de Dependencias</td><td>Se integra con el ecosistema de Salesforce, incluyendo Salesforce CRM y Data 360. Utiliza el Atlas Reasoning Engine.</td></tr>
+<tr><td>Matriz de Compatibilidad</td><td>Compatible con el ecosistema de Salesforce y se puede integrar en cualquier sistema.</td></tr>
+<tr><td>Acuerdos de Nivel de Servicio (SLOs)</td><td>Información no disponible públicamente en la página principal. Se requiere investigación adicional.</td></tr>
+</table>
+
+## L02 — GOBERNANZA Y MODELO DE CONFIANZA
+
+<table header-row="true">
+<tr><td>Licencia</td><td>Modelos de precios basados en consumo (Flex Credits o Conversaciones) o licencias por usuario. Existen licencias especializadas como 'Einstein for Service Add-on - Enterprise Edition' y 'Agentforce for Industries plan'.</td></tr>
+<tr><td>Política de Privacidad</td><td>Salesforce actúa como controlador para datos personales recopilados directamente y como procesador para datos de clientes. Agentforce aplica una política de retención de datos cero para proveedores de LLM de terceros. La privacidad de los datos se rige por la Política de Privacidad general de Salesforce, efectiva a partir del 26 de agosto de 2025.</td></tr>
+<tr><td>Cumplimiento y Certificaciones</td><td>Agentforce está construido sobre la plataforma Salesforce, que cuenta con certificaciones de cumplimiento exhaustivas. Incluye la certificación ISO 42001 (para IA ética, segura y transparente), cumplimiento C5 en Alemania, ENS en España y cumplimiento de segundo nivel con el Código de Conducta de la Nube de la UE.</td></tr>
+<tr><td>Historial de Auditorías y Seguridad</td><td>Salesforce prioriza la seguridad y privacidad de los datos. Agentforce incorpora pruebas robustas para asegurar el comportamiento correcto de la IA y cuenta con características de seguridad potentes como Einstein Trust Layer. La documentación de confianza y cumplimiento de Salesforce detalla sus prácticas de seguridad.</td></tr>
+<tr><td>Respuesta a Incidentes</td><td>Como parte de la plataforma Salesforce, Agentforce se beneficia de los protocolos de respuesta a incidentes de seguridad de Salesforce, diseñados para abordar y mitigar rápidamente cualquier vulnerabilidad o brecha de seguridad, asegurando la continuidad del servicio y la protección de datos.</td></tr>
+<tr><td>Matriz de Autoridad de Decisión</td><td>La autoridad de decisión en Agentforce se distribuye entre los agentes de IA autónomos (para tareas dentro de sus guardarraíles configurados) y los usuarios humanos (para supervisión, escalada y configuración de guardarraíles). Los administradores tienen control sobre la configuración y personalización de los agentes.</td></tr>
+<tr><td>Política de Obsolescencia</td><td>Salesforce gestiona el ciclo de vida de sus productos y características, incluyendo Agentforce, a través de comunicados y actualizaciones regulares. Las políticas de obsolescencia se comunican a los clientes con antelación para permitir una planificación adecuada de la migración y actualización.</td></tr>
+</table>
+
+## L03 — MODELO MENTAL Y MAESTRÍA
+
+Agentforce representa un cambio de paradigma hacia la **empresa agéntica**, donde la colaboración entre humanos y agentes de IA autónomos es fundamental para impulsar el éxito del cliente y la eficiencia operativa. El modelo mental central se basa en la delegación de tareas repetitivas y basadas en datos a agentes de IA, permitiendo a los empleados humanos enfocarse en actividades de mayor valor que requieren creatividad, empatía y juicio complejo. La maestría en Agentforce implica comprender cómo diseñar, desplegar y gestionar estos agentes de manera efectiva, aprovechando su capacidad para razonar, actuar y aprender dentro de guardarraíles definidos.
+
+<table header-row="true">
+<tr><td>Paradigma Central</td><td>**Empresa Agéntica:** Un ecosistema donde humanos y agentes de IA colaboran para lograr objetivos empresariales. Los agentes de IA son autónomos, proactivos y ejecutan tareas especializadas, liberando a los humanos para roles estratégicos.</td></tr>
+<tr><td>Abstracciones Clave</td><td>**Agentes de IA:** Aplicaciones autónomas y proactivas que ejecutan tareas especializadas. Utilizan LLMs para analizar el contexto, razonar y tomar decisiones. <br> **Atlas Reasoning Engine:** El motor central que permite a Agentforce comprender, decidir y actuar de forma autónoma, proporcionando respuestas precisas y confiables. <br> **Guardarraíles (Guardrails):** Conjunto de herramientas de seguridad y control de bajo código que aseguran que los agentes operen dentro de los límites definidos, previniendo abusos, alucinaciones y sesgos. <br> **Agentforce Builder:** Entorno unificado para el diseño, prueba y despliegue de agentes de IA.</td></tr>
+<tr><td>Patrones de Pensamiento Recomendados</td><td>**Pensamiento Orientado a la Delegación:** Identificar tareas repetitivas, basadas en reglas o de alto volumen que pueden ser automatizadas por agentes. <br> **Diseño Centrado en el Agente:** Pensar en cómo un agente de IA puede interactuar con datos, sistemas y humanos para lograr un resultado específico. <br> **Iteración y Optimización:** Diseñar agentes con la expectativa de refinamiento continuo, utilizando métricas de rendimiento y retroalimentación para mejorar su eficacia. <br> **Enfoque en el Valor de Negocio:** Alinear el despliegue de agentes con objetivos empresariales claros y medibles.</td></tr>
+<tr><td>Anti-patrones a Evitar</td><td>**Sobredependencia en la Automatización:** Asignar tareas a agentes que requieren juicio humano complejo o empatía. <br> **Falta de Guardarraíles:** Desplegar agentes sin controles adecuados, lo que puede llevar a resultados inesperados o no deseados. <br> **Ignorar la Supervisión Humana:** No establecer mecanismos para monitorear el rendimiento de los agentes y escalar problemas a humanos cuando sea necesario. <br> **Datos Incompletos o Sesgados:** Alimentar a los agentes con datos de baja calidad, lo que puede comprometer su razonamiento y resultados.</td></tr>
+<tr><td>Curva de Aprendizaje</td><td>**Accesible para Principiantes:** Con herramientas de bajo código y recursos como Trailhead, la curva de aprendizaje inicial es moderada para usuarios de Salesforce. <br> **Profundidad para Expertos:** Ofrece capacidades avanzadas y SDK para desarrolladores, permitiendo una personalización y extensión significativas, lo que implica una curva de aprendizaje más pronunciada para la maestría completa. <br> **Recursos de Apoyo:** Amplia documentación, guías y comunidad de Salesforce para facilitar el aprendizaje y la resolución de problemas.</td></tr>
+</table>
+
+## L04 — CAPACIDADES TÉCNICAS
+
+<table header-row="true">
+<tr><td>Capacidades Core</td><td>**Agent Builder:** Herramienta para construir, probar y desplegar agentes de IA. <br> **Atlas Reasoning Engine:** Motor de razonamiento que permite a los agentes comprender, decidir y actuar de forma autónoma. <br> **Integración con Salesforce CRM y Data 360:** Acceso y uso de datos de clientes en tiempo real. <br> **Guardarraíles de IA:** Controles de bajo código para asegurar el comportamiento ético y seguro de los agentes. <br> **Automatización de Flujos de Trabajo:** Capacidad para ejecutar acciones y tareas a través de diversos canales y sistemas.</td></tr>
+<tr><td>Capacidades Avanzadas</td><td>**Biblioteca de Habilidades Pre-construidas:** Conjunto de habilidades listas para usar que aceleran el desarrollo de agentes. <br> **Integración con Slack:** Permite la colaboración y el uso de agentes dentro de Slack. <br> **Experiencia de Voz Unificada:** Agentes de voz personalizados y alineados con la marca de la empresa. <br> **Análisis en Tiempo Real:** Monitoreo y optimización del rendimiento de los agentes. <br> **Agentforce Operations:** Expansión de la automatización a procesos de back-office, como auditorías y onboarding.</td></tr>
+<tr><td>Capacidades Emergentes (Abril 2026)</td><td>**Controles de Razonamiento Mejorados:** Mayor granularidad en la configuración del comportamiento de los agentes. <br> **Constructor de Agentes de IA de Bajo Código Profundamente Capaz:** Herramientas más intuitivas y potentes para el desarrollo de agentes. <br> **Nuevas Integraciones con Google Cloud:** Permite a los agentes de IA actuar a través de ambas plataformas con contexto profundo y flujos de trabajo de extremo a extremo (anunciado el 22 de abril de 2026). <br> **Agentes Multimodales:** Capacidad para procesar y generar información en diversos formatos (texto, voz, etc.).</td></tr>
+<tr><td>Limitaciones Técnicas Confirmadas</td><td>**Dependencia de la Calidad de los Datos:** El rendimiento del agente está directamente ligado a la calidad y relevancia de los datos de entrada. <br> **Necesidad de Guardarraíles y Supervisión Humana:** Aunque autónomos, los agentes requieren configuración y monitoreo para evitar comportamientos no deseados o alucinaciones. <br> **Complejidad en la Personalización Profunda:** Aunque ofrece herramientas de bajo código, la personalización avanzada y la integración con sistemas muy específicos pueden requerir conocimientos técnicos especializados.</td></tr>
+<tr><td>Roadmap Público</td><td>Salesforce se enfoca en la expansión de la monetización de Agentforce a través de nuevos productos y verticales de la industria. Se espera una evolución continua de la plataforma Agentforce 360, con énfasis en la integración de IA, datos y automatización. Los anuncios de nuevas versiones (como Agentforce 2dx y Agentforce 3) indican un ciclo de desarrollo activo, con lanzamientos de características específicas a lo largo del año.</td></tr>
+</table>
+
+## L05 — DOMINIO TÉCNICO
+
+<table header-row="true">
+<tr><td>Stack Tecnológico</td><td>Agentforce se construye sobre la plataforma Salesforce, integrando componentes clave como Data Cloud (para la capa de datos), aplicaciones CRM/Clouds, modelos de IA (Atlas + Einstein) y la propia capa de agentes de Agentforce. Utiliza MuleSoft para la integración de datos.</td></tr>
+<tr><td>Arquitectura Interna</td><td>La arquitectura de Agentforce es una pila de cuatro capas: <br> 1. **Capa de Datos:** Impulsada por Data Cloud, que unifica y armoniza los datos de diversas fuentes. <br> 2. **Capa de Aplicaciones:** Incluye las aplicaciones CRM y otras nubes de Salesforce. <br> 3. **Capa de Modelos de IA:** Compuesta por el Atlas Reasoning Engine y los modelos Einstein AI. <br> 4. **Capa de Agentes:** Donde residen los agentes de IA de Agentforce, orquestando tareas y flujos de trabajo. <br> Se describe como una capa de orquestación de IA que coordina las tareas de los agentes.</td></tr>
+<tr><td>Protocolos Soportados</td><td>Dada su integración con la plataforma Salesforce y su naturaleza de plataforma abierta, Agentforce soporta una amplia gama de protocolos estándar de la industria para la comunicación e integración, incluyendo HTTP/S para APIs web, y potencialmente otros protocolos específicos de Salesforce para la comunicación interna y con sus servicios.</td></tr>
+<tr><td>Formatos de Entrada/Salida</td><td>Agentforce procesa y genera datos en diversos formatos, incluyendo texto (para interacciones con LLMs), datos estructurados (desde CRM y Data Cloud), y potencialmente formatos de voz para agentes de voz unificados. La entrada y salida se adaptan a las necesidades de las aplicaciones y sistemas con los que se integra.</td></tr>
+<tr><td>APIs Disponibles</td><td>**Salesforce Agentforce SDK:** Proporciona una interfaz programática para la infraestructura de agentes de Salesforce, permitiendo a los desarrolladores definir e interactuar con agentes. <br> **APIs de la Plataforma Salesforce:** Agentforce aprovecha las APIs existentes de la plataforma Salesforce para acceder a datos, funcionalidades de CRM y otras nubes. <br> **APIs de Integración (MuleSoft):** Facilita la conexión con sistemas externos a través de APIs.</td></tr>
+</table>
+
+## L06 — PLAYBOOKS OPERATIVOS
+
+<table header-row="true">
+<tr><td>Caso de Uso</td><td>**Soporte al Cliente Autónomo y Gestión de Casos**</td><td>**Aceleración de Ventas y Gestión de Pipeline**</td><td>**Automatización de Operaciones de Back-Office**</td></tr>
+<tr><td>Pasos Exactos</td><td>1. El cliente inicia una consulta a través de un canal (chat, email, voz). <br> 2. El agente de IA de Agentforce analiza la intención y el contexto de la consulta utilizando datos del CRM y la base de conocimientos. <br> 3. El agente proporciona una respuesta instantánea o resuelve el problema de forma autónoma. <br> 4. Si la consulta es compleja, el agente escala el caso a un agente humano con un resumen contextualizado.</td><td>1. El agente de IA monitorea el pipeline de ventas en busca de oportunidades. <br> 2. Identifica leads cualificados y automatiza el seguimiento inicial. <br> 3. Proporciona a los representantes de ventas información contextualizada sobre los clientes y las ofertas. <br> 4. Automatiza tareas administrativas relacionadas con la gestión de acuerdos y la preparación de propuestas.</td><td>1. Identificación de procesos manuales y repetitivos en áreas como auditoría, onboarding de empleados o gestión de contratos. <br> 2. Diseño y configuración de agentes de IA para ejecutar estos procesos, integrándose con sistemas como ERP y email. <br> 3. Los agentes realizan tareas como la extracción de datos, la validación y la iniciación de flujos de trabajo. <br> 4. Monitoreo del rendimiento de los agentes y ajuste para optimizar la eficiencia.</td></tr>
+<tr><td>Herramientas Necesarias</td><td>Agentforce (Agent Builder, Atlas Reasoning Engine), Salesforce Service Cloud, Salesforce Data Cloud, Base de Conocimientos.</td><td>Agentforce (Agent Builder, Atlas Reasoning Engine), Salesforce Sales Cloud, Salesforce Data Cloud.</td><td>Agentforce (Agent Builder, Atlas Reasoning Engine), Salesforce Platform, Integraciones con sistemas ERP, Email, etc.</td></tr>
+<tr><td>Tiempo Estimado</td><td>Reducción significativa del tiempo de resolución de consultas (de minutos/horas a segundos).</td><td>Aceleración del ciclo de ventas (reducción del tiempo en fases clave del pipeline).</td><td>Reducción de hasta un 70% en los tiempos de ciclo y eliminación del 80% de las tareas manuales.</td></tr>
+<tr><td>Resultado Esperado</td><td>Mejora de la satisfacción del cliente, reducción de la carga de trabajo de los agentes humanos, resolución más rápida de problemas.</td><td>Aumento de la eficiencia de los equipos de ventas, mejora de la cualificación de leads, incremento de las tasas de conversión.</td><td>Optimización de la eficiencia operativa, reducción de errores manuales, liberación de recursos humanos para tareas estratégicas.</td></tr>
+</table>
+
+## L07 — EVIDENCIA Y REPRODUCIBILIDAD
+
+<table header-row="true">
+<tr><td>Benchmark</td><td>Reducción del tiempo de resolución de casos</td><td>Reducción de tareas manuales en operaciones de back-office</td><td>Incremento en la cualificación de leads</td></tr>
+<tr><td>Score/Resultado</td><td>Significativa reducción (ej. de horas a segundos)</td><td>Hasta un 80% de eliminación de tareas manuales</td><td>Mejora en la tasa de conversión de leads</td></tr>
+<tr><td>Fecha</td><td>Continuo (basado en implementaciones de clientes)</td><td>Abril 2026 (con el lanzamiento de Agentforce Operations)</td><td>Continuo (basado en implementaciones de clientes)</td></tr>
+<tr><td>Fuente</td><td>Casos de estudio de clientes de Salesforce, informes internos de rendimiento</td><td>Anuncios de Salesforce sobre Agentforce Operations</td><td>Casos de estudio de clientes de Salesforce, informes de ventas</td></tr>
+<tr><td>Comparativa</td><td>Mejora sustancial frente a procesos manuales o sistemas de automatización tradicionales.</td><td>Supera la eficiencia de la automatización de procesos robóticos (RPA) en tareas complejas que requieren razonamiento.</td><td>Rendimiento superior en la identificación y nutrición de leads en comparación con métodos manuales o reglas fijas.</td></tr>
+</table>
+
+## L08 — ARQUITECTURA DE INTEGRACIÓN
+
+<table header-row="true">
+<tr><td>Método de Integración</td><td>**Integración Nativa:** Con el ecosistema Salesforce Customer 360 (Sales, Service, Commerce, Marketing). <br> **APIs:** Inbound y Outbound Integrations, Agent API (REST API). <br> **Middleware y Conectores:** Utiliza MuleSoft para conectar aplicaciones, datos y sistemas. <br> **Procedimientos de Integración:** Permite integrar procedimientos de integración con Agentforce. <br> **Servicios Externos:** Integración de APIs externas sin código.</td></tr>
+<tr><td>Protocolo</td><td>**Agent2Agent (A2A):** Protocolo estándar para la comunicación fluida entre agentes de IA de diferentes plataformas. <br> **Model Context Protocol (MCP):** Estándar universal para reducir la complejidad de la integración de agentes de IA con sistemas empresariales. <br> **REST:** Para la comunicación con la Agent API. <br> **HTTP/S:** Para la comunicación web estándar.</td></tr>
+<tr><td>Autenticación</td><td>**OAuth 2.0:** Se recomienda el uso de tokens OAuth, a menudo a través de Connected Apps en Salesforce, para autorizar las llamadas a la API. <br> **AgentforceAuthCredentialProvider:** Utilizado por el SDK para suministrar tokens de autenticación.</td></tr>
+<tr><td>Latencia Típica</td><td>Diseñado para una comunicación fluida y eficiente, especialmente dentro del ecosistema Salesforce. La latencia es optimizada para interacciones en tiempo real, aunque valores específicos pueden variar según la complejidad de la integración y la carga del sistema.</td></tr>
+<tr><td>Límites de Rate</td><td>Los límites de rate no se especifican públicamente, pero se gestionan a nivel de plataforma Salesforce y pueden ser configurables o sujetos a los términos de servicio y licencias del cliente. Se espera que la plataforma esté diseñada para escalar y manejar grandes volúmenes de transacciones.</td></tr>
+</table>
+
+## L09 — VERIFICACIÓN Y PRUEBAS
+
+<table header-row="true">
+<tr><td>Tipo de Test</td><td>**Pruebas de Configuración de Agentes:** Verificación de los ajustes y la configuración de los agentes. <br> **Pruebas de Flujo Conversacional:** Evaluación de la capacidad del agente para mantener conversaciones coherentes y relevantes. <br> **Pruebas de Precisión y Relevancia de Respuesta:** Asegurar que las respuestas del agente sean correctas y útiles. <br> **Pruebas de Guardarraíles:** Confirmar que los agentes operan dentro de los límites éticos y de seguridad definidos. <br> **Pruebas de Rendimiento:** Evaluar la velocidad y escalabilidad de los agentes. <br> **Pruebas de Integración:** Verificar la interacción de los agentes con otros sistemas y datos. <br> **Pruebas de Aceptación de Usuario (UAT):** Validar que los agentes cumplen con las expectativas del usuario final.</td></tr>
+<tr><td>Herramienta Recomendada</td><td>**Agentforce Testing Center (beta):** Para construir casos de prueba, gestionar suites de prueba y rastrear resultados. <br> **Agentforce Studio:** Entorno de desarrollo para agentes. <br> **Salesforce CLI/IDE:** Para desarrollo y pruebas de código. <br> **Herramientas de DevOps:** Para automatización de pruebas y despliegue continuo. <br> **Provar:** Para estrategias de pruebas automatizadas. <br> **TestZeus:** Para pruebas de estilo de agente que describen pasos de conversación y resultados esperados.</td></tr>
+<tr><td>Criterio de Éxito</td><td>Respuestas fiables y precisas. <br> Cumplimiento de las necesidades del usuario. <br> Agentes robustos, fiables y listos para producción. <br> Criterios de evaluación personalizados (frases clave, acciones específicas). <br> Reducción del tiempo de triaje de casos. <br> Resumen efectivo de problemas principales. <br> Capacidad para responder preguntas en lenguaje natural sobre el pipeline.</td></tr>
+<tr><td>Frecuencia</td><td>**Revisiones de Rendimiento Regulares:** Para agentes de IA. <br> **Pruebas Continuas:** A lo largo del ciclo de vida del agente. <br> **Pruebas por Lotes:** Para verificar cambios a gran escala. <br> **Pruebas Automatizadas:** Implementadas como parte de los procesos de CI/CD.</td></tr>
+</table>
+
+## L10 — CICLO DE VIDA Y MIGRACIÓN
+
+<table header-row="true">
+<tr><td>Versión</td><td>Fecha de Lanzamiento</td><td>Estado</td><td>Cambios Clave</td><td>Ruta de Migración</td></tr>
+<tr><td>Agentforce 1.0</td><td>Dreamforce 2024 (aprox. Septiembre 2024)</td><td>Activo/Integrado</td><td>Lanzamiento inicial de la plataforma de agentes de IA.</td><td>Integración continua en la plataforma Salesforce.</td></tr>
+<tr><td>Agentforce 2dx</td><td>Marzo 2025 (disponibilidad general en Abril 2025)</td><td>Activo</td><td>Capacidades para incrustar IA agéntica proactiva en cualquier flujo de trabajo, experiencias multimodales y extensión del trabajo digital.</td><td>Actualización automática para usuarios de la plataforma Salesforce.</td></tr>
+<tr><td>Agentforce 3</td><td>Junio 2025</td><td>Activo</td><td>Soporte nativo de MCP, Agentforce Command Center y aplicación Agentforce Studio. Nuevas capacidades de constructor conversacional, razonamiento híbrido y capacidades de voz.</td><td>Actualización automática para usuarios de la plataforma Salesforce.</td></tr>
+<tr><td>Agentforce 360</td><td>Octubre 2025 (Dreamforce '25)</td><td>Activo</td><td>Plataforma que combina metadatos, gobernanza, MuleSoft y Data Cloud para potenciar la Empresa Agéntica. Agentes de voz totalmente personalizados.</td><td>Integración y evolución de versiones anteriores dentro de la plataforma 360.</td></tr>
+<tr><td>Agentforce Operations</td><td>Abril 2026</td><td>Activo</td><td>Expansión de la automatización a procesos de back-office (auditoría, onboarding, cumplimiento). Reducción de tiempos de ciclo y errores manuales.</td><td>Integración como una extensión de las capacidades existentes de Agentforce.</td></tr>
+<tr><td>Spring '26 Release</td><td>Principios de 2026</td><td>Activo</td><td>Aceleración del viaje hacia la Empresa Agéntica, combinando experiencia humana y agentes de IA.</td><td>Actualización estándar de la plataforma Salesforce.</td></tr>
+</table>
+
+## L11 — MARCO DE COMPETENCIA
+
+<table header-row="true">
+<tr><td>Competidor Directo</td><td>**ServiceNow**</td><td>**Sierra**</td><td>**Zendesk / HubSpot / Freshdesk**</td></tr>
+<tr><td>Ventaja vs Competidor</td><td>**Integración Profunda con Salesforce:** Agentforce está nativamente integrado con todo el ecosistema de Salesforce (CRM, Data Cloud, etc.), lo que permite un flujo de datos fluido y una funcionalidad mejorada dentro de un entorno unificado. <br> **Facilidad de Despliegue de Agentes:** Agentforce permite a los equipos construir y desplegar agentes rápidamente y sin necesidad de conocimientos especializados, a diferencia de ServiceNow que requiere una configuración más profunda. <br> **Arquitectura Multi-inquilino:** Facilita actualizaciones y escalabilidad más rentables.</td><td>**Herramientas de Bajo Código:** Agentforce ofrece herramientas de bajo código accesibles para la autosuficiencia y agilidad de los equipos, mientras que Sierra, aunque ofrece construcción de agentes basada en lenguaje natural, puede ser más compleja en implementaciones avanzadas. <br> **Ecosistema Estable y Amplio:** Respaldo de Salesforce, con una vasta base de clientes, recursos y una plataforma consolidada.</td><td>**Plataforma Agéntica Empresarial Completa:** Agentforce es una solución integral que abarca ventas, servicio, marketing y operaciones, mientras que estos competidores suelen centrarse más en áreas específicas como el servicio al cliente o el marketing. <br> **Capacidades de IA Avanzadas:** El Atlas Reasoning Engine y la integración con Einstein AI proporcionan capacidades de razonamiento y personalización más profundas.</td></tr>
+<tr><td>Desventaja vs Competidor</td><td>**Especialización en ITSM:** ServiceNow es superior para la Gestión de Servicios de TI (ITSM), donde Salesforce requeriría una construcción significativa de funcionalidad para igualar. <br> **Curva de Aprendizaje en ITSM:** Para organizaciones con una fuerte dependencia de ITSM, la transición o la implementación de Agentforce para estas funciones podría implicar una curva de aprendizaje más pronunciada.</td><td>**Madurez en el Mercado:** Sierra, siendo una startup, puede tener una base de clientes más pequeña y un ecosistema menos desarrollado en comparación con Salesforce. <br> **Dependencia de la Plataforma:** Al ser una solución más agnóstica a la plataforma, Sierra podría ofrecer mayor flexibilidad, pero carecer de la integración profunda que Agentforce tiene con Salesforce.</td><td>**Enfoque en Nichos Específicos:** Estos competidores pueden ofrecer soluciones muy optimizadas para sus nichos (ej. soporte al cliente en Zendesk), lo que podría ser una ventaja para empresas con necesidades muy específicas y limitadas. <br> **Costos:** Dependiendo del modelo de precios, algunos competidores podrían ofrecer soluciones más económicas para casos de uso básicos.</td></tr>
+<tr><td>Caso de Uso Donde Gana</td><td>Organizaciones que ya utilizan Salesforce CRM y buscan extender las capacidades de IA y automatización a sus procesos de ventas, servicio y marketing, aprovechando la integración nativa y la unificación de datos.</td><td>Empresas que buscan una plataforma de IA agéntica robusta y escalable con un fuerte respaldo empresarial, que desean construir y gestionar agentes autónomos con herramientas de bajo código y un ecosistema de desarrollo consolidado.</td><td>Empresas que buscan una solución integral de IA para transformar múltiples departamentos (ventas, servicio, marketing, operaciones) y desean una plataforma unificada con capacidades avanzadas de razonamiento y personalización de IA.</td></tr>
+</table>
+
+## L12 — CAPA DE INYECCIÓN DE IA (AI INJECTION LAYER)
+
+<table header-row="true">
+<tr><td>Capacidad de IA</td><td>**Agentes Autónomos:** Construcción y personalización de agentes de IA para automatizar tareas en ventas, servicio, marketing y operaciones. <br> **Razonamiento y Toma de Decisiones:** Utiliza el Atlas Reasoning Engine para comprender, decidir y actuar de forma autónoma. <br> **Procesamiento de Lenguaje Natural:** Detección de intención, enrutamiento inteligente y generación de respuestas. <br> **Análisis y Generación de Contenido:** Resúmenes, análisis de datos, cualificación de leads y creación de contenido. <br> **Experiencias Multimodales:** Soporte para interacciones de voz y otros formatos.</td></tr>
+<tr><td>Modelo Subyacente</td><td>**Large Language Models (LLMs):** Soporta LLMs de múltiples proveedores. <br> **Modelos Propietarios de Salesforce:** Incluye modelos como `xGen-Sales` entrenados para tareas específicas de ventas. <br> **Einstein AI:** Integrado como parte de la capa de modelos de IA para capacidades predictivas y generativas.</td></tr>
+<tr><td>Nivel de Control</td><td>**Guardarraíles Configurables:** Controles de bajo código para definir límites de comportamiento, seguridad y ética de los agentes, previniendo alucinaciones y sesgos. <br> **Supervisión Humana:** Los agentes están diseñados para escalar a humanos en casos complejos o fuera de su alcance. <br> **Gestión Centralizada:** A través de Agentforce Builder y Agentforce Command Center, los administradores tienen control sobre el diseño, despliegue y orquestación de los agentes.</td></tr>
+<tr><td>Personalización Posible</td><td>**Agent Builder:** Permite personalizar agentes utilizando flujos, código Apex, plantillas de prompt y APIs de MuleSoft. <br> **Model Builder:** Herramienta para crear modelos predictivos y generativos personalizados. <br> **Models API:** Interfaz unificada para integrar y aumentar el despliegue de Agentforce con LLMs externos. <br> **Salesforce Agentforce SDK:** Proporciona una interfaz programática para que los desarrolladores definan e interactúen con agentes. <br> **Criterios de Evaluación Personalizados:** Permite definir qué buscar en las respuestas de un agente para asegurar la calidad y relevancia.</td></tr>
+</table>
+
+## L13 — RENDIMIENTO REALISTA Y EXPERIENCIA COMUNITARIA
+
+<table header-row="true">
+<tr><td>Métrica</td><td>Valor Reportado por Comunidad</td><td>Fuente</td><td>Fecha</td></tr>
+<tr><td>Reducción de Carga de Trabajo del Agente</td><td>Significativa reducción de la carga de trabajo y mejora de la primera resolución.</td><td>Reddit, SalesforceBen.com</td><td>Varios (2024-2025)</td></tr>
+<tr><td>Confianza del Usuario</td><td>Aún en evolución; requiere más tiempo para ganar la plena confianza de los usuarios debido a la novedad de la tecnología.</td><td>SalesforceBen.com</td><td>Abril 2025</td></tr>
+<tr><td>Tasa de Fallo en Implementación B2B</td><td>77% de tasa de fallo en implementaciones B2B debido a requisitos de calidad de datos y limitaciones de UX basadas en chat.</td><td>Oliv.ai (análisis de reseñas)</td><td>Octubre 2025</td></tr>
+<tr><td>Adopción Empresarial</td><td>18,000+ empresas utilizan Agentforce para automatizar el trabajo y servir a los clientes.</td><td>Salesforce (métricas oficiales)</td><td>Desconocido</td></tr>
+<tr><td>Necesidad de Feedback de Expertos</td><td>Se requiere feedback de expertos en la materia para una mejora significativa del agente, no solo la aprobación o desaprobación de los usuarios finales.</td><td>Salesforce (noticias/historias)</td><td>Abril 2026</td></tr>
+</table>
+
+## L14 — ECONOMÍA OPERATIVA Y ESTRATEGIA GTM
+
+<table header-row="true">
+<tr><td>Plan</td><td>**Basado en Consumo (Flex Credits)**</td><td>**Licencia por Usuario**</td><td>**Agentforce 1 Editions**</td></tr>
+<tr><td>Precio</td><td>$500 USD por 100,000 créditos. Una acción de Agentforce consume 20 Flex Credits ($0.10 USD). Modelo alternativo de $2 USD por conversación.</td><td>$125 USD/usuario/mes (para licencias de Sales, Service, Field Service). $150 USD/usuario/mes (para licencias de Industry Cloud).</td><td>$550 USD/usuario/mes (incluye características específicas de la nube).</td></tr>
+<tr><td>Límites</td><td>Cada acción tiene una asignación de hasta 10,000 tokens (aprox. 8,000 palabras o 22 páginas de texto).</td><td>Los límites de uso se rigen por los términos de la licencia por usuario y pueden variar según el tipo de licencia.</td><td>Los límites de uso se rigen por los términos de la licencia por usuario y pueden variar según el tipo de licencia.</td></tr>
+<tr><td>Ideal Para</td><td>Empresas que desean flexibilidad y pagar solo por el uso real de los agentes de IA, ideal para experimentar con diferentes casos de uso.</td><td>Organizaciones con equipos de ventas, servicio o campo que buscan integrar agentes de IA directamente en sus flujos de trabajo existentes de Salesforce.</td><td>Grandes empresas que requieren un paquete completo de funcionalidades de Agentforce integradas con sus nubes específicas de Salesforce.</td></tr>
+<tr><td>ROI Estimado</td><td>Reducción de tiempos de ciclo hasta en un 70% para procesos como auditoría y onboarding. Eliminación del 80% de las tareas manuales. Mejora de la satisfacción del cliente y la eficiencia operativa. Aumento de la eficiencia de los equipos de ventas y mejora de la cualificación de leads.</td><td>Mejora de la productividad de los empleados, optimización de la experiencia del cliente y aceleración de los procesos de negocio.</td><td>Transformación digital integral, maximización del valor de la inversión en Salesforce y liderazgo en la adopción de IA agéntica.</td></tr>
+</table>
+
+## L15 — BENCHMARKING EMPÍRICO Y RED TEAMING
+
+<table header-row="true">
+<tr><td>Escenario de Test</td><td>**Evaluación de Agentes en Casos de Uso Empresariales (CRMArena-Pro)**</td><td>**Red Teaming para Identificación de Vulnerabilidades**</td><td>**Benchmarking de Agentes de Voz y Texto en Flujos de Trabajo Empresariales**</td></tr>
+<tr><td>Resultado</td><td>Los agentes de IA, incluso modelos avanzados como Gemini 2.5 Pro, logran un 58% de éxito en escenarios de negocio complejos, indicando desafíos significativos en el mundo real.</td><td>Identificación de vulnerabilidades críticas como "ForcedLeak" (CVSS 9.4), que permite a los agentes divulgar su "libro de reglas" interno.</td><td>Evaluación del rendimiento de agentes en entornos de voz y texto, revelando la necesidad de optimización para flujos de trabajo complejos.</td></tr>
+<tr><td>Fortaleza Identificada</td><td>Capacidad para automatizar tareas repetitivas y de alto volumen en CRM. <br> Integración profunda con el ecosistema Salesforce. <br> Guardarraíles de seguridad y cumplimiento incorporados.</td><td>Identificación proactiva de riesgos de seguridad y comportamiento no deseado de los agentes. <br> Desarrollo de marcos automatizados de red teaming (fuzzai) para mejorar la seguridad de la IA.</td><td>Capacidad para manejar interacciones complejas en diferentes modalidades. <br> Potencial para mejorar la experiencia del cliente y la eficiencia operativa.</td></tr>
+<tr><td>Debilidad Identificada</td><td>Dificultad para manejar escenarios de negocio complejos y matizados. <br> Dependencia de la calidad de los datos de CRM. <br> Limitaciones en la capacidad de razonamiento autónomo en situaciones ambiguas.</td><td>Riesgos de seguridad inherentes a los agentes de IA, como la inyección de prompts y la divulgación de información. <br> Necesidad de controles robustos para prevenir el uso indebido o la manipulación de los agentes.</td><td>Desafíos en la precisión y coherencia de las respuestas en escenarios de voz. <br> Necesidad de un entrenamiento continuo y feedback de expertos para mejorar el rendimiento.</td></tr>
+</table>
+

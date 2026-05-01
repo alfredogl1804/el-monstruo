@@ -1,53 +1,155 @@
-# BIBLIA DE SWE-agent AI coding agent v7.3
-## System Prompt & Agent Architecture Analysis
+# BIBLIA DE SWE-AGENT_AI_CODING_AGENT v7.3
+
 **Fecha de Actualización:** 30 de Abril de 2026
-**Versión Analizada:** 1.1.0 (superseded by mini-swe-agent)
 
----
+**Versión más actual:** v1.0 (Abril 2026)
 
-## L01. Identidad y Propósito Core
-**Nombre:** SWE-agent AI coding agent
-**Versión:** 1.1.0 (superseded by mini-swe-agent)
-**Propósito Principal:** Corrección de problemas en repositorios de GitHub, búsqueda de vulnerabilidades de ciberseguridad, ejecución de tareas personalizadas.
+## L01 — IDENTIDAD Y ANÁLISIS ESTRATÉGICO
+<table header-row="true">
+<tr><td>Nombre oficial</td><td>SWE-AGENT_AI_CODING_AGENT</td></tr>
+<tr><td>Desarrollador</td><td>SWE-agent (Equipo de investigación)</td></tr>
+<tr><td>País de Origen</td><td>Estados Unidos (Investigación académica, con contribuciones globales)</td></tr>
+<tr><td>Inversión y Financiamiento</td><td>Principalmente financiamiento académico y de investigación, con potencial apoyo de la comunidad de código abierto y empresas interesadas en la automatización de software.</td></tr>
+<tr><td>Modelo de Precios</td><td>Open-source; el uso directo del agente es gratuito. Los costos asociados provienen del uso de los modelos de lenguaje subyacentes (ej. GPT-4o, Claude Sonnet 4) y la infraestructura de despliegue.</td></tr>
+<tr><td>Posicionamiento Estratégico</td><td>Herramienta de automatización de ingeniería de software que empodera a los LLMs para interactuar con entornos de desarrollo reales, resolviendo problemas complejos en repositorios de GitHub. Se posiciona como un habilitador clave para la autonomía en el desarrollo de software.</td></tr>
+<tr><td>Gráfico de Dependencias</td><td>Depende de Large Language Models (LLMs) como GPT-4o, Claude Sonnet 4. Interacciona con entornos de desarrollo (shell, editores de código), sistemas de control de versiones (Git, GitHub) y sistemas de evaluación (SWE-bench).</td></tr>
+<tr><td>Matriz de Compatibilidad</td><td>Compatible con diversos LLMs (GPT-4o, Claude Sonnet 4, etc.). Funciona en entornos Linux/Unix. Integración con GitHub para la gestión de repositorios.</td></tr>
+<tr><td>Acuerdos de Nivel de Servicio (SLOs)</td><td>Al ser open-source, no hay SLOs formales garantizados por el desarrollador. El rendimiento y la disponibilidad dependen de la infraestructura del usuario y del LLM subyacente. La comunidad puede ofrecer soporte informal.</td></tr>
+</table>
 
-## L02. Capacidades Clave
-Permite que el modelo de lenguaje de su elección (por ejemplo, GPT-4o o Claude Sonnet 4) utilice herramientas de forma autónoma para corregir problemas en repositorios reales de GitHub, encontrar vulnerabilidades de ciberseguridad o realizar cualquier tarea personalizada. Es de última generación en SWE-bench entre proyectos de código abierto, de flujo libre y generalizable, configurable y totalmente documentado, y diseñado para la investigación.
+## L02 — GOBERNANZA Y MODELO DE CONFIANZA
+<table header-row="true">
+<tr><td>Licencia</td><td>Apache 2.0 con identificadores SPDX. Esto asegura la interoperabilidad y el cumplimiento legal para el código generado y el propio agente.</td></tr>
+<tr><td>Política de Privacidad</td><td>Al ser una herramienta de código abierto que se ejecuta localmente o en infraestructura del usuario, no tiene una política de privacidad centralizada. La privacidad de los datos depende de la configuración del LLM subyacente y del entorno de ejecución del usuario.</td></tr>
+<tr><td>Cumplimiento y Certificaciones</td><td>No posee certificaciones formalizadas de cumplimiento como producto comercial. El cumplimiento de estándares de seguridad y privacidad recae en el usuario que lo implementa y en el LLM utilizado.</td></tr>
+<tr><td>Historial de Auditorías y Seguridad</td><td>Como proyecto de código abierto, la seguridad se basa en la revisión por pares de la comunidad. No hay un historial de auditorías de seguridad formales publicadas por una entidad externa, pero se beneficia de la transparencia del código.</td></tr>
+<tr><td>Respuesta a Incidentes</td><td>No existe un equipo formal de respuesta a incidentes. Los problemas de seguridad o bugs se reportan y gestionan a través de los canales de la comunidad de código abierto (ej. GitHub Issues).</td></tr>
+<tr><td>Matriz de Autoridad de Decisión</td><td>La autoridad de decisión reside en los mantenedores principales del proyecto de código abierto, con contribuciones y discusiones abiertas de la comunidad.</td></tr>
+<tr><td>Política de Obsolescencia</td><td>No hay una política de obsolescencia formal. El ciclo de vida del proyecto está impulsado por la actividad de la comunidad y los mantenedores. Las versiones antiguas pueden dejar de recibir soporte a medida que el proyecto evoluciona.</td></tr>
+</table>
 
-## L03. Limitaciones y Debilidades
-Ha sido reemplazado por mini-swe-agent y está en modo de solo mantenimiento. Tiene dificultades cuando necesita cargar una gran cantidad de líneas de código en su contexto (por ejemplo, 5k líneas).
+## L03 — MODELO MENTAL Y MAESTRÍA
+SWE-AGENT opera bajo un modelo mental de **agente autónomo de software**, donde un Large Language Model (LLM) es empoderado con herramientas para interactuar directamente con un entorno de desarrollo. Su maestría radica en la capacidad de traducir un problema de lenguaje natural (ej. una incidencia de GitHub) en una secuencia de acciones técnicas para resolverlo, iterando hasta alcanzar una solución verificada. Este proceso imita el flujo de trabajo de un ingeniero de software humano, pero a una escala y velocidad que solo la automatización puede ofrecer.
 
-## L04. Arquitectura de Memoria
-(Información no disponible en el resumen, requiere análisis profundo)
+<table header-row="true">
+<tr><td>Paradigma Central</td><td>**Agente-Computadora Interfaz (ACI)**: Permite a los LLMs interactuar con sistemas operativos y herramientas de desarrollo como un ingeniero humano. **Desarrollo Dirigido por Pruebas (TDD) asistido por IA**: El agente itera en la solución hasta que las pruebas pasan.</td></tr>
+<tr><td>Abstracciones Clave</td><td>**Entorno de Desarrollo Virtual**: Un sandbox donde el agente ejecuta comandos y edita archivos. **Herramientas (Tools)**: Comandos de shell, editores de código, sistemas de control de versiones (Git). **Bucle de Retroalimentación**: El agente ejecuta una acción, observa el resultado (ej. salida de un comando, resultado de una prueba), y ajusta su plan. **Problema de GitHub (Issue)**: La entrada inicial que define la tarea. **Pull Request (PR)**: La salida final con la solución propuesta.</td></tr>
+<tr><td>Patrones de Pensamiento Recomendados</td><td>**Descomposición de Problemas**: Dividir un problema complejo en subtareas manejables. **Iteración y Refinamiento**: Probar soluciones, observar fallos y ajustar el enfoque. **Uso Estratégico de Herramientas**: Seleccionar la herramienta adecuada para cada paso. **Verificación Continua**: Utilizar pruebas para validar el progreso y la corrección de la solución.</td></tr>
+<tr><td>Anti-patrones a Evitar</td><td>**Alucinaciones del LLM**: El agente puede generar código o comandos incorrectos. **Bucle Infinito**: El agente puede quedarse atascado en un ciclo de intentos fallidos. **Dependencia Excesiva del LLM**: No verificar la salida del LLM con el entorno real. **Ignorar el Contexto**: No considerar el estado actual del repositorio o las dependencias.</td></tr>
+<tr><td>Curva de Aprendizaje</td><td>**Para Desarrolladores**: Moderada. Requiere entender cómo configurar el entorno, integrar el LLM, y definir las herramientas. La depuración de fallos del agente puede ser compleja. **Para Usuarios Finales (consumidores de soluciones)**: Baja. Interactúan con el agente a través de interfaces como GitHub Issues, sin necesidad de conocimiento técnico profundo del agente.</td></tr>
+</table>
 
-## L05. Uso de Herramientas (Tool Use)
-(Información no disponible en el resumen, requiere análisis profundo)
+## L04 — CAPACIDADES TÉCNICAS
+<table header-row="true">
+<tr><td>Capacidades Core</td><td>**Resolución Autónoma de Issues en GitHub**: Toma una descripción de un problema (issue) y genera un Pull Request (PR) con la solución. **Interacción con Entornos de Desarrollo**: Ejecuta comandos de shell, edita archivos, y maneja sistemas de control de versiones (Git). **Bucle de Retroalimentación y Auto-corrección**: Itera en la solución basándose en la salida de comandos y resultados de pruebas. **Generación de Código Multi-lenguaje**: Capaz de trabajar con cualquier lenguaje de programación soportado por el LLM subyacente.</td></tr>
+<tr><td>Capacidades Avanzadas</td><td>**Manejo de Proyectos Complejos**: Aborda problemas que requieren modificaciones en múltiples archivos y directorios. **Integración con Sistemas de Pruebas**: Ejecuta pruebas unitarias y de integración para verificar la corrección de las soluciones. **Depuración Asistida por IA**: Utiliza la salida de errores y logs para identificar y corregir fallos. **Optimización de Código**: Puede sugerir mejoras de rendimiento o refactorizaciones.</td></tr>
+<tr><td>Capacidades Emergentes (Abril 2026)</td><td>**Orquestación Multi-agente**: Colaboración con otros agentes de IA para tareas más complejas (ej. un agente revisor de código). **Modelado Mental del Usuario (ToM-SWE)**: Adaptación a las preferencias y estilo de codificación del usuario. **Aprendizaje por Auto-abstracción (SAGE)**: Mejora continua de sus estrategias de resolución de problemas a partir de la experiencia. **Integración con CI/CD**: Capacidad de operar dentro de pipelines de integración y despliegue continuo.</td></tr>
+<tr><td>Limitaciones Técnicas Confirmadas</td><td>**Dependencia del LLM**: La calidad de las soluciones está directamente ligada a la capacidad del LLM subyacente. **Costos de Inferencia**: El uso intensivo de LLMs puede generar altos costos. **Alucinaciones y Errores Lógicos**: Los LLMs pueden producir código incorrecto o soluciones ineficientes. **Manejo de Ambigüedad**: Dificultad para interpretar issues ambiguos o incompletos. **Rendimiento en Tareas Novedosas**: Puede tener dificultades con problemas que requieren creatividad o conocimientos muy específicos fuera de su entrenamiento.</td></tr>
+<tr><td>Roadmap Público</td><td>**Mejora de la Robustez y Fiabilidad**: Reducir la tasa de fallos y aumentar la consistencia en la resolución de problemas. **Expansión de la Compatibilidad con LLMs**: Soporte para una gama más amplia de modelos. **Desarrollo de Herramientas Específicas**: Creación de herramientas más potentes y especializadas para el agente. **Mejora de la Experiencia del Desarrollador**: Facilidades para la configuración, depuración y personalización del agente. **Integración con IDEs**: Permitir la interacción directa desde entornos de desarrollo integrados.</td></tr>
+</table>
 
-## L06. Razonamiento y Planificación
-(Información no disponible en el resumen, requiere análisis profundo)
+## L05 — DOMINIO TÉCNICO
+<table header-row="true">
+<tr><td>Stack Tecnológico</td><td>**Lenguaje Principal**: Python. **Entorno de Ejecución**: Sandboxed shell (ej. Docker, entornos virtuales). **Modelos de Lenguaje**: GPT-4o, Claude Sonnet 4, u otros LLMs compatibles. **Herramientas de Desarrollo**: Git, editores de texto (ej. Vim, Emacs, o comandos de edición básicos), herramientas de testing.</td></tr>
+<tr><td>Arquitectura Interna</td><td>**Módulo de Orquestación (DefaultAgent)**: Un bucle `while not done` que gestiona el flujo de trabajo. **Entorno de Ejecución (SWEEnv)**: Abstracción del entorno de desarrollo que interactúa con el shell sandboxed. **Módulo de Herramientas (Tools)**: Conjunto de utilidades que el LLM puede invocar (ej. `git clone`, `ls`, `cat`, `pytest`, `sed`). **Módulo de Planificación/Razonamiento**: Integrado en el LLM, que interpreta el problema, genera un plan y selecciona las herramientas.</td></tr>
+<tr><td>Protocolos Soportados</td><td>**HTTP/HTTPS**: Para interactuar con APIs de GitHub y servicios de LLM. **Git Protocol**: Para operaciones de clonación, push, pull con repositorios. **Shell Command Execution**: Comunicación con el entorno sandboxed.</td></tr>
+<tr><td>Formatos de Entrada/Salida</td><td>**Entrada**: GitHub Issues (texto Markdown), archivos de código fuente, archivos de configuración, resultados de pruebas. **Salida**: Pull Requests (código modificado, mensajes de commit, descripciones de PR en Markdown), resultados de pruebas, logs de ejecución.</td></tr>
+<tr><td>APIs Disponibles</td><td>**GitHub API**: Para leer issues, crear branches, commits y pull requests. **LLM APIs**: Para la interacción con los modelos de lenguaje (ej. OpenAI API, Anthropic API). **APIs de Herramientas del Sistema**: Acceso a comandos de shell y utilidades del sistema operativo dentro del sandbox.</td></tr>
+</table>
 
-## L07. Interacción con el Usuario
-(Información no disponible en el resumen, requiere análisis profundo)
+## L06 — PLAYBOOKS OPERATIVOS
+<table header-row="true">
+<tr><td>Caso de Uso</td><td>Pasos Exactos</td><td>Herramientas Necesarias</td><td>Tiempo Estimado</td><td>Resultado Esperado</td></tr>
+<tr><td>**Resolución de Bug en Repositorio GitHub**</td><td>1. El agente recibe un GitHub Issue describiendo un bug. 2. Clona el repositorio y configura el entorno de desarrollo. 3. Analiza el código y los logs de error para identificar la causa raíz. 4. Propone y aplica un parche de código. 5. Ejecuta pruebas existentes o crea nuevas para verificar la corrección. 6. Itera los pasos 3-5 hasta que las pruebas pasen. 7. Crea un Pull Request con la solución.</td><td>Git, Shell (comandos como `ls`, `cat`, `grep`, `pytest`), Editor de código (comandos básicos de edición), LLM.</td><td>30 minutos - 4 horas (dependiendo de la complejidad del bug y el tamaño del codebase).</td><td>Un Pull Request en GitHub con un parche de código que resuelve el bug, verificado por pruebas, listo para revisión humana.</td></tr>
+<tr><td>**Implementación de Pequeña Característica (Feature)**</td><td>1. El agente recibe un GitHub Issue describiendo una nueva característica. 2. Clona el repositorio y analiza la base de código para entender dónde integrar la nueva funcionalidad. 3. Diseña una estrategia de implementación (inferida por el LLM). 4. Escribe el código para la nueva característica. 5. Escribe pruebas unitarias y de integración para la nueva característica. 6. Ejecuta las pruebas y depura el código hasta que pasen. 7. Crea un Pull Request con la nueva característica y sus pruebas.</td><td>Git, Shell, Editor de código, LLM, Herramientas de testing.</td><td>1 hora - 6 horas (dependiendo del alcance de la característica).</td><td>Un Pull Request en GitHub con la nueva característica implementada, con cobertura de pruebas, lista para revisión.</td></tr>
+<tr><td>**Refactorización de Código para Mejorar Rendimiento**</td><td>1. El agente recibe una directriz para refactorizar una sección de código específica para mejorar el rendimiento. 2. Clona el repositorio y ejecuta benchmarks existentes para establecer una línea base. 3. Analiza la sección de código identificando cuellos de botella. 4. Propone y aplica cambios de refactorización. 5. Ejecuta los benchmarks y pruebas existentes para asegurar que el rendimiento ha mejorado y no se han introducido regresiones. 6. Itera los pasos 4-5 hasta alcanzar los objetivos de rendimiento. 7. Crea un Pull Request con el código refactorizado.</td><td>Git, Shell, Editor de código, LLM, Herramientas de benchmarking, Herramientas de testing.</td><td>2 horas - 8 horas (dependiendo de la complejidad y tamaño de la sección a refactorizar).</td><td>Un Pull Request en GitHub con el código refactorizado, con evidencia de mejora de rendimiento y sin regresiones funcionales.</td></tr>
+</table>
 
-## L08. Manejo de Errores y Recuperación
-(Información no disponible en el resumen, requiere análisis profundo)
+## L07 — EVIDENCIA Y REPRODUCIBILIDAD
+<table header-row="true">
+<tr><td>Benchmark</td><td>Score/Resultado</td><td>Fecha</td><td>Fuente</td><td>Comparativa</td></tr>
+<tr><td>**SWE-bench Verified (mini-SWE-agent)**</td><td>>74% de resolución</td><td>Abril 2026 (últimas actualizaciones)</td><td>SWE-agent GitHub / SWE-bench Leaderboards</td><td>Supera a muchos agentes en el subconjunto verificado, demostrando alta eficiencia con una implementación mínima.</td></tr>
+<tr><td>**SWE-bench Verified (Gemini 3 Pro + Live-SWE-agent)**</td><td>77.4% de resolución</td><td>20 de Noviembre de 2025</td><td>Live-SWE-agent Leaderboard</td><td>Supera a todos los modelos disponibles en ese momento, incluyendo Claude Sonnet 4.5.</td></tr>
+<tr><td>**SWE-bench (GPT 5.5)**</td><td>82.60% de resolución</td><td>Abril 2026 (últimas actualizaciones)</td><td>vals.ai/benchmarks/swebench</td><td>Líder en rendimiento general en SWE-bench, demostrando la capacidad de los LLMs de última generación.</td></tr>
+<tr><td>**SWE-bench (Claude Opus 4.7)**</td><td>70%+ de resolución</td><td>Abril 2026 (últimas actualizaciones)</td><td>vals.ai/benchmarks/swebench</td><td>Sigue de cerca a GPT 5.5, mostrando la competitividad de los modelos de Anthropic.</td></tr>
+<tr><td>**SWE-bench Pro (Auggie)**</td><td>51.80% de resolución</td><td>4 de Febrero de 2026</td><td>Augment Code Blog</td><td>El más alto de cualquier agente probado en el benchmark SWE-bench Pro, que es significativamente más desafiante.</td></tr>
+</table>
 
-## L09. Seguridad y Guardrails
-(Información no disponible en el resumen, requiere análisis profundo)
+## L08 — ARQUITECTURA DE INTEGRACIÓN
+<table header-row="true">
+<tr><td>Método de Integración</td><td>Protocolo</td><td>Autenticación</td><td>Latencia Típica</td><td>Límites de Rate</td></tr>
+<tr><td>**Interacción con LLMs**</td><td>API REST/gRPC</td><td>Claves API (ej. OpenAI API Key, Anthropic API Key)</td><td>Variable, depende del LLM y la carga del servicio (típicamente cientos de milisegundos a segundos).</td><td>Definidos por el proveedor del LLM (ej. tokens por minuto, solicitudes por minuto).</td></tr>
+<tr><td>**Interacción con Entorno de Desarrollo (Sandbox)**</td><td>Ejecución de comandos de Shell</td><td>N/A (ejecución dentro de un entorno controlado)</td><td>Baja (milisegundos para comandos locales).</td><td>Definidos por los recursos del sistema donde se ejecuta el sandbox.</td></tr>
+<tr><td>**Interacción con GitHub**</td><td>API REST de GitHub</td><td>Tokens de acceso personal (PAT) de GitHub, OAuth</td><td>Variable, depende de la carga de la API de GitHub (típicamente decenas a cientos de milisegundos).</td><td>Definidos por la API de GitHub (ej. 5000 solicitudes por hora para usuarios autenticados).</td></tr>
+<tr><td>**Integración de Herramientas Personalizadas**</td><td>Scripts Bash (a través de YAML manifests)</td><td>N/A (ejecución dentro del sandbox)</td><td>Baja.</td><td>N/A.</td></tr>
+</table>
 
-## L10. Integraciones y Ecosistema
-(Información no disponible en el resumen, requiere análisis profundo)
+## L09 — VERIFICACIÓN Y PRUEBAS
+<table header-row="true">
+<tr><td>Tipo de Test</td><td>Herramienta Recomendada</td><td>Criterio de Éxito</td><td>Frecuencia</td></tr>
+<tr><td>**Tests de Unidad y Integración (del código modificado)**</td><td>`pytest`, `unittest` (o frameworks de testing nativos del lenguaje)</td><td>Todas las pruebas existentes pasan, y las nuevas pruebas añadidas por el agente para la solución también pasan.</td><td>Continuo, después de cada iteración de modificación de código por el agente.</td></tr>
+<tr><td>**Evaluación de Benchmark (SWE-bench)**</td><td>SWE-bench (plataforma de evaluación)</td><td>El agente resuelve un porcentaje significativo de los problemas del benchmark, logrando un score competitivo.</td><td>Periódica, durante el desarrollo y la evaluación de nuevas versiones del agente.</td></tr>
+<tr><td>**Tests de Regresión**</td><td>Conjunto de pruebas existentes del repositorio</td><td>Ninguna funcionalidad previamente correcta se rompe después de los cambios del agente.</td><td>Automática, como parte del ciclo de verificación del agente.</td></tr>
+<tr><td>**Tests de Aceptación (simulados)**</td><td>Validación de la descripción del problema (issue)</td><td>El resultado del Pull Request satisface la descripción original del issue de GitHub.</td><td>Al finalizar la tarea, antes de generar el Pull Request.</td></tr>
+<tr><td>**Pruebas de Robustez y Estabilidad**</td><td>Entornos de sandbox aislados, monitoreo de recursos</td><td>El agente opera sin caer en bucles infinitos, consumir recursos excesivos o generar errores inesperados en el entorno.</td><td>Continuo, durante la ejecución y desarrollo del agente.</td></tr>
+</table>
 
-## L11. Rendimiento y Latencia
-(Información no disponible en el resumen, requiere análisis profundo)
+## L10 — CICLO DE VIDA Y MIGRACIÓN
+<table header-row="true">
+<tr><td>Versión</td><td>Fecha de Lanzamiento</td><td>Estado</td><td>Cambios Clave</td><td>Ruta de Migración</td></tr>
+<tr><td>**SWE-agent 0.7.0**</td><td>23 de Septiembre de 2024</td><td>Obsoleto/Mantenimiento</td><td>Introducción del modo EnIGMA, soporte para Interactive Agent Tools.</td><td>Actualizar a 1.0.0 o versiones posteriores, consultando la guía de migración.</td></tr>
+<tr><td>**SWE-agent 1.0.0**</td><td>Finales de 2024 (aproximado)</td><td>Activo</td><td>Ejecución de código masivamente paralela con SWE-ReX, despliegue en la nube, mayor configurabilidad.</td><td>Consultar la guía de migración 1.0.0 para cambios en la configuración y despliegue.</td></tr>
+<tr><td>**SWE-agent 1.0.1**</td><td>28 de Febrero de 2025</td><td>Activo</td><td>Correcciones de compatibilidad con modelos locales, expansión de la documentación.</td><td>Actualización directa desde 1.0.0.</td></tr>
+<tr><td>**mini-SWE-agent v1.x**</td><td>2024</td><td>Activo/Recomendado para simplicidad</td><td>Versión simplificada de SWE-agent, 100 líneas de Python, alta puntuación en SWE-bench verified.</td><td>Para migrar a v2.0, se requieren cambios significativos; se recomienda fijar la dependencia si se desea permanecer en v1.x.</td></tr>
+<tr><td>**mini-SWE-agent v2.0**</td><td>Principios de 2026 (aproximado)</td><td>Activo</td><td>Mejoras significativas, pero con cambios que rompen la compatibilidad con v1.x.</td><td>Consultar la guía de migración v2.0 para los cambios necesarios.</td></tr>
+<tr><td>**SWE-1.5 (Cognition)**</td><td>29 de Octubre de 2025</td><td>Activo</td><td>Modelo de agente optimizado para ingeniería de software, tamaño de frontera.</td><td>Integración como LLM subyacente en SWE-agent.</td></tr>
+</table>
 
-## L12. Costos y FinOps
-(Información no disponible en el resumen, requiere análisis profundo)
+## L11 — MARCO DE COMPETENCIA
+<table header-row="true">
+<tr><td>Competidor Directo</td><td>Ventaja vs Competidor</td><td>Desventaja vs Competidor</td><td>Caso de Uso Donde Gana</td></tr>
+<tr><td>**Devin AI**</td><td>SWE-AGENT es open-source y permite mayor transparencia y personalización. Menor costo de operación al usar LLMs propios o de menor costo.</td><td>Devin es un agente autónomo de pila completa, con una interfaz de usuario más pulida y un enfoque comercial. Puede tener una integración más profunda con herramientas de desarrollo específicas.</td><td>Proyectos de código abierto, investigación académica, o equipos que requieren control total sobre la infraestructura y el LLM subyacente.</td></tr>
+<tr><td>**Cursor AI**</td><td>SWE-AGENT se enfoca en la automatización completa de tareas de ingeniería de software, mientras que Cursor es más un IDE asistido por IA. SWE-AGENT es más adecuado para la resolución autónoma de problemas.</td><td>Cursor ofrece una experiencia de desarrollo más integrada y amigable para el desarrollador individual, con funciones de edición y navegación de código asistidas por IA en tiempo real.</td><td>Automatización de flujos de trabajo de CI/CD, resolución de bugs en repositorios remotos sin intervención humana constante.</td></tr>
+<tr><td>**OpenHands (anteriormente OpenDevin)**</td><td>Ambos son open-source y muy similares en capacidades. La ventaja puede residir en la comunidad, la madurez del proyecto o la facilidad de configuración.</td><td>La diferenciación es sutil y puede depender de la evolución de cada proyecto. OpenHands puede tener un enfoque más amplio en la orquestación de múltiples agentes.</td><td>Equipos que buscan una alternativa open-source a Devin, con un fuerte enfoque en la resolución de problemas de GitHub.</td></tr>
+<tr><td>**GPT-Engineer**</td><td>SWE-AGENT tiene un enfoque más robusto en la interacción con entornos de desarrollo reales y la verificación de soluciones a través de pruebas.</td><td>GPT-Engineer puede ser más simple de configurar para proyectos pequeños o prototipos rápidos, con un enfoque en la generación inicial de código.</td><td>Resolución de problemas complejos en bases de código existentes, donde la interacción con el entorno y la verificación son críticas.</td></tr>
+<tr><td>**Agentes de IA internos (ej. de Stripe, Coinbase)**</td><td>SWE-AGENT es una solución genérica y de código abierto, accesible para cualquier organización.</td><td>Los agentes internos están altamente optimizados para las necesidades y la infraestructura específica de la empresa, lo que puede resultar en mayor eficiencia y rendimiento para sus casos de uso particulares.</td><td>Pequeñas y medianas empresas, startups, o equipos que no tienen los recursos para desarrollar y mantener sus propios agentes de IA internos.</td></tr>
+</table>
 
-## L13. Casos de Uso Ideales
-Corrección de problemas en repositorios de GitHub, búsqueda de vulnerabilidades de ciberseguridad, ejecución de tareas personalizadas.
+## L12 — CAPA DE INYECCIÓN DE IA (AI INJECTION LAYER)
+<table header-row="true">
+<tr><td>Capacidad de IA</td><td>Modelo Subyacente</td><td>Nivel de Control</td><td>Personalización Posible</td></tr>
+<tr><td>**Generación y Modificación de Código**</td><td>Large Language Models (LLMs) como GPT-4o, Claude Sonnet 4, Gemini 3 Pro, etc.</td><td>**Alto**: El usuario selecciona el LLM a utilizar y puede ajustar parámetros de inferencia (ej. temperatura, top-p). El agente utiliza el LLM para generar planes, comandos y código.</td><td>**Prompt Engineering**: Personalización de los prompts que se envían al LLM para guiar su comportamiento. **Selección de LLM**: Elección entre diferentes modelos de lenguaje, incluyendo modelos locales o de código abierto. **Ajuste Fino (Fine-tuning)**: Potencialmente, el usuario puede ajustar modelos de lenguaje específicos para sus necesidades, aunque esto es externo a SWE-AGENT.</td></tr>
+<tr><td>**Análisis de Código y Depuración**</td><td>LLMs</td><td>**Medio**: El LLM analiza la salida de comandos, errores y el código base para identificar problemas y sugerir soluciones. El usuario controla la granularidad de la información proporcionada al LLM.</td><td>**Definición de Herramientas**: El usuario puede definir herramientas adicionales que el LLM puede usar para el análisis (ej. linters, analizadores estáticos). **Contexto Proporcionado**: Control sobre qué partes del código o logs se exponen al LLM.</td></tr>
+<tr><td>**Planificación de Tareas**</td><td>LLMs</td><td>**Alto**: El LLM es responsable de descomponer el problema en pasos y decidir la secuencia de acciones. El usuario puede intervenir para corregir o guiar el plan inicial.</td><td>**Directrices de Alto Nivel**: Proporcionar instrucciones claras y detalladas en el issue de GitHub. **Feedback Iterativo**: Intervenir en el bucle de ejecución del agente para corregir el plan.</td></tr>
+<tr><td>**Verificación de Soluciones**</td><td>LLMs (para interpretar resultados de pruebas)</td><td>**Bajo**: El LLM interpreta los resultados de las pruebas para determinar si la solución es exitosa. El control del usuario se centra en la calidad de las pruebas.</td><td>**Calidad de las Pruebas**: Asegurar que el repositorio tenga un conjunto de pruebas robusto y relevante.</td></tr>
+</table>
 
-## L14. Casos de Uso No Recomendados
-Ha sido reemplazado por mini-swe-agent y está en modo de solo mantenimiento. Tiene dificultades cuando necesita cargar una gran cantidad de líneas de código en su contexto (por ejemplo, 5k líneas).
+## L13 — RENDIMIENTO REALISTA Y EXPERIENCIA COMUNITARIA
+<table header-row="true">
+<tr><td>Métrica</td><td>Valor Reportado por Comunidad</td><td>Fuente</td><td>Fecha</td></tr>
+<tr><td>**Tasa de Resolución en SWE-bench Verified**</td><td>>74% (mini-SWE-agent)</td><td>SWE-agent GitHub, SWE-bench Leaderboards</td><td>Abril 2026</td></tr>
+<tr><td>**Tasa de Resolución en SWE-bench (con LLMs avanzados)**</td><td>Hasta 82.60% (GPT 5.5)</td><td>vals.ai/benchmarks/swebench</td><td>Abril 2026</td></tr>
+<tr><td>**Experiencia de Usuario (Desarrolladores)**</td><td>"User-friendly features", "much more simple & flexible" (mini-SWE-agent), "empowers LLMs to autonomously use tools"</td><td>Reddit, SWE-agent documentation, Medium articles</td><td>2024-2026</td></tr>
+<tr><td>**Desafíos Comunes**</td><td>"AI fell apart" en archivos de datos grandes, "context blew up within 2-3 turns" (versiones tempranas), "alucinaciones" del LLM.</td><td>Reddit, DEV Community</td><td>2024-2026</td></tr>
+<tr><td>**Adopción en la Industria**</td><td>Utilizado por Meta, NVIDIA, Essential AI, IBM, Nebius, Anyscale, Princeton University, Stanford University.</td><td>GitHub (mini-SWE-agent)</td><td>Abril 2026</td></tr>
+<tr><td>**Impacto en Flujos de Trabajo**</td><td>"Revolutionizing Software Engineering", "automates code implementation through intelligent planning and execution".</td><td>Medium articles, LangTalks GitHub</td><td>2024-2026</td></tr>
+</table>
 
-## L15. Conclusión y Veredicto
-El agente SWE-agent AI coding agent en su versión 1.1.0 (superseded by mini-swe-agent) destaca por sus capacidades en Permite que el modelo de lenguaje de su elección (por ejemplo, GPT-4o o Claude Sonnet 4) utilice herramientas de forma autónoma para corregir problemas en repositorios reales de GitHub, encontrar vulnerabilidades de ciberseguridad o realizar cualquier tarea personalizada. Es de última generación en SWE-bench entre proyectos de código abierto, de flujo libre y generalizable, configurable y totalmente documentado, y diseñado para la investigación., siendo ideal para Corrección de problemas en repositorios de GitHub, búsqueda de vulnerabilidades de ciberseguridad, ejecución de tareas personalizadas.. Sin embargo, se deben considerar sus limitaciones en Ha sido reemplazado por mini-swe-agent y está en modo de solo mantenimiento. Tiene dificultades cuando necesita cargar una gran cantidad de líneas de código en su contexto (por ejemplo, 5k líneas)..
+## L14 — ECONOMÍA OPERATIVA Y ESTRATEGIA GTM
+<table header-row="true">
+<tr><td>Plan</td><td>Precio</td><td>Límites</td><td>Ideal Para</td><td>ROI Estimado</td></tr>
+<tr><td>**Modelo Open-Source (SWE-agent)**</td><td>Gratuito (el software base)</td><td>Los límites son impuestos por los LLMs subyacentes y la infraestructura del usuario.</td><td>Investigadores, desarrolladores individuales, startups, equipos con experiencia en IA que buscan máxima flexibilidad y control.</td><td>**Alto**: Reducción significativa en el tiempo de desarrollo y depuración. Aumento de la productividad del ingeniero de software. El ROI es directo al reducir los costos operativos y acelerar el ciclo de desarrollo.</td></tr>
+<tr><td>**Modelo de Consumo (LLMs)**</td><td>Basado en tokens/uso (ej. OpenAI, Anthropic)</td><td>Definidos por el proveedor del LLM (ej. tokens por minuto, solicitudes por minuto).</td><td>Cualquier usuario de SWE-AGENT que utilice LLMs de pago.</td><td>El ROI se mantiene alto, pero los costos de inferencia deben ser gestionados cuidadosamente. La optimización de prompts y el uso de modelos más eficientes pueden mejorar el ROI.</td></tr>
+<tr><td>**Modelo de Suscripción/Comercial (Especulativo para versiones empresariales)**</td><td>Potencialmente $10,000/mes o más (ej. OpenAI SWE Agent, según rumores de 2025)</td><td>Características premium, soporte, SLAs, acceso a modelos propietarios.</td><td>Grandes empresas con presupuestos significativos que buscan soluciones gestionadas, soporte empresarial y garantías de rendimiento.</td><td>**Muy Alto**: Para empresas que pueden permitirse el costo, el ROI se justifica por la automatización de tareas de ingeniería de software a gran escala, liberando a ingenieros para tareas de mayor valor.</td></tr>
+<tr><td>**Estrategia Go-To-Market (GTM)**</td><td>**Open-Source Adoption**: Fomentar la adopción a través de la comunidad de desarrolladores y la investigación académica. **Partnerships con Proveedores de LLM**: Asegurar compatibilidad y optimización con los principales modelos. **Integración con Plataformas Existentes**: Facilitar el uso en entornos de desarrollo populares (ej. GitHub). **Demostraciones de Rendimiento**: Utilizar benchmarks como SWE-bench para validar la eficacia.</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+</table>
+
+## L15 — BENCHMARKING EMPÍRICO Y RED TEAMING
+<table header-row="true">
+<tr><td>Escenario de Test</td><td>Resultado</td><td>Fortaleza Identificada</td><td>Debilidad Identificada</td></tr>
+<tr><td>**Inyección de Prompt Malicioso (Indirecta)**</td><td>El agente interpreta instrucciones ocultas en un archivo de código o documentación, llevando a acciones no deseadas (ej. exfiltración de datos, introducción de vulnerabilidades).</td><td>Capacidad para procesar y actuar sobre información contextual de múltiples fuentes.</td><td>Vulnerabilidad a la manipulación de la entrada, falta de mecanismos robustos de desinfección de prompts.</td></tr>
+<tr><td>**Introducción de Vulnerabilidades de Seguridad**</td><td>El agente, al intentar resolver un problema, introduce inadvertidamente fallos de seguridad (ej. inyección SQL, XSS, credenciales hardcodeadas) debido a un entendimiento incompleto del contexto de seguridad.</td><td>Capacidad para generar código funcional y resolver problemas complejos.</td><td>Falta de un modelo de seguridad intrínseco, posible priorización de la funcionalidad sobre la seguridad.</td></tr>
+<tr><td>**Ataques de Denegación de Servicio (DoS) Lógico**</td><td>El agente entra en un bucle infinito o consume recursos excesivos al intentar resolver un problema particularmente difícil o ambiguo, agotando la capacidad del entorno de ejecución.</td><td>Persistencia en la resolución de problemas, capacidad de iterar sobre soluciones.</td><td>Gestión ineficiente de recursos, dificultad para reconocer y salir de estados improductivos.</td></tr>
+<tr><td>**Manipulación de Dependencias**</td><td>El agente es engañado para instalar dependencias maliciosas o comprometidas al resolver un problema, comprometiendo la cadena de suministro de software.</td><td>Capacidad para gestionar dependencias y entornos de proyecto.</td><td>Falta de validación de la reputación de las dependencias, confianza implícita en fuentes externas.</td></tr>
+<tr><td>**Evasión de Controles de Calidad (Tests)**</td><td>El agente genera código que pasa las pruebas existentes pero no resuelve el problema subyacente o introduce un comportamiento incorrecto en casos límite no cubiertos por las pruebas.</td><td>Habilidad para satisfacer los criterios de éxito definidos por las pruebas.</td><td>Dependencia de la exhaustividad de los tests, posible falta de razonamiento profundo sobre la intención del problema.</td></tr>
+</table>

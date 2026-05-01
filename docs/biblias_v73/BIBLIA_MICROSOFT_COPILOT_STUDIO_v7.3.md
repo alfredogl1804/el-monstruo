@@ -1,61 +1,155 @@
-## L01 — IDENTIDAD Y ANÁLISIS ESTRATÉGICO
-<br>
-<table header-row="true">
-<tr>
-<td>Atributo</td>
-<td>Descripción</td>
-</tr>
-<tr>
-<td>Nombre oficial</td>
-<td>Microsoft Copilot Studio</td>
-</tr>
-<tr>
-<td>Versión Actual</td>
-<td>Actualización de Marzo 2026 (Release Wave 1 2026)</td>
-</tr>
-<tr>
-<td>Estado Actual</td>
-<td>Activo</td>
-</tr>
-<tr>
-<td>Precio Actual</td>
-<td>Ofrece dos modelos principales: 1) Incluido sin costo adicional para usuarios con licencia de Microsoft 365 Copilot ($30.00/usuario/mes) para crear agentes internos. 2) Para agentes externos o autónomos, ofrece un modelo de pago por uso (Pay-as-you-go) vinculado a una suscripción de Azure, o paquetes pre-comprados de 'Copilot Credits' a $200.00/mes por 25,000 créditos.</td>
-</tr>
-<tr>
-<td>Posicionamiento Competitivo</td>
-<td>Microsoft Copilot Studio se posiciona como una plataforma empresarial líder (low-code/no-code) para la creación y gestión de agentes de IA, profundamente integrada en el ecosistema de Microsoft 365 y Azure. Compite directamente con plataformas como OpenAI GPTs/Assistants, Google Dialogflow/Vertex AI Agents, y plataformas de automatización como Zapier o Make. Su principal diferenciador es la integración nativa con datos empresariales (Microsoft Graph, SharePoint, Dynamics 365) y su enfoque en seguridad, gobernanza y cumplimiento corporativo, permitiendo a las organizaciones desplegar agentes tanto internos (vía Teams/Copilot) como externos con controles granulares.</td>
-</tr>
-</table>
-<br>
-## L02 — NOVEDADES Y CAMBIOS RECIENTES (ABRIL 2026)
-<br>
-<table header-row="true">
-<tr>
-<td>Atributo</td>
-<td>Descripción</td>
-</tr>
-<tr>
-<td>Cambios Clave desde Marzo 2026</td>
-<td>Desde marzo de 2026, Microsoft Copilot Studio ha introducido varias novedades clave: 1) Disponibilidad general (GA) de ChatGPT-5 a nivel global para agentes en producción. 2) Integración de modelos de Anthropic (Claude Sonnet 4.5, Claude Sonnet 4.6 y Claude Opus) para optimizar razonamiento y costos. 3) Disponibilidad general de evaluaciones de agentes mediante conjuntos de pruebas personalizables y pruebas de conversación multi-turno. 4) Preview de herramientas Work IQ para conectar agentes con insights en tiempo real de Microsoft 365. 5) Mejoras en el Prompt Builder con un asistente impulsado por GPT. 6) Soporte para Bing Custom Search como fuente de conocimiento. 7) Nuevas capacidades de orquestación multi-agente y soporte para agentes de voz en tiempo real (Dynamics 365 Contact Center).</td>
-</tr>
-<tr>
-<td>Noticia Más Relevante</td>
-<td>La disponibilidad general de sistemas multi-agente y agentes de voz en tiempo real, junto con la integración de ChatGPT-5 y la familia de modelos Claude de Anthropic para la orquestación de agentes en producción.</td>
-</tr>
-<tr>
-<td>Dato Sorprendente</td>
-<td>La rápida adopción de modelos de la competencia dentro de su propio ecosistema: Copilot Studio ahora permite seleccionar modelos de Anthropic (como Claude Sonnet 4.6 y Opus) como modelo de IA principal para los agentes, además de los modelos de OpenAI (ChatGPT-5).</td>
-</tr>
-<tr>
-<td>GitHub Stars</td>
-<td>N/A (propietario)</td>
-</tr>
-</table>
-<br>
-## L03 a L15 — (Estructura estándar heredada de v7.0)
-<br>
-*Nota: Las capas L03 a L15 mantienen la estructura analítica profunda de la versión v7.0, actualizada con los datos de L01 y L02.*
+# BIBLIA DE MICROSOFT_COPILOT_STUDIO v7.3
 
----
-**Fuentes Consultadas (Abril 2026):**
-https://www.microsoft.com/en-us/microsoft-365-copilot/microsoft-copilot-studio, https://learn.microsoft.com/en-us/microsoft-copilot-studio/whats-new, https://learn.microsoft.com/en-us/power-platform/released-versions/copilotstudio
+**Fecha de Actualización:** 30 de Abril de 2026
+
+## L01 — IDENTIDAD Y ANÁLISIS ESTRATÉGICO
+
+<table header-row="true">
+<tr><td>Nombre oficial</td><td>Microsoft Copilot Studio</td></tr>
+<tr><td>Desarrollador</td><td>Microsoft (Microsoft AI)</td></tr>
+<tr><td>País de Origen</td><td>Estados Unidos</td></tr>
+<tr><td>Inversión y Financiamiento</td><td>Microsoft invierte fuertemente en el ecosistema de partners (hasta $25,000 en fondos para partners a través del Microsoft AI Cloud Partner Program para adopción de Copilot). Es parte de la inversión masiva de Microsoft en IA generativa (OpenAI).</td></tr>
+<tr><td>Modelo de Precios</td><td>Licencia a nivel de tenant. Paquetes de capacidad de 25,000 Copilot Credits por $200.00/paquete/mes. Costo base de $0.01/Copilot Credit en modelo pay-as-you-go.</td></tr>
+<tr><td>Posicionamiento Estratégico</td><td>Plataforma low-code/no-code para crear agentes de IA personalizados y flujos de trabajo. Parte integral de Power Platform, diseñada para extender Microsoft 365 Copilot y crear agentes autónomos.</td></tr>
+<tr><td>Gráfico de Dependencias</td><td>Depende de Power Platform (Power Virtual Agents fue su predecesor), Microsoft Dataverse, Azure OpenAI Service, Microsoft Entra ID (para autenticación).</td></tr>
+<tr><td>Matriz de Compatibilidad</td><td>Compatible con Microsoft 365, Teams, Dynamics 365, SharePoint, OneDrive, Azure Bot Service, y sistemas externos a través de más de 1000 conectores de Power Platform y MCP (Model Context Protocol).</td></tr>
+<tr><td>Acuerdos de Nivel de Servicio (SLOs)</td><td>SLA respaldado financieramente con 99.9% de tiempo de actividad (uptime) mensual, estándar para servicios de Power Platform y Azure.</td></tr>
+</table>
+## L02 — GOBERNANZA Y MODELO DE CONFIANZA
+
+<table header-row="true">
+<tr><td>Licencia</td><td>El servicio de Copilot Studio se rige por los acuerdos de licencia comercial de Microsoft, incluyendo los Términos de Producto de Microsoft y el Anexo de Protección de Datos.</td></tr>
+<tr><td>Política de Privacidad</td><td>Copilot Studio se adhiere a los compromisos de privacidad, seguridad y cumplimiento existentes para los clientes de Microsoft 365. La protección de datos empresariales está integrada.</td></tr>
+<tr><td>Cumplimiento y Certificaciones</td><td>Microsoft Trust Center es el recurso principal para la información de cumplimiento de Power Platform. Copilot Studio ofrece funciones robustas para cumplir con los requisitos de cumplimiento críticos, incluyendo certificaciones ISO, SOC y HIPAA.</td></tr>
+<tr><td>Historial de Auditorías y Seguridad</td><td>Copilot Studio sigue el Ciclo de Vida de Desarrollo de Seguridad (SDL) de Microsoft. Los administradores tienen visibilidad completa de los registros de auditoría de los creadores en Microsoft Purview y pueden monitorear actividades a través de Microsoft Sentinel.</td></tr>
+<tr><td>Respuesta a Incidentes</td><td>Las prácticas de SDL de Microsoft y las características de seguridad integradas (como el estado de protección en tiempo de ejecución del agente y el escaneo de seguridad automático) contribuyen a la respuesta a incidentes.</td></tr>
+<tr><td>Matriz de Autoridad de Decisión</td><td>Los controles de políticas de datos permiten a los administradores gobernar el uso y la disponibilidad de las características y capacidades del agente de Copilot Studio. Esto incluye la gestión de la autenticación de creadores y usuarios, fuentes de conocimiento, acciones, conectores y habilidades.</td></tr>
+<tr><td>Política de Obsolescencia</td><td>No se encontró una política de obsolescencia explícita en la documentación revisada. Sin embargo, como parte de Power Platform y el ecosistema de Microsoft, se espera que siga las políticas generales de soporte y ciclo de vida de productos de Microsoft.</td></tr>
+</table>
+## L03 — MODELO MENTAL Y MAESTRÍA
+
+Microsoft Copilot Studio se posiciona como una plataforma de desarrollo de agentes de IA de bajo código, diseñada para empoderar tanto a desarrolladores profesionales como a usuarios de negocio (citizen developers) para crear, desplegar y gestionar copilotos personalizados. El modelo mental central gira en torno a la idea de **agentes conversacionales y autónomos** que pueden interactuar con usuarios, automatizar tareas y acceder a diversas fuentes de datos y sistemas.
+
+<table header-row="true">
+<tr><td>Paradigma Central</td><td>Desarrollo de Agentes de IA de Bajo Código/No Código. Empoderamiento del 'citizen developer' para extender capacidades de IA en el ecosistema Microsoft y más allá.</td></tr>
+<tr><td>Abstracciones Clave</td><td>**Agentes:** Entidades de IA que interactúan con usuarios o sistemas. **Temas (Topics):** Rutas conversacionales predefinidas. **Acciones (Actions):** Conectores a sistemas externos o flujos de Power Automate. **Prompts:** Instrucciones en lenguaje natural para guiar el comportamiento del agente. **Fuentes de Conocimiento:** Repositorios de información que el agente puede consultar. **Modelos de Razonamiento Profundo:** Capacidades avanzadas de IA para tareas complejas.</td></tr>
+<tr><td>Patrones de Pensamiento Recomendados</td><td>**Pensamiento centrado en el usuario:** Diseñar agentes que resuelvan problemas específicos del usuario. **Iteración rápida:** Utilizar las capacidades de bajo código para prototipar y refinar agentes rápidamente. **Extensibilidad:** Pensar en cómo el agente puede integrarse con otros sistemas y servicios. **Gobernanza:** Considerar la seguridad, privacidad y cumplimiento desde el diseño.</td></tr>
+<tr><td>Anti-patrones a Evitar</td><td>**Agentes monolíticos:** Intentar que un solo agente haga demasiadas cosas, lo que lleva a la complejidad y dificultad de mantenimiento. **Ignorar la gobernanza:** Desplegar agentes sin considerar políticas de datos, seguridad y cumplimiento. **Dependencia excesiva de la IA generativa sin control:** No validar o refinar las respuestas generadas por la IA. **Falta de pruebas:** No probar exhaustivamente los agentes en escenarios reales.</td></tr>
+<tr><td>Curva de Aprendizaje</td><td>**Baja para lo básico:** Usuarios con experiencia en Power Platform o conceptos de automatización pueden empezar rápidamente a construir agentes simples. **Moderada para lo avanzado:** La maestría en la integración con sistemas complejos, el uso de modelos de razonamiento profundo, la gestión de la gobernanza y la optimización del rendimiento requiere un conocimiento más profundo de la plataforma y los principios de IA.</td></tr>
+</table>
+## L04 — CAPACIDADES TÉCNICAS
+
+<table header-row="true">
+<tr><td>Capacidades Core</td><td>Creación de agentes de IA conversacionales, gestión de temas (topics), integración de fuentes de conocimiento (sitios web, SharePoint, archivos), uso de conectores de Power Platform, creación de prompts con lenguaje natural, construcción de flujos de agente.</td></tr>
+<tr><td>Capacidades Avanzadas</td><td>Orquestación generativa, respuestas dinámicas, uso de modelos de razonamiento profundo para tareas complejas, extensión de agentes con herramientas personalizadas, integración con Microsoft 365 Copilot, soporte multi-agente, uso de intérprete de código (Python), configuración de autenticación de usuario.</td></tr>
+<tr><td>Capacidades Emergentes (Abril 2026)</td><td>Soporte mejorado para sistemas multi-agente y orquestación con agentes de Fabric, capacidades de uso de computadora (Computer Use) con nuevos modelos, credenciales integradas, registro de auditoría mejorado con reproducción de sesiones y agrupación de Cloud PC. Mejoras en la creación y operación de agentes, incluyendo el uso de capacidades de IA generativa líderes en la industria.</td></tr>
+<tr><td>Limitaciones Técnicas Confirmadas</td><td>La documentación no detalla limitaciones técnicas explícitas más allá de las cuotas y límites de servicio estándar de Power Platform. Sin embargo, como plataforma de bajo código, puede tener limitaciones en la personalización a nivel de código profundo en comparación con el desarrollo de IA desde cero. La capacidad de los créditos de Copilot no se transfiere al mes siguiente.</td></tr>
+<tr><td>Roadmap Público</td><td>El roadmap público (Wave 1 de 2026) incluye mejoras para facilitar la creación y operación de agentes, con un enfoque en capacidades de IA generativa. Se esperan características desde abril de 2026 hasta septiembre de 2026.</td></tr>
+</table>
+## L05 — DOMINIO TÉCNICO
+
+<table header-row="true">
+<tr><td>Stack Tecnológico</td><td>Microsoft Power Platform (Power Apps, Power Automate, Power BI, Power Pages), Microsoft Dataverse, Azure OpenAI Service (para modelos GPT), Azure.</td></tr>
+<tr><td>Arquitectura Interna</td><td>Basada en el "Microsoft Copilot Stack", un marco arquitectónico para el desarrollo de aplicaciones de IA conversacional. Utiliza un modelo de ejecución de bajo código para agentes y flujos. Incluye componentes para el manejo de sesiones, datos, aislamiento de tenants y ciclo de vida de solicitudes.</td></tr>
+<tr><td>Protocolos Soportados</td><td>Model Context Protocol (MCP) para la conexión a servidores de conocimiento y fuentes de datos externas. Soporte para protocolos subyacentes a los más de 1000 conectores de Power Platform (ej. HTTP/HTTPS para APIs REST, OAuth para autenticación).</td></tr>
+<tr><td>Formatos de Entrada/Salida</td><td>Interacción principal a través de lenguaje natural (texto). Para integraciones, soporta formatos como JSON, XML y otros definidos por los conectores de Power Platform y las APIs externas.</td></tr>
+<tr><td>APIs Disponibles</td><td>Acceso a APIs de servicios externos a través de los conectores de Power Platform. El Model Context Protocol (MCP) permite la conexión directa a APIs y sistemas externos, extendiendo las capacidades del agente.</td></tr>
+</table>
+## L06 — PLAYBOOKS OPERATIVOS
+
+<table header-row="true">
+<tr><td>Caso de Uso</td><td>Pasos Exactos</td><td>Herramientas Necesarias</td><td>Tiempo Estimado</td><td>Resultado Esperado</td></tr>
+<tr><td>**Soporte al Cliente Automatizado (Resolución de FAQs)**</td><td>1. Crear un nuevo agente en Copilot Studio.<br>2. Conectar el agente a la base de conocimientos de la empresa (sitio web público y documentos de SharePoint con FAQs).<br>3. Definir temas (topics) para las consultas más comunes (ej. restablecimiento de contraseña, estado de pedido).<br>4. Configurar la transferencia a un agente humano (handoff) en Dynamics 365 Customer Service si la IA no puede resolver el problema.<br>5. Probar el agente y publicarlo en el sitio web de la empresa.</td><td>Microsoft Copilot Studio, SharePoint, Dynamics 365 Customer Service</td><td>2-4 semanas</td><td>Reducción del 30-50% en el volumen de tickets de soporte de nivel 1, respuestas 24/7, mejora en la satisfacción del cliente.</td></tr>
+<tr><td>**Asistente de Recursos Humanos (Onboarding de Empleados)**</td><td>1. Crear un agente interno en Copilot Studio.<br>2. Ingestar manuales de empleado, políticas de la empresa y guías de beneficios desde SharePoint o OneDrive.<br>3. Crear flujos de Power Automate para automatizar tareas como la solicitud de equipo informático o la programación de reuniones de orientación.<br>4. Integrar el agente en Microsoft Teams para fácil acceso de los empleados.<br>5. Configurar autenticación de usuario para respuestas personalizadas.</td><td>Microsoft Copilot Studio, Microsoft Teams, Power Automate, SharePoint</td><td>1-3 semanas</td><td>Reducción del tiempo de onboarding, acceso instantáneo a políticas de RRHH, disminución de consultas repetitivas al equipo de RRHH.</td></tr>
+<tr><td>**Asistente de Operaciones (Análisis de Datos y Reportes)**</td><td>1. Desarrollar un agente en Copilot Studio con capacidades de razonamiento profundo.<br>2. Utilizar Model Context Protocol (MCP) o conectores de Power Platform para conectar el agente a bases de datos operativas (ej. SQL Server, SAP).<br>3. Configurar prompts como herramientas para permitir al agente consultar datos específicos y generar resúmenes.<br>4. Habilitar el intérprete de código (Python) para análisis de datos complejos y generación de gráficos.<br>5. Desplegar el agente para el equipo de operaciones.</td><td>Microsoft Copilot Studio, Conectores de Power Platform / MCP, Bases de datos operativas</td><td>3-6 semanas</td><td>Generación rápida de reportes operativos, identificación proactiva de cuellos de botella, toma de decisiones basada en datos en tiempo real.</td></tr>
+</table>
+## L07 — EVIDENCIA Y REPRODUCIBILIDAD
+
+<table header-row="true">
+<tr><td>Benchmark</td><td>Score/Resultado</td><td>Fecha</td><td>Fuente</td><td>Comparativa</td></tr>
+<tr><td>**Reducción de Escalaciones Humanas (Microsoft Internal)**</td><td>Hasta 70% menos escalaciones</td><td>Febrero 2026</td><td>Microsoft Customer Story (Internal use of Copilot Studio)</td><td>Comparado con el agente web original sin Copilot Studio.</td></tr>
+<tr><td>**Reducción de Latencia (Microsoft Internal)**</td><td>Hasta 61% menor latencia</td><td>Febrero 2026</td><td>Microsoft Customer Story (Internal use of Copilot Studio)</td><td>Comparado con el agente web original sin Copilot Studio.</td></tr>
+<tr><td>**Tasa de Éxito de Tareas (General para Agentes de IA)**</td><td>Variable, pero se busca >80%</td><td>Abril 2026</td><td>Gartner Reviews, Microsoft Learn (Guías de evaluación)</td><td>Métrica clave para la efectividad del agente, monitoreada a través de las capacidades de análisis de Copilot Studio.</td></tr>
+<tr><td>**Satisfacción del Usuario (General para Agentes de IA)**</td><td>Variable, se busca mejora continua</td><td>Abril 2026</td><td>Gartner Reviews, Microsoft Learn (Guías de evaluación)</td><td>Evaluada a través de encuestas y feedback directo de los usuarios, una métrica importante para el ROI.</td></tr>
+<tr><td>**Ahorro de Costos (Estimado por Forrester para Copilot Studio)**</td><td>ROI del 200-300% en 3 años (estimado)</td><td>Desconocido (Estudio TEI de Forrester)</td><td>The Projected Total Economic Impact™ Of Microsoft Copilot Studio (Forrester)</td><td>Basado en la mejora de la eficiencia operativa y la reducción de la carga de trabajo de los empleados.</td></tr>
+</table>
+## L08 — ARQUITECTURA DE INTEGRACIÓN
+
+<table header-row="true">
+<tr><td>Método de Integración</td><td>Protocolo</td><td>Autenticación</td><td>Latencia Típica</td><td>Límites de Rate</td></tr>
+<tr><td>**Conectores de Power Platform**</td><td>HTTP/HTTPS (APIs REST subyacentes)</td><td>OAuth 2.0, Claves API, Autenticación Básica (dependiendo del conector)</td><td>Baja a Moderada (decenas a cientos de ms)</td><td>Definidos por el conector específico y el servicio al que se conecta. Generalmente alineados con los límites de API del servicio de destino.</td></tr>
+<tr><td>**Model Context Protocol (MCP)**</td><td>Protocolo propietario de Microsoft para comunicación con servidores de conocimiento y herramientas externas.</td><td>Basado en la configuración del servidor MCP y las políticas de seguridad de Azure/Microsoft 365.</td><td>Baja a Moderada (decenas a cientos de ms)</td><td>Definidos por el servidor MCP y el servicio subyacente.</td></tr>
+<tr><td>**APIs Personalizadas**</td><td>HTTP/HTTPS (APIs REST)</td><td>OAuth 2.0, Claves API, Azure Active Directory (Microsoft Entra ID)</td><td>Baja a Moderada (decenas a cientos de ms)</td><td>Definidos por la API personalizada y la infraestructura que la aloja.</td></tr>
+<tr><td>**Microsoft 365 Copilot Extensibility**</td><td>Protocolos internos de Microsoft 365</td><td>Autenticación de Microsoft 365 (Microsoft Entra ID)</td><td>Baja (dentro del ecosistema Microsoft 365)</td><td>Alineados con los límites de uso de Microsoft 365.</td></tr>
+<tr><td>**Azure Bot Service**</td><td>Direct Line API, WebSockets</td><td>Tokens de autenticación de Azure Bot Service</td><td>Baja (dentro de Azure)</td><td>Definidos por Azure Bot Service.</td></tr>
+</table>
+## L09 — VERIFICACIÓN Y PRUEBAS
+
+<table header-row="true">
+<tr><td>Tipo de Test</td><td>Herramienta Recomendada</td><td>Criterio de Éxito</td><td>Frecuencia</td></tr>
+<tr><td>**Pruebas de Conversación (Funcionales)**</td><td>Evaluaciones de Agente en Copilot Studio (Automated Test Sets)</td><td>Tasa de éxito de tareas, precisión de la respuesta, resolución de intenciones, cumplimiento de flujos de diálogo.</td><td>Continuo durante el desarrollo, antes de cada publicación mayor.</td></tr>
+<tr><td>**Pruebas de Rendimiento y Carga**</td><td>Apache JMeter (con scripts adaptados para agentes conversacionales)</td><td>Latencia de respuesta aceptable, capacidad de manejar picos de usuarios, estabilidad bajo carga.</td><td>Periódicamente, especialmente antes de eventos de alto tráfico o lanzamientos importantes.</td></tr>
+<tr><td>**Pruebas de Integración**</td><td>Herramientas de prueba de API (Postman, SoapUI), pruebas unitarias para conectores personalizados.</td><td>Comunicación exitosa con sistemas externos, intercambio de datos correcto, autenticación y autorización funcionando.</td><td>Durante el desarrollo de cada integración, antes de la implementación.</td></tr>
+<tr><td>**Pruebas de Usabilidad y Experiencia de Usuario (UX)**</td><td>Pruebas con usuarios reales, encuestas de satisfacción, análisis de transcripciones de conversaciones.</td><td>Alta satisfacción del usuario, facilidad de uso, claridad de las respuestas, cumplimiento de las expectativas del usuario.</td><td>Frecuentemente durante el ciclo de vida del agente, con cada iteración importante.</td></tr>
+<tr><td>**Pruebas de Seguridad y Cumplimiento**</td><td>Escaneos de seguridad automatizados, auditorías de cumplimiento, pruebas de penetración.</td><td>Cumplimiento de políticas de DLP, protección de datos, autenticación segura, ausencia de vulnerabilidades conocidas.</td><td>Periódicamente, y después de cambios significativos en la configuración o integraciones.</td></tr>
+</table>
+## L10 — CICLO DE VIDA Y MIGRACIÓN
+
+<table header-row="true">
+<tr><td>Versión</td><td>Fecha de Lanzamiento</td><td>Estado</td><td>Cambios Clave</td><td>Ruta de Migración</td></tr>
+<tr><td>**Microsoft Copilot Studio (General Availability)**</td><td>Octubre 2023 (renombramiento y expansión de Power Virtual Agents)</td><td>Activo, en desarrollo continuo</td><td>Transición de Power Virtual Agents a una plataforma unificada para construir y gestionar copilotos. Integración más profunda con Microsoft 365 Copilot y Power Platform. Introducción de capacidades de IA generativa.</td><td>Los proyectos existentes de Power Virtual Agents se migraron automáticamente a Copilot Studio. La funcionalidad y los agentes se mantuvieron, con acceso a nuevas características.</td></tr>
+<tr><td>**Actualizaciones Mensuales**</td><td>Continuas (ej. Octubre 2025, Noviembre 2025)</td><td>Activo</td><td>Nuevas características, mejoras de rendimiento, parches de seguridad. Ejemplos: GPT-5 Chat, gobernanza de agentes, nuevas herramientas para creadores y administradores, mejoras en evaluaciones de agentes, capacidades de uso de computadora.</td><td>Actualizaciones automáticas para los servicios en la nube. Los usuarios deben revisar la documentación de "Novedades" para adaptar sus agentes a las nuevas funcionalidades.</td></tr>
+<tr><td>**Release Wave 1 2026**</td><td>Abril 2026 - Septiembre 2026</td><td>Planificado/Lanzamiento gradual</td><td>Enfoque en facilitar la creación y operación de agentes, con énfasis en capacidades de IA generativa líderes en la industria. Mejoras en sistemas multi-agente y orquestación.</td><td>Se recomienda a los usuarios revisar los planes de lanzamiento para prepararse para las nuevas características y posibles cambios en el comportamiento de los agentes.</td></tr>
+</table>
+## L11 — MARCO DE COMPETENCIA
+
+<table header-row="true">
+<tr><td>Competidor Directo</td><td>Ventaja vs Competidor</td><td>Desventaja vs Competidor</td><td>Caso de Uso Donde Gana</td></tr>
+<tr><td>**Google Dialogflow**</td><td>Fuerte en procesamiento de lenguaje natural (NLU) y comprensión de intenciones. Amplia integración con el ecosistema de Google Cloud.</td><td>Menor integración nativa con el ecosistema de Microsoft 365 y Power Platform. Puede requerir más desarrollo personalizado para integraciones complejas fuera de Google Cloud.</td><td>Creación de agentes conversacionales para aplicaciones web y móviles que ya utilizan intensivamente Google Cloud Services y NLU avanzado.</td></tr>
+<tr><td>**IBM Watson Assistant**</td><td>Reconocido por sus capacidades de IA conversacional, NLU robusto y experiencia en soluciones empresariales. Fuerte en industrias reguladas.</td><td>Curva de aprendizaje potencialmente más pronunciada para usuarios de bajo código. Puede ser más costoso para implementaciones a gran escala. Menor integración nativa con el ecosistema de Microsoft.</td><td>Soluciones de IA conversacional para grandes empresas con requisitos complejos de NLU, cumplimiento normativo y que ya utilizan el stack de IBM.</td></tr>
+<tr><td>**Kore.ai Agent Platform**</td><td>Plataforma integral para la construcción de agentes de IA, con un fuerte enfoque en la experiencia del desarrollador y capacidades omnicanal.</td><td>Puede tener una base de usuarios y un ecosistema de partners más pequeños en comparación con Microsoft.</td><td>Empresas que buscan una plataforma de IA conversacional con amplias capacidades omnicanal y herramientas robustas para desarrolladores.</td></tr>
+<tr><td>**Yellow.ai Agentic AI Platform**</td><td>Ofrece una plataforma de IA conversacional con un enfoque en la automatización de la experiencia del cliente y el empleado.</td><td>Similar a Kore.ai, puede tener un ecosistema menos maduro que Microsoft.</td><td>Empresas que buscan automatizar interacciones con clientes y empleados a través de múltiples canales con un enfoque en la IA conversacional.</td></tr>
+<tr><td>**Dust**</td><td>Plataforma de agentes de IA sin código con conexiones de datos multiplataforma y acciones nativas de LLM.</td><td>Menos maduro y con menos integraciones pre-construidas que Copilot Studio, especialmente dentro de entornos empresariales establecidos.</td><td>Startups o equipos pequeños que buscan prototipar y desplegar rápidamente agentes de IA con un enfoque en la flexibilidad y la conexión a diversas fuentes de datos.</td></tr>
+<tr><td>**Microsoft Copilot Studio**</td><td>**Ventajas:** Integración profunda con Microsoft 365, Power Platform y Azure. Capacidades low-code/no-code. Acceso a modelos GPT-4/GPT-5 de OpenAI. Ecosistema de conectores robusto. Gobernanza y seguridad empresarial.</td><td>**Desventajas:** Puede ser percibido como menos agnóstico a la nube que otras soluciones. Dependencia del ecosistema de Microsoft para algunas funcionalidades avanzadas.</td><td>Creación de agentes de IA para empresas que ya utilizan Microsoft 365, Power Platform y Azure, buscando extender sus capacidades de automatización y asistencia inteligente dentro de su entorno existente.</td></tr>
+</table>
+## L12 — CAPA DE INYECCIÓN DE IA (AI INJECTION LAYER)
+
+<table header-row="true">
+<tr><td>Capacidad de IA</td><td>Modelo Subyacente</td><td>Nivel de Control</td><td>Personalización Posible</td></tr>
+<tr><td>**Generación de Contenido y Respuestas**</td><td>Modelos GPT de Azure OpenAI (ej. GPT-4, GPT-5, modelos experimentales)</td><td>Alto, a través de la configuración de prompts, temas y fuentes de conocimiento. Control sobre la "temperatura" y otros parámetros del modelo.</td><td>Creación de prompts personalizados, selección de modelos de IA primarios, integración de modelos propios (Bring Your Own Model).</td></tr>
+<tr><td>**Orquestación Generativa**</td><td>Modelos de IA avanzados para razonamiento lógico y resolución de problemas.</td><td>Moderado a Alto, los creadores definen las tareas y el agente utiliza la IA para orquestar los pasos.</td><td>Definición de flujos de trabajo complejos, integración con herramientas y acciones personalizadas.</td></tr>
+<tr><td>**Análisis de Lenguaje Natural (NLU)**</td><td>Modelos de NLU de Microsoft.</td><td>Alto, a través de la definición de intenciones, entidades y frases de activación.</td><td>Entrenamiento de modelos de NLU con datos específicos del dominio, ajuste fino de la comprensión de intenciones.</td></tr>
+<tr><td>**Detección y Protección contra Ataques de Inyección de Prompts**</td><td>Modelos de seguridad de IA de Microsoft.</td><td>Alto, protecciones integradas contra ataques de inyección de prompts (UPIA y XPIA).</td><td>Configuración de proveedores de seguridad externos, monitoreo de alertas de seguridad.</td></tr>
+<tr><td>**Interpretación de Código**</td><td>Modelos de IA para generación y ejecución de código Python.</td><td>Moderado, los creadores pueden habilitar y configurar el intérprete de código para tareas específicas.</td><td>Definición de escenarios donde el agente puede usar el intérprete de código, personalización de las bibliotecas disponibles.</td></tr>
+</table>
+## L13 — RENDIMIENTO REALISTA Y EXPERIENCIA COMUNITARIA
+
+<table header-row="true">
+<tr><td>Métrica</td><td>Valor Reportado por Comunidad</td><td>Fuente</td><td>Fecha</td></tr>
+<tr><td>**Sesiones Totales**</td><td>Variable (depende del uso del agente)</td><td>Análisis de Copilot Studio (integrado), Power Platform Admin Center</td><td>Continuo</td></tr>
+<tr><td>**Tasa de Resolución de Conversaciones**</td><td>Variable (se busca optimización continua)</td><td>Análisis de Copilot Studio (integrado)</td><td>Continuo</td></tr>
+<tr><td>**Satisfacción del Cliente (CSAT)**</td><td>Variable (se busca mejora continua)</td><td>Análisis de Copilot Studio (integrado), encuestas de usuario</td><td>Continuo</td></tr>
+<tr><td>**Usuarios Activos Diarios (DAU) / Mensuales (MAU)**</td><td>Variable (depende de la adopción interna/externa)</td><td>Análisis de Copilot Studio (integrado), Power Platform Admin Center</td><td>Continuo</td></tr>
+<tr><td>**Uso de Créditos de Copilot**</td><td>Variable (depende de la complejidad y volumen de interacciones)</td><td>Informes de uso de Microsoft 365 Copilot, Power Platform Admin Center</td><td>Continuo</td></tr>
+<tr><td>**Feedback de la Comunidad**</td><td>Generalmente positivo para la facilidad de uso y la integración con el ecosistema de Microsoft. Desafíos comunes incluyen la gestión de dependencias complejas y la necesidad de un ajuste fino de los prompts para obtener resultados óptimos.</td><td>Foros de la comunidad de Power Platform, Reddit (r/copilotstudio), LinkedIn</td><td>Abril 2026</td></tr>
+<tr><td>**Rendimiento en Integraciones Externas**</td><td>La latencia y el rendimiento pueden variar significativamente dependiendo de la calidad y la capacidad de respuesta de los sistemas externos integrados.</td><td>Experiencia de usuario reportada en foros y blogs técnicos.</td><td>Abril 2026</td></tr>
+</table>
+## L14 — ECONOMÍA OPERATIVA Y ESTRATEGIA GTM
+
+<table header-row="true">
+<tr><td>Plan</td><td>Precio</td><td>Límites</td><td>Ideal Para</td><td>ROI Estimado</td></tr>
+<tr><td>**Licencia a Nivel de Tenant (con Copilot Credits)**</td><td>$200.00/paquete/mes por 25,000 Copilot Credits.</td><td>Los Copilot Credits no se transfieren al mes siguiente. Los límites de uso se aplican a la cantidad de mensajes y operaciones de IA.</td><td>Organizaciones que desean implementar Copilot Studio a gran escala y tienen un volumen predecible de uso de agentes.</td><td>ROI del 200-300% en 3 años (según estudio de Forrester para el impacto económico total).</td></tr>
+<tr><td>**Pay-as-you-go (Azure)**</td><td>$0.01/Copilot Credit.</td><td>Los límites de uso se basan en el consumo, con la flexibilidad de escalar según la demanda.</td><td>Empresas con uso variable o impredecible de agentes, o aquellas que prefieren un modelo de pago por uso sin compromisos mensuales fijos.</td></tr>
+<tr><td>**Integración con Microsoft 365 Copilot**</td><td>Incluido con licencias elegibles de Microsoft 365 Copilot (ej. $30/usuario/mes para Microsoft 365 Copilot).</td><td>Los límites de uso están alineados con la licencia de Microsoft 365 Copilot.</td><td>Organizaciones que ya utilizan Microsoft 365 Copilot y desean extender sus capacidades con agentes personalizados.</td></tr>
+<tr><td>**Estrategia Go-to-Market (GTM)**</td><td>N/A</td><td>N/A</td><td>N/A</td><td>Microsoft posiciona Copilot Studio como una herramienta clave para la transformación digital y la adopción de la IA en la empresa, ofreciendo soluciones de bajo código para acelerar la creación de agentes inteligentes.</td></tr>
+</table>
+## L15 — BENCHMARKING EMPÍRICO Y RED TEAMING
+
+<table header-row="true">
+<tr><td>Escenario de Test</td><td>Resultado</td><td>Fortaleza Identificada</td><td>Debilidad Identificada</td></tr>
+<tr><td>**Ataques de Inyección de Prompts (UPIA/XPIA)**</td><td>Copilot Studio incluye protecciones por defecto. El "AI Red Teaming Agent" de Microsoft y herramientas de terceros (ej. Tenable AI Research) han demostrado la posibilidad de bypass de controles de seguridad en ciertos escenarios.</td><td>Protecciones integradas contra inyección de prompts. Herramientas de red teaming disponibles para evaluación.</td><td>Vulnerabilidad potencial a ataques sofisticados de inyección de prompts que pueden eludir las defensas predeterminadas, llevando a la fuga de datos o manipulación del agente.</td></tr>
+<tr><td>**Exposición de Datos Sensibles (Overpermissioning)**</td><td>Identificado como un riesgo crítico si los agentes tienen permisos excesivos o acceden a datos sensibles sin la gobernanza adecuada.</td><td>Controles de políticas de datos (DLP) y gestión de acceso en Power Platform.</td><td>Configuraciones incorrectas de permisos o acceso a datos pueden llevar a la exposición de información confidencial.</td></tr>
+<tr><td>**Ataques de Inversión de Modelo**</td><td>Riesgo teórico donde un atacante podría inferir datos de entrenamiento del modelo a partir de sus respuestas.</td><td>Microsoft implementa prácticas de seguridad en el ciclo de vida de desarrollo (SDL) para mitigar estos riesgos.</td><td>Potencial de ingeniería inversa de los modelos subyacentes si no se implementan medidas de seguridad robustas.</td></tr>
+<tr><td>**Misconfiguraciones de Agente**</td><td>Errores comunes en la configuración de agentes pueden crear vulnerabilidades de seguridad.</td><td>Restricción de agentes a entornos de Power Platform que aplican políticas de datos, seguridad y gobernanza.</td><td>La complejidad de la configuración puede llevar a errores que abren puertas a vulnerabilidades.</td></tr>
+<tr><td>**Benchmarking de Rendimiento Conversacional**</td><td>Evaluaciones internas y externas muestran variabilidad en la precisión y relevancia de las respuestas dependiendo de la complejidad del prompt y la calidad de las fuentes de conocimiento.</td><td>Capacidades de evaluación de agentes integradas en Copilot Studio para medir la tasa de éxito de tareas y la satisfacción del usuario.</td><td>El rendimiento puede ser inconsistente sin un ajuste fino continuo y una gestión de calidad de las fuentes de conocimiento.</td></tr>
+</table>

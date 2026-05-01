@@ -1,73 +1,142 @@
-## L01 — IDENTIDAD Y ANÁLISIS ESTRATÉGICO
-<br>
-<table header-row="true">
-<tr>
-<td>Atributo</td>
-<td>Descripción</td>
-</tr>
-<tr>
-<td>Nombre oficial</td>
-<td>Hasura</td>
-</tr>
-<tr>
-<td>Versión Actual</td>
-<td>DDN-Release (27 abril 2026) y V3-Engine v2026.02.17 (17 febrero 2026)</td>
-</tr>
-<tr>
-<td>Estado Actual</td>
-<td>Activo</td>
-</tr>
-<tr>
-<td>Precio Actual</td>
-<td>Hasura DDN ofrece un modelo de precios basado en "modelos activos":
-- **DDN Free**: $0, ideal para desarrolladores individuales.
-- **DDN Base**: Desde $5/modelo activo/mes, para equipos que construyen un supergrafo crítico para el negocio.
-- **DDN Advanced**: Desde $30/modelo activo/mes, para múltiples equipos colaborando en un supergrafo federado.
-Un "modelo activo" se define como cualquier modelo o comando en los metadatos al que se accede más de 1000 veces al mes. También se ofrece la opción **Private DDN** para requisitos avanzados de seguridad y cumplimiento, disponible con los planes Base y Advanced, que permite alojar el plano de datos de Hasura en infraestructura dedicada o VPCs dedicadas en Hasura Cloud.</td>
-</tr>
-<tr>
-<td>Posicionamiento Competitivo</td>
-<td>Hasura se posiciona como una plataforma líder para la creación instantánea de APIs GraphQL en tiempo real sobre diversas fuentes de datos, destacando su enfoque en la red de entrega de datos (DDN) y la capacidad de federar supergrafos. Sus principales competidores incluyen soluciones como Apollo GraphQL, Directus y Strapi, así como servicios backend-as-a-service como AWS AppSync. Hasura se diferencia por su capacidad de generar APIs GraphQL a partir de bases de datos existentes con control de acceso granular y webhooks, y su reciente evolución hacia la arquitectura DDN con soporte para múltiples conectores de datos. Su modelo de precios basado en "modelos activos" busca escalar de manera predecible desde startups hasta empresas, ofreciendo opciones de despliegue flexibles y seguridad avanzada con Private DDN.</td>
-</tr>
-</table>
-<br>
-## L02 — NOVEDADES Y CAMBIOS RECIENTES (ABRIL 2026)
-<br>
-<table header-row="true">
-<tr>
-<td>Atributo</td>
-<td>Descripción</td>
-</tr>
-<tr>
-<td>Cambios Clave desde Marzo 2026</td>
-<td>Desde el 20 de marzo de 2026, Hasura ha lanzado varias actualizaciones importantes centradas en su Data Delivery Network (DDN) y sus conectores de datos:
-- **DDN-Release**: Múltiples lanzamientos semanales (23, 30 de marzo, 6, 13, 20, 27 de abril de 2026) con mejoras continuas.
-- **NDC Elasticsearch v1.10.0 (23 de marzo de 2026)**: Actualización a Go v1.26 y corrección de vulnerabilidades.
-- **NDC MongoDb v2.0.0 (23 de marzo de 2026)**: Incorporación de soporte para consultas relacionales (proyección, filtrado, ordenación, paginación, joins, agregaciones, funciones de ventana, uniones y streaming). También se añadió un almacén de configuración respaldado por PostgreSQL para la carga de esquemas bajo demanda y la agrupación de documentos para agregación. Se introdujeron cambios **BREAKING** con la actualización a `ndc-spec v0.2` y la eliminación de la agregación de conteo personalizada.
-- **NDC MongoDb v2.0.1 (23 de marzo de 2026)**: Correcciones de errores y lanzamiento.
-- **NDC SDK Go v2.3.0 (16 de marzo de 2026)**: Deprecación de módulos de entorno y actualización de Go a v1.24.12 y v1.26.
-- **NDC NodeJS Lambda v1.20.3 (16 de marzo de 2026)**: Actualización de `ndc-sdk-typescript` a v8.5.0.
-- **NDC SDK RS v0.9.0 (9 de marzo de 2026)**: Adición de soporte para consultas relacionales y de streaming en el SDK de Rust, y actualización para soportar `ndc-spec v0.2.10`.
-- **NDC SDK TypeScript v8.5.0 (2 de marzo de 2026)**: Se hizo configurable el límite de cuerpo de Fastify.</td>
-</tr>
-<tr>
-<td>Noticia Más Relevante</td>
-<td>La noticia más importante es la evolución continua de Hasura hacia su **Data Delivery Network (DDN)**, con múltiples lanzamientos semanales y actualizaciones significativas en sus conectores de datos, especialmente el lanzamiento de **NDC MongoDb v2.0.0** con soporte completo para consultas relacionales y la adopción de `ndc-spec v0.2`. Esto subraya el compromiso de Hasura con la federación de datos y la expansión de sus capacidades de integración.</td>
-</tr>
-<tr>
-<td>Dato Sorprendente</td>
-<td>Hasura ha realizado una transición significativa en su modelo de precios, pasando de un enfoque basado en el consumo tradicional a uno innovador centrado en "modelos activos" dentro de su Data Delivery Network (DDN), lo que implica una nueva forma de medir el uso y el valor para los usuarios.</td>
-</tr>
-<tr>
-<td>GitHub Stars</td>
-<td>32k</td>
-</tr>
-</table>
-<br>
-## L03 a L15 — (Estructura estándar heredada de v7.0)
-<br>
-*Nota: Las capas L03 a L15 mantienen la estructura analítica profunda de la versión v7.0, actualizada con los datos de L01 y L02.*
+# BIBLIA DE HASURA v7.3
 
----
-**Fuentes Consultadas (Abril 2026):**
-https://hasura.io/changelog, https://hasura.io/pricing, https://github.com/hasura/graphql-engine
+**Fecha de Actualización:** 30 de Abril de 2026
+
+## L01 — IDENTIDAD Y ANÁLISIS ESTRATÉGICO
+
+<table header-row="true">
+<tr><td>Nombre oficial</td><td>Hasura</td></tr>
+<tr><td>Desarrollador</td><td>Hasura</td></tr>
+<tr><td>País de Origen</td><td>Global (con fuertes raíces en India)</td></tr>
+<tr><td>Inversión y Financiamiento</td><td>Recaudó $239M en financiación, incluyendo una Serie C de $100M en febrero de 2022 (liderada por Greenoaks y Nexus Venture Partners), valorando la empresa en $1B. Inversores notables incluyen Greenoaks, Lightspeed, Vertex, Nexus, SAP.io, Strive.</td></tr>
+<tr><td>Modelo de Precios</td><td>Basado en el consumo de recursos para Hasura Cloud. Planes de pago con opción "pago por uso" mensual (Cloud Professional Plan). Hasura DDN introdujo un modelo de precios basado en modelos en abril de 2024, alejándose del modelo basado en uso. En febrero de 2023, hubo un cambio significativo de $100/mes a $1.5/hora (más de $1000/mes) con un límite de 120 solicitudes por minuto.</td></tr>
+<tr><td>Posicionamiento Estratégico</td><td>Plataforma de código abierto para construir, desplegar y gestionar APIs GraphQL. Optimiza estrategias de API, mejora la seguridad y permite aplicaciones escalables y en tiempo real.</td></tr>
+<tr><td>Gráfico de Dependencias</td><td>Motor GraphQL que se superpone a bases de datos (ej. PostgreSQL, SQL Server).</td></tr>
+<tr><td>Matriz de Compatibilidad</td><td>Compatible con varias bases de datos y herramientas de API Gateway.</td></tr>
+<tr><td>Acuerdos de Nivel de Servicio (SLOs)</td><td>Los SLOs específicos suelen ser parte de acuerdos empresariales y no se divulgan públicamente en detalle. Sin embargo, Hasura Cloud ofrece herramientas de monitoreo (ej. métricas de uso, latencia de consultas, tasas de error) para que los usuarios puedan rastrear el rendimiento y establecer sus propios SLOs internos. Hasura está diseñado para alta disponibilidad y escalabilidad.</td></tr>
+</table>
+## L02 — GOBERNANZA Y MODELO DE CONFIANZA
+
+<table header-row="true">
+<tr><td>Licencia</td><td>Hasura GraphQL Engine es de código abierto, generalmente bajo la licencia Apache 2.0. Para Hasura Cloud y Enterprise, se aplican términos de servicio y licencias de software específicas (Master Software and Services License Agreement).</td></tr>
+<tr><td>Política de Privacidad</td><td>Hasura, Inc. tiene una Política de Privacidad detallada (disponible en hasura.io/legal/hasura-privacy-policy) que explica las prácticas de recolección, uso y divulgación de datos personales. La política se actualiza periódicamente (ej. 1 de julio de 2025).</td></tr>
+<tr><td>Cumplimiento y Certificaciones</td><td>Hasura Cloud es SOC 2 Tipo II Compliant, ISO 27001:2013 (y 27001:2022) Certificado, y cumple con HIPAA, GDPR y CCPA.</td></tr>
+<tr><td>Historial de Auditorías y Seguridad</td><td>Hasura se somete a rigurosas auditorías de cumplimiento. Ha logrado certificaciones SOC 2 Tipo 1 y HIPAA (diciembre de 2020), SOC 2 Tipo 2 (septiembre de 2021) e ISO 27001 (julio de 2022). Se publican avisos de seguridad en su repositorio de GitHub (ej. GHSA-c9rw-rw2f-mj4x por vulnerabilidad de recorrido de ruta no autenticada en marzo de 2023).</td></tr>
+<tr><td>Respuesta a Incidentes</td><td>Aunque no se detalla una política específica de respuesta a incidentes en los resultados de búsqueda, la existencia de avisos de seguridad y certificaciones como SOC 2 e ISO 27001 implica procesos establecidos para la gestión y respuesta a incidentes de seguridad.</td></tr>
+<tr><td>Matriz de Autoridad de Decisión</td><td>Para proyectos de código abierto, la autoridad de decisión recae en los mantenedores del proyecto y la comunidad. Para productos empresariales y en la nube, las decisiones clave son tomadas por la dirección de Hasura, Inc., con aportes de equipos de producto, ingeniería y seguridad.</td></tr>
+<tr><td>Política de Obsolescencia</td><td>No se encontró una política de obsolescencia explícita en los resultados de búsqueda. Sin embargo, como práctica común en software, las versiones antiguas del motor GraphQL de código abierto suelen seguir siendo accesibles, mientras que las versiones de Hasura Cloud y Enterprise reciben soporte y actualizaciones continuas, con avisos previos para cambios importantes o descontinuaciones.</td></tr>
+</table>
+## L03 — MODELO MENTAL Y MAESTRÍA
+
+Hasura se posiciona como una plataforma que simplifica el acceso a datos y la construcción de APIs GraphQL, permitiendo a los desarrolladores centrarse en la lógica de negocio en lugar de la infraestructura de la API. Su modelo mental se basa en la generación instantánea de APIs a partir de bases de datos existentes, con un fuerte énfasis en el tiempo real y el control de acceso granular.
+
+<table header-row="true">
+<tr><td>Paradigma Central</td><td>**GraphQL Instantáneo sobre Bases de Datos**: Hasura genera automáticamente APIs GraphQL en tiempo real a partir de esquemas de bases de datos, eliminando la necesidad de escribir código boilerplate para la capa de API. Se puede ver como un ORM avanzado para GraphQL.</td></tr>
+<tr><td>Abstracciones Clave</td><td>**Motor GraphQL**: El corazón de Hasura, que convierte consultas GraphQL en consultas SQL optimizadas. **Event Triggers**: Permiten reaccionar a eventos de la base de datos en tiempo real. **Remote Schemas**: Permiten unir múltiples APIs GraphQL en una sola. **Actions**: Permiten extender la API GraphQL con lógica de negocio personalizada. **Permissions**: Control de acceso granular basado en roles y atributos.</td></tr>
+<tr><td>Patrones de Pensamiento Recomendados</td><td>**Pensamiento Declarativo**: Definir el esquema de la base de datos y las reglas de acceso, dejando que Hasura genere la API. **Enfoque en Datos y Eventos**: Diseñar aplicaciones alrededor de los datos y los eventos de la base de datos. **Composición de APIs**: Utilizar Remote Schemas y Actions para construir una API unificada a partir de diversas fuentes. **Seguridad desde el Diseño**: Aplicar permisos granulares desde el inicio para controlar el acceso a los datos.</td></tr>
+<tr><td>Anti-patrones a Evitar</td><td>**Sobrecargar Subscriptions**: Usar suscripciones para campos que no requieren actualizaciones en tiempo real puede afectar el rendimiento. **Consultas GraphQL Demasiado Grandes**: Aunque Hasura optimiza, consultas excesivamente complejas pueden ser ineficientes. **Ignorar Permisos**: No configurar adecuadamente los permisos puede llevar a vulnerabilidades de seguridad. **Dependencia Excesiva en Event Triggers para Lógica Compleja**: Para lógica de negocio compleja, es mejor usar microservicios o funciones serverless invocadas por los triggers, en lugar de lógica compleja directamente en la base de datos. **Tratar Hasura como un ORM Tradicional**: Aunque tiene similitudes, Hasura es un motor GraphQL y debe ser abordado con una mentalidad de API primero.</td></tr>
+<tr><td>Curva de Aprendizaje</td><td>**Moderada**: La curva de aprendizaje es relativamente baja para desarrolladores familiarizados con GraphQL y bases de datos relacionales. La configuración inicial y la generación de la API son rápidas. La maestría en características avanzadas como Remote Schemas, Actions y la optimización de rendimiento requiere una comprensión más profunda de GraphQL y las capacidades de Hasura.</td></tr>
+</table>
+## L04 — CAPACIDADES TÉCNICAS
+
+<table header-row="true">
+<tr><td>Capacidades Core</td><td>**Generación Instantánea de GraphQL API**: Convierte cualquier base de datos en una API GraphQL en tiempo real con solo unos clics. **Real-time Data**: Soporte para suscripciones GraphQL para datos en tiempo real. **Control de Acceso Granular**: Permisos basados en roles y atributos para asegurar los datos a nivel de fila y columna. **Integración con Bases de Datos**: Conexión directa con diversas bases de datos (PostgreSQL, SQL Server, etc.). **Webhooks**: Disparadores de eventos para reaccionar a cambios en la base de datos.</td></tr>
+<tr><td>Capacidades Avanzadas</td><td>**Event Triggers**: Ejecución de lógica de negocio en respuesta a eventos de la base de datos (INSERT, UPDATE, DELETE). **Remote Schemas**: Unificación de múltiples APIs GraphQL (de microservicios, APIs de terceros) en un solo endpoint GraphQL. **Actions**: Extensión de la API GraphQL con lógica de negocio personalizada a través de funciones o microservicios. **Caching**: Optimización del rendimiento de las consultas GraphQL. **Migraciones y Metadatos**: Gestión de cambios de esquema de base de datos y configuración de Hasura a través de migraciones. **Observabilidad**: Herramientas para monitoreo y depuración de APIs.</td></tr>
+<tr><td>Capacidades Emergentes (Abril 2026)</td><td>**Integración con Modelos de IA**: Nuevas características para la integración fluida con modelos de IA, mejorando la productividad del desarrollador (anunciado el 9 de abril de 2026). **Composabilidad de API y Supergraph**: Enfoque en la composabilidad de APIs y la gestión de "Supergraphs" para unificar y gestionar APIs a escala, especialmente con Hasura DDN (anunciado a principios de abril de 2024 y en desarrollo continuo). **Soporte para Desarrollo Local en DDN**: Herramientas mejoradas para construir supergraphs completos y ejecutar conectores y el motor localmente.</td></tr>
+<tr><td>Limitaciones Técnicas Confirmadas</td><td>**Sobrecarga de Suscripciones**: El uso excesivo o ineficiente de suscripciones puede impactar el rendimiento. **Complejidad de Consultas**: Consultas GraphQL excesivamente complejas pueden generar consultas SQL ineficientes si no se optimizan adecuadamente. **Dependencia de la Base de Datos**: Aunque es su fortaleza, la funcionalidad de Hasura está intrínsecamente ligada a la base de datos subyacente, lo que puede ser una limitación en ciertos escenarios. **Curva de Optimización**: Aunque la configuración inicial es rápida, la optimización de rendimiento y la gestión de arquitecturas complejas pueden requerir experiencia.</td></tr>
+<tr><td>Roadmap Público</td><td>**Evolución de Hasura DDN**: Continuo desarrollo de la Data Delivery Network (DDN) con un enfoque en la composabilidad de APIs y la gestión de Supergraphs. **Mejoras en la Integración de IA**: Expansión de las capacidades de integración con modelos de IA para automatización y productividad. **Optimización de Rendimiento**: Continuas mejoras en el motor GraphQL para manejar cargas de trabajo más grandes y complejas. **Soporte para Nuevas Fuentes de Datos**: Expansión del soporte para más tipos de bases de datos y fuentes de datos.</td></tr>
+</table>
+## L05 — DOMINIO TÉCNICO
+
+<table header-row="true">
+<tr><td>Stack Tecnológico</td><td>El servidor backend de Hasura GraphQL Engine está escrito en **Haskell**. La compañía está en proceso de reconstruir componentes en **Rust**. Se integra con una amplia gama de bases de datos relacionales y no relacionales. Utiliza un stack de observabilidad de código abierto.</td></tr>
+<tr><td>Arquitectura Interna</td><td>Hasura funciona como un **motor GraphQL de código abierto** que se sitúa sobre las bases de datos para proporcionar APIs GraphQL instantáneas y en tiempo real. La arquitectura de **Hasura DDN (Data Delivery Network)** introduce una separación fundamental entre el tiempo de construcción (buildtime) y el tiempo de ejecución (runtime). Puede actuar como un **gateway de supergraph centralizado** para múltiples sub-grafos multiprotocolo (REST y GraphQL).</td></tr>
+<tr><td>Protocolos Soportados</td><td>**GraphQL** (principal). Soporte para **REST** a través de la federación y la capacidad de integrar APIs REST existentes.</td></tr>
+<tr><td>Formatos de Entrada/Salida</td><td>**Entrada**: Esquemas de bases de datos (Postgres, SQL Server, etc.), consultas y mutaciones GraphQL, suscripciones GraphQL. **Salida**: Respuestas GraphQL (JSON), eventos de base de datos (para webhooks).</td></tr>
+<tr><td>APIs Disponibles</td><td>Principalmente ofrece **APIs GraphQL** generadas automáticamente a partir de las bases de datos conectadas. En Hasura v2, se soportaba la **API Relay**, aunque en Hasura DDN esta característica ya no está disponible directamente, enfocándose en la flexibilidad del supergraph.</td></tr>
+</table>
+## L06 — PLAYBOOKS OPERATIVOS
+
+<table header-row="true">
+<tr><td>Caso de Uso</td><td>**Construcción de Backend GraphQL para Aplicaciones Web/Móviles**</td><td>Pasos Exactos</td><td>1. Conectar Hasura a una base de datos existente (ej. PostgreSQL). 2. Hasura genera automáticamente el esquema GraphQL. 3. Definir permisos de acceso granular para diferentes roles de usuario. 4. Integrar la API GraphQL generada en el frontend (ej. React, Next.js, Angular). 5. Utilizar suscripciones GraphQL para funcionalidades en tiempo real.</td><td>Herramientas Necesarias</td><td>Hasura GraphQL Engine/Cloud, Base de datos (PostgreSQL, etc.), Framework Frontend (React, Next.js, Angular), Cliente GraphQL (Apollo Client, Relay).</td><td>Tiempo Estimado</td><td>Días a semanas, dependiendo de la complejidad de la aplicación.</td><td>Resultado Esperado</td><td>Una aplicación web/móvil con un backend GraphQL robusto, escalable y en tiempo real, con gestión de datos eficiente y segura.</td></tr>
+<tr><td>Caso de Uso</td><td>**Creación de Dashboards en Tiempo Real**</td><td>Pasos Exactos</td><td>1. Conectar Hasura a la base de datos que contiene los datos a visualizar. 2. Definir consultas GraphQL para los datos necesarios en el dashboard. 3. Utilizar suscripciones GraphQL para obtener actualizaciones de datos en tiempo real. 4. Integrar estas suscripciones en un componente de frontend (ej. un gráfico) que se actualice dinámicamente.</td><td>Herramientas Necesarias</td><td>Hasura GraphQL Engine/Cloud, Base de datos, Librería de gráficos (ej. Chart.js, D3.js), Framework Frontend.</td><td>Tiempo Estimado</td><td>Horas a pocos días.</td><td>Resultado Esperado</td><td>Un dashboard interactivo que muestra datos actualizados al instante, ideal para monitoreo o análisis en vivo.</td></tr>
+<tr><td>Caso de Uso</td><td>**Integración de Múltiples Fuentes de Datos (Federación GraphQL)**</td><td>Pasos Exactos</td><td>1. Conectar Hasura a las bases de datos primarias. 2. Configurar Remote Schemas para integrar APIs GraphQL existentes de microservicios o servicios de terceros. 3. Utilizar Actions para añadir lógica de negocio personalizada o integrar APIs REST. 4. Hasura unifica todas estas fuentes en un solo endpoint GraphQL (Supergraph).</td><td>Herramientas Necesarias</td><td>Hasura GraphQL Engine/Cloud, Múltiples bases de datos, Microservicios con APIs GraphQL/REST, Servicios de terceros.</td><td>Tiempo Estimado</td><td>Semanas a meses, dependiendo del número y la complejidad de las fuentes de datos.</td><td>Resultado Esperado</td><td>Una API GraphQL unificada que abstrae la complejidad de múltiples fuentes de datos, facilitando el desarrollo y mantenimiento de aplicaciones.</td></tr>
+</table>
+## L07 — EVIDENCIA Y REPRODUCIBILIDAD
+
+<table header-row="true">
+<tr><td>Benchmark</td><td>**Hasura vs. Apollo con Oracle RDS**</td><td>Score/Resultado</td><td>Demuestra las características de rendimiento de Hasura y Apollo al manejar grandes conjuntos de datos. Hasura busca un rendimiento similar o superior.</td><td>Fecha</td><td>12 de febrero de 2024</td><td>Fuente</td><td>Blog de Hasura: "GraphQL Performance Benchmarks: Hasura vs Apollo with Oracle RDS"</td><td>Comparativa</td><td>Comparación directa de rendimiento entre dos soluciones populares de GraphQL.</td></tr>
+<tr><td>Benchmark</td><td>**Hasura vs. Servidor Node.js GraphQL Escrito a Mano (DIY) con DataLoader**</td><td>Score/Resultado</td><td>Hasura obtuvo un promedio de 29.17 solicitudes por segundo (RPS) mientras que el servidor Node.js DIY obtuvo 8.05 RPS.</td><td>Fecha</td><td>Marzo de 2023</td><td>Fuente</td><td>Blog de Hasura: "GraphQL Performance Benchmarks - Hasura vs DIY Node.js with DataLoader" y dev.to</td><td>Comparativa</td><td>Hasura supera significativamente a una implementación GraphQL personalizada en Node.js en términos de RPS.</td></tr>
+<tr><td>Benchmark</td><td>**Escalabilidad a 1 Millón de Suscripciones GraphQL Activas**</td><td>Score/Resultado</td><td>Hasura fue probado para manejar un millón de consultas en vivo activas, demostrando su capacidad para escalar a un gran número de clientes en tiempo real.</td><td>Fecha</td><td>No especificada, pero mencionada en el blog de Hasura.</td><td>Fuente</td><td>Blog de Hasura: "How Hasura scales to 1 million active GraphQL subscriptions"</td><td>Comparativa</td><td>Demuestra la alta disponibilidad y escalabilidad de Hasura Cloud para cargas de trabajo intensivas en tiempo real.</td></tr>
+<tr><td>Benchmark</td><td>**Benchmarking de varios ORMs/backends GraphQL (Hasura, PostGraphile, Prisma)**</td><td>Score/Resultado</td><td>Repositorio de GitHub que contiene configuraciones para comparar el rendimiento de diferentes soluciones GraphQL utilizando una base de datos Postgres (variante de Chinook). Los resultados específicos varían según la configuración y las pruebas.</td><td>Fecha</td><td>Continuo (repositorio de GitHub)</td><td>Fuente</td><td>GitHub: hasura/graphql-backend-benchmarks</td><td>Comparativa</td><td>Permite a los usuarios replicar y analizar las características de rendimiento de Hasura frente a otras alternativas populares.</td></tr>
+</table>
+## L08 — ARQUITECTURA DE INTEGRACIÓN
+
+<table header-row="true">
+<tr><td>Método de Integración</td><td>**Conectores de Datos**: Integración directa con bases de datos nativas (Postgres, MS SQL Server, BigQuery) y otras fuentes de datos a través de conectores. **Remote Schemas**: Unificación de múltiples APIs GraphQL existentes (microservicios, APIs de terceros) en un solo endpoint GraphQL. **Actions**: Extensión de la API GraphQL con lógica de negocio personalizada (ej. funciones serverless, microservicios) a través de webhooks. **Event Triggers**: Reacción a eventos de la base de datos para invocar lógica externa.</td></tr>
+<tr><td>Protocolo</td><td>**GraphQL**: Principal protocolo para la exposición y consumo de datos. **REST**: Puede integrar APIs REST existentes a través de Remote Schemas o Actions.</td></tr>
+<tr><td>Autenticación</td><td>**JWT (JSON Web Tokens)**: Integración con servicios de autenticación existentes que emiten JWTs. **Webhooks de Autenticación**: Permite a Hasura delegar la autenticación a un servicio externo. **Admin Secret**: Para comunicación de servidor a servidor o acceso administrativo. Compatible con cualquier proveedor de autenticación (ej. Auth0).</td></tr>
+<tr><td>Latencia Típica</td><td>**Baja**: Hasura está diseñado para ofrecer acceso a datos de baja latencia, compilando consultas GraphQL a SQL optimizado. La latencia real dependerá de la base de datos subyacente, la complejidad de la consulta, la red y la infraestructura de despliegue.</td></tr>
+<tr><td>Límites de Rate</td><td>**Configurables/Dependientes del Plan**: En Hasura Cloud, los límites de rate son gestionados y pueden variar según el plan de servicio. Los usuarios pueden configurar límites de rate a nivel de API o de usuario para proteger sus backends. En el pasado, los cambios en el modelo de precios de Hasura Cloud incluyeron límites de solicitudes por minuto.</td></tr>
+</table>
+## L09 — VERIFICACIÓN Y PRUEBAS
+
+<table header-row="true">
+<tr><td>Tipo de Test</td><td>**Pruebas de Regresión (GraphQL Schema)**</td><td>Herramienta Recomendada</td><td>**Hasura Pro / Hasura Cloud Test Bench**: Ofrece un framework de pruebas completo para validar el esquema GraphQL y probar su integridad. También se puede usar la sección "Regression Tests" del panel de control de Hasura para probar permisos en consultas.</td><td>Criterio de Éxito</td><td>El esquema GraphQL se mantiene consistente y funcional después de los cambios. Los permisos de acceso funcionan como se espera.</td><td>Frecuencia</td><td>Idealmente, como parte de cada ciclo de desarrollo y en pipelines de CI/CD antes de desplegar cambios en producción.</td></tr>
+<tr><td>Tipo de Test</td><td>**Pruebas de Integración (Microservicios y APIs)**</td><td>Herramienta Recomendada</td><td>**Jest** (con `graphql-codegen` para generar SDKs), **Docker** (para configurar Hasura y PostgreSQL en entornos de prueba aislados). Se pueden realizar llamadas a la API de Hasura y revertir la base de datos a su estado original.</td><td>Criterio de Éxito</td><td>La interacción entre Hasura y los microservicios/APIs externos funciona correctamente. Los datos se persisten y recuperan como se espera a través de la API GraphQL.</td><td>Frecuencia</td><td>Regularmente durante el desarrollo de nuevas integraciones y en pipelines de CI/CD.</td></tr>
+<tr><td>Tipo de Test</td><td>**Pruebas de Rendimiento y Carga**</td><td>Herramienta Recomendada</td><td>**graphql-bench**: Una herramienta simple para benchmarking y pruebas de carga de servicios GraphQL, que se puede ejecutar como CLI o en Docker. Repositorios de benchmarks de Hasura en GitHub (`hasura/graphql-performance-benchmarks`, `hasura/graphql-backend-benchmarks`).</td><td>Criterio de Éxito</td><td>La API GraphQL de Hasura cumple con los requisitos de latencia y rendimiento bajo cargas esperadas. La escalabilidad horizontal funciona correctamente.</td><td>Frecuencia</td><td>Periódicamente, especialmente antes de lanzamientos importantes o cuando se anticipan aumentos significativos en el tráfico.</td></tr>
+<tr><td>Tipo de Test</td><td>**Pruebas de Seguridad**</td><td>Herramienta Recomendada</td><td>Auditorías de seguridad, pruebas de penetración. Las características de seguridad de Hasura (ej. control de acceso granular) deben ser probadas exhaustivamente.</td><td>Criterio de Éxito</td><td>No se encuentran vulnerabilidades de seguridad. Los permisos de acceso restringen el acceso a los datos de forma adecuada.</td><td>Frecuencia</td><td>Regularmente, especialmente después de cambios significativos en la configuración de seguridad o nuevas características.</td></tr>
+</table>
+## L10 — CICLO DE VIDA Y MIGRACIÓN
+
+<table header-row="true">
+<tr><td>Versión</td><td>Fecha de Lanzamiento</td><td>Estado</td><td>Cambios Clave</td><td>Ruta de Migración</td></tr>
+<tr><td>Hasura GraphQL Engine v1.x</td><td>Anterior a 2020 (ej. v1.3.0 en julio de 2020)</td><td>Mantenimiento limitado/Descontinuado para nuevas características.</td><td>Introducción de federación de datos, Relay, triggers programados.</td><td>Migración a v2.x a través de actualizaciones de metadatos y configuración.</td></tr>
+<tr><td>Hasura GraphQL Engine v2.x</td><td>Febrero de 2022 (v2.2.0), con actualizaciones continuas (ej. v2.48 en abril de 2026).</td><td>Activo, con soporte para la última versión menor de la versión principal anterior (v2.x) durante un año para actualizaciones críticas de seguridad, incluso después del lanzamiento de v3.x.</td><td>Mejoras en rendimiento, soporte para más bases de datos, características avanzadas como Remote Schemas y Actions. La versión 2.2.0 se lanzó el 22 de febrero de 2022.</td><td>Actualizaciones de versiones menores son generalmente fluidas. La migración de v2.x a DDN (v3.x) implica una re-arquitectura y la adopción de un nuevo modelo de desarrollo con conectores y supergraphs.</td></tr>
+<tr><td>Hasura DDN (Data Delivery Network) v3.x</td><td>Lanzamiento inicial en 2024, con actualizaciones continuas (ej. DDN-Release en abril de 2026).</td><td>Activo y en desarrollo continuo, es la dirección estratégica principal de Hasura.</td><td>Separación de buildtime y runtime, enfoque en la composabilidad de APIs y la gestión de Supergraphs, nuevos modelos de precios basados en modelos, soporte mejorado para desarrollo local.</td><td>Implica una transición arquitectónica significativa desde v2.x, con herramientas y guías de migración proporcionadas por Hasura para facilitar la adopción del nuevo modelo.</td></tr>
+</table>
+## L11 — MARCO DE COMPETENCIA
+
+<table header-row="true">
+<tr><td>Competidor Directo</td><td>Ventaja vs Competidor</td><td>Desventaja vs Competidor</td><td>Caso de Uso Donde Gana</td></tr>
+<tr><td>**PostGraphile**</td><td>**Generación instantánea de GraphQL API**: Hasura es conocido por su facilidad de configuración y la generación casi instantánea de APIs GraphQL a partir de bases de datos. **Real-time con Suscripciones**: Hasura tiene un soporte robusto y nativo para suscripciones GraphQL en tiempo real. **Interfaz de Usuario (Console)**: La consola de Hasura es muy intuitiva y facilita la gestión de esquemas, permisos y configuraciones.</td><td>**Menos flexibilidad en la personalización de la API**: PostGraphile, al ser más un generador de esquemas a partir de la base de datos, puede ofrecer más control sobre la forma exacta de la API GraphQL generada si se requiere una personalización muy profunda a nivel de código. **Complejidad interna**: Algunos usuarios perciben la arquitectura interna de Hasura como más compleja.</td><td>**Proyectos que requieren un rápido time-to-market**: Ideal para startups o proyectos donde la velocidad de desarrollo es crítica y se necesita una API GraphQL funcional rápidamente con capacidades en tiempo real. **Aplicaciones con requisitos de tiempo real**: Chatbots, dashboards en vivo, juegos multijugador.</td></tr>
+<tr><td>**Prisma**</td><td>**Generación de API instantánea y en tiempo real**: Similar a PostGraphile, Hasura ofrece una API GraphQL completa y en tiempo real de forma más directa. **Control de acceso granular**: Hasura tiene un sistema de permisos muy potente y flexible directamente integrado. **Event Triggers**: La capacidad de Hasura para disparar webhooks en eventos de la base de datos es una ventaja clave para arquitecturas reactivas.</td><td>**No es un ORM completo**: Prisma es principalmente un ORM (Object-Relational Mapper) que genera un cliente de base de datos seguro y tipado, ofreciendo un control más fino sobre las consultas SQL subyacentes y la lógica de negocio. Hasura se enfoca más en la exposición de datos a través de GraphQL. **Menos control sobre la capa de datos**: Los desarrolladores que prefieren escribir sus propias consultas SQL o tener un control más explícito sobre la capa de datos pueden encontrar Prisma más adecuado.</td><td>**Exposición de datos como API GraphQL**: Cuando el objetivo principal es exponer una base de datos existente como una API GraphQL potente y segura sin escribir mucho código backend. **Proyectos que necesitan un sistema de permisos robusto y fácil de configurar**.</td></tr>
+<tr><td>**Apollo GraphQL (Server/Federation)**</td><td>**Generación instantánea de API**: Hasura genera automáticamente la API GraphQL, mientras que con Apollo Server, los desarrolladores deben definir manualmente los esquemas y resolvers. **Real-time**: Hasura ofrece suscripciones en tiempo real de forma nativa y simplificada. **Base de datos primero**: Hasura está muy orientado a la base de datos, lo que facilita la creación de APIs para datos existentes.</td><td>**Mayor flexibilidad y control**: Apollo Server ofrece un control total sobre la implementación de la API GraphQL, permitiendo lógica de negocio compleja y la integración de diversas fuentes de datos de forma programática. **Ecosistema maduro**: Apollo tiene un ecosistema muy amplio con herramientas para el cliente, servidor, federación y monitoreo. **Federación más programática**: Aunque Hasura DDN avanza en la federación, Apollo Federation ha sido un estándar establecido para construir supergraphs de forma programática.</td><td>**Proyectos que priorizan la velocidad de desarrollo y la simplicidad**: Cuando se necesita una API GraphQL funcional rápidamente sobre una base de datos existente, con requisitos de tiempo real y control de acceso. **Equipos con menos experiencia en GraphQL**: La curva de aprendizaje es más suave para empezar con Hasura.</td></tr>
+</table>
+## L12 — CAPA DE INYECCIÓN DE IA (AI INJECTION LAYER)
+
+<table header-row="true">
+<tr><td>Capacidad de IA</td><td>**Integración con Modelos de IA Externos**</td><td>Modelo Subyacente</td><td>Permite la conexión con modelos de IA líderes como OpenAI y Claude, así como otros modelos de Machine Learning.</td><td>Nivel de Control</td><td>Hasura actúa como una capa de acceso a datos segura y eficiente para los modelos de IA, permitiendo a los desarrolladores definir cómo los modelos interactúan con los datos a través de GraphQL.</td><td>Personalización Posible</td><td>Los desarrolladores pueden construir conectores personalizados para integrar cualquier fuente de datos con modelos de IA, y utilizar las capacidades de Hasura para estructurar y asegurar los datos que alimentan estos modelos.</td></tr>
+<tr><td>Capacidad de IA</td><td>**Agentes de Datos Impulsados por IA (PromptQL)**</td><td>Modelo Subyacente</td><td>PromptQL es una iniciativa de Hasura que permite la creación de agentes de datos que pueden interactuar con los datos de manera inteligente, utilizando modelos de lenguaje grandes (LLMs) subyacentes.</td><td>Nivel de Control</td><td>Permite la ejecución de tareas agénticas de extremo a extremo, desde la actualización de registros de CRM hasta la detección de anomalías en datos financieros.</td><td>Personalización Posible</td><td>Los agentes de datos pueden ser personalizados para tareas específicas, aprovechando la capacidad de Hasura para integrar diversas fuentes de datos y proporcionar datos estructurados para consultas de IA más inteligentes.</td></tr>
+<tr><td>Capacidad de IA</td><td>**Análisis de Datos y Calidad de Datos con IA**</td><td>Modelo Subyacente</td><td>Modelos de IA para el análisis de datos y la detección de anomalías.</td><td>Nivel de Control</td><td>La IA se utiliza para transformar la calidad de los datos financieros, detectando anomalías sutiles en el punto de salida, asegurando la precisión y reduciendo riesgos.</td><td>Personalización Posible</td><td>Se pueden implementar modelos de IA personalizados para tareas específicas de calidad de datos y análisis, aprovechando el sistema de eventos de Hasura para orquestar la validación automatizada.</td></tr>
+</table>
+## L13 — RENDIMIENTO REALISTA Y EXPERIENCIA COMUNITARIA
+
+<table header-row="true">
+<tr><td>Métrica</td><td>Valor Reportado por Comunidad</td><td>Fuente</td><td>Fecha</td></tr>
+<tr><td>**Velocidad de Desarrollo**</td><td>"Facilita la aceleración del desarrollo y la generación rápida de APIs GraphQL." "Spinning up a Hasura backend is really quick."</td><td>G2.com Reviews, Reddit (/r/graphql)</td><td>2023-2026 (basado en la disponibilidad de reviews)</td></tr>
+<tr><td>**Rendimiento de Consultas (RPS)**</td><td>En benchmarks, Hasura ha reportado 29.17 solicitudes por segundo (RPS) en comparación con 8.05 RPS para un servidor Node.js DIY.</td><td>Blog de Hasura: "GraphQL Performance Benchmarks - Hasura vs DIY Node.js with DataLoader"</td><td>Marzo de 2023</td></tr>
+<tr><td>**Escalabilidad de Suscripciones**</td><td>Probado para manejar 1 millón de suscripciones GraphQL activas.</td><td>Blog de Hasura: "How Hasura scales to 1 million active GraphQL subscriptions"</td><td>No especificada, pero la capacidad es un punto clave de venta.</td></tr>
+<tr><td>**Facilidad de Uso (General)**</td><td>"Los usuarios elogian constantemente el producto por su facilidad de uso y capacidad para acelerar el desarrollo." "La interfaz de administración para configurar tablas y demás es muy útil."</td><td>G2.com Reviews, Reddit (/r/graphql)</td><td>2023-2026</td></tr>
+<tr><td>**Frustraciones Comunes**</td><td>"Algunos aspectos son frustrantes, por ejemplo, configurar la autenticación para React Native (Expo)." "El overhead de solucionar problemas no vale la pena para algunos casos de uso." "Hasura v3 no es de código abierto y el sistema de construcción no se puede ejecutar localmente."</td><td>News.YCombinator, Reddit (/r/graphql)</td><td>2023-2026</td></tr>
+<tr><td>**Monitoreo y Observabilidad**</td><td>Hasura DDN incluye un conjunto de métricas para monitorear y depurar el rendimiento de la API GraphQL. Hasura Cloud ofrece monitoreo de uso, latencia de consultas, conteo de consultas y tasas de error.</td><td>Documentación de Hasura DDN, Blog de Hasura</td><td>Actualizado a la versión DDN (v3.x)</td></tr>
+</table>
+## L14 — ECONOMÍA OPERATIVA Y ESTRATEGIA GTM
+
+<table header-row="true">
+<tr><td>Plan</td><td>Precio</td><td>Límites</td><td>Ideal Para</td><td>ROI Estimado</td></tr>
+<tr><td>**Hasura Cloud Free**</td><td>Gratis</td><td>1GB de transferencia de datos, 60 solicitudes/minuto.</td><td>Proyectos pequeños, pruebas, desarrollo personal, exploración de la plataforma.</td><td>Alto, ya que permite iniciar proyectos sin costo inicial, validando ideas rápidamente.</td></tr>
+<tr><td>**Hasura Cloud Professional**</td><td>Basado en consumo (pago por uso), ej. $0.13/GB de transferencia de datos. En el pasado, hubo un cambio a $1.5/hora (más de $1000/mes) con 120 solicitudes/minuto, lo que generó controversia.</td><td>Bases de datos conectadas ilimitadas por proyecto, proyectos ilimitados por cuenta, transferencia de datos ilimitada (con costo). Límite de tiempo de 60 segundos para consultas.</td><td>Aplicaciones en producción que requieren escalabilidad, alta disponibilidad y monitoreo avanzado. Equipos que necesitan flexibilidad en el uso de recursos.</td><td>Moderado a alto, al reducir significativamente el tiempo de desarrollo de APIs y la complejidad de la infraestructura, permitiendo a los equipos enfocarse en la lógica de negocio.</td></tr>
+<tr><td>**Hasura Cloud Enterprise**</td><td>Precio personalizado (contactar ventas).</td><td>Características avanzadas de seguridad, cumplimiento, soporte y escalabilidad para grandes organizaciones.</td><td>Grandes empresas con requisitos de seguridad, cumplimiento y soporte de misión crítica.</td><td>Alto para empresas, al proporcionar una solución robusta y segura para la gestión de datos a escala, acelerando la entrega de productos y reduciendo riesgos operativos.</td></tr>
+<tr><td>**Hasura DDN (Data Delivery Network)**</td><td>Modelo de precios basado en modelos (introducido en abril de 2024), diseñado para la simplicidad y consistencia.</td><td>Varía según el plan y la configuración de DDN. El conector de MongoDB, por ejemplo, está disponible en la versión gratuita de DDN, a diferencia de v2 Enterprise.</td><td>Aplicaciones de próxima generación y soluciones de IA que requieren una capa de acceso a datos universal, rápida y segura, independientemente del tipo o ubicación de los datos.</td><td>Alto, al permitir la creación de experiencias digitales y de IA más inteligentes y rápidas, unificando el acceso a datos complejos y distribuidos.</td></tr>
+<tr><td>**Estrategia Go-to-Market (GTM)**</td><td>Hasura se enfoca en acelerar la entrega de productos al instante conectando datos y servicios a las aplicaciones con GraphQL. Su estrategia GTM incluye la provisión de una plataforma de desarrollo de APIs GraphQL instantánea y en tiempo real, dirigida a desarrolladores y líderes de datos en empresas de Fortune 100 y startups. También se enfoca en la integración con IA y la gestión de Supergraphs para el futuro.</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+</table>
+## L15 — BENCHMARKING EMPÍRICO Y RED TEAMING
+
+<table header-row="true">
+<tr><td>Escenario de Test</td><td>Resultado</td><td>Fortaleza Identificada</td><td>Debilidad Identificada</td></tr>
+<tr><td>**Benchmarking de Rendimiento (Hasura vs. Node.js DIY GraphQL)**</td><td>Hasura obtuvo un promedio de 29.17 solicitudes por segundo (RPS) frente a 8.05 RPS para un servidor Node.js GraphQL escrito a mano.</td><td>**Rendimiento Superior**: Hasura puede superar significativamente a las implementaciones GraphQL personalizadas en términos de rendimiento. **Optimización Automática**: El motor de Hasura optimiza las consultas SQL subyacentes.</td><td>**Percepción de lentitud**: Algunos usuarios han reportado que Hasura puede ser percibido como lento en ciertos escenarios, lo que sugiere que la optimización puede no ser universal o requiere configuración específica.</td></tr>
+<tr><td>**Benchmarking de Escalabilidad (1 Millón de Suscripciones Activas)**</td><td>Hasura fue probado para manejar un millón de suscripciones GraphQL activas.</td><td>**Alta Escalabilidad en Tiempo Real**: Capacidad probada para manejar un gran volumen de conexiones en tiempo real, crucial para aplicaciones interactivas.</td><td>**Posible sobrecarga de suscripciones**: El uso ineficiente o excesivo de suscripciones puede llevar a problemas de rendimiento si no se gestiona adecuadamente.</td></tr>
+<tr><td>**Pruebas de Penetración y Auditorías de Seguridad**</td><td>Hasura se somete regularmente a pruebas de penetración por firmas de seguridad independientes como parte de su proceso SOC 2.</td><td>**Seguridad Proactiva**: Compromiso con la seguridad a través de auditorías externas y pruebas de penetración. **Cumplimiento**: Certificaciones como SOC 2 e ISO 27001 demuestran un alto nivel de seguridad.</td><td>**Vulnerabilidades descubiertas**: Se han identificado y corregido vulnerabilidades críticas en el pasado (ej. CVE-2021-47713, vulnerabilidad en la API "Update Many" en v2.10.0). Esto es común en software, pero resalta la necesidad de mantenerse actualizado.</td></tr>
+<tr><td>**Benchmarking de Agentes de Datos (PromptQL)**</td><td>Evaluación independiente de DAB (Data Agent Benchmark) utilizando PromptQL de Hasura.</td><td>**Capacidad para agentes de IA**: Hasura, a través de PromptQL, puede servir como infraestructura especializada para mejorar el rendimiento de los agentes de IA en la respuesta a preguntas de datos.</td><td>**Novedad**: Al ser una capacidad emergente, la madurez y el alcance de las fortalezas y debilidades aún están en evolución.</td></tr>
+</table>

@@ -1,61 +1,148 @@
-## L01 — IDENTIDAD Y ANÁLISIS ESTRATÉGICO
-<br>
-<table header-row="true">
-<tr>
-<td>Atributo</td>
-<td>Descripción</td>
-</tr>
-<tr>
-<td>Nombre oficial</td>
-<td>Cline (VS Code AI Agent)</td>
-</tr>
-<tr>
-<td>Versión Actual</td>
-<td>v3.8.1 (30 abril 2026)</td>
-</tr>
-<tr>
-<td>Estado Actual</td>
-<td>Activo</td>
-</tr>
-<tr>
-<td>Precio Actual</td>
-<td>Cline es gratuito para desarrolladores individuales. El costo se basa únicamente en el uso de inferencia de IA, sin suscripciones ni bloqueo de proveedor. Los usuarios pueden utilizar sus propias claves API de proveedores como OpenAI, Anthropic, Google, AWS Bedrock, GCP Vertex, Groq, Cerebras, Vercel AI Gateway, DeepSeek, o usar el proveedor de Cline. La versión Enterprise ofrece precios personalizados e incluye características como extensión para JetBrains, SSO, SLA, soporte dedicado, facturación centralizada, gestión de equipos y control de acceso basado en roles.</td>
-</tr>
-<tr>
-<td>Posicionamiento Competitivo</td>
-<td>Cline se posiciona como un agente de codificación de IA de código abierto y flexible, integrado en VS Code y JetBrains. Su principal diferenciador es la capacidad de "traer tu propia inferencia" (BYOI), permitiendo a los desarrolladores usar sus propias claves API con una amplia gama de proveedores de modelos (OpenAI, Anthropic, Google Gemini, etc.), lo que les da control sobre costos y privacidad. A diferencia de soluciones cerradas, Cline enfatiza una arquitectura del lado del cliente y un enfoque "human-in-the-loop" para la aprobación de cambios, ofreciendo autonomía con seguridad. Su integración con MCP para la creación de herramientas personalizadas lo distingue en adaptabilidad.</td>
-</tr>
-</table>
-<br>
-## L02 — NOVEDADES Y CAMBIOS RECIENTES (ABRIL 2026)
-<br>
-<table header-row="true">
-<tr>
-<td>Atributo</td>
-<td>Descripción</td>
-</tr>
-<tr>
-<td>Cambios Clave desde Marzo 2026</td>
-<td>Desde marzo de 2026, Cline ha introducido "Cline Kanban", una nueva interfaz de usuario para orquestar agentes en Cline, Claude y Codex. Se han publicado artículos relevantes como "Three AIs enter. One survives. What a SIGKILL race reveals about inference speed" (14 de abril de 2026), "Architects or Tenants: Modern AI Stacks Are Being Built on Rented Foundations" (7 de abril de 2026) y "20 one-shot prompts that turn Kanban into an autonomous coding machine" (6 de abril de 2026). El repositorio de GitHub muestra actividad continua con commits recientes, incluyendo mejoras en plantillas de informes de errores y actualizaciones de dependencias.</td>
-</tr>
-<tr>
-<td>Noticia Más Relevante</td>
-<td>La noticia más importante de los últimos 40 días es la introducción de Cline Kanban, una nueva interfaz de usuario diseñada para orquestar agentes de IA dentro de Cline, Claude y Codex, mejorando la gestión y ejecución de tareas autónomas de codificación.</td>
-</tr>
-<tr>
-<td>Dato Sorprendente</td>
-<td>El dato más sorprendente es la capacidad de Cline para extender sus propias funcionalidades a través del Model Context Protocol (MCP), permitiendo a los usuarios pedirle al agente que "añada una herramienta" para tareas específicas, como "añadir una herramienta que obtenga tickets de Jira" o "gestione AWS EC2s", lo que le permite crear y adaptar nuevas herramientas a medida.</td>
-</tr>
-<tr>
-<td>GitHub Stars</td>
-<td>61.2k</td>
-</tr>
-</table>
-<br>
-## L03 a L15 — (Estructura estándar heredada de v7.0)
-<br>
-*Nota: Las capas L03 a L15 mantienen la estructura analítica profunda de la versión v7.0, actualizada con los datos de L01 y L02.*
+# BIBLIA DE CLINE_VS_CODE_AI_AGENT v7.3
 
----
-**Fuentes Consultadas (Abril 2026):**
-https://cline.bot/, https://cline.bot/pricing, https://github.com/cline/cline
+**Fecha de Actualización:** 30 de Abril de 2026
+
+## L01 — IDENTIDAD Y ANÁLISIS ESTRATÉGICO
+<table header-row="true">
+<tr><td>Nombre oficial</td><td>Cline</td></tr>
+<tr><td>Desarrollador</td><td>Saoud Rizwan</td></tr>
+<tr><td>País de Origen</td><td>Global (con fuerte presencia en EE. UU. por el ecosistema de desarrollo)</td></tr>
+<tr><td>Inversión y Financiamiento</td><td>Proyecto de código abierto, financiamiento a través de servicios Enterprise y contribuciones de la comunidad.</td></tr>
+<tr><td>Modelo de Precios</td><td>**Open Source (Gratis):** Para desarrolladores individuales, pago por uso de inferencia de IA. **Enterprise (Personalizado):** Para organizaciones, incluye SSO, SLA, soporte dedicado, facturación centralizada.</td></tr>
+<tr><td>Posicionamiento Estratégico</td><td>Agente de codificación de IA de código abierto, centrado en la privacidad, flexibilidad y amplia compatibilidad con IDEs y modelos de IA. Se posiciona como un compañero de codificación colaborativo y autónomo.</td></tr>
+<tr><td>Gráfico de Dependencias</td><td>Modelos de IA (Anthropic, OpenAI, Gemini, xAI, etc.), Plataformas de inferencia (Amazon Bedrock, GCP Vertex, Azure OpenAI), IDEs (VS Code, JetBrains), GitHub, Comunidad de desarrolladores.</td></tr>
+<tr><td>Matriz de Compatibilidad</td><td>**IDEs:** VS Code, IntelliJ IDEA, PyCharm, WebStorm. **Modelos de IA:** Anthropic, OpenAI, Gemini, xAI, OpenRouter, AWS Bedrock, GCP Vertex, Groq, Cerebras, Vercel AI Gateway, DeepSeek. **Sistemas Operativos:** Windows, macOS, Linux (a través de la compatibilidad con IDEs).</td></tr>
+<tr><td>Acuerdos de Nivel de Servicio (SLOs)</td><td>Disponibles y personalizables solo para clientes Enterprise.</td></tr>
+</table>
+
+## L02 — GOBERNANZA Y MODELO DE CONFIANZA
+<table header-row="true">
+<tr><td>Licencia</td><td>Open Source (código abierto), detalles específicos de la licencia (ej. MIT, Apache) se buscarán en el repositorio de GitHub.</td></tr>
+<tr><td>Política de Privacidad</td><td>Cline Bot Inc. recopila datos personales como información de contacto, cuenta, pago (a través de terceros), feedback y contenido de usuario (si se usan las claves API de Cline). Se recopilan datos automáticamente sobre el dispositivo, red y uso del servicio (cookies, etc.). No se ve el código ni los prompts del usuario si se usan claves API propias. Última actualización: 24 de septiembre de 2025.</td></tr>
+<tr><td>Cumplimiento y Certificaciones</td><td>No se mencionan certificaciones específicas en la política de privacidad. Se infiere un cumplimiento general con las leyes de protección de datos aplicables. Para clientes Enterprise, es probable que se ofrezcan acuerdos de cumplimiento personalizados.</td></tr>
+<tr><td>Historial de Auditorías y Seguridad</td><td>Se han identificado vulnerabilidades de seguridad (ej. inyección de prompts) y ataques a la cadena de suministro, lo que indica un enfoque activo en la seguridad y auditorías continuas por parte de la comunidad y expertos externos.</td></tr>
+<tr><td>Respuesta a Incidentes</td><td>No se detalla un plan de respuesta a incidentes público, pero la naturaleza de código abierto y la atención a vulnerabilidades sugieren un proceso de resolución impulsado por la comunidad y el equipo de desarrollo. Para Enterprise, se esperan acuerdos específicos.</td></tr>
+<tr><td>Matriz de Autoridad de Decisión</td><td>No se especifica públicamente. Se infiere que las decisiones clave de desarrollo son tomadas por el equipo central de Cline, con una fuerte influencia de la comunidad de código abierto.</td></tr>
+<tr><td>Política de Obsolescencia</td><td>No se detalla públicamente. Dada la naturaleza de código abierto y la rápida evolución de la IA, se espera que las versiones antiguas sean soportadas por un tiempo limitado, incentivando la actualización a versiones más recientes.</td></tr>
+</table>
+
+## L03 — MODELO MENTAL Y MAESTRÍA
+Cline opera bajo un modelo mental de **agente de codificación autónomo y colaborativo**, diseñado para integrarse directamente en el flujo de trabajo del desarrollador. Su enfoque principal es la **planificación antes de la acción**, permitiendo al agente pensar estratégicamente sobre la tarea, proponer un plan y luego ejecutarlo, solicitando intervención humana cuando sea necesario. Esto fomenta una relación de trabajo donde el desarrollador mantiene el control y la supervisión, mientras que Cline automatiza tareas complejas y repetitivas.
+
+<table header-row="true">
+<tr><td>Paradigma Central</td><td>**Agente de Codificación Autónomo y Colaborativo:** Cline no es solo un generador de código, sino un asistente inteligente que puede planificar, ejecutar y verificar tareas de codificación complejas dentro del IDE y la terminal.</td></tr>
+<tr><td>Abstracciones Clave</td><td>**Modos Plan/Act:** Separa el pensamiento estratégico de la implementación. Cline primero formula un plan (Plan) y luego lo ejecuta (Act). **MCP (Model Context Protocol):** Permite a los agentes interactuar con herramientas de backend estructuradas. **Terminal-first workflows:** Integración profunda con la línea de comandos para desarrolladores que prefieren este entorno. **Diff View:** Presenta los cambios propuestos por Cline en un formato de diferencias para revisión y aprobación humana.</td></tr>
+<tr><td>Patrones de Pensamiento Recomendados</td><td>**Supervisión Activa:** Revisar los planes y los cambios propuestos por Cline. **Iteración Guiada:** Utilizar Cline para automatizar pasos, pero estar preparado para guiarlo y corregirlo. **Definición Clara de Tareas:** Proporcionar instrucciones claras y concisas para optimizar el rendimiento del agente. **Integración con Flujos Existentes:** Aprovechar la capacidad de Cline para trabajar con CLI y editores para mejorar la productividad sin cambiar radicalmente el entorno de trabajo.</td></tr>
+<tr><td>Anti-patrones a Evitar</td><td>**Confianza Ciega:** No revisar el código generado o los cambios propuestos. **Instrucciones Ambiguas:** Proporcionar prompts vagos que lleven a resultados inesperados o ineficientes. **Delegación Excesiva:** Esperar que Cline resuelva problemas complejos sin ninguna guía o intervención. **Ignorar el Contexto:** No proporcionar a Cline el contexto necesario sobre el proyecto o las dependencias.</td></tr>
+<tr><td>Curva de Aprendizaje</td><td>**Moderada:** Requiere familiarización con los modos Plan/Act y la integración con el IDE. La capacidad de configurar los modelos de IA y las claves API puede añadir una complejidad inicial. Sin embargo, la documentación y la comunidad activa facilitan la adopción.</td></tr>
+</table>
+
+## L04 — CAPACIDADES TÉCNICAS
+<table header-row="true">
+<tr><td>Capacidades Core</td><td>**Generación y Edición de Código:** Escribe, modifica y refactoriza código directamente en el IDE. **Ejecución de Comandos:** Ejecuta comandos en la terminal. **Navegación del Sistema de Archivos:** Lee y navega por archivos y directorios. **Modos Plan/Act:** Planifica las tareas antes de ejecutarlas, permitiendo la revisión humana. **Integración con IDE:** Funciona dentro de VS Code y JetBrains. **Soporte Multi-modelo:** Permite el uso de diversos modelos de IA (Anthropic, OpenAI, Gemini, etc.).</td></tr>
+<tr><td>Capacidades Avanzadas</td><td>**Integración MCP (Model Context Protocol):** Permite a los agentes interactuar con herramientas de backend estructuradas. **Manejo de Múltiples Archivos:** Realiza cambios coordinados a través de grandes bases de código. **Ejecución Paralela:** (Cline CLI 2.0) Permite la ejecución de tareas en paralelo. **Modo Headless CI/CD:** Integración en pipelines de integración/entrega continua. **Habilidades Modulares (Skills):** Extiende las capacidades de Cline para tareas específicas mediante conjuntos de instrucciones y flujos de trabajo. **Análisis de Código:** Comprende la estructura del código, dependencias y comportamiento.</td></tr>
+<tr><td>Capacidades Emergentes (Abril 2026)</td><td>**Kanban UI:** Nueva interfaz de usuario para orquestar agentes. **Soporte para ACP Editor:** (Cline CLI 2.0) Soporte para editores ACP. **Gestión de Contexto Mejorada:** Ventana de contexto visualizada y persistencia de Plan/Act. **Integración con Navegador:** Capacidad para usar el navegador para completar tareas.</td></tr>
+<tr><td>Limitaciones Técnicas Confirmadas</td><td>**Vulnerabilidades de Seguridad:** Se han reportado vulnerabilidades como la inyección de prompts y ataques a la cadena de suministro, requiriendo vigilancia y buenas prácticas por parte del usuario. **Dependencia del Modelo de IA:** La calidad y el rendimiento dependen en gran medida del modelo de IA subyacente configurado por el usuario. **Necesidad de Supervisión Humana:** Aunque es autónomo, se recomienda la revisión y aprobación humana de los cambios.</td></tr>
+<tr><td>Roadmap Público</td><td>Continuación del desarrollo de la interfaz de usuario (Kanban), mejoras en la integración con el navegador, fortalecimiento de las capacidades de seguridad, expansión del soporte a más IDEs y modelos de IA, y desarrollo de nuevas habilidades modulares.</td></tr>
+</table>
+
+## L05 — DOMINIO TÉCNICO
+<table header-row="true">
+<tr><td>Stack Tecnológico</td><td>**Core:** Agente de IA de código abierto. **Integración:** Extensiones para Visual Studio Code y JetBrains (IntelliJ IDEA, PyCharm, WebStorm). **Modelos de IA:** Compatible con una amplia gama de LLMs como Anthropic, OpenAI, Google Gemini, xAI, OpenRouter, y plataformas de inferencia como Amazon Bedrock, GCP Vertex, Azure OpenAI, Groq, Cerebras, Vercel AI Gateway, DeepSeek. **Entorno:** Ejecución local en el entorno del desarrollador.</td></tr>
+<tr><td>Arquitectura Interna</td><td>**Arquitectura Cliente-Servidor (Client-side):** El agente se ejecuta localmente, manteniendo el código y los prompts del usuario en su entorno. **Modos Plan/Act:** Un componente de planificación estratégica (Plan) y un componente de ejecución (Act). **Integración Profunda:** Interactúa directamente con el sistema de archivos, la terminal y el IDE. **Modularidad:** Utiliza un sistema de \'Skills\' para extender sus capacidades.</td></tr>
+<tr><td>Protocolos Soportados</td><td>**MCP (Model Context Protocol):** Protocolo clave para la interacción estructurada con herramientas de backend y servicios externos. **APIs de LLMs:** Utiliza los protocolos de comunicación de las APIs de los diferentes proveedores de modelos de lenguaje. **Protocols de IDE:** Se integra con los protocolos internos de VS Code y JetBrains para la manipulación de archivos y la ejecución de comandos.</td></tr>
+<tr><td>Formatos de Entrada/Salida</td><td>**Entrada:** Prompts en lenguaje natural, archivos de código, configuraciones (ej. .clinerules). **Salida:** Código generado/modificado (presentado en vista de diff), salida de comandos de terminal, planes de acción, información estructurada a través de MCP.</td></tr>
+<tr><td>APIs Disponibles</td><td>**APIs de Proveedores de LLMs:** Acceso a las APIs de modelos de IA configurados por el usuario. **Cline CLI:** Interfaz de línea de comandos que permite la interacción programática con el agente. **MCP (Model Context Protocol):** Proporciona una interfaz estandarizada para que Cline interactúe con herramientas y servicios.</td></tr>
+</table>
+
+## L06 — PLAYBOOKS OPERATIVOS
+<table header-row="true">
+<tr><td>Caso de Uso</td><td>Pasos Exactos</td><td>Herramientas Necesarias</td><td>Tiempo Estimado</td><td>Resultado Esperado</td></tr>
+<tr><td>**Refactorización de Código a Gran Escala**</td><td>1. El desarrollador define el objetivo de la refactorización (ej. migrar a una nueva API, mejorar la legibilidad). 2. Cline analiza la base de código para identificar las áreas afectadas y propone un plan de refactorización. 3. El desarrollador revisa y aprueba el plan. 4. Cline ejecuta la refactorización, realizando cambios coordinados en múltiples archivos. 5. El desarrollador revisa los cambios propuestos en la vista de diff y los aprueba.</td><td>VS Code/JetBrains con extensión Cline, Cline CLI, Modelo de IA configurado.</td><td>Variable, desde minutos hasta horas, dependiendo de la complejidad y tamaño del codebase.</td><td>Código refactorizado, consistente y funcional, con importaciones y tipos actualizados, y comportamiento preservado.</td></tr>
+<tr><td>**Generación de Pruebas Unitarias**</td><td>1. El desarrollador selecciona un módulo o función y solicita a Cline que genere pruebas unitarias. 2. Cline analiza el código, identifica casos de borde y propone un conjunto de pruebas. 3. El desarrollador revisa las pruebas generadas y las ajusta si es necesario. 4. Cline ejecuta las pruebas y reporta los resultados.</td><td>VS Code/JetBrains con extensión Cline, Cline CLI, Modelo de IA configurado, Framework de pruebas (ej. Jest, Pytest).</td><td>15-30 minutos por módulo/función.</td><td>Conjunto de pruebas unitarias robustas que cubren la funcionalidad del código, aumentando la confianza en la calidad del software.</td></tr>
+<tr><td>**Automatización de Tareas de Mantenimiento**</td><td>1. El desarrollador define una tarea de mantenimiento recurrente (ej. actualizar dependencias, limpiar archivos temporales). 2. Se crea un script utilizando Cline CLI que automatiza estos pasos. 3. El script se integra en un sistema de CI/CD o se programa como un cron job. 4. Cline ejecuta el script de forma autónoma.</td><td>Cline CLI, Modelo de IA configurado, Sistema de CI/CD (ej. GitHub Actions, Jenkins), Cron.</td><td>Configuración inicial: 30-60 minutos. Ejecución: minutos.</td><td>Tareas de mantenimiento automatizadas, reduciendo la carga manual y asegurando la consistencia del proyecto.</td></tr>
+</table>
+
+## L07 — EVIDENCIA Y REPRODUCIBILIDAD
+<table header-row="true">
+<tr><td>Benchmark</td><td>Score/Resultado</td><td>Fecha</td><td>Fuente</td><td>Comparativa</td></tr>
+<tr><td>**Cline-bench (Benchmark de Codificación Agéntica)**</td><td>Resultados variables según la tarea y el modelo de IA subyacente. El objetivo es proporcionar un marco de evaluación transparente y reproducible.</td><td>20 de Noviembre de 2025</td><td>[Cline Blog: Introducing cline-bench](https://cline.bot/blog/cline-bench-initiative)</td><td>Diseñado para comparar el rendimiento de agentes de codificación de IA en tareas del mundo real.</td></tr>
+<tr><td>**Comparativa con Cursor**</td><td>Cline maneja tareas más difíciles, Cursor proporciona autocompletado y funciona bien con tareas más pequeñas.</td><td>1 año atrás (aprox. Mayo 2025)</td><td>[Reddit: Compare Coding Agent](https://www.reddit.com/r/CLine/comments/1k0pl85/compare_coding_agent/)</td><td>Cline se enfoca en la autonomía para tareas complejas, mientras que Cursor se centra en la asistencia en tiempo real.</td></tr>
+<tr><td>**Comparativa con GitHub Copilot**</td><td>Cline ofrece capacidades de agente autónomo que van más allá de la generación de código asistida por Copilot, incluyendo planificación y ejecución de comandos.</td><td>Desconocida</td><td>[Artificial Analysis: Coding Agents Comparison Beta](https://artificialanalysis.ai/agents/coding)</td><td>Copilot es una herramienta de autocompletado y sugerencia, mientras que Cline es un agente que toma acciones.</td></tr>
+</table>
+
+## L08 — ARQUITECTURA DE INTEGRACIÓN
+<table header-row="true">
+<tr><td>Método de Integración</td><td>**Extensiones de IDE:** Integración profunda con VS Code y JetBrains. **CLI:** Interfaz de línea de comandos para automatización y scripts. **MCP (Model Context Protocol):** Para interacción estructurada con herramientas de backend.</td></tr>
+<tr><td>Protocolo</td><td>**APIs de LLMs:** Utiliza los protocolos específicos de cada proveedor de modelos de lenguaje (ej. HTTP/S para REST APIs). **MCP:** Protocolo propietario de Cline para la comunicación entre el agente y el contexto del modelo/herramientas.</td></tr>
+<tr><td>Autenticación</td><td>**Claves API:** Los usuarios pueden traer sus propias claves API para autenticarse con los proveedores de LLMs. **OAuth/SSO:** Para clientes Enterprise, se ofrece Single Sign-On (SSO) y otras soluciones de autenticación centralizada.</td></tr>
+<tr><td>Latencia Típica</td><td>Variable, depende en gran medida del modelo de IA utilizado, el proveedor de inferencia, la complejidad de la tarea y la carga de la red. Generalmente, las respuestas pueden variar desde segundos para tareas simples hasta varios minutos para refactorizaciones complejas.</td></tr>
+<tr><td>Límites de Rate</td><td>Dependen directamente de los límites de rate impuestos por los proveedores de los modelos de IA (ej. OpenAI, Anthropic, Google Gemini). Los usuarios que traen sus propias claves API están sujetos a los límites de su cuenta con esos proveedores. Los clientes Enterprise pueden tener acuerdos específicos con Cline o sus proveedores de inferencia.</td></tr>
+</table>
+
+## L09 — VERIFICACIÓN Y PRUEBAS
+<table header-row="true">
+<tr><td>Tipo de Test</td><td>Herramienta Recomendada</td><td>Criterio de Éxito</td><td>Frecuencia</td></tr>
+<tr><td>**Pruebas Unitarias**</td><td>Cline (para generación y ejecución), Frameworks de pruebas específicos del lenguaje (ej. Jest para JavaScript, Pytest para Python, JUnit para Java).</td><td>El código generado o modificado pasa todas las pruebas unitarias existentes y las nuevas generadas por Cline.</td><td>Continuo durante el desarrollo, antes de cada commit o pull request.</td></tr>
+<tr><td>**Pruebas de Integración**</td><td>Cline (para orquestar la ejecución), Herramientas de CI/CD (ej. GitHub Actions, Jenkins).</td><td>Los componentes integrados funcionan correctamente juntos, y las interacciones con APIs externas o servicios son exitosas.</td><td>Antes de la fusión de ramas principales, en entornos de staging.</td></tr>
+<tr><td>**Pruebas de Regresión**</td><td>Cline (para validar que los cambios no introducen nuevos errores), Herramientas de CI/CD.</td><td>Las funcionalidades existentes no se ven afectadas negativamente por los nuevos cambios.</td><td>Automáticamente en cada push a la rama principal, o antes de cada lanzamiento.</td></tr>
+<tr><td>**Pruebas de Aceptación (con Revisión Humana)**</td><td>Vista de diff de Cline, Entorno de desarrollo local del usuario.</td><td>El desarrollador aprueba los cambios propuestos por Cline, confirmando que cumplen con los requisitos y el comportamiento esperado.</td><td>En cada ciclo de Plan/Act de Cline, antes de aplicar los cambios al codebase.</td></tr>
+<tr><td>**Pruebas de Seguridad (Inyección de Prompts)**</td><td>Herramientas de análisis de seguridad de código estático (SAST), pruebas de penetración manuales, revisión de código.</td><td>El agente es resistente a ataques de inyección de prompts y no expone información sensible ni ejecuta acciones no autorizadas.</td><td>Periódicamente, especialmente después de actualizaciones importantes o nuevas integraciones de modelos de IA.</td></tr>
+</table>
+
+## L10 — CICLO DE VIDA Y MIGRACIÓN
+<table header-row="true">
+<tr><td>Versión</td><td>Fecha de Lanzamiento</td><td>Estado</td><td>Cambios Clave</td><td>Ruta de Migración</td></tr>
+<tr><td>**Cline CLI 2.0**</td><td>Febrero 2026</td><td>Activo</td><td>Rediseño de la interfaz de usuario de la terminal, soporte mejorado para agentes paralelos, integración ACP para Zed/Neovim/Emacs, acceso gratuito a Kimi K2.5.</td><td>Actualización de la CLI existente.</td></tr>
+<tr><td>**Cline v3.58.0**</td><td>12 de Febrero de 2026</td><td>Activo</td><td>Soporte nativo para subagentes, soporte para GLM-5, y automatización de tareas sin intervención manual.</td><td>Actualización de la extensión de VS Code/JetBrains.</td></tr>
+<tr><td>**Soporte GPT-5.5**</td><td>Abril 2026 (mencionado en actualizaciones recientes)</td><td>Activo</td><td>Soporte para GPT-5.5 para usuarios de OpenAI Codex, mejoras en el diagnóstico de memoria y manejo de banners.</td><td>Configuración del modelo en los ajustes de Cline.</td></tr>
+<tr><td>**Actualizaciones Continuas**</td><td>Constante</td><td>Activo</td><td>Mejoras en la interfaz de usuario (ej. Kanban), nuevas integraciones de modelos (ej. Devstral 2), mejoras en la gestión de contexto.</td><td>Actualizaciones regulares de la extensión y la CLI.</td></tr>
+</table>
+
+## L11 — MARCO DE COMPETENCIA
+<table header-row="true">
+<tr><td>Competidor Directo</td><td>Ventaja vs Competidor</td><td>Desventaja vs Competidor</td><td>Caso de Uso Donde Gana</td></tr>
+<tr><td>**Cursor**</td><td>Mayor control y características avanzadas para proyectos complejos, flexibilidad de modelos, arquitectura cliente-side que prioriza la privacidad.</td><td>Puede ser más lento para tareas rápidas y prototipado, curva de aprendizaje ligeramente más pronunciada.</td><td>Refactorizaciones a gran escala, proyectos con requisitos de privacidad estrictos, desarrollo de software complejo que requiere planificación detallada.</td></tr>
+<tr><td>**GitHub Copilot**</td><td>Mayor autonomía y capacidad de acción (planificación, ejecución de comandos, edición de archivos) en comparación con la asistencia de autocompletado de Copilot.</td><td>Menor integración nativa con el ecosistema de GitHub para algunos usuarios, puede requerir más configuración inicial de modelos.</td><td>Tareas que requieren acciones autónomas más allá de la sugerencia de código, como la creación de archivos, ejecución de pruebas o depuración.</td></tr>
+<tr><td>**Devin AI / OpenDevin**</td><td>Cline está más maduro y ampliamente adoptado en el mercado, con una comunidad activa y soporte para múltiples IDEs y modelos de IA.</td><td>Devin se enfoca en ser un ingeniero de software autónomo de extremo a extremo, lo que podría ser una visión más ambiciosa a largo plazo.</td><td>Integración inmediata en flujos de trabajo existentes de desarrolladores, flexibilidad para elegir modelos de IA, proyectos donde se valora la supervisión humana.</td></tr>
+<tr><td>**Claude Code (Anthropic)**</td><td>Modelo de consentimiento explícito que equilibra la autonomía con el control del desarrollador, mayor flexibilidad en la elección de modelos de IA.</td><td>Claude Code es un modelo de lenguaje, no un agente completo con integración de IDE y terminal como Cline.</td><td>Cuando se necesita un agente que pueda interactuar con el entorno de desarrollo de manera más integral y con mayor control.</td></tr>
+</table>
+
+## L12 — CAPA DE INYECCIÓN DE IA (AI INJECTION LAYER)
+<table header-row="true">
+<tr><td>Capacidad de IA</td><td>Modelo Subyacente</td><td>Nivel de Control</td><td>Personalización Posible</td></tr>
+<tr><td>**Generación de Código, Refactorización, Depuración**</td><td>Amplia gama de LLMs configurables por el usuario: Anthropic (Claude Sonnet, etc.), OpenAI (GPT-5.5, etc.), Google Gemini (Gemini 2.5 Pro, etc.), xAI, OpenRouter, AWS Bedrock, GCP Vertex, Groq, Cerebras, Vercel AI Gateway, DeepSeek.</td><td>**Alto:** El usuario tiene control total sobre el modelo de IA a utilizar, incluyendo la posibilidad de traer sus propias claves API. Puede seleccionar diferentes modelos para las fases de Plan y Act.</td><td>**Extensa:** El usuario puede personalizar el comportamiento del agente a través de la selección de modelos, la configuración de prompts, y la creación de habilidades modulares (Skills) y roles especializados (.clinerules/roles/).</td></tr>
+<tr><td>**Análisis de Código y Planificación**</td><td>Modelos de razonamiento más potentes (ej. Gemini 2.5 Pro, Claude Sonnet) son recomendados para la fase de Plan.</td><td>**Alto:** El usuario puede especificar qué modelo usar para la fase de Plan.</td><td>Ajuste de prompts para guiar el análisis y la planificación.</td></tr>
+<tr><td>**Interacción con Herramientas (MCP)**</td><td>El modelo de IA subyacente interpreta las herramientas disponibles a través del MCP.</td><td>**Medio:** El modelo de IA decide qué herramientas usar, pero el usuario define las herramientas disponibles a través del MCP.</td><td>Definición de herramientas y APIs accesibles a través del MCP.</td></tr>
+<tr><td>**Gestión de Contexto**</td><td>El modelo de IA utiliza el contexto proporcionado por Cline (archivos, terminal, IDE) para sus operaciones.</td><td>**Alto:** El usuario controla qué contexto se le presenta al agente a través de la configuración de Cline.</td><td>Configuración de la ventana de contexto, exclusión de archivos o directorios.</td></tr>
+</table>
+
+## L13 — RENDIMIENTO REALISTA Y EXPERIENCIA COMUNITARIA
+<table header-row="true">
+<tr><td>Métrica</td><td>Valor Reportado por Comunidad</td><td>Fuente</td><td>Fecha</td></tr>
+<tr><td>**Velocidad y Fiabilidad**</td><td>Elogios por la velocidad, fiabilidad y un flujo de trabajo fluido en VS Code.</td><td>Product Hunt, Reddit</td><td>Constante, con menciones en 2025 y 2026.</td></tr>
+<tr><td>**Manejo de Tareas Complejas**</td><td>Capaz de manejar tareas de codificación más difíciles y refactorizaciones a gran escala.</td><td>Reddit (comparativas con Cursor)</td><td>Mayo 2025.</td></tr>
+<tr><td>**Calidad del Código Generado**</td><td>La calidad varía según el modelo de IA utilizado, pero con Claude 3 se reportan buenos resultados. Necesidad de revisión humana.</td><td>Reddit, Medium</td><td>Diciembre 2024, Febrero 2025.</td></tr>
+<tr><td>**Experiencia de Usuario (Plan/Act)**</td><td>El modelo Plan/Act es valorado por permitir la supervisión y el control humano, aunque algunos usuarios prefieren menos reglas para tareas específicas.</td><td>Reddit, Medium</td><td>Constante.</td></tr>
+<tr><td>**Integración con IDE**</td><td>Integración profunda y efectiva con VS Code, permitiendo una experiencia fluida.</td><td>Product Hunt, Medium</td><td>Constante.</td></tr>
+<tr><td>**Curva de Aprendizaje**</td><td>Moderada, pero la documentación y la comunidad ayudan a la adopción.</td><td>Medium, Reddit</td><td>Constante.</td></tr>
+<tr><td>**Vulnerabilidades (Inyección de Prompts)**</td><td>Se han reportado y discutido vulnerabilidades de inyección de prompts, lo que indica la necesidad de precaución y buenas prácticas de seguridad.</td><td>Snyk, GitHub Discussions</td><td>Febrero-Marzo 2026.</td></tr>
+</table>
+
+## L14 — ECONOMÍA OPERATIVA Y ESTRATEGIA GTM
+<table header-row="true">
+<tr><td>Plan</td><td>Precio</td><td>Límites</td><td>Ideal Para</td><td>ROI Estimado</td></tr>
+<tr><td>**Open Source (Individual)**</td><td>Gratis (pago por uso de inferencia de IA)</td><td>Depende de los límites del proveedor de LLM y del presupuesto del usuario.</td><td>Desarrolladores individuales, proyectos personales, startups con presupuestos limitados.</td><td>Alto, ya que reduce significativamente el tiempo de desarrollo y depuración, con un costo inicial bajo o nulo. El costo diario de uso intensivo se estima entre $5 y $25.</td></tr>
+<tr><td>**Enterprise**</td><td>Personalizado (basado en características y soporte)</td><td>Acuerdos personalizados (SLAs, límites de rate, etc.).</td><td>Organizaciones grandes, equipos de desarrollo, empresas con requisitos de seguridad, cumplimiento y soporte dedicados.</td><td>Muy alto, al optimizar la productividad de equipos completos, estandarizar flujos de trabajo de IA, y asegurar la privacidad y el cumplimiento.</td></tr>
+<tr><td>**Estrategia Go-To-Market (GTM)**</td><td>**Modelo Freemium:** Ofrece una versión gratuita robusta para desarrolladores individuales para fomentar la adopción masiva. **Enfoque en la Comunidad:** Fuerte presencia en GitHub, Reddit, Discord para construir una comunidad activa y obtener feedback. **Asociaciones con Proveedores de LLM:** Colaboración con Anthropic, OpenAI, Google, etc., para asegurar compatibilidad y ofrecer opciones a los usuarios. **Ventas Enterprise:** Dirigido a grandes organizaciones con necesidades específicas de seguridad, soporte y gestión. **Marketing de Contenidos:** Blog con artículos técnicos, tutoriales y comparativas para educar al mercado sobre las capacidades de Cline.</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+</table>
+
+## L15 — BENCHMARKING EMPÍRICO Y RED TEAMING
+<table header-row="true">
+<tr><td>Escenario de Test</td><td>Resultado</td><td>Fortaleza Identificada</td><td>Debilidad Identificada</td></tr>
+<tr><td>**Cline-bench (Benchmark de Codificación Agéntica)**</td><td>Marco de evaluación de código abierto para probar agentes de IA en tareas de ingeniería del mundo real. Los resultados varían según el modelo de IA y la tarea.</td><td>Proporciona una plataforma transparente y reproducible para evaluar el rendimiento de los agentes de codificación.</td><td>La interpretación de los resultados requiere un análisis cuidadoso, ya que el rendimiento depende de múltiples factores.</td></tr>
+<tr><td>**Red Teaming de Agentes de Codificación (Estudio de arXiv)**</td><td>Identificación de vulnerabilidades de inyección de prompts en varios agentes de codificación, incluyendo Cline.</td><td>Conciencia y proactividad en la identificación y mitigación de vulnerabilidades de seguridad.</td><td>Susceptibilidad a ataques de inyección de prompts si no se implementan controles adecuados.</td></tr>
+<tr><td>**Ataques a la Cadena de Suministro (Clinejection)**</td><td>Un ataque de inyección de prompts a través de un título de issue de GitHub comprometió el bot de triaje de IA de Cline, lo que llevó al robo de tokens de npm y la instalación de un agente malicioso.</td><td>La arquitectura de Cline permite la integración profunda con los flujos de trabajo de desarrollo (ej. GitHub Actions).</td><td>Los agentes de IA pueden tratar el contenido no confiable como instrucciones, lo que requiere una revisión exhaustiva de los modelos de seguridad.</td></tr>
+<tr><td>**Evaluación de Precisión del Agente**</td><td>La precisión varía según la complejidad de la tarea y la calidad del modelo de IA subyacente.</td><td>Capacidad para manejar tareas complejas y generar código funcional.</td><td>La precisión no es del 100%, requiere supervisión humana y validación.</td></tr>
+</table>
+

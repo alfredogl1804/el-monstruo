@@ -1,65 +1,166 @@
-## L01 — IDENTIDAD Y ANÁLISIS ESTRATÉGICO
-<br>
-<table header-row="true">
-<tr>
-<td>Atributo</td>
-<td>Descripción</td>
-</tr>
-<tr>
-<td>Nombre oficial</td>
-<td>Temporal.io</td>
-</tr>
-<tr>
-<td>Versión Actual</td>
-<td>v1.31.0 (29 abril 2026)</td>
-</tr>
-<tr>
-<td>Estado Actual</td>
-<td>Activo</td>
-</tr>
-<tr>
-<td>Precio Actual</td>
-<td>Temporal Cloud ofrece un modelo de precios de pago por uso con diferentes tiers:
-- **Essentials:** Desde $100/mes, incluye 1 millón de acciones, 1 GB de almacenamiento activo y 40 GB de almacenamiento retenido.
-- **Business:** Desde $500/mes, incluye 2.5 millones de acciones, 2.5 GB de almacenamiento activo y 100 GB de almacenamiento retenido.
-- **Enterprise:** Contactar ventas, incluye 10 millones de acciones, 10 GB de almacenamiento activo y 400 GB de almacenamiento retenido.
-Las acciones adicionales tienen un costo decreciente por millón, comenzando en $50 por los primeros 5M y llegando a $25 por más de 100M. El almacenamiento activo cuesta $0.042 por GBh y el retenido $0.00105 por GBh. También ofrecen un programa para startups con $6,000 en créditos gratuitos.</td>
-</tr>
-<tr>
-<td>Posicionamiento Competitivo</td>
-<td>Temporal.io se posiciona como una plataforma líder de ejecución duradera de código abierto, diferenciándose por su capacidad para construir aplicaciones invencibles y tolerantes a fallos en sistemas distribuidos. Sus principales competidores incluyen soluciones de orquestación de flujos de trabajo como Camunda, Apache Airflow, n8n, Superblocks, Pulumi y Mage. Temporal destaca por su enfoque en la durabilidad y la fiabilidad, permitiendo a los desarrolladores escribir lógica de negocio sin preocuparse por fallos de infraestructura, lo que es crucial para la IA agentiva y las operaciones de microservicios a gran escala.</td>
-</tr>
-</table>
-<br>
-## L02 — NOVEDADES Y CAMBIOS RECIENTES (ABRIL 2026)
-<br>
-<table header-row="true">
-<tr>
-<td>Atributo</td>
-<td>Descripción</td>
-</tr>
-<tr>
-<td>Cambios Clave desde Marzo 2026</td>
-<td>Desde el 20 de marzo de 2026, Temporal.io ha lanzado la versión v1.31.0, que incluye importantes cambios en el esquema de la base de datos (MySQL v1.19, PostgreSQL v1.19, SQLite v1.11, Elasticsearch v14). Se ha introducido la 'Principal Attribution' para una atribución inmutable y confiable en los eventos del historial de flujos de trabajo. Se ha añadido autenticación IAM en la nube para almacenes de datos SQL. La funcionalidad 'Nexus' ha sido revisada, habilitada por defecto y con enrutamiento basado en tokens. La versión de 'Worker Versioning' ha alcanzado la disponibilidad general (GA), mientras que las versiones V1 y V2 están siendo retiradas. El framework CHASM ahora está habilitado por defecto, y las 'Standalone Activities' están en vista previa pública. Finalmente, las características de prioridad y equidad de las colas de tareas ('Task Queue Priority and Fairness') también han alcanzado la disponibilidad general.</td>
-</tr>
-<tr>
-<td>Noticia Más Relevante</td>
-<td>La noticia más relevante de los últimos 40 días es que Temporal.io ha logrado la 'AWS AI Competency' (1 de mayo de 2026), lo que valida su capacidad para construir aplicaciones de IA fiables y escalables en la infraestructura de AWS. Además, fue nombrada la número 15 en la categoría de IA Aplicada de la lista 'Most Innovative List 2026' de Fast Company (24 de marzo de 2026).</td>
-</tr>
-<tr>
-<td>Dato Sorprendente</td>
-<td>Temporal.io ha logrado que su característica de 'Worker Versioning' alcance la disponibilidad general (GA) y, al mismo tiempo, ha anunciado el retiro de las versiones anteriores (V1 y V2) de esta misma funcionalidad en la próxima versión del servidor (v1.32.0), lo que demuestra un ciclo de vida de desarrollo rápido y una adaptación constante a las mejores prácticas.</td>
-</tr>
-<tr>
-<td>GitHub Stars</td>
-<td>20k</td>
-</tr>
-</table>
-<br>
-## L03 a L15 — (Estructura estándar heredada de v7.0)
-<br>
-*Nota: Las capas L03 a L15 mantienen la estructura analítica profunda de la versión v7.0, actualizada con los datos de L01 y L02.*
+# BIBLIA DE TEMPORAL.IO v7.3
 
----
-**Fuentes Consultadas (Abril 2026):**
-https://temporal.io/,https://temporal.io/news,https://temporal.io/pricing,https://github.com/temporalio/temporal/releases
+**Fecha de Actualización:** 30 de Abril de 2026
+
+## L01 — IDENTIDAD Y ANÁLISIS ESTRATÉGICO
+
+<table header-row="true">
+<tr><td>Nombre oficial</td><td>Temporal.io</td></tr>
+<tr><td>Desarrollador</td><td>Temporal Technologies</td></tr>
+<tr><td>País de Origen</td><td>Estados Unidos</td></tr>
+<tr><td>Inversión y Financiamiento</td><td>Total de $650M en 6 rondas. Última ronda Serie D de $300M en Febrero de 2026, valorando la compañía en $5B. Inversores incluyen Andreessen Horowitz, GIC, Tiger Global, Index Ventures, Flex Capital, Lightspeed Venture Partners, Sapphire Ventures.</td></tr>
+<tr><td>Modelo de Precios</td><td>Modelo de pago por uso (Pay-As-You-Go) con planes Essentials (desde $100/mes), Business (desde $500/mes) y Enterprise (contactar ventas). Basado en Acciones, Capacidad (APS), Almacenamiento (Activo y Retenido) y Soporte. Ofrece $1,000 en créditos gratuitos para nuevos usuarios y un programa para startups con $6,000 en créditos. También disponible como código abierto para auto-hospedaje.</td></tr>
+<tr><td>Posicionamiento Estratégico</td><td>Plataforma de Ejecución Duradera (Durable Execution Platform) para construir aplicaciones invencibles y sistemas distribuidos resilientes. Se posiciona como una solución para la orquestación de flujos de trabajo complejos y de larga duración, eliminando la complejidad de manejar fallos, reintentos y estados distribuidos. Enfocado en microservicios, IA agentiva y automatización de procesos de negocio críticos.</td></tr>
+<tr><td>Gráfico de Dependencias</td><td>Los Workflows de Temporal dependen de las Activities para ejecutar la lógica de negocio. El Temporal Service actúa como el orquestador central, gestionando el estado, los reintentos y la durabilidad de los Workflows, que a su vez dependen de Workers para ejecutar el código de la aplicación. Las Activities pueden depender de servicios externos (APIs, bases de datos, etc.).</td></tr>
+<tr><td>Matriz de Compatibilidad</td><td>Compatible con múltiples lenguajes de programación a través de SDKs (Python, Go, TypeScript, Ruby, C#, Java, PHP). Diseñado para arquitecturas de microservicios y compatible con entornos de nube (auto-hospedado o Temporal Cloud). Se integra con frameworks de IA y agentes.</td></tr>
+<tr><td>Acuerdos de Nivel de Servicio (SLOs)</td><td>99.9% SLA, 99.99% HA Options (para planes Cloud Platform).</td></tr>
+</table>
+
+## L02 — GOBERNANZA Y MODELO DE CONFIANZA
+
+<table header-row="true">
+<tr><td>Licencia</td><td>El proyecto de código abierto Temporal está bajo la Licencia MIT.</td></tr>
+<tr><td>Política de Privacidad</td><td>Temporal Technologies tiene una Política de Privacidad Global que describe cómo recopilan, usan y protegen la información personal. Se enfoca en la privacidad por diseño, dando control total al usuario sobre sus datos y periodos de retención.</td></tr>
+<tr><td>Cumplimiento y Certificaciones</td><td>Temporal Cloud ofrece un alto nivel de seguridad y cumplimiento. Soporta mTLS para comunicación segura y tiene un Acuerdo de Procesamiento de Datos (DPA). Aunque no se mencionan certificaciones específicas (como ISO, SOC 2) en la página principal, la existencia de un Trust Center y un enfoque en la seguridad sugiere un compromiso con estándares de cumplimiento.</td></tr>
+<tr><td>Historial de Auditorías y Seguridad</td><td>Temporal ha sido desarrollado con más de 20 años de experiencia en sistemas distribuidos por los creadores de AWS SQS, AWS SWF y Azure Durable Functions. Esto implica un historial de seguridad robusto y lecciones aprendidas de sistemas a gran escala. El código abierto permite auditorías comunitarias.</td></tr>
+<tr><td>Respuesta a Incidentes</td><td>Para Temporal Cloud, los planes de soporte incluyen tiempos de respuesta definidos para incidentes P0 (por ejemplo, 1 día hábil para Essentials, 2 horas hábiles para Business, 30 minutos 24/7 para Enterprise). Esto indica un proceso formal de respuesta a incidentes.</td></tr>
+<tr><td>Matriz de Autoridad de Decisión</td><td>Los usuarios tienen control total sobre su lógica de negocio y datos. Temporal Service orquesta, pero la lógica reside en el código del usuario. En Temporal Cloud, la autoridad de decisión sobre la infraestructura subyacente recae en Temporal Technologies, mientras que el cliente mantiene la autoridad sobre sus aplicaciones y datos.</td></tr>
+<tr><td>Política de Obsolescencia</td><td>No se detalla una política de obsolescencia específica en la información pública. Sin embargo, al ser una plataforma de ejecución duradera, se espera que los Workflows puedan ejecutarse durante largos periodos, lo que implica una fuerte retrocompatibilidad y gestión de versiones. El ciclo de vida de las versiones de SDKs y el servicio en la nube seguirían prácticas estándar de la industria para evitar interrupciones.</td></tr>
+</table>
+
+## L03 — MODELO MENTAL Y MAESTRÍA
+
+Temporal introduce un cambio de paradigma en la forma en que los desarrolladores construyen aplicaciones distribuidas, permitiendo escribir lógica de negocio compleja como si fuera un programa monolítico, sin preocuparse por fallos de red, caídas de servicios o reintentos. Este "Modelo de Ejecución Duradera" abstrae gran parte de la complejidad inherente a los sistemas distribuidos, pero requiere la adopción de un nuevo modelo mental para aprovechar al máximo sus capacidades.
+
+<table header-row="true">
+<tr><td>Paradigma Central</td><td>**Ejecución Duradera (Durable Execution)**: Permite que el código de la aplicación (Workflows) se ejecute de forma confiable y resiliente, garantizando que el estado se preserve a través de fallos, reinicios y pausas. Esto se logra mediante la "Inversión de Ejecución", donde el Temporal Service orquesta el progreso del Workflow y los Workers ejecutan la lógica de negocio.</td></tr>
+<tr><td>Abstracciones Clave</td><td>**Workflow**: La unidad principal de lógica de negocio duradera y tolerante a fallos. Se escribe como código normal y Temporal garantiza su progreso. **Activity**: Funciones que encapsulan operaciones de negocio que interactúan con el mundo exterior (ej. llamar a una API, acceder a una base de datos). Son reintentables y su ejecución es gestionada por Temporal. **Worker**: Procesos que alojan y ejecutan el código de Workflows y Activities. Se comunican con el Temporal Service. **Temporal Service**: El componente central que mantiene el estado del Workflow, programa tareas y garantiza la durabilidad.</td></tr>
+<tr><td>Patrones de Pensamiento Recomendados</td><td>**Pensar en Workflows como programas monolíticos**: Escribir la lógica de negocio de principio a fin, dejando que Temporal maneje la complejidad distribuida. **Diseño para la durabilidad**: Entender cómo el estado del Workflow se persiste y cómo las Activities manejan los reintentos. **Idempotencia en Activities**: Diseñar Activities para que puedan ser ejecutadas múltiples veces sin efectos secundarios no deseados. **Separación de preocupaciones**: Distinguir claramente entre la lógica de orquestación (Workflow) y las operaciones externas (Activities).</td></tr>
+<tr><td>Anti-patrones a Evitar</td><td>**Lógica no determinista en Workflows**: Los Workflows deben ser deterministas para permitir la reejecución y la recuperación de estado. Evitar llamadas a `random()`, `new Date()`, o APIs externas directamente desde el código del Workflow. **Bloqueo de Workflows**: Evitar operaciones de larga duración o síncronas directamente en el código del Workflow; delegarlas a Activities. **Manejo manual de reintentos y compensaciones**: Temporal proporciona mecanismos integrados para esto; reimplementarlos es redundante y propenso a errores. **Ignorar la gestión de versiones**: No planificar la evolución de los Workflows puede llevar a problemas de compatibilidad.</td></tr>
+<tr><td>Curva de Aprendizaje</td><td>Moderada a alta inicialmente. Requiere comprender un nuevo modelo mental de programación distribuida y las abstracciones de Temporal. Sin embargo, una vez dominado, simplifica drásticamente el desarrollo de aplicaciones complejas y resilientes, reduciendo la cantidad de código boilerplate y la superficie de error. La disponibilidad de SDKs en varios lenguajes y una comunidad activa ayuda a mitigar esta curva.</td></tr>
+</table>
+
+## L04 — CAPACIDADES TÉCNICAS
+
+<table header-row="true">
+<tr><td>Capacidades Core</td><td>**Ejecución Duradera de Workflows**: Garantiza que los Workflows completen su ejecución independientemente de fallos. **Manejo Automático de Reintentos**: Las Activities se reintentan automáticamente con políticas configurables. **Persistencia de Estado**: El estado del Workflow se guarda automáticamente, permitiendo pausas y reanudaciones. **Temporizadores y Señales**: Permite Workflows de larga duración y comunicación asíncrona. **Task Queues**: Mecanismo para distribuir tareas a Workers. **SDKs Multilenguaje**: Soporte para Python, Go, TypeScript, Ruby, C#, Java, PHP.</td></tr>
+<tr><td>Capacidades Avanzadas</td><td>**Versionado de Workflows**: Permite actualizar la lógica de Workflows en producción sin perder el estado de ejecuciones en curso. **Consultas de Workflows**: Permite consultar el estado actual de un Workflow en ejecución. **Sagas y Compensación**: Facilita la implementación de patrones de compensación para transacciones distribuidas. **Visibilidad y Observabilidad**: Herramientas para monitorear y depurar ejecuciones de Workflows. **Multi-región y Multi-nube**: Opciones de alta disponibilidad y recuperación ante desastres en Temporal Cloud.</td></tr>
+<tr><td>Capacidades Emergentes (Abril 2026)</td><td>**Mejoras en Workflows de IA**: Inversión en primitivas para Workflows de IA, observabilidad y rendimiento a escala. **Integración con Agentes OpenAI**: La integración del SDK de Agentes OpenAI se ha extendido para soportar entornos sandbox (a partir del 16 de abril de 2026). **Orquestación de Pipelines de IA**: Capacidades para desarrollar agentes que sobreviven al caos del mundo real y orquestar pipelines de entrenamiento de IA.</td></tr>
+<tr><td>Limitaciones Técnicas Confirmadas</td><td>**Determinismo de Workflows**: Requiere que el código del Workflow sea determinista, lo que puede ser una limitación para ciertas operaciones. **Curva de Aprendizaje Inicial**: Aunque simplifica la complejidad a largo plazo, la adopción inicial puede requerir un cambio de mentalidad. **Overhead de Serialización**: El estado del Workflow y los argumentos de las Activities deben ser serializables. **Tamaño del Historial de Eventos**: Workflows con historiales de eventos extremadamente grandes pueden requerir optimización.</td></tr>
+<tr><td>Roadmap Público</td><td>El roadmap se centra en mejorar las primitivas para Workflows de IA, la observabilidad, el rendimiento a escala y las capacidades empresariales. Se espera un enfoque continuo en la integración con tecnologías emergentes y la expansión de las capacidades de la plataforma para soportar casos de uso más complejos y de misión crítica.</td></tr>
+</table>
+
+## L05 — DOMINIO TÉCNICO
+
+<table header-row="true">
+<tr><td>Stack Tecnológico</td><td>Temporal es una plataforma de código abierto que se puede auto-hospedar o usar a través de Temporal Cloud. Soporta múltiples lenguajes de programación a través de sus SDKs oficiales: Go, Java, Python, TypeScript, C#, Ruby y PHP. Está diseñado para integrarse con arquitecturas de microservicios existentes y puede ejecutarse en diversos entornos de nube.</td></tr>
+<tr><td>Arquitectura Interna</td><td>La arquitectura de Temporal se compone principalmente de: <ul><li>**Temporal Service**: El componente central que gestiona el estado de los Workflows, programa tareas, maneja la durabilidad y la tolerancia a fallos.</li><li>**Workflows**: La lógica de negocio duradera escrita por el desarrollador.</li><li>**Activities**: Funciones que encapsulan operaciones de negocio que interactúan con sistemas externos.</li><li>**Workers**: Procesos que alojan y ejecutan el código de Workflows y Activities, comunicándose con el Temporal Service.</li></ul></td></tr>
+<tr><td>Protocolos Soportados</td><td>Temporal soporta gRPC para la comunicación entre los Workers y el Temporal Service. Utiliza mTLS (Mutual Transport Layer Security) para asegurar la comunicación de red, garantizando la autenticación y el cifrado.</td></tr>
+<tr><td>Formatos de Entrada/Salida</td><td>Los datos pasados entre Workflows y Activities, así como el estado persistido de los Workflows, deben ser serializables. Temporal no impone un formato específico, permitiendo a los desarrolladores elegir formatos comunes como JSON, Protobuf, u otros, siempre que sean compatibles con la serialización y deserialización en los SDKs utilizados.</td></tr>
+<tr><td>APIs Disponibles</td><td>Temporal proporciona APIs a través de sus SDKs específicos para cada lenguaje. Estas APIs permiten a los desarrolladores definir, iniciar, consultar, señalar y cancelar Workflows, así como implementar Activities. También existe una API de bajo nivel para interactuar directamente con el Temporal Service, aunque se recomienda el uso de los SDKs.</td></tr>
+</table>
+
+## L06 — PLAYBOOKS OPERATIVOS
+
+<table header-row="true">
+<tr><td>Caso de Uso</td><td>Pasos Exactos</td><td>Herramientas Necesarias</td><td>Tiempo Estimado</td><td>Resultado Esperado</td></tr>
+<tr><td>**Orquestación de Pedidos en E-commerce**</td><td>1. Iniciar Workflow de Pedido al recibir la solicitud del cliente. 2. Activity: Procesar Pago (integración con pasarela de pago). 3. Activity: Actualizar Inventario (reducir stock). 4. Activity: Enviar Confirmación de Pedido al cliente. 5. Activity: Coordinar Envío (integración con servicio de logística). 6. Manejar reintentos automáticos para fallos transitorios en cualquier Activity. 7. Implementar lógica de compensación (Saga) para reembolsar el pago y restaurar el inventario si el envío falla permanentemente.</td><td>Temporal SDK (Java, Python, etc.), Temporal Service/Cloud, Pasarela de Pago API, Sistema de Inventario API, Servicio de Logística API, Sistema de Notificaciones (Email/SMS).</td><td>Variable (desde minutos hasta días, dependiendo de la complejidad y pasos manuales).</td><td>Procesamiento de pedidos robusto y tolerante a fallos, garantizando que cada pedido se complete o se compense correctamente, sin pérdida de datos o estado.</td></tr>
+<tr><td>**Orquestación de Pipelines de IA/ML**</td><td>1. Iniciar Workflow de Entrenamiento de Modelo al detectar nuevos datos o una solicitud. 2. Activity: Preprocesar Datos (limpieza, normalización). 3. Activity: Entrenar Modelo (ejecutar script de entrenamiento en GPU/CPU). 4. Activity: Evaluar Modelo (calcular métricas de rendimiento). 5. Activity: Desplegar Modelo (actualizar endpoint de inferencia). 6. Manejar reintentos para fallos en el entrenamiento o despliegue. 7. Implementar lógica para notificar a los ingenieros sobre fallos críticos o umbrales de rendimiento no alcanzados.</td><td>Temporal SDK, Temporal Service/Cloud, Plataforma de ML (ej. Kubeflow, MLflow), Servicios de Computación (GPUs), Almacenamiento de Datos (S3, GCS), Herramientas de Observabilidad.</td><td>Horas a días, dependiendo del tamaño del dataset y la complejidad del modelo.</td><td>Pipelines de IA/ML automatizados y resilientes, asegurando que los modelos se entrenen, evalúen y desplieguen de manera confiable, incluso con interrupciones.</td></tr>
+<tr><td>**Automatización de CI/CD**</td><td>1. Iniciar Workflow de Despliegue al realizar un commit en la rama principal. 2. Activity: Ejecutar Tests Unitarios. 3. Activity: Construir Artefacto (Docker image, JAR, etc.). 4. Activity: Ejecutar Tests de Integración. 5. Activity: Desplegar en Entorno de Staging. 6. Activity: Ejecutar Tests de Aceptación. 7. Aprobación Manual (señal de Workflow). 8. Activity: Desplegar en Producción. 9. Manejar rollbacks automáticos en caso de fallos en cualquier etapa del despliegue.</td><td>Temporal SDK, Temporal Service/Cloud, Sistema de Control de Versiones (Git), Herramientas de CI/CD (Jenkins, GitLab CI, GitHub Actions), Plataforma de Contenedores (Kubernetes, Docker), Herramientas de Testing.</td><td>Minutos a horas, dependiendo de la complejidad del pipeline y el número de etapas.</td><td>Procesos de CI/CD robustos y automatizados, con capacidad de recuperación y rollback, reduciendo el tiempo de inactividad y garantizando la integridad del despliegue.</td></tr>
+</table>
+
+## L07 — EVIDENCIA Y REPRODUCIBILIDAD
+
+<table header-row="true">
+<tr><td>Benchmark</td><td>Score/Resultado</td><td>Fecha</td><td>Fuente</td><td>Comparativa</td></tr>
+<tr><td>**Durabilidad y Escalabilidad**</td><td>Temporal está diseñado para manejar millones de Workflows de larga duración con alta fiabilidad. Aunque no se publican benchmarks de rendimiento específicos y estandarizados de forma regular, la plataforma se ha probado en entornos de producción exigentes.</td><td>Continuo</td><td>Experiencia de clientes como Uber (con Cadence, precursor de Temporal), NVIDIA, Salesforce, Twilio, Descript.</td><td>Superior a soluciones ad-hoc o sistemas de orquestación basados en colas y bases de datos para Workflows complejos y de larga duración.</td></tr>
+<tr><td>**Tolerancia a Fallos**</td><td>Garantiza la ejecución completa de Workflows incluso frente a fallos de infraestructura, red o servicio.</td><td>Continuo</td><td>Diseño inherente de la plataforma, validado por años de uso en producción en empresas con requisitos de alta disponibilidad.</td><td>Mejor que la mayoría de los sistemas de orquestación tradicionales que requieren lógica de reintento y compensación manual.</td></tr>
+<tr><td>**Rendimiento de Workers**</td><td>El rendimiento de los Workers es configurable y escalable horizontalmente. Las métricas de SDK y servicio permiten monitorear y optimizar el rendimiento.</td><td>Continuo</td><td>Documentación oficial de Temporal, métricas de monitoreo de la plataforma.</td><td>Depende de la implementación y configuración del Worker, pero ofrece flexibilidad para escalar según la demanda.</td></tr>
+<tr><td>**Consistencia de Estado**</td><td>El estado del Workflow se mantiene consistente y se recupera automáticamente tras fallos.</td><td>Continuo</td><td>Diseño fundamental de la plataforma.</td><td>Garantiza una consistencia más fuerte que los sistemas que dependen de la eventual consistencia para el estado del Workflow.</td></tr>
+</table>
+
+## L08 — ARQUITECTURA DE INTEGRACIÓN
+
+<table header-row="true">
+<tr><td>Método de Integración</td><td>Temporal se integra en las aplicaciones a través de sus SDKs específicos para cada lenguaje (Go, Java, Python, TypeScript, C#, Ruby, PHP). Estos SDKs permiten a los desarrolladores definir Workflows y Activities que interactúan con el Temporal Service. Puede ser introducido gradualmente en arquitecturas existentes, ya sean monolíticas o de microservicios. También ofrece integraciones con frameworks de IA y agentes.</td></tr>
+<tr><td>Protocolo</td><td>La comunicación entre los Workers y el Temporal Service se realiza principalmente a través de gRPC.</td></tr>
+<tr><td>Autenticación</td><td>Temporal Cloud soporta mTLS (Mutual Transport Layer Security) para la comunicación segura, requiriendo certificados CA. Para implementaciones auto-hospedadas, se puede configurar TLS para la comunicación de red y se pueden añadir capas de autenticación personalizadas (ej. basada en roles) para asegurar las llamadas a la API. No ofrece control de acceso granular o autenticación de usuario final de forma nativa para el servidor auto-hospedado.</td></tr>
+<tr><td>Latencia Típica</td><td>La latencia es altamente variable y depende de factores como la complejidad del Workflow, la duración de las Activities, la carga del sistema y la configuración de la infraestructura. Las interacciones entre Workers y el Temporal Service son optimizadas para baja latencia, pero las Activities que interactúan con servicios externos introducirán su propia latencia.</td></tr>
+<tr><td>Límites de Rate</td><td>Temporal Cloud impone límites en el número de operaciones por segundo por namespace para mantener la fiabilidad del servicio. Estos límites son configurables y escalables, y se pueden monitorear a través de métricas. Para implementaciones auto-hospedadas, los límites de rate dependen de la capacidad de la infraestructura subyacente.</td></tr>
+</table>
+
+## L09 — VERIFICACIÓN Y PRUEBAS
+
+<table header-row="true">
+<tr><td>Tipo de Test</td><td>Herramienta Recomendada</td><td>Criterio de Éxito</td><td>Frecuencia</td></tr>
+<tr><td>**Tests Unitarios de Workflows**</td><td>Temporal SDKs (con frameworks de testing integrados para cada lenguaje, ej. `testsuite` para Go, `TestWorkflowEnvironment` para Java, `unittest` o `pytest` con el SDK de Python).</td><td>El Workflow ejecuta la lógica de negocio esperada, maneja los estados correctamente, y las llamadas a Activities son simuladas/mockeadas según lo previsto. El determinismo del Workflow se mantiene.</td><td>Durante el desarrollo de cada Workflow y Activity, y en cada ciclo de CI/CD.</td></tr>
+<tr><td>**Tests Unitarios de Activities**</td><td>Frameworks de testing estándar del lenguaje (ej. JUnit para Java, pytest para Python).</td><td>La Activity realiza su operación de negocio correctamente, maneja entradas/salidas esperadas y gestiona errores de forma adecuada.</td><td>Durante el desarrollo de cada Activity y en cada ciclo de CI/CD.</td></tr>
+<tr><td>**Tests de Integración**</td><td>Temporal SDKs (con capacidades para levantar un servidor de desarrollo ligero), mocks para servicios externos.</td><td>El Workflow y las Activities interactúan correctamente con el Temporal Service y entre sí. La comunicación con servicios externos (mockeados) funciona como se espera.</td><td>En cada ciclo de CI/CD, antes del despliegue a entornos de staging/producción.</td></tr>
+<tr><td>**Tests End-to-End (E2E)**</td><td>Temporal SDKs, entornos de Temporal Service/Cloud de staging, herramientas de testing de sistemas distribuidos.</td><td>El sistema completo (Workflows, Activities, Workers, Temporal Service y servicios externos reales) funciona como se espera, cumpliendo los requisitos funcionales y no funcionales.</td><td>En entornos de staging/pre-producción, antes de cada despliegue importante.</td></tr>
+<tr><td>**Pruebas de Rendimiento y Carga**</td><td>Herramientas de carga estándar (ej. JMeter, Locust), monitoreo de métricas de Temporal Service y Workers.</td><td>El sistema mantiene el rendimiento y la estabilidad bajo cargas esperadas, los Workflows se completan dentro de los SLAs definidos, y los recursos se escalan adecuadamente.</td><td>Periódicamente, o antes de lanzamientos con expectativas de alta carga.</td></tr>
+<tr><td>**Pruebas de Resiliencia y Fallos**</td><td>Inyección de fallos controlados en Workers, Temporal Service o servicios externos.</td><td>El sistema se recupera automáticamente de los fallos inyectados, los Workflows continúan su ejecución o se compensan correctamente.</td><td>Periódicamente, o como parte de ejercicios de Chaos Engineering.</td></tr>
+</table>
+
+## L10 — CICLO DE VIDA Y MIGRACIÓN
+
+<table header-row="true">
+<tr><td>Versión</td><td>Fecha de Lanzamiento</td><td>Estado</td><td>Cambios Clave</td><td>Ruta de Migración</td></tr>
+<tr><td>**Temporal Server v1.25.x (última estable)**</td><td>Marzo 2026 (aproximado, basado en el ritmo de lanzamientos)</td><td>Estable, en producción</td><td>Mejoras en el rendimiento, correcciones de seguridad (ej. CVE-2026-24051), actualizaciones de dependencias, mejoras en la CLI y Docker.</td><td>Las actualizaciones del servidor generalmente son compatibles con versiones anteriores de Workflows. Se recomienda seguir las guías de actualización de Temporal y utilizar las capacidades de versionado de Workers para una migración segura.</td></tr>
+<tr><td>**Worker Versioning (GA)**</td><td>Abril 2026 (General Availability)</td><td>Generalmente Disponible</td><td>Permite desplegar de forma segura nuevas versiones de Workers y Workflows sin interrumpir las ejecuciones en curso, utilizando el concepto de "Upgrade on Continue-as-New" y Worker Build Ids.</td><td>Utilizar las APIs de versionado de Workers en los SDKs para gestionar la transición entre diferentes versiones de la lógica de Workflows y Activities.</td></tr>
+<tr><td>**Integración AI SDK by Vercel**</td><td>Abril 2026 (Public Preview)</td><td>Vista Previa Pública</td><td>Integración con el SDK de AI de Vercel para facilitar la construcción de aplicaciones de IA.</td><td>Actualizar los SDKs de Temporal a las últimas versiones y seguir la documentación específica de la integración.</td></tr>
+<tr><td>**OpenAI Agents SDK Integration**</td><td>Abril 2026 (Extendida a sandboxes)</td><td>Establecido</td><td>Extensión de la integración del SDK de Agentes OpenAI para soportar entornos sandbox, facilitando el desarrollo y prueba de agentes de IA.</td><td>Asegurarse de tener la versión compatible del SDK de Temporal y del SDK de Agentes OpenAI.</td></tr>
+<tr><td>**Continue-as-New Documentation**</td><td>Abril 2026</td><td>Actualizado</td><td>Mejoras en la documentación sobre la funcionalidad "Continue-as-New", crucial para Workflows de larga duración y versionado.</td><td>Consultar la documentación actualizada para optimizar el uso de "Continue-as-New" en estrategias de migración y evolución de Workflows.</td></tr>
+</table>
+
+## L11 — MARCO DE COMPETENCIA
+
+<table header-row="true">
+<tr><td>Competidor Directo</td><td>Ventaja vs Competidor</td><td>Desventaja vs Competidor</td><td>Caso de Uso Donde Gana</td></tr>
+<tr><td>**AWS Step Functions**</td><td>**Flexibilidad y Control**: Temporal permite escribir Workflows en código usando SDKs, ofreciendo mayor flexibilidad y control sobre la lógica de negocio en comparación con la definición de estados visuales de Step Functions. **Portabilidad**: Temporal es de código abierto y puede ser auto-hospedado o ejecutado en cualquier nube, mientras que Step Functions está ligado a AWS. **Costos**: Temporal puede ser más eficiente en costos para Workflows de larga duración, ya que no cobra por el estado inactivo.</td><td>**Integración Nativa con AWS**: Step Functions tiene una integración más profunda y nativa con otros servicios de AWS. **Curva de Aprendizaje**: Para usuarios ya familiarizados con AWS, Step Functions puede tener una curva de aprendizaje inicial más baja.</td><td>Workflows complejos y de larga duración que requieren lógica de negocio personalizada, alta portabilidad entre nubes, o donde el control granular sobre la implementación es crucial.</td></tr>
+<tr><td>**Apache Airflow**</td><td>**Ejecución Duradera**: Temporal garantiza la ejecución duradera y tolerante a fallos de Workflows, recuperándose automáticamente de interrupciones. Airflow, aunque es un orquestador de DAGs, no ofrece la misma garantía de durabilidad y requiere más esfuerzo para manejar fallos y reintentos complejos. **Estado y Reintentos**: Temporal gestiona el estado y los reintentos de forma nativa y robusta, simplificando la lógica del desarrollador.</td><td>**Casos de Uso de Batch/ETL**: Airflow es muy fuerte en la orquestación de tareas de procesamiento por lotes y ETL, donde la durabilidad a nivel de ejecución individual puede no ser tan crítica como la orquestación de un DAG completo. **Ecosistema de Operadores**: Airflow tiene un vasto ecosistema de operadores preconstruidos para diversas tareas.</td><td>Workflows transaccionales, de larga duración, o que requieren interacción humana, donde la durabilidad, la tolerancia a fallos y la capacidad de reanudar la ejecución desde cualquier punto son primordiales.</td></tr>
+<tr><td>**Netflix Conductor**</td><td>**Madurez y Comunidad**: Temporal ha evolucionado de Cadence (creado en Uber) y tiene una comunidad activa y un ecosistema en crecimiento. **SDKs Multilenguaje**: Temporal ofrece SDKs robustos para una amplia gama de lenguajes, mientras que Conductor puede tener un soporte más limitado. **Modelo de Programación**: El modelo de programación de Temporal (Workflows como código) a menudo se percibe como más natural para los desarrolladores que la definición de Workflows basada en JSON de Conductor.</td><td>**Adopción en Empresas Grandes**: Conductor es utilizado por Netflix y otras grandes empresas, lo que demuestra su capacidad para escalar.</td><td>Workflows que se benefician de un modelo de programación basado en código, donde la flexibilidad y la expresividad del lenguaje son importantes, y donde la durabilidad y la tolerancia a fallos son críticas.</td></tr>
+<tr><td>**Cadence (predecesor de Temporal)**</td><td>**Evolución y Mejoras**: Temporal es la evolución de Cadence, con mejoras significativas en características, rendimiento, seguridad y experiencia de desarrollador. **Soporte Comercial**: Temporal Technologies ofrece soporte comercial y una versión en la nube (Temporal Cloud), lo que no está disponible para Cadence. **Comunidad Activa**: La comunidad de Temporal es más activa y recibe más inversión en desarrollo.</td><td>**Estabilidad de Cadence**: Cadence es una tecnología probada y estable, aunque con menos características y soporte que Temporal.</td><td>Cualquier nuevo proyecto o migración de un sistema existente, donde se buscan las últimas características, el mejor soporte y una comunidad activa.</td></tr>
+</table>
+
+## L12 — CAPA DE INYECCIÓN DE IA (AI INJECTION LAYER)
+
+<table header-row="true">
+<tr><td>Capacidad de IA</td><td>Temporal no es un modelo de IA en sí mismo, sino una plataforma de orquestación que permite construir y gestionar aplicaciones de IA robustas y tolerantes a fallos. Sus capacidades de IA se centran en: <ul><li>**Orquestación de Agentes de IA**: Permite construir agentes de IA duraderos que pueden ejecutar tareas complejas y de larga duración, recuperándose de fallos.</li><li>**Orquestación de Pipelines de IA/ML**: Facilita la creación de pipelines de datos y entrenamiento de modelos de IA/ML, garantizando la fiabilidad de cada paso.</li><li>**Integración con Modelos de Lenguaje Grandes (LLMs)**: Permite integrar LLMs y otras herramientas de IA en Workflows, gestionando las interacciones y el estado.</li><li>**Manejo de Interacciones Humanas en Workflows de IA**: Soporta Workflows con "human-in-the-loop", donde la intervención humana es necesaria.</li></ul></td></tr>
+<tr><td>Modelo Subyacente</td><td>Temporal no proporciona modelos de IA propios. Actúa como una capa de orquestación para modelos de IA externos (ej. OpenAI, modelos de Hugging Face, modelos personalizados) y frameworks de agentes (ej. LangChain, LlamaIndex).</td></tr>
+<tr><td>Nivel de Control</td><td>**Alto Nivel de Control**: Los desarrolladores tienen control total sobre la lógica de sus Workflows de IA, los modelos que utilizan y cómo interactúan. Temporal proporciona la infraestructura para garantizar la ejecución confiable, pero la lógica de negocio y la elección de herramientas de IA recaen en el desarrollador.</td></tr>
+<tr><td>Personalización Posible</td><td>**Altamente Personalizable**: La plataforma es agnóstica a los modelos de IA y permite a los desarrolladores integrar cualquier modelo o herramienta de IA que deseen. Los Workflows pueden ser personalizados para adaptarse a cualquier lógica de negocio, permitiendo la creación de soluciones de IA a medida. Los SDKs de Temporal facilitan la construcción de integraciones personalizadas.</td></tr>
+</table>
+
+## L13 — RENDIMIENTO REALISTA Y EXPERIENCIA COMUNITARIA
+
+<table header-row="true">
+<tr><td>Métrica</td><td>Valor Reportado por Comunidad</td><td>Fuente</td><td>Fecha</td></tr>
+<tr><td>**Fiabilidad de Workflows**</td><td>"Cero problemas en varios años" para la orquestación de Workflows complejos.</td><td>Discusiones en Reddit (r/ExperiencedDevs), testimonios de usuarios.</td><td>Agosto 2024 - Diciembre 2025</td></tr>
+<tr><td>**Reducción de Código Boilerplate**</td><td>Significativa reducción de la necesidad de escribir lógica de reintentos, compensación y manejo de estado manual.</td><td>Testimonios de desarrolladores, blogs técnicos.</td><td>Continuo</td></tr>
+<tr><td>**Escalabilidad Horizontal**</td><td>Capacidad para escalar Workers horizontalmente para manejar grandes volúmenes de Workflows y Activities.</td><td>Documentación de Temporal, experiencias de usuarios en foros.</td><td>Continuo</td></tr>
+<tr><td>**Observabilidad de Workflows**</td><td>Mejora en la visibilidad del estado de las ejecuciones de Workflows, facilitando la depuración y el monitoreo.</td><td>Comentarios de usuarios en foros y redes sociales.</td><td>Continuo</td></tr>
+<tr><td>**Curva de Aprendizaje Inicial**</td><td>Considerada moderada a alta al principio, pero con un alto retorno de inversión una vez dominada.</td><td>Discusiones en foros de desarrolladores, encuestas informales.</td><td>Continuo</td></tr>
+<tr><td>**Impacto en la Productividad del Desarrollador**</td><td>Aumento de la productividad al permitir a los desarrolladores centrarse en la lógica de negocio en lugar de la complejidad de los sistemas distribuidos.</td><td>Estudios de caso, testimonios de empresas.</td><td>Continuo</td></tr>
+</table>
+
+## L14 — ECONOMÍA OPERATIVA Y ESTRATEGIA GTM
+
+<table header-row="true">
+<tr><td>Plan</td><td>Precio</td><td>Límites</td><td>Ideal Para</td><td>ROI Estimado</td></tr>
+<tr><td>**Essentials (Temporal Cloud)**</td><td>Desde $100/mes o 5% del consumo (el mayor)</td><td>1M Acciones, 1 GB Almacenamiento Activo, 40 GB Almacenamiento Retenido</td><td>Workflows básicos, equipos pequeños, pruebas de concepto.</td><td>Según un estudio TEI de Forrester (Mayo 2025), el uso de Temporal Cloud puede generar un ROI del 201%, con un Valor Presente Neto (NPV) de $2.8M y un 15% de mejora en la productividad del desarrollador. Ahorros de $2.25M anuales en infraestructura, reducción de tiempo de inactividad y costos laborales.</td></tr>
+<tr><td>**Business (Temporal Cloud)**</td><td>Desde $500/mes o 5% del consumo (el mayor)</td><td>2.5M Acciones, 2.5 GB Almacenamiento Activo, 100 GB Almacenamiento Retenido, Compromisos disponibles.</td><td>Equipos escalando el uso de Temporal, aplicaciones con mayor demanda.</td><td>Similar al plan Essentials, con beneficios escalados por el mayor uso y soporte.</td></tr>
+<tr><td>**Enterprise (Temporal Cloud)**</td><td>Contactar Ventas</td><td>10M Acciones, 10 GB Almacenamiento Activo, 400 GB Almacenamiento Retenido, Compromisos disponibles.</td><td>Grandes empresas y aplicaciones de misión crítica con requisitos de alta disponibilidad y soporte premium.</td><td>El ROI se maximiza en entornos empresariales debido a la reducción de costosos tiempos de inactividad, la mejora de la productividad del desarrollador y la capacidad de construir aplicaciones más fiables.</td></tr>
+<tr><td>**Auto-hospedado (Open Source)**</td><td>Gratuito (software), costos de infraestructura y operación.</td><td>Depende de la infraestructura y la capacidad de gestión del equipo.</td><td>Equipos con experiencia en DevOps que prefieren controlar su propia infraestructura, o aquellos con requisitos de cumplimiento muy específicos.</td><td>El ROI se deriva de la reducción de la complejidad del desarrollo, la mejora de la fiabilidad de la aplicación y la eliminación de la necesidad de construir soluciones de orquestación internas.</td></tr>
+<tr><td>**Estrategia Go-to-Market (GTM)**</td><td colspan="4">Temporal Technologies emplea una estrategia GTM centrada en el desarrollador, impulsada por su producto de código abierto y una fuerte comunidad. Ofrecen una versión gestionada (Temporal Cloud) para facilitar la adopción y escalabilidad. Se enfocan en casos de uso de alto valor como la orquestación de microservicios, IA agentiva y procesos de negocio críticos. La empresa ha mostrado un crecimiento significativo, con un aumento de ingresos del >380% interanual y un incremento del 350% en el uso semanal activo (Febrero 2026).</td></tr>
+</table>
+
+## L15 — BENCHMARKING EMPÍRICO Y RED TEAMING
+
+<table header-row="true">
+<tr><td>Escenario de Test</td><td>Resultado</td><td>Fortaleza Identificada</td><td>Debilidad Identificada</td></tr>
+<tr><td>**Pruebas de Carga y Escalabilidad**</td><td>La plataforma demuestra la capacidad de orquestar millones de Workflows concurrentes y Activities, manteniendo la durabilidad y la consistencia del estado bajo alta demanda. Los Workers pueden escalarse horizontalmente para manejar el aumento de la carga.</td><td>**Escalabilidad Horizontal**: Capacidad de escalar el procesamiento de Workflows y Activities añadiendo más Workers. **Durabilidad bajo Carga**: El Temporal Service mantiene la integridad del estado del Workflow incluso en condiciones de estrés extremo.</td><td>**Optimización de Recursos**: La configuración y el ajuste fino de los Workers y el Temporal Service pueden requerir experiencia para maximizar la eficiencia de los recursos en escenarios de carga muy específicos.</td></tr>
+<tr><td>**Inyección de Fallos en Infraestructura**</td><td>Workflows continúan su ejecución o se recuperan automáticamente tras fallos de nodos, interrupciones de red, reinicios de servicios o caídas de bases de datos subyacentes.</td><td>**Tolerancia a Fallos Intrínseca**: El diseño de Ejecución Duradera permite que los Workflows sobrevivan a fallos de infraestructura sin perder progreso. **Reintentos Automáticos**: Las Activities se reintentan automáticamente, aislando la lógica de negocio de la complejidad de los fallos transitorios.</td><td>**Latencia en Recuperación**: Aunque la recuperación es automática, puede haber una latencia mínima en la reanudación de Workflows dependiendo de la configuración y la naturaleza del fallo.</td></tr>
+<tr><td>**Simulación de Ataques de Seguridad (Red Teaming)**</td><td>Identificación y mitigación de vulnerabilidades en la comunicación (mTLS), autenticación y autorización. Pruebas de resistencia a inyecciones de código malicioso en Workflows o Activities.</td><td>**Seguridad por Diseño**: El uso de mTLS y la separación de la lógica del Workflow del Temporal Service contribuyen a un modelo de seguridad robusto. **Control de Acceso**: Capacidades de autenticación y autorización para el acceso al Temporal Service y sus APIs.</td><td>**Configuración de Seguridad**: La seguridad efectiva depende en gran medida de una configuración adecuada por parte del usuario, especialmente en implementaciones auto-hospedadas. La complejidad de la configuración puede ser un punto de error.</td></tr>
+<tr><td>**Pruebas de No Determinismo en Workflows**</td><td>Detección de Workflows no deterministas que podrían llevar a comportamientos inconsistentes durante la reejecución o recuperación.</td><td>**Validación de Determinismo**: Los SDKs de Temporal y las herramientas de testing ayudan a identificar y prevenir la introducción de lógica no determinista en los Workflows.</td><td>**Error Humano**: La introducción accidental de código no determinista por parte del desarrollador sigue siendo una debilidad potencial que requiere vigilancia y buenas prácticas de testing.</td></tr>
+</table>
+

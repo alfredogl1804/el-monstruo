@@ -1,61 +1,179 @@
-## L01 — IDENTIDAD Y ANÁLISIS ESTRATÉGICO
-<br>
-<table header-row="true">
-<tr>
-<td>Atributo</td>
-<td>Descripción</td>
-</tr>
-<tr>
-<td>Nombre oficial</td>
-<td>LiteLLM</td>
-</tr>
-<tr>
-<td>Versión Actual</td>
-<td>v1.84.0-dev.1 (30 abril 2026)</td>
-</tr>
-<tr>
-<td>Estado Actual</td>
-<td>Activo (con problemas de servicio reportados el 29 de abril de 2026)</td>
-</tr>
-<tr>
-<td>Precio Actual</td>
-<td>LiteLLM opera con un modelo de precios bajo solicitud para su AI Gateway y despliegues On-Premise, sin detalles de tiers públicos. La versión SDK es de código abierto y gratuita.</td>
-</tr>
-<tr>
-<td>Posicionamiento Competitivo</td>
-<td>LiteLLM se posiciona como un AI Gateway de código abierto que ofrece una interfaz unificada para interactuar con más de 100 proveedores de LLM, utilizando el formato OpenAI. Su principal ventaja competitiva radica en la abstracción de las complejidades de las APIs de diferentes proveedores, permitiendo a los desarrolladores cambiar de modelos sin reescribir código. Esto lo diferencia de soluciones propietarias o de aquellos que requieren integraciones específicas para cada LLM. Ofrece características como seguimiento de costos, guardrails, balanceo de carga y un panel de administración, lo que lo convierte en una solución robusta para entornos empresariales que buscan flexibilidad y control en el uso de LLMs.</td>
-</tr>
-</table>
-<br>
-## L02 — NOVEDADES Y CAMBIOS RECIENTES (ABRIL 2026)
-<br>
-<table header-row="true">
-<tr>
-<td>Atributo</td>
-<td>Descripción</td>
-</tr>
-<tr>
-<td>Cambios Clave desde Marzo 2026</td>
-<td>Desde marzo de 2026, LiteLLM ha experimentado cambios significativos. En marzo, sufrió un incidente de cadena de suministro donde las versiones 1.82.7 y 1.82.8 fueron comprometidas con un backdoor, lo que llevó al lanzamiento de la versión 1.83.0 como una versión limpia. En abril, se descubrió y explotó una vulnerabilidad crítica de inyección SQL (CVE-2026-42208) que permitía la extracción de claves API y credenciales. Además, se introdujeron 116 nuevos modelos el 16 de marzo, incluyendo Nebius AI, gpt-5.4, Gemini 3.x y FLUX Kontext. El 28 de abril, se anunció un cambio en el esquema de versionado para adoptar nombres estándar, con actualizaciones menores semanales y parches para hotfixes. También se realizaron actualizaciones en el Townhall de abril, enfocándose en CI/CD v2, estabilidad del producto y la hoja de ruta.</td>
-</tr>
-<tr>
-<td>Noticia Más Relevante</td>
-<td>La noticia más importante de los últimos 40 días es la explotación de una vulnerabilidad crítica de inyección SQL (CVE-2026-42208) en LiteLLM en abril de 2026. Esta vulnerabilidad permitió a los atacantes extraer claves API y credenciales, lo que generó preocupaciones significativas sobre la seguridad de los usuarios. Este incidente siguió a un ataque a la cadena de suministro en marzo, donde versiones anteriores del software fueron comprometidas con un backdoor.</td>
-</tr>
-<tr>
-<td>Dato Sorprendente</td>
-<td>A pesar de ser una herramienta de código abierto que simplifica el acceso a múltiples LLMs, LiteLLM ha enfrentado dos incidentes de seguridad críticos en un corto período (marzo y abril de 2026): un ataque a la cadena de suministro y una vulnerabilidad de inyección SQL explotada rápidamente tras su divulgación. Esto resalta los desafíos de seguridad en el ecosistema de herramientas de IA de rápido crecimiento.</td>
-</tr>
-<tr>
-<td>GitHub Stars</td>
-<td>45.4k</td>
-</tr>
-</table>
-<br>
-## L03 a L15 — (Estructura estándar heredada de v7.0)
-<br>
-*Nota: Las capas L03 a L15 mantienen la estructura analítica profunda de la versión v7.0, actualizada con los datos de L01 y L02.*
+# BIBLIA DE LITELLM v7.3
 
----
-**Fuentes Consultadas (Abril 2026):**
-https://github.com/BerriAI/litellm, https://docs.litellm.ai/release_notes/, https://docs.litellm.ai/blog/security-update-march-2026, https://docs.litellm.ai/blog/cleaner-release-versions, https://thehackernews.com/2026/04/how-litellm-turned-developer-machines.html, https://cycode.com/blog/lite-llm-supply-chain-attack/, https://www.netspi.com/blog/executive-blog/ai-ml-pentesting/litellm-supply-chain-compromise/, https://simonwillison.net/2026/Mar/25/litellm-hack/, https://thehackernews.com/2026/04/litellm-cve-2026-42208-sql-injection.html, https://www.sysdig.com/blog/cve-2026-42208-targeted-sql-injection-against-litellms-authentication-path-discovered-36-hours-following-vulnerability-disclosure, https://www.bleepingcomputer.com/news/security/hackers-are-exploiting-a-critical-litellm-pre-auth-sqli-flaw/, https://letsdatascience.com/news/litellm-contains-critical-sql-injection-vulnerability-3aaf94f0, https://status.litellm.ai/, https://docs.litellm.ai/blog/april-townhall-updates, https://www.litellm.ai/
+**Fecha de Actualización:** 30 de Abril de 2026
+
+## L01 — IDENTIDAD Y ANÁLISIS ESTRATÉGICO
+
+<table header-row="true">
+<tr><td>Nombre oficial</td><td>LiteLLM</td></tr>
+<tr><td>Desarrollador</td><td>Berri AI</td></tr>
+<tr><td>País de Origen</td><td>Se infiere principalmente de la ubicación de los contribuidores y la base de operaciones de Berri AI, que es Estados Unidos.</td></tr>
+<tr><td>Inversión y Financiamiento</td><td>No se ha encontrado información pública específica sobre rondas de inversión o financiamiento para LiteLLM o Berri AI. Al ser un proyecto de código abierto, su desarrollo puede depender de contribuciones de la comunidad, patrocinios y servicios empresariales asociados.</td></tr>
+<tr><td>Modelo de Precios</td><td>LiteLLM es de código abierto y gratuito. Ofrece un proxy (AI Gateway) que permite la gestión de costos, seguimiento de gastos y personalización de precios para más de 100 modelos de LLM. También cuenta con una versión Enterprise con características adicionales.</td></tr>
+<tr><td>Posicionamiento Estratégico</td><td>Se posiciona como un "AI Gateway" unificado y de código abierto para más de 100 LLMs, simplificando la integración y el cambio entre proveedores de modelos. Su compatibilidad con la API de OpenAI permite a los desarrolladores cambiar de modelos sin reescribir código. Ofrece características de producción como claves virtuales, seguimiento de gastos, guardrails, balanceo de carga y un panel de administración.</td></tr>
+<tr><td>Gráfico de Dependencias</td><td>LiteLLM actúa como una capa de abstracción. Depende de las APIs de los diferentes proveedores de LLMs (OpenAI, Anthropic, Gemini, Bedrock, Azure, etc.) y de bibliotecas Python para su funcionamiento.</td></tr>
+<tr><td>Matriz de Compatibilidad</td><td>Compatible con más de 100 proveedores de LLMs, incluyendo OpenAI, Anthropic, Vertex AI, Bedrock, Azure, Cohere, Sagemaker, HuggingFace, VLLM, NVIDIA NIM, entre otros.</td></tr>
+<tr><td>Acuerdos de Nivel de Servicio (SLOs)</td><td>No se han encontrado SLOs públicos para la versión de código abierto. Para la versión Enterprise, es probable que se ofrezcan SLOs personalizados.</td></tr>
+</table>
+
+## L02 — GOBERNANZA Y MODELO DE CONFIANZA
+
+<table header-row="true">
+<tr><td>Licencia</td><td>MIT License</td></tr>
+<tr><td>Política de Privacidad</td><td>No se ha encontrado una política de privacidad específica para el proyecto de código abierto LiteLLM en el repositorio de GitHub. La política de privacidad de los servicios que utilizan LiteLLM dependerá de cada implementación.</td></tr>
+<tr><td>Cumplimiento y Certificaciones</td><td>No se han encontrado certificaciones de cumplimiento específicas para LiteLLM como proyecto de código abierto. La versión Enterprise podría ofrecer características de cumplimiento.</td></tr>
+<tr><td>Historial de Auditorías y Seguridad</td><td>Al ser de código abierto, el código está disponible para auditorías de seguridad por parte de la comunidad. No se han encontrado informes de auditorías de seguridad formales publicadas.</td></tr>
+<tr><td>Respuesta a Incidentes</td><td>No se ha encontrado un proceso formal de respuesta a incidentes documentado públicamente para el proyecto de código abierto. La comunidad de GitHub y Discord son los canales principales para reportar problemas.</td></tr>
+<tr><td>Matriz de Autoridad de Decisión</td><td>El desarrollo del proyecto es liderado por Berri AI, con contribuciones de la comunidad. La autoridad de decisión reside en el equipo principal de Berri AI.</td></tr>
+<tr><td>Política de Obsolescencia</td><td>No se ha encontrado una política de obsolescencia formal. Como proyecto de código abierto, la comunidad y el equipo de Berri AI guían la evolución y el soporte de versiones.</td></tr>
+</table>
+
+## L03 — MODELO MENTAL Y MAESTRÍA
+
+LiteLLM se concibe como una capa de abstracción universal para interactuar con una multitud de Grandes Modelos de Lenguaje (LLMs). Su modelo mental central gira en torno a la simplificación y estandarización del acceso a LLMs, eliminando la complejidad de las APIs específicas de cada proveedor. Esto permite a los desarrolladores enfocarse en la lógica de su aplicación en lugar de gestionar las idiosincrasias de cada modelo o proveedor. La maestría en LiteLLM implica comprender cómo esta capa unificada gestiona las solicitudes, respuestas, fallbacks y el enrutamiento inteligente para optimizar el rendimiento y el costo.
+
+<table header-row="true">
+<tr><td>Paradigma Central</td><td>Abstracción y Unificación de APIs de LLMs. Actúa como un "AI Gateway" que normaliza las interacciones con más de 100 proveedores de LLMs bajo un formato compatible con OpenAI.</td></tr>
+<tr><td>Abstracciones Clave</td><td><ul><li>**Completion API:** Una interfaz única para realizar llamadas a cualquier LLM, independientemente del proveedor.</li><li>**Proxy Server (AI Gateway):** Un servicio centralizado que añade funcionalidades como seguimiento de costos, guardrails, balanceo de carga, claves virtuales y un panel de administración.</li><li>**Model Routing:** Capacidad para dirigir solicitudes a diferentes modelos o proveedores basándose en lógica de negocio, costo o rendimiento.</li><li>**Fallbacks:** Mecanismos para cambiar automáticamente a un modelo alternativo si el primario falla.</li></ul></td></tr>
+<tr><td>Patrones de Pensamiento Recomendados</td><td><ul><li>**"Write Once, Run Anywhere" para LLMs:** Diseñar aplicaciones asumiendo que el LLM subyacente puede ser intercambiado fácilmente.</li><li>**Optimización de Costos y Rendimiento:** Utilizar las capacidades de enrutamiento y seguimiento de costos para seleccionar el modelo más eficiente para cada tarea.</li><li>**Resiliencia por Diseño:** Implementar fallbacks para asegurar la continuidad del servicio ante interrupciones de proveedores.</li><li>**Seguridad y Gobernanza Centralizada:** Aprovechar el Proxy para aplicar políticas de seguridad, límites de gasto y auditoría.</li></ul></td></tr>
+<tr><td>Anti-patrones a Evitar</td><td><ul><li>**Acoplamiento Fuerte a un Proveedor Específico:** Evitar escribir código que dependa directamente de la API de un solo proveedor de LLM, anulando el propósito de LiteLLM.</li><li>**Gestión Manual de Claves API:** No utilizar las capacidades de claves virtuales del Proxy, lo que puede llevar a problemas de seguridad y gestión.</li><li>**Ignorar el Seguimiento de Costos:** Desatender las métricas de gasto, lo que puede resultar en costos inesperados al escalar el uso de LLMs.</li><li>**Falta de Estrategia de Fallback:** No configurar modelos de respaldo, lo que puede causar interrupciones en la aplicación si un proveedor principal experimenta problemas.</li></ul></td></tr>
+<tr><td>Curva de Aprendizaje</td><td>Moderada. La integración básica con el SDK de Python es sencilla para quienes están familiarizados con la API de OpenAI. La configuración y gestión del Proxy (AI Gateway) para entornos de producción, incluyendo enrutamiento avanzado, guardrails y gestión de costos, requiere una comprensión más profunda de sus archivos de configuración y despliegue.</td></tr>
+</table>
+
+## L04 — CAPACIDADES TÉCNICAS
+
+<table header-row="true">
+<tr><td>Capacidades Core</td><td><ul><li>**Interfaz Unificada:** Permite llamar a más de 100 proveedores de LLMs (OpenAI, Anthropic, Gemini, Bedrock, Azure, etc.) utilizando un formato compatible con la API de OpenAI.</li><li>**Python SDK:** Integración directa en aplicaciones Python para interactuar con LLMs.</li><li>**Proxy Server (AI Gateway):** Despliegue centralizado para gestionar el acceso a LLMs.</li><li>**Manejo de Errores Estandarizado:** Normaliza las excepciones de todos los proveedores a un formato consistente con las excepciones de OpenAI.</li><li>**Cost Tracking:** Seguimiento de costos detallado por modelo, usuario o proyecto.</li><li>**Fallbacks:** Configuración de modelos alternativos para garantizar la resiliencia del servicio.</li><li>**Load Balancing:** Distribución de solicitudes entre múltiples modelos o proveedores para optimizar el rendimiento y la disponibilidad.</li></ul></td></tr>
+<tr><td>Capacidades Avanzadas</td><td><ul><li>**Guardrails:** Implementación de reglas de seguridad y contenido para las interacciones con LLMs.</li><li>**Caching:** Almacenamiento en caché de respuestas para reducir latencia y costos.</li><li>**Rate Limiting:** Control de la tasa de solicitudes para prevenir abusos y gestionar la carga.</li><li>**Virtual Keys:** Gestión de claves API centralizada y segura.</li><li>**Model Routing:** Enrutamiento inteligente de solicitudes basado en criterios como costo, latencia o disponibilidad.</li><li>**Multi-tenant Management:** Soporte para múltiples equipos y usuarios con configuraciones aisladas.</li><li>**Soporte para Agentes (A2A):** Invocación de agentes A2A a través del SDK y el Gateway.</li><li>**Herramientas MCP:** Conexión de servidores MCP a cualquier LLM.</li></ul></td></tr>
+<tr><td>Capacidades Emergentes (Abril 2026)</td><td><ul><li>**Integración con Modelos Locales/Privados:** Continuo desarrollo para facilitar la integración con modelos desplegados localmente o en entornos privados (VLLM, NVIDIA NIM, Sagemaker).</li><li>**Optimización de Costos Avanzada:** Mejoras en algoritmos de enrutamiento y selección de modelos para una mayor eficiencia económica.</li><li>**Funcionalidades de Gobernanza de IA:** Expansión de las capacidades de guardrails y auditoría para cumplir con regulaciones emergentes.</li></ul></td></tr>
+<tr><td>Limitaciones Técnicas Confirmadas</td><td><ul><li>**Dependencia de APIs Externas:** La funcionalidad depende de la disponibilidad y estabilidad de las APIs de los proveedores de LLMs.</li><li>**Curva de Aprendizaje para Configuración Avanzada:** La configuración del Proxy para escenarios complejos (enrutamiento sofisticado, guardrails personalizados) puede requerir un conocimiento profundo de los archivos de configuración.</li><li>**Overhead de Latencia Mínimo:** Aunque optimizado, la capa de abstracción puede introducir un overhead de latencia marginal en comparación con la llamada directa a una API de LLM.</li></ul></td></tr>
+<tr><td>Roadmap Público</td><td>El roadmap se gestiona principalmente a través de las discusiones y los issues en el repositorio de GitHub. Las actualizaciones y nuevas características se anuncian regularmente en el blog de LiteLLM y en sus canales de comunicación. No se ha encontrado un documento de roadmap formal y consolidado con fechas específicas.</td></tr>
+</table>
+
+## L05 — DOMINIO TÉCNICO
+
+<table header-row="true">
+<tr><td>Stack Tecnológico</td><td><ul><li>**Lenguaje Principal:** Python</li><li>**Framework Web (Proxy):** FastAPI</li><li>**Base de Datos (Proxy):** PostgreSQL (para persistencia de datos como claves virtuales, logs, etc.)</li><li>**Contenedores:** Docker</li><li>**Orquestación:** Kubernetes (a través de Helm charts para despliegue del Proxy)</li><li>**Gestión de Dependencias:** uv (anteriormente Poetry)</li></ul></td></tr>
+<tr><td>Arquitectura Interna</td><td>LiteLLM se compone de dos elementos principales:<ul><li>**Python SDK:** Una biblioteca que se integra directamente en las aplicaciones Python, proporcionando una interfaz unificada para llamar a los LLMs. Realiza la traducción de las solicitudes al formato específico de cada proveedor y normaliza las respuestas.</li><li>**Proxy Server (AI Gateway):** Un servicio independiente (basado en FastAPI) que actúa como un punto de entrada centralizado para todas las solicitudes a LLMs. Utiliza el SDK internamente y añade funcionalidades de nivel empresarial como autenticación, autorización, balanceo de carga, guardrails, caching, rate limiting y seguimiento de costos.</li></ul></td></tr>
+<tr><td>Protocolos Soportados</td><td>Principalmente HTTP/HTTPS para la comunicación con las APIs de los proveedores de LLMs. El Proxy expone una API compatible con el formato de la API de OpenAI.</td></tr>
+<tr><td>Formatos de Entrada/Salida</td><td><ul><li>**Entrada:** JSON (compatible con el formato de solicitud de la API de OpenAI para `chat/completions`, `embeddings`, etc.).</li><li>**Salida:** JSON (compatible con el formato de respuesta de la API de OpenAI, con normalización de excepciones y estructuras de respuesta entre diferentes proveedores).</li></ul></td></tr>
+<tr><td>APIs Disponibles</td><td><ul><li>**`litellm.completion()`:** Función principal del SDK para realizar llamadas a LLMs.</li><li>**`litellm.embedding()`:** Para generar embeddings.</li><li>**`litellm.image_generation()`:** Para generación de imágenes.</li><li>**`litellm.audio_transcriptions()` / `litellm.audio_speech()`:** Para funcionalidades de audio.</li><li>**Endpoints del Proxy (AI Gateway):** Incluyen `/chat/completions`, `/embeddings`, `/images`, `/audio`, `/batches`, `/rerank`, `/a2a`, `/messages`, y endpoints para gestión de guardrails, caching, etc.</li></ul></td></tr>
+</table>
+
+## L06 — PLAYBOOKS OPERATIVOS
+
+<table header-row="true">
+<tr><td>Caso de Uso</td><td>**Unificación de Acceso a Múltiples LLMs**</td><td>**Optimización de Costos y Rendimiento con Enrutamiento Inteligente**</td><td>**Implementación de Resiliencia con Fallbacks Automáticos**</td></tr>
+<tr><td>Pasos Exactos</td><td><ol><li>Instalar LiteLLM SDK: `pip install litellm`</li><li>Configurar las claves API de los diferentes proveedores (OpenAI, Anthropic, Cohere) como variables de entorno.</li><li>Utilizar `litellm.completion()` con el parámetro `model` especificando el proveedor y el modelo (ej. `model="openai/gpt-4o"`, `model="anthropic/claude-3-opus"`).</li><li>Gestionar las respuestas de forma unificada, ya que LiteLLM normaliza el formato de salida.</li></ol></td><td><ol><li>Desplegar el Proxy de LiteLLM (AI Gateway) en un servidor o contenedor.</li><li>Configurar `config.yaml` para definir `model_list` con múltiples modelos de diferentes proveedores y sus respectivos costos.</li><li>Habilitar el enrutamiento inteligente (ej. `router_mode: cost_optimized`).</li><li>Enviar solicitudes al endpoint del Proxy, dejando que LiteLLM decida el mejor modelo basándose en la configuración.</li><li>Monitorear el panel de administración del Proxy para ver el uso y los costos.</li></ol></td><td><ol><li>Configurar el Proxy de LiteLLM con un `model_list` que incluya un modelo primario y uno o más modelos de fallback.</li><li>Definir la lógica de fallback en `config.yaml` (ej. `strict_fallback: true` o `num_retries: 3`).</li><li>Realizar llamadas al Proxy. Si el modelo primario falla, LiteLLM intentará automáticamente con los modelos de fallback configurados.</li><li>Configurar alertas para notificar sobre fallbacks y posibles problemas con los proveedores.</li></ol></td></tr>
+<tr><td>Herramientas Necesarias</td><td>Python, LiteLLM SDK, variables de entorno para claves API.</td><td>Docker/Kubernetes, LiteLLM Proxy, archivo `config.yaml`, panel de administración de LiteLLM.</td><td>LiteLLM Proxy, archivo `config.yaml`, sistema de monitoreo/alertas.</td></tr>
+<tr><td>Tiempo Estimado</td><td>1-2 horas para configuración inicial y primera llamada.</td><td>4-8 horas para despliegue y configuración básica, más tiempo para optimización fina.</td><td>2-4 horas para configuración y pruebas de la lógica de fallback.</td></tr>
+<tr><td>Resultado Esperado</td><td>Aplicación capaz de interactuar con diversos LLMs sin cambios significativos en el código base, aprovechando las fortalezas de cada modelo.</td><td>Reducción de costos operativos de LLMs y mejora del rendimiento al seleccionar dinámicamente el modelo más adecuado para cada solicitud.</td><td>Mayor robustez y disponibilidad de la aplicación al mitigar interrupciones de servicio de proveedores de LLMs.</td></tr>
+</table>
+
+## L07 — EVIDENCIA Y REPRODUCIBILIDAD
+
+<table header-row="true">
+<tr><td>Benchmark</td><td>Score/Resultado</td><td>Fecha</td><td>Fuente</td><td>Comparativa</td></tr>
+<tr><td>Latencia P95 (1k RPS)</td><td>8ms</td><td>Desconocida</td><td>Documentación oficial de LiteLLM</td><td>N/A (medida interna)</td></tr>
+<tr><td>Latencia P99 (500 RPS)</td><td>28s</td><td>Desconocida</td><td>slashllm.com</td><td>Frente a Portkey (menor latencia)</td></tr>
+<tr><td>Throughput (Bifrost vs LiteLLM)</td><td>LiteLLM: 44.84 req/sec</td><td>Desconocida</td><td>getmaxim.ai</td><td>Bifrost: 424 req/sec (9.5x más rápido)</td></tr>
+<tr><td>Latencia P99 (Bifrost vs LiteLLM)</td><td>LiteLLM: 54x mayor que Bifrost</td><td>Desconocida</td><td>getmaxim.ai</td><td>Bifrost: 54x menor latencia</td></tr>
+<tr><td>Uso de Memoria (Bifrost vs LiteLLM)</td><td>LiteLLM: 372MB</td><td>Desconocida</td><td>getmaxim.ai</td><td>Bifrost: 120MB (68% menos)</td></tr>
+<tr><td>Latencia P99 (TensorZero vs LiteLLM)</td><td>LiteLLM: degrada a cientos de QPS, falla a 1,000 QPS</td><td>Desconocida</td><td>tensorzero.com</td><td>TensorZero: <1ms P99 latencia a 10,000 QPS (construido en Rust)</td></tr>
+<tr><td>Latencia con Proxy (ejemplo)</td><td>~4.5 segundos</td><td>Junio 2024</td><td>Discusión en GitHub (#4298)</td><td>Direct API calls: ~2 segundos (overhead de ~2.5 segundos)</td></tr>
+<tr><td>Problemas de Rendimiento en Producción</td><td>Latencia P99 de 90+ segundos, aumento del uso de memoria</td><td>daily.dev</td><td>Enero 2026</td></tr>
+</table>
+
+## L08 — ARQUITECTURA DE INTEGRACIÓN
+
+<table header-row="true">
+<tr><td>Método de Integración</td><td><ul><li>**Python SDK:** Integración directa como biblioteca en aplicaciones Python.</li><li>**Proxy Server (AI Gateway):** Despliegue como un servicio independiente que expone una API unificada.</li><li>**MCP Gateway:** Integración con el Protocolo de Contexto de Modelos (MCP) para herramientas y servicios externos.</li></ul></td></tr>
+<tr><td>Protocolo</td><td><ul><li>**HTTP/HTTPS:** Para la comunicación con las APIs de los proveedores de LLMs y para la exposición de la API del Proxy.</li><li>**Formato OpenAI API:** El Proxy de LiteLLM y el SDK aceptan y devuelven datos en un formato compatible con la API de OpenAI, estandarizando las interacciones.</li></ul></td></tr>
+<tr><td>Autenticación</td><td><ul><li>**Claves API:** Utiliza las claves API de los proveedores de LLMs (ej. `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`) configuradas como variables de entorno o directamente en el código.</li><li>**Claves Virtuales (Proxy):** El Proxy de LiteLLM permite la creación y gestión de claves virtuales para controlar el acceso de usuarios y equipos, añadiendo una capa de seguridad y control.</li><li>**OAuth/SSO (Enterprise):** La versión Enterprise del Proxy ofrece integración con sistemas de autenticación empresarial como SSO/SAML.</li></ul></td></tr>
+<tr><td>Latencia Típica</td><td>La latencia varía significativamente. LiteLLM añade un overhead mínimo (P95 de 8ms en benchmarks internos para el Gateway). Sin embargo, la latencia total depende en gran medida de:<ul><li>La latencia del proveedor de LLM subyacente.</li><li>La distancia de red entre LiteLLM y el proveedor.</li><li>La complejidad de la solicitud y el tamaño de la respuesta.</li><li>La configuración del Proxy (caching, balanceo de carga).</li></ul>En escenarios reales, se han reportado overheads de ~2.5 segundos en comparación con llamadas directas a la API.</td></tr>
+<tr><td>Límites de Rate</td><td><ul><li>**Límites de Proveedor:** LiteLLM respeta los límites de tasa impuestos por cada proveedor de LLM.</li><li>**Límites Configurables (Proxy):** El Proxy de LiteLLM permite configurar límites de tasa personalizados por usuario, clave virtual o modelo, ofreciendo un control granular sobre el consumo de recursos.</li><li>**Manejo Automático:** LiteLLM puede gestionar automáticamente los reintentos y las esperas cuando se alcanzan los límites de tasa de los proveedores.</li></ul></td></tr>
+</table>
+
+## L09 — VERIFICACIÓN Y PRUEBAS
+
+<table header-row="true">
+<tr><td>Tipo de Test</td><td>Herramienta Recomendada</td><td>Criterio de Éxito</td><td>Frecuencia</td></tr>
+<tr><td>**Tests Unitarios**</td><td>`pytest` (integrado en el desarrollo de LiteLLM)</td><td>Todas las funciones y módulos individuales de LiteLLM operan según lo esperado, sin errores.</td><td>Continuo (durante el desarrollo), Pre-commit, Integración Continua (CI).</td></tr>
+<tr><td>**Tests de Integración**</td><td>`pytest` con configuraciones específicas para proveedores de LLMs.</td><td>LiteLLM se comunica correctamente con las APIs de los diferentes proveedores, y las solicitudes/respuestas se manejan de forma unificada.</td><td>Integración Continua (CI), antes de cada lanzamiento.</td></tr>
+<tr><td>**Tests End-to-End (E2E)**</td><td>`litellm-observatory` (suite de pruebas dedicada), `pytest`.</td><td>Verificación completa del flujo de trabajo, desde la solicitud del usuario a través de LiteLLM hasta el LLM y la respuesta final, incluyendo funcionalidades del Proxy como guardrails y enrutamiento.</td><td>Integración Continua (CI), pruebas de regresión, antes de despliegues importantes.</td></tr>
+<tr><td>**Tests de Carga y Rendimiento**</td><td>`Locust` (LiteLLM proporciona un endpoint `fake-openai-endpoint` para pruebas de carga).</td><td>El Proxy de LiteLLM mantiene una latencia aceptable y un alto rendimiento bajo cargas de tráfico esperadas, sin degradación significativa o fallos.</td><td>Periódicamente (ej. mensual), antes de picos de tráfico esperados, después de cambios significativos en la infraestructura.</td></tr>
+<tr><td>**Tests de Seguridad**</td><td>Herramientas de análisis de seguridad estático (SAST) y dinámico (DAST), auditorías manuales.</td><td>Identificación y mitigación de vulnerabilidades de seguridad, protección contra inyecciones, acceso no autorizado y otras amenazas.</td><td>Periódicamente, después de cambios de código relevantes para la seguridad, tras incidentes de seguridad.</td></tr>
+<tr><td>**Tests de Fallback y Resiliencia**</td><td>`pytest` con simulación de fallos de proveedores.</td><td>LiteLLM conmuta automáticamente a modelos de fallback cuando un proveedor falla, manteniendo la disponibilidad del servicio.</td><td>Integración Continua (CI), pruebas de regresión.</td></tr>
+</table>
+
+## L10 — CICLO DE VIDA Y MIGRACIÓN
+
+<table header-row="true">
+<tr><td>Versión</td><td>Fecha de Lanzamiento</td><td>Estado</td><td>Cambios Clave</td><td>Ruta de Migración</td></tr>
+<tr><td>**1.84.0.dev1**</td><td>28 de Abril de 2026</td><td>Pre-release</td><td>Cambios en el versionado (nombres estándar, MINOR para características), mejoras de rendimiento, soporte para nuevos proveedores.</td><td>Actualización a través de `pip install litellm==1.84.0.dev1` (para desarrollo/pruebas).</td></tr>
+<tr><td>**1.83.14**</td><td>25 de Abril de 2026</td><td>Estable</td><td>Actualizaciones de proveedores, correcciones de errores, mejoras de rendimiento.</td><td>Actualización a través de `pip install litellm==1.83.14`.</td></tr>
+<tr><td>**1.82.7 / 1.82.8**</td><td>Marzo de 2026</td><td>Comprometida (Malware)</td><td>Estas versiones fueron identificadas con malware que exfiltraba credenciales.</td><td>**Migración Urgente:** Evitar estas versiones. Actualizar inmediatamente a una versión segura (ej. 1.83.x o superior) y realizar una auditoría de seguridad.</td></tr>
+<tr><td>**v1.xx:main-stable**</td><td>Continuo</td><td>Estable (Recomendado para Producción)</td><td>Versión estable más reciente con soporte continuo, nuevas características y correcciones de errores.</td><td>Actualización regular para obtener las últimas mejoras y parches de seguridad.</td></tr>
+<tr><td>**Cambios en el Versionado**</td><td>Abril de 2026</td><td>Anunciado</td><td>LiteLLM está cambiando su esquema de versionado para usar nombres estándar y el incremento de la versión MINOR para nuevas características, eliminando los sufijos `-stable` y `-nightly`.</td><td>Ajustar los procesos de actualización para seguir el nuevo esquema de versionado.</td></tr>
+</table>
+
+## L11 — MARCO DE COMPETENCIA
+
+<table header-row="true">
+<tr><td>Competidor Directo</td><td>Ventaja vs Competidor</td><td>Desventaja vs Competidor</td><td>Caso de Uso Donde Gana</td></tr>
+<tr><td>**Portkey AI**</td><td>LiteLLM es de código abierto y ofrece una mayor flexibilidad para auto-alojamiento. Su enfoque en la simplicidad y la compatibilidad con OpenAI lo hace fácil de adoptar.</td><td>Portkey AI ofrece una observabilidad más profunda, análisis avanzados, control de acceso basado en roles (RBAC) y funcionalidades de enrutamiento más sofisticadas, especialmente para entornos empresariales.</td><td>Equipos que buscan una solución de gateway de LLM de código abierto, fácil de integrar y con un control total sobre la infraestructura. Prototipado rápido y proyectos con presupuestos limitados.</td></tr>
+<tr><td>**Bifrost**</td><td>LiteLLM tiene una comunidad más grande y un ecosistema más maduro al ser uno de los pioneros en gateways de LLM de código abierto.</td><td>Bifrost, construido en Go, demuestra ser significativamente más rápido en throughput y menor latencia P99 en benchmarks, además de consumir menos memoria.</td><td>Proyectos donde la velocidad de desarrollo y la flexibilidad de integración con Python son prioritarias, y donde el rendimiento extremo no es el cuello de botella principal.</td></tr>
+<tr><td>**TensorZero Gateway**</td><td>Similar a Bifrost, LiteLLM ofrece mayor flexibilidad y un ecosistema más amplio.</td><td>TensorZero, construido en Rust, ofrece una latencia P99 extremadamente baja (<1ms a 10,000 QPS), superando a LiteLLM en escenarios de muy alta concurrencia.</td><td>Aplicaciones donde la facilidad de uso y la compatibilidad con múltiples proveedores son más críticas que la latencia ultra-baja en cargas extremas.</td></tr>
+<tr><td>**Kong AI Gateway**</td><td>LiteLLM es una solución más ligera y específica para LLMs, lo que puede simplificar su configuración y mantenimiento en comparación con un gateway de API general como Kong.</td><td>Kong AI Gateway es una solución más robusta y escalable para la gestión de APIs en general, con capacidades avanzadas de seguridad, monitoreo y gestión de tráfico que van más allá de los LLMs.</td><td>Equipos que necesitan una solución dedicada y ágil para la gestión de LLMs sin la complejidad de un gateway de API de propósito general.</td></tr>
+<tr><td>**LangChain / LlamaIndex**</td><td>LiteLLM se enfoca puramente en la abstracción de la capa de API de LLMs, lo que lo hace más ligero y con un propósito más definido. Puede ser utilizado como el backend de LLM dentro de frameworks como LangChain.</td><td>LangChain y LlamaIndex son frameworks completos para el desarrollo de aplicaciones basadas en LLMs, ofreciendo orquestación, gestión de agentes, integración con bases de datos vectoriales, etc.</td><td>Casos de uso donde solo se necesita una capa unificada para llamar a LLMs, sin la necesidad de las funcionalidades de orquestación y gestión de agentes que ofrecen los frameworks más grandes.</td></tr>
+<tr><td>**OpenRouter / Cloudflare AI Gateway / TrueFoundry AI Gateway**</td><td>LiteLLM es de código abierto y permite el auto-alojamiento, ofreciendo mayor control y personalización.</td><td>Estos son servicios gestionados o plataformas que ofrecen gateways de LLM con características similares, pero con la ventaja de la gestión por parte del proveedor y, en algunos casos, un rendimiento optimizado.</td><td>Equipos que requieren control total sobre su infraestructura y código, y que prefieren una solución de código abierto para evitar el vendor lock-in.</td></tr>
+</table>
+
+## L12 — CAPA DE INYECCIÓN DE IA (AI INJECTION LAYER)
+
+<table header-row="true">
+<tr><td>Capacidad de IA</td><td>Modelo Subyacente</td><td>Nivel de Control</td><td>Personalización Posible</td></tr>
+<tr><td>**Acceso Unificado a LLMs**</td><td>No tiene un modelo subyacente propio; actúa como un orquestador para más de 100 LLMs de terceros (OpenAI, Anthropic, Gemini, Bedrock, etc.).</td><td>Alto. LiteLLM permite seleccionar dinámicamente el LLM a utilizar, configurar parámetros específicos del modelo y gestionar el enrutamiento.</td><td>Completa. Se puede personalizar qué modelos están disponibles, cómo se enrutan las solicitudes, los parámetros de llamada y las políticas de fallback.</td></tr>
+<tr><td>**Detección de Inyección de Prompts**</td><td>Algoritmos de verificación de similitud contra listas pre-generadas de ataques de inyección de prompts.</td><td>Moderado. LiteLLM puede identificar si una solicitud contiene un ataque de inyección de prompts basándose en patrones conocidos.</td><td>Se pueden configurar las listas de patrones de inyección y ajustar la sensibilidad de la detección.</td></tr>
+<tr><td>**Guardrails de Contenido**</td><td>No tiene un modelo subyacente propio; utiliza mecanismos de filtrado y reglas configurables.</td><td>Alto. Permite definir reglas para filtrar contenido inapropiado, sensible o malicioso en las entradas y salidas de los LLMs.</td><td>Se pueden crear y aplicar políticas de guardrails personalizadas, incluyendo listas negras de palabras, detección de PII, etc.</td></tr>
+<tr><td>**Gestión de Agentes de IA (A2A)**</td><td>No tiene un modelo subyacente propio; facilita la invocación y gestión de agentes de IA externos.</td><td>Alto. LiteLLM permite integrar y gestionar agentes de IA, controlando su acceso y uso a través del Proxy.</td><td>Se pueden configurar los agentes de IA disponibles, sus permisos y cómo interactúan con los LLMs.</td></tr>
+<tr><td>**Seguridad contra Vulnerabilidades (SQL Injection)**</td><td>N/A (La vulnerabilidad es en el propio LiteLLM, no en un modelo de IA subyacente).</td><td>Crítico. Las vulnerabilidades como la inyección SQL (CVE-2026-42208) pueden permitir la modificación de la base de datos subyacente de LiteLLM, exponiendo claves API y datos.</td><td>La personalización se centra en la implementación de parches de seguridad, la configuración de firewalls de aplicaciones web (WAF) y la aplicación de principios de seguridad de defensa en profundidad.</td></tr>
+</table>
+
+## L13 — RENDIMIENTO REALISTA Y EXPERIENCIA COMUNITARIA
+
+<table header-row="true">
+<tr><td>Métrica</td><td>Valor Reportado por Comunidad</td><td>Fuente</td><td>Fecha</td></tr>
+<tr><td>**Latencia P95 (Gateway)**</td><td>8ms a 1k RPS</td><td>Documentación oficial de LiteLLM</td><td>Febrero 2026</td></tr>
+<tr><td>**Latencia P99 (Gateway)**</td><td>45ms a 1k RPS (v1.78.5)</td><td>Discusión en GitHub (#15933)</td><td>Diciembre 2025</td></tr>
+<tr><td>**Latencia P99 (Producción)**</td><td>28s a 500 RPS; OOM crashes a 1,000 RPS</td><td>slashllm.com</td><td>Desconocida</td></tr>
+<tr><td>**Latencia P99 (Producción)**</td><td>90+ segundos</td><td>daily.dev</td><td>Enero 2026</td></tr>
+<tr><td>**Overhead de Latencia (Real)**</td><td>~2.5 segundos adicionales</td><td>Discusión en GitHub (#4298)</td><td>Junio 2024</td></tr>
+<tr><td>**Overhead de Latencia (Producción)**</td><td>30-40ms adicionales a 2k RPS</td><td>Reddit (r/AI_Agents)</td><td>Desconocida</td></tr>
+<tr><td>**Escalabilidad (Single Node)**</td><td>Hasta 5,000 QPS sin fallos (4-CPU, 8-GB RAM)</td><td>Blog de LiteLLM</td><td>Febrero 2026</td></tr>
+<tr><td>**Estabilidad en Producción**</td><td>"Degrada a cientos de QPS y falla completamente a 1,000 QPS"</td><td>tensorzero.com</td><td>Desconocida</td></tr>
+<tr><td>**Uso de Memoria**</td><td>"El uso de memoria sigue aumentando"</td><td>daily.dev</td><td>Enero 2026</td></tr>
+<tr><td>**Feedback General**</td><td>"Los mantenedores de LiteLLM son receptivos y la documentación reconoce algunos de estos límites. Pero a mayor escala, Python más la base de datos en la ruta crítica parece complicado."</td><td>Reddit (r/AI_Agents)</td><td>Enero 2026</td></tr>
+</table>
+
+## L14 — ECONOMÍA OPERATIVA Y ESTRATEGIA GTM
+
+<table header-row="true">
+<tr><td>Plan</td><td>Precio</td><td>Límites</td><td>Ideal Para</td><td>ROI Estimado</td></tr>
+<tr><td>**Open Source SDK**</td><td>Gratuito (costos de LLM subyacentes aplican)</td><td>Depende de los límites del proveedor de LLM.</td><td>Desarrolladores individuales, startups, prototipado, proyectos de investigación.</td><td>Ahorro significativo en tiempo de desarrollo al unificar el acceso a LLMs. Flexibilidad para experimentar con diferentes modelos.</td></tr>
+<tr><td>**Proxy Server (AI Gateway) Auto-alojado**</td><td>Gratuito (costos de infraestructura y LLM subyacentes aplican)</td><td>Configurables por el usuario (rate limits, cuotas por usuario/equipo). Rendimiento limitado en cargas muy altas si no se optimiza la infraestructura.</td><td>Equipos que requieren control total sobre su infraestructura, gestión de costos, balanceo de carga y guardrails en entornos de producción.</td><td>Reducción de costos de LLM mediante enrutamiento inteligente. Mejora de la resiliencia y gobernanza. Ahorro en licencias de gateways comerciales.</td></tr>
+<tr><td>**Versión Enterprise**</td><td>Basado en contratos y ofertas privadas.</td><td>Acuerdos de Nivel de Servicio (SLOs) y límites personalizados.</td><td>Grandes empresas y organizaciones con requisitos de seguridad, cumplimiento, soporte y gestión multi-equipo.</td><td>Optimización de costos a escala, cumplimiento normativo, soporte dedicado, funcionalidades avanzadas de seguridad y auditoría, lo que se traduce en menor riesgo y mayor eficiencia operativa.</td></tr>
+<tr><td>**Estrategia Go-To-Market (GTM)**</td><td>La estrategia GTM de LiteLLM se centra en la adopción masiva a través de su oferta de código abierto, construyendo una comunidad sólida de desarrolladores. Posteriormente, busca monetizar a través de la oferta de su Proxy (AI Gateway) con características empresariales para organizaciones que requieren mayor robustez, seguridad y gestión a escala.</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+</table>
+
+## L15 — BENCHMARKING EMPÍRICO Y RED TEAMING
+
+<table header-row="true">
+<tr><td>Escenario de Test</td><td>Resultado</td><td>Fortaleza Identificada</td><td>Debilidad Identificada</td></tr>
+<tr><td>**Benchmarking de Rendimiento (Interno)**</td><td>8ms P95 latencia a 1k RPS (Gateway). Hasta 5,000 QPS sin fallos en un nodo (4-CPU, 8-GB RAM).</td><td>Alta eficiencia en el manejo de solicitudes a LLMs, capacidad de escalar a miles de QPS en hardware modesto.</td><td>El overhead de latencia puede volverse significativo en escenarios de muy alta concurrencia o con configuraciones no optimizadas.</td></tr>
+<tr><td>**Benchmarking de Rendimiento (Externo vs. Bifrost)**</td><td>LiteLLM: 44.84 req/sec, 372MB de uso de memoria.</td><td>Facilidad de uso y flexibilidad de Python.</td><td>Menor throughput y mayor uso de memoria en comparación con soluciones escritas en Go (Bifrost: 424 req/sec, 120MB).</td></tr>
+<tr><td>**Benchmarking de Rendimiento (Externo vs. TensorZero)**</td><td>LiteLLM degrada a cientos de QPS y falla a 1,000 QPS.</td><td>Amplio soporte de proveedores y funcionalidades.</td><td>No optimizado para latencia ultra-baja en cargas extremas como soluciones escritas en Rust (TensorZero: <1ms P99 a 10,000 QPS).</td></tr>
+<tr><td>**Ataque a la Cadena de Suministro (PyPI)**</td><td>Versiones 1.82.7 y 1.82.8 de LiteLLM en PyPI comprometidas con malware de robo de credenciales.</td><td>Rápida respuesta del equipo de LiteLLM para identificar y mitigar el problema, lanzando versiones parcheadas.</td><td>Vulnerabilidad en el proceso de publicación de paquetes que permitió la inyección de código malicioso.</td></tr>
+<tr><td>**Vulnerabilidad de Inyección SQL (CVE-2026-42208)**</td><td>Explotación activa de una vulnerabilidad de inyección SQL que permitía modificar la base de datos de LiteLLM y exponer claves API.</td><td>Lanzamiento rápido de parches de seguridad (v1.83.0) y el inicio de un programa de recompensas por errores.</td><td>Existencia de una vulnerabilidad crítica que afectaba la seguridad de los datos y credenciales de los usuarios.</td></tr>
+<tr><td>**Red Teaming (Inyección de Prompts)**</td><td>LiteLLM incluye guardrails para la detección de inyección de prompts.</td><td>Capacidad de identificar y mitigar ataques de inyección de prompts conocidos.</td><td>La efectividad depende de la actualización de las listas de patrones de ataque y la configuración adecuada de los guardrails.</td></tr>
+</table>
