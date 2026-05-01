@@ -168,6 +168,30 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
         return Icons.search;
       case 'build':
         return Icons.build;
+      // Sprint 48: Task Planner icons
+      case 'code':
+        return Icons.terminal;
+      case 'file':
+        return Icons.description;
+      case 'deploy':
+      case 'rocket':
+        return Icons.rocket_launch;
+      case 'globe':
+      case 'web':
+        return Icons.web;
+      case 'scaffold':
+      case 'architecture':
+        return Icons.architecture;
+      case 'sandbox':
+      case 'cloud':
+        return Icons.cloud;
+      case 'plan':
+        return Icons.account_tree;
+      case 'check':
+      case 'done':
+        return Icons.check_circle;
+      case 'error':
+        return Icons.error_outline;
       default:
         return Icons.hourglass_empty;
     }

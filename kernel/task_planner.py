@@ -1636,12 +1636,19 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
         icon_map = {
             "web_search": "search",
             "browse_web": "search",
-            "code_exec": "build",
+            "code_exec": "code",
             "github": "build",
             "manus_bridge": "sparkles",
             "query_knowledge": "memory",
             "ingest_knowledge": "memory",
             "send_message": "sparkles",
             "consult_sabios": "brain",
+            # Sprint 48: Task Planner tools
+            "file_ops": "file",
+            "web_dev": "web",
+            "web_dev.scaffold": "scaffold",
+            "web_dev.build": "build",
+            "web_dev.deploy": "deploy",
+            "sandbox": "cloud",
         }
         return icon_map.get(tool_hint or "", "build")

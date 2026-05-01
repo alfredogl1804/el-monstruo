@@ -58,6 +58,7 @@ class _ToolChip extends StatelessWidget {
 
   final ToolEvent tool;
 
+  /// Sprint 48: Extended icon mapping for all tools
   IconData get _icon {
     return switch (tool.toolName) {
       'browse_web' => Icons.language,
@@ -67,6 +68,13 @@ class _ToolChip extends StatelessWidget {
       'memory_store' => Icons.save,
       'memory_recall' => Icons.psychology,
       'manus_bridge' => Icons.hub,
+      'file_ops' => Icons.description,
+      'web_dev' => Icons.web,
+      'web_dev.scaffold' => Icons.architecture,
+      'web_dev.build' => Icons.build_circle,
+      'web_dev.deploy' => Icons.rocket_launch,
+      'sandbox' => Icons.cloud,
+      'consult_sabios' => Icons.groups,
       _ => Icons.build,
     };
   }

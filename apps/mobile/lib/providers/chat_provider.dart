@@ -300,8 +300,24 @@ class ChatNotifier extends StateNotifier<ChatState> {
     if (event.isStart) {
       activeTools.add(event);
     } else {
-      // Remove completed/errored tool
-      activeTools.removeWhere((t) => t.toolName == event.toolName);
+      // Sprint 48: Match by toolCallId first (tool_end may not have tool_name),
+      // then fallback to toolName matching.
+      String resolvedToolName = event.toolName;
+      int removeIdx = -1;
+
+      if (event.toolCallId != null && event.toolCallId!.isNotEmpty) {
+        removeIdx = activeTools.indexWhere((t) => t.toolCallId == event.toolCallId);
+      }
+      if (removeIdx < 0) {
+        removeIdx = activeTools.indexWhere((t) => t.toolName == event.toolName);
+      }
+
+      if (removeIdx >= 0) {
+        resolvedToolName = activeTools[removeIdx].toolName;
+        activeTools.removeAt(removeIdx);
+      } else {
+        activeTools.removeWhere((t) => t.toolName == event.toolName);
+      }
 
       // Add a tool result message to the chat
       if (event.isComplete && event.result != null) {
@@ -310,7 +326,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
           role: MessageRole.tool,
           content: event.result!,
           type: MessageType.toolResult,
-          toolName: event.toolName,
+          toolName: resolvedToolName,
         ));
         state = state.copyWith(messages: messages);
       }
