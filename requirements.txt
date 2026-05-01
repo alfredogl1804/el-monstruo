@@ -122,3 +122,7 @@ deepeval==3.9.7
 # Requires POSTGRES_* env vars (auto-injected from SUPABASE_DB_URL in bridge)
 # GitHub: HKUDS/LightRAG
 lightrag-hku==1.4.15
+
+# Sprint 56 — Embrión Scheduler + Causal Seeder
+APScheduler==3.11.2
+wikipedia-api==0.7.1

@@ -576,7 +576,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("embrion_routes_failed", error=str(e))
 
-    # ── Sprint 33: Embrión Consciousness Loop ──────────────────────
+    # ──    # ── Sprint 33: Embrión Consciousness Loop ──────────────
     embrion_loop = None
     try:
         from kernel.embrion_loop import EmbrionLoop
@@ -591,6 +591,35 @@ async def lifespan(app: FastAPI):
         logger.info("embrion_loop_started")
     except Exception as e:
         logger.warning("embrion_loop_init_failed", error=str(e))
+
+    # ── Sprint 56.3: Embrión Scheduler — Autonomía proactiva ─────────────
+    # Obj #8 (Inteligencia Emergente): Embrión decide qué hacer sin intervención humana
+    # Corrección C3: Persistencia en Supabase (no SQLite local)
+    # 5 tareas default: causal_seeding, prediction_validation, vanguard_scan,
+    #                   system_health_check, memory_consolidation
+    embrion_scheduler = None
+    try:
+        from kernel.embrion_scheduler import (
+            EmbrionScheduler,
+            get_embrion_scheduler,
+            register_default_tasks,
+            register_stub_handlers,
+        )
+
+        embrion_scheduler = get_embrion_scheduler(db=db if db_connected else None)
+        await embrion_scheduler.initialize()  # Restaura tareas desde Supabase
+        register_default_tasks(embrion_scheduler)  # Agrega las 5 tareas default
+        register_stub_handlers(embrion_scheduler)  # Handlers stub hasta Sprint 56.1/56.2
+        await embrion_scheduler.start()  # Inicia loop asyncio (revisa cada 60s)
+        app.state.embrion_scheduler = embrion_scheduler
+        logger.info(
+            "embrion_scheduler_started",
+            tasks=len(embrion_scheduler.get_all_tasks()),
+            daily_budget_usd=embrion_scheduler.DAILY_BUDGET_USD,
+            persistence="supabase" if db_connected else "in-memory",
+        )
+    except Exception as e:
+        logger.warning("embrion_scheduler_init_failed", error=str(e))
 
     logger.info(
         "monstruo_ready",
@@ -611,6 +640,7 @@ async def lifespan(app: FastAPI):
         mempalace="active" if mempalace_ready else "inactive",
         embrion="registered",
         embrion_loop="active" if embrion_loop else "inactive",
+        embrion_scheduler="active" if embrion_scheduler else "inactive",
         background_store="supabase" if (_bg_store and _bg_store._use_db()) else "in_memory",
         moc="active" if moc else "inactive",
     )
@@ -652,6 +682,14 @@ async def lifespan(app: FastAPI):
         try:
             await embrion_loop.stop()
             logger.info("embrion_loop_shutdown")
+        except Exception:
+            pass
+
+    # Shutdown Embrión Scheduler (Sprint 56.3)
+    if embrion_scheduler:
+        try:
+            await embrion_scheduler.stop()
+            logger.info("embrion_scheduler_shutdown")
         except Exception:
             pass
 
