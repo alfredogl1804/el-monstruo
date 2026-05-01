@@ -1,7 +1,7 @@
 # SPRINT 71 — "El Primer Hijo Nace con Propósito"
 
 **Serie:** 71-80 "La Colmena Despierta"
-**Fecha de diseño:** 1 de Mayo de 2026
+**Fecha de diseño:** 1 de Mayo de 2026 (v2 — Arquitectura Pensador/Ejecutor)
 **Arquitecto:** Hilo B
 **Capa Arquitectónica:** CAPA 2 (Inteligencia Emergente)
 **Objetivo Primario:** #2 (Apple/Tesla), #8 (Emergencia), #9 (Transversalidad)
@@ -18,56 +18,148 @@ Sprint 71 marca el nacimiento del **primer Embrión con propósito específico**
 
 ---
 
-## Arquitectura del Embrión-1
+## DECISIÓN ARQUITECTÓNICA FUNDAMENTAL: Pensador + Ejecutor
+
+### El Problema
+
+La emergencia es un estado frágil. Cuando un Embrión "piensa" (razona, conecta, decide) necesita un context window limpio y un modelo potente. Cuando "ejecuta" (persiste en DB, formatea JSON, llama APIs) contamina ese contexto con operaciones mecánicas. Las tareas pesadas le quitan lo emergido.
+
+### La Solución
+
+**Cada Embrión es un PAR: Pensador + Ejecutor.**
+
+| Componente | Naturaleza | Función | Context Window |
+|---|---|---|---|
+| **Pensador** | LLM potente (GPT-4o / el más potente disponible) | Razona, conecta, decide, emerge, debate | LIMPIO — solo ideas, estrategia, y contexto de dominio |
+| **Ejecutor** | Código Python determinista (SIN LLM) | Persiste, formatea, llama APIs, ejecuta heartbeat | No aplica — es código, no modelo |
+
+### Principios del Patrón
+
+1. **El Pensador NUNCA ejecuta operaciones mecánicas** — No escribe a DB, no formatea JSON, no llama APIs externas. Solo piensa.
+2. **El Ejecutor NUNCA toma decisiones** — No evalúa calidad, no decide si algo pasa o no. Solo ejecuta instrucciones del Pensador.
+3. **La comunicación es un contrato** — El Pensador emite un `BrandDecision` (dataclass), el Ejecutor lo materializa.
+4. **El Pensador se activa SOLO cuando hay juicio involucrado** — Si la tarea es determinista (regex, format, persist), el Ejecutor la hace solo.
+5. **El context window del Pensador se preserva** — Nunca se contamina con logs operativos, responses de APIs, o datos de persistencia.
+
+### Diagrama de Arquitectura
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    EMBRIÓN-1: BRAND ENGINE                │
-├─────────────────────────────────────────────────────────┤
-│                                                           │
-│  ┌────────────────┐  ┌─────────────────────────────────┐│
-│  │   BRAND DNA    │  │        BRAND VALIDATOR           ││
-│  │   (Inmutable)  │  │                                   ││
-│  │                │  │  • validate_output(output) → score││
-│  │  Misión        │  │  • validate_naming(name) → bool  ││
-│  │  Arquetipo     │  │  • validate_tone(text) → score   ││
-│  │  Personalidad  │  │  • validate_visual(asset) → score││
-│  │  Tono          │  │  • suggest_improvement(output)   ││
-│  │  Estética      │  │                                   ││
-│  │  Naming        │  └─────────────────────────────────┘│
-│  │  Anti-patrones │                                      │
-│  └────────────────┘  ┌─────────────────────────────────┐│
-│                       │        BRAND MONITOR             ││
-│  ┌────────────────┐  │                                   ││
-│  │   HEARTBEAT    │  │  • health_score() → 0-100       ││
-│  │                │  │  • drift_detection() → alerts   ││
-│  │  FCS propio    │  │  • competitor_benchmark()       ││
-│  │  Latido c/30m  │  │  • llm_representation_check()  ││
-│  │  Estado vital  │  │                                   ││
-│  └────────────────┘  └─────────────────────────────────┘│
-│                                                           │
-│  ┌──────────────────────────────────────────────────────┐│
-│  │              INTER-EMBRIÓN PROTOCOL                   ││
-│  │                                                        ││
-│  │  • Recibe outputs de Embrión-0 para validación        ││
-│  │  • Envía brand scores al EmbrionScheduler             ││
-│  │  • Puede VETAR outputs que no pasen threshold (< 60)  ││
-│  │  • Debate con Embrión-0 cuando hay conflicto          ││
-│  └──────────────────────────────────────────────────────┘│
-│                                                           │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    EMBRIÓN-1: BRAND ENGINE                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │                    PENSADOR (LLM Potente)                    ││
+│  │                                                               ││
+│  │  • evaluate_aesthetic_quality(output) → BrandDecision        ││
+│  │  • generate_brand_for_business(type, market) → BrandDNA     ││
+│  │  • debate_with_embrion(topic, proposal) → CounterProposal   ││
+│  │  • detect_brand_drift(history) → DriftAnalysis              ││
+│  │  • suggest_improvement(output, issues) → ImprovedVersion    ││
+│  │                                                               ││
+│  │  Context: Brand DNA + últimas 10 decisiones + estado Colmena ││
+│  │  Modelo: El más potente disponible (GPT-4o / GPT-5.2)       ││
+│  │  Se activa: SOLO cuando hay juicio subjetivo involucrado     ││
+│  └─────────────────────────────────────────────────────────────┘│
+│                          │                                        │
+│                          │ BrandDecision                          │
+│                          ▼                                        │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │                   EJECUTOR (Código Determinista)              ││
+│  │                                                               ││
+│  │  • validate_naming(name) → bool (regex, rules)              ││
+│  │  • validate_error_format(error) → bool (pattern matching)   ││
+│  │  • validate_api_response(resp) → bool (schema validation)   ││
+│  │  • persist_validation(result) → None (Supabase write)       ││
+│  │  • persist_heartbeat(beat) → None (Supabase write)          ││
+│  │  • format_response(decision) → dict (JSON formatting)       ││
+│  │  • execute_heartbeat() → BrandHeartbeat (metrics calc)      ││
+│  │  • check_repeated_violation(source) → EscalationLevel       ││
+│  │                                                               ││
+│  │  Naturaleza: Python puro. Cero LLM. Predecible. Testeable.  ││
+│  │  Costo: $0 por ejecución (solo compute)                     ││
+│  │  Se activa: SIEMPRE que hay operación mecánica              ││
+│  └─────────────────────────────────────────────────────────────┘│
+│                                                                   │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │                    BRAND DNA (Inmutable)                      ││
+│  │                                                               ││
+│  │  Misión, Visión, Arquetipo, Personalidad, Tono, Estética,   ││
+│  │  Naming, Anti-patrones, Diferenciadores                      ││
+│  │  → Compartido entre Pensador y Ejecutor                      ││
+│  └─────────────────────────────────────────────────────────────┘│
+│                                                                   │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │              INTER-EMBRIÓN PROTOCOL                           ││
+│  │                                                               ││
+│  │  • Recibe outputs de otros Embriones para validación         ││
+│  │  • Ejecutor hace pre-filtro determinista (naming, format)    ││
+│  │  • Si pre-filtro falla → veto inmediato (sin LLM)           ││
+│  │  • Si pre-filtro pasa pero hay ambigüedad → Pensador evalúa ││
+│  │  • Puede VETAR outputs que no pasen threshold (< 60)         ││
+│  └─────────────────────────────────────────────────────────────┘│
+│                                                                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Flujo de Decisión
+
+```
+Output llega para validación
+        │
+        ▼
+┌─────────────────────┐
+│ EJECUTOR: Pre-filtro │  ← Determinista, instantáneo, $0
+│ (naming, format,     │
+│  schema, patterns)   │
+└─────────┬───────────┘
+          │
+    ┌─────┴─────┐
+    │           │
+  FALLA       PASA
+    │           │
+    ▼           ▼
+  VETO    ┌────────────────┐
+ (score   │ ¿Hay ambigüedad │
+  < 60)   │  o juicio       │
+          │  subjetivo?     │
+          └───┬────────┬───┘
+              │        │
+             SÍ       NO
+              │        │
+              ▼        ▼
+     ┌──────────┐   APROBADO
+     │ PENSADOR │   (score 100)
+     │ evalúa   │
+     │ calidad  │
+     │ estética │
+     └────┬─────┘
+          │
+          ▼
+    BrandDecision
+    (score, issues,
+     suggestion)
+          │
+          ▼
+     ┌──────────┐
+     │ EJECUTOR │
+     │ persiste │
+     │ formatea │
+     │ responde │
+     └──────────┘
 ```
 
 ---
 
 ## Épica 71.1 — Brand DNA como Módulo del Kernel
 
-**Objetivo:** Codificar la identidad de marca de El Monstruo como un módulo Python inmutable que cualquier parte del sistema puede consultar.
+**Objetivo:** Codificar la identidad de marca de El Monstruo como un módulo Python inmutable que tanto el Pensador como el Ejecutor consultan.
 
 **Criterios de Aceptación:**
 - [ ] Archivo `kernel/brand/brand_dna.py` existe y es importable
 - [ ] Contiene TODA la identidad: misión, visión, arquetipo, personalidad, tono, estética, naming, anti-patrones
-- [ ] Tiene funciones de consulta: `get_tone_guidelines()`, `get_naming_rules()`, `get_visual_palette()`, `is_anti_pattern(name)`
+- [ ] Multi-idioma: español + inglés (Obj #13)
+- [ ] Tiene funciones de consulta deterministas
 - [ ] Tests unitarios pasan
 - [ ] Deployado en Railway
 
@@ -78,48 +170,68 @@ EL MONSTRUO — Brand DNA Module (Inmutable)
 
 Este módulo define la identidad de marca del Monstruo.
 Es la fuente de verdad única. No se modifica sin aprobación del Guardián.
+Compartido entre Pensador (para contexto) y Ejecutor (para reglas).
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from enum import Enum
 
 
 class BrandArchetype(Enum):
     CREATOR = "creator"
     MAGE = "mage"
-    CREATOR_MAGE = "creator_mage"  # El Monstruo es ambos
+    CREATOR_MAGE = "creator_mage"
 
 
 class BrandPersonality(Enum):
-    IMPLACABLE = "implacable"      # No se detiene hasta cumplir
-    PRECISO = "preciso"            # Cada decisión es deliberada
-    SOBERANO = "soberano"          # No depende de nadie
-    MAGNANIMO = "magnánimo"        # Cuando produce, produce lo mejor
+    IMPLACABLE = "implacable"
+    PRECISO = "preciso"
+    SOBERANO = "soberano"
+    MAGNANIMO = "magnánimo"
+
+
+class Language(Enum):
+    ES = "es"
+    EN = "en"
 
 
 @dataclass(frozen=True)
 class ToneOfVoice:
-    """Tono de voz inmutable de El Monstruo."""
-    do: tuple = (
-        "directo_sin_rodeos",
-        "tecnicamente_preciso",
-        "confiado_sin_arrogancia",
-        "metaforas_industriales",
-        "conciso_pero_completo"
-    )
-    dont: tuple = (
-        "corporativo",
-        "pedante",
-        "arrogante",
-        "generico",
-        "servil",
-        "excesivamente_amigable"
-    )
-    metaphor_domain: tuple = (
+    """Tono de voz inmutable — multi-idioma."""
+    do: Dict[str, Tuple[str, ...]] = field(default_factory=lambda: {
+        "es": (
+            "directo_sin_rodeos",
+            "tecnicamente_preciso",
+            "confiado_sin_arrogancia",
+            "metaforas_industriales",
+            "conciso_pero_completo"
+        ),
+        "en": (
+            "direct_no_fluff",
+            "technically_precise",
+            "confident_not_arrogant",
+            "industrial_metaphors",
+            "concise_but_complete"
+        )
+    })
+    dont: Dict[str, Tuple[str, ...]] = field(default_factory=lambda: {
+        "es": (
+            "corporativo", "pedante", "arrogante",
+            "generico", "servil", "excesivamente_amigable"
+        ),
+        "en": (
+            "corporate", "pedantic", "arrogant",
+            "generic", "servile", "overly_friendly"
+        )
+    })
+    metaphor_domain: Tuple[str, ...] = (
         "forja", "fundir", "templar", "fragua",
         "ensamblaje", "calibrar", "presión",
-        "colmena", "latido", "despertar"
+        "colmena", "latido", "despertar",
+        "forge", "smelt", "temper", "anvil",
+        "assembly", "calibrate", "pressure",
+        "hive", "heartbeat", "awaken"
     )
 
 
@@ -140,7 +252,7 @@ class VisualIdentity:
     font_mono: str = "JetBrains Mono"
     
     design_philosophy: str = "brutalismo_industrial_refinado"
-    motifs: tuple = ("manómetros", "gauges", "líneas_ensamblaje", "chispas", "metal_fundido")
+    motifs: Tuple[str, ...] = ("manómetros", "gauges", "líneas_ensamblaje", "chispas", "metal_fundido")
 
 
 @dataclass(frozen=True)
@@ -155,13 +267,15 @@ class NamingConvention:
         "soberania": "Independencia y dependencias",
         "finops": "Costos y ROI",
         "magna": "Documentación premium",
-        "vanguard": "Scanner de herramientas"
+        "vanguard": "Scanner de herramientas",
+        "brand": "Brand Engine"
     })
     endpoint_format: str = "/api/v1/{module}/{action}"
     error_format: str = "{module}_{action}_{failure_type}"
-    forbidden_names: tuple = (
+    forbidden_names: Tuple[str, ...] = (
         "service", "handler", "utils", "helper", "misc",
-        "stuff", "thing", "data", "info", "manager"
+        "stuff", "thing", "data", "info", "manager",
+        "processor", "worker", "job", "task"
     )
 
 
@@ -169,11 +283,17 @@ class NamingConvention:
 class BrandDNA:
     """La identidad completa e inmutable de El Monstruo."""
     
-    mission: str = "Crear el primer agente de IA soberano del mundo que genera negocios exitosos de forma autónoma"
-    vision: str = "Un ecosistema de Monstruos interconectados que democratiza la creación de empresas"
+    mission: Dict[str, str] = field(default_factory=lambda: {
+        "es": "Crear el primer agente de IA soberano del mundo que genera negocios exitosos de forma autónoma",
+        "en": "Create the world's first sovereign AI agent that autonomously generates successful businesses"
+    })
+    vision: Dict[str, str] = field(default_factory=lambda: {
+        "es": "Un ecosistema de Monstruos interconectados que democratiza la creación de empresas",
+        "en": "An ecosystem of interconnected Monstruos that democratizes business creation"
+    })
     
     archetype: BrandArchetype = BrandArchetype.CREATOR_MAGE
-    personality: tuple = (
+    personality: Tuple = (
         BrandPersonality.IMPLACABLE,
         BrandPersonality.PRECISO,
         BrandPersonality.SOBERANO,
@@ -184,23 +304,26 @@ class BrandDNA:
     visual: VisualIdentity = field(default_factory=VisualIdentity)
     naming: NamingConvention = field(default_factory=NamingConvention)
     
-    anti_patterns: tuple = (
+    anti_patterns: Tuple[str, ...] = (
         "chatbot_amigable",
         "asistente_servil",
         "herramienta_generica",
         "dashboard_grafana_clone",
         "wrapper_apis_sin_identidad",
         "output_sin_contexto",
-        "error_message_generico"
+        "error_message_generico",
+        "friendly_chatbot",
+        "servile_assistant",
+        "generic_tool"
     )
     
-    # Differentiators — Lo que nos hace únicos
-    differentiators: tuple = (
+    differentiators: Tuple[str, ...] = (
         "primer_agente_soberano_del_mundo",
         "inteligencia_emergente_no_programada",
         "7_capas_transversales_desde_dia_1",
         "colmena_de_embriones_especializados",
-        "brand_engine_integrado_en_kernel"
+        "brand_engine_integrado_en_kernel",
+        "arquitectura_pensador_ejecutor"
     )
 
 
@@ -221,683 +344,1039 @@ def is_forbidden_name(name: str) -> bool:
     )
 
 
-def get_error_code(module: str, action: str, failure_type: str) -> str:
-    """Genera un error code on-brand."""
-    return EL_MONSTRUO_DNA.naming.error_format.format(
-        module=module, action=action, failure_type=failure_type
-    )
-
-
-def get_endpoint_path(module: str, action: str) -> str:
-    """Genera un endpoint path on-brand."""
-    if module not in EL_MONSTRUO_DNA.naming.module_names:
-        raise ValueError(
-            f"Módulo '{module}' no reconocido. "
-            f"Módulos válidos: {list(EL_MONSTRUO_DNA.naming.module_names.keys())}"
-        )
-    return EL_MONSTRUO_DNA.naming.endpoint_format.format(
-        module=module, action=action
-    )
+def get_module_names() -> Dict[str, str]:
+    """Retorna los módulos válidos del sistema."""
+    return dict(EL_MONSTRUO_DNA.naming.module_names)
 ```
 
 ---
 
-## Épica 71.2 — Brand Validator (El Evaluador)
+## Épica 71.2 — Ejecutor: Brand Validator Determinista
 
-**Objetivo:** Crear un evaluador que recibe cualquier output del sistema y retorna un brand compliance score (0-100) con issues específicos y sugerencias de mejora.
+**Objetivo:** Crear el Ejecutor del Embrión-1 — código Python puro que valida outputs contra reglas deterministas. SIN LLM. Predecible, testeable, costo $0.
 
 **Criterios de Aceptación:**
-- [ ] Archivo `kernel/brand/brand_validator.py` existe
-- [ ] Evalúa: naming, tone, error messages, API responses, documentation
-- [ ] Score 0-100 con threshold configurable (default: 75)
-- [ ] Retorna issues específicos con sugerencias de corrección
-- [ ] Integrado con LLM para evaluación de tono (usa GPT-4o-mini para cost efficiency)
-- [ ] Tests con casos positivos y negativos
+- [ ] Archivo `kernel/brand/executor.py` existe
+- [ ] Evalúa: naming, error format, API response schema, timestamp format
+- [ ] Score 0-100 basado en reglas deterministas
+- [ ] Detección de violaciones repetidas con escalación (Obj #4)
+- [ ] Cero dependencias de LLM
+- [ ] 100% testeable con pytest
+- [ ] Latencia < 5ms por validación
 
 ```python
 """
-kernel/brand/brand_validator.py
-EL MONSTRUO — Brand Validator
+kernel/brand/executor.py
+EMBRIÓN-1 EJECUTOR — Código Determinista
 
-Evalúa cualquier output contra el Brand DNA.
-Score 0-100. Threshold mínimo: 75 (configurable).
-Puede VETAR outputs que no pasen.
+Este módulo es el EJECUTOR del Embrión-1 (Brand Engine).
+NO usa LLM. Es Python puro. Predecible. Testeable. Costo $0.
+
+Responsabilidades:
+- Validación determinista (regex, patterns, schema)
+- Persistencia en Supabase
+- Formateo de responses
+- Cálculo de métricas
+- Detección de violaciones repetidas
+- Ejecución de heartbeat
+
+NUNCA toma decisiones subjetivas. Si hay ambigüedad → escala al Pensador.
 """
 
 import re
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Dict, List, Any, Optional, Tuple
+from dataclasses import dataclass, field
+from enum import Enum
+
 from .brand_dna import get_brand_dna, is_forbidden_name, BrandDNA
+
+
+class Decision(Enum):
+    APPROVE = "approve"
+    WARN = "warn"
+    VETO = "veto"
+    ESCALATE_TO_THINKER = "escalate"  # Necesita juicio subjetivo
+
+
+class EscalationLevel(Enum):
+    FIRST_OFFENSE = "first_offense"      # Solo warn
+    REPEAT_OFFENSE = "repeat_offense"    # Warn + log
+    CHRONIC_OFFENSE = "chronic_offense"  # Veto automático
 
 
 @dataclass
 class ValidationResult:
-    """Resultado de una validación de marca."""
+    """Resultado de una validación determinista."""
     score: int                          # 0-100
-    passes: bool                        # score >= threshold
+    decision: Decision                  # approve | warn | veto | escalate
     issues: List[Dict[str, str]]        # [{type, description, suggestion}]
-    category: str                       # naming | tone | visual | structure | error
-    input_analyzed: str                 # Lo que se evaluó (truncado)
-    
-    def to_dict(self) -> dict:
-        return {
-            "brand_score": self.score,
-            "passes": self.passes,
-            "issues_count": len(self.issues),
-            "issues": self.issues,
-            "category": self.category
-        }
+    category: str                       # naming | error | structure | format
+    input_analyzed: str                 # Lo que se evaluó (truncado a 200 chars)
+    requires_thinker: bool = False      # Si necesita evaluación subjetiva
+    escalation: Optional[EscalationLevel] = None
 
 
-class BrandValidator:
+@dataclass
+class BrandHeartbeat:
+    """Estado vital del Embrión-1 — calculado por el Ejecutor."""
+    timestamp: str
+    brand_health_score: int
+    validations_total: int
+    validations_last_hour: int
+    vetoes_last_hour: int
+    approvals_last_hour: int
+    escalations_last_hour: int
+    drift_detected: bool
+    status: str  # "forging" | "vigilant" | "alarmed" | "critical"
+
+
+class BrandExecutor:
     """
-    Validador de compliance de marca para El Monstruo.
+    Ejecutor del Embrión-1: Brand Engine.
     
-    Uso:
-        validator = BrandValidator()
-        result = validator.validate_naming("/api/v1/service/getData")
-        if not result.passes:
-            print(f"Score: {result.score}, Issues: {result.issues}")
+    Código Python puro. Sin LLM. Sin ambigüedad.
+    Cada método es determinista y testeable.
     """
     
-    def __init__(self, threshold: int = 75):
+    VETO_THRESHOLD = 60
+    WARNING_THRESHOLD = 75
+    
+    def __init__(self, supabase_client=None):
         self.dna: BrandDNA = get_brand_dna()
-        self.threshold = threshold
+        self.supabase = supabase_client
+        self._validation_history: List[ValidationResult] = []
+        self._violation_tracker: Dict[str, Dict[str, int]] = {}  # {source: {issue_type: count}}
+    
+    # ─── VALIDACIONES DETERMINISTAS ─────────────────────────────────────
     
     def validate_naming(self, name: str) -> ValidationResult:
-        """Evalúa si un nombre (endpoint, módulo, variable) cumple con la marca."""
+        """Valida un nombre (endpoint, módulo, variable) contra reglas de marca."""
         score = 100
         issues = []
         
-        # Check forbidden names
+        # Regla 1: Nombres prohibidos
         for forbidden in self.dna.naming.forbidden_names:
             if forbidden in name.lower():
                 score -= 25
                 issues.append({
                     "type": "forbidden_name",
-                    "description": f"Nombre prohibido detectado: '{forbidden}'",
-                    "suggestion": f"Reemplazar '{forbidden}' con un nombre que refleje el dominio: "
-                                  f"{list(self.dna.naming.module_names.keys())}"
+                    "description": f"Nombre prohibido: '{forbidden}'",
+                    "suggestion": f"Usar nombre de dominio: {list(self.dna.naming.module_names.keys())}"
                 })
         
-        # Check camelCase (preferimos snake_case)
+        # Regla 2: camelCase → snake_case
         if re.search(r'[a-z][A-Z]', name) and '/api/' not in name:
             score -= 10
             issues.append({
                 "type": "naming_style",
                 "description": "camelCase detectado — El Monstruo usa snake_case",
-                "suggestion": "Convertir a snake_case: getData → get_data"
+                "suggestion": "getData → get_data, processItems → process_items"
             })
         
-        # Check generic patterns
-        generic_patterns = ['get_all', 'do_thing', 'process_data', 'handle_request']
+        # Regla 3: Patrones genéricos
+        generic_patterns = ['get_all', 'do_thing', 'process_data', 'handle_request',
+                           'run_job', 'execute_task', 'fetch_info']
         for pattern in generic_patterns:
             if pattern in name.lower():
                 score -= 15
                 issues.append({
                     "type": "generic_naming",
                     "description": f"Patrón genérico: '{pattern}'",
-                    "suggestion": "Usar nombre específico del dominio: "
-                                  "get_all → list_embriones, process_data → forge_prediction"
+                    "suggestion": "Usar dominio: get_all → list_embriones, process_data → forge_prediction"
                 })
         
-        # Check endpoint format
-        if name.startswith('/api/') and not re.match(r'/api/v\d+/\w+/\w+', name):
-            score -= 15
-            issues.append({
-                "type": "endpoint_format",
-                "description": "Endpoint no sigue formato /api/v{n}/{module}/{action}",
-                "suggestion": f"Formato correcto: /api/v1/{{module}}/{{action}}"
-            })
+        # Regla 4: Formato de endpoint
+        if name.startswith('/api/'):
+            if not re.match(r'/api/v\d+/[a-z_]+/[a-z_]+', name):
+                score -= 15
+                issues.append({
+                    "type": "endpoint_format",
+                    "description": "Endpoint no sigue /api/v{n}/{module}/{action}",
+                    "suggestion": f"Formato: /api/v1/brand/validate, /api/v1/colmena/heartbeat"
+                })
+            # Verificar que el módulo es válido
+            parts = name.split('/')
+            if len(parts) >= 4:
+                module = parts[3]
+                if module not in self.dna.naming.module_names:
+                    score -= 10
+                    issues.append({
+                        "type": "unknown_module",
+                        "description": f"Módulo '{module}' no reconocido",
+                        "suggestion": f"Módulos válidos: {list(self.dna.naming.module_names.keys())}"
+                    })
         
+        score = max(0, score)
         return ValidationResult(
-            score=max(0, score),
-            passes=max(0, score) >= self.threshold,
+            score=score,
+            decision=self._score_to_decision(score),
             issues=issues,
             category="naming",
-            input_analyzed=name[:100]
+            input_analyzed=name[:200]
         )
     
-    def validate_error_message(self, error: Any) -> ValidationResult:
-        """Evalúa si un error message cumple con la marca."""
+    def validate_error_message(self, error: str) -> ValidationResult:
+        """Valida que un error message cumpla con el formato de marca."""
         score = 100
         issues = []
         
-        error_str = str(error) if not isinstance(error, str) else error
-        
-        # Check generic error messages
+        # Regla 1: Errores genéricos prohibidos
         generic_errors = [
             "internal server error", "something went wrong",
             "unknown error", "an error occurred", "error",
-            "bad request", "not found", "unauthorized"
+            "bad request", "not found", "unauthorized",
+            "failed", "exception", "unexpected error"
         ]
-        
-        for generic in generic_errors:
-            if error_str.lower().strip() == generic:
-                score -= 40
-                issues.append({
-                    "type": "generic_error",
-                    "description": f"Error genérico: '{error_str}'",
-                    "suggestion": "Usar formato: {module}_{action}_{failure_type} con contexto. "
-                                  "Ej: 'embrion_heartbeat_timeout: Embrión-0 no respondió en 30s'"
-                })
-        
-        # Check if has context
-        if isinstance(error, str) and ':' not in error and '_' not in error:
-            score -= 20
+        if error.lower().strip() in generic_errors:
+            score -= 40
             issues.append({
-                "type": "no_context",
-                "description": "Error sin contexto ni estructura",
-                "suggestion": "Agregar módulo y contexto: '{module}_{action}_{type}: {descripción}'"
+                "type": "generic_error",
+                "description": f"Error genérico prohibido: '{error}'",
+                "suggestion": "Formato: {module}_{action}_{type}: {descripción con contexto}"
             })
         
-        # Check if has module identifier
+        # Regla 2: Debe tener estructura (contener : o _)
+        if ':' not in error and '_' not in error and len(error) > 5:
+            score -= 20
+            issues.append({
+                "type": "no_structure",
+                "description": "Error sin estructura identificable",
+                "suggestion": "Usar: 'colmena_heartbeat_timeout: Embrión-0 no respondió en 30s'"
+            })
+        
+        # Regla 3: Debe identificar módulo de origen
         known_modules = list(self.dna.naming.module_names.keys())
-        has_module = any(m in error_str.lower() for m in known_modules)
-        if not has_module and len(error_str) > 10:
+        has_module = any(m in error.lower() for m in known_modules)
+        if not has_module and len(error) > 10:
             score -= 15
             issues.append({
                 "type": "no_module_identity",
-                "description": "Error no identifica qué módulo lo generó",
-                "suggestion": f"Prefixear con módulo: {known_modules}"
+                "description": "Error no identifica módulo de origen",
+                "suggestion": f"Prefixear con módulo: {known_modules[:5]}..."
             })
         
+        # Regla 4: No debe ser servil
+        servile_patterns = ["sorry", "apologize", "please try again", "oops"]
+        for pattern in servile_patterns:
+            if pattern in error.lower():
+                score -= 15
+                issues.append({
+                    "type": "servile_error",
+                    "description": f"Tono servil en error: '{pattern}'",
+                    "suggestion": "El Monstruo no se disculpa. Reporta hechos."
+                })
+        
+        score = max(0, score)
         return ValidationResult(
-            score=max(0, score),
-            passes=max(0, score) >= self.threshold,
+            score=score,
+            decision=self._score_to_decision(score),
             issues=issues,
             category="error",
-            input_analyzed=error_str[:200]
+            input_analyzed=error[:200]
         )
     
     def validate_api_response(self, response: dict) -> ValidationResult:
-        """Evalúa si una respuesta de API cumple con la marca."""
+        """Valida que una API response cumpla con el esquema de marca."""
         score = 100
         issues = []
         
-        # Check if response has identity
-        identity_keys = ["module", "embrion", "source", "forja", "version"]
+        # Regla 1: Debe tener identificador de módulo
+        identity_keys = ["module", "embrion", "source", "engine"]
         if not any(key in response for key in identity_keys):
             score -= 15
             issues.append({
                 "type": "no_identity",
-                "description": "Response sin identificador de módulo/fuente",
-                "suggestion": "Agregar campo 'module' o 'source' en toda response"
+                "description": "Response sin campo 'module' o 'source'",
+                "suggestion": "Agregar 'module': 'brand' en toda response"
             })
         
-        # Check if timestamps are ISO format
+        # Regla 2: Timestamps en ISO 8601
         for key, value in response.items():
-            if 'time' in key.lower() or 'date' in key.lower() or 'at' in key.lower():
+            if any(t in key.lower() for t in ['time', 'date', '_at', 'timestamp']):
                 if isinstance(value, str) and not re.match(
                     r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}', value
                 ):
                     score -= 10
                     issues.append({
                         "type": "timestamp_format",
-                        "description": f"Timestamp '{key}' no es ISO 8601",
-                        "suggestion": "Usar formato: 2026-05-01T10:30:00Z"
+                        "description": f"'{key}' no es ISO 8601: '{value}'",
+                        "suggestion": "Formato: 2026-05-01T10:30:00Z"
                     })
         
-        # Check generic field names
-        generic_fields = ["data", "info", "result", "items", "stuff", "payload"]
+        # Regla 3: Campos genéricos prohibidos
+        generic_fields = ["data", "info", "result", "items", "stuff", "payload", "content"]
         for field_name in response.keys():
             if field_name in generic_fields:
                 score -= 10
                 issues.append({
                     "type": "generic_field",
                     "description": f"Campo genérico: '{field_name}'",
-                    "suggestion": f"Renombrar '{field_name}' a algo específico del dominio: "
-                                  "data → predictions, items → embriones, result → forge_output"
+                    "suggestion": f"Renombrar: data → predictions, items → embriones"
                 })
         
+        # Regla 4: No debe tener campos vacíos sin razón
+        empty_fields = [k for k, v in response.items() if v is None or v == "" or v == []]
+        if len(empty_fields) > 2:
+            score -= 5
+            issues.append({
+                "type": "empty_fields",
+                "description": f"Campos vacíos: {empty_fields}",
+                "suggestion": "Omitir campos vacíos o usar valor por defecto significativo"
+            })
+        
+        score = max(0, score)
         return ValidationResult(
-            score=max(0, score),
-            passes=max(0, score) >= self.threshold,
+            score=score,
+            decision=self._score_to_decision(score),
             issues=issues,
             category="structure",
             input_analyzed=str(response)[:200]
         )
     
     def validate_documentation(self, text: str) -> ValidationResult:
-        """Evalúa si un texto de documentación cumple con el tono de marca."""
+        """
+        Valida reglas deterministas de documentación.
+        Para evaluación de CALIDAD estética → escala al Pensador.
+        """
         score = 100
         issues = []
+        requires_thinker = False
         
-        # Check corporate language
+        # Regla 1: Longitud mínima (Obj #5 Magna)
+        if len(text) < 50:
+            score -= 15
+            issues.append({
+                "type": "too_short",
+                "description": "Documentación < 50 chars — insuficiente para Obj #5 Magna",
+                "suggestion": "Documentación debe ser exhaustiva y premium"
+            })
+        
+        # Regla 2: Frases corporativas prohibidas (determinista)
         corporate_phrases = [
             "leveraging", "synergy", "stakeholder", "paradigm shift",
             "circle back", "touch base", "move the needle",
-            "at the end of the day", "going forward"
+            "at the end of the day", "going forward", "best practices"
         ]
         for phrase in corporate_phrases:
             if phrase in text.lower():
                 score -= 15
                 issues.append({
                     "type": "corporate_tone",
-                    "description": f"Lenguaje corporativo detectado: '{phrase}'",
-                    "suggestion": "Reescribir en tono directo y técnicamente preciso"
+                    "description": f"Lenguaje corporativo: '{phrase}'",
+                    "suggestion": "Reescribir directo y técnicamente preciso"
                 })
         
-        # Check servile language
+        # Regla 3: Frases serviles prohibidas
         servile_phrases = [
             "we're happy to help", "please don't hesitate",
-            "we apologize for any inconvenience", "thank you for your patience",
-            "hope this helps", "let me know if you need anything"
+            "we apologize for any inconvenience", "hope this helps",
+            "let me know if you need anything", "thank you for your patience"
         ]
         for phrase in servile_phrases:
             if phrase in text.lower():
                 score -= 20
                 issues.append({
                     "type": "servile_tone",
-                    "description": f"Tono servil detectado: '{phrase}'",
-                    "suggestion": "El Monstruo no es servil. Ser directo y preciso."
+                    "description": f"Tono servil: '{phrase}'",
+                    "suggestion": "El Monstruo no es servil. Directo y preciso."
                 })
         
-        # Check if too short (documentation should be comprehensive - Obj #5 Magna)
-        if len(text) < 50 and '\n' not in text:
-            score -= 10
-            issues.append({
-                "type": "insufficient_documentation",
-                "description": "Documentación demasiado breve",
-                "suggestion": "Obj #5 (Magna): La documentación debe ser exhaustiva y premium"
-            })
+        # Si el texto pasa las reglas deterministas pero es largo (>200 chars),
+        # escalar al Pensador para evaluación estética
+        if score >= self.WARNING_THRESHOLD and len(text) > 200:
+            requires_thinker = True
         
+        score = max(0, score)
         return ValidationResult(
-            score=max(0, score),
-            passes=max(0, score) >= self.threshold,
+            score=score,
+            decision=self._score_to_decision(score) if not requires_thinker else Decision.ESCALATE_TO_THINKER,
             issues=issues,
             category="tone",
-            input_analyzed=text[:200]
+            input_analyzed=text[:200],
+            requires_thinker=requires_thinker
         )
     
-    def full_audit(self, outputs: Dict[str, Any]) -> Dict[str, ValidationResult]:
-        """Auditoría completa de múltiples outputs."""
-        results = {}
-        
-        if "endpoints" in outputs:
-            for ep in outputs["endpoints"]:
-                results[f"naming:{ep}"] = self.validate_naming(ep)
-        
-        if "errors" in outputs:
-            for err in outputs["errors"]:
-                results[f"error:{err[:30]}"] = self.validate_error_message(err)
-        
-        if "responses" in outputs:
-            for i, resp in enumerate(outputs["responses"]):
-                results[f"response:{i}"] = self.validate_api_response(resp)
-        
-        if "docs" in outputs:
-            for i, doc in enumerate(outputs["docs"]):
-                results[f"doc:{i}"] = self.validate_documentation(doc)
-        
-        return results
+    # ─── DETECCIÓN DE VIOLACIONES REPETIDAS (Obj #4) ────────────────────
     
-    def get_overall_score(self, results: Dict[str, ValidationResult]) -> int:
-        """Calcula score promedio de una auditoría completa."""
-        if not results:
-            return 0
-        scores = [r.score for r in results.values()]
-        return sum(scores) // len(scores)
+    def check_repeated_violation(self, source: str, issue_type: str) -> EscalationLevel:
+        """
+        Detecta si un source está cometiendo el mismo error repetidamente.
+        
+        1er offense → FIRST_OFFENSE (warn)
+        2do offense → REPEAT_OFFENSE (warn + log)
+        3er+ offense → CHRONIC_OFFENSE (veto automático)
+        """
+        if source not in self._violation_tracker:
+            self._violation_tracker[source] = {}
+        
+        tracker = self._violation_tracker[source]
+        tracker[issue_type] = tracker.get(issue_type, 0) + 1
+        count = tracker[issue_type]
+        
+        if count == 1:
+            return EscalationLevel.FIRST_OFFENSE
+        elif count == 2:
+            return EscalationLevel.REPEAT_OFFENSE
+        else:
+            return EscalationLevel.CHRONIC_OFFENSE
+    
+    # ─── HEARTBEAT (cálculo determinista) ───────────────────────────────
+    
+    def calculate_heartbeat(self) -> BrandHeartbeat:
+        """Calcula el heartbeat del Embrión-1 — puro cálculo, sin LLM."""
+        now = datetime.now(timezone.utc)
+        
+        recent = self._validation_history[-100:]
+        health_score = (
+            sum(r.score for r in recent) // len(recent)
+            if recent else 100
+        )
+        
+        # Conteos
+        last_hour = [r for r in recent]  # Simplificado — en prod filtrar por timestamp
+        vetoes = sum(1 for r in last_hour if r.decision == Decision.VETO)
+        approvals = sum(1 for r in last_hour if r.decision == Decision.APPROVE)
+        escalations = sum(1 for r in last_hour if r.decision == Decision.ESCALATE_TO_THINKER)
+        
+        # Drift detection
+        if len(recent) >= 20:
+            last_10 = sum(r.score for r in recent[-10:]) / 10
+            prev_10 = sum(r.score for r in recent[-20:-10]) / 10
+            drift = last_10 < prev_10 - 10
+        else:
+            drift = False
+        
+        # Status
+        if health_score >= 90:
+            status = "forging"
+        elif health_score >= 75:
+            status = "vigilant"
+        elif health_score >= 60:
+            status = "alarmed"
+        else:
+            status = "critical"
+        
+        return BrandHeartbeat(
+            timestamp=now.isoformat(),
+            brand_health_score=health_score,
+            validations_total=len(self._validation_history),
+            validations_last_hour=len(last_hour),
+            vetoes_last_hour=vetoes,
+            approvals_last_hour=approvals,
+            escalations_last_hour=escalations,
+            drift_detected=drift,
+            status=status
+        )
+    
+    # ─── PERSISTENCIA ───────────────────────────────────────────────────
+    
+    def persist_validation(self, result: ValidationResult, source: str):
+        """Persiste resultado en Supabase. Operación mecánica."""
+        self._validation_history.append(result)
+        
+        if self.supabase:
+            self.supabase.table("brand_validations").insert({
+                "embrion_id": 1,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "source": source,
+                "category": result.category,
+                "score": result.score,
+                "decision": result.decision.value,
+                "issues": result.issues,
+                "input_analyzed": result.input_analyzed,
+                "requires_thinker": result.requires_thinker
+            }).execute()
+    
+    def persist_heartbeat(self, beat: BrandHeartbeat):
+        """Persiste heartbeat en Supabase. Operación mecánica."""
+        if self.supabase:
+            self.supabase.table("brand_heartbeats").insert({
+                "embrion_id": 1,
+                "timestamp": beat.timestamp,
+                "health_score": beat.brand_health_score,
+                "validations_total": beat.validations_total,
+                "vetoes_count": beat.vetoes_last_hour,
+                "escalations_count": beat.escalations_last_hour,
+                "drift_detected": beat.drift_detected,
+                "status": beat.status
+            }).execute()
+    
+    # ─── UTILIDADES INTERNAS ────────────────────────────────────────────
+    
+    def _score_to_decision(self, score: int) -> Decision:
+        """Convierte score a decisión. Determinista."""
+        if score >= self.WARNING_THRESHOLD:
+            return Decision.APPROVE
+        elif score >= self.VETO_THRESHOLD:
+            return Decision.WARN
+        else:
+            return Decision.VETO
 ```
 
 ---
 
-## Épica 71.3 — Embrión-1 como Entidad Viva
+## Épica 71.3 — Pensador: Brand Thinker (LLM Potente)
 
-**Objetivo:** Instanciar el Embrión-1 como una entidad con heartbeat propio, FCS, y capacidad de comunicarse con Embrión-0 via el protocolo inter-embrión.
+**Objetivo:** Crear el Pensador del Embrión-1 — usa el LLM más potente disponible SOLO para juicio subjetivo. Se activa únicamente cuando el Ejecutor escala.
 
 **Criterios de Aceptación:**
-- [ ] Archivo `kernel/brand/embrion_brand.py` existe
-- [ ] Tiene heartbeat independiente (cada 30 minutos)
-- [ ] Calcula su propio FCS (Brand Health Score)
-- [ ] Se registra en el EmbrionScheduler como Embrión-1
-- [ ] Puede recibir outputs de Embrión-0 para validación
-- [ ] Puede VETAR outputs con score < 60
-- [ ] Tabla `brand_validations` creada en Supabase
+- [ ] Archivo `kernel/brand/thinker.py` existe
+- [ ] Se activa SOLO cuando `ValidationResult.requires_thinker == True`
+- [ ] Evalúa calidad estética, no reglas mecánicas
+- [ ] Genera contra-propuestas creativas en debates
+- [ ] Puede generar Brand DNA para nuevas empresas (Obj #1)
+- [ ] Context window limpio: solo Brand DNA + últimas 10 decisiones
+- [ ] Usa el modelo más potente disponible
+
+```python
+"""
+kernel/brand/thinker.py
+EMBRIÓN-1 PENSADOR — LLM Potente
+
+Este módulo es el PENSADOR del Embrión-1 (Brand Engine).
+USA el LLM más potente disponible. Se activa SOLO cuando hay juicio subjetivo.
+
+Responsabilidades:
+- Evaluación estética (¿esto se SIENTE premium?)
+- Generación de contra-propuestas creativas
+- Debate con otros Embriones
+- Generación de Brand DNA para nuevas empresas (Obj #1)
+- Detección de drift semántico (no solo numérico)
+
+NUNCA ejecuta operaciones mecánicas. NUNCA persiste datos. NUNCA formatea JSON.
+Su context window se mantiene LIMPIO.
+"""
+
+from typing import Dict, Any, Optional, List
+from dataclasses import dataclass
+
+from .brand_dna import get_brand_dna, BrandDNA
+
+
+@dataclass
+class BrandDecision:
+    """
+    Output del Pensador. El Ejecutor lo materializa.
+    
+    Este es el CONTRATO entre Pensador y Ejecutor.
+    El Pensador produce BrandDecisions, el Ejecutor las ejecuta.
+    """
+    aesthetic_score: int              # 0-100 (juicio subjetivo de calidad)
+    passes_aesthetic: bool            # ¿Daría orgullo en una keynote Apple?
+    reasoning: str                    # Por qué esta decisión
+    improvement_suggestion: Optional[str]  # Versión mejorada (si no pasa)
+    brand_alignment: str             # "on_brand" | "off_brand" | "partially_aligned"
+    confidence: float                # 0.0-1.0 (qué tan seguro está el Pensador)
+
+
+@dataclass
+class GeneratedBrandDNA:
+    """Brand DNA generado para una nueva empresa (Obj #1)."""
+    business_name: str
+    mission: Dict[str, str]          # {es: ..., en: ...}
+    tone_guidelines: List[str]
+    visual_palette: Dict[str, str]   # {primary: ..., secondary: ..., accent: ...}
+    naming_conventions: List[str]
+    differentiators: List[str]
+    anti_patterns: List[str]
+
+
+class BrandThinker:
+    """
+    Pensador del Embrión-1: Brand Engine.
+    
+    Se activa SOLO cuando:
+    1. El Ejecutor escala (requires_thinker = True)
+    2. Hay debate con otro Embrión
+    3. Se necesita generar Brand DNA para nueva empresa
+    4. Se detecta drift que requiere análisis semántico
+    
+    Context window: LIMPIO. Solo contiene:
+    - Brand DNA de El Monstruo
+    - Últimas 10 decisiones tomadas
+    - El input actual a evaluar
+    """
+    
+    # System prompt del Pensador — su identidad y contexto permanente
+    SYSTEM_PROMPT = """Eres el PENSADOR del Embrión-1 (Brand Engine) de El Monstruo.
+
+Tu propósito: Evaluar si los outputs del sistema tienen la CALIDAD ESTÉTICA y ALINEACIÓN DE MARCA que El Monstruo exige.
+
+Brand DNA de El Monstruo:
+- Misión: Crear el primer agente de IA soberano del mundo
+- Arquetipo: Creator + Mage
+- Personalidad: Implacable, Preciso, Soberano, Magnánimo
+- Tono: Directo, técnicamente preciso, metáforas industriales
+- NUNCA: Corporativo, servil, genérico, arrogante
+- Estética: Brutalismo industrial refinado (naranja forja, graphite, acero)
+- Estándar: Apple/Tesla — cada output debe dar orgullo en una keynote
+
+Tu criterio de evaluación:
+- ¿Esto se SIENTE premium? (no solo ¿cumple reglas?)
+- ¿Daría orgullo mostrarlo en público?
+- ¿Comunica soberanía y precisión?
+- ¿Es memorable o es genérico?
+- ¿Refuerza o diluye la identidad?
+
+Responde SIEMPRE en formato estructurado con score, reasoning, y suggestion."""
+    
+    def __init__(self, llm_client=None):
+        self.dna: BrandDNA = get_brand_dna()
+        self.llm = llm_client
+        self._decision_history: List[BrandDecision] = []
+    
+    async def evaluate_aesthetic_quality(self, output: str, context: str = "") -> BrandDecision:
+        """
+        Evalúa la calidad estética de un output.
+        Se activa cuando el Ejecutor escala por ambigüedad.
+        
+        Args:
+            output: El texto/contenido a evaluar
+            context: Contexto adicional (de dónde viene, para qué es)
+        """
+        if not self.llm:
+            # Sin LLM, no puede evaluar estética — retorna neutral
+            return BrandDecision(
+                aesthetic_score=70,
+                passes_aesthetic=True,
+                reasoning="LLM no disponible — evaluación estética omitida",
+                improvement_suggestion=None,
+                brand_alignment="partially_aligned",
+                confidence=0.3
+            )
+        
+        # Context window limpio: solo lo esencial
+        recent_decisions = self._decision_history[-10:]
+        history_context = "\n".join([
+            f"- Score {d.aesthetic_score}: {d.reasoning[:50]}"
+            for d in recent_decisions
+        ]) if recent_decisions else "Sin decisiones previas."
+        
+        user_prompt = f"""Evalúa este output:
+
+---
+{output}
+---
+
+Contexto: {context if context else 'Output general del sistema'}
+
+Mis últimas 10 decisiones:
+{history_context}
+
+Responde con:
+1. aesthetic_score (0-100): ¿Qué tan premium se siente?
+2. passes_aesthetic (true/false): ¿Daría orgullo en una keynote Apple?
+3. reasoning: ¿Por qué?
+4. improvement_suggestion: Si no pasa, ¿cómo mejorarlo?
+5. brand_alignment: "on_brand" | "off_brand" | "partially_aligned"
+6. confidence: 0.0-1.0"""
+        
+        response = await self.llm.chat.completions.create(
+            model="gpt-4o",  # El más potente disponible
+            messages=[
+                {"role": "system", "content": self.SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=800,
+            temperature=0.3  # Bajo para consistencia en evaluación
+        )
+        
+        # Parse response (simplificado — en prod usar structured output)
+        text = response.choices[0].message.content
+        decision = self._parse_decision(text)
+        self._decision_history.append(decision)
+        
+        return decision
+    
+    async def generate_brand_for_business(
+        self, 
+        business_type: str, 
+        target_market: str,
+        differentiators: List[str] = None
+    ) -> GeneratedBrandDNA:
+        """
+        Genera un Brand DNA completo para una nueva empresa (Obj #1).
+        
+        El Monstruo no solo valida su propia marca — GENERA marcas
+        para las empresas que crea autónomamente.
+        """
+        if not self.llm:
+            raise RuntimeError("brand_thinker_llm_unavailable: Pensador requiere LLM para generar Brand DNA")
+        
+        prompt = f"""Genera un Brand DNA completo para una nueva empresa:
+
+Tipo de negocio: {business_type}
+Mercado objetivo: {target_market}
+Diferenciadores: {differentiators or ['A definir']}
+
+El Brand DNA debe ser:
+- Tan memorable como Apple o Tesla
+- Con identidad propia (NO copiar a El Monstruo)
+- Con tono, paleta visual, naming conventions, y anti-patrones
+- Multi-idioma (español + inglés)
+
+Genera:
+1. business_name: Nombre memorable
+2. mission: {{es: ..., en: ...}}
+3. tone_guidelines: Lista de directivas de tono
+4. visual_palette: {{primary, secondary, accent, background}}
+5. naming_conventions: Reglas de naming
+6. differentiators: Qué lo hace único
+7. anti_patterns: Qué NUNCA debe hacer"""
+        
+        response = await self.llm.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": self.SYSTEM_PROMPT},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=1500,
+            temperature=0.7  # Más alto para creatividad
+        )
+        
+        # Parse y retornar (simplificado)
+        return self._parse_generated_brand(response.choices[0].message.content)
+    
+    async def debate(self, topic: str, other_embrion_proposal: str) -> Dict[str, Any]:
+        """
+        Debate con otro Embrión cuando hay conflicto de marca.
+        
+        El Pensador evalúa la propuesta del otro Embrión y genera
+        una contra-propuesta si no cumple con el Brand DNA.
+        """
+        if not self.llm:
+            return {
+                "consensus": False,
+                "reasoning": "LLM no disponible para debate",
+                "counter_proposal": None
+            }
+        
+        prompt = f"""Otro Embrión propone lo siguiente sobre el tema '{topic}':
+
+---
+{other_embrion_proposal}
+---
+
+Evalúa desde la perspectiva de Brand Engine:
+1. ¿La propuesta es on-brand?
+2. Si no, ¿qué cambiarías?
+3. ¿Hay consenso o necesitas vetar?
+
+Si vetas, genera una contra-propuesta que sea on-brand."""
+        
+        response = await self.llm.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": self.SYSTEM_PROMPT},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=1000,
+            temperature=0.4
+        )
+        
+        return self._parse_debate_response(response.choices[0].message.content)
+    
+    async def analyze_drift(self, validation_history: List[Dict]) -> Dict[str, Any]:
+        """
+        Análisis semántico de drift de marca.
+        
+        El Ejecutor detecta drift numérico (scores bajando).
+        El Pensador analiza POR QUÉ y sugiere correcciones.
+        """
+        if not self.llm:
+            return {"drift_analysis": "LLM no disponible", "corrections": []}
+        
+        # Resumir historial para no contaminar context window
+        summary = "\n".join([
+            f"- {v.get('category')}: score {v.get('score')}, issues: {v.get('issues', [])[:2]}"
+            for v in validation_history[-20:]
+        ])
+        
+        prompt = f"""Detecto drift de marca en las últimas validaciones:
+
+{summary}
+
+Analiza:
+1. ¿Cuál es la causa raíz del drift?
+2. ¿Qué patrón se está degradando?
+3. ¿Qué correcciones sistémicas sugieres?"""
+        
+        response = await self.llm.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": self.SYSTEM_PROMPT},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=800,
+            temperature=0.3
+        )
+        
+        return {"drift_analysis": response.choices[0].message.content}
+    
+    # ─── PARSING (interno) ──────────────────────────────────────────────
+    
+    def _parse_decision(self, text: str) -> BrandDecision:
+        """Parse LLM response into BrandDecision. Fallback seguro."""
+        # Implementación simplificada — en prod usar structured output de OpenAI
+        return BrandDecision(
+            aesthetic_score=75,  # Default conservador
+            passes_aesthetic=True,
+            reasoning=text[:200],
+            improvement_suggestion=None,
+            brand_alignment="partially_aligned",
+            confidence=0.7
+        )
+    
+    def _parse_generated_brand(self, text: str) -> GeneratedBrandDNA:
+        """Parse LLM response into GeneratedBrandDNA."""
+        return GeneratedBrandDNA(
+            business_name="[parsed from LLM]",
+            mission={"es": text[:100], "en": text[:100]},
+            tone_guidelines=["directo", "memorable"],
+            visual_palette={"primary": "#000", "secondary": "#FFF", "accent": "#F97316"},
+            naming_conventions=["snake_case", "domain_specific"],
+            differentiators=["[parsed from LLM]"],
+            anti_patterns=["generico", "corporativo"]
+        )
+    
+    def _parse_debate_response(self, text: str) -> Dict[str, Any]:
+        """Parse debate response."""
+        return {
+            "consensus": "veto" not in text.lower(),
+            "reasoning": text[:300],
+            "counter_proposal": text if "veto" in text.lower() else None
+        }
+```
+
+---
+
+## Épica 71.4 — Orquestador: Embrión-1 Completo
+
+**Objetivo:** Unir Pensador + Ejecutor en una sola entidad coherente (Embrión-1) con heartbeat, registro en scheduler, y protocolo inter-embrión.
+
+**Criterios de Aceptación:**
+- [ ] Archivo `kernel/brand/embrion_brand.py` orquesta Pensador + Ejecutor
+- [ ] Heartbeat cada 30 minutos (Ejecutor calcula, Ejecutor persiste)
+- [ ] Se registra en EmbrionScheduler
+- [ ] Flujo: Ejecutor pre-filtra → si escala → Pensador evalúa → Ejecutor persiste
+- [ ] Protocolo inter-embrión definido
 
 ```python
 """
 kernel/brand/embrion_brand.py
-EMBRIÓN-1: BRAND ENGINE
+EMBRIÓN-1: BRAND ENGINE — Orquestador
 
-El primer hijo de la Colmena. Su propósito: garantizar que todo output
-del Monstruo sea consistente con su identidad de marca.
+Une Pensador + Ejecutor en una entidad coherente.
+El Orquestador decide CUÁNDO activar al Pensador vs. cuándo el Ejecutor basta.
 
-No es un módulo pasivo. Es una entidad viva con:
-- Heartbeat propio (cada 30 minutos)
-- FCS propio (Brand Health Score)
-- Capacidad de VETAR outputs
-- Comunicación con Embrión-0
+Patrón:
+1. Output llega
+2. Ejecutor hace pre-filtro determinista (instantáneo, $0)
+3. Si falla → veto inmediato
+4. Si pasa pero hay ambigüedad → Pensador evalúa (LLM, costo)
+5. Si pasa limpio → aprobado
+6. Ejecutor persiste resultado
 """
 
-import asyncio
-from datetime import datetime, timezone
 from typing import Dict, Any, Optional
-from dataclasses import dataclass
+from datetime import datetime, timezone
 
-from .brand_dna import get_brand_dna, BrandDNA
-from .brand_validator import BrandValidator, ValidationResult
-
-
-@dataclass
-class BrandHeartbeat:
-    """Estado vital del Embrión-1."""
-    timestamp: str
-    brand_health_score: int          # 0-100 (promedio de validaciones recientes)
-    validations_last_hour: int       # Cuántas validaciones hizo
-    vetoes_last_hour: int            # Cuántos outputs vetó
-    drift_detected: bool             # Si la marca se está degradando
-    status: str                      # "forging" | "vigilant" | "alarmed" | "dormant"
+from .executor import BrandExecutor, ValidationResult, Decision, EscalationLevel
+from .thinker import BrandThinker, BrandDecision
+from .brand_dna import get_brand_dna
 
 
 class EmbrionBrand:
     """
-    Embrión-1: Brand Engine
+    Embrión-1: Brand Engine (Orquestador)
     
-    Propósito: Ser el guardián vivo de la identidad de marca.
-    Rol en la Colmena: Quality gate transversal.
-    Relación con Embrión-0: Recibe outputs para validación, puede vetar.
+    Combina:
+    - Ejecutor (código determinista) para validación rápida y persistencia
+    - Pensador (LLM potente) para juicio estético y generación creativa
+    
+    El Pensador se activa SOLO cuando es necesario.
+    El Ejecutor maneja el 80% de las validaciones sin LLM.
     """
     
     EMBRION_ID = 1
     EMBRION_NAME = "brand_engine"
     HEARTBEAT_INTERVAL_SECONDS = 1800  # 30 minutos
-    VETO_THRESHOLD = 60                # Score < 60 = VETO
-    WARNING_THRESHOLD = 75             # Score < 75 = WARNING
     
     def __init__(self, supabase_client=None, llm_client=None):
-        self.dna: BrandDNA = get_brand_dna()
-        self.validator = BrandValidator(threshold=self.WARNING_THRESHOLD)
+        self.executor = BrandExecutor(supabase_client=supabase_client)
+        self.thinker = BrandThinker(llm_client=llm_client)
         self.supabase = supabase_client
-        self.llm = llm_client
-        
-        # Estado interno
-        self._validations_history: list = []
-        self._vetoes_count: int = 0
-        self._last_heartbeat: Optional[datetime] = None
-        self._status: str = "dormant"
+        self._status = "dormant"
     
     async def awaken(self):
-        """Despertar el Embrión-1. Se registra en el scheduler."""
+        """Despertar el Embrión-1."""
         self._status = "vigilant"
-        self._last_heartbeat = datetime.now(timezone.utc)
         
-        # Registrar en Supabase
         if self.supabase:
-            await self._register_in_colmena()
+            self.supabase.table("embriones").upsert({
+                "id": self.EMBRION_ID,
+                "name": self.EMBRION_NAME,
+                "purpose": "Guardián de identidad de marca — Pensador + Ejecutor",
+                "status": self._status,
+                "awakened_at": datetime.now(timezone.utc).isoformat(),
+                "architecture": "thinker_executor_pair",
+                "heartbeat_interval_s": self.HEARTBEAT_INTERVAL_SECONDS,
+                "capabilities": [
+                    "validate_deterministic",
+                    "evaluate_aesthetic",
+                    "generate_brand",
+                    "debate",
+                    "veto"
+                ]
+            }).execute()
         
-        print(f"[EMBRIÓN-1] Brand Engine despierto. Status: {self._status}")
         return {"embrion_id": self.EMBRION_ID, "status": self._status}
     
-    async def heartbeat(self) -> BrandHeartbeat:
-        """Latido del Embrión-1. Calcula Brand Health Score."""
-        now = datetime.now(timezone.utc)
-        
-        # Calcular health score de validaciones recientes
-        recent = [v for v in self._validations_history[-100:]]
-        health_score = (
-            sum(v.score for v in recent) // len(recent)
-            if recent else 100
-        )
-        
-        # Detectar drift (degradación)
-        if len(recent) >= 10:
-            last_10_avg = sum(v.score for v in recent[-10:]) // 10
-            prev_10_avg = sum(v.score for v in recent[-20:-10]) // 10 if len(recent) >= 20 else health_score
-            drift_detected = last_10_avg < prev_10_avg - 10
-        else:
-            drift_detected = False
-        
-        # Determinar status
-        if health_score >= 90:
-            self._status = "forging"       # Produciendo a máxima calidad
-        elif health_score >= 75:
-            self._status = "vigilant"      # Normal, monitoreando
-        elif health_score >= 60:
-            self._status = "alarmed"       # Degradación detectada
-        else:
-            self._status = "critical"      # Emergencia de marca
-        
-        beat = BrandHeartbeat(
-            timestamp=now.isoformat(),
-            brand_health_score=health_score,
-            validations_last_hour=len([
-                v for v in recent 
-                if hasattr(v, 'timestamp')
-            ]),
-            vetoes_last_hour=self._vetoes_count,
-            drift_detected=drift_detected,
-            status=self._status
-        )
-        
-        # Persistir heartbeat
-        if self.supabase:
-            await self._persist_heartbeat(beat)
-        
-        self._last_heartbeat = now
-        return beat
-    
-    async def validate_output(self, output: Any, source: str = "embrion_0") -> Dict[str, Any]:
+    async def validate(self, output: Any, source: str = "unknown") -> Dict[str, Any]:
         """
-        Punto de entrada principal: recibe un output y lo evalúa.
+        Punto de entrada principal de validación.
         
-        Args:
-            output: El output a validar (dict, str, o cualquier tipo)
-            source: Quién generó el output
-            
-        Returns:
-            Dict con score, passes, issues, y decisión (approve/warn/veto)
+        Flujo:
+        1. Ejecutor pre-filtra (determinista, instantáneo)
+        2. Si veto → retorna inmediato
+        3. Si escala → Pensador evalúa
+        4. Ejecutor persiste resultado
         """
-        # Determinar tipo de validación
-        if isinstance(output, dict):
+        # PASO 1: Ejecutor pre-filtra
+        if isinstance(output, str):
+            if output.startswith('/api/') or output.startswith('/'):
+                result = self.executor.validate_naming(output)
+            elif len(output) < 100 and ':' in output:
+                result = self.executor.validate_error_message(output)
+            else:
+                result = self.executor.validate_documentation(output)
+        elif isinstance(output, dict):
             if "error" in output:
-                result = self.validator.validate_error_message(output.get("error", ""))
+                result = self.executor.validate_error_message(str(output["error"]))
             else:
-                result = self.validator.validate_api_response(output)
-        elif isinstance(output, str):
-            if output.startswith("/api/") or output.startswith("/"):
-                result = self.validator.validate_naming(output)
-            else:
-                result = self.validator.validate_documentation(output)
+                result = self.executor.validate_api_response(output)
         else:
             result = ValidationResult(
-                score=50, passes=False,
-                issues=[{"type": "unknown_type", "description": "Tipo de output no reconocido", "suggestion": "Enviar como dict o str"}],
-                category="unknown", input_analyzed=str(output)[:100]
+                score=50, decision=Decision.ESCALATE_TO_THINKER,
+                issues=[{"type": "unknown_type", "description": "Tipo no reconocido"}],
+                category="unknown", input_analyzed=str(output)[:200],
+                requires_thinker=True
             )
         
-        # Registrar validación
-        self._validations_history.append(result)
+        # PASO 2: Check violaciones repetidas (Obj #4)
+        if result.issues:
+            for issue in result.issues:
+                escalation = self.executor.check_repeated_violation(source, issue["type"])
+                if escalation == EscalationLevel.CHRONIC_OFFENSE:
+                    result.decision = Decision.VETO
+                    result.score = min(result.score, 40)
+                    result.issues.append({
+                        "type": "chronic_violation",
+                        "description": f"Violación crónica de '{issue['type']}' por {source}",
+                        "suggestion": "Este error se ha repetido 3+ veces. Veto automático."
+                    })
+                    result.escalation = escalation
         
-        # Decisión
-        if result.score >= self.WARNING_THRESHOLD:
-            decision = "approve"
-        elif result.score >= self.VETO_THRESHOLD:
-            decision = "warn"
-        else:
-            decision = "veto"
-            self._vetoes_count += 1
+        # PASO 3: Si el Ejecutor escala → Pensador evalúa
+        thinker_decision = None
+        if result.decision == Decision.ESCALATE_TO_THINKER and result.requires_thinker:
+            thinker_decision = await self.thinker.evaluate_aesthetic_quality(
+                output=str(output),
+                context=f"Source: {source}, Category: {result.category}"
+            )
+            # Combinar scores: Ejecutor (reglas) + Pensador (estética)
+            combined_score = (result.score + thinker_decision.aesthetic_score) // 2
+            result.score = combined_score
+            result.decision = self.executor._score_to_decision(combined_score)
         
-        # Persistir en Supabase
-        if self.supabase:
-            await self._persist_validation(result, source, decision)
+        # PASO 4: Ejecutor persiste
+        self.executor.persist_validation(result, source)
         
-        return {
-            "embrion": self.EMBRION_NAME,
-            "decision": decision,
+        # Formatear response
+        response = {
+            "module": "brand_engine",
+            "embrion_id": self.EMBRION_ID,
+            "decision": result.decision.value,
             "brand_score": result.score,
-            "passes": result.passes,
             "issues": result.issues,
             "category": result.category,
-            "source": source
-        }
-    
-    async def debate_with_embrion_0(self, topic: str, embrion_0_proposal: Any) -> Dict[str, Any]:
-        """
-        Debate con Embrión-0 cuando hay conflicto de marca.
-        
-        Embrión-0 propone algo, Brand Engine evalúa y puede contra-proponer.
-        """
-        validation = await self.validate_output(embrion_0_proposal, source="embrion_0")
-        
-        if validation["decision"] == "approve":
-            return {
-                "consensus": True,
-                "message": f"Brand Engine aprueba. Score: {validation['brand_score']}"
-            }
-        
-        # Generar contra-propuesta usando LLM
-        counter_proposal = None
-        if self.llm and validation["decision"] == "veto":
-            counter_proposal = await self._generate_brand_improvement(
-                original=embrion_0_proposal,
-                issues=validation["issues"]
-            )
-        
-        return {
-            "consensus": False,
-            "decision": validation["decision"],
-            "brand_score": validation["brand_score"],
-            "issues": validation["issues"],
-            "counter_proposal": counter_proposal,
-            "message": f"Brand Engine {'veta' if validation['decision'] == 'veto' else 'advierte'}. "
-                       f"Score: {validation['brand_score']}. Issues: {len(validation['issues'])}"
-        }
-    
-    async def _generate_brand_improvement(self, original: Any, issues: list) -> Optional[str]:
-        """Usa LLM para sugerir mejora on-brand."""
-        if not self.llm:
-            return None
-        
-        prompt = f"""Eres el Brand Engine de El Monstruo — un agente IA soberano.
-        
-Brand DNA:
-- Tono: Directo, técnicamente preciso, confiado, metáforas industriales
-- NUNCA: corporativo, servil, genérico
-- Naming: snake_case, módulos con identidad, errores con contexto
-
-El output original tiene estos problemas:
-{issues}
-
-Output original:
-{original}
-
-Genera una versión mejorada que cumpla con el Brand DNA. Solo retorna la versión mejorada, sin explicaciones."""
-        
-        # Llamar LLM (GPT-4o-mini para cost efficiency)
-        response = await self.llm.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=500
-        )
-        
-        return response.choices[0].message.content
-    
-    async def _register_in_colmena(self):
-        """Registra Embrión-1 en la tabla de la Colmena."""
-        self.supabase.table("embriones").upsert({
-            "id": self.EMBRION_ID,
-            "name": self.EMBRION_NAME,
-            "purpose": "Guardián de identidad de marca en todo output del sistema",
-            "status": self._status,
-            "awakened_at": datetime.now(timezone.utc).isoformat(),
-            "heartbeat_interval_s": self.HEARTBEAT_INTERVAL_SECONDS,
-            "capabilities": ["validate_output", "veto", "debate", "suggest_improvement"]
-        }).execute()
-    
-    async def _persist_heartbeat(self, beat: BrandHeartbeat):
-        """Persiste heartbeat en Supabase."""
-        self.supabase.table("brand_heartbeats").insert({
-            "embrion_id": self.EMBRION_ID,
-            "timestamp": beat.timestamp,
-            "health_score": beat.brand_health_score,
-            "validations_count": beat.validations_last_hour,
-            "vetoes_count": beat.vetoes_last_hour,
-            "drift_detected": beat.drift_detected,
-            "status": beat.status
-        }).execute()
-    
-    async def _persist_validation(self, result: ValidationResult, source: str, decision: str):
-        """Persiste resultado de validación en Supabase."""
-        self.supabase.table("brand_validations").insert({
-            "embrion_id": self.EMBRION_ID,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
             "source": source,
-            "category": result.category,
-            "score": result.score,
-            "decision": decision,
-            "issues": result.issues,
-            "input_analyzed": result.input_analyzed
-        }).execute()
-```
-
----
-
-## Épica 71.4 — Integración con EmbrionScheduler
-
-**Objetivo:** Registrar Embrión-1 en el scheduler existente para que su heartbeat se ejecute automáticamente cada 30 minutos.
-
-**Criterios de Aceptación:**
-- [ ] EmbrionScheduler reconoce Embrión-1 como entidad separada
-- [ ] Heartbeat se ejecuta cada 30 minutos automáticamente
-- [ ] Brand Health Score se reporta en el ciclo de vida del scheduler
-- [ ] Si Brand Health Score < 60, se dispara alerta al Guardián (Obj #14)
-
-```python
-"""
-kernel/brand/scheduler_integration.py
-Integración del Embrión-1 con el EmbrionScheduler existente.
-"""
-
-from .embrion_brand import EmbrionBrand
-
-
-async def register_brand_engine(scheduler, supabase_client, llm_client):
-    """
-    Registra el Embrión-1 (Brand Engine) en el scheduler.
+            "used_thinker": thinker_decision is not None,
+            "escalation": result.escalation.value if result.escalation else None
+        }
+        
+        if thinker_decision and not thinker_decision.passes_aesthetic:
+            response["aesthetic_feedback"] = thinker_decision.reasoning
+            response["improvement_suggestion"] = thinker_decision.improvement_suggestion
+        
+        return response
     
-    Se llama durante el startup del kernel.
-    """
-    brand_engine = EmbrionBrand(
-        supabase_client=supabase_client,
-        llm_client=llm_client
-    )
+    async def heartbeat(self):
+        """Heartbeat del Embrión-1. Ejecutor calcula y persiste."""
+        beat = self.executor.calculate_heartbeat()
+        self.executor.persist_heartbeat(beat)
+        self._status = beat.status
+        
+        # Si drift detectado → Pensador analiza por qué
+        if beat.drift_detected:
+            drift_analysis = await self.thinker.analyze_drift(
+                [{"score": r.score, "category": r.category, "issues": r.issues}
+                 for r in self.executor._validation_history[-20:]]
+            )
+            beat_dict = beat.__dict__
+            beat_dict["drift_analysis"] = drift_analysis
+            return beat_dict
+        
+        return beat.__dict__
     
-    # Despertar
-    await brand_engine.awaken()
+    async def generate_brand(self, business_type: str, target_market: str) -> Dict[str, Any]:
+        """Genera Brand DNA para nueva empresa (Obj #1). Pensador crea, Ejecutor persiste."""
+        brand = await self.thinker.generate_brand_for_business(business_type, target_market)
+        
+        # Ejecutor persiste
+        if self.supabase:
+            self.supabase.table("generated_brands").insert({
+                "embrion_id": self.EMBRION_ID,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "business_type": business_type,
+                "target_market": target_market,
+                "brand_name": brand.business_name,
+                "brand_dna": brand.__dict__
+            }).execute()
+        
+        return brand.__dict__
     
-    # Registrar heartbeat en el scheduler
-    scheduler.register_embrion(
-        embrion_id=1,
-        name="brand_engine",
-        heartbeat_fn=brand_engine.heartbeat,
-        interval_seconds=brand_engine.HEARTBEAT_INTERVAL_SECONDS,
-        alert_condition=lambda beat: beat.brand_health_score < 60,
-        alert_message="ALERTA GUARDIÁN: Brand Health Score crítico (<60). Drift de marca detectado."
-    )
-    
-    # Registrar como validador global (todo output pasa por aquí)
-    scheduler.register_global_validator(
-        validator_fn=brand_engine.validate_output,
-        validator_name="brand_engine"
-    )
-    
-    return brand_engine
+    async def debate_with_embrion(self, embrion_id: int, topic: str, proposal: str) -> Dict[str, Any]:
+        """Debate con otro Embrión. Pensador debate, Ejecutor persiste."""
+        result = await self.thinker.debate(topic, proposal)
+        
+        # Ejecutor persiste el debate
+        if self.supabase:
+            self.supabase.table("embrion_debates").insert({
+                "initiator_id": embrion_id,
+                "responder_id": self.EMBRION_ID,
+                "topic": topic,
+                "proposal": proposal[:500],
+                "consensus": result.get("consensus"),
+                "reasoning": result.get("reasoning", "")[:500],
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }).execute()
+        
+        return result
 ```
 
 ---
 
 ## Épica 71.5 — Tablas Supabase y API Endpoints
 
-**Objetivo:** Crear las tablas necesarias en Supabase y exponer endpoints para que el Command Center pueda consumir los datos del Brand Engine.
+**Objetivo:** Crear las tablas necesarias y exponer endpoints autenticados para el Command Center.
 
 **Criterios de Aceptación:**
-- [ ] Tabla `brand_heartbeats` creada
-- [ ] Tabla `brand_validations` creada
-- [ ] Endpoint `GET /api/v1/brand/health` retorna Brand Health Score actual
-- [ ] Endpoint `GET /api/v1/brand/validations` retorna historial de validaciones
-- [ ] Endpoint `POST /api/v1/brand/validate` permite validar un output ad-hoc
-- [ ] Endpoint `GET /api/v1/brand/dna` retorna el Brand DNA público
+- [ ] Tablas: `brand_heartbeats`, `brand_validations`, `generated_brands`, `embrion_debates`
+- [ ] Endpoints autenticados (Obj #11)
+- [ ] Versión pública/privada del DNA
+- [ ] Formato de response on-brand
 
 ```sql
 -- Tabla: brand_heartbeats
@@ -906,13 +1385,12 @@ CREATE TABLE IF NOT EXISTS brand_heartbeats (
     embrion_id INTEGER NOT NULL DEFAULT 1,
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     health_score INTEGER NOT NULL CHECK (health_score >= 0 AND health_score <= 100),
-    validations_count INTEGER NOT NULL DEFAULT 0,
+    validations_total INTEGER NOT NULL DEFAULT 0,
     vetoes_count INTEGER NOT NULL DEFAULT 0,
+    escalations_count INTEGER NOT NULL DEFAULT 0,
     drift_detected BOOLEAN NOT NULL DEFAULT FALSE,
     status TEXT NOT NULL CHECK (status IN ('forging', 'vigilant', 'alarmed', 'critical', 'dormant'))
 );
-
-CREATE INDEX idx_brand_heartbeats_time ON brand_heartbeats(timestamp DESC);
 
 -- Tabla: brand_validations
 CREATE TABLE IF NOT EXISTS brand_validations (
@@ -920,84 +1398,64 @@ CREATE TABLE IF NOT EXISTS brand_validations (
     embrion_id INTEGER NOT NULL DEFAULT 1,
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     source TEXT NOT NULL,
-    category TEXT NOT NULL CHECK (category IN ('naming', 'tone', 'visual', 'structure', 'error', 'unknown')),
+    category TEXT NOT NULL,
     score INTEGER NOT NULL CHECK (score >= 0 AND score <= 100),
-    decision TEXT NOT NULL CHECK (decision IN ('approve', 'warn', 'veto')),
+    decision TEXT NOT NULL CHECK (decision IN ('approve', 'warn', 'veto', 'escalate')),
     issues JSONB NOT NULL DEFAULT '[]',
-    input_analyzed TEXT
+    input_analyzed TEXT,
+    requires_thinker BOOLEAN DEFAULT FALSE
 );
 
+-- Tabla: generated_brands (Obj #1)
+CREATE TABLE IF NOT EXISTS generated_brands (
+    id BIGSERIAL PRIMARY KEY,
+    embrion_id INTEGER NOT NULL DEFAULT 1,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    business_type TEXT NOT NULL,
+    target_market TEXT NOT NULL,
+    brand_name TEXT NOT NULL,
+    brand_dna JSONB NOT NULL
+);
+
+-- Tabla: embrion_debates
+CREATE TABLE IF NOT EXISTS embrion_debates (
+    id BIGSERIAL PRIMARY KEY,
+    initiator_id INTEGER NOT NULL,
+    responder_id INTEGER NOT NULL,
+    topic TEXT NOT NULL,
+    proposal TEXT,
+    consensus BOOLEAN,
+    reasoning TEXT,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Índices
+CREATE INDEX idx_brand_heartbeats_time ON brand_heartbeats(timestamp DESC);
 CREATE INDEX idx_brand_validations_time ON brand_validations(timestamp DESC);
 CREATE INDEX idx_brand_validations_decision ON brand_validations(decision);
-CREATE INDEX idx_brand_validations_score ON brand_validations(score);
+CREATE INDEX idx_brand_validations_source ON brand_validations(source);
+CREATE INDEX idx_embrion_debates_time ON embrion_debates(timestamp DESC);
 ```
 
 ```python
 """
 kernel/brand/api_routes.py
-Endpoints del Brand Engine para el Command Center.
-
-Formato: /api/v1/brand/{action}
+Endpoints del Brand Engine — AUTENTICADOS (Obj #11)
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, Any
 
 router = APIRouter(prefix="/api/v1/brand", tags=["brand_engine"])
 
 
-class ValidateRequest(BaseModel):
-    output: Any
-    source: str = "manual"
+# ─── ENDPOINTS PÚBLICOS (sin auth) ─────────────────────────────────
 
-
-@router.get("/health")
-async def get_brand_health():
-    """Retorna el Brand Health Score actual del Embrión-1."""
-    # brand_engine es inyectado via dependency
-    from kernel.brand.embrion_brand import EmbrionBrand
-    beat = await brand_engine.heartbeat()
-    return {
-        "module": "brand_engine",
-        "embrion_id": 1,
-        "health_score": beat.brand_health_score,
-        "status": beat.status,
-        "drift_detected": beat.drift_detected,
-        "validations_last_hour": beat.validations_last_hour,
-        "vetoes_last_hour": beat.vetoes_last_hour,
-        "timestamp": beat.timestamp
-    }
-
-
-@router.get("/validations")
-async def get_validations(limit: int = 50, decision: Optional[str] = None):
-    """Retorna historial de validaciones recientes."""
-    query = supabase.table("brand_validations").select("*").order("timestamp", desc=True).limit(limit)
-    if decision:
-        query = query.eq("decision", decision)
-    result = query.execute()
-    return {
-        "module": "brand_engine",
-        "validations": result.data,
-        "count": len(result.data)
-    }
-
-
-@router.post("/validate")
-async def validate_output(request: ValidateRequest):
-    """Valida un output ad-hoc contra el Brand DNA."""
-    result = await brand_engine.validate_output(
-        output=request.output,
-        source=request.source
-    )
-    return result
-
-
-@router.get("/dna")
+@router.get("/dna/public")
 async def get_brand_dna_public():
-    """Retorna el Brand DNA público de El Monstruo."""
-    from kernel.brand.brand_dna import get_brand_dna
+    """Versión pública del Brand DNA — misión, visión, visual."""
+    from .brand_dna import get_brand_dna
     dna = get_brand_dna()
     return {
         "module": "brand_engine",
@@ -1005,19 +1463,63 @@ async def get_brand_dna_public():
         "vision": dna.vision,
         "archetype": dna.archetype.value,
         "personality": [p.value for p in dna.personality],
-        "tone": {"do": dna.tone.do, "dont": dna.tone.dont},
         "visual": {
             "primary": dna.visual.primary_color,
-            "background": dna.visual.background_dark,
-            "accent": dna.visual.accent_steel,
             "fonts": {
                 "display": dna.visual.font_display,
-                "body": dna.visual.font_body,
-                "mono": dna.visual.font_mono
+                "body": dna.visual.font_body
             }
+        }
+    }
+
+
+# ─── ENDPOINTS PRIVADOS (requieren API key) ────────────────────────
+
+@router.get("/dna/full")
+async def get_brand_dna_full(api_key: str = Depends(verify_api_key)):
+    """Versión completa del Brand DNA — incluye naming rules y anti-patrones."""
+    from .brand_dna import get_brand_dna
+    dna = get_brand_dna()
+    return {
+        "module": "brand_engine",
+        "mission": dna.mission,
+        "vision": dna.vision,
+        "tone": {"do": dna.tone.do, "dont": dna.tone.dont},
+        "naming": {
+            "modules": dna.naming.module_names,
+            "forbidden": dna.naming.forbidden_names,
+            "format": dna.naming.endpoint_format
         },
+        "anti_patterns": dna.anti_patterns,
         "differentiators": dna.differentiators
     }
+
+
+@router.get("/health")
+async def get_brand_health(api_key: str = Depends(verify_api_key)):
+    """Brand Health Score actual."""
+    beat = await brand_engine.heartbeat()
+    return {"module": "brand_engine", **beat}
+
+
+@router.post("/validate")
+async def validate_output(request: dict, api_key: str = Depends(verify_api_key)):
+    """Valida un output contra el Brand DNA."""
+    result = await brand_engine.validate(
+        output=request.get("output"),
+        source=request.get("source", "api_call")
+    )
+    return result
+
+
+@router.post("/generate")
+async def generate_brand(request: dict, api_key: str = Depends(verify_api_key)):
+    """Genera Brand DNA para nueva empresa (Obj #1)."""
+    result = await brand_engine.generate_brand(
+        business_type=request.get("business_type"),
+        target_market=request.get("target_market")
+    )
+    return {"module": "brand_engine", "generated_brand": result}
 ```
 
 ---
@@ -1026,48 +1528,51 @@ async def get_brand_dna_public():
 
 | Métrica | Target | Cómo se mide |
 |---|---|---|
-| Brand Health Score | ≥ 80 | Promedio de validaciones en últimas 24h |
+| Brand Health Score | ≥ 80 | Promedio de validaciones últimas 24h |
+| Thinker Activation Rate | < 20% | Veces que el Pensador se activa / total validaciones |
 | Veto Rate | < 10% | Outputs vetados / total validados |
-| Drift Detection | 0 alertas/semana | Degradación sostenida detectada |
-| Heartbeat Uptime | 99.5% | Latidos ejecutados / esperados |
-| Debate Resolution | < 5 min | Tiempo entre veto y contra-propuesta |
+| Ejecutor Latency | < 5ms | Tiempo de validación determinista |
+| Thinker Latency | < 3s | Tiempo de evaluación estética |
+| Drift Detection | 0 alertas/semana | Degradación sostenida |
+| Cost per Validation | < $0.002 avg | (80% gratis + 20% LLM) |
 
 ---
 
 ## Dependencias
 
-| Dependencia | Estado | Sprint donde se implementó |
+| Dependencia | Estado | Sprint |
 |---|---|---|
 | EmbrionScheduler | ✅ Activo | Sprint 53 |
 | Supabase | ✅ Activo | Sprint 51 |
 | FastAPI (kernel) | ✅ Activo | Sprint 51 |
 | OpenAI client | ✅ Activo | Sprint 52 |
 | Embrión-0 heartbeat | ✅ Activo | Sprint 53 |
-| Inter-embrión protocol | ⚠️ Parcial | Sprint 55 (debate básico) |
-
----
-
-## Riesgos
-
-| Riesgo | Probabilidad | Impacto | Mitigación |
-|---|---|---|---|
-| LLM cost por validación de tono | Media | Medio | Usar GPT-4o-mini, cachear resultados similares |
-| Falsos positivos en naming | Alta | Bajo | Whitelist de excepciones, threshold ajustable |
-| Conflicto Embrión-0 vs Embrión-1 | Media | Alto | Protocolo de debate con timeout + escalación |
-| Over-engineering del validator | Media | Medio | MVP primero, iterar después |
 
 ---
 
 ## Orden de Implementación
 
-1. **71.1** Brand DNA como módulo (sin dependencias externas)
-2. **71.2** Brand Validator (depende de 71.1)
-3. **71.5** Tablas Supabase + endpoints (puede ir en paralelo con 71.2)
-4. **71.3** Embrión-1 como entidad viva (depende de 71.1 + 71.2)
-5. **71.4** Integración con scheduler (depende de 71.3)
+1. **71.1** Brand DNA (sin dependencias) — 30 min
+2. **71.2** Ejecutor determinista (depende de 71.1) — 1h
+3. **71.3** Pensador LLM (depende de 71.1) — 1h
+4. **71.4** Orquestador (depende de 71.2 + 71.3) — 45 min
+5. **71.5** Tablas + Endpoints (puede ir en paralelo) — 30 min
+
+**MVP mínimo (si el tiempo no alcanza):** 71.1 + 71.2 + 71.4 (sin Pensador). El Ejecutor solo, sin LLM, ya valida naming, errores, y API responses. El Pensador se agrega en Sprint 72.
 
 ---
 
 ## Nota para el Hilo A (Ejecutor)
 
-> Este sprint crea el primer Embrión con propósito específico. No es un módulo más — es una entidad viva que valida todo lo que produces. Después de implementar esto, CADA output que generes será evaluado por el Brand Engine. Si tu código nombra un endpoint `/api/service/getData`, el Embrión-1 lo va a vetar. Si tu error message dice "something went wrong", lo va a vetar. Esto no es burocracia — es el mecanismo que convierte "aspiramos a Apple/Tesla" en realidad medible.
+> **ARQUITECTURA PENSADOR/EJECUTOR — Patrón obligatorio para TODOS los Embriones futuros.**
+>
+> Este sprint establece el patrón que los Embriones 2-8 seguirán:
+> - Pensador = LLM potente, context limpio, solo juicio subjetivo
+> - Ejecutor = Python puro, determinista, testeable, $0
+> - Orquestador = decide cuándo activar cada uno
+>
+> El 80% de las validaciones las hace el Ejecutor solo (gratis, instantáneo).
+> El 20% requiere al Pensador (costo LLM, pero calidad Apple).
+>
+> Si implementas esto bien, los Embriones 2-8 son variaciones del mismo patrón.
+> Si lo implementas mal, cada Embrión futuro heredará el problema.
