@@ -766,6 +766,32 @@ async def lifespan(app: FastAPI):
             app.state.embrion_metrics = None
         # ── /Sprint 56.4 ──────────────────────────────────────────────────────────
 
+        # ── Sprint 57.1 — EmbrionVentas ──────────────────────────────────────────
+        try:
+            from kernel.embrion_ventas import get_embrion_ventas
+            embrion_ventas = get_embrion_ventas(
+                db=db,
+                kernel=router,
+                notifier=notifier if 'notifier' in dir() else None,
+            )
+            app.state.embrion_ventas = embrion_ventas
+            logger.info("embrion_ventas_ready", specialization="ventas")
+        except Exception as _ev_err:
+            logger.warning("embrion_ventas_init_failed", error=str(_ev_err))
+            app.state.embrion_ventas = None
+        # ── /Sprint 57.1 ──────────────────────────────────────────────────────────
+
+        # ── Sprint 57.5 — Visual Quality Gate ────────────────────────────────────
+        try:
+            from quality.visual_quality_gate import get_visual_quality_gate
+            visual_gate = get_visual_quality_gate()
+            app.state.visual_quality_gate = visual_gate
+            logger.info("visual_quality_gate_ready")
+        except Exception as _vg_err:
+            logger.warning("visual_quality_gate_init_failed", error=str(_vg_err))
+            app.state.visual_quality_gate = None
+        # ── /Sprint 57.5 ──────────────────────────────────────────────────────────
+
         await embrion_scheduler.start()  # Inicia loop asyncio (revisa cada 60s)
         app.state.embrion_scheduler = embrion_scheduler
         logger.info(
@@ -804,6 +830,8 @@ async def lifespan(app: FastAPI):
         causal_simulator="active" if getattr(app.state, 'causal_simulator', None) else "inactive",
         sovereign_llm="active" if getattr(app.state, 'sovereign_llm', None) else "inactive",
         embrion_metrics="active" if getattr(app.state, 'embrion_metrics', None) else "inactive",
+        embrion_ventas="active" if getattr(app.state, 'embrion_ventas', None) else "inactive",
+        visual_quality_gate="active" if getattr(app.state, 'visual_quality_gate', None) else "inactive",
         background_store="supabase" if (_bg_store and _bg_store._use_db()) else "in_memory",
         moc="active" if moc else "inactive",
     )

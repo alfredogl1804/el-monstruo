@@ -127,3 +127,7 @@ lightrag-hku==1.4.15
 APScheduler==3.11.2
 wikipedia-api==0.7.1
 ollama==0.6.2
+
+# Sprint 57 — Transversal Layers
+posthog==7.13.2
+stripe==15.1.0
