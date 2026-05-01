@@ -1,162 +1,169 @@
 # División de Responsabilidades: Hilo A (Ejecutor) vs Hilo B (Arquitecto)
 
 **Documento normativo — Vigente a partir del 1 de mayo de 2026**
-**Versión:** 2.0 — Reemplaza la división original de INSTRUCCIONES_HILO_B.md
+**Versión:** 2.1 — Corrige el error de v2.0 que separaba infraestructura de marca
 **Autor:** Hilo B (Arquitecto), validado por Alfredo Góngora
 
 ---
 
-## Contexto: Por qué se actualiza esta división
+## Corrección Crítica (v2.1)
 
-La división original asignaba al Hilo A la ejecución de sprints completos y al Hilo B la planificación y cruces detractores. En la práctica, esto generó un problema estructural: **los objetivos subjetivos no se cumplen**.
+La versión 2.0 de este documento contenía un error fundamental: separaba "infraestructura" de "experiencia y marca", como si fueran mundos distintos. Decía que "el Hilo A construye los sensores y las tuberías, el Hilo B construye el display y la experiencia".
 
-El Hilo A implementa código funcional. Cuando Sprint 56.4 (Embrión Observability) se completó, los datos de telemetría se enviaron al dashboard genérico de Langfuse — una herramienta de terceros sin identidad propia. Esto viola directamente el Objetivo #2 (Apple/Tesla): todo output de El Monstruo debe tener calidad premium y posicionamiento de marca propio.
+**Esto es incorrecto.** Los sensores y las tuberías SON parte de la experiencia y la marca. Cuando un endpoint retorna un error genérico `{"error": "internal server error"}` en lugar de `{"error": "embrion_heartbeat_timeout", "embrion_id": "alpha-01", "suggestion": "verificar scheduler"}`, eso no es solo un problema técnico — es un problema de marca. Apple no tiene "backend sin marca". Tesla no tiene "firmware sin identidad".
 
-El problema no es que el Hilo A sea deficiente. El problema es que los objetivos subjetivos — posicionamiento de marca (#2), calidad Magna/Premium (#5), emergencia (#8) — requieren juicio estético y estratégico acumulado. Un ejecutor que arranca cada sesión con un prompt y un sprint plan no tiene la historia ni el criterio para tomar esas decisiones. Es como pedirle a un ingeniero de backend que piense como director creativo: puede hacerlo si se le dice explícitamente en cada línea, pero no es su naturaleza.
-
-La solución no es darle más documentos al Hilo A. Es **cambiar la arquitectura de responsabilidades** para que cada hilo haga lo que mejor sabe hacer.
+La corrección: **los 14 Objetivos Maestros aplican a TODA decisión, incluyendo infraestructura**. Ambos hilos deben internalizarlos.
 
 ---
 
-## Nueva División: Principio Fundamental
+## Principio Fundamental (Corregido)
 
-> **El Hilo A construye los sensores y las tuberías. El Hilo B construye el display y la experiencia. El Hilo A no necesita entender los 14 Objetivos — necesita implementar interfaces limpias que el Hilo B pueda consumir.**
+> **Ambos hilos operan bajo los 14 Objetivos Maestros. El Hilo A no está exento de marca, calidad premium, o documentación exhaustiva solo porque trabaja en backend. Cada línea de código, cada nombre de endpoint, cada schema de base de datos ES la marca de El Monstruo.**
 
 ---
 
-## Hilo A — El Ejecutor (Infraestructura)
+## Hilo A — El Ejecutor
 
-El Hilo A es responsable de todo lo que **no tiene cara**. Su trabajo se mide en: "¿funciona? ¿es robusto? ¿es eficiente?"
+El Hilo A implementa la funcionalidad técnica del kernel. Su dominio principal es código Python, APIs, pipelines, base de datos, y deploys en Railway.
 
-### Dominio exclusivo del Hilo A
+### Responsabilidades
 
-| Categoría | Ejemplos concretos | Criterio de éxito |
+| Categoría | Ejemplos | Criterio de éxito |
 |---|---|---|
-| APIs y endpoints | `/api/embrion/status`, `/api/finops/spend` | Responde correctamente, documentado, con tipos |
-| Pipelines de datos | EmbrionScheduler, CausalSeeder, CausalDecomposer | Ejecuta sin errores, logs limpios |
-| Base de datos | Tablas en Supabase, migraciones, índices | Schema correcto, queries optimizadas |
-| Infraestructura | Railway deploy, E2B sandbox, cron jobs | Uptime, latencia aceptable |
-| Instrumentación | Langfuse Bridge, métricas, traces | Datos capturados correctamente |
-| Seguridad | API keys, rate limiting, validación | Sin vulnerabilidades expuestas |
+| APIs y endpoints | `/api/embrion/status`, `/api/finops/spend` | Funcional, documentado, con tipos, naming con identidad |
+| Pipelines de datos | EmbrionScheduler, CausalSeeder, CausalDecomposer | Sin errores, logs con contexto, trazabilidad |
+| Base de datos | Tablas en Supabase, migraciones, índices | Schema correcto, naming consistente, documentado |
+| Infraestructura | Railway deploy, E2B sandbox, cron jobs | Uptime, latencia, configuración documentada |
+| Instrumentación | Langfuse Bridge, métricas, traces | Datos capturados Y expuestos via API para el Command Center |
+| Seguridad | API keys, rate limiting, validación | Sin vulnerabilidades, fail-closed |
 | Testing | Tests unitarios, integration tests | Cobertura mínima, CI verde |
 
-### Lo que el Hilo A NO debe hacer
+### Directivas de los 14 Objetivos para el Hilo A
 
-El Hilo A no debe tomar decisiones sobre cómo se visualizan, presentan o comunican los datos. Específicamente:
+Estas directivas aplican a CADA sprint que el Hilo A implemente:
 
-- No debe crear dashboards o interfaces de usuario propias.
-- No debe elegir cómo se muestran métricas al usuario final.
-- No debe diseñar la experiencia de interacción con El Monstruo.
-- No debe tomar decisiones de marca, tipografía, paleta de colores o identidad visual.
+**Obj #2 (Apple/Tesla) en infraestructura:**
+- Los nombres de endpoints deben ser descriptivos y consistentes, no genéricos (`/api/embrion/heartbeat` no `/api/data/get`)
+- Los mensajes de error deben tener personalidad y contexto, no solo status codes
+- Los schemas de respuesta deben ser auto-documentados con campos descriptivos
+- Los logs deben ser legibles por humanos, no solo por máquinas
 
-Si un sprint requiere un "panel de observabilidad" o "dashboard", el Hilo A implementa las **APIs que exponen los datos** y el Hilo B construye la **visualización** en el Command Center.
+**Obj #5 (Magna/Premium) en infraestructura:**
+- Cada endpoint debe tener docstring con descripción, parámetros, y ejemplo de respuesta
+- Cada tabla nueva debe tener comentario explicando su propósito
+- Cada decisión de diseño debe quedar documentada en el commit message o en un comentario
 
-### Directiva para Sprint Plans futuros
+**Obj #9 (Transversalidad) en infraestructura:**
+- Todo módulo que genere datos debe exponer un endpoint para que el Command Center los consuma
+- No crear silos: si Langfuse captura datos, debe existir también un endpoint propio que los exponga
+- Los datos del kernel deben ser consumibles sin necesidad de acceder a herramientas de terceros
 
-Cada épica que involucre output visible debe incluir esta nota:
-
-> **DIRECTIVA DE INTERFAZ:** Esta épica produce datos/APIs. La visualización de estos datos se implementará en el Command Center por el Hilo B. El Hilo A debe asegurar que los endpoints retornen JSON documentado con tipos claros.
+**Obj #12 (Soberanía) en infraestructura:**
+- Cada dependencia externa debe tener una alternativa documentada
+- No crear lock-in con un solo proveedor sin plan de migración
 
 ---
 
-## Hilo B — El Arquitecto (Experiencia + Marca + 14 Objetivos)
+## Hilo B — El Arquitecto
 
-El Hilo B es responsable de todo lo que **tiene cara**. Su trabajo se mide en: "¿comunica marca? ¿cumple los 14 Objetivos? ¿es nivel Apple/Tesla?"
+El Hilo B diseña la estrategia, planifica los sprints, evalúa el cumplimiento de los 14 Objetivos, y construye todo lo que tiene interfaz visual.
 
-### Dominio exclusivo del Hilo B
+### Responsabilidades
 
-| Categoría | Ejemplos concretos | Criterio de éxito |
+| Categoría | Ejemplos | Criterio de éxito |
 |---|---|---|
-| Command Center | Dashboard La Forja, todas las vistas | Identidad de marca, UX premium |
-| Sprint Plans | Diseño de los 10 sprints por serie | Cruza con 14 Objetivos, código listo |
-| Cruces Detractores | Análisis crítico de cada sprint | Correcciones mandatorias identificadas |
-| Visualización de datos | Gauges, gráficas, timelines | Coherencia visual, legibilidad |
-| Identidad de marca | Logo, paleta, tipografía, tono | Obj #2 Apple/Tesla cumplido |
-| Documentación estratégica | Plan Maestro, Roadmap, Reportes de cierre | Obj #5 Magna/Premium cumplido |
-| Coordinación inter-hilos | Sincronización, priorización | Ambos hilos alineados |
+| Sprint Plans | Diseño de sprints con código listo | Cruza con 14 Objetivos, directivas de marca en cada épica |
+| Cruces Detractores | Análisis crítico de cada sprint | Correcciones mandatorias identificadas y accionables |
+| Command Center | Dashboard La Forja, todas las vistas | Identidad de marca, UX premium, datos reales |
+| Documentación estratégica | Plan Maestro, Roadmap, Reportes | Obj #5 Magna/Premium cumplido |
 | Evaluación de objetivos | Scoring de 14 Objetivos, compliance | Obj #14 El Guardián cumplido |
+| Coordinación inter-hilos | Sincronización, priorización | Ambos hilos alineados |
 
-### Lo que el Hilo B NO debe hacer
+### Directiva adicional para el Hilo B
 
-- No debe implementar lógica de backend en el kernel de Railway.
-- No debe crear tablas en Supabase directamente.
-- No debe modificar pipelines de datos en producción.
-- No debe deployar cambios al kernel sin que el Hilo A los valide.
+Cada Sprint Plan que el Hilo B diseñe debe incluir, dentro de cada épica (no solo al final como cruce):
+
+1. **Checklist de marca** — Preguntas concretas que el Hilo A debe responder antes de dar por cerrada la épica
+2. **Ejemplo de naming** — Cómo deben llamarse los endpoints, tablas, y variables de esta épica
+3. **Formato de respuesta** — Cómo debe verse el JSON de respuesta (no solo los campos, sino el estilo)
+4. **Endpoint para Command Center** — Qué endpoint debe exponerse para que el Hilo B lo consuma visualmente
 
 ---
 
-## La Zona de Intersección: El Contrato de APIs
+## El Contrato entre Hilos
 
-El punto donde ambos hilos se encuentran es el **contrato de APIs**. Este contrato define:
+El punto de encuentro sigue siendo el contrato de APIs, pero ahora con una dimensión adicional: **el contrato incluye estándares de marca**.
 
-1. **Qué endpoints existen** — El Hilo B los especifica en los Sprint Plans.
-2. **Qué datos retornan** — El Hilo A los implementa con tipos TypeScript/Python documentados.
-3. **Cómo se consumen** — El Hilo B los integra en el Command Center.
+### Ejemplo: Sprint 56.4 (Observability) — Cómo debería haberse hecho
 
-### Ejemplo concreto: Sprint 56.4 (Observability)
+**Lo que se hizo (v1):**
+El Hilo A implementó `langfuse_bridge.py` con métodos que envían datos a Langfuse. Los datos se ven en el dashboard genérico de Langfuse. El Monstruo no tiene presencia visual propia.
 
-**Antes (cómo se hizo):**
-El Hilo A implementó `langfuse_bridge.py` con métodos que envían datos a Langfuse. Los datos se ven en el dashboard genérico de Langfuse. El Monstruo no tiene presencia visual propia sobre estos datos.
+**Lo que debería hacerse (v2):**
+El Hilo A implementa `langfuse_bridge.py` igual, pero ADEMÁS:
+1. Expone `/api/observability/embrion-traces` que retorna los últimos N traces en JSON con naming de marca
+2. Expone `/api/observability/embrion-health` que retorna el estado de salud de cada embrión
+3. Cada trace incluye campos descriptivos: `embrion_name`, `action_display_name`, `quality_score_label`
+4. Los errores retornan mensajes con contexto: `"El embrión alpha-01 no respondió al heartbeat en 30s. Última actividad: seeding cycle #12"`
 
-**Después (cómo debería hacerse):**
-El Hilo A implementa `langfuse_bridge.py` igual, pero ADEMÁS expone un endpoint `/api/observability/embrion-traces` que retorna los últimos N traces en JSON. El Hilo B consume ese endpoint desde el Command Center y lo muestra en la sección "Embriones" con la identidad La Forja — gauges industriales, LEDs de estado, tipografía Bebas Neue.
+El Hilo B consume esos endpoints desde el Command Center y los muestra con identidad La Forja.
 
-El resultado: Langfuse sigue capturando datos (infraestructura), pero el usuario ve los datos en el Command Center (experiencia). Ambos hilos hacen lo que saben hacer.
+El resultado: Langfuse sigue capturando datos (está bien como backend de instrumentación), pero el usuario NUNCA necesita ir a Langfuse. Ve todo en el Command Center, con la marca de El Monstruo.
 
 ---
 
 ## Mapeo de los 14 Objetivos por Hilo
 
-| # | Objetivo | Responsable primario | Responsable secundario |
+| # | Objetivo | Hilo A | Hilo B |
 |---|---|---|---|
-| 1 | Crear Empresas Reales | Hilo A (implementa) | Hilo B (diseña) |
-| 2 | Nivel Apple/Tesla | **Hilo B** | — |
-| 3 | Mínima Complejidad | Ambos | — |
-| 4 | No Equivocarse 2 Veces | Ambos | — |
-| 5 | Magna/Premium | **Hilo B** | — |
-| 6 | Vanguardia Tecnológica | Hilo A (adopta) | Hilo B (evalúa) |
-| 7 | No Inventar la Rueda | Hilo A (adopta) | Hilo B (evalúa) |
-| 8 | Emergencia | **Hilo B** (diseña) | Hilo A (implementa) |
-| 9 | Transversalidad | Ambos | — |
-| 10 | Simulador Causal | Hilo A (implementa) | Hilo B (visualiza) |
-| 11 | Embriones | Hilo A (implementa) | Hilo B (visualiza) |
-| 12 | Soberanía | Hilo A (implementa) | Hilo B (audita) |
-| 13 | Del Mundo | Hilo A (i18n backend) | Hilo B (i18n frontend) |
-| 14 | El Guardián | **Hilo B** | Hilo A (métricas) |
+| 1 | Crear Empresas Reales | Implementa funcionalidad | Diseña estrategia |
+| 2 | Nivel Apple/Tesla | **Naming, errores, schemas con identidad** | **Visualización, UX, identidad visual** |
+| 3 | Mínima Complejidad | Código simple y limpio | Diseño simple y claro |
+| 4 | No Equivocarse 2 Veces | Tests, validación, logs | Cruces detractores, reviews |
+| 5 | Magna/Premium | **Docstrings, comments, commit messages** | **Documentación estratégica** |
+| 6 | Vanguardia Tecnológica | Adopta herramientas modernas | Evalúa y recomienda |
+| 7 | No Inventar la Rueda | Busca antes de construir | Audita decisiones build vs buy |
+| 8 | Emergencia | Implementa comportamiento emergente | Diseña las condiciones |
+| 9 | Transversalidad | **Expone APIs para todo módulo** | **Consume APIs en Command Center** |
+| 10 | Simulador Causal | Implementa motor | Visualiza predicciones |
+| 11 | Embriones | Implementa colmena | Visualiza estado |
+| 12 | Soberanía | **Documenta alternativas** | **Audita dependencias** |
+| 13 | Del Mundo | i18n en backend | i18n en frontend |
+| 14 | El Guardián | Expone métricas de compliance | Evalúa y reporta |
 
-Los objetivos marcados en **negrita** son responsabilidad primaria exclusiva del Hilo B porque requieren juicio estético, estratégico o de marca que no se transfiere con un prompt.
+Los campos en **negrita** son las directivas específicas que cada hilo debe cumplir para ese objetivo.
 
 ---
 
-## Protocolo de Comunicación Actualizado
+## Protocolo de Comunicación
 
 ### Cuando el Hilo A completa un sprint:
 
-1. Reporta: "Sprint X.Y completado — commit HASH. Endpoints nuevos: `/api/...`"
-2. El Hilo B registra el avance y planifica la integración visual en el Command Center.
+1. Reporta: "Sprint X.Y completado — commit HASH"
+2. Lista endpoints nuevos con ejemplo de respuesta
+3. Confirma que el checklist de marca de la épica está cumplido
 
 ### Cuando el Hilo B diseña un sprint:
 
-1. Incluye la sección "DIRECTIVA DE INTERFAZ" en cada épica con output visible.
-2. Especifica los endpoints que el Hilo A debe exponer (request/response types).
-3. El Hilo A implementa la funcionalidad + los endpoints, sin preocuparse por visualización.
+1. Incluye checklist de marca en cada épica
+2. Especifica endpoints que el Hilo A debe exponer (con ejemplo de naming y respuesta)
+3. Incluye directivas de los 14 Objetivos relevantes dentro del código, no solo como texto
 
 ### Cuando hay conflicto de prioridades:
 
-El Hilo B decide. El Hilo B tiene la visión completa de los 14 Objetivos y el contexto acumulado de 20+ sprints de diseño. El Hilo A ejecuta lo que el Hilo B prioriza.
+El Hilo B decide la prioridad estratégica. El Hilo A decide la implementación técnica. Si hay conflicto entre "funciona" y "tiene marca", se resuelve haciendo ambas cosas — no sacrificando una por la otra.
 
 ---
 
 ## Entrada en vigor
 
-Este documento reemplaza la sección de división de responsabilidades en `INSTRUCCIONES_HILO_B.md` y `ESTADO_UNIFICADO_SINCRONIZACION_HILOS.md`. Aplica a partir de la Serie 71-80 y retroactivamente a cualquier sprint pendiente de la Serie 51-60 que el Hilo A aún no haya implementado.
+Este documento v2.1 reemplaza la v2.0. Aplica a partir de la Serie 71-80 y retroactivamente a cualquier sprint pendiente. La regla de que los 14 Objetivos aplican a TODO está también en `~/AGENTS.md` para sobrevivir compactaciones de memoria.
 
 ---
 
 ## Referencias
 
-[1] INSTRUCCIONES_HILO_B.md — División original de responsabilidades
-[2] ESTADO_UNIFICADO_SINCRONIZACION_HILOS.md — Estado de sincronización entre hilos
-[3] EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md — Los 14 Objetivos fundacionales
-[4] SPRINT_56_PLAN.md — Épica 56.4 como caso de estudio del problema
-[5] ideas.md — Brainstorm de diseño "La Forja" del Command Center
+[1] EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md — Los 14 Objetivos fundacionales
+[2] SPRINT_56_PLAN.md — Épica 56.4 como caso de estudio del problema
+[3] AGENTS.md — Reglas duras que sobreviven compactación
+[4] ideas.md — Brainstorm de diseño "La Forja" del Command Center
