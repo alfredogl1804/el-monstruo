@@ -232,6 +232,9 @@ class TaskPlanner:
             "ingest_knowledge — agregar documento al knowledge graph",
             "query_knowledge — consultar el knowledge graph",
             "send_message — enviar mensaje a Alfredo",
+            "save_task_state — guardar progreso de tarea larga en disco (usar cuando contexto supera 70% o tarea tiene >5 pasos)",
+            "load_task_state — cargar progreso guardado de una tarea para retomar desde donde se quedó",
+            "list_active_tasks — listar todas las tareas con estado guardado y su progreso",
         ]
 
         tools_str = "\n".join(f"  - {t}" for t in available_tools)
@@ -803,6 +806,33 @@ Formato obligatorio:
                     path=args.get("path", "")[:80],
                     success=result.get("success"),
                 )
+                return json.dumps(result, ensure_ascii=False)[:4000]
+
+            elif tool_name in ("save_task_state", "load_task_state", "list_active_tasks", "complete_task"):
+                # Sprint 50: StateWriterTool — persistencia de estado de tareas largas
+                from tools.state_writer import (
+                    save_task_state as _save_state,
+                    load_task_state as _load_state,
+                    list_active_tasks as _list_tasks,
+                    complete_task as _complete_task,
+                )
+                if tool_name == "save_task_state":
+                    result = _save_state(
+                        task_id=args.get("task_id", "unknown"),
+                        description=args.get("description", ""),
+                        current_step=int(args.get("current_step", 1)),
+                        total_steps=int(args.get("total_steps", 1)),
+                        context_summary=args.get("context_summary", ""),
+                        intermediate_results=args.get("intermediate_results", []),
+                        metadata=args.get("metadata"),
+                    )
+                elif tool_name == "load_task_state":
+                    result = _load_state(task_id=args.get("task_id", "unknown"))
+                elif tool_name == "list_active_tasks":
+                    result = _list_tasks()
+                elif tool_name == "complete_task":
+                    result = _complete_task(task_id=args.get("task_id", "unknown"))
+                logger.info("task_planner_state_writer", tool=tool_name, task_id=args.get("task_id", "n/a"))
                 return json.dumps(result, ensure_ascii=False)[:4000]
 
             else:
