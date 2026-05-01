@@ -1,9 +1,12 @@
-# Sprint 51 — "Los Cimientos Perpetuos"
+# Sprint 51 — Los Cimientos Perpetuos
 
 **Fecha:** 1 mayo 2026
+**Sprint anterior:** 50 (E2E tests 8/8 passing, web_dev tool, file_ops, stuck detector)
 **Duración estimada:** 5-7 días
-**Presupuesto infra:** ~$0/mes adicional (usa Supabase + Perplexity ya pagados)
+**Épicas:** 5 (Error Memory, Magna/Premium, Browser Interactivo, Vanguard Scanner, Design System)
+**Presupuesto infra:** ~$112-232/mes adicional
 **Modelo de planificación:** claude-opus-4-7 (ya activo en task_planner.py)
+**Validación:** Cruzado contra los 13 Objetivos Maestros en modo detractor. 5/13 objetivos avanzados, 0 violaciones.
 
 ---
 
@@ -545,12 +548,34 @@ if tool_name in ("web_dev", "code_exec", "github") and step.description:
 | T7 | `validate_if_magna("browser-use tiene 78K stars en GitHub")` retorna validación de Perplexity con citations | |
 | T8 | El planning prompt incluye la regla MAGNA/PREMIUM | Verificar en logs |
 
-### 51.2.6 — Costo estimado
+### 51.2.6 — Corrección C4: Cache de validaciones
+
+Agregar cache en memoria para evitar re-validar el mismo claim en 24 horas:
+
+```python
+import time
+
+_validation_cache: dict[str, tuple[dict, float]] = {}  # key → (result, timestamp)
+CACHE_TTL_S = 86400  # 24 horas
+
+# En validate_if_magna(), antes de llamar a Perplexity:
+cache_key = claim.strip().lower()[:200]
+if cache_key in _validation_cache:
+    cached_result, cached_at = _validation_cache[cache_key]
+    if time.time() - cached_at < CACHE_TTL_S:
+        logger.info("magna_cache_hit", claim=claim[:80])
+        return cached_result
+
+# Después de obtener resultado de Perplexity:
+_validation_cache[cache_key] = (result, time.time())
+```
+
+### 51.2.7 — Costo estimado
 
 - Clasificación: $0 (regex local, sin API call)
 - Validación Perplexity (solo cuando se necesita): ~$0.005 por query
-- Total por plan con 3 validaciones: ~$0.015
-- Total mensual estimado (100 validaciones/día): ~$15/mes
+- Con cache C4: ~40% menos queries (claims repetidos en 24h)
+- Total mensual estimado: ~$9-15/mes
 
 ---
 
@@ -590,7 +615,9 @@ Integración:
     - Usa Claude claude-opus-4-7 como LLM (ya configurado)
     - Self-hosted en Railway (Playwright headless)
 
-Nota: tools/browser.py (Cloudflare) se mantiene como fallback read-only.
+Nota: tools/browser.py (Cloudflare) se mantiene para tareas de solo lectura (gratis).
+interactive_browser.py se usa SOLO para tareas que requieren interacción (click, forms, login).
+Budget cap: max $0.50 por tarea, max_steps=10 por defecto (Corrección C3).
 """
 from __future__ import annotations
 import asyncio
@@ -991,6 +1018,38 @@ async def full_scan(db) -> list[dict]:
     return results
 ```
 
+### 51.4.2b — Corrección C5: Complementar con GitHub API directa
+
+El repo ya tiene `tools/github.py` con `search_repos()` que retorna stars, language, URL. Reusar en lugar de crear acceso nuevo:
+
+```python
+# En scan_component(), después de consultar Perplexity:
+# Obtener métricas factuales de GitHub para el candidato
+try:
+    from tools.github import search_repos
+    github_results = await search_repos(
+        query=result.get("best_tool", ""),
+        limit=1,
+    )
+    if github_results:
+        repo = github_results[0]
+        result["github_stars_verified"] = repo.get("stars", 0)
+        result["github_url"] = repo.get("url", "")
+        result["github_language"] = repo.get("language", "")
+        # Comparar stars reales vs lo que dijo Perplexity
+        if abs(result.get("stars", 0) - repo.get("stars", 0)) > 1000:
+            logger.warning(
+                "vanguard_stars_mismatch",
+                perplexity_stars=result.get("stars"),
+                github_stars=repo.get("stars"),
+            )
+            result["stars"] = repo["stars"]  # Confiar en GitHub, no en Perplexity
+except Exception as e:
+    logger.warning("vanguard_github_fallback", error=str(e))
+```
+
+Esto combina evaluación cualitativa (Perplexity) con datos factuales (GitHub API), cumpliendo el Objetivo #5 (Magna/Premium).
+
 ### 51.4.3 — Criterio de éxito
 
 | Test | Descripción | Pasa/Falla |
@@ -999,10 +1058,88 @@ async def full_scan(db) -> list[dict]:
 | T2 | `scan_component("browser_automation", "browser", "cloudflare_browser_run", "GA_2026")` retorna resultado de Perplexity | |
 | T3 | `full_scan(db)` escanea los 12 componentes y actualiza la tabla | |
 | T4 | Componentes desactualizados tienen `is_up_to_date=False` | |
+| T5 | `scan_component` retorna `github_stars_verified` con datos reales de GitHub API (C5) | |
 
 ### 51.4.4 — Costo estimado
 
 - 12 componentes × $0.005/query × 4 scans/día = ~$0.24/día = ~$7.20/mes
+
+---
+
+## Épica 51.5 — Design System Foundation (Objetivo #2)
+
+> "Todo lo que haga tiene que parecer que lo hizo Apple o Tesla."
+
+### 51.5.1 — Contexto: Ya existe un punto de partida
+
+El repo ya tiene un design system parcial en `apps/mobile/lib/theme/monstruo_theme.dart` (Flutter) con:
+- Paleta definida (background, surface, primary, secondary, tertiary, error, success, warning)
+- Gradientes (primaryGradient, surfaceGradient, agentGradient)
+- Escala de spacing (spacingXs → spacingXxl)
+- Border radius tokens (radiusSm → radiusFull)
+- Tipografía: Space Grotesk como fuente principal
+- Dirección visual: dark-first, high-contrast, electric-accent, premium
+
+Esta épica NO crea un design system desde cero — codifica y extiende lo que ya existe en un documento de referencia universal que aplique a TODO output del Monstruo (web, mobile, documentos, presentaciones).
+
+### 51.5.2 — Archivo a crear: `docs/DESIGN_SYSTEM.md`
+
+Contenido mínimo viable:
+
+1. **Filosofía de diseño** — Principios Apple/Tesla: menos es más, whitespace generoso, atención obsesiva al detalle, movimiento con propósito
+2. **Paleta de colores** — Extraída de `monstruo_theme.dart` + extensiones para web (hex, oklch, CSS variables)
+3. **Tipografía** — Space Grotesk (display) + font pairing para body. Escala modular.
+4. **Spacing system** — Escala 4px base (4, 8, 12, 16, 24, 32, 48, 64, 96)
+5. **Shadows y depth** — 3 niveles (subtle, medium, elevated)
+6. **Motion curves** — Easing functions para transiciones (ease-out-expo para entradas, ease-in-out para interacciones)
+7. **Quality gate checklist** — 5 preguntas que todo output visual debe pasar antes de entregar:
+   - ¿La jerarquía visual es clara sin leer el contenido?
+   - ¿El whitespace es generoso o se siente apretado?
+   - ¿Los colores tienen propósito o son decorativos?
+   - ¿Las animaciones comunican o distraen?
+   - ¿Un diseñador de Apple diría "esto está bien"?
+
+### 51.5.3 — Criterio de éxito
+
+| Test | Descripción | Pasa/Falla |
+|------|-------------|------------|
+| T1 | `docs/DESIGN_SYSTEM.md` existe con las 7 secciones | |
+| T2 | Los tokens de color son consistentes con `monstruo_theme.dart` | |
+| T3 | El quality gate checklist tiene 5 preguntas verificables | |
+
+### 51.5.4 — Costo estimado
+
+- $0 (es un documento de decisiones de diseño, no código)
+- Tiempo: 2-3 horas
+
+---
+
+## Correcciones aplicadas al Sprint 51 (post-cruce con 13 Objetivos)
+
+> Las siguientes correcciones fueron identificadas al cruzar el Sprint 51 contra los 13 Objetivos Maestros en modo detractor.
+
+### C2: Design System Foundation (arriba)
+Agregada Épica 51.5 para que el Objetivo #2 (nivel Apple/Tesla) no se ignore.
+
+### C3: Budget cap + routing inteligente para Browser
+El browser interactivo (browser-use) usa Claude por debajo y puede costar $1-3 por tarea compleja. Para controlar costos sin perder potencia:
+- **Tareas de solo lectura** (extraer contenido, screenshots simples) → seguir usando `tools/browser.py` (Cloudflare, gratis)
+- **Tareas interactivas** (click, forms, login) → usar `tools/interactive_browser.py` (browser-use)
+- **Budget cap:** max $0.50 por tarea de browser, max_steps=10 por defecto
+- El Task Planner debe elegir automáticamente: si la tarea solo dice "lee" o "extrae" → `browse_web`. Si dice "click", "llena", "login", "envía" → `interactive_browser`.
+
+### C4: Cache de validaciones Magna
+Para evitar re-validar el mismo claim en 24 horas (ahorra costos de Perplexity):
+- Agregar `_validation_cache: dict[str, tuple[dict, float]]` en `magna_classifier.py`
+- Antes de llamar a Perplexity, verificar si el claim ya fue validado en las últimas 24h
+- Si está en cache y no expiró → retornar resultado cacheado
+- TTL: 24 horas (configurable)
+
+### C5: Vanguard Scanner con GitHub API directa
+Perplexity es bueno para preguntas generales pero no es la fuente más confiable para métricas objetivas de repos. El repo ya tiene `tools/github.py` con `search_repos()` que retorna stars, language, URL.
+- Complementar `scan_component()` con llamada directa a `tools/github.py` para obtener stars reales, fecha de último release, issues abiertos
+- Usar Perplexity para la evaluación cualitativa ("¿es mejor?") y GitHub API para datos factuales
+- Esto hace la evaluación más objetiva (Objetivo #5 — datos verificados, no opiniones)
 
 ---
 
@@ -1016,6 +1153,7 @@ async def full_scan(db) -> list[dict]:
 | `kernel/magna_classifier.py` | 51.2 | Clasificador Magna/Premium — classify, validate_if_magna |
 | `tools/interactive_browser.py` | 51.3 | Browser interactivo — browser-use wrapper |
 | `kernel/vanguard_scanner.py` | 51.4 | Vanguard Scanner v1 — scan_component, full_scan |
+| `docs/DESIGN_SYSTEM.md` | 51.5 | Design System Foundation — tokens, tipografía, quality gate |
 
 ### Archivos a MODIFICAR:
 
@@ -1058,9 +1196,16 @@ Día 5-6: Épica 51.4 (Vanguard Scanner v1)
   → Crear kernel/vanguard_scanner.py
   → Tests T1-T4
 
+Día 5-6: Épica 51.5 (Design System Foundation)
+  → Crear docs/DESIGN_SYSTEM.md
+  → Extraer tokens de monstruo_theme.dart
+  → Definir quality gate checklist
+  → Tests T1-T3
+
 Día 6-7: E2E Integration Test
   → Plan completo que usa Error Memory + Magna validation + Browser
-  → Verificar que los 4 cimientos funcionan juntos
+  → Verificar que los 5 cimientos funcionan juntos
+  → Verificar que output visual pasa quality gate
 ```
 
 ---
@@ -1073,9 +1218,10 @@ Día 6-7: E2E Integration Test
 | Magna Validation (Perplexity) | ~$15/mes |
 | Browser Interactivo (Claude calls) | ~$60-180/mes |
 | Vanguard Scanner (Perplexity) | ~$7.20/mes |
+| Design System Foundation | $0 |
 | **TOTAL** | **~$112-232/mes** |
 
-Nota: El costo de browser interactivo es el más variable. Se puede reducir usando un modelo más barato (gpt-5-mini) para tareas de navegación simples.
+Nota: El costo de browser interactivo es el más variable. Con la Corrección C3 (routing: Cloudflare para lectura, browser-use solo para interacción + budget cap $0.50/tarea), el costo real debería estar en el rango bajo (~$60/mes). Se puede reducir aún más usando un modelo más barato (gpt-5-mini) para tareas de navegación simples.
 
 ---
 
