@@ -274,6 +274,96 @@ class LangfuseBridge:
         except Exception as e:
             logger.warning("langfuse_score_error", name=name, error=str(e))
 
+    # ── Sprint 56.4: Embrión Observability ────────────────────────────────
+
+    def trace_embrion_action(
+        self,
+        embrion_id: str,
+        action_name: str,
+        action_type: str = "task",  # task, thinking, seeding, validation
+        metadata: Optional[dict] = None,
+    ) -> Optional[Any]:
+        """
+        Crear un trace para una acción de Embrión.
+        T1: Cada acción de Embrión genera un trace en Langfuse con embrion_id.
+        """
+        if not self._enabled or not self._client:
+            return None
+
+        try:
+            trace = self._client.trace(
+                name=f"embrion:{embrion_id}:{action_name}",
+                user_id=embrion_id,
+                session_id=f"embrion-session-{embrion_id}",
+                metadata={
+                    "embrion_id": embrion_id,
+                    "action_type": action_type,
+                    "sprint": "56",
+                    **(metadata or {}),
+                },
+                tags=[f"embrion:{embrion_id}", f"type:{action_type}"],
+            )
+            return trace
+        except Exception as e:
+            logger.warning("langfuse_trace_embrion_failed", error=str(e))
+            return None
+
+    def score_embrion_action(
+        self,
+        trace_id: str,
+        name: str,
+        value: float,
+        comment: Optional[str] = None,
+    ) -> None:
+        """
+        Registrar un score para una acción de Embrión.
+        T4: Quality scores del judge se registran en Langfuse.
+        """
+        if not self._enabled or not self._client:
+            return
+
+        try:
+            self._client.score(
+                trace_id=trace_id,
+                name=name,
+                value=value,
+                comment=comment,
+            )
+        except Exception as e:
+            logger.warning("langfuse_score_embrion_failed", error=str(e))
+
+    def track_embrion_cost(
+        self,
+        embrion_id: str,
+        model: str,
+        input_tokens: int,
+        output_tokens: int,
+        cost_usd: float,
+    ) -> None:
+        """
+        Trackear costo de un LLM call de un Embrión.
+        T2: Costos se trackean por Embrión y por acción.
+        """
+        if not self._enabled or not self._client:
+            return
+
+        try:
+            self._client.trace(
+                name=f"embrion:{embrion_id}:llm_cost",
+                metadata={
+                    "embrion_id": embrion_id,
+                    "model": model,
+                    "input_tokens": input_tokens,
+                    "output_tokens": output_tokens,
+                    "cost_usd": cost_usd,
+                },
+                tags=[f"embrion:{embrion_id}", "cost_tracking"],
+            )
+        except Exception as e:
+            logger.warning("langfuse_cost_tracking_failed", error=str(e))
+
+    # ── /Sprint 56.4 ──────────────────────────────────────────────────────────
+
     async def flush(self) -> None:
         """Flush any pending events to Langfuse."""
         if self._enabled and self._client:

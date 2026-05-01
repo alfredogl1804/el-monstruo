@@ -738,6 +738,33 @@ async def lifespan(app: FastAPI):
             logger.warning("a2a_registry_init_failed", error=str(_a2a_err))
             app.state.a2a_registry = None
         # ── /Sprint 55.2 ──────────────────────────────────────────────────────
+        # ── Sprint 56.5: Sovereign LLM ───────────────────────────────────────
+        try:
+            from kernel.sovereign_llm import init_sovereign_llm
+            sovereign_llm = await init_sovereign_llm()
+            app.state.sovereign_llm = sovereign_llm
+            _slm_stats = sovereign_llm.get_stats()
+            logger.info(
+                "sovereign_llm_initialized",
+                ollama_local=_slm_stats["providers_available"]["ollama_local"],
+                ollama_cloud=_slm_stats["providers_available"]["ollama_cloud"],
+                openai=_slm_stats["providers_available"]["openai"],
+                gemini=_slm_stats["providers_available"]["gemini"],
+            )
+        except Exception as _slm_err:
+            logger.warning("sovereign_llm_init_failed", error=str(_slm_err))
+            app.state.sovereign_llm = None
+        # ── /Sprint 56.5 ──────────────────────────────────────────────────────────
+        # ── Sprint 56.4: Embrión Metrics Collector ──────────────────────────
+        try:
+            from observability.embrion_metrics import init_embrion_metrics_collector
+            embrion_metrics = init_embrion_metrics_collector()
+            app.state.embrion_metrics = embrion_metrics
+            logger.info("embrion_metrics_collector_ready")
+        except Exception as _em_err:
+            logger.warning("embrion_metrics_init_failed", error=str(_em_err))
+            app.state.embrion_metrics = None
+        # ── /Sprint 56.4 ──────────────────────────────────────────────────────────
 
         await embrion_scheduler.start()  # Inicia loop asyncio (revisa cada 60s)
         app.state.embrion_scheduler = embrion_scheduler
@@ -775,6 +802,8 @@ async def lifespan(app: FastAPI):
         a2a_registry="active" if getattr(app.state, 'a2a_registry', None) else "inactive",
         causal_decomposer="active" if getattr(app.state, 'causal_decomposer', None) else "inactive",
         causal_simulator="active" if getattr(app.state, 'causal_simulator', None) else "inactive",
+        sovereign_llm="active" if getattr(app.state, 'sovereign_llm', None) else "inactive",
+        embrion_metrics="active" if getattr(app.state, 'embrion_metrics', None) else "inactive",
         background_store="supabase" if (_bg_store and _bg_store._use_db()) else "in_memory",
         moc="active" if moc else "inactive",
     )

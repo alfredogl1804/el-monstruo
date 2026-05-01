@@ -126,3 +126,4 @@ lightrag-hku==1.4.15
 # Sprint 56 — Embrión Scheduler + Causal Seeder
 APScheduler==3.11.2
 wikipedia-api==0.7.1
+ollama==0.6.2
