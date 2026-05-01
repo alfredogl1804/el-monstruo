@@ -609,7 +609,61 @@ async def lifespan(app: FastAPI):
         embrion_scheduler = get_embrion_scheduler(db=db if db_connected else None)
         await embrion_scheduler.initialize()  # Restaura tareas desde Supabase
         register_default_tasks(embrion_scheduler)  # Agrega las 5 tareas default
-        register_stub_handlers(embrion_scheduler)  # Handlers stub hasta Sprint 56.1/56.2
+        register_stub_handlers(embrion_scheduler)  # Handlers stub para prediction_validation, etc.
+
+        # ── Sprint 56.1: CausalSeeder — reemplaza stub causal_seeding ────────
+        try:
+            from kernel.causal_seeder import init_causal_seeder
+
+            # Construir search_fn para Perplexity (usa el cliente existente si está disponible)
+            _perplexity_search_fn = None
+            _sonar_key = os.environ.get("SONAR_API_KEY")
+            if _sonar_key:
+                import httpx as _httpx
+
+                async def _perplexity_search(query: str) -> str:
+                    async with _httpx.AsyncClient(timeout=45) as _c:
+                        _r = await _c.post(
+                            "https://api.perplexity.ai/chat/completions",
+                            headers={"Authorization": f"Bearer {_sonar_key}", "Content-Type": "application/json"},
+                            json={
+                                "model": "sonar",
+                                "messages": [
+                                    {"role": "system", "content": "You are a historical research assistant. Provide factual, well-structured lists of historical events."},
+                                    {"role": "user", "content": query},
+                                ],
+                                "max_tokens": 3000,
+                                "temperature": 0.2,
+                            },
+                        )
+                        _r.raise_for_status()
+                        return _r.json()["choices"][0]["message"]["content"]
+
+                _perplexity_search_fn = _perplexity_search
+
+            causal_seeder = init_causal_seeder(
+                causal_kb=app.state.causal_kb,
+                search_fn=_perplexity_search_fn,
+                db=db if db_connected else None,
+            )
+            app.state.causal_seeder = causal_seeder
+
+            # Registrar handler real — reemplaza el stub
+            embrion_scheduler.register_handler(
+                "run_causal_seeding_cycle",
+                causal_seeder.run_cycle,
+            )
+            logger.info(
+                "causal_seeder_initialized",
+                search="perplexity" if _perplexity_search_fn else "none",
+                causal_kb="active" if app.state.causal_kb else "inactive",
+                daily_budget_usd=causal_seeder.DAILY_BUDGET_USD,
+            )
+        except Exception as _cs_err:
+            logger.warning("causal_seeder_init_failed", error=str(_cs_err))
+            app.state.causal_seeder = None
+        # ── /Sprint 56.1 ──────────────────────────────────────────────────────
+
         await embrion_scheduler.start()  # Inicia loop asyncio (revisa cada 60s)
         app.state.embrion_scheduler = embrion_scheduler
         logger.info(
@@ -641,6 +695,7 @@ async def lifespan(app: FastAPI):
         embrion="registered",
         embrion_loop="active" if embrion_loop else "inactive",
         embrion_scheduler="active" if embrion_scheduler else "inactive",
+        causal_seeder="active" if getattr(app.state, 'causal_seeder', None) else "inactive",
         background_store="supabase" if (_bg_store and _bg_store._use_db()) else "in_memory",
         moc="active" if moc else "inactive",
     )
