@@ -222,7 +222,9 @@ class TaskPlanner:
 
         # ── Build planning prompt ────────────────────────────────────
         available_tools = [
-            "code_exec — ejecutar código Python en sandbox E2B",
+            "code_exec — ejecutar código Python/shell en sandbox E2B persistente",
+            "file_ops — crear, leer, editar, listar archivos en sandbox E2B persistente",
+            "web_dev — scaffold (crear proyecto React+Vite), build (compilar), deploy (desplegar a Vercel)",
             "github — crear branches, archivos, pull requests",
             "browse_web — navegar URLs y extraer contenido",
             "web_search — buscar en internet",
@@ -664,13 +666,14 @@ Formato obligatorio:
                 return result_str[:3000]
 
             elif tool_name == "code_exec":
-                from tools.code_exec import execute_code
-                result = await execute_code(
+                # Sprint 48: Use persistent sandbox via SandboxManager
+                from tools.sandbox_manager import execute_in_sandbox
+                plan_id = getattr(self, '_current_plan_id', 'default')
+                result = await execute_in_sandbox(
+                    plan_id=plan_id,
                     code=args.get("code", ""),
                     language=args.get("language", "python"),
                     timeout=args.get("timeout", 60),
-                    allow_network=True,
-                    hitl_approved=True,
                     install_packages=args.get("install_packages"),
                 )
                 return json.dumps(result, ensure_ascii=False)[:3000]
@@ -764,9 +767,11 @@ Formato obligatorio:
                 return synthesis[:6000] if synthesis else json.dumps({"error": "No sabios responded", "errors": result.get("errors", [])})
 
             elif tool_name == "web_dev":
-                # Sprint 47.2: Web development (scaffold, build, deploy)
-                from tools.web_dev import execute_web_dev
-                result = await execute_web_dev(
+                # Sprint 48: Web dev using persistent sandbox
+                from tools.sandbox_manager import web_dev_in_sandbox
+                plan_id = getattr(self, '_current_plan_id', 'default')
+                result = await web_dev_in_sandbox(
+                    plan_id=plan_id,
                     action=args.get("action", "scaffold"),
                     project_name=args.get("project_name"),
                 )
@@ -780,9 +785,11 @@ Formato obligatorio:
                 return json.dumps(result, ensure_ascii=False)[:4000]
 
             elif tool_name == "file_ops":
-                # Sprint 46.2: File operations in E2B sandbox
-                from tools.file_ops import execute_file_ops
-                result = await execute_file_ops(
+                # Sprint 48: File ops using persistent sandbox
+                from tools.sandbox_manager import file_op_in_sandbox
+                plan_id = getattr(self, '_current_plan_id', 'default')
+                result = await file_op_in_sandbox(
+                    plan_id=plan_id,
                     action=args.get("action", "read_file"),
                     path=args.get("path", ""),
                     content=args.get("content"),
@@ -1285,6 +1292,21 @@ RESPONDE con JSON:
         import json as _json
         plan_start = time.time()
 
+        # Sprint 48: Acquire persistent sandbox for this plan execution
+        from tools.sandbox_manager import acquire as _sandbox_acquire, release as _sandbox_release
+        from uuid import uuid4 as _uuid4
+        _plan_execution_id = str(_uuid4())
+        self._current_plan_id = _plan_execution_id  # Used by _execute_tool_direct
+
+        try:
+            sandbox_id = await _sandbox_acquire(_plan_execution_id)
+            logger.info("stream_sandbox_acquired", plan_id=_plan_execution_id, sandbox_id=sandbox_id)
+        except Exception as sbx_err:
+            logger.error("stream_sandbox_acquire_failed", error=str(sbx_err))
+            yield _json.dumps({"type": "chunk", "text": f"Error al crear sandbox: {sbx_err}"})
+            yield _json.dumps({"type": "done", "error": str(sbx_err)})
+            return
+
         # ── Step 1: Planning ──────────────────────────────────────────
         yield _json.dumps({
             "type": "step",
@@ -1406,6 +1428,13 @@ RESPONDE con JSON:
             for i in range(0, len(summary), chunk_size):
                 yield _json.dumps({"type": "chunk", "text": summary[i:i + chunk_size]})
                 await asyncio.sleep(0.01)  # Small delay for smooth streaming
+
+        # Sprint 48: Release persistent sandbox
+        try:
+            await _sandbox_release(_plan_execution_id)
+            logger.info("stream_sandbox_released", plan_id=_plan_execution_id)
+        except Exception as sbx_err:
+            logger.warning("stream_sandbox_release_failed", error=str(sbx_err))
 
         # Done event
         elapsed_ms = (time.time() - plan_start) * 1000

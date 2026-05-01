@@ -782,13 +782,14 @@ class LangGraphKernel(KernelInterface):
             if system_prompt:
                 enriched_context["system_prompt"] = system_prompt
 
-            # ══ Sprint 46.1: Task Planner Bifurcation ═════════════════════════
+            # ══ Sprint 46.1 + Sprint 48 Fix: Task Planner Bifurcation ════════════
             # If intent is EXECUTE and the task is complex, delegate to Task Planner
             # which will plan, execute tools, and stream step/tool/chunk events.
+            # Sprint 48: Fixed — no longer falls through silently on error.
             if intent == "execute":
                 try:
                     from kernel.task_planner import TaskPlanner
-                    _planner = TaskPlanner()
+                    _planner = TaskPlanner(kernel=self, db=self._db)
                     if _planner.is_complex_objective(message):
                         logger.info(
                             "stream_bifurcate_to_planner",
@@ -834,14 +835,24 @@ class LangGraphKernel(KernelInterface):
 
                         return  # Task Planner handled everything
                 except ImportError as ie:
-                    logger.warning("stream_planner_import_failed", error=str(ie))
+                    logger.error("stream_planner_import_failed", error=str(ie))
+                    # ImportError is fatal — report to user, don't fall through
+                    yield _json.dumps({"type": "chunk", "text": f"Error interno: módulo del Task Planner no disponible ({ie}). Contacta al desarrollador."})
+                    yield _json.dumps({"type": "done", "error": str(ie), "intent": intent})
+                    return
                 except Exception as planner_err:
-                    logger.warning(
+                    import traceback
+                    tb = traceback.format_exc()
+                    logger.error(
                         "stream_planner_bifurcation_failed",
                         error=str(planner_err),
+                        traceback=tb,
                         run_id=str(run_id),
                     )
-                    # Fall through to normal LLM streaming
+                    # Sprint 48: Report error to user instead of silent fallback
+                    yield _json.dumps({"type": "chunk", "text": f"Error en el Task Planner: {str(planner_err)[:200]}. Reintentando con flujo directo..."})
+                    # Still fall through to normal LLM as graceful degradation,
+                    # but now with full logging and user notification
 
             # Sprint 42+43: Step event — LLM generation starting
             yield _json.dumps({"type": "step", "id": "generate", "status": "in_progress", "label": f"Pensando con {model}...", "icon": "sparkles"})
