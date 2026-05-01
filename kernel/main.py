@@ -942,6 +942,49 @@ async def lifespan(app: FastAPI):
             app.state.onboarding = None
         # ── /Sprint 61 ───────────────────────────────────────────────────────────────
 
+        # ── Sprint 62: Plugin Architecture + Portability + Component Library + Marketplace + Cost Optimizer ──
+        try:
+            from kernel.plugins.plugin_manager import init_plugin_manager
+            from kernel.portability.portability_engine import PortabilityEngine
+            from kernel.components.registry import init_component_registry
+            from kernel.marketplace.marketplace import init_marketplace
+            from kernel.cost_optimizer import init_cost_optimizer
+            import os
+
+            plugin_manager = init_plugin_manager()
+            app.state.plugin_manager = plugin_manager
+
+            portability_engine = PortabilityEngine(supabase=app.state.db if db_connected else None)
+            app.state.portability_engine = portability_engine
+
+            component_registry = init_component_registry(supabase=app.state.db if db_connected else None)
+            await component_registry.load_all()
+            app.state.component_registry = component_registry
+
+            marketplace = init_marketplace(supabase=app.state.db if db_connected else None)
+            await marketplace.load_catalog()
+            app.state.marketplace = marketplace
+
+            daily_budget = float(os.getenv("DAILY_LLM_BUDGET", "5.0"))
+            cost_optimizer = init_cost_optimizer(daily_budget_usd=daily_budget)
+            app.state.cost_optimizer = cost_optimizer
+
+            logger.info(
+                "sprint_62_ready",
+                plugins=len(plugin_manager.list_plugins()),
+                components=component_registry.to_dict()["total_componentes"],
+                templates=marketplace.to_dict()["total_templates"],
+                daily_budget_usd=daily_budget,
+            )
+        except Exception as e:
+            logger.warning("sprint_62_init_failed", error=str(e))
+            app.state.plugin_manager = None
+            app.state.portability_engine = None
+            app.state.component_registry = None
+            app.state.marketplace = None
+            app.state.cost_optimizer = None
+        # ── /Sprint 62 ───────────────────────────────────────────────────────────────
+
         await embrion_scheduler.start()  # Inicia loop asyncio (revisa cada 60s)
         app.state.embrion_scheduler = embrion_scheduler
         logger.info(
