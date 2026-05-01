@@ -478,3 +478,19 @@ A continuación, se presenta una lista consolidada de las referencias utilizadas
     *   **Fecha:** No especificada
 
 Estas referencias han sido seleccionadas por su relevancia directa con los módulos de "Benchmarks de automatización" e "Integraciones adicionales", así como por su actualidad, proporcionando una visión actualizada de las capacidades de Lindy AI. La inclusión de la documentación oficial de Lindy AI asegura que la información técnica sea precisa y esté alineada con las especificaciones del desarrollador. Las reseñas y comparaciones de terceros ofrecen una perspectiva externa sobre el rendimiento y las características de la plataforma.
+
+## Memoria Persistente y Computer Use (Actualización Fase 4)
+
+
+### Arquitectura de Memoria y Computer Use
+La documentación técnica de Lindy AI revela dos capacidades avanzadas que lo separan de simples automatizaciones:
+
+**1. Memoria Persistente y Contexto:**
+Lindy distingue entre "Contexto" (reglas fijas y personalidad) y "Memoria" (aprendizajes dinámicos). La memoria se acumula automáticamente durante las ejecuciones (context accrual) y persiste entre tareas. El agente puede leer, crear, actualizar y borrar memorias, permitiendo un comportamiento auto-mejorable (ej. recordar preferencias de usuario o historial de interacciones).
+
+**2. Computer Use (Control de Escritorio):**
+Lindy permite a los agentes tomar control de un entorno de escritorio virtual.
+- **Sesiones Persistentes:** Los agentes pueden usar computadoras con sesiones de navegador guardadas (cookies, logins), evitando la necesidad de autenticarse repetidamente.
+- **Ejecución en Bucles:** Soporta el uso de computadoras dentro de bucles (loops) con control de concurrencia para evitar bloqueos por detección de automatización.
+- **Supervisión Humana:** Los usuarios pueden tomar el control manual de la sesión en cualquier momento o revisar capturas de pantalla de las acciones del agente.
+

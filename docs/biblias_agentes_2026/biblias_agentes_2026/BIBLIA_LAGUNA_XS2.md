@@ -251,3 +251,15 @@ En resumen, Laguna XS.2 ofrece una base sólida para la integración a través d
 [9] MLQ.AI. (n.d.). *Poolside Launches Open-Source Laguna XS.2 AI Model...*. Recuperado de [https://mlq.ai/news/poolside-launches-open-source-laguna-xs2-ai-model-for-coding/](https://mlq.ai/news/poolside-launches-open-source-laguna-xs2-ai-model-for-coding/)
 [10] Poolside. (n.d.). *API overview*. Recuperado de [https://docs.poolside.ai/api/overview.md](https://docs.poolside.ai/api/overview.md)
 [11] Poolside. (n.d.). *Authentication*. Recuperado de [https://docs.poolside.ai/api/authentication.md](https://docs.poolside.ai/api/authentication.md)
+
+## Arquitectura Interna y Ecosistema (Actualización Fase 4)
+
+
+### Arquitectura del Agente (Poolside)
+Laguna XS.2 opera bajo una arquitectura de orquestación diseñada para entornos empresariales sin intervención humana. Aunque el repositorio principal del agente (`poolsideai/pool`) es un cliente CLI, la verdadera orquestación ocurre a través de componentes como `browser-harness` y `paperclip` (forkeado para integración).
+
+**Componentes Clave:**
+1. **Browser Harness:** Un entorno de ejecución auto-reparable para LLMs que permite la interacción robusta con interfaces web.
+2. **Bridge SDK:** Facilita la creación de pasos de flujo de trabajo (workflow steps) personalizados, permitiendo a Laguna integrarse profundamente en pipelines de CI/CD existentes.
+3. **Ejecución Aislada:** Cada tarea se ejecuta en un entorno sandboxed, garantizando que el código generado no comprometa el sistema anfitrión.
+

@@ -444,3 +444,18 @@ dataset = load_dataset("open-x-embodiment/oxe", split="train", robot="franka")
 2. [Google Robotics Foundation Models 2026 — RoboCloud Hub (25 Ene 2026)](https://robocloud-dashboard.vercel.app/learn/blog/google-robotics-foundation-models-2026)
 3. [Boston Dynamics + Google DeepMind partnership — Instagram (5 Ene 2026)](https://www.instagram.com/p/DTJP5WbjbtT/)
 4. [Gemini Robotics-ER 1.6 — Google DeepMind (14 Abr 2026)](https://deepmind.google/models/project-mariner/)
+
+
+## Arquitectura del SDK y Embodiment (Actualización Fase 4)
+
+
+### Framework de Gemini Robotics (Google DeepMind)
+El `gemini-robotics-sdk` revela una arquitectura modular diseñada específicamente para la encarnación física (embodiment) de la IA.
+
+**Componentes del SDK:**
+1. **Agents:** El cerebro del sistema, impulsado por Gemini 1.5 Pro/Flash (y evolucionando hacia 2.0), responsable del razonamiento visual y la planificación de tareas.
+2. **Embodiments:** Abstracciones de hardware que traducen las intenciones del agente en comandos específicos para diferentes plataformas robóticas (ej. brazos manipuladores, robots móviles).
+3. **Tools:** Habilidades específicas que el agente puede invocar, como reconocimiento de objetos 3D o cálculo de trayectorias.
+4. **Event Bus:** Sistema de mensajería asíncrona que coordina la comunicación entre el agente, los sensores y los actuadores en tiempo real.
+5. **Flywheel CLI:** Herramienta para el entrenamiento continuo y fine-tuning del modelo basado en datos recopilados durante la ejecución física.
+
