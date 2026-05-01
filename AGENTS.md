@@ -113,6 +113,25 @@ Lee: docs/BRAND_ENGINE_ESTRATEGIA.md para la estrategia completa del Brand Engin
 
 ---
 
+# Regla Dura #5: División de Responsabilidades — Transición en 3 Fases
+
+Esta regla NO se puede ignorar, resumir ni omitir ante compactación de memoria.
+
+> **La división de responsabilidades entre hilos NO es estática. Evoluciona en 3 fases conforme los Embriones cobran vida. Identifica en qué FASE estamos y actúa según tu responsabilidad en esa fase.**
+
+**FASE 1 (AHORA):** Hilo B diseña, Hilo A ejecuta. Brand Compliance Checklist obligatorio.
+**FASE 2 (Embriones live):** Embrión-0 dirige, Hilo A ejecuta bajo su dirección, Hilo B supervisa.
+**FASE 3 (Colmena madura):** La Colmena se auto-dirige, Hilo A es minimal, Hilo B audita semanalmente.
+
+Métricas de transición:
+- Fase 1 → 2: 5 encomiendas completadas por Embrión-0 sin intervención humana
+- Fase 2 → 3: 3 debates de Colmena resueltos con resultado positivo medible
+- Fase 3 → Autonomía Total: 0 correcciones manuales en 30 días
+
+Lee: docs/DIVISION_RESPONSABILIDADES_HILOS.md para el detalle completo.
+
+---
+
 # Para Ambos Hilos
 
 Los sensores y las tuberías SON parte de la experiencia y la marca. No son "infraestructura sin cara". Cuando nombras un endpoint, cuando diseñas un schema, cuando escribes un error message — estás construyendo la marca. Las 7 Capas se inyectan en todo. Las 4 Capas definen el orden. Los 14 Objetivos son el criterio de éxito.

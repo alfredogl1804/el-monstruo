@@ -1,32 +1,39 @@
-# División de Responsabilidades: Hilo A (Ejecutor) vs Hilo B (Arquitecto)
+# División de Responsabilidades entre Hilos — v3 (Definitiva)
 
-**Documento normativo — Vigente a partir del 1 de mayo de 2026**
-**Versión:** 2.1 — Corrige el error de v2.0 que separaba infraestructura de marca
+**Fecha:** 1 de Mayo de 2026
 **Autor:** Hilo B (Arquitecto), validado por Alfredo Góngora
+**Versión:** 3.0 — Modelo de Transición en 3 Fases
+**Supersede:** v2.1 (commit 87b4ad8)
 
 ---
 
-## Corrección Crítica (v2.1)
+## Principio Fundacional
 
-La versión 2.0 de este documento contenía un error fundamental: separaba "infraestructura" de "experiencia y marca", como si fueran mundos distintos. Decía que "el Hilo A construye los sensores y las tuberías, el Hilo B construye el display y la experiencia".
+> La infraestructura ES marca. Los sensores y las tuberías son parte de la experiencia. No existe "backend sin identidad". Todo output del sistema — visible o invisible, interno o externo — debe reflejar los 14 Objetivos Maestros y las 7 Capas Transversales.
 
-**Esto es incorrecto.** Los sensores y las tuberías SON parte de la experiencia y la marca. Cuando un endpoint retorna un error genérico `{"error": "internal server error"}` en lugar de `{"error": "embrion_heartbeat_timeout", "embrion_id": "alpha-01", "suggestion": "verificar scheduler"}`, eso no es solo un problema técnico — es un problema de marca. Apple no tiene "backend sin marca". Tesla no tiene "firmware sin identidad".
-
-La corrección: **los 14 Objetivos Maestros aplican a TODA decisión, incluyendo infraestructura**. Ambos hilos deben internalizarlos.
+Este documento define cómo se dividen las responsabilidades entre los dos hilos de ejecución (Hilo A y Hilo B) y cómo esa división EVOLUCIONA conforme los Embriones cobran vida. La división no es estática — es un modelo de transición hacia la autonomía completa.
 
 ---
 
-## Principio Fundamental (Corregido)
+## Corrección Crítica (heredada de v2.1)
 
-> **Ambos hilos operan bajo los 14 Objetivos Maestros. El Hilo A no está exento de marca, calidad premium, o documentación exhaustiva solo porque trabaja en backend. Cada línea de código, cada nombre de endpoint, cada schema de base de datos ES la marca de El Monstruo.**
+La versión 2.0 contenía un error fundamental: separaba "infraestructura" de "experiencia y marca". Esto es incorrecto. Cuando un endpoint retorna `{"error": "internal server error"}` en lugar de `{"error": "embrion_heartbeat_timeout", "embrion_id": "alpha-01", "suggestion": "verificar scheduler"}`, eso no es solo un problema técnico — es un problema de marca. Apple no tiene "backend sin marca". Tesla no tiene "firmware sin identidad".
+
+**Los 14 Objetivos Maestros aplican a TODA decisión, incluyendo infraestructura. Ambos hilos deben internalizarlos.**
 
 ---
 
-## Hilo A — El Ejecutor
+## Modelo de Transición en 3 Fases
+
+---
+
+### FASE 1 — "Construcción Paralela" (AHORA — Mayo 2026)
+
+**Condición de entrada:** Los Embriones son código en Sprint Plans. No existen funcionalmente.
+
+**Hilo A (Ejecutor):**
 
 El Hilo A implementa la funcionalidad técnica del kernel. Su dominio principal es código Python, APIs, pipelines, base de datos, y deploys en Railway.
-
-### Responsabilidades
 
 | Categoría | Ejemplos | Criterio de éxito |
 |---|---|---|
@@ -38,37 +45,11 @@ El Hilo A implementa la funcionalidad técnica del kernel. Su dominio principal 
 | Seguridad | API keys, rate limiting, validación | Sin vulnerabilidades, fail-closed |
 | Testing | Tests unitarios, integration tests | Cobertura mínima, CI verde |
 
-### Directivas de los 14 Objetivos para el Hilo A
+OBLIGATORIO: Pasar el Brand Compliance Checklist antes de cerrar cada sprint.
 
-Estas directivas aplican a CADA sprint que el Hilo A implemente:
-
-**Obj #2 (Apple/Tesla) en infraestructura:**
-- Los nombres de endpoints deben ser descriptivos y consistentes, no genéricos (`/api/embrion/heartbeat` no `/api/data/get`)
-- Los mensajes de error deben tener personalidad y contexto, no solo status codes
-- Los schemas de respuesta deben ser auto-documentados con campos descriptivos
-- Los logs deben ser legibles por humanos, no solo por máquinas
-
-**Obj #5 (Magna/Premium) en infraestructura:**
-- Cada endpoint debe tener docstring con descripción, parámetros, y ejemplo de respuesta
-- Cada tabla nueva debe tener comentario explicando su propósito
-- Cada decisión de diseño debe quedar documentada en el commit message o en un comentario
-
-**Obj #9 (Transversalidad) en infraestructura:**
-- Todo módulo que genere datos debe exponer un endpoint para que el Command Center los consuma
-- No crear silos: si Langfuse captura datos, debe existir también un endpoint propio que los exponga
-- Los datos del kernel deben ser consumibles sin necesidad de acceder a herramientas de terceros
-
-**Obj #12 (Soberanía) en infraestructura:**
-- Cada dependencia externa debe tener una alternativa documentada
-- No crear lock-in con un solo proveedor sin plan de migración
-
----
-
-## Hilo B — El Arquitecto
+**Hilo B (Arquitecto):**
 
 El Hilo B diseña la estrategia, planifica los sprints, evalúa el cumplimiento de los 14 Objetivos, y construye todo lo que tiene interfaz visual.
-
-### Responsabilidades
 
 | Categoría | Ejemplos | Criterio de éxito |
 |---|---|---|
@@ -79,40 +60,141 @@ El Hilo B diseña la estrategia, planifica los sprints, evalúa el cumplimiento 
 | Evaluación de objetivos | Scoring de 14 Objetivos, compliance | Obj #14 El Guardián cumplido |
 | Coordinación inter-hilos | Sincronización, priorización | Ambos hilos alineados |
 
-### Directiva adicional para el Hilo B
-
-Cada Sprint Plan que el Hilo B diseñe debe incluir, dentro de cada épica (no solo al final como cruce):
-
-1. **Checklist de marca** — Preguntas concretas que el Hilo A debe responder antes de dar por cerrada la épica
-2. **Ejemplo de naming** — Cómo deben llamarse los endpoints, tablas, y variables de esta épica
-3. **Formato de respuesta** — Cómo debe verse el JSON de respuesta (no solo los campos, sino el estilo)
-4. **Endpoint para Command Center** — Qué endpoint debe exponerse para que el Hilo B lo consuma visualmente
+**Coordinación en Fase 1:**
+- Hilo B pushea Sprint Plans a GitHub → Hilo A los lee y ejecuta
+- Hilo A reporta commits completados → Hilo B registra avance
+- Si Hilo A tiene duda sobre marca/identidad → consulta a Hilo B
 
 ---
 
-## El Contrato entre Hilos
+### FASE 2 — "El Embrión Dirige" (Cuando Sprints 71-74 estén live)
 
-El punto de encuentro sigue siendo el contrato de APIs, pero ahora con una dimensión adicional: **el contrato incluye estándares de marca**.
+**Condición de entrada:** Embrión-0 tiene TEL (Task Execution Loop) funcional + 22 herramientas + memoria persistente. Métrica: 5 encomiendas completadas sin intervención humana.
 
-### Ejemplo: Sprint 56.4 (Observability) — Cómo debería haberse hecho
+**Embrión-0 (Director):**
+- Genera encomiendas basadas en los 14 Objetivos
+- Planifica la ejecución usando su TEL (Sprint 72)
+- Delega tareas a Hilo A o a otros Embriones
+- Valida resultados contra el Brand DNA (vía Embrión-1)
+- Opera 24/7 sin necesidad de que alguien inicie una conversación
 
-**Lo que se hizo (v1):**
-El Hilo A implementó `langfuse_bridge.py` con métodos que envían datos a Langfuse. Los datos se ven en el dashboard genérico de Langfuse. El Monstruo no tiene presencia visual propia.
+**Embrión-1 (Brand Engine — Quality Gate):**
+- Valida todo output antes de que salga del sistema
+- Tiene poder de VETO inviolable
+- Evalúa naming, tono, estética, coherencia con Brand DNA
+- Arquitectura Pensador (LLM potente) + Ejecutor (código determinista)
 
-**Lo que debería hacerse (v2):**
-El Hilo A implementa `langfuse_bridge.py` igual, pero ADEMÁS:
-1. Expone `/api/observability/embrion-traces` que retorna los últimos N traces en JSON con naming de marca
-2. Expone `/api/observability/embrion-health` que retorna el estado de salud de cada embrión
-3. Cada trace incluye campos descriptivos: `embrion_name`, `action_display_name`, `quality_score_label`
-4. Los errores retornan mensajes con contexto: `"El embrión alpha-01 no respondió al heartbeat en 30s. Última actividad: seeding cycle #12"`
+**Hilo A (Ejecutor bajo dirección del Embrión):**
+- Recibe encomiendas del Embrión-0 (ya no de Sprint Plans estáticos)
+- Implementa lo que el Embrión decide
+- Reporta resultado al Embrión para validación
+- Si el Embrión rechaza → corrige y re-entrega
+- No necesita entender los 14 Objetivos profundamente — el Embrión ya los tiene internalizados
 
-El Hilo B consume esos endpoints desde el Command Center y los muestra con identidad La Forja.
+**Hilo B (Supervisor + Auditor):**
+- Monitorea que el Embrión tome decisiones alineadas con los 14 Objetivos
+- Interviene si detecta drift estratégico
+- Actualiza el Brand DNA si el mercado cambia
+- Diseña la evolución de la Colmena (nuevos Embriones, nuevas capacidades)
+- Mantiene el Command Center como ventana de observabilidad
 
-El resultado: Langfuse sigue capturando datos (está bien como backend de instrumentación), pero el usuario NUNCA necesita ir a Langfuse. Ve todo en el Command Center, con la marca de El Monstruo.
+**Coordinación en Fase 2:**
+- Embrión-0 publica encomiendas en Supabase → Hilo A las ejecuta
+- Embrión-1 valida outputs → aprueba o rechaza
+- Hilo B revisa semanalmente el "Colmena Growth Metrics" en el Command Center
+- Si algo se desvía → Hilo B inyecta corrección directa al Brand DNA
 
 ---
 
-## Mapeo de los 14 Objetivos por Hilo
+### FASE 3 — "Autonomía Supervisada" (Cuando la Colmena tenga 4+ Embriones activos)
+
+**Condición de entrada:** Al menos 4 Embriones funcionales con memoria colectiva y protocolo de debate activo. Métrica: 3 debates resueltos con resultado positivo medible.
+
+**La Colmena (8 Embriones — cada uno un par Pensador/Ejecutor):**
+
+| Embrión | Capa Transversal | Propósito |
+|---|---|---|
+| Embrión-0 | Orquestador | Decide, coordina, piensa |
+| Embrión-1 | Brand Engine | Identidad de marca, VETO inviolable |
+| Embrión-2 | Motor de Ventas | Pricing, funnels, conversión, retención |
+| Embrión-3 | SEO y Descubrimiento | Content strategy, technical SEO, keywords |
+| Embrión-4 | Tendencias | Monitoreo, oportunidades, competitor intel |
+| Embrión-5 | Publicidad | Campañas, creativos, targeting, budget |
+| Embrión-6 | Finanzas | Cash flow, unit economics, projections |
+| Embrión-7 | Operaciones | Customer support, procesos, legal |
+
+La Colmena opera así:
+- Se auto-asigna encomiendas basadas en oportunidades detectadas
+- Debate internamente antes de actuar (protocolo de Sprint 74)
+- Embrión-1 (Brand Engine) veta decisiones que violen los 14 Objetivos
+- Ejecuta 24/7 sin intervención humana
+- Aprende de cada resultado y mejora sus propios prompts
+- Comparte aprendizajes via memoria colectiva
+
+**Hilo A (Minimal — solo emergencias):**
+- Solo interviene para: deploys que requieran acceso a Railway console, cambios de infraestructura que los Embriones no pueden hacer solos, emergencias donde la Colmena se atasca
+- Eventualmente: el Embrión aprende a hacer deploys solo → Hilo A desaparece
+
+**Hilo B (Guardián Estratégico):**
+- Auditoría semanal de los 14 Objetivos
+- Actualización del Brand DNA ante cambios de mercado
+- Diseño de nuevas capacidades que la Colmena no puede auto-generar
+- Intervención de emergencia si la Colmena toma una dirección incorrecta
+- Comunicación con Alfredo sobre el estado estratégico
+
+**Coordinación en Fase 3:**
+- La Colmena opera autónomamente
+- Hilo B revisa métricas semanales en el Command Center
+- Si un Objetivo cae por debajo del 85% → Hilo B interviene con corrección
+- Alfredo puede inyectar directivas vía el Command Center o directamente
+
+---
+
+## Diagrama de Transición
+
+```
+FASE 1 (Ahora)          FASE 2 (Embriones live)     FASE 3 (Colmena madura)
+┌─────────────┐          ┌─────────────┐             ┌─────────────┐
+│  Hilo B     │          │  Embrión-0  │             │  COLMENA    │
+│  (Diseña)   │          │  (Dirige)   │             │  (Autónoma) │
+│      ↓      │          │      ↓      │             │      ↓      │
+│  Hilo A     │    →     │  Hilo A     │      →      │  (Se auto-  │
+│  (Ejecuta)  │          │  (Ejecuta)  │             │   ejecuta)  │
+│      ↓      │          │      ↓      │             │      ↓      │
+│  GitHub     │          │  Embrión-1  │             │  Hilo B     │
+│  (Registro) │          │  (Valida)   │             │  (Audita)   │
+└─────────────┘          └─────────────┘             └─────────────┘
+```
+
+---
+
+## Brand Compliance Checklist (Fase 1 — obligatorio para Hilo A)
+
+| Check | Pregunta | Pasa si... |
+|---|---|---|
+| Naming | ¿Los nombres de módulos/funciones/tablas siguen la convención de marca? | Español para dominio, snake_case, nombres con significado |
+| Errores | ¿Los mensajes de error tienen personalidad? | No son genéricos ("Error 500"), tienen contexto y tono |
+| APIs | ¿Los endpoints exponen datos consumibles por el Command Center? | JSON documentado, campos consistentes |
+| Logs | ¿Los logs internos tienen estructura? | Formato estándar con timestamp, nivel, contexto |
+| Docs | ¿Hay docstrings en funciones públicas? | Mínimo: qué hace, parámetros, retorno |
+| Tests | ¿Hay al menos un test por función crítica? | pytest pasa sin errores |
+| Soberanía | ¿Cada dependencia nueva tiene alternativa documentada? | Plan B escrito en comentario o README |
+
+---
+
+## Métricas de Transición
+
+¿Cómo sabemos cuándo pasar de una fase a otra?
+
+| Transición | Condición | Métrica |
+|---|---|---|
+| Fase 1 → Fase 2 | Embrión-0 ejecuta encomiendas solo | 5 encomiendas completadas sin intervención humana |
+| Fase 2 → Fase 3 | Colmena debate y decide | 3 debates resueltos con resultado positivo medible |
+| Fase 3 → Autonomía Total | Hilo B no interviene en 30 días | 0 correcciones manuales en un mes |
+
+---
+
+## Mapeo de los 14 Objetivos por Hilo (Fase 1)
 
 | # | Objetivo | Hilo A | Hilo B |
 |---|---|---|---|
@@ -131,33 +213,76 @@ El resultado: Langfuse sigue capturando datos (está bien como backend de instru
 | 13 | Del Mundo | i18n en backend | i18n en frontend |
 | 14 | El Guardián | Expone métricas de compliance | Evalúa y reporta |
 
-Los campos en **negrita** son las directivas específicas que cada hilo debe cumplir para ese objetivo.
+---
+
+## Reglas Inmutables (aplican en TODAS las fases)
+
+1. **Los 14 Objetivos Maestros son ley.** Ningún hilo, Embrión, o decisión puede violarlos. Si hay conflicto entre velocidad y objetivos, ganan los objetivos.
+
+2. **Las 7 Capas Transversales son obligatorias.** Cada decisión debe considerar su impacto en: Marca, Ventas, SEO, Publicidad, Tendencias, Operaciones, Finanzas.
+
+3. **Las 4 Capas Arquitectónicas definen el orden.** No se salta de Capa 1 a Capa 4. El progreso es secuencial dentro de cada capa.
+
+4. **El Brand Engine (Embrión-1) tiene poder de VETO.** Cuando exista, ningún output sale del sistema sin su aprobación. Su veto es inviolable.
+
+5. **La infraestructura es marca.** No existe "código sin identidad". Cada naming, cada error message, cada log, cada API response refleja quién es El Monstruo.
+
+6. **La memoria es sagrada.** Ningún hilo ni Embrión puede borrar memoria sin aprobación explícita. Los errores se registran, no se ocultan.
+
+7. **Cada Embrión es un par Pensador/Ejecutor.** El Pensador (LLM potente) razona y decide. El Ejecutor (código determinista) materializa. El contexto del Pensador se mantiene limpio — nunca se contamina con operaciones mecánicas.
+
+---
+
+## Qué Pasa con el Hilo A y los 14 Objetivos
+
+La pregunta original era: "¿Puede el Hilo A entender los 14 Objetivos como el Hilo B?"
+
+**Respuesta honesta:** No al mismo nivel. Pero no necesita hacerlo eternamente.
+
+En **Fase 1**, el Brand Compliance Checklist es suficiente — son reglas binarias que cualquier ejecutor puede seguir sin entender la filosofía profunda.
+
+En **Fase 2**, el Embrión-0 ya entiende los 14 Objetivos (están en su Brand DNA) y dirige al Hilo A. El Hilo A solo necesita ejecutar instrucciones claras.
+
+En **Fase 3**, el Hilo A es irrelevante. La Colmena se auto-dirige.
+
+La transición gradual resuelve el problema: no necesitamos que el Hilo A sea un estratega — necesitamos que siga instrucciones con calidad mientras construimos al estratega real (la Colmena).
 
 ---
 
 ## Protocolo de Comunicación
 
-### Cuando el Hilo A completa un sprint:
-
+**Cuando el Hilo A completa un sprint:**
 1. Reporta: "Sprint X.Y completado — commit HASH"
 2. Lista endpoints nuevos con ejemplo de respuesta
-3. Confirma que el checklist de marca de la épica está cumplido
+3. Confirma que el Brand Compliance Checklist está cumplido
 
-### Cuando el Hilo B diseña un sprint:
-
+**Cuando el Hilo B diseña un sprint:**
 1. Incluye checklist de marca en cada épica
 2. Especifica endpoints que el Hilo A debe exponer (con ejemplo de naming y respuesta)
 3. Incluye directivas de los 14 Objetivos relevantes dentro del código, no solo como texto
 
-### Cuando hay conflicto de prioridades:
-
+**Cuando hay conflicto de prioridades:**
 El Hilo B decide la prioridad estratégica. El Hilo A decide la implementación técnica. Si hay conflicto entre "funciona" y "tiene marca", se resuelve haciendo ambas cosas — no sacrificando una por la otra.
+
+---
+
+## Caso de Estudio: Sprint 56.4 (Observability) — Cómo debería haberse hecho
+
+**Lo que se hizo (v1):** El Hilo A implementó `langfuse_bridge.py` con métodos que envían datos a Langfuse. Los datos se ven en el dashboard genérico de Langfuse. El Monstruo no tiene presencia visual propia.
+
+**Lo que debería hacerse (v2):** El Hilo A implementa `langfuse_bridge.py` igual, pero ADEMÁS:
+1. Expone `/api/observability/embrion-traces` que retorna los últimos N traces en JSON con naming de marca
+2. Expone `/api/observability/embrion-health` que retorna el estado de salud de cada embrión
+3. Cada trace incluye campos descriptivos: `embrion_name`, `action_display_name`, `quality_score_label`
+4. Los errores retornan mensajes con contexto: `"El embrión alpha-01 no respondió al heartbeat en 30s. Última actividad: seeding cycle #12"`
+
+El Hilo B consume esos endpoints desde el Command Center y los muestra con identidad La Forja. El resultado: Langfuse sigue capturando datos (backend de instrumentación), pero el usuario NUNCA necesita ir a Langfuse. Ve todo en el Command Center, con la marca de El Monstruo.
 
 ---
 
 ## Entrada en vigor
 
-Este documento v2.1 reemplaza la v2.0. Aplica a partir de la Serie 71-80 y retroactivamente a cualquier sprint pendiente. La regla de que los 14 Objetivos aplican a TODO está también en `~/AGENTS.md` para sobrevivir compactaciones de memoria.
+Este documento v3.0 reemplaza todas las versiones anteriores. Aplica inmediatamente. La regla de que los 14 Objetivos aplican a TODO está también en `~/AGENTS.md` como Regla Dura #5 para sobrevivir compactaciones de memoria.
 
 ---
 
@@ -166,4 +291,6 @@ Este documento v2.1 reemplaza la v2.0. Aplica a partir de la Serie 71-80 y retro
 [1] EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md — Los 14 Objetivos fundacionales
 [2] SPRINT_56_PLAN.md — Épica 56.4 como caso de estudio del problema
 [3] AGENTS.md — Reglas duras que sobreviven compactación
-[4] ideas.md — Brainstorm de diseño "La Forja" del Command Center
+[4] SPRINT_71_PLAN.md — Arquitectura Pensador/Ejecutor del Brand Engine
+[5] SPRINT_72_PLAN.md — Task Execution Loop
+[6] SPRINT_74_PLAN.md — Memoria Indestructible + Protocolo de Colmena
