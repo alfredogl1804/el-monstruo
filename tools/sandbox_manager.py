@@ -30,12 +30,16 @@ IVD: e2b-code-interpreter==2.6.1 (MIT, PyPI latest 2026-04-29)
 """
 
 import asyncio
-import logging
 import os
 import time
 from typing import Any, Optional
 
-logger = logging.getLogger("monstruo.tools.sandbox_manager")
+try:
+    import structlog
+    logger = structlog.get_logger("monstruo.tools.sandbox_manager")
+except ImportError:
+    import logging
+    logger = logging.getLogger("monstruo.tools.sandbox_manager")
 
 # ── Constants ────────────────────────────────────────────────────────
 SANDBOX_TIMEOUT_S = 600  # 10 minutes max per plan
@@ -296,8 +300,25 @@ async def execute_in_sandbox(
                 timeout=timeout,
             )
 
-            stdout_lines = [msg.line for msg in execution.logs.stdout] if execution.logs.stdout else []
-            stderr_lines = [msg.line for msg in execution.logs.stderr] if execution.logs.stderr else []
+            # Handle both SDK versions: 2.4.x returns strings, 2.6.x returns objects with .line
+            raw_stdout = execution.logs.stdout if execution.logs.stdout else []
+            raw_stderr = execution.logs.stderr if execution.logs.stderr else []
+            stdout_lines = []
+            for msg in raw_stdout:
+                if isinstance(msg, str):
+                    stdout_lines.append(msg)
+                elif hasattr(msg, 'line'):
+                    stdout_lines.append(msg.line)
+                else:
+                    stdout_lines.append(str(msg))
+            stderr_lines = []
+            for msg in raw_stderr:
+                if isinstance(msg, str):
+                    stderr_lines.append(msg)
+                elif hasattr(msg, 'line'):
+                    stderr_lines.append(msg.line)
+                else:
+                    stderr_lines.append(str(msg))
             stdout = "\n".join(stdout_lines)
             stderr = "\n".join(stderr_lines)
 
@@ -539,7 +560,15 @@ else:
     print(json.dumps({{"files": files, "count": len(files)}}))
 """
             execution = await sandbox.run_code(code=collect_code, language="python", timeout=30)
-            stdout_lines = [msg.line for msg in execution.logs.stdout] if execution.logs.stdout else []
+            raw_stdout = execution.logs.stdout if execution.logs.stdout else []
+            stdout_lines = []
+            for msg in raw_stdout:
+                if isinstance(msg, str):
+                    stdout_lines.append(msg)
+                elif hasattr(msg, 'line'):
+                    stdout_lines.append(msg.line)
+                else:
+                    stdout_lines.append(str(msg))
             stdout = "\n".join(stdout_lines).strip()
 
             try:
