@@ -1,6 +1,6 @@
 # Reporte de Validación: 20 Biblias vs. Biblia de Manus v3
 
-**Fecha:** 01 de May de 2026, 07:25
+**Fecha:** 01 de May de 2026, 07:04
 **Estándar de referencia:** Biblia de Manus v3 — 90.0% de completitud
 **Metodología:** Validación por 17 criterios ponderados con restricciones duras anti-atajos
 
@@ -10,25 +10,25 @@
 
 | # | Biblia | Palabras | Score Actual | Gap vs Manus | Restricciones Aplicadas |
 |---|--------|----------|-------------|-------------|------------------------|
-| 1 | 🟢 **KIRO** | 11,091 | 94.0% | -0% | Ninguna |
-| 2 | 🟢 **HERMES AGENT** | 16,964 | 91.2% | -0% | Ninguna |
-| 3 | 🟢 **OPENAI OPERATOR** | 10,849 | 90.4% | -0% | Ninguna |
-| 4 | 🟢 **CLAUDE CODE** | 8,161 | 88.8% | -1.2% | Ninguna |
-| 5 | 🟢 **DEVIN** | 10,902 | 87.6% | -2.4% | Ninguna |
-| 6 | 🟢 **METIS** | 11,881 | 87.6% | -2.4% | Ninguna |
-| 7 | 🟢 **PROJECT MARINER** | 7,387 | 87.6% | -2.4% | Ninguna |
-| 8 | 🟢 **UI TARS** | 11,611 | 87.2% | -2.8% | Ninguna |
-| 9 | 🟢 **CLINE** | 12,355 | 86.8% | -3.2% | Ninguna |
-| 10 | 🟢 **AGENT S** | 10,989 | 85.6% | -4.4% | Ninguna |
-| 11 | 🟢 **MANUS V16** | 7,572 | 85.6% | -4.4% | Ninguna |
-| 12 | 🟢 **PERPLEXITY COMPUTER** | 8,576 | 84.4% | -5.6% | Ninguna |
-| 13 | 🟢 **CLAUDE COWORK** | 7,432 | 83.2% | -6.8% | Ninguna |
-| 14 | 🟢 **KIMI K2.6** | 12,110 | 83.2% | -6.8% | Ninguna |
-| 15 | 🟢 **PERPLEXITY ENTERPRISE** | 7,915 | 81.2% | -8.8% | Ninguna |
-| 16 | 🟢 **NEO** | 6,546 | 80.4% | -9.6% | Ninguna |
-| 17 | 🟡 **LINDY** | 8,445 | 79.2% | -10.8% | Ninguna |
-| 18 | 🟡 **GROK VOICE** | 8,259 | 75.2% | -14.8% | Ninguna |
-| 19 | 🟡 **GEMINI ROBOTICS** | 8,909 | 74.5% | -15.5% | Ninguna |
+| 1 | 🟢 **KIRO** | 9,925 | 92.0% | -0% | Ninguna |
+| 2 | 🟢 **OPENAI OPERATOR** | 9,827 | 90.4% | -0% | Ninguna |
+| 3 | 🟢 **HERMES AGENT** | 14,034 | 88.4% | -1.6% | Ninguna |
+| 4 | 🟢 **DEVIN** | 10,309 | 87.6% | -2.4% | Ninguna |
+| 5 | 🟢 **METIS** | 10,757 | 87.6% | -2.4% | Ninguna |
+| 6 | 🟢 **AGENT S** | 9,624 | 85.6% | -4.4% | Ninguna |
+| 7 | 🟢 **MANUS V16** | 7,572 | 85.6% | -4.4% | Ninguna |
+| 8 | 🟢 **PROJECT MARINER** | 6,547 | 85.2% | -4.8% | Ninguna |
+| 9 | 🟢 **CLINE** | 11,509 | 84.4% | -5.6% | Ninguna |
+| 10 | 🟢 **KIMI K2.6** | 11,185 | 83.2% | -6.8% | Ninguna |
+| 11 | 🟢 **UI TARS** | 11,224 | 82.8% | -7.2% | Ninguna |
+| 12 | 🟢 **CLAUDE CODE** | 6,898 | 82.4% | -7.6% | Ninguna |
+| 13 | 🟢 **PERPLEXITY COMPUTER** | 7,630 | 82.0% | -8.0% | Ninguna |
+| 14 | 🟢 **PERPLEXITY ENTERPRISE** | 7,915 | 81.2% | -8.8% | Ninguna |
+| 15 | 🟢 **NEO** | 6,546 | 80.4% | -9.6% | Ninguna |
+| 16 | 🟡 **LINDY** | 8,445 | 79.2% | -10.8% | Ninguna |
+| 17 | 🟡 **CLAUDE COWORK** | 6,722 | 78.4% | -11.6% | Ninguna |
+| 18 | 🟡 **GROK VOICE** | 7,623 | 75.2% | -14.8% | Ninguna |
+| 19 | 🟡 **GEMINI ROBOTICS** | 8,315 | 74.5% | -15.5% | Ninguna |
 | 20 | 🟡 **LAGUNA XS2** | 5,962 | 72.5% | -17.5% | Ninguna |
 
 ---
@@ -36,52 +36,32 @@
 ## Detalle por Biblia: Áreas de Contenido Faltantes
 
 ### KIRO
-**Score:** 94.0% | **Gap:** -0% | **Palabras:** 11,091
-
-✅ Todos los criterios cubiertos.
-
-### HERMES AGENT
-**Score:** 91.2% | **Gap:** -0% | **Palabras:** 16,964
+**Score:** 92.0% | **Gap:** -0% | **Palabras:** 9,925
 
 ✅ Todos los criterios cubiertos.
 
 ### OPENAI OPERATOR
-**Score:** 90.4% | **Gap:** -0% | **Palabras:** 10,849
+**Score:** 90.4% | **Gap:** -0% | **Palabras:** 9,827
 
 ✅ Todos los criterios cubiertos.
 
-### CLAUDE CODE
-**Score:** 88.8% | **Gap:** -1.2% | **Palabras:** 8,161
+### HERMES AGENT
+**Score:** 88.4% | **Gap:** -1.6% | **Palabras:** 14,034
 
 ✅ Todos los criterios cubiertos.
 
 ### DEVIN
-**Score:** 87.6% | **Gap:** -2.4% | **Palabras:** 10,902
+**Score:** 87.6% | **Gap:** -2.4% | **Palabras:** 10,309
 
 ✅ Todos los criterios cubiertos.
 
 ### METIS
-**Score:** 87.6% | **Gap:** -2.4% | **Palabras:** 11,881
-
-✅ Todos los criterios cubiertos.
-
-### PROJECT MARINER
-**Score:** 87.6% | **Gap:** -2.4% | **Palabras:** 7,387
-
-✅ Todos los criterios cubiertos.
-
-### UI TARS
-**Score:** 87.2% | **Gap:** -2.8% | **Palabras:** 11,611
-
-✅ Todos los criterios cubiertos.
-
-### CLINE
-**Score:** 86.8% | **Gap:** -3.2% | **Palabras:** 12,355
+**Score:** 87.6% | **Gap:** -2.4% | **Palabras:** 10,757
 
 ✅ Todos los criterios cubiertos.
 
 ### AGENT S
-**Score:** 85.6% | **Gap:** -4.4% | **Palabras:** 10,989
+**Score:** 85.6% | **Gap:** -4.4% | **Palabras:** 9,624
 
 ✅ Todos los criterios cubiertos.
 
@@ -90,18 +70,33 @@
 
 ✅ Todos los criterios cubiertos.
 
-### PERPLEXITY COMPUTER
-**Score:** 84.4% | **Gap:** -5.6% | **Palabras:** 8,576
+### PROJECT MARINER
+**Score:** 85.2% | **Gap:** -4.8% | **Palabras:** 6,547
 
 ✅ Todos los criterios cubiertos.
 
-### CLAUDE COWORK
-**Score:** 83.2% | **Gap:** -6.8% | **Palabras:** 7,432
+### CLINE
+**Score:** 84.4% | **Gap:** -5.6% | **Palabras:** 11,509
 
 ✅ Todos los criterios cubiertos.
 
 ### KIMI K2.6
-**Score:** 83.2% | **Gap:** -6.8% | **Palabras:** 12,110
+**Score:** 83.2% | **Gap:** -6.8% | **Palabras:** 11,185
+
+✅ Todos los criterios cubiertos.
+
+### UI TARS
+**Score:** 82.8% | **Gap:** -7.2% | **Palabras:** 11,224
+
+✅ Todos los criterios cubiertos.
+
+### CLAUDE CODE
+**Score:** 82.4% | **Gap:** -7.6% | **Palabras:** 6,898
+
+✅ Todos los criterios cubiertos.
+
+### PERPLEXITY COMPUTER
+**Score:** 82.0% | **Gap:** -8.0% | **Palabras:** 7,630
 
 ✅ Todos los criterios cubiertos.
 
@@ -120,13 +115,18 @@
 
 ✅ Todos los criterios cubiertos.
 
+### CLAUDE COWORK
+**Score:** 78.4% | **Gap:** -11.6% | **Palabras:** 6,722
+
+✅ Todos los criterios cubiertos.
+
 ### GROK VOICE
-**Score:** 75.2% | **Gap:** -14.8% | **Palabras:** 8,259
+**Score:** 75.2% | **Gap:** -14.8% | **Palabras:** 7,623
 
 ✅ Todos los criterios cubiertos.
 
 ### GEMINI ROBOTICS
-**Score:** 74.5% | **Gap:** -15.5% | **Palabras:** 8,909
+**Score:** 74.5% | **Gap:** -15.5% | **Palabras:** 8,315
 
 **Áreas que faltan para llegar al nivel Manus:**
 
