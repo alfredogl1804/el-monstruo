@@ -792,6 +792,36 @@ async def lifespan(app: FastAPI):
             app.state.visual_quality_gate = None
         # ── /Sprint 57.5 ──────────────────────────────────────────────────────────
 
+        # ── Sprint 58.4 — Embrión-Técnico ────────────────────────────────────────
+        try:
+            from kernel.embrion_tecnico import EmbrionTecnico
+            embrion_tecnico = EmbrionTecnico(
+                db=app.state.db if hasattr(app.state, "db") else None,
+                kernel=None,
+                notifier=None,
+            )
+            app.state.embrion_tecnico = embrion_tecnico
+            logger.info("embrion_tecnico_ready", specialization="tecnico")
+        except Exception as _et_err:
+            logger.warning("embrion_tecnico_init_failed", error=str(_et_err))
+            app.state.embrion_tecnico = None
+        # ── /Sprint 58.4 ──────────────────────────────────────────────────────────
+
+        # ── Sprint 58.5 — Embrión-Vigía ──────────────────────────────────────────
+        try:
+            from kernel.embrion_vigia import EmbrionVigia
+            embrion_vigia = EmbrionVigia(
+                db=app.state.db if hasattr(app.state, "db") else None,
+                kernel=None,
+                notifier=None,
+            )
+            app.state.embrion_vigia = embrion_vigia
+            logger.info("embrion_vigia_ready", specialization="vigia")
+        except Exception as _ev2_err:
+            logger.warning("embrion_vigia_init_failed", error=str(_ev2_err))
+            app.state.embrion_vigia = None
+        # ── /Sprint 58.5 ──────────────────────────────────────────────────────────
+
         await embrion_scheduler.start()  # Inicia loop asyncio (revisa cada 60s)
         app.state.embrion_scheduler = embrion_scheduler
         logger.info(
