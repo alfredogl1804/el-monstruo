@@ -1473,8 +1473,13 @@ RESPONDE con JSON:
 
         tool_hint_str = f"\nHerramienta sugerida: {step.tool_hint}" if step.tool_hint else ""
 
+        # Sprint 48 fix: Use claude-opus-4-7 (same as non-streaming path)
+        # EXECUTOR_MODEL is gpt-5.5 which doesn't work with Anthropic API
+        _step_model = "claude-opus-4-7"
+
         system_prompt = """Eres El Monstruo, un agente autónomo que ejecuta planes de tareas para el usuario.
-Tienes acceso a herramientas reales. Úsalas para completar cada paso.
+Tienes acceso a herramientas reales. DEBES usar las herramientas disponibles para completar cada paso.
+NUNCA respondas solo con texto si puedes usar una herramienta para ejecutar la acción.
 Sé conciso y directo. Reporta el resultado al final con un resumen claro."""
 
         user_message = f"""OBJETIVO GENERAL: {plan.objective}
@@ -1497,12 +1502,12 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                 messages = [{"role": "user", "content": user_message}]
                 total_tokens = 0
                 final_response = ""
-                max_react_loops = 3
+                max_react_loops = MAX_REACT_LOOPS  # Sprint 48 fix: was hardcoded to 3
 
                 for loop_i in range(max_react_loops):
                     resp = await asyncio.wait_for(
                         client.messages.create(
-                            model=EXECUTOR_MODEL,
+                            model=_step_model,
                             max_tokens=4000,
                             system=system_prompt,
                             tools=self._EXECUTOR_TOOLS,
