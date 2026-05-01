@@ -354,3 +354,83 @@ Aunque no se proporcionan números directos de Gemini Robotics-ER 1.6 en RT-2 o 
 [9] Google. (s.f.). *Google just fixed the biggest flaw in robotic spatial reasoning*. Instagram. Recuperado de [https://www.instagram.com/p/DXKarr9E-kF/](https://www.instagram.com/p/DXKarr9E-kF/)
 [10] AI for Success. (2026, 14 de abril). *Google has released Gemini Robotics-ER 1.6*. X. Recuperado de [https://x.com/ai_for_success/status/2044093911778636010](https://x.com/ai_for_success/status/2044093911778636010)
 [11] Open X-Embodiment. (s.f.). *Open X-Embodiment: Robotic Learning Datasets and RT-X Models*. Recuperado de [https://robotics-transformer-x.github.io/](https://robotics-transformer-x.github.io/)
+
+
+## Hallazgos Técnicos en GitHub (Fase 5)
+
+# Hallazgos Técnicos del Agente Gemini Robotics-ER 1.6
+
+## Agente Investigado
+
+**Gemini Robotics-ER 1.6** (google-deepmind/gemini-robotics-sdk en GitHub) — agente de robótica de Google DeepMind
+
+## URL del Repositorio Oficial
+
+`https://github.com/google-deepmind/gemini-robotics-sdk`
+
+## Actividad del Repositorio
+
+El repositorio se encuentra **activo**, con la última actividad registrada hace 6 días (al 1 de mayo de 2026), lo que indica un desarrollo continuo y reciente. Las actualizaciones frecuentes son principalmente sincronizaciones del SDK a nuevas versiones.
+
+## Arquitectura Interna
+
+El **Safari SDK** está estructurado como un paquete `pip` de Python, con una dependencia interna clave: `safari-sdk-logging`. Esta dependencia maneja el código de registro en C++ y `pybind11`. Ambos paquetes utilizan el espacio de nombres de nivel superior `safari_sdk`, siguiendo la [PEP 420 – Implicit Namespace Packages](https://peps.python.org/pep-0420/).
+
+La decisión de separar `safari-sdk` y `safari-sdk-logging` en paquetes distintos se debe a la optimización del tiempo de compilación. Las dependencias de C++ pueden tardar más de 30 minutos en compilarse desde el código fuente. Al separarlas, se permite el uso de versiones precompiladas, reduciendo el tiempo de instalación del paquete base `safari-sdk` a unos pocos segundos, siempre que no haya cambios en el código de registro de C++.
+
+## Ciclo del Agente
+
+El Safari SDK incluye un **framework de agente integral** (`safari_sdk/agent/framework`) diseñado para construir agentes robóticos interactivos impulsados por modelos Gemini. Este framework proporciona una arquitectura modular que permite a los agentes:
+
+*   **Percibir su entorno:** Recopilar información del mundo físico.
+*   **Razonar sobre tareas:** Procesar la información y tomar decisiones.
+*   **Controlar hardware robótico:** Ejecutar acciones en el robot.
+
+Un ejemplo notable es el agente Aloha (`examples/aloha/agent/simple_agent.py`), que demuestra un agente conversacional capaz de controlar el robot Aloha mediante instrucciones en lenguaje natural, integrando control robótico basado en visión, percepción multicámara e interacción conversacional con modelos Gemini.
+
+## Sistema de Memoria y Contexto
+
+Aunque el `README.md` no detalla explícitamente un 
+sistema de memoria y contexto dedicado, la descripción del framework del agente menciona que los agentes se integran con la **Gemini Live API** para proporcionar interacción conversacional y capacidades de uso de herramientas. Esto sugiere que la gestión del contexto y la memoria se manejan a través de la API de Gemini, permitiendo al agente mantener el hilo de la conversación y las tareas a lo largo del tiempo.
+
+## Manejo de Herramientas (Tools/Functions)
+
+El framework del agente incluye un componente de **Herramientas** (`safari_sdk/agent/framework/tools/`) que proporciona capacidades modulares que los agentes pueden utilizar. Estas herramientas incluyen:
+
+*   **Run instruction:** Para ejecutar instrucciones específicas.
+*   **Success detection:** Para determinar si una acción fue exitosa.
+*   **Scene description:** Para describir el entorno o la escena actual.
+
+Estas herramientas permiten a los agentes interactuar con el entorno robótico y realizar tareas complejas de manera estructurada.
+
+## Sandbox y Entorno de Ejecución
+
+El `Dockerfile` presente en el repositorio (`Dockerfile`) sugiere que el SDK está diseñado para ser ejecutado en un entorno contenedorizado, lo que proporciona un sandbox aislado y reproducible para el desarrollo y la ejecución de agentes robóticos. Esto es crucial para garantizar la consistencia del entorno y facilitar la implementación en diferentes plataformas.
+
+## Integraciones y Conectores
+
+El SDK de Safari está diseñado para soportar todos los modelos de la serie Gemini Robotics. Las bibliotecas relacionadas con el registro de datos del robot se encuentran en `safari_sdk/logging`. Las bibliotecas para la inferencia de modelos y la interfaz con los servidores de modelos están en `safari_sdk/model`. Además, las bibliotecas y binarios para acceder a los puntos de control del modelo, cargar datos y solicitar el ajuste fino del modelo se encuentran en `safari_sdk/flywheel`.
+
+El **Flywheel CLI** es una herramienta de línea de comandos que permite interactuar con la plataforma Gemini Robotics para tareas como:
+
+*   `train`: Entrenar un modelo.
+*   `serve`: Servir un modelo.
+*   `list`: Listar trabajos de entrenamiento disponibles.
+*   `list_serve`: Listar trabajos de servicio disponibles.
+*   `data_stats`: Mostrar estadísticas de datos disponibles para entrenamiento.
+*   `download`: Descargar artefactos de un trabajo de entrenamiento.
+*   `upload_data`: Cargar datos al servicio de ingesta de datos.
+
+Esto indica una fuerte integración con una plataforma de backend para la gestión del ciclo de vida de los modelos de robótica.
+
+## Benchmarks y Métricas de Rendimiento
+
+El `README.md` no proporciona benchmarks o métricas de rendimiento específicas dentro del repositorio. Sin embargo, se menciona que el SDK permite "evaluar el modelo en el robot y en sim", lo que implica que existen mecanismos para realizar evaluaciones de rendimiento. Para obtener información detallada sobre benchmarks, sería necesario consultar la "página principal de Gemini Robotics" o la documentación para "Trusted Testers".
+
+## Decisiones de Diseño Reveladas en PRs o Issues Técnicos
+
+El repositorio tiene 16 Pull Requests y 1 Issue. La mayoría de los commits recientes son sincronizaciones del SDK a nuevas versiones, lo que sugiere un proceso de desarrollo continuo y la integración de nuevas funcionalidades. La separación de `safari-sdk` y `safari-sdk-logging` en paquetes distintos es una decisión de diseño clara para optimizar los tiempos de compilación, como se mencionó anteriormente.
+
+## Información Técnica Adicional (No en la Documentación Oficial del Sitio Web)
+
+La información detallada sobre la estructura del código, la justificación de la separación de paquetes (`safari-sdk` y `safari-sdk-logging`), y la descripción de los componentes clave del framework del agente (Agentes, Embodiments, Tools, Event Bus, Configuration) se encuentra directamente en el `README.md` del repositorio de GitHub. Si bien la página principal de Gemini Robotics puede ofrecer una visión general, el repositorio de GitHub proporciona los detalles técnicos de implementación y la arquitectura del SDK, que a menudo no se encuentran en la documentación de alto nivel de un sitio web oficial. La existencia del `flywheel-cli` y sus comandos específicos también es una información técnica valiosa que se detalla en el `README.md` del repositorio.

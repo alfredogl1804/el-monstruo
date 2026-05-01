@@ -301,3 +301,114 @@ Aunque los usuarios no pueden seleccionar directamente los modelos para la gener
 1.  [Generating Videos with Perplexity | Perplexity Help Center](https://www.perplexity.ai/help-center/en/articles/11985060-generating-videos-with-perplexity) (Perplexity Help Center, 3 de marzo de 2026)
 2.  [Generating Images with Perplexity | Perplexity Help Center](https://www.perplexity.ai/help-center/en/articles/10354781-generating-images-with-perplexity) (Perplexity Help Center, 3 de marzo de 2026)
 3.  [Perplexity AI File Uploading: Supported File Types, Maximum Size Limits, Upload Rules, And Document Reading Features](https://www.datastudios.org/post/perplexity-ai-file-uploading-supported-file-types-maximum-size-limits-upload-rules-and-document) (Data Studios, 21 de enero de 2026)
+
+
+## Hallazgos Técnicos en GitHub (Fase 5)
+
+## Hallazgos Técnicos sobre Perplexity Personal Computer en GitHub
+
+### Búsqueda del Repositorio Oficial
+
+Se realizó una búsqueda exhaustiva en GitHub para localizar el repositorio oficial del agente de IA "Perplexity Personal Computer" utilizando diversas consultas de búsqueda, incluyendo "Perplexity Personal Computer github", "perplexity-ai/computer github", "Perplexity Computer App official github" y "Perplexity AI Computer App github".
+
+La búsqueda inicial en la organización oficial de GitHub de Perplexity AI (`https://github.com/perplexityai`) no reveló ningún repositorio con el nombre "computer" o "personal-computer" que contuviera el código fuente del agente. Los repositorios encontrados en la organización oficial se relacionan principalmente con SDKs (`perplexity-py`, `perplexity-node`, `ai-sdk`), kernels (`pplx-kernels`), y la implementación del protocolo MCP (`modelcontextprotocol`), pero no con el agente "Computer" en sí.
+
+### Análisis de Repositorios Relacionados (Forks y Proyectos No Oficiales)
+
+Durante la investigación, se identificó un repositorio llamado `computerperplexity/perplexity-computer` [1], que se presenta como un "fork comunitario personalizado y con muchas funciones de la aplicación oficial Perplexity Computer". Este repositorio, aunque no es oficial, proporciona información sobre cómo el agente podría funcionar y las características que se han implementado en esta versión comunitaria.
+
+El `README.md` de `computerperplexity/perplexity-computer` [1] destaca las siguientes características y aspectos técnicos de esta implementación:
+
+*   **Enfoque en la Comunidad y la Accesibilidad:** Este fork busca eliminar las barreras de inicio de sesión y suscripción presentes en la aplicación oficial, optimizar el rendimiento para hardware más antiguo y ofrecer una biblioteca de más de 80 habilidades pre-probadas.
+
+*   **Modo Local y Offline:** Permite la ejecución del agente de forma local y offline, integrándose con `Ollama` y `LM Studio` para utilizar modelos de lenguaje locales (como Llama 3, Mistral o Qwen). Esto asegura que no haya fuga de datos y que la ejecución se realice directamente en el hardware del usuario, sin depender de APIs externas en la nube para tareas sensibles.
+
+*   **Biblioteca de Habilidades Pre-construidas:** Incluye una biblioteca de más de 80 habilidades para tareas comunes, diseñadas para ser "Zero Configuration" y "Tested & Reliable", lo que sugiere un enfoque en la automatización de tareas sin necesidad de ingeniería de prompts compleja.
+
+*   **Habilidades Personalizadas:** Permite la creación de flujos de trabajo personalizados mediante archivos `.yaml` o `.json` para definir comportamientos del agente, tareas multi-paso y disparadores de API específicos. Esto indica una arquitectura modular y extensible para la funcionalidad del agente.
+
+*   **Integraciones Expandidas:** A diferencia de la versión oficial que supuestamente tiene conexiones limitadas, este fork ha reescrito el módulo de integración para soportar una amplia gama de servicios a través de OAuth, incluyendo plataformas de comunicación (Telegram, WhatsApp, Discord, Slack, Gmail), desarrollo (GitHub, GitLab, Vercel, AWS, Supabase) y documentos (Google Workspace, Notion, Microsoft 365, Obsidian).
+
+*   **Requisitos de Hardware Ultra-Bajos:** Se ha optimizado el cliente para funcionar como una aplicación ligera, con el procesamiento pesado de la "Mixture of Agents" (MoA) manejado a través de una arquitectura en la nube. Esto sugiere que el cliente local actúa principalmente como una interfaz gráfica, mientras que la lógica compleja se ejecuta en la nube.
+
+*   **Seguridad Mejorada (Prompt Guard):** Incorpora mecanismos de defensa contra la inyección de prompts, inspirados en `seojoonkim/prompt-guard`, para proteger a los agentes contra inyecciones maliciosas, extracción de datos y jailbreaks.
+
+*   **Modelo de Precios "Bring Your Own Key (BYOK)":** Permite a los usuarios utilizar sus propias claves de API (Anthropic, OpenAI, Google) para pagar directamente a los proveedores por el uso de los modelos, eliminando las suscripciones obligatorias. Se menciona la "Aggressive Prompt Caching" para reducir el consumo de tokens y una "Local-First Architecture" donde la memoria y las bases de datos vectoriales se almacenan localmente, recurriendo a APIs externas solo cuando es estrictamente necesario.
+
+### Arquitectura y Ciclo del Agente (Inferido del Fork)
+
+Aunque no se dispone del código fuente oficial, el `README.md` del fork [1] proporciona pistas sobre la arquitectura y el ciclo del agente:
+
+*   **Enrutamiento Dinámico (MoA - Mixture of Agents):** El "Orchestrator" (Orquestador) selecciona dinámicamente el mejor modelo para cada tarea (por ejemplo, Gemini 3.1 Pro para investigación profunda, OpenAI o3 para codificación, Nano Banana 2 para imágenes). Esto implica un componente central de orquestación que evalúa la tarea y distribuye el trabajo a diferentes modelos especializados.
+
+*   **Auto-reparación (Self-Healing):** El agente es capaz de recuperarse de errores como captchas, enlaces rotos o errores de código. Abre un navegador headless, busca soluciones en Google y reintenta la tarea. Esto sugiere un bucle de retroalimentación y mecanismos de manejo de errores integrados en el ciclo del agente.
+
+*   **Editor Visual de Nodos y Pantalla Dividida:** La mención de un "Visual Node Editor" y un "MindMap" para seguir el progreso del AI en tiempo real sugiere una interfaz gráfica que permite visualizar y posiblemente configurar el flujo de trabajo del agente, lo que implica un ciclo de ejecución basado en nodos o estados.
+
+*   **Pausas Inteligentes (HITL - Human-in-the-Loop):** Permite establecer reglas para que el agente solicite permiso antes de ejecutar acciones críticas (como `git push` o enviar correos electrónicos). Esto indica puntos de control en el ciclo del agente donde la intervención humana es requerida, mejorando la seguridad y el control.
+
+### Sistema de Memoria y Contexto
+
+El fork menciona una "Local-First Architecture" donde el contexto del LLM y las bases de datos vectoriales se almacenan localmente en la máquina del usuario. El agente prioriza su memoria local y solo recurre a APIs externas para razonamiento profundo o búsquedas web complejas. Esto sugiere un sistema de memoria híbrido, con una capa local para eficiencia y privacidad, y una capa externa para capacidades avanzadas.
+
+### Manejo de Herramientas (Tools/Functions)
+
+La biblioteca de más de 80 habilidades pre-construidas y la capacidad de crear habilidades personalizadas mediante archivos `.yaml` o `.json` demuestran un robusto sistema de manejo de herramientas. Estas "habilidades" actúan como herramientas o funciones que el agente puede invocar para realizar tareas específicas, lo que es fundamental para un agente de orquestación multi-modelo.
+
+### Sandbox y Entorno de Ejecución
+
+El `README.md` del fork indica que "Todas las ejecuciones del agente ocurren en sandboxes aislados en la nube". Esto, combinado con la opción de "Air-Gapped Execution" en modo local, sugiere un entorno de ejecución flexible que puede operar tanto en la nube (con sandboxes aislados para seguridad) como localmente en un entorno air-gapped para máxima privacidad.
+
+### Integraciones y Conectores
+
+El fork ha expandido significativamente las integraciones y conectores, soportando una amplia gama de servicios a través de OAuth. Esto es crucial para un agente de orquestación multi-modelo, ya que le permite interactuar con diversas aplicaciones y plataformas para completar tareas complejas.
+
+### Benchmarks y Métricas de Rendimiento
+
+No se encontraron benchmarks o métricas de rendimiento específicas en el repositorio del fork. Sin embargo, la mención de "optimiza el rendimiento para PCs más antiguos" y "Ultra-Low Hardware Requirements" sugiere un enfoque en la eficiencia y la accesibilidad, aunque sin datos cuantitativos.
+
+### Decisiones de Diseño en PRs o Issues Técnicos
+
+Dado que el repositorio `computerperplexity/perplexity-computer` es un fork con solo 3 commits y 0 issues y 0 pull requests, no se pudo encontrar información sobre decisiones de diseño reveladas en PRs o issues técnicos.
+
+### Información Técnica No Encontrada en la Documentación Oficial del Sitio Web
+
+La información detallada sobre el modo local y offline, la arquitectura "Local-First", la "Aggressive Prompt Caching", y la capacidad de "Air-Gapped Execution" no se encuentra explícitamente en la documentación pública del sitio web de Perplexity AI, que se enfoca más en las capacidades de alto nivel del producto. El modelo BYOK y la eliminación de la necesidad de una suscripción también son características específicas de este fork que no se encuentran en la oferta oficial.
+
+### Conclusión
+
+Aunque no se pudo localizar un repositorio oficial de código fuente para "Perplexity Personal Computer" en GitHub, el análisis del fork `computerperplexity/perplexity-computer` [1] proporciona una visión detallada de las posibles características técnicas, la arquitectura y el ciclo de vida de un agente de IA de orquestación multi-modelo. Es importante recalcar que esta información proviene de una implementación comunitaria no oficial y puede no reflejar completamente la arquitectura o las características de la versión oficial de Perplexity AI.
+
+### Referencias
+
+[1] computerperplexity/perplexity-computer. (n.d.). *GitHub*. Recuperado de https://github.com/computerperplexity/perplexity-computer
+
+## Hallazgos Técnicos en GitHub (Fase 5)
+
+## Hallazgos Técnicos: Perplexity Enterprise
+
+### Búsqueda de Repositorio Oficial en GitHub
+
+Se realizó una búsqueda exhaustiva en GitHub para identificar un repositorio oficial asociado directamente con "Perplexity Enterprise". La búsqueda inicial se centró en la organización de GitHub de Perplexity AI (`perplexityai`). Se utilizó el término de búsqueda "enterprise" dentro de los repositorios de esta organización, pero no se encontraron resultados que coincidieran con un repositorio específico para "Perplexity Enterprise".
+
+### Análisis de Fuentes Relacionadas
+
+Se consultó el artículo del Centro de Ayuda de Perplexity titulado "Github Connector for Enterprise" [1]. Este documento describe la funcionalidad del conector de GitHub para usuarios de Perplexity Pro, Perplexity Max y organizaciones Enterprise. Detalla cómo el conector permite a los usuarios consultar y combinar información de sus repositorios de GitHub directamente en Perplexity. Sin embargo, el artículo no hace referencia a un repositorio de GitHub público para el agente "Perplexity Enterprise" en sí, sino que describe una característica de integración.
+
+El artículo menciona las siguientes áreas relevantes:
+
+*   **Funcionalidad:** Permite la búsqueda instantánea de código e información en repositorios, integración de datos de GitHub con otras aplicaciones de productividad y fuentes web, y gestión de información a nivel de organización.
+*   **Privacidad y Seguridad de Datos:** El conector requiere permisos extensos, incluyendo control total de claves GPG, acceso de administrador a organizaciones y equipos, webhooks, claves SSH públicas, gestión de codespaces, paquetes, eliminación de repositorios, gists, notificaciones, proyectos, y acceso a datos personales del usuario. Se enfatiza que los repositorios y datos de GitHub de los usuarios Enterprise nunca se utilizan para el entrenamiento de IA, y se aplican salvaguardas para la confidencialidad y el cumplimiento normativo (SOC 2 Tipo II, cifrado de extremo a extremo, medidas de privacidad de datos estrictas y controles de acceso de usuario granulares).
+*   **Activación:** Se describe el proceso de activación del conector a través de la sección "Connectors" en la configuración de Perplexity, que implica la autorización de permisos en GitHub.
+
+### Conclusión sobre el Repositorio de GitHub
+
+Basado en la investigación, no se encontró un repositorio de GitHub público y dedicado para el agente de IA "Perplexity Enterprise". La información disponible sugiere que "Perplexity Enterprise" es una oferta de características y servicios que incluyen un conector de GitHub, más que un agente de IA con un código fuente abierto o un repositorio técnico público en GitHub. Por lo tanto, no fue posible analizar la arquitectura interna, el ciclo del agente, el sistema de memoria, el manejo de herramientas, el sandbox, las integraciones (más allá del conector de GitHub), los benchmarks o las decisiones de diseño a través de un repositorio de GitHub.
+
+### Información Nueva
+
+No se encontró información técnica en GitHub que no estuviera ya implícita o mencionada en la documentación oficial del sitio web de Perplexity (específicamente en el Centro de Ayuda).
+
+### Referencias
+
+[1] Github Connector for Enterprise | Perplexity Help Center. (2026, 22 de abril). Recuperado de [https://www.perplexity.ai/help-center/en/articles/12275669-github-connector-for-enterprise](https://www.perplexity.ai/help-center/en/articles/12275669-github-connector-for-enterprise)

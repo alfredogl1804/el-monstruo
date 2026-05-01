@@ -521,3 +521,75 @@ La investigación sobre el OpenAI Operator y su Computer-Using Agent (CUA) ofrec
 [16] Coasty.ai. (2026, Marzo 24). *OpenAI Operator Review 2026: The Computer Use Agent ...*. Recuperado de [https://coasty.ai/blog/openai-operator-review-2026](https://coasty.ai/blog/openai-operator-review-2026)
 [17] Shaik, P. (2026, Marzo 24). *Open-source AI agent beats OpenAI CUA on 3/4 benchmarks*. LinkedIn. Recuperado de [https://www.linkedin.com/posts/pasha-shaik_an-open-source-ai-agent-that-browses-the-activity-7442409652480389120-jOnb](https://www.linkedin.com/posts/pasha-shaik_an-open-source-ai-agent-that-browses-the-activity-7442409652480389120-jOnb)
 [18] OpenAI. (n.d.). *CUA eval extra information*. Recuperado de [https://cdn.openai.com/cua/CUA_eval_extra_information.pdf](https://cdn.openai.com/cua/CUA_eval_extra_information.pdf)
+
+
+## Hallazgos Técnicos en GitHub (Fase 5)
+
+# Hallazgos Técnicos del Agente OpenAI Operator (openai/operator en GitHub)
+
+## URL del Repositorio Oficial
+
+El repositorio oficial encontrado en GitHub es: [https://github.com/openai/openai-cua-sample-app](https://github.com/openai/openai-cua-sample-app)
+
+## Actividad del Repositorio
+
+El repositorio `openai/openai-cua-sample-app` ha mostrado actividad reciente, con commits registrados en los últimos 60 días. Esto indica que el proyecto está siendo mantenido activamente.
+
+## Arquitectura Interna
+
+El repositorio `openai-cua-sample-app` es una aplicación de ejemplo en TypeScript diseñada para flujos de trabajo de uso de computadora centrados en el navegador con GPT-5.4. La arquitectura se compone de varios componentes clave:
+
+*   `apps/demo-web`: Una consola de operador Next.js que permite iniciar ejecuciones, revisar capturas de pantalla, eventos y artefactos de reproducción.
+*   `apps/runner`: Un *runner* Fastify que gestiona espacios de trabajo mutables, sesiones de navegador, SSE (Server-Sent Events) y paquetes de reproducción.
+*   `packages/*`: Paquetes compartidos para escenarios, tiempo de ejecución y contratos que facilitan la adición de nuevos laboratorios.
+
+El diseño modular sugiere una clara separación de responsabilidades, donde la interfaz de usuario (`demo-web`) se encarga de la interacción con el operador, el `runner` orquesta la ejecución del agente y los `packages` proporcionan componentes reutilizables.
+
+## Ciclo del Agente (Loop, Estados, Transiciones)
+
+El ciclo del agente se centra en la integración con la API de Responses. El `runner-core` es el encargado de la orquestación, el bucle de Responses, los ejecutores de escenarios y la verificación. El repositorio demuestra cómo integrar la API de Responses desde un lugar canónico: `packages/runner-core/src/responses-loop.ts`. Esto implica que el agente opera en un bucle donde recibe una entrada, procesa la información, interactúa con el navegador (ya sea en modo `native` o `code`) y luego verifica los resultados.
+
+## Sistema de Memoria y Contexto
+
+Aunque el `README.md` no detalla explícitamente un sistema de memoria y contexto, la mención de "espacios de trabajo mutables" en el `apps/runner` sugiere que el agente mantiene un estado o contexto durante sus ejecuciones. Además, la capacidad de "revisar capturas de pantalla, eventos y artefactos de reproducción" en la consola del operador implica que se guarda un historial de las interacciones del agente, lo que podría considerarse parte de su contexto o memoria para depuración y análisis.
+
+## Manejo de Herramientas (Tools/Functions)
+
+El agente utiliza dos modos principales de ejecución para interactuar con el navegador, que pueden considerarse como el manejo de herramientas:
+
+*   **Modo `native`**: Expone directamente la herramienta de computadora de la API de Responses. El modelo solicita clics, arrastres, escritura, esperas y capturas de pantalla contra la sesión del navegador en vivo. Este modo es la muestra más cercana de la herramienta de computadora en sí.
+*   **Modo `code`**: Expone un REPL (Read-Eval-Print Loop) persistente de JavaScript de Playwright a través de `exec_js`. El modelo *scripta* el navegador en lugar de emitir acciones de computadora en bruto. Este modo es una muestra clara de un arnés REPL de navegador.
+
+Ambos modos utilizan los mismos manifiestos de escenario y pipeline de reproducción. La verificación funciona de la misma manera en ambos, ya que lee el estado final del laboratorio, no la transcripción del agente.
+
+## Sandbox y Entorno de Ejecución
+
+El entorno de ejecución se basa en:
+
+*   **Node.js**: Versión `22.20.0`
+*   **pnpm**: Versión `10.26.0`
+*   **Playwright**: Se requiere la instalación del navegador Chromium de Playwright.
+
+El `apps/runner` gestiona "espacios de trabajo mutables" y "sesiones de navegador", lo que sugiere un entorno aislado para cada ejecución del agente. Esto proporciona un sandbox donde el agente puede interactuar con el navegador sin afectar el sistema subyacente. Los "labs" son plantillas de laboratorio estáticas que se copian en espacios de trabajo con alcance de ejecución, lo que refuerza la idea de un entorno controlado y reproducible.
+
+## Integraciones y Conectores
+
+La integración principal es con la **API de Responses de OpenAI**. El repositorio demuestra cómo integrar esta API para el control del navegador. No se mencionan explícitamente otras integraciones o conectores externos en el `README.md`, pero la naturaleza modular del proyecto y el uso de `packages/*` para contratos compartidos podrían facilitar futuras integraciones.
+
+## Benchmarks y Métricas de Rendimiento
+
+El `README.md` no proporciona benchmarks o métricas de rendimiento específicas. Sin embargo, los "escenarios oficiales" (`kanban-reprioritize-sprint`, `paint-draw-poster`, `booking-complete-reservation`) están diseñados para "verificación determinista" y "laboratorios locales". Esto implica que el enfoque está en la funcionalidad y la capacidad de verificar los resultados de las acciones del agente, más que en la velocidad o eficiencia en esta etapa de la muestra.
+
+## Decisiones de Diseño Reveladas en PRs o Issues Técnicos
+
+Al revisar los issues, se encuentran algunas discusiones que revelan decisiones de diseño o limitaciones:
+
+*   **Limitaciones de seguridad**: El repositorio advierte que "el uso de la computadora sigue siendo de alto riesgo" y aconseja "no apuntar esta muestra a entornos autenticados, financieros, médicos o de alto riesgo". Esto subraya una decisión de diseño de priorizar la seguridad y la contención en esta etapa de desarrollo, limitando el alcance del agente a tareas de bajo riesgo.
+*   **Enfoque en el navegador**: El repositorio está "intencionalmente centrado en el navegador". Los escenarios de "parcheo de espacio de trabajo y edición de archivos están fuera del alcance de la rama de lanzamiento de OSS". Esto indica una decisión de diseño de especializar el agente en interacciones web, dejando otras formas de uso de la computadora para futuras iteraciones o proyectos separados.
+*   **Ausencia de reconocimiento de seguridad**: "Los reconocimientos de seguridad pendientes del uso de la computadora no se implementan en esta muestra todavía". Esto es una limitación conocida y una decisión de diseño temporal, lo que sugiere que se planean futuras mejoras en la seguridad.
+*   **Escenarios locales y deterministas**: Los escenarios públicos son "laboratorios locales diseñados para verificación determinista" y "no están destinados como pruebas de autonomía web general". Esto refleja una decisión de diseño de crear un entorno controlado para el desarrollo y la prueba, en lugar de buscar una autonomía completa en entornos web complejos de inmediato.
+*   **Discusiones en Issues**: Algunos issues, como "Sharing: Vision-based CUA on enterprise remote desktops — lessons from a multi-agent approach" (#69) o "Async Computer API?" (#60), sugieren discusiones sobre la evolución de las capacidades del agente, como el soporte para entornos de escritorio remotos o APIs asíncronas, lo que podría influir en futuras decisiones de diseño.
+
+## Información Técnica Nueva (No en la Documentación Oficial del Sitio Web)
+
+La información detallada sobre la arquitectura interna del `openai-cua-sample-app`, los modos de ejecución (`native` y `code`), la estructura de los paquetes (`apps/demo-web`, `apps/runner`, `packages/*`), los requisitos de Node.js, pnpm y Playwright, y las advertencias de seguridad específicas del repositorio no se encuentran en la documentación general de OpenAI sobre "Operator" o "Computer-Using Agent". El `README.md` de este repositorio de ejemplo proporciona una visión mucho más profunda de la implementación técnica y las consideraciones de diseño de un agente CUA en un entorno de desarrollo real. Los issues también revelan discusiones y limitaciones que no suelen estar presentes en la documentación de alto nivel.

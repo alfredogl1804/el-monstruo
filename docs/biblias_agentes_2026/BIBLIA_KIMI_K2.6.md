@@ -546,3 +546,72 @@ Estas referencias, combinadas, ofrecen una visión completa y verificable de las
 [4] Kimi K2: Open Agentic Intelligence. arXiv. https://arxiv.org/abs/2507.20534
 [5] Kimi K2.6 Model Overview: Architecture, Features & Capabilities. DeepInfra. https://deepinfra.com/blog/kimi-k2-6-model-overview
 [6] Kimi K2.6 Tech Blog: Advancing Open-Source Coding. Kimi.com. https://www.kimi.com/blog/kimi-k2-6
+
+## Hallazgos Técnicos en GitHub (Fase 5)
+
+## Hallazgos Técnicos de Kimi K2
+
+### URL del Repositorio Oficial
+El repositorio oficial de GitHub para Kimi K2 es: [https://github.com/moonshotai/Kimi-K2](https://github.com/moonshotai/Kimi-K2).
+
+### Arquitectura Interna
+Kimi K2 es un modelo de lenguaje de **Mixture-of-Experts (MoE)** de última generación, con 32 mil millones de parámetros activados y un total de 1 billón de parámetros. Ha sido entrenado con el optimizador Muon y optimizado para capacidades agenticas. La arquitectura detallada es la siguiente:
+
+| Característica | Valor |
+|---|---|
+| **Arquitectura** | Mixture-of-Experts (MoE) |
+| **Parámetros Totales** | 1T |
+| **Parámetros Activados** | 32B |
+| **Número de Capas** (incluyendo capa densa) | 61 |
+| **Número de Capas Densas** | 1 |
+| **Dimensión Oculta de Atención** | 7168 |
+| **Dimensión Oculta de MoE** (por Experto) | 2048 |
+| **Número de Cabezas de Atención** | 64 |
+| **Número de Expertos** | 384 |
+| **Expertos Seleccionados por Token** | 8 |
+| **Número de Expertos Compartidos** | 1 |
+| **Tamaño del Vocabulario** | 160K |
+| **Longitud del Contexto** | 128K |
+| **Mecanismo de Atención** | MLA |
+| **Función de Activación** | SwiGLU |
+
+### Ciclo del Agente
+Kimi K2 está diseñado específicamente para **inteligencia agentica**, lo que implica el uso de herramientas, razonamiento y resolución autónoma de problemas. El ciclo del agente, tal como se describe en la sección de "Tool Calling", sigue un flujo donde el modelo decide cuándo y cómo invocar herramientas en respuesta a una consulta del usuario. Este proceso incluye:
+
+1.  El modelo recibe una consulta del usuario.
+2.  Basándose en la consulta y las herramientas disponibles, el modelo decide si necesita invocar una herramienta.
+3.  Si se invoca una herramienta, el modelo genera una llamada a la herramienta con los argumentos necesarios.
+4.  El resultado de la ejecución de la herramienta se devuelve al modelo.
+5.  El modelo utiliza el resultado de la herramienta para generar una respuesta final al usuario, manteniendo un historial de mensajes para gestionar el contexto de la conversación.
+
+### Sistema de Memoria y Contexto
+El modelo Kimi K2 tiene una **longitud de contexto de 128K tokens**. La gestión del contexto se realiza a través del historial de mensajes en las interacciones de chat. En los ejemplos de uso, se muestra cómo se pasan los mensajes del sistema y del usuario, y cómo se añaden las respuestas del modelo y los resultados de las herramientas al historial de mensajes para mantener la coherencia y el contexto de la conversación.
+
+### Manejo de Herramientas (Tools/Functions)
+Kimi-K2-Instruct posee **fuertes capacidades de llamada a herramientas**. El repositorio proporciona un ejemplo detallado de cómo implementar y utilizar herramientas. Esto incluye:
+
+*   **Definición del esquema de la herramienta:** Las herramientas se definen utilizando un esquema JSON que especifica el nombre de la función, la descripción y los parámetros requeridos.
+*   **Implementación de la herramienta:** Se muestra cómo mapear los nombres de las herramientas a sus implementaciones de funciones en Python.
+*   **Flujo de llamada a la herramienta:** El ejemplo `tool_call_with_client` ilustra el pipeline completo desde la consulta del usuario hasta la ejecución de la herramienta y la incorporación de los resultados en la respuesta del modelo. El modelo decide autónomamente cuándo y cómo invocar las herramientas basándose en la consulta del usuario y los esquemas de las herramientas proporcionados.
+
+### Sandbox y Entorno de Ejecución
+El repositorio no describe un "sandbox" en el sentido de un entorno de ejecución aislado y seguro proporcionado por el agente. En cambio, se recomienda ejecutar Kimi K2 en **motores de inferencia** como vLLM, SGLang, KTransformers y TensorRT-LLM. Esto sugiere que el entorno de ejecución es una configuración local o de servidor donde se despliega el modelo utilizando estos motores para la inferencia. Se proporcionan guías de despliegue para vLLM y SGLang.
+
+### Integraciones y Conectores
+Kimi K2 se integra a través de su **API en https://platform.moonshot.ai**, la cual es compatible con las APIs de OpenAI y Anthropic. Los checkpoints del modelo están disponibles en formato block-fp8 en Huggingface. Además, se integra con los motores de inferencia mencionados anteriormente (vLLM, SGLang, KTransformers, TensorRT-LLM) para su despliegue y uso.
+
+### Benchmarks y Métricas de Rendimiento
+El repositorio presenta una sección exhaustiva de resultados de evaluación para Kimi K2, comparándolo con otros modelos como DeepSeek-V3, Qwen3, Claude Sonnet/Opus, GPT-4.1 y Gemini 2.5 Flash. Las evaluaciones cubren diversas categorías:
+
+*   **Tareas de Codificación:** LiveCodeBench, OJBench, MultiPL-E, SWE-bench Verified (Agentless y Agentic), SWE-bench Multilingual, TerminalBench, Aider-Polyglot. Las métricas incluyen Pass@1 y Accuracy.
+*   **Tareas de Uso de Herramientas:** Tau2 (retail, airline, telecom), AceBench. Las métricas incluyen Avg@4 y Accuracy.
+*   **Tareas de Matemáticas y STEM:** AIME, MATH-500, HMMT, CNMO, PolyMath-en, ZebraLogic, AutoLogi. Las métricas incluyen Avg@k y Accuracy.
+*   **Tareas Generales:** MMLU, MMLU-Redux, MMLU-Pro, IFEval, Multi-Challenge, SimpleQA, Livebench, GPQA-Diamond, SuperGPQA, Humanity's Last Exam. Las métricas incluyen EM, Prompt Strict, Correct y Accuracy.
+
+Kimi K2 muestra un rendimiento competitivo, logrando **SOTA (estado del arte)** en varias de estas pruebas, especialmente en tareas de codificación agentica (65.8% pass@1 en SWE-bench Verified con herramientas bash/editor) y uso de herramientas.
+
+### Decisiones de Diseño Reveladas en PRs o Issues Técnicos
+El README destaca que Kimi K2 está **meticulosamente optimizado para capacidades agenticas**. Esto se logra a través de su arquitectura MoE, el entrenamiento con el optimizador Muon, y su diseño específico para el uso de herramientas, el razonamiento y la resolución autónoma de problemas. La elección de una arquitectura MoE con 1T de parámetros totales y 32B activados, junto con una longitud de contexto de 128K, subraya una decisión de diseño orientada a manejar tareas complejas y de largo alcance, como la codificación y el diseño impulsado por código.
+
+### Información Técnica Nueva (no en la documentación oficial del sitio web)
+La información detallada sobre la arquitectura interna (número de capas, dimensiones ocultas, número de expertos, etc.), las métricas de rendimiento específicas de los benchmarks y la descripción detallada del flujo de llamada a herramientas con ejemplos de código son hallazgos técnicos que probablemente no se encuentran en un nivel de detalle tan granular en la documentación oficial de un sitio web, que tiende a ser más de alto nivel y orientada al usuario. La mención de los optimizadores y los motores de inferencia recomendados también añade un nivel de detalle técnico que podría ser nuevo.

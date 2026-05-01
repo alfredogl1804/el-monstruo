@@ -265,3 +265,83 @@ En resumen, Project Mariner ha demostrado ser un agente de IA altamente capaz en
 [7] Houdao.com. (n.d.). "Google DeepMind Announces Project Mariner: An AI Agent...". [https://www.houdao.com/d/10169-Google-DeepMind-Announces-Project-Mariner-An-AI-Agent-That-Autonomously-Controls-a-Computer-to-Perform-Complex-Tasks](https://www.houdao.com/d/10169-Google-DeepMind-Announces-Project-Mariner-An-AI-Agent-That-Autonomously-Controls-a-Computer-to-Perform-Complex-Tasks) (Fecha de consulta: 1 de mayo de 2026).
 [8] Callsphere.tech. (2026, March 16). "Google DeepMind Unveils Project Mariner: AI Agents That Navigate Web Like Humans". [https://callsphere.tech/blog/google-deepmind-project-mariner-ai-agents-navigate-web-like-humans](https://callsphere.tech/blog/google-deepmind-project-mariner-ai-agents-navigate-web-like-humans) (Fecha de consulta: 1 de mayo de 2026).
 [9] OSU NLP Group. "Mind2Web 2: Evaluating Agentic Search with Agent-as-a-Judge". [https://osu-nlp-group.github.io/Mind2Web-2/](https://osu-nlp-group.github.io/Mind2Web-2/) (Fecha de consulta: 1 de mayo de 2026).
+
+## Hallazgos Técnicos en GitHub (Fase 5)
+
+# Hallazgos Técnicos sobre Project Mariner (google-deepmind/project-mariner)
+
+## Resumen de la Investigación
+
+La investigación en GitHub para el agente de IA **Project Mariner (google-deepmind/project-mariner)** no arrojó un repositorio oficial bajo la organización `google-deepmind`. Se realizaron búsquedas exhaustivas utilizando términos como "Project Mariner google-deepmind github" y "google deepmind project mariner github repository". Ante la ausencia de un repositorio oficial, la búsqueda se amplió a "Project Mariner github" y "Project Mariner AI agent github" para identificar proyectos relacionados o alternativas de código abierto que pudieran ofrecer información técnica relevante.
+
+Se identificó un proyecto de código abierto llamado **K3 Mariner: Autonomous Research Unit (Community Edition)**, disponible en `https://github.com/Fandry96/k3-mariner` [1]. Este repositorio se presenta como una "alternativa de código abierto a Project Mariner" y fue investigado en detalle para extraer información sobre la arquitectura, el ciclo del agente, el manejo de herramientas y las integraciones, bajo el supuesto de que podría reflejar conceptos o enfoques similares al Project Mariner original de Google DeepMind.
+
+## Repositorio de GitHub
+
+*   **URL del Repositorio Oficial:** No encontrado
+*   **URL del Repositorio Alternativo (K3 Mariner):** `https://github.com/Fandry96/k3-mariner` [1]
+*   **Actividad del Repositorio Alternativo:** El repositorio `Fandry96/k3-mariner` muestra actividad reciente, con la última actualización registrada el 1 de mayo de 2026, lo que indica que está activo.
+
+## Hallazgos Técnicos del K3 Mariner (Alternativa de Código Abierto)
+
+### Arquitectura Interna
+
+El proyecto K3 Mariner está construido sobre el framework `smolagents` [2], una biblioteca para la creación de agentes de IA. La arquitectura central se basa en la clase `K3MarinerAgent`, que hereda de `CodeAgent` de `smolagents`. Utiliza `LiteLLMModel` para interactuar con modelos de lenguaje grandes (LLMs), específicamente configurado para usar modelos de Gemini (por ejemplo, `gemini/gemini-flash-latest` o `gemini/gemini-pro-latest`) a través de la API de Google [3].
+
+La configuración del modelo se realiza con un `temperature=0.0`, lo que sugiere un enfoque en la precisión y la reproducibilidad de las respuestas, en lugar de la creatividad. El `max_tokens` se establece en 8192, indicando una capacidad para manejar contextos de conversación relativamente largos.
+
+### Ciclo del Agente (Loop, Estados, Transiciones)
+
+El `K3MarinerAgent` opera con un número máximo de pasos (`max_steps`) de 10 o 15, dependiendo de la implementación (15 en `agent.py` y 10 en `app.py` para la interfaz Streamlit). El ciclo del agente se rige por un `system_prompt` que define su identidad y directivas. Las directivas clave incluyen:
+
+*   **PRECISIÓN:** El código debe ser exacto, evitando importaciones "alucinadas".
+*   **VERIFICACIÓN:** La información debe ser verificada antes de ser reportada como un hecho.
+*   **FORMATO:** Se requiere una salida clara y estructurada, con tablas ASCII para datos.
+*   **TONO:** Profesional, conciso y cibernético.
+
+El protocolo del agente establece que siempre debe "PENSAR" primero para planificar su enfoque, escribir código Python robusto con manejo de errores, y reintentar con una estrategia diferente si una herramienta falla. También se enfatiza la importancia de "CITAR FUENTES" [2].
+
+### Sistema de Memoria y Contexto
+
+El sistema de memoria y contexto se gestiona principalmente a través del `system_prompt` y el contexto de la conversación que `smolagents` pasa al `LiteLLMModel`. No se observa un módulo de memoria explícito o una base de datos de conocimiento a largo plazo en los archivos `agent.py` o `app.py`. El `max_tokens` del modelo de lenguaje (8192) define la ventana de contexto disponible para el agente en cada interacción.
+
+### Manejo de Herramientas (Tools/Functions)
+
+El agente K3 Mariner está equipado con un conjunto de herramientas (`toolbox`) que incluye:
+
+*   **`MarinerSearchTool` (web_search):** Esta herramienta realiza búsquedas web utilizando DuckDuckGo Search [4]. Está diseñada para devolver un resumen de los cinco resultados principales para una consulta dada. Incluye manejo de errores para fallos de búsqueda y formateo de resultados con título, enlace y fragmento. La implementación de la búsqueda se realiza a través de la biblioteca `duckduckgo_search` [2].
+*   **`FinalAnswerTool`:** Una herramienta estándar de `smolagents` para indicar la finalización de una tarea y proporcionar la respuesta final [2].
+
+El agente controla explícitamente su conjunto de herramientas (`add_base_tools=False`), lo que significa que solo las herramientas definidas en `self.toolbox` están disponibles para su uso.
+
+### Sandbox y Entorno de Ejecución
+
+El código no detalla un entorno de sandbox explícito para la ejecución de código generado por el agente. Sin embargo, el framework `smolagents` y la naturaleza de los agentes de IA a menudo implican la ejecución de código en un entorno controlado. El proyecto se ejecuta en un entorno Python estándar y utiliza variables de entorno (como `GOOGLE_API_KEY`) para la configuración [2, 3].
+
+### Integraciones y Conectores
+
+Las principales integraciones identificadas son:
+
+*   **Google Gemini API:** A través de `LiteLLMModel`, el agente se conecta a los modelos de lenguaje de Gemini de Google para sus capacidades de razonamiento y generación de texto [3].
+*   **DuckDuckGo Search:** Utilizado por `MarinerSearchTool` para realizar búsquedas web y recopilar información externa [4].
+*   **Streamlit:** La aplicación `app.py` utiliza Streamlit para proporcionar una interfaz de usuario interactiva para el agente, permitiendo a los usuarios ingresar misiones y ver el progreso y los resultados del agente en tiempo real [5].
+
+### Benchmarks y Métricas de Rendimiento
+
+No se encontraron referencias a benchmarks específicos o métricas de rendimiento en el código fuente o la documentación del repositorio `Fandry96/k3-mariner`. La evaluación del rendimiento se infiere a través de la capacidad del agente para completar misiones de investigación y la calidad de sus respuestas finales.
+
+### Decisiones de Diseño en PRs o Issues Técnicos
+
+Dado que este es un repositorio alternativo y no el oficial de Google DeepMind, no se revisaron PRs o issues técnicos relacionados con las decisiones de diseño del Project Mariner original. Sin embargo, el historial de commits del repositorio `k3-mariner` muestra un enfoque en la mejora de la documentación y la refactorización del código, lo que indica un desarrollo activo y decisiones de diseño iterativas dentro de este proyecto de código abierto [1].
+
+### Información Técnica Nueva
+
+La existencia y los detalles técnicos del proyecto **K3 Mariner: Autonomous Research Unit (Community Edition)** son información técnica nueva que no se encuentra en la documentación oficial de Google DeepMind sobre Project Mariner. Este repositorio de código abierto proporciona una implementación funcional de un agente de investigación autónomo, ofreciendo una visión práctica de cómo podría estructurarse un agente de este tipo, incluso si no es la implementación oficial de Google.
+
+## Referencias
+
+[1] Fandry96/k3-mariner. (n.d.). *GitHub*. Retrieved May 1, 2026, from https://github.com/Fandry96/k3-mariner
+[2] Fandry96. (2026, May 1). *k3-mariner/agent.py*. GitHub. Retrieved May 1, 2026, from https://github.com/Fandry96/k3-mariner/blob/master/agent.py
+[3] Fandry96. (2026, May 1). *k3-mariner/app.py*. GitHub. Retrieved May 1, 2026, from https://github.com/Fandry96/k3-mariner/blob/master/app.py
+[4] DuckDuckGo Search. (n.d.). *DuckDuckGo*. Retrieved May 1, 2026, from https://duckduckgo.com/
+[5] Streamlit. (n.d.). *Streamlit*. Retrieved May 1, 2026, from https://streamlit.io/

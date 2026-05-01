@@ -522,3 +522,76 @@ En resumen, las capacidades de integración y conectores de Metis en Alibaba Clo
 [11] Alibaba Cloud. (2024, April 9). _Simple Log Service:Create a webhook_. [https://www.alibabacloud.com/help/en/sls/create-a-webhook](https://www.alibabacloud.com/help/en/sls/create-a-webhook)
 [12] Alibaba Cloud. (2026, March 11). _Send Alert Notifications via Custom Webhook - ARMS_. [https://www.alibabacloud.com/help/en/arms/alarm-operation-center/use-webhook-to-send-custom-alert-notifications](https://www.alibabacloud.com/help/en/arms/alarm-operation-center/use-webhook-to-send-custom-alert-notifications)
 [13] Alibaba Cloud. (2024, July 18). _Configure a notification template and a webhook template_. [https://www.alibabacloud.com/help/en/arms/alarm-operation-center/configure-notification-templates-and-webhook-templates](https://www.alibabacloud.com/help/en/arms/alarm-operation-center/configure-notification-templates-and-webhook-templates)
+
+
+## Hallazgos Técnicos en GitHub (Fase 5)
+
+# Hallazgos Técnicos del Agente Metis (Accio-Lab/Metis)
+
+## URL del Repositorio Oficial
+El repositorio oficial de GitHub para el agente Metis es: [https://github.com/Accio-Lab/Metis](https://github.com/Accio-Lab/Metis)
+
+## Arquitectura Interna
+Metis emplea una arquitectura estratégica de razonamiento multimodal que se basa en la **Optimización de Políticas Jerárquicamente Desacopladas (HDPO)**. Esta arquitectura aborda el problema de la "invocación ciega de herramientas" en modelos multimodales agenticos actuales. HDPO mantiene dos canales de optimización ortogonales:
+
+*   **Canal de Precisión (Accuracy Channel):** Maximiza globalmente la corrección de la tarea.
+*   **Canal de Eficiencia (Efficiency Channel):** Impone la parsimonia en el uso de herramientas exclusivamente dentro de las trayectorias correctas.
+
+Este diseño desacoplado induce un **currículo implícito**, donde el agente primero aprende a ser correcto y luego a ser eficiente. La implementación de HDPO incluye tres componentes clave:
+
+1.  **Diseño de Recompensa Dual:** Define recompensas separadas para la precisión (`r_acc = 0.9 · r_ans + 0.1 · r_fmt` para la corrección de la respuesta y el cumplimiento del formato) y la eficiencia de la herramienta (`r_tool = 1/(T+1)` si es correcta, de lo contrario 0, penalizando inversamente las invocaciones de herramientas, condicionada a la corrección).
+2.  **Estimación de Ventaja Desacoplada:** Utiliza GRPO estándar para la ventaja de precisión y GRPO condicional para la ventaja de eficiencia, calculada solo sobre las ejecuciones correctas. Esto evita que las ejecuciones incorrectas inflen las ventajas de eficiencia y elimina el entrelazamiento de gradientes entre objetivos.
+3.  **Actualización de Política Jerárquica:** El objetivo final de HDPO combina dos pérdidas de sustitución recortadas independientes, asegurando que cada componente de gradiente proporcione una señal de aprendizaje limpia y ortogonal.
+
+## Ciclo del Agente (Loop, Estados, Transiciones)
+El ciclo del agente Metis se caracteriza por su **meta-cognición**, aprendiendo *cuándo* usar las herramientas, no solo *cómo*. El agente toma decisiones estratégicas sobre la invocación de herramientas:
+
+*   **Razonamiento Directo:** Cuando una consulta puede resolverse utilizando el contexto visual y el conocimiento paramétrico interno, Metis se abstiene de invocar herramientas externas y responde directamente. Esto evita la latencia y el ruido de llamadas redundantes a herramientas.
+*   **Ejecución de Código Dirigida:** Cuando el análisis visual detallado excede las capacidades de resolución nativas del modelo, Metis invoca estratégicamente la ejecución de código para recortar y ampliar la región relevante. Esto se considera un instrumento de precisión, desplegado solo cuando la evidencia visual original es ambiguamente genuina.
+
+El `agent_loop` se encuentra en `verl_tool/agent_loop/verltool_agent_loop.py`, lo que sugiere que el bucle principal del agente se gestiona dentro de este módulo, orquestando las decisiones sobre el uso de herramientas y el razonamiento.
+
+## Sistema de Memoria y Contexto
+Aunque el README no detalla un "sistema de memoria" explícito, menciona que el agente utiliza "conocimiento paramétrico" y "contexto visual" para el razonamiento directo. Esto implica que el modelo mantiene un estado interno o acceso a información que le permite responder sin recurrir a herramientas externas. La capacidad de Metis para "confiar en sus propias capacidades para consultas dentro de su competencia" sugiere una forma de memoria o conocimiento internalizado.
+
+## Manejo de Herramientas (Tools/Functions)
+Metis invoca selectivamente herramientas de ejecución de código, búsqueda de texto y búsqueda de imágenes. El repositorio incluye un "servidor de herramientas" (`verl_tool/servers/tool_server.py`) que proporciona estas capacidades. Las herramientas específicas se definen en `verl_tool/servers/tools/metis.py` y `verl_tool/servers/tools/metis_code.py`, con utilidades adicionales en `verl_tool/servers/tools/utils` para búsqueda profunda, ejecución de IPython y motores de búsqueda.
+
+## Sandbox y Entorno de Ejecución
+El servidor de herramientas proporciona una "ejecución de Python en sandbox" (`sandboxed Python execution`). Esto es crucial para la seguridad y el aislamiento al ejecutar código generado por el agente. El entorno de ejecución para el entrenamiento requiere Python >= 3.10, CUDA >= 12.1 y 8 GPUs (180GB cada una, e.g., B200) para el entrenamiento de RL.
+
+## Integraciones y Conectores
+Metis se integra con varias herramientas y servicios:
+
+*   **Modelo Juez (Judge Model):** Durante el entrenamiento de RL, un LLM juez evalúa la corrección de las respuestas del agente. Se puede desplegar cualquier LLM potente compatible con OpenAI, recomendándose vLLM. Esto implica una integración con APIs compatibles con OpenAI.
+*   **API de Búsqueda:** La herramienta de búsqueda de texto del agente se conecta a backends de búsqueda web. Se requiere una clave API de proveedores como Serper (recomendado), SerpApi o BrightData.
+*   **Framework RL:** El proyecto se basa en `verl` (base RL framework), que incluye componentes para actores, críticos, motores, gestores de recompensas y despliegue.
+
+## Benchmarks y Métricas de Rendimiento
+Metis ha sido evaluado exhaustivamente y logra un rendimiento de vanguardia en diversos benchmarks. Los resultados se presentan en tablas detalladas en el README, cubriendo:
+
+*   **Percepción y Comprensión de Documentos:** V\*Bench, HR4K, HR8K, TreeBench, MME-RW, SEED2+, CharXiv (DQ), CharXiv (RQ).
+*   **Razonamiento Matemático y Lógico:** MathVista, MathVerse, WeMath, DynaMath, LogicVista.
+
+La métrica clave es la reducción de las invocaciones de herramientas (del 98% al 2%) mientras se eleva simultáneamente la precisión del razonamiento.
+
+## Decisiones de Diseño Reveladas en PRs o Issues Técnicos
+El repositorio tiene 3 issues abiertos:
+
+*   **#3 AgentLoopWorker:** Indica un componente o problema relacionado con el bucle del agente.
+*   **#2 Inference, evaluation:** Sugiere discusiones o tareas relacionadas con la inferencia del modelo y su evaluación.
+*   **#1 Image Search Tool Call Issue:** Apunta a un problema específico con la invocación de la herramienta de búsqueda de imágenes.
+
+Estos issues, aunque no son PRs, revelan áreas de desarrollo activo y posibles desafíos técnicos o mejoras en curso, especialmente en la orquestación del bucle del agente y la fiabilidad de las herramientas.
+
+## Información Técnica Adicional
+El repositorio incluye un archivo `Metis_arxiv.pdf`, que es el paper de investigación asociado: "Act Wisely: Cultivating Meta-Cognitive Tool Use in Agentic Multimodal Models". Este paper proporciona una descripción técnica profunda de la metodología, experimentos y resultados de Metis, complementando la información del README.
+
+La estructura de directorios revela la organización del código:
+
+*   `verl/`: Contiene el framework base de RL, con subdirectorios para `agent_loop`, `configs`, `data`, `eval`, `model`, `train`, `utils`, `version`, y `workers`. Esto indica una implementación modular de los componentes de RL.
+*   `verl_tool/`: Contiene la implementación específica de las herramientas y el bucle del agente para Metis, con subdirectorios para `agent_loop`, `servers`, `trainer`, `utils`, y `workers`.
+    *   `verl_tool/servers/tools/`: Define las herramientas (`metis.py`, `metis_code.py`) y utilidades para búsqueda y ejecución de código.
+    *   `verl_tool/trainer/`: Contiene la configuración y el código para el entrenamiento HDPO, incluyendo `ppo` (Proximal Policy Optimization) y configuraciones para actores, críticos, modelos, etc.
+
+El archivo `pyproject.toml` especifica las dependencias y la configuración del proyecto, incluyendo las dependencias para `vllm`, `search_tool` y `python_code_dep`, lo que confirma las integraciones mencionadas.

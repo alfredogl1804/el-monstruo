@@ -310,3 +310,156 @@ En resumen, las capacidades de integración de Claude Code v2.1 a través del us
 [6] Reddit. (2026, Febrero 28). How to complete OAuth flow for Claude Code on a headless server. Recuperado de [https://www.reddit.com/r/ClaudeAI/comments/1rgxj0p/how_to_complete_oauth_flow_for_claude_code_on_a/](https://www.reddit.com/r/ClaudeAI/comments/1rgxj0p/how_to_complete_oauth_flow_for_claude_code_on_a/)
 [7] MCP Market. (n.d.). OAuth Client Setup | Claude Code Skill for API Integration. Recuperado de [https://mcpmarket.com/tools/skills/oauth-client-setup-1](https://mcpmarket.com/tools/skills/oauth-client-setup-1)
 [8] YouTube. (2026, Febrero 5). Connect Your OAuth 2 API to Claude in 3 Minutes (MCP Tutorial). Recuperado de [https://www.youtube.com/watch?v=N0y7sDRkDt8](https://www.youtube.com/watch?v=N0y7sDRkDt8)
+
+
+## Hallazgos Técnicos en GitHub (Fase 5)
+
+# Hallazgos Técnicos: Claude Code
+
+**Claude Code** es una herramienta de codificación agéntica desarrollada por Anthropic que se ejecuta directamente en la terminal, entornos de desarrollo integrados (IDE) como VS Code y JetBrains, y en el navegador. Su objetivo es comprender la base de código completa del usuario y ayudar a programar más rápido mediante la ejecución de tareas rutinarias, la explicación de código complejo y el manejo de flujos de trabajo de git, todo a través de comandos en lenguaje natural [1].
+
+## Arquitectura y Ciclo del Agente
+
+La arquitectura de Claude Code se basa en un "bucle agéntico" (agentic loop) que consta de tres fases principales que se entrelazan [2]:
+
+1.  **Recopilación de contexto (Gather context):** Claude utiliza herramientas para buscar archivos y comprender el código.
+2.  **Toma de acción (Take action):** Realiza ediciones para implementar cambios o ejecutar comandos.
+3.  **Verificación de resultados (Verify results):** Ejecuta pruebas o comandos para comprobar que su trabajo es correcto.
+
+Este bucle es adaptativo. Para una tarea compleja, Claude divide el trabajo en pasos, los ejecuta y se ajusta en función de lo que aprende en cada paso, encadenando docenas de acciones y corrigiendo el rumbo sobre la marcha. El usuario puede interrumpir el proceso en cualquier momento para dirigir a Claude en una dirección diferente o proporcionar contexto adicional [2].
+
+El bucle agéntico está impulsado por dos componentes principales:
+*   **Modelos:** Claude Code utiliza modelos de la familia Claude (como Sonnet para la mayoría de las tareas y Opus para decisiones arquitectónicas complejas) para razonar sobre el código [2].
+*   **Herramientas (Tools):** Proporcionan la capacidad de actuar, permitiendo a Claude leer código, editar archivos, ejecutar comandos, buscar en la web e interactuar con servicios externos [2].
+
+## Sistema de Memoria y Contexto
+
+Claude Code gestiona el contexto y la memoria de varias formas para mantener la coherencia a lo largo de las sesiones [2]:
+
+*   **Archivo `CLAUDE.md`:** Un archivo markdown en la raíz del proyecto donde se almacenan instrucciones específicas del proyecto, convenciones y contexto que Claude debe conocer en cada sesión [2] [3].
+*   **Memoria Automática (Auto memory):** Claude guarda automáticamente los aprendizajes a medida que trabaja, como patrones del proyecto y preferencias del usuario. Las primeras 200 líneas o 25 KB del archivo `MEMORY.md` se cargan al inicio de cada sesión [2].
+*   **Gestión de la Ventana de Contexto:** A medida que la ventana de contexto se llena, Claude Code la compacta automáticamente. Elimina primero las salidas de herramientas más antiguas y luego resume la conversación si es necesario. Las solicitudes del usuario y los fragmentos de código clave se conservan, pero las instrucciones detalladas del principio de la conversación pueden perderse, por lo que se recomienda usar `CLAUDE.md` para reglas persistentes [2].
+
+## Manejo de Herramientas (Tools)
+
+Las herramientas integradas en Claude Code se dividen en cinco categorías principales [2]:
+
+| Categoría | Capacidad de Claude |
+| :--- | :--- |
+| **Operaciones de archivos** | Leer archivos, editar código, crear nuevos archivos, renombrar y reorganizar. |
+| **Búsqueda** | Encontrar archivos por patrón, buscar contenido con expresiones regulares, explorar bases de código. |
+| **Ejecución** | Ejecutar comandos de shell, iniciar servidores, ejecutar pruebas, usar git. |
+| **Web** | Buscar en la web, obtener documentación, buscar mensajes de error. |
+| **Inteligencia de código** | Ver errores de tipo y advertencias después de las ediciones, saltar a definiciones, encontrar referencias (requiere plugins de inteligencia de código). |
+
+## Sandbox y Entorno de Ejecución
+
+Claude Code puede ejecutarse en tres entornos diferentes, cada uno con diferentes compensaciones [2]:
+
+*   **Local:** Es el entorno predeterminado. El código se ejecuta en la máquina del usuario, con acceso completo a sus archivos, herramientas y entorno.
+*   **Nube (Cloud):** Utiliza máquinas virtuales gestionadas por Anthropic para descargar tareas o trabajar en repositorios que no están disponibles localmente.
+*   **Control Remoto (Remote Control):** Permite controlar una sesión local desde un navegador, manteniendo todo el código y la ejecución en la máquina local.
+
+## Integraciones y Conectores
+
+Claude Code es altamente extensible y se integra con diversas herramientas y servicios [3]:
+
+*   **Model Context Protocol (MCP):** Permite conectar Claude a servicios externos y herramientas, como consultar una base de datos, publicar en Slack o controlar un navegador.
+*   **Skills (Habilidades):** Son instrucciones, conocimientos y flujos de trabajo reutilizables que Claude puede usar. Pueden ser invocados por el usuario (ej. `/deploy`) o cargados automáticamente por Claude cuando sean relevantes.
+*   **Subagentes:** Contextos de ejecución aislados que devuelven resultados resumidos. Son útiles para tareas en paralelo o trabajadores especializados.
+*   **Hooks:** Scripts, solicitudes HTTP, prompts o subagentes que se activan en eventos específicos del ciclo de vida (ej. ejecutar un linter después de cada edición de archivo).
+*   **Plugins:** Paquetes que agrupan skills, hooks, subagentes y servidores MCP en una unidad instalable, facilitando la reutilización y distribución.
+
+## Decisiones de Diseño Reveladas en el Repositorio
+
+El análisis del repositorio en GitHub (`anthropics/claude-code`) y su archivo `CHANGELOG.md` revela varias decisiones de diseño y enfoques técnicos [4]:
+
+*   **Seguridad y Permisos:** Claude Code implementa un sistema de permisos estricto. Por ejemplo, el flag `--dangerously-skip-permissions` permite omitir las confirmaciones para escrituras en rutas protegidas como `.claude/`, `.git/` y `.vscode/`, pero mantiene las confirmaciones para comandos de eliminación catastrófica como red de seguridad.
+*   **Manejo de Errores y Reintentos:** Se han implementado mecanismos de reintento automático para servidores MCP que encuentran errores transitorios durante el inicio, mejorando la resiliencia del sistema.
+*   **Optimización de Rendimiento:** Se han realizado correcciones para evitar el crecimiento ilimitado de la memoria (fugas de memoria) al procesar muchas imágenes o al usar comandos como `/usage` con historiales de transcripción grandes.
+*   **Soporte Multiplataforma:** Se ha mejorado la detección y el soporte para diferentes shells en Windows, como PowerShell 7, y se ha eliminado la dependencia estricta de Git Bash.
+
+## Referencias
+
+[1] GitHub - anthropics/claude-code. https://github.com/anthropics/claude-code
+[2] How Claude Code works - Claude Code Docs. https://code.claude.com/docs/en/how-claude-code-works
+[3] Extend Claude Code - Claude Code Docs. https://code.claude.com/docs/en/features-overview.md
+[4] CHANGELOG.md - anthropics/claude-code. https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
+
+## Hallazgos Técnicos en GitHub (Fase 5)
+
+# Hallazgos Técnicos: Claude Cowork / Managed Agents (Anthropic)
+
+## Introducción
+
+Este informe técnico detalla la arquitectura y el funcionamiento de los **Claude Managed Agents** de Anthropic, basándose en la información disponible en el repositorio oficial de GitHub `anthropics/skills` [1]. Los Managed Agents representan una evolución en la forma en que los modelos de lenguaje grandes (LLM) interactúan con entornos externos, ofreciendo un sistema de agentes persistente y con estado, gestionado por el servidor, con un entorno de ejecución de herramientas alojado por Anthropic.
+
+## Arquitectura Interna y Ciclo del Agente
+
+Los Claude Managed Agents se fundamentan en una arquitectura que separa la configuración del agente de su ejecución, permitiendo flexibilidad y control sobre el comportamiento del agente a lo largo del tiempo. Los componentes clave son el **Agente** y la **Sesión**.
+
+### El Agente (Agent)
+
+Un **Agente** es una configuración persistente y versionada que se crea una única vez mediante una llamada `POST /v1/agents`. Esta configuración incluye elementos fundamentales como:
+
+*   **Modelo (model):** Especifica el modelo de Claude a utilizar (por ejemplo, `claude-opus-4-7`).
+*   **Prompt del Sistema (system prompt):** Define el comportamiento general y las directrices del agente.
+*   **Herramientas (tools):** Conjunto de funcionalidades que el agente puede invocar para interactuar con su entorno.
+*   **Servidores MCP (mcp_servers):** Configuraciones para la integración con el Protocolo de Contexto del Modelo (MCP).
+*   **Habilidades (skills):** Conjuntos de instrucciones, scripts y recursos que Claude carga dinámicamente para mejorar el rendimiento en tareas especializadas.
+
+Cada actualización de un agente genera una nueva versión inmutable. Las sesiones se vinculan a una versión específica del agente en el momento de su creación, lo que permite la iteración y el control de versiones sin afectar las sesiones en curso. Esto facilita la reversión de cambios y las pruebas A/B de diferentes configuraciones de agentes.
+
+### La Sesión (Session)
+
+Una **Sesión** representa una ejecución individual del agente y se inicia mediante una llamada `POST /v1/sessions`, haciendo referencia a un `agent.id` y opcionalmente a una `agent.version` específica. Las sesiones son efímeras; cada ejecución es una nueva sesión que utiliza la configuración de un agente existente. Es crucial entender que los parámetros como `model`, `system` o `tools` no se definen en el cuerpo de la sesión, sino que se heredan de la configuración del agente al que apunta la sesión.
+
+### Ciclo de Vida del Agente
+
+El ciclo de vida sigue un flujo mandatorio: **Agente (una vez) → Sesión (cada ejecución)**. La creación del agente es un paso de configuración inicial, y su `agent.id` (y `agent.version`) deben almacenarse y reutilizarse en ejecuciones posteriores. El bucle del agente se ejecuta en la capa de orquestación de Anthropic, mientras que un contenedor aprovisionado por sesión actúa como espacio de trabajo donde se ejecutan las herramientas del agente (comandos bash, operaciones de archivos, código). La sesión transmite eventos en tiempo real, y el usuario envía mensajes y resultados de herramientas.
+
+## Sistema de Memoria y Contexto
+
+Los Managed Agents están diseñados para manejar el contexto y la memoria de manera persistente a través de sesiones. La información sobre la memoria se gestiona a través de `memory_stores` y se adjunta a las sesiones como un recurso. Esto permite que los agentes mantengan un estado y un conocimiento a largo plazo, crucial para tareas complejas y de larga duración. La compactación del contexto es una característica clave para manejar conversaciones largas que podrían exceder la ventana de contexto de 1M de tokens, resumiendo el contexto anterior cuando se acerca a un umbral de activación [1].
+
+## Manejo de Herramientas (Tools/Functions)
+
+Los Managed Agents se distinguen por su capacidad para ejecutar herramientas en un entorno alojado por Anthropic. Esto incluye:
+
+*   **Herramientas Definidas por el Usuario:** Se definen herramientas (mediante decoradores, esquemas Zod o JSON sin procesar), y el ejecutor de herramientas del SDK se encarga de llamar a la API, ejecutar las funciones y realizar bucles hasta que Claude haya terminado. También es posible escribir el bucle manualmente para un control total.
+*   **Herramientas del Lado del Servidor:** Herramientas alojadas por Anthropic que se ejecutan en la infraestructura de Anthropic. La ejecución de código es completamente del lado del servidor, lo que permite a Claude ejecutar código automáticamente. El uso de la computadora puede ser alojado en el servidor o auto-alojado.
+
+La integración de herramientas es fundamental para la autonomía del agente, permitiéndole interactuar con el mundo exterior, ejecutar código y manipular archivos dentro de su espacio de trabajo sandboxed.
+
+## Sandbox y Entorno de Ejecución
+
+Cada sesión de un Managed Agent aprovisiona un contenedor como espacio de trabajo. Este contenedor es el entorno sandboxed donde se ejecutan los comandos bash, las operaciones de archivos y el código del agente. Esto proporciona un entorno aislado y seguro para la ejecución de herramientas, garantizando que las acciones del agente no afecten el sistema subyacente de Anthropic. El tipo de entorno soportado es `config.type: "cloud"` [1].
+
+## Integraciones y Conectores
+
+Los Managed Agents soportan integraciones a través de:
+
+*   **Servidores MCP (Model Context Protocol):** Permiten la integración con herramientas y servicios externos. Las credenciales para los servidores MCP se gestionan a través de `vaults` (`client.beta.vaults.credentials.create`) y se adjuntan a las sesiones mediante `vault_ids`. Anthropic se encarga de refrescar automáticamente los tokens OAuth [1].
+*   **Habilidades (Skills):** Como se mencionó, las habilidades son carpetas de instrucciones, scripts y recursos que Claude carga dinámicamente. Esto permite una gran flexibilidad para extender las capacidades del agente a través de integraciones personalizadas.
+
+## Benchmarks y Métricas de Rendimiento
+
+Aunque el repositorio no proporciona benchmarks explícitos o métricas de rendimiento detalladas, sí menciona la importancia de elegir el modelo adecuado (por ejemplo, `claude-opus-4-7`) y utilizar el pensamiento adaptativo (`thinking: {type: "adaptive"}`) para tareas complejas. También se hace referencia a la configuración de `effort` (`output_config: {effort: "low"|"medium"|"high"|"max"}`) para controlar la profundidad del pensamiento y el gasto total de tokens, lo que indirectamente afecta el rendimiento y el costo [1].
+
+## Decisiones de Diseño y Consideraciones
+
+Varias decisiones de diseño clave se revelan en la documentación del repositorio:
+
+*   **Separación Agente/Sesión para Versionado:** La decisión de hacer del agente un objeto versionado y persistente, separado de las sesiones efímeras, es fundamental para la reproducibilidad, la iteración segura y las pruebas A/B.
+*   **Ejecución de Herramientas Alojada:** Anthropic aloja el entorno de ejecución de herramientas, lo que simplifica la gestión de la infraestructura para los desarrolladores y garantiza un entorno sandboxed.
+*   **Manejo de Errores y Reconexión de Streams:** Se proporcionan directrices detalladas para manejar la reconexión de streams de eventos (`SSE stream has no replay — reconnect with consolidation`) para evitar interbloqueos en caso de caídas de conexión, lo que indica una consideración robusta en el diseño para la fiabilidad [1].
+*   **Compaction y Prompt Caching:** La implementación de la compactación del contexto y el caching de prompts demuestra un enfoque en la eficiencia y la gestión de costos para conversaciones largas y repetitivas.
+*   **No Disponibilidad en Proveedores de Terceros:** Los Managed Agents son una oferta de primera parte de Anthropic y no están disponibles en plataformas como Amazon Bedrock, Google Vertex AI o Microsoft Foundry. Para estos proveedores, se recomienda usar la API de Claude con uso de herramientas [1].
+
+## Información Técnica Adicional
+
+La documentación de GitHub proporciona detalles técnicos que complementan la información general de los sitios web oficiales. Por ejemplo, la sección `SKILL.md` y `managed-agents-overview.md` profundizan en los mecanismos internos de versionado de agentes, la gestión de beta headers, los "Common Pitfalls" (errores comunes) y las guías de lectura para diferentes escenarios de uso, que no suelen encontrarse en la documentación de alto nivel orientada al producto. Esto incluye detalles sobre cómo se manejan los timeouts, la cola de mensajes y la naturaleza permanente del archivado de recursos [1].
+
+## Referencias
+
+[1] anthropics/skills. (2026). *Public repository for Agent Skills*. GitHub. Recuperado de https://github.com/anthropics/skills

@@ -269,3 +269,77 @@ En cuanto a las **Métricas de Autoaprendizaje**, NeoCognition se describe a sí
 [1] NeoCognition. (n.d.). *Research*. Recuperado de [https://neocognition.io/research](https://neocognition.io/research)
 [2] Liu, X., Yu, H., Zhang, H., Xu, Y., Lei, X., Lai, H., Gu, Y., Ding, H., Men, K., Yang, K., Zhang, S., Deng, X., Zeng, A., Du, Z., Zhang, C., Shen, S., Zhang, T., Su, Y., Sun, H., Huang, M., Dong, Y., & Tang, J. (2023). *AgentBench: Evaluating LLMs as Agents*. arXiv preprint arXiv:2308.03688. Recuperado de [https://arxiv.org/abs/2308.03688](https://arxiv.org/abs/2308.03688)
 [3] CryptoRank. (2026, April 21). *NeoCognition\'s Revolutionary $40M Seed Fuels Self-Learning AI Agents*. Recuperado de [https://cryptorank.io/news/feed/56e8b-neocognition-ai-agents-seed-funding](https://cryptorank.io/news/feed/56e8b-neocognition-ai-agents-seed-funding)
+
+
+## Hallazgos Técnicos en GitHub (Fase 5)
+
+## Hallazgos Técnicos para NEO (neocognition/neo-agent)
+
+### Búsqueda del Repositorio Oficial en GitHub
+
+Se realizó una búsqueda exhaustiva en GitHub utilizando las herramientas de búsqueda web con los términos "NEO neocognition neo-agent github" y "neocognition/neo-agent github". Los resultados de la búsqueda no arrojaron un repositorio oficial directamente nombrado como "neocognition/neo-agent".
+
+La empresa NeoCognition se identifica como un "laboratorio de agentes de IA para inteligencia especializada" [1]. Uno de sus cofundadores y CTO, Xiang Deng, tiene un perfil de GitHub ([https://github.com/xiang-deng](https://github.com/xiang-deng)) donde se listan varios proyectos. Entre ellos, se identificó el repositorio `OSU-NLP-Group/Mind2Web` ([https://github.com/OSU-NLP-Group/Mind2Web](https://github.com/OSU-NLP-Group/Mind2Web)) [2], el cual es descrito como "Mind2Web: Towards a Generalist Agent for the Web" y es un proyecto de investigación relacionado con agentes web generalistas basado en LLM. Aunque este proyecto está relacionado con el trabajo de un cofundador de NeoCognition en el ámbito de los agentes de IA, no es el repositorio específico "neocognition/neo-agent" solicitado.
+
+### Análisis del Repositorio Relacionado (Mind2Web)
+
+Dado que no se encontró un repositorio directo para "neocognition/neo-agent", se procedió a analizar el repositorio `OSU-NLP-Group/Mind2Web` como el hallazgo más cercano y relevante en el contexto de agentes de IA y NeoCognition. Sin embargo, es crucial destacar que este repositorio no es el "neocognition/neo-agent" y, por lo tanto, los hallazgos técnicos a continuación corresponden a Mind2Web y no directamente al agente NEO de NeoCognition.
+
+#### Arquitectura y Ciclo del Agente (Mind2Web)
+
+El proyecto Mind2Web se centra en la creación de un *dataset* y *benchmark* para agentes web generalistas. La arquitectura del agente implícita en el *dataset* y el código se basa en la interacción con entornos web reales. El ciclo del agente se puede inferir a partir de la estructura de los datos recopilados:
+
+*   **Recopilación de Datos:** El *dataset* Mind2Web incluye trazas de sesiones de usuario, tráfico de red (`session.har.zip`), grabaciones de video (`videos`), archivos de traza (`trace.zip`), almacenamiento de sesión (`storage.json`), *snapshots* del DOM (`dom_content.json`) y capturas de pantalla (`screenshot.json`) [2]. Estos elementos sugieren un ciclo de observación del entorno web, donde el agente procesa la información visual y estructural de las páginas.
+*   **Predicción de Acciones:** El repositorio incluye módulos para la "Generación de Candidatos" (`candidate_generation`) y la "Predicción de Acciones" (`action_prediction`). El modelo de generación de candidatos utiliza un modelo DeBERTa-v3-base para puntuar pares de consultas y candidatos, basándose en *Cross-Encoders* [2]. Esto implica que el agente identifica posibles elementos interactivos en la página (candidatos) y luego predice la acción más adecuada a realizar.
+*   **Tipos de Operaciones:** Las operaciones que el agente puede realizar se clasifican en `CLICK`, `TYPE` y `SELECT` [2]. Esto define el conjunto de herramientas o funciones que el agente tiene a su disposición para interactuar con la web.
+
+#### Sistema de Memoria y Contexto (Mind2Web)
+
+El sistema de memoria y contexto se gestiona a través de los datos recopilados en el *dataset*:
+
+*   **HTML Crudo y Limpio:** Se almacenan tanto el HTML crudo (`raw_html`) como una versión limpia (`cleaned_html`) de la página antes de cada acción [2]. Esto proporciona al agente un contexto detallado del estado de la interfaz de usuario en cada paso.
+*   **Snapshots del DOM:** Los *snapshots* del DOM (`dom_content.json`) y los archivos `mhtml` (`{action_id}_before/after/mhtml`) capturan el estado visual y estructural de la página, sirviendo como una forma de memoria visual y contextual para el agente [2].
+*   **Almacenamiento de Sesión:** El archivo `storage.json` registra el almacenamiento de la sesión, lo que podría ser utilizado para mantener el estado y el contexto a lo largo de una interacción [2].
+
+#### Manejo de Herramientas (Mind2Web)
+
+Las "herramientas" del agente Mind2Web son las operaciones web que puede ejecutar:
+
+*   **Operaciones Definidas:** Las operaciones principales son `CLICK`, `TYPE` y `SELECT`. También se mencionan `HOVER` y `ENTER` como operaciones originales que se mapean a `CLICK` [2]. Esto indica un conjunto limitado pero efectivo de interacciones con elementos web.
+*   **Candidatos a Elementos:** El *dataset* incluye `pos_candidates` (elementos correctos) y `neg_candidates` (otros elementos en la página), lo que sugiere que el agente utiliza un mecanismo para identificar y seleccionar elementos interactivos en la página antes de aplicar una herramienta [2].
+
+#### Sandbox y Entorno de Ejecución (Mind2Web)
+
+El entorno de ejecución para los agentes entrenados con Mind2Web es el navegador web. El *dataset* se construye a partir de interacciones en sitios web reales, lo que implica que el agente está diseñado para operar en un entorno web dinámico y no simulado [2]. La mención de *Playwright* para la grabación de videos y la extracción de *snapshots* sugiere que el entorno de ejecución puede estar basado en esta herramienta de automatización de navegadores [2].
+
+#### Integraciones y Conectores (Mind2Web)
+
+Las integraciones se centran en el uso de modelos de lenguaje grandes (LLMs) y modelos pre-entrenados:
+
+*   **Modelos de Lenguaje:** El proyecto utiliza modelos como DeBERTa-v3-base para la generación de candidatos y modelos flan-t5-base, flan-t5-large y flan-t5-xl para la predicción de acciones [2]. Esto indica una fuerte dependencia de LLMs para el razonamiento y la toma de decisiones del agente.
+*   **Huggingface Model Hub:** Los modelos entrenados están disponibles en Huggingface Model Hub, lo que facilita la integración y el uso por parte de otros investigadores [2].
+
+#### Benchmarks y Métricas de Rendimiento (Mind2Web)
+
+Mind2Web es en sí mismo un *benchmark* para agentes web generalistas. Las métricas de rendimiento se centran en la precisión de las acciones:
+
+*   **Precisión Macro Promedio:** El *script* de evaluación se actualizó para reportar la precisión macro promedio, que es la métrica utilizada en el *paper* original [2].
+*   **Recall@50:** El modelo DeBERTa-v3-base para la predicción de acciones logra un *Recall@50* de aproximadamente 85% [2].
+
+#### Decisiones de Diseño (Mind2Web)
+
+Algunas decisiones de diseño reveladas en el README incluyen:
+
+*   **Enfoque en Agentes Generalistas:** La motivación principal es abordar la limitación de los *datasets* existentes que usan sitios web simulados o cubren un conjunto limitado de sitios y tareas, buscando un agente que pueda operar en cualquier sitio web [2].
+*   **Uso de Sitios Web Reales:** La recopilación de datos se realizó en 137 sitios web reales, lo que subraya el compromiso con un entorno de prueba realista [2].
+*   **Interacciones de Usuario Diversas:** El *dataset* captura un amplio espectro de patrones de interacción de usuario, lo que es fundamental para la generalización del agente [2].
+*   **Énfasis en la Reproducibilidad:** La disponibilidad del *dataset* y los modelos en Huggingface, junto con las instrucciones detalladas para la evaluación y el *fine-tuning*, demuestran un enfoque en la reproducibilidad de la investigación [2].
+
+### Conclusión sobre NEO (neocognition/neo-agent)
+
+No se encontró un repositorio oficial en GitHub con el nombre exacto "neocognition/neo-agent". La información técnica recopilada se basa en el proyecto Mind2Web, que es un trabajo de investigación de uno de los cofundadores de NeoCognition. Por lo tanto, no se pueden proporcionar hallazgos técnicos específicos para un agente llamado "NEO" bajo la organización "neocognition/neo-agent" en GitHub.
+
+### Referencias
+
+[1] NeoCognition. (n.d.). *NeoCognition*. Recuperado de [https://neocognition.io/](https://neocognition.io/)
+[2] OSU-NLP-Group. (n.d.). *GitHub - OSU-NLP-Group/Mind2Web: [NeurIPS'23 Spotlight] "Mind2Web: Towards a Generalist Agent for the Web" -- the first LLM-based web agent and benchmark for generalist web agents*. Recuperado de [https://github.com/OSU-NLP-Group/Mind2Web](https://github.com/OSU-NLP-Group/Mind2Web)

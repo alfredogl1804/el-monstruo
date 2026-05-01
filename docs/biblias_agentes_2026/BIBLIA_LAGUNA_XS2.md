@@ -251,3 +251,93 @@ En resumen, Laguna XS.2 ofrece una base sólida para la integración a través d
 [9] MLQ.AI. (n.d.). *Poolside Launches Open-Source Laguna XS.2 AI Model...*. Recuperado de [https://mlq.ai/news/poolside-launches-open-source-laguna-xs2-ai-model-for-coding/](https://mlq.ai/news/poolside-launches-open-source-laguna-xs2-ai-model-for-coding/)
 [10] Poolside. (n.d.). *API overview*. Recuperado de [https://docs.poolside.ai/api/overview.md](https://docs.poolside.ai/api/overview.md)
 [11] Poolside. (n.d.). *Authentication*. Recuperado de [https://docs.poolside.ai/api/authentication.md](https://docs.poolside.ai/api/authentication.md)
+
+## Hallazgos Técnicos en GitHub (Fase 5)
+
+# Hallazgos Técnicos: Laguna XS.2 (Poolside AI)
+
+## 1. URL exacta del repo oficial
+
+El agente de código `pool` de Poolside AI se encuentra en el siguiente repositorio de GitHub: [https://github.com/poolsideai/pool](https://github.com/poolsideai/pool) [1].
+
+El modelo Laguna XS.2, que es utilizado por el agente `pool`, tiene su documentación en el repositorio de Hugging Face Transformers: [https://github.com/huggingface/transformers/blob/main/docs/source/en/model_doc/laguna.md](https://github.com/huggingface/transformers/blob/main/docs/source/en/model_doc/laguna.md) [2].
+
+## 2. Arquitectura interna revelada en el código o issues
+
+El modelo Laguna XS.2 es una familia de modelos de lenguaje de mezcla de expertos (MoE) de Poolside. Las diferencias específicas de Laguna en comparación con un transformador MoE SwiGLU estándar son [2]:
+
+*   **Conteo de cabezas por capa (`num_attention_heads_per_layer`)**: Diferentes capas de decodificador pueden tener diferentes conteos de cabezas de consulta mientras comparten la misma forma de caché KV.
+*   **Enrutador MoE Sigmoide con balanceo de carga sin pérdida auxiliar** ([arXiv:2408.15664](https://arxiv.org/abs/2408.15664)) y soft-capping de logits opcional (`moe_router_logit_softcapping`): Las puntuaciones del enrutador son la sigmoide elemento a elemento de los logits de la puerta más un sesgo por experto aprendido (`e_score_correction_bias`) que se añade solo en el momento de la selección.
+
+El agente `pool` en sí mismo es una aplicación que puede ejecutarse en varios modos, lo que sugiere una arquitectura modular [1]:
+
+*   Aplicación interactiva independiente en el terminal.
+*   Servidor ACP (Agent Client Protocol) con un editor compatible.
+*   Cliente ACP conectado a otro servidor ACP.
+*   Ejecución no interactiva con `pool exec`.
+
+## 3. Ciclo del agente (loop, estados, transiciones)
+
+El agente `pool` opera en diferentes modos que influyen en su ciclo de aprobación de herramientas [1]:
+
+*   **Always ask (`default`)**: Solicita aprobación en el primer uso de cada tipo de herramienta.
+*   **Accept edits (`accept-edits`)**: Aprueba automáticamente las lecturas y escrituras de archivos del espacio de trabajo.
+*   **Allow all (`allow-all`)**: Aprueba automáticamente todas las llamadas a herramientas.
+*   **Plan (`plan`)**: Planifica cambios sin modificar el código base.
+
+El agente puede cambiar entre estos modos usando `Shift+Tab` o el comando `/mode <id>`.
+
+## 4. Sistema de memoria y contexto
+
+El agente `pool` utiliza archivos `AGENTS.md` para el contexto del proyecto y las instrucciones. Esto sugiere un sistema de memoria basado en archivos locales que el agente lee para entender el entorno y las tareas [1].
+
+La persistencia de la sesión y las opciones de configuración (modo y modelo) pueden ser persistidas en `pool.json` y se envían al inicio usando `session/set_config_option` [1].
+
+## 5. Manejo de herramientas (tools/functions)
+
+El agente `pool` puede conectarse a servidores MCP (Model Context Protocol) para exponer herramientas adicionales. La gestión de estas herramientas se realiza con `pool mcp` [1].
+
+Ejemplos de configuración de servidores MCP incluyen:
+
+*   Basados en comandos (stdio).
+*   Servidores HTTP remotos (ej. Notion).
+*   Servidores SSE remotos (ej. Linear).
+
+Las reglas de permisos para las herramientas se pueden configurar en archivos `settings.yaml` a nivel local, de proyecto o personal. Estas reglas permiten o deniegan la ejecución de comandos específicos de shell, utilizando comodines para mayor flexibilidad [1].
+
+## 6. Sandbox y entorno de ejecución
+
+El agente `pool` puede ejecutarse en el terminal del usuario como una aplicación interactiva independiente. También puede funcionar como un cliente ACP, conectándose a otros servidores ACP (como Claude Agent, Codex o Gemini), lo que implica que puede operar en diferentes entornos de ejecución proporcionados por estos servidores [1].
+
+Las reglas de permisos de rutas (`paths`) en los archivos `settings.yaml` controlan el acceso del agente al sistema de archivos, permitiendo o denegando lecturas, escrituras, eliminaciones, movimientos y renombres en rutas específicas [1].
+
+## 7. Integraciones y conectores
+
+El agente `pool` se integra con las siguientes especificaciones de agente abiertas [1]:
+
+*   **AGENTS.md**: Para contexto e instrucciones del proyecto.
+*   **Skills**: Permite extender el agente con flujos de trabajo reutilizables.
+*   **MCP (Model Context Protocol)**: Para conectar herramientas y fuentes de datos a través de servidores MCP.
+*   **ACP (Agent Client Protocol)**: Puede funcionar como servidor ACP para editores (Zed, JetBrains) o como cliente ACP para otros agentes (Claude Agent, Codex, Gemini).
+
+## 8. Benchmarks y métricas de rendimiento
+
+Aunque el repositorio `poolsideai/pool` no detalla benchmarks específicos para el agente `pool`, la información de búsqueda inicial menciona que Laguna XS.2 logra un 68.2% en SWE-bench Verified, un estándar para evaluar agentes de codificación de IA en problemas reales de GitHub [3].
+
+## 9. Decisiones de diseño reveladas en PRs o issues técnicos
+
+La documentación de Hugging Face Transformers menciona que el modelo Laguna XS.2 fue implementado en el repositorio de `transformers` a través de un pull request con el título "Laguna XS.2 implementation (#45673)" [2]. Esto indica que las decisiones de diseño relacionadas con la integración del modelo en el framework de Hugging Face se discutieron y aprobaron en ese PR.
+
+El documento de Hugging Face también hace referencia a un paper de arXiv ([arXiv:2408.15664](https://arxiv.org/abs/2408.15664)) sobre el enrutador MoE Sigmoide con balanceo de carga sin pérdida auxiliar, lo que sugiere una base de investigación sólida para las decisiones de diseño de la arquitectura del modelo [2].
+
+## 10. Cualquier información técnica que NO esté en la documentación oficial del sitio web
+
+La información detallada sobre la arquitectura del modelo Laguna XS.2, incluyendo el conteo de cabezas por capa y el enrutador MoE Sigmoide con balanceo de carga sin pérdida auxiliar, así como las implementaciones específicas en el framework de Hugging Face Transformers, no se encuentra directamente en el README del repositorio `poolsideai/pool`. Esta información proviene de la documentación de Hugging Face Transformers, que es una fuente externa pero relacionada y verificada [2].
+
+El repositorio `poolsideai/pool` es un agente de codificación que utiliza modelos como Laguna XS.2, pero no es el repositorio del modelo en sí. La información sobre el modelo se encuentra en otros lugares, como Hugging Face.
+
+## Referencias
+
+[1] [https://github.com/poolsideai/pool](https://github.com/poolsideai/pool) - Repositorio de GitHub de poolsideai/pool
+[2] [https://github.com/huggingface/transformers/blob/main/docs/source/en/model_doc/laguna.md](https://github.com/huggingface/transformers/blob/main/docs/source/en/model_doc/laguna.md) - Documentación de Laguna XS.2 en Hugging Face Transformers
+[3] [https://byteiota.com/poolside-laguna-xs-2-open-source-ai-coding-for-mac/](https://byteiota.com/poolside-laguna-xs-2-open-source-ai-coding-for-mac/) - Poolside Laguna XS.2: Open-Source AI Coding for Mac
