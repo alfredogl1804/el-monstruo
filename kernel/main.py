@@ -985,6 +985,69 @@ async def lifespan(app: FastAPI):
             app.state.cost_optimizer = None
         # ── /Sprint 62 ───────────────────────────────────────────────────────────────
 
+        # ── Sprint 63: Research Intelligence + Zero-Config + Motion System + Marketplace Global + Cross-Embrion Learning ──
+        try:
+            from kernel.vanguard.intelligence_engine import init_intelligence_engine
+            from kernel.vanguard.semantic_scholar import init_scholar_client
+            from kernel.vanguard.weekly_digest import init_digest_generator
+            from kernel.zero_config.intent_inferrer import init_intent_inferrer
+            from kernel.motion.orchestrator import init_motion_orchestrator
+            from kernel.marketplace.registry import init_marketplace_registry
+            from kernel.collective.knowledge_propagator import init_knowledge_propagator
+            from kernel.collective.emergence_detector import init_emergence_detector
+
+            _supabase = app.state.db if db_connected else None
+
+            # 63.1 — Research Intelligence Engine
+            scholar_client = init_scholar_client()
+            intelligence_engine = init_intelligence_engine(supabase=_supabase)
+            digest_generator = init_digest_generator(
+                intelligence_engine=intelligence_engine,
+                semantic_scholar=scholar_client,
+                supabase=_supabase,
+            )
+            app.state.intelligence_engine = intelligence_engine
+            app.state.scholar_client = scholar_client
+            app.state.digest_generator = digest_generator
+
+            # 63.2 — Zero-Config Experience
+            intent_inferrer = init_intent_inferrer()
+            app.state.intent_inferrer = intent_inferrer
+
+            # 63.3 — Motion Design System
+            motion_orchestrator = init_motion_orchestrator(style="minimal")
+            app.state.motion_orchestrator = motion_orchestrator
+
+            # 63.4 — Marketplace Global
+            marketplace_registry = init_marketplace_registry(supabase=_supabase)
+            app.state.marketplace_registry = marketplace_registry
+
+            # 63.5 — Cross-Embrion Learning
+            knowledge_propagator = init_knowledge_propagator(supabase=_supabase)
+            emergence_detector = init_emergence_detector(supabase=_supabase)
+            app.state.knowledge_propagator = knowledge_propagator
+            app.state.emergence_detector = emergence_detector
+
+            logger.info(
+                "sprint63_ready",
+                intelligence_engine=True,
+                zero_config=True,
+                motion_tokens=11,
+                marketplace_items=10,
+                embriones_colmena=7,
+            )
+        except Exception as exc:
+            logger.warning("sprint63_init_failed", error=str(exc))
+            app.state.intelligence_engine = None
+            app.state.scholar_client = None
+            app.state.digest_generator = None
+            app.state.intent_inferrer = None
+            app.state.motion_orchestrator = None
+            app.state.marketplace_registry = None
+            app.state.knowledge_propagator = None
+            app.state.emergence_detector = None
+        # ── /Sprint 63 ───────────────────────────────────────────────────────────────
+
         await embrion_scheduler.start()  # Inicia loop asyncio (revisa cada 60s)
         app.state.embrion_scheduler = embrion_scheduler
         logger.info(
