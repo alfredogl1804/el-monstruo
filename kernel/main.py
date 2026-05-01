@@ -900,6 +900,48 @@ async def lifespan(app: FastAPI):
             app.state.embrion_investigador = None
         # ── /Sprint 60 ───────────────────────────────────────────────────────────────
 
+        # ── Sprint 61: Collective Intelligence + Design System + Adaptive Learning + Guardián + Onboarding ──
+        try:
+            from kernel.collective.protocol import ColectivaProtocol
+            from kernel.design.system import DesignSystemEngine, get_design_system_engine
+            from kernel.learning.adaptive import AdaptiveLearningEngine
+            from kernel.guardian import GuardianDeObjetivos
+            from kernel.onboarding import OnboardingWizard
+            import kernel.design.system as _design_mod
+            import kernel.guardian as _guardian_mod
+            import kernel.onboarding as _onboarding_mod
+
+            colectiva = ColectivaProtocol()
+            app.state.colectiva = colectiva
+            logger.info("colectiva_protocol_ready", embriones=0)
+
+            design_engine = DesignSystemEngine()
+            _design_mod._design_engine_instance = design_engine
+            app.state.design_engine = design_engine
+            logger.info("design_system_engine_ready")
+
+            learning_engine = AdaptiveLearningEngine()
+            app.state.learning_engine = learning_engine
+            logger.info("adaptive_learning_engine_ready")
+
+            guardian = GuardianDeObjetivos()
+            _guardian_mod._guardian_instance = guardian
+            app.state.guardian = guardian
+            logger.info("guardian_ready", objetivos_vigilados=14)
+
+            onboarding = OnboardingWizard()
+            _onboarding_mod._onboarding_instance = onboarding
+            app.state.onboarding = onboarding
+            logger.info("onboarding_wizard_ready")
+        except Exception as e:
+            logger.warning("sprint_61_init_failed", error=str(e))
+            app.state.colectiva = None
+            app.state.design_engine = None
+            app.state.learning_engine = None
+            app.state.guardian = None
+            app.state.onboarding = None
+        # ── /Sprint 61 ───────────────────────────────────────────────────────────────
+
         await embrion_scheduler.start()  # Inicia loop asyncio (revisa cada 60s)
         app.state.embrion_scheduler = embrion_scheduler
         logger.info(
@@ -950,6 +992,11 @@ async def lifespan(app: FastAPI):
         embrion_financiero="active" if getattr(app.state, 'embrion_financiero', None) else "inactive",
         embrion_investigador="active" if getattr(app.state, 'embrion_investigador', None) else "inactive",
         colmena="COMPLETA_7_DE_7",
+        colectiva="active" if getattr(app.state, 'colectiva', None) else "inactive",
+        design_engine="active" if getattr(app.state, 'design_engine', None) else "inactive",
+        learning_engine="active" if getattr(app.state, 'learning_engine', None) else "inactive",
+        guardian="active" if getattr(app.state, 'guardian', None) else "inactive",
+        onboarding="active" if getattr(app.state, 'onboarding', None) else "inactive",
         background_store="supabase" if (_bg_store and _bg_store._use_db()) else "in_memory",
         moc="active" if moc else "inactive",
     )
