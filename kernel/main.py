@@ -664,6 +664,37 @@ async def lifespan(app: FastAPI):
             app.state.causal_seeder = None
         # ── /Sprint 56.1 ──────────────────────────────────────────────────────
 
+        # ── Sprint 56.2: PredictionValidator — feedback loop del Simulador Causal ──
+        try:
+            from kernel.prediction_validator import init_prediction_validator
+
+            # Reusar la misma search_fn de Perplexity construida para CausalSeeder
+            _pv_search_fn = _perplexity_search_fn if '_perplexity_search_fn' in dir() else None
+
+            prediction_validator = init_prediction_validator(
+                db=db if db_connected else None,
+                search_fn=_pv_search_fn,
+                causal_kb=app.state.causal_kb,
+            )
+            await prediction_validator.initialize()  # Carga conteo de predicciones pendientes
+            app.state.prediction_validator = prediction_validator
+
+            # Registrar handler real — reemplaza el stub run_prediction_validation
+            embrion_scheduler.register_handler(
+                "run_prediction_validation",
+                prediction_validator.validate_due_predictions,
+            )
+            logger.info(
+                "prediction_validator_initialized",
+                pending=prediction_validator.get_stats()["pending_predictions"],
+                search="perplexity" if _pv_search_fn else "none",
+                causal_kb="active" if app.state.causal_kb else "inactive",
+            )
+        except Exception as _pv_err:
+            logger.warning("prediction_validator_init_failed", error=str(_pv_err))
+            app.state.prediction_validator = None
+        # ── /Sprint 56.2 ──────────────────────────────────────────────────────
+
         await embrion_scheduler.start()  # Inicia loop asyncio (revisa cada 60s)
         app.state.embrion_scheduler = embrion_scheduler
         logger.info(
@@ -696,6 +727,7 @@ async def lifespan(app: FastAPI):
         embrion_loop="active" if embrion_loop else "inactive",
         embrion_scheduler="active" if embrion_scheduler else "inactive",
         causal_seeder="active" if getattr(app.state, 'causal_seeder', None) else "inactive",
+        prediction_validator="active" if getattr(app.state, 'prediction_validator', None) else "inactive",
         background_store="supabase" if (_bg_store and _bg_store._use_db()) else "in_memory",
         moc="active" if moc else "inactive",
     )
