@@ -181,6 +181,12 @@ class EmbrionLoop:
                 "total_consultations": self._sabios_consultation_count,
                 "last_at": self._last_sabios_at,
             },
+            "radar": {
+                "interval": RADAR_INTERVAL,
+                "cycles_since": self._cycles_since_radar,
+                "total_checks": self._total_radar_checks,
+                "last_at": self._last_radar_at,
+            },
             # Sprint 44: Functional Consciousness Score
             "fcs": {
                 "tool_calls_total": self._fcs_tool_calls_total,
