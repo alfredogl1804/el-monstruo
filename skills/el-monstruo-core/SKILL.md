@@ -467,4 +467,40 @@ Si estás en un hilo nuevo o acabas de compactarte:
 Las emergencias de arriba son un respaldo. Los archivos locales pueden tener versiones más recientes.
 
 ---
+
+## 16. División de Responsabilidades y Brand Compliance (Mayo 2026)
+
+> **ACTUALIZACIÓN CRÍTICA:** A partir del 1 de mayo de 2026, la división de responsabilidades entre hilos evoluciona en 3 fases. Lee `docs/DIVISION_RESPONSABILIDADES_HILOS.md` para el modelo completo.
+
+### Fase Actual: FASE 1 (Construcción Paralela)
+
+- **Hilo B (Arquitecto):** Diseña Sprint Plans, escribe cruces detractores, construye Command Center, valida calidad
+- **Hilo A (Ejecutor):** Implementa Sprint Plans, deploya, crea tablas, ejecuta tests
+- **Brand Compliance Checklist:** OBLIGATORIO antes de cerrar cualquier sprint
+
+### Brand Compliance Checklist (Hilo A)
+
+| # | Check | Pasa si... |
+|---|---|---|
+| 1 | Naming con identidad | Español para dominio, snake_case, nombres con significado |
+| 2 | Errores con contexto | No genéricos, incluyen módulo + acción + sugerencia |
+| 3 | Endpoints para Command Center | JSON documentado, consumible por el frontend |
+| 4 | Logs estructurados | Timestamp + nivel + contexto + módulo |
+| 5 | Docstrings | Mínimo: qué hace, parámetros, retorno |
+| 6 | Tests | Al menos 1 test por función crítica |
+| 7 | Soberanía | Alternativa documentada para cada dependencia nueva |
+
+### Principio Inmutable
+
+> **La infraestructura ES marca.** No existe "backend sin identidad". Cada endpoint, cada tabla, cada error message, cada log refleja quién es El Monstruo. Los 14 Objetivos Maestros aplican a TODO — incluyendo código que "nadie ve".
+
+### Documentos de Referencia (repo el-monstruo)
+
+- `docs/DIRECTIVA_HILO_A_FASE1.md` — Instrucciones condensadas para el ejecutor
+- `docs/DIVISION_RESPONSABILIDADES_HILOS.md` — Modelo completo de transición en 3 fases
+- `docs/BRAND_ENGINE_ESTRATEGIA.md` — Estrategia del Brand Engine
+- `docs/EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md` — Los 14 Objetivos detallados
+- `AGENTS.md` (raíz) — 5 Reglas Duras que sobreviven compactación
+
+---
 *Última revisión: 27 abril 2026 (Sprint 27 completado, contexto fundacional restaurado). Método: Lectura exhaustiva de 80+ documentos (2.95M chars) de Google Drive + 7 skills + validación en producción vía curl /health, Railway CLI, git log, PyPI JSON API. v3.0 restaura SOP, EPIA, MAOC, MOC, Protocolo Memento y Puente Inter-Hilos que se habían perdido en versiones anteriores.*
