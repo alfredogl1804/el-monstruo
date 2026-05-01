@@ -782,6 +782,67 @@ class LangGraphKernel(KernelInterface):
             if system_prompt:
                 enriched_context["system_prompt"] = system_prompt
 
+            # ══ Sprint 46.1: Task Planner Bifurcation ═════════════════════════
+            # If intent is EXECUTE and the task is complex, delegate to Task Planner
+            # which will plan, execute tools, and stream step/tool/chunk events.
+            if intent == "execute":
+                try:
+                    from kernel.task_planner import TaskPlanner
+                    _planner = TaskPlanner()
+                    if _planner.is_complex_objective(message):
+                        logger.info(
+                            "stream_bifurcate_to_planner",
+                            run_id=str(run_id),
+                            message_preview=message[:80],
+                        )
+                        yield _json.dumps({"type": "step", "id": "generate", "status": "in_progress", "label": "Ejecutando tarea autónoma...", "icon": "build"})
+
+                        async for event in _planner.stream_plan_and_execute(
+                            objective=message,
+                            context=enriched_context,
+                            user_id=input.user_id,
+                            enriched_context=enriched_context,
+                        ):
+                            # Parse to check if it's a done event
+                            try:
+                                parsed = _json.loads(event)
+                                if parsed.get("type") == "done":
+                                    # Inject additional metadata
+                                    parsed["intent"] = intent
+                                    parsed["streaming"] = True
+                                    yield _json.dumps(parsed)
+                                else:
+                                    yield event
+                            except (ValueError, KeyError):
+                                yield event
+
+                        # Write memory after task planner completes
+                        try:
+                            await self._compiled_streaming.aupdate_state(
+                                config,
+                                {
+                                    "response": "[Task Planner executed autonomously]",
+                                    "model_used": model,
+                                    "status": RunStatus.DONE.value,
+                                },
+                                as_node="execute",
+                            )
+                            async for event in self._compiled_streaming.astream(None, config, stream_mode="updates"):
+                                pass  # Let memory_write run silently
+                        except Exception as mem_err:
+                            logger.warning("stream_planner_memory_write_failed", error=str(mem_err))
+
+                        return  # Task Planner handled everything
+                except ImportError as ie:
+                    logger.warning("stream_planner_import_failed", error=str(ie))
+                except Exception as planner_err:
+                    logger.warning(
+                        "stream_planner_bifurcation_failed",
+                        error=str(planner_err),
+                        run_id=str(run_id),
+                    )
+                    # Fall through to normal LLM streaming
+
             # Sprint 42+43: Step event — LLM generation starting
             yield _json.dumps({"type": "step", "id": "generate", "status": "in_progress", "label": f"Pensando con {model}...", "icon": "sparkles"})
 

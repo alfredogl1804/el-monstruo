@@ -36,7 +36,7 @@ import os
 import time
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, AsyncIterator, Optional
 from uuid import uuid4
 
 import structlog
@@ -50,6 +50,12 @@ MAX_STEPS = int(os.environ.get("PLANNER_MAX_STEPS", "10"))
 MAX_RETRIES_PER_STEP = int(os.environ.get("PLANNER_MAX_RETRIES", "2"))
 PLAN_BUDGET_USD = float(os.environ.get("PLANNER_BUDGET_USD", "1.0"))
 STEP_TIMEOUT_S = int(os.environ.get("PLANNER_STEP_TIMEOUT", "120"))
+
+# ── Sprint 46.3: Stuck Detection ────────────────────────────────────
+MAX_REACT_LOOPS = int(os.environ.get("PLANNER_MAX_REACT_LOOPS", "5"))  # Up from 3
+STUCK_DETECTION_THRESHOLD = 3  # Same tool called 3x with same args = stuck
+MAX_TOTAL_TOOL_CALLS_PER_STEP = 12  # Hard cap per step
+MAX_PLAN_DURATION_S = 300  # 5 minutes max for entire plan
 
 
 # ── Data Models ──────────────────────────────────────────────────────
@@ -597,6 +603,41 @@ Formato obligatorio:
                 "required": ["prompt"],
             },
         },
+        {
+            "name": "web_dev",
+            "description": "Sprint 47.2: Crear y desplegar sitios web. Acciones: scaffold (crea proyecto Vite+React+Tailwind), build (compila), deploy (sube a Vercel). Usar para crear landing pages, apps web, portfolios.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "description": "Acción: scaffold, build, deploy",
+                        "enum": ["scaffold", "build", "deploy"],
+                    },
+                    "project_name": {"type": "string", "description": "Nombre del proyecto (slug, e.g. mi-landing-page)"},
+                },
+                "required": ["action"],
+            },
+        },
+        {
+            "name": "file_ops",
+            "description": "Sprint 46.2: Operaciones de archivo en el sandbox. Crear, leer, editar, listar y eliminar archivos. Usar para scaffolding de proyectos, escribir código, crear configuraciones.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "description": "Acción: write_file, read_file, edit_file, list_files, delete_file, mkdir",
+                        "enum": ["write_file", "read_file", "edit_file", "list_files", "delete_file", "mkdir"],
+                    },
+                    "path": {"type": "string", "description": "Ruta del archivo o directorio (absoluta, e.g. /home/user/project/index.html)"},
+                    "content": {"type": "string", "description": "Contenido a escribir (para write_file)"},
+                    "find": {"type": "string", "description": "Texto a buscar (para edit_file)"},
+                    "replace": {"type": "string", "description": "Texto de reemplazo (para edit_file)"},
+                },
+                "required": ["action", "path"],
+            },
+        },
     ]
 
     async def _execute_tool_direct(self, tool_name: str, args: dict) -> str:
@@ -722,6 +763,41 @@ Formato obligatorio:
                 synthesis = result.get("synthesis", "")
                 return synthesis[:6000] if synthesis else json.dumps({"error": "No sabios responded", "errors": result.get("errors", [])})
 
+            elif tool_name == "web_dev":
+                # Sprint 47.2: Web development (scaffold, build, deploy)
+                from tools.web_dev import execute_web_dev
+                result = await execute_web_dev(
+                    action=args.get("action", "scaffold"),
+                    project_name=args.get("project_name"),
+                )
+                logger.info(
+                    "task_planner_web_dev",
+                    action=args.get("action"),
+                    project_name=args.get("project_name", ""),
+                    success=result.get("success"),
+                    url=result.get("url"),
+                )
+                return json.dumps(result, ensure_ascii=False)[:4000]
+
+            elif tool_name == "file_ops":
+                # Sprint 46.2: File operations in E2B sandbox
+                from tools.file_ops import execute_file_ops
+                result = await execute_file_ops(
+                    action=args.get("action", "read_file"),
+                    path=args.get("path", ""),
+                    content=args.get("content"),
+                    find=args.get("find"),
+                    replace=args.get("replace"),
+                    recursive=args.get("recursive", False),
+                )
+                logger.info(
+                    "task_planner_file_ops",
+                    action=args.get("action"),
+                    path=args.get("path", "")[:80],
+                    success=result.get("success"),
+                )
+                return json.dumps(result, ensure_ascii=False)[:4000]
+
             else:
                 return json.dumps({"error": f"Tool '{tool_name}' not available in planner executor"})
 
@@ -780,7 +856,10 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                 messages = [{"role": "user", "content": user_message}]
                 total_tokens = 0
                 final_response = ""
-                max_react_loops = 3  # Max Reason-Act-Observe iterations
+                max_react_loops = MAX_REACT_LOOPS
+                # Sprint 46.3: Stuck detection state
+                _tool_call_history: list[tuple[str, str]] = []  # (tool_name, args_hash)
+                _step_tool_calls = 0
 
                 for loop_i in range(max_react_loops):
                     resp = await asyncio.wait_for(
@@ -812,12 +891,43 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                         tool_results = []
                         for block in resp.content:
                             if block.type == "tool_use":
+                                # Sprint 46.3: Stuck detection
+                                import hashlib
+                                args_hash = hashlib.md5(json.dumps(block.input, sort_keys=True).encode()).hexdigest()[:8]
+                                _tool_call_history.append((block.name, args_hash))
+                                _step_tool_calls += 1
+
+                                # Check if stuck: same tool+args repeated N times
+                                recent = _tool_call_history[-STUCK_DETECTION_THRESHOLD:]
+                                if len(recent) == STUCK_DETECTION_THRESHOLD and len(set(recent)) == 1:
+                                    logger.warning(
+                                        "task_planner_stuck_detected",
+                                        plan_id=plan.plan_id,
+                                        step=step.index,
+                                        tool=block.name,
+                                        repeated=STUCK_DETECTION_THRESHOLD,
+                                    )
+                                    final_response = f"[STUCK] El agente repitió {block.name} {STUCK_DETECTION_THRESHOLD} veces con los mismos argumentos. Paso abortado."
+                                    break
+
+                                # Check hard cap on tool calls per step
+                                if _step_tool_calls >= MAX_TOTAL_TOOL_CALLS_PER_STEP:
+                                    logger.warning(
+                                        "task_planner_tool_cap_reached",
+                                        plan_id=plan.plan_id,
+                                        step=step.index,
+                                        total_calls=_step_tool_calls,
+                                    )
+                                    final_response = f"[CAP] Se alcanzó el límite de {MAX_TOTAL_TOOL_CALLS_PER_STEP} llamadas a herramientas en este paso."
+                                    break
+
                                 logger.info(
                                     "task_planner_react_tool_call",
                                     plan_id=plan.plan_id,
                                     step=step.index,
                                     tool=block.name,
                                     loop=loop_i,
+                                    call_num=_step_tool_calls,
                                 )
                                 tool_result = await self._execute_tool_direct(
                                     block.name, block.input
@@ -828,6 +938,10 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                                     "tool_use_id": block.id,
                                     "content": tool_result,
                                 })
+
+                        # If stuck was detected inside the for loop, break outer loop too
+                        if final_response and ("[STUCK]" in final_response or "[CAP]" in final_response):
+                            break
 
                         messages.append({"role": "user", "content": tool_results})
 
@@ -1127,6 +1241,9 @@ RESPONDE con JSON:
             "verifica", "despliega", "persiste", "redeploy", "pgvector",
             "supabase", "railway", "docker", "kubernetes",
             "analiza", "detecta", "agrupa", "envía", "reporta",
+            # Sprint 47.2: Web dev triggers
+            "sitio web", "landing page", "página web", "website",
+            "app web", "aplicación web", "portfolio", "dashboard",
         ]
         text_lower = text.lower()
         keyword_count = sum(1 for kw in complexity_keywords if kw in text_lower)
@@ -1142,3 +1259,360 @@ RESPONDE con JSON:
         has_step_pattern = bool(re.search(r'paso\s+\d|step\s+\d|\b\d+[:\-\.]\s', text_lower))
 
         return keyword_count >= 2 or has_step_pattern or (is_long and is_multi_sentence)
+
+    # ── Sprint 46.1: Streaming Plan & Execute for User Chat ────────────
+
+    async def stream_plan_and_execute(
+        self,
+        objective: str,
+        context: Optional[dict[str, Any]] = None,
+        user_id: str = "user",
+        enriched_context: Optional[dict[str, Any]] = None,
+    ) -> AsyncIterator[str]:
+        """
+        Sprint 46.1: Streaming version of plan + execute for user-facing chat.
+
+        Yields JSON-encoded events compatible with the existing agui_adapter:
+          {"type": "step", "id": "...", "status": "in_progress|completed", "label": "...", "icon": "..."}
+          {"type": "tool_start", "data": {"name": "...", "args": {...}}}
+          {"type": "tool_end", "data": {"result": "..."}}
+          {"type": "chunk", "text": "..."}  (final synthesized response)
+          {"type": "done", ...}
+
+        This method replaces the normal LLM streaming path when intent == "execute"
+        and the task is complex enough to warrant planning.
+        """
+        import json as _json
+        plan_start = time.time()
+
+        # ── Step 1: Planning ──────────────────────────────────────────
+        yield _json.dumps({
+            "type": "step",
+            "id": "plan",
+            "status": "in_progress",
+            "label": "Planificando tarea...",
+            "icon": "build",
+        })
+
+        try:
+            plan = await self.plan(
+                objective=objective,
+                context=context,
+                user_id=user_id,
+            )
+        except Exception as e:
+            logger.error("stream_plan_failed", error=str(e))
+            yield _json.dumps({
+                "type": "step",
+                "id": "plan",
+                "status": "completed",
+                "label": "Ejecutando directamente...",
+                "icon": "build",
+            })
+            # Fallback: yield the error as text and return
+            yield _json.dumps({"type": "chunk", "text": f"No pude planificar la tarea: {str(e)}. Intentando respuesta directa."})
+            return
+
+        yield _json.dumps({
+            "type": "step",
+            "id": "plan",
+            "status": "completed",
+            "label": f"Plan creado ({len(plan.steps)} pasos)",
+            "icon": "build",
+        })
+
+        # ── Step 2: Execute each step with streaming events ───────────
+        plan.status = PlanStatus.RUNNING
+        plan.started_at = datetime.now(timezone.utc).isoformat()
+
+        for step in plan.steps:
+            # Check budget
+            if plan.total_cost_usd >= PLAN_BUDGET_USD:
+                step.status = StepStatus.SKIPPED
+                step.error = f"Budget exceeded: ${plan.total_cost_usd:.2f}"
+                continue
+
+            # Check dependencies
+            if not self._dependencies_met(step, plan):
+                step.status = StepStatus.SKIPPED
+                step.error = "Dependencies not met"
+                continue
+
+            # Emit step start
+            step_icon = self._icon_for_tool(step.tool_hint)
+            yield _json.dumps({
+                "type": "step",
+                "id": f"step_{step.index}",
+                "status": "in_progress",
+                "label": f"Paso {step.index + 1}: {step.description[:60]}...",
+                "icon": step_icon,
+            })
+
+            # Execute step with ReAct loop + streaming tool events
+            success = await self._execute_step_streaming(step, plan, user_id, _json)
+            # Yield tool events that were collected during execution
+            for event in step._streaming_events if hasattr(step, '_streaming_events') else []:
+                yield event
+
+            # Emit step completion
+            status_label = "completado" if success else "fallido"
+            yield _json.dumps({
+                "type": "step",
+                "id": f"step_{step.index}",
+                "status": "completed",
+                "label": f"Paso {step.index + 1}: {status_label}",
+                "icon": step_icon,
+            })
+
+            if not success and step.retries >= MAX_RETRIES_PER_STEP:
+                # Try revision
+                revised = await self._revise_plan(plan, step, user_id)
+                if not revised:
+                    plan.status = PlanStatus.FAILED
+                    break
+
+            await self._persist_plan(plan)
+
+        # ── Step 3: Generate final response ───────────────────────────
+        yield _json.dumps({
+            "type": "step",
+            "id": "synthesize",
+            "status": "in_progress",
+            "label": "Sintetizando resultado...",
+            "icon": "sparkles",
+        })
+
+        plan.finished_at = datetime.now(timezone.utc).isoformat()
+        if plan.status != PlanStatus.FAILED:
+            plan.status = PlanStatus.DONE if not plan.failed_steps else PlanStatus.REVISED
+
+        # Generate final summary as the user-facing response
+        summary = await self._generate_summary(plan, user_id)
+        plan.final_summary = summary
+        await self._persist_plan(plan)
+
+        yield _json.dumps({
+            "type": "step",
+            "id": "synthesize",
+            "status": "completed",
+            "label": "Resultado listo",
+            "icon": "sparkles",
+        })
+
+        # Stream the final response as chunks (for the text bubble)
+        if summary:
+            # Emit in small chunks for smooth streaming appearance
+            chunk_size = 50
+            for i in range(0, len(summary), chunk_size):
+                yield _json.dumps({"type": "chunk", "text": summary[i:i + chunk_size]})
+                await asyncio.sleep(0.01)  # Small delay for smooth streaming
+
+        # Done event
+        elapsed_ms = (time.time() - plan_start) * 1000
+        yield _json.dumps({
+            "type": "done",
+            "latency_ms": round(elapsed_ms),
+            "model_used": EXECUTOR_MODEL,
+            "plan_id": plan.plan_id,
+            "steps_completed": len(plan.done_steps),
+            "steps_total": len(plan.steps),
+            "cost_usd": round(plan.total_cost_usd, 4),
+            "tool_calls": plan.total_tool_calls,
+        })
+
+    async def _execute_step_streaming(
+        self,
+        step: TaskStep,
+        plan: TaskPlan,
+        user_id: str,
+        _json,
+    ) -> bool:
+        """
+        Execute a single step with ReAct loop, collecting streaming events
+        for tool_start/tool_end that will be yielded by the parent generator.
+        """
+        step.status = StepStatus.RUNNING
+        step.started_at = time.time()
+        step._streaming_events = []  # Collect events here
+
+        # Build context from previous steps
+        prev_results = []
+        for prev in plan.steps:
+            if prev.index < step.index and prev.status == StepStatus.DONE and prev.result:
+                prev_results.append(f"Paso {prev.index}: {prev.result[:300]}")
+        prev_context = "\n".join(prev_results) if prev_results else "Ninguno"
+
+        tool_hint_str = f"\nHerramienta sugerida: {step.tool_hint}" if step.tool_hint else ""
+
+        system_prompt = """Eres El Monstruo, un agente autónomo que ejecuta planes de tareas para el usuario.
+Tienes acceso a herramientas reales. Úsalas para completar cada paso.
+Sé conciso y directo. Reporta el resultado al final con un resumen claro."""
+
+        user_message = f"""OBJETIVO GENERAL: {plan.objective}
+
+PASO A EJECUTAR ({step.index + 1}/{len(plan.steps)}): {step.description}{tool_hint_str}
+
+RESULTADOS DE PASOS ANTERIORES:
+{prev_context}
+
+Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, reporta el resultado."""
+
+        for attempt in range(MAX_RETRIES_PER_STEP + 1):
+            try:
+                import anthropic
+
+                client = anthropic.AsyncAnthropic(
+                    api_key=os.environ.get("ANTHROPIC_API_KEY", "")
+                )
+
+                messages = [{"role": "user", "content": user_message}]
+                total_tokens = 0
+                final_response = ""
+                max_react_loops = 3
+
+                for loop_i in range(max_react_loops):
+                    resp = await asyncio.wait_for(
+                        client.messages.create(
+                            model=EXECUTOR_MODEL,
+                            max_tokens=4000,
+                            system=system_prompt,
+                            tools=self._EXECUTOR_TOOLS,
+                            messages=messages,
+                        ),
+                        timeout=STEP_TIMEOUT_S,
+                    )
+
+                    total_tokens += resp.usage.input_tokens + resp.usage.output_tokens
+
+                    if resp.stop_reason == "end_turn":
+                        for block in resp.content:
+                            if hasattr(block, "text"):
+                                final_response += block.text
+                        break
+
+                    elif resp.stop_reason == "tool_use":
+                        assistant_content = resp.content
+                        messages.append({"role": "assistant", "content": assistant_content})
+
+                        tool_results = []
+                        for block in resp.content:
+                            if block.type == "tool_use":
+                                # Emit tool_start event
+                                step._streaming_events.append(_json.dumps({
+                                    "type": "tool_start",
+                                    "data": {
+                                        "name": block.name,
+                                        "args": block.input,
+                                    },
+                                }))
+
+                                logger.info(
+                                    "stream_planner_tool_call",
+                                    plan_id=plan.plan_id,
+                                    step=step.index,
+                                    tool=block.name,
+                                    loop=loop_i,
+                                )
+
+                                tool_result = await self._execute_tool_direct(
+                                    block.name, block.input
+                                )
+                                plan.total_tool_calls += 1
+
+                                # Emit tool_end event
+                                step._streaming_events.append(_json.dumps({
+                                    "type": "tool_end",
+                                    "data": {
+                                        "name": block.name,
+                                        "result": tool_result[:500],
+                                    },
+                                }))
+
+                                tool_results.append({
+                                    "type": "tool_result",
+                                    "tool_use_id": block.id,
+                                    "content": tool_result,
+                                })
+
+                        messages.append({"role": "user", "content": tool_results})
+
+                    else:
+                        for block in resp.content:
+                            if hasattr(block, "text"):
+                                final_response += block.text
+                        break
+
+                # Force summary if no text response
+                if not final_response and messages and messages[-1]["role"] == "user":
+                    try:
+                        summary_resp = await asyncio.wait_for(
+                            client.messages.create(
+                                model=EXECUTOR_MODEL,
+                                max_tokens=1000,
+                                system=system_prompt,
+                                messages=messages,
+                            ),
+                            timeout=30,
+                        )
+                        total_tokens += summary_resp.usage.input_tokens + summary_resp.usage.output_tokens
+                        for block in summary_resp.content:
+                            if hasattr(block, "text"):
+                                final_response += block.text
+                    except Exception:
+                        pass
+
+                if not final_response:
+                    final_response = f"Paso ejecutado. Loops ReAct: {loop_i + 1}"
+
+                cost = total_tokens * 0.000009
+                step.result = final_response
+                step.status = StepStatus.DONE
+                step.finished_at = time.time()
+                step.tokens_used = total_tokens
+                step.cost_usd = cost
+                plan.total_tokens += total_tokens
+                plan.total_cost_usd += cost
+
+                logger.info(
+                    "stream_planner_step_done",
+                    plan_id=plan.plan_id,
+                    step=step.index,
+                    tokens=total_tokens,
+                    cost=cost,
+                    react_loops=loop_i + 1,
+                )
+                return True
+
+            except asyncio.TimeoutError:
+                step.retries += 1
+                step.error = f"Timeout en intento {attempt + 1}"
+                if attempt < MAX_RETRIES_PER_STEP:
+                    await asyncio.sleep(5)
+                    continue
+
+            except Exception as e:
+                step.retries += 1
+                step.error = str(e)[:300]
+                if attempt < MAX_RETRIES_PER_STEP:
+                    await asyncio.sleep(5)
+                    continue
+
+        step.status = StepStatus.FAILED
+        step.finished_at = time.time()
+        return False
+
+    @staticmethod
+    def _icon_for_tool(tool_hint: Optional[str]) -> str:
+        """Map tool hint to a Flutter-compatible icon name."""
+        icon_map = {
+            "web_search": "search",
+            "browse_web": "search",
+            "code_exec": "build",
+            "github": "build",
+            "manus_bridge": "sparkles",
+            "query_knowledge": "memory",
+            "ingest_knowledge": "memory",
+            "send_message": "sparkles",
+            "consult_sabios": "brain",
+        }
+        return icon_map.get(tool_hint or "", "build")
