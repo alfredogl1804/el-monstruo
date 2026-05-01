@@ -220,6 +220,28 @@ class TaskPlanner:
         plan_id = str(uuid4())
         logger.info("task_planner_planning", plan_id=plan_id, objective=objective[:100])
 
+        # ── Sprint 51/55.1: SpecDrivenPlanner — Kiro pattern ──────────────────────
+        # Si la tarea es compleja, crear una spec antes de planificar
+        # Principio Kiro: "Spec first, code second"
+        try:
+            from kernel.spec_driven import get_spec_planner
+            spec_planner = get_spec_planner()
+            if spec_planner.requires_spec(objective):
+                spec = spec_planner.create_spec(
+                    title=f"plan_{plan_id[:8]}",
+                    task_description=objective,
+                )
+                logger.info(
+                    "task_planner_spec_created",
+                    plan_id=plan_id,
+                    spec_title=spec.title,
+                    requirements=len(spec.requirements),
+                    tasks=len(spec.tasks),
+                )
+        except Exception as _spec_err:
+            # SpecDrivenPlanner es opcional — no bloquear si falla
+            logger.warning("task_planner_spec_skipped", error=str(_spec_err))
+
         # ── Build planning prompt ────────────────────────────────────
         available_tools = [
             "code_exec — ejecutar código Python/shell en sandbox E2B persistente",

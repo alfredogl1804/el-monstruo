@@ -536,6 +536,34 @@ def get_tool_specs():
             },
             risk="medium",
         ),
+        # ── Sprint 51/55.1: WideResearchTool ─────────────────────────────────
+        ToolSpec(
+            name="wide_research",
+            description=(
+                "Launch parallel deep research on a topic using up to 10 simultaneous "
+                "sub-agents (Kimi K2.6 Swarm architecture). Each sub-agent investigates "
+                "a different aspect: architecture, benchmarks, use cases, competitors, "
+                "trends, limitations, integrations, pricing, community, and security. "
+                "Use when the user asks for comprehensive research on an AI agent, tool, "
+                "technology, or any topic requiring multi-angle investigation. "
+                "Returns a synthesized report from all sub-agents."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "The main research topic or question",
+                    },
+                    "num_agents": {
+                        "type": "integer",
+                        "description": "Number of parallel sub-agents (1-10). Default: 5",
+                    },
+                },
+                "required": ["query"],
+            },
+            risk="low",
+        ),
         ToolSpec(
             name="manus_bridge",
             description=(
@@ -758,6 +786,35 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             }
             loop = asyncio.get_event_loop()
             return await loop.run_in_executor(None, handle_manus_bridge, params)
+        elif tool_name == "wide_research":
+            # Sprint 51/55.1: WideResearchTool — Kimi K2.6 Swarm architecture
+            from tools.wide_research import get_wide_research_tool
+            from tools.web_search import web_search as _web_search
+
+            def _sync_search(q: str) -> str:
+                import asyncio
+                try:
+                    loop = asyncio.get_event_loop()
+                    result = loop.run_until_complete(_web_search(query=q))
+                    return str(result.get("answer", result))
+                except Exception as e:
+                    return f"[search error: {e}]"
+
+            tool = get_wide_research_tool(web_search_fn=_sync_search)
+            import asyncio
+            result = await tool.research_async(
+                main_query=args.get("query", ""),
+                num_agents=args.get("num_agents", 5),
+                synthesize=True,
+            )
+            return {
+                "synthesis": result.synthesis or "\n\n".join(
+                    f"### {t.focus}\n{t.result}" for t in result.sub_tasks if t.completed
+                ),
+                "success_rate": result.success_rate,
+                "sources_count": result.sources_count,
+                "sub_tasks_completed": sum(1 for t in result.sub_tasks if t.completed),
+            }
         elif tool_name.startswith("mcp__"):
             # Route to MCP Client Manager (Sprint 17)
             mcp_mgr = _tool_mcp_manager

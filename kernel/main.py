@@ -110,6 +110,35 @@ async def lifespan(app: FastAPI):
     knowledge_graph = KnowledgeGraph(db=db if db_connected else None)
     await knowledge_graph.initialize()
 
+    # ── Sprint 51/55.1: ThreeLayerMemory — Mem0 + Supabase + in-context ───────────
+    # Arquitectura de 3 capas: in-context (hot), Supabase (warm), Mem0 (cold)
+    # Biblia: Mem0 v2 (Capa 3 — Memoria Episódica + Semántica)
+    try:
+        from memory.three_layer_memory import ThreeLayerMemory
+        three_layer_memory = ThreeLayerMemory(
+            db=db if db_connected else None,
+            user_id="embrion",
+        )
+        await three_layer_memory.initialize()
+        app.state.three_layer_memory = three_layer_memory
+        logger.info("three_layer_memory_initialized", layers=["in-context", "supabase", "mem0"])
+    except Exception as _tlm_err:
+        logger.warning("three_layer_memory_init_failed", error=str(_tlm_err))
+        app.state.three_layer_memory = None
+
+    # ── Sprint 55.3: CausalKnowledgeBase — Materia prima del Simulador Predictivo ──
+    # Obj #10: Simulador Predictivo — necesita eventos causales históricos
+    # Patrón: ThoughtsStore (pgvector + Supabase + text-embedding-3-small)
+    try:
+        from memory.causal_kb import CausalKnowledgeBase, get_causal_kb
+        causal_kb = get_causal_kb(db=db if db_connected else None)
+        await causal_kb.initialize()
+        app.state.causal_kb = causal_kb
+        logger.info("causal_kb_initialized", table="causal_events", embedding="text-embedding-3-small")
+    except Exception as _ckb_err:
+        logger.warning("causal_kb_init_failed", error=str(_ckb_err))
+        app.state.causal_kb = None
+
     # Initialize sovereign router (native SDKs, no LiteLLM proxy)
     router = None
     try:

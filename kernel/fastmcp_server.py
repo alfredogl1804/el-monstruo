@@ -430,16 +430,50 @@ def create_fastmcp_server():
             logger.error("fastmcp_web_browse_error", url=url[:50], error=str(e))
             return json.dumps({"error": str(e), "url": url})
 
+    # ── Sprint 55.1: list_mcp_servers ──────────────────────────────────
+    @mcp.tool(
+        name="list_mcp_servers",
+        description=(
+            "List all connected MCP servers and their available tools. "
+            "Use this to discover what integrations El Monstruo has access to "
+            "(Notion, Gmail, Slack, Google Calendar, GitHub, Supabase, etc.)."
+        ),
+        tags={"discovery", "read-only"},
+    )
+    async def list_mcp_servers() -> str:
+        """List connected MCP servers and their tools."""
+        try:
+            from kernel.mcp_hub_config import get_mcp_hub
+            hub = get_mcp_hub()
+            if hub:
+                return hub.to_json()
+            # Fallback: usar MCPClientManager directamente
+            from kernel.main import app
+            manager = getattr(app.state, "mcp_client_manager", None)
+            if manager:
+                return json.dumps(manager.get_status(), default=str)
+            return json.dumps({"error": "MCPClientManager not initialized"})
+        except Exception as e:
+            logger.error("fastmcp_list_mcp_servers_error", error=str(e))
+            return json.dumps({"error": str(e)})
+
     _mcp_server = mcp
     _initialized = True
 
     logger.info(
         "fastmcp_server_created",
         name="El Monstruo Kernel",
-        tools_registered=5,
+        tools_registered=6,
         version="3.2.4",
-        sprint="33B",
-        real_tools=["web_search", "consult_sabios", "github_ops", "database_query", "web_browse (Cloudflare Browser Run)"],
+        sprint="55.1",
+        real_tools=[
+            "web_search",
+            "consult_sabios",
+            "github_ops",
+            "database_query",
+            "web_browse (Cloudflare Browser Run)",
+            "list_mcp_servers (MCP Hub discovery)",
+        ],
     )
 
     return mcp

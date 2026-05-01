@@ -428,6 +428,88 @@ def get_preset_configs() -> list[MCPServerConfig]:
         )
         logger.info("mcp_preset_enabled", server="supabase", pkg="mcp-server-supabase@0.7.0")
 
+    # ── Notion MCP Server ──────────────────────────────────────────
+    # @notionhq/notion-mcp-server@2.2.1 (npm, Mar 2026)
+    # Sprint 55.1 — MCP Hub
+    # Requiere: NOTION_API_KEY (Integration token)
+    notion_key = os.environ.get("NOTION_API_KEY")
+    if notion_key:
+        presets.append(
+            MCPServerConfig(
+                name="notion",
+                transport="stdio",
+                command="npx",
+                args=["-y", "@notionhq/notion-mcp-server"],
+                env={"NOTION_API_KEY": notion_key},
+                timeout_s=30.0,
+            )
+        )
+        logger.info("mcp_preset_enabled", server="notion", pkg="notion-mcp-server@2.2.1")
+
+    # ── Gmail MCP Server ──────────────────────────────────────────
+    # @techsend/gmail-mcp-server@2.1.1 (npm, Dec 2025)
+    # Sprint 55.1 — MCP Hub
+    # Requiere: GMAIL_OAUTH_CLIENT_ID, GMAIL_OAUTH_CLIENT_SECRET, GMAIL_REFRESH_TOKEN
+    gmail_client_id = os.environ.get("GMAIL_OAUTH_CLIENT_ID")
+    gmail_client_secret = os.environ.get("GMAIL_OAUTH_CLIENT_SECRET")
+    gmail_refresh_token = os.environ.get("GMAIL_REFRESH_TOKEN")
+    if gmail_client_id and gmail_client_secret and gmail_refresh_token:
+        presets.append(
+            MCPServerConfig(
+                name="gmail",
+                transport="stdio",
+                command="npx",
+                args=["-y", "@techsend/gmail-mcp-server"],
+                env={
+                    "GMAIL_OAUTH_CLIENT_ID": gmail_client_id,
+                    "GMAIL_OAUTH_CLIENT_SECRET": gmail_client_secret,
+                    "GMAIL_REFRESH_TOKEN": gmail_refresh_token,
+                },
+                timeout_s=30.0,
+            )
+        )
+        logger.info("mcp_preset_enabled", server="gmail", pkg="gmail-mcp-server@2.1.1")
+
+    # ── Slack MCP Server ──────────────────────────────────────────
+    # @anthropic/mcp-server-slack (npm)
+    # Sprint 55.1 — MCP Hub
+    # Requiere: SLACK_BOT_TOKEN, SLACK_TEAM_ID
+    slack_token = os.environ.get("SLACK_BOT_TOKEN")
+    slack_team = os.environ.get("SLACK_TEAM_ID")
+    if slack_token and slack_team:
+        presets.append(
+            MCPServerConfig(
+                name="slack",
+                transport="stdio",
+                command="npx",
+                args=["-y", "@anthropic/mcp-server-slack"],
+                env={
+                    "SLACK_BOT_TOKEN": slack_token,
+                    "SLACK_TEAM_ID": slack_team,
+                },
+                timeout_s=30.0,
+            )
+        )
+        logger.info("mcp_preset_enabled", server="slack", pkg="mcp-server-slack")
+
+    # ── Google Calendar MCP Server ─────────────────────────────────
+    # @anthropic/mcp-server-google-calendar (npm)
+    # Sprint 55.1 — MCP Hub
+    # Requiere: GOOGLE_CALENDAR_CREDENTIALS (path a JSON de credenciales)
+    gcal_creds = os.environ.get("GOOGLE_CALENDAR_CREDENTIALS")
+    if gcal_creds:
+        presets.append(
+            MCPServerConfig(
+                name="google_calendar",
+                transport="stdio",
+                command="npx",
+                args=["-y", "@anthropic/mcp-server-google-calendar"],
+                env={"GOOGLE_CALENDAR_CREDENTIALS": gcal_creds},
+                timeout_s=30.0,
+            )
+        )
+        logger.info("mcp_preset_enabled", server="google_calendar", pkg="mcp-server-google-calendar")
+
     return presets
 
 
