@@ -13,20 +13,23 @@
 | Archivo | Sprint | Función | Estado |
 |---------|--------|---------|--------|
 | `tools/state_writer.py` | 50 | Persistencia de estado de tareas largas (save/load/list/complete) | **Integrado** en `kernel/task_planner.py` línea 812 |
-| `prompts/system_prompts.py` | 49 | 6 cerebros con 8 módulos XML de Biblia v7.3 (592 líneas) | **Activo** — todos los cerebros usan estos prompts |
+| `tools/wide_research.py` | 51 | WideResearchTool: hasta 10 investigaciones paralelas (arquitectura Kimi K2.6) — 207 líneas | **Existe** — pendiente de registrar en `tool_dispatch.py` y `tool_registry.py` |
+| `kernel/spec_driven.py` | 51 | SpecDrivenPlanner: define specs antes de ejecutar (arquitectura Kiro) — 242 líneas | **Existe** — pendiente de conectar al ReAct loop en `task_planner.py` |
+| `memory/three_layer_memory.py` | 51 | ThreeLayerMemory: memoria de 3 capas — 67 líneas | **Existe** — pendiente de importar en `kernel/main.py` |
+| `prompts/system_prompts.py` | 49-51 | 6 cerebros con 8 módulos XML + 4 bloques nuevos (spec_driven_development, long_term_reasoning, three_layer_memory, managed_agent_architecture) en líneas 73, 90, 192, 209, 311, 328, 430, 447 | **Activo** — todos los cerebros usan estos prompts |
 | `docs/biblias_agentes_2026/` | 49 | 20 Biblias de implementación (Kiro, Claude Code, Devin, etc.) | **Documentación** — no ejecutable |
 | `docs/biblias_v73/` | 48 | ~85 Biblias v7.3 (incluye Monstruo v7.3 Definitiva) | **Documentación** — no ejecutable |
 | `docs/REPORTE_VALIDACION_BIBLIAS.md` | 49 | Scoring de 20 biblias vs. Manus v3 (promedio 84.3%) | **Documentación** |
 
-**Implementaciones declaradas pero NO encontradas en código:**
+**Estado de integración pendiente (archivos existen pero no están conectados al pipeline):**
 
-| Archivo Declarado | Estado Real |
-|-------------------|-------------|
-| `tools/wide_research.py` (WideResearchTool) | **NO EXISTE** en el repo — nunca fue commiteado |
-| `kernel/spec_driven.py` (SpecDrivenPlanner) | **NO EXISTE** en el repo — nunca fue commiteado |
-| 4 bloques nuevos en system_prompts (spec_driven_development, long_term_reasoning, three_layer_memory, managed_agent_architecture) | **NO ENCONTRADOS** en `prompts/system_prompts.py` |
+| Archivo | Acción Requerida | Sprint que lo conecta |
+|---------|-----------------|----------------------|
+| `tools/wide_research.py` | Registrar en `tool_dispatch.py` y `tool_registry.py` | Sprint 63 (Research Intelligence) |
+| `kernel/spec_driven.py` | Invocar automáticamente desde `task_planner.py` ReAct loop | Sprint 64 (E2E Demo) |
+| `memory/three_layer_memory.py` | Importar en `kernel/main.py` y conectar al memory pipeline | Sprint 61 (Cross-Embrion Learning) |
 
-**Conclusión:** De las 4 implementaciones declaradas por el Hilo A, solo 2 existen realmente en código: `state_writer.py` y la expansión de `system_prompts.py`. Las otras 2 (WideResearch y SpecDriven) son PLANES no ejecutados.
+**Conclusión:** Todas las implementaciones declaradas por el Hilo A EXISTEN en código (commit `5e07225`). Sin embargo, 3 de ellas (WideResearch, SpecDriven, ThreeLayerMemory) no están integradas al pipeline principal — existen como módulos aislados que requieren conexión en los sprints correspondientes.
 
 ---
 
@@ -74,8 +77,8 @@ No hay conflictos de código entre los hilos. La razón es simple: el Hilo A imp
 
 | # | Conflicto | Hilo A dice | Hilo B dice | Resolución |
 |---|-----------|-------------|-------------|------------|
-| 1 | **WideResearchTool** | "Implementado en `tools/wide_research.py`" | Sprint 63 planea "Research Intelligence Engine" que expande Agents Radar | **No hay conflicto real** — WideResearch nunca fue commiteado. Sprint 63 puede implementarlo desde cero usando la arquitectura Kimi K2.6 documentada en la Biblia |
-| 2 | **SpecDrivenPlanner** | "Implementado en `kernel/spec_driven.py`" | Sprint 64 planea "E2E Demo Pipeline" con spec-first approach | **No hay conflicto real** — SpecDriven nunca fue commiteado. Sprint 64 puede usar la arquitectura Kiro documentada en la Biblia |
+| 1 | **WideResearchTool** | "Implementado en `tools/wide_research.py`" (207 líneas) | Sprint 63 planea "Research Intelligence Engine" que expande Agents Radar | **Complementarios** — WideResearch EXISTE y funciona. Sprint 63 debe EXPANDIRLO (agregar relevance scoring + integration proposals), no recrearlo desde cero. Acción: registrar en tool_dispatch.py + tool_registry.py |
+| 2 | **SpecDrivenPlanner** | "Implementado en `kernel/spec_driven.py`" (242 líneas) | Sprint 64 planea "E2E Demo Pipeline" con spec-first approach | **Complementarios** — SpecDriven EXISTE y funciona. Sprint 64 debe CONECTARLO al ReAct loop en task_planner.py, no reimplementarlo. Acción: invocar automáticamente cuando confidence < threshold |
 | 3 | **StateWriter vs. Embrión Scheduler** | StateWriter persiste estado de tareas | Sprint 56 planea Embrión Scheduler con persistencia en Supabase | **Complementarios** — StateWriter es para tareas del TaskPlanner; Scheduler es para tareas autónomas de Embriones. Diferentes scopes |
 
 ### 2.3 Conflictos de Git: 1 Activo
@@ -131,11 +134,11 @@ El archivo `docs/REPORTE_VALIDACION_BIBLIAS.md` tiene cambios locales no commite
 | 1 | **KV-Cache Optimization** | Manus v3 | Sprint 62 (Cost Optimizer) | Implementar prefix caching + append-only context |
 | 2 | **Tool Masking (no removal)** | Manus v3 | Sprint 55 (MCP Hub) | Usar logit masking en lugar de dynamic tool loading |
 | 3 | **Agent Swarm (300 sub-agents)** | Kimi K2.6 | Sprint 61 (Collective Intelligence) | Escalar de 7 embriones a N sub-agents dinámicos |
-| 4 | **Spec-Driven Development** | Kiro | Sprint 64 (E2E Demo) | Implementar SpecDrivenPlanner (nunca fue commiteado) |
+| 4 | **Spec-Driven Development — Integración** | Kiro | Sprint 64 (E2E Demo) | SpecDrivenPlanner EXISTE (242 líneas) — conectar al ReAct loop + agregar acceptance criteria validation |
 | 5 | **Loop Guard (recursion detection)** | Manus v3 | Sprint 66 (Self-Healing) | Agregar LoopDetectedError al autonomous runner |
 | 6 | **Metadata de Intención (origin_goal, depth_level)** | Manus v3 | Sprint 56 (Embrión Scheduler) | Inyectar intent metadata en cada task dispatch |
-| 7 | **Memory con Alcance (scoped injection)** | Manus v3 | Sprint 61 (Cross-Embrion Learning) | Solo inyectar resúmenes relevantes, no memoria global |
-| 8 | **Wide Research (10 parallel queries)** | Kimi K2.6 | Sprint 63 (Research Intelligence) | Implementar WideResearchTool (nunca fue commiteado) |
+| 7 | **Memory con Alcance (scoped injection)** | Manus v3 | Sprint 61 (Cross-Embrion Learning) | Solo inyectar resúmenes relevantes, no memoria global. ThreeLayerMemory (67 líneas) EXISTE — integrar al pipeline |
+| 8 | **Wide Research — Integración** | Kimi K2.6 | Sprint 63 (Research Intelligence) | WideResearchTool EXISTE (207 líneas) — registrar en tool_dispatch + expandir con relevance scoring |
 
 ---
 
@@ -185,14 +188,14 @@ La implementación DEBE seguir dependencias técnicas, no orden numérico:
 ## 7. Recomendaciones para Ambos Hilos
 
 ### Para el Hilo A (Biblias):
-1. **Cerrar los gaps de implementación:** WideResearchTool y SpecDrivenPlanner fueron declarados pero nunca commiteados. Deben implementarse en los sprints correspondientes (63 y 64).
+1. **Integrar los módulos aislados:** WideResearchTool, SpecDrivenPlanner y ThreeLayerMemory EXISTEN pero no están conectados al pipeline principal. Los sprints 63, 64 y 61 deben integrarlos (no reimplementarlos).
 2. **Las Biblias son INSUMO, no output:** Su valor máximo es informar la implementación de los Sprint Plans, no ser documentos independientes.
 3. **Priorizar las 3 biblias más valiosas:** Manus v3 (meta-patterns), Kimi K2.6 (multi-agent), Kiro (spec-driven).
 
 ### Para el Hilo B (Sprint Planning):
 1. **Incorporar patrones de Biblias explícitamente:** Cada Sprint Plan debería citar qué Biblia informa cada decisión arquitectónica.
-2. **Implementar los 8 gaps identificados** en la Sección 4 como parte de los sprints correspondientes.
-3. **El Sprint 68 debe incluir:** Capa 7 (Resiliencia Agéntica) + Obj #14 (Guardián de los Objetivos) + los 2 gaps del Hilo A (WideResearch + SpecDriven).
+2. **Implementar los 6 gaps restantes** en la Sección 4 como parte de los sprints correspondientes (gaps #4 y #8 ya están implementados como módulos aislados — solo necesitan integración).
+3. **El Sprint 68 debe incluir:** Capa 7 (Resiliencia Agéntica) + Obj #14 (Guardián de los Objetivos). Los módulos WideResearch y SpecDriven ya existen — Sprint 63 y 64 los integran al pipeline.
 
 ### Para Ambos Hilos:
 1. **Un solo CHANGELOG:** Mantener un archivo `CHANGELOG.md` que registre qué se implementó realmente (no qué se planeó).
@@ -206,8 +209,8 @@ La implementación DEBE seguir dependencias técnicas, no orden numérico:
 **Estado real del proyecto al 1 de Mayo 2026:**
 - **Código funcional:** ~50 módulos Python (Sprints 1-50), infraestructura completa
 - **Documentación:** 85+ Biblias, 17 Sprint Plans, 14 Objetivos Maestros
-- **Gap principal:** 85 Épicas planificadas (Sprints 51-67) sin implementar en código
-- **Conflictos:** 0 en código, 3 conceptuales (todos resolubles), 1 de git (trivial)
+- **Gap principal:** 85 Épicas planificadas (Sprints 51-67) sin implementar en código (3 módulos del Sprint 51 existen pero están desconectados del pipeline)
+- **Conflictos:** 0 en código, 3 conceptuales (todos complementarios, no conflictivos), 1 de git (trivial)
 - **Sinergia máxima:** Las Biblias informan directamente 12 de los 17 Sprint Plans
 
 **La prioridad #1 es empezar a IMPLEMENTAR los Sprint Plans, usando las Biblias como referencia arquitectónica.**
@@ -216,3 +219,4 @@ La implementación DEBE seguir dependencias técnicas, no orden numérico:
 
 *Documento generado como referencia cruzada para sincronización entre hilos de trabajo.*
 *Fecha: 1 de Mayo 2026 | Hilo B (Sprint Planning)*
+*Actualizado: 1 de Mayo 2026 — Corrección post-sincronización: WideResearchTool, SpecDrivenPlanner y ThreeLayerMemory confirmados como existentes (commit 5e07225). Reclasificados de "no implementados" a "implementados pero no integrados al pipeline".*
