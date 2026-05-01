@@ -855,6 +855,51 @@ async def lifespan(app: FastAPI):
             app.state.emergent_tracker = None
         # ── /Sprint 59 ───────────────────────────────────────────────────────────
 
+        # ── Sprint 60: Colmena Completa + Simulador Calibrado ───────────────────────
+        try:
+            from kernel.sovereignty.engine import init_sovereignty_engine
+            from kernel.vanguard.tech_radar import init_tech_radar
+            from kernel.simulator.causal_simulator_v2 import init_simulator_v2
+            from kernel.embriones.embrion_financiero import init_embrion_financiero
+            from kernel.embriones.embrion_investigador import init_embrion_investigador
+
+            sovereignty_engine = init_sovereignty_engine()
+            app.state.sovereignty_engine = sovereignty_engine
+            logger.info("sovereignty_engine_ready", objetivo="Obj #9 Capa 7 — Resiliencia Agéntica")
+
+            tech_radar = init_tech_radar()
+            app.state.tech_radar = tech_radar
+            logger.info("tech_radar_ready", objetivo="Obj #6 — Vanguardia Perpetua")
+
+            causal_simulator_v2 = init_simulator_v2(
+                causal_kb=getattr(app.state, 'causal_kb', None),
+            )
+            app.state.causal_simulator_v2 = causal_simulator_v2
+            logger.info("causal_simulator_v2_ready", objetivo="Obj #10 — Simulador Predictivo Calibrado")
+
+            embrion_financiero = init_embrion_financiero(
+                simulator_v2=causal_simulator_v2,
+            )
+            app.state.embrion_financiero = embrion_financiero
+            logger.info("embrion_financiero_ready", specialization="finanzas y unit economics")
+
+            embrion_investigador = init_embrion_investigador()
+            app.state.embrion_investigador = embrion_investigador
+            logger.info(
+                "embrion_investigador_ready",
+                milestone="COLMENA_COMPLETA_7_DE_7",
+                embriones=["ventas", "tecnico", "vigia", "creativo", "estratega", "financiero", "investigador"],
+            )
+
+        except Exception as _s60_err:
+            logger.warning("sprint_60_init_failed", error=str(_s60_err))
+            app.state.sovereignty_engine = None
+            app.state.tech_radar = None
+            app.state.causal_simulator_v2 = None
+            app.state.embrion_financiero = None
+            app.state.embrion_investigador = None
+        # ── /Sprint 60 ───────────────────────────────────────────────────────────────
+
         await embrion_scheduler.start()  # Inicia loop asyncio (revisa cada 60s)
         app.state.embrion_scheduler = embrion_scheduler
         logger.info(
@@ -899,6 +944,12 @@ async def lifespan(app: FastAPI):
         conversational_ux="active" if getattr(app.state, 'conversational_ux', None) else "inactive",
         emergent_tracker="active" if getattr(app.state, 'emergent_tracker', None) else "inactive",
         visual_quality_gate="active" if getattr(app.state, 'visual_quality_gate', None) else "inactive",
+        sovereignty_engine="active" if getattr(app.state, 'sovereignty_engine', None) else "inactive",
+        tech_radar="active" if getattr(app.state, 'tech_radar', None) else "inactive",
+        causal_simulator_v2="active" if getattr(app.state, 'causal_simulator_v2', None) else "inactive",
+        embrion_financiero="active" if getattr(app.state, 'embrion_financiero', None) else "inactive",
+        embrion_investigador="active" if getattr(app.state, 'embrion_investigador', None) else "inactive",
+        colmena="COMPLETA_7_DE_7",
         background_store="supabase" if (_bg_store and _bg_store._use_db()) else "in_memory",
         moc="active" if moc else "inactive",
     )
