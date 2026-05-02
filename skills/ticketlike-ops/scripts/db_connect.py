@@ -4,8 +4,10 @@ Conexión rápida a TiDB Cloud — ticketlike.mx producción.
 Uso: import db_connect; conn = db_connect.get_connection()
 O ejecutar directamente: python3 db_connect.py "SELECT COUNT(*) FROM events;"
 """
-import sys
+
 import ssl
+import sys
+
 import pymysql
 
 DB_CONFIG = {

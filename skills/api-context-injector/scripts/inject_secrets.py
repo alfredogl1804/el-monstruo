@@ -16,15 +16,15 @@ Uso:
     python3.11 inject_secrets.py --audit /path/to/project               # Audita secrets actuales
 """
 
+import argparse
+import json
 import os
 import re
-import sys
-import yaml
-import json
-import argparse
 import subprocess
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import yaml
 
 # ============================================================
 # CONSTANTS
@@ -41,43 +41,43 @@ SCAFFOLD_SIGNATURES = {
         "absent": ["drizzle.config.ts", "server/"],
         "type": "frontend_only",
         "secret_injection": "BLOCKED",
-        "reason": "Sitio estático expone todo al browser. Secrets irían al cliente."
+        "reason": "Sitio estático expone todo al browser. Secrets irían al cliente.",
     },
     "web-db-user": {
         "files": ["vite.config.ts", "drizzle.config.ts", "server/"],
         "absent": [],
         "type": "fullstack",
         "secret_injection": "BACKEND_ONLY",
-        "reason": "Secrets solo en server/, NUNCA en src/ o public/"
+        "reason": "Secrets solo en server/, NUNCA en src/ o public/",
     },
     "mobile-app": {
         "files": ["app.json", "expo", "metro.config.js"],
         "absent": [],
         "type": "mobile",
         "secret_injection": "BACKEND_ONLY",
-        "reason": "Secrets solo en backend/API, nunca embebidos en app bundle"
+        "reason": "Secrets solo en backend/API, nunca embebidos en app bundle",
     },
     "cloudflare-worker": {
         "files": ["wrangler.toml", "wrangler.jsonc"],
         "absent": [],
         "type": "edge",
         "secret_injection": "WRANGLER_SECRETS",
-        "reason": "Secrets via wrangler secret put o API"
+        "reason": "Secrets via wrangler secret put o API",
     },
     "next-vercel": {
         "files": ["next.config.js", "vercel.json", ".vercel/"],
         "absent": [],
         "type": "fullstack",
         "secret_injection": "VERCEL_ENV",
-        "reason": "Secrets via Vercel env vars (MCP o CLI)"
+        "reason": "Secrets via Vercel env vars (MCP o CLI)",
     },
     "custom": {
         "files": [],
         "absent": [],
         "type": "unknown",
         "secret_injection": "MANUAL_REVIEW",
-        "reason": "Scaffold no reconocido. Requiere revisión manual."
-    }
+        "reason": "Scaffold no reconocido. Requiere revisión manual.",
+    },
 }
 
 # Known env vars in sandbox
@@ -100,15 +100,28 @@ NOTION_CREDENTIALS_DB = "collection://d94369d5-5dc3-437e-b483-fa86a5e98b74"
 
 # Security: files/dirs where secrets must NEVER appear
 FORBIDDEN_SECRET_LOCATIONS = [
-    "src/", "public/", "static/", "dist/", "build/",
-    "*.html", "*.css", "*.jsx", "*.tsx",  # frontend files
-    "README.md", "package.json",  # public files
+    "src/",
+    "public/",
+    "static/",
+    "dist/",
+    "build/",
+    "*.html",
+    "*.css",
+    "*.jsx",
+    "*.tsx",  # frontend files
+    "README.md",
+    "package.json",  # public files
 ]
 
 # Security: files/dirs where secrets ARE allowed
 ALLOWED_SECRET_LOCATIONS = [
-    ".env", ".env.local", ".env.production",
-    "server/", "api/", "backend/", "functions/",
+    ".env",
+    ".env.local",
+    ".env.production",
+    "server/",
+    "api/",
+    "backend/",
+    "functions/",
     "wrangler.toml",  # only for [vars], not secrets
 ]
 
@@ -116,6 +129,7 @@ ALLOWED_SECRET_LOCATIONS = [
 # ============================================================
 # SCAFFOLD DETECTION
 # ============================================================
+
 
 def detect_scaffold(project_path: Path) -> dict:
     """Detecta el tipo de scaffold del proyecto."""
@@ -128,16 +142,14 @@ def detect_scaffold(project_path: Path) -> dict:
             continue
 
         # Check required files exist
-        required_found = all(
-            any(project_path.rglob(f)) if "*" not in f else (project_path / f).exists()
-            for f in signature["files"]
-        ) if signature["files"] else False
+        required_found = (
+            all(any(project_path.rglob(f)) if "*" not in f else (project_path / f).exists() for f in signature["files"])
+            if signature["files"]
+            else False
+        )
 
         # Check absent files don't exist
-        absent_ok = all(
-            not any(project_path.rglob(f))
-            for f in signature["absent"]
-        ) if signature["absent"] else True
+        absent_ok = all(not any(project_path.rglob(f)) for f in signature["absent"]) if signature["absent"] else True
 
         if required_found and absent_ok:
             return {
@@ -161,11 +173,12 @@ def detect_scaffold(project_path: Path) -> dict:
 # MANIFEST MANAGEMENT
 # ============================================================
 
+
 def load_manifest(manifest_path: Path) -> dict:
     """Carga el manifiesto de secrets del proyecto."""
     if not manifest_path.exists():
         return None
-    with open(manifest_path, 'r') as f:
+    with open(manifest_path, "r") as f:
         return yaml.safe_load(f)
 
 
@@ -180,29 +193,29 @@ def generate_manifest(project_path: Path) -> dict:
 
     # Patterns to detect API usage in code
     env_patterns = [
-        r'process\.env\.(\w+)',           # Node.js
-        r'os\.environ\[[\'"]([\w]+)',     # Python
-        r'os\.environ\.get\([\'"]([\w]+)',# Python
-        r'import\.meta\.env\.(\w+)',      # Vite
+        r"process\.env\.(\w+)",  # Node.js
+        r'os\.environ\[[\'"]([\w]+)',  # Python
+        r'os\.environ\.get\([\'"]([\w]+)',  # Python
+        r"import\.meta\.env\.(\w+)",  # Vite
         r'Deno\.env\.get\([\'"]([\w]+)',  # Deno
     ]
 
     import_patterns = {
-        r'from openai': "OPENAI_API_KEY",
-        r'import openai': "OPENAI_API_KEY",
-        r'from anthropic': "ANTHROPIC_API_KEY",
-        r'import anthropic': "ANTHROPIC_API_KEY",
-        r'from elevenlabs': "ELEVENLABS_API_KEY",
-        r'import elevenlabs': "ELEVENLABS_API_KEY",
-        r'from google.*genai': "GEMINI_API_KEY",
-        r'heygen': "HEYGEN_API_KEY",
-        r'perplexity': "SONAR_API_KEY",
-        r'openrouter': "OPENROUTER_API_KEY",
-        r'cloudflare': "CLOUDFLARE_API_TOKEN",
-        r'dropbox': "DROPBOX_API_KEY",
-        r'supabase': "SUPABASE_URL",
-        r'stripe': "STRIPE_SECRET_KEY",
-        r'paypal': "PAYPAL_CLIENT_SECRET",
+        r"from openai": "OPENAI_API_KEY",
+        r"import openai": "OPENAI_API_KEY",
+        r"from anthropic": "ANTHROPIC_API_KEY",
+        r"import anthropic": "ANTHROPIC_API_KEY",
+        r"from elevenlabs": "ELEVENLABS_API_KEY",
+        r"import elevenlabs": "ELEVENLABS_API_KEY",
+        r"from google.*genai": "GEMINI_API_KEY",
+        r"heygen": "HEYGEN_API_KEY",
+        r"perplexity": "SONAR_API_KEY",
+        r"openrouter": "OPENROUTER_API_KEY",
+        r"cloudflare": "CLOUDFLARE_API_TOKEN",
+        r"dropbox": "DROPBOX_API_KEY",
+        r"supabase": "SUPABASE_URL",
+        r"stripe": "STRIPE_SECRET_KEY",
+        r"paypal": "PAYPAL_CLIENT_SECRET",
     }
 
     # Scan all source files
@@ -211,7 +224,7 @@ def generate_manifest(project_path: Path) -> dict:
             if "node_modules" in str(filepath) or ".next" in str(filepath):
                 continue
             try:
-                content = filepath.read_text(encoding='utf-8', errors='ignore')
+                content = filepath.read_text(encoding="utf-8", errors="ignore")
                 # Find env var references
                 for pattern in env_patterns:
                     matches = re.findall(pattern, content)
@@ -259,7 +272,7 @@ def generate_manifest(project_path: Path) -> dict:
         "security": {
             "forbidden_locations": FORBIDDEN_SECRET_LOCATIONS,
             "allowed_locations": ALLOWED_SECRET_LOCATIONS,
-        }
+        },
     }
 
     return manifest
@@ -267,7 +280,7 @@ def generate_manifest(project_path: Path) -> dict:
 
 def save_manifest(manifest: dict, output_path: Path):
     """Guarda el manifiesto en YAML."""
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         yaml.dump(manifest, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
     print(f"   Manifiesto guardado: {output_path}")
 
@@ -275,6 +288,7 @@ def save_manifest(manifest: dict, output_path: Path):
 # ============================================================
 # SECRET RESOLUTION
 # ============================================================
+
 
 def resolve_secrets(manifest: dict) -> dict:
     """Resuelve los valores de los secrets desde las fuentes disponibles."""
@@ -291,12 +305,14 @@ def resolve_secrets(manifest: dict) -> dict:
                 "masked": f"{value[:4]}...{value[-4:]}" if len(value) > 8 else "****",
             }
         else:
-            unresolved.append({
-                "env_var": env_var,
-                "service": config.get("service", "Unknown"),
-                "source_hint": "notion_db",
-                "lookup_command": f"manus-mcp-cli tool call notion-search --server notion --input '{{\"query\": \"{config.get('service', env_var)}\", \"data_source_url\": \"{NOTION_CREDENTIALS_DB}\", \"page_size\": 3}}'",
-            })
+            unresolved.append(
+                {
+                    "env_var": env_var,
+                    "service": config.get("service", "Unknown"),
+                    "source_hint": "notion_db",
+                    "lookup_command": f'manus-mcp-cli tool call notion-search --server notion --input \'{{"query": "{config.get("service", env_var)}", "data_source_url": "{NOTION_CREDENTIALS_DB}", "page_size": 3}}\'',
+                }
+            )
 
     return {"resolved": resolved, "unresolved": unresolved}
 
@@ -304,6 +320,7 @@ def resolve_secrets(manifest: dict) -> dict:
 # ============================================================
 # SECURITY VALIDATION
 # ============================================================
+
 
 def validate_security(project_path: Path, scaffold: dict) -> dict:
     """Valida que no haya secrets expuestos y que el scaffold permita inyección."""
@@ -315,23 +332,25 @@ def validate_security(project_path: Path, scaffold: dict) -> dict:
 
     # BLOCK: web-static cannot have secrets
     if injection_mode == "BLOCKED":
-        issues.append({
-            "severity": "CRITICAL",
-            "message": f"Scaffold '{scaffold['scaffold']}' NO permite inyección de secrets. "
-                       f"Los secrets serían expuestos al cliente. "
-                       f"Solución: usar un proxy backend (Cloudflare Worker o Vercel Function).",
-            "action": "ABORT"
-        })
+        issues.append(
+            {
+                "severity": "CRITICAL",
+                "message": f"Scaffold '{scaffold['scaffold']}' NO permite inyección de secrets. "
+                f"Los secrets serían expuestos al cliente. "
+                f"Solución: usar un proxy backend (Cloudflare Worker o Vercel Function).",
+                "action": "ABORT",
+            }
+        )
         return {"passed": False, "issues": issues, "warnings": warnings}
 
     # SCAN: check for hardcoded secrets in source
     secret_patterns = [
-        (r'sk-[a-zA-Z0-9]{20,}', "OpenAI API key hardcoded"),
-        (r'sk-ant-[a-zA-Z0-9]{20,}', "Anthropic API key hardcoded"),
-        (r'AIza[a-zA-Z0-9_-]{35}', "Google API key hardcoded"),
-        (r'xai-[a-zA-Z0-9]{20,}', "xAI API key hardcoded"),
-        (r'pplx-[a-zA-Z0-9]{20,}', "Perplexity API key hardcoded"),
-        (r'ghp_[a-zA-Z0-9]{36}', "GitHub token hardcoded"),
+        (r"sk-[a-zA-Z0-9]{20,}", "OpenAI API key hardcoded"),
+        (r"sk-ant-[a-zA-Z0-9]{20,}", "Anthropic API key hardcoded"),
+        (r"AIza[a-zA-Z0-9_-]{35}", "Google API key hardcoded"),
+        (r"xai-[a-zA-Z0-9]{20,}", "xAI API key hardcoded"),
+        (r"pplx-[a-zA-Z0-9]{20,}", "Perplexity API key hardcoded"),
+        (r"ghp_[a-zA-Z0-9]{36}", "GitHub token hardcoded"),
     ]
 
     for ext in ["*.py", "*.ts", "*.tsx", "*.js", "*.jsx", "*.html"]:
@@ -339,16 +358,18 @@ def validate_security(project_path: Path, scaffold: dict) -> dict:
             if "node_modules" in str(filepath) or ".next" in str(filepath):
                 continue
             try:
-                content = filepath.read_text(encoding='utf-8', errors='ignore')
+                content = filepath.read_text(encoding="utf-8", errors="ignore")
                 for pattern, description in secret_patterns:
                     if re.search(pattern, content):
                         # Check if it's in a safe context (env var reference)
                         rel_path = str(filepath.relative_to(project_path))
-                        issues.append({
-                            "severity": "CRITICAL",
-                            "message": f"{description} en {rel_path}",
-                            "action": "REMOVE_AND_USE_ENV_VAR"
-                        })
+                        issues.append(
+                            {
+                                "severity": "CRITICAL",
+                                "message": f"{description} en {rel_path}",
+                                "action": "REMOVE_AND_USE_ENV_VAR",
+                            }
+                        )
             except Exception:
                 pass
 
@@ -357,29 +378,37 @@ def validate_security(project_path: Path, scaffold: dict) -> dict:
     if gitignore_path.exists():
         gitignore_content = gitignore_path.read_text()
         if ".env" not in gitignore_content:
-            warnings.append({
-                "severity": "HIGH",
-                "message": ".env no está en .gitignore — secrets podrían subirse a git",
-                "action": "ADD_TO_GITIGNORE"
-            })
+            warnings.append(
+                {
+                    "severity": "HIGH",
+                    "message": ".env no está en .gitignore — secrets podrían subirse a git",
+                    "action": "ADD_TO_GITIGNORE",
+                }
+            )
     else:
-        warnings.append({
-            "severity": "HIGH",
-            "message": "No existe .gitignore — crear uno con .env* incluido",
-            "action": "CREATE_GITIGNORE"
-        })
+        warnings.append(
+            {
+                "severity": "HIGH",
+                "message": "No existe .gitignore — crear uno con .env* incluido",
+                "action": "CREATE_GITIGNORE",
+            }
+        )
 
     # SCAN: check for VITE_ prefixed secrets (exposed to frontend in Vite)
     for env_file in project_path.glob(".env*"):
         try:
             content = env_file.read_text()
-            for line in content.split('\n'):
-                if line.startswith("VITE_") and any(kw in line.upper() for kw in ["SECRET", "KEY", "TOKEN", "PASSWORD"]):
-                    warnings.append({
-                        "severity": "HIGH",
-                        "message": f"Secret con prefijo VITE_ en {env_file.name}: '{line.split('=')[0]}' — será expuesto al frontend",
-                        "action": "REMOVE_VITE_PREFIX_OR_MOVE_TO_BACKEND"
-                    })
+            for line in content.split("\n"):
+                if line.startswith("VITE_") and any(
+                    kw in line.upper() for kw in ["SECRET", "KEY", "TOKEN", "PASSWORD"]
+                ):
+                    warnings.append(
+                        {
+                            "severity": "HIGH",
+                            "message": f"Secret con prefijo VITE_ en {env_file.name}: '{line.split('=')[0]}' — será expuesto al frontend",
+                            "action": "REMOVE_VITE_PREFIX_OR_MOVE_TO_BACKEND",
+                        }
+                    )
         except Exception:
             pass
 
@@ -390,6 +419,7 @@ def validate_security(project_path: Path, scaffold: dict) -> dict:
 # ============================================================
 # INJECTION TARGETS
 # ============================================================
+
 
 def inject_to_sandbox(project_path: Path, resolved: dict, dry_run: bool = False) -> dict:
     """Inyecta secrets en archivos .env del proyecto local."""
@@ -404,15 +434,15 @@ def inject_to_sandbox(project_path: Path, resolved: dict, dry_run: bool = False)
     # Read existing .env.local
     existing = {}
     if env_file.exists():
-        for line in env_file.read_text().split('\n'):
-            if '=' in line and not line.startswith('#'):
-                key = line.split('=', 1)[0].strip()
+        for line in env_file.read_text().split("\n"):
+            if "=" in line and not line.startswith("#"):
+                key = line.split("=", 1)[0].strip()
                 existing[key] = line
 
     # Write/update
-    with open(env_file, 'a' if env_file.exists() else 'w') as f:
+    with open(env_file, "a" if env_file.exists() else "w") as f:
         if not env_file.exists() or env_file.stat().st_size == 0:
-            f.write(f"# Auto-generated by api-context-injector v3.1\n")
+            f.write("# Auto-generated by api-context-injector v3.1\n")
             f.write(f"# Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
 
         for env_var, info in resolved.items():
@@ -427,10 +457,10 @@ def inject_to_sandbox(project_path: Path, resolved: dict, dry_run: bool = False)
     if gitignore.exists():
         content = gitignore.read_text()
         if ".env" not in content:
-            with open(gitignore, 'a') as f:
+            with open(gitignore, "a") as f:
                 f.write("\n# Secrets\n.env*\n")
     else:
-        with open(gitignore, 'w') as f:
+        with open(gitignore, "w") as f:
             f.write("# Secrets\n.env*\nnode_modules/\n")
 
     return {"target": "sandbox", "results": results}
@@ -442,28 +472,40 @@ def inject_to_vercel(project_path: Path, resolved: dict, dry_run: bool = False) 
 
     for env_var, info in resolved.items():
         if dry_run:
-            results.append({"var": env_var, "target": "vercel", "status": "DRY_RUN",
-                           "command": f"manus-mcp-cli tool call vercel_env_var_create --server vercel --input '...'"})
+            results.append(
+                {
+                    "var": env_var,
+                    "target": "vercel",
+                    "status": "DRY_RUN",
+                    "command": "manus-mcp-cli tool call vercel_env_var_create --server vercel --input '...'",
+                }
+            )
             continue
 
         try:
             # Use Vercel MCP to set env var
             cmd = [
-                "manus-mcp-cli", "tool", "call", "create-environment-variable",
-                "--server", "vercel",
-                "--input", json.dumps({
-                    "key": env_var,
-                    "value": info["value"],
-                    "type": "encrypted",
-                    "target": ["production", "preview", "development"]
-                })
+                "manus-mcp-cli",
+                "tool",
+                "call",
+                "create-environment-variable",
+                "--server",
+                "vercel",
+                "--input",
+                json.dumps(
+                    {
+                        "key": env_var,
+                        "value": info["value"],
+                        "type": "encrypted",
+                        "target": ["production", "preview", "development"],
+                    }
+                ),
             ]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
             if result.returncode == 0:
                 results.append({"var": env_var, "target": "vercel", "status": "INJECTED"})
             else:
-                results.append({"var": env_var, "target": "vercel", "status": "FAILED",
-                               "error": result.stderr[:200]})
+                results.append({"var": env_var, "target": "vercel", "status": "FAILED", "error": result.stderr[:200]})
         except subprocess.TimeoutExpired:
             results.append({"var": env_var, "target": "vercel", "status": "TIMEOUT"})
         except Exception as e:
@@ -490,27 +532,40 @@ def inject_to_cloudflare(project_path: Path, resolved: dict, dry_run: bool = Fal
             # Use wrangler CLI to set secret
             try:
                 cmd = f"echo '{info['value']}' | npx wrangler secret put {env_var}"
-                result = subprocess.run(cmd, shell=True, capture_output=True, text=True,
-                                       timeout=30, cwd=str(project_path))
+                result = subprocess.run(
+                    cmd, shell=True, capture_output=True, text=True, timeout=30, cwd=str(project_path)
+                )
                 if result.returncode == 0:
                     results.append({"var": env_var, "target": "cloudflare", "status": "INJECTED", "method": "wrangler"})
                 else:
-                    results.append({"var": env_var, "target": "cloudflare", "status": "FAILED",
-                                   "error": result.stderr[:200], "method": "wrangler"})
+                    results.append(
+                        {
+                            "var": env_var,
+                            "target": "cloudflare",
+                            "status": "FAILED",
+                            "error": result.stderr[:200],
+                            "method": "wrangler",
+                        }
+                    )
             except Exception as e:
                 results.append({"var": env_var, "target": "cloudflare", "status": "ERROR", "error": str(e)[:200]})
         else:
             # Use Cloudflare API directly
             try:
-                import requests
                 cf_token = os.environ.get("CLOUDFLARE_API_TOKEN")
                 if not cf_token:
                     results.append({"var": env_var, "target": "cloudflare", "status": "NO_CF_TOKEN"})
                     continue
 
                 # Note: would need account_id and script_name from manifest
-                results.append({"var": env_var, "target": "cloudflare", "status": "NEEDS_ACCOUNT_ID",
-                               "hint": "Agregar cloudflare_account_id y worker_name al manifiesto"})
+                results.append(
+                    {
+                        "var": env_var,
+                        "target": "cloudflare",
+                        "status": "NEEDS_ACCOUNT_ID",
+                        "hint": "Agregar cloudflare_account_id y worker_name al manifiesto",
+                    }
+                )
             except Exception as e:
                 results.append({"var": env_var, "target": "cloudflare", "status": "ERROR", "error": str(e)[:200]})
 
@@ -529,16 +584,29 @@ def inject_to_supabase(project_path: Path, resolved: dict, dry_run: bool = False
         try:
             # Use Supabase MCP to store in vault
             cmd = [
-                "manus-mcp-cli", "tool", "call", "execute_sql",
-                "--server", "supabase",
-                "--input", json.dumps({
-                    "project_id": "NEEDS_PROJECT_ID",
-                    "query": f"SELECT vault.create_secret('{info['value']}', '{env_var}', 'Injected by api-context-injector');"
-                })
+                "manus-mcp-cli",
+                "tool",
+                "call",
+                "execute_sql",
+                "--server",
+                "supabase",
+                "--input",
+                json.dumps(
+                    {
+                        "project_id": "NEEDS_PROJECT_ID",
+                        "query": f"SELECT vault.create_secret('{info['value']}', '{env_var}', 'Injected by api-context-injector');",
+                    }
+                ),
             ]
             if not dry_run:
-                results.append({"var": env_var, "target": "supabase_vault", "status": "NEEDS_PROJECT_ID",
-                               "hint": "Agregar supabase_project_id al manifiesto"})
+                results.append(
+                    {
+                        "var": env_var,
+                        "target": "supabase_vault",
+                        "status": "NEEDS_PROJECT_ID",
+                        "hint": "Agregar supabase_project_id al manifiesto",
+                    }
+                )
         except Exception as e:
             results.append({"var": env_var, "target": "supabase_vault", "status": "ERROR", "error": str(e)[:200]})
 
@@ -548,6 +616,7 @@ def inject_to_supabase(project_path: Path, resolved: dict, dry_run: bool = False
 # ============================================================
 # AUDIT
 # ============================================================
+
 
 def audit_project(project_path: Path) -> dict:
     """Audita un proyecto: qué secrets tiene, dónde están, qué falta."""
@@ -560,13 +629,13 @@ def audit_project(project_path: Path) -> dict:
     for env_file in project_path.glob(".env*"):
         vars_in_file = {}
         try:
-            for line in env_file.read_text().split('\n'):
-                if '=' in line and not line.startswith('#') and line.strip():
-                    key = line.split('=', 1)[0].strip()
-                    val = line.split('=', 1)[1].strip()
+            for line in env_file.read_text().split("\n"):
+                if "=" in line and not line.startswith("#") and line.strip():
+                    key = line.split("=", 1)[0].strip()
+                    val = line.split("=", 1)[1].strip()
                     vars_in_file[key] = {
                         "has_value": bool(val),
-                        "masked": f"{val[:3]}...{val[-3:]}" if len(val) > 6 else "***"
+                        "masked": f"{val[:3]}...{val[-3:]}" if len(val) > 6 else "***",
                     }
         except Exception:
             pass
@@ -579,17 +648,17 @@ def audit_project(project_path: Path) -> dict:
 
     code_refs = set()
     env_patterns = [
-        r'process\.env\.(\w+)',
+        r"process\.env\.(\w+)",
         r'os\.environ\[[\'"]([\w]+)',
         r'os\.environ\.get\([\'"]([\w]+)',
-        r'import\.meta\.env\.(\w+)',
+        r"import\.meta\.env\.(\w+)",
     ]
     for ext in ["*.py", "*.ts", "*.tsx", "*.js", "*.jsx"]:
         for filepath in project_path.rglob(ext):
             if "node_modules" in str(filepath):
                 continue
             try:
-                content = filepath.read_text(encoding='utf-8', errors='ignore')
+                content = filepath.read_text(encoding="utf-8", errors="ignore")
                 for pattern in env_patterns:
                     code_refs.update(re.findall(pattern, content))
             except Exception:
@@ -605,7 +674,7 @@ def audit_project(project_path: Path) -> dict:
         "code_references": sorted(code_refs),
         "missing_in_env_files": sorted(missing_in_env),
         "unused_in_env_files": sorted(unused_in_env),
-        "recommendation": _generate_recommendation(scaffold, security, missing_in_env)
+        "recommendation": _generate_recommendation(scaffold, security, missing_in_env),
     }
 
 
@@ -624,8 +693,8 @@ def _generate_recommendation(scaffold, security, missing):
 # MAIN ORCHESTRATOR
 # ============================================================
 
-def run_injection(project_path: str, target: str = "sandbox", manifest_path: str = None,
-                  dry_run: bool = False) -> dict:
+
+def run_injection(project_path: str, target: str = "sandbox", manifest_path: str = None, dry_run: bool = False) -> dict:
     """Orquesta el flujo completo de inyección."""
     project_path = Path(project_path)
     report = {
@@ -633,14 +702,14 @@ def run_injection(project_path: str, target: str = "sandbox", manifest_path: str
         "project": str(project_path),
         "target": target,
         "dry_run": dry_run,
-        "steps": []
+        "steps": [],
     }
 
     # Step 1: Detect scaffold
-    print(f"\n{'='*60}")
-    print(f"  Secret Injection Engine v3.1")
+    print(f"\n{'=' * 60}")
+    print("  Secret Injection Engine v3.1")
     print(f"  Target: {target} | Dry Run: {dry_run}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     scaffold = detect_scaffold(project_path)
     report["scaffold"] = scaffold
@@ -657,7 +726,7 @@ def run_injection(project_path: str, target: str = "sandbox", manifest_path: str
         print(f"   ⚠️  [{warning['severity']}] {warning['message']}")
 
     if not security["passed"]:
-        print(f"\n   ABORTANDO: Resolver issues de seguridad primero.")
+        print("\n   ABORTANDO: Resolver issues de seguridad primero.")
         report["status"] = "ABORTED_SECURITY"
         return report
 
@@ -684,11 +753,12 @@ def run_injection(project_path: str, target: str = "sandbox", manifest_path: str
     report["resolution"] = {
         "resolved_count": len(resolution["resolved"]),
         "unresolved_count": len(resolution["unresolved"]),
-        "resolved_vars": [{"var": k, "source": v["source"], "masked": v["masked"]}
-                         for k, v in resolution["resolved"].items()],
-        "unresolved_vars": resolution["unresolved"]
+        "resolved_vars": [
+            {"var": k, "source": v["source"], "masked": v["masked"]} for k, v in resolution["resolved"].items()
+        ],
+        "unresolved_vars": resolution["unresolved"],
     }
-    print(f"\n4. Resolución de secrets:")
+    print("\n4. Resolución de secrets:")
     print(f"   Resueltos (sandbox env): {len(resolution['resolved'])}")
     print(f"   No resueltos (necesitan Notion): {len(resolution['unresolved'])}")
     for u in resolution["unresolved"]:
@@ -721,8 +791,8 @@ def run_injection(project_path: str, target: str = "sandbox", manifest_path: str
         print(f"   {icon} {r['var']}: {r['status']}")
 
     # Summary
-    print(f"\n{'='*60}")
-    print(f"  RESUMEN")
+    print(f"\n{'=' * 60}")
+    print("  RESUMEN")
     print(f"  Scaffold: {scaffold['scaffold']}")
     print(f"  Secrets requeridos: {len(manifest.get('secrets', {}))}")
     print(f"  Resueltos: {len(resolution['resolved'])}")
@@ -734,7 +804,7 @@ def run_injection(project_path: str, target: str = "sandbox", manifest_path: str
         print(f"  Ya existían: {skipped}")
         print(f"  Fallidos: {failed}")
     print(f"  Status: {'✅ COMPLETE' if failed == 0 else '⚠️ PARTIAL'}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     report["status"] = "COMPLETE" if failed == 0 else "PARTIAL"
 
@@ -752,11 +822,16 @@ def run_injection(project_path: str, target: str = "sandbox", manifest_path: str
 # CLI
 # ============================================================
 
+
 def main():
     parser = argparse.ArgumentParser(description="Motor de inyección de secrets v3.1")
     parser.add_argument("--project", help="Ruta al proyecto")
-    parser.add_argument("--target", choices=["sandbox", "vercel", "cloudflare", "supabase"],
-                       default="sandbox", help="Destino de inyección")
+    parser.add_argument(
+        "--target",
+        choices=["sandbox", "vercel", "cloudflare", "supabase"],
+        default="sandbox",
+        help="Destino de inyección",
+    )
     parser.add_argument("--manifest", help="Ruta al manifiesto YAML")
     parser.add_argument("--dry-run", action="store_true", help="Simular sin inyectar")
     parser.add_argument("--generate-manifest", metavar="PATH", help="Auto-generar manifiesto para un proyecto")
@@ -780,9 +855,9 @@ def main():
 
     if args.audit:
         audit = audit_project(Path(args.audit))
-        print(f"\n{'='*60}")
-        print(f"  AUDIT REPORT")
-        print(f"{'='*60}")
+        print(f"\n{'=' * 60}")
+        print("  AUDIT REPORT")
+        print(f"{'=' * 60}")
         print(f"Scaffold: {audit['scaffold']['scaffold']}")
         print(f"Security: {'PASSED' if audit['security']['passed'] else 'FAILED'}")
         print(f"Env files: {list(audit['env_files'].keys())}")
@@ -791,7 +866,7 @@ def main():
         print(f"Unused in .env: {audit['unused_in_env_files']}")
         print(f"Recommendation: {audit['recommendation']}")
         if args.output:
-            with open(args.output, 'w') as f:
+            with open(args.output, "w") as f:
                 json.dump(audit, f, indent=2, default=str)
         return
 
@@ -807,7 +882,7 @@ def main():
     )
 
     if args.output:
-        with open(args.output, 'w') as f:
+        with open(args.output, "w") as f:
             json.dump(report, f, indent=2, default=str)
         print(f"\nReporte guardado: {args.output}")
 

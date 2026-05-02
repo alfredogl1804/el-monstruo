@@ -6,10 +6,10 @@ Evalúa cumplimiento regulatorio por obligación y fecha.
 NO es un checkbox genérico — es un motor de políticas con timeline.
 """
 
-import json
-import yaml
 from datetime import datetime
 from pathlib import Path
+
+import yaml
 
 SKILL_DIR = Path(__file__).parent.parent
 
@@ -90,15 +90,11 @@ def check_compliance_gate(stage: str, context: dict = None) -> dict:
     for entry in timeline:
         entry_date = datetime.strptime(entry["date"], "%Y-%m-%d")
         if entry.get("status") == "active" and now >= entry_date:
-            results["warnings"].append(
-                f"AI Act obligation active since {entry['date']}: {entry['description']}"
-            )
+            results["warnings"].append(f"AI Act obligation active since {entry['date']}: {entry['description']}")
         elif entry.get("status") == "upcoming":
             days_until = (entry_date - now).days
             if days_until <= 180:
-                results["warnings"].append(
-                    f"AI Act obligation upcoming in {days_until} days: {entry['description']}"
-                )
+                results["warnings"].append(f"AI Act obligation upcoming in {days_until} days: {entry['description']}")
 
     # Check reverse engineering rules
     re_rules = rules.get("frameworks", {}).get("reverse_engineering", {})

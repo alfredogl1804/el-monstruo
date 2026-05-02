@@ -620,14 +620,17 @@ def set_tool_broker(broker) -> None:
     global _tool_broker
     _tool_broker = broker
 
+
 def set_mcp_manager(manager) -> None:
     """Inject the MCPClientManager instance (set by main.py during startup, Sprint 17)."""
     global _tool_mcp_manager
     _tool_mcp_manager = manager
 
+
 def get_mcp_manager():
     """Get the current MCPClientManager instance."""
     return _tool_mcp_manager
+
 
 def get_tool_broker():
     """Get the current ToolBroker instance."""
@@ -773,6 +776,7 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
         elif tool_name == "manus_bridge":
             # Sprint 38: handle_manus_bridge es síncrona — ejecutar en threadpool
             import asyncio
+
             from tools.manus_bridge import handle_manus_bridge
 
             params = {
@@ -788,11 +792,12 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             return await loop.run_in_executor(None, handle_manus_bridge, params)
         elif tool_name == "wide_research":
             # Sprint 51/55.1: WideResearchTool — Kimi K2.6 Swarm architecture
-            from tools.wide_research import get_wide_research_tool
             from tools.web_search import web_search as _web_search
+            from tools.wide_research import get_wide_research_tool
 
             def _sync_search(q: str) -> str:
                 import asyncio
+
                 try:
                     loop = asyncio.get_event_loop()
                     result = loop.run_until_complete(_web_search(query=q))
@@ -802,15 +807,15 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
 
             tool = get_wide_research_tool(web_search_fn=_sync_search)
             import asyncio
+
             result = await tool.research_async(
                 main_query=args.get("query", ""),
                 num_agents=args.get("num_agents", 5),
                 synthesize=True,
             )
             return {
-                "synthesis": result.synthesis or "\n\n".join(
-                    f"### {t.focus}\n{t.result}" for t in result.sub_tasks if t.completed
-                ),
+                "synthesis": result.synthesis
+                or "\n\n".join(f"### {t.focus}\n{t.result}" for t in result.sub_tasks if t.completed),
                 "success_rate": result.success_rate,
                 "sources_count": result.sources_count,
                 "sub_tasks_completed": sum(1 for t in result.sub_tasks if t.completed),

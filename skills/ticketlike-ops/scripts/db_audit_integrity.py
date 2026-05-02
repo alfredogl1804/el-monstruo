@@ -4,12 +4,15 @@ Auditoría de integridad de 8 capas para ticketlike.mx.
 Ejecutar: python3 db_audit_integrity.py
 Exit code 0 = todo OK, 1 = problemas encontrados.
 """
-import sys
+
 import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from db_connect import query
 
 problems = []
+
 
 def check(name, sql, expect_zero=True):
     rows = query(sql)
@@ -23,23 +26,28 @@ def check(name, sql, expect_zero=True):
             print(f"   → {r}")
     return status
 
+
 print("=" * 60)
 print("AUDITORÍA DE INTEGRIDAD — ticketlike.mx")
 print("=" * 60)
 
 # 1. Unique constraint
 print("\n--- 1. Duplicados en event_seats ---")
-check("Duplicados (eventId, seatId)",
-      "SELECT eventId, seatId, COUNT(*) c FROM event_seats GROUP BY eventId, seatId HAVING c > 1")
+check(
+    "Duplicados (eventId, seatId)",
+    "SELECT eventId, seatId, COUNT(*) c FROM event_seats GROUP BY eventId, seatId HAVING c > 1",
+)
 
 # 2. Forward check: sold → orden pagada válida
 print("\n--- 2. Forward check (sold → paid order) ---")
-check("Sold sin orden pagada",
-      """SELECT es.eventId, s.label, es.status, es.orderId
+check(
+    "Sold sin orden pagada",
+    """SELECT es.eventId, s.label, es.status, es.orderId
          FROM event_seats es
          JOIN seats s ON es.seatId = s.id
          LEFT JOIN ticket_orders o ON es.orderId = o.id
-         WHERE es.status = 'sold' AND (o.id IS NULL OR o.status != 'paid')""")
+         WHERE es.status = 'sold' AND (o.id IS NULL OR o.status != 'paid')""",
+)
 
 # 3. Reverse check: paid order → seats sold
 # NOTA: event_seats se crean lazily (solo cuando alguien interactúa con el asiento).
@@ -57,41 +65,51 @@ rev_rows = query("""SELECT o.id, o.customerName, o.eventId, o.ticketType
          WHERE o.status = 'paid' AND o.eventId = '1'
          AND o.ticketType = 'butaca'
          AND o.id NOT IN (SELECT DISTINCT orderId FROM event_seats WHERE status = 'sold' AND orderId IS NOT NULL)""")
-print(f"\u2139\ufe0f  Butacas pagadas sin asiento sold: {len(rev_rows)} (esperado post-FCFS, no es error de integridad)")
+print(
+    f"\u2139\ufe0f  Butacas pagadas sin asiento sold: {len(rev_rows)} (esperado post-FCFS, no es error de integridad)"
+)
 # 4. Cross-event check
 print("\n--- 4. Cross-event check ---")
-check("OrderId apunta a evento equivocado",
-      """SELECT es.eventId as seat_event, o.eventId as order_event, s.label, o.customerName
+check(
+    "OrderId apunta a evento equivocado",
+    """SELECT es.eventId as seat_event, o.eventId as order_event, s.label, o.customerName
          FROM event_seats es
          JOIN ticket_orders o ON es.orderId = o.id
          JOIN seats s ON es.seatId = s.id
-         WHERE es.eventId != o.eventId AND es.status = 'sold'""")
+         WHERE es.eventId != o.eventId AND es.status = 'sold'""",
+)
 
 # 5. Ghost check: pagado pero no sold
 print("\n--- 5. Ghost check ---")
-check("Ghosts (pagados, no sold)",
-      """SELECT o.id, o.customerName, es.status, s.label
+check(
+    "Ghosts (pagados, no sold)",
+    """SELECT o.id, o.customerName, es.status, s.label
          FROM ticket_orders o
          JOIN event_seats es ON es.orderId = o.id
          JOIN seats s ON es.seatId = s.id
-         WHERE o.status = 'paid' AND es.status NOT IN ('sold', 'blocked')""")
+         WHERE o.status = 'paid' AND es.status NOT IN ('sold', 'blocked')""",
+)
 
 # 6. Orphan check: sold sin orden real
 print("\n--- 6. Orphan check ---")
-check("Orphans (sold sin orden)",
-      """SELECT es.eventId, s.label, es.orderId
+check(
+    "Orphans (sold sin orden)",
+    """SELECT es.eventId, s.label, es.orderId
          FROM event_seats es
          JOIN seats s ON es.seatId = s.id
          WHERE es.status = 'sold' AND (es.orderId IS NULL
-         OR es.orderId NOT IN (SELECT id FROM ticket_orders))""")
+         OR es.orderId NOT IN (SELECT id FROM ticket_orders))""",
+)
 
 # 7. Status consistency
 print("\n--- 7. Status consistency ---")
-check("Available/held con orderId residual",
-      """SELECT es.eventId, s.label, es.status, es.orderId
+check(
+    "Available/held con orderId residual",
+    """SELECT es.eventId, s.label, es.status, es.orderId
          FROM event_seats es
          JOIN seats s ON es.seatId = s.id
-         WHERE es.status = 'available' AND es.orderId IS NOT NULL""")
+         WHERE es.status = 'available' AND es.orderId IS NOT NULL""",
+)
 
 # 8. Capacity check
 print("\n--- 8. Capacity check ---")

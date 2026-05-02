@@ -23,7 +23,6 @@ import json
 import re
 from typing import Any, Optional
 
-
 # ═══════════════════════════════════════════════════════════════
 # SCHEMAS PREDEFINIDOS
 # ═══════════════════════════════════════════════════════════════
@@ -41,11 +40,11 @@ SCHEMA_INVESTIGACION = {
                     "tema": {"type": "string"},
                     "prioridad": {"type": "string", "enum": ["ALTA", "MEDIA", "BAJA"]},
                     "query": {"type": "string"},
-                }
-            }
+                },
+            },
         },
         "sensibilidad_temporal": {"type": "string"},
-    }
+    },
 }
 
 SCHEMA_VALIDACION = {
@@ -61,10 +60,10 @@ SCHEMA_VALIDACION = {
                     "afirmacion": {"type": "string"},
                     "sabio": {"type": "string"},
                     "query": {"type": "string"},
-                }
-            }
+                },
+            },
         }
-    }
+    },
 }
 
 SCHEMA_COBERTURA = {
@@ -75,7 +74,7 @@ SCHEMA_COBERTURA = {
         "temas_cubiertos": {"type": "integer"},
         "temas_totales": {"type": "integer"},
         "temas_faltantes": {"type": "array"},
-    }
+    },
 }
 
 SCHEMA_CONSENSO = {
@@ -86,7 +85,7 @@ SCHEMA_CONSENSO = {
         "contradicciones": {"type": "integer"},
         "puntos_consenso": {"type": "array"},
         "puntos_divergencia": {"type": "array"},
-    }
+    },
 }
 
 
@@ -94,15 +93,16 @@ SCHEMA_CONSENSO = {
 # PARSER PRINCIPAL
 # ═══════════════════════════════════════════════════════════════
 
+
 def parse_json(text: str, schema: dict = None) -> Optional[Any]:
     """
     Extrae JSON de texto usando múltiples estrategias.
     Opcionalmente valida contra un schema.
-    
+
     Args:
         text: Texto que contiene JSON (puede tener markdown, etc.)
         schema: Schema opcional para validación
-    
+
     Returns:
         dict/list parseado, o None si falla todo
     """
@@ -137,7 +137,7 @@ def parse_json(text: str, schema: dict = None) -> Optional[Any]:
 def validate_schema(data: Any, schema: dict) -> tuple:
     """
     Validación básica de schema sin dependencias externas.
-    
+
     Returns:
         (is_valid: bool, errors: list[str])
     """
@@ -185,6 +185,7 @@ def validate_schema(data: Any, schema: dict) -> tuple:
 # ESTRATEGIAS DE EXTRACCIÓN
 # ═══════════════════════════════════════════════════════════════
 
+
 def _strategy_pure_json(text: str) -> Optional[Any]:
     """Estrategia 1: El texto completo es JSON válido."""
     stripped = text.strip()
@@ -196,7 +197,7 @@ def _strategy_pure_json(text: str) -> Optional[Any]:
 def _strategy_markdown_json_block(text: str) -> Optional[Any]:
     """Estrategia 2: Extraer de bloque ```json ... ```."""
     # Buscar todos los bloques json
-    matches = re.findall(r'```json\s*\n?(.*?)\n?\s*```', text, re.DOTALL)
+    matches = re.findall(r"```json\s*\n?(.*?)\n?\s*```", text, re.DOTALL)
     for match in matches:
         try:
             return json.loads(match.strip())
@@ -207,7 +208,7 @@ def _strategy_markdown_json_block(text: str) -> Optional[Any]:
 
 def _strategy_markdown_generic_block(text: str) -> Optional[Any]:
     """Estrategia 3: Extraer de bloque ``` ... ``` genérico."""
-    matches = re.findall(r'```\s*\n?(.*?)\n?\s*```', text, re.DOTALL)
+    matches = re.findall(r"```\s*\n?(.*?)\n?\s*```", text, re.DOTALL)
     for match in matches:
         stripped = match.strip()
         if stripped.startswith(("{", "[")):
@@ -237,7 +238,7 @@ def _strategy_brace_matching(text: str) -> Optional[Any]:
                 escape = False
                 continue
 
-            if c == '\\' and in_string:
+            if c == "\\" and in_string:
                 escape = True
                 continue
 
@@ -253,7 +254,7 @@ def _strategy_brace_matching(text: str) -> Optional[Any]:
             elif c == end_char:
                 depth -= 1
                 if depth == 0:
-                    candidate = text[start_idx:i + 1]
+                    candidate = text[start_idx : i + 1]
                     try:
                         return json.loads(candidate)
                     except json.JSONDecodeError:
@@ -266,15 +267,15 @@ def _strategy_repair_and_parse(text: str) -> Optional[Any]:
     """Estrategia 5: Reparar JSON común y parsear."""
     # Buscar candidatos en bloques markdown o texto suelto
     candidates = []
-    
+
     # Extraer de bloques markdown (raw, sin parsear)
-    for m in re.finditer(r'```(?:json)?\s*\n?(.*?)\n?\s*```', text, re.DOTALL):
+    for m in re.finditer(r"```(?:json)?\s*\n?(.*?)\n?\s*```", text, re.DOTALL):
         candidates.append(m.group(1).strip())
-    
+
     # Buscar cualquier cosa que parezca JSON en el texto
-    for m in re.finditer(r'[\{\[].*?[\}\]]', text, re.DOTALL):
+    for m in re.finditer(r"[\{\[].*?[\}\]]", text, re.DOTALL):
         candidates.append(m.group(0))
-    
+
     # Si no hay candidatos, usar el texto completo
     if not candidates:
         candidates = [text.strip()]
@@ -282,20 +283,20 @@ def _strategy_repair_and_parse(text: str) -> Optional[Any]:
     for candidate in candidates:
         # Aplicar reparaciones comunes
         repaired = candidate
-        
+
         # Trailing commas antes de } o ]
-        repaired = re.sub(r',\s*([}\]])', r'\1', repaired)
+        repaired = re.sub(r",\s*([}\]])", r"\1", repaired)
         # True/False/None de Python
-        repaired = re.sub(r'\bTrue\b', 'true', repaired)
-        repaired = re.sub(r'\bFalse\b', 'false', repaired)
-        repaired = re.sub(r'\bNone\b', 'null', repaired)
+        repaired = re.sub(r"\bTrue\b", "true", repaired)
+        repaired = re.sub(r"\bFalse\b", "false", repaired)
+        repaired = re.sub(r"\bNone\b", "null", repaired)
         # Comentarios de línea
-        repaired = re.sub(r'//[^\n]*', '', repaired)
+        repaired = re.sub(r"//[^\n]*", "", repaired)
         # Single quotes → double quotes
         repaired = re.sub(r"(?<=[:,\[{\s])'([^'\n]*)'(?=[,\]}: \n])", r'"\1"', repaired)
         # Claves sin comillas: word:
-        repaired = re.sub(r'(?<=[{,])\s*(\w+)\s*:', r' "\1":', repaired)
-        
+        repaired = re.sub(r"(?<=[{,])\s*(\w+)\s*:", r' "\1":', repaired)
+
         try:
             return json.loads(repaired)
         except json.JSONDecodeError:
@@ -307,6 +308,7 @@ def _strategy_repair_and_parse(text: str) -> Optional[Any]:
 # ═══════════════════════════════════════════════════════════════
 # UTILIDADES
 # ═══════════════════════════════════════════════════════════════
+
 
 def safe_get(data: dict, *keys, default=None):
     """Acceso seguro a claves anidadas."""
@@ -326,14 +328,19 @@ if __name__ == "__main__":
     print("🧪 Testing json_parser.py\n")
 
     tests = [
-        ('JSON puro', '{"key": "value"}', None, True),
-        ('Markdown block', 'Aquí va:\n```json\n{"temas": [{"tema": "test", "prioridad": "ALTA"}]}\n```\nFin.', SCHEMA_INVESTIGACION, True),
-        ('Trailing comma', '{"a": 1, "b": 2,}', None, True),
-        ('Single quotes', "{'key': 'value'}", None, True),
-        ('Python bools', '{"active": True, "deleted": False}', None, True),
-        ('Texto basura', 'No hay JSON aquí', None, False),
-        ('Nested markdown', 'Respuesta:\n```\n{"consenso": 0.85, "contradicciones": 2}\n```', SCHEMA_CONSENSO, True),
-        ('Schema fail', '{"wrong_key": 1}', SCHEMA_CONSENSO, False),
+        ("JSON puro", '{"key": "value"}', None, True),
+        (
+            "Markdown block",
+            'Aquí va:\n```json\n{"temas": [{"tema": "test", "prioridad": "ALTA"}]}\n```\nFin.',
+            SCHEMA_INVESTIGACION,
+            True,
+        ),
+        ("Trailing comma", '{"a": 1, "b": 2,}', None, True),
+        ("Single quotes", "{'key': 'value'}", None, True),
+        ("Python bools", '{"active": True, "deleted": False}', None, True),
+        ("Texto basura", "No hay JSON aquí", None, False),
+        ("Nested markdown", 'Respuesta:\n```\n{"consenso": 0.85, "contradicciones": 2}\n```', SCHEMA_CONSENSO, True),
+        ("Schema fail", '{"wrong_key": 1}', SCHEMA_CONSENSO, False),
     ]
 
     passed = 0

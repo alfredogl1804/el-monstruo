@@ -10,6 +10,7 @@ Endpoints:
     GET  /v1/planner/plan/{id}     — Obtener estado de un plan
     POST /v1/planner/plan_and_run  — Crear y ejecutar en un solo paso
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -38,6 +39,7 @@ def _check_auth(request: Request) -> None:
 
 # ── Request/Response Models ──────────────────────────────────────────
 
+
 class PlanRequest(BaseModel):
     objective: str
     context: Optional[dict[str, Any]] = None
@@ -60,6 +62,7 @@ def _get_global_planner(request: Request):
     losing the plan between /plan and /execute/{id} calls.
     """
     from kernel.task_planner import TaskPlanner
+
     kernel = request.app.state.kernel if hasattr(request.app.state, "kernel") else None
     db = request.app.state.db if hasattr(request.app.state, "db") else None
 
@@ -75,6 +78,7 @@ def _get_global_planner(request: Request):
 
 
 # ── Endpoints ────────────────────────────────────────────────────────
+
 
 @router.post("/plan")
 async def create_plan(body: PlanRequest, request: Request) -> dict:
@@ -211,8 +215,7 @@ async def plan_and_run(body: PlanAndRunRequest, request: Request) -> dict:
             "steps": len(plan.steps),
             "message": f"Plan creado con {len(plan.steps)} pasos. Ejecutando en background.",
             "plan_summary": [
-                {"index": s.index, "description": s.description[:100], "tool_hint": s.tool_hint}
-                for s in plan.steps
+                {"index": s.index, "description": s.description[:100], "tool_hint": s.tool_hint} for s in plan.steps
             ],
         }
     except HTTPException:
@@ -279,6 +282,7 @@ async def test_planner(body: PlanRequest, request: Request) -> dict:
     _check_auth(request)
     try:
         from kernel.task_planner import TaskPlanner
+
         kernel = request.app.state.kernel if hasattr(request.app.state, "kernel") else None
         db = request.app.state.db if hasattr(request.app.state, "db") else None
 
@@ -311,8 +315,7 @@ async def test_planner(body: PlanRequest, request: Request) -> dict:
             "plan_id": plan.plan_id,
             "steps": len(plan.steps),
             "plan_summary": [
-                {"index": s.index, "description": s.description[:120], "tool_hint": s.tool_hint}
-                for s in plan.steps
+                {"index": s.index, "description": s.description[:120], "tool_hint": s.tool_hint} for s in plan.steps
             ],
             "message": f"Plan generado con {len(plan.steps)} pasos (no ejecutado)",
         }

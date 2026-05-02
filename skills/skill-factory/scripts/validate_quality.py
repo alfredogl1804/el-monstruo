@@ -9,8 +9,13 @@ Uso:
     python3.11 validate_quality.py --skill-dir /path/to/skill --output quality.yaml
 """
 
-import argparse, asyncio, json, os, sys, yaml
+import argparse
+import asyncio
+import json
+import sys
 from pathlib import Path
+
+import yaml
 
 sys.path.insert(0, "/home/ubuntu/skills/consulta-sabios/scripts")
 from conector_sabios import consultar_sabio
@@ -21,20 +26,22 @@ FACTORY_ROOT = Path(__file__).parent.parent
 def collect_skill_content(skill_dir: Path) -> str:
     """Recopila el contenido de la skill para evaluación."""
     content_parts = []
-    
+
     # SKILL.md
     skill_md = skill_dir / "SKILL.md"
     if skill_md.exists():
         content_parts.append(f"=== SKILL.md ===\n{skill_md.read_text(encoding='utf-8')}")
-    
+
     # Scripts (primeras 50 líneas de cada uno)
     scripts_dir = skill_dir / "scripts"
     if scripts_dir.exists():
         for script in sorted(scripts_dir.glob("*.py")):
             code = script.read_text(encoding="utf-8")
             lines = code.split("\n")[:50]
-            content_parts.append(f"=== scripts/{script.name} ({len(code.split(chr(10)))} líneas total) ===\n" + "\n".join(lines))
-    
+            content_parts.append(
+                f"=== scripts/{script.name} ({len(code.split(chr(10)))} líneas total) ===\n" + "\n".join(lines)
+            )
+
     # References (primeras 30 líneas de cada uno)
     refs_dir = skill_dir / "references"
     if refs_dir.exists():
@@ -42,23 +49,23 @@ def collect_skill_content(skill_dir: Path) -> str:
             text = ref.read_text(encoding="utf-8")
             lines = text.split("\n")[:30]
             content_parts.append(f"=== references/{ref.name} ===\n" + "\n".join(lines))
-    
+
     return "\n\n".join(content_parts)
 
 
 async def evaluate_quality(skill_content: str, spec: dict = None) -> dict:
     """Usa Claude como juez para evaluar la calidad de la skill."""
-    
+
     spec_context = ""
     if spec:
         spec_context = f"""
 Especificación original de la skill:
-- Nombre: {spec.get('name')}
-- Dominio: {spec.get('domain')}
-- Descripción: {spec.get('description')}
-- Capacidades: {spec.get('core_capabilities', [])}
+- Nombre: {spec.get("name")}
+- Dominio: {spec.get("domain")}
+- Descripción: {spec.get("description")}
+- Capacidades: {spec.get("core_capabilities", [])}
 """
-    
+
     prompt = f"""Eres un evaluador experto de skills de IA. Evalúa esta skill en 8 dimensiones.
 
 {spec_context}
@@ -102,16 +109,17 @@ Responde SOLO con JSON:
     # Usar Claude como juez (independiente del generador GPT-5.4)
     response = await consultar_sabio("claude", prompt, timeout=90)
     text = response.get("respuesta", "")
-    
+
     # Extraer JSON
     import re
-    json_match = re.search(r'\{[\s\S]*\}', text)
+
+    json_match = re.search(r"\{[\s\S]*\}", text)
     if json_match:
         try:
             return json.loads(json_match.group())
         except json.JSONDecodeError:
             pass
-    
+
     # Fallback
     return {
         "dimensions": {},
@@ -121,7 +129,7 @@ Responde SOLO con JSON:
         "top_weaknesses": ["No se pudo evaluar"],
         "critical_fixes": [],
         "improvement_suggestions": [],
-        "_raw_response": text[:500]
+        "_raw_response": text[:500],
     }
 
 
@@ -131,66 +139,67 @@ async def main():
     parser.add_argument("--spec", default=None, help="Path al skill_spec.yaml (opcional)")
     parser.add_argument("--output", required=True, help="Path de salida para quality.yaml")
     args = parser.parse_args()
-    
+
     skill_dir = Path(args.skill_dir)
-    
+
     if not skill_dir.exists():
         print(f"❌ Directorio no existe: {skill_dir}")
         sys.exit(1)
-    
+
     spec = None
     if args.spec and Path(args.spec).exists():
-        with open(args.spec, 'r', encoding='utf-8') as f:
+        with open(args.spec, "r", encoding="utf-8") as f:
             spec = yaml.safe_load(f)
-    
+
     print(f"🏆 Evaluando calidad de: {skill_dir.name}")
-    
+
     # Recopilar contenido
     print("  📦 Recopilando contenido de la skill...")
     content = collect_skill_content(skill_dir)
     print(f"  📄 {len(content):,} chars recopilados")
-    
+
     # Evaluar
     print("  🤖 Claude evaluando calidad (8 dimensiones)...")
     evaluation = await evaluate_quality(content, spec)
-    
+
     # Guardar
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         yaml.dump(evaluation, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
-    
+
     # Imprimir resultados
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print(f"  Score Global: {evaluation.get('global_score', 'N/A')}/100")
     print(f"  Grado: {evaluation.get('grade', 'N/A')}")
-    
+
     dims = evaluation.get("dimensions", {})
     if dims:
-        print(f"\n  Dimensiones:")
+        print("\n  Dimensiones:")
         for dim, data in dims.items():
             score = data.get("score", "?") if isinstance(data, dict) else data
             print(f"    {dim}: {score}/100")
-    
+
     strengths = evaluation.get("top_strengths", [])
     if strengths:
-        print(f"\n  Fortalezas:")
+        print("\n  Fortalezas:")
         for s in strengths:
             print(f"    ✅ {s}")
-    
+
     weaknesses = evaluation.get("top_weaknesses", [])
     if weaknesses:
-        print(f"\n  Debilidades:")
+        print("\n  Debilidades:")
         for w in weaknesses:
             print(f"    ⚠️ {w}")
-    
+
     fixes = evaluation.get("critical_fixes", [])
     if fixes:
-        print(f"\n  Fixes Críticos:")
+        print("\n  Fixes Críticos:")
         for fix in fixes:
             print(f"    ❌ {fix}")
-    
+
     print(f"\n📁 Evaluación guardada en: {args.output}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

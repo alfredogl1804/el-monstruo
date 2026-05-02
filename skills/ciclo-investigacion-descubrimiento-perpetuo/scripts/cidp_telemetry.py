@@ -29,13 +29,15 @@ class CIDPTelemetry:
         """Start tracking a new run."""
         self.run_id = run_id
         self.start_time = time.time()
-        self._append_event({
-            "event": "run_start",
-            "run_id": run_id,
-            "target": target,
-            "objective": objective,
-            "timestamp": datetime.now().isoformat(),
-        })
+        self._append_event(
+            {
+                "event": "run_start",
+                "run_id": run_id,
+                "target": target,
+                "objective": objective,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     def log_stage(self, stage_name: str, result: dict):
         """Log a stage completion."""
@@ -93,13 +95,18 @@ class CIDPTelemetry:
         # Save summary
         summary_path = self.output_dir / "run_summary.json"
         with open(summary_path, "w", encoding="utf-8") as f:
-            json.dump({
-                "run_id": self.run_id,
-                "elapsed_minutes": elapsed / 60,
-                "total_cost_usd": self.total_cost,
-                "stages": self.stages,
-                "final": event,
-            }, f, indent=2, ensure_ascii=False)
+            json.dump(
+                {
+                    "run_id": self.run_id,
+                    "elapsed_minutes": elapsed / 60,
+                    "total_cost_usd": self.total_cost,
+                    "stages": self.stages,
+                    "final": event,
+                },
+                f,
+                indent=2,
+                ensure_ascii=False,
+            )
 
     def _append_event(self, event: dict):
         """Append an event to the telemetry log."""

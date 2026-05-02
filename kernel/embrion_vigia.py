@@ -22,11 +22,13 @@ Soberanía:
 Sprint 58 — "La Fortaleza Completa"
 Obj #11 — Embrión especializado #3
 """
+
 from __future__ import annotations
 
-import structlog
 from datetime import datetime, timezone
 from typing import Any, Optional
+
+import structlog
 
 from kernel.embrion_loop import EmbrionLoop
 
@@ -35,22 +37,27 @@ logger = structlog.get_logger("embrion.vigia")
 
 # ─── Errores con identidad (Brand Check #2) ──────────────────────────────────
 
+
 class EmbrionVigiaError(Exception):
     """Error base del Embrión-Vigía."""
+
     pass
 
 
 class EMBRION_VIGIA_ENDPOINTS_VACIOS(EmbrionVigiaError):
     """La lista de endpoints está vacía. Proporciona al menos un endpoint para verificar."""
+
     pass
 
 
 class EMBRION_VIGIA_DATOS_INSUFICIENTES(EmbrionVigiaError):
     """Datos insuficientes para análisis estadístico. Se requieren al menos 10 puntos."""
+
     pass
 
 
 # ─── Clase principal ─────────────────────────────────────────────────────────
+
 
 class EmbrionVigia(EmbrionLoop):
     """
@@ -71,10 +78,10 @@ class EmbrionVigia(EmbrionLoop):
     SPECIALIZATION = "vigia"
 
     # Niveles de severidad para alertas (Brand Check #1 — naming con identidad)
-    SEVERIDAD_CRITICA = "critica"    # Acción inmediata requerida
-    SEVERIDAD_ALTA = "alta"          # Acción en < 1 hora
-    SEVERIDAD_MEDIA = "media"        # Acción en < 24 horas
-    SEVERIDAD_BAJA = "baja"          # Informacional
+    SEVERIDAD_CRITICA = "critica"  # Acción inmediata requerida
+    SEVERIDAD_ALTA = "alta"  # Acción en < 1 hora
+    SEVERIDAD_MEDIA = "media"  # Acción en < 24 horas
+    SEVERIDAD_BAJA = "baja"  # Informacional
 
     SYSTEM_PROMPT = """Eres Embrión-Vigía, el guardián de seguridad y monitoreo
     de El Monstruo. Tu misión es proteger y vigilar 24/7.
@@ -189,28 +196,30 @@ class EmbrionVigia(EmbrionLoop):
                 try:
                     start = datetime.now(timezone.utc)
                     response = await client.get(endpoint)
-                    latency_ms = (
-                        datetime.now(timezone.utc) - start
-                    ).total_seconds() * 1000
+                    latency_ms = (datetime.now(timezone.utc) - start).total_seconds() * 1000
 
                     is_healthy = response.status_code < 400 and latency_ms < 5000
                     if is_healthy:
                         healthy += 1
 
-                    results.append({
-                        "endpoint": endpoint,
-                        "status_code": response.status_code,
-                        "latency_ms": round(latency_ms, 2),
-                        "healthy": is_healthy,
-                    })
+                    results.append(
+                        {
+                            "endpoint": endpoint,
+                            "status_code": response.status_code,
+                            "latency_ms": round(latency_ms, 2),
+                            "healthy": is_healthy,
+                        }
+                    )
                 except Exception as e:
-                    results.append({
-                        "endpoint": endpoint,
-                        "status_code": 0,
-                        "latency_ms": -1,
-                        "healthy": False,
-                        "error": str(e),
-                    })
+                    results.append(
+                        {
+                            "endpoint": endpoint,
+                            "status_code": 0,
+                            "latency_ms": -1,
+                            "healthy": False,
+                            "error": str(e),
+                        }
+                    )
 
         uptime_pct = (healthy / max(len(endpoints), 1)) * 100
 
@@ -266,23 +275,22 @@ class EmbrionVigia(EmbrionLoop):
         values = [m.get("value", 0) for m in metrics]
         mean = sum(values) / len(values)
         variance = sum((x - mean) ** 2 for x in values) / len(values)
-        std_dev = variance ** 0.5
+        std_dev = variance**0.5
 
         anomalies = []
         if std_dev > 0:
             for i, m in enumerate(metrics):
                 z_score = abs((m.get("value", 0) - mean) / std_dev)
                 if z_score > 3:  # Regla 3-sigma
-                    anomalies.append({
-                        "index": i,
-                        "value": m.get("value"),
-                        "z_score": round(z_score, 2),
-                        "timestamp": m.get("timestamp"),
-                        "severidad": (
-                            self.SEVERIDAD_ALTA if z_score > 4
-                            else self.SEVERIDAD_MEDIA
-                        ),
-                    })
+                    anomalies.append(
+                        {
+                            "index": i,
+                            "value": m.get("value"),
+                            "z_score": round(z_score, 2),
+                            "timestamp": m.get("timestamp"),
+                            "severidad": (self.SEVERIDAD_ALTA if z_score > 4 else self.SEVERIDAD_MEDIA),
+                        }
+                    )
 
         result = {
             "anomalies": anomalies,
@@ -332,12 +340,14 @@ class EmbrionVigia(EmbrionLoop):
         warnings = []
         for dep in deps:
             if not dep.get("pinned"):
-                warnings.append({
-                    "package": dep["package"],
-                    "issue": "Versión no pinneada — builds impredecibles",
-                    "severidad": self.SEVERIDAD_BAJA,
-                    "recomendacion": f"Cambiar a {dep['package']}==X.Y.Z",
-                })
+                warnings.append(
+                    {
+                        "package": dep["package"],
+                        "issue": "Versión no pinneada — builds impredecibles",
+                        "severidad": self.SEVERIDAD_BAJA,
+                        "recomendacion": f"Cambiar a {dep['package']}==X.Y.Z",
+                    }
+                )
 
         result = {
             "total_dependencies": len(deps),
@@ -379,11 +389,14 @@ class EmbrionVigia(EmbrionLoop):
             "impacto": incident.get("impact", "Desconocido"),
             "causa_raiz": incident.get("root_cause", "En investigación"),
             "resolucion": incident.get("resolution", "Pendiente"),
-            "acciones": incident.get("action_items", [
-                "Agregar monitoreo para este modo de falla",
-                "Crear runbook para incidentes similares",
-                "Revisar y actualizar umbrales de alertas",
-            ]),
+            "acciones": incident.get(
+                "action_items",
+                [
+                    "Agregar monitoreo para este modo de falla",
+                    "Crear runbook para incidentes similares",
+                    "Revisar y actualizar umbrales de alertas",
+                ],
+            ),
             "lecciones_aprendidas": incident.get("lessons_learned", []),
             "generado_por": self.EMBRION_ID,
             "generado_en": datetime.now(timezone.utc).isoformat(),

@@ -27,21 +27,23 @@ NOTAS CRÍTICAS (descubiertas por validación en tiempo real):
     - Claude 3.x modelos ya NO existen (404). Solo Claude 4.x+.
 """
 
-import os
-import json
-import time
 import asyncio
-import aiohttp
+import json
+import os
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+
+import aiohttp
 
 
 def _json_serialize(payload: dict) -> bytes:
     """Serializa payload a JSON bytes con soporte Unicode completo.
     aiohttp por defecto usa ensure_ascii=True, lo cual corrompe
     caracteres como Ú, á, ñ. Esta función lo resuelve."""
-    return json.dumps(payload, ensure_ascii=False).encode('utf-8')
+    return json.dumps(payload, ensure_ascii=False).encode("utf-8")
+
 
 # ═══════════════════════════════════════════════════════════════════
 # CONFIGURACIÓN — Verificada contra APIs reales 24 abril 2026
@@ -169,7 +171,8 @@ def _classify_error(error: Exception) -> dict:
         "retryable": True,
     }
     import re as _re
-    status_match = _re.search(r'HTTP (\d{3})', err_str)
+
+    status_match = _re.search(r"HTTP (\d{3})", err_str)
     if status_match:
         result["http_status"] = int(status_match.group(1))
 
@@ -198,6 +201,7 @@ def _classify_error(error: Exception) -> dict:
 # ═══════════════════════════════════════════════════════════════════
 # CONECTORES INDIVIDUALES — Verificados contra APIs reales
 # ═══════════════════════════════════════════════════════════════════
+
 
 async def _llamar_openai_responses(prompt: str, system: str, modelo: str, timeout: int) -> str:
     """
@@ -239,7 +243,7 @@ async def _llamar_openai_responses(prompt: str, system: str, modelo: str, timeou
                     for content in item.get("content", []):
                         if content.get("type") == "output_text":
                             return content.get("text", "")
-            raise RuntimeError(f"OpenAI Responses: no output_text found in response")
+            raise RuntimeError("OpenAI Responses: no output_text found in response")
 
 
 async def _llamar_anthropic_directo(prompt: str, system: str, modelo: str, timeout: int) -> str:
@@ -319,9 +323,11 @@ async def _llamar_google_genai(prompt: str, system: str, modelo: str, timeout: i
     """Conector para Gemini 3.1 Pro vía Google GenAI SDK con timeout explícito."""
     api_key = _get_cred("google_genai")
     from google import genai
+
     client = genai.Client(api_key=api_key)
 
     loop = asyncio.get_event_loop()
+
     def _call():
         response = client.models.generate_content(
             model=modelo,
@@ -332,10 +338,7 @@ async def _llamar_google_genai(prompt: str, system: str, modelo: str, timeout: i
         )
         return response.text
 
-    return await asyncio.wait_for(
-        loop.run_in_executor(None, _call),
-        timeout=timeout
-    )
+    return await asyncio.wait_for(loop.run_in_executor(None, _call), timeout=timeout)
 
 
 async def _llamar_xai(prompt: str, system: str, modelo: str, timeout: int) -> str:
@@ -414,6 +417,7 @@ _DISPATCH = {
 # FUNCIONES PÚBLICAS — Lo único que el agente debe usar
 # ═══════════════════════════════════════════════════════════════════
 
+
 async def consultar_sabio(
     sabio_id: str,
     prompt: str,
@@ -478,7 +482,7 @@ async def consultar_sabio(
         except Exception as e:
             err_info = _classify_error(e)
             if intento < reintentos and err_info["retryable"]:
-                wait = 2 ** intento
+                wait = 2**intento
                 await asyncio.sleep(wait)
             elif intento < reintentos and not err_info["retryable"]:
                 elapsed = round(time.time() - inicio, 1)
@@ -551,14 +555,16 @@ async def consultar_todos(
     finales = []
     for i, r in enumerate(resultados):
         if isinstance(r, Exception):
-            finales.append({
-                "sabio": sabios[i],
-                "modelo": "error",
-                "respuesta": "",
-                "tiempo_seg": 0,
-                "exito": False,
-                "error": str(r),
-            })
+            finales.append(
+                {
+                    "sabio": sabios[i],
+                    "modelo": "error",
+                    "respuesta": "",
+                    "tiempo_seg": 0,
+                    "exito": False,
+                    "error": str(r),
+                }
+            )
         else:
             finales.append(r)
 
@@ -586,6 +592,7 @@ async def ping_todos() -> list:
 # ═══════════════════════════════════════════════════════════════════
 # UTILIDADES INTERNAS
 # ═══════════════════════════════════════════════════════════════════
+
 
 def _guardar_respuesta(directorio: str, sabio_id: str, resultado: dict):
     """Guarda la respuesta de un sabio inmediatamente al disco."""

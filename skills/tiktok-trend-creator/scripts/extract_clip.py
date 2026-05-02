@@ -19,9 +19,10 @@ Examples:
   python3 extract_clip.py music.mp4 0:15 0:30 clip.mp4 --tiktok
 """
 
-import sys
-import subprocess
 import os
+import subprocess
+import sys
+
 
 def extract_clip(input_file, start, end, output_file, tiktok_format=False):
     """Extract clip with ffmpeg."""
@@ -31,16 +32,26 @@ def extract_clip(input_file, start, end, output_file, tiktok_format=False):
     if tiktok_format:
         # Convert to 1080x1920 vertical format
         # Center-crop or pad to 9:16 aspect ratio
-        cmd.extend([
-            "-vf", (
-                "scale=1080:1920:force_original_aspect_ratio=decrease,"
-                "pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black"
-            ),
-            "-c:v", "libx264", "-preset", "fast", "-crf", "23",
-            "-c:a", "aac", "-b:a", "192k",
-            "-r", "30",
-            "-movflags", "+faststart"
-        ])
+        cmd.extend(
+            [
+                "-vf",
+                ("scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black"),
+                "-c:v",
+                "libx264",
+                "-preset",
+                "fast",
+                "-crf",
+                "23",
+                "-c:a",
+                "aac",
+                "-b:a",
+                "192k",
+                "-r",
+                "30",
+                "-movflags",
+                "+faststart",
+            ]
+        )
     else:
         cmd.extend(["-c", "copy"])
 
@@ -58,6 +69,7 @@ def extract_clip(input_file, start, end, output_file, tiktok_format=False):
         print(f"Output: {output_file} ({size:.1f} MB)")
         return True
     return False
+
 
 def main():
     if len(sys.argv) < 5:
@@ -80,6 +92,7 @@ def main():
     else:
         print("Failed to extract clip.")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

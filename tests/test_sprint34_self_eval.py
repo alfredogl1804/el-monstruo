@@ -9,11 +9,10 @@ Tests the new methods added to EmbrionLoop:
 These are unit tests that don't require Supabase or LLM connections.
 """
 
-import asyncio
 import json
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
+import pytest
 
 # ── Test _parse_evaluation ──────────────────────────────────────────────
 
@@ -94,23 +93,25 @@ class TestGetRelevantLessons:
     @pytest.mark.asyncio
     async def test_filters_discarded(self):
         embrion = self._make_embrion()
-        embrion._db.select = AsyncMock(return_value=[
-            {
-                "contenido": "[ESTRATEGIA] Always create branch first",
-                "contexto": json.dumps({"estado": "consolidada"}),
-                "importancia": 8,
-            },
-            {
-                "contenido": "[GUARDRAIL] Never use sync httpx",
-                "contexto": json.dumps({"estado": "descartada"}),
-                "importancia": 1,
-            },
-            {
-                "contenido": "[ESTRATEGIA] Old merged rule",
-                "contexto": json.dumps({"estado": "superseded"}),
-                "importancia": 2,
-            },
-        ])
+        embrion._db.select = AsyncMock(
+            return_value=[
+                {
+                    "contenido": "[ESTRATEGIA] Always create branch first",
+                    "contexto": json.dumps({"estado": "consolidada"}),
+                    "importancia": 8,
+                },
+                {
+                    "contenido": "[GUARDRAIL] Never use sync httpx",
+                    "contexto": json.dumps({"estado": "descartada"}),
+                    "importancia": 1,
+                },
+                {
+                    "contenido": "[ESTRATEGIA] Old merged rule",
+                    "contexto": json.dumps({"estado": "superseded"}),
+                    "importancia": 2,
+                },
+            ]
+        )
 
         result = await embrion._get_relevant_lessons({"type": "reflexion_autonoma"})
 

@@ -25,9 +25,8 @@ Adaptado a la interfaz real de LightRAG v1.4.15 NetworkXStorage.
 from __future__ import annotations
 
 import io
-import os
 import logging
-from dataclasses import dataclass
+import os
 from typing import Any
 
 import networkx as nx
@@ -68,8 +67,9 @@ def _get_db_url() -> str | None:
 async def _ensure_table(db_url: str) -> bool:
     """Crear la tabla si no existe."""
     try:
-        import asyncpg
         import ssl as _ssl
+
+        import asyncpg
 
         ssl_ctx = _ssl.create_default_context()
         ssl_ctx.check_hostname = False
@@ -99,8 +99,9 @@ async def save_graph_to_pg(
         return False
 
     try:
-        import asyncpg
         import ssl as _ssl
+
+        import asyncpg
 
         # Serializar a GraphML (texto XML)
         buf = io.BytesIO()
@@ -158,8 +159,9 @@ async def load_graph_from_pg(
         return None
 
     try:
-        import asyncpg
         import ssl as _ssl
+
+        import asyncpg
 
         ssl_ctx = _ssl.create_default_context()
         ssl_ctx.check_hostname = False
@@ -209,8 +211,9 @@ async def get_graph_stats(
         return {"status": "unavailable", "reason": "no_db_url"}
 
     try:
-        import asyncpg
         import ssl as _ssl
+
+        import asyncpg
 
         ssl_ctx = _ssl.create_default_context()
         ssl_ctx.check_hostname = False

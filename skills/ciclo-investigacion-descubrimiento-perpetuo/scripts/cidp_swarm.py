@@ -8,7 +8,6 @@ consulta-sabios. Incluye calibración opcional de capacidades.
 
 import asyncio
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -40,7 +39,7 @@ async def execute_task(task: dict) -> dict:
     prompt = f"""TAREA: {title}
 
 ID: {task_id}
-PRIORIDAD: {task.get('priority', 'P1')}
+PRIORIDAD: {task.get("priority", "P1")}
 
 CRITERIOS DE ACEPTACIÓN:
 {json.dumps(criteria, ensure_ascii=False)}
@@ -65,7 +64,8 @@ Responde con JSON:
             result = json.loads(text)
         except json.JSONDecodeError:
             import re
-            match = re.search(r'\{[\s\S]*\}', text)
+
+            match = re.search(r"\{[\s\S]*\}", text)
             if match:
                 try:
                     result = json.loads(match.group())
@@ -164,7 +164,8 @@ Sé honesto sobre tus capacidades reales."""
                 results[sabio_id] = json.loads(text)
             except json.JSONDecodeError:
                 import re
-                match = re.search(r'\{[\s\S]*\}', text)
+
+                match = re.search(r"\{[\s\S]*\}", text)
                 if match:
                     results[sabio_id] = json.loads(match.group())
                 else:
@@ -181,8 +182,7 @@ Sé honesto sobre tus capacidades reales."""
     return results
 
 
-async def run_swarm(tasks: list, config: dict, skip_calibration: bool,
-                    output_dir: Path) -> dict:
+async def run_swarm(tasks: list, config: dict, skip_calibration: bool, output_dir: Path) -> dict:
     """Execute Stage 4: Swarm Execution."""
     # Calibration (if needed)
     cal_path = SKILL_DIR / "data" / "calibration_results.json"
@@ -204,11 +204,8 @@ async def run_swarm(tasks: list, config: dict, skip_calibration: bool,
     total_cost = 0.0
 
     for i in range(0, len(tasks), 4):
-        batch = tasks[i:i+4]
-        results = await asyncio.gather(
-            *[execute_task(t) for t in batch],
-            return_exceptions=True
-        )
+        batch = tasks[i : i + 4]
+        results = await asyncio.gather(*[execute_task(t) for t in batch], return_exceptions=True)
         for r in results:
             if isinstance(r, Exception):
                 all_responses.append({"status": "error", "error": str(r)})

@@ -12,14 +12,15 @@ Fuentes:
 Salida: benchmarks.md con análisis de casos + benchmarks_data.yaml
 """
 
+import argparse
 import asyncio
 import json
 import os
 import sys
-import yaml
-import argparse
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import yaml
 
 sys.path.insert(0, "/home/ubuntu/skills/consulta-sabios/scripts")
 from conector_sabios import consultar_sabio
@@ -27,7 +28,7 @@ from conector_sabios import consultar_sabio
 
 async def identify_benchmark_categories(brief: dict, site_report: str) -> list:
     """GPT-5.4 identifica las categorías de benchmarks relevantes."""
-    
+
     prompt = f"""Eres un consultor inmobiliario de clase mundial. Analiza este proyecto y determina 
 qué categorías de benchmarks internacionales son relevantes.
 
@@ -60,7 +61,7 @@ Devuelve SOLO un JSON con esta estructura:
 Incluye entre 5 y 8 categorías, priorizando las más relevantes."""
 
     resultado = await consultar_sabio("gpt54", prompt)
-    
+
     if resultado.get("status") == "ok":
         text = resultado["text"]
         try:
@@ -76,7 +77,7 @@ Incluye entre 5 y 8 categorías, priorizando las más relevantes."""
 
 async def research_benchmarks(categories: list) -> list:
     """Investiga benchmarks en paralelo usando Perplexity Sonar."""
-    
+
     async def research_one(cat: dict) -> dict:
         query = cat.get("query_perplexity", cat.get("nombre", ""))
         resultado = await consultar_sabio("perplexity", query)
@@ -84,36 +85,36 @@ async def research_benchmarks(categories: list) -> list:
             "categoria": cat.get("nombre", ""),
             "relevancia": cat.get("relevancia", "media"),
             "research": resultado.get("text", "") if resultado.get("status") == "ok" else "Error en investigación",
-            "status": resultado.get("status", "error")
+            "status": resultado.get("status", "error"),
         }
-    
+
     tasks = [research_one(cat) for cat in categories]
     results = await asyncio.gather(*tasks, return_exceptions=True)
-    
+
     benchmarks = []
     for r in results:
         if isinstance(r, dict):
             benchmarks.append(r)
         else:
             benchmarks.append({"error": str(r)})
-    
+
     return benchmarks
 
 
 async def synthesize_benchmarks(brief: dict, categories: list, research_results: list, output_dir: str) -> dict:
     """GPT-5.4 sintetiza la investigación en un reporte de benchmarks estructurado."""
-    
+
     research_text = ""
     for i, (cat, res) in enumerate(zip(categories, research_results)):
-        research_text += f"\n### Categoría {i+1}: {cat.get('nombre', 'N/A')}\n"
+        research_text += f"\n### Categoría {i + 1}: {cat.get('nombre', 'N/A')}\n"
         research_text += f"Relevancia: {cat.get('relevancia', 'N/A')}\n"
         research_text += f"Investigación:\n{res.get('research', 'No disponible')[:3000]}\n"
-    
+
     prompt = f"""Eres un consultor inmobiliario de clase mundial especializado en benchmarking internacional.
 
 ## Proyecto
 ```yaml
-{yaml.dump({k: v for k, v in brief.items() if not k.startswith('_')}, default_flow_style=False, allow_unicode=True)}
+{yaml.dump({k: v for k, v in brief.items() if not k.startswith("_")}, default_flow_style=False, allow_unicode=True)}
 ```
 
 ## Investigación de Benchmarks
@@ -143,75 +144,75 @@ IMPORTANTE:
 - Incluye al menos 2 benchmarks latinoamericanos si existen"""
 
     resultado = await consultar_sabio("gpt54", prompt)
-    
+
     report = ""
     if resultado.get("status") == "ok":
         report = resultado["text"]
     else:
         report = "# Error generando reporte de benchmarks\n\nNo se pudo generar."
-    
+
     # Guardar reporte
     report_path = os.path.join(output_dir, "benchmarks.md")
     Path(report_path).write_text(report, encoding="utf-8")
-    
+
     # Guardar datos
     data = {
         "categorias": [c.get("nombre") for c in categories],
         "benchmarks_investigados": len(research_results),
         "exitosos": sum(1 for r in research_results if r.get("status") == "ok"),
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
     data_path = os.path.join(output_dir, "benchmarks_data.yaml")
     with open(data_path, "w", encoding="utf-8") as f:
         yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
-    
+
     return {
         "report_path": report_path,
         "data_path": data_path,
         "report_size": len(report),
         "categories_researched": len(categories),
-        "successful_researches": sum(1 for r in research_results if r.get("status") == "ok")
+        "successful_researches": sum(1 for r in research_results if r.get("status") == "ok"),
     }
 
 
 async def run_benchmark_research(brief_path: str, site_report_path: str, output_dir: str) -> dict:
     """Ejecuta el pipeline completo de Benchmark Research."""
-    
+
     print("=" * 60)
     print("🔍 MÓDULO 3: BENCHMARK RESEARCH")
     print(f"   Fecha: {datetime.now().strftime('%d %B %Y, %H:%M')}")
     print("=" * 60)
-    
+
     # 1. Cargar inputs
     with open(brief_path, "r", encoding="utf-8") as f:
         brief = yaml.safe_load(f)
-    
+
     site_report = ""
     if site_report_path and Path(site_report_path).exists():
         site_report = Path(site_report_path).read_text(encoding="utf-8")
-    
+
     # 2. Identificar categorías de benchmarks
     print("  🤖 GPT-5.4 identificando categorías de benchmarks...")
     categories = await identify_benchmark_categories(brief, site_report)
     print(f"  📋 {len(categories)} categorías identificadas")
     for cat in categories:
         print(f"     • {cat.get('nombre', 'N/A')} [{cat.get('relevancia', '?')}]")
-    
+
     # 3. Investigar benchmarks en paralelo
     print(f"\n  🌐 Investigando {len(categories)} categorías con Perplexity Sonar...")
     research_results = await research_benchmarks(categories)
     ok = sum(1 for r in research_results if r.get("status") == "ok")
     print(f"  ✅ {ok}/{len(categories)} categorías investigadas exitosamente")
-    
+
     # 4. Sintetizar
     print("  🤖 Sintetizando reporte de benchmarks con GPT-5.4...")
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     result = await synthesize_benchmarks(brief, categories, research_results, output_dir)
-    
-    print(f"\n✅ Benchmark Research completado")
+
+    print("\n✅ Benchmark Research completado")
     print(f"  📄 Reporte: {result['report_path']} ({result['report_size']:,} chars)")
     print(f"  📊 Categorías: {result['categories_researched']}")
-    
+
     return result
 
 
@@ -220,6 +221,6 @@ if __name__ == "__main__":
     parser.add_argument("--brief", required=True, help="Ruta al project_brief.yaml")
     parser.add_argument("--site-report", help="Ruta al site_report.md")
     parser.add_argument("--output-dir", required=True, help="Directorio de salida")
-    
+
     args = parser.parse_args()
     result = asyncio.run(run_benchmark_research(args.brief, args.site_report, args.output_dir))

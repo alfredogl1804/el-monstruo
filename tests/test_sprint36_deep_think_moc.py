@@ -10,13 +10,11 @@ Cobertura:
 
 from __future__ import annotations
 
-import asyncio
 import json
 from datetime import datetime, timedelta, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 
 # ══════════════════════════════════════════════════════════════════════
 # Fixtures
@@ -207,6 +205,7 @@ class TestMOCPriorizador:
     @pytest.fixture
     def priorizador(self, mock_db):
         from kernel.moc.priorizador import Priorizador
+
         return Priorizador(db=mock_db)
 
     @pytest.mark.asyncio
@@ -271,6 +270,7 @@ class TestMOCPriorizador:
     def test_score_impacto_default(self, priorizador):
         """Job sin tipo conocido debe tener impacto default."""
         from kernel.moc.priorizador import TASK_IMPACT_MAP
+
         job = {"title": "tarea_desconocida", "task_type": ""}
         score = priorizador._score_impacto(job)
         assert score == TASK_IMPACT_MAP["default"]
@@ -311,6 +311,7 @@ class TestMOCSintetizador:
     @pytest.fixture
     def sintetizador(self, mock_db, mock_router):
         from kernel.moc.sintetizador import Sintetizador
+
         return Sintetizador(db=mock_db, router=mock_router)
 
     @pytest.mark.asyncio
@@ -325,12 +326,14 @@ class TestMOCSintetizador:
     async def test_sintetizar_con_ejecuciones(self, sintetizador, mock_db, sample_executions):
         """Con ejecuciones, debe generar un insight con métricas."""
         mock_db.select = AsyncMock(return_value=sample_executions)
-        mock_router_response = json.dumps({
-            "summary": "El sistema operó con normalidad.",
-            "patterns": ["Alta latencia en job-2"],
-            "alerts": [],
-            "recommendations": ["Optimizar job-2"],
-        })
+        mock_router_response = json.dumps(
+            {
+                "summary": "El sistema operó con normalidad.",
+                "patterns": ["Alta latencia en job-2"],
+                "alerts": [],
+                "recommendations": ["Optimizar job-2"],
+            }
+        )
         sintetizador._router.execute = AsyncMock(
             return_value=(mock_router_response, {"prompt_tokens": 200, "completion_tokens": 100, "cost_usd": 0.002})
         )
@@ -379,6 +382,7 @@ class TestMOCOrquestador:
     @pytest.fixture
     def moc(self, mock_db, mock_router):
         from kernel.moc.moc import MOC
+
         runner = MagicMock()
         return MOC(db=mock_db, router=mock_router, runner=runner)
 

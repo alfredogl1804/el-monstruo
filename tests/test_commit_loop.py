@@ -16,10 +16,13 @@ Usage:
 
 Target repo: The user's own el-monstruo repo (auto-detected).
 """
+
 import asyncio
 import os
 import sys
 import time
+
+import pytest
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -38,10 +41,10 @@ BRANCH_NAME = f"test/commit-loop-{int(time.time())}"
 async def detect_repo():
     """Detect the el-monstruo repo from the authenticated user."""
     import aiohttp
+
     token = os.environ.get("GITHUB_TOKEN", "")
     if not token:
-        print("ERROR: GITHUB_TOKEN not set")
-        sys.exit(1)
+        pytest.skip("GITHUB_TOKEN not set — skipping integration test")
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github+json",
@@ -55,6 +58,7 @@ async def detect_repo():
     return f"{username}/el-monstruo"
 
 
+@pytest.mark.skipif(not os.environ.get("GITHUB_TOKEN"), reason="GITHUB_TOKEN not available in CI")
 async def test_commit_loop():
     """Full integration test of the commit loop."""
     global REPO

@@ -8,30 +8,32 @@ Cubre las 5 épicas del Sprint 61:
 - 61.4: El Guardián de los Objetivos
 - 61.5: Onboarding Wizard
 """
-import asyncio
-import pytest
-from unittest.mock import MagicMock, AsyncMock
 
+import asyncio
+
+import pytest
 
 # ── Helpers ────────────────────────────────────────────────────────────────
 
+
 def run(coro):
     """Ejecutar coroutine en tests síncronos."""
-    return asyncio.get_event_loop().run_until_complete(coro)
+    return asyncio.new_event_loop().run_until_complete(coro)
 
 
 # ══════════════════════════════════════════════════════════════════════════
 # 61.1 — Collective Intelligence Protocol
 # ══════════════════════════════════════════════════════════════════════════
 
-class TestCollectiveProtocol:
 
+class TestCollectiveProtocol:
     def setup_method(self):
         from kernel.collective.protocol import (
+            ColectivaDebateNoEncontrado,
             ColectivaProtocol,
             DebateSession,
-            ColectivaDebateNoEncontrado,
         )
+
         self.Protocol = ColectivaProtocol
         self.DebateSession = DebateSession
         self.DebateNoEncontrado = ColectivaDebateNoEncontrado
@@ -51,60 +53,74 @@ class TestCollectiveProtocol:
         protocol = self.Protocol()
         protocol.register_embrion("embrion_ventas", ["ventas"])
         protocol.register_embrion("embrion_estratega", ["estrategia"])
-        debate = run(protocol.open_debate(
-            topic="¿Cuál es la mejor estrategia de pricing para SaaS?",
-            context="Necesitamos decidir el modelo de pricing",
-            participants=["embrion_ventas", "embrion_estratega"],
-        ))
+        debate = run(
+            protocol.open_debate(
+                topic="¿Cuál es la mejor estrategia de pricing para SaaS?",
+                context="Necesitamos decidir el modelo de pricing",
+                participants=["embrion_ventas", "embrion_estratega"],
+            )
+        )
         assert debate.id is not None
 
     def test_submit_position(self):
         protocol = self.Protocol()
         protocol.register_embrion("embrion_ventas", ["ventas"])
-        debate = run(protocol.open_debate(
-            topic="¿Freemium o premium?",
-            context="Modelo de negocio",
-            participants=["embrion_ventas"],
-        ))
-        run(protocol.submit_argument(
-            debate_id=debate.id,
-            embrion="embrion_ventas",
-            position="favor",
-            reasoning="Freemium es mejor para adquisición masiva.",
-        ))
+        debate = run(
+            protocol.open_debate(
+                topic="¿Freemium o premium?",
+                context="Modelo de negocio",
+                participants=["embrion_ventas"],
+            )
+        )
+        run(
+            protocol.submit_argument(
+                debate_id=debate.id,
+                embrion="embrion_ventas",
+                position="favor",
+                reasoning="Freemium es mejor para adquisición masiva.",
+            )
+        )
         assert debate.id is not None
 
     def test_debate_not_found_raises(self):
         protocol = self.Protocol()
         with pytest.raises(self.DebateNoEncontrado):
-            run(protocol.submit_argument(
-                debate_id="inexistente",
-                embrion="embrion_ventas",
-                position="favor",
-                reasoning="test",
-            ))
+            run(
+                protocol.submit_argument(
+                    debate_id="inexistente",
+                    embrion="embrion_ventas",
+                    position="favor",
+                    reasoning="test",
+                )
+            )
 
     def test_reach_consensus(self):
         protocol = self.Protocol()
         protocol.register_embrion("embrion_tecnico", ["tecnico"])
         protocol.register_embrion("embrion_estratega", ["estrategia"])
-        debate = run(protocol.open_debate(
-            topic="¿Cuál es el mejor stack?",
-            context="Decisión de arquitectura",
-            participants=["embrion_tecnico", "embrion_estratega"],
-        ))
-        run(protocol.submit_argument(
-            debate_id=debate.id,
-            embrion="embrion_tecnico",
-            position="favor",
-            reasoning="FastAPI + React es el stack más maduro.",
-        ))
-        run(protocol.submit_argument(
-            debate_id=debate.id,
-            embrion="embrion_estratega",
-            position="favor",
-            reasoning="FastAPI + React es el estándar de la industria.",
-        ))
+        debate = run(
+            protocol.open_debate(
+                topic="¿Cuál es el mejor stack?",
+                context="Decisión de arquitectura",
+                participants=["embrion_tecnico", "embrion_estratega"],
+            )
+        )
+        run(
+            protocol.submit_argument(
+                debate_id=debate.id,
+                embrion="embrion_tecnico",
+                position="favor",
+                reasoning="FastAPI + React es el stack más maduro.",
+            )
+        )
+        run(
+            protocol.submit_argument(
+                debate_id=debate.id,
+                embrion="embrion_estratega",
+                position="favor",
+                reasoning="FastAPI + React es el estándar de la industria.",
+            )
+        )
         debates = protocol.get_active_debates()
         assert isinstance(debates, list)
 
@@ -113,13 +129,14 @@ class TestCollectiveProtocol:
 # 61.2 — Design System Enforcement Engine
 # ══════════════════════════════════════════════════════════════════════════
 
-class TestDesignSystem:
 
+class TestDesignSystem:
     def setup_method(self):
         from kernel.design.system import (
-            DesignSystemEngine,
             DesignAuditResult,
+            DesignSystemEngine,
         )
+
         self.Engine = DesignSystemEngine
         self.AuditResult = DesignAuditResult
 
@@ -138,8 +155,8 @@ class TestDesignSystem:
         engine = self.Engine()
         tokens = engine.tokens
         assert tokens is not None
-        assert hasattr(tokens, 'export_css_variables')
-        assert hasattr(tokens, 'export_json')
+        assert hasattr(tokens, "export_css_variables")
+        assert hasattr(tokens, "export_json")
 
     def test_audit_accessibility(self):
         engine = self.Engine()
@@ -167,14 +184,15 @@ class TestDesignSystem:
 # 61.3 — Adaptive Learning Engine
 # ══════════════════════════════════════════════════════════════════════════
 
-class TestAdaptiveLearning:
 
+class TestAdaptiveLearning:
     def setup_method(self):
         from kernel.learning.adaptive import (
             AdaptiveLearningEngine,
             OutcomeType,
             PatternCategory,
         )
+
         self.Engine = AdaptiveLearningEngine
         self.OutcomeType = OutcomeType
         self.PatternCategory = PatternCategory
@@ -192,52 +210,60 @@ class TestAdaptiveLearning:
 
     def test_record_pattern_success(self):
         engine = self.Engine()
-        pattern = run(engine.record_pattern(
-            category=self.PatternCategory.DESIGN,
-            context="Generación de landing page para SaaS",
-            outcome="El cliente aprobó sin cambios",
-            outcome_type=self.OutcomeType.SUCCESS,
-            lesson="CTA prominente en hero section funciona bien",
-            confidence=0.9,
-        ))
+        pattern = run(
+            engine.record_pattern(
+                category=self.PatternCategory.DESIGN,
+                context="Generación de landing page para SaaS",
+                outcome="El cliente aprobó sin cambios",
+                outcome_type=self.OutcomeType.SUCCESS,
+                lesson="CTA prominente en hero section funciona bien",
+                confidence=0.9,
+            )
+        )
         assert pattern.id is not None
 
     def test_record_pattern_failure(self):
         engine = self.Engine()
-        pattern = run(engine.record_pattern(
-            category=self.PatternCategory.BUSINESS,
-            context="Pricing page con 5 planes",
-            outcome="El usuario se confundió",
-            outcome_type=self.OutcomeType.FAILURE,
-            lesson="Demasiadas opciones confunden al usuario",
-            confidence=0.8,
-        ))
+        pattern = run(
+            engine.record_pattern(
+                category=self.PatternCategory.BUSINESS,
+                context="Pricing page con 5 planes",
+                outcome="El usuario se confundió",
+                outcome_type=self.OutcomeType.FAILURE,
+                lesson="Demasiadas opciones confunden al usuario",
+                confidence=0.8,
+            )
+        )
         assert pattern.outcome == "El usuario se confundió"
 
     def test_distill_rules(self):
         engine = self.Engine()
         for i in range(3):
-            run(engine.record_pattern(
-                category=self.PatternCategory.DESIGN,
-                context="Landing page SaaS",
-                outcome="Conversión alta",
-                outcome_type=self.OutcomeType.SUCCESS,
-                lesson="CTA prominente en hero section funciona bien",
-                confidence=0.8,
-            ))
+            run(
+                engine.record_pattern(
+                    category=self.PatternCategory.DESIGN,
+                    context="Landing page SaaS",
+                    outcome="Conversión alta",
+                    outcome_type=self.OutcomeType.SUCCESS,
+                    lesson="CTA prominente en hero section funciona bien",
+                    confidence=0.8,
+                )
+            )
         rules = run(engine.distill_rules())
         assert isinstance(rules, list)
 
     def test_get_relevant_rules(self):
         engine = self.Engine()
-        run(engine.record_pattern(
-            category=self.PatternCategory.DESIGN,
-            context="E-commerce checkout",
-            outcome="Pago completado",
-            outcome_type=self.OutcomeType.SUCCESS,
-            lesson="Formulario en 1 paso reduce abandono",
-            confidence=0.95,
-        ))
+        run(
+            engine.record_pattern(
+                category=self.PatternCategory.DESIGN,
+                context="E-commerce checkout",
+                outcome="Pago completado",
+                outcome_type=self.OutcomeType.SUCCESS,
+                lesson="Formulario en 1 paso reduce abandono",
+                confidence=0.95,
+            )
+        )
         rules = engine.get_relevant_rules(
             category=self.PatternCategory.DESIGN,
         )
@@ -248,15 +274,16 @@ class TestAdaptiveLearning:
 # 61.4 — El Guardián de los Objetivos
 # ══════════════════════════════════════════════════════════════════════════
 
-class TestGuardian:
 
+class TestGuardian:
     def setup_method(self):
         from kernel.guardian import (
-            GuardianDeObjetivos,
-            ObjetivoStatus,
             AlertSeverity,
+            GuardianDeObjetivos,
             GuardianObjetivoNoRegistrado,
+            ObjetivoStatus,
         )
+
         self.Guardian = GuardianDeObjetivos
         self.ObjetivoStatus = ObjetivoStatus
         self.AlertSeverity = AlertSeverity
@@ -275,10 +302,12 @@ class TestGuardian:
 
     def test_evaluate_objetivo_healthy(self):
         guardian = self.Guardian()
-        health = run(guardian.evaluate_objetivo(
-            objetivo_id=10,
-            metrics={"predictions_accuracy": 8.5, "causal_events_count": 150},
-        ))
+        health = run(
+            guardian.evaluate_objetivo(
+                objetivo_id=10,
+                metrics={"predictions_accuracy": 8.5, "causal_events_count": 150},
+            )
+        )
         assert health.objetivo_id == 10
         assert health.score >= 0
         assert health.status in [s for s in self.ObjetivoStatus]
@@ -307,10 +336,12 @@ class TestGuardian:
     def test_resolve_alert(self):
         guardian = self.Guardian()
         # Crear una alerta forzando un objetivo en estado failing
-        run(guardian.evaluate_objetivo(
-            objetivo_id=12,
-            metrics={"monstruos_en_red": 0, "colaboraciones_activas": 0},
-        ))
+        run(
+            guardian.evaluate_objetivo(
+                objetivo_id=12,
+                metrics={"monstruos_en_red": 0, "colaboraciones_activas": 0},
+            )
+        )
         if guardian._active_alerts:
             alert_id = guardian._active_alerts[0].id
             result = run(guardian.resolve_alert(alert_id))
@@ -327,14 +358,15 @@ class TestGuardian:
 # 61.5 — Onboarding Wizard
 # ══════════════════════════════════════════════════════════════════════════
 
-class TestOnboardingWizard:
 
+class TestOnboardingWizard:
     def setup_method(self):
         from kernel.onboarding import (
-            OnboardingWizard,
             OnboardingFase,
             OnboardingSesionNoEncontrada,
+            OnboardingWizard,
         )
+
         self.Wizard = OnboardingWizard
         self.Fase = OnboardingFase
         self.SesionNoEncontrada = OnboardingSesionNoEncontrada
@@ -373,11 +405,13 @@ class TestOnboardingWizard:
         wizard = self.Wizard()
         session = run(wizard.create_session(user_id="user-003"))
         step = run(wizard.get_current_step(session.id))
-        result = run(wizard.submit_answer(
-            session_id=session.id,
-            campo=step.campo,
-            respuesta="Quiero crear un SaaS de gestión de proyectos",
-        ))
+        result = run(
+            wizard.submit_answer(
+                session_id=session.id,
+                campo=step.campo,
+                respuesta="Quiero crear un SaaS de gestión de proyectos",
+            )
+        )
         assert "session" in result
         assert "next_step" in result
 
@@ -399,11 +433,13 @@ class TestOnboardingWizard:
         }
 
         for campo, respuesta in respuestas.items():
-            result = run(wizard.submit_answer(
-                session_id=session.id,
-                campo=campo,
-                respuesta=respuesta,
-            ))
+            result = run(
+                wizard.submit_answer(
+                    session_id=session.id,
+                    campo=campo,
+                    respuesta=respuesta,
+                )
+            )
 
         # Verificar que el wizard se completó
         final_session = wizard._sessions[session.id]

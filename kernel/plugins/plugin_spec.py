@@ -8,6 +8,7 @@ Patrón Microkernel con hooks estilo Pluggy.
 Soberanía: Si pluggy no está disponible, el sistema opera sin plugins externos.
 Alternativa: Implementar un sistema de hooks manual con dict[str, list[Callable]].
 """
+
 from __future__ import annotations
 
 import structlog
@@ -17,6 +18,7 @@ logger = structlog.get_logger("plugins.spec")
 # --- Importación con soberanía ---
 try:
     import pluggy
+
     hookspec = pluggy.HookspecMarker("monstruo")
     hookimpl = pluggy.HookimplMarker("monstruo")
     PLUGGY_DISPONIBLE = True
@@ -28,16 +30,20 @@ except ImportError:
         """Stub cuando pluggy no está disponible."""
         if func is not None:
             return func
+
         def decorator(f):
             return f
+
         return decorator
 
     def hookimpl(func=None, **kwargs):  # type: ignore[misc]
         """Stub cuando pluggy no está disponible."""
         if func is not None:
             return func
+
         def decorator(f):
             return f
+
         return decorator
 
 

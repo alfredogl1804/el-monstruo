@@ -20,30 +20,52 @@ Input JSON format:
 """
 
 import json
-import sys
 import os
-import re
+import sys
 from collections import Counter
-from datetime import datetime
-
 
 # Common generic phrases that indicate fake/low-effort reviews
 GENERIC_PHRASES_EN = [
-    "good product", "nice product", "great product", "excellent product",
-    "very good", "fast shipping", "good quality", "as described",
-    "recommend", "perfect", "love it", "amazing", "wonderful",
-    "five stars", "5 stars", "best product",
+    "good product",
+    "nice product",
+    "great product",
+    "excellent product",
+    "very good",
+    "fast shipping",
+    "good quality",
+    "as described",
+    "recommend",
+    "perfect",
+    "love it",
+    "amazing",
+    "wonderful",
+    "five stars",
+    "5 stars",
+    "best product",
 ]
 
 GENERIC_PHRASES_ES = [
-    "buen producto", "excelente producto", "muy bueno", "recomendado",
-    "todo bien", "perfecto", "me encanta", "buena calidad",
-    "como se describe", "envío rápido", "5 estrellas",
+    "buen producto",
+    "excelente producto",
+    "muy bueno",
+    "recomendado",
+    "todo bien",
+    "perfecto",
+    "me encanta",
+    "buena calidad",
+    "como se describe",
+    "envío rápido",
+    "5 estrellas",
 ]
 
 GENERIC_PHRASES_PT = [
-    "bom produto", "excelente", "muito bom", "recomendo",
-    "perfeito", "ótimo", "chegou rápido",
+    "bom produto",
+    "excelente",
+    "muito bom",
+    "recomendo",
+    "perfeito",
+    "ótimo",
+    "chegou rápido",
 ]
 
 
@@ -171,7 +193,7 @@ def analyze_reviews(reviews: list) -> dict:
     if very_short_pct > 60:
         suspicious.append(f"{very_short_pct:.0f}% de reseñas tienen menos de 10 caracteres — baja calidad")
     if unique_countries <= 1 and total > 10:
-        suspicious.append(f"Todas las reseñas son del mismo país — posible manipulación regional")
+        suspicious.append("Todas las reseñas son del mismo país — posible manipulación regional")
 
     # --- Identify likely real reviews ---
     real_candidates = []

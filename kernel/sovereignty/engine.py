@@ -13,9 +13,9 @@ Sprint 60 — 2026-05-01
 Soberanía: Este módulo NO tiene dependencias externas en tiempo de importación.
            Todas las llamadas de red son lazy y con fallback.
 """
+
 from __future__ import annotations
 
-import json
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -28,6 +28,7 @@ logger = structlog.get_logger("monstruo.sovereignty")
 
 
 # ── Errores con identidad ────────────────────────────────────────────────────
+
 
 class SovereigntyEngineError(Exception):
     """Error base del Sovereignty Engine."""
@@ -48,16 +49,19 @@ SOVEREIGNTY_ENGINE_MODO_SOBERANO_YA_ACTIVO = (
 
 # ── Enums ────────────────────────────────────────────────────────────────────
 
+
 class DependencyTier(str, Enum):
     """Nivel de criticidad de una dependencia externa."""
-    CRITICAL = "critical"   # Sistema no funciona sin ella
-    HIGH = "high"           # Funcionalidad degradada sin ella
-    MEDIUM = "medium"       # Feature específico no disponible
-    LOW = "low"             # Conveniencia, fácil de reemplazar
+
+    CRITICAL = "critical"  # Sistema no funciona sin ella
+    HIGH = "high"  # Funcionalidad degradada sin ella
+    MEDIUM = "medium"  # Feature específico no disponible
+    LOW = "low"  # Conveniencia, fácil de reemplazar
 
 
 class HealthStatus(str, Enum):
     """Estado de salud de una dependencia."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     DOWN = "down"
@@ -65,6 +69,7 @@ class HealthStatus(str, Enum):
 
 
 # ── Dataclasses ──────────────────────────────────────────────────────────────
+
 
 @dataclass
 class ExternalDependency:
@@ -86,6 +91,7 @@ class ExternalDependency:
 
     Soberanía: No requiere conexión de red para instanciarse.
     """
+
     name: str
     service_type: str
     tier: DependencyTier
@@ -110,7 +116,9 @@ class ExternalDependency:
             "has_alternative": bool(self.self_hosted_alternative),
             "data_exported": self.data_exported,
             "api_compatible": self.api_compatible,
-            "migration_path_preview": self.migration_path[:100] + "..." if len(self.migration_path) > 100 else self.migration_path,
+            "migration_path_preview": self.migration_path[:100] + "..."
+            if len(self.migration_path) > 100
+            else self.migration_path,
         }
 
 
@@ -263,7 +271,6 @@ class SovereigntyEngine:
         Soberanía: Si una dependencia no responde, marca como DOWN sin crashear.
                    Alternativa: health checks via curl en bash.
         """
-        import httpx
 
         results: dict[str, HealthStatus] = {}
 
@@ -277,11 +284,13 @@ class SovereigntyEngine:
                 # Persistir en Supabase si disponible
                 if self._supabase:
                     try:
-                        self._supabase.table("dependency_health").insert({
-                            "dependency_name": name,
-                            "status": status.value,
-                            "checked_at": dep.last_checked,
-                        }).execute()
+                        self._supabase.table("dependency_health").insert(
+                            {
+                                "dependency_name": name,
+                                "status": status.value,
+                                "checked_at": dep.last_checked,
+                            }
+                        ).execute()
                     except Exception:
                         pass  # Persistencia es opcional
 
@@ -409,9 +418,9 @@ class SovereigntyEngine:
         report = f"""# El Monstruo — Sovereignty Report
 Generado: {datetime.now(timezone.utc).isoformat()}
 
-## Score de Soberanía General: {score['overall_score']*100:.0f}%
+## Score de Soberanía General: {score["overall_score"] * 100:.0f}%
 
-## Costo Mensual Externo: ${score['costo_mensual_total_usd']:.2f}
+## Costo Mensual Externo: ${score["costo_mensual_total_usd"]:.2f}
 
 ## Dependencias Críticas (el sistema falla sin estas):
 """
@@ -423,7 +432,7 @@ Generado: {datetime.now(timezone.utc).isoformat()}
         report += "\n## Dimensiones de Soberanía:\n"
         for dim, val in score["dimensiones"].items():
             bar = "█" * int(val * 10) + "░" * (10 - int(val * 10))
-            report += f"- {dim}: [{bar}] {val*100:.0f}%\n"
+            report += f"- {dim}: [{bar}] {val * 100:.0f}%\n"
 
         return report
 
@@ -496,10 +505,7 @@ Generado: {datetime.now(timezone.utc).isoformat()}
             "total_dependencias": len(self._dependencies),
             "dependencias_criticas": score["dependencias_criticas"],
             "modo_soberano_activo": os.getenv("SOVEREIGN_MODE") == "true",
-            "dependencias": {
-                name: dep.to_dict()
-                for name, dep in self._dependencies.items()
-            },
+            "dependencias": {name: dep.to_dict() for name, dep in self._dependencies.items()},
         }
 
 

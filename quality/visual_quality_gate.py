@@ -15,15 +15,15 @@ Criterios evaluados:
 
 Sprint 57 — "Las Capas Transversales"
 """
+
 from __future__ import annotations
 
 import base64
 import json
 import logging
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger("visual_quality_gate")
@@ -31,11 +31,12 @@ logger = logging.getLogger("visual_quality_gate")
 
 # ── Grades ────────────────────────────────────────────────────────────────────
 
+
 class QualityGrade(Enum):
-    KEYNOTE = "keynote"          # Listo para keynote de Apple (≥ 0.90)
-    EXCELLENT = "excellent"      # Muy bueno, detalles menores (≥ 0.80)
-    GOOD = "good"                # Bueno, necesita pulido (≥ 0.65)
-    NEEDS_WORK = "needs_work"    # Problemas significativos (≥ 0.50)
+    KEYNOTE = "keynote"  # Listo para keynote de Apple (≥ 0.90)
+    EXCELLENT = "excellent"  # Muy bueno, detalles menores (≥ 0.80)
+    GOOD = "good"  # Bueno, necesita pulido (≥ 0.65)
+    NEEDS_WORK = "needs_work"  # Problemas significativos (≥ 0.50)
     UNACCEPTABLE = "unacceptable"  # No entregar (< 0.50)
 
 
@@ -58,12 +59,14 @@ CRITERIA_WEIGHTS = {
 
 # ── Evaluation result ─────────────────────────────────────────────────────────
 
+
 @dataclass
 class VisualEvaluation:
     """Resultado de evaluación visual."""
+
     grade: QualityGrade
     overall_score: float  # 0.0 - 1.0
-    scores: dict          # Score por criterio con justificación
+    scores: dict  # Score por criterio con justificación
     strengths: list[str]
     weaknesses: list[str]
     recommendations: list[str]
@@ -75,7 +78,7 @@ class VisualEvaluation:
         """Generar reporte legible."""
         status = "✅ LISTO PARA ENTREGAR" if self.ready_to_deliver else "❌ NO LISTO — REQUIERE TRABAJO"
         lines = [
-            f"## Visual Quality Report",
+            "## Visual Quality Report",
             f"**Grade:** {self.grade.value.upper()} ({self.overall_score:.0%})",
             f"**Status:** {status}",
             "",
@@ -141,6 +144,7 @@ Respond ONLY in JSON format:
 
 # ── VisualQualityGate ─────────────────────────────────────────────────────────
 
+
 class VisualQualityGate:
     """Quality Gate visual con LLM multimodal."""
 
@@ -157,6 +161,7 @@ class VisualQualityGate:
     async def evaluate_screenshot(self, screenshot_path: str) -> VisualEvaluation:
         """Evaluar un screenshot usando LLM multimodal."""
         import time
+
         start = time.time()
 
         if not self._llm:
@@ -179,9 +184,7 @@ class VisualQualityGate:
     async def evaluate_url(self, url: str, screenshot_fn=None) -> VisualEvaluation:
         """Evaluar una URL tomando screenshot primero."""
         if not screenshot_fn:
-            return self._fallback_evaluation(
-                reason="screenshot_fn not provided — cannot capture URL"
-            )
+            return self._fallback_evaluation(reason="screenshot_fn not provided — cannot capture URL")
 
         try:
             screenshot_path = await screenshot_fn(url)
@@ -299,6 +302,7 @@ class VisualQualityGate:
         except json.JSONDecodeError:
             # Intentar extraer JSON del texto
             import re
+
             match = re.search(r"\{.*\}", response_text, re.DOTALL)
             if match:
                 data = json.loads(match.group())
@@ -348,7 +352,9 @@ class VisualQualityGate:
         return VisualEvaluation(
             grade=QualityGrade.GOOD,
             overall_score=0.70,
-            scores={c: {"score": 0.70, "justification": "Fallback — LLM evaluation unavailable"} for c in CRITERIA_WEIGHTS},
+            scores={
+                c: {"score": 0.70, "justification": "Fallback — LLM evaluation unavailable"} for c in CRITERIA_WEIGHTS
+            },
             strengths=["Fallback evaluation — configure LLM for real assessment"],
             weaknesses=["Cannot evaluate without LLM multimodal capability"],
             recommendations=[

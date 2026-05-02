@@ -1,25 +1,26 @@
 """Tech Radar & Vanguard — El Monstruo Sprint 60 + 63.1."""
-from .tech_radar import (
-    TechRadar,
-    DependencyUpdate,
-    TechTrend,
-    TechRadarError,
-    get_tech_radar,
-    init_tech_radar,
-)
+
 from .intelligence_engine import (
-    ResearchIntelligenceEngine,
+    INTELIGENCIA_SIN_SUPABASE,
     DiscoveryItem,
     IntegrationProposal,
+    ResearchIntelligenceEngine,
     get_intelligence_engine,
     init_intelligence_engine,
-    INTELIGENCIA_SIN_SUPABASE,
 )
 from .semantic_scholar import (
+    DEFAULT_TOPICS,
     SemanticScholarClient,
     get_scholar_client,
     init_scholar_client,
-    DEFAULT_TOPICS,
+)
+from .tech_radar import (
+    DependencyUpdate,
+    TechRadar,
+    TechRadarError,
+    TechTrend,
+    get_tech_radar,
+    init_tech_radar,
 )
 from .weekly_digest import (
     WeeklyDigestGenerator,

@@ -3,10 +3,9 @@
 Evidence Fuser — Fusiona evidencia de múltiples fuentes por atributo,
 resuelve conflictos usando la jerarquía de verdad, e identifica blind spots.
 """
+
 import json
 import os
-from pathlib import Path
-
 
 EVIDENCE_HIERARCHY = {
     "user_photo": 1,
@@ -19,8 +18,7 @@ EVIDENCE_HIERARCHY = {
 }
 
 
-async def fuse_evidence(site_info: dict, collected_results: dict,
-                        confidence_threshold: float = 0.6) -> dict:
+async def fuse_evidence(site_info: dict, collected_results: dict, confidence_threshold: float = 0.6) -> dict:
     """Fusiona toda la evidencia recolectada usando GPT-5.4."""
     from openai import OpenAI
 
@@ -42,7 +40,7 @@ async def fuse_evidence(site_info: dict, collected_results: dict,
     # Prepare context for GPT-5.4
     obs_summary = json.dumps(all_observations, indent=1, ensure_ascii=False, default=str)
 
-    prompt = f"""Eres un experto en reconstrucción de realidad urbana. Tu trabajo es fusionar evidencia de múltiples fuentes sobre el sitio "{site_info['name']}" (coordenadas: {site_info['lat']}, {site_info['lng']}).
+    prompt = f"""Eres un experto en reconstrucción de realidad urbana. Tu trabajo es fusionar evidencia de múltiples fuentes sobre el sitio "{site_info["name"]}" (coordenadas: {site_info["lat"]}, {site_info["lng"]}).
 
 ## Jerarquía de Verdad (mayor rango = más confiable)
 1. Fotos/videos del usuario (user_photo)
@@ -115,7 +113,10 @@ REGLAS CRÍTICAS:
         response = client.chat.completions.create(
             model="gpt-5.4",
             messages=[
-                {"role": "system", "content": "Eres un sistema de fusión de evidencia geoespacial. Respondes SOLO en JSON válido."},
+                {
+                    "role": "system",
+                    "content": "Eres un sistema de fusión de evidencia geoespacial. Respondes SOLO en JSON válido.",
+                },
                 {"role": "user", "content": prompt},
             ],
             max_completion_tokens=16000,
@@ -151,8 +152,12 @@ def _fallback_fuse(collected_results: dict, confidence_threshold: float) -> dict
             "west": {"description": "Sin datos suficientes", "confidence": 0.0},
         },
         "blind_spots": [
-            {"zone": "Todo el contexto", "status": "low_confidence_inferred",
-             "reason": "Fusión sin LLM", "render_policy": "neutral_mass"}
+            {
+                "zone": "Todo el contexto",
+                "status": "low_confidence_inferred",
+                "reason": "Fusión sin LLM",
+                "render_policy": "neutral_mass",
+            }
         ],
         "conflicts_resolved": 0,
         "_fusion_model": "fallback_simple",

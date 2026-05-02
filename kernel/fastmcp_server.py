@@ -292,18 +292,24 @@ def create_fastmcp_server():
                     r = await client.get(f"/search/repositories?q={query}&per_page=5", headers=headers)
                     r.raise_for_status()
                     items = r.json().get("items", [])
-                    return json.dumps([{
-                        "name": i["full_name"],
-                        "description": i.get("description", ""),
-                        "stars": i["stargazers_count"],
-                        "url": i["html_url"],
-                    } for i in items[:5]])
+                    return json.dumps(
+                        [
+                            {
+                                "name": i["full_name"],
+                                "description": i.get("description", ""),
+                                "stars": i["stargazers_count"],
+                                "url": i["html_url"],
+                            }
+                            for i in items[:5]
+                        ]
+                    )
 
                 elif action == "get_file":
                     path = parsed_params.get("path", "README.md")
                     r = await client.get(f"/repos/{repo}/contents/{path}", headers=headers)
                     r.raise_for_status()
                     import base64
+
                     content = base64.b64decode(r.json().get("content", "")).decode("utf-8")
                     return json.dumps({"path": path, "content": content[:5000]})
 
@@ -311,36 +317,56 @@ def create_fastmcp_server():
                     state = parsed_params.get("state", "open")
                     r = await client.get(f"/repos/{repo}/issues?state={state}&per_page=10", headers=headers)
                     r.raise_for_status()
-                    return json.dumps([{
-                        "number": i["number"],
-                        "title": i["title"],
-                        "state": i["state"],
-                        "labels": [l["name"] for l in i.get("labels", [])],
-                    } for i in r.json()[:10]])
+                    return json.dumps(
+                        [
+                            {
+                                "number": i["number"],
+                                "title": i["title"],
+                                "state": i["state"],
+                                "labels": [l["name"] for l in i.get("labels", [])],
+                            }
+                            for i in r.json()[:10]
+                        ]
+                    )
 
                 elif action == "list_prs":
                     state = parsed_params.get("state", "open")
                     r = await client.get(f"/repos/{repo}/pulls?state={state}&per_page=10", headers=headers)
                     r.raise_for_status()
-                    return json.dumps([{
-                        "number": p["number"],
-                        "title": p["title"],
-                        "state": p["state"],
-                        "author": p["user"]["login"],
-                    } for p in r.json()[:10]])
+                    return json.dumps(
+                        [
+                            {
+                                "number": p["number"],
+                                "title": p["title"],
+                                "state": p["state"],
+                                "author": p["user"]["login"],
+                            }
+                            for p in r.json()[:10]
+                        ]
+                    )
 
                 elif action == "search_code":
                     query = parsed_params.get("query", "")
                     r = await client.get(f"/search/code?q={query}+repo:{repo}&per_page=5", headers=headers)
                     r.raise_for_status()
-                    return json.dumps([{
-                        "path": i["path"],
-                        "name": i["name"],
-                        "url": i["html_url"],
-                    } for i in r.json().get("items", [])[:5]])
+                    return json.dumps(
+                        [
+                            {
+                                "path": i["path"],
+                                "name": i["name"],
+                                "url": i["html_url"],
+                            }
+                            for i in r.json().get("items", [])[:5]
+                        ]
+                    )
 
                 else:
-                    return json.dumps({"error": f"Unknown action: {action}", "available": ["search_repos", "get_file", "list_issues", "list_prs", "search_code"]})
+                    return json.dumps(
+                        {
+                            "error": f"Unknown action: {action}",
+                            "available": ["search_repos", "get_file", "list_issues", "list_prs", "search_code"],
+                        }
+                    )
 
         except Exception as e:
             logger.error("fastmcp_github_error", action=action, error=str(e))
@@ -444,11 +470,13 @@ def create_fastmcp_server():
         """List connected MCP servers and their tools."""
         try:
             from kernel.mcp_hub_config import get_mcp_hub
+
             hub = get_mcp_hub()
             if hub:
                 return hub.to_json()
             # Fallback: usar MCPClientManager directamente
             from kernel.main import app
+
             manager = getattr(app.state, "mcp_client_manager", None)
             if manager:
                 return json.dumps(manager.get_status(), default=str)
@@ -501,5 +529,7 @@ def get_status() -> dict[str, Any]:
             "github_ops (GitHub REST API)",
             "database_query (Supabase REST)",
             "web_browse (Cloudflare Browser Run)",
-        ] if _initialized else [],
+        ]
+        if _initialized
+        else [],
     }

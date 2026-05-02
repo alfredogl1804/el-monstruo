@@ -24,13 +24,12 @@ Ejemplo:
 Validated: consult_sabios (ya en stack), Perplexity Sonar (ya en stack)
 Future: DoWhy 0.14 para validación estadística cuando haya datos suficientes
 """
+
 from __future__ import annotations
 
 import json
 import os
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Optional
 
 import structlog
 
@@ -191,6 +190,7 @@ class CausalDecomposer:
         # Fallback: usar OpenAI directamente
         try:
             from openai import AsyncOpenAI
+
             client = AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
             response = await client.chat.completions.create(
                 model="gpt-4o",
@@ -205,11 +205,10 @@ class CausalDecomposer:
         # Último fallback: Gemini
         try:
             import google.generativeai as genai
+
             genai.configure(api_key=os.environ.get("GEMINI_API_KEY", ""))
             model = genai.GenerativeModel("gemini-2.5-flash")
-            response = model.generate_content(
-                prompt + "\n\nResponde SOLO con JSON válido."
-            )
+            response = model.generate_content(prompt + "\n\nResponde SOLO con JSON válido.")
             return response.text or "{}"
         except Exception as e:
             logger.error("gemini_fallback_failed", error=str(e))
@@ -270,9 +269,7 @@ class CausalDecomposer:
             logger.error("factor_parse_failed", error=str(e), raw_length=len(raw))
             return []
 
-    def _cross_validate(
-        self, factors: list[CausalFactor], similar_events: list[dict]
-    ) -> list[CausalFactor]:
+    def _cross_validate(self, factors: list[CausalFactor], similar_events: list[dict]) -> list[CausalFactor]:
         """
         Validar factores contra eventos similares.
         Si un factor aparece en eventos similares, sube su confianza.
@@ -282,14 +279,9 @@ class CausalDecomposer:
         for event in similar_events:
             raw_factors = event.get("factors", "[]")
             try:
-                event_factors = (
-                    raw_factors if isinstance(raw_factors, list)
-                    else json.loads(raw_factors)
-                )
+                event_factors = raw_factors if isinstance(raw_factors, list) else json.loads(raw_factors)
                 for f in event_factors:
-                    desc = (
-                        f.get("description", "") if isinstance(f, dict) else str(f)
-                    )
+                    desc = f.get("description", "") if isinstance(f, dict) else str(f)
                     if desc:
                         similar_factor_descriptions.add(desc.lower())
             except (json.JSONDecodeError, TypeError):

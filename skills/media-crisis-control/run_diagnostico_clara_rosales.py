@@ -3,7 +3,13 @@
 Diagnóstico de Crisis Real: Clara Rosales Montiel
 Usando framework LATAM-POLICRIS v1 con datos recopilados el 8 de abril de 2026.
 """
-import os, json, asyncio, aiohttp, datetime
+
+import asyncio
+import datetime
+import json
+import os
+
+import aiohttp
 
 DOSSIER = """
 # DOSSIER DE MENCIONES RECOPILADAS — 8 de abril de 2026
@@ -64,12 +70,13 @@ FUENTE: TikTok personal
 TONO: Positivo (contenido propio)
 """
 
+
 async def analizar_con_claude(dossier):
     url = "https://api.anthropic.com/v1/messages"
     headers = {
         "x-api-key": os.environ["ANTHROPIC_API_KEY"],
         "anthropic-version": "2023-06-01",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
     prompt = f"""Eres un analista experto en crisis políticas en Latinoamérica usando el framework LATAM-POLICRIS v1.
 
@@ -117,13 +124,13 @@ IMPORTANTE:
 - La iniciativa de VIH sí tiene respaldo de organizaciones civiles, ONUSIDA, OMS y precedentes en otros estados.
 - Evalúa el riesgo real, no el ruido.
 """
-    
+
     payload = {
         "model": "claude-sonnet-4-20250514",
         "max_tokens": 4000,
-        "messages": [{"role": "user", "content": prompt}]
+        "messages": [{"role": "user", "content": prompt}],
     }
-    
+
     async with aiohttp.ClientSession() as session:
         async with session.post(url, headers=headers, json=payload, timeout=120) as resp:
             data = await resp.json()
@@ -135,13 +142,19 @@ IMPORTANTE:
                 return json.loads(text[start:end])
             return {"error": "No JSON found", "raw": text}
 
+
 async def analizar_con_perplexity_update():
     """Buscar actualizaciones de última hora"""
     url = "https://api.perplexity.ai/chat/completions"
     headers = {"Authorization": f"Bearer {os.environ.get('SONAR_API_KEY')}", "Content-Type": "application/json"}
     payload = {
         "model": "sonar-pro",
-        "messages": [{"role": "user", "content": "¿Hay noticias de hoy 8 de abril de 2026 sobre la diputada Clara Rosales Montiel de Yucatán? ¿Alguna crisis, escándalo o polémica? Incluye fuentes."}]
+        "messages": [
+            {
+                "role": "user",
+                "content": "¿Hay noticias de hoy 8 de abril de 2026 sobre la diputada Clara Rosales Montiel de Yucatán? ¿Alguna crisis, escándalo o polémica? Incluye fuentes.",
+            }
+        ],
     }
     async with aiohttp.ClientSession() as session:
         try:
@@ -151,35 +164,37 @@ async def analizar_con_perplexity_update():
         except:
             return "No se pudo obtener actualización en tiempo real."
 
+
 async def main():
     print("=" * 70)
     print("DIAGNÓSTICO DE CRISIS — CLARA ROSALES MONTIEL")
     print(f"Fecha: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print("Framework: LATAM-POLICRIS v1")
     print("=" * 70)
-    
+
     # 1. Actualización en tiempo real
     print("\n📡 Buscando actualizaciones de última hora...")
     update = await analizar_con_perplexity_update()
     print(f"  Perplexity update: {len(update)} chars")
-    
+
     # 2. Análisis profundo con Claude
     print("\n🧠 Analizando con Claude (LATAM-POLICRIS v1)...")
     diagnosis = await analizar_con_claude(DOSSIER + "\n\nACTUALIZACIÓN EN TIEMPO REAL:\n" + update)
-    
+
     # 3. Guardar JSON
     os.makedirs("/home/ubuntu/skills/media-crisis-control/data/reports", exist_ok=True)
     json_path = "/home/ubuntu/skills/media-crisis-control/data/reports/diagnostico_clara_rosales_20260408.json"
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(diagnosis, f, indent=2, ensure_ascii=False)
     print(f"\n✅ JSON guardado: {json_path}")
-    
+
     # 4. Imprimir resumen
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"RESULTADO: {diagnosis.get('crisis_level', 'N/A')} (Score: {diagnosis.get('severity_score', 'N/A')}/100)")
     print(f"Tipo: {diagnosis.get('crisis_type', 'N/A')}")
     print(f"Tendencia: {diagnosis.get('trend', 'N/A')}")
     print(f"Resumen: {diagnosis.get('executive_summary', 'N/A')}")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
+
 
 asyncio.run(main())

@@ -18,13 +18,12 @@ Uso:
 import argparse
 import asyncio
 import json
-import os
 import sys
-import time
 import uuid
-import yaml
 from datetime import datetime
 from pathlib import Path
+
+import yaml
 
 # Add scripts to path
 SCRIPT_DIR = Path(__file__).parent
@@ -32,16 +31,16 @@ SKILL_DIR = SCRIPT_DIR.parent
 sys.path.insert(0, str(SCRIPT_DIR))
 sys.path.insert(0, "/home/ubuntu/skills/consulta-sabios/scripts")
 
-from cidp_intake import run_intake
-from cidp_research import run_research
-from cidp_orchestrator import run_orchestrator
-from cidp_swarm import run_swarm
-from cidp_validator import run_validator
 from cidp_builder import run_builder
 from cidp_convergence import run_convergence_gate
+from cidp_intake import run_intake
 from cidp_memory import CIDPMemory
-from cidp_telemetry import CIDPTelemetry
+from cidp_orchestrator import run_orchestrator
+from cidp_research import run_research
 from cidp_score import calculate_10x_score
+from cidp_swarm import run_swarm
+from cidp_telemetry import CIDPTelemetry
+from cidp_validator import run_validator
 
 
 def load_config():
@@ -82,7 +81,7 @@ async def run_cycle(args):
     telemetry.start_run(run_id, args.target, args.objective)
 
     print("=" * 60)
-    print(f"  CIDP — Ciclo de Investigación y Descubrimiento Perpetuo")
+    print("  CIDP — Ciclo de Investigación y Descubrimiento Perpetuo")
     print(f"  Run: {run_id}")
     print(f"  Target: {args.target}")
     print(f"  Objective: {args.objective}")
@@ -134,19 +133,19 @@ async def run_cycle(args):
         print(f"  Budget remaining: ${args.budget_usd - total_cost:.2f}")
         print(f"{'=' * 60}")
 
-
         # Check budget
         if total_cost >= args.budget_usd:
-            print(f"  [BUDGET GUARD] Total cost ${total_cost:.2f} exceeds budget ${args.budget_usd:.2f} — Stopping cycle")
+            print(
+                f"  [BUDGET GUARD] Total cost ${total_cost:.2f} exceeds budget ${args.budget_usd:.2f} — Stopping cycle"
+            )
             break
-            
+
         # Checkpoint Resume Logic
         latest_cp = memory.get_latest_checkpoint(run_id)
         resume_stage = "research"
         if latest_cp and latest_cp["iteration"] == iteration:
             resume_stage = latest_cp["stage"]
             print(f"  [CHECKPOINT] Resuming iteration {iteration} from stage: {resume_stage}")
-
 
         # =====================================================
         # STAGE 2: DEEP RESEARCH MESH
@@ -157,10 +156,10 @@ async def run_cycle(args):
             if research_result:
                 total_cost += research_result.get("cost_usd", 0)
             else:
-                resume_stage = "research" # Fallback if missing
-        
+                resume_stage = "research"  # Fallback if missing
+
         if resume_stage == "research":
-            print(f"\n  --- Stage 2: Deep Research Mesh ---")
+            print("\n  --- Stage 2: Deep Research Mesh ---")
             try:
                 research_result = await run_research(
                     target=args.target,
@@ -188,15 +187,17 @@ async def run_cycle(args):
         # STAGE 3: SYNTHESIS CORE (GPT-5.4)
         # =====================================================
         if resume_stage in ["swarm", "validation", "build"]:
-            print(f"\n  --- Stage 3: Synthesis Core (GPT-5.4 Orchestrator) [SKIPPED - Resuming from {resume_stage}] ---")
+            print(
+                f"\n  --- Stage 3: Synthesis Core (GPT-5.4 Orchestrator) [SKIPPED - Resuming from {resume_stage}] ---"
+            )
             orchestrator_result = memory.get_checkpoint(run_id, iteration, "orchestrator")
             if orchestrator_result:
                 total_cost += orchestrator_result.get("cost_usd", 0)
             else:
                 resume_stage = "orchestrator"
-                
+
         if resume_stage in ["research", "orchestrator"]:
-            print(f"\n  --- Stage 3: Synthesis Core (GPT-5.4 Orchestrator) ---")
+            print("\n  --- Stage 3: Synthesis Core (GPT-5.4 Orchestrator) ---")
             try:
                 orchestrator_result = await run_orchestrator(
                     target=args.target,
@@ -229,9 +230,9 @@ async def run_cycle(args):
                 total_cost += swarm_result.get("cost_usd", 0)
             else:
                 resume_stage = "swarm"
-                
+
         if resume_stage in ["research", "orchestrator", "swarm"]:
-            print(f"\n  --- Stage 4: Swarm Execution ---")
+            print("\n  --- Stage 4: Swarm Execution ---")
             try:
                 swarm_result = await run_swarm(
                     tasks=orchestrator_result.get("backlog", []),
@@ -260,9 +261,9 @@ async def run_cycle(args):
                 total_cost += validation_result.get("cost_usd", 0)
             else:
                 resume_stage = "validation"
-                
+
         if resume_stage in ["research", "orchestrator", "swarm", "validation"]:
-            print(f"\n  --- Stage 5: Reality Validation Loop ---")
+            print("\n  --- Stage 5: Reality Validation Loop ---")
             try:
                 validation_result = await run_validator(
                     swarm_responses=swarm_result.get("responses", []),
@@ -285,7 +286,7 @@ async def run_cycle(args):
         # =====================================================
         # STAGE 6: BUILD / PROTOTYPE / EVAL
         # =====================================================
-        print(f"\n  --- Stage 6: Build / Prototype / Eval ---")
+        print("\n  --- Stage 6: Build / Prototype / Eval ---")
         try:
             build_result = await run_builder(
                 validated_plan=validation_result,
@@ -320,7 +321,7 @@ async def run_cycle(args):
         # =====================================================
         # STAGE 7: CONVERGENCE GATE
         # =====================================================
-        print(f"\n  --- Stage 7: Convergence Gate ---")
+        print("\n  --- Stage 7: Convergence Gate ---")
         convergence_result = run_convergence_gate(
             current_score=current_score,
             new_score=new_score,
@@ -389,9 +390,7 @@ async def run_cycle(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="CIDP — Ciclo de Investigación y Descubrimiento Perpetuo"
-    )
+    parser = argparse.ArgumentParser(description="CIDP — Ciclo de Investigación y Descubrimiento Perpetuo")
     parser.add_argument("--target", required=True, help="Software/plataforma a investigar")
     parser.add_argument("--objective", required=True, help="Objetivo 10x a alcanzar")
     parser.add_argument("--output-dir", required=True, help="Directorio de salida")
@@ -401,9 +400,7 @@ def main():
     parser.add_argument("--skip-calibration", action="store_true", help="Saltar calibración de sabios")
     parser.add_argument("--enable-gpu-broker", action="store_true", help="Habilitar renta de GPUs")
     parser.add_argument("--gpu-budget-usd", type=float, default=100.0, help="Presupuesto GPU USD")
-    parser.add_argument(
-        "--convergence-threshold", type=float, default=0.8, help="Umbral de convergencia 0-1"
-    )
+    parser.add_argument("--convergence-threshold", type=float, default=0.8, help="Umbral de convergencia 0-1")
     parser.add_argument("--dimensions", type=str, default=None, help="Dimensiones a investigar (comma-separated)")
 
     args = parser.parse_args()

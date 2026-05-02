@@ -10,24 +10,25 @@ Cubre:
   - EmbrionTecnico: audit_architecture, review_code_quality, recommend_stack
   - EmbrionVigia: detect_anomalies, audit_dependencies, generate_incident_report
 """
-import pytest
-import asyncio
-from datetime import datetime, timezone
 
+import pytest
 
 # ─── SecurityLayer ────────────────────────────────────────────────────────────
+
 
 class TestSecurityLayer:
     """Tests para transversal/security_layer.py"""
 
     def setup_method(self):
         from transversal.security_layer import SecurityLayer
+
         self.layer = SecurityLayer()
 
     @pytest.mark.asyncio
     async def test_generar_configuracion_retorna_config(self):
         """generar_configuracion debe retornar una ConfiguracionSeguridad."""
         from transversal.security_layer import TipoProyecto
+
         config = await self.layer.generar_configuracion("test-proyecto", TipoProyecto.WEB_APP)
         assert config is not None
 
@@ -40,6 +41,7 @@ class TestSecurityLayer:
     def test_generar_template_auth_retorna_dict(self):
         """generar_template_auth debe retornar dict con estrategia."""
         from transversal.security_layer import EstrategiaAuth
+
         result = self.layer.generar_template_auth(EstrategiaAuth.JWT)
         assert isinstance(result, dict)
 
@@ -53,11 +55,13 @@ class TestSecurityLayer:
 
 # ─── ScalabilityLayer ────────────────────────────────────────────────────────
 
+
 class TestScalabilityLayer:
     """Tests para transversal/scalability_layer.py"""
 
     def setup_method(self):
         from transversal.scalability_layer import ScalabilityLayer
+
         self.layer = ScalabilityLayer()
 
     def test_generar_config_cdn_retorna_dict(self):
@@ -74,11 +78,13 @@ class TestScalabilityLayer:
 
 # ─── AnalyticsLayer ──────────────────────────────────────────────────────────
 
+
 class TestAnalyticsLayer:
     """Tests para transversal/analytics_layer.py"""
 
     def setup_method(self):
         from transversal.analytics_layer import AnalyticsLayer
+
         self.layer = AnalyticsLayer()
 
     def test_generar_taxonomia_saas(self):
@@ -100,8 +106,8 @@ class TestAnalyticsLayer:
         """Cálculo de retención debe retornar porcentajes correctos."""
         dia_0 = {"u1", "u2", "u3", "u4", "u5"}
         dia_1 = {"u1", "u2", "u3"}  # 60%
-        dia_7 = {"u1", "u2"}         # 40%
-        dia_30 = {"u1"}              # 20%
+        dia_7 = {"u1", "u2"}  # 40%
+        dia_30 = {"u1"}  # 20%
 
         metricas = self.layer.calcular_retencion(
             usuarios_dia_0=dia_0,
@@ -154,17 +160,20 @@ class TestAnalyticsLayer:
 
 # ─── EmbrionTecnico ───────────────────────────────────────────────────────────
 
+
 class TestEmbrionTecnico:
     """Tests para kernel/embrion_tecnico.py"""
 
     def setup_method(self):
         from kernel.embrion_tecnico import EmbrionTecnico
+
         self.embrion = EmbrionTecnico()
 
     @pytest.mark.asyncio
     async def test_audit_architecture_proyecto_vacio_lanza_error(self):
         """Proyecto sin archivos debe lanzar EMBRION_TECNICO_PROYECTO_VACIO."""
         from kernel.embrion_tecnico import EMBRION_TECNICO_PROYECTO_VACIO
+
         with pytest.raises(EMBRION_TECNICO_PROYECTO_VACIO):
             await self.embrion.audit_architecture({"files": []})
 
@@ -194,24 +203,26 @@ class TestEmbrionTecnico:
         """Código con secreto hardcodeado debe ser detectado."""
         code = 'api_key = "sk_live_abc123def456ghi789"'
         result = await self.embrion.review_code_quality(code)
-        assert any("secreto" in issue.lower() or "secret" in issue.lower()
-                   for issue in result["issues"])
+        assert any("secreto" in issue.lower() or "secret" in issue.lower() for issue in result["issues"])
 
     @pytest.mark.asyncio
     async def test_review_code_quality_python_invalido(self):
         """Python con sintaxis inválida debe lanzar EMBRION_TECNICO_CODIGO_INVALIDO."""
         from kernel.embrion_tecnico import EMBRION_TECNICO_CODIGO_INVALIDO
+
         with pytest.raises(EMBRION_TECNICO_CODIGO_INVALIDO):
             await self.embrion.review_code_quality("def foo(:\n    pass", "python")
 
     @pytest.mark.asyncio
     async def test_recommend_stack_web_app_pequena(self):
         """Web app pequeña debe recomendar stack Railway + Supabase."""
-        result = await self.embrion.recommend_stack({
-            "type": "web_app",
-            "expected_users": 500,
-            "monthly_budget_usd": 50,
-        })
+        result = await self.embrion.recommend_stack(
+            {
+                "type": "web_app",
+                "expected_users": 500,
+                "monthly_budget_usd": 50,
+            }
+        )
         assert "backend" in result
         assert "database" in result
 
@@ -224,17 +235,20 @@ class TestEmbrionTecnico:
 
 # ─── EmbrionVigia ─────────────────────────────────────────────────────────────
 
+
 class TestEmbrionVigia:
     """Tests para kernel/embrion_vigia.py"""
 
     def setup_method(self):
         from kernel.embrion_vigia import EmbrionVigia
+
         self.embrion = EmbrionVigia()
 
     @pytest.mark.asyncio
     async def test_health_check_endpoints_vacios_lanza_error(self):
         """Lista vacía de endpoints debe lanzar EMBRION_VIGIA_ENDPOINTS_VACIOS."""
         from kernel.embrion_vigia import EMBRION_VIGIA_ENDPOINTS_VACIOS
+
         with pytest.raises(EMBRION_VIGIA_ENDPOINTS_VACIOS):
             await self.embrion.health_check([])
 
@@ -242,6 +256,7 @@ class TestEmbrionVigia:
     async def test_detect_anomalies_datos_insuficientes(self):
         """Menos de 10 puntos debe lanzar EMBRION_VIGIA_DATOS_INSUFICIENTES."""
         from kernel.embrion_vigia import EMBRION_VIGIA_DATOS_INSUFICIENTES
+
         metrics = [{"value": i, "timestamp": "2026-05-01"} for i in range(5)]
         with pytest.raises(EMBRION_VIGIA_DATOS_INSUFICIENTES):
             await self.embrion.detect_anomalies(metrics)
@@ -305,6 +320,7 @@ class TestEmbrionVigia:
 
 
 # ─── Integración ─────────────────────────────────────────────────────────────
+
 
 class TestIntegracionSprint58:
     """Tests de integración entre módulos del Sprint 58."""

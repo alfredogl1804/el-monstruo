@@ -20,23 +20,18 @@ Uso: python3 heartbeat.py
 Ejecutar al inicio del hilo y cada 10 minutos.
 """
 
-import os
-import json
 import glob
 import hashlib
-import requests
+import json
+import os
 import time
 from datetime import datetime
 
+import requests
+
 # --- Config ---
-KERNEL_URL = os.environ.get(
-    "MONSTRUO_KERNEL_URL",
-    "https://el-monstruo-kernel-production.up.railway.app"
-)
-KERNEL_KEY = os.environ.get(
-    "MONSTRUO_API_KEY",
-    "c3f0cbaa-7c5d-4f84-9dfd-0727e4f86259"
-)
+KERNEL_URL = os.environ.get("MONSTRUO_KERNEL_URL", "https://el-monstruo-kernel-production.up.railway.app")
+KERNEL_KEY = os.environ.get("MONSTRUO_API_KEY", "c3f0cbaa-7c5d-4f84-9dfd-0727e4f86259")
 SANDBOX_HOME = os.environ.get("HOME", "/home/ubuntu")
 RECOVERY_FILE = os.path.join(SANDBOX_HOME, "RECOVERY.md")
 SNAPSHOT_DIR = os.path.join(SANDBOX_HOME, ".monstruo_snapshots")
@@ -65,12 +60,9 @@ def scan_sandbox():
             # Leer primeras 5 líneas como resumen
             with open(f, "r", encoding="utf-8", errors="ignore") as fh:
                 lines = [l.strip() for l in fh.readlines()[:5] if l.strip()]
-            findings["md_files"].append({
-                "name": name,
-                "size": size,
-                "modified": mtime,
-                "preview": " | ".join(lines[:3])
-            })
+            findings["md_files"].append(
+                {"name": name, "size": size, "modified": mtime, "preview": " | ".join(lines[:3])}
+            )
         except Exception:
             pass
 
@@ -91,18 +83,16 @@ def scan_sandbox():
             pass
 
     # Buscar archivos de hilos/orquestación
-    thread_files = [f for f in md_files if any(
-        kw in os.path.basename(f).upper()
-        for kw in ["HILO", "THREAD", "ORQUEST", "COMUNICACION", "MAPA"]
-    )]
+    thread_files = [
+        f
+        for f in md_files
+        if any(kw in os.path.basename(f).upper() for kw in ["HILO", "THREAD", "ORQUEST", "COMUNICACION", "MAPA"])
+    ]
     for f in thread_files:
         try:
             with open(f, "r", encoding="utf-8", errors="ignore") as fh:
                 content = fh.read(3000)
-            findings["active_threads"].append({
-                "file": os.path.basename(f),
-                "summary": content[:500]
-            })
+            findings["active_threads"].append({"file": os.path.basename(f), "summary": content[:500]})
         except Exception:
             pass
 
@@ -112,12 +102,12 @@ def scan_sandbox():
 def build_recovery_doc(findings):
     """Construye el documento RECOVERY.md que sobrevive a compactaciones."""
     lines = [
-        f"# RECOVERY — Estado del Monstruo",
+        "# RECOVERY — Estado del Monstruo",
         f"**Generado:** {findings['timestamp']}",
-        f"**Propósito:** Si perdiste contexto, lee este archivo PRIMERO.",
+        "**Propósito:** Si perdiste contexto, lee este archivo PRIMERO.",
         "",
         "## Archivos en el sandbox",
-        ""
+        "",
     ]
 
     for f in findings["md_files"][:20]:
@@ -133,47 +123,49 @@ def build_recovery_doc(findings):
         lines.append(t["summary"][:300])
         lines.append("")
 
-    lines.extend([
-        "",
-        "## Cómo recuperar contexto completo",
-        "",
-        "```bash",
-        "# Opción 1: Query al kernel del Monstruo",
-        f'curl -s -X POST -H "X-API-Key: {KERNEL_KEY}" \\',
-        f'  -H "Content-Type: application/json" \\',
-        f'  {KERNEL_URL}/v1/knowledge/query \\',
-        '  -d \'{"query": "estado completo del Monstruo decisiones hilos modelos", "mode": "naive", "top_k": 10}\'',
-        "```",
-        "",
-        "```bash",
-        "# Opción 2: Leer archivos del sandbox",
-        "ls -lt ~/*.md | head -20",
-        "```",
-        "",
-        "## Modelos verificados de los 6 Sabios (27 abril 2026)",
-        "",
-        "| Sabio | Model ID | Fuente |",
-        "|-------|----------|--------|",
-        "| GPT | gpt-5.5 | platform.openai.com |",
-        "| Claude | claude-opus-4-7 | anthropic.com |",
-        "| Gemini | gemini-3.1-pro-preview | ai.google.dev |",
-        "| Grok | grok-4.20-0309-reasoning | docs.x.ai |",
-        "| DeepSeek | deepseek-v4-pro | api-docs.deepseek.com |",
-        "| Perplexity | sonar-reasoning-pro | docs.perplexity.ai |",
-        "",
-        "## Kernel del Monstruo",
-        "",
-        f"- URL: {KERNEL_URL}",
-        f"- API Key: {KERNEL_KEY}",
-        "- Endpoints: /health, /v1/knowledge/query, /v1/knowledge/ingest, /v1/stats",
-        "",
-        "## REGLA DE ORO",
-        "",
-        "**NUNCA confíes en tu entrenamiento para versiones, modelos, o datos.**",
-        "**SIEMPRE investiga en tiempo real antes de afirmar algo.**",
-        "**Si no estás seguro, haz curl al kernel o investiga en la web.**",
-        ""
-    ])
+    lines.extend(
+        [
+            "",
+            "## Cómo recuperar contexto completo",
+            "",
+            "```bash",
+            "# Opción 1: Query al kernel del Monstruo",
+            f'curl -s -X POST -H "X-API-Key: {KERNEL_KEY}" \\',
+            '  -H "Content-Type: application/json" \\',
+            f"  {KERNEL_URL}/v1/knowledge/query \\",
+            '  -d \'{"query": "estado completo del Monstruo decisiones hilos modelos", "mode": "naive", "top_k": 10}\'',
+            "```",
+            "",
+            "```bash",
+            "# Opción 2: Leer archivos del sandbox",
+            "ls -lt ~/*.md | head -20",
+            "```",
+            "",
+            "## Modelos verificados de los 6 Sabios (27 abril 2026)",
+            "",
+            "| Sabio | Model ID | Fuente |",
+            "|-------|----------|--------|",
+            "| GPT | gpt-5.5 | platform.openai.com |",
+            "| Claude | claude-opus-4-7 | anthropic.com |",
+            "| Gemini | gemini-3.1-pro-preview | ai.google.dev |",
+            "| Grok | grok-4.20-0309-reasoning | docs.x.ai |",
+            "| DeepSeek | deepseek-v4-pro | api-docs.deepseek.com |",
+            "| Perplexity | sonar-reasoning-pro | docs.perplexity.ai |",
+            "",
+            "## Kernel del Monstruo",
+            "",
+            f"- URL: {KERNEL_URL}",
+            f"- API Key: {KERNEL_KEY}",
+            "- Endpoints: /health, /v1/knowledge/query, /v1/knowledge/ingest, /v1/stats",
+            "",
+            "## REGLA DE ORO",
+            "",
+            "**NUNCA confíes en tu entrenamiento para versiones, modelos, o datos.**",
+            "**SIEMPRE investiga en tiempo real antes de afirmar algo.**",
+            "**Si no estás seguro, haz curl al kernel o investiga en la web.**",
+            "",
+        ]
+    )
 
     return "\n".join(lines)
 
@@ -181,13 +173,13 @@ def build_recovery_doc(findings):
 def upload_to_kernel_chunked(recovery_doc, findings):
     """Sube el snapshot al kernel en chunks de ~2KB con retry."""
     content_hash = hashlib.md5(recovery_doc.encode()).hexdigest()[:8]
-    ts = findings['timestamp']
+    ts = findings["timestamp"]
 
     # Dividir en chunks de ~2000 chars
     CHUNK_SIZE = 2000
     chunks = []
     for i in range(0, len(recovery_doc), CHUNK_SIZE):
-        chunks.append(recovery_doc[i:i + CHUNK_SIZE])
+        chunks.append(recovery_doc[i : i + CHUNK_SIZE])
 
     success_count = 0
     fail_count = 0
@@ -196,25 +188,22 @@ def upload_to_kernel_chunked(recovery_doc, findings):
         payload = {
             "content": chunk,
             "source": f"heartbeat_{ts}_{content_hash}_chunk{idx}of{len(chunks)}",
-            "doc_type": "heartbeat_snapshot"
+            "doc_type": "heartbeat_snapshot",
         }
 
         # Retry con backoff via kernel_client
         for attempt in range(3):
             try:
                 from kernel_client import knowledge_ingest
-                result = knowledge_ingest(
-                    content=chunk,
-                    source=payload["source"],
-                    doc_type="heartbeat_snapshot"
-                )
+
+                result = knowledge_ingest(content=chunk, source=payload["source"], doc_type="heartbeat_snapshot")
                 if result.get("ingested"):
                     success_count += 1
                     break
                 else:
                     print(f"[heartbeat] Chunk {idx}: no ingested")
             except requests.exceptions.Timeout:
-                wait = 2 ** attempt
+                wait = 2**attempt
                 print(f"[heartbeat] Chunk {idx}: timeout, retry en {wait}s...")
                 time.sleep(wait)
             except Exception as e:
@@ -233,10 +222,7 @@ def save_local(recovery_doc, findings):
         f.write(recovery_doc)
 
     # Snapshot con timestamp para historial
-    snapshot_file = os.path.join(
-        SNAPSHOT_DIR,
-        f"snapshot_{findings['timestamp'].replace(':', '-')}.json"
-    )
+    snapshot_file = os.path.join(SNAPSHOT_DIR, f"snapshot_{findings['timestamp'].replace(':', '-')}.json")
     with open(snapshot_file, "w", encoding="utf-8") as f:
         json.dump(findings, f, indent=2, ensure_ascii=False)
 
@@ -249,9 +235,11 @@ def save_local(recovery_doc, findings):
 def main():
     print(f"[heartbeat] Escaneando sandbox... {datetime.utcnow().isoformat()}")
     findings = scan_sandbox()
-    print(f"[heartbeat] Encontrados: {len(findings['md_files'])} archivos, "
-          f"{len(findings['key_decisions'])} decisiones, "
-          f"{len(findings['active_threads'])} hilos")
+    print(
+        f"[heartbeat] Encontrados: {len(findings['md_files'])} archivos, "
+        f"{len(findings['key_decisions'])} decisiones, "
+        f"{len(findings['active_threads'])} hilos"
+    )
 
     recovery_doc = build_recovery_doc(findings)
 

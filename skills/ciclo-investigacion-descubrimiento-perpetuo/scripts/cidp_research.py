@@ -8,10 +8,10 @@ y validación cruzada. Genera research cards con score de confianza.
 
 import asyncio
 import json
-import os
 import sys
-import yaml
 from pathlib import Path
+
+import yaml
 
 sys.path.insert(0, "/home/ubuntu/skills/consulta-sabios/scripts")
 from conector_sabios import consultar_sabio
@@ -27,8 +27,7 @@ def load_dimensions():
     return {d["id"]: d for d in data.get("dimensions", [])}
 
 
-async def research_dimension(target: str, dimension: dict, iteration: int,
-                             previous_findings: list) -> dict:
+async def research_dimension(target: str, dimension: dict, iteration: int, previous_findings: list) -> dict:
     """Research a single dimension using Perplexity for real-time data."""
     dim_id = dimension["id"]
     dim_name = dimension["name"]
@@ -40,7 +39,7 @@ async def research_dimension(target: str, dimension: dict, iteration: int,
         prompt_parts.append(p.replace("{target}", target))
 
     if previous_findings:
-        prompt_parts.append(f"\nHallazgos previos a profundizar o verificar:")
+        prompt_parts.append("\nHallazgos previos a profundizar o verificar:")
         for f in previous_findings[:5]:
             prompt_parts.append(f"- {f}")
 
@@ -68,13 +67,16 @@ Responde con JSON:
             result = json.loads(text)
         except json.JSONDecodeError:
             import re
-            match = re.search(r'\{[\s\S]*\}', text)
+
+            match = re.search(r"\{[\s\S]*\}", text)
             if match:
                 result = json.loads(match.group())
             else:
                 result = {
                     "dimension": dim_id,
-                    "findings": [{"finding": text[:500], "confidence": 0.5, "source": "perplexity", "evidence": "raw_response"}],
+                    "findings": [
+                        {"finding": text[:500], "confidence": 0.5, "source": "perplexity", "evidence": "raw_response"}
+                    ],
                     "unknowns": [],
                     "contradictions": [],
                     "opportunities_10x": [],
@@ -101,8 +103,9 @@ Responde con JSON:
     return result
 
 
-async def run_research(target: str, dimensions: list, iteration: int,
-                       previous_findings: dict, output_dir: Path) -> dict:
+async def run_research(
+    target: str, dimensions: list, iteration: int, previous_findings: dict, output_dir: Path
+) -> dict:
     """Execute Stage 2: Deep Research Mesh across all active dimensions."""
     all_dims = load_dimensions()
     active_dims = [all_dims[d] for d in dimensions if d in all_dims]
@@ -115,7 +118,7 @@ async def run_research(target: str, dimensions: list, iteration: int,
     evidence_count = 0
 
     for i in range(0, len(active_dims), 3):
-        batch = active_dims[i:i+3]
+        batch = active_dims[i : i + 3]
         tasks = []
         for dim in batch:
             prev = previous_findings.get(dim["id"], []) if isinstance(previous_findings, dict) else []
@@ -159,12 +162,14 @@ async def run_research(target: str, dimensions: list, iteration: int,
     evidence = []
     for card in all_cards:
         for finding in card.get("findings", []):
-            evidence.append({
-                "dimension": card.get("dimension", "unknown"),
-                "finding": finding.get("finding", ""),
-                "confidence": finding.get("confidence", 0),
-                "source": finding.get("source", ""),
-            })
+            evidence.append(
+                {
+                    "dimension": card.get("dimension", "unknown"),
+                    "finding": finding.get("finding", ""),
+                    "confidence": finding.get("confidence", 0),
+                    "source": finding.get("source", ""),
+                }
+            )
 
     evidence_path = output_dir / "evidence_pack.json"
     with open(evidence_path, "w", encoding="utf-8") as f:

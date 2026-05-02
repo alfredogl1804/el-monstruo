@@ -27,6 +27,7 @@ porque Sprint 55.4 no fue implementado. Se puede refactorizar en Sprint 57+.
 Validated: Perplexity Sonar (ya en stack), OpenAI GPT-4o-mini (bajo costo),
            APScheduler 3.11.2 (MIT), wikipedia-api 0.7.1 (MIT)
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -158,9 +159,11 @@ Return 3-7 factors per event. Weights should sum approximately to 1.0."""
 
 # ── Dataclasses ──────────────────────────────────────────────────────────────
 
+
 @dataclass
 class SeedingCycle:
     """Registro de un ciclo de seeding."""
+
     cycle_id: str = field(default_factory=lambda: str(uuid4()))
     domain: str = ""
     year_range: str = ""
@@ -188,6 +191,7 @@ class SeedingCycle:
 
 
 # ── CausalDecomposer (integrado en Sprint 56.1, refactorizar en Sprint 57+) ──
+
 
 class CausalDecomposer:
     """
@@ -225,8 +229,8 @@ class CausalDecomposer:
         user_prompt = f"""Event to analyze:
 Title: {title}
 Category: {category}
-Context: {context[:2000] if context else 'No additional context provided'}
-{f'Approximate date: {event_date}' if event_date else ''}
+Context: {context[:2000] if context else "No additional context provided"}
+{f"Approximate date: {event_date}" if event_date else ""}
 
 Decompose this event into its root causal factors."""
 
@@ -242,7 +246,8 @@ Decompose this event into its root causal factors."""
         except json.JSONDecodeError:
             # Intentar extraer JSON del texto
             import re
-            json_match = re.search(r'\{.*\}', decomposed, re.DOTALL)
+
+            json_match = re.search(r"\{.*\}", decomposed, re.DOTALL)
             if json_match:
                 try:
                     data = json.loads(json_match.group())
@@ -345,16 +350,10 @@ Decompose this event into its root causal factors."""
         try:
             async with httpx.AsyncClient(timeout=30) as client:
                 resp = await client.post(
-                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+                    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
                     params={"key": self._gemini_key},
                     json={
-                        "contents": [
-                            {
-                                "parts": [
-                                    {"text": DECOMPOSER_SYSTEM_PROMPT + "\n\n" + user_prompt}
-                                ]
-                            }
-                        ],
+                        "contents": [{"parts": [{"text": DECOMPOSER_SYSTEM_PROMPT + "\n\n" + user_prompt}]}],
                         "generationConfig": {
                             "temperature": 0.3,
                             "maxOutputTokens": 1500,
@@ -373,6 +372,7 @@ Decompose this event into its root causal factors."""
 
 
 # ── CausalSeeder ─────────────────────────────────────────────────────────────
+
 
 class CausalSeeder:
     """
@@ -447,7 +447,7 @@ class CausalSeeder:
                 cycle.errors.append("No events discovered from search")
             else:
                 # Paso 2: Descomponer y almacenar cada evento
-                for event_data in events_raw[:self.MAX_EVENTS_PER_CYCLE]:
+                for event_data in events_raw[: self.MAX_EVENTS_PER_CYCLE]:
                     try:
                         event_id = await self._decompose_and_store(event_data, domain, year_range)
                         if event_id:
@@ -560,9 +560,7 @@ class CausalSeeder:
             data = resp.json()
             return data["choices"][0]["message"]["content"]
 
-    def _parse_discovered_events(
-        self, raw_result: str, domain: dict, year_range: str
-    ) -> list[dict[str, Any]]:
+    def _parse_discovered_events(self, raw_result: str, domain: dict, year_range: str) -> list[dict[str, Any]]:
         """Parsear resultado de búsqueda en eventos estructurados."""
         events = []
 
@@ -593,18 +591,54 @@ class CausalSeeder:
 
             # Detectar inicio de nuevo evento (línea numerada o con bullet)
             is_new_event = False
-            for prefix in ["1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.", "9.", "10.",
-                           "11.", "12.", "13.", "14.", "15.", "- ", "* ", "• "]:
+            for prefix in [
+                "1.",
+                "2.",
+                "3.",
+                "4.",
+                "5.",
+                "6.",
+                "7.",
+                "8.",
+                "9.",
+                "10.",
+                "11.",
+                "12.",
+                "13.",
+                "14.",
+                "15.",
+                "- ",
+                "* ",
+                "• ",
+            ]:
                 if line.startswith(prefix):
                     is_new_event = True
                     if current_event and current_event.get("title"):
                         events.append(current_event)
                     # Limpiar el prefijo del título
                     clean_title = line
-                    for p in ["1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.", "9.", "10.",
-                              "11.", "12.", "13.", "14.", "15.", "- ", "* ", "• "]:
+                    for p in [
+                        "1.",
+                        "2.",
+                        "3.",
+                        "4.",
+                        "5.",
+                        "6.",
+                        "7.",
+                        "8.",
+                        "9.",
+                        "10.",
+                        "11.",
+                        "12.",
+                        "13.",
+                        "14.",
+                        "15.",
+                        "- ",
+                        "* ",
+                        "• ",
+                    ]:
                         if clean_title.startswith(p):
-                            clean_title = clean_title[len(p):].strip()
+                            clean_title = clean_title[len(p) :].strip()
                             break
                     # Limpiar bold markdown
                     clean_title = clean_title.replace("**", "").strip()
@@ -629,9 +663,7 @@ class CausalSeeder:
 
         return events
 
-    async def _decompose_and_store(
-        self, event_data: dict, domain: dict, year_range: str
-    ) -> Optional[str]:
+    async def _decompose_and_store(self, event_data: dict, domain: dict, year_range: str) -> Optional[str]:
         """Descomponer un evento y almacenarlo en la Causal KB."""
         title = event_data.get("title", "").strip()
         context = event_data.get("context", "").strip()
@@ -661,8 +693,7 @@ class CausalSeeder:
 
         if self._daily_spend >= self.DAILY_BUDGET_USD:
             raise RuntimeError(
-                f"Daily seeding budget exceeded: "
-                f"${self._daily_spend:.2f} >= ${self.DAILY_BUDGET_USD:.2f}"
+                f"Daily seeding budget exceeded: ${self._daily_spend:.2f} >= ${self.DAILY_BUDGET_USD:.2f}"
             )
 
     async def _persist_cycle(self, cycle: SeedingCycle) -> None:
@@ -670,17 +701,20 @@ class CausalSeeder:
         if not self._db:
             return
         try:
-            await self._db.upsert("seeding_cycles", {
-                "id": cycle.cycle_id,
-                "domain": cycle.domain,
-                "year_range": cycle.year_range,
-                "events_discovered": cycle.events_discovered,
-                "events_stored": cycle.events_stored,
-                "cost_usd": cycle.cost_estimate_usd,
-                "errors": json.dumps(cycle.errors),
-                "started_at": cycle.started_at,
-                "completed_at": cycle.completed_at,
-            })
+            await self._db.upsert(
+                "seeding_cycles",
+                {
+                    "id": cycle.cycle_id,
+                    "domain": cycle.domain,
+                    "year_range": cycle.year_range,
+                    "events_discovered": cycle.events_discovered,
+                    "events_stored": cycle.events_stored,
+                    "cost_usd": cycle.cost_estimate_usd,
+                    "errors": json.dumps(cycle.errors),
+                    "started_at": cycle.started_at,
+                    "completed_at": cycle.completed_at,
+                },
+            )
         except Exception as e:
             logger.warning("seeding_cycle_persist_failed", error=str(e))
 
@@ -691,9 +725,7 @@ class CausalSeeder:
             "total_events_seeded": self._total_events_seeded,
             "daily_spend_usd": round(self._daily_spend, 4),
             "daily_budget_usd": self.DAILY_BUDGET_USD,
-            "budget_remaining_usd": round(
-                max(0.0, self.DAILY_BUDGET_USD - self._daily_spend), 4
-            ),
+            "budget_remaining_usd": round(max(0.0, self.DAILY_BUDGET_USD - self._daily_spend), 4),
             "budget_exhausted": self._daily_spend >= self.DAILY_BUDGET_USD,
         }
 

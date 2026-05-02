@@ -29,7 +29,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from conector_sabios import consultar_sabio
 
-
 SYSTEM_ORQUESTADOR = """Eres GPT-5.4 actuando como ORQUESTADOR FINAL del Consejo de Sabios.
 
 Tu rol es sintetizar las respuestas de múltiples modelos de IA de primer nivel (Claude, Gemini, Grok, DeepSeek, Perplexity) en un documento definitivo.
@@ -151,9 +150,9 @@ async def sintetizar(
                 f.write(f"<!-- Síntesis generada por {resultado['sabio']} (Orquestador) — {timestamp} -->\n")
                 f.write(f"<!-- Tiempo de generación: {resultado['tiempo_seg']}s -->\n")
                 if meta["informe_validacion_inyectado"]:
-                    f.write(f"<!-- Informe de validación: INYECTADO -->\n")
+                    f.write("<!-- Informe de validación: INYECTADO -->\n")
                 if meta["fallback_usado"]:
-                    f.write(f"<!-- NOTA: Se usó fallback (modelo original no disponible) -->\n")
+                    f.write("<!-- NOTA: Se usó fallback (modelo original no disponible) -->\n")
                 f.write(f"\n{sintesis}")
 
             meta["modelo_usado"] = resultado["modelo"]

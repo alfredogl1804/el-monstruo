@@ -21,21 +21,20 @@ import json
 import os
 import sys
 import uuid
-from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from analyze_history import analyze
-from config_loader import get_config, get_sabio_config
-from db_store import save_improvement, query_improvements
 from conector_sabios import consultar_sabio
+from config_loader import get_config
+from db_store import query_improvements, save_improvement
 
 
 async def propose_improvements(min_runs: int = 5) -> list:
     """
     Analiza historial y genera propuestas de mejora.
-    
+
     Returns:
         list de propuestas, cada una con:
         - improvement_id, tipo, descripcion, prioridad, diff, confianza
@@ -84,79 +83,89 @@ def _rule_based_proposals(analysis: dict) -> list:
     for sid, metrics in analysis.get("metricas_por_sabio", {}).items():
         sr = metrics.get("success_rate", 1)
         total = metrics.get("total_consultas", 0)
-        
+
         if sr < 0.6 and total >= 3:
             # Analizar tipo de error predominante
             errores = metrics.get("errores", {})
             if errores.get("timeout", 0) > errores.get("rate_limit", 0):
-                proposals.append({
-                    "tipo": "config",
-                    "descripcion": f"Aumentar timeout de {sid} (success rate: {sr:.0%}, errores predominantes: timeout)",
-                    "prioridad": "alta",
-                    "diff": {
-                        "file": "config/skill_config.yaml",
-                        "cambio": f"timeouts.{sid}: aumentar 50%",
-                    },
-                    "confianza": 0.85,
-                    "basado_en": f"{total} consultas, {sr:.0%} success rate",
-                })
+                proposals.append(
+                    {
+                        "tipo": "config",
+                        "descripcion": f"Aumentar timeout de {sid} (success rate: {sr:.0%}, errores predominantes: timeout)",
+                        "prioridad": "alta",
+                        "diff": {
+                            "file": "config/skill_config.yaml",
+                            "cambio": f"timeouts.{sid}: aumentar 50%",
+                        },
+                        "confianza": 0.85,
+                        "basado_en": f"{total} consultas, {sr:.0%} success rate",
+                    }
+                )
             elif errores.get("context_overflow", 0) > 0:
-                proposals.append({
-                    "tipo": "config",
-                    "descripcion": f"Reducir presupuesto de contexto para {sid} (context_overflow frecuente)",
-                    "prioridad": "alta",
-                    "diff": {
-                        "file": "config/skill_config.yaml",
-                        "cambio": f"contexto.presupuesto_por_sabio.{sid}: reducir 20%",
-                    },
-                    "confianza": 0.90,
-                    "basado_en": f"{errores.get('context_overflow', 0)} context overflows",
-                })
+                proposals.append(
+                    {
+                        "tipo": "config",
+                        "descripcion": f"Reducir presupuesto de contexto para {sid} (context_overflow frecuente)",
+                        "prioridad": "alta",
+                        "diff": {
+                            "file": "config/skill_config.yaml",
+                            "cambio": f"contexto.presupuesto_por_sabio.{sid}: reducir 20%",
+                        },
+                        "confianza": 0.90,
+                        "basado_en": f"{errores.get('context_overflow', 0)} context overflows",
+                    }
+                )
 
     # Regla 2: Latencia p95 > 5 min → proponer timeout más agresivo
     p95 = analysis.get("metricas_globales", {}).get("duracion_p95_ms", 0)
     if p95 > 300000:
-        proposals.append({
-            "tipo": "config",
-            "descripcion": f"Reducir timeout global (p95 actual: {p95/1000:.0f}s, objetivo: <300s)",
-            "prioridad": "media",
-            "diff": {
-                "file": "config/skill_config.yaml",
-                "cambio": "timeouts: reducir proporcionalmente",
-            },
-            "confianza": 0.70,
-            "basado_en": f"p95={p95/1000:.0f}s",
-        })
+        proposals.append(
+            {
+                "tipo": "config",
+                "descripcion": f"Reducir timeout global (p95 actual: {p95 / 1000:.0f}s, objetivo: <300s)",
+                "prioridad": "media",
+                "diff": {
+                    "file": "config/skill_config.yaml",
+                    "cambio": "timeouts: reducir proporcionalmente",
+                },
+                "confianza": 0.70,
+                "basado_en": f"p95={p95 / 1000:.0f}s",
+            }
+        )
 
     # Regla 3: Tendencia degradante → alerta y propuesta de investigación
     tendencias = analysis.get("tendencias", {})
     if tendencias.get("success_rate_tendencia") == "degradando":
-        proposals.append({
-            "tipo": "workflow",
-            "descripcion": "Investigar causa de degradación de success rate (tendencia negativa detectada)",
-            "prioridad": "alta",
-            "diff": {
-                "accion": "Ejecutar diagnóstico detallado por sabio",
-            },
-            "confianza": 0.95,
-            "basado_en": f"SR: {tendencias.get('success_rate_primera_mitad', 0):.0%} → {tendencias.get('success_rate_segunda_mitad', 0):.0%}",
-        })
+        proposals.append(
+            {
+                "tipo": "workflow",
+                "descripcion": "Investigar causa de degradación de success rate (tendencia negativa detectada)",
+                "prioridad": "alta",
+                "diff": {
+                    "accion": "Ejecutar diagnóstico detallado por sabio",
+                },
+                "confianza": 0.95,
+                "basado_en": f"SR: {tendencias.get('success_rate_primera_mitad', 0):.0%} → {tendencias.get('success_rate_segunda_mitad', 0):.0%}",
+            }
+        )
 
     # Regla 4: Error recurrente específico → propuesta específica
     for error_type, count in analysis.get("errores_frecuentes", {}).items():
         if count >= 5:
             if error_type == "rate_limit":
-                proposals.append({
-                    "tipo": "config",
-                    "descripcion": f"Reducir concurrencia (rate_limit ocurrió {count} veces)",
-                    "prioridad": "media",
-                    "diff": {
-                        "file": "config/skill_config.yaml",
-                        "cambio": "concurrencia: reducir valores",
-                    },
-                    "confianza": 0.80,
-                    "basado_en": f"{count} rate limits",
-                })
+                proposals.append(
+                    {
+                        "tipo": "config",
+                        "descripcion": f"Reducir concurrencia (rate_limit ocurrió {count} veces)",
+                        "prioridad": "media",
+                        "diff": {
+                            "file": "config/skill_config.yaml",
+                            "cambio": "concurrencia: reducir valores",
+                        },
+                        "confianza": 0.80,
+                        "basado_en": f"{count} rate limits",
+                    }
+                )
 
     return proposals
 
@@ -166,13 +175,17 @@ async def _llm_based_proposals(analysis: dict) -> list:
     proposals = []
 
     # Preparar resumen para el LLM
-    summary = json.dumps({
-        "metricas_globales": analysis.get("metricas_globales", {}),
-        "metricas_por_sabio": analysis.get("metricas_por_sabio", {}),
-        "tendencias": analysis.get("tendencias", {}),
-        "errores_frecuentes": analysis.get("errores_frecuentes", {}),
-        "alertas": [a["mensaje"] for a in analysis.get("alertas", [])],
-    }, ensure_ascii=False, indent=2)
+    summary = json.dumps(
+        {
+            "metricas_globales": analysis.get("metricas_globales", {}),
+            "metricas_por_sabio": analysis.get("metricas_por_sabio", {}),
+            "tendencias": analysis.get("tendencias", {}),
+            "errores_frecuentes": analysis.get("errores_frecuentes", {}),
+            "alertas": [a["mensaje"] for a in analysis.get("alertas", [])],
+        },
+        ensure_ascii=False,
+        indent=2,
+    )
 
     prompt = f"""Analiza estas métricas del sistema "consulta-sabios" y propón mejoras concretas.
 
@@ -207,6 +220,7 @@ Responde SOLO con JSON:
         )
         if resultado["exito"]:
             from json_parser import parse_json
+
             data = parse_json(resultado["respuesta"])
             if isinstance(data, list):
                 for item in data:
@@ -222,6 +236,7 @@ Responde SOLO con JSON:
 # ═══════════════════════════════════════════════════════════════
 # CLI
 # ═══════════════════════════════════════════════════════════════
+
 
 async def main():
     parser = argparse.ArgumentParser(description="Proponer mejoras automáticas")

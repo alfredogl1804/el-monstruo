@@ -27,7 +27,6 @@ Sprint 29 | 0.22.0-sprint29 | 25 abril 2026
 from __future__ import annotations
 
 import os
-import time
 from typing import Any, Optional
 
 import structlog

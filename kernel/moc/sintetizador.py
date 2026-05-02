@@ -186,12 +186,14 @@ class Sintetizador:
             # Preparar resumen de ejecuciones para el LLM
             exec_summary = []
             for ex in executions[:20]:  # Limitar para no exceder contexto
-                exec_summary.append({
-                    "job_id": ex.get("scheduled_job_id", "?"),
-                    "status": ex.get("status", "?"),
-                    "tokens": ex.get("tokens_used", 0),
-                    "result_preview": (ex.get("result_summary") or "")[:200],
-                })
+                exec_summary.append(
+                    {
+                        "job_id": ex.get("scheduled_job_id", "?"),
+                        "status": ex.get("status", "?"),
+                        "tokens": ex.get("tokens_used", 0),
+                        "result_preview": (ex.get("result_summary") or "")[:200],
+                    }
+                )
 
             prompt = (
                 "Eres el Motor de Orquestación Central (MOC) de El Monstruo. "

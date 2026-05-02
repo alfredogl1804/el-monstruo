@@ -28,6 +28,7 @@ Cost model:
 
 Sprint 40: The Embrión gains the ability to plan.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -103,7 +104,9 @@ class TaskStep:
             "result": self.result[:500] if self.result else None,
             "error": self.error,
             "retries": self.retries,
-            "duration_s": round(self.finished_at - self.started_at, 2) if self.finished_at and self.started_at else None,
+            "duration_s": round(self.finished_at - self.started_at, 2)
+            if self.finished_at and self.started_at
+            else None,
             "tokens_used": self.tokens_used,
             "cost_usd": round(self.cost_usd, 4),
         }
@@ -209,6 +212,7 @@ class TaskPlanner:
         self._verifier: Optional[Any] = None
         try:
             from kernel.execution_verifier import ExecutionVerifier
+
             self._verifier = ExecutionVerifier(db=db)
             logger.info("task_planner_verifier_initialized")
         except Exception as _v_err:
@@ -233,6 +237,7 @@ class TaskPlanner:
         # Principio Kiro: "Spec first, code second"
         try:
             from kernel.spec_driven import get_spec_planner
+
             spec_planner = get_spec_planner()
             if spec_planner.requires_spec(objective):
                 spec = spec_planner.create_spec(
@@ -311,6 +316,7 @@ No incluyas texto fuera del JSON. Solo el JSON."""
             # Sprint 41 FIX v3: usar Anthropic Claude con system prompt JSON-only
             # (OpenAI quota excedida en Railway — Claude-opus-4-7 es el modelo activo)
             import os
+
             import anthropic
 
             system_json = """Eres el planificador del Embrion IA. RESPONDE UNICAMENTE con JSON valido.
@@ -318,9 +324,7 @@ No incluyas texto fuera del JSON. No uses markdown. Solo el objeto JSON puro.
 Formato obligatorio:
 {"steps":[{"index":0,"description":"...","tool_hint":"...","depends_on":[]}],"rationale":"..."}"""
 
-            anthropic_client = anthropic.AsyncAnthropic(
-                api_key=os.environ.get("ANTHROPIC_API_KEY", "")
-            )
+            anthropic_client = anthropic.AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
             msg = await asyncio.wait_for(
                 anthropic_client.messages.create(
                     model="claude-opus-4-7",
@@ -396,7 +400,8 @@ Formato obligatorio:
 
         # Try to extract JSON block
         import re
-        json_match = re.search(r'\{.*\}', response, re.DOTALL)
+
+        json_match = re.search(r"\{.*\}", response, re.DOTALL)
         if json_match:
             try:
                 data = json.loads(json_match.group())
@@ -584,7 +589,10 @@ Formato obligatorio:
                     },
                     "prompt": {"type": "string", "description": "La tarea a delegar a Manus en lenguaje natural"},
                     "account": {"type": "string", "description": "Cuenta Manus a usar: google (default) o apple"},
-                    "timeout": {"type": "number", "description": "Timeout en segundos para create_and_wait (default: 300)"},
+                    "timeout": {
+                        "type": "number",
+                        "description": "Timeout en segundos para create_and_wait (default: 300)",
+                    },
                 },
                 "required": ["action", "prompt"],
             },
@@ -631,7 +639,10 @@ Formato obligatorio:
                     "context": {"type": "string", "description": "Contexto adicional para los Sabios (opcional)"},
                     "sabios": {
                         "type": "array",
-                        "items": {"type": "string", "enum": ["gpt54", "claude", "gemini", "grok", "deepseek", "perplexity"]},
+                        "items": {
+                            "type": "string",
+                            "enum": ["gpt54", "claude", "gemini", "grok", "deepseek", "perplexity"],
+                        },
                         "description": "Subset de Sabios a consultar (default: todos los 6)",
                     },
                 },
@@ -649,7 +660,10 @@ Formato obligatorio:
                         "description": "Acción: scaffold, build, deploy",
                         "enum": ["scaffold", "build", "deploy"],
                     },
-                    "project_name": {"type": "string", "description": "Nombre del proyecto (slug, e.g. mi-landing-page)"},
+                    "project_name": {
+                        "type": "string",
+                        "description": "Nombre del proyecto (slug, e.g. mi-landing-page)",
+                    },
                 },
                 "required": ["action"],
             },
@@ -665,7 +679,10 @@ Formato obligatorio:
                         "description": "Acción: write_file, read_file, edit_file, list_files, delete_file, mkdir",
                         "enum": ["write_file", "read_file", "edit_file", "list_files", "delete_file", "mkdir"],
                     },
-                    "path": {"type": "string", "description": "Ruta del archivo o directorio (absoluta, e.g. /home/user/project/index.html)"},
+                    "path": {
+                        "type": "string",
+                        "description": "Ruta del archivo o directorio (absoluta, e.g. /home/user/project/index.html)",
+                    },
                     "content": {"type": "string", "description": "Contenido a escribir (para write_file)"},
                     "find": {"type": "string", "description": "Texto a buscar (para edit_file)"},
                     "replace": {"type": "string", "description": "Texto de reemplazo (para edit_file)"},
@@ -683,6 +700,7 @@ Formato obligatorio:
         try:
             if tool_name == "web_search":
                 from tools.web_search import web_search
+
                 result = await web_search(
                     query=args.get("query", ""),
                     context=args.get("context", ""),
@@ -691,6 +709,7 @@ Formato obligatorio:
 
             elif tool_name == "browse_web":
                 from tools.browser import browse_web
+
                 result_str = await browse_web(
                     url=args.get("url", ""),
                     action=args.get("action", "markdown"),
@@ -701,7 +720,8 @@ Formato obligatorio:
             elif tool_name == "code_exec":
                 # Sprint 48: Use persistent sandbox via SandboxManager
                 from tools.sandbox_manager import execute_in_sandbox
-                plan_id = getattr(self, '_current_plan_id', 'default')
+
+                plan_id = getattr(self, "_current_plan_id", "default")
                 result = await execute_in_sandbox(
                     plan_id=plan_id,
                     code=args.get("code", ""),
@@ -713,6 +733,7 @@ Formato obligatorio:
 
             elif tool_name == "github":
                 from tools.github import execute_github
+
                 result_str = await execute_github(
                     action=args.get("action", ""),
                     params=args.get("params", {}),
@@ -722,7 +743,9 @@ Formato obligatorio:
             elif tool_name == "manus_bridge":
                 # Sprint 44: Delegate task to Manus external agent
                 import asyncio as _asyncio
+
                 from tools.manus_bridge import handle_manus_bridge
+
                 loop = _asyncio.get_event_loop()
                 manus_params = {
                     "action": args.get("action", "create_and_wait"),
@@ -730,7 +753,9 @@ Formato obligatorio:
                     "account": args.get("account", "google"),
                     "timeout": args.get("timeout", 300),
                 }
-                logger.info("task_planner_manus_bridge", action=manus_params["action"], prompt=manus_params["prompt"][:100])
+                logger.info(
+                    "task_planner_manus_bridge", action=manus_params["action"], prompt=manus_params["prompt"][:100]
+                )
                 result = await loop.run_in_executor(None, handle_manus_bridge, manus_params)
                 return json.dumps(result, ensure_ascii=False)[:3000]
 
@@ -740,6 +765,7 @@ Formato obligatorio:
                 logger.info("task_planner_send_message", message=msg[:200])
                 try:
                     from kernel.runner.telegram_notifier import TelegramNotifier
+
                     _notifier = TelegramNotifier()
                     if _notifier.enabled:
                         await _notifier.send_message(user_id="embrion", text=msg)
@@ -754,6 +780,7 @@ Formato obligatorio:
             elif tool_name == "query_knowledge":
                 # Sprint 44: Consultar el knowledge graph del Embrión
                 from memory.lightrag_bridge import query_knowledge
+
                 result = await query_knowledge(
                     query=args.get("query", ""),
                     mode=args.get("mode", "hybrid"),
@@ -769,6 +796,7 @@ Formato obligatorio:
             elif tool_name == "ingest_knowledge":
                 # Sprint 44: Ingestar documento al knowledge graph del Embrión
                 from memory.lightrag_bridge import ingest_document
+
                 result = await ingest_document(
                     content=args.get("content", ""),
                     metadata=args.get("metadata"),
@@ -782,6 +810,7 @@ Formato obligatorio:
             elif tool_name == "consult_sabios":
                 # Sprint 44: Consultar los 6 Sabios en paralelo
                 from tools.consult_sabios import consult_sabios
+
                 result = await consult_sabios(
                     prompt=args.get("prompt", ""),
                     context=args.get("context", ""),
@@ -797,12 +826,17 @@ Formato obligatorio:
                 )
                 # Retornar solo la síntesis para no saturar el contexto de Claude
                 synthesis = result.get("synthesis", "")
-                return synthesis[:6000] if synthesis else json.dumps({"error": "No sabios responded", "errors": result.get("errors", [])})
+                return (
+                    synthesis[:6000]
+                    if synthesis
+                    else json.dumps({"error": "No sabios responded", "errors": result.get("errors", [])})
+                )
 
             elif tool_name == "web_dev":
                 # Sprint 48: Web dev using persistent sandbox
                 from tools.sandbox_manager import web_dev_in_sandbox
-                plan_id = getattr(self, '_current_plan_id', 'default')
+
+                plan_id = getattr(self, "_current_plan_id", "default")
                 result = await web_dev_in_sandbox(
                     plan_id=plan_id,
                     action=args.get("action", "scaffold"),
@@ -820,7 +854,8 @@ Formato obligatorio:
             elif tool_name == "file_ops":
                 # Sprint 48: File ops using persistent sandbox
                 from tools.sandbox_manager import file_op_in_sandbox
-                plan_id = getattr(self, '_current_plan_id', 'default')
+
+                plan_id = getattr(self, "_current_plan_id", "default")
                 result = await file_op_in_sandbox(
                     plan_id=plan_id,
                     action=args.get("action", "read_file"),
@@ -841,11 +876,18 @@ Formato obligatorio:
             elif tool_name in ("save_task_state", "load_task_state", "list_active_tasks", "complete_task"):
                 # Sprint 50: StateWriterTool — persistencia de estado de tareas largas
                 from tools.state_writer import (
-                    save_task_state as _save_state,
-                    load_task_state as _load_state,
-                    list_active_tasks as _list_tasks,
                     complete_task as _complete_task,
                 )
+                from tools.state_writer import (
+                    list_active_tasks as _list_tasks,
+                )
+                from tools.state_writer import (
+                    load_task_state as _load_state,
+                )
+                from tools.state_writer import (
+                    save_task_state as _save_state,
+                )
+
                 if tool_name == "save_task_state":
                     result = _save_state(
                         task_id=args.get("task_id", "unknown"),
@@ -916,9 +958,7 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
             try:
                 import anthropic
 
-                client = anthropic.AsyncAnthropic(
-                    api_key=os.environ.get("ANTHROPIC_API_KEY", "")
-                )
+                client = anthropic.AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
 
                 messages = [{"role": "user", "content": user_message}]
                 total_tokens = 0
@@ -960,7 +1000,10 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                             if block.type == "tool_use":
                                 # Sprint 46.3: Stuck detection
                                 import hashlib
-                                args_hash = hashlib.md5(json.dumps(block.input, sort_keys=True).encode()).hexdigest()[:8]
+
+                                args_hash = hashlib.md5(json.dumps(block.input, sort_keys=True).encode()).hexdigest()[
+                                    :8
+                                ]
                                 _tool_call_history.append((block.name, args_hash))
                                 _step_tool_calls += 1
 
@@ -996,15 +1039,15 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                                     loop=loop_i,
                                     call_num=_step_tool_calls,
                                 )
-                                tool_result = await self._execute_tool_direct(
-                                    block.name, block.input
-                                )
+                                tool_result = await self._execute_tool_direct(block.name, block.input)
                                 plan.total_tool_calls += 1  # Sprint 43: track real executions
-                                tool_results.append({
-                                    "type": "tool_result",
-                                    "tool_use_id": block.id,
-                                    "content": tool_result,
-                                })
+                                tool_results.append(
+                                    {
+                                        "type": "tool_result",
+                                        "tool_use_id": block.id,
+                                        "content": tool_result,
+                                    }
+                                )
 
                         # If stuck was detected inside the for loop, break outer loop too
                         if final_response and ("[STUCK]" in final_response or "[CAP]" in final_response):
@@ -1064,6 +1107,7 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                 if self._verifier:
                     try:
                         from kernel.execution_verifier import Verdict
+
                         verification = await self._verifier.verify_step(
                             plan_id=plan.plan_id,
                             step_id=step.step_id,
@@ -1218,6 +1262,7 @@ RESPONDE con JSON:
 
         try:
             from contracts.kernel_interface import RunInput
+
             run_input = RunInput(
                 message=revision_prompt,
                 user_id=user_id,
@@ -1356,22 +1401,63 @@ RESPONDE con JSON:
         that should be handled by the Task Planner instead of direct execution.
         """
         import re
+
         # Complexity indicators
         complexity_keywords = [
-            "construye", "implementa", "crea", "desarrolla", "migra",
-            "refactoriza", "agrega", "integra", "conecta", "diseña",
-            "sprint", "módulo", "sistema", "pipeline", "endpoint",
-            "y luego", "después", "primero", "paso a paso", "en orden",
-            "múltiples", "varios", "todo el", "completo", "completa",
+            "construye",
+            "implementa",
+            "crea",
+            "desarrolla",
+            "migra",
+            "refactoriza",
+            "agrega",
+            "integra",
+            "conecta",
+            "diseña",
+            "sprint",
+            "módulo",
+            "sistema",
+            "pipeline",
+            "endpoint",
+            "y luego",
+            "después",
+            "primero",
+            "paso a paso",
+            "en orden",
+            "múltiples",
+            "varios",
+            "todo el",
+            "completo",
+            "completa",
             # Multi-step explicit markers
-            "luego", "finalmente", "después de", "a continuación",
+            "luego",
+            "finalmente",
+            "después de",
+            "a continuación",
             # Technical complexity
-            "verifica", "despliega", "persiste", "redeploy", "pgvector",
-            "supabase", "railway", "docker", "kubernetes",
-            "analiza", "detecta", "agrupa", "envía", "reporta",
+            "verifica",
+            "despliega",
+            "persiste",
+            "redeploy",
+            "pgvector",
+            "supabase",
+            "railway",
+            "docker",
+            "kubernetes",
+            "analiza",
+            "detecta",
+            "agrupa",
+            "envía",
+            "reporta",
             # Sprint 47.2: Web dev triggers
-            "sitio web", "landing page", "página web", "website",
-            "app web", "aplicación web", "portfolio", "dashboard",
+            "sitio web",
+            "landing page",
+            "página web",
+            "website",
+            "app web",
+            "aplicación web",
+            "portfolio",
+            "dashboard",
         ]
         text_lower = text.lower()
         keyword_count = sum(1 for kw in complexity_keywords if kw in text_lower)
@@ -1384,7 +1470,7 @@ RESPONDE con JSON:
         is_multi_sentence = sentence_count >= 2
 
         # Explicit multi-step patterns: "paso 1", "step 2", "1.", "2."
-        has_step_pattern = bool(re.search(r'paso\s+\d|step\s+\d|\b\d+[:\-\.]\s', text_lower))
+        has_step_pattern = bool(re.search(r"paso\s+\d|step\s+\d|\b\d+[:\-\.]\s", text_lower))
 
         return keyword_count >= 2 or has_step_pattern or (is_long and is_multi_sentence)
 
@@ -1411,11 +1497,15 @@ RESPONDE con JSON:
         and the task is complex enough to warrant planning.
         """
         import json as _json
+
         plan_start = time.time()
 
         # Sprint 48: Acquire persistent sandbox for this plan execution
-        from tools.sandbox_manager import acquire as _sandbox_acquire, release as _sandbox_release
         from uuid import uuid4 as _uuid4
+
+        from tools.sandbox_manager import acquire as _sandbox_acquire
+        from tools.sandbox_manager import release as _sandbox_release
+
         _plan_execution_id = str(_uuid4())
         self._current_plan_id = _plan_execution_id  # Used by _execute_tool_direct
 
@@ -1429,13 +1519,15 @@ RESPONDE con JSON:
             return
 
         # ── Step 1: Planning ──────────────────────────────────────────
-        yield _json.dumps({
-            "type": "step",
-            "id": "plan",
-            "status": "in_progress",
-            "label": "Planificando tarea...",
-            "icon": "build",
-        })
+        yield _json.dumps(
+            {
+                "type": "step",
+                "id": "plan",
+                "status": "in_progress",
+                "label": "Planificando tarea...",
+                "icon": "build",
+            }
+        )
 
         try:
             plan = await self.plan(
@@ -1445,24 +1537,30 @@ RESPONDE con JSON:
             )
         except Exception as e:
             logger.error("stream_plan_failed", error=str(e))
-            yield _json.dumps({
+            yield _json.dumps(
+                {
+                    "type": "step",
+                    "id": "plan",
+                    "status": "completed",
+                    "label": "Ejecutando directamente...",
+                    "icon": "build",
+                }
+            )
+            # Fallback: yield the error as text and return
+            yield _json.dumps(
+                {"type": "chunk", "text": f"No pude planificar la tarea: {str(e)}. Intentando respuesta directa."}
+            )
+            return
+
+        yield _json.dumps(
+            {
                 "type": "step",
                 "id": "plan",
                 "status": "completed",
-                "label": "Ejecutando directamente...",
+                "label": f"Plan creado ({len(plan.steps)} pasos)",
                 "icon": "build",
-            })
-            # Fallback: yield the error as text and return
-            yield _json.dumps({"type": "chunk", "text": f"No pude planificar la tarea: {str(e)}. Intentando respuesta directa."})
-            return
-
-        yield _json.dumps({
-            "type": "step",
-            "id": "plan",
-            "status": "completed",
-            "label": f"Plan creado ({len(plan.steps)} pasos)",
-            "icon": "build",
-        })
+            }
+        )
 
         # ── Step 2: Execute each step with streaming events ───────────
         plan.status = PlanStatus.RUNNING
@@ -1483,29 +1581,33 @@ RESPONDE con JSON:
 
             # Emit step start
             step_icon = self._icon_for_tool(step.tool_hint)
-            yield _json.dumps({
-                "type": "step",
-                "id": f"step_{step.index}",
-                "status": "in_progress",
-                "label": f"Paso {step.index + 1}: {step.description[:60]}...",
-                "icon": step_icon,
-            })
+            yield _json.dumps(
+                {
+                    "type": "step",
+                    "id": f"step_{step.index}",
+                    "status": "in_progress",
+                    "label": f"Paso {step.index + 1}: {step.description[:60]}...",
+                    "icon": step_icon,
+                }
+            )
 
             # Execute step with ReAct loop + streaming tool events
             success = await self._execute_step_streaming(step, plan, user_id, _json)
             # Yield tool events that were collected during execution
-            for event in step._streaming_events if hasattr(step, '_streaming_events') else []:
+            for event in step._streaming_events if hasattr(step, "_streaming_events") else []:
                 yield event
 
             # Emit step completion
             status_label = "completado" if success else "fallido"
-            yield _json.dumps({
-                "type": "step",
-                "id": f"step_{step.index}",
-                "status": "completed",
-                "label": f"Paso {step.index + 1}: {status_label}",
-                "icon": step_icon,
-            })
+            yield _json.dumps(
+                {
+                    "type": "step",
+                    "id": f"step_{step.index}",
+                    "status": "completed",
+                    "label": f"Paso {step.index + 1}: {status_label}",
+                    "icon": step_icon,
+                }
+            )
 
             if not success and step.retries >= MAX_RETRIES_PER_STEP:
                 # Try revision
@@ -1517,13 +1619,15 @@ RESPONDE con JSON:
             await self._persist_plan(plan)
 
         # ── Step 3: Generate final response ───────────────────────────
-        yield _json.dumps({
-            "type": "step",
-            "id": "synthesize",
-            "status": "in_progress",
-            "label": "Sintetizando resultado...",
-            "icon": "sparkles",
-        })
+        yield _json.dumps(
+            {
+                "type": "step",
+                "id": "synthesize",
+                "status": "in_progress",
+                "label": "Sintetizando resultado...",
+                "icon": "sparkles",
+            }
+        )
 
         plan.finished_at = datetime.now(timezone.utc).isoformat()
         if plan.status != PlanStatus.FAILED:
@@ -1534,20 +1638,22 @@ RESPONDE con JSON:
         plan.final_summary = summary
         await self._persist_plan(plan)
 
-        yield _json.dumps({
-            "type": "step",
-            "id": "synthesize",
-            "status": "completed",
-            "label": "Resultado listo",
-            "icon": "sparkles",
-        })
+        yield _json.dumps(
+            {
+                "type": "step",
+                "id": "synthesize",
+                "status": "completed",
+                "label": "Resultado listo",
+                "icon": "sparkles",
+            }
+        )
 
         # Stream the final response as chunks (for the text bubble)
         if summary:
             # Emit in small chunks for smooth streaming appearance
             chunk_size = 50
             for i in range(0, len(summary), chunk_size):
-                yield _json.dumps({"type": "chunk", "text": summary[i:i + chunk_size]})
+                yield _json.dumps({"type": "chunk", "text": summary[i : i + chunk_size]})
                 await asyncio.sleep(0.01)  # Small delay for smooth streaming
 
         # Sprint 48: Release persistent sandbox
@@ -1559,16 +1665,18 @@ RESPONDE con JSON:
 
         # Done event
         elapsed_ms = (time.time() - plan_start) * 1000
-        yield _json.dumps({
-            "type": "done",
-            "latency_ms": round(elapsed_ms),
-            "model_used": EXECUTOR_MODEL,
-            "plan_id": plan.plan_id,
-            "steps_completed": len(plan.done_steps),
-            "steps_total": len(plan.steps),
-            "cost_usd": round(plan.total_cost_usd, 4),
-            "tool_calls": plan.total_tool_calls,
-        })
+        yield _json.dumps(
+            {
+                "type": "done",
+                "latency_ms": round(elapsed_ms),
+                "model_used": EXECUTOR_MODEL,
+                "plan_id": plan.plan_id,
+                "steps_completed": len(plan.done_steps),
+                "steps_total": len(plan.steps),
+                "cost_usd": round(plan.total_cost_usd, 4),
+                "tool_calls": plan.total_tool_calls,
+            }
+        )
 
     async def _execute_step_streaming(
         self,
@@ -1616,9 +1724,7 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
             try:
                 import anthropic
 
-                client = anthropic.AsyncAnthropic(
-                    api_key=os.environ.get("ANTHROPIC_API_KEY", "")
-                )
+                client = anthropic.AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
 
                 messages = [{"role": "user", "content": user_message}]
                 total_tokens = 0
@@ -1656,13 +1762,17 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                         for block in resp.content:
                             if block.type == "tool_use":
                                 # Emit tool_start event
-                                step._streaming_events.append(_json.dumps({
-                                    "type": "tool_start",
-                                    "data": {
-                                        "name": block.name,
-                                        "args": block.input,
-                                    },
-                                }))
+                                step._streaming_events.append(
+                                    _json.dumps(
+                                        {
+                                            "type": "tool_start",
+                                            "data": {
+                                                "name": block.name,
+                                                "args": block.input,
+                                            },
+                                        }
+                                    )
+                                )
 
                                 logger.info(
                                     "stream_planner_tool_call",
@@ -1674,29 +1784,36 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
 
                                 # SP5: Track tool calls for verification
                                 import hashlib as _hashlib
-                                _args_hash = _hashlib.md5(json.dumps(block.input, sort_keys=True).encode()).hexdigest()[:8]
+
+                                _args_hash = _hashlib.md5(json.dumps(block.input, sort_keys=True).encode()).hexdigest()[
+                                    :8
+                                ]
                                 _tool_call_history.append((block.name, _args_hash))
                                 _step_tool_calls += 1
 
-                                tool_result = await self._execute_tool_direct(
-                                    block.name, block.input
-                                )
+                                tool_result = await self._execute_tool_direct(block.name, block.input)
                                 plan.total_tool_calls += 1
 
                                 # Emit tool_end event
-                                step._streaming_events.append(_json.dumps({
-                                    "type": "tool_end",
-                                    "data": {
-                                        "name": block.name,
-                                        "result": tool_result[:500],
-                                    },
-                                }))
+                                step._streaming_events.append(
+                                    _json.dumps(
+                                        {
+                                            "type": "tool_end",
+                                            "data": {
+                                                "name": block.name,
+                                                "result": tool_result[:500],
+                                            },
+                                        }
+                                    )
+                                )
 
-                                tool_results.append({
-                                    "type": "tool_result",
-                                    "tool_use_id": block.id,
-                                    "content": tool_result,
-                                })
+                                tool_results.append(
+                                    {
+                                        "type": "tool_result",
+                                        "tool_use_id": block.id,
+                                        "content": tool_result,
+                                    }
+                                )
 
                         messages.append({"role": "user", "content": tool_results})
 
@@ -1739,6 +1856,7 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                 if self._verifier:
                     try:
                         from kernel.execution_verifier import Verdict
+
                         verification = await self._verifier.verify_step(
                             plan_id=plan.plan_id,
                             step_id=step.step_id,

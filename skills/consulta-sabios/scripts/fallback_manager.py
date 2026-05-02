@@ -24,6 +24,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 @dataclass
 class FallbackResult:
     """Resultado de un intento de fallback."""
+
     sabio_original: str
     sabio_reemplazo: str
     rol: str
@@ -114,18 +115,18 @@ def get_fallback(
 ) -> FallbackResult:
     """
     Determina el mejor reemplazo para un sabio que falló.
-    
+
     Args:
         failed_sabio: ID del sabio que falló
         rol: Rol que necesita cubrirse (None = usar cadena por defecto)
         already_failed: Lista de sabios que ya fallaron (excluir)
         already_responding: Lista de sabios que ya respondieron (excluir)
-    
+
     Returns:
         FallbackResult con el reemplazo seleccionado
     """
     excluded = set(already_failed or []) | set(already_responding or []) | {failed_sabio}
-    
+
     if rol:
         # Buscar por capacidad en el rol específico
         candidates = []
@@ -133,9 +134,9 @@ def get_fallback(
             if sabio_id not in excluded:
                 score = caps.get(rol, 0)
                 candidates.append((sabio_id, score))
-        
+
         candidates.sort(key=lambda x: x[1], reverse=True)
-        
+
         if candidates:
             best = candidates[0]
             return FallbackResult(
@@ -155,7 +156,7 @@ def get_fallback(
                     rol="general",
                     razon=f"Siguiente en cadena de fallback de {failed_sabio}",
                 )
-    
+
     return FallbackResult(
         sabio_original=failed_sabio,
         sabio_reemplazo="",
@@ -168,7 +169,7 @@ def get_fallback(
 def get_fallback_chain(sabio_id: str, rol: str = None) -> list:
     """
     Retorna la cadena completa de fallback para un sabio.
-    
+
     Returns:
         Lista ordenada de sabios de reemplazo
     """
@@ -190,36 +191,38 @@ def evaluate_coverage(
 ) -> dict:
     """
     Evalúa si los sabios que respondieron cubren los roles necesarios.
-    
+
     Returns:
         dict con cobertura por rol y gaps
     """
     coverage = {}
     gaps = []
-    
+
     for rol in required_roles:
         best_score = 0
         best_sabio = None
-        
+
         for sabio_id in responding_sabios:
             score = SABIO_CAPABILITIES.get(sabio_id, {}).get(rol, 0)
             if score > best_score:
                 best_score = score
                 best_sabio = sabio_id
-        
+
         coverage[rol] = {
             "cubierto": best_score >= 0.6,
             "score": best_score,
             "sabio": best_sabio,
         }
-        
+
         if best_score < 0.6:
             gaps.append(rol)
-    
+
     return {
         "cobertura": coverage,
         "gaps": gaps,
-        "cobertura_pct": sum(1 for v in coverage.values() if v["cubierto"]) / len(required_roles) if required_roles else 1.0,
+        "cobertura_pct": sum(1 for v in coverage.values() if v["cubierto"]) / len(required_roles)
+        if required_roles
+        else 1.0,
     }
 
 
@@ -229,31 +232,30 @@ def evaluate_coverage(
 
 if __name__ == "__main__":
     print("🔄 Fallback Manager — consulta-sabios\n")
-    
+
     # Test 1: Fallback simple
     result = get_fallback("claude", rol="legal")
-    print(f"Si Claude falla (rol: legal):")
+    print("Si Claude falla (rol: legal):")
     print(f"  → Reemplazo: {result.sabio_reemplazo} ({result.razon})")
-    
+
     # Test 2: Fallback con exclusiones
     result = get_fallback("gpt54", rol="orquestacion", already_failed=["claude"])
-    print(f"\nSi GPT-5.4 falla (rol: orquestación, Claude ya falló):")
+    print("\nSi GPT-5.4 falla (rol: orquestación, Claude ya falló):")
     print(f"  → Reemplazo: {result.sabio_reemplazo} ({result.razon})")
-    
+
     # Test 3: Cadena completa
     chain = get_fallback_chain("deepseek", rol="codigo")
     print(f"\nCadena de fallback para DeepSeek (código): {chain}")
-    
+
     # Test 4: Evaluación de cobertura
     cov = evaluate_coverage(
-        responding_sabios=["gpt54", "gemini", "grok"],
-        required_roles=["orquestacion", "codigo", "legal", "creatividad"]
+        responding_sabios=["gpt54", "gemini", "grok"], required_roles=["orquestacion", "codigo", "legal", "creatividad"]
     )
-    print(f"\nCobertura con [gpt54, gemini, grok]:")
+    print("\nCobertura con [gpt54, gemini, grok]:")
     for rol, info in cov["cobertura"].items():
         status = "✅" if info["cubierto"] else "❌"
         print(f"  {status} {rol}: {info['sabio']} ({info['score']:.2f})")
     print(f"  Gaps: {cov['gaps']}")
     print(f"  Cobertura: {cov['cobertura_pct']:.0%}")
-    
+
     print("\n✅ Fallback Manager operativo")

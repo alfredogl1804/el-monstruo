@@ -108,12 +108,12 @@ class TestConversationMemory:
     def test_append_event(self, conversation_memory):
         """Should append a memory event."""
         event = make_memory_event(content="Hola Monstruo")
-        eid = asyncio.get_event_loop().run_until_complete(conversation_memory.append(event))
+        eid = asyncio.new_event_loop().run_until_complete(conversation_memory.append(event))
         assert eid == event.event_id
 
     def test_append_indexes_by_user(self, conversation_memory):
         """Should index events by user."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
         e1 = make_memory_event(user_id="alfredo", content="msg1")
         e2 = make_memory_event(user_id="alfredo", content="msg2")
         e3 = make_memory_event(user_id="otro", content="msg3")
@@ -131,7 +131,7 @@ class TestConversationMemory:
         """Should index events by memory type."""
         from contracts.memory_interface import MemoryType
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         e1 = make_memory_event(memory_type=MemoryType.EPISODIC)
         e2 = make_memory_event(memory_type=MemoryType.SEMANTIC)
@@ -148,14 +148,14 @@ class TestConversationMemory:
 
     def test_append_batch(self, conversation_memory):
         """Should append multiple events."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
         events = [make_memory_event(content=f"msg{i}") for i in range(5)]
         ids = loop.run_until_complete(conversation_memory.append_batch(events))
         assert len(ids) == 5
 
     def test_keyword_search(self, conversation_memory):
         """Should find events by keyword."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         loop.run_until_complete(conversation_memory.append(make_memory_event(content="El Monstruo es soberano")))
         loop.run_until_complete(conversation_memory.append(make_memory_event(content="La memoria es persistente")))
@@ -167,7 +167,7 @@ class TestConversationMemory:
 
     def test_keyword_search_with_user_filter(self, conversation_memory):
         """Should filter search by user."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         loop.run_until_complete(
             conversation_memory.append(make_memory_event(user_id="alfredo", content="soberano alfredo"))
@@ -179,7 +179,7 @@ class TestConversationMemory:
 
     def test_episode_lifecycle(self, conversation_memory):
         """Should start and end episodes."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         # Start episode
         episode = loop.run_until_complete(conversation_memory.start_episode("alfredo", "telegram"))
@@ -201,7 +201,7 @@ class TestConversationMemory:
 
     def test_recent_episodes(self, conversation_memory):
         """Should return recent episodes for a user."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         for i in range(3):
             loop.run_until_complete(conversation_memory.start_episode("alfredo", f"channel_{i}"))
@@ -211,7 +211,7 @@ class TestConversationMemory:
 
     def test_replay_by_run(self, conversation_memory):
         """Should replay events for a specific run."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
         run_id = uuid4()
 
         events = [make_memory_event(run_id=run_id, content=f"step {i}") for i in range(3)]
@@ -224,7 +224,7 @@ class TestConversationMemory:
         """Should build conversation context for LLM calls."""
         from contracts.memory_interface import MemoryType
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         # Add user message
         loop.run_until_complete(
@@ -258,7 +258,7 @@ class TestConversationMemory:
 
     def test_user_summary(self, conversation_memory):
         """Should return user summary."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         loop.run_until_complete(conversation_memory.append(make_memory_event(user_id="alfredo", content="msg1")))
         loop.run_until_complete(conversation_memory.append(make_memory_event(user_id="alfredo", content="msg2")))
@@ -269,7 +269,7 @@ class TestConversationMemory:
 
     def test_stats(self, conversation_memory):
         """Should return memory statistics."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         loop.run_until_complete(conversation_memory.append(make_memory_event(content="test")))
 
@@ -290,7 +290,7 @@ class TestCheckpointStore:
         """Should save and load a checkpoint."""
         from contracts.checkpoint_model import CheckpointData, CheckpointType
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         cp = CheckpointData(
             checkpoint_type=CheckpointType.AUTO,
@@ -312,7 +312,7 @@ class TestCheckpointStore:
         """Should load the most recent checkpoint."""
         from contracts.checkpoint_model import CheckpointData
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         run_id = uuid4()
         for i in range(3):
@@ -327,7 +327,7 @@ class TestCheckpointStore:
         """Should load the most recent checkpoint globally."""
         from contracts.checkpoint_model import CheckpointData
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         cp1 = CheckpointData(run_id=uuid4(), step=1, reason="first")
         cp2 = CheckpointData(run_id=uuid4(), step=2, reason="second")
@@ -342,7 +342,7 @@ class TestCheckpointStore:
         """Should list checkpoints with filters."""
         from contracts.checkpoint_model import CheckpointData, CheckpointType
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         run_id = uuid4()
         loop.run_until_complete(
@@ -367,7 +367,7 @@ class TestCheckpointStore:
         """Should delete a checkpoint."""
         from contracts.checkpoint_model import CheckpointData
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         cp = CheckpointData(reason="to delete")
         loop.run_until_complete(checkpoint_store.save(cp))
@@ -382,7 +382,7 @@ class TestCheckpointStore:
         """Should clean up expired checkpoints."""
         from contracts.checkpoint_model import CheckpointData
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         # Create an expired checkpoint (TTL = 0 hours)
         expired_cp = CheckpointData(
@@ -407,14 +407,14 @@ class TestCheckpointStore:
         """Should save and retrieve system state."""
         from contracts.checkpoint_model import SystemHealth, SystemState
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         state = SystemState(
             health=SystemHealth.HEALTHY,
             active_runs=3,
             total_runs_today=42,
             total_cost_today_usd=1.23,
-            models_available=["gpt-5.4", "claude-sonnet"],
+            models_available=["gpt-5.5", "claude-sonnet"],
         )
 
         loop.run_until_complete(checkpoint_store.save_system_state(state))
@@ -428,7 +428,7 @@ class TestCheckpointStore:
         """Should return just the health status."""
         from contracts.checkpoint_model import SystemHealth, SystemState
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         state = SystemState(health=SystemHealth.DEGRADED)
         loop.run_until_complete(checkpoint_store.save_system_state(state))
@@ -440,7 +440,7 @@ class TestCheckpointStore:
         """Should return checkpoint store stats."""
         from contracts.checkpoint_model import CheckpointData
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         loop.run_until_complete(checkpoint_store.save(CheckpointData(reason="test")))
         stats = loop.run_until_complete(checkpoint_store.get_stats())
@@ -459,7 +459,7 @@ class TestKnowledgeGraph:
 
     def test_create_entity(self, knowledge_graph):
         """Should create an entity."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
         entity = make_entity(name="Alfredo", attributes={"role": "CEO"})
 
         eid = loop.run_until_complete(knowledge_graph.upsert_entity(entity))
@@ -467,7 +467,7 @@ class TestKnowledgeGraph:
 
     def test_upsert_merges_attributes(self, knowledge_graph):
         """Should merge attributes on upsert."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         e1 = make_entity(name="Alfredo", attributes={"role": "CEO"})
         loop.run_until_complete(knowledge_graph.upsert_entity(e1))
@@ -485,7 +485,7 @@ class TestKnowledgeGraph:
 
     def test_find_entities_by_name(self, knowledge_graph):
         """Should find entities by name."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         loop.run_until_complete(knowledge_graph.upsert_entity(make_entity(name="Alfredo Gongora")))
         loop.run_until_complete(knowledge_graph.upsert_entity(make_entity(name="Hive Business Center")))
@@ -498,7 +498,7 @@ class TestKnowledgeGraph:
         """Should filter entities by type."""
         from contracts.memory_interface import EntityType
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         loop.run_until_complete(
             knowledge_graph.upsert_entity(make_entity(name="Alfredo", entity_type=EntityType.PERSON))
@@ -514,7 +514,7 @@ class TestKnowledgeGraph:
 
     def test_add_relation(self, knowledge_graph):
         """Should add a relation between entities."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         e1 = make_entity(name="Alfredo")
         e2 = make_entity(name="Hive")
@@ -527,7 +527,7 @@ class TestKnowledgeGraph:
 
     def test_get_relations(self, knowledge_graph):
         """Should get relations for an entity."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         e1 = make_entity(name="Alfredo")
         e2 = make_entity(name="Hive")
@@ -548,7 +548,7 @@ class TestKnowledgeGraph:
 
     def test_invalidate_relation(self, knowledge_graph):
         """Should mark a relation as no longer valid."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         e1 = make_entity(name="Alfredo")
         e2 = make_entity(name="OldCompany")
@@ -568,7 +568,7 @@ class TestKnowledgeGraph:
 
     def test_graph_traversal_depth_1(self, knowledge_graph):
         """Should traverse graph at depth 1."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         e1 = make_entity(name="Alfredo")
         e2 = make_entity(name="Hive")
@@ -589,7 +589,7 @@ class TestKnowledgeGraph:
 
     def test_graph_traversal_depth_2(self, knowledge_graph):
         """Should traverse graph at depth 2."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         e1 = make_entity(name="Alfredo")
         e2 = make_entity(name="Hive")
@@ -610,7 +610,7 @@ class TestKnowledgeGraph:
 
     def test_shortest_path(self, knowledge_graph):
         """Should find shortest path between entities."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         e1 = make_entity(name="A")
         e2 = make_entity(name="B")
@@ -630,7 +630,7 @@ class TestKnowledgeGraph:
 
     def test_no_path_returns_none(self, knowledge_graph):
         """Should return None when no path exists."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         e1 = make_entity(name="Isolated1")
         e2 = make_entity(name="Isolated2")
@@ -642,7 +642,7 @@ class TestKnowledgeGraph:
 
     def test_relation_validation(self, knowledge_graph):
         """Should reject relations with non-existent entities."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         e1 = make_entity(name="Exists")
         loop.run_until_complete(knowledge_graph.upsert_entity(e1))
@@ -653,7 +653,7 @@ class TestKnowledgeGraph:
 
     def test_stats(self, knowledge_graph):
         """Should return graph statistics."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         e1 = make_entity(name="A")
         e2 = make_entity(name="B")
@@ -680,19 +680,19 @@ class TestSupabaseClient:
 
     def test_insert_returns_none_when_not_connected(self, supabase_client):
         """Should return None for insert when not connected."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
         result = loop.run_until_complete(supabase_client.insert("test", {"key": "value"}))
         assert result is None
 
     def test_select_returns_empty_when_not_connected(self, supabase_client):
         """Should return empty list for select when not connected."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
         result = loop.run_until_complete(supabase_client.select("test"))
         assert result == []
 
     def test_count_returns_zero_when_not_connected(self, supabase_client):
         """Should return 0 for count when not connected."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
         result = loop.run_until_complete(supabase_client.count("test"))
         assert result == 0
 
@@ -710,7 +710,7 @@ class TestIntegration:
         from contracts.checkpoint_model import CheckpointData, CheckpointType
         from contracts.memory_interface import EntityType, MemoryType
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         # 1. Start episode
         episode = loop.run_until_complete(conversation_memory.start_episode("alfredo", "telegram"))
@@ -783,7 +783,7 @@ class TestIntegration:
         """Should maintain memory consistency across checkpoint save/restore."""
         from contracts.checkpoint_model import CheckpointData
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         # Add some memory
         run_id = uuid4()

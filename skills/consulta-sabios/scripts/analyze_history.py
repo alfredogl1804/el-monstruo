@@ -21,23 +21,23 @@ import json
 import os
 import sys
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from statistics import mean, median, stdev
+from statistics import mean, median
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from telemetry import read_jsonl, HISTORY_DIR
-
+from telemetry import HISTORY_DIR, read_jsonl
 
 # ═══════════════════════════════════════════════════════════════
 # ANÁLISIS
 # ═══════════════════════════════════════════════════════════════
 
+
 def analyze(last_n: int = 50) -> dict:
     """
     Analiza los últimos N runs y genera un informe de salud.
-    
+
     Returns:
         dict con: resumen, alertas, metricas_por_sabio, tendencias
     """
@@ -59,7 +59,7 @@ def analyze(last_n: int = 50) -> dict:
 
     # Tomar los últimos N
     runs = runs[-last_n:]
-    
+
     # Filtrar métricas de sabios para los runs analizados
     run_ids = {r["run_id"] for r in runs}
     sabio_metrics = [m for m in sabio_metrics if m.get("run_id") in run_ids]
@@ -82,23 +82,27 @@ def analyze(last_n: int = 50) -> dict:
     # ─── Métricas globales ────────────────────────────────────
     duraciones = [r.get("duration_ms_total", 0) for r in runs if r.get("duration_ms_total")]
     success_runs = [r for r in runs if r.get("status") == "success"]
-    
+
     report["metricas_globales"] = {
         "total_runs": len(runs),
         "success_rate": round(len(success_runs) / len(runs), 3) if runs else 0,
         "duracion_media_ms": int(mean(duraciones)) if duraciones else 0,
         "duracion_mediana_ms": int(median(duraciones)) if duraciones else 0,
         "duracion_p95_ms": _percentile(duraciones, 95) if duraciones else 0,
-        "sabios_promedio_exitosos": round(
-            mean([r.get("sabios_successful", 0) for r in runs]), 1
-        ) if runs else 0,
+        "sabios_promedio_exitosos": round(mean([r.get("sabios_successful", 0) for r in runs]), 1) if runs else 0,
     }
 
     # ─── Métricas por sabio ───────────────────────────────────
-    sabio_data = defaultdict(lambda: {
-        "total": 0, "exitosos": 0, "duraciones": [], "errores": defaultdict(int),
-        "output_tokens": [], "retry_counts": [],
-    })
+    sabio_data = defaultdict(
+        lambda: {
+            "total": 0,
+            "exitosos": 0,
+            "duraciones": [],
+            "errores": defaultdict(int),
+            "output_tokens": [],
+            "retry_counts": [],
+        }
+    )
 
     for m in sabio_metrics:
         sid = m.get("sabio_id", "unknown")
@@ -120,9 +124,9 @@ def analyze(last_n: int = 50) -> dict:
             "duracion_media_ms": int(mean(data["duraciones"])) if data["duraciones"] else 0,
             "duracion_p95_ms": _percentile(data["duraciones"], 95) if data["duraciones"] else 0,
             "output_tokens_medio": int(mean(data["output_tokens"])) if data["output_tokens"] else 0,
-            "retry_rate": round(
-                sum(1 for r in data["retry_counts"] if r > 0) / len(data["retry_counts"]), 3
-            ) if data["retry_counts"] else 0,
+            "retry_rate": round(sum(1 for r in data["retry_counts"] if r > 0) / len(data["retry_counts"]), 3)
+            if data["retry_counts"]
+            else 0,
             "errores": dict(data["errores"]),
         }
 
@@ -141,10 +145,16 @@ def analyze(last_n: int = 50) -> dict:
         report["tendencias"] = {
             "success_rate_primera_mitad": round(fh_success, 3),
             "success_rate_segunda_mitad": round(sh_success, 3),
-            "success_rate_tendencia": "mejorando" if sh_success > fh_success else "degradando" if sh_success < fh_success else "estable",
+            "success_rate_tendencia": "mejorando"
+            if sh_success > fh_success
+            else "degradando"
+            if sh_success < fh_success
+            else "estable",
             "duracion_media_primera_mitad": int(mean(fh_dur)) if fh_dur else 0,
             "duracion_media_segunda_mitad": int(mean(sh_dur)) if sh_dur else 0,
-            "duracion_tendencia": "mejorando" if (mean(sh_dur) if sh_dur else 0) < (mean(fh_dur) if fh_dur else 0) else "degradando",
+            "duracion_tendencia": "mejorando"
+            if (mean(sh_dur) if sh_dur else 0) < (mean(fh_dur) if fh_dur else 0)
+            else "degradando",
         }
 
     # ─── Errores frecuentes ───────────────────────────────────
@@ -152,7 +162,7 @@ def analyze(last_n: int = 50) -> dict:
     for m in sabio_metrics:
         if m.get("error_type"):
             all_errors[m["error_type"]] += 1
-    
+
     report["errores_frecuentes"] = dict(sorted(all_errors.items(), key=lambda x: -x[1]))
 
     # ─── Alertas ──────────────────────────────────────────────
@@ -177,71 +187,85 @@ def _generate_alerts(report: dict) -> list:
     # Alerta: success rate global bajo
     sr = report["metricas_globales"].get("success_rate", 1)
     if sr < 0.7:
-        alerts.append({
-            "severidad": "critica",
-            "tipo": "success_rate_bajo",
-            "mensaje": f"Success rate global es {sr:.0%} (umbral: 70%)",
-            "valor": sr,
-        })
+        alerts.append(
+            {
+                "severidad": "critica",
+                "tipo": "success_rate_bajo",
+                "mensaje": f"Success rate global es {sr:.0%} (umbral: 70%)",
+                "valor": sr,
+            }
+        )
     elif sr < 0.85:
-        alerts.append({
-            "severidad": "advertencia",
-            "tipo": "success_rate_moderado",
-            "mensaje": f"Success rate global es {sr:.0%} (umbral advertencia: 85%)",
-            "valor": sr,
-        })
+        alerts.append(
+            {
+                "severidad": "advertencia",
+                "tipo": "success_rate_moderado",
+                "mensaje": f"Success rate global es {sr:.0%} (umbral advertencia: 85%)",
+                "valor": sr,
+            }
+        )
 
     # Alerta: latencia p95 alta
     p95 = report["metricas_globales"].get("duracion_p95_ms", 0)
     if p95 > 600000:  # >10 min
-        alerts.append({
-            "severidad": "critica",
-            "tipo": "latencia_extrema",
-            "mensaje": f"Latencia p95 es {p95/1000:.0f}s (umbral: 600s)",
-            "valor": p95,
-        })
+        alerts.append(
+            {
+                "severidad": "critica",
+                "tipo": "latencia_extrema",
+                "mensaje": f"Latencia p95 es {p95 / 1000:.0f}s (umbral: 600s)",
+                "valor": p95,
+            }
+        )
     elif p95 > 300000:  # >5 min
-        alerts.append({
-            "severidad": "advertencia",
-            "tipo": "latencia_alta",
-            "mensaje": f"Latencia p95 es {p95/1000:.0f}s (umbral advertencia: 300s)",
-            "valor": p95,
-        })
+        alerts.append(
+            {
+                "severidad": "advertencia",
+                "tipo": "latencia_alta",
+                "mensaje": f"Latencia p95 es {p95 / 1000:.0f}s (umbral advertencia: 300s)",
+                "valor": p95,
+            }
+        )
 
     # Alerta por sabio: success rate individual bajo
     for sid, metrics in report.get("metricas_por_sabio", {}).items():
         sabio_sr = metrics.get("success_rate", 1)
         if sabio_sr < 0.5 and metrics.get("total_consultas", 0) >= 3:
-            alerts.append({
-                "severidad": "critica",
-                "tipo": "sabio_degradado",
-                "mensaje": f"Sabio {sid} tiene success rate de {sabio_sr:.0%}",
-                "sabio": sid,
-                "valor": sabio_sr,
-            })
+            alerts.append(
+                {
+                    "severidad": "critica",
+                    "tipo": "sabio_degradado",
+                    "mensaje": f"Sabio {sid} tiene success rate de {sabio_sr:.0%}",
+                    "sabio": sid,
+                    "valor": sabio_sr,
+                }
+            )
 
     # Alerta: tendencia degradante
     tendencias = report.get("tendencias", {})
     if tendencias.get("success_rate_tendencia") == "degradando":
         delta = tendencias.get("success_rate_primera_mitad", 0) - tendencias.get("success_rate_segunda_mitad", 0)
         if delta > 0.1:
-            alerts.append({
-                "severidad": "advertencia",
-                "tipo": "tendencia_degradante",
-                "mensaje": f"Success rate cayó {delta:.0%} entre primera y segunda mitad del período",
-                "valor": delta,
-            })
+            alerts.append(
+                {
+                    "severidad": "advertencia",
+                    "tipo": "tendencia_degradante",
+                    "mensaje": f"Success rate cayó {delta:.0%} entre primera y segunda mitad del período",
+                    "valor": delta,
+                }
+            )
 
     # Alerta: errores recurrentes
     for error_type, count in report.get("errores_frecuentes", {}).items():
         if count >= 5:
-            alerts.append({
-                "severidad": "advertencia",
-                "tipo": "error_recurrente",
-                "mensaje": f"Error '{error_type}' ocurrió {count} veces",
-                "error_type": error_type,
-                "valor": count,
-            })
+            alerts.append(
+                {
+                    "severidad": "advertencia",
+                    "tipo": "error_recurrente",
+                    "mensaje": f"Error '{error_type}' ocurrió {count} veces",
+                    "error_type": error_type,
+                    "valor": count,
+                }
+            )
 
     return alerts
 
@@ -259,6 +283,7 @@ def _percentile(data: list, p: int) -> int:
 # ═══════════════════════════════════════════════════════════════
 # REPORTE
 # ═══════════════════════════════════════════════════════════════
+
 
 def generate_report(analysis: dict) -> str:
     """Genera un reporte Markdown legible."""
@@ -290,41 +315,47 @@ def generate_report(analysis: dict) -> str:
 
     # Métricas globales
     mg = analysis.get("metricas_globales", {})
-    lines.extend([
-        "\n## Métricas Globales\n",
-        "| Métrica | Valor |",
-        "|---------|-------|",
-        f"| Success Rate | {mg.get('success_rate', 0):.0%} |",
-        f"| Duración Media | {mg.get('duracion_media_ms', 0)/1000:.1f}s |",
-        f"| Duración P95 | {mg.get('duracion_p95_ms', 0)/1000:.1f}s |",
-        f"| Sabios Exitosos (promedio) | {mg.get('sabios_promedio_exitosos', 0):.1f} |",
-    ])
+    lines.extend(
+        [
+            "\n## Métricas Globales\n",
+            "| Métrica | Valor |",
+            "|---------|-------|",
+            f"| Success Rate | {mg.get('success_rate', 0):.0%} |",
+            f"| Duración Media | {mg.get('duracion_media_ms', 0) / 1000:.1f}s |",
+            f"| Duración P95 | {mg.get('duracion_p95_ms', 0) / 1000:.1f}s |",
+            f"| Sabios Exitosos (promedio) | {mg.get('sabios_promedio_exitosos', 0):.1f} |",
+        ]
+    )
 
     # Métricas por sabio
     mps = analysis.get("metricas_por_sabio", {})
     if mps:
-        lines.extend([
-            "\n## Métricas por Sabio\n",
-            "| Sabio | Consultas | Success Rate | Duración Media | P95 | Retry Rate |",
-            "|-------|-----------|-------------|----------------|-----|------------|",
-        ])
+        lines.extend(
+            [
+                "\n## Métricas por Sabio\n",
+                "| Sabio | Consultas | Success Rate | Duración Media | P95 | Retry Rate |",
+                "|-------|-----------|-------------|----------------|-----|------------|",
+            ]
+        )
         for sid, m in sorted(mps.items()):
             lines.append(
                 f"| {sid} | {m.get('total_consultas', 0)} | {m.get('success_rate', 0):.0%} | "
-                f"{m.get('duracion_media_ms', 0)/1000:.1f}s | {m.get('duracion_p95_ms', 0)/1000:.1f}s | "
+                f"{m.get('duracion_media_ms', 0) / 1000:.1f}s | {m.get('duracion_p95_ms', 0) / 1000:.1f}s | "
                 f"{m.get('retry_rate', 0):.0%} |"
             )
 
     # Tendencias
     tend = analysis.get("tendencias", {})
     if tend:
-        lines.extend([
-            "\n## Tendencias\n",
-            f"- Success Rate: {tend.get('success_rate_tendencia', 'N/A')} "
-            f"({tend.get('success_rate_primera_mitad', 0):.0%} → {tend.get('success_rate_segunda_mitad', 0):.0%})",
-            f"- Duración: {tend.get('duracion_tendencia', 'N/A')} "
-            f"({tend.get('duracion_media_primera_mitad', 0)/1000:.1f}s → {tend.get('duracion_media_segunda_mitad', 0)/1000:.1f}s)",
-        ])
+        lines.extend(
+            [
+                "\n## Tendencias\n",
+                f"- Success Rate: {tend.get('success_rate_tendencia', 'N/A')} "
+                f"({tend.get('success_rate_primera_mitad', 0):.0%} → {tend.get('success_rate_segunda_mitad', 0):.0%})",
+                f"- Duración: {tend.get('duracion_tendencia', 'N/A')} "
+                f"({tend.get('duracion_media_primera_mitad', 0) / 1000:.1f}s → {tend.get('duracion_media_segunda_mitad', 0) / 1000:.1f}s)",
+            ]
+        )
 
     # Errores frecuentes
     errores = analysis.get("errores_frecuentes", {})
@@ -339,6 +370,7 @@ def generate_report(analysis: dict) -> str:
 # ═══════════════════════════════════════════════════════════════
 # CLI
 # ═══════════════════════════════════════════════════════════════
+
 
 def main():
     parser = argparse.ArgumentParser(description="Análisis histórico de consultas a los sabios")

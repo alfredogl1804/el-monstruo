@@ -14,14 +14,14 @@ Fuentes soportadas:
 Salida: project_brief.yaml con toda la información estructurada
 """
 
+import argparse
 import asyncio
 import json
-import os
 import sys
-import yaml
-import argparse
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import yaml
 
 # Agregar conector de sabios al path
 sys.path.insert(0, "/home/ubuntu/skills/consulta-sabios/scripts")
@@ -30,11 +30,13 @@ from conector_sabios import consultar_sabio
 
 async def extract_brief_from_description(description: str, context: dict = None) -> dict:
     """Usa GPT-5.4 para extraer un brief estructurado de una descripción libre."""
-    
+
     context_str = ""
     if context:
-        context_str = f"\n\nContexto adicional proporcionado:\n{yaml.dump(context, default_flow_style=False, allow_unicode=True)}"
-    
+        context_str = (
+            f"\n\nContexto adicional proporcionado:\n{yaml.dump(context, default_flow_style=False, allow_unicode=True)}"
+        )
+
     prompt = f"""Eres un analista inmobiliario experto. Extrae toda la información relevante de la siguiente descripción de proyecto y devuélvela como JSON estructurado.
 
 DESCRIPCIÓN DEL PROYECTO:
@@ -95,7 +97,7 @@ Devuelve SOLO un JSON válido con esta estructura exacta (usa null para campos s
 }}"""
 
     resultado = await consultar_sabio("gpt54", prompt)
-    
+
     if resultado.get("status") == "ok":
         text = resultado["text"]
         # Extraer JSON del texto
@@ -107,36 +109,26 @@ Devuelve SOLO un JSON válido con esta estructura exacta (usa null para campos s
                 return json.loads(text[start:end])
         except json.JSONDecodeError:
             pass
-    
+
     return {"error": "No se pudo extraer brief", "raw": resultado.get("text", "")}
 
 
 async def scan_drive_folder(drive_path: str) -> dict:
     """Escanea una carpeta de Google Drive para encontrar activos del proyecto."""
     import subprocess
-    
-    assets = {
-        "renders": [],
-        "planos": [],
-        "sketchup": [],
-        "documentos": [],
-        "imagenes": [],
-        "otros": []
-    }
-    
+
+    assets = {"renders": [], "planos": [], "sketchup": [], "documentos": [], "imagenes": [], "otros": []}
+
     ext_map = {
         "renders": [".jpg", ".jpeg", ".png", ".tiff", ".bmp"],
         "planos": [".dwg", ".dxf", ".pdf"],
         "sketchup": [".skp", ".skb"],
         "documentos": [".docx", ".doc", ".xlsx", ".xls", ".pptx", ".ppt", ".txt", ".md"],
-        "imagenes": [".webp", ".svg", ".gif"]
+        "imagenes": [".webp", ".svg", ".gif"],
     }
-    
+
     try:
-        result = subprocess.run(
-            ["gws", "drive", "ls", drive_path],
-            capture_output=True, text=True, timeout=30
-        )
+        result = subprocess.run(["gws", "drive", "ls", drive_path], capture_output=True, text=True, timeout=30)
         if result.returncode == 0:
             for line in result.stdout.strip().split("\n"):
                 if not line.strip():
@@ -153,20 +145,20 @@ async def scan_drive_folder(drive_path: str) -> dict:
                     assets["otros"].append(fname)
     except Exception as e:
         assets["error"] = str(e)
-    
+
     return assets
 
 
 def geocode_address(address: str) -> dict:
     """Intenta geocodificar una dirección usando Nominatim (OpenStreetMap)."""
     import requests
-    
+
     try:
         resp = requests.get(
             "https://nominatim.openstreetmap.org/search",
             params={"q": address, "format": "json", "limit": 1},
             headers={"User-Agent": "ProyectoRenders/1.0"},
-            timeout=10
+            timeout=10,
         )
         if resp.status_code == 200 and resp.json():
             data = resp.json()[0]
@@ -175,11 +167,11 @@ def geocode_address(address: str) -> dict:
                 "lng": float(data["lon"]),
                 "display_name": data.get("display_name", ""),
                 "source": "nominatim",
-                "confianza": "medio"
+                "confianza": "medio",
             }
     except Exception:
         pass
-    
+
     return {"lat": None, "lng": None, "source": "no_disponible", "confianza": "bajo"}
 
 
@@ -190,18 +182,18 @@ async def run_intake(
     lng: float = None,
     drive_folder: str = None,
     local_files: list = None,
-    output_path: str = None
+    output_path: str = None,
 ) -> dict:
     """Ejecuta el pipeline completo de intake y genera project_brief.yaml."""
-    
+
     print("=" * 60)
     print("📋 MÓDULO 1: INTAKE & NORMALIZACIÓN")
     print(f"   Fecha: {datetime.now().strftime('%d %B %Y, %H:%M')}")
     print("=" * 60)
-    
+
     # 1. Contexto adicional
     context = {}
-    
+
     # 2. Geocodificación
     if lat and lng:
         context["coordenadas"] = {"lat": lat, "lng": lng, "source": "usuario", "confianza": "alto"}
@@ -211,7 +203,7 @@ async def run_intake(
         geo = geocode_address(address)
         context["coordenadas"] = geo
         print(f"  📍 Resultado: {geo.get('lat')}, {geo.get('lng')} ({geo.get('confianza')})")
-    
+
     # 3. Escanear Drive
     if drive_folder:
         print(f"  📂 Escaneando Google Drive: {drive_folder}")
@@ -219,36 +211,36 @@ async def run_intake(
         context["drive_assets"] = drive_assets
         total = sum(len(v) for v in drive_assets.values() if isinstance(v, list))
         print(f"  📁 {total} archivos encontrados en Drive")
-    
+
     # 4. Archivos locales
     if local_files:
         context["local_files"] = local_files
         print(f"  📎 {len(local_files)} archivos locales proporcionados")
-    
+
     # 5. Extraer brief con GPT-5.4
     print("  🤖 Extrayendo brief estructurado con GPT-5.4...")
     brief = await extract_brief_from_description(description, context)
-    
+
     if "error" in brief:
         print(f"  ⚠️ Error en extracción: {brief['error']}")
         return brief
-    
+
     # 6. Enriquecer con datos de geocodificación si no los tenía
     if context.get("coordenadas") and not brief.get("ubicacion", {}).get("coordenadas", {}).get("lat"):
         if brief.get("ubicacion"):
             brief["ubicacion"]["coordenadas"] = {
                 "lat": context["coordenadas"].get("lat"),
-                "lng": context["coordenadas"].get("lng")
+                "lng": context["coordenadas"].get("lng"),
             }
-    
+
     # 7. Agregar metadata
     brief["_metadata"] = {
         "fecha_intake": datetime.now().isoformat(),
         "version": "1.0",
         "fuentes": [],
-        "skill": "proyecto-renders"
+        "skill": "proyecto-renders",
     }
-    
+
     if description:
         brief["_metadata"]["fuentes"].append("descripcion_usuario")
     if address or (lat and lng):
@@ -260,7 +252,7 @@ async def run_intake(
         brief["activos_existentes"]["drive_scan"] = context.get("drive_assets", {})
     if local_files:
         brief["_metadata"]["fuentes"].append("archivos_locales")
-    
+
     # 8. Guardar
     if output_path:
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
@@ -268,7 +260,7 @@ async def run_intake(
             yaml.dump(brief, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
         print(f"\n✅ Project brief generado: {output_path}")
         print(f"📊 Campos completados: {count_filled(brief)}")
-    
+
     return brief
 
 
@@ -303,15 +295,17 @@ if __name__ == "__main__":
     parser.add_argument("--drive-folder", help="Ruta de carpeta en Google Drive")
     parser.add_argument("--local-files", nargs="+", help="Archivos locales")
     parser.add_argument("--output", required=True, help="Ruta de salida para project_brief.yaml")
-    
+
     args = parser.parse_args()
-    
-    result = asyncio.run(run_intake(
-        description=args.description,
-        address=args.address,
-        lat=args.lat,
-        lng=args.lng,
-        drive_folder=args.drive_folder,
-        local_files=args.local_files,
-        output_path=args.output
-    ))
+
+    result = asyncio.run(
+        run_intake(
+            description=args.description,
+            address=args.address,
+            lat=args.lat,
+            lng=args.lng,
+            drive_folder=args.drive_folder,
+            local_files=args.local_files,
+            output_path=args.output,
+        )
+    )

@@ -14,10 +14,11 @@ Soberanía:
 """
 
 import re
-import structlog
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional
+
+import structlog
 
 logger = structlog.get_logger("vanguard.intelligence")
 
@@ -32,12 +33,12 @@ INTELIGENCIA_PROPUESTA_FALLIDA = (
     "Verifica que el router de LLM esté disponible."
 )
 INTELIGENCIA_SCAN_FALLIDO = (
-    "El escaneo diario de vanguardia falló. "
-    "Revisa la conectividad con Agents Radar y Semantic Scholar."
+    "El escaneo diario de vanguardia falló. Revisa la conectividad con Agents Radar y Semantic Scholar."
 )
 
 
 # ── Modelos de datos ───────────────────────────────────────────────────────────
+
 
 @dataclass
 class DiscoveryItem:
@@ -64,10 +65,11 @@ class DiscoveryItem:
     Soberanía:
         Fuentes alternativas: arXiv, PyPI RSS, GitHub Trending API
     """
+
     source: str
     title: str
     url: str
-    category: str          # "library", "paper", "tool", "model", "framework"
+    category: str  # "library", "paper", "tool", "model", "framework"
     discovered_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     relevance_score: float = 0.0
     integration_effort: str = "unknown"  # "trivial", "moderate", "significant", "major"
@@ -115,6 +117,7 @@ class IntegrationProposal:
     Soberanía:
         Generación de propuesta: GPT-4o-mini → Gemini Flash → heurísticas locales
     """
+
     discovery: DiscoveryItem
     rationale: str
     impact_areas: list
@@ -141,6 +144,7 @@ class IntegrationProposal:
 
 
 # ── Motor principal ────────────────────────────────────────────────────────────
+
 
 class ResearchIntelligenceEngine:
     """Motor que transforma descubrimientos crudos en inteligencia accionable.
@@ -193,10 +197,7 @@ class ResearchIntelligenceEngine:
             security_score = await self._check_security(item)
 
             item.relevance_score = (
-                stack_relevance * 0.35
-                + gap_relevance * 0.30
-                + adoption_score * 0.20
-                + security_score * 0.15
+                stack_relevance * 0.35 + gap_relevance * 0.30 + adoption_score * 0.20 + security_score * 0.15
             )
             item.integration_effort = self._estimate_effort(item)
             item.replaces = await self._find_replacement_target(item)
@@ -231,8 +232,12 @@ class ResearchIntelligenceEngine:
             return None
 
         rationale = f"Integrar '{item.title}' mejora El Monstruo en área {item.category}."
-        migration_steps = ["Evaluar compatibilidad", "Instalar en entorno de prueba",
-                           "Ejecutar tests de integración", "Desplegar en producción"]
+        migration_steps = [
+            "Evaluar compatibilidad",
+            "Instalar en entorno de prueba",
+            "Ejecutar tests de integración",
+            "Desplegar en producción",
+        ]
         rollback_plan = "Revertir a versión anterior via git revert"
 
         if self.router:
@@ -245,6 +250,7 @@ class ResearchIntelligenceEngine:
                     f"4) Nivel de riesgo 5) Pasos de migración 6) Plan de rollback"
                 )
                 from router.engine import route_completion
+
                 response = await route_completion(
                     messages=[{"role": "user", "content": prompt}],
                     intent="analyze",
@@ -284,6 +290,7 @@ class ResearchIntelligenceEngine:
 
         try:
             from tools.agents_radar import fetch_latest_digest
+
             radar_items = await fetch_latest_digest()
         except Exception as exc:
             logger.warning("agents_radar_unavailable", error=str(exc))
@@ -313,8 +320,18 @@ class ResearchIntelligenceEngine:
     # ── Helpers privados ───────────────────────────────────────────────────────
 
     async def _check_stack_relevance(self, item: DiscoveryItem) -> float:
-        stack_keywords = {"fastapi", "langraph", "supabase", "openai", "structlog",
-                          "apscheduler", "pgvector", "langfuse", "pluggy", "httpx"}
+        stack_keywords = {
+            "fastapi",
+            "langraph",
+            "supabase",
+            "openai",
+            "structlog",
+            "apscheduler",
+            "pgvector",
+            "langfuse",
+            "pluggy",
+            "httpx",
+        }
         item_keywords = set(item.title.lower().split()) | set(item.tags)
         overlap = stack_keywords & item_keywords
         return min(len(overlap) / 3.0, 1.0)
@@ -324,7 +341,7 @@ class ResearchIntelligenceEngine:
             try:
                 gaps = await self.supabase.table("objective_gaps").select("*").execute()
                 gap_keywords = set()
-                for gap in (gaps.data or []):
+                for gap in gaps.data or []:
                     gap_keywords.update(gap.get("keywords", []))
                 item_keywords = set(item.title.lower().split()) | set(item.tags)
                 overlap = gap_keywords & item_keywords
@@ -381,7 +398,7 @@ class ResearchIntelligenceEngine:
     def _extract_rollback(self, text: str) -> str:
         if "rollback" in text.lower():
             idx = text.lower().index("rollback")
-            return text[idx:idx + 200]
+            return text[idx : idx + 200]
         return "Revertir a versión anterior via git revert"
 
     async def _save_proposal(self, proposal: IntegrationProposal) -> None:
@@ -389,18 +406,24 @@ class ResearchIntelligenceEngine:
             logger.debug("proposal_no_supabase", title=proposal.discovery.title)
             return
         try:
-            await self.supabase.table("integration_proposals").insert({
-                "title": proposal.discovery.title,
-                "url": proposal.discovery.url,
-                "relevance_score": proposal.discovery.relevance_score,
-                "rationale": proposal.rationale,
-                "impact_areas": proposal.impact_areas,
-                "effort_hours": proposal.estimated_effort_hours,
-                "risk_level": proposal.risk_level,
-                "migration_steps": proposal.migration_steps,
-                "rollback_plan": proposal.rollback_plan,
-                "status": "pending",
-            }).execute()
+            await (
+                self.supabase.table("integration_proposals")
+                .insert(
+                    {
+                        "title": proposal.discovery.title,
+                        "url": proposal.discovery.url,
+                        "relevance_score": proposal.discovery.relevance_score,
+                        "rationale": proposal.rationale,
+                        "impact_areas": proposal.impact_areas,
+                        "effort_hours": proposal.estimated_effort_hours,
+                        "risk_level": proposal.risk_level,
+                        "migration_steps": proposal.migration_steps,
+                        "rollback_plan": proposal.rollback_plan,
+                        "status": "pending",
+                    }
+                )
+                .execute()
+            )
         except Exception as exc:
             logger.error("proposal_save_error", error=str(exc))
 

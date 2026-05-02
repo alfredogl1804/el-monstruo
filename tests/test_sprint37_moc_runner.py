@@ -18,14 +18,12 @@ Cubre:
 
 from __future__ import annotations
 
-import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
 import pytest
-
 
 # ── Fixtures ────────────────────────────────────────────────────────
 
@@ -84,6 +82,7 @@ def make_mock_kernel() -> MagicMock:
 def make_mock_moc(jobs_returned: list = None) -> MagicMock:
     """Crear un mock del MOC."""
     moc = MagicMock()
+
     # priorizar_jobs retorna los jobs con score añadido
     async def mock_priorizar(jobs):
         for i, job in enumerate(jobs):
@@ -146,6 +145,7 @@ class TestAutonomousRunnerMOCIntegration:
 
         # Mock del MOC con spy
         moc_called_with = []
+
         async def spy_priorizar(jobs):
             moc_called_with.extend(jobs)
             for i, job in enumerate(jobs):
@@ -183,10 +183,7 @@ class TestAutonomousRunnerMOCIntegration:
 
         # Verificar que se llamó update con moc_priority_score
         update_calls = db.update.call_args_list
-        score_updates = [
-            c for c in update_calls
-            if "moc_priority_score" in str(c)
-        ]
+        score_updates = [c for c in update_calls if "moc_priority_score" in str(c)]
         assert len(score_updates) >= 1
 
     @pytest.mark.asyncio
@@ -204,6 +201,7 @@ class TestAutonomousRunnerMOCIntegration:
         assert runner._moc is None
 
         executed_order = []
+
         async def track_execution(job):
             executed_order.append(job["title"])
 
@@ -271,10 +269,7 @@ class TestFeedbackLoop:
 
         # Verificar que se llamó update con success_rate=0.75
         update_calls = db.update.call_args_list
-        rate_updates = [
-            c for c in update_calls
-            if "success_rate" in str(c)
-        ]
+        rate_updates = [c for c in update_calls if "success_rate" in str(c)]
         assert len(rate_updates) == 1
         # El valor debe ser 0.75
         call_args = rate_updates[0][0]  # positional args
@@ -293,10 +288,7 @@ class TestFeedbackLoop:
         await runner._update_success_rate(job_id)
 
         # Sin historial no debe llamar update
-        update_calls = [
-            c for c in db.update.call_args_list
-            if "success_rate" in str(c)
-        ]
+        update_calls = [c for c in db.update.call_args_list if "success_rate" in str(c)]
         assert len(update_calls) == 0
 
     @pytest.mark.asyncio
@@ -311,6 +303,7 @@ class TestFeedbackLoop:
 
         # Spy en _update_success_rate
         update_called_with = []
+
         async def spy_update(job_id):
             update_called_with.append(job_id)
 
@@ -334,6 +327,7 @@ class TestFeedbackLoop:
         runner = AutonomousRunner(db=db, kernel=kernel)
 
         update_called_with = []
+
         async def spy_update(job_id):
             update_called_with.append(job_id)
 
@@ -371,10 +365,7 @@ class TestFeedbackLoop:
 
         # Verificar que job_executions se actualizó con cost_usd
         update_calls = db.update.call_args_list
-        exec_updates = [
-            c for c in update_calls
-            if "cost_usd" in str(c)
-        ]
+        exec_updates = [c for c in update_calls if "cost_usd" in str(c)]
         assert len(exec_updates) >= 1
         # 100 tokens * 0.000002 = 0.0002
         call_data = exec_updates[0][0][1]

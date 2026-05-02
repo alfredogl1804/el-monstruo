@@ -21,11 +21,10 @@ Sprint 29 | 0.22.0-sprint29 | 25 abril 2026
 
 from __future__ import annotations
 
-import asyncio
 import os
 import random
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Optional
 
@@ -37,15 +36,17 @@ logger = structlog.get_logger("kernel.fallback_engine")
 
 # ── Circuit Breaker States ────────────────────────────────────────────
 
+
 class CircuitState(str, Enum):
-    CLOSED = "closed"      # Normal operation
-    OPEN = "open"          # Provider failing, skip it
+    CLOSED = "closed"  # Normal operation
+    OPEN = "open"  # Provider failing, skip it
     HALF_OPEN = "half_open"  # Testing if provider recovered
 
 
 @dataclass
 class ProviderCircuit:
     """Circuit breaker state for a single provider."""
+
     provider: str
     state: CircuitState = CircuitState.CLOSED
     failure_count: int = 0
@@ -56,14 +57,15 @@ class ProviderCircuit:
     total_failures: int = 0
 
     # Config
-    failure_threshold: int = 3       # Failures before opening circuit
-    recovery_timeout: float = 60.0   # Seconds before trying half-open
-    half_open_max: int = 1           # Max concurrent half-open attempts
+    failure_threshold: int = 3  # Failures before opening circuit
+    recovery_timeout: float = 60.0  # Seconds before trying half-open
+    half_open_max: int = 1  # Max concurrent half-open attempts
 
 
 @dataclass
 class FallbackResult:
     """Result from a fallback chain execution."""
+
     provider: str
     model: str
     response: Any
@@ -262,10 +264,7 @@ class FallbackEngine:
                     error=str(e)[:200],
                 )
 
-        raise RuntimeError(
-            f"All models in fallback chain failed. "
-            f"Chain: {chain}. Last error: {last_error}"
-        )
+        raise RuntimeError(f"All models in fallback chain failed. Chain: {chain}. Last error: {last_error}")
 
     async def _call_provider(
         self,
@@ -291,13 +290,22 @@ class FallbackEngine:
             # OpenAI-compatible (OpenAI, xAI, OpenRouter, Groq, Together)
             base_url = PROVIDERS[provider]["base_url"]
             return await self._call_openai_compat(
-                api_key, base_url, model_id, messages, max_tokens,
+                api_key,
+                base_url,
+                model_id,
+                messages,
+                max_tokens,
                 temperature if supports_temperature(model) else None,
             )
 
     async def _call_openai_compat(
-        self, api_key: str, base_url: str, model_id: str,
-        messages: list, max_tokens: int, temperature: Optional[float],
+        self,
+        api_key: str,
+        base_url: str,
+        model_id: str,
+        messages: list,
+        max_tokens: int,
+        temperature: Optional[float],
     ) -> dict:
         """Call OpenAI-compatible API (OpenAI, xAI, OpenRouter, Groq, Together)."""
         body: dict[str, Any] = {
@@ -321,8 +329,12 @@ class FallbackEngine:
             return r.json()
 
     async def _call_anthropic(
-        self, api_key: str, model_id: str,
-        messages: list, max_tokens: int, temperature: Optional[float],
+        self,
+        api_key: str,
+        model_id: str,
+        messages: list,
+        max_tokens: int,
+        temperature: Optional[float],
     ) -> dict:
         """Call Anthropic API."""
         body: dict[str, Any] = {
@@ -347,19 +359,24 @@ class FallbackEngine:
             data = r.json()
             # Normalize to OpenAI format
             return {
-                "choices": [{
-                    "message": {
-                        "content": data["content"][0]["text"],
-                        "role": "assistant",
+                "choices": [
+                    {
+                        "message": {
+                            "content": data["content"][0]["text"],
+                            "role": "assistant",
+                        }
                     }
-                }],
+                ],
                 "usage": data.get("usage", {}),
                 "model": model_id,
             }
 
     async def _call_google(
-        self, api_key: str, model_id: str,
-        messages: list, max_tokens: int,
+        self,
+        api_key: str,
+        model_id: str,
+        messages: list,
+        max_tokens: int,
     ) -> dict:
         """Call Google Gemini API."""
         # Convert messages to Gemini format
@@ -387,10 +404,7 @@ class FallbackEngine:
 
     def get_circuit_states(self) -> dict[str, str]:
         """Get current circuit breaker states for all providers."""
-        return {
-            provider: circuit.state.value
-            for provider, circuit in self._circuits.items()
-        }
+        return {provider: circuit.state.value for provider, circuit in self._circuits.items()}
 
     def get_status(self) -> dict[str, Any]:
         """Return fallback engine status for /health endpoint."""

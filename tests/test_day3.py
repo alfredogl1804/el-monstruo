@@ -53,7 +53,7 @@ class TestLangfuseBridge:
         from observability.langfuse_bridge import LangfuseBridge
 
         bridge = LangfuseBridge()
-        result = bridge.trace_generation(None, "test", "gpt-5.4", [{"role": "user", "content": "hi"}], "hello")
+        result = bridge.trace_generation(None, "test", "gpt-5.5", [{"role": "user", "content": "hi"}], "hello")
         assert result is None
 
     def test_trace_run_end_when_disabled(self):
@@ -214,7 +214,7 @@ class TestObservabilityManager:
         manager.record_generation(
             ctx,
             "test",
-            "gpt-5.4",
+            "gpt-5.5",
             [{"role": "user", "content": "hi"}],
             "hello",
             {"prompt_tokens": 10, "completion_tokens": 20},

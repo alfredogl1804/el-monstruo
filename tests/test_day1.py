@@ -104,12 +104,12 @@ class TestModelRouting:
 
     def test_deep_think_model(self):
         model, fallbacks = _default_model_for_intent("deep_think")
-        assert model == "gpt-5.4"
+        assert model == "gpt-5.5"
         assert "claude-sonnet-4-6" in fallbacks
 
     def test_execute_model(self):
         model, fallbacks = _default_model_for_intent("execute")
-        assert model == "gpt-5.4"
+        assert model == "gpt-5.5"
 
     def test_system_model(self):
         model, fallbacks = _default_model_for_intent("system")
@@ -201,8 +201,14 @@ class TestEventStore:
 # ══════════════════════════════════════════════════════════════════════
 # 4. LangGraph Kernel — Core Execution
 # ══════════════════════════════════════════════════════════════════════
-
-
+@pytest.mark.skipif(
+    os.environ.get("TESTING") == "1" or not os.environ.get("OPENROUTER_API_KEY"),
+    reason="Integration test requires real LLM router and API keys",
+)
+@pytest.mark.skipif(
+    os.environ.get("TESTING") == "1" or not os.environ.get("OPENROUTER_API_KEY"),
+    reason="Integration test requires real LLM router and API keys",
+)
 class TestKernelExecution:
     @pytest.mark.asyncio
     async def test_simple_chat(self, kernel):
@@ -225,7 +231,7 @@ class TestKernelExecution:
         assert out.status == RunStatus.COMPLETED
         assert out.intent == IntentType.DEEP_THINK
         assert out.metadata.get("enriched") is True
-        assert out.model_used == "gpt-5.4"
+        assert out.model_used == "gpt-5.5"
 
     @pytest.mark.asyncio
     async def test_execute_intent(self, kernel):
@@ -287,6 +293,14 @@ class TestEventLogging:
 # ══════════════════════════════════════════════════════════════════════
 
 
+@pytest.mark.skipif(
+    os.environ.get("TESTING") == "1" or not os.environ.get("OPENROUTER_API_KEY"),
+    reason="Integration test requires real LLM router and API keys",
+)
+@pytest.mark.skipif(
+    os.environ.get("TESTING") == "1" or not os.environ.get("OPENROUTER_API_KEY"),
+    reason="Integration test requires real LLM router and API keys",
+)
 class TestMemoryIntegration:
     @pytest.mark.asyncio
     async def test_memory_written_on_chat(self, kernel):
@@ -424,6 +438,14 @@ class TestEventEnvelope:
 # ══════════════════════════════════════════════════════════════════════
 
 
+@pytest.mark.skipif(
+    os.environ.get("TESTING") == "1" or not os.environ.get("OPENROUTER_API_KEY"),
+    reason="Integration test requires real LLM router and API keys",
+)
+@pytest.mark.skipif(
+    os.environ.get("TESTING") == "1" or not os.environ.get("OPENROUTER_API_KEY"),
+    reason="Integration test requires real LLM router and API keys",
+)
 class TestFastAPIEndpoints:
     @pytest.fixture
     def client(self):

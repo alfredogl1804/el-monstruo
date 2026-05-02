@@ -19,8 +19,8 @@ API keys (optional but recommended): SONAR_API_KEY, GEMINI_API_KEY or OPENAI_API
 
 import json
 import os
-import sys
 import subprocess
+import sys
 from datetime import datetime
 
 SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -31,9 +31,9 @@ def run_script(script_name: str, args: list, description: str) -> dict:
     script_path = os.path.join(SCRIPTS_DIR, script_name)
     cmd = [sys.executable, script_path] + args
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"▶ {description}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
@@ -77,7 +77,7 @@ def generate_enhanced_report(
 
     report.append(f"# {emoji} Reporte Completo de Validación AliExpress → México")
     report.append(f"**Fecha:** {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    report.append(f"**Motor de análisis:** Validación multi-capa con IA")
+    report.append("**Motor de análisis:** Validación multi-capa con IA")
     report.append("")
 
     product_name = product_data.get("product_name", "Producto no identificado")
@@ -103,15 +103,21 @@ def generate_enhanced_report(
         report.append("")
         report.append("| Concepto | USD | MXN |")
         report.append("|----------|-----|-----|")
-        report.append(f"| Precio del producto | ${currency_data.get('product_price_usd', 0):.2f} | ${currency_data.get('product_price_mxn', 0):.2f} |")
-        report.append(f"| Costo de envío | ${currency_data.get('shipping_cost_usd', 0):.2f} | ${currency_data.get('shipping_cost_mxn', 0):.2f} |")
+        report.append(
+            f"| Precio del producto | ${currency_data.get('product_price_usd', 0):.2f} | ${currency_data.get('product_price_mxn', 0):.2f} |"
+        )
+        report.append(
+            f"| Costo de envío | ${currency_data.get('shipping_cost_usd', 0):.2f} | ${currency_data.get('shipping_cost_mxn', 0):.2f} |"
+        )
         tax_usd = currency_data.get("import_tax_usd", 0)
         tax_mxn = currency_data.get("import_tax_mxn", 0)
         if tax_usd > 0:
             report.append(f"| Impuesto importación (~20%) | ${tax_usd:.2f} | ${tax_mxn:.2f} |")
         else:
-            report.append(f"| Impuesto importación | Incluido | Incluido |")
-        report.append(f"| **TOTAL ESTIMADO** | **${currency_data.get('total_usd', 0):.2f}** | **${currency_data.get('total_mxn', 0):.2f}** |")
+            report.append("| Impuesto importación | Incluido | Incluido |")
+        report.append(
+            f"| **TOTAL ESTIMADO** | **${currency_data.get('total_usd', 0):.2f}** | **${currency_data.get('total_mxn', 0):.2f}** |"
+        )
     else:
         # Fallback without exchange rate
         price = product_data.get("product_price_usd", 0)
@@ -152,10 +158,14 @@ def generate_enhanced_report(
         eval_age = "Excelente" if store_age >= 3 else "Bueno" if store_age >= 1 else "Riesgoso"
         report.append(f"| Antigüedad | {store_age:.1f} años | {eval_age} |")
     if isinstance(feedback, (int, float)):
-        eval_fb = "Excelente" if feedback >= 98 else "Bueno" if feedback >= 95 else "Regular" if feedback >= 90 else "Malo"
+        eval_fb = (
+            "Excelente" if feedback >= 98 else "Bueno" if feedback >= 95 else "Regular" if feedback >= 90 else "Malo"
+        )
         report.append(f"| Feedback positivo | {feedback}% | {eval_fb} |")
     if isinstance(orders, (int, float)):
-        eval_ord = "Excelente" if orders >= 1000 else "Bueno" if orders >= 100 else "Bajo" if orders >= 10 else "Muy bajo"
+        eval_ord = (
+            "Excelente" if orders >= 1000 else "Bueno" if orders >= 100 else "Bajo" if orders >= 10 else "Muy bajo"
+        )
         report.append(f"| Órdenes totales | {orders:,} | {eval_ord} |")
     report.append("")
 
@@ -230,7 +240,7 @@ def generate_enhanced_report(
             report.append("### Reseñas Más Confiables (según IA)")
             report.append("")
             for r in trusted[:3]:
-                report.append(f"> *\"{r.get('texto_original', '')}\"*")
+                report.append(f'> *"{r.get("texto_original", "")}"*')
                 report.append(f"> ✅ {r.get('razon_confiable', '')}")
                 report.append("")
 
@@ -238,7 +248,7 @@ def generate_enhanced_report(
     total_rev = product_data.get("total_reviews", 0)
     photo_rev = product_data.get("reviews_with_photos", 0)
     avg_rating = product_data.get("avg_review_rating", "N/D")
-    report.append(f"### Estadísticas de Reseñas")
+    report.append("### Estadísticas de Reseñas")
     report.append(f"- **Total:** {total_rev} | **Con fotos:** {photo_rev} | **Promedio:** {avg_rating}/5")
     report.append("")
 
@@ -249,9 +259,9 @@ def generate_enhanced_report(
         report.append("")
         for rev in sample[:5]:
             stars = "⭐" * int(rev.get("rating", 0))
-            report.append(f"> {stars} — *\"{rev.get('text', '')}\"*")
+            report.append(f'> {stars} — *"{rev.get("text", "")}"*')
             if rev.get("has_photo"):
-                report.append(f"> 📷 Con foto")
+                report.append("> 📷 Con foto")
             if rev.get("country"):
                 report.append(f"> 🌍 {rev['country']}")
             report.append("")
@@ -282,7 +292,9 @@ def generate_enhanced_report(
         report.append("2. Toma capturas de pantalla de la descripción antes de comprar")
         report.append("3. Verifica que el método de envío incluya rastreo a México")
         if currency_data.get("status") == "success":
-            report.append(f"4. Prepara aproximadamente **${currency_data.get('total_mxn', 0):.2f} MXN** como presupuesto total")
+            report.append(
+                f"4. Prepara aproximadamente **${currency_data.get('total_mxn', 0):.2f} MXN** como presupuesto total"
+            )
         report.append("5. Abre disputa si el tracking no se actualiza en 15 días")
     else:
         report.append("1. **Busca alternativas** con vendedores mejor calificados")
@@ -295,7 +307,9 @@ def generate_enhanced_report(
     # Footer
     report.append("---")
     report.append(f"*Reporte generado por AliExpress MX Validator | {datetime.now().strftime('%Y-%m-%d %H:%M')}*")
-    report.append(f"*Motores: Análisis de riesgo + Perplexity Sonar + {'Gemini/OpenAI' if ai_review_analysis else 'Reglas'} + Tipo de cambio en vivo*")
+    report.append(
+        f"*Motores: Análisis de riesgo + Perplexity Sonar + {'Gemini/OpenAI' if ai_review_analysis else 'Reglas'} + Tipo de cambio en vivo*"
+    )
 
     return "\n".join(report)
 
@@ -328,6 +342,7 @@ def main():
     # Load base analysis results by re-running the score calculation
     sys.path.insert(0, SCRIPTS_DIR)
     from analyze_product import calculate_risk_score
+
     base_analysis = calculate_risk_score(product_data)
 
     # Step 2: Currency conversion
@@ -336,14 +351,15 @@ def main():
     import_included = product_data.get("includes_import_tax", False)
 
     from convert_currency import calculate_total_mxn
-    print(f"\n{'='*60}")
-    print(f"▶ Conversión de moneda USD → MXN")
-    print(f"{'='*60}")
+
+    print(f"\n{'=' * 60}")
+    print("▶ Conversión de moneda USD → MXN")
+    print(f"{'=' * 60}")
     currency_data = calculate_total_mxn(price, shipping, import_tax_included=import_included)
     if currency_data.get("status") == "success":
         print(f"✅ Tipo de cambio: 1 USD = ${currency_data['exchange_rate']:.2f} MXN")
     else:
-        print(f"⚠️  No se pudo obtener tipo de cambio")
+        print("⚠️  No se pudo obtener tipo de cambio")
 
     # Step 3: Seller research (Perplexity)
     seller_research = {}
@@ -351,38 +367,32 @@ def main():
     store_url = product_data.get("product_url", "")
     if store_name and os.environ.get("SONAR_API_KEY"):
         r3 = run_script(
-            "research_seller.py",
-            [store_name, store_url],
-            "Investigación de reputación del vendedor (Perplexity)"
+            "research_seller.py", [store_name, store_url], "Investigación de reputación del vendedor (Perplexity)"
         )
         safe_name = store_name.replace(" ", "_").replace("/", "_")[:50]
         seller_file = f"seller_research_{safe_name}.json"
         seller_research = load_json_safe(seller_file)
     else:
-        print(f"\n{'='*60}")
-        print(f"⏭️  Investigación del vendedor — omitida (sin SONAR_API_KEY)")
-        print(f"{'='*60}")
+        print(f"\n{'=' * 60}")
+        print("⏭️  Investigación del vendedor — omitida (sin SONAR_API_KEY)")
+        print(f"{'=' * 60}")
 
     # Step 4: AI review analysis
     ai_review_analysis = {}
     target_reviews = reviews_file or product_file
     if os.environ.get("GEMINI_API_KEY") or os.environ.get("OPENAI_API_KEY"):
-        r4 = run_script(
-            "ai_review_analyzer.py",
-            [target_reviews],
-            "Análisis de reseñas con IA"
-        )
+        r4 = run_script("ai_review_analyzer.py", [target_reviews], "Análisis de reseñas con IA")
         ai_file = target_reviews.replace(".json", "_ai_analysis.json")
         ai_review_analysis = load_json_safe(ai_file)
     else:
-        print(f"\n{'='*60}")
-        print(f"⏭️  Análisis IA de reseñas — omitido (sin GEMINI_API_KEY ni OPENAI_API_KEY)")
-        print(f"{'='*60}")
+        print(f"\n{'=' * 60}")
+        print("⏭️  Análisis IA de reseñas — omitido (sin GEMINI_API_KEY ni OPENAI_API_KEY)")
+        print(f"{'=' * 60}")
 
     # Step 5: Generate enhanced report
-    print(f"\n{'='*60}")
-    print(f"▶ Generando reporte final completo")
-    print(f"{'='*60}")
+    print(f"\n{'=' * 60}")
+    print("▶ Generando reporte final completo")
+    print(f"{'=' * 60}")
 
     final_report = generate_enhanced_report(
         product_data, base_analysis, currency_data, seller_research, ai_review_analysis
@@ -393,7 +403,9 @@ def main():
         f.write(final_report)
 
     print(f"\n✅ REPORTE COMPLETO GENERADO: {output_path}")
-    print(f"\nVeredicto: {base_analysis['emoji']} {base_analysis['verdict']} (riesgo: {base_analysis['risk_score']}/100)")
+    print(
+        f"\nVeredicto: {base_analysis['emoji']} {base_analysis['verdict']} (riesgo: {base_analysis['risk_score']}/100)"
+    )
     if currency_data.get("status") == "success":
         print(f"Costo total estimado: ${currency_data['total_mxn']:.2f} MXN")
 

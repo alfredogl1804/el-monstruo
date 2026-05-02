@@ -10,17 +10,19 @@ por lo que 5 minutos de cache es seguro y reduce drásticamente la latencia.
 
 Basado en el patrón de "lazy loading con TTL" recomendado por Redis Blog (abril 2026).
 """
+
 from __future__ import annotations
 
 import time
 from typing import Optional
+
 import structlog
 
 logger = structlog.get_logger(__name__)
 
 # ── Configuración ──────────────────────────────────────────────────────────────
-_DOSSIER_TTL_SECONDS = 300    # 5 minutos
-_DOSSIER_MAX_USERS = 50       # máximo de usuarios en cache simultáneo
+_DOSSIER_TTL_SECONDS = 300  # 5 minutos
+_DOSSIER_MAX_USERS = 50  # máximo de usuarios en cache simultáneo
 
 # ── Almacenamiento interno ─────────────────────────────────────────────────────
 # Estructura: { user_id: {"dossier": str, "ts": float} }
@@ -90,8 +92,7 @@ def invalidate(user_id: Optional[str] = None) -> int:
 def stats() -> dict:
     """Retorna estadísticas del cache para observabilidad."""
     now = time.monotonic()
-    active = {k: v for k, v in _dossier_cache.items()
-              if now - v["ts"] <= _DOSSIER_TTL_SECONDS}
+    active = {k: v for k, v in _dossier_cache.items() if now - v["ts"] <= _DOSSIER_TTL_SECONDS}
     return {
         "size": len(active),
         "max_users": _DOSSIER_MAX_USERS,

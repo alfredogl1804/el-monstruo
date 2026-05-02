@@ -22,36 +22,43 @@ Soberanía:
 Sprint 58 — "La Fortaleza Completa"
 Obj #9 — Capa 3: Seguridad
 """
-import logging
-import structlog
+
 from dataclasses import dataclass, field
-from typing import Optional
 from enum import Enum
+from typing import Optional
+
+import structlog
 
 logger = structlog.get_logger("transversal.security_layer")
 
 
 # ─── Errores con identidad (Brand Check #2) ──────────────────────────────────
 
+
 class SecurityLayerError(Exception):
     """Error base de la Capa de Seguridad Transversal."""
+
     pass
 
 
 class SECURITY_LAYER_PROYECTO_INVALIDO(SecurityLayerError):
     """El project_id está vacío o tiene formato inválido."""
+
     pass
 
 
 class SECURITY_LAYER_TIPO_NO_SOPORTADO(SecurityLayerError):
     """El tipo de proyecto no tiene preset de seguridad definido."""
+
     pass
 
 
 # ─── Enums con naming de identidad (Brand Check #1) ──────────────────────────
 
+
 class EstrategiaAuth(Enum):
     """Estrategia de autenticación para el proyecto generado."""
+
     JWT = "jwt"
     OAUTH2 = "oauth2"
     API_KEY = "api_key"
@@ -61,6 +68,7 @@ class EstrategiaAuth(Enum):
 
 class TipoProyecto(Enum):
     """Tipo de proyecto para seleccionar el preset de seguridad correcto."""
+
     API_PUBLICA = "api_publica"
     API_PRIVADA = "api_privada"
     WEB_APP = "web_app"
@@ -69,6 +77,7 @@ class TipoProyecto(Enum):
 
 
 # ─── Dataclasses ─────────────────────────────────────────────────────────────
+
 
 @dataclass
 class ConfiguracionSeguridad:
@@ -90,6 +99,7 @@ class ConfiguracionSeguridad:
         max_upload_mb: Tamaño máximo de archivos subidos en MB.
         requerir_https: Si se debe forzar HTTPS.
     """
+
     proyecto_id: str
     tipo_proyecto: TipoProyecto
     estrategia_auth: EstrategiaAuth
@@ -106,6 +116,7 @@ class ConfiguracionSeguridad:
 
 
 # ─── Clase principal ─────────────────────────────────────────────────────────
+
 
 class SecurityLayer:
     """
@@ -195,8 +206,7 @@ class SecurityLayer:
         """
         if not proyecto_id or not proyecto_id.strip():
             raise SECURITY_LAYER_PROYECTO_INVALIDO(
-                f"El proyecto_id no puede estar vacío. "
-                f"Proporciona un identificador único para el proyecto."
+                "El proyecto_id no puede estar vacío. Proporciona un identificador único para el proyecto."
             )
 
         auth = self.AUTH_RECOMENDADA.get(tipo_proyecto, EstrategiaAuth.JWT)
@@ -248,10 +258,7 @@ class SecurityLayer:
 
         Soberanía: Usa Starlette BaseHTTPMiddleware (built-in) — sin dependencias externas.
         """
-        headers = self.PRESETS_HEADERS.get(
-            config.tipo_proyecto,
-            self.PRESETS_HEADERS[TipoProyecto.WEB_APP]
-        )
+        headers = self.PRESETS_HEADERS.get(config.tipo_proyecto, self.PRESETS_HEADERS[TipoProyecto.WEB_APP])
 
         code = f'''"""
 Middleware de Seguridad — Generado por El Monstruo Security Layer
@@ -285,10 +292,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         for header, value in headers.items():
             code += f'        response.headers["{header}"] = "{value}"\n'
 
-        code += '''        return response
+        code += """        return response
 
 app.add_middleware(SecurityHeadersMiddleware)
-'''
+"""
         return code
 
     def generar_template_auth(self, estrategia: EstrategiaAuth) -> dict:
@@ -337,13 +344,16 @@ app.add_middleware(SecurityHeadersMiddleware)
                 "archivos": ["auth/session_handler.py", "auth/middleware.py"],
             },
         }
-        return templates.get(estrategia, {
-            "dependencias": [],
-            "soberania": "Sin autenticación configurada",
-            "env_vars": [],
-            "descripcion": "Sin autenticación",
-            "archivos": [],
-        })
+        return templates.get(
+            estrategia,
+            {
+                "dependencias": [],
+                "soberania": "Sin autenticación configurada",
+                "env_vars": [],
+                "descripcion": "Sin autenticación",
+                "archivos": [],
+            },
+        )
 
     def generar_template_sanitizacion(self) -> str:
         """

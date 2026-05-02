@@ -15,11 +15,13 @@ Diferencia con el multi_agent.py existente:
 - multi_agent.py: despacha tareas a agentes especializados (1 a la vez)
 - WideResearchTool: lanza N investigaciones paralelas sobre el MISMO tema
 """
+
 from __future__ import annotations
+
 import asyncio
-import logging
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Optional
+
 import structlog
 
 logger = structlog.get_logger()
@@ -28,6 +30,7 @@ logger = structlog.get_logger()
 @dataclass
 class ResearchSubTask:
     """Una sub-tarea de investigación individual."""
+
     task_id: str
     query: str
     focus: str  # Aspecto específico a investigar
@@ -39,6 +42,7 @@ class ResearchSubTask:
 @dataclass
 class WideResearchResult:
     """Resultado agregado de una investigación amplia."""
+
     main_query: str
     sub_tasks: list[ResearchSubTask] = field(default_factory=list)
     synthesis: str = ""
@@ -49,14 +53,14 @@ class WideResearchResult:
 class WideResearchTool:
     """
     Herramienta de investigación amplia con sub-agentes paralelos.
-    
+
     Basada en la arquitectura de Kimi K2.6 que lanza hasta 300 sub-agentes
     en swarm para investigación profunda. Esta implementación usa hasta 10
     sub-agentes paralelos con asyncio.
     """
-    
+
     MAX_PARALLEL_AGENTS = 10
-    
+
     def __init__(self, web_search_fn=None, llm_fn=None):
         """
         Args:
@@ -65,11 +69,11 @@ class WideResearchTool:
         """
         self.web_search_fn = web_search_fn
         self.llm_fn = llm_fn
-    
+
     def decompose_query(self, main_query: str, num_agents: int = 5) -> list[ResearchSubTask]:
         """
         Descompone una query principal en N sub-tareas independientes.
-        
+
         Estrategia de descomposición (basada en Kimi K2.6):
         1. Aspecto técnico / arquitectura
         2. Benchmarks y métricas de rendimiento
@@ -89,84 +93,74 @@ class WideResearchTool:
             f"comunidad, documentación y soporte de: {main_query}",
             f"seguridad, privacidad y compliance de: {main_query}",
         ]
-        
+
         sub_tasks = []
         for i, focus in enumerate(focuses[:num_agents]):
-            sub_tasks.append(ResearchSubTask(
-                task_id=f"subtask_{i+1}",
-                query=main_query,
-                focus=focus,
-            ))
-        
+            sub_tasks.append(
+                ResearchSubTask(
+                    task_id=f"subtask_{i + 1}",
+                    query=main_query,
+                    focus=focus,
+                )
+            )
+
         return sub_tasks
-    
+
     async def _execute_sub_task(self, sub_task: ResearchSubTask) -> ResearchSubTask:
         """Ejecuta una sub-tarea de investigación individual."""
         try:
             if self.web_search_fn:
-                result = await asyncio.to_thread(
-                    self.web_search_fn, 
-                    sub_task.focus
-                )
+                result = await asyncio.to_thread(self.web_search_fn, sub_task.focus)
                 sub_task.result = str(result)
             else:
                 # Modo simulado para testing
                 sub_task.result = f"[Resultado simulado para: {sub_task.focus}]"
-            
+
             sub_task.completed = True
             logger.info("sub_task_completed", task_id=sub_task.task_id)
-            
+
         except Exception as e:
             sub_task.error = str(e)
             sub_task.completed = False
             logger.error("sub_task_failed", task_id=sub_task.task_id, error=str(e))
-        
+
         return sub_task
-    
-    async def research_async(
-        self, 
-        main_query: str, 
-        num_agents: int = 5,
-        synthesize: bool = True
-    ) -> WideResearchResult:
+
+    async def research_async(self, main_query: str, num_agents: int = 5, synthesize: bool = True) -> WideResearchResult:
         """
         Ejecuta investigación amplia con N sub-agentes en paralelo.
-        
+
         Args:
             main_query: La pregunta principal a investigar
             num_agents: Número de sub-agentes paralelos (máx 10)
             synthesize: Si True, sintetiza los resultados al final
         """
         num_agents = min(num_agents, self.MAX_PARALLEL_AGENTS)
-        
+
         logger.info("wide_research_started", query=main_query, agents=num_agents)
-        
+
         # Descomponer la query en sub-tareas
         sub_tasks = self.decompose_query(main_query, num_agents)
-        
+
         # Ejecutar todas las sub-tareas en paralelo
         completed_tasks = await asyncio.gather(
-            *[self._execute_sub_task(task) for task in sub_tasks],
-            return_exceptions=False
+            *[self._execute_sub_task(task) for task in sub_tasks], return_exceptions=False
         )
-        
+
         # Calcular métricas
         successful = [t for t in completed_tasks if t.completed]
         success_rate = len(successful) / len(completed_tasks) if completed_tasks else 0
-        
+
         result = WideResearchResult(
             main_query=main_query,
             sub_tasks=list(completed_tasks),
             sources_count=len(successful),
             success_rate=success_rate,
         )
-        
+
         # Síntesis con LLM si está disponible
         if synthesize and self.llm_fn and successful:
-            context = "\n\n".join([
-                f"### {t.focus}\n{t.result}" 
-                for t in successful
-            ])
+            context = "\n\n".join([f"### {t.focus}\n{t.result}" for t in successful])
             synthesis_prompt = (
                 f"Sintetiza los siguientes hallazgos de investigación sobre '{main_query}' "
                 f"en un análisis coherente y estructurado:\n\n{context}"
@@ -176,16 +170,16 @@ class WideResearchTool:
             except Exception as e:
                 logger.error("synthesis_failed", error=str(e))
                 result.synthesis = context  # Fallback: concatenar sin síntesis
-        
+
         logger.info(
             "wide_research_completed",
             query=main_query,
             agents=num_agents,
             success_rate=success_rate,
         )
-        
+
         return result
-    
+
     def research(self, main_query: str, num_agents: int = 5) -> WideResearchResult:
         """Versión síncrona de research_async para compatibilidad."""
         return asyncio.run(self.research_async(main_query, num_agents))

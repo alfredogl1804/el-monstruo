@@ -22,47 +22,55 @@ Soberanía:
 Sprint 58 — "La Fortaleza Completa"
 Obj #9 — Capa 5: Analytics
 """
-import structlog
+
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Optional
 from enum import Enum
+from typing import Optional
+
+import structlog
 
 logger = structlog.get_logger("transversal.analytics_layer")
 
 
 # ─── Errores con identidad (Brand Check #2) ──────────────────────────────────
 
+
 class AnalyticsLayerError(Exception):
     """Error base de la Capa de Analytics Transversal."""
+
     pass
 
 
 class ANALYTICS_LAYER_EVENTO_INVALIDO(AnalyticsLayerError):
     """El nombre del evento no sigue la convención snake_case requerida."""
+
     pass
 
 
 class ANALYTICS_LAYER_POSTHOG_NO_CONFIGURADO(AnalyticsLayerError):
     """PostHog no está configurado. Proporciona POSTHOG_API_KEY y POSTHOG_HOST."""
+
     pass
 
 
 # ─── Enums con naming de identidad (Brand Check #1) ──────────────────────────
 
+
 class CategoriaEvento(Enum):
     """Categoría de evento según la taxonomía estándar de El Monstruo."""
-    ADQUISICION = "adquisicion"       # Cómo llegó el usuario
-    ACTIVACION = "activacion"         # Primera acción de valor
-    RETENCION = "retencion"           # Vuelve a usar el producto
-    REFERIDO = "referido"             # Invita a otros
-    INGRESO = "ingreso"               # Genera dinero
-    SOPORTE = "soporte"               # Pide ayuda
-    TECNICO = "tecnico"               # Eventos de sistema
+
+    ADQUISICION = "adquisicion"  # Cómo llegó el usuario
+    ACTIVACION = "activacion"  # Primera acción de valor
+    RETENCION = "retencion"  # Vuelve a usar el producto
+    REFERIDO = "referido"  # Invita a otros
+    INGRESO = "ingreso"  # Genera dinero
+    SOPORTE = "soporte"  # Pide ayuda
+    TECNICO = "tecnico"  # Eventos de sistema
 
 
 class TipoFunnel(Enum):
     """Tipo de funnel de conversión."""
+
     REGISTRO = "registro"
     ACTIVACION = "activacion"
     COMPRA = "compra"
@@ -70,6 +78,7 @@ class TipoFunnel(Enum):
 
 
 # ─── Dataclasses ─────────────────────────────────────────────────────────────
+
 
 @dataclass
 class EventoAnalytics:
@@ -84,6 +93,7 @@ class EventoAnalytics:
         es_conversion: Si este evento representa una conversión clave.
         valor_negocio: Descripción del valor de negocio que representa.
     """
+
     nombre: str
     categoria: CategoriaEvento
     descripcion: str
@@ -105,6 +115,7 @@ class MetricasRetencion:
         retencion_dia_30: % de usuarios que volvieron al día 30.
         churn_rate: Tasa de abandono del cohorte.
     """
+
     cohorte_fecha: str
     usuarios_iniciales: int
     retencion_dia_1: float = 0.0
@@ -126,6 +137,7 @@ class PuntuacionEngagement:
         acciones_clave: Número de acciones clave completadas.
         dias_activo: Días activos en los últimos 30 días.
     """
+
     usuario_id: str
     puntaje: float
     nivel: str
@@ -135,6 +147,7 @@ class PuntuacionEngagement:
 
 
 # ─── Clase principal ─────────────────────────────────────────────────────────
+
 
 class AnalyticsLayer:
     """
@@ -220,30 +233,32 @@ class AnalyticsLayer:
 
         # Eventos específicos por tipo
         if tipo == "ecommerce":
-            eventos.extend([
-                EventoAnalytics(
-                    nombre="producto_visto",
-                    categoria=CategoriaEvento.ACTIVACION,
-                    descripcion="Usuario vio un producto",
-                    propiedades=["producto_id", "categoria", "precio_usd"],
-                    es_conversion=False,
-                ),
-                EventoAnalytics(
-                    nombre="carrito_item_agregado",
-                    categoria=CategoriaEvento.ACTIVACION,
-                    descripcion="Usuario agregó item al carrito",
-                    propiedades=["producto_id", "cantidad", "precio_usd"],
-                    es_conversion=True,
-                ),
-                EventoAnalytics(
-                    nombre="compra_completada",
-                    categoria=CategoriaEvento.INGRESO,
-                    descripcion="Usuario completó una compra",
-                    propiedades=["orden_id", "total_usd", "items_count", "metodo_pago"],
-                    es_conversion=True,
-                    valor_negocio="Transacción completada",
-                ),
-            ])
+            eventos.extend(
+                [
+                    EventoAnalytics(
+                        nombre="producto_visto",
+                        categoria=CategoriaEvento.ACTIVACION,
+                        descripcion="Usuario vio un producto",
+                        propiedades=["producto_id", "categoria", "precio_usd"],
+                        es_conversion=False,
+                    ),
+                    EventoAnalytics(
+                        nombre="carrito_item_agregado",
+                        categoria=CategoriaEvento.ACTIVACION,
+                        descripcion="Usuario agregó item al carrito",
+                        propiedades=["producto_id", "cantidad", "precio_usd"],
+                        es_conversion=True,
+                    ),
+                    EventoAnalytics(
+                        nombre="compra_completada",
+                        categoria=CategoriaEvento.INGRESO,
+                        descripcion="Usuario completó una compra",
+                        propiedades=["orden_id", "total_usd", "items_count", "metodo_pago"],
+                        es_conversion=True,
+                        valor_negocio="Transacción completada",
+                    ),
+                ]
+            )
 
         logger.info(
             "taxonomia_generada",

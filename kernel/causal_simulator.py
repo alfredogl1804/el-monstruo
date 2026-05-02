@@ -28,6 +28,7 @@ Ejemplo:
 Validated: numpy (ya en stack), scipy (ya en stack)
 Future: PyMC para modelos Bayesianos más sofisticados
 """
+
 from __future__ import annotations
 
 import json
@@ -46,6 +47,7 @@ logger = structlog.get_logger("kernel.causal_simulator")
 @dataclass
 class SimulationScenario:
     """Escenario a simular."""
+
     question: str  # La pregunta predictiva
     known_factors: dict[str, float] = field(default_factory=dict)  # factor → valor actual (0-1)
     time_horizon: str = "1_year"  # Horizonte temporal
@@ -56,6 +58,7 @@ class SimulationScenario:
 @dataclass
 class SimulationResult:
     """Resultado de una simulación Monte Carlo."""
+
     scenario: str
     probability: float  # Probabilidad estimada del outcome
     confidence_interval: tuple[float, float] = (0.0, 1.0)  # 95% CI
@@ -65,9 +68,7 @@ class SimulationResult:
     mean_outcome: float = 0.0
     std_outcome: float = 0.0
     percentiles: dict[str, float] = field(default_factory=dict)
-    timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -130,9 +131,7 @@ class CausalSimulator:
         historical_factors = await self._get_historical_factors(scenario)
 
         # ── Paso 2: Combinar factores ──────────────────────────────
-        combined_factors = self._combine_factors(
-            historical_factors, scenario.known_factors
-        )
+        combined_factors = self._combine_factors(historical_factors, scenario.known_factors)
 
         if not combined_factors:
             # Sin factores, retornar prior uniforme (máxima incertidumbre)
@@ -163,9 +162,7 @@ class CausalSimulator:
 
         return result
 
-    async def _get_historical_factors(
-        self, scenario: SimulationScenario
-    ) -> list[dict[str, Any]]:
+    async def _get_historical_factors(self, scenario: SimulationScenario) -> list[dict[str, Any]]:
         """Obtener factores de eventos históricos similares."""
         try:
             similar_events = await self._kb.search_similar(scenario.question, limit=5)
@@ -308,18 +305,12 @@ class CausalSimulator:
         probability = float(np.mean(outcomes > 0.5))
 
         # Factores dominantes (top 3 por peso * valor)
-        factor_impact = [
-            (name, float(f["weight"]) * float(f["value"]))
-            for name, f in factors.items()
-        ]
+        factor_impact = [(name, float(f["weight"]) * float(f["value"])) for name, f in factors.items()]
         factor_impact.sort(key=lambda x: x[1], reverse=True)
         dominant = [name for name, _ in factor_impact[:3]]
 
         # Factores de riesgo (dirección negativa o valor bajo)
-        risk = [
-            name for name, f in factors.items()
-            if f.get("direction") == "negative" or float(f["value"]) < 0.4
-        ]
+        risk = [name for name, f in factors.items() if f.get("direction") == "negative" or float(f["value"]) < 0.4]
 
         # Percentiles
         percentiles = {
@@ -358,10 +349,7 @@ class CausalSimulator:
         result_with = await self.simulate(scenario, n_simulations)
 
         # Simulación sin el factor
-        modified_known = {
-            k: v for k, v in scenario.known_factors.items()
-            if k != removed_factor
-        }
+        modified_known = {k: v for k, v in scenario.known_factors.items() if k != removed_factor}
         modified_scenario = SimulationScenario(
             question=scenario.question,
             known_factors=modified_known,
