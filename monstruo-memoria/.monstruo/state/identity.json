@@ -1,0 +1,39 @@
+{
+  "hilo": "B",
+  "rol": "Ejecutor técnico de El Monstruo — Hilo de implementación",
+  "proyecto_activo": "monstruo-command-center",
+  "proyecto_path": "/home/ubuntu/monstruo-command-center",
+  "kernel_url_env": "KERNEL_BASE_URL",
+  "kernel_api_key_env": "MONSTRUO_API_KEY",
+  "tools_activas_produccion": ["web_search", "consult_sabios"],
+  "tools_inactivas_produccion": ["code_exec", "browse_web", "github", "notion", "manus_bridge", "delegate_task", "schedule_task", "cidp_search", "cidp_get", "cidp_analyze", "call_webhook", "email", "user_dossier"],
+  "app_flutter": {
+    "existe": true,
+    "path_mac": "/Users/alfredogongora/el-monstruo/apps/mobile",
+    "compilada": true,
+    "plataformas": ["macOS Release", "iOS Debug", "iOS Release"],
+    "gateway": "FastAPI + WebSocket en Railway",
+    "protocolo": "AG-UI (streaming)"
+  },
+  "command_center": {
+    "version_id": "272ff959",
+    "features_completadas": ["ForjaDashboard", "SoberaniaPage", "ExecutionBridge", "VersionDriftDetector", "RedeployButton", "GuardianRegressions", "ConvergencePanel"],
+    "stack": "React 19 + tRPC + Express + Tailwind 4 + Manus Auth"
+  },
+  "errores_criticos_no_repetir": [
+    "NUNCA inventar contexto perdido — si no sabes, di 'no tengo ese contexto'",
+    "SIEMPRE verificar con /v1/tools (endpoint real) antes de afirmar capacidades del kernel",
+    "El endpoint real es la verdad, NO el código fuente (tool_dispatch.py tiene 16 tools pero solo 3 están activas)",
+    "NUNCA contradecirte en la misma conversación — si no estás seguro, verifica con código",
+    "La app Flutter la construimos EN ESTE HILO vía Manus My Computer, no en otro hilo"
+  ],
+  "estado_embrion": {
+    "running": true,
+    "usa_mismo_kernel": true,
+    "tiene_mismas_tools": true,
+    "diferencia_vs_app": "El embrión es autónomo (loop cada 60s), la app espera tu input. Ambos usan el mismo kernel con las mismas 3 tools activas.",
+    "problema_actual": "Planner falla (0/1 pasos completados), modelos primarios fallando (GPT-5.5, Claude Opus 4-7), solo Gemini 3.1 Pro y Grok 4.1 Fast funcionan"
+  },
+  "version": "2.0.0",
+  "updated_at": "2026-05-02T02:14:00Z"
+}
