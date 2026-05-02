@@ -134,39 +134,54 @@ def check_anchor_kernel() -> dict:
 
 
 # ═══════════════════════════════════════════════════════════════
-# ANCLAJE 3: SUPABASE (Persistencia distribuida)
+# ANCLAJE 3: DATABASE (MySQL/TiDB — Persistencia distribuida)
 # ═══════════════════════════════════════════════════════════════
-def check_anchor_supabase() -> dict:
-    """Consulta Supabase para obtener último estado guardado."""
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        return {"valid": False, "error": "SUPABASE_URL o SUPABASE_SERVICE_KEY no configuradas", "data": None}
+def _get_db_connection():
+    """Create MySQL connection from DATABASE_URL."""
+    from urllib.parse import urlparse
+    import pymysql
+    
+    db_url = os.environ.get("DATABASE_URL", "")
+    if not db_url:
+        return None
+    
+    parsed = urlparse(db_url)
+    return pymysql.connect(
+        host=parsed.hostname,
+        port=parsed.port or 4000,
+        user=parsed.username,
+        password=parsed.password,
+        database=parsed.path.lstrip("/").split("?")[0],
+        ssl={"ca": None} if "ssl" in db_url else None,
+    )
+
+
+def check_anchor_database() -> dict:
+    """Consulta MySQL/TiDB para obtener último estado guardado."""
+    db_url = os.environ.get("DATABASE_URL", "")
+    if not db_url:
+        return {"valid": False, "error": "DATABASE_URL no configurada", "data": None}
     
     try:
-        import requests
+        conn = _get_db_connection()
+        if not conn:
+            return {"valid": False, "error": "No se pudo conectar a la DB", "data": None}
         
-        # Consultar tabla agent_context_state (si existe)
-        resp = requests.get(
-            f"{SUPABASE_URL}/rest/v1/agent_context_state?hilo=eq.B&order=created_at.desc&limit=1",
-            headers={
-                "apikey": SUPABASE_KEY,
-                "Authorization": f"Bearer {SUPABASE_KEY}",
-                "Content-Type": "application/json"
-            },
-            timeout=10
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT state_json FROM agent_context_state WHERE hilo = %s ORDER BY created_at DESC LIMIT 1",
+            ("B",)
         )
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
         
-        if resp.status_code == 200:
-            rows = resp.json()
-            if rows:
-                return {"valid": True, "data": rows[0].get("state_json", {}), "source": "supabase"}
-            else:
-                # Tabla existe pero no hay datos — primera vez
-                return {"valid": False, "error": "No hay estado previo en Supabase (primera ejecución)", "data": None}
-        elif resp.status_code == 404:
-            # Tabla no existe aún
-            return {"valid": False, "error": "Tabla agent_context_state no existe aún", "data": None}
+        if row:
+            import json as json_mod
+            data = json_mod.loads(row[0]) if isinstance(row[0], str) else row[0]
+            return {"valid": True, "data": data, "source": "database"}
         else:
-            return {"valid": False, "error": f"Supabase error: {resp.status_code}", "data": None}
+            return {"valid": False, "error": "No hay estado previo en DB (primera ejecución)", "data": None}
     
     except Exception as e:
         return {"valid": False, "error": str(e), "data": None}
@@ -175,32 +190,24 @@ def check_anchor_supabase() -> dict:
 # ═══════════════════════════════════════════════════════════════
 # CONSENSO + RESTAURACIÓN
 # ═══════════════════════════════════════════════════════════════
-def save_state_to_supabase(state: dict):
-    """Guarda estado verificado en Supabase para futuras recuperaciones."""
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        return
-    
+def save_state_to_database(state: dict):
+    """Guarda estado verificado en MySQL/TiDB para futuras recuperaciones."""
     try:
-        import requests
+        conn = _get_db_connection()
+        if not conn:
+            return
+        
         state_str = json.dumps(state, sort_keys=True)
         state_hash = hashlib.sha256(state_str.encode()).hexdigest()
         
-        requests.post(
-            f"{SUPABASE_URL}/rest/v1/agent_context_state",
-            headers={
-                "apikey": SUPABASE_KEY,
-                "Authorization": f"Bearer {SUPABASE_KEY}",
-                "Content-Type": "application/json",
-                "Prefer": "return=minimal"
-            },
-            json={
-                "hilo": "B",
-                "state_json": state,
-                "state_hash": state_hash,
-                "source": "guardian_v2"
-            },
-            timeout=10
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO agent_context_state (id, hilo, state_json, state_hash, source) VALUES (UUID(), %s, %s, %s, %s)",
+            ("B", state_str, state_hash, "guardian_v2")
         )
+        conn.commit()
+        cur.close()
+        conn.close()
     except Exception:
         pass  # Best effort
 
@@ -223,8 +230,8 @@ def run_recovery():
     anchor2 = check_anchor_kernel()
     log(f"  → {'VÁLIDO' if anchor2['valid'] else 'FALLO: ' + anchor2.get('error', '?')}")
     
-    log("Verificando Anclaje 3: Supabase...")
-    anchor3 = check_anchor_supabase()
+    log("Verificando Anclaje 3: Database (MySQL/TiDB)...")
+    anchor3 = check_anchor_database()
     log(f"  → {'VÁLIDO' if anchor3['valid'] else 'FALLO: ' + anchor3.get('error', '?')}")
     
     # === Consenso ===
@@ -305,10 +312,10 @@ def run_recovery():
     print(f"╚══════════════════════════════════════════════════════════════════╝")
     print()
     
-    # === Guardar en Supabase para futuras recuperaciones ===
+    # === Guardar en Database para futuras recuperaciones ===
     if anchor1["valid"]:
-        save_state_to_supabase(identity)
-        log("Estado guardado en Supabase para futura recuperación")
+        save_state_to_database(identity)
+        log("Estado guardado en Database (MySQL/TiDB) para futura recuperación")
     
     # === Log de auditoría ===
     audit = {
