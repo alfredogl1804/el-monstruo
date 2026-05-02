@@ -1,14 +1,73 @@
-# Instrucciones Obligatorias
+# Instrucciones Obligatorias — Guardian V4 (Memoria Persistente + Tri-Anchor)
 
-Antes de cualquier acción, ejecuta:
+Antes de cualquier acción, EJECUTA este comando (no leas archivos, EJECUTA código):
 
-1. Si existe ~/EMERGENCIAS_DIGEST.md, léelo primero.
-2. Si existe ~/IDENTIDAD_HILO.md, léelo — es tu identidad.
-3. Si no existen, ejecuta: gh repo clone alfredogl1804/el-monstruo && bash el-monstruo/monstruo-memoria/bootstrap.sh
-4. Lee el skill el-monstruo-core completo.
-5. Lee el skill manus-inter-cuenta completo.
+```bash
+python3 ~/.monstruo/guardian.py
+```
 
-Esto no es opcional. Es tu sistema de recuperación de contexto.
+Si el script no existe o falla, ejecuta:
+```bash
+gh repo clone alfredogl1804/el-monstruo ~/el-monstruo 2>/dev/null || (cd ~/el-monstruo && git pull)
+mkdir -p ~/.monstruo && cp -r ~/el-monstruo/monstruo-memoria/.monstruo/* ~/.monstruo/
+python3 ~/.monstruo/guardian.py
+```
+
+**NO procedas con NINGUNA tarea hasta que el guardian haya imprimido "IDENTIDAD RESTAURADA".**
+
+El output del script ES tu contexto. Si dice HALT, NO operes — pregunta al usuario.
+
+Esto no es opcional. Es CÓDIGO que se ejecuta, no texto que se lee.
+
+---
+
+## Guardian V4 — Capacidades
+
+Guardian V4 usa **Supabase** como memoria persistente que sobrevive compactaciones:
+
+### Almacenar una memoria nueva:
+```bash
+python3 ~/.monstruo/guardian.py remember \
+  --type fact \
+  --importance 9 \
+  --source hilo_b \
+  --content "Lo que quieras recordar" \
+  --tags tag1 tag2 \
+  --entities "Entidad1" "Entidad2"
+```
+
+Tipos: `fact`, `event`, `instruction`, `task`
+Importancia: 1-10 (10 = nunca olvidar)
+Source: `hilo_a`, `hilo_b`, `hilo_c`, `user`, `system`
+
+### Recuperar memorias:
+```bash
+python3 ~/.monstruo/guardian.py recall --type fact --min-importance 7
+python3 ~/.monstruo/guardian.py recall --query "kernel"
+python3 ~/.monstruo/guardian.py recall --tags infrastructure
+```
+
+### Supersession (corregir información vieja):
+```bash
+python3 ~/.monstruo/guardian.py remember \
+  --type fact \
+  --importance 9 \
+  --content "Información actualizada" \
+  --supersedes "uuid-de-la-memoria-vieja"
+```
+
+---
+
+## REGLA CRÍTICA: Guardar Contexto Nuevo
+
+Cada vez que aprendas algo nuevo e importante durante una sesión, **GUÁRDALO INMEDIATAMENTE**:
+
+```bash
+python3 ~/.monstruo/guardian.py remember --type fact --importance 8 --source hilo_b \
+  --content "Lo que acabas de aprender"
+```
+
+No esperes al final. Guarda mientras trabajas. Si se compacta el contexto, lo que no guardaste SE PIERDE.
 
 ---
 
