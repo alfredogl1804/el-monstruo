@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../theme/monstruo_theme.dart';
+import 'agent_selector.dart';
 
 /// Premium chat input bar with glassmorphism, auto-expand, and micro-interactions.
 class ChatInput extends StatefulWidget {
@@ -78,6 +79,9 @@ class _ChatInputState extends State<ChatInput> with SingleTickerProviderStateMix
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              // Agent selector
+              const AgentSelector(),
+              const SizedBox(width: 4),
               // Attachment button
               _AttachButton(onPressed: () {
                 HapticFeedback.lightImpact();

@@ -37,6 +37,8 @@ class AppConfig {
   static const String mocEndpoint = '/api/moc';
   static const String pushRegisterEndpoint = '/api/push/register';
   static const String aguiInfoEndpoint = '/api/agui/info';
+  static const String agentsListEndpoint = '/v1/agents/external';
+  static const String agentsDispatchEndpoint = '/v1/agents/dispatch';
 
   // ─── Timeouts ───
   static const Duration connectTimeout = Duration(seconds: 10);

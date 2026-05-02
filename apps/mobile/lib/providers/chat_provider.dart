@@ -386,7 +386,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   }
 
   /// Send a user message
-  Future<void> sendMessage(String content) async {
+  Future<void> sendMessage(String content, {String? agentId}) async {
     if (content.trim().isEmpty) return;
 
     // Add user message immediately
@@ -406,6 +406,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         _kernelService.sendWsMessage(
           content,
           threadId: state.currentThreadId,
+          agentId: agentId,
         );
       } else {
         // Fallback to REST

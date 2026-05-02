@@ -188,18 +188,23 @@ class KernelService {
   }
 
   // ─── Send via WebSocket ───
-  void sendWsMessage(String message, {String? threadId}) {
+  void sendWsMessage(String message, {String? threadId, String? agentId}) {
     if (_wsChannel == null) {
       _log.warning('WebSocket not connected, cannot send');
       return;
     }
 
-    _wsChannel!.sink.add(jsonEncode({
+    final payload = <String, dynamic>{
       'type': 'message',
       'content': message,
       'thread_id': threadId,
       'timestamp': DateTime.now().toUtc().toIso8601String(),
-    }));
+    };
+    // If a specific external agent is selected, include it
+    if (agentId != null && agentId != 'auto') {
+      payload['dispatch_agent'] = agentId;
+    }
+    _wsChannel!.sink.add(jsonEncode(payload));
   }
 
   // ─── Heartbeat ───
