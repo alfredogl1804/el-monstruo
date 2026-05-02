@@ -957,6 +957,38 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
     tool_loop_count = state.get("tool_loop_count", 0)
     router, _, _, _ = _deps(config)
 
+    # ── External Agent Dispatch ──────────────────────────────────────
+    # If dispatch_agent is set in context, route to external agent instead
+    dispatch_agent = state.get("context", {}).get("dispatch_agent")
+    if dispatch_agent and not tool_results:
+        try:
+            from kernel.external_agents import ExternalAgentDispatcher
+            dispatcher = ExternalAgentDispatcher()
+            # Build context from conversation history
+            history_context = "\n".join(
+                f"{m.get('role', 'user')}: {m.get('content', '')}"
+                for m in conversation_context[-10:]
+            ) if conversation_context else ""
+            result = await dispatcher.dispatch(
+                agent_id=dispatch_agent,
+                message=message,
+                context=history_context,
+                thread_id=state.get("context", {}).get("thread_id", ""),
+            )
+            if result.get("success"):
+                return {
+                    "response": result["content"],
+                    "model_used": f"{dispatch_agent}:{result.get('model_used', 'unknown')}",
+                    "usage": {"total_tokens": result.get("tokens_used", 0)},
+                    "latency_ms": result.get("latency_ms", 0),
+                }
+            else:
+                logger.warning("external_agent_dispatch_failed", agent=dispatch_agent, error=result.get("error"))
+                # Fall through to normal execution
+        except Exception as e:
+            logger.error("external_agent_dispatch_error", agent=dispatch_agent, error=str(e))
+            # Fall through to normal execution
+
     # Sprint 21: Multi-Agent — inject agent-specific system prompt
     agent_system_prompt = state.get("agent_system_prompt")
     agent_type = state.get("agent_type")

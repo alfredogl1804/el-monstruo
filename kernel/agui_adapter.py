@@ -175,11 +175,17 @@ async def agui_run(req: AGUIRunRequest, request: Request):
             # Execute through kernel
             from contracts.kernel_interface import RunInput
 
+            # Build context — include dispatch_agent if specified
+            run_context = {"thread_id": thread_id, "agui": True}
+            dispatch_agent = req.forwarded_props.get("dispatch_agent")
+            if dispatch_agent:
+                run_context["dispatch_agent"] = dispatch_agent
+
             run_input = RunInput(
                 message=user_message,
                 user_id=req.forwarded_props.get("user_id", "anonymous"),
                 channel="command-center",
-                context={"thread_id": thread_id, "agui": True},
+                context=run_context,
             )
 
             # Try streaming first

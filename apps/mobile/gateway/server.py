@@ -322,6 +322,7 @@ async def ws_chat(ws: WebSocket):
                         message=data.get("content", ""),
                         thread_id=data.get("thread_id"),
                         connection_id=connection_id,
+                        dispatch_agent=data.get("dispatch_agent"),
                     )
                 )
 
@@ -352,18 +353,24 @@ async def _stream_agui_to_ws(
     message: str,
     thread_id: Optional[str],
     connection_id: str,
+    dispatch_agent: Optional[str] = None,
 ):
     """
     Call kernel /v1/agui/run (SSE) and translate events to WebSocket frames.
+    If dispatch_agent is set, the kernel routes to that external agent.
     """
     thread_id = thread_id or str(uuid4())
     run_id = str(uuid4())
+
+    forwarded_props = {"user_id": "alfredo", "source": "mobile_app"}
+    if dispatch_agent:
+        forwarded_props["dispatch_agent"] = dispatch_agent
 
     agui_payload = {
         "thread_id": thread_id,
         "run_id": run_id,
         "messages": [{"role": "user", "content": message}],
-        "forwarded_props": {"user_id": "alfredo", "source": "mobile_app"},
+        "forwarded_props": forwarded_props,
     }
 
     try:
