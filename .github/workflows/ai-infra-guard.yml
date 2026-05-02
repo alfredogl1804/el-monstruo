@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       aig:
-        image: tencentaiinfra/ai-infra-guard:latest
+        image: zhuquelab/aig-server:latest
         ports:
           - 8088:8088
         options: >-
