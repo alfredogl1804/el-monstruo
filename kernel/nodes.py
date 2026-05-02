@@ -1409,10 +1409,11 @@ def should_enrich(state: MonstruoState) -> str:
     - deep_think, execute (need full context)
     - Messages with personal markers (mi, mis, proyecto, recuerda, etc.)
     - Messages referencing past conversations
+    - ANY message when the thread has prior conversation history
 
     Skip enrich for:
     - background tasks
-    - Short, simple chat without personal references
+    - Short, simple chat without personal references AND no prior history
     """
     intent = state.get("intent", "chat")
     message = state.get("message", "").lower().strip()
@@ -1421,18 +1422,13 @@ def should_enrich(state: MonstruoState) -> str:
     if intent == "background":
         return "execute"
 
-    # Sprint 39 Opt-1: Respetar skip_enrich del Supervisor (tier SIMPLE)
-    # El supervisor ya decidió que este mensaje no necesita contexto de memoria
-    if state.get("skip_enrich", False):
-        logger.info("fast_path_supervisor_skip_enrich", intent=intent, message_preview=message[:60])
-        return "execute"
-
     # Always enrich for heavy intents
     if intent in ("deep_think", "execute"):
         return "enrich"
 
-    # OPT-3: Fast-path for simple chat
-    # Check if message needs personal/memory context
+    # ── Sprint 56 Fix: Memory-aware markers check BEFORE supervisor skip ──
+    # Personal markers indicate the user is referencing memory/history.
+    # These OVERRIDE the supervisor's skip_enrich decision.
     personal_markers = {
         "mi ",
         "mis ",
@@ -1454,8 +1450,22 @@ def should_enrich(state: MonstruoState) -> str:
         "mes",
         "dije",
         "dijiste",
+        "dijimos",
         "hablamos",
         "mencioné",
+        "mencionaste",
+        "instante",
+        "hace un",
+        "hace rato",
+        "momento",
+        "anterior",
+        "previo",
+        "último",
+        "última",
+        "te dije",
+        "me dijiste",
+        "te pregunté",
+        "te pedí",
         "color favorito",
         "gato",
         "perro",
@@ -1464,11 +1474,29 @@ def should_enrich(state: MonstruoState) -> str:
         "góngora",
     }
 
+    needs_memory = any(marker in message for marker in personal_markers)
+    if needs_memory:
+        logger.info("enrich_forced_by_markers", message_preview=message[:60])
+        return "enrich"
+
+    # ── Sprint 56 Fix: If thread has conversation history, always enrich ──
+    # This prevents the "I don't remember anything" bug when the user
+    # asks about prior messages in a short/simple way.
+    conversation_history = state.get("conversation_history", [])
+    if conversation_history and len(conversation_history) > 0:
+        logger.info("enrich_forced_by_history", history_len=len(conversation_history), message_preview=message[:60])
+        return "enrich"
+
+    # Sprint 39 Opt-1: Respetar skip_enrich del Supervisor (tier SIMPLE)
+    # ONLY skip enrich if no markers matched AND no prior history exists
+    if state.get("skip_enrich", False):
+        logger.info("fast_path_supervisor_skip_enrich", intent=intent, message_preview=message[:60])
+        return "execute"
+
+    # OPT-3: Fast-path for simple chat (no markers, no history)
     if intent == "chat" and len(message) < 80:
-        needs_memory = any(marker in message for marker in personal_markers)
-        if not needs_memory:
-            logger.info("fast_path_skip_enrich", message_preview=message[:60])
-            return "execute"
+        logger.info("fast_path_skip_enrich", message_preview=message[:60])
+        return "execute"
 
     # Default: enrich for context-aware responses
     return "enrich"
