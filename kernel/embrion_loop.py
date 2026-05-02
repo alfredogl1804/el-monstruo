@@ -1600,8 +1600,8 @@ class EmbrionLoop:
         logger.info("embrion_radar_check_start", cycle=self._cycle_count)
 
         # Budget guard: skip if > 80% of daily budget consumed
-        if self._cost_today >= DAILY_BUDGET_USD * 0.8:
-            logger.warning("embrion_radar_budget_guard", cost_today=self._cost_today)
+        if self._cost_today_usd >= DAILY_BUDGET_USD * 0.8:
+            logger.warning("embrion_radar_budget_guard", cost_today=self._cost_today_usd)
             return
 
         try:

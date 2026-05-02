@@ -131,3 +131,7 @@ ollama==0.6.2
 # Sprint 57 — Transversal Layers
 posthog==7.13.2
 stripe==15.1.0
+# SP11 — Browser Automation (Playwright)
+# Requires post-install: playwright install chromium --with-deps
+# See Dockerfile.web for chromium install step
+playwright==1.49.0

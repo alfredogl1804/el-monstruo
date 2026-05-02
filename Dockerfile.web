@@ -6,15 +6,29 @@
 FROM python:3.12-slim AS base
 
 # Cache bust — cambiar este valor fuerza rebuild completo
-ARG CACHE_BUST=29_sprint29-multi-agent-opik-fallback
+ARG CACHE_BUST=sp11_playwright_browser_automation
 
 WORKDIR /app
 
-# System deps for asyncpg, pgvector native extensions, and healthcheck
+# System deps for asyncpg, pgvector native extensions, healthcheck, and Playwright chromium
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     build-essential \
     libpq-dev \
+    # Playwright chromium system dependencies
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Python deps — production only (eval deps in requirements-eval.txt)
@@ -25,6 +39,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
     grep -v "^$" | \
     grep -v "pytest" | \
     pip install --no-cache-dir -r /dev/stdin
+
+# Install Playwright chromium browser (SP11 — Browser Automation)
+# Must run AFTER pip install (playwright package must be installed first)
+RUN pip install playwright==1.49.0 && playwright install chromium
 
 # App code
 COPY . .
