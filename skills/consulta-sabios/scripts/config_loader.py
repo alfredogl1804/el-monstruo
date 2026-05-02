@@ -10,8 +10,8 @@ Uso:
 """
 
 import os
-from pathlib import Path
 from functools import lru_cache
+from pathlib import Path
 
 try:
     import yaml
@@ -34,6 +34,7 @@ def _load_yaml(path: Path) -> dict:
         else:
             # Fallback muy básico — solo para emergencias
             import json
+
             content = f.read()
             # Intentar JSON como último recurso
             try:

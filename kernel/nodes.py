@@ -238,6 +238,7 @@ async def classify_and_route(state: MonstruoState, config: RunnableConfig) -> di
     supervisor_tier = "MODERATE"
     try:
         from kernel.supervisor import analyze_complexity
+
         conversation_context = state.get("conversation_context", [])
         supervisor_decision = analyze_complexity(
             message=state.get("message", ""),
@@ -246,7 +247,11 @@ async def classify_and_route(state: MonstruoState, config: RunnableConfig) -> di
             intent=intent_str,
         )
         skip_enrich = supervisor_decision.skip_enrich
-        supervisor_tier = supervisor_decision.tier.value if hasattr(supervisor_decision.tier, 'value') else str(supervisor_decision.tier)
+        supervisor_tier = (
+            supervisor_decision.tier.value
+            if hasattr(supervisor_decision.tier, "value")
+            else str(supervisor_decision.tier)
+        )
         # Get the supervisor's model recommendation
         if supervisor_decision.model:
             model = supervisor_decision.model
@@ -448,6 +453,7 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
     # Sprint 9: Inject dynamic user dossier from Supabase
     # Sprint 39 Opt-3: Dossier cache con TTL 5min — evita fetch de Supabase en cada request
     from kernel import dossier_cache
+
     db = config.get("configurable", {}).get("_db")
     cached_dossier = dossier_cache.get(user_id)
     if cached_dossier:
@@ -703,46 +709,54 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
 
     # Add semantic memories (from pgvector hybrid search + MemPalace)
     for m in relevant_memories:
-        _all_candidates.append({
-            "content": m.get("content", ""),
-            "score": m.get("score", 0),
-            "type": m.get("type", "memory"),
-            "source": m.get("source", "semantic"),
-        })
+        _all_candidates.append(
+            {
+                "content": m.get("content", ""),
+                "score": m.get("score", 0),
+                "type": m.get("type", "memory"),
+                "source": m.get("source", "semantic"),
+            }
+        )
 
     # Add Mem0 episodic memories
     if mem0_context and mem0_context.get("mem0_active"):
         for mem in mem0_context.get("memories", []):
             mem_text = mem.get("memory", "")
             if mem_text:
-                _all_candidates.append({
-                    "content": mem_text,
-                    "score": mem.get("score", 0.5),
-                    "type": "episodic",
-                    "source": "mem0",
-                })
+                _all_candidates.append(
+                    {
+                        "content": mem_text,
+                        "score": mem.get("score", 0.5),
+                        "type": "episodic",
+                        "source": "mem0",
+                    }
+                )
 
     # Add LightRAG knowledge graph text (as a single document)
     if lightrag_result and lightrag_result.get("results"):
         rag_text = lightrag_result["results"]
         if isinstance(rag_text, str) and rag_text.strip():
-            _all_candidates.append({
-                "content": rag_text[:3000],  # Cap individual chunk
-                "score": 0.7,
-                "type": "knowledge_graph",
-                "source": "lightrag",
-            })
+            _all_candidates.append(
+                {
+                    "content": rag_text[:3000],  # Cap individual chunk
+                    "score": 0.7,
+                    "type": "knowledge_graph",
+                    "source": "lightrag",
+                }
+            )
 
     # Add knowledge entities as text
     if knowledge_entities:
         for e in knowledge_entities:
             entity_text = f"{e['name']} ({e['type']}): {e.get('attributes', {})}"
-            _all_candidates.append({
-                "content": entity_text,
-                "score": 0.6,
-                "type": "entity",
-                "source": "knowledge_graph",
-            })
+            _all_candidates.append(
+                {
+                    "content": entity_text,
+                    "score": 0.6,
+                    "type": "entity",
+                    "source": "knowledge_graph",
+                }
+            )
 
     # Determine top_n based on tier
     _rerank_top_n = 3 if supervisor_tier in ("SIMPLE", "MODERATE") else 5
@@ -996,6 +1010,7 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
     # Sprint 39 Opt-2: Response cache check — skip LLM call on hit
     if not is_followup:
         from kernel import response_cache
+
         cached_response = response_cache.get(message, intent)
         if cached_response:
             logger.info("execute_cache_hit", intent=intent, preview=message[:50])
@@ -1172,6 +1187,7 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
     # Sprint 39 Opt-2: Store response in cache for future hits
     if response and not is_followup and not pending_tool_calls:
         from kernel import response_cache
+
         response_cache.store(message, intent, response)
 
     # Accumulate tokens across tool loops

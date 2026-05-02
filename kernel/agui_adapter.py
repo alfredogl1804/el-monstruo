@@ -30,7 +30,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import time
 from typing import Any, Optional
 from uuid import uuid4
 
@@ -308,7 +307,9 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                                 AGUIEventType.TOOL_CALL_START,
                                 {
                                     "toolCallId": tool_call_id,
-                                    "toolCallName": chunk_data.get("name", "unknown") if isinstance(chunk_data, dict) else "unknown",
+                                    "toolCallName": chunk_data.get("name", "unknown")
+                                    if isinstance(chunk_data, dict)
+                                    else "unknown",
                                 },
                             )
                             if isinstance(chunk_data, dict) and chunk_data.get("args"):
@@ -327,7 +328,9 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                                     AGUIEventType.TOOL_CALL_END,
                                     {
                                         "toolCallId": tool_calls_emitted[-1],
-                                        "result": str(chunk_data.get("result", "") if isinstance(chunk_data, dict) else chunk_data)[:1000],
+                                        "result": str(
+                                            chunk_data.get("result", "") if isinstance(chunk_data, dict) else chunk_data
+                                        )[:1000],
                                     },
                                 )
 

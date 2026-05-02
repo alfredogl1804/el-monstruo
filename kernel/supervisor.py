@@ -29,7 +29,7 @@ import re
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 
@@ -38,17 +38,20 @@ logger = structlog.get_logger("kernel.supervisor")
 
 # ── Complexity Tiers ──────────────────────────────────────────────────
 
+
 class ComplexityTier(str, Enum):
     """Message complexity classification."""
-    SIMPLE = "simple"      # Greetings, short questions, lookups
+
+    SIMPLE = "simple"  # Greetings, short questions, lookups
     MODERATE = "moderate"  # Multi-step questions, summaries
-    COMPLEX = "complex"    # Analysis, reasoning, multi-domain
-    DEEP = "deep"          # Research, tool-heavy, multi-agent
+    COMPLEX = "complex"  # Analysis, reasoning, multi-domain
+    DEEP = "deep"  # Research, tool-heavy, multi-agent
 
 
 @dataclass
 class SupervisorDecision:
     """Result of supervisor analysis."""
+
     tier: ComplexityTier
     model: str
     fallbacks: list[str]
@@ -94,17 +97,51 @@ TIER_MODEL_MAP: dict[ComplexityTier, dict[str, Any]] = {
 
 # Keywords that signal complexity
 _COMPLEX_KEYWORDS = {
-    "analiza", "analyze", "compara", "compare", "evalúa", "evaluate",
-    "investiga", "research", "profundiza", "deep dive", "arquitectura",
-    "architecture", "estrategia", "strategy", "diseña", "design",
-    "optimiza", "optimize", "refactoriza", "refactor", "audita", "audit",
-    "simula", "simulate", "modela", "model", "predice", "predict",
+    "analiza",
+    "analyze",
+    "compara",
+    "compare",
+    "evalúa",
+    "evaluate",
+    "investiga",
+    "research",
+    "profundiza",
+    "deep dive",
+    "arquitectura",
+    "architecture",
+    "estrategia",
+    "strategy",
+    "diseña",
+    "design",
+    "optimiza",
+    "optimize",
+    "refactoriza",
+    "refactor",
+    "audita",
+    "audit",
+    "simula",
+    "simulate",
+    "modela",
+    "model",
+    "predice",
+    "predict",
 }
 
 _DEEP_KEYWORDS = {
-    "sabios", "council", "enjambre", "swarm", "cidp", "multi-model",
-    "consensus", "deep research", "investigación profunda",
-    "plan completo", "full plan", "sprint", "deploy", "despliegue",
+    "sabios",
+    "council",
+    "enjambre",
+    "swarm",
+    "cidp",
+    "multi-model",
+    "consensus",
+    "deep research",
+    "investigación profunda",
+    "plan completo",
+    "full plan",
+    "sprint",
+    "deploy",
+    "despliegue",
 }
 
 _SIMPLE_PATTERNS = [
@@ -115,8 +152,18 @@ _SIMPLE_PATTERNS = [
 ]
 
 _TOOL_KEYWORDS = {
-    "busca en", "search", "web search", "github", "database", "supabase",
-    "email", "webhook", "api", "endpoint", "deploy", "browse",
+    "busca en",
+    "search",
+    "web search",
+    "github",
+    "database",
+    "supabase",
+    "email",
+    "webhook",
+    "api",
+    "endpoint",
+    "deploy",
+    "browse",
 }
 
 
@@ -187,22 +234,22 @@ def analyze_complexity(
     tool_score = sum(1 for kw in _TOOL_KEYWORDS if kw in msg_lower)
 
     # ── Signal 5: Syntactic complexity ──
-    sentence_count = len(re.split(r'[.!?]+', message.strip())) - 1
+    sentence_count = len(re.split(r"[.!?]+", message.strip())) - 1
     question_count = message.count("?")
     has_code_block = "```" in message
-    has_list = bool(re.search(r'^\s*[-*\d]+[.)]\s', message, re.MULTILINE))
+    has_list = bool(re.search(r"^\s*[-*\d]+[.)]\s", message, re.MULTILINE))
 
     # ── Composite score ──
     score = 0.0
-    score += min(msg_len / 500, 2.0)           # Length: 0-2 points
-    score += complex_score * 1.5                 # Complex keywords: 1.5 each
-    score += tool_score * 1.0                    # Tool keywords: 1.0 each
-    score += sentence_count * 0.3                # Sentences: 0.3 each
-    score += question_count * 0.5                # Questions: 0.5 each
-    score += conversation_depth * 0.2            # Depth: 0.2 per turn
-    score += 2.0 if has_code_block else 0.0      # Code blocks: +2
-    score += 1.0 if has_list else 0.0            # Lists: +1
-    score += 1.0 if has_tool_history else 0.0    # Previous tool use: +1
+    score += min(msg_len / 500, 2.0)  # Length: 0-2 points
+    score += complex_score * 1.5  # Complex keywords: 1.5 each
+    score += tool_score * 1.0  # Tool keywords: 1.0 each
+    score += sentence_count * 0.3  # Sentences: 0.3 each
+    score += question_count * 0.5  # Questions: 0.5 each
+    score += conversation_depth * 0.2  # Depth: 0.2 per turn
+    score += 2.0 if has_code_block else 0.0  # Code blocks: +2
+    score += 1.0 if has_list else 0.0  # Lists: +1
+    score += 1.0 if has_tool_history else 0.0  # Previous tool use: +1
 
     # ── Tier selection ──
     if score < 1.5:
@@ -247,6 +294,7 @@ def analyze_complexity(
 
 
 # ── Supervisor Node (for LangGraph integration) ──────────────────────
+
 
 async def supervisor_node(state: dict, config: dict) -> dict:
     """

@@ -18,6 +18,7 @@ Módulos v2.0:
 - srd_builder: Genera el Site Reality Document
 - render_validator: Valida renders contra el SRD
 """
+
 import argparse
 import asyncio
 import json
@@ -31,18 +32,18 @@ SCRIPT_DIR = Path(__file__).parent
 SKILL_DIR = SCRIPT_DIR.parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from site_resolver import resolve_site
 from coverage_profiler import profile_coverage
-from osm_collector import collect_osm
-from maps_grounding_collector import collect_maps_grounding
-from web_researcher import research_web
-from visual_analyzer import analyze_visuals
-from photo_processor import process_photos
-from social_media_collector import collect_social_media
-from sketchup_analyzer import analyze_sketchup
-from spatial_model_builder import build_spatial_model
 from evidence_fuser import fuse_evidence
+from maps_grounding_collector import collect_maps_grounding
+from osm_collector import collect_osm
+from photo_processor import process_photos
+from site_resolver import resolve_site
+from sketchup_analyzer import analyze_sketchup
+from social_media_collector import collect_social_media
+from spatial_model_builder import build_spatial_model
 from srd_builder import build_srd
+from visual_analyzer import analyze_visuals
+from web_researcher import research_web
 
 
 def parse_args():
@@ -55,26 +56,25 @@ def parse_args():
     parser.add_argument("--output-dir", type=str, required=True, help="Directorio de salida")
 
     # Fuentes de fotos del usuario
-    parser.add_argument("--user-photos", type=str, default=None,
-                        help="Directorio con fotos del usuario del sitio")
-    parser.add_argument("--max-photos", type=int, default=100,
-                        help="Máximo de fotos a procesar")
+    parser.add_argument("--user-photos", type=str, default=None, help="Directorio con fotos del usuario del sitio")
+    parser.add_argument("--max-photos", type=int, default=100, help="Máximo de fotos a procesar")
 
     # Renders y SketchUp existentes
-    parser.add_argument("--renders-dir", type=str, default=None,
-                        help="Directorio con renders existentes del proyecto")
-    parser.add_argument("--sketchup-renders", type=str, default=None,
-                        help="Directorio con renders/screenshots del modelo SketchUp")
-    parser.add_argument("--sketchup-files", type=str, default=None,
-                        help="Directorio con archivos .skp")
-    parser.add_argument("--pdf-plans", type=str, default=None,
-                        help="Directorio con planos PDF del proyecto")
+    parser.add_argument("--renders-dir", type=str, default=None, help="Directorio con renders existentes del proyecto")
+    parser.add_argument(
+        "--sketchup-renders", type=str, default=None, help="Directorio con renders/screenshots del modelo SketchUp"
+    )
+    parser.add_argument("--sketchup-files", type=str, default=None, help="Directorio con archivos .skp")
+    parser.add_argument("--pdf-plans", type=str, default=None, help="Directorio con planos PDF del proyecto")
 
     # Opciones de búsqueda
-    parser.add_argument("--search-social", action="store_true", default=True,
-                        help="Buscar en redes sociales (Instagram, YouTube, TikTok)")
-    parser.add_argument("--no-social", action="store_true",
-                        help="Desactivar búsqueda en redes sociales")
+    parser.add_argument(
+        "--search-social",
+        action="store_true",
+        default=True,
+        help="Buscar en redes sociales (Instagram, YouTube, TikTok)",
+    )
+    parser.add_argument("--no-social", action="store_true", help="Desactivar búsqueda en redes sociales")
 
     # Opciones existentes
     parser.add_argument("--target-date", type=str, default=None, help="Fecha objetivo YYYY-MM-DD")
@@ -106,8 +106,12 @@ async def run_pipeline(args):
     # ─── PASO 1: Site Resolver ───────────────────────────────────────────
     print("\n[1/10] Resolviendo sitio...")
     site_info = resolve_site(
-        lat=args.lat, lng=args.lng, radius=args.radius,
-        name=args.name, target_date=target_date_str, views=views,
+        lat=args.lat,
+        lng=args.lng,
+        radius=args.radius,
+        name=args.name,
+        target_date=target_date_str,
+        views=views,
     )
     with open(output_dir / "site_info.json", "w") as f:
         json.dump(site_info, f, indent=2, ensure_ascii=False)
@@ -155,14 +159,18 @@ async def run_pipeline(args):
         try:
             photo_result = await process_photos(
                 photo_dir=args.user_photos,
-                site_lat=args.lat, site_lng=args.lng,
-                site_name=args.name, radius_m=args.radius,
+                site_lat=args.lat,
+                site_lng=args.lng,
+                site_name=args.name,
+                radius_m=args.radius,
                 output_dir=str(evidence_dir / "user_photos"),
                 max_photos=args.max_photos,
             )
             results["user_photos"] = photo_result
             obs_count = len(photo_result.get("observations", []))
-            print(f"    ✓ Fotos usuario: {obs_count} observaciones de {photo_result.get('summary', {}).get('total_photos', 0)} fotos")
+            print(
+                f"    ✓ Fotos usuario: {obs_count} observaciones de {photo_result.get('summary', {}).get('total_photos', 0)} fotos"
+            )
         except Exception as e:
             print(f"    ✗ Fotos usuario: Error — {str(e)[:80]}")
             results["user_photos"] = {"observations": [], "error": str(e)}
@@ -172,7 +180,7 @@ async def run_pipeline(args):
         user_photo_paths = []
         if args.user_photos and os.path.isdir(args.user_photos):
             for f_name in os.listdir(args.user_photos):
-                if f_name.lower().endswith(('.jpg', '.jpeg', '.png', '.webp', '.heic')):
+                if f_name.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".heic")):
                     user_photo_paths.append(os.path.join(args.user_photos, f_name))
         if user_photo_paths:
             try:
@@ -183,11 +191,13 @@ async def run_pipeline(args):
 
     # ─── PASO 5: Redes sociales (NUEVO v2.0) ─────────────────────────────
     if not args.no_social:
-        print(f"\n[5/10] Buscando en redes sociales...")
+        print("\n[5/10] Buscando en redes sociales...")
         try:
             social_result = await collect_social_media(
-                site_name=args.name, location=location,
-                lat=args.lat, lng=args.lng,
+                site_name=args.name,
+                location=location,
+                lat=args.lat,
+                lng=args.lng,
                 output_dir=str(evidence_dir / "social_media"),
                 renders_dir=args.renders_dir,
             )
@@ -203,7 +213,7 @@ async def run_pipeline(args):
     # ─── PASO 6: SketchUp / Renders existentes (NUEVO v2.0) ─────────────
     has_sketchup = args.sketchup_renders or args.sketchup_files or args.pdf_plans
     if has_sketchup:
-        print(f"\n[6/10] Analizando modelos SketchUp y planos...")
+        print("\n[6/10] Analizando modelos SketchUp y planos...")
         try:
             sketchup_result = await analyze_sketchup(
                 site_name=args.name,
@@ -227,7 +237,7 @@ async def run_pipeline(args):
 
     # ─── PASO 7: Spatial Model Builder (NUEVO v2.0) ──────────────────────
     if not args.skip_spatial_model:
-        print(f"\n[7/10] Construyendo modelo espacial unificado...")
+        print("\n[7/10] Construyendo modelo espacial unificado...")
         try:
             spatial_model = await build_spatial_model(
                 site_info={
@@ -240,7 +250,7 @@ async def run_pipeline(args):
                 output_dir=str(evidence_dir / "spatial_model"),
             )
             results["spatial_model"] = {"observations": [], "model": spatial_model}
-            print(f"    ✓ Modelo espacial construido")
+            print("    ✓ Modelo espacial construido")
             blind_count = len(spatial_model.get("blind_spots", []))
             conf = spatial_model.get("confidence_map", {}).get("overall", 0)
             print(f"    Confianza global: {conf:.0%} | Blind spots: {blind_count}")
@@ -286,17 +296,14 @@ async def run_pipeline(args):
     with open(output_dir / "render_constraints.json", "w") as f:
         json.dump(constraints, f, indent=2, ensure_ascii=False, default=str)
 
-    print(f"    SRD generado: site_reality.json")
-    print(f"    Markdown: site_reality.md")
+    print("    SRD generado: site_reality.json")
+    print("    Markdown: site_reality.md")
     print(f"    must_include: {len(constraints.get('must_include', []))}")
     print(f"    must_not_include: {len(constraints.get('must_not_include', []))}")
 
     # ─── PASO 10: Resumen Final ──────────────────────────────────────────
     elapsed = time.time() - start_time
-    total_obs = sum(
-        len(r.get("observations", []))
-        for r in results.values() if isinstance(r, dict)
-    )
+    total_obs = sum(len(r.get("observations", [])) for r in results.values() if isinstance(r, dict))
 
     print("\n" + "=" * 60)
     print(f"RECONSTRUCCIÓN COMPLETADA v2.0 en {elapsed:.1f}s")
@@ -318,7 +325,9 @@ def generate_srd_markdown(srd, spatial_model=None):
     lines = []
     meta = srd.get("site_metadata", {})
     lines.append(f"# Site Reality Document v2.0 — {meta.get('name', 'Unknown')}")
-    lines.append(f"\n**Coordenadas:** {meta.get('coordinates', {}).get('lat', '')}, {meta.get('coordinates', {}).get('lng', '')}")
+    lines.append(
+        f"\n**Coordenadas:** {meta.get('coordinates', {}).get('lat', '')}, {meta.get('coordinates', {}).get('lng', '')}"
+    )
     lines.append(f"**Radio:** {meta.get('radius_m', '')}m")
     lines.append(f"**Fecha objetivo:** {meta.get('target_reality_date', '')}")
     lines.append(f"**Fecha reconstrucción:** {meta.get('reconstruction_date', '')}")
@@ -326,7 +335,9 @@ def generate_srd_markdown(srd, spatial_model=None):
     # Fuentes
     lines.append("\n## Fuentes Consultadas\n")
     for src in srd.get("source_registry", []):
-        lines.append(f"- **{src.get('type', '')}**: {src.get('source_id', '')} (confianza: {src.get('confidence', '')})")
+        lines.append(
+            f"- **{src.get('type', '')}**: {src.get('source_id', '')} (confianza: {src.get('confidence', '')})"
+        )
 
     # Spatial Model Summary (if available)
     if spatial_model:
@@ -334,7 +345,7 @@ def generate_srd_markdown(srd, spatial_model=None):
 
         site_core = spatial_model.get("site_core", {})
         if isinstance(site_core, dict):
-            lines.append(f"### Sitio Principal")
+            lines.append("### Sitio Principal")
             lines.append(site_core.get("description", "Sin descripción"))
             lines.append("")
 
@@ -351,7 +362,9 @@ def generate_srd_markdown(srd, spatial_model=None):
         # Blind spots from spatial model
         lines.append("### Blind Spots del Modelo Espacial\n")
         for bs in spatial_model.get("blind_spots", []):
-            lines.append(f"- **{bs.get('zone', '?')}**: {bs.get('reason', '?')} → Política: {bs.get('render_policy', '?')}")
+            lines.append(
+                f"- **{bs.get('zone', '?')}**: {bs.get('reason', '?')} → Política: {bs.get('render_policy', '?')}"
+            )
         lines.append("")
 
     # Contexto por orientación (from SRD)
@@ -370,12 +383,16 @@ def generate_srd_markdown(srd, spatial_model=None):
     # Observaciones
     lines.append("\n## Observaciones Visuales\n")
     for obs in srd.get("visual_observations", []):
-        lines.append(f"- **{obs.get('category', '')}**: {obs.get('description', '')} (confianza: {obs.get('confidence', '')})")
+        lines.append(
+            f"- **{obs.get('category', '')}**: {obs.get('description', '')} (confianza: {obs.get('confidence', '')})"
+        )
 
     # Blind Spots
     lines.append("\n## Blind Spots\n")
     for bs in srd.get("blind_spots", []):
-        lines.append(f"- **{bs.get('zone', '')}**: {bs.get('status', '')} — {bs.get('reason', '')} → Política: {bs.get('render_policy', '')}")
+        lines.append(
+            f"- **{bs.get('zone', '')}**: {bs.get('status', '')} — {bs.get('reason', '')} → Política: {bs.get('render_policy', '')}"
+        )
 
     # Restricciones
     lines.append("\n## Restricciones de Render\n")
@@ -402,14 +419,17 @@ def generate_srd_markdown(srd, spatial_model=None):
 
 def extract_render_constraints(srd, spatial_model=None):
     """Extrae las restricciones de render del SRD + modelo espacial."""
-    constraints = srd.get("render_constraints", {
-        "must_include": [],
-        "must_not_include": [],
-        "height_limits": [],
-        "landscape_constraints": [],
-        "color_palette": [],
-        "materials": [],
-    })
+    constraints = srd.get(
+        "render_constraints",
+        {
+            "must_include": [],
+            "must_not_include": [],
+            "height_limits": [],
+            "landscape_constraints": [],
+            "color_palette": [],
+            "materials": [],
+        },
+    )
 
     # Enrich with spatial model constraints
     if spatial_model:
@@ -417,19 +437,23 @@ def extract_render_constraints(srd, spatial_model=None):
 
         # Add hard constraints
         for hc in sm_constraints.get("hard_constraints", []):
-            constraints.setdefault("must_include", []).append({
-                "element": hc.get("rule", ""),
-                "description": f"[Spatial Model] Zona: {hc.get('zone', '?')} — Evidencia: {hc.get('evidence', '?')}",
-                "source": "spatial_model",
-            })
+            constraints.setdefault("must_include", []).append(
+                {
+                    "element": hc.get("rule", ""),
+                    "description": f"[Spatial Model] Zona: {hc.get('zone', '?')} — Evidencia: {hc.get('evidence', '?')}",
+                    "source": "spatial_model",
+                }
+            )
 
         # Add prohibited elements
         for pe in sm_constraints.get("prohibited_elements", []):
-            constraints.setdefault("must_not_include", []).append({
-                "element": pe.get("element", ""),
-                "reason": f"[Spatial Model] Zona: {pe.get('zone', '?')} — {pe.get('reason', '?')}",
-                "source": "spatial_model",
-            })
+            constraints.setdefault("must_not_include", []).append(
+                {
+                    "element": pe.get("element", ""),
+                    "reason": f"[Spatial Model] Zona: {pe.get('zone', '?')} — {pe.get('reason', '?')}",
+                    "source": "spatial_model",
+                }
+            )
 
     return constraints
 

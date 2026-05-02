@@ -7,9 +7,7 @@ de la nueva solución. Puede invocar el GPU broker si se requiere
 entrenamiento o inferencia pesada.
 """
 
-import asyncio
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -19,8 +17,7 @@ from conector_sabios import consultar_sabio
 SKILL_DIR = Path(__file__).parent.parent
 
 
-async def generate_build_plan(validated_plan: dict, orchestrator_plan: dict,
-                              iteration: int) -> dict:
+async def generate_build_plan(validated_plan: dict, orchestrator_plan: dict, iteration: int) -> dict:
     """Generate a build plan based on validated findings."""
     # Collect verified claims and validated outputs
     verified = validated_plan.get("verified_claims", [])
@@ -28,8 +25,10 @@ async def generate_build_plan(validated_plan: dict, orchestrator_plan: dict,
     north_star = orchestrator_plan.get("north_star", "")
 
     # Pre-format JSON strings to avoid f-string brace conflicts
-    verified_json = json.dumps([v.get('claim', '') for v in verified if v.get('verified')], ensure_ascii=False)[:3000]
-    backlog_json = json.dumps([{'id': t.get('id'), 'title': t.get('title')} for t in backlog], ensure_ascii=False)[:2000]
+    verified_json = json.dumps([v.get("claim", "") for v in verified if v.get("verified")], ensure_ascii=False)[:3000]
+    backlog_json = json.dumps([{"id": t.get("id"), "title": t.get("title")} for t in backlog], ensure_ascii=False)[
+        :2000
+    ]
 
     prompt = f"""Basándote en los siguientes hallazgos validados, genera un plan de construcción:
 
@@ -75,7 +74,8 @@ Responde con JSON:
         result = json.loads(text)
     except json.JSONDecodeError:
         import re
-        match = re.search(r'\{[\s\S]*\}', text)
+
+        match = re.search(r"\{[\s\S]*\}", text)
         if match:
             try:
                 result = json.loads(match.group())
@@ -118,59 +118,67 @@ async def execute_build(build_plan: dict, output_dir: Path) -> dict:
 
 NOMBRE: {comp_name}
 TIPO: {comp_type}
-DESCRIPCIÓN: {comp.get('description', '')}
+DESCRIPCIÓN: {comp.get("description", "")}
 
 Produce un documento completo y profesional."""
 
             try:
                 response = await consultar_sabio("claude", prompt)
                 content = response.get("respuesta", "")
-                artifacts.append({
-                    "name": comp_name,
-                    "type": comp_type,
-                    "content": content[:10000],
-                    "status": "generated",
-                })
+                artifacts.append(
+                    {
+                        "name": comp_name,
+                        "type": comp_type,
+                        "content": content[:10000],
+                        "status": "generated",
+                    }
+                )
             except Exception as e:
-                artifacts.append({
-                    "name": comp_name,
-                    "type": comp_type,
-                    "status": "failed",
-                    "error": str(e),
-                })
+                artifacts.append(
+                    {
+                        "name": comp_name,
+                        "type": comp_type,
+                        "status": "failed",
+                        "error": str(e),
+                    }
+                )
 
         # For code, generate with DeepSeek (optimization expert)
         elif comp_type == "code":
             prompt = f"""Genera el siguiente código:
 
 NOMBRE: {comp_name}
-DESCRIPCIÓN: {comp.get('description', '')}
+DESCRIPCIÓN: {comp.get("description", "")}
 
 Produce código limpio, documentado y con manejo de errores."""
 
             try:
                 response = await consultar_sabio("deepseek", prompt)
                 content = response.get("respuesta", "")
-                artifacts.append({
-                    "name": comp_name,
-                    "type": comp_type,
-                    "content": content[:10000],
-                    "status": "generated",
-                })
+                artifacts.append(
+                    {
+                        "name": comp_name,
+                        "type": comp_type,
+                        "content": content[:10000],
+                        "status": "generated",
+                    }
+                )
             except Exception as e:
-                artifacts.append({
-                    "name": comp_name,
-                    "type": comp_type,
-                    "status": "failed",
-                    "error": str(e),
-                })
+                artifacts.append(
+                    {
+                        "name": comp_name,
+                        "type": comp_type,
+                        "status": "failed",
+                        "error": str(e),
+                    }
+                )
 
     return {"artifacts": artifacts}
 
 
-async def run_builder(validated_plan: dict, orchestrator_plan: dict,
-                      iteration: int, enable_gpu: bool, gpu_budget: float,
-                      output_dir: Path) -> dict:
+async def run_builder(
+    validated_plan: dict, orchestrator_plan: dict, iteration: int, enable_gpu: bool, gpu_budget: float, output_dir: Path
+) -> dict:
     """Execute Stage 6: Build / Prototype / Eval."""
     # Generate build plan
     print("  Generating build plan...")
@@ -183,6 +191,7 @@ async def run_builder(validated_plan: dict, orchestrator_plan: dict,
         # Import and use gpu_broker
         try:
             from gpu_broker import provision_gpu
+
             gpu_result = await provision_gpu(
                 workload=build_plan.get("build_plan", {}).get("gpu_workload", {}),
                 budget_usd=gpu_budget,

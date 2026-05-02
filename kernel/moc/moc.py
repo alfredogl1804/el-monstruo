@@ -76,9 +76,7 @@ class MOC:
             "synthesis_interval_h": SYNTHESIS_INTERVAL_H,
             "synthesis_window_h": SYNTHESIS_WINDOW_H,
             "insights_generated": self._insights_generated,
-            "last_synthesis_at": (
-                self._last_synthesis_at.isoformat() if self._last_synthesis_at else None
-            ),
+            "last_synthesis_at": (self._last_synthesis_at.isoformat() if self._last_synthesis_at else None),
         }
 
     async def start(self) -> None:

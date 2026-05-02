@@ -10,14 +10,15 @@ Financially Feasible, Maximally Productive)
 Salida: hbu_analysis.md + scenarios.yaml + financial_model.md
 """
 
+import argparse
 import asyncio
 import json
 import os
 import sys
-import yaml
-import argparse
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import yaml
 
 sys.path.insert(0, "/home/ubuntu/skills/consulta-sabios/scripts")
 from conector_sabios import consultar_sabio
@@ -25,12 +26,12 @@ from conector_sabios import consultar_sabio
 
 async def generate_hbu_analysis(brief: dict, site_report: str, benchmarks: str) -> str:
     """GPT-5.4 realiza el análisis HBU completo."""
-    
+
     prompt = f"""Eres un analista inmobiliario senior especializado en estudios de Highest and Best Use (HBU).
 
 ## Project Brief
 ```yaml
-{yaml.dump({k: v for k, v in brief.items() if not k.startswith('_')}, default_flow_style=False, allow_unicode=True)}
+{yaml.dump({k: v for k, v in brief.items() if not k.startswith("_")}, default_flow_style=False, allow_unicode=True)}
 ```
 
 ## Site Intelligence (extracto)
@@ -100,7 +101,7 @@ REGLAS CRÍTICAS:
 
 async def generate_scenarios_yaml(hbu_text: str) -> dict:
     """Extrae los escenarios del análisis HBU en formato estructurado."""
-    
+
     prompt = f"""Del siguiente análisis HBU, extrae los escenarios propuestos y devuélvelos como JSON.
 
 {hbu_text[:8000]}
@@ -131,7 +132,7 @@ Devuelve SOLO un JSON con esta estructura:
 }}"""
 
     resultado = await consultar_sabio("gpt54", prompt)
-    
+
     if resultado.get("status") == "ok":
         text = resultado["text"]
         try:
@@ -141,63 +142,63 @@ Devuelve SOLO un JSON con esta estructura:
                 return json.loads(text[start:end])
         except json.JSONDecodeError:
             pass
-    
+
     return {"error": "No se pudieron extraer escenarios", "escenarios": []}
 
 
 async def run_hbu_analysis(brief_path: str, site_report_path: str, benchmarks_path: str, output_dir: str) -> dict:
     """Ejecuta el pipeline completo de HBU + Escenarios + Financial Model."""
-    
+
     print("=" * 60)
     print("📊 MÓDULO 4: HBU + ESCENARIOS + MODELO FINANCIERO")
     print(f"   Fecha: {datetime.now().strftime('%d %B %Y, %H:%M')}")
     print("=" * 60)
-    
+
     # 1. Cargar inputs
     with open(brief_path, "r", encoding="utf-8") as f:
         brief = yaml.safe_load(f)
-    
+
     site_report = ""
     if site_report_path and Path(site_report_path).exists():
         site_report = Path(site_report_path).read_text(encoding="utf-8")
-    
+
     benchmarks = ""
     if benchmarks_path and Path(benchmarks_path).exists():
         benchmarks = Path(benchmarks_path).read_text(encoding="utf-8")
-    
+
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    
+
     # 2. Análisis HBU
     print("  🤖 GPT-5.4 realizando análisis HBU completo...")
     hbu_text = await generate_hbu_analysis(brief, site_report, benchmarks)
-    
+
     hbu_path = os.path.join(output_dir, "hbu_analysis.md")
     Path(hbu_path).write_text(hbu_text, encoding="utf-8")
     print(f"  📄 Análisis HBU: {len(hbu_text):,} caracteres")
-    
+
     # 3. Extraer escenarios estructurados
     print("  🤖 Extrayendo escenarios estructurados...")
     scenarios = await generate_scenarios_yaml(hbu_text)
-    
+
     scenarios_path = os.path.join(output_dir, "scenarios.yaml")
     with open(scenarios_path, "w", encoding="utf-8") as f:
         yaml.dump(scenarios, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
-    
+
     n_scenarios = len(scenarios.get("escenarios", []))
     recommended = scenarios.get("escenario_recomendado", "No definido")
     print(f"  📋 {n_scenarios} escenarios generados")
     print(f"  ⭐ Recomendado: {recommended}")
-    
-    print(f"\n✅ HBU + Escenarios completado")
+
+    print("\n✅ HBU + Escenarios completado")
     print(f"  📄 HBU: {hbu_path}")
     print(f"  📊 Escenarios: {scenarios_path}")
-    
+
     return {
         "hbu_path": hbu_path,
         "scenarios_path": scenarios_path,
         "hbu_size": len(hbu_text),
         "num_scenarios": n_scenarios,
-        "recommended": recommended
+        "recommended": recommended,
     }
 
 
@@ -207,6 +208,6 @@ if __name__ == "__main__":
     parser.add_argument("--site-report", help="Ruta al site_report.md")
     parser.add_argument("--benchmarks", help="Ruta al benchmarks.md")
     parser.add_argument("--output-dir", required=True, help="Directorio de salida")
-    
+
     args = parser.parse_args()
     result = asyncio.run(run_hbu_analysis(args.brief, args.site_report, args.benchmarks, args.output_dir))

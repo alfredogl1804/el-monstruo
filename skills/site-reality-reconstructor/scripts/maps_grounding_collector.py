@@ -3,6 +3,7 @@
 Maps Grounding Collector — Usa Gemini con Google Maps Grounding
 para obtener información semántica de negocios y lugares alrededor del sitio.
 """
+
 import json
 import os
 from pathlib import Path
@@ -37,14 +38,12 @@ async def collect_maps_grounding(site_info: dict, evidence_dir: Path) -> dict:
     for i, query in enumerate(queries):
         try:
             response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model="gemini-2.5-flash",
                 contents=query,
                 config=types.GenerateContentConfig(
                     tools=[types.Tool(google_maps=types.GoogleMaps())],
                     tool_config=types.ToolConfig(
-                        retrieval_config=types.RetrievalConfig(
-                            lat_lng=types.LatLng(latitude=lat, longitude=lng)
-                        )
+                        retrieval_config=types.RetrievalConfig(lat_lng=types.LatLng(latitude=lat, longitude=lng))
                     ),
                 ),
             )
@@ -57,11 +56,11 @@ async def collect_maps_grounding(site_info: dict, evidence_dir: Path) -> dict:
                 gm = response.candidates[0].grounding_metadata
                 if gm.grounding_chunks:
                     for chunk in gm.grounding_chunks:
-                        if hasattr(chunk, 'maps') and chunk.maps:
+                        if hasattr(chunk, "maps") and chunk.maps:
                             source = {
-                                "title": chunk.maps.title if hasattr(chunk.maps, 'title') else None,
-                                "uri": chunk.maps.uri if hasattr(chunk.maps, 'uri') else None,
-                                "place_id": chunk.maps.place_id if hasattr(chunk.maps, 'place_id') else None,
+                                "title": chunk.maps.title if hasattr(chunk.maps, "title") else None,
+                                "uri": chunk.maps.uri if hasattr(chunk.maps, "uri") else None,
+                                "place_id": chunk.maps.place_id if hasattr(chunk.maps, "place_id") else None,
                             }
                             raw_entry["sources"].append(source)
 
@@ -98,10 +97,10 @@ async def collect_maps_grounding(site_info: dict, evidence_dir: Path) -> dict:
                 observations.append(obs)
 
             raw_responses.append(raw_entry)
-            print(f"      Grounding query {i+1}/5: {len(raw_entry['sources'])} fuentes Maps")
+            print(f"      Grounding query {i + 1}/5: {len(raw_entry['sources'])} fuentes Maps")
 
         except Exception as e:
-            print(f"      Grounding query {i+1}/5 error: {str(e)[:80]}")
+            print(f"      Grounding query {i + 1}/5 error: {str(e)[:80]}")
             raw_responses.append({"query": query, "error": str(e)})
 
     # Save raw data

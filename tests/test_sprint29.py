@@ -15,8 +15,6 @@ Run: python tests/test_sprint29.py
 import asyncio
 import os
 import sys
-import json
-import time
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -50,7 +48,7 @@ def skip(name: str, reason: str):
 print("\n═══ FASE 0: Estabilización ═══")
 
 # BUG-2: GPT-5.5 flagship
-from config.model_catalog import MODELS, FALLBACK_CHAINS, get_model, supports_temperature
+from config.model_catalog import FALLBACK_CHAINS, MODELS, supports_temperature
 
 test(
     "BUG-2: GPT-5.5 exists in catalog",
@@ -72,7 +70,7 @@ test(
 
 test(
     "BUG-2: GPT-5.4 removed from catalog",
-    "gpt-5.4" not in MODELS and "gpt-5.4-pro-2026-03-05" not in MODELS,
+    "gpt-5.5" not in MODELS and "gpt-5.4-pro-2026-03-05" not in MODELS,
     "Old GPT-5.4 still exists",
 )
 
@@ -118,12 +116,16 @@ test(
 # DT-8: No hardcoded "alfredo"
 print("\n  DT-8: Checking for hardcoded 'alfredo'...")
 import subprocess
+
 result = subprocess.run(
-    ["grep", "-rn", '"alfredo"', "kernel/", "memory/", "config/", "router/",
-     "--include=*.py"],
-    capture_output=True, text=True, cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    ["grep", "-rn", '"alfredo"', "kernel/", "memory/", "config/", "router/", "--include=*.py"],
+    capture_output=True,
+    text=True,
+    cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
 )
-alfredo_count = len([l for l in result.stdout.strip().split("\n") if l and "# Sprint 29" not in l and "was hardcoded" not in l])
+alfredo_count = len(
+    [l for l in result.stdout.strip().split("\n") if l and "# Sprint 29" not in l and "was hardcoded" not in l]
+)
 test(
     "DT-8: No hardcoded 'alfredo' in codebase",
     alfredo_count == 0,
@@ -138,8 +140,10 @@ test(
 print("\n═══ ÉPICA 1: Supervisor ═══")
 
 from kernel.supervisor import (
-    analyze_complexity, ComplexityTier, SupervisorDecision,
-    get_tier_metrics, get_status, supervisor_node, record_tier,
+    ComplexityTier,
+    analyze_complexity,
+    get_status,
+    supervisor_node,
 )
 
 # Simple messages → SIMPLE tier
@@ -206,22 +210,24 @@ test(
     f"Got: {status}",
 )
 
+
 # Async supervisor_node
 async def test_supervisor_node():
     state = {"message": "hola", "intent": "chat", "conversation_context": [], "tool_results": []}
     result = await supervisor_node(state, {})
     return result
 
+
 node_result = asyncio.run(test_supervisor_node())
 test(
     "supervisor_node returns model key",
     "model" in node_result,
-    f"Missing 'model' key in result",
+    "Missing 'model' key in result",
 )
 test(
     "supervisor_node returns complexity_tier",
     "complexity_tier" in node_result,
-    f"Missing 'complexity_tier' key",
+    "Missing 'complexity_tier' key",
 )
 
 
@@ -249,7 +255,7 @@ status = bridge.get_status()
 test(
     "OpikBridge status has 'active' key",
     "active" in status,
-    f"Missing 'active' in status",
+    "Missing 'active' in status",
 )
 
 # Check ObservabilityManager integration
@@ -274,7 +280,8 @@ test(
 
 print("\n═══ ÉPICA 3: FastMCP Tools ═══")
 
-from kernel.fastmcp_server import get_status as mcp_status, create_fastmcp_server
+from kernel.fastmcp_server import create_fastmcp_server
+from kernel.fastmcp_server import get_status as mcp_status
 
 try:
     server = create_fastmcp_server()
@@ -306,7 +313,8 @@ except Exception as e:
 print("\n═══ ÉPICA 5: Fallback Engine ═══")
 
 from kernel.fallback_engine import (
-    FallbackEngine, CircuitState, get_fallback_engine, PROVIDERS,
+    CircuitState,
+    get_fallback_engine,
 )
 
 engine = get_fallback_engine()
@@ -421,7 +429,7 @@ print(f"  TOTAL: {total} tests")
 print(f"  {PASS}: {results['pass']}")
 print(f"  {FAIL}: {results['fail']}")
 print(f"  {SKIP}: {results['skip']}")
-print(f"  Pass rate: {results['pass']/max(total-results['skip'],1)*100:.0f}%")
+print(f"  Pass rate: {results['pass'] / max(total - results['skip'], 1) * 100:.0f}%")
 print("═" * 60)
 
 if __name__ == "__main__":

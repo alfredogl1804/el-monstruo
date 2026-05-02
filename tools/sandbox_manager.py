@@ -36,9 +36,11 @@ from typing import Any, Optional
 
 try:
     import structlog
+
     logger = structlog.get_logger("monstruo.tools.sandbox_manager")
 except ImportError:
     import logging
+
     logger = logging.getLogger("monstruo.tools.sandbox_manager")
 
 # ── Constants ────────────────────────────────────────────────────────
@@ -90,6 +92,7 @@ async def acquire(plan_id: str) -> str:
             # Extend timeout
             try:
                 from e2b_code_interpreter import AsyncSandbox
+
                 sandbox = await AsyncSandbox.connect(session.sandbox_id)
                 await sandbox.set_timeout(SANDBOX_KEEPALIVE_S)
                 session.touch()
@@ -150,6 +153,7 @@ async def get_sandbox(plan_id: str) -> Optional[Any]:
     # Reconnect outside the lock to avoid blocking
     try:
         from e2b_code_interpreter import AsyncSandbox
+
         sandbox = await AsyncSandbox.connect(session.sandbox_id)
         session.touch()
         return sandbox
@@ -178,6 +182,7 @@ async def get_or_create(plan_id: str) -> Any:
     # Create new
     sandbox_id = await acquire(plan_id)
     from e2b_code_interpreter import AsyncSandbox
+
     return await AsyncSandbox.connect(sandbox_id)
 
 
@@ -194,6 +199,7 @@ async def release(plan_id: str) -> bool:
 
     try:
         from e2b_code_interpreter import AsyncSandbox
+
         sandbox = await AsyncSandbox.connect(session.sandbox_id)
         await sandbox.kill()
         logger.info(
@@ -220,6 +226,7 @@ async def _force_kill(plan_id: str):
     if session:
         try:
             from e2b_code_interpreter import AsyncSandbox
+
             sandbox = await AsyncSandbox.connect(session.sandbox_id)
             await sandbox.kill()
         except Exception:
@@ -244,6 +251,7 @@ async def get_status() -> dict[str, Any]:
 
 
 # ── Convenience: execute code in plan's sandbox ─────────────────────
+
 
 async def execute_in_sandbox(
     plan_id: str,
@@ -307,7 +315,7 @@ async def execute_in_sandbox(
             for msg in raw_stdout:
                 if isinstance(msg, str):
                     stdout_lines.append(msg)
-                elif hasattr(msg, 'line'):
+                elif hasattr(msg, "line"):
                     stdout_lines.append(msg.line)
                 else:
                     stdout_lines.append(str(msg))
@@ -315,7 +323,7 @@ async def execute_in_sandbox(
             for msg in raw_stderr:
                 if isinstance(msg, str):
                     stderr_lines.append(msg)
-                elif hasattr(msg, 'line'):
+                elif hasattr(msg, "line"):
                     stderr_lines.append(msg.line)
                 else:
                     stderr_lines.append(str(msg))
@@ -338,10 +346,12 @@ async def execute_in_sandbox(
 
             results = []
             for r in execution.results:
-                results.append({
-                    "text": str(r),
-                    "is_main_result": r.is_main_result,
-                })
+                results.append(
+                    {
+                        "text": str(r),
+                        "is_main_result": r.is_main_result,
+                    }
+                )
 
             return {
                 "status": "success",
@@ -394,7 +404,12 @@ async def file_op_in_sandbox(
             if not content:
                 return {"success": False, "result": "No content provided", "action": action, "path": path}
             if len(content) > 100_000:
-                return {"success": False, "result": f"Content too large ({len(content)} chars)", "action": action, "path": path}
+                return {
+                    "success": False,
+                    "result": f"Content too large ({len(content)} chars)",
+                    "action": action,
+                    "path": path,
+                }
 
             # Ensure parent directory exists
             parent_dir = "/".join(path.rsplit("/", 1)[:-1])
@@ -402,7 +417,12 @@ async def file_op_in_sandbox(
                 await sandbox.commands.run(f"mkdir -p {parent_dir}")
 
             await sandbox.files.write(path, content)
-            return {"success": True, "result": f"File written: {path} ({len(content)} chars)", "action": action, "path": path}
+            return {
+                "success": True,
+                "result": f"File written: {path} ({len(content)} chars)",
+                "action": action,
+                "path": path,
+            }
 
         elif action == "read_file":
             file_content = await sandbox.files.read(path)
@@ -517,9 +537,7 @@ async def web_dev_in_sandbox(
                 }
 
             # List dist files
-            dist_result = await sandbox.commands.run(
-                f"find {project_root}/dist -type f | head -20"
-            )
+            dist_result = await sandbox.commands.run(f"find {project_root}/dist -type f | head -20")
 
             return {
                 "success": True,
@@ -565,7 +583,7 @@ else:
             for msg in raw_stdout:
                 if isinstance(msg, str):
                     stdout_lines.append(msg)
-                elif hasattr(msg, 'line'):
+                elif hasattr(msg, "line"):
                     stdout_lines.append(msg.line)
                 else:
                     stdout_lines.append(str(msg))

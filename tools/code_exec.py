@@ -28,14 +28,13 @@ IVD: e2b-code-interpreter==2.6.1 (MIT, PyPI latest 2026-04-29)
 import asyncio
 import logging
 import os
-import tempfile
 from typing import Any, Optional
 
 logger = logging.getLogger("monstruo.tools.code_exec")
 
 # ── Constants ────────────────────────────────────────────────────────
-MAX_TIMEOUT_E2B = 60       # E2B supports longer timeouts
-MAX_TIMEOUT_LOCAL = 30     # Local subprocess cap
+MAX_TIMEOUT_E2B = 60  # E2B supports longer timeouts
+MAX_TIMEOUT_LOCAL = 30  # Local subprocess cap
 MAX_OUTPUT_CHARS = 10_000
 SANDBOX_DIR = "/tmp/monstruo_sandbox"  # Local fallback only
 
@@ -50,6 +49,7 @@ async def _check_e2b() -> bool:
         return _E2B_AVAILABLE
     try:
         import e2b_code_interpreter  # noqa: F401
+
         if os.environ.get("E2B_API_KEY"):
             _E2B_AVAILABLE = True
             logger.info("e2b_available", status="ready")
@@ -70,6 +70,7 @@ def _truncate(text: str) -> str:
 
 
 # ── E2B Backend ─────────────────────────────────────────────────────
+
 
 async def _execute_e2b(
     code: str,
@@ -157,11 +158,13 @@ async def _execute_e2b(
             # Collect results (display outputs like plots, dataframes, etc.)
             results = []
             for r in execution.results:
-                results.append({
-                    "text": str(r),
-                    "is_main_result": r.is_main_result,
-                    "formats": list(r.formats()) if hasattr(r, 'formats') and callable(r.formats) else [],
-                })
+                results.append(
+                    {
+                        "text": str(r),
+                        "is_main_result": r.is_main_result,
+                        "formats": list(r.formats()) if hasattr(r, "formats") and callable(r.formats) else [],
+                    }
+                )
 
             return {
                 "status": "success",
@@ -310,6 +313,7 @@ async def _execute_local(
 
 
 # ── Public Interface ────────────────────────────────────────────────
+
 
 async def execute_code(
     code: str,

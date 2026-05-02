@@ -16,11 +16,12 @@ Uso:
   python3 monstruo.py status   → Ver estado del sistema
 """
 
+import json
 import os
 import sys
-import json
-import requests
 from datetime import datetime, timedelta
+
+import requests
 
 SANDBOX_HOME = os.environ.get("HOME", "/home/ubuntu")
 KERNEL_URL = "https://el-monstruo-kernel-production.up.railway.app"
@@ -78,11 +79,7 @@ def detect_compaction(state):
 def check_kernel():
     """Verifica estado del kernel."""
     try:
-        resp = requests.get(
-            f"{KERNEL_URL}/health",
-            headers={"X-API-Key": KERNEL_KEY},
-            timeout=10
-        )
+        resp = requests.get(f"{KERNEL_URL}/health", headers={"X-API-Key": KERNEL_KEY}, timeout=10)
         if resp.status_code == 200:
             return resp.json()
         return None
@@ -93,18 +90,21 @@ def check_kernel():
 def run_inject():
     """Ejecuta inyección de contexto."""
     from inject import main as inject_main
+
     return inject_main()
 
 
 def run_heartbeat():
     """Ejecuta heartbeat."""
     from heartbeat import main as heartbeat_main
+
     return heartbeat_main()
 
 
 def run_legacy(summary=""):
     """Ejecuta legado."""
     from legacy import main as legacy_main
+
     if summary:
         sys.argv = ["legacy.py", summary]
     return legacy_main()
@@ -195,8 +195,8 @@ def main():
 
     print()
     print("[monstruo] Sistema listo.")
-    print(f"[monstruo] Lee ~/CONTEXT.md para contexto completo.")
-    print(f"[monstruo] Lee ~/RECOVERY.md para estado del sandbox.")
+    print("[monstruo] Lee ~/CONTEXT.md para contexto completo.")
+    print("[monstruo] Lee ~/RECOVERY.md para estado del sandbox.")
 
 
 if __name__ == "__main__":

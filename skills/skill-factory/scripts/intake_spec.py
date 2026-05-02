@@ -10,8 +10,13 @@ Uso:
     python3.11 intake_spec.py --input /path/to/description.md --output spec.yaml
 """
 
-import argparse, asyncio, json, os, sys, yaml
+import argparse
+import asyncio
+import json
+import sys
 from pathlib import Path
+
+import yaml
 
 sys.path.insert(0, "/home/ubuntu/skills/consulta-sabios/scripts")
 from conector_sabios import consultar_sabio
@@ -53,6 +58,7 @@ Sé preciso y concreto. Si algo no aplica, usa null o lista vacía.
 Infiere lo que puedas razonablemente de la descripción.
 Si el dominio es regulado (salud, finanzas, legal), SIEMPRE marca regulated=true."""
 
+
 async def generate_spec(description: str) -> dict:
     """Genera la especificación estructurada usando GPT-5.4."""
     prompt = f"""Analiza esta descripción de skill y genera la especificación estructurada:
@@ -64,40 +70,41 @@ async def generate_spec(description: str) -> dict:
 Responde SOLO con el JSON estructurado."""
 
     response = await consultar_sabio("gpt54", prompt, system_prompt=SYSTEM_PROMPT)
-    
+
     # Extraer JSON de la respuesta
     text = response.get("respuesta", "")
-    
+
     # Intentar parsear directamente
     try:
         return json.loads(text)
     except json.JSONDecodeError:
         pass
-    
+
     # Buscar bloque JSON en la respuesta
     import re
-    json_match = re.search(r'\{[\s\S]*\}', text)
+
+    json_match = re.search(r"\{[\s\S]*\}", text)
     if json_match:
         try:
             return json.loads(json_match.group())
         except json.JSONDecodeError:
             pass
-    
+
     raise ValueError(f"No se pudo extraer JSON de la respuesta:\n{text[:500]}")
 
 
 def enrich_spec(spec: dict) -> dict:
     """Enriquece la spec con valores por defecto y validaciones."""
-    
+
     # Asegurar campos obligatorios
     required = ["name", "title", "description", "domain"]
     for field in required:
         if not spec.get(field):
             raise ValueError(f"Campo obligatorio faltante: {field}")
-    
+
     # Normalizar nombre
     spec["name"] = spec["name"].lower().replace(" ", "-").replace("_", "-")
-    
+
     # Defaults
     spec.setdefault("subdomain", None)
     spec.setdefault("target_user", "Manus agent")
@@ -120,20 +127,20 @@ def enrich_spec(spec: dict) -> dict:
     spec.setdefault("needs_database", False)
     spec.setdefault("needs_realtime_research", False)
     spec.setdefault("needs_sabios_consultation", False)
-    
+
     # Auto-inferencias
     regulated_domains = {"legal", "finance", "health"}
     if spec["domain"] in regulated_domains:
         spec["regulated"] = True
         if spec["data_sensitivity"] in ("bajo", "medio"):
             spec["data_sensitivity"] = "alto"
-    
+
     if spec["regulated"] and not spec["needs_realtime_research"]:
         spec["needs_realtime_research"] = True
-    
+
     if spec.get("estimated_scripts", 0) > 15:
         spec["needs_sabios_consultation"] = True
-    
+
     return spec
 
 
@@ -142,7 +149,7 @@ async def main():
     parser.add_argument("--input", required=True, help="Descripción de la skill (texto o path a archivo)")
     parser.add_argument("--output", required=True, help="Path de salida para el spec YAML")
     args = parser.parse_args()
-    
+
     # Leer input
     input_path = Path(args.input)
     if input_path.exists():
@@ -151,25 +158,25 @@ async def main():
     else:
         description = args.input
         print(f"📝 Usando descripción directa ({len(description)} chars)")
-    
+
     # Generar spec
     print("🤖 GPT-5.4 analizando descripción y generando especificación...")
     spec = await generate_spec(description)
-    
+
     # Enriquecer
     spec = enrich_spec(spec)
     print(f"✅ Especificación generada: {spec['name']} ({spec['domain']})")
-    
+
     # Guardar
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         yaml.dump(spec, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
-    
+
     print(f"📁 Guardada en: {args.output}")
-    
+
     # Resumen
-    print(f"\n--- Resumen ---")
+    print("\n--- Resumen ---")
     print(f"  Nombre: {spec['name']}")
     print(f"  Dominio: {spec['domain']}")
     print(f"  Sensibilidad: {spec['data_sensitivity']}")
@@ -177,6 +184,7 @@ async def main():
     print(f"  Scripts estimados: {spec['estimated_scripts']}")
     print(f"  Necesita investigación: {'Sí' if spec['needs_realtime_research'] else 'No'}")
     print(f"  Necesita sabios: {'Sí' if spec['needs_sabios_consultation'] else 'No'}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

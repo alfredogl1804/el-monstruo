@@ -27,11 +27,11 @@ MCP Server: https://agents-radar-mcp.duanyytop.workers.dev
 
 Sprint 45 — 2026-04-30
 """
+
 from __future__ import annotations
 
 import httpx
 import structlog
-from typing import Optional
 
 logger = structlog.get_logger("tools.agents_radar")
 
@@ -147,6 +147,7 @@ async def get_daily_digest() -> dict[str, str]:
         Dict con claves 'trending', 'agents', 'hn' y sus contenidos.
     """
     import asyncio
+
     trending, agents, hn = await asyncio.gather(
         get_latest_report("trending"),
         get_latest_report("agents"),
@@ -162,16 +163,20 @@ async def get_daily_digest() -> dict[str, str]:
 
 # ── Sync wrappers para uso desde código no-async ──────────────────────────────
 
+
 def get_latest_report_sync(report_type: str = "trending") -> str:
     import asyncio
+
     return asyncio.run(get_latest_report(report_type))
 
 
 def search_radar_sync(query: str, days: int = 7) -> str:
     import asyncio
+
     return asyncio.run(search_radar(query, days))
 
 
 def get_daily_digest_sync() -> dict[str, str]:
     import asyncio
+
     return asyncio.run(get_daily_digest())

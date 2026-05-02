@@ -29,13 +29,14 @@ Integración:
 Validated: APScheduler 3.11.2 (MIT, Dec 2025), Supabase (ya en stack)
 Sprint 56.3 | Biblias: Kimi K2.6 (Agent Swarm budget), Mem0 v2 (memory consolidation)
 """
+
 from __future__ import annotations
 
 import asyncio
 import json
 import os
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Coroutine, Optional
 from uuid import uuid4
 
@@ -59,32 +60,33 @@ class ScheduledTask:
       - Estado: status, last_run, next_run, total_runs, total_cost_usd
       - Ejecución: handler (nombre del callable registrado) + handler_args
     """
+
     task_id: str = field(default_factory=lambda: str(uuid4()))
     name: str = ""
     description: str = ""
     embrion_id: str = "embrion-0"  # Quién la ejecuta
 
     # Scheduling
-    schedule_type: str = "periodic"   # periodic | daily | triggered | one_shot
-    interval_hours: float = 6.0       # Para periodic: cada N horas
-    daily_hour: int = 3               # Para daily: hora UTC (0-23)
+    schedule_type: str = "periodic"  # periodic | daily | triggered | one_shot
+    interval_hours: float = 6.0  # Para periodic: cada N horas
+    daily_hour: int = 3  # Para daily: hora UTC (0-23)
     trigger_condition: Optional[str] = None  # Para triggered: expresión evaluable
 
     # Governance
-    max_cost_usd: float = 0.50        # Budget máximo por ejecución
-    max_retries: int = 3              # Fallos consecutivos antes de pausar
+    max_cost_usd: float = 0.50  # Budget máximo por ejecución
+    max_retries: int = 3  # Fallos consecutivos antes de pausar
     consecutive_failures: int = 0
     paused: bool = False
 
     # Estado
-    status: str = "active"            # active | paused | completed | failed
-    last_run: Optional[str] = None    # ISO timestamp última ejecución
-    next_run: Optional[str] = None    # ISO timestamp próxima ejecución
+    status: str = "active"  # active | paused | completed | failed
+    last_run: Optional[str] = None  # ISO timestamp última ejecución
+    next_run: Optional[str] = None  # ISO timestamp próxima ejecución
     total_runs: int = 0
     total_cost_usd: float = 0.0
 
     # Ejecución
-    handler: Optional[str] = None     # Nombre del handler registrado
+    handler: Optional[str] = None  # Nombre del handler registrado
     handler_args: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -205,7 +207,7 @@ class EmbrionScheduler:
                 filters={"status": "active"},
             )
             restored = 0
-            for row in (rows or []):
+            for row in rows or []:
                 task = ScheduledTask.from_dict(row)
                 # Recalcular next_run si está en el pasado (servidor estuvo caído)
                 if task.next_run and task.next_run < datetime.now(timezone.utc).isoformat():
@@ -283,7 +285,9 @@ class EmbrionScheduler:
         if task_id in self._tasks:
             self._tasks[task_id].paused = True
             self._tasks[task_id].status = "paused"
-            asyncio.create_task(self._persist_task(self._tasks[task_id])) if asyncio.get_event_loop().is_running() else None
+            asyncio.create_task(
+                self._persist_task(self._tasks[task_id])
+            ) if asyncio.get_event_loop().is_running() else None
             logger.info("scheduler_task_paused", task_id=task_id)
             return True
         return False
@@ -549,69 +553,84 @@ def register_default_tasks(scheduler: EmbrionScheduler) -> None:
     # 1. Causal Seeding — Obj #10: Simulador Predictivo
     # Alimenta la Causal KB con eventos históricos descompuestos
     # Prerequisito para que el Simulador tenga datos históricos
-    scheduler.add_task(ScheduledTask(
-        name="causal_seeding",
-        description="Feed the Causal KB with new decomposed events (Obj #10)",
-        embrion_id="embrion-causal",
-        schedule_type="periodic",
-        interval_hours=6.0,
-        max_cost_usd=1.00,
-        handler="run_causal_seeding_cycle",
-    ))
+    scheduler.add_task(
+        ScheduledTask(
+            name="causal_seeding",
+            description="Feed the Causal KB with new decomposed events (Obj #10)",
+            embrion_id="embrion-causal",
+            schedule_type="periodic",
+            interval_hours=6.0,
+            max_cost_usd=1.00,
+            handler="run_causal_seeding_cycle",
+        )
+    )
 
     # 2. Prediction Validation — Obj #10: Feedback loop del Simulador
     # Valida predicciones vencidas y ajusta pesos de factores causales
-    scheduler.add_task(ScheduledTask(
-        name="prediction_validation",
-        description="Validate due predictions and adjust causal factor weights (Obj #10)",
-        embrion_id="embrion-causal",
-        schedule_type="daily",
-        daily_hour=3,  # 3am UTC
-        max_cost_usd=0.50,
-        handler="run_prediction_validation",
-    ))
+    scheduler.add_task(
+        ScheduledTask(
+            name="prediction_validation",
+            description="Validate due predictions and adjust causal factor weights (Obj #10)",
+            embrion_id="embrion-causal",
+            schedule_type="daily",
+            daily_hour=3,  # 3am UTC
+            max_cost_usd=0.50,
+            handler="run_prediction_validation",
+        )
+    )
 
     # 3. Vanguard Scan — Obj #7: Vanguardia Tecnológica
     # Detecta nuevas herramientas y tecnologías relevantes para El Monstruo
-    scheduler.add_task(ScheduledTask(
-        name="vanguard_scan",
-        description="Scan for new technologies and tools relevant to El Monstruo (Obj #7)",
-        embrion_id="embrion-0",
-        schedule_type="daily",
-        daily_hour=6,  # 6am UTC
-        max_cost_usd=0.30,
-        handler="run_vanguard_scan",
-    ))
+    scheduler.add_task(
+        ScheduledTask(
+            name="vanguard_scan",
+            description="Scan for new technologies and tools relevant to El Monstruo (Obj #7)",
+            embrion_id="embrion-0",
+            schedule_type="daily",
+            daily_hour=6,  # 6am UTC
+            max_cost_usd=0.30,
+            handler="run_vanguard_scan",
+        )
+    )
 
     # 4. Health Check — Obj #4: Nunca se equivoca dos veces
     # Verifica salud de todos los subsistemas y reporta anomalías
-    scheduler.add_task(ScheduledTask(
-        name="system_health_check",
-        description="Check health of all subsystems and report anomalies (Obj #4)",
-        embrion_id="embrion-0",
-        schedule_type="periodic",
-        interval_hours=2.0,
-        max_cost_usd=0.05,
-        handler="run_health_check",
-    ))
+    scheduler.add_task(
+        ScheduledTask(
+            name="system_health_check",
+            description="Check health of all subsystems and report anomalies (Obj #4)",
+            embrion_id="embrion-0",
+            schedule_type="periodic",
+            interval_hours=2.0,
+            max_cost_usd=0.05,
+            handler="run_health_check",
+        )
+    )
 
     # 5. Memory Consolidation — Obj #3: Memoria Perfecta
     # Consolida memorias de corto plazo en patrones de largo plazo (ThreeLayerMemory)
-    scheduler.add_task(ScheduledTask(
-        name="memory_consolidation",
-        description="Consolidate short-term memories into long-term patterns (Obj #3)",
-        embrion_id="embrion-0",
-        schedule_type="daily",
-        daily_hour=2,  # 2am UTC
-        max_cost_usd=0.20,
-        handler="run_memory_consolidation",
-    ))
+    scheduler.add_task(
+        ScheduledTask(
+            name="memory_consolidation",
+            description="Consolidate short-term memories into long-term patterns (Obj #3)",
+            embrion_id="embrion-0",
+            schedule_type="daily",
+            daily_hour=2,  # 2am UTC
+            max_cost_usd=0.20,
+            handler="run_memory_consolidation",
+        )
+    )
 
     logger.info(
         "scheduler_default_tasks_registered",
         count=5,
-        tasks=["causal_seeding", "prediction_validation", "vanguard_scan",
-               "system_health_check", "memory_consolidation"],
+        tasks=[
+            "causal_seeding",
+            "prediction_validation",
+            "vanguard_scan",
+            "system_health_check",
+            "memory_consolidation",
+        ],
     )
 
 
@@ -648,6 +667,7 @@ async def _stub_handler_health_check(**kwargs: Any) -> None:
     Verifica que los componentes principales estén activos.
     """
     from datetime import datetime, timezone
+
     logger.info(
         "health_check_executed",
         timestamp=datetime.now(timezone.utc).isoformat(),

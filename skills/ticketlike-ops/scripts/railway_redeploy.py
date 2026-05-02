@@ -3,6 +3,7 @@
 Trigger de redeploy manual en Railway para ticketlike.mx.
 Uso: python3 railway_redeploy.py
 """
+
 import json
 import subprocess
 
@@ -22,15 +23,27 @@ mutation {
 
 try:
     result = subprocess.run(
-        ["curl", "-s", "-X", "POST", ENDPOINT,
-         "-H", f"Authorization: Bearer {TOKEN}",
-         "-H", "Content-Type: application/json",
-         "-H", "User-Agent: Mozilla/5.0",
-         "-d", json.dumps({"query": QUERY})],
-        capture_output=True, text=True, timeout=15
+        [
+            "curl",
+            "-s",
+            "-X",
+            "POST",
+            ENDPOINT,
+            "-H",
+            f"Authorization: Bearer {TOKEN}",
+            "-H",
+            "Content-Type: application/json",
+            "-H",
+            "User-Agent: Mozilla/5.0",
+            "-d",
+            json.dumps({"query": QUERY}),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=15,
     )
     data = json.loads(result.stdout)
-    
+
     if "errors" in data:
         print(f"\u274c Error: {data['errors']}")
     else:

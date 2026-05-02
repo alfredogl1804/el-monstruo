@@ -9,12 +9,11 @@ IMPORTANTE: Los precios de referencia son ORIENTATIVOS.
 SIEMPRE consulta precios en tiempo real antes de provisionar.
 """
 
-import asyncio
 import json
 import os
-import sys
-import yaml
 from pathlib import Path
+
+import yaml
 
 try:
     import aiohttp
@@ -38,8 +37,9 @@ class VastAIAdapter:
         self.api_key = api_key or os.environ.get("VASTAI_API_KEY", "")
         self.api_base = "https://console.vast.ai/api/v0"
 
-    async def search_offers(self, gpu_type: str = "RTX_4090", min_vram_gb: int = 24,
-                            max_price_hr: float = 10.0) -> list:
+    async def search_offers(
+        self, gpu_type: str = "RTX_4090", min_vram_gb: int = 24, max_price_hr: float = 10.0
+    ) -> list:
         """Search for available GPU offers."""
         if not self.api_key:
             return [{"error": "VASTAI_API_KEY not set", "provider": "vastai"}]
@@ -89,8 +89,7 @@ class VastAIAdapter:
         except Exception as e:
             return [{"error": str(e), "provider": "vastai"}]
 
-    async def provision(self, offer_id: int, image: str = "pytorch/pytorch:latest",
-                        disk_gb: int = 50) -> dict:
+    async def provision(self, offer_id: int, image: str = "pytorch/pytorch:latest", disk_gb: int = 50) -> dict:
         """Provision a GPU instance."""
         if not self.api_key or not aiohttp:
             return {"status": "failed", "error": "Missing API key or aiohttp"}
@@ -153,8 +152,7 @@ class RunPodAdapter:
         self.api_key = api_key or os.environ.get("RUNPOD_API_KEY", "")
         self.api_base = "https://api.runpod.io/v2"
 
-    async def search_offers(self, gpu_type: str = "NVIDIA A100",
-                            max_price_hr: float = 10.0) -> list:
+    async def search_offers(self, gpu_type: str = "NVIDIA A100", max_price_hr: float = 10.0) -> list:
         """Search for available GPU offers on RunPod."""
         if not self.api_key:
             return [{"error": "RUNPOD_API_KEY not set", "provider": "runpod"}]
@@ -195,14 +193,16 @@ class RunPodAdapter:
                         for g in gpu_types:
                             price = g.get("lowestPrice", {})
                             if price and price.get("uninterruptablePrice", 999) <= max_price_hr:
-                                offers.append({
-                                    "provider": "runpod",
-                                    "id": g["id"],
-                                    "gpu_name": g.get("displayName", "unknown"),
-                                    "gpu_ram_gb": g.get("memoryInGb", 0),
-                                    "price_per_hour": price.get("uninterruptablePrice", 0),
-                                    "spot_price": price.get("minimumBidPrice", 0),
-                                })
+                                offers.append(
+                                    {
+                                        "provider": "runpod",
+                                        "id": g["id"],
+                                        "gpu_name": g.get("displayName", "unknown"),
+                                        "gpu_ram_gb": g.get("memoryInGb", 0),
+                                        "price_per_hour": price.get("uninterruptablePrice", 0),
+                                        "spot_price": price.get("minimumBidPrice", 0),
+                                    }
+                                )
                         return sorted(offers, key=lambda x: x["price_per_hour"])[:10]
                     else:
                         return [{"error": f"API returned {resp.status}", "provider": "runpod"}]

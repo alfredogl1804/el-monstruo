@@ -73,7 +73,7 @@ async def _get_session() -> aiohttp.ClientSession:
         async with _session_lock:
             if _session is None or _session.closed:
                 connector = aiohttp.TCPConnector(
-                    limit=10,           # max 10 concurrent connections
+                    limit=10,  # max 10 concurrent connections
                     ttl_dns_cache=300,  # cache DNS for 5 min
                     keepalive_timeout=30,
                 )
@@ -113,16 +113,16 @@ async def _request(method: str, path: str, body: dict | None = None) -> dict:
 
                 # Rate limited — respect Retry-After header
                 if resp.status == 429:
-                    retry_after = int(resp.headers.get("Retry-After", BASE_DELAY * (2 ** attempt)))
-                    logger.warning(f"GitHub rate limited, retry after {retry_after}s (attempt {attempt+1})")
+                    retry_after = int(resp.headers.get("Retry-After", BASE_DELAY * (2**attempt)))
+                    logger.warning(f"GitHub rate limited, retry after {retry_after}s (attempt {attempt + 1})")
                     if attempt < MAX_RETRIES:
                         await asyncio.sleep(retry_after)
                         continue
 
                 # Retryable server error
                 if resp.status in RETRYABLE_STATUS and attempt < MAX_RETRIES:
-                    delay = BASE_DELAY * (2 ** attempt)
-                    logger.warning(f"GitHub {resp.status}, retrying in {delay}s (attempt {attempt+1})")
+                    delay = BASE_DELAY * (2**attempt)
+                    logger.warning(f"GitHub {resp.status}, retrying in {delay}s (attempt {attempt + 1})")
                     await asyncio.sleep(delay)
                     continue
 
@@ -136,13 +136,13 @@ async def _request(method: str, path: str, body: dict | None = None) -> dict:
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             last_error = str(e)
             if attempt < MAX_RETRIES:
-                delay = BASE_DELAY * (2 ** attempt)
-                logger.warning(f"GitHub request error: {e}, retrying in {delay}s (attempt {attempt+1})")
+                delay = BASE_DELAY * (2**attempt)
+                logger.warning(f"GitHub request error: {e}, retrying in {delay}s (attempt {attempt + 1})")
                 await asyncio.sleep(delay)
             else:
-                logger.error(f"GitHub request failed after {MAX_RETRIES+1} attempts: {e}")
+                logger.error(f"GitHub request failed after {MAX_RETRIES + 1} attempts: {e}")
 
-    return {"error": f"Request failed after {MAX_RETRIES+1} attempts: {last_error}"}
+    return {"error": f"Request failed after {MAX_RETRIES + 1} attempts: {last_error}"}
 
 
 # ── Read Operations ──────────────────────────────────────────────
@@ -340,28 +340,34 @@ async def create_or_update_file(
 # Sprint 33: Commit Loop actions are auto-approved.
 # The PR itself IS the human gate — Alfredo reviews and merges.
 # No need for double approval (HITL + PR review).
-COMMIT_LOOP_ACTIONS = frozenset({
-    "create_branch",
-    "create_or_update_file",
-    "create_pull_request",
-})
+COMMIT_LOOP_ACTIONS = frozenset(
+    {
+        "create_branch",
+        "create_or_update_file",
+        "create_pull_request",
+    }
+)
 
 # These write actions STILL require HITL (destructive or non-PR-gated)
-HITL_WRITE_ACTIONS = frozenset({
-    "create_issue",
-    "update_issue",
-})
+HITL_WRITE_ACTIONS = frozenset(
+    {
+        "create_issue",
+        "update_issue",
+    }
+)
 
 # All write actions (union of both sets)
 WRITE_ACTIONS = COMMIT_LOOP_ACTIONS | HITL_WRITE_ACTIONS
 
-READ_ACTIONS = frozenset({
-    "search_repos",
-    "search_code",
-    "get_file",
-    "list_issues",
-    "list_prs",
-})
+READ_ACTIONS = frozenset(
+    {
+        "search_repos",
+        "search_code",
+        "get_file",
+        "list_issues",
+        "list_prs",
+    }
+)
 
 
 # ── Dispatch Entry Point ────────────────────────────────────────
@@ -369,7 +375,7 @@ READ_ACTIONS = frozenset({
 
 async def execute_github(action: str, params: dict[str, Any], hitl_approved: bool = False) -> str:
     """Main dispatch for GitHub tool calls from the kernel.
-    
+
     Args:
         action: The GitHub action to execute.
         params: Parameters for the action.
@@ -403,13 +409,15 @@ async def execute_github(action: str, params: dict[str, Any], hitl_approved: boo
             "github_write_blocked_no_hitl",
             extra={"action": action, "params_keys": list(params.keys())},
         )
-        return json.dumps({
-            "error": "HITL_REQUIRED",
-            "message": f"Write action '{action}' requires human approval. "
-                       f"This request was blocked because hitl_approved=False.",
-            "action": action,
-            "risk_level": "HIGH",
-        })
+        return json.dumps(
+            {
+                "error": "HITL_REQUIRED",
+                "message": f"Write action '{action}' requires human approval. "
+                f"This request was blocked because hitl_approved=False.",
+                "action": action,
+                "risk_level": "HIGH",
+            }
+        )
 
     if action in COMMIT_LOOP_ACTIONS:
         logger.info(

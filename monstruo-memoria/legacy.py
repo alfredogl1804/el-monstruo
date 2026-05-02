@@ -13,23 +13,15 @@ Uso: python3 legacy.py "Resumen de lo que hice en este hilo"
 Ejecutar ANTES de cerrar el hilo.
 """
 
+import glob
 import os
 import sys
-import glob
-import json
-import requests
 import time as time_mod
 from datetime import datetime
 
 # --- Config ---
-KERNEL_URL = os.environ.get(
-    "MONSTRUO_KERNEL_URL",
-    "https://el-monstruo-kernel-production.up.railway.app"
-)
-KERNEL_KEY = os.environ.get(
-    "MONSTRUO_API_KEY",
-    "c3f0cbaa-7c5d-4f84-9dfd-0727e4f86259"
-)
+KERNEL_URL = os.environ.get("MONSTRUO_KERNEL_URL", "https://el-monstruo-kernel-production.up.railway.app")
+KERNEL_KEY = os.environ.get("MONSTRUO_API_KEY", "c3f0cbaa-7c5d-4f84-9dfd-0727e4f86259")
 SANDBOX_HOME = os.environ.get("HOME", "/home/ubuntu")
 
 
@@ -56,17 +48,14 @@ def deposit_to_kernel(content, source, doc_type="legacy"):
     for attempt in range(3):
         try:
             from kernel_client import knowledge_ingest
-            result = knowledge_ingest(
-                content=content[:3000],
-                source=source,
-                doc_type=doc_type
-            )
+
+            result = knowledge_ingest(content=content[:3000], source=source, doc_type=doc_type)
             if result.get("ingested"):
                 return True
             print(f"[legacy] No ingested en intento {attempt + 1}")
         except Exception as e:
             if "timeout" in str(e).lower() or "Timeout" in str(e):
-                wait = 2 ** attempt
+                wait = 2**attempt
                 print(f"[legacy] Timeout, retry en {wait}s...")
                 time_mod.sleep(wait)
             else:
@@ -92,24 +81,18 @@ def main():
     # Depositar resumen manual si existe
     if manual_summary:
         ok = deposit_to_kernel(
-            f"LEGADO DE HILO ({timestamp}): {manual_summary}",
-            f"legacy_manual_{timestamp}",
-            "legacy_summary"
+            f"LEGADO DE HILO ({timestamp}): {manual_summary}", f"legacy_manual_{timestamp}", "legacy_summary"
         )
         if ok:
             deposited += 1
-            print(f"[legacy] Resumen manual depositado")
+            print("[legacy] Resumen manual depositado")
         else:
             failed += 1
 
     # Depositar cada archivo nuevo
     for f in new_files:
         header = f"LEGADO DE HILO ({timestamp}) — Archivo: {f['name']}\n\n"
-        ok = deposit_to_kernel(
-            header + f["content"],
-            f"legacy_{f['name']}_{timestamp}",
-            "legacy_file"
-        )
+        ok = deposit_to_kernel(header + f["content"], f"legacy_{f['name']}_{timestamp}", "legacy_file")
         if ok:
             deposited += 1
             print(f"[legacy] Depositado: {f['name']}")
@@ -119,7 +102,7 @@ def main():
 
     total = len(new_files) + (1 if manual_summary else 0)
     print(f"[legacy] Total depositados: {deposited}/{total} ({failed} fallidos)")
-    print(f"[legacy] El conocimiento de este hilo sobrevivirá.")
+    print("[legacy] El conocimiento de este hilo sobrevivirá.")
 
 
 if __name__ == "__main__":

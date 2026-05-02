@@ -18,12 +18,12 @@ Categorías de verificación:
     7. Seguridad (LiteLLM version, hashes)
 """
 
-import os
-import sys
-import json
 import argparse
-import subprocess
 import importlib
+import json
+import os
+import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -64,11 +64,13 @@ class PreflightChecker:
     def _record(self, category, check_name, status, detail=""):
         if category not in self.results["categories"]:
             self.results["categories"][category] = []
-        self.results["categories"][category].append({
-            "check": check_name,
-            "status": status,  # pass, fail, warn
-            "detail": detail,
-        })
+        self.results["categories"][category].append(
+            {
+                "check": check_name,
+                "status": status,  # pass, fail, warn
+                "detail": detail,
+            }
+        )
         self.results["summary"][status] += 1
 
     # ─── 1. SECRETS ───
@@ -171,10 +173,7 @@ class PreflightChecker:
                     pip_name = pkg.replace("_", "-").replace(".", "-")
                     ver = f"=={required_version}" if required_version else ""
                     print(f"    → Fixing: pip install {pip_name}{ver}")
-                    subprocess.run(
-                        [sys.executable, "-m", "pip", "install", f"{pip_name}{ver}"],
-                        capture_output=True
-                    )
+                    subprocess.run([sys.executable, "-m", "pip", "install", f"{pip_name}{ver}"], capture_output=True)
 
         print(f"\n  {BOLD}Opcionales:{RESET}")
         for pkg, _ in optional_packages.items():
@@ -194,7 +193,7 @@ class PreflightChecker:
 
         try:
             sys.path.insert(0, str(INJECTOR_ROOT / "scripts"))
-            from health_check import HEALTH_CHECKS, run_health_checks
+            from health_check import run_health_checks
 
             results = run_health_checks(quick=True)
 
@@ -224,12 +223,13 @@ class PreflightChecker:
 
         if not url or not key:
             print(f"  [{YELLOW}WARN{RESET}] SUPABASE_URL o SUPABASE_SERVICE_KEY no configurados")
-            print(f"         → Crear antes de Sprint 1 (Día 2: Memoria)")
+            print("         → Crear antes de Sprint 1 (Día 2: Memoria)")
             self._record(cat, "supabase_connection", "warn", "credentials not set")
             return
 
         try:
             import requests
+
             headers = {
                 "apikey": key,
                 "Authorization": f"Bearer {key}",
@@ -283,6 +283,7 @@ class PreflightChecker:
         if langfuse_host and langfuse_pub:
             try:
                 import requests
+
                 r = requests.get(f"{langfuse_host}/api/public/health", timeout=10)
                 ok = r.status_code == 200
                 print(f"  [{icon(ok)}] Langfuse: {'operativo' if ok else f'HTTP {r.status_code}'}")
@@ -333,6 +334,7 @@ class PreflightChecker:
 
         # Validate YAMLs
         import yaml
+
         yaml_files = [f for f in expected_files if f.endswith(".yaml")]
         yaml_ok = 0
         for f in yaml_files:
@@ -356,6 +358,7 @@ class PreflightChecker:
         # LiteLLM version check
         try:
             import litellm
+
             v = litellm.__version__
             ok = v == "1.83.3"
             if ok:
@@ -387,11 +390,11 @@ class PreflightChecker:
 
     # ─── RUN ALL ───
     def run(self):
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"  {BOLD}PREFLIGHT CHECK — El Monstruo Sprint 1{RESET}")
         print(f"  Target: {self.target}")
         print(f"  Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         self.check_secrets()
         self.check_packages()
@@ -406,18 +409,20 @@ class PreflightChecker:
         total = s["pass"] + s["fail"] + s["warn"]
         self.results["ready_to_build"] = s["fail"] == 0
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"  {BOLD}RESUMEN{RESET}")
         print(f"  {GREEN}PASS: {s['pass']}{RESET}")
         print(f"  {RED}FAIL: {s['fail']}{RESET}")
         print(f"  {YELLOW}WARN: {s['warn']}{RESET}")
         print(f"  Total: {total}")
-        print(f"\n  {'🟢 LISTO PARA CONSTRUIR' if self.results['ready_to_build'] else '🔴 NO LISTO — resolver FAILs primero'}")
+        print(
+            f"\n  {'🟢 LISTO PARA CONSTRUIR' if self.results['ready_to_build'] else '🔴 NO LISTO — resolver FAILs primero'}"
+        )
 
         if s["warn"] > 0 and s["fail"] == 0:
             print(f"  {YELLOW}⚠ Hay {s['warn']} warnings — funcional pero incompleto{RESET}")
 
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         return self.results
 
@@ -426,15 +431,16 @@ def main():
     parser = argparse.ArgumentParser(description="Preflight Check — El Monstruo Sprint 1")
     parser.add_argument("--output", help="Guardar reporte en JSON")
     parser.add_argument("--fix", action="store_true", help="Intentar corregir problemas automáticamente")
-    parser.add_argument("--target", default="sandbox", choices=["sandbox", "railway"],
-                        help="Entorno objetivo (default: sandbox)")
+    parser.add_argument(
+        "--target", default="sandbox", choices=["sandbox", "railway"], help="Entorno objetivo (default: sandbox)"
+    )
     args = parser.parse_args()
 
     checker = PreflightChecker(target=args.target, fix=args.fix)
     results = checker.run()
 
     if args.output:
-        with open(args.output, 'w') as f:
+        with open(args.output, "w") as f:
             json.dump(results, f, indent=2, default=str)
         print(f"\nReporte guardado: {args.output}")
 

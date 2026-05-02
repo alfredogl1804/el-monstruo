@@ -3,10 +3,12 @@
 Web Researcher — Investiga cambios recientes, noticias y descripciones del sitio
 usando Perplexity Sonar para contexto temporal.
 """
+
 import json
 import os
-import requests
 from pathlib import Path
+
+import requests
 
 
 async def research_web(site_info: dict, evidence_dir: Path) -> dict:
@@ -38,9 +40,9 @@ async def research_web(site_info: dict, evidence_dir: Path) -> dict:
                     "messages": [
                         {
                             "role": "system",
-                            "content": "Eres un investigador urbano. Responde con hechos verificables sobre el estado actual del lugar. Incluye fechas y fuentes cuando sea posible. NO inventes información."
+                            "content": "Eres un investigador urbano. Responde con hechos verificables sobre el estado actual del lugar. Incluye fechas y fuentes cuando sea posible. NO inventes información.",
                         },
-                        {"role": "user", "content": query}
+                        {"role": "user", "content": query},
                     ],
                     "max_tokens": 2000,
                 },
@@ -52,11 +54,13 @@ async def research_web(site_info: dict, evidence_dir: Path) -> dict:
                 text = data.get("choices", [{}])[0].get("message", {}).get("content", "")
                 citations = data.get("citations", [])
 
-                raw_responses.append({
-                    "query": query,
-                    "response": text,
-                    "citations": citations,
-                })
+                raw_responses.append(
+                    {
+                        "query": query,
+                        "response": text,
+                        "citations": citations,
+                    }
+                )
 
                 if text:
                     obs = {
@@ -74,13 +78,13 @@ async def research_web(site_info: dict, evidence_dir: Path) -> dict:
                     }
                     observations.append(obs)
 
-                print(f"      Web research {i+1}/3: {len(text)} chars, {len(citations)} citas")
+                print(f"      Web research {i + 1}/3: {len(text)} chars, {len(citations)} citas")
             else:
-                print(f"      Web research {i+1}/3 error: HTTP {resp.status_code}")
+                print(f"      Web research {i + 1}/3 error: HTTP {resp.status_code}")
                 raw_responses.append({"query": query, "error": f"HTTP {resp.status_code}"})
 
         except Exception as e:
-            print(f"      Web research {i+1}/3 error: {str(e)[:80]}")
+            print(f"      Web research {i + 1}/3 error: {str(e)[:80]}")
             raw_responses.append({"query": query, "error": str(e)})
 
     # Save raw data

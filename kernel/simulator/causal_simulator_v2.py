@@ -14,6 +14,7 @@ Sprint 60 — 2026-05-01
 
 Soberanía: Usa numpy para Monte Carlo. Alternativa: scipy.stats o implementación pura Python.
 """
+
 from __future__ import annotations
 
 import random
@@ -28,6 +29,7 @@ logger = structlog.get_logger("monstruo.simulator.v2")
 
 
 # ── Errores con identidad ────────────────────────────────────────────────────
+
 
 class SimulatorV2Error(Exception):
     """Error base del Causal Simulator v2."""
@@ -50,8 +52,10 @@ SIMULATOR_V2_SIN_CALIBRACION = (
 
 # ── Enums ────────────────────────────────────────────────────────────────────
 
+
 class EscenarioTipo(str, Enum):
     """Tipos de escenario predefinidos."""
+
     OPTIMISTA = "optimista"
     BASE = "base"
     PESIMISTA = "pesimista"
@@ -60,6 +64,7 @@ class EscenarioTipo(str, Enum):
 
 
 # ── Dataclasses ──────────────────────────────────────────────────────────────
+
 
 @dataclass
 class ParametrosEscenario:
@@ -77,6 +82,7 @@ class ParametrosEscenario:
         horizon_months: Horizonte de simulación en meses.
         n_simulaciones: Número de simulaciones Monte Carlo.
     """
+
     nombre: str
     tipo: EscenarioTipo
     growth_rate_monthly: float
@@ -105,6 +111,7 @@ class ResultadoSimulacion:
         horizonte_meses: Horizonte de la simulación.
         timestamp: ISO timestamp de la simulación.
     """
+
     escenario: str
     metric: str
     p10: float
@@ -164,44 +171,46 @@ class CausalSimulatorV2:
     _last_results: list[ResultadoSimulacion] = field(default_factory=list, repr=False)
 
     # Escenarios predefinidos
-    ESCENARIOS: dict[str, ParametrosEscenario] = field(default_factory=lambda: {
-        "optimista": ParametrosEscenario(
-            nombre="optimista",
-            tipo=EscenarioTipo.OPTIMISTA,
-            growth_rate_monthly=0.20,
-            churn_rate_monthly=0.03,
-            cac_multiplier=0.8,
-            ltv_multiplier=1.3,
-            volatility=0.1,
-        ),
-        "base": ParametrosEscenario(
-            nombre="base",
-            tipo=EscenarioTipo.BASE,
-            growth_rate_monthly=0.10,
-            churn_rate_monthly=0.05,
-            cac_multiplier=1.0,
-            ltv_multiplier=1.0,
-            volatility=0.15,
-        ),
-        "pesimista": ParametrosEscenario(
-            nombre="pesimista",
-            tipo=EscenarioTipo.PESIMISTA,
-            growth_rate_monthly=0.03,
-            churn_rate_monthly=0.10,
-            cac_multiplier=1.5,
-            ltv_multiplier=0.7,
-            volatility=0.25,
-        ),
-        "black_swan": ParametrosEscenario(
-            nombre="black_swan",
-            tipo=EscenarioTipo.BLACK_SWAN,
-            growth_rate_monthly=-0.05,
-            churn_rate_monthly=0.25,
-            cac_multiplier=3.0,
-            ltv_multiplier=0.4,
-            volatility=0.5,
-        ),
-    })
+    ESCENARIOS: dict[str, ParametrosEscenario] = field(
+        default_factory=lambda: {
+            "optimista": ParametrosEscenario(
+                nombre="optimista",
+                tipo=EscenarioTipo.OPTIMISTA,
+                growth_rate_monthly=0.20,
+                churn_rate_monthly=0.03,
+                cac_multiplier=0.8,
+                ltv_multiplier=1.3,
+                volatility=0.1,
+            ),
+            "base": ParametrosEscenario(
+                nombre="base",
+                tipo=EscenarioTipo.BASE,
+                growth_rate_monthly=0.10,
+                churn_rate_monthly=0.05,
+                cac_multiplier=1.0,
+                ltv_multiplier=1.0,
+                volatility=0.15,
+            ),
+            "pesimista": ParametrosEscenario(
+                nombre="pesimista",
+                tipo=EscenarioTipo.PESIMISTA,
+                growth_rate_monthly=0.03,
+                churn_rate_monthly=0.10,
+                cac_multiplier=1.5,
+                ltv_multiplier=0.7,
+                volatility=0.25,
+            ),
+            "black_swan": ParametrosEscenario(
+                nombre="black_swan",
+                tipo=EscenarioTipo.BLACK_SWAN,
+                growth_rate_monthly=-0.05,
+                churn_rate_monthly=0.25,
+                cac_multiplier=3.0,
+                ltv_multiplier=0.4,
+                volatility=0.5,
+            ),
+        }
+    )
 
     def calibrate_from_financials(self, financial_data: dict) -> None:
         """
@@ -266,9 +275,7 @@ class CausalSimulatorV2:
                 )
             params = custom_params
         elif escenario_nombre not in self.ESCENARIOS:
-            raise SimulatorV2Error(
-                SIMULATOR_V2_ESCENARIO_INVALIDO.format(name=escenario_nombre)
-            )
+            raise SimulatorV2Error(SIMULATOR_V2_ESCENARIO_INVALIDO.format(name=escenario_nombre))
         else:
             params = self.ESCENARIOS[escenario_nombre]
 
@@ -319,7 +326,7 @@ class CausalSimulatorV2:
         p90 = results[int(n * 0.90)]
         mean = sum(results) / n
         variance = sum((r - mean) ** 2 for r in results) / n
-        std = variance ** 0.5
+        std = variance**0.5
 
         resultado = ResultadoSimulacion(
             escenario=escenario_nombre,

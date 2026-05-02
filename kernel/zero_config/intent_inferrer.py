@@ -13,9 +13,10 @@ Soberanía:
 """
 
 import re
-import structlog
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
+
+import structlog
 
 logger = structlog.get_logger("zero_config.inferrer")
 
@@ -61,6 +62,7 @@ TYPE_PATTERNS: dict = {
 
 # ── Modelo de datos ────────────────────────────────────────────────────────────
 
+
 @dataclass
 class InferredProject:
     """Configuración de proyecto inferida de una sola frase.
@@ -85,6 +87,7 @@ class InferredProject:
     Soberanía:
         Inferencia: heurísticas locales → sin dependencia de LLM
     """
+
     project_type: str
     industry: str
     locale: str
@@ -111,6 +114,7 @@ class InferredProject:
 
 
 # ── Inferidor principal ────────────────────────────────────────────────────────
+
 
 class IntentInferrer:
     """Inferir configuración completa de proyecto desde una sola frase.

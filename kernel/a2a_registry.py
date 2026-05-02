@@ -16,13 +16,13 @@ Otros agentes (internos o externos) pueden:
 Validated: a2a-sdk==1.0.2 (Google LLC, Apache 2.0, Apr 24, 2026)
 A2A Protocol Spec v1.0 — JSON-RPC transport
 """
+
 from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Optional
-from uuid import uuid4
 
 import structlog
 
@@ -35,6 +35,7 @@ class AgentCard:
     A2A Agent Card — describe las capacidades de un agente.
     Spec: https://google.github.io/A2A/specification/
     """
+
     agent_id: str
     name: str
     description: str
@@ -81,10 +82,20 @@ class AgentCard:
     def from_dict(cls, data: dict[str, Any]) -> "AgentCard":
         """Deserializar desde dict."""
         valid_fields = {
-            "agent_id", "name", "description", "version",
-            "capabilities", "input_modes", "output_modes",
-            "endpoint", "protocol", "role", "status",
-            "last_heartbeat", "registered_at", "auth_schemes",
+            "agent_id",
+            "name",
+            "description",
+            "version",
+            "capabilities",
+            "input_modes",
+            "output_modes",
+            "endpoint",
+            "protocol",
+            "role",
+            "status",
+            "last_heartbeat",
+            "registered_at",
+            "auth_schemes",
         }
         return cls(**{k: v for k, v in data.items() if k in valid_fields})
 
@@ -140,20 +151,22 @@ class A2ARegistry:
 
         if self._db:
             try:
-                await self._db.upsert("a2a_agents", {
-                    "id": card.agent_id,
-                    "name": card.name,
-                    "role": card.role,
-                    "status": card.status,
-                    "card_data": card.to_dict(),
-                    "registered_at": card.registered_at,
-                    "last_heartbeat": card.last_heartbeat,
-                })
+                await self._db.upsert(
+                    "a2a_agents",
+                    {
+                        "id": card.agent_id,
+                        "name": card.name,
+                        "role": card.role,
+                        "status": card.status,
+                        "card_data": card.to_dict(),
+                        "registered_at": card.registered_at,
+                        "last_heartbeat": card.last_heartbeat,
+                    },
+                )
             except Exception as e:
                 logger.warning("a2a_register_persist_failed", error=str(e))
 
-        logger.info("a2a_agent_registered",
-                    agent_id=card.agent_id, name=card.name, role=card.role)
+        logger.info("a2a_agent_registered", agent_id=card.agent_id, name=card.name, role=card.role)
         return card.agent_id
 
     async def discover(
@@ -225,6 +238,7 @@ class A2ARegistry:
         T4: detecta agentes inactivos (>5min sin heartbeat)
         """
         from datetime import timedelta
+
         now = datetime.now(timezone.utc)
         cutoff = now - timedelta(minutes=max_silence_minutes)
         marked = 0
@@ -243,8 +257,7 @@ class A2ARegistry:
                 pass
 
         if marked:
-            logger.info("a2a_stale_agents_marked", count=marked,
-                        threshold_minutes=max_silence_minutes)
+            logger.info("a2a_stale_agents_marked", count=marked, threshold_minutes=max_silence_minutes)
         return marked
 
     def get_all_cards(self) -> list[dict[str, Any]]:
@@ -287,25 +300,28 @@ async def init_a2a_registry(db=None) -> A2ARegistry:
 
     # Auto-registrar El Monstruo como agente principal
     from kernel.a2a_registry import AgentCard
+
     monstruo_card = AgentCard(
         agent_id="el-monstruo-core",
         name="El Monstruo",
         description=(
-            "Sovereign AI orchestrator. Creates digital businesses, "
-            "predicts futures, never repeats mistakes."
+            "Sovereign AI orchestrator. Creates digital businesses, predicts futures, never repeats mistakes."
         ),
         version="0.55.0",
         capabilities=[
-            "web_search", "code_generation", "web_development",
-            "multi_model_consultation", "causal_analysis",
-            "autonomous_operation", "business_creation",
-            "wide_research", "spec_driven_planning",
+            "web_search",
+            "code_generation",
+            "web_development",
+            "multi_model_consultation",
+            "causal_analysis",
+            "autonomous_operation",
+            "business_creation",
+            "wide_research",
+            "spec_driven_planning",
         ],
         input_modes=["text/plain", "application/json"],
         output_modes=["text/plain", "application/json", "text/html"],
-        endpoint=os.environ.get(
-            "A2A_ENDPOINT", "https://el-monstruo.up.railway.app/v1/a2a"
-        ),
+        endpoint=os.environ.get("A2A_ENDPOINT", "https://el-monstruo.up.railway.app/v1/a2a"),
         role="orchestrator",
         status="active",
     )

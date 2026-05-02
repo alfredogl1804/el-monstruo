@@ -2,12 +2,12 @@
 """
 Site Resolver — Normaliza coordenadas, radio, orientación y vistas objetivo.
 """
+
 import math
 from datetime import date
 
 
-def resolve_site(lat: float, lng: float, radius: int, name: str,
-                 target_date: str = None, views: list = None) -> dict:
+def resolve_site(lat: float, lng: float, radius: int, name: str, target_date: str = None, views: list = None) -> dict:
     """Normaliza la información del sitio para el pipeline."""
 
     target_date = target_date or date.today().isoformat()

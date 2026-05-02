@@ -11,9 +11,9 @@ con Gemini Flash a 1/20 del costo. El Monstruo lo sabe y lo aplica.
 Soberanía: Si no hay modelos disponibles, usa heurísticas de costo fijo.
 Alternativa: Tabla de costos estática sin llamadas a APIs de precios.
 """
+
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -26,8 +26,10 @@ logger = structlog.get_logger("cost_optimizer")
 
 # --- Excepciones con identidad ---
 
+
 class ModeloNoDisponible(Exception):
     """Ningún modelo disponible cumple los requisitos de la tarea."""
+
     def __init__(self, tarea: str, budget_restante: float):
         super().__init__(
             f"No hay modelos disponibles para '{tarea}' con budget restante ${budget_restante:.4f}. "
@@ -39,6 +41,7 @@ class ModeloNoDisponible(Exception):
 
 class BudgetAgotado(Exception):
     """El budget diario de LLM ha sido agotado."""
+
     def __init__(self, gasto_hoy: float, limite: float):
         super().__init__(
             f"Budget diario de LLM agotado: ${gasto_hoy:.4f} / ${limite:.2f}. "
@@ -50,17 +53,20 @@ class BudgetAgotado(Exception):
 
 # --- Enums ---
 
+
 class NivelComplejidad(str, Enum):
     """Nivel de complejidad de una tarea de LLM."""
-    TRIVIAL = "trivial"       # Clasificación, sentiment, extracción simple
-    SIMPLE = "simple"         # Resumen, traducción, Q&A básico
-    MODERADO = "moderado"     # Análisis, generación de contenido
-    COMPLEJO = "complejo"     # Razonamiento multi-paso, código complejo
-    CRITICO = "critico"       # Decisiones estratégicas, arquitectura
+
+    TRIVIAL = "trivial"  # Clasificación, sentiment, extracción simple
+    SIMPLE = "simple"  # Resumen, traducción, Q&A básico
+    MODERADO = "moderado"  # Análisis, generación de contenido
+    COMPLEJO = "complejo"  # Razonamiento multi-paso, código complejo
+    CRITICO = "critico"  # Decisiones estratégicas, arquitectura
 
 
 class TipoTarea(str, Enum):
     """Tipo de tarea para optimización de modelo."""
+
     CLASIFICACION = "clasificacion"
     RESUMEN = "resumen"
     GENERACION = "generacion"
@@ -73,14 +79,16 @@ class TipoTarea(str, Enum):
 
 # --- Modelos disponibles con costos ---
 
+
 @dataclass
 class ModelConfig:
     """Configuración y costos de un modelo LLM."""
+
     id: str
     provider: str
     name: str
-    input_cost_per_1k: float    # USD por 1K tokens de input
-    output_cost_per_1k: float   # USD por 1K tokens de output
+    input_cost_per_1k: float  # USD por 1K tokens de input
+    output_cost_per_1k: float  # USD por 1K tokens de output
     context_window: int
     max_output_tokens: int
     strengths: list[str]
@@ -91,34 +99,45 @@ class ModelConfig:
 
     def estimate_cost(self, input_tokens: int, output_tokens: int) -> float:
         """Estima el costo de una llamada."""
-        return (input_tokens / 1000 * self.input_cost_per_1k +
-                output_tokens / 1000 * self.output_cost_per_1k)
+        return input_tokens / 1000 * self.input_cost_per_1k + output_tokens / 1000 * self.output_cost_per_1k
 
 
 AVAILABLE_MODELS: list[ModelConfig] = [
     # Gratuitos / muy baratos
     ModelConfig(
-        id="gemini-2.0-flash-lite", provider="google", name="Gemini 2.0 Flash Lite",
-        input_cost_per_1k=0.000075, output_cost_per_1k=0.0003,
-        context_window=1_000_000, max_output_tokens=8192,
+        id="gemini-2.0-flash-lite",
+        provider="google",
+        name="Gemini 2.0 Flash Lite",
+        input_cost_per_1k=0.000075,
+        output_cost_per_1k=0.0003,
+        context_window=1_000_000,
+        max_output_tokens=8192,
         strengths=["clasificacion", "resumen", "moderacion"],
         complejidad_minima=NivelComplejidad.TRIVIAL,
         complejidad_maxima=NivelComplejidad.SIMPLE,
         latency_ms_avg=500,
     ),
     ModelConfig(
-        id="gemini-2.0-flash", provider="google", name="Gemini 2.0 Flash",
-        input_cost_per_1k=0.0001, output_cost_per_1k=0.0004,
-        context_window=1_000_000, max_output_tokens=8192,
+        id="gemini-2.0-flash",
+        provider="google",
+        name="Gemini 2.0 Flash",
+        input_cost_per_1k=0.0001,
+        output_cost_per_1k=0.0004,
+        context_window=1_000_000,
+        max_output_tokens=8192,
         strengths=["generacion", "resumen", "razonamiento"],
         complejidad_minima=NivelComplejidad.SIMPLE,
         complejidad_maxima=NivelComplejidad.MODERADO,
         latency_ms_avg=800,
     ),
     ModelConfig(
-        id="gpt-4o-mini", provider="openai", name="GPT-4o Mini",
-        input_cost_per_1k=0.00015, output_cost_per_1k=0.0006,
-        context_window=128_000, max_output_tokens=16384,
+        id="gpt-4o-mini",
+        provider="openai",
+        name="GPT-4o Mini",
+        input_cost_per_1k=0.00015,
+        output_cost_per_1k=0.0006,
+        context_window=128_000,
+        max_output_tokens=16384,
         strengths=["codigo", "razonamiento", "generacion"],
         complejidad_minima=NivelComplejidad.SIMPLE,
         complejidad_maxima=NivelComplejidad.MODERADO,
@@ -126,18 +145,26 @@ AVAILABLE_MODELS: list[ModelConfig] = [
     ),
     # Medios
     ModelConfig(
-        id="gemini-2.5-flash", provider="google", name="Gemini 2.5 Flash",
-        input_cost_per_1k=0.00025, output_cost_per_1k=0.001,
-        context_window=1_000_000, max_output_tokens=65536,
+        id="gemini-2.5-flash",
+        provider="google",
+        name="Gemini 2.5 Flash",
+        input_cost_per_1k=0.00025,
+        output_cost_per_1k=0.001,
+        context_window=1_000_000,
+        max_output_tokens=65536,
         strengths=["razonamiento", "codigo", "vision"],
         complejidad_minima=NivelComplejidad.MODERADO,
         complejidad_maxima=NivelComplejidad.COMPLEJO,
         latency_ms_avg=2000,
     ),
     ModelConfig(
-        id="claude-3-5-haiku", provider="anthropic", name="Claude 3.5 Haiku",
-        input_cost_per_1k=0.0008, output_cost_per_1k=0.004,
-        context_window=200_000, max_output_tokens=8192,
+        id="claude-3-5-haiku",
+        provider="anthropic",
+        name="Claude 3.5 Haiku",
+        input_cost_per_1k=0.0008,
+        output_cost_per_1k=0.004,
+        context_window=200_000,
+        max_output_tokens=8192,
         strengths=["razonamiento", "codigo", "generacion"],
         complejidad_minima=NivelComplejidad.MODERADO,
         complejidad_maxima=NivelComplejidad.COMPLEJO,
@@ -145,27 +172,39 @@ AVAILABLE_MODELS: list[ModelConfig] = [
     ),
     # Premium
     ModelConfig(
-        id="gpt-4o", provider="openai", name="GPT-4o",
-        input_cost_per_1k=0.0025, output_cost_per_1k=0.01,
-        context_window=128_000, max_output_tokens=16384,
+        id="gpt-4o",
+        provider="openai",
+        name="GPT-4o",
+        input_cost_per_1k=0.0025,
+        output_cost_per_1k=0.01,
+        context_window=128_000,
+        max_output_tokens=16384,
         strengths=["razonamiento", "codigo", "vision", "critico"],
         complejidad_minima=NivelComplejidad.COMPLEJO,
         complejidad_maxima=NivelComplejidad.CRITICO,
         latency_ms_avg=3000,
     ),
     ModelConfig(
-        id="claude-3-5-sonnet", provider="anthropic", name="Claude 3.5 Sonnet",
-        input_cost_per_1k=0.003, output_cost_per_1k=0.015,
-        context_window=200_000, max_output_tokens=8192,
+        id="claude-3-5-sonnet",
+        provider="anthropic",
+        name="Claude 3.5 Sonnet",
+        input_cost_per_1k=0.003,
+        output_cost_per_1k=0.015,
+        context_window=200_000,
+        max_output_tokens=8192,
         strengths=["razonamiento", "codigo", "critico"],
         complejidad_minima=NivelComplejidad.COMPLEJO,
         complejidad_maxima=NivelComplejidad.CRITICO,
         latency_ms_avg=2500,
     ),
     ModelConfig(
-        id="gemini-2.5-pro", provider="google", name="Gemini 2.5 Pro",
-        input_cost_per_1k=0.00125, output_cost_per_1k=0.01,
-        context_window=2_000_000, max_output_tokens=65536,
+        id="gemini-2.5-pro",
+        provider="google",
+        name="Gemini 2.5 Pro",
+        input_cost_per_1k=0.00125,
+        output_cost_per_1k=0.01,
+        context_window=2_000_000,
+        max_output_tokens=65536,
         strengths=["razonamiento", "codigo", "critico", "vision"],
         complejidad_minima=NivelComplejidad.COMPLEJO,
         complejidad_maxima=NivelComplejidad.CRITICO,
@@ -189,6 +228,7 @@ TASK_COMPLEXITY_MAP: dict[TipoTarea, NivelComplejidad] = {
 @dataclass
 class OptimizationDecision:
     """Decisión de optimización de modelo."""
+
     modelo_seleccionado: str
     provider: str
     costo_estimado: float
@@ -264,7 +304,8 @@ class CostOptimizer:
 
         # Filtrar modelos compatibles con la complejidad
         candidatos = [
-            m for m in AVAILABLE_MODELS
+            m
+            for m in AVAILABLE_MODELS
             if m.disponible
             and self._nivel_compatible(nivel, m.complejidad_minima, m.complejidad_maxima)
             and (task_type.value in m.strengths or True)  # Preferir por strengths
@@ -393,6 +434,7 @@ def get_cost_optimizer() -> CostOptimizer:
     global _cost_optimizer
     if _cost_optimizer is None:
         import os
+
         budget = float(os.getenv("DAILY_LLM_BUDGET", "5.0"))
         _cost_optimizer = CostOptimizer(daily_budget_usd=budget)
     return _cost_optimizer

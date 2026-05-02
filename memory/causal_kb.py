@@ -26,6 +26,7 @@ El PredictiveSimulator (Sprint 57+) la consulta para generar predicciones.
 Validated: Supabase pgvector (ya en stack), text-embedding-3-small (ya en uso en thoughts.py)
 Sprint 55.3 | Biblia: Simulador Predictivo v1 (Obj #10)
 """
+
 from __future__ import annotations
 
 import json
@@ -54,11 +55,12 @@ class CausalFactor:
       - confidence: qué tan seguro estamos de que es causal (no solo correlacional)
       - direction: si el factor contribuye (positive), previene (negative) o es neutro
     """
+
     factor_id: str = field(default_factory=lambda: str(uuid4()))
     description: str = ""
     category: str = "general"  # economic, political, social, technological, cultural, environmental
-    weight: float = 0.5        # 0.0 (irrelevante) → 1.0 (determinante)
-    confidence: float = 0.7    # Confianza en causalidad (no correlación)
+    weight: float = 0.5  # 0.0 (irrelevante) → 1.0 (determinante)
+    confidence: float = 0.7  # Confianza en causalidad (no correlación)
     direction: str = "positive"  # positive | negative | neutral
     evidence: list[str] = field(default_factory=list)
 
@@ -94,12 +96,13 @@ class CausalEvent:
     Es la unidad atómica de la Causal Knowledge Base.
     Alimenta el Simulador Predictivo (Obj #10) con patrones históricos.
     """
+
     event_id: str = field(default_factory=lambda: str(uuid4()))
     title: str = ""
     description: str = ""
-    category: str = "general"   # political, economic, technological, social, business, environmental
+    category: str = "general"  # political, economic, technological, social, business, environmental
     date: Optional[str] = None  # ISO date del evento (YYYY-MM-DD)
-    outcome: str = ""           # Qué pasó como resultado final
+    outcome: str = ""  # Qué pasó como resultado final
     factors: list[CausalFactor] = field(default_factory=list)
     sources: list[str] = field(default_factory=list)
     tags: list[str] = field(default_factory=list)
@@ -199,6 +202,7 @@ class CausalKnowledgeBase:
         """Inicializar cliente OpenAI para embeddings."""
         try:
             from openai import AsyncOpenAI
+
             api_key = os.environ.get("OPENAI_API_KEY")
             if api_key:
                 self._openai = AsyncOpenAI(api_key=api_key)
@@ -237,10 +241,7 @@ class CausalKnowledgeBase:
             event_id del evento almacenado
         """
         # Construir texto para embedding — incluye factores para búsqueda semántica rica
-        factors_text = "; ".join([
-            f"{f.description} (peso:{f.weight:.2f}, dir:{f.direction})"
-            for f in event.factors
-        ])
+        factors_text = "; ".join([f"{f.description} (peso:{f.weight:.2f}, dir:{f.direction})" for f in event.factors])
         embed_text = f"{event.title}. {event.description}. Factores: {factors_text}"
 
         embedding = await self._generate_embedding(embed_text)
@@ -302,11 +303,14 @@ class CausalKnowledgeBase:
             return []
 
         try:
-            results = await self._db.rpc("search_causal_events", {
-                "query_embedding": embedding,
-                "match_threshold": threshold,
-                "match_count": limit,
-            })
+            results = await self._db.rpc(
+                "search_causal_events",
+                {
+                    "query_embedding": embedding,
+                    "match_threshold": threshold,
+                    "match_count": limit,
+                },
+            )
             return results or []
         except Exception as e:
             logger.error("causal_kb_search_failed", error=str(e), query=query[:50])
@@ -322,10 +326,12 @@ class CausalKnowledgeBase:
             if not rows:
                 return None
             row = rows[0]
-            return CausalEvent.from_dict({
-                "event_id": row["id"],
-                **row,
-            })
+            return CausalEvent.from_dict(
+                {
+                    "event_id": row["id"],
+                    **row,
+                }
+            )
         except Exception as e:
             logger.error("causal_kb_get_failed", event_id=event_id, error=str(e))
             return None

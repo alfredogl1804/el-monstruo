@@ -12,12 +12,14 @@ Soberanía:
     - Configuración: JSON exportable → compatible con cualquier librería de animación
 """
 
-import structlog
 from typing import Optional
+
+import structlog
+
 from kernel.motion.tokens import (
     INTERACTION_PRESETS,
-    STYLE_MOTION_PROFILES,
     MOTION_TOKENS,
+    STYLE_MOTION_PROFILES,
 )
 
 logger = structlog.get_logger("motion.orchestrator")
@@ -185,12 +187,12 @@ class MotionOrchestrator:
   --motion-duration-slow: 500ms;
   --motion-duration-deliberate: 800ms;
   --motion-duration-cinematic: 1200ms;
-  --motion-easing-default: {self.profile['default_easing']};
+  --motion-easing-default: {self.profile["default_easing"]};
   --motion-easing-enter: cubic-bezier(0, 0, 0.2, 1);
   --motion-easing-exit: cubic-bezier(0.4, 0, 1, 1);
   --motion-easing-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   --motion-easing-spring: cubic-bezier(0.22, 1, 0.36, 1);
-  --motion-hover-scale: {self.profile['hover_scale']};
+  --motion-hover-scale: {self.profile["hover_scale"]};
 }}
 
 /* Accesibilidad: respetar preferencia de movimiento reducido */
@@ -229,10 +231,7 @@ class MotionOrchestrator:
             "style": self.style,
             "profile": self.profile,
             "components": page_animations,
-            "global_tokens": {
-                name: token.to_dict()
-                for name, token in MOTION_TOKENS.items()
-            },
+            "global_tokens": {name: token.to_dict() for name, token in MOTION_TOKENS.items()},
             "css_variables": self.generate_motion_css(),
         }
 

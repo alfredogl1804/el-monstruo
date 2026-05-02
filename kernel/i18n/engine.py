@@ -22,6 +22,7 @@ Soberanía:
   - LLM Translation via Sabios (fallback soberano, cero dependencia externa)
   - Heurísticas de charset (detección sin LLM para CJK/árabe)
 """
+
 from __future__ import annotations
 
 import json
@@ -37,40 +38,43 @@ logger = structlog.get_logger("monstruo.i18n.engine")
 
 # ── Errores con identidad ──────────────────────────────────────────────────────
 
+
 class I18N_ENGINE_SIN_BACKEND(RuntimeError):
     """No hay backend de traducción disponible (DeepL ni Sabios configurados).
-    
+
     Sugerencia: Configura DEEPL_API_KEY o inyecta _sabios al inicializar I18nEngine.
     """
 
 
 class I18N_ENGINE_LOCALE_NO_SOPORTADO(ValueError):
     """El locale solicitado no está en la lista de locales soportados.
-    
+
     Sugerencia: Usa uno de los valores de SupportedLocale (es, en, pt, fr, de, it, ja, zh, ko, ar).
     """
 
 
 # ── Enums y configuración ──────────────────────────────────────────────────────
 
+
 class SupportedLocale(str, Enum):
     """Locales soportados por El Monstruo."""
-    ES = "es"   # Español (default)
-    EN = "en"   # English
-    PT = "pt"   # Português
-    FR = "fr"   # Français
-    DE = "de"   # Deutsch
-    IT = "it"   # Italiano
-    JA = "ja"   # 日本語
-    ZH = "zh"   # 中文
-    KO = "ko"   # 한국어
-    AR = "ar"   # العربية
+
+    ES = "es"  # Español (default)
+    EN = "en"  # English
+    PT = "pt"  # Português
+    FR = "fr"  # Français
+    DE = "de"  # Deutsch
+    IT = "it"  # Italiano
+    JA = "ja"  # 日本語
+    ZH = "zh"  # 中文
+    KO = "ko"  # 한국어
+    AR = "ar"  # العربية
 
 
 @dataclass
 class LocaleConfig:
     """Configuración de formato para un locale específico.
-    
+
     Args:
         code: Código ISO 639-1 del locale.
         name: Nombre legible del idioma.
@@ -80,6 +84,7 @@ class LocaleConfig:
         number_separator: Separador de miles.
         decimal_separator: Separador decimal.
     """
+
     code: str
     name: str
     direction: str = "ltr"
@@ -119,32 +124,34 @@ SYSTEM_PROMPT_TEMPLATES: dict[str, str] = {
 
 # ── Motor principal ────────────────────────────────────────────────────────────
 
+
 @dataclass
 class I18nEngine:
     """Motor de internacionalización de El Monstruo.
-    
+
     Detecta idioma, traduce texto y genera templates i18n para proyectos.
     Soporta 10 locales con fallback soberano via LLM.
-    
+
     Args:
         default_locale: Locale por defecto cuando no se puede detectar (default: 'es').
         _translator: Cliente DeepL opcional (soberanía: LLM fallback).
         _sabios: Cliente de Sabios para traducción LLM y detección de idioma.
-    
+
     Soberanía:
         - DeepL → LLM Translation (si DeepL no está disponible)
         - LLM Detection → heurísticas charset (si Sabios no está disponible)
     """
+
     default_locale: str = "es"
     _translator: Optional[object] = field(default=None, repr=False)
     _sabios: Optional[object] = field(default=None, repr=False)
 
     async def detect_language(self, text: str) -> str:
         """Detectar idioma del texto usando heurísticas de charset + LLM fallback.
-        
+
         Args:
             text: Texto a analizar.
-        
+
         Returns:
             Código ISO 639-1 del idioma detectado (ej: 'es', 'en', 'ja').
         """
@@ -152,13 +159,13 @@ class I18nEngine:
             return self.default_locale
 
         # Heurística rápida: detección por charset (sin LLM, sin costo)
-        if any('\u4e00' <= c <= '\u9fff' for c in text):
+        if any("\u4e00" <= c <= "\u9fff" for c in text):
             return "zh"
-        if any('\u3040' <= c <= '\u309f' or '\u30a0' <= c <= '\u30ff' for c in text):
+        if any("\u3040" <= c <= "\u309f" or "\u30a0" <= c <= "\u30ff" for c in text):
             return "ja"
-        if any('\uac00' <= c <= '\ud7af' for c in text):
+        if any("\uac00" <= c <= "\ud7af" for c in text):
             return "ko"
-        if any('\u0600' <= c <= '\u06ff' for c in text):
+        if any("\u0600" <= c <= "\u06ff" for c in text):
             return "ar"
 
         # LLM para scripts latinos (requiere Sabios)
@@ -186,18 +193,18 @@ class I18nEngine:
         source_locale: Optional[str] = None,
     ) -> str:
         """Traducir texto al locale objetivo.
-        
+
         Args:
             text: Texto a traducir.
             target_locale: Locale destino (ej: 'en', 'ja').
             source_locale: Locale origen opcional (mejora calidad en DeepL).
-        
+
         Returns:
             Texto traducido. Si no hay backend disponible, retorna el original.
-        
+
         Raises:
             I18N_ENGINE_LOCALE_NO_SOPORTADO: Si target_locale no está en SupportedLocale.
-        
+
         Soberanía:
             1. DeepL (alta calidad, idiomas europeos)
             2. LLM via Sabios (fallback soberano, todos los idiomas)
@@ -205,10 +212,7 @@ class I18nEngine:
         """
         supported = [e.value for e in SupportedLocale]
         if target_locale not in supported:
-            raise I18N_ENGINE_LOCALE_NO_SOPORTADO(
-                f"Locale '{target_locale}' no soportado. "
-                f"Usa uno de: {supported}"
-            )
+            raise I18N_ENGINE_LOCALE_NO_SOPORTADO(f"Locale '{target_locale}' no soportado. Usa uno de: {supported}")
 
         if source_locale == target_locale:
             return text
@@ -217,7 +221,6 @@ class I18nEngine:
         deepl_locales = ("en", "es", "pt", "fr", "de", "it")
         if self._translator and target_locale in deepl_locales:
             try:
-                import deepl  # soberanía: si falla, cae al LLM
                 result = self._translator.translate_text(
                     text,
                     target_lang=target_locale.upper(),
@@ -231,9 +234,7 @@ class I18nEngine:
         # Estrategia 2: LLM Translation (fallback soberano)
         if self._sabios:
             try:
-                locale_name = LOCALE_CONFIGS.get(
-                    target_locale, LocaleConfig(target_locale, target_locale)
-                ).name
+                locale_name = LOCALE_CONFIGS.get(target_locale, LocaleConfig(target_locale, target_locale)).name
                 prompt = (
                     f"Translate the following text to {locale_name}. "
                     f"Maintain the tone, formatting, and technical terms. "
@@ -255,18 +256,17 @@ class I18nEngine:
 
     async def translate_batch(self, texts: list[str], target_locale: str) -> list[str]:
         """Traducir múltiples textos en batch (optimizado para DeepL).
-        
+
         Args:
             texts: Lista de textos a traducir.
             target_locale: Locale destino.
-        
+
         Returns:
             Lista de textos traducidos en el mismo orden.
         """
         deepl_locales = ("en", "es", "pt", "fr", "de", "it")
         if self._translator and target_locale in deepl_locales:
             try:
-                import deepl
                 results = self._translator.translate_text(
                     texts,
                     target_lang=target_locale.upper(),
@@ -280,10 +280,10 @@ class I18nEngine:
 
     def get_locale_config(self, locale: str) -> LocaleConfig:
         """Obtener configuración de formato para un locale.
-        
+
         Args:
             locale: Código ISO 639-1 del locale.
-        
+
         Returns:
             LocaleConfig con formatos de fecha, moneda y números.
         """
@@ -291,11 +291,11 @@ class I18nEngine:
 
     def format_currency(self, amount: float, locale: str) -> str:
         """Formatear moneda según las convenciones del locale.
-        
+
         Args:
             amount: Cantidad numérica a formatear.
             locale: Locale para determinar símbolo y separadores.
-        
+
         Returns:
             String formateado (ej: 'MXN 1,234.56', 'EUR 1.234,56').
         """
@@ -304,8 +304,7 @@ class I18nEngine:
             # Sin decimales para monedas sin centavos
             return f"{config.currency} {int(amount):,}".replace(",", config.number_separator)
         formatted = (
-            f"{amount:,.2f}"
-            .replace(",", "TEMP")
+            f"{amount:,.2f}".replace(",", "TEMP")
             .replace(".", config.decimal_separator)
             .replace("TEMP", config.number_separator)
         )
@@ -313,10 +312,10 @@ class I18nEngine:
 
     def generate_i18n_template(self, framework: str = "react") -> dict[str, str]:
         """Generar template de i18n inyectable en proyectos generados.
-        
+
         Args:
             framework: Framework objetivo ('react' o 'nextjs').
-        
+
         Returns:
             Dict con rutas de archivo como keys y contenido como values.
             Listo para escribir directamente en el filesystem del proyecto.
@@ -330,7 +329,7 @@ class I18nEngine:
 
     def _react_i18n_template(self) -> dict[str, str]:
         """Template react-i18next para proyectos React.
-        
+
         Soberanía: react-i18next → i18next-vanilla si React no está disponible.
         """
         return {
@@ -350,40 +349,50 @@ class I18nEngine:
                 "  });\n\n"
                 "export default i18n;\n"
             ),
-            "src/i18n/locales/es.json": json.dumps({
-                "common": {
-                    "welcome": "Bienvenido",
-                    "loading": "Cargando...",
-                    "error": "Ha ocurrido un error",
-                    "save": "Guardar",
-                    "cancel": "Cancelar",
-                    "delete": "Eliminar",
-                    "search": "Buscar",
+            "src/i18n/locales/es.json": json.dumps(
+                {
+                    "common": {
+                        "welcome": "Bienvenido",
+                        "loading": "Cargando...",
+                        "error": "Ha ocurrido un error",
+                        "save": "Guardar",
+                        "cancel": "Cancelar",
+                        "delete": "Eliminar",
+                        "search": "Buscar",
+                    },
+                    "nav": {"home": "Inicio", "about": "Acerca de", "contact": "Contacto"},
                 },
-                "nav": {"home": "Inicio", "about": "Acerca de", "contact": "Contacto"},
-            }, indent=2, ensure_ascii=False),
-            "src/i18n/locales/en.json": json.dumps({
-                "common": {
-                    "welcome": "Welcome",
-                    "loading": "Loading...",
-                    "error": "An error occurred",
-                    "save": "Save",
-                    "cancel": "Cancel",
-                    "delete": "Delete",
-                    "search": "Search",
+                indent=2,
+                ensure_ascii=False,
+            ),
+            "src/i18n/locales/en.json": json.dumps(
+                {
+                    "common": {
+                        "welcome": "Welcome",
+                        "loading": "Loading...",
+                        "error": "An error occurred",
+                        "save": "Save",
+                        "cancel": "Cancel",
+                        "delete": "Delete",
+                        "search": "Search",
+                    },
+                    "nav": {"home": "Home", "about": "About", "contact": "Contact"},
                 },
-                "nav": {"home": "Home", "about": "About", "contact": "Contact"},
-            }, indent=2, ensure_ascii=False),
-            "package_deps": json.dumps({
-                "i18next": "^24.0.0",
-                "react-i18next": "^15.0.0",
-                "i18next-browser-languagedetector": "^8.0.0",
-            }),
+                indent=2,
+                ensure_ascii=False,
+            ),
+            "package_deps": json.dumps(
+                {
+                    "i18next": "^24.0.0",
+                    "react-i18next": "^15.0.0",
+                    "i18next-browser-languagedetector": "^8.0.0",
+                }
+            ),
         }
 
     def _nextjs_i18n_template(self) -> dict[str, str]:
         """Template next-intl para proyectos Next.js.
-        
+
         Soberanía: next-intl → react-i18next si Next.js no está disponible.
         """
         return {
@@ -398,7 +407,7 @@ class I18nEngine:
 
     def to_dict(self) -> dict:
         """Estado del motor para consumo del Command Center.
-        
+
         Returns:
             Dict serializable con estado actual del motor i18n.
         """
@@ -420,19 +429,18 @@ class I18nEngine:
 
 # ── Helpers de módulo ──────────────────────────────────────────────────────────
 
+
 def get_localized_system_prompt(locale: str, base_prompt: str = "") -> str:
     """Obtener system prompt localizado para los Sabios.
-    
+
     Args:
         locale: Código ISO 639-1 del idioma objetivo.
         base_prompt: Prompt base al que se agrega la instrucción de idioma.
-    
+
     Returns:
         System prompt con instrucción de idioma al final.
     """
-    locale_instruction = SYSTEM_PROMPT_TEMPLATES.get(
-        locale, SYSTEM_PROMPT_TEMPLATES["es"]
-    )
+    locale_instruction = SYSTEM_PROMPT_TEMPLATES.get(locale, SYSTEM_PROMPT_TEMPLATES["es"])
     return f"{base_prompt}\n\n{locale_instruction}" if base_prompt else locale_instruction
 
 
@@ -441,7 +449,7 @@ _i18n_engine_singleton: Optional[I18nEngine] = None
 
 def get_i18n_engine() -> I18nEngine:
     """Obtener singleton del I18nEngine.
-    
+
     Returns:
         Instancia global del motor i18n.
     """
@@ -458,15 +466,15 @@ def init_i18n_engine(
     sabios: Optional[object] = None,
 ) -> I18nEngine:
     """Inicializar I18nEngine con backends opcionales.
-    
+
     Args:
         default_locale: Locale por defecto.
         deepl_api_key: API key de DeepL (soberanía: opcional).
         sabios: Cliente de Sabios para LLM translation.
-    
+
     Returns:
         Instancia configurada del motor i18n.
-    
+
     Soberanía:
         deepl → LLM Sabios → heurísticas charset
     """
@@ -476,6 +484,7 @@ def init_i18n_engine(
     if deepl_api_key or os.environ.get("DEEPL_API_KEY"):
         try:
             import deepl  # soberanía: opcional, LLM fallback disponible
+
             translator = deepl.Translator(deepl_api_key or os.environ["DEEPL_API_KEY"])
             logger.info("deepl_configurado")
         except ImportError:

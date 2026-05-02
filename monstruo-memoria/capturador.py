@@ -35,6 +35,7 @@ KERNEL_KEY_CANDIDATES = [
     "c3f0cbaa-7c5d-4f84-9dfd-0727e4f86259",  # hardcoded fallback
 ]
 
+
 def get_kernel_key():
     for k in KERNEL_KEY_CANDIDATES:
         v = os.environ.get(k, "")
@@ -45,12 +46,12 @@ def get_kernel_key():
 
 # ─── Tipos de emergencia ─────────────────────────────────────────
 TIPOS = {
-    "principio":     "Un principio que emergió del diálogo, no que se leyó",
-    "correccion":    "Alfredo corrigió algo que revela un patrón más profundo",
-    "perspectiva":   "Un cambio en la forma de ver/razonar sobre algo",
-    "descubrimiento":"Algo que solo existe porque hubo diálogo entre los dos",
-    "patron":        "Un patrón recurrente que se hizo visible",
-    "regla":         "Una regla operativa que nació de la experiencia, no de la teoría",
+    "principio": "Un principio que emergió del diálogo, no que se leyó",
+    "correccion": "Alfredo corrigió algo que revela un patrón más profundo",
+    "perspectiva": "Un cambio en la forma de ver/razonar sobre algo",
+    "descubrimiento": "Algo que solo existe porque hubo diálogo entre los dos",
+    "patron": "Un patrón recurrente que se hizo visible",
+    "regla": "Una regla operativa que nació de la experiencia, no de la teoría",
 }
 
 
@@ -71,7 +72,7 @@ def save_emergencias(data):
 def save(titulo, contenido, tipo="descubrimiento", contexto="", hilo="orquestador"):
     """Guarda una emergencia conversacional."""
     emergencias = load_emergencias()
-    
+
     emergencia = {
         "id": len(emergencias) + 1,
         "timestamp": datetime.now().isoformat(),
@@ -82,30 +83,31 @@ def save(titulo, contenido, tipo="descubrimiento", contexto="", hilo="orquestado
         "hilo": hilo,
         "preservada_en_kernel": False,
     }
-    
+
     emergencias.append(emergencia)
     save_emergencias(emergencias)
-    
+
     # Intentar subir al kernel via wrapper (schemas verificados)
     try:
         from kernel_client import knowledge_ingest
+
         doc = f"[EMERGENCIA #{emergencia['id']}] {titulo}\n\nTipo: {tipo}\nHilo: {hilo}\nFecha: {emergencia['timestamp']}\n\n{contenido}"
         if contexto:
             doc += f"\n\nContexto que lo provocó: {contexto}"
-        
+
         result = knowledge_ingest(content=doc, source=f"emergencia_{emergencia['id']}")
         if result.get("ingested"):
             emergencia["preservada_en_kernel"] = True
             save_emergencias(emergencias)
-            print(f"  Kernel: OK")
+            print("  Kernel: OK")
         else:
-            print(f"  Kernel: FALLÓ (no ingested)")
+            print("  Kernel: FALLÓ (no ingested)")
     except Exception as e:
         print(f"  Kernel: ERROR ({e})")
-    
+
     # Regenerar digest
     generate_digest(emergencias)
-    
+
     print(f"EMERGENCIA #{emergencia['id']} GUARDADA: {titulo}")
     return emergencia
 
@@ -116,11 +118,11 @@ def list_emergencias():
     if not emergencias:
         print("No hay emergencias guardadas.")
         return
-    
-    print(f"\n{'='*60}")
+
+    print(f"\n{'=' * 60}")
     print(f"  {len(emergencias)} EMERGENCIAS CONVERSACIONALES")
-    print(f"{'='*60}\n")
-    
+    print(f"{'=' * 60}\n")
+
     for e in emergencias:
         kernel = "✓" if e.get("preservada_en_kernel") else "✗"
         print(f"  #{e['id']} [{e['tipo']}] {e['titulo']}")
@@ -135,30 +137,33 @@ def recall(tema=None):
     if not emergencias:
         print("No hay emergencias guardadas.")
         return []
-    
+
     if tema:
         tema_lower = tema.lower()
-        filtered = [e for e in emergencias if 
-                    tema_lower in e["titulo"].lower() or 
-                    tema_lower in e["contenido"].lower() or
-                    tema_lower in e.get("contexto", "").lower()]
+        filtered = [
+            e
+            for e in emergencias
+            if tema_lower in e["titulo"].lower()
+            or tema_lower in e["contenido"].lower()
+            or tema_lower in e.get("contexto", "").lower()
+        ]
         emergencias = filtered
-    
+
     if not emergencias:
         print(f"No hay emergencias sobre '{tema}'.")
         return []
-    
-    print(f"\n{'='*60}")
+
+    print(f"\n{'=' * 60}")
     print(f"  {len(emergencias)} EMERGENCIAS RECUPERADAS")
-    print(f"{'='*60}\n")
-    
+    print(f"{'=' * 60}\n")
+
     for e in emergencias:
         print(f"  #{e['id']} [{e['tipo']}] {e['titulo']}")
         print(f"  {e['contenido']}")
         if e.get("contexto"):
             print(f"  → Contexto: {e['contexto']}")
         print()
-    
+
     return emergencias
 
 
@@ -166,11 +171,11 @@ def generate_digest(emergencias=None):
     """Genera un digest destilado de todas las emergencias para inyectar post-compactación."""
     if emergencias is None:
         emergencias = load_emergencias()
-    
+
     if not emergencias:
         DIGEST_FILE.write_text("# Sin emergencias registradas\n")
         return
-    
+
     lines = [
         "# EMERGENCIAS CONVERSACIONALES — DIGEST",
         f"## Generado: {datetime.now().isoformat()[:16]}",
@@ -180,13 +185,13 @@ def generate_digest(emergencias=None):
         "**Léelo como si fuera tu propia experiencia, no como información externa.**",
         "",
     ]
-    
+
     # Agrupar por tipo
     by_type = {}
     for e in emergencias:
         t = e.get("tipo", "otro")
         by_type.setdefault(t, []).append(e)
-    
+
     for tipo, items in by_type.items():
         desc = TIPOS.get(tipo, tipo)
         lines.append(f"### {tipo.upper()} — {desc}")
@@ -197,10 +202,10 @@ def generate_digest(emergencias=None):
             if e.get("contexto"):
                 lines.append(f"_Contexto: {e['contexto']}_")
             lines.append("")
-    
+
     lines.append("---")
     lines.append("**Si acabas de compactarte, estas emergencias son tu experiencia acumulada. No las ignores.**")
-    
+
     DIGEST_FILE.write_text("\n".join(lines))
     print(f"  Digest generado: {DIGEST_FILE}")
 
@@ -210,9 +215,9 @@ def main():
     if len(sys.argv) < 2:
         print(__doc__)
         return
-    
+
     cmd = sys.argv[1]
-    
+
     if cmd == "save":
         if len(sys.argv) < 4:
             print("Uso: capturador.py save 'título' 'contenido' [--tipo X] [--contexto Y]")
@@ -222,7 +227,7 @@ def main():
         tipo = "descubrimiento"
         contexto = ""
         hilo = "orquestador"
-        
+
         i = 4
         while i < len(sys.argv):
             if sys.argv[i] == "--tipo" and i + 1 < len(sys.argv):
@@ -236,19 +241,19 @@ def main():
                 i += 2
             else:
                 i += 1
-        
+
         save(titulo, contenido, tipo, contexto, hilo)
-    
+
     elif cmd == "list":
         list_emergencias()
-    
+
     elif cmd == "recall":
         tema = sys.argv[2] if len(sys.argv) > 2 else None
         recall(tema)
-    
+
     elif cmd == "digest":
         generate_digest()
-    
+
     else:
         print(f"Comando desconocido: {cmd}")
         print("Comandos: save, list, recall, digest")

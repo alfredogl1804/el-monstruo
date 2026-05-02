@@ -13,6 +13,7 @@ Sprint 60 — 2026-05-01
 Soberanía: Usa PyPI JSON API (pública, sin auth) y OSV.dev (pública).
            Alternativa: pip-audit para CVEs locales, pip list --outdated para versiones.
 """
+
 from __future__ import annotations
 
 import json
@@ -27,6 +28,7 @@ logger = structlog.get_logger("monstruo.vanguard")
 
 
 # ── Errores con identidad ────────────────────────────────────────────────────
+
 
 class TechRadarError(Exception):
     """Error base del Tech Radar."""
@@ -47,6 +49,7 @@ TECH_RADAR_PYPI_NO_DISPONIBLE = (
 
 # ── Dataclasses ──────────────────────────────────────────────────────────────
 
+
 @dataclass
 class DependencyUpdate:
     """
@@ -63,6 +66,7 @@ class DependencyUpdate:
         risk_level: Nivel de riesgo ('low', 'medium', 'high').
         recommendation: Acción recomendada ('update', 'evaluate', 'skip').
     """
+
     package: str
     current_version: str
     latest_version: str
@@ -101,6 +105,7 @@ class TechTrend:
         adoption_recommendation: Recomendación ThoughtWorks-style ('adopt', 'trial', 'assess', 'hold').
         source: Fuente de la tendencia.
     """
+
     name: str
     category: str
     signal_strength: str
@@ -162,8 +167,6 @@ class TechRadar:
         if not requirements_content or not requirements_content.strip():
             raise TechRadarError(TECH_RADAR_REQUIREMENTS_VACIO)
 
-        import httpx
-
         updates: list[DependencyUpdate] = []
         lines = requirements_content.strip().split("\n")
         checked = 0
@@ -175,7 +178,7 @@ class TechRadar:
                 skipped += 1
                 continue
 
-            match = re.match(r'^([a-zA-Z0-9_-]+)\[?[^\]]*\]?==([0-9.]+)', line)
+            match = re.match(r"^([a-zA-Z0-9_-]+)\[?[^\]]*\]?==([0-9.]+)", line)
             if not match:
                 skipped += 1
                 continue
@@ -199,17 +202,19 @@ class TechRadar:
                 vulns = await self.check_security_advisories(package, current)
                 is_security = len(vulns) > 0
 
-                updates.append(DependencyUpdate(
-                    package=package,
-                    current_version=current,
-                    latest_version=latest_ver,
-                    release_date=latest_info.get("release_date", "unknown"),
-                    is_major=is_major,
-                    is_security=is_security,
-                    changelog_url=f"https://pypi.org/project/{package}/{latest_ver}/",
-                    risk_level="high" if is_security else ("medium" if is_major else "low"),
-                    recommendation="update_urgente" if is_security else ("evaluate" if is_major else "update"),
-                ))
+                updates.append(
+                    DependencyUpdate(
+                        package=package,
+                        current_version=current,
+                        latest_version=latest_ver,
+                        release_date=latest_info.get("release_date", "unknown"),
+                        is_major=is_major,
+                        is_security=is_security,
+                        changelog_url=f"https://pypi.org/project/{package}/{latest_ver}/",
+                        risk_level="high" if is_security else ("medium" if is_major else "low"),
+                        recommendation="update_urgente" if is_security else ("evaluate" if is_major else "update"),
+                    )
+                )
 
             except Exception as e:
                 logger.warning(
@@ -363,14 +368,16 @@ class TechRadar:
                     top_packages = data.get("rows", [])[:20]
                     for pkg in top_packages:
                         if pkg.get("download_count", 0) > 50_000_000:
-                            trends.append(TechTrend(
-                                name=pkg["project"],
-                                category="library",
-                                signal_strength="strong",
-                                relevance_to_monstruo="Alto volumen de descargas indica estándar de la industria",
-                                adoption_recommendation="assess",
-                                source="PyPI Top Packages (30 días)",
-                            ))
+                            trends.append(
+                                TechTrend(
+                                    name=pkg["project"],
+                                    category="library",
+                                    signal_strength="strong",
+                                    relevance_to_monstruo="Alto volumen de descargas indica estándar de la industria",
+                                    adoption_recommendation="assess",
+                                    source="PyPI Top Packages (30 días)",
+                                )
+                            )
         except Exception as e:
             logger.warning("pypi_trends_fallido", error=str(e))
 
@@ -384,14 +391,16 @@ class TechRadar:
                 if resp.status_code == 200:
                     data = resp.json()
                     for repo in data.get("items", [])[:5]:
-                        trends.append(TechTrend(
-                            name=repo["name"],
-                            category="tool",
-                            signal_strength="moderate",
-                            relevance_to_monstruo=(repo.get("description") or "Sin descripción")[:100],
-                            adoption_recommendation="assess",
-                            source=f"GitHub Trending ({repo['stargazers_count']} stars)",
-                        ))
+                        trends.append(
+                            TechTrend(
+                                name=repo["name"],
+                                category="tool",
+                                signal_strength="moderate",
+                                relevance_to_monstruo=(repo.get("description") or "Sin descripción")[:100],
+                                adoption_recommendation="assess",
+                                source=f"GitHub Trending ({repo['stargazers_count']} stars)",
+                            )
+                        )
         except Exception as e:
             logger.warning("github_trends_fallido", error=str(e))
 

@@ -115,6 +115,7 @@ async def lifespan(app: FastAPI):
     # Biblia: Mem0 v2 (Capa 3 — Memoria Episódica + Semántica)
     try:
         from memory.three_layer_memory import ThreeLayerMemory
+
         three_layer_memory = ThreeLayerMemory(
             db=db if db_connected else None,
             user_id="embrion",
@@ -130,7 +131,8 @@ async def lifespan(app: FastAPI):
     # Obj #10: Simulador Predictivo — necesita eventos causales históricos
     # Patrón: ThoughtsStore (pgvector + Supabase + text-embedding-3-small)
     try:
-        from memory.causal_kb import CausalKnowledgeBase, get_causal_kb
+        from memory.causal_kb import get_causal_kb
+
         causal_kb = get_causal_kb(db=db if db_connected else None)
         await causal_kb.initialize()
         app.state.causal_kb = causal_kb
@@ -142,6 +144,7 @@ async def lifespan(app: FastAPI):
     # ── Sprint 55.4: CausalDecomposer ─────────────────────────────────────────
     try:
         from kernel.causal_decomposer import init_causal_decomposer
+
         causal_decomposer = init_causal_decomposer(
             causal_kb=app.state.causal_kb,
         )
@@ -155,6 +158,7 @@ async def lifespan(app: FastAPI):
     # ── Sprint 55.5: CausalSimulator (Monte Carlo) ─────────────────────────
     try:
         from kernel.causal_simulator import init_causal_simulator
+
         causal_simulator = init_causal_simulator(
             causal_kb=app.state.causal_kb,
         )
@@ -228,14 +232,16 @@ async def lifespan(app: FastAPI):
         .category(EventCategory.SYSTEM_STARTUP)
         .actor("system")
         .action("El Monstruo started")
-        .with_payload({
-            "version": "0.50.0-sprint50",
-            "motor": "langgraph",
-            "router": "connected" if router else "stub",
-            "memory": "active",
-            "knowledge": "active",
-            "checkpointer": "PostgresSaver" if checkpointer else "MemorySaver",
-        })
+        .with_payload(
+            {
+                "version": "0.50.0-sprint50",
+                "motor": "langgraph",
+                "router": "connected" if router else "stub",
+                "memory": "active",
+                "knowledge": "active",
+                "checkpointer": "PostgresSaver" if checkpointer else "MemorySaver",
+            }
+        )
         .build()
     )
 
@@ -498,6 +504,7 @@ async def lifespan(app: FastAPI):
     mem0_active = False
     try:
         from memory.mem0_bridge import get_stats as mem0_stats
+
         _mem0_check = await mem0_stats()
         mem0_active = _mem0_check.get("status") == "active"
         if mem0_active:
@@ -512,7 +519,8 @@ async def lifespan(app: FastAPI):
     fastmcp_server = None
     _mcp_lifespan_cm = None
     try:
-        from kernel.fastmcp_server import create_fastmcp_server, get_status as fastmcp_status
+        from kernel.fastmcp_server import create_fastmcp_server
+
         fastmcp_server = create_fastmcp_server()
         if fastmcp_server:
             # Mount FastMCP Streamable HTTP endpoint on the FastAPI app
@@ -538,6 +546,7 @@ async def lifespan(app: FastAPI):
     global _bg_store
     try:
         from kernel.background_store import BackgroundStore
+
         _bg_store = BackgroundStore(db=db if db_connected else None)
         app.state._bg_store = _bg_store
         logger.info("background_store_initialized", backend="supabase" if db_connected else "in_memory")
@@ -583,6 +592,7 @@ async def lifespan(app: FastAPI):
     # ── Sprint 40: Task Planner Routes ───────────────────────────────
     try:
         from kernel.planner_routes import router as planner_router
+
         app.include_router(planner_router)
         logger.info("planner_routes_registered")
     except Exception as e:
@@ -610,7 +620,7 @@ async def lifespan(app: FastAPI):
         embrion_loop = EmbrionLoop(
             db=db if db_connected else None,
             kernel=kernel,
-            notifier=_embrion_notifier if '_embrion_notifier' in dir() else None,
+            notifier=_embrion_notifier if "_embrion_notifier" in dir() else None,
         )
         await embrion_loop.start()
         app.state._embrion_loop = embrion_loop
@@ -626,7 +636,6 @@ async def lifespan(app: FastAPI):
     embrion_scheduler = None
     try:
         from kernel.embrion_scheduler import (
-            EmbrionScheduler,
             get_embrion_scheduler,
             register_default_tasks,
             register_stub_handlers,
@@ -655,7 +664,10 @@ async def lifespan(app: FastAPI):
                             json={
                                 "model": "sonar",
                                 "messages": [
-                                    {"role": "system", "content": "You are a historical research assistant. Provide factual, well-structured lists of historical events."},
+                                    {
+                                        "role": "system",
+                                        "content": "You are a historical research assistant. Provide factual, well-structured lists of historical events.",
+                                    },
                                     {"role": "user", "content": query},
                                 ],
                                 "max_tokens": 3000,
@@ -695,7 +707,7 @@ async def lifespan(app: FastAPI):
             from kernel.prediction_validator import init_prediction_validator
 
             # Reusar la misma search_fn de Perplexity construida para CausalSeeder
-            _pv_search_fn = _perplexity_search_fn if '_perplexity_search_fn' in dir() else None
+            _pv_search_fn = _perplexity_search_fn if "_perplexity_search_fn" in dir() else None
 
             prediction_validator = init_prediction_validator(
                 db=db if db_connected else None,
@@ -724,7 +736,9 @@ async def lifespan(app: FastAPI):
         # ── Sprint 55.2: A2A Registry ─────────────────────────────────────────
         try:
             from kernel.a2a_registry import init_a2a_registry
-            from kernel.a2a_routes import router as a2a_router, set_registry
+            from kernel.a2a_routes import router as a2a_router
+            from kernel.a2a_routes import set_registry
+
             a2a_registry = await init_a2a_registry(db=db if db_connected else None)
             set_registry(a2a_registry)
             app.include_router(a2a_router)
@@ -741,6 +755,7 @@ async def lifespan(app: FastAPI):
         # ── Sprint 56.5: Sovereign LLM ───────────────────────────────────────
         try:
             from kernel.sovereign_llm import init_sovereign_llm
+
             sovereign_llm = await init_sovereign_llm()
             app.state.sovereign_llm = sovereign_llm
             _slm_stats = sovereign_llm.get_stats()
@@ -758,6 +773,7 @@ async def lifespan(app: FastAPI):
         # ── Sprint 56.4: Embrión Metrics Collector ──────────────────────────
         try:
             from observability.embrion_metrics import init_embrion_metrics_collector
+
             embrion_metrics = init_embrion_metrics_collector()
             app.state.embrion_metrics = embrion_metrics
             logger.info("embrion_metrics_collector_ready")
@@ -769,10 +785,11 @@ async def lifespan(app: FastAPI):
         # ── Sprint 57.1 — EmbrionVentas ──────────────────────────────────────────
         try:
             from kernel.embrion_ventas import get_embrion_ventas
+
             embrion_ventas = get_embrion_ventas(
                 db=db,
                 kernel=router,
-                notifier=notifier if 'notifier' in dir() else None,
+                notifier=notifier if "notifier" in dir() else None,
             )
             app.state.embrion_ventas = embrion_ventas
             logger.info("embrion_ventas_ready", specialization="ventas")
@@ -784,6 +801,7 @@ async def lifespan(app: FastAPI):
         # ── Sprint 57.5 — Visual Quality Gate ────────────────────────────────────
         try:
             from quality.visual_quality_gate import get_visual_quality_gate
+
             visual_gate = get_visual_quality_gate()
             app.state.visual_quality_gate = visual_gate
             logger.info("visual_quality_gate_ready")
@@ -795,6 +813,7 @@ async def lifespan(app: FastAPI):
         # ── Sprint 58.4 — Embrión-Técnico ────────────────────────────────────────
         try:
             from kernel.embrion_tecnico import EmbrionTecnico
+
             embrion_tecnico = EmbrionTecnico(
                 db=app.state.db if hasattr(app.state, "db") else None,
                 kernel=None,
@@ -810,6 +829,7 @@ async def lifespan(app: FastAPI):
         # ── Sprint 58.5 — Embrión-Vigía ──────────────────────────────────────────
         try:
             from kernel.embrion_vigia import EmbrionVigia
+
             embrion_vigia = EmbrionVigia(
                 db=app.state.db if hasattr(app.state, "db") else None,
                 kernel=None,
@@ -826,24 +846,25 @@ async def lifespan(app: FastAPI):
         try:
             from kernel.embriones.embrion_creativo import EmbrionCreativo
             from kernel.embriones.embrion_estratega import EmbrionEstratega
-            from kernel.ux.conversational import ConversationalUX
             from kernel.emergent_tracker import init_emergent_tracker
+            from kernel.ux.conversational import ConversationalUX
 
-            embrion_creativo = EmbrionCreativo(_sabios=sabios if 'sabios' in dir() else None)
+            embrion_creativo = EmbrionCreativo(_sabios=sabios if "sabios" in dir() else None)
             app.state.embrion_creativo = embrion_creativo
             logger.info("embrion_creativo_ready", specialization="diseño y branding")
 
-            embrion_estratega = EmbrionEstratega(_sabios=sabios if 'sabios' in dir() else None)
+            embrion_estratega = EmbrionEstratega(_sabios=sabios if "sabios" in dir() else None)
             app.state.embrion_estratega = embrion_estratega
             logger.info("embrion_estratega_ready", specialization="estrategia y mercado")
 
             conversational_ux = ConversationalUX()
             app.state.conversational_ux = conversational_ux
-            logger.info("conversational_ux_ready", quick_commands=len(conversational_ux.to_dict().get('quick_commands_disponibles', [])))
-
-            emergent_tracker = init_emergent_tracker(
-                supabase_client=db if db_connected else None
+            logger.info(
+                "conversational_ux_ready",
+                quick_commands=len(conversational_ux.to_dict().get("quick_commands_disponibles", [])),
             )
+
+            emergent_tracker = init_emergent_tracker(supabase_client=db if db_connected else None)
             app.state.emergent_tracker = emergent_tracker
             logger.info("emergent_tracker_ready", persistencia="supabase" if db_connected else "in_memory")
 
@@ -857,11 +878,11 @@ async def lifespan(app: FastAPI):
 
         # ── Sprint 60: Colmena Completa + Simulador Calibrado ───────────────────────
         try:
-            from kernel.sovereignty.engine import init_sovereignty_engine
-            from kernel.vanguard.tech_radar import init_tech_radar
-            from kernel.simulator.causal_simulator_v2 import init_simulator_v2
             from kernel.embriones.embrion_financiero import init_embrion_financiero
             from kernel.embriones.embrion_investigador import init_embrion_investigador
+            from kernel.simulator.causal_simulator_v2 import init_simulator_v2
+            from kernel.sovereignty.engine import init_sovereignty_engine
+            from kernel.vanguard.tech_radar import init_tech_radar
 
             sovereignty_engine = init_sovereignty_engine()
             app.state.sovereignty_engine = sovereignty_engine
@@ -872,7 +893,7 @@ async def lifespan(app: FastAPI):
             logger.info("tech_radar_ready", objetivo="Obj #6 — Vanguardia Perpetua")
 
             causal_simulator_v2 = init_simulator_v2(
-                causal_kb=getattr(app.state, 'causal_kb', None),
+                causal_kb=getattr(app.state, "causal_kb", None),
             )
             app.state.causal_simulator_v2 = causal_simulator_v2
             logger.info("causal_simulator_v2_ready", objetivo="Obj #10 — Simulador Predictivo Calibrado")
@@ -902,14 +923,14 @@ async def lifespan(app: FastAPI):
 
         # ── Sprint 61: Collective Intelligence + Design System + Adaptive Learning + Guardián + Onboarding ──
         try:
-            from kernel.collective.protocol import ColectivaProtocol
-            from kernel.design.system import DesignSystemEngine, get_design_system_engine
-            from kernel.learning.adaptive import AdaptiveLearningEngine
-            from kernel.guardian import GuardianDeObjetivos
-            from kernel.onboarding import OnboardingWizard
             import kernel.design.system as _design_mod
             import kernel.guardian as _guardian_mod
             import kernel.onboarding as _onboarding_mod
+            from kernel.collective.protocol import ColectivaProtocol
+            from kernel.design.system import DesignSystemEngine
+            from kernel.guardian import GuardianDeObjetivos
+            from kernel.learning.adaptive import AdaptiveLearningEngine
+            from kernel.onboarding import OnboardingWizard
 
             colectiva = ColectivaProtocol()
             app.state.colectiva = colectiva
@@ -944,12 +965,13 @@ async def lifespan(app: FastAPI):
 
         # ── Sprint 62: Plugin Architecture + Portability + Component Library + Marketplace + Cost Optimizer ──
         try:
+            import os
+
+            from kernel.components.registry import init_component_registry
+            from kernel.cost_optimizer import init_cost_optimizer
+            from kernel.marketplace.marketplace import init_marketplace
             from kernel.plugins.plugin_manager import init_plugin_manager
             from kernel.portability.portability_engine import PortabilityEngine
-            from kernel.components.registry import init_component_registry
-            from kernel.marketplace.marketplace import init_marketplace
-            from kernel.cost_optimizer import init_cost_optimizer
-            import os
 
             plugin_manager = init_plugin_manager()
             app.state.plugin_manager = plugin_manager
@@ -987,14 +1009,14 @@ async def lifespan(app: FastAPI):
 
         # ── Sprint 63: Research Intelligence + Zero-Config + Motion System + Marketplace Global + Cross-Embrion Learning ──
         try:
+            from kernel.collective.emergence_detector import init_emergence_detector
+            from kernel.collective.knowledge_propagator import init_knowledge_propagator
+            from kernel.marketplace.registry import init_marketplace_registry
+            from kernel.motion.orchestrator import init_motion_orchestrator
             from kernel.vanguard.intelligence_engine import init_intelligence_engine
             from kernel.vanguard.semantic_scholar import init_scholar_client
             from kernel.vanguard.weekly_digest import init_digest_generator
             from kernel.zero_config.intent_inferrer import init_intent_inferrer
-            from kernel.motion.orchestrator import init_motion_orchestrator
-            from kernel.marketplace.registry import init_marketplace_registry
-            from kernel.collective.knowledge_propagator import init_knowledge_propagator
-            from kernel.collective.emergence_detector import init_emergence_detector
 
             _supabase = app.state.db if db_connected else None
 
@@ -1079,30 +1101,30 @@ async def lifespan(app: FastAPI):
         embrion="registered",
         embrion_loop="active" if embrion_loop else "inactive",
         embrion_scheduler="active" if embrion_scheduler else "inactive",
-        causal_seeder="active" if getattr(app.state, 'causal_seeder', None) else "inactive",
-        prediction_validator="active" if getattr(app.state, 'prediction_validator', None) else "inactive",
-        a2a_registry="active" if getattr(app.state, 'a2a_registry', None) else "inactive",
-        causal_decomposer="active" if getattr(app.state, 'causal_decomposer', None) else "inactive",
-        causal_simulator="active" if getattr(app.state, 'causal_simulator', None) else "inactive",
-        sovereign_llm="active" if getattr(app.state, 'sovereign_llm', None) else "inactive",
-        embrion_metrics="active" if getattr(app.state, 'embrion_metrics', None) else "inactive",
-        embrion_ventas="active" if getattr(app.state, 'embrion_ventas', None) else "inactive",
-        embrion_creativo="active" if getattr(app.state, 'embrion_creativo', None) else "inactive",
-        embrion_estratega="active" if getattr(app.state, 'embrion_estratega', None) else "inactive",
-        conversational_ux="active" if getattr(app.state, 'conversational_ux', None) else "inactive",
-        emergent_tracker="active" if getattr(app.state, 'emergent_tracker', None) else "inactive",
-        visual_quality_gate="active" if getattr(app.state, 'visual_quality_gate', None) else "inactive",
-        sovereignty_engine="active" if getattr(app.state, 'sovereignty_engine', None) else "inactive",
-        tech_radar="active" if getattr(app.state, 'tech_radar', None) else "inactive",
-        causal_simulator_v2="active" if getattr(app.state, 'causal_simulator_v2', None) else "inactive",
-        embrion_financiero="active" if getattr(app.state, 'embrion_financiero', None) else "inactive",
-        embrion_investigador="active" if getattr(app.state, 'embrion_investigador', None) else "inactive",
+        causal_seeder="active" if getattr(app.state, "causal_seeder", None) else "inactive",
+        prediction_validator="active" if getattr(app.state, "prediction_validator", None) else "inactive",
+        a2a_registry="active" if getattr(app.state, "a2a_registry", None) else "inactive",
+        causal_decomposer="active" if getattr(app.state, "causal_decomposer", None) else "inactive",
+        causal_simulator="active" if getattr(app.state, "causal_simulator", None) else "inactive",
+        sovereign_llm="active" if getattr(app.state, "sovereign_llm", None) else "inactive",
+        embrion_metrics="active" if getattr(app.state, "embrion_metrics", None) else "inactive",
+        embrion_ventas="active" if getattr(app.state, "embrion_ventas", None) else "inactive",
+        embrion_creativo="active" if getattr(app.state, "embrion_creativo", None) else "inactive",
+        embrion_estratega="active" if getattr(app.state, "embrion_estratega", None) else "inactive",
+        conversational_ux="active" if getattr(app.state, "conversational_ux", None) else "inactive",
+        emergent_tracker="active" if getattr(app.state, "emergent_tracker", None) else "inactive",
+        visual_quality_gate="active" if getattr(app.state, "visual_quality_gate", None) else "inactive",
+        sovereignty_engine="active" if getattr(app.state, "sovereignty_engine", None) else "inactive",
+        tech_radar="active" if getattr(app.state, "tech_radar", None) else "inactive",
+        causal_simulator_v2="active" if getattr(app.state, "causal_simulator_v2", None) else "inactive",
+        embrion_financiero="active" if getattr(app.state, "embrion_financiero", None) else "inactive",
+        embrion_investigador="active" if getattr(app.state, "embrion_investigador", None) else "inactive",
         colmena="COMPLETA_7_DE_7",
-        colectiva="active" if getattr(app.state, 'colectiva', None) else "inactive",
-        design_engine="active" if getattr(app.state, 'design_engine', None) else "inactive",
-        learning_engine="active" if getattr(app.state, 'learning_engine', None) else "inactive",
-        guardian="active" if getattr(app.state, 'guardian', None) else "inactive",
-        onboarding="active" if getattr(app.state, 'onboarding', None) else "inactive",
+        colectiva="active" if getattr(app.state, "colectiva", None) else "inactive",
+        design_engine="active" if getattr(app.state, "design_engine", None) else "inactive",
+        learning_engine="active" if getattr(app.state, "learning_engine", None) else "inactive",
+        guardian="active" if getattr(app.state, "guardian", None) else "inactive",
+        onboarding="active" if getattr(app.state, "onboarding", None) else "inactive",
         background_store="supabase" if (_bg_store and _bg_store._use_db()) else "in_memory",
         moc="active" if moc else "inactive",
     )
@@ -2013,12 +2035,17 @@ async def history(user_id: Optional[str] = None, limit: int = 20):
     # The kernel emits: run.started, intent.classified, context.enriched,
     # model.called, run.completed, run.failed, memory.updated, human.reviewed, human.feedback
     history_categories = {
-        "run.started", "run.completed", "run.failed",
-        "model.called", "memory.updated",
-        "human.reviewed", "human.feedback",
+        "run.started",
+        "run.completed",
+        "run.failed",
+        "model.called",
+        "memory.updated",
+        "human.reviewed",
+        "human.feedback",
         "intent.classified",
         # Legacy names (in case any old events use them)
-        "llm_call", "human_feedback",
+        "llm_call",
+        "human_feedback",
     }
 
     chat_events = [
@@ -2032,8 +2059,7 @@ async def history(user_id: Optional[str] = None, limit: int = 20):
             "payload": e.payload,
         }
         for e in all_events
-        if (not user_id or e.actor == user_id or e.user_id == user_id)
-        and e.category.value in history_categories
+        if (not user_id or e.actor == user_id or e.user_id == user_id) and e.category.value in history_categories
     ][:limit]
 
     return chat_events
@@ -2154,22 +2180,24 @@ async def agent_card():
     return {
         "name": "El Monstruo",
         "description": (
-            "Sovereign AI orchestrator. Creates digital businesses, "
-            "predicts futures, never repeats mistakes."
+            "Sovereign AI orchestrator. Creates digital businesses, predicts futures, never repeats mistakes."
         ),
         "version": "0.55.0",
         "protocol": "a2a/1.0",
         "capabilities": [
-            "web_search", "code_generation", "web_development",
-            "multi_model_consultation", "causal_analysis",
-            "autonomous_operation", "business_creation",
-            "wide_research", "spec_driven_planning",
+            "web_search",
+            "code_generation",
+            "web_development",
+            "multi_model_consultation",
+            "causal_analysis",
+            "autonomous_operation",
+            "business_creation",
+            "wide_research",
+            "spec_driven_planning",
         ],
         "input_modes": ["text/plain", "application/json"],
         "output_modes": ["text/plain", "application/json", "text/html"],
-        "endpoint": os.environ.get(
-            "A2A_ENDPOINT", "https://el-monstruo.up.railway.app/v1/a2a"
-        ),
+        "endpoint": os.environ.get("A2A_ENDPOINT", "https://el-monstruo.up.railway.app/v1/a2a"),
         "auth_schemes": ["bearer"],
         "owner": "Alfredo Gongora",
     }
@@ -2186,11 +2214,7 @@ async def health():
 
         # Show flagship model_ids (not catalog keys) for external consumers
         flagship_keys = ["gpt-5.5", "claude-opus-4-7", "gemini-3.1-pro", "sonar-reasoning-pro"]
-        models_available = [
-            MODEL_CATALOG[k]["model_id"]
-            for k in flagship_keys
-            if k in MODEL_CATALOG
-        ]
+        models_available = [MODEL_CATALOG[k]["model_id"] for k in flagship_keys if k in MODEL_CATALOG]
     except ImportError:
         models_available = ["gpt-5.5", "claude-opus-4-7", "sonar-reasoning-pro"]
 
@@ -2214,7 +2238,11 @@ async def health():
             "knowledge": "active" if knowledge_graph else "inactive",
             "langfuse": "active" if (observability and observability.langfuse_enabled) else "inactive",
             "opentelemetry": "active" if (observability and observability.otel_enabled) else "inactive",
-            "checkpointer": "active (AsyncPostgresSaver)" if (kernel and type(kernel._checkpointer).__name__ == "AsyncPostgresSaver") else "inactive (MemorySaver)" if kernel else "unknown",
+            "checkpointer": "active (AsyncPostgresSaver)"
+            if (kernel and type(kernel._checkpointer).__name__ == "AsyncPostgresSaver")
+            else "inactive (MemorySaver)"
+            if kernel
+            else "unknown",
             "mempalace": "active" if getattr(app.state, "_mempalace_ready", False) else "inactive",
             "lightrag": "active" if getattr(app.state, "_lightrag_ready", False) else "inactive",
             "multi_agent": "active",  # Sprint 21: always available (keyword-based, no external deps)
@@ -2223,7 +2251,9 @@ async def health():
             "fastmcp": "active" if getattr(app.state, "fastmcp_server", None) else "inactive",
             "mem0": "active" if getattr(app.state, "_mem0_active", False) else "inactive",
             "embrion": "active" if getattr(app.state, "_embrion_loop", None) else "registered",
-            "embrion_loop": getattr(app.state, "_embrion_loop", None) and getattr(app.state._embrion_loop, "stats", None) or "inactive",
+            "embrion_loop": getattr(app.state, "_embrion_loop", None)
+            and getattr(app.state._embrion_loop, "stats", None)
+            or "inactive",
         },
     }
 
@@ -2263,9 +2293,21 @@ async def mcp_status():
         "status": "inactive",
         "reason": "No MCP servers configured. Set env vars to enable presets.",
         "available_presets": [
-            {"name": "github", "env": "GITHUB_PERSONAL_ACCESS_TOKEN", "pkg": "@modelcontextprotocol/server-github@2025.4.8"},
-            {"name": "filesystem", "env": "MCP_FILESYSTEM_PATHS", "pkg": "@modelcontextprotocol/server-filesystem@2026.1.14"},
-            {"name": "supabase", "env": "SUPABASE_URL + SUPABASE_SERVICE_KEY (or SUPABASE_SERVICE_ROLE_KEY)", "pkg": "@supabase/mcp-server-supabase@0.7.0"},
+            {
+                "name": "github",
+                "env": "GITHUB_PERSONAL_ACCESS_TOKEN",
+                "pkg": "@modelcontextprotocol/server-github@2025.4.8",
+            },
+            {
+                "name": "filesystem",
+                "env": "MCP_FILESYSTEM_PATHS",
+                "pkg": "@modelcontextprotocol/server-filesystem@2026.1.14",
+            },
+            {
+                "name": "supabase",
+                "env": "SUPABASE_URL + SUPABASE_SERVICE_KEY (or SUPABASE_SERVICE_ROLE_KEY)",
+                "pkg": "@supabase/mcp-server-supabase@0.7.0",
+            },
         ],
     }
 
@@ -2278,6 +2320,7 @@ async def memory_status():
     # MemPalace (episodic + semantic)
     try:
         from memory.mempalace_bridge import get_stats
+
         result["layers"]["mempalace"] = await get_stats()
     except Exception as e:
         result["layers"]["mempalace"] = {"status": "error", "error": str(e)}
@@ -2285,6 +2328,7 @@ async def memory_status():
     # Mem0 (episodic memory — replaces Honcho, Sprint 27)
     try:
         from memory.mem0_bridge import get_stats as mem0_stats
+
         result["layers"]["mem0"] = await mem0_stats()
     except Exception as e:
         result["layers"]["mem0"] = {"status": "not_configured", "error": str(e)}
@@ -2292,8 +2336,9 @@ async def memory_status():
     # Sprint 23: LightRAG (knowledge graph RAG)
     try:
         from memory.lightrag_bridge import get_stats as lightrag_stats
+
         result["layers"]["lightrag"] = await lightrag_stats()
-    except Exception as e:
+    except Exception:
         result["layers"]["lightrag"] = {"status": "not_configured"}
 
     # PostgresSaver (checkpoints)
@@ -2316,6 +2361,7 @@ async def memory_status():
 
 class IngestRequest(BaseModel):
     """Request body for document ingestion."""
+
     content: str = Field(..., min_length=10, description="Document text to ingest")
     source: Optional[str] = Field(None, description="Source identifier (filename, URL, etc.)")
     doc_type: Optional[str] = Field(None, description="Document type (pdf, markdown, text, etc.)")
@@ -2323,6 +2369,7 @@ class IngestRequest(BaseModel):
 
 class KnowledgeQueryRequest(BaseModel):
     """Request body for knowledge graph query."""
+
     query: str = Field(..., min_length=3, description="Natural language query")
     mode: str = Field("hybrid", description="Retrieval mode: local, global, hybrid, naive")
     top_k: int = Field(5, ge=1, le=20, description="Max results")
@@ -2368,6 +2415,7 @@ async def agents_status():
     """Return Multi-Agent Dispatcher registry status. Sprint 19."""
     try:
         from kernel.multi_agent import get_registry_status
+
         return get_registry_status()
     except Exception as e:
         return {"status": "error", "error": str(e)}

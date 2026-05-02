@@ -38,7 +38,7 @@ import time
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Directorio base de datos
 DATA_DIR = Path(os.path.dirname(os.path.abspath(__file__))).parent / "data"
@@ -133,9 +133,15 @@ class RunTelemetry:
         tel.finalize(status="success")
     """
 
-    def __init__(self, run_id: str, run_dir: str | Path, modo: str = "enjambre",
-                 profundidad_pre: str = "normal", profundidad_post: str = "normal",
-                 skill_version: str = "1.1.0"):
+    def __init__(
+        self,
+        run_id: str,
+        run_dir: str | Path,
+        modo: str = "enjambre",
+        profundidad_pre: str = "normal",
+        profundidad_post: str = "normal",
+        skill_version: str = "1.1.0",
+    ):
         self.run_id = run_id
         self.run_dir = Path(run_dir)
         self.modo = modo
@@ -168,9 +174,15 @@ class RunTelemetry:
             "extra": {},
         }
 
-    def end_step(self, step_name: str, success: bool = True,
-                 input_chars: int = 0, output_chars: int = 0,
-                 error_type: str = None, extra: dict = None):
+    def end_step(
+        self,
+        step_name: str,
+        success: bool = True,
+        input_chars: int = 0,
+        output_chars: int = 0,
+        error_type: str = None,
+        extra: dict = None,
+    ):
         """Marca el fin de un paso con sus métricas."""
         if step_name not in self.steps:
             self.start_step(step_name)
@@ -270,6 +282,7 @@ def _classify_error(error_str: str) -> str:
 # UTILIDADES DE LECTURA DEL HISTORIAL
 # ═══════════════════════════════════════════════════════════════════
 
+
 def read_jsonl(path: str | Path) -> list:
     """Lee un archivo JSONL y retorna lista de dicts."""
     path = Path(path)
@@ -300,7 +313,7 @@ def get_recent_runs(n: int = 10) -> list:
 
 if __name__ == "__main__":
     # Test rápido
-    print(f"📊 Telemetría consulta-sabios")
+    print("📊 Telemetría consulta-sabios")
     print(f"   Data dir: {DATA_DIR}")
     print(f"   Runs registrados: {get_run_count()}")
     print(f"   estimate_tokens('Hola mundo'): {estimate_tokens('Hola mundo')}")

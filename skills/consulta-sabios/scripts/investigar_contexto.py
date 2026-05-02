@@ -30,8 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from conector_sabios import consultar_sabio, _get_creds, _json_serialize
-import aiohttp
+from conector_sabios import consultar_sabio
 
 # Semáforo de concurrencia para Perplexity (P0-4: evita ráfagas que causan 429)
 PERPLEXITY_SEMAPHORE = asyncio.Semaphore(4)  # Máximo 4 consultas simultáneas
@@ -75,7 +74,7 @@ async def analizar_prompt(prompt: str, profundidad: str) -> dict:
     print("🔍 Paso 1: GPT-5.4 analizando qué necesita investigación en tiempo real...")
 
     instruccion = f"""Analiza el siguiente prompt que se enviará a 6 modelos de IA.
-La fecha de hoy es {datetime.now().strftime('%d de %B de %Y')}.
+La fecha de hoy es {datetime.now().strftime("%d de %B de %Y")}.
 Profundidad de investigación solicitada: {profundidad}
 
 PROMPT A ANALIZAR:
@@ -121,15 +120,16 @@ Identifica qué temas necesitan datos actualizados en tiempo real."""
 # PASO 2: Perplexity Sonar investiga cada tema en tiempo real
 # ═══════════════════════════════════════════════════════════════════
 
+
 async def investigar_tema_perplexity(tema: dict) -> dict:
     """Usa Perplexity Sonar para investigar un tema específico en tiempo real.
     Usa semáforo para limitar concurrencia y evitar rate limits (429)."""
     queries_text = "\n".join(f"- {q}" for q in tema["queries"])
 
-    prompt = f"""Investiga el siguiente tema con información actualizada al día de hoy ({datetime.now().strftime('%d de %B de %Y')}):
+    prompt = f"""Investiga el siguiente tema con información actualizada al día de hoy ({datetime.now().strftime("%d de %B de %Y")}):
 
-TEMA: {tema['tema']}
-RAZÓN DE LA INVESTIGACIÓN: {tema['razon']}
+TEMA: {tema["tema"]}
+RAZÓN DE LA INVESTIGACIÓN: {tema["razon"]}
 
 Queries de referencia:
 {queries_text}
@@ -152,7 +152,9 @@ INSTRUCCIONES:
     return {
         "tema": tema["tema"],
         "prioridad": tema["prioridad"],
-        "hallazgos": resultado["respuesta"] if resultado["exito"] else f"❌ Sin datos: {resultado.get('error', '?')[:100]}",
+        "hallazgos": resultado["respuesta"]
+        if resultado["exito"]
+        else f"❌ Sin datos: {resultado.get('error', '?')[:100]}",
         "exito": resultado["exito"],
         "fuente": "Perplexity Sonar (búsqueda web en tiempo real)",
     }
@@ -161,6 +163,7 @@ INSTRUCCIONES:
 # ═══════════════════════════════════════════════════════════════════
 # PASO 3: Compilar el Dossier de Realidad
 # ═══════════════════════════════════════════════════════════════════
+
 
 def compilar_dossier(analisis: dict, hallazgos: list, prompt_original: str) -> str:
     """Compila todos los hallazgos en un Dossier de Realidad estructurado."""
@@ -200,14 +203,16 @@ def compilar_dossier(analisis: dict, hallazgos: list, prompt_original: str) -> s
             lines.append("")
 
     # Nota para los sabios
-    lines.extend([
-        "## Instrucción para los Sabios",
-        "",
-        "La información en este dossier es más reciente que tu fecha de entrenamiento.",
-        "Cuando haya conflicto entre lo que sabes y lo que dice este dossier,",
-        "**prioriza los datos del dossier** ya que fueron verificados en tiempo real.",
-        "Si detectas inconsistencias, señálalas explícitamente en tu respuesta.",
-    ])
+    lines.extend(
+        [
+            "## Instrucción para los Sabios",
+            "",
+            "La información en este dossier es más reciente que tu fecha de entrenamiento.",
+            "Cuando haya conflicto entre lo que sabes y lo que dice este dossier,",
+            "**prioriza los datos del dossier** ya que fueron verificados en tiempo real.",
+            "Si detectas inconsistencias, señálalas explícitamente en tu respuesta.",
+        ]
+    )
 
     return "\n".join(lines)
 
@@ -216,12 +221,17 @@ def compilar_dossier(analisis: dict, hallazgos: list, prompt_original: str) -> s
 # MAIN
 # ═══════════════════════════════════════════════════════════════════
 
+
 async def main():
     parser = argparse.ArgumentParser(description="Investigación en tiempo real pre-consulta")
     parser.add_argument("--prompt", required=True, help="Ruta al archivo con el prompt")
     parser.add_argument("--output", required=True, help="Ruta de salida para el dossier")
-    parser.add_argument("--profundidad", choices=["rapida", "normal", "profunda"], default="normal",
-                        help="Profundidad de investigación (default: normal)")
+    parser.add_argument(
+        "--profundidad",
+        choices=["rapida", "normal", "profunda"],
+        default="normal",
+        help="Profundidad de investigación (default: normal)",
+    )
 
     args = parser.parse_args()
 

@@ -30,7 +30,7 @@ from typing import Optional
 from uuid import uuid4
 
 import httpx
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -87,6 +87,7 @@ class ChatMessage(BaseModel):
 
 class AGUIRequest(BaseModel):
     """Matches kernel's AGUIRunRequest format."""
+
     thread_id: Optional[str] = None
     run_id: Optional[str] = None
     messages: list[dict] = Field(default_factory=list)
@@ -97,6 +98,7 @@ class AGUIRequest(BaseModel):
 
 class SimpleChatRequest(BaseModel):
     """Simplified chat request for mobile — auto-wraps into AG-UI format."""
+
     message: str
     thread_id: Optional[str] = None
 
@@ -128,6 +130,7 @@ async def gateway_health():
 
 
 # ─── REST Endpoints (Mobile-optimized wrappers) ───
+
 
 @app.post("/api/chat")
 async def mobile_chat(req: SimpleChatRequest):
@@ -287,6 +290,7 @@ async def proxy_agui_info():
 
 # ─── WebSocket Streaming (AG-UI → WS bridge for Flutter) ───
 
+
 @app.websocket("/ws/chat")
 async def ws_chat(ws: WebSocket):
     """
@@ -367,12 +371,14 @@ async def _stream_agui_to_ws(
     }
 
     try:
-        await ws.send_json({
-            "type": "run_start",
-            "run_id": run_id,
-            "thread_id": thread_id,
-            "ts": time.time(),
-        })
+        await ws.send_json(
+            {
+                "type": "run_start",
+                "run_id": run_id,
+                "thread_id": thread_id,
+                "ts": time.time(),
+            }
+        )
 
         full_content = ""
         message_id = str(uuid4())
@@ -398,11 +404,13 @@ async def _stream_agui_to_ws(
                         batch = "".join(_token_buffer_list)
                         _token_buffer_list.clear()
                         try:
-                            await ws.send_json({
-                                "type": "text_chunk",
-                                "message_id": message_id,
-                                "content": batch,
-                            })
+                            await ws.send_json(
+                                {
+                                    "type": "text_chunk",
+                                    "message_id": message_id,
+                                    "content": batch,
+                                }
+                            )
                         except Exception:
                             _stream_done = True
                             return
@@ -410,140 +418,161 @@ async def _stream_agui_to_ws(
         flush_task = asyncio.create_task(_periodic_flush())
 
         try:
-          async with http_client.stream(
-              "POST", "/v1/agui/run",
-              json=agui_payload,
-              headers={
-                  "Accept": "text/event-stream",
-                  "Cache-Control": "no-cache",
-                  "X-Accel-Buffering": "no",
-              },
-          ) as response:
-            # Use aiter_bytes + manual SSE parsing to avoid Railway buffering
-            sse_buffer = ""
-            async for raw_bytes in response.aiter_bytes():
-                sse_buffer += raw_bytes.decode("utf-8", errors="replace")
-                while "\n\n" in sse_buffer:
-                    frame, sse_buffer = sse_buffer.split("\n\n", 1)
-                    for line in frame.split("\n"):
-                        if not line.startswith("data: "):
-                            continue
-                        data_str = line[6:]
-                        try:
-                            event = json.loads(data_str)
-                        except json.JSONDecodeError:
-                            continue
+            async with http_client.stream(
+                "POST",
+                "/v1/agui/run",
+                json=agui_payload,
+                headers={
+                    "Accept": "text/event-stream",
+                    "Cache-Control": "no-cache",
+                    "X-Accel-Buffering": "no",
+                },
+            ) as response:
+                # Use aiter_bytes + manual SSE parsing to avoid Railway buffering
+                sse_buffer = ""
+                async for raw_bytes in response.aiter_bytes():
+                    sse_buffer += raw_bytes.decode("utf-8", errors="replace")
+                    while "\n\n" in sse_buffer:
+                        frame, sse_buffer = sse_buffer.split("\n\n", 1)
+                        for line in frame.split("\n"):
+                            if not line.startswith("data: "):
+                                continue
+                            data_str = line[6:]
+                            try:
+                                event = json.loads(data_str)
+                            except json.JSONDecodeError:
+                                continue
 
-                        # Check if connection still active
-                        if connection_id not in active_connections:
-                            _stream_done = True
-                            return
+                            # Check if connection still active
+                            if connection_id not in active_connections:
+                                _stream_done = True
+                                return
 
-                        event_type = event.get("type", "")
+                            event_type = event.get("type", "")
 
-                        if event_type in ("THINKING_STATE", "THINKING"):
-                            # Forward thinking/routing metadata to Flutter
-                            await ws.send_json({
-                                "type": "thinking_state",
-                                "message_id": event.get("messageId", message_id),
-                                "intent": event.get("intent", ""),
-                                "model": event.get("model", ""),
-                                "enriched": event.get("enriched", False),
-                                "memories_found": event.get("memoriesFound", 0),
-                                "ts": time.time(),
-                            })
+                            if event_type in ("THINKING_STATE", "THINKING"):
+                                # Forward thinking/routing metadata to Flutter
+                                await ws.send_json(
+                                    {
+                                        "type": "thinking_state",
+                                        "message_id": event.get("messageId", message_id),
+                                        "intent": event.get("intent", ""),
+                                        "model": event.get("model", ""),
+                                        "enriched": event.get("enriched", False),
+                                        "memories_found": event.get("memoriesFound", 0),
+                                        "ts": time.time(),
+                                    }
+                                )
 
-                        elif event_type == "STEP":
-                            # Sprint 43: Forward structured step events to Flutter
-                            await ws.send_json({
-                                "type": "step",
-                                "message_id": event.get("messageId", message_id),
-                                "step_id": event.get("stepId", ""),
-                                "status": event.get("status", "in_progress"),
-                                "label": event.get("label", ""),
-                                "icon": event.get("icon", ""),
-                                "ts": time.time(),
-                            })
+                            elif event_type == "STEP":
+                                # Sprint 43: Forward structured step events to Flutter
+                                await ws.send_json(
+                                    {
+                                        "type": "step",
+                                        "message_id": event.get("messageId", message_id),
+                                        "step_id": event.get("stepId", ""),
+                                        "status": event.get("status", "in_progress"),
+                                        "label": event.get("label", ""),
+                                        "icon": event.get("icon", ""),
+                                        "ts": time.time(),
+                                    }
+                                )
 
-                        elif event_type == "TEXT_MESSAGE_CONTENT":
-                            delta = event.get("delta", "")
-                            full_content += delta
+                            elif event_type == "TEXT_MESSAGE_CONTENT":
+                                delta = event.get("delta", "")
+                                full_content += delta
 
-                            # Sprint 45: Token coalescing with background flush
-                            if not _first_token_sent:
-                                # FIRST TOKEN: send immediately (TTFT priority)
-                                _first_token_sent = True
-                                await ws.send_json({
-                                    "type": "text_chunk",
-                                    "message_id": message_id,
-                                    "content": delta,
-                                })
-                            else:
-                                # SUBSEQUENT: add to buffer, background task flushes
-                                async with _flush_lock:
-                                    _token_buffer_list.append(delta)
+                                # Sprint 45: Token coalescing with background flush
+                                if not _first_token_sent:
+                                    # FIRST TOKEN: send immediately (TTFT priority)
+                                    _first_token_sent = True
+                                    await ws.send_json(
+                                        {
+                                            "type": "text_chunk",
+                                            "message_id": message_id,
+                                            "content": delta,
+                                        }
+                                    )
+                                else:
+                                    # SUBSEQUENT: add to buffer, background task flushes
+                                    async with _flush_lock:
+                                        _token_buffer_list.append(delta)
 
-                        elif event_type == "TEXT_MESSAGE_START":
-                            message_id = event.get("messageId", message_id)
-                            await ws.send_json({
-                                "type": "message_start",
-                                "message_id": message_id,
-                            })
-
-                        elif event_type == "TEXT_MESSAGE_END":
-                            # Stop background flush and drain remaining buffer
-                            _stream_done = True
-                            async with _flush_lock:
-                                if _token_buffer_list:
-                                    batch = "".join(_token_buffer_list)
-                                    _token_buffer_list.clear()
-                                    await ws.send_json({
-                                        "type": "text_chunk",
+                            elif event_type == "TEXT_MESSAGE_START":
+                                message_id = event.get("messageId", message_id)
+                                await ws.send_json(
+                                    {
+                                        "type": "message_start",
                                         "message_id": message_id,
-                                        "content": batch,
-                                    })
-                            await ws.send_json({
-                                "type": "message_end",
-                                "message_id": message_id,
-                                "content": full_content,
-                            })
+                                    }
+                                )
 
-                        elif event_type == "TOOL_CALL_START":
-                            await ws.send_json({
-                                "type": "tool_start",
-                                "tool_name": event.get("toolCallName", "unknown"),
-                                "tool_call_id": event.get("toolCallId", ""),
-                            })
+                            elif event_type == "TEXT_MESSAGE_END":
+                                # Stop background flush and drain remaining buffer
+                                _stream_done = True
+                                async with _flush_lock:
+                                    if _token_buffer_list:
+                                        batch = "".join(_token_buffer_list)
+                                        _token_buffer_list.clear()
+                                        await ws.send_json(
+                                            {
+                                                "type": "text_chunk",
+                                                "message_id": message_id,
+                                                "content": batch,
+                                            }
+                                        )
+                                await ws.send_json(
+                                    {
+                                        "type": "message_end",
+                                        "message_id": message_id,
+                                        "content": full_content,
+                                    }
+                                )
 
-                        elif event_type == "TOOL_CALL_ARGS":
-                            await ws.send_json({
-                                "type": "tool_args",
-                                "tool_call_id": event.get("toolCallId", ""),
-                                "args": event.get("delta", ""),
-                            })
+                            elif event_type == "TOOL_CALL_START":
+                                await ws.send_json(
+                                    {
+                                        "type": "tool_start",
+                                        "tool_name": event.get("toolCallName", "unknown"),
+                                        "tool_call_id": event.get("toolCallId", ""),
+                                    }
+                                )
 
-                        elif event_type == "TOOL_CALL_END":
-                            await ws.send_json({
-                                "type": "tool_end",
-                                "tool_call_id": event.get("toolCallId", ""),
-                                "result": event.get("result", ""),
-                            })
+                            elif event_type == "TOOL_CALL_ARGS":
+                                await ws.send_json(
+                                    {
+                                        "type": "tool_args",
+                                        "tool_call_id": event.get("toolCallId", ""),
+                                        "args": event.get("delta", ""),
+                                    }
+                                )
 
-                        elif event_type == "RUN_FINISHED":
-                            # Run completed normally — don't return yet,
-                            # let the stream close naturally
-                            pass
+                            elif event_type == "TOOL_CALL_END":
+                                await ws.send_json(
+                                    {
+                                        "type": "tool_end",
+                                        "tool_call_id": event.get("toolCallId", ""),
+                                        "result": event.get("result", ""),
+                                    }
+                                )
 
-                        elif event_type == "RUN_ERROR":
-                            await ws.send_json({
-                                "type": "error",
-                                "message": event.get("message", "Unknown error"),
-                            })
-                            return
+                            elif event_type == "RUN_FINISHED":
+                                # Run completed normally — don't return yet,
+                                # let the stream close naturally
+                                pass
 
-                        elif event_type == "RUN_STARTED":
-                            # Already sent run_start above
-                            pass
+                            elif event_type == "RUN_ERROR":
+                                await ws.send_json(
+                                    {
+                                        "type": "error",
+                                        "message": event.get("message", "Unknown error"),
+                                    }
+                                )
+                                return
+
+                            elif event_type == "RUN_STARTED":
+                                # Already sent run_start above
+                                pass
 
         finally:
             # Always cancel the background flush task
@@ -555,31 +584,38 @@ async def _stream_agui_to_ws(
                 pass
 
         # Run complete
-        await ws.send_json({
-            "type": "run_end",
-            "run_id": run_id,
-            "thread_id": thread_id,
-            "content": full_content,
-            "ts": time.time(),
-        })
+        await ws.send_json(
+            {
+                "type": "run_end",
+                "run_id": run_id,
+                "thread_id": thread_id,
+                "content": full_content,
+                "ts": time.time(),
+            }
+        )
 
     except httpx.TimeoutException:
         _stream_done = True
         flush_task.cancel()
-        await ws.send_json({
-            "type": "error",
-            "message": "Kernel timeout — el agente está tardando más de lo esperado",
-        })
+        await ws.send_json(
+            {
+                "type": "error",
+                "message": "Kernel timeout — el agente está tardando más de lo esperado",
+            }
+        )
     except Exception as e:
         _stream_done = True
         flush_task.cancel()
-        await ws.send_json({
-            "type": "error",
-            "message": f"Gateway error: {str(e)}",
-        })
+        await ws.send_json(
+            {
+                "type": "error",
+                "message": f"Gateway error: {str(e)}",
+            }
+        )
 
 
 # ─── Push Notification Registration ───
+
 
 @app.post("/api/push/register")
 async def register_push_token(req: PushTokenRequest):
@@ -607,6 +643,7 @@ async def register_push_token(req: PushTokenRequest):
 # ─── Entry Point ───
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "server:app",
         host="0.0.0.0",

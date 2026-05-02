@@ -14,30 +14,27 @@ INSTRUCCIONES:
 4. Adaptar los nodos a la lógica específica del Monstruo
 """
 
-import os
 import json
 import operator
-from typing import TypedDict, Annotated, Literal
+import os
+from typing import Annotated, Literal, TypedDict
 
-# === LANGGRAPH ===
-from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.memory import MemorySaver  # Dev: in-memory
 # from langgraph.checkpoint.postgres import PostgresSaver  # Prod: Supabase
-
 # === LITELLM ===
 import litellm
+from langgraph.checkpoint.memory import MemorySaver  # Dev: in-memory
+
+# === LANGGRAPH ===
+from langgraph.graph import END, StateGraph
+
 litellm.set_verbose = False  # True para debug
 
 # === MEM0 ===
-from mem0 import Memory
+# === UTILIDADES ===
 
 # === LANGFUSE ===
 from langfuse.callback import CallbackHandler as LangfuseHandler
-
-# === UTILIDADES ===
-import requests
-from openai import OpenAI
-
+from mem0 import Memory
 
 # ============================================================
 # 1. CONFIGURACIÓN
@@ -48,33 +45,17 @@ CEREBROS = {
     "estratega": {
         "model": "openai/gpt-5.4",
         "max_tokens": 4000,
-        "fallbacks": ["anthropic/claude-opus-4-6", "xai/grok-4.20-0309-reasoning"]
+        "fallbacks": ["anthropic/claude-opus-4-6", "xai/grok-4.20-0309-reasoning"],
     },
-    "arquitecto": {
-        "model": "anthropic/claude-opus-4-6",
-        "max_tokens": 4096,
-        "fallbacks": ["openai/gpt-5.4"]
-    },
-    "creativo": {
-        "model": "gemini/gemini-3.1-pro-preview",
-        "max_tokens": 4096,
-        "fallbacks": ["openai/gpt-5.4"]
-    },
-    "codigo": {
-        "model": "xai/grok-4.20-0309-reasoning",
-        "max_tokens": 2000,
-        "fallbacks": ["anthropic/claude-opus-4-6"]
-    },
-    "razonador": {
-        "model": "openrouter/deepseek/deepseek-r1",
-        "max_tokens": 2000,
-        "fallbacks": ["openai/gpt-5.4"]
-    },
+    "arquitecto": {"model": "anthropic/claude-opus-4-6", "max_tokens": 4096, "fallbacks": ["openai/gpt-5.4"]},
+    "creativo": {"model": "gemini/gemini-3.1-pro-preview", "max_tokens": 4096, "fallbacks": ["openai/gpt-5.4"]},
+    "codigo": {"model": "xai/grok-4.20-0309-reasoning", "max_tokens": 2000, "fallbacks": ["anthropic/claude-opus-4-6"]},
+    "razonador": {"model": "openrouter/deepseek/deepseek-r1", "max_tokens": 2000, "fallbacks": ["openai/gpt-5.4"]},
     "investigador": {
         "model": "perplexity/sonar-reasoning-pro",
         "max_tokens": 4000,
-        "fallbacks": ["xai/grok-4.20-0309-reasoning"]
-    }
+        "fallbacks": ["xai/grok-4.20-0309-reasoning"],
+    },
 }
 
 # Mem0 config con Supabase pgvector
@@ -85,44 +66,48 @@ MEM0_CONFIG = {
             "url": os.environ.get("SUPABASE_URL", ""),
             "key": os.environ.get("SUPABASE_SERVICE_KEY", ""),
             "table_name": "monstruo_memory",
-            "embedding_dimension": 1536
-        }
+            "embedding_dimension": 1536,
+        },
     },
     "embedder": {
         "provider": "openai",
-        "config": {
-            "model": "text-embedding-3-small",
-            "api_key": os.environ.get("OPENAI_API_KEY", "")
-        }
-    }
+        "config": {"model": "text-embedding-3-small", "api_key": os.environ.get("OPENAI_API_KEY", "")},
+    },
 }
 
 # Langfuse handler
-langfuse_handler = LangfuseHandler(
-    public_key=os.environ.get("LANGFUSE_PUBLIC_KEY", ""),
-    secret_key=os.environ.get("LANGFUSE_SECRET_KEY", ""),
-    host=os.environ.get("LANGFUSE_HOST", "https://cloud.langfuse.com")
-) if os.environ.get("LANGFUSE_PUBLIC_KEY") else None
+langfuse_handler = (
+    LangfuseHandler(
+        public_key=os.environ.get("LANGFUSE_PUBLIC_KEY", ""),
+        secret_key=os.environ.get("LANGFUSE_SECRET_KEY", ""),
+        host=os.environ.get("LANGFUSE_HOST", "https://cloud.langfuse.com"),
+    )
+    if os.environ.get("LANGFUSE_PUBLIC_KEY")
+    else None
+)
 
 
 # ============================================================
 # 2. ESTADO DEL GRAFO
 # ============================================================
 
+
 class MonstruoState(TypedDict):
     """Estado tipado que fluye por todo el grafo."""
+
     messages: Annotated[list, operator.add]  # Historial de mensajes
-    user_id: str                              # ID del usuario
-    intent: str                               # Intent clasificado
-    cerebro_activo: str                       # Qué cerebro está procesando
-    memoria_contexto: list                    # Memorias relevantes recuperadas
-    resultado: str                            # Respuesta final
-    metadata: dict                            # Metadata adicional
+    user_id: str  # ID del usuario
+    intent: str  # Intent clasificado
+    cerebro_activo: str  # Qué cerebro está procesando
+    memoria_contexto: list  # Memorias relevantes recuperadas
+    resultado: str  # Respuesta final
+    metadata: dict  # Metadata adicional
 
 
 # ============================================================
 # 3. FUNCIONES AUXILIARES
 # ============================================================
+
 
 def llamar_cerebro(cerebro_id: str, messages: list, system: str = "") -> str:
     """Llama a un cerebro específico con fallback automático via LiteLLM."""
@@ -138,7 +123,7 @@ def llamar_cerebro(cerebro_id: str, messages: list, system: str = "") -> str:
             messages=msgs,
             max_tokens=config["max_tokens"],
             fallbacks=config.get("fallbacks", []),
-            timeout=120
+            timeout=120,
         )
         return response.choices[0].message.content
     except Exception as e:
@@ -168,6 +153,7 @@ def guardar_memoria(content: str, user_id: str, metadata: dict = None):
 # 4. NODOS DEL GRAFO
 # ============================================================
 
+
 def nodo_clasificador(state: MonstruoState) -> dict:
     """Clasifica el intent del mensaje del usuario."""
     last_message = state["messages"][-1]["content"]
@@ -190,19 +176,13 @@ Contexto de memoria del usuario: {json.dumps(memoria[:3], ensure_ascii=False)}""
     if intent not in valid_intents:
         intent = "directo"
 
-    return {
-        "intent": intent,
-        "cerebro_activo": "clasificador",
-        "memoria_contexto": memoria
-    }
+    return {"intent": intent, "cerebro_activo": "clasificador", "memoria_contexto": memoria}
 
 
 def nodo_investigar(state: MonstruoState) -> dict:
     """Sub-grafo de investigación: Perplexity + Grok."""
     resultado = llamar_cerebro(
-        "investigador",
-        state["messages"],
-        "Investiga en profundidad. Cita fuentes. Sé exhaustivo pero conciso."
+        "investigador", state["messages"], "Investiga en profundidad. Cita fuentes. Sé exhaustivo pero conciso."
     )
     return {"resultado": resultado, "cerebro_activo": "investigador"}
 
@@ -210,29 +190,21 @@ def nodo_investigar(state: MonstruoState) -> dict:
 def nodo_analizar(state: MonstruoState) -> dict:
     """Sub-grafo de análisis: DeepSeek R1."""
     resultado = llamar_cerebro(
-        "razonador",
-        state["messages"],
-        "Analiza paso a paso. Muestra tu razonamiento. Sé preciso."
+        "razonador", state["messages"], "Analiza paso a paso. Muestra tu razonamiento. Sé preciso."
     )
     return {"resultado": resultado, "cerebro_activo": "razonador"}
 
 
 def nodo_crear(state: MonstruoState) -> dict:
     """Sub-grafo creativo: Gemini 3.1 Pro."""
-    resultado = llamar_cerebro(
-        "creativo",
-        state["messages"],
-        "Genera contenido creativo y original. Sé innovador."
-    )
+    resultado = llamar_cerebro("creativo", state["messages"], "Genera contenido creativo y original. Sé innovador.")
     return {"resultado": resultado, "cerebro_activo": "creativo"}
 
 
 def nodo_codigo(state: MonstruoState) -> dict:
     """Sub-grafo de código: Grok 4.20."""
     resultado = llamar_cerebro(
-        "codigo",
-        state["messages"],
-        "Escribe código limpio, documentado y funcional. Incluye manejo de errores."
+        "codigo", state["messages"], "Escribe código limpio, documentado y funcional. Incluye manejo de errores."
     )
     return {"resultado": resultado, "cerebro_activo": "codigo"}
 
@@ -243,7 +215,7 @@ def nodo_estrategia(state: MonstruoState) -> dict:
     resultado = llamar_cerebro(
         "estratega",
         state["messages"],
-        f"Eres el estratega del Monstruo. Contexto de memoria:\n{memoria_str}\n\nPlanifica y decide."
+        f"Eres el estratega del Monstruo. Contexto de memoria:\n{memoria_str}\n\nPlanifica y decide.",
     )
     return {"resultado": resultado, "cerebro_activo": "estratega"}
 
@@ -261,7 +233,7 @@ def nodo_sintetizar(state: MonstruoState) -> dict:
         guardar_memoria(
             f"Q: {state['messages'][-1]['content']}\nA: {state['resultado'][:500]}",
             state["user_id"],
-            {"intent": state.get("intent", "unknown")}
+            {"intent": state.get("intent", "unknown")},
         )
     return state
 
@@ -270,9 +242,10 @@ def nodo_sintetizar(state: MonstruoState) -> dict:
 # 5. ROUTER
 # ============================================================
 
-def router_por_intent(state: MonstruoState) -> Literal[
-    "investigar", "analizar", "crear", "codigo", "estrategia", "directo"
-]:
+
+def router_por_intent(
+    state: MonstruoState,
+) -> Literal["investigar", "analizar", "crear", "codigo", "estrategia", "directo"]:
     """Ruta condicional basada en el intent clasificado."""
     return state.get("intent", "directo")
 
@@ -280,6 +253,7 @@ def router_por_intent(state: MonstruoState) -> Literal[
 # ============================================================
 # 6. COMPILAR GRAFO
 # ============================================================
+
 
 def build_monstruo_graph():
     """Construye y compila el grafo del Monstruo."""
@@ -308,8 +282,8 @@ def build_monstruo_graph():
             "creativo": "crear",
             "codigo": "codigo",
             "estrategia": "estrategia",
-            "directo": "directo"
-        }
+            "directo": "directo",
+        },
     )
 
     # Todos convergen en sintetizador
@@ -344,12 +318,9 @@ if __name__ == "__main__":
             "cerebro_activo": "",
             "memoria_contexto": [],
             "resultado": "",
-            "metadata": {}
+            "metadata": {},
         },
-        config={
-            "configurable": {"thread_id": "test-1"},
-            "callbacks": [langfuse_handler] if langfuse_handler else []
-        }
+        config={"configurable": {"thread_id": "test-1"}, "callbacks": [langfuse_handler] if langfuse_handler else []},
     )
 
     print(f"Intent: {result['intent']}")

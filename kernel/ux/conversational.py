@@ -25,12 +25,13 @@ Soberanía:
   - Gemini Flash (fallback, si OpenAI falla)
   - Heurísticas de quick commands (sin LLM, cero costo)
 """
+
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Any
+from typing import Any, Optional
 
 import structlog
 
@@ -39,24 +40,27 @@ logger = structlog.get_logger("monstruo.ux.conversational")
 
 # ── Errores con identidad ──────────────────────────────────────────────────────
 
+
 class CONVERSATIONAL_UX_SIN_SABIOS(RuntimeError):
     """No hay cliente de Sabios configurado para parsear intents.
-    
+
     Sugerencia: Inyecta _sabios al instanciar ConversationalUX o usa quick commands.
     """
 
 
 class CONVERSATIONAL_UX_INTENT_INVALIDO(ValueError):
     """El intent recibido no es un IntentType válido.
-    
+
     Sugerencia: Verifica que el LLM retornó un JSON con el campo 'intent' correcto.
     """
 
 
 # ── Enums ──────────────────────────────────────────────────────────────────────
 
+
 class IntentType(str, Enum):
     """Intents reconocidos por el sistema."""
+
     CREATE_BUSINESS = "create_business"
     MODIFY_BUSINESS = "modify_business"
     ANALYZE_MARKET = "analyze_market"
@@ -72,10 +76,11 @@ class IntentType(str, Enum):
 
 # ── Dataclasses ────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class ParsedIntent:
     """Intent parseado del input del usuario.
-    
+
     Args:
         type: Tipo de intent detectado.
         confidence: Confianza del parser (0.0 - 1.0).
@@ -84,6 +89,7 @@ class ParsedIntent:
         locale: Idioma detectado del input.
         clarification_needed: Pregunta de aclaración si confidence < threshold.
     """
+
     type: IntentType
     confidence: float
     parameters: dict[str, Any] = field(default_factory=dict)
@@ -174,22 +180,24 @@ Rules:
 
 # ── Capa principal ─────────────────────────────────────────────────────────────
 
+
 @dataclass
 class ConversationalUX:
     """Capa de UX conversacional de El Monstruo.
-    
+
     Traduce lenguaje natural en intents ejecutables.
     Soporta quick commands sin LLM para máxima velocidad.
-    
+
     Args:
         _sabios: Cliente de Sabios para intent parsing (soberanía: quick commands sin LLM).
         _i18n: Motor i18n para detección de idioma (opcional).
         confidence_threshold: Umbral mínimo de confianza para ejecutar sin aclaración.
-    
+
     Soberanía:
         - LLM intent parsing → heurísticas keyword si Sabios no disponible
         - DeepL detection → charset heuristics si i18n no disponible
     """
+
     _sabios: Optional[object] = field(default=None, repr=False)
     _i18n: Optional[object] = field(default=None, repr=False)
     confidence_threshold: float = 0.7
@@ -198,13 +206,13 @@ class ConversationalUX:
 
     async def parse_intent(self, user_input: str) -> ParsedIntent:
         """Parsear intent del usuario usando LLM con fallback a heurísticas.
-        
+
         Args:
             user_input: Texto del usuario a analizar.
-        
+
         Returns:
             ParsedIntent con type, confidence, parameters y locale detectado.
-        
+
         Soberanía:
             1. Quick command detection (sin LLM, cero costo)
             2. LLM parsing via Sabios
@@ -249,14 +257,8 @@ class ConversationalUX:
                 parsed = json.loads(json_str)
                 intent_type = IntentType(parsed.get("intent", "unknown"))
                 confidence = float(parsed.get("confidence", 0.5))
-                parameters = {
-                    k: v for k, v in parsed.get("parameters", {}).items()
-                    if v and v != "null"
-                }
-                clarification = (
-                    parsed.get("clarification")
-                    if confidence < self.confidence_threshold else None
-                )
+                parameters = {k: v for k, v in parsed.get("parameters", {}).items() if v and v != "null"}
+                clarification = parsed.get("clarification") if confidence < self.confidence_threshold else None
 
                 self._total_parses += 1
                 if clarification:
@@ -285,11 +287,11 @@ class ConversationalUX:
 
     def _heuristic_parse(self, text: str, locale: str) -> ParsedIntent:
         """Fallback heurístico para cuando Sabios no está disponible.
-        
+
         Args:
             text: Texto del usuario.
             locale: Idioma detectado.
-        
+
         Returns:
             ParsedIntent con confidence baja pero funcional.
         """
@@ -322,11 +324,11 @@ class ConversationalUX:
 
     async def generate_response(self, intent: ParsedIntent, result: dict) -> str:
         """Generar respuesta conversacional basada en el resultado de la acción.
-        
+
         Args:
             intent: Intent original del usuario.
             result: Resultado de la acción ejecutada.
-        
+
         Returns:
             Respuesta en lenguaje natural en el idioma del usuario.
         """
@@ -336,13 +338,11 @@ class ConversationalUX:
         if not self._sabios:
             return json.dumps(result, indent=2, default=str)
 
-        locale_instruction = (
-            f"Respond in {intent.locale}." if intent.locale != "es" else ""
-        )
+        locale_instruction = f"Respond in {intent.locale}." if intent.locale != "es" else ""
         prompt = (
             f"Generate a friendly, concise response for the user.\n"
             f"{locale_instruction}\n\n"
-            f"Their request was: \"{intent.original_text}\"\n"
+            f'Their request was: "{intent.original_text}"\n'
             f"The system processed it as: {intent.type.value}\n"
             f"The result was: {json.dumps(result, default=str)[:2000]}\n\n"
             f"Write a natural, helpful response that:\n"
@@ -355,20 +355,18 @@ class ConversationalUX:
 
     async def suggest_next_actions(self, intent: ParsedIntent) -> list[str]:
         """Sugerir próximas acciones basadas en el intent actual.
-        
+
         Args:
             intent: Intent parseado del usuario.
-        
+
         Returns:
             Lista de sugerencias de próximas acciones.
         """
-        return NEXT_ACTIONS_BY_INTENT.get(
-            intent.type, ["¿En qué más puedo ayudarte?"]
-        )
+        return NEXT_ACTIONS_BY_INTENT.get(intent.type, ["¿En qué más puedo ayudarte?"])
 
     def to_dict(self) -> dict:
         """Estado de la capa para consumo del Command Center.
-        
+
         Returns:
             Dict serializable con métricas y estado actual.
         """
@@ -392,12 +390,13 @@ class ConversationalUX:
 
 # ── Helpers de módulo ──────────────────────────────────────────────────────────
 
+
 def check_quick_command(text: str) -> Optional[IntentType]:
     """Verificar si el texto es un quick command (sin LLM, cero costo).
-    
+
     Args:
         text: Texto del usuario.
-    
+
     Returns:
         IntentType si es un quick command, None si no lo es.
     """

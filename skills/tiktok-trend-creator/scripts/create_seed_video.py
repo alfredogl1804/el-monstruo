@@ -38,10 +38,10 @@ Config JSON structure:
 Position options: top, center_top, center, center_bottom, bottom, custom(x,y)
 """
 
-import sys
-import os
 import json
+import os
 import subprocess
+import sys
 
 # Position mapping for text placement (x, y expressions for ffmpeg drawtext)
 POSITIONS = {
@@ -51,6 +51,7 @@ POSITIONS = {
     "center_bottom": ("(w-text_w)/2", "(3*h/4)"),
     "bottom": ("(w-text_w)/2", "h-text_h-120"),
 }
+
 
 def build_drawtext_filter(text_config, index):
     """Build a single drawtext filter string."""
@@ -90,6 +91,7 @@ def build_drawtext_filter(text_config, index):
     )
     return dt
 
+
 def create_seed_video(config, output_file):
     """Create the seed video using ffmpeg."""
     input_file = config["input_file"]
@@ -119,13 +121,27 @@ def create_seed_video(config, output_file):
     filter_str = ",".join(filters)
 
     cmd = [
-        "ffmpeg", "-y", "-i", input_file,
-        "-vf", filter_str,
-        "-c:v", "libx264", "-preset", "fast", "-crf", "23",
-        "-c:a", "aac", "-b:a", "192k",
-        "-r", "30",
-        "-movflags", "+faststart",
-        output_file
+        "ffmpeg",
+        "-y",
+        "-i",
+        input_file,
+        "-vf",
+        filter_str,
+        "-c:v",
+        "libx264",
+        "-preset",
+        "fast",
+        "-crf",
+        "23",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "192k",
+        "-r",
+        "30",
+        "-movflags",
+        "+faststart",
+        output_file,
     ]
 
     print(f"Creating seed video: {output_file}")
@@ -144,6 +160,7 @@ def create_seed_video(config, output_file):
 
     return False
 
+
 def create_audio_only_video(config, output_file):
     """Create video from audio-only input with colored background and text."""
     input_file = config["input_file"]
@@ -153,10 +170,7 @@ def create_audio_only_video(config, output_file):
     texts = config.get("texts", [])
 
     # Get audio duration
-    probe_cmd = [
-        "ffprobe", "-v", "quiet", "-show_entries", "format=duration",
-        "-of", "csv=p=0", input_file
-    ]
+    probe_cmd = ["ffprobe", "-v", "quiet", "-show_entries", "format=duration", "-of", "csv=p=0", input_file]
     result = subprocess.run(probe_cmd, capture_output=True, text=True)
     duration = float(result.stdout.strip())
 
@@ -169,16 +183,34 @@ def create_audio_only_video(config, output_file):
     text_chain = "," + ",".join(text_filters) if text_filters else ""
 
     cmd = [
-        "ffmpeg", "-y",
-        "-f", "lavfi", "-i", f"color=c={bg_color}:s={width}x{height}:d={duration}:r=30",
-        "-i", input_file,
-        "-vf", f"format=yuv420p{text_chain}",
-        "-c:v", "libx264", "-preset", "fast", "-crf", "23",
-        "-c:a", "aac", "-b:a", "192k",
-        "-map", "0:v", "-map", "1:a",
+        "ffmpeg",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        f"color=c={bg_color}:s={width}x{height}:d={duration}:r=30",
+        "-i",
+        input_file,
+        "-vf",
+        f"format=yuv420p{text_chain}",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "fast",
+        "-crf",
+        "23",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "192k",
+        "-map",
+        "0:v",
+        "-map",
+        "1:a",
         "-shortest",
-        "-movflags", "+faststart",
-        output_file
+        "-movflags",
+        "+faststart",
+        output_file,
     ]
 
     print(f"Creating video from audio with background: {output_file}")
@@ -195,6 +227,7 @@ def create_audio_only_video(config, output_file):
 
     return False
 
+
 def main():
     if len(sys.argv) < 3:
         print("Usage: python3 create_seed_video.py <config.json> <output.mp4>")
@@ -209,9 +242,15 @@ def main():
 
     # Check if input is audio-only
     probe_cmd = [
-        "ffprobe", "-v", "quiet", "-show_streams",
-        "-select_streams", "v", "-of", "csv=p=0",
-        config["input_file"]
+        "ffprobe",
+        "-v",
+        "quiet",
+        "-show_streams",
+        "-select_streams",
+        "v",
+        "-of",
+        "csv=p=0",
+        config["input_file"],
     ]
     result = subprocess.run(probe_cmd, capture_output=True, text=True)
     has_video = bool(result.stdout.strip())
@@ -223,6 +262,7 @@ def main():
 
     if not success:
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

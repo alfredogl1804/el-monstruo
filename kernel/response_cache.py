@@ -11,21 +11,23 @@ Redis Blog "Streaming LLM Responses" (abril 2026):
 No requiere Redis en esta versión — usa dict en memoria con TTL.
 Para producción a escala se puede migrar a Redis LangCache.
 """
+
 from __future__ import annotations
 
 import hashlib
 import re
 import time
 from typing import Optional
+
 import structlog
 
 logger = structlog.get_logger(__name__)
 
 # ── Configuración ──────────────────────────────────────────────────────────────
-_CACHE_TTL_SECONDS = 300          # 5 minutos
-_CACHE_MAX_SIZE = 500             # máximo de entradas
-_MIN_MESSAGE_LEN = 10             # no cachear mensajes muy cortos
-_MAX_MESSAGE_LEN = 300            # no cachear mensajes muy largos (probablemente únicos)
+_CACHE_TTL_SECONDS = 300  # 5 minutos
+_CACHE_MAX_SIZE = 500  # máximo de entradas
+_MIN_MESSAGE_LEN = 10  # no cachear mensajes muy cortos
+_MAX_MESSAGE_LEN = 300  # no cachear mensajes muy largos (probablemente únicos)
 _CACHEABLE_INTENTS = {"chat", "search", "summarize"}  # intents que se benefician del cache
 
 # ── Almacenamiento interno ─────────────────────────────────────────────────────
@@ -37,8 +39,8 @@ def _normalize(message: str) -> str:
     """Normaliza el mensaje para aumentar hit rate en variaciones triviales."""
     # Lowercase, strip, colapsar espacios, quitar puntuación final
     text = message.lower().strip()
-    text = re.sub(r'\s+', ' ', text)
-    text = text.rstrip('?.!,;')
+    text = re.sub(r"\s+", " ", text)
+    text = text.rstrip("?.!,;")
     return text
 
 
@@ -58,9 +60,9 @@ def _is_cacheable(message: str, intent: str) -> bool:
         return False
     # No cachear mensajes con datos dinámicos obvios
     dynamic_patterns = [
-        r'\d{4}-\d{2}-\d{2}',   # fechas
-        r'\$\d+',                 # precios
-        r'ahora|ahorita|hoy|ayer|mañana',  # referencias temporales
+        r"\d{4}-\d{2}-\d{2}",  # fechas
+        r"\$\d+",  # precios
+        r"ahora|ahorita|hoy|ayer|mañana",  # referencias temporales
     ]
     msg_lower = message.lower()
     for pattern in dynamic_patterns:

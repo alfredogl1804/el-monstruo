@@ -37,6 +37,7 @@ def set_finops_deps(db: Any, finops: Any) -> None:
 
 # ── Helpers ───────────────────────────────────────────────────────────
 
+
 def _utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -125,6 +126,7 @@ def _top_expensive_runs(rows: list[dict], n: int = 5) -> list[dict]:
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────
+
 
 @router.get("/summary")
 async def finops_summary(request: Request):

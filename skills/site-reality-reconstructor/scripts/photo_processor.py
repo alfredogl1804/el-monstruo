@@ -4,20 +4,19 @@ Photo Processor — Procesamiento masivo de fotos del usuario.
 Extrae EXIF/GPS, clasifica por orientación y zona, agrupa por cobertura espacial,
 y analiza cada foto con Gemini Vision para extraer observaciones del entorno real.
 """
+
 import asyncio
-import base64
 import json
 import math
 import os
-import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from PIL import Image, ExifTags
-
+from PIL import ExifTags, Image
 
 # ── EXIF Extraction ──────────────────────────────────────────────────────────
+
 
 def _dms_to_decimal(dms_tuple, ref: str) -> Optional[float]:
     """Convert EXIF DMS (degrees, minutes, seconds) to decimal degrees."""
@@ -25,11 +24,11 @@ def _dms_to_decimal(dms_tuple, ref: str) -> Optional[float]:
         if isinstance(dms_tuple, (list, tuple)) and len(dms_tuple) == 3:
             d, m, s = dms_tuple
             # Handle IFDRational or tuple format
-            if hasattr(d, 'numerator'):
+            if hasattr(d, "numerator"):
                 d = d.numerator / d.denominator if d.denominator else 0
-            if hasattr(m, 'numerator'):
+            if hasattr(m, "numerator"):
                 m = m.numerator / m.denominator if m.denominator else 0
-            if hasattr(s, 'numerator'):
+            if hasattr(s, "numerator"):
                 s = s.numerator / s.denominator if s.denominator else 0
             elif isinstance(d, tuple):
                 d = d[0] / d[1] if d[1] else 0
@@ -37,7 +36,7 @@ def _dms_to_decimal(dms_tuple, ref: str) -> Optional[float]:
                 s = s[0] / s[1] if s[1] else 0
 
             decimal = float(d) + float(m) / 60 + float(s) / 3600
-            if ref in ('S', 'W'):
+            if ref in ("S", "W"):
                 decimal = -decimal
             return decimal
     except Exception:
@@ -81,7 +80,7 @@ def _extract_exif(image_path: str) -> dict:
             elif tag == "DateTimeOriginal":
                 result["timestamp"] = str(value)
             elif tag == "FocalLength":
-                if hasattr(value, 'numerator'):
+                if hasattr(value, "numerator"):
                     result["focal_length"] = value.numerator / value.denominator if value.denominator else None
                 elif isinstance(value, tuple) and len(value) == 2:
                     result["focal_length"] = value[0] / value[1] if value[1] else None
@@ -112,7 +111,7 @@ def _extract_exif(image_path: str) -> dict:
             # Altitude
             if "GPSAltitude" in gps_tags:
                 alt = gps_tags["GPSAltitude"]
-                if hasattr(alt, 'numerator'):
+                if hasattr(alt, "numerator"):
                     result["altitude"] = alt.numerator / alt.denominator if alt.denominator else None
                 elif isinstance(alt, tuple) and len(alt) == 2:
                     result["altitude"] = alt[0] / alt[1] if alt[1] else None
@@ -120,7 +119,7 @@ def _extract_exif(image_path: str) -> dict:
             # Compass heading (direction camera was pointing)
             if "GPSImgDirection" in gps_tags:
                 heading = gps_tags["GPSImgDirection"]
-                if hasattr(heading, 'numerator'):
+                if hasattr(heading, "numerator"):
                     result["compass_heading"] = heading.numerator / heading.denominator if heading.denominator else None
                 elif isinstance(heading, tuple) and len(heading) == 2:
                     result["compass_heading"] = heading[0] / heading[1] if heading[1] else None
@@ -135,12 +134,19 @@ def _extract_exif(image_path: str) -> dict:
 
 # ── Spatial Classification ───────────────────────────────────────────────────
 
+
 def _heading_to_cardinal(heading: float) -> str:
     """Convert compass heading to cardinal direction."""
     directions = [
-        (0, 22.5, "N"), (22.5, 67.5, "NE"), (67.5, 112.5, "E"),
-        (112.5, 157.5, "SE"), (157.5, 202.5, "S"), (202.5, 247.5, "SW"),
-        (247.5, 292.5, "W"), (292.5, 337.5, "NW"), (337.5, 360, "N"),
+        (0, 22.5, "N"),
+        (22.5, 67.5, "NE"),
+        (67.5, 112.5, "E"),
+        (112.5, 157.5, "SE"),
+        (157.5, 202.5, "S"),
+        (202.5, 247.5, "SW"),
+        (247.5, 292.5, "W"),
+        (292.5, 337.5, "NW"),
+        (337.5, 360, "N"),
     ]
     for low, high, name in directions:
         if low <= heading < high:
@@ -224,6 +230,7 @@ def _classify_zone(photo_exif: dict, site_lat: float, site_lng: float, radius_m:
 
 # ── Visual Analysis with Gemini ──────────────────────────────────────────────
 
+
 async def _analyze_photo_batch(photos: list, site_name: str, batch_size: int = 5) -> list:
     """Analyze a batch of photos with Gemini Vision for spatial content."""
     from google import genai
@@ -237,14 +244,14 @@ async def _analyze_photo_batch(photos: list, site_name: str, batch_size: int = 5
     results = []
 
     for i in range(0, len(photos), batch_size):
-        batch = photos[i:i + batch_size]
+        batch = photos[i : i + batch_size]
         for photo in batch:
             try:
                 path = photo["path"]
                 exif = photo.get("exif", {})
                 zone = photo.get("zone", {})
 
-                context = f"Foto tomada"
+                context = "Foto tomada"
                 if zone.get("position") != "unknown":
                     context += f" desde posición {zone['position']}"
                 if zone.get("cardinal_from_site"):
@@ -284,16 +291,23 @@ IMPORTANTE: Solo describe lo que VES. No inventes ni supongas."""
                     img_bytes = f.read()
 
                 ext = Path(path).suffix.lower()
-                mime = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png",
-                        "webp": "image/webp", "heic": "image/heic"}.get(ext.lstrip("."), "image/jpeg")
+                mime = {
+                    "jpg": "image/jpeg",
+                    "jpeg": "image/jpeg",
+                    "png": "image/png",
+                    "webp": "image/webp",
+                    "heic": "image/heic",
+                }.get(ext.lstrip("."), "image/jpeg")
 
                 response = client.models.generate_content(
-                    model='gemini-2.5-flash',
+                    model="gemini-2.5-flash",
                     contents=[
-                        types.Content(parts=[
-                            types.Part(text=prompt),
-                            types.Part(inline_data=types.Blob(mime_type=mime, data=img_bytes)),
-                        ])
+                        types.Content(
+                            parts=[
+                                types.Part(text=prompt),
+                                types.Part(inline_data=types.Blob(mime_type=mime, data=img_bytes)),
+                            ]
+                        )
                     ],
                     config=types.GenerateContentConfig(response_mime_type="application/json"),
                 )
@@ -302,7 +316,9 @@ IMPORTANTE: Solo describe lo que VES. No inventes ni supongas."""
                 analysis = json.loads(text)
                 analysis["_photo_file"] = os.path.basename(path)
                 results.append(analysis)
-                print(f"      Foto {len(results)}/{len(photos)}: {os.path.basename(path)} — {analysis.get('scene_type', '?')}")
+                print(
+                    f"      Foto {len(results)}/{len(photos)}: {os.path.basename(path)} — {analysis.get('scene_type', '?')}"
+                )
 
             except Exception as e:
                 results.append({"error": str(e), "_photo_file": os.path.basename(photo["path"])})
@@ -316,6 +332,7 @@ IMPORTANTE: Solo describe lo que VES. No inventes ni supongas."""
 
 
 # ── Main Entry Point ─────────────────────────────────────────────────────────
+
 
 async def process_photos(
     photo_dir: str,
@@ -338,11 +355,8 @@ async def process_photos(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Find all image files
-    extensions = {'.jpg', '.jpeg', '.png', '.webp', '.heic', '.tiff', '.bmp'}
-    all_files = sorted([
-        f for f in photo_dir.rglob("*")
-        if f.suffix.lower() in extensions and f.is_file()
-    ])
+    extensions = {".jpg", ".jpeg", ".png", ".webp", ".heic", ".tiff", ".bmp"}
+    all_files = sorted([f for f in photo_dir.rglob("*") if f.suffix.lower() in extensions and f.is_file()])
 
     if not all_files:
         return {"error": "No photos found", "photo_count": 0}
@@ -355,7 +369,7 @@ async def process_photos(
     print(f"  Procesando {len(all_files)} fotos...")
 
     # Step 1: Extract EXIF from all photos
-    print(f"  [1/4] Extrayendo EXIF...")
+    print("  [1/4] Extrayendo EXIF...")
     photos = []
     gps_count = 0
     heading_count = 0
@@ -371,7 +385,7 @@ async def process_photos(
     print(f"    {gps_count}/{len(photos)} con GPS, {heading_count}/{len(photos)} con heading")
 
     # Step 2: Classify by zone
-    print(f"  [2/4] Clasificando por zona...")
+    print("  [2/4] Clasificando por zona...")
     zone_counts = {}
     for photo in photos:
         zone = _classify_zone(photo["exif"], site_lat, site_lng, radius_m)
@@ -382,14 +396,14 @@ async def process_photos(
     print(f"    Zonas: {json.dumps(zone_counts, indent=2)}")
 
     # Step 3: Analyze with Gemini Vision
-    print(f"  [3/4] Analizando con Gemini Vision...")
+    print("  [3/4] Analizando con Gemini Vision...")
     analyses = await _analyze_photo_batch(photos, site_name)
 
     for photo, analysis in zip(photos, analyses):
         photo["visual_analysis"] = analysis
 
     # Step 4: Build spatial catalog
-    print(f"  [4/4] Construyendo catálogo espacial...")
+    print("  [4/4] Construyendo catálogo espacial...")
 
     # Group by zone
     zones = {}
@@ -403,21 +417,25 @@ async def process_photos(
                 "photos": [],
                 "elements_found": [],
             }
-        zones[z]["photos"].append({
-            "filename": photo["filename"],
-            "quality_score": photo["zone"]["quality_score"],
-            "looking_direction": photo["zone"].get("looking_direction"),
-            "distance_m": photo["zone"].get("distance_from_site_m"),
-            "timestamp": photo["exif"].get("timestamp"),
-        })
+        zones[z]["photos"].append(
+            {
+                "filename": photo["filename"],
+                "quality_score": photo["zone"]["quality_score"],
+                "looking_direction": photo["zone"].get("looking_direction"),
+                "distance_m": photo["zone"].get("distance_from_site_m"),
+                "timestamp": photo["exif"].get("timestamp"),
+            }
+        )
 
         # Aggregate elements from visual analysis
         if "elements_visible" in photo.get("visual_analysis", {}):
             for elem in photo["visual_analysis"]["elements_visible"]:
-                zones[z]["elements_found"].append({
-                    **elem,
-                    "_from_photo": photo["filename"],
-                })
+                zones[z]["elements_found"].append(
+                    {
+                        **elem,
+                        "_from_photo": photo["filename"],
+                    }
+                )
 
     # Build the catalog
     catalog = {

@@ -17,18 +17,21 @@ Soberanía:
 - PageSpeed Insights → Lighthouse local si no hay GOOGLE_PSI_API_KEY
 - Sabios LLM → score heurístico 70.0 si no hay API key
 """
+
 from __future__ import annotations
 
 import json
 import subprocess
 from dataclasses import dataclass, field
 from typing import Optional
+
 import structlog
 
 logger = structlog.get_logger("monstruo.design")
 
 
 # ── Excepciones con identidad ──────────────────────────────────────────────
+
 
 class DesignAuditoriaFallida(RuntimeError):
     """La auditoría de diseño no pudo completarse.
@@ -48,6 +51,7 @@ class DesignTokensInvalidos(ValueError):
 
 # ── Design Tokens ──────────────────────────────────────────────────────────
 
+
 @dataclass
 class DesignTokens:
     """Sistema de design tokens — vocabulario visual ejecutable.
@@ -57,60 +61,86 @@ class DesignTokens:
     """
 
     # Spacing scale (rem)
-    spacing: dict = field(default_factory=lambda: {
-        "xs": "0.25rem", "sm": "0.5rem", "md": "1rem",
-        "lg": "1.5rem", "xl": "2rem", "2xl": "3rem",
-        "3xl": "4rem", "4xl": "6rem", "5xl": "8rem",
-    })
+    spacing: dict = field(
+        default_factory=lambda: {
+            "xs": "0.25rem",
+            "sm": "0.5rem",
+            "md": "1rem",
+            "lg": "1.5rem",
+            "xl": "2rem",
+            "2xl": "3rem",
+            "3xl": "4rem",
+            "4xl": "6rem",
+            "5xl": "8rem",
+        }
+    )
 
     # Color system (OKLCH for Tailwind 4 compatibility)
-    colors: dict = field(default_factory=lambda: {
-        "primary": {
-            "base": "oklch(0.65 0.15 250)",
-            "light": "oklch(0.85 0.08 250)",
-            "dark": "oklch(0.45 0.15 250)",
-        },
-        "secondary": {
-            "base": "oklch(0.70 0.10 180)",
-            "light": "oklch(0.90 0.05 180)",
-            "dark": "oklch(0.50 0.10 180)",
-        },
-        "neutral": {
-            "50": "oklch(0.98 0 0)",
-            "100": "oklch(0.95 0 0)",
-            "900": "oklch(0.15 0 0)",
-        },
-        "success": "oklch(0.72 0.15 145)",
-        "warning": "oklch(0.80 0.15 85)",
-        "error": "oklch(0.65 0.20 25)",
-    })
+    colors: dict = field(
+        default_factory=lambda: {
+            "primary": {
+                "base": "oklch(0.65 0.15 250)",
+                "light": "oklch(0.85 0.08 250)",
+                "dark": "oklch(0.45 0.15 250)",
+            },
+            "secondary": {
+                "base": "oklch(0.70 0.10 180)",
+                "light": "oklch(0.90 0.05 180)",
+                "dark": "oklch(0.50 0.10 180)",
+            },
+            "neutral": {
+                "50": "oklch(0.98 0 0)",
+                "100": "oklch(0.95 0 0)",
+                "900": "oklch(0.15 0 0)",
+            },
+            "success": "oklch(0.72 0.15 145)",
+            "warning": "oklch(0.80 0.15 85)",
+            "error": "oklch(0.65 0.20 25)",
+        }
+    )
 
     # Typography
-    typography: dict = field(default_factory=lambda: {
-        "font_display": "'Inter Tight', system-ui, sans-serif",
-        "font_body": "'Inter', system-ui, sans-serif",
-        "font_mono": "'JetBrains Mono', monospace",
-        "scale": {
-            "xs": "0.75rem", "sm": "0.875rem", "base": "1rem",
-            "lg": "1.125rem", "xl": "1.25rem", "2xl": "1.5rem",
-            "3xl": "1.875rem", "4xl": "2.25rem", "5xl": "3rem",
-        },
-        "line_height": {"tight": "1.25", "normal": "1.5", "relaxed": "1.75"},
-    })
+    typography: dict = field(
+        default_factory=lambda: {
+            "font_display": "'Inter Tight', system-ui, sans-serif",
+            "font_body": "'Inter', system-ui, sans-serif",
+            "font_mono": "'JetBrains Mono', monospace",
+            "scale": {
+                "xs": "0.75rem",
+                "sm": "0.875rem",
+                "base": "1rem",
+                "lg": "1.125rem",
+                "xl": "1.25rem",
+                "2xl": "1.5rem",
+                "3xl": "1.875rem",
+                "4xl": "2.25rem",
+                "5xl": "3rem",
+            },
+            "line_height": {"tight": "1.25", "normal": "1.5", "relaxed": "1.75"},
+        }
+    )
 
     # Shadows
-    shadows: dict = field(default_factory=lambda: {
-        "sm": "0 1px 2px oklch(0 0 0 / 0.05)",
-        "md": "0 4px 6px oklch(0 0 0 / 0.07)",
-        "lg": "0 10px 15px oklch(0 0 0 / 0.1)",
-        "xl": "0 20px 25px oklch(0 0 0 / 0.1)",
-    })
+    shadows: dict = field(
+        default_factory=lambda: {
+            "sm": "0 1px 2px oklch(0 0 0 / 0.05)",
+            "md": "0 4px 6px oklch(0 0 0 / 0.07)",
+            "lg": "0 10px 15px oklch(0 0 0 / 0.1)",
+            "xl": "0 20px 25px oklch(0 0 0 / 0.1)",
+        }
+    )
 
     # Border radius
-    radii: dict = field(default_factory=lambda: {
-        "sm": "0.25rem", "md": "0.5rem", "lg": "0.75rem",
-        "xl": "1rem", "2xl": "1.5rem", "full": "9999px",
-    })
+    radii: dict = field(
+        default_factory=lambda: {
+            "sm": "0.25rem",
+            "md": "0.5rem",
+            "lg": "0.75rem",
+            "xl": "1rem",
+            "2xl": "1.5rem",
+            "full": "9999px",
+        }
+    )
 
     def export_json(self) -> str:
         """Exportar tokens como JSON para Style Dictionary.
@@ -118,13 +148,16 @@ class DesignTokens:
         Returns:
             JSON string con todos los tokens.
         """
-        return json.dumps({
-            "spacing": self.spacing,
-            "colors": self.colors,
-            "typography": self.typography,
-            "shadows": self.shadows,
-            "radii": self.radii,
-        }, indent=2)
+        return json.dumps(
+            {
+                "spacing": self.spacing,
+                "colors": self.colors,
+                "typography": self.typography,
+                "shadows": self.shadows,
+                "radii": self.radii,
+            },
+            indent=2,
+        )
 
     def export_css_variables(self) -> str:
         """Exportar tokens como CSS custom properties.
@@ -163,6 +196,7 @@ class DesignTokens:
 
 # ── Resultado de Auditoría ─────────────────────────────────────────────────
 
+
 @dataclass
 class DesignAuditResult:
     """Resultado de auditoría de diseño (4 dimensiones).
@@ -177,6 +211,7 @@ class DesignAuditResult:
         issues: Lista de issues encontrados.
         recommendations: Lista de recomendaciones accionables.
     """
+
     url: str
     overall_score: float
     accessibility_score: float
@@ -215,6 +250,7 @@ class DesignAuditResult:
 
 # ── Motor principal ────────────────────────────────────────────────────────
 
+
 @dataclass
 class DesignSystemEngine:
     """Motor de enforcement del design system.
@@ -234,6 +270,7 @@ class DesignSystemEngine:
         Sin GOOGLE_PSI_API_KEY: performance score = 0 con error descriptivo.
         Sin Sabios: visual consistency score = 70.0 (neutral).
     """
+
     _sabios: Optional[object] = field(default=None, repr=False)
     tokens: DesignTokens = field(default_factory=DesignTokens)
     _audits_performed: int = 0
@@ -278,7 +315,9 @@ const AxeBuilder = require('@axe-core/playwright').default;
         try:
             result = subprocess.run(
                 ["node", "-e", script],
-                capture_output=True, text=True, timeout=30,
+                capture_output=True,
+                text=True,
+                timeout=30,
             )
             if result.returncode == 0 and result.stdout.strip():
                 data = json.loads(result.stdout)
@@ -300,7 +339,7 @@ const AxeBuilder = require('@axe-core/playwright').default;
             "violations": -1,
             "details": [],
             "error": "Audit failed — Playwright o @axe-core/playwright no instalado. "
-                     "Instalar con: npm install playwright @axe-core/playwright",
+            "Instalar con: npm install playwright @axe-core/playwright",
         }
 
     # ── Performance Audit ──────────────────────────────────────────────────
@@ -317,14 +356,12 @@ const AxeBuilder = require('@axe-core/playwright').default;
 
         Soberanía: Sin GOOGLE_PSI_API_KEY funciona pero con rate limits.
         """
-        import httpx
         import os
 
+        import httpx
+
         api_key = os.getenv("GOOGLE_PSI_API_KEY", "")
-        endpoint = (
-            f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed"
-            f"?url={url}&strategy=mobile"
-        )
+        endpoint = f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={url}&strategy=mobile"
         if api_key:
             endpoint += f"&key={api_key}"
 
@@ -401,31 +438,36 @@ const AxeBuilder = require('@axe-core/playwright').default;
         # Recopilar issues
         issues = []
         for detail in a11y_result.get("details", []):
-            issues.append({
-                "severity": detail.get("impact", "moderate"),
-                "category": "accessibility",
-                "description": detail.get("description", ""),
-                "element": f"{detail.get('nodes', 0)} elementos afectados",
-            })
+            issues.append(
+                {
+                    "severity": detail.get("impact", "moderate"),
+                    "category": "accessibility",
+                    "description": detail.get("description", ""),
+                    "element": f"{detail.get('nodes', 0)} elementos afectados",
+                }
+            )
 
         if perf_result.get("lcp_seconds", 0) > 2.5:
-            issues.append({
-                "severity": "serious",
-                "category": "performance",
-                "description": f"LCP es {perf_result.get('lcp_seconds')}s (debe ser < 2.5s)",
-                "element": "page load",
-            })
+            issues.append(
+                {
+                    "severity": "serious",
+                    "category": "performance",
+                    "description": f"LCP es {perf_result.get('lcp_seconds')}s (debe ser < 2.5s)",
+                    "element": "page load",
+                }
+            )
 
         if perf_result.get("cls", 0) > 0.1:
-            issues.append({
-                "severity": "moderate",
-                "category": "performance",
-                "description": f"CLS es {perf_result.get('cls')} (debe ser < 0.1)",
-                "element": "layout shift",
-            })
+            issues.append(
+                {
+                    "severity": "moderate",
+                    "category": "performance",
+                    "description": f"CLS es {perf_result.get('cls')} (debe ser < 0.1)",
+                    "element": "layout shift",
+                }
+            )
 
-        logger.info("design_audit_completo", url=url, overall=round(overall, 1),
-                    issues=len(issues))
+        logger.info("design_audit_completo", url=url, overall=round(overall, 1), issues=len(issues))
 
         return DesignAuditResult(
             url=url,
@@ -491,8 +533,7 @@ Responde solo con un número del 0 al 100."""
         perf_issues = [i for i in issues if i["category"] == "performance"]
         if perf_issues:
             recs.append(
-                "Optimizar Core Web Vitals: "
-                "LCP < 2.5s (lazy load images), CLS < 0.1 (reservar espacio para imágenes)."
+                "Optimizar Core Web Vitals: LCP < 2.5s (lazy load images), CLS < 0.1 (reservar espacio para imágenes)."
             )
 
         if not issues:

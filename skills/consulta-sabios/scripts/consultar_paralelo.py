@@ -31,11 +31,11 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from conector_sabios import (
+    SABIOS,
     consultar_sabio,
     consultar_todos,
     ping_todos,
     resumen_resultados,
-    SABIOS,
 )
 
 
@@ -65,10 +65,7 @@ def guardar_resumen(directorio: str, resultados: list, modo: str):
         "modo": modo,
         "sabios_consultados": len(resultados),
         "exitosos": sum(1 for r in resultados if r.get("exito")),
-        "resultados": [
-            {k: v for k, v in r.items() if k != "respuesta"}
-            for r in resultados
-        ],
+        "resultados": [{k: v for k, v in r.items() if k != "respuesta"} for r in resultados],
     }
     with open(path / f"metadata_{timestamp}.json", "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)
@@ -141,7 +138,7 @@ async def modo_iterativo(prompt: str, system: str, sabios_ids: list, output_dir:
         else:
             prompt_iterativo = prompt
 
-        print(f"  [{i+1}/{len(sabios_ids)}] Consultando {config['nombre']}...")
+        print(f"  [{i + 1}/{len(sabios_ids)}] Consultando {config['nombre']}...")
 
         resultado = await consultar_sabio(
             sabio_id=sid,
@@ -169,11 +166,15 @@ async def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--prompt", required=True, help="Ruta al archivo con el prompt principal")
-    parser.add_argument("--system", default="Eres un experto analista y estratega de primer nivel mundial.", help="System prompt")
+    parser.add_argument(
+        "--system", default="Eres un experto analista y estratega de primer nivel mundial.", help="System prompt"
+    )
     parser.add_argument("--output", required=True, help="Directorio de salida para las respuestas")
     parser.add_argument("--prompt-condensado", default=None, help="Ruta al prompt condensado para sabios de 128K")
     parser.add_argument("--sabios", default=None, help="Lista de sabios separados por coma (default: todos)")
-    parser.add_argument("--modo", choices=["enjambre", "consejo", "iterativo"], default="enjambre", help="Modo de consulta")
+    parser.add_argument(
+        "--modo", choices=["enjambre", "consejo", "iterativo"], default="enjambre", help="Modo de consulta"
+    )
     parser.add_argument("--skip-ping", action="store_true", help="Saltar pre-vuelo (no recomendado)")
 
     args = parser.parse_args()
@@ -210,7 +211,7 @@ async def main():
     output_path = Path(args.output)
     combinado = output_path / "respuestas_combinadas.md"
     with open(combinado, "w", encoding="utf-8") as f:
-        f.write(f"# Respuestas Combinadas de los Sabios\n")
+        f.write("# Respuestas Combinadas de los Sabios\n")
         f.write(f"**Fecha:** {datetime.now().isoformat()}\n")
         f.write(f"**Modo:** {args.modo}\n\n")
         for r in resultados:

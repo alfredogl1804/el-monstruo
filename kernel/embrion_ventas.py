@@ -10,6 +10,7 @@ Hereda de EmbrionLoop pero con:
 
 Sprint 57 — "Las Capas Transversales"
 """
+
 from __future__ import annotations
 
 import logging
@@ -43,6 +44,7 @@ Principios:
 
 
 # ── Knowledge Base de Ventas ─────────────────────────────────────────────────
+
 
 class VentasKnowledgeBase:
     """Base de conocimiento curada de estrategias de ventas."""
@@ -102,17 +104,17 @@ class VentasKnowledgeBase:
 
     FUNNEL_BENCHMARKS: dict[str, dict] = {
         "saas": {
-            "visitor_to_signup": 0.03,      # 3% industry average
-            "signup_to_activation": 0.40,   # 40% activation
-            "activation_to_paid": 0.15,     # 15% conversion to paid
-            "paid_to_annual": 0.30,         # 30% upgrade to annual
-            "monthly_churn": 0.05,          # 5% monthly churn
+            "visitor_to_signup": 0.03,  # 3% industry average
+            "signup_to_activation": 0.40,  # 40% activation
+            "activation_to_paid": 0.15,  # 15% conversion to paid
+            "paid_to_annual": 0.30,  # 30% upgrade to annual
+            "monthly_churn": 0.05,  # 5% monthly churn
         },
         "ecommerce": {
-            "visitor_to_cart": 0.10,        # 10% add to cart
-            "cart_to_checkout": 0.65,       # 65% checkout rate
-            "checkout_to_purchase": 0.80,   # 80% purchase completion
-            "repeat_purchase_30d": 0.20,    # 20% buy again in 30 days
+            "visitor_to_cart": 0.10,  # 10% add to cart
+            "cart_to_checkout": 0.65,  # 65% checkout rate
+            "checkout_to_purchase": 0.80,  # 80% purchase completion
+            "repeat_purchase_30d": 0.20,  # 20% buy again in 30 days
         },
     }
 
@@ -132,6 +134,7 @@ class VentasKnowledgeBase:
 
 
 # ── Embrión-Ventas ───────────────────────────────────────────────────────────
+
 
 class EmbrionVentas(EmbrionLoop):
     """Embrión especializado en estrategia comercial y ventas.

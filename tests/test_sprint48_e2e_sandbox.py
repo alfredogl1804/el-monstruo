@@ -19,10 +19,14 @@ Run:
 
 Sprint 48 | 2026-04-30
 """
+
 from __future__ import annotations
 
+import pytest
+
+e2b = pytest.importorskip("e2b_code_interpreter", reason="e2b_code_interpreter not installed")
+
 import asyncio
-import json
 import os
 import sys
 import time
@@ -47,11 +51,14 @@ class C:
 def ok(msg: str):
     print(f"  {C.GREEN}✓{C.END} {msg}")
 
+
 def fail(msg: str):
     print(f"  {C.RED}✗{C.END} {msg}")
 
+
 def info(msg: str):
     print(f"  {C.CYAN}ℹ{C.END} {msg}")
+
 
 def section(msg: str):
     print(f"\n{C.BOLD}{C.YELLOW}{'─' * 60}{C.END}")
@@ -66,13 +73,12 @@ async def test_e2e_persistent_sandbox():
     All operations share the SAME sandbox — this is the core fix of Sprint 48.
     """
     from tools.sandbox_manager import (
+        _active_sessions,
         acquire,
-        release,
-        get_sandbox,
         execute_in_sandbox,
         file_op_in_sandbox,
+        release,
         web_dev_in_sandbox,
-        _active_sessions,
     )
 
     plan_id = f"test-e2e-{int(time.time())}"
@@ -206,7 +212,7 @@ for f in missing:
             ok("4/5 files found — persistence is working (1 file may have different path)")
             results["code_exec_sees_files"] = True
         else:
-            fail(f"Not all files found — persistence may be broken")
+            fail("Not all files found — persistence may be broken")
 
         # ── 7. RELEASE: Kill sandbox ─────────────────────────────────
         section("7. RELEASE — Kill sandbox")
@@ -230,7 +236,7 @@ for f in missing:
     section("FINAL REPORT")
     total = len(results)
     passed = sum(1 for v in results.values() if v)
-    
+
     for test_name, passed_flag in results.items():
         if passed_flag:
             ok(f"{test_name}")
@@ -238,7 +244,7 @@ for f in missing:
             fail(f"{test_name}")
 
     print(f"\n  {C.BOLD}Result: {passed}/{total} passed{C.END} in {elapsed:.1f}s")
-    
+
     if passed == total:
         print(f"\n  {C.GREEN}{C.BOLD}🎉 ALL TESTS PASSED — Sprint 48 sandbox persistence is WORKING!{C.END}")
     elif passed >= total - 1:
@@ -250,7 +256,7 @@ for f in missing:
 
 
 # ── Pytest entry point ──────────────────────────────────────────────
-import pytest
+
 
 @pytest.mark.asyncio
 async def test_sprint48_persistent_sandbox():

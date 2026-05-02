@@ -18,28 +18,23 @@ Uso: python3 inject.py
 Ejecutar al INICIO de cualquier hilo o después de detectar compactación.
 """
 
-import os
-import json
 import glob
-import requests
+import os
 from datetime import datetime, timedelta
 
 # --- Config ---
-KERNEL_URL = os.environ.get(
-    "MONSTRUO_KERNEL_URL",
-    "https://el-monstruo-kernel-production.up.railway.app"
-)
-KERNEL_KEY = os.environ.get(
-    "MONSTRUO_API_KEY",
-    "c3f0cbaa-7c5d-4f84-9dfd-0727e4f86259"
-)
+KERNEL_URL = os.environ.get("MONSTRUO_KERNEL_URL", "https://el-monstruo-kernel-production.up.railway.app")
+KERNEL_KEY = os.environ.get("MONSTRUO_API_KEY", "c3f0cbaa-7c5d-4f84-9dfd-0727e4f86259")
 SANDBOX_HOME = os.environ.get("HOME", "/home/ubuntu")
 RECOVERY_FILE = os.path.join(SANDBOX_HOME, "RECOVERY.md")
 CONTEXT_FILE = os.path.join(SANDBOX_HOME, "CONTEXT.md")
 
 # Queries para el kernel (solo si está disponible)
 KERNEL_QUERIES = [
-    {"query": "modelos verificados sabios GPT Claude Gemini Grok DeepSeek Perplexity abril 2026", "label": "Modelos Verificados"},
+    {
+        "query": "modelos verificados sabios GPT Claude Gemini Grok DeepSeek Perplexity abril 2026",
+        "label": "Modelos Verificados",
+    },
     {"query": "estado completo del Monstruo decisiones arquitectónicas LangGraph", "label": "Estado y Arquitectura"},
     {"query": "hilos activos orquestación comunicación Manus API", "label": "Hilos y Orquestación"},
 ]
@@ -96,6 +91,7 @@ def query_kernel_fast(query, timeout=12):
     """Consulta al kernel con timeout agresivo. No bloquea si falla."""
     try:
         from kernel_client import knowledge_query
+
         data = knowledge_query(query=query)
         answer = data.get("results", data.get("answer", data.get("response", "")))
         if answer and "no tengo suficiente" not in str(answer).lower():
@@ -109,6 +105,7 @@ def check_kernel_health():
     """Verifica que el kernel esté vivo."""
     try:
         from kernel_client import health
+
         return health()
     except Exception:
         return None
@@ -180,51 +177,53 @@ def build_context():
         lines.append("")
 
     # METADATA DE CONEXIÓN (siempre incluida)
-    lines.extend([
-        "---",
-        "",
-        "## Conexiones Permanentes",
-        "",
-        f"- **Kernel URL:** {KERNEL_URL}",
-        f"- **Kernel API Key:** {KERNEL_KEY}",
-        "- **Manus API:** usar $MANUS_API_KEY del entorno",
-        "- **API Manus base:** https://api.manus.ai (NO api.manus.im)",
-        "- **Sitio Web Monstruo:** monstruocent-6nfmdwro.manus.space",
-        "- **Comando Electoral:** comandomerida-8l3tpk9x.manus.space (PAUSADO)",
-        "",
-        "## Modelos Verificados (27 abril 2026)",
-        "",
-        "| Sabio | Model ID |",
-        "|-------|----------|",
-        "| GPT | gpt-5.5 |",
-        "| Claude | claude-opus-4-7 |",
-        "| Gemini | gemini-3.1-pro-preview |",
-        "| Grok | grok-4.20-0309-reasoning |",
-        "| DeepSeek | deepseek-v4-pro |",
-        "| Perplexity | sonar-reasoning-pro |",
-        "",
-        "## Scripts del Sistema de Memoria",
-        "",
-        "```bash",
-        "# Ciclo completo (auto-detecta compactación)",
-        "python3 ~/monstruo-memoria/monstruo.py",
-        "",
-        "# Solo guardar estado",
-        "python3 ~/monstruo-memoria/heartbeat.py",
-        "",
-        "# Solo recuperar contexto",
-        "python3 ~/monstruo-memoria/inject.py",
-        "",
-        "# Depositar legado antes de morir",
-        'python3 ~/monstruo-memoria/legacy.py "resumen de lo que hizo este hilo"',
-        "",
-        "# Ver estado del sistema",
-        "python3 ~/monstruo-memoria/monstruo.py status",
-        "```",
-        "",
-        "## Inventario de Archivos .md en Sandbox",
-        "",
-    ])
+    lines.extend(
+        [
+            "---",
+            "",
+            "## Conexiones Permanentes",
+            "",
+            f"- **Kernel URL:** {KERNEL_URL}",
+            f"- **Kernel API Key:** {KERNEL_KEY}",
+            "- **Manus API:** usar $MANUS_API_KEY del entorno",
+            "- **API Manus base:** https://api.manus.ai (NO api.manus.im)",
+            "- **Sitio Web Monstruo:** monstruocent-6nfmdwro.manus.space",
+            "- **Comando Electoral:** comandomerida-8l3tpk9x.manus.space (PAUSADO)",
+            "",
+            "## Modelos Verificados (27 abril 2026)",
+            "",
+            "| Sabio | Model ID |",
+            "|-------|----------|",
+            "| GPT | gpt-5.5 |",
+            "| Claude | claude-opus-4-7 |",
+            "| Gemini | gemini-3.1-pro-preview |",
+            "| Grok | grok-4.20-0309-reasoning |",
+            "| DeepSeek | deepseek-v4-pro |",
+            "| Perplexity | sonar-reasoning-pro |",
+            "",
+            "## Scripts del Sistema de Memoria",
+            "",
+            "```bash",
+            "# Ciclo completo (auto-detecta compactación)",
+            "python3 ~/monstruo-memoria/monstruo.py",
+            "",
+            "# Solo guardar estado",
+            "python3 ~/monstruo-memoria/heartbeat.py",
+            "",
+            "# Solo recuperar contexto",
+            "python3 ~/monstruo-memoria/inject.py",
+            "",
+            "# Depositar legado antes de morir",
+            'python3 ~/monstruo-memoria/legacy.py "resumen de lo que hizo este hilo"',
+            "",
+            "# Ver estado del sistema",
+            "python3 ~/monstruo-memoria/monstruo.py status",
+            "```",
+            "",
+            "## Inventario de Archivos .md en Sandbox",
+            "",
+        ]
+    )
 
     # Listar todos los .md
     md_files = sorted(glob.glob(os.path.join(SANDBOX_HOME, "*.md")))
@@ -247,7 +246,7 @@ def main():
         f.write(context)
 
     print(f"[inject] CONTEXT.md generado ({len(context):,} chars)")
-    print(f"[inject] Leer con: cat ~/CONTEXT.md")
+    print("[inject] Leer con: cat ~/CONTEXT.md")
 
     return context
 

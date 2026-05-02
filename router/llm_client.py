@@ -472,7 +472,7 @@ class LLMClient:
                     split_idx = idx
             stable_prefix = system_prompt[:split_idx].rstrip()
             dynamic_suffix = system_prompt[split_idx:].strip()
-            
+
             if len(stable_prefix) >= 500:
                 system_blocks = [{"type": "text", "text": stable_prefix, "cache_control": {"type": "ephemeral"}}]
                 if dynamic_suffix:
@@ -806,9 +806,7 @@ class LLMClient:
         if provider not in self._httpx_clients:
             # Sprint 45: HTTP/2 enabled for faster multiplexed connections
             # to LLM providers (reduces connection setup by 10-20ms/token)
-            self._httpx_clients[provider] = httpx.AsyncClient(
-                timeout=120.0, http2=True
-            )
+            self._httpx_clients[provider] = httpx.AsyncClient(timeout=120.0, http2=True)
         client = self._httpx_clients[provider]
 
         headers = {
@@ -1012,31 +1010,35 @@ class LLMClient:
                 "## User Memory (Mem0)",
                 "## Client Instructions",
             ]
-            
+
             # Find the earliest dynamic section
             split_idx = len(system_prompt)
             for marker in DYNAMIC_MARKERS:
                 idx = system_prompt.find(marker)
                 if idx != -1 and idx < split_idx:
                     split_idx = idx
-            
+
             stable_prefix = system_prompt[:split_idx].rstrip()
             dynamic_suffix = system_prompt[split_idx:].strip()
-            
+
             # Build structured system blocks with cache_control
             system_blocks = []
             if stable_prefix:
-                system_blocks.append({
-                    "type": "text",
-                    "text": stable_prefix,
-                    "cache_control": {"type": "ephemeral"},
-                })
+                system_blocks.append(
+                    {
+                        "type": "text",
+                        "text": stable_prefix,
+                        "cache_control": {"type": "ephemeral"},
+                    }
+                )
             if dynamic_suffix:
-                system_blocks.append({
-                    "type": "text",
-                    "text": dynamic_suffix,
-                })
-            
+                system_blocks.append(
+                    {
+                        "type": "text",
+                        "text": dynamic_suffix,
+                    }
+                )
+
             # Use structured blocks if we have a meaningful stable prefix (>= 500 chars)
             # Otherwise fall back to plain string (for very short system prompts)
             if len(stable_prefix) >= 500 and system_blocks:
@@ -1095,9 +1097,7 @@ class LLMClient:
 
         if provider not in self._httpx_clients:
             # Sprint 45: HTTP/2 enabled for faster multiplexed streaming
-            self._httpx_clients[provider] = httpx.AsyncClient(
-                timeout=120.0, http2=True
-            )
+            self._httpx_clients[provider] = httpx.AsyncClient(timeout=120.0, http2=True)
         client = self._httpx_clients[provider]
 
         headers = {

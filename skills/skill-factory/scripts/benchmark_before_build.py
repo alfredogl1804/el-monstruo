@@ -20,14 +20,12 @@ Uso:
 
 import argparse
 import asyncio
-import json
-import os
 import re
 import subprocess
-import sys
-import yaml
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import yaml
 
 # ============================================================
 # PATHS
@@ -48,9 +46,10 @@ SKILL_SCOUT = INJECTOR_ROOT / "scripts" / "skill_scout.py"
 # STEP 1: INTERNAL GAP ANALYSIS
 # ============================================================
 
+
 def analyze_internal_coverage(spec: dict) -> dict:
     """Analiza qué porcentaje de la skill propuesta ya existe internamente."""
-    
+
     result = {
         "internal_coverage_pct": 0,
         "matching_capabilities": [],
@@ -58,15 +57,15 @@ def analyze_internal_coverage(spec: dict) -> dict:
         "missing_capabilities": [],
         "composable_from": [],
     }
-    
+
     # Extraer capabilities necesarias de la spec
     needed_capabilities = set()
     for cap in spec.get("core_capabilities", []):
         needed_capabilities.add(cap.lower().replace(" ", "_").replace("-", "_"))
-    
+
     # También inferir del dominio y descripción
     description = (spec.get("description", "") + " " + spec.get("domain", "")).lower()
-    
+
     capability_keywords = {
         "text_generation": ["text", "write", "generate text", "content"],
         "code_generation": ["code", "programming", "script", "developer"],
@@ -81,14 +80,14 @@ def analyze_internal_coverage(spec: dict) -> dict:
         "social_media": ["social", "instagram", "tiktok", "twitter"],
         "real_time_search": ["search", "research", "real-time", "current"],
     }
-    
+
     for cap, keywords in capability_keywords.items():
         if any(kw in description for kw in keywords):
             needed_capabilities.add(cap)
-    
+
     if not needed_capabilities:
         needed_capabilities.add("general")
-    
+
     # Cargar capability registry (nested under 'capabilities' key)
     existing_capabilities = set()
     if CAPABILITY_REGISTRY.exists():
@@ -101,17 +100,17 @@ def analyze_internal_coverage(spec: dict) -> dict:
                     existing_capabilities.add(key)
         except Exception:
             pass
-    
+
     # Fuzzy matching: map needed capabilities to existing ones
     matched = set()
     missing = set()
-    
+
     for needed in needed_capabilities:
         # Direct match
         if needed in existing_capabilities:
             matched.add(needed)
             continue
-        
+
         # Fuzzy: check if needed is a substring of any existing or vice versa
         found = False
         for existing in existing_capabilities:
@@ -133,61 +132,75 @@ def analyze_internal_coverage(spec: dict) -> dict:
                 matched.add(needed)
                 found = True
                 break
-        
+
         if not found:
             missing.add(needed)
-    
+
     result["matching_capabilities"] = sorted(matched)
     result["missing_capabilities"] = sorted(missing)
-    
+
     if needed_capabilities:
         result["internal_coverage_pct"] = round(len(matched) / len(needed_capabilities) * 100, 1)
-    
+
     # Buscar skills existentes similares
     if SKILLS_ROOT.exists():
         spec_name = spec.get("name", "").lower()
         spec_domain = spec.get("domain", "").lower()
         spec_desc = spec.get("description", "").lower()
-        
+
         for skill_dir in SKILLS_ROOT.iterdir():
             if not skill_dir.is_dir():
                 continue
             skill_md = skill_dir / "SKILL.md"
             if not skill_md.exists():
                 continue
-            
+
             try:
                 content = skill_md.read_text(encoding="utf-8")[:1000].lower()
-                
+
                 # Check for name/domain overlap
                 overlap_score = 0
                 if spec_name and spec_name in content:
                     overlap_score += 3
                 if spec_domain and spec_domain in content:
                     overlap_score += 2
-                
+
                 # Check keyword overlap
                 spec_words = set(spec_desc.split())
                 content_words = set(content.split())
-                common = spec_words & content_words - {"de", "la", "el", "en", "para", "con", "y", "a", "the", "and", "for"}
+                common = spec_words & content_words - {
+                    "de",
+                    "la",
+                    "el",
+                    "en",
+                    "para",
+                    "con",
+                    "y",
+                    "a",
+                    "the",
+                    "and",
+                    "for",
+                }
                 if len(common) > 3:
                     overlap_score += min(len(common), 5)
-                
+
                 if overlap_score >= 3:
-                    result["matching_skills"].append({
-                        "name": skill_dir.name,
-                        "overlap_score": overlap_score,
-                        "path": str(skill_dir),
-                    })
+                    result["matching_skills"].append(
+                        {
+                            "name": skill_dir.name,
+                            "overlap_score": overlap_score,
+                            "path": str(skill_dir),
+                        }
+                    )
             except Exception:
                 continue
-    
+
     result["matching_skills"].sort(key=lambda x: -x["overlap_score"])
-    
+
     # Determine composability
     if result["internal_coverage_pct"] >= 60:
         result["composable_from"] = result["matching_capabilities"]
-    
+
     return result
 
 
@@ -195,20 +208,21 @@ def analyze_internal_coverage(spec: dict) -> dict:
 # STEP 2: EXTERNAL SCOUT
 # ============================================================
 
+
 def scout_external(spec: dict, deep: bool = False) -> dict:
     """Busca skills externas que cubran la necesidad."""
-    
+
     result = {
         "candidates_found": 0,
         "candidates": [],
         "evaluations": [],
         "best_candidate": None,
     }
-    
+
     if not SKILL_SCOUT.exists():
         result["error"] = "skill_scout.py not found — api-context-injector not installed"
         return result
-    
+
     # Build search query from spec
     search_terms = []
     if spec.get("domain"):
@@ -217,37 +231,39 @@ def scout_external(spec: dict, deep: bool = False) -> dict:
         search_terms.append(spec["name"])
     if spec.get("core_capabilities"):
         search_terms.extend(spec["core_capabilities"][:2])
-    
+
     query = " ".join(search_terms[:3])
-    
+
     try:
         cmd = ["python3.11", str(SKILL_SCOUT), "--search", query]
         if deep:
             cmd.append("--evaluate")
         cmd.extend(["--output", "/tmp/skill-factory/scout_results.md"])
-        
+
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-        
+
         if proc.returncode == 0:
             output = proc.stdout
-            
+
             # Parse results count
-            count_match = re.search(r'(\d+) resultados encontrados', output)
+            count_match = re.search(r"(\d+) resultados encontrados", output)
             if count_match:
                 result["candidates_found"] = int(count_match.group(1))
-            
+
             # Parse evaluations if deep
             if deep and "Evaluaciones TRUST+FIT" in output:
                 for line in output.split("\n"):
                     if "github.com" in line and "|" in line:
                         parts = [p.strip() for p in line.split("|")]
                         if len(parts) >= 7:
-                            result["evaluations"].append({
-                                "url": parts[1],
-                                "score": parts[2],
-                                "recommendation": parts[6],
-                            })
-                
+                            result["evaluations"].append(
+                                {
+                                    "url": parts[1],
+                                    "score": parts[2],
+                                    "recommendation": parts[6],
+                                }
+                            )
+
                 # Find best candidate
                 for ev in result["evaluations"]:
                     if "INSTALL" in ev.get("recommendation", "").upper():
@@ -261,7 +277,7 @@ def scout_external(spec: dict, deep: bool = False) -> dict:
         result["error"] = "Scout timed out (120s)"
     except Exception as e:
         result["error"] = str(e)
-    
+
     return result
 
 
@@ -269,21 +285,22 @@ def scout_external(spec: dict, deep: bool = False) -> dict:
 # STEP 3: DECISION ENGINE
 # ============================================================
 
+
 def decide_action(spec: dict, internal: dict, external: dict) -> dict:
     """Decide: install / fork / compose / build / reject."""
-    
+
     decision = {
         "action": "build",
         "confidence": 0.5,
         "reasoning": [],
         "alternatives": [],
     }
-    
+
     internal_pct = internal.get("internal_coverage_pct", 0)
     matching_skills = internal.get("matching_skills", [])
     best_external = external.get("best_candidate")
     external_count = external.get("candidates_found", 0)
-    
+
     # Rule 1: If exact internal match exists
     if matching_skills and matching_skills[0].get("overlap_score", 0) >= 7:
         decision["action"] = "extend_existing"
@@ -294,7 +311,7 @@ def decide_action(spec: dict, internal: dict, external: dict) -> dict:
         )
         decision["target"] = matching_skills[0]["path"]
         return decision
-    
+
     # Rule 2: If external candidate scores INSTALL
     if best_external and "INSTALL" in best_external.get("recommendation", "").upper():
         decision["action"] = "install"
@@ -306,7 +323,7 @@ def decide_action(spec: dict, internal: dict, external: dict) -> dict:
         decision["target"] = best_external.get("url")
         decision["alternatives"].append({"action": "build", "reason": "Si se necesita personalización profunda"})
         return decision
-    
+
     # Rule 3: If external candidate scores FORK
     if best_external and "FORK" in best_external.get("recommendation", "").upper():
         decision["action"] = "fork_and_harden"
@@ -318,7 +335,7 @@ def decide_action(spec: dict, internal: dict, external: dict) -> dict:
         decision["target"] = best_external.get("url")
         decision["alternatives"].append({"action": "build", "reason": "Si la base no es suficiente"})
         return decision
-    
+
     # Rule 4: If >60% composable from internal pieces
     if internal_pct >= 60:
         decision["action"] = "compose"
@@ -330,12 +347,12 @@ def decide_action(spec: dict, internal: dict, external: dict) -> dict:
         decision["composable_from"] = internal.get("composable_from", [])
         decision["alternatives"].append({"action": "build", "reason": "Si la composición no alcanza"})
         return decision
-    
+
     # Rule 5: Default to build
     decision["action"] = "build"
     decision["confidence"] = 0.6
     reasons = []
-    
+
     if internal_pct < 30:
         reasons.append(f"Solo {internal_pct}% de cobertura interna — gap significativo")
     if external_count == 0:
@@ -344,16 +361,15 @@ def decide_action(spec: dict, internal: dict, external: dict) -> dict:
         reasons.append("Candidatos externos no pasan evaluación TRUST+FIT")
     else:
         reasons.append("No hay alternativa viable a construir")
-    
+
     decision["reasoning"] = reasons
-    
+
     # Check if we should suggest NOT building
     if spec.get("core_capabilities") and len(spec["core_capabilities"]) > 10:
-        decision["alternatives"].append({
-            "action": "decompose",
-            "reason": "Skill demasiado amplia — considerar dividir en 2-3 skills más pequeñas"
-        })
-    
+        decision["alternatives"].append(
+            {"action": "decompose", "reason": "Skill demasiado amplia — considerar dividir en 2-3 skills más pequeñas"}
+        )
+
     return decision
 
 
@@ -361,9 +377,10 @@ def decide_action(spec: dict, internal: dict, external: dict) -> dict:
 # STEP 4: GENERATE REPORT
 # ============================================================
 
+
 def generate_report(spec: dict, internal: dict, external: dict, decision: dict) -> dict:
     """Genera reporte completo de benchmark."""
-    
+
     return {
         "metadata": {
             "generated": datetime.now().isoformat(),
@@ -381,7 +398,7 @@ def generate_report(spec: dict, internal: dict, external: dict, decision: dict) 
         "capability_registry_consulted": CAPABILITY_REGISTRY.exists(),
         "recommendation_summary": (
             f"ACTION: {decision['action'].upper()} | "
-            f"Confidence: {decision['confidence']*100:.0f}% | "
+            f"Confidence: {decision['confidence'] * 100:.0f}% | "
             f"Internal coverage: {internal.get('internal_coverage_pct', 0)}% | "
             f"External candidates: {external.get('candidates_found', 0)}"
         ),
@@ -392,11 +409,12 @@ def generate_report(spec: dict, internal: dict, external: dict, decision: dict) 
 # MAIN
 # ============================================================
 
+
 async def run_benchmark(spec: dict, deep_scout: bool = False) -> dict:
     """Ejecuta el benchmark completo."""
-    
+
     print(f"[BENCHMARK] Analizando: {spec.get('name', 'unknown')}")
-    
+
     # Step 1: Internal analysis
     print("[BENCHMARK] [1/3] Análisis interno...")
     internal = analyze_internal_coverage(spec)
@@ -404,7 +422,7 @@ async def run_benchmark(spec: dict, deep_scout: bool = False) -> dict:
     print(f"  Skills similares: {len(internal['matching_skills'])}")
     print(f"  Capabilities match: {len(internal['matching_capabilities'])}")
     print(f"  Capabilities missing: {len(internal['missing_capabilities'])}")
-    
+
     # Step 2: External scout
     print(f"[BENCHMARK] [2/3] Scout externo {'(deep)' if deep_scout else '(quick)'}...")
     external = scout_external(spec, deep=deep_scout)
@@ -413,17 +431,17 @@ async def run_benchmark(spec: dict, deep_scout: bool = False) -> dict:
         print(f"  Mejor candidato: {external['best_candidate'].get('url', '?')}")
     if external.get("error"):
         print(f"  Error: {external['error']}")
-    
+
     # Step 3: Decision
     print("[BENCHMARK] [3/3] Tomando decisión...")
     decision = decide_action(spec, internal, external)
-    print(f"  DECISIÓN: {decision['action'].upper()} (confianza: {decision['confidence']*100:.0f}%)")
+    print(f"  DECISIÓN: {decision['action'].upper()} (confianza: {decision['confidence'] * 100:.0f}%)")
     for reason in decision.get("reasoning", []):
         print(f"    → {reason}")
-    
+
     # Generate report
     report = generate_report(spec, internal, external, decision)
-    
+
     return report
 
 
@@ -433,15 +451,15 @@ async def main():
     parser.add_argument("--deep-scout", action="store_true", help="Deep external scout with TRUST+FIT evaluation")
     parser.add_argument("--output", help="Path to save benchmark report")
     args = parser.parse_args()
-    
+
     with open(args.spec) as f:
         spec = yaml.safe_load(f)
-    
+
     report = await run_benchmark(spec, deep_scout=args.deep_scout)
-    
+
     if args.output:
         Path(args.output).parent.mkdir(parents=True, exist_ok=True)
-        with open(args.output, 'w') as f:
+        with open(args.output, "w") as f:
             yaml.dump(report, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
         print(f"\nReporte guardado en: {args.output}")
     else:

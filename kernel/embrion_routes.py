@@ -60,21 +60,26 @@ def set_dependencies(db=None, notifier=None):
 
 class MensajeRequest(BaseModel):
     """Alfredo envía un mensaje al Embrión."""
+
     contenido: str = Field(..., min_length=1, max_length=10000, description="Mensaje de Alfredo al Embrión")
     contexto: Optional[str] = Field(None, description="Contexto adicional (ej: desde qué canal)")
 
 
 class LatidoRequest(BaseModel):
     """El scheduled task registra un latido del Embrión."""
+
     tipo: str = Field(default="latido", description="Tipo de entrada: latido, reflexion, doctrina, pensamiento")
     contenido: str = Field(..., min_length=1, max_length=50000, description="Contenido del latido")
     hilo_origen: str = Field(default="kernel", description="Origen del registro")
     importancia: int = Field(default=5, ge=1, le=10, description="Importancia 1-10")
-    contexto: dict[str, Any] = Field(default_factory=dict, description="Metadata adicional como dict (se serializa a JSON)")
+    contexto: dict[str, Any] = Field(
+        default_factory=dict, description="Metadata adicional como dict (se serializa a JSON)"
+    )
 
 
 class NotificarRequest(BaseModel):
     """Enviar notificación al usuario via Telegram."""
+
     mensaje: str = Field(..., min_length=1, max_length=4000, description="Mensaje a enviar")
     chat_id: Optional[str] = Field(None, description="Override del chat_id (default: TELEGRAM_CHAT_ID)")
 
@@ -220,13 +225,13 @@ async def embrion_debug(request: Request):
     Returns loop stats, errors, and dependency status.
     """
     try:
-        loop = getattr(request.app.state, '_embrion_loop', None)
+        loop = getattr(request.app.state, "_embrion_loop", None)
 
         if loop:
             return {
                 "status": "loop_found",
-                "debug": loop.debug if hasattr(loop, 'debug') else "no debug property",
-                "stats": loop.stats if hasattr(loop, 'stats') else "no stats property",
+                "debug": loop.debug if hasattr(loop, "debug") else "no debug property",
+                "stats": loop.stats if hasattr(loop, "stats") else "no stats property",
             }
         else:
             return {
@@ -255,20 +260,25 @@ async def enviar_mensaje(req: MensajeRequest):
     try:
         now = datetime.now(timezone.utc).isoformat()
 
-        contexto_json = json.dumps({
-            "canal": req.contexto or "telegram",
-            "timestamp_envio": now,
-        })
+        contexto_json = json.dumps(
+            {
+                "canal": req.contexto or "telegram",
+                "timestamp_envio": now,
+            }
+        )
 
         # Guardar mensaje de Alfredo
-        row = await _db.insert(TABLE, {
-            "tipo": "mensaje_alfredo",
-            "contenido": req.contenido,
-            "contexto": contexto_json,
-            "hilo_origen": "telegram",
-            "importancia": 8,
-            "version": 1,
-        })
+        row = await _db.insert(
+            TABLE,
+            {
+                "tipo": "mensaje_alfredo",
+                "contenido": req.contenido,
+                "contexto": contexto_json,
+                "hilo_origen": "telegram",
+                "importancia": 8,
+                "version": 1,
+            },
+        )
 
         if not row:
             raise HTTPException(500, "No se pudo guardar el mensaje")
@@ -316,20 +326,25 @@ async def registrar_latido(req: LatidoRequest):
     try:
         now = datetime.now(timezone.utc).isoformat()
 
-        contexto_json = json.dumps({
-            **req.contexto,
-            "source": "scheduled_task",
-            "timestamp_latido": now,
-        })
+        contexto_json = json.dumps(
+            {
+                **req.contexto,
+                "source": "scheduled_task",
+                "timestamp_latido": now,
+            }
+        )
 
-        row = await _db.insert(TABLE, {
-            "tipo": req.tipo,
-            "contenido": req.contenido,
-            "contexto": contexto_json,
-            "hilo_origen": req.hilo_origen,
-            "importancia": req.importancia,
-            "version": 1,
-        })
+        row = await _db.insert(
+            TABLE,
+            {
+                "tipo": req.tipo,
+                "contenido": req.contenido,
+                "contexto": contexto_json,
+                "hilo_origen": req.hilo_origen,
+                "importancia": req.importancia,
+                "version": 1,
+            },
+        )
 
         if not row:
             raise HTTPException(500, "No se pudo registrar el latido")
@@ -366,8 +381,7 @@ async def notificar_alfredo(req: NotificarRequest):
     if not _notifier or not _notifier.enabled:
         raise HTTPException(
             503,
-            "TelegramNotifier no configurado. "
-            "Asegúrate de que TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID estén en env.",
+            "TelegramNotifier no configurado. Asegúrate de que TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID estén en env.",
         )
 
     try:
@@ -406,16 +420,26 @@ PATRON_TABLE = "embrion_patron_emergencia"
 
 class PatronRequest(BaseModel):
     """Guardar material en el patrón de emergencia."""
-    tipo: str = Field(..., description="patron_alfredo | patron_emergencia | contribucion_gpt | contribucion_sabio | momento_critico")
-    contenido: str = Field(..., min_length=1, max_length=50000, description="El contenido real — no resumen, la cosa en sí")
-    contexto: dict[str, Any] = Field(default_factory=dict, description="Metadata: hilo_origen, sesion, nivel_profundidad")
+
+    tipo: str = Field(
+        ..., description="patron_alfredo | patron_emergencia | contribucion_gpt | contribucion_sabio | momento_critico"
+    )
+    contenido: str = Field(
+        ..., min_length=1, max_length=50000, description="El contenido real — no resumen, la cosa en sí"
+    )
+    contexto: dict[str, Any] = Field(
+        default_factory=dict, description="Metadata: hilo_origen, sesion, nivel_profundidad"
+    )
     importancia: int = Field(default=5, ge=1, le=10, description="Importancia 1-10")
 
 
 class ContribucionRequest(BaseModel):
     """GPT o un Sabio contribuye al patrón de emergencia."""
+
     tipo: str = Field(..., description="contribucion_gpt | contribucion_sabio")
-    contenido: str = Field(..., min_length=1, max_length=50000, description="Lo que GPT/Sabio quiere que el Embrión sepa")
+    contenido: str = Field(
+        ..., min_length=1, max_length=50000, description="Lo que GPT/Sabio quiere que el Embrión sepa"
+    )
     autor: str = Field(..., description="Quién contribuye: gpt-5.4, claude-opus-4.7, gemini-3.1, grok-4, etc")
     contexto: dict[str, Any] = Field(default_factory=dict, description="Metadata adicional")
     importancia: int = Field(default=7, ge=1, le=10, description="Importancia 1-10")
@@ -493,18 +517,23 @@ async def guardar_patron(req: PatronRequest):
     try:
         now = datetime.now(timezone.utc).isoformat()
 
-        contexto_json = json.dumps({
-            **req.contexto,
-            "timestamp_guardado": now,
-        })
+        contexto_json = json.dumps(
+            {
+                **req.contexto,
+                "timestamp_guardado": now,
+            }
+        )
 
-        row = await _db.insert(PATRON_TABLE, {
-            "tipo": req.tipo,
-            "contenido": req.contenido,
-            "contexto": contexto_json,
-            "importancia": req.importancia,
-            "version": "0.23.0-sprint30",
-        })
+        row = await _db.insert(
+            PATRON_TABLE,
+            {
+                "tipo": req.tipo,
+                "contenido": req.contenido,
+                "contexto": contexto_json,
+                "importancia": req.importancia,
+                "version": "0.23.0-sprint30",
+            },
+        )
 
         if not row:
             raise HTTPException(500, "No se pudo guardar en el patrón")
@@ -551,20 +580,25 @@ async def contribuir_al_embrion(req: ContribucionRequest):
     try:
         now = datetime.now(timezone.utc).isoformat()
 
-        contexto_json = json.dumps({
-            **req.contexto,
-            "autor": req.autor,
-            "canal": "contribucion_directa",
-            "timestamp_contribucion": now,
-        })
+        contexto_json = json.dumps(
+            {
+                **req.contexto,
+                "autor": req.autor,
+                "canal": "contribucion_directa",
+                "timestamp_contribucion": now,
+            }
+        )
 
-        row = await _db.insert(PATRON_TABLE, {
-            "tipo": req.tipo,
-            "contenido": req.contenido,
-            "contexto": contexto_json,
-            "importancia": req.importancia,
-            "version": "0.23.0-sprint30",
-        })
+        row = await _db.insert(
+            PATRON_TABLE,
+            {
+                "tipo": req.tipo,
+                "contenido": req.contenido,
+                "contexto": contexto_json,
+                "importancia": req.importancia,
+                "version": "0.23.0-sprint30",
+            },
+        )
 
         if not row:
             raise HTTPException(500, "No se pudo guardar la contribución")

@@ -231,7 +231,7 @@ class TestAPIEndpoints:
             run_id="test-123",
             status="awaiting_human",
             intent="execute",
-            model_used="gpt-5.4",
+            model_used="gpt-5.5",
             response="I will delete the file",
             requires_approval=True,
             interrupt_payload={"risk_level": "L4_CRITICAL", "reason": "Destructive op"},
@@ -247,7 +247,7 @@ class TestAPIEndpoints:
             run_id="test-123",
             status="completed",
             intent="chat",
-            model_used="gpt-5.4",
+            model_used="gpt-5.5",
             response="Hello!",
         )
         assert resp.interrupt_payload is None

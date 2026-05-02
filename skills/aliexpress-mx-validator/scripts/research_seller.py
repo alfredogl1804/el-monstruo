@@ -13,9 +13,9 @@ Output: JSON file with findings and a trust assessment.
 import json
 import os
 import sys
-import requests
 from datetime import datetime
 
+import requests
 
 SONAR_API_KEY = os.environ.get("SONAR_API_KEY", "")
 SONAR_URL = "https://api.perplexity.ai/chat/completions"

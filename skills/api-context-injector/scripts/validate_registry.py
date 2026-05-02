@@ -17,13 +17,14 @@ Uso:
     python3.11 validate_registry.py [--output report.json]
 """
 
+import argparse
+import json
 import os
 import re
-import yaml
-import json
-import argparse
+from datetime import datetime
 from pathlib import Path
-from datetime import datetime, timedelta
+
+import yaml
 
 SKILL_DIR = Path(__file__).parent.parent
 REFERENCES_DIR = SKILL_DIR / "references"
@@ -32,25 +33,55 @@ ROUTING_DIR = SKILL_DIR / "routing"
 DOCS_DIR = SKILL_DIR / "docs"
 
 CREDENTIAL_PATTERNS = [
-    r'sk-[a-zA-Z0-9]{20,}',
-    r'sk-ant-[a-zA-Z0-9]{20,}',
-    r'AIza[a-zA-Z0-9_-]{35}',
-    r'xai-[a-zA-Z0-9]{20,}',
-    r'pplx-[a-zA-Z0-9]{20,}',
-    r'Bearer [a-zA-Z0-9_-]{20,}',
-    r'ghp_[a-zA-Z0-9]{36}',
-    r'[a-f0-9]{32,64}',
+    r"sk-[a-zA-Z0-9]{20,}",
+    r"sk-ant-[a-zA-Z0-9]{20,}",
+    r"AIza[a-zA-Z0-9_-]{35}",
+    r"xai-[a-zA-Z0-9]{20,}",
+    r"pplx-[a-zA-Z0-9]{20,}",
+    r"Bearer [a-zA-Z0-9_-]{20,}",
+    r"ghp_[a-zA-Z0-9]{36}",
+    r"[a-f0-9]{32,64}",
 ]
 
 SAFE_CONTEXTS = [
-    'env_var', 'method:', '#', 'pattern', 'regex', 'r"', "r'",
-    'notion_id', 'collection://', 'data_source', 'db_id',
-    'project_url', 'endpoint', 'base_url', 'datasource',
-    'db id', '**db', 'credential_ref', 'auth_ref', 'actor:',
-    'model:', 'model_id', 'docs:', 'url:', 'input_example',
-    'input_hint', 'connection_pattern', 'from_notion', 'apify_api',
-    'account_id', 'project_id', 'run_id', 'voice_id', 'avatar_id',
-    'video_id', 'trigger_pattern', 'description:', 'note:',
+    "env_var",
+    "method:",
+    "#",
+    "pattern",
+    "regex",
+    'r"',
+    "r'",
+    "notion_id",
+    "collection://",
+    "data_source",
+    "db_id",
+    "project_url",
+    "endpoint",
+    "base_url",
+    "datasource",
+    "db id",
+    "**db",
+    "credential_ref",
+    "auth_ref",
+    "actor:",
+    "model:",
+    "model_id",
+    "docs:",
+    "url:",
+    "input_example",
+    "input_hint",
+    "connection_pattern",
+    "from_notion",
+    "apify_api",
+    "account_id",
+    "project_id",
+    "run_id",
+    "voice_id",
+    "avatar_id",
+    "video_id",
+    "trigger_pattern",
+    "description:",
+    "note:",
 ]
 
 
@@ -68,7 +99,7 @@ def validate_yaml_files():
             continue
         for yaml_file in sorted(dir_path.glob("*.yaml")):
             try:
-                with open(yaml_file, 'r', encoding='utf-8') as f:
+                with open(yaml_file, "r", encoding="utf-8") as f:
                     data = yaml.safe_load(f)
                 if data:
                     valid.append(f"{dir_name}/{yaml_file.name}")
@@ -86,24 +117,26 @@ def check_credential_exposure():
             if any(skip in str(filepath) for skip in ["cache", "snapshots", "__pycache__", ".git"]):
                 continue
             try:
-                content = filepath.read_text(encoding='utf-8')
+                content = filepath.read_text(encoding="utf-8")
                 for pattern in CREDENTIAL_PATTERNS:
                     matches = re.findall(pattern, content)
                     for match in matches:
                         if len(match) > 15 and not match.startswith("env_var"):
                             context_line = ""
-                            for line in content.split('\n'):
+                            for line in content.split("\n"):
                                 if match in line:
                                     context_line = line.strip()[:120]
                                     break
                             if any(safe in context_line.lower() for safe in SAFE_CONTEXTS):
                                 continue
-                            exposures.append({
-                                "file": str(filepath.relative_to(SKILL_DIR)),
-                                "pattern": pattern[:30],
-                                "match_preview": match[:10] + "...",
-                                "context": context_line
-                            })
+                            exposures.append(
+                                {
+                                    "file": str(filepath.relative_to(SKILL_DIR)),
+                                    "pattern": pattern[:30],
+                                    "match_preview": match[:10] + "...",
+                                    "context": context_line,
+                                }
+                            )
             except Exception:
                 pass
     return exposures
@@ -117,10 +150,10 @@ def validate_env_references():
             continue
         for yaml_file in dir_path.glob("*.yaml"):
             try:
-                with open(yaml_file, 'r', encoding='utf-8') as f:
+                with open(yaml_file, "r", encoding="utf-8") as f:
                     content = f.read()
-                env_refs = re.findall(r'env_var:\s*(\w+)', content)
-                env_refs += re.findall(r'env:(\w+)', content)
+                env_refs = re.findall(r"env_var:\s*(\w+)", content)
+                env_refs += re.findall(r"env:(\w+)", content)
                 env_refs = list(set(env_refs))
                 for env_var in env_refs:
                     if os.environ.get(env_var):
@@ -139,7 +172,7 @@ def validate_arsenals():
     required_fields = ["connector", "type"]
     for yaml_file in sorted(ARSENALS_DIR.glob("*.yaml")):
         try:
-            with open(yaml_file, 'r', encoding='utf-8') as f:
+            with open(yaml_file, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
             if not data:
                 issues.append({"file": yaml_file.name, "issue": "Arsenal vacío"})
@@ -159,7 +192,7 @@ def validate_router_primaries():
     if not router_file.exists():
         return [{"issue": "decision_router.yaml no existe"}]
     try:
-        with open(router_file, 'r', encoding='utf-8') as f:
+        with open(router_file, "r", encoding="utf-8") as f:
             router = yaml.safe_load(f)
         routes = router.get("routes", {})
         routes_without_primary = []
@@ -181,7 +214,7 @@ def validate_capabilities():
     if not cap_file.exists():
         return [{"issue": "capability_registry.yaml no existe"}], 0
     try:
-        with open(cap_file, 'r', encoding='utf-8') as f:
+        with open(cap_file, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
         capabilities = data.get("capabilities", {})
         cap_count = len(capabilities)
@@ -208,12 +241,12 @@ def validate_pipelines():
     if not pipe_file.exists():
         return [{"issue": "pipeline_templates.yaml no existe"}], 0
     try:
-        with open(pipe_file, 'r', encoding='utf-8') as f:
+        with open(pipe_file, "r", encoding="utf-8") as f:
             pipe_data = yaml.safe_load(f)
         # Load capabilities for cross-reference
         known_caps = set()
         if cap_file.exists():
-            with open(cap_file, 'r', encoding='utf-8') as f:
+            with open(cap_file, "r", encoding="utf-8") as f:
                 cap_data = yaml.safe_load(f)
             known_caps = set(cap_data.get("capabilities", {}).keys())
 
@@ -232,11 +265,13 @@ def validate_pipelines():
                 if isinstance(step_config, dict) and "capability" in step_config:
                     cap = step_config["capability"]
                     if known_caps and cap not in known_caps:
-                        issues.append({
-                            "pipeline": pipe_name,
-                            "step": step_name,
-                            "issue": f"Capability '{cap}' no existe en capability_registry"
-                        })
+                        issues.append(
+                            {
+                                "pipeline": pipe_name,
+                                "step": step_name,
+                                "issue": f"Capability '{cap}' no existe en capability_registry",
+                            }
+                        )
         return issues, pipe_count
     except Exception as e:
         return [{"issue": f"Error: {str(e)[:100]}"}], 0
@@ -251,7 +286,7 @@ def validate_ttl_freshness():
             continue
         for yaml_file in dir_path.glob("*.yaml"):
             try:
-                with open(yaml_file, 'r', encoding='utf-8') as f:
+                with open(yaml_file, "r", encoding="utf-8") as f:
                     data = yaml.safe_load(f)
                 if not isinstance(data, dict):
                     continue
@@ -261,21 +296,25 @@ def validate_ttl_freshness():
                     verified_date = datetime.strptime(str(last_verified), "%Y-%m-%d")
                     age_days = (today - verified_date).days
                     if age_days > ttl_days:
-                        warnings.append({
-                            "file": yaml_file.name,
-                            "last_verified": str(last_verified),
-                            "ttl_days": ttl_days,
-                            "age_days": age_days,
-                            "status": "STALE"
-                        })
+                        warnings.append(
+                            {
+                                "file": yaml_file.name,
+                                "last_verified": str(last_verified),
+                                "ttl_days": ttl_days,
+                                "age_days": age_days,
+                                "status": "STALE",
+                            }
+                        )
                     elif age_days > ttl_days * 0.8:
-                        warnings.append({
-                            "file": yaml_file.name,
-                            "last_verified": str(last_verified),
-                            "ttl_days": ttl_days,
-                            "age_days": age_days,
-                            "status": "EXPIRING_SOON"
-                        })
+                        warnings.append(
+                            {
+                                "file": yaml_file.name,
+                                "last_verified": str(last_verified),
+                                "ttl_days": ttl_days,
+                                "age_days": age_days,
+                                "status": "EXPIRING_SOON",
+                            }
+                        )
             except Exception:
                 pass
     return warnings
@@ -328,7 +367,7 @@ def main():
     print(f"\n🏰 Arsenals: {len(arsenal_issues)} problemas")
     if arsenal_issues:
         for issue in arsenal_issues:
-            print(f"   ⚠️  {issue.get('file','')}: {issue['issue']}")
+            print(f"   ⚠️  {issue.get('file', '')}: {issue['issue']}")
     else:
         print("   ✅ Arsenals válidos")
 
@@ -337,7 +376,7 @@ def main():
     print(f"\n🔀 Router Primaries: {len(router_issues)} rutas sin primary")
     if router_issues:
         for issue in router_issues:
-            print(f"   ❌ {issue.get('route','')}: {issue['issue']}")
+            print(f"   ❌ {issue.get('route', '')}: {issue['issue']}")
     else:
         print("   ✅ Todas las rutas tienen primary")
 
@@ -346,7 +385,7 @@ def main():
     print(f"\n🧠 Capabilities: {cap_count} definidas, {len(cap_issues)} problemas")
     if cap_issues:
         for issue in cap_issues:
-            print(f"   ⚠️  {issue.get('capability','')}: {issue['issue']}")
+            print(f"   ⚠️  {issue.get('capability', '')}: {issue['issue']}")
     else:
         print("   ✅ Todas las capabilities válidas")
 
@@ -355,7 +394,7 @@ def main():
     print(f"\n🔗 Pipelines: {pipe_count} definidos, {len(pipe_issues)} problemas")
     if pipe_issues:
         for issue in pipe_issues:
-            print(f"   ⚠️  {issue.get('pipeline','')}/{issue.get('step','')}: {issue['issue']}")
+            print(f"   ⚠️  {issue.get('pipeline', '')}/{issue.get('step', '')}: {issue['issue']}")
     else:
         print("   ✅ Todos los pipelines válidos")
 
@@ -383,7 +422,7 @@ def main():
 
     # Count routes
     try:
-        with open(ROUTING_DIR / "decision_router.yaml", 'r') as f:
+        with open(ROUTING_DIR / "decision_router.yaml", "r") as f:
             route_count = len(yaml.safe_load(f).get("routes", {}))
     except:
         route_count = 0
@@ -419,7 +458,7 @@ def main():
             "total_critical": total_critical,
             "total_warnings": total_warnings,
         }
-        with open(args.output, 'w') as f:
+        with open(args.output, "w") as f:
             json.dump(report, f, indent=2, default=str)
         print(f"\nReporte guardado: {args.output}")
 

@@ -6,9 +6,7 @@ GPT-5.4 como Arquitecto: sintetiza evidencia, prioriza backlog,
 delega tareas a Sabios especializados, y define la North Star.
 """
 
-import asyncio
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -56,8 +54,7 @@ def build_context(target, objective, iteration, research, memory, current_score,
     return context
 
 
-async def run_orchestrator(target, objective, iteration, research, memory,
-                           score_weights, current_score, output_dir):
+async def run_orchestrator(target, objective, iteration, research, memory, score_weights, current_score, output_dir):
     """Execute Stage 3: Synthesis Core with GPT-5.4."""
     system = load_system_prompt()
     context = build_context(target, objective, iteration, research, memory, current_score, score_weights)
@@ -80,7 +77,8 @@ Responde con el JSON estructurado según tu system prompt."""
         result = json.loads(text)
     except json.JSONDecodeError:
         import re
-        match = re.search(r'\{[\s\S]*\}', text)
+
+        match = re.search(r"\{[\s\S]*\}", text)
         if match:
             try:
                 result = json.loads(match.group())
@@ -131,8 +129,8 @@ def _fallback_plan(target, objective, iteration, research):
         "unresolved_contradictions": research.get("all_contradictions", [])[:5],
         "backlog": [
             {
-                "id": f"TASK-{i+1}",
-                "title": opp[:100] if opp else f"Investigate opportunity {i+1}",
+                "id": f"TASK-{i + 1}",
+                "title": opp[:100] if opp else f"Investigate opportunity {i + 1}",
                 "assigned_to": ["claude", "gemini", "grok", "deepseek", "perplexity"][i % 5],
                 "priority": "P1",
                 "acceptance_criteria": ["Produce actionable specification"],

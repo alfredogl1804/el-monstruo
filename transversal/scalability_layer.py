@@ -22,30 +22,37 @@ Soberanía:
 Sprint 58 — "La Fortaleza Completa"
 Obj #9 — Capa 4: Escalabilidad
 """
-import structlog
+
 from dataclasses import dataclass, field
-from typing import Optional
 from enum import Enum
+from typing import Optional
+
+import structlog
 
 logger = structlog.get_logger("transversal.scalability_layer")
 
 
 # ─── Errores con identidad (Brand Check #2) ──────────────────────────────────
 
+
 class ScalabilityLayerError(Exception):
     """Error base de la Capa de Escalabilidad Transversal."""
+
     pass
 
 
 class SCALABILITY_LAYER_USUARIOS_INVALIDOS(ScalabilityLayerError):
     """El número de usuarios esperados es inválido (debe ser > 0)."""
+
     pass
 
 
 # ─── Enums con naming de identidad (Brand Check #1) ──────────────────────────
 
+
 class EstrategiaCaching(Enum):
     """Estrategia de caching recomendada según escala."""
+
     NINGUNA = "ninguna"
     EN_MEMORIA = "en_memoria"
     REDIS = "redis"
@@ -55,6 +62,7 @@ class EstrategiaCaching(Enum):
 
 class PatronEscalamiento(Enum):
     """Patrón de escalamiento horizontal/vertical."""
+
     VERTICAL = "vertical"
     HORIZONTAL = "horizontal"
     SERVERLESS = "serverless"
@@ -63,6 +71,7 @@ class PatronEscalamiento(Enum):
 
 class PatronBaseDatos(Enum):
     """Patrón de arquitectura de base de datos."""
+
     SIMPLE = "simple"
     REPLICAS_LECTURA = "replicas_lectura"
     SHARDING = "sharding"
@@ -70,6 +79,7 @@ class PatronBaseDatos(Enum):
 
 
 # ─── Dataclasses ─────────────────────────────────────────────────────────────
+
 
 @dataclass
 class PresupuestoPerformance:
@@ -85,6 +95,7 @@ class PresupuestoPerformance:
         bundle_kb: Tamaño máximo del bundle JS en KB.
         api_p95_ms: Latencia p95 de la API en ms.
     """
+
     ttfb_ms: int = 200
     fcp_ms: int = 1000
     lcp_ms: int = 2500
@@ -109,6 +120,7 @@ class ConfiguracionEscalabilidad:
         cdn_habilitado: Si se recomienda usar CDN.
         redis_url: URL de conexión a Redis (si aplica).
     """
+
     proyecto_id: str
     usuarios_esperados: int
     estrategia_caching: EstrategiaCaching
@@ -120,6 +132,7 @@ class ConfiguracionEscalabilidad:
 
 
 # ─── Clase principal ─────────────────────────────────────────────────────────
+
 
 class ScalabilityLayer:
     """
@@ -204,13 +217,11 @@ class ScalabilityLayer:
         # Ajustar performance budget según escala
         if usuarios_esperados >= 100_000:
             presupuesto = PresupuestoPerformance(
-                ttfb_ms=100, fcp_ms=800, lcp_ms=2000, cls=0.05,
-                fid_ms=50, bundle_kb=150, api_p95_ms=300
+                ttfb_ms=100, fcp_ms=800, lcp_ms=2000, cls=0.05, fid_ms=50, bundle_kb=150, api_p95_ms=300
             )
         elif usuarios_esperados >= 10_000:
             presupuesto = PresupuestoPerformance(
-                ttfb_ms=150, fcp_ms=900, lcp_ms=2200, cls=0.08,
-                fid_ms=75, bundle_kb=175, api_p95_ms=400
+                ttfb_ms=150, fcp_ms=900, lcp_ms=2200, cls=0.08, fid_ms=75, bundle_kb=175, api_p95_ms=400
             )
         else:
             presupuesto = PresupuestoPerformance()
@@ -348,12 +359,11 @@ def cache_invalidar(clave: str):
                 "proveedor": "Vercel Edge Network",
                 "soberania": "Alternativa: Cloudflare o AWS CloudFront",
                 "headers": [
-                    {"source": "/static/(.*)", "headers": [
-                        {"key": "Cache-Control", "value": "public, max-age=86400, immutable"}
-                    ]},
-                    {"source": "/api/(.*)", "headers": [
-                        {"key": "Cache-Control", "value": "no-store"}
-                    ]},
+                    {
+                        "source": "/static/(.*)",
+                        "headers": [{"key": "Cache-Control", "value": "public, max-age=86400, immutable"}],
+                    },
+                    {"source": "/api/(.*)", "headers": [{"key": "Cache-Control", "value": "no-store"}]},
                 ],
             },
         }

@@ -13,9 +13,9 @@ Falls back to rule-based analysis if no API key is available.
 import json
 import os
 import sys
-import requests
 from datetime import datetime
 
+import requests
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
@@ -24,7 +24,9 @@ OPENAI_API_BASE = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
 
 def analyze_with_gemini(reviews_text: str, product_name: str) -> dict:
     """Use Google Gemini to analyze reviews."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+    url = (
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+    )
 
     prompt = _build_prompt(reviews_text, product_name)
 
@@ -161,7 +163,7 @@ def main():
         photo = "📷 Con foto" if r.get("has_photo") else "Sin foto"
         country = r.get("buyer_country", r.get("country", "N/D"))
         date = r.get("date", "N/D")
-        reviews_text += f"\nReseña #{i}: ⭐{rating} | {country} | {date} | {photo}\n\"{text}\"\n"
+        reviews_text += f'\nReseña #{i}: ⭐{rating} | {country} | {date} | {photo}\n"{text}"\n'
 
     if not reviews_text.strip():
         print("No hay reseñas para analizar.")

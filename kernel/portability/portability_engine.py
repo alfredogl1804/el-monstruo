@@ -8,6 +8,7 @@ Soberanía real = portabilidad real. El usuario puede llevarse sus datos en cual
 Soberanía: Si Supabase no está disponible, exporta desde in-memory state.
 Alternativa: Exportar a CSV plano o SQLite local.
 """
+
 from __future__ import annotations
 
 import io
@@ -25,49 +26,58 @@ logger = structlog.get_logger("portabilidad")
 EXPORT_VERSION = "1.0.0"
 
 EXPORT_TABLES = [
-    "projects", "project_configs", "causal_events", "causal_factors",
-    "predictions", "error_lessons", "error_rules", "plugins",
-    "embrion_tasks", "job_executions", "conversation_messages",
-    "scheduled_tasks", "seeding_cycles", "a2a_agents",
+    "projects",
+    "project_configs",
+    "causal_events",
+    "causal_factors",
+    "predictions",
+    "error_lessons",
+    "error_rules",
+    "plugins",
+    "embrion_tasks",
+    "job_executions",
+    "conversation_messages",
+    "scheduled_tasks",
+    "seeding_cycles",
+    "a2a_agents",
 ]
 
 
 # --- Excepciones con identidad ---
 
+
 class ExportacionFallida(Exception):
     """Error durante la exportación de datos."""
+
     def __init__(self, razon: str):
-        super().__init__(
-            f"Exportación fallida: {razon}. "
-            f"Verifica la conectividad con Supabase o usa el modo offline."
-        )
+        super().__init__(f"Exportación fallida: {razon}. Verifica la conectividad con Supabase o usa el modo offline.")
         self.razon = razon
 
 
 class ImportacionFallida(Exception):
     """Error durante la importación de datos."""
+
     def __init__(self, razon: str):
         super().__init__(
-            f"Importación fallida: {razon}. "
-            f"Verifica que el archivo ZIP sea un export válido de El Monstruo."
+            f"Importación fallida: {razon}. Verifica que el archivo ZIP sea un export válido de El Monstruo."
         )
         self.razon = razon
 
 
 class ManifiestoInvalido(Exception):
     """El manifiesto del export no es válido."""
+
     def __init__(self):
-        super().__init__(
-            "Manifiesto del export inválido. "
-            "El archivo debe ser generado por El Monstruo v1.0+."
-        )
+        super().__init__("Manifiesto del export inválido. El archivo debe ser generado por El Monstruo v1.0+.")
 
 
 # --- Dataclasses ---
 
+
 @dataclass
 class ExportResult:
     """Resultado de una exportación."""
+
     exitoso: bool
     tablas_exportadas: int
     registros_totales: int
@@ -90,6 +100,7 @@ class ExportResult:
 @dataclass
 class ImportResult:
     """Resultado de una importación."""
+
     exitoso: bool
     modo: str
     importados: int = 0
@@ -111,6 +122,7 @@ class ImportResult:
 
 
 # --- Data Exporter ---
+
 
 class DataExporter:
     """
@@ -215,14 +227,12 @@ class DataExporter:
     def _get_schema_definitions(self) -> dict:
         return {
             "version": EXPORT_VERSION,
-            "tables": {
-                table: {"type": "array", "items": {"type": "object"}}
-                for table in EXPORT_TABLES
-            },
+            "tables": {table: {"type": "array", "items": {"type": "object"}} for table in EXPORT_TABLES},
         }
 
 
 # --- Data Importer ---
+
 
 class DataImporter:
     """
@@ -341,6 +351,7 @@ class DataImporter:
 
 
 # --- Portability Engine (facade) ---
+
 
 class PortabilityEngine:
     """

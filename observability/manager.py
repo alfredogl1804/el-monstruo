@@ -33,8 +33,8 @@ from typing import Any, Optional
 import structlog
 
 from observability.langfuse_bridge import LangfuseBridge
-from observability.otel_bridge import OTelBridge
 from observability.opik_bridge import OpikBridge
+from observability.otel_bridge import OTelBridge
 
 logger = structlog.get_logger("observability.manager")
 

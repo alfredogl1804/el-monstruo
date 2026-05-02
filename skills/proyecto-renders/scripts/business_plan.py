@@ -7,14 +7,14 @@ ganador del análisis HBU, los benchmarks y el site intelligence.
 Salida: business_plan.md (documento ejecutivo presentable)
 """
 
+import argparse
 import asyncio
-import json
 import os
 import sys
-import yaml
-import argparse
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import yaml
 
 sys.path.insert(0, "/home/ubuntu/skills/consulta-sabios/scripts")
 from conector_sabios import consultar_sabio
@@ -22,10 +22,10 @@ from conector_sabios import consultar_sabio
 
 async def generate_business_plan(brief: dict, site_report: str, benchmarks: str, hbu: str, scenarios: dict) -> str:
     """GPT-5.4 genera el plan de negocio ejecutivo completo."""
-    
+
     recommended = scenarios.get("escenario_recomendado", "No definido")
     scenarios_yaml = yaml.dump(scenarios.get("escenarios", []), default_flow_style=False, allow_unicode=True)
-    
+
     prompt = f"""Eres un consultor de negocios de clase mundial especializado en desarrollo inmobiliario y entretenimiento. 
 Genera un PLAN DE NEGOCIO EJECUTIVO completo y presentable para inversionistas.
 
@@ -33,7 +33,7 @@ Genera un PLAN DE NEGOCIO EJECUTIVO completo y presentable para inversionistas.
 
 ## Project Brief
 ```yaml
-{yaml.dump({k: v for k, v in brief.items() if not k.startswith('_')}, default_flow_style=False, allow_unicode=True)}
+{yaml.dump({k: v for k, v in brief.items() if not k.startswith("_")}, default_flow_style=False, allow_unicode=True)}
 ```
 
 ## Escenarios Evaluados
@@ -124,7 +124,7 @@ REGLAS:
 
 async def validate_financials(plan_text: str) -> str:
     """Gemini valida las proyecciones financieras del plan."""
-    
+
     prompt = f"""Eres un analista financiero senior. Revisa las proyecciones financieras de este plan de negocio 
 y señala inconsistencias, supuestos agresivos, o errores matemáticos.
 
@@ -142,56 +142,63 @@ Devuelve un breve informe de validación con:
     return resultado.get("text", "Validación no disponible") if resultado.get("status") == "ok" else "Error"
 
 
-async def run_business_plan(brief_path: str, site_report_path: str, benchmarks_path: str, 
-                            hbu_path: str, scenarios_path: str, output_dir: str) -> dict:
+async def run_business_plan(
+    brief_path: str, site_report_path: str, benchmarks_path: str, hbu_path: str, scenarios_path: str, output_dir: str
+) -> dict:
     """Ejecuta el pipeline completo de generación de plan de negocio."""
-    
+
     print("=" * 60)
     print("📋 MÓDULO 5: BUSINESS PLAN GENERATOR")
     print(f"   Fecha: {datetime.now().strftime('%d %B %Y, %H:%M')}")
     print("=" * 60)
-    
+
     # 1. Cargar inputs
     with open(brief_path, "r", encoding="utf-8") as f:
         brief = yaml.safe_load(f)
-    
-    site_report = Path(site_report_path).read_text(encoding="utf-8") if site_report_path and Path(site_report_path).exists() else ""
-    benchmarks = Path(benchmarks_path).read_text(encoding="utf-8") if benchmarks_path and Path(benchmarks_path).exists() else ""
+
+    site_report = (
+        Path(site_report_path).read_text(encoding="utf-8")
+        if site_report_path and Path(site_report_path).exists()
+        else ""
+    )
+    benchmarks = (
+        Path(benchmarks_path).read_text(encoding="utf-8") if benchmarks_path and Path(benchmarks_path).exists() else ""
+    )
     hbu = Path(hbu_path).read_text(encoding="utf-8") if hbu_path and Path(hbu_path).exists() else ""
-    
+
     scenarios = {}
     if scenarios_path and Path(scenarios_path).exists():
         with open(scenarios_path, "r", encoding="utf-8") as f:
             scenarios = yaml.safe_load(f) or {}
-    
+
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    
+
     # 2. Generar plan de negocio
     print(f"  ⭐ Escenario: {scenarios.get('escenario_recomendado', 'No definido')}")
     print("  🤖 GPT-5.4 generando plan de negocio ejecutivo...")
     plan_text = await generate_business_plan(brief, site_report, benchmarks, hbu, scenarios)
-    
+
     plan_path = os.path.join(output_dir, "business_plan.md")
     Path(plan_path).write_text(plan_text, encoding="utf-8")
     print(f"  📄 Plan: {len(plan_text):,} caracteres")
-    
+
     # 3. Validar financieros con Gemini
     print("  🔍 Gemini validando proyecciones financieras...")
     validation = await validate_financials(plan_text)
-    
+
     validation_path = os.path.join(output_dir, "financial_validation.md")
     Path(validation_path).write_text(f"# Validación Financiera\n\n{validation}", encoding="utf-8")
     print(f"  ✅ Validación: {len(validation):,} caracteres")
-    
-    print(f"\n✅ Business Plan completado")
+
+    print("\n✅ Business Plan completado")
     print(f"  📄 Plan: {plan_path}")
     print(f"  🔍 Validación: {validation_path}")
-    
+
     return {
         "plan_path": plan_path,
         "validation_path": validation_path,
         "plan_size": len(plan_text),
-        "scenario": scenarios.get("escenario_recomendado", "N/A")
+        "scenario": scenarios.get("escenario_recomendado", "N/A"),
     }
 
 
@@ -203,9 +210,8 @@ if __name__ == "__main__":
     parser.add_argument("--hbu", help="Ruta al hbu_analysis.md")
     parser.add_argument("--scenarios", help="Ruta al scenarios.yaml")
     parser.add_argument("--output-dir", required=True)
-    
+
     args = parser.parse_args()
-    result = asyncio.run(run_business_plan(
-        args.brief, args.site_report, args.benchmarks,
-        args.hbu, args.scenarios, args.output_dir
-    ))
+    result = asyncio.run(
+        run_business_plan(args.brief, args.site_report, args.benchmarks, args.hbu, args.scenarios, args.output_dir)
+    )

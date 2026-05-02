@@ -19,20 +19,22 @@ Soberanía:
 - Supabase → in-memory fallback si no hay SUPABASE_URL
 - Sabios LLM → evaluación heurística si no hay API key
 """
+
 from __future__ import annotations
 
-import json
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
+
 import structlog
 
 logger = structlog.get_logger("monstruo.guardian")
 
 
 # ── Excepciones con identidad ──────────────────────────────────────────────
+
 
 class GuardianObjetivoNoRegistrado(KeyError):
     """El objetivo solicitado no está registrado en el Guardián.
@@ -52,8 +54,10 @@ class GuardianEvaluacionFallida(RuntimeError):
 
 # ── Enums ──────────────────────────────────────────────────────────────────
 
+
 class AlertSeverity(str, Enum):
     """Severidad de alertas del Guardián."""
+
     INFO = "info"
     WARNING = "warning"
     CRITICAL = "critical"
@@ -62,13 +66,15 @@ class AlertSeverity(str, Enum):
 
 class ObjetivoStatus(str, Enum):
     """Estado de salud de un objetivo."""
-    HEALTHY = "healthy"       # Cumpliendo
-    AT_RISK = "at_risk"       # En riesgo
-    DEGRADED = "degraded"     # Degradado
-    FAILING = "failing"       # Fallando
+
+    HEALTHY = "healthy"  # Cumpliendo
+    AT_RISK = "at_risk"  # En riesgo
+    DEGRADED = "degraded"  # Degradado
+    FAILING = "failing"  # Fallando
 
 
 # ── Dataclasses ────────────────────────────────────────────────────────────
+
 
 @dataclass
 class ObjetivoHealth:
@@ -83,6 +89,7 @@ class ObjetivoHealth:
         trend: Tendencia ("improving", "stable", "degrading").
         last_evaluated: ISO 8601 UTC de la última evaluación.
     """
+
     objetivo_id: int
     nombre: str
     status: ObjetivoStatus
@@ -115,6 +122,7 @@ class GuardianAlert:
         recommendation: Acción recomendada para resolver.
         evidence: Evidencia que soporta la alerta.
     """
+
     id: str
     objetivo_id: int
     severity: AlertSeverity
@@ -139,6 +147,7 @@ class GuardianAlert:
 
 # ── El Guardián ────────────────────────────────────────────────────────────
 
+
 @dataclass
 class GuardianDeObjetivos:
     """El Guardián de los Objetivos — meta-vigilancia perpetua.
@@ -155,6 +164,7 @@ class GuardianDeObjetivos:
         Sin Supabase: alertas en memoria (se pierden al reiniciar).
         Sin Sabios: evaluación heurística basada en métricas.
     """
+
     _supabase: Optional[object] = field(default=None, repr=False)
     _sabios: Optional[object] = field(default=None, repr=False)
     _notifier: Optional[object] = field(default=None, repr=False)
@@ -199,8 +209,7 @@ class GuardianDeObjetivos:
 
     # ── Evaluación ─────────────────────────────────────────────────────────
 
-    async def evaluate_objetivo(self, objetivo_id: int,
-                                 metrics: dict) -> ObjetivoHealth:
+    async def evaluate_objetivo(self, objetivo_id: int, metrics: dict) -> ObjetivoHealth:
         """Evaluar el estado de salud de un objetivo.
 
         Args:
@@ -215,8 +224,7 @@ class GuardianDeObjetivos:
         """
         if objetivo_id not in self._objetivos:
             raise GuardianObjetivoNoRegistrado(
-                f"Objetivo #{objetivo_id} no registrado. "
-                "Verificar el ID con list_objetivos()."
+                f"Objetivo #{objetivo_id} no registrado. Verificar el ID con list_objetivos()."
             )
 
         self._evaluations_count += 1
@@ -258,14 +266,18 @@ class GuardianDeObjetivos:
         # Persistir en Supabase
         if self._supabase:
             try:
-                self._supabase.table("guardian_health").insert(
-                    health.to_dict()
-                ).execute()
+                self._supabase.table("guardian_health").insert(health.to_dict()).execute()
             except Exception as e:
                 logger.warning("guardian_health_persist_failed", error=str(e))
 
-        logger.info("objetivo_evaluado", id=objetivo_id, nombre=objetivo["nombre"],
-                    status=status.value, score=score, trend=trend)
+        logger.info(
+            "objetivo_evaluado",
+            id=objetivo_id,
+            nombre=objetivo["nombre"],
+            status=status.value,
+            score=score,
+            trend=trend,
+        )
         return health
 
     async def evaluate_all(self, metrics_by_objetivo: dict[int, dict]) -> dict[int, ObjetivoHealth]:
@@ -311,8 +323,9 @@ class GuardianDeObjetivos:
                 scores.append(30.0)  # Penalización por métrica ausente
             elif isinstance(value, (int, float)):
                 # Normalizar: valores > 0 son positivos
-                scores.append(min(100.0, max(0.0, float(value) * 10)) if value <= 10
-                               else min(100.0, 50.0 + float(value)))
+                scores.append(
+                    min(100.0, max(0.0, float(value) * 10)) if value <= 10 else min(100.0, 50.0 + float(value))
+                )
             elif isinstance(value, bool):
                 scores.append(100.0 if value else 0.0)
             else:
@@ -362,10 +375,7 @@ class GuardianDeObjetivos:
         }.get(health.status, AlertSeverity.INFO)
 
         # No duplicar alertas recientes del mismo objetivo
-        recent_alerts = [
-            a for a in self._active_alerts
-            if a.objetivo_id == health.objetivo_id and not a.resolved
-        ]
+        recent_alerts = [a for a in self._active_alerts if a.objetivo_id == health.objetivo_id and not a.resolved]
         if recent_alerts and recent_alerts[-1].severity == severity:
             return
 
@@ -399,15 +409,17 @@ class GuardianDeObjetivos:
         # Persistir en Supabase
         if self._supabase:
             try:
-                self._supabase.table("guardian_alerts").insert(
-                    alert.to_dict()
-                ).execute()
+                self._supabase.table("guardian_alerts").insert(alert.to_dict()).execute()
             except Exception as e:
                 logger.warning("guardian_alert_persist_failed", error=str(e))
 
-        logger.warning("guardian_alerta_emitida", id=alert.id,
-                       objetivo_id=health.objetivo_id, severity=severity.value,
-                       score=health.score)
+        logger.warning(
+            "guardian_alerta_emitida",
+            id=alert.id,
+            objetivo_id=health.objetivo_id,
+            severity=severity.value,
+            score=health.score,
+        )
 
     @staticmethod
     def _generate_recommendation(health: ObjetivoHealth) -> str:
@@ -437,7 +449,7 @@ class GuardianDeObjetivos:
         }
         return recommendations.get(
             health.objetivo_id,
-            f"Revisar métricas del Objetivo #{health.objetivo_id} y activar módulos correspondientes."
+            f"Revisar métricas del Objetivo #{health.objetivo_id} y activar módulos correspondientes.",
         )
 
     # ── Resolución de Alertas ──────────────────────────────────────────────
@@ -454,8 +466,7 @@ class GuardianDeObjetivos:
         for alert in self._active_alerts:
             if alert.id == alert_id:
                 alert.resolved = True
-                logger.info("guardian_alerta_resuelta", id=alert_id,
-                            objetivo_id=alert.objetivo_id)
+                logger.info("guardian_alerta_resuelta", id=alert_id, objetivo_id=alert.objetivo_id)
                 return True
         return False
 
@@ -493,7 +504,9 @@ class GuardianDeObjetivos:
             "alertas_activas": len(active_alerts),
             "alertas_emergencia": len([a for a in active_alerts if a.severity == AlertSeverity.EMERGENCY]),
             "objetivos_healthy": len([h for h in health_summary.values() if h.get("status") == "healthy"]),
-            "objetivos_en_riesgo": len([h for h in health_summary.values() if h.get("status") in ["at_risk", "degraded", "failing"]]),
+            "objetivos_en_riesgo": len(
+                [h for h in health_summary.values() if h.get("status") in ["at_risk", "degraded", "failing"]]
+            ),
             "health_summary": health_summary,
             "active_alerts": [a.to_dict() for a in active_alerts[-10:]],
         }
@@ -504,10 +517,7 @@ class GuardianDeObjetivos:
 
     def list_objetivos(self) -> list[dict]:
         """Listar todos los objetivos registrados."""
-        return [
-            {"id": obj["id"], "nombre": obj["nombre"]}
-            for obj in self._objetivos.values()
-        ]
+        return [{"id": obj["id"], "nombre": obj["nombre"]} for obj in self._objetivos.values()]
 
 
 # ── Singleton ──────────────────────────────────────────────────────────────
@@ -537,8 +547,5 @@ def init_guardian(supabase=None, sabios=None, notifier=None) -> GuardianDeObjeti
         _sabios=sabios,
         _notifier=notifier,
     )
-    logger.info("guardian_inicializado",
-                con_supabase=supabase is not None,
-                con_sabios=sabios is not None,
-                objetivos=14)
+    logger.info("guardian_inicializado", con_supabase=supabase is not None, con_sabios=sabios is not None, objetivos=14)
     return _guardian_instance

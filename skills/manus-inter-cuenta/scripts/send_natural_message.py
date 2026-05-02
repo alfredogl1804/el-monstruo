@@ -67,8 +67,16 @@ def wait_for_response(api_key: str, task_id: str, max_wait: int = 300) -> str | 
 def validate_message(message: str) -> list[str]:
     """Verificar que el mensaje cumple las reglas de lenguaje natural."""
     warnings = []
-    forbidden = ["[INTER-CUENTA]", "[SISTEMA]", "[BRIDGE]", "<instruction>",
-                 "Timestamp:", "sandbox", "API key", "inter-cuenta"]
+    forbidden = [
+        "[INTER-CUENTA]",
+        "[SISTEMA]",
+        "[BRIDGE]",
+        "<instruction>",
+        "Timestamp:",
+        "sandbox",
+        "API key",
+        "inter-cuenta",
+    ]
     for tag in forbidden:
         if tag.lower() in message.lower():
             warnings.append(f"Contiene texto prohibido: '{tag}'")

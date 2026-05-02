@@ -3,6 +3,7 @@
 Visual Analyzer — Analiza imágenes (fotos del usuario, satelitales, street view)
 usando Gemini Vision para extraer observaciones del entorno real.
 """
+
 import base64
 import json
 import os
@@ -41,7 +42,7 @@ async def analyze_visuals(site_info: dict, image_paths: list, evidence_dir: Path
     observations = []
     raw_analyses = []
 
-    analysis_prompt = f"""Analiza esta imagen del sitio "{site_info['name']}" y su entorno.
+    analysis_prompt = f"""Analiza esta imagen del sitio "{site_info["name"]}" y su entorno.
 Extrae la siguiente información de forma OBJETIVA y FACTUAL:
 
 1. EDIFICIOS/CONSTRUCCIONES visibles:
@@ -81,7 +82,7 @@ IMPORTANTE:
             mime = _get_mime_type(img_path)
 
             response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model="gemini-2.5-flash",
                 contents=[
                     types.Content(
                         parts=[
@@ -93,10 +94,12 @@ IMPORTANTE:
             )
 
             text = response.text if response.text else ""
-            raw_analyses.append({
-                "image": os.path.basename(img_path),
-                "analysis": text,
-            })
+            raw_analyses.append(
+                {
+                    "image": os.path.basename(img_path),
+                    "analysis": text,
+                }
+            )
 
             # Create observation from analysis
             obs = {
@@ -112,10 +115,10 @@ IMPORTANTE:
             }
             observations.append(obs)
 
-            print(f"      Visual analysis {i+1}/{min(len(image_paths), 20)}: {len(text)} chars")
+            print(f"      Visual analysis {i + 1}/{min(len(image_paths), 20)}: {len(text)} chars")
 
         except Exception as e:
-            print(f"      Visual analysis {i+1} error: {str(e)[:80]}")
+            print(f"      Visual analysis {i + 1} error: {str(e)[:80]}")
             raw_analyses.append({"image": os.path.basename(img_path), "error": str(e)})
 
     # Save raw analyses

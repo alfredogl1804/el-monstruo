@@ -116,7 +116,7 @@ class TestFeedbackRequestModel:
             action="reject",
         )
         assert req.action == "reject"
-        assert req.user_id == "alfredo"  # default
+        assert req.user_id == "anonymous"  # default
         assert req.comment is None
 
     def test_feedback_actions(self):

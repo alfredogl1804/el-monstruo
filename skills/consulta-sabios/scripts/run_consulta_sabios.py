@@ -33,28 +33,29 @@ Creado: 2026-04-08 (P0 auditoría sabios)
 
 import argparse
 import asyncio
-import json
 import os
-import sys
 import shutil
+import sys
 from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from conector_sabios import (
-    SABIOS, consultar_sabio, consultar_todos, ping_todos, resumen_resultados
-)
+from conector_sabios import SABIOS, consultar_todos, ping_todos, resumen_resultados
+from quality_gate import evaluate_all, quality_summary
 from telemetry import (
-    generate_run_id, create_run_dir, RunTelemetry,
-    write_run_artifact, copy_input_artifact, estimate_tokens
+    RunTelemetry,
+    copy_input_artifact,
+    create_run_dir,
+    estimate_tokens,
+    generate_run_id,
+    write_run_artifact,
 )
-from quality_gate import evaluate_all, quality_summary, filter_quality
-
 
 # ═══════════════════════════════════════════════════════════════════
 # PASO 1: PRE-VUELO
 # ═══════════════════════════════════════════════════════════════════
+
 
 async def paso_1_prevuelo(tel: RunTelemetry) -> bool:
     """Valida que las 6 APIs estén operativas."""
@@ -85,9 +86,8 @@ async def paso_1_prevuelo(tel: RunTelemetry) -> bool:
 # PASO 2: INVESTIGACIÓN PRE-CONSULTA
 # ═══════════════════════════════════════════════════════════════════
 
-async def paso_2_investigacion(
-    prompt_path: str, output_dir: Path, profundidad: str, tel: RunTelemetry
-) -> str:
+
+async def paso_2_investigacion(prompt_path: str, output_dir: Path, profundidad: str, tel: RunTelemetry) -> str:
     """Ejecuta la investigación en tiempo real."""
     tel.start_step("investigacion_pre")
     print("\n" + "=" * 60)
@@ -96,7 +96,7 @@ async def paso_2_investigacion(
 
     dossier_path = output_dir / "dossier_realidad.md"
 
-    from investigar_contexto import analizar_prompt, investigar_tema_perplexity, compilar_dossier
+    from investigar_contexto import analizar_prompt, compilar_dossier, investigar_tema_perplexity
 
     with open(prompt_path, "r", encoding="utf-8") as f:
         prompt = f.read()
@@ -113,8 +113,7 @@ async def paso_2_investigacion(
         )
         with open(dossier_path, "w", encoding="utf-8") as f:
             f.write(dossier)
-        tel.end_step("investigacion_pre", success=True, output_chars=len(dossier),
-                     extra={"temas_investigados": 0})
+        tel.end_step("investigacion_pre", success=True, output_chars=len(dossier), extra={"temas_investigados": 0})
         return str(dossier_path)
 
     tareas = [investigar_tema_perplexity(t) for t in temas]
@@ -126,8 +125,12 @@ async def paso_2_investigacion(
         f.write(dossier)
 
     print(f"✅ Dossier generado: {len(dossier):,} chars ({exitosos}/{len(temas)} temas)")
-    tel.end_step("investigacion_pre", success=True, output_chars=len(dossier),
-                 extra={"temas_investigados": len(temas), "temas_exitosos": exitosos})
+    tel.end_step(
+        "investigacion_pre",
+        success=True,
+        output_chars=len(dossier),
+        extra={"temas_investigados": len(temas), "temas_exitosos": exitosos},
+    )
     return str(dossier_path)
 
 
@@ -135,9 +138,8 @@ async def paso_2_investigacion(
 # PASO 3: PREPARAR CONTEXTO
 # ═══════════════════════════════════════════════════════════════════
 
-async def paso_3_preparar_contexto(
-    prompt_path: str, dossier_path: str, output_dir: Path, tel: RunTelemetry
-) -> tuple:
+
+async def paso_3_preparar_contexto(prompt_path: str, dossier_path: str, output_dir: Path, tel: RunTelemetry) -> tuple:
     """Combina prompt + dossier y condensa si es necesario."""
     tel.start_step("preparar_contexto")
     print("\n" + "=" * 60)
@@ -176,10 +178,13 @@ async def paso_3_preparar_contexto(
             f.write(condensado)
         print(f"✅ Condensado: {len(condensado):,} chars (~{estimate_tokens(condensado):,} tokens)")
 
-    tel.end_step("preparar_contexto", success=True,
-                 input_chars=len(prompt_completo),
-                 output_chars=len(prompt_completo),
-                 extra={"tokens_est": tokens_est, "condensado": condensado_path is not None})
+    tel.end_step(
+        "preparar_contexto",
+        success=True,
+        input_chars=len(prompt_completo),
+        output_chars=len(prompt_completo),
+        extra={"tokens_est": tokens_est, "condensado": condensado_path is not None},
+    )
 
     return str(completo_path), str(condensado_path) if condensado_path else None
 
@@ -188,9 +193,9 @@ async def paso_3_preparar_contexto(
 # PASO 4: CONSULTAR SABIOS
 # ═══════════════════════════════════════════════════════════════════
 
+
 async def paso_4_consultar(
-    completo_path: str, condensado_path: str, output_dir: Path,
-    sabios_list: list, system: str, tel: RunTelemetry
+    completo_path: str, condensado_path: str, output_dir: Path, sabios_list: list, system: str, tel: RunTelemetry
 ) -> list:
     """Consulta a los sabios en paralelo."""
     tel.start_step("consultar_sabios")
@@ -237,8 +242,9 @@ async def paso_4_consultar(
     with open(combinado_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
-    tel.end_step("consultar_sabios", success=exitosos >= 3,
-                 extra={"sabios_exitosos": exitosos, "sabios_total": len(resultados)})
+    tel.end_step(
+        "consultar_sabios", success=exitosos >= 3, extra={"sabios_exitosos": exitosos, "sabios_total": len(resultados)}
+    )
 
     return resultados
 
@@ -247,9 +253,9 @@ async def paso_4_consultar(
 # PASO 5: QUALITY GATE + VALIDACIÓN POST-CONSULTA
 # ═══════════════════════════════════════════════════════════════════
 
+
 async def paso_5_validacion(
-    resultados: list, prompt_path: str, output_dir: Path,
-    profundidad: str, skip_validacion: bool, tel: RunTelemetry
+    resultados: list, prompt_path: str, output_dir: Path, profundidad: str, skip_validacion: bool, tel: RunTelemetry
 ) -> str:
     """Evalúa calidad y valida contra realidad actual."""
     tel.start_step("validacion_post")
@@ -277,14 +283,16 @@ async def paso_5_validacion(
 
     if skip_validacion:
         print("\n⏭️ Validación post-consulta omitida (--skip-validacion)")
-        informe = (
-            "# Informe de Validación\n\n"
-            "Validación post-consulta omitida por instrucción del usuario.\n"
-        )
+        informe = "# Informe de Validación\n\nValidación post-consulta omitida por instrucción del usuario.\n"
         with open(informe_path, "w", encoding="utf-8") as f:
             f.write(informe)
     else:
-        from validar_respuestas import extraer_afirmaciones, verificar_afirmacion, investigar_tema_faltante, compilar_informe
+        from validar_respuestas import (
+            compilar_informe,
+            extraer_afirmaciones,
+            investigar_tema_faltante,
+            verificar_afirmacion,
+        )
 
         combinado_path = output_dir / "respuestas_combinadas.md"
         with open(combinado_path, "r", encoding="utf-8") as f:
@@ -299,15 +307,12 @@ async def paso_5_validacion(
             tareas_v = [verificar_afirmacion(af) for af in afirmaciones]
             tareas_t = [investigar_tema_faltante(t) for t in temas_faltantes]
             todos = await asyncio.gather(*(tareas_v + tareas_t))
-            verificaciones = todos[:len(afirmaciones)]
-            temas_nuevos = todos[len(afirmaciones):]
+            verificaciones = todos[: len(afirmaciones)]
+            temas_nuevos = todos[len(afirmaciones) :]
 
             informe = compilar_informe(verificaciones, temas_nuevos)
         else:
-            informe = (
-                "# Informe de Validación\n\n"
-                "No se identificaron afirmaciones verificables.\n"
-            )
+            informe = "# Informe de Validación\n\nNo se identificaron afirmaciones verificables.\n"
 
         with open(informe_path, "w", encoding="utf-8") as f:
             f.write(informe)
@@ -321,9 +326,8 @@ async def paso_5_validacion(
 # PASO 6: SÍNTESIS FINAL
 # ═══════════════════════════════════════════════════════════════════
 
-async def paso_6_sintesis(
-    output_dir: Path, prompt_path: str, informe_path: str, tel: RunTelemetry
-) -> str:
+
+async def paso_6_sintesis(output_dir: Path, prompt_path: str, informe_path: str, tel: RunTelemetry) -> str:
     """GPT-5.4 sintetiza con informe de validación inyectado."""
     tel.start_step("sintesis")
     print("\n" + "=" * 60)
@@ -342,12 +346,17 @@ async def paso_6_sintesis(
         informe_validacion=informe_path,
     )
 
-    tel.end_step("sintesis", success=meta["exito"],
-                 input_chars=meta.get("chars_entrada", 0),
-                 output_chars=meta.get("chars_salida", 0),
-                 extra={"modelo_usado": meta.get("modelo_usado"),
-                        "fallback_usado": meta.get("fallback_usado", False),
-                        "informe_inyectado": meta.get("informe_validacion_inyectado", False)})
+    tel.end_step(
+        "sintesis",
+        success=meta["exito"],
+        input_chars=meta.get("chars_entrada", 0),
+        output_chars=meta.get("chars_salida", 0),
+        extra={
+            "modelo_usado": meta.get("modelo_usado"),
+            "fallback_usado": meta.get("fallback_usado", False),
+            "informe_inyectado": meta.get("informe_validacion_inyectado", False),
+        },
+    )
 
     return sintesis_path
 
@@ -355,6 +364,7 @@ async def paso_6_sintesis(
 # ═══════════════════════════════════════════════════════════════════
 # MAIN — ORQUESTADOR END-TO-END
 # ═══════════════════════════════════════════════════════════════════
+
 
 async def main():
     parser = argparse.ArgumentParser(
@@ -373,13 +383,20 @@ Ejemplo:
     parser.add_argument("--profundidad-pre", choices=["rapida", "normal", "profunda"], default="normal")
     parser.add_argument("--profundidad-post", choices=["rapida", "normal", "profunda"], default="normal")
     parser.add_argument("--sabios", default=None, help="Lista de sabios separada por comas")
-    parser.add_argument("--system", default="Eres un experto analista y estratega de primer nivel mundial.",
-                        help="System prompt para los sabios")
+    parser.add_argument(
+        "--system",
+        default="Eres un experto analista y estratega de primer nivel mundial.",
+        help="System prompt para los sabios",
+    )
     parser.add_argument("--skip-investigacion", action="store_true", help="Omitir investigación pre-consulta")
     parser.add_argument("--skip-validacion", action="store_true", help="Omitir validación post-consulta")
     parser.add_argument("--skip-paso7", action="store_true", help="Omitir validación post-síntesis (Paso 7)")
-    parser.add_argument("--profundidad-paso7", choices=["rapida", "normal", "profunda"], default="normal",
-                        help="Profundidad de validación post-síntesis")
+    parser.add_argument(
+        "--profundidad-paso7",
+        choices=["rapida", "normal", "profunda"],
+        default="normal",
+        help="Profundidad de validación post-síntesis",
+    )
     parser.add_argument("--no-corregir", action="store_true", help="No generar síntesis corregida aunque haya errores")
 
     args = parser.parse_args()
@@ -433,20 +450,13 @@ Ejemplo:
             tel.end_step("investigacion_pre", success=True, extra={"skipped": True})
             dossier_path = None
         else:
-            dossier_path = await paso_2_investigacion(
-                args.prompt, output_dir, args.profundidad_pre, tel
-            )
+            dossier_path = await paso_2_investigacion(args.prompt, output_dir, args.profundidad_pre, tel)
 
         # PASO 3: Preparar contexto
-        completo_path, condensado_path = await paso_3_preparar_contexto(
-            args.prompt, dossier_path, output_dir, tel
-        )
+        completo_path, condensado_path = await paso_3_preparar_contexto(args.prompt, dossier_path, output_dir, tel)
 
         # PASO 4: Consultar sabios
-        resultados = await paso_4_consultar(
-            completo_path, condensado_path, output_dir,
-            sabios_list, args.system, tel
-        )
+        resultados = await paso_4_consultar(completo_path, condensado_path, output_dir, sabios_list, args.system, tel)
 
         exitosos = sum(1 for r in resultados if r.get("exito"))
         if exitosos < 3:
@@ -457,14 +467,11 @@ Ejemplo:
 
         # PASO 5: Quality Gate + Validación
         informe_path = await paso_5_validacion(
-            resultados, args.prompt, output_dir,
-            args.profundidad_post, args.skip_validacion, tel
+            resultados, args.prompt, output_dir, args.profundidad_post, args.skip_validacion, tel
         )
 
         # PASO 6: Síntesis final
-        sintesis_path = await paso_6_sintesis(
-            output_dir, args.prompt, informe_path, tel
-        )
+        sintesis_path = await paso_6_sintesis(output_dir, args.prompt, informe_path, tel)
 
         # PASO 7: Validación Post-Síntesis
         if args.skip_paso7:
@@ -485,28 +492,36 @@ Ejemplo:
                 informe_validacion_path=informe_path,
                 output_path=validacion_sintesis_path,
                 corregir=not args.no_corregir,
-                profundidad=getattr(args, 'profundidad_paso7', 'normal'),
+                profundidad=getattr(args, "profundidad_paso7", "normal"),
             )
 
-            tel.end_step("validacion_post_sintesis", success=True,
-                         extra={
-                             "score_global": paso7_result["score_global"],
-                             "score_factual": paso7_result["score_factual"],
-                             "score_incorporacion": paso7_result["score_incorporacion"],
-                             "necesita_correccion": paso7_result["necesita_correccion"],
-                             "correccion_aplicada": paso7_result["correccion_aplicada"],
-                             "afirmaciones_verificadas": paso7_result["afirmaciones_verificadas"],
-                             "afirmaciones_con_problemas": paso7_result["afirmaciones_con_problemas"],
-                         })
+            tel.end_step(
+                "validacion_post_sintesis",
+                success=True,
+                extra={
+                    "score_global": paso7_result["score_global"],
+                    "score_factual": paso7_result["score_factual"],
+                    "score_incorporacion": paso7_result["score_incorporacion"],
+                    "necesita_correccion": paso7_result["necesita_correccion"],
+                    "correccion_aplicada": paso7_result["correccion_aplicada"],
+                    "afirmaciones_verificadas": paso7_result["afirmaciones_verificadas"],
+                    "afirmaciones_con_problemas": paso7_result["afirmaciones_con_problemas"],
+                },
+            )
 
             if paso7_result["correccion_aplicada"]:
                 print(f"\n✅ Síntesis corregida generada: {paso7_result['sintesis_corregida_path']}")
 
         # Copiar artefactos principales al run dir
-        for f_name in ["sintesis_final.md", "respuestas_combinadas.md",
-                       "informe_validacion.md", "quality_gate.md",
-                       "validacion_sintesis.md", "sintesis_corregida.md",
-                       "paso7_metadata.json"]:
+        for f_name in [
+            "sintesis_final.md",
+            "respuestas_combinadas.md",
+            "informe_validacion.md",
+            "quality_gate.md",
+            "validacion_sintesis.md",
+            "sintesis_corregida.md",
+            "paso7_metadata.json",
+        ]:
             src = output_dir / f_name
             if src.exists():
                 shutil.copy2(src, run_dir / "output" / f_name)
@@ -519,7 +534,7 @@ Ejemplo:
     run_record = tel.finalize(status=status)
 
     print("\n" + "█" * 60)
-    print(f"  CONSULTA COMPLETADA")
+    print("  CONSULTA COMPLETADA")
     print(f"  Run: {run_id}")
     print(f"  Status: {status}")
     print(f"  Duración: {run_record['duration_ms_total'] / 1000:.1f}s")

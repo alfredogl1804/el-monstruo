@@ -1,12 +1,21 @@
-import os, json, time
-import aiohttp, asyncio
+import asyncio
+import os
+
+import aiohttp
+
 
 async def search_perplexity(query):
     url = "https://api.perplexity.ai/chat/completions"
     headers = {"Authorization": f"Bearer {os.environ.get('SONAR_API_KEY')}", "Content-Type": "application/json"}
     payload = {
         "model": "sonar-pro",
-        "messages": [{"role": "system", "content": "Busca noticias recientes y menciones en redes sociales sobre el siguiente tema. Responde con un resumen detallado y fuentes."}, {"role": "user", "content": query}]
+        "messages": [
+            {
+                "role": "system",
+                "content": "Busca noticias recientes y menciones en redes sociales sobre el siguiente tema. Responde con un resumen detallado y fuentes.",
+            },
+            {"role": "user", "content": query},
+        ],
     }
     async with aiohttp.ClientSession() as session:
         try:
@@ -16,12 +25,13 @@ async def search_perplexity(query):
         except Exception as e:
             return f"Error en Perplexity: {str(e)}"
 
+
 def collect_mentions(target_name):
     # En un caso real, esto haría scraping intensivo.
     # Aquí simularemos usando Perplexity Sonar para buscar menciones recientes.
     query = f"Noticias de hoy, polémicas, crisis, acusaciones sobre {target_name} en Yucatán. Incluye menciones en Facebook, Twitter, medios locales."
     print(f"  -> Buscando en Perplexity: {query}")
-    
+
     try:
         loop = asyncio.get_event_loop()
         if loop.is_running():
@@ -30,9 +40,9 @@ def collect_mentions(target_name):
             pass
     except RuntimeError:
         pass
-        
+
     result = asyncio.run(search_perplexity(query))
-    
+
     # Simular una estructura de menciones extraída del resultado de Perplexity
     mentions = [
         {
@@ -40,7 +50,7 @@ def collect_mentions(target_name):
             "source_type": "news",
             "headline": "Acusaciones de vínculos con narcotráfico",
             "body": result,
-            "engagement": {"likes": 100, "shares": 50}
+            "engagement": {"likes": 100, "shares": 50},
         }
     ]
     return mentions

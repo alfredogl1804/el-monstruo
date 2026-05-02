@@ -15,14 +15,15 @@ la ejecuta el agente usando la herramienta generate.
 Salida: style_bible.md + render_prompts.yaml (8 prompts listos para generar)
 """
 
+import argparse
 import asyncio
 import json
 import os
 import sys
-import yaml
-import argparse
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import yaml
 
 sys.path.insert(0, "/home/ubuntu/skills/consulta-sabios/scripts")
 from conector_sabios import consultar_sabio
@@ -30,26 +31,28 @@ from conector_sabios import consultar_sabio
 
 async def generate_style_bible(brief: dict, scenarios: dict, benchmarks: str, site_data: dict) -> str:
     """GPT-5.4 genera la Style Bible del proyecto."""
-    
+
     recommended = scenarios.get("escenario_recomendado", "Proyecto")
     escenarios = scenarios.get("escenarios", [])
-    escenario_ganador = next((e for e in escenarios if e.get("nombre") == recommended), escenarios[0] if escenarios else {})
-    
+    escenario_ganador = next(
+        (e for e in escenarios if e.get("nombre") == recommended), escenarios[0] if escenarios else {}
+    )
+
     clima = site_data.get("climate", {})
     ciudad = brief.get("ubicacion", {}).get("ciudad", "")
     estado = brief.get("ubicacion", {}).get("estado", "")
-    
+
     prompt = f"""Eres un director creativo de una firma de arquitectura y visualización de clase mundial.
 Genera una STYLE BIBLE completa para los renders de este proyecto.
 
 ## Proyecto: {recommended}
 - Ubicación: {ciudad}, {estado}
-- Clima: Temp {clima.get('temp_min_promedio', '?')}°C - {clima.get('temp_max_promedio', '?')}°C
-- Concepto: {escenario_ganador.get('concepto', 'N/A')}
+- Clima: Temp {clima.get("temp_min_promedio", "?")}°C - {clima.get("temp_max_promedio", "?")}°C
+- Concepto: {escenario_ganador.get("concepto", "N/A")}
 
 ## Componentes del Proyecto
 ```yaml
-{yaml.dump(escenario_ganador.get('componentes', []), default_flow_style=False, allow_unicode=True)}
+{yaml.dump(escenario_ganador.get("componentes", []), default_flow_style=False, allow_unicode=True)}
 ```
 
 ## Benchmarks de Referencia (extracto)
@@ -108,19 +111,21 @@ Genera la STYLE BIBLE en Markdown con:
 
 async def generate_render_prompts(brief: dict, scenarios: dict, style_bible: str) -> list:
     """GPT-5.4 genera los 8 prompts optimizados para generación de renders."""
-    
+
     recommended = scenarios.get("escenario_recomendado", "Proyecto")
     escenarios = scenarios.get("escenarios", [])
-    escenario_ganador = next((e for e in escenarios if e.get("nombre") == recommended), escenarios[0] if escenarios else {})
-    
+    escenario_ganador = next(
+        (e for e in escenarios if e.get("nombre") == recommended), escenarios[0] if escenarios else {}
+    )
+
     ciudad = brief.get("ubicacion", {}).get("ciudad", "")
-    
+
     prompt = f"""Eres un experto en generación de imágenes con IA. Genera 8 prompts fotorrealistas 
 para crear renders arquitectónicos de este proyecto.
 
 ## Proyecto: {recommended}
 - Ciudad: {ciudad}
-- Componentes: {[c.get('nombre') for c in escenario_ganador.get('componentes', [])]}
+- Componentes: {[c.get("nombre") for c in escenario_ganador.get("componentes", [])]}
 
 ## Style Bible (extracto)
 {style_bible[:3000]}
@@ -168,7 +173,7 @@ REGLAS PARA LOS PROMPTS:
 - NO incluir: logos, texto, marcas de agua, wireframes"""
 
     resultado = await consultar_sabio("gpt54", prompt)
-    
+
     if resultado.get("status") == "ok":
         text = resultado["text"]
         try:
@@ -178,59 +183,62 @@ REGLAS PARA LOS PROMPTS:
                 return json.loads(text[start:end])
         except json.JSONDecodeError:
             pass
-    
+
     return []
 
 
-async def run_render_pipeline(brief_path: str, scenarios_path: str, benchmarks_path: str,
-                               site_data_path: str, output_dir: str) -> dict:
+async def run_render_pipeline(
+    brief_path: str, scenarios_path: str, benchmarks_path: str, site_data_path: str, output_dir: str
+) -> dict:
     """Ejecuta el pipeline de preparación de renders."""
-    
+
     print("=" * 60)
     print("🎨 MÓDULO 6: RENDER PIPELINE")
     print(f"   Fecha: {datetime.now().strftime('%d %B %Y, %H:%M')}")
     print("=" * 60)
-    
+
     # 1. Cargar inputs
     with open(brief_path, "r", encoding="utf-8") as f:
         brief = yaml.safe_load(f)
-    
+
     scenarios = {}
     if scenarios_path and Path(scenarios_path).exists():
         with open(scenarios_path, "r", encoding="utf-8") as f:
             scenarios = yaml.safe_load(f) or {}
-    
-    benchmarks = Path(benchmarks_path).read_text(encoding="utf-8") if benchmarks_path and Path(benchmarks_path).exists() else ""
-    
+
+    benchmarks = (
+        Path(benchmarks_path).read_text(encoding="utf-8") if benchmarks_path and Path(benchmarks_path).exists() else ""
+    )
+
     site_data = {}
     if site_data_path and Path(site_data_path).exists():
         with open(site_data_path, "r", encoding="utf-8") as f:
             site_data = yaml.safe_load(f) or {}
-    
+
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     renders_dir = os.path.join(output_dir, "renders")
     Path(renders_dir).mkdir(parents=True, exist_ok=True)
-    
+
     # 2. Generar Style Bible
     print("  🎨 GPT-5.4 generando Style Bible...")
     style_bible = await generate_style_bible(brief, scenarios, benchmarks, site_data)
-    
+
     style_path = os.path.join(output_dir, "style_bible.md")
     Path(style_path).write_text(style_bible, encoding="utf-8")
     print(f"  📄 Style Bible: {len(style_bible):,} caracteres")
-    
+
     # 3. Generar prompts de renders
     print("  🤖 GPT-5.4 generando 8 prompts de renders...")
     render_prompts = await generate_render_prompts(brief, scenarios, style_bible)
-    
+
     prompts_path = os.path.join(output_dir, "render_prompts.yaml")
     with open(prompts_path, "w", encoding="utf-8") as f:
         yaml.dump(render_prompts, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
-    
+
     print(f"  📋 {len(render_prompts)} prompts generados")
     for rp in render_prompts:
         print(f"     {rp.get('id', '?')}. {rp.get('nombre', 'N/A')} [{rp.get('importancia', '?')}]")
-    
+
     # 4. Guardar instrucciones para el agente
     instructions = f"""# Instrucciones de Generación de Renders
 
@@ -253,23 +261,23 @@ con el nombre: `render_{{id:02d}}_{{nombre_corto}}.png`
 - Verificar que hay personas y actividad
 - Verificar consistencia de paleta de colores entre renders
 """
-    
+
     instructions_path = os.path.join(output_dir, "render_instructions.md")
     Path(instructions_path).write_text(instructions, encoding="utf-8")
-    
-    print(f"\n✅ Render Pipeline preparado")
+
+    print("\n✅ Render Pipeline preparado")
     print(f"  📄 Style Bible: {style_path}")
     print(f"  📋 Prompts: {prompts_path}")
     print(f"  📁 Renders dir: {renders_dir}")
     print(f"  📝 Instrucciones: {instructions_path}")
-    
+
     return {
         "style_bible_path": style_path,
         "prompts_path": prompts_path,
         "renders_dir": renders_dir,
         "instructions_path": instructions_path,
         "num_prompts": len(render_prompts),
-        "prompts": render_prompts
+        "prompts": render_prompts,
     }
 
 
@@ -280,8 +288,8 @@ if __name__ == "__main__":
     parser.add_argument("--benchmarks", help="Ruta al benchmarks.md")
     parser.add_argument("--site-data", help="Ruta al site_data.yaml")
     parser.add_argument("--output-dir", required=True)
-    
+
     args = parser.parse_args()
-    result = asyncio.run(run_render_pipeline(
-        args.brief, args.scenarios, args.benchmarks, args.site_data, args.output_dir
-    ))
+    result = asyncio.run(
+        run_render_pipeline(args.brief, args.scenarios, args.benchmarks, args.site_data, args.output_dir)
+    )

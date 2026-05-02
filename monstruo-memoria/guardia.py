@@ -21,12 +21,11 @@ INTEGRACIÓN:
   Ejecutar DESPUÉS de compactación para recuperar reglas.
 """
 
-import os
-import sys
-import re
-import json
 import glob
-import requests
+import json
+import os
+import re
+import sys
 from datetime import datetime
 
 # ═══════════════════════════════════════════════════════════════════
@@ -41,15 +40,31 @@ REGLAS = {
         "gemini": "gemini-3.1-pro",
         "grok": "grok-4.3-beta",
         "deepseek": "deepseek-v4-pro",
-        "perplexity": "sonar-reasoning-pro"
+        "perplexity": "sonar-reasoning-pro",
     },
     "modelos_prohibidos": [
-        "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4",
-        "claude-3.5-sonnet", "claude-3-opus", "claude-sonnet-4",
-        "gemini-2.5-flash", "gemini-2.5-pro", "gemini-pro",
-        "grok-3", "grok-2",
-        "deepseek-v3", "deepseek-r1",
-        "sonar-pro", "sonar", "gpt-5.4", "gpt-5.4-pro", "claude-sonnet-4.6", "claude-opus-4.6", "grok-4.20", "deepseek-r1-0528"
+        "gpt-4o",
+        "gpt-4o-mini",
+        "gpt-4-turbo",
+        "gpt-4",
+        "claude-3.5-sonnet",
+        "claude-3-opus",
+        "claude-sonnet-4",
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
+        "gemini-pro",
+        "grok-3",
+        "grok-2",
+        "deepseek-v3",
+        "deepseek-r1",
+        "sonar-pro",
+        "sonar",
+        "gpt-5.4",
+        "gpt-5.4-pro",
+        "claude-sonnet-4.6",
+        "claude-opus-4.6",
+        "grok-4.20",
+        "deepseek-r1-0528",
     ],
     "archivos_protegidos": [
         # Kernel — NO tocar sin validar primero
@@ -70,7 +85,7 @@ REGLAS = {
         "lightrag_llm": "Gemini 2.5 Flash (migrado de gpt-4o-mini en Sprint 31)",
         "persistencia_grafo": "PostgreSQL (NetworkX serializado, NO archivo local)",
         "orquestador": "Este hilo es el principal. Kernel Thread archivado.",
-        "framework_web": "React 19 + Tailwind 4 + tRPC 11 (sitio web del Monstruo)"
+        "framework_web": "React 19 + Tailwind 4 + tRPC 11 (sitio web del Monstruo)",
     },
     "patrones_prohibidos": [
         # Patrones que indican que el hilo está usando info obsoleta
@@ -81,27 +96,22 @@ REGLAS = {
         r"from temporal",
         r"import temporal",
         r"TemporalClient",
-    ]
+    ],
 }
 
 # ═══════════════════════════════════════════════════════════════════
 # KERNEL CONNECTION
 # ═══════════════════════════════════════════════════════════════════
 
-KERNEL_URL = os.environ.get(
-    "MONSTRUO_KERNEL_URL",
-    "https://el-monstruo-kernel-production.up.railway.app"
-)
-KERNEL_KEY = os.environ.get(
-    "MONSTRUO_API_KEY",
-    "c3f0cbaa-7c5d-4f84-9dfd-0727e4f86259"
-)
+KERNEL_URL = os.environ.get("MONSTRUO_KERNEL_URL", "https://el-monstruo-kernel-production.up.railway.app")
+KERNEL_KEY = os.environ.get("MONSTRUO_API_KEY", "c3f0cbaa-7c5d-4f84-9dfd-0727e4f86259")
 
 
 def query_kernel(query, top_k=2):
     """Consulta rápida al kernel via wrapper. No bloquea si falla."""
     try:
         from kernel_client import knowledge_query
+
         data = knowledge_query(query=query)
         return data.get("results", "")
     except Exception:
@@ -112,6 +122,7 @@ def query_kernel(query, top_k=2):
 # ═══════════════════════════════════════════════════════════════════
 # VALIDADORES
 # ═══════════════════════════════════════════════════════════════════
+
 
 def validar_modelos_en_archivo(filepath):
     """Escanea un archivo buscando modelos prohibidos."""
@@ -124,23 +135,27 @@ def validar_modelos_en_archivo(filepath):
 
     for modelo in REGLAS["modelos_prohibidos"]:
         if modelo in content:
-            violaciones.append({
-                "tipo": "MODELO_PROHIBIDO",
-                "archivo": filepath,
-                "modelo_encontrado": modelo,
-                "correccion": f"Reemplazar con el modelo correcto. Ver REGLAS.modelos_correctos"
-            })
+            violaciones.append(
+                {
+                    "tipo": "MODELO_PROHIBIDO",
+                    "archivo": filepath,
+                    "modelo_encontrado": modelo,
+                    "correccion": "Reemplazar con el modelo correcto. Ver REGLAS.modelos_correctos",
+                }
+            )
 
     for pattern in REGLAS["patrones_prohibidos"]:
         matches = re.findall(pattern, content)
         if matches:
-            violaciones.append({
-                "tipo": "PATRON_PROHIBIDO",
-                "archivo": filepath,
-                "patron": pattern,
-                "matches": matches[:3],
-                "correccion": "Este patrón indica uso de tecnología obsoleta/descartada"
-            })
+            violaciones.append(
+                {
+                    "tipo": "PATRON_PROHIBIDO",
+                    "archivo": filepath,
+                    "patron": pattern,
+                    "matches": matches[:3],
+                    "correccion": "Este patrón indica uso de tecnología obsoleta/descartada",
+                }
+            )
 
     return violaciones
 
@@ -169,31 +184,37 @@ def validar_archivo_antes_de_escribir(filepath, contenido):
     # Verificar si es archivo protegido
     for protegido in REGLAS["archivos_protegidos"]:
         if protegido in filepath:
-            violaciones.append({
-                "tipo": "ARCHIVO_PROTEGIDO",
-                "archivo": filepath,
-                "correccion": f"Este archivo está protegido. Verificar con el kernel antes de modificar."
-            })
+            violaciones.append(
+                {
+                    "tipo": "ARCHIVO_PROTEGIDO",
+                    "archivo": filepath,
+                    "correccion": "Este archivo está protegido. Verificar con el kernel antes de modificar.",
+                }
+            )
 
     # Verificar modelos prohibidos en el contenido nuevo
     for modelo in REGLAS["modelos_prohibidos"]:
         if modelo in contenido:
-            violaciones.append({
-                "tipo": "MODELO_PROHIBIDO_EN_NUEVO_CODIGO",
-                "archivo": filepath,
-                "modelo_encontrado": modelo,
-                "correccion": f"NO usar {modelo}. Modelos correctos: {json.dumps(REGLAS['modelos_correctos'])}"
-            })
+            violaciones.append(
+                {
+                    "tipo": "MODELO_PROHIBIDO_EN_NUEVO_CODIGO",
+                    "archivo": filepath,
+                    "modelo_encontrado": modelo,
+                    "correccion": f"NO usar {modelo}. Modelos correctos: {json.dumps(REGLAS['modelos_correctos'])}",
+                }
+            )
 
     # Verificar patrones prohibidos
     for pattern in REGLAS["patrones_prohibidos"]:
         if re.search(pattern, contenido):
-            violaciones.append({
-                "tipo": "PATRON_PROHIBIDO_EN_NUEVO_CODIGO",
-                "archivo": filepath,
-                "patron": pattern,
-                "correccion": "Patrón indica tecnología obsoleta/descartada"
-            })
+            violaciones.append(
+                {
+                    "tipo": "PATRON_PROHIBIDO_EN_NUEVO_CODIGO",
+                    "archivo": filepath,
+                    "patron": pattern,
+                    "correccion": "Patrón indica tecnología obsoleta/descartada",
+                }
+            )
 
     return violaciones
 
@@ -201,6 +222,7 @@ def validar_archivo_antes_de_escribir(filepath, contenido):
 # ═══════════════════════════════════════════════════════════════════
 # INYECTOR DE REGLAS
 # ═══════════════════════════════════════════════════════════════════
+
 
 def inyectar_reglas():
     """Genera un archivo REGLAS_DURAS.md en el sandbox para referencia rápida."""
@@ -212,43 +234,33 @@ def inyectar_reglas():
         f"**Generado por guardia.py:** {datetime.utcnow().isoformat()}Z",
         "",
         "## Modelos Correctos (ÚNICOS permitidos)",
-        ""
+        "",
     ]
 
     for sabio, modelo in REGLAS["modelos_correctos"].items():
         lines.append(f"- **{sabio.upper()}:** `{modelo}`")
 
-    lines.extend([
-        "",
-        "## Modelos PROHIBIDOS (si los ves, CORRIGE inmediatamente)",
-        ""
-    ])
+    lines.extend(["", "## Modelos PROHIBIDOS (si los ves, CORRIGE inmediatamente)", ""])
     for m in REGLAS["modelos_prohibidos"]:
         lines.append(f"- ~~{m}~~")
 
-    lines.extend([
-        "",
-        "## Decisiones Arquitectónicas YA TOMADAS (no rediscutir)",
-        ""
-    ])
+    lines.extend(["", "## Decisiones Arquitectónicas YA TOMADAS (no rediscutir)", ""])
     for k, v in REGLAS["decisiones_tomadas"].items():
         lines.append(f"- **{k}:** {v}")
 
-    lines.extend([
-        "",
-        "## Archivos Protegidos (no modificar sin validar)",
-        ""
-    ])
+    lines.extend(["", "## Archivos Protegidos (no modificar sin validar)", ""])
     for f in REGLAS["archivos_protegidos"]:
         lines.append(f"- `{f}`")
 
-    lines.extend([
-        "",
-        "---",
-        "**Este archivo fue generado por código. No editarlo manualmente.**",
-        "**Para actualizar reglas: editar guardia.py y hacer push a GitHub.**",
-        ""
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "**Este archivo fue generado por código. No editarlo manualmente.**",
+            "**Para actualizar reglas: editar guardia.py y hacer push a GitHub.**",
+            "",
+        ]
+    )
 
     with open(output, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
@@ -259,6 +271,7 @@ def inyectar_reglas():
 # ═══════════════════════════════════════════════════════════════════
 # MAIN
 # ═══════════════════════════════════════════════════════════════════
+
 
 def main():
     cmd = sys.argv[1] if len(sys.argv) > 1 else "full"
@@ -347,8 +360,8 @@ def main():
     for k, v in REGLAS["modelos_correctos"].items():
         print(f"    {k.upper()}: {v}")
     print("═══════════════════════════════════════════════════════")
-    print(f"  Leer reglas completas: cat ~/REGLAS_DURAS.md")
-    print(f"  Validar archivo: python3 guardia.py scan <archivo>")
+    print("  Leer reglas completas: cat ~/REGLAS_DURAS.md")
+    print("  Validar archivo: python3 guardia.py scan <archivo>")
     print("═══════════════════════════════════════════════════════")
 
 

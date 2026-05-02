@@ -24,7 +24,6 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 from typing import Any, Optional
-from uuid import uuid4
 
 import structlog
 
@@ -110,12 +109,7 @@ class BackgroundStore:
             try:
                 result = await asyncio.get_event_loop().run_in_executor(
                     None,
-                    lambda: self._db._client
-                    .table(TABLE)
-                    .select("*")
-                    .eq("id", job_id)
-                    .limit(1)
-                    .execute(),
+                    lambda: self._db._client.table(TABLE).select("*").eq("id", job_id).limit(1).execute(),
                 )
                 if result.data:
                     return result.data[0]
@@ -128,14 +122,10 @@ class BackgroundStore:
         """List recent jobs, optionally filtered by user_id."""
         if self._use_db():
             try:
-                query = self._db._client.table(TABLE).select("*").order(
-                    "created_at", desc=True
-                ).limit(limit)
+                query = self._db._client.table(TABLE).select("*").order("created_at", desc=True).limit(limit)
                 if user_id:
                     query = query.eq("user_id", user_id)
-                result = await asyncio.get_event_loop().run_in_executor(
-                    None, lambda: query.execute()
-                )
+                result = await asyncio.get_event_loop().run_in_executor(None, lambda: query.execute())
                 return result.data or []
             except Exception as e:
                 logger.warning("bg_job_list_db_failed", error=str(e))
@@ -174,20 +164,26 @@ class BackgroundStore:
     async def set_failed(self, job_id: str, error: str) -> None:
         """Mark job as failed with error message."""
         now = datetime.now(timezone.utc).isoformat()
-        await self._patch(job_id, {
-            "status": "failed",
-            "completed_at": now,
-            "error": error,
-        })
+        await self._patch(
+            job_id,
+            {
+                "status": "failed",
+                "completed_at": now,
+                "error": error,
+            },
+        )
 
     async def set_cancelled(self, job_id: str) -> None:
         """Mark job as cancelled."""
         now = datetime.now(timezone.utc).isoformat()
-        await self._patch(job_id, {
-            "status": "cancelled",
-            "cancelled_at": now,
-            "completed_at": now,
-        })
+        await self._patch(
+            job_id,
+            {
+                "status": "cancelled",
+                "cancelled_at": now,
+                "completed_at": now,
+            },
+        )
 
     async def request_cancel(self, job_id: str) -> bool:
         """
@@ -232,11 +228,13 @@ class BackgroundStore:
                 job["progress"] = pct
                 if not isinstance(job.get("progress_log"), list):
                     job["progress_log"] = []
-                job["progress_log"].append({
-                    "ts": datetime.now(timezone.utc).isoformat(),
-                    "pct": pct,
-                    "msg": msg,
-                })
+                job["progress_log"].append(
+                    {
+                        "ts": datetime.now(timezone.utc).isoformat(),
+                        "pct": pct,
+                        "msg": msg,
+                    }
+                )
 
     # ── Internal ─────────────────────────────────────────────────────
 
@@ -246,11 +244,7 @@ class BackgroundStore:
             try:
                 await asyncio.get_event_loop().run_in_executor(
                     None,
-                    lambda: self._db._client
-                    .table(TABLE)
-                    .update(fields)
-                    .eq("id", job_id)
-                    .execute(),
+                    lambda: self._db._client.table(TABLE).update(fields).eq("id", job_id).execute(),
                 )
                 return
             except Exception as e:
