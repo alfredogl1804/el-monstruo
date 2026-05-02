@@ -65,23 +65,25 @@ MIN_TOOL_CALLS_FOR_SUCCESS = int(os.environ.get("MIN_TOOL_CALLS_FOR_SUCCESS", "1
 
 class Verdict(str, Enum):
     """Post-execution verification verdict."""
-    SUCCESS = "success"    # Step genuinely completed with evidence
+
+    SUCCESS = "success"  # Step genuinely completed with evidence
     CONTINUE = "continue"  # Step partially done, needs more work
-    PIVOT = "pivot"        # Step approach is wrong, needs replanning
+    PIVOT = "pivot"  # Step approach is wrong, needs replanning
 
 
 class EvidenceType(str, Enum):
     """Types of concrete evidence that prove execution happened."""
-    TOOL_OUTPUT = "tool_output"          # Tool returned a result
-    FILE_CREATED = "file_created"        # A file was created/modified
-    API_RESPONSE = "api_response"        # An API call returned data
-    CODE_EXECUTED = "code_executed"      # Code ran and produced output
-    SEARCH_RESULTS = "search_results"    # Web search returned results
+
+    TOOL_OUTPUT = "tool_output"  # Tool returned a result
+    FILE_CREATED = "file_created"  # A file was created/modified
+    API_RESPONSE = "api_response"  # An API call returned data
+    CODE_EXECUTED = "code_executed"  # Code ran and produced output
+    SEARCH_RESULTS = "search_results"  # Web search returned results
     KNOWLEDGE_STORED = "knowledge_stored"  # Knowledge was ingested
-    MESSAGE_SENT = "message_sent"        # A message was delivered
+    MESSAGE_SENT = "message_sent"  # A message was delivered
     MANUS_DELEGATED = "manus_delegated"  # Task delegated to Manus
-    TEST_PASSED = "test_passed"          # A test/validation passed
-    NONE = "none"                        # No evidence found
+    TEST_PASSED = "test_passed"  # A test/validation passed
+    NONE = "none"  # No evidence found
 
 
 class VerificationResult:
@@ -211,9 +213,7 @@ class ExecutionVerifier:
             step_tool_calls=step_tool_calls,
         )
 
-        has_concrete_evidence = any(
-            e["type"] != EvidenceType.NONE.value for e in evidence
-        )
+        has_concrete_evidence = any(e["type"] != EvidenceType.NONE.value for e in evidence)
 
         # ── Check 3: Semantic — Does the response match the objective? ──
         # Only use LLM verification for ambiguous cases (tools called but
@@ -236,11 +236,13 @@ class ExecutionVerifier:
                 evidence=evidence,
             )
             cost_usd += llm_cost
-            evidence.append({
-                "type": "llm_verification",
-                "reasoning": llm_reasoning,
-                "model": VERIFIER_MODEL,
-            })
+            evidence.append(
+                {
+                    "type": "llm_verification",
+                    "reasoning": llm_reasoning,
+                    "model": VERIFIER_MODEL,
+                }
+            )
 
         # ── Check for PIVOT signals ──────────────────────────────────
         # If the response contains explicit failure signals, override to PIVOT
@@ -257,11 +259,13 @@ class ExecutionVerifier:
         for signal in pivot_signals:
             if signal.lower() in response_lower:
                 semantic_verdict = Verdict.PIVOT
-                evidence.append({
-                    "type": "pivot_signal",
-                    "signal": signal,
-                    "context": final_response[:200],
-                })
+                evidence.append(
+                    {
+                        "type": "pivot_signal",
+                        "signal": signal,
+                        "context": final_response[:200],
+                    }
+                )
                 break
 
         # ── Build reasoning ──────────────────────────────────────────
@@ -340,26 +344,32 @@ class ExecutionVerifier:
         for tool_name, args_hash in tool_call_history:
             evidence_type = tool_evidence_map.get(tool_name, EvidenceType.TOOL_OUTPUT)
             tools_used.add(tool_name)
-            evidence.append({
-                "type": evidence_type.value,
-                "tool": tool_name,
-                "args_hash": args_hash,
-            })
+            evidence.append(
+                {
+                    "type": evidence_type.value,
+                    "tool": tool_name,
+                    "args_hash": args_hash,
+                }
+            )
 
         # If no tools were called, add NONE evidence
         if not evidence:
-            evidence.append({
-                "type": EvidenceType.NONE.value,
-                "reason": "No tools were called during step execution",
-            })
+            evidence.append(
+                {
+                    "type": EvidenceType.NONE.value,
+                    "reason": "No tools were called during step execution",
+                }
+            )
 
         # Add summary evidence
-        evidence.append({
-            "type": "summary",
-            "total_tool_calls": step_tool_calls,
-            "unique_tools": list(tools_used),
-            "response_length": len(final_response),
-        })
+        evidence.append(
+            {
+                "type": "summary",
+                "total_tool_calls": step_tool_calls,
+                "unique_tools": list(tools_used),
+                "response_length": len(final_response),
+            }
+        )
 
         return evidence
 
@@ -381,7 +391,12 @@ class ExecutionVerifier:
         """
         import asyncio
 
-        prompt = f"""Eres un verificador de ejecución autónoma. Tu trabajo es determinar si un paso de un plan realmente se ejecutó o solo se simuló con texto.
+        prompt = (
+            "Eres un verificador de ejecución autónoma. "
+            "Tu trabajo es determinar si un paso de un plan "
+            "realmente se ejecutó o solo se simuló con texto."
+        )
+        prompt += f"""
 
 PASO A VERIFICAR:
 Descripción: {step_description}
@@ -404,9 +419,7 @@ Responde SOLO con un JSON:
         try:
             import openai
 
-            client = openai.AsyncOpenAI(
-                api_key=os.environ.get("OPENAI_API_KEY", "")
-            )
+            client = openai.AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY", ""))
 
             resp = await asyncio.wait_for(
                 client.chat.completions.create(

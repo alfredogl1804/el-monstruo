@@ -7,23 +7,22 @@ persistence, and integration with TaskPlanner.
 The core ACI bug: plans completing with tool_calls = 0.
 These tests ensure the verifier catches this and blocks false DONE.
 """
+
 from __future__ import annotations
 
-import asyncio
-import json
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from uuid import uuid4
 
 from kernel.execution_verifier import (
+    EvidenceType,
     ExecutionVerifier,
     Verdict,
-    EvidenceType,
     VerificationResult,
 )
 
-
 # ── Fixtures ─────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def mock_db():
@@ -48,6 +47,7 @@ def verifier_no_db():
 
 
 # ── Tests: Verdict Logic ─────────────────────────────────────────────
+
 
 class TestVerdictLogic:
     """Tests para la lógica de veredictos del verificador."""
@@ -132,6 +132,7 @@ class TestVerdictLogic:
 
 # ── Tests: Evidence Extraction ───────────────────────────────────────
 
+
 class TestEvidenceExtraction:
     """Tests para la extracción de evidencia concreta."""
 
@@ -196,6 +197,7 @@ class TestEvidenceExtraction:
 
 
 # ── Tests: Persistence ───────────────────────────────────────────────
+
 
 class TestVerificationPersistence:
     """Tests para la persistencia en Supabase."""
@@ -264,6 +266,7 @@ class TestVerificationPersistence:
 
 # ── Tests: VerificationResult Serialization ──────────────────────────
 
+
 class TestVerificationResultSerialization:
     """Tests para la serialización de VerificationResult."""
 
@@ -282,9 +285,16 @@ class TestVerificationResultSerialization:
 
         d = result.to_dict()
         required = [
-            "verification_id", "task_id", "step_id", "step_index",
-            "verdict", "evidence", "reasoning", "tool_calls_count",
-            "cost_usd", "verified_at",
+            "verification_id",
+            "task_id",
+            "step_id",
+            "step_index",
+            "verdict",
+            "evidence",
+            "reasoning",
+            "tool_calls_count",
+            "cost_usd",
+            "verified_at",
         ]
         for field in required:
             assert field in d, f"Campo '{field}' faltante en to_dict()"
@@ -308,6 +318,7 @@ class TestVerificationResultSerialization:
 
 # ── Tests: Stats ─────────────────────────────────────────────────────
 
+
 class TestVerifierStats:
     """Tests para las estadísticas del verificador."""
 
@@ -316,19 +327,25 @@ class TestVerifierStats:
         """Las estadísticas deben rastrear los veredictos correctamente."""
         # SUCCESS
         await verifier.verify_step(
-            plan_id="p1", step_id="s1", step_index=0,
+            plan_id="p1",
+            step_id="s1",
+            step_index=0,
             step_description="Paso 1",
             tool_call_history=[("web_search", "a")],
-            step_tool_calls=1, final_response="OK",
+            step_tool_calls=1,
+            final_response="OK",
             plan_total_tool_calls=1,
         )
 
         # CONTINUE (no tools)
         await verifier.verify_step(
-            plan_id="p2", step_id="s2", step_index=0,
+            plan_id="p2",
+            step_id="s2",
+            step_index=0,
             step_description="Paso 2",
             tool_call_history=[],
-            step_tool_calls=0, final_response="Hecho",
+            step_tool_calls=0,
+            final_response="Hecho",
             plan_total_tool_calls=0,
         )
 
@@ -340,6 +357,7 @@ class TestVerifierStats:
 
 
 # ── Tests: Verdict Enum ──────────────────────────────────────────────
+
 
 class TestVerdictEnum:
     """Tests para el enum Verdict."""
@@ -360,12 +378,14 @@ class TestVerdictEnum:
 
 # ── Tests: Integration with TaskPlanner ──────────────────────────────
 
+
 class TestPlannerIntegration:
     """Tests para la integración del verificador con el TaskPlanner."""
 
     def test_planner_initializes_verifier(self):
         """TaskPlanner debe inicializar el ExecutionVerifier."""
         from kernel.task_planner import TaskPlanner
+
         kernel = MagicMock()
         db = MagicMock()
         db.insert = AsyncMock()
@@ -379,6 +399,7 @@ class TestPlannerIntegration:
     def test_planner_without_db_still_has_verifier(self):
         """TaskPlanner sin DB aún debe tener verificador."""
         from kernel.task_planner import TaskPlanner
+
         kernel = MagicMock()
 
         planner = TaskPlanner(kernel=kernel, db=None)
@@ -386,7 +407,8 @@ class TestPlannerIntegration:
 
     def test_execution_verifier_importable(self):
         """ExecutionVerifier debe ser importable."""
-        from kernel.execution_verifier import ExecutionVerifier, Verdict, EvidenceType
+        from kernel.execution_verifier import EvidenceType, ExecutionVerifier, Verdict
+
         assert ExecutionVerifier is not None
         assert Verdict is not None
         assert EvidenceType is not None
