@@ -23,6 +23,13 @@ El output del script ES tu contexto. Contiene:
 Si dice HALT → pregunta al usuario.
 Si no puedes ejecutar código → di "Necesito ejecutar guardian.py para recuperar contexto".
 
+## Capas adicionales de contexto (leer si existen):
+
+1. Si existe `~/EMERGENCIAS_DIGEST.md`, léelo — contiene alertas críticas.
+2. Si existe `~/IDENTIDAD_HILO.md`, léelo — es tu identidad de hilo.
+
+Estos archivos son capas de respaldo. Guardian V4 (Supabase) es la fuente primaria.
+
 Esto no es opcional. Es CÓDIGO que se ejecuta, no texto que se lee.
 
 ---
