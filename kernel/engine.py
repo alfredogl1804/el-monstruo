@@ -866,6 +866,62 @@ class LangGraphKernel(KernelInterface):
             first_token_emitted = False
             stream_failed = False
 
+            # ── External Agent Dispatch Intercept ──────────────────────────
+            # If dispatch_agent is set, route to external agent INSTEAD of LLM
+            dispatch_agent = enriched_context.get("dispatch_agent")
+            if dispatch_agent:
+                try:
+                    from kernel.external_agents import ExternalAgentDispatcher
+                    dispatcher = ExternalAgentDispatcher()
+                    history_context = "\n".join(
+                        f"{m.get('role', 'user')}: {m.get('content', '')}"
+                        for m in conversation_context[-10:]
+                    ) if conversation_context else ""
+                    logger.info("stream_dispatch_external", agent=dispatch_agent, run_id=str(run_id))
+                    yield _json.dumps({"type": "step", "id": "generate", "status": "in_progress", "label": f"Consultando {dispatch_agent}...", "icon": "sparkles"})
+                    result = await dispatcher.dispatch(
+                        agent_id=dispatch_agent,
+                        message=message,
+                        context=history_context,
+                        thread_id=current_state.get("context", {}).get("thread_id", ""),
+                    )
+                    if result.get("success"):
+                        accumulated_response = result["content"]
+                        yield _json.dumps({"type": "chunk", "text": accumulated_response})
+                        yield _json.dumps({"type": "step", "id": "generate", "status": "completed", "label": f"{dispatch_agent} respondió", "icon": "sparkles"})
+                        latency_ms = int((time.monotonic() - start_time) * 1000)
+                        yield _json.dumps({
+                            "type": "done",
+                            "latency_ms": latency_ms,
+                            "model_used": f"{dispatch_agent}:{result.get('model_used', 'unknown')}",
+                            "tokens_in": result.get("tokens_used", 0),
+                            "tokens_out": 0,
+                            "intent": intent,
+                            "streaming": True,
+                        })
+                        # Write memory
+                        try:
+                            await self._compiled_streaming.aupdate_state(
+                                config,
+                                {
+                                    "response": accumulated_response,
+                                    "model_used": f"{dispatch_agent}:{result.get('model_used', 'unknown')}",
+                                    "status": RunStatus.DONE.value,
+                                },
+                                as_node="execute",
+                            )
+                            async for event in self._compiled_streaming.astream(None, config, stream_mode="updates"):
+                                pass
+                        except Exception as mem_err:
+                            logger.warning("stream_dispatch_memory_write_failed", error=str(mem_err))
+                        return
+                    else:
+                        logger.warning("stream_dispatch_failed", agent=dispatch_agent, error=result.get("error"))
+                        # Fall through to normal LLM
+                except Exception as dispatch_err:
+                    logger.error("stream_dispatch_error", agent=dispatch_agent, error=str(dispatch_err))
+                    # Fall through to normal LLM
+
             try:
                 if self._router and hasattr(self._router, "execute_stream"):
                     async for chunk in self._router.execute_stream(
