@@ -69,10 +69,10 @@ ALIAS_TO_CATALOG: dict[str, str] = {
 
 # Fallback chain per catalog model name
 FALLBACK_CHAIN: dict[str, list[str]] = {
-    "gpt-5.5": ["claude-opus-4-7", "claude-sonnet-4-6", "gemini-3.1-pro"],
-    "claude-opus-4-7": ["claude-opus-4-6", "gpt-5.5", "claude-sonnet-4-6"],
-    "claude-opus-4-6": ["claude-opus-4-7", "gpt-5.5", "claude-sonnet-4-6"],
-    "claude-sonnet-4-6": ["gpt-5.5", "claude-opus-4-7", "gemini-3.1-flash-lite"],
+    "gpt-5.5": ["claude-opus-4-7", "claude-sonnet-4-6", "gemini-3.1-pro", "grok-4.1-fast"],
+    "claude-opus-4-7": ["claude-opus-4-6", "gpt-5.5", "gemini-3.1-pro", "grok-4.1-fast"],
+    "claude-opus-4-6": ["claude-opus-4-7", "gpt-5.5", "gemini-3.1-pro", "grok-4.1-fast"],
+    "claude-sonnet-4-6": ["gpt-5.5", "claude-opus-4-7", "gemini-3.1-pro", "grok-4.1-fast"],
     "gemini-3.1-flash-lite": ["gpt-4.1-mini", "kimi-k2.5", "gpt-5.4"],
     "gemini-3.1-pro": ["gpt-5.5", "claude-opus-4-7", "gemini-3.1-flash-lite"],
     "grok-4.20": ["gpt-5.5", "deepseek-r1-0528", "claude-opus-4-7"],
