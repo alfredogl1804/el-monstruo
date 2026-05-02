@@ -205,6 +205,14 @@ class TaskPlanner:
         self._kernel = kernel
         self._db = db  # Optional Supabase client for persistence
         self._active_plans: dict[str, TaskPlan] = {}
+        # SP5: ACI Repair — Execution Verifier
+        self._verifier: Optional[Any] = None
+        try:
+            from kernel.execution_verifier import ExecutionVerifier
+            self._verifier = ExecutionVerifier(db=db)
+            logger.info("task_planner_verifier_initialized")
+        except Exception as _v_err:
+            logger.warning("task_planner_verifier_init_failed", error=str(_v_err))
 
     async def plan(
         self,
@@ -1047,12 +1055,72 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                 cost = total_tokens * 0.000009  # rough average
 
                 step.result = final_response
-                step.status = StepStatus.DONE
-                step.finished_at = time.time()
                 step.tokens_used = total_tokens
                 step.cost_usd = cost
                 plan.total_tokens += total_tokens
                 plan.total_cost_usd += cost
+
+                # ── SP5: ACI Repair — Verify execution BEFORE marking DONE ──
+                if self._verifier:
+                    try:
+                        from kernel.execution_verifier import Verdict
+                        verification = await self._verifier.verify_step(
+                            plan_id=plan.plan_id,
+                            step_id=step.step_id,
+                            step_index=step.index,
+                            step_description=step.description,
+                            tool_call_history=_tool_call_history,
+                            step_tool_calls=_step_tool_calls,
+                            final_response=final_response,
+                            plan_total_tool_calls=plan.total_tool_calls,
+                        )
+                        if verification.verdict == Verdict.SUCCESS:
+                            step.status = StepStatus.DONE
+                            logger.info(
+                                "task_planner_step_verified_success",
+                                plan_id=plan.plan_id,
+                                step=step.index,
+                                tool_calls=_step_tool_calls,
+                            )
+                        elif verification.verdict == Verdict.CONTINUE:
+                            # Step didn't really execute — DON'T mark as DONE
+                            logger.warning(
+                                "task_planner_step_verified_continue",
+                                plan_id=plan.plan_id,
+                                step=step.index,
+                                tool_calls=_step_tool_calls,
+                                reasoning=verification.reasoning,
+                            )
+                            step.error = f"[ACI_VERIFY] {verification.reasoning}"
+                            step.status = StepStatus.FAILED
+                            step.finished_at = time.time()
+                            return False
+                        elif verification.verdict == Verdict.PIVOT:
+                            logger.warning(
+                                "task_planner_step_verified_pivot",
+                                plan_id=plan.plan_id,
+                                step=step.index,
+                                reasoning=verification.reasoning,
+                            )
+                            step.error = f"[ACI_PIVOT] {verification.reasoning}"
+                            step.status = StepStatus.FAILED
+                            step.finished_at = time.time()
+                            return False
+                    except Exception as _verify_err:
+                        # Verification failed — log but don't block execution
+                        logger.warning(
+                            "task_planner_verification_error",
+                            plan_id=plan.plan_id,
+                            step=step.index,
+                            error=str(_verify_err),
+                        )
+                        step.status = StepStatus.DONE
+                else:
+                    # No verifier available — legacy behavior
+                    step.status = StepStatus.DONE
+                # ── /SP5 ────────────────────────────────────────────────
+
+                step.finished_at = time.time()
 
                 logger.info(
                     "task_planner_step_done",
@@ -1061,6 +1129,7 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                     tokens=total_tokens,
                     cost=cost,
                     react_loops=loop_i + 1,
+                    verified=self._verifier is not None,
                 )
                 return True
 
@@ -1555,6 +1624,9 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                 total_tokens = 0
                 final_response = ""
                 max_react_loops = MAX_REACT_LOOPS  # Sprint 48 fix: was hardcoded to 3
+                # SP5: Track tool calls for verification
+                _tool_call_history: list[tuple[str, str]] = []
+                _step_tool_calls = 0
 
                 for loop_i in range(max_react_loops):
                     resp = await asyncio.wait_for(
@@ -1599,6 +1671,12 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                                     tool=block.name,
                                     loop=loop_i,
                                 )
+
+                                # SP5: Track tool calls for verification
+                                import hashlib as _hashlib
+                                _args_hash = _hashlib.md5(json.dumps(block.input, sort_keys=True).encode()).hexdigest()[:8]
+                                _tool_call_history.append((block.name, _args_hash))
+                                _step_tool_calls += 1
 
                                 tool_result = await self._execute_tool_direct(
                                     block.name, block.input
@@ -1652,12 +1730,50 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
 
                 cost = total_tokens * 0.000009
                 step.result = final_response
-                step.status = StepStatus.DONE
-                step.finished_at = time.time()
                 step.tokens_used = total_tokens
                 step.cost_usd = cost
                 plan.total_tokens += total_tokens
                 plan.total_cost_usd += cost
+
+                # ── SP5: ACI Repair — Verify execution BEFORE marking DONE (streaming) ──
+                if self._verifier:
+                    try:
+                        from kernel.execution_verifier import Verdict
+                        verification = await self._verifier.verify_step(
+                            plan_id=plan.plan_id,
+                            step_id=step.step_id,
+                            step_index=step.index,
+                            step_description=step.description,
+                            tool_call_history=_tool_call_history,
+                            step_tool_calls=_step_tool_calls,
+                            final_response=final_response,
+                            plan_total_tool_calls=plan.total_tool_calls,
+                        )
+                        if verification.verdict == Verdict.SUCCESS:
+                            step.status = StepStatus.DONE
+                        elif verification.verdict == Verdict.CONTINUE:
+                            step.error = f"[ACI_VERIFY] {verification.reasoning}"
+                            step.status = StepStatus.FAILED
+                            step.finished_at = time.time()
+                            return False
+                        elif verification.verdict == Verdict.PIVOT:
+                            step.error = f"[ACI_PIVOT] {verification.reasoning}"
+                            step.status = StepStatus.FAILED
+                            step.finished_at = time.time()
+                            return False
+                    except Exception as _verify_err:
+                        logger.warning(
+                            "stream_planner_verification_error",
+                            plan_id=plan.plan_id,
+                            step=step.index,
+                            error=str(_verify_err),
+                        )
+                        step.status = StepStatus.DONE
+                else:
+                    step.status = StepStatus.DONE
+                # ── /SP5 ────────────────────────────────────────────────
+
+                step.finished_at = time.time()
 
                 logger.info(
                     "stream_planner_step_done",
@@ -1666,6 +1782,7 @@ Ejecuta este paso ahora usando las herramientas disponibles. Al terminar, report
                     tokens=total_tokens,
                     cost=cost,
                     react_loops=loop_i + 1,
+                    verified=self._verifier is not None,
                 )
                 return True
 
