@@ -2119,31 +2119,124 @@ async def tool_email(request: Request):
 
 
 @app.get("/v1/tools", tags=["tools"])
-async def list_tools():
-    """List available tools and their status."""
+async def list_tools(request: Request):
+    """Inventario dinámico de tools — refleja el estado real del registry.
+
+    Sprint 51: reemplaza el hardcoded anterior. Lee de `tool_registry`
+    (Supabase) cruzado con disponibilidad de credenciales en runtime.
+    El Despertador (`scripts/activate_tools.py`) puebla la DB; este
+    endpoint la expone con identidad propia para el Command Center.
+
+    Status por tool (precedencia descendente):
+        - inactive: is_active=False en el registry
+        - requires_hitl: requiere intervención humana, no auto-invocable
+        - no_credentials: secret_env_var declarado pero ausente del env
+        - active: lista para invocar
+
+    Backward compat: el formato `{"tools": [...]}` se preserva. Los
+    campos display_name, category, risk_level, requires_hitl,
+    invocation_mode, invocation_count y last_invoked_at son aditivos.
+
+    Fail-closed: si el registry no está inicializado (DB caída en
+    bootstrap), retorna inventario mínimo estático en lugar de error 500.
+    """
     import os
 
+    # Tools con endpoint HTTP dedicado en este servicio
+    HTTP_ENDPOINTS = {
+        "web_search": "/v1/tools/web_search",
+        "consult_sabios": "/v1/tools/consult_sabios",
+        "email": "/v1/tools/email",
+    }
+
+    registry = getattr(request.app.state, "tool_registry", None)
+
+    # Fallback fail-closed: registry no disponible → inventario mínimo
+    if not registry or not registry.initialized:
+        return {
+            "tools": [
+                {
+                    "name": "web_search",
+                    "display_name": "Búsqueda Web (Sonar)",
+                    "endpoint": "/v1/tools/web_search",
+                    "status": "active" if os.environ.get("SONAR_API_KEY") else "no_credentials",
+                    "category": "awareness",
+                    "risk_level": "LOW",
+                    "requires_hitl": False,
+                    "invocation_mode": "http",
+                    "description": "Búsqueda web en tiempo real vía Perplexity Sonar.",
+                },
+                {
+                    "name": "consult_sabios",
+                    "display_name": "Consejo de los Sabios",
+                    "endpoint": "/v1/tools/consult_sabios",
+                    "status": "active",
+                    "category": "awareness",
+                    "risk_level": "LOW",
+                    "requires_hitl": False,
+                    "invocation_mode": "http",
+                    "description": "Consulta paralela a 6 modelos para análisis multi-perspectiva.",
+                },
+                {
+                    "name": "email",
+                    "display_name": "Correo Saliente",
+                    "endpoint": "/v1/tools/email",
+                    "status": "active" if os.environ.get("GMAIL_APP_PASSWORD") else "no_credentials",
+                    "category": "write",
+                    "risk_level": "MEDIUM",
+                    "requires_hitl": False,
+                    "invocation_mode": "http",
+                    "description": "Envío de email vía Gmail SMTP.",
+                },
+            ],
+            "registry_status": "no_disponible",
+            "fuente": "fallback_estatico",
+            "resumen": {"total": 3, "active": 0, "no_credentials": 0, "requires_hitl": 0, "inactive": 0},
+        }
+
+    # Modo dinámico: leer del registry y evaluar credenciales en runtime
+    rows = registry.list_all()
+    tools_out: list[dict] = []
+    for row in sorted(rows, key=lambda r: r.get("tool_name", "")):
+        tool_name = row.get("tool_name", "")
+        is_active = row.get("is_active", False)
+        requires_hitl = row.get("requires_hitl", False)
+        secret_env_var = row.get("secret_env_var")
+
+        # Determinar status por precedencia
+        if not is_active:
+            status = "inactive"
+        elif requires_hitl:
+            status = "requires_hitl"
+        elif secret_env_var and not os.environ.get(secret_env_var):
+            status = "no_credentials"
+        else:
+            status = "active"
+
+        tools_out.append({
+            "name": tool_name,
+            "display_name": row.get("display_name", tool_name),
+            "endpoint": HTTP_ENDPOINTS.get(tool_name),
+            "status": status,
+            "category": row.get("category", "general"),
+            "risk_level": row.get("risk_level", "LOW"),
+            "requires_hitl": requires_hitl,
+            "invocation_mode": "http" if tool_name in HTTP_ENDPOINTS else "function_call",
+            "description": row.get("description", ""),
+            "invocation_count": row.get("invocation_count", 0),
+            "last_invoked_at": row.get("last_invoked_at"),
+        })
+
+    # Resumen para el Command Center
+    counts = {"active": 0, "no_credentials": 0, "requires_hitl": 0, "inactive": 0}
+    for t in tools_out:
+        counts[t["status"]] = counts.get(t["status"], 0) + 1
+
     return {
-        "tools": [
-            {
-                "name": "web_search",
-                "endpoint": "/v1/tools/web_search",
-                "status": "active" if os.environ.get("SONAR_API_KEY") else "no_api_key",
-                "description": "Search the web using Perplexity Sonar API",
-            },
-            {
-                "name": "consult_sabios",
-                "endpoint": "/v1/tools/consult_sabios",
-                "status": "active",
-                "description": "Consult the 6 Sabios (multi-model AI consultation)",
-            },
-            {
-                "name": "email",
-                "endpoint": "/v1/tools/email",
-                "status": "active" if os.environ.get("GMAIL_APP_PASSWORD") else "no_credentials",
-                "description": "Send email via Gmail SMTP",
-            },
-        ]
+        "tools": tools_out,
+        "registry_status": "vivo",
+        "fuente": "tool_registry_supabase",
+        "resumen": {"total": len(tools_out), **counts},
     }
 
 
