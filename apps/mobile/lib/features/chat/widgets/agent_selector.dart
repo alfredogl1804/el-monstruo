@@ -135,15 +135,22 @@ class _AgentPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // Agent list
-            ...ExternalAgentId.values.map((agent) => _AgentTile(
-                  agent: agent,
-                  isSelected: agent == current,
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    onSelect(agent);
-                  },
-                )),
+            // Agent list (scrollable)
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: ExternalAgentId.values.map((agent) => _AgentTile(
+                    agent: agent,
+                    isSelected: agent == current,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      onSelect(agent);
+                    },
+                  )).toList(),
+                ),
+              ),
+            ),
             const SizedBox(height: 8),
           ],
         ),
