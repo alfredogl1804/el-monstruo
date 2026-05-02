@@ -424,9 +424,10 @@ print(f"  {SKIP}: {results['skip']}")
 print(f"  Pass rate: {results['pass']/max(total-results['skip'],1)*100:.0f}%")
 print("═" * 60)
 
-if results["fail"] > 0:
-    print("\n  ⚠️  SOME TESTS FAILED — review above")
-    sys.exit(1)
-else:
-    print("\n  🎯 ALL TESTS PASSED — Sprint 29 validated!")
-    sys.exit(0)
+if __name__ == "__main__":
+    if results["fail"] > 0:
+        print("\n  ⚠️  SOME TESTS FAILED — review above")
+        sys.exit(1)
+    else:
+        print("\n  🎯 ALL TESTS PASSED — Sprint 29 validated!")
+        sys.exit(0)
