@@ -8,6 +8,7 @@ import '../features/chat/widgets/typing_indicator.dart';
 import '../models/chat_message.dart';
 import '../models/tool_event.dart';
 import '../services/kernel_service.dart';
+import '../services/thread_persistence.dart';
 
 final _log = Logger('ChatProvider');
 
@@ -87,6 +88,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   StreamSubscription? _connectionSub;
   StreamSubscription? _thinkingSub;
   StreamSubscription? _stepSub;
+  StreamSubscription? _threadIdSub;
 
   // ── Sprint 45: Token Jitter Buffer ──────────────────────────────────
   // Accumulates incoming tokens and flushes them aligned to vsync frames.
@@ -97,6 +99,23 @@ class ChatNotifier extends StateNotifier<ChatState> {
   bool _frameCallbackScheduled = false;
 
   void _init() {
+    // ── Thread Persistence: Restore active thread from disk ──
+    final persistedThread = ThreadPersistence.getActiveThread();
+    if (persistedThread != null && !ThreadPersistence.isThreadStale()) {
+      state = state.copyWith(currentThreadId: persistedThread);
+      _log.info('Restored persisted thread: $persistedThread');
+    }
+
+    // ── Thread Persistence: Listen for thread_id from Gateway ──
+    _threadIdSub = _kernelService.threadIdStream.listen((threadId) {
+      if (threadId != state.currentThreadId) {
+        state = state.copyWith(currentThreadId: threadId);
+        ThreadPersistence.setActiveThread(threadId);
+        _log.info('Thread persisted: $threadId');
+      }
+      ThreadPersistence.incrementMessageCount();
+    });
+
     // Listen to incoming messages
     _messageSub = _kernelService.messageStream.listen((message) {
       // First token arrived — stop thinking indicator
@@ -414,6 +433,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
     _flushTokenBuffer();
     _activeStreamingMessageId = null;
     _isFirstToken = true;
+    // Clear persisted thread — next message will get a fresh one from Gateway
+    ThreadPersistence.clearThread();
     state = const ChatState();
     _kernelService.connectStreaming();
   }
@@ -431,6 +452,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     _connectionSub?.cancel();
     _thinkingSub?.cancel();
     _stepSub?.cancel();
+    _threadIdSub?.cancel();
     super.dispose();
   }
 }

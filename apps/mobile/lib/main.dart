@@ -5,6 +5,7 @@ import 'package:logging/logging.dart';
 
 import 'app.dart';
 import 'services/kernel_service.dart';
+import 'services/thread_persistence.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +18,9 @@ void main() async {
     );
     if (record.error != null) debugPrint('  Error: ${record.error}');
   });
+
+  // Initialize thread persistence (must be before any chat interaction)
+  await ThreadPersistence.initialize();
 
   // Lock orientation to portrait on phones, allow all on tablets/foldables
   await SystemChrome.setPreferredOrientations([

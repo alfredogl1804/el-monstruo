@@ -43,12 +43,14 @@ class KernelService {
   final _connectionStateController = StreamController<KernelConnectionState>.broadcast();
   final _thinkingStateController = StreamController<Map<String, dynamic>>.broadcast();
   final _stepController = StreamController<Map<String, dynamic>>.broadcast();
+  final _threadIdController = StreamController<String>.broadcast();
 
   Stream<ChatMessage> get messageStream => _messageController.stream;
   Stream<ToolEvent> get toolEventStream => _toolEventController.stream;
   Stream<KernelConnectionState> get connectionStream => _connectionStateController.stream;
   Stream<Map<String, dynamic>> get thinkingStream => _thinkingStateController.stream;
   Stream<Map<String, dynamic>> get stepStream => _stepController.stream;
+  Stream<String> get threadIdStream => _threadIdController.stream;
 
   // ─── Health Check ───
   Future<KernelHealth> checkHealth() async {
@@ -149,8 +151,13 @@ class KernelService {
           _stepController.add(data);
           break;
 
-        // Run lifecycle (not tool events)
+        // Run lifecycle — capture thread_id from run_start
         case 'run_start':
+          final threadId = data['thread_id'] as String?;
+          if (threadId != null && threadId.isNotEmpty) {
+            _threadIdController.add(threadId);
+          }
+          break;
         case 'run_end':
           break;
 
