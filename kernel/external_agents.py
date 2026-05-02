@@ -399,6 +399,11 @@ async def _execute_perplexity(
             json={
                 "model": profile.model,
                 "messages": messages,
+                "search_recency_filter": "day",  # Forzar búsqueda del último día
+                "web_search_options": {
+                    "search_context_size": "high",  # Más contexto de búsqueda
+                },
+                "return_related_questions": False,
             },
         )
         resp.raise_for_status()
