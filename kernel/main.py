@@ -949,7 +949,6 @@ async def lifespan(app: FastAPI):
             from kernel.components.registry import init_component_registry
             from kernel.marketplace.marketplace import init_marketplace
             from kernel.cost_optimizer import init_cost_optimizer
-            import os
 
             plugin_manager = init_plugin_manager()
             app.state.plugin_manager = plugin_manager
