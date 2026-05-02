@@ -2396,6 +2396,137 @@ async def finops_status(request: Request):
         return {"status": "error", "error": str(e)}
 
 
+# ── Sprint: External Agent Dispatcher ──────────────────────────────────
+
+@app.get("/v1/agents/external", tags=["agents"])
+async def external_agents_list():
+    """List available external agents and their configuration status."""
+    try:
+        from kernel.external_agents import get_agent_status
+        return get_agent_status()
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
+@app.post("/v1/agents/dispatch", tags=["agents"])
+async def dispatch_to_external_agent(request: Request):
+    """
+    Dispatch a task to an external agent with full context injection.
+    
+    Body:
+        agent: str — Agent ID (manus, kimi, perplexity, gemini, grok, auto)
+        message: str — The user's message/task
+        thread_id: str — Thread ID for context retrieval from Supabase
+        system_prompt: str (optional) — Override system prompt
+    
+    Returns:
+        AgentResponse with the agent's output
+    """
+    try:
+        from kernel.external_agents import ExternalAgent, execute_agent
+        
+        body = await request.json()
+        agent_str = body.get("agent", "auto")
+        message = body.get("message", "")
+        thread_id = body.get("thread_id", "")
+        system_prompt = body.get("system_prompt", "")
+        
+        if not message:
+            return {"success": False, "error": "message is required"}
+        
+        # Resolve agent
+        try:
+            agent_id = ExternalAgent(agent_str)
+        except ValueError:
+            return {"success": False, "error": f"Unknown agent: {agent_str}"}
+        
+        # Retrieve context from Supabase if thread_id provided
+        context = ""
+        if thread_id:
+            context = await _get_thread_context(thread_id)
+        
+        # Execute
+        result = await execute_agent(
+            agent_id=agent_id,
+            message=message,
+            context=context,
+            system_prompt=system_prompt,
+        )
+        
+        # Write result back to memory if thread_id provided
+        if thread_id and result.success:
+            await _write_agent_result_to_memory(thread_id, result)
+        
+        return {
+            "success": result.success,
+            "agent_id": result.agent_id,
+            "agent_name": result.agent_name,
+            "content": result.content,
+            "model_used": result.model_used,
+            "latency_ms": round(result.latency_ms),
+            "tokens_used": result.tokens_used,
+            "sources": result.sources,
+            "error": result.error,
+        }
+    except Exception as e:
+        logger.error("dispatch_error", error=str(e))
+        return {"success": False, "error": str(e)}
+
+
+async def _get_thread_context(thread_id: str, max_messages: int = 20) -> str:
+    """Retrieve conversation context from Supabase for a thread."""
+    try:
+        db = getattr(app.state, "db", None)
+        if not db:
+            return ""
+        
+        # Get recent conversation events
+        events = await db.get_conversation_history(
+            thread_id=thread_id,
+            limit=max_messages,
+        )
+        
+        if not events:
+            return ""
+        
+        # Format as context string
+        lines = []
+        for event in events:
+            role = event.get("role", "user")
+            content = event.get("content", "")
+            if content:
+                lines.append(f"{role}: {content}")
+        
+        return "\n".join(lines)
+    except Exception as e:
+        logger.warning("context_retrieval_failed", thread_id=thread_id, error=str(e))
+        return ""
+
+
+async def _write_agent_result_to_memory(thread_id: str, result) -> None:
+    """Write agent response back to Supabase conversation memory."""
+    try:
+        db = getattr(app.state, "db", None)
+        if not db:
+            return
+        
+        await db.store_conversation_event(
+            thread_id=thread_id,
+            role="assistant",
+            content=result.content,
+            metadata={
+                "agent_id": result.agent_id,
+                "agent_name": result.agent_name,
+                "model_used": result.model_used,
+                "latency_ms": result.latency_ms,
+                "tokens_used": result.tokens_used,
+                "sources": result.sources,
+            },
+        )
+    except Exception as e:
+        logger.warning("memory_write_failed", thread_id=thread_id, error=str(e))
+
+
 # ── DEBUG ENDPOINTS (only active when DEBUG=true) ─────────────────────
 
 _DEBUG_MODE = os.environ.get("DEBUG", "").lower() in ("true", "1", "yes")
