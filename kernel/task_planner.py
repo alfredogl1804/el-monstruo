@@ -446,6 +446,26 @@ Formato obligatorio:
                     )
                     continue
 
+                # ── Sprint 51: Error Memory — pre-step consultation ───────
+                try:
+                    _em = getattr(self, "_error_memory", None) or getattr(self._db, "_error_memory", None) if self._db else None
+                    if _em and hasattr(_em, "consult"):
+                        _step_advisory = await _em.consult(
+                            message=f"task_planner step: {step.description}",
+                            module="kernel.task_planner.execute_step",
+                        )
+                        if _step_advisory and _step_advisory.get("has_advice"):
+                            step.context = step.context or {}
+                            step.context["error_memory_advisory"] = _step_advisory.get("advice", "")[:500]
+                            logger.info(
+                                "task_planner_error_memory_advisory",
+                                step=step.index,
+                                advice_chars=len(step.context["error_memory_advisory"]),
+                            )
+                except Exception:
+                    pass  # Error Memory is best-effort
+                # ── /Sprint 51 ─────────────────────────────────────────────
+
                 # Execute step with ReAct loop
                 success = await self._execute_step_with_react(step, plan, user_id)
 
@@ -484,6 +504,26 @@ Formato obligatorio:
             plan.finished_at = datetime.now(timezone.utc).isoformat()
             plan.final_summary = f"Ejecución fallida: {str(e)}"
             logger.error("task_planner_execution_failed", plan_id=plan.plan_id, error=str(e))
+
+            # ── Sprint 51: Error Memory — record plan-level failures ───
+            try:
+                _em = getattr(self, "_error_memory", None)
+                if _em and hasattr(_em, "record"):
+                    import asyncio
+                    asyncio.create_task(_em.record(
+                        error=e,
+                        module="kernel.task_planner.execute",
+                        context={
+                            "plan_id": plan.plan_id,
+                            "objective": plan.objective[:200] if plan.objective else "",
+                            "steps_total": len(plan.steps),
+                            "steps_completed": len([s for s in plan.steps if s.status == StepStatus.DONE]),
+                        },
+                    ))
+            except Exception:
+                pass
+            # ── /Sprint 51 ─────────────────────────────────────────────
+
             await self._persist_plan(plan)
             return plan.to_dict()
 

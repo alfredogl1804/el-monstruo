@@ -630,45 +630,119 @@ class EmbrionLoop:
                 if lessons_context:
                     prompt += f"\n{lessons_context}"
 
-            # ── Sprint 33C: Dual-mode execution ─────────────────────────
-            # Directives from Alfredo go through the FULL LangGraph graph
-            # (which includes tool_dispatch, so the Embrión can actually
-            # execute github, code_exec, browse_web, etc.)
-            # Autonomous reflections stay on the cheap router path.
-            # ── Sprint 40: Task Planner — complex objectives get decomposed ──
+            # ── Sprint 33C: Dual-mode execution ───────────────────────
+            # Sprint 40: Task Planner — complex objectives get decomposed
+            # Sprint 51: Magna Classifier — intelligent routing replaces
+            #   the hardcoded trigger-type check. When the feature flag
+            #   EMBRION_USE_MAGNA_ROUTER is true, Magna decides the route
+            #   (graph vs router) based on vocabulary analysis + cache.
+            #   When false, the original Sprint 33C logic applies unchanged.
+            # ─────────────────────────────────────────────────────────
 
-            if trigger["type"] == "mensaje_alfredo":
-                detail = trigger.get("detail", "")
+            _use_magna = os.environ.get("EMBRION_USE_MAGNA_ROUTER", "false").lower() == "true"
+            _magna = getattr(self, "_magna_classifier", None)
+            _route_decision = None  # track for logging
+
+            if _use_magna and _magna:
+                # ── Sprint 51: Magna-driven routing ───────────────────
                 try:
-                    from kernel.task_planner import TaskPlanner
-                    _planner = TaskPlanner(kernel=self._kernel, db=self._db)
-                    if _planner.is_complex_objective(detail):
-                        logger.info(
-                            "embrion_task_planner_activated",
-                            objective=detail[:80],
-                            cycle=self._cycle_count,
-                        )
-                        plan = await _planner.plan(
-                            objective=detail,
-                            context={"trigger": trigger["type"], "cycle": self._cycle_count},
-                            user_id="embrion",
-                        )
-                        plan_result = await _planner.execute(plan, user_id="embrion")
-                        response = plan_result.get("final_summary", str(plan_result)[:2000])
-                        tokens_used = plan_result.get("total_tokens", 0)
-                        estimated_cost = plan_result.get("total_cost_usd", 0.0)
-                        # Sprint 43: propagate real tool_calls count from planner
-                        _tc = plan_result.get("total_tool_calls", 0)
-                        tool_calls = [f"planner_tool_{i}" for i in range(_tc)]
+                    classification = await _magna.classify(
+                        message=prompt,
+                        trigger_type=trigger["type"],
+                        context={"cycle": self._cycle_count},
+                    )
+                    _route_decision = classification.get("route", "router")
+                    _magna_confidence = classification.get("confidence", 0.0)
+
+                    logger.info(
+                        "embrion_magna_route_decision",
+                        route=_route_decision,
+                        confidence=f"{_magna_confidence:.2f}",
+                        trigger=trigger["type"],
+                        category=classification.get("category", "unknown"),
+                        cached=classification.get("cached", False),
+                    )
+
+                    if _route_decision == "graph":
+                        # Check if TaskPlanner should handle complex objectives
+                        if trigger["type"] == "mensaje_alfredo":
+                            detail = trigger.get("detail", "")
+                            try:
+                                from kernel.task_planner import TaskPlanner
+                                _planner = TaskPlanner(kernel=self._kernel, db=self._db)
+                                # Inject error_memory if available
+                                _em = getattr(self, "_error_memory", None)
+                                if _em:
+                                    _planner._error_memory = _em
+                                if _planner.is_complex_objective(detail):
+                                    logger.info(
+                                        "embrion_task_planner_activated",
+                                        objective=detail[:80],
+                                        cycle=self._cycle_count,
+                                        via="magna",
+                                    )
+                                    plan = await _planner.plan(
+                                        objective=detail,
+                                        context={"trigger": trigger["type"], "cycle": self._cycle_count},
+                                        user_id="embrion",
+                                    )
+                                    plan_result = await _planner.execute(plan, user_id="embrion")
+                                    response = plan_result.get("final_summary", str(plan_result)[:2000])
+                                    tokens_used = plan_result.get("total_tokens", 0)
+                                    estimated_cost = plan_result.get("total_cost_usd", 0.0)
+                                    _tc = plan_result.get("total_tool_calls", 0)
+                                    tool_calls = [f"planner_tool_{i}" for i in range(_tc)]
+                                else:
+                                    response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
+                            except ImportError:
+                                response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
+                        else:
+                            # Magna says graph for non-directive — this is the NEW behavior
+                            # Before Sprint 51, autonomous reflections NEVER used graph
+                            response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
                     else:
-                        # FULL GRAPH MODE — single-shot execution
+                        # Magna says router (chat-only)
+                        response, tokens_used, estimated_cost, tool_calls = await self._think_with_router(prompt, trigger)
+
+                except Exception as _magna_err:
+                    logger.warning("embrion_magna_route_fallback", error=str(_magna_err))
+                    # Fallback to original Sprint 33C logic
+                    _route_decision = "fallback_33c"
+                    if trigger["type"] == "mensaje_alfredo":
                         response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
-                except ImportError:
-                    # Fallback if task_planner not available
-                    response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
+                    else:
+                        response, tokens_used, estimated_cost, tool_calls = await self._think_with_router(prompt, trigger)
+                # ── /Sprint 51 Magna routing ───────────────────────────
             else:
-                # CHAT MODE — cheaper, no tools
-                response, tokens_used, estimated_cost, tool_calls = await self._think_with_router(prompt, trigger)
+                # ── Original Sprint 33C logic (feature flag off) ───────
+                if trigger["type"] == "mensaje_alfredo":
+                    detail = trigger.get("detail", "")
+                    try:
+                        from kernel.task_planner import TaskPlanner
+                        _planner = TaskPlanner(kernel=self._kernel, db=self._db)
+                        if _planner.is_complex_objective(detail):
+                            logger.info(
+                                "embrion_task_planner_activated",
+                                objective=detail[:80],
+                                cycle=self._cycle_count,
+                            )
+                            plan = await _planner.plan(
+                                objective=detail,
+                                context={"trigger": trigger["type"], "cycle": self._cycle_count},
+                                user_id="embrion",
+                            )
+                            plan_result = await _planner.execute(plan, user_id="embrion")
+                            response = plan_result.get("final_summary", str(plan_result)[:2000])
+                            tokens_used = plan_result.get("total_tokens", 0)
+                            estimated_cost = plan_result.get("total_cost_usd", 0.0)
+                            _tc = plan_result.get("total_tool_calls", 0)
+                            tool_calls = [f"planner_tool_{i}" for i in range(_tc)]
+                        else:
+                            response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
+                    except ImportError:
+                        response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
+                else:
+                    response, tokens_used, estimated_cost, tool_calls = await self._think_with_router(prompt, trigger)
 
             self._cost_today_usd += estimated_cost
 

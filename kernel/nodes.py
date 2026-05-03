@@ -914,6 +914,28 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
         logger.warning("action_envelope_failed", error=str(e))
         # Non-fatal: governance is advisory in Sprint 1, not blocking
 
+    # ── Sprint 51: Error Memory — consult before action ────────────────
+    try:
+        _em = config.get("configurable", {}).get("error_memory") if config else None
+        if _em and hasattr(_em, "consult") and message:
+            advisory = await _em.consult(message=message, module="kernel.nodes.enrich")
+            if advisory and advisory.get("has_advice"):
+                _advice_text = advisory.get("advice", "")
+                if _advice_text:
+                    system_prompt += (
+                        f"\n\n## Error Memory Advisory\n"
+                        f"Previous errors related to this request type:\n{_advice_text}\n"
+                        f"Take this into account to avoid repeating known failures."
+                    )
+                    logger.info(
+                        "enrich_error_memory_advisory_injected",
+                        advice_chars=len(_advice_text),
+                        similar_errors=advisory.get("similar_count", 0),
+                    )
+    except Exception as _em_err:
+        logger.debug("enrich_error_memory_skip", error=str(_em_err))
+    # ── /Sprint 51 ───────────────────────────────────────────────────────
+
     existing_events = state.get("events", [])
     return {
         "conversation_context": conversation_context,
@@ -1105,6 +1127,31 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
 
     except Exception as e:
         logger.error("execute_failed", model=model, error=str(e))
+
+        # ── Sprint 51: Error Memory — record execution failures ──────
+        try:
+            _em = getattr(config.get("configurable", {}), "error_memory", None)
+            if not _em:
+                # Try from app state via deps
+                _, _, _, _app = _deps(config) if config else (None, None, None, None)
+                _em = getattr(_app, "_error_memory", None) if _app else None
+            if _em and hasattr(_em, "record"):
+                import asyncio
+                asyncio.create_task(_em.record(
+                    error=e,
+                    module="kernel.nodes.execute",
+                    context={
+                        "model": model,
+                        "intent": intent,
+                        "run_id": state.get("run_id", ""),
+                        "message_preview": message[:100] if message else "",
+                        "tool_loop_count": tool_loop_count,
+                    },
+                ))
+        except Exception:
+            pass  # Error Memory is best-effort — never blocks execution
+        # ── /Sprint 51 ───────────────────────────────────────────────────
+
         event = (
             EventBuilder()
             .category(EventCategory.RUN_FAILED)

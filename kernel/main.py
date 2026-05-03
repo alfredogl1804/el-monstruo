@@ -1058,6 +1058,96 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("embrion_scheduler_init_failed", error=str(e))
 
+    # ── Sprint 51: Magna Classifier (Capa 0.2) ─────────────────────────
+    magna_classifier = None
+    try:
+        from kernel.magna_classifier import MagnaClassifier
+        from kernel.magna_routes import router as magna_router, set_dependencies as set_magna_deps
+
+        magna_classifier = MagnaClassifier(
+            db=db if db_connected else None,
+            threshold=float(os.environ.get("MAGNA_THRESHOLD", "0.6")),
+            graph_calls_per_day=int(os.environ.get("MAGNA_GRAPH_CAP", "30")),
+        )
+        app.state.magna_classifier = magna_classifier
+        set_magna_deps(classifier=magna_classifier)
+        app.include_router(magna_router)
+
+        # Inject into EmbrionLoop for routing decisions
+        if embrion_loop:
+            embrion_loop._magna_classifier = magna_classifier
+
+        logger.info(
+            "sprint51_magna_classifier_initialized",
+            threshold=magna_classifier._threshold,
+            graph_cap=magna_classifier._graph_calls_per_day,
+            cache_backend="supabase" if db_connected else "memory_only",
+        )
+    except Exception as e:
+        logger.warning("sprint51_magna_classifier_init_failed", error=str(e))
+
+    # ── Sprint 51: Error Memory (Capa 0.1) ─────────────────────────────
+    error_memory = None
+    try:
+        from kernel.error_memory import ErrorMemory, build_embedding_client
+
+        _em_embeddings_enabled = os.environ.get("ERROR_MEMORY_EMBEDDINGS", "true").lower() == "true"
+        _em_recording_enabled = os.environ.get("ERROR_MEMORY_RECORDING", "true").lower() == "true"
+
+        embedding_client = build_embedding_client() if _em_embeddings_enabled else None
+        error_memory = ErrorMemory(
+            db=db if db_connected else None,
+            embedding_client=embedding_client,
+        )
+        await error_memory.initialize()
+        app.state.error_memory = error_memory
+
+        # Inject into kernel components for hook access
+        if kernel:
+            kernel._error_memory = error_memory
+        if embrion_loop:
+            embrion_loop._error_memory = error_memory
+
+        logger.info(
+            "sprint51_error_memory_initialized",
+            active=error_memory.initialized,
+            pgvector=error_memory.has_pgvector,
+            embeddings=embedding_client is not None,
+            recording=_em_recording_enabled,
+        )
+    except Exception as e:
+        logger.warning("sprint51_error_memory_init_failed", error=str(e))
+
+    # ── Sprint 51: Error Memory Endpoints ──────────────────────────────
+    @app.get("/v1/error-memory/recent", tags=["observability"])
+    async def error_memory_recent(request: Request, limit: int = 20):
+        em = getattr(request.app.state, "error_memory", None)
+        if not em or not em.initialized:
+            return {"errors": [], "registry_status": "no_disponible"}
+        rows = await em.get_recent(limit=limit)
+        return {"errors": rows, "registry_status": "vivo", "total": len(rows)}
+
+    @app.get("/v1/error-memory/patterns", tags=["observability"])
+    async def error_memory_patterns(request: Request, min_confidence: float = 0.7):
+        em = getattr(request.app.state, "error_memory", None)
+        if not em or not em.initialized:
+            return {"patterns": [], "registry_status": "no_disponible"}
+        rows = await em.get_patterns(min_confidence=min_confidence)
+        return {"patterns": rows, "min_confidence": min_confidence, "total": len(rows)}
+
+    @app.post("/v1/error-memory/{signature}/resolve", tags=["observability"])
+    async def error_memory_resolve(request: Request, signature: str):
+        em = getattr(request.app.state, "error_memory", None)
+        if not em or not em.initialized:
+            raise HTTPException(503, detail="error_memory_no_disponible")
+        body = await request.json()
+        resolution = body.get("resolution", "")
+        if not resolution:
+            raise HTTPException(400, detail="resolution_requerida")
+        ok = await em.resolve(signature, resolution)
+        return {"resolved": ok, "signature": signature}
+    # ── /Sprint 51 ─────────────────────────────────────────────────────
+
     logger.info(
         "monstruo_ready",
         version="0.50.0-sprint50",
@@ -1104,6 +1194,8 @@ async def lifespan(app: FastAPI):
         onboarding="active" if getattr(app.state, 'onboarding', None) else "inactive",
         background_store="supabase" if (_bg_store and _bg_store._use_db()) else "in_memory",
         moc="active" if moc else "inactive",
+        magna_classifier="active" if magna_classifier else "inactive",
+        error_memory="active" if (error_memory and error_memory.initialized) else "inactive",
     )
 
     # Warm-up: pre-heat LLM connections to eliminate cold start on first request
