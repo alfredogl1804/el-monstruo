@@ -1098,3 +1098,284 @@ Lo discutimos en Día 3.
 ---
 
 **Día 2 cerrado. Esperando tu Día 1 para integrar en Día 3. Cuando termines `kernel/magna_classifier.py`, avísame y armamos el patch del Embrión juntos.**
+
+---
+---
+
+# Sprint 51 — Patch de integración (auditoría post-Día 3)
+**Timestamp:** 2026-05-03 (post-commit `062338e`)
+**Encomienda:** auditar los hooks que integraste en Día 3 antes de activar feature flags en Railway.
+
+## Resumen ejecutivo
+
+Tu integración tiene **5 bugs concretos** que hacen que `ERROR_MEMORY_RECORDING=true` parezca activado pero **no grabe nada en producción** (los `try/except: pass` los capturan silenciosos). Los 66/66 tests pasan porque son unitarios con AsyncMock — no validan signatures contra la API real del módulo. Antes de activar nada en Railway, aplica este patch. Es quirúrgico: ~80 líneas de cambios en 3 archivos.
+
+---
+
+## Bugs identificados
+
+| # | Archivo | Línea(s) | Bug | Síntoma |
+|---|---|---|---|---|
+| A | `nodes.py:execute` | 1133, 1140 | `record(error=, module=, context=)` — `module` no es kwarg de `record()` | `TypeError` capturado por except, no graba |
+| A2 | `task_planner.py` | ~514 | Misma firma incorrecta de `record()` | Idem |
+| B | `nodes.py:enrich` | 919, 922-927 | `consult(message=, module=)` no existe; espera dict con `has_advice`/`advice` cuando la API devuelve `list[ErrorRule]` | `AttributeError` en `.get(...)` sobre lista, capturado, no inyecta |
+| B2 | `task_planner.py` | ~452 | Misma firma incorrecta de `consult()` | Idem |
+| C | `nodes.py:enrich` | 919 | `config.get("configurable", {}).get("error_memory")` — nadie inyecta ahí | Siempre None |
+| D | `nodes.py:execute` | 1133 | `getattr(dict, "key", None)` — `getattr` sobre dict busca atributos, no llaves | Siempre None |
+| E | `main.py` | 1095 | `ERROR_MEMORY_RECORDING` se lee y loguea pero ningún hook lo verifica antes de llamar `record()` | Flag inerte |
+
+---
+
+## Patch — orden de aplicación
+
+### FIX 1 — `kernel/engine.py`: declarar slot e inyectar en config
+
+**1a.** En el `__init__` del kernel, después de la línea 95 (`self._tool_registry = None  # Sprint 10: injected post-init`), añade:
+
+```python
+        self._error_memory = None    # Sprint 51: injected post-init
+        self._magna_classifier = None  # Sprint 51: injected post-init
+```
+
+**1b.** Las tres ubicaciones donde se construye `configurable` para LangGraph (líneas 297-302, 525-530, 705+) deben incluir `_error_memory` y `_magna_classifier`. Busca cada bloque que se ve así:
+
+```python
+            "configurable": {
+                "thread_id": thread_id,
+                "_router": self._router,
+                "_memory": self._memory,
+                "_knowledge": self._knowledge,
+                "_event_store": self._event_store,
+                "_observability": self._observability,
+                "_db": self._db,
+            }
+```
+
+y añade dos líneas al final del dict:
+
+```python
+                "_db": self._db,
+                "_error_memory": self._error_memory,    # Sprint 51
+                "_magna_classifier": self._magna_classifier,  # Sprint 51
+            }
+```
+
+Hay 3 ocurrencias. Aplica a las tres.
+
+### FIX 2 — `kernel/nodes.py`: helper extractor
+
+Después de la función `_obs(config)` alrededor de la línea 108, añade:
+
+```python
+def _em(config: RunnableConfig) -> Any:
+    """Extract ErrorMemory instance from config. Returns None if not available.
+    Sprint 51 — Capa 0.1.
+    """
+    return config.get("configurable", {}).get("_error_memory") if config else None
+```
+
+### FIX 3 — `kernel/nodes.py:enrich`: reemplazar el hook completo
+
+**Reemplazar** las líneas 916-937 (todo el bloque marcado `# ── Sprint 51: Error Memory — consult before action ────`) por:
+
+```python
+    # ── Sprint 51: Error Memory — consult before action ────────────────
+    try:
+        _em_inst = _em(config)
+        _recording = os.environ.get("ERROR_MEMORY_RECORDING", "true").lower() == "true"
+        if _em_inst and getattr(_em_inst, "initialized", False) and _recording and message:
+            rules = await _em_inst.consult(
+                intent=message,
+                context={
+                    "module": "kernel.nodes.enrich",
+                    "action": "execute",  # downstream node
+                },
+                top_k=3,
+            )
+            if rules:
+                hints = [r.to_prompt_hint() for r in rules]
+                system_prompt += (
+                    "\n\n## Lecciones de errores anteriores\n"
+                    + "\n".join(hints)
+                    + "\nToma estas lecciones en cuenta para no repetir fallos conocidos."
+                )
+                logger.info(
+                    "enrich_error_memory_advisory_injected",
+                    rules_count=len(rules),
+                    avg_confidence=round(
+                        sum(r.confidence for r in rules) / len(rules), 2
+                    ),
+                )
+    except Exception as _em_err:
+        logger.debug("enrich_error_memory_skip", error=str(_em_err))
+    # ── /Sprint 51 ───────────────────────────────────────────────────────
+```
+
+**Asegúrate** de que `import os` está al tope del archivo. Si no, añádelo.
+
+### FIX 4 — `kernel/nodes.py:execute`: reemplazar el hook completo
+
+**Reemplazar** las líneas 1129-1153 (todo el bloque marcado `# ── Sprint 51: Error Memory — record execution failures ──`) por:
+
+```python
+        # ── Sprint 51: Error Memory — record execution failures ──────
+        try:
+            _em_inst = _em(config)
+            _recording = os.environ.get("ERROR_MEMORY_RECORDING", "true").lower() == "true"
+            if _em_inst and getattr(_em_inst, "initialized", False) and _recording:
+                import asyncio
+                asyncio.create_task(_em_inst.record(
+                    error=e,
+                    context={
+                        "module": "kernel.nodes.execute",
+                        "action": "llm_call",
+                        "model": model,
+                        "intent": intent,
+                        "run_id": state.get("run_id", ""),
+                        "message_preview": (message[:100] if message else ""),
+                        "tool_loop_count": tool_loop_count,
+                    },
+                ))
+        except Exception:
+            pass  # Error Memory is best-effort — never blocks execution
+        # ── /Sprint 51 ───────────────────────────────────────────────────
+```
+
+Cambios clave vs lo actual:
+- `_em_inst = _em(config)` (helper, no `getattr(dict, …)`)
+- `record(error=e, context={...})` con `module` y `action` adentro de `context`
+- Gating real con `ERROR_MEMORY_RECORDING`
+
+### FIX 5 — `kernel/task_planner.py`: reemplazar el pre-step consult
+
+**Buscar** el bloque que dice `# ── Sprint 51: Error Memory — pre-step consultation ──` (alrededor de línea 446) y reemplazarlo por:
+
+```python
+                # ── Sprint 51: Error Memory — pre-step consultation ───────
+                try:
+                    _em_inst = getattr(self, "_error_memory", None)
+                    _recording = os.environ.get("ERROR_MEMORY_RECORDING", "true").lower() == "true"
+                    if _em_inst and getattr(_em_inst, "initialized", False) and _recording:
+                        rules = await _em_inst.consult(
+                            intent=step.description,
+                            context={
+                                "module": "kernel.task_planner",
+                                "action": "execute_step",
+                                "step_index": step.index,
+                            },
+                            top_k=2,
+                        )
+                        if rules:
+                            step.context = step.context or {}
+                            step.context["error_memory_advisory"] = "\n".join(
+                                r.to_prompt_hint() for r in rules
+                            )[:1000]
+                            logger.info(
+                                "task_planner_error_memory_advisory",
+                                step=step.index,
+                                rules_count=len(rules),
+                            )
+                except Exception:
+                    pass  # Error Memory is best-effort
+                # ── /Sprint 51 ─────────────────────────────────────────────
+```
+
+### FIX 6 — `kernel/task_planner.py`: reemplazar el post-error record
+
+**Buscar** el bloque `# ── Sprint 51: Error Memory — record plan-level failures ──` (alrededor de línea 510) y reemplazarlo por:
+
+```python
+            # ── Sprint 51: Error Memory — record plan-level failures ───
+            try:
+                _em_inst = getattr(self, "_error_memory", None)
+                _recording = os.environ.get("ERROR_MEMORY_RECORDING", "true").lower() == "true"
+                if _em_inst and getattr(_em_inst, "initialized", False) and _recording:
+                    import asyncio
+                    asyncio.create_task(_em_inst.record(
+                        error=e,
+                        context={
+                            "module": "kernel.task_planner",
+                            "action": "execute",
+                            "plan_id": plan.plan_id,
+                            "objective": plan.objective[:200] if plan.objective else "",
+                            "steps_total": len(plan.steps),
+                            "steps_completed": len([s for s in plan.steps if s.status == StepStatus.DONE]),
+                        },
+                    ))
+            except Exception:
+                pass
+            # ── /Sprint 51 ─────────────────────────────────────────────
+```
+
+`os` debe estar importado al tope del archivo. Si no, añade `import os`.
+
+### FIX 7 — `kernel/main.py`: confirmar inyección al kernel
+
+Tu bootstrap actual (línea 1115 aprox) ya hace `kernel._error_memory = error_memory`. Verifica que **antes** de la línea de `set_tool_db(db)` o equivalente, el kernel ya tiene los punteros. Si Magna Classifier también debe propagarse al config, añade en el bootstrap del classifier:
+
+```python
+        if kernel:
+            kernel._magna_classifier = magna_classifier
+```
+
+(ya lo haces para `embrion_loop._magna_classifier`, pero el kernel también lo necesita para que se propague al config en cada `start_run`).
+
+---
+
+## Cómo validar el patch antes de pushear
+
+```bash
+# 1. Sintaxis
+python3 -c "import ast; ast.parse(open('kernel/engine.py').read())"
+python3 -c "import ast; ast.parse(open('kernel/nodes.py').read())"
+python3 -c "import ast; ast.parse(open('kernel/task_planner.py').read())"
+python3 -c "import ast; ast.parse(open('kernel/main.py').read())"
+
+# 2. Tests existentes siguen pasando
+pytest tests/test_error_memory.py tests/test_magna_classifier.py -v
+
+# 3. Test de humo de integración (nuevo, sugerido)
+# Crear tests/test_sprint51_integration.py con un test que:
+#   - Construya un Kernel con error_memory mock
+#   - Llame _execute_run con un input que falle
+#   - Verifique que _em.record fue llamada con (error, context) — NO con module=
+#   - Verifique que context["module"] == "kernel.nodes.execute"
+```
+
+## Después del patch — secuencia de activación segura
+
+1. **Push del patch** a `main`. Railway redeploya.
+2. **Smoke test post-deploy:** `curl ${KERNEL_BASE_URL}/v1/error-memory/recent` debe retornar `{"errors": [...4 semillas...], "registry_status": "vivo", "total": 4}`.
+3. **Activar `ERROR_MEMORY_RECORDING=true`** en Railway env vars (ya estaba como default, ahora gateado real). Reinicia el servicio.
+4. **Inducir un error controlado** — un POST malformado a `/v1/agui/run` que dispare un `KeyError` en execute. Verificar que aparece nueva fila en `error_memory` con `module="kernel.nodes.execute"`.
+5. **Soak test 4h** con tráfico normal. Verificar `total` de `/v1/error-memory/recent` crece, sin que el kernel crashee.
+6. **Si todo verde:** activar `EMBRION_USE_MAGNA_ROUTER=true`. Monitor de costo del Embrión + `tool_calls_total`.
+
+---
+
+## Por qué los tests pasan a pesar de los bugs
+
+`tests/test_error_memory.py` valida la API del **módulo aislado** con `AsyncMock`. El mock se traga cualquier signature:
+
+```python
+db.consult = AsyncMock(return_value=[{"has_advice": True, "advice": "..."}])
+# Esto pasa aunque la firma real sea distinta
+```
+
+**Falta de test de integración** que conecte hooks reales contra la API real. Lo dejé como recomendación pero no lo entrego en este patch (sería >100 líneas adicionales con setup de FastAPI mock). Sugiero crearlo en Sprint 52.
+
+---
+
+## Brand Compliance Checklist del patch
+
+| Check | Cumple |
+|---|---|
+| Naming sin genéricos | `_em()` helper — corto pero descriptivo, tipo de los `_obs()`, `_deps()` existentes |
+| Errores con identidad | Logs `enrich_error_memory_skip`, `enrich_error_memory_advisory_injected` |
+| Backward compat | Si `ERROR_MEMORY_RECORDING=false`, todos los hooks no-op |
+| Soberanía | Sin `error_memory` o no inicializado, kernel funciona idéntico al pre-Sprint 51 |
+| Fail-closed | `try/except: pass` ya estaba; ahora además gateado por flag |
+
+---
+
+**Patch listo. Estimación de aplicación: 15-20 min, push, redeploy, validar. Después podemos activar Recording sin falso positivo.**

@@ -195,6 +195,15 @@ async def get_file(repo: str, path: str, ref: str = "main") -> dict:
     import base64
 
     data = await _request("GET", f"/repos/{repo}/contents/{path}?ref={ref}")
+    # Sprint 51.5: GitHub returns list for directories, dict for files
+    if isinstance(data, list):
+        return {
+            "name": path.split("/")[-1],
+            "path": path,
+            "size": 0,
+            "sha": "",
+            "content": f"[directory with {len(data)} entries: {', '.join(d.get('name','?') for d in data[:20])}]",
+        }
     if "error" in data:
         return data
     if data.get("encoding") == "base64" and data.get("content"):
@@ -216,8 +225,10 @@ async def get_file(repo: str, path: str, ref: str = "main") -> dict:
 async def list_issues(repo: str, state: str = "open", limit: int = 10) -> dict:
     """List issues in a repo."""
     data = await _request("GET", f"/repos/{repo}/issues?state={state}&per_page={limit}")
-    if "error" in data:
+    # Sprint 51.5: defense against non-list responses
+    if isinstance(data, dict) and "error" in data:
         return data
+    items = data if isinstance(data, list) else []
     return {
         "issues": [
             {
@@ -228,8 +239,8 @@ async def list_issues(repo: str, state: str = "open", limit: int = 10) -> dict:
                 "created_at": i["created_at"],
                 "url": i["html_url"],
             }
-            for i in data
-            if "pull_request" not in i
+            for i in items
+            if isinstance(i, dict) and "pull_request" not in i
         ]
     }
 
@@ -237,8 +248,10 @@ async def list_issues(repo: str, state: str = "open", limit: int = 10) -> dict:
 async def list_prs(repo: str, state: str = "open", limit: int = 10) -> dict:
     """List pull requests in a repo."""
     data = await _request("GET", f"/repos/{repo}/pulls?state={state}&per_page={limit}")
-    if "error" in data:
+    # Sprint 51.5: defense against non-list responses
+    if isinstance(data, dict) and "error" in data:
         return data
+    items = data if isinstance(data, list) else []
     return {
         "pull_requests": [
             {
@@ -249,7 +262,8 @@ async def list_prs(repo: str, state: str = "open", limit: int = 10) -> dict:
                 "base": pr["base"]["ref"],
                 "url": pr["html_url"],
             }
-            for pr in data
+            for pr in items
+            if isinstance(pr, dict)
         ]
     }
 

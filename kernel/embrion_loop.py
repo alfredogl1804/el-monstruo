@@ -746,6 +746,9 @@ class EmbrionLoop:
 
             self._cost_today_usd += estimated_cost
 
+            # Sprint 51.5: FCS counter — track real tool usage
+            self._fcs_tool_calls_total += len(tool_calls)
+
             # Save the thought as a memory
             await self._save_memory(
                 tipo="latido" if trigger["type"] == "reflexion_autonoma" else "respuesta_embrion",
