@@ -265,6 +265,10 @@ class TaskPlanner:
             "save_task_state — guardar progreso de tarea larga en disco (usar cuando contexto supera 70% o tarea tiene >5 pasos)",
             "load_task_state — cargar progreso guardado de una tarea para retomar desde donde se quedó",
             "list_active_tasks — listar todas las tareas con estado guardado y su progreso",
+            # Sprint 84 — Capa Manos: deploy end-to-end
+            "deploy_app — publicar una app/sitio end-to-end. Magna decide entre GitHub Pages (estático) y Railway (backend). ÚSALA cuando el objetivo es 'publicar', 'desplegar', 'subir a internet', 'sacar al mundo'. Inputs: app_name, files (dict path→content) o repo_url, optional target_override.",
+            "deploy_to_github_pages — publicar sitio estático (HTML/CSS/JS sin backend) end-to-end a GitHub Pages. Crea repo, escribe files, activa Pages, espera build. Devuelve URL pública. Inputs: repo_name, files (dict path→content). Sin token requerido por el LLM.",
+            "deploy_to_railway — publicar backend (FastAPI/Node/cualquier servicio) end-to-end a Railway desde un repo de GitHub. Crea proyecto, servicio, env vars, dispara deploy, devuelve URL. Inputs: project_name, repo_url, env_vars (dict opcional).",
         ]
 
         tools_str = "\n".join(f"  - {t}" for t in available_tools)
@@ -723,6 +727,64 @@ Formato obligatorio:
                 "required": ["action", "path"],
             },
         },
+        # ── Sprint 84 — Capa Manos: deploy end-to-end ─────────────────
+        {
+            "name": "deploy_to_github_pages",
+            "description": "Sprint 84: Publica un sitio estático (HTML/CSS/JS sin backend) end-to-end a GitHub Pages. Crea repo público, escribe los archivos, activa GitHub Pages y espera a que el build esté listo. Devuelve la URL pública accesible desde internet. Usar para landings, portfolios, sitios marketing, demos estáticos. NO requiere token — ya inyectado.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "repo_name": {"type": "string", "description": "Nombre del repo (slug, e.g. forja-landing-pintura-oleo). Debe seguir Brand DNA cuando aplique."},
+                    "files": {
+                        "type": "object",
+                        "description": "Diccionario {ruta_relativa: contenido}. DEBE incluir 'index.html'. Ejemplo: {'index.html': '<!DOCTYPE html>...', 'styles.css': '...'}.",
+                    },
+                    "description": {"type": "string", "description": "Descripción del repo (opcional)"},
+                    "private": {"type": "boolean", "description": "true para repo privado (default false). GitHub Pages requiere público en cuentas free."},
+                },
+                "required": ["repo_name", "files"],
+            },
+        },
+        {
+            "name": "deploy_to_railway",
+            "description": "Sprint 84: Publica un backend (FastAPI/Node/cualquier servicio) end-to-end a Railway desde un repo de GitHub. Crea proyecto Railway, servicio desde el repo, env vars, dispara deploy y devuelve URL pública. Usar para APIs, bots, servicios con persistencia. Requiere repo_url ya creado en GitHub.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "project_name": {"type": "string", "description": "Nombre del proyecto Railway (slug)"},
+                    "repo_url": {"type": "string", "description": "URL del repo GitHub (https://github.com/owner/repo)"},
+                    "branch": {"type": "string", "description": "Branch a deployar (default main)"},
+                    "env_vars": {
+                        "type": "object",
+                        "description": "Variables de entorno {KEY: value} para el servicio. Opcional.",
+                    },
+                },
+                "required": ["project_name", "repo_url"],
+            },
+        },
+        {
+            "name": "deploy_app",
+            "description": "Sprint 84: Wrapper inteligente de deploy. Magna analiza los inputs y decide entre GitHub Pages (sitio estático) o Railway (backend). ÚSALA SIEMPRE QUE EL OBJETIVO SEA 'publicar', 'desplegar', 'subir a internet', 'sacar al mundo' — deja que Magna elija el destino correcto. Si pasas 'files' con index.html va a Pages; si pasas 'repo_url' con backend va a Railway.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "app_name": {"type": "string", "description": "Nombre del proyecto/repo (slug, Brand DNA)"},
+                    "files": {
+                        "type": "object",
+                        "description": "Diccionario {ruta: contenido} para deploy estático. Si está presente, Magna preferirá Pages.",
+                    },
+                    "repo_url": {"type": "string", "description": "URL del repo GitHub. Si está presente sin 'files', Magna preferirá Railway."},
+                    "target_override": {
+                        "type": "string",
+                        "enum": ["github_pages", "railway"],
+                        "description": "Solo para tests: forzar destino. En producción no usar — deja que Magna decida.",
+                    },
+                    "env_vars": {"type": "object", "description": "Env vars para Railway (opcional)"},
+                    "description": {"type": "string", "description": "Descripción del proyecto (opcional)"},
+                },
+                "required": ["app_name"],
+            },
+        },
     ]
 
     async def _execute_tool_direct(self, tool_name: str, args: dict) -> str:
@@ -913,6 +975,44 @@ Formato obligatorio:
                 elif tool_name == "complete_task":
                     result = _complete_task(task_id=args.get("task_id", "unknown"))
                 logger.info("task_planner_state_writer", tool=tool_name, task_id=args.get("task_id", "n/a"))
+                return json.dumps(result, ensure_ascii=False)[:4000]
+
+            elif tool_name == "deploy_to_github_pages":
+                # Sprint 84 — Capa Manos: deploy estático end-to-end
+                from tools.deploy_to_github_pages import execute_deploy_to_github_pages
+                result = await execute_deploy_to_github_pages({
+                    "repo_name": args.get("repo_name") or args.get("app_name"),
+                    "files": args.get("files", {}),
+                    "description": args.get("description", ""),
+                    "private": bool(args.get("private", False)),
+                })
+                logger.info("task_planner_deploy_pages", repo=result.get("repo"), url=result.get("url"), error=bool(result.get("error")))
+                return json.dumps(result, ensure_ascii=False)[:4000]
+
+            elif tool_name == "deploy_to_railway":
+                # Sprint 84 — Capa Manos: deploy backend end-to-end
+                from tools.deploy_to_railway import execute_deploy_to_railway
+                result = await execute_deploy_to_railway({
+                    "project_name": args.get("project_name") or args.get("app_name"),
+                    "repo_url": args.get("repo_url"),
+                    "branch": args.get("branch", "main"),
+                    "env_vars": args.get("env_vars", {}),
+                })
+                logger.info("task_planner_deploy_railway", project=result.get("project"), url=result.get("url"), error=bool(result.get("error")))
+                return json.dumps(result, ensure_ascii=False)[:4000]
+
+            elif tool_name == "deploy_app":
+                # Sprint 84 — wrapper Magna decide entre Pages y Railway
+                from tools.deploy_app import execute_deploy_app
+                result = await execute_deploy_app({
+                    "app_name": args.get("app_name") or args.get("repo_name") or args.get("project_name"),
+                    "files": args.get("files", {}),
+                    "repo_url": args.get("repo_url"),
+                    "target_override": args.get("target_override"),
+                    "env_vars": args.get("env_vars", {}),
+                    "description": args.get("description", ""),
+                })
+                logger.info("task_planner_deploy_app", target=result.get("target"), url=result.get("url"), error=bool(result.get("error")))
                 return json.dumps(result, ensure_ascii=False)[:4000]
 
             else:

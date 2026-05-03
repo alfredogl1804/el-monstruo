@@ -507,7 +507,8 @@ async def main_async(args) -> int:
     bindings_actual: dict = {}
     if not args.print_sql:
         try:
-            from kernel.memory.supabase_client import SupabaseClient
+            # Sprint 84: fix import path — el módulo vive en memory/, no en kernel/memory/
+            from memory.supabase_client import SupabaseClient
             db = SupabaseClient()
             await db.connect()
             if not db.connected:
