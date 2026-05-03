@@ -448,19 +448,27 @@ Formato obligatorio:
 
                 # ── Sprint 51: Error Memory — pre-step consultation ───────
                 try:
-                    _em = getattr(self, "_error_memory", None) or getattr(self._db, "_error_memory", None) if self._db else None
-                    if _em and hasattr(_em, "consult"):
-                        _step_advisory = await _em.consult(
-                            message=f"task_planner step: {step.description}",
-                            module="kernel.task_planner.execute_step",
+                    _em_inst = getattr(self, "_error_memory", None)
+                    _recording = os.environ.get("ERROR_MEMORY_RECORDING", "true").lower() == "true"
+                    if _em_inst and getattr(_em_inst, "initialized", False) and _recording:
+                        rules = await _em_inst.consult(
+                            intent=step.description,
+                            context={
+                                "module": "kernel.task_planner",
+                                "action": "execute_step",
+                                "step_index": step.index,
+                            },
+                            top_k=2,
                         )
-                        if _step_advisory and _step_advisory.get("has_advice"):
+                        if rules:
                             step.context = step.context or {}
-                            step.context["error_memory_advisory"] = _step_advisory.get("advice", "")[:500]
+                            step.context["error_memory_advisory"] = "\n".join(
+                                r.to_prompt_hint() for r in rules
+                            )[:1000]
                             logger.info(
                                 "task_planner_error_memory_advisory",
                                 step=step.index,
-                                advice_chars=len(step.context["error_memory_advisory"]),
+                                rules_count=len(rules),
                             )
                 except Exception:
                     pass  # Error Memory is best-effort
@@ -507,13 +515,15 @@ Formato obligatorio:
 
             # ── Sprint 51: Error Memory — record plan-level failures ───
             try:
-                _em = getattr(self, "_error_memory", None)
-                if _em and hasattr(_em, "record"):
+                _em_inst = getattr(self, "_error_memory", None)
+                _recording = os.environ.get("ERROR_MEMORY_RECORDING", "true").lower() == "true"
+                if _em_inst and getattr(_em_inst, "initialized", False) and _recording:
                     import asyncio
-                    asyncio.create_task(_em.record(
+                    asyncio.create_task(_em_inst.record(
                         error=e,
-                        module="kernel.task_planner.execute",
                         context={
+                            "module": "kernel.task_planner",
+                            "action": "execute",
                             "plan_id": plan.plan_id,
                             "objective": plan.objective[:200] if plan.objective else "",
                             "steps_total": len(plan.steps),

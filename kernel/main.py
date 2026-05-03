@@ -1073,9 +1073,11 @@ async def lifespan(app: FastAPI):
         set_magna_deps(classifier=magna_classifier)
         app.include_router(magna_router)
 
-        # Inject into EmbrionLoop for routing decisions
+        # Inject into EmbrionLoop and Kernel for routing decisions
         if embrion_loop:
             embrion_loop._magna_classifier = magna_classifier
+        if kernel:
+            kernel._magna_classifier = magna_classifier
 
         logger.info(
             "sprint51_magna_classifier_initialized",

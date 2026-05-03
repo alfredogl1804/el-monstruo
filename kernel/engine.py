@@ -93,6 +93,8 @@ class LangGraphKernel(KernelInterface):
         self._db = db  # Sprint 9: SupabaseClient for dossier injection
         self._usage_tracker = None  # Sprint 10: injected post-init
         self._tool_registry = None  # Sprint 10: injected post-init
+        self._error_memory = None    # Sprint 51: injected post-init
+        self._magna_classifier = None  # Sprint 51: injected post-init
         self._finops = None  # Sprint 15: FinOps controller
         self._hooks: dict[str, list[Callable[..., Any]]] = {}
         self._runs: dict[UUID, MonstruoState] = {}
@@ -300,6 +302,8 @@ class LangGraphKernel(KernelInterface):
                     "_event_store": self._event_store,
                     "_observability": self._observability,
                     "_db": self._db,  # Sprint 9: for dossier injection
+                    "_error_memory": self._error_memory,    # Sprint 51
+                    "_magna_classifier": self._magna_classifier,  # Sprint 51
                 }
             }
 
@@ -528,6 +532,8 @@ class LangGraphKernel(KernelInterface):
                 "_event_store": self._event_store,
                 "_observability": self._observability,
                 "_db": self._db,
+                    "_error_memory": self._error_memory,    # Sprint 51
+                    "_magna_classifier": self._magna_classifier,  # Sprint 51
             }
         }
 
@@ -708,6 +714,8 @@ class LangGraphKernel(KernelInterface):
                 "_event_store": self._event_store,
                 "_observability": self._observability,
                 "_db": self._db,
+                    "_error_memory": self._error_memory,    # Sprint 51
+                    "_magna_classifier": self._magna_classifier,  # Sprint 51
             }
         }
 
