@@ -1,5 +1,5 @@
 """
-El Monstruo — Tests: Magna Classifier (Sprint 51)
+El Monstruo — Tests: Magna Classifier (Sprint 81)
 ==================================================
 Tests unitarios para kernel/magna_classifier.py
 

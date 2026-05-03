@@ -1,5 +1,5 @@
 """
-El Despertador — Sprint 51: Ejecutar migraciones 012 + 013
+El Despertador — Sprint 81: Ejecutar migraciones 012 + 013
 Conexión directa via psycopg2 al PostgreSQL de Supabase.
 """
 import subprocess
@@ -51,7 +51,7 @@ BEGIN
     END IF;
 END $$;
 
-COMMENT ON TABLE magna_cache IS 'Sprint 51: Magna Classifier — cache de clasificaciones con TTL';
+COMMENT ON TABLE magna_cache IS 'Sprint 81: Magna Classifier — cache de clasificaciones con TTL';
 COMMENT ON COLUMN magna_cache.cache_key IS 'Hash determinístico de query normalizada + tool_name';
 COMMENT ON COLUMN magna_cache.result IS 'Resultado: {route, score, suggested_tool, category}';
 COMMENT ON COLUMN magna_cache.ttl_seconds IS 'TTL en segundos: APIs=86400, precios=3600, trending=21600';
@@ -61,7 +61,7 @@ COMMENT ON COLUMN magna_cache.hit_count IS 'Contador de consultas exitosas';
 
 def main():
     print("╔══════════════════════════════════════════════╗")
-    print("║  Sprint 51 — Migraciones 012 (Magna Cache)  ║")
+    print("║  Sprint 81 — Migraciones 012 (Magna Cache)  ║")
     print("╚══════════════════════════════════════════════╝")
     print()
 

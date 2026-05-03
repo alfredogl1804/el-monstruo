@@ -195,7 +195,7 @@ async def get_file(repo: str, path: str, ref: str = "main") -> dict:
     import base64
 
     data = await _request("GET", f"/repos/{repo}/contents/{path}?ref={ref}")
-    # Sprint 51.5: GitHub returns list for directories, dict for files
+    # Sprint 81.5: GitHub returns list for directories, dict for files
     if isinstance(data, list):
         return {
             "name": path.split("/")[-1],
@@ -225,7 +225,7 @@ async def get_file(repo: str, path: str, ref: str = "main") -> dict:
 async def list_issues(repo: str, state: str = "open", limit: int = 10) -> dict:
     """List issues in a repo."""
     data = await _request("GET", f"/repos/{repo}/issues?state={state}&per_page={limit}")
-    # Sprint 51.5: defense against non-list responses
+    # Sprint 81.5: defense against non-list responses
     if isinstance(data, dict) and "error" in data:
         return data
     items = data if isinstance(data, list) else []
@@ -248,7 +248,7 @@ async def list_issues(repo: str, state: str = "open", limit: int = 10) -> dict:
 async def list_prs(repo: str, state: str = "open", limit: int = 10) -> dict:
     """List pull requests in a repo."""
     data = await _request("GET", f"/repos/{repo}/pulls?state={state}&per_page={limit}")
-    # Sprint 51.5: defense against non-list responses
+    # Sprint 81.5: defense against non-list responses
     if isinstance(data, dict) and "error" in data:
         return data
     items = data if isinstance(data, list) else []

@@ -1,5 +1,5 @@
 """
-Sprint 52 — Run migration 015: brand_compliance_log table.
+Sprint 82 — Run migration 015: brand_compliance_log table.
 Execute from repo root: python3 scripts/run_migration_015.py
 """
 

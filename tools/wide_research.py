@@ -1,5 +1,5 @@
 """
-WideResearchTool — Sprint 51
+WideResearchTool — Sprint 81
 ==============================
 Implementación basada en la arquitectura de Kimi K2.6 (Moonshot AI).
 Resuelve la brecha crítica #2 del Backlog Técnico: el Monstruo no tiene

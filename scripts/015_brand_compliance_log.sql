@@ -1,5 +1,5 @@
 -- ============================================================================
--- El Monstruo — Sprint 52: Brand Compliance Log
+-- El Monstruo — Sprint 82: Brand Compliance Log
 -- ============================================================================
 -- Tabla para registrar validaciones de compliance de marca.
 -- Cada entrada es un resultado de BrandValidator: score, issues, target.
@@ -54,7 +54,7 @@ BEGIN
 END $$;
 
 -- Comentarios
-COMMENT ON TABLE brand_compliance_log IS 'Sprint 52: Registro de validaciones de compliance de marca del Brand Engine';
+COMMENT ON TABLE brand_compliance_log IS 'Sprint 82: Registro de validaciones de compliance de marca del Brand Engine';
 COMMENT ON COLUMN brand_compliance_log.target IS 'Nombre del elemento validado (tool, endpoint, módulo)';
 COMMENT ON COLUMN brand_compliance_log.target_type IS 'Tipo: output_name, endpoint, tool_spec, error_message';
 COMMENT ON COLUMN brand_compliance_log.score IS 'Score de compliance 0-100';

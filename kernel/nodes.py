@@ -109,7 +109,7 @@ def _obs(config: RunnableConfig) -> Any:
 
 def _em(config: RunnableConfig) -> Any:
     """Extract ErrorMemory instance from config. Returns None if not available.
-    Sprint 51 — Capa 0.1.
+    Sprint 81 — Capa 0.1.
     """
     return config.get("configurable", {}).get("_error_memory") if config else None
 
@@ -922,7 +922,7 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
         logger.warning("action_envelope_failed", error=str(e))
         # Non-fatal: governance is advisory in Sprint 1, not blocking
 
-    # ── Sprint 51: Error Memory — consult before action ────────────────
+    # ── Sprint 81: Error Memory — consult before action ────────────────
     try:
         _em_inst = _em(config)
         _recording = os.environ.get("ERROR_MEMORY_RECORDING", "true").lower() == "true"
@@ -951,7 +951,7 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
                 )
     except Exception as _em_err:
         logger.debug("enrich_error_memory_skip", error=str(_em_err))
-    # ── /Sprint 51 ───────────────────────────────────────────────────────
+    # ── /Sprint 81 ───────────────────────────────────────────────────────
 
     existing_events = state.get("events", [])
     return {
@@ -1145,7 +1145,7 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
     except Exception as e:
         logger.error("execute_failed", model=model, error=str(e))
 
-        # ── Sprint 51: Error Memory — record execution failures ──────
+        # ── Sprint 81: Error Memory — record execution failures ──────
         try:
             _em_inst = _em(config)
             _recording = os.environ.get("ERROR_MEMORY_RECORDING", "true").lower() == "true"
@@ -1165,7 +1165,7 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
                 ))
         except Exception:
             pass  # Error Memory is best-effort — never blocks execution
-        # ── /Sprint 51 ───────────────────────────────────────────────────────
+        # ── /Sprint 81 ───────────────────────────────────────────────────────
 
         event = (
             EventBuilder()

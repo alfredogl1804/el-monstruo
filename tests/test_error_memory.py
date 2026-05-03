@@ -1,5 +1,5 @@
 """
-Tests para kernel/error_memory.py — Sprint 51.
+Tests para kernel/error_memory.py — Sprint 81.
 
 Cubre:
 - Sanitización determinística (mismo error → mismo signature)

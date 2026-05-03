@@ -228,7 +228,7 @@ class TaskPlanner:
         plan_id = str(uuid4())
         logger.info("task_planner_planning", plan_id=plan_id, objective=objective[:100])
 
-        # ── Sprint 51/55.1: SpecDrivenPlanner — Kiro pattern ──────────────────────
+        # ── Sprint 81/55.1: SpecDrivenPlanner — Kiro pattern ──────────────────────
         # Si la tarea es compleja, crear una spec antes de planificar
         # Principio Kiro: "Spec first, code second"
         try:
@@ -446,7 +446,7 @@ Formato obligatorio:
                     )
                     continue
 
-                # ── Sprint 51: Error Memory — pre-step consultation ───────
+                # ── Sprint 81: Error Memory — pre-step consultation ───────
                 try:
                     _em_inst = getattr(self, "_error_memory", None)
                     _recording = os.environ.get("ERROR_MEMORY_RECORDING", "true").lower() == "true"
@@ -472,7 +472,7 @@ Formato obligatorio:
                             )
                 except Exception:
                     pass  # Error Memory is best-effort
-                # ── /Sprint 51 ─────────────────────────────────────────────
+                # ── /Sprint 81 ─────────────────────────────────────────────
 
                 # Execute step with ReAct loop
                 success = await self._execute_step_with_react(step, plan, user_id)
@@ -513,7 +513,7 @@ Formato obligatorio:
             plan.final_summary = f"Ejecución fallida: {str(e)}"
             logger.error("task_planner_execution_failed", plan_id=plan.plan_id, error=str(e))
 
-            # ── Sprint 51: Error Memory — record plan-level failures ───
+            # ── Sprint 81: Error Memory — record plan-level failures ───
             try:
                 _em_inst = getattr(self, "_error_memory", None)
                 _recording = os.environ.get("ERROR_MEMORY_RECORDING", "true").lower() == "true"
@@ -532,7 +532,7 @@ Formato obligatorio:
                     ))
             except Exception:
                 pass
-            # ── /Sprint 51 ─────────────────────────────────────────────
+            # ── /Sprint 81 ─────────────────────────────────────────────
 
             await self._persist_plan(plan)
             return plan.to_dict()

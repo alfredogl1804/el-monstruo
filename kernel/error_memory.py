@@ -1,5 +1,5 @@
 """
-El Monstruo — La Memoria de Errores (Sprint 51, Capa 0.1)
+El Monstruo — La Memoria de Errores (Sprint 81, Capa 0.1)
 ==========================================================
 Sistema persistente que registra cada fallo del kernel, detecta patrones,
 y alimenta consultas pre-action para que el Monstruo no repita errores.
@@ -27,7 +27,7 @@ Endpoints expuestos al Command Center:
     GET /v1/error-memory/patterns?min_confidence=0.7
     POST /v1/error-memory/{signature}/resolve  {resolution: "..."}
 
-Sprint 51 — 2026-05-03
+Sprint 81 — 2026-05-03
 Autor: Hilo B (Cowork)
 """
 
@@ -355,12 +355,12 @@ class ErrorMemory:
     async def aggregate_patterns(self) -> list[ErrorPattern]:
         """Cron 24h: detecta clusters semánticos y propone reglas.
 
-        Estrategia v1 (Sprint 51):
+        Estrategia v1 (Sprint 81):
             - Agrupa errores abiertos por (error_type, module).
             - Cluster con ≥ DEFAULT_PATTERN_MIN_CLUSTER_SIZE → patrón candidato.
             - Confidence inicial 0.5; sube por trigger update_error_pattern_validated.
 
-        v2 (post-Sprint 51):
+        v2 (post-Sprint 81):
             clustering semántico por embedding (DBSCAN sobre vectores).
         """
         if not self._initialized:

@@ -1,4 +1,4 @@
--- Sprint 51: Magna Classifier — Cache de Freshness (Capa 0.2)
+-- Sprint 81: Magna Classifier — Cache de Freshness (Capa 0.2)
 -- Tabla para persistir clasificaciones de contenido magna vs premium
 -- con TTL configurable por categoría:
 --   APIs/frameworks: 24h | Precios/tipos de cambio: 1h | Trending tech: 6h
@@ -42,7 +42,7 @@ BEGIN
 END $$;
 
 -- Comentarios con identidad
-COMMENT ON TABLE magna_cache IS 'Sprint 51: Magna Classifier — cache de clasificaciones con TTL para freshness de datos tech vs estables';
+COMMENT ON TABLE magna_cache IS 'Sprint 81: Magna Classifier — cache de clasificaciones con TTL para freshness de datos tech vs estables';
 COMMENT ON COLUMN magna_cache.cache_key IS 'Hash determinístico de query normalizada + tool_name para deduplicación';
 COMMENT ON COLUMN magna_cache.result IS 'Resultado de clasificación: {route: graph|router, score: 0-1, suggested_tool: str|null, category: tech|action|reflection}';
 COMMENT ON COLUMN magna_cache.ttl_seconds IS 'Time-to-live en segundos: APIs=86400, precios=3600, trending=21600';

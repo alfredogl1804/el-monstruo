@@ -1,5 +1,5 @@
 """
-El Monstruo — Brand Engine (Sprint 52)
+El Monstruo — Brand Engine (Sprint 82)
 ======================================
 Módulo que garantiza que TODO output del Monstruo sea consistente
 con su identidad de marca. No es un wrapper genérico — es parte

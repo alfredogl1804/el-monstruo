@@ -1,5 +1,5 @@
 """
-Sprint 51.5: Fix the trg_budget_tracker trigger that references NEW.cycles
+Sprint 81.5: Fix the trg_budget_tracker trigger that references NEW.cycles
 (column doesn't exist in task_plans — should use revision_count).
 """
 import psycopg2

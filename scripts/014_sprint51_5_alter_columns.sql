@@ -1,7 +1,7 @@
 -- ═══════════════════════════════════════════════════════════════════
--- Migration 014: Sprint 51.5 — alinear schema con código actual
+-- Migration 014: Sprint 81.5 — alinear schema con código actual
 -- ═══════════════════════════════════════════════════════════════════
--- Resuelve los errores activos detectados en producción tras Sprint 51:
+-- Resuelve los errores activos detectados en producción tras Sprint 81:
 --   1. verification_results.cost_usd (PGRST204) — la tabla en prod se
 --      creó antes de la migración 011 que añadió esta columna.
 --   2. task_plans.cycles (42703) — PENDIENTE: requiere stack trace de
@@ -16,7 +16,7 @@ ALTER TABLE verification_results
     ADD COLUMN IF NOT EXISTS cost_usd NUMERIC(10,6) DEFAULT 0;
 
 COMMENT ON COLUMN verification_results.cost_usd IS
-    'Costo de la verificación LLM (solo se usa en casos ambiguos). Sprint 51.5: añadido vía ALTER porque la tabla original se creó antes de la migración 011.';
+    'Costo de la verificación LLM (solo se usa en casos ambiguos). Sprint 81.5: añadido vía ALTER porque la tabla original se creó antes de la migración 011.';
 
 -- ─── 2. task_plans.cycles ─────────────────────────────────────────
 -- PENDIENTE: requiere stack trace exacto del error 42703.

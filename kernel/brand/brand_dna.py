@@ -1,5 +1,5 @@
 """
-El Monstruo — Brand DNA (Sprint 52)
+El Monstruo — Brand DNA (Sprint 82)
 ====================================
 Define la identidad de marca inmutable del Monstruo.
 Cada módulo que produce output DEBE consultar este módulo.

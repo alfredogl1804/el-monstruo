@@ -1,5 +1,5 @@
 """
-El Monstruo — Brand Engine Tests (Sprint 52)
+El Monstruo — Brand Engine Tests (Sprint 82)
 ==============================================
 Tests for brand_dna.py and validator.py.
 Includes Cowork's 23 parametric cases for validate_output_name.

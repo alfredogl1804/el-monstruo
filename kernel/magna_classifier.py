@@ -1,5 +1,5 @@
 """
-El Monstruo — Magna Classifier (Sprint 51, Capa 0.2)
+El Monstruo — Magna Classifier (Sprint 81, Capa 0.2)
 =====================================================
 Clasifica cada input del Embrión para decidir si merece la ruta completa
 del grafo (con tools) o la ruta barata del router (chat-only).

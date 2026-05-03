@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════════
--- Migration 013: La Memoria de Errores + pgvector (Sprint 51, Capa 0.1)
+-- Migration 013: La Memoria de Errores + pgvector (Sprint 81, Capa 0.1)
 -- ═══════════════════════════════════════════════════════════════════
 -- Tabla persistente de errores del kernel con búsqueda semántica.
 -- Implementa Obj #4 — No equivocarse dos veces.
@@ -165,7 +165,7 @@ INSERT INTO error_memory (
      '_think_with_router',
      'Reflexion autonoma sin acceso a tools',
      'Reflexion autonoma sin acceso a tools',
-     'Sprint 51: el Embrión autónomo (reflexion_autonoma, contribucion_sabio) usa router.execute() chat-only. Resultado: tool_calls_total=0. Solución: Magna Classifier decide ruta graph vs router según contenido del prompt.',
+     'Sprint 81: el Embrión autónomo (reflexion_autonoma, contribucion_sabio) usa router.execute() chat-only. Resultado: tool_calls_total=0. Solución: Magna Classifier decide ruta graph vs router según contenido del prompt.',
      0.9,
      'open')
 ON CONFLICT (error_signature) DO NOTHING;

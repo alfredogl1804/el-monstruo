@@ -632,7 +632,7 @@ class EmbrionLoop:
 
             # ── Sprint 33C: Dual-mode execution ───────────────────────
             # Sprint 40: Task Planner — complex objectives get decomposed
-            # Sprint 51: Magna Classifier — intelligent routing replaces
+            # Sprint 81: Magna Classifier — intelligent routing replaces
             #   the hardcoded trigger-type check. When the feature flag
             #   EMBRION_USE_MAGNA_ROUTER is true, Magna decides the route
             #   (graph vs router) based on vocabulary analysis + cache.
@@ -644,7 +644,7 @@ class EmbrionLoop:
             _route_decision = None  # track for logging
 
             if _use_magna and _magna:
-                # ── Sprint 51: Magna-driven routing ───────────────────
+                # ── Sprint 81: Magna-driven routing ───────────────────
                 try:
                     classification = await _magna.classify(
                         message=prompt,
@@ -698,7 +698,7 @@ class EmbrionLoop:
                                 response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
                         else:
                             # Magna says graph for non-directive — this is the NEW behavior
-                            # Before Sprint 51, autonomous reflections NEVER used graph
+                            # Before Sprint 81, autonomous reflections NEVER used graph
                             response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
                     else:
                         # Magna says router (chat-only)
@@ -712,7 +712,7 @@ class EmbrionLoop:
                         response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
                     else:
                         response, tokens_used, estimated_cost, tool_calls = await self._think_with_router(prompt, trigger)
-                # ── /Sprint 51 Magna routing ───────────────────────────
+                # ── /Sprint 81 Magna routing ───────────────────────────
             else:
                 # ── Original Sprint 33C logic (feature flag off) ───────
                 if trigger["type"] == "mensaje_alfredo":
@@ -746,7 +746,7 @@ class EmbrionLoop:
 
             self._cost_today_usd += estimated_cost
 
-            # Sprint 51.5: FCS counter — track real tool usage
+            # Sprint 81.5: FCS counter — track real tool usage
             self._fcs_tool_calls_total += len(tool_calls)
 
             # Save the thought as a memory

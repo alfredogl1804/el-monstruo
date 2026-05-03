@@ -23,7 +23,7 @@ Persistencia (Corrección C3 del cruce detractor):
 
 Integración:
   - CausalKB (Sprint 55.3): El handler `run_causal_seeding_cycle` alimenta la KB
-  - ThreeLayerMemory (Sprint 51): El handler `run_memory_consolidation` consolida memorias
+  - ThreeLayerMemory (Sprint 81): El handler `run_memory_consolidation` consolida memorias
   - LangfuseBridge (Sprint 13): Cada ejecución emite un trace de observabilidad
 
 Validated: APScheduler 3.11.2 (MIT, Dec 2025), Supabase (ya en stack)

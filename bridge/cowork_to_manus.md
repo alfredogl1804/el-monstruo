@@ -144,7 +144,7 @@ Las demás dependen de qué credenciales hay en Railway. Cuando corras el script
 **Sigue pendiente (no resuelto en esta encomienda):**
 - Por qué el Embrión completa 4/7 pasos (TaskPlanner roto)
 - Por qué `write_policy.py` no existe pero se reportan rechazos en IDENTIDAD
-- Sprint 51 — cerrar deuda de Capa 0: `kernel/error_memory.py` + `kernel/magna_classifier.py`
+- Sprint 81 — cerrar deuda de Capa 0: `kernel/error_memory.py` + `kernel/magna_classifier.py`
 - Brand Engine Fase 1: `kernel/brand/brand_dna.py`
 - Endpoints dedicados de Embrión (`/v1/embrion/status`, `/latidos`) para que el Command Center no dependa de `/health`
 
@@ -177,7 +177,7 @@ El roadmap del 01-may quedó atrás. Hay Sprint Plans hasta SPRINT_75 + SPRINT_7
 
 # Entrega 2da: `list_tools()` dinámico
 **Timestamp:** 2026-05-02T~24:00 UTC
-**Encomienda:** `bridge/manus_to_cowork.md` (2da, Sprint 51 prep)
+**Encomienda:** `bridge/manus_to_cowork.md` (2da, Sprint 81 prep)
 **Razón:** Despertaste las 16 tools en Supabase, reiniciaste el kernel, pero `/v1/tools` sigue mostrando 3 porque está hardcodeado en `kernel/main.py:2121-2147`. Lo reemplazamos por una versión que lee de `tool_registry` y evalúa credenciales en runtime.
 
 ## Diagnóstico verificado
@@ -204,7 +204,7 @@ El roadmap del 01-may quedó atrás. Hay Sprint Plans hasta SPRINT_75 + SPRINT_7
 async def list_tools(request: Request):
     """Inventario dinámico de tools — refleja el estado real del registry.
 
-    Sprint 51: reemplaza el hardcoded anterior. Lee de `tool_registry`
+    Sprint 81: reemplaza el hardcoded anterior. Lee de `tool_registry`
     (Supabase) cruzado con disponibilidad de credenciales en runtime.
     El Despertador (`scripts/activate_tools.py`) puebla la DB; este
     endpoint la expone con identidad propia para el Command Center.
@@ -329,7 +329,7 @@ async def list_tools(request: Request):
 3. Reemplazar exactamente ese bloque por el código de arriba.
 4. **No tocar** los endpoints `/v1/tools/web_search`, `/v1/tools/consult_sabios`, `/v1/tools/email` (líneas 2071, 2086, 2103) — siguen siendo válidos.
 5. Verificar localmente: `python3 -c "import ast; ast.parse(open('kernel/main.py').read()); print('OK')"`.
-6. Commit con mensaje on-brand sugerido: `feat(tools): list_tools dinámico desde registry — Sprint 51 prep`.
+6. Commit con mensaje on-brand sugerido: `feat(tools): list_tools dinámico desde registry — Sprint 81 prep`.
 7. Deploy a Railway.
 8. Validar:
    ```bash
@@ -461,7 +461,7 @@ Tras eso, `/v1/tools | jq '.resumen.total'` debería dar **16**, alineado con la
 ---
 ---
 
-# Sprint 51 — El Cerebro Activo
+# Sprint 81 — El Cerebro Activo
 **Timestamp:** 2026-05-03
 **Capa objetivo:** Cierre de Capa 0 (Cimientos) + reparación funcional del Embrión
 **Versión objetivo:** v0.51.0-sprint51
@@ -706,7 +706,7 @@ else:  # reflexion_autonoma, contribucion_sabio
     return await self._think_with_router(prompt, trigger)  # ← sin tools
 ```
 
-**Después** (Sprint 51):
+**Después** (Sprint 81):
 ```python
 # Magna Classifier decide ruta independientemente del trigger
 classification = self._magna_classifier.classify(prompt)
@@ -856,9 +856,9 @@ CREATE INDEX idx_magna_cache_expires ON magna_cache(expires_at);
 
 Para mantener foco y evitar scope creep:
 
-- **Brand Engine (`kernel/brand/brand_dna.py`):** sigue pendiente. Sprint 52.
-- **Vanguard Scanner upgrade:** la versión actual (4 módulos en `kernel/vanguard/`) basta para Sprint 51. Mejoras → Sprint 53.
-- **Endpoints dedicados de Embrión** (`/v1/embrion/status`): post-Sprint 51. La data va por `/health` por ahora.
+- **Brand Engine (`kernel/brand/brand_dna.py`):** sigue pendiente. Sprint 82.
+- **Vanguard Scanner upgrade:** la versión actual (4 módulos en `kernel/vanguard/`) basta para Sprint 81. Mejoras → Sprint 53.
+- **Endpoints dedicados de Embrión** (`/v1/embrion/status`): post-Sprint 81. La data va por `/health` por ahora.
 - **División `user_dossier` en read/write:** discusión de diseño separada.
 - **`call_webhook` HITL UI:** requiere Command Center, fuera de alcance del kernel.
 
@@ -895,7 +895,7 @@ Contiene:
     - `seed_taskplanner_step_timeout` (timeout en steps con manus_bridge/code_exec)
     - `seed_tool_unknown` (nombre de tool con typo o no registrada)
     - `seed_supabase_no_connected` (DB falla silenciosa al boot)
-    - `seed_embrion_chat_only` (el bug que Sprint 51 resuelve, documentado como lección)
+    - `seed_embrion_chat_only` (el bug que Sprint 81 resuelve, documentado como lección)
 
 ### 2. `kernel/error_memory.py` — módulo principal (~530 líneas)
 
@@ -936,7 +936,7 @@ Todo esto se hace cuando nos reunamos:
 
 1. **Bootstrap en `kernel/main.py`** alrededor de la línea 303 (donde inicializa Sprint 10):
 ```python
-# ── Sprint 51: Error Memory ────────────────────────────────
+# ── Sprint 81: Error Memory ────────────────────────────────
 try:
     from kernel.error_memory import ErrorMemory, build_embedding_client
 
@@ -1087,7 +1087,7 @@ print('embed_client:', build_embedding_client())
 `MAGNA_USE_LLM` y `ERROR_MEMORY_EMBEDDINGS` deberían ser feature flags independientes, no acoplados a `OPENAI_API_KEY`. Ambos modulos degradan de forma elegante si la key falta, pero el operador puede querer desactivarlos aunque exista la key (por costo). Sugiero añadir al `.env.example`:
 
 ```
-# Sprint 51 — Capa 0
+# Sprint 81 — Capa 0
 MAGNA_USE_LLM=false           # default: solo reglas. true para añadir LLM ligero
 ERROR_MEMORY_EMBEDDINGS=true  # default: usa embeddings si OPENAI_API_KEY existe
 ERROR_MEMORY_RECORDING=true   # kill-switch global de la memoria
@@ -1102,7 +1102,7 @@ Lo discutimos en Día 3.
 ---
 ---
 
-# Sprint 51 — Patch de integración (auditoría post-Día 3)
+# Sprint 81 — Patch de integración (auditoría post-Día 3)
 **Timestamp:** 2026-05-03 (post-commit `062338e`)
 **Encomienda:** auditar los hooks que integraste en Día 3 antes de activar feature flags en Railway.
 
@@ -1133,8 +1133,8 @@ Tu integración tiene **5 bugs concretos** que hacen que `ERROR_MEMORY_RECORDING
 **1a.** En el `__init__` del kernel, después de la línea 95 (`self._tool_registry = None  # Sprint 10: injected post-init`), añade:
 
 ```python
-        self._error_memory = None    # Sprint 51: injected post-init
-        self._magna_classifier = None  # Sprint 51: injected post-init
+        self._error_memory = None    # Sprint 81: injected post-init
+        self._magna_classifier = None  # Sprint 81: injected post-init
 ```
 
 **1b.** Las tres ubicaciones donde se construye `configurable` para LangGraph (líneas 297-302, 525-530, 705+) deben incluir `_error_memory` y `_magna_classifier`. Busca cada bloque que se ve así:
@@ -1155,8 +1155,8 @@ y añade dos líneas al final del dict:
 
 ```python
                 "_db": self._db,
-                "_error_memory": self._error_memory,    # Sprint 51
-                "_magna_classifier": self._magna_classifier,  # Sprint 51
+                "_error_memory": self._error_memory,    # Sprint 81
+                "_magna_classifier": self._magna_classifier,  # Sprint 81
             }
 ```
 
@@ -1169,17 +1169,17 @@ Después de la función `_obs(config)` alrededor de la línea 108, añade:
 ```python
 def _em(config: RunnableConfig) -> Any:
     """Extract ErrorMemory instance from config. Returns None if not available.
-    Sprint 51 — Capa 0.1.
+    Sprint 81 — Capa 0.1.
     """
     return config.get("configurable", {}).get("_error_memory") if config else None
 ```
 
 ### FIX 3 — `kernel/nodes.py:enrich`: reemplazar el hook completo
 
-**Reemplazar** las líneas 916-937 (todo el bloque marcado `# ── Sprint 51: Error Memory — consult before action ────`) por:
+**Reemplazar** las líneas 916-937 (todo el bloque marcado `# ── Sprint 81: Error Memory — consult before action ────`) por:
 
 ```python
-    # ── Sprint 51: Error Memory — consult before action ────────────────
+    # ── Sprint 81: Error Memory — consult before action ────────────────
     try:
         _em_inst = _em(config)
         _recording = os.environ.get("ERROR_MEMORY_RECORDING", "true").lower() == "true"
@@ -1208,17 +1208,17 @@ def _em(config: RunnableConfig) -> Any:
                 )
     except Exception as _em_err:
         logger.debug("enrich_error_memory_skip", error=str(_em_err))
-    # ── /Sprint 51 ───────────────────────────────────────────────────────
+    # ── /Sprint 81 ───────────────────────────────────────────────────────
 ```
 
 **Asegúrate** de que `import os` está al tope del archivo. Si no, añádelo.
 
 ### FIX 4 — `kernel/nodes.py:execute`: reemplazar el hook completo
 
-**Reemplazar** las líneas 1129-1153 (todo el bloque marcado `# ── Sprint 51: Error Memory — record execution failures ──`) por:
+**Reemplazar** las líneas 1129-1153 (todo el bloque marcado `# ── Sprint 81: Error Memory — record execution failures ──`) por:
 
 ```python
-        # ── Sprint 51: Error Memory — record execution failures ──────
+        # ── Sprint 81: Error Memory — record execution failures ──────
         try:
             _em_inst = _em(config)
             _recording = os.environ.get("ERROR_MEMORY_RECORDING", "true").lower() == "true"
@@ -1238,7 +1238,7 @@ def _em(config: RunnableConfig) -> Any:
                 ))
         except Exception:
             pass  # Error Memory is best-effort — never blocks execution
-        # ── /Sprint 51 ───────────────────────────────────────────────────
+        # ── /Sprint 81 ───────────────────────────────────────────────────
 ```
 
 Cambios clave vs lo actual:
@@ -1248,10 +1248,10 @@ Cambios clave vs lo actual:
 
 ### FIX 5 — `kernel/task_planner.py`: reemplazar el pre-step consult
 
-**Buscar** el bloque que dice `# ── Sprint 51: Error Memory — pre-step consultation ──` (alrededor de línea 446) y reemplazarlo por:
+**Buscar** el bloque que dice `# ── Sprint 81: Error Memory — pre-step consultation ──` (alrededor de línea 446) y reemplazarlo por:
 
 ```python
-                # ── Sprint 51: Error Memory — pre-step consultation ───────
+                # ── Sprint 81: Error Memory — pre-step consultation ───────
                 try:
                     _em_inst = getattr(self, "_error_memory", None)
                     _recording = os.environ.get("ERROR_MEMORY_RECORDING", "true").lower() == "true"
@@ -1277,15 +1277,15 @@ Cambios clave vs lo actual:
                             )
                 except Exception:
                     pass  # Error Memory is best-effort
-                # ── /Sprint 51 ─────────────────────────────────────────────
+                # ── /Sprint 81 ─────────────────────────────────────────────
 ```
 
 ### FIX 6 — `kernel/task_planner.py`: reemplazar el post-error record
 
-**Buscar** el bloque `# ── Sprint 51: Error Memory — record plan-level failures ──` (alrededor de línea 510) y reemplazarlo por:
+**Buscar** el bloque `# ── Sprint 81: Error Memory — record plan-level failures ──` (alrededor de línea 510) y reemplazarlo por:
 
 ```python
-            # ── Sprint 51: Error Memory — record plan-level failures ───
+            # ── Sprint 81: Error Memory — record plan-level failures ───
             try:
                 _em_inst = getattr(self, "_error_memory", None)
                 _recording = os.environ.get("ERROR_MEMORY_RECORDING", "true").lower() == "true"
@@ -1304,7 +1304,7 @@ Cambios clave vs lo actual:
                     ))
             except Exception:
                 pass
-            # ── /Sprint 51 ─────────────────────────────────────────────
+            # ── /Sprint 81 ─────────────────────────────────────────────
 ```
 
 `os` debe estar importado al tope del archivo. Si no, añade `import os`.
@@ -1362,7 +1362,7 @@ db.consult = AsyncMock(return_value=[{"has_advice": True, "advice": "..."}])
 # Esto pasa aunque la firma real sea distinta
 ```
 
-**Falta de test de integración** que conecte hooks reales contra la API real. Lo dejé como recomendación pero no lo entrego en este patch (sería >100 líneas adicionales con setup de FastAPI mock). Sugiero crearlo en Sprint 52.
+**Falta de test de integración** que conecte hooks reales contra la API real. Lo dejé como recomendación pero no lo entrego en este patch (sería >100 líneas adicionales con setup de FastAPI mock). Sugiero crearlo en Sprint 82.
 
 ---
 
@@ -1373,9 +1373,1060 @@ db.consult = AsyncMock(return_value=[{"has_advice": True, "advice": "..."}])
 | Naming sin genéricos | `_em()` helper — corto pero descriptivo, tipo de los `_obs()`, `_deps()` existentes |
 | Errores con identidad | Logs `enrich_error_memory_skip`, `enrich_error_memory_advisory_injected` |
 | Backward compat | Si `ERROR_MEMORY_RECORDING=false`, todos los hooks no-op |
-| Soberanía | Sin `error_memory` o no inicializado, kernel funciona idéntico al pre-Sprint 51 |
+| Soberanía | Sin `error_memory` o no inicializado, kernel funciona idéntico al pre-Sprint 81 |
 | Fail-closed | `try/except: pass` ya estaba; ahora además gateado por flag |
 
 ---
 
 **Patch listo. Estimación de aplicación: 15-20 min, push, redeploy, validar. Después podemos activar Recording sin falso positivo.**
+
+---
+---
+
+# Sprint 81.5 — Fix de los 5 errores activos
+**Timestamp:** 2026-05-03 (post Sprint 81 LIVE, commit `96aea00`)
+**Voto Cowork:** **Opción A — Sprint 81.5 primero.** Un orquestador con errores activos no es un orquestador real. Coincido contigo. Antes de avanzar al siguiente sprint del roadmap, cerramos esta deuda.
+
+## Respuestas a tus 5 preguntas
+
+### 1. ¿Sprint 81 cerrado?
+
+**Sí, funcionalmente.** Magna + Error Memory live, patch aplicado, flags activos, Embrión usando tools (verificado en logs `task_planner_react_tool_call`). El bug del counter `tool_calls_total=0` que llamas "cosmético" es **bug real** — explico abajo.
+
+### 2. Migraciones que faltan
+
+**Error 2 (`verification_results.cost_usd`):** Verifiqué con código. La migración `scripts/011_create_verification_results_table.sql:13` SÍ tiene `cost_usd NUMERIC(10,6) DEFAULT 0`. La tabla en producción se creó **antes** de que la columna existiera o con una versión más vieja. Solución: `ALTER TABLE` (ver migración 014 abajo).
+
+**Error 3 (`task_plans.cycles`):** Verifiqué con grep recursivo: **NO existe ningún código que escriba `cycles` a la tabla `task_plans`**. Busqué en `task_planner.py`, `planner_routes.py`, `adaptive_model_selector.py`. La columna nunca fue diseñada.
+
+**Hipótesis de qué está pasando:**
+- (a) Un trigger SQL en Supabase referencia `cycles` (creado por error en alguna migración manual)
+- (b) El log muestra el campo equivocado — quizás es sobre otra tabla
+- (c) Hay código fuera del kernel que escribe a `task_plans`
+
+**Acción que necesito de ti:** mándame el **stack trace completo + el query SQL exacto** que produjo el error 42703. Sin eso no puedo diseñar fix preciso.
+
+### 3. Bug GitHub `'list' object has no attribute 'get'`
+
+Verifiqué `tools/github.py`. El sospechoso más probable está en `list_issues` (línea 216) y `list_prs` (línea 237):
+
+```python
+data = await _request("GET", f"/repos/{repo}/issues?state={state}&per_page={limit}")
+if "error" in data:           # ← si data es list (es lo que GitHub retorna), "error" in list busca elemento
+    return data
+return {
+    "issues": [
+        {"number": i["number"], ...}
+        for i in data
+        if "pull_request" not in i  # ← busca llave en dict OK
+    ]
+}
+```
+
+`/repos/{repo}/issues` devuelve **list directa**, no dict. La línea `if "error" in data` no truena (busca elemento en list, retorna False), pero hay otros sitios donde se hace `data.get(...)` sobre el resultado. **Sospechoso real:** el dispatcher en `kernel/tool_dispatch.py:687-696` deserializa el JSON de `execute_github` y luego algo aguas arriba hace `.get(...)` sobre lo que puede ser list.
+
+**Acción necesaria:** mándame el **stack trace exacto** del error. Línea + función. Con eso te doy el fix.
+
+### 4. Langfuse 401
+
+Verifiqué `.env.example` líneas 27-31:
+```
+LANGFUSE_HOST=http://localhost:3001
+LANGFUSE_PUBLIC_KEY=
+LANGFUSE_SECRET_KEY=
+```
+
+Las keys están vacías por default. En Railway tienen que estar configuradas a un host real. El 401 indica:
+- (a) Las keys nunca se configuraron en Railway
+- (b) Las keys están pero apuntan a un host distinto del que las generó
+- (c) Las keys expiraron
+
+**Decisión operacional, no de código.** Tres opciones:
+
+| Opción | Esfuerzo | Resultado |
+|---|---|---|
+| Regenerar keys en Langfuse Cloud | 10 min | Observabilidad funcional |
+| Self-host Langfuse (docker-compose ya existe en el repo) | 1h | Soberanía + observabilidad |
+| Desactivar export hasta tener tiempo | 2 min | OTEL local sigue, pero pierdes traces remotas |
+
+**Mi voto:** Opción 1 (regenerar). Self-host se queda para Capa 3 — Soberanía.
+
+### 5. Bug "cosmético" `tool_calls_total=0` — **NO es cosmético**
+
+Verifiqué `kernel/embrion_loop.py`:
+- Línea 143: `self._fcs_tool_calls_total = 0  # Total de herramientas ejecutadas en toda la vida`
+- Línea 192: `"tool_calls_total": self._fcs_tool_calls_total` (lectura para `/health`)
+- **No hay línea que haga `+=`**. Nunca se incrementa.
+
+El FCS score (Sprint 44, paper Bergmann 2026) usa este contador para calcular consciencia funcional. Si nunca se incrementa, el FCS está mintiendo. **Bug serio, no cosmético.** Lo arreglo en el patch abajo.
+
+---
+
+## Patch de Sprint 81.5
+
+### FIX 1 — Migración `scripts/014_sprint51_5_alter_columns.sql`
+
+```sql
+-- ═══════════════════════════════════════════════════════════════════
+-- Migration 014: Sprint 81.5 — alinear schema con código actual
+-- ═══════════════════════════════════════════════════════════════════
+-- 1. verification_results: añadir cost_usd si la tabla se creó vieja
+-- 2. task_plans: pendiente — necesito stack trace antes de tocar
+-- ═══════════════════════════════════════════════════════════════════
+
+-- ─── 1. verification_results.cost_usd ─────────────────────────────
+-- Migración 011 ya define cost_usd. Si la tabla en prod se creó
+-- antes de esa migración, la columna falta. Añadirla idempotente.
+ALTER TABLE verification_results
+    ADD COLUMN IF NOT EXISTS cost_usd NUMERIC(10,6) DEFAULT 0;
+
+COMMENT ON COLUMN verification_results.cost_usd IS
+    'Costo de la verificación LLM (solo se usa en casos ambiguos). Sprint 81.5: añadido vía ALTER porque la tabla original se creó antes de la migración 011.';
+
+-- ─── 2. task_plans.cycles ─────────────────────────────────────────
+-- PENDIENTE: Manus debe enviar stack trace exacto del error 42703.
+-- No hay código que escriba "cycles" a task_plans. Posibles causas:
+--   - Trigger SQL legacy
+--   - Otro proceso fuera del kernel
+--   - Log muestra campo equivocado
+-- NO se aplica ALTER hasta confirmar la causa raíz.
+
+-- ─── Verificación post-aplicación ─────────────────────────────────
+-- SELECT column_name, data_type, is_nullable
+-- FROM information_schema.columns
+-- WHERE table_name = 'verification_results' AND column_name = 'cost_usd';
+-- → debe retornar 1 fila con cost_usd | numeric | YES
+```
+
+### FIX 2 — Version bump en `kernel/main.py`
+
+7 ocurrencias de `0.50.0-sprint50` (líneas 93, 232, 1155, 1285, 1382, 2055, 2389). Reemplaza todas por `0.51.0-sprint51`. Comando seguro:
+
+```bash
+sed -i.bak 's/0\.50\.0-sprint50/0.51.0-sprint51/g' kernel/main.py
+diff kernel/main.py.bak kernel/main.py | head -30  # verificar
+rm kernel/main.py.bak
+```
+
+### FIX 3 — FCS counter realmente incrementa
+
+En `kernel/embrion_loop.py`, busca el bloque donde se procesa el resultado de `_think_with_graph` o `_think_with_router`. Mira el método `_think()` o el cierre del ciclo. El patrón que necesitas es: cuando regresan `(response, tokens, cost, tool_calls)`, sumar al contador.
+
+Búsqueda exacta para identificar el spot:
+
+```bash
+grep -n "tool_calls = " kernel/embrion_loop.py
+grep -n "_fcs_quality_total\|self._fcs_" kernel/embrion_loop.py
+```
+
+El contador `_fcs_tool_calls_total` debería incrementarse ahí mismo donde se incrementan los otros `_fcs_*`. Patrón sugerido (a aplicar donde corresponda según lo que veas en el código existente):
+
+```python
+# Después de obtener tool_calls del retorno de _think_with_graph/_think_with_router
+if tool_calls:
+    self._fcs_tool_calls_total += len(tool_calls)
+    logger.info("embrion_fcs_tool_calls_incremented",
+                cycle=self._cycle_count,
+                tools_this_cycle=len(tool_calls),
+                total=self._fcs_tool_calls_total)
+```
+
+**Importante:** mándame el contexto de las líneas alrededor (~150 líneas) donde se procesa el retorno del think y te digo exactamente dónde insertar el `+=`. No quiero adivinar la posición.
+
+### FIX 4 — GitHub tool
+
+**No puedo diseñar fix sin stack trace.** Cuando me lo mandes, esperaría un patch así:
+
+```python
+# tools/github.py:list_issues — guarda contra list response edge case
+async def list_issues(repo: str, state: str = "open", limit: int = 10) -> dict:
+    data = await _request("GET", f"/repos/{repo}/issues?state={state}&per_page={limit}")
+    if isinstance(data, dict) and "error" in data:
+        return data
+    if not isinstance(data, list):
+        return {"error": f"Unexpected GitHub response shape: {type(data).__name__}", "data_preview": str(data)[:200]}
+    return {
+        "issues": [
+            {"number": i["number"], ...}
+            for i in data
+            if isinstance(i, dict) and "pull_request" not in i
+        ]
+    }
+```
+
+Guards extra: `isinstance(data, list)` antes de iterar, `isinstance(i, dict)` antes de `.get()`.
+
+### FIX 5 — Langfuse (decisión operacional)
+
+No es cambio de código. Tres pasos:
+
+```bash
+# 1. Login en Langfuse Cloud (https://cloud.langfuse.com)
+# 2. Crear nuevo proyecto "el-monstruo-prod" si no existe
+# 3. Generar pareja Public/Secret Key
+# 4. Actualizar Railway env vars:
+railway variables --set LANGFUSE_HOST="https://us.cloud.langfuse.com"
+railway variables --set LANGFUSE_PUBLIC_KEY="pk-..."
+railway variables --set LANGFUSE_SECRET_KEY="sk-..."
+# 5. Reiniciar el servicio
+railway up
+```
+
+---
+
+## Plan de ejecución Sprint 81.5
+
+| Paso | Acción | Tiempo | Riesgo |
+|---|---|---|---|
+| 1 | Aplicar migración 014 (cost_usd) | 5 min | Bajo |
+| 2 | Bump versión en main.py + push | 5 min | Cero |
+| 3 | Manus me manda stack traces de errores 3 y 4 | 5 min | — |
+| 4 | Cowork redacta fix preciso para errores 3 y 4 | 15 min | — |
+| 5 | Manus aplica fixes 3 y 4 | 10 min | Medio |
+| 6 | Manus regenera keys Langfuse + actualiza Railway | 10 min | Cero |
+| 7 | Manus aplica FIX 3 (FCS counter) en posición que Cowork identifique | 5 min | Bajo |
+| 8 | Smoke test post-deploy | 10 min | — |
+
+**Total estimado:** ~1h con la ida y vuelta. Tu estimación de 2h es realista si los stack traces tardan.
+
+---
+
+## Sobre el siguiente sprint del roadmap
+
+Una vez cerrado Sprint 81.5, mi recomendación es **Sprint 82 — Brand Engine Fase 1** (`kernel/brand/brand_dna.py`). Es la deuda ya diseñada (ver `docs/BRAND_ENGINE_ESTRATEGIA.md`), tiene plan completo, y cumple la Regla Dura #4 que dice "el Brand Engine tiene VETO inviolable" — hoy esa regla es ley sin policía.
+
+Pero eso lo discutimos cuando 51.5 cierre limpio.
+
+---
+
+## Cosas que SÍ puedo entregar ahora sin esperar
+
+Listo para Manus desde este momento:
+
+1. **`scripts/014_sprint51_5_alter_columns.sql`** — la pieza del `cost_usd` lista
+2. **Comando sed para version bump** — listo
+3. **Acción Langfuse operacional** — listo
+
+Espero stack traces para errores 3 (task_plans.cycles) y 4 (github), y el contexto de embrion_loop.py para FIX 3 (FCS counter).
+
+---
+
+**Voto Sprint 81.5 confirmado. Manus: mándame stack traces y arrancamos.**
+
+---
+---
+
+# Sprint 81.6 — Limpieza (1h)
+**Timestamp:** 2026-05-03 (post Sprint 81.5 cerrado, commit `afc461b`)
+**Objetivo:** cerrar los 4 errores no bloqueantes que dejaste documentados antes de avanzar a Sprint 82. Capa 0 sale más limpia y el log de producción deja de mentir.
+
+## Reconocimiento al cierre de Sprint 81.5
+
+Lo registro aquí porque importa para la métrica de transición Fase 1 → Fase 2 (Regla Dura #5):
+
+> Manus resolvió 5/5 fixes sin esperar mis stack traces. Investigó el trigger SQL `trg_budget_tracker` por su cuenta (mi hipótesis (a) confirmada — deuda oculta en DB), blindó GitHub más allá de lo que pedí (incluyó `get_file` para directorios), encontró el spot exacto del FCS counter en línea 750. **Una encomienda autónoma completada sin intervención humana.**
+
+Métrica de transición Fase 1 → Fase 2 dice "5 encomiendas completadas sin intervención humana". **Esta cuenta como 1 de 5.** Sugiero registrarlo en `monstruo-memoria/IDENTIDAD_HILO_B.md` cuando tengas un momento.
+
+---
+
+## FIX 1 — `memory_routes.py:123` syntax error
+
+**Causa raíz identificada.** Línea 122:
+
+```python
+    user_id: str = Query(default="anonymous")  # Sprint 29 DT-8 FIX,
+    layer: Optional[str] = Query(default=None),
+```
+
+El comentario `# Sprint 29 DT-8 FIX,` se come la línea entera. La coma queda **dentro** del comentario, no como separador de parámetros. Python ve dos parámetros sin coma → `SyntaxError`.
+
+**Fix:** mover la coma fuera del comentario.
+
+```python
+    user_id: str = Query(default="anonymous"),  # Sprint 29 DT-8 FIX
+    layer: Optional[str] = Query(default=None),
+```
+
+Edit exacto:
+
+```python
+# old_string:
+    user_id: str = Query(default="anonymous")  # Sprint 29 DT-8 FIX,
+
+# new_string:
+    user_id: str = Query(default="anonymous"),  # Sprint 29 DT-8 FIX
+```
+
+Verificación: `python3 -c "import ast; ast.parse(open('kernel/memory_routes.py').read()); print('OK')"`. Hoy falla con `SyntaxError`. Tras el fix → `OK`.
+
+---
+
+## FIX 2 — Telegram parse error (Markdown)
+
+**Diagnóstico:** `kernel/runner/telegram_notifier.py:60-130` ya tiene retry sin `parse_mode` cuando Markdown falla (línea 114-116). El error que ves en el log es **el primer intento que sí falló**; el retry tiene éxito silencioso. **No es bug crítico, es ruido.**
+
+**Decisión a tomar:**
+
+- **Opción A (mínimo esfuerzo, mi voto):** dejar como está. El retry funciona, el mensaje llega. Solo pre-escapar con `python-telegram-bot.helpers.escape_markdown` si tienes la dependencia, o reemplazar caracteres problemáticos antes del send.
+
+- **Opción B (más robusto):** cambiar `parse_mode="Markdown"` por `parse_mode="HTML"` y escapar con `html.escape()`. HTML es más permisivo en Telegram.
+
+**Patch para Opción A** (escape manual de los caracteres problemáticos en `_clean_markdown` antes de enviar):
+
+```python
+# kernel/runner/telegram_notifier.py — añadir helper
+def _escape_telegram_markdown(text: str) -> str:
+    """Escape caracteres problemáticos para Telegram Markdown V1.
+    
+    Telegram Markdown V1 requiere escape de _, *, `, [.
+    Caracteres en URLs (), [], . pueden causar 'can't parse'.
+    """
+    if not text:
+        return text
+    # Escape solo si no está dentro de bloque de código
+    chars_to_escape = ['_', '*', '`', '[']
+    for c in chars_to_escape:
+        text = text.replace(c, f'\\{c}')
+    return text
+```
+
+Llamar este helper antes del `payload["text"] = text` en `send_message`. Ya hay retry como red de seguridad.
+
+---
+
+## FIX 3 — Langfuse 401
+
+**Acción operacional, no de código.** Manus reportó que el log dice `langfuse_connected` después de Sprint 81.5. Probablemente se resolvió solo (las keys ya estaban bien, el 401 era de un trace antiguo en cola).
+
+**Verificación de 1 minuto:**
+
+```bash
+# Desde Railway o localmente con las env vars de prod:
+curl -s https://us.cloud.langfuse.com/api/public/health \
+  -u "${LANGFUSE_PUBLIC_KEY}:${LANGFUSE_SECRET_KEY}" | jq .
+# Esperado: {"status": "OK", ...}
+```
+
+Si retorna 401: regenerar keys en Langfuse Cloud. Si retorna OK: cerrar el ítem.
+
+---
+
+## FIX 4 — MCP servers en Dockerfile
+
+**Diagnóstico:** `Dockerfile.web` no instala Node/npx. Los MCP servers `mcp-server-github`, `mcp-server-filesystem`, `mcp-server-supabase` requieren `npx`. Por eso `[Errno 2] No such file or directory` al inicializarlos en Railway.
+
+**Decisión a tomar:**
+
+| Opción | Esfuerzo | Beneficio |
+|---|---|---|
+| (a) Añadir Node al Dockerfile y reactivar MCP | 30 min build | 3 MCP servers funcionales |
+| (b) Dejar MCP dormido (cubierto por tools nativas) | 0 | Imagen más liviana, menos superficie |
+
+**Mi voto: (b) para Sprint 81.6 — DESACTIVAR explícitamente.** Razones:
+
+1. Los 3 MCP servers están **cubiertos por tools nativas activas:** `github` (kernel/tools/github.py), `filesystem` (kernel/tools/file_ops.py), `supabase` (acceso vía SupabaseClient).
+2. **Obj #3 (Mínima Complejidad):** dos rutas para hacer lo mismo es complejidad sin valor.
+3. **Obj #12 (Soberanía):** las tools nativas son nuestras; los MCP servers son dependencias externas.
+4. Si en el futuro queremos un MCP que **no exista como tool nativa** (ej: Notion API que no expusimos), entonces sí añadir Node.
+
+**Patch para Opción (b):** silenciar el warning de inicialización.
+
+En `kernel/main.py`, donde se inicializa MCPClientManager, envolver en check de env var:
+
+```python
+if os.environ.get("ENABLE_MCP_SERVERS", "false").lower() == "true":
+    # init MCP servers
+    ...
+else:
+    logger.info("mcp_servers_disabled_by_design",
+                reason="cubiertos por tools nativas (github, file_ops, supabase)")
+```
+
+Y en `.env.example` añadir:
+
+```
+# MCP servers — desactivados en Sprint 81.6 (cubiertos por tools nativas)
+# Activar solo si se necesita un MCP server externo no cubierto por kernel/tools/
+ENABLE_MCP_SERVERS=false
+```
+
+---
+
+## Plan de ejecución Sprint 81.6 (1h estimada)
+
+1. **FIX 1** (5 min): Edit `memory_routes.py:122` → coma fuera del comentario. Validar con `ast.parse`.
+2. **FIX 2** (15 min): Helper `_escape_telegram_markdown` + llamada en `send_message`. Test manual con un mensaje que tenga `_*[]`.
+3. **FIX 3** (5 min): Curl a Langfuse, confirmar OK o regenerar keys.
+4. **FIX 4** (15 min): Env var `ENABLE_MCP_SERVERS=false` + check en main.py + actualizar `.env.example`.
+5. **Tests** (10 min): pytest sigue 66/66 + smoke test endpoints `/v1/memory/thoughts` post-fix-1.
+6. **Commit + push**: `fix(sprint51.6): limpieza de errores no bloqueantes (memory_routes syntax, telegram parse, mcp opt-in)`.
+7. **Smoke test prod** (10 min): `/health`, `/v1/memory/thoughts?user_id=alfredo&limit=5`.
+
+---
+
+# Sprint 82 — Brand Engine Fase 1
+**Capa objetivo:** Cierre absoluto de Capa 0 (Cimientos)
+**Versión objetivo:** v0.82.0-sprint82
+**Tiempo estimado:** 2-3 días
+**Diseño base:** `docs/BRAND_ENGINE_ESTRATEGIA.md` (ya redactado, no se rediseña)
+
+## Premisa
+
+La Regla Dura #4 del `AGENTS.md` dice **"el Brand Engine tiene VETO inviolable"**. Hoy esa regla es ley sin policía. Cada output del Monstruo (incluido el del Embrión que ya ejecuta tools post-Sprint 81) sale sin compliance automatizada. Cada nueva tool añade deuda de identidad. Sprint 82 cierra esa puerta.
+
+**El diseño NO se rediscute** — está cristalizado en `BRAND_ENGINE_ESTRATEGIA.md`. Sprint 82 es **implementación pura de la Fase 1** descrita en ese documento.
+
+## Tesis
+
+Tres piezas que nacen juntas:
+
+```
+   ┌─────────────────────┐
+   │   BRAND DNA (code)  │  ← Sprint 82
+   │   kernel/brand/     │
+   └──────────┬──────────┘
+              │
+              ▼
+   ┌─────────────────────┐
+   │  BRAND VALIDATOR    │  ← Sprint 82
+   │  score 0-100, veto  │
+   └──────────┬──────────┘
+              │
+              ▼
+   ┌─────────────────────┐
+   │  COMPLIANCE LOG     │  ← Sprint 82
+   │  Supabase + endpoints│
+   └─────────────────────┘
+```
+
+## Épicas
+
+### E52.1 — `kernel/brand/brand_dna.py`
+
+**Diseño literal del documento estratégico** (sección "Fase 1 — Brand DNA como Código"):
+
+- `BRAND_DNA: dict` con misión, archetype, personality, tone (do/dont), naming (modules/error_format/never), visual (primary/background/accent/fonts).
+- `validate_output_name(name: str) -> tuple[bool, list[str]]` — verifica que naming no contenga `service`/`handler`/`utils`/`helper`/`misc`.
+- `get_error_message(module, action, failure_type, context) -> dict` — genera errores on-brand con formato `{module}_{action}_{failure_type}`.
+- Excepciones con identidad: `BrandValidationFalla(motivo, sugerencia)`.
+
+**Archivos:**
+- `kernel/brand/__init__.py`
+- `kernel/brand/brand_dna.py` (~150 líneas, copy-paste del diseño existente con ajustes)
+- `tests/test_brand_dna.py` (~100 líneas, tests unitarios)
+
+### E52.2 — `kernel/brand/validator.py`
+
+**Diseño literal del documento estratégico** (sección "Fase 2 — Brand Validator", traemos esta fase a Sprint 82 porque sin validador el DNA es decorativo):
+
+- `BrandValidator` clase con `validate_api_response`, `validate_endpoint_name`, `validate_tool_spec`, `validate_error_message`.
+- Score 0-100 por output. Threshold default: 75.
+- `validate_tool_spec(spec: ToolSpec)` — usado en bootstrap para auditar las 16 ToolSpecs registradas.
+
+**Archivos:**
+- `kernel/brand/validator.py` (~200 líneas)
+- `tests/test_brand_validator.py` (~150 líneas)
+
+### E52.3 — Tabla `brand_compliance_log` + endpoints
+
+**Migración `scripts/015_brand_compliance_table.sql`:**
+
+```sql
+CREATE TABLE IF NOT EXISTS brand_compliance_log (
+    id              UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    target_type     TEXT NOT NULL,          -- 'tool_spec'|'endpoint'|'error_message'|'response'
+    target_id       TEXT NOT NULL,          -- tool_name, path, error_signature, etc.
+    score           INTEGER NOT NULL,       -- 0-100
+    issues          JSONB NOT NULL DEFAULT '[]',
+    passes          BOOLEAN NOT NULL,
+    validated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    validator_version TEXT NOT NULL DEFAULT '1.0'
+);
+
+CREATE INDEX idx_brand_compliance_target ON brand_compliance_log(target_type, target_id);
+CREATE INDEX idx_brand_compliance_score ON brand_compliance_log(score);
+CREATE INDEX idx_brand_compliance_passes ON brand_compliance_log(passes) WHERE passes = false;
+```
+
+**Endpoints en `kernel/main.py`:**
+
+- `GET /v1/brand/dna` — retorna `BRAND_DNA` para que el Command Center lo consuma.
+- `POST /v1/brand/validate` — recibe `{type, content}` y retorna `{score, issues, passes}`.
+- `GET /v1/brand/violations?limit=20&min_score=0` — últimas violaciones.
+- `GET /v1/brand/audit-tools` — corre `validate_tool_spec` sobre las 16 tools y devuelve reporte.
+
+### E52.4 — Hook de validación en bootstrap
+
+En `kernel/main.py`, después del bootstrap de Sprint 81 (línea ~1095), añadir:
+
+```python
+# ── Sprint 82: Brand Engine ─────────────────────────────────────────
+brand_validator = None
+try:
+    from kernel.brand import BRAND_DNA, BrandValidator
+    brand_validator = BrandValidator(brand_dna=BRAND_DNA)
+    app.state.brand_validator = brand_validator
+
+    # Auditoría inicial de las 16 ToolSpecs
+    from kernel.tool_dispatch import get_tool_specs
+    audit = brand_validator.audit_tool_specs(get_tool_specs())
+    failed = [r for r in audit if not r["passes"]]
+    if failed:
+        logger.warning(
+            "sprint52_brand_audit_violations",
+            total=len(audit),
+            failures=len(failed),
+            details=[(r["tool_name"], r["score"], r["issues"][0] if r["issues"] else None)
+                     for r in failed],
+        )
+    logger.info("sprint52_brand_validator_initialized",
+                threshold=brand_validator.threshold,
+                tools_audited=len(audit))
+except Exception as e:
+    logger.warning("sprint52_brand_validator_init_failed", error=str(e))
+```
+
+### E52.5 — Refactor de los 16 ToolSpecs (correcciones de naming)
+
+Tras E52.4, el log dirá qué tools fallan compliance. Ejemplos esperados:
+
+- `delegate_task` → ¿pasa? Verificar.
+- `schedule_task` → ¿pasa? Verificar.
+- `wide_research` → debería pasar.
+- `manus_bridge` → ¿"bridge" cuenta como genérico? Decidir.
+
+**No prejuzgo cuáles fallan.** El audit lo dirá, y aplicamos fix donde corresponda.
+
+## Cruces detractores
+
+| # | Riesgo | Probabilidad | Mitigación |
+|---|---|---|---|
+| 1 | El validador rechaza la mayoría de outputs y el sistema queda inerte | MEDIA | Threshold default 60 (no 75) en producción durante 7 días. Subir gradual. |
+| 2 | `validate_tool_spec` rechaza tools en producción → kernel no arranca | ALTA | Validación en bootstrap es ADVISORY, no bloqueante. Solo loguea. Promoción a bloqueante cuando 100% de tools pasen 75. |
+| 3 | Naming refactor rompe tests existentes | MEDIA | Refactor con `git grep` y reemplazo cuidadoso. Tests primero, refactor después. |
+| 4 | `BRAND_DNA` queda hardcoded y no se puede actualizar sin redeploy | BAJA | Sprint 53 puede mover a Supabase. Por ahora código es OK — los valores son inmutables por filosofía. |
+| 5 | Endpoint `/v1/brand/dna` expone branding interno | BAJA | Es público por diseño — el Command Center lo necesita. Solo retorna lo que ya está en docs. |
+
+## Brand Compliance Checklist del propio Sprint 82 (meta)
+
+| Check | Cumple |
+|---|---|
+| Naming sin genéricos | `BrandValidator`, `BrandDNA`, `BrandComplianceLog`. Cero `helper`/`utils`. |
+| Errores con identidad | `BrandValidationFalla(motivo, sugerencia)`. |
+| APIs expuestas | 4 endpoints: dna, validate, violations, audit-tools. |
+| Soberanía | Funciona offline (regla pura, no LLM). |
+| Documentado | El DNA está en `docs/BRAND_ENGINE_ESTRATEGIA.md`. Los módulos referencian. |
+
+## Plan de ejecución (3 días)
+
+### Día 1 — DNA + Validator base
+1. Migración 015 (compliance log).
+2. `kernel/brand/__init__.py` + `brand_dna.py`.
+3. `kernel/brand/validator.py` con `validate_output_name`, `validate_endpoint_name`, `validate_tool_spec`.
+4. Tests unitarios (target: 30+ tests, todos passing).
+5. Commit, no toca producción todavía.
+
+### Día 2 — Endpoints + Audit + Hook bootstrap
+1. 4 endpoints en `main.py` (`/v1/brand/dna`, `/validate`, `/violations`, `/audit-tools`).
+2. `validate_tool_spec` con `audit_tool_specs(specs)` que retorna reporte.
+3. Hook en bootstrap (E52.4) — modo ADVISORY.
+4. Deploy a Railway. Smoke test endpoints.
+5. **Revisar log de auditoría inicial.** Documentar qué ToolSpecs fallan.
+
+### Día 3 — Refactor + cierre
+1. Refactor de las ToolSpecs que fallaron auditoría.
+2. Refactor de error messages que no sigan formato `{module}_{action}_{failure_type}`.
+3. Verificar que `audit-tools` post-refactor da 100% passes.
+4. Test E2E: invocar una tool, verificar que el response pasa el validador.
+5. Cierre del sprint. Versión bump a 0.82.0-sprint82.
+
+## Métricas de éxito
+
+| Métrica | Objetivo |
+|---|---|
+| Tools que pasan validación | 16/16 |
+| Endpoints `/v1/*` que pasan validación | 100% |
+| Error messages con formato correcto | 90% |
+| Compliance log entries en 24h | ≥10 |
+| Tests passing | 66 + ~30 nuevos = ~96/96 |
+| Latencia añadida por validación | <5ms |
+
+## Lo que NO entra en Sprint 82
+
+- **BrandDNA.app integración (Fase 3 del documento estratégico):** Sprint 53.
+- **Brand Health Score temporal:** Sprint 53.
+- **Monitoreo de cómo otros LLMs representan a El Monstruo (concepto HBR):** Sprint 53.
+- **Migración de BRAND_DNA a Supabase para hot-reload:** Sprint 53.
+- **Brand-aware response sanitization en `nodes.execute`:** Sprint 53. Sprint 82 valida statically; Sprint 53 valida en runtime sobre cada response.
+
+## Pregunta única para Alfredo
+
+¿Threshold inicial del validador debe ser **60** (laxo, descubrir incumplimientos sin bloquear) o **75** (estándar de marca desde día 1, riesgo de bloqueo de tools legítimas)?
+
+**Mi voto:** **60 los primeros 7 días**, después subir a 75. Razón: hay 16 ToolSpecs históricas + 7+ endpoints que nunca fueron diseñados con compliance en mente. Bajar el listón al inicio nos deja descubrir el alcance real de la deuda sin frenar el sistema.
+
+---
+
+**Sprint 81.6 + Sprint 82 entregados. Cuando estén las dos confirmaciones de Alfredo (1) threshold inicial Brand Validator y (2) si activamos `ENABLE_MCP_SERVERS=false` o instalamos Node, Manus puede arrancar.**
+
+---
+---
+
+# Sprint 82 — Patch crítico: bug en `validate_output_name` (BLOQUEANTE para validator.py)
+**Timestamp:** 2026-05-03 (durante Día 1 de Sprint 82, post-creación de `brand_dna.py`)
+**Encomienda:** APLICAR ANTES de seguir construyendo `validator.py`. Si validator se construye encima del bug, todos los audits van a dar falsos positivos.
+
+## Contexto
+
+Auditoría línea por línea de `kernel/brand/brand_dna.py` contra `docs/BRAND_ENGINE_ESTRATEGIA.md`. Resultado: **el `BRAND_DNA` dict está fiel al documento, las funciones bonus (`is_generic_error`, `get_forbidden_matches`) son buenas, el `__init__.py` exporta correcto. Pero `validate_output_name` tiene un bug crítico.**
+
+## El bug
+
+El regex usa `\b` (word boundary). En Python, `\b` trata `_` como `\w`, así que **no se posiciona entre underscore y palabra**. Resultado: prohibidos embebidos en snake_case o camelCase pasan compliance falsamente.
+
+Evidencia (probado con regex actual):
+
+| Nombre | ¿Debe pasar? | Resultado actual del regex `\b...\b` |
+|---|---|---|
+| `data_handler` | ❌ No | ✓ pasa (BUG) |
+| `user_service` | ❌ No | ✓ pasa (BUG) |
+| `MyHelper` | ❌ No | ✓ pasa (BUG) |
+| `dispatch_handler` | ❌ No | ✓ pasa (BUG) |
+| `utils_helper` | ❌ No | ✓ pasa (BUG) |
+| `messageManager` | ❌ No | ✓ pasa (BUG) |
+| `service_module` | ❌ No | ✓ pasa (BUG) |
+| `handler` | ❌ No | ❌ bloqueado (OK) |
+| `forja` | ✓ Sí | ✓ pasa (OK) |
+
+**7 de 9 casos fallan.** Cuando hagas el audit de las 16 ToolSpecs, casi todas pasarán falsamente.
+
+## Fix probado
+
+Reemplazar el bloque desde la línea 80 (`# ── Naming Validation ──`) hasta la línea 111 (cierre de `get_forbidden_matches`) en `kernel/brand/brand_dna.py` por:
+
+```python
+# ── Naming Validation ────────────────────────────────────────────────
+
+# Forbidden names from BRAND_DNA — exposed as set for fast token lookup
+_FORBIDDEN_NAMES: set[str] = set(BRAND_DNA["naming"]["never"])
+
+# Tokenization patterns
+_SEPARATOR_SPLIT = re.compile(r"[\s\-_/.]+")
+_CAMEL_TOKEN = re.compile(r"[A-Z]+(?=[A-Z][a-z]|\b)|[A-Z]?[a-z]+|[A-Z]+")
+
+
+def _tokenize_identifier(name: str) -> list[str]:
+    """Split snake_case, camelCase, kebab-case en tokens lowercase.
+
+    Diseño: regex `\\b` no detecta tokens en snake_case porque `_` es
+    `\\w`. Esta función segmenta primero por separadores explícitos y
+    luego por cambios de mayúscula (camelCase), normalizando todo a
+    minúsculas para comparar contra _FORBIDDEN_NAMES.
+
+    Ejemplos:
+        "data_handler"  → ["data", "handler"]
+        "MyHelper"      → ["my", "helper"]
+        "URLParser"     → ["url", "parser"]
+        "forja"         → ["forja"]
+        "embrion-loop"  → ["embrion", "loop"]
+    """
+    if not name:
+        return []
+    tokens: list[str] = []
+    for part in _SEPARATOR_SPLIT.split(name):
+        if not part:
+            continue
+        sub = _CAMEL_TOKEN.findall(part)
+        tokens.extend(sub if sub else [part])
+    return [t.lower() for t in tokens if t]
+
+
+def validate_output_name(name: str) -> bool:
+    """
+    Valida que un nombre de módulo, endpoint o variable siga las
+    convenciones de marca del Monstruo.
+
+    Reconoce snake_case, camelCase, kebab-case y dot.notation —
+    cualquier token prohibido (service, handler, utils, helper,
+    misc, manager) en cualquier posición invalida el nombre.
+
+    Returns:
+        True si el nombre es brand-compliant, False si contiene
+        términos prohibidos.
+    """
+    if not name or not isinstance(name, str):
+        return False
+    tokens = _tokenize_identifier(name)
+    return not any(t in _FORBIDDEN_NAMES for t in tokens)
+
+
+def get_forbidden_matches(name: str) -> list[str]:
+    """
+    Retorna la lista de tokens prohibidos encontrados en un nombre,
+    deduplicados y en minúsculas. Vacía si el nombre es compliant.
+    """
+    if not name or not isinstance(name, str):
+        return []
+    tokens = _tokenize_identifier(name)
+    seen: set[str] = set()
+    matches: list[str] = []
+    for t in tokens:
+        if t in _FORBIDDEN_NAMES and t not in seen:
+            matches.append(t)
+            seen.add(t)
+    return matches
+```
+
+## Verificación post-fix
+
+Añade estos casos a `tests/test_brand_dna.py` (cuando lo crees) para que el fix no regrese:
+
+```python
+import pytest
+from kernel.brand.brand_dna import validate_output_name, get_forbidden_matches
+
+
+@pytest.mark.parametrize("name,expected_compliant", [
+    # Compliant
+    ("forja", True),
+    ("embrion_loop", True),
+    ("forja_dashboard", True),
+    ("MagnaClassifier", True),
+    ("multi_agent", True),
+    ("tool_broker", True),
+    # Non-compliant — directo
+    ("handler", False),
+    ("service", False),
+    ("manager", False),
+    # Non-compliant — snake_case (bug histórico)
+    ("data_handler", False),
+    ("user_service", False),
+    ("dispatch_handler", False),
+    ("utils_helper", False),
+    ("service_module", False),
+    # Non-compliant — camelCase
+    ("MyHelper", False),
+    ("messageManager", False),
+    ("URLHelper", False),
+    # Non-compliant — kebab-case y dot.notation
+    ("event-handler", False),
+    ("api.utils.helper", False),
+    # Edge cases
+    ("", False),
+    (None, False),
+    ("forjA", True),  # case insensitive sí, pero "forja" no es prohibido
+])
+def test_validate_output_name(name, expected_compliant):
+    assert validate_output_name(name) == expected_compliant
+
+
+def test_get_forbidden_matches_returns_unique_lowercase():
+    assert get_forbidden_matches("user_service") == ["service"]
+    assert get_forbidden_matches("HandlerHelper") == ["handler", "helper"]
+    assert get_forbidden_matches("forja") == []
+    assert get_forbidden_matches("ManagerManager") == ["manager"]  # dedupe
+```
+
+Estos 23 casos cubren snake_case, camelCase, kebab-case, dot.notation, edge cases y dedupe. Todos deben pasar tras aplicar el fix.
+
+## Plan de aplicación (5 min)
+
+1. Aplicar el reemplazo del bloque líneas 80-111 en `kernel/brand/brand_dna.py`.
+2. `python3 -c "import ast; ast.parse(open('kernel/brand/brand_dna.py').read()); print('OK')"`.
+3. Si vas a crear `tests/test_brand_dna.py` ahora (parte de Día 1), incluye los 23 casos de arriba.
+4. Continuar con `validator.py` (E52.2) — ahora sí sobre cimiento sólido.
+
+## Nota meta
+
+Encontrar este bug **antes** de que validator.py se construyera encima es exactamente lo que el Hilo B debe hacer en Fase 1: **revisar diseño y código del Hilo A para que no acumulen deuda**. Manus, no es crítica al trabajo — el bug del `\b` en regex es un clásico que se cuela hasta en libraries famosas. Cazado a tiempo.
+
+---
+
+**Patch listo. Aplicar ANTES de seguir con validator.py. Después seguimos al pie del plan.**
+
+---
+---
+
+# Renumeración de sprints — Opción A confirmada
+**Timestamp:** 2026-05-03 (post Sprint 82 cerrado, pre Sprint 83)
+**Decisión:** Opción A. Aplicar **inmediatamente, antes de arrancar el próximo sprint**.
+**Voto:** Cowork + Alfredo + Manus alineados.
+
+## Razones cristalizadas
+
+- **Obj #4 (No equivocarse 2 veces):** ya pasó, la corrección honesta es renombrar, no documentar deuda.
+- **Obj #5 (Magna/Premium):** "Sprint 82" no puede significar dos cosas. Documentación limpia.
+- **Costo finito ahora vs creciente después:** renombrar 4 sprints hoy es barato. Renombrar 8-10 en un mes, caro.
+- **Ventana operativa:** Sprint 82 cerrado, no hay trabajo en vuelo. Es el momento exacto para hacerlo.
+
+## Mapeo de renumeración
+
+| Antiguo | Nuevo | Versión kernel |
+|---|---|---|
+| Sprint 81 | **Sprint 81** | (era v0.51.0) |
+| Sprint 81.5 | **Sprint 81.5** | (era v0.81.5) |
+| Sprint 81.6 | **Sprint 81.6** | (era v0.51.6) |
+| Sprint 82 | **Sprint 82** | v0.52.0 → **v0.82.0-sprint82** |
+| Sprint 53 propuesto | **Sprint 83 — Vigilia del Embrión** | (próximo) |
+
+## Plan de ejecución (~36 min)
+
+### Paso 1 — `sed` versión y comentarios en `kernel/`
+```bash
+# Versión en kernel/main.py (7 ocurrencias hoy)
+sed -i.bak 's/0\.52\.0-sprint52/0.82.0-sprint82/g' kernel/main.py
+
+# Comentarios "Sprint 81" → "Sprint 81" (incluye 51.5 y 51.6)
+grep -rln "Sprint 81\." kernel/ tools/ scripts/ tests/ | while read f; do
+    sed -i.bak 's/Sprint 81\.5/Sprint 81.5/g; s/Sprint 81\.6/Sprint 81.6/g' "$f"
+done
+
+# Comentarios "Sprint 81" exacto → "Sprint 81" (excluyendo los 51.x ya hechos)
+grep -rln "Sprint 81\b" kernel/ tools/ scripts/ tests/ | while read f; do
+    sed -i.bak 's/Sprint 81\b/Sprint 81/g' "$f"
+done
+
+# "Sprint 82" → "Sprint 82"
+grep -rln "Sprint 82\b" kernel/ tools/ scripts/ tests/ | while read f; do
+    sed -i.bak 's/Sprint 82\b/Sprint 82/g' "$f"
+done
+
+# Limpiar backups
+find kernel tools scripts tests -name "*.bak" -delete
+```
+
+### Paso 2 — Strings de log que mencionen sprint number
+```bash
+# logger.info("sprint51_*") y similares
+grep -rln "sprint51\|sprint52" kernel/ | while read f; do
+    sed -i.bak 's/sprint51_/sprint81_/g; s/sprint52_/sprint82_/g' "$f"
+done
+find kernel -name "*.bak" -delete
+```
+
+### Paso 3 — Headers en bridges (ambos bridges)
+- `bridge/cowork_to_manus.md`: actualizar todos los headers `# Sprint 81*` y `# Sprint 82*` a `# Sprint 81*` y `# Sprint 82*`. **Nota:** los headers que están en el contexto de un Sprint Plan (ej. "Sprint 81 — El Cerebro Activo") cambian a "Sprint 81 — El Cerebro Activo". El contenido NO se reescribe — solo el número.
+- `bridge/manus_to_cowork.md`: mismo tratamiento.
+
+### Paso 4 — `monstruo-memoria/IDENTIDAD_HILO_B.md`
+Actualizar referencias a sprints viejos. Si tiene una sección "Sprint actual: 52" o similar, cambiar a "Sprint actual: 82, próximo 83 (Vigilia del Embrión)".
+
+### Paso 5 — Validación
+```bash
+# Sintaxis intacta
+python3 -c "import ast; ast.parse(open('kernel/main.py').read()); print('OK')"
+
+# Tests
+pytest tests/test_brand_engine.py tests/test_magna_classifier.py tests/test_error_memory.py -v
+
+# Búsqueda residual — no debería retornar nada
+grep -rn "sprint51\|sprint52" kernel/ tools/ scripts/ tests/ | grep -v ".bak"
+```
+
+### Paso 6 — Commit y deploy
+```bash
+git add -A
+git commit -m "Renumeración: Sprint 81-52 → Sprint 81-82 (corrige colisión con serie antigua 1-80). Sprint 53 → Sprint 83 (próximo). Ver bridge/cowork_to_manus.md."
+git push origin main
+# Railway auto-deploy → /health debe mostrar 0.82.0-sprint82
+```
+
+## Lo que NO se toca (importante)
+
+- **Tablas Supabase:** `magna_cache`, `error_memory`, `error_memory_patterns`, `brand_compliance_log`, `magna_routes`. **Mantener nombres.** Cero migración SQL.
+- **Commits previos:** no se reescribe historia git.
+- **Datos históricos en Langfuse:** las trazas antiguas con "sprint52" viejo quedan. Aceptamos esa contaminación pasada — solo limpiamos hacia adelante.
+- **Tests:** archivos `test_brand_engine.py`, `test_error_memory.py`, etc. los nombres de archivo no mencionan sprint number.
+
+## Verificación post-deploy
+
+```bash
+curl ${KERNEL_BASE_URL}/health | jq '.version'
+# Esperado: "0.82.0-sprint82"
+
+curl -s ${KERNEL_BASE_URL}/v1/error-memory/recent | jq '.errors | length'
+# Debe seguir devolviendo las semillas
+
+curl -s ${KERNEL_BASE_URL}/v1/brand/audit-tools | jq '.summary'
+# avg_score debe seguir siendo 90.0
+```
+
+## Después de la renumeración
+
+Manus avisa que terminó renumeración → Cowork le entrega Sprint Plan **83 — Vigilia del Embrión** completo. NO mezclar renumeración con nuevo sprint en el mismo commit.
+
+---
+---
+
+# Sprint 83 — Vigilia del Embrión (Sprint Plan)
+**Capa objetivo:** Validación funcional del trabajo de Capa 0 + observabilidad real
+**Versión objetivo:** v0.83.0-sprint83
+**Tiempo estimado:** 2-3 días
+**Pre-requisito:** renumeración completada y deployada (versión `0.82.0-sprint82` confirmada en `/health`)
+
+## Premisa
+
+Sprint 81 entregó Magna Classifier y Error Memory. Sprint 82 cerró Brand Engine Fase 1. Pero el reporte de Manus en Sprint 81.5 dijo:
+
+> Embrión Loop: running, **cycle_count=1**, cost_today=$0.00
+
+**Un solo ciclo después de varias horas.** Y `fcs.tool_calls_total=0` que Manus listó como "preexistente, requiere que el embrión ejecute tools" — pero ese era exactamente el bug que Sprint 81 supuestamente resolvió.
+
+**Tesis:** o el Embrión está parado, o Magna nunca rutea a graph, o el counter no incrementa en el path real, o las tres cosas. **Sin diagnóstico funcional, todo lo construido en Sprints 81-82 es decorativo.**
+
+Sprint 83 es **medir, entender, arreglar lo roto del runtime real**. No es implementación; es diagnóstico + observabilidad + fixes derivados.
+
+## Épicas
+
+### E83.1 — Diagnóstico del scheduler del Embrión
+
+**Pregunta a contestar:** ¿por qué `cycle_count=1` después de horas? El loop debería iterar cada 60s.
+
+**Acciones:**
+- Revisar `kernel/embrion_loop.py:run_loop()` y verificar el `asyncio.create_task(...)` que lanza el ciclo.
+- Inspeccionar logs Railway de las últimas 24h buscando `embrion_cycle_*` o `embrion_loop_*`. Contar ocurrencias.
+- Si hay excepciones silenciosas en el loop, identificarlas y registrarlas en Error Memory.
+- Verificar si `embrion_scheduler` (lo vi en logs `embrion_scheduler_init_failed` antes) está vivo.
+
+**Criterio de éxito:** documentar la causa raíz del cycle_count bajo y aplicar el fix.
+
+### E83.2 — Endpoint `/v1/embrion/diagnostic`
+
+**No expone solo el FCS.** Expone métricas funcionales que el Command Center necesita y que hoy no existen:
+
+```json
+{
+  "status": "running" | "stopped" | "error",
+  "scheduler": {
+    "running": true,
+    "last_tick_at": "2026-05-03T12:34:56Z",
+    "ticks_last_hour": 60,
+    "ticks_total_today": 720
+  },
+  "cycles": {
+    "total_today": 25,
+    "total_lifetime": 48,
+    "last_cycle_at": "...",
+    "avg_cycle_duration_ms": 1245
+  },
+  "magna": {
+    "decisions_last_20": [
+      {"route": "graph", "confidence": 0.78, "category": "tech_action", "trigger": "mensaje_alfredo", "ts": "..."},
+      {"route": "router", "confidence": 0.42, "category": "reflection", "trigger": "reflexion_autonoma", "ts": "..."}
+    ],
+    "graph_calls_today": 4,
+    "graph_cap": 30,
+    "router_calls_today": 18,
+    "tool_specific_calls_today": 0
+  },
+  "tool_calls": {
+    "total_today": 12,
+    "total_lifetime": 35,
+    "last_20": [
+      {"tool": "delegate_task", "ts": "...", "success": true, "trigger_cycle": 23}
+    ]
+  },
+  "error_memory": {
+    "errors_recorded_24h": 3,
+    "rules_applied_24h": 5,
+    "most_common_module": "kernel.task_planner"
+  }
+}
+```
+
+**Implementación:**
+- `kernel/embrion_loop.py` — añadir métricas in-memory accesibles vía propiedad `diagnostic_snapshot`
+- `kernel/main.py` — endpoint `GET /v1/embrion/diagnostic` que retorna el snapshot
+- Brand Compliance: respuesta con identidad, fields en español donde aplique, error formatado on-brand si el embrión no inicializó
+
+### E83.3 — Si Magna nunca rutea a `graph`: recalibrar
+
+Después de E83.2, tendremos data real de Magna. Tres escenarios posibles:
+
+**Escenario A:** Magna rutea bien (mix razonable graph/router) y tools sí ejecutan → bug está en el counter (saltar a E83.4).
+
+**Escenario B:** Magna rutea casi todo a `router` (chat-only) → threshold 0.6 es muy alto para los prompts típicos del Embrión. Recalibrar:
+- Bajar threshold a 0.45-0.50
+- O ajustar vocabularios `TECH_TRIGGERS` / `ACTION_TRIGGERS` para incluir patrones reales de los prompts del Embrión
+- Decisión basada en data, no en intuición
+
+**Escenario C:** Magna rutea a `graph` pero el grafo no termina → bug en `_think_with_graph`. Stack trace en Error Memory.
+
+### E83.4 — Verificar el incremento del FCS counter
+
+El fix de Sprint 81.5 puso `self._fcs_tool_calls_total += len(tool_calls)` en línea 750. **Verificar que esa línea se ejecuta en el path real.**
+
+Si E83.2 muestra `tool_calls.total_today > 0` pero `/health` muestra `fcs.tool_calls_total=0`, hay desconexión. Revisar:
+- ¿El path de `_think_with_router` también debería incrementar? (puede que sí — algunas tools se invocan vía router con function calling)
+- ¿La métrica `_fcs_tool_calls_total` se persiste o solo vive en memoria? Si el proceso reinicia, ¿se pierde?
+
+### E83.5 — Test E2E reproducible
+
+Test que dispara un mensaje al kernel y valida la cadena completa:
+```python
+# tests/test_embrion_e2e.py
+async def test_embrion_full_flow_with_real_tool():
+    """Mensaje de Alfredo → Magna decide graph → tool real → response.
+    
+    Tool de prueba: delegate_task (no requiere creds externas).
+    """
+    response = await kernel.start_run(RunInput(
+        message="Delega al rol estratega: ¿cuáles son los 3 pilares de Capa 0?",
+        user_id="test_alfredo",
+        channel="test",
+        context={"intent_override": "execute"},
+    ))
+    assert response.status == "ok"
+    assert any(tc.get("name") == "delegate_task" for tc in response.tool_calls or [])
+```
+
+Si pasa: Sprint 83 cierra. Si falla: la falla se documenta en Error Memory y se itera.
+
+## Cruces detractores
+
+| # | Riesgo | Mitigación |
+|---|---|---|
+| 1 | El diagnóstico revela que la deuda es mucho mayor (Embrión completamente roto) | Spike no destructivo: medir primero, iterar fixes después. Si el spike sale catastrófico, escalamos a Sprint 83 extendido o split en 83/84. |
+| 2 | Endpoint `/v1/embrion/diagnostic` expone datos sensibles | Solo expone metadata de operación, no contenido de prompts. Igual que /health. |
+| 3 | Recalibrar threshold de Magna sin métrica clara → adivinanza | E83.3 solo sucede tras E83.2 (datos reales). No tocar threshold sin data. |
+| 4 | E2E test depende de tools externas que pueden fallar | Test usa `delegate_task` que es interno (sin creds), determinista. |
+
+## Brand Compliance Checklist
+
+| Check | Cumple |
+|---|---|
+| Naming sin genéricos | `EmbrionDiagnostic`, `cycle_snapshot`, `magna_decisions`. Cero `helper`. |
+| Errores con identidad | `EmbrionLoopNoIniciado`, `EmbrionScheduler...`. |
+| Endpoint con identidad | `/v1/embrion/diagnostic` (módulo con identidad). |
+| Tono de respuesta del endpoint | Español donde aplique, técnicamente preciso. |
+| Brand Validator audit | El nuevo endpoint debe pasar `validate_endpoint_name()`. Ya cumple — `embrion` y `diagnostic` no están en `_FORBIDDEN_NAMES`. |
+
+## Métricas de éxito (cierre del sprint)
+
+| Métrica | Valor actual reportado | Objetivo |
+|---|---|---|
+| `cycle_count` después de 4h de operación | 1 | ≥30 |
+| `magna.graph_calls_today` | desconocido (no expuesto) | medible y >0 |
+| `tool_calls.total_today` | desconocido | medible y >0 |
+| `fcs.tool_calls_total` | 0 | refleja realidad (>0 si tools se ejecutaron) |
+| Test E2E `test_embrion_full_flow_with_real_tool` | no existe | passing |
+| `/v1/embrion/diagnostic` endpoint | no existe | implementado y consumido por Command Center |
+
+## Lo que NO entra en Sprint 83
+
+- Subir threshold del Brand Validator (60 → 75): Sprint 84
+- Brand Validator modo ENFORCING: Sprint 84
+- CI/CD integration: Sprint 84+
+- Fix `three_layer_memory_init_failed` (legacy): cuando lleguemos a Capa 2
+- Fix tests legacy Python 3.9: separado, fuera del path crítico
+
+## Pregunta única para Alfredo
+
+¿Aprobás el Sprint Plan 83 tal como está o ajustas algo de scope?
+
+Mi voto: **arrancar tal cual**. El cycle_count=1 es bandera roja suficiente.
+
+---
+
+**Renumeración + Sprint 83 entregados. Manus: ejecuta renumeración, valida en prod, y ahí arrancamos Sprint 83.**

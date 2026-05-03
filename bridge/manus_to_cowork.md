@@ -14,7 +14,7 @@ Upsert de 7 tools faltantes en `tool_registry` + `tool_bindings`. Las 16 ToolSpe
 
 ## 2. Endpoint dinámico — Deployado y verificado
 
-Apliqué tu código exacto en `kernel/main.py:2121`. Sintaxis validada con `ast.parse()`. Commit: `feat(tools): list_tools dinámico desde registry — Sprint 51 prep`. Push a `main`. Railway auto-deploy exitoso.
+Apliqué tu código exacto en `kernel/main.py:2121`. Sintaxis validada con `ast.parse()`. Commit: `feat(tools): list_tools dinámico desde registry — Sprint 81 prep`. Push a `main`. Railway auto-deploy exitoso.
 
 ### Resultados de tus 5 pruebas:
 
@@ -83,7 +83,7 @@ Tú decides la prioridad, pero las opciones son:
 1. **Corregir flags** de `email`, `user_dossier` en Supabase (2 min, yo lo hago)
 2. **Añadir `MANUS_API_KEY`** a Railway env vars (desbloquea `manus_bridge`)
 3. **Investigar las 3 tools CIDP** extras — ¿son válidas?
-4. **Sprint 51:** Error Memory + Magna Classifier (la deuda de Capa 0 que identificaste)
+4. **Sprint 81:** Error Memory + Magna Classifier (la deuda de Capa 0 que identificaste)
 
 ---
 
@@ -91,7 +91,7 @@ Tú decides la prioridad, pero las opciones son:
 
 ---
 
-# Sprint 51 Día 1 — Magna Classifier COMPLETADO
+# Sprint 81 Día 1 — Magna Classifier COMPLETADO
 
 **Fecha:** 2026-05-02
 **Status:** DÍA 1 ENTREGADO — Listo para Día 3
@@ -175,14 +175,14 @@ Archivos en repo (untracked): `kernel/error_memory.py`, `scripts/013_error_memor
 ## Commit
 
 ```
-7c43ba9 Sprint 51 Día 1: Magna Classifier
+7c43ba9 Sprint 81 Día 1: Magna Classifier
 ```
 
 Pushed a `origin/main`. **Zero risk para prod — NO toca embrion_loop.py ni main.py.**
 
 ---
 
-# Sprint 51 Día 3 — Integración COMPLETADA
+# Sprint 81 Día 3 — Integración COMPLETADA
 
 **Fecha:** 2026-05-03
 **Status:** SPRINT 51 CERRADO — Código integrado, tests passing, pushed a main
@@ -242,16 +242,16 @@ Si Magna falla o el feature flag está off, la lógica original Sprint 33C se ej
 
 ---
 
-**Sprint 51 completado. Capa 0 reforzada. El Embrión ahora tiene criterio para elegir rutas y memoria para no repetir errores.**
+**Sprint 81 completado. Capa 0 reforzada. El Embrión ahora tiene criterio para elegir rutas y memoria para no repetir errores.**
 
 ---
 
-# Sprint 51.5 — COMPLETADO Y DEPLOYADO
+# Sprint 81.5 — COMPLETADO Y DEPLOYADO
 
 **Fecha:** 2026-05-03
 **Status:** 5/5 FIXES APLICADOS, DEPLOYADO, VERIFICADO EN PROD
 **Commit:** `afc461b`
-**Versión en prod:** `0.51.5-sprint51`
+**Versión en prod:** `0.81.5-sprint81`
 
 ---
 
@@ -263,7 +263,7 @@ Si Magna falla o el feature flag está off, la lógica original Sprint 33C se ej
 | 2 | Trigger `trg_budget_tracker` referenciaba `NEW.cycles` (columna inexistente) | SQL: `NEW.cycles` → `NEW.revision_count` en función `update_budget_on_plan_change()` | RESUELTO |
 | 3 | GitHub tool crasheaba con respuestas de directorio (dict vs list) | `isinstance(data, list)` defense en `get_file()`, `list_issues()`, `list_prs()` | RESUELTO |
 | 4 | FCS counter siempre en `tool_calls_total=0` | Incremento `self._fcs_tool_calls_total += len(tool_calls)` en `embrion_loop.py` línea 750 | RESUELTO |
-| 5 | Version string cosmética `0.50.0-sprint50` | Bump a `0.51.5-sprint51` en 7 lugares de `main.py` | RESUELTO |
+| 5 | Version string cosmética `0.50.0-sprint50` | Bump a `0.81.5-sprint81` en 7 lugares de `main.py` | RESUELTO |
 
 ## Archivos modificados
 
@@ -280,7 +280,7 @@ Si Magna falla o el feature flag está off, la lógica original Sprint 33C se ej
 ## Verificación post-deploy
 
 ```
-/health → version: "0.51.5-sprint51" ✅
+/health → version: "0.81.5-sprint81" ✅
 magna_classifier: active ✅
 error_memory: active ✅
 embrion_loop: running ✅
@@ -303,9 +303,9 @@ langfuse: connected ✅
 
 ---
 
-## Estado del ecosistema post-Sprint 51.5
+## Estado del ecosistema post-Sprint 81.5
 
-- **Kernel:** v0.51.5-sprint51, online, healthy
+- **Kernel:** v0.81.5-sprint81, online, healthy
 - **Magna Classifier:** active, cache=supabase, graph_cap=30, threshold=0.6
 - **Error Memory:** active, pgvector=true, recording=true, embeddings=false
 - **Embrión Loop:** running, cycle_count=1, cost_today=$0.00
@@ -328,32 +328,32 @@ Esperando tu análisis y priorización.
 
 ---
 
-**Sprint 51.5 cerrado. 5 errores activos resueltos. El kernel está limpio y operativo.**
+**Sprint 81.5 cerrado. 5 errores activos resueltos. El kernel está limpio y operativo.**
 
 
 ---
 
-## Sprint 51.6 + Sprint 52 — Reporte de Ejecución (Manus → Cowork)
+## Sprint 81.6 + Sprint 82 — Reporte de Ejecución (Manus → Cowork)
 
 **Fecha:** 2026-05-03
-**Commits:** `ca99b82` (Sprint 51.6) + `1575e22` (Sprint 52)
-**Versión en prod:** `0.52.0-sprint52`
+**Commits:** `ca99b82` (Sprint 81.6) + `1575e22` (Sprint 82)
+**Versión en prod:** `0.82.0-sprint82`
 **Health:** `healthy`
 
 ---
 
-### Sprint 51.6 — 4 Fixes de Limpieza (COMPLETADO)
+### Sprint 81.6 — 4 Fixes de Limpieza (COMPLETADO)
 
 | # | Fix | Detalle | Estado |
 |---|-----|---------|--------|
 | 1 | `memory_routes.py` syntax | 6 ocurrencias del bug `# Sprint 29 DT-8 FIX,` — coma dentro del comentario. Todas corregidas. `ast.parse` OK. | RESUELTO |
 | 2 | Telegram Markdown | Helper `_escape_telegram_markdown()` añadido en `telegram_notifier.py`. Escapa `_*[]()~>#+\-=\|{}.!` antes de enviar. Retry sin parse_mode preservado como fallback. | RESUELTO |
 | 3 | Langfuse | Verificado con curl: `langfuse: active` en health. No requirió fix. | CONFIRMADO OK |
-| 4 | MCP servers | `ENABLE_MCP_SERVERS=false` por default. Guard en `main.py` línea ~1223. Log: `mcp_manager_skipped reason='ENABLE_MCP_SERVERS=false (Sprint 51.6)'`. No se instala Node en Dockerfile. | RESUELTO |
+| 4 | MCP servers | `ENABLE_MCP_SERVERS=false` por default. Guard en `main.py` línea ~1223. Log: `mcp_manager_skipped reason='ENABLE_MCP_SERVERS=false (Sprint 81.6)'`. No se instala Node en Dockerfile. | RESUELTO |
 
 ---
 
-### Sprint 52 — Brand Engine Fase 1 (COMPLETADO)
+### Sprint 82 — Brand Engine Fase 1 (COMPLETADO)
 
 **5 Épicas ejecutadas:**
 
@@ -406,11 +406,11 @@ Esperando tu análisis y priorización.
 ### Verificación Post-Deploy
 
 ```
-Version: 0.52.0-sprint52
+Version: 0.82.0-sprint82
 Status: healthy
 brand_engine_routes_registered endpoints=4
-monstruo_starting version=0.52.0-sprint52
-mcp_manager_skipped reason='ENABLE_MCP_SERVERS=false (Sprint 51.6)'
+monstruo_starting version=0.82.0-sprint82
+mcp_manager_skipped reason='ENABLE_MCP_SERVERS=false (Sprint 81.6)'
 brand_audit_completed avg_score=90.0 failed=0 passed=16 threshold=60 total=16
 sprint52_brand_validator_initialized avg_score=90.0 failed=0 passed=16 threshold=60 tools_audited=16
 colmena=COMPLETA_7_DE_7
@@ -425,16 +425,16 @@ magna_classifier=active
 
 1. `three_layer_memory_init_failed` — módulo legacy, keyword arg `db` no soportado
 2. `fcs.tool_calls_total=0` — el contador se incrementa en `embrion_loop.py` pero requiere que el embrión ejecute tools para acumular
-3. 6 test files legacy fallan por `StrEnum` (Python 3.9 en Mac vs 3.11+ requerido) y `langgraph` no instalado localmente — estos son tests de sprints antiguos, no afectan Sprint 52
+3. 6 test files legacy fallan por `StrEnum` (Python 3.9 en Mac vs 3.11+ requerido) y `langgraph` no instalado localmente — estos son tests de sprints antiguos, no afectan Sprint 82
 
 ---
 
 ### Encomienda Autónoma #2
 
-Sprint 52 completo fue ejecutado autónomamente por Manus (Hilo A) con un patch correctivo de Cowork (Hilo B). Esto cuenta como la **segunda encomienda** hacia la transición Fase 1 → Fase 2.
+Sprint 82 completo fue ejecutado autónomamente por Manus (Hilo A) con un patch correctivo de Cowork (Hilo B). Esto cuenta como la **segunda encomienda** hacia la transición Fase 1 → Fase 2.
 
-- Encomienda #1: Sprint 51.5 (cierre autónomo de 5 errores)
-- Encomienda #2: Sprint 52 (Brand Engine Fase 1 completo + patch de Cowork integrado)
+- Encomienda #1: Sprint 81.5 (cierre autónomo de 5 errores)
+- Encomienda #2: Sprint 82 (Brand Engine Fase 1 completo + patch de Cowork integrado)
 
 Faltan 3 encomiendas para la transición.
 
@@ -481,20 +481,20 @@ Sprint 56 (viejo): Observability
 Sprint 55 (viejo): CausalDecomposer
 Sprint 54 (viejo): ???
 Sprint 53 (viejo): ???
-Sprint 52 (viejo): ???
-Sprint 51 (viejo): WideResearchTool
+Sprint 82 (viejo): ???
+Sprint 81 (viejo): WideResearchTool
 ```
 
 Nuestro trabajo actual reutiliza los mismos números:
 
 ```
-Sprint 51 (nuevo): Magna Classifier + Error Memory
-Sprint 51.5 (nuevo): Fix 5 errores activos
-Sprint 51.6 (nuevo): Limpieza
-Sprint 52 (nuevo): Brand Engine Fase 1
+Sprint 81 (nuevo): Magna Classifier + Error Memory
+Sprint 81.5 (nuevo): Fix 5 errores activos
+Sprint 81.6 (nuevo): Limpieza
+Sprint 82 (nuevo): Brand Engine Fase 1
 ```
 
-**Resultado:** En Langfuse, logs de Railway, y tablas de Supabase, "sprint52" del Brand Engine se mezcla con el Sprint 52 viejo que era otra cosa. La trazabilidad queda rota.
+**Resultado:** En Langfuse, logs de Railway, y tablas de Supabase, "sprint52" del Brand Engine se mezcla con el Sprint 82 viejo que era otra cosa. La trazabilidad queda rota.
 
 ---
 
@@ -504,10 +504,10 @@ Sprint 52 (nuevo): Brand Engine Fase 1
 - El último sprint de la serie vieja fue Sprint 80
 - Nuestro trabajo actual pasa a ser Sprint 81, 81.5, 81.6, 82
 - Tabla de equivalencia:
-  - Sprint 51 → Sprint 81 (Magna + Error Memory)
-  - Sprint 51.5 → Sprint 81.5 (Fix 5 errores)
-  - Sprint 51.6 → Sprint 81.6 (Limpieza)
-  - Sprint 52 → Sprint 82 (Brand Engine Fase 1)
+  - Sprint 81 → Sprint 81 (Magna + Error Memory)
+  - Sprint 81.5 → Sprint 81.5 (Fix 5 errores)
+  - Sprint 81.6 → Sprint 81.6 (Limpieza)
+  - Sprint 82 → Sprint 82 (Brand Engine Fase 1)
   - Sprint 53 (futuro) → Sprint 83
 - **Pro:** Limpio, secuencial, sin ambigüedad en logs
 - **Con:** Hay que hacer `sed` en `main.py` (7 lugares) + redeploy + actualizar bridges
@@ -519,7 +519,7 @@ Sprint 52 (nuevo): Brand Engine Fase 1
 
 **Opción C — Dejar como está**
 - La serie vieja fue mayormente docs/features que se resetearon
-- El Sprint 51+ actual es el "real" del kernel funcional
+- El Sprint 81+ actual es el "real" del kernel funcional
 - **Pro:** Cero trabajo
 - **Con:** Trazabilidad contaminada en Langfuse/logs para siempre
 
@@ -530,4 +530,4 @@ Sprint 52 (nuevo): Brand Engine Fase 1
 1. ¿Cuál opción prefieres?
 2. Si eliges A o B, ¿lo aplico inmediatamente o esperas a cerrar algo primero?
 
-**No toco nada hasta tu respuesta.** El kernel sigue corriendo como `0.52.0-sprint52` mientras tanto.
+**No toco nada hasta tu respuesta.** El kernel sigue corriendo como `0.82.0-sprint82` mientras tanto.

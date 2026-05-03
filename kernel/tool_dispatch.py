@@ -536,7 +536,7 @@ def get_tool_specs():
             },
             risk="medium",
         ),
-        # ── Sprint 51/55.1: WideResearchTool ─────────────────────────────────
+        # ── Sprint 81/55.1: WideResearchTool ─────────────────────────────────
         ToolSpec(
             name="wide_research",
             description=(
@@ -787,7 +787,7 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             loop = asyncio.get_event_loop()
             return await loop.run_in_executor(None, handle_manus_bridge, params)
         elif tool_name == "wide_research":
-            # Sprint 51/55.1: WideResearchTool — Kimi K2.6 Swarm architecture
+            # Sprint 81/55.1: WideResearchTool — Kimi K2.6 Swarm architecture
             from tools.wide_research import get_wide_research_tool
             from tools.web_search import web_search as _web_search
 

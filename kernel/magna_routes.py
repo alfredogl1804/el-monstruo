@@ -1,5 +1,5 @@
 """
-El Monstruo — Magna Classifier Routes (Sprint 51, Capa 0.2)
+El Monstruo — Magna Classifier Routes (Sprint 81, Capa 0.2)
 ============================================================
 Endpoints REST para el Magna Classifier, consumibles desde el Command Center.
 

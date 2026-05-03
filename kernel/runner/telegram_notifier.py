@@ -100,7 +100,7 @@ class TelegramNotifier:
             return False
 
         url = f"{TELEGRAM_API_BASE}{self._bot_token}/sendMessage"
-        # Escape Markdown special chars to prevent parse errors (Sprint 51.6)
+        # Escape Markdown special chars to prevent parse errors (Sprint 81.6)
         safe_text = _escape_telegram_markdown(text) if parse_mode == "Markdown" else text
 
         payload = {

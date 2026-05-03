@@ -1,5 +1,5 @@
 """
-El Monstruo — Brand Engine Routes (Sprint 52)
+El Monstruo — Brand Engine Routes (Sprint 82)
 ===============================================
 4 endpoints para el Brand Engine:
     GET  /v1/brand/dna          → Retorna el Brand DNA completo

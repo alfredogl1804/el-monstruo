@@ -1,5 +1,5 @@
 """
-El Monstruo — Brand Validator (Sprint 52)
+El Monstruo — Brand Validator (Sprint 82)
 ==========================================
 Evalúa outputs, endpoints, tool specs y error messages contra el Brand DNA.
 Score 0-100 por validación. Threshold configurable (default 60, objetivo 75).

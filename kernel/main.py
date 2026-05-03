@@ -90,7 +90,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.52.0-sprint52", motor="langgraph")
+    logger.info("monstruo_starting", version="0.82.0-sprint82", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -110,7 +110,7 @@ async def lifespan(app: FastAPI):
     knowledge_graph = KnowledgeGraph(db=db if db_connected else None)
     await knowledge_graph.initialize()
 
-    # ── Sprint 51/55.1: ThreeLayerMemory — Mem0 + Supabase + in-context ───────────
+    # ── Sprint 81/55.1: ThreeLayerMemory — Mem0 + Supabase + in-context ───────────
     # Arquitectura de 3 capas: in-context (hot), Supabase (warm), Mem0 (cold)
     # Biblia: Mem0 v2 (Capa 3 — Memoria Episódica + Semántica)
     try:
@@ -229,7 +229,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.52.0-sprint52",
+            "version": "0.82.0-sprint82",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -467,12 +467,12 @@ async def lifespan(app: FastAPI):
         logger.warning("lightrag_warmup_failed", error=str(e))
 
     # ── Sprint 17: MCP Client Manager ──────────────────────────────────
-    # Sprint 51.6: ENABLE_MCP_SERVERS=false by default — tools nativas cubren
+    # Sprint 81.6: ENABLE_MCP_SERVERS=false by default — tools nativas cubren
     # github, filesystem, supabase. Dos rutas para lo mismo viola Obj #3.
     mcp_manager = None
     enable_mcp = os.environ.get("ENABLE_MCP_SERVERS", "false").lower() == "true"
     if not enable_mcp:
-        logger.info("mcp_manager_skipped", reason="ENABLE_MCP_SERVERS=false (Sprint 51.6)")
+        logger.info("mcp_manager_skipped", reason="ENABLE_MCP_SERVERS=false (Sprint 81.6)")
     else:
         try:
             from kernel.mcp_client import MCPClientManager, build_mcp_configs
@@ -1064,7 +1064,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("embrion_scheduler_init_failed", error=str(e))
 
-    # ── Sprint 51: Magna Classifier (Capa 0.2) ─────────────────────────
+    # ── Sprint 81: Magna Classifier (Capa 0.2) ─────────────────────────
     magna_classifier = None
     try:
         from kernel.magna_classifier import MagnaClassifier
@@ -1086,15 +1086,15 @@ async def lifespan(app: FastAPI):
             kernel._magna_classifier = magna_classifier
 
         logger.info(
-            "sprint51_magna_classifier_initialized",
+            "sprint81_magna_classifier_initialized",
             threshold=magna_classifier._threshold,
             graph_cap=magna_classifier._graph_calls_per_day,
             cache_backend="supabase" if db_connected else "memory_only",
         )
     except Exception as e:
-        logger.warning("sprint51_magna_classifier_init_failed", error=str(e))
+        logger.warning("sprint81_magna_classifier_init_failed", error=str(e))
 
-    # ── Sprint 51: Error Memory (Capa 0.1) ─────────────────────────────
+    # ── Sprint 81: Error Memory (Capa 0.1) ─────────────────────────────
     error_memory = None
     try:
         from kernel.error_memory import ErrorMemory, build_embedding_client
@@ -1117,16 +1117,16 @@ async def lifespan(app: FastAPI):
             embrion_loop._error_memory = error_memory
 
         logger.info(
-            "sprint51_error_memory_initialized",
+            "sprint81_error_memory_initialized",
             active=error_memory.initialized,
             pgvector=error_memory.has_pgvector,
             embeddings=embedding_client is not None,
             recording=_em_recording_enabled,
         )
     except Exception as e:
-        logger.warning("sprint51_error_memory_init_failed", error=str(e))
+        logger.warning("sprint81_error_memory_init_failed", error=str(e))
 
-    # ── Sprint 51: Error Memory Endpoints ──────────────────────────────
+    # ── Sprint 81: Error Memory Endpoints ──────────────────────────────
     @app.get("/v1/error-memory/recent", tags=["observability"])
     async def error_memory_recent(request: Request, limit: int = 20):
         em = getattr(request.app.state, "error_memory", None)
@@ -1154,11 +1154,11 @@ async def lifespan(app: FastAPI):
             raise HTTPException(400, detail="resolution_requerida")
         ok = await em.resolve(signature, resolution)
         return {"resolved": ok, "signature": signature}
-    # ── /Sprint 51 ─────────────────────────────────────────────────────
+    # ── /Sprint 81 ─────────────────────────────────────────────────────
 
     logger.info(
         "monstruo_ready",
-        version="0.52.0-sprint52",
+        version="0.82.0-sprint82",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -1220,7 +1220,7 @@ async def lifespan(app: FastAPI):
 
         asyncio.create_task(_warmup())
 
-    # ── Sprint 52: Brand Engine — Bootstrap Audit (ADVISORY) ────────────
+    # ── Sprint 82: Brand Engine — Bootstrap Audit (ADVISORY) ────────────
     try:
         from kernel.brand.validator import BrandValidator
         from kernel.tool_dispatch import get_tool_specs
@@ -1238,7 +1238,7 @@ async def lifespan(app: FastAPI):
         _failed = [r for r in _audit.results if not r["passes"]]
         if _failed:
             logger.warning(
-                "sprint52_brand_audit_violations",
+                "sprint82_brand_audit_violations",
                 total=_audit.total,
                 failures=len(_failed),
                 details=[
@@ -1247,7 +1247,7 @@ async def lifespan(app: FastAPI):
                 ],
             )
         logger.info(
-            "sprint52_brand_validator_initialized",
+            "sprint82_brand_validator_initialized",
             threshold=_brand_validator.threshold,
             tools_audited=len(_spec_dicts),
             passed=_audit.passed,
@@ -1255,7 +1255,7 @@ async def lifespan(app: FastAPI):
             avg_score=round(_audit.avg_score, 1),
         )
     except Exception as e:
-        logger.warning("sprint52_brand_validator_init_failed", error=str(e))
+        logger.warning("sprint82_brand_validator_init_failed", error=str(e))
 
     yield
 
@@ -1325,7 +1325,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.52.0-sprint52",
+    version="0.82.0-sprint82",
     lifespan=lifespan,
 )
 
@@ -1355,7 +1355,7 @@ from kernel.openai_adapter import router as openai_router
 
 app.include_router(openai_router)
 
-# ── Sprint 52: Brand Engine Routes ─────────────────────────────────────
+# ── Sprint 82: Brand Engine Routes ─────────────────────────────────────
 try:
     from kernel.brand.brand_routes import router as brand_router
     app.include_router(brand_router)
@@ -1430,7 +1430,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.52.0-sprint52",
+        "version": "0.82.0-sprint82",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -2103,7 +2103,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.52.0-sprint52",
+            "version": "0.82.0-sprint82",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -2267,7 +2267,7 @@ async def tool_email(request: Request):
 async def list_tools(request: Request):
     """Inventario dinámico de tools — refleja el estado real del registry.
 
-    Sprint 51: reemplaza el hardcoded anterior. Lee de `tool_registry`
+    Sprint 81: reemplaza el hardcoded anterior. Lee de `tool_registry`
     (Supabase) cruzado con disponibilidad de credenciales en runtime.
     El Despertador (`scripts/activate_tools.py`) puebla la DB; este
     endpoint la expone con identidad propia para el Command Center.
@@ -2437,7 +2437,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.52.0-sprint52",
+        "version": "0.82.0-sprint82",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields

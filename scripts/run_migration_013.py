@@ -1,5 +1,5 @@
 """
-El Monstruo — Sprint 51: Ejecutar migración 013 (Error Memory + pgvector)
+El Monstruo — Sprint 81: Ejecutar migración 013 (Error Memory + pgvector)
 Conexión directa via psycopg2 al PostgreSQL de Supabase.
 """
 import subprocess
@@ -24,7 +24,7 @@ DB_PASS = "0SsKDCchJpN5GhO3"
 
 def main():
     print("╔══════════════════════════════════════════════════════╗")
-    print("║  Sprint 51 — Migración 013 (Error Memory + pgvector) ║")
+    print("║  Sprint 81 — Migración 013 (Error Memory + pgvector) ║")
     print("╚══════════════════════════════════════════════════════╝")
     print()
 

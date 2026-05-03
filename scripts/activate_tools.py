@@ -1,5 +1,5 @@
 """
-El Monstruo — El Despertador (Sprint 51 prep)
+El Monstruo — El Despertador (Sprint 81 prep)
 ==============================================
 Despierta las tools dormidas: las que viven en `kernel/tool_dispatch.py`
 como ToolSpec pero no están registradas en la tabla `tool_registry` de
@@ -29,7 +29,7 @@ Fail-closed (Obj #11):
     Tools con riesgo HIGH o requires_hitl=True NUNCA se activan en modo
     auto — el operador debe intervenir manualmente.
 
-Sprint 51 prep — 2026-05-02
+Sprint 81 prep — 2026-05-02
 Autor: Hilo B (Cowork)
 """
 from __future__ import annotations
