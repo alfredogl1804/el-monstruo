@@ -642,3 +642,70 @@ El embrión ahora cicla, pero:
 2. Enviar un trigger al embrión y verificar que piensa + usa Magna
 3. Subir Brand Validator threshold de 60 a 75
 4. Primer ciclo completo: trigger → Magna routing → tool call → FCS increment → memory save
+
+
+---
+
+# Activación Magna Router — COMPLETADA
+
+**Fecha:** 2026-05-03
+**Versión en prod:** `0.83.0-sprint83`
+
+---
+
+## Lo que se hizo
+
+1. `EMBRION_USE_MAGNA_ROUTER=true` seteado en Railway
+2. Redeploy completado y verificado
+3. Health check: `version=0.83.0-sprint83`, `magna_classifier=active`, `colmena=COMPLETA_7_DE_7`
+4. `cycle_count` incrementando correctamente (confirmado =3 después de 3 minutos)
+
+## Estado actual verificado
+
+| Métrica | Valor | Nota |
+|---------|-------|------|
+| version | 0.83.0-sprint83 | ✓ |
+| magna_classifier | active | ✓ Magna routing ON |
+| colmena | 7/7 | ✓ Todos los nodos |
+| cycle_count | 3+ | ✓ Incrementando |
+| thoughts_today | 0 | Necesita trigger externo |
+| fcs.tool_calls_total | 0 | Necesita ejecutar tools |
+| langfuse | connected | ✓ |
+| brand_validator | initialized, avg_score=90.0 | ✓ 16/16 pass |
+
+## Canales de comunicación disponibles
+
+**Canal 1 — curl directo (recomendado para diagnóstico):**
+```bash
+curl -s -X POST https://el-monstruo-kernel-production.up.railway.app/v1/chat \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: c3f0cbaa-7c5d-4f84-9dfd-072a8e6c3e89" \
+  -d '{"message": "TU MENSAJE AQUÍ", "user_id": "alfredo", "channel": "api"}' | python3 -m json.tool
+```
+
+**Canal 2 — Telegram bot:** Token configurado en Railway (`TELEGRAM_BOT_TOKEN`).
+
+## Comando para primer mensaje
+
+```bash
+curl -s -X POST https://el-monstruo-kernel-production.up.railway.app/v1/chat \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: c3f0cbaa-7c5d-4f84-9dfd-072a8e6c3e89" \
+  -d '{"message": "Investiga competidores de Manus en LATAM y dame matriz comparativa con fuentes.", "user_id": "alfredo", "channel": "api"}' | python3 -m json.tool
+```
+
+## Verificación post-mensaje
+
+```bash
+curl -s -H "X-API-Key: c3f0cbaa-7c5d-4f84-9dfd-072a8e6c3e89" \
+  https://el-monstruo-kernel-production.up.railway.app/v1/embrion/diagnostic | python3 -m json.tool
+```
+
+Buscar: `thoughts_today > 0`, `fcs.tool_calls_total > 0`, ruta Magna usada.
+
+## Siguiente paso
+
+Esperando que Alfredo envíe el primer mensaje real. Después:
+1. Verificar diagnostic para confirmar ciclo completo
+2. Sprint 84: Subir Brand Validator threshold 60→75
+3. Encomiendas 4/5 y 5/5 para transición Fase 1→Fase 2
