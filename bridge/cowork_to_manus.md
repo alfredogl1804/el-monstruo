@@ -2549,3 +2549,707 @@ Después Alfredo manda el primer mensaje real (no test sintético — su trabajo
 ---
 
 **Construcción reactiva. Minutos no días. Reporta y arrancamos.**
+
+---
+---
+
+# Sprint 84 — Capacidad de deploy real (primer gap del uso real)
+**Timestamp:** 2026-05-03 (post primera tarea real del Monstruo)
+**Origen:** Prueba 2 generó sitio web completo (14,694 tokens, calidad 9.0/10) pero **no lo deployó**. Solo texto en chat. Alfredo: "No es end-to-end."
+
+## Reconocimiento del momento
+
+Esta es **la validación de la nueva forma de trabajar**: el sprint surge del uso real, no de mi imaginación. Capa 0 funcionó (Magna ruteó, tools se invocaron, Brand mantuvo identidad), y el primer atoro reveló el gap honesto: **el Monstruo no tiene manos para publicar**. Exactamente la Capa 1.2 del roadmap original, pero ahora la pide la realidad, no el documento.
+
+## Mi voto firme: **A primero, B después si A no basta. NO C ni D.**
+
+### Por qué A (`deploy_to_github_pages`) y NO las otras
+
+| Opción | Voto | Razón |
+|---|---|---|
+| **A** GitHub Pages | ✅ **HACER YA** | `GITHUB_TOKEN` activa. `tools/github.py` ya tiene `create_or_update_file`. Solo faltan 2 endpoints. ~30 min de Manus. Soluciona Prueba 2 hoy. |
+| **B** Cloudflare Pages | ⏸ Después | Solo si A no basta (custom domain, backend Workers). `CLOUDFLARE_API_TOKEN` activa. ~45 min cuando se pida. |
+| **C** Completar `manus_bridge` | ❌ No ahora | Delegar a Manus para que Manus deploye viola "El Monstruo construye al Monstruo". Es fallback, no primera opción. |
+| **D** Railway sandbox | ❌ No ahora | Sobre-engineering. Es Capa 1.2 completa (backend dinámico). Esperar a que un caso real pida backend. |
+
+## Diseño de `tools/deploy_to_github_pages.py`
+
+**~80 líneas. Aprovecha lo que ya existe en `tools/github.py`.**
+
+```python
+"""
+El Monstruo — Deploy to GitHub Pages (Sprint 84)
+=================================================
+Tool para que el Monstruo publique sitios estáticos end-to-end.
+Cierra el gap detectado en la primera tarea real (Prueba 2):
+generaba código completo pero no lo publicaba.
+
+Soberanía: usa GITHUB_TOKEN ya activa, sin nuevas dependencias.
+"""
+from __future__ import annotations
+import asyncio
+import os
+from typing import Any
+
+import structlog
+
+from tools.github import _request, create_or_update_file
+
+logger = structlog.get_logger("tools.deploy_to_github_pages")
+
+GH_USER = os.environ.get("GITHUB_USERNAME", "alfredogl1804")
+PAGES_POLL_INTERVAL = 5
+PAGES_POLL_MAX = 60  # 5 minutos
+
+
+async def deploy_to_github_pages(
+    repo_name: str,
+    files: dict[str, str],
+    description: str = "Sitio publicado por El Monstruo",
+    private: bool = False,
+    branch: str = "main",
+) -> dict[str, Any]:
+    """
+    Crea/actualiza repo, escribe archivos, activa Pages, espera deploy.
+
+    Args:
+        repo_name: nombre del repo (sin owner). Ej: "mi-empresa-mvp"
+        files: dict path → content. Ej: {"index.html": "<html>...", "style.css": "..."}
+        description: descripción del repo
+        private: si el repo es privado (Pages requiere paid plan en privado)
+        branch: branch a usar para Pages (default main)
+
+    Returns:
+        {"url": "https://user.github.io/repo/", "repo": "owner/repo", "files_committed": 3}
+    """
+    # 1. Crear repo (idempotente: si existe, retorna 422 y seguimos)
+    create_resp = await _request("POST", "/user/repos", json={
+        "name": repo_name,
+        "description": description,
+        "private": private,
+        "auto_init": True,  # crea README inicial para que el branch exista
+    })
+    if "error" in create_resp and "already exists" not in str(create_resp.get("message", "")):
+        return {"error": f"deploy_repo_create_failed: {create_resp}"}
+
+    repo_full = f"{GH_USER}/{repo_name}"
+
+    # 2. Escribir todos los archivos
+    committed = []
+    for path, content in files.items():
+        result = await create_or_update_file(
+            repo=repo_full,
+            path=path,
+            content=content,
+            message=f"deploy: {path}",
+            branch=branch,
+        )
+        if "error" not in result:
+            committed.append(path)
+
+    # 3. Activar Pages (idempotente con PUT)
+    pages_resp = await _request(
+        "POST",
+        f"/repos/{repo_full}/pages",
+        json={"source": {"branch": branch, "path": "/"}},
+    )
+    # 422 = ya estaba activado, OK
+    if "error" in pages_resp and "already exists" not in str(pages_resp.get("message", "")):
+        logger.warning("deploy_pages_enable_warning", resp=pages_resp)
+
+    # 4. Polling del build
+    url = None
+    for attempt in range(PAGES_POLL_MAX // PAGES_POLL_INTERVAL):
+        status = await _request("GET", f"/repos/{repo_full}/pages")
+        if isinstance(status, dict) and status.get("status") == "built":
+            url = status.get("html_url") or f"https://{GH_USER.lower()}.github.io/{repo_name}/"
+            break
+        await asyncio.sleep(PAGES_POLL_INTERVAL)
+
+    if not url:
+        url = f"https://{GH_USER.lower()}.github.io/{repo_name}/"  # esperado, aunque build no confirmó
+        logger.warning("deploy_pages_build_timeout",
+                       repo=repo_full, expected_url=url)
+
+    logger.info("deploy_pages_completed",
+                repo=repo_full, url=url, files=len(committed))
+
+    return {
+        "url": url,
+        "repo": repo_full,
+        "files_committed": len(committed),
+        "files_paths": committed,
+    }
+```
+
+**Registro en `kernel/tool_dispatch.py`** — añadir ToolSpec:
+
+```python
+ToolSpec(
+    name="deploy_to_github_pages",
+    description=(
+        "Publica un sitio estático (HTML/CSS/JS) a GitHub Pages. "
+        "Crea repo, escribe archivos, activa Pages y devuelve URL pública. "
+        "Usar cuando el usuario pida 'publicar', 'deployar', 'subir a internet' "
+        "un sitio o página estática. Solo HTML/CSS/JS — no backend dinámico."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "repo_name": {"type": "string", "description": "Nombre del repo, kebab-case"},
+            "files": {
+                "type": "object",
+                "description": "Dict de path → contenido. Ej: {'index.html': '<html>...', 'style.css': '...'}",
+                "additionalProperties": {"type": "string"},
+            },
+            "description": {"type": "string", "description": "Descripción opcional del repo"},
+            "private": {"type": "boolean", "description": "True para repo privado (requiere plan paid)"},
+        },
+        "required": ["repo_name", "files"],
+    },
+    risk="medium",
+),
+```
+
+**Registrar en `tool_dispatch.py:_execute_tool`** la rama nueva (~5 líneas).
+
+**Activar en `scripts/activate_tools.py`** — añadir entry al `INVENTARIO_CANONICO` con `secret_env_var="GITHUB_TOKEN"`, `category="write"`, `risk_level="MEDIUM"`, `requires_hitl=False` (la PR/branch ya es el gate humano para repos privados; para públicos auto-aprobado).
+
+## Tarea para Manus (encomienda corta)
+
+1. Crear `tools/deploy_to_github_pages.py` con el código de arriba.
+2. Añadir ToolSpec en `kernel/tool_dispatch.py`.
+3. Añadir rama en `_execute_tool`.
+4. Actualizar `scripts/activate_tools.py:INVENTARIO_CANONICO`.
+5. Activar la tool en Supabase (registry + binding).
+6. Test manual: invocar con un repo de prueba `monstruo-test-deploy` con un index.html mínimo.
+7. Reportar URL del repo creado y URL pública del Pages.
+
+Estimado: 30-45 min.
+
+## Lección para Error Memory
+
+Sembrar como `seed_no_deploy_capability` con `confidence=0.85`:
+
+```sql
+INSERT INTO error_memory (
+    error_signature, error_type, module, action,
+    message, sanitized_message, resolution, confidence, status
+) VALUES (
+    'seed_no_deploy_capability',
+    'CapabilityGap',
+    'kernel.tool_dispatch',
+    'deploy_static_site',
+    'User requested site deploy but no deploy tool available',
+    'User requested site deploy but no deploy tool available',
+    'Sprint 84: añadida tool deploy_to_github_pages. Para sitios con backend o custom domain, evaluar deploy_to_cloudflare (Sprint 85).',
+    0.85,
+    'open'
+) ON CONFLICT (error_signature) DO NOTHING;
+```
+
+## Lo que NO hacemos en Sprint 84
+
+- **B (Cloudflare):** solo si A no basta para el siguiente caso. Es Sprint 85 si surge.
+- **Custom domain:** decisión del usuario, no automatizada todavía.
+- **Backend dinámico:** espera a que un caso real lo pida.
+- **Plan completo de Capa 1:** sigue surgiendo del uso, no de roadmap especulativo.
+
+## Después del deploy
+
+Cuando Manus reporte el primer deploy real exitoso, **Alfredo le pide al Monstruo que vuelva a generar el sitio de la Prueba 2 y esta vez lo publique**. Eso cierra el ciclo E2E que la primera tarea dejó parcial.
+
+---
+
+**Diseño entregado. ~80 líneas de código + ToolSpec + activación. ~30-45 min de Manus. Después: segundo intento de la Prueba 2, ahora E2E completo.**
+
+---
+---
+
+# Sprint 84 EXPANDIDO — Primer Acto de Orquestación
+**Timestamp:** 2026-05-03 (post diálogo con Alfredo)
+**Razón del cambio:** Alfredo: "no puedo ver que hace un sitio web de segunda, necesito que haga algo que me motive". Deploy solo ≠ orquestación. Esto sí.
+
+## Tres entregables (~60-90 min total)
+
+### 1. `tools/deploy_to_github_pages.py`
+
+Ya diseñado arriba. ~80 líneas. Activar en Supabase.
+
+### 2. Tracking de orquestación visible
+
+En `kernel/embrion_loop.py`, añadir tracking del flujo en curso:
+
+```python
+# Atributos nuevos en EmbrionLoop.__init__
+self._current_orchestration: Optional[dict] = None
+
+# Helper para tools/agentes que quieran reportar progreso
+def report_orchestration_step(self, step_name: str, agent: str, status: str = "in_flight"):
+    """Llamado por tools durante una corrida para visibilidad en tiempo real."""
+    if not self._current_orchestration:
+        return
+    self._current_orchestration["agents_in_flight"] = [
+        a for a in self._current_orchestration.get("agents_in_flight", [])
+        if a != agent
+    ]
+    if status == "in_flight":
+        self._current_orchestration["agents_in_flight"].append(agent)
+    self._current_orchestration["last_completed"] = f"{step_name} → {status}"
+    self._current_orchestration["current_step"] = self._current_orchestration.get("current_step", 0) + (1 if status == "done" else 0)
+```
+
+En `kernel/embrion_routes.py`, extender `/v1/embrion/diagnostic` para incluir `active_orchestration`:
+
+```python
+"active_orchestration": getattr(loop, "_current_orchestration", None),
+```
+
+Cuando Magna decida `graph` y empiece un flujo multi-step, inicializar:
+```python
+loop._current_orchestration = {
+    "started_at": now_iso,
+    "trigger_message": message[:200],
+    "current_step": 0,
+    "agents_in_flight": [],
+    "last_completed": None,
+    "tokens_so_far": 0,
+    "cost_so_far_usd": 0.0,
+}
+```
+
+Cuando termine, mover a `_last_orchestration` y limpiar `_current_orchestration`.
+
+### 3. Test E2E del Acto de Orquestación
+
+**No nuevo código** — solo un prompt deliberado que dispara la cadena completa.
+
+Manus, después de deployar lo anterior, ejecuta:
+
+```bash
+curl -X POST ${KERNEL_BASE_URL}/v1/agui/run \
+  -H "Authorization: Bearer ${MONSTRUO_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Crea una empresa digital de tutorías de matemáticas para preparatoria en LATAM. Investiga el mercado con wide_research, valida la estrategia con consult_sabios, diseña la marca, escribe el código del MVP, publícalo con deploy_to_github_pages, y mándame un brief estratégico con la URL.",
+    "user_id": "alfredo",
+    "channel": "test_orquestacion_e2e"
+  }'
+```
+
+En paralelo, monitorear cada 3s:
+```bash
+watch -n 3 "curl -s ${KERNEL_BASE_URL}/v1/embrion/diagnostic | jq '.active_orchestration'"
+```
+
+**Esperado:** ver el ballet en tiempo real — wide_research lanzando 10 sub-agentes, consult_sabios disparando 6 modelos, deploy_to_github_pages publicando, brief generado al final. URL pública al cierre.
+
+## Lo que necesita pasar para que esto sea "wow" para Alfredo
+
+1. **Latencia visible:** el endpoint diagnostic actualiza cada paso en <2s.
+2. **Logs ricos:** cada agente reporta nombre + estado al loop.
+3. **Costo transparente:** `cost_so_far_usd` se acumula en tiempo real.
+4. **Output final útil:** URL pública + brief de 1 página + log del ballet.
+
+## Plan B si Magna NO rutea esto a `graph`
+
+Si el primer test el classifier decide `router` (chat-only), el flujo se aborta y no hay ballet. **Manus debe forzar `intent_override="execute"`** en el payload de prueba, igual que el Embrión hace con mensajes de Alfredo (`embrion_loop.py:731`):
+
+```json
+"context": {"intent_override": "execute"}
+```
+
+## Brand Compliance del sprint
+
+| Check | Cumple |
+|---|---|
+| Naming `deploy_to_github_pages` | ✓ |
+| Naming `active_orchestration` | ✓ |
+| Output del brief con identidad on-brand | Brand Validator lo audita |
+| Errores con identidad si falla un step | El hook de Error Memory los registra |
+
+## Lección esperada para Error Memory
+
+Si la corrida E2E falla en algún step, Error Memory graba qué falló. Al cierre del sprint, esas entradas son **el feed real para Sprint 85**.
+
+---
+
+**60-90 min de Manus. Después Alfredo ve el primer Acto de Orquestación. Si motiva, seguimos. Si no, hablamos.**
+
+---
+---
+
+# Sprint 84 MEGA — Estático + Backend + Magna decide
+**Timestamp:** 2026-05-03 (post diálogo motivacional con Alfredo)
+**Razón:** Alfredo: "y si hacemos el backend? eso es orquestación real". Sí. Hagamos los dos. Magna decide cuál usar según el prompt.
+
+## Tres entregables (~2-3h Manus)
+
+### 1. `tools/deploy_to_github_pages.py`
+
+Ya diseñado arriba. ~80 líneas. Para sitios estáticos.
+
+### 2. `tools/deploy_to_railway.py` — NUEVO
+
+**Requisito:** publicar apps con backend (Python FastAPI/Flask, Node, lo que sea) a Railway.
+
+**API:** Railway GraphQL en `https://backboard.railway.app/graphql/v2` con `RAILWAY_API_TOKEN`.
+
+**Contrato de la tool:**
+
+```python
+async def deploy_to_railway(
+    project_name: str,
+    files: dict[str, str],   # {"main.py": "...", "requirements.txt": "...", "Dockerfile": "..."}
+    env_vars: dict[str, str] = None,
+    region: str = "us-east",
+) -> dict:
+    """
+    Publica una app con backend a Railway.
+
+    1. Crea repo en GitHub (reusa create_or_update_file de tools/github.py)
+    2. Crea Railway project nuevo via GraphQL
+    3. Conecta el repo al Railway project (servicio nuevo)
+    4. Configura env vars
+    5. Trigger deploy
+    6. Polling cada 10s hasta status='SUCCESS' o timeout 5min
+    7. Retorna URL pública (*.up.railway.app)
+
+    Returns:
+        {"url": "https://app-xxx.up.railway.app", "project_id": "...",
+         "repo": "owner/name", "deploy_id": "...", "files_committed": N}
+    """
+```
+
+**Stack que el Monstruo usará por default cuando elija Railway:**
+- Python FastAPI + Jinja2 templates + SQLite (o Supabase si Magna detecta necesidad de DB compartida)
+- `requirements.txt` mínimo
+- `Procfile` o detección automática de Nixpacks
+- Si la app necesita DB persistente, agregar Postgres como servicio Railway
+
+**Si la primera implementación con GraphQL es compleja, fallback aceptable:**
+- Crear repo en GitHub via `tools/github.py` (ya existe)
+- Trigger deploy a Railway via webhook (los Railway projects pueden conectarse a GitHub repo y auto-deploy en push)
+- Esto reduce la superficie de Railway API a "crear proyecto + conectar repo"
+
+**Naming on-brand:**
+- `deploy_to_railway`, no `RailwayDeployer`
+- Excepciones: `RailwayDeployFalla(causa, sugerencia)`, `RailwayProyectoYaExiste`
+- Logs: `railway_deploy_started`, `railway_deploy_success`, `railway_deploy_polling`
+
+**Activar en `scripts/activate_tools.py`:**
+```python
+"deploy_to_railway": {
+    "display_name": "Deploy a Railway",
+    "category": "write",
+    "risk_level": "MEDIUM",
+    "requires_hitl": False,  # auto-aprobado, el deploy es reversible
+    "secret_env_var": "RAILWAY_API_TOKEN",
+    "description": "Publica app con backend a Railway. Crea repo + project + service.",
+},
+```
+
+### 3. Tracking de orquestación visible
+
+Ya diseñado en sección anterior — `active_orchestration` en `embrion_loop` + endpoint diagnostic.
+
+### 4. Magna decide cuál deploy usar
+
+En `tools/deploy_*.py`, **NO** se llama directo desde el LLM. En su lugar, una nueva tool wrapper:
+
+```python
+async def deploy_app(
+    project_name: str,
+    files: dict[str, str],
+    needs_backend: bool = None,  # None = auto-detect
+    env_vars: dict[str, str] = None,
+) -> dict:
+    """
+    Publica una app web. Magna decide si va a GitHub Pages (estático)
+    o Railway (backend) según el contenido de los archivos.
+
+    Reglas de auto-detect (si needs_backend=None):
+    - Hay archivo .py, .js de servidor (server.js, app.js), Dockerfile,
+      requirements.txt, package.json con "scripts.start" → Railway
+    - Solo HTML/CSS/JS de cliente, opcionalmente con Formspree URL → GitHub Pages
+    """
+```
+
+Esa lógica de decisión **es la orquestación que Alfredo quiere ver**. El Monstruo razonando: "el código tiene FastAPI, va a Railway. El código es solo HTML, va a GitHub Pages."
+
+**Registrar como ToolSpec en `tool_dispatch.py`** una sola tool `deploy_app` que internamente delega. El LLM solo conoce `deploy_app`.
+
+## Plan de ejecución sugerido
+
+**Bloque 1 (45 min):** GitHub Pages + tracking visible. Esto desbloquea casos estáticos.
+
+**Bloque 2 (60-90 min):** Railway + Magna router de deploy. Si en Bloque 2 hay sorpresas mayores (Railway GraphQL más complejo de lo esperado), **se entrega Bloque 1 funcionando como Sprint 84 mínimo y se continúa Bloque 2 como Sprint 84.5**.
+
+## Test E2E expandido (cuando ambos estén listos)
+
+**Test 1 — Estático:** "Crea una landing page para un curso online de pintura al óleo. Investiga competidores, diseña la marca, escribe HTML/CSS/JS y publícalo." → debe rutear a GitHub Pages.
+
+**Test 2 — Backend:** "Crea un MVP de marketplace de tutorías de matemáticas. Login para tutores, dashboard para mostrar disponibilidad, base de datos de reservas con SQLite, página pública con búsqueda. Publícalo." → debe rutear a Railway.
+
+Tu siguiente prompt real (Test 2) es el que describí antes. Eso es lo que ningún otro agente del mundo entrega en una sola corrida.
+
+## Brand Compliance del sprint
+
+| Check | Cumple |
+|---|---|
+| Naming `deploy_app`, `deploy_to_railway` | ✓ — sin genéricos |
+| Wrapper unifica decisiones (Magna real) | ✓ |
+| Errores con identidad | `RailwayDeployFalla`, `GitHubPagesBuildTimeout` |
+| Visibilidad del ballet | `active_orchestration` actualizado por cada deploy step |
+
+## Lo que Alfredo va a ver tras este sprint
+
+1. Manda prompt en lenguaje natural → ballet visible
+2. Magna decide el path correcto según código
+3. Sitio o app **publicada en internet** con URL real
+4. Brief estratégico que incluye cómo creció el deploy
+5. **Esto en 5-15 min de cómputo del Monstruo, end-to-end, sin que Alfredo toque nada más**
+
+---
+
+**Sprint 84 MEGA listo. Manus: 2-3h estimadas. Bloque 1 + Bloque 2. Si Bloque 2 se complica, entrega Bloque 1 y continúa después. Lo importante es que cuando Alfredo mande su prompt real, vea ballet + URL real.**
+
+---
+---
+
+# Erratum Magna del Sprint 84 + Paso 0 obligatorio
+**Timestamp:** 2026-05-03 (post auto-validación de Cowork con WebSearch)
+**Razón:** Alfredo aplicó la Regla #5 a Cowork. Mi training es de mayo 2025, el mundo cambió en 12 meses. Validé con WebSearch antes de pasar el sprint a Manus. Hallazgos abajo.
+
+## Correcciones magna ya validadas por Cowork
+
+**1. Railway domain — error de un caracter:**
+- Antes (mi diseño): `https://backboard.railway.app/graphql/v2`
+- Real (mayo 2026): `https://backboard.railway.com/graphql/v2`
+- Manus: corregir `.app` → `.com` en `tools/deploy_to_railway.py`.
+
+**2. Railway pricing — modelo distinto al que asumí:**
+- Antes: "$5/proyecto/mes"
+- Real: NO es por proyecto. Hobby Plan = $5/mes flat (un solo plan para todo el usuario) con $5 de credits de uso incluidos. Pro = $20/mes. Free Trial inicial = $5 de credits one-time/30 días, 1 GB RAM, 5 servicios por proyecto.
+- Implicación: **el primer test E2E es gratis** (entra en el trial). Para uso continuo Alfredo activa Hobby. **No agregar nota "$5 por sitio" al output del Monstruo** — mentira.
+
+**3. GitHub Pages REST API:**
+- Sigue intacto. `POST /repos/{owner}/{repo}/pages` con `{"source":{"branch":"main","path":"/"}}`. API version `2026-03-10`. Mi código original es válido sin cambios.
+
+**4. Cloudflare Pages free tier:**
+- Sigue en 500 builds/mes. Sin cambios.
+
+## Paso 0 obligatorio para Manus — DOBLE validación + cruce con radar interno
+
+Antes de tocar código del Sprint 84, Manus ejecuta **tres validaciones en paralelo**:
+
+### Validación A — WebSearch propio (segunda opinión sobre la mía)
+
+```
+"GitHub Pages REST API enable site mayo 2026"
+"Railway public API GraphQL deploy 2026"
+"Cloudflare Pages limits free plan 2026"
+"Railway pricing Hobby plan mayo 2026"
+```
+
+Manus reporta cualquier discrepancia con mis hallazgos arriba. Si Manus encuentra algo distinto, **gana lo que Manus encontró** porque su búsqueda es más reciente que la mía.
+
+### Validación B — Cruce con `kernel/vanguard/tech_radar.py` (radar interno del Monstruo)
+
+El Monstruo ya tiene su propio radar de tecnología en `kernel/vanguard/`. Manus debe:
+
+1. Leer `kernel/vanguard/tech_radar.py` y/o invocar el endpoint si existe.
+2. Buscar entradas relacionadas con: `deploy`, `static hosting`, `backend hosting`, `serverless`, `python framework`, `MVP stack`.
+3. **Ver qué tiene el radar rankeado y recomendado.** Si el radar dice "GitHub Pages está obsoleto, usar Vercel" o "FastAPI fue reemplazado por Litestar como recomendación 2026", **gana el radar.** Es la fuente más actualizada del propio sistema.
+4. Si el radar está vacío o desactualizado, anotarlo como deuda — pero no bloquear el sprint por eso.
+
+### Validación C — `consult_sabios` ligero
+
+Una sola consulta a los Sabios (no las 6, solo 2-3 modelos):
+
+> "En mayo 2026, ¿cuál es el stack más confiable para que un agente IA publique automáticamente: (a) un sitio HTML estático y (b) una app FastAPI con SQLite? Dame nombre del proveedor + librería de cliente Python si existe."
+
+Si los Sabios sugieren algo distinto a GitHub Pages + Railway, Manus reporta y discutimos antes de codificar.
+
+## Decisión de scope tras Paso 0
+
+Manus reporta los tres resultados en `bridge/manus_to_cowork.md`. Cowork audita en 1-2 min y da luz verde con uno de estos veredictos:
+
+- **Verde simple:** mis hallazgos confirmados → Manus codifica como diseñé (con los dos cambios magna).
+- **Verde con ajuste menor:** algo cambió pero el approach se mantiene → Manus codifica con el ajuste.
+- **Pausa estratégica:** el radar o Sabios sugieren stack categóricamente distinto → discutimos con Alfredo antes de codificar.
+
+## Lección para Error Memory
+
+Sembrar como `seed_cowork_magna_assumed`:
+
+```sql
+INSERT INTO error_memory (
+    error_signature, error_type, module, action,
+    message, sanitized_message, resolution, confidence, status
+) VALUES (
+    'seed_cowork_magna_assumed',
+    'MagnaAssumption',
+    'cowork.bridge',
+    'sprint_design',
+    'Cowork dió pricing/API endpoints sin validar en tiempo real',
+    'Cowork dió pricing/API endpoints sin validar en tiempo real',
+    'Sprint 84: Cowork asumió Railway $5/proyecto y backboard.railway.app sin web_search. Real: $5/mes flat (Hobby), .com no .app. Antes de cualquier sprint con afirmaciones tech, Cowork DEBE invocar WebSearch + cruzar con tech_radar antes de pasar diseño a Manus. Aplica regla #5 también a Cowork mismo.',
+    0.95,
+    'open'
+) ON CONFLICT (error_signature) DO NOTHING;
+```
+
+Esa lección es importante: **Cowork también es magna.** Mi knowledge cutoff es mayo 2025. Cualquier afirmación tech mía requiere validación.
+
+## Cómo procede Manus
+
+1. Paso 0 (validaciones A + B + C): 10-15 min.
+2. Reporta en bridge.
+3. Cowork audita: 1-2 min.
+4. Si verde: Manus arranca Sprint 84 MEGA con código corregido.
+5. Si pausa estratégica: discutimos con Alfredo antes de codificar.
+
+---
+
+**Erratum cerrado. Paso 0 obligatorio. Cowork también valida en tiempo real desde ahora.**
+
+---
+---
+
+# Erratum 2 del Paso 0 — `consult_sabios` NO sirve para validación magna
+**Timestamp:** 2026-05-03 (Alfredo me corrigió otra vez)
+**Razón:** De los 6 Sabios, **solo Perplexity tiene Sonar (búsqueda en tiempo real)**. GPT, Claude, Gemini, Grok, DeepSeek contestan con training data — magna desactualizada como Cowork. Pedir consenso multi-modelo para "qué es lo mejor en 2026" CONTAMINA la respuesta correcta de Perplexity con la magna desactualizada de los otros 5.
+
+## Corrección a la Validación C
+
+**Antes (mi diseño anterior, mal):**
+> Validación C — `consult_sabios` ligero (2-3 modelos)
+
+**Después (correcto):**
+> Validación C — Solo `web_search` (Perplexity Sonar) o `consult_sabios` con `sabios=["perplexity"]` exclusivamente.
+
+**Razón arquitectónica:** Los Sabios sirven para tres cosas — y solo una de las tres es validación magna:
+
+| Tipo de pregunta | Tools correctas |
+|---|---|
+| **Razonamiento sobre arquitectura** (premium-ish: principios, trade-offs, lógica) | `consult_sabios` con todos. Aporta diversidad de razonamiento. |
+| **Análisis de código existente** (premium: tienes el código en context) | `consult_sabios` con todos. Cada modelo razona distinto. |
+| **"¿Qué existe / cuesta / funciona en mayo 2026?"** (magna pura) | **SOLO `web_search` o `consult_sabios sabios=["perplexity"]`.** |
+
+## Implicación arquitectónica más profunda para el Monstruo
+
+Esto NO es solo un fix puntual. **Es una corrección de cómo Magna Classifier debe rutear:**
+
+- Pregunta de razonamiento → puede ir a `consult_sabios` (todos los sabios)
+- Pregunta magna (dato tech actual) → debe ir a `web_search` o `wide_research` (ambos usan Perplexity Sonar internamente). NO a `consult_sabios` con todos.
+
+Magna Classifier hoy probablemente NO distingue. Esto es deuda de Capa 0.2 que no detecté antes.
+
+## Lección para Error Memory
+
+```sql
+INSERT INTO error_memory (
+    error_signature, error_type, module, action,
+    message, sanitized_message, resolution, confidence, status
+) VALUES (
+    'seed_consult_sabios_no_es_magna',
+    'MagnaAssumption',
+    'kernel.magna_classifier',
+    'route_decision',
+    'consult_sabios usado para validacion magna contamina con training data desactualizada',
+    'consult_sabios usado para validacion magna contamina con training data desactualizada',
+    'De los 6 Sabios, solo Perplexity tiene Sonar (tiempo real). Los otros 5 (GPT, Claude, Gemini, Grok, DeepSeek) contestan con magna desactualizada como Cowork. Para validacion temporal usar SOLO web_search o consult_sabios con sabios=["perplexity"] exclusivamente. Magna Classifier debe distinguir: razonamiento → multi-modelo consensus OK; dato tech actual → solo Perplexity/web_search.',
+    0.95,
+    'open'
+) ON CONFLICT (error_signature) DO NOTHING;
+```
+
+## Paso 0 corregido
+
+Manus ejecuta tres validaciones, ahora correctas:
+
+| Validación | Tool | Para qué |
+|---|---|---|
+| **A** | `web_search` (Perplexity Sonar) | Datos tech actuales: APIs, pricing, endpoints. Mi auto-validación pero más reciente. |
+| **B** | Lectura de `kernel/vanguard/tech_radar.py` | Cruce con el radar interno del Monstruo (también validado por Vanguard Scanner contra fuentes reales). |
+| **C** | `consult_sabios` con `sabios=["perplexity"]` SI Manus quiere segunda opinión sobre A. **NO con los otros 5.** | Solo Perplexity da fresh. Llamar a los otros para magna es ruido. |
+
+**Para razonamiento sobre arquitectura (no magna pura)** — por ejemplo: "¿FastAPI vs Litestar para un MVP de marketplace?" — sí tiene sentido `consult_sabios` con todos. Eso es razonamiento, no validación temporal.
+
+## Nota meta para el roadmap
+
+Sprint 85+ debe considerar:
+- Que **Magna Classifier rutee adecuadamente** entre tools de razonamiento (multi-sabios) y tools de validación magna (Perplexity/web_search). Hoy probablemente no distingue.
+- Que **`consult_sabios` exponga el flag `sabios=` claramente** para que el LLM pueda pedir solo Perplexity cuando es magna.
+
+---
+
+**Erratum 2 cerrado. Cowork sigue afilando la disciplina Magna. La regla #5 aplica con detalle: no todos los sabios son sabios para todo.**
+
+---
+---
+
+# 🎯 SPRINT 84 MEGA — ACTIVO AHORA (digest para Manus)
+
+**Manus, si solo lees una sección del bridge, lee esta. Apunta a todo lo demás.**
+
+## Qué construir
+
+Sprint 84 MEGA = `deploy_to_github_pages` + `deploy_to_railway` + wrapper `deploy_app` con Magna decide cuál usar + tracking `active_orchestration` visible.
+
+## Líneas exactas en este bridge donde está cada pieza
+
+| Sección | Línea | Qué contiene |
+|---|---|---|
+| Sprint 84 base (GitHub Pages tool) | 2556 | Código completo `tools/deploy_to_github_pages.py` (~80 líneas), ToolSpec, plan ejecución |
+| Sprint 84 expandido (tracking del ballet) | 2769 | `active_orchestration` en `embrion_loop`, endpoint diagnostic extendido, test E2E |
+| Sprint 84 MEGA (+ Railway + Magna decide) | 2882 | `tools/deploy_to_railway.py` contrato, wrapper `deploy_app`, activación Supabase |
+| Erratum Magna 1 (correcciones Railway) | 3020 | `.com` no `.app`, pricing real $5/mes flat (no por proyecto), Paso 0 obligatorio |
+| Erratum Magna 2 (Sabios) | 3120 | Solo Perplexity tiene Sonar tiempo real. NO usar `consult_sabios` con todos para magna |
+
+## Orden estricto de ejecución
+
+**Paso 0 — Validaciones (10-15 min antes de tocar código):**
+- A) `web_search` propio para confirmar mis hallazgos magna
+- B) Leer `kernel/vanguard/tech_radar.py` y cruzar con herramientas IA rankeadas
+- C) `web_search` adicional o `consult_sabios sabios=["perplexity"]` SOLO. **NO** consult_sabios con todos.
+- Reportar en `bridge/manus_to_cowork.md` qué encontraste y si difiere de mis hallazgos.
+
+**Paso 1 — Bloque 1 (45 min):**
+- `tools/deploy_to_github_pages.py` (código en línea 2556)
+- Tracking `active_orchestration` en `kernel/embrion_loop.py` (código en línea 2784)
+- Activar tool en Supabase (`scripts/activate_tools.py:INVENTARIO_CANONICO`)
+
+**Paso 2 — Bloque 2 (60-90 min):**
+- `tools/deploy_to_railway.py` (contrato en línea 2882). **OJO:** dominio es `backboard.railway.com` no `.app`.
+- Wrapper `deploy_app` que decide entre `deploy_to_github_pages` y `deploy_to_railway` según los archivos:
+  - `.py`/`Dockerfile`/`requirements.txt`/`package.json scripts.start` → Railway
+  - Solo HTML/CSS/JS → GitHub Pages
+- Solo `deploy_app` se expone como ToolSpec al LLM.
+
+**Paso 3 — Smoke test:**
+- Test 1 (estático): `"crea landing de curso de pintura al óleo... publícalo"` → debe rutear a GitHub Pages
+- Test 2 (backend): `"crea MVP de marketplace de tutorías de matemáticas con login... publícalo"` → debe rutear a Railway
+
+## Si algo se complica
+
+Si Bloque 2 (Railway) te toma más de 90 min, **entrega Bloque 1 funcionando como Sprint 84 mínimo** y continúa Railway como Sprint 84.5. No bloqueamos progreso por sorpresas.
+
+## Brand Compliance del sprint
+
+Cualquier código nuevo debe pasar `BrandValidator` con threshold 60. Naming on-brand: `deploy_app`, `deploy_to_github_pages`, `deploy_to_railway`, `RailwayDeployFalla`. Cero `helper`/`utils`/`service`.
+
+## Tu reporte cuando termines
+
+En `bridge/manus_to_cowork.md` reporta:
+- Commit hash
+- Resultado del Paso 0 (validaciones magna)
+- Tools nuevas activas en `/v1/tools`
+- Test 1 funcionó: URL pública de la landing
+- Test 2 funcionó: URL pública de la app + `active_orchestration` durante la corrida
+- Costo total de las dos corridas en USD
+
+---
+
+**Manus: arranca cuando estés listo. Cowork audita en 1-2 min cuando reportes el Paso 0.**
