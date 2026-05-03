@@ -598,6 +598,112 @@ def get_tool_specs():
             },
             risk="medium",
         ),
+        # ── Sprint 84 Bloque 2 — Deploy unificado (Magna decide) ──────
+        ToolSpec(
+            name="deploy_app",
+            description=(
+                "Publica una app end-to-end. Magna decide automáticamente entre "
+                "GitHub Pages (estático) y Railway (backend dinámico) en base a los archivos. "
+                "Usar como punto único de entrada para 'publicar', 'deployar' o 'lanzar' "
+                "cualquier proyecto. Acepta target_override='github_pages'|'railway' para forzar."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "project_name": {
+                        "type": "string",
+                        "description": "Nombre del proyecto en kebab-case. Ej: 'leoncio-api'.",
+                    },
+                    "files": {
+                        "type": "object",
+                        "description": (
+                            "Dict de path → contenido. Ej: {'main.py': '...', 'requirements.txt': '...'}"
+                        ),
+                        "additionalProperties": {"type": "string"},
+                    },
+                    "description": {"type": "string"},
+                    "private": {"type": "boolean"},
+                    "env_vars": {
+                        "type": "object",
+                        "description": "Variables de entorno (solo aplica a Railway).",
+                        "additionalProperties": {"type": "string"},
+                    },
+                    "target_override": {
+                        "type": "string",
+                        "enum": ["github_pages", "railway"],
+                        "description": "Forzar destino sin pasar por Magna.",
+                    },
+                },
+                "required": ["project_name", "files"],
+            },
+            risk="medium",
+        ),
+        ToolSpec(
+            name="deploy_to_railway",
+            description=(
+                "Deploy de bajo nivel a Railway desde un repo de GitHub existente. "
+                "Usar solo cuando el repo YA está pusheado y se necesita deploy directo. "
+                "Para flujos completos usar deploy_app (decide solo)."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "repo": {
+                        "type": "string",
+                        "description": "'owner/repo' en GitHub. Ej: 'alfredogl1804/leoncio-api'.",
+                    },
+                    "project_name": {
+                        "type": "string",
+                        "description": "Nombre del proyecto en Railway.",
+                    },
+                    "service_name": {"type": "string"},
+                    "env_vars": {
+                        "type": "object",
+                        "additionalProperties": {"type": "string"},
+                    },
+                    "create_domain": {"type": "boolean"},
+                },
+                "required": ["repo", "project_name"],
+            },
+            risk="medium",
+        ),
+        # ── Sprint 84 Bloque 1 — Deploy estático ──────────────────────
+        ToolSpec(
+            name="deploy_to_github_pages",
+            description=(
+                "Publica un sitio estático (HTML/CSS/JS) a GitHub Pages. "
+                "Crea repo, escribe archivos, activa Pages y devuelve URL pública. "
+                "Usar cuando el usuario pida 'publicar', 'deployar', 'subir a internet' "
+                "un sitio o página estática. Solo HTML/CSS/JS — no backend dinámico."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "repo_name": {
+                        "type": "string",
+                        "description": "Nombre del repo en kebab-case. Ej: 'leoncio-landing'",
+                    },
+                    "files": {
+                        "type": "object",
+                        "description": (
+                            "Dict de path → contenido. "
+                            "Ej: {'index.html': '<html>...', 'style.css': '...'}"
+                        ),
+                        "additionalProperties": {"type": "string"},
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Descripción opcional del repo en GitHub.",
+                    },
+                    "private": {
+                        "type": "boolean",
+                        "description": "True para repo privado (Pages requiere paid plan en privado).",
+                    },
+                },
+                "required": ["repo_name", "files"],
+            },
+            risk="medium",
+        ),
     ]
 
 
@@ -815,6 +921,23 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
                 "sources_count": result.sources_count,
                 "sub_tasks_completed": sum(1 for t in result.sub_tasks if t.completed),
             }
+        elif tool_name == "deploy_to_github_pages":
+            # Sprint 84 Bloque 1 — deploy estático end-to-end
+            from tools.deploy_to_github_pages import execute_deploy_to_github_pages
+
+            return await execute_deploy_to_github_pages(args)
+        elif tool_name == "deploy_to_railway":
+            # Sprint 84 Bloque 2 — deploy backend a Railway
+            from tools.deploy_to_railway import execute_deploy_to_railway
+
+            return await execute_deploy_to_railway(args)
+        elif tool_name == "deploy_app":
+            # Sprint 84 Bloque 2 — wrapper Magna decide entre estático y backend
+            from tools.deploy_app import execute_deploy_app
+
+            # Pasar embrion_loop si está disponible para tracking de Acto
+            embrion_loop = getattr(state, "_embrion_loop_ref", None) if hasattr(state, "_embrion_loop_ref") else None
+            return await execute_deploy_app(args, embrion_loop=embrion_loop)
         elif tool_name.startswith("mcp__"):
             # Route to MCP Client Manager (Sprint 17)
             mcp_mgr = _tool_mcp_manager

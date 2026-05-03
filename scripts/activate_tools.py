@@ -218,6 +218,34 @@ INVENTARIO_CANONICO: dict[str, dict] = {
         "secret_env_var": "MANUS_API_KEY",
         "description": "Delega tareas complejas a agentes Manus (5/hora).",
     },
+    # ── Sprint 84 Bloque 1 ──
+    "deploy_to_github_pages": {
+        "display_name": "Deploy a GitHub Pages (Forja Pública)",
+        "category": "write",
+        "risk_level": "MEDIUM",
+        # Auto-aprobado: el repo público nuevo es reversible (delete repo) y
+        # GitHub mismo es el gate de auditoría (commits firmados, historial).
+        "requires_hitl": False,
+        "secret_env_var": "GITHUB_TOKEN",
+        "description": "Publica sitio estático (HTML/CSS/JS) end-to-end a GitHub Pages.",
+    },
+    # ── Sprint 84 Bloque 2 ──
+    "deploy_to_railway": {
+        "display_name": "Deploy a Railway (Forja Backend)",
+        "category": "write",
+        "risk_level": "MEDIUM",
+        "requires_hitl": False,
+        "secret_env_var": "RAILWAY_API_TOKEN",
+        "description": "Crea proyecto Railway desde repo GitHub y despliega backend.",
+    },
+    "deploy_app": {
+        "display_name": "Deploy App (Magna decide)",
+        "category": "write",
+        "risk_level": "MEDIUM",
+        "requires_hitl": False,
+        "secret_env_var": "GITHUB_TOKEN",  # Railway opcional, GitHub siempre requerido
+        "description": "Wrapper unificado: Magna decide entre GitHub Pages y Railway.",
+    },
 }
 
 

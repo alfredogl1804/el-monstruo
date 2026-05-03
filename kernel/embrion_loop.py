@@ -148,6 +148,75 @@ class EmbrionLoop:
         self._fcs_manus_delegations = 0      # Tareas delegadas a Manus
         self._fcs_write_policy_rejected = 0  # Memorias rechazadas por write policy
 
+        # Sprint 84 — Tracking visible del Acto de Orquestación.
+        # Se inicializa cuando Magna decide 'graph' y empieza un flujo multi-step.
+        # Permite que /v1/embrion/diagnostic exponga el ballet en tiempo real.
+        self._current_orchestration: Optional[dict] = None
+        self._last_orchestration: Optional[dict] = None
+
+    # ── Sprint 84: Tracking del Acto de Orquestación ──────────────────────────
+
+    def start_orchestration(self, trigger_message: str) -> None:
+        """Iniciar tracking de un nuevo Acto de Orquestación."""
+        from datetime import datetime, timezone
+        self._current_orchestration = {
+            "started_at": datetime.now(timezone.utc).isoformat(),
+            "trigger_message": (trigger_message or "")[:200],
+            "current_step": 0,
+            "agents_in_flight": [],
+            "last_completed": None,
+            "tokens_so_far": 0,
+            "cost_so_far_usd": 0.0,
+        }
+
+    def report_orchestration_step(
+        self,
+        step_name: str,
+        agent: str,
+        status: str = "in_flight",
+        tokens: int = 0,
+        cost_usd: float = 0.0,
+    ) -> None:
+        """Hook llamado por tools/agents durante un Acto para visibilidad en tiempo real.
+
+        Args:
+            step_name: Nombre del step (ej: 'wide_research', 'deploy_to_github_pages').
+            agent: Nombre del agente o tool ejecutando.
+            status: 'in_flight' (arrancando) | 'done' (completado) | 'failed'.
+            tokens: Tokens consumidos por este step (acumulables).
+            cost_usd: Costo en USD de este step (acumulable).
+        """
+        if not self._current_orchestration:
+            return
+        self._current_orchestration["agents_in_flight"] = [
+            a for a in self._current_orchestration.get("agents_in_flight", [])
+            if a != agent
+        ]
+        if status == "in_flight":
+            self._current_orchestration["agents_in_flight"].append(agent)
+        else:
+            self._current_orchestration["last_completed"] = f"{step_name} → {status}"
+            self._current_orchestration["current_step"] = (
+                self._current_orchestration.get("current_step", 0) + 1
+            )
+        self._current_orchestration["tokens_so_far"] = (
+            self._current_orchestration.get("tokens_so_far", 0) + max(0, int(tokens))
+        )
+        self._current_orchestration["cost_so_far_usd"] = round(
+            self._current_orchestration.get("cost_so_far_usd", 0.0) + max(0.0, float(cost_usd)),
+            4,
+        )
+
+    def end_orchestration(self, final_status: str = "done") -> None:
+        """Cerrar el Acto de Orquestación actual y archivarlo en _last_orchestration."""
+        from datetime import datetime, timezone
+        if not self._current_orchestration:
+            return
+        self._current_orchestration["ended_at"] = datetime.now(timezone.utc).isoformat()
+        self._current_orchestration["final_status"] = final_status
+        self._last_orchestration = self._current_orchestration
+        self._current_orchestration = None
+
     @property
     def stats(self) -> dict[str, Any]:
         return {

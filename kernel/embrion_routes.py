@@ -258,7 +258,7 @@ async def embrion_diagnostic(request: Request):
 
     diagnostics = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "version": "0.83.0-sprint83",
+        "version": "0.84.0-sprint84",
     }
 
     # 1. Loop health
@@ -324,6 +324,11 @@ async def embrion_diagnostic(request: Request):
             "sabios": stats.get('sabios', {}),
             "radar": stats.get('radar', {}),
         }
+
+        # Sprint 84 — Acto de Orquestación visible en tiempo real.
+        # Se inicializa cuando Magna decide 'graph' y empieza un flujo multi-step.
+        diagnostics["active_orchestration"] = getattr(loop, "_current_orchestration", None)
+        diagnostics["last_orchestration"] = getattr(loop, "_last_orchestration", None)
 
         # 6. Health verdict
         issues = []
