@@ -412,3 +412,35 @@ No se encontró información técnica en GitHub que no estuviera ya implícita o
 ### Referencias
 
 [1] Github Connector for Enterprise | Perplexity Help Center. (2026, 22 de abril). Recuperado de [https://www.perplexity.ai/help-center/en/articles/12275669-github-connector-for-enterprise](https://www.perplexity.ai/help-center/en/articles/12275669-github-connector-for-enterprise)
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** Personal Computer para Mac, lanzado oficialmente el 16 de abril de 2026.
+- **Cambios clave desde la Biblia original:** Lanzamiento de la aplicación para Mac que convierte un Mac mini en un agente de IA siempre activo. Integración local profunda con acceso al sistema de archivos, aplicaciones nativas (Apple Mail, iMessages) y búsqueda Spotlight. Introducción de características de seguridad como sandboxing, aprobación explícita para acciones sensibles, autorización de dos factores para control remoto y registros de acciones detallados con un interruptor de apagado (kill switch).
+- **Modelo de precios actual:** Perplexity Max a $200 por mes (requerido para el acceso a Personal Computer) y Perplexity Pro a $20 por mes (no incluye acceso a Personal Computer).
+
+### Fortalezas Confirmadas
+- Flujos de trabajo generalistas de asistente personal (investigación, redacción de informes, programación).
+- Conveniencia de configuración cero con contexto compartido.
+- Orquestación multi-modelo inteligente (usando el mejor modelo para cada tarea específica).
+- Capacidad de estar siempre activo cuando se ejecuta en una máquina dedicada como un Mac mini.
+
+### Debilidades y Limitaciones Actuales
+- Conectores con errores (por ejemplo, las integraciones de Vercel, Ahrefs, GitHub a menudo fallan o carecen de características).
+- Problema de "caja negra": Falta de visibilidad en los entornos de desarrollo locales (sin vista previa en vivo, sin recarga en caliente).
+- Ineficiencia de costos y recursos: Puede consumir créditos persiguiendo errores sin reportarlos.
+- Personalización y persistencia del entorno limitadas.
+
+### Posición en el Mercado
+- **Posición en el mercado:** Posicionado como una plataforma líder de agentes generalistas para usuarios avanzados dispuestos a pagar por la conveniencia de configuración cero.
+- **Base de usuarios:** Dirigido a usuarios avanzados de alto nivel y ejecutivos, dado el precio de $200/mes. Disponible para suscriptores de Perplexity Max, priorizando a los miembros de la lista de espera.
+- **Comparación competitiva:** Compite con herramientas altamente personalizables como OpenClaw, dirigiéndose a usuarios que desean un "trabajador digital" listo para usar en lugar de un agente de codificación especializado.
+
+### Puntuación Global
+- **Autonomía:** 8/10
+- **Puntuación Global:** 85/100
+- **Despliegue:** Híbrido (Computer Enterprise en la nube y Personal Computer como aplicación local para Mac).
+
+### Diferenciador Clave
+Su orquestación multi-modelo dinámica que coordina hasta 19 modelos de IA diferentes simultáneamente, enrutando cada subtarea al modelo más capaz en lugar de depender de un solo LLM subyacente.

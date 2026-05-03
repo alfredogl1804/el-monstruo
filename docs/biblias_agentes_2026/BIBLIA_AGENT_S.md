@@ -518,3 +518,42 @@ En resumen, Agent-S v0.3.2 no ofrece una lista predefinida de conectores externo
 
 [1] Gonzalez-Pumariega, G., Tu, V., Lee, C.-L., Yang, J., Li, A., & Wang, X. E. (2025). *Scaling Agents for Computer Use*. arXiv. https://arxiv.org/abs/2510.02250
 [2] simular-ai. (n.d.). *Agent-S: an open agentic framework that uses computers like a human*. GitHub. Recuperado el 1 de mayo de 2026, de https://github.com/simular-ai/Agent-S
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** Agent S3 (lanzado el 2 de octubre de 2025, con actualizaciones continuas en 2026).
+- **Cambios clave desde la Biblia original:**
+  - **Salto de rendimiento:** Agent S3 alcanzó una tasa de éxito del 72.6% en el benchmark OSWorld, superando la línea base humana del 72.36%.
+  - **Behavior Best-of-N (bBoN):** Introdujo un framework de escalado amplio que ejecuta múltiples rollouts en paralelo y selecciona el mejor resultado, mejorando significativamente la confiabilidad y precisión.
+  - **Agente de codificación nativo:** Se eliminó la configuración jerárquica de manager-worker de Agent S2, introduciendo un agente de codificación nativo que puede generar y ejecutar código directamente, aumentando el rendimiento de un solo agente al 62.6% en OSWorld.
+  - **Integración con Windows 365:** Aceptado en el programa Windows 365 for Agents de Microsoft.
+  - **Financiamiento:** Respaldado por Felicis Ventures y NVIDIA Ventures con una Serie A de $21.5M.
+- **Modelo de precios actual:**
+  - **Plus:** $20/mes por computadora (10,000 créditos, 1 agente desarrollador, soporte comunitario).
+  - **Pro:** $500/mes por computadora (Créditos ilimitados, 1 agente de despliegue gratuito, soporte de VM, soporte prioritario).
+  - **Enterprise:** Contactar para precio (Soluciones personalizables, escalado gestionado, cumplimiento SOC2/HIPAA).
+
+### Fortalezas Confirmadas
+- **Rendimiento a nivel humano:** Supera la línea base humana en OSWorld (72.6%).
+- **Grounding Visual:** Opera directamente sobre capturas de pantalla en bruto sin necesidad de árboles de accesibilidad o APIs.
+- **Escalado amplio (bBoN):** Maneja eficazmente tareas de alta varianza seleccionando el mejor resultado de múltiples rollouts paralelos.
+- **Multiplataforma:** Soporta macOS, Windows, Linux y Android.
+
+### Debilidades y Limitaciones Actuales
+- **Alta varianza en tareas de horizonte largo:** Aunque bBoN mitiga esto, los rollouts de una sola ejecución aún pueden ser inconsistentes debido a clics perdidos o ventanas emergentes inesperadas.
+- **Límite de especialización:** Altamente especializado para el control de GUI, haciéndolo menos de propósito general en comparación con modelos de IA más amplios.
+- **Sobrecarga computacional:** Ejecutar múltiples rollouts en paralelo para bBoN requiere recursos computacionales significativos.
+
+### Posición en el Mercado
+- **Posición en el mercado:** Líder en agentes autónomos de uso de computadoras (automatización de GUI).
+- **Base de usuarios:** Base de usuarios en crecimiento, particularmente entre desarrolladores y empresas que necesitan automatización de escritorio confiable. Tiene más de 10k estrellas en GitHub y es parte del programa Windows 365 for Agents de Microsoft.
+- **Posición competitiva:** Altamente considerado por lograr un rendimiento a nivel humano en OSWorld; visto como una de las principales alternativas de código abierto a agentes propietarios como Computer Use de Anthropic u Operator de OpenAI.
+
+### Puntuación Global
+- **Autonomía:** 9/10
+- **Puntuación Global:** 71/100
+- **Despliegue:** Híbrido (Código abierto autoalojado/Local, con opciones de nube/VM a través de planes Simular Pro/Enterprise)
+
+### Diferenciador Clave
+Agent S3 es el primer framework de escalado amplio para agentes de uso de computadoras que logra un rendimiento a nivel humano en tareas de GUI al operar puramente en capturas de pantalla en bruto y utilizar Behavior Best-of-N (bBoN) para superar la alta varianza.

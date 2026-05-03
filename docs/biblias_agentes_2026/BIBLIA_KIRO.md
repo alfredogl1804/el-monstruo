@@ -501,3 +501,34 @@ Aunque la documentación de MCP no detalla explícitamente el manejo de OAuth y 
 10. Accelerating GovTech development with Kiro. *AWS Blog*. https://aws.amazon.com/blogs/publicsector/accelerating-govtech-development-with-kiro/
 11. Building Enterprise-Ready Software with KIRO and Jira: The Spec-Driven Revolution. *AWS Builder Center*. https://builder.aws.com/content/38dEhy7nUpZcejXRAgc7lgIy8SI/building-enterprise-ready-software-with-kiro-and-jira-the-spec-driven-revolution
 12. Accelerate development workflows with Kiro and Atlassian MCP servers. *AWS Builder Center*. https://builder.aws.com/content/346mg4bUMGKydQfEgRHBfo3zWHS/accelerate-development-workflows-with-kiro-and-atlassian-mcp-servers
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** May 2026 release.
+- **Cambios clave desde la Biblia original:** Kiro se ha estabilizado como un IDE maduro basado en especificaciones. Las actualizaciones clave incluyen la introducción del sistema Hooks para la automatización basada en eventos (por ejemplo, ejecutar pruebas al guardar un archivo o abrir un PR), una integración profunda con Amazon Bedrock AgentCore para desplegar agentes en producción, y la adición de un modelo de precios unificado basado en créditos. También soporta ahora el enrutamiento multi-modelo entre Claude Sonnet 4.5 para razonamiento y Amazon Nova para generación de alto rendimiento.
+- **Modelo de precios actual:** Nivel gratuito (50 créditos) + $20/mes Pro (1,000 créditos) + $40/mes Pro+ (2,000 créditos) + $200/mes Power (10,000 créditos).
+
+### Fortalezas Confirmadas
+- Desarrollo basado en especificaciones que asegura la trazabilidad arquitectónica.
+- Integración nativa con AWS (CodeCatalyst, Q Developer, Bedrock).
+- Sistema Hooks basado en eventos para la automatización.
+- Contexto persistente a través de archivos Steering.
+
+### Debilidades y Limitaciones Actuales
+- Incómodo para stacks que no son de AWS.
+- Requiere un cambio cultural significativo hacia un flujo de trabajo centrado en especificaciones.
+- Los costos por exceso pueden acumularse rápidamente.
+- Carece de integración directa con herramientas de comunicación como Slack en comparación con sus competidores.
+
+### Posición en el Mercado
+- **Posición en el mercado:** Líder en proyectos nuevos (greenfield) empresariales para aplicaciones nativas de AWS.
+- **Base de usuarios:** Cientos de miles de descargas, con un 70% de adopción interna entre los ingenieros de Amazon.
+- **Comparación competitiva:** Destaca en el ecosistema AWS, aunque puede ser menos versátil para entornos no AWS en comparación con los 5 principales agentes de su categoría.
+
+### Puntuación Global
+- **Autonomía:** 6/10
+- **Puntuación Global:** 85/100
+- **Despliegue:** Local
+
+### Diferenciador Clave
+Kiro impone un flujo de trabajo de desarrollo basado en especificaciones donde las especificaciones en lenguaje natural son el artefacto principal y el código se genera como un artefacto de construcción, profundamente integrado con el ecosistema de AWS.

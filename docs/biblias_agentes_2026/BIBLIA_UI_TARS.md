@@ -555,3 +555,43 @@ En resumen, UI-TARS-desktop ofrece un marco de integración flexible y potente a
 [1] bytedance/UI-TARS-desktop: The Open-Source Multimodal AI Agent Stack: Connecting Cutting-Edge AI Models and Agent Infra. GitHub. Disponible en: [https://github.com/bytedance/ui-tars-desktop](https://github.com/bytedance/ui-tars-desktop)
 [2] UI TARS Desktop MCP Server - Seamless Multimodal. Shyft.ai. Disponible en: [https://shyft.ai/mcp/bytedance-ui-tars-desktop-github](https://shyft.ai/mcp/bytedance-ui-tars-desktop-github)
 [3] UI-TARS-desktop/docs/setting.md at main · bytedance/UI-TARS-desktop · GitHub. Disponible en: [https://github.com/bytedance/UI-TARS-desktop/blob/main/docs/setting.md](https://github.com/bytedance/UI-TARS-desktop/blob/main/docs/setting.md)
+
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** UI-TARS-2 (lanzado alrededor de septiembre de 2025, con actualizaciones continuas en 2026).
+- **Cambios clave desde la Biblia original:** 
+  - Lanzamiento de UI-TARS-2: Una actualización importante desde UI-TARS-1.5, con capacidades mejoradas en GUI, Juegos, Código y Uso de Herramientas. Es un modelo de Agente "Todo en Uno".
+  - Aprendizaje por Refuerzo (RL) Multi-Turno: UI-TARS-2 introduce un marco de RL multi-turno estabilizado.
+  - Entorno GUI Híbrido: Integra sistemas de archivos y terminales en el entorno GUI.
+  - Mejoras de rendimiento: Alcanza 88.2 en Online-Mind2Web, 47.5 en OSWorld, 50.6 en WindowsAgentArena y 73.3 en AndroidWorld.
+  - Cambios en la arquitectura: Data Flywheel para generación de datos escalable y Plataforma Sandbox Unificada para despliegues a gran escala.
+- **Modelo de precios actual:** 
+  - Precios de API: $0.10 USD por 1M de tokens de entrada y $0.20 USD por 1M de tokens de salida (para el modelo 7B).
+  - Código Abierto: El modelo y la aplicación de escritorio son de código abierto y se pueden ejecutar localmente de forma gratuita.
+
+### Fortalezas Confirmadas
+- Modelo de agente centrado en GUI nativo (percibe capturas de pantalla en bruto).
+- Aprendizaje de extremo a extremo que unifica percepción, razonamiento, acción y memoria.
+- Alto rendimiento en benchmarks de GUI (Mind2Web, OSWorld, etc.).
+- Código abierto y puede ser alojado localmente.
+- Costo de API extremadamente bajo ($0.10 USD/M de entrada).
+
+### Debilidades y Limitaciones Actuales
+- Todavía tiene dificultades con algunos razonamientos complejos de múltiples pasos en comparación con los modelos propietarios de frontera (aunque es competitivo).
+- Depende de coordenadas absolutas para la ubicación de objetos, lo que puede ser frágil.
+- La configuración y el despliegue pueden requerir experiencia técnica a pesar de la aplicación de escritorio.
+
+### Posición en el Mercado
+- Posicionado como un agente GUI nativo de código abierto líder.
+- Muy bien valorado en la comunidad de desarrolladores y de IA local por su rentabilidad y capacidades de despliegue local.
+- Se compara favorablemente con los 5 principales agentes en su categoría al ofrecer una alternativa de código abierto altamente capaz y de bajo costo.
+
+### Puntuación Global
+- Autonomy: 8/10
+- Overall Rating: 80/100
+- Deployment: Híbrido (Cloud/Local)
+
+### Diferenciador Clave
+Es un modelo de agente GUI nativo que percibe únicamente capturas de pantalla como entrada y realiza interacciones similares a las humanas de extremo a extremo, sin depender de representaciones textuales intermedias como HTML.

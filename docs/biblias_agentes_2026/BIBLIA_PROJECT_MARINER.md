@@ -345,3 +345,34 @@ La existencia y los detalles técnicos del proyecto **K3 Mariner: Autonomous Res
 [3] Fandry96. (2026, May 1). *k3-mariner/app.py*. GitHub. Retrieved May 1, 2026, from https://github.com/Fandry96/k3-mariner/blob/master/app.py
 [4] DuckDuckGo Search. (n.d.). *DuckDuckGo*. Retrieved May 1, 2026, from https://duckduckgo.com/
 [5] Streamlit. (n.d.). *Streamlit*. Retrieved May 1, 2026, from https://streamlit.io/
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** Actualización de Mayo 2025 / Gemini 2.5 (vigente a Mayo 2026).
+- **Cambios clave desde la Biblia original:** Ahora se ejecuta en máquinas virtuales basadas en la nube, lo que le permite manejar hasta 10 tareas concurrentes simultáneamente en segundo plano. Se está integrando en la API de Gemini y Vertex AI para desarrolladores. Google anunció la incorporación de un "Modo Agente" a la aplicación Gemini y un "Modo IA" a Google Search.
+- **Modelo de precios actual:** Disponible para suscriptores de Google AI Ultra, con un costo de $249.99 USD por mes.
+
+### Fortalezas Confirmadas
+- **Alto rendimiento:** Alcanza una puntuación del 83.5% en el benchmark WebVoyager.
+- **Multitarea:** Capacidad para manejar hasta 10 tareas concurrentes en segundo plano.
+- **Multimodalidad:** Capacidades multimodales nativas (visión, texto, audio).
+- **Integración:** Profunda integración con el ecosistema de Google (Search, Workspace).
+
+### Debilidades y Limitaciones Actuales
+- **Disponibilidad:** Limitado a suscriptores de Google AI Ultra en EE. UU. (solo en fase Labs).
+- **Sistemas Anti-Bot:** Tiene dificultades con CAPTCHAs y bloqueos de Cloudflare.
+- **Velocidad:** Puede ser lento debido a la latencia del procesamiento visual.
+- **Bucles:** Propenso a entrar en bucles de ejecución infinitos o a solicitar confirmación repetidamente.
+
+### Posición en el Mercado
+- **Posición en el mercado y base de usuarios:** Es considerado un agente líder experimental en navegación web. Su base de usuarios está limitada a los suscriptores de Google AI Ultra en EE. UU. (fase de acceso anticipado/labs).
+- **Comparación:** Compite directamente con Operator de OpenAI y Computer Use de Anthropic.
+
+### Puntuación Global
+- **Autonomía:** 7.5/10
+- **Puntuación Global:** 75/100
+- **Despliegue:** Cloud
+
+### Diferenciador Clave
+Su propuesta de valor única radica en su búsqueda de una verdadera imitación humana en la navegación web, combinando visión multimodal nativa con una profunda integración en el ecosistema de Google para ejecutar de forma autónoma tareas web complejas de múltiples pasos.

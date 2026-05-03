@@ -343,3 +343,34 @@ No se encontró un repositorio oficial en GitHub con el nombre exacto "neocognit
 
 [1] NeoCognition. (n.d.). *NeoCognition*. Recuperado de [https://neocognition.io/](https://neocognition.io/)
 [2] OSU-NLP-Group. (n.d.). *GitHub - OSU-NLP-Group/Mind2Web: [NeurIPS'23 Spotlight] "Mind2Web: Towards a Generalist Agent for the Web" -- the first LLM-based web agent and benchmark for generalist web agents*. Recuperado de [https://github.com/OSU-NLP-Group/Mind2Web](https://github.com/OSU-NLP-Group/Mind2Web)
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** Lanzamiento inicial tras salir del modo sigiloso el 21 de abril de 2026. Actualmente en fase semilla con $40M de financiación. El producto aún no está disponible de forma general (GA), pero se está desarrollando para uso empresarial.
+- **Cambios clave desde la Biblia original:** NeoCognition salió oficialmente del modo sigiloso el 21 de abril de 2026, anunciando una ronda de financiación semilla de $40 millones coliderada por Cambium Capital y Walden Catalyst Ventures, con la participación de Vista Equity Partners. Obtuvo el respaldo de figuras prominentes como el CEO de Intel, Lip-Bu Tan, y el cofundador de Databricks, Ion Stoica. Reafirmaron su enfoque en la construcción de agentes de IA autoaprendices que desarrollan "modelos del mundo" de microentornos específicos para especializarse más allá del prompting zero-shot.
+- **Modelo de precios actual:** No han publicado niveles de precios públicos. Dada su financiación semilla de $40M, su posicionamiento como laboratorio de investigación que sale del sigilo y su estrategia de comercialización empresarial/SaaS, es probable que operen con contratos multianuales a medida, típicos de soluciones empresariales en fase semilla orientadas a la investigación.
+
+### Fortalezas Confirmadas
+- **Capacidad de Autoaprendizaje:** Los agentes aprenden y se adaptan continuamente a sus entornos específicos, construyendo un "modelo del mundo".
+- **Especialización:** Diseñados para convertirse en expertos de dominio en lugar de generalistas poco fiables.
+- **Alta Fiabilidad:** Orientados a aplicaciones de alto riesgo donde la precisión y la seguridad son críticas, superando la falta de fiabilidad de los agentes de propósito general actuales.
+- **Sólida Base de Investigación:** Fundada por investigadores líderes en IA (Yu Su, Xiang Deng, Yu Gu) con un historial de trabajo fundacional (Mind2Web, MMMU, SeeAct).
+
+### Debilidades y Limitaciones Actuales
+- **Fase Temprana:** Acaba de salir del modo sigiloso (abril de 2026), lo que significa que el producto probablemente no esté completamente maduro ni ampliamente probado en diversos entornos de producción.
+- **Falta de Precios/Disponibilidad Pública:** No es fácilmente accesible para pequeñas y medianas empresas; centrado en grandes despliegues empresariales.
+- **No Probado a Escala:** El enfoque de "modelo del mundo" para entornos de software es teóricamente sólido, pero necesita demostrar su escalabilidad y robustez en sistemas empresariales dinámicos del mundo real.
+
+### Posición en el Mercado
+- **Posición en el mercado:** NeoCognition se posiciona como un laboratorio de agentes de IA de alta gama impulsado por la investigación, centrado en inteligencia especializada de nivel experto para empresas.
+- **Base de usuarios:** Actualmente limitada a socios de diseño iniciales y clientes empresariales piloto. No es un producto de mercado masivo.
+- **Comparación competitiva:** Se diferencian de los proveedores de agentes de propósito general (como OpenAI, Anthropic, Google) y de otras startups de agentes especializados (como Cognition Labs, Adept) al enfatizar su arquitectura única de "modelo del mundo" de autoaprendizaje.
+
+### Puntuación Global
+- **Autonomía:** 8/10
+- **Puntuación Global:** 85/100
+- **Despliegue:** Cloud (SaaS) con potencial para despliegues Híbridos o en nube privada para clientes empresariales sensibles.
+
+### Diferenciador Clave
+El diferenciador clave de NeoCognition es su novedoso mecanismo de aprendizaje que permite a los agentes construir un "modelo del mundo" estructurado de su microentorno específico. Esto les permite aprender continuamente en el trabajo y especializarse en expertos de dominio altamente fiables, a diferencia de los agentes estáticos de propósito general.

@@ -593,3 +593,38 @@ Al revisar los issues, se encuentran algunas discusiones que revelan decisiones 
 ## Información Técnica Nueva (No en la Documentación Oficial del Sitio Web)
 
 La información detallada sobre la arquitectura interna del `openai-cua-sample-app`, los modos de ejecución (`native` y `code`), la estructura de los paquetes (`apps/demo-web`, `apps/runner`, `packages/*`), los requisitos de Node.js, pnpm y Playwright, y las advertencias de seguridad específicas del repositorio no se encuentran en la documentación general de OpenAI sobre "Operator" o "Computer-Using Agent". El `README.md` de este repositorio de ejemplo proporciona una visión mucho más profunda de la implementación técnica y las consideraciones de diseño de un agente CUA en un entorno de desarrollo real. Los issues también revelan discusiones y limitaciones que no suelen estar presentes en la documentación de alto nivel.
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** Impulsado por el modelo GPT-5.4 (con menciones a GPT-5.5 Pro). Lanzado inicialmente en enero de 2025 como Research Preview, el modelo subyacente ha sido actualizado.
+- **Cambios clave desde la Biblia original:** 
+  - Actualización del modelo inicial CUA a GPT-5.4/5.5, mejorando su puntuación en el benchmark OSWorld del 38.1% al 75% a principios de 2026.
+  - Enfoque empresarial con la contratación de Denise Dresser como CRO, moviéndose hacia precios basados en el valor (acuerdos basados en resultados) en lugar de solo vender tokens.
+  - Mejoras de seguridad y controles de ciberseguridad más fuertes con GPT-5.5.
+  - Despliegue más amplio, pasando de ser exclusivo de ChatGPT Pro a una disponibilidad más general, aunque con fluctuaciones.
+- **Modelo de precios actual:** Principalmente a través de la suscripción ChatGPT Pro a $200/mes para individuos. Para empresas, se está adoptando un modelo de precios basado en el valor (porcentaje del valor creado).
+
+### Fortalezas Confirmadas
+- Profunda integración con el ecosistema de OpenAI (ChatGPT Pro, o1 Pro, etc.).
+- Fuertes capacidades de visión para la interacción con GUI.
+- Altas tasas de éxito en tareas específicas del navegador como reservas y llenado de formularios.
+- Respaldado por la enorme capacidad de cómputo de OpenAI y mejoras continuas del modelo (GPT-5.4/5.5).
+
+### Debilidades y Limitaciones Actuales
+- Alto costo ($200/mes por Pro) en comparación con algunos competidores.
+- Históricamente frágil; la versión inicial obtuvo solo un 38.1% en OSWorld y a menudo requería excesiva intervención humana.
+- Velocidad de ejecución más lenta en comparación con operadores humanos o algunos agentes especializados (como Coasty).
+- Límites de uso y restricciones en tareas sensibles (transacciones financieras, coordinación de múltiples pestañas).
+
+### Posición en el Mercado
+- **Posición y base de usuarios:** Es un actor principal con gran reconocimiento de marca, incluido en ChatGPT Pro. La base de usuarios de ChatGPT supera los 900 millones semanales, con 10-35 millones de suscriptores de pago, siendo los usuarios de Pro ($200/mes) una fracción de estos (cientos de miles a pocos millones).
+- **Comparación competitiva:** Enfrenta dura competencia de agentes especializados como Coasty (que alcanza un 82% en OSWorld) y Computer Use de Anthropic. Se percibe como una herramienta poderosa pero costosa y a veces excesivamente cautelosa en tareas de uso de computadora puro.
+
+### Puntuación Global
+- **Autonomía:** 6/10 (Frecuentemente pausa para pedir confirmación humana en tareas ambiguas o sensibles).
+- **Puntuación General:** 75/100 (Ha mejorado significativamente desde su lanzamiento, pero lucha con el precio y la competencia).
+- **Despliegue:** Cloud (Opera a través de entornos virtuales alojados en la nube y la interfaz de ChatGPT).
+
+### Diferenciador Clave
+Su profunda integración con los modelos frontera de OpenAI (GPT-5.4/5.5) y el ecosistema más amplio de ChatGPT Pro, ofreciendo una experiencia de IA multimodal unificada.

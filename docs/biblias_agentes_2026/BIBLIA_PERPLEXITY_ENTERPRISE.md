@@ -330,3 +330,35 @@ En resumen, Perplexity AI ha integrado la verificabilidad de las referencias com
 **Referencias:**
 [8] Business Library. (2025, 2 de agosto). *How does perplexity evaluate information sources?*. [https://answers.businesslibrary.uflib.ufl.edu/genai/faq/413612](https://answers.businesslibrary.uflib.ufl.edu/genai/faq/413612)
 [9] TrySight AI. (2026, 29 de enero). *How Perplexity AI Selects Sources: Best Guide For 2026*. [https://www.trysight.ai/blog/how-perplexity-ai-selects-sources](https://www.trysight.ai/blog/how-perplexity-ai-selects-sources)
+
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** Perplexity Computer (niveles Enterprise Pro / Enterprise Max), con actualizaciones de marzo de 2026 que incluyen Skills, Model Council, Voice Mode y codificación GPT-5.3-Codex.
+- **Cambios clave desde la Biblia original:** Introducción de Perplexity Computer con Skills, Model Council, Voice Mode y codificación GPT-5.3-Codex en marzo de 2026. Soporte añadido para Model Context Protocol (MCP) para suscriptores Pro, Max y Enterprise para conectar herramientas externas o fuentes de datos. Mejora de Deep Research en febrero de 2026 para alcanzar un rendimiento de vanguardia en benchmarks externos.
+- **Modelo de precios actual:** Pro: $20/mes o $200/año. Enterprise Pro: $40/mes por usuario o $400/año (mínimo 50 usuarios para algunas funciones). Enterprise Max: $325/mes por usuario o $3,250/año.
+
+### Fortalezas Confirmadas
+- 10 veces más rápido que las búsquedas tradicionales en Google para investigación de mercado.
+- Transparencia en las citas (cada afirmación está referenciada).
+- Orquesta hasta 20 modelos simultáneamente.
+- Alta privacidad y seguridad (cumple con SOC 2 Tipo II, HIPAA, GDPR, PCI DSS, opción de retención de datos cero).
+
+### Debilidades y Limitaciones Actuales
+- Dificultades con tareas de razonamiento profundo y de múltiples pasos que requieren ventanas de contexto largas.
+- Prefiere respuestas más cortas y concisas.
+- Carece de herramientas de colaboración profunda o marketing creativo en comparación con competidores como Claude Team.
+
+### Posición en el Mercado
+- "El Analista" - se sitúa en la "Zona Ricitos de Oro" entre un motor de búsqueda (Google) y un motor de razonamiento (ChatGPT).
+- Altamente recomendado para trabajadores del conocimiento; un impulsor inmediato de la productividad.
+- Base de usuarios: Más de 20,000 organizaciones confían en Perplexity Enterprise. 22 millones de usuarios en total.
+
+### Puntuación Global
+- **Autonomía:** 8/10
+- **Puntuación Global:** 97/100
+- **Despliegue:** Cloud (SaaS)
+
+### Diferenciador Clave
+La orquestación dinámica de múltiples modelos con investigación respaldada por citas en tiempo real y retención de datos cero para empresas, permitiendo a los agentes autónomos orquestar hasta 20 modelos simultáneamente para ejecutar tareas complejas de múltiples pasos de forma autónoma.

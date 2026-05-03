@@ -513,3 +513,47 @@ La información detallada sobre el **entorno de desarrollo local**, los **requis
 [1] Cline GitHub Repository README.md. Disponible en: [https://github.com/cline/cline/blob/main/README.md](https://github.com/cline/cline/blob/main/README.md)
 [2] Cline GitHub Repository CONTRIBUTING.md. Disponible en: [https://github.com/cline/cline/blob/main/CONTRIBUTING.md](https://github.com/cline/cline/blob/main/CONTRIBUTING.md)
 [3] Cline Community MCP Server GitHub Repository README.md. Disponible en: [https://github.com/cline/cline-community/blob/main/README.md](https://github.com/cline/cline-community/blob/main/README.md)
+
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** v3.41 (lanzada en diciembre de 2025) o superior. La versión CLI es la 2.3.0 (a partir de febrero de 2026).
+- **Cambios clave desde la Biblia original:** 
+  - Introducción de Cline CLI 2.0+ con agentes de codificación completos en la terminal, ejecución paralela, modo CI/CD headless y soporte para editores ACP.
+  - Integración nativa en IDEs de JetBrains junto con VS Code.
+  - Lanzamiento de "Cline for Enterprise" con SSO, SLA, soporte dedicado, facturación centralizada y control de acceso basado en roles.
+  - Soporte para nuevos modelos como GPT-5.1, GPT-5.2, Devstral 2, Sonnet 4.5, GLM-4.6 y Grok Code Fast.
+  - Adición de "Hooks" para inyectar lógica personalizada en el flujo de trabajo de Cline.
+  - Cline Core ahora es un servicio independiente que expone una API gRPC para automatización, orquestación de múltiples instancias y creación de interfaces personalizadas.
+  - Llamadas a herramientas nativas que reducen errores y permiten la ejecución paralela.
+- **Modelo de precios actual:** 
+  - Open Source: Gratuito para desarrolladores individuales (Bring Your Own Key / BYOK). Solo se paga por la inferencia de IA según el uso.
+  - Enterprise: Precios personalizados. Incluye extensión para JetBrains, SSO, SLA, soporte dedicado, facturación centralizada, entre otros.
+
+### Fortalezas Confirmadas
+- 100% de código abierto con más de 60,000 estrellas en GitHub.
+- Bring Your Own Inference (BYOI/BYOK), lo que evita la dependencia de un solo proveedor (no vendor lock-in).
+- Modos "Plan" y "Act" para una ejecución supervisada.
+- Profunda integración con IDEs (VS Code, JetBrains) y CLI.
+- Opciones de despliegue local (On-prem) y en entornos aislados (air-gapped) para empresas reguladas.
+
+### Debilidades y Limitaciones Actuales
+- Costo de inferencia variable, que puede ser elevado con el uso intensivo de los mejores modelos.
+- Configuración inicial más técnica (manejo de claves API, selección de modelos).
+- La calidad de los resultados está directamente ligada al modelo elegido.
+- Las ofertas Enterprise carecen de transparencia pública en sus precios.
+
+### Posición en el Mercado
+- Posicionado como el agente de codificación de código abierto y agnóstico de modelos líder en el mercado.
+- Cuenta con más de 5 millones de instalaciones en VS Code y más de 60,000 estrellas en GitHub.
+- Altamente valorado por su privacidad, control y flexibilidad en comparación con servicios cerrados como Cursor o Windsurf.
+- Se destaca frente a los 5 principales agentes de su categoría por su enfoque abierto y opciones de despliegue seguro.
+
+### Puntuación Global
+- **Autonomía:** 8/10
+- **Puntuación Global:** 85/100
+- **Despliegue:** Cloud / Local / VPC / On-premise / Air-gapped
+
+### Diferenciador Clave
+El único agente de codificación popular que combina código abierto genuino, integración profunda con IDEs, soporte completo para BYOK y opciones de despliegue en VPC, on-premise y air-gapped sin dependencia de un proveedor específico (no vendor lock-in).

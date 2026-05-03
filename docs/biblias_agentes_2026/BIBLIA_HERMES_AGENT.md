@@ -1014,3 +1014,26 @@ Los entornos pueden configurarse a través de archivos YAML pasados con `--confi
 [1] Hermes Agent. (n.d.). *Environments, Benchmarks & Data Generation*. Recuperado de [https://hermes-agent.nousresearch.com/docs/developer-guide/environments](https://hermes-agent.nousresearch.com/docs/developer-guide/environments)
 
 
+
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+La versión más reciente de Hermes Agent es la v0.12.0, lanzada el 30 de abril de 2026. Desde la redacción original de la Biblia, el proyecto ha experimentado un crecimiento significativo, alcanzando más de 64,200 estrellas en GitHub, lo que indica una adopción masiva por parte de los desarrolladores. Se ha establecido una asociación importante con MiniMax, ampliando su soporte de modelos. El agente ahora incluye 118 habilidades (96 integradas y 22 opcionales) en más de 26 categorías. Además, la introducción del sistema de entrenamiento de aprendizaje por refuerzo (RL) Atropos permite entrenar mejores modelos de llamada a herramientas. El modelo de precios sigue siendo completamente gratuito y de código abierto bajo la licencia MIT. Los usuarios son responsables de los costos de alojamiento, que pueden ser tan bajos como $5 USD por mes para un VPS, y los costos de API generalmente oscilan entre $15 y $80 USD por mes, aunque esto puede reducirse a $0 utilizando modelos locales como Ollama.
+
+### Fortalezas Confirmadas
+Hermes Agent destaca por su bucle de aprendizaje auto-mejorable, su memoria persistente y sus capacidades de modelado de usuarios. Su naturaleza agnóstica al modelo (con soporte para más de 200 modelos) y su puerta de enlace multiplataforma (Telegram, Discord, Slack, WhatsApp, Signal, CLI) lo hacen altamente versátil y personalizable. La capacidad de generar autónomamente documentos de habilidades reutilizables en Markdown tras completar tareas complejas es una fortaleza validada con los datos actuales.
+
+### Debilidades y Limitaciones Actuales
+A pesar de sus fortalezas, el agente tiene dificultades para transferir aprendizajes a diferentes tipos de problemas. Las funciones de autoaprendizaje de Honcho están desactivadas por defecto. Además, su sistema de memoria es menos transparente que el enfoque basado en archivos utilizado por competidores como OpenClaw, y puede no ofrecer la misma calidad de resultados para tareas de codificación en comparación con herramientas especializadas como Claude Code o Cursor.
+
+### Posición en el Mercado
+Hermes Agent se posiciona actualmente como líder en el espacio de agentes de código abierto y auto-mejorables. Está experimentando una migración masiva de usuarios provenientes de OpenClaw, impulsada por su bucle de aprendizaje único y su robusto conjunto de características. En comparación con los 5 principales agentes de su categoría, destaca por su enfoque en la creación autónoma de habilidades y su flexibilidad de despliegue, aunque puede quedar rezagado en tareas de codificación pura frente a agentes especializados.
+
+### Puntuación Global
+- Autonomía: 8/10
+- Puntuación Global: 85/100
+- Despliegue: Cloud/Local/Hybrid (Local, Docker, SSH, Daytona, Singularity, Modal, VPS)
+
+### Diferenciador Clave
+El diferenciador clave de Hermes Agent es que es el único agente de código abierto con un bucle de aprendizaje integrado que crea y refina autónomamente documentos de habilidades reutilizables a partir de la experiencia. Esta capacidad de auto-mejora continua, combinada con su memoria persistente y modelado de usuario, le permite evolucionar y adaptarse a nuevas tareas sin intervención manual constante.

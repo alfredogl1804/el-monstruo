@@ -749,3 +749,45 @@ Devin 2.2 se presenta como un agente de ingeniería de software autónomo con ca
 [2] CognitionAI/qa-devin. (n.d.). GitHub. Recuperado de https://github.com/CognitionAI/qa-devin
 [3] CognitionAI/deepwiki. (n.d.). GitHub. Recuperado de https://github.com/CognitionAI/deepwiki
 [4] Cognition | SWE-bench technical report. (2024, March 15). Recuperado de https://cognition-labs.com/post/swe-bench-technical-report
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** Devin 2.2 (Lanzado el 24 de febrero de 2026).
+- **Cambios clave desde la Biblia original:**
+  - Pruebas de extremo a extremo con uso de computadora: Devin ahora puede lanzar y probar aplicaciones de escritorio con acceso completo a su propio escritorio Linux, enviando grabaciones de pantalla para revisión.
+  - Devin Review Autofix: Devin planifica, codifica, revisa su propio trabajo, detecta problemas y los soluciona antes de que el usuario abra un Pull Request (PR).
+  - Interfaz más rápida y rediseñada: Se inicia 3 veces más rápido y presenta una interfaz completamente reconstruida que unifica el ciclo de vida del desarrollo.
+  - Cambios en los precios: Se introdujeron nuevos planes de autoservicio, reduciendo el precio de entrada de $500/mes a $20/mes para el plan Pro.
+- **Modelo de precios actual:**
+  - Free: Uso limitado, Devin Review, DeepWiki.
+  - Pro: $20/mes (Cuota de uso de Devin, cuota de Windsurf IDE, pago por uso adicional).
+  - Teams: $80/mes (Miembros de equipo ilimitados, facturación centralizada).
+  - Max: $200/mes (Cuotas incrementadas).
+  - Enterprise: Precio personalizado (SSO, controles de administrador).
+
+### Fortalezas Confirmadas
+- Corrección de errores bien definidos (tasa de éxito del 78%).
+- Escritura de pruebas (tasa de éxito del 82%).
+- Migraciones de código y generación de código repetitivo (boilerplate).
+- Documentación y configuración de entornos.
+
+### Debilidades y Limitaciones Actuales
+- Requisitos ambiguos (tiene dificultades con tareas vagas).
+- Decisiones arquitectónicas (carece de juicio profundo).
+- Problema de "agujero de conejo" (puede quedarse atascado en depuraciones complejas).
+- El problema del "último 30%" (a menudo deja incompletos los casos extremos o el pulido de la interfaz de usuario).
+- Conciencia de seguridad (puede introducir vulnerabilidades sin saberlo).
+
+### Posición en el Mercado
+- **Posición en el mercado:** Líder en ingeniería de software de IA autónoma, pero enfrenta una intensa competencia de alternativas más económicas como Claude Code y SWE-Agent.
+- **Base de usuarios:** Adoptado por líderes de la industria (Ramp, Anduril, MongoDB, Goldman Sachs, Microsoft, Zillow).
+- **Comparación:** Aunque es el líder, la competencia de Claude Code y SWE-Agent lo presiona en precio y accesibilidad.
+
+### Puntuación Global
+- **Autonomía:** 8/10
+- **Puntuación Global:** 80/100
+- **Despliegue:** Cloud (opera en un entorno de nube completamente aislado/sandboxed).
+
+### Diferenciador Clave
+El diferenciador clave de Devin es su verdadera ejecución autónoma de tareas de ingeniería de software de larga duración en un entorno de nube aislado (sandboxed), completo con auto-verificación y re-planificación dinámica. A diferencia de los asistentes de codificación tradicionales, Devin puede gestionar el ciclo de vida completo de una tarea, desde la planificación hasta la prueba final, adaptándose a los problemas inesperados en el camino.

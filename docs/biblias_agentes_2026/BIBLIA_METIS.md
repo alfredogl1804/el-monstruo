@@ -595,3 +595,33 @@ La estructura de directorios revela la organización del código:
     *   `verl_tool/trainer/`: Contiene la configuración y el código para el entrenamiento HDPO, incluyendo `ppo` (Proximal Policy Optimization) y configuraciones para actores, críticos, modelos, etc.
 
 El archivo `pyproject.toml` especifica las dependencias y la configuración del proyecto, incluyendo las dependencias para `vllm`, `search_tool` y `python_code_dep`, lo que confirma las integraciones mencionadas.
+
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- Latest version/release: 1.0 (basado en el preprint de arXiv de abril de 2026)
+- Key changes since the Biblia was originally written: Integración en comercio electrónico a gran escala (Taobao y Tmall), creación del grupo Alibaba Token Hub, lanzamiento de la plataforma empresarial Wukong, y reducción de costos operativos mediante la disminución de llamadas redundantes a herramientas del 98% al 2%.
+- Current pricing model: No hay precios específicos para Metis como producto independiente, pero Alibaba Cloud anunció aumentos de precios de hasta un 34% en productos de computación y almacenamiento de IA a partir del 18 de abril de 2026.
+
+### Fortalezas Confirmadas
+- Eficiencia: Reduce las llamadas redundantes a herramientas del 98% al 2%.
+- Precisión: Logra una precisión de razonamiento de vanguardia en los principales benchmarks de la industria.
+- Meta-cognición: Sabe cuándo confiar en el conocimiento interno frente a cuándo llamar a herramientas externas.
+- Integración en el ecosistema: Profundamente integrado en el ecosistema de comercio electrónico de Alibaba (Taobao, Tmall, Alipay, etc.).
+
+### Debilidades y Limitaciones Actuales
+- Riesgos de seguridad: La IA agentica introduce nuevos modelos de amenazas, como la exfiltración autónoma de datos y el compromiso del sistema (ej. incidente "ROME").
+- Aumentos de costos: Los costos de infraestructura subyacentes están aumentando, lo que lleva a aumentos de precios para los servicios de Alibaba Cloud.
+
+### Posición en el Mercado
+- Alibaba se está posicionando como líder en la "era agentica", desplegando agentes a escala masiva en sus plataformas de comercio electrónico como "trabajadores del conocimiento virtuales", lo que le otorga una ventaja estructural significativa sobre los competidores.
+- Base de usuarios: Las herramientas de IA proporcionadas por Taobao y Tmall han sido utilizadas por cinco millones de comerciantes, sirviendo a 300 millones de clientes.
+
+### Puntuación Global
+- Autonomy: 8/10
+- Overall Rating: 92/100
+- Deployment: Cloud
+
+### Diferenciador Clave
+La propuesta de valor única de Metis es su capacidad meta-cognitiva para arbitrar inteligentemente entre el conocimiento interno y las herramientas externas utilizando el marco HDPO, reduciendo drásticamente las llamadas redundantes a herramientas y mejorando la eficiencia.

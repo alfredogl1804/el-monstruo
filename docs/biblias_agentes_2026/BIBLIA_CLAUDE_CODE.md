@@ -463,3 +463,29 @@ La documentación de GitHub proporciona detalles técnicos que complementan la i
 ## Referencias
 
 [1] anthropics/skills. (2026). *Public repository for Agent Skills*. GitHub. Recuperado de https://github.com/anthropics/skills
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** v2.1.126 (Lanzada el 1 de mayo de 2026).
+- **Cambios clave desde la Biblia original:** Introducción del "Auto Mode" para mayor autonomía en decisiones de permisos, capacidades de uso de computadora y control remoto (marzo de 2026), selección de modelos más inteligente, herramientas de purga de proyectos y manejo mejorado de OAuth.
+- **Modelo de precios actual:** Modelo escalonado sin opción gratuita. Plan Pro: $20/mes. Planes Max: $100/mes (5x uso) y $200/mes (20x uso). Plan Team Premium: $100/usuario. Pago por token vía API: $5/M tokens de entrada y $25/M tokens de salida (modelo Opus 4.7).
+
+### Fortalezas Confirmadas
+- Operación a nivel de sistema operativo (OS-level), arquitectura de memoria de tres capas y capacidades de orquestación paralela que le permiten manejar problemas de ingeniería de software de horizonte largo de manera efectiva.
+
+### Debilidades y Limitaciones Actuales
+- Problemas de "argument drift" (desviación de argumentos) donde el agente tiene dificultades con escenarios hipotéticos futuros o invariantes sutiles.
+- Alto consumo de tokens durante tareas exploratorias.
+
+### Posición en el Mercado
+- **Posición y base de usuarios:** Posee una cuota dominante del 54% en el mercado de codificación empresarial. Genera aproximadamente $2.5 mil millones del ARR de $30 mil millones de Anthropic.
+- **Comparación:** Supera significativamente a sus competidores en el mercado empresarial, consolidándose como la fuerza dominante en su categoría.
+
+### Puntuación Global
+- **Autonomía:** 8/10
+- **Puntuación Global:** 90/100
+- **Despliegue:** Local (Herramienta CLI basada en terminal que interactúa con APIs en la nube).
+
+### Diferenciador Clave
+Su naturaleza basada en terminal combinada con una arquitectura de memoria de tres capas y orquestación paralela de sub-agentes le permite operar de forma autónoma a nivel del sistema operativo, en lugar de estar restringido al contexto de un IDE.

@@ -305,3 +305,36 @@ Es crucial reiterar que, a la fecha de esta investigación, la documentación of
 5.  **Título:** What Is Claude AI? - IBM
     **URL:** https://www.ibm.com/think/topics/claude-ai
     **Fecha:** 24 de septiembre de 2024
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** Managed Agents v1 (Claude Cowork), lanzado el 12 de enero de 2026 y disponible de forma general el 9 de abril de 2026.
+- **Cambios clave desde la Biblia original:** Disponibilidad general para suscriptores de pago en macOS y Windows (abril 2026), nueva función "Computer Use" para navegación autónoma (marzo 2026), lanzamiento de un ecosistema de 11 plugins en GitHub (enero 2026) y expansión de acceso a suscriptores Pro.
+- **Modelo de precios actual:** Nivel gratuito ($0, sin acceso a Cowork), Plan Pro ($20/mes, acceso con límites), Plan Max ($100 o $200/mes, 5x o 20x límites), Plan Team (~$30/mes por usuario), Enterprise (precio personalizado).
+
+### Fortalezas Confirmadas
+- Ejecución autónoma de tareas de escritorio (organización de archivos, creación de documentos).
+- Integración fluida con aplicaciones externas mediante conectores (Google Drive, Slack, Notion, Gmail).
+- Arquitectura robusta (Managed Agents) que previene la pérdida de contexto en tareas largas.
+- Gestión segura de credenciales (los tokens nunca son accesibles desde el sandbox).
+
+### Debilidades y Limitaciones Actuales
+- Alto costo para uso intensivo (requiere el plan Max para tareas extensas).
+- Limitaciones de plataforma (inicialmente solo macOS, soporte para Windows añadido en abril).
+- Riesgo de mala interpretación de instrucciones ambiguas que puede llevar a acciones no deseadas (ej. borrar archivos).
+- Vulnerabilidad potencial a la inyección de prompts al navegar por sitios no confiables.
+
+### Posición en el Mercado
+- **Posición:** Líder en agentes de productividad de escritorio autónomos. Su lanzamiento provocó una venta masiva de $285 mil millones en acciones de SaaS empresarial ("SaaSpocalypse").
+- **Base de usuarios:** Decenas de millones (estimado entre 18M y 30M de usuarios consumidores totales), con suscripciones de pago duplicándose a principios de 2026.
+- **Comparación:** Considerado uno de los agentes generalistas más poderosos disponibles para consumidores.
+
+### Puntuación Global
+- **Autonomía:** 8/10
+- **Puntuación Global:** 92/100
+- **Despliegue:** Cloud (inteligencia y estado en la nube, interactúa con sandbox/escritorio local)
+
+### Diferenciador Clave
+Su desacoplamiento radical del cerebro (modelo), las manos (sandbox efímero) y la sesión (registro de eventos duradero) permite una ejecución autónoma segura y de largo horizonte sin pérdida de contexto.
+---

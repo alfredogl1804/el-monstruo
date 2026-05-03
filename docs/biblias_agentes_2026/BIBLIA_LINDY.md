@@ -635,3 +635,43 @@ La mayor parte de la información detallada en este documento, especialmente la 
 
 [1] [docs/CLAUDE.md at main · lindy-ai/docs · GitHub](https://github.com/lindy-ai/docs/blob/main/CLAUDE.md)
 [2] [docs/WORKFLOW.md at main · lindy-ai/docs · GitHub](https://github.com/lindy-ai/docs/blob/main/WORKFLOW.md)
+
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** Lindy 2.0 (lanzada a finales de 2025/principios de 2026).
+- **Cambios clave desde la Biblia original:** Introducción de un nuevo "editor de flujo" (flow editor) para mayor fiabilidad. Se añadió historial de versiones y capacidad de restaurar versiones anteriores (abril 2025). Se incorporó la capacidad de reintentar acciones fallidas con un solo clic, buscar/filtrar la lista de tareas del agente y renombrar versiones (octubre 2025).
+- **Modelo de precios actual:** 
+  - Starter: $19.99/mes (2,000 tareas/mes)
+  - Plus: $49.99/mes (Uso estándar, hasta 2 bandejas de entrada, chat vía iMessage/SMS, redacción de correos, programación de reuniones, más de 100 integraciones)
+  - Pro: $99.99/mes (3x uso de Plus, hasta 3 bandejas de entrada, uso de computadora)
+  - Max: $199.99/mes (7x uso de Plus, hasta 5 bandejas de entrada)
+  - Enterprise: Precios personalizados (Todo lo de Max, soporte dedicado, SSO, cumplimiento HIPAA, etc.)
+
+### Fortalezas Confirmadas
+- Constructor de agentes sin código (no-code) altamente intuitivo.
+- Integración perfecta con Google Workspace y el ecosistema de Apple (iMessage).
+- Excelente para la automatización personal (correo electrónico, calendario, notas de reuniones).
+- Más de 100 plantillas bien diseñadas.
+- Investigación web confiable lista para usar.
+
+### Debilidades y Limitaciones Actuales
+- Hiper-dependiente de los productos de Google y requiere amplios permisos por adelantado.
+- Dificultades con la automatización backend compleja en comparación con herramientas como n8n o Gumloop.
+- El soporte al cliente ha sido históricamente lento (aunque el fundador afirma que se ha solucionado).
+- Flexibilidad limitada para flujos de trabajo altamente personalizados y no estándar.
+
+### Posición en el Mercado
+- Posicionado como un "asistente de IA personal" líder y constructor de agentes sin código para profesionales y equipos pequeños.
+- Base de usuarios: Más de 400,000 usuarios de pago (a principios de 2026).
+- Altamente calificado (4.9/5 en G2 basado en más de 170 reseñas).
+- Compite con herramientas como Zapier, Make y otros constructores de agentes, pero se enfoca más en la simplicidad y la interacción basada en texto.
+
+### Puntuación Global
+- **Autonomía:** 9/10
+- **Puntuación Global:** 90/100
+- **Despliegue:** Cloud (SaaS)
+
+### Diferenciador Clave
+La capacidad de construir y desplegar agentes de IA autónomos utilizando una interfaz de lenguaje natural simple y sin código que se integra perfectamente en las herramientas de comunicación diarias como iMessage y SMS.

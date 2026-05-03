@@ -341,3 +341,33 @@ El repositorio `poolsideai/pool` es un agente de codificación que utiliza model
 [1] [https://github.com/poolsideai/pool](https://github.com/poolsideai/pool) - Repositorio de GitHub de poolsideai/pool
 [2] [https://github.com/huggingface/transformers/blob/main/docs/source/en/model_doc/laguna.md](https://github.com/huggingface/transformers/blob/main/docs/source/en/model_doc/laguna.md) - Documentación de Laguna XS.2 en Hugging Face Transformers
 [3] [https://byteiota.com/poolside-laguna-xs-2-open-source-ai-coding-for-mac/](https://byteiota.com/poolside-laguna-xs-2-open-source-ai-coding-for-mac/) - Poolside Laguna XS.2: Open-Source AI Coding for Mac
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** Laguna XS.2 (Lanzado el 28 de Abril de 2026 bajo licencia Apache 2.0).
+- **Cambios clave desde la Biblia original:** Disponibilidad en plataformas principales como Hugging Face, OpenRouter, Ollama y Baseten. Introducción del arnés de agente de codificación "pool" y el entorno de desarrollo web optimizado para móviles "shimmer".
+- **Modelo de precios actual:** Gratuito y de código abierto (licencia Apache 2.0).
+
+### Fortalezas Confirmadas
+- Sobresale en codificación agéntica y tareas de horizonte largo, con un fuerte rendimiento en benchmarks como SWE-bench Pro (44.5%) y SWE-bench Verified (68.2%).
+- Alta eficiencia que permite su ejecución en una sola GPU (ej. RTX 5090 o Mac con 36GB RAM).
+- Integración profunda con entornos locales y editores como Zed y JetBrains.
+
+### Debilidades y Limitaciones Actuales
+- Limitado a modalidades de texto a texto; carece de capacidades multimodales.
+- Su rendimiento aún está por detrás de algunos modelos de frontera como Claude Sonnet 4.6 en benchmarks específicos.
+- Susceptible a problemas de fiabilidad de infraestructura en entornos sandbox y carece de orquestación multi-agente integrada.
+
+### Posición en el Mercado
+- **Posición en el mercado:** Alternativa de código abierto altamente capaz y eficiente para codificación agéntica local.
+- **Base de usuarios:** Ganando tracción rápidamente entre desarrolladores que buscan agentes de codificación locales y de código abierto.
+- **Comparación competitiva:** Compite directamente con modelos como Qwen-3.5, DeepSeek V4-Flash, Devstral 2 y Gemma 4, superando a menudo a modelos densos más grandes.
+
+### Puntuación Global
+- **Autonomía:** 8/10
+- **Puntuación Global:** 85/100
+- **Despliegue:** Local (Open-source self-hosted) / Cloud APIs
+
+### Diferenciador Clave
+La capacidad de Laguna XS.2 para ofrecer capacidades de codificación agéntica de nivel de frontera en un paquete MoE altamente eficiente de 33B que puede ejecutarse localmente en una sola GPU, haciéndolo accesible y potente para desarrolladores individuales.

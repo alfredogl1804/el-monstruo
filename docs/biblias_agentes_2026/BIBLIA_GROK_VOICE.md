@@ -396,3 +396,35 @@ En resumen, el repositorio de GitHub del SDK de Python ofrece una visión más p
 [3] xai-org/xai-sdk-python. (n.d.). GitHub. Recuperado de [https://github.com/xai-org/xai-sdk-python](https://github.com/xai-org/xai-sdk-python)
 [4] xai-sdk-python/src/xai_sdk/aio/client.py. (n.d.). GitHub. Recuperado de [https://github.com/xai-org/xai-sdk-python/blob/main/src/xai_sdk/aio/client.py](https://github.com/xai-org/xai-sdk-python/blob/main/src/xai_sdk/aio/client.py)
 [5] xai-sdk-python/examples/aio/chat.py. (n.d.). GitHub. Recuperado de [https://github.com/xai-org/xai-sdk-python/blob/main/examples/aio/chat.py](https://github.com/xai-org/xai-sdk-python/blob/main/examples/aio/chat.py)
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** Grok Voice Think Fast 1.0 (Lanzado el 23 de abril de 2026).
+- **Cambios clave desde la Biblia original:** Lanzamiento a través de API el 23 de abril de 2026. Lidera la tabla de clasificación de τ-voice Bench con un 67.3%. Impulsa el soporte al cliente y ventas para Starlink con una tasa de resolución autónoma del 70%.
+- **Modelo de precios actual:** $3.00 por hora ($0.05 por minuto) para voz a voz a través de API.
+
+### Fortalezas Confirmadas
+- Razonamiento en tiempo real con cero latencia añadida.
+- Entrada de datos y lectura de confirmación precisas.
+- Mayor resistencia a ser engañado (resiste respuestas plausibles pero incorrectas).
+- Robusto en entornos ruidosos con acentos fuertes e interrupciones.
+- Orquestación de herramientas de alto volumen (hasta 28 herramientas utilizadas en la implementación de Starlink).
+
+### Debilidades y Limitaciones Actuales
+- Al ser un modelo relativamente nuevo (lanzado en abril de 2026), podría tener casos límite no descubiertos.
+- Requiere una integración compleja de WebSocket para aprovechar todas sus capacidades.
+- Puede tener dificultades con contextos emocionales altamente matizados en comparación con operadores humanos (limitación general de la IA de voz).
+
+### Posición en el Mercado
+- Líder en agentes de voz en tiempo real, encabezando el τ-voice Bench con un 67.3% (los competidores se sitúan entre el 26-38%).
+- Posicionado como una solución de nivel empresarial para soporte al cliente y ventas.
+- Base de usuarios: Usuarios empresariales, destacando su uso en el soporte al cliente de Starlink (+1 888 GO STARLINK).
+
+### Puntuación Global
+- Autonomy: 7/10
+- Overall Rating: 95/100
+- Deployment: Cloud
+
+### Diferenciador Clave
+Su razonamiento en segundo plano en tiempo real con cero latencia añadida, lo que le permite "pensar" mientras escucha sin necesidad de hacer pausas, superando a otros modelos en condiciones de conversación realistas.

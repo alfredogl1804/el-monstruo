@@ -2168,3 +2168,28 @@ La revisión de los issues de GitHub revela varias discusiones y solicitudes que
     *   El issue `#1008` "Wrong creation of a large number of log files" indica problemas de rendimiento relacionados con la generación excesiva de logs, lo que puede afectar el uso de recursos y la eficiencia del agente.
 
 Estos issues y discusiones en GitHub proporcionan una visión valiosa de las áreas de enfoque del desarrollo de OpenManus, destacando la importancia de la flexibilidad en la integración de LLMs, la robustez del sandbox, la extensibilidad de las herramientas y la optimización del rendimiento.
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Latest version/release:** Manus 1.6 Max
+- **Key changes since the Biblia was originally written:** Adquirido por Meta en diciembre de 2025 por más de $2 mil millones. Lanzamiento de Manus 1.6 Max con mayor tasa de éxito en tareas y mejor generación de artefactos. Introducción de capacidades de desarrollo móvil y mejoras significativas en Design View.
+- **Current pricing model:** Free tier ($0, 300 créditos diarios), Standard plan ($20/mes, 4,000 créditos), Customizable plan ($40/mes, 8,000 créditos), Extended plan ($200/mes, 40,000 créditos). Todos incluyen 300 créditos de recarga diarios.
+
+### Fortalezas Confirmadas
+- Capacidades profundas de investigación, ejecución asíncrona, configuración sencilla con comandos en lenguaje natural, entregables listos para exportar, visualización de datos.
+
+### Debilidades y Limitaciones Actuales
+- Problemas de fiabilidad del servidor durante alta demanda, limitaciones de longitud de contexto para proyectos complejos, problemas de calidad y errores en los resultados, restricciones de beta (límites de tareas, solo por invitación), dificultades con contenido de pago (paywalls).
+
+### Posición en el Mercado
+- Posicionado como un agente de IA autónomo líder para investigación y prototipado, aunque enfrenta limitaciones para el desarrollo de aplicaciones en producción. Cuenta con millones de usuarios a nivel mundial (creó más de 80 millones de computadoras virtuales para principios de diciembre de 2025).
+
+### Puntuación Global
+- **Autonomy:** 9/10
+- **Overall Rating:** 85/100
+- **Deployment:** Cloud
+
+### Diferenciador Clave
+- Ejecución autónoma de tareas en un entorno en la nube aislado (sandbox) donde el usuario proporciona un objetivo y el agente se encarga del resto de forma asíncrona.
+---

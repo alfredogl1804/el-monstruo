@@ -434,3 +434,33 @@ El repositorio tiene 16 Pull Requests y 1 Issue. La mayoría de los commits reci
 ## Información Técnica Adicional (No en la Documentación Oficial del Sitio Web)
 
 La información detallada sobre la estructura del código, la justificación de la separación de paquetes (`safari-sdk` y `safari-sdk-logging`), y la descripción de los componentes clave del framework del agente (Agentes, Embodiments, Tools, Event Bus, Configuration) se encuentra directamente en el `README.md` del repositorio de GitHub. Si bien la página principal de Gemini Robotics puede ofrecer una visión general, el repositorio de GitHub proporciona los detalles técnicos de implementación y la arquitectura del SDK, que a menudo no se encuentran en la documentación de alto nivel de un sitio web oficial. La existencia del `flywheel-cli` y sus comandos específicos también es una información técnica valiosa que se detalla en el `README.md` del repositorio.
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** Gemini Robotics-ER 1.6 Preview (lanzado el 14 de abril de 2026).
+- **Cambios clave desde la Biblia original:** Mejoras en el razonamiento espacial y comprensión multi-vista para procesar información de múltiples cámaras simultáneamente. Introducción de la capacidad de "lectura de instrumentos" con hasta un 98% de precisión. Mayor cumplimiento de políticas de seguridad en tareas de razonamiento espacial adversas.
+- **Modelo de precios actual:** Nivel gratuito (sin costo por entrada/salida, grounding con Google Search gratis hasta 1,500 peticiones por día) y Nivel de pago ($1.00 por 1 millón de tokens para texto, imagen y video; $2.00 para audio; $5.00 por 1 millón de tokens de salida. Grounding con Google Search gratis hasta 5,000 peticiones por día, luego $14 por 1,000 consultas).
+
+### Fortalezas Confirmadas
+- Lectura de instrumentos altamente precisa (hasta 98% de precisión).
+- Razonamiento espacial avanzado (como apuntado y conteo).
+- Detección robusta de éxito para tareas autónomas.
+- Fuerte razonamiento multi-vista capaz de manejar entornos dinámicos u ocluidos.
+
+### Debilidades y Limitaciones Actuales
+- Dependencia de pasos intermedios como el apuntado y la ejecución de código, lo que puede introducir latencia en aplicaciones en tiempo real.
+- En ciertas tareas, como la generación de bounding boxes, es superado por otros modelos como Gemini 3.0 Flash.
+
+### Posición en el Mercado
+- Posicionado como un modelo líder para el razonamiento encarnado y tareas de robótica en el mundo real.
+- Altamente valorado en la industria, destacando su colaboración con Boston Dynamics para potenciar robots como Spot en inspecciones de instalaciones.
+- Base de usuarios compuesta principalmente por desarrolladores que acceden vía la API de Gemini y socios empresariales.
+
+### Puntuación Global
+- **Autonomía:** 8/10
+- **Puntuación Global:** 80/100
+- **Despliegue:** Cloud
+
+### Diferenciador Clave
+El diferenciador clave de Gemini Robotics-ER 1.6 es su "razonamiento encarnado" y "visión agéntica", que cierran la brecha entre la inteligencia digital y la acción física al permitir que los robots razonen activamente sobre su entorno físico, combinando el razonamiento visual con la ejecución de código.

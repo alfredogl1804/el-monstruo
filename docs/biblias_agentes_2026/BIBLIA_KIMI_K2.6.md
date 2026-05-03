@@ -615,3 +615,27 @@ El README destaca que Kimi K2 está **meticulosamente optimizado para capacidade
 
 ### Información Técnica Nueva (no en la documentación oficial del sitio web)
 La información detallada sobre la arquitectura interna (número de capas, dimensiones ocultas, número de expertos, etc.), las métricas de rendimiento específicas de los benchmarks y la descripción detallada del flujo de llamada a herramientas con ejemplos de código son hallazgos técnicos que probablemente no se encuentran en un nivel de detalle tan granular en la documentación oficial de un sitio web, que tiende a ser más de alto nivel y orientada al usuario. La mención de los optimizadores y los motores de inferencia recomendados también añade un nivel de detalle técnico que podría ser nuevo.
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** Kimi K2.6, lanzado el 20 de abril de 2026.
+- **Cambios clave desde la Biblia original:** El sistema Agent Swarm se ha escalado para soportar 300 sub-agentes especializados, capaces de ejecutar hasta 4,000 pasos coordinados en una sola ejecución autónoma (un aumento significativo desde los 100 sub-agentes y 1,500 pasos en K2.5). Se introdujeron los "Claw Groups" para integrar agentes externos heterogéneos (laptops, teléfonos, instancias en la nube) ejecutando diferentes modelos. Además, Kimi Code CLI ahora incluye K2.6 como su backend predeterminado.
+- **Modelo de precios actual:** La API oficial cuesta $0.60 por 1M de tokens de entrada y $2.50 por 1M de tokens de salida. Proveedores como DeepInfra lo ofrecen a $0.75/$3.50 (con $0.15 por tokens en caché), Parasail a $0.60/$2.80, y OpenRouter a $0.7448/$4.655.
+
+### Fortalezas Confirmadas
+Kimi K2.6 sobresale en la codificación de largo horizonte y la ejecución autónoma, siendo capaz de ejecutar tareas continuas en segundo plano durante más de 12 horas con miles de llamadas a herramientas. Su sistema Agent Swarm permite una orquestación masiva de múltiples agentes, haciéndolo altamente efectivo para flujos de trabajo complejos de múltiples pasos. Además, es altamente rentable en comparación con modelos cerrados de frontera como Claude Opus 4.7, ofreciendo un fuerte rendimiento en benchmarks de codificación como SWE-Bench Pro y Terminal-Bench 2.0.
+
+### Debilidades y Limitaciones Actuales
+Los usuarios han reportado problemas de "sobrepensamiento" (overthinking), donde el modelo consume tokens innecesariamente, lo que lleva a tiempos de respuesta lentos y altos costos. También sufre de problemas de alucinación, inventando detalles ocasionalmente o mostrando un ritmo extraño en las respuestas. Además, su rendimiento en el mundo real puede ser inconsistente en comparación con sus puntuaciones en benchmarks, luchando particularmente con tareas de dominio específico y razonamiento puro en comparación con modelos como Claude Opus 4.7.
+
+### Posición en el Mercado
+Kimi K2.6 se posiciona como un modelo de pesos abiertos (open-weight) altamente competitivo, a menudo comparado favorablemente con modelos cerrados de frontera. Es considerado un líder entre los modelos abiertos no enfocados exclusivamente en razonamiento puro, y es muy valorado por sus capacidades en flujos de trabajo agénticos y tareas de codificación.
+
+### Puntuación Global
+- **Autonomía:** 8/10
+- **Puntuación Global:** 85/100
+- **Despliegue:** Cloud/Local/Híbrido (Soporta despliegue en la nube a través de proveedores de API, así como despliegue local y privado).
+
+### Diferenciador Clave
+El diferenciador clave de Kimi K2.6 es su sistema Agent Swarm y los Claw Groups, que permiten una orquestación masiva de múltiples agentes y la integración de agentes externos heterogéneos. Esta arquitectura proporciona una escalabilidad sin precedentes para tareas complejas, permitiendo coordinar hasta 300 sub-agentes en 4,000 pasos autónomos, superando las capacidades de orquestación de otros modelos en el mercado.

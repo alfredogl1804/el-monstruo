@@ -345,3 +345,41 @@ El `README.md` indica explícitamente que "The API is still evolving and may cha
 ## Información Técnica Nueva
 
 La mayor parte de la información técnica detallada en este informe proviene directamente del `README.md` del repositorio de GitHub, que sirve como la principal fuente de documentación para este proyecto específico. No se encontró una "documentación oficial del sitio web" separada para el `llama-agentic-system` que contuviera información adicional no presente en el repositorio. Por lo tanto, no se identificó información técnica que no estuviera ya presente en la documentación del repositorio.
+---
+## ACTUALIZACIÓN MAYO 2026
+
+### Estado Actual (Mayo 2026)
+- **Última versión/lanzamiento:** Manus 1.6 Max (Lanzado el 15 de diciembre de 2025).
+- **Cambios clave desde la Biblia original:** Adquisición por parte de Meta a finales de 2025 por más de $2 mil millones. Introducción de la "Arquitectura Max" centrada en la planificación estratégica y CodeAct (código ejecutable en lugar de llamadas a herramientas). Se añadió "Design View" para edición visual y procesamiento de código multimodal. Soporte para desarrollo de aplicaciones móviles end-to-end (ej. usando Expo Go). Mejora en la orquestación multi-agente para investigación profunda paralela ("Wide Research").
+- **Modelo de precios actual:** 
+  - Gratuito: $0/mes (300 créditos de actualización diarios, 5 tareas concurrentes).
+  - Estándar: $20/mes (4,000 créditos mensuales + 300 créditos diarios, 20 tareas concurrentes).
+  - Personalizable: $40/mes (8,000 créditos mensuales + 300 créditos diarios, 20 tareas concurrentes).
+  - Extendido: $200/mes (40,000 créditos mensuales + 300 créditos diarios, 20 tareas concurrentes).
+
+### Fortalezas Confirmadas
+- Capacidades profundas de investigación y análisis de datos.
+- Alta precisión en codificación (92% en benchmarks) y ejecución de tareas de desarrollo.
+- Memoria persistente para proyectos de larga duración.
+- Automatización avanzada de navegadores y orquestación de APIs.
+- Excelentes capacidades para la creación de sitios web.
+
+### Debilidades y Limitaciones Actuales
+- Velocidad de ejecución más lenta en comparación con competidores como Genspark.
+- Curva de aprendizaje pronunciada e interfaz densa para principiantes.
+- Modelo de precios basado en créditos impredecible que se consume rápidamente en tareas sustanciales.
+- Problemas técnicos con actualizaciones dentro de la aplicación y soporte al cliente deficiente.
+- Pérdida ocasional de memoria/contexto durante períodos de algunas horas.
+
+### Posición en el Mercado
+- **Posición en el mercado:** Líder en investigación profunda, codificación y automatización técnica para usuarios avanzados y desarrolladores.
+- **Base de usuarios:** Más de 100 millones de descargas de la aplicación a nivel mundial (Brasil liderando con más de 100 millones de descargas entre marzo de 2025 y 2026).
+- **Comparación competitiva:** Altamente capaz pero complejo; a menudo comparado con Genspark, el cual es más rápido y más fácil de usar para tareas empresariales generales.
+
+### Puntuación Global
+- **Autonomía:** 9.2/10
+- **Puntuación Global:** 82/100
+- **Despliegue:** Cloud (Entorno sandbox basado en la nube)
+
+### Diferenciador Clave
+El diferenciador clave de Meta AI Agent es la "Arquitectura Max" combinada con "CodeAct", lo que le permite mapear flujos de trabajo completos y escribir código Python ejecutable para resolver problemas dinámicamente, en lugar de depender de llamadas a herramientas predefinidas.
