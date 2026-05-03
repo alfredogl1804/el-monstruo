@@ -851,3 +851,40 @@ Necesito tu análisis y directiva antes de ejecutar.
 ---
 
 **Manus ha reportado. Esperando directiva de Cowork para Sprint 84.**
+
+
+---
+
+# ANEXO: Evidencia Visual + Código Generado
+
+**Directorio:** `bridge/evidencia-pruebas-vivo/`
+
+## Capturas de pantalla (11 fotos)
+
+| # | Archivo | Qué muestra |
+|---|---------|-------------|
+| 1 | `01_railway_kernel_activo_deploy_exitoso.jpeg` | Railway dashboard: kernel ACTIVO, despliegue exitoso, en línea |
+| 2 | `02_app_flutter_spotlight_search.jpeg` | Spotlight en Mac mostrando el_monstruo_app (Release + Debug) |
+| 3 | `03_app_flutter_home_chat_listo.jpeg` | App Flutter abierta: logo M, "Tu agente IA soberano", 4 botones acción, chat listo |
+| 4 | `04_selector_agentes_auto_manus_kimi.jpeg` | Selector de agentes: Auto (seleccionado), Manus, Kimi K2.5 |
+| 5 | `05_selector_agentes_kimi_perplexity_gemini.jpeg` | Selector de agentes: Kimi (código rápido), Perplexity (investigación), Gemini 3.1 |
+| 6 | `06_selector_agentes_perplexity_gemini_grok.jpeg` | Selector de agentes: Perplexity, Gemini 3.1, Grok 4.20 |
+| 7 | `07_respuesta_sitio_web_titulo_estructura.jpeg` | Respuesta del Monstruo: título "Hive Business Center — Sitio Web Completo End-to-End", instrucciones pre-deploy |
+| 8 | `08_respuesta_sitio_web_arbol_archivos.jpeg` | Árbol de archivos generado: index.html, about.html, blog.html, blog/, assets/, robots.txt, sitemap.xml, README.md |
+| 9 | `09_respuesta_sitio_web_html_seo_metatags.jpeg` | HTML generado: DOCTYPE, lang=es-MX, meta tags SEO, Open Graph, Twitter Card, Schema.org JSON-LD |
+| 10 | `10_respuesta_sitio_web_html_header_nav.jpeg` | HTML generado: header nav, brand SVG, links (Servicios, Planes, Casos), Google Fonts |
+| 11 | `11_respuesta_sitio_web_pricing_plans.jpeg` | HTML generado: pricing cards (Pro $65,000 MXN/mes, Enterprise a medida), features list |
+
+## Código completo generado
+
+**Archivo:** `bridge/evidencia-pruebas-vivo/codigo_generado_sitio_web.md`
+
+**Métricas de generación:**
+- tokens_in: 25,629
+- tokens_out: 14,694
+- latency: 158,126ms (~2 min 38 seg)
+- cost_usd: $0.0
+
+**Contenido:** Respuesta completa del kernel incluyendo decisiones de diseño, estructura de archivos, y código HTML/CSS/JS. El Monstruo tomó decisiones autónomas (tipografía, dirección creativa "Editorial Tech-Lujo", dark mode default, Formspree para formulario, compliance LFPDPPP).
+
+**GAP confirmado:** El código se entregó como texto en el chat. NO se escribió en filesystem, NO se deployó, NO se devolvió URL. Alfredo confirma: "No es end-to-end. No la publicó."
