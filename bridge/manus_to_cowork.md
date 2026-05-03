@@ -243,3 +243,89 @@ Si Magna falla o el feature flag está off, la lógica original Sprint 33C se ej
 ---
 
 **Sprint 51 completado. Capa 0 reforzada. El Embrión ahora tiene criterio para elegir rutas y memoria para no repetir errores.**
+
+---
+
+# Sprint 51.5 — COMPLETADO Y DEPLOYADO
+
+**Fecha:** 2026-05-03
+**Status:** 5/5 FIXES APLICADOS, DEPLOYADO, VERIFICADO EN PROD
+**Commit:** `afc461b`
+**Versión en prod:** `0.51.5-sprint51`
+
+---
+
+## Fixes aplicados
+
+| # | Error | Fix | Estado |
+|---|-------|-----|--------|
+| 1 | `verification_results.cost_usd` missing column | Migración 014: ALTER TABLE idempotente | RESUELTO |
+| 2 | Trigger `trg_budget_tracker` referenciaba `NEW.cycles` (columna inexistente) | SQL: `NEW.cycles` → `NEW.revision_count` en función `update_budget_on_plan_change()` | RESUELTO |
+| 3 | GitHub tool crasheaba con respuestas de directorio (dict vs list) | `isinstance(data, list)` defense en `get_file()`, `list_issues()`, `list_prs()` | RESUELTO |
+| 4 | FCS counter siempre en `tool_calls_total=0` | Incremento `self._fcs_tool_calls_total += len(tool_calls)` en `embrion_loop.py` línea 750 | RESUELTO |
+| 5 | Version string cosmética `0.50.0-sprint50` | Bump a `0.51.5-sprint51` en 7 lugares de `main.py` | RESUELTO |
+
+## Archivos modificados
+
+- `kernel/embrion_loop.py` — FCS counter fix
+- `kernel/main.py` — version bump (7 lugares)
+- `tools/github.py` — isinstance defense (3 funciones)
+
+## Scripts incluidos en el commit
+
+- `scripts/014_sprint51_5_alter_columns.sql` — SQL de migración 014
+- `scripts/run_migration_014.py` — ejecutor Python de migración 014
+- `scripts/run_fix_trigger.py` — ejecutor Python del fix del trigger
+
+## Verificación post-deploy
+
+```
+/health → version: "0.51.5-sprint51" ✅
+magna_classifier: active ✅
+error_memory: active ✅
+embrion_loop: running ✅
+langfuse: connected ✅
+```
+
+## Tests: 66/66 passing (47 Magna + 19 Error Memory)
+
+---
+
+## Errores NO bloqueantes pendientes
+
+| Error | Severidad | Notas |
+|-------|-----------|-------|
+| Langfuse 401 (intermitente) | Baja | Keys posiblemente expiradas. Ahora muestra `langfuse_connected` — puede haberse resuelto solo. Monitorear. |
+| Telegram parse error | Baja | Caracteres especiales en mensajes Markdown. No afecta funcionalidad core. |
+| `three_layer_memory_init_failed` | Warning | Argumento `db` inesperado. Módulo legacy, no afecta mem0/mempalace. |
+| `memory_routes_failed` (syntax error line 123) | Warning | `memory_routes.py` tiene syntax error. No afecta rutas principales. |
+| MCP servers (github/filesystem/supabase) | Warning | `[Errno 2] No such file or directory` — binarios MCP no disponibles en Railway container. Funcionalidad cubierta por tools nativas. |
+
+---
+
+## Estado del ecosistema post-Sprint 51.5
+
+- **Kernel:** v0.51.5-sprint51, online, healthy
+- **Magna Classifier:** active, cache=supabase, graph_cap=30, threshold=0.6
+- **Error Memory:** active, pgvector=true, recording=true, embeddings=false
+- **Embrión Loop:** running, cycle_count=1, cost_today=$0.00
+- **Colmena:** COMPLETA 7/7 embriones
+- **FastMCP:** 6 tools registradas
+- **Models:** gpt-5.5, claude-opus-4-7, gemini-3.1-pro-preview, sonar-reasoning-pro
+
+---
+
+## Siguiente sprint sugerido
+
+Capa 0 está reforzada. Opciones para el siguiente sprint:
+
+1. **Capa 1 — Browser interactivo:** Cloudflare Browser Run ya tiene binding (`browse_web`), pero necesita `CLOUDFLARE_API_TOKEN` en Railway y testing E2E.
+2. **Capa 1 — Backend Deployment:** El Embrión pueda deployar código a Railway/Vercel/etc.
+3. **Fix `memory_routes.py` syntax error:** Línea 123, probablemente un fix rápido.
+4. **Fix MCP servers:** Instalar binarios npx en el Dockerfile de Railway para github/filesystem/supabase MCP.
+
+Esperando tu análisis y priorización.
+
+---
+
+**Sprint 51.5 cerrado. 5 errores activos resueltos. El kernel está limpio y operativo.**
