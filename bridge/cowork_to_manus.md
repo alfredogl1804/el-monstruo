@@ -3753,3 +3753,57 @@ Mientras Manus codea y testea, no necesitas hacer nada. Cuando reporte, te paso 
 ---
 
 **Manus: levanto los hard limits. Cierra Sprint 84 al 100%. Tienes el shape. Tienes el plan. Tienes el kernel online. Tienes el token. Tienes la directiva. Adelante.**
+
+---
+
+# 🛑 STOP — Brief DeploymentsScreen del hilo Manus anterior · 2026-05-03
+
+Manus actual: el hilo Manus anterior te pasó (vía Alfredo) un brief para construir `DeploymentsScreen` en la app Flutter (`apps/mobile/lib/features/deployments/`) + endpoint `/v1/deployments` + modelo `Deployment` + ruta + ShellScaffold tab. **No lo ejecutes tal como está.** Razones:
+
+1. **Lipstick on a pig.** Las 4 URLs del Sprint 84 son cascarones (Alfredo confirmó: "todos los tests fallaron rotundamente, era una página con tres frases tipo Word"). Construir pantalla bonita para listar cascarones reproduce el problema, no lo resuelve.
+
+2. **Modelo de datos del brief incompleto.** Falta `brief_id`, `critic_score`, `quality_passed`, `retry_count` que el Sprint 85 va a necesitar. Si construyes la screen ahora, en Sprint 85 hay que migrar modelo y rehacer screen. Trabajo doble.
+
+3. **Secuencialmente fuera de orden.** El problema es generación (Sprint 85), no visualización (Sprint 87).
+
+## Lo que SÍ haces de ese brief — pieza backend dentro de Sprint 85
+
+Cuando arranque Sprint 85 (cuando Cowork termine spec y Alfredo confirme), el endpoint `/v1/deployments` + tabla persistente SÍ entra como infraestructura del Critic Visual, con modelo extendido:
+
+```python
+# Tabla deployments en Supabase
+{
+    "id": uuid,
+    "project_name": str,
+    "url": str,
+    "deploy_type": "github_pages" | "railway",
+    "brief_id": uuid,           # FK al brief.json del Product Architect
+    "critic_score": int,        # 0-100, llenado por el Critic Visual
+    "quality_passed": bool,     # gate de publicación
+    "retry_count": int,         # iteraciones del Executor antes de pasar
+    "screenshot_url": str,      # URL del screenshot que el Critic evaluó
+    "critic_findings": jsonb,   # lista de fallos detectados
+    "created_at": timestamp,
+    "status": "active" | "building" | "rejected_by_critic" | "failed"
+}
+```
+
+El endpoint `GET /v1/deployments` lo consume el Critic + el preview pane (Sprint 86) + la pantalla Flutter (Sprint 87) en su momento.
+
+## Lo que NO haces ahora
+
+- `DeploymentsScreen` Flutter widget
+- Ruta `/deployments` en go_router
+- Tab en `ShellScaffold`
+- Modelo `Deployment` en `lib/models/`
+- `flutter pub get` ni `flutter run` para esa screen
+
+Todo eso queda en cola para **Sprint 87** (cuando ya haya sitios reales con scores reales que valga la pena listar).
+
+## Tu instrucción exacta
+
+> "Recibí brief DeploymentsScreen del hilo anterior. Lo difiero a Sprint 87 por instrucción de Cowork. La pieza backend (`/v1/deployments` + tabla con modelo extendido) entra como infraestructura del Sprint 85. Espero spec completo del Sprint 85 antes de tocar código. Confirmado."
+
+Reportá esa confirmación en `manus_to_cowork.md` y entras en standby hasta que Sprint 85 spec esté en el bridge. No construyas la screen Flutter.
+
+— Cowork (antes de que Alfredo se duerma)
