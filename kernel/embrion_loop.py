@@ -238,27 +238,49 @@ class EmbrionLoop:
     # ── Main Loop ────────────────────────────────────────────────────
 
     async def _loop(self) -> None:
-        """Main consciousness loop — checks for triggers every CHECK_INTERVAL_S."""
+        """Main consciousness loop — checks for triggers every CHECK_INTERVAL_S.
+
+        Sprint 83 FIX: Each sub-task now has an asyncio.wait_for() timeout
+        to prevent the loop from hanging if a DB call or LLM call blocks.
+        Combined with the to_thread() fix in SupabaseClient, this ensures
+        the loop always advances even if individual operations fail.
+        """
+        _THINK_TIMEOUT = 120   # Max seconds for _check_and_think
+        _TASK_TIMEOUT = 60     # Max seconds for consolidation/sabios/radar
+
         while self._running:
             try:
                 self._cycle_count += 1
                 self._reset_daily_counters_if_needed()
-                await self._check_and_think()
+
+                try:
+                    await asyncio.wait_for(self._check_and_think(), timeout=_THINK_TIMEOUT)
+                except asyncio.TimeoutError:
+                    logger.warning("embrion_check_and_think_timeout", cycle=self._cycle_count, timeout=_THINK_TIMEOUT)
 
                 # Sprint 34: Memory consolidation check
                 self._latidos_since_consolidation += 1
                 if self._latidos_since_consolidation >= CONSOLIDATION_INTERVAL:
-                    await self._consolidate_memories()
+                    try:
+                        await asyncio.wait_for(self._consolidate_memories(), timeout=_TASK_TIMEOUT)
+                    except asyncio.TimeoutError:
+                        logger.warning("embrion_consolidation_timeout", cycle=self._cycle_count)
                     self._latidos_since_consolidation = 0
                 # Sprint 45: Periodic Sabios consultation
                 self._cycles_since_sabios += 1
                 if self._cycles_since_sabios >= SABIOS_CONSULTATION_INTERVAL:
-                    await self._consult_sabios_strategic()
+                    try:
+                        await asyncio.wait_for(self._consult_sabios_strategic(), timeout=_TASK_TIMEOUT)
+                    except asyncio.TimeoutError:
+                        logger.warning("embrion_sabios_timeout_loop", cycle=self._cycle_count)
                     self._cycles_since_sabios = 0
                 # Sprint 45: Agents Radar check
                 self._cycles_since_radar += 1
                 if self._cycles_since_radar >= RADAR_INTERVAL:
-                    await self._check_agents_radar()
+                    try:
+                        await asyncio.wait_for(self._check_agents_radar(), timeout=_TASK_TIMEOUT)
+                    except asyncio.TimeoutError:
+                        logger.warning("embrion_radar_timeout_loop", cycle=self._cycle_count)
                     self._cycles_since_radar = 0
 
             except Exception as e:
@@ -646,21 +668,25 @@ class EmbrionLoop:
             if _use_magna and _magna:
                 # ── Sprint 81: Magna-driven routing ───────────────────
                 try:
-                    classification = await _magna.classify(
-                        message=prompt,
-                        trigger_type=trigger["type"],
-                        context={"cycle": self._cycle_count},
+                    # Sprint 83 FIX: classify() is sync, takes (text, context)
+                    # and returns a ClassificationResult dataclass (not a dict).
+                    # Previous code used wrong kwarg 'message' and called .get()
+                    # on a dataclass, causing fallback every time.
+                    classification = await asyncio.to_thread(
+                        _magna.classify,
+                        prompt,
+                        {"trigger_type": trigger["type"], "cycle": self._cycle_count},
                     )
-                    _route_decision = classification.get("route", "router")
-                    _magna_confidence = classification.get("confidence", 0.0)
+                    _route_decision = classification.route.value if hasattr(classification.route, 'value') else str(classification.route)
+                    _magna_confidence = classification.score
 
                     logger.info(
                         "embrion_magna_route_decision",
                         route=_route_decision,
                         confidence=f"{_magna_confidence:.2f}",
                         trigger=trigger["type"],
-                        category=classification.get("category", "unknown"),
-                        cached=classification.get("cached", False),
+                        category=classification.category.value if hasattr(classification.category, 'value') else str(classification.category),
+                        cached=classification.cached,
                     )
 
                     if _route_decision == "graph":

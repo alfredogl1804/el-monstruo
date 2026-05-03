@@ -241,6 +241,141 @@ async def embrion_debug(request: Request):
         }
 
 
+@router.get("/diagnostic")
+async def embrion_diagnostic(request: Request):
+    """
+    Sprint 83 E83.2: Comprehensive diagnostic endpoint.
+
+    Returns real functional metrics beyond FCS:
+    - Loop health: is it cycling? at what rate?
+    - DB connectivity: latency, timeouts
+    - Trigger detection: what's firing, what's blocked
+    - Magna routing: decisions, confidence, fallbacks
+    - Cost tracking: daily spend, budget remaining
+    - Error patterns: recent errors grouped by type
+    """
+    import time as _time
+
+    diagnostics = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": "0.83.0-sprint83",
+    }
+
+    # 1. Loop health
+    loop = getattr(request.app.state, '_embrion_loop', None)
+    if loop:
+        stats = loop.stats if hasattr(loop, 'stats') else {}
+        cycle_count = stats.get('cycle_count', 0)
+        check_interval = stats.get('check_interval_s', 60)
+        last_thought = stats.get('last_thought_at')
+
+        # Calculate expected vs actual cycles
+        # (uptime is not directly available, use cycle_count * interval as proxy)
+        diagnostics["loop"] = {
+            "status": "running" if getattr(loop, '_running', False) else "stopped",
+            "cycle_count": cycle_count,
+            "check_interval_s": check_interval,
+            "expected_cycles_per_hour": 3600 // check_interval if check_interval > 0 else 0,
+            "thoughts_today": stats.get('thoughts_today', 0),
+            "max_thoughts_per_day": stats.get('max_thoughts_per_day', 0),
+            "cost_today_usd": stats.get('cost_today_usd', 0.0),
+            "daily_budget_usd": stats.get('daily_budget_usd', 0.0),
+            "budget_remaining_usd": round(
+                stats.get('daily_budget_usd', 0.0) - stats.get('cost_today_usd', 0.0), 4
+            ),
+            "last_thought_at": last_thought,
+            "seconds_since_last_thought": round(_time.time() - last_thought, 1) if last_thought else None,
+            "last_trigger": stats.get('last_trigger'),
+        }
+
+        # 2. Error analysis
+        errors = stats.get('errors', [])
+        error_types = {}
+        for err in errors:
+            etype = err.get('type', 'Unknown')
+            error_types[etype] = error_types.get(etype, 0) + 1
+        diagnostics["errors"] = {
+            "total_recent": len(errors),
+            "by_type": error_types,
+            "last_error": errors[-1] if errors else None,
+        }
+
+        # 3. Silence metrics
+        silence = stats.get('silence', {})
+        diagnostics["silence"] = {
+            "threshold": silence.get('threshold', 0),
+            "last_score": silence.get('last_score'),
+            "silenced_today": silence.get('silenced_today', 0),
+            "messages_sent_today": silence.get('messages_sent_today', 0),
+            "silence_ratio": round(
+                silence.get('silenced_today', 0) /
+                max(silence.get('silenced_today', 0) + silence.get('messages_sent_today', 0), 1),
+                2
+            ),
+        }
+
+        # 4. FCS metrics
+        fcs = stats.get('fcs', {})
+        diagnostics["fcs"] = fcs
+
+        # 5. Sub-system intervals
+        diagnostics["subsystems"] = {
+            "consolidation": stats.get('consolidation', {}),
+            "sabios": stats.get('sabios', {}),
+            "radar": stats.get('radar', {}),
+        }
+
+        # 6. Health verdict
+        issues = []
+        if cycle_count <= 1:
+            issues.append("cycle_count_stalled: loop may be blocked")
+        if stats.get('cost_today_usd', 0) >= stats.get('daily_budget_usd', 30.0):
+            issues.append("budget_exhausted: daily budget reached")
+        if stats.get('thoughts_today', 0) >= stats.get('max_thoughts_per_day', 50):
+            issues.append("thought_limit_reached: max thoughts per day")
+        if len(errors) >= 10:
+            issues.append(f"high_error_rate: {len(errors)} recent errors")
+
+        diagnostics["health_verdict"] = {
+            "healthy": len(issues) == 0,
+            "issues": issues,
+            "issue_count": len(issues),
+        }
+    else:
+        diagnostics["loop"] = {"status": "not_initialized"}
+        diagnostics["health_verdict"] = {
+            "healthy": False,
+            "issues": ["loop_not_initialized"],
+            "issue_count": 1,
+        }
+
+    # 7. DB connectivity check
+    if _db and _db.connected:
+        db_start = _time.time()
+        try:
+            test = await _db.select(
+                table="embrion_memoria",
+                columns="id",
+                limit=1,
+            )
+            db_latency = round((_time.time() - db_start) * 1000, 1)
+            diagnostics["db"] = {
+                "connected": True,
+                "latency_ms": db_latency,
+                "healthy": db_latency < 5000,
+            }
+        except Exception as e:
+            diagnostics["db"] = {
+                "connected": True,
+                "error": str(e)[:200],
+                "healthy": False,
+            }
+    else:
+        diagnostics["db"] = {"connected": False, "healthy": False}
+
+    return diagnostics
+
+
 @router.post("/mensaje")
 async def enviar_mensaje(req: MensajeRequest):
     """
