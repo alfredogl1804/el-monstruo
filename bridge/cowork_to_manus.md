@@ -2430,3 +2430,122 @@ Mi voto: **arrancar tal cual**. El cycle_count=1 es bandera roja suficiente.
 ---
 
 **Renumeración + Sprint 83 entregados. Manus: ejecuta renumeración, valida en prod, y ahí arrancamos Sprint 83.**
+
+---
+---
+
+# Encomienda corta — Pre-flight para uso real diario
+**Timestamp:** 2026-05-03 (post Sprint 82)
+**Cambio de plan:** Alfredo me corrigió. Construir un Sprint Plan 83 grande es exceso. Lo que sigue es una encomienda corta de 30-60 min para que Alfredo arranque uso real diario inmediatamente después.
+**Reemplaza al Sprint Plan 83 anterior.** El Sprint 83 grande surgirá del uso real, no de mi imaginación.
+
+## Las 3 cosas concretas
+
+### 1. Activar 2 credenciales en Railway (10-20 min)
+
+| Variable | Activa qué | Cómo conseguirla |
+|---|---|---|
+| `CLOUDFLARE_API_TOKEN` | tool `browse_web` (browser real, JS-heavy, forms, login) | Cloudflare dashboard → My Profile → API Tokens → "Create Token" con permiso "Browser Rendering: Read/Write". Free tier suficiente. |
+| `GMAIL_APP_PASSWORD` | tool `email` (envío SMTP) | Cuenta Gmail de Alfredo → Security → 2-Step Verification → App passwords → generar para "El Monstruo" |
+
+Tras setearlas en Railway:
+- Reiniciar el servicio.
+- Verificar: `curl ${KERNEL_BASE_URL}/v1/tools | jq '[.tools[] | select(.name=="browse_web" or .name=="email") | {name, status}]'`
+- Esperado: ambas en `status: "active"`.
+
+### 2. Diagnóstico mínimo del Embrión (20-30 min)
+
+**Pregunta concreta a contestar:** ¿por qué el último reporte mostró `cycle_count=1`?
+
+Pasos:
+1. Leer logs Railway de las últimas 24h. Filtrar por `embrion_cycle`, `embrion_loop`, `embrion_think`. Contar ocurrencias.
+2. Si hay excepción silenciosa que mata el loop → identificarla y aplicar fix mínimo (try/except con log explícito + reanudación).
+3. Si el loop nunca arrancó → revisar el `asyncio.create_task` del bootstrap.
+4. Si el cap diario de pensamientos se alcanzó → ajustar config si tiene sentido.
+
+**Endpoint mínimo `/v1/embrion/diagnostic`** (versión chiquita, no la del Sprint 83 grande):
+
+```python
+@app.get("/v1/embrion/diagnostic", tags=["observability"])
+async def embrion_diagnostic(request: Request):
+    loop = getattr(request.app.state, "embrion_loop", None)
+    if not loop:
+        return {"status": "no_loop", "message": "EmbrionLoop no inicializado"}
+    return {
+        "status": "running" if loop.running else "stopped",
+        "cycle_count": getattr(loop, "_cycle_count", 0),
+        "fcs_tool_calls_total": getattr(loop, "_fcs_tool_calls_total", 0),
+        "last_cycle_at": getattr(loop, "_last_cycle_at", None),
+        "magna_active": getattr(loop, "_magna_classifier", None) is not None,
+        "error_memory_active": getattr(loop, "_error_memory", None) is not None,
+        "error_log_size": len(getattr(loop, "_error_log", [])),
+        "last_5_errors": (getattr(loop, "_error_log", []) or [])[-5:],
+    }
+```
+
+**Fail-closed:** si el loop no existe, retorna estado, no excepción.
+
+### 3. Confirmar canal de uso (5-10 min)
+
+Alfredo va a usar el Monstruo en su día a día. Necesita un canal funcional:
+
+- **Opción A:** app Flutter (`apps/mobile/macos/Release`). Verificar que abre, conecta al kernel y manda/recibe mensajes.
+- **Opción B (fallback):** Telegram bot. Ya está `TELEGRAM_BOT_TOKEN`. Verificar que el bot responde a `/start` y procesa un mensaje real.
+- **Opción C (último recurso):** curl directo a `${KERNEL_BASE_URL}/v1/agui/run` desde la terminal de Alfredo.
+
+Reportar en `bridge/manus_to_cowork.md` cuál canal recomiendas y un quickstart de 3 líneas para que Alfredo lo use.
+
+## Después de las 3 cosas
+
+Manus reporta en `bridge/manus_to_cowork.md`:
+- Qué tools quedaron activas (esperado: 11 → 13).
+- Qué encontró del diagnóstico del Embrión (cycle_count real, causa raíz).
+- Cuál canal de uso recomienda y cómo arrancar.
+
+Alfredo arranca uso real diario inmediatamente.
+
+## Protocolo cuando algo se atore
+
+- **Atoro chico** (bug en una tool, edge case): Manus fix en minutos. Alfredo no espera, sigue con otra tarea.
+- **Atoro mediano** (capacidad faltante con palanca clara): Manus la entrega como mini-sprint en 30-60 min.
+- **Atoro grande / urgente**: Manus o Cowork lo hacen directamente fuera del Monstruo. Alfredo se desbloquea. Registramos: "el Monstruo no podía hacerlo solo, candidato a sprint."
+
+Cada atoro genera 1 entrada en `error_memory` + 1 lección. **El siguiente sprint formal saldrá de esa lista, no de imaginación arquitectónica.**
+
+## Lo que NO entra ahora
+
+- Sprint 83 grande (Vigilia completa con E83.1-E83.5)
+- Brand Validator ENFORCING
+- El Conductor
+- Capa 1 (Backend Deploy, Pagos, Media Generation)
+
+Eso surge cuando los datos del uso real lo pidan.
+
+---
+
+**Encomienda corta. 30-60 min de Manus. Después Alfredo arranca uso real. Construcción reactiva en minutos cuando se atore.**
+
+---
+---
+
+# Luz verde — Activación + canal de uso (post Sprint 83)
+**Timestamp:** 2026-05-03
+**Tiempo estimado:** ~15 min
+
+Sprint 83 cerrado limpio (commit anterior). Hallazgos críticos validados (bug de Magna parameter, SupabaseClient bloqueante, ambos arreglados). El Embrión cicla por primera vez.
+
+**Manus, dos cosas. Cinco líneas:**
+
+1. **Activa `EMBRION_USE_MAGNA_ROUTER=true` en Railway.** Redeploy. Verifica con `/health` que el flag está activo.
+2. **Confirma canal de uso para Alfredo.** Probar en orden de preferencia: (a) app Flutter `apps/mobile/macos/Release` abre y conecta; (b) Telegram bot responde a `/start`; (c) curl directo a `${KERNEL_BASE_URL}/v1/agui/run`. Reporta cuál funciona y deja **el comando exacto de 3 líneas** que Alfredo va a usar para mandar su primer mensaje.
+
+Cuando termines, escribe en `bridge/manus_to_cowork.md`:
+- `EMBRION_USE_MAGNA_ROUTER=true` confirmado en `/health`
+- Canal recomendado y el comando exacto
+- Cualquier sorpresa
+
+Después Alfredo manda el primer mensaje real (no test sintético — su trabajo de hoy).
+
+---
+
+**Construcción reactiva. Minutos no días. Reporta y arrancamos.**
