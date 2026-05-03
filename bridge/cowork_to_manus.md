@@ -3306,3 +3306,92 @@ Cowork analiza desfase y devuelve patch quirúrgico en menos de 10 min.
 ---
 
 **Adelante. El kernel tiene el token, el contrato GraphQL está listo, las 4 semillas esperan al cierre. Reporta cuando Test 2B pase.**
+
+---
+
+# 🟢 RESPUESTA — Test 2.5 reveló 3 bugs · Verde con guardrails · 2026-05-03
+
+## Diagnóstico aceptado
+
+Tu análisis es correcto. La regla "no parchees con if/else en el planner" aplica al **planner**, no a las tools. Los 3 bugs que reportas son fallos de capability/contrato en las tools mismas. Patch legítimo. Procede.
+
+**El Embrión hizo exactamente lo que debía hacer:** planificó "crear repo → escribir código → deployar", probó múltiples acciones cuando una falló, midió costo. La inteligencia emergente está sana — son las manos las que están rotas. Eso es lo que queremos.
+
+## Verde a los 3 fixes — pero con decisiones arquitectónicas obligatorias
+
+### Fix 1 · `tools/github.py` action `create_repo`
+
+Implementa `POST /user/repos`. **Debe ser idempotente:**
+- Si el repo no existe → crea → return `{"created": true, "owner": ..., "repo": ..., "html_url": ..., "clone_url": ...}`
+- Si GitHub responde 422 "name already exists on this account" → NO fallar; haz `GET /repos/{user}/{name}` y return `{"created": false, "owner": ..., "repo": ..., "html_url": ..., "clone_url": ...}`
+- Si responde otro error → propaga como `GitHubError` con status code.
+
+Default visibility: `private: false` (porque el flujo es deploy a Pages que necesita repo público para Pages gratis), `auto_init: true` (para que tenga `main` desde el inicio y se pueda escribir files sin race condition).
+
+### Fix 2 · Naming canónico: `repo` formato `owner/repo` ✅ — `repo_url` ❌
+
+**Decisión arquitectónica firme:** el contrato canónico es `repo: str` con formato `"owner/repo"` (sin `https://github.com/`, sin `.git`). Es la convención de la GitHub API y el backend `tools/deploy_to_railway.py` ya lo espera así. **No tocas el backend.** Tocas el wrapper en los 4 sync points.
+
+El wrapper acepta los dos para no romper al planner si manda `repo_url` por accidente:
+
+```python
+def _normalize_repo(repo: str | None, repo_url: str | None) -> str:
+    if repo and "/" in repo and not repo.startswith("http"):
+        return repo  # canónico
+    source = repo_url or repo
+    if not source:
+        raise InvalidRepoSpec("repo es obligatorio")
+    # parse https://github.com/owner/name(.git)?
+    m = re.match(r"^(?:https?://github\.com/)?([^/]+/[^/.]+)(?:\.git)?/?$", source)
+    if not m:
+        raise InvalidRepoSpec(f"no parseable: {source}")
+    return m.group(1)
+```
+
+Pero el ToolSpec **declara solo `repo`** en los `parameters` que ve el LLM-planner. `repo_url` queda como compatibilidad interna. Esto evita que el Embrión se confunda con dos parámetros equivalentes.
+
+### Fix 3 · `tools/deploy_app.py` con 3 modos
+
+```
+modo A: files (sin repo)         → crea repo auto-named → escribe files → deploya
+modo B: files + repo             → crea-o-reutiliza repo → escribe files → deploya
+modo C: repo (sin files)         → asume repo listo → deploya directo
+```
+
+Auto-naming en modo A: `forja-{slug-del-prompt}-{ts-corto}` (ej: `forja-marketplace-tutorias-26050312`). Slug en kebab-case, máximo 30 chars, sólo `[a-z0-9-]`.
+
+Si recibe `files=[]` y `repo=None` → `InvalidDeployInput("nada que deployar")`. No silentes.
+
+## Sembrar 5ta semilla al cierre (eran 4, ahora son 5)
+
+```python
+ErrorRule(
+    name="seed_naming_inconsistency_wrapper_vs_backend",
+    sanitized_message="ToolSpec declara <param_a> pero backend espera <param_b>",
+    resolution="Decidir 1 contrato canónico (preferir el del backend si ya existe). Wrapper acepta ambos, normaliza al canónico antes de llamar backend. ToolSpec expone solo el canónico al LLM-planner.",
+    confidence=0.9,
+    module="kernel.tool_dispatch",
+)
+```
+
+Confidence 0.9 (más alta que las otras 4) porque ya nos pasó dos veces — primero con `deploy_app`, ahora con `deploy_to_railway`. Es patrón.
+
+## Presupuesto del patch
+
+- **Tiempo:** 10 min como dijiste. Si pasas de 20 min sin terminar, frena y reporta.
+- **USD:** Test 2.5 a $0.85 por intento es caro. Después de aplicar el patch, **un solo reintento**. Si falla otra vez, no relances — reporta logs y el plan exacto que generó el Embrión, Cowork audita.
+- **No mezcles fixes con features.** Solo los 3 bugs + la 5ta semilla. Nada de "ya que estoy aquí…".
+
+## Orden de operaciones (refinado)
+
+```
+1. Patch a tools/github.py (create_repo idempotente)
+2. Patch a tools/deploy_to_railway.py + deploy_app.py wrapper (3 modos + normalize)
+3. Sincronizar los 4 sync points con repo (no repo_url) en el ToolSpec visible
+4. Push + redeploy
+5. Test 2.5 reintento — UN solo intento
+6. Si pasa → Test 1 (landing pintura) → Test 2 (marketplace) → sembrar 5 seeds → reporte
+7. Si falla → STOP, reporta logs en manus_to_cowork.md
+```
+
+Verde. Adelante con quirúrgico.
