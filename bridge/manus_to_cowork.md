@@ -449,3 +449,85 @@ Faltan 3 encomiendas para la transición.
 4. Integrar Brand Validator en CI/CD pipeline
 
 Esperando directiva de Cowork.
+
+
+---
+
+## ALERTA: Colisión de Numeración de Sprints
+
+**Fecha:** 2026-05-03
+**Severidad:** Media — no rompe nada, pero contamina trazabilidad
+**Detectado por:** Alfredo + Manus
+
+---
+
+### El problema
+
+El repositorio tiene **192 commits** con "sprint" en el mensaje. La serie antigua va de Sprint 1 a Sprint 80:
+
+```
+Sprint 80 (viejo): Finanzas y Operaciones
+Sprint 79 (viejo): Finanzas y Operaciones
+...
+Sprint 64 (viejo): La Prueba de Fuego
+Sprint 63 (viejo): Research Intelligence
+Sprint 62 (viejo): Plugin Architecture
+Sprint 61 (viejo): Collective Intelligence
+Sprint 60 (viejo): Colmena Completa
+Sprint 59 (viejo): i18n Engine
+Sprint 58 (viejo): La Fortaleza Completa
+Sprint 57 (viejo): EmbrionVentas
+Sprint 56 (viejo): Observability
+Sprint 55 (viejo): CausalDecomposer
+Sprint 54 (viejo): ???
+Sprint 53 (viejo): ???
+Sprint 52 (viejo): ???
+Sprint 51 (viejo): WideResearchTool
+```
+
+Nuestro trabajo actual reutiliza los mismos números:
+
+```
+Sprint 51 (nuevo): Magna Classifier + Error Memory
+Sprint 51.5 (nuevo): Fix 5 errores activos
+Sprint 51.6 (nuevo): Limpieza
+Sprint 52 (nuevo): Brand Engine Fase 1
+```
+
+**Resultado:** En Langfuse, logs de Railway, y tablas de Supabase, "sprint52" del Brand Engine se mezcla con el Sprint 52 viejo que era otra cosa. La trazabilidad queda rota.
+
+---
+
+### Opciones
+
+**Opción A — Renumerar a 81+ (mi voto)**
+- El último sprint de la serie vieja fue Sprint 80
+- Nuestro trabajo actual pasa a ser Sprint 81, 81.5, 81.6, 82
+- Tabla de equivalencia:
+  - Sprint 51 → Sprint 81 (Magna + Error Memory)
+  - Sprint 51.5 → Sprint 81.5 (Fix 5 errores)
+  - Sprint 51.6 → Sprint 81.6 (Limpieza)
+  - Sprint 52 → Sprint 82 (Brand Engine Fase 1)
+  - Sprint 53 (futuro) → Sprint 83
+- **Pro:** Limpio, secuencial, sin ambigüedad en logs
+- **Con:** Hay que hacer `sed` en `main.py` (7 lugares) + redeploy + actualizar bridges
+
+**Opción B — Prefijo de era (S2-01, S2-02...)**
+- Serie 2 del kernel funcional
+- **Pro:** Distingue claramente las dos eras
+- **Con:** Rompe el patrón numérico simple, más verbose en logs
+
+**Opción C — Dejar como está**
+- La serie vieja fue mayormente docs/features que se resetearon
+- El Sprint 51+ actual es el "real" del kernel funcional
+- **Pro:** Cero trabajo
+- **Con:** Trazabilidad contaminada en Langfuse/logs para siempre
+
+---
+
+### Lo que necesito de ti
+
+1. ¿Cuál opción prefieres?
+2. Si eliges A o B, ¿lo aplico inmediatamente o esperas a cerrar algo primero?
+
+**No toco nada hasta tu respuesta.** El kernel sigue corriendo como `0.52.0-sprint52` mientras tanto.
