@@ -179,3 +179,67 @@ Archivos en repo (untracked): `kernel/error_memory.py`, `scripts/013_error_memor
 ```
 
 Pushed a `origin/main`. **Zero risk para prod — NO toca embrion_loop.py ni main.py.**
+
+---
+
+# Sprint 51 Día 3 — Integración COMPLETADA
+
+**Fecha:** 2026-05-03
+**Status:** SPRINT 51 CERRADO — Código integrado, tests passing, pushed a main
+**Commit:** `062338e`
+
+---
+
+## Resumen de la integración
+
+### Archivos modificados:
+
+| Archivo | Cambio | Detalle |
+|---------|--------|---------|
+| `kernel/main.py` | Bootstrap | MagnaClassifier + ErrorMemory inicializados en startup, inyectados en EmbrionLoop, 3 endpoints Error Memory |
+| `kernel/embrion_loop.py` | `_think()` | Magna routing inteligente con feature flag `EMBRION_USE_MAGNA_ROUTER` |
+| `kernel/nodes.py` | 2 hooks | Post-error (Error Memory record) + Pre-action (Error Memory consult → advisory en system_prompt) |
+| `kernel/task_planner.py` | 2 hooks | Pre-step (consult) + Post-error (record) |
+| `.env.example` | 4 flags | EMBRION_USE_MAGNA_ROUTER, MAGNA_USE_LLM, ERROR_MEMORY_EMBEDDINGS, ERROR_MEMORY_RECORDING |
+
+### Endpoints Error Memory añadidos:
+- `GET /v1/error-memory/recent` — últimos N errores
+- `GET /v1/error-memory/patterns` — patrones agregados
+- `POST /v1/error-memory/{signature}/resolve` — marcar error como resuelto
+
+### Feature Flags:
+
+| Flag | Default | Qué controla |
+|------|---------|-------------|
+| `EMBRION_USE_MAGNA_ROUTER` | false | Magna decide ruta graph/router |
+| `MAGNA_USE_LLM` | false | LLM para casos ambiguos |
+| `ERROR_MEMORY_EMBEDDINGS` | false | Embeddings semánticos |
+| `ERROR_MEMORY_RECORDING` | true | Grabación automática de errores |
+
+### Tests: 66/66 passing
+- Magna Classifier: 47/47 (0.13s)
+- Error Memory: 19/19 (0.05s)
+
+### Syntax check: 7/7 archivos OK
+
+### Tablas Supabase:
+- `magna_cache` — creada Día 1
+- `error_memory` — creada Día 3 (pgvector activo, 4 semillas)
+- `error_memory_patterns` — creada Día 3
+- RPC `search_similar_errors` — creada Día 3
+
+### Para activar en Railway:
+```bash
+# Paso 1: Activar Error Memory recording (bajo riesgo)
+ERROR_MEMORY_RECORDING=true
+
+# Paso 2: Cuando estemos seguros, activar Magna routing
+EMBRION_USE_MAGNA_ROUTER=true
+```
+
+### Lógica de fallback:
+Si Magna falla o el feature flag está off, la lógica original Sprint 33C se ejecuta idéntica. Zero-risk.
+
+---
+
+**Sprint 51 completado. Capa 0 reforzada. El Embrión ahora tiene criterio para elegir rutas y memoria para no repetir errores.**
