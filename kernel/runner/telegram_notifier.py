@@ -29,6 +29,20 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")  # Alfredo's chat ID
 TELEGRAM_API_BASE = "https://api.telegram.org/bot"
 
 
+def _escape_telegram_markdown(text: str) -> str:
+    """
+    Escape special Markdown characters for Telegram's MarkdownV1 parser.
+
+    Telegram's Markdown parser chokes on unmatched `_`, `*`, `` ` ``, `[`.
+    This escapes them so the message arrives intact without falling back
+    to the plain-text retry (which produces log noise).
+    """
+    # Order matters: backslash first to avoid double-escaping
+    for char in ("_", "*", "`", "["):
+        text = text.replace(char, f"\\{char}")
+    return text
+
+
 class TelegramNotifier:
     """
     Sends messages to a Telegram user via the Bot API.
@@ -86,9 +100,12 @@ class TelegramNotifier:
             return False
 
         url = f"{TELEGRAM_API_BASE}{self._bot_token}/sendMessage"
+        # Escape Markdown special chars to prevent parse errors (Sprint 51.6)
+        safe_text = _escape_telegram_markdown(text) if parse_mode == "Markdown" else text
+
         payload = {
             "chat_id": target_chat_id,
-            "text": text[:4096],  # Telegram limit
+            "text": safe_text[:4096],  # Telegram limit
             "parse_mode": parse_mode,
         }
 

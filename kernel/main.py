@@ -467,28 +467,34 @@ async def lifespan(app: FastAPI):
         logger.warning("lightrag_warmup_failed", error=str(e))
 
     # ── Sprint 17: MCP Client Manager ──────────────────────────────────
+    # Sprint 51.6: ENABLE_MCP_SERVERS=false by default — tools nativas cubren
+    # github, filesystem, supabase. Dos rutas para lo mismo viola Obj #3.
     mcp_manager = None
-    try:
-        from kernel.mcp_client import MCPClientManager, build_mcp_configs
-        from kernel.tool_dispatch import set_mcp_manager
+    enable_mcp = os.environ.get("ENABLE_MCP_SERVERS", "false").lower() == "true"
+    if not enable_mcp:
+        logger.info("mcp_manager_skipped", reason="ENABLE_MCP_SERVERS=false (Sprint 51.6)")
+    else:
+        try:
+            from kernel.mcp_client import MCPClientManager, build_mcp_configs
+            from kernel.tool_dispatch import set_mcp_manager
 
-        # Sprint 18: build_mcp_configs() = presets (github, filesystem, supabase) + env custom
-        mcp_configs = build_mcp_configs()
-        if mcp_configs:
-            mcp_manager = MCPClientManager(mcp_configs)
-            mcp_status = await mcp_manager.initialize()
-            set_mcp_manager(mcp_manager)
-            app.state.mcp_manager = mcp_manager
-            logger.info(
-                "mcp_manager_initialized",
-                servers=len(mcp_configs),
-                tools=len(mcp_manager.tools),
-                status=mcp_status,
-            )
-        else:
-            logger.info("mcp_manager_skipped", reason="no MCP servers configured")
-    except Exception as e:
-        logger.warning("mcp_manager_init_failed", error=str(e))
+            # Sprint 18: build_mcp_configs() = presets (github, filesystem, supabase) + env custom
+            mcp_configs = build_mcp_configs()
+            if mcp_configs:
+                mcp_manager = MCPClientManager(mcp_configs)
+                mcp_status = await mcp_manager.initialize()
+                set_mcp_manager(mcp_manager)
+                app.state.mcp_manager = mcp_manager
+                logger.info(
+                    "mcp_manager_initialized",
+                    servers=len(mcp_configs),
+                    tools=len(mcp_manager.tools),
+                    status=mcp_status,
+                )
+            else:
+                logger.info("mcp_manager_skipped", reason="no MCP servers configured")
+        except Exception as e:
+            logger.warning("mcp_manager_init_failed", error=str(e))
 
     # ── Sprint 26: Honcho DISABLED (service deleted from Railway) ──────
     honcho_active = False
