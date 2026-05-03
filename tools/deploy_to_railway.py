@@ -98,12 +98,8 @@ _Q_ME_WORKSPACES = """
 query me {
   me {
     workspaces {
-      edges {
-        node {
-          id
-          name
-        }
-      }
+      id
+      name
     }
   }
 }
@@ -133,20 +129,20 @@ async def _resolve_workspace_id() -> str:
         logger.info("deploy_railway_workspace_resolved", source="env_var", workspace_id=env_ws[:8] + "...")
         return env_ws
 
-    # 3. Query dinámica
+    # 3. Query dinámica (Railway expone workspaces como lista directa, no edges/node)
     data = await _graphql(_Q_ME_WORKSPACES)
-    edges = (data.get("me") or {}).get("workspaces", {}).get("edges", []) or []
-    if not edges:
+    workspaces = (data.get("me") or {}).get("workspaces", []) or []
+    if not workspaces:
         raise RailwayDeployFalla(
             "deploy_railway_no_workspaces: la cuenta no tiene workspaces. "
             "Crea uno en https://railway.com/dashboard."
         )
-    first = edges[0].get("node") or {}
+    first = workspaces[0] or {}
     ws_id = first.get("id")
     ws_name = first.get("name", "unknown")
     if not ws_id:
         raise RailwayDeployFalla(
-            f"deploy_railway_workspace_sin_id: edges={edges[:2]}"
+            f"deploy_railway_workspace_sin_id: workspaces={workspaces[:2]}"
         )
     _WORKSPACE_ID_CACHE["id"] = ws_id
     logger.info(
