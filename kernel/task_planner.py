@@ -747,33 +747,34 @@ Formato obligatorio:
         },
         {
             "name": "deploy_to_railway",
-            "description": "Sprint 84: Publica un backend (FastAPI/Node/cualquier servicio) end-to-end a Railway desde un repo de GitHub. Crea proyecto Railway, servicio desde el repo, env vars, dispara deploy y devuelve URL pública. Usar para APIs, bots, servicios con persistencia. Requiere repo_url ya creado en GitHub.",
+            "description": "Sprint 84.5: Publica un backend (FastAPI/Node/cualquier servicio) end-to-end a Railway desde un repo de GitHub existente. Crea proyecto Railway, servicio desde el repo, env vars, dispara deploy y devuelve URL pública. Usar para APIs, bots, servicios con persistencia. Requiere repo en formato 'owner/repo' (ej. 'alfredogl1804/forja-api'), NO URL completa.",
             "input_schema": {
                 "type": "object",
                 "properties": {
                     "project_name": {"type": "string", "description": "Nombre del proyecto Railway (slug)"},
-                    "repo_url": {"type": "string", "description": "URL del repo GitHub (https://github.com/owner/repo)"},
-                    "branch": {"type": "string", "description": "Branch a deployar (default main)"},
+                    "repo": {"type": "string", "description": "Repo en formato 'owner/repo' (ej. 'alfredogl1804/forja-api'). NO incluir https://github.com/ ni .git."},
+                    "service_name": {"type": "string", "description": "Nombre del servicio Railway. Default 'API'."},
                     "env_vars": {
                         "type": "object",
                         "description": "Variables de entorno {KEY: value} para el servicio. Opcional.",
                     },
+                    "create_domain": {"type": "boolean", "description": "Si True, crea Railway domain público y lo retorna. Default true."},
                 },
-                "required": ["project_name", "repo_url"],
+                "required": ["project_name", "repo"],
             },
         },
         {
             "name": "deploy_app",
-            "description": "Sprint 84: Wrapper inteligente de deploy. Magna analiza los inputs y decide entre GitHub Pages (sitio estático) o Railway (backend). ÚSALA SIEMPRE QUE EL OBJETIVO SEA 'publicar', 'desplegar', 'subir a internet', 'sacar al mundo' — deja que Magna elija el destino correcto. Si pasas 'files' con index.html va a Pages; si pasas 'repo_url' con backend va a Railway.",
+            "description": "Sprint 84.5: Wrapper inteligente de deploy. Magna analiza los inputs y decide entre GitHub Pages (estático) o Railway (backend). ÚSALA SIEMPRE QUE EL OBJETIVO SEA 'publicar', 'desplegar', 'subir a internet', 'sacar al mundo' — deja que Magna elija el destino correcto. Soporta 3 modos: (A) solo files → crea repo auto-named y deploya; (B) files + repo → escribe en repo existente y deploya; (C) solo repo → deploya repo ya listo. app_name obligatorio si pasas files; opcional si pasas repo.",
             "input_schema": {
                 "type": "object",
                 "properties": {
-                    "app_name": {"type": "string", "description": "Nombre del proyecto/repo (slug, Brand DNA)"},
+                    "app_name": {"type": "string", "description": "Nombre del proyecto/repo (slug kebab-case, Brand DNA). Obligatorio en modo A y B."},
                     "files": {
                         "type": "object",
-                        "description": "Diccionario {ruta: contenido} para deploy estático. Si está presente, Magna preferirá Pages.",
+                        "description": "Diccionario {ruta: contenido} para deploy. Modo A: solo files (crea repo). Modo B: files + repo (escribe en repo existente).",
                     },
-                    "repo_url": {"type": "string", "description": "URL del repo GitHub. Si está presente sin 'files', Magna preferirá Railway."},
+                    "repo": {"type": "string", "description": "Repo en formato 'owner/repo' (ej. 'alfredogl1804/forja-api'). Modo B (con files) o C (sin files, deploy directo)."},
                     "target_override": {
                         "type": "string",
                         "enum": ["github_pages", "railway"],
@@ -782,7 +783,6 @@ Formato obligatorio:
                     "env_vars": {"type": "object", "description": "Env vars para Railway (opcional)"},
                     "description": {"type": "string", "description": "Descripción del proyecto (opcional)"},
                 },
-                "required": ["app_name"],
             },
         },
     ]
@@ -990,24 +990,28 @@ Formato obligatorio:
                 return json.dumps(result, ensure_ascii=False)[:4000]
 
             elif tool_name == "deploy_to_railway":
-                # Sprint 84 — Capa Manos: deploy backend end-to-end
+                # Sprint 84.5 — Capa Manos: deploy backend end-to-end
+                # Contrato canónico: 'repo' formato 'owner/repo'. Acepta 'repo_url' por compat.
                 from tools.deploy_to_railway import execute_deploy_to_railway
                 result = await execute_deploy_to_railway({
                     "project_name": args.get("project_name") or args.get("app_name"),
-                    "repo_url": args.get("repo_url"),
-                    "branch": args.get("branch", "main"),
+                    "repo": args.get("repo"),
+                    "repo_url": args.get("repo_url"),  # compat: el wrapper normaliza
+                    "service_name": args.get("service_name", "API"),
                     "env_vars": args.get("env_vars", {}),
+                    "create_domain": bool(args.get("create_domain", True)),
                 })
                 logger.info("task_planner_deploy_railway", project=result.get("project"), url=result.get("url"), error=bool(result.get("error")))
                 return json.dumps(result, ensure_ascii=False)[:4000]
 
             elif tool_name == "deploy_app":
-                # Sprint 84 — wrapper Magna decide entre Pages y Railway
+                # Sprint 84.5 — wrapper Magna decide entre Pages y Railway (3 modos)
                 from tools.deploy_app import execute_deploy_app
                 result = await execute_deploy_app({
                     "app_name": args.get("app_name") or args.get("repo_name") or args.get("project_name"),
                     "files": args.get("files", {}),
-                    "repo_url": args.get("repo_url"),
+                    "repo": args.get("repo"),
+                    "repo_url": args.get("repo_url"),  # compat
                     "target_override": args.get("target_override"),
                     "env_vars": args.get("env_vars", {}),
                     "description": args.get("description", ""),

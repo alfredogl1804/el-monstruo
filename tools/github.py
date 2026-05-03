@@ -323,6 +323,94 @@ async def update_issue(repo: str, issue_number: int, **kwargs) -> dict:
     return await _request("PATCH", f"/repos/{repo}/issues/{issue_number}", kwargs)
 
 
+# ── Sprint 84.5 — create_repo idempotente (Cowork spec) ─────────────────
+
+
+async def create_repo(
+    name: str,
+    description: str = "Repo creado por El Monstruo (Capa Manos)",
+    private: bool = False,
+    auto_init: bool = True,
+) -> dict:
+    """Crea un repo en la cuenta del token autenticado.
+
+    Idempotente: si el repo ya existe (HTTP 422 "name already exists"),
+    hace GET y devuelve la metadata sin fallar. Cumple Cowork spec
+    (bridge/cowork_to_manus.md § Fix 1, Sprint 84.5).
+
+    Returns:
+        {
+            "created": bool,
+            "owner": str,
+            "repo": str,         # full_name owner/repo (contrato canónico)
+            "name": str,         # nombre corto
+            "html_url": str,
+            "clone_url": str,
+            "default_branch": str,
+            "private": bool,
+        }
+    """
+    payload = {
+        "name": name,
+        "description": description,
+        "private": private,
+        "auto_init": auto_init,
+    }
+    result = await _request("POST", "/user/repos", payload)
+
+    # Path feliz: repo creado
+    if "error" not in result:
+        full_name = result.get("full_name", "")
+        owner = result.get("owner", {}).get("login", "")
+        return {
+            "created": True,
+            "owner": owner,
+            "repo": full_name,
+            "name": result.get("name", name),
+            "html_url": result.get("html_url"),
+            "clone_url": result.get("clone_url"),
+            "default_branch": result.get("default_branch", "main"),
+            "private": result.get("private", private),
+        }
+
+    detail = (result.get("detail") or "").lower()
+    is_already_exists = (
+        "422" in (result.get("error") or "")
+        and ("already exists" in detail or "name already exists" in detail)
+    )
+
+    if not is_already_exists:
+        # Otro error: propaga tal cual
+        return result
+
+    # Idempotencia: GET el repo existente
+    # Necesitamos saber el owner. Lo sacamos del usuario autenticado.
+    me = await _request("GET", "/user")
+    if "error" in me:
+        return {
+            "error": "create_repo_idempotent_get_user_failed",
+            "detail": me.get("detail", "unknown"),
+        }
+    owner = me.get("login", "")
+    existing = await _request("GET", f"/repos/{owner}/{name}")
+    if "error" in existing:
+        return {
+            "error": "create_repo_idempotent_get_repo_failed",
+            "detail": existing.get("detail", "unknown"),
+        }
+    full_name = existing.get("full_name", f"{owner}/{name}")
+    return {
+        "created": False,
+        "owner": owner,
+        "repo": full_name,
+        "name": existing.get("name", name),
+        "html_url": existing.get("html_url"),
+        "clone_url": existing.get("clone_url"),
+        "default_branch": existing.get("default_branch", "main"),
+        "private": existing.get("private", False),
+    }
+
+
 async def create_or_update_file(
     repo: str,
     path: str,
@@ -403,6 +491,7 @@ async def execute_github(action: str, params: dict[str, Any], hitl_approved: boo
         "create_branch": create_branch,
         "create_pull_request": create_pull_request,
         "create_or_update_file": create_or_update_file,
+        "create_repo": create_repo,
     }
 
     fn = actions.get(action)

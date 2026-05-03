@@ -251,32 +251,131 @@ async def deploy_app(
     }
 
 
-# ── Dispatch entry point ─────────────────────────────────────────────────────
+# ── Dispatch entry point ─────────────────────────────────────────────────
+
+# ── Sprint 84.5 — Helpers para los 3 modos (Cowork spec, Fix 3) ────────
+import re as _re
+import time as _time
+from datetime import datetime as _dt
+
+_SLUG_RE = _re.compile(r"[^a-z0-9]+")
+
+
+def _kebab(s: str) -> str:
+    """Convierte string a kebab-case ASCII a-z0-9-."""
+    s = (s or "").lower().strip()
+    s = _SLUG_RE.sub("-", s)
+    return s.strip("-") or "app"
+
+
+def _auto_name(app_name: Optional[str], description: Optional[str]) -> str:
+    """Genera nombre Brand DNA: 'forja-{slug}-{ts}', max 30 chars, kebab-case."""
+    base = _kebab(app_name or description or "app")
+    ts = _dt.utcnow().strftime("%y%m%d%H")  # 8 chars: yymmddHH
+    prefix = "forja-"
+    # Reservar 1 + len(ts) chars para sufijo
+    max_slug = 30 - len(prefix) - 1 - len(ts)
+    if len(base) > max_slug:
+        base = base[:max_slug].rstrip("-")
+    return f"{prefix}{base}-{ts}"
+
+
+class InvalidDeployInput(Exception):
+    """Input que no permite ningun modo de deploy."""
 
 
 async def execute_deploy_app(params: dict[str, Any], embrion_loop: Optional[Any] = None) -> dict[str, Any]:
-    """Adapter para tool_dispatch.py.
+    """Adapter para tool_dispatch.py — Sprint 84.5: 3 modos.
 
-    Acepta tanto 'app_name' (nombre canonico expuesto al LLM) como
-    'project_name' (legacy) para retrocompatibilidad.
+    Modo A: solo files                → crea repo auto-named → escribe files → deploy.
+    Modo B: files + repo              → crea-o-reutiliza repo → escribe files → deploy.
+    Modo C: solo repo (sin files)     → asume repo listo → deploy directo a Railway.
+
+    Acepta tanto 'app_name' (canónico) como 'project_name'/'repo_name' (legacy).
+    Acepta tanto 'repo' (canónico 'owner/repo') como 'repo_url' (compat URL).
     """
-    project_name = params.get("app_name") or params.get("project_name") or params.get("repo_name")
-    files = params.get("files")
-    if not project_name or not isinstance(files, dict):
+    # Normalización de inputs
+    files = params.get("files") or {}
+    if not isinstance(files, dict):
+        files = {}
+
+    # Normalizar repo (acepta 'repo' canonico o 'repo_url' compat)
+    from tools.deploy_to_railway import _normalize_repo as _norm_repo
+    repo_canonico = _norm_repo(params.get("repo"), params.get("repo_url"))
+
+    app_name = params.get("app_name") or params.get("project_name") or params.get("repo_name")
+    description = params.get("description") or "App publicada por El Monstruo"
+    target_override = params.get("target_override")
+    env_vars = params.get("env_vars")
+
+    has_files = bool(files)
+    has_repo = bool(repo_canonico)
+
+    # Validación base: necesitamos al menos uno
+    if not has_files and not has_repo:
         return {
-            "error": "deploy_app_params_invalidos",
-            "detail": "Se requieren 'app_name' (str) y 'files' (dict[str, str]).",
+            "error": "InvalidDeployInput",
+            "detail": "deploy_app_nada_que_deployar: pasa 'files' (dict), 'repo' ('owner/repo'), o ambos.",
         }
+
+    # ---- Modo C: solo repo → deploy directo a Railway ----
+    if has_repo and not has_files:
+        from tools.deploy_to_railway import execute_deploy_to_railway
+        project_name = app_name or repo_canonico.split("/")[-1]
+        if embrion_loop and hasattr(embrion_loop, "report_orchestration_step"):
+            embrion_loop.report_orchestration_step(
+                step_name="deploy_app_modo_c_railway",
+                agent="deploy_to_railway",
+                status="in_flight",
+            )
+        railway_result = await execute_deploy_to_railway({
+            "repo": repo_canonico,
+            "project_name": project_name,
+            "service_name": params.get("service_name", "API"),
+            "env_vars": env_vars,
+            "create_domain": bool(params.get("create_domain", True)),
+        })
+        if embrion_loop and hasattr(embrion_loop, "report_orchestration_step"):
+            embrion_loop.report_orchestration_step(
+                step_name="deploy_app_modo_c_railway",
+                agent="deploy_to_railway",
+                status="done" if not railway_result.get("error") else "failed",
+            )
+        return {
+            "target": "railway",
+            "modo": "C",
+            "magna_motivo": "repo provisto sin files: deploy directo a Railway",
+            "magna_confianza": 1.0,
+            "github_repo": repo_canonico,
+            **railway_result,
+        }
+
+    # ---- Modo A o B: hay files. Auto-naming si modo A sin app_name ----
+    if not app_name:
+        if has_repo:
+            # Modo B sin app_name: usar el nombre del repo
+            app_name = repo_canonico.split("/")[-1]
+        else:
+            # Modo A: auto-naming Brand DNA
+            app_name = _auto_name(app_name, description)
+            logger.info("deploy_app_auto_naming", generated_name=app_name)
+
+    project_name = app_name
+
     try:
         result = await deploy_app(
             project_name=project_name,
             files=files,
-            description=params.get("description", "App publicada por El Monstruo"),
+            description=description,
             private=bool(params.get("private", False)),
-            env_vars=params.get("env_vars"),
-            target_override=params.get("target_override"),
+            env_vars=env_vars,
+            target_override=target_override,
             embrion_loop=embrion_loop,
         )
+        # Inyectar metadata del modo
+        result["modo"] = "B" if has_repo else "A"
+        if has_repo and "github_repo" not in result:
+            result["github_repo_provided"] = repo_canonico
         return result
     except DeployAppMagnaInconcluso as e:
         return {"error": "DeployAppMagnaInconcluso", "detail": str(e)}

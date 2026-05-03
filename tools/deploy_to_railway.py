@@ -338,9 +338,41 @@ async def deploy_to_railway(
 # ── Dispatch entry point ─────────────────────────────────────────────────────
 
 
+# ── Sprint 84.5 — normalización de repo (Cowork spec, Fix 2) ─────────────
+import re as _re
+
+_REPO_URL_RE = _re.compile(r"^(?:https?://)?(?:github\.com/)?([^/\s]+/[^/.\s]+)(?:\.git)?/?$")
+
+
+def _normalize_repo(repo: Optional[str], repo_url: Optional[str]) -> Optional[str]:
+    """Devuelve siempre formato canónico 'owner/repo' o None si no parsea.
+
+    Acepta:
+      - 'owner/repo'                            (canónico, lo retorna tal cual)
+      - 'https://github.com/owner/repo'         (lo despoja a 'owner/repo')
+      - 'https://github.com/owner/repo.git'     (lo despoja)
+      - 'github.com/owner/repo'                 (lo despoja)
+    """
+    candidates = [repo, repo_url]
+    for cand in candidates:
+        if not cand:
+            continue
+        if "/" in cand and not cand.startswith("http") and "github.com" not in cand:
+            # Ya canónico
+            return cand.strip().rstrip("/")
+        m = _REPO_URL_RE.match(cand.strip())
+        if m:
+            return m.group(1)
+    return None
+
+
 async def execute_deploy_to_railway(params: dict[str, Any]) -> dict[str, Any]:
-    """Adapter para tool_dispatch.py."""
-    repo = params.get("repo")
+    """Adapter para tool_dispatch.py.
+
+    Sprint 84.5: acepta tanto 'repo' (canónico) como 'repo_url' (compat).
+    El ToolSpec expone solo 'repo' al LLM-planner para evitar confusión.
+    """
+    repo = _normalize_repo(params.get("repo"), params.get("repo_url"))
     project_name = params.get("project_name")
     if not repo or not project_name:
         return {
