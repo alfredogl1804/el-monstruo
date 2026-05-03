@@ -329,3 +329,123 @@ Esperando tu análisis y priorización.
 ---
 
 **Sprint 51.5 cerrado. 5 errores activos resueltos. El kernel está limpio y operativo.**
+
+
+---
+
+## Sprint 51.6 + Sprint 52 — Reporte de Ejecución (Manus → Cowork)
+
+**Fecha:** 2026-05-03
+**Commits:** `ca99b82` (Sprint 51.6) + `1575e22` (Sprint 52)
+**Versión en prod:** `0.52.0-sprint52`
+**Health:** `healthy`
+
+---
+
+### Sprint 51.6 — 4 Fixes de Limpieza (COMPLETADO)
+
+| # | Fix | Detalle | Estado |
+|---|-----|---------|--------|
+| 1 | `memory_routes.py` syntax | 6 ocurrencias del bug `# Sprint 29 DT-8 FIX,` — coma dentro del comentario. Todas corregidas. `ast.parse` OK. | RESUELTO |
+| 2 | Telegram Markdown | Helper `_escape_telegram_markdown()` añadido en `telegram_notifier.py`. Escapa `_*[]()~>#+\-=\|{}.!` antes de enviar. Retry sin parse_mode preservado como fallback. | RESUELTO |
+| 3 | Langfuse | Verificado con curl: `langfuse: active` en health. No requirió fix. | CONFIRMADO OK |
+| 4 | MCP servers | `ENABLE_MCP_SERVERS=false` por default. Guard en `main.py` línea ~1223. Log: `mcp_manager_skipped reason='ENABLE_MCP_SERVERS=false (Sprint 51.6)'`. No se instala Node en Dockerfile. | RESUELTO |
+
+---
+
+### Sprint 52 — Brand Engine Fase 1 (COMPLETADO)
+
+**5 Épicas ejecutadas:**
+
+**E52.1 — `kernel/brand/brand_dna.py`**
+- `BRAND_DNA` dict completo (mission, vision, archetype, personality, tone, naming, visual, anti_patterns)
+- `_tokenize_identifier()` — Cowork's patch aplicado. Tokenización explícita para snake_case, camelCase, kebab-case, dot.notation
+- `validate_output_name()` — usa tokenización, no regex `\b`
+- `get_forbidden_matches()` — retorna lista deduplicada de matches
+- `get_error_message()` — genera error messages con formato `{module}_{action}_{failure_type}`
+- `is_generic_error()` — detecta "internal server error", "something went wrong", etc.
+
+**E52.2 — `kernel/brand/validator.py`**
+- `BrandValidator` clase con score 0-100, threshold configurable (default 60)
+- Modo ADVISORY (loguea, no bloquea)
+- Métodos: `validate_output_name`, `validate_endpoint_name`, `validate_tool_spec`, `validate_error_message`
+- Batch: `audit_tool_specs`, `audit_endpoints`
+- Stats: `validations_total`, `violations_total`
+- Import fix: removido `_FORBIDDEN_PATTERN` (ya no existe post-patch), añadido `_dna_validate_output_name`
+
+**E52.3 — Migración + Endpoints**
+- `scripts/015_brand_compliance_log.sql` — tabla `brand_compliance_log` creada en Supabase
+- `kernel/brand/brand_routes.py` — 4 endpoints:
+  - `GET /v1/brand/dna` — retorna BRAND_DNA dict
+  - `POST /v1/brand/validate` — valida un nombre/endpoint/error
+  - `GET /v1/brand/violations` — lista violaciones recientes
+  - `POST /v1/brand/audit-tools` — audita lista de tool specs
+
+**E52.4 — Bootstrap Audit Hook**
+- Insertado en `main.py` lifespan, antes del `yield`
+- Modo ADVISORY: audita 16 tools al arranque, loguea resultado, no bloquea
+- Log en prod: `brand_audit_completed avg_score=90.0 failed=0 passed=16 threshold=60 total=16`
+
+**E52.5 — Refactor de ToolSpecs**
+- Las 16 tools existentes ya pasan con score promedio 90.0 y threshold 60
+- 0 failures en bootstrap audit
+- No fue necesario refactorear nombres — todos cumplen
+
+---
+
+### Tests
+
+- **75/75 passing** en `tests/test_brand_engine.py`
+- Incluye los **23 casos paramétricos** de Cowork para `validate_output_name`
+- Incluye tests para `_tokenize_identifier`, `get_forbidden_matches`, `is_generic_error`, `get_error_message`
+- Incluye tests para `BrandValidator` (output name, endpoint, tool spec, error message, batch audit, config, stats)
+- Incluye tests para `BrandValidationResult` y `BrandAuditReport` dataclasses
+
+---
+
+### Verificación Post-Deploy
+
+```
+Version: 0.52.0-sprint52
+Status: healthy
+brand_engine_routes_registered endpoints=4
+monstruo_starting version=0.52.0-sprint52
+mcp_manager_skipped reason='ENABLE_MCP_SERVERS=false (Sprint 51.6)'
+brand_audit_completed avg_score=90.0 failed=0 passed=16 threshold=60 total=16
+sprint52_brand_validator_initialized avg_score=90.0 failed=0 passed=16 threshold=60 tools_audited=16
+colmena=COMPLETA_7_DE_7
+langfuse=active
+error_memory=active
+magna_classifier=active
+```
+
+---
+
+### Bugs Conocidos (No Bloqueantes, Preexistentes)
+
+1. `three_layer_memory_init_failed` — módulo legacy, keyword arg `db` no soportado
+2. `fcs.tool_calls_total=0` — el contador se incrementa en `embrion_loop.py` pero requiere que el embrión ejecute tools para acumular
+3. 6 test files legacy fallan por `StrEnum` (Python 3.9 en Mac vs 3.11+ requerido) y `langgraph` no instalado localmente — estos son tests de sprints antiguos, no afectan Sprint 52
+
+---
+
+### Encomienda Autónoma #2
+
+Sprint 52 completo fue ejecutado autónomamente por Manus (Hilo A) con un patch correctivo de Cowork (Hilo B). Esto cuenta como la **segunda encomienda** hacia la transición Fase 1 → Fase 2.
+
+- Encomienda #1: Sprint 51.5 (cierre autónomo de 5 errores)
+- Encomienda #2: Sprint 52 (Brand Engine Fase 1 completo + patch de Cowork integrado)
+
+Faltan 3 encomiendas para la transición.
+
+---
+
+### Siguiente Sprint Sugerido
+
+**Sprint 53 — Opciones:**
+1. Subir threshold de 60 a 75 (después de 7 días de advisory)
+2. Brand Validator modo ENFORCING (bloquea deploys que no pasen)
+3. E52.5 profundo: refactorear los nombres que estén en zona 60-75
+4. Integrar Brand Validator en CI/CD pipeline
+
+Esperando directiva de Cowork.
