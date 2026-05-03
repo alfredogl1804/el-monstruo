@@ -90,7 +90,7 @@ async def lifespan(app: FastAPI):
     global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
-    logger.info("monstruo_starting", version="0.51.5-sprint51", motor="langgraph")
+    logger.info("monstruo_starting", version="0.52.0-sprint52", motor="langgraph")
 
     # Initialize Supabase client for persistence
     from memory.supabase_client import SupabaseClient
@@ -229,7 +229,7 @@ async def lifespan(app: FastAPI):
         .actor("system")
         .action("El Monstruo started")
         .with_payload({
-            "version": "0.51.5-sprint51",
+            "version": "0.52.0-sprint52",
             "motor": "langgraph",
             "router": "connected" if router else "stub",
             "memory": "active",
@@ -1158,7 +1158,7 @@ async def lifespan(app: FastAPI):
 
     logger.info(
         "monstruo_ready",
-        version="0.51.5-sprint51",
+        version="0.52.0-sprint52",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
@@ -1219,6 +1219,43 @@ async def lifespan(app: FastAPI):
                 logger.warning("warmup_failed", error=str(e))
 
         asyncio.create_task(_warmup())
+
+    # ── Sprint 52: Brand Engine — Bootstrap Audit (ADVISORY) ────────────
+    try:
+        from kernel.brand.validator import BrandValidator
+        from kernel.tool_dispatch import get_tool_specs
+
+        _brand_threshold = int(os.environ.get("BRAND_VALIDATOR_THRESHOLD", "60"))
+        _brand_validator = BrandValidator(threshold=_brand_threshold, mode="advisory")
+
+        # Convert ToolSpecs to dicts for the validator
+        _raw_specs = get_tool_specs()
+        _spec_dicts = [
+            {"name": s.name, "description": s.description, "category": getattr(s, "category", "")}
+            for s in _raw_specs
+        ]
+        _audit = _brand_validator.audit_tool_specs(_spec_dicts)
+        _failed = [r for r in _audit.results if not r["passes"]]
+        if _failed:
+            logger.warning(
+                "sprint52_brand_audit_violations",
+                total=_audit.total,
+                failures=len(_failed),
+                details=[
+                    (r["target"], r["score"], r["issues"][0] if r["issues"] else None)
+                    for r in _failed
+                ],
+            )
+        logger.info(
+            "sprint52_brand_validator_initialized",
+            threshold=_brand_validator.threshold,
+            tools_audited=len(_spec_dicts),
+            passed=_audit.passed,
+            failed=_audit.failed,
+            avg_score=round(_audit.avg_score, 1),
+        )
+    except Exception as e:
+        logger.warning("sprint52_brand_validator_init_failed", error=str(e))
 
     yield
 
@@ -1288,7 +1325,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="El Monstruo",
     description="Sistema de Inteligencia Artificial Soberana — LangGraph Kernel",
-    version="0.51.5-sprint51",
+    version="0.52.0-sprint52",
     lifespan=lifespan,
 )
 
@@ -1317,6 +1354,14 @@ app.add_middleware(RateLimiterMiddleware)
 from kernel.openai_adapter import router as openai_router
 
 app.include_router(openai_router)
+
+# ── Sprint 52: Brand Engine Routes ─────────────────────────────────────
+try:
+    from kernel.brand.brand_routes import router as brand_router
+    app.include_router(brand_router)
+    logger.info("brand_engine_routes_registered", endpoints=4)
+except Exception as e:
+    logger.warning("brand_engine_routes_failed", error=str(e))
 
 
 # ── Request/Response Models ─────────────────────────────────────────
@@ -1385,7 +1430,7 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {
         "name": "El Monstruo",
-        "version": "0.51.5-sprint51",
+        "version": "0.52.0-sprint52",
         "motor": "langgraph",
         "status": "alive",
         "description": "Sistema de Inteligencia Artificial Soberana",
@@ -2058,7 +2103,7 @@ async def stats():
     return {
         "system": {
             "name": "El Monstruo",
-            "version": "0.51.5-sprint51",
+            "version": "0.52.0-sprint52",
             "motor": "langgraph",
             "uptime_seconds": (now - BOOT_TIME).total_seconds(),
         },
@@ -2392,7 +2437,7 @@ async def health():
 
     return {
         "status": "healthy" if kernel else "degraded",
-        "version": "0.51.5-sprint51",
+        "version": "0.52.0-sprint52",
         "motor": "langgraph",
         "uptime_seconds": int((now - BOOT_TIME).total_seconds()),
         # Thin-client contract fields
