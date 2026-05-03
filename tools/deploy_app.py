@@ -255,13 +255,17 @@ async def deploy_app(
 
 
 async def execute_deploy_app(params: dict[str, Any], embrion_loop: Optional[Any] = None) -> dict[str, Any]:
-    """Adapter para tool_dispatch.py."""
-    project_name = params.get("project_name")
+    """Adapter para tool_dispatch.py.
+
+    Acepta tanto 'app_name' (nombre canonico expuesto al LLM) como
+    'project_name' (legacy) para retrocompatibilidad.
+    """
+    project_name = params.get("app_name") or params.get("project_name") or params.get("repo_name")
     files = params.get("files")
     if not project_name or not isinstance(files, dict):
         return {
             "error": "deploy_app_params_invalidos",
-            "detail": "Se requieren 'project_name' (str) y 'files' (dict[str, str]).",
+            "detail": "Se requieren 'app_name' (str) y 'files' (dict[str, str]).",
         }
     try:
         result = await deploy_app(
