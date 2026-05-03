@@ -94,6 +94,69 @@ mutation projectCreate($input: ProjectCreateInput!) {
 }
 """
 
+_Q_ME_WORKSPACES = """
+query me {
+  me {
+    workspaces {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+}
+"""
+
+# Cache en memoria del workspace_id resuelto (vive con el proceso del kernel)
+_WORKSPACE_ID_CACHE: dict[str, str] = {}
+
+
+async def _resolve_workspace_id() -> str:
+    """Resuelve workspace_id en este orden:
+    (1) cache en memoria, (2) env var RAILWAY_WORKSPACE_ID,
+    (3) query me { workspaces } y toma el primero.
+
+    Sprint 84.5 Bug 5 fix: workspaceId obligatorio en ProjectCreateInput
+    desde mayo 2026 (Railway deprecated teamId).
+    """
+    # 1. Cache
+    cached = _WORKSPACE_ID_CACHE.get("id")
+    if cached:
+        return cached
+
+    # 2. Env var explícita
+    env_ws = os.environ.get("RAILWAY_WORKSPACE_ID", "").strip()
+    if env_ws:
+        _WORKSPACE_ID_CACHE["id"] = env_ws
+        logger.info("deploy_railway_workspace_resolved", source="env_var", workspace_id=env_ws[:8] + "...")
+        return env_ws
+
+    # 3. Query dinámica
+    data = await _graphql(_Q_ME_WORKSPACES)
+    edges = (data.get("me") or {}).get("workspaces", {}).get("edges", []) or []
+    if not edges:
+        raise RailwayDeployFalla(
+            "deploy_railway_no_workspaces: la cuenta no tiene workspaces. "
+            "Crea uno en https://railway.com/dashboard."
+        )
+    first = edges[0].get("node") or {}
+    ws_id = first.get("id")
+    ws_name = first.get("name", "unknown")
+    if not ws_id:
+        raise RailwayDeployFalla(
+            f"deploy_railway_workspace_sin_id: edges={edges[:2]}"
+        )
+    _WORKSPACE_ID_CACHE["id"] = ws_id
+    logger.info(
+        "deploy_railway_workspace_resolved",
+        source="graphql_query",
+        workspace_id=ws_id[:8] + "...",
+        workspace_name=ws_name,
+    )
+    return ws_id
+
 _Q_PROJECT_DETAIL = """
 query project($id: String!) {
   project(id: $id) {
@@ -187,11 +250,25 @@ async def deploy_to_railway(
         env_vars_count=len(env_vars or {}),
     )
 
-    # 1. Crear proyecto
-    proj_data = await _graphql(
-        _M_PROJECT_CREATE,
-        {"input": {"name": project_name}},
-    )
+    # 1. Resolver workspace_id (Sprint 84.5 Bug 5)
+    workspace_id = await _resolve_workspace_id()
+
+    # 2. Crear proyecto con workspaceId obligatorio + defaultEnvironmentName='production'
+    project_input = {
+        "name": project_name,
+        "workspaceId": workspace_id,
+        "defaultEnvironmentName": "production",
+    }
+    try:
+        proj_data = await _graphql(_M_PROJECT_CREATE, {"input": project_input})
+    except RailwayDeployFalla as exc:
+        # Fallback: añadir description si Railway lo exige (mensaje en spec Cowork)
+        if "description" in str(exc).lower():
+            project_input["description"] = (project_name + " (Sprint 84)")[:100]
+            logger.warning("deploy_railway_project_create_retry", reason="description_required")
+            proj_data = await _graphql(_M_PROJECT_CREATE, {"input": project_input})
+        else:
+            raise
     project_id = proj_data.get("projectCreate", {}).get("id")
     if not project_id:
         raise RailwayDeployFalla(

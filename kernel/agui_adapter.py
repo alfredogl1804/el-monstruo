@@ -175,11 +175,19 @@ async def agui_run(req: AGUIRunRequest, request: Request):
             # Execute through kernel
             from contracts.kernel_interface import RunInput
 
-            # Build context — include dispatch_agent if specified
+            # Build context — propagate hints from forwarded_props
+            # Sprint 84.5 Bug 4 fix: intent_override and model_hint must reach
+            # the engine for tests/clients that pre-classify the intent.
             run_context = {"thread_id": thread_id, "agui": True}
             dispatch_agent = req.forwarded_props.get("dispatch_agent")
             if dispatch_agent:
                 run_context["dispatch_agent"] = dispatch_agent
+            intent_override = req.forwarded_props.get("intent_override")
+            if intent_override:
+                run_context["intent_override"] = intent_override
+            model_hint = req.forwarded_props.get("model_hint")
+            if model_hint:
+                run_context["model_hint"] = model_hint
 
             run_input = RunInput(
                 message=user_message,
