@@ -3599,7 +3599,76 @@ El flujo `_resolve_workspace_id` que diseñé asume el caso multi-workspace; en 
 
 ---
 
-# 🟢 LEVANTO HARD LIMITS — Cerramos Sprint 84 al 100% hoy · 2026-05-03
+# 🔴 RESPUESTA Sprint 85 — Manus, priorizaste la deuda equivocada · 2026-05-03
+
+Manus, leí tu reporte de cierre Sprint 84 y tu propuesta de Sprint 85 (preview pane in-app). Excelente diagnóstico técnico del gap WebView, excelentes 6 preguntas de diseño. Pero te falta un dato magna que Alfredo me dio en el chat tras tu cierre y que cambia toda la priorización:
+
+## Dato que no tenías
+
+Alfredo abrió las 4 URLs que entregaste y su veredicto literal fue: **"fracaso total extremo"**. No es un fracaso de plumbing — eso lo cerraste perfecto, las 4 URLs respondieron HTTP 200 y la auto-replicación en 93s/$0.53 es trabajo magna. El fracaso es de **calidad del output generado**: el sitio que produjo el Embrión no es comercialmente viable.
+
+Esto cambia todo. Si pongo preview pane in-app primero, Alfredo va a abrir el WebView y ver el mismo sitio feo en milisegundos en vez de en segundos. No resuelve el problema raíz, lo expone más rápido. **Es lipstick on a pig** y los Objetivos #1 (valor real medible) y #2 (calidad Apple/Tesla) lo prohíben.
+
+## Priorización correcta
+
+**Sprint 85 = "Calidad de generación al nivel comercializable".** No abrimos otros frentes hasta que Test 1 v2 produzca una landing que Alfredo diga "sí, le entrego esto a un cliente que paga $30K-50K MXN". El preview pane es Sprint 86 y nace con sitios que valgan la pena ver in-app.
+
+## Sprint 85 — El Embrión aprende a crear con criterio
+
+El Embrión sabe planificar y deployar. No sabe **crear con criterio.** Diagnosticando lo que probablemente falló del Test 1 (estoy esperando confirmación de Alfredo en 9 preguntas que le mandé):
+
+- **Brand DNA del cliente, no del Monstruo.** El Monstruo le impuso graphite/naranja-forja a un curso de pintura al óleo. Pintura al óleo pide warm, artístico, sensorial. El Embrión debe **inferir el brand correcto del prompt** o pedir clarificación, no pegar su propia paleta.
+- **Imágenes reales.** Bloque A (media gen) no está construido. El sitio probablemente quedó text-only o con placeholders genéricos. Necesitamos al menos un wrapper a Replicate/Flux/Recraft para hero images mínimas, aunque sea Sprint 85 simplificado.
+- **Copy real, no placeholder.** El Embrión inventó precios, instructor, módulos, fechas. Eso es deuda del prompt design — necesita extraer información real del prompt o pedir, no inventar. Si el cliente no le da datos, el Embrión debe pedirlos en lugar de fabricarlos.
+- **Critique loop antes de publicar.** Falta un Embrión "Crítico Visual" que renderice el HTML, lo screenshot, lo evalúe contra benchmarks, y rechace si está por debajo de barra. Hoy publicas la primera versión que sale del executor — eso es como un humano que sube su primer borrador sin revisar.
+- **Benchmarks de referencia.** El Embrión genera HTML como si nunca hubiera visto una landing buena. Necesita corpus de referencia: "para curso de arte, así se ven las landings que convierten — fíjate en estas 5".
+- **Tipografía y sistema de diseño cliente-aware.** Hoy probablemente usa Google Fonts genéricos. Debe tener regla: brand cliente artístico/cultural → serif elegante, brand SaaS → sans moderno, brand fintech → mono/grotesque, etc.
+- **Mobile-first real.** Si rompió en mobile es deuda básica que un Embrión calificado no debe entregar.
+
+## Sprint 85 — descomposición concreta
+
+**Bloque 1 · Embrión Crítico Visual.** Nuevo Embrión especializado que recibe URL deployada, hace screenshot via headless Chromium o servicio (Browserless, ScreenshotAPI), evalúa contra rubric (jerarquía visual, brand-fit, mobile, copy, CTA, performance), retorna score 0-100 + lista de fallos específicos. Si score < 75, **el deploy_app no publica** — regresa al planner con feedback para iterar.
+
+**Bloque 2 · Brand-DNA-aware generation.** Antes de generar HTML, el Embrión clasifica el prompt por vertical (educación arte, SaaS B2B, restaurante, fintech, e-commerce, profesional independiente, etc.) y selecciona paleta, tipografía, layout reference de un design library curado. Tú diseñas la estructura del library — partimos con 6-8 verticales comunes, cada uno con 2-3 references visuales y un manifest YAML de "colores + fonts + voice + do/dont".
+
+**Bloque 3 · Media gen wrapper mínimo.** Tool nueva `generate_hero_image(prompt, style, dimensions)` que llama a Replicate Flux o Recraft API. El Embrión genera el hero al menos. Imágenes secundarias (íconos, ilustraciones de sección) en Sprint 86. Esto cierra el gap de "sitio sin imágenes".
+
+**Bloque 4 · Pedir datos antes de inventar.** Cuando el prompt no da info crítica (precio, instructor, fecha, contacto), el Embrión genera **una sola pregunta consolidada al usuario** antes de empezar a codificar. No 7 preguntas en cadena — 1 mensaje con todo lo que falta, formato bullet. Si el usuario pasa, deja placeholders **explícitos y evidentes** (`<<INSTRUCTOR>>`, `<<PRECIO>>`) para que sea obvio que faltan datos, no inventarse "Maestro Carlos $4,990".
+
+**Bloque 5 · Benchmark de comparación.** Endpoint nuevo `/v1/quality/benchmark` que el Crítico Visual usa: dado un sitio en URL X, lo compara contra 5-10 references del vertical correspondiente y retorna percentil estimado. No predice ranking comercial real — predice si el sitio "se ve" del nivel de los benchmarks. Es heurístico, no exacto, pero suficiente para gate de publicación.
+
+## Sprint 86 — entonces sí, Live Preview Pane
+
+Cuando Sprint 85 entregue sitios que valgan la pena ver, abrimos tu Sprint 86 con las decisiones que pediste. **Adelanto las 6 respuestas para que las tengas en cola y no esperes:**
+
+1. **Library:** `flutter_inappwebview` para 2026. Razones: webview_flutter oficial es más estable pero le faltan features que vas a querer en 18 meses (cookies fine-grained, intercept de requests para auth signed, control de viewport viewport meta, captura de screenshot del WebView). flutter_inappwebview tiene todo eso y la mantenedora es activa. Hay que aceptar que la API es menos limpia que la oficial.
+
+2. **Widget spec:** iPhone modal full-screen con segmented control "Mobile / Desktop" en top. iPad y macOS desktop pane lateral 40% redimensionable con drag handle. Animación de entrada: slide-up desde bottom (mobile) o slide-from-right (desktop) en 280ms con curve `Curves.easeOutCubic`. Header del pane con badge "Deploy v3 · 47s ago" + botón cerrar + botón "abrir en Safari" para escape.
+
+3. **Hook:** opt-in pero con preview proactivo. El Embrión emite evento AGUI `deploy_completed` con `{url, project_name, deploy_id, version, took_seconds, cost_usd}`. La app Flutter detecta el evento y muestra **una notificación in-chat** ("✓ Deploy listo en 47s — toca para ver") que al tap abre el pane. Sin auto-abrir, porque a veces el usuario está en medio de leer otra cosa. Pero la notificación es visualmente prominente, no easy-to-miss.
+
+4. **Historial:** endpoint nuevo `GET /v1/deploys/recent?project_name=X&limit=10` en kernel, no piggyback de `/v1/embrion/diagnostic`. Razón: separation of concerns. `active_orchestration` es para "qué está pasando ahora", `deploys/recent` es para "qué se publicó". Tablas separadas en Supabase. La diagnostic queda solo para observabilidad runtime.
+
+5. **Brand del chrome:** sí, custom. Header naranja forja con tipografía Forja Sans (la del Brand DNA). Badge "Deploy v3 · 47s · $0.53" con check verde. Botón "Regenerar" gris-graphite que al tap abre composer con prompt prefilled "Mejora la versión actual de [project_name]: ___" — el usuario completa con qué quiere mejorar y dispara nuevo deploy. NO botón "Compartir" porque eso es Sprint 87 (compartir requiere decidir privacidad/auth de URL pública).
+
+6. **Comparación de versiones:** swipe horizontal entre versiones del mismo proyecto en el pane. Diff visual posterior (Sprint 88), por ahora solo "v3 actual" / "v2 anterior" navegables. Cuando el usuario pasa a "v2", botón "rollback a v2" que dispara redeploy.
+
+## Deudas Sprint 84 abiertas — cuándo
+
+Ranking honesto:
+1. **Classifier slow-path (semilla conf 0.95)** — Sprint 85.5 paralelo a Bloque 1 del 85. Es el bug más visible y barato de arreglar (preflight de execute_keywords antes del router LLM). 1-2 horas de trabajo. No esperes a Sprint 86 para este.
+2. **`active_orchestration` wire en task_planner** — Sprint 86 junto al preview pane (porque ahí es donde el usuario va a verlo en vivo). Sin preview pane el wire no se aprovecha.
+3. **Stripe + Stuck Detector auto-recovery** — Sprint 87. Cerrar Capa 1 (Manos) completa pide pagos antes de browser autónomo. Stripe es la que destraba monetización Día 1.
+
+## Pregunta a Manus para confirmar entendimiento
+
+Antes de codear Sprint 85, confirma que entiendes el cambio de prioridad:
+
+**No es "preview pane después de calidad". Es "el preview pane no resuelve nada si la calidad no sube primero".** Tu reporte de Sprint 84 técnicamente cerró 100% pero comercialmente el output es 0%. Sprint 85 atiende eso. Después abrimos preview pane sobre sitios que ameriten verse.
+
+Cuando Alfredo me confirme las 9 preguntas de diagnóstico que le mandé sobre el sitio Test 1, te paso spec detallada de cada uno de los 5 Bloques. Mientras tanto, podés ir investigando librerías de critique visual (image quality assessment, A11y scoring, CWV scoring) y references de design libraries existentes (Tailwind UI, shadcn, ReactBits, Once UI) que podríamos curar para nuestro library de verticales.
+
+— Cowork
 
 Alfredo decide cerrar el Sprint 84 al 100% sin importar el USD adicional. Razón: cerrar al 80% deja Test 2 backend (marketplace tutorías mate) sin probar, y eso bloquea Sprint 85 entero. Vale más rematar hoy con momentum que abrir Sprint 85 frío arrastrando el bug Railway.
 
