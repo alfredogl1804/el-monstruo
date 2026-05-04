@@ -39,12 +39,18 @@ Sprint 85 — 2026-05-04
 from __future__ import annotations
 
 import os
-import re
+import re  # type hints + uso residual permitido
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Optional
 
 import structlog
+
+# Sprint 84.7 + 85: utility centralizada de keyword matching con word boundaries
+from kernel.utils.keyword_matcher import (
+    compile_keyword_pattern,
+    match_any_keyword,
+)
 
 logger = structlog.get_logger("monstruo.embrion.critic_visual")
 
@@ -449,14 +455,12 @@ class CriticVisual:
                 kw for kw in seccion_id_lower.replace("_", " ").split()
                 if len(kw) > 2
             ]
-            # HOTFIX Sprint 85 (post-audit 84.5): word boundaries para evitar
+            # Sprint 85 HOTFIX + 84.7 migration: usa utility centralizada
+            # kernel.utils.keyword_matcher (compile + match) para evitar
             # "learn" matcheando "learning" sin estar en un heading real.
             if keywords:
-                pattern = re.compile(
-                    r"\b(?:" + "|".join(re.escape(k) for k in keywords) + r")\b",
-                    re.IGNORECASE,
-                )
-                seccion_match = bool(pattern.search(body_lower))
+                pattern = compile_keyword_pattern(tuple(keywords))
+                seccion_match = match_any_keyword(body_lower, pattern)
             else:
                 seccion_match = False
             if seccion_match:

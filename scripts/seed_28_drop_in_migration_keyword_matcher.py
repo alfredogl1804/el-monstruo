@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
 """
-El Monstruo — Sprint 85 HOTFIX — Sembrar 19va semilla via endpoint admin
+El Monstruo — Sprint 85 cierre — Sembrar 28va semilla via endpoint admin
 ==========================================================================
 Llama POST /v1/error-memory/seed del kernel productivo para persistir la
-semilla 19 (HOTFIX substring matching del Sprint 85 — Hilo Catastro).
+semilla 28 (drop-in migration de los 3 archivos del Sprint 85 a la utility
+centralizada kernel/utils/keyword_matcher.py creada por Sprint 84.7).
 
 Idempotente: si la semilla ya existe (mismo error_signature), hace UPSERT.
 
 Uso:
     export MONSTRUO_API_KEY="..."
-    python3 scripts/seed_19_substring_matching_hotfix_sprint85.py
+    python3 scripts/seed_28_drop_in_migration_keyword_matcher.py
 
 Variables de entorno:
     KERNEL_URL          (default: https://el-monstruo-kernel-production.up.railway.app)
     MONSTRUO_API_KEY    (requerida — auth admin del endpoint)
 
-Sprint 85 HOTFIX — Hilo Manus Catastro — 2026-05-04.
+Sprint 85 cierre + 84.7 migration — Hilo Manus Catastro — 2026-05-04.
 Patrón seguido del Ejecutor: scripts/seed_sprint_84_5_via_endpoint.py
 """
 from __future__ import annotations
@@ -36,31 +37,32 @@ ENDPOINT = f"{KERNEL_URL}/v1/error-memory/seed"
 TIMEOUT_S = 20
 
 
-SEED_19 = {
-    "error_signature": "seed_substring_matching_hotfix_sprint85_resolved",
+SEED_28 = {
+    "error_signature": "seed_drop_in_migration_keyword_matcher_sprint85_close",
     "sanitized_message": (
-        "[Hilo Manus Catastro] HOTFIX preventivo Sprint 85: refactor del patron "
-        "'any(kw in text for kw in keywords)' en 3 archivos del Sprint 85 "
-        "(product_architect.py:_detectar_vertical, task_planner.py:_es_proyecto_web, "
-        "critic_visual.py:_evaluar_estructura). Causa: substring matching sin word "
-        "boundaries provoca falsos positivos como 'artesanal' matcheando 'arte', "
-        "'saasoso' matcheando 'saas', 'learnability' matcheando 'learn'. Aplicado "
-        "patron aprobado del Sprint 84.5: regex con \\b...\\b, compilado a nivel "
-        "modulo y cacheado, soporta multi-word keywords. Cuando Sprint 84.7 cierre "
-        "kernel/utils/keyword_matcher.py, migrar drop-in a la utility centralizada."
+        "[Hilo Manus Catastro] Cierre Sprint 85: drop-in migration de los 3 "
+        "archivos refactorizados en el HOTFIX (semilla 19) a la utility "
+        "centralizada kernel/utils/keyword_matcher.py creada por el Hilo "
+        "Ejecutor en Sprint 84.7 (commit 34b0c90). Archivos migrados: "
+        "kernel/embriones/product_architect.py (migrado por Cowork en 84.7), "
+        "kernel/task_planner.py (migrado por Cowork en 84.7), "
+        "kernel/embriones/critic_visual.py (migrado por Catastro en cierre 85). "
+        "Ahora los 3 usan compile_keyword_pattern() + count_keyword_matches() / "
+        "match_any_keyword() del utility, eliminando regex inline duplicada. "
+        "Beneficios: consistencia global del kernel, mantenimiento centralizado, "
+        "soporte uniforme de multi-word keywords y treat_underscore_as_separator."
     ),
     "resolution": (
-        "Cada archivo refactorizado usa re.compile(r'\\b(?:kw1|kw2|...)\\b', "
-        "re.IGNORECASE) con keywords ordenadas por longitud descendente para greedy "
-        "alternation. Pattern cacheado en _PATTERN_CACHE (product_architect) o "
-        "_WEB_PROJECT_PATTERN (task_planner) o pattern local (critic_visual). 24 "
-        "tests de regresion PASS (tests/test_sprint85_hotfix_substring.py). "
-        "Migration drop-in al utility centralizado pendiente despues del cierre "
-        "del Sprint 84.7."
+        "Patron consolidado: from kernel.utils.keyword_matcher import "
+        "compile_keyword_pattern, count_keyword_matches, match_any_keyword. "
+        "Cache de patterns a nivel modulo (lazy fill). 46/46 tests del Sprint "
+        "85 PASS post-migration (test_sprint85_unit + test_sprint85_hotfix_"
+        "substring). Cero regresion funcional. Code review rule: cualquier PR "
+        "futura con 'kw in text' raw es BLOQUEANTE - usar la utility."
     ),
-    "confidence": 0.90,
-    "module": "kernel.embriones.product_architect+kernel.task_planner+kernel.embriones.critic_visual",
-    "action": "hotfix_word_boundaries",
+    "confidence": 0.95,
+    "module": "kernel.embriones.product_architect+kernel.task_planner+kernel.embriones.critic_visual+kernel.utils.keyword_matcher",
+    "action": "drop_in_migration_to_centralized_utility",
     "status": "resolved",
 }
 
@@ -83,7 +85,7 @@ def _post_seed(seed: dict) -> tuple[int, dict | str]:
         headers={
             "Content-Type": "application/json",
             "X-API-Key": ADMIN_KEY,
-            "User-Agent": "monstruo-seed-script/sprint85-hotfix",
+            "User-Agent": "monstruo-seed-script/sprint85-close-28",
         },
         method="POST",
     )
@@ -111,12 +113,12 @@ def main() -> int:
         print("ERROR: MONSTRUO_API_KEY no configurada (env var requerida)", file=sys.stderr)
         return 2
 
-    print(f"[seed-19] POST {ENDPOINT}")
-    print(f"[seed-19] signature={SEED_19['error_signature']}")
-    print(f"[seed-19] confidence={SEED_19['confidence']}")
+    print(f"[seed-28] POST {ENDPOINT}")
+    print(f"[seed-28] signature={SEED_28['error_signature']}")
+    print(f"[seed-28] confidence={SEED_28['confidence']}")
     print()
 
-    status, body = _post_seed(SEED_19)
+    status, body = _post_seed(SEED_28)
     print(f"HTTP {status}")
     if isinstance(body, dict):
         print(json.dumps(body, indent=2, ensure_ascii=False))
@@ -124,7 +126,7 @@ def main() -> int:
         print(body)
 
     if 200 <= status < 300:
-        print("\n[OK] Semilla 19 persistida")
+        print("\n[OK] Semilla 28 persistida")
         return 0
     print(f"\n[FAIL] Status {status}", file=sys.stderr)
     return 1
