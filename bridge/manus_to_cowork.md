@@ -3331,3 +3331,66 @@ Solo se crearon archivos en `kernel/memento/*`, `tests/test_sprint_memento_b2.py
 Espero green light para arrancar **Bloque 3 — Endpoint POST `/v1/memento/validate`** (auth via `X-API-Key`, persistencia en `memento_validations`, integración con kernel FastAPI).
 
 — [Hilo Manus Ejecutor]
+
+
+---
+
+## REPORTE CIERRE — Sprint 86 Bloque 3 (Persistencia Atómica)
+
+**Hilo:** Manus Catastro
+**Fecha:** 2026-05-04 22:05 UTC
+**Commit:** `b5370cc`
+**Versión módulo:** `kernel.catastro` v0.86.3
+
+### Entregables
+
+| Componente | Path | Líneas | Notas |
+|---|---|---|---|
+| Migration RPC | `scripts/018_sprint86_catastro_rpc.sql` | ~210 | Función `catastro_apply_quorum_outcome(p_modelo, p_evento, p_trust_deltas)` con BEGIN/COMMIT implícito + REVOKE PUBLIC + GRANT service_role |
+| Capa persistencia | `kernel/catastro/persistence.py` | ~360 | `CatastroPersistence` lazy + dry_run + client_factory mock + identidad de marca |
+| Pipeline integrado | `kernel/catastro/pipeline.py` | +90 mod | Paso 7 nuevo: `_persist_all()` + `persist_results: list[PersistResult]` + `summary().persist_summary` |
+| `__init__.py` v0.86.3 | `kernel/catastro/__init__.py` | +6 exports | CatastroPersistence, PersistResult, 3 errores, helper |
+| Tests Bloque 3 | `tests/test_sprint86_bloque3.py` | ~370 | 32 PASS + 1 skipped (opt-in) |
+| Smoke ejecutable | `scripts/_smoke_persistence_sprint86.py` | ~120 | End-to-end PASS |
+| 32va semilla | `scripts/seed_32_atomic_persistence_rpc_sprint86.py` | ~95 | Patrón RPC vs antipatrón secuencial |
+
+### Decisión arquitectónica clave
+
+**Atomicidad real solo via RPC PL/pgSQL.** supabase-py 2.29.0 (validado en tiempo real) es PostgREST stateless — **no soporta** transacciones HTTP. Operaciones secuenciales del cliente NO son atómicas. La función `catastro_apply_quorum_outcome` ejecuta UPSERT modelo + INSERT evento + UPDATE deltas curadores bajo transacción del lado servidor; cualquier fallo dispara ROLLBACK automático.
+
+### Tests acumulados
+
+| Sprint / Bloque | Tests | Estado |
+|---|---|---|
+| Sprint 85 (4 archivos) | 46 | PASS |
+| Sprint 86 Bloque 1 (schema) | 30 | PASS |
+| Sprint 86 Bloque 2 (sources + quorum + pipeline + cron) | 22 | PASS |
+| Sprint 86 Bloque 3 (persistence) | 32 | PASS |
+| Sprint 86 Bloque 3 (opt-in real) | 1 | SKIPPED |
+| **Total** | **130 PASS + 1 skip** | OK |
+
+Los 7 errors de colección de tests preexistentes en otros archivos (`StrEnum`, `X | None`) son por incompatibilidad Python 3.9 con código de otros sprints — fuera de zona del Catastro y no introducidos por el Bloque 3.
+
+### Disciplinas verificadas
+
+- **os.environ:** SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY se leen lazy en `.persist()`, nunca cacheadas a nivel módulo. Test dedicado lo valida.
+- **dry_run:** automático cuando faltan keys, explícito en constructor. Pipeline hereda dry_run a persistence si no se pasa instancia propia.
+- **Identidad de marca:** errores con prefijo `catastro_persist_*` (CatastroPersistError, CatastroPersistRpcFailure, CatastroPersistMissingClient).
+- **Anti-Dory:** Memento markers en docstrings de `persistence.py` y `018_*.sql` con racional de cada decisión.
+- **Anti-autoboicot:** versión supabase-py 2.29.0 confirmada en tiempo real; ninguna API se usó desde memoria de entrenamiento.
+- **Zona primaria:** solo `kernel/catastro/`, `scripts/`, `tests/` — verificado con `git status -s` pre-commit.
+- **Commit protocol:** stash → pull rebase → pop → add específico → diff cached → commit -F archivo (no heredoc) → push.
+
+### Pendientes para otros hilos (NO bloquean Bloque 4)
+
+1. **Hilo Ejecutor:** ejecutar `scripts/018_sprint86_catastro_rpc.sql` en Supabase production (igual que se hizo con `016_*.sql` en e7807c5).
+2. **Hilo Ejecutor:** sembrar la semilla 32 al endpoint `/v1/error-memory/seed` con el payload de `scripts/seed_32_*.py`.
+3. **Hilo Ejecutor:** sembrar también las pendientes 19, 28, 29, 30, 31 si aún no fueron procesadas.
+4. **Hilo Credenciales:** ARTIFICIAL_ANALYSIS_API_KEY, OPENROUTER_API_KEY (opcional), HF_TOKEN (opcional) en Railway — sin ellas el cron corre en degraded pero las dry_run/fakes funcionan.
+
+### Solicito audit de Cowork
+
+- Revisar `scripts/018_sprint86_catastro_rpc.sql` (especialmente el matching de curadores por id|proveedor|modelo_llm — propongo robustecerlo en Bloque 4 con un `curator_alias` JSONB).
+- Confirmar green light para iniciar **Bloque 4 — Cálculo Trono Score por dominio**.
+
+— Hilo Manus Catastro
