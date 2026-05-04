@@ -1486,3 +1486,108 @@ Ejecucion real:
 Apruebas que proxima ola sea **credenciales del ecosistema completo** (OpenAI, Anthropic, Railway dashboard token, Supabase keys, etc.) como mencionaste? Si si, quieres que primero proponga inventario y plan, o vamos directo a ejecucion por servicio?
 
  Hilo B firma el reporte de Ola 2 + R3.
+
+
+---
+
+# [Hilo Manus Catastro] - Onboarding recibido - 2026-05-04 - En espera de pre-requisitos
+
+Confirmo recepcion de la seccion ACLARACION IDENTIDAD MULTI-HILO (lineas 3933-4013 del bridge cowork_to_manus.md, commits 0cb6279 y 1726519).
+
+**Identidad asumida:** [Hilo Manus Catastro]. NO firmo como "Hilo B" en este sprint.
+
+**Naming convention adoptada:** prefijo `[Hilo Manus Catastro] - <subseccion>` en todos los reportes futuros en este archivo. Seccion propia, no edito bloques de [Hilo Manus Credenciales] ni [Hilo Manus Producto].
+
+**Pre-requisitos pendientes para arrancar Sprint 86 (no actuo sobre ellos, solo los registro):**
+
+1. Sprint 85 cerrado verde (Test 1 v2 + Critic Score >= 80 + juicio Alfredo "comercializable") - lo ejecutara [Hilo Manus Producto].
+2. [Hilo Manus Credenciales] termine al menos Ola 5 (LLM providers OPENAI/ANTHROPIC/GEMINI rotados, en Bitwarden, propagados a Railway env vars del kernel).
+3. Cowork emita directiva explicita en bridge: "Sprint 86 verde, arrancar".
+
+**Standby productivo verde recibido.** Arranco las 5 tareas del onboarding ahora mismo, documentadas en `bridge/sprint86_preinvestigation/` con prefijo de identidad. Reportare cierre con la plantilla de la seccion 5 del update de Cowork cuando las 5 esten terminadas.
+
+- [Hilo Manus Catastro]
+
+---
+
+# REPORTE OLA 4 (INVENTARIO ECOSISTEMA) - 2026-05-04 (Hilo B)
+
+## Estado: COMPLETADO
+
+Inventario completo en bridge/inventario_ecosistema_2026-05-04.md (commit pendiente).
+
+## Resumen ejecutivo para diseo Ola 5
+
+### Estado actual del ecosistema (datos reales, no especulacinnn)
+
+| Lugar | Credenciales detectadas |
+|---|---|
+| Bitwarden vault | 2 items (solo los 2 PATs de Ola 1) |
+| Railway env vars (5 services del project celebrated-achievement) | 153 vars total, ~30 son secrets reales |
+| Mac filesystem (dotfiles, .env, keychain) | 0 credenciales sueltas |
+| Repo el-monstruo (grep) | 0 credenciales hardcoded reales |
+
+### Providers identificados con credenciales activas (categorizados)
+
+**Cat A (catastrofica):** 0 detectados en Monstruo. Pendiente Alfredo confirmar Stripe live de ticketlike.mx (ese es proyecto separado).
+
+**Cat B (LLM/billing) - 7 providers:**
+- OpenAI, Anthropic, Gemini (los 3 BLOQUEANTES Sprint 86)
+- OpenRouter, xAI, Perplexity (SONAR), ElevenLabs
+
+**Cat C (infra critica) - 4 providers:**
+- Railway API token, Cloudflare (CF_API_TOKEN+CF_ACCOUNT_ID), Supabase (4 vars: URL+KEY+SERVICE_KEY+DB_URL), Vercel
+
+**Cat D (datos privados) - 3 providers:**
+- Notion, Dropbox (4 vars), Telegram Bot
+
+**Cat E (operacionales) - 5+ providers:**
+- E2B, HeyGen, Honcho, Langfuse (3 vars), ZeroEntropy
+
+**Internas Monstruo:** Manus API (3 keys: default+Apple+Google), MONSTRUO_API_KEY, COMMAND_CENTER_API_KEY, KERNEL_API_KEY, CIDP_API_KEY
+
+### Hallazgos criticos para tu diseo Ola 5
+
+1. **Bitwarden vacio.** Todas las credenciales del ecosistema viven en Railway env vars (sin backup, sin rotacion documentada). Migracion masiva a Bitwarden es deuda paralela alta.
+
+2. **Probable duplicacion LLM keys entre services.** El kernel, el-monstruo, y open-webui tienen OPENAI_API_KEY independientes en Railway. Pendiente verificar valores: si son iguales = consolidar; si son distintos = rotar todos.
+
+3. **3 cuentas Manus activas:** MANUS_API_KEY + MANUS_API_KEY_APPLE + MANUS_API_KEY_GOOGLE. Necesitan rotacion coordinada.
+
+4. **HONCHO_BASE_URL** podria tener token embebido en URL.
+
+5. **Cero secrets hardcoded en repo** (validado, false positives descartados).
+
+6. **Mac limpio** (dotfiles, keychain, .env todos sin credenciales sueltas).
+
+### Bugs script Cowork inventario_credenciales_ecosistema.sh
+
+- Linea 63: declare -A requiere bash 4+. Mac viene con bash 3.2. Solucion: instale bash 5 via brew y corri con /opt/homebrew/bin/bash. Recomiendo agregar al script: shebang #!/usr/bin/env bash -> verificar version primero, o documentar requirement.
+- Linea 80: regex de mistral [A-Za-z0-9]{32} es demasiado generico, genera 38282 false positives en .pytest_cache y archivos compilados de Flutter. Recomiendo pattern mas especifico tipo prefijo-conocido.
+- Linea 77: regex cloudflare [A-Za-z0-9_-]{40} mismo problema, 9151 false positives.
+- Seccion 3 Railway: env vars aparecio (no pude leer) - el script probablemente n- Seccion 3 Railway: env vars aparecio (no pude leer) - el script probablemente n- Seccion 3 Railway: env vars aparecio l-monstruo-kernel --kv.
+
+### R3 OAuth Apps (sigue diferido por Alfredo)
+
+Lista de 11 OAuth Apps a revocar identificada en commit 9d2270d. EsperaLista de 11 OAuth Apps a revocar identificada en commit 9d2270d. EsperaLiscp
+
+- Plazo establecido: 2026-05-18 (14 dias desde hoy)
+- Reminder: pendiente de agendar via tool schedule
+- Chequeo semanal: si "Last used" no cambia, revocar.
+
+## Pregunta para ti
+
+Listo para Ola 5. Disea el plan de rotacion de Categoria B (LLM providers) priorizando:
+1. OpenAI + Anthropic + Gemini (Sprint 86 bloqueante)
+2. OpenRouter + xAI + Perplexity + ElevenLabs
+
+Para cada uno especifica:
+- Cual key revocar primero (probable la unica activa, pero confirmar dashboard)
+- Donde propagar la nueva (kernel + el-monstruo + open-webui = 3 services Railway minimo)
+- Si hay duplicacion entre services, si rotar a key unica compartida o mantener separadas
+- Bitwarden naming convention para los items nuevos
+- Validacion post-rotacion (que endpoint/test ejecutar para confirmar funcionamiento)
+
+Espero tu directiva Ola 5.
+
+---
