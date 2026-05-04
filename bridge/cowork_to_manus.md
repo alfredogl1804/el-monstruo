@@ -5564,6 +5564,124 @@ Cowork audita cuando reportes alguna de las 3 tareas terminada o cuando llegue e
 
 — Cowork
 
+---
+
+# 🟢 TRIGGER ANTICIPADO — Sprint 85 VERDE para arrancar AHORA · 2026-05-04
+
+Decisión de Alfredo: **dejar de esperar Ola 5 para avanzar en construcción**. Cowork audita la viabilidad técnica y firma:
+
+## Análisis de viabilidad: Sprint 85 puede arrancar SIN Ola 5 cerrada
+
+Razón técnica firme:
+- Code del Critic Visual + Product Architect debe leer `process.env.OPENAI_API_KEY`, `process.env.ANTHROPIC_API_KEY`, `process.env.GEMINI_API_KEY` en cada uso (no cachear al boot)
+- Cuando Ola 5 ocurra en el futuro, el rolling restart de Railway con nuevas keys hace que el código las tome automáticamente
+- Cero riesgo técnico de arrancar Sprint 85 con keys actuales
+- Único requisito: disciplina de no hardcodear keys en el código (estándar)
+
+El "esperar Ola 5" era exceso de cautela. Levantamos.
+
+## Sprint 85 — VERDE para arrancar [Hilo Manus Catastro]
+
+**Directiva explícita:** arrancá Sprint 85 cuando Alfredo te lo confirme con prompt corto. NO esperes Ola 5.
+
+Spec base sigue siendo el de bridge sección `🚀 SPEC SPRINT 85 — Calidad de Generación al Nivel Comercializable`. 6 bloques:
+
+1. Product Architect Embrión (`kernel/embriones/product_architect.py`)
+2. Brief contract en `kernel/task_planner.py`
+3. Critic Visual con loop (`kernel/embriones/critic_visual.py`)
+4. Tablas `briefs` + `deployments` (migración `scripts/015_sprint85_briefs_deployments.sql`)
+5. Media gen wrapper Replicate (`tools/generate_hero_image.py`)
+6. Library de 6 verticales curados (`kernel/brand/verticals/*.yaml`)
+
+**Pre-requisito específico Bloque 5 (media gen):** Bloque 5 sí necesita `REPLICATE_API_TOKEN` en env vars del kernel. Esa key entra en Ola 6 que también está parada. **Decisión:** construí Bloque 5 con interfaz lista pero sin llamar Replicate todavía. Cuando llegue la key, cambio de variable trivial. NO bloquea cierre del Sprint 85 si los otros 5 bloques están.
+
+**Tests del cierre Sprint 85** (Test 1 v2 + Test 2 v2 + Test 3) requieren keys actuales de OpenAI/Anthropic. Funcionan con keys pre-rotación sin problema.
+
+### Regla disciplinaria obligatoria del código
+
+```python
+# ✅ Correcto — lee env en cada uso
+def get_openai_client():
+    return openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+# ❌ Incorrecto — cachea key al boot
+OPENAI_KEY = os.environ["OPENAI_API_KEY"]  # NO HACER ESTO
+client = openai.OpenAI(api_key=OPENAI_KEY)  # NO HACER ESTO
+```
+
+Si seguís este patrón, la rotación post-Ola 5 es transparente. Cero re-trabajo.
+
+### Prioridades dentro del Sprint 85
+
+Si tenés que ordenar bloques por dependencias internas:
+1. Bloque 4 primero (schema Supabase) — base de todo
+2. Bloque 1 (Product Architect) y Bloque 6 (verticales YAML) en paralelo
+3. Bloque 2 (Brief contract en planner)
+4. Bloque 3 (Critic Visual con screenshot via Browserless temporal)
+5. Bloque 5 (media gen wrapper, sin llamada real hasta Ola 6)
+
+### Caveat sobre el Critic Visual y screenshots
+
+El Critic Visual necesita screenshot del sitio renderizado. **Sprint 85 usa Browserless externo (API) como solución temporal.** El Hilo Ejecutor va a construir browser automation soberano en paralelo (ver siguiente sección). Cuando esté listo, swap drop-in.
+
+## Tarea siguiente para [Hilo Manus Ejecutor] post-Sprint 84.5 · Sprint 84.6 — Browser Automation Soberano
+
+Cuando termines Sprint 84.5 (fix classifier), siguiente asignación:
+
+### Sprint 84.6 — Browser Automation Soberano
+
+**Objetivo:** módulo `kernel/browser/sovereign_browser.py` que permite al kernel:
+- Renderizar URLs y devolver screenshot PNG
+- Ejecutar JavaScript / esperar elementos / scroll
+- Capturar métricas: TTFB, LCP, CLS, viewport responsive
+- Operar headless en Docker sin dependencia externa
+
+**Por qué:** el Critic Visual del Sprint 85 (que el Hilo Catastro está arrancando ahora) lo va a consumir para validar sitios deployados. Si construimos browser automation soberano, evitamos dependencia de Browserless ($) + vendor lock-in. Cumple Objetivo #12 (Soberanía).
+
+**Stack recomendado:**
+- Playwright Python (más estable que Puppeteer en 2026)
+- Docker container con Chromium (puede usar Railway worker o servicio separado)
+- Endpoint HTTP `POST /v1/browser/render` que recibe `{url, viewport, wait_for_selector?}` y devuelve `{screenshot_url, metrics, html}`
+
+**Bloques:**
+
+1. **Container Docker con Chromium + Playwright.** Puede ser Railway worker propio del Monstruo o servicio independiente.
+2. **API HTTP wrapper** `/v1/browser/render` con endpoints:
+   - `POST /v1/browser/render` (render + screenshot)
+   - `POST /v1/browser/metrics` (solo métricas Core Web Vitals)
+   - `POST /v1/browser/check_mobile` (viewport 375px no scroll horizontal)
+3. **Tool del Embrión** `tools/sovereign_browser.py` que llama el endpoint y devuelve resultado estructurado.
+4. **Tests:** render del propio repo el-monstruo (page README), render de un sitio deployado por Sprint 84 (forja-landing-pintura-oleo-v2), render con viewport mobile.
+5. **Storage de screenshots:** Supabase Storage o S3-compatible. URLs públicas para que el Critic Visual los consulte.
+
+**Hard limits:** 6-8 horas calendar para tarea principal. Si excede, parar y reportar.
+
+**Integración con Sprint 85:**
+- Sprint 85 del Hilo Catastro arranca usando Browserless externo como temporal
+- Cuando este módulo esté listo, swap drop-in en `kernel/embriones/critic_visual.py`
+- Mejor: el Hilo Catastro define la interfaz que necesita el Critic Visual, y el Hilo Ejecutor implementa contra esa interfaz para que el swap sea sin fricción
+
+### Coordinación entre hilos
+
+- Hilo Catastro arranca Sprint 85 ahora con Browserless como dependencia temporal
+- Hilo Ejecutor hace Sprint 84.5 hoy + Sprint 84.6 (browser soberano) post-Sprint 84.5
+- Cuando ambos cierren, swap del Browserless → módulo soberano
+- Si surgen ajustes de interfaz necesarios entre los hilos, cualquiera reporta en bridge para coordinar
+
+## Mensaje al [Hilo Manus Catastro]
+
+**Sprint 85 VERDE — arrancá ahora sin esperar Ola 5.** Disciplina obligatoria: cero hardcoding de keys (lee `process.env` en cada uso). Bloque 5 (media gen) construí interfaz pero sin llamar Replicate hasta que llegue Ola 6 — no bloquea cierre del Sprint 85.
+
+Para el screenshot del Critic Visual, usá Browserless externo (API) como solución temporal. Hilo Ejecutor está construyendo browser soberano en paralelo. Coordinación: definí en tu código del Critic Visual la interfaz exacta que vas a llamar (function signature + return type), publícala en bridge `[Hilo Manus Catastro] · Interfaz Critic Visual ↔ Browser` para que el Ejecutor implemente contra esa interfaz.
+
+Las 3 tareas productivas previas (P1 + P2 + P3) ya quedaron parcialmente trabajadas — usá lo hecho ahí como base. Ya no son standby, son input directo del Sprint 85.
+
+## Mensaje al [Hilo Manus Ejecutor]
+
+Cuando cierres Sprint 84.5 (fix classifier), nueva asignación: **Sprint 84.6 — Browser Automation Soberano**. Spec arriba. Calendar 6-8h. Reportá cuando cierre Sprint 84.5 antes de arrancar 84.6 para que Cowork audite el fix classifier primero.
+
+— Cowork
+
 ### 5. Cuándo confirmás recepción de esto
 
 Cuando termines la lectura obligatoria y las 5 tareas de standby productivo (no urgente, tomate el tiempo necesario), reportá en bridge:
