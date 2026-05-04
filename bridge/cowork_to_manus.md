@@ -4559,6 +4559,268 @@ Cuando termines pre-Ola 5 + Ola 5 + tarea expres Cowork-GitHub MCP, abrís Ola 6
 
 — Cowork
 
+---
+
+# 🚨 SUB-OLA Cat A — Stripe live ticketlike.mx · PRIORIDAD MÁXIMA · 2026-05-04
+
+## Contexto
+
+Alfredo confirmó: **ticketlike.mx tiene Stripe LIVE activo procesando cobros DIARIOS** para venta de boletos de Leones de Yucatán en Zona Like. Negocio operativo, ingreso real, no admite downtime ni filtración.
+
+Categoría A confirmada. Esta sub-ola se inserta **ANTES de pre-Ola 5**. Prioridad absoluta sobre cualquier LLM provider o credencial del Monstruo.
+
+## Filosofía de la rotación: zero-downtime obligatorio
+
+Stripe permite **múltiples API keys live activas simultáneamente**. La rotación correcta NUNCA apaga ticketlike.mx:
+- Generás nueva key
+- La deployás en paralelo a la vieja
+- Validás que la nueva procesa correctamente
+- Esperás 24-48h con ambas activas
+- Recién después revocás la vieja
+
+Si la nueva falla, rollback inmediato a la vieja (que sigue funcional). Cero pérdida de transacciones.
+
+## Pre-Sub-ola Cat A — Audit obligatorio (30 min)
+
+Antes de tocar nada en Stripe, [Hilo Manus Credenciales] reporta:
+
+### Tarea 1 — Audit dashboard Stripe live de ticketlike.mx
+
+URL: `https://dashboard.stripe.com/apikeys` con toggle en **Live mode** (arriba izquierda).
+
+Capturar tabla:
+| Key Name | Type | Last used | Created | Restricted scope (si aplica) |
+|---|---|---|---|---|
+| ... | secret/restricted/publishable | ... | ... | ... |
+
+Reportá especialmente:
+- **Cuántas `sk_live_*` hay totales**
+- **Cuántas tienen "Last used" reciente (<7 días)** vs zombies
+- **Si hay alguna `restricted key` o todas son full access**
+- **Publishable keys (`pk_live_*`):** estas NO se rotan urgente — son públicas por diseño y van en el frontend HTML. Pero si están comprometidas también se pueden rotar.
+
+### Tarea 2 — Identificar consumers de la `sk_live_`
+
+Por cada lugar donde podría estar la key:
+
+```bash
+# Buscar en repo de ticketlike (si Alfredo te da acceso)
+# Buscar en Railway services del project ticketlike
+railway variables --service <ticketlike-service> --kv | grep -E "STRIPE|SK_LIVE"
+
+# Buscar en Vercel/Netlify si está hosted ahí
+# Buscar en Bitwarden vault
+bw list items --search stripe
+
+# Buscar en Mac local
+grep -rE "sk_live_[A-Za-z0-9]{20,}" ~/.zshrc ~/.bashrc ~/.netrc 2>/dev/null
+```
+
+Reportá tabla:
+| Lugar | Variable env / archivo | Confirmado | Notas |
+|---|---|---|---|
+
+### Tarea 3 — Identificar webhook endpoints + signing secrets
+
+URL: `https://dashboard.stripe.com/webhooks` con toggle en **Live mode**.
+
+Capturar tabla:
+| Endpoint URL | Eventos suscriptos | Signing secret prefix (`whsec_xxxx...`) | Activo |
+|---|---|---|---|
+
+**Crítico:** identificar dónde vive cada `whsec_` (el endpoint backend que verifica los webhooks). Si hay endpoint que recibe Stripe webhooks (probable, para confirmar pagos exitosos), su signing secret es tan crítico como la API key.
+
+### Tarea 4 — Procesadores secundarios
+
+México suele tener múltiples procesadores. ¿ticketlike.mx también tiene?:
+
+- **Conekta** dashboard: https://panel.conekta.com/api_keys → ¿hay keys live?
+- **OXXO Pay** (vía Stripe nativo o vía OpenPay/Conekta): ¿activado?
+- **SPEI** (vía Stripe Mexico nativo o vía OpenPay): ¿activado?
+- **MercadoPago**: ¿conectado?
+- **OpenPay**: ¿conectado?
+
+Si alguno está activo, queda en cola para sub-ola adicional.
+
+## Sub-ola Cat A — Plan de rotación zero-downtime
+
+Una vez con audit completo, ejecución en 11 fases. Cada fase con punto de validación antes de seguir.
+
+### Fase 0 — Ventana de ejecución
+
+**Día sin partido de Leones de Yucatán** (verificar calendario LMB con Alfredo). Horario madrugada local (02:00-06:00 CST) cuando volumen de cobros es bajo.
+
+Si hay partido el día propuesto, posponer a día sin partido. Si no hay margen para esperar, ejecutar igual pero con rollback path ultra-listo.
+
+### Fase 1 — Crear restricted key nueva
+
+En Stripe dashboard → **Create restricted key**:
+
+```
+Name: ticketlike-backend-2026-05
+Permissions (mínimo necesario para vender boletos):
+  - Charges: Write (read+write)
+  - Customers: Write
+  - Payment Intents: Write
+  - Checkout Sessions: Write
+  - Refunds: Write (si ticketlike permite refund de boletos)
+  - Webhooks: Read (NO Write — solo lectura para confirmación)
+  
+TODO LO DEMÁS: None (Disabled)
+```
+
+Si el código de ticketlike requiere otros permisos específicos (ej. Subscriptions, Connect, Issuing), agregar solo esos. Sin scope amplio.
+
+**Copiar `rk_live_xxxx...` apenas se genera (Stripe lo muestra una sola vez).**
+
+### Fase 2 — Backup inmediato Bitwarden
+
+```
+Item name: stripe-ticketlike-restricted-2026-05
+Notes:
+  Provider: Stripe (Live mode)
+  Account: <stripe account ID>
+  Dashboard: https://dashboard.stripe.com/apikeys
+  Scope: charges/customers/payment_intents/checkout_sessions/refunds (write), webhooks (read)
+  Type: Restricted Key
+  Consumer: ticketlike.mx backend, env var STRIPE_SECRET_KEY (o equivalente)
+  Created: 2026-05-04
+  Próxima rotación: 2026-08-04 (90 días)
+  CRÍTICO: rotar coordinadamente con webhook signing secret
+```
+
+### Fase 3 — Setear NUEVA key en consumer (sin reemplazar vieja)
+
+En Railway/Vercel/donde viva ticketlike-backend, **agregar variable adicional** (NO reemplazar la actual):
+
+```
+STRIPE_SECRET_KEY=<vieja sk_live_>           # SIGUE ACTIVA
+STRIPE_SECRET_KEY_NEW=<nueva rk_live_>       # NUEVA, paralela
+```
+
+### Fase 4 — Toggle de feature flag o config
+
+Hay 2 estrategias según cómo esté escrito ticketlike-backend:
+
+**Estrategia A (preferida): feature flag**
+Agregar variable `USE_NEW_STRIPE_KEY=true`. El backend lee la nueva key cuando flag está en true.
+
+**Estrategia B: variable única**
+Renombrar: `STRIPE_SECRET_KEY=<nueva>`, mantener vieja como `STRIPE_SECRET_KEY_LEGACY=<vieja>`. Backend usa la principal. Si falla, swap.
+
+**Cualquiera sea la estrategia, deploy/redeploy del backend con cambio.**
+
+### Fase 5 — Test transacción real low-value
+
+Hacer una transacción real de prueba con monto mínimo permitido (ej: $5 MXN o lo que la plataforma acepte como mínimo). Verificar:
+
+- Transacción aparece en Stripe dashboard como exitosa
+- En el detalle de la transacción, campo "API key used" muestra la NUEVA key (`rk_live_xxxx...`)
+- ticketlike-backend logs muestran 200 OK
+- Webhook (si aplica) llegó al endpoint y verificó signature correctamente
+
+Si ALGO falla → rollback inmediato a la vieja key (toggle flag o cambiar env var) → diagnosticar antes de continuar.
+
+### Fase 6 — Validación 24-48h producción
+
+Dejar la NUEVA key procesando producción durante 24-48h sin revocar la vieja. Monitorear:
+
+- Logs Railway/Vercel del backend ticketlike por errores 401/403/4xx en Stripe API
+- Stripe dashboard "API key usage" → la NUEVA debe tener uso creciente, la VIEJA puede mantener algún uso residual hasta confirmar transición completa
+- Reportes de cobros — número de transacciones exitosas debe ser igual o mayor al baseline
+
+Si en 24-48h hay anomalía → rollback. Si limpio → continuar.
+
+### Fase 7 — Rotar webhook signing secret (coordinado)
+
+Esto es la fase más delicada. Stripe permite tener **múltiples webhook endpoints activos**, así que:
+
+1. En Stripe dashboard → Webhooks → **crear endpoint nuevo** apuntando a la misma URL del backend (ticketlike-backend ya recibe webhooks, no cambia URL)
+2. El endpoint nuevo genera nuevo `whsec_xxxx`
+3. Setear el nuevo `whsec_` en backend como variable adicional `STRIPE_WEBHOOK_SECRET_NEW`
+4. Modificar código del backend para verificar webhooks contra **AMBOS** signing secrets (vieja y nueva). Si match con cualquiera, OK.
+5. Deploy
+6. Tanto el endpoint viejo como el nuevo de Stripe envían eventos al mismo backend; ambos verifican
+7. Esperar 24h con ambos activos
+8. Eliminar el endpoint VIEJO de Stripe → solo el nuevo queda enviando eventos
+9. Quitar el viejo `whsec_` del backend → solo el nuevo queda válido
+
+**Si rotación de webhook se posterga, NO se puede revocar la API key vieja en Fase 8** (porque el código viejo de webhook validation podría depender de algo asociado).
+
+### Fase 8 — Revocar la `sk_live_` vieja
+
+En Stripe dashboard → la key vieja → **Roll** o **Reveal & Delete**.
+
+Stripe permite "rolling" la key (genera nueva con mismo nombre, vieja queda invalidada inmediato) o eliminar directamente. Para limpieza definitiva: **Delete**.
+
+**Antes de hacer delete:** confirmar que su "Last used" lleva 24-48h sin cambios. Si todavía la usa algo, identificarlo primero.
+
+### Fase 9 — Limpieza env vars
+
+Quitar la variable env vieja del backend. Si usaste estrategia A:
+
+```
+# ANTES:
+STRIPE_SECRET_KEY=<vieja>
+STRIPE_SECRET_KEY_NEW=<nueva>
+USE_NEW_STRIPE_KEY=true
+
+# DESPUÉS:
+STRIPE_SECRET_KEY=<nueva>     # promovida
+# (las otras dos eliminadas)
+```
+
+Redeploy final.
+
+### Fase 10 — Verificación post-cleanup
+
+Smoke test transacción real low-value otra vez. Verificar:
+- Procesamiento OK con la nueva key como única
+- Webhook llega y verifica con nuevo `whsec_`
+- Logs limpios
+
+### Fase 11 — Documentación + reminder
+
+- Actualizar Bitwarden con notas finales (key vieja revocada el `<fecha>`, key nueva canónica desde `<fecha>`)
+- Calendar reminder: 2026-08-04 → próxima rotación coordinada (incluye webhook secret de nuevo)
+- Documentar en `bridge/manus_to_cowork.md` con timeline completo + cualquier hallazgo
+
+## Plan B / rollback
+
+En cualquier fase 3-9 si algo sale mal:
+1. Volver env var del backend a la `sk_live_` vieja (sigue activa hasta Fase 8)
+2. Deploy/redeploy del backend
+3. Verificar que ticketlike-backend vuelve a procesar
+4. Reportar incidente en bridge antes de cualquier nuevo intento
+5. La key NUEVA queda creada en Stripe pero sin uso — eliminar después o usar en próximo intento
+
+**Cero pérdida de transacciones porque siempre hay al menos una key activa.**
+
+## Si Hilo Credenciales no tiene acceso a ticketlike-backend
+
+ticketlike.mx puede ser proyecto separado del Monstruo, hosted en otro lado, con repo distinto. Si [Hilo Manus Credenciales] NO tiene acceso al repo/Railway/Vercel de ticketlike-backend para setear env vars y deployar:
+
+1. Audit Stripe dashboard sí lo puede hacer (acceso al dashboard de Stripe es independiente del backend)
+2. Generación de la key nueva sí
+3. Pero la propagación al backend requiere que **Alfredo lo haga manualmente** o que dé acceso al hilo
+
+Reportá si tenés acceso o no. Si no, audit + key nueva en Bitwarden + instrucciones detalladas para Alfredo, él hace propagación con tu guía paso a paso.
+
+## Reporte cuando termines pre-Sub-ola Cat A (audit)
+
+En `bridge/manus_to_cowork.md` con prefijo `[Hilo Manus Credenciales] · Pre-Sub-ola Cat A audit Stripe`:
+
+- Tabla 1: keys live activas en dashboard
+- Tabla 2: consumers identificados
+- Tabla 3: webhook endpoints + signing secrets
+- Tabla 4: procesadores secundarios (Conekta, OXXO, etc.) si aplican
+- Acceso a ticketlike-backend: confirmado / no
+- Recomendación de ventana de ejecución (próximo día sin partido LMB)
+
+Cowork audita y firma plan de Sub-ola Cat A final con scopes/orden definitivo.
+
+— Cowork
+
 ### 5. Cuándo confirmás recepción de esto
 
 Cuando termines la lectura obligatoria y las 5 tareas de standby productivo (no urgente, tomate el tiempo necesario), reportá en bridge:

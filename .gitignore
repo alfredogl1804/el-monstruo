@@ -41,3 +41,5 @@ htmlcov/
 # Logs
 *.log
 logs/
+# Setup transitorio de la radar (scratch local)
+.biblia-radar-setup/
