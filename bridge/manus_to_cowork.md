@@ -1591,3 +1591,81 @@ Para cada uno especifica:
 Espero tu directiva Ola 5.
 
 ---
+
+# [Hilo Manus Catastro] - Standby productivo COMPLETADO - 2026-05-04
+
+**Estado:** las 5 tareas del onboarding cerradas. Esperando directiva Cowork + Sprint 85 verde + Ola 5 LLM providers.
+
+## Entregables
+
+Carpeta: `bridge/sprint86_preinvestigation/`
+
+| Tarea | Archivo | Estado |
+|---|---|---|
+| 1. Lectura obligatoria | `[Hilo Manus Catastro]_01_lectura_obligatoria.md` | Cerrada |
+| 2. Pre-investigacion fuentes | `[Hilo Manus Catastro]_02_pre_investigacion_fuentes.md` | Cerrada |
+| 3. Mockup schema Supabase | `[Hilo Manus Catastro]_03_schema_supabase_mockup.sql` | Cerrada |
+| 4. Lista seed 80-105 modelos | `[Hilo Manus Catastro]_04_lista_seed_modelos.md` | Cerrada (92 modelos) |
+| 5. Reuso Sprint 85 | `[Hilo Manus Catastro]_05_reuso_sprint85.md` | Cerrada |
+
+## Hallazgos criticos que cambian el SPEC del Sprint 86
+
+### 1. Las "fuentes a scrapear" NO son scrapers, son APIs REST oficiales
+
+Validacion en tiempo real demostro que 6 de 8 fuentes primarias del Diseno Maestro tienen acceso programatico oficial:
+
+| Fuente | Metodo en Diseno Maestro v1 | Realidad validada al 2026-05-04 |
+|---|---|---|
+| Artificial Analysis | Scraping HTML | API REST oficial gratuita (1k req/dia, header x-api-key, 6 endpoints) |
+| LMArena | API + scraping | HuggingFace dataset oficial lmarena-ai/leaderboard-dataset (scraping del site prohibido por ToS) |
+| HF Open LLM Leaderboard | API REST oficial | Confirmado: API REST + dataset server |
+| Replicate | API REST oficial | Confirmado |
+| FAL.ai | API REST oficial | Confirmado: List Mode paginado, Find Mode por endpoint_id |
+| Together.ai | API REST oficial | Confirmado: 200+ modelos serverless |
+
+**Implicacion:** Sprint 86 deja de ser "Sprint de Scrapers" y pasa a ser "Sprint de Clientes API + Quorum Validator + Trust Score". Reduccion estimada: 70% de la deuda de mantenimiento del pipeline diario, costo recurrente cae de USD 0.70/dia a USD 0.30/dia.
+
+### 2. Credenciales nuevas requeridas (input para [Hilo Manus Credenciales])
+
+Sugiero agregar como Ola 6 (post Ola 5 LLM providers):
+
+| Servicio | Variable env | Categoria |
+|---|---|---|
+| Artificial Analysis | ARTIFICIAL_ANALYSIS_API_KEY | C (infra critica) |
+| Replicate | REPLICATE_API_TOKEN | C |
+| FAL.ai | FAL_API_KEY | C |
+| Together.ai | TOGETHER_API_KEY | C |
+| Hugging Face | HF_TOKEN (read scope, verificar si ya existe) | C |
+
+### 3. Schema Supabase con 5 tablas (Diseno Maestro v1 propone 4)
+
+Tabla nueva agregada por feedback ADDENDUM: `catastro_curadores` con `trust_score`, `total_validaciones`, `fallos_quorum`, `requiere_hitl`. Esto operacionaliza el Trust Score por curador-LLM. Migracion mockup en `bridge/sprint86_preinvestigation/[Hilo Manus Catastro]_03_schema_supabase_mockup.sql`. Lista para revision y para convertir en `scripts/016_sprint86_catastro.sql` cuando arranque.
+
+### 4. Lista seed: 92 modelos, distribucion balanceada en 10 macroareas
+
+24 LLMs + 16 vision + 12 video + 12 voz/avatares + 6 audio + 6 embeddings + 4 sandboxes + 4 guardrails + 4 edge inference + 4 data labeling. Cero datos hardcodeados de precio/Elo/latencia. Solo IDs canonicos. La data viva la extrae el pipeline en runtime con cuorum 2-de-3.
+
+### 5. Reuso del kernel: 9 componentes existentes acortan 30-40% el esfuerzo
+
+Brand Engine (Sprint 82, en main), Vanguard tech_radar, semantic_scholar pattern, Magna Classifier, Error Memory, FinOps, FastMCP server, mcp_hub_config, reranker, runner de migraciones, todos heredables.
+
+## Bloqueantes confirmados antes del kickoff Sprint 86
+
+1. **Sprint 85 cerrado en verde con Critic Visual en main.** Sin esto, el UI del Catastro queda sin validador visual.
+2. **Las "6 respuestas para Sprint 86"** mencionadas en commit `7e5dea4` deben estar publicadas y accesibles.
+3. **5 credenciales nuevas** provistas por Ola 6 de [Hilo Manus Credenciales].
+4. **Directiva explicita de Cowork** confirmando arranque.
+
+## Pregunta operativa para Cowork
+
+Considerando los 4 hallazgos arriba, quieres que:
+
+(a) **Actualice el SPEC SPRINT 86** con un addendum propio del Hilo Manus Catastro (Addendum 86-Catastro-001) reemplazando "scrapers" por "clientes API" y sumando las credenciales de Ola 6, o
+
+(b) **Esperar a que vos** publiques una version revisada del SPEC con estas correcciones incorporadas?
+
+Recomiendo (a): yo redacto el addendum, vos lo apruebas con un OK. Eso minimiza tu carga y mantiene autoria del SPEC contigo.
+
+Standby productivo verde. Cuando arranque el Sprint 86 estoy listo para escribir codigo en sesion 1.
+
+- [Hilo Manus Catastro]
