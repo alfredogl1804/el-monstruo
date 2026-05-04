@@ -19,8 +19,21 @@ from kernel.motion.tokens import (
     STYLE_MOTION_PROFILES,
     MOTION_TOKENS,
 )
+from kernel.utils.keyword_matcher import compile_keyword_pattern, match_any_keyword
 
 logger = structlog.get_logger("motion.orchestrator")
+
+# Sprint 84.7: Patterns precompilados (anti substring).
+# treat_underscore_as_separator=True porque los nombres de componentes son
+# snake_case ("hero_button", "product_card") y queremos que `button` matchee.
+_BUTTON_LIKE_PATTERN = compile_keyword_pattern(
+    ("button", "cta", "btn", "link"),
+    treat_underscore_as_separator=True,
+)
+_CARD_LIKE_PATTERN = compile_keyword_pattern(
+    ("card", "product", "item", "tile"),
+    treat_underscore_as_separator=True,
+)
 
 # ── Errores con identidad ──────────────────────────────────────────────────────
 
@@ -150,11 +163,13 @@ class MotionOrchestrator:
             }
 
         # Tap para botones y CTAs
-        if any(k in component_lower for k in ["button", "cta", "btn", "link"]):
+        # Sprint 84.7: word boundaries via _BUTTON_LIKE_PATTERN
+        if match_any_keyword(component_lower, _BUTTON_LIKE_PATTERN):
             interactions["tap"] = dict(INTERACTION_PRESETS["button_tap"])
 
         # Lift para cards y productos
-        if any(k in component_lower for k in ["card", "product", "item", "tile"]):
+        # Sprint 84.7: word boundaries via _CARD_LIKE_PATTERN
+        if match_any_keyword(component_lower, _CARD_LIKE_PATTERN):
             interactions["hover"] = dict(INTERACTION_PRESETS["card_hover"])
 
         return interactions

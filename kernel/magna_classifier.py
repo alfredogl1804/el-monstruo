@@ -36,6 +36,12 @@ from typing import Any, Optional
 
 import structlog
 
+from kernel.utils.keyword_matcher import (
+    compile_keyword_pattern,
+    count_keyword_matches,
+    match_any_keyword,
+)
+
 logger = structlog.get_logger("magna_classifier")
 
 # ── Constantes ──────────────────────────────────────────────────────
@@ -210,6 +216,17 @@ RE_FILE_PATH = re.compile(r"[\w/\\]+\.\w{1,10}")
 RE_VERSION = re.compile(r"v?\d+\.\d+(?:\.\d+)?")
 RE_ENV_VAR = re.compile(r"[A-Z][A-Z_]{2,}=")
 RE_JSON_LIKE = re.compile(r"\{[^}]*:[^}]*\}")
+
+# Sprint 84.7: Patterns precompilados con word boundaries (anti substring matching)
+_TECH_PATTERN = compile_keyword_pattern(TECH_TRIGGERS)
+_ACTION_PATTERN = compile_keyword_pattern(ACTION_TRIGGERS)
+_REFLECTION_PATTERN = compile_keyword_pattern(REFLECTION_TRIGGERS)
+_PRECIO_PATTERN = compile_keyword_pattern(
+    ("precio", "cotización", "tipo de cambio", "pricing")
+)
+_TRENDING_PATTERN = compile_keyword_pattern(
+    ("trending", "tendencia", "noticia", "hoy")
+)
 
 
 # ── Clase Principal ─────────────────────────────────────────────────
@@ -397,7 +414,8 @@ class MagnaClassifier:
         suggested_tool: Optional[str] = None
 
         # ── Señales de contenido técnico ────────────────────────────
-        tech_matches = sum(1 for t in TECH_TRIGGERS if t in text_lower)
+        # Sprint 84.7: word boundaries via _TECH_PATTERN
+        tech_matches = count_keyword_matches(text_lower, _TECH_PATTERN)
         if tech_matches > 0:
             scores["tech"] += min(tech_matches * 0.15, 0.6)
             signals.append(f"tech_keywords={tech_matches}")
@@ -433,7 +451,8 @@ class MagnaClassifier:
             signals.append("contains_json")
 
         # ── Señales de acción ───────────────────────────────────────
-        action_matches = sum(1 for a in ACTION_TRIGGERS if a in text_lower)
+        # Sprint 84.7: word boundaries via _ACTION_PATTERN
+        action_matches = count_keyword_matches(text_lower, _ACTION_PATTERN)
         if action_matches > 0:
             scores["action"] += min(action_matches * 0.2, 0.7)
             signals.append(f"action_keywords={action_matches}")
@@ -447,7 +466,8 @@ class MagnaClassifier:
                 break
 
         # ── Señales de reflexión ────────────────────────────────────
-        reflection_matches = sum(1 for r in REFLECTION_TRIGGERS if r in text_lower)
+        # Sprint 84.7: word boundaries via _REFLECTION_PATTERN
+        reflection_matches = count_keyword_matches(text_lower, _REFLECTION_PATTERN)
         if reflection_matches > 0:
             scores["reflection"] += min(reflection_matches * 0.2, 0.7)
             signals.append(f"reflection_keywords={reflection_matches}")
@@ -489,10 +509,11 @@ class MagnaClassifier:
             category = ContentCategory.UNKNOWN
 
         # Determinar TTL según categoría
-        if any(kw in text_lower for kw in ("precio", "cotización", "tipo de cambio", "pricing")):
+        # Sprint 84.7: word boundaries via _PRECIO_PATTERN / _TRENDING_PATTERN
+        if match_any_keyword(text_lower, _PRECIO_PATTERN):
             ttl = TTL_PRECIOS
             category = ContentCategory.QUERY_REALTIME
-        elif any(kw in text_lower for kw in ("trending", "tendencia", "noticia", "hoy")):
+        elif match_any_keyword(text_lower, _TRENDING_PATTERN):
             ttl = TTL_TRENDING
         else:
             ttl = TTL_API_FRAMEWORKS

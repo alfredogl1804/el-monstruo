@@ -35,7 +35,39 @@ from typing import Any, Optional
 import httpx
 import structlog
 
+from kernel.utils.keyword_matcher import compile_keyword_pattern, match_any_keyword
+
 logger = structlog.get_logger("kernel.external_agents")
+
+
+# ── Sprint 84.7: Patterns precompilados con word boundaries ───────────────────
+# Reemplaza el anti-pattern `any(kw in msg for kw in markers)` que causaba
+# falsos positivos (e.g. "investigaba" matcheaba en "investiga").
+
+_RESEARCH_MARKERS = (
+    "investiga", "busca", "encuentra", "qué es", "quién es",
+    "noticias", "tendencia", "fuentes", "artículo", "paper",
+    "research", "search", "find", "news", "trend",
+)
+_MANUS_MARKERS = (
+    "browser", "navega", "abre la página", "deploy", "publica",
+    "descarga", "sube", "archivo", "screenshot", "scrape",
+    "automatiza", "workflow", "end to end",
+)
+_ANALYSIS_MARKERS = (
+    "analiza", "compara", "evalúa", "evalua", "profundiza",
+    "documento", "pdf", "resumen largo", "multimodal",
+    "imagen", "video", "analyze", "compare",
+)
+_CODE_MARKERS = (
+    "código", "codigo", "programa", "script", "función", "funcion",
+    "bug", "fix", "refactor", "implementa", "code", "debug",
+)
+
+_RESEARCH_PATTERN = compile_keyword_pattern(_RESEARCH_MARKERS)
+_MANUS_PATTERN = compile_keyword_pattern(_MANUS_MARKERS)
+_ANALYSIS_PATTERN = compile_keyword_pattern(_ANALYSIS_MARKERS)
+_CODE_PATTERN = compile_keyword_pattern(_CODE_MARKERS)
 
 
 # ── Agent Types ───────────────────────────────────────────────────────────────
@@ -162,41 +194,19 @@ def auto_select_agent(
       - Analysis/long docs → Gemini
       - Quick code/fast answer → Grok or Kimi
     """
-    msg_lower = message.lower()
-    
-    # Research indicators
-    research_markers = [
-        "investiga", "busca", "encuentra", "qué es", "quién es",
-        "noticias", "tendencia", "fuentes", "artículo", "paper",
-        "research", "search", "find", "news", "trend",
-    ]
-    if any(m in msg_lower for m in research_markers):
+    msg = message  # patterns are case-insensitive
+
+    # Research/code/manus/analysis: usar patterns precompilados (Sprint 84.7)
+    if match_any_keyword(msg, _RESEARCH_PATTERN):
         return ExternalAgent.PERPLEXITY
-    
-    # Browser/deploy/complex execution indicators
-    manus_markers = [
-        "browser", "navega", "abre la página", "deploy", "publica",
-        "descarga", "sube", "archivo", "screenshot", "scrape",
-        "automatiza", "workflow", "end to end",
-    ]
-    if any(m in msg_lower for m in manus_markers):
+
+    if match_any_keyword(msg, _MANUS_PATTERN):
         return ExternalAgent.MANUS
-    
-    # Deep analysis / long document indicators
-    analysis_markers = [
-        "analiza", "compara", "evalúa", "evalua", "profundiza",
-        "documento", "pdf", "resumen largo", "multimodal",
-        "imagen", "video", "analyze", "compare",
-    ]
-    if any(m in msg_lower for m in analysis_markers):
+
+    if match_any_keyword(msg, _ANALYSIS_PATTERN):
         return ExternalAgent.GEMINI
-    
-    # Code indicators → Kimi (cheapest for code)
-    code_markers = [
-        "código", "codigo", "programa", "script", "función", "funcion",
-        "bug", "fix", "refactor", "implementa", "code", "debug",
-    ]
-    if any(m in msg_lower for m in code_markers):
+
+    if match_any_keyword(msg, _CODE_PATTERN):
         return ExternalAgent.KIMI
     
     # Default: Grok for fast general answers

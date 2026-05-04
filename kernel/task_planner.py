@@ -41,7 +41,25 @@ from uuid import uuid4
 
 import structlog
 
+from kernel.utils.keyword_matcher import compile_keyword_pattern, count_keyword_matches
+
 logger = structlog.get_logger("kernel.task_planner")
+
+# Sprint 84.7: complexity_keywords movido a nivel módulo + pattern precompilado
+_COMPLEXITY_KEYWORDS = (
+    "construye", "implementa", "crea", "desarrolla", "migra",
+    "refactoriza", "agrega", "integra", "conecta", "diseña",
+    "sprint", "módulo", "sistema", "pipeline", "endpoint",
+    "y luego", "después", "primero", "paso a paso", "en orden",
+    "múltiples", "varios", "todo el", "completo", "completa",
+    "luego", "finalmente", "después de", "a continuación",
+    "verifica", "despliega", "persiste", "redeploy", "pgvector",
+    "supabase", "railway", "docker", "kubernetes",
+    "analiza", "detecta", "agrupa", "envía", "reporta",
+    "sitio web", "landing page", "página web", "website",
+    "app web", "aplicación web", "portfolio", "dashboard",
+)
+_COMPLEXITY_PATTERN = compile_keyword_pattern(_COMPLEXITY_KEYWORDS)
 
 # ── Configuration ────────────────────────────────────────────────────
 PLANNER_MODEL = os.environ.get("PLANNER_MODEL", "gpt-5.5")
@@ -1663,27 +1681,12 @@ RESPONDE con JSON:
         """
         Heuristic to detect if a message contains a complex objective
         that should be handled by the Task Planner instead of direct execution.
+
+        Sprint 84.7: word boundaries via _COMPLEXITY_PATTERN (anti substring).
         """
         import re
-        # Complexity indicators
-        complexity_keywords = [
-            "construye", "implementa", "crea", "desarrolla", "migra",
-            "refactoriza", "agrega", "integra", "conecta", "diseña",
-            "sprint", "módulo", "sistema", "pipeline", "endpoint",
-            "y luego", "después", "primero", "paso a paso", "en orden",
-            "múltiples", "varios", "todo el", "completo", "completa",
-            # Multi-step explicit markers
-            "luego", "finalmente", "después de", "a continuación",
-            # Technical complexity
-            "verifica", "despliega", "persiste", "redeploy", "pgvector",
-            "supabase", "railway", "docker", "kubernetes",
-            "analiza", "detecta", "agrupa", "envía", "reporta",
-            # Sprint 47.2: Web dev triggers
-            "sitio web", "landing page", "página web", "website",
-            "app web", "aplicación web", "portfolio", "dashboard",
-        ]
         text_lower = text.lower()
-        keyword_count = sum(1 for kw in complexity_keywords if kw in text_lower)
+        keyword_count = count_keyword_matches(text_lower, _COMPLEXITY_PATTERN)
 
         # Length heuristic: long messages tend to be complex
         is_long = len(text) > 200

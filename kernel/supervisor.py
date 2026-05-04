@@ -33,6 +33,8 @@ from typing import Any, Optional
 
 import structlog
 
+from kernel.utils.keyword_matcher import compile_keyword_pattern, count_keyword_matches
+
 logger = structlog.get_logger("kernel.supervisor")
 
 
@@ -119,6 +121,11 @@ _TOOL_KEYWORDS = {
     "email", "webhook", "api", "endpoint", "deploy", "browse",
 }
 
+# Sprint 84.7: Patterns precompilados con word boundaries
+_DEEP_PATTERN = compile_keyword_pattern(_DEEP_KEYWORDS)
+_COMPLEX_PATTERN = compile_keyword_pattern(_COMPLEX_KEYWORDS)
+_TOOL_PATTERN = compile_keyword_pattern(_TOOL_KEYWORDS)
+
 
 def _estimate_tokens(message: str) -> int:
     """Rough token estimate (1 token ≈ 4 chars for English, 2 chars for Spanish)."""
@@ -166,7 +173,8 @@ def analyze_complexity(
             )
 
     # ── Signal 2: Deep keywords ──
-    deep_score = sum(1 for kw in _DEEP_KEYWORDS if kw in msg_lower)
+    # Sprint 84.7: word boundaries via _DEEP_PATTERN
+    deep_score = count_keyword_matches(msg_lower, _DEEP_PATTERN)
     if deep_score >= 1 or intent == "deep_think":
         tier_config = TIER_MODEL_MAP[ComplexityTier.DEEP]
         return SupervisorDecision(
@@ -181,10 +189,12 @@ def analyze_complexity(
         )
 
     # ── Signal 3: Complex keywords ──
-    complex_score = sum(1 for kw in _COMPLEX_KEYWORDS if kw in msg_lower)
+    # Sprint 84.7: word boundaries via _COMPLEX_PATTERN
+    complex_score = count_keyword_matches(msg_lower, _COMPLEX_PATTERN)
 
     # ── Signal 4: Tool requirements ──
-    tool_score = sum(1 for kw in _TOOL_KEYWORDS if kw in msg_lower)
+    # Sprint 84.7: word boundaries via _TOOL_PATTERN
+    tool_score = count_keyword_matches(msg_lower, _TOOL_PATTERN)
 
     # ── Signal 5: Syntactic complexity ──
     sentence_count = len(re.split(r'[.!?]+', message.strip())) - 1

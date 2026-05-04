@@ -39,6 +39,8 @@ from typing import Any, Optional
 
 import structlog
 
+from kernel.utils.keyword_matcher import compile_keyword_pattern
+
 logger = structlog.get_logger("monstruo.embrion.product_architect")
 
 
@@ -78,32 +80,19 @@ VERTICALES_VALIDOS = [
     "marketplace_services",    # Marketplaces de servicios locales
 ]
 
-# ── HOTFIX Sprint 85 (post-audit Sprint 84.5) ────────────────────────────────
+# ── HOTFIX Sprint 85 (post-audit Sprint 84.5) ────────────────────────────
 # El patrón `kw in text_lower` causa falsos positivos en substring matching:
 #   - "artesanal" matchea `arte` (vertical education_arts) en contexto ecommerce
 #   - "no es delivery" matchea `delivery` pese a la negación
 #   - keywords cortas (`api`, `arte`, `bar`) embebidas en otras palabras
 # Solución: regex con word boundaries `\b...\b`, compilado una vez por vertical
-# y cacheado a nivel módulo. Drop-in migrable a kernel/utils/keyword_matcher.py
-# cuando el Hilo Ejecutor cierre Sprint 84.7.
+# y cacheado a nivel módulo.
 #
-# Patrón aprobado por spec del Sprint 84.5 (Cowork bridge 2026-05-04).
-# Semilla 19 sembrada al cierre del HOTFIX.
-
-
-def _compile_vertical_pattern(keywords: tuple[str, ...]) -> re.Pattern[str]:
-    """Compila un pattern con word boundaries para una lista de keywords.
-
-    Soporta multi-word keywords ("hecho a mano", "servicios profesionales")
-    porque `\b` solo se ancla al inicio y final del grupo no-capturador.
-    Las keywords se ordenan por longitud descendente para que multi-word
-    matchee antes que sus subpartes (alternation greedy).
-    """
-    sorted_kws = sorted(keywords, key=len, reverse=True)
-    return re.compile(
-        r"\b(?:" + "|".join(re.escape(kw) for kw in sorted_kws) + r")\b",
-        re.IGNORECASE,
-    )
+# Sprint 84.7 (cierre del refactor global): _compile_vertical_pattern() local
+# fue MIGRADO a la utility centralizada `kernel.utils.keyword_matcher.
+# compile_keyword_pattern()`. Comportamiento idéntico (word boundaries +
+# multi-word + sort por longitud descendente). Patrón aprobado por spec del
+# Sprint 84.5 (Cowork bridge 2026-05-04). Semilla 19 sembrada al cierre.
 
 
 VERTICALES_KEYWORDS: dict[str, list[str]] = {
@@ -347,7 +336,8 @@ class ProductArchitect:
         for vertical, keywords in VERTICALES_KEYWORDS.items():
             pattern = _PATTERN_CACHE.get(vertical)
             if pattern is None:
-                pattern = _compile_vertical_pattern(tuple(keywords))
+                # Sprint 84.7: usa utility centralizada (drop-in equivalente)
+                pattern = compile_keyword_pattern(tuple(keywords))
                 _PATTERN_CACHE[vertical] = pattern
             scores[vertical] = len(pattern.findall(text))
 

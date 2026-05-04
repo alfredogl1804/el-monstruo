@@ -34,6 +34,8 @@ from typing import Any, Optional
 from uuid import uuid4
 
 import structlog
+
+from kernel.utils.keyword_matcher import compile_keyword_pattern
 from langchain_core.runnables import RunnableConfig
 
 from contracts.event_envelope import EventBuilder, EventCategory, Severity
@@ -1636,7 +1638,13 @@ def should_enrich(state: MonstruoState) -> str:
         "gongora",
     }
 
-    needs_memory = any(marker in message for marker in personal_markers)
+    # Sprint 84.7: word boundaries via compile_keyword_pattern (anti substring).
+    # NOTA: markers con espacio trailing ("mi ", "mis ", "tu ") fueron stripeados
+    # porque \b ya garantiza el word boundary implícito. Esto evita falsos positivos
+    # como "emiliano" matcheando "mi" o "futuro" matcheando "tu".
+    _personal_markers_normalized = tuple(m.strip() for m in personal_markers if m.strip())
+    _personal_markers_pattern = compile_keyword_pattern(_personal_markers_normalized)
+    needs_memory = bool(_personal_markers_pattern.search(message))
     if needs_memory:
         logger.info("enrich_forced_by_markers", message_preview=message[:60])
         return "enrich"

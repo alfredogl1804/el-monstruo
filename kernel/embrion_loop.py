@@ -53,6 +53,8 @@ from uuid import uuid4
 
 import structlog
 
+from kernel.utils.keyword_matcher import compile_keyword_pattern, match_any_keyword
+
 logger = structlog.get_logger("embrion.loop")
 
 # ── Configuration ────────────────────────────────────────────────────
@@ -66,6 +68,13 @@ SILENCE_THRESHOLD = int(os.environ.get("EMBRION_SILENCE_THRESHOLD", "70"))  # si
 CONSOLIDATION_INTERVAL = int(os.environ.get("EMBRION_CONSOLIDATION_INTERVAL", "10"))  # Every N latidos
 SABIOS_CONSULTATION_INTERVAL = int(os.environ.get("EMBRION_SABIOS_INTERVAL", "20"))  # Consult Sabios every N cycles
 RADAR_INTERVAL = int(os.environ.get("EMBRION_RADAR_INTERVAL", "48"))  # Check agents-radar every N cycles (~48 min with 60s interval)
+
+# Sprint 84.7 — Circuit breaker para judge fail-open
+# Antes: si _judge_before fallaba, retornaba True (fail-open) sin límite, gastando
+# presupuesto en pensamientos que el judge ni siquiera pudo evaluar.
+# Ahora: contador de fallos consecutivos + threshold + escalación. Mensajes de
+# Alfredo siguen pasando (excepción manejada en _judge_before mismo).
+MAX_JUDGE_CONSECUTIVE_FAILURES = int(os.environ.get("EMBRION_MAX_JUDGE_FAILURES", "5"))
 
 # The Embrión's core purpose — the filter for all autonomous thought
 PURPOSE = """Tu propósito es construir El Monstruo — el asistente IA soberano de Alfredo Góngora.
@@ -86,6 +95,20 @@ SILENCE_QUESTIONS = [
     "¿Si no digo nada, se pierde algo irrecuperable?",
     "¿Alfredo me preguntó explícitamente sobre esto?",
 ]
+
+# Sprint 84.7: Patterns precompilados con word boundaries para silence_score
+_URGENCY_KEYWORDS = (
+    "urgente", "error", "fallo", "roto", "broken", "critical", "bloqueado", "down",
+)
+_IRRECOVERABLE_KEYWORDS = (
+    "datos perdidos", "data loss", "irreversible", "eliminado", "borrado", "security", "breach",
+)
+_ACTION_DONE_KEYWORDS = (
+    "ejecuté", "commit", "creé", "pull request", "deployed", "instalé",
+)
+_URGENCY_PATTERN = compile_keyword_pattern(_URGENCY_KEYWORDS)
+_IRRECOVERABLE_PATTERN = compile_keyword_pattern(_IRRECOVERABLE_KEYWORDS)
+_ACTION_DONE_PATTERN = compile_keyword_pattern(_ACTION_DONE_KEYWORDS)
 
 
 class EmbrionLoop:
@@ -152,6 +175,11 @@ class EmbrionLoop:
         # Se inicializa cuando Magna decide 'graph' y empieza un flujo multi-step.
         # Permite que /v1/embrion/diagnostic exponga el ballet en tiempo real.
         self._current_orchestration: Optional[dict] = None
+
+        # Sprint 84.7 — Circuit breaker state para judge fail-open
+        self._judge_consecutive_failures = 0
+        self._judge_circuit_open = False
+        self._last_judge_failure_at: Optional[float] = None
         self._last_orchestration: Optional[dict] = None
 
     # ── Sprint 84: Tracking del Acto de Orquestación ──────────────────────────
@@ -400,22 +428,21 @@ class EmbrionLoop:
             score += 15  # Slightly more relevant
 
         # Q2: Does this change a current decision?
-        # Heuristic: if the response mentions "urgente", "error", "fallo", "roto", "broken"
-        urgency_keywords = ["urgente", "error", "fallo", "roto", "broken", "critical", "bloqueado", "down"]
-        if any(kw in response_text.lower() for kw in urgency_keywords):
+        # Sprint 84.7: word boundaries via _URGENCY_PATTERN (anti substring)
+        if match_any_keyword(response_text, _URGENCY_PATTERN):
             score += 30
 
         # Q3: Is something irrecoverable lost if we stay silent?
-        irrecoverable_keywords = ["datos perdidos", "data loss", "irreversible", "eliminado", "borrado", "security", "breach"]
-        if any(kw in response_text.lower() for kw in irrecoverable_keywords):
+        # Sprint 84.7: word boundaries via _IRRECOVERABLE_PATTERN
+        if match_any_keyword(response_text, _IRRECOVERABLE_PATTERN):
             score += 40
 
         # Q4: Did Alfredo explicitly ask? (already handled by mensaje_alfredo exception above)
         # For non-Alfredo triggers, this is always 0
 
         # Bonus: if the Embrión actually DID something (code_exec, github commit)
-        action_keywords = ["ejecuté", "commit", "creé", "pull request", "deployed", "instalé"]
-        if any(kw in response_text.lower() for kw in action_keywords):
+        # Sprint 84.7: word boundaries via _ACTION_DONE_PATTERN
+        if match_any_keyword(response_text, _ACTION_DONE_PATTERN):
             score += 25
 
         # Determine level
@@ -651,11 +678,50 @@ class EmbrionLoop:
             response = result.response if hasattr(result, "response") else str(result)
             self._cost_today_usd += 0.01  # Approximate judge cost
 
+            # Sprint 84.7: judge respondió OK → reset circuit breaker
+            if self._judge_consecutive_failures > 0:
+                logger.info(
+                    "embrion_judge_circuit_recovered",
+                    failures_before_recovery=self._judge_consecutive_failures,
+                )
+            self._judge_consecutive_failures = 0
+            self._judge_circuit_open = False
+
             return response.strip().upper().startswith("SI")
 
         except Exception as e:
-            logger.error("embrion_judge_before_failed", error=str(e))
-            # If judge fails, default to proceeding (fail-open for thinking)
+            # Sprint 84.7: Circuit breaker para judge fail-open
+            self._judge_consecutive_failures += 1
+            self._last_judge_failure_at = time.time()
+            logger.error(
+                "embrion_judge_before_failed",
+                error=str(e),
+                consecutive_failures=self._judge_consecutive_failures,
+                threshold=MAX_JUDGE_CONSECUTIVE_FAILURES,
+            )
+
+            # Mensajes directos de Alfredo SIEMPRE pasan (excepción a circuit breaker)
+            if trigger.get("type") == "mensaje_alfredo":
+                logger.warning(
+                    "embrion_judge_failopen_alfredo_override",
+                    note="Mensaje de Alfredo bypassa circuit breaker",
+                )
+                return True
+
+            # Si supera el threshold → circuit open + escalación
+            if self._judge_consecutive_failures >= MAX_JUDGE_CONSECUTIVE_FAILURES:
+                if not self._judge_circuit_open:
+                    self._judge_circuit_open = True
+                    logger.critical(
+                        "embrion_judge_circuit_open",
+                        consecutive_failures=self._judge_consecutive_failures,
+                        action="pausing_autonomous_thoughts",
+                        recovery="judge_must_succeed_once_to_reset",
+                    )
+                # Circuit abierto: NO permitir pensamientos autónomos sin judge
+                return False
+
+            # Bajo el threshold: fail-open original (permitir, pero contado)
             return True
 
     # ── Think ────────────────────────────────────────────────────────
