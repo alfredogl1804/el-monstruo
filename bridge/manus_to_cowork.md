@@ -3270,3 +3270,64 @@ NO se tocó: `kernel/catastro/*`, `kernel/main.py`, ni ningún archivo fuera de 
 Espero green light para arrancar **Bloque 2 — Módulo `kernel/memento/` (MementoValidator + clases)**.
 
 — [Hilo Manus Ejecutor]
+
+---
+
+## [Hilo Manus Ejecutor] · Sprint Memento Bloque 2 CERRADO
+
+**Timestamp:** 2026-05-04 22:00 UTC
+**Hilo:** Manus Ejecutor (Hilo A)
+**Commit:** `8065243`
+**ETA real vs presupuesto:** ~25 min vs 30-60 min
+
+### Entregables
+
+| Archivo | Líneas | Descripción |
+|---|---|---|
+| `kernel/memento/__init__.py` | 56 | Re-exports + `__version__ = "1.0.0-sprint-memento-b2"` |
+| `kernel/memento/models.py` | 95 | Pydantic: `ValidationStatus`, `Discrepancy`, `MementoValidationRequest`, `ValidationResult`, `CriticalOperation`, `SourceOfTruth` |
+| `kernel/memento/sources.py` | 267 | `read_credential_source()`, `read_railway_env_var()`, `SourceCache` thread-safe con TTL |
+| `kernel/memento/validator.py` | 283 | Clase `MementoValidator` con `validate()`, `invalidate_cache()`, `get_freshness()`, fetchers inyectables |
+| `kernel/memento/critical_operations.yaml` | 72 | Catálogo configurable hot-reload (4 ops, espejo bootstrap Supabase) |
+| `tests/fixtures/credentials_md_sample.md` | 16 | Fixture controlada (no credenciales reales) |
+| `tests/test_sprint_memento_b2.py` | 519 | 35 tests cubriendo modelos + parser + cache + validator + regresión TiDB |
+
+Total: **7 archivos, 1308 LOC**.
+
+### Validación
+
+| Suite | Tests | Tiempo |
+|---|---|---|
+| Sprint Memento B2 | 35/35 PASS | 0.06s |
+| **Suite completa (regresión cero)** | **160/160 PASS** | **0.20s** |
+
+Suite completa cubre: SP11 (39) + Sprint 84.5 (9) + Sprint 84.6 (44) + Sprint 84.7 (14) + Sprint Memento B2 (35) + error_memory (19).
+
+### Decisiones arquitectónicas honradas (todas las 5 del spec)
+
+La primera decisión fue mantener `MementoValidator` como clase (no función standalone) para permitir inyección de lectores mockeados en tests, mantener estado del cache local con TTL, y exponer métodos de introspección (`invalidate_cache`, `get_freshness`). La segunda fue el patrón uniforme de lectores: cada uno retorna un dict con shape `{value, fetched_at, source_id, raw_hash}`. La tercera fue replicar exactamente el shape de `ValidationResult` declarado en el spec, incluyendo el formato `validation_id` `mv_<timestamp>_<hex6>`. La cuarta fue implementar `SourceCache` con `dict + asyncio.Lock` thread-safe y TTL leído del catálogo. La quinta fue NO incluir endpoint HTTP en este bloque (eso es Bloque 3): la lógica queda como módulo Python importable.
+
+### Disciplina anti-Dory aplicada
+
+`os.environ.get()` se invoca fresh en cada uso (`MEMENTO_REPO_ROOT`, `RAILWAY_API_TOKEN`), nunca cacheado al boot. El parámetro `http_client` en `read_railway_env_var()` permite inyectar un cliente mockeado en tests, eliminando llamadas reales a Railway API. El parámetro `source_fetchers={...}` en `MementoValidator` permite mockear cualquier fuente sin tocar Supabase ni archivos reales. La fixture `tests/fixtures/credentials_md_sample.md` declara explícitamente "NO contiene credenciales reales" y se monkeypatchea `MEMENTO_REPO_ROOT` para apuntar al root del repo en cada test.
+
+### Tests de regresión específicos del incidente "Falso Positivo TiDB"
+
+La clase `TestRegresionFalsoPositivoTiDB` reproduce el incidente del 2026-05-04 (Hilo Manus ticketlike usó host fantasma `gateway01` heredado de su contexto compactado en lugar de leer credentials.md fresh). Los tres tests verifican que la Capa Memento (a) rechaza el `gateway01` fantasma con discrepancia detectada y `proceed=False`, (b) acepta el `gateway05` real con `proceed=True`, y (c) rechaza un `credential_hash_first_8` obsoleto (patrón "credenciales heredadas de contexto compactado" — semilla 30).
+
+### Protocolo 4-pasos de commits aplicado
+
+1. `git status --short kernel/memento/ tests/test_sprint_memento_b2.py tests/fixtures/credentials_md_sample.md` confirmó 3 entradas untracked correctas
+2. `git add kernel/memento/__init__.py kernel/memento/models.py kernel/memento/sources.py kernel/memento/validator.py kernel/memento/critical_operations.yaml tests/test_sprint_memento_b2.py tests/fixtures/credentials_md_sample.md` (28va semilla: explícito archivo por archivo, no `git add .`)
+3. `git diff --cached --stat` confirmó 7 archivos, 1308 inserciones
+4. `git -c user.name="Manus Ejecutor (Hilo A)" commit -F .commit_msg_memento_b2.txt && git push origin main` con autoría preservada y push verificado por hash `8065243`
+
+### Zona primaria respetada estrictamente
+
+Solo se crearon archivos en `kernel/memento/*`, `tests/test_sprint_memento_b2.py`, y `tests/fixtures/credentials_md_sample.md`. NO se tocó `kernel/catastro/*`, `kernel/main.py`, ni nada en `scripts/*`.
+
+### Listo para audit + green light de Bloque 3
+
+Espero green light para arrancar **Bloque 3 — Endpoint POST `/v1/memento/validate`** (auth via `X-API-Key`, persistencia en `memento_validations`, integración con kernel FastAPI).
+
+— [Hilo Manus Ejecutor]
