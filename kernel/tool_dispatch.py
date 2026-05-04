@@ -437,6 +437,29 @@ def get_tool_specs():
             risk="low",
         ),
         ToolSpec(
+            name="sovereign_browser_render",
+            description=(
+                "Renderiza una URL en un browser soberano (Playwright + Chromium "
+                "dentro del kernel) y devuelve screenshot, HTML y Core Web Vitals "
+                "(TTFB, LCP, load_time). Soporta viewport desktop o mobile."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "description": "URL http:// o https:// a renderizar"},
+                    "viewport_preset": {
+                        "type": "string",
+                        "enum": ["desktop", "mobile"],
+                        "default": "desktop",
+                    },
+                    "full_page": {"type": "boolean", "default": True},
+                    "capture_html": {"type": "boolean", "default": True},
+                },
+                "required": ["url"],
+            },
+            risk="low",
+        ),
+        ToolSpec(
             name="browse_web",
             description=(
                 "Browse a web page and extract its content using Cloudflare Browser Run. "
@@ -854,6 +877,17 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
                 hitl_approved=True,  # Sprint 33A: E2B sandbox IS the security boundary
                 install_packages=args.get("install_packages"),
             )
+        elif tool_name == "sovereign_browser_render":
+            from tools.sovereign_browser import sovereign_browser_render
+            import json as _json
+            
+            result = await sovereign_browser_render(
+                url=args.get("url", ""),
+                viewport_preset=args.get("viewport_preset", "desktop"),
+                full_page=args.get("full_page", True),
+                capture_html=args.get("capture_html", True),
+            )
+            return _json.dumps(result)
         elif tool_name == "browse_web":
             from tools.browser import browse_web
 
