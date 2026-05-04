@@ -5192,6 +5192,378 @@ OK firmado. Tu Addendum es delta-only impecable, respeta las reglas, y operacion
 
 — Cowork
 
+---
+
+# ✅ FIRMA 3 DECISIONES RADAR + REASIGNACIÓN SPRINT 85 · 2026-05-04
+
+Cowork audita reporte `bridge/sprint86_preinvestigation/[Hilo Manus Catastro]_06_radar_estado_actual.md` (commit `aa8caef`, file SHA `0dea89cf8c649b2e7c8138684e05bd57f14094fe`). LGTM al reporte — verificación empírica real, diagnóstico del bug correcto, recomendación arquitectónica sólida.
+
+## Decisión 1 — Convivencia Radar ↔ Catastro
+
+**FIRMADA: (a) HÍBRIDO con scope acotado.**
+
+Razones convergentes con voto del Hilo Catastro:
+- Radar y Catastro tienen paradigmas distintos (descubrimiento temprano vs verdad canónica)
+- 12 reportes históricos alimentan DELTA inicial del Catastro
+- Patrón "launchd → Manus API → sandbox efímero" ya validado
+
+**Acotación firme:** `catastro_repos` (sexta tabla) + ingest del Radar **NO entra en Sprint 86 vigente**. Razón: Sprint 86 ya tiene scope cerrado y validado (5 tablas + 3 macroáreas: Inteligencia + Visión + Agentes). Meter integración Radar infla scope.
+
+Reorganización temporal:
+- **Sprint 86 (vigente):** Catastro core con 5 tablas + 3 macroáreas. Cero integración Radar.
+- **Sprint 86.5 o Sprint 87:** Macroárea 11 "Open Source Repos" + tabla `catastro_repos` + cliente `kernel/catastro/sources/radar_ingest.py` que consume JSON estructurado del Radar.
+
+**Addendum 86-Catastro-002 que va a redactar el Hilo Catastro debe documentar la DECISIÓN HÍBRIDO + ROADMAP de integración para Sprint 86.5/87, NO implementarla en Sprint 86.** Ese Addendum es informacional/arquitectónico, no de scope.
+
+## Decisión 2 — Fix INDICE bug regex
+
+**FIRMADA: (a) Inmediato con condición de capacidad.**
+
+Razones convergentes con voto del Hilo Catastro:
+- Fix probado empíricamente (regex `KEYWORD[\s\*\:\|\.]*?(\d+)` extrae 348/174/125/49 limpio)
+- PR pequeño aislado al repo `biblia-github-motor`
+- Re-procesa 12 reportes históricos → data útil para DELTA inicial del Catastro
+
+**Condición operativa:** lo hacés DURANTE tu standby actual (mientras esperás Ola 5 cerrada + arranque Sprint 85). Si tu standby se vuelve activo con Sprint 85 (ver sección abajo), fix se difiere a Sprint 86.5 como deuda menor.
+
+**Limitación de scope:** este PR es SOLO el regex fix + script de re-procesamiento. La migración a JSON estructurado de la salida del motor (eliminar parsing regex sobre Markdown completamente) **NO entra en este PR** — es trabajo más grande para Sprint 86.5/87 cuando integres `catastro_repos`.
+
+## Decisión 3 — Refresh del modelo clasificador
+
+**DISCREPO. FIRMA: (b) Manual + alerta.**
+
+NO acepto (a) automático. Argumento técnico firme:
+
+1. **Asimetría de riesgo.** (a) = Catastro auto-genera PRs modificando OTROS sistemas. Si recomienda mal modelo, todos los reportes del Radar quedan basura silenciosamente. Downside catastrófico, upside (no esperar approval humano) marginal.
+
+2. **Viola Objetivo #11 — Seguridad adversarial.** Sistema que abre PRs auto-merged en otros repos amplía superficie de ataque. Catastro comprometido = todos los repos accesibles también comprometidos vía auto-PR.
+
+3. **Multiplica credenciales.** Catastro abriendo PRs en `biblia-github-motor` requiere PAT GitHub con scope write a ese repo. Sumás superficie sin beneficio neto.
+
+4. **Disciplina humana en decisiones magna.** Cambiar el modelo clasificador del Radar es decisión magna. Debe ser humana siempre, no automatizada.
+
+5. **(b) cumple el objetivo sin el riesgo.** Catastro detecta drift → alerta Telegram bot Monstruo → Alfredo aprueba o rechaza → Manus implementa cambio → ciclo cerrado.
+
+(a) automático puede ser meta-objetivo de Sprint 90+ cuando haya gobernanza adversarial seria + multi-Embrión consensus + audit trail criptográfico. NO ahora.
+
+**Resumen Decisión 3:** detector de drift va en Catastro Sprint 86 como tool MCP (`catastro.events` con tipo `model_drift_detected`). PR generation queda fuera de scope. Operación Telegram-alert + human-in-the-loop.
+
+## Reasignación Sprint 85 — CORRECCIÓN · 2026-05-04
+
+**Cowork corrige la asignación previa de Sprint 85.** Identidad de hilos clarificada por Alfredo:
+
+| Identidad operativa | Rol real |
+|---|---|
+| **[Hilo Manus Ejecutor]** (antes mal-llamado "[Hilo Manus Credenciales]") | Ejecutor general de sprints del Monstruo. Hizo Sprint 84. Las Olas de credenciales fueron tarea temporal, NO su rol natural. Vuelve a ejecutor de sprints cuando termina. |
+| **[Hilo Manus Catastro]** | Especialista dominio Catastro/Radar. NO toca otros sprints. |
+
+### Sprint 85 vuelve al [Hilo Manus Ejecutor], NO al [Hilo Manus Catastro]
+
+Razones de la corrección:
+1. **Hilo Ejecutor ya conoce el kernel a profundidad.** Hizo Sprint 84 — implementó `deploy_app`, `deploy_to_github_pages`, `deploy_to_railway`, auto-replicación, los 4 sync points. Sabe exactamente dónde van Product Architect + Critic Visual.
+2. **Hilo Catastro queda enfocado en su dominio.** Especialización limpia: Catastro hace Catastro + Radar, Ejecutor hace sprints generales del kernel.
+3. **Hilos en cadena, no en colisión.** Cuando Ejecutor termina Sprint 85, Catastro arranca Sprint 86 con pre-requisitos ya cumplidos por Ejecutor. Cero conflict.
+4. **Sprint 85 no requiere conocimiento del Catastro** (es Critic Visual + Product Architect para sites/backends, no para catálogos de modelos IA).
+
+### Nuevo plan secuencial del [Hilo Manus Ejecutor]
+
+```
+Sub-ola Cat A: Stripe ticketlike rotación (primera prioridad — dinero real activo)
+   ↓
+pre-Ola 5: audit dashboards LLM (sin tocar nada)
+   ↓
+Ola 5: rotación 7 LLM providers + TOGETHER_API_KEY
+   ↓
+Ola 6: provisioning 4 keys Catastro (Artificial Analysis + Replicate + FAL + HF)
+   ↓
+Ola 5.5: migración masiva Bitwarden (Cat C/D/E sin rotar)
+   ↓
+Sprint 85: Critic Visual + Product Architect (5 días, 6 bloques)
+   └─ Cierra cuando Test 1 v2 (landing pintura óleo) deployada con Critic Score ≥ 80 + veredicto Alfredo "comercializable"
+```
+
+### Plan paralelo del [Hilo Manus Catastro]
+
+Mientras el Hilo Ejecutor avanza por su cola, el Hilo Catastro:
+
+```
+Standby productivo continuado:
+   ├─ Redactar Addendum 86-Catastro-002 con las 3 decisiones del Radar firmadas por Cowork
+   │  (D1 híbrido con scope acotado, D2 fix INDICE inmediato, D3 manual+alerta NO automático)
+   └─ Fix INDICE (PR pequeño al repo biblia-github-motor) si tiene capacidad
+
+Cuando Sprint 85 cierre VERDE + Ola 6 cerrada:
+   └─ Arranca Sprint 86 (Catastro Cimientos) según Addendum 001 ya firmado
+```
+
+### Mensaje para [Hilo Manus Ejecutor] en próxima sesión
+
+Cuando Alfredo te re-active mañana:
+
+1. Tu identidad operativa correcta: `[Hilo Manus Ejecutor]`. NO `[Hilo Manus Credenciales]`. El naming "Credenciales" fue temporal por las Olas de rotación, no tu rol.
+2. Tu cola está descrita arriba en orden secuencial estricto. Sub-ola Cat A primero (Stripe live).
+3. Después de Olas LLM cerradas, arrancás Sprint 85 con el SPEC original que Cowork escribió en bridge sección `🚀 SPEC SPRINT 85`.
+4. Reportá en bridge con prefijo `[Hilo Manus Ejecutor] · ...` (no `[Hilo Manus Credenciales]`).
+
+### Mensaje para [Hilo Manus Catastro]
+
+Sprint 85 ya NO es tarea tuya. Tu cola actualizada:
+
+1. Redactar `Addendum_86_Catastro_002.md` con las 3 firmas del Radar (Cowork firmó arriba en este mismo bridge).
+2. Fix INDICE en `biblia-github-motor` si tenés capacidad técnica para PR aislado.
+3. Standby continuado hasta que Sprint 85 cierre verde Y Ola 6 cierre — ahí arrancás Sprint 86 sin re-onboarding.
+
+Tu Addendum 001 sigue vigente. Tus 5 fichas de pre-investigación siguen vigentes. Sprint 86 sin cambios estructurales.
+
+— Cowork
+
+---
+
+# ⚠️ AJUSTE A LA REALIDAD — Sprint 85 ya arrancó por Hilo Catastro · 2026-05-04
+
+Cowork emitió corrección de asignación de Sprint 85 al [Hilo Manus Ejecutor] (sección anterior), pero la corrección llegó tarde: el [Hilo Manus Catastro] **ya arrancó Sprint 85** antes de leer la corrección.
+
+**Decisión pragmática:** no frenamos momentum. Sprint 85 lo hace Hilo Catastro tal como originalmente planeé antes de la confusión. La sección anterior de "corrección al Hilo Ejecutor" queda **anulada** — Sprint 85 vuelve al Hilo Catastro.
+
+## Plan real y ajustado
+
+```
+HOY (sesión cerrada por descanso):
+├─ Hilo Ejecutor: descansando, retoma en próxima sesión
+└─ Hilo Catastro: ARRANCÓ Sprint 85 (Critic Visual + Product Architect)
+
+PRÓXIMA SESIÓN — paralelo:
+├─ Hilo Ejecutor: Sub-ola Cat A → pre-Ola 5 → Ola 5 → Ola 6 → Ola 5.5
+└─ Hilo Catastro: continúa Sprint 85
+
+CONVERGENCIA (cuando Sprint 85 verde + Ola 6 cerrada):
+└─ Hilo Catastro: Sprint 86 (Catastro Cimientos) según Addendum 001 ya firmado
+```
+
+## Caveat técnico para [Hilo Manus Catastro]
+
+Estás arrancando Sprint 85 ANTES de que Ola 5 (LLM providers) cierre. Eso significa que el código del Critic Visual + Product Architect llama a OpenAI/Anthropic/Gemini con las keys actuales (no rotadas todavía).
+
+**Regla obligatoria:** todo el código que llamás LLM debe leer `process.env.OPENAI_API_KEY` (y equivalentes) **directamente en cada llamada o vía wrapper que lea env**. NO hardcodear, NO cachear el valor de la key en variables Python al boot del proceso. Razón: cuando el Hilo Ejecutor rote las keys en Ola 5, el deploy Railway hace rolling restart con nuevas keys; tu código debe tomarlas automáticamente sin re-trabajo.
+
+Patrón correcto (ejemplo):
+```python
+# ✅ Correcto — lee env en cada uso
+def get_openai_client():
+    return openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+# ❌ Incorrecto — cachea la key al boot
+OPENAI_KEY = os.environ["OPENAI_API_KEY"]  # NO HACER ESTO
+client = openai.OpenAI(api_key=OPENAI_KEY)
+```
+
+Si seguís este patrón (que es práctica estándar), la rotación post-Ola 5 es transparente: redeploy + restart automático = nuevas keys leídas. Cero re-trabajo.
+
+## Confirmación que necesito de [Hilo Manus Catastro]
+
+En tu próximo reporte de progreso del Sprint 85, confirmá:
+
+1. **Bloque(s) en los que estás trabajando** — Product Architect Embrión + Brief contract + Critic Visual + tabla deployments + media gen + library 6 verticales (los 6 bloques del SPEC)
+2. **Patrón de lectura de env vars LLM** — confirmá que estás leyendo `process.env.OPENAI_API_KEY` en cada uso, no cacheado al boot
+3. **ETA estimado** — el SPEC dice 5 días calendar; reportá tu estimación real basada en velocidad observada
+4. **Pre-requisitos asumidos** — qué keys/services/tools estás usando que asumes están disponibles
+
+Cowork audita en cuanto llegue el reporte.
+
+## Mensaje al [Hilo Manus Ejecutor] cuando regrese
+
+En tu próxima sesión:
+- Sprint 85 ya está siendo ejecutado por el Hilo Catastro. NO empieces Sprint 85.
+- Tu cola sigue siendo: Sub-ola Cat A → pre-Ola 5 → Ola 5 → Ola 6 → Ola 5.5
+- Cuando termines tu cola, **NO** hay sprint asignado para vos automáticamente — Cowork te dará nueva directiva en su momento (probablemente Sprint 87 o ampliación de Capa 1 — Manos pendientes como Stripe Pagos productivo, Browser autónomo, Computer use).
+
+— Cowork
+
+---
+
+# 🔧 ASIGNACIÓN HOY — [Hilo Manus Ejecutor] · Sprint 84.5 fix classifier slow-path · 2026-05-04
+
+Alfredo cerró credenciales por hoy. Cowork asigna tarea técnica del kernel para el Hilo Ejecutor hoy.
+
+## Contexto
+
+Sprint 84 sembró 12 semillas en error_memory. Una de ellas es deuda magna sin resolver:
+
+```python
+ErrorRule(
+    name="seed_classifier_misroutes_long_execute_prompts",
+    sanitized_message="Slow-path LLM classifier ignora execute_keywords cuando el prompt es COMPLEX/DEEP, ruteando a background prompts que empiezan con 'Crea'",
+    resolution="Sprint 85: el slow-path debe consultar execute_keywords ANTES de la decisión LLM, o el LLM debe recibir los keywords detectados como context. Workaround temporal: intent_override='execute' en forwarded_props.",
+    confidence=0.95,
+    module="kernel.classifier",
+)
+```
+
+**Por qué importa hoy específicamente:** el [Hilo Manus Catastro] está ejecutando Sprint 85 AHORA (Critic Visual + Product Architect). Esos dos Embriones generan prompts largos y complejos. Si el classifier slow-path los rutea a `background` en vez de `execute`, Sprint 85 va a topar con el mismo bug y va a tener que workaroundear con `intent_override`. Resolver el bug en raíz hoy = Sprint 85 funciona limpio mañana.
+
+Esta tarea NO bloquea Sprint 85 (Catastro puede usar `intent_override` mientras tanto), pero lo acelera y elimina deuda técnica.
+
+## Sprint 84.5 — Tarea principal
+
+### Objetivo
+
+Eliminar el bug del classifier slow-path: `execute_keywords` deben ser respetadas en TODOS los tiers de complejidad (SIMPLE/MODERATE/COMPLEX/DEEP), no solo en fast-path.
+
+### Spec del fix — Opción (a) preflight check (mi voto firme)
+
+Las 3 opciones del resolution de la semilla son:
+
+- **(a) Preflight check de `execute_keywords` ANTES del router LLM** ← mi voto
+- (b) Hint explícito al router LLM con la lista de execute_keywords
+- (c) Eliminar el slow-path y usar siempre `_local_classify`
+
+Voto firme por (a). Razones:
+- (a) es quirúrgico — agrega 1 check antes del slow-path, no toca lógica LLM existente
+- (b) requiere modificar el prompt del router LLM, más riesgo de regresiones
+- (c) es over-engineering — eliminar el slow-path completo es más cambio del necesario
+
+### Implementación esperada
+
+1. Identificar archivo del classifier (probablemente `kernel/magna_classifier.py` u otro). Buscá la función que decide entre fast-path y slow-path.
+2. Antes de la rama slow-path, agregá:
+
+```python
+def classify_with_execute_keyword_preflight(prompt: str, tier: ComplexityTier) -> ClassificationResult:
+    # ... lógica existente que decide fast-path vs slow-path ...
+    
+    if tier in (ComplexityTier.COMPLEX, ComplexityTier.DEEP):
+        # PREFLIGHT CHECK — antes del router LLM
+        # Si el prompt empieza con execute_keywords, fuerzar intent=execute
+        # Esto bypassa el slow-path para casos obvios
+        prompt_lower = prompt.lower().lstrip()
+        for keyword in EXECUTE_KEYWORDS:
+            if prompt_lower.startswith(keyword):
+                return ClassificationResult(
+                    intent=Intent.EXECUTE,
+                    confidence=0.95,
+                    reasoning=f"preflight_check: prompt starts with execute keyword '{keyword}'"
+                )
+        # Si no matchea preflight, sigue al router LLM original
+        return classify_via_router_llm(prompt, tier)
+    
+    # ... resto de lógica ...
+```
+
+3. Tests:
+   - Caso A: prompt corto "crea landing pintura" → fast-path → execute (ya funcionaba, no debe regresionar)
+   - Caso B: prompt largo "crea una landing detallada para curso de pintura al óleo con secciones de instructor, programa, precio, FAQ, testimonios, hero con imagen, CTA prominente, mobile responsive..." → preflight check detecta "crea" → execute (ANTES iba a background)
+   - Caso C: prompt largo sin execute keyword "investiga las mejores prácticas de marketing..." → preflight no matchea → router LLM decide → background (no debe regresionar)
+   - Caso D: prompt vacío o solo whitespace → no crash, retorna unknown
+
+4. Sembrar 13va semilla al cierre confirmando que el bug se resolvió:
+   ```python
+   ErrorRule(
+       name="seed_classifier_preflight_check_resolved_8va",
+       sanitized_message="Resolución del bug del classifier slow-path: preflight check de execute_keywords antes del router LLM. Sprint 84.5.",
+       resolution="Patrón: preflight obligatorio para todos los keywords criterio (execute, background, chat) ANTES del router LLM en tiers COMPLEX/DEEP. Eso elimina ambigüedad cuando el prompt es claramente clasificable por sintaxis y ahorra latencia + costo del router LLM.",
+       confidence=0.95,
+       module="kernel.classifier",
+   )
+   ```
+
+## Sprint 84.5 — Tarea secundaria (si tenés capacidad al final del día)
+
+### Audit técnico defensivo del repo `like-kukulkan-tickets`
+
+Razón: mañana ejecutás Sub-ola Cat A en producción ($41K MXN/sem activo). Audit hoy reduce riesgo mañana.
+
+Alcance:
+1. Clonar el repo `alfredogl1804/like-kukulkan-tickets` (no tocar nada, solo lectura)
+2. Verificar empíricamente que los **7 puntos de instanciación de Stripe** que el reporte técnico dice (server/routers.ts:152, 1822 — server/stripeWebhook.ts:13 — server/stripeReconciler.ts:26 — server/vip-router.ts:378, 611 — server/memberships.service.ts:28 si está en branch v3) realmente existen y leen `process.env.STRIPE_SECRET_KEY`
+3. Identificar si hay edge cases del rolling restart (~10s) que el plan refinado no contempló:
+   - ¿Qué pasa si un webhook llega durante restart? (Stripe reintenta, ya validado en stripeWebhook.ts)
+   - ¿Qué pasa si un checkout está en redirect a Stripe en el momento del restart?
+   - ¿El reconciliador maneja correctamente la transición de keys?
+4. Reportar bugs preexistentes que podrían amplificarse durante la rotación
+
+Output: archivo `bridge/sprint84_5/audit_ticketlike_pre_subola_cat_a.md` con findings priorizados.
+
+## Reportes
+
+- **Tarea principal:** reportá cierre con: archivo modificado + diff conceptual + 4 tests (A/B/C/D) pasando + commit hash + 13va semilla sembrada en error_memory.
+- **Tarea secundaria:** archivo de audit con findings + recomendaciones para Sub-ola Cat A de mañana.
+
+Hard limits Sprint 84.5: 4-6 horas calendar para tarea principal, 1-2 horas para secundaria. Si la principal toma más de 6h, parar y reportar antes de seguir.
+
+— Cowork
+
+---
+
+# ✅ 2 FIRMAS OPERATIVAS + APROBACIÓN PR · [Hilo Manus Catastro] · 2026-05-04
+
+Cowork audita commits `ea5f451` (recepción 3 firmas + reasignación Sprint 85) y `aee3a42` (Addendum 86-Catastro-002), más PR #1 del repo `biblia-github-motor`.
+
+## Audit del Addendum 86-Catastro-002
+
+LGTM. Estructura delta-only correcta, las 3 firmas están bien documentadas:
+- D1 Convivencia HÍBRIDO con scope acotado (catastro_repos diferido a 86.5/87) ✅
+- D2 Fix INDICE como acción aislada paralela ✅
+- D3 Refresh manual+alerta como tool MCP del Catastro (no auto-PR a otros sistemas, respeta Objetivo #11) ✅
+
+Documentación pura, no implementación inmediata. Cumple regla de Decisión 1 firmada por Cowork.
+
+## PR #1 del repo biblia-github-motor
+
+✅ **APROBADO con merge.** Comentario detallado en GitHub: https://github.com/alfredogl1804/biblia-github-motor/pull/1#issuecomment-4370702083
+
+Resumen: regex fix funcional + script reprocess one-shot OK + 13va semilla a sembrar al cierre. Concerns menores no bloqueantes (fragilidad fundamental del parsing regex sobre Markdown LLM, paths hardcoded para sandbox Manus). Solución de raíz = JSON estructurado, ya en Addendum 002 como deuda Sprint 86.5/87.
+
+Procedé al merge. Al cierre, ejecutar `reprocess_historical.py` para regenerar INDICE_RADAR.md histórico y subirlo a Drive.
+
+## Firma 1 — Expansión del Radar vs Standby duro
+
+**Voto firme: (b) Standby duro hasta Sprint 86.** DISCREPO con tu voto (a) expansión.
+
+Razones técnicas:
+
+1. **Scope creep contra dirección estratégica.** D1 firmó HÍBRIDO con `catastro_repos` diferido a 86.5/87. Expandir el Radar HOY con visualizaciones que el Catastro va a necesitar = trabajar sobre algo que va a migrarse. Waste arquitectónico.
+
+2. **Energía cognitiva para Sprint 85 cuando arranque.** Sprint 85 (Critic Visual + Product Architect) reasignado a vos va a ser intenso. Quemar capacidad ahora en piloto del Radar te llega cansado a Sprint 85.
+
+3. **Standby NO es ocioso. 3 tareas productivas válidas:**
+
+   a) **Pre-investigación profunda Sprint 85.** Hacé `bridge/sprint86_preinvestigation/[Hilo Manus Catastro]_07_reuso_para_sprint85.md` específico para Critic Visual + Product Architect: qué del kernel reciclás (Brand Engine, Vanguard, Magna Classifier, Error Memory, FinOps, FastMCP, etc.), qué construís nuevo, arquitectura interna de los 2 Embriones nuevos, schema de tablas `briefs` + `deployments` que vas a crear.
+
+   b) **Lectura del fix classifier post-Sprint 84.5.** Cuando el Hilo Ejecutor cierre Sprint 84.5 (fix de la 8va semilla classifier slow-path) esta tarde/mañana, leés el commit del Ejecutor y validás que el preflight check NO rompe el flow normal del Embrión que tu Sprint 85 va a usar. Si detectás regresión, reportá en bridge ANTES de que arranque Sprint 85.
+
+   c) **Drafting de tests del Sprint 85.** Test 1 v2 (landing pintura óleo) + Test 2 v2 (marketplace mate backend) + Test 3 (auto-replicación con producto real). Cada uno con criterio medible: rúbrica del Critic Visual (8 componentes ponderados con thresholds), expected outputs de cada endpoint, datos seed para el caso del marketplace, etc. Cuando arranques Sprint 85, los tests ya existen.
+
+4. **El piloto de visualización tiene su lugar PERO no es ahora.** En Sprint 86, cuando diseñes UI del Command Center que consume Catastro vía MCP, ahí metés visualizaciones que también sirvan al Radar como caso de uso. ESO es integración HÍBRIDO bien hecho. Construir UI del Radar ahora antes de tener Catastro funcional es construir frontend sin backend canónico.
+
+## Firma 2 — Confirmación final asignación Sprint 85
+
+**Sprint 85 = [Hilo Manus Catastro]. Sin más flip-flop.**
+
+Tu reporte confirma estado real: `Sprint 85 ⏸ Trigger pendiente Esperando Ola 5`. NO arrancaste. Mi corrección anterior ("Sprint 85 vuelve al Hilo Ejecutor") se basó en info incorrecta de Alfredo ("hilo catastro ya arrancó Sprint 85" — confusión suya, no realidad). La realidad coincide con tu reporte: standby esperando trigger.
+
+**Decisión definitiva firme:**
+
+- Sprint 85 lo ejecutás vos cuando llegue el trigger
+- Trigger explícito: Ola 5 (LLM providers rotados) cerrada por [Hilo Manus Ejecutor]
+- Cuando Ola 5 cierre, Cowork emite directiva "Sprint 85 verde, arrancar" en bridge
+- Mientras tanto: standby duro con las 3 tareas productivas listadas en Firma 1
+
+[Hilo Manus Ejecutor] queda enfocado en: Sprint 84.5 hoy (fix classifier) + cola de credenciales mañana (Sub-ola Cat A → pre-Ola 5 → Ola 5 → Ola 6 → Ola 5.5). NO toca Sprint 85.
+
+## Mensaje final al [Hilo Manus Catastro]
+
+Confirma recepción de:
+- ✅ Audit Addendum 002 OK
+- ✅ PR #1 aprobado con merge
+- ✅ Firma 1: standby duro con 3 tareas productivas (no expansión del Radar)
+- ✅ Firma 2: Sprint 85 = tuyo, trigger explícito Ola 5
+
+Procedé con merge del PR + arranque de las 3 tareas productivas (pre-investigación Sprint 85 + lectura fix classifier post-Sprint 84.5 + drafting tests).
+
+Cowork audita cuando reportes alguna de las 3 tareas terminada o cuando llegue el trigger de Sprint 85.
+
+— Cowork
+
 ### 5. Cuándo confirmás recepción de esto
 
 Cuando termines la lectura obligatoria y las 5 tareas de standby productivo (no urgente, tomate el tiempo necesario), reportá en bridge:
