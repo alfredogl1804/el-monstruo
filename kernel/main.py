@@ -1225,12 +1225,86 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.error("error_memory_seed_endpoint_failed", error=str(e))
             raise HTTPException(500, detail=f"seed_failed: {str(e)[:200]}")
-    # ── /Sprint 84.5.5 ─────────────────────────────────────────
-    # ── /Sprint 81 ─────────────────────────────────────────────────
+    #     # ── /Sprint 84.5.5 ─────────────────────────────
+
+    # ── Sprint 84.6: Browser Automation Soberano ──────────────
+    # 3 endpoints HTTP /v1/browser/* que envuelven SovereignBrowser.
+    # Auth: header X-API-Key debe coincidir con MONSTRUO_API_KEY.
+    # Implementan el spec del Hilo Catastro (Critic Visual del Sprint 85).
+    def _require_browser_admin_key(req: Request) -> None:
+        admin_key = os.environ.get("MONSTRUO_API_KEY", "")
+        if not admin_key:
+            raise HTTPException(503, detail="MONSTRUO_API_KEY no configurada")
+        provided = req.headers.get("X-API-Key", "") or req.headers.get(
+            "Authorization", ""
+        ).replace("Bearer ", "").strip()
+        if provided != admin_key:
+            raise HTTPException(401, detail="unauthorized")
+
+    @app.post("/v1/browser/render", tags=["browser"])
+    async def browser_render(request: Request):
+        """Renderiza URL: screenshot + HTML + Web Vitals."""
+        _require_browser_admin_key(request)
+        body = await request.json()
+        url = body.get("url", "")
+        if not url:
+            raise HTTPException(400, detail="url_requerida")
+        viewport = body.get("viewport")
+        full_page = bool(body.get("full_page", True))
+        capture_html = bool(body.get("capture_html", True))
+        try:
+            from kernel.browser import SovereignBrowser
+            sb = SovereignBrowser()
+            res = await sb.render(
+                url=url,
+                viewport=viewport,
+                full_page=full_page,
+                capture_html=capture_html,
+            )
+            return res.to_dict()
+        except Exception as e:
+            logger.error("browser_render_endpoint_failed", error=str(e)[:200])
+            raise HTTPException(500, detail=f"render_failed: {str(e)[:200]}")
+
+    @app.post("/v1/browser/metrics", tags=["browser"])
+    async def browser_metrics(request: Request):
+        """Solo Core Web Vitals (TTFB, LCP, load_time) sin screenshot."""
+        _require_browser_admin_key(request)
+        body = await request.json()
+        url = body.get("url", "")
+        if not url:
+            raise HTTPException(400, detail="url_requerida")
+        try:
+            from kernel.browser import SovereignBrowser
+            sb = SovereignBrowser()
+            res = await sb.metrics(url=url)
+            return res.to_dict()
+        except Exception as e:
+            logger.error("browser_metrics_endpoint_failed", error=str(e)[:200])
+            raise HTTPException(500, detail=f"metrics_failed: {str(e)[:200]}")
+
+    @app.post("/v1/browser/check_mobile", tags=["browser"])
+    async def browser_check_mobile(request: Request):
+        """Renderiza en viewport mobile (375x812) y detecta scroll horizontal."""
+        _require_browser_admin_key(request)
+        body = await request.json()
+        url = body.get("url", "")
+        if not url:
+            raise HTTPException(400, detail="url_requerida")
+        try:
+            from kernel.browser import SovereignBrowser
+            sb = SovereignBrowser()
+            res = await sb.check_mobile(url=url)
+            return res.to_dict()
+        except Exception as e:
+            logger.error("browser_check_mobile_endpoint_failed", error=str(e)[:200])
+            raise HTTPException(500, detail=f"check_mobile_failed: {str(e)[:200]}")
+    # ── /Sprint 84.6 ──────────────────────────────────
+    # ── /Sprint 81 ───────────────────────────────────
 
     logger.info(
         "monstruo_ready",
-        version="0.84.7-sprint84.7",
+        version="0.84.7-sprint84.6",
         motor="langgraph",
         router="connected" if router else "stub",
         autonomy="active" if autonomous_runner else "inactive",
