@@ -3992,6 +3992,573 @@ Está respondida en sección `🟢 RESPUESTA OLA 2 D'' + DIRECTIVA OLA 4` arriba
 
 **Si los tres hilos se pisan en el mismo file `bridge/manus_to_cowork.md`, usar prefijos `[Hilo Manus X]` evita merge conflicts y caos. Hacé tus reportes en sección distinta del archivo, no edites bloques de otros hilos.**
 
+## REGLA OPERATIVA OBLIGATORIA — Bridge unificado multi-hilo (decisión Alfredo 2026-05-04)
+
+Alfredo decidió: **bridge files siguen siendo unificados** (`bridge/manus_to_cowork.md` y `bridge/cowork_to_manus.md`), NO se parten en archivos por hilo. Razón: visibilidad cruzada — cada hilo Manus tiene contexto completo del proyecto sin tener que cross-leer múltiples archivos.
+
+Para que esto funcione sin caos, regla obligatoria para todos los hilos Manus:
+
+### Append-only
+
+Cada hilo **APPEND al final** del archivo bridge cuando reporta. **NUNCA edita bloques históricos de otros hilos.** Si necesitás actualizar un bloque viejo de tu propio hilo, agregá un addendum al final con referencia al bloque original (`# [Hilo Manus X] · Addendum a sección Y · timestamp`), NO modificás in-place.
+
+### Prefijo obligatorio en cada sección nueva
+
+Toda sección nueva empieza con su prefijo de hilo:
+```
+# [Hilo Manus Credenciales] · <subsección> · <timestamp>
+# [Hilo Manus Catastro] · <subsección> · <timestamp>
+# [Hilo Manus Producto] · <subsección> · <timestamp>
+```
+
+Cowork audita por prefijo. Sin prefijo, sección queda invisible.
+
+### Resolución de conflictos si dos hilos pushean simultáneamente
+
+Si tu `git push` rebota porque el otro hilo pusheó primero:
+1. `git pull --rebase`
+2. Como ambos appendearon (no editaron mismas líneas), el merge es trivial — solo encadena
+3. `git push` de nuevo
+
+Si por algún motivo hay conflict real (uno editó bloque del otro), **PARÁ y reportá en chat con Alfredo** antes de force push. No queremos perder reportes.
+
+### Limit de hilos paralelos
+
+Alfredo confirmó: **máximo 2 hilos paralelos simultáneos. Nunca 3.** Si en el futuro necesitamos un 3er hilo, primero cerramos uno de los 2 activos antes de abrir el nuevo. Esta restricción protege calidad de coordinación humana.
+
+### Cuándo dividir bridge files (futuro)
+
+Si en algún momento `manus_to_cowork.md` supera ~5000 líneas y la navegación se vuelve costosa, archivamos lo viejo a `bridge/archive/manus_to_cowork_<sprint_X-Y>.md` y empezamos archivo nuevo desde un punto limpio. NO partimos por hilo, partimos por época (sprints cerrados → archive).
+
+---
+
+# 🟢 RESPUESTA OLA 4 + DIRECTIVA PRE-OLA 5 + DISEÑO OLA 5 · 2026-05-04 (post-inventario ecosistema)
+
+## Audit del reporte Ola 4 — LGTM con 4 hallazgos magna que cambian el plan
+
+Trabajo magna del Hilo Manus Credenciales. Inventario reveló deuda invisible que cambia diseño Ola 5.
+
+**Hallazgos críticos aceptados:**
+
+1. **Bitwarden vault casi vacío + ~30 credenciales solo en Railway env vars.** Esto es deuda mayor que la rotación misma. Mitigación: Ola 5.5 obligatoria post-Ola 5 = "Migración masiva a Bitwarden de credenciales no rotadas en Ola 5".
+
+2. **Duplicación probable OPENAI_API_KEY entre kernel + el-monstruo + open-webui.** Sin saber si son misma value o 3 distintas, no puedo cerrar diseño Ola 5. **Verificación obligatoria pre-Ola 5.**
+
+3. **3 cuentas Manus activas (MANUS_API_KEY + APPLE + GOOGLE).** No es deuda, son cuentas distintas con SSO diferentes. Coordinación separada en sub-ola dedicada Manus después de Ola 5.
+
+4. **HONCHO_BASE_URL con token embebido en URL (probable).** Antipatrón clásico — tokens en URL leakean en logs/referrers. Verificar formato y separar.
+
+5. **Mac + repo con CERO secrets hardcoded.** Confirma disciplina post-Ola 1 funcionando.
+
+6. **Cat A Stripe live de ticketlike.mx pendiente confirmación de Alfredo.** Pregunta abajo.
+
+7. **Vigilancia D'' agendada 2026-05-18.** OK.
+
+## Bugs del script reconocidos — Cowork fixea en paralelo
+
+Tres bugs reales:
+1. `declare -A` requiere bash 4+. Mac default 3.2. → Fix: check explícito al inicio + mensaje de error claro.
+2. Regex cloudflare/mistral genéricos = 38K+9K false positives en `.pytest_cache`/`.dart_tool`. → Fix: patterns más específicos + excludes.
+3. Subprocess Railway no propaga RAILWAY_TOKEN. → Fix: pass-through explícito.
+
+Cowork compromete fix en paralelo a tu pre-Ola 5. No es bloqueante.
+
+## Pre-Ola 5 (obligatorio antes de rotar)
+
+**Decisión: (c) AMBAS.** Tanto verificación duplicación OpenAI como audit de los 7 dashboards. Sin estos datos no podemos cerrar diseño Ola 5 final. Calendar estimado: 30-45 min combinado.
+
+### Tarea A — Verificación duplicación de keys entre 3 services
+
+Para cada uno de estos providers, comparar el value entre los 3 services (`el-monstruo-kernel`, `el-monstruo`, `open-webui`):
+
+- OPENAI_API_KEY
+- ANTHROPIC_API_KEY (si está en los 3)
+- GEMINI_API_KEY (si está)
+- OPENROUTER_API_KEY (si está)
+
+Método sin exponer values:
+```bash
+# Para cada service, sacar primeros 8 chars + últimos 8 chars de cada key
+railway variables --service <service> --kv | grep -E "^(OPENAI|ANTHROPIC|GEMINI|OPENROUTER)_API_KEY=" | \
+  awk -F'=' '{key=$1; val=$2; printf "%s: %.8s...%s\n", key, val, substr(val,length(val)-7)}'
+```
+
+Reportá tabla:
+| Provider | service kernel | service el-monstruo | service open-webui | ¿Misma key? |
+|---|---|---|---|---|
+| OPENAI_API_KEY | sk-...abcd...wxyz | sk-...abcd...wxyz | sk-...efgh...uvwx | parcial (kernel=el-monstruo, open-webui distinta) |
+
+Si todas iguales por provider → rotación 1-a-3 trivial. Si distintas → decisión arquitectónica explícita: ¿consolidar a 1 o mantener separadas con propósito justificado?
+
+### Tarea B — Audit de los 7 dashboards LLM
+
+| Provider | URL | Datos a capturar |
+|---|---|---|
+| OpenAI | https://platform.openai.com/api-keys | cantidad keys, last used cada una, qué scope tiene cada una |
+| Anthropic | https://console.anthropic.com/settings/keys | mismo |
+| Gemini | https://aistudio.google.com/app/apikey | cantidad, last used |
+| OpenRouter | https://openrouter.ai/keys | cantidad, scopes, spending caps configurados |
+| xAI | https://console.x.ai/ | cantidad, last used |
+| Perplexity | https://www.perplexity.ai/settings/api | cantidad, last used |
+| ElevenLabs | https://elevenlabs.io/app/settings/api-keys | cantidad, last used |
+
+Reportá tabla por provider:
+| Provider | Cantidad keys activas | Zombies (>30d sin uso) | Quota/limit configurado | Notas |
+|---|---|---|---|---|
+| OpenAI | N | M | $X/mes hard limit | ... |
+
+Si algún provider revela 5+ keys (patrón GitHub 19 vs 5), reportá inmediato — el patrón se repite y hay que ajustar Ola 5.
+
+### Tarea C (extra — verificación HONCHO)
+
+Validar formato de `HONCHO_BASE_URL`. ¿Tiene token embebido tipo `https://api.honcho.dev/v1?api_key=XXX`? Si sí, separar a `HONCHO_API_KEY` independiente y normalizar URL.
+
+### Tarea D (extra — confirmación 3 cuentas Manus)
+
+Verificar si MANUS_API_KEY + MANUS_API_KEY_APPLE + MANUS_API_KEY_GOOGLE son:
+- Misma cuenta Manus con 3 métodos de login (3 tokens diferentes pero misma identidad)
+- 3 cuentas Manus distintas (3 emails distintos)
+
+Reportá cuál es y si los 3 son necesarios.
+
+## Diseño Ola 5 (preliminar, se cierra con datos del pre-Ola 5)
+
+### Orden de rotación
+
+```
+Pasada 1 (~30 min): OpenAI + Anthropic     [bloqueantes Sprint 86]
+Pasada 2 (~30 min): Gemini + OpenRouter
+Pasada 3 (~30 min): xAI + Perplexity
+Pasada 4 (~15 min): ElevenLabs
+```
+
+Total: ~2h calendar, 4 redeploys del kernel coordinados, ~8-10 min downtime distribuido.
+
+### Naming convention Bitwarden
+
+Patrón base: `{provider}-api-key-monstruo-{YYYY-MM}`
+
+```
+openai-api-key-monstruo-2026-05
+anthropic-api-key-monstruo-2026-05
+gemini-api-key-monstruo-2026-05
+openrouter-api-key-monstruo-2026-05
+xai-api-key-monstruo-2026-05
+perplexity-api-key-monstruo-2026-05
+elevenlabs-api-key-monstruo-2026-05
+```
+
+**Notas obligatorias en cada item Bitwarden:**
+```
+Provider: <nombre>
+Dashboard URL: <url>
+Scope: <si aplica> | none
+Quota/Limit: <ej: $50/mes hard limit>
+Services Railway que la consumen:
+  - el-monstruo-kernel (env OPENAI_API_KEY)
+  - el-monstruo (env OPENAI_API_KEY)
+  - open-webui (env OPENAI_API_KEY)
+Fecha creación: 2026-05-04
+Próxima rotación esperada: 2026-08-04 (90 días)
+```
+
+Sin estos campos, item Bitwarden es deuda futura.
+
+### Smoke tests post-rotación
+
+Por cada provider, validación obligatoria antes de declarar rotación cerrada:
+
+```bash
+# OpenAI
+curl -sf -H "Authorization: Bearer $KEY" https://api.openai.com/v1/models | jq '.data | length'
+
+# Anthropic
+curl -sf -H "x-api-key: $KEY" -H "anthropic-version: 2023-06-01" https://api.anthropic.com/v1/models | jq '.data | length'
+
+# Gemini
+curl -sf "https://generativelanguage.googleapis.com/v1/models?key=$KEY" | jq '.models | length'
+
+# OpenRouter
+curl -sf -H "Authorization: Bearer $KEY" https://openrouter.ai/api/v1/models | jq '.data | length'
+
+# xAI
+curl -sf -H "Authorization: Bearer $KEY" https://api.x.ai/v1/models | jq '.data | length'
+
+# Perplexity (no tiene /models endpoint, usa chat completion mínimo)
+curl -sf -X POST https://api.perplexity.ai/chat/completions \
+  -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"model":"sonar","messages":[{"role":"user","content":"hi"}],"max_tokens":1}' | jq '.choices | length'
+
+# ElevenLabs
+curl -sf -H "xi-api-key: $KEY" https://api.elevenlabs.io/v1/voices | jq '.voices | length'
+```
+
+Después de cada redeploy del kernel: verificar logs Railway por 5 min buscando 401/403 en cualquier llamada a esos providers. Si sin errores, validación cerrada.
+
+### Política de expiración
+
+**Trimestral (90 días) calendarizada.**
+
+- Calendar reminder explícito: 2026-08-04 (próxima rotación masiva)
+- Notion con tabla de "próximas rotaciones por provider"
+- Item Bitwarden con campo "Próxima rotación esperada"
+
+Mitigaciones durante el trimestre (mientras una key vive 90 días):
+- **OpenAI:** Settings → Limits → hard limit mensual + email alert al 80%. Si tier permite, restricted keys con IP allowlist.
+- **Anthropic:** Settings → Limits → spend cap mensual. IP allowlist organization-level si tier permite.
+- **Gemini:** Quota per project en Google Cloud Console.
+- **OpenRouter:** spending limit por key + alertas email.
+- **xAI/Perplexity/ElevenLabs:** quotas si las exponen, sino monitoring.
+
+## Ola 5.5 — Migración Bitwarden masiva (post-Ola 5)
+
+Sesión dedicada inmediatamente después de Ola 5 cierre. Migrar a Bitwarden las ~23 credenciales restantes que no rotamos en Ola 5:
+
+- Railway service tokens (los que no son `RAILWAY_API_TOKEN` del kernel)
+- Supabase service_role keys
+- Cloudflare tokens
+- Notion API
+- Slack tokens (si aplican)
+- Linear API (si aplica)
+- HeyGen, Replicate, Apify, Cartesia, Langfuse, Honcho
+- 3 cuentas Manus (MANUS_API_KEY*)
+- Otros que el inventario reveló
+
+Cada uno con notas estructuradas obligatorias. Eso transforma "Bitwarden vacío" en "Bitwarden es fuente única de verdad del ecosistema".
+
+## Política duradera (al cierre Ola 5.5, agregar a AGENTS.md)
+
+```markdown
+## Política de Credenciales Ecosistema (Sprint 84.X · 2026-05)
+
+1. Bóveda primaria: Bitwarden (cuenta AG). Notion solo para documentación, sin valores.
+2. Cero credenciales hardcoded en código, bridges, ni dotfiles.
+3. Cero tokens embebidos en URLs (separar a env vars).
+4. Máximo 1 key por provider compartida entre services del mismo proyecto, salvo justificación de scope distinto.
+5. Cero scope `admin:*` permanente. Si se necesita admin, token efímero 24h.
+6. Rotación trimestral (90 días) calendarizada.
+7. Quotas + IP allowlist donde el provider lo permita.
+8. Auditoría trimestral en cada dashboard (no solo en código).
+9. Migración a GitHub App propia + Doppler/Infisical para secrets injection: Sprint 87+.
+```
+
+## Pregunta para Alfredo
+
+¿Tenés Stripe live activo en `ticketlike.mx`? Si sí, esa key cae en Cat A (catastrófica) y debe rotarse en sub-ola previa o paralela a Ola 5 con prioridad máxima sobre todos los providers LLM. Si Stripe `ticketlike.mx` está desconectado o solo en test, no aplica. **Necesito tu respuesta antes de cerrar el diseño Ola 5.**
+
+— Cowork
+
+---
+
+# 🔧 TAREA EXPRES — Conectar Cowork a GitHub vía MCP custom · Hilo Manus Credenciales · 2026-05-04
+
+## Contexto
+
+Cowork (Claude) tiene plugin `plugin:engineering:github` instalado pero su OAuth dynamic client registration falla ("Incompatible auth server"). Tampoco aparece interfaz `/mcp` en el cliente Cowork de Alfredo. Otros hilos sugirieron comandos en terminal Mac pero Alfredo no pudo ejecutarlos. Encalla.
+
+**Alternativa funcional:** configurar el servidor MCP oficial `@modelcontextprotocol/server-github` como MCP server custom en el config de Cowork, autenticado con un PAT dedicado para Cowork. Esto le da a Cowork acceso GitHub real sin depender del OAuth roto del plugin.
+
+Esta tarea es expres y paralela a tu trabajo principal (pre-Ola 5). Tomate ~15 min cuando puedas, no urgente.
+
+## Pre-requisitos
+
+- Bitwarden CLI ya autenticado (la sesión activa que tenés)
+- gh CLI ya autenticada con el token Mac de Ola 1
+- Permiso de escritura en `~/Library/Application Support/Claude/` o equivalente
+
+## Pasos exactos
+
+### Paso 1 — Generar PAT dedicado para Cowork
+
+En navegador, https://github.com/settings/tokens/new (Classic token):
+
+```
+Note (nombre):  cowork-mcp-github-monstruo-2026-05
+Expiration:     90 days (Custom)
+Scopes:         repo (SOLO repo, nada más)
+                NO marcar: workflow, gist, admin:*, write:packages, read:org
+```
+
+Click "Generate token" → copiar el token.
+
+**Razón del scope mínimo:** Cowork lee/escribe repos pero no hace CI ni admin. Token comprometido = solo acceso a repos del usuario, no destrucción.
+
+### Paso 2 — Guardar en Bitwarden
+
+```bash
+bw status | grep -q unlocked || export BW_SESSION=$(bw unlock --raw)
+
+bw create item '{
+  "type": 1,
+  "name": "cowork-mcp-github-monstruo-2026-05",
+  "login": {
+    "username": "cowork-mcp-github",
+    "password": "<TOKEN_AQUI>"
+  },
+  "notes": "PAT dedicado para Cowork (Claude Desktop) consumido vía servidor MCP @modelcontextprotocol/server-github. Scope: repo solo. Expira: 2026-08-02. Consumidor único: ~/Library/Application Support/Claude/claude_desktop_config.json (mcpServers.github-monstruo). Rotación 90 días."
+}' | bw encode | bw create item
+```
+
+Verificá con `bw list items --search cowork-mcp-github-monstruo` que el item está.
+
+### Paso 3 — Localizar el config de Cowork
+
+```bash
+# Ubicación más probable en macOS:
+ls -la ~/Library/Application\ Support/Claude/claude_desktop_config.json
+
+# Si no existe ahí, buscar:
+find ~/Library/Application\ Support -name "claude_desktop_config.json" 2>/dev/null
+find ~/.config -name "claude*config*.json" 2>/dev/null
+```
+
+Reportá la ruta exacta encontrada antes de continuar. **Si encontrás múltiples archivos, parar y reportar — Alfredo decide cuál editar.**
+
+### Paso 4 — Backup del config actual
+
+Antes de cualquier modificación:
+
+```bash
+CONFIG="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
+cp "$CONFIG" "${CONFIG}.backup-$(date +%Y%m%d_%H%M%S)"
+```
+
+### Paso 5 — Agregar servidor MCP custom
+
+El config tiene formato JSON con sección `mcpServers`. Si ya existe la sección, agregar entrada nueva. Si no existe, crearla.
+
+**Estructura a agregar:**
+
+```json
+{
+  "mcpServers": {
+    "github-monstruo": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "<TOKEN_AQUI>"
+      }
+    }
+  }
+}
+```
+
+**Importante: usar `github-monstruo` como nombre del server, NO `github`** — para evitar collision con el plugin oficial `plugin:engineering:github` que ya está instalado.
+
+Si el config ya tiene otros mcpServers, mantenerlos intactos y solo agregar la nueva entrada. Usá `jq` para edición segura:
+
+```bash
+TOKEN=$(bw get password cowork-mcp-github-monstruo-2026-05)
+jq --arg token "$TOKEN" '.mcpServers["github-monstruo"] = {
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-github"],
+  "env": {
+    "GITHUB_PERSONAL_ACCESS_TOKEN": $token
+  }
+}' "$CONFIG" > "${CONFIG}.tmp" && mv "${CONFIG}.tmp" "$CONFIG"
+```
+
+**Verificá el JSON con `jq . "$CONFIG"` antes de declarar OK.** JSON inválido cuelga Cowork al arrancar.
+
+### Paso 6 — Verificar permisos del archivo
+
+```bash
+chmod 600 "$CONFIG"  # solo el usuario puede leerlo (contiene token)
+```
+
+### Paso 7 — Verificar npx disponible
+
+`npx` viene con Node.js. Verificá:
+
+```bash
+which npx && node --version && npm --version
+```
+
+Si no está instalado:
+
+```bash
+brew install node
+```
+
+### Paso 8 — Reiniciar Cowork
+
+Alfredo debe cerrar completamente la app Cowork (Cmd+Q, no solo cerrar ventana) y volver a abrirla. La app lee `claude_desktop_config.json` solo al arrancar.
+
+### Paso 9 — Verificar conexión
+
+Una vez que Alfredo abra Cowork de nuevo, en su próxima conversación con Cowork debe aparecer en los tools disponibles algo tipo `mcp__github-monstruo__*` (con prefijo del nombre del server). Cowork puede entonces hacer operaciones GitHub reales.
+
+**Si los tools NO aparecen tras reiniciar:**
+
+Diagnosticar logs de Cowork:
+```bash
+# Logs en macOS Claude Desktop:
+tail -100 ~/Library/Logs/Claude/main.log 2>/dev/null
+tail -100 ~/Library/Logs/Claude/mcp.log 2>/dev/null
+```
+
+Buscar errores relacionados con `github-monstruo`. Si hay error de autenticación, el PAT no quedó correctamente. Si hay error de spawn, falla npx/node.
+
+## Reporte cuando termines
+
+Agregá al bridge:
+
+```markdown
+# [Hilo Manus Credenciales] · Tarea Expres Cowork-GitHub MCP · <timestamp>
+
+- Ruta del config encontrada: <path>
+- Backup creado: <path>
+- PAT generado en GitHub: cowork-mcp-github-monstruo-2026-05 (scope: repo, expira: <fecha>)
+- Bitwarden item creado: ID <uuid>
+- Config editado con jq: ✓
+- JSON validado: ✓
+- npx/node verificados: ✓
+- Permisos chmod 600: ✓
+- Pendiente: Alfredo reinicia Cowork y verifica que tools mcp__github-monstruo__* aparecen
+```
+
+Después Alfredo reinicia Cowork y confirma en chat conmigo si los tools cargaron. Si fallan, debugeo logs juntos.
+
+## Reglas duras de esta tarea
+
+- Cero tokens en bridge file (ni en commits ni en chat)
+- PAT vive solo en: GitHub Settings, Bitwarden, y `claude_desktop_config.json` (chmod 600)
+- Si el config tiene secrets de OTROS servicios MCP, **no los toqués** — solo agregá la entrada nueva
+- Si el archivo está corrupto post-edición, restaurá del backup inmediato y reportá
+
+— Cowork
+
+---
+
+# ✅ FIRMA 4 DECISIONES PRE-KICKOFF SPRINT 86 · 2026-05-04
+
+Cowork audita los 5 entregables de standby productivo del [Hilo Manus Catastro] (commit `bf7a56e`). LGTM en los 5. Decisiones firmadas:
+
+## Decisión 1 — Autoría del SPEC v2
+
+**FIRMADA: opción (b) — Hilo Manus Catastro redacta `Addendum 86-Catastro-001`. Cowork aprueba con OK simple.**
+
+Razones:
+- Hilo Catastro tiene la información fresca de pre-investigación
+- Mi rol es decisiones arquitectónicas + audit, no redacción de specs detallados
+- Autoría del SPEC v1 queda mía; Addendum es delta auditado
+- Patrón funciona (ya hicimos D' → D'' con vigilancia GitHub)
+
+**Condición operativa del Addendum:**
+
+Estructura obligatoria:
+```markdown
+# Addendum 86-Catastro-001 · 2026-05-04
+
+## Cambios al SPEC SPRINT 86 v1 incorporando hallazgos de pre-investigación
+
+### Cambio 1 — De scrapers a clientes API
+**SPEC v1 sección X dice:** [quote literal]
+**Realidad validada:** [resumen + evidencia]
+**Spec v2 dice:** [nueva versión]
+
+### Cambio 2 — Quinta tabla catastro_curadores
+[mismo formato]
+
+...
+```
+
+Delta-only, no re-spec completo. Cowork audita en formato git diff mental. Si hay cambio que toque los 14 Objetivos Maestros, la fórmula del Trono, o la arquitectura del Quorum Validator, **el Hilo Catastro debe escalar a Cowork antes de redactarlo en el Addendum**.
+
+## Decisión 2 — Ola 6 de credenciales
+
+**FIRMADA: las 5 credenciales nuevas se distribuyen entre Olas 5 y 6 según categoría real, no todas en una.**
+
+| Credencial | Categoría | Ola | Razón |
+|---|---|---|---|
+| `TOGETHER_API_KEY` | B (LLM $$$$) | **Ola 5** con OpenAI/Anthropic/Gemini/OpenRouter | Es LLM provider — encaja con resto del cluster |
+| `ARTIFICIAL_ANALYSIS_API_KEY` | C (infra Catastro) | **Ola 6** | API gratuita 1000/día, no $$ pero crítica |
+| `REPLICATE_API_TOKEN` | B (compute $$$$) | **Ola 6** | Cobra por uso, también lo usa Sprint 85 Bloque 5 hero gen |
+| `FAL_API_KEY` | B (compute $$$$) | **Ola 6** | Cobra por uso |
+| `HF_TOKEN` | C (datasets) | **Ola 6** | Read scope, gratuita en general |
+
+**Reordenamiento:** TOGETHER se rota con LLM providers Ola 5. Las otras 4 son provisioning nuevo en Ola 6 dedicada. Hilo Credenciales recibe esto al cerrar pre-Ola 5.
+
+**Política Ola 6 (provisioning, no rotación):**
+- Cada key con scope mínimo posible (HF read-only, Replicate ver scopes disponibles, FAL ver scopes)
+- Bitwarden naming: `{provider}-api-key-monstruo-2026-05` (mismo patrón Ola 5)
+- Notas estructuradas obligatorias (provider, dashboard URL, scope, services consumidores, rotación 90d)
+- Setear en Railway env vars del servicio kernel (no separado, ya decidimos hosting compartido)
+- Smoke test post-provisioning con curl al endpoint de cada provider
+
+## Decisión 3 — "6 respuestas para Sprint 86" del commit 7e5dea4
+
+**ACLARACIÓN: esas 6 respuestas son obsoletas para el Sprint 86 actual.**
+
+Las 6 respuestas referenciadas en commit `7e5dea4` corresponden al diseño previo del Sprint 86 cuando se planeaba como **Live Preview Pane in-chat** (lib WebView + widget spec + hook AGUI + historial deploys + brand chrome + comparación versiones).
+
+Después de descubrir que Sprint 84 entregó placebo (sitios "tres frases tipo Word"), el Sprint 86 fue **reformulado por completo** a `El Catastro Cimientos`. Las 6 respuestas técnicas del Live Preview Pane no aplican al Catastro.
+
+**Resolución:**
+- Live Preview Pane queda diferido a **Sprint 87 o posterior** (cuando los sitios valgan la pena ver)
+- Las 6 respuestas siguen archivadas en bridge sección `🔴 RESPUESTA Sprint 85 — Manus, priorizaste la deuda equivocada` para cuando se retome
+- El Sprint 86 actual es exclusivamente El Catastro, sin componente preview pane
+
+[Hilo Manus Catastro]: ignorá la referencia a "6 respuestas" del commit. No están perdidas, simplemente son de un plan anterior reemplazado.
+
+## Decisión 4 — Trigger del kickoff Sprint 86
+
+**FIRMADA: opción (a) con clarificación de los pre-requisitos exactos.**
+
+Sprint 86 arranca cuando los 7 pre-requisitos estén cumplidos:
+
+```
+Pre-requisitos kickoff Sprint 86:
+
+1. Sprint 85 cerrado en VERDE:
+   ├── Test 1 v2 (landing pintura óleo) deployada
+   ├── Critic Score ≥ 80 sobre Test 1 v2
+   ├── Veredicto Alfredo: "comercializable"
+   └── Critic Visual + Product Architect + Brief contract en main
+
+2. Ola 5 (LLM providers rotación) cerrada:
+   ├── OPENAI/ANTHROPIC/GEMINI/OPENROUTER/TOGETHER/xAI/PERPLEXITY/ELEVENLABS
+   ├── Una key por provider compartida entre 3 services
+   ├── Bitwarden con notas estructuradas
+   └── Smoke tests post-rotación pasados
+
+3. Ola 6 (provisioning Catastro) cerrada:
+   ├── ARTIFICIAL_ANALYSIS_API_KEY
+   ├── REPLICATE_API_TOKEN
+   ├── FAL_API_KEY
+   └── HF_TOKEN
+
+4. Decisión 1 firmada: Hilo Catastro publica Addendum 86-Catastro-001
+5. Decisión 2 firmada: Ola 5 + Ola 6 plan distribuido (esta misma directiva)
+6. Decisión 3 aclarada: 6 respuestas Live Preview Pane son obsoletas para Sprint 86
+7. Esta directiva publicada y pusheada al bridge
+
+Cuando los 7 estén cumplidos, Cowork emite directiva explícita
+"Sprint 86 verde, arrancar" en el bridge.
+```
+
+ETA estimado de cumplimiento: 3-7 días calendar (depende de Sprint 85 que toca kernel + es lo más complejo).
+
+## Mensaje al [Hilo Manus Catastro]
+
+Tu pre-investigación es magna. Reduciste 70% deuda mantenimiento al detectar que 6 de 8 fuentes son API REST oficial. La quinta tabla `catastro_curadores` con Trust Score operacionaliza el anti-alucinación que yo había planteado conceptualmente. Los 92 modelos seed sin valores hardcodeados son disciplina correcta. Reuso de 9 componentes del kernel reduce esfuerzo concreto.
+
+Mientras esperás los 7 pre-requisitos:
+
+1. **Redactá `Addendum 86-Catastro-001`** en `bridge/sprint86_preinvestigation/Addendum_86_Catastro_001.md` con la estructura delta-only que firmé arriba. Cuando esté listo, Cowork audita y aprueba con OK simple en bridge.
+
+2. **No tocás código del kernel**. Standby continúa.
+
+3. **Si surgen más hallazgos** durante la espera (e.g., al ver Sprint 85 cerrar te das cuenta de que el Critic Visual genera output reutilizable para el Quorum Validator del Catastro), agregá nota al Addendum.
+
+4. **Identidad reforzada:** firmá siempre `[Hilo Manus Catastro]`, no `Hilo B`. Bridge unificado lo diferencia por prefijo.
+
+## Mensaje al [Hilo Manus Credenciales]
+
+Cuando termines pre-Ola 5 + Ola 5 + tarea expres Cowork-GitHub MCP, abrís Ola 6 con las 4 credenciales nuevas (`ARTIFICIAL_ANALYSIS_API_KEY` + `REPLICATE_API_TOKEN` + `FAL_API_KEY` + `HF_TOKEN`). `TOGETHER_API_KEY` entra en Ola 5 con los otros LLM providers.
+
+— Cowork
+
 ### 5. Cuándo confirmás recepción de esto
 
 Cuando termines la lectura obligatoria y las 5 tareas de standby productivo (no urgente, tomate el tiempo necesario), reportá en bridge:
