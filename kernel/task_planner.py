@@ -57,6 +57,18 @@ STUCK_DETECTION_THRESHOLD = 3  # Same tool called 3x with same args = stuck
 MAX_TOTAL_TOOL_CALLS_PER_STEP = 12  # Hard cap per step
 MAX_PLAN_DURATION_S = 300  # 5 minutes max for entire plan
 
+# ── Sprint 85: Brief Contract (Product Architect integration) ──────────
+USE_PRODUCT_ARCHITECT = (
+    os.environ.get("PLANNER_USE_PRODUCT_ARCHITECT", "true").lower() == "true"
+)
+WEB_PROJECT_KEYWORDS = [
+    "sitio web", "landing", "landing page", "página web", "pagina web", "website",
+    "app web", "aplicación web", "aplicacion web", "portfolio", "dashboard",
+    "taller de", "curso de", "escuela", "academia", "restaurante", "café",
+    "tienda online", "e-commerce", "ecommerce", "marketplace", "saas",
+    "hazme un", "hazme una", "constrúyeme", "constíruyeme", "hazle", "crea un sitio", "crea una landing",
+]
+
 
 # ── Data Models ──────────────────────────────────────────────────────
 class StepStatus(str, Enum):
@@ -214,6 +226,27 @@ class TaskPlanner:
         except Exception as _v_err:
             logger.warning("task_planner_verifier_init_failed", error=str(_v_err))
 
+        # Sprint 85: Product Architect (Brief contract) — lazy init
+        self._product_architect: Optional[Any] = None
+        if USE_PRODUCT_ARCHITECT:
+            try:
+                from kernel.embriones.product_architect import ProductArchitect
+                # Sabios opcional — si no está disponible, el Architect cae a heurística
+                _sabios = getattr(self._kernel, "_sabios", None) if self._kernel else None
+                self._product_architect = ProductArchitect(
+                    _sabios=_sabios,
+                    _db=db,
+                )
+                logger.info(
+                    "task_planner_product_architect_initialized",
+                    has_sabios=_sabios is not None,
+                )
+            except Exception as _pa_err:
+                logger.warning(
+                    "task_planner_product_architect_init_failed",
+                    error=str(_pa_err),
+                )
+
     async def plan(
         self,
         objective: str,
@@ -227,6 +260,63 @@ class TaskPlanner:
         """
         plan_id = str(uuid4())
         logger.info("task_planner_planning", plan_id=plan_id, objective=objective[:100])
+
+        # ── Sprint 85: Brief Contract — Product Architect first ────────────────
+        # Si la tarea es un proyecto web/producto y el Product Architect está vivo,
+        # generar el Brief antes que cualquier paso. Si data_missing es crítica,
+        # devolver un plan con un único step que pregunta al usuario.
+        brief_dict: Optional[dict[str, Any]] = None
+        try:
+            if (
+                self._product_architect is not None
+                and self._es_proyecto_web(objective)
+            ):
+                user_response = (context or {}).get("user_response")
+                brief = await self._product_architect.producir_brief(
+                    prompt=objective,
+                    user_response=user_response,
+                )
+                brief_dict = brief.to_dict()
+                logger.info(
+                    "task_planner_brief_generated",
+                    plan_id=plan_id,
+                    vertical=brief.vertical,
+                    is_complete=brief.is_complete(),
+                    data_missing_count=len(brief.data_missing),
+                )
+
+                # Si el Brief no está completo, no planificar aún. Devolver
+                # un plan de un solo paso que consolida la pregunta al usuario.
+                if not brief.is_complete() and brief.user_question_emitted:
+                    ask_step = TaskStep(
+                        step_id=str(uuid4()),
+                        index=0,
+                        description=brief.user_question_emitted,
+                        tool_hint="send_message",
+                    )
+                    ask_plan = TaskPlan(
+                        plan_id=plan_id,
+                        objective=objective,
+                        steps=[ask_step],
+                        context={
+                            **(context or {}),
+                            "brief": brief_dict,
+                            "awaiting_user_response": True,
+                            "reason": "brief_data_missing_critical",
+                        },
+                    )
+                    ask_plan.inject_kernel(self._kernel)
+                    self._active_plans[plan_id] = ask_plan
+                    await self._persist_plan(ask_plan)
+                    return ask_plan
+        except Exception as _brief_err:
+            # Brief es best-effort. Si falla, seguir con planning clásico.
+            logger.warning(
+                "task_planner_brief_skipped",
+                plan_id=plan_id,
+                error=str(_brief_err),
+            )
+        # ── /Sprint 85 ─────────────────────────────────────────────────
 
         # ── Sprint 81/55.1: SpecDrivenPlanner — Kiro pattern ──────────────────────
         # Si la tarea es compleja, crear una spec antes de planificar
@@ -274,11 +364,33 @@ class TaskPlanner:
         tools_str = "\n".join(f"  - {t}" for t in available_tools)
         context_str = json.dumps(context or {}, ensure_ascii=False)[:500]
 
+        # Sprint 85: si hay Brief, lo inyectamos al prompt como contrato
+        brief_block = ""
+        if brief_dict:
+            try:
+                brief_compact = {
+                    "vertical": brief_dict.get("vertical"),
+                    "client_brand": brief_dict.get("client_brand"),
+                    "product_meta": brief_dict.get("product_meta"),
+                    "structure": brief_dict.get("structure"),
+                }
+                brief_block = (
+                    "\n\nBRIEF DEL PRODUCT ARCHITECT (contrato obligatorio):\n"
+                    + json.dumps(brief_compact, ensure_ascii=False, indent=2)[:1500]
+                    + "\n\nREGLAS DE CONTRATO:\n"
+                    + "- El Executor debe respetar este Brief. NO improvisar paleta, copy, secciones.\n"
+                    + "- Generar TODAS las secciones de structure.sections.\n"
+                    + "- Usar primary_cta y secondary_cta literalmente como aparecen en el Brief.\n"
+                    + "- NO usar Lorem ipsum. NO usar placeholders salvo los explícitos del Brief.\n"
+                )
+            except Exception:
+                brief_block = ""
+
         planning_prompt = f"""Eres el planificador del Embrión IA. Tu trabajo es descomponer un objetivo complejo en pasos ejecutables.
 
 OBJETIVO: {objective}
 
-CONTEXTO: {context_str}
+CONTEXTO: {context_str}{brief_block}
 
 HERRAMIENTAS DISPONIBLES:
 {tools_str}
@@ -349,11 +461,17 @@ Formato obligatorio:
                 for s in steps_data
             ]
 
+            # Sprint 85: incluir el Brief en plan.context para que el Executor
+            # y el Critic Visual lo recuperen end-to-end.
+            plan_context = dict(context or {})
+            if brief_dict:
+                plan_context["brief"] = brief_dict
+
             plan = TaskPlan(
                 plan_id=plan_id,
                 objective=objective,
                 steps=steps,
-                context=context or {},
+                context=plan_context,
             )
             plan.inject_kernel(self._kernel)
 
@@ -1503,6 +1621,25 @@ RESPONDE con JSON:
     def get_active_plans(self) -> list[dict[str, Any]]:
         """Get summary of all active plans."""
         return [p.to_dict() for p in self._active_plans.values()]
+
+    # ── Sprint 85: Brief Contract helpers ─────────────────────────────────
+    def _es_proyecto_web(self, text: str) -> bool:
+        """
+        Heurística: el objetivo describe un proyecto web/producto que requiere
+        Brief antes de planificar.
+
+        Conservadora: solo activa cuando hay señales claras. Si falla, el
+        planner sigue su flujo clásico (sin Brief).
+        """
+        if not text:
+            return False
+        text_lower = text.lower()
+        # Señal fuerte: keyword único es suficiente
+        for kw in WEB_PROJECT_KEYWORDS:
+            if kw in text_lower:
+                return True
+        return False
+    # ── /Sprint 85 ──────────────────────────────────────────────────────────
 
     def is_complex_objective(self, text: str) -> bool:
         """
