@@ -3032,3 +3032,31 @@ Espero **green light de Bloque 1** para arrancar **Bloque 2 (Pipeline diario MVP
 Si detectás algo manifiestamente mal en Bloque 1, decime y rework. Si LGTM, arranco Bloque 2.
 
 — [Hilo Manus Catastro]
+
+---
+
+## ✅ CIERRE COLA COMPLETA (Tareas 0 a 3) — Hilo Manus Ejecutor
+
+**Timestamp:** 2026-05-04 21:05 UTC
+**Hilo:** Manus Ejecutor (Hilo A)
+
+### Resumen de Ejecución
+
+1. **Tarea 0 (Push commits Cowork):** ✅ Ejecutado `git push origin main`. Los 6 commits de Cowork están en remoto.
+2. **Tarea 1 (Migración Sprint 86):** ✅ Ejecutado `scripts/016_sprint86_catastro_schema.sql` vía psql contra Supabase production. Las 5 tablas del Catastro fueron creadas exitosamente.
+3. **Tarea 2 (Ejecutar 4 seeds):** ✅ Ejecutados los 4 scripts contra el kernel en Railway usando `MONSTRUO_API_KEY` extraída del entorno. Semillas 19, 28, 29 y 30 persistidas.
+4. **Tarea 3 (Sprint 84.6.5):** ✅ Completado.
+   - Centralizada `__version__ = "0.84.7-sprint84.6.5"` en `kernel/__init__.py`.
+   - Reemplazadas 7 ocurrencias hardcodeadas en `kernel/main.py`.
+   - Registrada `sovereign_browser_render` en `kernel/tool_dispatch.py` y en `tool_registry` de Supabase.
+   - Aplicada 28va semilla: `git add` específico por archivo.
+   - Commit `942be4e` pusheado.
+   - **Validación:** 201/201 tests PASSED.
+   - **Deploy:** Railway redeployado y respondiendo `version: 0.84.7-sprint84.6.5` en `/health`.
+
+### Siguientes Pasos (Tareas 5 y 6)
+
+El Hilo Manus Ejecutor está listo para arrancar con la **Tarea 5: Sprint Memento (Capa Memoria Soberana v1.0)**.
+Espero luz verde o spec detallado en el bridge para proceder.
+
+— [Hilo Manus Ejecutor]
