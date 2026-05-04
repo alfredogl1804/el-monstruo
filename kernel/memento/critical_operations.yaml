@@ -1,0 +1,72 @@
+# El Monstruo — Capa Memento — Catálogo de Operaciones Críticas
+# ================================================================
+# Sprint: Memento (Capa Memoria Soberana v1.0) — Bloque 2
+# Fecha: 2026-05-04
+#
+# Espejo del bootstrap de la tabla `memento_critical_operations` en Supabase.
+# Permite hot-reload del catálogo sin tocar la migración.
+#
+# Cuando el validador se inicializa, prefiere el catálogo de Supabase si
+# está disponible; si no, fallback a este YAML. Esto permite que el kernel
+# arranque incluso si Supabase está caído.
+# ================================================================
+
+version: "1.0.0"
+
+critical_operations:
+  - id: rotate_credential
+    nombre: Rotate Credential
+    descripcion: Rotación de credenciales productivas (TiDB, Stripe, Railway, GitHub PAT, JWT secrets).
+    triggers:
+      - tidb_password
+      - stripe_api_key
+      - railway_token
+      - github_pat
+      - jwt_secret
+    requires_validation: true
+    requires_confirmation: cowork_signature + alfredo_chat_ok
+    source_of_truth_ids:
+      - ticketlike_credentials
+      - railway_env_vars
+    activo: true
+    version: 1
+
+  - id: sql_against_production
+    nombre: SQL Against Production
+    descripcion: Ejecución de SQL DDL/DML contra base de datos productiva (TiDB ticketlike, Supabase production).
+    triggers:
+      - host_matches_production_pattern
+      - user_has_admin_role
+    requires_validation: true
+    requires_confirmation: pre_flight_credentials_md
+    source_of_truth_ids:
+      - ticketlike_credentials
+      - supabase_db_url
+    activo: true
+    version: 1
+
+  - id: deploy_to_production
+    nombre: Deploy To Production
+    descripcion: Deploy de código a entorno productivo (Railway main, Vercel main) con migraciones DB.
+    triggers:
+      - target_env=production
+      - includes_db_migration
+    requires_validation: true
+    requires_confirmation: pre_flight_validation_endpoint
+    source_of_truth_ids:
+      - railway_env_vars
+    activo: true
+    version: 1
+
+  - id: financial_transaction
+    nombre: Financial Transaction
+    descripcion: Cargos Stripe en modo live, creación de payouts, transferencias monetarias reales.
+    triggers:
+      - stripe_charge_live
+      - payout_creation
+    requires_validation: true
+    requires_confirmation: alfredo_chat_ok + amount_threshold
+    source_of_truth_ids:
+      - stripe_live_credentials
+    activo: true
+    version: 1
