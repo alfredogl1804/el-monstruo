@@ -24,11 +24,9 @@ La implementación real requiere Playwright instalado.
 
 from __future__ import annotations
 
-import ipaddress
 import os
 from dataclasses import dataclass
 from typing import Any, Optional
-from urllib.parse import urlparse
 
 import structlog
 
@@ -40,24 +38,15 @@ logger = structlog.get_logger("kernel.browser_automation")
 HEADLESS = os.environ.get("BROWSER_HEADLESS", "true").lower() == "true"
 DEFAULT_TIMEOUT_MS = int(os.environ.get("BROWSER_TIMEOUT_MS", "30000"))
 DEFAULT_VIEWPORT = {"width": 1280, "height": 720}
-# Hostnames bloqueados (match exacto, case-insensitive)
-BLOCKED_HOSTNAMES = frozenset({"localhost", "localhost.localdomain"})
-
-# Sufijos bloqueados (cualquier hostname que termine con esto)
-BLOCKED_HOSTNAME_SUFFIXES = (".local", ".internal", ".lan")
-
-# Backward-compat (Sprint 84.6) -- algunos modulos importan BLOCKED_DOMAINS.
-# La logica real esta en _is_blocked_url() con urlparse + ipaddress.
-# Leccion 27va semilla: NO usar substring matching para validacion de seguridad.
-BLOCKED_DOMAINS = (
+BLOCKED_DOMAINS = [
     "localhost",
     "127.0.0.1",
     "0.0.0.0",
-    "169.254.0.0/16",
-    "10.0.0.0/8",
-    "192.168.0.0/16",
-    "172.16.0.0/12",
-)
+    "169.254.",
+    "10.",
+    "192.168.",
+    "172.16.",
+]
 
 
 # ─── Result Types ─────────────────────────────────────────────────────────────
@@ -220,25 +209,13 @@ class BrowserAutomation:
             self._current_url = url
             title = await self._page.title()
 
-            # Sprint 84.6: Web Vitals via performance.timing JS shim
-            metrics = await self._collect_web_vitals()
-
-            page_info = {
-                "url": url,
-                "title": title,
-                "status_code": response.status if response else 0,
-                "ttfb_ms": metrics.get("ttfb_ms", 0),
-                "lcp_ms": metrics.get("lcp_ms", 0),
-                "load_time_ms": metrics.get("load_time_ms", 0),
-            }
-
-            logger.info(
-                "browser_navigated",
+            page_info = PageInfo(
                 url=url,
                 title=title,
-                ttfb_ms=metrics.get("ttfb_ms"),
-                lcp_ms=metrics.get("lcp_ms"),
+                status_code=response.status if response else 0,
             )
+
+            logger.info("browser_navigated", url=url, title=title)
             return BrowserResult(success=True, data=page_info)
 
         except Exception as e:
@@ -484,115 +461,14 @@ class BrowserAutomation:
                 error=f"Close failed: {str(e)[:200]}",
             )
 
-    # --- Sprint 84.6: viewport runtime + Web Vitals ---
-
-    async def set_viewport(self, width: int, height: int) -> BrowserResult:
-        """Cambia el viewport sin reinicializar el browser.
-
-        Necesario para el Critic Visual del Sprint 85 (mobile 375x812)
-        sin pagar el costo de re-init.
-        """
-        if not self._initialized:
-            return BrowserResult(
-                success=False,
-                error="Browser not initialized. Call initialize() first.",
-            )
-        if width <= 0 or height <= 0:
-            return BrowserResult(
-                success=False,
-                error=f"Invalid viewport dimensions: {width}x{height}",
-            )
-        try:
-            await self._page.set_viewport_size({"width": width, "height": height})
-            self.viewport = {"width": width, "height": height}
-            logger.info("browser_viewport_changed", width=width, height=height)
-            return BrowserResult(
-                success=True, data={"width": width, "height": height},
-            )
-        except Exception as e:
-            logger.error("browser_viewport_failed", error=str(e)[:200])
-            return BrowserResult(
-                success=False,
-                error=f"Viewport change failed: {str(e)[:200]}",
-            )
-
-    async def _collect_web_vitals(self) -> dict[str, int]:
-        """Captura Core Web Vitals via performance.timing JS shim.
-
-        Returns dict con ttfb_ms, lcp_ms, load_time_ms (milliseconds).
-        Si falla la captura, retorna ceros (no rompe el flow).
-        """
-        if not self._initialized or self._page is None:
-            return {"ttfb_ms": 0, "lcp_ms": 0, "load_time_ms": 0}
-        try:
-            metrics = await self._page.evaluate("""
-                () => {
-                    const t = performance.timing || {};
-                    const navStart = t.navigationStart || 0;
-                    const ttfb = (t.responseStart || 0) - navStart;
-                    const loadTime = (t.loadEventEnd || 0) - navStart;
-                    let lcp = 0;
-                    try {
-                        const lcpEntries = performance.getEntriesByType('largest-contentful-paint');
-                        if (lcpEntries && lcpEntries.length > 0) {
-                            lcp = Math.round(lcpEntries[lcpEntries.length - 1].startTime);
-                        }
-                    } catch (e) {}
-                    return {
-                        ttfb_ms: Math.max(0, Math.round(ttfb)),
-                        lcp_ms: lcp,
-                        load_time_ms: Math.max(0, Math.round(loadTime)),
-                    };
-                }
-            """)
-            return metrics or {"ttfb_ms": 0, "lcp_ms": 0, "load_time_ms": 0}
-        except Exception as e:
-            logger.warning("web_vitals_capture_failed", error=str(e)[:200])
-            return {"ttfb_ms": 0, "lcp_ms": 0, "load_time_ms": 0}
-
     # ─── Internal Helpers ─────────────────────────────────────────────────────
 
     def _is_blocked_url(self, url: str) -> bool:
-        """Check if URL targets a blocked domain or private IP (security).
-
-        Validacion estructurada (no substring crudo):
-        1. Parsea con urlparse
-        2. Hostname check vs BLOCKED_HOSTNAMES y sufijos
-        3. IP check via ipaddress.ip_address(host).is_private/loopback/link_local
-        4. Schema check: solo http/https
-        """
-        try:
-            parsed = urlparse(url)
-        except Exception:
-            return True
-
-        if parsed.scheme not in ("http", "https"):
-            return True
-
-        host = (parsed.hostname or "").lower().strip()
-        if not host:
-            return True
-
-        if host in BLOCKED_HOSTNAMES:
-            return True
-
-        for suffix in BLOCKED_HOSTNAME_SUFFIXES:
-            if host.endswith(suffix):
+        """Check if URL targets a blocked domain (security)."""
+        url_lower = url.lower()
+        for blocked in BLOCKED_DOMAINS:
+            if blocked in url_lower:
                 return True
-
-        try:
-            ip = ipaddress.ip_address(host)
-            if (
-                ip.is_private
-                or ip.is_loopback
-                or ip.is_link_local
-                or ip.is_multicast
-                or ip.is_reserved
-            ):
-                return True
-        except ValueError:
-            pass
-
         return False
 
     @property
