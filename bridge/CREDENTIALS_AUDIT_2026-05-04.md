@@ -1,6 +1,6 @@
 # Credentials Audit & Rotation — 4 mayo 2026
 
-> **Status:** ✅ Ola 1 COMPLETADA + Ola 2 cerrada con Opción D' (PAT viejo intacto, sin consumidor identificado)  
+> **Status:** ✅ Ola 1 COMPLETADA + Ola 2 cerrada con Opción D'' (vigilancia con plazo 14d, fecha límite 2026-05-18)  
 > **Ejecutor:** Hilo B (Manus desktop) bajo dirección de Alfredo  
 > **Duración:** ~5h (Bitwarden setup + auditoría + Ola 1 + Ola 2 investigación + Ola 2 cierre)
 
@@ -15,7 +15,20 @@ Se rotaron los **17 Personal Access Tokens (Classic)** de GitHub asociados al us
 | `el-monstruo-mac-2026-05` | `ghp_8AJw3rnrm…` | `repo, read:org` | Aug 2, 2026 | Bitwarden item `609e5e38-b6ad-48b1-9184-b44000605c05` | Mac local (Keychain via `gh auth login`) |
 | `el-monstruo-kernel-2026-05` | `ghp_J2ThVxfiB…` | `repo, workflow` | Aug 2, 2026 | Bitwarden item `d95a233b-f15c-43c2-bd30-b440006062b6` | Railway service `el-monstruo-kernel` (vars `GITHUB_TOKEN` + `GITHUB_PERSONAL_ACCESS_TOKEN`) |
 
-## Tokens fine-grained — Ola 2 ejecutada (Opción D')
+## Tokens fine-grained — Ola 2 ejecutada (Opción D'' post-LGTM Cowork)
+
+### Ajuste D' → D'' (vigilancia acotada con plazo)
+
+**Update 2026-05-04 (post-cierre):** Cowork aprobó cierre Ola 2 con un ajuste menor. D' puro (vigilancia indefinida) deja PAT huérfano vivo sin propósito = superficie de ataque sin beneficio. Convertido a:
+
+- **Plazo:** 14 días desde 2026-05-04 → fecha límite **2026-05-18**.
+- **Monitoreo:** chequeo del campo "Last used" del PAT `el-monstruo-mcp` (ID `13740788`) en https://github.com/settings/personal-access-tokens.
+- **Criterio de cierre:**
+  - Si **Last used NO cambia** entre 2026-05-04 y 2026-05-18 → **revocar definitivamente** (confirmado huérfano).
+  - Si **Last used SÍ cambia** → identificar consumidor real (logs Railway, GitHub audit log, hilos activos), rotar coordinado con ese consumidor.
+- **Reminder agendado:** scheduled task `Vigilancia D'' PAT el-monstruo-mcp` programada para 2026-05-18 09:00 (cron `0 0 9 18 5 *`).
+
+### Hallazgos originales que llevaron a D'/D''
 
 ### Decisión final
 
@@ -37,7 +50,7 @@ Después de directiva Cowork (R1 verde con pre-requisitos: token nuevo acotado a
 | Nombre | Estado | Razón |
 |---|---|---|
 | `ticketlike-deploy` | VIVO (intocable) | Proyecto independiente (ticketlike.mx) vendiendo a diario. Scope acotado, expira 22 may 2026 (rotación natural). |
-| `el-monstruo-mcp` | VIVO (vigilancia) | Sin expiración. Sin consumidor identificado tras audit completo. Decisión D': mantener intacto y observar. Si en próxima audit (Aug 1) sigue "Last used last week" o más reciente, escalar investigación. Si pasa a "never used in last month", revocar. |
+| `el-monstruo-mcp` | VIVO (vigilancia D'' con plazo 14d) | Sin expiración. Sin consumidor identificado tras audit completo. Decisión D'': mantener intacto hasta 2026-05-18; chequeo de "Last used" en esa fecha. Si no cambia: revocar. Si cambia: identificar consumidor y rotar coordinado. Reminder agendado. |
 
 ## 17 PATs Classic revocados
 
@@ -115,7 +128,7 @@ Redeploy automático tras cambio. Validado en logs: `tool=github` ejecutándose 
 | R2 | Calendario: Aug 1, 2026 — rotar ambos PATs Classic antes del 2 de Aug | Hilo B | Alta | Anotada como deuda agendada |
 | R3 | Auditar y revocar OAuth Apps "Never used" en GitHub (10 candidatas: Atlas Cloud, FASHN, Honcho, Langfuse, novita.ai, RunPod, Vast, api.together.ai, Apify, E2B, Resend) | Hilo B | Media | DIFERIDA por Alfredo a otra sesión |
 | R4 | Consolidación `GITHUB_TOKEN` única en código kernel (refactor 5 archivos) | Hilo A | Baja | Diferido a Sprint 87+ por Cowork |
-| R5 | Escalación si `el-monstruo-mcp` sigue activo en próxima audit | Hilo B | Media | Trigger: Aug 1, 2026 |
+| R5 | Chequeo D'' del PAT `el-monstruo-mcp` (decision plazo 14d) | Hilo B | Alta | Reminder agendado para 2026-05-18 09:00 |
 | R6 | Sanitizar `bridge/cowork_to_manus.md` y `bridge/manus_to_cowork.md` antes de futuras rotaciones (eliminar tokens en logs históricos) | Hilo B | Baja | Comentario de Cowork no bloqueante |
 | R7 | Validar utilidad real del scope `workflow` del kernel PAT (grep en código kernel) | Hilo B | Baja | Comentario de Cowork no bloqueante |
 
