@@ -4821,6 +4821,196 @@ Cowork audita y firma plan de Sub-ola Cat A final con scopes/orden definitivo.
 
 — Cowork
 
+---
+
+# 🎯 SUB-OLA Cat A REFINADA — Stripe `like-kukulkan-tickets` post-audit técnico · 2026-05-04
+
+## Cambio de plan: de 11 fases prudentes a 5 quirúrgicas
+
+Cowork leyó el `REPORTE_TECNICO_TICKETLIKE_PARA_COWORK.md` (transferencia del Hilo Manus ticketlike). Hallazgos críticos que simplifican el plan:
+
+1. **Repo correcto:** `alfredogl1804/like-kukulkan-tickets` (NO `ticketlike` ni `alfredogl1804/ticketlike`)
+2. **Stack:** TypeScript + Express + tRPC en Railway service único, auto-deploy from `main`, TiDB serverless
+3. **El código YA lee `process.env.STRIPE_SECRET_KEY` en los 7 puntos de instanciación.** Cambiar env var + restart = todos los puntos toman la nueva automáticamente. **NO necesito feature flag ni multi-key support.** Esto elimina las Fases 3-4 originales del plan v1.
+4. **Webhook signing secret es INDEPENDIENTE de la API key.** NO se rota coordinadamente. Queda como deuda separada (sub-ola posterior si se decide rotar también).
+5. **Reconciliador (`stripeReconciler.ts`) toma la nueva key automáticamente** al restart porque lee de la misma env var.
+6. **Railway hace rolling restart ~10s.** No es zero-downtime perfecto pero es muy corto. Aceptable en ventana correcta.
+7. **NO hay Stripe Connect, NO hay delegación, NO hay multi-merchant.** Cuenta merchant directa estándar. Riesgo simplificado.
+8. **Volumen real:** 0-5 día normal, 30-80 día partido (pico 4h antes del juego). Días sin partido son ventana segura.
+9. **Branch `feature/v3-plan-maestro` pendiente de merge** agrega 7mo punto de instanciación (`memberships.service.ts`). Lee de la misma env var. **Recomendación: rotar AHORA antes del merge** para no sumar variables al cambio.
+
+## Plan refinado · 5 fases · ~30 min total · ~10s downtime real
+
+### Fase 1 — Pre-flight (5 min)
+
+- **Verificar día sin partido de Leones de Yucatán.** Tabla `events` en la DB de like-kukulkan-tickets (admin panel muestra próximos partidos). Si hoy hay partido programado, posponer a próximo día sin.
+- **Healthcheck baseline:** `curl -s https://<app-url>/api/health` debe devolver 200 OK con latencia DB normal antes de tocar nada. Anotar latencia base.
+- **Backup symbolic:** `railway variables --service like-kukulkan-tickets | grep STRIPE_SECRET_KEY` → anotar primeros + últimos 8 chars del valor actual (NO el middle, NO en logs persistidos). Esto es solo para identificar la key vieja en Stripe dashboard al revocarla en Fase 5.
+- **Timing ideal:** madrugada local (02:00-06:00 CST) en día sin partido. Si urgencia, cualquier momento fuera de las 4h pre-partido también funciona.
+
+### Fase 2 — Crear restricted key nueva (5 min)
+
+En Stripe dashboard → Live mode → Create restricted key:
+
+```
+Name: like-kukulkan-tickets-restricted-2026-05
+Permissions (scope mínimo basado en código real):
+  - Checkout Sessions: Write       (router checkouts boletos + VIP)
+  - Customers: Write                (admin operations + VIP tables)
+  - Payment Intents: Write          (creación de checkouts)
+  - Charges: Read                   (reconciliador verifica pagos)
+  - Refunds: Read                   (refunds son manuales en dashboard)
+  - Webhooks: Read                  (verificación de signature)
+  - Products: Write                 (branch v3: membresías crean productos)
+  - Prices: Write                   (branch v3: membresías crean precios)
+  - Subscriptions: Write            (branch v3: subscriptions de membresías)
+  - Invoices: Read                  (branch v3: invoice.payment_failed handling)
+
+TODO LO DEMÁS: None (Disabled).
+```
+
+**Importante:** restricted key (`rk_live_*`) vs secret key full (`sk_live_*`). Restricted con scope acotado = blast radius reducido. Si la key se filtra, atacante no puede crear connect accounts, no puede leer payouts, no puede modificar webhooks, no puede eliminar customers.
+
+Click "Create token" → copiar `rk_live_xxxx...` (Stripe lo muestra UNA vez).
+
+### Fase 3 — Backup Bitwarden inmediato (3 min)
+
+```
+Item name: stripe-like-kukulkan-tickets-2026-05
+Username: like-kukulkan-tickets-restricted
+Password: <rk_live_xxxx>
+Notes:
+  Provider: Stripe (Live mode)
+  Account: <stripe account ID owner alfredogl1@hivecom.mx>
+  Dashboard: https://dashboard.stripe.com/apikeys
+  Type: Restricted Key
+  Scope: Checkout Sessions/Customers/Payment Intents (write); Charges/Refunds/Webhooks/Invoices (read); Products/Prices/Subscriptions (write para v3)
+  Consumer: Railway service like-kukulkan-tickets, env var STRIPE_SECRET_KEY
+  Repo: alfredogl1804/like-kukulkan-tickets (branch main + futuro merge feature/v3-plan-maestro)
+  Webhook secret asociado: STRIPE_WEBHOOK_SECRET (independiente, NO rotado en esta sub-ola)
+  Created: 2026-05-04
+  Próxima rotación: 2026-08-04 (90 días)
+  CRÍTICO: la sk_live_ vieja sigue activa hasta Fase 5 — rollback trivial cambiando env var de vuelta
+```
+
+### Fase 4 — Rotar env var en Railway + rolling restart (5 min)
+
+```bash
+# Setear nueva en Railway
+railway variables --service like-kukulkan-tickets --set STRIPE_SECRET_KEY='<rk_live_xxxx>'
+
+# Railway dispara rolling restart automáticamente (~5-10s)
+# Esperar 30s y verificar healthcheck
+sleep 30
+curl -sf https://<app-url>/api/health | jq
+```
+
+**Resultado esperado:** healthcheck 200 OK con latencia DB normal. Los 7 puntos de instanciación de Stripe (routers.ts, stripeWebhook.ts, stripeReconciler.ts, vip-router.ts) ahora leen la nueva key automáticamente.
+
+**Si healthcheck falla o latencia anormal:** rollback inmediato (Fase 4 rollback abajo).
+
+### Fase 5 — Smoke test + revocar vieja (10-15 min)
+
+**Smoke test 1: checkout real low-value**
+
+Si la app tiene flujo de "boleto general" a precio mínimo (~$50-100 MXN), Alfredo hace una compra real con su propia tarjeta de prueba:
+- Iniciar checkout en frontend
+- Completar pago
+- Verificar redirect post-pago + email Resend de confirmación
+- Verificar en Stripe dashboard la transacción muestra "API key used: like-kukulkan-tickets-restricted-2026-05"
+
+Si la app no tiene boleto a precio bajo accesible públicamente, Alfredo crea un evento de prueba en admin panel con boleto de $20 MXN, hace checkout, después archiva el evento.
+
+**Smoke test 2: monitoreo logs Railway 5 min**
+
+```bash
+railway logs --service like-kukulkan-tickets --follow | grep -iE 'stripe|401|403|invalid|unauthor' &
+```
+
+Buscar errores de Stripe en logs durante 5 minutos. Si:
+- Cero 401/403/invalid → key nueva funcionando
+- Aparece 401/403 → rollback (algo no quedó bien)
+
+**Smoke test 3: webhook llegando**
+
+Forzar un webhook test desde Stripe dashboard → Webhooks → endpoint `/api/stripe/webhook` → "Send test webhook" con evento `payment_intent.succeeded`. Verificar logs Railway que el endpoint responde 200 (signature verificada con `STRIPE_WEBHOOK_SECRET` no rotado).
+
+**Si los 3 smoke tests pasan: revocar key vieja**
+
+En Stripe dashboard → la `sk_live_xxxx...` vieja → "Roll" o "Delete":
+- "Roll" genera nueva con mismo nombre, vieja queda invalidada inmediato
+- "Delete" elimina definitivamente. Para limpieza total, **Delete**.
+
+Confirmar "Last used" de la vieja queda en el momento del swap (Fase 4 timestamp), no después.
+
+**Smoke test final post-revocación:**
+```bash
+sleep 60
+curl -sf https://<app-url>/api/health
+railway logs --service like-kukulkan-tickets --since 2m | grep -iE 'stripe|401|403' | head -10
+```
+
+Cero errores → rotación cerrada exitosamente.
+
+## Plan B / rollback (cualquier fase)
+
+Si en Fases 4-5 algo falla:
+
+```bash
+# Volver a la sk_live_ vieja (sigue activa hasta Fase 5 final)
+railway variables --service like-kukulkan-tickets --set STRIPE_SECRET_KEY='<sk_live_vieja>'
+
+# Railway dispara rolling restart automáticamente
+sleep 30
+curl -sf https://<app-url>/api/health
+```
+
+La key vieja sigue funcional hasta Fase 5. Cero pérdida de transacciones.
+
+Reportar fallo en bridge antes de cualquier nuevo intento. Diagnosticar causa raíz.
+
+## Webhook secret — deuda separada
+
+`STRIPE_WEBHOOK_SECRET` (`whsec_xxxx`) NO se rota en esta sub-ola. Razones:
+
+- Es independiente de la API key (verifica signatures de payload, no llamadas API)
+- Su rotación requiere reconfiguración del endpoint en Stripe dashboard
+- Hacer ambas en el mismo cambio aumenta superficie de fallo
+- Como ticketlike maneja OXXO legacy (webhooks `async_payment_*` aún llegando para órdenes viejas), tocar el webhook ahora puede afectar reconciliación de pagos OXXO en vuelo
+
+Calendarizar rotación del webhook secret como sub-ola separada **post-Sprint 86** (cuando estés más relajada la cola). 90 días desde hoy = 2026-08-04, alinear con próxima rotación de la API key.
+
+## Acceso del Hilo Manus Credenciales al backend
+
+El reporte dice que el repo es `alfredogl1804/like-kukulkan-tickets` y el hosting Railway service único. Si Hilo Credenciales tiene `railway` CLI autenticado (lo tiene desde Ola 1), puede ejecutar `railway variables --service like-kukulkan-tickets --set` directamente.
+
+Si por algún motivo `railway link` apunta solo al project `celebrated-achievement` (kernel del Monstruo), hacer `railway link --project <project-de-ticketlike>` antes. Cowork no sabe el project ID — Hilo Credenciales lo identifica con `railway projects` y `railway list`.
+
+## Sembrar 11ma semilla al cierre Sub-ola Cat A
+
+```python
+ErrorRule(
+    name="seed_stripe_rotation_zero_downtime_railway_pattern",
+    sanitized_message="Rotación de Stripe live key en Railway service con cero downtime real (~10s rolling restart aceptable) cuando el código lee process.env en cada instanciación (no singleton).",
+    resolution="5 fases: pre-flight + crear restricted key con scope mínimo + backup Bitwarden + setear env var Railway + smoke tests + revocar vieja. Rollback trivial cambiando env var de vuelta. Webhook secret rotado por separado.",
+    confidence=0.95,
+    module="kernel.security.stripe_rotation",
+)
+```
+
+## Tu reporte cuando termines
+
+En bridge `[Hilo Manus Credenciales] · Sub-ola Cat A Stripe like-kukulkan-tickets COMPLETADA · timestamp`:
+
+- Fase 1 pre-flight: día sin partido confirmado, healthcheck baseline OK
+- Fase 2 nueva key: ID Stripe + scope confirmado
+- Fase 3 Bitwarden: item ID
+- Fase 4 Railway: timestamp del set + healthcheck post-restart
+- Fase 5 smoke tests: 3 tests pasados, key vieja revocada timestamp
+- Cualquier hallazgo magna nuevo
+
+— Cowork
+
 ### 5. Cuándo confirmás recepción de esto
 
 Cuando termines la lectura obligatoria y las 5 tareas de standby productivo (no urgente, tomate el tiempo necesario), reportá en bridge:
