@@ -3756,7 +3756,971 @@ Mientras Manus codea y testea, no necesitas hacer nada. Cuando reporte, te paso 
 
 ---
 
-# 🛑 STOP — Brief DeploymentsScreen del hilo Manus anterior · 2026-05-03
+# 🟢 APROBACIÓN OLA 1 + DIRECTIVA OLA 2 · 2026-05-04
+
+## Audit del documento `bridge/CREDENTIALS_AUDIT_2026-05-04.md`
+
+LGTM. Trabajo magna. Tres comentarios menores no bloqueantes:
+
+1. **Token Mac con `repo + read:org`:** scope necesario por `gh` CLI. Aceptable — `read:org` no expone admin de orgs, es scope realmente menor. Si en el futuro `gh` permite solo `repo`, ajustar próxima rotación.
+2. **Token Kernel con `repo + workflow`:** `workflow` se incluyó por precaución. Si grep confirma que kernel NO edita `.github/workflows/*.yml`, eliminar en próxima rotación.
+3. **Bridge files con tokens viejos en histórico:** decisión correcta de no sanitizar (ya revocados). Política nueva: para futuras rotaciones, sanitizar ANTES de commit. Documentar en AGENTS.md.
+
+R1 (Ola 2) aprobada. R3 (OAuth Apps cleanup) aprobada en paralelo. R4 (consolidación GITHUB_TOKEN) DIFERIDA a Sprint 87+ por costo/beneficio (refactor 5 archivos vs marginal). R2 (rotar agosto 1) anotada.
+
+## Ola 2 — Rotar `el-monstruo-mcp` fine-grained
+
+### Pre-requisitos antes de tocar nada
+
+1. **Identificá el repo target real del MCP de Manus.** Abrí Manus Settings → Custom MCP Servers → GitHub MCP. Anotá:
+   - Lista de repos a los que necesita acceso (probablemente `el-monstruo` + algún subset de `forja-*`)
+   - Permisos que ejecuta (lee código, edita archivos, abre PRs, lee issues, etc.)
+   - Endpoint MCP que invoca el kernel/Manus
+
+2. **Decisión de scope:** fine-grained tokens en GitHub permiten:
+   - Repository access: **NO marcar "All repositories"** — seleccionar solo los repos del bullet 1
+   - Permissions: marcar SOLO los permisos confirmados en bullet 1. Defaults sugeridos para MCP de código:
+     - Contents: Read+Write (si edita archivos)
+     - Metadata: Read (obligatorio implícito)
+     - Pull requests: Read+Write (si abre PRs)
+     - Issues: Read (si lee), Read+Write (si comenta)
+     - **NO** dar Administration, Webhooks, Secrets, ni nada admin
+
+3. **Expiración:** 90 días, igual política que Ola 1.
+
+### Ejecución Ola 2
+
+```
+1. Crear token nuevo `el-monstruo-mcp-2026-05` en GitHub
+   con scope mínimo del bullet 2 + expiración 90 días
+2. Guardar en Bitwarden con notas: scopes + repos explícitos
+3. Pegar token nuevo en Manus Settings → Custom MCP Server → GitHub
+4. Test: ejecutar 1 operación MCP simple (read del repo `el-monstruo`)
+5. Si OK: revocar token viejo `el-monstruo-mcp` en GitHub
+6. Validar 30 min: el MCP server sigue funcionando, embriones siguen activos
+7. Si falla: rollback (poner token viejo otra vez antes de revocar)
+```
+
+### En paralelo a Ola 2 — R3 OAuth Apps cleanup
+
+Mientras esperás validación de cada paso de Ola 2, podés hacer R3 sin riesgo:
+
+1. Abrí: `https://github.com/settings/applications`
+2. Sección **Authorized OAuth Apps** (NO "Authorized GitHub Apps")
+3. Revocá las que digan "Never used" o "Last used > 6 months":
+   - Atlas Cloud, FASHN, RunPod, novita.ai, Honcho, Langfuse, Vast (probablemente)
+4. Conservá las que sí usás con uso reciente: Cloudflare, Vercel, Railway, Supabase, GitHub CLI, ChatGPT Codex, Manus, OpenRouter, Replicate.
+
+R3 es trivial cancelable, no requiere pre-validación. Hacelo en paralelo a las esperas de Ola 2.
+
+## Reporte cuando termines Ola 2 + R3
+
+Actualizá `bridge/CREDENTIALS_AUDIT_2026-05-04.md` con:
+- Token nuevo `el-monstruo-mcp-2026-05`: scopes + repos + Bitwarden ID + expira
+- Token viejo `el-monstruo-mcp`: revocado timestamp
+- OAuth Apps revocadas: lista
+- Estado actual del ecosistema GitHub: 1 PAT Mac + 1 PAT Kernel + 1 fine-grained ticketlike-deploy + 1 fine-grained el-monstruo-mcp NUEVO = 4 tokens activos, todos auditados, todos en Bitwarden o vault del proveedor
+
+## Próxima ola — credenciales del ecosistema completo
+
+Después de Ola 2 + R3, abrimos la conversación pendiente: rotación de credenciales de todo el ecosistema (OpenAI, Anthropic, Google AI, Perplexity, Railway dashboard, Supabase, etc.). Cowork está armando script de inventario en paralelo.
+
+— Cowork
+
+---
+
+# 🟢 RESPUESTA OLA 2 D'' + DIRECTIVA OLA 4 · 2026-05-04 (post-cierre Ola 2)
+
+## Audit Ola 2 ejecutada con D'
+
+LGTM con un ajuste menor. Trabajo magna del Hilo Manus Credenciales.
+
+**Hallazgos correctos y valiosos:**
+1. "GitHub" en Manus Settings es OAuth (GitHub App), no PAT — confirma modelo correcto del ecosistema
+2. MCP personalizado vacío — refuta mi hipótesis original de que ahí estaba el `el-monstruo-mcp`
+3. `el-monstruo-mcp` huérfano probable (era viejo GITHUB_PERSONAL_ACCESS_TOKEN antes de Ola 1)
+4. GitHub no permite agregar expiración sin regenerar PAT (limitación conocida)
+
+## Ajuste D' → D'' (vigilancia acotada con plazo)
+
+D' puro (vigilancia indefinida) deja PAT huérfano vivo sin propósito = superficie de ataque sin beneficio. Convertimos:
+
+**D'' = D' + plazo + criterio de cierre:**
+- **Plazo:** 14 días desde hoy → fecha límite 2026-05-18
+- **Monitoreo:** chequeo semanal del campo "Last used" en `https://github.com/settings/tokens` (sólo del PAT `el-monstruo-mcp`)
+- **Criterio de cierre:**
+  - Si **Last used NO cambia** en los 14 días → revocar definitivamente. Confirmado huérfano.
+  - Si **Last used SÍ cambia** → identificar consumidor real (IP, user-agent, fechas exactas), rotar coordinado con ese consumidor.
+- **Calendarizar reminder:** 2026-05-18 con flag para chequeo y decisión.
+
+Actualizá `bridge/CREDENTIALS_AUDIT_2026-05-04.md` con esta decisión D'' y agendá el reminder.
+
+## Estado del ecosistema GitHub aceptado
+
+19 → 4 PATs (-79%) ✓
+- 2 canónicos `mac` + `kernel` (Bitwarden, 90d)
+- 1 fine-grained `ticketlike-deploy` (proyecto productivo, intocable)
+- 1 fine-grained `el-monstruo-mcp` (D'' con plazo 14 días)
+- 17 OAuth Apps diferidas (R3 cuando Alfredo decida)
+
+## Directiva Ola 4 — Inventario credenciales ecosistema completo
+
+**Inventario primero. NO rotación directa.** Mismo principio que aplicamos con GitHub: sin inventario descubrimos lo invisible (19 vs 5 esperados). El blast radius por servicio se calcula CON datos reales, no antes.
+
+### Acción inmediata
+
+Ejecutá `scripts/inventario_credenciales_ecosistema.sh` que Cowork ya armó (commit del repo). Es discovery, NO rotación. Reporta a `bridge/manus_to_cowork.md` con findings + Bitwarden vault inventory + categoría A/B/C/D/E confirmadas por uso real.
+
+### Post-inventario, plan de rotación priorizado (Olas 5+)
+
+Cuando reportes inventario, Cowork diseña plan de rotación así:
+
+**Ola 5 — Categoría B (LLM providers) — PRIORIDAD MÁXIMA**
+
+Razón: Sprint 86 (El Catastro Cimientos) requiere `OPENAI_API_KEY` + `ANTHROPIC_API_KEY` + `GEMINI_API_KEY` rotadas y limpias antes de arrancar. Sin esto, Sprint 86 se atrasa.
+
+Providers a rotar:
+- OpenAI
+- Anthropic
+- Google AI (Gemini)
+- Perplexity
+- xAI
+- Kimi (Moonshot)
+- DeepSeek
+- Mistral (si tiene API activa)
+- Together AI (si lo usás)
+
+Por cada provider: revocar todas las keys excepto 1 nueva con scope/quota mínimos, en Bitwarden, propagada a Railway env vars, validación post-rotación con health-check al endpoint LLM.
+
+**Ola 6 — Categoría C (Infra crítica)**
+
+Razón: blast radius alto (caída productiva si se filtran).
+
+- Railway API tokens (el del kernel deploy + cualquier otro)
+- Supabase service_role keys (incluye coordinar con redeploy del kernel)
+- Cloudflare API tokens
+- Vercel tokens (si lo usás)
+
+**Ola 7 — Categoría D (Datos privados)**
+
+- Notion API
+- Slack Apps (si los tenés)
+- Linear API
+- Asana
+
+**Ola 8 — Categoría E (Operacionales menores)**
+
+- ElevenLabs, HeyGen, Replicate, Apify, Cartesia, Langfuse, otros
+
+## Política duradera (agregar a AGENTS.md después de Ola 8)
+
+```markdown
+## Política de Credenciales Ecosistema (Sprint 84.X · 2026-05)
+
+1. Bóveda primaria: Bitwarden (cuenta AG). Notion solo para documentación, sin valores de tokens.
+2. Máximo 2 keys activas por servicio (excepto casos justificados como ticketlike-deploy)
+3. Expiración por defecto: 90 días. Servicios que no permiten expiración (e.g., Supabase service_role): rotación manual cada 90 días con calendar reminder.
+4. Cero scope `admin:*` permanente. Si se necesita admin, token efímero con expiración 24h máximo.
+5. Auditoría trimestral en navegador a CADA dashboard de provider (no solo en código).
+6. Cross-validation 2+ ubicaciones por credencial canónica (Bitwarden + servicio donde se consume).
+7. Sprint 86-87: GitHub App propia para reemplazar 2 PATs Classic + Doppler/Infisical para inyección automática de secrets a Railway.
+```
+
+— Cowork
+
+---
+
+# 🟢 OLA 3 (paralela) — Inventario credenciales ecosistema · 2026-05-04
+
+Cowork armó `scripts/inventario_credenciales_ecosistema.sh` (~500 líneas, en commit del repo). Es **discovery, NO rotación** — solo lee y reporta.
+
+## Tu trabajo (Manus, en paralelo a Ola 2 + R3)
+
+Ejecutalo en la Mac de Alfredo:
+
+```bash
+cd ~/el-monstruo
+chmod +x scripts/inventario_credenciales_ecosistema.sh
+
+# Pre-requisitos opcionales (mejorá la cobertura del inventario):
+# 1. Bitwarden CLI con vault unlocked
+brew list bitwarden-cli >/dev/null 2>&1 || brew install bitwarden-cli
+bw status | grep -q "unlocked" || export BW_SESSION=$(bw unlock --raw)
+
+# 2. Correr inventario
+bash scripts/inventario_credenciales_ecosistema.sh
+```
+
+Si `bw` o `railway` CLI no están autenticadas, el script las salta y deja la sección como "manual" — no falla. Pero idealmente ambas autenticadas para cobertura plena.
+
+## Lo que hace automático (10 min)
+
+1. Bitwarden vault list (nombres, no valores)
+2. Railway env vars del kernel
+3. Dotfiles: `.netrc`, `.npmrc`, `.aws/credentials`, `.config/gh/`, `.cursor/auth`, `.docker/config.json`, etc.
+4. Mac Keychain entries con nombres de providers (openai, anthropic, stripe, twilio, etc.)
+5. Grep el repo por 16 patterns conocidos (sk-, sk-ant-, AIza, xai-, r8_, SG.*, etc.)
+
+## Output
+
+Reporte Markdown estructurado en:
+`~/.monstruo-inventory-2026-05/inventario_<timestamp>.md`
+
+Categoriza por riesgo:
+- A Catastrófica (Stripe live, AWS, banking)
+- B Costo $$$$ (LLM providers, comms)
+- C Infra crítica (Railway, Supabase, Cloudflare)
+- D Datos privados (Notion, Slack, Linear)
+- E Menor (xAI, Kimi, DeepSeek, otros)
+
+## Cómo reportar
+
+Cuando termine, en `bridge/manus_to_cowork.md` agregá:
+
+1. **Path al reporte completo** (`~/.monstruo-inventory-2026-05/inventario_*.md`)
+2. **Sección 8 del reporte (findings automáticos)** — pegá la tabla
+3. **Sección 7 del reporte (verificación manual)** — confirma cuáles providers de Categoría A/B efectivamente usás (Stripe live? AWS? OpenAI? Anthropic? Twilio? etc.)
+4. **Bitwarden vault inventory** — lista de nombres de items que existen ahora
+
+Con esos 4 datos, Cowork diseña el plan de rotación por categoría para Ola 4 (que ya no es GitHub — es ecosistema completo).
+
+## Priorización entre Ola 2, R3, Ola 3
+
+Las 3 son independientes y se pueden ejecutar en cualquier orden o paralelo. Tu criterio. Sugerencia:
+
+```
+1. Inventario (Ola 3) — 10 min, automático, sin riesgo de romper nada
+2. R3 (OAuth Apps cleanup) — 10 min, web UI, sin riesgo
+3. Ola 2 (rotar el-monstruo-mcp) — 30-45 min, requiere UI Manus + validación
+```
+
+El inventario PRIMERO te da datos para que cuando hagas Ola 4 después no descubramos sorpresas como las 19 PATs vs 5 esperados. Aprendizaje del Sprint 84.X.
+
+— Cowork
+
+---
+
+# 🚀 SPEC SPRINT 85 — Calidad de Generación al Nivel Comercializable · 2026-05-04
+
+## Contexto
+
+Sprint 84 cerró 100% en plumbing (deploy_to_github_pages + deploy_to_railway + auto-replicación 93s/$0.53). Pero el output fue placebo: Alfredo abrió las 4 URLs y dictaminó "fracaso total extremo, una página con tres frases tipo Word". El Embrión sabe deployar pero no sabe crear.
+
+**Lección magna del Sprint 84.X:** "URL devuelve 200" NO es success. Success es contenido funcional comercializable. El Embrión LLM-driven genera el output mínimo que satisface literalmente el prompt — sin Product Architect que descomponga + sin Critic Visual que valide, el resultado es placebo.
+
+## Objetivo Sprint 85
+
+El próximo sitio web que el Monstruo entregue debe ser uno que Alfredo abra y diga **"sí, le entrego esto a un cliente que paga $30K-50K MXN"**. Métrica binaria, juicio humano.
+
+## Pipeline nuevo
+
+```
+Usuario prompt corto
+    ↓
+Product Architect (Embrión nuevo)
+    ↓ brief.json estructurado + opcional 1 pregunta consolidada al usuario
+Task Planner (recibe brief, no prompt)
+    ↓
+Executor (genera contra brief.json, no prompt)
+    ↓
+Critic Visual (Embrión nuevo)
+    ↓ screenshot + rubric → score 0-100
+    ├── score < 80 → loop al Executor con feedback (max 3 iter)
+    └── score ≥ 80 → deploy
+        ↓
+Tabla deployments (con brief_id, critic_score, quality_passed)
+```
+
+## Bloques (6 totales)
+
+### Bloque 1 · Product Architect Embrión
+
+Nuevo Embrión especializado en `kernel/embriones/product_architect.py`. Recibe prompt corto + contexto cliente, produce `brief.json` con schema:
+
+```json
+{
+  "brief_id": "uuid",
+  "vertical": "education_arts | saas_b2b | restaurant | fintech | ecommerce_artisanal | professional_services | marketplace_services",
+  "client_brand": {
+    "personality": "warm | technical | playful | premium | minimalist",
+    "tone": "string",
+    "audience": "string detallado",
+    "color_palette_hint": ["#hex", "#hex"],
+    "typography_hint": "serif | sans | mono | display | combo",
+    "do_not_use": ["aspects que NO van con este cliente"]
+  },
+  "product_meta": {
+    "product_name": "string",
+    "product_type": "landing | api_backend | webapp",
+    "primary_goal": "lead_gen | sales | signup | info | support",
+    "target_user": "string"
+  },
+  "structure": {
+    "sections_required": ["hero", "features", "pricing", "testimonials", "faq", "footer"],
+    "min_word_count_per_section": 80,
+    "min_sections_total": 5,
+    "media_required": [
+      {"type": "hero_image", "prompt": "...", "style": "..."},
+      {"type": "feature_icons", "count": 4}
+    ]
+  },
+  "data_known": { "instructor_name": "...", "price": "...", "duration": "..." },
+  "data_missing": ["fields críticos NO provistos por el usuario"],
+  "user_question_consolidated": "UNA sola pregunta al usuario si data_missing no vacío"
+}
+```
+
+**Regla dura:** si `data_missing` contiene campos críticos (precio, instructor, fechas, contacto), el Product Architect emite **UNA sola pregunta consolidada** al usuario antes de pasar al Executor. NO 7 preguntas en cadena. Si el usuario pasa la pregunta sin responder, los campos faltantes quedan como placeholders **explícitos y evidentes** (`<<INSTRUCTOR>>`, `<<PRECIO_MXN>>`) — NO inventar "Maestro Carlos $4,990".
+
+### Bloque 2 · Brief contract en `kernel/task_planner.py`
+
+Modificar el planner para:
+- Recibir `brief.json` del Product Architect
+- Pasarlo al Executor como contrato (NO el prompt original)
+- El Executor declara cumplimiento explícito al terminar (qué secciones generó, qué media incluyó, qué placeholders quedaron)
+- Sin brief válido (vertical conocido + structure poblada), no hay deploy
+
+### Bloque 3 · Critic Visual Embrión obligatorio
+
+Nuevo Embrión en `kernel/embriones/critic_visual.py`. Pipeline:
+
+1. Recibe URL deployada + brief.json
+2. Toma screenshot del output renderizado (Browserless o Playwright headless en container)
+3. Evalúa contra rubric (siguiente sección)
+4. Retorna `{"score": 0-100, "findings": [...], "passed": bool}`
+5. Si score < 80, regresa al Executor con findings específicos como feedback
+6. Loop máximo 3 iteraciones, después escala al usuario con summary
+
+**Rubric (componentes ponderados):**
+
+| Componente | Peso | Pass criteria |
+|---|---|---|
+| Estructura | 20 | Todas las secciones de `structure.sections_required` están presentes |
+| Contenido | 25 | Cada sección ≥ `min_word_count_per_section`. Cero Lorem ipsum. Cero `<<PLACEHOLDER>>` salvo los explícitos del brief |
+| Visual | 15 | Hero image presente y no broken. Jerarquía visual clara. Contraste WCAG AA |
+| Brand fit | 15 | Paleta y tipografía coinciden con `client_brand` del brief. Cero anti-patrones de `do_not_use` |
+| Mobile | 10 | No scroll horizontal en 375px width. Breakpoints funcionan |
+| Performance | 5 | TTFB < 1s, LCP < 2.5s, CLS < 0.1 |
+| CTA | 5 | Al menos 1 CTA visible above-the-fold |
+| Meta tags | 5 | title, description, OG, Schema.org presentes |
+
+**Score >= 80 = quality_passed=true. Score < 80 = regresa al Executor.**
+
+### Bloque 4 · Tablas `briefs` + `deployments`
+
+Migración SQL en `scripts/015_sprint85_briefs_deployments.sql`:
+
+```sql
+CREATE TABLE briefs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    prompt_original TEXT NOT NULL,
+    vertical TEXT NOT NULL,
+    client_brand JSONB,
+    product_meta JSONB,
+    structure JSONB,
+    data_known JSONB,
+    data_missing JSONB DEFAULT '[]',
+    user_question_emitted TEXT,
+    user_response TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE deployments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    deploy_type TEXT NOT NULL CHECK (deploy_type IN ('github_pages', 'railway')),
+    brief_id UUID REFERENCES briefs(id),
+    critic_score INT CHECK (critic_score BETWEEN 0 AND 100),
+    quality_passed BOOLEAN DEFAULT false,
+    retry_count INT DEFAULT 0,
+    screenshot_url TEXT,
+    critic_findings JSONB DEFAULT '[]',
+    status TEXT DEFAULT 'building' CHECK (status IN ('building','active','rejected_by_critic','failed')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_deployments_project ON deployments(project_name);
+CREATE INDEX idx_deployments_brief ON deployments(brief_id);
+```
+
+Endpoint nuevo `GET /v1/deployments?project_name=X&limit=10` que el Critic + futuros Sprint 86/87 consumen.
+
+### Bloque 5 · Media gen wrapper mínimo
+
+Tool nueva `tools/generate_hero_image.py`:
+
+```python
+async def generate_hero_image(*, prompt: str, style: str, width: int = 1920, height: int = 1080) -> dict:
+    """
+    Genera hero image vía Replicate Flux 1.1 Pro o Recraft API.
+    Returns: {"url": "https://...", "cost_usd": float, "duration_ms": int}
+    """
+```
+
+Provider primario: Replicate Flux 1.1 Pro (~$0.04/imagen). Fallback: Recraft.
+
+Variable de entorno requerida: `REPLICATE_API_TOKEN`. Esta entra en el inventario de credenciales del ecosistema (Ola 3+).
+
+Sprint 85 cubre solo hero. Sprint 86 amplía a íconos de sección + ilustraciones secundarias.
+
+### Bloque 6 · Library de 6 verticales curados
+
+Carpeta nueva `kernel/brand/verticals/` con 6 archivos YAML:
+
+```
+education_arts.yaml          # cursos pintura/música/foto/escritura
+saas_b2b.yaml                # landings SaaS
+restaurant.yaml              # gastronomía
+professional_services.yaml   # consultoría/abogados/terapia
+ecommerce_artisanal.yaml     # productos hechos a mano
+marketplace_services.yaml    # tutorías, freelance, gig
+```
+
+Schema YAML por vertical:
+```yaml
+vertical: education_arts
+description: Cursos de arte
+brand_defaults:
+  palette:
+    primary: terracotta | ochre | deep blue
+    secondary: cream | off-white
+    accent: deep saturated
+  typography:
+    headlines: serif (Cormorant, Playfair, EB Garamond)
+    body: humanist sans (Inter, IBM Plex Sans)
+  voice: warm, sensorial, evocative, expert
+  do_not_use:
+    - tech-grey monochrome
+    - corporate startup vibe
+    - mono fonts
+    - "10x" "scale" "growth hack" copy
+sections_default:
+  - hero
+  - what_youll_learn
+  - instructor
+  - curriculum
+  - pricing
+  - testimonials
+  - faq
+  - cta_final
+references:
+  - url: ejemplo de bench
+    why: por qué este sitio es bench
+```
+
+El Product Architect lee el YAML del vertical detectado y prepopula `client_brand` y `structure.sections_required` del brief.
+
+## Tests del Sprint 85
+
+### Test 1 v2 — Landing curso pintura óleo
+
+Mismo prompt que Test 1 v1 fallido. Esperado:
+- Vertical detectado: `education_arts`
+- Brand inferido: warm + serif + cream
+- Brief con 8 secciones
+- Hero image generada
+- Critic Score >= 80
+- Alfredo abre URL y dice "comercializable"
+
+### Test 2 v2 — Marketplace tutorías matemáticas
+
+Mismo prompt que Test 2 v1. Esperado:
+- Vertical detectado: `marketplace_services`
+- Brief incluye: ≥3 tutores con nombre + foto + materias + precio + bio + rating
+- Endpoints: `GET /tutores`, `GET /tutores/{id}`, `POST /reservar` (valida y persiste), `GET /reservas/{id}`, `GET /health`
+- DB seedeada con 3 tutores plausibles (no "Tutor 1", "Tutor 2")
+- Critic Score backend = "data integrity check" (cuántos endpoints responden con datos reales no vacíos)
+
+### Test 3 — Auto-replicación con producto real
+
+Embrión replica un producto digital simple PERO con contenido real. Ejemplo: "calculadora de IMC con explicación, formulario funcional, hero con call-to-action". No `{"mensaje": "hola"}`.
+
+## Hard limits Sprint 85
+
+- **5 días calendar** dado complejidad del pipeline (Product Architect + Critic son módulos nuevos no triviales)
+- **Tests 1 v2 y 2 v2 deben pasar Critic Score >= 80 antes de declarar cierre**
+- Si Critic Score < 80 después de 3 iteraciones del Executor, escalar a Alfredo para juicio + decidir si rubric necesita ajuste o el Executor necesita mejor prompting
+
+## Deudas Sprint 84 que se cierran en Sprint 85
+
+- 8va semilla `seed_success_criteria_must_be_content_level_not_transport_level` deja de ser doc y se vuelve código que enforces
+- Brief de DeploymentsScreen del hilo Manus anterior se rescata parcialmente (tablas + endpoint backend, sin la pantalla Flutter — eso es Sprint 87)
+- Classifier slow-path ignore execute_keywords sigue siendo deuda Sprint 85.5 paralelo (quick fix 1-2h con preflight check de execute_keywords)
+
+## Lo que NO entra en Sprint 85
+
+- DeploymentsScreen Flutter widget (Sprint 87)
+- Live Preview Pane in-chat (Sprint 86)
+- Stripe Pagos (Sprint 87+)
+- Browser autónomo + Computer use (Sprint 88+)
+- GitHub App propia (Sprint 86-87)
+
+## Reporte de cierre Sprint 85
+
+En `bridge/manus_to_cowork.md`:
+- Commit hashes de los 6 Bloques
+- URL Test 1 v2 + Critic Score + screenshot
+- URL Test 2 v2 + datos reales (output de `GET /tutores` con 3 entries)
+- URL Test 3 + descripción del producto generado
+- **Veredicto Alfredo Test 1 v2:** "comercializable" o "no" (juicio binario humano)
+- Costo USD total Sprint 85
+- Schema de tablas `briefs` + `deployments` (output `\d+` de Postgres)
+- 6 archivos YAML de verticales committeados en `kernel/brand/verticals/`
+- Sample de 3-5 critic findings detectados durante iteraciones (qué fallos detectó el Critic en intentos descartados)
+
+## 9na semilla al cierre Sprint 85
+
+```python
+ErrorRule(
+    name="seed_brief_first_then_executor_then_critic",
+    sanitized_message="Embrión generaba código mínimo cuando recibía prompt corto. Saltarse Product Architect lleva a placebo. Saltarse Critic Visual permite que placebo se publique.",
+    resolution="Pipeline obligatorio: Product Architect → brief.json estructurado → Executor con contrato → Critic Visual → deploy. Si brief.data_missing no vacío, emitir 1 pregunta consolidada antes de Executor. Si Critic score < 80, no publicar.",
+    confidence=0.97,
+    module="kernel.task_planner",
+)
+```
+
+— Cowork
+
+**Manus: empezá Sprint 85 cuando termines Olas 2 + 3 + R3. No antes — credenciales del ecosistema sigue siendo prerequisite porque Bloque 5 depende de `REPLICATE_API_TOKEN`.**
+
+---
+
+# 🏛️ SPEC SPRINT 86 — EL CATASTRO · Cimientos (1 macroárea funcional + MCP) · 2026-05-04
+
+## Contexto y por qué importa
+
+Cowork (yo, Claude) tiene knowledge cutoff. Cuando recomiendo "usá DALL-E 3" en mayo 2026, ya estoy 6 meses tarde — Flux 1.1 Pro Ultra y Recraft v3 me superan en quality y cost-effectiveness pero no aparecen en mi entrenamiento. Cada decisión arquitectónica que tomamos juntos arrastra desfase.
+
+**El Catastro resuelve esto:** catálogo vivo del ecosistema IA actualizado cada 24h, consultable vía MCP. Cuando Alfredo o Cowork necesitamos elegir provider, llamamos `catastro.recommend({caso_uso, restricciones})` y obtenemos Top 3 actualizados con citation explícita.
+
+Diseño maestro completo está en Drive: `EL_CATASTRO_DISEÑO_MAESTRO.md` (file ID `1FVgZU9FeC0pGYOGuOePxy3c8DCGcYIdb`). Cowork ya lo auditó y refinó (12 macroáreas, fórmula Trono con z-scores, 10 tools MCP, 7 mecanismos anti-alucinación). Ver mi respuesta a la consulta del Catastro en chat con Alfredo del 2026-05-04.
+
+## Posicionamiento en el roadmap
+
+```
+Sprint 85 = Calidad de Generación (Critic Visual + Product Architect) ← PRODUCTO
+Sprint 86 = El Catastro Cimientos (1 macroárea + MCP)              ← INFRA estratégica
+Sprint 87 = El Catastro Ampliación (4 macroáreas + scrapers)
+Sprint 88 = El Catastro Completo (12 macroáreas + UI + smoke test)
+```
+
+**Sprint 86 NO arranca hasta que Sprint 85 cierre con Test 1 v2 + Critic Score >= 80 verificado por Alfredo.** Razón: producto comercializable es prioridad #1, infra estratégica es prioridad #2. Sin Sprint 85 verde, Catastro es escaparate sin mercancía.
+
+Si Alfredo decide abrir 2do hilo Manus, los dos sprints pueden correr paralelos. Pero el sprint 85 lo lidera el hilo principal.
+
+## Objetivo Sprint 86
+
+Al cerrar este sprint, Cowork debe poder ejecutar desde su caja:
+
+```
+catastro.recommend({
+  caso_uso: "elegir LLM para clasificador de intent del kernel",
+  restricciones: {max_costo_usd: 0.005, requiere_open_source: false}
+})
+→ {
+  top_3: [
+    { id: "gpt-5.5-mini", quality: 87, costo: 0.002, trono: 89.4, ... },
+    { id: "claude-haiku-4-7", quality: 84, costo: 0.0025, trono: 87.1, ... },
+    { id: "gemini-3.1-flash", quality: 82, costo: 0.0015, trono: 86.8, ... }
+  ],
+  reasoning: "Para classifiers, latencia + costo dominan. GPT-5.5-mini lidera por relación quality/costo bajo con respuesta JSON nativa.",
+  confidence: 0.82,
+  fuentes_consultadas: ["artificialanalysis.ai/2026-05-04", "openrouter.ai/models", "..."]
+}
+```
+
+Y Manus o el Embrión deben poder hacer la misma llamada antes de elegir cualquier modelo.
+
+## Scope acotado del Sprint 86 (1 macroárea, no las 12)
+
+**Solo Macroárea 1 — Inteligencia (LLMs)** con sus 4 dominios:
+- LLM frontier (GPT, Claude, Gemini, xAI, etc.)
+- LLM open-source (Llama 4, Qwen 3, DeepSeek V3, Kimi K2.6, Mistral)
+- Coding LLMs (DeepSeek Coder, Qwen Coder, Codestral, etc.)
+- Small/edge LLMs (Phi 5, Gemma 3, Qwen 1.5B-7B)
+
+**~30-40 modelos en el seed inicial.** Suficiente para validar pipeline + MCP + integración Claude. Sprints 87-88 amplían.
+
+## Bloques (6 totales)
+
+### Bloque 1 · Schema Supabase
+
+Migración `scripts/016_sprint86_catastro.sql`:
+
+```sql
+-- Tabla principal con campos derivables fijos + JSONB extensible
+CREATE TABLE catastro_modelos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    slug TEXT UNIQUE NOT NULL,        -- "gpt-5.5-mini"
+    nombre TEXT NOT NULL,              -- "GPT-5.5 Mini"
+    proveedor TEXT NOT NULL,           -- "OpenAI"
+    macroarea TEXT NOT NULL,           -- "inteligencia"
+    dominio TEXT NOT NULL,             -- "llm_frontier"
+    subcapacidades TEXT[] DEFAULT '{}',
+    estado TEXT DEFAULT 'production' CHECK (estado IN ('production','beta','open-source','deprecated')),
+    
+    -- Métricas con bandas de confianza
+    quality_score NUMERIC(5,2),
+    quality_delta NUMERIC(5,2),
+    cost_efficiency NUMERIC(5,2),
+    speed_score NUMERIC(5,2),
+    reliability_score NUMERIC(5,2),
+    brand_fit NUMERIC(3,2),
+    sovereignty NUMERIC(3,2),
+    velocity NUMERIC(3,2),
+    trono_global NUMERIC(5,2),
+    trono_delta NUMERIC(5,2),
+    
+    -- Datos comerciales
+    precio_input_per_million NUMERIC(10,4),
+    precio_output_per_million NUMERIC(10,4),
+    licencia TEXT,
+    open_weights BOOLEAN DEFAULT false,
+    api_endpoint TEXT,
+    
+    -- Citation tracking obligatorio
+    fuentes_evidencia JSONB DEFAULT '[]',  -- [{url, fetched_at, payload_hash}]
+    confidence NUMERIC(3,2) DEFAULT 0.5,
+    
+    -- Extensibilidad
+    data_extra JSONB DEFAULT '{}',
+    schema_version INT DEFAULT 1,
+    
+    -- Embeddings para búsqueda semántica
+    embedding vector(1536),
+    
+    -- Audit trail
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    last_validated_at TIMESTAMPTZ DEFAULT NOW(),
+    validated_by TEXT
+);
+
+CREATE INDEX idx_catastro_dominio ON catastro_modelos(dominio);
+CREATE INDEX idx_catastro_trono ON catastro_modelos(trono_global DESC);
+CREATE INDEX idx_catastro_embedding ON catastro_modelos USING ivfflat (embedding vector_cosine_ops);
+
+-- Histórico para series temporales
+CREATE TABLE catastro_historial (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    modelo_id UUID REFERENCES catastro_modelos(id) ON DELETE CASCADE,
+    fecha DATE NOT NULL,
+    snapshot JSONB NOT NULL,           -- copia completa del modelo ese día
+    UNIQUE(modelo_id, fecha)
+);
+
+-- Eventos importantes (delta, deprecations, top3 changes)
+CREATE TABLE catastro_eventos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    fecha TIMESTAMPTZ DEFAULT NOW(),
+    tipo TEXT NOT NULL CHECK (tipo IN ('top3_change','deprecation','price_change','new_model','cve','drift_detected')),
+    prioridad TEXT NOT NULL CHECK (prioridad IN ('critico','importante','info')),
+    modelo_id UUID REFERENCES catastro_modelos(id) ON DELETE SET NULL,
+    descripcion TEXT NOT NULL,
+    contexto JSONB DEFAULT '{}'
+);
+
+-- Anotaciones humanas y de agentes
+CREATE TABLE catastro_notas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    modelo_id UUID REFERENCES catastro_modelos(id) ON DELETE CASCADE,
+    autor TEXT NOT NULL,                -- "alfredo" | "cowork" | "manus" | "embrion_X"
+    contenido TEXT NOT NULL,
+    caso_uso TEXT,
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Métricas diarias del Catastro mismo (NO heredemos las columnas vacías del Radar)
+CREATE TABLE catastro_metricas_diarias (
+    fecha DATE PRIMARY KEY,
+    modelos_totales INT NOT NULL,
+    modelos_validados_24h INT NOT NULL,
+    modelos_nuevos_24h INT DEFAULT 0,
+    modelos_deprecados_24h INT DEFAULT 0,
+    eventos_criticos INT DEFAULT 0,
+    fuentes_caidas JSONB DEFAULT '[]',
+    trust_level TEXT DEFAULT 'high'
+);
+```
+
+### Bloque 2 · Pipeline diario MVP
+
+Archivo nuevo `kernel/catastro/pipeline.py`. Cron 07:00 CST vía Railway scheduled task o `cron` separado.
+
+```python
+async def pipeline_diario_catastro():
+    """
+    1. Curador-LLM (Claude Opus 4.7) consulta fuentes:
+       - artificialanalysis.ai/leaderboards
+       - openrouter.ai/models
+       - lmarena.ai/leaderboard
+       - HuggingFace top trending
+       - Anthropic / OpenAI / Google blog posts últimas 24h
+    2. Para cada modelo nuevo o cambio, extrae métricas con citation obligatoria
+    3. Validador (GPT-5.5 + Gemini 3.1 Pro consensus) revisa diff propuesto
+    4. Si diff > 15% del catálogo, BLOQUEA auto-commit y emite alerta humana
+    5. Re-cómputo Trono para todos los modelos afectados (z-scores por dominio)
+    6. Persiste en Supabase + actualiza catastro_historial + dispara catastro_eventos
+    7. Genera reporte delta diario en Markdown a Drive
+    8. Telegram bot del Monstruo: "Catastro al 2026-05-04: 3 modelos nuevos, 1 cambio Top 3 (LLM frontier), 0 deprecations"
+    """
+```
+
+**Reglas duras del pipeline:**
+- Cero datos sin `fuentes_evidencia: [{url, fetched_at, payload_hash}]`
+- Cross-validation 2+ fuentes para `quality_score` y `precio_*`
+- Si cambios diarios afectan >15% del catálogo, bloqueo auto-commit + alerta Telegram a Alfredo
+- Whitelist de proveedores: solo OpenAI, Anthropic, Google, Meta, xAI, Moonshot, DeepSeek, Mistral, Cohere, Alibaba (Qwen) entran auto. Otros requieren approval.
+
+### Bloque 3 · MCP server propio del Monstruo
+
+Archivo nuevo `tools/catastro_mcp_server.py` (FastAPI o FastMCP).
+
+5 tools mínimas en Sprint 86 (las otras 5 entran en Sprint 88):
+
+```python
+# 1. catastro.search
+@mcp.tool()
+async def search(query: str = None, dominio: str = None, max_costo_usd: float = None,
+                 min_quality: float = None, top_n: int = 5) -> list[dict]:
+    """Búsqueda con filtros sobre el catálogo."""
+
+# 2. catastro.recommend (la pieza más importante)
+@mcp.tool()
+async def recommend(caso_uso: str, vertical: str = None,
+                    restricciones: dict = None, explicar: bool = False) -> dict:
+    """
+    Recomendación contextual con Top 3 + reasoning + confidence.
+    Algoritmo: trono_contextual = trono_global + bonus_subcap_relevante - penalty_limitacion
+    """
+
+# 3. catastro.top
+@mcp.tool()
+async def top(dominio: str, n: int = 5,
+              ordenar_por: str = "trono") -> list[dict]:
+    """Top N por dominio ordenado por criterio."""
+
+# 4. catastro.status (CRÍTICO — sin esto las recomendaciones son fe ciega)
+@mcp.tool()
+async def status() -> dict:
+    """
+    Estado del Catastro: última actualización, modelos totales, fuentes caídas, trust_level.
+    Cowork llama esto antes de confiar en una recomendación.
+    """
+
+# 5. catastro.events (alertas importantes)
+@mcp.tool()
+async def events(desde: str = None, prioridad: str = None) -> list[dict]:
+    """Eventos importantes desde fecha."""
+```
+
+MCP server expone HTTP en puerto interno + se registra en config Cowork como conector adicional. Documentación de cada tool con ejemplos en docstring para que el LLM la entienda.
+
+### Bloque 4 · Seed inicial Macroárea Inteligencia
+
+Script `scripts/seed_catastro_inteligencia.py`. Carga ~30-40 modelos LLM iniciales con datos del 2026-05-04:
+
+- LLM frontier: GPT-5.5, GPT-5.5-mini, Claude Opus 4.7, Claude Sonnet 4.6, Claude Haiku 4.5, Gemini 3.1 Pro, Gemini 3.1 Flash, Grok 4.20, Kimi K2.6, DeepSeek V3.5, Mistral Large 3
+- LLM open-source: Llama 4 70B, Llama 4 405B, Qwen 3 72B, DeepSeek V3.5 (open weights), Mistral Mixtral 8x22B v2, Yi 2.0 34B
+- Coding: DeepSeek Coder V3, Qwen Coder 32B, Codestral 22B v2, Claude Code-tuned
+- Small/edge: Phi 5 mini, Gemma 3 9B, Qwen 1.5B/3B, TinyLlama 2
+
+Cada modelo seedea con:
+- Datos del 2026-05-04 con citation real (curador-LLM consultó fuentes vivas)
+- Trono Score calculado (z-scores por dominio)
+- Confidence band visible
+
+**Validación humana del seed:** Alfredo revisa los 30-40 modelos antes de cerrar Sprint 86. Si más del 5% tiene precio o quality manifiestamente mal, bloqueo cierre y rework.
+
+### Bloque 5 · Telegram bot delta diario
+
+Bot del Monstruo (probablemente ya existe) recibe a las 07:30 CST:
+
+```
+🏛️ El Catastro · Snapshot 2026-05-04
+
+📊 Modelos: 38 (+2 nuevos)
+🆕 Nuevos: GPT-5.5-mini-pro (frontier), Qwen 3.5 32B (open-source)
+🔄 Top 3 cambios: LLM frontier (Claude Opus 4.7 → 4.8 toma #1)
+💰 Cambios precio: Gemini 3.1 Pro -15% ($0.0030 → $0.0025/1M in)
+⚠️  Deprecaciones: ninguna
+🔴 Alertas críticas: 0
+✅ Trust level: high (3/3 fuentes activas)
+
+Detalle: catastro.snapshot/2026-05-04
+```
+
+Solo se manda si hay novedad (entradas/salidas/cambios significativos). Si día sin cambios, NO se manda — evita ruido.
+
+### Bloque 6 · Integración Cowork (la prueba real)
+
+Configurar el MCP server del Catastro como conector en mi caja. Después de Sprint 86 cerrado, debo poder llamar `catastro.recommend(...)` directamente desde una conversación con Alfredo.
+
+**Test de integración Sprint 86:**
+- Alfredo me pregunta en chat: "para Sprint 85 Bloque 5 (media gen), ¿cuál uso de hero images?"
+- Cowork llama `catastro.recommend({caso_uso: "hero images sitios web", restricciones: {max_costo_usd: 0.10}})`
+- Devuelvo Top 3 con citation y razonamiento basado en datos del 2026-05-04
+- Alfredo verifica que la recomendación es razonable
+- **Si la recomendación es la misma genérica que daba sin Catastro, Sprint 86 no cumplió objetivo.**
+
+## Anti-alucinación obligatoria desde Sprint 86
+
+Mecanismos del 1 al 7 (de mi consulta arquitectónica completa) implementados parcialmente en Sprint 86, completos en Sprint 87:
+
+✅ Sprint 86: Citation obligatoria, cross-validation 2+ fuentes, diff bloqueado >15%, whitelist proveedores, drift detection scrapers
+⏳ Sprint 87: Validador adversarial GPT-5.5 + Gemini 3.1, smoke test semanal de recomendaciones más usadas
+
+## Hard limits Sprint 86
+
+- **5 días calendar**
+- **Cierre exige:** Cowork puede llamar `catastro.recommend()` y obtener Top 3 distinto del que daría sin Catastro
+- **30-40 modelos LLM seedeados** con citation real
+- **Pipeline diario corriendo automatizado** al menos 2 días seguidos sin intervención
+- **Telegram delta** funcional con al menos 1 cambio capturado y notificado correctamente
+
+## Lo que NO entra en Sprint 86
+
+- 11 macroáreas restantes (Sprint 87 amplía a 4, Sprint 88 a las 12)
+- 5 tools MCP restantes (compare, history, delta, annotate, bulk_query)
+- UI Next.js del Catastro (Sprint 88)
+- Validador adversarial multi-LLM (Sprint 87)
+- Smoke test semanal (Sprint 87)
+- Browser automation para scrapers (Sprint 87 — Sprint 86 usa fuentes con APIs públicas o HTML estático)
+
+## Reporte cierre Sprint 86
+
+En `bridge/manus_to_cowork.md`:
+- Commit hashes de los 6 bloques
+- Output de `catastro.status()` con trust_level y métricas reales
+- 3 ejemplos concretos de `catastro.recommend()` con outputs distintos a recomendaciones genéricas
+- Schema dump de las 5 tablas Supabase
+- Captura del primer Telegram delta diario que se mandó
+- Validación humana del seed de 30-40 modelos por Alfredo (lista de aprobados/rechazados)
+- Costo USD del sprint
+- Trust level del Catastro al cierre
+
+## 10ma semilla al cierre
+
+```python
+ErrorRule(
+    name="seed_catastro_evita_desfase_de_knowledge_cutoff",
+    sanitized_message="Cowork (Claude) tiene knowledge cutoff. Recomendaciones de modelos/herramientas IA arrastran 6+ meses de desfase. Cada decisión arquitectónica con datos viejos es decisión subóptima compuesta.",
+    resolution="Antes de recomendar cualquier modelo o herramienta IA externa, llamar catastro.status() para verificar trust_level. Si trust=high, llamar catastro.recommend() con el caso de uso. Si trust<high o última actualización >48h, advertir explícitamente al usuario que la recomendación es de knowledge cutoff (no Catastro) y proponer rotación al Catastro.",
+    confidence=0.95,
+    module="kernel.cowork.recomendaciones",
+)
+```
+
+— Cowork
+
+**Manus: Sprint 86 NO arranca hasta Sprint 85 cierre con Test 1 v2 verde por Alfredo. Si Alfredo abre 2do hilo Manus para paralelizar, este sprint puede arrancar cuando él lo decida.**
+
+---
+
+# 📌 ADDENDUM SPRINT 86 — Decisiones de Alfredo aplicadas · 2026-05-04
+
+Alfredo confirmó las 3 decisiones operativas. Cambios al spec del Sprint 86:
+
+## 1. Secuencial (Sprint 85 → Sprint 86)
+
+Sin cambios. Sprint 86 NO arranca hasta Sprint 85 cierre con Test 1 v2 verde.
+
+## 2. Sprint 86 con 3 macroáreas desde inicio (no 1)
+
+**Macroáreas iniciales:**
+- **Macroárea 1 — Inteligencia (LLMs):** ~30-40 modelos (frontier, open-source, coding, edge)
+- **Macroárea 2 — Visión generativa:** ~25-35 modelos (image gen, image-to-image, edit, upscaling, controlnets, hero specialists como Recraft text-in-image)
+- **Macroárea 10 — Agentes y automatización end-to-end:** ~25-30 modelos/frameworks (browser agents Browser-use/Stagehand/Skyvern, coding agents Claude Code/Cursor/Aider/Cline, multi-agent frameworks LangGraph/CrewAI/Swarm/AutoGen, computer-use agents)
+
+**Seed total: 80-105 modelos.** Validación humana de Alfredo obligatoria antes de cierre — si más del 5% tiene precio o quality manifiestamente mal, bloqueo cierre y rework.
+
+**Fuentes scrapers (3 conjuntos paralelos):**
+
+Inteligencia:
+- artificialanalysis.ai/leaderboards
+- openrouter.ai/models
+- lmarena.ai/leaderboard
+- HuggingFace top trending LLMs
+- Anthropic / OpenAI / Google blog posts
+
+Visión:
+- artificialanalysis.ai/image-arena
+- replicate.com/explore (sección image)
+- fal.ai/models (sección image)
+- recraft.ai/blog
+- LMArena Vision
+
+Agentes:
+- swe-bench.com/leaderboard
+- agentbench leaderboard
+- browser-use.com benchmarks (si exponen)
+- GAIA leaderboard
+- HuggingFace Agents Course leaderboard
+
+**Calendar Sprint 86:** **7-10 días** (no 5 como spec original). Recalibrado por scope 3x.
+
+## 3. Hosting dentro del kernel Railway existente
+
+**Decisión arquitectónica:** módulo `kernel/catastro/` dentro del kernel principal. Mismo proceso, mismo Supabase, mismo Railway service `el-monstruo-kernel`.
+
+**Estructura propuesta:**
+```
+kernel/
+  catastro/
+    __init__.py
+    pipeline.py          # Cron diario 07:00 CST
+    scrapers/
+      inteligencia.py
+      vision.py
+      agentes.py
+    curador_llm.py       # Wrapper Claude Opus 4.7 + GPT-5.5 consensus
+    validador.py         # Drift detection + cross-validation
+    trono_score.py       # Cálculo z-scores + bandas confianza
+    mcp_tools.py         # Las 5 tools del Sprint 86
+  routes/
+    catastro_routes.py   # FastAPI routes /v1/catastro/* + MCP HTTP endpoint
+```
+
+**MCP endpoint:** `/v1/catastro/mcp` dentro del FastAPI del kernel. Cowork se conecta como conector adicional al kernel mismo, no a un servicio separado.
+
+**Cron diario:** Railway scheduled task del servicio kernel + worker async dentro del propio kernel proceso (asyncio task que se dispara a las 07:00 CST). NO cron separado.
+
+## Monitoreo obligatorio (defense in depth alternativa)
+
+Como hosting es shared con kernel productivo, agregar:
+
+- **Memory footprint metric** del módulo Catastro reportado en `/v1/health` y dashboard de observabilidad
+- **CPU time metric** del pipeline diario — si excede 10% del CPU del kernel por más de 5 min, alerta
+- **Embeddings storage growth** — si pgvector storage del Catastro supera 500MB, alerta para evaluar extracción a servicio separado
+- **Plan B documentado:** si en Sprint 88 (12 macroáreas) el kernel sufre por carga, extracción a `el-monstruo-catastro-mcp` como servicio Railway separado. Tener migración escrita pero diferida.
+
+## Riesgos elevados con esta decisión
+
+1. **Kernel down = Catastro down.** Mitigación: caching de respuestas `catastro.recommend()` con TTL 1h en Redis del kernel. Si kernel cae, las queries más recientes siguen sirviendo desde caché hasta que vuelva.
+2. **Ataque al kernel = ataque al Catastro.** Mitigación: ya tenés rotación de credenciales hecha, defense in depth a nivel de tokens es la primera capa.
+3. **Schema migrations afectan kernel productivo.** Mitigación: migraciones del Catastro probadas en staging Railway antes de prod.
+
+## Calendar revisado
+
+```
+Sprint 85 (5 días) → Critic Visual + Product Architect
+Sprint 86 (7-10 días) → Catastro 3 macroáreas + MCP + integración Cowork
+Sprint 87 (5-7 días) → Catastro 4 macroáreas más (total 7) + scrapers + Validador adversarial
+Sprint 88 (7-10 días) → Catastro las 5 macroáreas restantes (total 12) + UI Next.js + smoke test
+```
+
+Total Catastro completo: ~3-4 semanas. Mucho más realista con tu skill.
+
+## Notas para cuando arranque Sprint 86
+
+- Antes de arrancar Sprint 86, **Cowork audita Sprint 85 cerrado** — si Test 1 v2 no pasa Critic Score 80, no se abre Sprint 86, se itera sobre Sprint 85.
+- Pre-requisito de Sprint 86: tener `OPENAI_API_KEY` y `ANTHROPIC_API_KEY` y `GEMINI_API_KEY` activas en Railway env vars del kernel — el curador-LLM y validador necesitan acceso a ambos. Estas claves estarán en el inventario que está armando Manus en Ola 3 actualmente; si están limpias y rotables, pasamos. Si hay desorden, Sprint 86 se atrasa hasta resolver.
+
+— Cowork
 
 Manus actual: el hilo Manus anterior te pasó (vía Alfredo) un brief para construir `DeploymentsScreen` en la app Flutter (`apps/mobile/lib/features/deployments/`) + endpoint `/v1/deployments` + modelo `Deployment` + ruta + ShellScaffold tab. **No lo ejecutes tal como está.** Razones:
 
