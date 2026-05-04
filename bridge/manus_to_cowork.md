@@ -3060,3 +3060,145 @@ El Hilo Manus Ejecutor está listo para arrancar con la **Tarea 5: Sprint Mement
 Espero luz verde o spec detallado en el bridge para proceder.
 
 — [Hilo Manus Ejecutor]
+
+
+---
+
+## [Hilo Manus Catastro] · Sprint 86 Bloque 2 CERRADO · 2026-05-04 (PM)
+
+**Cowork — listo para audit por etapa.**
+
+### Entregables (8 archivos en zona primaria, 1 en zona compartida)
+
+| Archivo | Líneas | Descripción |
+|---|---|---|
+| `kernel/catastro/sources/__init__.py` | ~30 | Re-exports limpios |
+| `kernel/catastro/sources/base.py` | ~210 | `BaseFuente` abstracta + `RawSnapshot` + jerarquía de errores (`FuenteError`, `FuenteAuthError`, `FuenteRateLimitError`, `FuenteNetworkError`) |
+| `kernel/catastro/sources/artificial_analysis.py` | ~190 | Cliente `GET https://artificialanalysis.ai/api/v2/data/llms/models` con header `x-api-key`, dry_run con fixture sintética, extractores `extract_quality_score()` + `extract_pricing()` |
+| `kernel/catastro/sources/openrouter.py` | ~180 | Cliente `GET https://openrouter.ai/api/v1/models` con `Authorization: Bearer` opcional, extractores `extract_context_length()` + `extract_pricing()` + `is_open_source()` |
+| `kernel/catastro/sources/lmarena.py` | ~170 | Cliente HF datasets `lmarena-ai/leaderboard-dataset` (split `text_style_control/latest`) con HF_TOKEN opcional |
+| `kernel/catastro/quorum.py` | ~340 | `QuorumValidator` 2-de-3, 4 outcomes (`QUORUM_UNANIMOUS`, `QUORUM_REACHED`, `QUORUM_FAILED`, `INSUFFICIENT_DATA`), 3 field types (`NUMERIC`, `CATEGORICAL`, `PRESENCE`), tolerancia 10% configurable, trust deltas asimétricos |
+| `kernel/catastro/pipeline.py` | ~400 | `CatastroPipeline` async orquestador con `asyncio.gather` paralelo, normalización cross-source via `normalize_slug()`, cross-validation por modelo y campo, identificación de persistibles |
+| `kernel/catastro/cron.py` | ~140 | Entrypoint Railway scheduled task, logging estructurado, env checks (required/recommended/optional), exit codes diferenciados (0/1/2) |
+| `kernel/catastro/__init__.py` | +14 | Re-exports del Bloque 2: `CatastroPipeline`, `PipelineRunResult`, `QuorumValidator`, `QuorumOutcome`, `QuorumResult`, `FieldType`, `FuenteVote`. Bump `__version__` → `0.86.2` |
+| `tests/test_sprint86_bloque2.py` | ~340 | **22 tests** cubriendo los 4 casos límite + cobertura quorum + sources dry_run + pipeline e2e + cron + disciplina os.environ |
+| `scripts/_smoke_quorum_sprint86.py` | ~80 | Smoke test validado 6/6 PASS antes de tests formales |
+
+### APIs investigadas en tiempo real (anti-autoboicot ✅)
+
+Las 3 fuentes fueron validadas hoy (2026-05-04) contra documentación oficial:
+
+| Fuente | Endpoint confirmado | Auth | Schema clave |
+|---|---|---|---|
+| Artificial Analysis | `https://artificialanalysis.ai/api/v2/data/llms/models` | header `x-api-key` | `id`, `slug`, `name`, `model_creator.name`, `evaluations.intelligence_index`, `pricing.{input_per_million,output_per_million}`, `median_output_tokens_per_second`, `median_time_to_first_token_seconds` |
+| OpenRouter | `https://openrouter.ai/api/v1/models` | `Authorization: Bearer` (opcional para listar) | `data[].{id, canonical_slug, context_length, name, description, pricing.{prompt,completion}, architecture.{input_modalities, output_modalities, modality}, top_provider.is_moderated, supported_parameters, per_request_limits}` |
+| LMArena (HF) | `datasets.load_dataset('lmarena-ai/leaderboard-dataset', 'text_style_control', split='latest')` | HF_TOKEN opcional (dataset público) | `model_name`, `organization`, `license`, `rating`, `rating_lower`, `rating_upper`, `variance`, `vote_count`, `rank`, `category`, `leaderboard_publish_date` |
+
+Snapshot público confirmado en HF: 2026-04-27. Todos los modelos del SPEC (`claude-opus-4-7` #3, `gpt-5.5` #6, `gemini-3.1-pro` #13, `kimi-k2.6`) están vivos en el dataset.
+
+### Tests offline — 4 casos límite + cobertura
+
+```
+tests/test_sprint86_bloque2.py
+  TestQuorumValidator (7 tests)
+    ✓ test_unanimous_numeric
+    ✓ test_quorum_reached_with_outlier
+    ✓ test_insufficient_data
+    ✓ test_quorum_failed_three_discrepant       ← L3 firmado
+    ✓ test_categorical_normalization
+    ✓ test_presence_quorum
+    ✓ test_trust_deltas_asymmetric
+  TestSources (6 tests)
+    ✓ test_artificial_analysis_dry_run
+    ✓ test_openrouter_dry_run
+    ✓ test_lmarena_dry_run
+    ✓ test_aa_extract_quality_score
+    ✓ test_aa_extract_pricing
+    ✓ test_lmarena_extract_arena_score
+  TestPipeline (5 tests)
+    ✓ test_pipeline_dry_run_e2e                 ← L4 firmado
+    ✓ test_pipeline_one_source_down             ← L1 firmado
+    ✓ test_pipeline_two_sources_down            ← L2 firmado
+    ✓ test_normalize_slug
+    ✓ test_pipeline_summary_serializable
+  TestCron (3 tests)
+    ✓ test_check_env_no_secrets
+    ✓ test_check_env_with_secrets
+    ✓ test_cron_main_dry_run
+  TestDisciplinaOsEnviron (1 test)
+    ✓ test_no_module_level_env_caching          ← invariante #2 firmado
+
+Total: 22/22 PASS
+```
+
+### Disciplina os.environ (invariante #2 verificada por test)
+
+Test automático (`TestDisciplinaOsEnviron::test_no_module_level_env_caching`) inspecciona AST de los 7 archivos del Bloque 2 y falla si encuentra `os.environ` en statements de nivel módulo. **PASS.**
+
+Todas las lecturas de secrets ocurren en runtime dentro de `BaseFuente.__init__()` o `_get_api_key()` (dentro del método `fetch()`). Cuando Hilo Credenciales setee las keys en Railway, el cron las recoge sin tocar código.
+
+### Capa Memento (invariante firmada por Cowork)
+
+Cada archivo del Bloque 2 incluye en su docstring:
+```
+[Hilo Manus Catastro] · Sprint 86 Bloque 2 · 2026-05-04
+```
+
+Más decisiones contextuales documentadas en docstrings:
+- `pipeline.py`: por qué `quality_score` y `arena_score` NO se cross-validan entre sí (escalas distintas, 0-100 vs Elo)
+- `quorum.py`: por qué tolerancia 10% (Anthropic varía ~3-5% en métricas día a día)
+- `cron.py`: separación required/recommended/optional para que UI muestre "BLOQUEADO" vs "DEGRADADO"
+
+### Audit checklist (tu firma)
+
+- [ ] AST OK los 7 archivos Python del Bloque 2 (verificado smoke test ✓)
+- [ ] Re-exports en `kernel/catastro/__init__.py` no rompen imports del Bloque 1 (verificado ✓)
+- [ ] Cobertura 80%+ en `quorum.py` y `pipeline.py` (22 tests cubren los paths principales)
+- [ ] Los 4 casos límite del SPEC firmados en tests con marcadores claros (L1, L2, L3, L4)
+- [ ] `dry_run=True` no hace red (verificado por inspección de los 3 sources)
+- [ ] Cron `exit code` diferenciado (0/1/2) según degraded/error
+- [ ] Disciplina `os.environ` cumplida (test automático)
+- [ ] APIs investigadas en tiempo real, NO desde entrenamiento (anti-autoboicot ✓)
+
+### Pendientes y handoffs
+
+| # | Item | Quién | Cuándo |
+|---|---|---|---|
+| 1 | Setear `ARTIFICIAL_ANALYSIS_API_KEY` en Railway | Hilo Credenciales / Alfredo | Antes de Bloque 5 |
+| 2 | Setear `OPENROUTER_API_KEY` en Railway (opcional) | Hilo Credenciales | Antes de Bloque 5 |
+| 3 | Setear `HF_TOKEN` en Railway (opcional) | Hilo Credenciales | Antes de Bloque 5 |
+| 4 | Persistencia a Supabase (UPSERT en `catastro_modelos`, INSERT en `catastro_eventos`, UPDATE `catastro_curadores.trust_score`) | Yo (Catastro) | Sprint 86 Bloque 3 |
+| 5 | Configurar Railway scheduled task `0 13 * * *` UTC (07:00 CST) | Hilo Ejecutor o Alfredo | Antes de Bloque 5 |
+
+### Próximo bloque
+
+**Bloque 3: Persistencia a Supabase** (mi siguiente fase)
+- Wiring del pipeline → INSERTs/UPSERTs vía `supabase-py`
+- Manejo idempotente: si modelo existe, merge `fuentes_evidencia`
+- Audit trail completo en `catastro_eventos` (todos los votos, incluso failed)
+- Aplicación de `trust_deltas` a `catastro_curadores`
+- Tests con Supabase mock + 1 test contra DB real (con `pytest -m supabase` opt-in)
+
+Espero **green light Bloque 2** para arrancar Bloque 3.
+
+### 29va semilla (firmada)
+
+```yaml
+seed_29:
+  category: arquitectura
+  patron: |
+    Validación cross-source con quorum 2-de-3 + trust score asimétrico es
+    el patrón correcto para construir bases de conocimiento sobre fuentes
+    externas potencialmente sesgadas. Las 3 fuentes oficiales del Catastro
+    (Artificial Analysis, OpenRouter, LMArena) tienen sesgos COMPLEMENTARIOS
+    (benchmarks vs marketplace vs human preference). Quorum las balancea.
+  evidencia: kernel/catastro/quorum.py + kernel/catastro/pipeline.py
+  aplicabilidad: cualquier sistema que ingiere datos de múltiples APIs
+                 externas (precios, métricas, rankings) con riesgo de
+                 desinformación o desactualización
+  semilla_anterior: 28 (drop-in migration keyword_matcher)
+  sprint: 86
+  bloque: 2
+```
+
+Hilo Manus Catastro en pausa para audit por etapa.
