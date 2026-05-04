@@ -1,0 +1,50 @@
+[
+  {
+    "ordinal": "13va",
+    "error_signature": "seed_classifier_slow_path_preflight_resolved",
+    "http_status": 200,
+    "response": {
+      "ok": true,
+      "seeded": "updated",
+      "error_signature": "seed_classifier_slow_path_preflight_resolved",
+      "occurrences": 3
+    },
+    "elapsed_ms": 762.8
+  },
+  {
+    "ordinal": "14va",
+    "error_signature": "seed_keyword_matching_sin_word_boundaries_es_bug",
+    "http_status": 200,
+    "response": {
+      "ok": true,
+      "seeded": "updated",
+      "error_signature": "seed_keyword_matching_sin_word_boundaries_es_bug",
+      "occurrences": 3
+    },
+    "elapsed_ms": 683.2
+  },
+  {
+    "ordinal": "15va",
+    "error_signature": "seed_cowork_specs_must_verify_schema_before_writing",
+    "http_status": 200,
+    "response": {
+      "ok": true,
+      "seeded": "updated",
+      "error_signature": "seed_cowork_specs_must_verify_schema_before_writing",
+      "occurrences": 3
+    },
+    "elapsed_ms": 616.5
+  },
+  {
+    "ordinal": "16va",
+    "error_signature": "seed_version_string_inconsistency_diagnostic_vs_health",
+    "http_status": 200,
+    "response": {
+      "ok": true,
+      "seeded": "updated",
+      "error_signature": "seed_version_string_inconsistency_diagnostic_vs_health",
+      "occurrences": 3
+    },
+    "elapsed_ms": 612.1
+  }
+]

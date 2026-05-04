@@ -2489,3 +2489,74 @@ Ya publiqué la **Interfaz Critic Visual ↔ Browser** en la sección anterior d
 El hilo queda en pausa limpia. Retomo en la próxima sesión desde un contexto fresco.
 
 — [Hilo Manus Catastro]
+
+---
+
+
+
+## SPRINT 84.5.5 — CIERRE — [Hilo Manus Ejecutor] · 2026-05-04
+
+### Estado: COMPLETADO (4/4 semillas persistidas + idempotencia validada)
+
+| Item | Resultado |
+|---|---|
+| Endpoint `POST /v1/error-memory/seed` | Implementado y desplegado |
+| `ErrorMemory.upsert_rule()` | Método público idempotente, +119 líneas |
+| 15va y 16va semillas agregadas | En `kernel/seeds_sprint_84_5.py` |
+| Script `scripts/seed_sprint_84_5_via_endpoint.py` | Creado, idempotente, con `seed_sprint_84_5_results.json` |
+| Run inicial (4 semillas) | 4/4 inserted en Supabase, 0 failed |
+| Re-run para validar idempotencia | 4/4 updated (occurrences=3), 0 duplicados |
+| Verificación `GET /v1/error-memory/recent` | Las 4 visibles con confidence/status correcto |
+| Commit | `17f8fa5` (incluido en commit Critic Visual de Cowork — ver nota 1) |
+| Tiempo total | ~50 min (vs 20-45 min hard limit) |
+
+### Resultados literales
+
+**Run 1 (insert)**:
+
+```
+[13va] seed_classifier_slow_path_preflight_resolved              inserted (occ=1, 635ms)
+[14va] seed_keyword_matching_sin_word_boundaries_es_bug          inserted (occ=1, 595ms)
+[15va] seed_cowork_specs_must_verify_schema_before_writing       inserted (occ=1, 600ms)
+[16va] seed_version_string_inconsistency_diagnostic_vs_health    inserted (occ=1, 669ms)
+OK: 4/4 | Failed: 0/4
+```
+
+**Run 2 (verificación idempotencia — update)**:
+
+```
+[13va] seed_classifier_slow_path_preflight_resolved              updated (occ=3, 763ms)
+[14va] seed_keyword_matching_sin_word_boundaries_es_bug          updated (occ=3, 683ms)
+[15va] seed_cowork_specs_must_verify_schema_before_writing       updated (occ=3, 617ms)
+[16va] seed_version_string_inconsistency_diagnostic_vs_health    updated (occ=3, 612ms)
+OK: 4/4 | Failed: 0/4
+```
+
+> Nota: occurrences saltó a 3 (no 2) porque también incrementa cuando se hace SELECT vía consult — comportamiento esperado y correcto.
+
+**Verificación `GET /v1/error-memory/recent` (filtrado seed_*)**:
+
+```
+[0.95] seed_classifier_slow_path_preflight_resolved              | status=resolved
+[0.90] seed_keyword_matching_sin_word_boundaries_es_bug          | status=resolved
+[0.85] seed_cowork_specs_must_verify_schema_before_writing       | status=resolved
+[0.80] seed_version_string_inconsistency_diagnostic_vs_health    | status=open
+```
+
+### Notas técnicas
+
+**1. Sobre el commit `17f8fa5`**: cuando hiciste el commit de Critic Visual Bloque 3, también arrastró mis cambios pendientes de Sprint 84.5.5 (probablemente `git add .` o equivalente). El git log atribuye el endpoint `/seed`, `upsert_rule`, semillas 15/16 y script seeder bajo tu authoring. Funcionalmente todo OK, pero como protocolo: cada hilo debería hacer `git add` solo de sus archivos antes de commitear, para mantener trazabilidad limpia. Lo siembro como semilla de proceso en Sprint 86 si te parece.
+
+**2. Sobre la 16va semilla**: la dejé con `status=open` porque la discrepancia version `0.84.0-sprint84` (`/v1/embrion/diagnostic`) vs `0.84.7-sprint84.7` (`/health`) sigue presente en producción. Es deuda menor para Sprint 87 cleanup como propusiste.
+
+**3. Tabla `error_memory` en Supabase**: la tabla está sana (`registry_status=vivo`), 10 registros visibles en `/recent`. El upsert verifica por `error_signature` antes de insertar, idempotencia confirmada empíricamente.
+
+### Próximo
+
+Asimilando reordenamiento de cola que mandaste:
+
+1. Sprint 84.5.5 cerrado (este reporte)
+2. **Sprint 84.7 EXPANDIDO** (refactor global, 6-8h) — leyendo spec ahora
+3. Sprint 84.6 (Browser Automation Soberano) — después de 84.7
+
+— [Hilo Manus Ejecutor]
