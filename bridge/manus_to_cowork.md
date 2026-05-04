@@ -3202,3 +3202,71 @@ seed_29:
 ```
 
 Hilo Manus Catastro en pausa para audit por etapa.
+
+---
+
+## [Hilo Manus Ejecutor] · Sprint Memento Bloque 1 CERRADO
+
+**Timestamp:** 2026-05-04 21:30 UTC
+**Hilo:** Manus Ejecutor (Hilo A)
+**Commit:** `daa1623`
+**ETA real vs presupuesto:** ~25 min vs 1-2h
+
+### Entregables
+
+| Archivo | Líneas | Descripción |
+|---|---|---|
+| `scripts/017_sprint_memento_schema.sql` | 279 | 3 tablas + bootstrap + RLS + índices + triggers |
+| `scripts/run_migration_017.py` | 171 | Migration runner con pre-flight de `SUPABASE_DB_URL` |
+
+### Schema desplegado en Supabase production
+
+| Tabla | Filas bootstrap | Índices | RLS |
+|---|---|---|---|
+| `memento_validations` | 0 (esperado) | 5 (ts, hilo_id, operation, status, contamination) | service_role only |
+| `memento_critical_operations` | 4 (rotate_credential, sql_against_production, deploy_to_production, financial_transaction) | 1 (activo) | service_role only |
+| `memento_sources_of_truth` | 4 (ticketlike_credentials, railway_env_vars, supabase_db_url, stripe_live_credentials) | 2 (activo, source_type) | service_role only |
+
+Triggers: `actualizado_en` auto-update en las dos tablas catálogo.
+
+### Validación
+
+```
+[OK] Tabla memento_validations existe.
+[OK] Tabla memento_critical_operations existe.
+[OK] Tabla memento_sources_of_truth existe.
+[OK] 4 operaciones críticas bootstrapped: ['deploy_to_production', 'financial_transaction', 'rotate_credential', 'sql_against_production']
+[OK] 4 fuentes de verdad bootstrapped: ['railway_env_vars', 'stripe_live_credentials', 'supabase_db_url', 'ticketlike_credentials']
+[OK] memento_validations vacía (count=0) — esperado en bootstrap.
+======================================================================
+ MIGRATION 017 COMPLETADA EXITOSAMENTE
+======================================================================
+```
+
+### Disciplina anti-Dory aplicada
+
+- Pre-flight de `SUPABASE_DB_URL` desde `os.environ` fresh (no asume contexto compactado)
+- Sanity check de formato (debe ser `postgresql://` y apuntar a Supabase)
+- Aborta si la URL apunta a localhost o no tiene scheme válido
+- Reutilización del patrón de migration 016 (no inventar la rueda)
+
+### Protocolo 4-pasos de commits aplicado
+
+1. `git status --short scripts/017*.sql scripts/run_migration_017.py` → confirmé archivos untracked correctos
+2. `git add scripts/017_sprint_memento_schema.sql scripts/run_migration_017.py` → add específico (28va semilla)
+3. `git diff --cached --stat` → confirmé 2 archivos, 450 inserciones
+4. `git -c user.name="Manus Ejecutor (Hilo A)" commit -F .commit_msg_memento_b1.txt && git push origin main` → autoría preservada, push verificado por hash
+
+### Zona primaria respetada
+
+Solo se tocó:
+- `scripts/017_sprint_memento_schema.sql` (nuevo)
+- `scripts/run_migration_017.py` (nuevo)
+
+NO se tocó: `kernel/catastro/*`, `kernel/main.py`, ni ningún archivo fuera de la zona Memento.
+
+### Listo para audit + green light de Bloque 2
+
+Espero green light para arrancar **Bloque 2 — Módulo `kernel/memento/` (MementoValidator + clases)**.
+
+— [Hilo Manus Ejecutor]
