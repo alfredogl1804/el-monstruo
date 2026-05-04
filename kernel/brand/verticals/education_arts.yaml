@@ -1,0 +1,60 @@
+# El Monstruo — Vertical: education_arts (Sprint 85)
+# Talleres, escuelas, academias creativas, estudios de arte.
+#
+# Usado por: kernel/embriones/product_architect.py
+# Filosofia: Calidez + autoridad. La pagina es un escaparate del talento del docente
+# y un puente para inscribirse, NO un brochure corporativo.
+
+vertical_id: education_arts
+display_name: "Educación & Artes"
+description: |
+  Sitios para talleres, academias, estudios creativos. El visitante debe
+  sentir el talento del docente en 3 segundos y poder inscribirse en 30.
+
+defaults:
+  client_brand:
+    tone: "warm-authoritative"
+    color_palette:
+      primary: "#6B4226"      # Brown forge — calidez profesional
+      accent: "#F97316"       # Orange forge — energia creativa
+      neutral_dark: "#1C1917" # Graphite
+      neutral_light: "#F5F5F4" # Acero claro
+    font_pair:
+      heading: "Playfair Display"  # Serif elegante para titulos
+      body: "Inter"                 # Sans clean para legibilidad
+
+  product_meta:
+    target_audience: "Padres, adultos profesionales o estudiantes en busca de formacion artistica"
+    differentiator_template: "Pequeños grupos, atencion personalizada, docente con trayectoria"
+
+  structure:
+    sections:
+      - hero                  # Imagen del docente + tagline + CTA
+      - about_teacher         # Biografia, trayectoria, filosofia
+      - programs              # Talleres/cursos disponibles con horario y precio
+      - testimonials          # Reseñas de alumnos previos
+      - schedule_and_pricing  # Tabla clara de horarios + precios
+      - inscription_form      # Formulario de inscripcion + pago
+      - contact_and_location  # Mapa + redes
+    primary_cta: "Inscribirme al taller"
+    secondary_cta: "Conocer al docente"
+    hero_message_template: "Aprende {discipline} con {teacher_name}. Pequeños grupos, resultados visibles."
+
+  must_haves:
+    - whatsapp_button         # Conversion rapida en LATAM
+    - testimonial_proof       # Confianza
+    - clear_pricing           # No esconder precios
+    - schedule_visible        # Horarios claros sin "consultar"
+    - mobile_first_layout     # 80% del trafico es mobile
+
+  avoid:
+    - generic_stock_photos    # Solo fotos reales del docente y alumnos
+    - corporate_voice         # Nunca "ofrecemos servicios de capacitacion integral"
+    - hidden_pricing          # "Solicita cotizacion" mata conversion en este vertical
+
+critic_visual_emphasis:
+  identity: 0.30
+  composition: 0.25
+  copy_quality: 0.20
+  mobile: 0.15
+  accessibility: 0.10

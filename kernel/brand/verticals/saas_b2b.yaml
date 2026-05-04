@@ -1,0 +1,61 @@
+# El Monstruo — Vertical: saas_b2b (Sprint 85)
+# Software B2B, plataformas, herramientas profesionales, dashboards.
+#
+# Filosofia: Densidad de valor + precision tecnica. El visitante es comprador
+# tecnico que escanea features, integraciones, pricing y demos en segundos.
+
+vertical_id: saas_b2b
+display_name: "SaaS B2B"
+description: |
+  Sitios para software B2B. Audiencia tecnica con presupuesto y poco tiempo.
+  Debe transmitir solidez, integraciones, pricing transparente y prueba gratis.
+
+defaults:
+  client_brand:
+    tone: "precise-confident"
+    color_palette:
+      primary: "#1E40AF"      # Azul tech
+      accent: "#06B6D4"       # Cyan moderno
+      neutral_dark: "#0F172A" # Slate dark
+      neutral_light: "#F8FAFC" # Slate light
+    font_pair:
+      heading: "Inter"        # Geometric sans para densidad
+      body: "Inter"           # Misma familia para coherencia
+
+  product_meta:
+    target_audience: "Decisores tecnicos: CTOs, product managers, ingenieros lead, ops managers"
+    differentiator_template: "Integraciones nativas + onboarding en {time_to_value}"
+
+  structure:
+    sections:
+      - hero                       # Headline outcome + sub-headline how + CTA
+      - logos_strip                # Empresas que ya usan (social proof)
+      - feature_grid               # 6-9 features con iconos + 1 linea
+      - integrations               # Logos de tools que conecta
+      - product_demo_video         # Video corto del producto en accion
+      - pricing_tiers              # 3 tiers con feature comparison
+      - testimonials_with_metrics  # Casos con numeros (ROI, time saved)
+      - documentation_preview      # Snippet de docs/API
+      - cta_signup                 # Free trial / book demo
+    primary_cta: "Empezar gratis"
+    secondary_cta: "Agendar demo"
+    hero_message_template: "{outcome} sin {pain}. {time_to_value}."
+
+  must_haves:
+    - clear_pricing              # Critico en B2B SaaS
+    - api_documentation_link     # Compradores tecnicos lo buscan
+    - security_badges            # SOC2, GDPR, HIPAA si aplica
+    - case_studies_with_numbers  # ROI medible
+    - integrations_visible       # Logos de tools que conecta
+
+  avoid:
+    - generic_marketing_copy     # "Empoderamos su transformacion digital"
+    - hidden_pricing             # "Solicitar cotizacion" mata conversion
+    - missing_logos_strip        # Sin social proof, no compran
+
+critic_visual_emphasis:
+  identity: 0.20
+  composition: 0.20
+  copy_quality: 0.30           # Copy es REY en B2B
+  mobile: 0.10                 # Compradores B2B usan desktop
+  accessibility: 0.20          # Critico en empresas grandes

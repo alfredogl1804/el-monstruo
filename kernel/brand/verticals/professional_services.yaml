@@ -1,0 +1,60 @@
+# El Monstruo — Vertical: professional_services (Sprint 85)
+# Consultoria, abogados, contadores, agencias de marketing, despachos.
+#
+# Filosofia: Autoridad + claridad de proceso. Visitante busca expertise
+# y quiere entender que va a pasar si los contrata.
+
+vertical_id: professional_services
+display_name: "Servicios Profesionales"
+description: |
+  Sitios para firmas profesionales. Visitante busca confianza, expertise
+  y proceso claro. Conversion = consulta inicial o llamada agendada.
+
+defaults:
+  client_brand:
+    tone: "authoritative-warm"
+    color_palette:
+      primary: "#1E3A5F"        # Navy autoridad
+      accent: "#C9A961"         # Gold accent
+      neutral_dark: "#0F172A"   # Slate dark
+      neutral_light: "#F8FAFC"  # Slate light
+    font_pair:
+      heading: "Cormorant Garamond"  # Serif autoridad
+      body: "Inter"                   # Sans claridad
+
+  product_meta:
+    target_audience: "Empresarios, ejecutivos o particulares que requieren asesoria especializada"
+    differentiator_template: "{years_experience} años + {specialization}, casos reales con {outcome_metric}"
+
+  structure:
+    sections:
+      - hero_with_value_prop      # Headline outcome + sub-headline how
+      - services_grid             # 4-6 servicios con descripcion
+      - team_or_founder           # Foto + bio + credenciales
+      - process_steps             # Como trabajamos paso 1-2-3-4
+      - case_studies              # Resultados con numeros
+      - testimonials              # De clientes reales
+      - cta_consultation          # Agenda consulta inicial
+      - faq                       # Preguntas frecuentes
+    primary_cta: "Agendar consulta inicial"
+    secondary_cta: "Conocer al equipo"
+    hero_message_template: "{outcome} con {differentiator}. {social_proof}."
+
+  must_haves:
+    - team_bios_with_credentials  # Foto + LinkedIn + casos
+    - process_clearly_defined     # Reduce ansiedad del prospecto
+    - testimonials_real           # Nombre + empresa + foto
+    - calendar_booking_widget     # Calendly o nativo
+    - clear_specialization        # Que NO hacen tambien
+
+  avoid:
+    - stock_team_photos           # MORTAL — destruye credibilidad
+    - generic_corporate_speak     # "Soluciones integrales 360"
+    - no_pricing_signal           # Al menos rangos o "desde X"
+
+critic_visual_emphasis:
+  identity: 0.25
+  composition: 0.20
+  copy_quality: 0.30          # Copy es critico
+  mobile: 0.10
+  accessibility: 0.15

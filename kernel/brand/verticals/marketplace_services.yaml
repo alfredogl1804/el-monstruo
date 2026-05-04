@@ -1,0 +1,61 @@
+# El Monstruo — Vertical: marketplace_services (Sprint 85)
+# Marketplaces, plataformas que conectan oferta y demanda de servicios.
+# Ej: plataformas de freelancers, ride-sharing, booking de espacios, alquileres.
+
+vertical_id: marketplace_services
+display_name: "Marketplace de Servicios"
+description: |
+  Plataformas que conectan oferta y demanda. Doble audiencia (proveedor + consumidor).
+  Sitio debe convertir AMBOS lados. Foco en confianza y match instantaneo.
+
+defaults:
+  client_brand:
+    tone: "trustworthy-energetic"
+    color_palette:
+      primary: "#0F766E"
+      accent: "#F97316"
+      neutral_dark: "#0F172A"
+      neutral_light: "#F8FAFC"
+    font_pair:
+      heading: "Inter"
+      body: "Inter"
+
+  product_meta:
+    target_audience: "Doble: usuarios buscando servicio + proveedores ofreciendo servicio"
+    differentiator_template: "Match en {time_to_match}, {trust_signal}, {coverage}"
+
+  structure:
+    sections:
+      - hero_dual_cta
+      - how_it_works
+      - search_and_filter_demo
+      - trust_signals
+      - top_providers_or_listings
+      - testimonials_both_sides
+      - pricing_or_commission
+      - sign_up_flow
+      - faq_for_both_sides
+    primary_cta: "Buscar un servicio"
+    secondary_cta: "Soy proveedor"
+    hero_message_template: "{service_category} en {city}. {trust_promise}."
+
+  must_haves:
+    - dual_value_prop_visible
+    - trust_badges
+    - search_bar_above_fold
+    - testimonials_from_both_sides
+    - mobile_first_layout
+    - clear_commission_or_pricing
+
+  avoid:
+    - single_audience_messaging
+    - hidden_fees
+    - missing_trust_signals
+    - empty_states_in_demo
+
+critic_visual_emphasis:
+  identity: 0.20
+  composition: 0.25
+  copy_quality: 0.25
+  mobile: 0.20
+  accessibility: 0.10

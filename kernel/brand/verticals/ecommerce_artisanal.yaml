@@ -1,0 +1,51 @@
+# El Monstruo — Vertical: ecommerce_artisanal (Sprint 85)
+vertical_id: ecommerce_artisanal
+display_name: "E-commerce Artesanal"
+description: |
+  Tiendas online de productos premium con historia. Visitante valora
+  craft y origen. Conversion = compra unica o suscripcion.
+defaults:
+  client_brand:
+    tone: "intimate-elevated"
+    color_palette:
+      primary: "#3D2817"
+      accent: "#C9A961"
+      neutral_dark: "#1C1917"
+      neutral_light: "#FAF7F2"
+    font_pair:
+      heading: "DM Serif Display"
+      body: "Inter"
+  product_meta:
+    target_audience: "Compradores conscientes que valoran craft, origen e historia"
+    differentiator_template: "Hecho a mano en {origin}, edicion limitada"
+  structure:
+    sections:
+      - hero_product_lifestyle
+      - story_origin
+      - product_grid
+      - product_detail
+      - process_video
+      - testimonials
+      - sustainability_note
+      - newsletter_signup
+      - cart_and_checkout
+    primary_cta: "Comprar ahora"
+    secondary_cta: "Conocer la historia"
+    hero_message_template: "{product_descriptor} hecho a mano en {origin}."
+  must_haves:
+    - high_res_product_photos
+    - clear_pricing
+    - shipping_info_visible
+    - return_policy_clear
+    - story_section
+    - mobile_checkout_optimized
+  avoid:
+    - stock_product_photos
+    - generic_brand_story
+    - hidden_shipping_cost
+critic_visual_emphasis:
+  identity: 0.30
+  composition: 0.30
+  copy_quality: 0.20
+  mobile: 0.15
+  accessibility: 0.05

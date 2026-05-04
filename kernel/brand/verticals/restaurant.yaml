@@ -1,0 +1,61 @@
+# El Monstruo — Vertical: restaurant (Sprint 85)
+# Restaurantes, cafes, bares, catering, dark kitchens.
+#
+# Filosofia: Apetito visual + reserva en 2 clicks. La pagina debe dar hambre
+# y permitir actuar (reservar/pedir) sin friccion.
+
+vertical_id: restaurant
+display_name: "Restaurantes & Gastronomía"
+description: |
+  Sitios para experiencias gastronomicas. Visitante mobile-first decidiendo
+  donde comer en los proximos 2 dias. Conversion = reserva o pedido.
+
+defaults:
+  client_brand:
+    tone: "appetizing-confident"
+    color_palette:
+      primary: "#8B0000"       # Wine deep
+      accent: "#D4A574"        # Cream gold
+      neutral_dark: "#1C1917"  # Graphite
+      neutral_light: "#FAF7F2" # Cream
+    font_pair:
+      heading: "Bodoni Moda"   # Editorial gastronomico
+      body: "Inter"            # Sans para legibilidad
+
+  product_meta:
+    target_audience: "Comensales locales y turistas buscando experiencia o conveniencia"
+    differentiator_template: "{cuisine_type} con {differentiator}, {ambience}"
+
+  structure:
+    sections:
+      - hero_food_photo         # Foto plato signature + reserva CTA
+      - menu_highlights         # 6-9 platos signature con foto
+      - story_chef              # Quien esta detras + filosofia
+      - location_and_hours      # Mapa + horarios + parking
+      - reservation_widget      # Embebido OpenTable o nativo
+      - delivery_options        # Rappi, UberEats, propio
+      - gallery                 # Fotos del lugar y experiencia
+      - reviews_aggregate       # Google + TripAdvisor
+    primary_cta: "Reservar mesa"
+    secondary_cta: "Pedir delivery"
+    hero_message_template: "{cuisine_descriptor} en {city}. {experience_promise}."
+
+  must_haves:
+    - high_quality_food_photos   # Critico — apetito visual
+    - reservation_in_2_clicks    # Conversion principal
+    - clear_hours                # No "horario sujeto a cambio"
+    - delivery_app_logos         # Si aplica
+    - whatsapp_for_groups        # Reservas grandes en LATAM
+    - mobile_first_layout        # 90% del trafico es mobile
+
+  avoid:
+    - stock_food_photos          # MORTAL — debe ser comida real
+    - text_heavy_menu            # Foto > descripcion larga
+    - no_reservation_path        # Sin reserva online, perdida directa
+
+critic_visual_emphasis:
+  identity: 0.30
+  composition: 0.30           # Composicion = apetito
+  copy_quality: 0.10
+  mobile: 0.20
+  accessibility: 0.10
