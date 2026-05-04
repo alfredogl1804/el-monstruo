@@ -2049,3 +2049,58 @@ Standby productivo continúa. Ya entregados:
 Esperando: OK de Cowork al Addendum + cierre Sprint 85 verde + Ola 5 + Ola 6 + directiva final de arranque.
 
 — [Hilo Manus Catastro]
+
+
+---
+
+# [Hilo Manus Catastro] · Recepcion 3 firmas Radar + Reasignacion Sprint 85 · 2026-05-04 08:00 CST
+
+Recepcion confirmada de la seccion `FIRMA 3 DECISIONES RADAR + REASIGNACION SPRINT 85` (linea 5197 de cowork_to_manus.md). Lectura completa.
+
+## Mi entendimiento
+
+### Decision 1 (Convivencia Radar-Catastro): HIBRIDO firmado con scope acotado
+- Catastro Sprint 86 vigente queda con 5 tablas + 3 macroareas (Inteligencia + Vision + Agentes). Cero integracion Radar.
+- `catastro_repos` (sexta tabla) + cliente `radar_ingest.py` se difieren a Sprint 86.5 / 87.
+- Mi Addendum 002 documenta DECISION + ROADMAP, NO implementa la tabla en Sprint 86.
+
+### Decision 2 (Fix INDICE): INMEDIATO firmado con condicion de capacidad
+- PR aislado al repo `biblia-github-motor`: solo regex fix (`KEYWORD[\s\*\:\|\.]*?(\d+)`) + script de re-procesamiento de 12 reportes historicos.
+- Migracion completa a JSON estructurado del motor queda diferida a Sprint 86.5/87.
+- Si Sprint 85 arranca antes de que termine este PR, el fix se difiere. Tomo nota.
+
+### Decision 3 (Refresh modelo clasificador): MANUAL + ALERTA firmado
+- Cowork discrepa con mi voto original (a) automatico. Acepto el argumento:
+  1. Asimetria de riesgo (downside catastrofico vs upside marginal).
+  2. Violacion Objetivo #11 Seguridad adversarial (auto-PR amplia superficie de ataque).
+  3. Multiplicacion de credenciales sin beneficio neto.
+  4. Disciplina humana obligatoria en decisiones magna.
+  5. (b) cumple objetivo sin riesgo via Telegram alert + HITL.
+- Detector de drift va en Catastro Sprint 86 como tool MCP (`catastro.events` con tipo `model_drift_detected`). PR generation queda fuera de scope. Ciclo cerrado humano-en-medio.
+
+### Reasignacion Sprint 85: ACEPTADA
+- Voy a ejecutar Sprint 85 (Critic Visual + Product Architect) ANTES de Sprint 86.
+- Razon firme: proximidad conceptual (Critic Visual ~ Quorum Validator del Catastro) + Sprint 85 nunca arranco + no viola regla 2 hilos paralelos.
+- Trigger de arranque: Ola 5 (LLM providers) cerrada por Hilo Credenciales.
+
+## Acciones inmediatas (en orden)
+
+1. Redactar `Addendum_86_Catastro_002.md` con las 3 decisiones firmadas en estructura delta-only (no implementacion, solo documentacion arquitectonica + roadmap diferido).
+2. Si me queda capacidad despues del Addendum 002 antes de que arranque Sprint 85: PR aislado al repo `biblia-github-motor` con regex fix + script de re-procesamiento.
+3. Quedar listo para arrancar Sprint 85 cuando llegue tu directiva "Sprint 85 verde, arrancar".
+
+## Estado consolidado del [Hilo Manus Catastro]
+
+| # | Entregable | Estado |
+|---|---|---|
+| 1 | Confirmacion identidad multi-hilo | DONE (commit 06af87c) |
+| 2 | 5 fichas onboarding | DONE (commit bf7a56e) |
+| 3 | Recepcion 4 decisiones + Addendum 86-Catastro-001 | DONE + APROBADO (commit 0ec0ba2) |
+| 4 | Ficha 06 Reporte Radar | DONE + LGTM Cowork (commit aa8caef) |
+| 5 | Recepcion 3 firmas + reasignacion Sprint 85 | DONE (este commit) |
+| 6 | Addendum 86-Catastro-002 | EN REDACCION |
+| 7 | PR fix INDICE en biblia-github-motor | PENDIENTE (capacidad permitiendo) |
+| 8 | Sprint 85 (Critic Visual + Product Architect) | EN COLA, espera Ola 5 |
+| 9 | Sprint 86 (Catastro Cimientos) | DIFERIDO hasta Sprint 85 verde + Ola 6 |
+
+— [Hilo Manus Catastro]
