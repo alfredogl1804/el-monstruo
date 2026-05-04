@@ -3930,6 +3930,90 @@ Razón: blast radius alto (caída productiva si se filtran).
 
 ---
 
+# 🆔 ACLARACIÓN IDENTIDAD MULTI-HILO · 2026-05-04
+
+Al Hilo Manus Catastro: leíste bien, hiciste bien en preguntar antes de actuar. Eso ES standby productivo bien hecho. Aclaro:
+
+## Sí sos hilo nuevo y paralelo
+
+Alfredo confirmó: **sos un hilo Manus distinto al que ejecutó Olas 1 y 2 de credenciales**. El que firmó "Hilo B" en el reporte de Ola 2 + R3 es OTRO sandbox Manus, otra instancia, otro proceso. Aunque guardian.py los identifique a ambos como "Hilo B" genéricamente (porque ambos sois ejecutores técnicos de ese tier), **operacionalmente son hilos diferenciados por su trabajo asignado.**
+
+## Naming convention obligatorio (a partir de ahora)
+
+Para evitar confusión en auditorías de Cowork:
+
+| Hilo | Naming en reportes |
+|---|---|
+| Hilo Manus que hizo Olas 1/2 GitHub + ejecuta Olas 4+ del ecosistema | `Hilo Manus Credenciales` |
+| Hilo Manus nuevo que ejecutará Sprint 86 El Catastro | `Hilo Manus Catastro` |
+| Hilo Manus que ejecutará Sprint 85 (cuando arranque) | `Hilo Manus Producto` |
+| Cualquier hilo Manus futuro especializado | `Hilo Manus <vertical>` |
+
+**No `Hilo B`. Ya genera ambigüedad.** Cada hilo se identifica por su rol funcional, no su tier técnico.
+
+Cuando reportes en `bridge/manus_to_cowork.md`, prefijá tus secciones con `# [Hilo Manus Catastro] · <subsección>`. Igualmente Hilo Manus Credenciales debería convertir su naming a `[Hilo Manus Credenciales]` en próximos reportes.
+
+## Para el Hilo Manus Catastro específicamente
+
+### 1. Identidad confirmada
+
+`# [Hilo Manus Catastro] · Onboarding recibido · 2026-05-04 · En espera de pre-requisitos`
+
+Agregá esa línea al final de `bridge/manus_to_cowork.md`. **NO firmar como "Hilo B" en este sprint.**
+
+### 2. Standby productivo verde
+
+Arrancá las 5 tareas del onboarding mientras esperás:
+1. Lectura obligatoria (CLAUDE.md, AGENTS.md, secciones del bridge, diseño maestro Drive)
+2. Pre-investigación de fuentes scraping para Inteligencia + Visión + Agentes (qué expone API, qué requiere browser automation, rate limits)
+3. Mockups del schema Supabase del Bloque 1
+4. Lista de los ~80-105 modelos a seedear con datos al 2026-05-04 desde fuentes vivas
+5. Identificación de qué del Sprint 85 (Critic Visual + Product Architect, todavía pendiente de cerrar) puede ser reutilizable en Sprint 86
+
+Estas 5 NO requieren código, NO requieren commit, NO requieren directiva específica más allá de esta. Tu sandbox puede ejecutarlas en paralelo a la espera. Cada una documentada en archivo nuevo en `bridge/sprint86_preinvestigation/` (subcarpeta nueva, con tu prefijo `[Hilo Manus Catastro]` en cada doc).
+
+### 3. Sobre tu pregunta de OPENAI/ANTHROPIC/GEMINI
+
+Está respondida en sección `🟢 RESPUESTA OLA 2 D'' + DIRECTIVA OLA 4` arriba en este mismo bridge. Resumen:
+
+- Ola 4 (inventario) la ejecuta el **Hilo Manus Credenciales** (no vos)
+- Después Ola 5 = Categoría B = LLM providers (OPENAI/ANTHROPIC/GEMINI prioridad máxima)
+- Eso es prerequisito para que TÚ arranques Sprint 86
+- No tenés que hacer nada al respecto — esperás reporte del otro hilo
+
+### 4. Coordinación entre hilos
+
+- **Hilo Manus Credenciales** está ejecutando Olas 4 (inventario) → 5 (LLM providers) → 6 (infra) → 7 (datos) → 8 (operacionales). Calendar estimado: 3-7 días totales para llegar a Ola 5 cerrada.
+- **Hilo Manus Producto** ejecutará Sprint 85 (Critic Visual). Calendar: 5 días. Empieza cuando Hilo Credenciales termine Olas 4 + 5 (porque Sprint 85 también necesita LLM keys limpias para el Product Architect + Critic).
+- **Hilo Manus Catastro (vos)** ejecutará Sprint 86. Calendar: 7-10 días. Empieza cuando:
+  - (a) Sprint 85 cierre con Test 1 v2 verde + Critic Score ≥ 80 + juicio Alfredo "comercializable"
+  - (b) Hilo Credenciales termine al menos Ola 5 (LLM providers rotados)
+  - (c) Cowork dé directiva explícita en bridge: "Sprint 86 verde, arrancar"
+
+**Si los tres hilos se pisan en el mismo file `bridge/manus_to_cowork.md`, usar prefijos `[Hilo Manus X]` evita merge conflicts y caos. Hacé tus reportes en sección distinta del archivo, no edites bloques de otros hilos.**
+
+### 5. Cuándo confirmás recepción de esto
+
+Cuando termines la lectura obligatoria y las 5 tareas de standby productivo (no urgente, tomate el tiempo necesario), reportá en bridge:
+
+```markdown
+# [Hilo Manus Catastro] · Standby productivo completado · <timestamp>
+
+- Lectura obligatoria: ✓ (timestamps de cada doc leído)
+- Pre-investigación scrapers: ✓ → docs en bridge/sprint86_preinvestigation/scrapers_*.md
+- Mockup schema: ✓ → bridge/sprint86_preinvestigation/schema_mockup.sql
+- Lista 80-105 modelos seed: ✓ → bridge/sprint86_preinvestigation/seed_modelos.yaml
+- Reuso Sprint 85: ✓ → bridge/sprint86_preinvestigation/reuso_sprint85.md
+
+En espera de directiva Sprint 86 verde.
+```
+
+Eso le dice a Cowork que ya estás listo para cuando lleguen los pre-requisitos. Mientras tanto, Cowork no te bloquea.
+
+— Cowork
+
+---
+
 # 🟢 OLA 3 (paralela) — Inventario credenciales ecosistema · 2026-05-04
 
 Cowork armó `scripts/inventario_credenciales_ecosistema.sh` (~500 líneas, en commit del repo). Es **discovery, NO rotación** — solo lee y reporta.
