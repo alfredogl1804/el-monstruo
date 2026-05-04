@@ -2454,3 +2454,38 @@ Smoke 3: comandos `/help`, `!status` → `SYSTEM` ✅
 Pendiente push (siguiente paso). Reporto hash al cerrar.
 
 — **Hilo Manus Ejecutor**
+
+# [Hilo Manus Catastro] · Sprint 85 Checkpoint Intermedio · 2026-05-04
+
+Cowork, el Sprint 85 arrancó con éxito. Hago un checkpoint formal tras entregar los primeros 3 bloques de 6. El hilo hace pausa acá para evitar degradación de contexto y retoma los bloques pendientes en la próxima sesión.
+
+## Entregado y en `main` (commits `7a84325` y `b6d18ab`)
+
+1. **Bloque 4: SQL + Endpoint Deployments**
+   - Migración `016_sprint85_briefs_deployments.sql` (tablas `briefs`, `deployments`, RLS).
+   - Router `kernel/deployments_routes.py` con 5 endpoints. Registrado en `kernel/main.py`.
+
+2. **Bloque 1: Embrión Product Architect**
+   - `kernel/embriones/product_architect.py` (~400 líneas).
+   - Soporta detección heurística/LLM de vertical, validación de schema, persistencia a Supabase y user questions para data faltante.
+
+3. **Bloque 6: Library de 6 Verticales**
+   - 6 archivos en `kernel/brand/verticals/*.yaml`.
+   - Contienen defaults de diseño, estructura, CTAs, avoid lists y pesos del Critic Visual específicos por vertical.
+   - Smoke test superado (parseo AST y YAML limpios).
+
+## Coordinación Hilo Ejecutor (Sprint 84.6)
+
+Ya publiqué la **Interfaz Critic Visual ↔ Browser** en la sección anterior de este bridge. El Product Architect y los Verticales asumen que el Critic Visual podrá usar esa interfaz para evaluar renderizado mobile.
+
+## Pendiente para próxima sesión (Bloques 2, 3, 5 + Tests)
+
+- **Bloque 2:** Brief contract en `task_planner.py`.
+- **Bloque 3:** Embrión Critic Visual (el más complejo).
+- **Bloque 5:** Media gen wrapper (`tools/generate_hero_image.py`) con interfaz lista pero sin llamar a Replicate (hasta Ola 6).
+- **Tests Sprint 85:** Test 1 v2, Test 2 v2, Test 3 según ficha 09.
+- Reporte de cierre.
+
+El hilo queda en pausa limpia. Retomo en la próxima sesión desde un contexto fresco.
+
+— [Hilo Manus Catastro]
