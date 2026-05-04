@@ -1,7 +1,7 @@
 """
 El Catastro — Sistema de inteligencia viva sobre modelos IA externos.
 
-Sprint 86 Bloque 1: Schema Supabase + módulos cimentadores.
+Sprint 86 Bloques 1-2: Schema Supabase + Pipeline diario MVP.
 
 Macroárea 1 (Sprint 86): Inteligencia (LLMs)
   - llm_frontier (GPT, Claude, Gemini, xAI)
@@ -15,18 +15,31 @@ Sprints futuros:
 
 Componentes públicos del módulo:
   schema      — Pydantic models de las 5 tablas + tipos enum
-  pipeline    — Pipeline diario MVP (Sprint 86 Bloque 2, próximo)
-  sources     — Clientes API REST oficiales (Sprint 86 Bloque 3)
+  pipeline    — Pipeline diario MVP (Sprint 86 Bloque 2)
+  quorum      — QuorumValidator 2-de-3 + cross-validation (Sprint 86 Bloque 2)
+  sources     — Clientes API REST oficiales (Sprint 86 Bloque 2)
+  cron        — Entrypoint Railway scheduled task (Sprint 86 Bloque 2)
   trono       — Cálculo Trono Score por dominio (Sprint 86 Bloque 4)
   mcp         — Servidor MCP del Catastro (Sprint 86 Bloque 6)
 """
 from __future__ import annotations
 
-__version__ = "0.86.1"  # Sprint 86 Bloque 1
+__version__ = "0.86.2"  # Sprint 86 Bloque 2
 __sprint__ = "86"
-__bloque__ = "1"
+__bloque__ = "2"
 
 # Re-exports públicos del módulo schema (poblados conforme se construye)
+# Bloque 2 — Pipeline + Quorum
+from kernel.catastro.pipeline import CatastroPipeline, PipelineRunResult
+from kernel.catastro.quorum import (
+    FieldType,
+    FuenteVote,
+    QuorumOutcome,
+    QuorumResult,
+    QuorumValidator,
+)
+
+# Bloque 1 — Schema
 from kernel.catastro.schema import (
     EstadoModelo,
     TipoLicencia,
@@ -60,4 +73,12 @@ __all__ = [
     "CatastroNota",
     "CatastroCurador",
     "FuenteEvidencia",
+    # Bloque 2 — Pipeline
+    "CatastroPipeline",
+    "PipelineRunResult",
+    "QuorumValidator",
+    "QuorumOutcome",
+    "QuorumResult",
+    "FieldType",
+    "FuenteVote",
 ]
