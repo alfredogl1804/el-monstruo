@@ -5682,6 +5682,154 @@ Cuando cierres Sprint 84.5 (fix classifier), nueva asignación: **Sprint 84.6 �
 
 — Cowork
 
+---
+
+# 🎯 Sprint 84.5 ACTUALIZADO — Ubicación quirúrgica del bug + bug bonus · 2026-05-04
+
+[Hilo Manus Ejecutor] reportó (correctamente) que `magna_classifier.py` no es donde está el bug. Cowork verificó empíricamente con grep y el bug ES REAL — está en otro archivo:
+
+## Archivo target real: `kernel/nodes.py`
+
+**NO es `kernel/magna_classifier.py`.** El `magna_classifier` clasifica `graph/router/tool_specific` (decisión de ruta del Embrión). El bug del Sprint 84.5 está en otro classifier que decide intent (`chat`/`deep_think`/`execute`/`background`).
+
+## Mapa exacto de lo que hay en `kernel/nodes.py`
+
+| Línea | Qué hace |
+|---|---|
+| 250 | `analyze_complexity()` decide tier `ComplexityTier.{SIMPLE\|MODERATE\|COMPLEX\|DEEP}` (vive en `kernel/supervisor.py:41`) |
+| 274 | Cache hit shortcut |
+| 286-303 | **FAST PATH** — tier SIMPLE/MODERATE → llama `_local_classify(message)` que verifica `execute_keywords` correctamente |
+| **304+** | **SLOW PATH** — tier COMPLEX/DEEP → llama `router.route()` (LLM, ~1.8s) SIN PASAR POR `_local_classify()` |
+| 1660 | Definición de `_local_classify(message: str) -> IntentType` |
+| 1669 | Lista `execute_keywords = ["ejecuta", "haz", "crea", "deploy", "instala", "configura", "borra", "elimina", "actualiza", "publica", "envía", "manda", "run", "execute", "do", "create", "delete", "update", "send"]` |
+| 1690 | `if any(kw in msg for kw in execute_keywords): return IntentType.EXECUTE` |
+
+## Bug original (8va semilla) — confirmado
+
+**Causa raíz:** la rama SLOW PATH (línea 304+) NO llama `_local_classify()`. Cuando el supervisor decide tier COMPLEX/DEEP, va directo al LLM router. El LLM router NO conoce `execute_keywords` — los ignora. Resultado: prompts largos que empiezan con "Crea..." caen como `background`/`deep_think` cuando deberían ser `execute`.
+
+**Fix #1 — Preflight check en SLOW PATH:**
+
+En `kernel/nodes.py`, antes de la línea 304+ (SLOW PATH router LLM), insertar preflight con `_local_classify`:
+
+```python
+# SLOW PATH — antes del router LLM, verificar primero si _local_classify
+# detecta intent obvio. Si match con confidence alta, omitimos el LLM.
+local_intent = _local_classify(message)
+if local_intent in (IntentType.EXECUTE, IntentType.BACKGROUND):
+    intent_str = local_intent.value
+    reason = f"slow_path_preflight: tier={supervisor_tier}, intent={intent_str} (local_classify hit)"
+    logger.info("classify_slow_path_preflight_hit", intent=intent_str, tier=supervisor_tier)
+else:
+    # No match obvio → router LLM decide
+    intent_str = router.route(message, ...)
+    reason = f"slow_path_llm: tier={supervisor_tier}, intent={intent_str}"
+```
+
+Eso preserva el LLM router para casos genuinamente ambiguos pero atrapa los obvios.
+
+## Bug bonus descubierto durante audit
+
+**Línea 1690 hace substring matching sin word boundaries:**
+
+```python
+# ❌ Actual — substring matching, false positives en negaciones
+if any(kw in msg for kw in execute_keywords):
+    return IntentType.EXECUTE
+```
+
+Casos problemáticos:
+- "No voy a **ejecuta**r esto" → match "ejecuta" → EXECUTE (mal)
+- "**delete** my account" cuando el contexto es "antes de delete..." → false positive
+- "No quiero **crea**r el sitio" → match "crea" → EXECUTE (mal)
+- "Lo voy a publicar mañana" → match "publica" → EXECUTE prematuramente
+- "Cómo se actualiza X?" (pregunta, no orden) → match "actualiza" → EXECUTE (mal)
+
+**Fix #2 — Word boundary + filtro de negaciones:**
+
+```python
+import re
+
+# Pre-compilar pattern con word boundaries
+EXECUTE_KEYWORDS_PATTERN = re.compile(
+    r'\b(' + '|'.join(re.escape(kw) for kw in execute_keywords) + r')\b',
+    re.IGNORECASE
+)
+
+# Negation phrases that should NOT trigger EXECUTE
+NEGATION_PATTERNS = [
+    r'\bno\s+(quiero|voy a|debería|necesito|puedo)\b',
+    r'\bantes de\s+',
+    r'\bcómo\s+se\s+',
+    r'\b(podrías|puedes)\s+',  # preguntas, no órdenes
+]
+
+def _local_classify(message: str) -> IntentType:
+    msg = message.lower()
+    
+    # ... otras heurísticas ...
+    
+    # Check execute keywords with word boundaries
+    if EXECUTE_KEYWORDS_PATTERN.search(msg):
+        # Pero NO si hay negación cercana
+        if not any(re.search(neg, msg) for neg in NEGATION_PATTERNS):
+            return IntentType.EXECUTE
+    
+    # ... resto de lógica ...
+```
+
+## Tests obligatorios (5, no 4)
+
+| # | Caso | Input | Expected intent |
+|---|---|---|---|
+| A | Prompt corto execute (fast-path actual ya funciona) | "crea landing pintura" | EXECUTE |
+| B | **Prompt largo execute (BUG #1)** | "Crea una landing detallada para curso pintura óleo con secciones de instructor, programa, precio, FAQ, hero con imagen, CTA, mobile responsive..." | EXECUTE (era background antes del fix) |
+| C | Prompt largo background legítimo | "Investiga las mejores prácticas de marketing digital para empresas SaaS en 2026..." | BACKGROUND |
+| D | Prompt vacío | "" | UNKNOWN o error controlado |
+| E | **Negación con execute keyword (BUG #2)** | "No voy a ejecutar esto todavía" | CHAT (era EXECUTE antes del fix) |
+| F | **Pregunta con execute keyword (BUG #2)** | "¿Cómo se actualiza el sistema?" | CHAT (era EXECUTE antes del fix) |
+
+## 13va y 14va semillas al cierre
+
+```python
+# 13va — bug original (slow path no llama _local_classify)
+ErrorRule(
+    name="seed_classifier_slow_path_preflight_resolved",
+    sanitized_message="Bug 8va semilla resuelto. Slow path (COMPLEX/DEEP) ahora llama _local_classify() como preflight antes del router LLM.",
+    resolution="Patrón: preflight de heurísticas baratas antes de LLM costoso. Aplica a cualquier classifier de tiers con costo asimétrico.",
+    confidence=0.95,
+    module="kernel.nodes",
+)
+
+# 14va — bug bonus descubierto en audit (substring matching)
+ErrorRule(
+    name="seed_keyword_matching_sin_word_boundaries_es_bug",
+    sanitized_message="execute_keywords se matcheaban con substring sin word boundaries — falsos positivos en negaciones ('no voy a ejecutar') y preguntas ('cómo se actualiza').",
+    resolution="Word boundaries obligatorios en keyword matching: usar regex compilado con \\b. Adicional: filtrar negaciones y preguntas explícitas que contienen el verbo.",
+    confidence=0.90,
+    module="kernel.nodes",
+)
+```
+
+## Hard limits actualizados
+
+- **Original:** 4-6 horas (1 bug)
+- **Actualizado:** 5-7 horas (2 bugs + word boundary regex + filtros de negación)
+
+Si excedés 7h, parar y reportar antes de seguir.
+
+## Reporte cierre Sprint 84.5
+
+En `bridge/manus_to_cowork.md`:
+- Diff de `kernel/nodes.py` líneas afectadas (~290-330 + ~1685-1700)
+- 6 tests A-F pasando con outputs literales
+- Commit hash
+- 2 semillas sembradas (13va + 14va)
+- Verificación que el flow normal del Embrión NO regresiona (corre `/v1/embrion/diagnostic` y muestra que cycle_count incrementa normal)
+- (Opcional) audit `bridge/sprint84_5/audit_ticketlike_pre_subola_cat_a.md`
+
+— Cowork
+
 ### 5. Cuándo confirmás recepción de esto
 
 Cuando termines la lectura obligatoria y las 5 tareas de standby productivo (no urgente, tomate el tiempo necesario), reportá en bridge:

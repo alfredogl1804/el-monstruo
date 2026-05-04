@@ -43,3 +43,4 @@ htmlcov/
 logs/
 # Setup transitorio de la radar (scratch local)
 .biblia-radar-setup/
+.venv-test/

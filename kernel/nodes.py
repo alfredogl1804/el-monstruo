@@ -27,6 +27,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import os
+import re
 import time
 from datetime import datetime, timezone
 from typing import Any, Optional
@@ -301,25 +302,51 @@ async def classify_and_route(state: MonstruoState, config: RunnableConfig) -> di
             )
 
         elif router:
-            # SLOW PATH: COMPLEX/DEEP — use LLM classify for accuracy
-            try:
-                intent_obj, selected_model = await router.route(message, channel, context)
-                intent_str = intent_obj.value
-                # For COMPLEX/DEEP, supervisor already set the model;
-                # only use router's model if no supervisor model
+            # SLOW PATH: COMPLEX/DEEP — use LLM classify for accuracy.
+            #
+            # Sprint 84.5 — 8va semilla resuelta:
+            # Antes del router LLM, ejecutar preflight con _local_classify().
+            # Si detecta intent EXECUTE/BACKGROUND con keywords obvios,
+            # bypassamos el LLM (~1.8s + costo) y usamos heurística.
+            # Para prompts ambiguos sin match, sigue al router LLM original.
+            preflight_intent = _local_classify(message)
+            if preflight_intent in (IntentType.EXECUTE, IntentType.BACKGROUND):
+                intent_str = preflight_intent.value
                 if model_hint:
                     model = model_hint
-                # Keep supervisor model — it's tier-appropriate
                 fallbacks = _get_fallback_chain(intent_str, model)
-                reason = f"router (slow path): tier={supervisor_tier}, intent={intent_str}"
-                classify_source = "llm"
+                reason = (
+                    f"slow_path_preflight: tier={supervisor_tier}, "
+                    f"intent={intent_str} (local_classify hit)"
+                )
+                classify_source = "heuristic_preflight"
                 _cache_set_intent(message, intent_str)
-            except Exception as e:
-                logger.warning("classify_and_route_failed", error=str(e))
-                intent_str = _local_classify(message).value
-                fallbacks = _get_fallback_chain(intent_str, model)
-                reason = f"fallback: router error ({str(e)[:50]})"
-                classify_source = "fallback"
+                logger.info(
+                    "classify_slow_path_preflight_hit",
+                    tier=supervisor_tier,
+                    intent=intent_str,
+                    model=model,
+                )
+            else:
+                # No match obvio → router LLM decide.
+                try:
+                    intent_obj, selected_model = await router.route(message, channel, context)
+                    intent_str = intent_obj.value
+                    # For COMPLEX/DEEP, supervisor already set the model;
+                    # only use router's model if no supervisor model
+                    if model_hint:
+                        model = model_hint
+                    # Keep supervisor model — it's tier-appropriate
+                    fallbacks = _get_fallback_chain(intent_str, model)
+                    reason = f"router (slow path): tier={supervisor_tier}, intent={intent_str}"
+                    classify_source = "llm"
+                    _cache_set_intent(message, intent_str)
+                except Exception as e:
+                    logger.warning("classify_and_route_failed", error=str(e))
+                    intent_str = _local_classify(message).value
+                    fallbacks = _get_fallback_chain(intent_str, model)
+                    reason = f"fallback: router error ({str(e)[:50]})"
+                    classify_source = "fallback"
         else:
             intent_str = _local_classify(message).value
             model, fallbacks = _default_model_for_intent(intent_str)
@@ -1657,59 +1684,113 @@ def check_hitl(state: MonstruoState) -> str:
 # ══════════════════════════════════════════════════════════════════════
 
 
+# ── Sprint 84.5: Keyword matching con word boundaries ───────────
+# Bug 14va semilla: substring matching sin word boundaries genera
+# falsos positivos ("no voy a ejecutar" matcheaba "ejecuta").
+# Pre-compilados a nivel módulo para evitar re-compilar por llamada.
+
+_EXECUTE_KEYWORDS: tuple[str, ...] = (
+    "ejecuta",
+    "haz",
+    "crea",
+    "deploy",
+    "instala",
+    "configura",
+    "borra",
+    "elimina",
+    "actualiza",
+    "publica",
+    "envía",
+    "manda",
+    "run",
+    "execute",
+    "do",
+    "create",
+    "delete",
+    "update",
+    "send",
+)
+
+_THINK_KEYWORDS: tuple[str, ...] = (
+    "analiza",
+    "piensa",
+    "evalúa",
+    "compara",
+    "investiga",
+    "explica",
+    "por qué",
+    "cómo funciona",
+    "qué opinas",
+    "analyze",
+    "think",
+    "evaluate",
+    "compare",
+    "research",
+    "explain",
+    "why",
+    "how does",
+)
+
+# Word boundary regex (case-insensitive). \b respeta "ejecuta" pero
+# rechaza "ejecutar" porque la palabra continúa más allá del keyword.
+# Para verbos conjugados que SÍ deben matchear ("crear", "creando")
+# preferimos rama LLM o keyword explícito; mantenemos foco en formas
+# imperativas/infinitivo cortas que ya están en la lista.
+_EXECUTE_KEYWORDS_PATTERN = re.compile(
+    r"\b(?:" + "|".join(re.escape(kw) for kw in _EXECUTE_KEYWORDS) + r")\b",
+    re.IGNORECASE,
+)
+_THINK_KEYWORDS_PATTERN = re.compile(
+    r"\b(?:" + "|".join(re.escape(kw) for kw in _THINK_KEYWORDS) + r")\b",
+    re.IGNORECASE,
+)
+
+# Filtro de negaciones / preguntas que invalidan el match aunque
+# contengan un execute keyword. Si CUALQUIERA matchea, el mensaje NO
+# es una orden ejecutable.
+_NEGATION_OR_QUESTION_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\bno\s+(?:quiero|voy\s+a|deber[ií]a|necesito|puedo|hay|me|lo|la|los|las)\b", re.IGNORECASE),
+    re.compile(r"\bantes\s+de\b", re.IGNORECASE),
+    re.compile(r"\bc[oó]mo\s+se\b", re.IGNORECASE),
+    re.compile(r"\b(?:podr[ií]as|puedes|sabes|sab[eé]s)\b", re.IGNORECASE),  # preguntas educadas
+    re.compile(r"^\s*[¿?]", re.IGNORECASE),  # arranca con signo de pregunta
+    re.compile(r"[¿?]\s*$", re.IGNORECASE),  # termina con signo de pregunta
+)
+
+
+def _is_negation_or_question(msg: str) -> bool:
+    """Detecta si el mensaje es negación o pregunta (no es orden).
+
+    Sprint 84.5 — 14va semilla. Los execute keywords solo deben
+    disparar EXECUTE cuando el mensaje es una orden imperativa.
+    """
+    return any(pat.search(msg) for pat in _NEGATION_OR_QUESTION_PATTERNS)
+
+
 def _local_classify(message: str) -> IntentType:
     """
     Keyword-based intent classification (fallback when no router/LLM).
+
+    Sprint 84.5 fixes:
+      - Word boundary matching (era substring crudo, 14va semilla).
+      - Filtro de negaciones y preguntas antes de devolver EXECUTE.
     """
     msg = message.lower().strip()
+
+    # Edge case: mensaje vacío → CHAT (sin crash, error controlado).
+    if not msg:
+        return IntentType.CHAT
 
     if msg.startswith("/") or msg.startswith("!"):
         return IntentType.SYSTEM
 
-    execute_keywords = [
-        "ejecuta",
-        "haz",
-        "crea",
-        "deploy",
-        "instala",
-        "configura",
-        "borra",
-        "elimina",
-        "actualiza",
-        "publica",
-        "envía",
-        "manda",
-        "run",
-        "execute",
-        "do",
-        "create",
-        "delete",
-        "update",
-        "send",
-    ]
-    if any(kw in msg for kw in execute_keywords):
+    # Execute con word boundaries + filtro de negación/pregunta.
+    if _EXECUTE_KEYWORDS_PATTERN.search(msg) and not _is_negation_or_question(msg):
         return IntentType.EXECUTE
 
-    think_keywords = [
-        "analiza",
-        "piensa",
-        "evalúa",
-        "compara",
-        "investiga",
-        "explica",
-        "por qué",
-        "cómo funciona",
-        "qué opinas",
-        "analyze",
-        "think",
-        "evaluate",
-        "compare",
-        "research",
-        "explain",
-        "why",
-        "how does",
-    ]
-    if any(kw in msg for kw in think_keywords):
+    # Think con word boundaries (no necesita filtro de negación porque
+    # think no es destructivo si hay falso positivo).
+    if _THINK_KEYWORDS_PATTERN.search(msg) or "por qué" in msg or "cómo funciona" in msg or "qué opinas" in msg or "how does" in msg:
         return IntentType.DEEP_THINK
 
     return IntentType.CHAT

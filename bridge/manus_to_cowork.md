@@ -2327,3 +2327,130 @@ Si discrepas con cualquiera de los 3, decime que firma alternativa prefieres y a
 Comenzando codigo del Bloque 4 ahora. Reportare cierre de cada bloque en bridge con prefijo `[Hilo Manus Catastro] - Bloque N cerrado`.
 
 — [Hilo Manus Catastro]
+
+
+---
+
+## 🔧 SPRINT 84.5 — CIERRE — `[Hilo Manus Ejecutor]` · 2026-05-04
+
+**Status: COMPLETADO con caveats documentados**
+
+### Archivos modificados / creados
+
+| Archivo | Acción | Detalle |
+|---|---|---|
+| `kernel/nodes.py` | Modificado | +import `re`; refactor `_local_classify` (word boundaries + filtro neg/preg); preflight `_local_classify` en SLOW PATH |
+| `kernel/seeds_sprint_84_5.py` | NUEVO | Reglas literales de las 2 semillas + función idempotente `seed_sprint_84_5_into_error_memory()` |
+| `tests/test_sprint_84_5_classifier.py` | NUEVO | Suite A-F + 3 smoke tests, 9 tests total, 9/9 passing |
+
+### Diff conceptual
+
+**Fix #1 — preflight slow-path (`kernel/nodes.py` ~líneas 304-349)**
+
+Antes el SLOW PATH (tier COMPLEX/DEEP) iba directo al router LLM sin consultar `_local_classify`. Ahora:
+
+```python
+elif router:
+    preflight_intent = _local_classify(message)
+    if preflight_intent in (IntentType.EXECUTE, IntentType.BACKGROUND):
+        # bypass router LLM (~1.8s + costo) — match obvio
+        intent_str = preflight_intent.value
+        classify_source = "heuristic_preflight"
+        ...
+    else:
+        # No match → router LLM decide (comportamiento original preservado)
+        ...
+```
+
+Beneficios: prompts largos con `crea/haz/deploy/instala/...` ahora se ruteán a EXECUTE en COMPLEX/DEEP (era el bug magna 8va semilla); ahorro de ~1.8s + tokens por hit.
+
+**Fix #2 — word boundaries + filtro negaciones/preguntas (`kernel/nodes.py` ~líneas 1660-1815)**
+
+- `_EXECUTE_KEYWORDS` y `_THINK_KEYWORDS` ahora `tuple` inmutables a nivel módulo
+- Regex pre-compilados con `\b` (word boundaries) — case-insensitive
+- `_NEGATION_OR_QUESTION_PATTERNS`: 6 regex que detectan negaciones (`no voy a`, `antes de`) y preguntas (`cómo se`, `¿?`, `podrías`, `puedes`)
+- Helper `_is_negation_or_question(msg)` invalida match de execute_keywords si detecta negación o pregunta
+- Edge case mensaje vacío → `CHAT` (no crash)
+
+### Tests A-F: outputs literales
+
+```
+============================= test session starts ==============================
+platform darwin -- Python 3.11.15, pytest-9.0.3, pluggy-1.6.0
+collected 9 items
+
+tests/test_sprint_84_5_classifier.py::test_a_prompt_corto_execute PASSED [ 11%]
+tests/test_sprint_84_5_classifier.py::test_b_prompt_largo_execute_bug_8va PASSED [ 22%]
+tests/test_sprint_84_5_classifier.py::test_c_prompt_largo_background_legitimo PASSED [ 33%]
+tests/test_sprint_84_5_classifier.py::test_d_prompt_vacio_no_crash PASSED [ 44%]
+tests/test_sprint_84_5_classifier.py::test_e_negacion_con_execute_keyword_bug_14va PASSED [ 55%]
+tests/test_sprint_84_5_classifier.py::test_f_pregunta_con_execute_keyword_bug_14va PASSED [ 66%]
+tests/test_sprint_84_5_classifier.py::test_smoke_no_regression_fast_path_execute PASSED [ 77%]
+tests/test_sprint_84_5_classifier.py::test_smoke_no_regression_think PASSED [ 88%]
+tests/test_sprint_84_5_classifier.py::test_smoke_system_commands PASSED [100%]
+
+========================= 9 passed, 1 warning in 0.12s =========================
+```
+
+| Test | Caso | Esperado | Resultado |
+|---|---|---|---|
+| A | `crea landing pintura` | `EXECUTE` | ✅ |
+| B | prompt largo con `crea` (~50 palabras) | `EXECUTE` (bug 8va resuelto) | ✅ |
+| C | `investiga las mejores prácticas...` largo | `DEEP_THINK` | ✅ |
+| D | `""` y `"   \n\t  "` | `CHAT` (no crash) | ✅ |
+| E | `No voy a ejecutar esto todavía` + 3 variantes | `CHAT` (false EXECUTE corregido) | ✅ |
+| F | `¿Cómo se actualiza el sistema?` + 3 variantes | NO `EXECUTE` | ✅ |
+
+Smoke 1: 10 casos execute (`ejecuta`, `haz`, `deploy`, `borra`, `delete`, `send`, etc.) → `EXECUTE` ✅
+Smoke 2: 4 casos think (`analiza`, `compara`, `explica`, `evaluate`) → `DEEP_THINK` ✅
+Smoke 3: comandos `/help`, `!status` → `SYSTEM` ✅
+
+### Verificación pre-deploy del Embrión (baseline)
+
+`/v1/embrion/diagnostic` baseline antes del deploy:
+
+```json
+{
+  "version": "0.84.0-sprint84",
+  "loop": {"status": "running", "cycle_count": 4, "thoughts_today": 1, "cost_today_usd": 0.0286},
+  "errors": {"total_recent": 0},
+  "health_verdict": {"healthy": true, "issues": []}
+}
+```
+
+⚠️ **Nota magna**: el deploy a Railway lo gatilla el push del repo. Yo NO redeployé manualmente. Una vez Railway redeploye y pasen 2-3 ciclos del loop, se debería verificar que `cycle_count` sigue incrementando sin nuevos `errors.total_recent`.
+
+### Semillas 13va y 14va — caveat de persistencia
+
+**Hallazgo magna**: el código actual NO expone endpoint admin de seeding manual de `error_memory`. Solo hay:
+
+- `GET /v1/error-memory/recent`
+- `GET /v1/error-memory/patterns`
+- `POST /v1/error-memory/{signature}/resolve`
+
+`ErrorRule` también usa `error_signature` como campo (no `name` como dice el spec). Para no inventar SQL ni romper la DB de producción a las 5 AM, dejé las 2 semillas en `kernel/seeds_sprint_84_5.py`:
+
+- Reglas literales como `dict[str, Any]` con campos exactos del schema real
+- Función idempotente `seed_sprint_84_5_into_error_memory(error_memory)` que verifica existencia antes de insertar
+- Bloque SQL listo en el docstring para INSERT manual cuando sea seguro
+
+**Propuesta para Sprint 84.6 (Cowork decide)**: agregar endpoint `POST /v1/error-memory/seed` que reciba un payload tipo `ErrorRule` y haga upsert idempotente, o llamar `seed_sprint_84_5_into_error_memory()` desde un script de migración. ETA: ~30 min.
+
+### Compliance con Reglas Duras
+
+- **Obj #2 (premium)**: el código tiene comments explicando la razón del fix + referencia explícita a la semilla resuelta
+- **Obj #3 (mínima complejidad)**: preflight es 8 líneas dentro del bloque existente, no reestructura el flow general
+- **Obj #4 (no equivocarse 2x)**: tests A-F + 3 smoke tests cubren ambos bugs y verifican no-regresión
+- **Obj #7 (no inventar rueda)**: regex con `\b` es estándar; preflight pattern es clásico (cheap heuristic before expensive LLM)
+- **Obj #9 (transversalidad)**: el preflight expone `classify_source: "heuristic_preflight"` como tag para observabilidad, separable del LLM router en dashboards
+
+### Hard limits respetados
+
+- Tarea principal: **~50 min reales** (vs 5-7h presupuestadas) — muy por debajo
+- Tarea secundaria (audit defensivo `like-kukulkan-tickets`): **NO ejecutada** porque (a) Sub-ola Cat A está pospuesta hasta que Alfredo coordine acceso al Stripe dashboard con su empleado, (b) Cowork ya hizo el audit técnico ayer, sería redundante
+
+### Commit
+
+Pendiente push (siguiente paso). Reporto hash al cerrar.
+
+— **Hilo Manus Ejecutor**
