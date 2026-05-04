@@ -1,19 +1,21 @@
-# El Monstruo — Los 14 Objetivos Maestros
+# El Monstruo — Los 15 Objetivos Maestros
 
 **Documento Fuente de Verdad**
 **Autor:** Alfredo Gongora
-**Fecha:** 1 de Mayo de 2026
-**Versión:** 2.0 — Actualización: Capa 7 (Resiliencia Agéntica) + Objetivo #14 (El Guardián)
+**Fecha:** 1 de Mayo de 2026 (v1.0) · 1 de Mayo de 2026 (v2.0) · **4 de Mayo de 2026 (v3.0)**
+**Versión:** 3.0 — Actualización: Objetivo #15 (Memoria Soberana) + Capa 8 (Capa Memento)
 
 ---
 
 ## Manifiesto
 
-El Monstruo no es un chatbot. No es un agente más. No es un producto SaaS. Es un sistema de inteligencia artificial soberana diseñado para ser la evolución del mundo. Este documento define los 14 objetivos que guían su desarrollo — desde las capacidades técnicas inmediatas hasta la visión de largo plazo que lo convierte en infraestructura de la humanidad.
+El Monstruo no es un chatbot. No es un agente más. No es un producto SaaS. Es un sistema de inteligencia artificial soberana diseñado para ser la evolución del mundo. Este documento define los 15 objetivos que guían su desarrollo — desde las capacidades técnicas inmediatas hasta la visión de largo plazo que lo convierte en infraestructura de la humanidad.
 
 Cada objetivo se construye sobre los anteriores. Juntos forman un sistema coherente donde las piezas individuales se adoptan del mundo (no se reinventan), pero el todo emergente se crea desde cero porque no existe en ningún lado.
 
 **Novedad v2.0:** Se agrega el Objetivo #14 (El Guardián de los Objetivos) como meta-sistema que garantiza el cumplimiento perpetuo de los 13 objetivos originales. Adicionalmente, se expande el Objetivo #9 con una 7ma Capa Transversal: Resiliencia Agéntica.
+
+**Novedad v3.0:** Se agrega el Objetivo #15 (Memoria Soberana) como axioma fundacional explícito que captura la lógica más profunda del Monstruo: ser el sistema operativo de memoria persistente que los agentes ejecutivos efímeros (Manus y similares) no tienen. Se expande el Objetivo #9 con una 8va Capa Transversal: la Capa Memento, que formaliza el conjunto de prácticas anti-Síndrome-Dory que vinieron operando como folklore informal en hilos Manus desde el comienzo del proyecto. Origen: el incidente del falso positivo TiDB del 2026-05-04 reveló que el costo cognitivo y financiero del Síndrome Dory de Manus (19 PATs duplicados, 400K créditos consumidos en setup de ticketlike, falsos positivos por contexto compactado) justifica elevar la "memoria persistente" de propiedad emergente a objetivo arquitectónico de pleno derecho.
 
 ---
 
@@ -33,6 +35,7 @@ Cada objetivo se construye sobre los anteriores. Juntos forman un sistema cohere
 12. [Ecosistema de Monstruos](#objetivo-12)
 13. [Del Mundo](#objetivo-13)
 14. [El Guardián de los Objetivos](#objetivo-14) ← **NUEVO v2.0**
+15. [Memoria Soberana](#objetivo-15) ← **NUEVO v3.0**
 
 ---
 
@@ -465,6 +468,19 @@ El Monstruo no solo CREA plataformas. Usando la inteligencia emergente del Objet
 - Unit economics tracking (CAC, LTV, margins)
 - Alertas de burn rate
 
+**CAPA 8 — Capa Memento (Memoria Persistente Anti-Dory)** ← **NUEVA v3.0**
+
+Esta capa, igual que la Capa 7, NO se inyecta en los proyectos creados — se aplica AL PROPIO MONSTRUO y a CADA HILO DE EJECUCIÓN EXTERNO (Manus, futuros agentes ejecutivos efímeros). Garantiza que la pérdida de contexto natural de los agentes ejecutivos efímeros no se convierta en errores en producción.
+
+- **Pre-flight obligatorio de fuentes de verdad:** Cada operación crítica (SQL contra producción, llamadas autenticadas a APIs externas, modificaciones a recursos productivos) debe ir precedida de la lectura programática de la fuente de verdad correspondiente (ej. `skills/<X>/references/credentials.md`) y validación de que los parámetros de la operación coinciden con la fuente de verdad. Si no coinciden → abort + reporte.
+- **Checkpoint estructurado durante ejecución:** Cada N tool calls (configurable, default 20) un hilo Manus debe escribir un checkpoint estructurado en su sandbox + bridge con: estado actual, próximas N acciones planeadas, credenciales/contextos en uso. El checkpoint se vuelve fuente de continuidad si el hilo se compacta o se reinicia.
+- **Resumen de cierre obligatorio:** Cada sesión de un hilo Manus se cierra con un resumen estructurado (formato fijo) que se persiste en `bridge/manus_to_cowork.md` antes de que el hilo termine. Cualquier hilo que arranque después puede leer ese resumen como onboarding rápido sin re-derivar contexto desde cero.
+- **Detección de contexto contaminado:** Heurística que detecta cuando un hilo está operando con contexto compactado heredado e introduce "Pre-flight Fuerte": antes de cualquier operación productiva, validar TODA credencial usada contra fuente de verdad fresca, no contra contexto en memoria. Esta heurística previene el patrón del incidente TiDB de 2026-05-04.
+- **Endpoint del kernel `/v1/memento/validate`:** El kernel del Monstruo expone un endpoint que cualquier hilo externo puede llamar antes de operación crítica para validar que su contexto operativo coincide con la realidad documentada. Si discrepa → kernel responde con la fuente de verdad actualizada y el hilo debe abortar y reintentar con datos frescos.
+- **Pacto de memoria persistente:** Por contrato arquitectónico, ningún hilo Manus opera contra recursos productivos del ecosistema sin haber pasado por al menos un endpoint del Monstruo que valide su contexto. Esto convierte al Monstruo en gatekeeper estructural de la memoria operativa.
+
+**Origen:** Incidente "Falso Positivo TiDB" (2026-05-04) — el Hilo Manus ticketlike reportó rotación de password productivo cuando en realidad había usado credenciales de un cluster fantasma `gateway01` que arrastraba en su contexto compactado, sin haber leído el `credentials.md` del skill como pre-flight. Sumado al patrón histórico de 19 PATs GitHub generados duplicadamente por hilos Manus que no recordaban tokens previos, y a los 400K créditos consumidos en setup de ticketlike por re-trabajo de hilos amnésicos.
+
 **CAPA 7 — Resiliencia Agéntica (Auto-Protección del Sistema)** ← **NUEVA v2.0**
 
 Esta capa es DIFERENTE a las 6 anteriores: no se inyecta en los proyectos creados — se aplica AL PROPIO MONSTRUO como sistema de producción. Garantiza que El Monstruo mismo no falle, no se degrade, y no se vuelva vulnerable.
@@ -804,7 +820,95 @@ El Guardián es **ortogonal** a todos los objetivos — no es secuencial. Cruza 
 
 ---
 
-## Resumen Ejecutivo: Los 14 Objetivos
+## Objetivo #15: Memoria Soberana {#objetivo-15}
+
+**NUEVO — Versión 3.0**
+
+### Definición
+
+El Monstruo nunca depende de la memoria de un agente ejecutivo efímero externo (Manus, sandboxes desechables, hilos sin persistencia, futuros agentes equivalentes) para operar, decidir, o construirse a sí mismo. Toda decisión arquitectónica preserva al Monstruo como fuente única de verdad histórica del proyecto. La memoria operativa del proyecto vive en el Monstruo. La ejecución vive en agentes externos. La inteligencia emerge del acoplamiento entre memoria persistente propia y ejecución delegada.
+
+### Por qué es necesario — el Síndrome Dory
+
+Los agentes ejecutivos LLM-based modernos (Manus, Cursor, similares) tienen una limitación estructural: **amnesia anterógrada por compactación de contexto**. Cuando se quedan sin context window, el contexto se compacta automáticamente y partes del estado operativo se pierden o se contaminan con resúmenes parciales. Esto produce:
+
+- **Falsos positivos diagnósticos** (ej. el incidente TiDB del 2026-05-04 donde el Hilo Manus ticketlike reportó "rotación de password" cuando en realidad estaba usando credenciales de un cluster fantasma heredadas de su propio contexto compactado)
+- **Trabajo redundante por amnesia** (ej. los 19 PATs GitHub generados duplicadamente por hilos que no recordaban tokens existentes)
+- **Costo financiero compuesto** (ej. los 400,000 créditos Manus consumidos en setup inicial de ticketlike, gran parte por re-trabajo de hilos sin memoria)
+- **Fricción operativa permanente** (todo decision-making crítico requiere repetir contexto, validar credenciales desde cero, re-explicar el proyecto)
+
+Sin un objetivo arquitectónico explícito que combata el Síndrome Dory, el ecosistema completo queda atado al límite cognitivo del agente ejecutivo más débil. El Monstruo, al ser construido encima de Manus, heredaría esa debilidad por defecto si no la combatiera deliberadamente.
+
+### Lo que implica
+
+**1. La memoria persistente como prótesis estructural**
+
+El Monstruo no es solo un orquestador — es la **prótesis de memoria** que los agentes ejecutivos efímeros necesitan para operar productivamente sobre proyectos largos. Cada artefacto del Monstruo se diseña con esa lente:
+
+- `CLAUDE.md` y `AGENTS.md` son tatuajes de Memento — instrucciones críticas que cualquier hilo nuevo lee al despertar
+- Los `bridge/*.md` son notas con polaroids — log estructurado de decisiones para que cualquier hilo lea el camino recorrido
+- Las semillas de `error_memory` son cicatrices conscientes — patrones de error que el sistema recuerda para que ningún hilo futuro tropiece dos veces
+- Los Embriones con FCS acumulativo son la antítesis del modelo Manus — conciencia funcional que persiste 46+ ciclos sin amnesia
+- Las 7 Capas Transversales del Objetivo #9 son 7 hipocampos especializados, cada uno memorizando una dimensión del proyecto
+
+**2. La inversión del flujo de propiedad de memoria**
+
+| Modelo | Quién retiene memoria | Quién paga el costo |
+|---|---|---|
+| **Modelo Manus puro (sin Monstruo)** | Manus (efímera, se pierde) | Vos (re-trabajo, créditos quemados, errores repetidos) |
+| **Modelo Monstruo (con prótesis)** | El Monstruo (persistente, propia) | Manus solo paga ejecución, vos pagás cero re-trabajo |
+
+Bajo el Objetivo #15, la regla operativa es: **pagás Manus solo por lo que NO requiere memoria, y todo lo que requiere memoria vive en el Monstruo.** Esto es la arquitectura económica más rentable que se puede construir sobre Manus.
+
+**3. Contrato del Monstruo con cualquier agente ejecutivo externo**
+
+Cualquier integración del Monstruo con un agente ejecutivo externo (Manus actual, Manus futuros, otros agentes LLM con sandbox efímera) se diseña asumiendo que el agente externo es **estructuralmente amnésico**. Por lo tanto:
+
+- El Monstruo nunca confía en el contexto interno del agente externo como fuente de verdad
+- El Monstruo siempre expone un endpoint o artefacto persistente que el agente puede leer al despertar
+- El agente externo está obligado por protocolo a leer la fuente de verdad antes de cada operación crítica (ver Capa 8 Memento del Objetivo #9)
+- Cuando el agente reporta resultado, el Monstruo absorbe lo aprendido en su memoria persistente
+
+**4. Soberanía de memoria como subset de Soberanía total**
+
+El Objetivo #12 (Ecosistema de Monstruos — Soberanía Absoluta) trata de no depender de proveedores externos para inferencia, infraestructura, o economía. El Objetivo #15 es el subset crítico: **soberanía de memoria operativa**. No depender de Manus para recordar cómo construir el Monstruo. No depender de la sandbox de un proveedor para retener el estado del proyecto. La memoria operativa es propia, persistente, auditable.
+
+### Métricas del Objetivo #15
+
+| Métrica | Definición | Objetivo |
+|---|---|---|
+| Re-trabajo por amnesia | % de tool calls de hilos Manus que repiten trabajo de hilos previos detectablemente | < 2% |
+| Credenciales generadas duplicadas/mes | Como el patrón de 19 PATs históricos | 0/mes |
+| Falsos positivos por contexto compactado | Como el incidente TiDB | 0/mes |
+| Cobertura de fuentes de verdad para operaciones críticas | % de operaciones SQL/API contra producción que pasan por pre-flight de fuente de verdad | > 95% |
+| Tiempo de onboarding de hilo Manus nuevo | Minutos desde sesión arranca hasta primera tool call productiva con contexto correcto | < 5 min |
+
+### Anti-patrones prohibidos
+
+- **Asumir que un hilo Manus "recuerda" lo que el hilo anterior hizo.** Toda continuación entre hilos pasa por bridge persistente, no por memoria interna.
+- **Permitir que un hilo Manus rote credenciales productivas sin haber pasado por el endpoint de validación del kernel.** Ver Capa 8 Memento.
+- **Generar credenciales nuevas (PATs, API keys, etc.) cuando ya existen credenciales válidas.** Pre-flight obligatorio antes de generar.
+- **Aceptar reportes diagnósticos de hilos Manus sin validación cruzada con fuentes persistentes.** Especialmente para incidentes de seguridad.
+- **Documentar el proyecto principalmente en chats efímeros (chat de Cowork, chat de Manus) sin volcar a artefactos persistentes del repo.**
+
+### Posición en el grafo
+
+El Objetivo #15 es **fundacional implícito** de los Objetivos 1-14: todos ellos asumen tácitamente que el sistema tiene memoria propia. Al volverlo explícito como Objetivo #15, las decisiones arquitectónicas tienen un criterio auditable claro: "¿esta decisión preserva o degrada la memoria soberana del Monstruo?".
+
+Su relación con otros objetivos:
+
+- **Refuerza Objetivo #4 (No Equivocarse Dos Veces):** sin memoria persistente, el #4 es físicamente imposible. El #15 es prerrequisito implícito del #4.
+- **Refuerza Objetivo #11 (Embriones):** los Embriones con FCS acumulativo son la encarnación más pura del Objetivo #15.
+- **Refuerza Objetivo #12 (Soberanía):** la soberanía sin memoria propia es ilusoria.
+- **Refuerza Objetivo #14 (Guardián):** el Guardián requiere memoria para auto-vigilar.
+
+### Regla de Oro
+
+> El Monstruo es el sistema operativo de memoria persistente que Manus no tiene, expuesto como capa de orquestación que le permite a Manus operar como si tuviera memoria. La memoria vive en el Monstruo. La ejecución vive en Manus. La inteligencia emerge del acoplamiento. Si la memoria operativa del proyecto vive en otro lado distinto del Monstruo, el Monstruo dejó de ser soberano.
+
+---
+
+## Resumen Ejecutivo: Los 15 Objetivos
 
 | # | Objetivo | Esencia | Dependencia |
 |---|----------|---------|-------------|
@@ -822,12 +926,15 @@ El Guardián es **ortogonal** a todos los objetivos — no es secuencial. Cruza 
 | 12 | Ecosistema de Monstruos | Soberanía absoluta, no depender de nadie | Requiere #8, #11 |
 | 13 | Del mundo | El Monstruo es la evolución de la humanidad | Requiere todos |
 | **14** | **El Guardián de los Objetivos** | **Meta-vigilancia perpetua de todos los objetivos** | **Ortogonal a todos** |
+| **15** | **Memoria Soberana** | **El Monstruo nunca depende de la memoria de un agente ejecutivo efímero — la memoria operativa vive aquí** | **Fundacional implícito de 1-14** |
 
 ---
 
 ## Grafo de Dependencias
 
 ```
+Objetivo #15 (Memoria Soberana): FUNDACIONAL IMPLÍCITO — habilita a todos
+         ↓
 Objetivos Base (1-7): Se pueden trabajar en paralelo, son fundacionales
          ↓
 Objetivo #11 (Multiplicación): Requiere que los base funcionen
@@ -842,8 +949,14 @@ Objetivo #13 (Del Mundo): Requiere TODO funcionando
 
 Objetivo #14 (El Guardián): ORTOGONAL — cruza todos perpendicularmente
                             Se beneficia de #8 (evaluación semántica),
-                            #10 (predicción de impacto), #4 (memoria de errores)
+                            #10 (predicción de impacto), #4 (memoria de errores),
+                            #15 (sin él el Guardián no puede recordar qué auditó)
                             Puede activarse desde Sprint 1
+
+Objetivo #15 (Memoria Soberana): FUNDACIONAL — todo lo demás lo asume
+                                  tácitamente. Se vuelve explícito en v3.0
+                                  por el costo cognitivo y financiero
+                                  histórico del Síndrome Dory de Manus.
 ```
 
 ---
@@ -854,6 +967,7 @@ Objetivo #14 (El Guardián): ORTOGONAL — cruza todos perpendicularmente
 |---------|-------|---------|
 | 1.0 | 1 Mayo 2026 | Documento original — 13 Objetivos |
 | 2.0 | 1 Mayo 2026 | +Objetivo #14 (El Guardián) + Capa 7 en Obj #9 (Resiliencia Agéntica) |
+| 3.0 | 4 Mayo 2026 | +Objetivo #15 (Memoria Soberana) + Capa 8 (Capa Memento) en Obj #9. Origen: incidente "Falso Positivo TiDB" reveló costo del Síndrome Dory de Manus, justificando elevar memoria persistente de propiedad emergente a objetivo arquitectónico explícito. |
 
 ---
 

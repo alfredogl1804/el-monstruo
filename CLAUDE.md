@@ -73,20 +73,31 @@ Usuario selecciona agente → WS payload {dispatch_agent: "perplexity"}
 6. Velocidad sin sacrificar calidad
 7. No reinventar la rueda
 8. Monetización desde día 1
-9. Transversalidad (7 capas en todo)
+9. Transversalidad (8 capas en todo) — incluye Capa 8 Memento (anti-Síndrome-Dory)
 10. Autonomía progresiva
 11. Seguridad adversarial
 12. Soberanía (independencia de proveedores)
 13. Del Mundo (impacto global)
 14. Guardian de los Objetivos (auto-evaluación)
+15. **Memoria Soberana** — el Monstruo nunca depende de la memoria de un agente ejecutivo efímero (Manus, sandboxes, hilos sin persistencia). La memoria operativa del proyecto vive aquí. Origen: incidente "Falso Positivo TiDB" 2026-05-04. Detalles en `docs/EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md` v3.0.
 
 ## Las 4 Capas Arquitectónicas
 
 - **Capa 0 — Cimientos:** Error Memory, Magna classifier, Vanguard Scanner, Design System
 - **Capa 1 — Manos:** Browser, Backend Deploy, Pagos, Media Gen, Observabilidad
-- **Capa 2 — Inteligencia Emergente:** Embriones, Protocolo IE, Simulador Causal, Capas Transversales
-- **Capa 3 — Soberanía:** Modelos propios, Infra propia, Economía propia
+- **Capa 2 — Inteligencia Emergente:** Embriones, Protocolo IE, Simulador Causal, Capas Transversales (8 capas, incluye Capa 8 Memento)
+- **Capa 3 — Soberanía:** Modelos propios, Infra propia, Economía propia, **Memoria propia (Obj #15)**
 - **Capa 4 — Del Mundo:** Documentación pública, Onboarding, Governance
+
+## Capa 8 — Capa Memento (anti-Síndrome-Dory)
+
+Capa transversal del Objetivo #9 (Transversalidad Universal) que protege al Monstruo y a sus hilos ejecutores externos (Manus, futuros agentes) contra la pérdida de contexto natural de agentes con sandbox efímera. Componentes:
+
+- **Pre-flight obligatorio de fuentes de verdad** antes de cualquier operación crítica (SQL prod, rotación de credenciales, deploys productivos, transacciones financieras)
+- **Endpoint del kernel** `POST /v1/memento/validate` que cualquier hilo externo llama para validar su contexto contra la fuente de verdad fresca
+- **Detector de contexto contaminado** (heurística magna que reconoce patrones de incidentes tipo "Falso Positivo TiDB")
+- **Pre-flight library** `tools/memento_preflight.py` con decorator `@requires_memento_preflight(operation)`
+- **Spec de implementación**: `bridge/sprint_memento_preinvestigation/spec_sprint_memento.md`
 
 ## Embrión IA
 
