@@ -78,9 +78,49 @@ SEED_14_KEYWORD_MATCHING_BUG: dict[str, Any] = {
 }
 
 
+# 15va — Cowork specs deben verificar schema antes de escribir
+SEED_15_COWORK_SPECS_VERIFY_SCHEMA: dict[str, Any] = {
+    "error_signature": "seed_cowork_specs_must_verify_schema_before_writing",
+    "sanitized_message": (
+        "Cowork escribió spec del Sprint 84.5 con campo 'name' en error_memory "
+        "cuando el schema real usa 'error_signature'. Hilo Ejecutor catchó la "
+        "discrepancia."
+    ),
+    "resolution": (
+        "Antes de escribir specs que toquen schemas existentes, Cowork debe "
+        "verificar el schema real (leer migración SQL o tabla en Supabase via "
+        "GitHub MCP). Cero asumir nombres de campo."
+    ),
+    "confidence": 0.85,
+    "occurrences": 1,
+    "module": "cowork.spec_writing",
+    "status": "resolved",
+}
+
+# 16va — Discrepancia versiones diagnostic vs health
+SEED_16_VERSION_MISMATCH_DIAGNOSTIC_VS_HEALTH: dict[str, Any] = {
+    "error_signature": "seed_version_string_inconsistency_diagnostic_vs_health",
+    "sanitized_message": (
+        "/v1/embrion/diagnostic reporta version='0.84.0-sprint84' mientras "
+        "/health reporta '0.84.7-sprint84.7'. Probable hardcoded version en "
+        "embrion_loop o reporter de diagnostic sin sync con kernel.main."
+    ),
+    "resolution": (
+        "Centralizar version string en kernel/__init__.py o config único. "
+        "Ambos endpoints leen desde mismo source. Sprint 87 cleanup task."
+    ),
+    "confidence": 0.80,
+    "occurrences": 1,
+    "module": "kernel.embrion_loop",
+    "status": "open",
+}
+
+
 SEEDS_SPRINT_84_5: list[dict[str, Any]] = [
     SEED_13_CLASSIFIER_SLOW_PATH_RESOLVED,
     SEED_14_KEYWORD_MATCHING_BUG,
+    SEED_15_COWORK_SPECS_VERIFY_SCHEMA,
+    SEED_16_VERSION_MISMATCH_DIAGNOSTIC_VS_HEALTH,
 ]
 
 

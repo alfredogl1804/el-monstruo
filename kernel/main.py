@@ -1165,7 +1165,68 @@ async def lifespan(app: FastAPI):
             raise HTTPException(400, detail="resolution_requerida")
         ok = await em.resolve(signature, resolution)
         return {"resolved": ok, "signature": signature}
-    # ── /Sprint 81 ─────────────────────────────────────────────────────
+
+    # ── Sprint 84.5.5: Endpoint admin de seeding manual de reglas ──
+    @app.post("/v1/error-memory/seed", tags=["observability"])
+    async def error_memory_seed(request: Request):
+        """Admin-only: siembra/upsert idempotente de una regla.
+
+        Auth: header X-API-Key debe coincidir con MONSTRUO_API_KEY.
+        Sprint 84.5.5 — elimina la deuda invisible de seeds_sprint_84_5.py.
+        """
+        admin_key = os.environ.get("MONSTRUO_API_KEY", "")
+        if not admin_key:
+            raise HTTPException(
+                503, detail="MONSTRUO_API_KEY no configurada — seed deshabilitado"
+            )
+        provided = request.headers.get("X-API-Key", "") or request.headers.get(
+            "Authorization", ""
+        ).replace("Bearer ", "").strip()
+        if provided != admin_key:
+            raise HTTPException(401, detail="unauthorized")
+
+        em = getattr(request.app.state, "error_memory", None)
+        if not em or not em.initialized:
+            raise HTTPException(503, detail="error_memory_no_disponible")
+
+        body = await request.json()
+        try:
+            error_signature = body["error_signature"]
+            sanitized_message = body["sanitized_message"]
+            resolution = body["resolution"]
+        except KeyError as e:
+            raise HTTPException(
+                400,
+                detail=f"campo_requerido_faltante: {e.args[0]}",
+            )
+        confidence = float(body.get("confidence", 0.85))
+        module = body.get("module", "manual.seed")
+        action = body.get("action", "")
+        error_type = body.get("error_type", "SeededRule")
+        status = body.get("status", "resolved")
+
+        try:
+            result = await em.upsert_rule(
+                error_signature=error_signature,
+                sanitized_message=sanitized_message,
+                resolution=resolution,
+                confidence=confidence,
+                module=module,
+                action=action,
+                error_type=error_type,
+                status=status,
+            )
+            return {
+                "ok": True,
+                **result,
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error("error_memory_seed_endpoint_failed", error=str(e))
+            raise HTTPException(500, detail=f"seed_failed: {str(e)[:200]}")
+    # ── /Sprint 84.5.5 ─────────────────────────────────────────
+    # ── /Sprint 81 ─────────────────────────────────────────────────
 
     logger.info(
         "monstruo_ready",

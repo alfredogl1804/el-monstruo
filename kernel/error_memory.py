@@ -505,6 +505,125 @@ class ErrorMemory:
             )
             return False
 
+    async def upsert_rule(
+        self,
+        *,
+        error_signature: str,
+        sanitized_message: str,
+        resolution: str,
+        confidence: float = 0.85,
+        module: str = "manual.seed",
+        action: str = "",
+        error_type: str = "SeededRule",
+        status: str = "resolved",
+    ) -> dict[str, Any]:
+        """Upsert idempotente de una regla en error_memory.
+
+        Sembrado manual de reglas (admin-only). Si el `error_signature`
+        ya existe: actualiza sanitized_message, resolution, confidence,
+        status, last_seen_at e incrementa occurrences. Si no existe:
+        inserta fila nueva con embedding (best-effort).
+
+        Sprint 84.5.5 — endpoint admin /v1/error-memory/seed.
+
+        Args:
+            error_signature: identificador estable y único de la regla.
+            sanitized_message: descripción del error/regla (no PII).
+            resolution: cómo resolverlo / patrón a aplicar.
+            confidence: 0.0-1.0, qué tan confiable es la regla.
+            module: módulo donde aplica la regla.
+            action: acción específica donde aplica (opcional).
+            error_type: tipo de error (default "SeededRule").
+            status: "resolved" | "open" | "deprecated".
+
+        Returns:
+            dict con `seeded` ("inserted" | "updated") y `error_signature`.
+        """
+        if not self._initialized:
+            raise ErrorMemoryDbNoDisponible(
+                "error_memory no inicializada — no se puede sembrar"
+            )
+        confidence = max(0.0, min(1.0, float(confidence)))
+        sanitized_truncado = sanitized_message[:1000]
+        resolution_truncado = resolution[:2000]
+        now = datetime.now(timezone.utc).isoformat()
+
+        try:
+            existing = await self._db.select(
+                self.TABLE,
+                columns="id, occurrences",
+                filters={"error_signature": error_signature},
+                limit=1,
+            )
+            if existing:
+                row = existing[0]
+                new_count = int(row.get("occurrences", 1)) + 1
+                await self._db.update(
+                    self.TABLE,
+                    data={
+                        "sanitized_message": sanitized_truncado,
+                        "resolution": resolution_truncado,
+                        "confidence": round(confidence, 2),
+                        "status": status,
+                        "module": module,
+                        "action": action,
+                        "last_seen_at": now,
+                        "occurrences": new_count,
+                    },
+                    filters={"error_signature": error_signature},
+                )
+                logger.info(
+                    "error_memory_seeded_updated",
+                    signature=error_signature[:24],
+                    confidence=confidence,
+                    occurrences=new_count,
+                )
+                return {
+                    "seeded": "updated",
+                    "error_signature": error_signature,
+                    "occurrences": new_count,
+                }
+
+            embedding = await self._embed_safe(sanitized_truncado)
+            data: dict[str, Any] = {
+                "error_signature": error_signature,
+                "error_type": error_type,
+                "module": module,
+                "action": action,
+                "message": sanitized_truncado,
+                "sanitized_message": sanitized_truncado,
+                "context": {"seeded_via": "admin_seed_endpoint"},
+                "occurrences": 1,
+                "first_seen_at": now,
+                "last_seen_at": now,
+                "confidence": round(confidence, 2),
+                "status": status,
+                "resolution": resolution_truncado,
+            }
+            if embedding is not None:
+                data["embedding"] = embedding
+
+            await self._db.insert(self.TABLE, data=data)
+            logger.info(
+                "error_memory_seeded_inserted",
+                signature=error_signature[:24],
+                confidence=confidence,
+                module=module,
+                has_embedding=embedding is not None,
+            )
+            return {
+                "seeded": "inserted",
+                "error_signature": error_signature,
+                "occurrences": 1,
+            }
+        except Exception as e:
+            logger.error(
+                "error_memory_seed_failed",
+                error=str(e),
+                signature=error_signature[:24],
+            )
+            raise
+
     async def adjust_confidence(
         self,
         signature: str,
