@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -77,6 +78,34 @@ VERTICALES_VALIDOS = [
     "marketplace_services",    # Marketplaces de servicios locales
 ]
 
+# ── HOTFIX Sprint 85 (post-audit Sprint 84.5) ────────────────────────────────
+# El patrón `kw in text_lower` causa falsos positivos en substring matching:
+#   - "artesanal" matchea `arte` (vertical education_arts) en contexto ecommerce
+#   - "no es delivery" matchea `delivery` pese a la negación
+#   - keywords cortas (`api`, `arte`, `bar`) embebidas en otras palabras
+# Solución: regex con word boundaries `\b...\b`, compilado una vez por vertical
+# y cacheado a nivel módulo. Drop-in migrable a kernel/utils/keyword_matcher.py
+# cuando el Hilo Ejecutor cierre Sprint 84.7.
+#
+# Patrón aprobado por spec del Sprint 84.5 (Cowork bridge 2026-05-04).
+# Semilla 19 sembrada al cierre del HOTFIX.
+
+
+def _compile_vertical_pattern(keywords: tuple[str, ...]) -> re.Pattern[str]:
+    """Compila un pattern con word boundaries para una lista de keywords.
+
+    Soporta multi-word keywords ("hecho a mano", "servicios profesionales")
+    porque `\b` solo se ancla al inicio y final del grupo no-capturador.
+    Las keywords se ordenan por longitud descendente para que multi-word
+    matchee antes que sus subpartes (alternation greedy).
+    """
+    sorted_kws = sorted(keywords, key=len, reverse=True)
+    return re.compile(
+        r"\b(?:" + "|".join(re.escape(kw) for kw in sorted_kws) + r")\b",
+        re.IGNORECASE,
+    )
+
+
 VERTICALES_KEYWORDS: dict[str, list[str]] = {
     "education_arts": [
         "taller", "clase", "curso", "academia", "escuela", "estudio", "ballet",
@@ -105,8 +134,11 @@ VERTICALES_KEYWORDS: dict[str, list[str]] = {
     ],
 }
 
+# Cache de patterns compilados (lazy fill en _detectar_vertical)
+_PATTERN_CACHE: dict[str, re.Pattern[str]] = {}
 
-# ── Schema del Brief ─────────────────────────────────────────────────────────
+
+# ── Schema del Brief ───────────────────────────────────────────────────────────────────────────
 BRIEF_SCHEMA_KEYS = {
     "vertical",
     "client_brand",
@@ -302,16 +334,22 @@ class ProductArchitect:
     # ── Detección de vertical ────────────────────────────────────────────
     def _detectar_vertical(self, text: str) -> tuple[str, float]:
         """
-        Heurística rápida: cuenta keywords de cada vertical.
+        Heurística rápida: cuenta keywords de cada vertical con word boundaries.
+
+        HOTFIX Sprint 85 (post-audit 84.5): reemplazado substring matching
+        por regex `\b...\b` para evitar falsos positivos como "artesanal"
+        matcheando `arte` o "saasa" matcheando `saas`.
 
         Returns:
             (vertical, confidence) — confidence en [0.0, 1.0].
         """
-        text_lower = text.lower()
         scores: dict[str, int] = {}
         for vertical, keywords in VERTICALES_KEYWORDS.items():
-            score = sum(1 for kw in keywords if kw in text_lower)
-            scores[vertical] = score
+            pattern = _PATTERN_CACHE.get(vertical)
+            if pattern is None:
+                pattern = _compile_vertical_pattern(tuple(keywords))
+                _PATTERN_CACHE[vertical] = pattern
+            scores[vertical] = len(pattern.findall(text))
 
         if not scores or max(scores.values()) == 0:
             return ("professional_services", 0.0)  # Fallback genérico

@@ -66,8 +66,27 @@ WEB_PROJECT_KEYWORDS = [
     "app web", "aplicación web", "aplicacion web", "portfolio", "dashboard",
     "taller de", "curso de", "escuela", "academia", "restaurante", "café",
     "tienda online", "e-commerce", "ecommerce", "marketplace", "saas",
-    "hazme un", "hazme una", "constrúyeme", "constíruyeme", "hazle", "crea un sitio", "crea una landing",
+    "hazme un", "hazme una", "constrúyeme", "hazle", "crea un sitio", "crea una landing",
 ]
+
+# HOTFIX Sprint 85 (post-audit Sprint 84.5): word-boundary regex en vez de
+# substring matching. Multi-word keywords ("sitio web", "taller de") se
+# soportan porque \b solo se ancla al inicio/final del grupo no-capturador.
+# Drop-in migrable a kernel/utils/keyword_matcher.py cuando Sprint 84.7 cierre.
+_WEB_PROJECT_PATTERN: "re.Pattern[str] | None" = None
+
+
+def _get_web_project_pattern() -> "re.Pattern[str]":
+    """Compila lazy + cachea el pattern con word boundaries."""
+    global _WEB_PROJECT_PATTERN
+    if _WEB_PROJECT_PATTERN is None:
+        import re as _re
+        sorted_kws = sorted(WEB_PROJECT_KEYWORDS, key=len, reverse=True)
+        _WEB_PROJECT_PATTERN = _re.compile(
+            r"\b(?:" + "|".join(_re.escape(kw) for kw in sorted_kws) + r")\b",
+            _re.IGNORECASE,
+        )
+    return _WEB_PROJECT_PATTERN
 
 
 # ── Data Models ──────────────────────────────────────────────────────
@@ -1628,17 +1647,16 @@ RESPONDE con JSON:
         Heurística: el objetivo describe un proyecto web/producto que requiere
         Brief antes de planificar.
 
+        HOTFIX Sprint 85 (post-audit Sprint 84.5): regex con word boundaries
+        en vez de substring matching para evitar falsos positivos como
+        "saasoso" matcheando `saas` o "escuelajo" matcheando `escuela`.
+
         Conservadora: solo activa cuando hay señales claras. Si falla, el
         planner sigue su flujo clásico (sin Brief).
         """
         if not text:
             return False
-        text_lower = text.lower()
-        # Señal fuerte: keyword único es suficiente
-        for kw in WEB_PROJECT_KEYWORDS:
-            if kw in text_lower:
-                return True
-        return False
+        return bool(_get_web_project_pattern().search(text))
     # ── /Sprint 85 ──────────────────────────────────────────────────────────
 
     def is_complex_objective(self, text: str) -> bool:

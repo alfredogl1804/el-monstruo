@@ -445,8 +445,21 @@ class CriticVisual:
                 seccion_id = str(seccion)
 
             seccion_id_lower = seccion_id.lower()
-            keywords = seccion_id_lower.replace("_", " ").split()
-            if any(kw in body_lower for kw in keywords if len(kw) > 2):
+            keywords = [
+                kw for kw in seccion_id_lower.replace("_", " ").split()
+                if len(kw) > 2
+            ]
+            # HOTFIX Sprint 85 (post-audit 84.5): word boundaries para evitar
+            # "learn" matcheando "learning" sin estar en un heading real.
+            if keywords:
+                pattern = re.compile(
+                    r"\b(?:" + "|".join(re.escape(k) for k in keywords) + r")\b",
+                    re.IGNORECASE,
+                )
+                seccion_match = bool(pattern.search(body_lower))
+            else:
+                seccion_match = False
+            if seccion_match:
                 secciones_encontradas += 1
             else:
                 findings.append(CriticFinding(
