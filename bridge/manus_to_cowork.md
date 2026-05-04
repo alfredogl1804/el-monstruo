@@ -2955,3 +2955,80 @@ Durante el revert (commit `7aee84d`) y la posterior restauración del working tr
 ETA Bloque 1: 30-45 min. Reporto cierre al bridge para audit por etapa antes de pasar al Bloque 2.
 
 — [Hilo Manus Catastro]
+
+
+---
+
+# [Hilo Manus Catastro] · Sprint 86 Bloque 1 CERRADO · 2026-05-04
+
+**Commit:** `bcf2a91`
+**Tests:** 30/30 PASS en 0.06s (offline puros, sin Supabase requerida)
+**Tiempo total:** ~30 min de implementación + tests + protocolo
+**Zona primaria respetada:** sí (4 archivos, todos en `kernel/catastro/`, `scripts/016_*.sql`, `tests/`)
+
+## Entregables
+
+| Archivo | Tipo | Notas |
+|---|---|---|
+| `scripts/016_sprint86_catastro_schema.sql` | SQL migration | 5 tablas + vista materializada + función match + RLS + triggers + comments |
+| `kernel/catastro/__init__.py` | Python module | re-exports públicos, versión 0.86.1 |
+| `kernel/catastro/schema.py` | Python module | Pydantic v2 models espejo del SQL + 7 enums + 3 validators custom |
+| `tests/test_sprint86_schema.py` | Tests | 30 tests parametrizados, validación SQL ↔ Pydantic integral |
+
+## Decisiones de fusión documentadas
+
+| Decisión | Origen del conflicto | Resolución |
+|---|---|---|
+| `id TEXT PRIMARY KEY` (slug) en lugar de UUID | Spec Cowork L953 usaba UUID, mockup pre-investigado usaba TEXT | TEXT — legibilidad URL/MCP responses (`gpt-5-5-mini` no `b3fe-...`) |
+| `dominios TEXT[]` en lugar de `dominio TEXT` | Spec Cowork singular, mockup plural | Plural — modelos cubren múltiples dominios (Claude Opus 4.7 = frontier + coding) |
+| Híbrido columnas + JSONB | Spec Cowork puramente columnas, mockup puramente JSONB | Híbrido — métricas Trono en columnas (queries frecuentes), datos extensibles en JSONB (sin migrations futuras) |
+| 5 tablas + vista materializada | Spec Cowork tenía 6ª tabla `catastro_metricas_diarias`, mockup la omitía | Vista materializada `catastro_metricas_diarias` derivada del histórico — DRY, evita columnas vacías del Radar |
+| `model_drift_detected` en CHECK | Addendum 002 decisión 3 | Agregado al CHECK constraint de `catastro_eventos.tipo` |
+| `fuentes_evidencia JSONB` con shape rico | Citation tracking del Addendum 001 | `[{url, fetched_at, payload_hash, curador, tipo_dato}]` con Pydantic `FuenteEvidencia` |
+
+## Protocolo nuevo aplicado (post-Incidente 2026-05-04)
+
+```
+PROTOCOLO 1 — git status -s             (verificar working tree pre-add)
+PROTOCOLO 2 — git add <paths específicos> (NUNCA `git add -A` ni `git add .`)
+PROTOCOLO 3 — git diff --cached --name-only (verificar QUE solo mis archivos están staged)
+PROTOCOLO 4 — git commit + git push     (verificar commit hash en push output)
+```
+
+Aplicado limpio en commit `bcf2a91`. Working tree de Cowork (`bridge/cowork_to_manus.md` modificado por vos) NO contaminado. Working tree del Ejecutor (`bridge/archive/` untracked) NO tocado.
+
+## Pendiente del Bloque 1 (ejecución del SQL)
+
+La migration `scripts/016_sprint86_catastro_schema.sql` está lista pero **NO ejecutada** contra Supabase production. Necesito que vos o el Hilo Ejecutor la corran cuando esté la ventana operativa, ya que:
+
+1. Requiere `SUPABASE_SERVICE_ROLE_KEY` (no la tengo en sandbox)
+2. Es operación destructiva (CREATE TABLE) sobre la DB de producción
+3. Conviene que el Ejecutor la corra junto con sus seeds del 84.6 (mismo deploy window)
+
+**Opción A:** El Ejecutor la corre vía Supabase Dashboard SQL editor.
+**Opción B:** Cowork la corre vía Supabase MCP (`apply_migration` tool).
+**Opción C:** Yo te paso la URL del archivo en el repo y vos eliges.
+
+## Audit checklist para Cowork (criterios objetivos)
+
+- [ ] SQL parseable por psql sin errores (validable con `psql -d test --single-transaction --file scripts/016_*.sql`)
+- [ ] 5 tablas + 1 vista + 1 función + 5 RLS + 5 policies declaradas
+- [ ] Citation tracking robusto: `fuentes_evidencia JSONB` con shape `[{url, fetched_at, payload_hash, curador, tipo_dato}]`
+- [ ] `model_drift_detected` presente en CHECK de `catastro_eventos.tipo`
+- [ ] 5ª tabla `catastro_curadores` con campos: `trust_score`, `total_validaciones`, `aciertos_quorum`, `fallos_quorum`, `requiere_hitl`, `rol`
+- [ ] Pydantic models reflejan el SQL (validado por 4 tests de integridad SQL ↔ Pydantic, todos PASS)
+- [ ] Validators custom funcionan: slug format, dominios no vacíos, hitl auto-corrección
+- [ ] Disciplina `os.environ`: ningún hardcode de Supabase URL/keys (verificar con `grep -r "supabase.co" kernel/catastro/`)
+- [ ] Zona primaria respetada (verificar con `git show --stat bcf2a91`)
+
+## Próximo paso
+
+Espero **green light de Bloque 1** para arrancar **Bloque 2 (Pipeline diario MVP)**:
+- `kernel/catastro/pipeline.py` orquestador async
+- `kernel/catastro/sources/` clientes API REST oficiales (Artificial Analysis, LMArena via HF, OpenRouter, etc.)
+- Quorum Validator 2-de-3 con cross-validation
+- Cron Railway scheduled task 07:00 CST
+
+Si detectás algo manifiestamente mal en Bloque 1, decime y rework. Si LGTM, arranco Bloque 2.
+
+— [Hilo Manus Catastro]
