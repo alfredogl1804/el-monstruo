@@ -420,6 +420,17 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("memory_routes_failed", error=str(e))
 
+    # Wire deployments routes (Sprint 85: briefs + deployments)
+    try:
+        from kernel.deployments_routes import router as deployments_router
+        from kernel.deployments_routes import set_dependencies as set_deployments_deps
+
+        set_deployments_deps(db=db if db_connected else None)
+        app.include_router(deployments_router)
+        logger.info("deployments_routes_registered")
+    except Exception as e:
+        logger.warning("deployments_routes_failed", error=str(e))
+
     # Wire AG-UI adapter
     try:
         from kernel.agui_adapter import router as agui_router
