@@ -1,7 +1,7 @@
 """
 El Catastro — Sistema de inteligencia viva sobre modelos IA externos.
 
-Sprint 86 Bloques 1-2: Schema Supabase + Pipeline diario MVP.
+Sprint 86 Bloques 1-3: Schema Supabase + Pipeline diario MVP + Persistencia atómica.
 
 Macroárea 1 (Sprint 86): Inteligencia (LLMs)
   - llm_frontier (GPT, Claude, Gemini, xAI)
@@ -14,21 +14,32 @@ Sprints futuros:
   - 88: Macroárea 3 (Agentes) + UI Next.js + 12 macroáreas totales
 
 Componentes públicos del módulo:
-  schema      — Pydantic models de las 5 tablas + tipos enum
+  schema      — Pydantic models de las 5 tablas + tipos enum (Sprint 86 Bloque 1)
   pipeline    — Pipeline diario MVP (Sprint 86 Bloque 2)
   quorum      — QuorumValidator 2-de-3 + cross-validation (Sprint 86 Bloque 2)
   sources     — Clientes API REST oficiales (Sprint 86 Bloque 2)
   cron        — Entrypoint Railway scheduled task (Sprint 86 Bloque 2)
+  persistence — Wiring atómico a Supabase via RPC PL/pgSQL (Sprint 86 Bloque 3)
   trono       — Cálculo Trono Score por dominio (Sprint 86 Bloque 4)
   mcp         — Servidor MCP del Catastro (Sprint 86 Bloque 6)
 """
 from __future__ import annotations
 
-__version__ = "0.86.2"  # Sprint 86 Bloque 2
+__version__ = "0.86.3"  # Sprint 86 Bloque 3 — Persistencia atómica
 __sprint__ = "86"
-__bloque__ = "2"
+__bloque__ = "3"
 
 # Re-exports públicos del módulo schema (poblados conforme se construye)
+# Bloque 3 — Persistencia
+from kernel.catastro.persistence import (
+    CatastroPersistence,
+    CatastroPersistError,
+    CatastroPersistMissingClient,
+    CatastroPersistRpcFailure,
+    PersistResult,
+    build_modelo_from_pipeline_persistible,
+)
+
 # Bloque 2 — Pipeline + Quorum
 from kernel.catastro.pipeline import CatastroPipeline, PipelineRunResult
 from kernel.catastro.quorum import (
@@ -60,6 +71,7 @@ __all__ = [
     "__version__",
     "__sprint__",
     "__bloque__",
+    # Bloque 1 — Schema
     "EstadoModelo",
     "TipoLicencia",
     "Macroarea",
@@ -73,7 +85,7 @@ __all__ = [
     "CatastroNota",
     "CatastroCurador",
     "FuenteEvidencia",
-    # Bloque 2 — Pipeline
+    # Bloque 2 — Pipeline + Quorum
     "CatastroPipeline",
     "PipelineRunResult",
     "QuorumValidator",
@@ -81,4 +93,11 @@ __all__ = [
     "QuorumResult",
     "FieldType",
     "FuenteVote",
+    # Bloque 3 — Persistencia
+    "CatastroPersistence",
+    "PersistResult",
+    "CatastroPersistError",
+    "CatastroPersistRpcFailure",
+    "CatastroPersistMissingClient",
+    "build_modelo_from_pipeline_persistible",
 ]

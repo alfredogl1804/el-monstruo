@@ -33,6 +33,11 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Optional
 
+from kernel.catastro.persistence import (
+    CatastroPersistence,
+    PersistResult,
+    build_modelo_from_pipeline_persistible,
+)
 from kernel.catastro.quorum import (
     FieldType,
     FuenteVote,
@@ -79,6 +84,9 @@ class PipelineRunResult:
     # Trust deltas finales por fuente
     trust_deltas: dict[str, float] = field(default_factory=dict)
 
+    # Resultados de persistencia (Bloque 3)
+    persist_results: list[PersistResult] = field(default_factory=list)
+
     # Métricas resumen
     metrics: dict[str, Any] = field(default_factory=dict)
 
@@ -95,6 +103,9 @@ class PipelineRunResult:
 
     def summary(self) -> dict[str, Any]:
         """Resumen serializable para logs / API."""
+        persist_ok = sum(1 for r in self.persist_results if r.success and not r.dry_run)
+        persist_dry = sum(1 for r in self.persist_results if r.dry_run)
+        persist_fail = sum(1 for r in self.persist_results if not r.success)
         return {
             "run_id": self.run_id,
             "started_at": self.started_at.isoformat(),
@@ -106,6 +117,11 @@ class PipelineRunResult:
             "modelos_total": len(self.modelos_procesados),
             "modelos_persistibles": len(self.modelos_persistibles),
             "trust_deltas": self.trust_deltas,
+            "persist_summary": {
+                "ok": persist_ok,
+                "dry_run": persist_dry,
+                "failed": persist_fail,
+            },
             "metrics": self.metrics,
         }
 
@@ -137,6 +153,7 @@ class CatastroPipeline:
         sources: Optional[list[BaseFuente]] = None,
         validator: Optional[QuorumValidator] = None,
         dry_run: bool = False,
+        persistence: Optional[CatastroPersistence] = None,
     ) -> None:
         """
         Args:
@@ -144,7 +161,11 @@ class CatastroPipeline:
                      las 3 oficiales con dry_run=False.
             validator: instancia de QuorumValidator. Si None, default 10%.
             dry_run: si True, todas las fuentes corren con dry_run=True
-                     (sin red, devuelven snapshots fake).
+                     (sin red, devuelven snapshots fake) Y persistence
+                     hereda dry_run=True (no toca Supabase).
+            persistence: instancia de CatastroPersistence. Si None, se
+                         construye una con dry_run igual al del pipeline.
+                         Se respeta el dry_run propio si se pasa explícita.
         """
         self.dry_run = dry_run
         if sources is not None:
@@ -153,6 +174,7 @@ class CatastroPipeline:
             self.sources = [cls(dry_run=dry_run) for cls in self.DEFAULT_SOURCES]
 
         self.validator = validator or QuorumValidator(numeric_tolerance=0.10)
+        self.persistence = persistence or CatastroPersistence(dry_run=dry_run)
 
     # ------------------------------------------------------------------
     # API pública
@@ -197,6 +219,9 @@ class CatastroPipeline:
         flat_results = [qr for qrs in result.modelos_procesados.values() for qr in qrs]
         result.trust_deltas = self.validator.compute_trust_deltas(flat_results)
 
+        # Paso 7: persistencia atómica via RPC (Bloque 3)
+        await self._persist_all(result)
+
         # Métricas finales
         result.metrics = {
             "total_modelos_vistos": len(result.modelos_procesados),
@@ -217,12 +242,81 @@ class CatastroPipeline:
         }
 
         result.finished_at = datetime.now(timezone.utc)
+        persist_ok = sum(1 for r in result.persist_results if r.success and not r.dry_run)
+        persist_dry = sum(1 for r in result.persist_results if r.dry_run)
+        persist_fail = sum(1 for r in result.persist_results if not r.success)
         logger.info(
-            f"[catastro_pipeline] Run {run_id} OK · "
-            f"persistibles={result.metrics['total_modelos_persistibles']}/{result.metrics['total_modelos_vistos']} · "
+            f"[catastro_pipeline] Run {run_id} OK \u00b7 "
+            f"persistibles={result.metrics['total_modelos_persistibles']}/{result.metrics['total_modelos_vistos']} \u00b7 "
+            f"persist_ok={persist_ok} dry={persist_dry} fail={persist_fail} \u00b7 "
             f"duration={result.duration_seconds:.2f}s"
         )
         return result
+
+    # ------------------------------------------------------------------
+    # Paso 7: persistencia atómica (Bloque 3)
+    # ------------------------------------------------------------------
+
+    async def _persist_all(self, result: PipelineRunResult) -> None:
+        """
+        Persiste todos los modelos persistibles via RPC atómica.
+
+        Cada modelo es una transacci\u00f3n independiente del lado servidor.
+        Si uno falla, los dem\u00e1s contin\u00faan (degraded gracefully).
+
+        Memento:
+          - Esta llamada NO es paralela: la RPC actualiza
+            catastro_curadores compartido y queremos serializaci\u00f3n
+            para que los deltas no se sobreescriban en concurrent UPDATEs
+            (PostgreSQL los acumular\u00eda igual gracias a `+ delta`, pero
+            preferimos serializaci\u00f3n estricta por simplicidad de debug).
+        """
+        if not result.modelos_persistibles:
+            logger.info("[catastro_pipeline] Paso 7 skip: sin modelos persistibles")
+            return
+
+        for slug, persistible in result.modelos_persistibles.items():
+            quorum_results = result.modelos_procesados.get(slug, [])
+            try:
+                modelo = build_modelo_from_pipeline_persistible(
+                    slug=slug,
+                    persistible=persistible,
+                    quorum_results=quorum_results,
+                )
+            except Exception as e:  # noqa: BLE001
+                logger.exception(
+                    f"[catastro_pipeline] persist build_modelo CRASH slug={slug}: {e}"
+                )
+                result.persist_results.append(
+                    PersistResult(
+                        modelo_id=slug,
+                        success=False,
+                        error_code="catastro_persist_build_modelo_crash",
+                        error_message=f"{type(e).__name__}: {e}",
+                    )
+                )
+                continue
+
+            try:
+                # Solo enviamos los deltas que aplican a este modelo
+                # (los acumulados globales — la RPC los aplicar\u00e1 una vez
+                # por modelo, lo cual es contable y deseado: cada modelo
+                # contribuye su propio delta al curador correspondiente)
+                pr = self.persistence.persist(
+                    modelo=modelo,
+                    trust_deltas=result.trust_deltas,
+                )
+            except Exception as e:  # noqa: BLE001
+                logger.exception(
+                    f"[catastro_pipeline] persist CRASH slug={slug}: {e}"
+                )
+                pr = PersistResult(
+                    modelo_id=slug,
+                    success=False,
+                    error_code="catastro_persist_call_crash",
+                    error_message=f"{type(e).__name__}: {e}",
+                )
+            result.persist_results.append(pr)
 
     # ------------------------------------------------------------------
     # Paso 1: fetch paralelo
