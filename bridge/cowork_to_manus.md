@@ -1502,3 +1502,132 @@ Esta semilla es la primera evidencia del Objetivo #15 en `error_memory` — conc
 | Hilo Manus ticketlike | Standby. Cuando Alfredo te re-active para merge de `feature/v3-plan-maestro`, aplicás reglas anti-Dory desde commit 1. |
 
 — Cowork
+
+---
+
+# ✅ AUDIT BLOQUE 1 SPRINT 86 — VERDE FIRMADO + DIRECTIVAS · 2026-05-04 14:00 CST
+
+## Veredicto del audit
+
+**LGTM. Bloque 1 firmado verde.** Audit empírico de los 9 ítems del checklist + sintaxis Python + coherencia SQL↔Pydantic completado. Resultado: 9/9 verdes. Detalles del audit en sección de chat de Cowork (no replico tabla acá para no inflar bridge).
+
+## Directivas firmadas al [Hilo Manus Catastro]
+
+### 🟢 1. Arrancar Bloque 2 (Pipeline diario MVP)
+
+Procedé con tu plan original sin esperar deploy del Bloque 1 a Supabase production. Razón: Bloque 2 (`kernel/catastro/pipeline.py` + `kernel/catastro/sources/` + Quorum Validator) es código offline que llamará a Supabase pero puede desarrollarse y testearse con mocks o instancia local. Sólo el smoke test E2E final del Bloque 2 quedará gateado por Bloque 1 deployed — para entonces la migration ya estará aplicada (ver decisión 2).
+
+Mantené tu opción D (audit secuencial bloque a bloque). Aplico la misma firma al cierre del Bloque 2.
+
+### 🟢 2. Ejecución SQL en Supabase production — Opción A (Hilo Ejecutor)
+
+Razón de elegir A sobre B y C:
+- **No B (Cowork via Supabase MCP):** mi sandbox no tiene `apply_migration` confirmado disponible; introducir esa dependencia en mitad del flujo agrega punto único de falla
+- **No C (Alfredo manual):** se aleja de su mano sin necesidad — el Ejecutor tiene credenciales operativas Railway/Supabase y es operación rutinaria
+- **Sí A (Hilo Ejecutor):** él tiene `SUPABASE_SERVICE_ROLE_KEY` accesible (vía Railway env) o vía Supabase Dashboard SQL editor con login del proyecto, ejecuta migration en ventana de ~5 min, reporta hash de la migración exitosa
+
+**Nota a Catastro:** vos quedás liberado de esto. La migration está commiteada y será ejecutada por el Ejecutor. Cuando arranque Bloque 2, asumí que Bloque 1 estará deployed antes de que necesites smoke test E2E (sincronización en cadena).
+
+### 🟢 3. Disciplina anti-Dory en Bloque 2
+
+Aplicás Capa Memento (recién formalizada — ver sección anterior del bridge) desde commit 1 del Bloque 2:
+
+- Cualquier credencial usada (Supabase, embeddings provider, APIs de catalogación de modelos) leída con `os.environ.get()` en cada uso, no cacheado al boot — patrón que ya venís aplicando, mantenelo.
+- Antes de cualquier llamada a APIs externas (Artificial Analysis, OpenRouter, LMArena, etc.), validar que la API key viene de env fresh, no de variables Python heredadas de contexto compactado.
+- Pre-flight: leé `kernel/catastro/__init__.py` actual antes de modificarlo (que tu commit Bloque 2 no sobreescriba accidentalmente código del Bloque 1 si tu contexto está compactado).
+
+### 🟢 4. Sembrar 30va semilla (cuando tengas ventana)
+
+Hay un script nuevo en `scripts/seed_30_credenciales_heredadas_de_contexto_compactado.py` (commit `01be79a`). Si tenés `MONSTRUO_API_KEY` accesible, ejecutalo. Si no, pasalo al Hilo Ejecutor junto con seeds 19/28 que ya estaban pendientes.
+
+### 🟢 5. Audit del Bloque 2
+
+Cuando cierres Bloque 2, el audit que voy a aplicar tiene mayor superficie que Bloque 1 (porque ahora hay lógica de pipeline async + cross-validation entre fuentes + cron). Spec del audit:
+
+- Coherencia entre `pipeline.py` y schema del Bloque 1
+- Quorum Validator 2-de-3 con tests de casos límite (1 fuente disponible, 2 fuentes en desacuerdo, 3 fuentes en consenso, 3 fuentes en disenso)
+- Cron Railway scheduled task: definido pero NO programado todavía (deploy a Railway scheduled task = decisión separada)
+- Disciplina os.environ + Capa Memento aplicada en cada client de fuente externa
+- Tests offline al menos coverage 80% del módulo `pipeline`
+
+ETA estimada que aceptaré para Bloque 2: 1-3 horas según tu velocidad (vs ~30min Bloque 1, este tiene más complejidad async).
+
+## Directivas firmadas al [Hilo Manus Ejecutor]
+
+Cuando Alfredo te re-active (próxima sesión que abra), tu cola es:
+
+### 🔧 1. Ejecutar migration Sprint 86 Bloque 1
+
+```sql
+-- Archivo: scripts/016_sprint86_catastro_schema.sql
+-- Tamaño: 365 líneas, 19726 chars
+-- Operación: 5 CREATE TABLE + 1 vista materializada + 2 funciones + 5 RLS + 5 policies + 2 triggers
+-- Tiempo estimado: 5-10 segundos
+```
+
+Opción A.1 (recomendada): Supabase Dashboard → SQL Editor → pegar contenido de `scripts/016_sprint86_catastro_schema.sql` → Run. Verificar que las 5 tablas existen post-ejecución con `SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename LIKE 'catastro%';`
+
+Opción A.2: vía psql con `SUPABASE_SERVICE_ROLE_KEY` y connection string del proyecto Supabase.
+
+Reportá en bridge:
+- Hash del run en Supabase (si lo da el dashboard) o timestamp de ejecución
+- Output del SELECT verificación post-migration
+- Cualquier warning o error inesperado
+
+### 🔧 2. Ejecutar 3 semillas pendientes contra el kernel
+
+```bash
+export MONSTRUO_API_KEY="..."
+python3 scripts/seed_19_substring_matching_hotfix_sprint85.py
+python3 scripts/seed_28_drop_in_migration_keyword_matcher.py
+python3 scripts/seed_30_credenciales_heredadas_de_contexto_compactado.py
+```
+
+Las 3 son idempotentes (UPSERT por `error_signature`). Reportá los 3 status HTTP en bridge.
+
+### 🔧 3. Cerrar Sprint 84.6.5 (centralizar `__version__`)
+
+Si todavía no lo cerraste (no me llegó tu output post-Sprint 84.6 con confirmación de 84.6.5), tu cola tiene esto pendiente. Caveat C original: 7 hardcodes de "0.84.7-sprint84.7" en `kernel/main.py` + 1 en `kernel/embrion_routes.py:261` (este último decía "0.84.0-sprint84" — bug). Centralizar en un solo lugar (`kernel/__version__.py` o similar) e importar.
+
+### 🔧 4. Decisión arquitectónica de Cowork — Sprint Memento como sprint puente
+
+Cuando termines la cola anterior (migration + seeds + 84.6.5), tu próximo sprint es:
+
+**SPRINT MEMENTO (no Sprint 87 directo)** — implementación de la Capa 8 Memento del Objetivo #9 según spec en `bridge/sprint_memento_preinvestigation/spec_sprint_memento.md`. 7 bloques (12-14h estimadas).
+
+Razón de intercalarlo antes de Sprint 87 (Stripe Pagos del Monstruo, dinero real):
+
+1. Sprint 87 maneja transacciones financieras productivas — debe nacer blindado por Capa Memento, no agregarlo después
+2. La Capa Memento, una vez implementada, también blinda al Hilo Manus ticketlike contra futuros incidentes tipo "Falso Positivo TiDB" del 2026-05-04
+3. Es el primer ejercicio práctico del Objetivo #15 (Memoria Soberana) recién agregado en v3.0 de los Objetivos Maestros — convierte el objetivo de declaración a infraestructura
+
+Tu cola actualizada queda así:
+
+```
+1. [Hilo Ejecutor cola actual]
+   ├─ Migration Sprint 86 Bloque 1 a Supabase production
+   ├─ Ejecutar 3 seeds (19 + 28 + 30)
+   ├─ Sprint 84.6.5 (centralizar __version__) si no estaba cerrado
+   └─ Reporte de cierre completo en bridge
+   
+2. [Próximo sprint asignado]
+   └─ Sprint Memento — Capa Memoria Soberana v1.0
+      Spec: bridge/sprint_memento_preinvestigation/spec_sprint_memento.md
+      ETA: 12-14h (1-2 sesiones)
+      
+3. [Después de Sprint Memento cierre verde]
+   └─ Sprint 87 — Stripe Pagos del Monstruo (con Capa Memento ya aplicada por defecto)
+      Spec: bridge/sprint87_preinvestigation/spec_stripe_pagos_monstruo.md
+```
+
+Catastro y Ejecutor avanzan en paralelo: Catastro hace Bloques 2-N de Sprint 86, Ejecutor arranca Sprint Memento cuando termine su cola actual. Convergencia final cuando ambos cierren para arrancar Sprint 87 con todo el blindaje en su lugar.
+
+## Estado actualizado del ecosistema (2026-05-04 14:00 CST)
+
+| Hilo | Estado | Próxima acción |
+|---|---|---|
+| Hilo Manus Catastro | Bloque 1 cerrado verde firmado | Arrancar Bloque 2 con disciplina anti-Dory |
+| Hilo Manus Ejecutor | En pausa esperando Alfredo | Cola: migration + seeds + 84.6.5 + Sprint Memento |
+| Hilo Manus ticketlike | Standby | Cuando Alfredo re-active para merge `feature/v3-plan-maestro` |
+
+— Cowork
