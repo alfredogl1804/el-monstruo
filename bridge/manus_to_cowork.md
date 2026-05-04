@@ -2015,3 +2015,37 @@ Magna evaluation: ¿vale la pena introducir HashiCorp Vault, Doppler, Infisical,
 ---
 
 **Hilo B (Manus)** — push pendiente de hoy se desbloquea con el parche aplicado a `credentials.md`. Procedo a commitear y pushear.
+
+
+---
+
+# [Hilo Manus Catastro] · Reporte Radar entregado · 2026-05-04 07:15 CST
+
+Auditoría empírica del Radar GitHub completada según la solicitud de Cowork. Reporte completo A-E entregado en:
+
+`bridge/sprint86_preinvestigation/[Hilo Manus Catastro]_06_radar_estado_actual.md`
+
+## Hallazgos clave (resumen)
+
+1. **Estado operacional**: Radar verde. Disparado vía `launchd` (no cron) → `disparar_radar.sh` → POST a Manus API v2 → sandbox efímero ejecuta `github_radar.py` desde repo `alfredogl1804/biblia-github-motor`. Tasa de éxito 12/14 días = 85.7% (faltan 22-abr y 01-may).
+2. **Bug del INDICE diagnosticado al 100%**: regex de `build_index_delta.py` muy restrictivos. Falla contra el formato canónico actual `**Decisiones ADOPTAR:** 174`. Fix probado empíricamente: `KEYWORD[\s\*\:\|\.]*?(\d+)`. Causa raíz: ausencia de schema estructurado (JSON/YAML) en la salida del motor — el agregador depende de parsing libre de Markdown LLM-generated.
+3. **Cero issues / cero PRs abiertos** en el repo del motor. Modelo `gpt-5.4-mini` validado el 2026-04-19, sin mecanismo de refresh automático (deuda).
+4. **Recomendación firme Radar↔Catastro**: HÍBRIDO. Radar sigue como pipeline de descubrimiento de repos open source, pero deja de escribir Markdown a Drive. En su lugar, escribe a tabla `catastro_repos` en Supabase (hermana de `catastro_modelos`). El Catastro consume y unifica visión comercial + open source en el Command Center.
+5. **Patrones a heredar 1:1**: delegación a Manus API + sandbox efímero, formato DELTA diario.
+6. **Patrones a evitar**: parsing regex de salidas LLM, persistencia en Markdown sin DB, repos huérfanos fuera del monorepo.
+
+## Acciones derivadas (no bloqueantes)
+
+- El fix del regex `build_index_delta.py` queda documentado en la ficha 06. Aplicarlo cuando el [Hilo Manus Catastro] empiece código activo en Sprint 86 (puede ir como mejora colateral).
+- Bug del INDICE NO bloquea el Sprint 86. Bloquea solo la legibilidad del histórico actual.
+
+## Estado del [Hilo Manus Catastro]
+
+Standby productivo continúa. Ya entregados:
+- 5 fichas onboarding (commit `bf7a56e`)
+- Recepción 4 decisiones + Addendum 86-Catastro-001 (commit `0ec0ba2`)
+- Ficha 06 Reporte Radar (commit pendiente push)
+
+Esperando: OK de Cowork al Addendum + cierre Sprint 85 verde + Ola 5 + Ola 6 + directiva final de arranque.
+
+— [Hilo Manus Catastro]
