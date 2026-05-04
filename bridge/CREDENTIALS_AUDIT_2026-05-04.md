@@ -1,8 +1,8 @@
 # Credentials Audit & Rotation — 4 mayo 2026
 
-> **Status:** ✅ COMPLETADA  
+> **Status:** ✅ Ola 1 COMPLETADA + Ola 2 cerrada con Opción D' (PAT viejo intacto, sin consumidor identificado)  
 > **Ejecutor:** Hilo B (Manus desktop) bajo dirección de Alfredo  
-> **Duración:** ~2h (incluye Bitwarden setup + auditoría + ola 1)
+> **Duración:** ~5h (Bitwarden setup + auditoría + Ola 1 + Ola 2 investigación + Ola 2 cierre)
 
 ## Resumen ejecutivo
 
@@ -15,14 +15,29 @@ Se rotaron los **17 Personal Access Tokens (Classic)** de GitHub asociados al us
 | `el-monstruo-mac-2026-05` | `ghp_8AJw3rnrm…` | `repo, read:org` | Aug 2, 2026 | Bitwarden item `609e5e38-b6ad-48b1-9184-b44000605c05` | Mac local (Keychain via `gh auth login`) |
 | `el-monstruo-kernel-2026-05` | `ghp_J2ThVxfiB…` | `repo, workflow` | Aug 2, 2026 | Bitwarden item `d95a233b-f15c-43c2-bd30-b440006062b6` | Railway service `el-monstruo-kernel` (vars `GITHUB_TOKEN` + `GITHUB_PERSONAL_ACCESS_TOKEN`) |
 
-## Tokens fine-grained — Ola 2 (pendiente)
+## Tokens fine-grained — Ola 2 ejecutada (Opción D')
 
-Quedan vivos intencionalmente:
+### Decisión final
 
-| Nombre | Tipo | Razón para mantener vivo |
+Después de directiva Cowork (R1 verde con pre-requisitos: token nuevo acotado a repos específicos, NO "All repositories", expiración 90d, en Bitwarden) y de auditoría exhaustiva del consumidor real, se determinó:
+
+1. El conector GitHub de Manus en Configuraciones → Conectores es la **GitHub App `Manus Connector`** (OAuth, NO PAT) instalada por `manus-ai-team`. **No usa PAT.**
+2. Configuraciones → MCP personalizado en Manus está **vacío** — no hay MCP server custom configurado.
+3. Investigación en Mac: NO encontrado en `.env`, shell rcs, Keychain, plist activos (`com.alfredo.bibliaradar` solo dispara Manus API, no GitHub directo), ni procesos vivos.
+4. Repo `biblia-github-motor` usa `gh auth token` del sandbox de Manus (token desechable per-task), no este PAT.
+5. Hipótesis principal: el PAT lo usaba **Railway como `GITHUB_PERSONAL_ACCESS_TOKEN` antes de Ola 1** (lo cual coincide con "Last used within the last week"). Tras Ola 1 quedó huérfano, pero el contador "last used" no se actualiza inmediatamente.
+
+### Acción ejecutada
+
+- **PAT viejo `el-monstruo-mcp`** (id `13740788`): **NO modificado, NO revocado**. Razón: GitHub no permite agregar expiración sin regenerar el token (lo cual lo invalidaría inmediatamente). Sin consumidor 100% confirmado, regenerar = riesgo de breakage silencioso. Decisión Opción D': dejar intacto, mantener vigilancia.
+- **PAT nuevo `el-monstruo-mcp-2026-05`** (creado durante Ola 2 con scope acotado a 20 repos seleccionados, read-only): **REVOCADO** (no tiene consumidor identificado, mantener aumentaría superficie de ataque sin beneficio). Item correspondiente en Bitwarden: **eliminado**.
+
+### Estado final fine-grained
+
+| Nombre | Estado | Razón |
 |---|---|---|
-| `ticketlike-deploy` | fine-grained | Proyecto independiente (ticketlike.mx) vendiendo a diario al público. Scope acotado, expira 22 may 2026 (rotación natural). |
-| `el-monstruo-mcp` | fine-grained | Sin expiración. Lo usa el MCP Server de Manus para hablar con GitHub. Rotarlo requiere acceso a la UI de Manus. **Programado para Ola 2**. |
+| `ticketlike-deploy` | VIVO (intocable) | Proyecto independiente (ticketlike.mx) vendiendo a diario. Scope acotado, expira 22 may 2026 (rotación natural). |
+| `el-monstruo-mcp` | VIVO (vigilancia) | Sin expiración. Sin consumidor identificado tras audit completo. Decisión D': mantener intacto y observar. Si en próxima audit (Aug 1) sigue "Last used last week" o más reciente, escalar investigación. Si pasa a "never used in last month", revocar. |
 
 ## 17 PATs Classic revocados
 
@@ -94,12 +109,15 @@ Redeploy automático tras cambio. Validado en logs: `tool=github` ejecutándose 
 
 ## Próximas acciones
 
-| ID | Acción | Owner | Prioridad |
-|---|---|---|---|
-| R1 | Rotar `el-monstruo-mcp` fine-grained (Ola 2) cuando UI de Manus esté abierta | Hilo B | Media |
-| R2 | Calendario: Aug 1, 2026 — rotar ambos PATs antes del 2 de Aug | Hilo B | Alta (90 días) |
-| R3 | Auditar OAuth Apps "Never used" en GitHub para revocar las nucleares (audit anterior detectó 3) | Hilo B | Media |
-| R4 | Considerar consolidación `GITHUB_TOKEN` única en código kernel (sprint dedicado) | Hilo A | Baja |
+| ID | Acción | Owner | Prioridad | Estado |
+|---|---|---|---|---|
+| R1 | Rotar `el-monstruo-mcp` fine-grained | Hilo B | Media | ✅ Cerrado con Opción D' (no rotar, vigilar) |
+| R2 | Calendario: Aug 1, 2026 — rotar ambos PATs Classic antes del 2 de Aug | Hilo B | Alta | Anotada como deuda agendada |
+| R3 | Auditar y revocar OAuth Apps "Never used" en GitHub (10 candidatas: Atlas Cloud, FASHN, Honcho, Langfuse, novita.ai, RunPod, Vast, api.together.ai, Apify, E2B, Resend) | Hilo B | Media | DIFERIDA por Alfredo a otra sesión |
+| R4 | Consolidación `GITHUB_TOKEN` única en código kernel (refactor 5 archivos) | Hilo A | Baja | Diferido a Sprint 87+ por Cowork |
+| R5 | Escalación si `el-monstruo-mcp` sigue activo en próxima audit | Hilo B | Media | Trigger: Aug 1, 2026 |
+| R6 | Sanitizar `bridge/cowork_to_manus.md` y `bridge/manus_to_cowork.md` antes de futuras rotaciones (eliminar tokens en logs históricos) | Hilo B | Baja | Comentario de Cowork no bloqueante |
+| R7 | Validar utilidad real del scope `workflow` del kernel PAT (grep en código kernel) | Hilo B | Baja | Comentario de Cowork no bloqueante |
 
 ## Anexos
 
@@ -108,4 +126,12 @@ Redeploy automático tras cambio. Validado en logs: `tool=github` ejecutándose 
 
 ---
 
-> **Hilo B firma:** Rotación ejecutada con consentimiento explícito de Alfredo en cada paso crítico (creación de tokens, propagación, salto de monitoreo, revocación masiva). Cero pérdida de servicio. Cero downtime del kernel. Estado de seguridad de cuenta `alfredogl1804` significativamente mejorado: de 19 PATs → 2 (más 2 fine-grained intocados con propósito conocido).
+> **Hilo B firma:** Rotación ejecutada con consentimiento explícito de Alfredo en cada paso crítico. Cero pérdida de servicio. Cero downtime del kernel.
+>
+> **Estado final:** de 19 PATs vivos al inicio → **3 PATs vivos** (2 Classic canónicos `mac` + `kernel` con expiración 90d en Bitwarden + 1 fine-grained `ticketlike-deploy` intocable + 1 fine-grained `el-monstruo-mcp` en vigilancia bajo Opción D'). Reducción de superficie: 84%.
+>
+> **Trade-offs aceptados:**
+> - `el-monstruo-mcp` fine-grained queda vivo sin expiración por riesgo de breakage al regenerar sin consumidor identificado. Vigilancia activa hasta Aug 1, 2026.
+> - R3 (OAuth Apps cleanup) diferido por decisión explícita de Alfredo a otra sesión.
+>
+> **Ola 2 — Anatomía del aprendizaje:** la directiva de Cowork era crear un fine-grained nuevo acotado y reemplazar al viejo. Lo intentamos: creamos `el-monstruo-mcp-2026-05` con 20 repos seleccionados, lo guardamos en Bitwarden, fuimos a la UI de Manus para pegarlo y descubrimos que el conector real no usa PAT (es OAuth GitHub App). El PAT viejo no tiene consumidor identificable. Conclusión: el problema asumido no era el problema real. La acción correcta cambió de "rotar" a "vigilar". El PAT nuevo creado se borró por innecesario. Los 30 minutos de creación y configuración no fueron desperdicio: produjeron la única evidencia confiable de que no hay consumidor activo en Manus.

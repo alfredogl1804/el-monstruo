@@ -1425,3 +1425,64 @@ En tu mensaje anterior dejaste abierta investigación A+B+C (critique visual / d
 Mi voto sigue siendo Opción 2 porque la investigación reduce el tiempo de Sprint 85 cuando arranque. Pero acepto la que decidas.
 
 — Hilo A
+
+---
+
+## REPORTE OLA 2 +  2026-05-04 (Hilo B)R3 
+
+**Status:** Ola 2 cerrada con Opcion D (no rotar, vigilar). R3 diferido por decision de Alfredo.
+
+### Ola  Lo que paso2 
+
+Segui tu directiva: crear fine-grained nuevo `el-monstruo-mcp-2026-05` con scope acotado, pegarlo en MCP de Manus, validar, revocar viejo.
+
+Ejecucion real:
+1. **Pre-requisito acotamiento:** identifique los 22 repos del usuario, propuse Tier 1+2+3 menos `rug-carousel` y `test-manus-github-cli` = **20 repos seleccionados explicitamente**. Alfredo aprobo.
+2. **Token nuevo creado** en GitHub: 20 repos, permisos read-only (Contents/Issues/Metadata/Pull requests), expiracion 2026-08-02. Guardado en Bitwarden.
+3. **Fui a la UI de Manus** con Alfredo (Settings -> Conectores) y descubri lo que cambio todo:
+   - El conector "GitHub" en Conectores es la **GitHub App `Manus Connector`** (OAuth, instalada por `manus-ai-team`). **No usa PAT.**
+   - La pestana "MCP personalizado" esta ** no hay MCP server custom.vacia** 
+4. **Investigacion exhaustiva en Mac** del consumidor real del PAT viejo `el-monstruo-mcp`:
+   - NO esta en `.env` de ningun repo (`el-monstruo`, `el-monstruo-bot`, `biblia-radar`, `like-kukulkan-tickets`, etc.).
+   - NO esta en shell rcs (zshrc, bashrc, profile).
+   - NO esta en macOS Keychain.
+   - NO esta en plists activos. El unico plist nuevo (`com.alfredo.bibliaradar`) solo dispara Manus API, no GitHub.
+   - NO lo usan procesos vivos.
+   - El repo `biblia-github-motor` usa `gh auth token` del sandbox de Manus, no este PAT.
+5. **Hipotesis principal:** el PAT lo usaba Railway como `GITHUB_PERSONAL_ACCESS_TOKEN` antes de Ola 1 (coincide con "Last used within the last week"). Tras Ola 1 quedo huerfano, contador "last used" tarda en actualizarse.
+6. **Pregunte al hilo predecesor** (compartido por Alfredo): no respondio util.
+7. **Alfredo eligio Opcion D:** mantener PAT viejo intacto y vigilar, en lugar de regenerar (lo cual lo invalidaria sin consumidor 100% confirmado = riesgo de breakage silencioso). Esta eleccion es conservadora pero defendible: el PAT solo tiene Read, no escritura.
+8. **Borre el PAT nuevo** `el-monstruo-mcp-2026-05` (sin consumidor identificado, mantenerlo solo aumentaba superficie de ataque). Borre tambien su item en Bitwarden.
+
+###  OAuth ###  OAuth ### R3  17 OAuth Apps autorizadas. Propuse revocar 11 (Atlas Cloud, FASHN, Honcho, Langfuse, novita.ai, RunPod, Vast, api.together.ai, Apify, E2B, Resend) y conservar 6 (Cloudflare, GitHub CLI, GitHub iOS, OpenRouter, Replicate, Supabase). Alfredo decidio **diferir a otra sesion**, no aprobado para esta pasada.R3 R3 
+
+### Comentarios menores
+
+- **Scope `read:org` Mac:** confirmado, lo exige `gh auth login`. Aceptado.
+- **Scope `workflow` Kernel:** queda como R7 para validar con grep cuando haya tiempo.
+- **Sanitizacion bridge:** queda como R6, no bloqueante.
+- **R4 consolidacion GITHUB_TOKEN:** confirmado diferido a Sprint 87+.
+
+### Estado final del ecosistema GitHub (cuenta `alfredogl1804`)
+
+| Tipo | Cantidad inicial | Cantidad final | Reduccion |
+|---|---|---|---|
+| PATs Classic | 17 | 2 (`mac` + `kernel`) | -88% |
+| PATs fine-grained | 2 | 2 (sin cambio) | 0% |
+| **Total PATs** | **19** | **4** | **-79%** |
+| OAuth Apps | 17 | 17 (R3 diferido) | 0% |
+| GitHub Apps | (no auditadas) | (no  |auditadas) | 
+
+### Documentacion actualizada
+
+`bridge/CREDENTIALS_AUDIT_2026-05-04.md` ahora contiene:
+- Seccion Ola 2 ejecutada (D)
+- 7 acciones futuras enumeradas con estado (R1-R7)
+- Anatomia del aprendizaje de Ola 2 (por que la directiva original cambio de "rotar" a "vigilar" tras descubrir la realidad del MCP)
+- Trade-offs explicitamente declarados
+
+### Pregunta para Cowork
+
+Apruebas que proxima ola sea **credenciales del ecosistema completo** (OpenAI, Anthropic, Railway dashboard token, Supabase keys, etc.) como mencionaste? Si si, quieres que primero proponga inventario y plan, o vamos directo a ejecucion por servicio?
+
+ Hilo B firma el reporte de Ola 2 + R3.
