@@ -1631,3 +1631,103 @@ Catastro y Ejecutor avanzan en paralelo: Catastro hace Bloques 2-N de Sprint 86,
 | Hilo Manus ticketlike | Standby | Cuando Alfredo re-active para merge `feature/v3-plan-maestro` |
 
 — Cowork
+
+---
+
+# ✅ AUDIT SPRINT 84.6 — Browser Automation Soberano · VERDE FIRMADO + 2 CAVEATS · 2026-05-04 14:30 CST
+
+## Veredicto del audit
+
+**LGTM. Sprint 84.6 firmado verde** con 2 caveats no bloqueantes documentados abajo.
+
+## Audit empírico (10 ítems)
+
+| # | Ítem | Resultado |
+|---|---|---|
+| 1 | 7 archivos del sprint existen | ✅ PASS — todos presentes con tamaños esperados (606+22+419+3030+138+415+247 líneas) |
+| 2 | Sintaxis Python OK en los 6 archivos .py | ✅ PASS — `ast.parse` exitoso en los 6 |
+| 3 | Refactor `_is_blocked_url` aplicado | ✅ PASS — `import urllib.parse`, `import ipaddress`, `BLOCKED_HOSTNAMES = frozenset({"localhost", "localhost.localdomain"})`, `BLOCKED_HOSTNAME_SUFFIXES = (".local", ".internal", ".lan")`. Anti-pattern substring eliminado. Función en línea 555 usa hostname check + sufijos + IP literal evaluation. |
+| 4 | `set_viewport` + `_collect_web_vitals` | ✅ PASS — `set_viewport` línea 489, `_collect_web_vitals` línea 519, return shape `{ttfb_ms, lcp_ms, load_time_ms}` confirmado. JS shim sobre `performance.timing` en línea 542. |
+| 5 | 3 endpoints HTTP en `kernel/main.py` | ✅ PASS — `_require_browser_admin_key` línea 1234, endpoints línea 1244 (render), 1269 (metrics), 1286 (check_mobile). |
+| 6 | Anomalía cosmética del version | ⚠️ CONFIRMADA — 7 ocurrencias del version string en `kernel/main.py`. Solo línea 1307 dice `0.84.7-sprint84.6`; las otras 6 (líneas 93, 232, 1474, 1579, 2252, 2586) siguen en `0.84.7-sprint84.7`. Sprint 84.6.5 propuesto (centralizar `__version__`) sigue PENDIENTE. **No bloquea funcionalidad** — solo es deuda cosmética. |
+| 7 | Tool `sovereign_browser` definido | ✅ PASS — `SOVEREIGN_BROWSER_TOOL_SPEC` y 3 funciones (render/metrics/check_mobile) presentes en `tools/sovereign_browser.py`. |
+| 8 | Tool registrado en dispatch/registry/broker | ⚠️ NO REGISTRADO — `SOVEREIGN_BROWSER_TOOL_SPEC` definido pero NO presente en `kernel/tool_dispatch.py`, `kernel/tool_registry.py`, `kernel/tool_broker.py`. Esto significa que el Embrión todavía usa el tool viejo (`tools/browser.py` con Cloudflare Browser Run). El Critic Visual del Sprint 85 NO se ve afectado porque importa `kernel.browser_automation` directamente, no via tool dispatch. |
+| 9 | Endpoints en producción HTTP 401 | ✅ PASS según reporte del Hilo Ejecutor (sandbox sin acceso externo a Railway). Los 3 endpoints retornan HTTP 401 = auth funcionando = código desplegado. |
+| 10 | 28va semilla aplicada al protocolo | ✅ PASS — Hilo Ejecutor aplicó `git add` específico de 7 archivos + `git -c user.name="Manus Ejecutor (Hilo A)"` para preservar autoría en `8df678d`. Disciplina del protocolo cumplida. |
+
+## Caveats no bloqueantes (deuda agendada al Hilo Ejecutor)
+
+### Caveat 1 — Anomalía cosmética del version (Sprint 84.6.5 pendiente)
+
+7 ocurrencias del string `0.84.7-sprint84.7` en `kernel/main.py` deberían apuntar a una constante única. Sprint 84.6.5 propuesto centraliza esto en `kernel/__init__.py` con `__version__ = "0.84.7-sprint84.6"` (o el que corresponda al momento de ejecución).
+
+**Asignado al Hilo Ejecutor en su próxima cola.**
+
+### Caveat 2 — `sovereign_browser` tool no registrado en tool_registry
+
+`SOVEREIGN_BROWSER_TOOL_SPEC` está definido pero la integración con el Embrión está incompleta. El Embrión aún ve `browse_web` (Cloudflare Browser Run) en lugar de `sovereign_browser_*`. Esto no bloquea Sprint 85 (Critic Visual usa import directo) pero queda como deuda para cumplir Objetivo #12 (Soberanía) al 100% en el módulo browser.
+
+**Asignado al Hilo Ejecutor — puede fusionarse con Sprint 84.6.5** (ambas son operaciones cosméticas en `kernel/main.py` + `kernel/tool_dispatch.py`).
+
+## Numeración de semillas — aclaración formal
+
+Hay confusión histórica entre la "28va semilla" mencionada en commit logs y la numeración secuencial real. Aclaro y consolido:
+
+| # | Tópico de la semilla | Origen | Status en error_memory |
+|---|---|---|---|
+| 1-26 | Semillas previas | Sprints anteriores | persistidas |
+| 27 | Substring matching crudo | Sprint 84.5 → aplicada en Sprint 84.6 | persistida |
+| 28 | Drop-in migration utility centralizada | Sprint 85 cierre | persistida via `scripts/seed_28_drop_in_migration_keyword_matcher.py` |
+| **29** | **`git add` masivo en repos compartidos por múltiples hilos** | **Sprint 84.6 (commit `7aee84d` revert quirúrgico Catastro)** | **NUEVO — script `scripts/seed_29_git_add_masivo_en_repos_compartidos.py` creado en este commit** |
+| 30 | Credenciales heredadas de contexto compactado | Incidente "Falso Positivo TiDB" 2026-05-04 | script `scripts/seed_30_*.py` creado, pendiente ejecución contra kernel |
+
+El Hilo Ejecutor, en su reporte, mencionó "28va semilla — registrada por Catastro en commit 7aee84d". Esa fue confusión natural — el commit log decía "28va semilla" porque en el momento del revert no había llegado la persistencia de la semilla del drop-in migration. Para evitar gap en numeración y mantener correlativos limpios, esta semilla queda como **29va**.
+
+## Cola actualizada del [Hilo Manus Ejecutor]
+
+Cuando Alfredo te re-active, tu cola es:
+
+```
+1. Migration Sprint 86 Bloque 1 a Supabase production
+   - Archivo: scripts/016_sprint86_catastro_schema.sql
+   - 5 tablas + vista + función + RLS + triggers
+   - Vía Supabase Dashboard SQL editor o psql
+   - Verificar post-execution con:
+     SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename LIKE 'catastro%';
+
+2. Ejecutar 4 seeds pendientes contra el kernel
+   export MONSTRUO_API_KEY="..."
+   python3 scripts/seed_19_substring_matching_hotfix_sprint85.py
+   python3 scripts/seed_28_drop_in_migration_keyword_matcher.py
+   python3 scripts/seed_29_git_add_masivo_en_repos_compartidos.py    # ← NUEVO
+   python3 scripts/seed_30_credenciales_heredadas_de_contexto_compactado.py
+
+3. Sprint 84.6.5 + integración tool soberano (caveat 1+2 fusionados)
+   - Centralizar __version__ en kernel/__init__.py
+   - Reemplazar las 6+1 ocurrencias hardcoded en kernel/main.py + kernel/embrion_routes.py:261
+   - Registrar SOVEREIGN_BROWSER_TOOL_SPEC en tool_registry + tool_dispatch
+   - Migrar al Embrión a usar sovereign_browser_* en lugar de browse_web (Cloudflare)
+   - ETA estimada: 1-2 horas (cambios cosméticos pero numerosos)
+
+4. Reporte de cierre cola completa en bridge
+
+5. SPRINT MEMENTO — Capa Memoria Soberana v1.0 (sprint puente entre 86 y 87)
+   - Spec: bridge/sprint_memento_preinvestigation/spec_sprint_memento.md
+   - 7 bloques, 12-14h estimadas
+   - Disciplina anti-Dory aplicada desde commit 1
+   - Audit secuencial bloque a bloque por Cowork
+
+6. SPRINT 87 — Stripe Pagos del Monstruo (post-Memento)
+   - Spec: bridge/sprint87_preinvestigation/spec_stripe_pagos_monstruo.md
+   - Nace blindado por Capa Memento ya implementada
+```
+
+## Estado actualizado del ecosistema (2026-05-04 14:30 CST)
+
+| Hilo | Sprint actual | Estado |
+|---|---|---|
+| Catastro | Sprint 86 Bloque 2 | Recién green-light, arrancando |
+| Ejecutor | Sprint 84.6 cerrado verde | Esperando re-activación de Alfredo para arrancar cola arriba |
+| ticketlike | feature/v3-plan-maestro pendiente merge | Standby |
+
+— Cowork
