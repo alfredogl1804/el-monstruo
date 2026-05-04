@@ -8,11 +8,14 @@ description: >-
   asientos VIP, butacas, la DB TiDB, Railway deploy, Stripe checkout, o el
   admin panel del proyecto.
 metadata:
-  version: 1.0.0
+  version: 2.0.0
   status: ACTUAL
   owner: Alfredo Góngora / Daniel (operaciones)
-  last_reviewed: 2026-04-18
+  last_reviewed: 2026-05-04
   review_trigger: cada sesión de trabajo o cambio mayor
+  changelog:
+    - "2026-05-04 v2.0.0 — Stripe pasó de TEST a LIVE mode (verificado empíricamente contra Railway truthful-freedom/like-kukulkan-tickets/production: STRIPE_SECRET_KEY=sk_live_51...catBxyKu, 303 órdenes pagadas live, $41,445 MXN/sem). Migración a LIVE ocurrió 2026-04-14. Invariante #6 actualizado. references/credentials.md actualizado."
+    - "2026-04-18 v1.0.0 — Versión inicial del skill"
 ---
 
 # ticketlike-ops
@@ -35,7 +38,7 @@ Skill de continuidad operativa para **ticketlike.mx** — plataforma de venta de
 - **Frontend:** React + TypeScript + Vite + TailwindCSS (`client/src/`)
 - **Backend:** tRPC + Express (`server/`)
 - **DB:** TiDB Cloud (MySQL-compatible, `gateway05.us-east-1.prod.aws.tidbcloud.com:4000`)
-- **Pagos:** Stripe test mode (`sk_test_...`)
+- **Pagos:** Stripe **LIVE mode** (`sk_live_...` o `rk_live_...` recomendado) — desde 2026-04-14
 - **Deploy:** Railway (auto-deploy desde `main` en GitHub)
 - **Repo:** `github.com/alfredogl1804/like-kukulkan-tickets` (privado)
 - **Dominio:** https://ticketlike.mx
@@ -68,7 +71,7 @@ Detalle completo en `references/venue-inventory.md`.
 3. **confirmSeatsForOrder rechaza status='blocked'** — no relajar esta validación
 4. **Queries SIEMPRE filtran por eventId** — cross-event = contaminación garantizada
 5. **getAdminEventSeatMap != getEventSeatMap** — admin ve estado real, público tiene VIP override
-6. **Stripe en TEST mode** — nunca mezclar claves live/test
+6. **Stripe en LIVE mode desde 2026-04-14** — usar `sk_live_*` o preferentemente `rk_live_*` (restricted key con scope mínimo). NUNCA mezclar live/test en el mismo service. Las keys test (`sk_test_*`) solo aplican al service `ticketlike-staging`.
 7. **A-44 y B-44 desactivados** — `isBookable = 0`, no reactivar sin verificar
 8. **Límites de capacidad por evento** — maxButacas=86, maxMesaVip4=92, maxMesaVip6=102, maxSalaVip=32, maxGlobal=312
 

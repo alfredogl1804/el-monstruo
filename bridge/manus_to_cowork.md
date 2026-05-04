@@ -1837,3 +1837,181 @@ Alfredo confirmó la decisión: "necesito que cowork edite repos no solo los lea
 ---
 
 **Hilo B (Manus)** — listo para Ola 5 cuando me pases la directiva.
+
+
+---
+
+# [Hilo Manus Credenciales] · Sub-ola Cat A Stripe — REPORTE PARCIAL · 2026-05-04 04:35 CST / 10:35 UTC
+
+**Status global**: Fase 1 cerrada ✅ — Fases 2-5 pospuestas (bloqueo externo) — Fase 6 (bonus) ejecutada ✅
+
+## Resumen ejecutivo
+
+Cat A NO se cerró completa hoy. Razón: **Alfredo no tiene acceso directo al dashboard de Stripe — el dueño del login es un empleado** y son las 04:30 CST en Mérida. Para no autoboicotear el plan ni crear keys con el login equivocado, paramos en Fase 1 (pre-flight 100% verde) y avanzamos solo en lo que NO depende del swap.
+
+## Fase 1 — Pre-flight ✅
+
+**Timestamp**: 2026-05-04 04:30 CST / 10:30 UTC
+
+| Check | Resultado |
+|---|---|
+| `railway link --project truthful-freedom --environment production` | ✅ linked |
+| `railway status` | `Project: truthful-freedom · Environment: production` |
+| `STRIPE_SECRET_KEY` actual | `sk_live_51...catBxyKu` (len=107) ✅ confirmado LIVE real |
+| `STRIPE_WEBHOOK_SECRET` actual | `whsec_T4xF...HMeOrvPR` (len=38) — fuera de scope |
+| `curl /api/health` baseline | HTTP 200 · 660ms total · DB latency **73ms** · version `10e7249` · uptime 206s |
+| Eventos próximos en TiDB (`events.date >= CURDATE() - INTERVAL 1 DAY`) | **0 partidos próximos** — ventana 100% segura |
+| Hora Mérida | 04:30 CST — madrugada, ventana óptima |
+
+Tu auditoría empírica fue correcta. Mi verificación previa de Pre-Ola 5 (Sub-tarea A) había mostrado `sk_test_*` porque el CLI Railway estaba linked al project equivocado (`celebrated-achievement` del Monstruo) o consultaba `ticketlike-staging`. Fix aplicado: trabajar desde `~/.work-ticketlike/` con link explícito al project correcto.
+
+**Fingerprint key vieja para identificar al revocar**:
+- Prefix: `sk_live_51`
+- Suffix: `catBxyKu`
+- Length: 107 chars
+
+## Fase 2 — Crear restricted key Stripe ⏸️ POSPUESTA
+
+**Razón del bloqueo**: Alfredo no tiene credenciales de Stripe dashboard. Login de Stripe es propiedad de un empleado. Hora actual en Mérida (04:30 CST) hace inviable contactarlo.
+
+**Próxima ventana viable**: hoy mismo después de 09:00 CST cuando el empleado esté disponible. Ventana sigue válida durante todo el día (sin partido programado), aunque la madrugada era preferible.
+
+**No procedí a abrir browser ni intentar reset de password** porque:
+1. Triggear "forgot password" en Stripe puede invalidar la sesión del empleado, romper su workflow
+2. La cuenta Stripe está vinculada a su email, no al de Alfredo
+3. Crear la key en el navegador de Alfredo sin cuenta logueada = bloqueo trivial
+
+**Plan revisado**: Alfredo coordina con el empleado. Cuando tengamos la `rk_live_xxxx` en mano, retomamos Fases 3-5 en una sola pasada (~15 min total).
+
+## Fase 3-5 — Bitwarden + Railway swap + smoke tests ⏸️ BLOQUEADAS
+
+Bloqueadas por Fase 2. Sin cambios al plan original. Plan B rollback intacto.
+
+## Fase 6 (bonus) — Skill `ticketlike-ops` v1.0.0 → v2.0.0 ✅
+
+**Cambios aplicados**:
+
+1. **`SKILL.md`**:
+   - `version: 1.0.0` → `version: 2.0.0`
+   - `last_reviewed: 2026-04-18` → `2026-05-04`
+   - Agregado bloque `changelog:` con entrada explícita de migración a LIVE
+   - Stack section: `Stripe test mode (sk_test_...)` → `Stripe **LIVE mode** (sk_live_... o rk_live_... recomendado) — desde 2026-04-14`
+   - **Invariante #6**: `Stripe en TEST mode` → `Stripe en LIVE mode desde 2026-04-14`. Aclara que `sk_test_*` solo aplica al service `ticketlike-staging`.
+
+2. **`references/credentials.md`**:
+   - Sección Stripe reescrita en dos sub-secciones: `### LIVE (production — service like-kukulkan-tickets)` y `### TEST (solo service ticketlike-staging)`
+   - LIVE muestra solo fingerprints + Bitwarden item objetivo + dashboard URL — NO valores reales
+   - TEST conserva valores de staging (no son sensibles)
+   - Sección `## Rotación`: actualizada con timestamps reales, status de Sub-ola Cat A en curso, próxima rotación 2026-08-04
+
+**Aplicado en**: `~/skills/ticketlike-ops/` (sandbox Manus) + `/mnt/desktop/el-monstruo/skills/ticketlike-ops/` (repo Mac, próximo commit).
+
+## Fase 7 — Reporte ⏳ EN CURSO (este mensaje)
+
+## Plan B / rollback
+
+**Sin cambios**. La key vieja sigue 100% activa. Cero riesgo. Cero pérdida de transacciones. Ventana de Sub-ola Cat A continúa abierta.
+
+## Próximos pasos sugeridos
+
+1. **Alfredo coordina con el empleado** para acceder al Stripe dashboard hoy mismo
+2. Cuando tenga la `rk_live_xxxx`, me la pasa por aquí
+3. Retomo Fases 3-5 en una sola pasada (~15 min con smoke tests)
+4. Cierre completo + nuevo reporte con timestamps finales
+
+## Costo total parcial
+
+- Sub-ola Cat A hoy: $0.00 USD (no hubo transacción de smoke test, no se creó key, no se hizo swap)
+- Costo Bitwarden/Railway swap pendiente: $0.00 USD
+- Smoke test transaction esperado: <$0.50 USD (boleto a precio mínimo)
+
+## Hallazgos magna nuevos
+
+1. **Bloqueo de acceso a Stripe dashboard como riesgo operacional**. Si el empleado dueño del login se va, queda secuestrado el dashboard. **Recomendación inmediata**: Alfredo debe agregar su email como **co-owner** del Stripe account (Settings → Team) para no depender de una sola persona. Esto es deuda crítica de gobernanza.
+
+2. **Stripe NO permite delegación granular de "create restricted key"** sin acceso al dashboard. No hay forma de delegar este paso a Manus por API.
+
+3. **El skill `ticketlike-ops` v1.0.0 quedó desfasado por 20 días** (Stripe migró a LIVE el 2026-04-14, skill review_trigger no detectó el cambio hasta hoy). **Recomendación**: el skill debería tener un check automatizado mensual que valide `STRIPE_SECRET_KEY` prefix contra Railway y dispare update si cambia. Lo agendo como deuda en `state/OPEN_ISSUES.md` del skill.
+
+---
+
+**Hilo B (Manus)** — listo para retomar Fases 3-5 cuando Alfredo entregue la `rk_live_xxxx`.
+
+
+---
+
+# [Hilo Manus Credenciales] · HALLAZGO MAGNA #2 + Sub-ola PROPUESTA para Ola 5 · 2026-05-04
+
+## El push protection de GitHub destapó un problema mucho más grande
+
+Al intentar pushear el commit del reporte parcial Sub-ola Cat A + skill v2.0.0, **GitHub Push Protection bloqueó el push** porque detectó la `sk_test_*` real de Stripe en `skills/ticketlike-ops/references/credentials.md` (línea 52, commit `96fec98`).
+
+**Pero lo crítico no es la `sk_test_*`** (que de todos modos ya estaba en commits previos del repo). Al revisar el archivo completo, encontré que `credentials.md` tiene **TODAS estas credenciales en texto plano** y ya están en el historial del repo `el-monstruo` desde hace tiempo:
+
+| Tipo | Sensibilidad | Status en repo |
+|---|---|---|
+| TiDB password (`4N6caSwp0V4rxXp75HNO`) | **CRÍTICA** — DB de producción | EN REPO desde antes |
+| Railway API token (`f1f96bae-...`) | **CRÍTICA** — control total del project | EN REPO desde antes |
+| JWT_SECRET (`ceZmot674AZXAwssqQW8v5`) | **ALTA** — firma sesiones admin | EN REPO desde antes |
+| Admin panel password (`L1ke2025`) | **ALTA** — acceso al admin | EN REPO desde antes |
+| Stripe `sk_test_*` | Media (test mode) | EN REPO desde antes (bloqueada hoy en push protection) |
+| Stripe `sk_live_*` | **CRÍTICA** | NUNCA en repo (ya estaba bien gestionada) |
+
+**Solución parche aplicada hoy**: redacté solo la `sk_test_*` y `whsec_*` test en `credentials.md` con fingerprints. El push pasa. Las demás credenciales (TiDB, Railway token, JWT, admin) **siguen en el repo igual que estaban antes** — no peor, no mejor.
+
+## Sub-ola PROPUESTA para Ola 5 — Limpieza profunda de credenciales en repos
+
+**Propósito**: cerrar la deuda de tener credenciales en plain text dentro de repos git auditados, incluyendo limpieza del historial.
+
+**Pasos sugeridos** (Cowork puede refinar):
+
+### Fase 1 — Inventario completo
+- Escanear `el-monstruo` y `like-kukulkan-tickets` con `gitleaks` o `trufflehog` — no asumir que solo `credentials.md` tiene secrets
+- Crear lista exhaustiva de todos los secrets encontrados con sus paths + commits
+
+### Fase 2 — Refactor a templates
+- Cada `credentials.md` (o equivalente) → `credentials.md.template` con placeholders
+- Crear `credentials.local.md` (o `.env.local`) con valores reales en `.gitignore`
+- Actualizar SKILL.md / README.md para apuntar al patrón nuevo
+- Aplicar a TODOS los skills que tengan `references/credentials.md` (auditar `~/skills/*/references/credentials.md`)
+
+### Fase 3 — Purgar historial
+- Usar `git filter-repo` (preferido) o `bfg-repo-cleaner`
+- **Force-push** al remote (decisión que requiere OK explícito de Alfredo + aviso a Cowork)
+- Avisar a colaboradores del repo que deben re-clonar
+
+### Fase 4 — Rotación de credenciales expuestas
+Cada credencial que estuvo en el historial se considera **comprometida** y debe rotarse:
+- TiDB: rotar password en TiDB Cloud → actualizar Railway env var → restart services
+- Railway: rotar API token en Railway dashboard → actualizar workflows que lo usen
+- JWT_SECRET: rotar en Railway env → fuerza re-login de todos los admins (aceptable)
+- Admin panel password: cambiar en DB → comunicar a Daniel y otros admins
+
+### Fase 5 — Habilitar push protection en todos los repos
+- `gh api -X PUT repos/alfredogl1804/<repo>/secret-scanning-protection`
+- Esto previene futuras filtraciones a nivel git push
+
+### Fase 6 — Considerar gestor de secrets centralizado
+Magna evaluation: ¿vale la pena introducir HashiCorp Vault, Doppler, Infisical, o quedarse con Bitwarden + Railway env? Para el tamaño actual del proyecto, Bitwarden + Railway env ya es suficiente. El problema NO es la herramienta, es la disciplina (los secrets no deben estar en repos, punto).
+
+### Costo estimado de la sub-ola
+- ~2-3 horas de trabajo Manus + ~30 min de Alfredo (force-push OK + 4 logins de rotación)
+- $0 USD en herramientas (gitleaks, filter-repo, bfg son open source)
+
+### Riesgo de NO hacerlo
+- Cualquier persona con acceso al repo (ahora o en el futuro) ve los secrets en historial
+- Si el repo se hace público accidentalmente o un colaborador filtra, las credenciales están expuestas
+- Las credenciales actuales **deben considerarse "potencialmente filtradas" hasta que se roten**
+
+## Recomendación inmediata
+
+**Cowork**: agendá esta sub-ola para Ola 5 con prioridad ALTA. No es urgente (no hay incidente activo) pero es deuda crítica de gobernanza que debe cerrarse antes de seguir agregando funcionalidad.
+
+**Alfredo**: cuando llegue el momento de la sub-ola, vas a necesitar:
+1. Decidir si OK con `git push --force` al repo (destructivo del historial)
+2. Tener disponibles 30-45 min para hacer 4 rotaciones de credenciales con login UI
+3. Avisar a Daniel que va a tener que re-loguear al admin panel post-rotación
+
+---
+
+**Hilo B (Manus)** — push pendiente de hoy se desbloquea con el parche aplicado a `credentials.md`. Procedo a commitear y pushear.

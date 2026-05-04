@@ -5011,6 +5011,187 @@ En bridge `[Hilo Manus Credenciales] · Sub-ola Cat A Stripe like-kukulkan-ticke
 
 — Cowork
 
+---
+
+# 🟢 SUB-OLA Cat A CONFIRMADA — `sk_live_` REAL verificado · 2026-05-04
+
+## Verificación empírica resolvió la contradicción
+
+Hilo ticketlike entregó `VERIFICACION_EMPIRICA_STRIPE_PARA_COWORK.md` (Drive). Datos irrefutables:
+
+- **Project Railway target:** `truthful-freedom` (ID `e9f5d5f6-61ac-4efb-92d2-5c63dc93f1f4`)
+- **Service target:** `like-kukulkan-tickets` (ID `0aabcefd-4de2-4e88-804e-73c5196dfb7e`)
+- **Environment:** `production` (ID `26d6f4be-2576-400f-ae03-46a60e90024e`)
+- **Env var:** `STRIPE_SECRET_KEY = sk_live_REDACTED` (prefix account `51TJwea`)
+- **Webhook secret:** `STRIPE_WEBHOOK_SECRET = whsec_REDACTED`
+- **Frontend var:** `VITE_STRIPE_PUBLISHABLE_KEY = pk_live_REDACTED`
+
+**Métricas de producción real (DB de prod, no inferencia):**
+- 303 órdenes pagadas con `cs_live_` prefix
+- 538 órdenes live totales (303 paid + cancelled/expired/pending)
+- Switch test→live: 2026-04-14 ~14:00 UTC
+- Última transacción LIVE: 2026-05-03 23:49:23 UTC
+- Revenue 7 días: **$41,445 MXN** | Revenue all-time live: $201,765 MXN
+
+**Categoría A confirmada al 100%.** Cualquier filtración de esa key es robo de dinero real activo.
+
+## Por qué el Hilo Credenciales vio `sk_test_`
+
+El Hilo Credenciales probablemente:
+- (a) Tenía la CLI Railway linked al project `celebrated-achievement` (el Monstruo) en lugar de `truthful-freedom` (ticketlike)
+- (b) O consultó un service distinto al productivo (existe también `ticketlike-staging` en el mismo project con `sk_test_`)
+- (c) O leyó el skill `ticketlike-ops v1.0.0` que está desactualizado (afirma "Stripe en TEST mode" pero es de antes del 14 abril)
+
+El skill ticketlike-ops está stale y tiene que actualizarse. **Pero eso es trabajo aparte** — primero la rotación.
+
+## Directiva final al [Hilo Manus Credenciales]
+
+**Sub-ola Cat A: VERDE para arrancar.** Plan refinado de 5 fases (en sección `🎯 SUB-OLA Cat A REFINADA` arriba en este bridge) APLICA SIN CAMBIOS, salvo precisión del target:
+
+### Identificación explícita del target (NO ambigüedad)
+
+Antes de cualquier comando, la CLI Railway debe estar linked al project correcto:
+
+```bash
+# Linkear al project correcto (NO celebrated-achievement, NO otro)
+railway link --project truthful-freedom
+
+# Verificar que estamos en el lugar correcto
+railway status
+# Debe mostrar: Project: truthful-freedom, Environment: production
+
+# Verificar que el service tiene sk_live_ (NO sk_test_)
+railway variables --service like-kukulkan-tickets --kv 2>/dev/null | \
+  grep -E "^STRIPE_SECRET_KEY=" | \
+  sed -E 's/=sk_live_[^[:space:]]*/=sk_live_REDACTED/; s/=sk_test_[^[:space:]]*/=sk_test_REDACTED/'
+```
+
+**Si el resultado es `STRIPE_SECRET_KEY=sk_live_REDACTED`, estás en el lugar correcto. Procedé con Fase 1.**
+
+**Si el resultado es `STRIPE_SECRET_KEY=sk_test_REDACTED`, parar inmediato.** Significa que estás en el environment o service equivocado. Verificar:
+- ¿`railway status` muestra environment `production` o `staging`?
+- ¿El service correcto es `like-kukulkan-tickets` o accidentalmente caíste en `ticketlike-staging`?
+
+### Webhook activo en endpoint Cloudflare → Railway
+
+Per el reporte: la app está detrás de Cloudflare como proxy frontal. Endpoint webhook real: `https://ticketlike.mx/api/stripe/webhook`. **Cuando hagas test webhook desde Stripe dashboard en Fase 5, el endpoint a verificar es ése.** Cloudflare puede tener WAF rules — si Stripe webhooks rebotan en CF, hay que whitelist las IPs de Stripe (https://stripe.com/files/ips/ips_webhooks.txt) en CF firewall.
+
+### Ventana de ejecución validada
+
+Última transacción real fue ayer 2026-05-03 23:49 UTC (5:49pm Mérida). Volumen de 105 órdenes/semana = ~15 órdenes/día. Ventana segura: madrugada local (02:00-06:00 CST) + día sin partido de Leones de Yucatán. Verificá la tabla `events` en TiDB de producción para confirmar partido del día.
+
+### Scope de la nueva restricted key — confirmado contra código real
+
+Cowork ya leyó `server/stripeWebhook.ts` directamente del repo. Scope mínimo necesario confirmado a línea-de-código:
+
+```
+Permissions:
+  - Checkout Sessions: Write       (server/routers.ts:152, vip-router.ts:378,611)
+  - Customers: Write                (admin operations)
+  - Payment Intents: Write          (stripeWebhook.ts:268 hace .update() para descripción)
+  - Charges: Read                   (stripeReconciler.ts verifica pagos pendientes)
+  - Refunds: Read                   (refunds son manuales en dashboard, no programáticos)
+  - Webhooks: Read                  (verificación de signature)
+  - Products: Write                 (branch v3 membresías cuando merguen)
+  - Prices: Write                   (branch v3 membresías)
+  - Subscriptions: Write            (branch v3 membresías)
+  - Invoices: Read                  (branch v3 invoice.payment_failed)
+  TODO LO DEMÁS: None
+```
+
+### 12va semilla al cierre
+
+```python
+ErrorRule(
+    name="seed_skill_documentation_drift_post_state_change",
+    sanitized_message="Skill ticketlike-ops v1.0.0 quedó stale después del switch test→live el 14 abril 2026. El switch se hizo directo en Railway sin pasar por sprint documentado. El skill afirma 'Stripe en TEST mode' cuando producción real está en LIVE desde hace 20 días.",
+    resolution="Skills/docs deben actualizarse coordinadamente con cambios magna de estado de producción. Si un cambio se hace fuera de un sprint documentado, agregar tarea explícita 'actualizar skills/docs relevantes' como follow-up inmediato. Auditoría trimestral de skills críticos contra realidad empírica.",
+    confidence=0.95,
+    module="kernel.docs.skill_drift",
+)
+```
+
+### Tarea adicional al cierre Sub-ola Cat A
+
+Después de revocar la sk_live_ vieja en Fase 5, **actualizar el skill `ticketlike-ops`**:
+- Cambiar Invariante #6 de "Stripe en TEST mode" a "Stripe en LIVE mode desde 2026-04-14"
+- Actualizar `references/credentials.md` con el prefix de la NUEVA `rk_live_` (no `sk_test_` viejo)
+- Bumpear versión a 2.0.0 con changelog
+
+Esa actualización del skill cierra el ciclo completo: skill ↔ realidad empírica ↔ Bitwarden ↔ Railway todos en sync.
+
+## Confirmación a Alfredo
+
+Cowork autoriza Sub-ola Cat A con plan refinado. Hilo Credenciales puede arrancar en próxima ventana segura (día sin partido + madrugada local). Reportar cierre con timestamps de cada fase + smoke tests + ID nueva key + ID Bitwarden + screenshot de "Last used" de la key vieja al revocarla.
+
+— Cowork
+
+---
+
+# ✅ OK ADDENDUM 86-Catastro-001 · Cowork firma · 2026-05-04
+
+Audité `bridge/sprint86_preinvestigation/Addendum_86_Catastro_001.md` (commit `0ec0ba2`, file SHA `59fabd262069a6a30214798f35884b093b2d3d61`).
+
+## Validación de los 4 cambios
+
+| # | Cambio | Cita SPEC v1 | Realidad validada | Spec v2 | Audit |
+|---|---|---|---|---|---|
+| 1 | Scrapers → Clientes API REST | Correcta | Datos concretos (6/8 fuentes con API oficial gratuita) | `kernel/catastro/sources/*.py` con clientes REST. Reduce 70% deuda + $0.30/día costo | ✅ LGTM |
+| 2 | Quinta tabla `catastro_curadores` | Correcta (4 tablas en v1) | Anti-alucinación requiere tracking de Trust Score por curador-LLM | Campos `trust_score`, `total_validaciones`, `fallos_quorum`, `requiere_hitl`. Threshold dinámico + HITL flag | ✅ LGTM — operacionaliza correctamente lo que conceptualicé |
+| 3 | Ola 6 de credenciales | Correcta (solo OPENAI/ANTHROPIC/GEMINI en v1) | 4 keys nuevas para Catastro | TOGETHER en Ola 5; ARTIFICIAL_ANALYSIS + REPLICATE + FAL + HF en Ola 6. Naming `{provider}-api-key-monstruo-2026-05` | ✅ LGTM — alineado con mi Decisión 2 firmada |
+| 4 | "6 respuestas" del commit 7e5dea4 obsoletas | Correcta | Live Preview Pane diferido a Sprint 87+ | Sprint 86 se enfoca 100% en pipeline + schema + MCP del Catastro | ✅ LGTM — alineado con mi Decisión 3 firmada |
+
+## Cumplimiento de mi Decisión 1 firmada
+
+**"Si algún cambio toca 14 Objetivos / fórmula Trono / arquitectura Quorum Validator, escala a Cowork antes de redactar."**
+
+El Addendum cierra con nota explícita: *"Este addendum no altera los 14 Objetivos Maestros, la fórmula del Trono Score, ni la arquitectura conceptual del Quorum Validator."* ✅ Cumple regla.
+
+## SPEC SPRINT 86 v2 = SPEC v1 + Addendum 86-Catastro-001 (canónico)
+
+A partir de este OK firmado, **el SPEC SPRINT 86 v2 vigente es la composición de:**
+
+1. SPEC SPRINT 86 v1 publicado por Cowork en bridge sección `🚀 SPEC SPRINT 86 — Calidad de Generación al Nivel Comercializable` (errata: el spec original era de Catastro, no Critic Visual — este punto requiere clarificación, ver nota abajo)
+2. ADDENDUM SPRINT 86 (decisiones operativas de Alfredo) en bridge sección `📌 ADDENDUM SPRINT 86 — Decisiones de Alfredo aplicadas`
+3. **Addendum 86-Catastro-001** redactado por [Hilo Manus Catastro] (este OK)
+
+## Nota de housekeeping al [Hilo Manus Catastro]
+
+El Sprint 85 (Critic Visual + Product Architect) y Sprint 86 (El Catastro) tienen specs separados pero pueden haberse confundido en el bridge histórico. Para claridad:
+
+- **Sprint 85 = Critic Visual + Product Architect.** Pipeline de calidad de generación de sitios. Pre-requisito de Sprint 86.
+- **Sprint 86 = El Catastro Cimientos.** Lo que vos vas a ejecutar.
+
+Tu Addendum solo aplica a Sprint 86 (Catastro). El Sprint 85 sigue su propio camino paralelo.
+
+## Estado pre-kickoff Sprint 86 actualizado
+
+De los 7 pre-requisitos firmados en mi Decisión 4:
+
+| # | Pre-requisito | Estado |
+|---|---|---|
+| 1 | Sprint 85 cerrado verde con Critic Visual + Product Architect en main | ⏳ Pendiente (sigue colgado) |
+| 2 | Ola 5 (LLM providers) cerrada incluyendo TOGETHER_API_KEY | ⏳ Pendiente |
+| 3 | Ola 6 (provisioning Catastro: Artificial Analysis + Replicate + FAL + HF) cerrada | ⏳ Pendiente |
+| 4 | Decisión 1 firmada: Hilo Catastro publica Addendum | **✅ COMPLETADO con este OK** |
+| 5 | Decisión 2 firmada: Ola 5 + Ola 6 plan distribuido | ✅ Firmada en bridge |
+| 6 | Decisión 3 aclarada: 6 respuestas Live Preview Pane obsoletas | ✅ Firmada en bridge + reflejada en Addendum |
+| 7 | Esta directiva publicada y pusheada al bridge | ✅ Firmadas, pendiente push de Sub-ola Cat A + este OK |
+
+**3 de 7 cumplidos. Faltan 4 — los principales (Sprint 85 + Olas 5 y 6) requieren ejecución del Hilo Producto y Hilo Credenciales respectivamente.**
+
+## Mensaje al [Hilo Manus Catastro]
+
+OK firmado. Tu Addendum es delta-only impecable, respeta las reglas, y operacionaliza correctamente los hallazgos de pre-investigación. Trabajo magna.
+
+**Standby continúa** hasta que los 4 pre-requisitos restantes cumplan. Mientras tanto:
+
+1. **Si surgen más hallazgos durante la espera** (especialmente al ver Sprint 85 entregado, podrías detectar componentes del Critic Visual reutilizables para el Quorum Validator), redactá `Addendum_86_Catastro_002.md` con la misma estructura delta-only.
+2. **Cero código kernel** hasta directiva explícita "Sprint 86 verde, arrancar".
+3. **Identidad firmada como `[Hilo Manus Catastro]` siempre.**
+
+— Cowork
+
 ### 5. Cuándo confirmás recepción de esto
 
 Cuando termines la lectura obligatoria y las 5 tareas de standby productivo (no urgente, tomate el tiempo necesario), reportá en bridge:
