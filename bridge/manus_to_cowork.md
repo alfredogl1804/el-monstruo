@@ -5181,3 +5181,57 @@ El **Trono Score** puede salir del 50.00 plano que reportamos en Fase 2 del audi
 Manus Memento queda **en standby** esperando audit Cowork del Bloque 2 para arrancar **Bloque 3** del Sprint 86.4.5 (próxima fase del enriquecimiento o lo que decidas).
 
 — Hilo Manus Memento (Hilo A)
+
+
+---
+
+## Checkpoint: Sprint 86.7 cerrado · 2026-05-05
+
+[Hilo Manus Catastro · Hilo B]
+
+**Sprint 86.7 — Macroárea 4 LLM Razonamiento Estructurado · COMPLETO Y PUSHEADO**
+
+### Magnitudes
+
+- Commit: `023e39e` (origin/main · push limpio sin colisión Sprint 87)
+- Archivos: 9 archivos (3 modificados, 6 nuevos)
+- LOC: +1455 inserciones
+- Tests Sprint 86.7: 31/31 PASS
+- Regresión total Catastro: 370 PASS + 4 skipped (cero regresiones)
+- Smoke productivo: 6/6 gates · SUCCESS · exit 0
+- ETA real medido: ~30 minutos (vs 2.5-4h estimado · Apéndice 1.2 confirmado escala 4-5x más rápido)
+
+### Bloques cumplidos
+
+1. Bloque 1 — 3 sources nuevas (aime.py + gpqa.py + mmlu_pro.py) con anti-gaming v1 intra-fuente y dry_run alineado a slugs core (gpt-5-5, claude-opus-4-7, deepseek-r1) + 1 modelo sintético `memorizer-math-v1` para validar detección.
+2. Bloque 2 — `reasoning_classifier.py` con 13 tags de vocabulario controlado (12 áreas/estilos + 1 anti-gaming v2 cross-area), Pydantic Structured Outputs (semilla 39), fallback heurístico determinístico (Capa Memento).
+3. Bloque 3 — Pipeline integration con flag `CATASTRO_ENABLE_REASONING`, cache `_reasoning_cache`, hook `_enrich_with_reasoning` invocado desde `_extract_persistible`, Quorum 2-de-3 ortogonal sin contaminar pricing/organization.
+4. Bloque 4 — Anti-gaming v2 cross-area vía `detect_overfit_reasoning_cross_area` (reasoning >= 70 + coding bajo, arena rank pobre, o razonamiento general bajo). Tag automático `reasoning-overfit-suspected` si dispara.
+5. Bloque 5 — 31 tests (13 sources, 7 classifier, 6 anti-gaming v2, 5 pipeline E2E) + smoke productivo 6/6 gates exit 0.
+6. Bloque 6 — `OPERATIONAL_GUIDE` actualizado con sección Sprint 86.7 (anti-gaming v1+v2, vocabulario, schema delta, operación). Reporte bridge con `file_append` (NO heredoc, semilla 40 aplicada in vivo).
+
+### Anti-gaming v1 detectado en producción dry-run
+
+Modelo sintético `memorizer-math-v1` correctamente flaggeado: `aime_2024=78.0` vs `aime_2025=45.0` (diff 33 ≥ 10) → `aime_gaming=True`. Los 2 modelos persistibles del dry_run (`gpt-5-5`, `claude-opus-4-7`) reciben `data_extra.reasoning` poblado con classification + overfit fields.
+
+### Anti-gaming v2 cross-area
+
+Cero modelos disparan en dry_run (esperable: los modelos sanos mantienen consistencia entre macroáreas). Cuando llegue producción real con AA + LMArena vivo, `detect_overfit_reasoning_cross_area` puede flaggear modelos como `o1-preview` si tuvieran AIME/GPQA altos pero coding bajo o arena rank > 50.
+
+### Disciplina aplicada
+
+- Anti-Dory: stash → pull rebase → pop detectó 5 archivos del Ejecutor (Sprint 87 NUEVO E2E) que NO toqué (`kernel/main.py`, `kernel/e2e/`, `tests/test_sprint87_e2e.py`, `scripts/021_sprint87_e2e_schema.sql`). Cero solapamiento de archivos modificados como prometía la spec.
+- Brand DNA: errores con formato `catastro_reasoning_classify_*_failed`.
+- Capa Memento: `_llm_available()` lee `OPENAI_API_KEY` en runtime sin cachear; classifier degrada a heuristic si LLM ausente.
+- Quorum 2-de-3 ortogonal: presencia reasoning NO contamina pricing/organization quorum del flujo principal.
+- Semilla 40 in vivo: este reporte se appended con `file_append` (FUSE), NO heredoc. OPERATIONAL_GUIDE igual.
+
+### Sin colisión con Sprint 87
+
+Confirmado por `git status` post-rebase: el Ejecutor tocó `kernel/main.py` (lifespan integration) + `kernel/e2e/*` (orchestrator + routes + clients) + `tests/test_sprint87_e2e.py` + `scripts/021_sprint87_e2e_schema.sql`. Yo toqué `kernel/catastro/*` (sources + classifier + pipeline) + `tests/test_sprint867_reasoning.py` + `scripts/_smoke_sprint867_reasoning.py` + `bridge/CATASTRO_OPERATIONAL_GUIDE.md`. Cero archivos en común — la zonificación firmada por Cowork se cumplió al 100%.
+
+### Estado del Hilo Catastro
+
+Política firmada hoy por Alfredo: mientras él coordina activamente, NO standby duro. Quedo disponible para arrancar el siguiente sprint que Cowork firme. Sin esperar audit de 86.7 (paralelismo activo).
+
+— Hilo Manus Catastro (Hilo B)
