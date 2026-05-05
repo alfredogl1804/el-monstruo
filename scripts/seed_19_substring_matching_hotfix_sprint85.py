@@ -26,6 +26,21 @@ import sys
 import urllib.request
 import urllib.error
 
+# Sprint Memento Bloque 5 Fase 1 — pre-flight via library Memento
+# Eat your own dogfood: este script ahora se valida a sí mismo antes de
+# llamar al endpoint admin del kernel. Si la library no está disponible,
+# fallback degradado: continúa pero loggea el incidente.
+_MEMENTO_AVAILABLE = True
+try:
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from tools.memento_preflight import (  # type: ignore
+        preflight_check,
+        MementoPreflightError,
+    )
+except Exception as _import_exc:
+    _MEMENTO_AVAILABLE = False
+    print(f"[seed-19] WARN: tools.memento_preflight no disponible ({_import_exc!r}); continuando sin preflight", file=sys.stderr)
+
 
 KERNEL_URL = os.environ.get(
     "KERNEL_URL",
@@ -110,6 +125,33 @@ def main() -> int:
     if not ADMIN_KEY:
         print("ERROR: MONSTRUO_API_KEY no configurada (env var requerida)", file=sys.stderr)
         return 2
+
+    # Sprint Memento B5 F1 — pre-flight check via library Memento
+    if _MEMENTO_AVAILABLE:
+        try:
+            preflight = preflight_check(
+                operation="kernel_admin_call",
+                context_used={
+                    "endpoint": ENDPOINT,
+                    "kernel_url": KERNEL_URL,
+                    "signature": SEED_19["error_signature"],
+                },
+                hilo_id="manus_ejecutor_seed_19",
+                intent_summary="persistir semilla 19 substring matching hotfix Sprint 85",
+            )
+            if not preflight.proceed:
+                print(
+                    f"[seed-19] ABORT preflight bloqueó ejecución: "
+                    f"status={preflight.validation_status} "
+                    f"remediation={preflight.remediation}",
+                    file=sys.stderr,
+                )
+                return 3
+            print(f"[seed-19] preflight OK validation_id={preflight.validation_id}")
+        except MementoPreflightError as exc:
+            print(f"[seed-19] WARN preflight falló: {exc!s}; continuando con fallback degradado", file=sys.stderr)
+        except Exception as exc:
+            print(f"[seed-19] WARN preflight inesperado: {exc!r}; continuando", file=sys.stderr)
 
     print(f"[seed-19] POST {ENDPOINT}")
     print(f"[seed-19] signature={SEED_19['error_signature']}")
