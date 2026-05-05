@@ -63,20 +63,37 @@ Cada item tiene la estructura:
 | **Notion** (MAOC, Arquitectura Soberana, Plan Monstruo v0.1) | `manus-mcp-cli tool call notion-fetch --server notion` | `manus-mcp-cli tool list --server notion` |
 | **GitHub** (28 repos accesibles) | `gh repo clone`, `gh search code/issues/prs` | `gh auth status` |
 
-### Credenciales que SÍ debes pedirle a Alfredo:
+### Credenciales AWS y Dropbox: YA INSTALADAS en macOS Keychain
 
-| Fuente | Variables de entorno | Por qué se necesita |
+**No necesitas pedirle nada a Alfredo.** Las credenciales de AWS S3 y Dropbox ya están guardadas de forma segura en el Keychain de macOS de su Mac. Para usarlas:
+
+```bash
+cd ~/el-monstruo
+source discovery_forense/load_credentials.sh
+```
+
+Esto exporta automáticamente:
+- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`
+- `DROPBOX_REFRESH_TOKEN`, `DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET`
+
+Y define la función helper `dropbox_get_access_token` que genera tokens de acceso de corta vida desde el refresh token.
+
+**Verificado funcionando** (2026-05-05) desde el Mac de Alfredo:
+- `aws s3 ls` lista los 8 buckets (operacion-doble-eje, crisol8-*, etc.)
+- Dropbox API responde con la cuenta `Alfredo Gongota` autenticada
+
+### Credenciales opcionales (a pedir si las necesitas):
+
+| Fuente | Variables | Cuándo |
 |---|---|---|
-| **AWS S3** | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | Planes maestros de CRISOL/Mena Baduy y modelos 3D Kukulkán están aquí |
-| **Dropbox** | `DROPBOX_REFRESH_TOKEN`, `DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET` | Versiones fundacionales `.docx` del SOP y EPIA exclusivas de Dropbox |
-| **Apify** (opcional) | `APIFY_TOKEN` | Si vas a re-ejecutar scrapers OSINT |
-| **Asana** (opcional) | `ASANA_TOKEN` | Si vas a tocar proyectos hivecom.mx |
+| **Apify** | `APIFY_TOKEN` | Si vas a re-ejecutar scrapers OSINT |
+| **Asana** | `ASANA_TOKEN` | Si vas a tocar proyectos hivecom.mx |
 
 ---
 
 ## 4. Buckets S3 magna identificados
 
-Si tienes credenciales AWS:
+Después de `source discovery_forense/load_credentials.sh`:
 
 ```bash
 # Planes maestros de Mena Baduy / CRISOL
