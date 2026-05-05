@@ -1217,6 +1217,23 @@ async def lifespan(app: FastAPI):
         )
         app.state.memento_validator = memento_validator
 
+        # ── Sprint Memento B6: Detector de Contexto Contaminado (shadow mode) ──
+        try:
+            from kernel.memento.contamination_detector import ContaminationDetector
+            memento_detector = ContaminationDetector(
+                db=db if db_connected else None,
+                # repo_root=None → H1 git scan se skip-ea en runtime de Railway
+                # (el contenedor no tiene .git/credentials.md). H2 y H3 corren OK.
+                repo_root=None,
+                global_timeout_ms=500,
+                timeout_ms_per_rule=200,
+            )
+            app.state.memento_detector = memento_detector
+            logger.info("sprint_memento_b6_detector_initialized", shadow_mode=True)
+        except Exception as _e_det:
+            logger.warning("sprint_memento_b6_detector_init_failed", error=str(_e_det))
+            app.state.memento_detector = None
+
         from kernel.memento_routes import memento_router
         app.include_router(memento_router, prefix="/v1/memento")
 
@@ -1229,6 +1246,7 @@ async def lifespan(app: FastAPI):
     except Exception as _e:
         logger.warning("sprint_memento_b3_init_failed", error=str(_e))
         app.state.memento_validator = None
+        app.state.memento_detector = None
 
     # ── Sprint 86 Bloque 5: El Catastro ─ MCP Server catastro.recommend() ──
     # Inicializa el RecommendationEngine singleton (cache LRU compartido entre

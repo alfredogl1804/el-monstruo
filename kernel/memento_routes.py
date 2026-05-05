@@ -44,6 +44,7 @@ from typing import Any, Dict, Optional
 import structlog
 from fastapi import APIRouter, HTTPException, Request, status
 
+from kernel.memento.contamination_detector import ContaminationDetector, ContaminationReport
 from kernel.memento.models import MementoValidationRequest, ValidationResult
 from kernel.memento.validator import MementoValidator
 
@@ -102,6 +103,7 @@ async def _persist_validation(
     context_used: Dict[str, Any],
     result: ValidationResult,
     intent_summary: Optional[str],
+    contamination_report: Optional["ContaminationReport"] = None,
 ) -> bool:
     """
     Inserta la validación en `memento_validations`.
@@ -132,6 +134,10 @@ async def _persist_validation(
             "source_consulted": result.source_consulted,
             "ts": datetime.now(timezone.utc).isoformat(),
         }
+        # Sprint Memento B6: contamination findings (shadow mode)
+        if contamination_report is not None:
+            row["contamination_warning"] = contamination_report.has_warning
+            row["contamination_evidence"] = contamination_report.to_evidence_dict()
         await db.insert(MEMENTO_VALIDATIONS_TABLE, data=row)
         return True
     except Exception as exc:
@@ -257,8 +263,38 @@ async def memento_validate(request: Request):
         discrepancy_field=(result.discrepancy.field if result.discrepancy else None),
     )
 
-    # Persistencia no-bloqueante
+    # ── Sprint Memento B6: detector de contexto contaminado (shadow mode) ──
     db = getattr(request.app.state, "db", None)
+    detector: Optional[ContaminationDetector] = getattr(
+        request.app.state, "memento_detector", None
+    )
+    contamination_report: Optional[ContaminationReport] = None
+    if detector is not None:
+        try:
+            contamination_report = await detector.detect(
+                hilo_id=req.hilo_id,
+                operation=req.operation,
+                context_used=req.context_used,
+                current_validation_id=result.validation_id,
+            )
+            if contamination_report.has_warning:
+                logger.warning(
+                    "memento_contamination_detected",
+                    validation_id=result.validation_id,
+                    findings_count=len(contamination_report.findings),
+                    has_high_severity=contamination_report.has_high_severity,
+                    rule_ids=[f.rule_id for f in contamination_report.findings],
+                    detector_runtime_ms=contamination_report.detector_runtime_ms,
+                )
+        except Exception as exc:  # pragma: no cover — defensive
+            logger.warning(
+                "memento_contamination_detector_error",
+                error=str(exc),
+                validation_id=result.validation_id,
+            )
+            contamination_report = None
+
+    # Persistencia no-bloqueante
     persisted = await _persist_validation(
         db=db,
         hilo_id=req.hilo_id,
@@ -266,19 +302,24 @@ async def memento_validate(request: Request):
         context_used=req.context_used,
         result=result,
         intent_summary=req.intent_summary,
+        contamination_report=contamination_report,
     )
 
-    # Shape de respuesta — espejo del spec
-    return {
+    # Shape de respuesta — espejo del spec + B6 fields
+    response: Dict[str, Any] = {
         "validation_id": result.validation_id,
         "validation_status": result.validation_status.value,
-        "proceed": result.proceed,
+        "proceed": result.proceed,  # NO alterado por shadow mode
         "context_freshness_seconds": result.context_freshness_seconds,
         "discrepancy": result.discrepancy.model_dump(mode="json") if result.discrepancy else None,
         "remediation": result.remediation,
         "source_consulted": result.source_consulted,
         "persistence_failed": not persisted,
     }
+    if contamination_report is not None:
+        response["contamination_warning"] = contamination_report.has_warning
+        response["contamination_findings"] = contamination_report.to_evidence_dict()["findings"]
+    return response
 
 
 __all__ = [
