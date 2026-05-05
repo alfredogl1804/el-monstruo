@@ -53,6 +53,7 @@ MIGRATION_FILES = [
     "scripts/018_sprint86_catastro_rpc.sql",
     "scripts/019_sprint86_catastro_trono.sql",
     "scripts/019_1_hotfix_validated_by_column.sql",
+    "scripts/027_sprint86_8_confidentiality_tier_schema.sql",  # Sprint 86.8
 ]
 OUTPUT_FILE = "kernel/catastro/schema_generated.py"
 

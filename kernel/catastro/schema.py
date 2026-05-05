@@ -79,6 +79,22 @@ class RolCurador(str, Enum):
     ARBITRO = "arbitro"      # desempata cuando 2 validadores discrepan
 
 
+class ConfidentialityTier(str, Enum):
+    """
+    Sprint 86.8 - Tier de sensibilidad por modelo del Catastro.
+    Habilita filtrado de candidatos por sensibilidad del prompt entrante (SMP).
+
+    Orden semantico (de mas estricto a mas permisivo):
+        local_only < tee_capable < cloud_anonymized_ok < cloud_only
+
+    Spec: bridge/sprint_86_8_preinvestigation/spec_catastro_confidentiality_tier.md
+    """
+    LOCAL_ONLY = "local_only"                    # corre on-device
+    TEE_CAPABLE = "tee_capable"                  # confidential computing
+    CLOUD_ANONYMIZED_OK = "cloud_anonymized_ok"  # acepta prompts anonimizados
+    CLOUD_ONLY = "cloud_only"                    # default conservador
+
+
 # ============================================================================
 # MODELOS DE DATOS
 # ============================================================================
@@ -150,6 +166,12 @@ class CatastroModelo(BaseModel):
 
     # Embedding (no se serializa al SQL desde aquí — se genera por separado)
     embedding: Optional[list[float]] = Field(None, exclude=True)
+
+    # Confidentiality (Sprint 86.8)
+    confidentiality_tier: ConfidentialityTier = Field(
+        default=ConfidentialityTier.CLOUD_ONLY,
+        description="Tier de sensibilidad para filtrado SMP. Default conservador cloud_only.",
+    )
 
     # Extensibilidad
     data_extra: dict[str, Any] = Field(default_factory=dict)

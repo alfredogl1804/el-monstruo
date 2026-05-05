@@ -56,6 +56,25 @@ DEFAULT_CACHE_MAX_ENTRIES = 256
 DEGRADED_REASON_NO_DB = "no_db_factory_configured"
 DEGRADED_REASON_SUPABASE_DOWN = "supabase_down"
 DEGRADED_REASON_NO_DATA = "no_models_match_filters"
+DEGRADED_REASON_NO_ELIGIBLE_TIER = "no_models_match_tier_filter"  # Sprint 86.8
+
+
+# ============================================================================
+# Sprint 86.8 — Confidentiality Tier (Sovereign Memory Protocol prerequisite)
+# ============================================================================
+
+# Orden semantico de mas estricto (0) a mas permisivo (3).
+# Si min_tier_required="cloud_anonymized_ok" (rank 2), aceptamos modelos con
+# rank <= 2 (local_only, tee_capable, cloud_anonymized_ok), pero NO cloud_only.
+CONFIDENTIALITY_TIER_RANK: dict[str, int] = {
+    "local_only": 0,
+    "tee_capable": 1,
+    "cloud_anonymized_ok": 2,
+    "cloud_only": 3,
+}
+
+VALID_CONFIDENTIALITY_TIERS = frozenset(CONFIDENTIALITY_TIER_RANK.keys())
+DEFAULT_MIN_TIER_REQUIRED = "cloud_only"  # default permisivo (acepta todos)
 
 
 # ============================================================================
@@ -83,6 +102,18 @@ class CatastroRecommendModeloNotFound(CatastroRecommendError):
     """get_modelo() no encontró el id solicitado."""
 
     code = "catastro_recommend_modelo_not_found"
+
+
+class CatastroChooseModelNoEligibleTier(CatastroRecommendError):
+    """Sprint 86.8: ningun modelo satisface min_tier_required.
+
+    Brand DNA: catastro_choose_model_no_eligible_tier.
+    Surge cuando el filtro de confidentiality_tier deja la lista vacia
+    (ej. min_tier_required='local_only' pero no hay modelos local_only
+    poblados todavia para la macroarea/dominio solicitado).
+    """
+
+    code = "catastro_choose_model_no_eligible_tier"
 
 
 # ============================================================================
@@ -117,6 +148,12 @@ class ModeloRecomendado(BaseModel):
     precio_input_per_million: Optional[float] = None
     precio_output_per_million: Optional[float] = None
     open_weights: bool = False
+
+    # Sprint 86.8 - Confidentiality tier (SMP prerequisite)
+    confidentiality_tier: Optional[str] = Field(
+        None,
+        description="Tier de sensibilidad SMP: local_only / tee_capable / cloud_anonymized_ok / cloud_only",
+    )
 
     last_validated_at: Optional[datetime] = None
 
@@ -280,6 +317,8 @@ class RecommendationEngine:
         top_n: int = DEFAULT_TOP_N,
         estado: str = "production",
         only_quorum: bool = False,
+        min_tier_required: str = DEFAULT_MIN_TIER_REQUIRED,
+        raise_on_no_eligible_tier: bool = False,
     ) -> RecommendationResponse:
         """
         Devuelve los Top N modelos recomendados para `use_case`.
@@ -287,19 +326,41 @@ class RecommendationEngine:
         Args:
             use_case: descripción del caso de uso (texto libre, audit-only).
             dominio: si se especifica, solo modelos de ese dominio.
-            macroarea: si se especifica, solo modelos de esa macroárea.
+            macroarea: si se especifica, solo modelos de esa macroarea.
             top_n: cuántos modelos retornar (clamped a [1, MAX_TOP_N]).
             estado: filtra por catastro_modelos.estado (default 'production').
             only_quorum: si True, futuro filtro por quorum_alcanzado.
+            min_tier_required: Sprint 86.8 - filtra por confidentiality_tier.
+                'local_only'         -> solo modelos local_only
+                'tee_capable'        -> local_only o tee_capable
+                'cloud_anonymized_ok'-> los anteriores + cloud_anonymized_ok
+                'cloud_only'         -> cualquiera (default permisivo)
+            raise_on_no_eligible_tier: si True y el filtro deja la lista
+                vacia, lanza CatastroChooseModelNoEligibleTier en lugar de
+                retornar response.degraded=True. Default False (degraded).
 
         Returns:
             RecommendationResponse — siempre. Modo degraded si la DB falla.
+
+        Raises:
+            CatastroRecommendInvalidArgs: use_case vacio o min_tier invalido.
+            CatastroChooseModelNoEligibleTier: cuando raise_on_no_eligible_tier
+                es True y el filtro de tier elimina todos los candidatos.
         """
         if not use_case or not use_case.strip():
             raise CatastroRecommendInvalidArgs(
                 "use_case no puede ser vacío",
                 use_case=use_case,
             )
+
+        # Sprint 86.8 - validar min_tier_required
+        if min_tier_required not in VALID_CONFIDENTIALITY_TIERS:
+            raise CatastroRecommendInvalidArgs(
+                f"min_tier_required invalido: {min_tier_required!r}. "
+                f"Valores aceptados: {sorted(VALID_CONFIDENTIALITY_TIERS)}",
+                min_tier_required=min_tier_required,
+            )
+
         top_n_clamped = max(1, min(int(top_n), MAX_TOP_N))
 
         cache_key = (
@@ -310,6 +371,7 @@ class RecommendationEngine:
             top_n_clamped,
             estado,
             bool(only_quorum),
+            min_tier_required,  # Sprint 86.8 - parte de la cache key
         )
         cached = self._cache.get(cache_key)
         if cached is not None:
@@ -320,7 +382,24 @@ class RecommendationEngine:
             macroarea=macroarea,
             top_n=top_n_clamped,
             estado=estado,
+            min_tier_required=min_tier_required,
         )
+
+        # Sprint 86.8 - si filtro tier dejo lista vacia y el caller pidio
+        # excepcion explicita, lanzar antes de armar response degraded.
+        if (
+            not modelos
+            and raise_on_no_eligible_tier
+            and degraded_reason == DEGRADED_REASON_NO_ELIGIBLE_TIER
+        ):
+            raise CatastroChooseModelNoEligibleTier(
+                f"Ningun modelo satisface min_tier_required={min_tier_required!r} "
+                f"(dominio={dominio!r}, macroarea={macroarea!r}, estado={estado!r})",
+                min_tier_required=min_tier_required,
+                dominio=dominio,
+                macroarea=macroarea,
+                estado=estado,
+            )
         response = RecommendationResponse(
             use_case=use_case,
             dominio_consultado=dominio,
@@ -535,9 +614,15 @@ class RecommendationEngine:
         macroarea: Optional[str],
         top_n: int,
         estado: str,
+        min_tier_required: str = DEFAULT_MIN_TIER_REQUIRED,
     ) -> tuple[list[ModeloRecomendado], Optional[str]]:
         """
         Query a la vista catastro_trono_view con filtros.
+
+        Sprint 86.8: aplica filtro de confidentiality_tier en runtime
+        (post-fetch) usando rank semantico. La query a Supabase ahora
+        traemos hasta MAX_TOP_N filas para tener margen tras el filtro y
+        recortamos a top_n al final.
 
         Returns:
             (modelos, degraded_reason). Si degraded_reason no es None, modelos=[].
@@ -545,6 +630,10 @@ class RecommendationEngine:
         client = self._client_or_none()
         if client is None:
             return [], DEGRADED_REASON_NO_DB
+        # Sprint 86.8 - traer mas filas que top_n cuando hay tier filter
+        # (post-filtro puede reducir, asi compensamos)
+        max_required_rank = CONFIDENTIALITY_TIER_RANK[min_tier_required]
+        fetch_limit = top_n if max_required_rank == 3 else MAX_TOP_N
         try:
             q = (
                 client.table(CATASTRO_TRONO_VIEW)
@@ -558,17 +647,32 @@ class RecommendationEngine:
                 q = q.eq("estado", estado)
             # Trono desc; rank_dominio asc como tiebreaker
             q = q.order("trono_global", desc=True).order("rank_dominio", desc=False)
-            q = q.limit(top_n)
+            q = q.limit(fetch_limit)
             res = q.execute()
             rows = getattr(res, "data", None) or []
         except Exception:
             return [], DEGRADED_REASON_SUPABASE_DOWN
 
+        rows_pre_tier_filter = list(rows)
+
+        # Sprint 86.8 - aplicar filtro de confidentiality_tier
+        if max_required_rank < 3:
+            rows = [
+                r for r in rows
+                if CONFIDENTIALITY_TIER_RANK.get(
+                    str(r.get("confidentiality_tier") or "cloud_only"),
+                    3,
+                ) <= max_required_rank
+            ]
+
         if not rows:
+            # Distinguir: el filtro de tier vacio la lista vs DB no tenia data
+            if rows_pre_tier_filter and max_required_rank < 3:
+                return [], DEGRADED_REASON_NO_ELIGIBLE_TIER
             return [], DEGRADED_REASON_NO_DATA
 
         out: list[ModeloRecomendado] = []
-        for r in rows:
+        for r in rows[:top_n]:  # Sprint 86.8 - recorte final tras filtro
             try:
                 out.append(ModeloRecomendado(
                     id=r["id"],
@@ -590,6 +694,7 @@ class RecommendationEngine:
                     precio_input_per_million=r.get("precio_input_per_million"),
                     precio_output_per_million=r.get("precio_output_per_million"),
                     open_weights=bool(r.get("open_weights") or False),
+                    confidentiality_tier=r.get("confidentiality_tier"),  # Sprint 86.8
                     last_validated_at=_parse_dt(r.get("ultima_validacion") or r.get("last_validated_at")),
                 ))
             except Exception:

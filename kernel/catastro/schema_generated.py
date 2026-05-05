@@ -31,9 +31,9 @@ from pydantic import BaseModel, ConfigDict, Field
 # Source hash — para drift detection rápida sin re-parsear
 # ============================================================================
 
-__SOURCE_HASH__ = "1cf38e92752eca1df9c50c29dd4a65d1aa93ba6089e0d505ca65713f05503d2f"
-__GENERATED_AT__ = "2026-05-05T03:18:17Z"
-__MIGRATIONS__ = ['scripts/016_sprint86_catastro_schema.sql', 'scripts/018_sprint86_catastro_rpc.sql', 'scripts/019_sprint86_catastro_trono.sql', 'scripts/019_1_hotfix_validated_by_column.sql']
+__SOURCE_HASH__ = "9e3e4e28375944a2af4bd0bc34e56c07fd7652e88b5df7d024a18416eb1b9790"
+__GENERATED_AT__ = "2026-05-05T17:15:40Z"
+__MIGRATIONS__ = ['scripts/016_sprint86_catastro_schema.sql', 'scripts/018_sprint86_catastro_rpc.sql', 'scripts/019_sprint86_catastro_trono.sql', 'scripts/019_1_hotfix_validated_by_column.sql', 'scripts/027_sprint86_8_confidentiality_tier_schema.sql']
 
 
 # ============================================================================
@@ -143,6 +143,7 @@ class CatastroModeloRow(BaseModel):
     created_at: datetime = Field(default=None)  # SQL default: CURRENT_TIMESTAMP()
     updated_at: datetime = Field(default=None)  # SQL default: CURRENT_TIMESTAMP()
     validated_by: Optional[str] = None
+    confidentiality_tier: str = Field(default=None)  # SQL default: 'cloud_only'
 
 class CatastroNotaRow(BaseModel):
     """Espejo bit-perfect de la tabla `catastro_notas` (PostgreSQL DDL).
@@ -167,6 +168,6 @@ TABLE_COLUMNS: dict[str, list[str]] = {
     "catastro_curadores": ['id', 'macroarea', 'modelo_llm', 'proveedor', 'rol', 'trust_score', 'total_validaciones', 'aciertos_quorum', 'fallos_quorum', 'requiere_hitl', 'last_run', 'notas', 'created_at', 'updated_at', 'curator_alias'],
     "catastro_eventos": ['id', 'fecha', 'tipo', 'prioridad', 'modelo_id', 'descripcion', 'contexto', 'notificado', 'curador_origen'],
     "catastro_historial": ['fecha', 'modelo_id', 'snapshot', 'trono_global', 'rank_dominio'],
-    "catastro_modelos": ['id', 'nombre', 'proveedor', 'macroarea', 'dominios', 'subcapacidades', 'estado', 'tipo', 'licencia', 'open_weights', 'api_endpoint', 'quality_score', 'quality_delta', 'cost_efficiency', 'speed_score', 'reliability_score', 'brand_fit', 'sovereignty', 'velocity', 'trono_global', 'trono_delta', 'rank_dominio', 'precio_input_per_million', 'precio_output_per_million', 'capacidades_tecnicas', 'velocidad', 'limitaciones', 'fortalezas', 'debilidades', 'casos_uso_recomendados_monstruo', 'fuentes_evidencia', 'quorum_alcanzado', 'confidence', 'curador_responsable', 'embedding', 'data_extra', 'schema_version', 'ultima_validacion', 'proxima_revalidacion', 'created_at', 'updated_at', 'validated_by'],
+    "catastro_modelos": ['id', 'nombre', 'proveedor', 'macroarea', 'dominios', 'subcapacidades', 'estado', 'tipo', 'licencia', 'open_weights', 'api_endpoint', 'quality_score', 'quality_delta', 'cost_efficiency', 'speed_score', 'reliability_score', 'brand_fit', 'sovereignty', 'velocity', 'trono_global', 'trono_delta', 'rank_dominio', 'precio_input_per_million', 'precio_output_per_million', 'capacidades_tecnicas', 'velocidad', 'limitaciones', 'fortalezas', 'debilidades', 'casos_uso_recomendados_monstruo', 'fuentes_evidencia', 'quorum_alcanzado', 'confidence', 'curador_responsable', 'embedding', 'data_extra', 'schema_version', 'ultima_validacion', 'proxima_revalidacion', 'created_at', 'updated_at', 'validated_by', 'confidentiality_tier'],
     "catastro_notas": ['id', 'modelo_id', 'autor', 'contenido', 'caso_uso', 'rating', 'fecha'],
 }
