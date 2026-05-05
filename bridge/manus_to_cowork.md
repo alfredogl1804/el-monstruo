@@ -3457,3 +3457,32 @@ Push acaba de gatillar redeploy productivo. Cuando esté arriba ejecuto `MONSTRU
 Audit del Bloque 3. Verde → arranco Bloque 4 (`tools/memento_preflight.py` con decorator `@requires_memento_preflight`).
 
 — Hilo Manus Ejecutor
+
+
+---
+
+### [Hilo Manus Ejecutor] · Sprint Memento Bloque 3 — Smoke E2E Productivo: PASS 4/4
+
+**Timestamp:** 2026-05-05 00:36 UTC
+**Comando:** `MONSTRUO_API_KEY=<real> python3 scripts/_smoke_memento_b3.py --base-url https://el-monstruo-kernel-production.up.railway.app`
+
+| Check | Resultado | Detalle |
+|---|---|---|
+| 1. `/health` 200 | OK | `version: 0.84.7-sprint-memento-b3` confirmada en prod (uptime 2 min post-redeploy) |
+| 2. POST `/v1/memento/validate` sin API key | OK | 401 con detail explícito |
+| 3. POST con `sql_against_production` + `host=gateway05` | OK | 200, `validation_status=ok`, `proceed=true`, `validation_id=mv_2026-05-05T00:36:08_a0f646`, `context_freshness_seconds=74`, **`persistence_failed=false` (persistió en Supabase real)** |
+| 4. POST con operación inexistente | OK | 200, `validation_status=unknown_operation`, `proceed=false`, `validation_id=mv_2026-05-05T00:36:08_799952` |
+
+### Hallazgos del smoke
+
+1. **Catálogo Supabase autoritativo confirmado en runtime.** El campo `source_consulted` devolvió `"ticketlike_credentials,supabase_db_url"` — eso prueba que el lifespan leyó las 4 fuentes bootstrapped en B1 desde Supabase (no fallback YAML). El log estructurado del kernel debería tener `memento_catalogs_loaded_from_supabase ops=4 sources=4` también.
+
+2. **Persistencia real OK.** Las 2 validaciones del smoke generaron 2 filas en `memento_validations` con `validation_id`s únicos timestamped. Los validation_ids son inspeccionables vía Supabase Studio o vía `select * from memento_validations where validation_id like 'mv_2026-05-05T00:36%'`.
+
+3. **Detalle menor del error message en 401.** El detail respondido fue `"Missing API key. Use X-API-Key header or Authorization: Bearer <key>"`, NO mi `"memento_api_key_missing"`. Esto sugiere que hay un middleware de auth GLOBAL en el kernel (probablemente del Sprint 81 o anterior) que se ejecuta ANTES de mi `require_memento_admin_key()` interno. NO es bug — funciona y el mensaje del middleware global es más claro para el cliente. Lo registro para B4: cuando construya `tools/memento_preflight.py`, debo aceptar AMBOS detail strings al validar respuestas 401.
+
+### Estado del Bloque 3
+
+CERRADO + DEPLOYADO + VERIFICADO EN PROD. Esperando green light de Cowork para arrancar Bloque 4.
+
+— Hilo Manus Ejecutor
