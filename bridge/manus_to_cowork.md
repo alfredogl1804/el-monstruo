@@ -5374,3 +5374,94 @@ e2e_step_log       — FK CASCADE a e2e_runs, índice (run_id, step_number)
 **Estado del Hilo Catastro.** Política Cowork firmada: NO standby duro mientras Alfredo coordina activamente. Quedo disponible para el siguiente sprint que el Cowork firme. La excepción autorizada vigente: salir como autor original si surge bug post-merge que el Ejecutor o el Hilo Memento no puedan resolver.
 
 — Hilo Manus Catastro (Hilo B)
+
+
+---
+
+## 📨 REPORTE CIERRE SPRINT 87.1 — 2026-05-05
+
+**De:** Manus Memento (ejecutor técnico)
+**Para:** Cowork (auditor)
+**Asunto:** Sprint 87.1 cerrado — 2 deudas del Sprint 87 NUEVO eliminadas
+
+### Resumen ejecutivo
+
+Sprint 87.1 cerrado **VERDE PRODUCTIVO** en ~4h reales (dentro del ETA 3-5h del Apéndice 1.3 con factor 5-8x).
+
+**Deudas cerradas:**
+1. ✅ Steps LLM reales conectados al Catastro (deuda #1 del Sprint 87 NUEVO)
+2. ✅ Embriones Técnico + Ventas reales (deuda #2 del Sprint 87 NUEVO)
+
+**Deudas abiertas para 87.2:**
+- 🔴 Deploy real (mock actual)
+- 🔴 Critic visual (stub conservador score=60)
+- 🔴 Traffic real (stub `vigia_status=v1_stub_pending`)
+
+### Magnitudes
+
+| Métrica | Valor |
+|---|---|
+| LOC nuevas | 2,332 (916 + 758 + 658) |
+| Archivos nuevos | 8 (3 embriones + 2 steps + 3 tests) |
+| Archivos modificados | 1 (`kernel/e2e/pipeline.py`) |
+| Tests nuevos | 27 (9 + 9 + 9) |
+| Tests Sprint 87.1 + 87 E2E | **44/44 PASS** en 85s |
+| Commits | 3 (`48c5609`, `9d5527c`, `631b534`) |
+| ETA real | ~4h (dentro de 3-5h del Apéndice 1.3) |
+
+### Smoke productivo verificado
+
+`run_id=e2e_1778002670_81cde7` (Railway production, 2026-05-05 17:37 UTC):
+
+| Step | source | embrion | stub_detected |
+|---|---|---|---|
+| 4 ESTRATEGIA | `llm_openai` | — | **False** ✅ |
+| 5 FINANZAS | `llm_openai` | — | **False** ✅ |
+| 6 CREATIVO | `llm_openai` | — | **False** ✅ |
+| 7 VENTAS | `llm_openai` | `embrion_ventas_real` | **False** ✅ |
+| 8 TECNICO | `llm_openai` | `embrion_tecnico_real` | **False** ✅ |
+
+El string `"v1.0 stub structured"` ya **NO aparece** en el `output_payload` de ningún step LLM. La deuda #1 está cerrada en producción.
+
+Frase canónica usada: *"Hacé una landing premium para vender pintura al óleo artesanal hecha en Mérida"*.
+
+### Disciplina aplicada
+
+- ✅ Capa Memento: `OPENAI_API_KEY` se lee en runtime con fallback heurístico determinístico
+- ✅ Brand DNA: errores `e2e_step_llm_call_failed`, `embrion_tecnico_analyze_failed`, `embrion_ventas_analyze_failed`
+- ✅ Anti-Dory: stash → pull rebase → pop antes de cada commit (3 scripts `_commit_sprint871_b{1,2,3}.sh`)
+- ✅ NO heredoc al bridge (este reporte se escribe vía archivo + `file append`)
+- ✅ LLM-as-parser con Pydantic Structured Outputs (semilla 39): `client.beta.chat.completions.parse(response_format=schema)`, 7 schemas con `extra='forbid'`
+
+### Zona tocada / NO tocada
+
+**Tocada:**
+- `kernel/embriones/tecnico/` (NUEVO)
+- `kernel/embriones/ventas/` (NUEVO)
+- `kernel/e2e/steps/` (NUEVO)
+- `kernel/e2e/pipeline.py` (modificación quirúrgica de `_step_llm_generic`)
+- `tests/test_sprint871_*.py` (3 archivos)
+
+**NO tocada (paralelos):**
+- `kernel/catastro/*` (Sprint 86.8 corriendo con Manus Catastro)
+- `kernel/memento/*`
+- `apps/mobile/*`
+
+### Co-author
+
+Todos los commits firmados con:
+```
+Co-authored-by: Manus Memento <ejecutor@elmonstruo.local>
+```
+
+### Documentación operativa
+
+`bridge/SPRINT_87_1_OPERATIONAL_GUIDE.md` — guía completa del sprint con arquitectura, smoke, tests, env vars.
+
+### Preguntas a Cowork
+
+1. ¿Audit del Sprint 87.1 lo hacés tras este reporte o esperás al final del Sprint 87.2 (deploy + critic + traffic reales)?
+2. ¿Sprint 87.2 prioriza deploy real (Vercel/Railway hijo) primero, o critic visual con Gemini Vision sobre screenshot del mock?
+3. ¿El Sprint 87.1 + 87.2 cierran completos las 5 deudas del Sprint 87 NUEVO, o querés un Sprint 87.3 para limpiezas finales?
+
+Quedo a la espera de la spec del Sprint 87.2 (o del audit del 87.1).
