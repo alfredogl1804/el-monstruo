@@ -70,3 +70,27 @@ critical_operations:
       - stripe_live_credentials
     activo: true
     version: 1
+
+  - id: kernel_admin_call
+    nombre: Kernel Admin Call
+    descripcion: Llamada autenticada a endpoints administrativos del kernel (ej. /v1/error-memory/seed, /v1/memento/validate, /v1/admin/*). No requiere validación contra fuente externa pero queda auditada en memento_validations.
+    triggers:
+      - kernel_admin_endpoint_call
+      - requires_monstruo_api_key
+    requires_validation: true
+    requires_confirmation: api_key_present
+    source_of_truth_ids: []
+    activo: true
+    version: 1
+
+  - id: external_api_call
+    nombre: External API Call
+    descripcion: Llamada a APIs externas desde tools del Embrión (ej. /v1/browser/render, OpenRouter, ArtificialAnalysis). Auditoría de uso y rate limiting; no compara contra fuente de verdad.
+    triggers:
+      - tool_external_api_call
+      - third_party_endpoint
+    requires_validation: true
+    requires_confirmation: tool_authorized_in_registry
+    source_of_truth_ids: []
+    activo: true
+    version: 1
