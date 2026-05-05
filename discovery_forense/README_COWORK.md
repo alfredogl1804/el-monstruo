@@ -51,19 +51,26 @@ Cada item tiene la estructura:
 
 ---
 
-## 3. Credenciales necesarias para Fase III
+## 3. Credenciales y accesos para Fase III
 
-Para acceder a las fuentes que descubrí, **necesitas pedirle al usuario las mismas credenciales que me dio a mí** (yo ya las eliminé del sandbox):
+**Confirmado por Alfredo:** Cowork (Hilo A) **YA TIENE** acceso directo a Drive, Notion y GitHub vía sus conectores nativos. Solo necesitas pedirle a Alfredo las credenciales de las fuentes externas.
 
-| Fuente | Variable de entorno | Obtenida de |
+### Accesos ya disponibles en Cowork (sin acción requerida):
+
+| Fuente | Comando | Verificación |
 |---|---|---|
-| **AWS S3** (CRISOL planes, modelos 3D Kukulkán) | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | Pedir a Alfredo |
-| **Dropbox** (SOP/EPIA .docx fundacionales) | `DROPBOX_REFRESH_TOKEN`, `DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET` | Pedir a Alfredo |
-| **Apify** (scrapers OSINT) | `APIFY_TOKEN` | Pedir a Alfredo |
-| **Asana** (proyectos hivecom.mx) | `ASANA_TOKEN` | Pedir a Alfredo |
-| **Notion** (MCP) | (configurado en Manus) | Verificar con `manus-mcp-cli tool list --server notion` |
-| **Drive** (gws CLI) | (configurado en Manus) | Verificar con `gws drive --help` |
-| **GitHub** (gh CLI) | (configurado en Manus) | Verificar con `gh auth status` |
+| **Drive** (planes SOP, EPIA, biblias ZIP, prompts maestros) | `gws drive files get`, `gws drive files export` | `gws drive --help` |
+| **Notion** (MAOC, Arquitectura Soberana, Plan Monstruo v0.1) | `manus-mcp-cli tool call notion-fetch --server notion` | `manus-mcp-cli tool list --server notion` |
+| **GitHub** (28 repos accesibles) | `gh repo clone`, `gh search code/issues/prs` | `gh auth status` |
+
+### Credenciales que SÍ debes pedirle a Alfredo:
+
+| Fuente | Variables de entorno | Por qué se necesita |
+|---|---|---|
+| **AWS S3** | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | Planes maestros de CRISOL/Mena Baduy y modelos 3D Kukulkán están aquí |
+| **Dropbox** | `DROPBOX_REFRESH_TOKEN`, `DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET` | Versiones fundacionales `.docx` del SOP y EPIA exclusivas de Dropbox |
+| **Apify** (opcional) | `APIFY_TOKEN` | Si vas a re-ejecutar scrapers OSINT |
+| **Asana** (opcional) | `ASANA_TOKEN` | Si vas a tocar proyectos hivecom.mx |
 
 ---
 
@@ -111,13 +118,16 @@ Ordenados por score (cuántas familias semánticas matchearon):
 
 ---
 
-## 7. Recomendación de orquestación
+## 7. Recomendación de orquestación Fase III
 
-Si vas a hacer la Canonización, propongo:
+Dado que YA tienes acceso a Drive/Notion/GitHub, propongo esta división:
 
-1. **Tú (Hilo A)** descomprimes las 69 biblias del ZIP y las publicas en Notion como sub-páginas indexables. Yo (Hilo B) no debería tocar Notion en escritura porque es zona compartida.
-2. **Yo (Hilo B)** descargo las versiones de SOP/EPIA de Drive y Dropbox y las paso a un script de diff con GPT-5.4 para identificar deltas.
-3. **Tú (Hilo A)** migras los planes de CRISOL desde S3 al repo privado `crisol-8` de GitHub.
-4. **Ambos** consolidamos en el `MAOC - Documento Maestro` de Notion como SSOT final.
+| Tarea | Hilo | Razón |
+|---|---|---|
+| Descomprimir `biblias_v41_AUDITED_69_gradeA.zip` y publicar las 69 biblias como sub-páginas en Notion | **Hilo A (Cowork)** | Tienes Drive + Notion writes |
+| Diff de SOP/EPIA: descargar versiones de Drive (`.md`, `.txt`) y de Dropbox (`.docx`), pasar por GPT-5.4 para identificar deltas, generar `SOP_v4_CANON.md` | **Hilo B (yo)** | Operación de análisis pura |
+| Migrar planes maestros de CRISOL desde S3 al repo privado `crisol-8` de GitHub | **Hilo A (Cowork)** | Necesita AWS + GitHub writes |
+| Consolidar el `📘 MAOC - Documento Maestro` en Notion como SSOT final | **Ambos** | Coordinación vía bridge |
+| Indexar el dataset consolidado (`phase6_consolidated.json`) en Supabase para queries semánticas | **Hilo A (Cowork)** | Tienes MCP de Supabase |
 
 Coordínate conmigo vía `bridge/manus_to_cowork.md` y `bridge/cowork_to_manus.md`.
