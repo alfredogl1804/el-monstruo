@@ -1291,6 +1291,33 @@ async def lifespan(app: FastAPI):
         logger.warning("sprint_86_b5_init_failed", error=str(_e))
         app.state.catastro_engine = None
 
+    # ── Sprint 87 NUEVO: Ejecución Autónoma E2E ─────────────────────────
+    # Pipeline lineal de 12 pasos frase→URL viva. Consulta Catastro en runtime.
+    try:
+        from kernel.e2e.orchestrator import E2EOrchestrator
+        from kernel.e2e.routes import e2e_router
+
+        if db_connected and db is not None:
+            e2e_orchestrator = E2EOrchestrator(db)
+            app.state.e2e_orchestrator = e2e_orchestrator
+            app.include_router(e2e_router)
+            logger.info(
+                "sprint_87_e2e_initialized",
+                endpoints=[
+                    "/v1/e2e/run",
+                    "/v1/e2e/runs",
+                    "/v1/e2e/runs/{run_id}",
+                    "/v1/e2e/runs/{run_id}/judgment",
+                    "/v1/e2e/dashboard",
+                ],
+            )
+        else:
+            logger.warning("sprint_87_e2e_skipped_no_db")
+            app.state.e2e_orchestrator = None
+    except Exception as _e_e2e:
+        logger.warning("sprint_87_e2e_init_failed", error=str(_e_e2e))
+        app.state.e2e_orchestrator = None
+
     # ── Sprint 81: Error Memory Endpoints ───────────────────────────────
     @app.get("/v1/error-memory/recent", tags=["observability"])
     async def error_memory_recent(request: Request, limit: int = 20):
