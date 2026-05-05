@@ -256,9 +256,11 @@ async def embrion_diagnostic(request: Request):
     """
     import time as _time
 
+    from kernel import __version__ as _kernel_version  # Sprint Memento B7 hotfix: dejar de hardcodear
+
     diagnostics = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "version": "0.84.0-sprint84",
+        "version": _kernel_version,
     }
 
     # 1. Loop health
