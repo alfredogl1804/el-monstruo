@@ -195,6 +195,29 @@ El Catastro nunca crashea. Si algo falla, **degrada gracefulmente**:
 
 ---
 
+## Caveats por sub-dominio
+
+Algunos sub-dominios del Catastro tienen restricciones inherentes que el consumidor debe conocer al interpretar sus resultados. Estos caveats están documentados aquí para que humanos y agentes externos no malinterpreten un trono o una recomendación que parezca anómala.
+
+### Visión generativa · sub-dominio `text-to-video` (Sprint 86.6+)
+
+El Quorum 2-de-3 multimodal estándar (Gemini Vision + Claude Vision + GPT-5.5 Vision) **NO se aplica** al sub-dominio `text-to-video` porque solo Gemini 3.1 Pro soporta entrada de video extendido en el momento de evaluación. En su lugar, el Catastro usa **un único juez** (Gemini Vision) y marca cada modelo persistido en este sub-dominio con dos flags obligatorios:
+
+- `evaluator_quorum: "single"` — bandera explícita en `data_extra` que documenta la excepción.
+- `confidence ≤ 0.50` — la banda de confianza del Trono se ensancha al doble (`trono_low` / `trono_high` con ancho mínimo 10 puntos), reflejando incertidumbre estructural.
+
+**Consecuencia para el consumidor REST/MCP:** un modelo de `text-to-video` con `trono_global = 70.0`, `trono_low = 60.0`, `trono_high = 80.0` y `confidence = 0.45` es **menos confiable** que un modelo de `text-to-image` con el mismo trono pero `confidence = 0.85`. Los clientes que integren recomendaciones del Catastro deben filtrar por `confidence` cuando la decisión sea crítica (presupuesto alto, deployment a producción, etc.) o pedir explícitamente confirmación humana cuando `evaluator_quorum == "single"`.
+
+**Plan futuro:** cuando Qwen3-VL u otro juez competente para video extendido esté disponible (esperado Sprint 86.7+), el Quorum 2-de-3 se restablecerá automáticamente para `text-to-video` y este caveat dejará de aplicar. La firma Cowork de esta excepción está en `bridge/sprint86_6_preinvestigation/quorum_multimodal_vision.md` sec 10c.
+
+### Coding · sub-dominios agentic (Sprint 86.5+, futuro)
+
+Los sub-dominios `coding-agent`, `coding-multi-file`, `coding-debug` requieren validación SWE-bench Verified como métrica primaria. **Atención al hallazgo UC Berkeley (abril 2026):** se documentaron exploits de SWE-bench Verified que logran 100% sin completar tareas reales. El Catastro mitiga esto con `swe_bench_subscores` decompuestos (`verified`, `lite`, `multimodal`, `multilingual`) y heurística anti-exploit (`Lite ≥ Verified`, `Multilingual.python ≥ Verified - 10pp`, evaluador oficial o Quorum 2-evaluadores). Cualquier modelo que viole estas heurísticas recibe `drift_flag: true` y `confidence ≤ 0.40`.
+
+**Consecuencia para el consumidor:** verificar `swe_bench_subscores.drift_flag` antes de confiar en un modelo de coding con score sospechosamente alto.
+
+---
+
 ## Cron diario
 
 El pipeline corre **automáticamente** una vez por día (configurable en Railway). Cada run:

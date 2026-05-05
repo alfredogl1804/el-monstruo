@@ -156,6 +156,50 @@ class TestQuorumValidator:
         assert deltas["artificial_analysis"] == 0.0
         assert deltas["openrouter"] == 0.0
 
+    def test_trust_deltas_per_source_floor_caps_explosive_penalty(self):
+        """Cowork audit B7: lmarena disintió 6 veces y llegó a -0.30; con
+        50 disensos llegaría a -2.50 sin cap. El floor por defecto debe
+        capar a -0.30."""
+        v = QuorumValidator()
+        # Construir 50 resultados donde lmarena disiente sistemáticamente
+        results = []
+        for _ in range(50):
+            r = v.validate(
+                field_name="quality",
+                field_type=FieldType.NUMERIC,
+                votes=[
+                    FuenteVote("artificial_analysis", 87.0),
+                    FuenteVote("openrouter", 88.0),
+                    FuenteVote("lmarena", 50.0),
+                ],
+            )
+            results.append(r)
+        deltas = v.compute_trust_deltas(results)
+        # Sin cap sería -0.05 * 50 = -2.50; el floor por defecto -0.30 debe limitar
+        assert deltas["lmarena"] == -0.30
+
+    def test_trust_deltas_per_source_floor_disabled_legacy_behavior(self):
+        """Pasando per_source_floor=None se preserva el comportamiento
+        legacy (sin cap), por compatibilidad y testing."""
+        v = QuorumValidator()
+        results = []
+        for _ in range(10):
+            r = v.validate(
+                field_name="quality",
+                field_type=FieldType.NUMERIC,
+                votes=[
+                    FuenteVote("artificial_analysis", 87.0),
+                    FuenteVote("openrouter", 88.0),
+                    FuenteVote("lmarena", 50.0),
+                ],
+            )
+            results.append(r)
+        deltas = v.compute_trust_deltas(
+            results, per_source_floor=None, per_source_ceiling=None
+        )
+        # 10 disensos * -0.05 = -0.50, no capado
+        assert deltas["lmarena"] == pytest.approx(-0.50)
+
 
 # ============================================================================
 # SOURCES

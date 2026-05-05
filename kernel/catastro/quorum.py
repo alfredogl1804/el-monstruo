@@ -427,19 +427,36 @@ class QuorumValidator:
         confirming_delta: float = 0.0,
         dissenting_delta: float = -0.05,
         silent_delta: float = 0.0,
+        per_source_floor: float = -0.30,
+        per_source_ceiling: float = 0.30,
     ) -> dict[str, float]:
         """
         Calcula deltas de trust_score por fuente basado en una lista de
         validaciones quorum.
+
+        Aplica un cap (floor/ceiling) por fuente por run para evitar penalizaciones
+        explosivas cuando una fuente disiente en muchas validaciones del mismo
+        batch (ej: lmarena disintió en 6 validaciones del primer run productivo
+        del Catastro y llegó a -0.30 sin cap; con 50 validaciones llegaría a
+        -2.50, lo cual es destructivo). Patrón de escalado validado por Cowork
+        (audit Sprint 86 B7):
+          * 0      si la fuente aportó dato único (no entró a quorum)
+          * -0.05  si discrepa minoría legítima en una validación
+          * -0.30  techo descendente del run (extremo)
 
         Args:
             results: lista de QuorumResult del run.
             confirming_delta: delta para fuentes que confirmaron consenso.
             dissenting_delta: delta para fuentes que discreparon.
             silent_delta: delta para fuentes que no reportaron.
+            per_source_floor: piso del trust_delta acumulado por fuente por run.
+                Defecto -0.30 (alineado con la guía Cowork audit B7). Si es
+                None, no se aplica piso (legacy behavior).
+            per_source_ceiling: techo del trust_delta acumulado por fuente por
+                run. Defecto +0.30. Si es None, no se aplica techo.
 
         Returns:
-            dict con `{fuente: delta_acumulado}`.
+            dict con `{fuente: delta_acumulado_capado}`.
         """
         deltas: dict[str, float] = {}
 
@@ -453,5 +470,13 @@ class QuorumValidator:
                 deltas[fuente] = deltas.get(fuente, 0.0) + dissenting_delta
             for fuente in result.silent_sources:
                 deltas[fuente] = deltas.get(fuente, 0.0) + silent_delta
+
+        # Cap escalado por fuente para evitar penalizaciones/recompensas
+        # explosivas en runs grandes (Cowork audit B7).
+        if per_source_floor is not None or per_source_ceiling is not None:
+            floor = per_source_floor if per_source_floor is not None else float("-inf")
+            ceil = per_source_ceiling if per_source_ceiling is not None else float("inf")
+            for fuente, value in list(deltas.items()):
+                deltas[fuente] = max(floor, min(ceil, value))
 
         return deltas
