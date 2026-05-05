@@ -27,6 +27,18 @@ import sys
 import urllib.request
 import urllib.error
 
+# Sprint Memento Bloque 5 Fase 1 — pre-flight via library Memento
+_MEMENTO_AVAILABLE = True
+try:
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from tools.memento_preflight import (  # type: ignore
+        preflight_check,
+        MementoPreflightError,
+    )
+except Exception as _import_exc:
+    _MEMENTO_AVAILABLE = False
+    print(f"[seed-28] WARN: tools.memento_preflight no disponible ({_import_exc!r}); continuando sin preflight", file=sys.stderr)
+
 
 KERNEL_URL = os.environ.get(
     "KERNEL_URL",
@@ -108,10 +120,47 @@ def _post_seed(seed: dict) -> tuple[int, dict | str]:
         return -1, f"Exception: {type(e).__name__}: {e}"
 
 
+def _run_preflight() -> int | None:
+    """Pre-flight check via library Memento. Retorna exit code si bloquea, None si OK."""
+    if not _MEMENTO_AVAILABLE:
+        return None
+    try:
+        preflight = preflight_check(
+            operation="kernel_admin_call",
+            context_used={
+                "endpoint": ENDPOINT,
+                "kernel_url": KERNEL_URL,
+                "signature": SEED_28["error_signature"],
+            },
+            hilo_id="manus_ejecutor_seed_28",
+            intent_summary="persistir semilla 28 drop-in migration keyword_matcher cierre Sprint 85",
+        )
+        if not preflight.proceed:
+            print(
+                f"[seed-28] ABORT preflight bloqueó ejecución: "
+                f"status={preflight.validation_status} "
+                f"remediation={preflight.remediation}",
+                file=sys.stderr,
+            )
+            return 3
+        print(f"[seed-28] preflight OK validation_id={preflight.validation_id}")
+        return None
+    except MementoPreflightError as exc:
+        print(f"[seed-28] WARN preflight falló: {exc!s}; continuando con fallback degradado", file=sys.stderr)
+        return None
+    except Exception as exc:
+        print(f"[seed-28] WARN preflight inesperado: {exc!r}; continuando", file=sys.stderr)
+        return None
+
+
 def main() -> int:
     if not ADMIN_KEY:
         print("ERROR: MONSTRUO_API_KEY no configurada (env var requerida)", file=sys.stderr)
         return 2
+
+    preflight_exit = _run_preflight()
+    if preflight_exit is not None:
+        return preflight_exit
 
     print(f"[seed-28] POST {ENDPOINT}")
     print(f"[seed-28] signature={SEED_28['error_signature']}")
