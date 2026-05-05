@@ -1,7 +1,7 @@
 """
 El Catastro — Sistema de inteligencia viva sobre modelos IA externos.
 
-Sprint 86 Bloques 1-4: Schema Supabase + Pipeline diario MVP + Persistencia atómica + Trono Score por dominio.
+Sprint 86 Bloques 1-5: Schema + Pipeline + Persistencia atómica + Trono Score + MCP Server catastro.recommend().
 
 Macroárea 1 (Sprint 86): Inteligencia (LLMs)
   - llm_frontier (GPT, Claude, Gemini, xAI)
@@ -20,16 +20,36 @@ Componentes públicos del módulo:
   sources     — Clientes API REST oficiales (Sprint 86 Bloque 2)
   cron        — Entrypoint Railway scheduled task (Sprint 86 Bloque 2)
   persistence — Wiring atómico a Supabase via RPC PL/pgSQL (Sprint 86 Bloque 3)
-  trono       — Cálculo Trono Score por dominio (Sprint 86 Bloque 4)
-  mcp         — Servidor MCP del Catastro (Sprint 86 Bloque 6)
+  trono          — Cálculo Trono Score por dominio (Sprint 86 Bloque 4)
+  recommendation — RecommendationEngine + cache LRU + modo degraded (Sprint 86 Bloque 5)
+  catastro_routes— APIRouter REST /v1/catastro/* con auth Bearer (Sprint 86 Bloque 5)
+  mcp_tools      — FastMCP sub-server con 4 tools (Sprint 86 Bloque 5)
 """
 from __future__ import annotations
 
-__version__ = "0.86.4"  # Sprint 86 Bloque 4 — Trono Score por dominio
+__version__ = "0.86.5"  # Sprint 86 Bloque 5 — MCP Server catastro.recommend()
 __sprint__ = "86"
-__bloque__ = "4"
+__bloque__ = "5"
 
 # Re-exports públicos del módulo schema (poblados conforme se construye)
+# Bloque 5 — MCP Server catastro.recommend()
+from kernel.catastro.recommendation import (
+    CATASTRO_TRONO_VIEW,
+    DEFAULT_TOP_N,
+    MAX_TOP_N,
+    CatastroRecommendError,
+    CatastroRecommendInvalidArgs,
+    CatastroRecommendModeloNotFound,
+    DominioInfo,
+    ListDominiosResponse,
+    ModeloDetallado,
+    ModeloRecomendado,
+    RecommendationEngine,
+    RecommendationResponse,
+    StatusSnapshot,
+    build_default_db_factory,
+)
+
 # Bloque 4 — Trono Score
 from kernel.catastro.trono import (
     DEFAULT_WEIGHTS,
@@ -125,4 +145,19 @@ __all__ = [
     "CatastroTronoInvalidDomain",
     "CatastroTronoEmptyInput",
     "apply_results_to_models",
+    # Bloque 5 — MCP Server
+    "RecommendationEngine",
+    "RecommendationResponse",
+    "ModeloRecomendado",
+    "ModeloDetallado",
+    "DominioInfo",
+    "ListDominiosResponse",
+    "StatusSnapshot",
+    "CatastroRecommendError",
+    "CatastroRecommendInvalidArgs",
+    "CatastroRecommendModeloNotFound",
+    "DEFAULT_TOP_N",
+    "MAX_TOP_N",
+    "CATASTRO_TRONO_VIEW",
+    "build_default_db_factory",
 ]

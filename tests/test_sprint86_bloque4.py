@@ -96,11 +96,14 @@ def env_clean(monkeypatch):
 
 
 class TestVersionado:
-    def test_version_es_v0_86_4(self):
-        assert __version__ == "0.86.4"
+    def test_version_es_sprint_86(self):
+        # Aflojado en Bloque 5: el Sprint 86 sigue versionando hacia arriba
+        assert __version__.startswith("0.86.")
+        assert __version__ >= "0.86.4"
 
-    def test_bloque_es_4(self):
-        assert __bloque__ == "4"
+    def test_bloque_es_al_menos_4(self):
+        # El Bloque 4 entregó lo suyo; bloques posteriores incrementan
+        assert int(__bloque__) >= 4
 
 
 # ============================================================================

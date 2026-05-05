@@ -1230,7 +1230,50 @@ async def lifespan(app: FastAPI):
         logger.warning("sprint_memento_b3_init_failed", error=str(_e))
         app.state.memento_validator = None
 
-    # ── Sprint 81: Error Memory Endpoints ──────────────────────────────
+    # ── Sprint 86 Bloque 5: El Catastro ─ MCP Server catastro.recommend() ──
+    # Inicializa el RecommendationEngine singleton (cache LRU compartido entre
+    # requests) y monta el APIRouter REST + el sub-server MCP del Catastro.
+    try:
+        from kernel.catastro.recommendation import (
+            RecommendationEngine,
+            build_default_db_factory,
+        )
+        from kernel.catastro import catastro_routes as _catastro_routes
+        from kernel.catastro import mcp_tools as _catastro_mcp_tools
+        catastro_engine = RecommendationEngine(
+            db_factory=build_default_db_factory(),
+        )
+        app.state.catastro_engine = catastro_engine
+        _catastro_routes.set_dependencies(catastro_engine)
+        _catastro_mcp_tools.set_mcp_engine(catastro_engine)
+        app.include_router(_catastro_routes.router, prefix="/v1/catastro")
+        # Mount sub-MCP en el FastMCP principal (si está disponible)
+        if _catastro_mcp_tools.catastro_mcp is not None and fastmcp_server is not None:
+            try:
+                fastmcp_server.mount("catastro", _catastro_mcp_tools.catastro_mcp)
+                logger.info(
+                    "catastro_mcp_mounted",
+                    prefix="catastro",
+                    tools=["recommend", "get_modelo", "list_dominios", "status"],
+                )
+            except Exception as _ec:
+                logger.warning("catastro_mcp_mount_failed", error=str(_ec))
+        logger.info(
+            "sprint_86_b5_initialized",
+            endpoints=[
+                "/v1/catastro/recommend",
+                "/v1/catastro/modelos/{id}",
+                "/v1/catastro/dominios",
+                "/v1/catastro/status",
+            ],
+            mcp_tools=4,
+            cache_ttl_seconds=60,
+        )
+    except Exception as _e:
+        logger.warning("sprint_86_b5_init_failed", error=str(_e))
+        app.state.catastro_engine = None
+
+    # ── Sprint 81: Error Memory Endpoints ───────────────────────────────
     @app.get("/v1/error-memory/recent", tags=["observability"])
     async def error_memory_recent(request: Request, limit: int = 20):
         em = getattr(request.app.state, "error_memory", None)
