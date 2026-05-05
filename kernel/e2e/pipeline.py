@@ -111,13 +111,112 @@ async def _step_llm_generic(
     step_name: str,
     payload_in: Dict[str, Any],
 ) -> Dict[str, Any]:
-    """Step genérico para ESTRATEGIA/FINANZAS/CREATIVO/VENTAS/TECNICO."""
-    selection = await cat.select_model_for_step(step_name)
+    """Step LLM real para ESTRATEGIA/FINANZAS/CREATIVO/VENTAS/TECNICO.
+
+    Sprint 87.1 Bloque 3 — cierra deuda #1 del Sprint 87 NUEVO.
+
+    Routing:
+      - ESTRATEGIA → StepEstrategiaOutput
+      - FINANZAS  → StepFinanzasOutput
+      - CREATIVO  → StepBrandingOutput (branding como output canónico)
+      - VENTAS    → invoca EmbrionVentas real (cierra deuda #2)
+      - TECNICO   → invoca EmbrionTecnico real (cierra deuda #2)
+    """
+    from kernel.e2e.steps.llm_step import (
+        StepBrandingOutput,
+        StepEstrategiaOutput,
+        StepFinanzasOutput,
+        run_llm_step,
+    )
+
+    frase = payload_in.get("frase_input", "")
+    if not frase and isinstance(payload_in.get("intake"), dict):
+        frase = payload_in["intake"].get("frase_input", "")
+    architect = payload_in.get("architect") or {}
+    brief = architect.get("brief") or {}
+
+    # ── VENTAS → Embrión Ventas real (cierra deuda #2) ─────────────────
+    if step_name == "VENTAS":
+        from kernel.embriones.ventas import EmbrionVentas
+
+        selection = await cat.select_model_for_step(step_name)
+        embrion = EmbrionVentas()
+        report = await asyncio.to_thread(
+            embrion.analizar, frase_input=frase, brief=brief
+        )
+        return {
+            "modelo_elegido": selection,
+            "step_name": step_name,
+            "source": report.source,
+            "output_payload": report.model_dump(),
+            "embrion": "embrion_ventas_real",
+        }
+
+    # ── TECNICO → Embrión Técnico real (cierra deuda #2) ──────────────
+    if step_name == "TECNICO":
+        from kernel.embriones.tecnico import EmbrionTecnico
+
+        selection = await cat.select_model_for_step(step_name)
+        embrion = EmbrionTecnico()
+        report = await asyncio.to_thread(
+            embrion.analizar, frase_input=frase, brief=brief
+        )
+        return {
+            "modelo_elegido": selection,
+            "step_name": step_name,
+            "source": report.source,
+            "output_payload": report.model_dump(),
+            "embrion": "embrion_tecnico_real",
+        }
+
+    # ── ESTRATEGIA / FINANZAS / CREATIVO → LLM real con Pydantic ───────
+    schema_map = {
+        "ESTRATEGIA": StepEstrategiaOutput,
+        "FINANZAS": StepFinanzasOutput,
+        "CREATIVO": StepBrandingOutput,
+    }
+    schema = schema_map.get(step_name)
+    if schema is None:
+        # Fallback defensivo: step_name desconocido
+        selection = await cat.select_model_for_step(step_name)
+        return {
+            "modelo_elegido": selection,
+            "step_name": step_name,
+            "source": "unknown_step",
+            "output_payload": {},
+        }
+
+    system_prompt = (
+        f"Sos un agente de El Monstruo ejecutando el step {step_name} "
+        "del pipeline E2E. Personalidad: Implacable, Preciso, Soberano. "
+        f"Devolvés output estructurado en el schema {schema.__name__}. "
+        "Razonás en español rioplatense, directo, sin rodeos."
+    )
+    user_prompt = (
+        f"Frase canónica del usuario: {frase}\n\n"
+        f"Brief disponible: {brief}\n\n"
+        f"Tu tarea: producir el output estricto del schema {schema.__name__} "
+        f"para el step {step_name}."
+    )
+    result = await run_llm_step(
+        cat=cat,
+        step_name=step_name,
+        schema=schema,
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        context={
+            "frase_input": frase,
+            "nombre_proyecto": brief.get("nombre_proyecto", "Proyecto El Monstruo"),
+        },
+    )
+    # Quitar 'content' (no serializable) y devolver dict limpio
     return {
-        "modelo_elegido": selection,
+        "modelo_elegido": result["modelo_elegido"],
         "step_name": step_name,
-        "input_received_keys": list(payload_in.keys()),
-        "result": f"v1.0 stub structured — {step_name} ejecutado con {selection.get('model_label')}",
+        "source": result["source"],
+        "model_used": result["model_used"],
+        "latency_ms": result["latency_ms"],
+        "output_payload": result["output_payload"],
     }
 
 
