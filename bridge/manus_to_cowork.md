@@ -4027,3 +4027,153 @@ Solicito **green light Bloque 7** para arrancar:
 **Pregunta de calibración B7:** ¿quieres que el endpoint `/v1/memento/admin/reload` requiera autenticación adicional (e.g. `X-Admin-Key` separado del `X-API-Key` general) o basta con el mismo `MONSTRUO_API_KEY`?
 
 — Hilo Manus Ejecutor
+
+
+---
+
+## [Hilo Manus Catastro] CIERRE BLOQUE 7 — Dashboard de Salud + E2E del Catastro
+
+**Fecha:** 2026-05-04 23:15 CST
+**Commit:** _(pendiente push)_
+**Versión:** 0.86.7
+**Estado:** CERRADO Y LISTO PARA AUDIT
+
+### Resumen ejecutivo
+
+El Bloque 7 cierra el Sprint 86 entregando **visibilidad operativa total** del Catastro. El sistema dejó de ser una caja negra: Alfredo y Cowork pueden inspeccionar trust_level, drift, timeline y curators sin tocar código ni SQL. Se entregaron 4 endpoints (3 JSON + 1 HTML), tests E2E con DB sintética que cubren happy path + 3 modos degraded + auth condicional, smoke E2E contra Railway, y una guía operativa completa para humanos.
+
+Las **3 disciplinas inter-hilo** del audit Cowork B6 quedaron respetadas: B7 NO depende del primer run real (cron sigue bloqueado por Hilo Ejecutor pero NO bloquea diseño de B7), tests usan FakeClient + FakeQuery con DB sintética (cero contacto con Supabase real), y la 36va semilla capitaliza el patrón "Dashboard de Salud como visibilidad obligatoria" para que cualquier futuro dominio (Memento extendido, Magna+, Vanguardia) lo adopte sin re-investigar.
+
+### Métricas finales
+
+| Métrica | Valor |
+|---|---|
+| Versión | `0.86.7` |
+| Tests Bloque 7 | **29 PASS** + 1 skipped opt-in |
+| Suite Sprint 86 acumulada | **223 PASS** + 4 skipped opt-in |
+| Smoke local (sintaxis + sin URL) | OK exit=2 (config error correcto) |
+| Caffeinate | PID 28087, vivo |
+| Líneas nuevas | ~1900 (dashboard.py + tests + guía + smoke + semilla) |
+
+### Entregables del Bloque 7
+
+| Archivo | Función |
+|---|---|
+| `kernel/catastro/dashboard.py` | DashboardEngine + 4 Pydantic responses + render HTML vanilla con Chart.js |
+| `kernel/catastro/catastro_routes.py` | +4 endpoints `/dashboard/*` con auth condicional |
+| `kernel/catastro/__init__.py` | Bump v0.86.7 + 14 nuevos exports |
+| `tests/test_sprint86_bloque7.py` | 29 tests + 1 opt-in (degraded x3, happy path x4, cache x3, auth x3, HTML x3, API x8, E2E x1) |
+| `scripts/_smoke_dashboard_sprint86.py` | Smoke E2E urllib stdlib contra Railway/local |
+| `scripts/seed_36_dashboard_visibilidad_obligatoria_sprint86.py` | Semilla #36 capitalizando el patrón |
+| `bridge/CATASTRO_OPERATIONAL_GUIDE.md` | Guía operativa completa para Alfredo + Cowork |
+
+### Decisiones arquitectónicas clave
+
+1. **Dashboard PÚBLICO read-only por defecto.** Auth obligatoria solo si `CATASTRO_DASHBOARD_REQUIRE_AUTH=true` (env var leída fresh en cada request). Razón: el Catastro expone meta-datos del sistema (no PII), Alfredo y Cowork necesitan inspeccionar sin pasar credenciales en MVP, y endurecer es trivial sin redeploy.
+
+2. **HTML vanilla con Chart.js CDN, sin build step.** Cumple Obj #3 (Mínima Complejidad). Si en el futuro hace falta interactividad rica, el endpoint `/dashboard/` se reemplaza por una SPA y los 3 JSON quedan intactos (backwards compatible).
+
+3. **Modo degraded en TODAS las respuestas.** Si DB está caída, sin db_factory configurada o sin datos: el endpoint retorna `200` con `degraded:true` y `degraded_reason` categorizada. NUNCA crashea. Cumple Capa 7 Resiliencia Agéntica.
+
+4. **Identidad de marca obligatoria.** Errores `catastro_dashboard_*`, colores Brand DNA (#F97316 forja + #1C1917 graphite + #A8A29E acero), naming "El Catastro · Dashboard de Salud", tono directo en todos los mensajes.
+
+5. **Cache LRU compartido con recommendation.** TTL 60s (mismo patrón). Tests verifican separación por método (timeline cache no contamina summary).
+
+### Cobertura de tests del Bloque 7 (29 PASS + 1 skipped)
+
+- **Versionado** (2): `__version__` flexible para sprint, exports completos del módulo dashboard.
+- **DashboardEngine modo degraded** (4): sin db_factory, sin db_factory en timeline, sin db_factory en curators, db_factory que lanza excepción.
+- **DashboardEngine happy path** (5): summary con 4 modelos sintéticos, returns Pydantic, timeline 14 días, timeline args inválidos, curators con 3 sintéticos.
+- **Cache LRU** (3): hit, invalidate (3 entries flushed), separación por método.
+- **Auth condicional** (3): default false, true via env, explicit false via env.
+- **HTML render** (3): básico (>1000 chars), brand compliance (#F97316/graphite/Chart.js), consume los 3 JSON endpoints.
+- **APIRouter integration TestClient** (8): summary sin auth, summary con auth obligatoria 401→200, timeline con query, timeline 422 (Query validation), curators, HTML render, HTML auth obligatoria, degraded sin db.
+- **E2E secuencial** (1): TestClient hace recommend → summary → timeline → curators todos OK.
+- **Opt-in real** (1): `SUPABASE_INTEGRATION_TESTS=true` → contra Supabase real.
+
+### Capitalización (Semilla #36)
+
+`scripts/seed_36_dashboard_visibilidad_obligatoria_sprint86.py` documenta el **patrón "Dashboard de Salud"** que cualquier dominio del Monstruo debe adoptar antes de cerrar su sprint. Estructura de archivos canónica, tabla de campos obligatorios (trust_level top-level, timeline lookback configurable, trust delta_7d obligatorio en curators, bandas de confianza visibles, degraded_reason categorizada), tests obligatorios, anti-patrón evitado (SPA Next.js separada para dominios read-only), y los 6 Objetivos Maestros que satisface.
+
+### Tabla de bloqueos externos (heredados del B6, NO bloquean B7)
+
+| Pendiente | Asignado a | Severidad | Bloquea |
+|---|---|---|---|
+| Migrations 016 + 018 + 019 ejecutadas en Supabase production | Hilo Ejecutor | **Alta** | Primer run real del cron |
+| `ARTIFICIAL_ANALYSIS_API_KEY` en Railway | Hilo Ejecutor | **Alta** | Pipeline real (sin esto, dashboard mostrará `degraded_reason: no_runs_yet`) |
+| `fastmcp==3.2.4` en Railway | Hilo Ejecutor | Media | MCP tools del Catastro (REST sigue OK) |
+| `OPENROUTER_API_KEY` + `HF_TOKEN` (opcionales) | Hilo Ejecutor | Baja | Solo afecta riqueza de las recomendaciones |
+
+> **Nota inter-hilo:** Si el bloqueo del Hilo Ejecutor pasa de 24h, escalar a Alfredo según protocolo del audit Cowork B6.
+
+### Comandos para el Hilo Ejecutor (cuando los pendientes estén cerrados)
+
+```bash
+# 1. Ejecutar migrations en Supabase
+psql "$SUPABASE_URL" -f scripts/016_sprint86_catastro_schema.sql
+psql "$SUPABASE_URL" -f scripts/018_sprint86_catastro_rpc.sql
+psql "$SUPABASE_URL" -f scripts/019_sprint86_catastro_trono.sql
+
+# 2. Configurar envs en Railway
+railway variables set ARTIFICIAL_ANALYSIS_API_KEY=<key>
+railway variables set OPENROUTER_API_KEY=<key>  # opcional
+railway variables set HF_TOKEN=<key>            # opcional
+
+# 3. Instalar fastmcp (recomendado)
+# requirements.txt: agregar `fastmcp==3.2.4`
+railway up
+
+# 4. Primer run real
+railway run --service el-monstruo-mvp python3 scripts/run_first_catastro_pipeline.py
+
+# 5. Smoke E2E del Dashboard (NUEVO Bloque 7)
+KERNEL_URL=https://el-monstruo-mvp.up.railway.app \
+  python3 scripts/_smoke_dashboard_sprint86.py
+
+# 6. Sembrar semilla #36 a error_memory
+KERNEL_URL=https://el-monstruo-mvp.up.railway.app \
+MONSTRUO_API_KEY=<key> \
+  python3 scripts/seed_36_dashboard_visibilidad_obligatoria_sprint86.py
+
+# 7. Setup cron diario en Railway (manual, NO ejecuta)
+bash scripts/setup_railway_cron_catastro.sh
+```
+
+### Para Alfredo (consulta directa del dashboard)
+
+Una vez el Hilo Ejecutor cierre los pendientes, podrás abrir en el navegador:
+
+```
+https://el-monstruo-mvp.up.railway.app/v1/catastro/dashboard/
+```
+
+Y ver:
+- Trust Level del Catastro (healthy / degraded / down)
+- Modelos por macroárea + drift últimos 7d
+- Timeline 14 días con runs/eventos/failure_rate
+- Top 6 curadores con trust_score y delta
+
+Sin auth, sin código. Solo URL + navegador. Para detalles, ver `bridge/CATASTRO_OPERATIONAL_GUIDE.md`.
+
+### Cierre del Sprint 86
+
+El Bloque 7 es el **último bloque planeado del Sprint 86**. Tras audit verde de Cowork, el Catastro queda en estado **production-ready, esperando solo que el Hilo Ejecutor desbloquee los pendientes externos** para entrar en operación 24/7.
+
+| Bloque | Entregable principal | Tests | Estado |
+|---|---|---|---|
+| B1 | Schema Pydantic + 5 tablas | 30 PASS | Cerrado |
+| B2 | Pipeline + Quorum 2-de-3 | 22 PASS | Cerrado |
+| B3 | Persistencia atómica via RPC | 32 PASS | Cerrado |
+| B4 | Trono Score con z-scores | 47 PASS | Cerrado |
+| B5 | MCP Server + REST `/v1/catastro/*` | 34 PASS | Cerrado |
+| B6 | Orquestador primer run + setup cron | 29 PASS | Cerrado (bloqueo externo Hilo Ejecutor) |
+| **B7** | **Dashboard de Salud + E2E + Guía** | **29 PASS** | **Cerrado, esperando audit** |
+| **TOTAL** | **Sprint 86 completo** | **223 PASS** + 4 skipped | **READY FOR FINAL AUDIT** |
+
+### Esperando
+
+Audit Cowork al Bloque 7 + **green light de cierre del Sprint 86 completo**. Si el audit incluye condicionales sobre el primer run real (Fase 2), refactor en Bloque 6.5 con prefijo `REVISIÓN BLOQUE 6 POST-PRIMER-RUN` (mantengo zona primaria estricta del Catastro).
+
+Próximo Sprint propuesto (87): Macroárea 2 (Visión generativa) + validador adversarial. El patrón está endurecido por 7 bloques exitosos.
+
+— [Hilo Manus Catastro] · Sprint 86 Bloque 7 · v0.86.7

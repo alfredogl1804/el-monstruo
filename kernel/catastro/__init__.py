@@ -1,7 +1,7 @@
 """
 El Catastro — Sistema de inteligencia viva sobre modelos IA externos.
 
-Sprint 86 Bloques 1-5: Schema + Pipeline + Persistencia atómica + Trono Score + MCP Server catastro.recommend().
+Sprint 86 Bloques 1-7: Schema + Pipeline + Persistencia atómica + Trono Score + MCP Server + Orquestador primer run + Dashboard de salud.
 
 Macroárea 1 (Sprint 86): Inteligencia (LLMs)
   - llm_frontier (GPT, Claude, Gemini, xAI)
@@ -22,16 +22,36 @@ Componentes públicos del módulo:
   persistence — Wiring atómico a Supabase via RPC PL/pgSQL (Sprint 86 Bloque 3)
   trono          — Cálculo Trono Score por dominio (Sprint 86 Bloque 4)
   recommendation — RecommendationEngine + cache LRU + modo degraded (Sprint 86 Bloque 5)
-  catastro_routes— APIRouter REST /v1/catastro/* con auth Bearer (Sprint 86 Bloque 5)
+  catastro_routes— APIRouter REST /v1/catastro/* con auth Bearer (Sprint 86 Bloque 5+7)
   mcp_tools      — FastMCP sub-server con 4 tools (Sprint 86 Bloque 5)
+  dashboard      — DashboardEngine + 4 endpoints (summary/timeline/curators/HTML) + auth condicional (Sprint 86 Bloque 7)
 """
 from __future__ import annotations
 
-__version__ = "0.86.5"  # Sprint 86 Bloque 5 — MCP Server catastro.recommend()
+__version__ = "0.86.7"  # Sprint 86 Bloque 7 — Dashboard de Salud + E2E
 __sprint__ = "86"
-__bloque__ = "5"
+__bloque__ = "7"
 
 # Re-exports públicos del módulo schema (poblados conforme se construye)
+# Bloque 7 — Dashboard de Salud
+from kernel.catastro.dashboard import (
+    CHART_JS_CDN,
+    DEFAULT_TIMELINE_DAYS,
+    MAX_TIMELINE_DAYS,
+    CatastroDashboardError,
+    CatastroDashboardInvalidArgs,
+    CuradorSnapshot,
+    CuradorsResponse,
+    DashboardEngine,
+    FuenteHealth,
+    SummarySnapshot,
+    TimelinePoint,
+    TimelineResponse,
+    build_default_dashboard_db_factory,
+    dashboard_requires_auth,
+    render_html_dashboard,
+)
+
 # Bloque 5 — MCP Server catastro.recommend()
 from kernel.catastro.recommendation import (
     CATASTRO_TRONO_VIEW,
@@ -160,4 +180,20 @@ __all__ = [
     "MAX_TOP_N",
     "CATASTRO_TRONO_VIEW",
     "build_default_db_factory",
+    # Bloque 7 — Dashboard de Salud
+    "DashboardEngine",
+    "SummarySnapshot",
+    "TimelineResponse",
+    "TimelinePoint",
+    "CuradorsResponse",
+    "CuradorSnapshot",
+    "FuenteHealth",
+    "CatastroDashboardError",
+    "CatastroDashboardInvalidArgs",
+    "render_html_dashboard",
+    "dashboard_requires_auth",
+    "build_default_dashboard_db_factory",
+    "DEFAULT_TIMELINE_DAYS",
+    "MAX_TIMELINE_DAYS",
+    "CHART_JS_CDN",
 ]

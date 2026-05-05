@@ -32,6 +32,8 @@ import structlog
 from fastapi import APIRouter, HTTPException, Path, Query, Request, status
 from pydantic import BaseModel, Field
 
+from fastapi.responses import HTMLResponse
+
 from kernel.catastro.recommendation import (
     CatastroRecommendInvalidArgs,
     DEFAULT_TOP_N,
@@ -42,6 +44,17 @@ from kernel.catastro.recommendation import (
     RecommendationResponse,
     StatusSnapshot,
 )
+from kernel.catastro.dashboard import (
+    CatastroDashboardInvalidArgs,
+    CuradorsResponse,
+    DEFAULT_TIMELINE_DAYS,
+    DashboardEngine,
+    MAX_TIMELINE_DAYS,
+    SummarySnapshot as DashboardSummarySnapshot,
+    TimelineResponse,
+    dashboard_requires_auth,
+    render_html_dashboard,
+)
 
 logger = structlog.get_logger("kernel.catastro.routes")
 
@@ -49,12 +62,35 @@ router = APIRouter(tags=["catastro"])
 
 # Engine inyectable por tests/lifespan
 _engine_singleton: Optional[RecommendationEngine] = None
+_dashboard_engine_singleton: Optional[DashboardEngine] = None
 
 
-def set_dependencies(engine: RecommendationEngine) -> None:
-    """Inyecta el RecommendationEngine. Llamar una sola vez en lifespan."""
-    global _engine_singleton
+def set_dependencies(
+    engine: RecommendationEngine,
+    dashboard_engine: Optional[DashboardEngine] = None,
+) -> None:
+    """Inyecta engines. Llamar una sola vez en lifespan.
+
+    Args:
+        engine: RecommendationEngine para los endpoints de recomendación.
+        dashboard_engine: opcional. Si es None, el dashboard se inicializa
+            on-demand con un DashboardEngine sin db (modo degraded).
+    """
+    global _engine_singleton, _dashboard_engine_singleton
     _engine_singleton = engine
+    if dashboard_engine is not None:
+        _dashboard_engine_singleton = dashboard_engine
+
+
+def _get_dashboard_engine(request: Request) -> DashboardEngine:
+    """Resuelve el dashboard engine: app.state primero, singleton fallback."""
+    eng = getattr(request.app.state, "catastro_dashboard_engine", None)
+    if eng is not None:
+        return eng
+    if _dashboard_engine_singleton is not None:
+        return _dashboard_engine_singleton
+    # Modo degraded automático: dashboard sin db_factory
+    return DashboardEngine(db_factory=None)
 
 
 def _get_engine(request: Request) -> RecommendationEngine:
@@ -216,3 +252,108 @@ async def status_endpoint(request: Request) -> StatusSnapshot:
     require_catastro_admin_key(request)
     engine = _get_engine(request)
     return engine.status()
+
+
+# ============================================================================
+# Dashboard endpoints (Sprint 86 Bloque 7)
+#
+# Diseño: público read-only POR DEFECTO. Auth obligatoria solo si
+# CATASTRO_DASHBOARD_REQUIRE_AUTH=true (lectura fresh, anti-Dory).
+# Esto permite a Alfredo + Cowork inspeccionar el sistema sin pasar
+# auth en MVP, y endurecer con un env var sin redeploy de código.
+# ============================================================================
+
+
+def _maybe_require_dashboard_auth(request: Request) -> None:
+    """Aplica auth solo si CATASTRO_DASHBOARD_REQUIRE_AUTH=true."""
+    if dashboard_requires_auth():
+        require_catastro_admin_key(request)
+
+
+@router.get(
+    "/dashboard/summary",
+    response_model=DashboardSummarySnapshot,
+    summary="Snapshot resumido del Catastro (dashboard)",
+)
+async def dashboard_summary(request: Request) -> DashboardSummarySnapshot:
+    """
+    Snapshot operativo: trust_level, modelos_total/production, dominios,
+    macroareas, last_run, fuentes, drift_detected, cache_entries.
+    Auth opcional (default público).
+    """
+    _maybe_require_dashboard_auth(request)
+    engine = _get_dashboard_engine(request)
+    try:
+        return engine.summary()
+    except Exception as exc:
+        logger.warning("catastro_dashboard_summary_error", error=str(exc))
+        raise HTTPException(
+            status_code=500,
+            detail="catastro_dashboard_summary_unexpected_error",
+        ) from exc
+
+
+@router.get(
+    "/dashboard/timeline",
+    response_model=TimelineResponse,
+    summary="Histórico últimos N días (default 14)",
+)
+async def dashboard_timeline(
+    request: Request,
+    days: int = Query(
+        DEFAULT_TIMELINE_DAYS,
+        ge=1,
+        le=MAX_TIMELINE_DAYS,
+        description=f"Días a mostrar (1-{MAX_TIMELINE_DAYS})",
+    ),
+) -> TimelineResponse:
+    """
+    Timeline de runs/eventos/drift por día. failure_rate por día +
+    avg_failure_rate del rango. Auth opcional.
+    """
+    _maybe_require_dashboard_auth(request)
+    engine = _get_dashboard_engine(request)
+    try:
+        return engine.timeline(days=days)
+    except CatastroDashboardInvalidArgs as exc:
+        raise HTTPException(status_code=400, detail=exc.code) from exc
+    except Exception as exc:
+        logger.warning("catastro_dashboard_timeline_error", error=str(exc))
+        raise HTTPException(
+            status_code=500,
+            detail="catastro_dashboard_timeline_unexpected_error",
+        ) from exc
+
+
+@router.get(
+    "/dashboard/curators",
+    response_model=CuradorsResponse,
+    summary="Trust scores + tendencia de los curadores",
+)
+async def dashboard_curators(request: Request) -> CuradorsResponse:
+    """Lista curadores con trust_score actual, delta 7d, invocaciones."""
+    _maybe_require_dashboard_auth(request)
+    engine = _get_dashboard_engine(request)
+    try:
+        return engine.curators()
+    except Exception as exc:
+        logger.warning("catastro_dashboard_curators_error", error=str(exc))
+        raise HTTPException(
+            status_code=500,
+            detail="catastro_dashboard_curators_unexpected_error",
+        ) from exc
+
+
+@router.get(
+    "/dashboard/",
+    response_class=HTMLResponse,
+    summary="HTML render del dashboard de salud",
+    include_in_schema=False,  # No contamina /docs OpenAPI
+)
+async def dashboard_html(request: Request) -> HTMLResponse:
+    """
+    Render HTML vanilla del dashboard. Consume los 3 JSON via fetch+Chart.js.
+    Auth obligatoria si CATASTRO_DASHBOARD_REQUIRE_AUTH=true.
+    """
+    _maybe_require_dashboard_auth(request)
+    return HTMLResponse(content=render_html_dashboard(), status_code=200)
