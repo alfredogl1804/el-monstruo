@@ -31,6 +31,18 @@ except ImportError:
     print("[ERROR] psycopg2 no instalado. Ejecuta: pip install psycopg2-binary")
     sys.exit(1)
 
+# Sprint Memento Bloque 5 Fase 1 — pre-flight via library Memento
+_MEMENTO_AVAILABLE = True
+try:
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from tools.memento_preflight import (  # type: ignore
+        preflight_check,
+        MementoPreflightError,
+    )
+except Exception as _import_exc:
+    _MEMENTO_AVAILABLE = False
+    print(f"[WARN] tools.memento_preflight no disponible ({_import_exc!r}); continuando sin preflight Memento")
+
 
 SCRIPT_DIR = Path(__file__).parent
 SQL_FILE = SCRIPT_DIR / "017_sprint_memento_schema.sql"
@@ -152,12 +164,55 @@ def validate_tables(db_url: str) -> None:
         conn.close()
 
 
+def _run_memento_preflight(db_url: str) -> int | None:
+    """Pre-flight Memento (B5 F1): registra la operación SQL como sql_against_production.
+
+    Retorna exit code si bloquea, None si OK o degraded.
+    """
+    if not _MEMENTO_AVAILABLE:
+        return None
+    try:
+        # Extraer host de la URL (sin password) para context_used
+        # postgresql://user:pass@host:port/db
+        host = db_url.split("@", 1)[-1].split("/", 1)[0] if "@" in db_url else "unknown"
+        preflight = preflight_check(
+            operation="sql_against_production",
+            context_used={
+                "host": host,
+                "sql_file": SQL_FILE.name,
+                "target_tables": list(EXPECTED_TABLES),
+            },
+            hilo_id="manus_ejecutor_run_migration_017",
+            intent_summary=f"ejecutar migration 017 (sprint memento schema) contra {host}",
+        )
+        if not preflight.proceed:
+            print(
+                f"[MEMENTO] ABORT preflight bloqueó ejecución: "
+                f"status={preflight.validation_status} "
+                f"remediation={preflight.remediation}"
+            )
+            return 9
+        print(f"[MEMENTO] preflight OK validation_id={preflight.validation_id}")
+        return None
+    except MementoPreflightError as exc:
+        print(f"[MEMENTO] WARN preflight falló ({exc!s}); continuando con fallback degradado")
+        return None
+    except Exception as exc:
+        print(f"[MEMENTO] WARN preflight inesperado ({exc!r}); continuando")
+        return None
+
+
 def main() -> int:
     print("=" * 70)
     print(" Sprint Memento — Bloque 1 — Migration 017")
     print("=" * 70)
 
     db_url = preflight_db_url()
+
+    memento_exit = _run_memento_preflight(db_url)
+    if memento_exit is not None:
+        return memento_exit
+
     run_migration(db_url)
     validate_tables(db_url)
 
