@@ -95,11 +95,17 @@ def test_validate_no_pii_passes_clean_html():
 
 
 def test_slugify_handles_accents_and_spaces():
-    # \w en Python incluye unicode word chars (tildes), eso está bien para repos GitHub.
+    # Sprint 87.2 hotfix: forzamos ASCII puro porque acentos bloquean GitHub repos.
     result = _slugify("Forja Pinturas Mérida")
-    assert result.startswith("forja-pinturas")
+    assert result == "forja-pinturas-merida", f"slug debe ser ASCII puro, got {result!r}"
+    # Frase completa con é y á
+    assert _slugify("Hacé una landing premium") == "hace-una-landing-premium"
+    # Otros tests de happy path
     assert _slugify("Hola Mundo!") == "hola-mundo"
     assert _slugify("") == "monstruo-site"
+    # Verifica que SOLO contiene [a-z0-9-]
+    import re as _re
+    assert _re.fullmatch(r"[a-z0-9-]+", _slugify("Pintura al óleo ñandutí")) is not None
 
 
 def test_slugify_truncates_long_names():

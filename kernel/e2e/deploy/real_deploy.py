@@ -18,9 +18,11 @@ los outputs de los steps CREATIVO + TECNICO + VENTAS del pipeline.
 """
 from __future__ import annotations
 
+import asyncio
 import os
 import re
 import time
+import unicodedata
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, Optional
@@ -105,9 +107,20 @@ def _validate_no_pii(html: str) -> None:
 
 
 def _slugify(text: str, max_length: int = 40) -> str:
-    """Convierte texto a slug válido para repo name (lowercase, guiones)."""
-    text = re.sub(r"[^\w\s-]", "", text.lower())
+    """Convierte texto a slug ASCII válido para repo name de GitHub.
+
+    GitHub repos requieren [a-zA-Z0-9._-]. Sprint 87.2: forzamos ASCII puro
+    porque vimos en producción que acentos (hacé, mérida) bloquean la creación
+    del repo y dejan el deploy colgado.
+    """
+    # 1) Normaliza unicode → ASCII (hacé → hace, mérida → merida)
+    text = unicodedata.normalize("NFKD", text or "")
+    text = text.encode("ascii", "ignore").decode("ascii")
+    # 2) Solo [a-z0-9-]
+    text = re.sub(r"[^a-zA-Z0-9\s-]", "", text.lower())
     text = re.sub(r"[\s_]+", "-", text).strip("-")
+    # 3) Colapsa guiones múltiples
+    text = re.sub(r"-+", "-", text)
     return text[:max_length] or "monstruo-site"
 
 
@@ -460,9 +473,15 @@ async def run_real_deploy(
     repo_name = f"monstruo-{_slugify(nombre, 30)}-{run_id[-8:]}"
     description = f"El Monstruo Pipeline E2E · Run {run_id}"
 
+    # Timeout total para no colgar el pipeline (build de Pages puede tomar 90s+)
+    deploy_timeout_s = int(os.environ.get("E2E_DEPLOY_TIMEOUT_S", "45"))
+
     try:
-        provider_result = await _deploy_via_github_pages(
-            repo_name=repo_name, files=files, description=description
+        provider_result = await asyncio.wait_for(
+            _deploy_via_github_pages(
+                repo_name=repo_name, files=files, description=description
+            ),
+            timeout=deploy_timeout_s,
         )
         result = RealDeployResult(
             deploy_url=provider_result["url"],
@@ -483,6 +502,18 @@ async def run_real_deploy(
             duration_ms=int((time.perf_counter() - started) * 1000),
         )
         return result
+    except asyncio.TimeoutError:
+        # Build de Pages excedió budget — fallback determinístico, no bloquear
+        logger.warning(
+            "e2e_deploy_timeout_fallback",
+            run_id=run_id,
+            timeout_s=deploy_timeout_s,
+            repo_name=repo_name,
+        )
+        return _heuristic_preview_result(
+            run_id=run_id,
+            reason=f"github_pages_timeout_{deploy_timeout_s}s",
+        )
     except E2EDeployProviderFailed as e:
         # Fallback explícito — no romper el pipeline si GitHub falla
         logger.warning(
