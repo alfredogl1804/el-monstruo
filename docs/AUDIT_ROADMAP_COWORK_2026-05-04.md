@@ -449,3 +449,111 @@ Cuando Sprint 86 Bloque 5 cierre + el Catastro acumule 2 semanas de data:
 1. Cowork consulta al Catastro vía MCP `catastro.recommend()`
 2. Re-evaluación tecnológica del roadmap con data fresca
 3. Output: `docs/AUDIT_ROADMAP_COWORK_v2_<fecha>.md`
+
+---
+
+## Apéndice — Re-priorización 2026-05-04 (post-cierre Sprint 86)
+
+> **Origen:** Directiva explícita de Alfredo el 2026-05-04 ~21:00 CST tras cierre del Sprint 86 Catastro.
+> **Cambio principal:** Stripe Pagos del Monstruo se difiere. Ejecución Autónoma End-to-End sube a prioridad #1 para v1.0.
+> **Orden firmado por Alfredo:** A → B → C (Opción D combinación, secuencial).
+
+### Cambio de prioridades
+
+Alfredo expresó: *"Stripe Pagos no es algo que tenga urgencia, me interesan más las demás áreas, su ejecución autónoma end-to-end. Stripe es básico y se puede dejar más adelante."*
+
+Consecuencia: el Sprint 87 que estaba reservado para Stripe Pagos se renombra al objetivo arquitectónico que Alfredo prioriza.
+
+### Las 3 dimensiones de "ejecución autónoma end-to-end"
+
+Confirmado por Alfredo el orden A → B → C:
+
+**A — Ejecución autónoma end-to-end del producto** (PRIMERO)
+El Monstruo recibe una frase ("hacé un marketplace de zapatos") y entrega URL viva con tráfico real generándose, sin intervención manual entre la frase y el resultado. Mide Obj #1 + Obj #2.
+
+**B — Embriones operando solos perpetuamente** (SEGUNDO)
+Los 9 Embriones existentes (Critic Visual, Product Architect, Creativo, Estratega, Financiero, Investigador, Técnico, Ventas, Vigía) corren autónomos 24/7 sin Cowork ni Alfredo dándoles tareas. Mide Obj #11 + Obj #8.
+
+**C — Guardian autónomo + auto-gobierno** (TERCERO)
+El Monstruo se vigila a sí mismo, detecta regresiones de objetivos, repara, reporta solo cuando hay decisiones magnas para Alfredo. Mide Obj #14 + Obj #15.
+
+### Roadmap v1.0 RE-PRIORIZADO
+
+| # | Sprint | Foco | ETA | Bloque del Obj #1-#15 |
+|---|---|---|---|---|
+| ✅ | Sprint 86 (Catastro) | CERRADO | — | Obj #5 + #6 al 90%+ |
+| en curso | Sprint Memento | Cerrar Bloque 7 (Hilo Ejecutor) | 1 día | Obj #15 al 95%+ |
+| en standby | Catastro Macroárea 2 (86.5) | Pre-investigación, espera primer run real | asíncrono | Obj #5 + #6 ampliación |
+| ▶ **Sprint 87** | **A — Ejecución Autónoma E2E (Frase → Empresa con tráfico real)** | **Obj #1 al 95%+** | 1-2 semanas | Obj #1, #2, #3 |
+| Sprint 88 | **B — Multiplicación + Orchestration de Embriones** (debate estructurado entre los 9 Embriones existentes, comunicación cross-Embrión, ciclos autónomos sin tareas humanas) | Obj #8 + #11 al 70%+ | 1 semana | Obj #8, #11 |
+| Sprint 89 | **C — Activación Guardian Autónomo** (sobre los 996 LOC ya escritos, scoring engine + alerting + cron diario + auto-corrección nivel 1-2) | Obj #14 al 80%+ | 2-3 días | Obj #14 |
+| Sprint 90 | Capa Transversal C1 Ventas E2E | Obj #9 al 50%+ | 3-5 días | Obj #9 |
+| Sprint 91 | Capa Transversal C2 SEO E2E | Obj #9 al 60%+ | 3-5 días | Obj #9 |
+| Sprint 92 | Capa Transversal C3 Ads E2E | Obj #9 al 70%+ | 1 semana | Obj #9 |
+| Sprint 93 | Verificación Autonomía Total (E2E A+B+C funcionando juntos sin Alfredo ni Cowork tocando nada por 7 días) | Obj #1 + #11 + #14 verificados | 1-2 semanas | Obj #1, #11, #14 |
+| Sprint 94 | Sub-ola Gobernanza ticketlike | Deuda crítica | 2-3 días | independiente |
+| **Sprint 95+** | **Stripe Pagos del Monstruo** (DIFERIDO — cuando Alfredo decida arrancar; spec listo en `bridge/sprint87_preinvestigation/`) | Obj #1 al 100% + Obj #12 economía | 3-5 días | Obj #1, #12 |
+
+**Total v1.0 funcional sin Stripe:** ~6-9 semanas calendario al ritmo actual.
+**v1.0 + Stripe:** +3-5 días cuando Alfredo lo decida.
+
+### Implicaciones operativas inmediatas
+
+#### Para el Hilo Manus Ejecutor
+
+Su cola previa decía "post-Memento → Sprint 87 Stripe Pagos". Cambia a:
+
+```
+1. Cerrar Sprint Memento Bloque 7 (en curso ahora)
+2. Cerrar bloqueos externos (migrations 018+019, ARTIFICIAL_ANALYSIS_API_KEY,
+   fastmcp, semillas 32-36)
+3. Ejecutar primer run real del Catastro (desbloquea Cowork Fase 2 Audit)
+4. Sprint 87 NUEVO = "Ejecución Autónoma E2E — Frase → Empresa con Tráfico Real"
+   (NO Stripe Pagos)
+5. Sprint 88 = Orchestration de Embriones
+6. Sprint 89 = Activación Guardian Autónomo
+```
+
+Stripe queda diferido sin abandonarse. El spec en `bridge/sprint87_preinvestigation/spec_stripe_pagos_monstruo.md` se mantiene válido para cuando Alfredo decida.
+
+#### Para el Hilo Manus Catastro
+
+Standby productivo se mantiene. Pre-investigaciones de Macroáreas 2-N siguen siendo trabajo asíncrono valioso. NO cambia su foco.
+
+#### Para Cowork
+
+Fase 2 del Audit del Roadmap se vuelve más relevante porque:
+- Cuando Sprint 87 nuevo (E2E) arranque, Cowork necesita data fresca del Catastro para validar tecnologías y arquitectura
+- Sprint 88 (Embriones) se beneficia del Catastro consultando qué LLMs son top para cada rol de Embrión
+
+### Caveat estratégico
+
+La re-priorización A→B→C tiene una propiedad interesante: cada sprint depende del anterior pero también lo refuerza:
+
+- **A (E2E producto)** sin **B (Embriones autónomos)** = El Monstruo crea sitios pero requiere intervención humana para cada decisión interna. Funciona, pero no escala.
+- **B (Embriones autónomos)** sin **A (E2E)** = Los Embriones corren ciclos pero no producen output medible. Funciona pero no demuestra valor.
+- **C (Guardian autónomo)** sin **A+B** = El Guardian vigila objetivos pero no hay mucho que vigilar. Útil pero prematuro.
+
+El orden A→B→C es correcto: primero demostrar que el sistema produce valor (A), después automatizar la producción (B), finalmente vigilar la calidad de la automatización (C).
+
+### Métrica de éxito de la re-priorización
+
+**v1.0 está cerrado funcional cuando:**
+
+1. Alfredo escribe una frase en chat ("hacé un marketplace de X")
+2. El Monstruo entrega URL viva con tráfico real
+3. Veredicto humano "comercializable" + métricas Critic Visual ≥ 80
+4. Los 9 Embriones operan sin intervención humana por al menos 7 días consecutivos
+5. El Guardian autónomo detecta y reporta cualquier regresión sin que Alfredo o Cowork tengan que hacer audit manual
+
+Esos 5 criterios = v1.0 funcional. **Sprint 87+88+89+93 cubren los 5.**
+
+### Estado del documento
+
+Versión 1.0 — análisis arquitectónico atemporal con cruce empírico del repo (~62-68% Monstruo v2.0).
+
+Versión 1.1 — apéndice de re-priorización 2026-05-04 (este apéndice).
+
+Próxima versión 2.0 — Fase 2 cuando Catastro tenga 2 semanas de data fresca + primer run real ejecutado.
+
+— Cowork (Hilo B)
