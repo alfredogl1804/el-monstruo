@@ -31,6 +31,9 @@ from kernel.catastro.sources.base import (
 from kernel.catastro.sources.artificial_analysis import ArtificialAnalysisFuente
 from kernel.catastro.sources.openrouter import OpenRouterFuente
 from kernel.catastro.sources.lmarena import LMArenaFuente
+from kernel.catastro.sources.swe_bench import SWEBenchFuente
+from kernel.catastro.sources.human_eval import HumanEvalFuente
+from kernel.catastro.sources.mbpp import MBPPFuente
 
 __all__ = [
     "BaseFuente",
@@ -43,4 +46,7 @@ __all__ = [
     "ArtificialAnalysisFuente",
     "OpenRouterFuente",
     "LMArenaFuente",
+    "SWEBenchFuente",
+    "HumanEvalFuente",
+    "MBPPFuente",
 ]
