@@ -285,7 +285,7 @@ class DashboardEngine:
             modelos_rows = self._safe_select(
                 client,
                 CATASTRO_MODELOS_TABLE,
-                fields="id,macroarea,dominio,estado,last_validated_at",
+                fields="id,macroarea,dominios,estado,ultima_validacion",
             )
         except Exception:
             return SummarySnapshot(
@@ -323,14 +323,19 @@ class DashboardEngine:
         modelos_total = len(modelos_rows or [])
         modelos_prod = sum(1 for r in (modelos_rows or [])
                            if str(r.get("estado", "")).lower() == "production")
-        dominios = {r.get("dominio") for r in (modelos_rows or []) if r.get("dominio")}
+        # `dominios` es text[] en la tabla — expandir todos los dominios de cada modelo
+        dominios = set()
+        for r in (modelos_rows or []):
+            for d in (r.get("dominios") or []):
+                if d:
+                    dominios.add(d)
         macroareas = sorted({r.get("macroarea") for r in (modelos_rows or [])
                              if r.get("macroarea")})
 
-        # last_validated_at fallback si no hay eventos cron
+        # ultima_validacion fallback si no hay eventos cron
         if last_run_at is None and modelos_rows:
             for r in modelos_rows:
-                dt = _parse_dt(r.get("last_validated_at"))
+                dt = _parse_dt(r.get("ultima_validacion") or r.get("last_validated_at"))
                 if dt and (last_run_at is None or dt > last_run_at):
                     last_run_at = dt
 
@@ -570,7 +575,7 @@ class DashboardEngine:
     ) -> list[FuenteHealth]:
         """Heurística: inferir health de fuentes desde last_validated_at por modelo.
 
-        Si la mayoría de modelos tienen last_validated_at < 7 días → ok,
+        Si la mayoría de modelos tienen ultima_validacion < 7 días → ok,
         si > 30 días → error, si entre medio → unknown.
         """
         now = datetime.now(timezone.utc)

@@ -140,36 +140,36 @@ def synthetic_db() -> _FakeClient:
             "nombre": "Claude Opus 4.7",
             "proveedor": "anthropic",
             "macroarea": "inteligencia",
-            "dominio": "llm_frontier",
+            "dominios": ["llm_frontier"],
             "estado": "production",
-            "last_validated_at": _iso(now - timedelta(hours=6)),
+            "ultima_validacion": _iso(now - timedelta(hours=6)),
         },
         {
             "id": "gpt-5.4",
             "nombre": "GPT 5.4",
             "proveedor": "openai",
             "macroarea": "inteligencia",
-            "dominio": "llm_frontier",
+            "dominios": ["llm_frontier"],
             "estado": "production",
-            "last_validated_at": _iso(now - timedelta(hours=12)),
+            "ultima_validacion": _iso(now - timedelta(hours=12)),
         },
         {
             "id": "gemini-3.1-pro",
             "nombre": "Gemini 3.1 Pro",
             "proveedor": "google",
             "macroarea": "inteligencia",
-            "dominio": "llm_frontier",
+            "dominios": ["llm_frontier"],
             "estado": "production",
-            "last_validated_at": _iso(now - timedelta(hours=18)),
+            "ultima_validacion": _iso(now - timedelta(hours=18)),
         },
         {
             "id": "qwen-3.6-coder",
             "nombre": "Qwen 3.6 Coder",
             "proveedor": "alibaba",
             "macroarea": "inteligencia",
-            "dominio": "coding_llms",
+            "dominios": ["coding_llms"],
             "estado": "preview",
-            "last_validated_at": _iso(now - timedelta(days=2)),
+            "ultima_validacion": _iso(now - timedelta(days=2)),
         },
     ]
     curadores = [
@@ -598,7 +598,7 @@ def test_e2e_dashboard_after_recommend_calls(synthetic_db: _FakeClient, monkeypa
     r1 = client.post("/v1/catastro/recommend",
                      headers={"X-API-Key": "test-secret-e2e-001"},
                      json={"use_case": "razonamiento legal LATAM",
-                           "dominio": "llm_frontier", "top_n": 2})
+                           "dominios": ["llm_frontier"], "top_n": 2})
     assert r1.status_code == 200, r1.text
     assert len(r1.json()["modelos"]) == 2
 

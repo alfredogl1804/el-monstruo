@@ -384,7 +384,7 @@ class RecommendationEngine:
                 precio_input_per_million=row.get("precio_input_per_million"),
                 precio_output_per_million=row.get("precio_output_per_million"),
                 open_weights=bool(row.get("open_weights") or False),
-                last_validated_at=_parse_dt(row.get("last_validated_at")),
+                last_validated_at=_parse_dt(row.get("ultima_validacion") or row.get("last_validated_at")),
                 subcapacidades=row.get("subcapacidades"),
                 sovereignty=row.get("sovereignty"),
                 velocity=row.get("velocity"),
@@ -470,7 +470,7 @@ class RecommendationEngine:
         try:
             res = (
                 client.table(CATASTRO_MODELOS_TABLE)
-                .select("macroarea,dominios,last_validated_at")
+                .select("macroarea,dominios,ultima_validacion")
                 .neq("estado", "deprecated")
                 .execute()
             )
@@ -495,7 +495,7 @@ class RecommendationEngine:
                 macroareas.add(r["macroarea"])
             for d in (r.get("dominios") or []):
                 dominios.add(d)
-            ts = _parse_dt(r.get("last_validated_at"))
+            ts = _parse_dt(r.get("ultima_validacion") or r.get("last_validated_at"))
             if ts and (last_update is None or ts > last_update):
                 last_update = ts
 
@@ -590,7 +590,7 @@ class RecommendationEngine:
                     precio_input_per_million=r.get("precio_input_per_million"),
                     precio_output_per_million=r.get("precio_output_per_million"),
                     open_weights=bool(r.get("open_weights") or False),
-                    last_validated_at=_parse_dt(r.get("last_validated_at")),
+                    last_validated_at=_parse_dt(r.get("ultima_validacion") or r.get("last_validated_at")),
                 ))
             except Exception:
                 # Fila corrupta — skip silencioso, no rompemos el batch
