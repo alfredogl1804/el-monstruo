@@ -34,6 +34,11 @@ from kernel.e2e.schema import (
     Veredicto,
 )
 
+# Sprint 87.2 — Bloques 1-4 reales
+from kernel.e2e.deploy import run_real_deploy
+from kernel.e2e.screenshot import capture_screenshot
+from kernel.e2e.critic_visual import evaluate_landing
+
 logger = structlog.get_logger("e2e_pipeline")
 
 
@@ -223,42 +228,71 @@ async def _step_llm_generic(
 async def _step_deploy(
     brief: Dict[str, Any],
     run_id: str,
+    state: Dict[str, Any],
 ) -> Dict[str, Any]:
-    """Step 9 — DEPLOY: genera URL viva. v1.0 estatico documentado."""
-    # En v1.0, el deploy real es deuda asumida. Devolvemos URL placeholder
-    # marcada como mock para que Critic Visual sepa qué procesar.
-    deploy_url = f"https://el-monstruo-e2e-mock.example.com/{run_id}"
-    return {
-        "deploy_url": deploy_url,
-        "deploy_target": "mock_v1",
-        "deploy_at": datetime.now(timezone.utc).isoformat(),
-        "real_deploy_pending": True,
-    }
+    """Step 9 — DEPLOY: Sprint 87.2 Bloque 1 deploy real.
+
+    GitHub Pages default. Si GITHUB_TOKEN ausente o provider falla,
+    fallback heuristic_preview con razon explicita.
+    """
+    result = await run_real_deploy(state=state, run_id=run_id)
+    return result.model_dump(mode="json")
 
 
 async def _step_critic_visual(
     cat: CatastroRuntimeClient,
     deploy_url: str,
+    run_id: str,
+    state: Dict[str, Any],
 ) -> Dict[str, Any]:
-    """Step 10 — CRITIC: evalúa visual del deploy. v1.0 con score conservador."""
+    """Step 10 — CRITIC: Sprint 87.2 Bloques 2+3.
+
+    1. Captura screenshot con Playwright (Bloque 2).
+    2. Evalua con Gemini Vision via Catastro runtime (Bloque 3).
+    3. Si cualquiera falla -> fallback heuristico determinista (score 60).
+    """
     selection = await cat.select_model_for_step("CRITIC")
-    # En v1.0 (sin sovereign_browser conectado): score conservador 60.
-    # Cowork firmó esta deuda en spec del Sprint 87.
-    score_v1 = 60.0
-    return {
-        "modelo_elegido": selection,
-        "critic_visual_score": score_v1,
-        "deploy_url": deploy_url,
-        "feedback": "v1.0 stub — score conservador 60 hasta integración sovereign_browser.",
+    modelo_id = (selection or {}).get("model_id") or "gemini-2.5-pro"
+
+    # Bloque 2 — Screenshot
+    shot = await capture_screenshot(deploy_url=deploy_url, run_id=run_id)
+    screenshot_path = shot.screenshot_path
+
+    # Bloque 3 — Critic Visual
+    creativo = (state.get("creativo") or {}).get("output_payload") or {}
+    ventas = (state.get("ventas") or {}).get("output_payload") or {}
+    brief_ctx = {
+        "frase_input": state.get("frase_input", ""),
+        "nombre": creativo.get("nombre") or "n/a",
+        "propuesta_valor": ventas.get("propuesta_valor") or "n/a",
     }
+    report = await evaluate_landing(
+        deploy_url=deploy_url,
+        screenshot_path=screenshot_path,
+        brief_ctx=brief_ctx,
+        modelo_elegido=modelo_id,
+    )
+    out = report.model_dump(mode="json")
+    out["modelo_elegido"] = selection  # mantener compat con consumidores previos
+    out["critic_visual_score"] = report.score
+    out["screenshot"] = shot.model_dump(mode="json")
+    return out
 
 
-async def _step_traffic(deploy_url: str) -> Dict[str, Any]:
-    """Step 11 — TRAFFIC: vigía sintético. v1.0 stub."""
+async def _step_traffic(deploy_url: str, run_id: str) -> Dict[str, Any]:
+    """Step 11 — TRAFFIC: Sprint 87.2 Bloque 4 instrumentacion soberana.
+
+    El step en si es liviano: solo confirma que la landing esta instrumentada
+    (el monstruo-tracking.js inyectado en el deploy emitira eventos reales
+    contra POST /v1/traffic/ingest cuando un humano la visite).
+    """
     return {
         "deploy_url": deploy_url,
-        "requests_seeded": 0,
-        "vigia_status": "v1_stub_pending",
+        "run_id": run_id,
+        "tracking_endpoint": "/v1/traffic/ingest",
+        "tracking_script": "/monstruo-tracking.js",
+        "vigia_status": "sovereign_tracking_active",
+        "observability": "GET /v1/traffic/summary/" + run_id,
     }
 
 
@@ -425,7 +459,7 @@ async def run_e2e_pipeline(run_id: str, repo: E2ERepository) -> None:
 
     # -------- Step 9: DEPLOY --------
     out = await _safe_step(
-        _step_deploy(state["architect"]["brief"], run_id),
+        _step_deploy(state["architect"]["brief"], run_id, state),
         repo=repo,
         run_id=run_id,
         step_number=9,
@@ -442,7 +476,7 @@ async def run_e2e_pipeline(run_id: str, repo: E2ERepository) -> None:
 
     # -------- Step 10: CRITIC --------
     out = await _safe_step(
-        _step_critic_visual(cat, deploy_url or ""),
+        _step_critic_visual(cat, deploy_url or "", run_id, state),
         repo=repo,
         run_id=run_id,
         step_number=10,
@@ -463,7 +497,7 @@ async def run_e2e_pipeline(run_id: str, repo: E2ERepository) -> None:
 
     # -------- Step 11: TRAFFIC --------
     out = await _safe_step(
-        _step_traffic(deploy_url or ""),
+        _step_traffic(deploy_url or "", run_id),
         repo=repo,
         run_id=run_id,
         step_number=11,

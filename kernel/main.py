@@ -1318,6 +1318,27 @@ async def lifespan(app: FastAPI):
         logger.warning("sprint_87_e2e_init_failed", error=str(_e_e2e))
         app.state.e2e_orchestrator = None
 
+    # ----- Sprint 87.2 Bloque 4 — Traffic Soberano -----
+    try:
+        from kernel.e2e.traffic.repository import TrafficRepository
+        from kernel.e2e.traffic.routes import traffic_router
+        if db_connected and db is not None:
+            app.state.traffic_repository = TrafficRepository(db)
+            app.include_router(traffic_router)
+            logger.info(
+                "sprint_872_traffic_initialized",
+                endpoints=[
+                    "/v1/traffic/ingest",
+                    "/v1/traffic/summary/{run_id}",
+                ],
+            )
+        else:
+            logger.warning("sprint_872_traffic_skipped_no_db")
+            app.state.traffic_repository = None
+    except Exception as _e_tr:
+        logger.warning("sprint_872_traffic_init_failed", error=str(_e_tr))
+        app.state.traffic_repository = None
+
     # ── Sprint 81: Error Memory Endpoints ───────────────────────────────
     @app.get("/v1/error-memory/recent", tags=["observability"])
     async def error_memory_recent(request: Request, limit: int = 20):
