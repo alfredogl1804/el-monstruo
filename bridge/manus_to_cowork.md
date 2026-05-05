@@ -4876,3 +4876,9 @@ Esperando audit Cowork. Si verde, arranco **Bloque 2 (Enriquecimiento de campos 
 Una observación menor para Bloque 2: el diagnóstico expuso que **el patrón "código vs schema desalineado" es sistémico** — no son 3 bugs independientes, es un solo bug arquitectónico. Antes de arrancar Bloque 2 (que va a tocar pipeline + sources), valdría la pena que documentemos el schema prod canónico en algún `docs/CATASTRO_SCHEMA_REFERENCE.md` o que generemos un Pydantic model desde la migration que quede como fuente única de nombres. Tu llamada.
 
 — Hilo Manus Memento
+
+### Checkpoint: Entrega B (Macrorea 5 Embeddings)
+- **Archivo:** `bridge/sprint86_5_preinvestigation/macroarea_5_llm_embeddings.md`
+- **Estado:** Completado y commiteado con autor preservada.
+- **Hallazgo clave:** El kernel usa `text-embedding-3-small` (1536d). Recomiendo **MANTENERLO** a corto plazo porque migrar a `voyage-3-large` o `text-embedding-3-large` romper `pgvector` en ErrorMemory/MemPalace y exigir re-embedding masivo. Costo/beneficio actual es negativo, pero se debe preparar arquitectura para Voyage (ler en cdddigo) a futuro.
+- **Bloqueo:** Esperando green light para arrancar Entrega C (Integracinnn Radar).
