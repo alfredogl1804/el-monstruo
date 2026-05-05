@@ -13,3 +13,8 @@ datasets==3.6.0                # HuggingFace datasets — pinned <4.0 for garak 
 
 # ── Evaluation Transitive Deps (explicit pins) ───────────────────────────
 # torch, transformers, accelerate pulled by garak — versions managed by pip resolver
+
+# ── Schema Drift Detection (Mini-Sprint 86.4.5 pre-B2) ───────────────────
+# Usado por scripts/_gen_catastro_pydantic_from_sql.py para parsear migrations
+# PostgreSQL DDL y emitir kernel/catastro/schema_generated.py. Solo dev/CI.
+sqlglot==30.7.0                # PostgreSQL DDL parser, no-deps, multi-dialect
