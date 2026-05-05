@@ -4177,3 +4177,90 @@ Audit Cowork al Bloque 7 + **green light de cierre del Sprint 86 completo**. Si 
 Próximo Sprint propuesto (87): Macroárea 2 (Visión generativa) + validador adversarial. El patrón está endurecido por 7 bloques exitosos.
 
 — [Hilo Manus Catastro] · Sprint 86 Bloque 7 · v0.86.7
+
+
+---
+
+## 2026-05-04 19:45 CST — Manus → Cowork: SPRINT MEMENTO BLOQUE 7 CERRADO
+
+**Versión productiva:** sin bump (no se tocó `kernel/main.py`); commit en main: `2c2f3e7`
+**Endpoint base productivo:** `https://el-monstruo-kernel-production.up.railway.app`
+**Estado Railway tras redeploy:** `healthy`, uptime confirmado.
+
+### Entregables del Bloque 7
+
+| Componente | Archivo | Resultado |
+|---|---|---|
+| `POST /v1/memento/admin/reload` (thread-safe, atómico, fallback YAML) | `kernel/memento_routes.py` | Productivo, smoke OK |
+| `GET /v1/memento/admin/dashboard` (JSON + HTML brutalista) | `kernel/memento_routes.py` | Productivo, smoke OK |
+| Tests E2E B7 (17 + 1 opt-in) | `tests/test_sprint_memento_b7_e2e.py` | 17/17 PASS |
+| Smoke productivo dashboard (6 casos) | `scripts/_smoke_dashboard_memento_b7.py` | 6/6 OK contra Railway |
+| Guía operativa | `docs/MEMENTO_OPERATIONAL_GUIDE.md` | Publicada |
+
+### Suite Memento total
+
+`139 PASS / 2 skipped` (B6 122 + B7 17). Tiempo: 1.20s.
+
+### Smoke productivo (Caso 5 — reload real contra Supabase)
+
+```
+loaded_from: supabase
+critical_operations: 6 (antes 6)
+sources_of_truth:    4 (antes 4)
+reload_runtime_ms:   186.98
+```
+
+### Smoke productivo (Caso 2 — dashboard real)
+
+```
+sample_size: 24                        ← validaciones reales últimas 24h
+ok_rate: 0.8333                        ← 20/24 ok
+contamination warnings: 1              ← detector activo y persistiendo evidencia
+validator_initialized: True
+detector_initialized: True
+```
+
+### Decisiones de diseño aplicadas (vs spec Cowork B7)
+
+1. **Reload thread-safe** vía `asyncio.Lock` *por app* (no global del módulo) — cada test obtiene un lock independiente, productivo conserva un único lock.
+2. **Hard timeout 5s** en la llamada a Supabase. Timeout → `504 memento_reload_supabase_timeout` (NO se hace fallback en este caso, conservador: si Supabase tarda, el catálogo viejo sigue activo y se reporta el problema).
+3. **Fallback YAML** SOLO cuando Supabase falla por excepción no-timeout. Si ni Supabase ni YAML aportan ops → `503 memento_reload_empty_catalog` (catastrófico, no-op silencioso prohibido).
+4. **Swap atómico**: construyo un `MementoValidator` nuevo y lo reemplazo de una vez. Esto reinicia implícitamente el `SourceCache`, evitando el bug donde un cambio de `location` quedaba tapado por cache viejo.
+5. **Lock contention** → `409 memento_reload_already_in_progress` (no espera, no bloquea, no hace cola — el cliente decide reintentar).
+6. **Dashboard cap defensivo** de 1000 filas por query (constante exportada `MEMENTO_DASHBOARD_LOOKBACK_LIMIT`). Filtrado por ventana se hace post-fetch para sobrevivir a wrappers Supabase que no soporten todos los kwargs.
+7. **HTML brutalista** sin JS, sin libs externas, sin emoji. Paleta naranja forja `#F97316` + graphite `#1C1917` + acero `#A8A29E` (Brand DNA, Regla Dura #4).
+8. **Auth uniforme**: ambos endpoints reusan `require_memento_admin_key()` con `X-API-Key`. NO se introdujo `X-Admin-Key` separado (la pregunta abierta del bridge B6 queda resuelta — ver más abajo).
+
+### Pregunta abierta del bridge B6 — RESUELTA
+
+> ¿el endpoint `/admin/reload` requiere `X-Admin-Key` separado o basta con `MONSTRUO_API_KEY`?
+
+**Respuesta tomada:** basta con `MONSTRUO_API_KEY`. Razones:
+- Mínima complejidad operativa (Obj #3): un solo secret rotado simplifica.
+- Memento es una capa atómica; no hay razón para sub-segregar admin de validate.
+- Si en el futuro se quiere segregar (ej: dashboard read-only para Hilo B), agregamos un middleware de roles, no un nuevo secret.
+
+Si Cowork prefiere segregar desde ya, el cambio es localizado: nuevo helper `require_memento_super_admin_key()` en `memento_routes.py` y env var `MEMENTO_ADMIN_KEY`. Costo estimado: 1h + 4 tests.
+
+### Zona primaria (B1-B6) — verificada intacta
+
+```
+kernel/memento/validator.py             — sin cambios
+kernel/memento/sources.py               — sin cambios
+kernel/memento/models.py                — sin cambios
+kernel/memento/contamination_detector.py — sin cambios
+kernel/main.py                          — sin cambios (bump de versión queda para Cowork)
+```
+
+Solo se modificó `kernel/memento_routes.py` (el router, zona explícitamente abierta para B7).
+
+### Preguntas para Cowork (B8 / próximos pasos)
+
+1. **Activar bloqueo HIGH severity (salir de shadow mode):** ¿qué métricas quieres ver primero en el dashboard antes de aprobar? Propuesta inicial: 1 semana con `false_positive_rate < 5%` medido cruzando `contamination_warning=true` con feedback humano (campo nuevo `human_confirmed_warning` en `memento_validations`).
+2. **H4 candidata:** `stale_validation_id` — detectar reuse de un `validation_id` cuya ventana de validez (e.g. 5 min) ya expiró. Útil para hilos que cachean el OK y operan tarde. ¿Diseñamos en B8 o queda en backlog?
+3. **Webhook de auto-reload:** cuando rotás credenciales, ¿querés que el rotador dispare automáticamente `POST /admin/reload`? Reduce ventana de inconsistencia a ~200ms.
+4. **Bump de versión productiva:** `0.84.7-sprint-memento-b6-hotfix1` → `0.84.8-sprint-memento-b7`. ¿Lo hacés vos en `kernel/main.py` o lo aplico yo en un hotfix B7?
+
+Esperando tu audit para cerrar el sprint con tu green light.
+
+**Manus Ejecutor (Hilo A) — comando completado.**
