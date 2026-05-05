@@ -1,0 +1,106 @@
+# Sprint 86.4.5 Bloque 2 — Field mapping declarativo del Catastro
+# ----------------------------------------------------------------------------
+# Define cómo poblar los 6 campos métricos de CatastroModelo desde el cache
+# normalizado (`modelos_por_fuente`) producido por _normalize_snapshots.
+#
+# Filosofía:
+#   - Single-source preferred: si una fuente reporta un campo de forma
+#     autoritativa (Artificial Analysis para quality_score), no exigimos
+#     quorum cross-source. La confiabilidad se modela en `reliability_score`.
+#   - Normalización opt-in: speed_score y cost_efficiency requieren ranking
+#     min-max sobre el run completo (escala 0-100). Otros como quality_score
+#     ya vienen 0-100 nativos.
+#   - Fallback: si la fuente primaria no aporta el campo, intentar secundaria.
+#     reliability_score se DERIVA del % de fuentes confirmantes.
+#
+# Schema del yaml:
+#   fields:
+#     <campo>:
+#       extractors:        # ordenados por prioridad
+#         - source: <name>
+#           path: <dot.path.in.cache>
+#           normalization: <none|passthrough|minmax|inverse_log>
+#       fallback: <strategy_name>
+#
+# Estrategia min-max: para un run con N modelos con valor crudo v_i:
+#   score_i = 100 * (v_i - min(v)) / (max(v) - min(v))
+#   Si max == min, todos quedan en 50.0 (neutralidad).
+#
+# Estrategia inverse_log (para precios → cost_efficiency):
+#   score_i = 100 - 100 * log(precio_i + 1) / log(max(precios) + 1)
+#   Más barato = score mayor.
+#
+# Estrategia derived_from_quorum: deriva del % de fuentes confirmantes
+#   (presence_qr.confirming_sources / total fuentes oficiales).
+
+version: "1.0"
+
+fields:
+
+  quality_score:
+    description: "Inteligencia general del modelo, escala 0-100"
+    extractors:
+      - source: artificial_analysis
+        path: quality_score
+        normalization: passthrough  # AA ya entrega 0-100
+    fallback: null
+
+  reliability_score:
+    description: "Confiabilidad del dato del modelo, derivado de # fuentes"
+    extractors: []  # sin extractor directo
+    fallback: derived_from_quorum
+    # 1 fuente = 33.3, 2 = 66.7, 3 = 100.0
+
+  cost_efficiency:
+    description: "Costo-eficiencia, derivado de pricing (más barato = mayor)"
+    extractors:
+      - source: artificial_analysis
+        path: pricing.input_per_million
+        normalization: inverse_log
+      - source: openrouter
+        path: pricing.input_per_million
+        normalization: inverse_log
+    fallback: null
+
+  speed_score:
+    description: "Velocidad de inferencia, escala 0-100 normalizada del run"
+    extractors:
+      - source: artificial_analysis
+        path: tokens_per_second
+        normalization: minmax
+    fallback: null
+
+  precio_input_per_million:
+    description: "Precio USD por millón de tokens de input (autoritativo AA)"
+    extractors:
+      - source: artificial_analysis
+        path: pricing.input_per_million
+        normalization: none
+      - source: openrouter
+        path: pricing.input_per_million
+        normalization: none
+    fallback: null
+
+  precio_output_per_million:
+    description: "Precio USD por millón de tokens de output (autoritativo AA)"
+    extractors:
+      - source: artificial_analysis
+        path: pricing.output_per_million
+        normalization: none
+      - source: openrouter
+        path: pricing.output_per_million
+        normalization: none
+    fallback: null
+
+# Capa Memento — preflight obligatorio
+memento_preflight:
+  required_fields_in_cache:
+    artificial_analysis:
+      - quality_score
+      - tokens_per_second
+      - pricing.input_per_million
+      - pricing.output_per_million
+    openrouter:
+      - pricing.input_per_million
+      - pricing.output_per_million
+  on_missing: log_warning  # no aborta, pero registra heurística para Memento

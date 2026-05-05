@@ -506,6 +506,21 @@ def build_modelo_from_pipeline_persistible(
     pricing_output = fields.get("pricing.output_per_million")
     organization = fields.get("organization") or "unknown"
 
+    # Sprint 86.4.5 Bloque 2 — métricas single-source enriquecidas via
+    # field_mapping.yaml. Si _enrich_with_metrics no corrió, todas son None.
+    quality_score = fields.get("quality_score")
+    reliability_score = fields.get("reliability_score")
+    cost_efficiency = fields.get("cost_efficiency")
+    speed_score = fields.get("speed_score")
+    # precio_input/output_per_million del field_mapping tienen precedencia
+    # sobre el pricing.X del quorum cuando existen y el quorum no aportó.
+    precio_input_metric = fields.get("precio_input_per_million")
+    precio_output_metric = fields.get("precio_output_per_million")
+    if pricing_input is None and precio_input_metric is not None:
+        pricing_input = precio_input_metric
+    if pricing_output is None and precio_output_metric is not None:
+        pricing_output = precio_output_metric
+
     # Confidence proviene del presence quorum
     presence_confidence = float(persistible.get("presence_confidence", 0.5))
 
@@ -532,6 +547,11 @@ def build_modelo_from_pipeline_persistible(
         dominios=["llm_frontier"],  # default Sprint 86
         precio_input_per_million=pricing_input,
         precio_output_per_million=pricing_output,
+        # Sprint 86.4.5 Bloque 2 — métricas enriquecidas
+        quality_score=quality_score,
+        reliability_score=reliability_score,
+        cost_efficiency=cost_efficiency,
+        speed_score=speed_score,
         fuentes_evidencia=fuentes_evidencia,
         quorum_alcanzado=True,
         confidence=presence_confidence,

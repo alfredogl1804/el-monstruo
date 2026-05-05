@@ -135,3 +135,4 @@ stripe==15.1.0
 # Requires post-install: playwright install chromium --with-deps
 # See Dockerfile.web for chromium install step
 playwright==1.49.0
+PyYAML>=6.0.0,<7.0.0  # Sprint 86.4.5  explicit (was transitive via fastmcp)
