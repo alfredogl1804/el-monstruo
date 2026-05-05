@@ -207,6 +207,85 @@ class TestRecommendationEngineInit:
 
 
 # ============================================================================
+# 2.bis SPRINT 86.4.5 BLOQUE 1 — BUG FIX BOOTSTRAP build_default_db_factory
+# ============================================================================
+
+
+class TestBuildDefaultDbFactoryDualKey:
+    """
+    Audit Cowork B7 Q1+Q2 detectó que /v1/catastro/recommend en prod retorna
+    degraded='no_db_factory_configured'. Causa raíz: el factory leía solo
+    SUPABASE_SERVICE_ROLE_KEY mientras Railway prod tiene SUPABASE_SERVICE_KEY.
+
+    Estos tests fijan el contrato dual-read: oficial preferida + legacy fallback.
+    Si algún día Railway migra a la convención oficial, los tests siguen
+    pasando sin cambios.
+    """
+
+    def _clean_env(self, monkeypatch):
+        monkeypatch.delenv("SUPABASE_URL", raising=False)
+        monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+        monkeypatch.delenv("SUPABASE_SERVICE_KEY", raising=False)
+
+    def test_lee_oficial_supabase_service_role_key(self, monkeypatch):
+        self._clean_env(monkeypatch)
+        monkeypatch.setenv("SUPABASE_URL", "https://x.supabase.co")
+        monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "role-key-oficial")
+        factory = build_default_db_factory()
+        # Sin instalar supabase real, el factory llega a `from supabase import
+        # create_client` y luego a create_client(url, key). Si la key se leía
+        # mal, la excepción sería "catastro_recommend_supabase_env_missing"
+        # ANTES del import. Verificamos que NO sea esa excepción.
+        try:
+            factory()
+        except Exception as exc:
+            assert "supabase_env_missing" not in str(exc)
+
+    def test_lee_legacy_supabase_service_key_como_fallback(self, monkeypatch):
+        self._clean_env(monkeypatch)
+        monkeypatch.setenv("SUPABASE_URL", "https://x.supabase.co")
+        monkeypatch.setenv("SUPABASE_SERVICE_KEY", "legacy-key-railway")
+        factory = build_default_db_factory()
+        try:
+            factory()
+        except Exception as exc:
+            assert "supabase_env_missing" not in str(exc)
+
+    def test_oficial_gana_sobre_legacy_si_ambas_seteadas(self, monkeypatch):
+        """Si ambas están, la oficial debe ganar (Sprint 86.4.5 «lower
+        cognitive load future-proof» cuando se migre Railway)."""
+        self._clean_env(monkeypatch)
+        monkeypatch.setenv("SUPABASE_URL", "https://x.supabase.co")
+        monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "role-key-OFICIAL")
+        monkeypatch.setenv("SUPABASE_SERVICE_KEY", "legacy-key-OLD")
+        # Inyectamos un create_client falso para capturar qué key se pasa
+        captured = {}
+        import sys
+        import types
+        fake_supabase = types.ModuleType("supabase")
+        def _fake_create_client(url, key):
+            captured["url"] = url
+            captured["key"] = key
+            return object()
+        fake_supabase.create_client = _fake_create_client  # type: ignore[attr-defined]
+        monkeypatch.setitem(sys.modules, "supabase", fake_supabase)
+        factory = build_default_db_factory()
+        factory()
+        assert captured["key"] == "role-key-OFICIAL"
+
+    def test_sin_ninguna_key_lanza_error_claro(self, monkeypatch):
+        self._clean_env(monkeypatch)
+        monkeypatch.setenv("SUPABASE_URL", "https://x.supabase.co")
+        factory = build_default_db_factory()
+        try:
+            factory()
+        except Exception as exc:
+            assert "supabase_env_missing" in str(exc)
+            return
+        assert False, "debería haber lanzado error por key faltante"
+
+
+# ============================================================================
 # 3. RECOMMEND() — VALIDACIÓN Y CACHE
 # ============================================================================
 

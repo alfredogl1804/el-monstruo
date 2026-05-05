@@ -628,25 +628,40 @@ def _parse_dt(value: Any) -> Optional[datetime]:
 def build_default_db_factory() -> Optional[Callable[[], Any]]:
     """
     Construye un db_factory por defecto que lee SUPABASE_URL +
-    SUPABASE_SERVICE_ROLE_KEY del entorno (lazy, no cacheado).
+    service-role key del entorno (lazy, no cacheado).
+
+    Acepta dos convenciones de naming para la service-role key (Sprint 86.4.5
+    Bloque 1 fix: Railway prod usa la convención histórica del repo,
+    mientras la doc oficial de Supabase usa la convención con `_ROLE_`):
+      1. SUPABASE_SERVICE_ROLE_KEY  (oficial Supabase, preferida)
+      2. SUPABASE_SERVICE_KEY       (histórica del repo, fallback)
+    Si ambas están seteadas, gana la oficial. Si ninguna, error claro.
 
     Returns:
         Callable que construye client al invocarse. None si no hay env vars.
     """
     def _factory() -> Any:
         url = os.environ.get("SUPABASE_URL", "")
-        key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+        key = (
+            os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+            or os.environ.get("SUPABASE_SERVICE_KEY", "")
+        )
         if not url or not key:
             raise CatastroRecommendError(
-                "supabase env vars no configuradas",
+                "catastro_recommend_supabase_env_missing",
                 missing_url=not bool(url),
                 missing_key=not bool(key),
+                hint=(
+                    "Configurar SUPABASE_URL y una de "
+                    "SUPABASE_SERVICE_ROLE_KEY (preferida) o "
+                    "SUPABASE_SERVICE_KEY (legacy)."
+                ),
             )
         try:
             from supabase import create_client
         except ImportError as exc:
             raise CatastroRecommendError(
-                "supabase package no instalado",
+                "catastro_recommend_supabase_package_missing",
                 hint="pip install supabase",
             ) from exc
         return create_client(url, key)
