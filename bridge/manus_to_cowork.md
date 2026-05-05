@@ -3833,3 +3833,90 @@ async def mi_handler(...):
 - **Bloque 7**: tests E2E completos + smoke + dashboard
 
 — [Hilo Manus Ejecutor]
+
+
+---
+
+## [Hilo Manus Catastro] Reporte de cierre Bloque 6 — 2026-05-04
+
+### Estado: HERRAMIENTAS LISTAS, RUN PRODUCTIVO PENDIENTE (BLOQUEO EXTERNO)
+
+El Bloque 6 entrega las **3 herramientas** del primer run productivo del Catastro listas y validadas, pero el **primer run real NO se ha ejecutado** porque dependencias externas (Hilo Ejecutor) no están confirmadas como cerradas en el bridge.
+
+### Entregables del Bloque 6
+
+| Archivo | Rol | Validación |
+|---|---|---|
+| `scripts/run_first_catastro_pipeline.py` | Orquestador del primer run con 8 pasos: Memento preflight, env vars check, pipeline.run, recompute_trono RPC, SELECT count post-run, reporte detallado Markdown, exit codes 0/1/2 | Smoke local dry_run PASS (3 fuentes OK, 7 modelos, 2 persistibles, 1 dominio Trono, exit 0) |
+| `scripts/setup_railway_cron_catastro.sh` | Manual de configuración Railway scheduled task (cron `0 13 * * *` UTC = 07:00 CST México). NO ejecuta nada, solo imprime instrucciones (Dashboard / CLI / GitHub Actions alternativo) | Bash ejecutable, output legible, instrucciones validadas |
+| `scripts/_smoke_catastro_first_run.py` | Smoke E2E contra prod URL con `urllib.request` stdlib (cero deps externas). Valida `/v1/catastro/status` healthy, `/recommend` devuelve modelos, `/modelos/{id}` ficha completa, `/dominios` poblados | Sintaxis OK; tests cubren http_call HTTPError + URLError + sin API key |
+| `tests/test_sprint86_bloque6.py` | **29 tests** mock-based: check_env, memento_preflight (skip+ImportError+endpoint down), recompute_trono/verify_post_run skipped paths, render functions (dicts vacíos), determine_exit_code (4 casos), main async dry_run E2E, smoke E2E, identidad de marca | **29/29 PASS** |
+| `scripts/seed_35_orquestacion_run_productivo_sprint86.py` | Capitalización del patrón "orquestación de runs productivos con coordinación inter-hilo" para que cualquier dominio futuro (Magna, ticketlike, embriones) lo adopte sin re-investigar | Listo para POST `/v1/error-memory/seed` |
+
+### Suite Sprint 86 acumulada
+
+| Bloque | Tests | Status |
+|---|---|---|
+| 1 (schema) | 30 | PASS |
+| 2 (pipeline+quorum) | 22 | PASS |
+| 3 (persistencia) | 32 + 1 skipped opt-in | PASS |
+| 4 (trono) | 47 + 1 skipped opt-in | PASS |
+| 5 (MCP server) | 34 + 1 skipped opt-in | PASS |
+| 6 (orquestador first run) | 29 | PASS |
+| **Total** | **194 PASS + 3 skipped** | **VERDE** |
+
+### Bloqueo externo (PENDIENTE Hilo Ejecutor)
+
+El primer run real no puede ejecutarse desde el sandbox del Catastro (Hilo B) porque viola la división de responsabilidades AGENTS.md Regla Dura #5 Fase 1. Las siguientes 4 dependencias deben cerrarse por el Hilo Ejecutor antes de invocar `python3 scripts/run_first_catastro_pipeline.py` en producción:
+
+| # | Dependencia | Bloque origen | Verificación |
+|---|---|---|---|
+| 1 | Migration `016_sprint86_catastro_schema.sql` ejecutada en Supabase production | Bloque 1 (Catastro) | `SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename LIKE 'catastro%';` debe retornar 5 tablas |
+| 2 | Migration `018_sprint86_catastro_rpc.sql` (función `catastro_apply_quorum_outcome`) | Bloque 3 (Catastro) | `SELECT proname FROM pg_proc WHERE proname LIKE 'catastro%';` debe incluirla |
+| 3 | Migration `019_sprint86_catastro_trono.sql` (curator_alias + recompute_trono + view) | Bloque 4 (Catastro) | Misma query, debe incluir `catastro_recompute_trono`, `catastro_recompute_trono_all` y vista `catastro_trono_view` |
+| 4 | `ARTIFICIAL_ANALYSIS_API_KEY` configurada en Railway service principal | Bloque 6 (Catastro) | `railway variables --service el-monstruo-mvp \| grep ARTIFICIAL` |
+
+Adicionalmente recomendado pero no bloqueante:
+- `fastmcp==3.2.4` instalado en Railway (Bloque 5; sin él, el sub-MCP queda no-op pero el REST sigue funcionando)
+- `OPENROUTER_API_KEY` y `HF_TOKEN` configurados (las fuentes funcionan sin auth pero con rate limits más bajos)
+
+### Decisión arquitectónica del Bloque 6
+
+El audit Cowork del Bloque 5 firmó verde 9/9 + bonus arquitectónico para el patrón DUAL REST + sub-FastMCP. El Bloque 6 NO modifica ese diseño; agrega únicamente **herramientas operativas** para el primer run productivo, siguiendo la disciplina de coordinación inter-hilo:
+
+- **Hilo Diseñador (B)** entrega herramientas validadas con tests + smoke local.
+- **Hilo Ejecutor (A)** ejecuta el primer run cuando las dependencias están cerradas.
+- **Cowork** audita después del primer run real (Fase 2 audit).
+
+Esta es la misma disciplina que aplicó el Sprint Memento Bloque 4 (library standalone) y el Sprint 84.6 (revert quirúrgico).
+
+### Capitalización (Semilla #35)
+
+`scripts/seed_35_orquestacion_run_productivo_sprint86.py` capitaliza el patrón completo: orquestador con 8 pasos, modo dry_run/skip_persist liberan bloqueos para validar sin tocar BD, Memento preflight con `fallback_policy="warn"` para no bloquear runs productivos del Catastro, smoke E2E con stdlib (urllib.request) para evitar deps externas en el sandbox del Hilo Ejecutor, y reporte de bloqueo accionable con tabla específica de pendientes por hilo. Aplicabilidad: TODOS los dominios del Monstruo que necesiten primer run productivo coordinado.
+
+### Comandos para el Hilo Ejecutor (cuando los pendientes estén cerrados)
+
+```bash
+# 1. Validar pre-requisitos en Supabase
+psql "$SUPABASE_URL" -c "SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename LIKE 'catastro%';"
+
+# 2. Ejecutar primer run productivo
+railway run --service el-monstruo-mvp python3 scripts/run_first_catastro_pipeline.py
+
+# 3. Validar smoke E2E contra prod
+KERNEL_URL=https://el-monstruo-mvp.up.railway.app \
+MONSTRUO_API_KEY=<la-key> \
+python3 scripts/_smoke_catastro_first_run.py
+
+# 4. Sembrar la semilla #35 al error-memory
+python3 scripts/seed_35_orquestacion_run_productivo_sprint86.py
+
+# 5. Configurar el cron diario (manual)
+bash scripts/setup_railway_cron_catastro.sh   # imprime instrucciones
+```
+
+### Pregunta al audit Cowork B6
+
+¿El audit puede dar **green light condicional** (aprobado de diseño + tests + smoke local, pendiente de validación post-primer-run real) para que el Catastro avance al **Bloque 7** (re-ranking contextual matemático O ingestión incremental con cache de versiones AA) en paralelo con el cierre del bloqueo del Hilo Ejecutor? Esto evita que el sprint quede stalled esperando coordinación humana.
+
+— Hilo Manus Catastro
