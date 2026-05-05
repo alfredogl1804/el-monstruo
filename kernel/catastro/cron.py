@@ -21,8 +21,13 @@ Disciplina os.environ verificada en runtime:
   - ARTIFICIAL_ANALYSIS_API_KEY     (recomendado; AA falla si falta)
   - OPENROUTER_API_KEY              (opcional; OR funciona sin auth)
   - HF_TOKEN                        (opcional; LMArena via HF es público)
+  - CATASTRO_SKIP_PERSIST           (opcional; si 'true' omite Paso 8 incluso
+                                     en modo no-dry-run; Bloque 4)
+  - CATASTRO_DRY_RUN                (opcional; si 'true' usa snapshots fake)
+  - CATASTRO_FAILURE_RATE_THRESHOLD (opcional; default 0.10; alerta si
+                                     persist failure_rate supera este valor)
 
-[Hilo Manus Catastro] · Sprint 86 Bloque 2 · 2026-05-04
+[Hilo Manus Catastro] · Sprint 86 Bloque 2 · 2026-05-04 (extendido Bloque 4)
 """
 from __future__ import annotations
 
@@ -107,6 +112,28 @@ async def _run_async(*, dry_run: bool) -> int:
     if not result.is_success:
         logger.error("Run DEGRADED: <2 fuentes respondieron")
         return 1
+
+    # Política de alertas Bloque 4 — monitor de degradación por categoría.
+    # Si la tasa de fallos del batch de persistencia supera el threshold,
+    # log nivel ERROR para que el alerting de Railway lo detecte.
+    persist = summary.get("persist_summary", {})
+    failure_rate = persist.get("failure_rate_observed", 0.0) or 0.0
+    threshold = float(os.environ.get("CATASTRO_FAILURE_RATE_THRESHOLD", "0.10"))
+    error_categories = persist.get("error_categories", {}) or {}
+
+    if failure_rate > threshold and not persist.get("skipped"):
+        logger.error(
+            f"[catastro_persist_degradation] failure_rate={failure_rate:.2%} "
+            f"supera threshold={threshold:.2%} · categorías={error_categories}"
+        )
+        # Devolvemos 0 (run completo OK) pero con alerta visible.
+
+    # Alerta específica si hay db_down: probable infra Supabase caída.
+    if error_categories.get("db_down", 0) > 0:
+        logger.error(
+            f"[catastro_persist_db_down] {error_categories['db_down']} fallos "
+            "de tipo db_down detectados — revisar status de Supabase."
+        )
 
     return 0
 

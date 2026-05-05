@@ -39,7 +39,18 @@ import logging
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Literal, Optional
+
+# Categorías canónicas de error (mejora #2 audit Cowork Bloque 3).
+# Permiten al monitor de cron detectar degradación por categoría.
+ErrorCategory = Literal[
+    "db_down",          # red/socket/connection refused → infra Supabase caída
+    "rpc_validation",   # la función PL/pgSQL rechazó input (ERRCODE P0001 etc)
+    "item_crash",       # excepción local antes de llegar a la red
+    "network_timeout",  # timeout HTTP
+    "none",             # éxito (placeholder)
+    "unknown",          # default cuando no encaja en categorías
+]
 
 from kernel.catastro.quorum import QuorumResult
 from kernel.catastro.schema import (
@@ -73,6 +84,12 @@ class PersistResult:
     # Diagnóstico (cuando NO success)
     error_code: Optional[str] = None
     error_message: Optional[str] = None
+    error_category: ErrorCategory = "none"  # mejora #2 audit Cowork Bloque 3
+
+    # Métrica del batch al que pertenece este resultado.
+    # Se llena en `persist_many` después del loop, NO por item individual.
+    # Permite que el monitor de cron alerte si failure_rate_observed > 0.10.
+    failure_rate_observed: Optional[float] = None  # mejora #2 audit Cowork Bloque 3
 
     # Echo del payload enviado (útil para debug y dry_run)
     rpc_params_preview: dict[str, Any] = field(default_factory=dict)
@@ -87,6 +104,8 @@ class PersistResult:
             "aplicado_at": self.aplicado_at,
             "error_code": self.error_code,
             "error_message": self.error_message,
+            "error_category": self.error_category,
+            "failure_rate_observed": self.failure_rate_observed,
         }
 
 
@@ -276,6 +295,7 @@ class CatastroPersistence:
                 success=False,
                 error_code=CatastroPersistRpcFailure.code,
                 error_message=f"{type(e).__name__}: {e}",
+                error_category=self._categorize_error(e),
                 rpc_params_preview=rpc_params,
             )
 
@@ -288,6 +308,7 @@ class CatastroPersistence:
                 success=False,
                 error_code=CatastroPersistRpcFailure.code,
                 error_message="RPC devolvió respuesta vacía o no parseable",
+                error_category="rpc_validation",
                 rpc_params_preview=rpc_params,
             )
 
@@ -340,8 +361,17 @@ class CatastroPersistence:
                     success=False,
                     error_code="catastro_persist_item_crash",
                     error_message=f"{type(e).__name__}: {e}",
+                    error_category="item_crash",
                 )
             results.append(result)
+
+        # Calcular failure_rate del batch y propagarlo a todos los results.
+        # Así cada PersistResult lleva contexto de su batch para el monitor.
+        if results:
+            failed = sum(1 for r in results if not r.success and not r.dry_run)
+            rate = failed / len(results)
+            for r in results:
+                r.failure_rate_observed = rate
         return results
 
     # ------------------------------------------------------------------
@@ -385,6 +415,42 @@ class CatastroPersistence:
     # ------------------------------------------------------------------
     # Helpers de respuesta
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _categorize_error(exc: Exception) -> ErrorCategory:
+        """
+        Clasifica una excepción en una categoría canónica para el monitor.
+
+        Heurística conservadora basada en tipo y mensaje. Mejora #2 del
+        audit Cowork Bloque 3 — permite que el cron alerte por categoría.
+        """
+        name = type(exc).__name__
+        msg = str(exc).lower()
+
+        # Timeouts explícitos
+        if "timeout" in name.lower() or "timeout" in msg:
+            return "network_timeout"
+
+        # Errores de red / conectividad
+        network_markers = (
+            "connection", "refused", "unreachable", "dns", "socket",
+            "name resolution", "no route to host", "network is unreachable",
+        )
+        if any(m in msg for m in network_markers) or name in (
+            "ConnectionError", "ConnectionRefusedError", "OSError", "gaierror",
+        ):
+            return "db_down"
+
+        # Errores de validación del lado servidor (PostgREST/PL/pgSQL)
+        validation_markers = (
+            "postgrest", "check constraint", "violates", "invalid input",
+            "errcode", "p0001", "23502", "23503", "23505", "22p02",
+            "catastro_persist_invalid_input",
+        )
+        if any(m in msg for m in validation_markers) or name == "APIError":
+            return "rpc_validation"
+
+        return "unknown"
 
     @staticmethod
     def _extract_rpc_payload(response: Any) -> Optional[dict[str, Any]]:

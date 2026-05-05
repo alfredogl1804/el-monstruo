@@ -1,7 +1,7 @@
 """
 El Catastro — Sistema de inteligencia viva sobre modelos IA externos.
 
-Sprint 86 Bloques 1-3: Schema Supabase + Pipeline diario MVP + Persistencia atómica.
+Sprint 86 Bloques 1-4: Schema Supabase + Pipeline diario MVP + Persistencia atómica + Trono Score por dominio.
 
 Macroárea 1 (Sprint 86): Inteligencia (LLMs)
   - llm_frontier (GPT, Claude, Gemini, xAI)
@@ -25,17 +25,31 @@ Componentes públicos del módulo:
 """
 from __future__ import annotations
 
-__version__ = "0.86.3"  # Sprint 86 Bloque 3 — Persistencia atómica
+__version__ = "0.86.4"  # Sprint 86 Bloque 4 — Trono Score por dominio
 __sprint__ = "86"
-__bloque__ = "3"
+__bloque__ = "4"
 
 # Re-exports públicos del módulo schema (poblados conforme se construye)
+# Bloque 4 — Trono Score
+from kernel.catastro.trono import (
+    DEFAULT_WEIGHTS,
+    METRIC_FIELDS,
+    CatastroTronoEmptyInput,
+    CatastroTronoError,
+    CatastroTronoInvalidDomain,
+    CatastroTronoInvalidWeights,
+    TronoCalculator,
+    TronoResult,
+    apply_results_to_models,
+)
+
 # Bloque 3 — Persistencia
 from kernel.catastro.persistence import (
     CatastroPersistence,
     CatastroPersistError,
     CatastroPersistMissingClient,
     CatastroPersistRpcFailure,
+    ErrorCategory,
     PersistResult,
     build_modelo_from_pipeline_persistible,
 )
@@ -99,5 +113,16 @@ __all__ = [
     "CatastroPersistError",
     "CatastroPersistRpcFailure",
     "CatastroPersistMissingClient",
+    "ErrorCategory",
     "build_modelo_from_pipeline_persistible",
+    # Bloque 4 — Trono Score
+    "TronoCalculator",
+    "TronoResult",
+    "DEFAULT_WEIGHTS",
+    "METRIC_FIELDS",
+    "CatastroTronoError",
+    "CatastroTronoInvalidWeights",
+    "CatastroTronoInvalidDomain",
+    "CatastroTronoEmptyInput",
+    "apply_results_to_models",
 ]

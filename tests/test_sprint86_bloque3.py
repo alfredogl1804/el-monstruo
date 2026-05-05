@@ -112,8 +112,12 @@ def _make_mock_client(rpc_response_data, rpc_raises: Exception = None):
 # ============================================================================
 
 class TestVersionado:
-    def test_version_es_0_86_3(self):
-        assert __version__ == "0.86.3"
+    def test_version_es_sprint_86_bloque_3_o_superior(self):
+        # Bloque 3 entregó v0.86.3. Aceptamos bumps menores del mismo Sprint 86.
+        assert __version__.startswith("0.86.")
+        # Validar que el bloque entregable de Bloque 3 (persistencia) ya existe.
+        major, minor, patch = __version__.split(".")
+        assert int(major) == 0 and int(minor) == 86 and int(patch) >= 3
 
     def test_persistence_exportada(self):
         from kernel.catastro import CatastroPersistence as CP

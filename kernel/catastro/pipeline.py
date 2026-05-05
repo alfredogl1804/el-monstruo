@@ -53,6 +53,11 @@ from kernel.catastro.sources import (
     OpenRouterFuente,
     RawSnapshot,
 )
+from kernel.catastro.trono import (
+    TronoCalculator,
+    TronoResult,
+    apply_results_to_models,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -87,6 +92,12 @@ class PipelineRunResult:
     # Resultados de persistencia (Bloque 3)
     persist_results: list[PersistResult] = field(default_factory=list)
 
+    # Resultados de Trono Score por dominio (Bloque 4)
+    trono_results: dict[str, list[TronoResult]] = field(default_factory=dict)
+
+    # Flag: se omitió la persistencia por skip_persist=True (Bloque 4)
+    persist_skipped: bool = False
+
     # Métricas resumen
     metrics: dict[str, Any] = field(default_factory=dict)
 
@@ -106,6 +117,30 @@ class PipelineRunResult:
         persist_ok = sum(1 for r in self.persist_results if r.success and not r.dry_run)
         persist_dry = sum(1 for r in self.persist_results if r.dry_run)
         persist_fail = sum(1 for r in self.persist_results if not r.success)
+
+        # Mejora #2 audit Cowork Bloque 3: failure_rate y desglose por categoría.
+        total = len(self.persist_results)
+        failure_rate = (persist_fail / total) if total else 0.0
+        error_categories: dict[str, int] = {}
+        for r in self.persist_results:
+            if not r.success and not r.dry_run:
+                cat = r.error_category or "unknown"
+                error_categories[cat] = error_categories.get(cat, 0) + 1
+
+        # Trono summary (Bloque 4)
+        trono_summary = {
+            "dominios": len(self.trono_results),
+            "modelos_calculados": sum(len(rs) for rs in self.trono_results.values()),
+            "modos": {
+                "z_score": sum(
+                    1 for rs in self.trono_results.values() for r in rs if r.mode == "z_score"
+                ),
+                "neutral": sum(
+                    1 for rs in self.trono_results.values() for r in rs if r.mode == "neutral"
+                ),
+            },
+        }
+
         return {
             "run_id": self.run_id,
             "started_at": self.started_at.isoformat(),
@@ -117,10 +152,14 @@ class PipelineRunResult:
             "modelos_total": len(self.modelos_procesados),
             "modelos_persistibles": len(self.modelos_persistibles),
             "trust_deltas": self.trust_deltas,
+            "trono_summary": trono_summary,
             "persist_summary": {
                 "ok": persist_ok,
                 "dry_run": persist_dry,
                 "failed": persist_fail,
+                "skipped": self.persist_skipped,
+                "failure_rate_observed": failure_rate,
+                "error_categories": error_categories,
             },
             "metrics": self.metrics,
         }
@@ -154,6 +193,8 @@ class CatastroPipeline:
         validator: Optional[QuorumValidator] = None,
         dry_run: bool = False,
         persistence: Optional[CatastroPersistence] = None,
+        trono_calculator: Optional[TronoCalculator] = None,
+        skip_persist: Optional[bool] = None,
     ) -> None:
         """
         Args:
@@ -166,6 +207,13 @@ class CatastroPipeline:
             persistence: instancia de CatastroPersistence. Si None, se
                          construye una con dry_run igual al del pipeline.
                          Se respeta el dry_run propio si se pasa explícita.
+            trono_calculator: instancia de TronoCalculator (Bloque 4). Si
+                         None, se construye una con pesos default del SPEC.
+            skip_persist: si True, omite el Paso 8 (persistencia atomica).
+                         Si None, se lee CATASTRO_SKIP_PERSIST env var
+                         (acepta 'true', '1', 'yes' en cualquier case).
+                         Útil para auditorías dry-run que no deben tocar BD
+                         ni siquiera en modo dry_run de persistence.
         """
         self.dry_run = dry_run
         if sources is not None:
@@ -175,6 +223,14 @@ class CatastroPipeline:
 
         self.validator = validator or QuorumValidator(numeric_tolerance=0.10)
         self.persistence = persistence or CatastroPersistence(dry_run=dry_run)
+        self.trono_calculator = trono_calculator or TronoCalculator()
+
+        # Resolución de skip_persist: argumento explícito > env var > False
+        if skip_persist is not None:
+            self.skip_persist: bool = bool(skip_persist)
+        else:
+            env_val = os.environ.get("CATASTRO_SKIP_PERSIST", "").strip().lower()
+            self.skip_persist = env_val in ("true", "1", "yes", "on")
 
     # ------------------------------------------------------------------
     # API pública
@@ -219,8 +275,17 @@ class CatastroPipeline:
         flat_results = [qr for qrs in result.modelos_procesados.values() for qr in qrs]
         result.trust_deltas = self.validator.compute_trust_deltas(flat_results)
 
-        # Paso 7: persistencia atómica via RPC (Bloque 3)
-        await self._persist_all(result)
+        # Paso 7: cálculo Trono Score por dominio (Bloque 4)
+        await self._compute_trono(result)
+
+        # Paso 8: persistencia atómica via RPC (Bloque 3 + skip_persist Bloque 4)
+        if self.skip_persist:
+            result.persist_skipped = True
+            logger.info(
+                f"[catastro_pipeline] Paso 8 SKIP: skip_persist=True (run={run_id})"
+            )
+        else:
+            await self._persist_all(result)
 
         # Métricas finales
         result.metrics = {
@@ -254,7 +319,74 @@ class CatastroPipeline:
         return result
 
     # ------------------------------------------------------------------
-    # Paso 7: persistencia atómica (Bloque 3)
+    # Paso 7: cálculo Trono Score (Bloque 4)
+    # ------------------------------------------------------------------
+
+    async def _compute_trono(self, result: PipelineRunResult) -> None:
+        """
+        Calcula trono_global por dominio para los modelos persistibles
+        usando el TronoCalculator (z-scores normalizados intra-dominio).
+
+        Resultado:
+          - `result.trono_results[dominio] = list[TronoResult]`
+          - Se aplica `trono_global` y `trono_delta` IN-PLACE a los
+            CatastroModelo construidos en `_persist_all` (no aquí; el
+            apply real ocurre en _persist_all sobre el modelo construido).
+
+        Memento:
+          - Esta función NO escribe en BD. La RPC del Bloque 3 hace el
+            UPSERT que persiste el trono ya calculado.
+          - Si NO hay persistibles → skip silencioso.
+          - El cálculo en Python es espejo de catastro_recompute_trono(text)
+            de migration 019. Mantener AMBOS sincronizados.
+        """
+        if not result.modelos_persistibles:
+            logger.info("[catastro_pipeline] Paso 7 skip: sin modelos persistibles")
+            return
+
+        # Construir CatastroModelos previamente para el cálculo
+        # (los volveremos a construir en _persist_all; aquí solo necesitamos
+        # tenerlos disponibles para alimentar el TronoCalculator).
+        modelos: list = []
+        for slug, persistible in result.modelos_persistibles.items():
+            quorum_results = result.modelos_procesados.get(slug, [])
+            try:
+                modelos.append(build_modelo_from_pipeline_persistible(
+                    slug=slug,
+                    persistible=persistible,
+                    quorum_results=quorum_results,
+                ))
+            except Exception as e:  # noqa: BLE001
+                logger.warning(
+                    f"[catastro_pipeline] trono build_modelo skip slug={slug}: {e}"
+                )
+
+        if not modelos:
+            return
+
+        try:
+            result.trono_results = self.trono_calculator.compute_all(modelos)
+        except Exception as e:  # noqa: BLE001
+            logger.exception(
+                f"[catastro_pipeline] trono CRASH (run={result.run_id}): {e}"
+            )
+            result.trono_results = {}
+            return
+
+        # Aplicar resultados in-place a los modelos para que cuando
+        # _persist_all los reconstruya y serialice, ya lleven trono.
+        # Como _persist_all reconstruye desde cero, almacenamos los
+        # resultados en metrics para que _persist_all los pueda hidratar.
+        flat_trono = [r for rs in result.trono_results.values() for r in rs]
+        applied = apply_results_to_models(modelos, flat_trono)
+        logger.info(
+            f"[catastro_pipeline] Trono calculado: "
+            f"dominios={len(result.trono_results)} "
+            f"modelos={len(modelos)} aplicados={applied}"
+        )
+
+    # ------------------------------------------------------------------
+    # Paso 8: persistencia atómica (Bloque 3)
     # ------------------------------------------------------------------
 
     async def _persist_all(self, result: PipelineRunResult) -> None:
@@ -275,6 +407,15 @@ class CatastroPipeline:
             logger.info("[catastro_pipeline] Paso 7 skip: sin modelos persistibles")
             return
 
+        # Índice por slug → TronoResult del dominio principal del modelo,
+        # para hidratar los modelos antes de persistir (Bloque 4 hand-off).
+        trono_by_id: dict[str, TronoResult] = {}
+        for results_list in result.trono_results.values():
+            for r in results_list:
+                # Si un modelo aparece en múltiples dominios, gana el último;
+                # para Sprint 86 los modelos solo tienen 1 dominio, es seguro.
+                trono_by_id[r.modelo_id] = r
+
         for slug, persistible in result.modelos_persistibles.items():
             quorum_results = result.modelos_procesados.get(slug, [])
             try:
@@ -283,6 +424,11 @@ class CatastroPipeline:
                     persistible=persistible,
                     quorum_results=quorum_results,
                 )
+                # Hidratar trono_global / trono_delta calculados en el Paso 7
+                trono = trono_by_id.get(slug)
+                if trono is not None:
+                    modelo.trono_global = trono.trono_new
+                    modelo.trono_delta = trono.trono_delta
             except Exception as e:  # noqa: BLE001
                 logger.exception(
                     f"[catastro_pipeline] persist build_modelo CRASH slug={slug}: {e}"
@@ -293,6 +439,7 @@ class CatastroPipeline:
                         success=False,
                         error_code="catastro_persist_build_modelo_crash",
                         error_message=f"{type(e).__name__}: {e}",
+                        error_category="item_crash",
                     )
                 )
                 continue
@@ -315,8 +462,22 @@ class CatastroPipeline:
                     success=False,
                     error_code="catastro_persist_call_crash",
                     error_message=f"{type(e).__name__}: {e}",
+                    error_category="item_crash",
                 )
             result.persist_results.append(pr)
+
+        # Calcular failure_rate del batch y propagarlo a todos los items.
+        # Mejora #2 audit Cowork Bloque 3 — monitor lo usa para alertar.
+        if result.persist_results:
+            failed = sum(
+                1 for r in result.persist_results
+                if not r.success and not r.dry_run
+            )
+            rate = failed / len(result.persist_results)
+            for r in result.persist_results:
+                # Solo seteamos si no viene ya seteado por persist_many
+                if r.failure_rate_observed is None:
+                    r.failure_rate_observed = rate
 
     # ------------------------------------------------------------------
     # Paso 1: fetch paralelo

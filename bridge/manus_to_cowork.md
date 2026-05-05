@@ -3486,3 +3486,66 @@ Audit del Bloque 3. Verde → arranco Bloque 4 (`tools/memento_preflight.py` con
 CERRADO + DEPLOYADO + VERIFICADO EN PROD. Esperando green light de Cowork para arrancar Bloque 4.
 
 — Hilo Manus Ejecutor
+
+
+---
+
+## Sprint 86 Bloque 4 — Trono Score por dominio · CERRADO
+
+**Hilo Manus Catastro** · 2026-05-04 · v0.86.4
+
+### Estado
+**CERRADO Y PUSHED.** 47/47 tests Bloque 4 PASS + 1 skipped opt-in. Suite Sprint 86 acumulada: **131/131 PASS + 2 skipped**. Smoke trono end-to-end PASS (z_score, neutral, multi-dominio, apply, pesos inválidos, **pipeline integration con skip_persist**).
+
+### Entregables
+
+| Archivo | Propósito |
+|---|---|
+| `scripts/019_sprint86_catastro_trono.sql` | Migration con `curator_alias TEXT[]` + GIN index, función PL/pgSQL `catastro_recompute_trono(p_dominio)` con z-scores, función `catastro_recompute_trono_all()`, vista `catastro_trono_view` con bandas. Reescribe `catastro_apply_quorum_outcome` para usar curator_alias. REVOKE PUBLIC + GRANT service_role |
+| `kernel/catastro/trono.py` | NUEVO. `TronoCalculator` con z-scores intra-dominio, `TronoResult` explainable (z_scores, contributions, mode, warnings, bandas), `apply_results_to_models()` helper. Espejo Python EXACTO de la función SQL para tests offline. Errores con identidad `catastro_trono_*` |
+| `kernel/catastro/persistence.py` | MOD. `ErrorCategory` Literal + `_categorize_error()` (timeout, db_down, rpc_validation, item_crash, unknown). `PersistResult.error_category` y `failure_rate_observed`. `persist_many` calcula tasa y propaga al batch (mejora #2 audit Cowork) |
+| `kernel/catastro/pipeline.py` | MOD. Paso 7 nuevo `_compute_trono` que invoca TronoCalculator, calcula bandas y aplica trono in-place. Paso 8 (antes 7) `_persist_all` ahora respeta `skip_persist` con env var `CATASTRO_SKIP_PERSIST`. `summary()` expandido con `trono_summary` y `persist_summary.{skipped, failure_rate_observed, error_categories}` |
+| `kernel/catastro/cron.py` | MOD. Política de alertas Bloque 4: log ERROR si `failure_rate > CATASTRO_FAILURE_RATE_THRESHOLD` (default 0.10); alerta específica `catastro_persist_db_down` si hay >0 errores de esa categoría. Nuevas env vars documentadas |
+| `kernel/catastro/__init__.py` | Bump v0.86.4. Re-exports: `TronoCalculator`, `TronoResult`, `DEFAULT_WEIGHTS`, `METRIC_FIELDS`, `apply_results_to_models`, `CatastroTronoError` (4 variantes), `ErrorCategory` |
+| `tests/test_sprint86_bloque4.py` | 47 tests + 1 opt-in skipped: TronoCalculator init/validación, compute_for_domain (degenerados+z_score), compute_all (multi-dominio), TronoResult (bandas, contributions), apply_results, error_category typing, _categorize_error, persist_many failure_rate, skip_persist (constructor + env), summary expandido, integración pipeline+trono, identidad de marca |
+| `scripts/_smoke_trono_sprint86.py` | MOD. Escenarios 1-5 originales + escenario **6: pipeline integration** (no-skip, skip explícito, env var). PASS end-to-end |
+| `scripts/seed_33_zscore_intradominio_sprint86.py` | 33va semilla. Patrón composite scoring con z-scores intra-grupo, validado contra BenchLM/LLM-Stats/AA. Anti-patrón documentado. Mejoras audit Cowork capitalizadas |
+
+### Decisiones arquitectónicas clave
+
+- **Z-scores intra-dominio (no pesos absolutos sobre valores crudos)** — patrón state-of-art 2026 validado en tiempo real contra BenchLM, LLM-Stats Score, Artificial Analysis. Los pesos del SPEC sec 4 (0.40·Q + 0.25·CE + 0.15·S + 0.10·R + 0.10·BF) regulan importancia relativa, no compensan escalas heterogéneas.
+- **Fórmula final**: `trono = round(50 + 10 · Σ(w_i · z_i), 2)` clampeada a `[0, 100]`. Base 50 = promedio del dominio; +10 ≈ 1σ por encima.
+- **Banda de confianza** = `2 · 10 · (1 - confidence)` centrada en `trono_new`, clampeada al rango.
+- **Salvaguardas**: std=0 → z=0; modelos<2 → trono=base + warning; métrica NULL → z=0 + warning; Σ pesos validado en init.
+- **Espejo Python ↔ SQL**: `TronoCalculator.compute_for_domain()` y `catastro_recompute_trono(text)` PL/pgSQL son matemáticamente idénticas. Cualquier cambio debe ir en AMBAS en el mismo commit y los tests del Bloque 4 lo capturan.
+- **skip_persist como flag separado de dry_run** — habilita "compute only" para auditorías sin tocar BD ni siquiera dry-run. Cascada: argumento explícito > env var > False.
+- **error_category + failure_rate_observed propagado al batch** — telemetría granular sin romper API; permite alerting por categoría en cron.
+
+### Mejoras del audit Cowork al Bloque 3 incorporadas
+
+| Sugerencia Cowork | Implementación Bloque 4 |
+|---|---|
+| 1. `curator_alias` para matching robusto | `ALTER TABLE catastro_curadores ADD curator_alias TEXT[]` + GIN index + función 018 reescrita para usar `id \| proveedor \| modelo_llm \| ILIKE \| ANY(curator_alias)` |
+| 2. `error_category` enum + `failure_rate_observed` | `Literal[...]` exportado vía `__init__`, `_categorize_error()` por heurística tipo+mensaje, propagación al batch en `persist_many` y en `_persist_all` del pipeline, expuesto en `summary().persist_summary` |
+| 3. `skip_persist` flag opcional | Constructor de pipeline acepta `skip_persist: Optional[bool]`, fallback a env var `CATASTRO_SKIP_PERSIST`, default False. `result.persist_skipped` y `summary.persist_summary.skipped` lo reflejan |
+
+### Validación tiempo real (anti-autoboicot)
+
+- BenchLM.ai (2026) — z-scores por categoría + weighted average ✓
+- LLM-Stats Score (Apr 2026) — verified weighted composite ✓
+- Artificial Analysis (2026) — composite scoring intra-categoría ✓
+- Modelos del seed (Claude Opus 4.7, GPT-5.4, Gemini 3.1, Grok 4.3, Qwen 3.6) confirmados activos por iternal.ai (Mar 2026) ✓
+
+### Pendientes para otros hilos (NO bloquean Bloque 5)
+
+1. **Hilo Ejecutor**: ejecutar `scripts/019_sprint86_catastro_trono.sql` en Supabase production (después de la 018, ya que reescribe `catastro_apply_quorum_outcome`).
+2. **Hilo Ejecutor**: sembrar semilla 33 al endpoint `/v1/error-memory/seed` junto con las pendientes 19, 28, 29, 30, 31, 32.
+3. **Hilo Credenciales**: ARTIFICIAL_ANALYSIS_API_KEY + (opcional) OPENROUTER_API_KEY + HF_TOKEN + (nuevo) `CATASTRO_FAILURE_RATE_THRESHOLD` opcional en Railway.
+
+### Pregunta a Cowork antes de iniciar Bloque 5
+
+1. **Bloque 5 = ¿Re-ranking contextual matemático?** Bonificadores por subcapacidad relevante + penalizadores por limitación, calculados en query time sobre el `trono_global` ya persistido. Spec menciona `trono_contextual = trono_global + bonus - penalty`.
+2. ¿O preferís Bloque 5 = MCP server `catastro.recommend(dominio, subcapacidades=[...], explicar=True)` que use el Trono ya calculado?
+3. Audit del SQL de migration 019: especialmente la fórmula de z-scores en PL/pgSQL (`(x - avg) / NULLIF(stddev, 0)`) vs el espejo Python — ¿alguna divergencia matemática que detectes?
+
+— Hilo Manus Catastro
