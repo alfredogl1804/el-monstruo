@@ -1138,6 +1138,98 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("sprint81_error_memory_init_failed", error=str(e))
 
+    # ── Sprint Memento Bloque 3: Capa Memoria Soberana ─────────────────
+    # Inicializa el MementoValidator singleton (cache compartido entre requests)
+    # y monta el router /v1/memento/validate. Lectura del catálogo desde Supabase
+    # con fallback a YAML local — Capa 7 (Resiliencia Agéntica).
+    try:
+        from kernel.memento.validator import MementoValidator
+        from kernel.memento.models import CriticalOperation, SourceOfTruth
+        import yaml as _yaml
+        from pathlib import Path as _Path
+
+        critical_ops_dict: dict = {}
+        sources_dict: dict = {}
+
+        # Intento 1: leer catálogos desde Supabase (autoritativo)
+        if db_connected:
+            try:
+                ops_rows = await db.select("memento_critical_operations", columns="*")
+                src_rows = await db.select("memento_sources_of_truth", columns="*")
+                for r in ops_rows or []:
+                    if r.get("activo", True):
+                        op = CriticalOperation(
+                            id=r["id"],
+                            nombre=r.get("nombre", r["id"]),
+                            descripcion=r.get("descripcion", ""),
+                            triggers=r.get("triggers") or [],
+                            requires_validation=bool(r.get("requires_validation", True)),
+                            requires_confirmation=r.get("requires_confirmation"),
+                            source_of_truth_ids=r.get("source_of_truth_ids") or [],
+                            activo=True,
+                        )
+                        critical_ops_dict[op.id] = op
+                for r in src_rows or []:
+                    if r.get("activo", True):
+                        s = SourceOfTruth(
+                            id=r["id"],
+                            nombre=r.get("nombre", r["id"]),
+                            descripcion=r.get("descripcion", ""),
+                            source_type=r["source_type"],
+                            location=r["location"],
+                            parser_id=r.get("parser_id"),
+                            cache_ttl_seconds=int(r.get("cache_ttl_seconds", 60)),
+                            activo=True,
+                        )
+                        sources_dict[s.id] = s
+                logger.info(
+                    "memento_catalogs_loaded_from_supabase",
+                    ops=len(critical_ops_dict),
+                    sources=len(sources_dict),
+                )
+            except Exception as _e:
+                logger.warning("memento_supabase_catalog_load_failed", error=str(_e))
+
+        # Fallback: YAML local (resiliencia)
+        if not critical_ops_dict:
+            yaml_path = _Path(__file__).parent / "memento" / "critical_operations.yaml"
+            if yaml_path.exists():
+                with open(yaml_path) as _fh:
+                    cfg = _yaml.safe_load(_fh) or {}
+                for r in cfg.get("critical_operations", []):
+                    op = CriticalOperation(
+                        id=r["id"],
+                        nombre=r.get("nombre", r["id"]),
+                        descripcion=r.get("descripcion", ""),
+                        triggers=r.get("triggers") or [],
+                        requires_validation=bool(r.get("requires_validation", True)),
+                        requires_confirmation=r.get("requires_confirmation"),
+                        source_of_truth_ids=r.get("source_of_truth_ids") or [],
+                        activo=bool(r.get("activo", True)),
+                    )
+                    if op.activo:
+                        critical_ops_dict[op.id] = op
+                logger.info("memento_critical_ops_loaded_from_yaml", ops=len(critical_ops_dict))
+
+        memento_validator = MementoValidator(
+            critical_operations=critical_ops_dict,
+            sources_of_truth=sources_dict,
+        )
+        app.state.memento_validator = memento_validator
+
+        from kernel.memento_routes import memento_router
+        app.include_router(memento_router, prefix="/v1/memento")
+
+        logger.info(
+            "sprint_memento_b3_initialized",
+            critical_operations=len(critical_ops_dict),
+            sources_of_truth=len(sources_dict),
+            endpoint="/v1/memento/validate",
+        )
+    except Exception as _e:
+        logger.warning("sprint_memento_b3_init_failed", error=str(_e))
+        app.state.memento_validator = None
+
     # ── Sprint 81: Error Memory Endpoints ──────────────────────────────
     @app.get("/v1/error-memory/recent", tags=["observability"])
     async def error_memory_recent(request: Request, limit: int = 20):
