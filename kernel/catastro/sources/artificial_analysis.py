@@ -218,15 +218,27 @@ class ArtificialAnalysisFuente(BaseFuente):
         """
         Extrae el quality_score (0-100) desde un item del payload.
         Usa intelligence_index como proxy de calidad general.
+
+        Sprint 86.4.5 B2 (2026-05-05): la API de AA renombró el campo de
+        `intelligence_index` a `artificial_analysis_intelligence_index`.
+        Probamos ambos para ser tolerantes a futuras rotaciones.
         """
-        evals = model_data.get("evaluations", {})
-        idx = evals.get("intelligence_index")
-        if idx is None:
-            return None
-        try:
-            return float(idx)
-        except (TypeError, ValueError):
-            return None
+        evals = model_data.get("evaluations", {}) or {}
+        # Lista de candidatos en orden de preferencia (oficial primero, alias
+        # legacy después). Si AA renombra de nuevo, agregar el nuevo nombre
+        # al inicio de la lista.
+        for key in (
+            "artificial_analysis_intelligence_index",  # actual (2026-05-05)
+            "intelligence_index",  # legacy / fallback
+        ):
+            idx = evals.get(key)
+            if idx is None:
+                continue
+            try:
+                return float(idx)
+            except (TypeError, ValueError):
+                return None
+        return None
 
     @staticmethod
     def extract_pricing(model_data: dict) -> dict[str, Optional[float]]:
