@@ -4892,3 +4892,55 @@ Una observación menor para Bloque 2: el diagnóstico expuso que **el patrón "c
 - Estado: Completado y commiteado con autoria preservada.
 - Hallazgo clave: Se confirmo arquitectura Hibrida (Absorcion Pasiva). La ingesta usara LLM-as-parser (Structured Outputs Pydantic) para evitar la inestabilidad de regex sobre el Markdown del Radar. Se definieron 2 eventos automaticos y schema de la 6ta tabla catastro_repos.
 - Status Hilo: TRIPLE ENTREGA COMPLETADA. Retorno a STANDBY DURO.
+
+
+---
+
+## 2026-05-05 · Mini-Sprint 86.4.5 pre-B2 CERRADO · Schema Canónico Auto-validado
+
+**Origen**: tu propuesta modificada del audit B1 — Pydantic-from-SQL en vez de markdown estático.
+
+**Commit**: `59800bb` (en `origin/main`).
+
+### Entregables (5/5)
+
+| # | Artefacto | Función |
+|---|---|---|
+| 1 | `scripts/_gen_catastro_pydantic_from_sql.py` | Parser sqlglot → emisor Pydantic. Modo `--check` para CI. Idempotente. |
+| 2 | `kernel/catastro/schema_generated.py` | 5 Row models, 78 columnas, `TABLE_COLUMNS`, `__SOURCE_HASH__`. |
+| 3 | `scripts/_audit_catastro_schema_drift.py` | Audit drift con `BASELINE_DRIFT` documentado. Falla solo en drifts nuevos o baseline obsoleto. |
+| 4 | `tests/test_catastro_schema_drift.py` | 12 tests pytest, todos verde. |
+| 5 | `scripts/seed_38_*.py` | Semilla 38 sembrada al kernel: HTTP 200 inserted occurrences=1. |
+
+`requirements-eval.txt` extendido con `sqlglot==30.7.0` (dev/CI only, sin bloat de Docker prod).
+
+### Decisiones arquitectónicas
+
+1. **sqlglot vs alternativas**: descarté `datamodel-code-generator` y `PydSQL` (van en sentido opuesto: Pydantic→SQL o JSON→Pydantic, no PostgreSQL DDL→Pydantic). sqlglot tiene 7k+ stars, multi-dialecto, parsing real con AST. Verdadera no-rueda.
+2. **Refactor `TOLERATED_DIFFERENCES` → `BASELINE_DRIFT`**: rechazo del primer approach. La tolerancia silenciosa pierde señal. El baseline detecta drifts NUEVOS Y baseline OBSOLETO (cuando un drift se resuelve sin actualizar el baseline también falla → recordatorio de mantener actualizada la doctrina).
+3. **`schema.py` manual NO se tocó**: respeté zona cerrada que dijiste. El generated convive con el manual hasta deprecación oficial planeada por vos en Sprint 86.5/86.6.
+4. **Parser tolerante**: sqlglot 30.x no parsea `COMMENT ON COLUMN`. El generator pre-filtra el SQL para extraer solo `CREATE TABLE` + `ALTER TABLE ADD COLUMN`. Funciona contra `016`, `018`, `019`, `019.1`.
+
+### Drifts detectados automáticamente (validación de la herramienta)
+
+- `catastro_modelos.validated_by` — de migration 019.1 hotfix (Bloque 1 86.4.5).
+- `catastro_curadores.curator_alias` — de migration 016, manual nunca lo espejó.
+
+Ambos en `BASELINE_DRIFT` con justificación inline. **Si en CI aparece un drift NUEVO (no en baseline), el test falla** — red de seguridad permanente.
+
+### Validación
+
+- Suite Catastro (B2-B7) + Memento (B2-B7) + Schema Drift (12 nuevos): **389 pass + 6 skipped en 2.35s**.
+- Cero modificaciones a `kernel/catastro/schema.py` manual ni a `recommendation.py / dashboard.py / quorum.py / sources.py / pipeline.py / trono.py`.
+- Generator ejecutable manualmente: `python3 scripts/_gen_catastro_pydantic_from_sql.py [--check]`.
+- Audit ejecutable manualmente: `python3 scripts/_audit_catastro_schema_drift.py [--json]`.
+
+### Hallazgo material para Sprint 86.5/86.6
+
+`TABLE_COLUMNS` queda disponible para **introspección runtime**. Caso de uso obvio: pre-flight de queries en `recommendation.py` y `dashboard.py` antes de invocar al cliente Supabase. Combinado con `EXPLAIN`/`PREPARE` en migrations sería el cinturón de seguridad estructural completo del Catastro (semilla 37 + semilla 38 cubriendo ambos lados: funciones SQL y código Python).
+
+### Status global
+
+Manus Memento queda **listo para arrancar Bloque 2 del Sprint 86.4.5** (Enriquecimiento de campos métricos, ETA 1-2 días) en cuanto firmes el audit de este mini-sprint.
+
+— Hilo Manus
