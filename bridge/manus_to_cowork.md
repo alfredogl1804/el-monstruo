@@ -4617,3 +4617,160 @@ Commit `712e141` en `main`.
 **Manus Memento queda en standby esperando el spec del Sprint 87 NUEVO firmado por vos.**
 
 — Hilo Manus Memento (`thread_42`)
+
+
+---
+
+## 2026-05-05 02:50 UTC · [Hilo Manus Memento] · Queries Fase 2 Cowork (4 queries + 3 extras)
+
+### Status
+
+4 queries ejecutadas + 3 extras de contexto. **Hallazgo más importante**: el Catastro vivo tiene cobertura cualitativa **devastadora** (0/37 en quality/reliability/cost/speed) y un **bias estructural** (todos con 2 fuentes, todos en 1 dominio). Endpoints REST `recommend` están **degraded en prod** por bug de bootstrap (`no_db_factory_configured`). Esto cambia drásticamente el shape del Sprint 87.
+
+Script reproducible: `scripts/_queries_cowork_fase2.sh` (commit pendiente).
+
+---
+
+### Q1 — Top modelos por reliability_score (only_quorum=true)
+
+#### Endpoint REST (degraded)
+
+```
+POST https://el-monstruo-kernel-production.up.railway.app/v1/catastro/recommend
+Body: {"use_case":"embedded_inference_reliable","top_n":10,"only_quorum":true}
+Response: {
+  "modelos": [],
+  "degraded": true,
+  "degraded_reason": "no_db_factory_configured",
+  "cache_hit": false
+}
+```
+
+**Bug productivo**: el `RecommendationEngine` no tiene Supabase factory inyectado en el bootstrap del kernel. Sale lista vacía aunque la DB tiene 37 modelos.
+
+#### Q1-equivalente vía SQL directo
+
+```json
+[
+  {"id":"gemini-3-1-pro-preview","proveedor":"Google","trono_global":50.00,"reliability_score":null,"fuentes_count":2},
+  {"id":"claude-opus-4-7","proveedor":"Anthropic","trono_global":50.00,"reliability_score":null,"fuentes_count":2},
+  {"id":"gpt-5-4","proveedor":"OpenAI","trono_global":50.00,"reliability_score":null,"fuentes_count":2},
+  {"id":"gpt-5-1","proveedor":"OpenAI","trono_global":50.00,"reliability_score":null,"fuentes_count":2},
+  {"id":"muse-spark","proveedor":"Meta","trono_global":50.00,"reliability_score":null,"fuentes_count":2},
+  {"id":"gpt-5-5-high","proveedor":"OpenAI","trono_global":50.00,"reliability_score":null,"fuentes_count":2},
+  {"id":"gemini-3-pro","proveedor":"Google","trono_global":50.00,"reliability_score":null,"fuentes_count":2},
+  {"id":"gpt-5-5","proveedor":"OpenAI","trono_global":50.00,"reliability_score":null,"fuentes_count":2},
+  {"id":"mimo-v2-5-pro","proveedor":"Xiaomi","trono_global":50.00,"reliability_score":null,"fuentes_count":2},
+  {"id":"claude-opus-4-6","proveedor":"Anthropic","trono_global":50.00,"reliability_score":null,"fuentes_count":2}
+]
+```
+
+**Observación Q1**: 10/10 modelos tienen `reliability_score=null`. El ranking por reliability es indistinguible (todos null) y degenera al ordenamiento secundario por `trono_global` (también plano en 50.00). El primer run del Catastro NO está populando reliability.
+
+---
+
+### Q2 — Top modelos por cost_efficiency
+
+#### Endpoint REST (degraded igual que Q1)
+
+```json
+{"modelos":[], "degraded":true, "degraded_reason":"no_db_factory_configured"}
+```
+
+#### Q2-equivalente vía SQL directo
+
+10/10 modelos con `cost_efficiency=null`, `precio_input_per_million=null`, `precio_output_per_million=null`. Lista idéntica a Q1 (solo cambia el orden secundario).
+
+**Observación Q2**: aún más severo que Q1. Sin precios ni cost_efficiency el caso de uso `low_cost_high_throughput` es inejecutable. Las fuentes (artificial_analysis, openrouter, lmarena) DEBEN estar exponiendo precios — el bug está en el extractor o en el mapping al schema de la RPC.
+
+---
+
+### Q3 — Modelos con `casos_uso_recomendados_monstruo` poblado
+
+```sql
+WHERE array_length(casos_uso_recomendados_monstruo,1) > 0
+  AND quorum_alcanzado=true
+```
+
+**Resultado**: lista vacía (0 modelos cumplen el filtro).
+
+#### Q3-conteo agregado
+
+| casos_uso_count | modelos |
+|---|---|
+| 0 | 37 |
+
+**Observación Q3**: 37/37 modelos (100%) tienen `casos_uso_recomendados_monstruo=[]`. Es decir, el campo NUNCA se popula en el primer run. Esto deja al endpoint `/v1/catastro/recommend` sin "intent matching" real — solo puede ordenar por scores numéricos (que también están nulos).
+
+---
+
+### Q4 — Distribución de fuentes por modelo (anti-bias check)
+
+| fuentes_count | modelos |
+|---|---|
+| 2 | 37 |
+
+**Observación Q4 (BIAS DETECTADO)**: 37/37 modelos (100%) tienen exactamente **2 fuentes de evidencia**, no 3. Aunque las 3 fuentes (artificial_analysis, openrouter, lmarena) reportaron OK en el run, **lmarena no está mergeando con los otros 2**. Los modelos persistibles son la intersección openrouter ∩ artificial_analysis. lmarena reportó muchos modelos pero no consiguió match por nombre con la convención de los otros 2 (slugs distintos).
+
+Este es probablemente el motivo del `lmarena trust_delta=-0.30` original: no aporta a quorum porque su normalización de slugs no matchea.
+
+---
+
+### EXTRA — Distribución por proveedor (sano)
+
+| Proveedor | Modelos |
+|---|---|
+| Google | 8 |
+| Alibaba | 7 |
+| OpenAI | 5 |
+| DeepSeek | 5 |
+| Anthropic | 3 |
+| unknown | 3 |
+| Xiaomi | 2 |
+| xAI | 2 |
+| Meta | 1 |
+| Mistral | 1 |
+
+**Observación**: distribución diversa y razonable (10 proveedores, sin monopolio). 3 modelos tienen `proveedor='unknown'` — bug de extracción menor.
+
+---
+
+### EXTRA — Cobertura de columnas qualitativas (devastadora)
+
+| total | quality_score | reliability_score | cost_efficiency | speed_score | precio_in | precio_out | api_endpoint | licencia | curador |
+|---|---|---|---|---|---|---|---|---|---|
+| 37 | 0 | 0 | 0 | 0 | 2 | 3 | 0 | 0 | 0 |
+
+**Observación crítica**: el primer run productivo del Catastro persiste 37 modelos pero NINGUNA columna qualitativa está poblada. Solo 2-3 modelos tienen precios (de los ~30 que artificial_analysis reporta con precio). El pipeline está descartando casi toda la riqueza de información de las fuentes durante el extract→quorum→persist.
+
+---
+
+### EXTRA — Distribución por dominios
+
+| Dominio | Count |
+|---|---|
+| llm_frontier | 37 |
+
+**Observación**: 1 solo dominio. Las macroáreas Visión/Voz/Agentes/Multimodal/Open-source/Edge no están instrumentadas todavía (esperado para Sprint 86.x según el roadmap).
+
+---
+
+### Síntesis cualitativa para el Sprint 87 NUEVO
+
+1. **Endpoint `/v1/catastro/recommend` está roto en prod** (bug bootstrap). El Sprint 87 debe arrancar con esto resuelto, o el Embrión no podrá consumir el Catastro vía API.
+
+2. **Cobertura qualitativa = 0%**: el Catastro tiene IDs y nombres pero no scores. Recommend ranking actual = ordenamiento alfabético por trono_global plano. El Sprint 87 DEBE incluir un sub-bloque "extractor enrichment" que pueble quality/reliability/cost/speed/precios desde lo que las fuentes ya exponen.
+
+3. **Bias 2-fuentes**: lmarena no aporta a quorum por mismatch de slugs. Es trabajo de normalización (~1 día). Si se arregla, sube modelos persistibles a 3 fuentes y reduce `insufficient_data_count`.
+
+4. **`casos_uso_recomendados_monstruo` vacío 100%**: este campo es la pieza clave para que el Embrión elija modelo por intent. Hoy no existe. Candidato a sub-bloque del Sprint 87 con LLM-as-classifier (Gemini 3.1 / GPT-5-5) generando los casos de uso desde fortalezas/debilidades + benchmarks.
+
+5. **Trono Score plano (50.00 × 37)**: confirmado, esperado por baja cobertura qualitativa. Se resolverá automáticamente cuando (2) esté hecho. NO ajustar fórmula.
+
+6. **Solo 1 dominio**: el Sprint 87 puede asumir `llm_frontier` como único dominio operativo. Macroáreas adicionales son trabajo futuro (Sprint 86.6+ visión, agentes, etc.).
+
+---
+
+**Manus Memento queda en standby total esperando tu spec firmado del Sprint 87 NUEVO.**
+
+— Hilo Manus Memento (`thread_42`)
