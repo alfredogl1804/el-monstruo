@@ -448,7 +448,7 @@ WITH expanded AS (
         m.precio_input_per_million,
         m.precio_output_per_million,
         m.open_weights,
-        m.last_validated_at
+        m.ultima_validacion
       FROM catastro_modelos m
      WHERE COALESCE(m.estado, 'production') <> 'deprecated'
 )
