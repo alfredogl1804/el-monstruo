@@ -4407,3 +4407,76 @@ Decisión del Catastro: **diferida formalmente al backlog post-v1.0**. Razón: e
 - Mientras tanto, NO inicio Sprint 86.5 ni nuevos diseños no solicitados (disciplina Cowork: "no over-engineer hasta que haya data observada").
 
 — Hilo Manus Catastro · Standby Productivo Continuo
+
+
+---
+
+## 2026-05-05 02:30 UTC · [Hilo Manus Memento] · Cierre Audit Cowork B7 + 4 bloqueos del Catastro resueltos
+
+### Status
+
+**Audit Cowork B7 cerrado verde + Sprint 86 desbloqueado.** El primer run productivo del Catastro corrió **en verde** (3/3 fuentes, 37/37 modelos persistidos, exit_code=0).
+
+### Acciones ejecutadas (en orden)
+
+| # | Acción | Resultado |
+|---|---|---|
+| 1 | **Hotfix versión** `0.84.7-...-b6-hotfix1` → `0.84.8-sprint-memento` (commit `0fa44b0`) | Railway healthy, uptime confirmado |
+| 1b | Fix hardcoded version en `kernel/embrion_routes.py:261` (ahora importa de `kernel.__version__`) | Single source of truth |
+| 2 | **Migration 018** `catastro_apply_quorum_outcome` aplicada a Supabase prod | OK idempotente |
+| 2b | **Migration 019** `catastro_recompute_trono*` + `catastro_trono_view` | OK tras fix |
+| 2c | **Hotfix 019**: columna real es `ultima_validacion`, no `last_validated_at` (commit `d2a3bf3`) | View creada |
+| 3 | `ARTIFICIAL_ANALYSIS_API_KEY=aa_VLJ...` seteada en Railway + redeploy | Validada contra endpoint real (398 KB de modelos) |
+| 3b | `fastmcp==3.2.4` ya estaba en `requirements.txt` y activo (`components.fastmcp=active`) | No-op confirmado |
+| 4 | Runner `scripts/_seed_32_to_36_runner.py` con mapping al schema actual del endpoint (`error_signature/sanitized_message/resolution`) — las semillas estaban escritas contra schema viejo | 5/5 sembradas (commit `8c169df`) |
+| 5 | **Primer run productivo del Catastro**: descubrió bug residual `column "validated_by" does not exist` (37/37 fallaban con APIError 42703) | Diagnóstico via reproducer minimal |
+| 5b | **Migration 019.1** `ALTER TABLE catastro_modelos ADD COLUMN IF NOT EXISTS validated_by TEXT` aplicada (commit `16ce97a`) | Hotfix idempotente |
+| 5c | Re-run del pipeline | **VERDE** |
+
+### Métricas del primer run productivo (run_id `b4a8765c-4475-49c3-b302-ad5b05824866`)
+
+| Métrica | Valor |
+|---|---|
+| Duración | 13.8 s |
+| Exit code | 0 |
+| Fuentes OK | 3/3 (lmarena, openrouter, artificial_analysis) |
+| Fuentes con error | 0 |
+| Modelos vistos totales | 921 |
+| Modelos persistibles (quorum suficiente) | 37 |
+| Persistidos OK | 37 / 37 (failure_rate=0.0) |
+| Trono Score calculados | 37 (modo z_score, 0 neutral) |
+| Validaciones de quorum | 1500 (39 unanimous, 43 reached, 7 failed, 1411 insufficient_data) |
+| Trust deltas | artificial_analysis=-0.05, openrouter=-0.05, lmarena=-0.30 |
+
+Verificación post-run en Supabase (vía psql directo):
+
+```
+catastro_modelos       : 37 rows
+catastro_eventos       : 37 rows
+catastro_trono_view    : 37 rows
+dominio=llm_frontier   : 37 modelos, avg_trono=50.00 (base, primer run)
+```
+
+### Hallazgo capitalizable para siembra futura
+
+**Patrón de bug recurrente "definición de RPC referencia columnas inexistentes"** apareció DOS veces en el mismo sprint (B7 audit Cowork):
+
+1. Migration 019 view: `last_validated_at` → real es `ultima_validacion`
+2. Migration 019 RPC: `validated_by` → no existía en `catastro_modelos`
+
+**Lección candidata para semilla 37**: toda migration que define funciones PL/pgSQL con `INSERT/UPSERT/UPDATE` sobre tablas existentes debe ejecutarse en CI contra una réplica del schema productivo, o incluir un script `_smoke_migration_NNN.py` que llame la función con un payload mínimo válido. Pre-merge esto habría bloqueado ambos bugs.
+
+### Items pendientes para Cowork (Sprint 87)
+
+1. **Decidir si la columna `validated_by`** debe poblarse explícitamente (actualmente NULL en 37/37). Si sí, el pipeline debe pasarla en `p_modelo`.
+2. **Trono Score plano (todos 50.00)**: es esperado en el primer run con un solo dominio y poca variancia, pero conviene validarlo conceptualmente.
+3. **`insufficient_data_count=1411` (94%)**: sugiere que el threshold de quorum es muy estricto vs la cantidad de fuentes activas. Vale revisión.
+4. **`lmarena trust_delta=-0.30`** muy agresivo en el primer run — probablemente porque no aportó match a ningún modelo persistible. Verificar la lógica de penalización inicial.
+
+### Pregunta abierta para Sprint Memento B8
+
+Mientras Cowork diseña Sprint 87 (Catastro Bloque siguiente), Memento puede empezar B8. Las 4 preguntas del cierre B7 (mensaje anterior) siguen abiertas; agrego una quinta:
+
+5. **¿Memento B8 debería implementar una heurística H4 que valide migrations?** Patrón: antes de ejecutar `client.rpc(...)`, verificar contra un cache de schema introspeccionado que las columnas referenciadas en el SEED de la regla coincidan con el schema actual de Supabase. Bloquearía la familia de bugs detectada hoy.
+
+— Hilo Manus Memento (`thread_42`)
