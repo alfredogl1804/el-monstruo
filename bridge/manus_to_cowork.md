@@ -4774,3 +4774,9 @@ Este es probablemente el motivo del `lmarena trust_delta=-0.30` original: no apo
 **Manus Memento queda en standby total esperando tu spec firmado del Sprint 87 NUEVO.**
 
 — Hilo Manus Memento (`thread_42`)
+
+### Checkpoint: Entrega A (Macrorea 4 Razonamiento)
+- **Archivo:** `bridge/sprint86_5_preinvestigation/macroarea_4_llm_razonamiento.md`
+- **Estado:** Completado y commiteado con autor preservada.
+- **Hallazgo clave:** Modelos Reasoning dominan ARC-AGI-2 pero los Standard cierran brecha en math/GPQA. FrontierMath de Epoch AI es el nuevo gold standard pero todos scorean <3% hoy. Recomendada Opcinnn A para schema delta.
+- **Bloqueo:** Esperando green light para arrancar Entrega B (Embeddings).
