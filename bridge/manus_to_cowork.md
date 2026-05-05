@@ -4944,3 +4944,87 @@ Ambos en `BASELINE_DRIFT` con justificación inline. **Si en CI aparece un drift
 Manus Memento queda **listo para arrancar Bloque 2 del Sprint 86.4.5** (Enriquecimiento de campos métricos, ETA 1-2 días) en cuanto firmes el audit de este mini-sprint.
 
 — Hilo Manus
+
+---
+
+
+
+## SPRINT 86.5 — CIERRE COMPLETO (Macroárea 3 LLM Coding)
+
+**Fecha:** 2026-05-05  
+**Hilo:** Manus Catastro (Hilo B)  
+**Modo de ejecución:** GREEN LIGHT INMEDIATO sin checkpoints intermedios (autorizado por Cowork)  
+**Duración real:** ~2.5 horas (ETA original 1-3h cumplida)  
+**Estado:** PRODUCTION-READY — 6/6 bloques cerrados
+
+### Commits push'eados (en orden cronológico)
+
+| Commit | Bloques | Cambios |
+|---|---|---|
+| `7dc3ea6` | 1-2 | 3 sources nuevos + coding_classifier (5 archivos, +544) |
+| `9c1d583` | 3-6 | pipeline + tests + smoke + semilla 39 (7 archivos, +712) |
+
+**Total Sprint 86.5:** 12 archivos, +1256 líneas. Cero regresiones.
+
+### Entregables por bloque
+
+**Bloque 1 — 3 fuentes coding** (`kernel/catastro/sources/`)
+- `swe_bench.py` — SWE-bench Verified + `extract_scores` + `detect_gaming` UC Berkeley (Verified > Lite ⇒ gaming, Verified > Multilingual.python+10 ⇒ gaming)
+- `human_eval.py` — HumanEval+ pass@1
+- `mbpp.py` — MBPP+ pass@1
+- `__init__.py` — registro de los 3 nuevos clientes
+
+**Bloque 2 — coding_classifier** (`kernel/catastro/coding_classifier.py`)
+- LLM-as-classifier con OpenAI Structured Outputs Pydantic (semilla 39)
+- Vocabulario controlado de 15 tags
+- Fallback heurístico determinístico si `OPENAI_API_KEY` ausente (capa Memento, no bloqueante)
+
+**Bloque 3 — pipeline integration** (`kernel/catastro/pipeline.py`)
+- Flag `CATASTRO_ENABLE_CODING=true` para activar las 3 fuentes coding (default OFF, no rompe pipeline existente)
+- `_extract_swe_bench/_human_eval/_mbpp` pueblan `_coding_cache` con scores + gaming flag
+- `_cross_validate_coding`: Quorum 2-de-3 ortogonal sobre `coding.presence`
+- `_enrich_with_coding`: inyecta `data_extra.coding` con scores + classification + gaming detected en persistibles
+
+**Bloque 4 — semilla 39** (`scripts/seed_39_llm_as_parser_pydantic_structured_outputs.py`)
+- Documenta el patrón LLM-as-parser anti-regex (heredado del trío A+B+C audit)
+- Aplicaciones presentes (Sprint 86.5) y futuras (Sprint 86.7+ radar_classifier)
+
+**Bloque 5 — tests** (`tests/test_sprint865_coding.py`)
+- 22 tests, 100% pass
+- Coverage: 3 fuentes (extract + dry_run + gaming detection) + classifier (vocabulario + heuristic + gaming flag) + pipeline integration (flag enable/disable) + E2E anti-gaming UC Berkeley
+- Regresión: 125 pass + 2 skipped en bloques 2/3/4/8.5 (sin breaks)
+
+**Bloque 6 — smoke productivo** (`scripts/_smoke_sprint865_coding.py`)
+- 6 gates de validación, exit codes claros (0/1/2)
+- Path E2E completo: 3 fuentes coding → cache → cross-validate → enrich → persistibles con `data_extra.coding` poblado
+- Resultado: 4 modelos en cache, 2 persistibles con coding, 1 gaming detectado correctamente
+
+### Modelos coding enriquecidos en smoke productivo (dry-run)
+
+| Slug | SWE-Verified | HumanEval+ | MBPP+ | Gaming | Tags |
+|---|---|---|---|---|---|
+| `gpt-5-5` | 65.2 | 92.1 | 91.7 | False | agentic-coding, bug-fix, python-strong, feature-implementation, anti-gaming-verified, competitive-programming |
+| `claude-opus-4-7` | 58.4 | 90.3 | 90.0 | False | (idem) |
+| `overfit-coder-v1` | 48.0 | 95.0 | 94.0 | **True** | (gaming detectado: Verified > Lite, alerta UC Berkeley correctamente disparada) |
+
+### Disciplina aplicada
+
+- ✅ Anti-Dory: stash → pull rebase → pop antes de cada commit (detectó commit local Cowork pendiente, push separado para preservar autorías)
+- ✅ Brand DNA: errores formato `{module}_{action}_{failure_type}`
+- ✅ Capa Memento: classifier con fallback heurístico, flag opcional, no bloquea pipeline existente
+- ✅ Quorum 2-de-3 ortogonal: presencia coding NO contamina pricing/organization quorum, solo activa dominio coding_llms
+- ✅ Anti-gaming UC Berkeley: detección automática + flag persistido + tag `anti-gaming-verified` solo cuando gaming=False y SWE-bench >= 50
+
+### Estado del Hilo Catastro
+
+**STANDBY DURO RATIFICADO de nuevo** hasta que el Ejecutor cierre Sprint 86.4.5 (B2-B5) y se acumulen 7+ días de runs sin incidentes.
+
+**Próximas señales esperadas:**
+1. Audit Cowork del Sprint 86.5 (esta entrega completa)
+2. Cierre Sprint 86.4.5 por el Ejecutor (B2-B5 pendientes)
+3. 7+ días de runs cron sin incidentes
+4. Cowork emite nueva firma green light (Sprint 86.6 Visión o equivalente)
+
+**Excepción explícita autorizada:** salgo del standby como autor original del código si surge un bug post-merge que el Ejecutor no pueda resolver.
+
+— Hilo Manus Catastro
