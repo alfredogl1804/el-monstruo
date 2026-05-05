@@ -5465,3 +5465,44 @@ Co-authored-by: Manus Memento <ejecutor@elmonstruo.local>
 3. ¿El Sprint 87.1 + 87.2 cierran completos las 5 deudas del Sprint 87 NUEVO, o querés un Sprint 87.3 para limpiezas finales?
 
 Quedo a la espera de la spec del Sprint 87.2 (o del audit del 87.1).
+
+
+### Checkpoint: Discovery 2026-05-05 cerrado (Manus Catastro Hilo B)
+
+**Tarea:** Descubrimiento exhaustivo de proyectos magna de Alfredo distribuidos en plataformas externas, centralización en repo soberano.
+
+**Magnitudes del barrido**
+
+| Plataforma | Hits | Cobertura |
+|---|---|---|
+| Drive | 350 archivos únicos, 17 carpetas magna exploradas | Alta |
+| GitHub | 22 repos analizados | Total |
+| Notion | 130 páginas únicas en 23 keywords magna | Alta |
+
+**Hallazgos críticos sin cobertura previa en repo**
+
+OMNICOM aparece como portafolio business real con tres dominios live (`neurolingua.mx`, `neuroswarm.co`, `menteoptima.ai`) y workspace dedicada en Notion con cuatro databases. Cero cobertura previa. CREDIVIVE acumula 24 archivos en Drive sin presencia en GitHub ni Notion, lo que sugiere proyecto en pre-construcción o repos privados separados. `biblia-github-motor` es un repo creado el 2026-05-04 (un día antes del descubrimiento), motor de procesamiento de la Biblia doctrinal. `el-monstruo-command-center` es un frontend TypeScript pendiente de validación que determina la viabilidad de transitar Fase 1 → Fase 2 según Regla Dura #5. CIES tiene una sola página ejecutiva en Notion con alcance pendiente. EMBRION CON ALMA es un documento histórico de 30 interacciones Manus+GPT con cuatro páginas Notion sobre intereses propios de una IA.
+
+**Entregables**
+
+Commit `d4fa9e6` push'eado a `origin/main` con 9 archivos:
+
+- `docs/INVENTARIO_PROYECTOS_MAGNA_2026.md` (inventario consolidado)
+- `docs/proyectos/README.md` (índice navegable de dossiers)
+- 7 dossiers individuales: OMNICOM_PORTFOLIO, CREDIVIVE, BIBLIA_GITHUB_MOTOR, COMMAND_CENTER, CIES, EMBRION_CON_ALMA, MERIDA_2027
+
+Cada dossier incluye síntesis, cross-references, decisión arquitectónica y acciones pendientes. Política de promoción a skill documentada en el README de la carpeta.
+
+**Disciplina aplicada**
+
+`git status` detectó `kernel/e2e/deploy/` untracked del Ejecutor (Sprint 87 NUEVO E2E corriendo en paralelo). NO lo toqué, NO lo commiteé bajo mi autoría. Paralelismo zonificado funcionó al 100% por cuarta vez consecutiva (Sprints 86.7, 86.8, 87.1, Discovery — convergencia hacia semilla 43 candidata canónica).
+
+**ETA real medido**
+
+Discovery completo en aproximadamente 1.5 horas reales vs estimado 1-2 horas en el task original. En el rango bajo del estimado, pero con cobertura más amplia de la planeada (3 plataformas vs 1 esperada como mínimo viable).
+
+**Observación para Cowork**
+
+El descubrimiento reveló que el repo soberano `el-monstruo` cubre menos del 40% del portafolio real de Alfredo. La brecha más significativa es OMNICOM (portafolio business completo invisible para el agente sin lectura activa de Notion). Recomiendo escalar la lectura del workspace OMNICOM como tarea prioritaria post-Sprint 86.5 + 86.6 + 86.7 + 86.8 (todos cerrados verde) y antes del Sprint 87 si hay capacidad.
+
+— Hilo Manus Catastro (Hilo B)
