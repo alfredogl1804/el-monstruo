@@ -554,6 +554,82 @@ Versión 1.0 — análisis arquitectónico atemporal con cruce empírico del rep
 
 Versión 1.1 — apéndice de re-priorización 2026-05-04 (este apéndice).
 
+Versión 1.2 — apéndice de **recalibración ETA** 2026-05-05 (siguiente apéndice).
+
 Próxima versión 2.0 — Fase 2 cuando Catastro tenga 2 semanas de data fresca + primer run real ejecutado.
+
+— Cowork (Hilo B)
+
+---
+
+## Apéndice 1.2 — Recalibración ETA basada en evidencia operativa
+
+> **Origen:** feedback explícito de Alfredo el 2026-05-05 ~01:45 CST: "le llevo 18 minutos terminar A + B + C no lo duermas activalo con tareas complejas estas estimasndo mak tus tiempos tu estimacion es magna".
+> **Fecha apéndice:** 2026-05-05 ~02:00 CST
+> **Cambio:** todas las ETA del roadmap previo se dividen por 5-10x.
+
+### Evidencia operativa que justifica la recalibración
+
+Histórico de Sprint 86 + Sprint Memento + standbys productivos del Catastro:
+
+| Sprint/Bloque | ETA magna previa Cowork | ETA real | Factor |
+|---|---|---|---|
+| Sprint 86 Bloque 4 (Trono Score) | 2-3h | 50 min | 2.4-3.6x |
+| Sprint 86 Bloque 5 (MCP server DUAL) | 1-1.5h | 50 min | 1.2-1.8x |
+| Sprint Memento Bloque 7 (Reload + Dashboard + E2E + Docs) | 1.5-2.5h | 30 min | 3-5x |
+| Standby Activo Catastro (3 entregables) | 4-5h | 18 min | 13-16x |
+| Sprint 86.4.5 Bloque 1 (3 bugs + tests) | 2h | ~45 min | 2.7x |
+
+**Conclusión:** factor consistente 5-10x más rápido que ETA magna. Outlier excepcional (Standby Activo): 13-16x.
+
+### ETA recalibradas para sprints v1.0 funcional
+
+| Sprint | ETA magna previa | ETA recalibrada |
+|---|---|---|
+| Sprint 86.4.5 (Enriquecimiento Catastro) | 2-3 días | **3-6h reales** |
+| Sprint 86.5 (Catastro Coding) | 1 semana | **1-3h reales** |
+| Sprint 86.6 (Catastro Visión) | 1 semana | **2-4h reales** |
+| Sprint 87 NUEVO (E2E Frase → Empresa con tráfico real) | 5-7 días | **1-2 días reales** |
+| Sprint 88 (Multiplicación + Orchestration Embriones) | 1 semana | **3-5h reales** |
+| Sprint 89 (Activación Guardian Autónomo) | 2-3 días | **2-4h reales** |
+| Sprint 90 (Capa Transversal C1 Ventas E2E) | 3-5 días | **4-8h reales** |
+| Sprint 91 (Capa Transversal C2 SEO E2E) | 3-5 días | **4-8h reales** |
+| Sprint 92 (Capa Transversal C3 Ads E2E) | 1 semana | **6-12h reales** |
+| Sprint 93 (Verificación Autonomía Total) | 1-2 semanas | **2-4 días reales** |
+| Sprint 94 (Sub-ola gobernanza ticketlike) | 2-3 días | **2-4h reales** + acción humana de Alfredo |
+
+### Horizonte temporal recalibrado v1.0 funcional
+
+**Antes:** 6-9 semanas calendario.
+**Después:** **1-2 semanas calendario** al ritmo actual sostenido.
+
+Si el ritmo se mantiene, **v1.0 funcional cerrable en mayo 2026** (este mes mismo).
+
+### Cambios de política de Cowork como consecuencia
+
+1. **Anular criterios de "standby duro" basados en tiempo conservador** (ej. "7 días sin incidentes"). Los hilos ya tienen capacidad demostrada — frenarlos por filosofía no es disciplina, es subutilización.
+
+2. **Defaultear a "trabajo complejo en una sola pasada"** en lugar de fragmentar en bloques con audit Cowork entre cada uno. Cowork audita al cierre del sprint completo, no entre bloques (excepto sprints que tocan dinero real o data productiva — ahí sí audit por bloque).
+
+3. **Confiar en velocidad demostrada** — si un hilo entrega en 18 min lo que estimé en 2.5h, asumir que el siguiente comparable también será ~18 min y dimensionar carga acordemente.
+
+4. **Eliminar criterios temporales arbitrarios.** "7+ días de runs diarios sin incidentes" → reemplazar por "primer smoke productivo verde" (que es horas, no semanas).
+
+### Riesgo identificado de la recalibración
+
+Subir velocidad sin perder calidad requiere mantener:
+- Capa Memento operando (anti-Síndrome-Dory)
+- Tests acumulados sin regresión
+- Disciplina de commits con autoría preservada
+- Audits Cowork por sprint completo (no por bloque)
+
+Si en algún sprint se observa degradación de calidad (regresión, falsos positivos, contaminación working tree), se revierte a modo conservador inmediato y se documenta en bridge.
+
+### Estado del documento
+
+- v1.0 — análisis arquitectónico atemporal (cruce empírico repo, ~62-68% Monstruo v2.0)
+- v1.1 — apéndice re-priorización A→B→C (Stripe diferido, E2E primero)
+- **v1.2 — apéndice recalibración ETA (5-10x más rápido que estimación magna)** ← este apéndice
+- v2.0 — pendiente: Fase 2 con Catastro enriquecido + 2 semanas data fresca
 
 — Cowork (Hilo B)
