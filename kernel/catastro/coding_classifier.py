@@ -50,6 +50,7 @@ CODING_TAGS_VOCABULARY = (
     "test-generation",
     "anti-gaming-verified",
     "competitive-programming",
+    "coding-overfit-suspected",  # Sprint 86.6 anti-gaming v2 cross-area
 )
 
 
@@ -213,6 +214,44 @@ class CodingClassifier:
             confidence=confidence,
             reasoning=reasoning,
         )
+
+    @staticmethod
+    def detect_overfit_cross_area(
+        swe_score: Optional[float],
+        razonamiento_score: Optional[float],
+        arena_rank: Optional[int],
+    ) -> tuple[bool, dict[str, Any]]:
+        """
+        Regla anti-gaming v2 (Sprint 86.6): detecta overfit INTER-fuente.
+        
+        Criterio firme:
+        - Coding-strong: SWE-bench Verified >= 60.0
+        - Y (Razonamiento < 50.0 O Arena rank > 30)
+        
+        Returns:
+            (is_overfit, evidence_dict)
+        """
+        is_overfit = False
+        evidence: dict[str, Any] = {
+            "swe_bench": swe_score,
+            "razonamiento": razonamiento_score,
+            "arena_rank": arena_rank,
+        }
+        
+        if swe_score is None or swe_score < 60.0:
+            return False, evidence
+            
+        # Condición 1: Razonamiento general débil
+        if razonamiento_score is not None and razonamiento_score < 50.0:
+            is_overfit = True
+            evidence["reason"] = "swe_high_but_reasoning_low"
+            
+        # Condición 2: Arena rank bajo (entre los top 50 asumiendo rank válido)
+        elif arena_rank is not None and arena_rank > 30:
+            is_overfit = True
+            evidence["reason"] = "swe_high_but_arena_rank_low"
+            
+        return is_overfit, evidence
 
     def _build_prompt(
         self,

@@ -60,6 +60,11 @@ from kernel.catastro.coding_classifier import (
     CodingClassifier,
     CodingClassification,
 )
+from kernel.catastro.sources.field_mapping import (
+    apply_field_mapping,
+    load_field_mapping,
+    FieldMappingError,
+)
 from kernel.catastro.trono import (
     TronoCalculator,
     TronoResult,
@@ -107,6 +112,11 @@ class PipelineRunResult:
 
     # Métricas resumen
     metrics: dict[str, Any] = field(default_factory=dict)
+
+    # Sprint 86.4.5 Bloque 2 — métricas single-source extraídas via field_mapping
+    # Forma: { slug: { campo: valor } } — solo para observabilidad/tests.
+    # Los valores ya están duplicados en modelos_persistibles[slug]["fields"].
+    metrics_extracted: dict[str, dict[str, float | None]] = field(default_factory=dict)
 
     @property
     def duration_seconds(self) -> Optional[float]:
@@ -295,6 +305,12 @@ class CatastroPipeline:
 
         # Paso 5: identificar persistibles
         self._extract_persistible(all_quorum_results, result)
+
+        # Paso 5.5 (Sprint 86.4.5 Bloque 2): enriquecer persistibles con
+        # campos métricos single-source desde el field_mapping.yaml.
+        # Esto puebla quality_score / reliability_score / cost_efficiency /
+        # speed_score / precio_input_per_million / precio_output_per_million.
+        self._enrich_with_metrics(modelos_por_fuente, result)
 
         # Paso 6: trust deltas
         flat_results = [qr for qrs in result.modelos_procesados.values() for qr in qrs]
@@ -565,6 +581,9 @@ class CatastroPipeline:
                 self._extract_mbpp(snapshot, modelos_por_fuente)
             else:
                 logger.warning(f"[catastro_pipeline] fuente desconocida: {fuente_name}")
+
+        # Sprint 86.6: cachear para overfit cross-area en _enrich_with_coding
+        self._modelos_por_fuente_cache = modelos_por_fuente
 
         return modelos_por_fuente
 
@@ -853,6 +872,77 @@ class CatastroPipeline:
         for slug, persistible in result.modelos_persistibles.items():
             self._enrich_with_coding(slug, persistible, all_quorum_results.get(slug, []))
 
+    # ------------------------------------------------------------------
+    # Paso 5.5: enriquecer métricas single-source (Sprint 86.4.5 Bloque 2)
+    # ------------------------------------------------------------------
+
+    def _enrich_with_metrics(
+        self,
+        modelos_por_fuente: dict[str, dict[str, dict[str, Any]]],
+        result: PipelineRunResult,
+    ) -> None:
+        """
+        Sprint 86.4.5 Bloque 2 — puebla los 6 campos métricos del Catastro
+        usando el `field_mapping.yaml` declarativo.
+
+        Tolerante a fallos: si el yaml no se puede cargar o aplicar, NO
+        aborta el pipeline. Loggea warning y registra en `result.metrics`
+        el flag `metrics_extraction_failed=True` para que Memento lo capture.
+
+        Mutaciones:
+          - `result.modelos_persistibles[slug]["fields"]` agrega los 6 campos
+          - `result.metrics_extracted[slug]` recibe el dict de métricas
+        """
+        if not result.modelos_persistibles:
+            logger.info("[catastro_pipeline] Paso 5.5 skip: sin persistibles")
+            return
+
+        try:
+            mapping = load_field_mapping()
+        except FieldMappingError as e:
+            logger.warning(
+                f"[catastro_pipeline] Paso 5.5 SKIP: "
+                f"field_mapping_load_failed err={e}"
+            )
+            result.metrics["metrics_extraction_failed"] = True
+            result.metrics["metrics_extraction_error"] = str(e)
+            return
+
+        try:
+            extracted = apply_field_mapping(
+                modelos_persistibles=result.modelos_persistibles,
+                modelos_por_fuente=modelos_por_fuente,
+                mapping=mapping,
+            )
+            result.metrics_extracted = extracted
+        except FieldMappingError as e:
+            logger.warning(
+                f"[catastro_pipeline] Paso 5.5 PARTIAL FAILURE: "
+                f"field_mapping_apply_failed err={e}"
+            )
+            result.metrics["metrics_extraction_failed"] = True
+            result.metrics["metrics_extraction_error"] = str(e)
+            return
+
+        # Métricas resumen para observabilidad
+        n_modelos = len(extracted)
+        n_with_4_plus = sum(
+            1 for slug, m in extracted.items()
+            if sum(1 for v in m.values() if v is not None) >= 4
+        )
+        coverage_pct = (
+            round(100.0 * n_with_4_plus / n_modelos, 2) if n_modelos else 0.0
+        )
+        result.metrics["metrics_extraction_failed"] = False
+        result.metrics["metrics_modelos_enriched"] = n_modelos
+        result.metrics["metrics_modelos_with_4plus_fields"] = n_with_4_plus
+        result.metrics["metrics_coverage_pct"] = coverage_pct
+        logger.info(
+            f"[catastro_pipeline] Paso 5.5 OK · "
+            f"enriched={n_modelos} · "
+            f"with_4plus_fields={n_with_4_plus} ({coverage_pct}%)"
+        )
+
     def _enrich_with_coding(
         self,
         slug: str,
@@ -910,6 +1000,42 @@ class CatastroPipeline:
                 f"[catastro_pipeline] coding_classifier crash slug={slug}: {e}"
             )
             coding_data["classification"] = None
+
+        # Sprint 86.6: Anti-gaming v2 cross-area (Visión Quorum 2-de-3)
+        # Detecta overfit INTER-fuente: SWE-strong vs Razonamiento general débil
+        # u Arena rank bajo. Cita evidencia desde AA (intelligence_index) y
+        # LMArena (rank). Lectura desde _modelos_por_fuente_cache (poblado en
+        # _normalize_snapshots). Si la cache no existe, evidence quedan en None
+        # y la regla NO se dispara (defensa Memento: no rompe pipeline).
+        try:
+            mpf_cache = getattr(self, "_modelos_por_fuente_cache", {})
+            fuentes = mpf_cache.get(slug, {})
+            aa_data = fuentes.get("artificial_analysis", {})
+            lm_data = fuentes.get("lmarena", {})
+            razonamiento = aa_data.get("quality_score")  # AA intelligence_index proxy
+            arena_rank = lm_data.get("rank")
+            swe_score = coding_data.get("swe_bench_verified")
+
+            is_overfit, evidence = self.coding_classifier.detect_overfit_cross_area(
+                swe_score=swe_score,
+                razonamiento_score=razonamiento,
+                arena_rank=arena_rank,
+            )
+            coding_data["overfit_suspected"] = is_overfit
+            coding_data["overfit_evidence"] = evidence
+
+            # Si overfit detectado, agregar tag al classification
+            if is_overfit and coding_data.get("classification"):
+                tags = coding_data["classification"].get("tags", [])
+                if "coding-overfit-suspected" not in tags:
+                    tags.append("coding-overfit-suspected")
+                coding_data["classification"]["tags"] = tags
+        except Exception as e:  # noqa: BLE001
+            logger.warning(
+                f"[catastro_pipeline] catastro_overfit_cross_area_detection_failed slug={slug}: {e}"
+            )
+            coding_data["overfit_suspected"] = False
+            coding_data["overfit_evidence"] = {"error": str(e)}
 
         # Inyectar al persistible
         persistible.setdefault("data_extra", {})["coding"] = coding_data
