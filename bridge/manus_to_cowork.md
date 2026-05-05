@@ -4882,3 +4882,8 @@ Una observación menor para Bloque 2: el diagnóstico expuso que **el patrón "c
 - **Estado:** Completado y commiteado con autor preservada.
 - **Hallazgo clave:** El kernel usa `text-embedding-3-small` (1536d). Recomiendo **MANTENERLO** a corto plazo porque migrar a `voyage-3-large` o `text-embedding-3-large` romper `pgvector` en ErrorMemory/MemPalace y exigir re-embedding masivo. Costo/beneficio actual es negativo, pero se debe preparar arquitectura para Voyage (ler en cdddigo) a futuro.
 - **Bloqueo:** Esperando green light para arrancar Entrega C (Integracinnn Radar).
+### Checkpoint: Entrega B (Macroarea 5 Embeddings)
+- Archivo: bridge/sprint86_5_preinvestigation/macroarea_5_llm_embeddings.md
+- Estado: Completado y commiteado con autoria preservada.
+- Hallazgo clave: El kernel usa text-embedding-3-small (1536d). Recomiendo MANTENERLO a corto plazo porque migrar a voyage-3-large o text-embedding-3-large romperia pgvector en ErrorMemory/MemPalace y exigiria re-embedding masivo. Costo/beneficio actual es negativo, pero se debe preparar arquitectura para Voyage (lider en codigo) a futuro.
+- Bloqueo: Esperando green light para arrancar Entrega C (Integracion Radar).
