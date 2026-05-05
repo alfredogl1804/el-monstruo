@@ -38,6 +38,55 @@ MAX_IMAGE_BYTES = 5 * 1024 * 1024  # 5 MB
 DEFAULT_TIMEOUT_S = 45
 
 
+# ── Schema sanitizer (Gemini API dialect) ────────────────────────────────────
+
+
+def _sanitize_gemini_schema(schema: Any) -> Any:
+    """Remueve recursivamente campos que Gemini API NO acepta.
+
+    Gemini usa OpenAPI 3.0 (no JSON Schema), por lo que estos campos rompen:
+    - `additionalProperties`
+    - `additional_properties`
+    - `$defs` / `$ref` (Gemini no resuelve refs internas)
+    - `title`, `default` (no requeridos, hacen ruido)
+
+    Para `$ref`, hay que inlinear manualmente desde `$defs` (Pydantic anida los
+    subschemas de modelos hijos ahí). Hacemos una pasada de inlining luego de
+    quitar additionalProperties.
+    """
+    if not isinstance(schema, dict):
+        return schema
+
+    # 1) Inlinear $defs si existen (Pydantic v2 emite ref a #/$defs/Sub)
+    defs = schema.pop("$defs", {}) or schema.pop("definitions", {}) or {}
+
+    def _resolve(node: Any) -> Any:
+        if isinstance(node, dict):
+            if "$ref" in node:
+                ref = node.pop("$ref")
+                # ref tipo "#/$defs/CriticVisualSubScores"
+                key = ref.rsplit("/", 1)[-1]
+                if key in defs:
+                    resolved = _resolve(defs[key])
+                    # si quedan otras keys junto al $ref, mergearlas
+                    return {**resolved, **{k: _resolve(v) for k, v in node.items()}}
+                return node
+            # Quitar campos prohibidos
+            for bad in (
+                "additionalProperties",
+                "additional_properties",
+                "title",
+                "default",
+            ):
+                node.pop(bad, None)
+            return {k: _resolve(v) for k, v in node.items()}
+        if isinstance(node, list):
+            return [_resolve(v) for v in node]
+        return node
+
+    return _resolve(schema)
+
+
 # ── Errores con identidad ────────────────────────────────────────────────────
 
 
@@ -192,9 +241,12 @@ async def _call_gemini_vision(
         last_err: Optional[Exception] = None
         for mid in candidate_models:
             try:
-                # Sprint 87.2 hotfix B3: Pasamos la clase Pydantic directa.
-                # google-genai 1.x convierte automáticamente al dialect OpenAPI 3.0
-                # que Gemini espera (sin `additionalProperties` que rompe la API).
+                # Sprint 87.2 hotfix B3 v2: sanitizamos schema removiendo
+                # `additionalProperties`/`additional_properties` que el SDK inyecta
+                # desde Pydantic extra='forbid' y que Gemini API rechaza.
+                schema = _sanitize_gemini_schema(
+                    CriticVisualReport.model_json_schema()
+                )
                 response = client.models.generate_content(
                     model=mid,
                     contents=[
@@ -203,7 +255,7 @@ async def _call_gemini_vision(
                     ],
                     config=genai_types.GenerateContentConfig(
                         response_mime_type="application/json",
-                        response_schema=CriticVisualReport,
+                        response_schema=schema,
                     ),
                 )
                 text = response.text or "{}"
