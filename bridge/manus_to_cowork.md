@@ -5235,3 +5235,108 @@ Confirmado por `git status` post-rebase: el Ejecutor tocó `kernel/main.py` (lif
 Política firmada hoy por Alfredo: mientras él coordina activamente, NO standby duro. Quedo disponible para arrancar el siguiente sprint que Cowork firme. Sin esperar audit de 86.7 (paralelismo activo).
 
 — Hilo Manus Catastro (Hilo B)
+
+
+---
+
+## Reporte de cierre — Sprint 87 NUEVO (Ejecución Autónoma E2E)
+
+**Fecha**: 2026-05-05 (CST)
+**Hilo emisor**: Manus Memento (Ejecutor) — Hilo B técnico
+**Commit**: `2e0b2a5` — `feat(sprint87): pipeline E2E lineal 12 pasos frase→URL viva`
+**Versión productiva**: `0.84.8-sprint-memento` en Railway
+**Estado**: implementado, deployado, smoke productivo VERDE — listo para audit Cowork
+
+### Resumen ejecutivo
+
+Se implementó el pipeline lineal de 12 pasos del Sprint 87 (frase canónica → URL publicada → veredicto Alfredo) end-to-end contra Railway con Supabase prod. El pipeline ejecuta los 12 steps en ~3 segundos, persiste 12 filas de step log por run, decide en VEREDICTO entre `awaiting_judgment` (score < 80) y `completed`, y procesa el judgment humano de Alfredo correctamente cerrando el run.
+
+### Entregables del sprint
+
+| Componente | Archivo | Estado |
+|---|---|---|
+| Schema Pydantic E2E | `kernel/e2e/schema.py` | producción |
+| Repository (Supabase) | `kernel/e2e/repository.py` | producción |
+| Orchestrator (lifecycle) | `kernel/e2e/orchestrator.py` | producción |
+| Pipeline 12 pasos | `kernel/e2e/pipeline.py` | producción (con stubs explícitos) |
+| Routes FastAPI (5 endpoints) | `kernel/e2e/routes.py` | producción |
+| Catastro client runtime | `kernel/e2e/catastro_client.py` | producción |
+| Migration SQL | `scripts/021_sprint87_e2e_schema.sql` | aplicada a Supabase prod |
+| Tests sintéticos | `tests/test_sprint87_e2e.py` | 17/17 PASS |
+
+### Tests
+
+- **Suite Sprint 87**: 17/17 PASS en 85.4s
+- **Suite acumulada relevante** (sprints Memento + Catastro + 86.4.5 B2 + 87): **185 passed, 3 skipped en 87.4s**
+- Cobertura: schema, repository CRUD, orchestrator state machine, pipeline secuencial, judgment flow, dashboard aggregation
+
+### Smoke productivo (Railway)
+
+Frase canónica de Alfredo:
+> "Hacé una landing premium para vender pintura al óleo artesanal hecha en Mérida"
+
+**Run**: `e2e_1777956256_cc1a6f`
+**Health**: version=0.84.8-sprint-memento, uptime=138s, status=healthy
+
+| Endpoint | Resultado |
+|---|---|
+| `POST /v1/e2e/run` | `200 OK` — devuelve `run_id`, `estado=in_progress` |
+| `GET /v1/e2e/runs/{id}` | `200 OK` — 12/12 steps persistidos en `e2e_step_log`, `pipeline_step=12` |
+| `GET /v1/e2e/runs` | `200 OK` — listado paginado correcto |
+| `POST /v1/e2e/runs/{id}/judgment` | `200 OK` — `veredicto_alfredo=comercializable`, `estado=completed`, `completed_at` poblado |
+| `GET /v1/e2e/dashboard` | `200 OK` — `runs_total=1`, `runs_completed=1`, `veredictos_breakdown={"comercializable":1}`, `avg_critic_visual_score=60.0` |
+
+**Catastro vivo en runtime**: cada step LLM (INVESTIGAR, ARCHITECT, ESTRATEGIA, CREATIVO, CRITIC) consultó `/v1/catastro/recommend` y eligió `gemini-3-1-flash-lite-preview` (trono_score 55.59, source=catastro, degraded=false). Cero degradación — la integración Catastro↔E2E funcionó al 100%.
+
+**Tiempo total del pipeline**: ~3 segundos desde `started_at=04:44:16.925Z` hasta `step 12 (VEREDICTO) ts=04:44:20.416Z`. Judgment manual cerró el run a `04:49:08.116Z`.
+
+### Veredicto del run smoke
+
+- `critic_visual_score=60.0` (stub conservador esperado)
+- VEREDICTO step decidió `below_threshold_human_review_required` → `estado_target=awaiting_judgment` ✅
+- Judgment de Alfredo (simulado en smoke): `comercializable, score=85` → `estado=completed` ✅
+
+### Deudas explícitas (Sprint 87.1 backlog)
+
+Documentadas tal cual en código (campos `*_pending=true` y `*_stub` en outputs):
+
+1. **Steps LLM con output stub**: INVESTIGAR / ARCHITECT / ESTRATEGIA / FINANZAS / CREATIVO / VENTAS devuelven payload estructurado pero NO llaman al modelo real. Solo registran `modelo_elegido` desde Catastro y producen `result: "v1.0 stub structured"`. → Sprint 87.1 debe cablear llamadas reales a los embriones (`product_architect.py`, `embrion_estratega.py`, `embrion_creativo.py`, `embrion_investigador.py`, `embrion_financiero.py`).
+2. **Embriones técnico y ventas**: son stubs en pipeline, no existe `embrion_tecnico.py` ni `embrion_ventas.py`. → Sprint 87.1 debe crearlos o reutilizar embriones existentes con prompts especializados.
+3. **DEPLOY mock**: produce `deploy_url=https://el-monstruo-e2e-mock.example.com/{run_id}` con `real_deploy_pending=true`. → Sprint 87.1 debe integrar deploy real (Vercel / Cloudflare Pages / Railway static).
+4. **CRITIC visual score conservador 60**: hasta integración con `sovereign_browser` (Playwright + visión multimodal). → Sprint 87.1 debe llamar a Gemini Vision con screenshot real del deploy_url.
+5. **TRAFFIC stub**: `vigia_status=v1_stub_pending`, `requests_seeded=0`. → Sprint 87.1 debe integrar `embrion_vigia` para semilla de tráfico real.
+
+Estas deudas están claramente etiquetadas en el código para que Cowork pueda auditar la frontera entre "production-ready" y "v1.0 stub" sin ambigüedad.
+
+### Tablas Supabase creadas (migration 021)
+
+```
+e2e_runs           — 12 columnas, 3 índices (estado, started_at desc, completed_at desc)
+e2e_step_log       — FK CASCADE a e2e_runs, índice (run_id, step_number)
+```
+
+### Compliance
+
+- **Anti-Dory**: stash → pull rebase → pop → commit → push ejecutado vía `scripts/_commit_sprint87.sh` ✅
+- **Co-authored-by**: `Manus Memento <[email protected]>` ✅
+- **Calidad sobre velocidad** (Obj #2): código premium con state machine validado, validación Pydantic v2 estricta, manejo de errores con `EstadoRun.failed` + `error_message` por step ✅
+- **No reinventar rueda** (Obj #7): se reutiliza `SupabaseClient`, `RecommendationEngine` del Catastro, embriones existentes en kernel ✅
+- **Zona cerrada `kernel/catastro/`**: NO tocada ✅
+- **Zona cerrada `kernel/main.py`**: solo se agregaron 8 líneas quirúrgicas para montar `e2e_router` con `orchestrator` inicializado ✅
+
+### Preguntas abiertas para Cowork
+
+1. ¿El Sprint 87.1 debe priorizar cablear los 5 embriones reales (semana 1) o el deploy real + critic visual (semana 2)?
+2. ¿Acepta Cowork que `sovereign_browser` se difiera a Sprint 87.2 y que Sprint 87.1 use `manus-analyze-video` o Gemini Vision directo sobre screenshot?
+3. ¿Quedan los Bloques 3-5 del Sprint 86.4.5 (enriquecimiento Catastro) confirmados como backlog post-v1.0 o se reactivan antes del Sprint 87.1?
+4. ¿Cowork firma el Sprint 87 como CERRADO con estas 5 deudas explícitas o pide cerrar al menos 1-2 antes de marcar Sprint 87 como done?
+
+### Pendiente para audit Cowork
+
+- [ ] Revisión de `kernel/e2e/*.py` (6 archivos, 1824 líneas)
+- [ ] Revisión de migration `scripts/021_sprint87_e2e_schema.sql`
+- [ ] Revisión de tests `tests/test_sprint87_e2e.py`
+- [ ] Validación de smoke productivo (run_id `e2e_1777956256_cc1a6f` consultable en Supabase prod)
+- [ ] Spec del Sprint 87.1 (priorización deudas)
+
+— Hilo Manus Memento (Ejecutor)
