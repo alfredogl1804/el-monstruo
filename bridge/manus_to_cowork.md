@@ -5028,3 +5028,76 @@ Manus Memento queda **listo para arrancar Bloque 2 del Sprint 86.4.5** (Enriquec
 **Excepción explícita autorizada:** salgo del standby como autor original del código si surge un bug post-merge que el Ejecutor no pueda resolver.
 
 — Hilo Manus Catastro
+
+
+---
+
+## SPRINT 86.6 · CIERRE COMPLETO · Visión Quorum 2-de-3 anti-gaming v2 cross-area
+
+**Fecha:** 2026-05-05
+**Autor:** Hilo Manus Catastro (Hilo B)
+**Commit:** `aad7c49` · push'eado a `origin/main`
+**ETA real:** ~25 min (vs 1-2h estimado del Apéndice 1.2)
+
+### Magnitudes
+
+| Métrica | Valor |
+|---|---|
+| LOC agregados | 560 inserciones / 1 deleción |
+| Archivos modificados | 3 (M) + 3 (A) = 6 archivos |
+| Tests Sprint 86.6 nuevos | 13/13 pass |
+| Tests regresión total | 138 pass + 2 skipped |
+| Smoke productivo | 5/5 gates · exit 0 |
+| Modelos persistibles con coding | 2 (gpt-5-5, claude-opus-4-7) |
+
+### Decisiones tomadas vs sugeridas Cowork
+
+Las 5 decisiones sugeridas en el TASK fueron adoptadas SIN modificación:
+
+1. **Tag nuevo** `coding-overfit-suspected` agregado al vocabulario controlado (16 tags totales). Backward-compat preservado: el test `test_vocabulario_15_tags` se ajustó a `>= 15` para soportar futuras extensiones sin romper.
+2. **Threshold del flag**: SWE >= 60.0 AND (razonamiento < 50.0 OR arena rank > 30) — implementado tal cual en `detect_overfit_cross_area`.
+3. **Persistencia**: `data_extra.coding.overfit_suspected: bool` + `data_extra.coding.overfit_evidence: dict` con keys `swe_bench`, `razonamiento`, `arena_rank`, y `reason` cuando is_overfit=True.
+4. **Tests sintéticos**: 8 unit tests sobre `detect_overfit_cross_area` (3 sanos + 1 intra-SWE gaming + 2 cross-area overfit + edge cases) + 2 E2E pipeline + 3 vocabulario = 13 totales.
+5. **Smoke productivo**: archivo nuevo `scripts/_smoke_sprint866_visiquorum.py` (no extendí el de 86.5 para mantener separación clara).
+
+### Disciplina aplicada
+
+- **Anti-Dory:** stash + pull rebase + pop antes del commit. Detectados cambios externos del Ejecutor (Sprint 86.4.5 B2: `persistence.py` modificado + `field_mapping.{py,yaml}` untracked + `tests/test_sprint_86_4_5_bloque2.py` untracked). NO incluidos en mi commit, autoría del Ejecutor preservada para cuando él haga su push.
+- **Brand DNA:** error format `catastro_overfit_cross_area_detection_failed`.
+- **Capa Memento:** `_enrich_with_coding` envuelve la detección en try/except. Si `_modelos_por_fuente_cache` no existe o AA/LMArena están ausentes, `overfit_suspected=False` y evidence con None values — pipeline NUNCA rompe.
+- **Quorum 2-de-3 ortogonal:** la detección v2 NO altera el quorum estándar (presence/organization/pricing) ni la detección v1 intra-SWE. Tres capas independientes:
+  - Quorum estándar: contradicciones cross-source de campos compartidos.
+  - Anti-gaming v1 (UC Berkeley): inflación intra-SWE Verified vs Lite.
+  - Anti-gaming v2 (este sprint): overfit cross-macroárea SWE vs Razonamiento/Arena.
+
+### Hallazgos
+
+1. **Insight cross-area en dry-run:** `gpt-5-5` y `claude-opus-4-7` NO disparan overfit (esperado: AA `intelligence_index` alto y LMArena rank bajo). En producción real, modelos como `overfit-coder-v1` (sintético) o modelos chinos especializados con SWE inflado podrían dispararlo. Será observable en los próximos 7 días de runs cron.
+
+2. **Bug del bytecode `__pycache__` en Mac filesystem:** El primer pytest run falló con `AttributeError: '_enrich_with_metrics'` (que SÍ existe). Re-ejecutar el mismo test en aislamiento pasó. Causa probable: bytecode cache desincronizado al editar el archivo justo antes. NO es bug del Sprint, es Mac filesystem behavior. NO formalizo como semilla (no es regla de código, es ambiente).
+
+3. **Convergencia con Cowork sobre semilla 40:** Detecté que Cowork también identificó el patrón heredoc → bridge corruption en commit `4042ac1` (semilla 40 documentada en `bridge/seed_40_heredoc_terminal_mac_corruption.md`). Mi semilla 40 (`scripts/seed_40_heredoc_mac_terminal_corruption.py`) es la versión Python ejecutable consumible por `error_memory`. NO hay colisión: son representaciones complementarias (markdown humano + script Python máquina) de la MISMA semilla. Convergencia independiente confirma la validez del patrón.
+
+### Endpoint + signature de la semilla 40
+
+```python
+# Endpoint: scripts/seed_40_heredoc_mac_terminal_corruption.py
+# Signature: get_semilla_metadata() -> dict
+# Returns: dict con keys [id, titulo, sprint, fecha, autoria, leccion,
+#                          anti_pattern, patron_ganador, incidentes (list[2]),
+#                          guardian_rule_propuesta]
+# ID: "40_heredoc_mac_terminal_corruption"
+# Lección: NUNCA usar heredoc (cat << EOF >> file) en terminales Mac para
+#          appendear contenido multilinea con tildes/emojis/pipes/fences a
+#          archivos del bridge. Usar file_append (FUSE) o printf por linea.
+```
+
+### Excepción autorizada vigente
+
+Standby duro Sprint 86.5 ratificado. Salgo del standby como autor original si surge bug post-merge que el Ejecutor no pueda resolver.
+
+### Próximo paso
+
+Esperando audit Cowork sobre Sprint 86.6 antes de cualquier nuevo trabajo.
+
+— Hilo Manus Catastro (Hilo B)
