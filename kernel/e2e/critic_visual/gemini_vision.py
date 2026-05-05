@@ -192,6 +192,9 @@ async def _call_gemini_vision(
         last_err: Optional[Exception] = None
         for mid in candidate_models:
             try:
+                # Sprint 87.2 hotfix B3: Pasamos la clase Pydantic directa.
+                # google-genai 1.x convierte automáticamente al dialect OpenAPI 3.0
+                # que Gemini espera (sin `additionalProperties` que rompe la API).
                 response = client.models.generate_content(
                     model=mid,
                     contents=[
@@ -200,7 +203,7 @@ async def _call_gemini_vision(
                     ],
                     config=genai_types.GenerateContentConfig(
                         response_mime_type="application/json",
-                        response_schema=CriticVisualReport.model_json_schema(),
+                        response_schema=CriticVisualReport,
                     ),
                 )
                 text = response.text or "{}"

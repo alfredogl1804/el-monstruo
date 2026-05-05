@@ -31,8 +31,8 @@ echo
 echo "RUN_ID=$RUN_ID"
 echo
 
-echo "[2] esperando 30s para que pipeline termine 12 steps reales..."
-sleep 30
+echo "[2] esperando 120s para que pipeline termine 12 steps reales (incluye 45s timeout deploy)..."
+sleep 120
 
 echo "[3] GET /v1/e2e/runs/$RUN_ID"
 DETAIL=$(curl -sS -m 30 "$API/v1/e2e/runs/$RUN_ID" -H "X-API-Key: $KEY")
