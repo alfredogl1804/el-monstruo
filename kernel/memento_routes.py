@@ -137,7 +137,7 @@ async def _persist_validation(
         # Sprint Memento B6: contamination findings (shadow mode)
         if contamination_report is not None:
             row["contamination_warning"] = contamination_report.has_warning
-            row["contamination_evidence"] = contamination_report.to_evidence_dict()
+            row["contamination_evidence"] = contamination_report.to_dict()
         await db.insert(MEMENTO_VALIDATIONS_TABLE, data=row)
         return True
     except Exception as exc:
@@ -318,7 +318,7 @@ async def memento_validate(request: Request):
     }
     if contamination_report is not None:
         response["contamination_warning"] = contamination_report.has_warning
-        response["contamination_findings"] = contamination_report.to_evidence_dict()["findings"]
+        response["contamination_findings"] = contamination_report.to_dict()["findings"]
     return response
 
 

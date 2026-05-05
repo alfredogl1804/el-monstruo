@@ -432,9 +432,26 @@ class ContaminationDetector:
                     "operation": operation,
                     "validation_status": "ok",
                 },
-                order_by="ts.desc",
+                order_by="ts",
+                order_desc=True,
                 limit=5,  # tomamos 5 por si la primera es la actual
             )
+        except TypeError:
+            # Fallback si la firma del cliente DB no acepta order_desc
+            try:
+                rows = await self._db.select(
+                    "memento_validations",
+                    filters={
+                        "hilo_id": hilo_id,
+                        "operation": operation,
+                        "validation_status": "ok",
+                    },
+                    order_by="ts.desc",
+                    limit=5,
+                )
+            except Exception as exc:
+                logger.debug("h2_db_query_failed error=%s", exc)
+                return None
         except Exception as exc:
             logger.debug("h2_db_query_failed error=%s", exc)
             return None
@@ -542,30 +559,33 @@ class ContaminationDetector:
         cutoff = (datetime.now(timezone.utc) - timedelta(minutes=self._h3_lookback_minutes)).isoformat()
 
         try:
+            # SupabaseClient.select no soporta filters_gte; pedimos los
+            # ultimos 50 ordenados desc por ts y filtramos client-side.
             rows = await self._db.select(
                 "memento_validations",
                 filters={"hilo_id": hilo_id},
-                order_by="ts.desc",
+                order_by="ts",
+                order_desc=True,
                 limit=50,
-                filters_gte={"ts": cutoff},
             )
         except TypeError:
-            # SDK puede no soportar filters_gte; fallback simple
             try:
                 rows = await self._db.select(
                     "memento_validations",
                     filters={"hilo_id": hilo_id},
                     order_by="ts.desc",
                     limit=50,
+                    filters_gte={"ts": cutoff},  # MockDB del test usa este kwarg
                 )
-                # Filtrar manualmente
-                rows = [r for r in rows if (r.get("ts") or "") >= cutoff]
             except Exception as exc:
                 logger.debug("h3_db_query_failed error=%s", exc)
                 return None
         except Exception as exc:
             logger.debug("h3_db_query_failed error=%s", exc)
             return None
+
+        # Filtro temporal client-side (PostgREST no recibio filters_gte)
+        rows = [r for r in rows if (r.get("ts") or "") >= cutoff]
 
         # Excluir la validación actual (si está en los rows)
         rows = [
