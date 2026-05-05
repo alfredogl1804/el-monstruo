@@ -31,6 +31,72 @@ from kernel.browser.sovereign_browser import (
 
 logger = logging.getLogger("monstruo.tools.sovereign_browser")
 
+# Sprint Memento Bloque 5 Fase 1 — pre-flight via library Memento (async)
+_MEMENTO_AVAILABLE = True
+try:
+    from tools.memento_preflight import (  # type: ignore
+        preflight_check_async,
+        MementoPreflightError,
+    )
+except Exception as _import_exc:
+    _MEMENTO_AVAILABLE = False
+    logger.warning(
+        "tools.memento_preflight no disponible (%r); sovereign_browser_* operará sin preflight",
+        _import_exc,
+    )
+
+
+async def _maybe_run_preflight(
+    operation_func: str,
+    url: str,
+    extra_context: Optional[dict[str, Any]] = None,
+) -> Optional[str]:
+    """Ejecuta pre-flight async via Memento. Retorna error string si bloquea, None si OK.
+
+    NO levanta excepciones — fallback degradado: si Memento no responde,
+    el render continúa y queda registrado en logs (warn-mode) para que la
+    operación no quede bloqueada por una falla del propio sistema de validación.
+    """
+    if not _MEMENTO_AVAILABLE:
+        return None
+    try:
+        ctx: dict[str, Any] = {"url": url, "function": operation_func}
+        if extra_context:
+            ctx.update(extra_context)
+        preflight = await preflight_check_async(
+            operation="external_api_call",
+            context_used=ctx,
+            hilo_id="manus_ejecutor_sovereign_browser",
+            intent_summary=f"sovereign_browser.{operation_func}({url})",
+        )
+        if not preflight.proceed:
+            err = (
+                f"preflight bloqueó ejecución: status={preflight.validation_status} "
+                f"remediation={preflight.remediation}"
+            )
+            logger.warning("sovereign_browser %s: %s", operation_func, err)
+            return err
+        logger.info(
+            "sovereign_browser %s: preflight OK validation_id=%s",
+            operation_func,
+            preflight.validation_id,
+        )
+        return None
+    except MementoPreflightError as exc:
+        logger.warning(
+            "sovereign_browser %s: preflight falló (degraded): %s",
+            operation_func,
+            exc,
+        )
+        return None
+    except Exception as exc:
+        logger.warning(
+            "sovereign_browser %s: preflight inesperado (degraded): %r",
+            operation_func,
+            exc,
+        )
+        return None
+
 
 async def sovereign_browser_render(
     url: str,
@@ -62,6 +128,18 @@ async def sovereign_browser_render(
           - duration_ms: int
           - error: Optional[str]
     """
+    block_reason = await _maybe_run_preflight(
+        "render",
+        url,
+        extra_context={
+            "viewport_preset": viewport_preset,
+            "full_page": full_page,
+            "capture_html": capture_html,
+        },
+    )
+    if block_reason is not None:
+        return {"success": False, "url": url, "error": f"preflight: {block_reason}"}
+
     viewport = MOBILE_VIEWPORT if viewport_preset == "mobile" else DEFAULT_DESKTOP_VIEWPORT
     sb = SovereignBrowser(headless=headless)
     res = await sb.render(
@@ -78,6 +156,9 @@ async def sovereign_browser_metrics(url: str, headless: bool = True) -> dict[str
 
     Mas rapido que render() porque no toma screenshot ni captura HTML.
     """
+    block_reason = await _maybe_run_preflight("metrics", url)
+    if block_reason is not None:
+        return {"success": False, "url": url, "error": f"preflight: {block_reason}"}
     sb = SovereignBrowser(headless=headless)
     res = await sb.metrics(url=url)
     return res.to_dict()
@@ -99,6 +180,9 @@ async def sovereign_browser_check_mobile(
           - duration_ms: int
           - error: Optional[str]
     """
+    block_reason = await _maybe_run_preflight("check_mobile", url)
+    if block_reason is not None:
+        return {"success": False, "url": url, "error": f"preflight: {block_reason}"}
     sb = SovereignBrowser(headless=headless)
     res = await sb.check_mobile(url=url)
     return res.to_dict()
