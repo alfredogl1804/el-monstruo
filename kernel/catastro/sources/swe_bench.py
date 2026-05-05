@@ -96,21 +96,31 @@ class SWEBenchFuente(BaseFuente):
         return False
 
     def _get_dry_run_payload(self) -> dict[str, Any]:
+        # Slugs alineados con dry_run de las 3 fuentes core
+        # (gpt-5-5, claude-opus-4-7) para que el smoke E2E valide
+        # el path completo: cross-source presence + coding enrichment.
         return {
             "data": [
+                {
+                    "model_id": "gpt-5-5",
+                    "model_name": "GPT-5.5",
+                    "verified_score": 65.2,
+                    "lite_score": 68.1,
+                    "multilingual_python_score": 62.8
+                },
+                {
+                    "model_id": "claude-opus-4-7",
+                    "model_name": "Claude Opus 4.7",
+                    "verified_score": 58.4,
+                    "lite_score": 61.2,
+                    "multilingual_python_score": 55.9
+                },
                 {
                     "model_id": "claude-3-5-sonnet-20241022",
                     "model_name": "Claude 3.5 Sonnet (New)",
                     "verified_score": 50.8,
                     "lite_score": 53.0,
                     "multilingual_python_score": 48.5
-                },
-                {
-                    "model_id": "gpt-4o-2024-08-06",
-                    "model_name": "GPT-4o",
-                    "verified_score": 43.5,
-                    "lite_score": 45.1,
-                    "multilingual_python_score": 40.2
                 },
                 {
                     "model_id": "overfit-coder-v1",

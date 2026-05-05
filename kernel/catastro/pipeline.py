@@ -49,9 +49,16 @@ from kernel.catastro.sources import (
     ArtificialAnalysisFuente,
     BaseFuente,
     FuenteError,
+    HumanEvalFuente,
     LMArenaFuente,
+    MBPPFuente,
     OpenRouterFuente,
     RawSnapshot,
+    SWEBenchFuente,
+)
+from kernel.catastro.coding_classifier import (
+    CodingClassifier,
+    CodingClassification,
 )
 from kernel.catastro.trono import (
     TronoCalculator,
@@ -186,6 +193,16 @@ class CatastroPipeline:
         LMArenaFuente,
     )
 
+    # Sprint 86.5 — Macroarea 3 LLM Coding
+    # Fuentes coding son OPCIONALES (no rompen pipeline existente si fallan).
+    # Se incluyen solo si se pasan explicitamente en `sources` o si
+    # CATASTRO_ENABLE_CODING=true.
+    CODING_SOURCES: tuple[type[BaseFuente], ...] = (
+        SWEBenchFuente,
+        HumanEvalFuente,
+        MBPPFuente,
+    )
+
     def __init__(
         self,
         *,
@@ -220,8 +237,16 @@ class CatastroPipeline:
             self.sources = sources
         else:
             self.sources = [cls(dry_run=dry_run) for cls in self.DEFAULT_SOURCES]
+            # Sprint 86.5: agregar coding sources si flag activo
+            enable_coding = os.environ.get("CATASTRO_ENABLE_CODING", "").strip().lower()
+            if enable_coding in ("true", "1", "yes", "on"):
+                self.sources.extend(
+                    cls(dry_run=dry_run) for cls in self.CODING_SOURCES
+                )
 
         self.validator = validator or QuorumValidator(numeric_tolerance=0.10)
+        # Sprint 86.5 — coding classifier (heuristic fallback si no hay OPENAI_API_KEY)
+        self.coding_classifier = CodingClassifier(use_llm=True)
         self.persistence = persistence or CatastroPersistence(dry_run=dry_run)
         self.trono_calculator = trono_calculator or TronoCalculator()
 
@@ -532,10 +557,70 @@ class CatastroPipeline:
                 self._extract_openrouter(snapshot, modelos_por_fuente)
             elif fuente_name == "lmarena":
                 self._extract_lmarena(snapshot, modelos_por_fuente)
+            elif fuente_name == "swe_bench":
+                self._extract_swe_bench(snapshot, modelos_por_fuente)
+            elif fuente_name == "human_eval":
+                self._extract_human_eval(snapshot, modelos_por_fuente)
+            elif fuente_name == "mbpp":
+                self._extract_mbpp(snapshot, modelos_por_fuente)
             else:
                 logger.warning(f"[catastro_pipeline] fuente desconocida: {fuente_name}")
 
         return modelos_por_fuente
+
+    def _extract_swe_bench(self, snapshot: RawSnapshot, agg: dict) -> None:
+        """Sprint 86.5: extrae scores SWE-bench Verified + detecta gaming UC Berkeley."""
+        if not hasattr(self, "_coding_cache"):
+            self._coding_cache: dict[str, dict[str, Any]] = {}
+        for item in snapshot.payload.get("data", []):
+            slug = self.normalize_slug(item.get("model_id") or item.get("model_name") or "")
+            if not slug:
+                continue
+            scores = SWEBenchFuente.extract_scores(item)
+            gaming = SWEBenchFuente.detect_gaming(scores)
+            agg.setdefault(slug, {})["swe_bench"] = {
+                "raw_model_id": item.get("model_id"),
+                "name": item.get("model_name"),
+                "verified_score": scores.get("verified"),
+                "lite_score": scores.get("lite"),
+                "multilingual_python_score": scores.get("multilingual_python"),
+                "gaming_detected": gaming,
+            }
+            cache_entry = self._coding_cache.setdefault(slug, {})
+            cache_entry["swe_bench_verified"] = scores.get("verified")
+            cache_entry["swe_bench_lite"] = scores.get("lite")
+            cache_entry["swe_bench_multilingual_python"] = scores.get("multilingual_python")
+            cache_entry["gaming_detected"] = gaming
+
+    def _extract_human_eval(self, snapshot: RawSnapshot, agg: dict) -> None:
+        if not hasattr(self, "_coding_cache"):
+            self._coding_cache: dict[str, dict[str, Any]] = {}
+        for item in snapshot.payload.get("data", []):
+            slug = self.normalize_slug(item.get("model_id") or item.get("model_name") or "")
+            if not slug:
+                continue
+            score = HumanEvalFuente.extract_score(item)
+            agg.setdefault(slug, {})["human_eval"] = {
+                "raw_model_id": item.get("model_id"),
+                "name": item.get("model_name"),
+                "pass_at_1": score,
+            }
+            self._coding_cache.setdefault(slug, {})["human_eval_plus"] = score
+
+    def _extract_mbpp(self, snapshot: RawSnapshot, agg: dict) -> None:
+        if not hasattr(self, "_coding_cache"):
+            self._coding_cache: dict[str, dict[str, Any]] = {}
+        for item in snapshot.payload.get("data", []):
+            slug = self.normalize_slug(item.get("model_id") or item.get("model_name") or "")
+            if not slug:
+                continue
+            score = MBPPFuente.extract_score(item)
+            agg.setdefault(slug, {})["mbpp"] = {
+                "raw_model_id": item.get("model_id"),
+                "name": item.get("model_name"),
+                "pass_at_1": score,
+            }
+            self._coding_cache.setdefault(slug, {})["mbpp_plus"] = score
 
     @staticmethod
     def normalize_slug(raw: str) -> str:
@@ -681,10 +766,53 @@ class CatastroPipeline:
                     )
                 )
 
+            # Sprint 86.5 — Macroarea 3 LLM Coding
+            # Quorum 2-de-3 ortogonal usando 3 fuentes coding independientes:
+            # SWE-bench Verified, HumanEval+, MBPP+. Anti-gaming UC Berkeley
+            # se aplica al normalizar (gaming_detected) y luego al consensuar.
+            self._cross_validate_coding(slug, fuentes_data, quorum_results)
+
             all_results[slug] = quorum_results
             result.modelos_procesados[slug] = quorum_results
 
         return all_results
+
+    # Sprint 86.5: 3 fuentes coding ortogonales
+    CODING_OFFICIAL_SOURCES = ("swe_bench", "human_eval", "mbpp")
+
+    def _cross_validate_coding(
+        self,
+        slug: str,
+        fuentes_data: dict[str, dict[str, Any]],
+        quorum_results: list[QuorumResult],
+    ) -> None:
+        """
+        Quorum 2-de-3 sobre fuentes coding (SWE-bench/HumanEval+/MBPP+).
+
+        Diseno:
+          - Cada fuente reporta 1 metrica numerica principal:
+              swe_bench       -> verified_score
+              human_eval      -> pass_at_1
+              mbpp            -> pass_at_1
+          - NO se cross-validan entre si (escalas distintas) sino que
+            se persisten como campos separados via `data_extra.coding`.
+          - Sin embargo, el QUORUM DE PRESENCIA en >=2 de 3 fuentes
+            coding es lo que activa el dominio coding_llms del modelo.
+          - El flag `gaming_detected` viene precomputado del extract.
+            Si TRUE en SWE-bench, se NO suma confianza coding.
+        """
+        # Quorum de presencia coding (¿aparece en >=2 fuentes coding?)
+        coding_presence_votes = [
+            FuenteVote(f, True if f in fuentes_data else None)
+            for f in self.CODING_OFFICIAL_SOURCES
+        ]
+        if sum(1 for v in coding_presence_votes if v.has_data) >= 1:
+            coding_presence_qr = self.validator.validate(
+                field_name="coding.presence",
+                field_type=FieldType.PRESENCE,
+                votes=coding_presence_votes,
+            )
+            quorum_results.append(coding_presence_qr)
 
     # ------------------------------------------------------------------
     # Paso 5: extracción de persistibles
@@ -718,3 +846,70 @@ class CatastroPipeline:
                     "presence_confidence": presence_qr.confidence_score,
                     "confirming_sources": presence_qr.confirming_sources,
                 }
+
+        # Sprint 86.5: enriquecer persistibles con data_extra.coding
+        # cuando el modelo aparezca en >=1 fuente coding, agregamos su
+        # bloque coding al persistible para que se sirva via data_extra.
+        for slug, persistible in result.modelos_persistibles.items():
+            self._enrich_with_coding(slug, persistible, all_quorum_results.get(slug, []))
+
+    def _enrich_with_coding(
+        self,
+        slug: str,
+        persistible: dict[str, Any],
+        qrs: list[QuorumResult],
+    ) -> None:
+        """
+        Sprint 86.5: enriquece el persistible con `data_extra.coding`.
+
+        Estructura del bloque coding (Opción A schema delta firmada):
+          data_extra:
+            coding:
+              swe_bench_verified: float | None
+              swe_bench_lite: float | None
+              human_eval_plus: float | None
+              mbpp_plus: float | None
+              gaming_detected: bool
+              classification:
+                tags: list[str]
+                primary_strength: str
+                confidence: float
+                reasoning: str
+        """
+        # Recoger scores raw del run actual desde modelos_por_fuente cache
+        # (los persistibles ya tienen el slug; los datos crudos vinieron del
+        # extract_*. Para mantener bajo acoplamiento, leemos del cache que
+        # construye _normalize_snapshots, propagado al runtime via attr).
+        coding_data = getattr(self, "_coding_cache", {}).get(slug)
+        if not coding_data:
+            return
+
+        scores_for_classifier = {
+            "swe_bench": coding_data.get("swe_bench_verified"),
+            "human_eval": coding_data.get("human_eval_plus"),
+            "mbpp": coding_data.get("mbpp_plus"),
+        }
+        # Solo classify si tiene >=1 score
+        if not any(v is not None for v in scores_for_classifier.values()):
+            return
+
+        try:
+            classification = self.coding_classifier.classify(
+                modelo_id=slug,
+                scores=scores_for_classifier,
+                gaming_detected=coding_data.get("gaming_detected", False),
+            )
+            coding_data["classification"] = {
+                "tags": classification.tags,
+                "primary_strength": classification.primary_strength,
+                "confidence": classification.confidence,
+                "reasoning": classification.reasoning,
+            }
+        except Exception as e:  # noqa: BLE001
+            logger.warning(
+                f"[catastro_pipeline] coding_classifier crash slug={slug}: {e}"
+            )
+            coding_data["classification"] = None
+
+        # Inyectar al persistible
+        persistible.setdefault("data_extra", {})["coding"] = coding_data

@@ -72,14 +72,19 @@ class MBPPFuente(BaseFuente):
         return {
             "data": [
                 {
+                    "model_id": "gpt-5-5",
+                    "model_name": "GPT-5.5",
+                    "pass_at_1": 91.7
+                },
+                {
+                    "model_id": "claude-opus-4-7",
+                    "model_name": "Claude Opus 4.7",
+                    "pass_at_1": 90.0
+                },
+                {
                     "model_id": "claude-3-5-sonnet-20241022",
                     "model_name": "Claude 3.5 Sonnet (New)",
                     "pass_at_1": 89.5
-                },
-                {
-                    "model_id": "gpt-4o-2024-08-06",
-                    "model_name": "GPT-4o",
-                    "pass_at_1": 87.2
                 },
                 {
                     "model_id": "overfit-coder-v1",

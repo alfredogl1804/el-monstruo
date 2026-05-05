@@ -72,14 +72,19 @@ class HumanEvalFuente(BaseFuente):
         return {
             "data": [
                 {
+                    "model_id": "gpt-5-5",
+                    "model_name": "GPT-5.5",
+                    "pass_at_1": 92.1
+                },
+                {
+                    "model_id": "claude-opus-4-7",
+                    "model_name": "Claude Opus 4.7",
+                    "pass_at_1": 90.3
+                },
+                {
                     "model_id": "claude-3-5-sonnet-20241022",
                     "model_name": "Claude 3.5 Sonnet (New)",
                     "pass_at_1": 88.4
-                },
-                {
-                    "model_id": "gpt-4o-2024-08-06",
-                    "model_name": "GPT-4o",
-                    "pass_at_1": 86.6
                 },
                 {
                     "model_id": "overfit-coder-v1",
