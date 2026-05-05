@@ -1,9 +1,9 @@
 # EL MONSTRUO — Arquitectura del Sistema Operativo Personal Soberano
 
-> **Documento de visión v1.0**
+> **Documento de visión v1.0.1**
 > **Autor:** Cowork (Hilo B), compilado de iteración con Alfredo González (2026-05-04 → 2026-05-05)
 > **Naturaleza:** documento técnico-arquitectónico privado para Alfredo y los hilos Manus. NO destinado a comunicación externa.
-> **Estado:** v1.0 inicial. Para iteraciones, modificá este archivo y commiteá.
+> **Estado:** v1.0.1 — parche menor con 3 ajustes confirmados (device confiado agnóstico en Cap 1, Health Intelligence como 8va capability en Cap 4, deuda explícita de investigación de líderes cotidianos en Cap 2). Pendiente para v1.1: Capa 9 transversal "Realidad Convergente" (requiere CIES + OMNICOM + cierre del mapa de líderes con cruce de IAs).
 
 ---
 
@@ -67,7 +67,7 @@ Las dos vistas comparten estado. Si Alfredo desde el Modo Daily pregunta "buscam
 
 ### Toggle entre modos
 
-El acceso al Modo Cockpit requiere autenticación fuerte. Alfredo lo activa con un gesto secreto sobre el logo del Monstruo (3 dedos hold) más Face ID. Opcionalmente, segundo factor con Apple Watch como llave proximate. Sin estos factores, el Cockpit es invisible — alguien que tome el iPhone de Alfredo no encuentra dónde está, ni sabe que existe.
+El acceso al Modo Cockpit requiere autenticación fuerte. Alfredo lo activa con un gesto secreto sobre el logo del Monstruo (3 dedos hold) más Face ID. Opcionalmente, segundo factor con **device confiado agnóstico** como llave próxima — Apple Watch en usuarios Apple, smartwatch Wear OS o Garmin en usuarios Android, o passphrase + biometría sola si no hay smartwatch. La regla operativa es no casarse con un fabricante específico: el Monstruo se diseña para que cualquier device confiado del ecosistema del usuario actúe como segundo factor. Sin estos factores, el Cockpit es invisible — alguien que tome el iPhone de Alfredo no encuentra dónde está, ni sabe que existe.
 
 ### Bundle único
 
@@ -98,6 +98,7 @@ apps/mobile/
 │   │   │   ├── vault_service.dart
 │   │   │   ├── shopping_service.dart
 │   │   │   ├── notes_service.dart
+│   │   │   ├── health_service.dart
 │   │   │   ├── cronos_service.dart
 │   │   │   └── replay_service.dart
 │   │   ├── theme/brand_dna.dart              (forja + graphite + acero)
@@ -139,6 +140,8 @@ Adicionalmente, en el Home vive **el río de Cronos** como franja horizontal nav
 **Pantalla 3 — Pendientes.** Acciones que el Monstruo necesita confirmación humana. Reservas a punto de hacerse, mensajes a punto de mandarse, decisiones HITL soft. Cada item con preview editable inline antes de confirmar (streaming approval). Si no hay nada pendiente, pantalla vacía, sin "no hay nada nuevo" — solo el espacio en blanco con el brand DNA.
 
 **Pantalla 4 — Conexiones.** Qué apps externas tiene enchufadas el Monstruo. WhatsApp, Apple Mail, Gmail, Apple Calendar, Google Calendar, Apple Maps, Google Maps, Apple Photos, Google Photos, Files, Drive, Dropbox, Apple Pay, etc. Toggle individual por servicio. Permissions granulares. Audit log accesible (cuándo el Monstruo leyó qué).
+
+> **DEUDA EXPLÍCITA — investigación pendiente:** la lista de "líderes cotidianos" a los que el Monstruo debe conectarse nativamente (mensajería, email, calendario, sheets, docs, search, visual search, smartwatch/salud, realidad virtual, comercio social, video largo/corto, streaming, música, ecosistema Apple/Google/Microsoft) requiere ciclo de investigación + descubrimiento + cruce con otras IAs (Manus + Perplexity) antes de cerrarse. Lo escrito aquí arriba es esqueleto provisional. La lista validada va a expandirse en v1.1 con criterio por dominio: ¿quién es líder hoy? ¿qué API soporta el Monstruo? ¿qué tier de sensibilidad aplica?
 
 **Pantalla 5 — Perfil.** Identidad del usuario, configuración de privacidad, claves del SMP, recovery con Shamir's Secret Sharing, exportación de datos completos, eliminación con confirmación múltiple. Todo lo soberano vive acá.
 
@@ -206,7 +209,7 @@ El Cockpit es invisible para todos los usuarios excepto Alfredo (autenticación 
 
 ## Capítulo 4 — Capabilities transversales
 
-Las capabilities siguientes son servicios core que viven en `lib/core/services/` y se invocan desde ambos modos. En Modo Daily son comandos naturales con output limpio; en Modo Cockpit son pantallas densas con metadata visible.
+Las **8 capabilities** siguientes son servicios core que viven en `lib/core/services/` y se invocan desde ambos modos. En Modo Daily son comandos naturales con output limpio; en Modo Cockpit son pantallas densas con metadata visible.
 
 ### Visual Search (Google Lens-style soberano)
 
@@ -235,6 +238,19 @@ Búsqueda + comparación + checkout asistido. *"Buscame el mejor precio de esta 
 ### Notes Intelligence (procesamiento de notas inteligente)
 
 Lectura de Apple Notes / Google Keep / Notion con permisos. Procesamiento smart minimalista: extracción de tareas implícitas ("comprar yerba" → propone agregarlo a shopping), conexión con Cronos (la nota *"reunión con Pedro: hablar de X"* se conecta con calendar event y queda contextualizada), búsqueda semántica multi-fuente, detección de ideas dormidas que vale resucitar.
+
+### Health Intelligence (monitoreo soberano de salud como nuevo standard)
+
+Conexión con Apple HealthKit (iOS) y Health Connect (Android) más wearables específicos (Apple Watch, Garmin, Oura, Whoop, Fitbit). Lectura de métricas — sueño, frecuencia cardíaca, HRV, actividad, peso, glucosa si se mide, presión arterial — bajo SMP, con índice semántico viviendo en el kernel del Monstruo cifrado con clave del usuario. Apple/Google ven los bytes; el Monstruo entiende el significado. Soberanía aplicada al cuerpo.
+
+Premisa cultural: monitoreo completo de salud va a ser standard del futuro inmediato, así como hoy nadie maneja sin cinturón de seguridad. Quien no monitoree va a estar en desventaja epistemológica frente a su propia salud. El Monstruo NO empuja a la persona a monitorear; cuando ya hay datos, los integra inteligentemente.
+
+Aplicaciones concretas:
+- Cronos Capa Salud alimentada con datos objetivos (no solo declarativos)
+- Detección pasiva de patrones (ejemplo: *"las semanas que dormís menos de 6h, tu humor del 3er día baja según tus propios datos"*)
+- Anti-coaching: el Monstruo describe lo que ve, no prescribe ejercicio ni dieta
+- Crisis discreta: si métricas objetivas indican riesgo serio (arritmia inusual sostenida, caídas detectadas, etc.), puerta blanda hacia humano-profesional, sin imposición
+- Privacidad radical: las métricas de salud son sensibilidad ALTA por default, procesamiento on-device o TEE obligatorio (jamás cloud LLM en claro)
 
 ---
 
@@ -531,7 +547,7 @@ Voice bidireccional con interrupción natural. i18n base (es-MX, es-AR, en). Acc
 
 **Cronos progresivo.** Sprint Cronos 1: chasis del río + captura passive de WhatsApp + Photos. Sprint Cronos 2: 9 capas básicas + modo espejo. Sprint Cronos 3: niebla del futuro + Simulador Causal aplicado.
 
-**Capabilities transversales progresivas.** Visual Search, Photo Intelligence, File Intelligence, App Intelligence, Vault, Shopping, Notes — cada una en su sprint según prioridad.
+**Capabilities transversales progresivas.** Visual Search, Photo Intelligence, File Intelligence, App Intelligence, Vault, Shopping, Notes, Health — cada una en su sprint según prioridad. Total: 8 capabilities core.
 
 ### Total reescrito
 
