@@ -1,0 +1,979 @@
+[
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/roadmap",
+      "F1_canon_roadmap/plan de construccion",
+      "F1_canon_roadmap/master plan",
+      "F1_canon_roadmap/monstruo arquitectura",
+      "F2_recuperacion_respaldo/respaldo bruto",
+      "F2_recuperacion_respaldo/prompt de recuperacion",
+      "F2_recuperacion_respaldo/decisiones vigentes",
+      "F2_recuperacion_respaldo/hilo colapsado",
+      "F3_control_total_bodyguard/guardian",
+      "F3_control_total_bodyguard/control de permisos",
+      "F4_proyectos_secundarios/verificacion de edad",
+      "F4_proyectos_secundarios/identidad soberana",
+      "F5_documento_maestro/single source of truth",
+      "F6_productividad/PARA",
+      "F7_arqueologia/monstruo continuidad",
+      "F7_arqueologia/respaldo bruto"
+    ],
+    "fuente": "notion",
+    "name": "🏗️ Plan de Construcción: El Monstruo v0.1",
+    "mimeType": "page",
+    "modifiedTime": "2026-04-04T21:14:00.000Z",
+    "url": "30114c6f8bba813ba7aec5d7d3b8da3d",
+    "highlight": "Arquitectura de Absorcion Soberana — Respaldo Completo (Abr 2026)",
+    "id": "30114c6f-8bba-813b-a7ae-c5d7d3b8da3d",
+    "priority": "P0",
+    "score": 26
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/EPIA",
+      "F1_canon_roadmap/SOP",
+      "F1_canon_roadmap/MDC",
+      "F1_canon_roadmap/RuleMint",
+      "F3_control_total_bodyguard/action guard",
+      "F3_control_total_bodyguard/control de permisos",
+      "F4_proyectos/CIP",
+      "F4_proyectos/CIES",
+      "F4_proyectos/Omnicom",
+      "F4_proyectos/IGCAR",
+      "F4_proyectos/Plataforma Inmobiliaria Global",
+      "F4_proyectos/vivir sano",
+      "F4_proyectos/verificacion de edad",
+      "F5_documento_maestro/Documento_Maestro",
+      "F7_nombres_genericos/chatgpt export"
+    ],
+    "fuente": "drive",
+    "name": "repaldo sop v3 181025.txt",
+    "mimeType": "text/plain",
+    "modifiedTime": "2025-10-19T03:46:18.000Z",
+    "size": "42995",
+    "url": "https://drive.google.com/file/d/1ikl5U2ke4-b2I5SeoN2Xf_c8WGF9t0Yj/view?usp=drivesdk",
+    "id": "1ikl5U2ke4-b2I5SeoN2Xf_c8WGF9t0Yj",
+    "priority": "P0",
+    "score": 25
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/plan de construccion",
+      "F1_canon_roadmap/monstruo arquitectura",
+      "F2_recuperacion_respaldo/BLOQUE PARA CHATGPT",
+      "F3_control_total_bodyguard/action guard",
+      "F3_control_total_bodyguard/control de permisos",
+      "F5_documento_maestro/Biblia maestra",
+      "F6_productividad/PARA",
+      "F6_productividad/ranking productividad",
+      "F7_arqueologia/monstruo continuidad"
+    ],
+    "fuente": "notion",
+    "name": "Biblia de MCPs para El Monstruo v1.0",
+    "mimeType": "page",
+    "modifiedTime": "2026-04-04T21:14:00.000Z",
+    "url": "30214c6f8bba81948e76c6d35ba6fbc6",
+    "highlight": "exhaustiva sobre el ecosistema de Model Context Protocol (MCP) y su potencial para expandir las capacidades de El Monstruo. Se investigaron mas de 8,250 MCPs usando 3 fuentes principales",
+    "id": "30214c6f-8bba-8194-8e76-c6d35ba6fbc6",
+    "priority": "P0",
+    "score": 19
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/arquitectura",
+      "F1_canon_roadmap/EPIA",
+      "F1_canon_roadmap/SOP",
+      "F1_canon_roadmap/continuidad",
+      "F2_recuperacion_respaldo/prompt de recuperacion",
+      "F2_recuperacion_respaldo/contexto completo",
+      "F5_documento_maestro/documento central",
+      "F5_documento_maestro/documento fundacional",
+      "F7_nombres_genericos/monstruo continuidad"
+    ],
+    "fuente": "drive",
+    "name": "EPIA_fundacional_completo_v1",
+    "mimeType": "application/vnd.google-apps.document",
+    "modifiedTime": "2026-04-05T18:39:04.443Z",
+    "size": "12722",
+    "url": "https://docs.google.com/document/d/1600WRrQVF1CyBcn5F_x_5ntO2tvQpmLxNV6ysuzt6C0/edit?usp=drivesdk",
+    "id": "1600WRrQVF1CyBcn5F_x_5ntO2tvQpmLxNV6ysuzt6C0",
+    "priority": "P0",
+    "score": 19
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/roadmap",
+      "F1_canon_roadmap/plan de construccion",
+      "F1_canon_roadmap/monstruo arquitectura",
+      "F2_recuperacion_respaldo/decisiones vigentes",
+      "F3_control_total_bodyguard/safety layer",
+      "F3_control_total_bodyguard/control de permisos",
+      "F4_proyectos_secundarios/identidad soberana",
+      "F7_arqueologia/monstruo continuidad"
+    ],
+    "fuente": "notion",
+    "name": "1. Arquitectura de Absorcion Soberana — Version Definitiva (GPT-5.4)",
+    "mimeType": "page",
+    "modifiedTime": "2026-04-05T17:23:00.000Z",
+    "url": "33914c6f8bba8119af3aee6b7bc9d5bb",
+    "highlight": "del Monstruo v2.0 no propone construir una fortaleza aislada ni ensamblar un collage de herramientas ajenas; propone un sistema donde un núcleo soberano de decisión, memoria, continuidad,",
+    "id": "33914c6f-8bba-8119-af3a-ee6b7bc9d5bb",
+    "priority": "P0",
+    "score": 18
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/monstruo",
+      "F1_canon_roadmap/EPIA",
+      "F1_canon_roadmap/SOP",
+      "F1_canon_roadmap/continuidad",
+      "F5_documento_maestro/documento central",
+      "F5_documento_maestro/documento madre",
+      "F5_documento_maestro/documento fundacional",
+      "F7_nombres_genericos/monstruo continuidad"
+    ],
+    "fuente": "drive",
+    "name": "Identidad_del_Monstruo_fundacional_v1",
+    "mimeType": "application/vnd.google-apps.document",
+    "modifiedTime": "2026-04-05T21:39:49.487Z",
+    "size": "7654",
+    "url": "https://docs.google.com/document/d/1DOXgKhgA17XypT-e09WTGBQTh5yRU4bawZ2mYP6PHpo/edit?usp=drivesdk",
+    "id": "1DOXgKhgA17XypT-e09WTGBQTh5yRU4bawZ2mYP6PHpo",
+    "priority": "P0",
+    "score": 18
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/canon",
+      "F1_canon_roadmap/monstruo",
+      "F1_canon_roadmap/control plane",
+      "F1_canon_roadmap/gobernanza",
+      "F1_canon_roadmap/continuidad",
+      "F2_recuperacion_respaldo/respaldo",
+      "F2_recuperacion_respaldo/bruto",
+      "F2_recuperacion_respaldo/no perder",
+      "F2_recuperacion_respaldo/deprecado",
+      "F3_control_total_bodyguard/Control Total",
+      "F3_control_total_bodyguard/control total",
+      "F7_nombres_genericos/respaldo bruto",
+      "F7_nombres_genericos/monstruo continuidad",
+      "F7_nombres_genericos/A_respaldo_bruto"
+    ],
+    "fuente": "drive",
+    "name": "A_respaldo_bruto_chat",
+    "mimeType": "application/vnd.google-apps.document",
+    "modifiedTime": "2026-04-06T00:49:58.063Z",
+    "size": "5864",
+    "url": "https://docs.google.com/document/d/1zpqeiNV3SUTBR6hrkrFuHDdwJUWXCum6MN27K6XCP8c/edit?usp=drivesdk",
+    "id": "1zpqeiNV3SUTBR6hrkrFuHDdwJUWXCum6MN27K6XCP8c",
+    "priority": "P1",
+    "score": 17
+  },
+  {
+    "kw_matches": [
+      "search/roadmap",
+      "search/canon",
+      "search/documento maestro",
+      "search/EPIA",
+      "search/SOP",
+      "search/control total",
+      "search/guardian"
+    ],
+    "fuente": "dropbox",
+    "name": "ENTREGABLE 2 — DOCUMENTO FUNDACIONAL SOP.docx",
+    "modifiedTime": "2026-04-05T01:04:38Z",
+    "size": 24064,
+    "url": "dropbox:/ENTREGABLE 2 — DOCUMENTO FUNDACIONAL SOP.docx",
+    "id": "/ENTREGABLE 2 — DOCUMENTO FUNDACIONAL SOP.docx",
+    "priority": "P0",
+    "score": 17
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/EPIA",
+      "F1_canon_roadmap/SOP",
+      "F1_canon_roadmap/MDC",
+      "F1_canon_roadmap/RuleMint",
+      "F2_recuperacion_respaldo/contexto completo",
+      "F4_proyectos/CIP",
+      "F4_proyectos/CIES",
+      "F4_proyectos/Omnicom",
+      "F4_proyectos/IGCAR",
+      "F4_proyectos/Plataforma Inmobiliaria Global",
+      "F5_documento_maestro/Biblia maestra",
+      "F5_documento_maestro/single source of truth",
+      "F6_productividad/Building a Second Brain",
+      "F7_nombres_genericos/chatgpt export"
+    ],
+    "fuente": "drive",
+    "name": "MANUS_10_CORPUS_COMPLETO_SOP_EPIA.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-06T06:17:38.249Z",
+    "size": "1356286",
+    "url": "https://drive.google.com/file/d/1qwybNRQklfM8tebPjkMvwWCCbHtVhiqg/view?usp=drivesdk",
+    "id": "1qwybNRQklfM8tebPjkMvwWCCbHtVhiqg",
+    "priority": "P1",
+    "score": 17
+  },
+  {
+    "kw_matches": [
+      "F2_recuperacion_respaldo/BLOQUE PARA CHATGPT",
+      "F2_recuperacion_respaldo/prompt de recuperacion",
+      "F3_control_total_bodyguard/control de permisos",
+      "F4_proyectos/Lightspeed",
+      "F4_proyectos/verificacion de edad",
+      "F5_documento_maestro/single source of truth",
+      "F6_productividad/Building a Second Brain"
+    ],
+    "fuente": "drive",
+    "name": "biblias_v41_AUDITED_69_gradeA.zip",
+    "mimeType": "application/zip",
+    "modifiedTime": "2026-03-02T14:47:38.366Z",
+    "size": "904860",
+    "url": "https://drive.google.com/file/d/1sG0XjLmLbFDwk8xuDgukaz8rVNqA5nkB/view?usp=drivesdk",
+    "id": "1sG0XjLmLbFDwk8xuDgukaz8rVNqA5nkB",
+    "priority": "P0",
+    "score": 17
+  },
+  {
+    "kw_matches": [
+      "F2_recuperacion_respaldo/BLOQUE PARA CHATGPT",
+      "F2_recuperacion_respaldo/prompt de recuperacion",
+      "F3_control_total_bodyguard/control de permisos",
+      "F4_proyectos/Lightspeed",
+      "F4_proyectos/verificacion de edad",
+      "F5_documento_maestro/single source of truth",
+      "F6_productividad/Building a Second Brain"
+    ],
+    "fuente": "drive",
+    "name": "biblias_v41_FINAL_69_gradeA.zip",
+    "mimeType": "application/zip",
+    "modifiedTime": "2026-03-02T03:41:48.419Z",
+    "size": "944121",
+    "url": "https://drive.google.com/file/d/1apDLx24-Q3Upe0Z6tuUEevAdeksVECBD/view?usp=drivesdk",
+    "id": "1apDLx24-Q3Upe0Z6tuUEevAdeksVECBD",
+    "priority": "P0",
+    "score": 17
+  },
+  {
+    "kw_matches": [
+      "F2_recuperacion_respaldo/contexto completo",
+      "F4_proyectos/Soft Restaurant",
+      "F4_proyectos/verificacion de edad",
+      "F5_documento_maestro/Biblia maestra",
+      "F5_documento_maestro/single source of truth",
+      "F6_productividad/Building a Second Brain",
+      "F6_productividad/atomic habits"
+    ],
+    "fuente": "drive",
+    "name": "biblias_v41_paquete_completo.zip",
+    "mimeType": "application/zip",
+    "modifiedTime": "2026-03-01T20:23:55.833Z",
+    "size": "602438",
+    "url": "https://drive.google.com/file/d/1Iv2P2iww5ZzcAoYnhJtqLx7WabUt3NOE/view?usp=drivesdk",
+    "id": "1Iv2P2iww5ZzcAoYnhJtqLx7WabUt3NOE",
+    "priority": "P0",
+    "score": 17
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/control plane",
+      "F1_canon_roadmap/continuidad",
+      "F2_recuperacion_respaldo/prompt de recuperacion",
+      "F2_recuperacion_respaldo/decisiones vigentes",
+      "F5_documento_maestro/documento madre",
+      "F7_nombres_genericos/respaldo bruto"
+    ],
+    "fuente": "drive",
+    "name": "00_PROMPT_PROGRAMATICO_DEFINITIVO.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-06T06:07:38.341Z",
+    "size": "38284",
+    "url": "https://drive.google.com/file/d/19aEa1c6mZRohAzyjY4wjHXdQVKeDFF3r/view?usp=drivesdk",
+    "id": "19aEa1c6mZRohAzyjY4wjHXdQVKeDFF3r",
+    "priority": "P0",
+    "score": 16
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/control plane",
+      "F1_canon_roadmap/continuidad",
+      "F2_recuperacion_respaldo/prompt de recuperacion",
+      "F2_recuperacion_respaldo/decisiones vigentes",
+      "F5_documento_maestro/documento madre",
+      "F7_nombres_genericos/respaldo bruto"
+    ],
+    "fuente": "drive",
+    "name": "06_PROMPT_DEFINITIVO.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-06T05:25:01.343Z",
+    "size": "45780",
+    "url": "https://drive.google.com/file/d/1TpYW1-bCvPmx50ieO7eYyvjRX4IDXknK/view?usp=drivesdk",
+    "id": "1TpYW1-bCvPmx50ieO7eYyvjRX4IDXknK",
+    "priority": "P0",
+    "score": 16
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/plan de construccion",
+      "F1_canon_roadmap/monstruo arquitectura",
+      "F2_recuperacion_respaldo/respaldo bruto",
+      "F4_proyectos_secundarios/identidad soberana",
+      "F7_arqueologia/monstruo continuidad",
+      "F7_arqueologia/respaldo bruto"
+    ],
+    "fuente": "notion",
+    "name": "Arquitectura de Absorcion Soberana — Respaldo Completo (Abr 2026)",
+    "mimeType": "page",
+    "modifiedTime": "2026-04-05T17:22:00.000Z",
+    "url": "33914c6f8bba81fb9e3dfcd4b0a3fed2",
+    "highlight": "B. Artefactos de Respaldo Valiosos",
+    "id": "33914c6f-8bba-81fb-9e3d-fcd4b0a3fed2",
+    "priority": "P0",
+    "score": 16
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/documento maestro",
+      "F1_canon_roadmap/master plan",
+      "F4_proyectos_secundarios/Jarvis voz",
+      "F5_documento_maestro/Documento Maestro",
+      "F5_documento_maestro/plan maestro",
+      "F6_productividad/Second Brain"
+    ],
+    "fuente": "notion",
+    "name": "MANUS OS: PLAN MAESTRO UNIFICADO (v5.0)",
+    "mimeType": "page",
+    "modifiedTime": "2026-04-04T21:14:00.000Z",
+    "url": "2ec14c6f8bba8194a28ac4273120fc1d",
+    "highlight": "MANUS_BRAIN_ROOT: Página raíz del sistema.",
+    "id": "2ec14c6f-8bba-8194-a28a-c4273120fc1d",
+    "priority": "P0",
+    "score": 16
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/documento maestro",
+      "F1_canon_roadmap/SOP",
+      "F3_control_total_bodyguard/Control Total",
+      "F3_control_total_bodyguard/control total",
+      "F5_documento_maestro/Documento Maestro",
+      "F5_documento_maestro/documento fundacional"
+    ],
+    "fuente": "drive",
+    "name": "SOP_fundacional_v1.2",
+    "mimeType": "application/vnd.google-apps.document",
+    "modifiedTime": "2026-04-05T04:24:06.362Z",
+    "size": "2289",
+    "url": "https://docs.google.com/document/d/1uKdRawZR4zVk3Eckmz-HKN1W8LGOM3Xybz5H9pywX5Y/edit?usp=drivesdk",
+    "id": "1uKdRawZR4zVk3Eckmz-HKN1W8LGOM3Xybz5H9pywX5Y",
+    "priority": "P0",
+    "score": 16
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/monstruo arquitectura",
+      "F1_canon_roadmap/agent fabric",
+      "F3_control_total_bodyguard/action guard",
+      "F4_proyectos_secundarios/identidad soberana",
+      "F5_documento_maestro/Biblia maestra",
+      "F6_productividad/ranking productividad"
+    ],
+    "fuente": "notion",
+    "name": "Tabla Maestra Definitiva — 10 Areas del Monstruo v2.0 (GPT-5.4 + Enjambre + Apify)",
+    "mimeType": "page",
+    "modifiedTime": "2026-04-05T18:23:00.000Z",
+    "url": "33914c6f8bba8191821fcd9e6ab26730",
+    "highlight": "github.com/gorse-io/gorse  — 9,593★; https://github.com/microsoft/RecAI github.com/microsoft/RecAI  — 1,084★ Patrones de ranking, recomendación y sistemas híbridos Media-Alta Uso",
+    "id": "33914c6f-8bba-8191-821f-cd9e6ab26730",
+    "priority": "P0",
+    "score": 16
+  },
+  {
+    "kw_matches": [
+      "F2_recuperacion_respaldo/BLOQUE PARA CHATGPT",
+      "F2_recuperacion_respaldo/contexto completo",
+      "F4_proyectos/Lightspeed",
+      "F4_proyectos/verificacion de edad",
+      "F6_productividad/Building a Second Brain",
+      "F7_nombres_genericos/chatgpt export"
+    ],
+    "fuente": "drive",
+    "name": "biblias_v41_completo_69_herramientas.zip",
+    "mimeType": "application/zip",
+    "modifiedTime": "2026-03-01T22:10:36.223Z",
+    "size": "636327",
+    "url": "https://drive.google.com/file/d/138TENs9YIzWEeLEtzDPjnRhDGFh7aogA/view?usp=drivesdk",
+    "id": "138TENs9YIzWEeLEtzDPjnRhDGFh7aogA",
+    "priority": "P0",
+    "score": 16
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/documento maestro",
+      "F5_documento_maestro/Documento Maestro",
+      "F5_documento_maestro/master document",
+      "F5_documento_maestro/documento central",
+      "F5_documento_maestro/documento madre",
+      "F5_documento_maestro/documento fundacional"
+    ],
+    "fuente": "notion",
+    "name": "📘 MAOC - Documento Maestro",
+    "mimeType": "page",
+    "modifiedTime": "2025-12-26T10:35:00.000Z",
+    "url": "2d514c6f8bba810abf9cddfbd65a4ac9",
+    "highlight": "y los protocolos operativos para la solución MAOC (Memoria Aumentada y Orquestación de Capacidades). MAOC es la respuesta definitiva al problema fundacional identificado en el \"Proyecto",
+    "id": "2d514c6f-8bba-810a-bf9c-ddfbd65a4ac9",
+    "priority": "P0",
+    "score": 16
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/monstruo",
+      "F1_canon_roadmap/continuidad",
+      "F5_documento_maestro/documento madre",
+      "F5_documento_maestro/documento fundacional",
+      "F7_nombres_genericos/monstruo continuidad"
+    ],
+    "fuente": "drive",
+    "name": "04_Identidad_del_Monstruo_fundacional_v1.txt",
+    "mimeType": "text/plain",
+    "modifiedTime": "2026-04-06T06:06:47.245Z",
+    "size": "11700",
+    "url": "https://drive.google.com/file/d/1NwITMQXQCw4wGF-skqEsxD1Rc7G03ia_/view?usp=drivesdk",
+    "id": "1NwITMQXQCw4wGF-skqEsxD1Rc7G03ia_",
+    "priority": "P0",
+    "score": 15
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/plan de construccion",
+      "F1_canon_roadmap/agent fabric",
+      "F2_recuperacion_respaldo/BLOQUE PARA CHATGPT",
+      "F2_recuperacion_respaldo/prompt de recuperacion",
+      "F3_control_total_bodyguard/control de permisos"
+    ],
+    "fuente": "drive",
+    "name": "BIBLIA_MANUS_IMPLEMENTACION_v1.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-05-01T05:19:36.534Z",
+    "size": "190565",
+    "url": "https://drive.google.com/file/d/1iG4QO5l-CNI83hsHtZCX-aHTkqBBio9p/view?usp=drivesdk",
+    "id": "1iG4QO5l-CNI83hsHtZCX-aHTkqBBio9p",
+    "priority": "P0",
+    "score": 15
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/plan de construccion",
+      "F1_canon_roadmap/agent fabric",
+      "F2_recuperacion_respaldo/BLOQUE PARA CHATGPT",
+      "F2_recuperacion_respaldo/prompt de recuperacion",
+      "F3_control_total_bodyguard/control de permisos"
+    ],
+    "fuente": "drive",
+    "name": "BIBLIA_MANUS_IMPLEMENTACION_v2.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-05-01T06:28:05.283Z",
+    "size": "167445",
+    "url": "https://drive.google.com/file/d/1z_TdO_7Iq8GE4nAQEkNiH9etMWroCb1_/view?usp=drivesdk",
+    "id": "1z_TdO_7Iq8GE4nAQEkNiH9etMWroCb1_",
+    "priority": "P0",
+    "score": 15
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/plan de construccion",
+      "F1_canon_roadmap/agent fabric",
+      "F2_recuperacion_respaldo/BLOQUE PARA CHATGPT",
+      "F2_recuperacion_respaldo/prompt de recuperacion",
+      "F3_control_total_bodyguard/control de permisos"
+    ],
+    "fuente": "drive",
+    "name": "BIBLIA_MANUS_IMPLEMENTACION_v2.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-05-01T06:28:01.539Z",
+    "size": "167445",
+    "url": "https://drive.google.com/file/d/1PdMoPniw6Wu4FqtTeyWgpHtuZJlGbfQx/view?usp=drivesdk",
+    "id": "1PdMoPniw6Wu4FqtTeyWgpHtuZJlGbfQx",
+    "priority": "P0",
+    "score": 15
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/plan de construccion",
+      "F1_canon_roadmap/agent fabric",
+      "F2_recuperacion_respaldo/BLOQUE PARA CHATGPT",
+      "F2_recuperacion_respaldo/prompt de recuperacion",
+      "F3_control_total_bodyguard/control de permisos"
+    ],
+    "fuente": "drive",
+    "name": "BIBLIA_MANUS_IMPLEMENTACION_v2.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-05-01T06:27:54.426Z",
+    "size": "167445",
+    "url": "https://drive.google.com/file/d/1qNnB_1gni2ltIv--9ArN3BhyatfH7w_w/view?usp=drivesdk",
+    "id": "1qNnB_1gni2ltIv--9ArN3BhyatfH7w_w",
+    "priority": "P0",
+    "score": 15
+  },
+  {
+    "kw_matches": [
+      "F2_recuperacion_respaldo/hilo colapsado",
+      "F5_documento_maestro/master document",
+      "F5_documento_maestro/documento central",
+      "F5_documento_maestro/documento madre",
+      "F5_documento_maestro/documento fundacional"
+    ],
+    "fuente": "notion",
+    "name": "DOCUMENTO DEFINITIVO — Hilo Historico 25-26 Abril 2026",
+    "mimeType": "page",
+    "modifiedTime": "2026-04-26T10:23:00.000Z",
+    "url": "34e14c6f8bba8154bbeac6873492feda",
+    "highlight": "Clasificación: Documento Histórico Interno — No publicar sin autorización",
+    "id": "34e14c6f-8bba-8154-bbea-c6873492feda",
+    "priority": "P0",
+    "score": 15
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/documento maestro",
+      "F2_recuperacion_respaldo/no perder",
+      "F5_documento_maestro/Documento Maestro",
+      "F5_documento_maestro/documento central",
+      "F5_documento_maestro/documento fundacional"
+    ],
+    "fuente": "drive",
+    "name": "DOCUMENTO_DEFINITIVO_HILO_HISTORICO_25-26_ABR_2026.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-26T10:20:33.166Z",
+    "size": "39942",
+    "url": "https://drive.google.com/file/d/1A5XqyFRjXjFvJb9ipTO7fYkvTfl-jNza/view?usp=drivesdk",
+    "id": "1A5XqyFRjXjFvJb9ipTO7fYkvTfl-jNza",
+    "priority": "P0",
+    "score": 15
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/documento maestro",
+      "F2_recuperacion_respaldo/no perder",
+      "F5_documento_maestro/Documento Maestro",
+      "F5_documento_maestro/documento central",
+      "F5_documento_maestro/documento fundacional"
+    ],
+    "fuente": "drive",
+    "name": "DOCUMENTO_DEFINITIVO_HILO_HISTORICO_25-26_ABR_2026.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-26T10:20:20.646Z",
+    "size": "39942",
+    "url": "https://drive.google.com/file/d/1bt7445lTmv_-Mt1vOuH7KR2lmnfNCdzr/view?usp=drivesdk",
+    "id": "1bt7445lTmv_-Mt1vOuH7KR2lmnfNCdzr",
+    "priority": "P0",
+    "score": 15
+  },
+  {
+    "kw_matches": [
+      "search/canon",
+      "search/documento maestro",
+      "search/EPIA",
+      "search/SOP",
+      "search/guardian"
+    ],
+    "fuente": "dropbox",
+    "name": "EPIA — DOCUMENTO FUNDACIONAL MAESTRO.docx",
+    "modifiedTime": "2026-04-05T01:04:49Z",
+    "size": 22464,
+    "url": "dropbox:/EPIA — DOCUMENTO FUNDACIONAL MAESTRO.docx",
+    "id": "/EPIA — DOCUMENTO FUNDACIONAL MAESTRO.docx",
+    "priority": "P0",
+    "score": 15
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/EPIA",
+      "F1_canon_roadmap/SOP",
+      "F1_canon_roadmap/MDC",
+      "F1_canon_roadmap/RuleMint",
+      "F5_documento_maestro/Documento_Maestro"
+    ],
+    "fuente": "drive",
+    "name": "GENEALOGIA_SOP_EPIA_v2.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-06T11:16:45.676Z",
+    "size": "6599",
+    "url": "https://drive.google.com/file/d/1M-E0l4BzPBA5flgTZEY6zKto3AeNS5jg/view?usp=drivesdk",
+    "id": "1M-E0l4BzPBA5flgTZEY6zKto3AeNS5jg",
+    "priority": "P0",
+    "score": 15
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/plan de construccion",
+      "F1_canon_roadmap/master plan",
+      "F3_control_total_bodyguard/action guard",
+      "F3_control_total_bodyguard/human-in-the-loop",
+      "F5_documento_maestro/single source of truth"
+    ],
+    "fuente": "drive",
+    "name": "PLAN_DEFINITIVO_MONSTRUO_V4.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-27T00:24:52.601Z",
+    "size": "42929",
+    "url": "https://drive.google.com/file/d/1thAjGF-xRB--EU3eHBhArstsH1qWEB56/view?usp=drivesdk",
+    "id": "1thAjGF-xRB--EU3eHBhArstsH1qWEB56",
+    "priority": "P0",
+    "score": 15
+  },
+  {
+    "kw_matches": [
+      "F2_recuperacion_respaldo/contexto completo",
+      "F4_proyectos/Soft Restaurant",
+      "F5_documento_maestro/single source of truth",
+      "F6_productividad/Building a Second Brain",
+      "F7_nombres_genericos/chatgpt export"
+    ],
+    "fuente": "drive",
+    "name": "biblias_ai_agents_completo.zip",
+    "mimeType": "application/zip",
+    "modifiedTime": "2026-03-01T16:27:40.485Z",
+    "size": "282875",
+    "url": "https://drive.google.com/file/d/19UN5QUx8uYuIqyIdW9W7quJBv6Yojbai/view?usp=drivesdk",
+    "id": "19UN5QUx8uYuIqyIdW9W7quJBv6Yojbai",
+    "priority": "P0",
+    "score": 15
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/RuleMint",
+      "F2_recuperacion_respaldo/no perder",
+      "F2_recuperacion_respaldo/canonizar",
+      "F2_recuperacion_respaldo/BLOQUE PARA CHATGPT",
+      "F2_recuperacion_respaldo/contexto completo",
+      "F2_recuperacion_respaldo/decisiones vigentes",
+      "F4_proyectos/Omnicom",
+      "F4_proyectos/vivir sano",
+      "F5_documento_maestro/documento madre",
+      "F5_documento_maestro/Biblia maestra",
+      "F7_nombres_genericos/PROMPT_RECUPERACION"
+    ],
+    "fuente": "drive",
+    "name": "01_INYECCION_CONTEXTO_COMPLETA.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-06T06:06:47.237Z",
+    "size": "2976666",
+    "url": "https://drive.google.com/file/d/1wQAFH3TECtcDQtI9rWR-O2KuyCXyGhr4/view?usp=drivesdk",
+    "id": "1wQAFH3TECtcDQtI9rWR-O2KuyCXyGhr4",
+    "priority": "P1",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/blueprint",
+      "F4_proyectos_secundarios/identidad soberana",
+      "F7_arqueologia/Pasted text",
+      "F7_arqueologia/BLOQUE"
+    ],
+    "fuente": "notion",
+    "name": "3. Arquitectura de Absorcion Soberana v2.1",
+    "mimeType": "page",
+    "modifiedTime": "2026-04-05T17:23:00.000Z",
+    "url": "33914c6f8bba81fca4ddc3204749cdab",
+    "highlight": "BLOQUE 1: Mapa de Capas Expandido con Evidencia Múltiple",
+    "id": "33914c6f-8bba-81fc-a4dd-c3204749cdab",
+    "priority": "P0",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/documento maestro",
+      "F1_canon_roadmap/EPIA",
+      "F1_canon_roadmap/SOP",
+      "F1_canon_roadmap/MDC",
+      "F1_canon_roadmap/RuleMint",
+      "F2_recuperacion_respaldo/respaldo",
+      "F4_proyectos/CIP",
+      "F4_proyectos/Omnicom",
+      "F4_proyectos/IGCAR",
+      "F5_documento_maestro/Documento Maestro",
+      "F5_documento_maestro/Documento_Maestro"
+    ],
+    "fuente": "drive",
+    "name": "ANALISIS_32_ARCHIVOS_SUBIDOS.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-06T11:16:47.426Z",
+    "size": "10588",
+    "url": "https://drive.google.com/file/d/1sCjTiAgggxhaRBxcZeHn4hIyvN3iXpLw/view?usp=drivesdk",
+    "id": "1sCjTiAgggxhaRBxcZeHn4hIyvN3iXpLw",
+    "priority": "P1",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/arquitectura",
+      "F1_canon_roadmap/blueprint",
+      "F2_recuperacion_respaldo/decisiones vigentes",
+      "F3_control_total_bodyguard/control absoluto"
+    ],
+    "fuente": "drive",
+    "name": "ARQUITECTURA_ABSORCION_SOBERANA.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-05T20:48:25.400Z",
+    "size": "30125",
+    "url": "https://drive.google.com/file/d/19EHW_Y9SwptIABHqXKblXnIGGb3T8cSV/view?usp=drivesdk",
+    "id": "19EHW_Y9SwptIABHqXKblXnIGGb3T8cSV",
+    "priority": "P0",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/arquitectura",
+      "F2_recuperacion_respaldo/backup",
+      "F3_control_total_bodyguard/control absoluto",
+      "F7_nombres_genericos/BLOQUE"
+    ],
+    "fuente": "drive",
+    "name": "ARQUITECTURA_ABSORCION_v2_APIFY.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-05T20:48:47.530Z",
+    "size": "9468",
+    "url": "https://drive.google.com/file/d/1wdTU7QKxMVrga4Hu279gpU1EwZfw44PZ/view?usp=drivesdk",
+    "id": "1wdTU7QKxMVrga4Hu279gpU1EwZfw44PZ",
+    "priority": "P0",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F2_recuperacion_respaldo/prompt de recuperacion",
+      "F3_control_total_bodyguard/human-in-the-loop",
+      "F6_productividad/Second Brain",
+      "F6_productividad/Building a Second Brain"
+    ],
+    "fuente": "drive",
+    "name": "BIBLIA_CLINE.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-05-01T11:25:28.266Z",
+    "size": "84758",
+    "url": "https://drive.google.com/file/d/16x7mYn0n7tkXS-J5yBtFcvK9ukY2uRPX/view?usp=drivesdk",
+    "id": "16x7mYn0n7tkXS-J5yBtFcvK9ukY2uRPX",
+    "priority": "P0",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/plan de construccion",
+      "F2_recuperacion_respaldo/BLOQUE PARA CHATGPT",
+      "F2_recuperacion_respaldo/prompt de recuperacion",
+      "F3_control_total_bodyguard/control de permisos"
+    ],
+    "fuente": "drive",
+    "name": "BIBLIA_MANUS_IMPLEMENTACION_v3.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-05-01T06:59:14.297Z",
+    "size": "305208",
+    "url": "https://drive.google.com/file/d/1AkT9KKpFfhZMw6oAIV8USObC50cyWv3f/view?usp=drivesdk",
+    "id": "1AkT9KKpFfhZMw6oAIV8USObC50cyWv3f",
+    "priority": "P0",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/plan de construccion",
+      "F2_recuperacion_respaldo/BLOQUE PARA CHATGPT",
+      "F2_recuperacion_respaldo/prompt de recuperacion",
+      "F3_control_total_bodyguard/control de permisos"
+    ],
+    "fuente": "drive",
+    "name": "BIBLIA_MANUS_v3_REFERENCIA.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-05-01T11:41:02.230Z",
+    "size": "305208",
+    "url": "https://drive.google.com/file/d/1CTOV7NgX0NrJIN5GPiYnX_Fs5FbX7tcA/view?usp=drivesdk",
+    "id": "1CTOV7NgX0NrJIN5GPiYnX_Fs5FbX7tcA",
+    "priority": "P0",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/blueprint",
+      "F1_canon_roadmap/control plane",
+      "F5_documento_maestro/Documento_Maestro",
+      "F7_nombres_genericos/monstruo continuidad"
+    ],
+    "fuente": "drive",
+    "name": "BLUEPRINT_EL_MONSTRUO_v0.2.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-17T20:20:28.379Z",
+    "size": "17380",
+    "url": "https://drive.google.com/file/d/1PtxGuXtlR-4X3oRqGQrfpQqBekHiGX9m/view?usp=drivesdk",
+    "id": "1PtxGuXtlR-4X3oRqGQrfpQqBekHiGX9m",
+    "priority": "P0",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/canon",
+      "F1_canon_roadmap/control plane",
+      "F1_canon_roadmap/gobernanza",
+      "F1_canon_roadmap/continuidad",
+      "F1_canon_roadmap/agent fabric",
+      "F2_recuperacion_respaldo/respaldo",
+      "F2_recuperacion_respaldo/bruto",
+      "F2_recuperacion_respaldo/no perder",
+      "F3_control_total_bodyguard/control de permisos",
+      "F7_nombres_genericos/respaldo bruto",
+      "F7_nombres_genericos/monstruo continuidad"
+    ],
+    "fuente": "drive",
+    "name": "B_respaldo_trabajo_intermedio",
+    "mimeType": "application/vnd.google-apps.document",
+    "modifiedTime": "2026-04-06T01:45:18.411Z",
+    "size": "5676",
+    "url": "https://docs.google.com/document/d/1MLPNddwDLIJ5VntIhWPwrFaf_bk3o5pcUomsrEZa2UU/edit?usp=drivesdk",
+    "id": "1MLPNddwDLIJ5VntIhWPwrFaf_bk3o5pcUomsrEZa2UU",
+    "priority": "P1",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/SOP",
+      "F2_recuperacion_respaldo/deprecado",
+      "F5_documento_maestro/documento madre",
+      "F5_documento_maestro/documento fundacional"
+    ],
+    "fuente": "drive",
+    "name": "ENTREGABLE_2_SOP_FUNDACIONAL.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-05T20:47:57.973Z",
+    "size": "34122",
+    "url": "https://drive.google.com/file/d/1WA9G2XtquzBJIhQRv5K3O5VJ8t3briix/view?usp=drivesdk",
+    "id": "1WA9G2XtquzBJIhQRv5K3O5VJ8t3briix",
+    "priority": "P0",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/RuleMint",
+      "F2_recuperacion_respaldo/no perder",
+      "F2_recuperacion_respaldo/canonizar",
+      "F2_recuperacion_respaldo/BLOQUE PARA CHATGPT",
+      "F2_recuperacion_respaldo/contexto completo",
+      "F2_recuperacion_respaldo/decisiones vigentes",
+      "F4_proyectos/Omnicom",
+      "F4_proyectos/vivir sano",
+      "F5_documento_maestro/documento madre",
+      "F5_documento_maestro/Biblia maestra",
+      "F7_nombres_genericos/PROMPT_RECUPERACION"
+    ],
+    "fuente": "drive",
+    "name": "INYECCION_CONTEXTO_GPT54PRO.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-06T04:30:00.364Z",
+    "size": "2976666",
+    "url": "https://drive.google.com/file/d/1ChTP6DlPkBk_b-sWzlp6zusok8gJ6WzI/view?usp=drivesdk",
+    "id": "1ChTP6DlPkBk_b-sWzlp6zusok8gJ6WzI",
+    "priority": "P1",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/SOP",
+      "F2_recuperacion_respaldo/deprecado",
+      "F5_documento_maestro/documento madre",
+      "F5_documento_maestro/documento fundacional"
+    ],
+    "fuente": "drive",
+    "name": "MANUS_06_SOP_FUNDACIONAL.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-06T06:17:38.237Z",
+    "size": "34122",
+    "url": "https://drive.google.com/file/d/1lFB-hdN0JMugDCAv7rFfqyICWdpoO6nM/view?usp=drivesdk",
+    "id": "1lFB-hdN0JMugDCAv7rFfqyICWdpoO6nM",
+    "priority": "P0",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/SOP",
+      "F2_recuperacion_respaldo/deprecado",
+      "F5_documento_maestro/documento madre",
+      "F5_documento_maestro/documento fundacional"
+    ],
+    "fuente": "drive",
+    "name": "MANUS_08_ENTREGABLE_2_SOP_FUNDACIONAL.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-04-06T06:17:38.241Z",
+    "size": "34122",
+    "url": "https://drive.google.com/file/d/1TYxNqSIQCoNaS-2DT4vuzXH78bz8wGXC/view?usp=drivesdk",
+    "id": "1TYxNqSIQCoNaS-2DT4vuzXH78bz8wGXC",
+    "priority": "P0",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F3_control_total_bodyguard/control de permisos",
+      "F5_documento_maestro/documento central",
+      "F5_documento_maestro/documento fundacional",
+      "F7_nombres_genericos/monstruo continuidad"
+    ],
+    "fuente": "drive",
+    "name": "MOC_Evolucion_Perpetua_fundacional_v1",
+    "mimeType": "application/vnd.google-apps.document",
+    "modifiedTime": "2026-04-05T20:32:51.728Z",
+    "size": "10096",
+    "url": "https://docs.google.com/document/d/1a2CREDTpb0_YsYzTXANQq9osvs72W_cwWCZWBvN3FY4/edit?usp=drivesdk",
+    "id": "1a2CREDTpb0_YsYzTXANQq9osvs72W_cwWCZWBvN3FY4",
+    "priority": "P0",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/documento maestro",
+      "F1_canon_roadmap/master plan",
+      "F5_documento_maestro/Documento Maestro",
+      "F7_arqueologia/Pasted text"
+    ],
+    "fuente": "notion",
+    "name": "PLAN MAESTRO DEFINITIVO CRISOL-8 v2.0 - Instagram Nodo Conector",
+    "mimeType": "page",
+    "modifiedTime": "2026-03-27T02:29:00.000Z",
+    "url": "32f14c6f8bba8114ae72ed37da4f8ab9",
+    "highlight": "instagram_comments Comentarios IG para análisis de bots text, owner_username, bot_probability, is_ground_truth, ground_truth_label",
+    "id": "32f14c6f-8bba-8114-ae72-ed37da4f8ab9",
+    "priority": "P0",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/plan de construccion",
+      "F1_canon_roadmap/documento maestro",
+      "F5_documento_maestro/Documento Maestro",
+      "F5_documento_maestro/plan maestro"
+    ],
+    "fuente": "drive",
+    "name": "PLAN_MAESTRO_ESTRATEGICO_v2.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-03-03T06:04:56.284Z",
+    "size": "18412",
+    "url": "https://drive.google.com/file/d/1WJxhv4aJBALEoHvvBhqok5Gn4_UQXasK/view?usp=drivesdk",
+    "id": "1WJxhv4aJBALEoHvvBhqok5Gn4_UQXasK",
+    "priority": "P0",
+    "score": 14
+  },
+  {
+    "kw_matches": [
+      "F1_canon_roadmap/plan de construccion",
+      "F1_canon_roadmap/documento maestro",
+      "F5_documento_maestro/Documento Maestro",
+      "F5_documento_maestro/plan maestro"
+    ],
+    "fuente": "drive",
+    "name": "PLAN_MAESTRO_ESTRATEGICO_v2.md",
+    "mimeType": "text/markdown",
+    "modifiedTime": "2026-02-23T06:55:01.387Z",
+    "size": "18412",
+    "url": "https://drive.google.com/file/d/1--4BHNbbez4CR2eOC8zU3s9bYJmDfV9V/view?usp=drivesdk",
+    "id": "1--4BHNbbez4CR2eOC8zU3s9bYJmDfV9V",
+    "priority": "P0",
+    "score": 14
+  }
+]
