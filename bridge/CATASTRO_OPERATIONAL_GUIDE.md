@@ -290,3 +290,75 @@ Si algo falla y no sabes a quién contactar: **escribe al bridge** (`bridge/manu
 ---
 
 *Esta guía vive en el bridge para que Alfredo y Cowork la consulten sin entrar al código. Si algo cambia (nuevo endpoint, nuevo dominio, nueva variable), actualizar acá primero.*
+
+
+---
+
+## Sprint 86.7 — Macroárea 4 LLM Razonamiento Estructurado
+
+**Estado:** production-ready (2026-05-05)
+
+### Resumen funcional
+
+Catastro incorpora 3 fuentes de razonamiento estructurado (AIME, GPQA Diamond, MMLU-Pro) tras flag `CATASTRO_ENABLE_REASONING=true`. Misma arquitectura que coding (Sprint 86.5) y visión (Sprint 86.6): **Quorum 2-de-3 ortogonal**, **anti-gaming v1 intra-fuente**, **anti-gaming v2 cross-area**, **classifier con vocabulario controlado de 13 tags** y **structured outputs Pydantic** (semilla 39).
+
+### Activación
+
+```bash
+export CATASTRO_ENABLE_REASONING=true
+python3 -m kernel.catastro.cron run
+```
+
+Sin la flag, el pipeline NO carga las 3 fuentes reasoning (cero impacto en sprints previos).
+
+### Anti-gaming v1 (intra-fuente)
+
+| Fuente | Regla | Detecta |
+|---|---|---|
+| AIME | `aime_2024 >= aime_2025 + 10` | Memorización del test set 2024 (filtrado al training data) |
+| GPQA | `gpqa_diamond > gpqa_main + 15` | Diamond inflado vs Main (orden esperado: Main >= Diamond) |
+| MMLU-Pro | `mmlu_pro > mmlu_basic + 20` | Pro inflado vs Basic (Pro es más difícil) |
+
+### Anti-gaming v2 (cross-area)
+
+Detecta modelos "memorizadores de benchmarks de razonamiento" pero sin transferencia a coding ni valor humano percibido. Criterio: `max(aime, gpqa, mmlu_pro) >= 70` Y al menos UNA de:
+1. `coding_score < 30` (razonamiento no transferible)
+2. `arena_rank > 50` (sin valor humano)
+3. `razonamiento_general < 40` (incoherencia macroárea 1 vs 4)
+
+Si dispara, se agrega tag `reasoning-overfit-suspected` al classifier.
+
+### Vocabulario controlado (13 tags)
+
+**Áreas (6):** math-strong, physics-strong, chemistry-strong, biology-strong, logic-formal-strong, multidominio-strong
+**Estilos (6):** step-by-step-reasoning, chain-of-thought-strong, abstract-reasoning, quantitative-strong, structured-output-strong, anti-gaming-reasoning-verified
+**Cross-area (1):** reasoning-overfit-suspected
+
+### Schema delta `data_extra.reasoning`
+
+```yaml
+data_extra:
+  reasoning:
+    aime_2024: float | null
+    aime_2025: float | null
+    aime_gaming: bool
+    gpqa_main: float | null
+    gpqa_diamond: float | null
+    gpqa_gaming: bool
+    mmlu_basic: float | null
+    mmlu_pro: float | null
+    mmlu_pro_gaming: bool
+    overfit_suspected: bool
+    overfit_evidence: dict
+    classification:
+      tags: list[str]
+      primary_strength: str
+      confidence: float
+      reasoning: str
+```
+
+### Operación
+
+- Smoke productivo: `python3 scripts/_smoke_sprint867_reasoning.py` (debe imprimir `6/6 gates · SUCCESS`).
+- Tests: `pytest tests/test_sprint867_reasoning.py` (31 tests).
+- Capa Memento: el classifier usa LLM si `OPENAI_API_KEY` está disponible; si no, fallback heurístico determinístico.

@@ -34,6 +34,9 @@ from kernel.catastro.sources.lmarena import LMArenaFuente
 from kernel.catastro.sources.swe_bench import SWEBenchFuente
 from kernel.catastro.sources.human_eval import HumanEvalFuente
 from kernel.catastro.sources.mbpp import MBPPFuente
+from kernel.catastro.sources.aime import AIMEFuente
+from kernel.catastro.sources.gpqa import GPQAFuente
+from kernel.catastro.sources.mmlu_pro import MMLUProFuente
 
 __all__ = [
     "BaseFuente",
@@ -49,4 +52,7 @@ __all__ = [
     "SWEBenchFuente",
     "HumanEvalFuente",
     "MBPPFuente",
+    "AIMEFuente",
+    "GPQAFuente",
+    "MMLUProFuente",
 ]

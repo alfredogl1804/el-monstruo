@@ -46,12 +46,15 @@ from kernel.catastro.quorum import (
     QuorumValidator,
 )
 from kernel.catastro.sources import (
+    AIMEFuente,
     ArtificialAnalysisFuente,
     BaseFuente,
     FuenteError,
+    GPQAFuente,
     HumanEvalFuente,
     LMArenaFuente,
     MBPPFuente,
+    MMLUProFuente,
     OpenRouterFuente,
     RawSnapshot,
     SWEBenchFuente,
@@ -59,6 +62,10 @@ from kernel.catastro.sources import (
 from kernel.catastro.coding_classifier import (
     CodingClassifier,
     CodingClassification,
+)
+from kernel.catastro.reasoning_classifier import (
+    ReasoningClassifier,
+    ReasoningClassification,
 )
 from kernel.catastro.sources.field_mapping import (
     apply_field_mapping,
@@ -213,6 +220,15 @@ class CatastroPipeline:
         MBPPFuente,
     )
 
+    # Sprint 86.7 — Macroarea 4 LLM Razonamiento Estructurado
+    # Fuentes reasoning OPCIONALES, mismo patrón Sprint 86.5.
+    # Se incluyen si CATASTRO_ENABLE_REASONING=true.
+    REASONING_SOURCES: tuple[type[BaseFuente], ...] = (
+        AIMEFuente,
+        GPQAFuente,
+        MMLUProFuente,
+    )
+
     def __init__(
         self,
         *,
@@ -253,10 +269,18 @@ class CatastroPipeline:
                 self.sources.extend(
                     cls(dry_run=dry_run) for cls in self.CODING_SOURCES
                 )
+            # Sprint 86.7: agregar reasoning sources si flag activo
+            enable_reasoning = os.environ.get("CATASTRO_ENABLE_REASONING", "").strip().lower()
+            if enable_reasoning in ("true", "1", "yes", "on"):
+                self.sources.extend(
+                    cls(dry_run=dry_run) for cls in self.REASONING_SOURCES
+                )
 
         self.validator = validator or QuorumValidator(numeric_tolerance=0.10)
         # Sprint 86.5 — coding classifier (heuristic fallback si no hay OPENAI_API_KEY)
         self.coding_classifier = CodingClassifier(use_llm=True)
+        # Sprint 86.7 — reasoning classifier (heuristic fallback si no hay OPENAI_API_KEY)
+        self.reasoning_classifier = ReasoningClassifier(use_llm=True)
         self.persistence = persistence or CatastroPersistence(dry_run=dry_run)
         self.trono_calculator = trono_calculator or TronoCalculator()
 
@@ -579,6 +603,12 @@ class CatastroPipeline:
                 self._extract_human_eval(snapshot, modelos_por_fuente)
             elif fuente_name == "mbpp":
                 self._extract_mbpp(snapshot, modelos_por_fuente)
+            elif fuente_name == "aime":
+                self._extract_aime(snapshot, modelos_por_fuente)
+            elif fuente_name == "gpqa":
+                self._extract_gpqa(snapshot, modelos_por_fuente)
+            elif fuente_name == "mmlu_pro":
+                self._extract_mmlu_pro(snapshot, modelos_por_fuente)
             else:
                 logger.warning(f"[catastro_pipeline] fuente desconocida: {fuente_name}")
 
@@ -640,6 +670,76 @@ class CatastroPipeline:
                 "pass_at_1": score,
             }
             self._coding_cache.setdefault(slug, {})["mbpp_plus"] = score
+
+    # ----------------------------------------------------------------------
+    # Sprint 86.7 — Macroarea 4 LLM Razonamiento Estructurado
+    # ----------------------------------------------------------------------
+
+    def _extract_aime(self, snapshot: RawSnapshot, agg: dict) -> None:
+        """Sprint 86.7: extrae AIME 2024 + 2025 + detecta gaming v1 (memorización)."""
+        if not hasattr(self, "_reasoning_cache"):
+            self._reasoning_cache: dict[str, dict[str, Any]] = {}
+        for item in snapshot.payload.get("data", []):
+            slug = self.normalize_slug(item.get("model_id") or item.get("model_name") or "")
+            if not slug:
+                continue
+            scores = AIMEFuente.extract_scores(item)
+            gaming = AIMEFuente.detect_gaming(scores)
+            agg.setdefault(slug, {})["aime"] = {
+                "raw_model_id": item.get("model_id"),
+                "name": item.get("model_name"),
+                "aime_2024": scores.get("aime_2024"),
+                "aime_2025": scores.get("aime_2025"),
+                "gaming_detected": gaming,
+            }
+            cache_entry = self._reasoning_cache.setdefault(slug, {})
+            cache_entry["aime_2024"] = scores.get("aime_2024")
+            cache_entry["aime_2025"] = scores.get("aime_2025")
+            cache_entry["aime_gaming"] = gaming
+
+    def _extract_gpqa(self, snapshot: RawSnapshot, agg: dict) -> None:
+        """Sprint 86.7: extrae GPQA Main + Diamond + detecta gaming v1."""
+        if not hasattr(self, "_reasoning_cache"):
+            self._reasoning_cache: dict[str, dict[str, Any]] = {}
+        for item in snapshot.payload.get("data", []):
+            slug = self.normalize_slug(item.get("model_id") or item.get("model_name") or "")
+            if not slug:
+                continue
+            scores = GPQAFuente.extract_scores(item)
+            gaming = GPQAFuente.detect_gaming(scores)
+            agg.setdefault(slug, {})["gpqa"] = {
+                "raw_model_id": item.get("model_id"),
+                "name": item.get("model_name"),
+                "gpqa_main": scores.get("gpqa_main"),
+                "gpqa_diamond": scores.get("gpqa_diamond"),
+                "gaming_detected": gaming,
+            }
+            cache_entry = self._reasoning_cache.setdefault(slug, {})
+            cache_entry["gpqa_main"] = scores.get("gpqa_main")
+            cache_entry["gpqa_diamond"] = scores.get("gpqa_diamond")
+            cache_entry["gpqa_gaming"] = gaming
+
+    def _extract_mmlu_pro(self, snapshot: RawSnapshot, agg: dict) -> None:
+        """Sprint 86.7: extrae MMLU Basic + Pro + detecta gaming v1."""
+        if not hasattr(self, "_reasoning_cache"):
+            self._reasoning_cache: dict[str, dict[str, Any]] = {}
+        for item in snapshot.payload.get("data", []):
+            slug = self.normalize_slug(item.get("model_id") or item.get("model_name") or "")
+            if not slug:
+                continue
+            scores = MMLUProFuente.extract_scores(item)
+            gaming = MMLUProFuente.detect_gaming(scores)
+            agg.setdefault(slug, {})["mmlu_pro"] = {
+                "raw_model_id": item.get("model_id"),
+                "name": item.get("model_name"),
+                "mmlu_basic": scores.get("mmlu_basic"),
+                "mmlu_pro": scores.get("mmlu_pro"),
+                "gaming_detected": gaming,
+            }
+            cache_entry = self._reasoning_cache.setdefault(slug, {})
+            cache_entry["mmlu_basic"] = scores.get("mmlu_basic")
+            cache_entry["mmlu_pro"] = scores.get("mmlu_pro")
+            cache_entry["mmlu_pro_gaming"] = gaming
 
     @staticmethod
     def normalize_slug(raw: str) -> str:
@@ -872,6 +972,12 @@ class CatastroPipeline:
         for slug, persistible in result.modelos_persistibles.items():
             self._enrich_with_coding(slug, persistible, all_quorum_results.get(slug, []))
 
+        # Sprint 86.7: enriquecer persistibles con data_extra.reasoning
+        # cuando el modelo aparezca en >=1 fuente reasoning, agregamos su
+        # bloque reasoning al persistible para que se sirva via data_extra.
+        for slug, persistible in result.modelos_persistibles.items():
+            self._enrich_with_reasoning(slug, persistible, all_quorum_results.get(slug, []))
+
     # ------------------------------------------------------------------
     # Paso 5.5: enriquecer métricas single-source (Sprint 86.4.5 Bloque 2)
     # ------------------------------------------------------------------
@@ -1039,3 +1145,124 @@ class CatastroPipeline:
 
         # Inyectar al persistible
         persistible.setdefault("data_extra", {})["coding"] = coding_data
+
+    # ----------------------------------------------------------------------
+    # Sprint 86.7 — Enriquecer persistibles con data_extra.reasoning
+    # ----------------------------------------------------------------------
+
+    def _enrich_with_reasoning(
+        self,
+        slug: str,
+        persistible: dict[str, Any],
+        qrs: list[QuorumResult],
+    ) -> None:
+        """
+        Sprint 86.7: enriquece el persistible con `data_extra.reasoning`.
+
+        Estructura del bloque reasoning (simétrico a coding, Opción A schema):
+          data_extra:
+            reasoning:
+              aime_2024 / aime_2025
+              gpqa_main / gpqa_diamond
+              mmlu_basic / mmlu_pro
+              gaming_detected_aime / gaming_detected_gpqa / gaming_detected_mmlu_pro
+              overfit_suspected: bool
+              overfit_evidence: dict
+              classification:
+                tags: list[str]
+                primary_strength: str
+                confidence: float
+                reasoning: str
+        """
+        reasoning_data = getattr(self, "_reasoning_cache", {}).get(slug)
+        if not reasoning_data:
+            return
+
+        # Construir scores agregados para classifier (usar el mejor disponible
+        # de cada par sano/difícil). El classifier opera sobre los scores
+        # aceptados; gaming v1 ya se anotó en cache_entry.
+        # Para AIME: usar el promedio de 2024+2025 como "score base"
+        aime_scores = [
+            s for s in [reasoning_data.get("aime_2024"), reasoning_data.get("aime_2025")]
+            if s is not None
+        ]
+        aime_avg = sum(aime_scores) / len(aime_scores) if aime_scores else None
+
+        # Para GPQA: priorizar Diamond (más exigente) sobre Main
+        gpqa_score = reasoning_data.get("gpqa_diamond") or reasoning_data.get("gpqa_main")
+
+        # Para MMLU-Pro: usar Pro directamente (es el target)
+        mmlu_pro_score = reasoning_data.get("mmlu_pro")
+
+        scores_for_classifier = {
+            "aime": aime_avg,
+            "gpqa": gpqa_score,
+            "mmlu_pro": mmlu_pro_score,
+        }
+        if not any(v is not None for v in scores_for_classifier.values()):
+            return
+
+        # Gaming consolidado: True si CUALQUIER fuente reasoning detectó gaming v1
+        gaming_consolidated = bool(
+            reasoning_data.get("aime_gaming")
+            or reasoning_data.get("gpqa_gaming")
+            or reasoning_data.get("mmlu_pro_gaming")
+        )
+
+        try:
+            classification = self.reasoning_classifier.classify(
+                modelo_id=slug,
+                scores=scores_for_classifier,
+                gaming_detected=gaming_consolidated,
+            )
+            reasoning_data["classification"] = {
+                "tags": classification.tags,
+                "primary_strength": classification.primary_strength,
+                "confidence": classification.confidence,
+                "reasoning": classification.reasoning,
+            }
+        except Exception as e:  # noqa: BLE001
+            logger.warning(
+                f"[catastro_pipeline] catastro_reasoning_classify_run_failed slug={slug}: {e}"
+            )
+            reasoning_data["classification"] = None
+
+        # Anti-gaming v2 cross-area Sprint 86.7
+        # Reasoning-strong vs Coding bajo / Arena rank > 50 / Razonamiento general bajo
+        try:
+            mpf_cache = getattr(self, "_modelos_por_fuente_cache", {})
+            coding_cache = getattr(self, "_coding_cache", {}).get(slug, {})
+
+            fuentes = mpf_cache.get(slug, {})
+            aa_data = fuentes.get("artificial_analysis", {})
+            lm_data = fuentes.get("lmarena", {})
+
+            razonamiento_general = aa_data.get("quality_score")  # AA intelligence_index proxy
+            arena_rank = lm_data.get("rank")
+            coding_score = coding_cache.get("swe_bench_verified")
+
+            is_overfit, evidence = self.reasoning_classifier.detect_overfit_reasoning_cross_area(
+                aime_score=aime_avg,
+                gpqa_score=gpqa_score,
+                mmlu_pro_score=mmlu_pro_score,
+                coding_score=coding_score,
+                razonamiento_general=razonamiento_general,
+                arena_rank=arena_rank,
+            )
+            reasoning_data["overfit_suspected"] = is_overfit
+            reasoning_data["overfit_evidence"] = evidence
+
+            if is_overfit and reasoning_data.get("classification"):
+                tags = reasoning_data["classification"].get("tags", [])
+                if "reasoning-overfit-suspected" not in tags:
+                    tags.append("reasoning-overfit-suspected")
+                reasoning_data["classification"]["tags"] = tags
+        except Exception as e:  # noqa: BLE001
+            logger.warning(
+                f"[catastro_pipeline] catastro_reasoning_overfit_cross_area_failed slug={slug}: {e}"
+            )
+            reasoning_data["overfit_suspected"] = False
+            reasoning_data["overfit_evidence"] = {"error": str(e)}
+
+        # Inyectar al persistible
+        persistible.setdefault("data_extra", {})["reasoning"] = reasoning_data
