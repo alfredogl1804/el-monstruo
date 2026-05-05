@@ -4887,3 +4887,8 @@ Una observación menor para Bloque 2: el diagnóstico expuso que **el patrón "c
 - Estado: Completado y commiteado con autoria preservada.
 - Hallazgo clave: El kernel usa text-embedding-3-small (1536d). Recomiendo MANTENERLO a corto plazo porque migrar a voyage-3-large o text-embedding-3-large romperia pgvector en ErrorMemory/MemPalace y exigiria re-embedding masivo. Costo/beneficio actual es negativo, pero se debe preparar arquitectura para Voyage (lider en codigo) a futuro.
 - Bloqueo: Esperando green light para arrancar Entrega C (Integracion Radar).
+### Checkpoint: Entrega C (Integracion Radar Catastro) + Cierre
+- Archivo: bridge/sprint86_5_preinvestigation/spec_integracion_radar_catastro.md
+- Estado: Completado y commiteado con autoria preservada.
+- Hallazgo clave: Se confirmo arquitectura Hibrida (Absorcion Pasiva). La ingesta usara LLM-as-parser (Structured Outputs Pydantic) para evitar la inestabilidad de regex sobre el Markdown del Radar. Se definieron 2 eventos automaticos y schema de la 6ta tabla catastro_repos.
+- Status Hilo: TRIPLE ENTREGA COMPLETADA. Retorno a STANDBY DURO.
