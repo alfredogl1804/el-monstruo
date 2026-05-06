@@ -1,188 +1,358 @@
-# Sprint Mobile 5 — Modo Cockpit fase 3 (cierre Cockpit completo)
+# Sprint Mobile 5 — Modo Cockpit Fase 3: 5 Finales = CARA DEL MONSTRUO COMPLETA (Computer Use, Coding, Hilos Manus, Bridge, Settings+Admin)
 
-**Owner:** Hilo Ejecutor (Manus) Mobile
-**Zona protegida:** `apps/mobile/lib/modes/cockpit/`
-**ETA estimada:** 4-7h reales con Apéndice 1.3 factor velocity
-**Bloqueos:** Sprint Mobile 4 cerrado verde
-**Prerequisito:** Cockpit con 10 superficies (fase 1 + 2) funcionales
-
----
-
-## 1. Contexto
-
-Mobile 3+4 entregaron 10 de las 12-15 superficies del Cockpit. Mobile 5 cierra el conjunto con las **5 superficies finales** que dan a Alfredo control total como arquitecto.
-
-Cuando este sprint cierre: el Cockpit completo está implementado con 15 superficies, todos los atajos magna funcionales, brand DNA aplicado profundo. **El Monstruo tiene cara completa** en Daily + Cockpit. Solo falta SMP cerrando para conectar datos reales.
+**Estado:** Propuesto  
+**Hilo:** Ejecutor (Alfredo)  
+**ETA (actualizado):** 15-30 min reales (UI stubs + data binding)  
+**Objetivo Maestro:** #1 (Valor real) + #14 (Guardián)
 
 ---
 
-## 2. Objetivo único del sprint
+## Audit Pre-Sprint
 
-Implementar las 5 superficies finales del Cockpit:
-
-1. **Computer Use / Sandbox** (browser del agente + terminal + filesystem en vivo, estilo Manus Computer panel)
-2. **Coding embedded** (IDE liviano para intervenir código sin salir del Cockpit)
-3. **Hilos Manus** (vista de los 3+ hilos Manus activos con sprint actual + ETA)
-4. **Bridge / Comunicación inter-hilos** (los reportes y audits viviendo en `bridge/` navegables)
-5. **Settings + Admin** (variables de entorno Railway, configuración del kernel, override de defaults, gestión de tier-access)
+**Cockpit Phase 3 Scope:**
+- 5 final high-impact surfaces
+- Focus: Computer control, coding, agents, navigation, settings
+- Completion: 15 total surfaces (5 Daily + 10 Cockpit after mobile_3/4)
+- Milestone: "CARA DEL MONSTRUO COMPLETA"
 
 ---
 
-## 3. Bloques del sprint
+## Tareas del Sprint
 
-### 3.A — Computer Use / Sandbox
+### Tarea 1: Computer Use / Sandbox — Remote Control UI
 
-**3.A.1 — Browser + Terminal + Filesystem en vivo**
+**Descripción:**
+Interfaz para ejecutar computer use tasks (browser automation, file operations).
 
-`ComputerUseScreen` con 3 paneles split:
-- **Panel browser**: WebView mostrando el navegador del agente (cuando ejecuta tool browser_use). En stub: screenshots pre-grabados de runs pasadas
-- **Panel terminal**: stream de stdout/stderr del agente cuando ejecuta scripts. En stub: logs pre-grabados con highlighting brand DNA
-- **Panel filesystem**: tree de archivos creados/modificados durante la run. Tap en archivo → diff viewer
+**UI Layout:**
+```
+┌────────────────────────────────────────┐
+│ Computer Use / Sandbox            [⌨️]│
+├────────────────────────────────────────┤
+│                                        │
+│ 🖥️ ACTIVE SESSION                     │
+│    Device: MacBook Pro (5 mins active) │
+│    Resolution: 1440 x 900              │
+│    Status: 🟢 Connected                │
+│    [Screenshot] [Disconnect]           │
+│                                        │
+│ ┌────────────────────────────────────┐│
+│ │ [SCREENSHOT PREVIEW - 1440x900]    ││
+│ │ ┌──────────────────────────────┐  ││
+│ │ │ (Live screen capture)        │  ││
+│ │ │                              │  ││
+│ │ │ Clickable region detection   │  ││
+│ │ │ [Click here to interact]     │  ││
+│ │ │                              │  ││
+│ │ └──────────────────────────────┘  ││
+│ └────────────────────────────────────┘│
+│                                        │
+│ ⌨️ COMMAND INPUT                       │
+│ [Type command or click on screen]      │
+│ ┌────────────────────────────────────┐│
+│ │ click(coordinate) | type(text)    ││
+│ │ key(chord) | screenshot()          ││
+│ │ [Send] [Clear] [History]           ││
+│ └────────────────────────────────────┘│
+│                                        │
+│ 📋 HISTORY                             │
+│ • screenshot() — 2m ago               │
+│ • click(640, 360) — 1m ago            │
+│ • type("Hello") — 30s ago             │
+│ [Clear history]                        │
+│                                        │
+└────────────────────────────────────────┘
+```
 
-Visual: Bloomberg + Manus Computer + VS Code. Densidad alta, brand DNA aplicado profundo.
+**Deliverables:**
+- Screenshot viewer: Live display from connected device
+- Click detection: Clickable regions highlighted
+- Command input: Type-based commands (click, type, key, screenshot)
+- History: Log of recent actions
+- Session management: Connect/disconnect
 
-**3.A.2 — Live mode + Replay mode**
-
-Toggle:
-- **Live**: muestra agente ejecutando AHORA (stub: invento un agente trabajando)
-- **Replay**: navega runs pasadas paso a paso (integra con Replay/Timelapse del Mobile 4)
-
-### 3.B — Coding embedded
-
-**3.B.1 — IDE liviano**
-
-`CodingEmbeddedScreen`:
-- Editor Monaco-style (o Flutter equivalent) con sintaxis highlighting
-- Diff viewer side-by-side cuando un Embrión sugiere cambios
-- Terminal embebida sandboxed para ejecutar tests
-- Botones [Aprobar] [Editar inline] [Rechazar] cuando hay sugerencia activa
-
-Stub: editor funcional con archivos mock del kernel. Puede compilar Dart in-place pero NO ejecuta cambios reales en el repo (post-Sprint Kernel 0 conecta a kernel real).
-
-**3.B.2 — Integración con Embriones**
-
-Cuando Embrión Técnico o Critic sugiere un cambio, aparece notificación en Coding embedded → tap abre el diff. Alfredo decide.
-
-### 3.C — Hilos Manus
-
-`HilosManusScreen`:
-- Vista de los 3+ hilos Manus activos (Catastro, Ejecutor, Memento, futuros hilos)
-- Cada hilo con:
-  - Sprint actual (ej. "Sprint 88: Cierre v1.0 PRODUCTO")
-  - Status (en curso, esperando audit Cowork, bloqueado, idle)
-  - Próximos pasos del hilo
-  - ETA recalibrada según Apéndice 1.3 factor velocity
-  - Tasks despachadas + audit log
-  - Bridge files relacionados con el hilo
-
-Stub: data realista basada en estado actual de los hilos del repo + reportes históricos del bridge.
-
-### 3.D — Bridge / Comunicación inter-hilos
-
-**3.D.1 — Navegador del directorio `bridge/`**
-
-`BridgeScreen`:
-- Lista de archivos bridge ordenados por fecha:
-  - `manus_to_cowork.md` y variantes
-  - `cowork_to_manus_*.md`
-  - `seed_*.md` (semillas firmadas)
-  - `sprint_*.md` (specs y reportes)
-- Filter por hilo (ejecutor / catastro / memento / cowork)
-- Tap → vista del archivo con render markdown nativo + brand DNA
-
-**3.D.2 — Decisiones arquitectónicas firmadas (Capilla)**
-
-Sub-tab: navegador de la Capilla de Decisiones (`discovery_forense/CAPILLA_DECISIONES/`):
-- Lista de los 35+ DSCs con filter por tipo (decision_arquitectonica / restriccion_dura / antipatron / patron_replicable / pendiente / cruce_inter_proyecto / validacion_realtime)
-- Tap → DSC completo con cross-references a otros DSCs
-- DSCs `pendiente` highlighted en rojo (bloqueantes)
-
-### 3.E — Settings + Admin
-
-`SettingsAdminScreen`:
-- Variables de entorno Railway (read + edit, requiere confirmación múltiple)
-- Configuración del kernel: feature flags, defaults
-- Override de defaults: forzar Catastro a usar modelo X, override timeouts, etc.
-- Gestión de tier-access (cuando exista el círculo otorgado): listar invitaciones nominativas, revocar acceso
-- Audit log radical: TODO lo que hizo el sistema en últimas 24h
-- Backup + restore del SMP (cuando SMP cierre)
-
-Stub: la mayoría no funcional, solo UX visible. Conecta con kernel real post-Sprint Kernel 0.
-
-### 3.F — Atajos completos
-
-Verificar que TODOS los atajos magna firmados en v1.2 funcionan:
-- ⌘K, ⌘P, ⌘E, ⌘G, ⌘T, ⌘R (de Mobile 3+4)
-- Nuevos en Mobile 5: ⌘shift+C (Computer Use), ⌘shift+I (IDE coding), ⌘shift+H (Hilos Manus), ⌘shift+B (Bridge), ⌘, (Settings)
-- Todo navegable desde teclado puro sin mouse
-
-### 3.G — Smoke productivo + validación cierre completo
-
-**3.G.1 — Build final macOS + iOS Simulator**
-
-Builds limpios.
-
-**3.G.2 — Validación humana de Alfredo — momento magna**
-
-Alfredo abre la app en su Mac:
-- Ve Daily limpio + funcional con todas las 5 superficies
-- 3 dedos hold + Face ID → entra al Cockpit completo
-- Navega las 15 superficies con atajos
-- Ve Portfolio con CIP card, FinOps, Pipeline E2E, Replay, Computer Use, Coding, Hilos Manus, Bridge, Settings
-- Vuelve al Daily con ⌘shift+M
-
-Si la totalidad le emociona + le hace decir "este es mi Monstruo": Sprint Mobile 5 cerrado verde + **el Monstruo tiene cara completa**.
+**Metrics:**
+- Files: 2 (computer_use_view.dart, screenshot_viewer.dart)
+- Latency: Screenshot refresh < 500ms
+- Test coverage: >75% (mock device)
 
 ---
 
-## 4. Magnitudes esperadas
+### Tarea 2: Coding Embedded — IDE-Lite Integration
 
-- ~2,500 LOC nuevas
-- ~30 archivos nuevos
-- ~25 widget tests + integration tests + golden files
-- 1 validación humana magna
+**Descripción:**
+Editor de código integrado para editar archivos del proyecto en tiempo real.
+
+**UI Layout:**
+```
+┌────────────────────────────────────────┐
+│ Coding — Embedded IDE             [💻]│
+├────────────────────────────────────────┤
+│ [kernel/engine.py] [kernel/nodes.py] │ ← Tabs
+│ [Close all] [New file]                │
+├────────────────────────────────────────┤
+│                                        │
+│ 1  | def execute_stream(self):        │
+│ 2  |     """Main LangGraph execution" │
+│ 3  |                                 │
+│ 4  |     # Load context             │
+│ 5  |     context = self.enrich(...) │
+│ 6  |                                 │
+│ 7  |     # Execute nodes            │
+│ 8  |     for node in self.graph:    │
+│ 9  |         yield node.run(...)    │
+│                                        │
+│ ┌────────────────────────────────────┐│
+│ │ Syntax: Python | Theme: Dark      ││
+│ │ [Format] [Lint] [Save] [Discard]  ││
+│ └────────────────────────────────────┘│
+│                                        │
+│ 📊 DIAGNOSTICS                         │
+│ ⚠️  Line 8: Unused import             │
+│ ⚠️  Line 5: Type hint missing          │
+│ ✅ No errors                           │
+│                                        │
+│ [Git diff] [Commit] [Push]             │
+│                                        │
+└────────────────────────────────────────┘
+```
+
+**Deliverables:**
+- Code editor: Syntax highlighting for multiple languages
+- File tabs: Switch between open files
+- Diagnostics: Linting + type checking
+- Save/discard: Persist or revert changes
+- Git integration: Diff, commit, push buttons
+
+**Metrics:**
+- Files: 2 (coding_view.dart, code_editor.dart)
+- Syntax languages: Python, TypeScript, Dart, Markdown
+- Test coverage: >75%
 
 ---
 
-## 5. Disciplina aplicada
+### Tarea 3: Hilos Manus — Agent Execution Threads
 
-- ✅ DSC-G-004: brand DNA en TODAS las 15 superficies
-- ✅ DSC-G-002: 7 capas transversales visualizables (Ventas, SEO, etc.) en superficies relevantes (Portfolio, FinOps)
-- ✅ DSC-X-006: Bridge muestra el patrón Convergencia Diferida en acción
-- ✅ Capa Memento aplicada profundo: indicadores ✓/⚠/✗ en TODAS las métricas
-- ✅ Brand DNA error naming Dart: `cockpitComputerUseLoadFrameFailed`, `cockpitCodingEmbeddedDiffLoadFailed`, etc.
+**Descripción:**
+Monitor de hilos de ejecución de Manus agent (sprints, tasks, logs).
+
+**UI Layout:**
+```
+┌────────────────────────────────────────┐
+│ Hilos Manus — Agent Threads       [🧠]│
+├────────────────────────────────────────┤
+│                                        │
+│ ✅ Sprint 88 Closure Thread           │
+│    Status: Completed (15m runtime)    │
+│    Tasks: 12/12 done                  │
+│    Success: 100%                      │
+│    [View logs] [Replay] [Export]      │
+│                                        │
+│ ⏳ Sprint 89 Execution Thread         │
+│    Status: Running (47m elapsed)      │
+│    Tasks: 8/12 done (66%)             │
+│    ETA: 12m remaining                 │
+│    Current task: Catastro refactoring │
+│    [Pause] [Cancel] [Speed up]        │
+│                                        │
+│ ⏰ Sprint 90 Planning Thread           │
+│    Status: Queued (starts in 2h)      │
+│    Tasks: 0/15 estimated              │
+│    Priority: P1                       │
+│    [Move up] [View plan]              │
+│                                        │
+│ 📊 THREAD HISTORY                      │
+│ • 50 threads in last 7 days           │
+│ • Avg runtime: 22m                    │
+│ • Success rate: 97.3%                 │
+│ • Total tasks: 487                    │
+│ [View analytics] [Export]             │
+│                                        │
+└────────────────────────────────────────┘
+```
+
+**Deliverables:**
+- Active threads: List with status, progress, ETA
+- Thread detail: Task breakdown, logs
+- Controls: Pause, cancel, speed (for dev/testing)
+- History: Past threads, analytics
+- Export: Logs, metrics (CSV, JSON)
+
+**Metrics:**
+- Files: 2 (hilos_manus_view.dart, thread_card.dart)
+- Real-time updates: WebSocket polling (2s)
+- Test coverage: >75%
 
 ---
 
-## 6. Cierre formal magna
+### Tarea 4: Bridge Navigator — Sprint + Project Browser
 
-Cuando los 7 bloques cierren verde + validación humana de Alfredo:
+**Descripción:**
+Navegador visual del bridge/ directory (sprints, specs, roadmaps).
 
-> 🏛️ **CARA DEL MONSTRUO COMPLETA — DECLARADA**
->
-> Cockpit con 15 superficies + Daily con 5 superficies + brand DNA aplicado profundo + atajos magna funcionales. Datos vía stubs hasta que SMP cierre. La interfaz Flutter de v1.2 está implementada.
+**UI Layout:**
+```
+┌────────────────────────────────────────┐
+│ Bridge Navigator — Specs & Sprints │├─┤
+├────────────────────────────────────────┤
+│ [📁 bridge/]                           │
+│ ├─ sprints_propuestos/                 │
+│ │  ├─ sprint_88_... 🟢 Proposed       │
+│ │  ├─ sprint_89_... 🟢 Proposed       │
+│ │  ├─ sprint_90_... 🟢 Proposed       │
+│ │  ├─ sprint_mobile_1... 🔵 In prep   │
+│ │  ├─ sprint_mobile_2... ⚪ Waiting   │
+│ │  └─ ... [+5 more]                   │
+│ │                                      │
+│ ├─ sprints_en_ejecucion/              │
+│ │  ├─ sprint_88_actual.md 🟡 70%     │
+│ │  └─ sprint_89_actual.md 🟡 45%     │
+│ │                                      │
+│ ├─ docs/                               │
+│ │  ├─ ROADMAP_EJECUCION_DEFINITIVO.md│
+│ │  ├─ 14_OBJETIVOS_MAESTROS.md       │
+│ │  └─ ... [+8 more]                   │
+│ │                                      │
+│ └─ [other directories]                │
+│                                        │
+│ ┌────────────────────────────────────┐│
+│ │ SELECTED: sprint_88_cierre_...    ││
+│ │ Status: 🟢 Proposed                ││
+│ │ ETA: 30-60 min                     ││
+│ │ Objective: #1 (Valor real)         ││
+│ │ [Read] [Edit] [Schedule]           ││
+│ └────────────────────────────────────┘│
+│                                        │
+│ [Search files] [Sync from Git]         │
+│                                        │
+└────────────────────────────────────────┘
+```
 
-Y reporta al bridge con: video de tour completo Daily → Cockpit → 15 superficies → vuelta a Daily, screenshots de cada superficie, builds artifacts macOS + iOS.
+**Deliverables:**
+- Directory tree: Visual file browser
+- Status indicators: 🟢/🟡/🔵 for different states
+- File preview: Tap to view spec content
+- Search: Filter by name, objective, status
+- Git sync: Pull latest from GitHub
+
+**Metrics:**
+- Files: 2 (bridge_navigator.dart, file_tree.dart)
+- Search: Real-time filtering
+- Test coverage: >75%
 
 ---
 
-## 7. Lo que sigue (post-Mobile 5)
+### Tarea 5: Settings + Admin Panel
 
-- **Sprint Mobile 6** (depende de SMP): Voice continuo + interrupción + ElevenLabs español mexicano + Apple Watch double-tap + listening ambient con kill switch verbal "Monstruo apágate" + i18n base + accesibilidad transversal + pulido final.
-- **Sprint Mobile 7** (post-SMP): switch de stubs a datos reales bajo SMP. La UI no cambia — solo el backend.
-- **Sprint Mobile 8+**: integraciones nativas reales (WhatsApp, Mail, Maps, etc.) + Smart Notebook real + Cronos real con captura ambient.
+**Descripción:**
+Configuración global + panel administrativo para gestionar El Monstruo.
+
+**UI Layout:**
+```
+┌────────────────────────────────────────┐
+│ Settings & Admin                  [⚙️]│
+├────────────────────────────────────────┤
+│                                        │
+│ DISPLAY SETTINGS                       │
+│ [Theme] 🌙 Dark  ⭕ Light             │
+│ [Font size] [100%] ──●───────── [150%]│
+│ [Language] ⭕ Español [ ] English     │
+│                                        │
+│ NOTIFICATIONS                          │
+│ [✓] Sprint completions                │
+│ [✓] High-priority alerts              │
+│ [✓] Daily digest (10 AM)              │
+│ [Sound] [Desktop]                      │
+│                                        │
+│ DATA & PRIVACY                         │
+│ [Export all data] [Download backup]    │
+│ [Clear cache] [Reset to defaults]      │
+│ [Data retention] [90 days]             │
+│                                        │
+│ ADMIN PANEL (Alfredo only)             │
+│ ┌────────────────────────────────────┐│
+│ │ 🔑 API Keys Management             ││
+│ │ [Show keys] [Rotate] [Audit]       ││
+│ │                                    ││
+│ │ 👥 User Management                 ││
+│ │ [Add user] [Permissions] [Audit]   ││
+│ │                                    ││
+│ │ 🗄️  Database Tools                 ││
+│ │ [Query] [Backup] [Restore]         ││
+│ │                                    ││
+│ │ 🔐 Security                         ││
+│ │ [2FA] [Session timeout] [Audit log]││
+│ │                                    ││
+│ │ 📊 System Health                    ││
+│ │ [Logs] [Metrics] [Uptime]          ││
+│ └────────────────────────────────────┘│
+│                                        │
+│ [About] [Help] [Contact] [Logout]      │
+│                                        │
+└────────────────────────────────────────┘
+```
+
+**Deliverables:**
+- Display: Theme, font, language settings
+- Notifications: Preference toggles
+- Data: Export, backup, reset options
+- Admin panel: API keys, users, database, security, health
+- Help: Links to docs, support
+
+**Metrics:**
+- Files: 2 (settings_view.dart, admin_panel.dart)
+- Admin gate: Role-based access (Alfredo only)
+- Test coverage: >75%
 
 ---
 
-## 8. Coordinación con sprints paralelos
+### Tarea 6: Cockpit Navigation (Complete)
 
-- Mobile 1-5 corren en paralelo a:
-  - Sprint 88-90 (kernel/ — distinto Manus Ejecutor o mismo en horarios distintos)
-  - Sprint Catastro-A + Catastro-B (fuera de kernel/)
-  - Sprint Mobile 0 (SMP, lento, no acelera, fondo)
+**Descripción:**
+Agregar últimas 5 superficies a sidebar (total: 15 en mobile_3 + mobile_4 + mobile_5).
 
-Paralelismo zonificado: Mobile toca solo `apps/mobile/`, kernel toca `kernel/`, Catastro toca todo lo demás. Cero overlap.
+**Deliverables:**
+- Sidebar: Complete with all 10 cockpit items
+- Routing: All 15 surfaces accessible (5 Daily + 10 Cockpit)
+- Icons: 15 unique, clear visual identity
 
 ---
 
-— Cowork (Hilo A), spec preparada 2026-05-06.
+## Aceptación
+
+**Definición de Listo:**
+1. All 5 final surfaces rendered ✅
+2. Cockpit complete: 10 surfaces accessible ✅
+3. Data binding: Real data where applicable ✅
+4. Tests: >75% coverage per surface ✅
+5. Build: `flutter run` succeeds ✅
+
+**Quality Gates:**
+- Performance: 60fps across all surfaces
+- Visual: Consistent with brand DNA
+- Stubs: All logic placeholders documented
+- Code: Zero linting warnings
+
+**Final Milestone:**
+- **CARA DEL MONSTRUO COMPLETA**
+- 15 total surfaces (5 Daily + 10 Cockpit)
+- Mobile app feature-complete for v1.0
+- Ready for beta release
+
+**Post-sprint:**
+- Sprint 88: v1.0 release (kernel + app)
+- Marketing: Announce to public
+- Next: Feature iterations based on feedback
+
+---
+
+## Notas Técnicas
+
+1. **State management:** Provider for all features
+2. **Real-time:** WebSocket for live updates
+3. **Theme:** Design tokens from sprint Catastro B
+4. **Backward compat:** All existing features stable
+
+---
+
+**Cowork (Hilo A), spec preparada 2026-05-06**
