@@ -6,6 +6,29 @@
 
 ---
 
+## 0. 🎯 Documento Maestro de los 7 proyectos
+
+**📍 Documento Maestro — Repositorio Maestro de los 13 Proyectos Canónicos:**
+
+📄 **`docs/INVENTARIO_PROYECTOS_MAGNA_2026.md`** (commit `d4fa9e6`, 2026-05-05)  
+🔗 https://github.com/alfredogl1804/el-monstruo/blob/main/docs/INVENTARIO_PROYECTOS_MAGNA_2026.md
+
+Generado por Manus Catastro durante Discovery Fase I.5 con barrido cruzado Drive + Notion + GitHub. Lista los 13 proyectos canónicos clasificados en 3 categorías:
+
+| Categoría | Proyectos |
+|---|---|
+| 🟢 **Activos/Core** (4) | Mena Baduy, Paquete Like, Skills/Etapas, **CONTROL TOTAL** (alias *Top Control PC*) |
+| 🟡 **En Transición** (3) | Vivir Sano, **MARKETPLACE** (alias *Marketplace Muebles*), **CIP** |
+| 🟡 **Nominales** (6) | **BIOGUARD**, **NIAS**, CrediVive, **OMNICOM**, **CIES**, Interiorismo Estratégico |
+
+**Tabla de métricas CIP en el documento maestro:**
+
+| Proyecto | Drive (Archivos/Planes) | Notion (Páginas/Planes) | GitHub Repos | Estado |
+|---|---|---|---|---|
+| **CIP** | 48 / **5 planes** | 40 / **1 plan** | **0** | 🟡 Fragmentado |
+
+---
+
 ## 1. Definición canónica de CIP
 
 **CIP** = *Plataforma de Inversión Inmobiliaria Fraccionada con tokens anclados a bienes raíces reales*. Democratiza inversión en inmuebles desde **$1 USD**. La propiedad nunca se vende, es ancla permanente del token. Fusiona **crowdfunding inmobiliario + crowdfunding social + marketing de impacto**.

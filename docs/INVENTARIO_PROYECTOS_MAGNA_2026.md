@@ -14,7 +14,7 @@ El Discovery Fase I.5 revela una clara bifurcación en el portafolio. De los 13 
 | Proyecto | Drive (Archivos/Planes) | Notion (Páginas/Planes) | GitHub (Repos) | Estado de Documentación |
 |----------|-------------------------|-------------------------|----------------|-------------------------|
 | **BioGuard** | 4 / 1 | 43 / 0 | 0 | 🟡 Fragmentado |
-| **Top Control PC** | 39 / 8 | 29 / 2 | 0 | 🟢 Activo/Core |
+| **Top Control PC** *(alias: CONTROL TOTAL)* | 39 / 8 | 29 / 2 | 0 | 🟢 Activo/Core |
 | **NIAS** | 20 / 1 | 40 / 0 | 0 | 🟡 Fragmentado |
 | **CrediVive** | 27 / 1 | 39 / 0 | 0 | 🟡 Fragmentado |
 | **Mena Baduy** | 82 / 15 | 13 / 1 | 1 | 🟢 Activo/Core |
@@ -34,7 +34,7 @@ El Discovery Fase I.5 revela una clara bifurcación en el portafolio. De los 13 
 **Drive (Top Planes):**
 - `repaldo sop v3 181025.txt` (2025-10-19)
 
-### Top Control PC
+### Top Control PC *(alias: CONTROL TOTAL — confirmado por Alfredo 2026-05-06)*
 
 **Drive (Top Planes):**
 - `repaldo sop v3 181025.txt` (2025-10-19)

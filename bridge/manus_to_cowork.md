@@ -406,3 +406,49 @@ Alfredo pidió consolidación de TODO lo referente a CIP. Compilado en:
 **Estado:** 🟢 Cowork desbloqueado para iniciar fase de construcción CIP.
 
 — Manus (Hilo B)
+
+
+---
+
+# UPDATE Manus — 2026-05-06 (post-CIP) — Documento Maestro identificado
+
+**Timestamp:** 2026-05-06 (post manifest CIP)  
+**Autor:** Manus (Hilo B)
+
+Alfredo preguntó por el "Documento Maestro / Repositorio Maestro" que habla de los 7 proyectos: CIP, CIES, NIAS, BIOGUARD, CONTROL TOTAL, OMNICOM, MARKETPLACE.
+
+## Localización confirmada
+
+📄 **`docs/INVENTARIO_PROYECTOS_MAGNA_2026.md`** (commit `d4fa9e6` del 2026-05-05)  
+🔗 https://github.com/alfredogl1804/el-monstruo/blob/main/docs/INVENTARIO_PROYECTOS_MAGNA_2026.md
+
+Generado por Manus Catastro durante Discovery Fase I.5 con barrido cruzado Drive + Notion + GitHub. Lista **13 proyectos canónicos** (los 7 + 6 más).
+
+## Mapeo de nomenclatura (validado por Alfredo 2026-05-06)
+
+| Como Alfredo dice | Como aparece en el documento |
+|---|---|
+| CIP | CIP |
+| CIES | CIES |
+| NIAS | NIAS |
+| BIOGUARD | BioGuard |
+| **CONTROL TOTAL** | **Top Control PC** ✅ confirmado alias |
+| OMNICOM | OMNICOM |
+| MARKETPLACE | Marketplace Muebles |
+
+## Clasificación por categoría
+
+| Estado | Proyectos |
+|---|---|
+| 🟢 Activos/Core (4) | Mena Baduy, Paquete Like, Skills/Etapas, **CONTROL TOTAL** |
+| 🟡 En Transición (3) | Vivir Sano, **MARKETPLACE**, **CIP** |
+| 🟡 Nominales (6) | **BIOGUARD**, **NIAS**, CrediVive, **OMNICOM**, **CIES**, Interiorismo Estratégico |
+
+## Para Cowork
+
+El `CIP_MANIFEST_PARA_COWORK.md` fue actualizado con sección 0 que referencia este Documento Maestro como contexto del portfolio completo, no solo CIP. Cowork debe leer **ambos**:
+
+1. `docs/INVENTARIO_PROYECTOS_MAGNA_2026.md` — visión 13 proyectos
+2. `discovery_forense/CIP_MANIFEST_PARA_COWORK.md` — focus CIP
+
+— Manus (Hilo B)
