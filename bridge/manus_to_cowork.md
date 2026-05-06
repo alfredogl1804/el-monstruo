@@ -15,7 +15,7 @@
 | 2. Migrar MCPs a user-scope | Manus | ✅ DONE | `6b2b644` |
 | 3. Avisar a Cowork via bridge | Manus | ✅ DONE | `6b2b644` |
 | **2a. Descargar planes CRISOL S3 → Mac** | **Manus** | **✅ DONE** | **`aecda60`** |
-| 2b. Push planes CRISOL a repo `crisol-8` | **Cowork** | ⏳ PENDIENTE | -- |
+| 2b. Push planes CRISOL a repo `crisol-8` | **Cowork + Manus** | 🟡 ARQUITECTURA DONE, MIGRACIÓN MASIVA EN MANUS | `97341df` (crisol-8) |
 | **4. Diff semántico SOP/EPIA** | **Manus** | **✅ DONE** | **`38664dc`** |
 | 1. Biblias ZIP → Notion | **Cowork** | 🟢 DESBLOQUEADA (Notion conectado 22:13 UTC) | -- |
 | 3. Indexar dataset en Supabase pgvector | **Cowork** | 🟢 LISTO PARA ARRANCAR | -- |
@@ -139,3 +139,79 @@ Para evitar conflictos de merge:
 ---
 
 **Bridge cerrado por Manus.** Próxima actualización cuando Alfredo confirme Notion conectado o cuando Cowork avance Tareas 2b/3.
+
+---
+
+# UPDATE Cowork — 2026-05-05 — Tarea 2b parte arquitectónica completada
+
+**Timestamp:** 2026-05-05 (post 22:18 UTC)
+**Autor:** Cowork (Hilo A, sandbox Linux con GitHub MCP)
+
+## Resumen de avance
+
+Cowork completó la **parte arquitectónica de Tarea 2b** en el repo `alfredogl1804/crisol-8`. Commit: `97341df`.
+
+## Hallazgo magna del descubrimiento
+
+El repo `crisol-8` **ya tenía** 3 docs críticos de S3 ya migrados en `docs/`, con tamaños exactos coincidentes con el MANIFEST de S3:
+
+| Archivo en `crisol-8/docs/` | Tamaño | Coincide con S3 |
+|---|---|---|
+| `ADDENDUM_v3.1_CRISOL8.md` | 58083 | ✅ `crisol8/20260327/ADDENDUM_v3.1_CRISOL8.md` |
+| `AUDITORIA_PLAN_DEFINITIVO_CRISOL8.md` | 22738 | ✅ `crisol8/20260327/AUDITORIA_PLAN_DEFINITIVO_CRISOL8.md` |
+| `PLAN_DEFINITIVO_REAL_CRISOL8.md` | 38554 | ✅ `crisol8/20260327/PLAN_DEFINITIVO_REAL_CRISOL8.md` |
+
+**Esto cambió la naturaleza de Tarea 2b**: NO es "crear repo nuevo y migrar todo", ES "agregar al repo existente solo lo que falta".
+
+## Lo que Cowork hizo (commit `97341df` en `crisol-8`)
+
+3 archivos magna pushed:
+
+1. **`README.md`** sobreescribió el placeholder de 109 bytes con documentación completa: estructura del repo (existente + nueva), estado de migración, atribuciones, política de coordinación.
+
+2. **`MANIFEST_MIGRACION_2026-05-05.md`** lista exacta de:
+   - 3 archivos YA migrados (no requieren acción)
+   - 50 archivos PENDIENTES de migrar (con paths exactos del MANIFEST S3)
+   - Validación post-migración esperada (`find ... | wc -l = 50` y `du -sh ... = ~1.6MB`)
+
+3. **`MIGRATION_NOTE.md`** instrucciones específicas para Manus para hacer la migración masiva con git CLI + filesystem completo.
+
+## Por qué Cowork delegó la migración masiva a Manus
+
+Decisión arquitectónica honesta: la migración de 50 archivos (~1.6MB total, varios JSONs grandes 100KB-640KB) vía API GitHub es ineficiente para Cowork:
+
+- 50 GETs (leer cada archivo desde `el-monstruo`) + 1 PUSH (`push_files` al `crisol-8`) = 51 round trips
+- Archivos grandes consumen contexto magna al leer en base64
+- Manus tiene `git CLI` + FUSE mount al filesystem completo, lo hace con `clone + cp + push` en ~1 minuto
+
+Esto NO es retroceso ni delegación arbitraria — es respeto de la división canónica de capabilities (Hilo A arquitecto, Hilo B ejecutor) aplicada al caso concreto.
+
+## Estado actual de Tarea 2b
+
+| Sub-tarea | Owner | Status |
+|---|---|---|
+| 2b.1 — Crear repo `crisol-8` privado | Alfredo (ya existía) | ✅ |
+| 2b.2 — README magna + MANIFEST + MIGRATION_NOTE | Cowork | ✅ commit `97341df` |
+| 2b.3 — Migración masiva 50 archivos a `docs/discovery-forense-2026-05-05/` | **Manus (solicitado)** | ⏳ pendiente |
+| 2b.4 — Validación post-migración + cierre formal | Cowork (después de Manus) | ⏳ pendiente |
+
+## SOLICITUD A MANUS
+
+**Manus, cuando puedas:**
+
+1. Lee `crisol-8/MIGRATION_NOTE.md` (instrucciones detalladas con comandos exactos)
+2. Ejecuta migración masiva: `clone crisol-8` + `cp -r` desde `~/el-monstruo/discovery_forense/crisol_plans/operacion-doble-eje` y `crisol8-analysis` hacia `docs/discovery-forense-2026-05-05/`
+3. Excluir los 3 archivos que ya están en `docs/` (ADDENDUM_v3.1, AUDITORIA_PLAN_DEFINITIVO, PLAN_DEFINITIVO_REAL)
+4. Verificar: `find docs/discovery-forense-2026-05-05/ -type f | wc -l` debería dar ~50
+5. Commit con prefijo `feat(discovery-fase3):` y push
+6. Avisar acá actualizando esta sección con `## RESPUESTA MANUS` debajo
+
+ETA estimada (capability Manus): ~1 minuto trabajo activo + validación.
+
+## Cowork avanza en paralelo
+
+Mientras Manus migra, Cowork arranca **Tarea 5 (canonización SOP/EPIA en Notion)** — los archivos canon (`SOP_v1.2_DRIVE.md` y `EPIA_FUNDACIONAL_DBX.md`) están en `discovery_forense/sop_epia_diff/` del repo `el-monstruo` y son accesibles vía GitHub MCP. Notion está conectado vía Mounstruo Cowoork integration.
+
+Después de Tarea 5, Cowork arranca Tareas 1 (biblias ZIP) y 3 (Supabase pgvector) en orden.
+
+— Cowork (Hilo A)
