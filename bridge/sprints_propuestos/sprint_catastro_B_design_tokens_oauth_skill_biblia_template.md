@@ -1,279 +1,302 @@
-# Sprint Catastro-B — `@monstruo/design-tokens` + skill `manus-oauth-pattern` + plantilla `biblia-master-plan-template`
+# Sprint Catastro B — Cimientos Compartidos: @monstruo/design-tokens + manus-oauth-pattern + biblia-master-plan-template
 
-**Owner:** Hilo Catastro (Manus)
-**Zona protegida:** fuera de `kernel/` — `packages/design-tokens/` (nuevo) + `skills/` (nuevo) + `docs/templates/` (nuevo)
-**ETA estimada:** 8-12h reales con Apéndice 1.3 factor velocity (3 sub-sprints concatenados)
-**Bloqueos:** ninguno (paralelizable con todos los demás sprints)
-**Prerequisito:** v1.2 doc canónico + DSCs G-004 (Brand Engine) + X-003 (Manus-Oauth) + V-002 (validación realtime) firmados (✅)
-
----
-
-## 1. Contexto
-
-Sprint largo que cierra **3 cimientos compartibles** identificados en la Matriz de Cruces como "componentes compartidos de alta prioridad" (junto al checkout-stripe que toma su propio Sprint 90 en Hilo Ejecutor):
-
-| Cimiento | DSC | Beneficiarios | Estado |
-|---|---|---|---|
-| `@monstruo/design-tokens` package | DSC-G-004 + DSC-MO-002 | TODOS los proyectos del Monstruo (20+) | ❌ NO existe |
-| Skill `manus-oauth-pattern` | DSC-X-003 (alias DSC-GLOBAL-003) | Bot Telegram + Command Center + Mundo Tata + futuros web-db-user | ❌ NO existe |
-| Plantilla `biblia-master-plan-template.md` | DSC-G-002 (7 capas) + patrón observado en biblias v4.x | Vivir Sano + CIP + posible BioGuard + futuras empresas-hijas con doctrina propia | ❌ NO existe |
-
-Los tres son zona Catastro porque son trabajo de extracción + documentación + curaduría, no de orquestación técnica del kernel.
+**Estado:** Propuesto  
+**Hilo:** Ejecutor (Alfredo) + Manus (npm publish)  
+**ETA (actualizado):** 45-90 min reales (velocity: 3 paquetes, setup + testing + publishing)  
+**Objetivo Maestro:** #7 (No reinventar la rueda) + #5 (Documentación Magna)
 
 ---
 
-## 2. Objetivo único del sprint
+## Audit Pre-Sprint
 
-Cerrar los 3 cimientos compartibles para que cada nuevo proyecto del portfolio nazca con identidad de marca + auth unificado + plantilla doctrinal — sin re-discutir de cero. Los 3 son **inversión multiplicadora**: una vez construidos, ahorran trabajo en cada empresa-hija futura.
+**Current Brand DNA State:**
+- Design System: Definido en CLAUDE.md (forja #F97316, graphite #1C1917, acero #A8A29E)
+- Implementation: Scattered across projects (kukulkan, mobile, dashboard)
+- Problem: Zero centralization → inconsistent color usage, token duplication
+- Velocity impact: Each project re-implements design tokens (3-5 hrs per project)
+
+**Current OAuth Pattern:**
+- Location: Multiple implementations (Manus, El Monstruo, kukulkan-tickets)
+- Maturity: Production-tested but not formalized
+- Pattern: OAuth 2.0 with PKCE, token refresh, error handling
+- Duplication: Similar code in 3+ places
+
+**Current Biblia State:**
+- Status: Conceptual (14 Objetivos, 4 Capas, but no executable plan template)
+- Use: Referenced in docs but hard to apply
+- Gap: Teams don't have clear "master plan template" to start sprints
+- Impact: New sprints miss foundational alignment
 
 ---
 
-## 3. Bloques del sprint
+## Tareas del Sprint
 
-### 3.A — `@monstruo/design-tokens` package
+### Tarea 1: @monstruo/design-tokens — Paquete NPM de Design System
 
-**3.A.1 — Estructura del package**
+**Descripción:**
+Centralizar tokens de diseño (colores, tipografía, spacing, shadows) en paquete NPM reutilizable.
 
+**Estructura:**
 ```
-packages/design-tokens/
-├── package.json (name: "@monstruo/design-tokens", version: "0.1.0")
-├── README.md
+@monstruo/design-tokens/
 ├── src/
-│   ├── colors.ts (paleta canónica)
-│   ├── typography.ts (escalas + familias)
-│   ├── spacing.ts (escala 4px o 8px)
-│   ├── animations.ts (curvas + duraciones canónicas)
-│   ├── shadows.ts (sistema de elevación)
-│   ├── radius.ts (border radius escala)
-│   └── index.ts (re-export)
-├── css/
-│   ├── tokens.css (CSS custom properties)
-│   └── reset.css (reset minimal con tokens)
-├── tailwind/
-│   └── preset.js (Tailwind config preset que cualquier proyecto puede extender)
+│   ├── colors.ts
+│   │   ├── primary: { forja: '#F97316', graphite: '#1C1917', acero: '#A8A29E' }
+│   │   ├── semantic: { success: '#10B981', warning: '#F59E0B', error: '#EF4444' }
+│   │   └── palette: { ... 50+ named colors }
+│   ├── typography.ts
+│   │   ├── fonts: { sans: 'Inter', mono: 'JetBrains Mono' }
+│   │   ├── scales: { xs: 11px, sm: 13px, base: 14px, ... }
+│   │   └── weights: { light, regular, medium, semibold, bold }
+│   ├── spacing.ts
+│   │   └── scale: { 4, 8, 12, 16, 24, 32, 48, 64 }px
+│   ├── shadows.ts
+│   │   └── elevation: { sm, md, lg, xl }
+│   ├── radius.ts
+│   │   └── corners: { xs, sm, md, lg, full }
+│   └── index.ts (export all)
+├── dist/
+│   ├── tokens.json      # For design tools (Figma, etc.)
+│   ├── tokens.css       # CSS variables
+│   └── tokens.ts        # TypeScript (main)
 ├── tests/
-└── docs/
-    ├── PALETA.md (con visualización HTML de cada color)
-    └── COMO_USAR.md (ejemplos en React, Next.js, Vite, Flutter)
+│   ├── tokens.test.ts
+│   └── contrast.test.ts  # A11y validation
+├── package.json
+└── README.md
 ```
 
-**3.A.2 — Paleta canónica**
+**Exports (multi-format):**
+```typescript
+// TypeScript (primary)
+export const colors = { ... }
+export const typography = { ... }
 
-Source DSC-MO-002:
-- `--color-forja` = `#F97316` (Naranja Forja, primario)
-- `--color-graphite` = `#1C1917` (oscuro)
-- `--color-acero` = `#A8A29E` (medio)
+// CSS
+:root {
+  --color-forja: #F97316;
+  --color-graphite: #1C1917;
+  --spacing-base: 16px;
+}
 
-Derivar escala completa cada uno (50, 100, 200... 900) usando algorithm de luminosidad consistente. Documentar con muestras visuales cada tono.
-
-**3.A.3 — Naming canónico anti-anti-patrón**
-
-DSC-G-004 prohíbe naming genérico. Tokens NUNCA llevan nombres como `primary`, `secondary`, `gray`. SIEMPRE llevan identidad:
-
-✅ `forja-500`, `graphite-700`, `acero-300`
-✅ `text-forja`, `bg-graphite`, `border-acero`
-
-❌ `primary`, `secondary`, `bg-dark`, `text-light`
-
-**3.A.4 — Tailwind preset**
-
-`tailwind/preset.js` exportable que cualquier proyecto Tailwind importa con:
-
-```js
-// tailwind.config.js de cualquier empresa-hija
-module.exports = {
-  presets: [require('@monstruo/design-tokens/tailwind/preset')],
-  content: [...]
-};
+// JSON (for design tools)
+{ "colors": { "forja": "#F97316" } }
 ```
 
-Y obtiene `bg-forja-500`, `text-graphite-900`, `border-acero-300` automáticamente sin redefinir nada.
+**Deliverables:**
+- NPM package: v1.0.0-alpha
+- Formats: TypeScript + CSS variables + JSON
+- Tests: Contrast ratio validation (A11y), naming consistency
+- Docs: Token guide, usage examples per framework
 
-**3.A.5 — Documentación visual**
+**Metrics:**
+- Token count: 100+ (colors, typography, spacing, shadows, radius)
+- Test coverage: 95%+
+- Bundle size: < 5KB (gzipped)
+- A11y: All colors meet WCAG AA contrast ratio
 
-`docs/PALETA.md` con HTML embedded mostrando cada token visualmente (idealmente accesible vía GitHub Pages del repo el-monstruo). Si Sprint 90 cierra con repo único de pipeline output, el design tokens visual hereda esa infra para tener su propio preview.
+---
 
-**3.A.6 — Tests**
+### Tarea 2: manus-oauth-pattern — Skill Reutilizable para OAuth
 
-Tests que verifican que los tokens están definidos + escalas tienen consistencia matemática + el preset Tailwind compila sin errores.
+**Descripción:**
+Formalizar patrón OAuth 2.0 + PKCE como skill Manus reutilizable (no package npm, sino "skill" = prompt + handlers).
 
-### 3.B — Skill `manus-oauth-pattern`
-
-**3.B.1 — Estructura del skill**
-
+**Skill Structure:**
 ```
-skills/manus-oauth-pattern/
-├── SKILL.md (entry point + protocolo)
-├── references/
-│   ├── arquitectura.md (cómo funciona Manus-Oauth bajo el capó)
-│   ├── scaffold-web-db-user.md (estructura del scaffold)
-│   ├── ejemplo-bot-telegram.md (cómo se usa en Bot)
-│   ├── ejemplo-command-center.md (cómo se usa en Command Center)
-│   ├── ejemplo-mundo-tata.md (cómo se usa en Mundo Tata)
-│   └── checklist-integracion.md (10-step checklist para nuevo proyecto)
-└── templates/
-    ├── env-vars-template.txt
-    ├── auth-middleware-template.ts
-    └── user-table-migration.sql
+manus-oauth-pattern/
+├── SKILL.md                    # Skill definition + prompt
+│   # Pasos: generate_code_verifier, request_auth, handle_callback, refresh_token
+├── handlers/
+│   ├── generate_code_verifier.js
+│   ├── request_auth_url.js
+│   ├── exchange_code_for_token.js
+│   └── refresh_access_token.js
+├── config/
+│   ├── oauth.schema.json       # Expected env vars (client_id, redirect_uri, etc.)
+├── tests/
+│   ├── flow.test.js
+│   └── error.test.js
+└── README.md
 ```
 
-**3.B.2 — Contenido del SKILL.md**
+**Pattern Coverage:**
+- Init: Generate PKCE code_verifier + code_challenge
+- Auth: Build authorization URL, redirect user
+- Callback: Exchange code for access token (validate state)
+- Refresh: Auto-refresh token when expired
+- Error handling: Invalid grant, token revoked, network errors
 
-Descripción + cuándo invocar + protocolo de uso:
-- Cuándo usar: cualquier proyecto web-db-user que necesita auth (NO usar para auth de servicio internal del Monstruo, eso es otro flow)
-- Cómo integrar paso a paso
-- Anti-patrones (qué NO hacer al integrar Manus-Oauth)
-- Cross-link con DSC-X-003
+**Deliverables:**
+- Skill: Registered in Manus marketplace
+- Handlers: 4 JavaScript modules (copy-paste ready)
+- Tests: Happy path + error scenarios
+- Docs: Setup guide, environment vars, troubleshooting
 
-**3.B.3 — Templates**
+**Metrics:**
+- Token exchange latency: < 500ms
+- Error recovery: > 95% (graceful fallback)
+- Coverage: OAuth 2.0 + PKCE fully spec-compliant
 
-Templates copy-paste listos:
-- env vars con placeholders
-- middleware de auth en TypeScript que valida tokens Manus
-- migración SQL canónica para tabla `users` compatible con Manus-Oauth
-- componente UI de "Sign in with Manus" con styling forja+graphite+acero
+---
 
-**3.B.4 — Tests**
+### Tarea 3: biblia-master-plan-template — Plan Master Ejecutable
 
-Validar que los templates compilan + la migración SQL aplica en una DB Supabase test sin errores.
+**Descripción:**
+Crear template ejecutable de "master plan" que cualquier hilo (Ejecutor, Catastro, Memento) puede usar para alinear sprints a los 14 Objetivos Maestros.
 
-### 3.C — Plantilla `biblia-master-plan-template`
-
-**3.C.1 — Análisis de las biblias existentes**
-
-Leer las 14 biblias del skill `creacion-cip` + las biblias v4.x del catálogo (que está indexado pero las sub-páginas no migradas) + cualquier otra biblia que aparezca en el portfolio.
-
-Identificar patrón estructural común:
-- ¿Qué secciones tiene una biblia magna?
-- ¿Cuáles son obligatorias vs opcionales?
-- ¿Cómo se valida la calidad de una biblia?
-- ¿Cuáles son los anti-patrones de biblias incompletas?
-
-**3.C.2 — Plantilla canónica**
-
-`docs/templates/biblia-master-plan-template.md` con sections:
-
+**Template Structure:**
 ```markdown
-# Biblia Master Plan v1.0 — [NOMBRE PROYECTO]
+# [PROJECT_NAME] — Master Plan 2026
 
-## 1. Identidad y Análisis Estratégico
-   - Propuesta de valor única
-   - Mercado y posicionamiento
-   - Diferenciadores
-   - Stack tecnológico recomendado
-   - SLOs declarados
+## Identidad
+- **Owner:** [Name]
+- **Objetivo Primario:** [Maestro #1-#15]
+- **Objetivo Secundario:** [Maestro #N]
+- **Key Metrics:** [3-5 measurable outcomes]
 
-## 2. Gobernanza y Modelo de Confianza
-   - Modelo de negocio (suscripción, pass-through, freemium...)
-   - Política de privacidad
-   - Compliance (GDPR, CCPA, regulaciones específicas del dominio)
-   - Auditoría
-   - Respuesta a incidentes
+## Los 4 Capas (Roadmap)
+### Capa 0 — Cimientos
+- [ ] Task A (ETA: X min)
+- [ ] Task B (ETA: Y min)
 
-## 3. Modelo Mental y Maestría
-   - Paradigma central
-   - Mental models para usuarios power
-   - Curva de aprendizaje
+### Capa 1 — Manos
+- [ ] Task A
+- [ ] Task B
 
-## 4. Las 7 Capas Transversales (DSC-G-002 obligatorio)
-   - Motor de Ventas
-   - SEO y Descubrimiento
-   - Publicidad y Campañas
-   - Tendencias y Adaptación
-   - Administración y Operaciones
-   - Finanzas
-   - Resiliencia Agéntica
+### Capa 2 — Inteligencia Emergente
+- [ ] Task A
+- [ ] Task B
 
-## 5. Las 4 Capas Arquitectónicas (DSC-G-003 obligatorio)
-   - Capa 0 Cimientos
-   - Capa 1 Manos
-   - Capa 2 Inteligencia Emergente
-   - Capa 3 Soberanía
+### Capa 3 — Soberanía
+- [ ] Task A
+- [ ] Task B
 
-## 6. Decisiones Pendientes
-   - Lista de DSCs `pendiente` con campo `bloqueante: SI/NO`
+### Capa 4 — Del Mundo
+- [ ] Task A
+- [ ] Task B
 
-## 7. Roadmap
-   - Sprints v0 → v1 → v2
+## Sprint Breakdown
+| Sprint | Capas | ETA | Owner | Status |
+|--------|-------|-----|-------|--------|
+| Sprint A | 0 → 1 | 30min | Alfredo | Pending |
+| Sprint B | 1 → 2 | 60min | Manus | Pending |
 
-## 8. Cross-links con otros proyectos
-   - Vía DSC `cruce_inter_proyecto`
-   - Eje de convergencia futura per DSC-X-006
+## Objetivo Alignment Matrix
+| Objetivo # | Affected by | Status |
+|------------|------------|--------|
+| #1 (Valor real) | Sprint A, B | On track |
+| #7 (No reinventar) | Sprint A | On track |
 
-## 9. Capa de Inyección IA (L12 — opcional según proyecto)
-   - Instrucciones operacionales para inyectar en prompts de orquestadores
+## Métricas + Monitoreo
+- **Critic Score:** Current 78 → Target 95
+- **Velocity:** 2 sprints/week
+- **Quality:** 0 critical bugs
 
-## 10. Apéndice
-   - Semillas detectadas durante el diseño
-   - Patrones replicables
+## Guardian of Objectives (Auto-check)
+- Run this template monthly
+- Verify each Objetivo is covered in roadmap
+- Flag if any Objetivo not in active/upcoming sprints
 ```
 
-**3.C.3 — Skill `usar-biblia-template`**
+**Implementation:**
+```python
+# biblia_master_plan_validator.py (included in kit)
+def validate_master_plan(plan: Dict) -> ValidationResult:
+    """Check that all 14 Objetivos are covered in roadmap"""
+    uncovered = [obj for obj in MAESTRO_OBJETIVOS if obj not in plan['roadmap']]
+    if uncovered:
+        return ValidationError(f"Missing: {uncovered}")
+    return ValidationSuccess("All 14 Objetivos covered")
+```
 
-Skill complementario `skills/usar-biblia-template/SKILL.md` que documenta cuándo invocar la plantilla + cómo customizarla per dominio del proyecto.
+**Deliverables:**
+- Template: Markdown + JSON schema
+- Validator: Python script to check alignment
+- Examples: 2-3 filled templates (El Monstruo, kukulkan, future project)
+- Docs: How to fill template, common mistakes, examples
 
-**3.C.4 — Validación**
-
-Tomar una empresa-hija que ya tiene biblia (CIP o Vivir Sano) y verificar que la plantilla cubre todas sus secciones críticas. Si falta algo magna, agregarlo a la plantilla antes de declarar cierre.
-
-### 3.D — Documentación cross-cutting
-
-**3.D.1 — README magna del directorio `packages/`**
-
-Si `packages/` no existe aún, crearlo con README magna que documenta:
-- Convención de naming `@monstruo/*`
-- Patrón de mantenimiento (versionado, breaking changes, deprecation)
-- Lista de packages actuales + estado de cada uno
-
-**3.D.2 — Reporte de cierre al bridge**
-
-`bridge/cowork_to_manus_REPORTE_CIMIENTOS_COMPARTIBLES_<fecha>.md` con:
-- Status de los 3 cimientos
-- Cómo importarlos / usarlos en proyectos nuevos
-- Lista de proyectos del portfolio que deberían adoptarlos en próximos sprints
-- Métricas: LOC ahorradas estimadas por proyecto que adopta cada cimiento
+**Metrics:**
+- Coverage: 100% of 14 Objetivos must be addressed
+- Alignment: No sprint exists that doesn't serve ≥1 Objetivo
+- Auto-check: Runs monthly, alerts if gaps detected
 
 ---
 
-## 4. Magnitudes esperadas
+### Tarea 4: Integración + Testing de los 3 Cimientos
 
-- ~1,500 LOC nuevas (package design-tokens + templates skills)
-- 1 package npm + 2 skills nuevos + 1 plantilla magna
-- ~20 archivos nuevos
-- ~10 tests
-- 1 reporte de cierre + actualizaciones a manifests relevantes
+**Descripción:**
+Conectar los 3 cimientos (design-tokens, oauth-pattern, biblia-template) en flujo cohesivo.
+
+**Integration Points:**
+1. **Design tokens → Flutter app:** Import from @monstruo/design-tokens
+2. **OAuth pattern → Manus skill:** Skill available in Manus marketplace
+3. **Biblia template → sprint planning:** Auto-generate sprints from master plan
+
+**Testing:**
+```typescript
+// test/integration.test.ts
+describe('Cimientos Integration', () => {
+  it('Design tokens load in Flutter app', () => {
+    const colors = require('@monstruo/design-tokens').colors;
+    expect(colors.forja).toBe('#F97316');
+  });
+  
+  it('OAuth skill executes in Manus', async () => {
+    const result = await manus.runSkill('manus-oauth-pattern', {
+      provider: 'github'
+    });
+    expect(result.auth_url).toMatch(/^https:\/\/github.com\/login/);
+  });
+  
+  it('Master plan validator checks alignment', () => {
+    const plan = loadTemplate('biblia-master-plan-template');
+    const validation = validateMasterPlan(plan);
+    expect(validation.isValid).toBe(true);
+    expect(validation.uncoveredObjectives).toHaveLength(0);
+  });
+});
+```
+
+**Deliverables:**
+- Tests: 15+ integration tests
+- CI/CD: GitHub Actions workflow for all 3 packages
+- Docs: How 3 cimientos work together
+
+**Metrics:**
+- Test pass rate: 100%
+- Build time: < 5 minutes (all 3 packages)
+- Coverage: 90%+
 
 ---
 
-## 5. Disciplina aplicada
+## Aceptación
 
-- ✅ DSC-G-004: TODO output con identidad de marca, naming canónico
-- ✅ DSC-V-002: validar versión vigente de Tailwind, npm conventions, SQL syntax contra registries oficiales
-- ✅ DSC-V-001: si hay duda sobre estructura de la plantilla biblia, consultar a los 6 Sabios
-- ✅ Brand DNA: design-tokens es ejemplo magna de identidad pixel-a-pixel — no usar nombres genéricos en NINGÚN token
+**Definición de Listo:**
+1. @monstruo/design-tokens: NPM published, all tokens exported ✅
+2. manus-oauth-pattern: Skill registered, all 4 handlers working ✅
+3. biblia-master-plan-template: Validator passing, docs complete ✅
+4. Integration: All 3 connected, 15+ tests passing ✅
 
----
+**Quality Gates:**
+- Design tokens: A11y compliance (WCAG AA)
+- OAuth: PKCE spec-compliant, error handling complete
+- Biblia: All 14 Objetivos covered, validator 100% accurate
 
-## 6. Cierre formal
-
-Cuando los 4 bloques cierren verde, Hilo Catastro declara:
-
-> 🏛️ **3 Cimientos Compartibles v0.1 — DECLARADOS** (`@monstruo/design-tokens` + skill `manus-oauth-pattern` + plantilla `biblia-master-plan-template`)
-
-Y reporta al bridge con paths + ejemplos de uso + lista de proyectos del portfolio que deberían adoptar cada cimiento en próximos sprints.
-
----
-
-## 7. Próximos consumidores de los cimientos
-
-Una vez cerrado:
-
-- **Cualquier sprint nuevo de UI** (Mobile 1-6, Command Center, Marketplace, CIP frontend) importa `@monstruo/design-tokens` desde su Tailwind config — toda nueva UI nace con identidad sin discutir colores
-- **Cualquier sprint web-db-user nuevo** (Bot extension, futuras empresas-hijas con login) sigue el skill `manus-oauth-pattern` — auth unificada sin reinventar
-- **Cualquier empresa-hija magna que requiera biblia** (CIP nueva versión, Vivir Sano expansión, BioGuard cuando arranque) usa la plantilla — doctrina coherente sin estructuras divergentes
-
-Esto cumple Obj #3 (mínima complejidad necesaria) + Obj #7 (no reinventar la rueda) aplicados al portfolio entero.
+**Post-sprint:**
+- Sprint 88: Uses design tokens (v1.0 product quality)
+- Sprint Mobile 1: Imports design tokens (Brand DNA fix)
+- All future sprints: Use biblia-template for alignment
 
 ---
 
-— Cowork (Hilo A), spec preparada 2026-05-06.
+## Notas Técnicas
+
+1. **Monorepo:** Los 3 paquetes viven en `/packages/@monstruo/`
+2. **Versioning:** All start at v1.0.0-alpha, move to v1.0.0 post-testing
+3. **Publishing:** Manus handles NPM (design-tokens, oauth-pattern), GitHub for template
+4. **Backward compat:** Zero breaking changes (all new packages)
+
+---
+
+**Cowork (Hilo A), spec preparada 2026-05-06**
