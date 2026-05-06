@@ -1,0 +1,46 @@
+﻿# SOP — DOCUMENTO FUNDACIONAL MAESTRO
+
+
+## 0. Portada de control
+
+
+**Nombre oficial del documento:** SOP — Documento Fundacional Maestro
+
+
+**Versión:** 1.2 compilada — con 6 cambios de auditoría + pulido fino editorial
+
+
+**Estado:** Canónico consolidado
+
+
+**Fecha:** 2026-04-04
+
+
+**Alcance:** Gobernanza integral del ecosistema operativo, documental, decisional y técnico que sostiene la operación de El Monstruo y de sus dominios derivados.
+
+
+**Propósito del documento:** Definir la constitución operativa del sistema: sus principios permanentes, su taxonomía normativa, su motor de decisión, sus reglas de operación, sus límites, su relación con memoria, herramientas, validación y dominios, y su traducción futura a Policy-as-Code.
+
+
+## 1. Resumen ejecutivo
+
+
+SOP es el sistema de gobierno del ecosistema. No es una lista de trucos, ni una metodología informal, ni un conjunto de prompts. Es la capa que convierte intención en operación consistente.
+
+
+Existe porque el sistema enfrenta fallas estructurales recurrentes: pérdida de contexto, improvisación, decisiones contradictorias, exceso de dependencia del operador humano, fragmentación entre herramientas, y tendencia a automatizar sin suficiente control. Sin SOP, cada sesión reinventa criterios, cada herramienta impone su lógica y cada avance queda expuesto a amnesia, deriva o caos operativo.
+
+
+SOP resuelve ese problema imponiendo una disciplina transversal. Define qué principios son permanentes; qué reglas gobiernan la operación diaria; cuándo escalar, pausar, validar o detener; cómo se conserva memoria útil; cómo se gobierna el uso de cerebros, brazos, sabios, conectores y automatizaciones; y cómo se transforma la doctrina en reglas ejecutables.
+
+
+En la jerarquía del sistema total, SOP no es la visión del ecosistema ni la implementación física del mismo. Es su constitución operativa. EPIA define el marco superior de integración y destino. El Monstruo materializa una implementación concreta. SOP gobierna cómo ambos pueden operar sin degradarse.
+
+
+Su función esencial es impedir que el sistema gane potencia a costa de perder control.
+
+
+## Respaldo
+
+
+Snapshot de respaldo creado desde ChatGPT en Google Drive. Versión actual almacenada como referencia canónica de trabajo.
