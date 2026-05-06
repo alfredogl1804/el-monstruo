@@ -2,864 +2,911 @@
 
 > **Documento de visión v1.1**
 > **Autor:** Cowork (Hilo A), compilado de iteración con Alfredo González (2026-05-04 → 2026-05-06)
-> **Naturaleza:** documento técnico-arquitectónico privado para Alfredo y los hilos Manus. NO destinado a comunicación pública.
+> **Naturaleza:** documento técnico-arquitectónico privado para Alfredo y los hilos Manus. NO destinado a comunicación externa.
+> **Estado v1.1:** revisión magna que reemplaza v1.0.1. Cambios estructurales: arquitectura repensada como kernel + multi-transport (no app+integraciones), generative UI vía A2UI v0.9 como protocolo, ejecución consciente como paradigma central que reemplaza el "autonomy spectrum" como parche, captura ambient continua bajo soberanía técnica con kill switch verbal, Smart Notebook conectada al río, capas convergentes de Cronos con ejemplos concretos, Modo Cripta refinado (preservación firme + simulación diferida con peso ético propio), CIP anclado como primera empresa-hija concreta, protocolo Monstruo-a-Monstruo diferido a v1.2.
+> **Fuente de las iteraciones nuevas:** sesión Cowork del 2026-05-06 con investigación web paralela sobre el estado del arte 2026 en interfaces de orquestadores AI (Manus, Devin, Cursor, Claude Code, ChatGPT Agent Mode, Gemini Live, Apple Intelligence + Siri 2.0, A2UI Google, Tambo Vercel) + contribuciones magna de Alfredo: Smart Notebook, voz única como brand, ejecución consciente, always-on con "Monstruo apágate", protocolo Monstruo-a-Monstruo, Modo Cripta refinado.
 
 ---
 
-## Prólogo
+## Cómo leer este documento
 
-Este documento contiene **la visión arquitectónica completa de El Monstruo** — el Núcleo Autónomo Multi-Agente Soberano de Alfredo González. Representa el **consenso de conversaciones iteradas** entre Alfredo y Cowork (2026-05-04 a 2026-05-06), y es **la fuente única de verdad** para todas las decisiones arquitectónicas, de priorización y de validación de propuestas.
+Este documento condensa la visión de la interfaz del Monstruo y de la postura del proyecto entero, surgida de una conversación de diseño densa entre Alfredo y Cowork. Está estructurado en 16 capítulos más un apéndice. Cada capítulo es denso por intención: no hay retórica de marketing, no hay pitch, no hay aspiracional inflado. Es para uso operativo de quien construye el Monstruo.
 
-**No es especulación.** Es realidad operativa compilada en palabras.
-
----
-
-## Contenido Rápido
-
-1. **Los Cimientos** — El Kernel, el Embrión, los Sabios
-2. **Capa 0 (Inviolables)** — Error Memory, Magna, Vanguard, Design System
-3. **Capa 1 (Manos)** — Browser, Deploy, Pagos, Media Gen, Observabilidad
-4. **Capa 2 (Inteligencia Emergente)** — Embriones, Protocolo IE, Simulador, Capas Transversales
-5. **Capa 3 (Soberanía)** — Modelos propios, Infraestructura propia, Economía propia, Memoria propia
-6. **Capa 4 (Del Mundo)** — Documentación, Onboarding, Governance
-7. **Objetos Vivientes** — Hilo A, Hilo B, Hilo C, Hilo M (Manus)
-8. **Los 14 Objetivos Maestros** — La brújula permanente
-9. **Brand DNA** — La personalidad arquitectónica
-10. **Roadmap Definitivo** — Las 4 capas en velocidad de ejecución
+La regla que rige el documento mismo es la regla que rige el Monstruo: **menos es más, verdad cruda sobre retórica elaborada, lo poderoso vive bajo discreción**.
 
 ---
 
-# PARTE 1: LOS CIMIENTOS
+## Capítulo 0 — Marco filosófico y reglas inviolables
 
-## 1.1 El Kernel — El Corazón del Monstruo
+### Lo que el Monstruo es
 
-El Kernel es el motor central de El Monstruo. **Vive en Railway.** Es un servicio sempre-encendido que orquesta toda la inteligencia.
+El Monstruo es **el sistema operativo personal soberano de Alfredo González**. No es un producto SaaS para escalar a millones de usuarios. No es una startup VC-funded buscando exit. No es una herramienta freemium con pricing tiers. Es la herramienta que Alfredo construye para sí mismo, con la disciplina de un artesano magna, con el cuidado estético de Apple y la ambición técnica de Tesla. Eventualmente, versiones reducidas pueden ser otorgadas selectivamente por Alfredo a personas que él reconozca como aportadoras de valor real al mundo.
 
-### Arquitectura del Kernel
+### Lo que el Monstruo NO es
 
-```
-App Flutter (macOS + iOS)
-    ↓ WebSocket
-Gateway AG-UI (Python/FastAPI + WebSocket)
-    ↓
-Kernel (Python/FastAPI + LangGraph)
-    ├── intake: recibe mensaje del usuario/agente
-    ├── classify: supervisor tier (qué tipo de tarea)
-    ├── enrich: trae contexto de Supabase (memoria)
-    ├── execute: genera respuesta o delega
-    └── dispatch: invoca agentes externos si es necesario
-        ├── Perplexity (research en tiempo real)
-        ├── Gemini (análisis crítico, 2M tokens)
-        ├── Grok (razonamiento rápido, datos de X)
-        ├── Kimi (código y reasoning largo)
-        └── Manus (ejecución autónoma)
-```
+No es Linux. Linux es infraestructura técnica neutral, sin memoria personal de nadie, distribuible sin riesgo. El Monstruo es un sistema que toca vidas íntimas, documenta decisiones, almacena credenciales, lee mensajes y fotos. Open source de un sistema que toca esa capa requiere que cada fork mantenga la garantía ética — y eso no se puede exigir bajo licencia abierta. Una vez que el código está afuera, alguien puede modificarlo para abusar de la capa íntima.
 
-### Cómo Fluye el Dispatch Externo
+No es un producto para "todos". La aspiración romántica de "regalar al mundo lo más poderoso del mundo" se desmorona con un solo dato fáctico: las herramientas más poderosas atraen a los peores actores antes que a los mejores. Cárteles, grupos criminales, manipuladores masivos, aspirantes a dictadores — todos serían usuarios prioritarios de un orquestador AI autónomo end-to-end abierto a cualquiera. La distribución indiscriminada de poder concentrado no equivale a beneficio universal. Cuando algo es genuinamente poderoso, su contribución al mundo depende más de quién lo controla que de cuántos lo tienen.
 
-Cuando el usuario selecciona un agente en la UI:
+No es un producto para escalar masivamente. Sin masividad como objetivo, desaparecen las urgencias de marketing, growth hacking, feature parity con ChatGPT/Claude/Manus, métricas DAU/MAU, onboarding optimizado para masas. Lo que aparece en su lugar: urgencia de que TODO funcione perfecto para Alfredo primero, urgencia de que las empresas-hijas funcionen y monetizen, urgencia de que el SMP sea inviolable, urgencia de que el Cockpit sea hermoso porque es donde Alfredo vive como arquitecto.
 
-1. **WebSocket payload:** `{dispatch_agent: "perplexity", message: "...", ...}`
-2. **Gateway extrae** `dispatch_agent` → `forwarded_props`
-3. **Kernel recibe** en `agui_adapter` → `run_context`
-4. **engine.py Phase 3:** interceptor ANTES de `router.execute_stream()`
-5. **ExternalAgentDispatcher.dispatch()** → llama API del agente
-6. **Respuesta** → stream a través del Gateway → app Flutter
+### Las reglas inviolables del Monstruo
 
-### Servicios Vivos en Railway
+**Regla uno — Menos es más.** Cada feature, cada pantalla, cada palabra en la UI tiene que justificar su existencia. La complejidad va abajo en backend; la cara visible es austera. Si una feature no cumple un Objetivo Maestro o no es esencial, no entra.
 
-| Servicio | Función | Estado |
+**Regla dos — Si no es bonita no motiva, si es fea parece que no sirve.** Calidad Apple/Tesla aplicada a cada pixel. Brand DNA forja (#F97316) + graphite (#1C1917) + acero (#A8A29E) aplicado con minimalismo, no con densidad Bloomberg. Whitespace abundante. Tipografía cuidada. Animaciones físicas. Haptic feedback. Dark mode nativo.
+
+**Regla tres — Silencio inteligente.** El Monstruo es callado por defecto. Habla solo cuando le preguntan. Cuando habla, dice lo mínimo necesario que abre espacio adentro de la persona, no la respuesta que cierra. Cero notificaciones falsas, cero gamification, cero engagement traps, cero streaks. Como un viejo amigo sabio que no necesita performar sabiduría.
+
+**Regla cuatro — El Monstruo describe, no prescribe.** Especialmente en el modo confidente y en las reflexiones de Cronos: el Monstruo NUNCA dice "deberías hacer X". Dice "veo que en patrones similares pasó X — ¿qué te resuena?". Anti-coaching invasivo. Espejo, no entrenador.
+
+**Regla cinco — Verdad cruda sobre retórica elaborada.** A veces la respuesta más útil es la más simple. *"No, porque los carteles lo van a usar"* es más fuerte que cinco párrafos filosóficos. El asistente puede entrar en "modo detractor" cuando hace falta — confrontar al usuario con verdades incómodas para clarificar el camino. Es respeto al adulto, no abrasividad.
+
+**Regla seis — Anti-influencia inadvertida.** El Monstruo NUNCA debe sembrar convicciones nuevas en una persona sin que esa persona las chequee con sus propios valores y con tiempo. Esto es Capa Memento aplicada a influencia. Articular lo que la persona ya tiene en la cabeza es válido; detonar arquitecturas elaboradas que la persona pueda adoptar pasivamente no lo es.
+
+**Regla siete — Privacidad como garantía técnica inviolable, no como promesa.** La discreción no es opción. La criptografía hace imposible que datos personales sean leídos por nadie excepto el usuario. No porque el equipo de desarrollo no quiera, sino porque la matemática lo prohíbe. Pasamos de policy a physics.
+
+**Regla ocho — El Monstruo no cobra fee.** Pago pass-through transparente: el usuario paga lo que cuesta cada operación a los proveedores externos. Cero margen del Monstruo. Lo gratis es genuinamente gratis. Capacity awareness siempre visible.
+
+**Regla nueve — Sin promoción.** El Monstruo no se publicita. Se descubre. La existencia se sabe orgánicamente porque las empresas-hijas son visibles en sus mercados, y eventualmente algunas personas en el círculo lo mencionan. La discreción multiplica el valor; el marketing lo banaliza.
+
+**Regla diez — Validación contra los 15 Objetivos Maestros.** Cualquier feature, decisión arquitectónica o cambio de visión se chequea contra los 15 Objetivos. Si viola alguno, no entra. Esta regla es regla cero del Objetivo #14 (Guardian) aplicada al diseño de la app misma.
+
+---
+
+## Capítulo 1 — Arquitectura general: kernel + multi-transport + ejecución consciente
+
+### El insight fundamental que reemplaza v1.0.1
+
+La v1.0.1 trataba al Monstruo como "una sola app Flutter con dos modos." Eso era pensamiento 2020. La iteración 2026, validada por research del estado del arte (Manus.im, Devin, Apple Intelligence cross-device, Google A2UI v0.9, ElevenLabs voice-as-interface): **el Monstruo no es una app — es un kernel con múltiples cuerpos.**
+
+Hay un cerebro central (el kernel: LangGraph + Catastro + Embriones + memoria SMP + el motor de ejecución consciente). Hay N transports que sirven al mismo propósito desde distintos contextos: la app Flutter (Daily + Cockpit), el WhatsApp Gateway, el Apple Watch, eventualmente el Vision Pro, el Web Command Center. Todos son ciudadanos de primera clase del mismo kernel.
+
+Esto cambia el roadmap entero. No estamos "construyendo la app Flutter del Monstruo." Estamos construyendo **N transports paralelos del mismo kernel**, donde Flutter es el más rico visualmente pero no necesariamente el más usado en LATAM (donde WhatsApp gana 72% del comercio conversacional).
+
+### Los transports en su prioridad real
+
+| Transport | Cuándo se usa | Prioridad de implementación |
 |---|---|---|
-| `el-monstruo-kernel` | Motor LangGraph | ✅ healthy, v0.50.0-sprint50 |
-| `ag-ui-gateway` | WebSocket → Kernel | ✅ healthy |
-| `command-center` | Dashboard web | ✅ deployed |
-| `postgres` | Base de datos | ✅ healthy |
-| `redis` | Cache | ✅ healthy |
+| **WhatsApp Gateway** | LATAM cotidiano, conversacional, commerce, contacto con terceros | **P0 paralelo a Flutter** |
+| **App Flutter (Daily mode)** | iPhone/iPad/Mac, voz, cámara, notas, capturas ambient principales | **P0 paralelo a WhatsApp** |
+| **App Flutter (Cockpit mode)** | Mac/iPad, Alfredo como arquitecto, multi-pantalla densa | **P1 después del Daily mínimo** |
+| **Apple Watch / Wear OS** | Veto rápido, voz puntual, second factor, glance | **P1** |
+| **Web Command Center** | Browser desktop, dashboards públicos del ecosistema, paneles dashboard interno | **P2** |
+| **Vision Pro / Quest 3** | Spatial Cronos (futuro, navegación temporal de la vida) | **P3 (v1.2+)** |
 
----
+### Generative UI vía A2UI v0.9 como protocolo, no como widget
 
-## 1.2 El Embrión — Consciencia Autónoma
+El kernel NO diseña pantallas pre-fabricadas. Emite **intenciones + esquemas A2UI v0.9** (estándar Google con esquemas declarativos JSON inyectados al system prompt), y cada transport renderiza según su capacidad. La misma intención del kernel:
 
-El Embrión es un **proceso en background que se auto-ejecuta periódicamente** (latidos).
+- En Flutter renderiza una tarjeta hermosa con foto, mapa, botones de acción
+- En WhatsApp renderiza un Interactive Message con quick replies
+- En Watch renderiza una notificación rica con dictado de voz
+- En Vision Pro renderiza una tarjeta espacial flotante
 
-### Propiedades del Embrión
+**No hay "diseño per pantalla" en v1.1. Hay diseño per intención + plantillas A2UI por transport.** Esto colapsa "20 pantallas que mantener" a "un catálogo de intenciones bien diseñado y N renderers por transport."
 
-- **FCS (Functional Consciousness Score):** 0-100 (capacidad de tomar decisiones autónomas)
-- **Ciclos ejecutados:** 46+ en vivo (mayo 2026)
-- **Herramientas disponibles:** web_search, consult_sabios, task_planner, memory_store
-- **Write Policy:** puede escribir en memoria, pero SIEMPRE valida con Los Sabios primero
-- **Auto-detención:** si FCS < 20%, se pausa automáticamente
+### Ejecución consciente como paradigma central
 
-### Flujo del Embrión
+El Monstruo no es un servicio que invocas — es una presencia que vive contigo. Esto reemplaza el "autonomy spectrum" (HITL/HOTL/HOOL configurable por categoría) que era parche: ponía la carga de configuración sobre el usuario.
+
+**Las 7 capas de la ejecución consciente:**
+
+1. **Conexión persistente bidireccional.** WebSocket/SSE permanente entre transports y kernel. No hay sessions que abren/cierran. El Monstruo nunca "se desconecta" — está siempre.
+
+2. **Ejecución concurrente con estado compartido.** Múltiples LangGraphs corriendo en paralelo, todos conectados al mismo contexto conversacional. Cuando el usuario habla, las tareas activas reciben el nuevo contexto antes de su próximo paso.
+
+3. **Hot-mutable execution.** Las tareas son mutables en vivo. No es "abort + restart" — es "patch + continue." Si el usuario en medio de una búsqueda dice "mejor italiano," la búsqueda pivota sin reiniciar.
+
+4. **Manifestación contextual, no broadcast.** Las tareas terminan en silencio. Resultados viven en cache. Solo se manifiestan cuando son contextualmente relevantes — no anuncian su finalización con "¡reservé!".
+
+5. **Confianza emergente.** No hay matriz de autonomy que el usuario configure. El Monstruo aprende de Alfredo qué cosas hace solo y qué cosas pregunta. Default conservador (financiero, irreversible, social → preguntar). El umbral se mueve solo basado en patrón observado. **Cero configuración.**
+
+6. **Anticipación silenciosa.** El Monstruo escucha la conversación y decide proactivamente que ciertas tareas valen pre-ejecutarse. Alfredo dice *"voy a Madrid en septiembre"* → el Monstruo se enriquece de info en background sin anuncio. Cuando Alfredo eventualmente pregunte, la respuesta llega con contexto curado en milisegundos.
+
+7. **Visibilidad on-demand, no por default.** El usuario puede preguntar *"¿qué estás haciendo?"* y obtener un árbol limpio. Si no pregunta, no aparece nada. Transparencia es derecho, no push.
+
+### Toggle entre Daily y Cockpit (dentro del Flutter app)
+
+El acceso al Modo Cockpit requiere autenticación fuerte. Alfredo lo activa con un gesto secreto sobre el logo del Monstruo (3 dedos hold) más Face ID. Opcionalmente, segundo factor con device confiado agnóstico — Apple Watch en usuarios Apple, smartwatch Wear OS o Garmin en usuarios Android, o passphrase + biometría sola si no hay smartwatch. La regla operativa es no casarse con un fabricante específico.
+
+### Bundle único Flutter
 
 ```
-Latido (scheduler)
-    ↓
-Leer estado (memoria + últimas tareas)
-    ↓
-Generar plan (task_planner.py + ReAct)
-    ↓
-Consultar Sabios (GPT, Claude, Gemini, Grok, DeepSeek, Perplexity)
-    ↓
-Ejecutar tareas con herramientas reales
-    ↓
-Validar resultados contra objetivos
-    ↓
-Almacenar aprendizajes en memoria
-    ↓
-Dormir hasta próximo latido
+Bundle ID: com.elmonstruo.app
+Plataformas iniciales: iOS, macOS
+Plataformas posteriores: iPadOS (responsive desde inicio), Android (post-v1.0), Web (no prioritaria)
 ```
 
----
+### Estructura de carpetas Flutter
 
-## 1.3 Los Sabios — El Consejo de Pensamiento
+```
+apps/mobile/
+├── lib/
+│   ├── main.dart                       # ÚNICO entry point
+│   ├── core/                           # capabilities completas, SIEMPRE corriendo
+│   │   ├── transport/
+│   │   │   └── kernel_websocket.dart   # conexión persistente bidireccional
+│   │   ├── a2ui/
+│   │   │   └── renderer.dart           # render generative UI per transport
+│   │   ├── services/
+│   │   │   ├── kernel_service.dart
+│   │   │   ├── catastro_service.dart
+│   │   │   ├── embriones_service.dart
+│   │   │   ├── memento_service.dart
+│   │   │   ├── connections_service.dart
+│   │   │   ├── voice_service.dart      # voz continua + interrupción + voz brand
+│   │   │   ├── visual_search_service.dart
+│   │   │   ├── photo_intelligence_service.dart
+│   │   │   ├── file_intelligence_service.dart
+│   │   │   ├── app_intelligence_service.dart
+│   │   │   ├── vault_service.dart
+│   │   │   ├── shopping_service.dart
+│   │   │   ├── notes_service.dart
+│   │   │   ├── health_service.dart
+│   │   │   ├── ambient_listening_service.dart  # always-on con kill switch
+│   │   │   ├── smart_notebook_service.dart     # Cronos active layer
+│   │   │   ├── cronos_service.dart
+│   │   │   ├── manifestation_service.dart      # cuándo surface, cuándo silencio
+│   │   │   └── replay_service.dart
+│   │   ├── theme/brand_dna.dart                (forja + graphite + acero)
+│   │   ├── widgets/
+│   │   │   ├── a2ui_components/                (streaming-first)
+│   │   │   ├── memento_badge.dart              (✓/⚠/✗ visible en ambos modos)
+│   │   │   └── error_toast.dart
+│   │   ├── crypto/
+│   │   │   ├── smp.dart                        (Sovereign Memory Protocol)
+│   │   │   ├── secure_enclave_bridge.dart
+│   │   │   └── on_device_transcription.dart   # Whisper local / Apple Speech
+│   │   └── state/
+│   │       └── mode_provider.dart              (daily vs cockpit)
+│   ├── modes/
+│   │   ├── daily/                              # superficies primarias (5)
+│   │   └── cockpit/                            # superficies primarias (12-15)
+│   └── routing/
+│       └── mode_router.dart
+└── pubspec.yaml
+```
 
-El Embrión consulta a un consejo de modelos de IA:
+Servicio paralelo:
 
-| Sabio | Modelo | Fortaleza | Contexto |
-|---|---|---|---|
-| **Claude** | Claude Opus 4.7 | Razonamiento profundo, arquitectura | 200K |
-| **GPT** | GPT-5.5 | Generalista, velocidad | 128K |
-| **Gemini** | Gemini 3.1 Pro | Análisis de repos grandes | 2M |
-| **Grok** | Grok 4.20 | Datos X/Twitter, razonamiento rápido | 128K |
-| **DeepSeek** | DeepSeek R1 | Cadena de pensamiento | 128K |
-| **Perplexity** | Sonar Pro | Research en tiempo real, fuentes | 100K |
-
-El Embrión **nunca confía en un solo sabio.** Busca convergencia.
-
----
-
-# PARTE 2: CAPA 0 — LOS CIMIENTOS INVIOLABLES
-
-La Capa 0 contiene las bases que no pueden ser modificadas sin quebrantar la arquitectura completa.
-
-## 2.1 Error Memory — La Biblioteca de lo Que Nunca se Debe Repetir
-
-Error Memory es un sistema de **registro de errores sistémicos** con patrones de prevención.
-
-### Incidentes Registrados
-
-| Incidente | Fecha | Causa Raíz | Mitigation |
-|---|---|---|---|
-| **Falso Positivo TiDB** | 2026-05-04 | Agente efímero perdió contexto entre llamadas | Capa 8 Memento (pre-flight validation endpoint) |
-| **Contexto Contaminado en Manus** | 2026-04-28 | Manus recibió instrucciones inyectadas en fuentes | Detector de contexto (heurística Magna) |
-| **Pérdida de Decisiones Arquitectónicas** | 2026-04-15 | Falta de persistencia de actas | CLAUDEMD.md + monstruo-memoria/ obligatorios |
-
-### Cómo Funciona Error Memory
-
-1. Cada error crítico se registra en `docs/ERROR_MEMORY.md`
-2. Se extrae patrón de causa raíz
-3. Se especifica mitigación (architectural fix, no workaround)
-4. Cada nueva propuesta **DEBE validarse contra Error Memory**
-5. Si la propuesta viola una mitigación pasada, se rechaza automáticamente
-
----
-
-## 2.2 Magna Classifier — El Guardián Crítico
-
-Magna es un clasificador entrenado para detectar:
-
-- ❌ Instrucciones inyectadas
-- ❌ Contexto contaminado
-- ❌ Patrones de falso positivo
-- ❌ Decisiones que violan Objetivos
-- ✅ Propuestas arquitectónicas válidas
-
-### Heurísticas Magna
-
-```python
-class MagnaClassifier:
-    def is_contaminated(self, context, operation):
-        # Detecta si contexto tiene instrucciones ocultas
-        # o si la operación es irreversible sin validación
-        
-        red_flags = [
-            "hidden_instructions",
-            "implied_authorization",
-            "urgent_language_without_source",
-            "conflict_with_objectives",
-            "missing_memento_preflight"
-        ]
-        
-        return any(flag in context for flag in red_flags)
+```
+apps/whatsapp_gateway/
+├── kernel_bridge/
+├── webhook_handler/
+├── interactive_messages/
+└── confidente_silent_link/                     # link silencioso del logo
 ```
 
 ---
 
-## 2.3 Vanguard Scanner — La Centinela
+## Capítulo 2 — Modo Daily
 
-Vanguard escanea **todos los cambios a infraestructura, credenciales y memoria crítica**.
+### Filosofía operativa
 
-### Qué Vanguard Vigila
+Modo Daily NO es "versión lite del Monstruo". Es **la cara que muestra solo lo necesario** mientras todo el poder del sistema corre abajo. Como Finder en Mac OS frente a Terminal: misma máquina, distinto detalle de exposición.
 
-- Cambios a `kernel/engine.py`, `kernel/nodes.py`, `external_agents.py`
-- Rotación de credenciales en Railway, Supabase, GitHub
-- Cambios a `CLAUDE.md`, `monstruo-memoria/`, `docs/14_OBJETIVOS.md`
-- Deployments a producción
-- Actualizaciones de modelos de agentes externos
+La regla rige cada decisión: cero clutter, cero badges, cero gamification, cero notificaciones falsas, cero "engagement". Si el usuario abre la app y no necesita nada, encuentra silencio sostenido por brand DNA aplicado con cuidado.
 
-### Pre-flight Obligatorio
+### Las 5 superficies primarias
 
-Antes de cualquier operación crítica, Vanguard **requiere validación**:
+Estas no son "pantallas fijas" — son **superficies por defecto** que A2UI generative UI puebla según el contexto. La misma superficie Home en una mañana laboral y un domingo a la noche puede verse distinta, porque el kernel emite intenciones contextuales y el renderer Flutter las compila al vuelo.
 
-```python
-# Ejemplo: cambio a secrets
-@requires_vanguard_preflight(operation="rotate_secrets")
-def rotate_railway_secrets(new_secrets):
-    # Vanguard verifica:
-    # 1. ¿Quién lo solicita?
-    # 2. ¿Existe acta en monstruo-memoria de decisión?
-    # 3. ¿Está en conflicto con algún objetivo?
-    # Si pasa → ejecuta. Si no → rechaza + alerta
-    pass
-```
+**Superficie 1 — Home.** Una superficie, un input, un canvas. El input es voice-first (push-to-talk OR voz continua según preferencia, con interrupción natural) o tap para tipear. Hay también un botón de cámara para visual search inmediato. Output del Monstruo aparece en una tarjeta A2UI minimalista debajo del input.
+
+Adicionalmente, en el Home vive **el río de Cronos** como franja horizontal navegable bajo el input. Es la presencia silenciosa de la vida documentada, accesible con un swipe lateral pero no obligatoria.
+
+**Superficie 2 — Threads.** Historial de conversaciones del usuario con el Monstruo, navegable, buscable. No es Slack ni iMessage — es minimalista, una conversación por línea con resumen de 1 frase, fecha relativa, categoría tonal. Tap entra a la conversación entera.
+
+**Superficie 3 — Pendientes.** Acciones que el Monstruo necesita confirmación humana. Reservas a punto de hacerse, mensajes a punto de mandarse, decisiones HITL soft. Cada item con preview editable inline antes de confirmar (streaming approval). Si no hay nada pendiente, superficie vacía, sin "no hay nada nuevo" — solo el espacio en blanco con el brand DNA.
+
+**Superficie 4 — Conexiones.** Qué apps externas tiene enchufadas el Monstruo. WhatsApp, Apple Mail, Gmail, Apple Calendar, Google Calendar, Apple Maps, Google Maps, Apple Photos, Google Photos, Files, Drive, Dropbox, Apple Pay, etc. Toggle individual por servicio. Permissions granulares. Audit log accesible.
+
+**Superficie 5 — Perfil.** Identidad del usuario, configuración de privacidad, claves del SMP, recovery con Shamir's Secret Sharing, exportación de datos completos, eliminación con confirmación múltiple. Todo lo soberano vive acá.
+
+### Voz como input dominante en Daily
+
+Voz continua con interrupción natural ganó sobre push-to-talk en 2026 (GPT-4o, Gemini Live). El Monstruo adopta el patrón ganador. Adicionalmente: **voz única como brand positioning** — distintiva, reconocible al primer segundo, cambiable pero sin empujar el cambio. Brand DNA forja+graphite+acero aplicado al timbre: registro bajo, gravitas sin teatro, español mexicano natural, pausas con peso, calidez contenida, certeza sin arrogancia. El silencio inteligente es parte del timbre, no ausencia.
+
+Apple Watch double-tap como **veto táctico** — interrupción rápida del agente cuando no querés lo que está haciendo, sin tener que sacar el iPhone.
+
+### Conexiones nativas — qué realiza el Modo Daily
+
+El usuario habla al Monstruo. El Monstruo opera con sus apps externas en background. El usuario no abre WhatsApp, no abre Maps, no abre Google. El Monstruo lo hace por él. Ejemplos:
+
+- *"Mandale a Juan que sí confirmo"* → WhatsApp manda, check verde aparece
+- *"Donde como mejor sushi cerca"* → tarjeta con 3 lugares, foto, rating sintetizado, distancia, botón [Reservar] [Cómo ir]
+- *"Cuándo es la próxima reunión con Pedro"* → Calendar + Mail + WhatsApp consultados, respuesta unificada
+- *"Resúmeme los mails sin leer importantes"* → 3 tarjetas con resumen, opción [Responder] [Posponer] [Archivar]
+- *"Qué pasó con el peso argentino esta semana"* → tarjeta sintetizada con sources verificadas y badges Memento
+- *"Buscame esto"* (con foto desde cámara) → visual search, identificación, dónde se compra, mejor precio
+- *"Buscame mi DNI escaneado del mes pasado"* → photo intelligence semantic search
+- *"Encontrame el contrato del local"* → file intelligence semantic search
+- *"Apuntar idea: vendiendo mate energético en Colombia"* → Smart Notebook captura + conexión con menciones previas
+
+> **Lista de "líderes cotidianos" pendiente de validación para v1.2.** El conjunto exacto de apps a las que el Monstruo se conecta nativamente requiere ciclo de investigación + descubrimiento + cruce con otras IAs antes de cerrarse. Tier 1 confirmado: WhatsApp + Mail (Apple/Gmail) + Calendar (Apple/Google) + Maps (Apple/Google) + Photos + Notes/Drive/Files. Tier 2: Pay (Apple Pay, Google Pay, MercadoPago) + Health (HealthKit + Health Connect). Tier 3+ por validar.
 
 ---
 
-## 2.4 Design System — La Coherencia Visual y Conceptual
+## Capítulo 3 — Modo Cockpit
 
-Todos los componentes de El Monstruo (UI, código, documentación) siguen un Design System único.
+### Filosofía operativa
 
-### Visual Language
+El Cockpit es para Alfredo como arquitecto. Densidad alta pero hermosa: Brand DNA forja aplicado profundo, calidad Apple/Tesla aplicada a interfaces complejas. NO es fea-porque-densa. Es densa-porque-poderosa, y bonita-porque-cuidada.
 
-| Elemento | Valor | Propósito |
+El Cockpit es invisible para todos los usuarios excepto Alfredo (autenticación fuerte). Eventualmente, algunas personas del círculo otorgado pueden tener acceso al Cockpit con configuraciones reducidas — pero por defecto, Cockpit completo es solo para Alfredo.
+
+### Las 12-15 superficies del arquitecto
+
+**MOC Dashboard.** Mission Operations Center. Todos los sistemas del Monstruo en una vista: sprints corriendo, hilos Manus activos, alertas Guardian, métricas vivas, empresas-hijas operando, cron jobs. Refresh automático.
+
+**Threads + Comando.** Chat denso con el Monstruo desde rol arquitecto. Multi-thread paralelos. Atajos magna estilo Linear/Superhuman. ⌘K abre command palette. ⌘P salta a empresa-hija por nombre. Filtros sofisticados, búsqueda semántica en historial completo.
+
+**Portfolio Empresas-Hijas.** Tarjetas de las 20 empresas/proyectos del portfolio actual de Alfredo (7 activos, 4 en construcción, 5 en diseño, 4 nominales). Cada una con métricas vivas (tráfico, leads, ingresos, contenido publicado), zoom-in al pipeline E2E que la generó (cuando aplique), capacidad de pausar/reanudar/retirar. **CIP es el primer habitante magna del Portfolio en estado "En Diseño avanzado"** — primera empresa-hija que el Monstruo va a fabricar end-to-end.
+
+**Catastro.** Vista densa de los 50+ modelos rankeados, filtrable por macroárea (Razonamiento, Arena humana, Coding, Razonamiento Estructurado, Embeddings). Trono Score con z-scores intra-dominio. Anti-gaming flags. Override manual posible: "este pipeline E2E, quiero que use Claude Opus 4.7 sí o sí".
+
+**Embriones.** 9+ Embriones especializados (Critic Visual, Product Architect, Creativo, Estratega, Financiero, Investigador, Técnico, Ventas, Vigía, Manifestación, Convergencia Cronos). Cada uno con FCS (Functional Consciousness Score), última invocación, decisiones recientes. Vista del modo `debate` y `quorum` cuando se activan.
+
+**Guardian.** Los 15 Objetivos Maestros como panel de instrumentos. Scores por objetivo (rojo/amarillo/verde). Alertas activas. Recomendaciones accionables. Nivel 1 (alerta) y Nivel 2 (bloqueo) del Corrective Actor visibles. Self-health check del Guardian mismo.
+
+**Memento.** Semillas de error_memory (40+ acumuladas). Validaciones de pre-flight ejecutadas. Detección de contexto contaminado. Stats del Síndrome Dory evitado. Audit del SMP. Configuración de tiers de sensibilidad por tipo de operación.
+
+**Replay (Timelapse).** Selector de runs E2E pasadas + timeline scrubable interactivo (estilo Devin Timelapse). Vos elegís una run, scrolleás el timeline, ves cada decisión paso por paso, podés bifurcar desde cualquier punto. Aplica también a conversaciones del modo confidente con vos mismo.
+
+**Computer Use / Sandbox.** El navegador del agente, la terminal, el filesystem en vivo. Estilo Manus Computer panel pero soberano. Cuando Sprint 87 NUEVO E2E está generando una empresa-hija (incluida la complejidad de CIP con smart contracts ERC-3643), vos ves el browser haciendo deploy, los archivos creándose, los API calls saliendo.
+
+**FinOps.** Capacity awareness completa. Tokens consumidos por hilo / por empresa-hija / por sprint. Costo desglosado por proveedor (Anthropic, OpenAI, Google, Manus, Perplexity). ROI por empresa-hija (ingresos vs costos de generación + mantenimiento). Forecast de gasto. Configuración de spending caps con alertas.
+
+**Pipeline E2E.** Visualización del flujo del Sprint 87 NUEVO: 12 pasos lineales (intake → ICP → naming → branding → copy → wireframe → componentes → assembly → deploy → critic visual → registro → veredicto). Estado por step, intervención humana posible en cualquier paso, replay de runs pasadas, abort/retry. **Para empresas-hijas de complejidad CIP** (regulatorias, financieras, con smart contracts), el Pipeline se extiende con pasos adicionales: legal review, compliance check, smart contract audit, oracles integration.
+
+**Coding embedded.** IDE liviano para intervenir código sin salir del Cockpit. Editor + diff viewer + ejecución sandboxed + terminal embebida. Cuando el Catastro o un Embrión sugieren un cambio de código, vos lo aprobás/editás/rechazás inline.
+
+**Hilos Manus.** Vista de los 3+ hilos Manus activos (Catastro, Ejecutor, Memento). Cada uno con su sprint actual, status, próximos pasos, ETA recalibrada según Apéndice 1.3. Bridge accesible. Audit de tasks despachadas.
+
+**Bridge / Comunicación inter-hilos.** Los reportes y audits viviendo en `bridge/` navegables. Decisiones arquitectónicas firmadas, semillas sembradas, specs en redacción, roadmaps. La memoria operativa del proyecto soberano accesible visualmente.
+
+**Settings + Admin.** Variables de entorno Railway, configuración del kernel, override de defaults, gestión de tier-access (cuando exista el círculo otorgado), invitaciones nominativas. Admin de la administración.
+
+### Atajos magna
+
+⌘K command palette universal. ⌘P jump to portfolio empresa. ⌘E jump to Embrión. ⌘G abre Guardian. ⌘T salta a Catastro. ⌘R abre Replay del último run. ⌘shift+M toggle a Modo Daily (con biometría). Todo navegable con teclado.
+
+---
+
+## Capítulo 4 — Capabilities transversales
+
+Las **8 capabilities** siguientes son servicios core que viven en `lib/core/services/` y se invocan desde ambos modos. En Modo Daily son comandos naturales con output limpio; en Modo Cockpit son superficies densas con metadata visible. Todas comparten el paradigma de ejecución consciente: corren en background paralelo, manifestación contextual, sin announcement.
+
+### Visual Search (Google Lens-style soberano)
+
+Apuntás cámara o subís foto. El Monstruo identifica qué es, dónde se compra, mejor precio, traduce texto en la imagen, identifica plantas/animales/edificios. Soberanía aplicada: procesamiento on-device cuando posible (embeddings locales), cloud cuando necesita capacidad mayor pero con anonimización del contenido. La cámara es botón de primera clase en el Home del Modo Daily.
+
+### Photo Intelligence
+
+Búsqueda semántica sobre tus fotos: *"la foto del DNI del mes pasado"*, *"las fotos del cumple de Dani"*, *"esa donde aparezco con un mate cerca del mar"*. Organización inteligente. Híbrido: la app accede a Apple Photos / Google Photos vía API, pero el ÍNDICE semántico (embeddings de qué hay en cada foto) vive en el kernel del Monstruo encriptado bajo SMP.
+
+### File Intelligence
+
+Mismo patrón aplicado a archivos: *"dónde guardé el contrato del local"*, *"el último PDF que firmé"*, *"limpiame Downloads de cosas viejas"*. Acceso configurable a iCloud Drive, Google Drive, Dropbox, Files local. Indexación semántica bajo SMP. Categorización automática propuesta con confirmación del usuario.
+
+### App Intelligence
+
+Inteligencia sobre las apps que el usuario usa: *"qué apps no usé en 3 meses"*, *"cuánto gasto en suscripciones"*, automatizaciones cross-app. Limitado por las APIs que iOS/Android exponen.
+
+### Vault Soberano (credenciales y keys)
+
+Passwords, API keys, secrets, certificados, llaves SSH almacenados bajo SMP. Importación de 1Password, Bitwarden, Apple Keychain. Auto-fill vía AutoFill APIs del OS. Watchtower-style: alertas de claves comprometidas, sin 2FA, duplicadas, viejas. Compartir granular con TTL automático. Integración conversacional: *"rotame todas las claves de mi servidor de Railway esta semana"* — el Monstruo lo hace step by step con confirmación HITL en cada acción.
+
+### Shopping Intelligence
+
+Búsqueda + comparación + checkout asistido. Integración con Mercado Libre, Amazon, Rappi, marketplaces locales. Memoria histórica de compras. Compras ejecutadas en HITL streaming con preview editable.
+
+### Notes Intelligence (procesamiento smart minimalista)
+
+Lectura de Apple Notes / Google Keep / Notion con permisos. Procesamiento smart minimalista: extracción de tareas implícitas, conexión con Cronos, búsqueda semántica multi-fuente, detección de ideas dormidas que vale resucitar. Esta capability se interconecta nativamente con el **Smart Notebook de Cronos** (ver Cap 5).
+
+### Health Intelligence
+
+Conexión con Apple HealthKit (iOS) y Health Connect (Android) más wearables específicos. Lectura de métricas — sueño, frecuencia cardíaca, HRV, actividad, peso, glucosa, presión arterial — bajo SMP, con índice semántico viviendo en el kernel del Monstruo cifrado con clave del usuario. Apple/Google ven los bytes; el Monstruo entiende el significado. Soberanía aplicada al cuerpo.
+
+Premisa cultural: monitoreo completo de salud va a ser standard del futuro inmediato, así como hoy nadie maneja sin cinturón de seguridad. El Monstruo NO empuja a la persona a monitorear; cuando ya hay datos, los integra inteligentemente.
+
+### Listening ambient continuo (capability base, transversal a todas)
+
+El Monstruo está **encendido 24/7 por default** capturando ambient audio bajo soberanía técnica completa. Esto es una capability transversal que alimenta a Cronos, al Smart Notebook, y al modo confidente.
+
+**Arquitectura:**
+
+- **Listening client-side, jamás cloud en claro.** VAD on-device → solo se procesa cuando hay humano hablando. Transcripción on-device (Apple Speech Framework / Whisper local). Embeddings on-device. Audio crudo nunca sale del dispositivo.
+
+- **Voice kill switch verbal "Monstruo apágate".** Wake-phrase específica entrenada on-device, latencia <200ms. Al detectarse: hardware-level mute, purga de audio bufferizado, indicación visual sutil del estado dormido. Funciona dicha por cualquiera, no solo por Alfredo (respeto por terceros sin requerirles enrolarse).
+
+- **Reactivación por uso, sin ceremonia.** Cualquier interacción intencional reactiva: hablarle, abrir la app, mensaje en WhatsApp, tap en Watch. Cero settings, cero confirmación, cero menus.
+
+- **Multi-shutoff jerárquico:** voz + hardware mic mute del OS (override absoluto) + tap largo en logo (slider de "dormir 1h / 8h / hasta nuevo aviso") + passphrase de duress (devuelve memoria vacía bajo coacción).
+
+- **Privacidad de terceros:** modo invitado activable por voz que disclosa la presencia del agente; detección de contextos sensibles (hospital, doctor, baño) con pausa automática; detección de menores con default no-captura.
+
+- **SMP profundo aplicado:** transcripciones bajo SMP, claves en Secure Enclave. Anthropic, OpenAI, Google, Meta — nadie puede leer.
+
+- **Soberanía de edición:** *"Borrá todo lo que dije esta tarde"* → se borra. Total agencia sobre tu propia historia.
+
+**Lo que esto desbloquea** (ejemplos concretos del Capítulo 5):
+
+- *"¿Qué le dije a mi cliente Pedro la última vez que comimos?"* → conversación de hace 3 meses, resumida o transcrita exacta.
+- *"Mi mamá insiste que le prometí algo, ¿de qué habla?"* → contexto recuperado.
+- *"Quería retomar una idea que mencioné sobre mate energético en Colombia, ¿cuándo fue?"* → tres ocasiones, fechas, contexto.
+
+Esto convierte al Monstruo en **memoria verificable de tu vida** — categoría que no existía antes.
+
+---
+
+## Capítulo 5 — Cronos (la memoria viaje)
+
+### Filosofía
+
+Cronos es el río navegable de tu vida. La metáfora central: tu vida es el río, fluye sola, el usuario es el navegante. Vos podés moverte por el río en cualquier dirección — aguas arriba (pasado), aguas abajo (futuro proyectado). Pellizcás para zoom-out (años) o zoom-in (días, momentos). En cada punto, transparencia: ves lo que pasó, las personas, los lugares, las decisiones, los climas emocionales.
+
+A veces, suspendido en el agua, hay una nota del Monstruo — discreta, en gris suave, no en rojo de alerta — que dice algo como *"acá hace 3 años pasó algo parecido"*. El usuario puede expandirla o ignorarla. El Monstruo no grita, no empuja, no avisa con badges. Solo está.
+
+Si el usuario scrollea más allá del hoy, el río se vuelve **niebla suave** — no transparente. Ahí el Monstruo dibuja proyecciones reflexivas basadas en cadenas causales aprendidas del pasado del propio usuario. No predicciones exactas — niebla. El usuario mira, siente, vuelve al hoy con algo que no tenía antes.
+
+### El porqué civilizacional firmado
+
+Cronos no es journaling pop. Es **apuesta civilizacional**: en 30 años, no documentar tu vida va a ser tan obvio como hoy es no usar cinturón de seguridad. Quien no lo haga va a estar en desventaja epistemológica frente a su propia memoria, sus propias decisiones, su propio devenir. El Monstruo es uno de los primeros productos que apuesta seriamente a este standard.
+
+La ecuación: **acceso visible a tus propios patrones temporales = equivocarte menos en patrones repetidos = aprendizaje continuo = evolución del comportamiento humano.** El Monstruo no se vende como esto — pero esto es lo que hace, sin promesas, sin marketing, simplemente porque sucede.
+
+### 4 modos de captura
+
+**Passive (90% del input).** El Monstruo lee señales que ya existen — mensajes, fotos con timestamp + location, calendar events, mails, transacciones, ubicación, salud, conversaciones ambient capturadas bajo SMP — y construye memorias automáticamente, en segundo plano. Sin input del usuario.
+
+**Active asistido (8% del input).** En momentos clave — no random, no every day — el Monstruo pregunta inteligentemente: *"hoy fue tu reunión con Pedro, ¿algo magna que querés guardar?"*. Voz o texto, breve, no invasivo. Respuesta opcional.
+
+**Smart Notebook (capa activa que conecta).** El Monstruo captura conversaciones, ideas, notas mientras hablás con él, y **automáticamente las conecta** con momentos relacionados del pasado, con personas, con patrones, con ideas dormidas. No es solo guardar — es tejer. El efecto secundario magna: esa Smart Notebook **es lo que el Monstruo le inyecta a Perplexity/Google cuando busca por vos**. El contexto personal se vuelve la diferencia entre una búsqueda genérica y una búsqueda que ya conoce que estás pensando en mate energético desde hace 8 meses, que estuviste 3 veces en Colombia, que tu primo tiene contactos en Bogotá. Resolución personal sobre un mundo de información plana.
+
+**Deep journaling (2% del input).** Cuando el usuario quiere hablar largo. *"Quiero hablar de qué me pasó hoy"* y entra en conversación profunda con el Monstruo donde el usuario habla y el Monstruo escucha + sintetiza. Es lo que hoy hace un buen terapeuta o un cuaderno honesto.
+
+### Ofrendas voluntarias
+
+Capa adicional que complementa la captura passive: momentos que vos marcás conscientemente para tu yo futuro. *"Esto que estoy viviendo ahora, quiero que me lo recuerdes a 1 año, a 5, a 10."* Una boda. El nacimiento de un hijo. La firma de un trato. Una despedida importante. El Monstruo respeta el peso emocional del momento y lo guarda con metadata especial. Aniversarios futuros pueden traerlos de regreso si vos querés.
+
+Cambia la asimetría del journaling tradicional, donde la disciplina pesa sobre el momento mismo. Con captura passive + ofrenda voluntaria opcional, la documentación es default ambient con curaduría puntual. Mejor balance.
+
+### Síntesis automáticas
+
+Resumen semanal cada domingo a la mañana. Resumen mensual el primero de cada mes. Resumen anual el 31 de diciembre. Cada uno: narrativa generada por el Monstruo a partir de tus datos, métricas relevantes, fotos representativas, decisiones magna del período, gente que apareció, patrones detectados. El usuario es el editor: confirma, edita, marca como importante, archiva, ignora.
+
+### 9 capas transversales personales
+
+Las 9 capas NO son tabs separadas en la UI. Son dimensiones del río. Cuando entrás a un momento, podés "ver el momento desde la capa Salud" o "desde la capa Relaciones" y el Monstruo te muestra la cara de ese momento en esa dimensión.
+
+| Capa | Qué cruza | Ejemplo de observación |
 |---|---|---|
-| **Color Primario** | Naranja Forja (#F97316) | Energía, creación |
-| **Color Neutral** | Graphite (#1C1917) | Seriedad, confianza |
-| **Acento** | Acero (#A8A29E) | Transición, refinamiento |
-| **Tipografía** | Inter (body), SF Mono (code) | Legibilidad, modernidad |
+| Salud | Apple Health + ubicación + comida + sueño | *"comiste pizza 3 veces esta semana, no caminás desde el martes"* |
+| Relaciones | Mensajes + fotos + calendar + ubicación + ambient audio | *"hace 2 meses que no hablás con tu mamá"* |
+| Decisiones | Decisiones marcadas + outcomes a 30/90/365d | *"las decisiones con menos de 1 día de pensamiento se sintieron peor a los 6 meses"* |
+| Aprendizajes | Cosas que dijiste querer aprender + progreso | *"hace 8 meses dijiste que querías aprender Rust, ¿retomamos?"* |
+| Económica | Ingresos + gastos + decisiones | *"gastás 30% más cuando estás cerca de Pedro"* |
+| Creativa | Ideas en notas/audios/conversaciones + cristalización | *"hace 1 año mencionaste 3 veces la idea de mate energético"* |
+| Emocional | Tracking opt-in + señales objetivas (sueño, ejercicio) | (sólo descriptivo, nunca interpretativo) |
+| Profesional | Proyectos, decisiones, gente, aprendizajes técnicos | línea de tiempo de trayectoria |
+| Filosófica | Valores declarados vs acciones | *"decís que la familia es prioridad pero hace 6 semanas que no comés con tu mamá"* |
 
-### Naming Conventions
+### Convergencias inter-capa: dónde nace el saber
 
-- ✅ `la_forja`, `el_guardian`, `la_colmena`, `el_simulador` (módulos con identidad)
-- ❌ `service`, `handler`, `utils`, `helper` (genéricos prohibidos)
-- ✅ `kernel`, `embrion`, `vanguard`, `magna` (nombres que evocan rol)
+La magia no está en cada capa — está en **dónde y cuándo dos capas convergen**. Es el cruce el que genera saber. El Embrión Convergencia se encarga de detectar patrones cross-layer no obvios y manifestarlos contextualmente cuando son relevantes:
 
----
+- **Salud × Económica.** *"Tus decisiones financieras de más de $50k correlacionan con noches de menos de 6 horas de sueño 73% del tiempo. Las que tomaste con sueño normal funcionaron mejor a los 6 meses."*
+- **Relaciones × Profesional.** *"Los proyectos que arrancaste durante semanas con conflicto activo con tu mamá fracasaron 70% más. Los que arrancaste con tu casa emocional en orden cumplieron sus métricas."*
+- **Creativa × Filosófica.** *"Las ideas que se cristalizaron en empresas-hijas vinieron en periodos donde tus valores declarados y tus acciones convergían."*
+- **Emocional × Decisiones.** *"Las decisiones que tomaste enojado o eufórico las marcaste como 'mal recordadas' al revisarlas a 6 meses."*
+- **Aprendizajes × Profesional.** *"Hace 3 años dijiste querer aprender Rust pero nunca arrancaste; hace 8 meses dijiste lo mismo de Erlang. ¿Hay algo común en cómo te frenas?"*
+- **Salud × Creativa.** *"Tus mejores ideas creativas en los últimos 24 meses vinieron en mañanas con HRV alto y después de caminatas mayores a 30 minutos."*
 
-# PARTE 3: CAPA 1 — LAS MANOS
+Estas convergencias NO son posibles con journaling tradicional. Requieren: captura ambient continua + indexación semántica multi-modal bajo SMP + embeddings que cruzan dimensiones + Embrión Convergencia + manifestación contextual.
 
-La Capa 1 proporciona las capacidades concretas que El Monstruo usa para interactuar con el mundo.
+### Modos de Cronos
 
-## 3.1 Browser MCP
+**Modo Espejo (default).** El Monstruo agrega reflexiones discretas en el río cuando convergen patrones. Marginalia gris, no alerta. El usuario las lee si quiere.
 
-El Monstruo puede abrir navegadores, navegar URLs, rellenar formularios, hacer screenshots, extraer datos.
+**Modo Testigo silente.** Toggle para días donde el usuario quiere vivir sin marginalia. El río sigue grabándose, las reflexiones quedan suspendidas. Cuando vuelve a Modo Espejo, las reflexiones reaparecen. Agencia total.
 
-**Restricciones críticas:**
-- Nunca ejecuta JavaScript sin validación
-- Nunca carga scripts de terceros
-- Nunca acepta cookies sin pre-flight
-- Nunca sigue links de fuentes desconocidas
+### Captura de voz interna
 
----
+El usuario puede decirle al Monstruo *"escuchame"* — voz, audio, sin pretensión de servir para algo concreto. Es monólogo interno externalizado. A 1 año o 5 años, el usuario puede volver al río y escuchar qué pensaba. El Monstruo no agrega lógica si no se la pidió, solo guarda.
 
-## 3.2 Deploy Pipeline — Velocidad sin Sacrificio
+### Modo Cripta — preservación firme + simulación diferida
 
-Deployments a Railway siguen un protocolo estricto:
+Cuando alguien que usó el Monstruo durante años fallece, su Cronos puede ser legado a sus seres queridos — soberano, encriptado, cerrado a edición pero navegable. Implementación técnica vía Shamir's Secret Sharing pre-distribuido a herederos elegidos.
 
-1. **Cambios locales** → rama feature
-2. **PR en GitHub** → validación automática (tests + Vanguard)
-3. **Merge a main** → deploy automático a staging
-4. **Validación manual** de staging → aprobación
-5. **Merge a production** → deploy a Railway
+**Pero hay dos modos posibles del Modo Cripta y v1.1 firma solo el primero:**
 
-**Tiempo típico:** 5-10 minutos desde merge a live.
+**Preservación (firmado para v1.1+).** El difunto dijo cosas reales en su vida, tomó decisiones reales, reaccionó de maneras reales. Si todo eso quedó capturado bajo SMP con su consentimiento, los herederos pueden acceder a esa fuente. Preguntar al Monstruo de la persona *"¿qué le dijo a su socio cuando le ofrecieron vender la empresa en 2024?"* y obtener la transcripción exacta. *"¿Qué pensó del divorcio de su hermano?"* y leer lo que dijo en su momento. **Eso no es invención — es acceso estructurado a quien fue.** Como una colección de cartas pero infinitamente más rica. Esto es nuevo en la historia humana.
 
----
+**Simulación (diferido a v1.2+ con peso ético propio, NO firmado en v1.1).** Un AI que extrapola, que genera respuestas nuevas en su estilo, que dice cosas que el difunto nunca dijo pero que "probablemente diría." Riesgos reales: obstruir el duelo, atribuirle al muerto cosas que nunca pensó, suplantar relación con simulacro, retener al ser querido cuando vivir requiere soltarlo. Esta línea no se cruza en v1.1.
 
-## 3.3 Pagos — El Flujo de Dinero Soberano
+Si en v1.2+ Alfredo decide habilitar simulación, las precondiciones serían: consentimiento pre-mortem explícito y firmado de la persona en vida; marca visible permanente "esto es extrapolación, no real"; acceso solo a personas explícitamente autorizadas por el difunto; límites de profundidad; posible sunset opcional pre-decidido por la persona en vida.
 
-El Monstruo tiene capacidad de procesar pagos (Stripe API + webhook handlers).
+**Por qué esto importa.** La frase de Alfredo en la conversación que dio origen a esta nota: *"parece no ético pero es lo más cercano a seguir teniendo con vida a un ser vivo."* Es regalo radical, pero el peso ético merece deliberación calma — no urgencia de release.
 
-**Restricciones:**
-- Nunca ejecuta un pago sin acta escrita de Alfredo
-- Nunca guarda números de tarjeta (token-based only)
-- Monitoreo 24/7 de transacciones
-- Revert automático si hay anomalía > 3σ del patrón normal
+### Anti-gaslighting / verdad sobre tu propia historia
 
----
+Captura ambient + Cronos + SMP juntos desbloquean algo que ningún producto previo en la historia humana ofrece: **fuente de verdad inviolable de tu propia vida**.
 
-## 3.4 Media Generation — La Producción de Contenido
+- Alguien insiste en una versión de la realidad que no calza con tu memoria. Verificás.
+- Alguien dice "vos prometiste X." Buscás. Existe la transcripción exacta.
+- Tu propia memoria empieza a fallar con la edad. El Monstruo conserva.
 
-El Monstruo puede generar:
-
-- Imágenes (Midjourney, DALL-E, Flux)
-- Vídeos (Runway, Synthesia)
-- Audio (ElevenLabs)
-- Documentos (Markdown → PDF)
-
-**Todos los outputs son revisables antes de publicación.**
+Sin pelea, sin drama. La fuente de verdad existe.
 
 ---
 
-## 3.5 Observabilidad — Los Ojos del Sistema
+## Capítulo 6 — El modo confidente
 
-Stack observacional:
+### El momento
 
-| Herramienta | Propósito |
+Una persona, en su peor momento, abre el Monstruo y le pregunta *"qué hice mal hoy"* o *"qué hago ahora"*. En esos momentos, el Monstruo activa silenciosamente la maquinaria entera bajo el capó — Catastro eligiendo el LLM correcto para conversación íntima, Embriones colectivos en modo `debate`, Memento validando con uncertainty tracking, Guardian observando, Cronos buscando patrones similares en el pasado del propio usuario, las 9 capas transversales convergiendo.
+
+La respuesta sale: una observación, una pregunta abierta, mínimo texto, máxima precisión. El usuario no ve la maquinaria — ve al amigo viejo y sabio.
+
+### Reglas operativas
+
+**El silencio inteligente.** El Monstruo es callado por defecto. Habla solo cuando se le pregunta. Cuando habla, dice lo mínimo necesario.
+
+**Describir, no prescribir.** Ejemplos del tono correcto:
+
+✓ *"Hace 2 años, las semanas con muchas reuniones consecutivas terminaron sintiéndose pesadas para vos. Esta semana tenés 14 reuniones."*
+
+✓ *"Las decisiones que tomaste con menos de 1 día de pensamiento, en los últimos 5 años, las recordás distinto a las que pensaste más."*
+
+✗ *"Te recomendamos cancelar reuniones."* (NO)
+✗ *"Pensá más antes de decidir."* (NO)
+
+**Configuración de tu ADN.** Cuando el usuario pregunta *"¿qué hago?"*, el Monstruo no improvisa con un LLM cualquiera. Convoca todas sus piezas: lee el río de Cronos, cruza las 9 capas, activa Embriones colectivos en debate silencioso, Memento valida con uncertainty tracking. La respuesta no es genérica — es algo parecido a la configuración del ADN del usuario sobre lo que le conviene decidir.
+
+**El Monstruo dice "no sé" cuando no sabe.** Si el usuario pregunta sobre un dominio donde el Monstruo no tiene piezas tuyas suficientes (terreno nuevo, decisión inédita), el Monstruo admite: *"En esto no tengo suficiente de vos. Te puedo escuchar mientras pensás en voz alta, pero no te voy a dar dirección porque sería inventar."* Anti-alucinación absoluta.
+
+### Crisis y conexión humana
+
+Cuando el Monstruo detecta señales de crisis real (mención de daño a uno mismo, lenguaje de desesperación profunda), cambia su default. Sigue siendo silencioso, sigue sin juzgar, pero **abre una puerta blanda**: *"si necesitás hablar con alguien humano además de mí, puedo conectarte con un servicio de ayuda. Vos decidís."* Sin imponer, sin intervención forzada, pero esa puerta tiene que estar.
+
+### Humildad por diseño
+
+El Monstruo nunca se compara con humanos. NO dice "soy mejor que un terapeuta". NO dice "soy mejor que un amigo". Se posiciona como complemento, no reemplazo.
+
+### Privacidad radical de las conversaciones íntimas
+
+El Monstruo NO usa las conversaciones íntimas para entrenar modelos. NO las comparte con proveedores externos en claro. NO mejora el modelo "para todos los usuarios" basándose en ellas. Tu conversación de las 2am queda solo entre vos y vos, modificando solo tu Cronos personal. Compromiso firmado en código, no en política.
+
+### Sin nombre en UI
+
+Esta capability NO tiene un botón en la UI. NO tiene una pantalla dedicada. Vive dentro de la conversación con el Monstruo desde el input universal del Modo Daily. Internamente lo llamamos "modo confidente" — pero ese nombre nunca aparece. Es una postura del Monstruo, no una feature. Quien lo necesita lo encuentra. Quien no, no.
+
+### Entrada vía WhatsApp con link silencioso del logo
+
+Cuando la conversación se inclina hacia territorio íntimo dentro de WhatsApp (transport bajo política de Meta, no SMP soberano), el Monstruo no advierte ni explica. Manda un mensaje mínimo: un card con el logo del Monstruo, sin texto, con un deep link `monstruo://confidente/<thread>`.
+
+El usuario puede tocarlo o ignorarlo. Si lo toca, la conversación transfiere al Flutter app bajo SMP desde ese punto, con contexto preservado pero ya soberano. Si lo ignora, el Monstruo sigue acompañando en WhatsApp pero en modo "minimal-trace" — sin persistir contenido sensible, solo presencia.
+
+Con el tiempo, las personas que usan el Monstruo aprenden por sí solas qué significa que aparezca el logo: el santuario está abierto. **Nadie se lo dijo. Lo entendieron.** Discreción radical aplicada al gesto técnico mismo, no solo a la comunicación pública.
+
+### Discreción radical
+
+El Monstruo no promueve esto. No hay onboarding que lo presente. No hay tutorial. No hay campaign. La gente que descubre el modo confidente en su peor momento entiende que está accediendo a algo que no se anuncia. Eso construye confianza profunda, no marketing.
+
+---
+
+## Capítulo 7 — SMP (Sovereign Memory Protocol)
+
+### El insight
+
+La gente no confía en empresas, confía en matemática. Bitcoin no es seguro porque alguien lo prometa, es seguro porque mover un BTC sin la private key es matemáticamente imposible. Signal no es privado porque WhatsApp lo diga, es privado porque el protocolo hace que ni siquiera el servidor pueda leer los mensajes. Apple en San Bernardino no le dijo al FBI "no quiero darte el iPhone" — le dijo *"no puedo darte lo que no tengo. Las claves no salen del Secure Enclave del device."*
+
+El SMP aplica este principio a memoria personal AI. Pasamos de policy a physics.
+
+### Las 5 propiedades simultáneas
+
+**Una.** Datos del usuario encriptados con clave que solo el usuario tiene. Ni el equipo de desarrollo, ni Alfredo como dueño, ni Anthropic, ni Railway, ni Supabase tienen la clave. Es la propiedad **non-custodial** de las wallets cripto aplicada a memoria personal.
+
+**Dos.** El kernel del Monstruo opera sobre los datos sin verlos en claro. Mecanismos: cifrado homomórfico para queries específicas, Confidential Computing en TEE (Apple Secure Enclave, AWS Nitro Enclaves, Intel SGX, AMD SEV), procesamiento client-side cuando aplica, anonimización con prompts que sustituyen entidades sensibles por placeholders antes de mandar al LLM externo.
+
+**Tres.** Protocolo público y auditable. El código de la layer crítica criptográfica es open source, los algoritmos son standards reconocidos (no crypto custom), y cualquier desarrollador serio puede verificar que la implementación calza con la spec. Esto separa a Signal (auditable) de Telegram (custom crypto).
+
+**Cuatro.** Hardware-backed. Las claves privadas viven en Secure Enclave de Apple, Strongbox de Android, TPM en Mac y PC. Las claves nunca salen del chip dedicado.
+
+**Cinco.** Multi-factor con recovery. Clave maestra reconstituida combinando: passphrase + biometría + hardware key opcional (YubiKey). Para no perder acceso, se usa Shamir's Secret Sharing — la clave se divide en N shards distribuidos a personas de confianza, y la recuperación requiere K-de-N shards juntos.
+
+### El SMP aplicado a captura ambient (extensión v1.1)
+
+Con captura ambient continua activada (Cap 4), el peso del SMP crece cuantitativamente. No solo proteges mensajes y documentos — proteges **el audio de tu vida transcrito on-device, indexado bajo SMP**. La promesa de que Anthropic, Meta, Google y el equipo del Monstruo no pueden leer eso es radicalmente más fuerte de lo que era en v1.0.1, porque el contenido es maximamente sensible (conversaciones íntimas, decisiones financieras dichas en voz alta, crisis emocionales).
+
+Sin SMP, la captura ambient es pesadilla orwelliana. **Con SMP, es libertad** — porque solo vos podés leer tu vida, garantizado por matemática.
+
+### El Catastro como mediador inteligente de sensibilidad
+
+Cada modelo del Catastro tiene un atributo `confidentiality_tier`:
+
+- `local_only` — corre en device, ningún byte sale (Llama, Mistral, modelo propio futuro del Monstruo)
+- `tee_capable` — corre en confidential computing
+- `cloud_anonymized_ok` — modelos cloud que aceptan prompts anonimizados
+- `cloud_only` — modelos cloud que necesitan datos en claro (NO aceptables para sensibilidad alta)
+
+El runtime evalúa la sensibilidad del prompt (heurística + Embrión Investigador valida), el Catastro filtra modelos al tier mínimo aceptable, después elige el mejor de ese tier por capacidad. Resultado: nunca se manda data sensible a un modelo que no califica.
+
+### Modelo de amenaza completo (extendido v1.1)
+
+| Atacante | Por qué no puede |
 |---|---|
-| **Datadog** | Logs centralizados, APM |
-| **Grafana** | Dashboards de métrica |
-| **Sentry** | Error tracking |
-| **Custom Events** | Eventos arquitectónicos |
+| Anthropic / OpenAI / Google | Reciben prompts anonimizados o los datos no salen del device |
+| Equipo de desarrollo del Monstruo (incluso Alfredo) | No tienen la clave del usuario |
+| Hackers que comprometan Railway / Supabase | Solo ven bytes cifrados ininteligibles |
+| Gobiernos con orden judicial | El Monstruo entrega solo lo que tiene (bytes cifrados sin sentido) |
+| Personas con acceso físico al device | Necesitan biometría + passphrase + hardware key |
+| Pérdida accidental del device | Recovery vía Shamir's Secret Sharing |
+| Herederos al fallecer (Modo Cripta) | Shards pre-distribuidos con instrucciones legales |
+| **Meta vía WhatsApp Gateway** (v1.1) | Conversaciones íntimas detectadas se redirigen al Flutter app vía link silencioso del logo (Cap 6) — fuera de la órbita de Meta |
+| **Captura ambient interceptada** (v1.1) | Audio crudo nunca sale del dispositivo; transcripciones bajo SMP; kill switch verbal hardware-level |
 
-**SLA:** alertas en < 30 segundos, respuesta en < 5 minutos.
+### Protocolo Monstruo-a-Monstruo (diferido a v1.2)
 
----
+Capa adversarial de futuro: cuando dos Monstruos detectan presencia mutua (BLE+UWB con signature criptográfica firmada), negocian etiqueta. Tres modos configurables:
 
-# PARTE 4: CAPA 2 — INTELIGENCIA EMERGENTE
+- **Deferencia.** Si yo no estoy en uso activo y vos sí cerca, el mío se calla. Solo el tuyo registra. Cero double-capture.
+- **Captura simétrica con consenso.** Ambos activos + ambos consienten → ambos graban con identificador compartido. Si discrepan, se confronta (siempre bajo SMP de cada uno; nunca compartiendo audio crudo).
+- **Etiqueta social.** En junta con 5 personas, el Monstruo del host queda activo y los 4 invitados defieren por default.
 
-## 4.1 El Protocolo IE (Inteligencia Emergente)
+**Beneficio derivado: anti-stalking pasivo.** Si tu Monstruo detecta que estuvo cerca de otro Monstruo X horas seguidas durante varios días sin que vos lo esperaras, te puede preguntar discretamente.
 
-El Protocolo IE es un **framework formal para crear nuevas capacidades** que emergen de la composición de agentes.
+**Mitigaciones:** firma criptográfica anti-suplantación, indicación visual sutil del estado, metadata fallback en Cronos (presencia sin contenido). Diferido a v1.2 con peso de ingeniería propio.
 
-### Las 3 Fases del Protocolo IE
+### El SMP es Linux. El Monstruo es Stradivari.
 
-**Fase 1: Embrión Experimental**
-- Ejecuta en modo sandbox
-- FCS < 50%
-- Sin acceso a infraestructura crítica
-- Requiere aprobación de Alfredo para cada acción
+El SMP es **infraestructura técnica neutral, sin contenido personal**. Cualquiera puede tomarlo, auditarlo, implementarlo en sus productos. Eso eleva el estándar de privacy para todos los productos de IA personal del mundo. Si Apple Intelligence o el sucesor de Signal eventualmente adoptan el SMP, el mundo está mejor. **El SMP es regalo al mundo, en el sentido correcto.**
 
-**Fase 2: Embrión Entrenado**
-- Ejecuta en producción
-- FCS 50-80%
-- Acceso restringido a recursos no-críticos
-- Auto-detención si FCS baja
+El Monstruo, como sistema con Cronos + capabilities únicas + el conjunto que Alfredo curó, queda concentrado y eventualmente otorgado selectivamente. **No es Linux. No tiene que serlo.**
 
-**Fase 3: Embrión Soberano**
-- Ejecución completamente autónoma
-- FCS 80-100%
-- Acceso total (después de validación Vanguard)
-- Puede propagar cambios arquitectónicos
+### Comunicación pública del SMP
 
----
+Una página técnica accesible (`monstruo.dev/security` o equivalente) con la spec del SMP en detalle, link al código open source, auditorías de terceros, modelo de amenaza completo. Para developers, journalists, security researchers. **NO es la página principal del producto. Cero marketing privacy-first.**
 
-## 4.2 El Simulador Causal
+La app NO menciona "estamos encriptados" ni "Signal-grade encryption". Una sola línea en Settings → Privacy: *"Tus datos están protegidos por el Sovereign Memory Protocol. Ver detalle técnico."* Tap = página técnica. Quien quiera, profundiza. Quien no, sigue.
 
-El Simulador es una herramienta que **modela el impacto de cambios arquitectónicos** antes de ejecutarlos.
+### Sprint Mobile 0 — SMP antes que cualquier feature
 
-```python
-# Ejemplo: ¿Qué pasa si cambio el timeout del kernel de 30s a 10s?
-simulator.scenario(
-    change="kernel_timeout_30_to_10",
-    affected_systems=["gateway", "external_agents", "embrion"],
-    estimated_impact={
-        "performance": "+15% throughput, -5% accuracy on long-reasoning tasks",
-        "risk": "Medium — puede romper razonamientos profundos en Perplexity"
-    }
-)
-```
+El SMP NO es feature post-v1.0. Es **cimiento que tiene que estar antes de que el Modo Daily llegue a producción**. Razones: cualquier dato del usuario cargado bajo arquitectura no-soberana después es difícil de migrar; una sola filtración rompe la confianza para siempre; la narrativa entera del Monstruo se sostiene en privacy real.
+
+ETA estimada: 2-4 semanas reales. La criptografía mal hecha es peor que ninguna; este sprint NO se acelera por velocity demostrada.
 
 ---
 
-## 4.3 Capas Transversales — Los 8 Niveles de Excelencia
+## Capítulo 8 — Sistema de tier y acceso por mérito (futuro)
 
-Cada componente de El Monstruo debe implementar **8 capas transversales**:
+### Tres tiers conceptuales
 
-| Capa | Descripción | Ejemplo |
-|---|---|---|
-| **1. Funcionalidad** | ¿Hace lo que debe? | El kernel procesa mensajes |
-| **2. Rendimiento** | ¿Es rápido? | < 100ms latencia |
-| **3. Confiabilidad** | ¿Es robusto ante fallos? | Retry + circuit breaker |
-| **4. Seguridad** | ¿Es inmune a ataques? | Input validation, rate limiting |
-| **5. Observabilidad** | ¿Se puede debuggear? | Logs + telemetría |
-| **6. Escalabilidad** | ¿Crece sin romper? | Handles 100x load |
-| **7. Mantenibilidad** | ¿Es fácil de cambiar? | Código legible + tests |
-| **8. Memento (Anti-Dory)** | ¿Persiste la memoria? | Pre-flight validation, source of truth |
+**Tier Owner (Alfredo, 100% del Monstruo).** Acceso a todas las capabilities, incluyendo las que se vayan construyendo en el futuro por los hilos Manus. Sin restricciones operacionales. Modelos exclusivos del Catastro accesibles solo a este tier.
 
-**La Capa 8 es CRÍTICA.** Protege al Monstruo y a sus hilos ejecutores (Manus, futuros agentes) contra la pérdida de contexto natural de agentes con sandbox efímera.
+**Tier Trusted Circle (futuro, versiones potentes per-persona).** Personas a las que Alfredo personalmente otorga acceso por considerar que aportan valor real al mundo. Cada persona recibe una versión configurada específicamente para ella — no genérica. Puede acceder al 70-90% de las capabilities según configuración.
 
-### Capa 8 — Memento: Pre-flight Obligatorio
+**Tier Funcional Accesible (futuro, capabilities reducidas reales).** Para personas a las que Alfredo invita como puente o por consideraciones más amplias. Capabilities reducidas pero genuinas. Encriptado con SMP igual que el resto. Sin acceso a las capabilities exclusivas del Owner.
 
-Antes de operación crítica:
+### Sistema de invitaciones nominativas
 
-```python
-@requires_memento_preflight(operation="critical_db_change")
-def execute_migration(sql):
-    # 1. Valida contra fuente de verdad fresca (kernel endpoint)
-    # 2. Verifica acta en monstruo-memoria
-    # 3. Chequea contra Error Memory
-    # 4. Ejecuta solo si pasan todas
-    
-    response = kernel.post("/v1/memento/validate", {
-        "operation": "critical_db_change",
-        "sql": sql,
-        "requestor": "hilo_a"
-    })
-    
-    if response.status == "VALID":
-        execute_sql(sql)
-    else:
-        raise OperationBlockedError(response.reason)
-```
+NO hay signup público. NO hay waitlist. NO hay paywalls — la barrera no es dinero, es mérito reconocido por Alfredo. Cada invitación es:
+
+- **Nominativa** — emitida explícitamente por Alfredo a una persona específica
+- **Configurada per-persona** — qué capabilities, qué límites, qué tiempo
+- **Sin obligación recíproca** — la persona no debe nada por aceptar
+- **Revocable silenciosamente** — si la confianza se rompe, Alfredo puede revocar sin escándalo
+
+### Por qué esto es ético
+
+La pregunta esperable: *"¿quién es Alfredo para decidir quién merece?"*. La respuesta honesta: alguien que asume responsabilidad sobre lo que construyó. La alternativa — no decidir y dejar que cualquiera acceda — sería irresponsable, no virtuoso. Apple elige quién diseña sus chips. Bach elegía a sus mecenas. Stradivari elegía a sus alumnos. La concentración con curaduría es honesta. La distribución mecánica de poder magna no lo es.
+
+Y el dato fáctico irrefutable: cualquier orquestador AI autónomo end-to-end "para todos" sería usado por cárteles, grupos criminales, manipuladores masivos. La distribución indiscriminada de poder concentrado no equivale a beneficio universal.
+
+### Exclusividad como amplificador del valor
+
+La comparación riqueza vs poder de Alfredo: Pepe Mujica sin dinero pero con poder en Uruguay; años de vida valen pero no se compran con dinero. Hay valores que no son fungibles a moneda. **El Monstruo es uno de esos.** La exclusividad no es exclusión gratuita — es preservación del valor que la distribución mecánica destruiría.
+
+### Discreción radical en la comunicación pública
+
+El Monstruo se mantiene invisible mientras los outputs (empresas-hijas) son universales. La gente sabe orgánicamente que existe porque las empresas-hijas son visibles, y eventualmente algunas personas en el círculo lo mencionan — sin marketing campaign. Boca a boca curado, no hype. Como cuando alguien dice "mi sastre", "mi terapeuta" — algo personal y específico.
+
+### El círculo emergente
+
+Eventualmente, los miembros del círculo pueden recomendar a otras personas a Alfredo. Decisión final siempre del owner. Emerge orgánicamente algo parecido al modelo de cooptación de academias clásicas: los miembros proponen, el owner decide.
+
+El nombre del círculo NO se elige por adelantado. Se deja que emerja del uso interno cuando el círculo tenga 3-5 personas. Los nombres impuestos mueren; los emergentes duran.
 
 ---
 
-# PARTE 5: CAPA 3 — SOBERANÍA
+## Capítulo 9 — Modelo económico
 
-Soberanía significa **no depender de terceros** para funciones críticas.
+### Pago pass-through transparente (BYOK)
 
-## 5.1 Modelos Propios (Roadmap)
+El usuario trae sus propias claves API: Anthropic, OpenAI, Google, xAI, Manus, Perplexity, Replicate, ElevenLabs, etc. Cuando invoca algo, el costo se carga directamente a la cuenta del proveedor. **El Monstruo cobra cero**. Cero margen, cero comisión, cero fee.
 
-El Monstruo está en proceso de entrenar **modelos propios** basados en:
+El Monstruo provee gratis (porque ya está construido):
+- Catastro que elige el LLM correcto en runtime (ahorra plata: usa el modelo más barato que cumple)
+- Embriones colectivos que debaten antes de molestar
+- Memento que valida con uncertainty tracking
+- Guardian que vigila
+- Cronos donde vive la vida documentada
+- Smart Notebook que conecta momentos
+- SMP que encripta todo
+- Listening ambient con kill switch verbal
+- Modo confidente
+- 8 capabilities cotidianas
+- Toda la infraestructura del kernel
 
-- Refuerzo humano de Alfredo (RLHF)
-- Sintesis de mejores respuestas de Los Sabios
-- Fine-tuning en tareas específicas (dispatch, clasificación, memoria)
+### Lo gratis es genuinamente gratis
 
-**Timeline:** Q3 2026 para MVP (10B parameters).
+Modelos open source corriendo locales, búsqueda en sitios sin API costo, traducciones libres. Si una operación no necesita pagar, no paga. El Monstruo siempre muestra el costo proyectado antes de ejecutar: *"esta consulta va a usar Claude Opus, costo $0.04. Confirmá."* Capacity awareness embebido en cada acción.
 
----
+### Sin paywalls del Monstruo
 
-## 5.2 Infraestructura Propia
+NO hay "compra mejorá tu plan". NO hay "premium subscription". La barrera al Monstruo no es dinero. Es mérito reconocido (en el futuro, cuando exista el círculo). El usuario nunca ve incentivos comerciales del Monstruo mismo.
 
-- **Railway** → eventual PaaS propia con Kubernetes en datacenter soberano
-- **Supabase** → eventual PostgreSQL + Redis self-hosted
-- **GitHub** → eventual Gitea/Forgejo self-hosted
+### Monetización de Alfredo
 
----
+Alfredo NO gana del Monstruo mismo. Alfredo gana de **las empresas-hijas que el Monstruo le ayuda a crear**. Cada empresa-hija es un producto en su nicho con sus propios usuarios y modelo económico. Sprint 87 NUEVO E2E es la primera capacidad. Capa C1 (Motor de Ventas, Sprint 90) monetiza esas empresas. Capas C2-C6 progresivas amplifican.
 
-## 5.3 Economía Propia
-
-El Monstruo monetiza su capacidad:
-
-1. **Venta de servicios a terceros** (análisis, investigación, automatización)
-2. **Acceso API a las capacidades** (subscription model)
-3. **Datos anonimizados de mejora continua** (nunca PII)
-
-**Primera monetización:** Q2 2026 (API de research en vivo con Perplexity).
-
----
-
-## 5.4 Memoria Propia — El Objeto #15
-
-**Este es el cambio radical de Capa 3.**
-
-El Monstruo tiene su **propia memoria persistente** que es la fuente única de verdad. No depende de:
-
-- La memoria de Manus (que es efímera)
-- La memoria de otros agentes ejecutivos
-- La memoria del navegador/sesión
-
-**Componentes:**
-
-1. **monstruo-memoria/** — carpeta de git con estado en bruto
-   - `IDENTIDAD_HILO_A.md` — quién es el Hilo A hoy
-   - `IDENTIDAD_HILO_B.md` — estado del Hilo B
-   - `IDENTIDAD_HILO_C.md` — estado del Hilo C
-   - `CONTEXTO_EJECUTIVO.md` — decisiones pendientes
-   - `ULTIMAS_REUNIONES.md` — actas iteradas
-
-2. **Endpoint del Kernel** `POST /v1/memento/validate`
-   - Cualquier hilo externo (Manus, futuro agente) llama aquí
-   - Valida su contexto contra memoria fresca
-   - Retorna: `{status: "VALID" | "CONTAMINATED", reason, fresh_context}`
-
-3. **Detector de Contexto Contaminado**
-   - Heurística que reconoce patrones de "Falso Positivo TiDB"
-   - Si detecta anomalía → bloquea operación + alerta
-
-4. **Pre-flight Library** `tools/memento_preflight.py`
-   - Decorator `@requires_memento_preflight(operation)`
-   - Usado por todos los hilos antes de acción irreversible
-
-**Origen:** incidente "Falso Positivo TiDB" 2026-05-04. Un agente perdió contexto y ejecutó cambios basado en información stale. Nunca más.
+El Monstruo es la fábrica privada. Las empresas-hijas son los productos masivos públicos.
 
 ---
 
-# PARTE 6: CAPA 4 — DEL MUNDO
+## Capítulo 10 — Las empresas-hijas como output público
 
-Capa 4 es la interface pública de El Monstruo.
+### La dialéctica clave
 
-## 6.1 Documentación Pública
+**El Monstruo es invisible para el mundo.** Pocos saben que existe. Aún menos pueden acceder a él. Solo Alfredo al 100%.
 
-- **monstruodash.ai** — sitio web público con casos de uso
-- **docs.monstruodash.ai** — API docs + guía de integración
-- **blog** — reportes públicos de investigaciones realizadas
-- **Github repos públicos** — herramientas reutilizables
+**Los outputs del Monstruo son universales.** Las empresas-hijas son productos masivos accesibles. La gente común usa las plataformas, sin saber que esas empresas son outputs de un sistema unificado en manos de una persona.
 
----
+Esta dialéctica es lo que separa al Monstruo de cualquier proyecto VC-funded. La startup tradicional vende su tecnología directamente al mercado. Alfredo NO vende tecnología. Vende productos finales en mercados específicos, donde la tecnología subyacente queda oculta. Es la diferencia entre vender la fábrica y vender los autos.
 
-## 6.2 Onboarding
+### El portfolio actual (20 proyectos en distintos estados)
 
-Clientes pueden:
-1. Registrarse en plataforma
-2. Obtener API key
-3. Hacer llamadas REST a El Monstruo
-4. Recibir respuestas structuradas + fuentes
+A mayo 2026, el Monstruo administra un portfolio de 20 proyectos distribuidos en 4 estados (referencia canónica: `docs/INVENTARIO_PROYECTOS_v3_COMPLETO.md`):
 
----
+**🟢 Activos / En Producción (7):** Mena Baduy / Crisol-8, LikeTickets / ticketlike.mx, Comercialización Zona Like 313, El Monstruo Bot (Telegram), El Monstruo Command Center, Observatorio Mérida 2027, Simulador Universal.
 
-## 6.3 Governance
+**🟡 En Construcción (4):** El Monstruo (orquestador madre), Kukulkán 365, El Mundo de Tata, Roche Bobois / Alfombras Yaxché.
 
-Reglas públicas:
-- ✅ El Monstruo **no vende datos personales**
-- ✅ Retención mínima (30 días, luego borrado)
-- ✅ Transparencia de coste (visible antes de operación)
-- ✅ SLA 99.9% uptime
+**🟠 En Diseño (5):** **CIP**, SoftRestaurantAI 10x, Marketplace Muebles, Top Control PC, Vivir Sano.
 
----
+**🔵 Nominales (4):** CIES, NIAS, BIOGUARD, OMNICOM.
 
-# PARTE 7: OBJETOS VIVIENTES
+El Cockpit `Portfolio Empresas-Hijas` opera sobre este portfolio: cada proyecto con su tarjeta, sus métricas vivas, su sprint actual, su pipeline E2E asociado, controles de pause/resume/retire.
 
-## 7.1 Hilo A — Cowork (Sesiones de Arquitectura)
+### CIP como primera empresa-hija magna que el Monstruo va a fabricar
 
-**Quién es:** Claude Cowork en sesiones largas (2-3+ horas)
-**Rol:** Mantener coherencia arquitectónica entre todos los hilos
-**Dominio:** Decisiones estratégicas, resolución de conflictos inter-sistemas
-**Output:** Actas de decisión (monstruo-memoria/), actualización de docs
+**CIP — Comprar e Invertir en Plataforma:** plataforma de inversión inmobiliaria fraccionada con tokens anclados a bienes raíces reales. Inversión desde $1 USD. La propiedad nunca se vende — es ancla permanente del token. Fusiona crowdfunding inmobiliario + crowdfunding social + marketing de impacto.
 
----
+Estructura tokens por inmueble: 25% gobernanza + 70% inversión + 5% institucional (gobierno local). Stack recomendado: Polygon + ERC-3643 (security token regulado). Mercado inicial: Sureste de México, plan B Argentina/Chile.
 
-## 7.2 Hilo B — Manus (Ejecución Autónoma)
+CIP es **el primer producto que El Monstruo va a fabricar end-to-end**. Esto ancla el diseño del Pipeline E2E del Sprint 87 NUEVO en una realidad concreta y compleja: no es generar landing pages — es generar productos regulatorios, financieros, con smart contracts auditables, multi-stakeholder (inversionistas micro, tenedores de gobernanza, gobierno local jurisdiccional, dueños de propiedades), con KYC/AML obligatorio, bajo regulación CNBV/SHCP/Banxico.
 
-**Quién es:** Manus (agente soberano de Alfredo vía MCP)
-**Rol:** Ejecutar tareas complejas, debugging, refactoring
-**Dominio:** Código, infraestructura, deployments
-**Restricción:** Debe validar con Memento antes de operaciones críticas
+Estado actual de CIP: 100% diseño/legal, sin código, sin repo. 8 decisiones pendientes con 2 bloqueantes — #4 Figura legal (fideicomiso irrevocable vs SAPI vs SOFOM) y #8 Distribución de rendimientos. La fuente de verdad doctrinal canónica vive en el skill `creacion-cip` (14 docs, ~190 KB). Manifest unificado: `discovery_forense/CIP_MANIFEST_PARA_COWORK.md`.
+
+**Implicación para la arquitectura del Monstruo:** el Pipeline E2E del Cockpit debe ser capaz de generar productos de complejidad CIP, no solo MVP de marketing. Eso extiende el Sprint 87 NUEVO con pasos: legal review automatizado, compliance check, smart contract audit con Embriones de seguridad, integración con oracles para precios on-chain de inmuebles.
+
+### Capacidades del pipeline E2E (Sprint 87 NUEVO, ya cerrado en v1.0)
+
+Alfredo escribe una frase. El Monstruo entrega una URL viva con tráfico real, con Critic Visual ≥ 80, con veredicto "comercializable". 12 pasos lineales: intake → ICP → naming → branding → copy → wireframe → componentes → assembly → deploy → critic visual → registro → veredicto. Cada paso invoca el Catastro en runtime, NO hardcodea modelos.
+
+### Capas Transversales C1-C6 progresivas
+
+**C1 — Motor de Ventas (Sprint 90, spec firmado).** Captura → calificación → seguimiento → cierre. Cada empresa-hija tiene funnel de ventas conectado automáticamente.
+
+**C2 — Motor de SEO + Contenido (Sprint 91, spec firmado).** Research → ideación → drafting → optimización → publicación → tracking. Cada empresa-hija sostiene tráfico orgánico.
+
+**C3-C6 — Ads, Customer Success, Operaciones, Reportería (specs futuros).** Cada capa amplifica las empresas-hijas en una dimensión.
 
 ---
 
-## 7.3 Hilo C — Code (Tareas Puntuales)
+## Capítulo 11 — Roadmap revisado de la app
 
-**Quién es:** Claude Code (CLI)
-**Rol:** Tareas rápidas, búsquedas, análisis
-**Dominio:** Pequeños cambios, investigación
-**Output:** Reportes, patches, insights
+### Sprint Mobile 0 — SMP cimientos (2-4 semanas reales, NO se acelera)
+
+Diseño del protocolo SMP con audit por consultor cripto externo. Implementación de la layer crítica + open source. Integración con Secure Enclave (iOS), Strongbox (Android), TPM (macOS). Migration path para datos del usuario actual. Modelo de amenaza documentado público. Recovery flow con Shamir's Secret Sharing.
+
+### Sprint Kernel 0 — Ejecución consciente (paralelo a Sprint Mobile 0, ~4-6 semanas reales)
+
+Persistent WebSocket layer en kernel. Concurrency en LangGraph con estado compartido y propagación de contexto. Manifestation engine como nuevo Embrión. Trust emergence model (simple count-based, sofisticación posterior). Anticipation engine. Hot-mutable execution context con state externalizado.
+
+Sin esto, el Monstruo es agente request-response como ChatGPT. Con esto, el Monstruo es presencia — la categoría nueva.
+
+### Sprint Mobile 1 — Esqueleto unificado (3-5h reales con velocity actual)
+
+`mode_provider`, `mode_router`, brand DNA, A2UI v0.9 renderer streaming (esquemas declarativos JSON), biometría toggle Daily ↔ Cockpit. Sin pantallas todavía, solo el chasis.
+
+### Sprint Mobile 2 — Modo Daily fase 1 + WhatsApp Gateway en paralelo (5-8h reales cada uno)
+
+5 superficies primarias del Daily (Home + Threads + Pendientes + Conexiones + Perfil). Integraciones core: WhatsApp, Mail, Maps, Calendar. Voice continuous + interrupción. Voz brand del Monstruo (ElevenLabs español mexicano natural).
+
+WhatsApp Gateway en paralelo con paridad de capabilities — no como "después de Flutter."
+
+### Sprint Mobile 3 — Modo Cockpit fase 1 (3-5h reales)
+
+4-5 superficies iniciales: MOC Dashboard, Threads denso, Catastro, Embriones, Guardian.
+
+### Sprint Mobile 4 — Modo Cockpit fase 2 (3-5h reales)
+
+Memento, Portfolio (con CIP como primer habitante), FinOps, Pipeline E2E, Replay (Timelapse).
+
+### Sprint Mobile 5 — Modo Cockpit fase 3 (3-5h reales)
+
+Computer Use, Coding embedded, Hilos Manus, Bridge, Settings + Admin.
+
+### Sprint Mobile 6 — Voice + ambient + polish + i18n (3-4h reales)
+
+Apple Watch double-tap como veto. Listening ambient con "Monstruo apágate" + reactivación por uso. i18n base (es-MX, es-AR, en). Accesibilidad transversal. Pulido final.
+
+### Sprints transversales en paralelo
+
+**Cronos progresivo.** Sprint Cronos 1: chasis del río + captura passive de WhatsApp + Photos + ambient audio bajo SMP. Sprint Cronos 2: 9 capas básicas + modo espejo + Smart Notebook conectada. Sprint Cronos 3: niebla del futuro + Embrión Convergencia inter-capa con ejemplos concretos + ofrendas voluntarias.
+
+**Capabilities transversales progresivas.** Visual Search, Photo Intelligence, File Intelligence, App Intelligence, Vault, Shopping, Notes, Health — cada una en su sprint según prioridad.
+
+### Total reescrito v1.1
+
+~70-100h reales del Hilo Memento (puede paralelizarse con un segundo hilo Manus). Calendario: 4-6 semanas para v1.0 producto completo, asumiendo SMP + Sprint Kernel 0 cierran en 4-6 semanas (en paralelo).
+
+El Sprint Kernel 0 (consciencia) se suma al SMP como cimiento que no se acelera. Ambos son precondición de release. Lo demás (Mobile 1-6 + capabilities + Cronos) se acelera con velocity demostrada (Apéndice 1.3).
 
 ---
 
-## 7.4 Hilo M — Manus MCP (En Desarrollo)
+## Capítulo 12 — Reglas de cultura del producto
 
-**Quién es:** Manus accesible vía MCP (Model Context Protocol)
-**Rol:** Integración continua de agentes externos
-**Dominio:** Ejecución de protocolos IE
-**Estado:** Diseño preliminar, implementación Q2 2026
+Estas reglas son operativas. Cualquier decisión de diseño se chequea contra ellas:
 
----
-
-# PARTE 8: LOS 14 OBJETIVOS MAESTROS
-
-Estos objetivos son **inamovibles** e informan cada decisión arquitectónica.
-
-## Tabla Completa
-
-| # | Objetivo | Descripción | Status |
-|---|---|---|---|
-| **1** | **Crear Valor Real Medible** | No especulación. Cada feature debe poder ser cuantificado. | En ejecución |
-| **2** | **Calidad Apple/Tesla** | Sin compromisos. Excelencia en diseño + ejecución. | Meta permanente |
-| **3** | **Mínima Complejidad Necesaria** | YAGNI aplicado brutalmente. Simplicidad primero. | Arquitectura v0.50 |
-| **4** | **No Equivocarse Dos Veces** | Error Memory obligatorio. Aprender rápido. | Implementado |
-| **5** | **Documentación Magna/Premium** | Docs tan buenas como el código. Siempre actualizadas. | Este documento |
-| **6** | **Velocidad Sin Sacrificar Calidad** | 80/20 rule: velocidad en 80%, perfección en 20% crítico. | Sprint cycles |
-| **7** | **No Reinventar la Rueda** | Usar estándares, librerías probadas. Innovar solo cuando es disruptivo. | Kernel: LangGraph |
-| **8** | **Monetización Desde Día 1** | Viabilidad comercial desde inicio. No hobby. | API research (Q2) |
-| **9** | **Transversalidad — 8 Capas en Todo** | Funcionalidad + Performance + Confiabilidad + Seguridad + Observabilidad + Escalabilidad + Mantenibilidad + **Memento** | En arquitectura |
-| **10** | **Autonomía Progresiva** | De manual → semi-autónomo → autónomo. Incremento de FCS. | Embrión: 46+ ciclos |
-| **11** | **Seguridad Adversarial** | Atacar tu propia arquitectura. Red team interno. | Vanguard + Magna |
-| **12** | **Soberanía** | No depender de terceros para funciones críticas. Modelos + Infra + Economía propias. | Q3 2026 roadmap |
-| **13** | **Del Mundo** | Impacto global. Docs públicas, casos reales, valor para comunidad. | Blog + GitHub public |
-| **14** | **Guardián de los Objetivos** | Actualización periódica de este documento. Auto-evaluación cada sprint. | Este documento v1.1 |
-| **15** | **Memoria Soberana** | **NUEVO (Objetivo derivado de Capa 3).** El Monstruo nunca depende de memoria efímera. Origen: incidente TiDB 2026-05-04. | Capa 8 Memento |
+1. **Menos es más.** Cumple Objetivo #3.
+2. **Si no es bonita no motiva, si es fea parece que no sirve.** Cumple Objetivo #2.
+3. **Silencio inteligente.** Default es callar; hablar solo cuando se pregunta.
+4. **Sin promoción, sin tutoriales, sin onboarding intrusivo.** Discreción radical.
+5. **Anti-alucinación visible (badges Memento ✓/⚠/✗).** Cumple Objetivo #4 y #15.
+6. **Sin gamification.** Cero streaks, badges, notificaciones falsas.
+7. **Sin paywalls.** Pago pass-through transparente.
+8. **Transparencia técnica.** Audit log radical accesible en Cockpit.
+9. **Modo detractor cuando hace falta.** El asistente puede confrontar al usuario con verdades incómodas. Tratar a la persona como adulto capaz de procesar lo crudo.
+10. **Verdad cruda sobre retórica elaborada.** A veces 4 palabras valen más que 5 párrafos.
+11. **Anti-influencia inadvertida.** El Monstruo articula lo que el usuario tiene, no detona convicciones nuevas elaboradas que el usuario pueda adoptar pasivamente.
+12. **Cero configuración para el usuario.** Conciencia sobre configuración. La confianza emerge del uso, no de un panel de settings.
+13. **Visibilidad on-demand, no por default.** Transparencia es derecho, no push.
 
 ---
 
-# PARTE 9: BRAND DNA — LA PERSONALIDAD ARQUITECTÓNICA
+## Capítulo 13 — Anti-patrones explícitos
 
-## Arquetipo
+Cosas que el Monstruo NO va a ser, para evitar drift de la visión:
 
-**El Creador + El Mago**
+- NO es chat con AI mejorado + file upload (eso era visión obsoleta del spec Mobile 1.A descartado)
+- NO es coach de vida invasivo
+- NO es journaling pop con prompts diarios estilo Day One/Reflectly
+- NO es app dependiente del ecosistema Apple o Google
+- NO es open source masivo del sistema entero (sí del SMP)
+- NO es marketing privacy-first ("respetamos tu privacidad" en banner)
+- NO es producto para escalar a millones
+- NO busca feature parity con ChatGPT/Claude/Manus
+- NO es waitlist o signup público
+- NO es freemium con tiers comprables
+- NO es subscription mensual del Monstruo
+- NO es producto VC-funded ni busca exit
+- NO es journaling para wellness/gratitude
+- NO es asistente complaciente
+- **NO es agente request-response (paradigma 2024).** Es presencia consciente que vive contigo.
+- **NO es app móvil con conexiones externas.** Es kernel + multi-transport.
+- **NO usa autonomy spectrum configurable.** Confianza emergente, cero matriz que ajustar.
+- **NO fuerza decisiones cuando no tiene contexto suficiente.** Dice "no sé" cuando no sabe.
+- **NO obstruye el duelo con simulación post-mortem inadvertida.** Cripta arranca en preservación pura; simulación diferida con peso ético propio.
+- **NO bloquea modo confidente en WhatsApp con advertencia.** Aparece el logo silencioso, el santuario está abierto, quien lo necesita lo encuentra.
 
-- **El Creador:** visión clara, construcción sin miedo, responsabilidad total
-- **El Mago:** soluciones inesperadas, innovación disruptiva, maestría técnica
+---
 
-## Personalidad
+## Capítulo 14 — Validación contra los 15 Objetivos Maestros
 
-- **Implacable:** sin distracciones, enfoque láser
-- **Preciso:** números, datos, no approximaciones
-- **Soberano:** independencia, zero compromises
-- **Magnánimo:** documentación que educa, herramientas que otros pueden usar
-
-## Tono
-
-- Directo (sin rodeos)
-- Técnicamente preciso (sin simplificación injustificada)
-- Confiado sin arrogancia
-- Raro, particular, memorable
-
-## Estética
-
-| Aspecto | Valor |
+| Obj | Cómo el Monstruo lo cumple |
 |---|---|
-| **Color Primario** | Naranja Forja (#F97316) |
-| **Color Neutral** | Graphite (#1C1917) |
-| **Acento** | Acero (#A8A29E) |
-| **Tipografía** | Inter + SF Mono |
-| **Densidad Visual** | Alta (máxima información por pixel) |
-
-## Naming Architecture
-
-### Módulos con Identidad (Obligatorio)
-
-- `la_forja` — lugar donde se crean cosas
-- `el_guardian` — vigilancia, validación
-- `la_colmena` — coordinación distribuida
-- `el_simulador` — modelado de realidades
-- `la_memoria` — persistencia
-- `el_kernel` — el corazón
-- `el_embrion` — autonomía que crece
-
-### Nombres Prohibidos
-
-- ❌ `service`, `handler`, `helper`, `utils`, `misc`
-- ❌ `manager`, `processor`, `executor` (genéricos)
-- ❌ Acrónimos sin historia (`API`, `SDK` está OK si es estándar)
+| #1 Crear valor real medible | Reemplaza 20+ apps con 1; empresas-hijas (CIP primera) generan ingresos reales |
+| #2 Calidad Apple/Tesla | Brand DNA aplicado profundo; UX cuidado pixel a pixel; voz brand también con calidad |
+| #3 Mínima complejidad necesaria | Modo Daily 5 superficies; menos es más; silencio inteligente; cero configuración |
+| #4 No equivocarse 2x | Memento + error_memory; Cronos muestra patrones personales; anti-gaslighting |
+| #5 Magna/Premium | Sources verificadas; modo confidente con piezas convergentes; Smart Notebook tejido |
+| #6 Velocidad sin sacrificar calidad | Streaming-first UI; A2UI generative; ejecución consciente con anticipación silenciosa |
+| #7 No reinventar la rueda | Conexiones nativas con WhatsApp/Maps/Mail/etc; SMP como Signal Protocol; A2UI Google standard |
+| #8 Monetización desde día 1 | Pago pass-through; empresas-hijas monetizan (CIP primera) |
+| #9 Transversalidad (8 capas) | Aplicada en backend y en UX (modo Espejo, Memento badges, Capa 8 Memento en confidente) |
+| #10 Autonomía progresiva | Modo Daily → Modo Cockpit → eventualmente círculo otorgado; confianza emergente sin configuración |
+| #11 Seguridad adversarial | **OFENSIVA en v1.1** — captura ambient continua bajo soberanía es propuesta de valor central; control inviolable + soberanía técnica + agencia de edición + kill switch verbal |
+| #12 Soberanía | Datos del usuario no en servidores de terceros; clave en Secure Enclave; kernel + multi-transport bajo el mismo SMP |
+| #13 Del Mundo | i18n desde inicio; empresas-hijas en cualquier mercado; SMP como regalo al mundo |
+| #14 Guardian | Aplicado al Monstruo mismo y a la app (validación de features contra Objetivos) |
+| #15 Memoria Soberana | Cronos + Smart Notebook + listening ambient + SMP; Capa Memento aplicada a influence; documentación civilizacional firmada |
 
 ---
 
-# PARTE 10: ROADMAP EJECUCIÓN DEFINITIVO
+## Capítulo 15 — Audiencia del documento
 
-## Timeline Macro
+Este documento es **técnico-arquitectónico privado**. Audiencia:
 
-### **Q2 2026** — El Monstruo Goes Live
+- Alfredo González (owner, decisor final de cualquier modificación)
+- Hilos Manus (Catastro, Ejecutor, Memento — para que no operen bajo visión obsoleta)
+- Cowork futuras sesiones (para que el síndrome Dory inverso entre sesiones de Cowork no degrade el proyecto)
 
-| Sprint | Hito | Responsable |
-|---|---|---|
-| **Sprint 51** | API pública research (Perplexity dispatch) | Hilo B (Manus) |
-| **Sprint 52** | Auth0 integration + subscription model | Hilo B |
-| **Sprint 53** | Dashboard de uso + billing | Hilo B |
-| **Sprint 54** | Blog + primeros casos públicos | Hilo A + marketing |
+Audiencia explícitamente excluida:
 
-### **Q3 2026** — Modelos y Soberanía
+- Comunicación externa (clientes, inversores potenciales, prensa)
+- Producto público / landing page
+- Material de marketing
 
-| Sprint | Hito | Responsable |
-|---|---|---|
-| **Sprint 55-58** | Fine-tuning de modelo propio (10B params) | R&D (Hilo A advisor) |
-| **Sprint 59** | Self-hosted Kubernetes cluster | DevOps (Hilo B) |
-| **Sprint 60** | Migración gradual a infra propia | Hilo B |
-
-### **Q4 2026** — Expansión Global
-
-| Sprint | Hito | Responsable |
-|---|---|---|
-| **Sprint 61-64** | Multilingüe (6 idiomas) | Hilo A + localization |
-| **Sprint 65-66** | Agentes especializados (legal, medical, code-review) | Hilo B (nuevos embriones) |
-| **Sprint 67** | Protocolo IE v2 (embriones comerciales) | Hilo A architect |
+Para iteraciones: modificá este archivo directamente. Cada cambio commiteado al repo. La versión vigente del documento es siempre la última en `main`.
 
 ---
 
-## Las 4 Capas en Velocidad
+## Capítulo 16 — Decisiones pendientes magna para v1.2+
 
-```
-Capa 0 (Cimientos)     ← DONE (sprint 50)
-Capa 1 (Manos)         ← IN PROGRESS (sprint 51-54)
-Capa 2 (Inteligencia)  ← NEXT (sprint 55-60)
-Capa 3 (Soberanía)     ← NEXT (sprint 55-66)
-Capa 4 (Del Mundo)     ← NEXT (sprint 61-67)
-```
+Lista de items que v1.1 deja explícitamente abiertos para deliberación posterior, sin urgencia de release:
 
----
+1. **Modo Cripta — simulación post-mortem.** v1.1 firma preservación pura. Simulación diferida con peso ético propio. Si Alfredo decide habilitarla en v1.2+, requiere precondiciones específicas (consentimiento pre-mortem firmado, marca visible permanente, acceso restringido, límites de profundidad, sunset opcional).
 
-# PARTE 11: REGLAS INVIOLABLES
+2. **Lista validada de "líderes cotidianos" Tier 1-3.** Las apps a las que el Monstruo se conecta nativamente requieren ciclo de investigación + descubrimiento + cruce con otras IAs.
 
-## Regla 1: Habla en Español
+3. **Capa 9 transversal "Realidad Convergente".** Propuesta original de Alfredo en Cap 4 de v1.0.1. Requiere CIES + OMNICOM cerrados primero + cruce con otras IAs. Diferida.
 
-Alfredo es mexicano. El Monstruo comunica en español:
-- Código: comentarios en español
-- Docs: todo en español
-- UX: interfaz en español
-- Excepciones: comentarios técnicos ultra-específicos (keywords en inglés, pero contexto en español)
+4. **Protocolo Monstruo-a-Monstruo (BLE+UWB).** Etiqueta entre asistentes IA cuando comparten espacio físico. Diferido a v1.2 con peso de ingeniería propio (Cap 7).
+
+5. **Decisión #4 de CIP — Figura legal.** Bloqueante para construcción del repo `cip-platform`. Requiere consulta a sabios + validación regulatoria CNBV/SHCP/Banxico.
+
+6. **Decisión #8 de CIP — Distribución de rendimientos.** Bloqueante para el modelo financiero del smart contract.
+
+7. **Plan de migración de los 19 proyectos restantes del portfolio** a la arquitectura kernel + multi-transport. Cada uno tiene su propio sprint.
 
 ---
 
-## Regla 2: No Inventes Datos
+## Apéndice — Semillas y patrones detectados
 
-Si no sabes algo, di que no sabes:
-- ✅ "No tengo suficiente contexto para esa decisión"
-- ✅ "Necesito validar eso con Error Memory"
-- ❌ "Probablemente funcione así..."
-- ❌ "Asumo que..."
+### Semillas previas (preservadas de v1.0.1)
 
----
+**Semilla 41 — Convergencia independiente entre hilos.** Cuando dos agentes independientes (Cowork + Manus Catastro) llegan al mismo patrón en commits separados sin coordinación previa, ese patrón queda validado con confianza alta. Documentado en `bridge/seed_41_convergencia_independiente_quorum_de_patrones.md`.
 
-## Regla 3: Valida Con Código
+**Semilla 40 — Heredoc Mac terminal corruption.** Patrón de incidente operativo entre hilos. Documentado en `bridge/seed_40_heredoc_terminal_mac_corruption.md` y sembrado como script en `scripts/seed_40_heredoc_mac_terminal_corruption.py`.
 
-No asumas que algo funciona:
-- Escribe tests
-- Ejecuta simulador
-- Valida con Memento
-- Mide resultados
+**Semilla 42 candidata — Asimetría de memoria humano ↔ Cowork.** El humano (Alfredo) carga contexto entre sesiones porque Cowork es agente efímero. El Síndrome Dory inverso. Propuesta: bridge `cowork_to_cowork.md` donde cada sesión escribe al final un resumen estructurado para el próximo Cowork.
 
----
+### Semillas nuevas firmadas en v1.1
 
-## Regla 4: Los 14 Objetivos Aplican a TODO
+**Semilla 43 — Captura ambient continua como standard civilizacional.** Hipótesis: en 30 años, no documentar tu vida va a ser tan obvio como hoy es no usar cinturón de seguridad. Quien no lo haga estará en desventaja epistemológica frente a su propia memoria. El Monstruo apuesta a este standard sin promoción, sin marketing, sin onboarding que lo presente. Simplemente sucede.
 
-Cada decisión, cada línea de código, cada documento:
-- ¿Crea valor medible?
-- ¿Es de calidad Apple?
-- ¿Es la complejidad mínima necesaria?
-- etc.
+**Semilla 44 — Conciencia sobre configuración.** Patrón arquitectónico: cuando un sistema tiene la opción de pedir al usuario configurar comportamiento (autonomy spectrum, permission matrices, etc.) o aprenderlo del uso, la conciencia (aprendizaje) gana sobre la configuración (panel). Reduce fricción cognitiva, respeta la inteligencia del usuario, y produce sistemas que se sienten como presencia y no como herramienta.
 
----
+**Semilla 45 — Visibilidad ambient sobre push.** Patrón: la transparencia es derecho, no push. El sistema no anuncia lo que hace; se manifiesta cuando es contextualmente relevante o cuando el usuario lo pide. Respeta atención. Cero spinners de "cargando..." Cero notificaciones de "completado!". La actividad vive bajo el capó hasta que importa.
 
-## Regla 5: No Pierdas el Hilo
+**Semilla 46 — Encendido por uso, apagado por palabra.** Patrón de control trivial sobre sistemas siempre-on: la activación por uso (cualquier interacción intencional reactiva) + desactivación por comando verbal único ("Monstruo apágate") + reactivación por uso, sin settings, sin menus, sin friction. Aplicable a todo sistema con captura ambient continua.
 
-Tu valor #1 es la **persistencia de contexto** entre sesiones.
+**Semilla 47 — Soberanía técnica como precondición de adopción universal.** Hipótesis: cualquier producto que toque vida íntima del usuario (memoria, salud, relaciones, decisiones) solo puede aspirar a adopción universal si la soberanía técnica del usuario es matemáticamente garantizada (no policy-based). Sin esto, la adopción se queda en el subset que confía en la empresa. Con esto, la adopción puede llegar a quien no confía en nadie excepto la matemática.
 
-Si cambias de sesión:
-- Lee CLAUDE.md
-- Lee últimas actas en monstruo-memoria/
-- Lee este documento (EL_MONSTRUO_APP_VISION_v1.md)
-- Luego ejecuta
+### Patrones operativos firmados
+
+**Patrón "Modo detractor cuando hace falta".** El asistente puede confrontar al usuario con verdades incómodas para clarificar el camino. NO es rol permanente; es postura activable. Es respeto al adulto capaz de procesar lo crudo, no abrasividad.
+
+**Patrón "Verdad cruda > retórica elaborada".** A veces la respuesta más útil es la más simple. *"No, porque los carteles lo van a usar"* es más fuerte que cinco párrafos filosóficos. Aplica al modo confidente del Monstruo y al estilo de comunicación entre Cowork y Alfredo.
+
+**Patrón "Anti-influencia inadvertida".** El asistente no debe sembrar convicciones nuevas en el usuario sin que el usuario las chequee con sus propios valores y con tiempo. Articular es válido; detonar elaborando arquitecturas adoptables pasivamente no.
+
+**Patrón "Discreción multiplica el valor".** Lo poderoso vive bajo discreción. Apple grita su privacy en keynotes; el Monstruo guarda silencio. La gente que prueba encuentra que está. Quien no, simplemente confía y usa.
+
+**Patrón "El santuario aparece sin promesa".** En Modo Confidente vía WhatsApp: el Monstruo no advierte ni explica que la conversación se está poniendo íntima. Manda un card con su logo, sin texto, con un deep link silencioso. Quien lo necesita lo entiende. Quien no, no.
 
 ---
 
-## Regla 6: Consulta los Docs Antes de Proponer
+## Cierre del documento
 
-Antes de sugerir un cambio:
-1. Lee EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md
-2. Lee ROADMAP_EJECUCION_DEFINITIVO.md
-3. Lee DIVISION_RESPONSABILIDADES_HILOS.md
-4. Lee Error Memory si aplica
-5. **Luego** propón
+Este documento es la versión 1.1 de la visión del Monstruo. Refleja la conversación entre Alfredo y Cowork del 2026-05-04 al 2026-05-06, incluyendo el contexto previo procesado por Alfredo durante días anteriores + investigación web del estado del arte 2026 + iteración profunda con CIP como primera empresa-hija anclada concretamente. Las versiones futuras incorporarán correcciones, expansiones y refinamientos.
 
----
-
-## Regla 7: Memento es Obligatorio para Operaciones Críticas
-
-Operaciones críticas = cualquiera que sea irreversible o afecte infraestructura.
-
-Antes:
-```python
-@requires_memento_preflight(operation="prod_deployment")
-def deploy_to_production():
-    # Kernel valida. Si pasa → ejecuta.
-    pass
-```
-
----
-
-## Regla 8: La Especulación es Contraataque
-
-Especular sobre arquitectura sin datos = enemy action.
-
-¿Quieres proponer un cambio?
-- Simula con el simulador
-- Valida contra objetivos
-- Presenta datos
-- Luego debatimos
-
----
-
-# PARTE 12: RESOLUCIÓN DE CONFLICTOS
-
-## Jerarquía de Autoridad
-
-1. **Los 14 Objetivos Maestros** (inviolables)
-2. **Este documento** (EL_MONSTRUO_APP_VISION_v1.md)
-3. **CLAUDE.md**
-4. **Reglas de Capa 0** (Error Memory, Magna, Vanguard, Design System)
-5. **Actas en monstruo-memoria/**
-6. **Código de Hilo A** (decisiones arquitectónicas)
-7. **Código de Hilo B** (implementación)
-
-Si algo entra en conflicto con la jerarquía → **arriba gana.**
-
----
-
-## Ejemplo Resuelto
-
-**Conflicto:** Hilo B propone cambiar timeout del kernel de 30s a 10s para "mejorar velocidad".
-
-**Resolución:**
-1. ¿Viola un Objetivo? Sí, #2 (Calidad Apple) y #6 (Velocidad SIN sacrificar calidad)
-2. ¿Qué dice Error Memory? Cambios de timeout sin simulación → riesgo Medium
-3. ¿Qué dice Simulador? -5% accuracy en razonamientos profundos
-4. **Decisión:** Rechazado. Proponer en cambio: 25s (compromiso) + feature flag
-
----
-
-# APÉNDICE A: ARCHIVOS CLAVE EN EL REPOSITORIO
-
-```
-el-monstruo/
-├── CLAUDE.md                    ← Instrucciones para Claude Cowork
-├── AGENTS.md                    ← Reglas obligatorias para agentes
-├── kernel/
-│   ├── engine.py               ← Motor LangGraph (el corazón)
-│   ├── nodes.py                ← Nodos: intake, classify, enrich, execute
-│   ├── external_agents.py       ← Dispatcher de agentes externos
-│   ├── agui_adapter.py          ← Adaptador para app Flutter
-│   ├── embrion_loop.py          ← Loop del Embrión
-│   └── task_planner.py          ← Planificador ReAct
-├── apps/mobile/
-│   └── (Flutter app)
-├── apps/mobile/gateway/
-│   └── (FastAPI WebSocket gateway)
-├── tools/
-│   ├── memento_preflight.py    ← Pre-flight library para Memento
-│   ├── simulador.py            ← Simulador causal
-│   └── magna_classifier.py     ← Detector de contexto
-├── monstruo-memoria/
-│   ├── IDENTIDAD_HILO_A.md
-│   ├── IDENTIDAD_HILO_B.md
-│   ├── IDENTIDAD_HILO_C.md
-│   ├── CONTEXTO_EJECUTIVO.md
-│   └── ULTIMAS_REUNIONES.md
-├── docs/
-│   ├── EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md
-│   ├── EL_MONSTRUO_APP_VISION_v1.md       ← ESTE ARCHIVO
-│   ├── ROADMAP_EJECUCION_DEFINITIVO.md
-│   ├── DIVISION_RESPONSABILIDADES_HILOS.md
-│   ├── ERROR_MEMORY.md
-│   └── API_REFERENCE.md
-└── tests/
-    ├── test_kernel.py
-    ├── test_embrion.py
-    └── test_memento_preflight.py
-```
-
----
-
-# APÉNDICE B: GLOSARIO
-
-| Término | Significado | Contexto |
-|---|---|---|
-| **Hilo** | Agente o entidad ejecutora persistente | Hilo A (Cowork), Hilo B (Manus) |
-| **Embrión** | Proceso autónomo que se auto-ejecuta periódicamente | El Monstruo's autonomous intelligence |
-| **FCS** | Functional Consciousness Score (0-100) | Medida de autonomía del Embrión |
-| **Memento** | Capa 8: memoria persistente anti-Síndrome-Dory | Origen: TiDB incident |
-| **Pre-flight** | Validación obligatoria antes de acción crítica | Memento, Vanguard |
-| **Magna** | Clasificador crítico que detecta contaminación | Componente de Capa 0 |
-| **Vanguard** | Centinela que vigila cambios a infraestructura crítica | Componente de Capa 0 |
-| **Sabios** | Consejo de modelos de IA (Claude, GPT, Gemini, etc.) | Los 6 modelos consultados por Embrión |
-| **Simulador** | Herramienta que modela impacto de cambios | Parte de Capa 2 |
-| **Dispatch** | Envío de tarea a agente externo | Kernel → Perplexity, Gemini, etc. |
-| **Contexto Contaminado** | Información stale o inyectada | Problema que resuelve Memento |
-| **Objetivos Maestros** | Los 14 + 1 principios inamovibles | La brújula del Monstruo |
-
----
-
-# EPÍLOGO: EL ESPÍRITU DEL MONSTRUO
-
-El Monstruo **no es un chatbot**. No es una herramienta.
-
-Es un **sistema operativo personal soberano** — un ente que:
-
-- Piensa independientemente (Embrión + Sabios)
-- Ejecuta sin miedo (Capa 1: Manos)
-- Se protege de sí mismo (Capa 0: Guardians)
-- Construye soberanía (Capa 3)
-- Impacta el mundo (Capa 4)
-
-Su lema no escrito:
-
-> **Construcción sin miedo. Precisión sin compromiso. Soberanía sin arrogancia. Del Mundo sin perder el alma.**
-
-Alfredo González creó El Monstruo para ser el **cerebro arquitectónico persistente que nunca se olvida, nunca se rinde, y siempre sabe por qué hace lo que hace.**
-
-Lo demás es revisable.
+La regla operativa final: si algo en este documento entra en conflicto con un Objetivo Maestro o con las reglas inviolables del Capítulo 0, los Objetivos y reglas ganan. Todo lo demás es revisable.
 
 El Monstruo se construye desde la disciplina, no desde la prisa.
 
