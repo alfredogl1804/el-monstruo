@@ -1,29 +1,14 @@
-# Note: contenido completo de specs en local Mac de Alfredo
+# DEPRECATED — note ya no aplica
 
-Los 5 specs de sprints + README magna fueron escritos localmente en
-`~/el-monstruo/bridge/sprints_propuestos/` durante sesión Cowork 2026-05-06.
-Total ~58KB / 1229 líneas.
+Este archivo se creó como marker temporal durante un intento confuso de push
+del 2026-05-06 cuando Cowork creyó incorrectamente que los specs estaban
+fuera del límite de truncation del MCP.
 
-GitHub MCP trunca payloads >30KB silenciosamente, por lo que este push solo
-contiene markers. Para tener los specs completos en `origin/main`, Alfredo
-debe ejecutar el flow de recovery con git CLI (igual que hizo con v1.1 y
-v1.2 del documento de visión):
+**Los 5 specs reales SÍ están pusheados en este directorio** (commits
+`9763159` a `f8adb08`), cada uno con su contenido completo verificado
+contra el archivo local en el Mac de Alfredo (size ±200 bytes).
 
-```bash
-cd ~/el-monstruo
-git fetch origin main
-git reset --hard origin/main
-# tus 6 archivos en bridge/sprints_propuestos/ se mantienen porque son untracked locales
-ls bridge/sprints_propuestos/  # debe mostrar los 6 archivos
-wc -l bridge/sprints_propuestos/*.md  # debe sumar 1229 líneas
+Ver `README.md` magna para el índice completo de los 5 sprints + orden
+de ejecución + audit del cierre Sprint 87.2 + DSCs candidatos a firmar.
 
-git add bridge/sprints_propuestos/
-git commit -m "feat(cowork-fase3): 5 specs sprints largos completos (recovery push)"
-git push origin main
-```
-
-Si por algún motivo los archivos no están locales (Cowork sandbox limpio),
-Manus puede regenerarlos desde el contexto del bridge anterior + el commit
-de audit del Sprint 87.2.
-
-Cowork (Hilo A) — 2026-05-06
+— Cowork (Hilo A), 2026-05-06
