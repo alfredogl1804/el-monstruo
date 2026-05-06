@@ -36,8 +36,14 @@ from starlette.responses import JSONResponse
 
 logger = structlog.get_logger("kernel.auth")
 
-# Public paths that never require auth
+# Public paths that never require auth (always exact-match)
 PUBLIC_PATHS = frozenset({"/", "/health", "/health/auth", "/docs", "/openapi.json", "/redoc"})
+
+# Public ingest paths under /v1/* that bypass auth (Sprint 88 — 2026-05-06).
+# Used by anonymous tracking from public landings (monstruo-tracking.js) that must
+# POST without API key. Exact-match only — readers like /v1/traffic/summary/{run_id}
+# remain protected. Brand DNA: e2e_traffic_ingest_public_path.
+PUBLIC_INGEST_PATHS = frozenset({"/v1/traffic/ingest"})
 
 
 def _get_api_key() -> Optional[str]:
@@ -80,6 +86,16 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
 
         # Always allow OPTIONS (CORS preflight)
         if request.method == "OPTIONS":
+            return await call_next(request)
+
+        # Sprint 88 (Tarea 3.A.1) — public ingest paths bypass auth (anonymous tracking).
+        # Only POSTs allowed; GET/DELETE on these paths still require API key.
+        if request.url.path in PUBLIC_INGEST_PATHS and request.method == "POST":
+            logger.debug(
+                "auth_public_ingest_bypass",
+                path=request.url.path,
+                client=request.client.host if request.client else "unknown",
+            )
             return await call_next(request)
 
         # Enforce auth on /v1/* and /openai/v1/* paths only
