@@ -1,0 +1,118 @@
+/*
+ * El Monstruo — Reset Mínimo
+ *
+ * Reset deliberado, no agresivo. Asume que tokens.css ya está cargado.
+ * Aplica defaults industriales: Inter para body, graphite-700 background,
+ * acero-100 texto. Box-sizing border-box global. Sin "smooth scroll"
+ * decorativo — el ritmo es deliberado.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: auto; /* nunca smooth — ritmo deliberado */
+}
+
+body {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing-normal);
+  color: var(--color-text-default);
+  background-color: var(--color-bg-canvas);
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-snug);
+  letter-spacing: var(--letter-spacing-tight);
+  color: var(--color-text-default);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--color-state-action);
+  text-decoration: none;
+  transition: color var(--duration-quick) var(--easing-standard);
+}
+
+a:hover {
+  color: var(--color-state-action-hover);
+}
+
+a:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-brasa-strong);
+  border-radius: var(--radius-sm);
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-brasa-strong);
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--color-text-default);
+  background-color: var(--color-bg-recessed);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-2) var(--spacing-3);
+  transition: border-color var(--duration-quick) var(--easing-standard),
+              box-shadow var(--duration-quick) var(--easing-standard);
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: var(--color-border-forja);
+  box-shadow: var(--shadow-brasa);
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+}
+
+::selection {
+  background-color: var(--color-forja-700);
+  color: var(--color-acero-100);
+}

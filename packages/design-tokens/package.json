@@ -1,0 +1,72 @@
+{
+  "name": "@monstruo/design-tokens",
+  "version": "0.1.0",
+  "description": "Tokens de diseño canónicos del Monstruo. Espejo TS/CSS de kernel/brand/brand_dna.py — paleta forja+graphite+acero, tipografía Bebas Neue/Inter/JetBrains Mono. NUNCA usa naming genérico (primary/secondary/gray).",
+  "private": false,
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "files": [
+    "src",
+    "css",
+    "tailwind",
+    "docs",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    },
+    "./css": {
+      "default": "./css/tokens.css"
+    },
+    "./css/reset": {
+      "default": "./css/reset.css"
+    },
+    "./tailwind/preset": {
+      "default": "./tailwind/preset.js"
+    },
+    "./tailwind/theme": {
+      "default": "./tailwind/theme.css"
+    },
+    "./flutter": {
+      "default": "./flutter/monstruo_tokens.dart"
+    }
+  },
+  "scripts": {
+    "test": "node --test tests/",
+    "validate-parity": "node tests/parity_with_brand_dna.test.js"
+  },
+  "keywords": [
+    "design-tokens",
+    "el-monstruo",
+    "brand",
+    "forja",
+    "tailwind",
+    "css-custom-properties"
+  ],
+  "author": "El Monstruo (Hilo Catastro)",
+  "homepage": "https://github.com/alfredogl1804/el-monstruo/tree/main/packages/design-tokens",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alfredogl1804/el-monstruo.git",
+    "directory": "packages/design-tokens"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "tailwindcss": {
+      "optional": true
+    }
+  },
+  "monstruo": {
+    "source_of_truth": "kernel/brand/brand_dna.py",
+    "canonical_palette": ["forja", "graphite", "acero"],
+    "forbidden_naming": ["primary", "secondary", "gray", "dark", "light", "muted", "accent-1"],
+    "dscs": ["DSC-G-004", "DSC-MO-002"]
+  }
+}
