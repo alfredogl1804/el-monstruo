@@ -1,0 +1,29 @@
+# El Monstruo — Variables de entorno canónicas para Manus-Oauth
+# Copiar a .env.local del proyecto y rellenar.
+# Generado por skill manus-oauth-pattern v0.1.0
+
+# ── Server-side (NUNCA exponer al cliente) ─────────────────────────
+MANUS_OAUTH_CLIENT_ID=
+MANUS_OAUTH_CLIENT_SECRET=
+MANUS_OAUTH_REDIRECT_URI=https://tu-app.com/api/v1/auth/callback
+MANUS_OAUTH_SCOPE=openid profile email
+MANUS_OAUTH_TOKEN_URL=https://oauth.manus.im/token
+MANUS_OAUTH_USERINFO_URL=https://oauth.manus.im/userinfo
+MANUS_OAUTH_REVOKE_URL=https://oauth.manus.im/revoke
+
+# ── Client-side (NEXT_PUBLIC_ prefix obligatorio en Next.js) ───────
+NEXT_PUBLIC_MANUS_OAUTH_LOGIN_URL=https://oauth.manus.im/authorize
+NEXT_PUBLIC_MANUS_OAUTH_CLIENT_ID=
+
+# ── Sesión cookies del Monstruo ────────────────────────────────────
+MONSTRUO_SESSION_COOKIE_NAME=monstruo_session
+MONSTRUO_SESSION_TTL_SECONDS=2592000
+MONSTRUO_SESSION_SECRET=
+MONSTRUO_SESSION_DOMAIN=.tu-app.com
+
+# ── Encryption at rest del manus_token en DB ───────────────────────
+MONSTRUO_TOKEN_ENCRYPTION_KEY=
+
+# ── Logging on-brand ───────────────────────────────────────────────
+MONSTRUO_AUTH_LOG_LEVEL=info
+MONSTRUO_AUTH_LOG_NAMESPACE=monstruo.auth.manus_oauth
