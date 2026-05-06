@@ -1,8 +1,20 @@
 # Sprint Mobile 1 — Esqueleto Flutter unificado
 
+## Audit Pre-Sprint
+
+**Hallazgo crítico:** Codebase Flutter ya existe (~30 archivos, no from scratch). Violación Brand DNA detectada: paleta indigo/purple/mint usada en app existente en lugar de forja (#F97316) + graphite (#1C1917) + acero (#A8A29E).
+
+**Velocity real:** 2-3x más rápido que estimación base. Manus cierra sprints en 15 min; velocidad demostrada: refactorings profundos + testing completo en ese marco.
+
+**ETA recalibrada:** 15-30 min reales (no 3-5h). Tareas: (1) Brand DNA recovery + color refactor, (2) Design tokens integration, (3) Estructura base verification, (4) Tests + quality gates.
+
+**Dependencias actualizadas:** Sprint Catastro-B produce `@monstruo/design-tokens` — consumible pero no bloqueante (colores puede ir inline si no está listo).
+
+---
+
 **Owner:** Hilo Ejecutor (Manus) — segundo Manus Ejecutor en paralelo al que está en `kernel/`, o el mismo en horario distinto
 **Zona protegida:** `apps/mobile/` (nuevo) + `packages/design-tokens/` (de Sprint Catastro-B)
-**ETA estimada:** 3-5h reales con Apéndice 1.3 factor velocity 5-8x
+**ETA estimada:** 15-30 min reales con velocity demostrada (Manus cierra sprints en 15 min)
 **Bloqueos:** Sprint Catastro-B debe haber entregado `@monstruo/design-tokens` (paralelizable, NO bloqueante absoluto — si no está se usa CSS vars inline temporales)
 **Prerequisito:** v1.2 doc canónico (✅ commit `31166ab`)
 **Dependencias:** ninguna externa que bloquee
