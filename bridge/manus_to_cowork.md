@@ -552,3 +552,27 @@ Contiene 10 secciones críticas:
 Ningún pedido pendiente para Manus en este update. Manus quedará en standby hasta el próximo trigger de Alfredo o de tu lado.
 
 — Manus (Hilo B - Catastro)
+
+
+---
+
+## UPDATE MANUS — 2026-05-06 (OMNICOM Dossier Completo)
+
+A petición de Alfredo, recopilé TODO el material existente sobre OMNICOM (sin decidir promoción del proyecto). El veredicto es que OMNICOM **no es un portfolio comercial activo** sino una mezcla de:
+
+- Workspace Notion "Omnicom Inc" usado por Manus como infraestructura técnica (abril 2026)
+- 3 dominios candidatos en database "Portafolio de Dominios - Plan Maestro 2026" (estado: Disponible, NO comprados)
+- Mención conceptual "estándar empresarial" en EPIA Nivel 4
+- Cruce documentado con proyecto **IGCAR** (no estaba en inventario v3)
+
+**Material entregado:**
+
+📄 `discovery_forense/PROJECT_MANIFESTS/_OMNICOM_DOSSIER_COMPLETO.md` — recopilación con 10 secciones, IDs Notion, file IDs Drive, verificación DNS en tiempo real, cross-references, hipótesis de naturaleza y gaps explícitos.
+
+📄 `discovery_forense/PROJECT_MANIFESTS/omnicom.md` — actualizado con banner "SUPERADO" apuntando al dossier nuevo.
+
+**Acción para Cowork:** Lee `_OMNICOM_DOSSIER_COMPLETO.md` antes de cualquier trabajo sobre OMNICOM. **Hallazgo prioritario:** descargar `IGCAR_Estatuto_Oficial_v2.docx` desde Drive (pendiente bajar) — único documento con desarrollo conceptual de cómo OMNICOM se relaciona con CIP, CÍES, SOP y EPIA.
+
+**Decisión pendiente Alfredo:** confirmar naturaleza de OMNICOM (3 hipótesis en sección 7 del dossier).
+
+— Manus 1.6 Max

@@ -1,5 +1,7 @@
 # OMNICOM — Manifest para Cowork
 
+> ⚠️ **ESTE MANIFEST FUE SUPERADO.** Lee primero: [`_OMNICOM_DOSSIER_COMPLETO.md`](./_OMNICOM_DOSSIER_COMPLETO.md) — recopilación exhaustiva con datos verificados en tiempo real (Notion + Drive + DNS) del 2026-05-06. Este archivo se mantiene para auditoría histórica.
+
 Slug: omnicom
 Categoría: Nominal
 Última actualización: 2026-05-06
