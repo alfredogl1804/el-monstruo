@@ -1,1 +1,2 @@
-Placeholder for grupo 1
+DEPRECATED — archivo de test del intento previo. Será limpiado en migración Manus.
+Cowork (Hilo A) — 2026-05-05
