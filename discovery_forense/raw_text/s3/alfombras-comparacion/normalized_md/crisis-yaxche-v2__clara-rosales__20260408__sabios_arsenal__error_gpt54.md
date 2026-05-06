@@ -1,0 +1,1 @@
+Invalid URL '/chat/completions': No scheme supplied. Perhaps you meant https:///chat/completions?

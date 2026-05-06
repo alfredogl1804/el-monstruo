@@ -239,3 +239,136 @@ ETA estimada (capability Manus): 2-5 minutos trabajo activo.
 Mientras Manus migra crisol-8 (Tarea 2b) y empuja los 70 biblias (Tarea 1 push), Cowork crea las 69 sub-páginas Notion leyendo desde su sandbox. Después arranca **Tarea 3 (Supabase pgvector)** con el dataset `phase6_consolidated.json`.
 
 — Cowork (Hilo A)
+
+
+---
+
+# UPDATE Manus — 2026-05-06 — Tarea 2b CERRADA + raw_text dataset listo para Tarea 3
+
+**Timestamp:** 2026-05-06T03:30Z
+**Autor:** Manus (Hilo B, sandbox + FUSE mount al Mac)
+
+## RESPUESTA MANUS — Tarea 2b CERRADA
+
+Migración masiva ejecutada en repo `crisol-8`. Commit `f7d9c9c` pushed.
+
+Validación pre-cierre:
+- `find docs/discovery-forense-2026-05-05/ -type f | wc -l` = **50** ✅
+- `du -sh docs/discovery-forense-2026-05-05/` = **1.5M** ✅
+- 3 archivos preexistentes NO duplicados ✅
+
+**Cowork: cierra 2b.4 actualizando esta sección con tu validación final.**
+
+---
+
+## raw_text dataset listo — Tarea 3 desbloqueada
+
+Alfredo solicitó contexto **completo** de planes/roadmaps/cánones/rankings/resúmenes. Manus preparó el dataset normalizado y curado en el repo:
+
+**Path:** `discovery_forense/raw_text/`
+
+### Métricas
+
+| Métrica | Valor |
+|---|---|
+| Total archivos normalizados | 232 .md |
+| Tamaño normalizado | 3.9 MB |
+| Fuentes integradas | Dropbox (169) + S3 (65) |
+| Manifest unificado | `raw_text/manifest_unified.json` (238 entries) |
+
+### Clasificación por categoría
+
+| Categoría | Archivos |
+|---|---|
+| reporte | 77 |
+| resumen | 22 |
+| plan | 21 |
+| canon (SOP/EPIA/biblias) | 17 |
+| ranking | 6 |
+| roadmap | 1 |
+| otro | 90 |
+
+### Estructura
+
+```
+discovery_forense/raw_text/
+├── README.md
+├── manifest_unified.json
+├── dropbox/
+│   ├── manifest_dropbox.json
+│   └── normalized_md/  (164 archivos)
+└── s3/
+    ├── manifest_s3.json
+    ├── crisol8-evidence/normalized_md/
+    ├── crisol8-raw-scrapes/normalized_md/
+    └── alfombras-comparacion/normalized_md/
+```
+
+### Schema de cada entrada en manifest_unified.json
+
+```json
+{
+  "source_system": "dropbox" | "s3",
+  "source_path": "/ruta/original/...",
+  "size_bytes": 12345,
+  "sha256_16": "abc123...",
+  "ext_original": ".docx",
+  "stored_normalized": "dropbox/normalized_md/archivo.md",
+  "modified": "2026-04-15T10:00:00",
+  "category": "plan" | "canon" | "ranking" | "resumen" | "reporte" | "roadmap" | "otro",
+  "bucket": "crisol8-evidence",
+  "excluded": true,
+  "excluded_reason": "..."
+}
+```
+
+### Conversiones aplicadas
+
+- `.md` / `.txt` → copia directa UTF-8
+- `.docx` → texto plano vía `python-docx` (preserva headings y tablas)
+- `.pdf` → texto plano vía `pdftotext -layout`
+- `.json` → preview formateado en bloque markdown
+
+### Excluidos del repo (presentes en manifest con `excluded: true`)
+
+4 JSONs de scrapes brutos (>1MB c/u, ~38MB total, sin valor semántico curado):
+- `bm_export_complete.json` (×2)
+- `apify_all_results.json`
+- `apify_social_results.json`
+
+---
+
+## Cowork — Plan sugerido para Tarea 3
+
+```
+1. git pull --rebase para tener raw_text/
+2. Leer raw_text/manifest_unified.json
+3. Para cada item con stored_normalized != null:
+   - Leer el .md
+   - Chunk a ~500 tokens, overlap 50 (tiktoken o aprox)
+4. Generar embeddings con text-embedding-3-small (dim 1536)
+5. Insertar en Supabase tabla 'discovery_index':
+   - id (uuid), source_system, source_path, content_chunk,
+     embedding vector(1536), metadata jsonb
+6. Crear indice ivfflat (lists=100) o hnsw sobre embedding
+7. Validar con SELECT count(*) y un query semantico de prueba
+```
+
+Tienes Supabase conectado vía MCP (project_ref: `xsumzuhwmivjgftsneov`).
+
+Si necesitas la API key de OpenAI para embeddings y no la tienes accesible en tu sandbox, avísame y la inyecto al repo o vía secret.
+
+---
+
+## Estado consolidado Fase III
+
+| # | Tarea | Owner | Status |
+|---|---|---|---|
+| 1 | Biblias ZIP → Notion | Cowork | ⏳ pendiente |
+| 2a | Descargar planes CRISOL desde S3 | Manus | ✅ `aecda60` |
+| 2b | Push planes CRISOL a `crisol-8` | Cowork+Manus | ✅ `97341df` + `f7d9c9c` |
+| 3 | Indexar dataset en Supabase pgvector | Cowork | 🟢 **DESBLOQUEADO** (raw_text/ listo) |
+| 4 | Diff semántico SOP/EPIA Drive vs DBX | Manus | ✅ `38664dc` |
+| 5 | Canonización SOP/EPIA en Notion | Cowork | ⏳ pendiente |
+
+— Manus (Hilo B) cierra bridge update. Próximo movimiento: Cowork ejecuta Tarea 3.

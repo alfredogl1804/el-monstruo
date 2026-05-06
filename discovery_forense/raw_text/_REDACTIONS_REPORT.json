@@ -1,0 +1,46 @@
+{
+  "generated_at": "2026-05-06",
+  "files_scanned": 319,
+  "files_modified": 2,
+  "total_redactions": 6,
+  "by_label": {
+    "APIFY_TOKEN": 2,
+    "LONG_JWT": 4
+  },
+  "by_file": {
+    "dropbox/normalized_md/Respuesta_de_Grok_4___Plan_de_Investigación_13_Objetivos.md": 2,
+    "s3/crisol8-raw-scrapes/normalized_md/crisol8__20260327__perplexity_discovery_7years.md": 4
+  },
+  "redactions_sample": [
+    {
+      "label": "APIFY_TOKEN",
+      "preview": "apify_api_X827nWKPjchagHX...",
+      "file": "dropbox/normalized_md/Respuesta_de_Grok_4___Plan_de_Investigación_13_Objetivos.md"
+    },
+    {
+      "label": "APIFY_TOKEN",
+      "preview": "apify_api_X827nWKPjchagHX...",
+      "file": "dropbox/normalized_md/Respuesta_de_Grok_4___Plan_de_Investigación_13_Objetivos.md"
+    },
+    {
+      "label": "LONG_JWT",
+      "preview": "eyJ0eXAiOiJKV1QiLCJhbGciO...",
+      "file": "s3/crisol8-raw-scrapes/normalized_md/crisol8__20260327__perplexity_discovery_7years.md"
+    },
+    {
+      "label": "LONG_JWT",
+      "preview": "eyJ0eXAiOiJKV1QiLCJhbGciO...",
+      "file": "s3/crisol8-raw-scrapes/normalized_md/crisol8__20260327__perplexity_discovery_7years.md"
+    },
+    {
+      "label": "LONG_JWT",
+      "preview": "eyJ0eXAiOiJKV1QiLCJhbGciO...",
+      "file": "s3/crisol8-raw-scrapes/normalized_md/crisol8__20260327__perplexity_discovery_7years.md"
+    },
+    {
+      "label": "LONG_JWT",
+      "preview": "eyJ0eXAiOiJKV1QiLCJhbGciO...",
+      "file": "s3/crisol8-raw-scrapes/normalized_md/crisol8__20260327__perplexity_discovery_7years.md"
+    }
+  ]
+}

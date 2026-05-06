@@ -1,0 +1,1692 @@
+[
+  {
+    "source_system": "dropbox",
+    "source_path": "/RESUMEN PROYECTO CEIBA II.pdf",
+    "size_bytes": 6770318,
+    "sha256_16": "24bff3df7411440b",
+    "ext_original": ".pdf",
+    "stored_original": "_original/RESUMEN_PROYECTO_CEIBA_II.pdf",
+    "stored_normalized": "normalized_md/RESUMEN_PROYECTO_CEIBA_II.md",
+    "modified": "2025-12-09 00:03:13"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Planos.pdf",
+    "size_bytes": 4266480,
+    "sha256_16": "b08c200356fcfdba",
+    "ext_original": ".pdf",
+    "stored_original": "_original/Planos.pdf",
+    "stored_normalized": "normalized_md/Planos.md",
+    "modified": "2025-12-12 05:12:14"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/2025-08-11-LC2-MASTERPLAN.pdf",
+    "size_bytes": 1325773,
+    "sha256_16": "096bf971d6052027",
+    "ext_original": ".pdf",
+    "stored_original": "_original/2025-08-11-LC2-MASTERPLAN.pdf",
+    "stored_normalized": "normalized_md/2025-08-11-LC2-MASTERPLAN.md",
+    "modified": "2025-11-27 08:07:54"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/INFORME_ESTRATEGICO_MERIDA_2026.pdf",
+    "size_bytes": 381093,
+    "sha256_16": "dfd9b76902c2108b",
+    "ext_original": ".pdf",
+    "stored_original": "_original/INFORME_ESTRATEGICO_MERIDA_2026.pdf",
+    "stored_normalized": "normalized_md/INFORME_ESTRATEGICO_MERIDA_2026.md",
+    "modified": "2025-12-11 04:31:48"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/INVENTARIO_MAESTRO_2026.pdf",
+    "size_bytes": 345711,
+    "sha256_16": "7cf40668e0409abe",
+    "ext_original": ".pdf",
+    "stored_original": "_original/INVENTARIO_MAESTRO_2026.pdf",
+    "stored_normalized": "normalized_md/INVENTARIO_MAESTRO_2026.md",
+    "modified": "2026-01-16 10:55:09"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/24_AUDITORIAS_COMPLETAS.md",
+    "size_bytes": 292816,
+    "sha256_16": "312d37736e9bfb26",
+    "ext_original": ".md",
+    "stored_original": "_original/24_AUDITORIAS_COMPLETAS.md",
+    "stored_normalized": "normalized_md/24_AUDITORIAS_COMPLETAS.md",
+    "modified": "2026-04-05 22:30:43"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/MAESTRO_OPENROUTER.md",
+    "size_bytes": 287762,
+    "sha256_16": "729677ae3fef9b24",
+    "ext_original": ".md",
+    "stored_original": "_original/MAESTRO_OPENROUTER.md",
+    "stored_normalized": "normalized_md/MAESTRO_OPENROUTER.md",
+    "modified": "2026-04-05 21:45:42"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/monstruo_nucleo_lote1.pdf",
+    "size_bytes": 214747,
+    "sha256_16": "ec0fdbf42a1ba91d",
+    "ext_original": ".pdf",
+    "stored_original": "_original/monstruo_nucleo_lote1.pdf",
+    "stored_normalized": "normalized_md/monstruo_nucleo_lote1.md",
+    "modified": "2026-02-16 21:02:06"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/notion_summary.pdf",
+    "size_bytes": 205430,
+    "sha256_16": "433c7ef0adb72ef8",
+    "ext_original": ".pdf",
+    "stored_original": "_original/notion_summary.pdf",
+    "stored_normalized": "normalized_md/notion_summary.md",
+    "modified": "2026-02-16 13:22:50"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/11_AUDITORIAS_V21_COMPLETAS.md",
+    "size_bytes": 178787,
+    "sha256_16": "107b96f54e23649b",
+    "ext_original": ".md",
+    "stored_original": "_original/11_AUDITORIAS_V21_COMPLETAS.md",
+    "stored_normalized": "normalized_md/11_AUDITORIAS_V21_COMPLETAS.md",
+    "modified": "2026-04-06 00:05:18"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/11_AUDITORIAS_V2_COMPLETAS.md",
+    "size_bytes": 163082,
+    "sha256_16": "f139e99b9ecef62e",
+    "ext_original": ".md",
+    "stored_original": "_original/11_AUDITORIAS_V2_COMPLETAS.md",
+    "stored_normalized": "normalized_md/11_AUDITORIAS_V2_COMPLETAS.md",
+    "modified": "2026-04-05 23:31:52"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/insepcion/2025/PLAN BIENESTAR .pdf",
+    "size_bytes": 145943,
+    "sha256_16": "0b30619b5afa2c16",
+    "ext_original": ".pdf",
+    "stored_original": "_original/insepcion__2025__PLAN_BIENESTAR_.pdf",
+    "stored_normalized": "normalized_md/insepcion__2025__PLAN_BIENESTAR_.md",
+    "modified": "2026-03-26 02:37:22"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/PLAN BIENESTAR .pdf",
+    "size_bytes": 145943,
+    "sha256_16": "0b30619b5afa2c16",
+    "ext_original": ".pdf",
+    "stored_original": "_original/PLAN_BIENESTAR_.pdf",
+    "stored_normalized": "normalized_md/PLAN_BIENESTAR_.md",
+    "modified": "2026-03-26 02:37:28"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Reporte de Precios Workstations y Laptops RTX 5080_5090 (1).docx",
+    "size_bytes": 129928,
+    "sha256_16": "8c8856016b6a22aa",
+    "ext_original": ".docx",
+    "stored_original": "_original/Reporte_de_Precios_Workstations_y_Laptops_RTX_5080_5090__1_.docx",
+    "stored_normalized": "normalized_md/Reporte_de_Precios_Workstations_y_Laptops_RTX_5080_5090__1_.md",
+    "modified": "2025-12-06 03:57:30"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Reporte de Precios Workstations y Laptops RTX 5080_5090.docx",
+    "size_bytes": 129925,
+    "sha256_16": "09e3ebdc05c2b295",
+    "ext_original": ".docx",
+    "stored_original": "_original/Reporte_de_Precios_Workstations_y_Laptops_RTX_5080_5090.docx",
+    "stored_normalized": "normalized_md/Reporte_de_Precios_Workstations_y_Laptops_RTX_5080_5090.md",
+    "modified": "2025-12-06 03:54:58"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/12_AUDITORIAS_ANEXOS_COMPLETAS.md",
+    "size_bytes": 120180,
+    "sha256_16": "39b4b52a34d4b565",
+    "ext_original": ".md",
+    "stored_original": "_original/12_AUDITORIAS_ANEXOS_COMPLETAS.md",
+    "stored_normalized": "normalized_md/12_AUDITORIAS_ANEXOS_COMPLETAS.md",
+    "modified": "2026-04-06 00:30:25"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/ROCHE_BOBOIS_REPORTE_PRESTIGIO.md",
+    "size_bytes": 117885,
+    "sha256_16": "8cd6f2f56482623b",
+    "ext_original": ".md",
+    "stored_original": "_original/ROCHE_BOBOIS_REPORTE_PRESTIGIO.md",
+    "stored_normalized": "normalized_md/ROCHE_BOBOIS_REPORTE_PRESTIGIO.md",
+    "modified": "2025-12-02 10:41:55"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/ROCHE_BOBOIS_REPORTE_PRESTIGIO_VALIDADO.md",
+    "size_bytes": 114230,
+    "sha256_16": "944686c7cfbb79f5",
+    "ext_original": ".md",
+    "stored_original": "_original/ROCHE_BOBOIS_REPORTE_PRESTIGIO_VALIDADO.md",
+    "stored_normalized": "normalized_md/ROCHE_BOBOIS_REPORTE_PRESTIGIO_VALIDADO.md",
+    "modified": "2025-12-02 10:42:43"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/🏛️ ROCHE BOBOIS EL MAPA DE ICONICIDAD CULTURAL (REPORTE WIDE).pdf",
+    "size_bytes": 99408,
+    "sha256_16": "fcf36d0aa792ab40",
+    "ext_original": ".pdf",
+    "stored_original": "_original/___ROCHE_BOBOIS_EL_MAPA_DE_ICONICIDAD_CULTURAL__REPORTE_WIDE_.pdf",
+    "stored_normalized": "normalized_md/___ROCHE_BOBOIS_EL_MAPA_DE_ICONICIDAD_CULTURAL__REPORTE_WIDE_.md",
+    "modified": "2025-12-04 06:50:28"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Estados de cuenta sep- dic 2025/Reporte de Auditoría Reembolsos PayPal vs Estados de Cuenta BBVA.pdf",
+    "size_bytes": 96249,
+    "sha256_16": "6279abf08e0b3917",
+    "ext_original": ".pdf",
+    "stored_original": "_original/Estados_de_cuenta_sep-_dic_2025__Reporte_de_Auditoría_Reembolsos_PayPal_vs_Estados_de_Cuenta_BBVA.pdf",
+    "stored_normalized": "normalized_md/Estados_de_cuenta_sep-_dic_2025__Reporte_de_Auditoría_Reembolsos_PayPal_vs_Estados_de_Cuenta_BBVA.md",
+    "modified": "2026-03-28 03:39:49"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/EnROLANDOamigos/informe.docx",
+    "size_bytes": 91530,
+    "sha256_16": "181a60e32fd127c9",
+    "ext_original": ".docx",
+    "stored_original": "_original/EnROLANDOamigos__informe.docx",
+    "stored_normalized": "normalized_md/EnROLANDOamigos__informe.md",
+    "modified": "2012-07-28 02:16:40"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/ENTREGABLE 2 — DOCUMENTO FUNDACIONAL SOP.md",
+    "size_bytes": 44142,
+    "sha256_16": "0a422ab977016ee1",
+    "ext_original": ".md",
+    "stored_original": "_original/ENTREGABLE_2___DOCUMENTO_FUNDACIONAL_SOP.md",
+    "stored_normalized": "normalized_md/ENTREGABLE_2___DOCUMENTO_FUNDACIONAL_SOP.md",
+    "modified": "2026-04-05 02:10:30"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/DOCUMENTO_MAESTRO_MANUS_CLAUDE_v1.1.docx",
+    "size_bytes": 40691,
+    "sha256_16": "e6331cc4a04137ab",
+    "ext_original": ".docx",
+    "stored_original": "_original/DOCUMENTO_MAESTRO_MANUS_CLAUDE_v1.1.docx",
+    "stored_normalized": "normalized_md/DOCUMENTO_MAESTRO_MANUS_CLAUDE_v1.1.md",
+    "modified": "2025-12-19 02:01:14"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Repositorio_Maestro_SOP_EPIA_v4_0_Live.docx",
+    "size_bytes": 39834,
+    "sha256_16": "3de6a1764614bd54",
+    "ext_original": ".docx",
+    "stored_original": "_original/Repositorio_Maestro_SOP_EPIA_v4_0_Live.docx",
+    "stored_normalized": "normalized_md/Repositorio_Maestro_SOP_EPIA_v4_0_Live.md",
+    "modified": "2025-12-26 11:22:43"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/sabio_gpt5_plan13.docx",
+    "size_bytes": 38543,
+    "sha256_16": "d50ce391d73dc59a",
+    "ext_original": ".docx",
+    "stored_original": "_original/sabio_gpt5_plan13.docx",
+    "stored_normalized": "normalized_md/sabio_gpt5_plan13.md",
+    "modified": "2026-03-06 02:25:30"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Arquitectura de Absorción Soberana del Monstruo v2.0 — Versión Definitiva.md",
+    "size_bytes": 36180,
+    "sha256_16": "0ff5aa3c5e5e40ca",
+    "ext_original": ".md",
+    "stored_original": "_original/Arquitectura_de_Absorción_Soberana_del_Monstruo_v2.0___Versión_Definitiva.md",
+    "stored_normalized": "normalized_md/Arquitectura_de_Absorción_Soberana_del_Monstruo_v2.0___Versión_Definitiva.md",
+    "modified": "2026-04-05 17:10:33"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/TABLA_MAESTRA_STACK_MONSTRUO.md",
+    "size_bytes": 35313,
+    "sha256_16": "90f60e39f48fced6",
+    "ext_original": ".md",
+    "stored_original": "_original/TABLA_MAESTRA_STACK_MONSTRUO.md",
+    "stored_normalized": "normalized_md/TABLA_MAESTRA_STACK_MONSTRUO.md",
+    "modified": "2026-03-21 06:23:56"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/resumen_api_dropbox.docx",
+    "size_bytes": 33708,
+    "sha256_16": "403e46a53df32795",
+    "ext_original": ".docx",
+    "stored_original": "_original/resumen_api_dropbox.docx",
+    "stored_normalized": "normalized_md/resumen_api_dropbox.md",
+    "modified": "2026-02-01 23:02:16"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Arquitectura de Absorción Soberana de El Monstruo v2.1 (Definitiva).md",
+    "size_bytes": 32500,
+    "sha256_16": "73d10de38a8a743d",
+    "ext_original": ".md",
+    "stored_original": "_original/Arquitectura_de_Absorción_Soberana_de_El_Monstruo_v2.1__Definitiva_.md",
+    "stored_normalized": "normalized_md/Arquitectura_de_Absorción_Soberana_de_El_Monstruo_v2.1__Definitiva_.md",
+    "modified": "2026-04-05 17:10:33"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/EPIA — DOCUMENTO FUNDACIONAL MAESTRO.md",
+    "size_bytes": 31062,
+    "sha256_16": "fc897ac19e38dabe",
+    "ext_original": ".md",
+    "stored_original": "_original/EPIA___DOCUMENTO_FUNDACIONAL_MAESTRO.md",
+    "stored_normalized": "normalized_md/EPIA___DOCUMENTO_FUNDACIONAL_MAESTRO.md",
+    "modified": "2026-04-05 01:07:37"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/BITÁCORA DE REUBICACIÓN — MANUS × MONSTRUO.md",
+    "size_bytes": 29506,
+    "sha256_16": "a6f19cb260d2719f",
+    "ext_original": ".md",
+    "stored_original": "_original/BITÁCORA_DE_REUBICACIÓN___MANUS___MONSTRUO.md",
+    "stored_normalized": "normalized_md/BITÁCORA_DE_REUBICACIÓN___MANUS___MONSTRUO.md",
+    "modified": "2026-04-05 21:16:49"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Documento Final de Compilación — Investigación WIDE para El Monstruo v2.0.md",
+    "size_bytes": 28119,
+    "sha256_16": "1f79f03203da4f40",
+    "ext_original": ".md",
+    "stored_original": "_original/Documento_Final_de_Compilación___Investigación_WIDE_para_El_Monstruo_v2.0.md",
+    "stored_normalized": "normalized_md/Documento_Final_de_Compilación___Investigación_WIDE_para_El_Monstruo_v2.0.md",
+    "modified": "2026-04-05 05:25:14"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Documento Final de Compilación 2— Investigación WIDE para El Monstruo v2.0 (1).md",
+    "size_bytes": 28119,
+    "sha256_16": "1f79f03203da4f40",
+    "ext_original": ".md",
+    "stored_original": "_original/Documento_Final_de_Compilación_2__Investigación_WIDE_para_El_Monstruo_v2.0__1_.md",
+    "stored_normalized": "normalized_md/Documento_Final_de_Compilación_2__Investigación_WIDE_para_El_Monstruo_v2.0__1_.md",
+    "modified": "2026-04-05 05:40:54"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/AUDITORÍA FINAL DEL SOP — 6 SABIOS DE SEMILLA v7.3.md",
+    "size_bytes": 27370,
+    "sha256_16": "d8f93805f1535d93",
+    "ext_original": ".md",
+    "stored_original": "_original/AUDITORÍA_FINAL_DEL_SOP___6_SABIOS_DE_SEMILLA_v7.3.md",
+    "stored_normalized": "normalized_md/AUDITORÍA_FINAL_DEL_SOP___6_SABIOS_DE_SEMILLA_v7.3.md",
+    "modified": "2026-04-05 01:47:35"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/1. Resumen ejecutivo.md",
+    "size_bytes": 25970,
+    "sha256_16": "b01b8a75a4424d14",
+    "ext_original": ".md",
+    "stored_original": "_original/1._Resumen_ejecutivo.md",
+    "stored_normalized": "normalized_md/1._Resumen_ejecutivo.md",
+    "modified": "2026-04-06 00:20:53"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/ENTREGABLE 2 — DOCUMENTO FUNDACIONAL SOP.docx",
+    "size_bytes": 24064,
+    "sha256_16": "02b163660527b0be",
+    "ext_original": ".docx",
+    "stored_original": "_original/ENTREGABLE_2___DOCUMENTO_FUNDACIONAL_SOP.docx",
+    "stored_normalized": "normalized_md/ENTREGABLE_2___DOCUMENTO_FUNDACIONAL_SOP.md",
+    "modified": "2026-04-05 01:04:38"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/auditoria_completa_hilo_roche_bobois_20251227.md",
+    "size_bytes": 23809,
+    "sha256_16": "a9c7e79013943de9",
+    "ext_original": ".md",
+    "stored_original": "_original/auditoria_completa_hilo_roche_bobois_20251227.md",
+    "stored_normalized": "normalized_md/auditoria_completa_hilo_roche_bobois_20251227.md",
+    "modified": "2025-12-28 04:39:11"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/RESPUESTAS_DECISIONES_MONSTRUO_v2.md",
+    "size_bytes": 23409,
+    "sha256_16": "78fabdf3da096c8c",
+    "ext_original": ".md",
+    "stored_original": "_original/RESPUESTAS_DECISIONES_MONSTRUO_v2.md",
+    "stored_normalized": "normalized_md/RESPUESTAS_DECISIONES_MONSTRUO_v2.md",
+    "modified": "2026-03-21 05:04:43"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Respaldo SOP  13 de sep 25/Respaldo SOP  13 de sep 25.md",
+    "size_bytes": 23215,
+    "sha256_16": "b8dd1799bb5479be",
+    "ext_original": ".md",
+    "stored_original": "_original/Respaldo_SOP__13_de_sep_25__Respaldo_SOP__13_de_sep_25.md",
+    "stored_normalized": "normalized_md/Respaldo_SOP__13_de_sep_25__Respaldo_SOP__13_de_sep_25.md",
+    "modified": "2025-12-09 06:40:13"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/sin título 3/FERNANDO_AÑO1_CORE_MODO_CONSERVADOR_SOP.txt",
+    "size_bytes": 22818,
+    "sha256_16": "a95253d471dfdc6c",
+    "ext_original": ".txt",
+    "stored_original": "_original/sin_título_3__FERNANDO_AÑO1_CORE_MODO_CONSERVADOR_SOP.txt",
+    "stored_normalized": "normalized_md/sin_título_3__FERNANDO_AÑO1_CORE_MODO_CONSERVADOR_SOP.md",
+    "modified": "2025-12-07 23:29:49"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/EPIA — DOCUMENTO FUNDACIONAL MAESTRO.docx",
+    "size_bytes": 22464,
+    "sha256_16": "0c581cf5515d0d1f",
+    "ext_original": ".docx",
+    "stored_original": "_original/EPIA___DOCUMENTO_FUNDACIONAL_MAESTRO.docx",
+    "stored_normalized": "normalized_md/EPIA___DOCUMENTO_FUNDACIONAL_MAESTRO.md",
+    "modified": "2026-04-05 01:04:49"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Plan de Viabilidad RediseÃ±ado_ Proyecto.docx",
+    "size_bytes": 22434,
+    "sha256_16": "e9ebfc0096218300",
+    "ext_original": ".docx",
+    "stored_original": "_original/Plan_de_Viabilidad_RediseÃ_ado__Proyecto.docx",
+    "stored_normalized": "normalized_md/Plan_de_Viabilidad_RediseÃ_ado__Proyecto.md",
+    "modified": "2026-01-01 23:12:28"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/investigación multi ias/Manus/COPPEL_EXTREME_DEALS_REPORT.docx",
+    "size_bytes": 21712,
+    "sha256_16": "3685a1b4f01bb71e",
+    "ext_original": ".docx",
+    "stored_original": "_original/investigación_multi_ias__Manus__COPPEL_EXTREME_DEALS_REPORT.docx",
+    "stored_normalized": "normalized_md/investigación_multi_ias__Manus__COPPEL_EXTREME_DEALS_REPORT.md",
+    "modified": "2026-01-03 06:31:31"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/SOP+EPIA — REESTRUCTURACIÓN Y EVOLUCIÓN (Abril 2026).md",
+    "size_bytes": 21205,
+    "sha256_16": "3c8daa1cdbbc621b",
+    "ext_original": ".md",
+    "stored_original": "_original/SOP_EPIA___REESTRUCTURACIÓN_Y_EVOLUCIÓN__Abril_2026_.md",
+    "stored_normalized": "normalized_md/SOP_EPIA___REESTRUCTURACIÓN_Y_EVOLUCIÓN__Abril_2026_.md",
+    "modified": "2026-04-06 11:30:44"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/RESPUESTAS_DECISIONES_MONSTRUO_v2.docx",
+    "size_bytes": 20905,
+    "sha256_16": "979d021a2f85ee72",
+    "ext_original": ".docx",
+    "stored_original": "_original/RESPUESTAS_DECISIONES_MONSTRUO_v2.docx",
+    "stored_normalized": "normalized_md/RESPUESTAS_DECISIONES_MONSTRUO_v2.md",
+    "modified": "2026-04-04 04:18:59"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Doc1_Plan_Trabajo_Secretaria_Bienestar.docx",
+    "size_bytes": 20664,
+    "sha256_16": "fa6e6fdf2da6527d",
+    "ext_original": ".docx",
+    "stored_original": "_original/Doc1_Plan_Trabajo_Secretaria_Bienestar.docx",
+    "stored_normalized": "normalized_md/Doc1_Plan_Trabajo_Secretaria_Bienestar.md",
+    "modified": "2026-03-27 17:31:42"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Resumen - Proyecto papá.docx",
+    "size_bytes": 20221,
+    "sha256_16": "a4b1351c3afdd253",
+    "ext_original": ".docx",
+    "stored_original": "_original/Resumen_-_Proyecto_papá.docx",
+    "stored_normalized": "normalized_md/Resumen_-_Proyecto_papá.md",
+    "modified": "2026-01-01 20:52:31"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Diseño de Experiencia del Bot del Monstruo v1.0.docx",
+    "size_bytes": 19821,
+    "sha256_16": "5d8e7997243b4609",
+    "ext_original": ".docx",
+    "stored_original": "_original/Diseño_de_Experiencia_del_Bot_del_Monstruo_v1.0.docx",
+    "stored_normalized": "normalized_md/Diseño_de_Experiencia_del_Bot_del_Monstruo_v1.0.md",
+    "modified": "2026-04-07 01:08:26"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Ranking Registry v1.0 — El Monstruo.docx",
+    "size_bytes": 19671,
+    "sha256_16": "9cb94a7728ea7ce8",
+    "ext_original": ".docx",
+    "stored_original": "_original/Ranking_Registry_v1.0___El_Monstruo.docx",
+    "stored_normalized": "normalized_md/Ranking_Registry_v1.0___El_Monstruo.md",
+    "modified": "2026-03-01 23:02:13"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Plan Maestro Estratégico v2 Operación Doble Eje.docx",
+    "size_bytes": 19571,
+    "sha256_16": "49b53e14fa51fea4",
+    "ext_original": ".docx",
+    "stored_original": "_original/Plan_Maestro_Estratégico_v2_Operación_Doble_Eje.docx",
+    "stored_normalized": "normalized_md/Plan_Maestro_Estratégico_v2_Operación_Doble_Eje.md",
+    "modified": "2026-02-23 07:03:28"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/manus_ecosystem_research_report.docx",
+    "size_bytes": 18675,
+    "sha256_16": "51650ff9debe205f",
+    "ext_original": ".docx",
+    "stored_original": "_original/manus_ecosystem_research_report.docx",
+    "stored_normalized": "normalized_md/manus_ecosystem_research_report.md",
+    "modified": "2025-12-13 15:42:15"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe Final Las 5 Mejores Opciones de PC con GPU de Alto Rendimiento para D5 Render_IA desde México.docx",
+    "size_bytes": 18442,
+    "sha256_16": "3441b011e591e830",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_Final_Las_5_Mejores_Opciones_de_PC_con_GPU_de_Alto_Rendimiento_para_D5_Render_IA_desde_México.docx",
+    "stored_normalized": "normalized_md/Informe_Final_Las_5_Mejores_Opciones_de_PC_con_GPU_de_Alto_Rendimiento_para_D5_Render_IA_desde_México.md",
+    "modified": "2025-12-15 03:49:39"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/reporte_consolidado_beisbol_infantil_mexico.docx",
+    "size_bytes": 17915,
+    "sha256_16": "42c8b509d9b8321b",
+    "ext_original": ".docx",
+    "stored_original": "_original/reporte_consolidado_beisbol_infantil_mexico.docx",
+    "stored_normalized": "normalized_md/reporte_consolidado_beisbol_infantil_mexico.md",
+    "modified": "2026-02-20 11:30:46"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe Completo del Video para ChatGPT.docx",
+    "size_bytes": 17507,
+    "sha256_16": "7fbdb2276ecbf616",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_Completo_del_Video_para_ChatGPT.docx",
+    "stored_normalized": "normalized_md/Informe_Completo_del_Video_para_ChatGPT.md",
+    "modified": "2025-12-18 16:24:44"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Respuesta de Grok 4 — Plan de Investigación 13 Objetivos.docx",
+    "size_bytes": 17434,
+    "sha256_16": "b2ea9226ad06834a",
+    "ext_original": ".docx",
+    "stored_original": "_original/Respuesta_de_Grok_4___Plan_de_Investigación_13_Objetivos.docx",
+    "stored_normalized": "normalized_md/Respuesta_de_Grok_4___Plan_de_Investigación_13_Objetivos.md",
+    "modified": "2026-03-06 02:25:40"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/📊 RECOPILATORIO MAESTRO DE LAPTOPS - USA + MÉXICO.docx",
+    "size_bytes": 17164,
+    "sha256_16": "7d25fb0ab32139fa",
+    "ext_original": ".docx",
+    "stored_original": "_original/__RECOPILATORIO_MAESTRO_DE_LAPTOPS_-_USA___MÉXICO.docx",
+    "stored_normalized": "normalized_md/__RECOPILATORIO_MAESTRO_DE_LAPTOPS_-_USA___MÉXICO.md",
+    "modified": "2026-01-30 23:13:12"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/INFORME FINAL SUPER GANGAS DE LAPTOPS WORKSTATION_CREATOR.docx",
+    "size_bytes": 17002,
+    "sha256_16": "0d0d60c118e0a8f8",
+    "ext_original": ".docx",
+    "stored_original": "_original/INFORME_FINAL_SUPER_GANGAS_DE_LAPTOPS_WORKSTATION_CREATOR.docx",
+    "stored_normalized": "normalized_md/INFORME_FINAL_SUPER_GANGAS_DE_LAPTOPS_WORKSTATION_CREATOR.md",
+    "modified": "2026-01-03 05:12:11"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/investigación multi ias/Manus/INFORME FINAL SUPER GANGAS DE LAPTOPS WORKSTATION_CREATOR.docx",
+    "size_bytes": 17002,
+    "sha256_16": "0d0d60c118e0a8f8",
+    "ext_original": ".docx",
+    "stored_original": "_original/investigación_multi_ias__Manus__INFORME_FINAL_SUPER_GANGAS_DE_LAPTOPS_WORKSTATION_CREATOR.docx",
+    "stored_normalized": "normalized_md/investigación_multi_ias__Manus__INFORME_FINAL_SUPER_GANGAS_DE_LAPTOPS_WORKSTATION_CREATOR.md",
+    "modified": "2026-01-03 05:13:02"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/investigación multi ias/Manus/INFORME FINAL SUPER GANGAS DE LAPTOPS WORKSTATION_CREATOR (1).docx",
+    "size_bytes": 17002,
+    "sha256_16": "0d0d60c118e0a8f8",
+    "ext_original": ".docx",
+    "stored_original": "_original/investigación_multi_ias__Manus__INFORME_FINAL_SUPER_GANGAS_DE_LAPTOPS_WORKSTATION_CREATOR__1_.docx",
+    "stored_normalized": "normalized_md/investigación_multi_ias__Manus__INFORME_FINAL_SUPER_GANGAS_DE_LAPTOPS_WORKSTATION_CREATOR__1_.md",
+    "modified": "2026-01-03 06:15:40"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/INFORME PROFESIONAL ANÁLISIS DE SITUACIÓN REPUTACIONAL Y MEDIÁTICA.docx",
+    "size_bytes": 16884,
+    "sha256_16": "6755016a5c236da7",
+    "ext_original": ".docx",
+    "stored_original": "_original/INFORME_PROFESIONAL_ANÁLISIS_DE_SITUACIÓN_REPUTACIONAL_Y_MEDIÁTICA.docx",
+    "stored_normalized": "normalized_md/INFORME_PROFESIONAL_ANÁLISIS_DE_SITUACIÓN_REPUTACIONAL_Y_MEDIÁTICA.md",
+    "modified": "2025-12-20 00:04:50"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/investigación multi ias/Manus/🔍 REPORTE DE BÚSQUEDA EXHAUSTIVA EN COPPEL.docx",
+    "size_bytes": 16673,
+    "sha256_16": "3d9501ae55db7ff4",
+    "ext_original": ".docx",
+    "stored_original": "_original/investigación_multi_ias__Manus____REPORTE_DE_BÚSQUEDA_EXHAUSTIVA_EN_COPPEL.docx",
+    "stored_normalized": "normalized_md/investigación_multi_ias__Manus____REPORTE_DE_BÚSQUEDA_EXHAUSTIVA_EN_COPPEL.md",
+    "modified": "2026-01-03 05:53:47"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe de Investigación PC Torres RTX 5090_5080 para Mérida, Yucatán.docx",
+    "size_bytes": 16543,
+    "sha256_16": "529edcae71d705d3",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_de_Investigación_PC_Torres_RTX_5090_5080_para_Mérida__Yucatán.docx",
+    "stored_normalized": "normalized_md/Informe_de_Investigación_PC_Torres_RTX_5090_5080_para_Mérida__Yucatán.md",
+    "modified": "2025-12-26 16:45:58"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe Final Análisis Exhaustivo de Vans de Carga en México 2026.docx",
+    "size_bytes": 16459,
+    "sha256_16": "49a45067d3c549f4",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_Final_Análisis_Exhaustivo_de_Vans_de_Carga_en_México_2026.docx",
+    "stored_normalized": "normalized_md/Informe_Final_Análisis_Exhaustivo_de_Vans_de_Carga_en_México_2026.md",
+    "modified": "2026-01-14 22:07:44"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe Final Análisis Exhaustivo de Vans de Carga en México 2026 (1).docx",
+    "size_bytes": 16459,
+    "sha256_16": "49a45067d3c549f4",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_Final_Análisis_Exhaustivo_de_Vans_de_Carga_en_México_2026__1_.docx",
+    "stored_normalized": "normalized_md/Informe_Final_Análisis_Exhaustivo_de_Vans_de_Carga_en_México_2026__1_.md",
+    "modified": "2026-01-15 03:09:32"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/AUDITORÍA FINAL DE COMPRA - EVIDENCE PACK.docx",
+    "size_bytes": 16455,
+    "sha256_16": "8bfa425eb0915bbe",
+    "ext_original": ".docx",
+    "stored_original": "_original/AUDITORÍA_FINAL_DE_COMPRA_-_EVIDENCE_PACK.docx",
+    "stored_normalized": "normalized_md/AUDITORÍA_FINAL_DE_COMPRA_-_EVIDENCE_PACK.md",
+    "modified": "2026-01-31 04:49:17"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/REPORTE DE VALIDACIÓN DE PROYECTO v2.1.docx",
+    "size_bytes": 16268,
+    "sha256_16": "a4b1827df979f5d9",
+    "ext_original": ".docx",
+    "stored_original": "_original/REPORTE_DE_VALIDACIÓN_DE_PROYECTO_v2.1.docx",
+    "stored_normalized": "normalized_md/REPORTE_DE_VALIDACIÓN_DE_PROYECTO_v2.1.md",
+    "modified": "2026-01-01 21:37:49"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Auditoría Maestro Documento Fundacional de Usabilidad v1.md",
+    "size_bytes": 16209,
+    "sha256_16": "7e9cd221a8c4df1b",
+    "ext_original": ".md",
+    "stored_original": "_original/Auditoría_Maestro_Documento_Fundacional_de_Usabilidad_v1.md",
+    "stored_normalized": "normalized_md/Auditoría_Maestro_Documento_Fundacional_de_Usabilidad_v1.md",
+    "modified": "2026-04-05 22:30:58"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe de Investigación Usabilidad de Sistemas Multiagente _ AI OS _ Command Center.md",
+    "size_bytes": 16086,
+    "sha256_16": "1b9bd645d12c8107",
+    "ext_original": ".md",
+    "stored_original": "_original/Informe_de_Investigación_Usabilidad_de_Sistemas_Multiagente___AI_OS___Command_Center.md",
+    "stored_normalized": "normalized_md/Informe_de_Investigación_Usabilidad_de_Sistemas_Multiagente___AI_OS___Command_Center.md",
+    "modified": "2026-04-05 05:41:04"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/📊 REPORTE EJECUTIVO - WIDE RESEARCH DICIEMBRE 2025.docx",
+    "size_bytes": 16030,
+    "sha256_16": "052507ce26f3c1e1",
+    "ext_original": ".docx",
+    "stored_original": "_original/__REPORTE_EJECUTIVO_-_WIDE_RESEARCH_DICIEMBRE_2025.docx",
+    "stored_normalized": "normalized_md/__REPORTE_EJECUTIVO_-_WIDE_RESEARCH_DICIEMBRE_2025.md",
+    "modified": "2025-12-14 06:41:53"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Índice Completo — Biblias v4.1 de El Monstruo.docx",
+    "size_bytes": 16009,
+    "sha256_16": "68c3999f2a949aaf",
+    "ext_original": ".docx",
+    "stored_original": "_original/Índice_Completo___Biblias_v4.1_de_El_Monstruo.docx",
+    "stored_normalized": "normalized_md/Índice_Completo___Biblias_v4.1_de_El_Monstruo.md",
+    "modified": "2026-03-02 15:27:32"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/REPORTE DE VALIDACIÓN (DRY RUN) Valorización Circular de Sedimentos (7).docx",
+    "size_bytes": 15989,
+    "sha256_16": "81a8975e1fe42d2f",
+    "ext_original": ".docx",
+    "stored_original": "_original/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__7_.docx",
+    "stored_normalized": "normalized_md/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__7_.md",
+    "modified": "2026-01-01 22:44:25"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/REPORTE DE VALIDACIÓN (DRY RUN) Valorización Circular de Sedimentos (8).docx",
+    "size_bytes": 15989,
+    "sha256_16": "81a8975e1fe42d2f",
+    "ext_original": ".docx",
+    "stored_original": "_original/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__8_.docx",
+    "stored_normalized": "normalized_md/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__8_.md",
+    "modified": "2026-01-01 22:44:27"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/REPORTE DE VALIDACIÓN (DRY RUN) Valorización Circular de Sedimentos (6).docx",
+    "size_bytes": 15974,
+    "sha256_16": "c2b9fd5e3d0edf84",
+    "ext_original": ".docx",
+    "stored_original": "_original/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__6_.docx",
+    "stored_normalized": "normalized_md/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__6_.md",
+    "modified": "2026-01-01 22:42:00"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Respuesta de Gemini 3 Pro — Plan de Investigación 13 Objetivos.docx",
+    "size_bytes": 15818,
+    "sha256_16": "23825c1579a16ac0",
+    "ext_original": ".docx",
+    "stored_original": "_original/Respuesta_de_Gemini_3_Pro___Plan_de_Investigación_13_Objetivos.docx",
+    "stored_normalized": "normalized_md/Respuesta_de_Gemini_3_Pro___Plan_de_Investigación_13_Objetivos.md",
+    "modified": "2026-03-06 02:25:50"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/INFORME PROFESIONAL V2 ANÁLISIS DE SITUACIÓN REPUTACIONAL.docx",
+    "size_bytes": 15817,
+    "sha256_16": "4251ba49f421ee0a",
+    "ext_original": ".docx",
+    "stored_original": "_original/INFORME_PROFESIONAL_V2_ANÁLISIS_DE_SITUACIÓN_REPUTACIONAL.docx",
+    "stored_normalized": "normalized_md/INFORME_PROFESIONAL_V2_ANÁLISIS_DE_SITUACIÓN_REPUTACIONAL.md",
+    "modified": "2025-12-20 01:56:47"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/investigación multi ias/Manus/🏆 REPORTE DE OFERTAS COPPEL - WIDE RESEARCH EXTREMO.docx",
+    "size_bytes": 15789,
+    "sha256_16": "9006afb1d95e2475",
+    "ext_original": ".docx",
+    "stored_original": "_original/investigación_multi_ias__Manus____REPORTE_DE_OFERTAS_COPPEL_-_WIDE_RESEARCH_EXTREMO.docx",
+    "stored_normalized": "normalized_md/investigación_multi_ias__Manus____REPORTE_DE_OFERTAS_COPPEL_-_WIDE_RESEARCH_EXTREMO.md",
+    "modified": "2026-01-03 06:02:36"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/📋 AUDITORÍA TÉCNICA COMPLETA - HILO CASA BOSQUES STUDIO.md",
+    "size_bytes": 15569,
+    "sha256_16": "049b5d4c459d8407",
+    "ext_original": ".md",
+    "stored_original": "_original/__AUDITORÍA_TÉCNICA_COMPLETA_-_HILO_CASA_BOSQUES_STUDIO.md",
+    "stored_normalized": "normalized_md/__AUDITORÍA_TÉCNICA_COMPLETA_-_HILO_CASA_BOSQUES_STUDIO.md",
+    "modified": "2025-12-28 04:55:34"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/RESUMEN EJECUTIVO COLECCIONES ROCHE BOBOIS 2024-2025.docx",
+    "size_bytes": 15456,
+    "sha256_16": "f795574bf0a77cb4",
+    "ext_original": ".docx",
+    "stored_original": "_original/RESUMEN_EJECUTIVO_COLECCIONES_ROCHE_BOBOIS_2024-2025.docx",
+    "stored_normalized": "normalized_md/RESUMEN_EJECUTIVO_COLECCIONES_ROCHE_BOBOIS_2024-2025.md",
+    "modified": "2025-12-02 04:19:26"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/REPORTE DE VALIDACIÓN (DRY RUN) Valorización Circular de Sedimentos (5).docx",
+    "size_bytes": 15335,
+    "sha256_16": "903050a37da7064d",
+    "ext_original": ".docx",
+    "stored_original": "_original/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__5_.docx",
+    "stored_normalized": "normalized_md/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__5_.md",
+    "modified": "2026-01-01 22:38:44"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/REPORTE DE VALIDACIÓN (DRY RUN) Valorización Circular de Sedimentos (4).docx",
+    "size_bytes": 15320,
+    "sha256_16": "5d0de888361f63fc",
+    "ext_original": ".docx",
+    "stored_original": "_original/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__4_.docx",
+    "stored_normalized": "normalized_md/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__4_.md",
+    "modified": "2026-01-01 22:34:07"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/investigación multi ias/Manus/MANUS PLAN - 10 Hilos WIDE Research.docx",
+    "size_bytes": 15224,
+    "sha256_16": "2157e51f3afffe82",
+    "ext_original": ".docx",
+    "stored_original": "_original/investigación_multi_ias__Manus__MANUS_PLAN_-_10_Hilos_WIDE_Research.docx",
+    "stored_normalized": "normalized_md/investigación_multi_ias__Manus__MANUS_PLAN_-_10_Hilos_WIDE_Research.md",
+    "modified": "2026-01-03 16:56:17"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/REPORTE DE VALIDACIÓN (DRY RUN) Valorización Circular de Sedimentos (3).docx",
+    "size_bytes": 15200,
+    "sha256_16": "b7d2608ebe7b43b9",
+    "ext_original": ".docx",
+    "stored_original": "_original/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__3_.docx",
+    "stored_normalized": "normalized_md/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__3_.md",
+    "modified": "2026-01-01 22:30:05"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/REPORTE DE VALIDACIÓN (DRY RUN) Valorización Circular de Sedimentos (2).docx",
+    "size_bytes": 15122,
+    "sha256_16": "c3050d1941f143cd",
+    "ext_original": ".docx",
+    "stored_original": "_original/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__2_.docx",
+    "stored_normalized": "normalized_md/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__2_.md",
+    "modified": "2026-01-01 22:19:25"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/ÍNDICE DE REUBICACIÓN — MANUS × MONSTRUO.md",
+    "size_bytes": 15028,
+    "sha256_16": "736296004874e06a",
+    "ext_original": ".md",
+    "stored_original": "_original/ÍNDICE_DE_REUBICACIÓN___MANUS___MONSTRUO.md",
+    "stored_normalized": "normalized_md/ÍNDICE_DE_REUBICACIÓN___MANUS___MONSTRUO.md",
+    "modified": "2026-04-05 21:16:39"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/REPORTE DE VALIDACIÓN DE PROYECTO v2.0.docx",
+    "size_bytes": 14909,
+    "sha256_16": "d355973317dfbbfc",
+    "ext_original": ".docx",
+    "stored_original": "_original/REPORTE_DE_VALIDACIÓN_DE_PROYECTO_v2.0.docx",
+    "stored_normalized": "normalized_md/REPORTE_DE_VALIDACIÓN_DE_PROYECTO_v2.0.md",
+    "modified": "2026-01-01 21:33:36"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/REPORTE DE VALIDACIÓN (DRY RUN) Valorización Circular de Sedimentos (1).docx",
+    "size_bytes": 14849,
+    "sha256_16": "2ad8e0887a2af44a",
+    "ext_original": ".docx",
+    "stored_original": "_original/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__1_.docx",
+    "stored_normalized": "normalized_md/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos__1_.md",
+    "modified": "2026-01-01 22:08:55"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/REPORTE DE VALIDACIÓN (DRY RUN) Valorización Circular de Sedimentos.docx",
+    "size_bytes": 14806,
+    "sha256_16": "2b691284c3e37586",
+    "ext_original": ".docx",
+    "stored_original": "_original/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos.docx",
+    "stored_normalized": "normalized_md/REPORTE_DE_VALIDACIÓN__DRY_RUN__Valorización_Circular_de_Sedimentos.md",
+    "modified": "2026-01-01 22:05:38"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe Ejecutivo Cómputo Profesional en México.docx",
+    "size_bytes": 14805,
+    "sha256_16": "aed0c705034c4564",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_Ejecutivo_Cómputo_Profesional_en_México.docx",
+    "stored_normalized": "normalized_md/Informe_Ejecutivo_Cómputo_Profesional_en_México.md",
+    "modified": "2026-01-02 04:12:00"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/investigación multi ias/Manus/🎯 TESOROS DE DESCUENTO EN COPPEL - Reporte Final.docx",
+    "size_bytes": 14759,
+    "sha256_16": "df6f91b1a9a60457",
+    "ext_original": ".docx",
+    "stored_original": "_original/investigación_multi_ias__Manus____TESOROS_DE_DESCUENTO_EN_COPPEL_-_Reporte_Final.docx",
+    "stored_normalized": "normalized_md/investigación_multi_ias__Manus____TESOROS_DE_DESCUENTO_EN_COPPEL_-_Reporte_Final.md",
+    "modified": "2026-01-03 06:30:23"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/PLAN DE MUESTREO Y PANEL DE LABORATORIO v1.docx",
+    "size_bytes": 14618,
+    "sha256_16": "d95342b0c66ab4b6",
+    "ext_original": ".docx",
+    "stored_original": "_original/PLAN_DE_MUESTREO_Y_PANEL_DE_LABORATORIO_v1.docx",
+    "stored_normalized": "normalized_md/PLAN_DE_MUESTREO_Y_PANEL_DE_LABORATORIO_v1.md",
+    "modified": "2026-01-01 22:47:07"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/VALIDACIÓN GEMINI 3 PRO INFORME FERNANDO SALVADOR V2.docx",
+    "size_bytes": 14574,
+    "sha256_16": "ed57c3f73216f960",
+    "ext_original": ".docx",
+    "stored_original": "_original/VALIDACIÓN_GEMINI_3_PRO_INFORME_FERNANDO_SALVADOR_V2.docx",
+    "stored_normalized": "normalized_md/VALIDACIÓN_GEMINI_3_PRO_INFORME_FERNANDO_SALVADOR_V2.md",
+    "modified": "2025-12-20 00:24:12"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/REPORTE DE VALIDACIÓN Valorización Circular de Sedimentos.docx",
+    "size_bytes": 14563,
+    "sha256_16": "4e16a7f11ea113d3",
+    "ext_original": ".docx",
+    "stored_original": "_original/REPORTE_DE_VALIDACIÓN_Valorización_Circular_de_Sedimentos.docx",
+    "stored_normalized": "normalized_md/REPORTE_DE_VALIDACIÓN_Valorización_Circular_de_Sedimentos.md",
+    "modified": "2026-01-01 22:02:23"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/REPORTE DEFINITIVO VIDEO CLAVE 1 DE FERNANDO SALVADOR.docx",
+    "size_bytes": 14559,
+    "sha256_16": "1b289626e8b1079b",
+    "ext_original": ".docx",
+    "stored_original": "_original/REPORTE_DEFINITIVO_VIDEO_CLAVE_1_DE_FERNANDO_SALVADOR.docx",
+    "stored_normalized": "normalized_md/REPORTE_DEFINITIVO_VIDEO_CLAVE_1_DE_FERNANDO_SALVADOR.md",
+    "modified": "2025-12-16 02:15:40"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe de Recomendación de Compra Workstations para Render.docx",
+    "size_bytes": 14558,
+    "sha256_16": "bead9f492c789783",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_de_Recomendación_de_Compra_Workstations_para_Render.docx",
+    "stored_normalized": "normalized_md/Informe_de_Recomendación_de_Compra_Workstations_para_Render.md",
+    "modified": "2025-12-26 17:39:22"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe de Recomendación de Compra Workstations para Render (1).docx",
+    "size_bytes": 14558,
+    "sha256_16": "bead9f492c789783",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_de_Recomendación_de_Compra_Workstations_para_Render__1_.docx",
+    "stored_normalized": "normalized_md/Informe_de_Recomendación_de_Compra_Workstations_para_Render__1_.md",
+    "modified": "2025-12-26 18:22:49"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Auditoría Profunda de la Cadena de Suministro Socios Potenciales de Muebles de Lujo.docx",
+    "size_bytes": 14459,
+    "sha256_16": "94cae6f3daf00a33",
+    "ext_original": ".docx",
+    "stored_original": "_original/Auditoría_Profunda_de_la_Cadena_de_Suministro_Socios_Potenciales_de_Muebles_de_Lujo.docx",
+    "stored_normalized": "normalized_md/Auditoría_Profunda_de_la_Cadena_de_Suministro_Socios_Potenciales_de_Muebles_de_Lujo.md",
+    "modified": "2025-12-15 06:53:58"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Auditoría Profunda de la Cadena de Suministro Socios Potenciales de Muebles de Lujo (1).docx",
+    "size_bytes": 14459,
+    "sha256_16": "94cae6f3daf00a33",
+    "ext_original": ".docx",
+    "stored_original": "_original/Auditoría_Profunda_de_la_Cadena_de_Suministro_Socios_Potenciales_de_Muebles_de_Lujo__1_.docx",
+    "stored_normalized": "normalized_md/Auditoría_Profunda_de_la_Cadena_de_Suministro_Socios_Potenciales_de_Muebles_de_Lujo__1_.md",
+    "modified": "2025-12-15 06:55:16"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe de Auditoría de Reputación PC Gamer México.docx",
+    "size_bytes": 14365,
+    "sha256_16": "2fdc41dfc8d8ff4c",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_de_Auditoría_de_Reputación_PC_Gamer_México.docx",
+    "stored_normalized": "normalized_md/Informe_de_Auditoría_de_Reputación_PC_Gamer_México.md",
+    "modified": "2026-01-18 22:51:16"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Recomendación de GPT 5.2 — Siguiente Paso para El Monstruo.docx",
+    "size_bytes": 14309,
+    "sha256_16": "5ef86fd316de4d6b",
+    "ext_original": ".docx",
+    "stored_original": "_original/Recomendación_de_GPT_5.2___Siguiente_Paso_para_El_Monstruo.docx",
+    "stored_normalized": "normalized_md/Recomendación_de_GPT_5.2___Siguiente_Paso_para_El_Monstruo.md",
+    "modified": "2026-03-02 15:08:52"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Ranking Definitivo v2 — 52 Tapetes Roche Bobois Liquidación ($30,000 MXN c_u).docx",
+    "size_bytes": 14297,
+    "sha256_16": "1278ffe6664c9358",
+    "ext_original": ".docx",
+    "stored_original": "_original/Ranking_Definitivo_v2___52_Tapetes_Roche_Bobois_Liquidación___30_000_MXN_c_u_.docx",
+    "stored_normalized": "normalized_md/Ranking_Definitivo_v2___52_Tapetes_Roche_Bobois_Liquidación___30_000_MXN_c_u_.md",
+    "modified": "2026-02-27 05:02:24"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/DIAGNÓSTICO El Monstruo — Qué Sigue Vigente, Qué Quedó Obsoleto, Qué Es Nuevo.md",
+    "size_bytes": 14163,
+    "sha256_16": "f1584572a7878669",
+    "ext_original": ".md",
+    "stored_original": "_original/DIAGNÓSTICO_El_Monstruo___Qué_Sigue_Vigente__Qué_Quedó_Obsoleto__Qué_Es_Nuevo.md",
+    "stored_normalized": "normalized_md/DIAGNÓSTICO_El_Monstruo___Qué_Sigue_Vigente__Qué_Quedó_Obsoleto__Qué_Es_Nuevo.md",
+    "modified": "2026-03-21 04:36:58"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/RANKING FINAL CORREGIDO — LAPTOPS RTX PARA 3D_IA.docx",
+    "size_bytes": 14139,
+    "sha256_16": "cd8295909e1affe4",
+    "ext_original": ".docx",
+    "stored_original": "_original/RANKING_FINAL_CORREGIDO___LAPTOPS_RTX_PARA_3D_IA.docx",
+    "stored_normalized": "normalized_md/RANKING_FINAL_CORREGIDO___LAPTOPS_RTX_PARA_3D_IA.md",
+    "modified": "2026-01-31 21:50:18"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Tabla Resumen de Decisiones Arquitectónicas - Lote 5.md",
+    "size_bytes": 14115,
+    "sha256_16": "6b1a44f7e5435f52",
+    "ext_original": ".md",
+    "stored_original": "_original/Tabla_Resumen_de_Decisiones_Arquitectónicas_-_Lote_5.md",
+    "stored_normalized": "normalized_md/Tabla_Resumen_de_Decisiones_Arquitectónicas_-_Lote_5.md",
+    "modified": "2026-03-21 05:57:55"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Explorador de Piezas Herramientas Candidatas para El Monstruo.docx",
+    "size_bytes": 14020,
+    "sha256_16": "8554f4a0e751e92a",
+    "ext_original": ".docx",
+    "stored_original": "_original/Explorador_de_Piezas_Herramientas_Candidatas_para_El_Monstruo.docx",
+    "stored_normalized": "normalized_md/Explorador_de_Piezas_Herramientas_Candidatas_para_El_Monstruo.md",
+    "modified": "2026-02-08 00:04:06"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Análisis Consolidado Framework EPIA-SOP.docx",
+    "size_bytes": 13825,
+    "sha256_16": "3a31fb31457e29bd",
+    "ext_original": ".docx",
+    "stored_original": "_original/Análisis_Consolidado_Framework_EPIA-SOP.docx",
+    "stored_normalized": "normalized_md/Análisis_Consolidado_Framework_EPIA-SOP.md",
+    "modified": "2025-12-09 05:34:05"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe de Situación Actual y Recomendaciones Estratégicas Fernando Salvador.docx",
+    "size_bytes": 13812,
+    "sha256_16": "05d985475849b3d3",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_de_Situación_Actual_y_Recomendaciones_Estratégicas_Fernando_Salvador.docx",
+    "stored_normalized": "normalized_md/Informe_de_Situación_Actual_y_Recomendaciones_Estratégicas_Fernando_Salvador.md",
+    "modified": "2025-12-10 08:31:33"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe de Correcciones — Auditoría de Skills.docx",
+    "size_bytes": 13748,
+    "sha256_16": "ffbe411c5e22e3fe",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_de_Correcciones___Auditoría_de_Skills.docx",
+    "stored_normalized": "normalized_md/Informe_de_Correcciones___Auditoría_de_Skills.md",
+    "modified": "2026-04-10 01:03:14"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/RESUMEN TÉCNICO CORRECCIÓN DE VISTA AÉREA — COMPLEJO DEPORTIVO KUKULCÁN.docx",
+    "size_bytes": 13650,
+    "sha256_16": "e674e6a1ad1d71a0",
+    "ext_original": ".docx",
+    "stored_original": "_original/RESUMEN_TÉCNICO_CORRECCIÓN_DE_VISTA_AÉREA___COMPLEJO_DEPORTIVO_KUKULCÁN.docx",
+    "stored_normalized": "normalized_md/RESUMEN_TÉCNICO_CORRECCIÓN_DE_VISTA_AÉREA___COMPLEJO_DEPORTIVO_KUKULCÁN.md",
+    "modified": "2026-02-21 04:38:20"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe de Análisis Audiovisual Video sobre Fernando Salvador y La Madre de Todas las Batallas.docx",
+    "size_bytes": 13614,
+    "sha256_16": "58334bc950ac69d9",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_de_Análisis_Audiovisual_Video_sobre_Fernando_Salvador_y_La_Madre_de_Todas_las_Batallas.docx",
+    "stored_normalized": "normalized_md/Informe_de_Análisis_Audiovisual_Video_sobre_Fernando_Salvador_y_La_Madre_de_Todas_las_Batallas.md",
+    "modified": "2025-12-18 16:24:25"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe de Análisis Vans de Carga 2026.docx",
+    "size_bytes": 13593,
+    "sha256_16": "146807b21c228fbd",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_de_Análisis_Vans_de_Carga_2026.docx",
+    "stored_normalized": "normalized_md/Informe_de_Análisis_Vans_de_Carga_2026.md",
+    "modified": "2026-01-14 20:27:49"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/PLAN COMPLETO DE EQUIPAMIENTO - ALFREDO.docx",
+    "size_bytes": 13519,
+    "sha256_16": "d2656078f1fe9eac",
+    "ext_original": ".docx",
+    "stored_original": "_original/PLAN_COMPLETO_DE_EQUIPAMIENTO_-_ALFREDO.docx",
+    "stored_normalized": "normalized_md/PLAN_COMPLETO_DE_EQUIPAMIENTO_-_ALFREDO.md",
+    "modified": "2026-02-01 00:45:30"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/🔮 INFORME FINAL COMPLETO - BÚSQUEDA GLOBAL SAMSUNG THE SERO 43.docx",
+    "size_bytes": 13405,
+    "sha256_16": "a035a50809203412",
+    "ext_original": ".docx",
+    "stored_original": "_original/__INFORME_FINAL_COMPLETO_-_BÚSQUEDA_GLOBAL_SAMSUNG_THE_SERO_43.docx",
+    "stored_normalized": "normalized_md/__INFORME_FINAL_COMPLETO_-_BÚSQUEDA_GLOBAL_SAMSUNG_THE_SERO_43.md",
+    "modified": "2026-01-03 04:59:49"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/investigación multi ias/Manus/REPORTE EJECUTIVO Wide Research Coppel - Tesoros de Descuento.docx",
+    "size_bytes": 13389,
+    "sha256_16": "893c5ab8cdec1a40",
+    "ext_original": ".docx",
+    "stored_original": "_original/investigación_multi_ias__Manus__REPORTE_EJECUTIVO_Wide_Research_Coppel_-_Tesoros_de_Descuento.docx",
+    "stored_normalized": "normalized_md/investigación_multi_ias__Manus__REPORTE_EJECUTIVO_Wide_Research_Coppel_-_Tesoros_de_Descuento.md",
+    "modified": "2026-01-03 06:04:24"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Gemini-3-Pro Análisis Crítico de Impacto de Manus Agents en El Monstruo.docx",
+    "size_bytes": 13294,
+    "sha256_16": "d73698ee52dd948a",
+    "ext_original": ".docx",
+    "stored_original": "_original/Gemini-3-Pro_Análisis_Crítico_de_Impacto_de_Manus_Agents_en_El_Monstruo.docx",
+    "stored_normalized": "normalized_md/Gemini-3-Pro_Análisis_Crítico_de_Impacto_de_Manus_Agents_en_El_Monstruo.md",
+    "modified": "2026-02-14 08:02:59"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/PLAN CANON FINAL Recuperación de Reputación de Fernando Salvador.docx",
+    "size_bytes": 13257,
+    "sha256_16": "8de526cdc521d319",
+    "ext_original": ".docx",
+    "stored_original": "_original/PLAN_CANON_FINAL_Recuperación_de_Reputación_de_Fernando_Salvador.docx",
+    "stored_normalized": "normalized_md/PLAN_CANON_FINAL_Recuperación_de_Reputación_de_Fernando_Salvador.md",
+    "modified": "2025-12-13 05:21:30"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/SÍNTESIS — Metodología de Ranking Real de Agentes de IA.docx",
+    "size_bytes": 13193,
+    "sha256_16": "171ac6b2dc360e4a",
+    "ext_original": ".docx",
+    "stored_original": "_original/SÍNTESIS___Metodología_de_Ranking_Real_de_Agentes_de_IA.docx",
+    "stored_normalized": "normalized_md/SÍNTESIS___Metodología_de_Ranking_Real_de_Agentes_de_IA.md",
+    "modified": "2026-03-20 02:08:41"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe de Auditoría Ecosistema de Skills (api-context-injector, skill-factory, consulta-sabios).docx",
+    "size_bytes": 12882,
+    "sha256_16": "a948e3ffaf10dbfd",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_de_Auditoría_Ecosistema_de_Skills__api-context-injector__skill-factory__consulta-sabios_.docx",
+    "stored_normalized": "normalized_md/Informe_de_Auditoría_Ecosistema_de_Skills__api-context-injector__skill-factory__consulta-sabios_.md",
+    "modified": "2026-04-10 01:03:30"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe de Validación Tiendas Adicionales para RTX 5090_5080 en México.docx",
+    "size_bytes": 12791,
+    "sha256_16": "602c009b49087ed7",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_de_Validación_Tiendas_Adicionales_para_RTX_5090_5080_en_México.docx",
+    "stored_normalized": "normalized_md/Informe_de_Validación_Tiendas_Adicionales_para_RTX_5090_5080_en_México.md",
+    "modified": "2025-12-26 16:55:41"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Reporte Consolidado de Clasificación 22 Dominios - Operación Doble Eje.docx",
+    "size_bytes": 12662,
+    "sha256_16": "badb7489a70b2e9b",
+    "ext_original": ".docx",
+    "stored_original": "_original/Reporte_Consolidado_de_Clasificación_22_Dominios_-_Operación_Doble_Eje.docx",
+    "stored_normalized": "normalized_md/Reporte_Consolidado_de_Clasificación_22_Dominios_-_Operación_Doble_Eje.md",
+    "modified": "2026-03-07 23:15:13"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Auditoría de Seguridad, Arquitectura y UX LikeTickets.docx",
+    "size_bytes": 12530,
+    "sha256_16": "a5fa9b4030457447",
+    "ext_original": ".docx",
+    "stored_original": "_original/Auditoría_de_Seguridad__Arquitectura_y_UX_LikeTickets.docx",
+    "stored_normalized": "normalized_md/Auditoría_de_Seguridad__Arquitectura_y_UX_LikeTickets.md",
+    "modified": "2026-04-10 01:30:05"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/investigación multi ias/Manus/INFORME EJECUTIVO WIDE RESEARCH APPLE EN COPPEL.docx",
+    "size_bytes": 12478,
+    "sha256_16": "7980b5df0b5fa353",
+    "ext_original": ".docx",
+    "stored_original": "_original/investigación_multi_ias__Manus__INFORME_EJECUTIVO_WIDE_RESEARCH_APPLE_EN_COPPEL.docx",
+    "stored_normalized": "normalized_md/investigación_multi_ias__Manus__INFORME_EJECUTIVO_WIDE_RESEARCH_APPLE_EN_COPPEL.md",
+    "modified": "2026-01-03 05:57:55"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Estados de cuenta sep- dic 2025/Resumen de Capacidades API de Anthropic Claude.docx",
+    "size_bytes": 12416,
+    "sha256_16": "67d0505cf167cc5f",
+    "ext_original": ".docx",
+    "stored_original": "_original/Estados_de_cuenta_sep-_dic_2025__Resumen_de_Capacidades_API_de_Anthropic_Claude.docx",
+    "stored_normalized": "normalized_md/Estados_de_cuenta_sep-_dic_2025__Resumen_de_Capacidades_API_de_Anthropic_Claude.md",
+    "modified": "2026-03-28 03:18:13"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/sin título 3/PLAN DE ACCIÓN EJECUTABLE (PRIMER MES).docx",
+    "size_bytes": 12359,
+    "sha256_16": "a60319400961b831",
+    "ext_original": ".docx",
+    "stored_original": "_original/sin_título_3__PLAN_DE_ACCIÓN_EJECUTABLE__PRIMER_MES_.docx",
+    "stored_normalized": "normalized_md/sin_título_3__PLAN_DE_ACCIÓN_EJECUTABLE__PRIMER_MES_.md",
+    "modified": "2025-12-08 00:50:41"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Plan Maestro de Investigación Red de Ataque a 13 Objetivos.docx",
+    "size_bytes": 12343,
+    "sha256_16": "59858cc2635edbaf",
+    "ext_original": ".docx",
+    "stored_original": "_original/Plan_Maestro_de_Investigación_Red_de_Ataque_a_13_Objetivos.docx",
+    "stored_normalized": "normalized_md/Plan_Maestro_de_Investigación_Red_de_Ataque_a_13_Objetivos.md",
+    "modified": "2026-03-06 02:26:04"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/DOCUMENTO MAESTRO PARA MANUS_CLAUDE - GESTIÓN DE PROYECTOS Y TAREAS CON VALIDACIÓN GEMINI.docx",
+    "size_bytes": 12278,
+    "sha256_16": "857c42060b15dea6",
+    "ext_original": ".docx",
+    "stored_original": "_original/DOCUMENTO_MAESTRO_PARA_MANUS_CLAUDE_-_GESTIÓN_DE_PROYECTOS_Y_TAREAS_CON_VALIDACIÓN_GEMINI.docx",
+    "stored_normalized": "normalized_md/DOCUMENTO_MAESTRO_PARA_MANUS_CLAUDE_-_GESTIÓN_DE_PROYECTOS_Y_TAREAS_CON_VALIDACIÓN_GEMINI.md",
+    "modified": "2025-12-19 01:45:43"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Genealogía Evolutiva del Ecosistema SOP y EPIA.docx",
+    "size_bytes": 12165,
+    "sha256_16": "4f7c24c7aa4d737f",
+    "ext_original": ".docx",
+    "stored_original": "_original/Genealogía_Evolutiva_del_Ecosistema_SOP_y_EPIA.docx",
+    "stored_normalized": "normalized_md/Genealogía_Evolutiva_del_Ecosistema_SOP_y_EPIA.md",
+    "modified": "2026-04-06 11:31:15"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/eket_images/resumen.txt",
+    "size_bytes": 12121,
+    "sha256_16": "a373aeb830a124ec",
+    "ext_original": ".txt",
+    "stored_original": "_original/eket_images__resumen.txt",
+    "stored_normalized": "normalized_md/eket_images__resumen.md",
+    "modified": "2026-01-06 06:06:08"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/eket_images 2/resumen.txt",
+    "size_bytes": 12121,
+    "sha256_16": "a373aeb830a124ec",
+    "ext_original": ".txt",
+    "stored_original": "_original/eket_images_2__resumen.txt",
+    "stored_normalized": "normalized_md/eket_images_2__resumen.md",
+    "modified": "2026-01-06 06:07:49"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/eket_images 3/resumen.txt",
+    "size_bytes": 12121,
+    "sha256_16": "a373aeb830a124ec",
+    "ext_original": ".txt",
+    "stored_original": "_original/eket_images_3__resumen.txt",
+    "stored_normalized": "normalized_md/eket_images_3__resumen.md",
+    "modified": "2026-01-06 06:11:15"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/eket_images 4/resumen.txt",
+    "size_bytes": 12121,
+    "sha256_16": "a373aeb830a124ec",
+    "ext_original": ".txt",
+    "stored_original": "_original/eket_images_4__resumen.txt",
+    "stored_normalized": "normalized_md/eket_images_4__resumen.md",
+    "modified": "2026-01-06 06:14:47"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/sin título 3/PLAN DE IMPERIO MEDIÁTICO FERNANDO SALVADOR.docx",
+    "size_bytes": 11961,
+    "sha256_16": "ff56e837b4a6496e",
+    "ext_original": ".docx",
+    "stored_original": "_original/sin_título_3__PLAN_DE_IMPERIO_MEDIÁTICO_FERNANDO_SALVADOR.docx",
+    "stored_normalized": "normalized_md/sin_título_3__PLAN_DE_IMPERIO_MEDIÁTICO_FERNANDO_SALVADOR.md",
+    "modified": "2025-12-08 00:13:56"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/PLAN DE BÚSQUEDAS PARALELAS - WORKSTATIONS RTX 5090 EN MÉXICO.docx",
+    "size_bytes": 11901,
+    "sha256_16": "22bed0d84cd5668e",
+    "ext_original": ".docx",
+    "stored_original": "_original/PLAN_DE_BÚSQUEDAS_PARALELAS_-_WORKSTATIONS_RTX_5090_EN_MÉXICO.docx",
+    "stored_normalized": "normalized_md/PLAN_DE_BÚSQUEDAS_PARALELAS_-_WORKSTATIONS_RTX_5090_EN_MÉXICO.md",
+    "modified": "2025-12-08 05:17:32"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Reporte Exhaustivo de Mercado RTX 5080_5090 en México.docx",
+    "size_bytes": 11895,
+    "sha256_16": "a92a1cedb01718d7",
+    "ext_original": ".docx",
+    "stored_original": "_original/Reporte_Exhaustivo_de_Mercado_RTX_5080_5090_en_México.docx",
+    "stored_normalized": "normalized_md/Reporte_Exhaustivo_de_Mercado_RTX_5080_5090_en_México.md",
+    "modified": "2025-12-06 05:25:57"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Estados de cuenta sep- dic 2025/Reporte de Auditoría Reembolsos PayPal vs Estados de Cuenta BBVA.docx",
+    "size_bytes": 11884,
+    "sha256_16": "a8b76dff665dc81a",
+    "ext_original": ".docx",
+    "stored_original": "_original/Estados_de_cuenta_sep-_dic_2025__Reporte_de_Auditoría_Reembolsos_PayPal_vs_Estados_de_Cuenta_BBVA.docx",
+    "stored_normalized": "normalized_md/Estados_de_cuenta_sep-_dic_2025__Reporte_de_Auditoría_Reembolsos_PayPal_vs_Estados_de_Cuenta_BBVA.md",
+    "modified": "2026-03-28 03:39:05"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe Cronológico de Fallas Mentionlytics.docx",
+    "size_bytes": 11823,
+    "sha256_16": "bac2a3b184499a95",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_Cronológico_de_Fallas_Mentionlytics.docx",
+    "stored_normalized": "normalized_md/Informe_Cronológico_de_Fallas_Mentionlytics.md",
+    "modified": "2025-12-17 06:32:24"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe_de_Pruebas_Conector_GitHub_CLI_en_Manus.docx",
+    "size_bytes": 11739,
+    "sha256_16": "ccfd80973463bdd7",
+    "ext_original": ".docx",
+    "stored_original": "_original/Informe_de_Pruebas_Conector_GitHub_CLI_en_Manus.docx",
+    "stored_normalized": "normalized_md/Informe_de_Pruebas_Conector_GitHub_CLI_en_Manus.md",
+    "modified": "2026-03-07 19:37:51"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Auditoría del Sistema - Entorno Local de Manus AI.docx",
+    "size_bytes": 11711,
+    "sha256_16": "a6da8335fcc0bd64",
+    "ext_original": ".docx",
+    "stored_original": "_original/Auditoría_del_Sistema_-_Entorno_Local_de_Manus_AI.docx",
+    "stored_normalized": "normalized_md/Auditoría_del_Sistema_-_Entorno_Local_de_Manus_AI.md",
+    "modified": "2025-12-26 06:11:40"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/investigación multi ias/sin título/Informe_Verificacion_Hardware_Mexico_2026.docx",
+    "size_bytes": 11497,
+    "sha256_16": "ca934e452ec3b219",
+    "ext_original": ".docx",
+    "stored_original": "_original/investigación_multi_ias__sin_título__Informe_Verificacion_Hardware_Mexico_2026.docx",
+    "stored_normalized": "normalized_md/investigación_multi_ias__sin_título__Informe_Verificacion_Hardware_Mexico_2026.md",
+    "modified": "2026-01-02 05:59:35"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Plan de Acción Día a Día Estrategia El Renacer de Fernando Salvador.docx",
+    "size_bytes": 11438,
+    "sha256_16": "08572561396cd307",
+    "ext_original": ".docx",
+    "stored_original": "_original/Plan_de_Acción_Día_a_Día_Estrategia_El_Renacer_de_Fernando_Salvador.docx",
+    "stored_normalized": "normalized_md/Plan_de_Acción_Día_a_Día_Estrategia_El_Renacer_de_Fernando_Salvador.md",
+    "modified": "2025-12-12 07:36:11"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Auditoría Cruzada Sabios vs. Datos Duros — Arquitectura de Absorción Soberana v2.1.md",
+    "size_bytes": 11360,
+    "sha256_16": "b7af4ca39c32444e",
+    "ext_original": ".md",
+    "stored_original": "_original/Auditoría_Cruzada_Sabios_vs._Datos_Duros___Arquitectura_de_Absorción_Soberana_v2.1.md",
+    "stored_normalized": "normalized_md/Auditoría_Cruzada_Sabios_vs._Datos_Duros___Arquitectura_de_Absorción_Soberana_v2.1.md",
+    "modified": "2026-04-05 17:10:23"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/REPORTE_COMPLETO_PARA_CHATGPT.txt",
+    "size_bytes": 11314,
+    "sha256_16": "955a61e90e03be83",
+    "ext_original": ".txt",
+    "stored_original": "_original/REPORTE_COMPLETO_PARA_CHATGPT.txt",
+    "stored_normalized": "normalized_md/REPORTE_COMPLETO_PARA_CHATGPT.md",
+    "modified": "2025-12-15 23:43:17"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Auditoría de Propuesta ChatGPT Talkwalker + Manus.docx",
+    "size_bytes": 11245,
+    "sha256_16": "17c01325d5a6d74f",
+    "ext_original": ".docx",
+    "stored_original": "_original/Auditoría_de_Propuesta_ChatGPT_Talkwalker___Manus.docx",
+    "stored_normalized": "normalized_md/Auditoría_de_Propuesta_ChatGPT_Talkwalker___Manus.md",
+    "modified": "2025-12-19 06:00:39"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Reporte de Sentimiento Negativo - Fernando Salvador.docx",
+    "size_bytes": 10940,
+    "sha256_16": "6f8dd4aafb5f4662",
+    "ext_original": ".docx",
+    "stored_original": "_original/Reporte_de_Sentimiento_Negativo_-_Fernando_Salvador.docx",
+    "stored_normalized": "normalized_md/Reporte_de_Sentimiento_Negativo_-_Fernando_Salvador.md",
+    "modified": "2025-12-17 23:15:25"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/investigación multi ias/Manus/ETAPA 1 - UNIVERSE BUILD - RESUMEN EJECUTIVO.docx",
+    "size_bytes": 10589,
+    "sha256_16": "834808ea2cf462d6",
+    "ext_original": ".docx",
+    "stored_original": "_original/investigación_multi_ias__Manus__ETAPA_1_-_UNIVERSE_BUILD_-_RESUMEN_EJECUTIVO.docx",
+    "stored_normalized": "normalized_md/investigación_multi_ias__Manus__ETAPA_1_-_UNIVERSE_BUILD_-_RESUMEN_EJECUTIVO.md",
+    "modified": "2026-01-03 16:55:48"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/GPT-5.2 Análisis de Impacto de Manus Agents en El Monstruo.docx",
+    "size_bytes": 10454,
+    "sha256_16": "56b3f6a6dc9f5337",
+    "ext_original": ".docx",
+    "stored_original": "_original/GPT-5.2_Análisis_de_Impacto_de_Manus_Agents_en_El_Monstruo.docx",
+    "stored_normalized": "normalized_md/GPT-5.2_Análisis_de_Impacto_de_Manus_Agents_en_El_Monstruo.md",
+    "modified": "2026-02-14 08:02:49"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/🏛️ INVENTARIO MAESTRO DEFINITIVO ROCHE BOBOIS MÉXICO.md",
+    "size_bytes": 10273,
+    "sha256_16": "aeb84f19b9c03b52",
+    "ext_original": ".md",
+    "stored_original": "_original/___INVENTARIO_MAESTRO_DEFINITIVO_ROCHE_BOBOIS_MÉXICO.md",
+    "stored_normalized": "normalized_md/___INVENTARIO_MAESTRO_DEFINITIVO_ROCHE_BOBOIS_MÉXICO.md",
+    "modified": "2025-12-03 01:34:56"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Análisis del Ranking de Perplexity (directo del usuario).docx",
+    "size_bytes": 10002,
+    "sha256_16": "2ff65dc608061e3b",
+    "ext_original": ".docx",
+    "stored_original": "_original/Análisis_del_Ranking_de_Perplexity__directo_del_usuario_.docx",
+    "stored_normalized": "normalized_md/Análisis_del_Ranking_de_Perplexity__directo_del_usuario_.md",
+    "modified": "2026-02-27 05:15:41"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/REPORTE DEFINITIVO VIDEO CLAVE 1 DE FERNANDO SALVADOR.md",
+    "size_bytes": 9787,
+    "sha256_16": "a09c62649fa8f6f4",
+    "ext_original": ".md",
+    "stored_original": "_original/REPORTE_DEFINITIVO_VIDEO_CLAVE_1_DE_FERNANDO_SALVADOR.md",
+    "stored_normalized": "normalized_md/REPORTE_DEFINITIVO_VIDEO_CLAVE_1_DE_FERNANDO_SALVADOR.md",
+    "modified": "2025-12-16 02:16:14"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/AUDITORÍA COMPLETA - HILO AIRES ACONDICIONADOS.md",
+    "size_bytes": 9645,
+    "sha256_16": "469323704c035bce",
+    "ext_original": ".md",
+    "stored_original": "_original/AUDITORÍA_COMPLETA_-_HILO_AIRES_ACONDICIONADOS.md",
+    "stored_normalized": "normalized_md/AUDITORÍA_COMPLETA_-_HILO_AIRES_ACONDICIONADOS.md",
+    "modified": "2025-12-28 04:51:53"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Análisis de Cobertura Candidatos para las 4 Capas Nuevas del Monstruo v2.0.md",
+    "size_bytes": 9518,
+    "sha256_16": "340e5a6efebe782c",
+    "ext_original": ".md",
+    "stored_original": "_original/Análisis_de_Cobertura_Candidatos_para_las_4_Capas_Nuevas_del_Monstruo_v2.0.md",
+    "stored_normalized": "normalized_md/Análisis_de_Cobertura_Candidatos_para_las_4_Capas_Nuevas_del_Monstruo_v2.0.md",
+    "modified": "2026-03-21 05:26:27"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Validación del Documento Fundacional de Usabilidad v1.md",
+    "size_bytes": 8641,
+    "sha256_16": "8514f73264f4b550",
+    "ext_original": ".md",
+    "stored_original": "_original/Validación_del_Documento_Fundacional_de_Usabilidad_v1.md",
+    "stored_normalized": "normalized_md/Validación_del_Documento_Fundacional_de_Usabilidad_v1.md",
+    "modified": "2026-04-05 22:01:15"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Investigación de Arquitecturas Modulares Anti-Obsolescencia para El Monstruo v2.0.md",
+    "size_bytes": 8553,
+    "sha256_16": "861d1a412ff652a1",
+    "ext_original": ".md",
+    "stored_original": "_original/Investigación_de_Arquitecturas_Modulares_Anti-Obsolescencia_para_El_Monstruo_v2.0.md",
+    "stored_normalized": "normalized_md/Investigación_de_Arquitecturas_Modulares_Anti-Obsolescencia_para_El_Monstruo_v2.0.md",
+    "modified": "2026-04-05 05:46:52"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe de Investigación Módulos de Negocio Reutilizables para El Monstruo v2.0.md",
+    "size_bytes": 8538,
+    "sha256_16": "2d6e6e7a91a3d23f",
+    "ext_original": ".md",
+    "stored_original": "_original/Informe_de_Investigación_Módulos_de_Negocio_Reutilizables_para_El_Monstruo_v2.0.md",
+    "stored_normalized": "normalized_md/Informe_de_Investigación_Módulos_de_Negocio_Reutilizables_para_El_Monstruo_v2.0.md",
+    "modified": "2026-04-05 05:47:13"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Informe de Investigación Interfaz Nativa vs. API_MCP en Modelos Frontier.md",
+    "size_bytes": 8303,
+    "sha256_16": "0b75e77154680ad5",
+    "ext_original": ".md",
+    "stored_original": "_original/Informe_de_Investigación_Interfaz_Nativa_vs._API_MCP_en_Modelos_Frontier.md",
+    "stored_normalized": "normalized_md/Informe_de_Investigación_Interfaz_Nativa_vs._API_MCP_en_Modelos_Frontier.md",
+    "modified": "2026-04-05 05:45:44"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/prompt_auditoria_copiar_pegar.txt",
+    "size_bytes": 7942,
+    "sha256_16": "e7d7cd942d048c70",
+    "ext_original": ".txt",
+    "stored_original": "_original/prompt_auditoria_copiar_pegar.txt",
+    "stored_normalized": "normalized_md/prompt_auditoria_copiar_pegar.md",
+    "modified": "2025-12-28 04:30:37"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/RESUMEN EJECUTIVO — REORGANIZACIÓN CANÓNICA DEL MONSTRUO.md",
+    "size_bytes": 7123,
+    "sha256_16": "c8d37fd68e21d4f2",
+    "ext_original": ".md",
+    "stored_original": "_original/RESUMEN_EJECUTIVO___REORGANIZACIÓN_CANÓNICA_DEL_MONSTRUO.md",
+    "stored_normalized": "normalized_md/RESUMEN_EJECUTIVO___REORGANIZACIÓN_CANÓNICA_DEL_MONSTRUO.md",
+    "modified": "2026-04-05 21:16:45"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Análisis de Patrones de Integración y Orquestación para El Monstruo v2.0.md",
+    "size_bytes": 6892,
+    "sha256_16": "88eee9bc942a03c5",
+    "ext_original": ".md",
+    "stored_original": "_original/Análisis_de_Patrones_de_Integración_y_Orquestación_para_El_Monstruo_v2.0.md",
+    "stored_normalized": "normalized_md/Análisis_de_Patrones_de_Integración_y_Orquestación_para_El_Monstruo_v2.0.md",
+    "modified": "2026-04-05 05:47:41"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Análisis de Soluciones de Gobernabilidad de IAs y Agentes para El Monstruo v2.0.md",
+    "size_bytes": 6718,
+    "sha256_16": "c51f6896b26b1830",
+    "ext_original": ".md",
+    "stored_original": "_original/Análisis_de_Soluciones_de_Gobernabilidad_de_IAs_y_Agentes_para_El_Monstruo_v2.0.md",
+    "stored_normalized": "normalized_md/Análisis_de_Soluciones_de_Gobernabilidad_de_IAs_y_Agentes_para_El_Monstruo_v2.0.md",
+    "modified": "2026-04-05 05:45:50"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Consenso de los 5 Sabios Evolución de la Arquitectura de El Monstruo.md",
+    "size_bytes": 6234,
+    "sha256_16": "fa9ff39db887f428",
+    "ext_original": ".md",
+    "stored_original": "_original/Consenso_de_los_5_Sabios_Evolución_de_la_Arquitectura_de_El_Monstruo.md",
+    "stored_normalized": "normalized_md/Consenso_de_los_5_Sabios_Evolución_de_la_Arquitectura_de_El_Monstruo.md",
+    "modified": "2026-03-21 05:19:31"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/AUDITORÍA COMPLETA Y AUTO-ANÁLISIS - HILO CUPONES.md",
+    "size_bytes": 6227,
+    "sha256_16": "67bac0e6e521a539",
+    "ext_original": ".md",
+    "stored_original": "_original/AUDITORÍA_COMPLETA_Y_AUTO-ANÁLISIS_-_HILO_CUPONES.md",
+    "stored_normalized": "normalized_md/AUDITORÍA_COMPLETA_Y_AUTO-ANÁLISIS_-_HILO_CUPONES.md",
+    "modified": "2025-12-28 04:59:35"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Reporte de Investigación Proactividad de Herramientas para El Monstruo v2.0.md",
+    "size_bytes": 5296,
+    "sha256_16": "f406fc15ecaac7c1",
+    "ext_original": ".md",
+    "stored_original": "_original/Reporte_de_Investigación_Proactividad_de_Herramientas_para_El_Monstruo_v2.0.md",
+    "stored_normalized": "normalized_md/Reporte_de_Investigación_Proactividad_de_Herramientas_para_El_Monstruo_v2.0.md",
+    "modified": "2026-04-05 05:45:57"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/template_biblia.md",
+    "size_bytes": 4933,
+    "sha256_16": "b0f3ca42cb133c94",
+    "ext_original": ".md",
+    "stored_original": "_original/template_biblia.md",
+    "stored_normalized": "normalized_md/template_biblia.md",
+    "modified": "2026-03-01 07:13:26"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Análisis de Soluciones para Ejecución Técnica en El Monstruo v2.0.md",
+    "size_bytes": 4453,
+    "sha256_16": "91119dc54e911a4b",
+    "ext_original": ".md",
+    "stored_original": "_original/Análisis_de_Soluciones_para_Ejecución_Técnica_en_El_Monstruo_v2.0.md",
+    "stored_normalized": "normalized_md/Análisis_de_Soluciones_para_Ejecución_Técnica_en_El_Monstruo_v2.0.md",
+    "modified": "2026-04-05 05:46:13"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Análisis de Soluciones para Ejecución Técnica en El Monstruo v2.0 (1).md",
+    "size_bytes": 4453,
+    "sha256_16": "91119dc54e911a4b",
+    "ext_original": ".md",
+    "stored_original": "_original/Análisis_de_Soluciones_para_Ejecución_Técnica_en_El_Monstruo_v2.0__1_.md",
+    "stored_normalized": "normalized_md/Análisis_de_Soluciones_para_Ejecución_Técnica_en_El_Monstruo_v2.0__1_.md",
+    "modified": "2026-04-05 05:46:30"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Análisis de Soluciones para Ejecución Técnica en El Monstruo v2.0 (2).md",
+    "size_bytes": 4453,
+    "sha256_16": "91119dc54e911a4b",
+    "ext_original": ".md",
+    "stored_original": "_original/Análisis_de_Soluciones_para_Ejecución_Técnica_en_El_Monstruo_v2.0__2_.md",
+    "stored_normalized": "normalized_md/Análisis_de_Soluciones_para_Ejecución_Técnica_en_El_Monstruo_v2.0__2_.md",
+    "modified": "2026-04-05 05:46:36"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/Ok 🚀 Aquí tienes el Listado Consolidado de Reglas SOP activas en…/Ok 🚀 Aquí tienes el Listado Consolidado de Reglas SOP activas en….md",
+    "size_bytes": 3133,
+    "sha256_16": "7b9684af62593f1e",
+    "ext_original": ".md",
+    "stored_original": "_original/Ok___Aquí_tienes_el_Listado_Consolidado_de_Reglas_SOP_activas_en___Ok___Aquí_tienes_el_Listado_Consolidado_de_Reglas_SOP_activas_en_.md",
+    "stored_normalized": "normalized_md/Ok___Aquí_tienes_el_Listado_Consolidado_de_Reglas_SOP_activas_en___Ok___Aquí_tienes_el_Listado_Consolidado_de_Reglas_SOP_activas_en_.md",
+    "modified": "2025-12-09 06:45:55"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/metodologia_ranking.md",
+    "size_bytes": 2987,
+    "sha256_16": "5dc777a2d98f17bd",
+    "ext_original": ".md",
+    "stored_original": "_original/metodologia_ranking.md",
+    "stored_normalized": "normalized_md/metodologia_ranking.md",
+    "modified": "2026-03-01 07:13:06"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/🎯 RESUMEN V2.0 - UNA PÁGINA.md",
+    "size_bytes": 2443,
+    "sha256_16": "9026cb7b5fca646c",
+    "ext_original": ".md",
+    "stored_original": "_original/__RESUMEN_V2.0_-_UNA_PÁGINA.md",
+    "stored_normalized": "normalized_md/__RESUMEN_V2.0_-_UNA_PÁGINA.md",
+    "modified": "2025-11-30 08:56:47"
+  },
+  {
+    "source_system": "dropbox",
+    "source_path": "/monstruo-backups/monstruo_manifest_20260417_051525.json",
+    "size_bytes": 786,
+    "sha256_16": "ddc269e0862a4dd1",
+    "ext_original": ".json",
+    "stored_original": "_original/monstruo-backups__monstruo_manifest_20260417_051525.json",
+    "stored_normalized": "normalized_md/monstruo-backups__monstruo_manifest_20260417_051525.json.md",
+    "modified": "2026-04-17 05:15:35"
+  }
+]
