@@ -1,169 +1,328 @@
-# Sprint Mobile 4 — Modo Cockpit fase 2
+# Sprint Mobile 4 — Modo Cockpit Fase 2: 5 Más Superficies (Memento, Portfolio Empresas-Hijas, FinOps, Pipeline E2E, Replay/Timelapse)
 
-**Owner:** Hilo Ejecutor (Manus) Mobile
-**Zona protegida:** `apps/mobile/lib/modes/cockpit/`
-**ETA estimada:** 4-7h reales con Apéndice 1.3 factor velocity
-**Bloqueos:** Sprint Mobile 3 cerrado verde
-**Prerequisito:** Cockpit fase 1 con MOC + Threads + Catastro + Embriones + Guardian funcionales
-
----
-
-## 1. Contexto
-
-Mobile 3 entregó las 5 superficies de operations center del Cockpit. Mobile 4 agrega las 5 superficies de **monitoreo profundo + portfolio + financial**:
-
-1. **Memento** (semillas error_memory + pre-flights + Síndrome Dory evitado)
-2. **Portfolio Empresas-Hijas** (las 20 empresas-hijas con CIP como anchor)
-3. **FinOps** (capacity awareness completa — tokens, costos, ROI por empresa-hija)
-4. **Pipeline E2E** (visualización del flow del Sprint 87 NUEVO con Tier indicators)
-5. **Replay (Timelapse)** (selector de runs E2E + timeline scrubable estilo Devin)
+**Estado:** Propuesto  
+**Hilo:** Ejecutor (Alfredo)  
+**ETA (actualizado):** 15-30 min reales (UI stubs + data binding)  
+**Objetivo Maestro:** #15 (Memoria Soberana) + #12 (Soberanía)
 
 ---
 
-## 2. Objetivo único del sprint
+## Audit Pre-Sprint
 
-Implementar 5 superficies más del Cockpit con stubs realistas + integración inicial con datos del kernel post-Sprint 89 (Catastros 0) cuando converja.
-
-Cuando este sprint cierra: Alfredo desde el Cockpit puede ver toda su operación financiera + portfolio de 20 proyectos + replay de runs pasadas + estado profundo de Memento.
-
----
-
-## 3. Bloques del sprint
-
-### 3.A — Memento
-
-`MementoScreen`:
-- Lista de 40+ semillas error_memory con search + filter por proyecto
-- Pre-flights ejecutados últimas 24h con success/fail
-- Detector de contexto contaminado (heurísticas magna que reconocen patrones tipo "Falso Positivo TiDB")
-- Stats del Síndrome Dory evitado (cuántas veces el sistema previno re-equivocaciones)
-- Audit del SMP (estado de claves, último rotation, recovery shards distribuidos)
-- Configuración de tiers de sensibilidad por tipo de operación
-
-Stub: data hardcoded con las 40+ semillas reales del repo + pre-flights ficticios pero plausibles.
-
-### 3.B — Portfolio Empresas-Hijas
-
-**3.B.1 — Tarjetas de las 20 empresas-hijas**
-
-`PortfolioScreen`:
-- Grid de 20 cards (5×4), una por proyecto del Inventario v3
-- Cada card con:
-  - Nombre + estado (🟢 Activo / 🟡 Construcción / 🟠 Diseño / 🔵 Nominal)
-  - Métricas vivas según estado:
-    - Activo: tráfico web + ingresos + leads
-    - Construcción: sprint actual + % completion
-    - Diseño: decisiones pendientes + DSCs bloqueantes
-    - Nominal: counts de archivos + última actividad
-  - Logo o color del proyecto (per brand DNA)
-
-**3.B.2 — Vista detalle de empresa-hija**
-
-Tap en card → `EmpresaHijaDetailScreen`:
-- Para CIP: estado de las 8 decisiones, blockers DSC-CIP-PEND-001 + 002, link al skill `creacion-cip`, mapa de eje de convergencia con Marketplace + Roche Bobois (DSC-X-006)
-- Para LikeTickets: ticketlike.mx live URL, butacas vendidas, ingresos del mes
-- Para Mena Baduy: dashboards políticos, OSINT recent
-- Etc per proyecto
-
-**3.B.3 — Stakeholder Lens (post-Sprint 89)**
-
-Cuando Sprint 89 cierre, las cards muestran sub-tabs por lente:
-- "Ver desde Owner" (default — Alfredo)
-- "Ver desde Inversor" (futuro CIP)
-- "Ver desde Cliente"
-- "Ver desde Partner"
-
-Stub en Mobile 4: solo "Owner" funcional. Otras lentes son placeholders.
-
-### 3.C — FinOps
-
-`FinOpsScreen`:
-- KPIs principales: tokens consumidos hoy / 7d / 30d, costo total, tasa de quema
-- Desglose por proveedor (pie chart con brand DNA): Anthropic / OpenAI / Google / xAI / Manus / Perplexity / ElevenLabs / Replicate
-- Desglose por hilo (Catastro / Ejecutor / Memento / Sprints especiales)
-- ROI por empresa-hija (ingresos vs costos de generación + mantenimiento)
-- Forecast de gasto al ritmo actual (próximos 30 / 90 días)
-- Spending caps configurables con alertas (stub: setting modal)
-- Audit de uso por modelo del Catastro
-
-Stub: data financiera plausible basada en órdenes de magnitud reales del kernel actual.
-
-### 3.D — Pipeline E2E
-
-**3.D.1 — Visualización del flow de 12 pasos**
-
-`PipelineE2EScreen`:
-- Diagrama lineal de los 12 pasos del Sprint 87 NUEVO (intake → ICP → naming → branding → copy → wireframe → componentes → assembly → deploy → critic visual → registro → veredicto)
-- Estado per-step: pending / running / completed / failed
-- Tap en step → detalle: input recibido, modelo del Catastro elegido, tokens consumidos, output
-
-**3.D.2 — Tier indicators (post-v1.2)**
-
-Tres tiers visibles en top:
-- **Tier Simple** (12 pasos) — landing pages, MVPs
-- **Tier Marketplace** (+6 pasos: matching engine bilateral, reputation, trust layer)
-- **Tier Regulated Financial** (+12 pasos: legal review, compliance, smart contract audit, oracles, KYC, fiduciary structure)
-
-Cuando un run usa Tier Marketplace o Regulated Financial, los pasos extra aparecen.
-
-**3.D.3 — Intervención humana en cualquier paso**
-
-Botones [Pausar] [Editar input del próximo step] [Abort] [Replay desde aquí] visibles en cada step running.
-
-### 3.E — Replay (Timelapse)
-
-**3.E.1 — Selector de runs E2E pasadas**
-
-`ReplayScreen`:
-- Lista de runs anteriores con timestamp + frase canónica + tier + status final + critic score
-- Filtros: por empresa-hija, por tier, por verdict (comercializable / descartar / iterar)
-
-**3.E.2 — Timeline scrubable interactivo (estilo Devin Timelapse)**
-
-Tap en run → `TimelapseScreen`:
-- Timeline horizontal con marcadores en cada step
-- Scrub bar para moverte por la run en el tiempo
-- En cada punto: thumbnail del estado del HTML/output + transcript de pensamiento del Embrión activo + decisiones del Catastro
-- Botón [Bifurcar desde aquí] que clona el state y arranca un nuevo run (stub en Mobile 4; funcional post-Sprint Kernel 0)
-
-Stub: 5 runs pre-grabadas con timeline data plausible.
-
-### 3.F — Smoke productivo + validación
-
-Builds limpios. Alfredo navega las 5 superficies, abre detalle de CIP, ve FinOps con números mock, replay de un run pasado, valida que la densidad + estética siguen siendo Bloomberg + Apple. Si SÍ: Sprint Mobile 4 cerrado verde.
+**Cockpit Phase 2 Scope:**
+- 5 more high-information surfaces
+- Focus: Memory, portfolios, financials, execution, time-travel
+- Continuation of mobile_3 (5 surfaces)
+- Total after mobile_3 + mobile_4: 10 surfaces (15 by mobile_5)
 
 ---
 
-## 4. Magnitudes esperadas
+## Tareas del Sprint
 
-- ~2,200 LOC nuevas
-- ~30 archivos nuevos
-- ~25 widget tests + golden files
-- 1 validación humana
+### Tarea 1: Memento — Memory Validation Dashboard
+
+**Descripción:**
+Monitor de fuentes de verdad y validación de contexto (anti-Síndrome-Dory).
+
+**UI Layout:**
+```
+┌────────────────────────────────────────┐
+│ Memento — Fuentes de Verdad       [🔒]│
+├────────────────────────────────────────┤
+│                                        │
+│ ✅ SUPABASE (Primary Memory)          │
+│    Tables: 8 | Rows: 12,456           │
+│    Last backup: 2026-05-06 14:00      │
+│    Integrity: ✅ 100% (CRC verified)   │
+│    [View schema] [Backup now]          │
+│                                        │
+│ ✅ REDIS (Cache)                      │
+│    Keys: 347 | Memory: 2.3 MB         │
+│    Hit rate: 94.2%                    │
+│    Status: ✅ Healthy                 │
+│    [Flush] [Stats]                    │
+│                                        │
+│ ⚠️  GITHUB (Spec Source)              │
+│    Commits: 1,247 | Last: 2h ago      │
+│    Branches: main + 3 feature         │
+│    Status: ✅ In sync                 │
+│    [View changes] [Pull latest]       │
+│                                        │
+│ 🔍 CONTEXT VALIDATION                 │
+│    Last validation: 15m ago            │
+│    Status: ✅ All threads aligned     │
+│    Contamination detected: 0           │
+│    [Validate now] [History]            │
+│                                        │
+│ ✅ AUDIT LOG                          │
+│    Events: 8,392                       │
+│    Period: Last 30d                    │
+│    Access: Alfredo (100%)              │
+│    [View audit]                        │
+│                                        │
+└────────────────────────────────────────┘
+```
+
+**Deliverables:**
+- Data source cards: Status, metrics, last updated
+- Integrity check: CRC validation status
+- Backup button: Trigger on-demand backup to S3
+- Audit log: Recent access/modifications
+- Validation: Context contamination detector
+
+**Metrics:**
+- Files: 2 (memento_dashboard.dart, data_source_card.dart)
+- Real-time: WebSocket updates (10s interval)
+- Test coverage: >80%
 
 ---
 
-## 5. Disciplina aplicada
+### Tarea 2: Portfolio Empresas-Hijas — Multi-Project View
 
-- ✅ DSC-G-004: brand DNA en superficies financieras (no se ve como Datadog/Grafana)
-- ✅ DSC-X-006: Portfolio refleja Mapa de Ejes de Convergencia (CIP × Marketplace × Interiorismo × Roche Bobois)
-- ✅ Capa Memento aplicada visiblemente: badges ✓/⚠/✗ en cada métrica
-- ✅ Brand DNA error naming Dart: `finOpsLoadCostsFailed`, `pipelineE2EFetchRunFailed`, etc.
+**Descripción:**
+Cartera de proyectos/empresas-hijas con estado agregado.
+
+**UI Layout:**
+```
+┌────────────────────────────────────────┐
+│ Portfolio — Empresas-Hijas        [+] │
+├────────────────────────────────────────┤
+│                                        │
+│ 📊 PORTFOLIO OVERVIEW                  │
+│    Total value: $2.3M (est.)           │
+│    Active projects: 7                  │
+│    Avg. maturity: Seed → Series A      │
+│    Revenue (TTM): $340K                │
+│                                        │
+│ ┌──────────────────────────────────┐  │
+│ │ El Monstruo (Flagship)           │  │
+│ │ Stage: MVP→v1.0 | Health: 💚    │  │
+│ │ Value: $1.2M | Revenue: $0      │  │
+│ │ Team: 3 (Alfredo, Manus, Bot)   │  │
+│ │ [Dashboard] [Details]            │  │
+│ └──────────────────────────────────┘  │
+│                                        │
+│ ┌──────────────────────────────────┐  │
+│ │ Kukulkan-Tickets                 │  │
+│ │ Stage: Alpha | Health: 💛        │  │
+│ │ Value: $450K | Revenue: $50K/mo  │  │
+│ │ Team: 2 | Traction: 230 users    │  │
+│ │ [Dashboard] [Details]            │  │
+│ └──────────────────────────────────┘  │
+│                                        │
+│ [+ 5 more projects]                    │
+│                                        │
+│ [New Project] [Invest] [Exit]          │
+│                                        │
+└────────────────────────────────────────┘
+```
+
+**Deliverables:**
+- Portfolio summary: Total value, count, avg stage
+- Project cards: Stage, health, value, revenue, team
+- Detail view: Tap → deep dive (linked to project dashboard)
+- Add project: Create new portfolio entry
+
+**Metrics:**
+- Files: 2 (portfolio_view.dart, project_card.dart)
+- Data source: Supabase (projects table)
+- Test coverage: >80%
 
 ---
 
-## 6. Cierre formal
+### Tarea 3: FinOps — Financial Operations
 
-> 🏛️ **Modo Cockpit fase 2 — DECLARADO** (10 superficies funcionales en total: fase 1 + fase 2)
+**Descripción:**
+Dashboard financiero (burn rate, spend by provider, margins).
+
+**UI Layout:**
+```
+┌────────────────────────────────────────┐
+│ FinOps — Financial Dashboard      [📈]│
+├────────────────────────────────────────┤
+│                                        │
+│ 💰 THIS MONTH                          │
+│    Spend: $3,240 (78% of budget)       │
+│    Runway: 16 months @ current rate    │
+│    Burn: $4,154/month                  │
+│                                        │
+│ SPEND BY PROVIDER                      │
+│ ┌────────────────────────────────────┐│
+│ │ Railway:     $1,200 (37%)          ││
+│ │ Stripe:      $840 (26%)            ││
+│ │ Supabase:    $520 (16%)            ││
+│ │ OpenAI:      $420 (13%)            ││
+│ │ Anthropic:   $260 (8%)             ││
+│ └────────────────────────────────────┘│
+│                                        │
+│ 📊 BURN RATE (Last 3 months)           │
+│    Mar: $4,100 | Apr: $4,050           │
+│    May: $4,240 (projected)             │
+│    Trend: ↗ +3.5% (needs optimization) │
+│                                        │
+│ ✅ MARGINS (if $340K revenue/mo)      │
+│    Gross: 83% | Operating: 45%         │
+│    Breakeven: +8 customers @ $50/mo    │
+│                                        │
+│ [Detailed report] [Audit] [Forecast]   │
+│                                        │
+└────────────────────────────────────────┘
+```
+
+**Deliverables:**
+- Spend summary: Total, budget %, runway
+- Provider breakdown: Pie/bar chart by vendor
+- Burn rate: Trend over time (line chart)
+- Margins: Gross/operating if revenue scenarios
+- Forecast: 6-12 month projection
+
+**Metrics:**
+- Files: 2 (finops_dashboard.dart, spend_chart.dart)
+- Data source: Supabase (expenses table)
+- Test coverage: >80%
 
 ---
 
-## 7. Lo que NO entra
+### Tarea 4: Pipeline E2E — 12-Step Execution Flow
 
-- Computer Use, Coding embedded, Hilos Manus visualization, Bridge, Settings (Sprint Mobile 5)
-- Datos reales (esperan SMP)
-- Stakeholder Lens completo (espera Sprint 89 cierre)
+**Descripción:**
+Visualización del flujo end-to-end de idea → shipped con 12 hitos y tier indicators.
+
+**UI Layout:**
+```
+┌────────────────────────────────────────┐
+│ Pipeline E2E — Idea → Shipped     [📊]│
+├────────────────────────────────────────┤
+│                                        │
+│ Step 1: Concepto ..................... ✅ Done
+│ Tier: [🟩 P0] | Owner: Alfredo | 2d
+│                                        │
+│ Step 2: Spec ........................ ✅ Done
+│ Tier: [🟨 P1] | Owner: Alfredo | 1d
+│                                        │
+│ Step 3: Design ...................... ✅ Done
+│ Tier: [🟨 P1] | Owner: Manus | 2d
+│                                        │
+│ Step 4: Code ........................ ⏳ 60%
+│ Tier: [🟩 P0] | Owner: Manus | 2d left
+│                                        │
+│ Step 5: Test ........................ ⏰ Pending
+│ Tier: [🟨 P1] | Owner: Bot | est. 1d
+│                                        │
+│ Step 6: Review ....................... ⏰ Pending
+│ Step 7: Merge ........................ ⏰ Pending
+│ Step 8: Deploy (staging) ............. ⏰ Pending
+│ Step 9: QA ........................... ⏰ Pending
+│ Step 10: Deploy (prod) ............... ⏰ Pending
+│ Step 11: Monitor ..................... ⏰ Pending
+│ Step 12: Shipped ..................... ⏰ Pending
+│                                        │
+│ [View details] [Unblock] [History]    │
+│                                        │
+└────────────────────────────────────────┘
+```
+
+**Deliverables:**
+- Step list: 12 linear steps with status indicators
+- Tier badges: P0/P1/P2 color coding
+- Owner: Assignment per step
+- Duration: Time spent + estimated remaining
+- Blocker detection: Flag if step stuck > 24h
+
+**Metrics:**
+- Files: 2 (pipeline_view.dart, step_card.dart)
+- Data source: Supabase (pipeline_steps table)
+- Test coverage: >80%
 
 ---
 
-— Cowork (Hilo A), spec preparada 2026-05-06.
+### Tarea 5: Replay / Timelapse — Time-Travel Analysis
+
+**Descripción:**
+Visualización temporal del proyecto (rewind/play/fast-forward).
+
+**UI Layout:**
+```
+┌────────────────────────────────────────┐
+│ Replay — Timelapse Analysis       [🎬]│
+├────────────────────────────────────────┤
+│                                        │
+│ [◀◀] [◀] [▶] [▶▶] [🔄 Speed: 1x]     │
+│                                        │
+│ ─────────────────────────────────────  │
+│ Timeline: 2026-03-01 ←→ 2026-05-06    │
+│ ───[●]────────────────────────────────│
+│     │ Today (50% complete)            │
+│                                        │
+│ 📊 SNAPSHOT (2026-05-06 14:30)        │
+│    Sprints: 10 | Objectives: 78/100  │
+│    Burn: $4,240 | Revenue: $0         │
+│    Team: 3 | Morale: 🟢 High         │
+│                                        │
+│ 📈 METRICS OVER TIME                  │
+│ ┌────────────────────────────────────┐│
+│ │ Critic Score: 45→78 (73%)         ││
+│ │ Sprint velocity: 8→14 (75%)       ││
+│ │ Code quality: 62%→88% (+26%)      ││
+│ │ Team size: 1→3 (+200%)            ││
+│ └────────────────────────────────────┘│
+│                                        │
+│ 🎯 KEY EVENTS                          │
+│ 2026-03-15: First commit (Kernel)     │
+│ 2026-04-01: Gateway + AG-UI           │
+│ 2026-04-20: Mobile app skeleton       │
+│ 2026-05-06: v1.0 approaching          │
+│                                        │
+│ [Export video] [Share timeline]       │
+│                                        │
+└────────────────────────────────────────┘
+```
+
+**Deliverables:**
+- Timeline slider: Scrub through project history
+- Playback controls: Play, pause, speed
+- Snapshot: Metrics at selected date
+- Event markers: Key milestones
+- Metrics chart: Track score, velocity, quality over time
+
+**Metrics:**
+- Files: 2 (replay_view.dart, timeline_chart.dart)
+- Data source: Supabase (audit_log, snapshots)
+- Test coverage: >80%
+
+---
+
+### Tarea 6: Cockpit Navigation (Extended)
+
+**Descripción:**
+Agregar 5 nuevas superficies a sidebar de cockpit (total: 10 en mobile_3 + mobile_4).
+
+**Deliverables:**
+- Sidebar: Extended with 5 new items (Memento, Portfolio, FinOps, Pipeline, Replay)
+- Routing: All 10 surfaces accessible
+- Icons: Clear visual distinction
+
+---
+
+## Aceptación
+
+**Definición de Listo:**
+1. All 5 surfaces rendered ✅
+2. Data binding: Real data from Supabase ✅
+3. Charts: Render correctly (no axis errors) ✅
+4. Tests: >80% coverage per surface ✅
+5. Build: `flutter run` succeeds ✅
+
+**Quality Gates:**
+- Performance: Smooth at 60fps
+- Data accuracy: Financial numbers validated
+- Stubs: All logic placeholders ready
+- Code: Zero linting warnings
+
+**Post-sprint:**
+- Sprint mobile_5: Final 5 surfaces
+- Total: 15 surfaces (5 Daily + 10 Cockpit) = "CARA DEL MONSTRUO COMPLETA"
+
+---
+
+**Cowork (Hilo A), spec preparada 2026-05-06**
