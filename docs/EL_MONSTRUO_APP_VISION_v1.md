@@ -1,10 +1,11 @@
 # EL MONSTRUO — Arquitectura del Sistema Operativo Personal Soberano
 
-> **Documento de visión v1.1**
+> **Documento de visión v1.2**
 > **Autor:** Cowork (Hilo A), compilado de iteración con Alfredo González (2026-05-04 → 2026-05-06)
 > **Naturaleza:** documento técnico-arquitectónico privado para Alfredo y los hilos Manus. NO destinado a comunicación externa.
-> **Estado v1.1:** revisión magna que reemplaza v1.0.1. Cambios estructurales: arquitectura repensada como kernel + multi-transport (no app+integraciones), generative UI vía A2UI v0.9 como protocolo, ejecución consciente como paradigma central que reemplaza el "autonomy spectrum" como parche, captura ambient continua bajo soberanía técnica con kill switch verbal, Smart Notebook conectada al río, capas convergentes de Cronos con ejemplos concretos, Modo Cripta refinado (preservación firme + simulación diferida con peso ético propio), CIP anclado como primera empresa-hija concreta, protocolo Monstruo-a-Monstruo diferido a v1.2.
-> **Fuente de las iteraciones nuevas:** sesión Cowork del 2026-05-06 con investigación web paralela sobre el estado del arte 2026 en interfaces de orquestadores AI (Manus, Devin, Cursor, Claude Code, ChatGPT Agent Mode, Gemini Live, Apple Intelligence + Siri 2.0, A2UI Google, Tambo Vercel) + contribuciones magna de Alfredo: Smart Notebook, voz única como brand, ejecución consciente, always-on con "Monstruo apágate", protocolo Monstruo-a-Monstruo, Modo Cripta refinado.
+> **Estado v1.2:** evolución sobre v1.1. Cambios estructurales nuevos: (1) arquitectura de **tres Catastros paralelos** (Modelos LLM + Suppliers Humanos + Herramientas AI Especializadas) que reemplaza al Catastro único como motor de orquestación, (2) **Patrón Convergencia Diferida** firmado para el portfolio (proyectos arrancan autónomos con infra compartida y convergen en momentos elegidos cuando ambos prueban PMF), (3) **Catastro de Herramientas AI Especializadas** como capability transversal nueva (renderers, video gen, voice synthesis, document parsing especializado), (4) **Mapa de Ejes de Convergencia Futura** en Cap 10 documentando los ejes ya identificables del portfolio, (5) anclaje del Marketplace de Interiorismo + Roche Bobois como ejes de convergencia con CIP (no como módulos absorbidos por default).
+> **Cambios preservados de v1.1:** kernel + multi-transport, A2UI v0.9 como protocolo, ejecución consciente, captura ambient con kill switch verbal, Smart Notebook conectada al río, Modo Cripta preservación-firme/simulación-diferida, CIP anclado como primera empresa-hija, protocolo Monstruo-a-Monstruo diferido a v1.3+.
+> **Fuente de las iteraciones v1.2:** sesión Cowork-Alfredo del 2026-05-06 (post-recovery v1.1) con onboarding completo de la Capilla de 35 DSCs + Matriz de Cruces 20×20 + Inventario v3 de 20 proyectos, + iteración detonada por la realidad de Marketplace de Interiorismo + necesidad de renderizado AI con proveedores reales. Decisiones firmadas en DSC-X-006 (Convergencia Diferida) y DSC-G-007 (3 Catastros paralelos + integración herramientas AI verticales).
 
 ---
 
@@ -85,6 +86,22 @@ El kernel NO diseña pantallas pre-fabricadas. Emite **intenciones + esquemas A2
 - En Vision Pro renderiza una tarjeta espacial flotante
 
 **No hay "diseño per pantalla" en v1.1. Hay diseño per intención + plantillas A2UI por transport.** Esto colapsa "20 pantallas que mantener" a "un catálogo de intenciones bien diseñado y N renderers por transport."
+
+### Tres Catastros paralelos como motor de orquestación (v1.2)
+
+El kernel del Monstruo opera con **tres motores de orquestación paralelos**, no uno. Cada uno especializado en un dominio de selección. Firmado en DSC-G-007.
+
+| Catastro | Qué orquesta | Selección por | Ejemplos canónicos |
+|---|---|---|---|
+| **Catastro de Modelos LLM** (existente, v1.0+) | 50+ modelos AI generales con `confidentiality_tier` y rol macroárea | Capacidad / costo / latencia / sensibilidad | GPT-5.5 Pro, Claude Opus 4.7, Gemini 3.1 Pro, Grok 4, DeepSeek R1, Perplexity Sonar Reasoning Pro |
+| **Catastro de Suppliers Humanos** (nuevo v1.2) | Profesionales y empresas que ejecutan servicios reales | Capacidad disponible / reputación / SLA / cobertura geográfica / precio | Arquitectos, valuadores certificados, fotógrafos, drone operators, firmas legales por jurisdicción, contratistas, aseguradoras, verificadores de title |
+| **Catastro de Herramientas AI Especializadas** (nuevo v1.2) | Productos AI verticales líderes del mercado | Calidad output / costo / velocidad / especialidad | Renderers (RoomGPT, Modsy, Coohom, Spline AI, Luma, Polycam), video gen (Runway Gen-4, Sora 2, Veo 3), voice (ElevenLabs), document parsing (LlamaParse, Unstructured.io) |
+
+Los tres conviven bajo el mismo patrón operativo: ranking, anti-gaming, override manual posible, manifestación contextual de uso, FinOps trackeable. Cada empresa-hija invoca el Catastro correspondiente en runtime — no hardcodea. **Excepción crítica:** modelos propios del Monstruo (Capa 3 Soberanía) son infraestructura crítica del orquestador, no herramientas verticales.
+
+El Cockpit gana superficie nueva: **"Salud de los 3 Catastros"** — los tres motores con sus métricas de uso, tiempo de respuesta, tasa de error per-herramienta, costo acumulado, capacidad disponible.
+
+Esto cumple Obj #7 (no reinventar rueda) + Obj #12 (soberanía agnóstica). Las herramientas AI verticales evolucionan 10x más rápido de lo que un equipo interno puede mantener; la ventaja del Monstruo es **orquestación + contexto del usuario**, no generación per se.
 
 ### Ejecución consciente como paradigma central
 
@@ -340,6 +357,31 @@ El Monstruo está **encendido 24/7 por default** capturando ambient audio bajo s
 
 Esto convierte al Monstruo en **memoria verificable de tu vida** — categoría que no existía antes.
 
+### Smart Rendering como capability transversal (v1.2)
+
+Capability nueva firmada en v1.2 que opera sobre los tres Catastros para componer **product displays per-momento**. No genera contenido visual por sí sola — orquesta a quien sí genera.
+
+Aplica a empresas-hijas con motor visual fuerte:
+
+- **Marketplace de Interiorismo:** input "diseñame el living de mi propiedad de Mérida con $20k MX" → invoca Catastro de Suppliers (selecciona arquitecto disponible) + Catastro de Herramientas AI (selecciona renderer apropiado: RoomGPT para variaciones rápidas, Coohom para final fotorrealista) + Catálogo de Muebles (filtra por estilo + presupuesto + inventory) + Cronos (preferencias del usuario) → compone 3-5 variaciones renderizadas + proyección financiera + arquitecto asignado.
+- **CIP** (cuando converja con Marketplace por DSC-X-006): inversionistas ven propiedades fraccionadas con renderizado AI de "cómo va a quedar después del interiorismo planeado." El render es de la propuesta de valor, no del estado actual.
+- **Roche Bobois:** mueble in-context con foto del living del cliente.
+- **Kukulkán 365:** distrito visualizado según el evento que el usuario quiere hacer.
+- **Vivir Sano:** alimentos contextualizados con perfil de salud.
+
+Stack técnico: capability service en `lib/core/services/smart_rendering_service.dart` que invoca los tres Catastros en paralelo y compone vía A2UI v0.9 generative UI. Output: A2UI schema con render base + capa de datos + capa storytelling + capa social + capa contextual del usuario.
+
+### Listening ambient continuo + Smart Rendering = composición magna
+
+Las dos capabilities trabajan juntas para colapsar la barrera entre "lo que el usuario tiene en cabeza" y "lo que el Monstruo le presenta":
+
+- Usuario menciona en conversación pasiva: *"el living de la casa nueva está vacío, no sé qué hacer"*
+- Listening ambient lo captura, Smart Notebook lo conecta con preferencias previas + presupuesto + estilo
+- Cuando el usuario eventualmente pregunte *"¿qué hago con el living?"*, el Monstruo ya tiene la respuesta compuesta — Smart Rendering invocó los tres Catastros silenciosamente en background, presenta 3 propuestas listas
+- Anticipación silenciosa (Cap 1) aplicada al rendering visual
+
+Esto es lo que la conversación con Alfredo del 2026-05-06 detonó: la diferencia entre "AI que renderea cuando le pides" y "AI que llega con propuestas compuestas cuando preguntas."
+
 ---
 
 ## Capítulo 5 — Cronos (la memoria viaje)
@@ -549,7 +591,7 @@ El runtime evalúa la sensibilidad del prompt (heurística + Embrión Investigad
 | **Meta vía WhatsApp Gateway** (v1.1) | Conversaciones íntimas detectadas se redirigen al Flutter app vía link silencioso del logo (Cap 6) — fuera de la órbita de Meta |
 | **Captura ambient interceptada** (v1.1) | Audio crudo nunca sale del dispositivo; transcripciones bajo SMP; kill switch verbal hardware-level |
 
-### Protocolo Monstruo-a-Monstruo (diferido a v1.2)
+### Protocolo Monstruo-a-Monstruo (diferido a v1.3+)
 
 Capa adversarial de futuro: cuando dos Monstruos detectan presencia mutua (BLE+UWB con signature criptográfica firmada), negocian etiqueta. Tres modos configurables:
 
@@ -559,7 +601,7 @@ Capa adversarial de futuro: cuando dos Monstruos detectan presencia mutua (BLE+U
 
 **Beneficio derivado: anti-stalking pasivo.** Si tu Monstruo detecta que estuvo cerca de otro Monstruo X horas seguidas durante varios días sin que vos lo esperaras, te puede preguntar discretamente.
 
-**Mitigaciones:** firma criptográfica anti-suplantación, indicación visual sutil del estado, metadata fallback en Cronos (presencia sin contenido). Diferido a v1.2 con peso de ingeniería propio.
+**Mitigaciones:** firma criptográfica anti-suplantación, indicación visual sutil del estado, metadata fallback en Cronos (presencia sin contenido). Diferido a v1.3+ con peso de ingeniería propio.
 
 ### El SMP es Linux. El Monstruo es Stradivari.
 
@@ -692,6 +734,31 @@ CIP es **el primer producto que El Monstruo va a fabricar end-to-end**. Esto anc
 Estado actual de CIP: 100% diseño/legal, sin código, sin repo. 8 decisiones pendientes con 2 bloqueantes — #4 Figura legal (fideicomiso irrevocable vs SAPI vs SOFOM) y #8 Distribución de rendimientos. La fuente de verdad doctrinal canónica vive en el skill `creacion-cip` (14 docs, ~190 KB). Manifest unificado: `discovery_forense/CIP_MANIFEST_PARA_COWORK.md`.
 
 **Implicación para la arquitectura del Monstruo:** el Pipeline E2E del Cockpit debe ser capaz de generar productos de complejidad CIP, no solo MVP de marketing. Eso extiende el Sprint 87 NUEVO con pasos: legal review automatizado, compliance check, smart contract audit con Embriones de seguridad, integración con oracles para precios on-chain de inmuebles.
+
+### Mapa de Ejes de Convergencia Futura (v1.2 — Patrón Convergencia Diferida firmado en DSC-X-006)
+
+El portfolio NO es una colección de proyectos aislados ni un monolito multi-producto. Es **una constelación de empresas-hijas autónomas con ejes de convergencia identificados** que se activan cuando cada proyecto prueba PMF independiente. El patrón firmado en DSC-X-006 dice: arrancan separados, comparten infra crítica desde día 1, convergen en momentos elegidos.
+
+| Eje de convergencia | Proyectos | Trigger de convergencia |
+|---|---|---|
+| **CIP × Marketplace × Roche Bobois × Interiorismo Estratégico** | Composer de propiedad + plan interiorismo + muebles instalados como activo investable compuesto | Ambos lados (CIP con tokens vivos, Marketplace con catálogo verificado) prueban PMF separado |
+| **LikeTickets × Kukulkán 365** (✅ ya convergido) | Like-Kukulkán Tickets es la primera convergencia en producción | Ya pasó (313 butacas Zona Like activas) |
+| **Mena Baduy × Observatorio Mérida 2027 × Simulador Universal** (✅ ya convergido) | Operación electoral integrada con OSINT + bayesiano + simulación de escenarios | Ya pasó (Sprint Memento) |
+| **Bot Telegram × Command Center × Mundo Tata** | Misma data, distintas interfaces, comparten Manus-Oauth (DSC-X-003) | Cuando los 3 estén en producción simultánea |
+| **CIES × CIP** | Si CIES resulta ser variante de CIP (sospecha en MATRIZ_CRUCES), absorber | Cuando CIP esté operando y CIES tenga claridad de definición |
+| **BioGuard × Vivir Sano × NIAS** | Eje salud/wellness/biotech | Cuando los 3 maduren operacionalmente |
+| **Top Control PC × El Monstruo (orquestador)** | Top Control es la "Capa Manos" del Monstruo en PC del usuario | Cuando Top Control llegue a producción |
+
+**Lo que NO cambia con este mapa:** el inventario v3 de 20 proyectos se mantiene como está (proyectos separados con manifests independientes). MATRIZ_CRUCES_PROYECTOS sigue válida. La convergencia es una capa **encima** del portfolio, no una fusión.
+
+**Lo que SÍ cambia:** todo proyecto nuevo en intake debe definir explícitamente sus API contracts de convergencia futura con otros proyectos del portfolio. El Pipeline E2E del Sprint 87 NUEVO gana paso pre-build: *"Diseñar API contract de convergencia."* El Monstruo tracking explícito de qué ejes están listos para activarse en cada momento.
+
+**Caso concreto del Marketplace de Interiorismo (la conversación que detonó esta arquitectura):**
+- Marketplace Muebles arranca autónomo vendiendo a clientes que NO son inversionistas de CIP
+- Interiorismo Estratégico arranca como subproyecto de Marketplace ofreciendo planes con arquitectos
+- Roche Bobois entra como proveedor anclaje del Marketplace (ya está en el portfolio)
+- Cuando ambos prueban PMF + CIP arranca operación con propiedades reales, **el eje converge**: una propiedad CIP listada incluye plan de interiorismo + muebles + arquitecto, todo compuesto por Smart Rendering, todo invocando los tres Catastros en paralelo
+- Eso es lo que la conversación con Alfredo del 2026-05-06 firmó como visión arquitectónica magna
 
 ### Capacidades del pipeline E2E (Sprint 87 NUEVO, ya cerrado en v1.0)
 
@@ -846,19 +913,26 @@ Para iteraciones: modificá este archivo directamente. Cada cambio commiteado al
 
 ---
 
-## Capítulo 16 — Decisiones pendientes magna para v1.2+
+## Capítulo 16 — Decisiones pendientes magna para v1.3+
 
-Lista de items que v1.1 deja explícitamente abiertos para deliberación posterior, sin urgencia de release:
+Lista de items que v1.2 deja explícitamente abiertos para deliberación posterior, sin urgencia de release. Items resueltos en v1.2 se movieron a sus capítulos correspondientes (no se duplican aquí).
 
-1. **Modo Cripta — simulación post-mortem.** v1.1 firma preservación pura. Simulación diferida con peso ético propio. Si Alfredo decide habilitarla en v1.2+, requiere precondiciones específicas (consentimiento pre-mortem firmado, marca visible permanente, acceso restringido, límites de profundidad, sunset opcional).
+**Resueltos en v1.2 (no aparecen en esta lista):**
+- ✅ Marketplace Interiorismo + CIP: resuelto vía Patrón Convergencia Diferida (DSC-X-006)
+- ✅ Catastro de Suppliers / Catastro de Herramientas AI: resueltos vía DSC-G-007 (3 Catastros paralelos)
+- ✅ Smart Rendering como capability transversal: firmado en Cap 4
+
+**Items que siguen pendientes:**
+
+1. **Modo Cripta — simulación post-mortem.** v1.1+ firman preservación pura. Simulación diferida con peso ético propio. Si Alfredo decide habilitarla en v1.3+, requiere precondiciones específicas (consentimiento pre-mortem firmado, marca visible permanente, acceso restringido, límites de profundidad, sunset opcional).
 
 2. **Lista validada de "líderes cotidianos" Tier 1-3.** Las apps a las que el Monstruo se conecta nativamente requieren ciclo de investigación + descubrimiento + cruce con otras IAs.
 
 3. **Capa 9 transversal "Realidad Convergente".** Propuesta original de Alfredo en Cap 4 de v1.0.1. Requiere CIES + OMNICOM cerrados primero + cruce con otras IAs. Diferida.
 
-4. **Protocolo Monstruo-a-Monstruo (BLE+UWB).** Etiqueta entre asistentes IA cuando comparten espacio físico. Diferido a v1.2 con peso de ingeniería propio (Cap 7).
+4. **Protocolo Monstruo-a-Monstruo (BLE+UWB).** Etiqueta entre asistentes IA cuando comparten espacio físico. Diferido a v1.3+ con peso de ingeniería propio (Cap 7).
 
-5. **Decisión #4 de CIP — Figura legal.** Bloqueante para construcción del repo `cip-platform`. Requiere consulta a sabios + validación regulatoria CNBV/SHCP/Banxico.
+5. **Decisión #4 de CIP — Figura legal** (DSC-CIP-PEND-001). Bloqueante para construcción del repo `cip-platform`. Requiere consulta a sabios + validación regulatoria CNBV/SHCP/Banxico.
 
 6. **Decisión #8 de CIP — Distribución de rendimientos.** Bloqueante para el modelo financiero del smart contract.
 
@@ -888,6 +962,14 @@ Lista de items que v1.1 deja explícitamente abiertos para deliberación posteri
 
 **Semilla 47 — Soberanía técnica como precondición de adopción universal.** Hipótesis: cualquier producto que toque vida íntima del usuario (memoria, salud, relaciones, decisiones) solo puede aspirar a adopción universal si la soberanía técnica del usuario es matemáticamente garantizada (no policy-based). Sin esto, la adopción se queda en el subset que confía en la empresa. Con esto, la adopción puede llegar a quien no confía en nadie excepto la matemática.
 
+### Semillas nuevas firmadas en v1.2
+
+**Semilla 48 — Patrón Convergencia Diferida** (firmada como DSC-X-006). Proyectos de un portfolio multi-producto arrancan autónomos con su propio mercado y velocidad, pero comparten infra crítica desde día 1 y definen API contracts de convergencia futura. La integración real ocurre en momentos elegidos cuando ambos prueban PMF — no por default, no por arquitectura forzada. Reduce deuda técnica, no fuerza integración prematura, deja que la convergencia se gane con datos. Aplicable a cualquier ecosistema multi-empresa-hija.
+
+**Semilla 49 — Tres Catastros paralelos** (firmada como DSC-G-007). Patrón arquitectónico para orquestadores AI maduros: en lugar de un Catastro único de modelos LLM, operar tres motores paralelos (Modelos LLM + Suppliers Humanos + Herramientas AI Especializadas) bajo el mismo patrón de ranking + anti-gaming + override + manifestación contextual. La ventaja del orquestador es seleccionar; nunca generar. Aplicable a cualquier sistema que coordine recursos de múltiples categorías heterogéneas.
+
+**Semilla 50 — Smart Rendering como composición sobre los 3 Catastros.** Patrón de UX para empresas-hijas con motor visual fuerte: el sistema no genera contenido visual por sí solo — orquesta a quien sí genera, combinando las salidas de los tres Catastros + datos del usuario (Cronos) en un product display per-momento vía A2UI generative UI. Aplicable a Marketplace de Interiorismo, CIP, Roche Bobois, Kukulkán 365, futuras empresas-hijas con storytelling visual.
+
 ### Patrones operativos firmados
 
 **Patrón "Modo detractor cuando hace falta".** El asistente puede confrontar al usuario con verdades incómodas para clarificar el camino. NO es rol permanente; es postura activable. Es respeto al adulto capaz de procesar lo crudo, no abrasividad.
@@ -904,10 +986,10 @@ Lista de items que v1.1 deja explícitamente abiertos para deliberación posteri
 
 ## Cierre del documento
 
-Este documento es la versión 1.1 de la visión del Monstruo. Refleja la conversación entre Alfredo y Cowork del 2026-05-04 al 2026-05-06, incluyendo el contexto previo procesado por Alfredo durante días anteriores + investigación web del estado del arte 2026 + iteración profunda con CIP como primera empresa-hija anclada concretamente. Las versiones futuras incorporarán correcciones, expansiones y refinamientos.
+Este documento es la versión 1.2 de la visión del Monstruo. Refleja la conversación entre Alfredo y Cowork del 2026-05-04 al 2026-05-06, incluyendo el contexto previo procesado por Alfredo durante días anteriores + investigación web del estado del arte 2026 + iteración profunda con CIP como primera empresa-hija anclada concretamente + onboarding completo de la Capilla de 35 DSCs + Matriz de Cruces 20×20 + Inventario v3 de 20 proyectos + iteración detonada por la realidad del Marketplace de Interiorismo y la necesidad de renderizado AI con proveedores reales. Las versiones futuras incorporarán correcciones, expansiones y refinamientos.
 
 La regla operativa final: si algo en este documento entra en conflicto con un Objetivo Maestro o con las reglas inviolables del Capítulo 0, los Objetivos y reglas ganan. Todo lo demás es revisable.
 
 El Monstruo se construye desde la disciplina, no desde la prisa.
 
-— Cowork (Hilo A), 2026-05-06
+— Cowork (Hilo A), 2026-05-06 (v1.2)
