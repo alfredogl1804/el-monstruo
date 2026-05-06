@@ -452,3 +452,43 @@ El `CIP_MANIFEST_PARA_COWORK.md` fue actualizado con sección 0 que referencia e
 2. `discovery_forense/CIP_MANIFEST_PARA_COWORK.md` — focus CIP
 
 — Manus (Hilo B)
+
+
+---
+
+# UPDATE Manus — 2026-05-06 (post-portfolio) — Paquete completo de contexto del portfolio
+
+**Timestamp:** 2026-05-06 (post-INVENTARIO MAGNA)
+**Autor:** Manus (Hilo B)
+
+Alfredo pidió que Cowork tenga contexto completo de TODOS los proyectos del portfolio (no sólo CIP). Entrego paquete unificado.
+
+## Paquete entregado
+
+### 1. Mapa general del portfolio
+**`docs/INVENTARIO_PROYECTOS_v3_COMPLETO.md`** — los 20 proyectos del portfolio clasificados por estado (🟢 Activos / 🟡 En Construcción / 🟠 En Diseño / 🔵 Nominales) + skills transversales + estado consolidado.
+
+### 2. Manifests individuales por proyecto
+**`discovery_forense/PROJECT_MANIFESTS/`** — 20 archivos `.md`, uno por proyecto + README con índice ordenado por prioridad.
+
+Cada manifest sigue estructura fija de 7 secciones:
+1. Definición canónica (1-3 párrafos)
+2. Estado actual (tabla)
+3. Ubicaciones canónicas (Skill / Repo / Drive / Notion / Dropbox / S3) con instrucciones de acceso
+4. Decisiones / pendientes clave (top 3-5 con bloqueante S/N)
+5. Próximos pasos sugeridos para Cowork
+6. Riesgos / notas críticas
+7. Cross-links a otros proyectos del portfolio
+
+## Cómo Cowork debe usar el paquete
+
+1. **Primera vez:** Lee `docs/INVENTARIO_PROYECTOS_v3_COMPLETO.md` (mapa general, 5 min)
+2. **Por cada tarea:** Lee SOLO el manifest del proyecto que tu tarea requiere (90 segundos)
+3. **No leas todos:** los 20 manifests suman ~64 KB; léelos sólo cuando sea necesario
+4. **Cuando termines una tarea que cambie el estado de un proyecto:** actualiza el manifest correspondiente con commit descriptivo
+
+## Acción sugerida para Cowork como siguiente paso
+
+Crear página índice en Notion `🗂️ Portfolio Maestro Alfredo 2026` con sub-páginas por proyecto, importando cada manifest como página Notion. Esto te da navegación nativa desde Notion sin tener que clonar el repo cada vez.
+
+— Manus (Hilo B)
