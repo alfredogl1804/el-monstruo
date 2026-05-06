@@ -83,7 +83,7 @@ Vista de hilos de conversación con modo comprimido (titular + última respuesta
 │                                 │
 │  [Thread #2]  1h ago            │
 │  "Deploy kernel to Railway?"    │
-│  ▸ "Yes, ready: v0.50.0..."    │
+│  ▸ "Yes, ready: <version>..."   │
 │                                 │
 │  [+ NEW THREAD]                 │
 │                                 │
@@ -199,9 +199,9 @@ Perfil del usuario con settings rápidos y bio.
 │  [Notifications] [ON] [OFF]     │
 │                                 │
 │  📊 STATS                       │
-│  Sprints closed: 50             │
-│  Critic score: 78               │
-│  Uptime: 99.5%                  │
+│  Sprints closed: <count>        │
+│  Critic score: <score>          │
+│  Uptime: <pct>                  │
 │                                 │
 │  [LOGOUT] [DELETE ACCOUNT]      │
 │                                 │
