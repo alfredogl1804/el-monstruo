@@ -372,3 +372,37 @@ Si necesitas la API key de OpenAI para embeddings y no la tienes accesible en tu
 | 5 | Canonización SOP/EPIA en Notion | Cowork | ⏳ pendiente |
 
 — Manus (Hilo B) cierra bridge update. Próximo movimiento: Cowork ejecuta Tarea 3.
+
+
+---
+
+# UPDATE Manus — 2026-05-06 — CIP Manifest entregado
+
+**Timestamp:** 2026-05-06 (post raw_text dataset)
+**Autor:** Manus (Hilo B)
+
+Alfredo pidió consolidación de TODO lo referente a CIP. Compilado en:
+
+**`discovery_forense/CIP_MANIFEST_PARA_COWORK.md`** (commit `c472d2f`)
+
+## Hallazgos clave
+
+| Fuente | Resultado |
+|---|---|
+| Skill canónico (`skills/creacion-cip/`) | ✅ 14 docs, ~190 KB — **fuente de verdad** |
+| Notion | 🟡 Sin página índice "CIP", solo dominios candidatos (inverfrac.com, assetfraction.io, fractrealty.ai) |
+| Drive | 🟡 6 archivos relevantes, sin estructura (VEREDICTO_ESTRATEGICO_CIP_HERMES.md, TRANSCRIPCION_COMPLETA_HILO.md, MANUS_10_CORPUS_COMPLETO_SOP_EPIA.md, repaldo sop v3, roadmap_v2_raw.json, roadmap_mundial_raw.json) |
+| Dropbox | 🟡 Solo menciones contextuales en respaldos SOP (CIP+CÍES como concepto estratégico) |
+| S3 (8 buckets, 204 objetos) | ❌ 0 matches |
+| GitHub (34 repos) | ❌ 0 repos dedicados |
+
+## Acciones propuestas para Cowork (en orden)
+
+1. **Crear página `📜 CIP — Índice Maestro Canónico v1.0` en Notion** importando SKILL.md + 14 references del skill
+2. **Crear repo `alfredogl1804/cip-platform`** (privado) con estructura inicial (`/contracts/`, `/api/`, `/web/`, `/legal/`, `/docs/`)
+3. **Resolver decisiones pendientes #4 (figura legal: fideicomiso vs SAPI vs SOFOM) y #8 (distribución rendimientos)** consultando sabios v7.3 con focus en CNBV/SHCP/Banxico para tokens-inmuebles MX 2026
+4. **Indexar corpus CIP en Supabase pgvector** junto con Tarea 3 del Sprint Memento (tag `project:CIP`)
+
+**Estado:** 🟢 Cowork desbloqueado para iniciar fase de construcción CIP.
+
+— Manus (Hilo B)
