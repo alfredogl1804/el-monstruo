@@ -84,6 +84,10 @@ class E2ERun(BaseModel):
     brief: Optional[Dict[str, Any]] = None
     stack_decision: Optional[Dict[str, Any]] = None
     deploy_url: Optional[str] = None
+    deploy_provider: Optional[str] = Field(
+        None,
+        description="Proveedor de hosting del deploy real: 'github_pages', 'railway', 'fallback' (Sprint 88 T3.B.2)",
+    )
     critic_visual_score: Optional[float] = Field(None, ge=0, le=100)
     veredicto_alfredo: Optional[Veredicto] = None
     started_at: datetime

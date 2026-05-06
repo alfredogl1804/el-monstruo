@@ -129,6 +129,7 @@ class E2ERepository:
         brief: Optional[Dict[str, Any]] = None,
         stack_decision: Optional[Dict[str, Any]] = None,
         deploy_url: Optional[str] = None,
+        deploy_provider: Optional[str] = None,
         critic_visual_score: Optional[float] = None,
         veredicto_alfredo: Optional[Veredicto] = None,
         completed_at: Optional[datetime] = None,
@@ -146,6 +147,8 @@ class E2ERepository:
             patch["stack_decision"] = stack_decision
         if deploy_url is not None:
             patch["deploy_url"] = deploy_url
+        if deploy_provider is not None:
+            patch["deploy_provider"] = deploy_provider
         if critic_visual_score is not None:
             patch["critic_visual_score"] = float(critic_visual_score)
         if veredicto_alfredo is not None:

@@ -472,7 +472,14 @@ async def run_e2e_pipeline(run_id: str, repo: E2ERepository) -> None:
         return
     state["deploy"] = out
     deploy_url = out.get("deploy_url")
-    await repo.update_run(run_id, pipeline_step=9, deploy_url=deploy_url)
+    # Sprint 88 T3.B.2: propagar deploy_provider al rollup del run (no solo al step_log).
+    deploy_provider = out.get("deploy_provider") or out.get("provider")
+    await repo.update_run(
+        run_id,
+        pipeline_step=9,
+        deploy_url=deploy_url,
+        deploy_provider=deploy_provider,
+    )
 
     # -------- Step 10: CRITIC --------
     out = await _safe_step(
