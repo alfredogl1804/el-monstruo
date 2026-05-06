@@ -1,9 +1,11 @@
 # Top Control PC (CONTROL TOTAL) — Manifest para Cowork
 
 Slug: top-control-pc-control-total
-Categoría: En Diseño
+Categoría: 🟢 Activo / Core (corregida tras recuperación Fase II — tiene tracción reciente y roadmap activo)
 Última actualización: 2026-05-06
-Generado por: Manus map paralelo
+Generado por: Manus map paralelo + corrección post-recuperación Fase II
+
+> ⚠️ **Cambio de categoría:** Reclasificado de "En Diseño" a "🟢 Activo/Core" tras recuperar evidencia de roadmap V2+V3 con fecha 2026-04-25 (tracción reciente) y de spec maestro firmado por GPT-5.4. Ver `_HALLAZGOS_FASE_II_RECUPERADOS.md` sección 7.
 
 ## 1. Definición canónica
 Top Control PC, alias confirmado por Alfredo como CONTROL TOTAL, es un software diseñado como sistema de control y monitoreo computacional. El proyecto se encuentra en una fase activa de diseño core, destacando por ser el proyecto con más planes documentados dentro del portfolio.
@@ -24,8 +26,10 @@ El sistema busca establecer un control integral, posiblemente vinculado a la arq
 |---|---|---|
 | Skill | — | No hay skill dedicado |
 | Repo GitHub | Pendiente | Por confirmar via búsqueda Cowork |
-| Drive | 39 archivos, 8 planes | Buscar "ROADMAP MUNDIAL V2 CRUCE 2026-04-25" o "roadmap_v2_raw" |
-| Notion | 29 páginas, 2 planes | Buscar "Arquitectura Absorcion Soberana GPT-5.4" o "MONSTRUO Top-20 Nucleo" |
+| Drive | **39 archivos / 8 plan-like** (el segundo proyecto con MÁS planes en Drive después de Mena Baduy) | `gws drive files list --params '{"q":"name contains \"ROADMAP_MUNDIAL\""}'` |
+| Drive (specs específicos) | `ROADMAP_MUNDIAL_V2_CRUCE` (2026-04-25), `ROADMAP_MUNDIAL_V3_DEFINITIVO` (2026-04-25), `evidencia_cruce_v3` | Buscar por nombre exacto |
+| Notion | 29 páginas / 2 plan-like | `manus-mcp-cli tool call notion-search --input '{"query":"Top Control PC"}'` |
+| Notion (specs específicos) | `Arquitectura de Absorción Soberana — Versión Definitiva (GPT-5.4)`, `MONSTRUO Top-20 Núcleo v1` | Buscar por título exacto |
 | Dropbox | — | Por confirmar via búsqueda Cowork |
 | S3 | — | Por confirmar via búsqueda Cowork |
 
@@ -48,3 +52,10 @@ El sistema busca establecer un control integral, posiblemente vinculado a la arq
 ## 7. Cross-links a otros proyectos del portfolio
 - **El Monstruo:** Relación de integración (posible módulo o componente del núcleo).
 - **Absorción Soberana:** Relación arquitectónica (mencionado en la documentación de Notion).
+- **Vivir Sano + Skills/Etapas:** Comparten el spec maestro `Arquitectura de Absorción Soberana v2026-04-05 (GPT-5.4)` — los 3 son **interconectados** y deben procesarse en conjunto.
+
+## 8. Fuentes que canonizan este manifest
+
+- `discovery_forense/PROJECT_MANIFESTS/_HALLAZGOS_FASE_II_RECUPERADOS.md` (sección 7)
+- Drive: `ROADMAP_MUNDIAL_V2_CRUCE` y `ROADMAP_MUNDIAL_V3_DEFINITIVO` (ambos del 2026-04-25)
+- Notion: `Arquitectura de Absorción Soberana — Versión Definitiva (GPT-5.4)`

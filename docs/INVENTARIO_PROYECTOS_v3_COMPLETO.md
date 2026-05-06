@@ -9,12 +9,14 @@
 
 ## 1. Cómo usar este documento
 
-1. **Tabla maestra** (sección 2): visión rápida de los 20 proyectos clasificados por estado
-2. **Manifests individuales** (`discovery_forense/PROJECT_MANIFESTS/{slug}.md`): un archivo por proyecto con definición, ubicaciones, decisiones pendientes y próximos pasos
-3. **Skills canónicos** (`~/.../skills/{slug}/SKILL.md`): fuente de verdad doctrinal cuando exista skill
-4. **Repos GitHub**: código + planes técnicos cuando el proyecto tenga repo activo
+0. **🔥 LECTURA OBLIGATORIA PRIMERO** — `discovery_forense/PROJECT_MANIFESTS/_HALLAZGOS_FASE_II_RECUPERADOS.md`: hallazgos críticos de la Fase II Discovery Forense (5 mayo 2026) recuperados de screenshots tras compactación de contexto. Sobreescriben suposiciones previas sobre BioGuard, Top Control PC, Vivir Sano, Marketplace Muebles y la asimetría SOP/EPIA Drive vs Dropbox.
+1. **Reporte forense Fase II** — `discovery_forense/REPORTE_FORENSE_MAGNA.md`: contexto del proceso completo (1,562 documentos analizados, 30 abiertos semánticamente).
+2. **Tabla maestra** (sección 2 de este doc): visión rápida de los 20 proyectos clasificados por estado
+3. **Manifests individuales** (`discovery_forense/PROJECT_MANIFESTS/{slug}.md`): un archivo por proyecto con definición, ubicaciones, decisiones pendientes y próximos pasos
+4. **Skills canónicos** (`~/.../skills/{slug}/SKILL.md`): fuente de verdad doctrinal cuando exista skill
+5. **Repos GitHub**: código + planes técnicos cuando el proyecto tenga repo activo
 
-> **Para Cowork:** Lee este archivo PRIMERO, luego entra al manifest del proyecto que te interese. No necesitas leer los 20 — solo el que el contexto requiere.
+> **Para Cowork:** Lee primero `_HALLAZGOS_FASE_II_RECUPERADOS.md`, luego este archivo, luego entra al manifest del proyecto que te interese. No necesitas leer los 20 — solo el que el contexto requiere.
 
 ---
 

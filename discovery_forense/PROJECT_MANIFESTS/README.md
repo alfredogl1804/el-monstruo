@@ -7,9 +7,11 @@ Este directorio contiene un manifest individual por cada proyecto del portfolio.
 
 ## Cómo usar
 
-1. Revisa primero `docs/INVENTARIO_PROYECTOS_v3_COMPLETO.md` para tener el mapa general
-2. Entra al manifest del proyecto que necesites contexto
-3. Cada manifest tiene 7 secciones fijas: definición, estado, ubicaciones, decisiones, próximos pasos, riesgos, cross-links
+0. **🔥 LECTURA OBLIGATORIA PRIMERO:** [`_HALLAZGOS_FASE_II_RECUPERADOS.md`](./_HALLAZGOS_FASE_II_RECUPERADOS.md) — hallazgos críticos recuperados de la Fase II Discovery Forense que sobreescriben suposiciones previas. Sin esto, vas a operar con info obsoleta sobre BioGuard, Top Control PC, Vivir Sano y la asimetría SOP/EPIA Drive vs Dropbox.
+1. Revisa `docs/INVENTARIO_PROYECTOS_v3_COMPLETO.md` para el mapa general
+2. Revisa `discovery_forense/REPORTE_FORENSE_MAGNA.md` para el contexto de la Fase II Discovery Forense
+3. Entra al manifest del proyecto que necesites contexto
+4. Cada manifest tiene 7-8 secciones fijas: definición, estado, ubicaciones, decisiones, próximos pasos, riesgos, cross-links, fuentes canónicas
 
 ## Índice ordenado por prioridad para Cowork
 

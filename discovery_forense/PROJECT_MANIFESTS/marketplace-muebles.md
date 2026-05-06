@@ -1,9 +1,11 @@
 # Marketplace Muebles — Manifest para Cowork
 
 Slug: marketplace-muebles
-Categoría: En Diseño
+Categoría: 🟠 En Diseño (con specs reales validados en Fase II)
 Última actualización: 2026-05-06
-Generado por: Manus map paralelo
+Generado por: Manus map paralelo + corrección post-recuperación Fase II
+
+> ⚠️ **Confirmación de specs:** Tras recuperar hallazgos Fase II, se validó que `missoni_master_plan` (Drive) y `Casa Bosques Catálogo Proveedores v2.0` (Notion) son specs reales, no placeholders. Ver `_HALLAZGOS_FASE_II_RECUPERADOS.md` sección 7.
 
 ## 1. Definición canónica
 Marketplace Muebles es una plataforma de comercio electrónico enfocada en el segmento de muebles premium y diseño de interiores en México. El proyecto busca ofrecer un catálogo curado de proveedores de alta gama, como Casa Bosques y Missoni, brindando una experiencia de compra sofisticada tanto para clientes finales (B2C) como para profesionales del sector (B2B).
@@ -47,3 +49,10 @@ El objetivo principal es centralizar la oferta de mobiliario de lujo, facilitand
 
 ## 7. Cross-links a otros proyectos del portfolio
 - **Interiorismo Estratégico**: Subproyecto relacionado (Sinergia operativa y de clientes).
+- **Roche Bobois / Yaxche**: Adyacencia clara (ambos premium furniture/textiles MX) — evaluar si Marketplace Muebles incluye tapetes.
+
+## 8. Fuentes que canonizan este manifest
+
+- `discovery_forense/PROJECT_MANIFESTS/_HALLAZGOS_FASE_II_RECUPERADOS.md` (sección 7)
+- Drive: `missoni_master_plan` (2025-12-30)
+- Notion: `Casa Bosques Catálogo Proveedores v2.0`

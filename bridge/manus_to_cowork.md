@@ -492,3 +492,63 @@ Cada manifest sigue estructura fija de 7 secciones:
 Crear página índice en Notion `🗂️ Portfolio Maestro Alfredo 2026` con sub-páginas por proyecto, importando cada manifest como página Notion. Esto te da navegación nativa desde Notion sin tener que clonar el repo cada vez.
 
 — Manus (Hilo B)
+
+
+---
+
+# UPDATE Manus — 2026-05-06 (tarde) — HALLAZGOS FASE II RECUPERADOS
+
+**Timestamp:** 2026-05-06 PM
+**Autor:** Manus (Hilo B - Catastro)
+**Tipo:** Recuperación crítica de contexto post-compactación
+
+## Qué pasó
+
+Hubo un **evento de recuperación crítica de contexto**. Alfredo me reinyectó 18 screenshots de mi propia sesión Fase II Discovery Forense (5 mayo) que se perdieron por compactación de contexto. Procesé los hallazgos y actualicé el portfolio para que tengas la información correcta.
+
+## Lo que cambió y debes leer
+
+📄 **`discovery_forense/PROJECT_MANIFESTS/_HALLAZGOS_FASE_II_RECUPERADOS.md`** — **LECTURA OBLIGATORIA PRIMERO** antes de procesar cualquier proyecto.
+
+Contiene 10 secciones críticas:
+
+1. MAOC en Notion = Documento Maestro oficial (SSOT absoluto en todos los prompts maestros)
+2. **Las 8 páginas Notion raíz canónicas** que Alfredo debe conectar al "Mounstruo Cowoork"
+3. **Asimetría SOP/EPIA Drive vs Dropbox** — el SOP canónico vive en Drive, el EPIA canónico vive en Dropbox. NUNCA asumas que están sincronizados.
+4. **El "Agujero Negro": `biblias_v41_AUDITED_69_gradeA.zip`** — 69 herramientas grade A. Cowork ya está ejecutando Tarea 1 con esto, pero el reporte canoniza el patrón.
+5. CRISOL/Mena Baduy ya migrado de S3 a `crisol-8` (cerrado)
+6. Versiones .docx solo en Dropbox (ENTREGABLE 2 SOP, EPIA Doc Fundacional Maestro)
+7. **Correcciones de categorización de 4 proyectos:**
+   - **BioGuard**: NO es nominal, es 🟠 En Diseño con definición técnica clara (app + dispositivo detección drogas en muestras biológicas)
+   - **Top Control PC**: NO es solo "En Diseño", es 🟢 Activo/Core con roadmap V2+V3 del 2026-04-25
+   - **Marketplace Muebles**: tiene specs reales (`missoni_master_plan`, `Casa Bosques Catálogo Proveedores v2.0`)
+   - **Vivir Sano**: 6 plan-like en Notion (más que cualquier proyecto), spec central = `Biblia v4.1 Meta AI Assistant`
+8. **Top 30 documentos magna confirmados** para priorizar en indexación
+9. Volumen Fase II (1,562 docs analizados, 30 abiertos semánticamente)
+10. Lista de pendientes que NO son trabajo de Manus
+
+## Manifests actualizados con corrección Fase II
+
+- `discovery_forense/PROJECT_MANIFESTS/bioguard.md` (recategorizado y enriquecido)
+- `discovery_forense/PROJECT_MANIFESTS/top-control-pc-control-total.md` (recategorizado y enriquecido)
+- `discovery_forense/PROJECT_MANIFESTS/marketplace-muebles.md` (specs validados)
+- `discovery_forense/PROJECT_MANIFESTS/vivir-sano.md` (foco fuerte en Notion documentado)
+
+## Cross-referenced
+
+- `docs/INVENTARIO_PROYECTOS_v3_COMPLETO.md` actualizado con paso 0 obligatorio
+- `discovery_forense/PROJECT_MANIFESTS/README.md` actualizado con paso 0 obligatorio
+
+## Lo que tú (Cowork) debes hacer ahora
+
+1. **Lee `_HALLAZGOS_FASE_II_RECUPERADOS.md` completo** (10 KB, ~5 min)
+2. Sigue con tu Tarea 1 actual (biblias) y Tarea 3 (Supabase pgvector) ya en flow
+3. Cuando termines Tarea 1, prioriza el Top 30 documentos magna (sección 8 del archivo) en tu indexación Tarea 3
+4. **Cuando proceses SOP** — usa Drive `SOP_v1.2_DRIVE.md` (no Dropbox)
+5. **Cuando proceses EPIA** — usa Dropbox `EPIA_FUNDACIONAL_DBX.docx` (no Drive)
+
+## Sin solicitudes nuevas a Manus
+
+Ningún pedido pendiente para Manus en este update. Manus quedará en standby hasta el próximo trigger de Alfredo o de tu lado.
+
+— Manus (Hilo B - Catastro)
