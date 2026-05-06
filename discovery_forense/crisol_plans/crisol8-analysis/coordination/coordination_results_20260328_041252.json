@@ -1,0 +1,929 @@
+[
+  {
+    "actor_a": "ACTOR_ea470d755f3f",
+    "actor_a_name": "guillermo cortés gonzález",
+    "actor_b": "ACTOR_9c4613e226db",
+    "actor_b_name": "rommel pacheco",
+    "total_score": 62.26,
+    "raw_score": 66,
+    "max_possible": 106,
+    "signals": [
+      {
+        "signal": "temporal_sync",
+        "weight": 20,
+        "score": 0,
+        "sync_events": 0,
+        "window_minutes": 30
+      },
+      {
+        "signal": "text_similarity",
+        "weight": 20,
+        "score": 20,
+        "similar_pairs": 5,
+        "threshold": 0.7
+      },
+      {
+        "signal": "co_amplification",
+        "weight": 15,
+        "score": 15,
+        "overlap": 2,
+        "jaccard": 0.667
+      },
+      {
+        "signal": "cross_platform",
+        "weight": 15,
+        "score": 11,
+        "shared_platforms": [
+          "twitter",
+          "unknown"
+        ],
+        "cross_matches": 2
+      },
+      {
+        "signal": "media_reuse",
+        "weight": 15,
+        "score": 0,
+        "shared_media": 0
+      },
+      {
+        "signal": "operational_pattern",
+        "weight": 15,
+        "score": 14
+      },
+      {
+        "signal": "orthographic_consistency",
+        "weight": 6,
+        "score": 6,
+        "variants": {
+          "Guillermo Cortés": 33
+        }
+      }
+    ],
+    "classification": "high"
+  },
+  {
+    "actor_a": "ACTOR_9c4613e226db",
+    "actor_a_name": "rommel pacheco",
+    "actor_b": "ACTOR_53776466e276",
+    "actor_b_name": "rogerio castro",
+    "total_score": 58.49,
+    "raw_score": 62,
+    "max_possible": 106,
+    "signals": [
+      {
+        "signal": "temporal_sync",
+        "weight": 20,
+        "score": 0,
+        "sync_events": 0,
+        "window_minutes": 30
+      },
+      {
+        "signal": "text_similarity",
+        "weight": 20,
+        "score": 20,
+        "similar_pairs": 11,
+        "threshold": 0.7
+      },
+      {
+        "signal": "co_amplification",
+        "weight": 15,
+        "score": 15,
+        "overlap": 2,
+        "jaccard": 0.667
+      },
+      {
+        "signal": "cross_platform",
+        "weight": 15,
+        "score": 15,
+        "shared_platforms": [
+          "twitter",
+          "unknown"
+        ],
+        "cross_matches": 4
+      },
+      {
+        "signal": "media_reuse",
+        "weight": 15,
+        "score": 0,
+        "shared_media": 0
+      },
+      {
+        "signal": "operational_pattern",
+        "weight": 15,
+        "score": 12
+      },
+      {
+        "signal": "orthographic_consistency",
+        "weight": 6,
+        "score": 0,
+        "variants": {
+          "Memo Cortés": 2,
+          "Guillermo Cortés": 28,
+          "Guillermo Cortes": 4
+        }
+      }
+    ],
+    "classification": "medium"
+  },
+  {
+    "actor_a": "ACTOR_ea470d755f3f",
+    "actor_a_name": "guillermo cortés gonzález",
+    "actor_b": "ACTOR_f924f1300ca9",
+    "actor_b_name": "claudia sheinbaum",
+    "total_score": 56.6,
+    "raw_score": 60,
+    "max_possible": 106,
+    "signals": [
+      {
+        "signal": "temporal_sync",
+        "weight": 20,
+        "score": 0,
+        "sync_events": 0,
+        "window_minutes": 30
+      },
+      {
+        "signal": "text_similarity",
+        "weight": 20,
+        "score": 20,
+        "similar_pairs": 5,
+        "threshold": 0.7
+      },
+      {
+        "signal": "co_amplification",
+        "weight": 15,
+        "score": 10,
+        "overlap": 1,
+        "jaccard": 0.333
+      },
+      {
+        "signal": "cross_platform",
+        "weight": 15,
+        "score": 10,
+        "shared_platforms": [
+          "unknown"
+        ],
+        "cross_matches": 5
+      },
+      {
+        "signal": "media_reuse",
+        "weight": 15,
+        "score": 0,
+        "shared_media": 0
+      },
+      {
+        "signal": "operational_pattern",
+        "weight": 15,
+        "score": 14
+      },
+      {
+        "signal": "orthographic_consistency",
+        "weight": 6,
+        "score": 6,
+        "variants": {
+          "Guillermo Cortés": 33
+        }
+      }
+    ],
+    "classification": "medium"
+  },
+  {
+    "actor_a": "ACTOR_ea470d755f3f",
+    "actor_a_name": "guillermo cortés gonzález",
+    "actor_b": "ACTOR_2657db047f48",
+    "actor_b_name": "rolando zapata bello",
+    "total_score": 45.28,
+    "raw_score": 48,
+    "max_possible": 106,
+    "signals": [
+      {
+        "signal": "temporal_sync",
+        "weight": 20,
+        "score": 0,
+        "sync_events": 0,
+        "window_minutes": 30
+      },
+      {
+        "signal": "text_similarity",
+        "weight": 20,
+        "score": 8,
+        "similar_pairs": 2,
+        "threshold": 0.7
+      },
+      {
+        "signal": "co_amplification",
+        "weight": 15,
+        "score": 15,
+        "overlap": 1,
+        "jaccard": 0.5
+      },
+      {
+        "signal": "cross_platform",
+        "weight": 15,
+        "score": 6,
+        "shared_platforms": [
+          "unknown"
+        ],
+        "cross_matches": 2
+      },
+      {
+        "signal": "media_reuse",
+        "weight": 15,
+        "score": 0,
+        "shared_media": 0
+      },
+      {
+        "signal": "operational_pattern",
+        "weight": 15,
+        "score": 13
+      },
+      {
+        "signal": "orthographic_consistency",
+        "weight": 6,
+        "score": 6,
+        "variants": {
+          "Guillermo Cortés": 33
+        }
+      }
+    ],
+    "classification": "medium"
+  },
+  {
+    "actor_a": "ACTOR_ea470d755f3f",
+    "actor_a_name": "guillermo cortés gonzález",
+    "actor_b": "ACTOR_53776466e276",
+    "actor_b_name": "rogerio castro",
+    "total_score": 44.34,
+    "raw_score": 47,
+    "max_possible": 106,
+    "signals": [
+      {
+        "signal": "temporal_sync",
+        "weight": 20,
+        "score": 0,
+        "sync_events": 0,
+        "window_minutes": 30
+      },
+      {
+        "signal": "text_similarity",
+        "weight": 20,
+        "score": 8,
+        "similar_pairs": 2,
+        "threshold": 0.7
+      },
+      {
+        "signal": "co_amplification",
+        "weight": 15,
+        "score": 15,
+        "overlap": 2,
+        "jaccard": 1.0
+      },
+      {
+        "signal": "cross_platform",
+        "weight": 15,
+        "score": 5,
+        "shared_platforms": [
+          "twitter",
+          "unknown"
+        ],
+        "cross_matches": 0
+      },
+      {
+        "signal": "media_reuse",
+        "weight": 15,
+        "score": 0,
+        "shared_media": 0
+      },
+      {
+        "signal": "operational_pattern",
+        "weight": 15,
+        "score": 13
+      },
+      {
+        "signal": "orthographic_consistency",
+        "weight": 6,
+        "score": 6,
+        "variants": {
+          "Guillermo Cortés": 33
+        }
+      }
+    ],
+    "classification": "medium"
+  },
+  {
+    "actor_a": "ACTOR_ea470d755f3f",
+    "actor_a_name": "guillermo cortés gonzález",
+    "actor_b": "ACTOR_e33edef58647",
+    "actor_b_name": "joaquín díaz mena",
+    "total_score": 43.4,
+    "raw_score": 46,
+    "max_possible": 106,
+    "signals": [
+      {
+        "signal": "temporal_sync",
+        "weight": 20,
+        "score": 0,
+        "sync_events": 0,
+        "window_minutes": 30
+      },
+      {
+        "signal": "text_similarity",
+        "weight": 20,
+        "score": 20,
+        "similar_pairs": 5,
+        "threshold": 0.7
+      },
+      {
+        "signal": "co_amplification",
+        "weight": 15,
+        "score": 10,
+        "overlap": 1,
+        "jaccard": 0.333
+      },
+      {
+        "signal": "cross_platform",
+        "weight": 15,
+        "score": 10,
+        "shared_platforms": [
+          "unknown"
+        ],
+        "cross_matches": 5
+      },
+      {
+        "signal": "media_reuse",
+        "weight": 15,
+        "score": 0,
+        "shared_media": 0
+      },
+      {
+        "signal": "operational_pattern",
+        "weight": 15,
+        "score": 0
+      },
+      {
+        "signal": "orthographic_consistency",
+        "weight": 6,
+        "score": 6,
+        "variants": {
+          "Guillermo Cortés": 33
+        }
+      }
+    ],
+    "classification": "medium"
+  },
+  {
+    "actor_a": "ACTOR_f924f1300ca9",
+    "actor_a_name": "claudia sheinbaum",
+    "actor_b": "ACTOR_e33edef58647",
+    "actor_b_name": "joaquín díaz mena",
+    "total_score": 43.4,
+    "raw_score": 46,
+    "max_possible": 106,
+    "signals": [
+      {
+        "signal": "temporal_sync",
+        "weight": 20,
+        "score": 0,
+        "sync_events": 0,
+        "window_minutes": 30
+      },
+      {
+        "signal": "text_similarity",
+        "weight": 20,
+        "score": 16,
+        "similar_pairs": 4,
+        "threshold": 0.7
+      },
+      {
+        "signal": "co_amplification",
+        "weight": 15,
+        "score": 15,
+        "overlap": 2,
+        "jaccard": 1.0
+      },
+      {
+        "signal": "cross_platform",
+        "weight": 15,
+        "score": 15,
+        "shared_platforms": [
+          "unknown",
+          "instagram"
+        ],
+        "cross_matches": 4
+      },
+      {
+        "signal": "media_reuse",
+        "weight": 15,
+        "score": 0,
+        "shared_media": 0
+      },
+      {
+        "signal": "operational_pattern",
+        "weight": 15,
+        "score": 0
+      },
+      {
+        "signal": "orthographic_consistency",
+        "weight": 6,
+        "score": 0,
+        "variants": {}
+      }
+    ],
+    "classification": "medium"
+  },
+  {
+    "actor_a": "ACTOR_9c4613e226db",
+    "actor_a_name": "rommel pacheco",
+    "actor_b": "ACTOR_f924f1300ca9",
+    "actor_b_name": "claudia sheinbaum",
+    "total_score": 42.45,
+    "raw_score": 45,
+    "max_possible": 106,
+    "signals": [
+      {
+        "signal": "temporal_sync",
+        "weight": 20,
+        "score": 0,
+        "sync_events": 0,
+        "window_minutes": 30
+      },
+      {
+        "signal": "text_similarity",
+        "weight": 20,
+        "score": 8,
+        "similar_pairs": 2,
+        "threshold": 0.7
+      },
+      {
+        "signal": "co_amplification",
+        "weight": 15,
+        "score": 15,
+        "overlap": 2,
+        "jaccard": 0.667
+      },
+      {
+        "signal": "cross_platform",
+        "weight": 15,
+        "score": 8,
+        "shared_platforms": [
+          "unknown",
+          "instagram"
+        ],
+        "cross_matches": 1
+      },
+      {
+        "signal": "media_reuse",
+        "weight": 15,
+        "score": 0,
+        "shared_media": 0
+      },
+      {
+        "signal": "operational_pattern",
+        "weight": 15,
+        "score": 14
+      },
+      {
+        "signal": "orthographic_consistency",
+        "weight": 6,
+        "score": 0,
+        "variants": {
+          "Memo Cortés": 2,
+          "Guillermo Cortés": 28,
+          "Guillermo Cortes": 4
+        }
+      }
+    ],
+    "classification": "medium"
+  },
+  {
+    "actor_a": "ACTOR_2657db047f48",
+    "actor_a_name": "rolando zapata bello",
+    "actor_b": "ACTOR_e33edef58647",
+    "actor_b_name": "joaquín díaz mena",
+    "total_score": 32.08,
+    "raw_score": 34,
+    "max_possible": 106,
+    "signals": [
+      {
+        "signal": "temporal_sync",
+        "weight": 20,
+        "score": 0,
+        "sync_events": 0,
+        "window_minutes": 30
+      },
+      {
+        "signal": "text_similarity",
+        "weight": 20,
+        "score": 0,
+        "similar_pairs": 0,
+        "threshold": 0.7
+      },
+      {
+        "signal": "co_amplification",
+        "weight": 15,
+        "score": 15,
+        "overlap": 1,
+        "jaccard": 0.5
+      },
+      {
+        "signal": "cross_platform",
+        "weight": 15,
+        "score": 0,
+        "shared_platforms": [
+          "unknown"
+        ],
+        "cross_matches": 0
+      },
+      {
+        "signal": "media_reuse",
+        "weight": 15,
+        "score": 0,
+        "shared_media": 0
+      },
+      {
+        "signal": "operational_pattern",
+        "weight": 15,
+        "score": 13
+      },
+      {
+        "signal": "orthographic_consistency",
+        "weight": 6,
+        "score": 6,
+        "variants": {
+          "Guillermo Cortés": 6
+        }
+      }
+    ],
+    "classification": "medium"
+  },
+  {
+    "actor_a": "ACTOR_53776466e276",
+    "actor_a_name": "rogerio castro",
+    "actor_b": "ACTOR_2657db047f48",
+    "actor_b_name": "rolando zapata bello",
+    "total_score": 26.42,
+    "raw_score": 28,
+    "max_possible": 106,
+    "signals": [
+      {
+        "signal": "temporal_sync",
+        "weight": 20,
+        "score": 0,
+        "sync_events": 0,
+        "window_minutes": 30
+      },
+      {
+        "signal": "text_similarity",
+        "weight": 20,
+        "score": 0,
+        "similar_pairs": 0,
+        "threshold": 0.7
+      },
+      {
+        "signal": "co_amplification",
+        "weight": 15,
+        "score": 15,
+        "overlap": 1,
+        "jaccard": 0.5
+      },
+      {
+        "signal": "cross_platform",
+        "weight": 15,
+        "score": 0,
+        "shared_platforms": [
+          "unknown"
+        ],
+        "cross_matches": 0
+      },
+      {
+        "signal": "media_reuse",
+        "weight": 15,
+        "score": 0,
+        "shared_media": 0
+      },
+      {
+        "signal": "operational_pattern",
+        "weight": 15,
+        "score": 13
+      },
+      {
+        "signal": "orthographic_consistency",
+        "weight": 6,
+        "score": 0,
+        "variants": {
+          "Memo Cortés": 4,
+          "Guillermo Cortés": 44,
+          "Guillermo Cortes": 4
+        }
+      }
+    ],
+    "classification": "low"
+  },
+  {
+    "actor_a": "ACTOR_9c4613e226db",
+    "actor_a_name": "rommel pacheco",
+    "actor_b": "ACTOR_e33edef58647",
+    "actor_b_name": "joaquín díaz mena",
+    "total_score": 25.47,
+    "raw_score": 27,
+    "max_possible": 106,
+    "signals": [
+      {
+        "signal": "temporal_sync",
+        "weight": 20,
+        "score": 0,
+        "sync_events": 0,
+        "window_minutes": 30
+      },
+      {
+        "signal": "text_similarity",
+        "weight": 20,
+        "score": 4,
+        "similar_pairs": 1,
+        "threshold": 0.7
+      },
+      {
+        "signal": "co_amplification",
+        "weight": 15,
+        "score": 15,
+        "overlap": 2,
+        "jaccard": 0.667
+      },
+      {
+        "signal": "cross_platform",
+        "weight": 15,
+        "score": 8,
+        "shared_platforms": [
+          "unknown",
+          "instagram"
+        ],
+        "cross_matches": 1
+      },
+      {
+        "signal": "media_reuse",
+        "weight": 15,
+        "score": 0,
+        "shared_media": 0
+      },
+      {
+        "signal": "operational_pattern",
+        "weight": 15,
+        "score": 0
+      },
+      {
+        "signal": "orthographic_consistency",
+        "weight": 6,
+        "score": 0,
+        "variants": {
+          "Memo Cortés": 2,
+          "Guillermo Cortés": 28,
+          "Guillermo Cortes": 4
+        }
+      }
+    ],
+    "classification": "low"
+  },
+  {
+    "actor_a": "ACTOR_f924f1300ca9",
+    "actor_a_name": "claudia sheinbaum",
+    "actor_b": "ACTOR_2657db047f48",
+    "actor_b_name": "rolando zapata bello",
+    "total_score": 24.53,
+    "raw_score": 26,
+    "max_possible": 106,
+    "signals": [
+      {
+        "signal": "temporal_sync",
+        "weight": 20,
+        "score": 0,
+        "sync_events": 0,
+        "window_minutes": 30
+      },
+      {
+        "signal": "text_similarity",
+        "weight": 20,
+        "score": 0,
+        "similar_pairs": 0,
+        "threshold": 0.7
+      },
+      {
+        "signal": "co_amplification",
+        "weight": 15,
+        "score": 15,
+        "overlap": 1,
+        "jaccard": 0.5
+      },
+      {
+        "signal": "cross_platform",
+        "weight": 15,
+        "score": 0,
+        "shared_platforms": [
+          "unknown"
+        ],
+        "cross_matches": 0
+      },
+      {
+        "signal": "media_reuse",
+        "weight": 15,
+        "score": 0,
+        "shared_media": 0
+      },
+      {
+        "signal": "operational_pattern",
+        "weight": 15,
+        "score": 11
+      },
+      {
+        "signal": "orthographic_consistency",
+        "weight": 6,
+        "score": 0,
+        "variants": {}
+      }
+    ],
+    "classification": "low"
+  },
+  {
+    "actor_a": "ACTOR_9c4613e226db",
+    "actor_a_name": "rommel pacheco",
+    "actor_b": "ACTOR_2657db047f48",
+    "actor_b_name": "rolando zapata bello",
+    "total_score": 21.7,
+    "raw_score": 23,
+    "max_possible": 106,
+    "signals": [
+      {
+        "signal": "temporal_sync",
+        "weight": 20,
+        "score": 0,
+        "sync_events": 0,
+        "window_minutes": 30
+      },
+      {
+        "signal": "text_similarity",
+        "weight": 20,
+        "score": 0,
+        "similar_pairs": 0,
+        "threshold": 0.7
+      },
+      {
+        "signal": "co_amplification",
+        "weight": 15,
+        "score": 10,
+        "overlap": 1,
+        "jaccard": 0.333
+      },
+      {
+        "signal": "cross_platform",
+        "weight": 15,
+        "score": 0,
+        "shared_platforms": [
+          "unknown"
+        ],
+        "cross_matches": 0
+      },
+      {
+        "signal": "media_reuse",
+        "weight": 15,
+        "score": 0,
+        "shared_media": 0
+      },
+      {
+        "signal": "operational_pattern",
+        "weight": 15,
+        "score": 13
+      },
+      {
+        "signal": "orthographic_consistency",
+        "weight": 6,
+        "score": 0,
+        "variants": {
+          "Memo Cortés": 2,
+          "Guillermo Cortés": 28,
+          "Guillermo Cortes": 4
+        }
+      }
+    ],
+    "classification": "low"
+  },
+  {
+    "actor_a": "ACTOR_f924f1300ca9",
+    "actor_a_name": "claudia sheinbaum",
+    "actor_b": "ACTOR_53776466e276",
+    "actor_b_name": "rogerio castro",
+    "total_score": 20.75,
+    "raw_score": 22,
+    "max_possible": 106,
+    "signals": [
+      {
+        "signal": "temporal_sync",
+        "weight": 20,
+        "score": 0,
+        "sync_events": 0,
+        "window_minutes": 30
+      },
+      {
+        "signal": "text_similarity",
+        "weight": 20,
+        "score": 0,
+        "similar_pairs": 0,
+        "threshold": 0.7
+      },
+      {
+        "signal": "co_amplification",
+        "weight": 15,
+        "score": 10,
+        "overlap": 1,
+        "jaccard": 0.333
+      },
+      {
+        "signal": "cross_platform",
+        "weight": 15,
+        "score": 0,
+        "shared_platforms": [
+          "unknown"
+        ],
+        "cross_matches": 0
+      },
+      {
+        "signal": "media_reuse",
+        "weight": 15,
+        "score": 0,
+        "shared_media": 0
+      },
+      {
+        "signal": "operational_pattern",
+        "weight": 15,
+        "score": 12
+      },
+      {
+        "signal": "orthographic_consistency",
+        "weight": 6,
+        "score": 0,
+        "variants": {}
+      }
+    ],
+    "classification": "low"
+  },
+  {
+    "actor_a": "ACTOR_53776466e276",
+    "actor_a_name": "rogerio castro",
+    "actor_b": "ACTOR_e33edef58647",
+    "actor_b_name": "joaquín díaz mena",
+    "total_score": 20.75,
+    "raw_score": 22,
+    "max_possible": 106,
+    "signals": [
+      {
+        "signal": "temporal_sync",
+        "weight": 20,
+        "score": 0,
+        "sync_events": 0,
+        "window_minutes": 30
+      },
+      {
+        "signal": "text_similarity",
+        "weight": 20,
+        "score": 0,
+        "similar_pairs": 0,
+        "threshold": 0.7
+      },
+      {
+        "signal": "co_amplification",
+        "weight": 15,
+        "score": 10,
+        "overlap": 1,
+        "jaccard": 0.333
+      },
+      {
+        "signal": "cross_platform",
+        "weight": 15,
+        "score": 0,
+        "shared_platforms": [
+          "unknown"
+        ],
+        "cross_matches": 0
+      },
+      {
+        "signal": "media_reuse",
+        "weight": 15,
+        "score": 0,
+        "shared_media": 0
+      },
+      {
+        "signal": "operational_pattern",
+        "weight": 15,
+        "score": 12
+      },
+      {
+        "signal": "orthographic_consistency",
+        "weight": 6,
+        "score": 0,
+        "variants": {
+          "Memo Cortés": 4,
+          "Guillermo Cortés": 44,
+          "Guillermo Cortes": 4
+        }
+      }
+    ],
+    "classification": "low"
+  }
+]

@@ -1,0 +1,1748 @@
+{
+  "results": [
+    {
+      "input": "https://www.poresto.com/opinion/2023/7/4/el-siguiente-paso-de-la-4t.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2023/7/4/el-siguiente-paso-de-la-4t.html",
+        "titulo": "El siguiente paso de la 4T",
+        "fecha": "2023-07-04",
+        "autor": "Carlos Mena Baduy",
+        "medio": "PorEsto",
+        "resumen": "El artículo analiza los aciertos económicos de la 4T, como la estabilidad de la deuda pública y los subsidios sociales. Sin embargo, argumenta que estas medidas no resuelven el problema de la desigualdad, originado por la alta informalidad en la economía. El autor concluye que el siguiente paso debe ser enfrentar la informalidad para lograr un desarrollo sostenible.",
+        "actores_mencionados": "Carlos Mena Baduy, Infonavit",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 4
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2023/2/16/la-tragedia-de-los-socios-minoritarios.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2023/2/16/la-tragedia-de-los-socios-minoritarios.html",
+        "titulo": "La tragedia de los socios minoritarios",
+        "fecha": "2023-02-16",
+        "autor": "Carlos Mena Baduy",
+        "medio": "PorEsto",
+        "resumen": "El artículo de opinión de Carlos Mena Baduy aborda los problemas y la falta de protección legal que enfrentan los socios minoritarios en las empresas. Se discute cómo la legislación actual es insuficiente para salvaguardar sus derechos, lo que a menudo resulta en conflictos familiares y fraudes, y se aboga por una reforma legal para agilizar la justicia y fomentar la inversión.",
+        "actores_mencionados": "Carlos Mena Baduy",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 3
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2024/2/21/agenda-economica-yucatan-2024.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2024/2/21/agenda-economica-yucatan-2024.html",
+        "titulo": "Agenda Económica de Yucatán 2024",
+        "fecha": "2024-02-21",
+        "autor": "desconocido",
+        "medio": "PorEsto",
+        "resumen": "El artículo presenta un análisis sobre la agenda económica de Yucatán para el año 2024, destacando la importancia de la colaboración entre el sector empresarial y el gobierno para impulsar el desarrollo. Se mencionan diversos temas como la atracción de inversiones, la mejora de la infraestructura y la necesidad de políticas públicas que fomenten la competitividad.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 3
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2024/8/15/-la-nueva-vision-para-la-economia-de-yucatan-avanzando-con-esperanza-.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2024/8/15/-la-nueva-vision-para-la-economia-de-yucatan-avanzando-con-esperanza-.html",
+        "titulo": "La nueva visión para la economía de Yucatán: avanzando con esperanza",
+        "fecha": "2024-08-15",
+        "autor": "Carlos Mena Baduy",
+        "medio": "PorEsto",
+        "resumen": "El artículo es una columna de opinión sobre la economía de Yucatán. El autor, Carlos Mena Baduy, analiza el crecimiento económico desigual en el estado y propone una nueva visión para fomentar un desarrollo más inclusivo, centrado en el apoyo a las pequeñas y medianas empresas (pymes), el desarrollo de infraestructura y la promoción del consumo local.",
+        "actores_mencionados": "Carlos Mena Baduy, Infonavit",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/02/20/irak-greene-la-federica-quijano-del-imdut-es-aviador-pues-solo-viaja-y-trabaja-poco/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/02/20/irak-greene-la-federica-quijano-del-imdut-es-aviador-pues-solo-viaja-y-trabaja-poco/",
+        "titulo": "Irak Greene, la “Federica Quijano” del IMDUT: Es ‘aviador’, pues solo viaja y trabaja poco",
+        "fecha": "2025-02-20",
+        "autor": "admin",
+        "medio": "Grillo de Yucatán",
+        "resumen": "El artículo acusa a Irak Greene, director del IMDUT, de ser un 'aviador' por ausentarse de sus funciones para estar en la Ciudad de México con su hermano Rommel Pacheco en la CONADE. Se le apoda la 'Federica Quijano' del IMDUT por sus constantes viajes, los cuales, según la nota, son para visitar a su pareja, quien también trabaja en la CONADE. La publicación critica que Greene no atiende los problemas de la zona metropolitana y solo se dedica a organizar tianguis para su beneficio.",
+        "actores_mencionados": "Irak Greene, Rommel Pacheco, CONADE",
+        "sentimiento_conade": "NEGATIVO",
+        "tipo_contenido": "ATAQUE_DIRECTO",
+        "relevancia": 7
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/imprimir.php?id=NjE4MzA=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/imprimir.php?id=NjE4MzA=",
+        "titulo": "Hermano de Rommel Pacheco surte guayaberas a la Conade.",
+        "fecha": "2025-04-30",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "El artículo denuncia que Irak Greene Marrufo, hermano de Rommel Pacheco, titular de la CONADE, es proveedor de guayaberas para dicha dependencia a través de su empresa 'La Elegancia de Yucatán'. Se cuestiona el posible conflicto de interés y la legalidad de estos negocios entre familiares, señalando que podría ser un acto de corrupción.",
+        "actores_mencionados": "Rommel Pacheco, Irak Greene, CONADE",
+        "sentimiento_conade": "NEGATIVO",
+        "tipo_contenido": "FILTRACION",
+        "relevancia": 9
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/06/27/victor-caballero-y-su-hija-hunden-a-rommel-pacheco-con-su-pesima-consultoria/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/06/27/victor-caballero-y-su-hija-hunden-a-rommel-pacheco-con-su-pesima-consultoria/",
+        "titulo": "VÍCTOR CABALLERO Y SU HIJA HUNDEN A ROMMEL PACHECO CON SU PÉSIMA CONSULTORÍA",
+        "fecha": "2025-06-27",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "El artículo detalla cómo la consultoría de Víctor Caballero y su hija, Daniela Caballero, ha afectado negativamente la campaña de Rommel Pacheco. Se mencionan los altos costos de la consultoría y la falta de resultados positivos, lo que ha generado descontento dentro del equipo de Pacheco.",
+        "actores_mencionados": "Rommel Pacheco, Daniela Caballero",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ATAQUE_DIRECTO",
+        "relevancia": 8
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjMyMDY=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjMyMDY=",
+        "titulo": "¿El regreso de Sergio Vadillo Lora?",
+        "fecha": "2025-08-16",
+        "autor": "Por EL PRINCIPAL",
+        "medio": "El Principal",
+        "resumen": "El artículo analiza el posible regreso a la política de Sergio Vadillo Lora, exdirigente del PRI en Mérida. Se mencionan sus recientes apariciones públicas y sus supuestos vínculos con Morena a través de Rommel Pacheco, titular de la CONADE.",
+        "actores_mencionados": "Sergio Vadillo, Rommel Pacheco, Irak Greene",
+        "sentimiento_conade": "NEUTRO",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 7
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/06/08/vadillo-sale-del-closet-politico-va-rumbo-a-morena-la-comunidad-lgtb-su-trampolin/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/06/08/vadillo-sale-del-closet-politico-va-rumbo-a-morena-la-comunidad-lgtb-su-trampolin/",
+        "titulo": "Vadillo sale del closet… político… va rumbo a Morena… la comunidad LGTB+ su trampolín",
+        "fecha": "2025-06-08",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "El artículo especula sobre las intenciones políticas de Sergio Vadillo tras su participación en la marcha del orgullo gay, sugiriendo que podría ser un movimiento oportunista para unirse a Morena. Se le compara con Rommel Pacheco, acusándolo de usar a la comunidad LGTB+ como trampolín político.",
+        "actores_mencionados": "Sergio Vadillo, Rommel Pacheco, CONADE",
+        "sentimiento_conade": "NEGATIVO",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 6
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjMzMjE=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjMzMjE=",
+        "titulo": "EL INDISCRETO",
+        "fecha": "2025-08-25",
+        "autor": "EL INDISCRETO",
+        "medio": "El Principal",
+        "resumen": "El artículo aborda el resurgimiento político de Sergio Vadillo, quien presuntamente coordinará los medios para la campaña de Rommel Pacheco a la alcaldía de Mérida. Critica a Pacheco por aliarse con ex-priístas desprestigiados, augurando un futuro complicado para su candidatura y advirtiendo que las estrategias de ataque y el derroche de dinero no son efectivas para ganar el favor del electorado yucateco.",
+        "actores_mencionados": "Rommel Pacheco, Sergio Vadillo",
+        "sentimiento_conade": "NEGATIVO",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 7
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/08/05/tuzquepeando-kalimba-encabeza-los-festejos-estilo-narco-de-vadillo-en-tizimin/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/08/05/tuzquepeando-kalimba-encabeza-los-festejos-estilo-narco-de-vadillo-en-tizimin/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se encontró (Error 404).",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": ""
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/04/30/rommel-e-irak-hacen-negocios-en-la-conade-les-achocan-guayabera-y-huarache/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/04/30/rommel-e-irak-hacen-negocios-en-la-conade-les-achocan-guayabera-y-huarache/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se encontró o arrojó un error 404.",
+        "actores_mencionados": "NO_APLICA",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/imprimir.php?id=NjI1NjE=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/imprimir.php?id=NjI1NjE=",
+        "titulo": "RENUNCIA VÍCTOR CABALLERO AL CEN DEL PRI: ¿ATERRIZARÁ EN MORENA?",
+        "fecha": "2025-06-27",
+        "autor": "EL CHISMOGRAFO EN LA RED",
+        "medio": "El Principal",
+        "resumen": "Víctor Caballero Durán renunció a su cargo de subsecretario del CEN del PRI, y surgieron rumores de que se uniría a Morena. Su empresa de consultoría trabajó con Rommel Pacheco en la campaña por la alcaldía de Mérida, y su hija y yerno ahora trabajan en la Conade.",
+        "actores_mencionados": "Rommel Pacheco, CONADE, Daniela Caballero",
+        "sentimiento_conade": "NEUTRO",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 7
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2025/8/29/todo-es-personal-en-yucatan-.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2025/8/29/todo-es-personal-en-yucatan-.html",
+        "titulo": "Todo es personal en Yucatán",
+        "fecha": "2025-08-29",
+        "autor": "Redacción Por Esto!",
+        "medio": "PorEsto",
+        "resumen": "La columna aborda movimientos políticos en Yucatán, incluyendo la venta de un bolso de lujo por parte de una diputada del PAN, la incorporación de un exmiembro del PRI al gobierno de la 4T a través de la CONADE y Rommel Pacheco, y la renuncia de los asesores de imagen de este último.",
+        "actores_mencionados": "Rommel Pacheco, CONADE, Esteban Fuentes, Sergio Vadillo, Daniela Caballero",
+        "sentimiento_conade": "NEUTRO",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 7
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjM0MDg=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjM0MDg=",
+        "titulo": "¿Víctor Caballero y familia fuera de la Conade?",
+        "fecha": "2025-08-30",
+        "autor": "Por EL PRINCIPAL",
+        "medio": "El Principal",
+        "resumen": "El artículo especula sobre la salida de Víctor Caballero Durán y su familia de la CONADE debido a tensiones con Esteban Fuentes Zapata. Se menciona que Rommel Pacheco se queda sin su equipo de imagen y que su nuevo equipo está conformado por ex-priístas, lo que podría complicar sus aspiraciones políticas.",
+        "actores_mencionados": "Rommel Pacheco, Daniela Caballero, Esteban Fuentes, Sergio Vadillo",
+        "sentimiento_conade": "NEGATIVO",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 8
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2025/6/6/todo-es-personal-en-yucatan.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2025/6/6/todo-es-personal-en-yucatan.html",
+        "titulo": "Todo es Personal en Yucatán",
+        "fecha": "2025-06-06",
+        "autor": "Redacción Por Esto!",
+        "medio": "PorEsto",
+        "resumen": "La columna analiza los resultados de las elecciones judiciales en Yucatán, destacando el bajo desempeño del operador de Morena en el 3er Distrito Federal, Felipe Duarte, debido a estructuras simuladas y falta de movilización real. Se contrasta este fracaso con el éxito en otros distritos y se mencionan otras polémicas políticas locales, como la del diputado Javier Osante y el secretario de Educación, Juan Balam, señalando un ambiente de simulación y conflicto interno.",
+        "actores_mencionados": "Ninguno",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 2
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjM1MTg=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjM1MTg=",
+        "titulo": "Sin querer queriendo vuelven al escenario público los grandes cuates Víctor Caballero Durán y Rolando Zapata Bello al encabezar ambos unos talleres de inteligencia artificial.",
+        "fecha": "2025-09-06",
+        "autor": "Por EL PRINCIPAL",
+        "medio": "El Principal",
+        "resumen": "Víctor Caballero Durán y Rolando Zapata Bello reaparecen juntos en un evento de inteligencia artificial. La nota especula sobre el futuro político de Caballero, mencionando su renuncia a la subsecretaría de acción electoral y su distanciamiento de la campaña de Rommel Pacheco por conflictos con otros ex-priístas en la CONADE.",
+        "actores_mencionados": "Rommel Pacheco, CONADE, Esteban Fuentes, Sergio Vadillo, Daniela Caballero",
+        "sentimiento_conade": "NEGATIVO",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 7
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/07/11/la-prensa-abandona-a-rommel-usa-a-la-agencia-que-envio-comunicados-de-ana-guevara/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/07/11/la-prensa-abandona-a-rommel-usa-a-la-agencia-que-envio-comunicados-de-ana-guevara/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": ""
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/05/07/quien-se-va-primero-irak-el-zorroratatu-o-rulofarol-tan-malo-el-pinto-como-el-colorado/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/05/07/quien-se-va-primero-irak-el-zorroratatu-o-rulofarol-tan-malo-el-pinto-como-el-colorado/",
+        "titulo": "Quien se va primero, Irak, el #ZorroRataTú o RuloFarol: Tan malo el pinto como el colorado",
+        "fecha": "2025-05-07",
+        "autor": "admin",
+        "medio": "Grillo de Yucatán",
+        "resumen": "El artículo critica duramente la gestión de Irak Greene Marrufo al frente del IMDUT, acusándolo de incompetencia y de usar su cargo para promover la imagen de su hermano, Rommel Pacheco. Se menciona una apuesta en el gobierno sobre si él o Raúl Osorio serán los primeros en ser destituidos.",
+        "actores_mencionados": "Irak Greene, Rommel Pacheco",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 7
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2026/02/16/enfurece-rommel-ante-preguntas-sobre-la-proteccion-en-la-conade-a-un-presunto-acosador/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2026/02/16/enfurece-rommel-ante-preguntas-sobre-la-proteccion-en-la-conade-a-un-presunto-acosador/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se pudo encontrar, devolvió un error 404.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2026/02/19/los-therians-de-morena-chapulines-zorroratas-chacales-cerdos-y-mas-fauna-politica/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2026/02/19/los-therians-de-morena-chapulines-zorroratas-chacales-cerdos-y-mas-fauna-politica/",
+        "titulo": "ERROR",
+        "fecha": "2026-02-19",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se pudo encontrar (Error 404).",
+        "actores_mencionados": "NO_APLICA",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2018/01/17/comienzan-las-actividades-en-el-patio-de-maniobras-del-centro-de-convenciones-siglo-xxi/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2018/01/17/comienzan-las-actividades-en-el-patio-de-maniobras-del-centro-de-convenciones-siglo-xxi/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se encontró (Error 404).",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2016/07/20/rolando-zapata-y-el-gabinete-sectorial-de-educacion-dan-seguimiento-a-los-trabajos-de-la-reforma-educativa/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2016/07/20/rolando-zapata-y-el-gabinete-sectorial-de-educacion-dan-seguimiento-a-los-trabajos-de-la-reforma-educativa/",
+        "titulo": "ERROR",
+        "fecha": "2016-07-20",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se pudo encontrar, devolvió un error 404.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3Mjk=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3Mjk=",
+        "titulo": "EL FUNCIONARIO INCOMODO QUE TODOS CONTRATAN: GUILLERMO CORTES GONZALEZ",
+        "fecha": "2026-02-19",
+        "autor": "POR EL PRINCIPAL",
+        "medio": "El Principal",
+        "resumen": "El artículo detalla la trayectoria de Guillermo Cortés González, un ex-priísta que, a pesar de un historial polémico y su supuesta participación en \"moches\", continúa siendo contratado en altos cargos. Se menciona su conflictiva salida de la delegación de Bienestar bajo Rogerio Castro y su posterior incorporación al equipo de Rommel Pacheco, cuestionando la decisión de este último.",
+        "actores_mencionados": "Guillermo Cortés, Rogerio Castro, Rommel Pacheco",
+        "sentimiento_conade": "NEGATIVO",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 8
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2026/2/13/todo-es-personal-en-yucatan.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2026/2/13/todo-es-personal-en-yucatan.html",
+        "titulo": "Todo es Personal en Yucatán",
+        "fecha": "2026-02-13",
+        "autor": "Redacción Por Esto!",
+        "medio": "PorEsto",
+        "resumen": "La columna analiza la renuncia de Rogerio Castro a la delegación del Bienestar en Yucatán, en medio de sospechas de enriquecimiento ilícito y alianzas políticas cuestionadas. Se detalla la alianza que formó con Rommel Pacheco, presuntamente operada por Guillermo Cortés, y cómo esta se debilita ante la caída política de Castro. El artículo también comenta otros movimientos políticos y cambios en el Ayuntamiento de Mérida y colegios de profesionistas.",
+        "actores_mencionados": "Rogerio Castro, Infonavit, Rommel Pacheco, Guillermo Cortés",
+        "sentimiento_conade": "NEGATIVO",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 8
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjE5ODM=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjE5ODM=",
+        "titulo": "900 deportistas representarán a Yucatán en la Olimpiada Conade 2025",
+        "fecha": "2025-05-13",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "El Gobernador Joaquín Díaz Mena abanderó a la delegación de 900 deportistas yucatecos que representarán al estado en la Olimpiada Conade 2025. Yucatán será una de las 5 sedes del evento, donde competirán más de 5 mil atletas de todo el país en diversas disciplinas. La delegación de Yucatán está compuesta por 1,100 personas, incluyendo atletas, entrenadores y delegados.",
+        "actores_mencionados": "CONADE",
+        "sentimiento_conade": "NEUTRO",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 3
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjM3Mzc=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjM3Mzc=",
+        "titulo": "Abanderan a delegación yucateca para la Paralimpiada Nacional Conade 2025",
+        "fecha": "2025-09-19",
+        "autor": "Gobierno del Estado",
+        "medio": "El Principal",
+        "resumen": "El Gobernador Joaquín Díaz Mena abanderó a la delegación yucateca que participará en la Paralimpiada Nacional Conade 2025. La delegación está conformada por 98 personas, incluyendo 56 paratletas que competirán en diversas disciplinas. El gobernador reconoció el esfuerzo de los deportistas y sus familias.",
+        "actores_mencionados": "CONADE",
+        "sentimiento_conade": "NEUTRO",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 5
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjQ1OTM=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjQ1OTM=",
+        "titulo": "Imagen por los suelos del director de la Conade, Rommel Pacheco Marrufo.",
+        "fecha": "2025-11-20",
+        "autor": "El Principal",
+        "medio": "El Principal",
+        "resumen": "El artículo reporta sobre una investigación de la revista PROCESO y declaraciones de la ex-pareja de Rommel Pacheco, Paola Espinosa, quien lo acusa de enriquecimiento ilícito y de no declarar propiedades. Se menciona que el objetivo de Pacheco y su familia es amasar fortuna, y que aspira a ser gobernador para enriquecerse. La nota destaca el daño a la imagen pública del funcionario.",
+        "actores_mencionados": "Rommel Pacheco, CONADE",
+        "sentimiento_conade": "NEGATIVO",
+        "tipo_contenido": "ATAQUE_DIRECTO",
+        "relevancia": 9
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjE3MzA=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjE3MzA=",
+        "titulo": "Con revisión de la infraestructura deportiva arrancan preparativos para la Olimpiada Nacional",
+        "fecha": "2025-04-22",
+        "autor": "Gobierno del Estado",
+        "medio": "El Principal",
+        "resumen": "Yucatán será sede de la Olimpiada Nacional 2025 en 9 disciplinas deportivas. La CONADE ha comenzado a realizar visitas a las unidades deportivas para verificar las adecuaciones necesarias, prestando especial atención a la Pista de Remo y Canotaje de Progreso, que requiere un dragado y mantenimiento profundo.",
+        "actores_mencionados": "CONADE",
+        "sentimiento_conade": "NEUTRO",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 5
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU0NjY=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU0NjY=",
+        "titulo": "Gobernador Joaquín Díaz Mena inaugura el Campeonato 107 de la Liga Infantil y Juvenil de Béisbol Yucatán",
+        "fecha": "2026-01-31",
+        "autor": "Gobierno del Estado",
+        "medio": "El Principal",
+        "resumen": "El Gobernador de Yucatán, Joaquín Díaz Mena, inauguró el campeonato 107 de la Liga Infantil y Juvenil de Béisbol de Yucatán, reafirmando su compromiso con el deporte. Al evento asistió el director de la CONADE, Rommel Pacheco, quien destacó el respaldo del gobierno federal al deporte como herramienta de desarrollo social y para la juventud.",
+        "actores_mencionados": "Rommel Pacheco, CONADE",
+        "sentimiento_conade": "POSITIVO",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 5
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjI2NTQ=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjI2NTQ=",
+        "titulo": "Venados F.C anuncia nuevo fichaje de cara al Apertura 2025",
+        "fecha": "2025-07-04",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "Venados F.C. ha anunciado el fichaje del defensa central Juan Carlos García Sancho, proveniente del Atlético Morelia. Esta contratación se suma a otras incorporaciones como Juan Calero y Paul Galván, con el objetivo de fortalecer al equipo para el Torneo Apertura 2025 de la Liga de Expansión MX y mantenerse como un serio contendiente al título.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_DEPORTIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/05/16/la-federacion-mexicana-de-judo-la-conade-y-el-idey-dejan-sin-apoyo-a-judoca-yucateca/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/05/16/la-federacion-mexicana-de-judo-la-conade-y-el-idey-dejan-sin-apoyo-a-judoca-yucateca/",
+        "titulo": "ERROR",
+        "fecha": "2025-05-16",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se pudo encontrar (Error 404).",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU1NTk=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU1NTk=",
+        "titulo": "Sefotur y el Consulado de Estados Unidos fortalecen vínculos a favor del turismo en Yucatán",
+        "fecha": "2026-02-06",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "La Secretaría de Fomento Turístico (Sefotur) de Yucatán y el Consulado de Estados Unidos en Mérida acordaron fortalecer su colaboración para impulsar el turismo. En la reunión se destacó la importancia del mercado estadounidense, la conectividad aérea y el crecimiento del turismo de cruceros, en línea con la visión del Gobernador Joaquín Díaz Mena.",
+        "actores_mencionados": "Joaquín Díaz Mena",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 2
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/07/16/victor-chuc-y-naomi-baas-destacan-en-el-comparativo-de-la-olimpiada-nacional-2024-y-2025/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/07/16/victor-chuc-y-naomi-baas-destacan-en-el-comparativo-de-la-olimpiada-nacional-2024-y-2025/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se pudo encontrar (Error 404).",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/06/10/la-atleta-tizimilena-silvana-montserrat-mena-pena-obtiene-su-pase-a-los-nacionales-conade-2025/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/06/10/la-atleta-tizimilena-silvana-montserrat-mena-pena-obtiene-su-pase-a-los-nacionales-conade-2025/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se encontró (Error 404).",
+        "actores_mencionados": "NO_APLICA",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/07/28/para-mi-vales-oro-hijo-mio-asi-consolo-gilberto-keb-a-su-hijo-que-se-quedo-sin-medalla-en-los-nacionales-conade/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/07/28/para-mi-vales-oro-hijo-mio-asi-consolo-gilberto-keb-a-su-hijo-que-se-quedo-sin-medalla-en-los-nacionales-conade/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se encontró (Error 404).",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjUzNjU=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjUzNjU=",
+        "titulo": "Yucatán se posiciona como el corazón del Mundo Maya en la Feria Internacional de Turismo en Madrid",
+        "fecha": "2026-01-23",
+        "autor": "Gobierno del Estado",
+        "medio": "El Principal",
+        "resumen": "Yucatán presentó en la Feria Internacional de Turismo en Madrid el evento 'K’íiwik: Feria Turística del Mundo Maya 2026'. Este encuentro internacional, que se celebrará en Mérida, busca fortalecer la proyección turística del sureste mexicano y de la región Mundo Maya, destacando su herencia cultural, infraestructura y atractivos naturales.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 2
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU2ODU=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU2ODU=",
+        "titulo": "Gobierno del Renacimiento Maya impulsa crecimiento industrial y creación de empleos",
+        "fecha": "2026-02-15",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "El Gobernador de Yucatán, Joaquín Díaz Mena, se reunió con directivos de Grupo Bachoco para discutir los proyectos de expansión de la empresa en el estado. El gobierno se comprometió a facilitar las inversiones para fomentar la creación de empleos, especialmente en el interior del estado.",
+        "actores_mencionados": "Ninguno",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 2
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU0NjQ=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU0NjQ=",
+        "titulo": "Modernización del paso superior vehicular de City Center entra en su recta final",
+        "fecha": "2026-01-31",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "El artículo informa sobre la fase final de la modernización del paso superior vehicular de City Center en Mérida. La obra, con una inversión de más de 74 millones de pesos, busca mejorar la movilidad en una zona de alto tráfico. Se espera que el Gobernador Joaquín Díaz Mena inaugure la obra en las próximas semanas.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 2
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NjU=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NjU=",
+        "titulo": "INCENDIAN TRES VEHÍCULOS EN EL LIBRAMIENTO CANCÚN- MÉRIDA, ACTIVAN OPERATIVO DE SEGURIDAD.",
+        "fecha": "2026-02-22",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "Tres vehículos fueron incendiados en el libramiento Cancún-Mérida, lo que provocó un operativo de seguridad y el cierre temporal de la vía. No se reportaron heridos y las autoridades investigan la posible relación con grupos criminales.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 2
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NTg=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NTg=",
+        "titulo": "Consejería Jurídica y Colegio Notarial impulsan actualización de las y los fedatarios",
+        "fecha": "2026-02-21",
+        "autor": "Gobierno del Estado",
+        "medio": "El Principal",
+        "resumen": "La Consejería Jurídica y el Colegio Notarial de Yucatán iniciaron los Cursos de Actualización y Recertificación 2026 para notarios y aspirantes. El objetivo es fortalecer la certeza jurídica y el ejercicio notarial, en colaboración con el gobierno estatal. Se abordaron temas como jurisdicción voluntaria, sucesiones y mecanismos alternativos de solución de controversias.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3Njk=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3Njk=",
+        "titulo": "Cosmos: un susurro en blanco y negro llega en proyección gratis con la Sedeculta",
+        "fecha": "2026-02-22",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "Como parte del Día Internacional de las Lenguas Maternas, se proyectó gratuitamente la película \"Cosmos\" en el Gran Museo del Mundo Maya. El filme, dirigido por Germinal Roux y filmado en Yucatán, narra la amistad entre una viuda y un guardián maya. Tras la función, el productor y los actores dialogaron con el público sobre la realización de la película.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NTY=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NTY=",
+        "titulo": "Reconocimiento nacional a Mérida por sus buenas prácticas municipales.",
+        "fecha": "2026-02-21",
+        "autor": "Ayuntamiento de Mérida",
+        "medio": "El Principal",
+        "resumen": "El Ayuntamiento de Mérida fue galardonado con el Premio Francisco Villarreal Torres por su programa 'Calle por Calle', una iniciativa de impacto social para el mantenimiento y atención de la ciudad. La alcaldesa Cecilia Patrón recibió el reconocimiento, destacando la labor de los trabajadores municipales. El premio es otorgado por la Asociación Nacional de Alcaldes (ANAC) a las mejores prácticas de gobiernos locales.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NzE=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NzE=",
+        "titulo": "Aviso importante a la comunidad educativa.",
+        "fecha": "2026-02-22",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "El artículo desmiente un comunicado falso que circula en redes sociales sobre la suspensión de clases, instando a la comunidad a consultar únicamente canales oficiales de la Secretaría de Educación para obtener información verídica.",
+        "actores_mencionados": "Ninguno",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/07/22/la-arquera-esmeralda-sanchez-se-cuelga-medalla-de-oro-en-los-nacionales-conade-2025/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/07/22/la-arquera-esmeralda-sanchez-se-cuelga-medalla-de-oro-en-los-nacionales-conade-2025/",
+        "titulo": "ERROR",
+        "fecha": "2025-07-22",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se encontró (Error 404).",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/07/25/la-seleccion-de-atletismo-cerro-con-30-medallas-de-oro-en-los-nacionales-conade-2025/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/07/25/la-seleccion-de-atletismo-cerro-con-30-medallas-de-oro-en-los-nacionales-conade-2025/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se pudo encontrar (Error 404).",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/12/20/rommel-excluye-de-su-posada-a-lideresas-del-pt/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/12/20/rommel-excluye-de-su-posada-a-lideresas-del-pt/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se encontró (Error 404).",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/10/14/calla-y-otorga-irak-tu-se-niega-a-hablar-de-sus-bisnes-en-la-conade/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/10/14/calla-y-otorga-irak-tu-se-niega-a-hablar-de-sus-bisnes-en-la-conade/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se encontró o arrojó un error 404.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/07/14/mauricio-vila-anuncia-mas-obras-para-impulsar-el-deporte-y-la-cultura-en-yucatan/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/07/14/mauricio-vila-anuncia-mas-obras-para-impulsar-el-deporte-y-la-cultura-en-yucatan/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "No se pudo acceder a la página (Error 404).",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/06/21/progreso-recibe-con-los-brazos-abiertos-el-tour-mundial-de-voleibol-de-playa/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/06/21/progreso-recibe-con-los-brazos-abiertos-el-tour-mundial-de-voleibol-de-playa/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "No se pudo acceder a la página (Error 404).",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/04/04/me-vale-madre-lo-que-digan-sobre-mi-ana-guevara/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/04/04/me-vale-madre-lo-que-digan-sobre-mi-ana-guevara/",
+        "titulo": "ERROR",
+        "fecha": "2025-04-04",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se pudo encontrar (Error 404).",
+        "actores_mencionados": "NO_APLICA",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.lajornadamaya.mx/opinion/96791/infonavit-el-secreto-perverso",
+      "output": {
+        "url": "https://www.lajornadamaya.mx/opinion/96791/infonavit-el-secreto-perverso",
+        "titulo": "Infonavit, el secreto perverso",
+        "fecha": "2018-07-23",
+        "autor": "Carlos Mena Baduy",
+        "medio": "La Jornada Maya",
+        "resumen": "El artículo critica al Infonavit por actuar más como una institución financiera con altas utilidades que como un organismo social. Se enfoca en los créditos en 'veces salario mínimo' que, en lugar de ayudar a los trabajadores, han generado deudas crecientes e impagables para millones de familias. El autor cuestiona la rentabilidad del Infonavit, comparándola con la de los grandes bancos, y califica la situación como una injusticia.",
+        "actores_mencionados": "Carlos Mena Baduy, Infonavit",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 2
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.lajornadamaya.mx/opinion/217067/rogerio-castro-nuevo-secretario-general-de-infonavit",
+      "output": {
+        "url": "https://www.lajornadamaya.mx/opinion/217067/rogerio-castro-nuevo-secretario-general-de-infonavit",
+        "titulo": "Salud bucal requiere hábitos de higiene desde la infancia: Ricardo Ortiz",
+        "fecha": "2023-06-28",
+        "autor": "Cecilia Abreu",
+        "medio": "La Jornada Maya",
+        "resumen": "El artículo informa sobre la importancia de la higiene bucal desde la infancia para prevenir problemas de salud. Se destaca un programa en Yucatán que busca crear hábitos de cepillado en las escuelas, proporcionando cepillos y pasta dental a los niños. El objetivo es fomentar la cultura de la prevención, ya que la mayoría de las personas acuden al dentista solo cuando sienten dolor.",
+        "actores_mencionados": "ninguno",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.lajornadamaya.mx/opinion/180261/aguanta-boxito",
+      "output": {
+        "url": "https://www.lajornadamaya.mx/opinion/180261/aguanta-boxito",
+        "titulo": "Los Yankees vencen a Minnesota con sencillo de Sánchez en la décima",
+        "fecha": "2021-09-14",
+        "autor": "Ap",
+        "medio": "La Jornada Maya",
+        "resumen": "El artículo informa sobre un partido de béisbol en el que los Yankees de Nueva York vencieron a los Gemelos de Minnesota con un marcador de 6-5. La victoria se produjo después de que los Yankees remontaran una desventaja de cinco carreras, con un jonrón de Aaron Judge y un sencillo de Gary Sánchez en la décima entrada.",
+        "actores_mencionados": "Ninguno",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_DEPORTIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.lajornadamaya.mx/opinion/181283/por-quien-voy-a-votar",
+      "output": {
+        "url": "https://www.lajornadamaya.mx/opinion/181283/por-quien-voy-a-votar",
+        "titulo": "Nombran a cría de Manatí: ''Pompeyo'', en honor al fundador de Chetumal",
+        "fecha": "2021-09-29",
+        "autor": "La Jornada Maya",
+        "medio": "La Jornada Maya",
+        "resumen": "Una cría de manatí encontrada en la Laguna Milagros fue nombrada 'Pompeyo' en honor al fundador de Chetumal, Othón Pompeyo Blanco. El nombre fue elegido por un niño de 7 años en un concurso. El manatí está siendo rehabilitado para su futura liberación.",
+        "actores_mencionados": "Ninguno",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.lajornadamaya.mx/opinion/202834/en-yucatan-es-tiempo-de-las-pymes",
+      "output": {
+        "url": "https://www.lajornadamaya.mx/opinion/202834/en-yucatan-es-tiempo-de-las-pymes",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "La Jornada Maya",
+        "resumen": "El artículo no fue encontrado en la URL proporcionada. La página muestra una lista de artículos recientes, pero no el artículo específico solicitado.",
+        "actores_mencionados": "NO_APLICA",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2025/2/14/todo-es-personal-en-yucatan-.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2025/2/14/todo-es-personal-en-yucatan-.html",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "PorEsto",
+        "resumen": "La página no se pudo encontrar (Error 404).",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2024/7/26/todo-es-personal-en-yucatan.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2024/7/26/todo-es-personal-en-yucatan.html",
+        "titulo": "Todo es personal en Yucatán",
+        "fecha": "2024-07-26",
+        "autor": "Redacción Por Esto!",
+        "medio": "PorEsto",
+        "resumen": "La columna detalla las interacciones y movimientos de varios actores políticos en Yucatán durante las vacaciones de verano. Se mencionan disputas personales, negociaciones para cargos en la próxima administración y realineamientos políticos, pintando un cuadro de oportunismo y luchas de poder.",
+        "actores_mencionados": "Sergio Vadillo, Esteban Fuentes",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 6
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2024/4/19/todo-es-personal-en-yucatan.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2024/4/19/todo-es-personal-en-yucatan.html",
+        "titulo": "Todo es personal en Yucatán",
+        "fecha": "2024-04-19",
+        "autor": "Redacción Por Esto!",
+        "medio": "PorEsto",
+        "resumen": "La columna analiza los movimientos políticos en Yucatán, incluyendo cambios de candidatos de último minuto, alianzas y tensiones entre figuras políticas. Se mencionan eventos específicos como la suma de un candidato del Partido Verde a las campañas de Renán Barrera y Cecilia Patrón, y un espectacular que molestó a Cecilia Patrón. También se aborda la baja asistencia de empresarios a una reunión con Claudia Sheinbaum, presuntamente por presiones de los gobiernos estatal y municipal.",
+        "actores_mencionados": "Rommel Pacheco, Sergio Vadillo, Esteban Fuentes",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 7
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2024/6/7/todo-es-personal-en-yucatan.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2024/6/7/todo-es-personal-en-yucatan.html",
+        "titulo": "Todo es Personal en Yucatán",
+        "fecha": "2024-06-07",
+        "autor": "Redacción Por Esto!",
+        "medio": "PorEsto",
+        "resumen": "La columna analiza los resultados de las elecciones en Yucatán, destacando la derrota de Renán Barrera y el PAN, y la victoria de 'Huacho' Díaz Mena y Morena. Se mencionan las pugnas internas en los partidos, el voto diferenciado en Mérida y las posibles configuraciones del próximo gobierno estatal.",
+        "actores_mencionados": "Rommel Pacheco, Alejandro Meza Corrales, Rogerio Castro, Infonavit",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 8
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2024/1/26/todo-es-personal-en-yucatan.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2024/1/26/todo-es-personal-en-yucatan.html",
+        "titulo": "Todo es personal en Yucatán",
+        "fecha": "2024-01-26",
+        "autor": "Redacción Por Esto!",
+        "medio": "PorEsto",
+        "resumen": "La columna analiza la estrategia de Acción Nacional en Yucatán, que incluye ataques a Morena y la compra de voluntades, como el caso de Mariana Cruz Pool. También se mencionan las pugnas internas en el PRI para la designación de candidaturas y el descontento de figuras como Sergio Vadillo y Jorge Carlos Ramírez Marín.",
+        "actores_mencionados": "Sergio Vadillo, Rolando Zapata, Jorge Carlos Ramírez Marín, Huacho Díaz Mena, Alito Moreno, Mauricio Vila, Renán Barrera",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 7
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2023/10/27/todo-es-personal-en-yucatan.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2023/10/27/todo-es-personal-en-yucatan.html",
+        "titulo": "Todo es personal en Yucatán",
+        "fecha": "2023-10-27",
+        "autor": "Redacción Por Esto!",
+        "medio": "PorEsto",
+        "resumen": "La columna analiza el panorama político de Yucatán, abordando conflictos sindicales en el Poder Judicial, la conformación de la alianza PAN-PRI-PRD y las luchas internas en Morena por la candidatura a la gubernatura, donde se mencionan las aspiraciones y movimientos de varios actores políticos como Rommel Pacheco y Rogerio Castro.",
+        "actores_mencionados": "Rommel Pacheco, Rogerio Castro",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 7
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2025/1/10/todo-es-personal-en-yucatan.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2025/1/10/todo-es-personal-en-yucatan.html",
+        "titulo": "Todo es Personal en Yucatán",
+        "fecha": "2025-01-10",
+        "autor": "Redacción Por Esto!",
+        "medio": "PorEsto",
+        "resumen": "La columna aborda diversas situaciones políticas en Yucatán, incluyendo la lucha de poder en los sindicatos del Poder Judicial, la destrucción de documentos por parte de una exfuncionaria y nombramientos controvertidos en la UADY. También se comenta la nueva estrategia de la alcaldesa de Mérida para manejar las críticas y la repercusión de discursos críticos en eventos oficiales.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 2
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2024/12/20/todo-es-personal-en-yucatan.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2024/12/20/todo-es-personal-en-yucatan.html",
+        "titulo": "Todo es Personal en Yucatán",
+        "fecha": "2024-12-20",
+        "autor": "Redacción Por Esto!",
+        "medio": "PorEsto",
+        "resumen": "Columna de opinión que aborda diversas polémicas y rumores en el ámbito político de Yucatán. Se mencionan deudas de ex-diputados, nombramientos presuntamente ilegales en el Tribunal Electoral, y las campañas y alianzas de diferentes figuras políticas locales.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 2
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2024/11/1/todo-es-personal-en-yucatan.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2024/11/1/todo-es-personal-en-yucatan.html",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "PorEsto",
+        "resumen": "La página no se pudo encontrar (Error 404).",
+        "actores_mencionados": "NO_APLICA",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.poresto.com/opinion/2024/9/6/todo-es-personal-en-yucatan.html",
+      "output": {
+        "url": "https://www.poresto.com/opinion/2024/9/6/todo-es-personal-en-yucatan.html",
+        "titulo": "Todo es Personal en Yucatán",
+        "fecha": "2024-09-06",
+        "autor": "Redacción Por Esto!",
+        "medio": "PorEsto",
+        "resumen": "Columna de opinión que analiza diversos actores y eventos políticos en Yucatán, incluyendo la toma de posesión en Mérida, conflictos internos en el PRI, y movimientos en el Poder Judicial. Se critica la falta de experiencia en la nueva administración municipal y se mencionan las aspiraciones de Rommel Pacheco para dirigir la CONADE.",
+        "actores_mencionados": "Rommel Pacheco, CONADE, Sergio Vadillo",
+        "sentimiento_conade": "NEUTRO",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 7
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/11/22/morena-resquebrajado-exhiben-en-la-ciudad-de-mexico-la-corrupcion-de-rommel-pacheco-en-la-conade/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/11/22/morena-resquebrajado-exhiben-en-la-ciudad-de-mexico-la-corrupcion-de-rommel-pacheco-en-la-conade/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se pudo encontrar, arrojando un error 404. No fue posible extraer información del artículo.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/08/22/el-boxeo-yucateco-cumplio-con-la-fase-estatal-rumbo-a-los-nacionales-conade-2025/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/08/22/el-boxeo-yucateco-cumplio-con-la-fase-estatal-rumbo-a-los-nacionales-conade-2025/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se pudo encontrar (Error 404).",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://grillodeyucatan.com/2025/06/20/yucatan-sigue-hundido-en-los-nacionales-hasta-quintana-roo-nos-gana/",
+      "output": {
+        "url": "https://grillodeyucatan.com/2025/06/20/yucatan-sigue-hundido-en-los-nacionales-hasta-quintana-roo-nos-gana/",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "Grillo de Yucatán",
+        "resumen": "La página no se pudo encontrar (error 404).",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU0NzA=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU0NzA=",
+        "titulo": "DESDE HACE VARIOS DÍAS JUAN PABLO SEGUNDO TIENE PROBLEMAS DE LA FALTA DE PRESIÓN DEL VITAL LÍQUIDO, POR LO QUE LOS TINACOS HAN QUEDADO SIN AGUA.",
+        "fecha": "2026-02-01",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "El artículo reporta la falta de agua en el fraccionamiento Juan Pablo Segundo desde hace varios días debido a la baja presión. Se critica la gestión de Francisco Torres Rivas, director de la JAPAY, por la recurrencia del problema y el mal servicio a pesar de los altos costos de facturación. Se especula que el problema se debe al cierre de bombas para ahorrar costos.",
+        "actores_mencionados": "Ninguno",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjI3Njk=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjI3Njk=",
+        "titulo": "A proceso por agredir física y sexualmente a menor",
+        "fecha": "2025-07-14",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "Un individuo identificado como A.N.L.G. ha sido vinculado a proceso por el delito de abuso sexual y violación equiparada agravada en contra de una menor de edad. Los hechos ocurrieron en agosto de 2024 y el acusado permanecerá en prisión preventiva durante la investigación.",
+        "actores_mencionados": "Ninguno",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjUxMjA=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjUxMjA=",
+        "titulo": "Con localizador electrónico por homicidio culposo en Hunucmá",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "Un hombre fue imputado y vinculado a proceso por homicidio culposo tras atropellar y causar la muerte de una mujer de la tercera edad en Hunucmá. Como medida cautelar, se le ha colocado un localizador electrónico mientras continúa la investigación.",
+        "actores_mencionados": "Ninguno",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU2ODA=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU2ODA=",
+        "titulo": "Sentenciado a siete años de prisión por abuso sexual agravado",
+        "fecha": "2026-02-14",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "Un individuo identificado como J.A.P.A. fue sentenciado a siete años de prisión por el delito de abuso sexual agravado en perjuicio de una adolescente en Kanasín. La Fiscalía General del Estado (FGE) aportó las pruebas que llevaron al fallo condenatorio, que incluye también el pago por reparación del daño y una multa.",
+        "actores_mencionados": "Ninguno",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3MjM=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3MjM=",
+        "titulo": "En política y en cualquier institución, los vacíos se llenan, Joaquín Díaz Mena.",
+        "fecha": "2026-02-18",
+        "autor": "Por EL PRINCIPAL",
+        "medio": "El Principal",
+        "resumen": "El gobernador Joaquín Díaz Mena negó que su gobierno se desestabilice por las renuncias en la Secretaría de Ciencias, Humanidades, Tecnología e Innovación (SECIHTI), calificándolas de naturales. Afirmó que el gobierno opera con normalidad. Respecto a la delegación de Bienestar, dijo no saber de la contratación de empleados despedidos por la titular del IEAEY, pero que serían bienvenidos si tienen el perfil adecuado.",
+        "actores_mencionados": "Rogerio Castro",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 5
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjQzNTQ=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjQzNTQ=",
+        "titulo": "Vinculado a proceso por violentar a su madre",
+        "fecha": "2025-11-01",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "Un hombre, J.O.C.C., fue vinculado a proceso por el delito de violencia familiar tras agredir verbal y psicológicamente a su madre en la localidad de Yaxhachen, Oxkutzcab. La Fiscalía General del Estado (FGE) presentó los datos de prueba que llevaron a la vinculación a proceso y se le impuso la medida cautelar de prisión preventiva justificada.",
+        "actores_mencionados": "Ninguno",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU1MjA=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU1MjA=",
+        "titulo": "EN PUERTA NUEVO INCREMENTO A LAS TARIFAS DEL AGUA POTABLE, ASIMISMO UN INCREMENTO EN LAS MULTAS Y SERVICIOS",
+        "fecha": "2026-02-04",
+        "autor": "EL PRINCIPAL",
+        "medio": "El Principal",
+        "resumen": "El artículo informa sobre un inminente aumento en las tarifas de agua potable de entre un 3% y un 4% por parte de la JAPAY en Yucatán, que se reflejará en los recibos de enero-febrero de 2026. Este incremento ha generado un descontento generalizado entre los usuarios, quienes ya se quejan de la mala calidad del servicio. Se menciona a Pancho Torres, director de la JAPAY, como responsable de la problemática.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 2
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU0NTg=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU0NTg=",
+        "titulo": "Se asegura que Borjitas Romero ya marcó distancia política con el Gordito Marín.",
+        "fecha": "2026-01-31",
+        "autor": "EL PRINCIPAL",
+        "medio": "El Principal",
+        "resumen": "El artículo informa sobre el distanciamiento político entre Luis Borjas Romero y Jorge Carlos 'El Gordito' Marín. La razón principal parece ser la nueva designación de Borjas Romero como enlace territorial para las elecciones de 2027 en Mérida y la falta de apoyo de Marín en campañas anteriores. Se sugiere que la influencia de Marín ha disminuido.",
+        "actores_mencionados": "Ninguno",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "COLUMNA_OPINION",
+        "relevancia": 2
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NjI=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NjI=",
+        "titulo": "La promoción de la salud debe convertirse en política estructural de Estado: Jorge Marín Marrufo",
+        "fecha": "2026-02-22",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "Jorge Marín Marrufo asumió la presidencia de la Federación Mexicana de Promoción de la Salud, A.C. (2026-2028), haciendo un llamado a que la promoción de la salud se convierta en una política de estado estructural. Destacó la importancia de fortalecer el primer nivel de atención y reconocer al personal de salud. La nueva agenda estratégica busca posicionar a Yucatán como un referente en políticas públicas de salud.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3Njc=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3Njc=",
+        "titulo": "COMUNICADO OFICIAL",
+        "fecha": "2026-02-22",
+        "autor": "Gobierno del Estado",
+        "medio": "El Principal",
+        "resumen": "El Gobierno del Estado de Yucatán manifiesta su apoyo a la Presidenta de la República, Claudia Sheinbaum Pardo, y a la estrategia de seguridad nacional. Se compromete a colaborar con las autoridades federales y municipales para mantener la paz en la región, instando a la población a informarse a través de canales oficiales.",
+        "actores_mencionados": "Ninguno",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NjQ=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NjQ=",
+        "titulo": "Nombran a Feliciano Moo y Can como director del Indemaya",
+        "fecha": "2026-02-22",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "El gobernador Joaquín Díaz Mena anunció el nombramiento de Feliciano Moo y Can como nuevo director del INDEMAYA, en sustitución de Fabiola Loeza Novelo.",
+        "actores_mencionados": "Ninguno",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 2
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NzA=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NzA=",
+        "titulo": "Fortalecen estados de la península agenda común ante el cambio climático",
+        "fecha": "2026-02-22",
+        "autor": "Gobierno del Estado",
+        "medio": "El Principal",
+        "resumen": "Autoridades de Campeche, Quintana Roo y Yucatán se reunieron para consolidar una respuesta articulada frente a la emergencia climática. En la sesión, se presentaron avances en monitoreo forestal, gobernanza comunitaria y adaptación costera para fortalecer la coordinación interinstitucional y la toma de decisiones.",
+        "actores_mencionados": "No se mencionan actores clave",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 2
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NzI=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NzI=",
+        "titulo": "Jornada de voluntariado a favor de los loros con petición de noviazgo incluida",
+        "fecha": "2026-02-22",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "El artículo informa sobre una jornada de voluntariado en el Proyecto Santa María para la conservación de loros yucatecos. Durante el evento, un joven le propuso noviazgo a una de las madrinas del programa, quien aceptó.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NzQ=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NzQ=",
+        "titulo": "ABATEN A ‘EL MENCHO’: Matan a Nemesio Oseguera, líder del CJNG, tras operativo en Jalisco",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "El artículo informa sobre la muerte de Nemesio Oseguera, alias 'El Mencho', líder del Cártel Jalisco Nueva Generación (CJNG), tras un operativo en Jalisco.",
+        "actores_mencionados": "Ninguno",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NzY=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3NzY=",
+        "titulo": "ERROR",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "La página no muestra el contenido del artículo, solo un titular sobre la muerte de 'El Mencho'.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3Nzg=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3Nzg=",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "La página no cargó el contenido del artículo. Muestra la portada del sitio con una noticia no relacionada.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3ODA=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3ODA=",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "La página no cargó el contenido del artículo. Solo se muestra el encabezado y pie de página.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3ODI=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3ODI=",
+        "titulo": "ABATEN A ‘EL MENCHO’: Matan a Nemesio Oseguera, líder del CJNG, tras operativo en Jalisco",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "El artículo informa sobre la muerte de Nemesio Oseguera, alias 'El Mencho', líder del Cártel Jalisco Nueva Generación (CJNG), tras un operativo en Jalisco.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3ODQ=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3ODQ=",
+        "titulo": "ABATEN A ‘EL MENCHO’: Matan a Nemesio Oseguera, líder del CJNG, tras operativo en Jalisco",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "Nemesio Oseguera, líder del CJNG, fue abatido en un operativo en Jalisco.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3ODY=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3ODY=",
+        "titulo": "ERROR",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "La página no muestra el contenido esperado y parece ser una nota sobre un operativo en Jalisco, no relacionada con los actores de interés.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3ODg=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3ODg=",
+        "titulo": "Yucatán, presente en el Campeonato Mundial de Aguas Abiertas en Egipto",
+        "fecha": "2022-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "Yucatán participa en el Campeonato Mundial de Aguas Abiertas en Egipto con el respaldo de la CONADE. Los atletas yucatecos buscan destacar en la competencia internacional, representando a México en esta disciplina.",
+        "actores_mencionados": "CONADE",
+        "sentimiento_conade": "POSITIVO",
+        "tipo_contenido": "NOTA_DEPORTIVA",
+        "relevancia": 7
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3OTA=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3OTA=",
+        "titulo": "ABATEN A ‘EL MENCHO’: Matan a Nemesio Oseguera, líder del CJNG, tras operativo en Jalisco",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "El artículo no pudo ser cargado. La página solo muestra el titular de otra noticia.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3OTI=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3OTI=",
+        "titulo": "ERROR",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "La página no cargó el contenido del artículo. Solo se muestra el encabezado y una nota de interés no relacionada.",
+        "actores_mencionados": "NO_APLICA",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3OTQ=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3OTQ=",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "El contenido del artículo no pudo ser recuperado. La página parece estar vacía o el enlace está roto.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3OTY=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3OTY=",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "No se pudo acceder al contenido del artículo.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3OTg=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU3OTg=",
+        "titulo": "ERROR",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "La página no cargó correctamente el contenido del artículo. Solo se muestra el encabezado y una nota de interés no relacionada.",
+        "actores_mencionados": "NO_APLICA",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MDA=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MDA=",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "La página no cargó o el contenido no pudo ser extraído.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MDI=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MDI=",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "La página no carga el contenido del artículo, redirige a la página principal o muestra un error.",
+        "actores_mencionados": "NO_APLICA",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MDQ=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MDQ=",
+        "titulo": "ERROR",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "La página no cargó el contenido del artículo, solo muestra el encabezado y un titular sobre otro tema.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MDY=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MDY=",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "No se pudo acceder al contenido del artículo. La página no carga el contenido o el enlace está roto.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MDg=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MDg=",
+        "titulo": "ABATEN A ‘EL MENCHO’: Matan a Nemesio Oseguera, líder del CJNG, tras operativo en Jalisco",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "Se informa de la muerte de Nemesio Oseguera, alias 'El Mencho', líder del Cártel Jalisco Nueva Generación (CJNG), tras un operativo en Jalisco.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MTA=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MTA=",
+        "titulo": "ABATEN A ‘EL MENCHO’: Matan a Nemesio Oseguera, líder del CJNG, tras operativo en Jalisco",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "Se informa sobre la muerte de Nemesio Oseguera, alias 'El Mencho', líder del Cártel Jalisco Nueva Generación (CJNG), tras un operativo en Jalisco.",
+        "actores_mencionados": "NO_APLICA",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MTI=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MTI=",
+        "titulo": "ERROR",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "La página no carga correctamente o el contenido del artículo no está disponible.",
+        "actores_mencionados": "NO_APLICA",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MTQ=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MTQ=",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "La página no cargó el contenido del artículo. Solo se muestra el encabezado y un enlace a otra nota no relacionada.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MTY=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MTY=",
+        "titulo": "ABATEN A ‘EL MENCHO’: Matan a Nemesio Oseguera, líder del CJNG, tras operativo en Jalisco",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "Se informa del abatimiento de Nemesio Oseguera, alias 'El Mencho', líder del Cártel Jalisco Nueva Generación (CJNG), como resultado de un operativo de las fuerzas de seguridad en el estado de Jalisco.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MTg=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MTg=",
+        "titulo": "ERROR",
+        "fecha": "desconocida",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "La página no cargó el contenido del artículo. La URL podría estar rota o el artículo haber sido eliminado.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MjA=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MjA=",
+        "titulo": "ABATEN A ‘EL MENCHO’: Matan a Nemesio Oseguera, líder del CJNG, tras operativo en Jalisco",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "La nota informa sobre un operativo en Jalisco en el que presuntamente fue abatido Nemesio Oseguera, conocido como 'El Mencho', líder del Cártel Jalisco Nueva Generación (CJNG).",
+        "actores_mencionados": "No aplica",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MjI=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MjI=",
+        "titulo": "ABATEN A ‘EL MENCHO’: Matan a Nemesio Oseguera, líder del CJNG, tras operativo en Jalisco",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "Se informa de la muerte de Nemesio Oseguera, alias 'El Mencho', líder del Cártel Jalisco Nueva Generación (CJNG), como resultado de un operativo de las fuerzas de seguridad en el estado de Jalisco.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MjQ=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MjQ=",
+        "titulo": "ABATEN A ‘EL MENCHO’: Matan a Nemesio Oseguera, líder del CJNG, tras operativo en Jalisco",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "El artículo informa sobre la muerte de Nemesio Oseguera, alias 'El Mencho', líder del Cártel Jalisco Nueva Generación (CJNG), como resultado de un operativo en Jalisco.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "NOTA_INFORMATIVA",
+        "relevancia": 1
+      },
+      "error": ""
+    },
+    {
+      "input": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MjY=",
+      "output": {
+        "url": "https://www.elprincipal.com.mx/detalleNota.php?id=NjU4MjY=",
+        "titulo": "ERROR",
+        "fecha": "2026-02-23",
+        "autor": "desconocido",
+        "medio": "El Principal",
+        "resumen": "La página no carga correctamente el contenido del artículo. Solo se muestra un titular sobre la muerte de 'El Mencho', pero no hay más texto para analizar.",
+        "actores_mencionados": "",
+        "sentimiento_conade": "NO_APLICA",
+        "tipo_contenido": "ERROR",
+        "relevancia": 1
+      },
+      "error": ""
+    }
+  ]
+}

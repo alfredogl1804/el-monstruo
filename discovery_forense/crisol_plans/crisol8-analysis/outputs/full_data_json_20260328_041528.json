@@ -1,0 +1,2512 @@
+{
+  "profile": {},
+  "mention_stats": {
+    "total_objects": 3803,
+    "processed": 3803,
+    "unique_sources": 5
+  },
+  "actors": [
+    {
+      "canonical_name": "guillermo cortés gonzález",
+      "pseudo_id": "ACTOR_ea470d755f3f",
+      "total_appearances": 445,
+      "primary_role": "target",
+      "platform_count": 2
+    },
+    {
+      "canonical_name": "rommel pacheco",
+      "pseudo_id": "ACTOR_9c4613e226db",
+      "total_appearances": 90,
+      "primary_role": "associate",
+      "platform_count": 3
+    },
+    {
+      "canonical_name": "claudia sheinbaum",
+      "pseudo_id": "ACTOR_f924f1300ca9",
+      "total_appearances": 32,
+      "primary_role": "context",
+      "platform_count": 2
+    },
+    {
+      "canonical_name": "rogerio castro",
+      "pseudo_id": "ACTOR_53776466e276",
+      "total_appearances": 28,
+      "primary_role": "associate",
+      "platform_count": 2
+    },
+    {
+      "canonical_name": "rolando zapata bello",
+      "pseudo_id": "ACTOR_2657db047f48",
+      "total_appearances": 5,
+      "primary_role": "associate",
+      "platform_count": 1
+    },
+    {
+      "canonical_name": "joaquín díaz mena",
+      "pseudo_id": "ACTOR_e33edef58647",
+      "total_appearances": 3,
+      "primary_role": "associate",
+      "platform_count": 2
+    },
+    {
+      "canonical_name": "ana guevara",
+      "pseudo_id": "ACTOR_229b21995eb2",
+      "total_appearances": 1,
+      "primary_role": "associate",
+      "platform_count": 1
+    },
+    {
+      "canonical_name": "Ciudadano Vigilante YUC (simulado)",
+      "pseudo_id": null,
+      "total_appearances": 0,
+      "primary_role": null,
+      "platform_count": 1
+    }
+  ],
+  "coordination": {
+    "validated_clusters": [
+      {
+        "actor_a": "ACTOR_ea470d755f3f",
+        "actor_a_name": "guillermo cortés gonzález",
+        "actor_b": "ACTOR_9c4613e226db",
+        "actor_b_name": "rommel pacheco",
+        "total_score": 62.26,
+        "raw_score": 66,
+        "max_possible": 106,
+        "signals": [
+          {
+            "signal": "temporal_sync",
+            "weight": 20,
+            "score": 0,
+            "sync_events": 0,
+            "window_minutes": 30
+          },
+          {
+            "signal": "text_similarity",
+            "weight": 20,
+            "score": 20,
+            "similar_pairs": 5,
+            "threshold": 0.7
+          },
+          {
+            "signal": "co_amplification",
+            "weight": 15,
+            "score": 15,
+            "overlap": 2,
+            "jaccard": 0.667
+          },
+          {
+            "signal": "cross_platform",
+            "weight": 15,
+            "score": 11,
+            "shared_platforms": [
+              "twitter",
+              "unknown"
+            ],
+            "cross_matches": 2
+          },
+          {
+            "signal": "media_reuse",
+            "weight": 15,
+            "score": 0,
+            "shared_media": 0
+          },
+          {
+            "signal": "operational_pattern",
+            "weight": 15,
+            "score": 14
+          },
+          {
+            "signal": "orthographic_consistency",
+            "weight": 6,
+            "score": 6,
+            "variants": {
+              "Guillermo Cortés": 33
+            }
+          }
+        ],
+        "classification": "high",
+        "gate_f": "PASS",
+        "active_signal_count": 5,
+        "active_signals": [
+          "text_similarity",
+          "co_amplification",
+          "cross_platform",
+          "operational_pattern",
+          "orthographic_consistency"
+        ],
+        "hypotheses": [
+          {
+            "id": "H1",
+            "name": "Coincidencia temática",
+            "description": "Ambos actores reaccionan al mismo evento noticioso de forma independiente",
+            "likelihood": "media",
+            "test": "Verificar si hay un evento noticioso en la misma ventana temporal"
+          },
+          {
+            "id": "H2",
+            "name": "Relación orgánica",
+            "description": "Los actores se conocen y comparten contenido naturalmente",
+            "likelihood": "media",
+            "test": "Verificar si hay interacciones previas no relacionadas con GC"
+          },
+          {
+            "id": "H3",
+            "name": "Automatización/bot",
+            "description": "Uno o ambos actores son bots que republican contenido automáticamente",
+            "likelihood": "media",
+            "test": "Verificar frecuencia de publicación, variedad de contenido, horarios"
+          },
+          {
+            "id": "H4",
+            "name": "Coordinación deliberada",
+            "description": "Los actores coordinan deliberadamente para amplificar/atacar",
+            "likelihood": "alta",
+            "test": "Verificar consistencia temporal, textual y cross-platform"
+          }
+        ],
+        "final_confidence": {
+          "final_score": 75.94,
+          "base_score": 62.26,
+          "signal_multiplier": 1.3,
+          "penalty": 5,
+          "classification": "CONFIRMED_HIGH",
+          "confidence": "alta"
+        },
+        "llm_validation": {
+          "llm_validation": "```json\n{\n  \"most_likely_hypothesis\": \"H4\",\n  \"reasoning\": \"El análisis de las señales activas apunta consistentemente hacia coordinación deliberada, aunque con matices importantes que impiden una conclusión categórica al 100%. Desglose por señal: (1) TEXT_SIMILARITY: Similitud textual entre un político local (Guillermo Cortés González) y un exdeportista olímpico/figura pública (Rommel Pacheco) es difícil de explicar orgánicamente, ya que operan en esferas temáticas muy distintas. La coincidencia textual sugiere uso de líneas discursivas compartidas o plantillas de mensajes. (2) CO_AMPLIFICATION: Amplificación mutua entre actores de ámbitos diferentes (política local vs. figura deportiva/pública nacional) no es un patrón orgánico esperable. Esto es una señal fuerte de coordinación. (3) CROSS_PLATFORM: La presencia coordinada en múltiples plataformas eleva significativamente la probabilidad de operación organizada, ya que la coincidencia casual tiende a limitarse a una sola plataforma. (4) OPERATIONAL_PATTERN: Patrones operacionales similares (horarios, frecuencia, cadencia de publicación) son difíciles de producir orgánicamente entre dos actores de perfiles tan distintos. (5) ORTHOGRAPHIC_CONSISTENCY: Esta es una señal particularmente reveladora. Que ambos actores compartan los mismos patrones ortográficos (errores consistentes, estilo de puntuación, uso de mayúsculas, etc.) sugiere fuertemente que el contenido proviene de una misma fuente redaccional o sala de operaciones. Evaluación de hipótesis alternativas: H1 (Coincidencia temática) pierde fuerza porque no solo hay coincidencia temática sino también textual, ortográfica y operacional. H2 (Relación orgánica) es poco plausible dado que la relación entre un político local y una figura deportiva nacional no expl",
+          "model": "smart_call_validation"
+        }
+      },
+      {
+        "actor_a": "ACTOR_9c4613e226db",
+        "actor_a_name": "rommel pacheco",
+        "actor_b": "ACTOR_53776466e276",
+        "actor_b_name": "rogerio castro",
+        "total_score": 58.49,
+        "raw_score": 62,
+        "max_possible": 106,
+        "signals": [
+          {
+            "signal": "temporal_sync",
+            "weight": 20,
+            "score": 0,
+            "sync_events": 0,
+            "window_minutes": 30
+          },
+          {
+            "signal": "text_similarity",
+            "weight": 20,
+            "score": 20,
+            "similar_pairs": 11,
+            "threshold": 0.7
+          },
+          {
+            "signal": "co_amplification",
+            "weight": 15,
+            "score": 15,
+            "overlap": 2,
+            "jaccard": 0.667
+          },
+          {
+            "signal": "cross_platform",
+            "weight": 15,
+            "score": 15,
+            "shared_platforms": [
+              "twitter",
+              "unknown"
+            ],
+            "cross_matches": 4
+          },
+          {
+            "signal": "media_reuse",
+            "weight": 15,
+            "score": 0,
+            "shared_media": 0
+          },
+          {
+            "signal": "operational_pattern",
+            "weight": 15,
+            "score": 12
+          },
+          {
+            "signal": "orthographic_consistency",
+            "weight": 6,
+            "score": 0,
+            "variants": {
+              "Memo Cortés": 2,
+              "Guillermo Cortés": 28,
+              "Guillermo Cortes": 4
+            }
+          }
+        ],
+        "classification": "medium",
+        "gate_f": "PASS",
+        "active_signal_count": 4,
+        "active_signals": [
+          "text_similarity",
+          "co_amplification",
+          "cross_platform",
+          "operational_pattern"
+        ],
+        "hypotheses": [
+          {
+            "id": "H1",
+            "name": "Coincidencia temática",
+            "description": "Ambos actores reaccionan al mismo evento noticioso de forma independiente",
+            "likelihood": "media",
+            "test": "Verificar si hay un evento noticioso en la misma ventana temporal"
+          },
+          {
+            "id": "H2",
+            "name": "Relación orgánica",
+            "description": "Los actores se conocen y comparten contenido naturalmente",
+            "likelihood": "media",
+            "test": "Verificar si hay interacciones previas no relacionadas con GC"
+          },
+          {
+            "id": "H3",
+            "name": "Automatización/bot",
+            "description": "Uno o ambos actores son bots que republican contenido automáticamente",
+            "likelihood": "media",
+            "test": "Verificar frecuencia de publicación, variedad de contenido, horarios"
+          },
+          {
+            "id": "H4",
+            "name": "Coordinación deliberada",
+            "description": "Los actores coordinan deliberadamente para amplificar/atacar",
+            "likelihood": "media",
+            "test": "Verificar consistencia temporal, textual y cross-platform"
+          }
+        ],
+        "final_confidence": {
+          "final_score": 65.19,
+          "base_score": 58.49,
+          "signal_multiplier": 1.2,
+          "penalty": 5,
+          "classification": "PROBABLE",
+          "confidence": "media"
+        },
+        "llm_validation": {
+          "llm_validation": "```json\n{\n  \"most_likely_hypothesis\": \"H2\",\n  \"reasoning\": \"El score de coordinación de 58.49/100 es moderado, ubicándose en una zona gris que no permite afirmar coordinación deliberada con confianza. Analicemos cada señal activa en contexto: (1) TEXT_SIMILARITY: Rommel Pacheco es un político mexicano (exdeportista olímpico, diputado del PAN/Movimiento Ciudadano) y Rogerio Castro es un actor político en el mismo ecosistema. La similitud textual puede explicarse fácilmente por el uso compartido de talking points partidistas, lenguaje político mexicano estándar, o reacción a los mismos eventos legislativos/políticos. Esto es compatible con H1 y H2. (2) CO_AMPLIFICATION: Que ambos amplifiquen contenido similar es esperable si pertenecen al mismo espectro político o coalición partidista. En la política mexicana, actores del mismo bloque comparten y amplifican contenido afín de forma orgánica, especialmente durante coyunturas legislativas o electorales. (3) CROSS_PLATFORM: La presencia en múltiples plataformas es estándar para actores políticos públicos. No es indicativo por sí solo de coordinación; es práctica normal de comunicación política. (4) OPERATIONAL_PATTERN: Patrones operativos similares pueden reflejar horarios de actividad política compartidos (sesiones legislativas, conferencias matutinas, ciclos noticiosos mexicanos) más que sincronización deliberada. La hipótesis H4 (coordinación deliberada) requeriría un score significativamente más alto y evidencia de sincronización temporal precisa, contenido idéntico no atribuible a fuentes comunes, y ausencia de explicaciones alternativas plausibles. Con 58.49, no se alcanza ese umbral. H3 (bots) es poco probable dado que ambos son figuras públicas identificables con presencia política verificable. H1 (coincidencia",
+          "model": "smart_call_validation"
+        }
+      },
+      {
+        "actor_a": "ACTOR_ea470d755f3f",
+        "actor_a_name": "guillermo cortés gonzález",
+        "actor_b": "ACTOR_f924f1300ca9",
+        "actor_b_name": "claudia sheinbaum",
+        "total_score": 56.6,
+        "raw_score": 60,
+        "max_possible": 106,
+        "signals": [
+          {
+            "signal": "temporal_sync",
+            "weight": 20,
+            "score": 0,
+            "sync_events": 0,
+            "window_minutes": 30
+          },
+          {
+            "signal": "text_similarity",
+            "weight": 20,
+            "score": 20,
+            "similar_pairs": 5,
+            "threshold": 0.7
+          },
+          {
+            "signal": "co_amplification",
+            "weight": 15,
+            "score": 10,
+            "overlap": 1,
+            "jaccard": 0.333
+          },
+          {
+            "signal": "cross_platform",
+            "weight": 15,
+            "score": 10,
+            "shared_platforms": [
+              "unknown"
+            ],
+            "cross_matches": 5
+          },
+          {
+            "signal": "media_reuse",
+            "weight": 15,
+            "score": 0,
+            "shared_media": 0
+          },
+          {
+            "signal": "operational_pattern",
+            "weight": 15,
+            "score": 14
+          },
+          {
+            "signal": "orthographic_consistency",
+            "weight": 6,
+            "score": 6,
+            "variants": {
+              "Guillermo Cortés": 33
+            }
+          }
+        ],
+        "classification": "medium",
+        "gate_f": "PASS",
+        "active_signal_count": 5,
+        "active_signals": [
+          "text_similarity",
+          "co_amplification",
+          "cross_platform",
+          "operational_pattern",
+          "orthographic_consistency"
+        ],
+        "hypotheses": [
+          {
+            "id": "H1",
+            "name": "Coincidencia temática",
+            "description": "Ambos actores reaccionan al mismo evento noticioso de forma independiente",
+            "likelihood": "media",
+            "test": "Verificar si hay un evento noticioso en la misma ventana temporal"
+          },
+          {
+            "id": "H2",
+            "name": "Relación orgánica",
+            "description": "Los actores se conocen y comparten contenido naturalmente",
+            "likelihood": "media",
+            "test": "Verificar si hay interacciones previas no relacionadas con GC"
+          },
+          {
+            "id": "H3",
+            "name": "Automatización/bot",
+            "description": "Uno o ambos actores son bots que republican contenido automáticamente",
+            "likelihood": "media",
+            "test": "Verificar frecuencia de publicación, variedad de contenido, horarios"
+          },
+          {
+            "id": "H4",
+            "name": "Coordinación deliberada",
+            "description": "Los actores coordinan deliberadamente para amplificar/atacar",
+            "likelihood": "media",
+            "test": "Verificar consistencia temporal, textual y cross-platform"
+          }
+        ],
+        "final_confidence": {
+          "final_score": 68.58,
+          "base_score": 56.6,
+          "signal_multiplier": 1.3,
+          "penalty": 5,
+          "classification": "PROBABLE",
+          "confidence": "media"
+        },
+        "llm_validation": {
+          "llm_validation": "```json\n{\n  \"most_likely_hypothesis\": \"H1\",\n  \"reasoning\": \"El análisis de este par requiere considerar un factor fundamental: Claudia Sheinbaum es la presidenta de México, una figura pública de altísimo perfil. Esto cambia radicalmente la interpretación de todas las señales detectadas. Desglose por señal: (1) TEXT_SIMILARITY: Es completamente esperable que un actor político menor o comentarista como Guillermo Cortés González reproduzca, cite o parafrasee contenido de la presidenta. Miles de cuentas lo hacen diariamente sin coordinación alguna. La similitud textual probablemente refleja citas directas de conferencias matutinas, comunicados oficiales o frases repetidas del discurso presidencial. (2) CO_AMPLIFICATION: Amplificar contenido de la presidenta es comportamiento orgánico masivo en México. Millones de personas comparten contenido de Sheinbaum sin ninguna coordinación. No es discriminante. (3) CROSS_PLATFORM: El contenido presidencial se distribuye oficialmente en múltiples plataformas simultáneamente. Que alguien lo replique en varias plataformas es consecuencia natural de la estrategia de comunicación gubernamental, no evidencia de coordinación bilateral. (4) OPERATIONAL_PATTERN: Patrones similares de horario se explican fácilmente porque las mañaneras y eventos oficiales ocurren en horarios fijos y predecibles, generando oleadas de actividad simultánea en toda la conversación política mexicana. (5) ORTHOGRAPHIC_CONSISTENCY: Esta señal podría indicar simplemente copy-paste de comunicados oficiales o líneas discursivas públicas del partido/gobierno, práctica extremadamente común y no indicativa de coordinación privada. El score de 56.6/100 es moderado-bajo, y dado que TODAS las señales tienen explicaciones alternativas robustas derivadas de la asimetría de perfil entre ambos actores (presidente vs. ciudadano/comentarista), la hipót",
+          "model": "smart_call_validation"
+        }
+      },
+      {
+        "actor_a": "ACTOR_ea470d755f3f",
+        "actor_a_name": "guillermo cortés gonzález",
+        "actor_b": "ACTOR_2657db047f48",
+        "actor_b_name": "rolando zapata bello",
+        "total_score": 45.28,
+        "raw_score": 48,
+        "max_possible": 106,
+        "signals": [
+          {
+            "signal": "temporal_sync",
+            "weight": 20,
+            "score": 0,
+            "sync_events": 0,
+            "window_minutes": 30
+          },
+          {
+            "signal": "text_similarity",
+            "weight": 20,
+            "score": 8,
+            "similar_pairs": 2,
+            "threshold": 0.7
+          },
+          {
+            "signal": "co_amplification",
+            "weight": 15,
+            "score": 15,
+            "overlap": 1,
+            "jaccard": 0.5
+          },
+          {
+            "signal": "cross_platform",
+            "weight": 15,
+            "score": 6,
+            "shared_platforms": [
+              "unknown"
+            ],
+            "cross_matches": 2
+          },
+          {
+            "signal": "media_reuse",
+            "weight": 15,
+            "score": 0,
+            "shared_media": 0
+          },
+          {
+            "signal": "operational_pattern",
+            "weight": 15,
+            "score": 13
+          },
+          {
+            "signal": "orthographic_consistency",
+            "weight": 6,
+            "score": 6,
+            "variants": {
+              "Guillermo Cortés": 33
+            }
+          }
+        ],
+        "classification": "medium",
+        "gate_f": "PASS",
+        "active_signal_count": 5,
+        "active_signals": [
+          "text_similarity",
+          "co_amplification",
+          "cross_platform",
+          "operational_pattern",
+          "orthographic_consistency"
+        ],
+        "hypotheses": [
+          {
+            "id": "H1",
+            "name": "Coincidencia temática",
+            "description": "Ambos actores reaccionan al mismo evento noticioso de forma independiente",
+            "likelihood": "media",
+            "test": "Verificar si hay un evento noticioso en la misma ventana temporal"
+          },
+          {
+            "id": "H2",
+            "name": "Relación orgánica",
+            "description": "Los actores se conocen y comparten contenido naturalmente",
+            "likelihood": "media",
+            "test": "Verificar si hay interacciones previas no relacionadas con GC"
+          },
+          {
+            "id": "H3",
+            "name": "Automatización/bot",
+            "description": "Uno o ambos actores son bots que republican contenido automáticamente",
+            "likelihood": "baja",
+            "test": "Verificar frecuencia de publicación, variedad de contenido, horarios"
+          },
+          {
+            "id": "H4",
+            "name": "Coordinación deliberada",
+            "description": "Los actores coordinan deliberadamente para amplificar/atacar",
+            "likelihood": "media",
+            "test": "Verificar consistencia temporal, textual y cross-platform"
+          }
+        ],
+        "final_confidence": {
+          "final_score": 53.86,
+          "base_score": 45.28,
+          "signal_multiplier": 1.3,
+          "penalty": 5,
+          "classification": "PROBABLE",
+          "confidence": "media"
+        },
+        "llm_validation": {
+          "llm_validation": "```json\n{\n  \"most_likely_hypothesis\": \"H2\",\n  \"reasoning\": \"El análisis del par Guillermo Cortés González – Rolando Zapata Bello requiere considerar el contexto político mexicano. Rolando Zapata Bello fue gobernador de Yucatán (2012-2018, PRI) y figura pública de alto perfil; Guillermo Cortés González aparece vinculado a círculos políticos afines. Con un score de 45.28/100 (moderado-bajo), las 5 señales activas sugieren patrones compartidos pero no concluyentes: (1) text_similarity puede explicarse porque ambos operan en el mismo ecosistema político-partidista (PRI/aliados), usando framing y vocabulario institucional similar; (2) co_amplification es esperable entre actores del mismo grupo político que comparten agenda y se retuitean mutuamente; (3) cross_platform indica presencia coordinada en varias plataformas, pero esto es estándar en operaciones de comunicación política legítima de cualquier partido; (4) operational_pattern (horarios/frecuencia similares) se explica por jornadas laborales compartidas o reacción a la misma agenda mediática; (5) orthographic_consistency podría sugerir una misma línea editorial o equipo de comunicación, pero también refleja formación profesional similar. La hipótesis H2 (relación orgánica) es la más parsimoniosa: ambos pertenecen al mismo entorno político, probablemente comparten equipo de asesores o línea de comunicación partidista, lo cual genera similitudes sin necesidad de una operación encubierta de coordinación inauténtica. H4 (coordinación deliberada) no puede descartarse completamente —el score no es despreciable y la consistencia ortográfica junto con cross_platform eleva la sospecha—, pero con 45.28/100 la evidencia es insuficiente para afirmarlo con confianza. H1 es plausible como factor contributivo pero no expl",
+          "model": "smart_call_validation"
+        }
+      },
+      {
+        "actor_a": "ACTOR_ea470d755f3f",
+        "actor_a_name": "guillermo cortés gonzález",
+        "actor_b": "ACTOR_53776466e276",
+        "actor_b_name": "rogerio castro",
+        "total_score": 44.34,
+        "raw_score": 47,
+        "max_possible": 106,
+        "signals": [
+          {
+            "signal": "temporal_sync",
+            "weight": 20,
+            "score": 0,
+            "sync_events": 0,
+            "window_minutes": 30
+          },
+          {
+            "signal": "text_similarity",
+            "weight": 20,
+            "score": 8,
+            "similar_pairs": 2,
+            "threshold": 0.7
+          },
+          {
+            "signal": "co_amplification",
+            "weight": 15,
+            "score": 15,
+            "overlap": 2,
+            "jaccard": 1.0
+          },
+          {
+            "signal": "cross_platform",
+            "weight": 15,
+            "score": 5,
+            "shared_platforms": [
+              "twitter",
+              "unknown"
+            ],
+            "cross_matches": 0
+          },
+          {
+            "signal": "media_reuse",
+            "weight": 15,
+            "score": 0,
+            "shared_media": 0
+          },
+          {
+            "signal": "operational_pattern",
+            "weight": 15,
+            "score": 13
+          },
+          {
+            "signal": "orthographic_consistency",
+            "weight": 6,
+            "score": 6,
+            "variants": {
+              "Guillermo Cortés": 33
+            }
+          }
+        ],
+        "classification": "medium",
+        "gate_f": "PASS",
+        "active_signal_count": 5,
+        "active_signals": [
+          "text_similarity",
+          "co_amplification",
+          "cross_platform",
+          "operational_pattern",
+          "orthographic_consistency"
+        ],
+        "hypotheses": [
+          {
+            "id": "H1",
+            "name": "Coincidencia temática",
+            "description": "Ambos actores reaccionan al mismo evento noticioso de forma independiente",
+            "likelihood": "media",
+            "test": "Verificar si hay un evento noticioso en la misma ventana temporal"
+          },
+          {
+            "id": "H2",
+            "name": "Relación orgánica",
+            "description": "Los actores se conocen y comparten contenido naturalmente",
+            "likelihood": "media",
+            "test": "Verificar si hay interacciones previas no relacionadas con GC"
+          },
+          {
+            "id": "H3",
+            "name": "Automatización/bot",
+            "description": "Uno o ambos actores son bots que republican contenido automáticamente",
+            "likelihood": "baja",
+            "test": "Verificar frecuencia de publicación, variedad de contenido, horarios"
+          },
+          {
+            "id": "H4",
+            "name": "Coordinación deliberada",
+            "description": "Los actores coordinan deliberadamente para amplificar/atacar",
+            "likelihood": "media",
+            "test": "Verificar consistencia temporal, textual y cross-platform"
+          }
+        ],
+        "final_confidence": {
+          "final_score": 52.64,
+          "base_score": 44.34,
+          "signal_multiplier": 1.3,
+          "penalty": 5,
+          "classification": "PROBABLE",
+          "confidence": "media"
+        },
+        "llm_validation": {
+          "llm_validation": "```json\n{\n  \"most_likely_hypothesis\": \"H2\",\n  \"reasoning\": \"El score de coordinación de 44.34/100 es moderado-bajo, ubicándose por debajo del umbral que típicamente indica coordinación deliberada confirmada (generalmente >65-70). Analizo las señales activas en contexto: (1) text_similarity: puede explicarse por compartir fuentes comunes o reaccionar al mismo contenido noticioso, especialmente en temas políticos donde el lenguaje se homogeneiza; (2) co_amplification: ambos amplifican contenido similar, pero esto es común entre personas que pertenecen a la misma comunidad ideológica o círculo social; (3) cross_platform: presencia en múltiples plataformas es cada vez más normal en usuarios orgánicos activos políticamente; (4) operational_pattern: patrones operativos similares pueden reflejar rutinas de vida compartidas (misma zona horaria, horarios laborales similares); (5) orthographic_consistency: esta señal es interesante porque errores ortográficos consistentes podrían sugerir un mismo autor, pero también es explicable por nivel educativo similar, regionalismos compartidos o copy-paste de fuentes comunes. La combinación de estas 5 señales activas justifica atención, pero ninguna individualmente es definitiva. H1 (coincidencia temática) es plausible pero no explica completamente la consistencia ortográfica ni los patrones operativos. H3 (bots) tiene likelihood baja y un score de 44 no es consistente con automatización, que típicamente produce scores más altos por su rigidez. H4 (coordinación deliberada) requeriría un score más alto y evidencia más fuerte, especialmente en temporalidad precisa y contenido casi idéntico. H2 (relación orgánica) es la más parsimoniosa: dos personas que se conocen, comparten círculo social o ideológico, consumen las mismas fuentes, y naturalmente amplifican contenido similar. La consistencia ortográfica se",
+          "model": "smart_call_validation"
+        }
+      },
+      {
+        "actor_a": "ACTOR_ea470d755f3f",
+        "actor_a_name": "guillermo cortés gonzález",
+        "actor_b": "ACTOR_e33edef58647",
+        "actor_b_name": "joaquín díaz mena",
+        "total_score": 43.4,
+        "raw_score": 46,
+        "max_possible": 106,
+        "signals": [
+          {
+            "signal": "temporal_sync",
+            "weight": 20,
+            "score": 0,
+            "sync_events": 0,
+            "window_minutes": 30
+          },
+          {
+            "signal": "text_similarity",
+            "weight": 20,
+            "score": 20,
+            "similar_pairs": 5,
+            "threshold": 0.7
+          },
+          {
+            "signal": "co_amplification",
+            "weight": 15,
+            "score": 10,
+            "overlap": 1,
+            "jaccard": 0.333
+          },
+          {
+            "signal": "cross_platform",
+            "weight": 15,
+            "score": 10,
+            "shared_platforms": [
+              "unknown"
+            ],
+            "cross_matches": 5
+          },
+          {
+            "signal": "media_reuse",
+            "weight": 15,
+            "score": 0,
+            "shared_media": 0
+          },
+          {
+            "signal": "operational_pattern",
+            "weight": 15,
+            "score": 0
+          },
+          {
+            "signal": "orthographic_consistency",
+            "weight": 6,
+            "score": 6,
+            "variants": {
+              "Guillermo Cortés": 33
+            }
+          }
+        ],
+        "classification": "medium",
+        "gate_f": "PASS",
+        "active_signal_count": 4,
+        "active_signals": [
+          "text_similarity",
+          "co_amplification",
+          "cross_platform",
+          "orthographic_consistency"
+        ],
+        "hypotheses": [
+          {
+            "id": "H1",
+            "name": "Coincidencia temática",
+            "description": "Ambos actores reaccionan al mismo evento noticioso de forma independiente",
+            "likelihood": "media",
+            "test": "Verificar si hay un evento noticioso en la misma ventana temporal"
+          },
+          {
+            "id": "H2",
+            "name": "Relación orgánica",
+            "description": "Los actores se conocen y comparten contenido naturalmente",
+            "likelihood": "media",
+            "test": "Verificar si hay interacciones previas no relacionadas con GC"
+          },
+          {
+            "id": "H3",
+            "name": "Automatización/bot",
+            "description": "Uno o ambos actores son bots que republican contenido automáticamente",
+            "likelihood": "baja",
+            "test": "Verificar frecuencia de publicación, variedad de contenido, horarios"
+          },
+          {
+            "id": "H4",
+            "name": "Coordinación deliberada",
+            "description": "Los actores coordinan deliberadamente para amplificar/atacar",
+            "likelihood": "media",
+            "test": "Verificar consistencia temporal, textual y cross-platform"
+          }
+        ],
+        "final_confidence": {
+          "final_score": 47.08,
+          "base_score": 43.4,
+          "signal_multiplier": 1.2,
+          "penalty": 5,
+          "classification": "PROBABLE",
+          "confidence": "media"
+        },
+        "llm_validation": {
+          "llm_validation": "```json\n{\n  \"most_likely_hypothesis\": \"H2\",\n  \"reasoning\": \"El score de coordinación de 43.4/100 es moderado-bajo, lo que no alcanza un umbral convincente para afirmar coordinación deliberada. Analizo señal por señal: (1) TEXT_SIMILARITY: Guillermo Cortés González y Joaquín Díaz Mena son ambos figuras políticas vinculadas al ecosistema de Morena en Yucatán. Díaz Mena fue candidato a gobernador y figura prominente del partido; Cortés González opera en el mismo ámbito político. La similitud textual se explica naturalmente porque comparten vocabulario partidista, consignas institucionales ('Cuarta Transformación', 'bienestar del pueblo', etc.) y reaccionan a la misma agenda política estatal/nacional. Esto es consistente con H1 y H2. (2) CO_AMPLIFICATION: Que se amplifiquen mutuamente es esperable en actores del mismo partido político. La co-amplificación entre correligionarios es comportamiento orgánico estándar en política mexicana, donde las estructuras partidistas promueven activamente compartir contenido de sus compañeros. Esto favorece fuertemente H2. (3) CROSS_PLATFORM: La presencia en múltiples plataformas es normal para actores políticos que buscan maximizar alcance. No es indicador fuerte de coordinación inorgánica por sí solo. (4) ORTHOGRAPHIC_CONSISTENCY: Esta señal es interesante porque podría sugerir uso de plantillas compartidas o redacción centralizada. Sin embargo, en el contexto de un partido político con líneas de comunicación institucionales, es común que los actores reciban líneas discursivas o 'talking points' desde la estructura partidista. Esto es una zona gris entre coordinación partidista legítima y coordinación inorgánica. En conjunto: las cuatro señales activas tienen explicaciones plausibles desde la relación orgánica político-partidista. El score de 43.",
+          "model": "smart_call_validation"
+        }
+      },
+      {
+        "actor_a": "ACTOR_f924f1300ca9",
+        "actor_a_name": "claudia sheinbaum",
+        "actor_b": "ACTOR_e33edef58647",
+        "actor_b_name": "joaquín díaz mena",
+        "total_score": 43.4,
+        "raw_score": 46,
+        "max_possible": 106,
+        "signals": [
+          {
+            "signal": "temporal_sync",
+            "weight": 20,
+            "score": 0,
+            "sync_events": 0,
+            "window_minutes": 30
+          },
+          {
+            "signal": "text_similarity",
+            "weight": 20,
+            "score": 16,
+            "similar_pairs": 4,
+            "threshold": 0.7
+          },
+          {
+            "signal": "co_amplification",
+            "weight": 15,
+            "score": 15,
+            "overlap": 2,
+            "jaccard": 1.0
+          },
+          {
+            "signal": "cross_platform",
+            "weight": 15,
+            "score": 15,
+            "shared_platforms": [
+              "unknown",
+              "instagram"
+            ],
+            "cross_matches": 4
+          },
+          {
+            "signal": "media_reuse",
+            "weight": 15,
+            "score": 0,
+            "shared_media": 0
+          },
+          {
+            "signal": "operational_pattern",
+            "weight": 15,
+            "score": 0
+          },
+          {
+            "signal": "orthographic_consistency",
+            "weight": 6,
+            "score": 0,
+            "variants": {}
+          }
+        ],
+        "classification": "medium",
+        "gate_f": "PASS",
+        "active_signal_count": 3,
+        "active_signals": [
+          "text_similarity",
+          "co_amplification",
+          "cross_platform"
+        ],
+        "hypotheses": [
+          {
+            "id": "H1",
+            "name": "Coincidencia temática",
+            "description": "Ambos actores reaccionan al mismo evento noticioso de forma independiente",
+            "likelihood": "media",
+            "test": "Verificar si hay un evento noticioso en la misma ventana temporal"
+          },
+          {
+            "id": "H2",
+            "name": "Relación orgánica",
+            "description": "Los actores se conocen y comparten contenido naturalmente",
+            "likelihood": "media",
+            "test": "Verificar si hay interacciones previas no relacionadas con GC"
+          },
+          {
+            "id": "H3",
+            "name": "Automatización/bot",
+            "description": "Uno o ambos actores son bots que republican contenido automáticamente",
+            "likelihood": "baja",
+            "test": "Verificar frecuencia de publicación, variedad de contenido, horarios"
+          },
+          {
+            "id": "H4",
+            "name": "Coordinación deliberada",
+            "description": "Los actores coordinan deliberadamente para amplificar/atacar",
+            "likelihood": "media",
+            "test": "Verificar consistencia temporal, textual y cross-platform"
+          }
+        ],
+        "final_confidence": {
+          "final_score": 42.74,
+          "base_score": 43.4,
+          "signal_multiplier": 1.1,
+          "penalty": 5,
+          "classification": "POSSIBLE",
+          "confidence": "baja"
+        },
+        "llm_validation": {
+          "llm_validation": "```json\n{\n  \"most_likely_hypothesis\": \"H2\",\n  \"reasoning\": \"Claudia Sheinbaum (presidenta de México y líder de Morena) y Joaquín Díaz Mena (político de Morena, excandiato a gobernador de Yucatán y figura del mismo partido) tienen una relación orgánica pública y verificable: pertenecen al mismo partido político (Morena), comparten línea discursiva institucional y es esperable que co-amplifiquen mensajes, compartan similitud textual (narrativas partidistas comunes) y tengan presencia cross-platform coordinada por estructura partidaria, no por operación encubierta. El score de 43.4/100 es moderado-bajo, lo cual es consistente con coordinación partidaria rutinaria más que con una operación de influencia artificial. Las tres señales activas (text_similarity, co_amplification, cross_platform) se explican naturalmente por: (1) ambos usan los mismos talking points del partido y gobierno federal, (2) es normal que un político estatal amplifique a la presidenta de su propio partido y viceversa, (3) la presencia multiplataforma coordinada es estándar en partidos políticos modernos con equipos de comunicación profesional. La hipótesis H1 (coincidencia temática) es parcialmente válida pero insuficiente porque la relación va más allá de reaccionar al mismo evento: existe un vínculo orgánico estructural. H3 (bots) es improbable dado que ambos son figuras públicas reales con cuentas verificadas. H4 (coordinación deliberada encubierta) no se sostiene con un score de 43.4 y sin señales más fuertes como timing sospechosamente sincronizado al segundo, uso de cuentas puente anónimas o narrativas de ataque coordinado contra un objetivo específico. Lo que existe es coordinación abierta y legítima dentro de una estructura partidaria, lo cual es actividad política normal, no guerra de la información.\",\n  \"recommendation",
+          "model": "smart_call_validation"
+        }
+      },
+      {
+        "actor_a": "ACTOR_9c4613e226db",
+        "actor_a_name": "rommel pacheco",
+        "actor_b": "ACTOR_f924f1300ca9",
+        "actor_b_name": "claudia sheinbaum",
+        "total_score": 42.45,
+        "raw_score": 45,
+        "max_possible": 106,
+        "signals": [
+          {
+            "signal": "temporal_sync",
+            "weight": 20,
+            "score": 0,
+            "sync_events": 0,
+            "window_minutes": 30
+          },
+          {
+            "signal": "text_similarity",
+            "weight": 20,
+            "score": 8,
+            "similar_pairs": 2,
+            "threshold": 0.7
+          },
+          {
+            "signal": "co_amplification",
+            "weight": 15,
+            "score": 15,
+            "overlap": 2,
+            "jaccard": 0.667
+          },
+          {
+            "signal": "cross_platform",
+            "weight": 15,
+            "score": 8,
+            "shared_platforms": [
+              "unknown",
+              "instagram"
+            ],
+            "cross_matches": 1
+          },
+          {
+            "signal": "media_reuse",
+            "weight": 15,
+            "score": 0,
+            "shared_media": 0
+          },
+          {
+            "signal": "operational_pattern",
+            "weight": 15,
+            "score": 14
+          },
+          {
+            "signal": "orthographic_consistency",
+            "weight": 6,
+            "score": 0,
+            "variants": {
+              "Memo Cortés": 2,
+              "Guillermo Cortés": 28,
+              "Guillermo Cortes": 4
+            }
+          }
+        ],
+        "classification": "medium",
+        "gate_f": "PASS",
+        "active_signal_count": 4,
+        "active_signals": [
+          "text_similarity",
+          "co_amplification",
+          "cross_platform",
+          "operational_pattern"
+        ],
+        "hypotheses": [
+          {
+            "id": "H1",
+            "name": "Coincidencia temática",
+            "description": "Ambos actores reaccionan al mismo evento noticioso de forma independiente",
+            "likelihood": "media",
+            "test": "Verificar si hay un evento noticioso en la misma ventana temporal"
+          },
+          {
+            "id": "H2",
+            "name": "Relación orgánica",
+            "description": "Los actores se conocen y comparten contenido naturalmente",
+            "likelihood": "media",
+            "test": "Verificar si hay interacciones previas no relacionadas con GC"
+          },
+          {
+            "id": "H3",
+            "name": "Automatización/bot",
+            "description": "Uno o ambos actores son bots que republican contenido automáticamente",
+            "likelihood": "baja",
+            "test": "Verificar frecuencia de publicación, variedad de contenido, horarios"
+          },
+          {
+            "id": "H4",
+            "name": "Coordinación deliberada",
+            "description": "Los actores coordinan deliberadamente para amplificar/atacar",
+            "likelihood": "media",
+            "test": "Verificar consistencia temporal, textual y cross-platform"
+          }
+        ],
+        "final_confidence": {
+          "final_score": 45.94,
+          "base_score": 42.45,
+          "signal_multiplier": 1.2,
+          "penalty": 5,
+          "classification": "PROBABLE",
+          "confidence": "media"
+        },
+        "llm_validation": {
+          "llm_validation": "```json\n{\n  \"most_likely_hypothesis\": \"H2\",\n  \"reasoning\": \"Rommel Pacheco es un exatleta olímpico mexicano (clavadista) que actualmente ocupa un cargo público como director de la CONADE (Comisión Nacional de Cultura Física y Deporte), nombrado durante la administración de Claudia Sheinbaum como presidenta de México. Esto establece una relación orgánica institucional directa entre ambos actores. Las señales detectadas se explican naturalmente por este vínculo: (1) TEXT_SIMILARITY: Ambos comparten narrativas de gobierno, logros deportivos y políticas públicas deportivas, lo cual genera similitud textual esperable entre una presidenta y su funcionario designado. (2) CO_AMPLIFICATION: Es completamente normal que un funcionario amplifique los mensajes de la presidenta que lo nombró, y que ella destaque logros de su administración en materia deportiva. Esto es comunicación institucional, no amplificación coordinada artificial. (3) CROSS_PLATFORM: Ambos son figuras públicas con presencia legítima en múltiples plataformas (X, Instagram, Facebook, etc.), y los equipos de comunicación gubernamental publican en todas simultáneamente. (4) OPERATIONAL_PATTERN: Los patrones operativos similares se explican por horarios de trabajo gubernamental y ciclos noticiosos compartidos (conferencias matutinas, eventos oficiales, etc.). El score de 42.45/100 es moderado-bajo, consistente con una relación orgánica institucional que genera correlaciones detectables pero que no alcanza los patrones típicos de coordinación inauténtica (que suelen mostrar scores más altos, sincronización al segundo, y contenido textualmente idéntico). No hay indicios de que sean bots (H3 descartada: ambos son personas públicas verificadas con trayectorias extensas). H1 es parcialmente válida pero insuficiente: no es solo coincidencia temática, hay una relación directa. H4 (coordinación",
+          "model": "smart_call_validation"
+        }
+      },
+      {
+        "actor_a": "ACTOR_2657db047f48",
+        "actor_a_name": "rolando zapata bello",
+        "actor_b": "ACTOR_e33edef58647",
+        "actor_b_name": "joaquín díaz mena",
+        "total_score": 32.08,
+        "raw_score": 34,
+        "max_possible": 106,
+        "signals": [
+          {
+            "signal": "temporal_sync",
+            "weight": 20,
+            "score": 0,
+            "sync_events": 0,
+            "window_minutes": 30
+          },
+          {
+            "signal": "text_similarity",
+            "weight": 20,
+            "score": 0,
+            "similar_pairs": 0,
+            "threshold": 0.7
+          },
+          {
+            "signal": "co_amplification",
+            "weight": 15,
+            "score": 15,
+            "overlap": 1,
+            "jaccard": 0.5
+          },
+          {
+            "signal": "cross_platform",
+            "weight": 15,
+            "score": 0,
+            "shared_platforms": [
+              "unknown"
+            ],
+            "cross_matches": 0
+          },
+          {
+            "signal": "media_reuse",
+            "weight": 15,
+            "score": 0,
+            "shared_media": 0
+          },
+          {
+            "signal": "operational_pattern",
+            "weight": 15,
+            "score": 13
+          },
+          {
+            "signal": "orthographic_consistency",
+            "weight": 6,
+            "score": 6,
+            "variants": {
+              "Guillermo Cortés": 6
+            }
+          }
+        ],
+        "classification": "medium",
+        "gate_f": "PASS",
+        "active_signal_count": 3,
+        "active_signals": [
+          "co_amplification",
+          "operational_pattern",
+          "orthographic_consistency"
+        ],
+        "hypotheses": [
+          {
+            "id": "H1",
+            "name": "Coincidencia temática",
+            "description": "Ambos actores reaccionan al mismo evento noticioso de forma independiente",
+            "likelihood": "alta",
+            "test": "Verificar si hay un evento noticioso en la misma ventana temporal"
+          },
+          {
+            "id": "H2",
+            "name": "Relación orgánica",
+            "description": "Los actores se conocen y comparten contenido naturalmente",
+            "likelihood": "media",
+            "test": "Verificar si hay interacciones previas no relacionadas con GC"
+          },
+          {
+            "id": "H3",
+            "name": "Automatización/bot",
+            "description": "Uno o ambos actores son bots que republican contenido automáticamente",
+            "likelihood": "baja",
+            "test": "Verificar frecuencia de publicación, variedad de contenido, horarios"
+          },
+          {
+            "id": "H4",
+            "name": "Coordinación deliberada",
+            "description": "Los actores coordinan deliberadamente para amplificar/atacar",
+            "likelihood": "media",
+            "test": "Verificar consistencia temporal, textual y cross-platform"
+          }
+        ],
+        "final_confidence": {
+          "final_score": 20.29,
+          "base_score": 32.08,
+          "signal_multiplier": 1.1,
+          "penalty": 15,
+          "classification": "UNLIKELY",
+          "confidence": "muy_baja"
+        }
+      },
+      {
+        "actor_a": "ACTOR_53776466e276",
+        "actor_a_name": "rogerio castro",
+        "actor_b": "ACTOR_2657db047f48",
+        "actor_b_name": "rolando zapata bello",
+        "total_score": 26.42,
+        "raw_score": 28,
+        "max_possible": 106,
+        "signals": [
+          {
+            "signal": "temporal_sync",
+            "weight": 20,
+            "score": 0,
+            "sync_events": 0,
+            "window_minutes": 30
+          },
+          {
+            "signal": "text_similarity",
+            "weight": 20,
+            "score": 0,
+            "similar_pairs": 0,
+            "threshold": 0.7
+          },
+          {
+            "signal": "co_amplification",
+            "weight": 15,
+            "score": 15,
+            "overlap": 1,
+            "jaccard": 0.5
+          },
+          {
+            "signal": "cross_platform",
+            "weight": 15,
+            "score": 0,
+            "shared_platforms": [
+              "unknown"
+            ],
+            "cross_matches": 0
+          },
+          {
+            "signal": "media_reuse",
+            "weight": 15,
+            "score": 0,
+            "shared_media": 0
+          },
+          {
+            "signal": "operational_pattern",
+            "weight": 15,
+            "score": 13
+          },
+          {
+            "signal": "orthographic_consistency",
+            "weight": 6,
+            "score": 0,
+            "variants": {
+              "Memo Cortés": 4,
+              "Guillermo Cortés": 44,
+              "Guillermo Cortes": 4
+            }
+          }
+        ],
+        "classification": "low",
+        "gate_f": "PASS",
+        "active_signal_count": 2,
+        "active_signals": [
+          "co_amplification",
+          "operational_pattern"
+        ],
+        "hypotheses": [
+          {
+            "id": "H1",
+            "name": "Coincidencia temática",
+            "description": "Ambos actores reaccionan al mismo evento noticioso de forma independiente",
+            "likelihood": "alta",
+            "test": "Verificar si hay un evento noticioso en la misma ventana temporal"
+          },
+          {
+            "id": "H2",
+            "name": "Relación orgánica",
+            "description": "Los actores se conocen y comparten contenido naturalmente",
+            "likelihood": "media",
+            "test": "Verificar si hay interacciones previas no relacionadas con GC"
+          },
+          {
+            "id": "H3",
+            "name": "Automatización/bot",
+            "description": "Uno o ambos actores son bots que republican contenido automáticamente",
+            "likelihood": "baja",
+            "test": "Verificar frecuencia de publicación, variedad de contenido, horarios"
+          },
+          {
+            "id": "H4",
+            "name": "Coordinación deliberada",
+            "description": "Los actores coordinan deliberadamente para amplificar/atacar",
+            "likelihood": "media",
+            "test": "Verificar consistencia temporal, textual y cross-platform"
+          }
+        ],
+        "final_confidence": {
+          "final_score": 11.42,
+          "base_score": 26.42,
+          "signal_multiplier": 1.0,
+          "penalty": 15,
+          "classification": "UNLIKELY",
+          "confidence": "muy_baja"
+        }
+      },
+      {
+        "actor_a": "ACTOR_9c4613e226db",
+        "actor_a_name": "rommel pacheco",
+        "actor_b": "ACTOR_e33edef58647",
+        "actor_b_name": "joaquín díaz mena",
+        "total_score": 25.47,
+        "raw_score": 27,
+        "max_possible": 106,
+        "signals": [
+          {
+            "signal": "temporal_sync",
+            "weight": 20,
+            "score": 0,
+            "sync_events": 0,
+            "window_minutes": 30
+          },
+          {
+            "signal": "text_similarity",
+            "weight": 20,
+            "score": 4,
+            "similar_pairs": 1,
+            "threshold": 0.7
+          },
+          {
+            "signal": "co_amplification",
+            "weight": 15,
+            "score": 15,
+            "overlap": 2,
+            "jaccard": 0.667
+          },
+          {
+            "signal": "cross_platform",
+            "weight": 15,
+            "score": 8,
+            "shared_platforms": [
+              "unknown",
+              "instagram"
+            ],
+            "cross_matches": 1
+          },
+          {
+            "signal": "media_reuse",
+            "weight": 15,
+            "score": 0,
+            "shared_media": 0
+          },
+          {
+            "signal": "operational_pattern",
+            "weight": 15,
+            "score": 0
+          },
+          {
+            "signal": "orthographic_consistency",
+            "weight": 6,
+            "score": 0,
+            "variants": {
+              "Memo Cortés": 2,
+              "Guillermo Cortés": 28,
+              "Guillermo Cortes": 4
+            }
+          }
+        ],
+        "classification": "low",
+        "gate_f": "PASS",
+        "active_signal_count": 3,
+        "active_signals": [
+          "text_similarity",
+          "co_amplification",
+          "cross_platform"
+        ],
+        "hypotheses": [
+          {
+            "id": "H1",
+            "name": "Coincidencia temática",
+            "description": "Ambos actores reaccionan al mismo evento noticioso de forma independiente",
+            "likelihood": "alta",
+            "test": "Verificar si hay un evento noticioso en la misma ventana temporal"
+          },
+          {
+            "id": "H2",
+            "name": "Relación orgánica",
+            "description": "Los actores se conocen y comparten contenido naturalmente",
+            "likelihood": "media",
+            "test": "Verificar si hay interacciones previas no relacionadas con GC"
+          },
+          {
+            "id": "H3",
+            "name": "Automatización/bot",
+            "description": "Uno o ambos actores son bots que republican contenido automáticamente",
+            "likelihood": "baja",
+            "test": "Verificar frecuencia de publicación, variedad de contenido, horarios"
+          },
+          {
+            "id": "H4",
+            "name": "Coordinación deliberada",
+            "description": "Los actores coordinan deliberadamente para amplificar/atacar",
+            "likelihood": "media",
+            "test": "Verificar consistencia temporal, textual y cross-platform"
+          }
+        ],
+        "final_confidence": {
+          "final_score": 13.02,
+          "base_score": 25.47,
+          "signal_multiplier": 1.1,
+          "penalty": 15,
+          "classification": "UNLIKELY",
+          "confidence": "muy_baja"
+        }
+      },
+      {
+        "actor_a": "ACTOR_f924f1300ca9",
+        "actor_a_name": "claudia sheinbaum",
+        "actor_b": "ACTOR_2657db047f48",
+        "actor_b_name": "rolando zapata bello",
+        "total_score": 24.53,
+        "raw_score": 26,
+        "max_possible": 106,
+        "signals": [
+          {
+            "signal": "temporal_sync",
+            "weight": 20,
+            "score": 0,
+            "sync_events": 0,
+            "window_minutes": 30
+          },
+          {
+            "signal": "text_similarity",
+            "weight": 20,
+            "score": 0,
+            "similar_pairs": 0,
+            "threshold": 0.7
+          },
+          {
+            "signal": "co_amplification",
+            "weight": 15,
+            "score": 15,
+            "overlap": 1,
+            "jaccard": 0.5
+          },
+          {
+            "signal": "cross_platform",
+            "weight": 15,
+            "score": 0,
+            "shared_platforms": [
+              "unknown"
+            ],
+            "cross_matches": 0
+          },
+          {
+            "signal": "media_reuse",
+            "weight": 15,
+            "score": 0,
+            "shared_media": 0
+          },
+          {
+            "signal": "operational_pattern",
+            "weight": 15,
+            "score": 11
+          },
+          {
+            "signal": "orthographic_consistency",
+            "weight": 6,
+            "score": 0,
+            "variants": {}
+          }
+        ],
+        "classification": "low",
+        "gate_f": "PASS",
+        "active_signal_count": 2,
+        "active_signals": [
+          "co_amplification",
+          "operational_pattern"
+        ],
+        "hypotheses": [
+          {
+            "id": "H1",
+            "name": "Coincidencia temática",
+            "description": "Ambos actores reaccionan al mismo evento noticioso de forma independiente",
+            "likelihood": "alta",
+            "test": "Verificar si hay un evento noticioso en la misma ventana temporal"
+          },
+          {
+            "id": "H2",
+            "name": "Relación orgánica",
+            "description": "Los actores se conocen y comparten contenido naturalmente",
+            "likelihood": "media",
+            "test": "Verificar si hay interacciones previas no relacionadas con GC"
+          },
+          {
+            "id": "H3",
+            "name": "Automatización/bot",
+            "description": "Uno o ambos actores son bots que republican contenido automáticamente",
+            "likelihood": "baja",
+            "test": "Verificar frecuencia de publicación, variedad de contenido, horarios"
+          },
+          {
+            "id": "H4",
+            "name": "Coordinación deliberada",
+            "description": "Los actores coordinan deliberadamente para amplificar/atacar",
+            "likelihood": "media",
+            "test": "Verificar consistencia temporal, textual y cross-platform"
+          }
+        ],
+        "final_confidence": {
+          "final_score": 9.53,
+          "base_score": 24.53,
+          "signal_multiplier": 1.0,
+          "penalty": 15,
+          "classification": "UNLIKELY",
+          "confidence": "muy_baja"
+        }
+      },
+      {
+        "actor_a": "ACTOR_9c4613e226db",
+        "actor_a_name": "rommel pacheco",
+        "actor_b": "ACTOR_2657db047f48",
+        "actor_b_name": "rolando zapata bello",
+        "total_score": 21.7,
+        "raw_score": 23,
+        "max_possible": 106,
+        "signals": [
+          {
+            "signal": "temporal_sync",
+            "weight": 20,
+            "score": 0,
+            "sync_events": 0,
+            "window_minutes": 30
+          },
+          {
+            "signal": "text_similarity",
+            "weight": 20,
+            "score": 0,
+            "similar_pairs": 0,
+            "threshold": 0.7
+          },
+          {
+            "signal": "co_amplification",
+            "weight": 15,
+            "score": 10,
+            "overlap": 1,
+            "jaccard": 0.333
+          },
+          {
+            "signal": "cross_platform",
+            "weight": 15,
+            "score": 0,
+            "shared_platforms": [
+              "unknown"
+            ],
+            "cross_matches": 0
+          },
+          {
+            "signal": "media_reuse",
+            "weight": 15,
+            "score": 0,
+            "shared_media": 0
+          },
+          {
+            "signal": "operational_pattern",
+            "weight": 15,
+            "score": 13
+          },
+          {
+            "signal": "orthographic_consistency",
+            "weight": 6,
+            "score": 0,
+            "variants": {
+              "Memo Cortés": 2,
+              "Guillermo Cortés": 28,
+              "Guillermo Cortes": 4
+            }
+          }
+        ],
+        "classification": "low",
+        "gate_f": "PASS",
+        "active_signal_count": 2,
+        "active_signals": [
+          "co_amplification",
+          "operational_pattern"
+        ],
+        "hypotheses": [
+          {
+            "id": "H1",
+            "name": "Coincidencia temática",
+            "description": "Ambos actores reaccionan al mismo evento noticioso de forma independiente",
+            "likelihood": "alta",
+            "test": "Verificar si hay un evento noticioso en la misma ventana temporal"
+          },
+          {
+            "id": "H2",
+            "name": "Relación orgánica",
+            "description": "Los actores se conocen y comparten contenido naturalmente",
+            "likelihood": "media",
+            "test": "Verificar si hay interacciones previas no relacionadas con GC"
+          },
+          {
+            "id": "H3",
+            "name": "Automatización/bot",
+            "description": "Uno o ambos actores son bots que republican contenido automáticamente",
+            "likelihood": "baja",
+            "test": "Verificar frecuencia de publicación, variedad de contenido, horarios"
+          },
+          {
+            "id": "H4",
+            "name": "Coordinación deliberada",
+            "description": "Los actores coordinan deliberadamente para amplificar/atacar",
+            "likelihood": "media",
+            "test": "Verificar consistencia temporal, textual y cross-platform"
+          }
+        ],
+        "final_confidence": {
+          "final_score": 6.7,
+          "base_score": 21.7,
+          "signal_multiplier": 1.0,
+          "penalty": 15,
+          "classification": "UNLIKELY",
+          "confidence": "muy_baja"
+        }
+      },
+      {
+        "actor_a": "ACTOR_f924f1300ca9",
+        "actor_a_name": "claudia sheinbaum",
+        "actor_b": "ACTOR_53776466e276",
+        "actor_b_name": "rogerio castro",
+        "total_score": 20.75,
+        "raw_score": 22,
+        "max_possible": 106,
+        "signals": [
+          {
+            "signal": "temporal_sync",
+            "weight": 20,
+            "score": 0,
+            "sync_events": 0,
+            "window_minutes": 30
+          },
+          {
+            "signal": "text_similarity",
+            "weight": 20,
+            "score": 0,
+            "similar_pairs": 0,
+            "threshold": 0.7
+          },
+          {
+            "signal": "co_amplification",
+            "weight": 15,
+            "score": 10,
+            "overlap": 1,
+            "jaccard": 0.333
+          },
+          {
+            "signal": "cross_platform",
+            "weight": 15,
+            "score": 0,
+            "shared_platforms": [
+              "unknown"
+            ],
+            "cross_matches": 0
+          },
+          {
+            "signal": "media_reuse",
+            "weight": 15,
+            "score": 0,
+            "shared_media": 0
+          },
+          {
+            "signal": "operational_pattern",
+            "weight": 15,
+            "score": 12
+          },
+          {
+            "signal": "orthographic_consistency",
+            "weight": 6,
+            "score": 0,
+            "variants": {}
+          }
+        ],
+        "classification": "low",
+        "gate_f": "PASS",
+        "active_signal_count": 2,
+        "active_signals": [
+          "co_amplification",
+          "operational_pattern"
+        ],
+        "hypotheses": [
+          {
+            "id": "H1",
+            "name": "Coincidencia temática",
+            "description": "Ambos actores reaccionan al mismo evento noticioso de forma independiente",
+            "likelihood": "alta",
+            "test": "Verificar si hay un evento noticioso en la misma ventana temporal"
+          },
+          {
+            "id": "H2",
+            "name": "Relación orgánica",
+            "description": "Los actores se conocen y comparten contenido naturalmente",
+            "likelihood": "media",
+            "test": "Verificar si hay interacciones previas no relacionadas con GC"
+          },
+          {
+            "id": "H3",
+            "name": "Automatización/bot",
+            "description": "Uno o ambos actores son bots que republican contenido automáticamente",
+            "likelihood": "baja",
+            "test": "Verificar frecuencia de publicación, variedad de contenido, horarios"
+          },
+          {
+            "id": "H4",
+            "name": "Coordinación deliberada",
+            "description": "Los actores coordinan deliberadamente para amplificar/atacar",
+            "likelihood": "media",
+            "test": "Verificar consistencia temporal, textual y cross-platform"
+          }
+        ],
+        "final_confidence": {
+          "final_score": 5.75,
+          "base_score": 20.75,
+          "signal_multiplier": 1.0,
+          "penalty": 15,
+          "classification": "UNLIKELY",
+          "confidence": "muy_baja"
+        }
+      },
+      {
+        "actor_a": "ACTOR_53776466e276",
+        "actor_a_name": "rogerio castro",
+        "actor_b": "ACTOR_e33edef58647",
+        "actor_b_name": "joaquín díaz mena",
+        "total_score": 20.75,
+        "raw_score": 22,
+        "max_possible": 106,
+        "signals": [
+          {
+            "signal": "temporal_sync",
+            "weight": 20,
+            "score": 0,
+            "sync_events": 0,
+            "window_minutes": 30
+          },
+          {
+            "signal": "text_similarity",
+            "weight": 20,
+            "score": 0,
+            "similar_pairs": 0,
+            "threshold": 0.7
+          },
+          {
+            "signal": "co_amplification",
+            "weight": 15,
+            "score": 10,
+            "overlap": 1,
+            "jaccard": 0.333
+          },
+          {
+            "signal": "cross_platform",
+            "weight": 15,
+            "score": 0,
+            "shared_platforms": [
+              "unknown"
+            ],
+            "cross_matches": 0
+          },
+          {
+            "signal": "media_reuse",
+            "weight": 15,
+            "score": 0,
+            "shared_media": 0
+          },
+          {
+            "signal": "operational_pattern",
+            "weight": 15,
+            "score": 12
+          },
+          {
+            "signal": "orthographic_consistency",
+            "weight": 6,
+            "score": 0,
+            "variants": {
+              "Memo Cortés": 4,
+              "Guillermo Cortés": 44,
+              "Guillermo Cortes": 4
+            }
+          }
+        ],
+        "classification": "low",
+        "gate_f": "PASS",
+        "active_signal_count": 2,
+        "active_signals": [
+          "co_amplification",
+          "operational_pattern"
+        ],
+        "hypotheses": [
+          {
+            "id": "H1",
+            "name": "Coincidencia temática",
+            "description": "Ambos actores reaccionan al mismo evento noticioso de forma independiente",
+            "likelihood": "alta",
+            "test": "Verificar si hay un evento noticioso en la misma ventana temporal"
+          },
+          {
+            "id": "H2",
+            "name": "Relación orgánica",
+            "description": "Los actores se conocen y comparten contenido naturalmente",
+            "likelihood": "media",
+            "test": "Verificar si hay interacciones previas no relacionadas con GC"
+          },
+          {
+            "id": "H3",
+            "name": "Automatización/bot",
+            "description": "Uno o ambos actores son bots que republican contenido automáticamente",
+            "likelihood": "baja",
+            "test": "Verificar frecuencia de publicación, variedad de contenido, horarios"
+          },
+          {
+            "id": "H4",
+            "name": "Coordinación deliberada",
+            "description": "Los actores coordinan deliberadamente para amplificar/atacar",
+            "likelihood": "media",
+            "test": "Verificar consistencia temporal, textual y cross-platform"
+          }
+        ],
+        "final_confidence": {
+          "final_score": 5.75,
+          "base_score": 20.75,
+          "signal_multiplier": 1.0,
+          "penalty": 15,
+          "classification": "UNLIKELY",
+          "confidence": "muy_baja"
+        }
+      }
+    ],
+    "rejected_clusters": [],
+    "summary": {
+      "total_analyzed": 15,
+      "passed_gate_f": 15,
+      "failed_gate_f": 0,
+      "confirmed_high": 1,
+      "probable": 6,
+      "possible": 1,
+      "unlikely": 7
+    }
+  },
+  "enrichment": {
+    "enriched": 140,
+    "embeddings_computed": 140,
+    "entities_extracted": 93
+  },
+  "timeline_events": [
+    {
+      "title": null,
+      "url": "https://x.com/Trasfondo_Oax/status/2023529146857763279",
+      "pub_date": "",
+      "platform": "twitter",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://x.com/conadeoficial/status/1934728595345428768",
+      "pub_date": "",
+      "platform": "twitter",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://x.com/SoldeYucatan/status/2032226959384523262",
+      "pub_date": "",
+      "platform": "twitter",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://x.com/for_ortega13/status/1673906413075329024",
+      "pub_date": "",
+      "platform": "twitter",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://x.com/munrratkd/status/1679890256001216523",
+      "pub_date": "",
+      "platform": "twitter",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://x.com/conadeoficial/status/1841918395979334006",
+      "pub_date": "",
+      "platform": "twitter",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://x.com/InspiracinDepo/status/1907531253827457338",
+      "pub_date": "",
+      "platform": "twitter",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://x.com/DiariodeYucatan/status/2008549947273052165",
+      "pub_date": "",
+      "platform": "twitter",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/uT5CfgRIeW/",
+      "pub_date": "2014-10-18T22:35:08.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/BME5dPJFSu5/",
+      "pub_date": "2016-10-27T18:32:00.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": "Por un crecimiento económico sostenido en Yucatán",
+      "url": "https://www.yucatanalinstante.com/por-un-crecimiento-economico-sostenido-en-yucatan/",
+      "pub_date": "2017-05-14",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": "Salario mínimo de $95 fortalecería economía de Yucatán",
+      "url": "https://reporteroshoy.mx/wp/salario-minimo-95-fortaleceria-la-economia.html",
+      "pub_date": "2017-10-25",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": "Rolando ha cumplido el 72% de sus 227 compromisos",
+      "url": "https://reporteroshoy.mx/wp/rolando-ha-cumplido-72-227-compromisos.html",
+      "pub_date": "2017-12-04",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": "Pfizer lanza su primera línea de condones en México",
+      "url": "https://www.forbes.com.mx/pfizer-lanza-su-primera-linea-de-condones-en-mexico/",
+      "pub_date": "2017-12-05",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": "Por fin, convertirán a \"La Plancha\" en parque de 10 hectáreas",
+      "url": "https://reporteroshoy.mx/wp/fin-convertiran-la-plancha-parque-10-hectareas.html",
+      "pub_date": "2018-02-08",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": "En marcha el Centro de Operaciones Ferroviarias de Yucatán",
+      "url": "https://reporteroshoy.mx/wp/en-marcha-el-centro-de-operaciones-ferroviarias-de-yucatan.html",
+      "pub_date": "2018-09-18",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": "Exigen al gobierno de Yucatán reactivación del proyecto de La Plancha",
+      "url": "https://sipse.com/novedades-yucatan/proyecto-plancha-merida-gobierno-yucatan-331101.html",
+      "pub_date": "2019-04-29",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/B7On93jBip-/",
+      "pub_date": "2020-01-12T17:47:06.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/B7PcipTBzI3/",
+      "pub_date": "2020-01-13T01:26:30.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/ChM_6rtsRnj/",
+      "pub_date": "2022-08-13T14:30:54.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": "“En Jalisco la responsabilidad siempre es ganar”, dice Carlos González",
+      "url": "https://www.milenio.com/deportes/mas-aficion/carlos-gonzalez-dice-que-viene-para-deporte-en-jalisco-en-2025",
+      "pub_date": "2025-01-04",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DE7zxpWJvSj/",
+      "pub_date": "2025-01-17T17:07:53.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": "Guillermo Cortés González asume cargo en CONADE",
+      "url": "https://ejemplo-diario-yucatan.com/nota-simulada-123",
+      "pub_date": "2025-02-15T10:30:00Z",
+      "platform": null,
+      "source": "Diario de Yucatán"
+    },
+    {
+      "title": "El deporte social y comunitario, un jugoso botín económico y político",
+      "url": "https://www.proceso.com.mx/deportes/2025/3/3/el-deporte-social-comunitario-un-jugoso-botin-economico-politico-346579.html",
+      "pub_date": "2025-03-03",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": "México paga millones por no usar su nombre en el Mundial de Clavados",
+      "url": "https://laverdadnoticias.com/uncategorized/mexico-paga-millones-por-no-usar-su-nombre-en-el-mundial-de-clavados",
+      "pub_date": "2025-03-27",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": "Cae un presunto responsable del asesinato de cinco policías estatales en Frontera Comalapa, Chiapas; despliegan más de mil elementos en la zona",
+      "url": "https://www.eluniversal.com.mx/estados/cae-un-presunto-responsable-del-asesinato-de-cinco-policias-estatales-en-frontera-comalapa-chiapas-despliegan-mas-de-mil-elementos-en-la-zona/",
+      "pub_date": "2025-06-03",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DK3Jg9WsCw6/",
+      "pub_date": "2025-06-14T00:50:00.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": "Yucatán reafirma liderazgo como promotor del deporte",
+      "url": "https://laverdadnoticias.com/ultimas-noticias/mexico/yucatan-reafirma-liderazgo-como-promotor-del-deporte",
+      "pub_date": "2025-06-15",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": "Yucatán reafirma liderazgo como promotor del deporte",
+      "url": "https://www.yucatanalinstante.com/yucatan-reafirma-liderazgo-como-promotor-del-deporte/",
+      "pub_date": "2025-06-16",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": "Gobierno del Estado y CONADE entregan el Premio Estatal del Deporte a los deportistas yucatecos más destacados",
+      "url": "https://www.yucatanalinstante.com/gobierno-del-estado-y-conade-entregan-el-premio-estatal-del-deporte-a-los-deportistas-yucatecos-mas-destacados/",
+      "pub_date": "2025-11-01",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": "Enfurecen a Rommel Pacheco preguntas sobre la protección a un funcionario corrupto en la Conade",
+      "url": "https://elchismografoenlared.com/2026/02/16/enfurecen-a-rommel-pacheco-preguntas-sobre-la-proteccion-a-un-funcionario-corrupto-en-la-conade/",
+      "pub_date": "2026-02-16",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVDPjaVju8s/",
+      "pub_date": "2026-02-22T06:47:36.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVJgC25DuVa/",
+      "pub_date": "2026-02-24T17:07:09.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVKUiCmEwbr/",
+      "pub_date": "2026-02-25T00:45:48.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVKkI0mDnXu/",
+      "pub_date": "2026-02-25T03:02:09.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVMvO8wDucf/",
+      "pub_date": "2026-02-25T23:17:56.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVPdWwWlhT6/",
+      "pub_date": "2026-02-27T00:39:06.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVRn3eSE9sa/",
+      "pub_date": "2026-02-27T20:49:31.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVRv-XRjKs1/",
+      "pub_date": "2026-02-27T22:00:16.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVTvEJrEW7o/",
+      "pub_date": "2026-02-28T16:30:48.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVT4gv-E3LR/",
+      "pub_date": "2026-02-28T17:53:22.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVT-m_AEfDw/",
+      "pub_date": "2026-02-28T18:46:56.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVUTkIcDwRU/",
+      "pub_date": "2026-02-28T21:49:45.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVWWxTmFdBG/",
+      "pub_date": "2026-03-01T16:56:14.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVghiiFDrfJ/",
+      "pub_date": "2026-03-05T15:42:48.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVgs44Hkc8b/",
+      "pub_date": "2026-03-05T17:23:16.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": "Trasciende a medios nacionales el escándalo Rommel Pacheco—Rogerio Castro y su operador incómodo Memo Cortés – El Chismografo de la red",
+      "url": "https://elchismografoenlared.com/2026/03/12/trasciende-a-medios-nacionales-el-escandalo-rommel-pacheco-rogerio-castro-y-su-operador-incomodo-memo-cortes/",
+      "pub_date": "2026-03-12",
+      "platform": null,
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVxJzGSDhYY/",
+      "pub_date": "2026-03-12T02:42:27.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVxLteMjixc/",
+      "pub_date": "2026-03-12T02:59:10.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVxYfGAjc0h/",
+      "pub_date": "2026-03-12T04:50:43.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVzA08Kk-7t/",
+      "pub_date": "2026-03-12T20:02:33.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVzbxTnDTu7/",
+      "pub_date": "2026-03-13T00:03:37.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DVz0pGPDEqi/",
+      "pub_date": "2026-03-13T03:35:14.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DV1VWcHEhNM/",
+      "pub_date": "2026-03-13T17:40:17.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DV5EE9tAB1j/",
+      "pub_date": "2026-03-15T04:26:33.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DV7M9G1jIvk/",
+      "pub_date": "2026-03-16T00:22:59.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DV86n_OkkYu/",
+      "pub_date": "2026-03-16T16:20:41.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DV8_XZfAV7r/",
+      "pub_date": "2026-03-16T17:02:06.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWJsKwxjRDc/",
+      "pub_date": "2026-03-21T15:25:25.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWJsRyTjUHI/",
+      "pub_date": "2026-03-21T15:25:26.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWTEWeADtyK/",
+      "pub_date": "2026-03-25T06:49:01.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWUP_rIEW98/",
+      "pub_date": "2026-03-25T17:53:11.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWUQXhqkatg/",
+      "pub_date": "2026-03-25T17:53:12.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWURbifjqT0/",
+      "pub_date": "2026-03-25T18:02:53.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWURefGjoOD/",
+      "pub_date": "2026-03-25T18:02:53.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWUS6d2kdM1/",
+      "pub_date": "2026-03-25T18:15:27.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWUf-IDkX_k/",
+      "pub_date": "2026-03-25T20:09:40.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWUgSQugmlL/",
+      "pub_date": "2026-03-25T20:12:23.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWUmkdzjIiV/",
+      "pub_date": "2026-03-25T21:07:29.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWUnwRWCZqG/",
+      "pub_date": "2026-03-25T21:17:53.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWUoKa6lOb5/",
+      "pub_date": "2026-03-25T21:21:07.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWUp0kmEoIU/",
+      "pub_date": "2026-03-25T21:35:39.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWUquKzmBOb/",
+      "pub_date": "2026-03-25T21:43:29.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWU51kyERgZ/",
+      "pub_date": "2026-03-26T00:06:00.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWU7CJPkUL2/",
+      "pub_date": "2026-03-26T00:06:01.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWU_VkzjWH9/",
+      "pub_date": "2026-03-26T00:49:15.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWU__BFmiGj/",
+      "pub_date": "2026-03-26T00:49:17.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWVA4UrDjq7/",
+      "pub_date": "2026-03-26T01:01:37.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWVGMWJDYkh/",
+      "pub_date": "2026-03-26T01:47:37.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWVGqd0DUsf/",
+      "pub_date": "2026-03-26T01:47:39.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWVLpbJjGqB/",
+      "pub_date": "2026-03-26T02:34:03.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWVL-d8DPDg/",
+      "pub_date": "2026-03-26T02:34:04.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWVWDa_jjLq/",
+      "pub_date": "2026-03-26T04:02:07.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWVYiKFjJ7I/",
+      "pub_date": "2026-03-26T04:45:55.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWVbEU-lmKI/",
+      "pub_date": "2026-03-26T04:45:56.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWVbyETjfto/",
+      "pub_date": "2026-03-26T04:53:12.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWVb57dFg80/",
+      "pub_date": "2026-03-26T04:53:15.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWVfC4RjteX/",
+      "pub_date": "2026-03-26T05:20:42.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWVmTIUDrx1/",
+      "pub_date": "2026-03-26T06:24:08.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWWTzOKgb6-/",
+      "pub_date": "2026-03-26T13:01:41.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWWgsYiFOZP/",
+      "pub_date": "2026-03-26T14:54:20.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWWhdh3DYbR/",
+      "pub_date": "2026-03-26T15:01:03.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWWl72Fjrmo/",
+      "pub_date": "2026-03-26T15:41:56.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWWnMOpjnGo/",
+      "pub_date": "2026-03-26T15:52:32.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWWoBCGjunL/",
+      "pub_date": "2026-03-26T15:59:34.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWWoZL3jhri/",
+      "pub_date": "2026-03-26T16:01:37.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWW1hYfjxQ3/",
+      "pub_date": "2026-03-26T17:57:20.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWW1o4yFBmP/",
+      "pub_date": "2026-03-26T17:57:22.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWW2C7gCTV9/",
+      "pub_date": "2026-03-26T18:00:56.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWW5gXLlJnI/",
+      "pub_date": "2026-03-26T18:31:09.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWW-iBNCtYg/",
+      "pub_date": "2026-03-26T19:15:59.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWW_EQBmGRr/",
+      "pub_date": "2026-03-26T19:19:44.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWXEeHFErpe/",
+      "pub_date": "2026-03-26T20:06:58.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWXFllVEqHc/",
+      "pub_date": "2026-03-26T20:16:44.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWXKIApD4gt/",
+      "pub_date": "2026-03-26T21:02:38.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWXK2IVD-r5/",
+      "pub_date": "2026-03-26T21:02:40.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWXPrqvkoVf/",
+      "pub_date": "2026-03-26T21:49:26.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWXQMueEkDa/",
+      "pub_date": "2026-03-26T21:49:27.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWXU3OtEfqB/",
+      "pub_date": "2026-03-26T22:30:13.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWX3hKHjXZA/",
+      "pub_date": "2026-03-27T03:33:03.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWX4RsxDZyU/",
+      "pub_date": "2026-03-27T03:39:41.000Z",
+      "platform": "instagram",
+      "source": null
+    },
+    {
+      "title": null,
+      "url": "https://www.instagram.com/p/DWYBTf2jUOz/",
+      "pub_date": "2026-03-27T04:58:34.000Z",
+      "platform": "instagram",
+      "source": null
+    }
+  ],
+  "pipeline_jobs": []
+}
