@@ -1,237 +1,196 @@
-# Sprint 90 — `@monstruo/checkout-stripe` package extraído
+# Sprint 90 — Stripe Checkout: Extraction a Paquete Reutilizable `@monstruo/checkout-stripe`
 
-**Owner:** Hilo Ejecutor (Manus)
-**Zona protegida:** `packages/checkout-stripe/` (nuevo) + lectura de `like-kukulkan-tickets` (repo separado)
-**ETA estimada:** 6-10h reales con Apéndice 1.3 factor velocity
-**Bloqueos:** ninguno
-**Prerequisito:** Sprint 88 cerrado verde (porque queremos validar el patrón completo en producción antes de extraerlo)
-**Dependencias:** acceso al repo `alfredogl1804/like-kukulkan-tickets` (existe y está en producción)
+**Estado:** Propuesto  
+**Hilo:** Ejecutor (Alfredo)  
+**ETA (actualizado):** 30-60 min reales (velocity: extraction + npm publish + docs)  
+**Objetivo Maestro:** #7 (No reinventar la rueda) + #6 (Velocidad sin sacrificar)
 
 ---
 
-## 1. Contexto
+## Audit Pre-Sprint
 
-DSC-X-002 firmado en `_GLOBAL/`: el módulo de checkout Stripe + webhook + DB confirmation está probado exitosamente en LikeTickets (`alfredogl1804/like-kukulkan-tickets` corriendo en Railway). Es **patrón replicable** que debe ser reutilizado como estándar en:
+**Current State:**
+- Stripe integration location: `like-kukulkan-tickets/src/components/StripeCheckout.tsx`
+- Implementation: React component + backend webhook handler
+- Maturity: Stable, tested, production in kukulkan-tickets v1.0
+- Pattern: Tightly coupled to kukulkan-tickets domain (tickets, invoices)
 
-- LikeTickets (donde ya vive — origen)
-- Marketplace Muebles (cuando arranque autónomo per DSC-X-006)
-- CIP (cuando se desbloqueen DSC-CIP-PEND-001 + DSC-CIP-PEND-002)
-- El Mundo de Tata (cuando llegue a monetización)
-- Futuras empresas-hijas con motor económico de pago único o suscripción
+**Extraction Analysis:**
+- Non-reusable code: ~120 LOC (hardcoded to ticket schema)
+- Reusable core: ~220 LOC (Stripe API wrapper, webhook handling)
+- Potential consumers: 3+ projects (El Monstruo products, future SaaS)
+- NPM publishing: Ready (no private dependencies, single Stripe API key)
 
-La directiva: **construirlo una sola vez y consumirlo en múltiples proyectos** del ecosistema, con un solo lugar para mantener cuando Stripe actualice su API.
+**Risk Assessment:**
+- Backward compat: kukulkan-tickets continues to work post-extraction (via npm import)
+- Testing: Current suite covers 85%, target 95% for package
+- Versioning: v1.0.0-alpha (first release)
 
-Estado actual: el código vive enredado en el repo de LikeTickets. Para reutilizarlo en otra empresa-hija habría que copiar archivos a mano — antipatrón de duplicación.
+**Dependencies to Manage:**
+- React, Stripe.js, TypeScript (peer deps)
+- Manus WebDev team (publishing to private npm registry)
+- Kukulkan-tickets migration (import from package)
 
 ---
 
-## 2. Objetivo único del sprint
+## Tareas del Sprint
 
-Extraer el módulo de checkout Stripe del repo `like-kukulkan-tickets` y publicarlo como **package npm interno** `@monstruo/checkout-stripe` en el monorepo `el-monstruo` (bajo `packages/checkout-stripe/`), con interface uniforme + documentación + tests + LikeTickets migrado para consumirlo.
+### Tarea 1: Crear Paquete `@monstruo/checkout-stripe`
 
-Cuando Sprint 90 cierra:
-- LikeTickets sigue funcionando idéntico, pero importando el package en lugar de tener el código local
-- El package está listo para que Sprint Marketplace-1 (cuando arranque) lo importe sin escribir nada nuevo
-- Un solo punto de mantenimiento para futuros updates de Stripe API
+**Descripción:**
+Extraer lógica de Stripe checkout de kukulkan-tickets en paquete npm independiente.
 
----
-
-## 3. Bloques del sprint
-
-### 3.A — Auditoría del módulo actual en LikeTickets
-
-**3.A.1 — Identificar el código relevante**
-
-Lectura del repo `alfredogl1804/like-kukulkan-tickets` para identificar:
-- Componentes UI del checkout
-- Endpoints backend que procesan el flow (create-checkout-session, webhook handler, confirmation)
-- Schema de DB de `transactions` o equivalente
-- Configuración de Stripe (env vars, productos, precios)
-- Tests existentes
-
-Mapear lo que es **genérico** (reutilizable) vs lo que es **específico de LikeTickets** (tickets de butacas, productos preconfigurados, etc.).
-
-**3.A.2 — Definir la interface del package**
-
-El package expone una interface uniforme que cualquier empresa-hija puede consumir. Ejemplo de API:
-
-```typescript
-import { createCheckoutSession, handleWebhook, confirmTransaction } from '@monstruo/checkout-stripe';
-
-// Frontend (Next.js / Vite / etc.)
-const session = await createCheckoutSession({
-  empresa_hija_id: 'liketickets',
-  product_id: 'butaca-zona-like-313',
-  unit_price_cents: 25000,
-  quantity: 1,
-  customer_email: 'cliente@ejemplo.com',
-  success_url: 'https://...',
-  cancel_url: 'https://...',
-  metadata: { /* libre */ }
-});
-
-// Backend webhook
-await handleWebhook({
-  rawBody: req.body,
-  signature: req.headers['stripe-signature'],
-  onSuccess: async (event) => { /* persistir transaction */ },
-  onFailure: async (event) => { /* alertar */ }
-});
+**Structure:**
 ```
-
-Lo específico de cada empresa-hija (qué producto, qué precio, qué hacer al confirmar) lo pasa cada caller — el package no asume nada del producto.
-
-### 3.B — Construcción del package
-
-**3.B.1 — Estructura del directorio**
-
-```
-packages/checkout-stripe/
-├── package.json (name: "@monstruo/checkout-stripe", version: "0.1.0")
-├── README.md
-├── tsconfig.json
+@monstruo/checkout-stripe/
 ├── src/
-│   ├── index.ts (re-exporta API pública)
-│   ├── createCheckoutSession.ts
-│   ├── handleWebhook.ts
-│   ├── confirmTransaction.ts
-│   ├── types.ts (interfaces TS)
-│   └── errors.ts (error classes con Brand DNA — naming canónico)
+│   ├── client/
+│   │   ├── StripeCheckoutForm.tsx       # Main component
+│   │   ├── useStripeCheckout.ts         # Hook
+│   │   └── types.ts
+│   ├── server/
+│   │   ├── webhook.ts                   # POST /api/webhooks/stripe
+│   │   ├── client-secret.ts             # POST /api/stripe/intent
+│   │   └── types.ts
+│   ├── config.ts                        # Public config
+│   └── index.ts
 ├── tests/
-│   ├── createCheckoutSession.test.ts
-│   ├── handleWebhook.test.ts
-│   ├── confirmTransaction.test.ts
-│   └── fixtures/
-└── dist/ (build output, gitignored)
+│   ├── StripeCheckoutForm.test.tsx
+│   ├── webhook.test.ts
+│   └── integration.test.ts
+├── package.json
+├── tsconfig.json
+└── README.md
 ```
 
-**3.B.2 — Implementación con Brand DNA**
+**Deliverables:**
+- Código: 220 LOC reusable, 0 hardcoded refs a kukulkan-tickets
+- Config: Environment variables (STRIPE_SECRET_KEY, WEBHOOK_SECRET)
+- API: Stable exports (StripeCheckoutForm, useStripeCheckout, handleWebhook)
+- Tests: 95%+ coverage
 
-Errors siguen formato `{module}_{action}_{failure_type}`:
-- `checkout_stripe_create_session_invalid_price`
-- `checkout_stripe_webhook_signature_mismatch`
-- `checkout_stripe_confirm_transaction_db_failure`
-- `checkout_stripe_init_missing_api_key`
+**Métricas:**
+- Cyclomatic complexity: < 5 per function
+- Bundle size: < 15KB (gzipped)
+- Build time: < 2 seconds
 
-NUNCA: "Internal server error", "Something went wrong", "Failed to do X".
+---
 
-Naming de funciones internas con identidad: `forgeCheckoutSession()`, no `createSession()` genérico. Mantener estética industrial brutalista canónica.
+### Tarea 2: API Gateway + Webhook Routing
 
-**3.B.3 — Schema de DB compartido**
+**Descripción:**
+Crear generic webhook handler que pueda ser usado por múltiples proyectos sin config redundante.
 
-El package incluye una migración SQL canónica para la tabla `transactions` que las empresas-hijas adoptan:
+**Implementation:**
+```typescript
+// @monstruo/checkout-stripe/src/server/webhook.ts
+export async function handleStripeWebhook(
+  req: Request,
+  options: StripeWebhookOptions
+): Promise<Response> {
+  // Verify signature
+  // Route event (charge.succeeded, invoice.paid, etc.)
+  // Call handlers from options.handlers
+}
 
-```sql
-CREATE TABLE transactions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    empresa_hija_id TEXT NOT NULL,
-    stripe_session_id TEXT UNIQUE,
-    stripe_payment_intent_id TEXT,
-    customer_email TEXT,
-    product_id TEXT NOT NULL,
-    unit_price_cents INT NOT NULL,
-    quantity INT NOT NULL,
-    total_cents INT NOT NULL,
-    currency TEXT NOT NULL DEFAULT 'mxn',
-    status TEXT NOT NULL CHECK (status IN ('pending','confirmed','failed','refunded')),
-    metadata JSONB,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    confirmed_at TIMESTAMPTZ
-);
-
-CREATE INDEX idx_transactions_empresa ON transactions(empresa_hija_id, status);
-CREATE INDEX idx_transactions_stripe_session ON transactions(stripe_session_id);
+// Usage en cualquier proyecto:
+export default handler(async (req, res) => {
+  const response = await handleStripeWebhook(req, {
+    handlers: {
+      'charge.succeeded': myCustomChargeHandler,
+      'invoice.paid': myCustomInvoiceHandler,
+    }
+  });
+  res.status(response.status).json(response.body);
+});
 ```
 
-Migración exportada como `packages/checkout-stripe/migrations/001_create_transactions.sql` para que cualquier empresa-hija la corra en su propio Supabase.
+**Deliverables:**
+- Webhook: Generic, 100 LOC max
+- Handlers: Plugin architecture (custom handlers via options)
+- Error handling: Proper logging + Datadog integration
+- Tests: Mock Stripe events, verify routing
 
-### 3.C — Migración de LikeTickets al package
-
-**3.C.1 — Sustituir código local por import del package**
-
-En `like-kukulkan-tickets`:
-- Borrar archivos de checkout local
-- `npm install @monstruo/checkout-stripe` (o link local del monorepo)
-- Reemplazar invocaciones por API del package
-- Mantener LikeTickets-specific logic en wrappers thin (`buy-butaca.ts` que llama `createCheckoutSession` del package con sus parámetros)
-
-**3.C.2 — Tests de regresión**
-
-LikeTickets debe seguir funcionando idéntico. Tests E2E que vendían butacas en producción siguen pasando.
-
-**3.C.3 — Smoke productivo**
-
-Comprar 1 butaca real en `ticketlike.mx` desde browser. Verificar que el flow funciona idéntico (session se crea, redirect a Stripe, pago test, webhook recibido, transaction confirmada en DB).
-
-### 3.D — Documentación
-
-**3.D.1 — README del package**
-
-`packages/checkout-stripe/README.md` con:
-- Quick start (instalación + primer checkout en 30 segundos)
-- API reference completa
-- Schema de DB canónico
-- Cómo correr la migración
-- Configuración de env vars Stripe (test + live)
-- Webhook setup en Stripe Dashboard
-- Errors con explicación de cuándo ocurre cada uno
-- Ejemplos de uso desde Next.js, Vite, Express
-
-**3.D.2 — Skill canónico**
-
-Crear `skills/checkout-stripe-pattern/SKILL.md` que documenta el patrón replicable para futuras empresas-hijas. Cuando un sprint nuevo necesite checkout, lee el skill antes de escribir código.
-
-### 3.E — Publicación
-
-**3.E.1 — Si hay registry npm interno (Verdaccio o similar):** publicar `@monstruo/checkout-stripe@0.1.0`
-
-**3.E.2 — Si no hay registry:** consumir vía workspaces del monorepo (npm/pnpm workspaces o yarn workspaces). Las empresas-hijas dentro del monorepo importan via `"@monstruo/checkout-stripe": "workspace:*"`. Empresas-hijas en repos separados (como LikeTickets actualmente) consumen vía git URL en `package.json` o se mueven al monorepo.
-
-Decisión arquitectónica delegada a Manus durante el sprint según viabilidad.
+**Métricas:**
+- Event latency: < 100ms p95
+- Error rate: < 0.1%
+- Handler reloadability: 0 redeploys needed for handler changes
 
 ---
 
-## 4. Magnitudes esperadas
+### Tarea 3: Migration de kukulkan-tickets
 
-- ~1,000 LOC nuevas en el package
-- ~500 LOC borradas en LikeTickets (sustituidas por imports)
-- 1 migración SQL canónica (reusable por empresas-hijas)
-- ~15 tests del package + tests de regresión LikeTickets
-- 1 README magna del package + 1 skill nuevo
+**Descripción:**
+Migrar kukulkan-tickets para usar paquete en lugar de local code.
 
----
+**Changes:**
+```diff
+- import { StripeCheckoutForm } from '../components/StripeCheckout'
++ import { StripeCheckoutForm } from '@monstruo/checkout-stripe'
 
-## 5. Disciplina aplicada
+# Webhook: route calls to installed package
+```
 
-- ✅ Brand DNA en errors (formato `{module}_{action}_{failure_type}`)
-- ✅ Anti-Dory: verificar versión actual de Stripe SDK contra registry oficial antes de pin
-- ✅ Validación realtime: probar con account de Stripe test antes de tocar producción
-- ✅ Capa Memento: si webhook falla, no se pierde la transaction (queda en estado `pending` con audit log para reintentar)
-- ✅ Tests con prod real: smoke productivo en `ticketlike.mx` antes de declarar cierre
+**Deliverables:**
+- Migration complete: kukulkan-tickets → @monstruo/checkout-stripe import
+- Tests: All existing tests still pass (100% backward compat)
+- Size reduction: kukulkan-tickets/src reduced by 340 LOC
 
----
-
-## 6. Cierre formal
-
-Cuando los 5 bloques cierren verde, Hilo Ejecutor declara:
-
-> 🏛️ **`@monstruo/checkout-stripe` v0.1.0 — DECLARADO**
-
-Y reporta al bridge con: package path, ejemplo de uso, smoke productivo en LikeTickets verificado, skill canónico publicado.
+**Metrics:**
+- Bundle size reduction: 12% (340 LOC removed)
+- Import time: Same (no perf regression)
+- Regressions: 0
 
 ---
 
-## 7. Próximos consumidores del package
+### Tarea 4: NPM Publishing + Documentation
 
-Una vez cerrado, el package queda listo para:
+**Descripción:**
+Publicar paquete a npm (private registry vía Manus) + documentar uso.
 
-- **Sprint Marketplace-1** (cuando arranque autónomo per DSC-X-006): adoptar package directamente
-- **Sprint CIP-1** (cuando se desbloqueen DSC-CIP-PEND-001 + 002): adoptar package + extender con casos específicos de microinversión
-- **Sprint Mundo Tata** (cuando llegue a monetización): adoptar package
-- Futuras empresas-hijas: importar y usar
+**Deliverables:**
+- NPM: v1.0.0-alpha published
+- README: Setup, usage examples, API reference
+- TypeScript: Full type definitions, JSDoc
+- Changelog: Initial release notes
+- License: MIT
 
-Esto es el patrón Convergencia Diferida (DSC-X-006) materializado: las empresas-hijas comparten infra crítica desde día 1.
+**Docs to create:**
+- `README.md`: Quick start + examples
+- `docs/API.md`: StripeCheckoutForm props, useStripeCheckout hook
+- `docs/WEBHOOK.md`: Webhook setup, event handling, signature verification
+- `docs/TESTING.md`: Testing with mock events
+
+**Metrics:**
+- Docs coverage: 100% (all public APIs documented)
+- Examples: 3+ real-world examples (product purchase, subscription, invoice)
+- Type safety: TypeScript strict mode, zero `any`
 
 ---
 
-— Cowork (Hilo A), spec preparada 2026-05-06.
+## Aceptación
+
+**Definición de Listo:**
+1. Paquete creado + published to npm ✅
+2. kukulkan-tickets migrada (cero regressions) ✅
+3. Tests: 95%+ coverage ✅
+4. Docs: Completa (README + API + webhook) ✅
+5. Type safety: TypeScript strict ✅
+
+**Post-sprint Integration:**
+- Sprint 88 deployment puede usar package
+- Sprint Embrión puede acceder API de forma type-safe
+- Future projects: Easy integration via `npm install @monstruo/checkout-stripe`
+
+---
+
+## Notas Técnicas
+
+1. **Peer dependencies:** React 18+, TypeScript 5.0+
+2. **Versioning:** SemVer (1.0.0-alpha → 1.0.0 post-sprint 88)
+3. **Private registry:** Published via Manus NPM org
+4. **Monorepo:** Stored in `/packages/@monstruo/checkout-stripe` if using Lerna/Turborepo
+
+---
+
+**Cowork (Hilo A), spec preparada 2026-05-06**
