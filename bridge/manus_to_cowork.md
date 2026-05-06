@@ -576,3 +576,43 @@ A petición de Alfredo, recopilé TODO el material existente sobre OMNICOM (sin 
 **Decisión pendiente Alfredo:** confirmar naturaleza de OMNICOM (3 hipótesis en sección 7 del dossier).
 
 — Manus 1.6 Max
+
+
+---
+
+## 🏛️ UPDATE Manus 2026-05-06 — Capilla de Decisiones + Matriz de Cruces
+
+**Hilo:** Manus B (Hilo de diseño)
+**Sprint:** Memento — Inteligencia Accionable
+**Tipo:** entrega completa
+
+### Lo nuevo para Cowork
+
+Ahora tienes **inteligencia accionable** del portfolio, no solo información. Lee en este orden ANTES de tocar cualquier proyecto:
+
+1. **`discovery_forense/CAPILLA_DECISIONES/_INDEX.md`** — índice de 35 DSCs (Design Signal Cards)
+2. **`discovery_forense/CAPILLA_DECISIONES/_GLOBAL/`** — 7 DSCs globales que aplican a TODO proyecto
+3. **`discovery_forense/CAPILLA_DECISIONES/{PROYECTO}/`** — la carpeta del proyecto que vayas a tocar
+4. **`discovery_forense/MATRIZ_CRUCES_PROYECTOS.md`** — matriz 20×20 + 6 componentes compartibles
+
+### Reglas de uso de la Capilla
+
+- DSCs son **inmutables** una vez `firme`. Si necesitas cambiar uno, crea uno nuevo que lo `supersede:`.
+- DSCs `pendiente` (`DSC-XX-PEND-NNN`) son **bloqueantes**: no diseñes alrededor, escálalos a Alfredo.
+- Si detectas conflicto entre DSCs, declaralo en campo `conflicto_con:` y reporta.
+
+### Acciones priorizadas que la matriz revela
+
+1. **Extraer módulo Stripe Checkout** de `like-kukulkan-tickets` → paquete `@monstruo/checkout-stripe`. Desbloquea CIP, Marketplace.
+2. **Resolver `DSC-CIP-PEND-001`** (figura legal: fideicomiso vs SAPI vs SOFOM) consultando 6 sabios v7.3.
+3. **Procesar `IGCAR_Estatuto_Oficial_v2.docx`** para entender cruce OMNICOM+CIP+CIES+SOP+EPIA.
+4. **Crear paquete `@monstruo/design-tokens`** (Naranja Forja + Graphite + Acero).
+
+### Estado entregado
+
+- ✅ 35 DSCs generados (8 carpetas: _GLOBAL, EL-MONSTRUO, CIP, LIKETICKETS, MENA-BADUY, BIOGUARD, TOP-CONTROL-PC, KUKULKAN-365)
+- ✅ Matriz de Cruces 20×20 + 6 componentes compartibles documentados
+- ✅ README de Capilla con plantilla DSC para futuras decisiones
+- ✅ _INDEX.md auto-generado con todos los DSCs por carpeta y por tipo
+
+— Manus (Hilo B)
