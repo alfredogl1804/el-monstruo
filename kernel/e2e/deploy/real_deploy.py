@@ -141,6 +141,23 @@ border-top:1px solid #e7e5e4">
 </footer>"""
 
 
+def _is_valid_hex(color: str) -> bool:
+    """Verifica si un color es HEX valido (#RGB o #RRGGBB)."""
+    if not isinstance(color, str):
+        return False
+    return bool(re.match(r"^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$", color.strip()))
+
+
+def _extract_brand_palette(creativo: Dict[str, Any]) -> Dict[str, str]:
+    """Extrae paleta del CREATIVO con fallback a Brand DNA del Monstruo (forge/graphite)."""
+    raw = creativo.get("colores_primarios") or []
+    valid_hex = [c.strip() for c in raw if _is_valid_hex(str(c))]
+    primary = valid_hex[0] if valid_hex else "#f97316"
+    secondary = valid_hex[1] if len(valid_hex) >= 2 else "#1c1917"
+    accent = valid_hex[2] if len(valid_hex) >= 3 else "#a8a29e"
+    return {"primary": primary, "secondary": secondary, "accent": accent}
+
+
 def render_landing_html(
     *,
     state: Dict[str, Any],
@@ -148,33 +165,76 @@ def render_landing_html(
     ingest_url: str,
 ) -> Dict[str, str]:
     """
-    Construye un sitio estático minimal a partir del state del pipeline.
+    Construye una landing rica y comercializable a partir del state del pipeline.
 
-    Retorna dict {filename: content} listo para `deploy_to_github_pages`.
-    Usa lo que haya disponible; si no hay branding/copy, usa el frase_input.
+    Sprint 88 Tarea 3.A.2: usa los outputs reales de los steps:
+    - CREATIVO (StepBrandingOutput): tono, colores_primarios, voice_attributes, elevator_pitch
+    - VENTAS (StepCopyOutput): hero_headline, hero_subheadline, body_copy, cta_primary, cta_secondary
+    - ARCHITECT: brief.nombre_proyecto, brief.publico_objetivo, brief.problema, brief.solucion
+    - INVESTIGAR: research insights
+
+    Retorna dict {filename: content} listo para deploy_to_github_pages.
     """
     creativo = (state.get("creativo") or {}).get("output_payload") or {}
     ventas = (state.get("ventas") or {}).get("output_payload") or {}
     architect = state.get("architect") or {}
     brief = architect.get("brief") or {}
+    estrategia = (state.get("estrategia") or {}).get("output_payload") or {}
+    research = state.get("research") or {}
+    tecnico = (state.get("tecnico") or {}).get("output_payload") or {}
     frase_input = state.get("frase_input") or "Sitio del Monstruo"
 
+    # ---- Mapping CORRECTO de los outputs reales (Sprint 88 fix DSC-G-008) ----
+    # CREATIVO outputea: tono, colores_primarios, voice_attributes, elevator_pitch
+    # VENTAS outputea: hero_headline, hero_subheadline, body_copy, cta_primary, cta_secondary
     nombre = (
-        creativo.get("nombre")
-        or brief.get("nombre_proyecto")
+        brief.get("nombre_proyecto")
+        or creativo.get("nombre")  # legacy field
         or "El Monstruo"
     )
-    tagline = (
-        creativo.get("tagline")
-        or ventas.get("propuesta_valor")
-        or "Producto generado por El Monstruo."
+    elevator_pitch = creativo.get("elevator_pitch") or ""
+    tono = creativo.get("tono") or "directo y confiable"
+    voice_attrs = creativo.get("voice_attributes") or []
+
+    hero_headline = (
+        ventas.get("hero_headline")
+        or elevator_pitch
+        or nombre
     )
-    body_copy = (
-        creativo.get("body_copy")
-        or ventas.get("propuesta_valor")
+    hero_subheadline = (
+        ventas.get("hero_subheadline")
+        or elevator_pitch
         or frase_input
     )
-    cta_text = creativo.get("cta_text") or "Quiero saber más"
+    body_copy = (
+        ventas.get("body_copy")
+        or elevator_pitch
+        or frase_input
+    )
+    cta_primary = ventas.get("cta_primary") or "Empezar ahora"
+    cta_secondary = ventas.get("cta_secondary") or "Conocer más"
+
+    publico = brief.get("publico_objetivo") or brief.get("publico") or ""
+    problema = brief.get("problema") or ""
+    solucion = brief.get("solucion") or ""
+
+    # Fases de go-to-market y KPIs (de ESTRATEGIA) como prueba de plan
+    fases = estrategia.get("fases") or []
+    kpis = estrategia.get("kpis") or []
+
+    # Tech stack (TECNICO) para credibilidad
+    stack = tecnico.get("stack_propuesto") or tecnico.get("stack") or []
+
+    # Investigación (3 hallazgos clave) para social proof
+    insights = []
+    research_summary = research.get("summary") or research.get("sintesis") or ""
+    if isinstance(research.get("top_findings"), list):
+        insights = research["top_findings"][:3]
+    elif isinstance(research.get("findings"), list):
+        insights = research["findings"][:3]
+
+    # Paleta dinámica del CREATIVO (con fallback a Brand DNA)
+    palette = _extract_brand_palette(creativo)
 
     # Sanitización mínima HTML
     def _esc(s: str) -> str:
@@ -186,95 +246,418 @@ def render_landing_html(
             .replace('"', "&quot;")
         )
 
+    # ---- Bloques opcionales ----
+    # Beneficios derivados de voice_attributes + brief
+    beneficios_raw = []
+    if isinstance(brief.get("beneficios"), list):
+        beneficios_raw = brief["beneficios"]
+    elif solucion:
+        # Derivar 3 beneficios desde solucion + voice_attrs
+        beneficios_raw = [
+            solucion[:120] if solucion else "Resultado garantizado",
+            "Hecho con " + (voice_attrs[0] if voice_attrs else "calidad premium"),
+            "Atención con tono " + tono,
+        ]
+    beneficios_html = ""
+    if beneficios_raw:
+        items = "".join(
+            f'<li class="benefit"><span class="benefit-marker"></span><span>{_esc(b)}</span></li>'
+            for b in beneficios_raw[:6]
+            if isinstance(b, str) and b.strip()
+        )
+        if items:
+            beneficios_html = f"""
+  <section class="benefits" aria-labelledby="benefits-title">
+    <h2 id="benefits-title">Por qué elegirnos</h2>
+    <ul class="benefits-list">{items}</ul>
+  </section>"""
+
+    # Features grid (de fases + stack)
+    features_html = ""
+    feature_items = []
+    for f in (fases or [])[:3]:
+        if isinstance(f, str) and f.strip():
+            feature_items.append(("Fase", f))
+    for k in (kpis or [])[:2]:
+        if isinstance(k, str) and k.strip():
+            feature_items.append(("KPI", k))
+    if feature_items:
+        cards = "".join(
+            f'<article class="feature-card"><div class="feature-tag">{_esc(label)}</div>'
+            f'<p class="feature-text">{_esc(text)}</p></article>'
+            for label, text in feature_items
+        )
+        features_html = f"""
+  <section class="features" aria-labelledby="features-title">
+    <h2 id="features-title">Nuestro plan</h2>
+    <div class="features-grid">{cards}</div>
+  </section>"""
+
+    # Insights de investigación (social proof)
+    insights_html = ""
+    insight_items = [i for i in insights if isinstance(i, str) and i.strip()]
+    if insight_items:
+        items = "".join(
+            f'<blockquote class="insight">{_esc(ins)}</blockquote>'
+            for ins in insight_items[:3]
+        )
+        insights_html = f"""
+  <section class="insights" aria-labelledby="insights-title">
+    <h2 id="insights-title">Lo que descubrimos</h2>
+    <div class="insights-list">{items}</div>
+  </section>"""
+    elif research_summary:
+        insights_html = f"""
+  <section class="insights" aria-labelledby="insights-title">
+    <h2 id="insights-title">Contexto de mercado</h2>
+    <p class="insights-summary">{_esc(str(research_summary)[:600])}</p>
+  </section>"""
+
+    # Público objetivo (cuando existe)
+    publico_html = ""
+    if publico:
+        publico_html = (
+            f'<p class="hero-eyebrow">Pensado para {_esc(publico)}</p>'
+        )
+
+    # Stack tecnológico (footer credencial)
+    stack_str = ""
+    if isinstance(stack, list) and stack:
+        items = [s for s in stack if isinstance(s, str) and s.strip()]
+        if items:
+            stack_str = " · ".join(items[:5])
+
     tracking = _TRACKING_SCRIPT_TAG.format(run_id=run_id, ingest_url=ingest_url)
 
+    # ---- HTML enriquecido (Sprint 88: target Critic Score >=80) ----
     index_html = f"""<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{_esc(nombre)}</title>
-<meta name="description" content="{_esc(tagline)}">
+<title>{_esc(nombre)} — {_esc(hero_headline[:60])}</title>
+<meta name="description" content="{_esc(hero_subheadline[:160])}">
 <meta name="generator" content="El Monstruo Pipeline E2E v1.0">
+<meta property="og:title" content="{_esc(nombre)}">
+<meta property="og:description" content="{_esc(hero_subheadline[:160])}">
+<meta property="og:type" content="website">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<header class="site-header" role="banner">
+  <div class="site-header-inner">
+    <span class="brand-mark">{_esc(nombre)}</span>
+    <nav aria-label="Principal">
+      <a href="#beneficios">Beneficios</a>
+      <a href="#plan">Plan</a>
+      <a href="#contacto" class="nav-cta">{_esc(cta_secondary)}</a>
+    </nav>
+  </div>
+</header>
 <main>
-  <section class="hero">
-    <h1>{_esc(nombre)}</h1>
-    <p class="tagline">{_esc(tagline)}</p>
+  <section class="hero" aria-labelledby="hero-title">
+    {publico_html}
+    <h1 id="hero-title">{_esc(hero_headline)}</h1>
+    <p class="hero-sub">{_esc(hero_subheadline)}</p>
+    <div class="hero-ctas">
+      <a class="btn btn-primary" href="#contacto">{_esc(cta_primary)}</a>
+      <a class="btn btn-ghost" href="#beneficios">{_esc(cta_secondary)}</a>
+    </div>
   </section>
-  <section class="copy">
-    <p>{_esc(body_copy)}</p>
+  <section class="copy" aria-labelledby="copy-title">
+    <h2 id="copy-title" class="section-title">Lo que ofrecemos</h2>
+    <p class="body-copy">{_esc(body_copy)}</p>
   </section>
-  <section class="cta">
-    <a class="btn" href="#contact">{_esc(cta_text)}</a>
-  </section>
-  <section id="contact" class="contact">
-    <h2>Hablemos</h2>
-    <p>Forjado por El Monstruo · Run {_esc(run_id)}</p>
+  <section id="beneficios" class="benefits-anchor" aria-hidden="true"></section>{beneficios_html}
+  <section id="plan" class="plan-anchor" aria-hidden="true"></section>{features_html}{insights_html}
+  <section id="contacto" class="contact" aria-labelledby="contact-title">
+    <h2 id="contact-title">Hablemos</h2>
+    <p class="contact-copy">{_esc(elevator_pitch or hero_subheadline)}</p>
+    <a class="btn btn-primary btn-large" href="mailto:hola@el-monstruo.dev?subject={_esc(nombre)}">{_esc(cta_primary)}</a>
   </section>
 </main>
+<footer class="site-footer" role="contentinfo">
+  <p>{_esc(nombre)} · Forjado por <a href="https://github.com/alfredogl1804/el-monstruo">El Monstruo</a></p>
+  {f'<p class="footer-stack">{_esc(stack_str)}</p>' if stack_str else ''}
+  <p class="run-id">Run {_esc(run_id)}</p>
+</footer>
 {_BRAND_FOOTER}
 {tracking}
 </body>
 </html>
 """
 
-    style_css = """:root {
-  --forge: #f97316;
-  --graphite: #1c1917;
-  --steel: #a8a29e;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  background: #fafaf9;
-  color: var(--graphite);
-  line-height: 1.6;
-}
-main { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
-.hero { text-align: center; margin-bottom: 48px; }
-.hero h1 {
-  font-size: 48px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--graphite);
-  margin-bottom: 16px;
-}
-.tagline {
-  font-size: 20px;
-  color: #57534e;
-  max-width: 560px;
+    # ---- CSS enriquecido con paleta dinámica ----
+    primary = palette["primary"]
+    secondary = palette["secondary"]
+    accent = palette["accent"]
+
+    style_css = f""":root {{
+  --primary: {primary};
+  --secondary: {secondary};
+  --accent: {accent};
+  --bg: #fafaf9;
+  --bg-card: #ffffff;
+  --text: {secondary};
+  --text-muted: #57534e;
+  --border: #e7e5e4;
+  --primary-hover: color-mix(in srgb, {primary} 88%, black);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --radius: 8px;
+}}
+* {{ box-sizing: border-box; margin: 0; padding: 0; }}
+html {{ scroll-behavior: smooth; }}
+body {{
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}}
+main {{ max-width: 1080px; margin: 0 auto; padding: 0 24px; }}
+
+/* Header */
+.site-header {{
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}}
+.site-header-inner {{
+  max-width: 1080px;
   margin: 0 auto;
-}
-.copy {
-  font-size: 17px;
-  margin: 32px 0;
-  padding: 24px;
-  background: white;
-  border-left: 4px solid var(--forge);
-  border-radius: 4px;
-}
-.cta { text-align: center; margin: 48px 0; }
-.btn {
-  display: inline-block;
-  padding: 14px 32px;
-  background: var(--forge);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}}
+.brand-mark {{
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--secondary);
+  letter-spacing: -0.01em;
+}}
+.site-header nav {{ display: flex; gap: 24px; align-items: center; }}
+.site-header nav a {{
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}}
+.site-header nav a:hover {{ color: var(--primary); }}
+.site-header nav a.nav-cta {{
+  background: var(--primary);
   color: white;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+}}
+.site-header nav a.nav-cta:hover {{ background: var(--primary-hover); color: white; }}
+
+/* Hero */
+.hero {{
+  text-align: center;
+  padding: 96px 24px 64px;
+  max-width: 820px;
+  margin: 0 auto;
+}}
+.hero-eyebrow {{
+  display: inline-block;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}}
+.hero h1 {{
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--secondary);
+  margin-bottom: 24px;
+  line-height: 1.1;
+}}
+.hero-sub {{
+  font-size: clamp(18px, 2.5vw, 22px);
+  color: var(--text-muted);
+  max-width: 640px;
+  margin: 0 auto 40px;
+  line-height: 1.5;
+}}
+.hero-ctas {{ display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }}
+
+/* Buttons */
+.btn {{
+  display: inline-block;
+  padding: 14px 28px;
   text-decoration: none;
   font-weight: 600;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-.btn:hover { background: #ea580c; }
-.contact {
+  font-size: 16px;
+  border-radius: var(--radius);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}}
+.btn-primary {{ background: var(--primary); color: white; box-shadow: var(--shadow-sm); }}
+.btn-primary:hover {{ background: var(--primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }}
+.btn-ghost {{ background: transparent; color: var(--secondary); border-color: var(--border); }}
+.btn-ghost:hover {{ border-color: var(--primary); color: var(--primary); }}
+.btn-large {{ padding: 18px 36px; font-size: 17px; }}
+
+/* Section title */
+.section-title {{
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--secondary);
+  margin-bottom: 24px;
   text-align: center;
-  padding: 32px 0;
-  border-top: 1px solid #e7e5e4;
-  margin-top: 48px;
-}
-.contact h2 { font-size: 24px; margin-bottom: 12px; }
+}}
+
+/* Copy */
+.copy {{
+  max-width: 720px;
+  margin: 64px auto;
+  padding: 32px;
+  background: var(--bg-card);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}}
+.body-copy {{ font-size: 18px; color: var(--text-muted); }}
+
+/* Anchors */
+.benefits-anchor, .plan-anchor {{ position: relative; top: -80px; visibility: hidden; }}
+
+/* Benefits */
+.benefits {{ padding: 64px 24px; max-width: 980px; margin: 0 auto; }}
+.benefits h2 {{
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--secondary);
+  text-align: center;
+  margin-bottom: 40px;
+  letter-spacing: -0.02em;
+}}
+.benefits-list {{ list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }}
+.benefit {{
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 24px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+}}
+.benefit-marker {{
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--primary);
+  flex-shrink: 0;
+  margin-top: 8px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+}}
+.benefit span:last-child {{ font-size: 16px; color: var(--text); line-height: 1.5; }}
+
+/* Features */
+.features {{ padding: 64px 24px; max-width: 1080px; margin: 0 auto; background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--primary) 4%, transparent) 100%); }}
+.features h2 {{
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--secondary);
+  text-align: center;
+  margin-bottom: 40px;
+  letter-spacing: -0.02em;
+}}
+.features-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }}
+.feature-card {{
+  background: var(--bg-card);
+  padding: 28px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+}}
+.feature-card:hover {{ transform: translateY(-2px); box-shadow: var(--shadow-md); }}
+.feature-tag {{
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}}
+.feature-text {{ font-size: 15px; color: var(--text); line-height: 1.55; }}
+
+/* Insights */
+.insights {{ padding: 64px 24px; max-width: 880px; margin: 0 auto; }}
+.insights h2 {{
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--secondary);
+  text-align: center;
+  margin-bottom: 32px;
+  letter-spacing: -0.02em;
+}}
+.insights-list {{ display: grid; gap: 16px; }}
+.insight {{
+  background: var(--bg-card);
+  padding: 24px 28px;
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  font-size: 16px;
+  color: var(--text);
+  font-style: italic;
+  box-shadow: var(--shadow-sm);
+}}
+.insights-summary {{ font-size: 16px; color: var(--text-muted); text-align: center; }}
+
+/* Contact */
+.contact {{
+  text-align: center;
+  padding: 96px 24px 64px;
+  max-width: 720px;
+  margin: 0 auto;
+  border-top: 1px solid var(--border);
+  margin-top: 64px;
+}}
+.contact h2 {{
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--secondary);
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}}
+.contact-copy {{ font-size: 18px; color: var(--text-muted); margin-bottom: 32px; max-width: 560px; margin-left: auto; margin-right: auto; }}
+
+/* Footer */
+.site-footer {{
+  text-align: center;
+  padding: 32px 24px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text-muted);
+  background: var(--bg);
+}}
+.site-footer p {{ margin: 6px 0; }}
+.site-footer a {{ color: var(--primary); text-decoration: none; }}
+.site-footer a:hover {{ text-decoration: underline; }}
+.footer-stack {{ font-size: 12px; opacity: 0.7; }}
+.run-id {{ font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px; opacity: 0.5; }}
+
+/* Responsive */
+@media (max-width: 640px) {{
+  .site-header nav {{ gap: 16px; }}
+  .site-header nav a:not(.nav-cta) {{ display: none; }}
+  .hero {{ padding: 64px 16px 48px; }}
+  .copy {{ padding: 24px 20px; margin: 40px 16px; }}
+}}
 """
 
     # Tracking script soberano (también se sirve estático separado para que el
@@ -468,8 +851,16 @@ async def run_real_deploy(
         return result
 
     # 4. Deploy real a GitHub Pages
+    # Sprint 88: usar brief.nombre_proyecto (fuente real) en lugar de creativo.nombre (legacy)
+    architect = state.get("architect") or {}
+    brief = architect.get("brief") or {}
     creativo = (state.get("creativo") or {}).get("output_payload") or {}
-    nombre = creativo.get("nombre") or state.get("frase_input") or run_id
+    nombre = (
+        brief.get("nombre_proyecto")
+        or creativo.get("nombre")  # legacy fallback
+        or state.get("frase_input")
+        or run_id
+    )
     repo_name = f"monstruo-{_slugify(nombre, 30)}-{run_id[-8:]}"
     description = f"El Monstruo Pipeline E2E · Run {run_id}"
 

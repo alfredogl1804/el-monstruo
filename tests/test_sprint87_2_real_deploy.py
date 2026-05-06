@@ -34,23 +34,60 @@ from kernel.e2e.deploy.real_deploy import (
 
 
 def test_render_landing_produces_expected_files():
+    """
+    Sprint 88 Tarea 3.A.2: el render ahora usa los outputs REALES de los steps.
+    - nombre viene de brief.nombre_proyecto (ARCHITECT)
+    - hero_headline / cta_primary vienen de StepCopyOutput (VENTAS)
+    - elevator_pitch / colores_primarios vienen de StepBrandingOutput (CREATIVO)
+
+    Este test codifica el contrato post-DSC-G-008 fix.
+    """
     state = {
         "frase_input": "Pintura al óleo artesanal",
+        "architect": {
+            "brief": {
+                "nombre_proyecto": "Forja Pinturas",
+                "publico_objetivo": "coleccionistas y galerías",
+                "problema": "falta de óleo artesanal premium en Mérida",
+                "solucion": "pigmentos puros, hechos a mano, lote pequeño",
+            }
+        },
         "creativo": {
             "output_payload": {
-                "nombre": "Forja Pinturas",
-                "tagline": "Óleo hecho a mano en Mérida",
+                "tono": "artesanal y confiable",
+                "colores_primarios": ["#8B4513", "#1c1917", "#a8a29e"],
+                "voice_attributes": ["premium", "hecho a mano"],
+                "elevator_pitch": "Óleo hecho a mano en Mérida con pigmentos puros.",
+            }
+        },
+        "ventas": {
+            "output_payload": {
+                "hero_headline": "Óleo artesanal de Mérida",
+                "hero_subheadline": "Cada cuadro nace de pigmentos puros",
                 "body_copy": "Cada cuadro nace de pigmentos puros y horas de paciencia.",
-                "cta_text": "Pedí tu primer cuadro",
+                "cta_primary": "Pedí tu primer cuadro",
+                "cta_secondary": "Ver catálogo",
             }
         },
     }
     files = render_landing_html(
         state=state, run_id="e2e_test_001", ingest_url="https://api.test/ingest"
     )
+    # Contrato de archivos (sin cambios)
     assert set(files.keys()) == {"index.html", "style.css", "monstruo-tracking.js", ".nojekyll"}
-    assert "Forja Pinturas" in files["index.html"]
-    assert "Pedí tu primer cuadro" in files["index.html"]
+    # Contrato de contenido: nombre + headlines + CTA reales
+    html = files["index.html"]
+    assert "Forja Pinturas" in html
+    assert "Óleo artesanal de Mérida" in html  # hero_headline
+    assert "Pedí tu primer cuadro" in html  # cta_primary
+    assert "pigmentos puros" in html  # body_copy
+    # Sprint 88: enriquecimiento — header + footer + secciones
+    assert "site-header" in html
+    assert "site-footer" in html
+    assert "hero-eyebrow" in html  # publico_objetivo se renderiza
+    assert "coleccionistas" in html  # del publico_objetivo
+    # Sprint 88: paleta dinámica del CREATIVO se aplica a CSS
+    assert "#8B4513" in files["style.css"]
 
 
 # ── 2. Tracking script se inyecta correctamente ──────────────────────────────
