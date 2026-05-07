@@ -135,12 +135,29 @@ async def _capture_with_playwright(
                     user_agent="MonstruoScreenshot/1.0 (privacy-first)",
                 )
                 page = await context.new_page()
-                await page.goto(url, timeout=timeout_s * 1000, wait_until="domcontentloaded")
-                # Pequeño settle para CSS/fonts
+                # Sprint 88.1 v4: wait_until="load" (no "domcontentloaded") para
+                # que CSS externo (style.css linkeado) se descargue y aplique
+                # ANTES del screenshot. Si solo esperáramos DOM, capturaríamos
+                # texto sin estilos = Gemini ve "wireframe vacío".
+                await page.goto(url, timeout=timeout_s * 1000, wait_until="load")
+                # Wait explícito por h1 visible con texto real (>10 chars)
                 try:
-                    await page.wait_for_load_state("networkidle", timeout=5000)
+                    await page.wait_for_function(
+                        """() => {
+                            const h1 = document.querySelector('h1');
+                            return h1 && h1.textContent && h1.textContent.trim().length > 10;
+                        }""",
+                        timeout=8000,
+                    )
                 except Exception:
-                    pass  # tolerar si nunca llega a idle
+                    pass  # capturamos igual; Gemini reportará lo real
+                # Settle adicional para fonts/imágenes
+                try:
+                    await page.wait_for_load_state("networkidle", timeout=8000)
+                except Exception:
+                    pass
+                # Sleep final para que browser termine compositing
+                await asyncio.sleep(1.0)
                 await page.screenshot(path=str(output_path), full_page=True, type="png")
             finally:
                 await browser.close()
