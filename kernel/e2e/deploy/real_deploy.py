@@ -491,7 +491,7 @@ main {{ max-width: 1080px; margin: 0 auto; padding: 0 24px; }}
 .brand-mark {{
   font-weight: 800;
   font-size: 18px;
-  color: var(--secondary);
+  color: var(--text);
   letter-spacing: -0.01em;
 }}
 .site-header nav {{ display: flex; gap: 24px; align-items: center; }}
@@ -531,7 +531,7 @@ main {{ max-width: 1080px; margin: 0 auto; padding: 0 24px; }}
   font-size: clamp(36px, 6vw, 64px);
   font-weight: 800;
   letter-spacing: -0.025em;
-  color: var(--secondary);
+  color: var(--text);
   margin-bottom: 24px;
   line-height: 1.1;
 }}
@@ -558,7 +558,7 @@ main {{ max-width: 1080px; margin: 0 auto; padding: 0 24px; }}
 }}
 .btn-primary {{ background: var(--primary); color: white; box-shadow: var(--shadow-sm); }}
 .btn-primary:hover {{ background: var(--primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }}
-.btn-ghost {{ background: transparent; color: var(--secondary); border-color: var(--border); }}
+.btn-ghost {{ background: transparent; color: var(--text); border-color: var(--border); }}
 .btn-ghost:hover {{ border-color: var(--primary); color: var(--primary); }}
 .btn-large {{ padding: 18px 36px; font-size: 17px; }}
 
@@ -566,7 +566,7 @@ main {{ max-width: 1080px; margin: 0 auto; padding: 0 24px; }}
 .section-title {{
   font-size: 28px;
   font-weight: 700;
-  color: var(--secondary);
+  color: var(--text);
   margin-bottom: 24px;
   text-align: center;
 }}
@@ -591,7 +591,7 @@ main {{ max-width: 1080px; margin: 0 auto; padding: 0 24px; }}
 .benefits h2 {{
   font-size: 32px;
   font-weight: 800;
-  color: var(--secondary);
+  color: var(--text);
   text-align: center;
   margin-bottom: 40px;
   letter-spacing: -0.02em;
@@ -619,7 +619,7 @@ main {{ max-width: 1080px; margin: 0 auto; padding: 0 24px; }}
 .features h2 {{
   font-size: 32px;
   font-weight: 800;
-  color: var(--secondary);
+  color: var(--text);
   text-align: center;
   margin-bottom: 40px;
   letter-spacing: -0.02em;
@@ -653,7 +653,7 @@ main {{ max-width: 1080px; margin: 0 auto; padding: 0 24px; }}
 .insights h2 {{
   font-size: 28px;
   font-weight: 800;
-  color: var(--secondary);
+  color: var(--text);
   text-align: center;
   margin-bottom: 32px;
   letter-spacing: -0.02em;
@@ -683,7 +683,7 @@ main {{ max-width: 1080px; margin: 0 auto; padding: 0 24px; }}
 .contact h2 {{
   font-size: 36px;
   font-weight: 800;
-  color: var(--secondary);
+  color: var(--text);
   margin-bottom: 16px;
   letter-spacing: -0.02em;
 }}
