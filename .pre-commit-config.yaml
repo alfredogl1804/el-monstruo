@@ -1,0 +1,26 @@
+# Pre-commit hooks for El Monstruo (Sprint S-001 task S-1.1)
+# Reference: bridge/sprints_propuestos/sprint_S001_security_hardening.md
+
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.0
+    hooks:
+      - id: gitleaks
+        name: gitleaks-staged
+
+  - repo: local
+    hooks:
+      - id: trufflehog-prepush
+        name: trufflehog-prepush
+        entry: scripts/_pre_push_trufflehog.sh
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: ['--maxkb=5120']
+      - id: check-merge-conflict

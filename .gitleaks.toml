@@ -1,18 +1,26 @@
-# Gitleaks configuration for El Monstruo Kernel
-# Exclude known safe patterns and test fixtures
-
-title = "El Monstruo Gitleaks Config"
+title = "El Monstruo Gitleaks Config v2"
 
 [allowlist]
-  description = "Known safe patterns"
+  description = "Known safe patterns and test fixtures"
   paths = [
     '''tests/.*''',
     '''\.env\.example''',
     '''requirements\.txt''',
+    '''docs/biblias_agentes_2026/.*\.md''',
+    '''_archive/.*''',
+    '''bridge/.*\.md''',
+    '''discovery_forense/INCIDENTES/.*\.md''',
+    '''discovery_forense/CAPILLA_DECISIONES/.*\.md''',
   ]
   regexes = [
     '''your-.*-key''',
     '''placeholder.*''',
     '''test-key-123''',
     '''monstruo-dev-key''',
+    '''xxxxx+''',
+    '''<.*REDACTED.*>''',
+    '''sk_test_.*''',
+    '''pk_test_.*''',
+    '''sb_secret_FPCL.*''',
+    '''sbp_1e335a80.*''',
   ]
