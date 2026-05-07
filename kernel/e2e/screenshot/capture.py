@@ -156,20 +156,8 @@ async def _capture_with_playwright(
                     await page.wait_for_load_state("networkidle", timeout=8000)
                 except Exception:
                     pass
-                # Sprint 88.2 c: esperar a que document.fonts estén LOADED.
-                # Sin esto, Chromium puede pintar el texto con un fallback
-                # invisible/bitmap-vacío si la web font (Inter) aún no terminó
-                # de descargarse. Esto era la causa raz de "página vacía".
-                try:
-                    await page.evaluate("""async () => {
-                        if (document.fonts && document.fonts.ready) {
-                            await document.fonts.ready;
-                        }
-                    }""")
-                except Exception:
-                    pass
                 # Sleep final para que browser termine compositing
-                await asyncio.sleep(1.5)
+                await asyncio.sleep(1.0)
                 # Sprint 88.2 debug: log de qué ve Playwright realmente
                 # (h1 text + content length + has_inline_style) — clave para
                 # detectar bug de captura vs render.

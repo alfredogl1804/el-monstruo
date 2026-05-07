@@ -134,7 +134,7 @@ _TRACKING_SCRIPT_TAG = """<script src="/monstruo-tracking.js" defer></script>
 </script>"""
 
 _BRAND_FOOTER = """<footer style="margin-top:48px;padding:16px;text-align:center;
-font-family:'DejaVu Sans','Liberation Sans',Helvetica,Arial,system-ui,sans-serif;font-size:12px;color:#a8a29e;
+font-family:system-ui,-apple-system,sans-serif;font-size:12px;color:#a8a29e;
 border-top:1px solid #e7e5e4">
   Site soberano del <strong style="color:#f97316">Monstruo</strong>
   · <a href="https://el-monstruo.dev/privacy" style="color:#a8a29e">tracking propio</a>
@@ -390,14 +390,9 @@ def render_landing_html(
 <meta property="og:title" content="{_esc(nombre)}">
 <meta property="og:description" content="{_esc(hero_subheadline[:160])}">
 <meta property="og:type" content="website">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* Sprint 88.2: CSS inline para garantizar render en Playwright/Chromium
-   sin dependencia de fetch de hoja externa (CDN/CSP/network races).
-   Sprint 88.2 c: Google Fonts Inter (web font) + DejaVu/Liberation fallback
-   (presentes en Chromium Linux containers de Railway). */
+   sin dependencia de fetch de hoja externa (CDN/CSP/network races) */
 __INLINE_STYLE_CSS__
 </style>
 </head>
@@ -471,7 +466,7 @@ __INLINE_STYLE_CSS__
 * {{ box-sizing: border-box; margin: 0; padding: 0; }}
 html {{ scroll-behavior: smooth; }}
 body {{
-  font-family: "Inter", "DejaVu Sans", "Liberation Sans", "Helvetica", "Arial", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.65;
@@ -711,7 +706,7 @@ main {{ max-width: 1080px; margin: 0 auto; padding: 0 24px; }}
 .site-footer a {{ color: var(--primary); text-decoration: none; }}
 .site-footer a:hover {{ text-decoration: underline; }}
 .footer-stack {{ font-size: 12px; opacity: 0.7; }}
-.run-id {{ font-family: "DejaVu Sans Mono", "Liberation Mono", ui-monospace, SFMono-Regular, monospace; font-size: 11px; opacity: 0.5; }}
+.run-id {{ font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px; opacity: 0.5; }}
 
 /* Responsive */
 @media (max-width: 640px) {{
