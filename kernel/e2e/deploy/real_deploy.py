@@ -196,23 +196,59 @@ def render_landing_html(
     tono = creativo.get("tono") or "directo y confiable"
     voice_attrs = creativo.get("voice_attributes") or []
 
+    # ---- Adapter Sprint 88.1: EmbrionVentas → campos del render ----
+    # EmbrionVentasReport entrega: propuesta_valor.{statement,beneficios,diferenciador},
+    # canales_adquisicion[], pricing_tentativo, icp_refinado.
+    # StepCopyOutput (legacy LLM) entrega: hero_headline/cta_primary/cta_secondary.
+    # Soportamos ambos shapes: si VENTAS trae los campos del render, los usamos;
+    # si trae el shape de EmbrionVentas, los derivamos contextualmente.
+    propuesta_valor = ventas.get("propuesta_valor") or {}
+    pv_statement = (propuesta_valor.get("statement") or "").strip()
+    pv_beneficios = propuesta_valor.get("beneficios") or []
+    pv_diferenciador = (propuesta_valor.get("diferenciador") or "").strip()
+    canales = ventas.get("canales_adquisicion") or []
+    primer_canal = canales[0].get("canal") if canales and isinstance(canales[0], dict) else ""
+
     hero_headline = (
         ventas.get("hero_headline")
+        or pv_statement
         or elevator_pitch
         or nombre
     )
     hero_subheadline = (
         ventas.get("hero_subheadline")
+        or pv_diferenciador
         or elevator_pitch
         or frase_input
     )
-    body_copy = (
-        ventas.get("body_copy")
-        or elevator_pitch
-        or frase_input
-    )
-    cta_primary = ventas.get("cta_primary") or "Empezar ahora"
-    cta_secondary = ventas.get("cta_secondary") or "Conocer más"
+    if ventas.get("body_copy"):
+        body_copy = ventas["body_copy"]
+    elif pv_beneficios:
+        # Construye body_copy a partir de beneficios + diferenciador (>50 palabras objetivo)
+        body_copy = (
+            f"{pv_statement} " if pv_statement else ""
+        ) + " ".join(str(b) for b in pv_beneficios[:4]) + (
+            f" {pv_diferenciador}" if pv_diferenciador else ""
+        )
+    else:
+        body_copy = elevator_pitch or frase_input
+
+    # CTAs contextuales — derivados del proyecto, no genéricos.
+    # Usa nombre del proyecto + canal preferido + diferenciador para personalizar.
+    cta_primary = ventas.get("cta_primary")
+    if not cta_primary:
+        if nombre and nombre != "El Monstruo":
+            cta_primary = f"Comprar {nombre}"[:60] if len(nombre) <= 30 else "Comprar ahora"
+        else:
+            cta_primary = "Comprar ahora"
+    cta_secondary = ventas.get("cta_secondary")
+    if not cta_secondary:
+        if primer_canal:
+            cta_secondary = f"Ver en {primer_canal}"[:60]
+        elif pv_beneficios:
+            cta_secondary = "Ver catálogo"
+        else:
+            cta_secondary = "Conocer más"
 
     publico = brief.get("publico_objetivo") or brief.get("publico") or ""
     problema = brief.get("problema") or ""
