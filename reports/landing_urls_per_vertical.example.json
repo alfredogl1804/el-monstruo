@@ -1,0 +1,10 @@
+{
+  "_comment_": "Ejemplo de shape para reports/landing_urls_per_vertical.json. Renombrar sin .example y poblar con las URLs reales antes de declarar PRODUCTO COMERCIALIZABLE. Ver scripts/audit_visual_diff.py.",
+  "verticals": [
+    {"vertical": "interiorismo", "url": "https://example.com/interiorismo"},
+    {"vertical": "bioguard", "url": "https://example.com/bioguard"},
+    {"vertical": "cip", "url": "https://example.com/cip"},
+    {"vertical": "marketplace_diseno", "url": "https://example.com/marketplace"},
+    {"vertical": "embriones_ai", "url": "https://example.com/embriones"}
+  ]
+}
