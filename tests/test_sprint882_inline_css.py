@@ -57,14 +57,16 @@ def test_index_html_tiene_style_block_inline():
     assert "</style>" in html, "index.html DEBE cerrar el bloque <style>"
 
 
-def test_index_html_no_contiene_link_stylesheet_externo():
+def test_index_html_no_contiene_link_stylesheet_local():
     files = _render()
     html = files["index.html"]
-    # NO debe haber <link rel="stylesheet" href="style.css"> ya que el CSS está inline
-    assert 'rel="stylesheet"' not in html, (
-        f"index.html NO debe tener <link rel=\"stylesheet\"> externo (CSS inline). "
-        f"Encontrado fragmento: {[l for l in html.split(chr(10)) if 'stylesheet' in l]}"
+    # NO debe haber <link rel="stylesheet" href="style.css"> (CSS interno está inline)
+    # Permitido: <link> a Google Fonts u otros CDN externos para fuentes web.
+    assert 'href="style.css"' not in html and "href='style.css'" not in html, (
+        "index.html NO debe linkear style.css local (debe estar inline en <style>)"
     )
+    # Confirmar que SI hay un <style> inline (CSS interno)
+    assert "<style>" in html
 
 
 def test_style_block_contiene_paleta_real():
