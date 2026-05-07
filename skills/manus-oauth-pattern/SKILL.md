@@ -142,6 +142,82 @@ Correr `references/checklist-integracion.md` punto por punto antes de declarar e
 
 ---
 
+## Reglas de credenciales OAuth (DSCs anidados)
+
+Esta sección se añade en respuesta a la P0 del 2026-05-06 (credenciales en repo público) y al post-P0 SECURITY-002 (rotación de keys Supabase). Toda integración OAuth dentro del Monstruo debe respetar estas reglas, no solo Manus-Oauth.
+
+### DSC-S-001 — Política de credenciales (anidado)
+
+> **Las credenciales OAuth (`MANUS_OAUTH_CLIENT_SECRET`, equivalents Google/GitHub/etc.) son secrets de tipo "server-only" y NUNCA pueden:**
+> - aparecer en código plaintext (incluso en repos privados),
+> - aparecer en archivos `.env*` trackeados por git,
+> - aparecer en transcripts de chat, comentarios, issues, ni capturas,
+> - aparecer en `NEXT_PUBLIC_*`, `VITE_*`, ni en cualquier prefijo que el bundler exponga al cliente.
+
+**Storage canonical:** Bitwarden (único password manager soportado por el usuario) + variables de entorno del runtime (Railway, Vercel, etc.).  
+**Rotación:** 6 meses TTL, inmediata al detectar exposure.
+
+Lee: `discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-001_politica_de_credenciales.md`.
+
+### DSC-S-003 — Scripts y env vars sin defaults sensibles (anidado)
+
+> **Scripts de migración, callbacks, middleware o cualquier código que consuma `MANUS_OAUTH_CLIENT_SECRET` (u otros secrets) NO puede tener default value con secret real.** El patrón correcto es fail-loud:
+
+```typescript
+// ❌ PROHIBIDO
+const secret = process.env.MANUS_OAUTH_CLIENT_SECRET || "manus_secret_real_aqui";
+
+// ✅ REQUERIDO (fail-loud)
+const secret = process.env.MANUS_OAUTH_CLIENT_SECRET;
+if (!secret) throw new Error("MANUS_OAUTH_CLIENT_SECRET env var required");
+
+// ✅ ALTERNATIVA (helper centralizado, recomendado)
+import { requireEnv } from "@monstruo/security/env-validator";
+const secret = requireEnv("MANUS_OAUTH_CLIENT_SECRET");
+```
+
+Lee: `discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-003_scripts_env_vars_sin_defaults_sensibles.md`.
+
+### DSC-S-004 — Antipatrón: default value con secret real (anidado)
+
+> **El antipatrón más peligroso en OAuth integrations es:**
+>
+> ```typescript
+> const secret = os.environ.get("MANUS_OAUTH_CLIENT_SECRET", "<valor real hardcoded>");
+> ```
+>
+> Aunque parece "usar env var", el secret está en código. Esto fue exactamente lo que rompió BGM y crisol-8 en SECURITY-001. **Cualquier PR que introduzca este patrón debe ser rechazado en pre-commit (gitleaks + trufflehog) y en CI.**
+
+Lee: `discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-004_antipatron_default_value_con_secret_real.md`.
+
+### DSC-S-006 — Eval pipeline corrupto: criterio humano gobierna (anidado a OAuth)
+
+Aplicado a OAuth: si el helper `requireEnv()` devuelve un valor pero el flow falla con "invalid_client", **no asumas que el secret está bien por solo existir**. Valida con un smoke real (token exchange contra `https://oauth.manus.im/token`) antes de declarar verde. El criterio humano (¿funciona end-to-end?) gobierna sobre el criterio del eval pipeline (¿la env var existe?).
+
+Lee: `discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-006_eval_pipeline_corrupto_criterio_humano_gobierna.md`.
+
+### Checklist específico de credenciales OAuth
+
+Antes de declarar un sprint cerrado con integración OAuth:
+
+- [ ] Ningún secret OAuth aparece en `git ls-files | xargs grep -lE "MANUS_OAUTH_CLIENT_SECRET="` (debe estar vacío o solo en `.env.example` con placeholder)
+- [ ] Pre-commit (`gitleaks detect --staged`) verde
+- [ ] CI (`secret-scan.yml`) pasó sin findings
+- [ ] Secret está en Bitwarden con item nombrado según convención: `<proyecto>: MANUS_OAUTH_CLIENT_SECRET (rotación YYYY-MM-DD)`
+- [ ] Secret está en runtime env vars (Railway/Vercel) y no en código
+- [ ] Smoke E2E real ejecutado (login → callback → token exchange → user upsert) — no solo "la env var existe"
+- [ ] Si se rota el secret, vieja key revocada en `https://oauth.manus.im/projects/<id>/credentials`
+
+### Recovery si exposure detectada
+
+1. **Inmediato (≤ 5 min):** revocar el client_secret en `https://oauth.manus.im/projects/<id>/credentials` → Generate New Secret
+2. **Update env var:** Bitwarden + Railway/Vercel con la nueva
+3. **Refactor del código si exposure venia de hardcode:** seguir patrón DSC-S-004 antes de pushear cualquier fix
+4. **Postmortem:** archivar incidente en `discovery_forense/INCIDENTES/` siguiendo plantilla canon
+5. **Audit transcripts pasados:** ejecutar `scripts/_check_no_tokens.sh` contra todos los chat logs (DSC-S-007 cuando exista)
+
+---
+
 ## Cross-links
 
 - **DSC-X-003** (alias DSC-GLOBAL-003) — restricción dura que firma este patrón
@@ -158,7 +234,8 @@ Correr `references/checklist-integracion.md` punto por punto antes de declarar e
 
 ## Versionado
 
-`v0.1.0` — Initial release. Skill Catastro-B 2026-05-06.
+`v0.2.0` — 2026-05-07: añadida sección "Reglas de credenciales OAuth" con DSCs S-001/S-003/S-004/S-006 anidados (post-P0 SECURITY-001/002).  
+`v0.1.0` — 2026-05-06: Initial release. Skill Catastro-B.
 
 Cualquier cambio breaking (nuevo scope, nuevo tipo de token, etc.) requiere:
 1. Bump del skill (0.x.0)
