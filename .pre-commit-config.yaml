@@ -24,3 +24,16 @@ repos:
       - id: check-added-large-files
         args: ['--maxkb=5120']
       - id: check-merge-conflict
+
+  # DSC-G-008 v2 + DSC-G-012 + DSC-G-017: linter de specs de sprint.
+  # Solo corre en archivos staged dentro de bridge/sprints_propuestos/.
+  # Modo estricto se activa per-spec via marcador `lint_strict: true` en
+  # frontmatter YAML o `<!-- lint_strict -->` en HTML comment.
+  - repo: local
+    hooks:
+      - id: spec-lint
+        name: spec-lint (DSC-G-008 v2 + G-012 + G-017)
+        entry: python3 tools/spec_lint.py
+        language: system
+        files: ^bridge/sprints_propuestos/.*\.md$
+        pass_filenames: true
