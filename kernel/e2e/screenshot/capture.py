@@ -160,20 +160,14 @@ async def _capture_with_playwright(
                 # Sin esto, Chromium puede pintar el texto con un fallback
                 # invisible/bitmap-vacío si la web font (Inter) aún no terminó
                 # de descargarse. Esto era la causa raz de "página vacía".
-                # Sprint 88.2 e: TIMEOUT obligatorio. Si Google Fonts CDN no
-                # responde por CSP/red, document.fonts.ready se cuelga PARA
-                # SIEMPRE (sin timeout default en Playwright). 5s es suficiente.
                 try:
-                    await asyncio.wait_for(
-                        page.evaluate("""async () => {
-                            if (document.fonts && document.fonts.ready) {
-                                await document.fonts.ready;
-                            }
-                        }"""),
-                        timeout=5.0,
-                    )
-                except (asyncio.TimeoutError, Exception):
-                    pass  # OK: fonts del sistema (DejaVu/Liberation) ya cargaron
+                    await page.evaluate("""async () => {
+                        if (document.fonts && document.fonts.ready) {
+                            await document.fonts.ready;
+                        }
+                    }""")
+                except Exception:
+                    pass
                 # Sleep final para que browser termine compositing
                 await asyncio.sleep(1.5)
                 # Sprint 88.2 debug: log de qué ve Playwright realmente
