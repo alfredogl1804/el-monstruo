@@ -8,12 +8,13 @@ en discovery_forense/CAPILLA_DECISIONES/. Verifica que el DSC declare al menos
 un contrato ejecutable y que las rutas a codigo referenciadas existan.
 
 Comportamiento:
-    - DSC con seccion "## Contrato ejecutable" o "## Contratos ejecutables" Y
-      al menos una ruta de archivo que existe -> exit 0 (commit pasa)
-    - DSC sin seccion de contrato Y sin marcador `estado: aspiracional` o
-      `**Estado:** Aspiracional` -> exit 1 (commit bloqueado)
-    - DSC con marcador aspiracional -> exit 0 con warning (commit pasa pero se
-      registra que el DSC es aspiracional)
+    1. Consulta el index central _dsc_contracts_index.yaml PRIMERO.
+       - Si DSC tiene entry status=enforced + paths que existen → exit 0
+       - Si DSC tiene entry status=aspirational + reason → exit 0 con warning
+    2. Fallback: parsing del .md (legacy):
+       - DSC con seccion "## Contrato ejecutable" Y rutas que existen → exit 0
+       - DSC con marcador `**Estado:** Aspiracional` → exit 0 con warning
+       - Sin nada → exit 1
 
 CLI:
     python tools/dsc_contract_check.py path/to/DSC-X.md [more.md ...]
@@ -30,6 +31,18 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
+
+try:
+    import yaml  # type: ignore
+except ImportError:
+    yaml = None  # type: ignore
+
+
+# Path canonico al index central (DSC-G-017 enforcement sistemico).
+DSC_CONTRACTS_INDEX_PATH = Path(
+    "discovery_forense/CAPILLA_DECISIONES/_dsc_contracts_index.yaml"
+)
 
 
 CONTRACT_SECTION_PATTERNS = [
@@ -40,23 +53,14 @@ CONTRACT_SECTION_PATTERNS = [
 ]
 
 ASPIRATIONAL_MARKERS = [
-    # Marcador formal: linea entera "Estado: Aspiracional" o
-    # "**Estado:** Aspiracional" o "**Estado**: Aspiracional".
-    # Anclado a inicio/fin de linea para NO matchear prosa que mencione el
-    # concepto (ej. "el DSC se etiqueta `estado: aspiracional`").
     r"^[\*\s]*estado[\s\*:`]+aspiracional[\s\*\.]*$",
     r"^\s*<!--\s*aspiracional\s*-->\s*$",
 ]
 
-# Heuristica para extraer rutas de archivo. Importante: `\.?` al inicio para
-# capturar paths como `.github/workflows/...` (hidden directories).
 PATH_PATTERNS = [
-    # Backtick-enclosed: `path/to/file.ext`
     re.compile(
         r"`(\.?[\w/.\-]+\.(?:py|yml|yaml|sh|sql|toml|json|md|js|ts|tsx|go|rs))`"
     ),
-    # Inline (delimitado por espacio/parentesis/pipe/start/etc, NO por \b para
-    # poder capturar el dot inicial)
     re.compile(
         r"(?:^|[\s\(\|>])(\.?(?:[\w.\-]+/)+[\w.\-]+"
         r"\.(?:py|yml|yaml|sh|sql|toml|json|md|js|ts|tsx|go|rs))"
@@ -91,7 +95,6 @@ def _is_aspirational(text: str) -> bool:
 
 
 def _extract_paths_from_section(text: str) -> list[str]:
-    """Extrae rutas de archivo mencionadas dentro de la seccion de contratos."""
     section_start = -1
     for pat in CONTRACT_SECTION_PATTERNS:
         m = re.search(pat, text, flags=re.MULTILINE | re.IGNORECASE)
@@ -115,7 +118,84 @@ def _extract_paths_from_section(text: str) -> list[str]:
     return paths
 
 
+def _load_index(repo_root: Path) -> dict[str, Any]:
+    """Carga el index central. Vacio dict si no existe o yaml no instalado."""
+    full = repo_root / DSC_CONTRACTS_INDEX_PATH
+    if not full.exists() or yaml is None:
+        return {}
+    try:
+        data = yaml.safe_load(full.read_text())
+    except Exception:
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return data.get("dscs") or {}
+
+
+def _index_key_for(path: Path, repo_root: Path) -> str | None:
+    """Convierte path absoluto del DSC en key del index (relativo a CAPILLA)."""
+    capilla = repo_root / "discovery_forense" / "CAPILLA_DECISIONES"
+    try:
+        rel = path.resolve().relative_to(capilla.resolve())
+        return str(rel)
+    except ValueError:
+        return None
+
+
 def check_dsc(path: Path, repo_root: Path) -> CheckResult:
+    # 1. Consultar index central PRIMERO (DSC-G-017 sistemico).
+    index = _load_index(repo_root)
+    key = _index_key_for(path, repo_root)
+    if key and key in index:
+        entry = index[key]
+        status = entry.get("status")
+        if status == "enforced":
+            contracts = entry.get("contracts") or []
+            found = [c for c in contracts if (repo_root / c).exists()]
+            missing = [c for c in contracts if not (repo_root / c).exists()]
+            if found:
+                return CheckResult(
+                    file=str(path),
+                    has_contract_section=True,
+                    is_aspirational=False,
+                    extracted_paths=contracts,
+                    paths_found=found,
+                    paths_missing=missing,
+                    passed=True,
+                    reason=(
+                        f"OK via index. {len(found)}/{len(contracts)} contratos existen."
+                        + (f" Faltan: {missing}" if missing else "")
+                    ),
+                )
+            return CheckResult(
+                file=str(path),
+                has_contract_section=True,
+                is_aspirational=False,
+                extracted_paths=contracts,
+                paths_found=[],
+                paths_missing=missing,
+                passed=False,
+                reason=(
+                    f"Index declara 'enforced' pero NINGUNA ruta existe: {missing}. "
+                    f"Crear los archivos primero o cambiar status a 'aspirational'."
+                ),
+            )
+        if status == "aspirational":
+            return CheckResult(
+                file=str(path),
+                has_contract_section=False,
+                is_aspirational=True,
+                extracted_paths=[],
+                paths_found=[],
+                paths_missing=[],
+                passed=True,
+                reason=(
+                    f"Aspirational via index. Razon: "
+                    f"{entry.get('reason', 'sin razon documentada')[:200]}"
+                ),
+            )
+
+    # 2. Fallback: parsing del .md (legacy path para DSCs no en index).
     text = path.read_text(encoding="utf-8")
     aspirational = _is_aspirational(text)
     has_section = _has_section(text)
@@ -152,8 +232,9 @@ def check_dsc(path: Path, repo_root: Path) -> CheckResult:
             paths_missing=[],
             passed=False,
             reason=(
-                "DSC sin seccion '## Contrato ejecutable' y sin marcador aspiracional. "
-                "DSC-G-017 exige contrato adjunto o etiqueta explicita."
+                "DSC sin entry en _dsc_contracts_index.yaml, sin seccion "
+                "'## Contrato ejecutable' y sin marcador aspiracional. "
+                "DSC-G-017 exige una de las tres."
             ),
         )
 
@@ -182,7 +263,7 @@ def check_dsc(path: Path, repo_root: Path) -> CheckResult:
         paths_missing=missing,
         passed=True,
         reason=(
-            f"OK. {len(found)}/{len(extracted)} rutas de contrato existen."
+            f"OK via .md parsing. {len(found)}/{len(extracted)} rutas existen."
             + (f" Faltan: {missing}" if missing else "")
         ),
     )
@@ -234,8 +315,8 @@ def main() -> int:
     if failures:
         print(
             f"\n{len(failures)}/{len(results)} DSCs violan DSC-G-017. "
-            f"Anadir seccion '## Contrato ejecutable' con ruta a codigo existente, "
-            f"o marcar DSC con `**Estado:** Aspiracional`.",
+            f"Anadir entry en _dsc_contracts_index.yaml o seccion "
+            f"'## Contrato ejecutable' o marcador `**Estado:** Aspiracional`.",
             file=sys.stderr,
         )
         return 1
