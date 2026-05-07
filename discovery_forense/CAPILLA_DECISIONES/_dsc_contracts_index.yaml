@@ -1,0 +1,432 @@
+# discovery_forense/CAPILLA_DECISIONES/_dsc_contracts_index.yaml
+#
+# Index canonico DSC -> contrato ejecutable o estado aspiracional (DSC-G-017).
+#
+# Cada DSC en CAPILLA_DECISIONES tiene exactamente UNA entrada aqui:
+#   - status: enforced + contracts: [<paths>]    (categoria B-extended)
+#   - status: aspirational + reason: "..."       (categoria A o C)
+#
+# tools/dsc_contract_check.py consulta este archivo PRIMERO. Si un DSC tiene
+# entrada `enforced` con paths que existen en el repo, pasa. Si tiene entrada
+# `aspirational` con reason, pasa con warning. Sin entrada, falla.
+#
+# Modificar este archivo es modificar la gobernanza del repo. Cambios requieren
+# PR firmado por Alfredo.
+#
+# Origen: DSC-G-017, DSC-V-001.
+
+version: 1
+fecha_canonizacion: "2026-05-07"
+
+dscs:
+
+  "_GLOBAL/DSC-S-001_politica_de_credenciales.md":
+    status: enforced
+    contracts:
+      - .pre-commit-config.yaml
+      - .gitleaks.toml
+      - .github/workflows/secret-scan.yml
+    notes: "Implementado en Sprint S-001 Security Hardening."
+
+  "_GLOBAL/DSC-S-002_pre_commit_hooks_obligatorios.md":
+    status: enforced
+    contracts:
+      - .pre-commit-config.yaml
+      - scripts/_pre_push_trufflehog.sh
+    notes: "gitleaks (pre-commit) + trufflehog (pre-push) instalados."
+
+  "_GLOBAL/DSC-S-003_scripts_env_vars_sin_defaults_sensibles.md":
+    status: aspirational
+    reason: >
+      Sin contrato automatizado todavia — pendiente linter ast-based que
+      detecte os.environ.get(KEY, "default_secret"). Sprint S-CONTRATOS-001
+      T2 propuesto. Mientras tanto, AGENTS.md Regla Dura #6 lo documenta.
+
+  "_GLOBAL/DSC-S-004_antipatron_default_value_con_secret_real.md":
+    status: aspirational
+    reason: >
+      Mismo gap que DSC-S-003. Linter ast-based pendiente.
+
+  "_GLOBAL/DSC-S-005_default_archive_antes_que_delete.md":
+    status: aspirational
+    reason: >
+      Sin tool automatizado — politica documentada en AGENTS.md Regla Dura #6.
+      Pendiente cleanup tool con default archive y opcion delete + 30 dias.
+
+  "_GLOBAL/DSC-G-001_14_objetivos_maestros_aplican_a_todo.md":
+    status: aspirational
+    reason: >
+      Principio rector. No tiene contrato tecnico ejecutable directo —
+      cada Objetivo se enforza por sus propios DSCs derivados. Documentado
+      en AGENTS.md Regla Dura #1.
+
+  "_GLOBAL/DSC-G-002_7_capas_transversales_obligatorias.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/__init__.py
+      - kernel/transversales/base.py
+      - kernel/transversales/ventas/__init__.py
+      - kernel/transversales/seo/__init__.py
+      - kernel/transversales/publicidad/__init__.py
+      - kernel/transversales/tendencias/__init__.py
+      - kernel/transversales/operaciones/__init__.py
+      - kernel/transversales/finanzas/__init__.py
+    notes: >
+      6 Capas comerciales canonizadas. kernel.milestones gate
+      `capas_transversales_operativas` verifica via all_layers_implemented().
+      70 tests transversales aseguran que el contrato no se rompa.
+
+  "_GLOBAL/DSC-G-003_construccion_4_capas_secuenciales.md":
+    status: aspirational
+    reason: >
+      Roadmap arquitectonico. Documentado en docs/ROADMAP_EJECUCION_DEFINITIVO.md.
+
+  "_GLOBAL/DSC-G-004_output_nunca_generico.md":
+    status: enforced
+    contracts:
+      - scripts/audit_visual_diff.py
+      - kernel/transversales/ventas/_canonical_constraints.py
+      - kernel/transversales/seo/_canonical_constraints.py
+    notes: >
+      audit_visual_diff.py detecta cuantitativamente el patron cascaron.
+      Constants per-vertical fuerzan diferenciacion estructural.
+
+  "_GLOBAL/DSC-G-005_validacion_tiempo_real_obligatoria.md":
+    status: enforced
+    contracts:
+      - kernel/validation/perplexity_decorator.py
+      - kernel/validation/__init__.py
+      - migrations/sql/0001_validation_log.sql
+    notes: >
+      DSC-V-001 implementa el principio de DSC-G-005. El decorator
+      @requires_perplexity_validation cierra el bucle.
+
+  "_GLOBAL/DSC-G-007_integrar_herramientas_ai_verticales.md":
+    status: aspirational
+    reason: >
+      Decision estrategica. Sin contrato tecnico unitario — cada
+      integracion (Perplexity, Manus, Gong, Fireflies, Common Room, etc.)
+      es su propio sprint.
+
+  "_GLOBAL/DSC-G-008_validar_codebase_antes_de_specs.md":
+    status: enforced
+    contracts:
+      - tools/spec_lint.py
+      - tests/test_spec_lint.py
+      - .pre-commit-config.yaml
+    notes: >
+      spec_lint.py wired en .pre-commit-config.yaml para archivos en
+      bridge/sprints_propuestos/. Modo strict opt-in via lint_strict marker.
+
+  "_GLOBAL/DSC-G-009_recomendaciones_seguridad_firmadas_en_misma_sesion.md":
+    status: enforced
+    contracts:
+      - tools/dsc_contract_check.py
+      - tests/test_dsc_contract_check.py
+      - discovery_forense/CAPILLA_DECISIONES/_dsc_contracts_index.yaml
+    notes: >
+      dsc_contract_check.py + index garantizan que cualquier nueva
+      recomendacion de seguridad debe nacer como DSC con contrato adjunto
+      o marcador aspirational explicito.
+
+  "_GLOBAL/DSC-G-012_trade_off_honesto_sprints_multi_tarea.md":
+    status: enforced
+    contracts:
+      - tools/spec_lint.py
+    notes: >
+      spec_lint.py regla `dsc-g-012.perfil_riesgo_missing` exige perfil
+      por tarea (read-only|write-safe|write-risky|requiere-coordinacion-humana).
+
+  "_GLOBAL/DSC-G-014_pipeline_tecnico_vs_producto_comercializable.md":
+    status: enforced
+    contracts:
+      - kernel/milestones/declare.py
+      - kernel/milestones/gates.yaml
+      - kernel/milestones/__init__.py
+      - .github/workflows/milestone-declaration-guard.yml
+    notes: >
+      Cualquier intento de declarar PRODUCTO COMERCIALIZABLE pasa por
+      kernel.milestones.declare contra los 6 gates. Workflow pendiente push
+      manual de Alfredo (limitacion GitHub App).
+
+  "_GLOBAL/DSC-G-017_dsc_as_contract.md":
+    status: enforced
+    contracts:
+      - kernel/milestones/declare.py
+      - kernel/milestones/gates.yaml
+      - tools/dsc_contract_check.py
+      - discovery_forense/CAPILLA_DECISIONES/_dsc_contracts_index.yaml
+    notes: >
+      DSC-G-017 nace cumpliendo su propia regla. Este index es uno de los
+      contratos que enforza DSC-G-017 sistemicamente.
+
+  "_GLOBAL/DSC-V-001_validacion_perplexity_decorator.md":
+    status: enforced
+    contracts:
+      - kernel/validation/perplexity_decorator.py
+      - kernel/validation/_storage_supabase.py
+      - kernel/validation/__init__.py
+      - migrations/sql/0001_validation_log.sql
+      - tests/test_perplexity_decorator.py
+    notes: >
+      DSC-V-001 nace con su contrato adjunto desde origen (2do DSC en
+      cumplir DSC-G-017 desde commit inicial).
+
+  "_GLOBAL/DSC-V-002_versiones_software_verificadas.md":
+    status: enforced
+    contracts:
+      - scripts/audit_visual_diff.py
+      - tests/test_audit_visual_diff.py
+    notes: >
+      audit_visual_diff.py detecta diferenciacion cuantitativa. Gate
+      `output_diferenciado_per_vertical` en gates.yaml lo invoca.
+
+  "_GLOBAL/DSC-GLOBAL-001_los_6_sabios_canonicos.md":
+    status: aspirational
+    reason: >
+      Decision arquitectonica del Embrion. Cada Sabio (GPT, Claude, Gemini,
+      Grok, DeepSeek, Perplexity) es su propia integracion. Documentado en
+      kernel/embriones/ + AGENTS.md.
+
+  "_GLOBAL/DSC-GLOBAL-003_auth_manus_oauth.md":
+    status: aspirational
+    reason: >
+      Patron de auth para integracion Manus. Sin contrato tecnico unitario
+      — depende de la libreria/SDK de Manus. Pendiente sprint dedicado.
+
+  "_GLOBAL/DSC-X-001_igcar_cruza_5_proyectos.md":
+    status: aspirational
+    reason: >
+      Decision cross-project (IGCAR aplica a 5 proyectos). Politica de scope.
+
+  "_GLOBAL/DSC-X-002_stripe_checkout_compartido.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+      - kernel/transversales/operaciones/_canonical_constraints.py
+    notes: >
+      Patron Stripe canonico (DSC-LIKETICKETS-003) es checkout_pattern
+      compartido cross-vertical. CIP, K365, TC-PC, MUNDO_DE_TATA lo importan.
+
+  "_GLOBAL/DSC-X-006_convergencia_diferida.md":
+    status: aspirational
+    reason: >
+      Politica de scope-control para convergencia entre proyectos.
+
+  "BIOGUARD/DSC-BG-001_app_dispositivo_iot_deteccion_drogas.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+      - kernel/transversales/seo/_canonical_constraints.py
+      - kernel/transversales/publicidad/_canonical_constraints.py
+      - kernel/transversales/operaciones/_canonical_constraints.py
+      - kernel/transversales/finanzas/_canonical_constraints.py
+      - kernel/transversales/tendencias/_canonical_constraints.py
+    notes: >
+      Referenciado en source_dscs de las 6 Capas para vertical BIOGUARD.
+
+  "BIOGUARD/DSC-BG-PEND-001_ruta_regulatoria_cofepris.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+      - kernel/transversales/seo/_canonical_constraints.py
+      - kernel/transversales/publicidad/_canonical_constraints.py
+      - kernel/transversales/operaciones/_canonical_constraints.py
+      - kernel/transversales/finanzas/_canonical_constraints.py
+    notes: >
+      COFEPRIS pendiente bloquea: comercializacion MX, indexability SEO,
+      consumer ads + geo MX, operations launch, revenue recognition MX.
+
+  "CIP/DSC-CIP-001_propiedad_nunca_se_vende.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+      - kernel/transversales/operaciones/_canonical_constraints.py
+      - kernel/transversales/seo/_canonical_constraints.py
+      - kernel/transversales/publicidad/_canonical_constraints.py
+    notes: >
+      propiedad_nunca_se_enajena=True (ventas), prohibited_operations
+      incluye venta_directa_inmueble_subyacente (operaciones), disclosure
+      tokens_no_son_equity_inmueble (seo + publicidad).
+
+  "CIP/DSC-CIP-002_distribucion_rendimientos.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/finanzas/_canonical_constraints.py
+    notes: >
+      distribution_method_pending=True con candidates [USDC on-chain, SPEI
+      off-chain, split_per_holder]. Bloqueante hasta resolver.
+
+  "CIP/DSC-CIP-002_ticket_minimo_1_usd.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+      - kernel/transversales/finanzas/_canonical_constraints.py
+    notes: >
+      min_ticket_usd=1.00 (ventas), min_unit_revenue_usd=0.01 +
+      transactional_per_token (finanzas). Tests verifican coincidencia.
+
+  "CIP/DSC-CIP-003_distribucion_tokens_inmueble.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+    notes: >
+      token_standard=ERC-3643 + blockchain=polygon en pricing constants.
+
+  "CIP/DSC-CIP-004_polygon_erc3643.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+      - kernel/transversales/finanzas/_canonical_constraints.py
+      - kernel/transversales/tendencias/_canonical_constraints.py
+    notes: >
+      blockchain=polygon, compliance_reporting incluye polygon_erc3643_audit
+      (finanzas), data_sources incluye blockchain_analytics (tendencias).
+
+  "CIP/DSC-CIP-005_lanzamiento_focalizado_sureste_mx.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+      - kernel/transversales/seo/_canonical_constraints.py
+      - kernel/transversales/publicidad/_canonical_constraints.py
+      - kernel/transversales/tendencias/_canonical_constraints.py
+    notes: >
+      geo_initial_markets=[yucatan, quintana_roo, campeche] + geo_target=
+      mx_sureste enforzado en 4 Capas. Tests parsean DSC y verifican coincidencia.
+
+  "CIP/DSC-CIP-006_cip_primer_producto_monstruo.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+    notes: >
+      es_primer_producto_monstruo=True flag canonico para priorizar CIP.
+
+  "CIP/DSC-CIP-PEND-001_figura_legal_fideicomiso_sapi_sofom.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/operaciones/_canonical_constraints.py
+      - kernel/transversales/finanzas/_canonical_constraints.py
+    notes: >
+      operations_can_launch_mx_today=False + tax_framework_pending_decision=True.
+      Bloqueantes hasta decidir SAPI/SOFOM/Fideicomiso.
+
+  "EL-MONSTRUO/DSC-EL-MONSTRUO-001_postgressaver_elegido_sobre_temporal.md":
+    status: aspirational
+    reason: >
+      Decision tecnica de stack persistencia. kernel/background_store.py
+      implementa el patron — sin contrato unitario auto-validable.
+
+  "EL-MONSTRUO/DSC-EL-MONSTRUO-003_langgraph_orquestador.md":
+    status: aspirational
+    reason: >
+      Decision tecnica. Implementado en kernel/engine.py + kernel/nodes.py.
+
+  "EL-MONSTRUO/DSC-EL-MONSTRUO-004_supabase_langfuse_stack.md":
+    status: aspirational
+    reason: >
+      Decision tecnica de stack observabilidad/persistencia. Multiple
+      modulos del kernel lo asumen.
+
+  "EL-MONSTRUO/DSC-MO-002_brand_dna_naranja_forja_graphite_acero.md":
+    status: enforced
+    contracts:
+      - kernel/brand/brand_dna.py
+      - kernel/brand/validator.py
+      - kernel/brand/__init__.py
+    notes: >
+      BRAND_DNA dict en brand_dna.py codifica naranja forja, graphite, acero.
+      validator.py emite score 0-100 para outputs.
+
+  "EL-MONSTRUO/DSC-MO-005_division_hilos_fase_1.md":
+    status: aspirational
+    reason: >
+      Decision organizativa. Documentado en docs/DIVISION_RESPONSABILIDADES_HILOS.md.
+
+  "KUKULKAN-365/DSC-K365-001_distrito_entretenimiento_climatizado.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+      - kernel/transversales/seo/_canonical_constraints.py
+      - kernel/transversales/publicidad/_canonical_constraints.py
+      - kernel/transversales/operaciones/_canonical_constraints.py
+      - kernel/transversales/tendencias/_canonical_constraints.py
+      - kernel/transversales/finanzas/_canonical_constraints.py
+    notes: >
+      operacion_anual_dias=365, ubicacion_geografica_unica=merida,
+      differentiator_keywords [365_dias, climatizado, merida_yucatan],
+      support_24_7_required=True, cost_climatizacion_per_dia tracked.
+
+  "KUKULKAN-365/DSC-K365-002_like_kukulkan_producto_piloto.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+    notes: >
+      piloto_comercial=zona_like_via_liketickets en pricing canonical.
+
+  "LIKETICKETS/DSC-LIKETICKETS-001_stack_vite_react_tidb_stripe_railway.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+      - kernel/transversales/seo/_canonical_constraints.py
+    notes: >
+      stack_canonical (vite/react/tidb/stripe/railway) en ventas.
+      ssr_required_for_event_pages en SEO.
+
+  "LIKETICKETS/DSC-LIKETICKETS-003_patron_checkout_stripe_replicable.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+      - kernel/transversales/operaciones/_canonical_constraints.py
+    notes: >
+      Patron Stripe canonico cross-vertical: stripe_session_create →
+      webhook_checkout_session_completed → confirmSeatsForOrder_db_write
+      → email_resend_confirmation. Replicable a CIP, K365, TC-PC, MUNDO_DE_TATA.
+
+  "LIKETICKETS/DSC-LT-002_producto_piloto_313_butacas.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+      - kernel/transversales/operaciones/_canonical_constraints.py
+      - kernel/transversales/publicidad/_canonical_constraints.py
+      - kernel/transversales/finanzas/_canonical_constraints.py
+    notes: >
+      inventario_piloto_butacas=313 + creative_angle scarcity_zona_like_313 +
+      unit_economics revenue_per_seat_per_event + fill_rate_42_games.
+
+  "MENA-BADUY/DSC-MB-001_operacion_electoral_merida_2027.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+    notes: >
+      VerticalId.MENA_BADUY in NON_COMMERCIAL_VERTICALS. Las 6 Capas
+      Transversales levantan RestrictedVerticalError.
+
+  "MENA-BADUY/DSC-MB-002_crisol_8_osint_analisis.md":
+    status: aspirational
+    reason: >
+      Tool/sprint privado para OSINT. Sin contrato tecnico unitario en
+      este repo — opera bajo OPSEC del proyecto Mena-Baduy.
+
+  "MENA-BADUY/DSC-MB-003_patron_barrido_cruzado_drive_notion_s3.md":
+    status: aspirational
+    reason: >
+      Patron operativo de busqueda cruzada. Sin contrato unitario.
+
+  "TOP-CONTROL-PC/DSC-TC-001_plataforma_absorcion_soberana.md":
+    status: enforced
+    contracts:
+      - kernel/transversales/ventas/_canonical_constraints.py
+      - kernel/transversales/seo/_canonical_constraints.py
+      - kernel/transversales/publicidad/_canonical_constraints.py
+      - kernel/transversales/operaciones/_canonical_constraints.py
+      - kernel/transversales/finanzas/_canonical_constraints.py
+      - kernel/transversales/tendencias/_canonical_constraints.py
+    notes: >
+      modelo_operacion=absorcion_soberana_pc_completo + schema
+      SoftwareApplication + audience power_user_pc en 6 Capas.
+
+  "TOP-CONTROL-PC/DSC-TC-002_ia_agentica_para_pc.md":
+    status: aspirational
+    reason: >
+      Decision conceptual de producto. Constants en _canonical_constraints
+      lo respaldan parcialmente, pero el DSC habla del concepto per se.
