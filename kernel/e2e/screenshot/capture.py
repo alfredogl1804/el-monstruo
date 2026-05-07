@@ -158,6 +158,30 @@ async def _capture_with_playwright(
                     pass
                 # Sleep final para que browser termine compositing
                 await asyncio.sleep(1.0)
+                # Sprint 88.2 debug: log de qué ve Playwright realmente
+                # (h1 text + content length + has_inline_style) — clave para
+                # detectar bug de captura vs render.
+                try:
+                    diag = await page.evaluate("""() => ({
+                        h1_text: (document.querySelector('h1')?.textContent || '').slice(0, 80),
+                        body_text_length: (document.body?.innerText || '').length,
+                        has_inline_style: !!document.querySelector('style'),
+                        has_external_css: !!document.querySelector('link[rel=\"stylesheet\"]'),
+                        cta_count: document.querySelectorAll('a.btn, button').length,
+                        title: document.title.slice(0, 80),
+                    })""")
+                    logger.info(
+                        "e2e_screenshot_pre_capture_diag",
+                        url=url,
+                        h1_text=diag.get("h1_text"),
+                        body_len=diag.get("body_text_length"),
+                        inline_style=diag.get("has_inline_style"),
+                        external_css=diag.get("has_external_css"),
+                        cta_count=diag.get("cta_count"),
+                        title=diag.get("title"),
+                    )
+                except Exception as _diag_err:
+                    logger.warning("e2e_screenshot_diag_failed", error=str(_diag_err))
                 await page.screenshot(path=str(output_path), full_page=True, type="png")
             finally:
                 await browser.close()

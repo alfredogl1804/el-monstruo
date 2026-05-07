@@ -390,7 +390,11 @@ def render_landing_html(
 <meta property="og:title" content="{_esc(nombre)}">
 <meta property="og:description" content="{_esc(hero_subheadline[:160])}">
 <meta property="og:type" content="website">
-<link rel="stylesheet" href="style.css">
+<style>
+/* Sprint 88.2: CSS inline para garantizar render en Playwright/Chromium
+   sin dependencia de fetch de hoja externa (CDN/CSP/network races) */
+__INLINE_STYLE_CSS__
+</style>
 </head>
 <body>
 <header class="site-header" role="banner">
@@ -716,6 +720,12 @@ main {{ max-width: 1080px; margin: 0 auto; padding: 0 24px; }}
     # Tracking script soberano (también se sirve estático separado para que el
     # navegador lo cachee independientemente)
     tracking_js = _MONSTRUO_TRACKING_JS
+
+    # Sprint 88.2 fix: inline el CSS dentro del HTML para que Playwright/Chromium
+    # renderice los estilos sin depender de fetch externo de style.css
+    # (que falla en Railway por CSP/network race con GitHub Pages CDN).
+    # Mantenemos style.css como archivo separado por SEO/cache/inspección.
+    index_html = index_html.replace("__INLINE_STYLE_CSS__", style_css)
 
     return {
         "index.html": index_html,
