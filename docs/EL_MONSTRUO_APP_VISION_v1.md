@@ -1,11 +1,12 @@
 # EL MONSTRUO — Arquitectura del Sistema Operativo Personal Soberano
 
-> **Documento de visión v1.2**
+> **Documento de visión v1.3**
 > **Autor:** Cowork (Hilo A), compilado de iteración con Alfredo González (2026-05-04 → 2026-05-06)
 > **Naturaleza:** documento técnico-arquitectónico privado para Alfredo y los hilos Manus. NO destinado a comunicación externa.
-> **Estado v1.2:** evolución sobre v1.1. Cambios estructurales nuevos: (1) arquitectura de **tres Catastros paralelos** (Modelos LLM + Suppliers Humanos + Herramientas AI Especializadas) que reemplaza al Catastro único como motor de orquestación, (2) **Patrón Convergencia Diferida** firmado para el portfolio (proyectos arrancan autónomos con infra compartida y convergen en momentos elegidos cuando ambos prueban PMF), (3) **Catastro de Herramientas AI Especializadas** como capability transversal nueva (renderers, video gen, voice synthesis, document parsing especializado), (4) **Mapa de Ejes de Convergencia Futura** en Cap 10 documentando los ejes ya identificables del portfolio, (5) anclaje del Marketplace de Interiorismo + Roche Bobois como ejes de convergencia con CIP (no como módulos absorbidos por default).
-> **Cambios preservados de v1.1:** kernel + multi-transport, A2UI v0.9 como protocolo, ejecución consciente, captura ambient con kill switch verbal, Smart Notebook conectada al río, Modo Cripta preservación-firme/simulación-diferida, CIP anclado como primera empresa-hija, protocolo Monstruo-a-Monstruo diferido a v1.3+.
-> **Fuente de las iteraciones v1.2:** sesión Cowork-Alfredo del 2026-05-06 (post-recovery v1.1) con onboarding completo de la Capilla de 35 DSCs + Matriz de Cruces 20×20 + Inventario v3 de 20 proyectos, + iteración detonada por la realidad de Marketplace de Interiorismo + necesidad de renderizado AI con proveedores reales. Decisiones firmadas en DSC-X-006 (Convergencia Diferida) y DSC-G-007 (3 Catastros paralelos + integración herramientas AI verticales).
+> **Estado v1.3:** evolución sobre v1.2 disparada por el incidente P0 del 2026-05-06 (credenciales de Supabase hardcoded en repo público + JWT service_role en `biblia-github-motor` y `crisol-8`). Cambios estructurales nuevos: (1) **Capa de Seguridad Magna** canonizada como Capítulo 17 (DSC-S-001 a S-005 + DSC-G-008 v2 + DSC-G-009), (2) ampliación de **Tres → CUATRO Catastros paralelos** (agrega Catastro de Agentes 2026 sobre las 21 biblias canónicas — DSC-G-007 evolucionado a v1.1), (3) **Postmortem P0 como semilla operativa permanente** referenciado en `discovery_forense/INCIDENTES/`, (4) **3 interfaces operativas** del Catastro de Agentes para que Manus mismo lo use (find_best, peers_of, validate_against_spec — base técnica de la Capa Memento), (5) actualización de Sprint 88 con frase canónica de cierre humana mandatoria + DSC-S-005 cleanup default a archive antes que delete.
+> **Cambios preservados de v1.2:** arquitectura kernel + multi-transport, ejecución consciente, A2UI v0.9, captura ambient con kill switch, Modo Cripta, CIP como primera empresa-hija anclada concretamente, Patrón Convergencia Diferida (DSC-X-006), Mapa de Ejes de Convergencia Futura, Smart Rendering transversal.
+> **Fuente de las iteraciones v1.3:** sesión Cowork-Alfredo-Manus del 2026-05-06 (post v1.2) detonada por audit pre-Sprint Catastro-A de Manus Hilo Catastro que descubrió breach P0 + cascada de mitigación coordinada (rotación DB password Supabase + rotación service_role JWT + cleanup repos + audit cross-repos + 5 DSCs nuevos firmados + Sprint S-001 Security Hardening propuesto). DSC-G-008 evolved a v2 (validar antes de specs Y antes de cierre). DSC-G-007 evolved a v1.1 (3 → 4 catastros). DSC-G-009 nuevo (recomendaciones de seguridad firmadas en misma sesión).
+> **Postmortem completo:** `discovery_forense/INCIDENTES/P0_2026_05_06_credenciales_repo_publico.md`
 
 ---
 
@@ -87,21 +88,36 @@ El kernel NO diseña pantallas pre-fabricadas. Emite **intenciones + esquemas A2
 
 **No hay "diseño per pantalla" en v1.1. Hay diseño per intención + plantillas A2UI por transport.** Esto colapsa "20 pantallas que mantener" a "un catálogo de intenciones bien diseñado y N renderers por transport."
 
-### Tres Catastros paralelos como motor de orquestación (v1.2)
+### Cuatro Catastros paralelos como motor de orquestación (v1.3 — ampliado de 3 a 4)
 
-El kernel del Monstruo opera con **tres motores de orquestación paralelos**, no uno. Cada uno especializado en un dominio de selección. Firmado en DSC-G-007.
+El kernel del Monstruo opera con **cuatro motores de orquestación paralelos**, no uno. Cada uno especializado en un dominio de selección distinto. Firmado en DSC-G-007 v1.1 (ampliado del v1 original que tenía 3 catastros).
+
+**Cambio v1.2 → v1.3:** durante audit pre-Sprint Catastro-A del 2026-05-06, Manus Hilo Catastro detectó **gap conceptual**: las 21 biblias canónicas en `docs/biblias_agentes_2026/` (Claude Code, Cline, Devin, OpenAI Operator, Manus v3, Project Mariner, UI TARS, Hermes, Lindy, Metis, Neo, Laguna XS2, Perplexity Computer/Enterprise, Grok Voice, Gemini Robotics, Meta AI Agent, Agent S, Kimi K2.6, Kiro) son **AGENTES** generalistas — sistemas autónomos completos con loops propios — no son ni Modelos LLM crudos, ni Tools verticales, ni Suppliers humanos. Necesitan su propio catastro.
 
 | Catastro | Qué orquesta | Selección por | Ejemplos canónicos |
 |---|---|---|---|
 | **Catastro de Modelos LLM** (existente, v1.0+) | 50+ modelos AI generales con `confidentiality_tier` y rol macroárea | Capacidad / costo / latencia / sensibilidad | GPT-5.5 Pro, Claude Opus 4.7, Gemini 3.1 Pro, Grok 4, DeepSeek R1, Perplexity Sonar Reasoning Pro |
+| **Catastro de Agentes 2026** (NUEVO v1.3) | 21 sistemas autónomos completos con loops propios + tools nativas + capability orquestada | Capability match / costo per-action / latency / peer vs delegable | Claude Code, Cline, Devin, OpenAI Operator, Manus v3, Project Mariner, UI TARS, Hermes, Lindy, Metis, Neo, Laguna XS2, Perplexity Computer/Enterprise, Grok Voice, Gemini Robotics, Meta AI Agent, Agent S, Kimi K2.6, Kiro |
 | **Catastro de Suppliers Humanos** (nuevo v1.2) | Profesionales y empresas que ejecutan servicios reales | Capacidad disponible / reputación / SLA / cobertura geográfica / precio | Arquitectos, valuadores certificados, fotógrafos, drone operators, firmas legales por jurisdicción, contratistas, aseguradoras, verificadores de title |
 | **Catastro de Herramientas AI Especializadas** (nuevo v1.2) | Productos AI verticales líderes del mercado | Calidad output / costo / velocidad / especialidad | Renderers (RoomGPT, Modsy, Coohom, Spline AI, Luma, Polycam), video gen (Runway Gen-4, Sora 2, Veo 3), voice (ElevenLabs), document parsing (LlamaParse, Unstructured.io) |
 
-Los tres conviven bajo el mismo patrón operativo: ranking, anti-gaming, override manual posible, manifestación contextual de uso, FinOps trackeable. Cada empresa-hija invoca el Catastro correspondiente en runtime — no hardcodea. **Excepción crítica:** modelos propios del Monstruo (Capa 3 Soberanía) son infraestructura crítica del orquestador, no herramientas verticales.
+Los cuatro conviven bajo el mismo patrón operativo: ranking, anti-gaming, override manual posible, manifestación contextual de uso, FinOps trackeable. Cada empresa-hija invoca el Catastro correspondiente en runtime — no hardcodea. **Excepción crítica:** modelos propios del Monstruo (Capa 3 Soberanía) son infraestructura crítica del orquestador, no herramientas verticales.
 
-El Cockpit gana superficie nueva: **"Salud de los 3 Catastros"** — los tres motores con sus métricas de uso, tiempo de respuesta, tasa de error per-herramienta, costo acumulado, capacidad disponible.
+#### Las 3 interfaces operativas del Catastro de Agentes (NUEVO v1.3)
 
-Esto cumple Obj #7 (no reinventar rueda) + Obj #12 (soberanía agnóstica). Las herramientas AI verticales evolucionan 10x más rápido de lo que un equipo interno puede mantener; la ventaja del Monstruo es **orquestación + contexto del usuario**, no generación per se.
+El Catastro de Agentes 2026 NO es tabla informativa — es **manual operativo** que Manus consume directamente:
+
+1. **`catastro.agentes.find_best(task, capability, budget, latency)` — Catálogo de delegación.** Manus tiene tarea fuera de su zona → delega a agente óptimo (browser autónomo → Project Mariner, voice → Grok Voice, robot control → Gemini Robotics, etc.).
+
+2. **`catastro.agentes.peers_of("manus_v3")` — Espejo peer.** Manus consulta peers (Claude Code, Cline, Devin, OpenAI Operator) → loop semanal de extracción de patrones → propuesta de adopción. Auto-evolución sin reinventar.
+
+3. **`catastro.agentes.validate_against_spec(recent_decisions)` — Self-reference anti-Dory.** Antes de operación irreversible (rotación de credentials, SQL prod, deploy productivo, transacción financiera), Manus auto-valida sus decisiones recientes contra `BIBLIA_MANUS_v3_REFERENCIA.md`. Base técnica de la Capa Memento (anti-Falso-Positivo-TiDB).
+
+El Cockpit gana superficie nueva: **"Salud de los 4 Catastros"** — los cuatro motores con sus métricas de uso, tiempo de respuesta, tasa de error per-recurso, costo acumulado, capacidad disponible.
+
+Esto cumple Obj #7 (no reinventar rueda) + Obj #11 (seguridad adversarial — anti-Dory) + Obj #12 (soberanía agnóstica) + Obj #15 (Memoria Soberana). Las herramientas AI verticales evolucionan 10x más rápido de lo que un equipo interno puede mantener; la ventaja del Monstruo es **orquestación + contexto del usuario + auto-validación contra biblia canónica**, no generación per se.
+
+**Reglas de credenciales (DSC-S-001 + S-003 + S-004 anidados):** los 4 archivos JSON (`catastro_models.json`, `catastro_agentes.json`, `catastro_tools.json`, `catastro_suppliers.json`) viven en repo público SIN credenciales. Cada entry contiene SOLO metadata pública. Los secrets viven en env vars resueltas con `os.environ[VAR]` (fail loud) vía helper `kernel/security/credential_resolver.py`.
 
 ### Ejecución consciente como paradigma central
 
@@ -940,6 +956,90 @@ Lista de items que v1.2 deja explícitamente abiertos para deliberación posteri
 
 ---
 
+## Capítulo 17 — Capa de Seguridad Magna (NUEVO v1.3 — post-incidente P0)
+
+### Procedencia
+
+El 2026-05-06, durante audit pre-Sprint Catastro-A, Manus Hilo Catastro detectó que el password del DB Supabase del proyecto del Monstruo estaba hardcoded en al menos 5 scripts del repositorio público desde Sprint 51.5 (commit `afc461b`, 2026-05-03). En audit ampliado posterior, también se detectó un JWT `service_role` de Supabase con validez hasta 2036 hardcoded como default value en `biblia-github-motor/motor/github_radar.py:32-34` y replicado en `crisol-8/config/settings.py:43` (anti-patrón "default value en `os.environ.get()` con secret real").
+
+El incidente activó respuesta P0 coordinada: rotación de DB password + rotación de service_role JWT + cleanup de repos GitHub Pages acumulados (vía archive — DSC-S-005) + audit cross-repos + 5 DSCs nuevos firmados + Sprint S-001 Security Hardening propuesto.
+
+**Postmortem completo:** `discovery_forense/INCIDENTES/P0_2026_05_06_credenciales_repo_publico.md`
+
+### La capa de seguridad como capability transversal
+
+El incidente P0 expuso un gap arquitectónico: el Monstruo no tenía **Capa de Seguridad** explícita. Existían medidas dispersas (rotación de tokens, audit de credenciales) pero sin canonización ni enforcement automatizado. Esta Capa se canoniza ahora como capability transversal a todas las 4 Capas Arquitectónicas (Cimientos, Manos, Inteligencia Emergente, Soberanía), con 8 reglas inmutables y 3 mecanismos de enforcement.
+
+### 8 reglas inmutables (DSC-S-001 + AGENTS.md Regla Dura #6)
+
+1. **Cero credenciales en plaintext** en código, git history, bridge files, Notion, memory tables, logs, ni skills references.
+2. **Bóveda primaria:** 1Password / Bitwarden / Apple Keychain. Notion solo para inventario.
+3. **Anti-patrón prohibido:** `os.environ.get("VAR", "real_secret")` (DSC-S-004). Requerido `os.environ["VAR"]` fail-loud.
+4. **Pre-commit obligatorio:** gitleaks staged + trufflehog pre-push (DSC-S-002).
+5. **Cierre de sprint requiere audit:** Cowork audita contenido, no solo el reporte (DSC-G-008 v2).
+6. **Cleanup default a archive:** delete solo después de archive + 30 días + scope ampliado (DSC-S-005).
+7. **Rotación al detectar exposure:** TTL máx 12 meses para PATs, inmediata para passwords y service tokens.
+8. **Recomendaciones de seguridad firmadas en misma sesión:** PROHIBIDO recomendaciones huérfanas en chat (DSC-G-009).
+
+### 3 mecanismos de enforcement
+
+#### 1. Pre-commit hooks (defensa front-line)
+
+Cada commit pasa por `gitleaks detect --staged --redact`. Cada push pasa por `trufflehog git file://. --since-commit HEAD~5`. Bloqueo automático si match de patrón de secret. Bypass solo con `--no-verify` + justificación documentada.
+
+#### 2. Audit de cierre de sprint (defensa de revisión)
+
+DSC-G-008 v2 amplía la regla original ("validar codebase ANTES de specs") a "validar también ANTES de firmar cierre". Cuando Manus reporta verde, Cowork:
+- Lista archivos modificados con `git diff --name-only`
+- Read de cada archivo nuevo/modificado en `scripts/`, `kernel/`, `tools/`, `skills/`
+- Grep por patrones prohibidos
+- Ejecuta `bash scripts/_check_no_tokens.sh`
+- Confirma "Cowork audit content verde" antes de la frase canónica `🏛️ <NOMBRE> — DECLARADO`
+
+Sin audit de contenido, el cierre es candidato a regresión (caso paradigmático: Sprint 51.5 firmó verde con scripts vulnerables que crearon el incidente P0).
+
+#### 3. Capa Memento + auto-validación (defensa de operación crítica)
+
+Antes de operaciones irreversibles (SQL prod, rotación de credentials, deploys productivos, transacciones financieras), el agente ejecutor (Manus) auto-valida con:
+
+```python
+@requires_memento_preflight(operation="rotate_db_credentials")
+async def rotate():
+    # Internamente: catastro.agentes.validate_against_spec(recent_decisions)
+    # Si recientes decisions violan biblia canónica → raise PreflightError
+    # Si context_drift_score > 0.7 → raise ContextContaminatedError
+    ...
+```
+
+Implementado vía Catastro de Agentes 2026 (Cap 1) + decorator `@requires_memento_preflight` (módulo `tools/memento_preflight.py` propuesto en Sprint S-001).
+
+### Sprint S-001 — Security Hardening como infraestructura
+
+`bridge/sprints_propuestos/sprint_S001_security_hardening.md` implementa la Capa de Seguridad técnicamente:
+- **S-1.1** Pre-commit hooks (gitleaks + trufflehog)
+- **S-1.2** Refactor scripts (env vars sin defaults sensibles)
+- **S-1.3** Audit + cleanup de memory tables (queries SQL contra `thoughts`, `episodic`, `semantic`)
+- **S-1.4** GitHub Actions workflow `secret-scan.yml` para defensa en profundidad CI
+- **S-1.5** Documentar política en AGENTS.md
+
+ETA estimada Manus: 60-90 min reales.
+
+### Lecciones magna del incidente P0
+
+1. **Recomendaciones huérfanas son deuda.** La política de credenciales se recomendó el 2026-05-04 04:36 UTC pero NO se firmó como DSC. 48 horas después se manifestó como incidente. DSC-G-009 codifica el meta-patrón.
+
+2. **DSC-G-008 debe extenderse a "antes de cierre" además de "antes de specs".** El cierre Sprint 51.5 firmó verde con scripts vulnerables porque Cowork no auditó el contenido de los archivos pusheados, solo leyó el reporte de Manus. DSC-G-008 v2 cierra esa brecha.
+
+3. **Anti-patrón "default value con secret real" merece codificación específica.** Es peor que hardcoded directo porque oculta el secret bajo apariencia de env var. DSC-S-004 lo nombra y lo prohíbe.
+
+4. **Auditor sin self-audit es paradigma de fallo.** El script `audit_supabase_tokens.py` que pretendía auditar tokens contenía él mismo el token expuesto. Aplicable a cualquier herramienta de seguridad.
+
+5. **Rotación coordinada > rotación serial.** Rotar JWT secret en Supabase invalida ambos (anon + service_role) simultáneamente. Planeación coordinada cubre TODOS los lugares de uso de ambos antes de ejecutar el reset, minimizando downtime.
+
+6. **El catastro de Agentes 2026 + Capa Memento son defensa anti-incidente futuro.** Si Manus en sesión 8 olvida que NO debe hacer X (porque X viola biblia Manus v3), `validate_against_spec` lo detecta antes de la decisión irreversible.
+
+---
+
 ## Apéndice — Semillas y patrones detectados
 
 ### Semillas previas (preservadas de v1.0.1)
@@ -966,9 +1066,19 @@ Lista de items que v1.2 deja explícitamente abiertos para deliberación posteri
 
 **Semilla 48 — Patrón Convergencia Diferida** (firmada como DSC-X-006). Proyectos de un portfolio multi-producto arrancan autónomos con su propio mercado y velocidad, pero comparten infra crítica desde día 1 y definen API contracts de convergencia futura. La integración real ocurre en momentos elegidos cuando ambos prueban PMF — no por default, no por arquitectura forzada. Reduce deuda técnica, no fuerza integración prematura, deja que la convergencia se gane con datos. Aplicable a cualquier ecosistema multi-empresa-hija.
 
-**Semilla 49 — Tres Catastros paralelos** (firmada como DSC-G-007). Patrón arquitectónico para orquestadores AI maduros: en lugar de un Catastro único de modelos LLM, operar tres motores paralelos (Modelos LLM + Suppliers Humanos + Herramientas AI Especializadas) bajo el mismo patrón de ranking + anti-gaming + override + manifestación contextual. La ventaja del orquestador es seleccionar; nunca generar. Aplicable a cualquier sistema que coordine recursos de múltiples categorías heterogéneas.
+**Semilla 49 — Tres Catastros paralelos** (firmada como DSC-G-007 v1, ampliada a v1.1 en v1.3 doc). Patrón arquitectónico para orquestadores AI maduros: en lugar de un Catastro único de modelos LLM, operar múltiples motores paralelos bajo el mismo patrón de ranking + anti-gaming + override + manifestación contextual. La ventaja del orquestador es seleccionar; nunca generar. Aplicable a cualquier sistema que coordine recursos de múltiples categorías heterogéneas.
 
-**Semilla 50 — Smart Rendering como composición sobre los 3 Catastros.** Patrón de UX para empresas-hijas con motor visual fuerte: el sistema no genera contenido visual por sí solo — orquesta a quien sí genera, combinando las salidas de los tres Catastros + datos del usuario (Cronos) en un product display per-momento vía A2UI generative UI. Aplicable a Marketplace de Interiorismo, CIP, Roche Bobois, Kukulkán 365, futuras empresas-hijas con storytelling visual.
+**Semilla 50 — Smart Rendering como composición sobre los Catastros.** Patrón de UX para empresas-hijas con motor visual fuerte: el sistema no genera contenido visual por sí solo — orquesta a quien sí genera, combinando las salidas de los Catastros + datos del usuario (Cronos) en un product display per-momento vía A2UI generative UI. Aplicable a Marketplace de Interiorismo, CIP, Roche Bobois, Kukulkán 365, futuras empresas-hijas con storytelling visual.
+
+### Semillas nuevas firmadas en v1.3 (post-incidente P0)
+
+**Semilla 51 — Recomendaciones huérfanas son deuda** (firmada como DSC-G-009). Toda recomendación de seguridad propuesta en sesión que no se canoniza como DSC ni se descarta explícitamente queda como párrafo en chat y se olvida dentro de 24-72 horas. La deuda de canonización se manifiesta como incidente. Aplicable a cualquier hilo (Cowork, Manus, Embrión, futuros) y a cualquier área (no solo seguridad — pero seguridad es donde más duele). Cierre de sesión incluye sección obligatoria "Recomendaciones de seguridad → DSC / seed / descartado".
+
+**Semilla 52 — Auditor sin self-audit es paradigma de fallo** (firmada implícita en DSC-S-001 + S-003). Cualquier herramienta de seguridad cuyo propósito sea detectar X DEBE pasar su propio test de detección de X. El script `audit_supabase_tokens.py` que pretendía auditar tokens leakedos contenía él mismo el token expuesto — paradigma del incidente P0. Generalizable a cualquier checker, validator, sanitizer, redactor. Test obligatorio antes de declarar el tool listo: "¿este tool detectaría que hay un secret en su propio código si lo escaneara a sí mismo?".
+
+**Semilla 53 — Default a archive antes que delete** (firmada como DSC-S-005). Para cualquier operación de cleanup de namespace (repos, branches, tablas DB, archivos, env vars, jobs, pipelines), el default es archive (reversible, scope mínimo) — no delete. Delete solo después de archive + 30 días + scope ampliado + confirmación humana. Reversibilidad > expediencia. Reduce coordination cost de errores y disminuye superficie de permisos requeridos.
+
+**Semilla 54 — Anti-patrón "default value con secret real"** (firmada como DSC-S-004). El patrón `os.environ.get("VAR", "eyJ...real_secret...")` es PEOR que hardcoded directo porque oculta el secret bajo apariencia de env var, dificultando detección visual durante code review. Funciona aunque la env var falte, lo cual significa que el código sigue corriendo con el secret de código y NUNCA usa el de configuración — anulando la separación entre código y secrets. Codificación específica vale por su severidad paradigmática.
 
 ### Patrones operativos firmados
 
@@ -986,10 +1096,21 @@ Lista de items que v1.2 deja explícitamente abiertos para deliberación posteri
 
 ## Cierre del documento
 
-Este documento es la versión 1.2 de la visión del Monstruo. Refleja la conversación entre Alfredo y Cowork del 2026-05-04 al 2026-05-06, incluyendo el contexto previo procesado por Alfredo durante días anteriores + investigación web del estado del arte 2026 + iteración profunda con CIP como primera empresa-hija anclada concretamente + onboarding completo de la Capilla de 35 DSCs + Matriz de Cruces 20×20 + Inventario v3 de 20 proyectos + iteración detonada por la realidad del Marketplace de Interiorismo y la necesidad de renderizado AI con proveedores reales. Las versiones futuras incorporarán correcciones, expansiones y refinamientos.
+Este documento es la versión 1.3 de la visión del Monstruo. Refleja la conversación entre Alfredo, Cowork (Hilo A) y Manus (Hilos Catastro y Ejecutor) del 2026-05-04 al 2026-05-06, incluyendo:
+
+- El contexto previo procesado por Alfredo durante días anteriores + investigación web del estado del arte 2026
+- Iteración profunda con CIP como primera empresa-hija anclada concretamente
+- Onboarding completo de la Capilla de 44 DSCs (38 previos + 6 nuevos del incidente P0) + Matriz de Cruces 20×20 + Inventario v3 de 20 proyectos
+- Iteración detonada por la realidad del Marketplace de Interiorismo y la necesidad de renderizado AI con proveedores reales
+- **Incidente P0 del 2026-05-06** (credenciales hardcoded en repo público) detectado por Manus Hilo Catastro durante audit pre-Sprint Catastro-A → respuesta coordinada: rotación de DB password + rotación de service_role JWT + cleanup repos + audit cross-repos + 5 DSCs nuevos firmados (S-001 a S-005) + DSC-G-008 v2 ampliado + DSC-G-009 nuevo + Sprint S-001 Security Hardening propuesto + ampliación de DSC-G-007 a v1.1 (3 → 4 catastros)
+- Postmortem completo en `discovery_forense/INCIDENTES/P0_2026_05_06_credenciales_repo_publico.md`
+
+Las versiones futuras incorporarán correcciones, expansiones y refinamientos.
 
 La regla operativa final: si algo en este documento entra en conflicto con un Objetivo Maestro o con las reglas inviolables del Capítulo 0, los Objetivos y reglas ganan. Todo lo demás es revisable.
 
-El Monstruo se construye desde la disciplina, no desde la prisa.
+**El Monstruo se construye desde la disciplina, no desde la prisa.**
 
-— Cowork (Hilo A), 2026-05-06 (v1.2)
+**Y desde 2026-05-06: la disciplina incluye la canonización inmediata de toda decisión de seguridad. Las recomendaciones huérfanas son deuda que se manifiesta como incidente.**
+
+— Cowork (Hilo A), 2026-05-06 (v1.3)

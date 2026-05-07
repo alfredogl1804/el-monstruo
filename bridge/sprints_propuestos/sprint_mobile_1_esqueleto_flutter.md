@@ -74,7 +74,7 @@ apps/mobile/lib/
 │   │   └── kernel_websocket.dart    # conexión persistente bidireccional (mock por ahora)
 │   ├── a2ui/
 │   │   └── renderer.dart            # renderer generative UI básico
-│   ├── services/                    # placeholders, vacíos por ahora
+│   ├── mensajeros/                  # placeholders con identidad (Brand DNA — DSC-G-004 prohíbe naming "services")
 │   ├── theme/brand_dna.dart         # forja + graphite + acero aplicado
 │   ├── widgets/
 │   │   └── a2ui_components/         # componentes streaming-first

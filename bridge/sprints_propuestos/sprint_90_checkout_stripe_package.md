@@ -1,9 +1,63 @@
 # Sprint 90 — Stripe Checkout: Extraction a Paquete Reutilizable `@monstruo/checkout-stripe`
 
-**Estado:** Propuesto  
-**Hilo:** Ejecutor (Alfredo)  
-**ETA (actualizado):** 30-60 min reales (velocity: extraction + npm publish + docs)  
-**Objetivo Maestro:** #7 (No reinventar la rueda) + #6 (Velocidad sin sacrificar)
+**Estado:** Propuesto
+**Hilo:** Ejecutor (Manus)
+**ETA (actualizado):** 45-75 min reales (audit pre-extracción + extraction + npm publish + docs)
+**Objetivo Maestro:** #7 (No reinventar la rueda) + #6 (Velocidad sin sacrificar) + #11 (Seguridad adversarial)
+
+---
+
+## 0. Audit pre-extracción OBLIGATORIO (post-incidente P0 — DSC-G-008 v2)
+
+**Antes de extraer código, Manus DEBE auditar `like-kukulkan-tickets` por secrets hardcoded.** El incidente P0 del 2026-05-06 demostró que repos del ecosistema pueden contener secrets en plaintext (crisol-8 + biblia-github-motor confirmados). `like-kukulkan-tickets` toca código de pagos (Stripe = secrets de alta sensibilidad: `sk_live_*`, `whsec_*`, `pk_live_*`) y NUNCA fue auditado contra esos patrones.
+
+### Comandos de audit (orden obligatorio)
+
+```bash
+# 1. Clone limpio para audit aislado
+gh repo clone alfredogl1804/like-kukulkan-tickets /tmp/audit-likekukulkan-2026-05-06
+cd /tmp/audit-likekukulkan-2026-05-06
+
+# 2. Gitleaks histórico
+gitleaks detect --source . --report-path /tmp/audit-likekukulkan-gitleaks.json --verbose
+
+# 3. Trufflehog filesystem
+trufflehog filesystem /tmp/audit-likekukulkan-2026-05-06 --no-update --json > /tmp/audit-likekukulkan-trufflehog.json
+
+# 4. Grep dirigido por patrones Stripe
+grep -rn "sk_live_\|sk_test_\|whsec_\|pk_live_\|pk_test_\|rk_live_\|rk_test_" \
+  --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" \
+  --include="*.env*" --include="*.json" --include="*.yml" \
+  --exclude-dir=.git --exclude-dir=node_modules .
+
+# 5. Anti-patrón DSC-S-004 (default values con secrets reales)
+grep -rn "process\.env\.[A-Z_]*\s*||\s*['\"]\(sk_\|whsec_\|pk_\|rk_\)" \
+  --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" .
+
+# 6. DSN hardcoded (TiDB, Supabase, otros)
+grep -rn "mysql://\|postgresql://\|postgres://\|mongodb://" \
+  --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" \
+  --include="*.env*" --exclude-dir=.git --exclude-dir=node_modules .
+```
+
+### Decision tree post-audit
+
+| Resultado | Acción |
+|---|---|
+| Cero hits | Proceder con Tarea 1 (extraction). |
+| 1+ hits Stripe keys hardcoded | **STOP.** Aplicar mismo flujo que incidente P0: rotar Stripe keys (Dashboard Stripe → API keys → Roll), refactor con env vars (DSC-S-003 + S-004), commit fix, después arrancar Tarea 1. |
+| 1+ hits DSN hardcoded | Mismo flujo: rotar credenciales de DB, refactor, después extraction. |
+| Hits que parecen legítimos (placeholders en `.env.example`, tests con `sk_test_dummy`) | Documentar en bridge + proceder con Tarea 1. |
+
+### Reporte obligatorio al bridge ANTES de Tarea 1
+
+`bridge/manus_to_cowork_AUDIT_LIKEKUKULKAN_PRE_SPRINT_90_<fecha>.md` con:
+- Output de los 6 comandos de audit
+- Clasificación de cada hit (real secret / placeholder / test fixture)
+- Acciones tomadas si hubo hits reales
+- Confirmación: "audit verde, proceder con Tarea 1" o "audit con hits — rotación + refactor antes de proceder"
+
+**Sin este reporte, Sprint 90 NO arranca.** Aplica DSC-G-008 v2.
 
 ---
 

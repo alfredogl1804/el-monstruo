@@ -154,6 +154,111 @@ Lee: docs/DIVISION_RESPONSABILIDADES_HILOS.md para el detalle completo.
 
 ---
 
+# Regla Dura #6: Política de Credenciales — Cero Secrets en Plaintext
+
+Esta regla NO se puede ignorar, resumir ni omitir ante compactación de memoria.
+
+> **El Monstruo no escribe credenciales en plaintext en ningún lugar versionado o persistente. Bóveda primaria es 1Password / Bitwarden / Apple Keychain. Runtime usa env vars con fail-loud lookup. Pre-commit hooks bloquean cualquier intento de pushear secrets. Rotación inmediata al detectar exposure.**
+
+Esta regla canoniza DSC-S-001 a DSC-S-005 firmados el 2026-05-06 post-incidente P0 (ver `discovery_forense/INCIDENTES/P0_2026_05_06_credenciales_repo_publico.md`).
+
+### Reglas inmutables
+
+#### 1. Cero credenciales en plaintext en
+
+- Git history (commits, diffs, branches, tags)
+- Bridge files (`cowork_to_manus.md`, `manus_to_cowork.md`, archivos sueltos en `bridge/`)
+- Notion (no es secret manager — solo documenta inventario)
+- Memory tables (`thoughts`, `episodic`, `semantic`, `magna_cache`, `error_memory`, `verification_results`)
+- Logs (Railway, Vercel, Manus, Datadog, cualquier observabilidad)
+- Skills references (`skills/*/references/`)
+- Documentación pública (`docs/`)
+- Archivos de configuración versionados (`*.json`, `*.yaml`, `*.toml`, excepto `.env.example` con placeholders)
+
+#### 2. Bóveda primaria
+
+- **1Password / Bitwarden / Apple Keychain.**
+- Notion ÚNICAMENTE para documentación de inventario (qué token cubre qué servicio, fecha de creación, fecha de última rotación) — nunca para el token mismo.
+- Bridge files NUNCA contienen credenciales — si necesitan referenciar una, dicen "credencial X — buscar en 1Password entry Y".
+
+#### 3. Anti-patrón prohibido (DSC-S-004)
+
+```python
+# ❌ PROHIBIDO — el secret está en código aunque parezca env var:
+SUPABASE_KEY = os.environ.get("SUPA_KEY", "eyJhbGciOiJIUzI1NiIs...")
+DB_URL = os.environ.get("DB_URL", "postgresql://postgres:OLD_PASS@host/db")
+
+# ✅ REQUERIDO — fail loud si falta:
+SUPABASE_KEY = os.environ["SUPA_KEY"]
+DB_URL = os.environ["DB_URL"]
+
+# ✅ REQUERIDO — alternativa con explicit raise:
+SUPABASE_KEY = os.environ.get("SUPA_KEY")
+if not SUPABASE_KEY:
+    raise RuntimeError("SUPA_KEY env var required")
+
+# ✅ REQUERIDO — helper centralizado (recomendado):
+from kernel.security.env_validator import require_env
+SUPABASE_KEY = require_env("SUPA_KEY")
+```
+
+Default values permitidos solo para configuración no-sensible (timeouts, paths, flags, log levels, ports).
+
+#### 4. Pre-commit obligatorio (DSC-S-002)
+
+- `gitleaks detect --staged --redact` en pre-commit
+- `trufflehog git file://. --since-commit HEAD~5 --no-update --fail` en pre-push
+- GitHub Actions workflow `secret-scan.yml` en CI como defensa en profundidad
+- Bypass solo con `--no-verify` + justificación documentada en commit message + revisión Cowork
+
+#### 5. Cierre de sprint requiere audit (DSC-G-008 v2)
+
+Sprints que tocan `scripts/`, `kernel/`, `tools/`, `skills/`, `apps/`, `packages/` requieren:
+
+- Ejecución de `bash scripts/_check_no_tokens.sh` ANTES de declarar verde
+- Cowork audita **contenido** de archivos nuevos/modificados — NO solo lee el reporte de Manus
+- Si script accede a DB / API externa, verificar uso de env var en código
+- Confirmación al bridge: "Cowork audit content verde" como pre-requisito de la frase canónica `🏛️ <NOMBRE> — DECLARADO`
+
+#### 6. Cleanup default a archive (DSC-S-005)
+
+Cuando se hace cleanup de namespace (repos, branches, tablas, archivos, env vars):
+
+- **Default:** archive (reversible, requiere scope mínimo)
+- **Delete:** solo después de archive + 30 días + scope ampliado explícitamente + confirmación humana
+- **Excepciones para delete inmediato:** GDPR right-to-delete, secrets expuestos, tests temporales con prefijo claro
+- **Snapshot forense obligatorio** antes de cualquier cleanup, pusheado al bridge
+
+#### 7. Rotación
+
+| Tipo | TTL máximo | Rotación al detectar exposure |
+|---|---|---|
+| GitHub PAT | 12 meses | Inmediata |
+| DB password | n/a | Inmediata |
+| Service role JWT | reducir validez si proveedor lo permite | Inmediata |
+| API keys (OpenAI, Anthropic, Gemini, Grok, Kimi, Perplexity) | 6 meses | Inmediata |
+| Supabase Personal Access Tokens (sbp_*) | 12 meses | Inmediata |
+| Auditoría anual de Last Used | independiente de rotación | Anual |
+
+#### 8. Post-incidente
+
+- Rotar inmediatamente al detectar exposure
+- Audit logs del recurso comprometido (últimos 90 días)
+- Default sobre purga de historial git: **rotar y aceptar exposure histórica** (filter-repo es destructivo, rompe clones, requiere coordination cost). Una vez rotados los secrets, exposure histórica es informativa pero no explotable.
+- Sembrar incident como semilla en `error_memory` + cerrar con DSC firmado
+
+### Implicaciones
+
+- **Violaciones bloquean cierre de sprint.** Cualquier commit que introduzca secret en plaintext es razón válida para rechazar cierre verde y exigir refactor antes de avanzar.
+- **Recomendaciones de seguridad merecen DSC firmado en la misma sesión.** El patrón "Cowork recomienda en chat, no se canoniza" produjo el incidente P0 del 2026-05-06. Política nueva: toda recomendación de seguridad de Cowork queda como DSC firmado o se descarta explícitamente con razón documentada.
+
+Lee: `discovery_forense/INCIDENTES/P0_2026_05_06_credenciales_repo_publico.md` para el postmortem completo.
+Lee: `discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-001_*.md` a `DSC-S-005_*.md` para los DSCs canónicos.
+Lee: `discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-G-008_*.md` para la regla de validación pre-spec y pre-cierre.
+Lee: `bridge/sprints_propuestos/sprint_S001_security_hardening.md` para la implementación técnica.
+
+---
+
 # Para Ambos Hilos
 
 Los sensores y las tuberías SON parte de la experiencia y la marca. No son "infraestructura sin cara". Cuando nombras un endpoint, cuando diseñas un schema, cuando escribes un error message — estás construyendo la marca. Las 7 Capas se inyectan en todo. Las 4 Capas definen el orden. Los 14 Objetivos son el criterio de éxito.

@@ -1,6 +1,8 @@
-# DSC-S-005 — Snapshot Forense Breach SECURITY-001 (2026-05-06)
+# Snapshot Forense Pre-Rotación JWT — Breach SECURITY-001 (2026-05-06)
 
-**Tipo:** Decisión de Seguridad (Snapshot Forense)
+> **Nota de relocate (2026-05-07):** Este archivo se llamaba originalmente `_GLOBAL/DSC-S-005_snapshot_forense_breach_2026_05_06.md`. Fue movido a `INCIDENTES/` porque es un **registro forense histórico**, no una decisión normativa. El ID `DSC-S-005` quedó reservado para [`DSC-S-005_default_archive_antes_que_delete.md`](../CAPILLA_DECISIONES/_GLOBAL/DSC-S-005_default_archive_antes_que_delete.md) (Cowork — política de cleanup). Resolución documentada en `_INDEX.md` sección "Conflicto de ID DSC-S-005". Postmortem normativo del incidente: [`P0_2026_05_06_credenciales_repo_publico.md`](./P0_2026_05_06_credenciales_repo_publico.md).
+
+**Tipo:** Registro Forense Histórico (no normativo)
 **Fecha:** 2026-05-06
 **Sprint:** Emergencia SECURITY-001
 **Hilo:** Manus (Hilo Catastro / Auditor)
@@ -14,7 +16,7 @@ Durante la ejecución del Sprint Emergencia SECURITY-001 se descubrió que el pa
 
 Tras cerrar la rotación P0, el **escaneo cross-repo masivo** identificó un **segundo breach activo más grave**: un JWT con `role: service_role` del mismo proyecto Supabase (`xsumzuhwmivjgftsneov`) presente en código de 2 repos privados como **default value de `os.environ.get()`** — antipatrón clásico que invalida la separación entre código y secrets.
 
-Este DSC documenta el snapshot forense **antes de rotar el JWT secret**, para que el sprint Emergencia tenga registro auditable de todos los lugares afectados.
+Este documento (originalmente firmado como DSC-S-005, ahora reclasificado como registro forense en `INCIDENTES/`) preserva el snapshot forense **antes de rotar el JWT secret**, para que el sprint Emergencia tenga registro auditable de todos los lugares afectados.
 
 ---
 
@@ -234,6 +236,6 @@ Motivos documentados:
 
 ### Frase canónica de cierre
 
-🏛️ **DSC-S-005 BREACH SECURITY-001 — DECLARADO CERRADO VERDE**
+🏛️ **BREACH SECURITY-001 — DECLARADO CERRADO VERDE** (registro forense relocado a `INCIDENTES/`; política normativa S-005 reservada para `default-archive`)
 
 **Cierre firmado:** Manus (Hilo Catastro), 2026-05-06 ~14:32 CST

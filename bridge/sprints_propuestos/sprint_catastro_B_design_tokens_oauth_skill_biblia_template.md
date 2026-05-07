@@ -127,16 +127,77 @@ manus-oauth-pattern/
 - Refresh: Auto-refresh token when expired
 - Error handling: Invalid grant, token revoked, network errors
 
+### ⚠️ Reglas de credenciales OAuth (DSC-S-001 + DSC-S-003 + DSC-S-004)
+
+OAuth maneja secrets sensibles (`client_secret`, `refresh_token`, `access_token`). La skill DEBE respetar:
+
+1. **`client_secret` viene de env var, NUNCA hardcoded**
+   ```js
+   // ❌ PROHIBIDO (DSC-S-004 anti-patrón):
+   const CLIENT_SECRET = process.env.OAUTH_CLIENT_SECRET || "secret_real_aqui";
+
+   // ✅ REQUERIDO (fail loud):
+   const CLIENT_SECRET = process.env.OAUTH_CLIENT_SECRET;
+   if (!CLIENT_SECRET) {
+     throw new Error("OAUTH_CLIENT_SECRET env var required");
+   }
+   ```
+
+2. **`access_token` y `refresh_token` viven en bóveda primaria**
+   - 1Password / Bitwarden / Apple Keychain — NO en `.env` versionado
+   - NO en `bridge/` files
+   - NO en logs de la skill (redactar tokens en debug output)
+
+3. **Pre-commit hook con regex específico OAuth**
+
+   Agregar a `.gitleaks.toml` del repo donde se use la skill:
+   ```toml
+   [[rules]]
+   id = "oauth-bearer-token"
+   description = "Bearer token o access_token en código"
+   regex = '''(Bearer\s+)?(eyJ[a-zA-Z0-9_-]{20,}|gho_[a-zA-Z0-9]{36}|ya29\.[a-zA-Z0-9_-]+)'''
+   tags = ["oauth", "secret"]
+
+   [[rules]]
+   id = "oauth-refresh-token"
+   description = "Refresh token hardcoded"
+   regex = '''refresh_token["']?\s*[:=]\s*["'][a-zA-Z0-9_/-]{30,}["']'''
+   tags = ["oauth", "secret"]
+   ```
+
+4. **Tokens en transito están encriptados (TLS obligatorio)**
+   - Authorization URL siempre HTTPS, nunca HTTP
+   - Callback endpoint siempre HTTPS
+   - Skill rechaza configurations con `redirect_uri` que no sea HTTPS (excepto `localhost` para desarrollo)
+
+5. **Rotación según DSC-S-001 punto 6**
+   - `access_token`: TTL típico OAuth (1h), refresh automático
+   - `refresh_token`: rotación al detectar exposure, default TTL del proveedor (típico 30-90 días)
+   - `client_secret`: 12 meses máx, rotación inmediata si proveedor lo expone
+
+6. **Log redaction en handlers**
+
+   Cualquier handler que loggee debug de un response OAuth DEBE redactar tokens:
+   ```js
+   const sanitized = response.replace(
+     /(access_token|refresh_token|id_token)["']?\s*[:=]\s*["']([^"']+)["']/g,
+     '$1: "[REDACTED]"'
+   );
+   logger.debug(sanitized);
+   ```
+
 **Deliverables:**
 - Skill: Registered in Manus marketplace
-- Handlers: 4 JavaScript modules (copy-paste ready)
-- Tests: Happy path + error scenarios
+- Handlers: 4 JavaScript modules (copy-paste ready) — todos con env var lookup fail-loud
+- Tests: Happy path + error scenarios + test específico de log redaction
 - Docs: Setup guide, environment vars, troubleshooting
+- `.gitleaks.toml` con reglas OAuth incluidas
 
 **Metrics:**
 - Token exchange latency: < 500ms
 - Error recovery: > 95% (graceful fallback)
 - Coverage: OAuth 2.0 + PKCE fully spec-compliant
+- Zero leakage: gitleaks scan clean en todos los handlers + tests
 
 ---
 

@@ -119,12 +119,46 @@ class ToolEntry:
     name: str
     category: str  # "research", "code", "media", "data"
     endpoint: str
-    auth_type: str  # "api_key", "oauth", "none"
+    auth_type: str  # "api_key", "oauth", "none"  ← solo el MÉTODO, NO el secret
     rate_limit: str  # "10/min", "100/day", "unlimited"
     cost_per_call: float | None
     active: bool
     fallback_tools: List[str]  # e.g. perplexity → tavily → duckduckgo
+    # NO INCLUIR: api_key, secret, token, password — esos viven en env vars
 ```
+
+### ⚠️ Reglas de credenciales (DSC-S-001 + DSC-S-003 + DSC-S-004)
+
+**El JSON `catastro_tools.json` SOLO contiene metadata pública: `endpoint`, `auth_type`, `rate_limit`, `cost_per_call`, `fallback_tools`. NUNCA incluir el secret real (api_key, JWT, password) en el JSON.**
+
+El secret real vive en env vars del proceso runtime, una por tool:
+- `PERPLEXITY_API_KEY`, `TAVILY_API_KEY`, `OPENAI_API_KEY`, `RUNWAY_API_KEY`, etc.
+- Lookup obligatorio con `os.environ[VAR]` (fail loud) — NO `os.environ.get(VAR, "default")`
+
+**Helper canónico** (kernel/security/credential_resolver.py):
+
+```python
+def get_credentials(tool_entry: ToolEntry) -> str:
+    """Resolve credentials for a tool from env vars. Fails loud if missing."""
+    if tool_entry.auth_type == "api_key":
+        env_var_name = f"{tool_entry.key.upper()}_API_KEY"  # "PERPLEXITY_API_KEY"
+        try:
+            return os.environ[env_var_name]
+        except KeyError:
+            raise RuntimeError(
+                f"Tool '{tool_entry.key}' requires {env_var_name} env var. "
+                f"Set it in Railway/your local .env."
+            )
+    elif tool_entry.auth_type == "oauth":
+        # OAuth flow via manus-oauth-pattern skill (Sprint Catastro-B)
+        return resolve_oauth_token(tool_entry.key)
+    elif tool_entry.auth_type == "none":
+        return ""
+    else:
+        raise ValueError(f"Unknown auth_type: {tool_entry.auth_type}")
+```
+
+**El JSON queda en repo público sin riesgo. Los env vars viven en Railway / 1Password.**
 
 **Deliverables:**
 - File: `kernel/data/catastro_tools.json`
@@ -132,6 +166,8 @@ class ToolEntry:
 - Fallback chains: Cada tool tiene 2+ fallbacks automáticos
 - Integration: `external_agents.py` consulta catastro antes de dispatch
 - Monitoring: Uptimes por tool en `kernel/monitoring/tool_health.py`
+- **Helper:** `kernel/security/credential_resolver.py` con `get_credentials()` fail-loud
+- **Validation startup:** `kernel/security/env_validator.py` valida que las env vars de las tools `active=true` están definidas antes de levantar kernel
 
 **Métricas:**
 - Tool availability: 95%+
