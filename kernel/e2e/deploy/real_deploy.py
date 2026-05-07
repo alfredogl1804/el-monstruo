@@ -187,11 +187,24 @@ def render_landing_html(
     # ---- Mapping CORRECTO de los outputs reales (Sprint 88 fix DSC-G-008) ----
     # CREATIVO outputea: tono, colores_primarios, voice_attributes, elevator_pitch
     # VENTAS outputea: hero_headline, hero_subheadline, body_copy, cta_primary, cta_secondary
-    nombre = (
+    # Detecta nombre_proyecto inválido ("TBD", vacío, "El Monstruo" genérico)
+    _raw_nombre = (
         brief.get("nombre_proyecto")
         or creativo.get("nombre")  # legacy field
-        or "El Monstruo"
-    )
+        or ""
+    ).strip()
+    _NOMBRES_INVALIDOS = {"", "TBD", "tbd", "TODO", "PLACEHOLDER", "El Monstruo", "el monstruo"}
+    if _raw_nombre in _NOMBRES_INVALIDOS:
+        # Deriva nombre legible desde el primer sustantivo de la frase_input.
+        # Heurística simple: toma 2-3 palabras significativas (no stopwords) de la frase.
+        _stop = {"hace", "haz", "una", "un", "para", "de", "la", "el", "en", "con", "y", "o", "mi", "que", "al", "por", "del", "los", "las", "vender", "necesito", "quiero", "diseña", "landing", "premium", "online", "servicio"}
+        _palabras = [w for w in (frase_input or "").split() if w.lower() not in _stop and len(w) > 2]
+        if _palabras:
+            nombre = " ".join(_palabras[:2]).strip(".,;:")[:40] or "Tu Negocio"
+        else:
+            nombre = "Tu Negocio"
+    else:
+        nombre = _raw_nombre
     elevator_pitch = creativo.get("elevator_pitch") or ""
     tono = creativo.get("tono") or "directo y confiable"
     voice_attrs = creativo.get("voice_attributes") or []
@@ -237,8 +250,8 @@ def render_landing_html(
     # Usa nombre del proyecto + canal preferido + diferenciador para personalizar.
     cta_primary = ventas.get("cta_primary")
     if not cta_primary:
-        if nombre and nombre != "El Monstruo":
-            cta_primary = f"Comprar {nombre}"[:60] if len(nombre) <= 30 else "Comprar ahora"
+        if nombre and len(nombre) <= 25 and nombre not in ("Tu Negocio",):
+            cta_primary = f"Comprar {nombre}"
         else:
             cta_primary = "Comprar ahora"
     cta_secondary = ventas.get("cta_secondary")

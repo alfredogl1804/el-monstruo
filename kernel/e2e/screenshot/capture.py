@@ -80,10 +80,45 @@ def _get_storage_dir() -> Path:
     return target
 
 
+async def _wait_for_github_pages_ready(
+    *, url: str, max_wait_s: int = 90, marker: str = "<h1"
+) -> bool:
+    """Sprint 88.1: GitHub Pages tarda 30-90s en propagar nuevos paths.
+
+    Polea la URL hasta que devuelva HTTP 200 + contenga `marker` (default `<h1`)
+    indicando que la landing renderizada está sirviéndose, no un 404 cacheado.
+    Retorna True si listo, False si timeout. NO bloquea screenshot — si False, se
+    captura igual y Gemini reporta el estado real (mejor que un sleep ciego).
+    """
+    if "github.io" not in url:
+        return True  # solo aplica a GitHub Pages
+    import urllib.request
+    deadline = time.perf_counter() + max_wait_s
+    poll_interval_s = 5
+    while time.perf_counter() < deadline:
+        try:
+            def _fetch() -> tuple[int, str]:
+                req = urllib.request.Request(url, headers={"User-Agent": "MonstruoScreenshot/1.0"})
+                with urllib.request.urlopen(req, timeout=8) as resp:
+                    return resp.status, resp.read(8192).decode("utf-8", errors="ignore")
+            status, body = await asyncio.to_thread(_fetch)
+            if status == 200 and marker in body:
+                logger.info("e2e_github_pages_ready", url=url, waited_s=int(max_wait_s - (deadline - time.perf_counter())))
+                return True
+        except Exception:
+            pass
+        await asyncio.sleep(poll_interval_s)
+    logger.warning("e2e_github_pages_timeout", url=url, max_wait_s=max_wait_s)
+    return False
+
+
 async def _capture_with_playwright(
     *, url: str, output_path: Path, timeout_s: int
 ) -> int:
     """Invoca Playwright; retorna bytes escritos."""
+    # Sprint 88.1: esperar propagación GitHub Pages antes de capturar
+    await _wait_for_github_pages_ready(url=url, max_wait_s=90)
+
     try:
         from playwright.async_api import async_playwright
     except ImportError as e:
