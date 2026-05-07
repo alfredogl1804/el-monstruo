@@ -193,23 +193,24 @@ async def _capture_with_playwright(
             finally:
                 await browser.close()
 
-        # Sprint 88.2 b: subir el screenshot a 0x0.st (servicio público, anonymous,
-        # 365d retention) para inspección humana del bug de captura. URL queda
-        # en logs estructurados.
+        # Sprint 88.2 b: subir el screenshot a un servicio público para inspección
+        # humana del bug de captura. Probamos en orden: catbox.moe → tmpfiles.org
+        # (0x0.st devolvió 503). URL queda en logs estructurados.
         try:
-            import urllib.request, mimetypes
-            def _upload_to_0x0(path: str) -> str | None:
+            import urllib.request
+            def _upload_catbox(path: str) -> str | None:
                 with open(path, "rb") as f:
                     body = f.read()
-                # multipart/form-data manual
                 boundary = "----monstruoboundary7777"
                 payload = (
                     f"--{boundary}\r\n"
-                    f'Content-Disposition: form-data; name="file"; filename="shot.png"\r\n'
+                    f'Content-Disposition: form-data; name="reqtype"\r\n\r\nfileupload\r\n'
+                    f"--{boundary}\r\n"
+                    f'Content-Disposition: form-data; name="fileToUpload"; filename="shot.png"\r\n'
                     f"Content-Type: image/png\r\n\r\n"
                 ).encode() + body + f"\r\n--{boundary}--\r\n".encode()
                 req = urllib.request.Request(
-                    "https://0x0.st",
+                    "https://catbox.moe/user/api.php",
                     data=payload,
                     headers={
                         "Content-Type": f"multipart/form-data; boundary={boundary}",
@@ -217,11 +218,42 @@ async def _capture_with_playwright(
                     },
                 )
                 with urllib.request.urlopen(req, timeout=20) as resp:
-                    return resp.read().decode().strip()
-            full_url = await asyncio.to_thread(_upload_to_0x0, str(output_path))
+                    out = resp.read().decode().strip()
+                    return out if out.startswith("http") else None
+            def _upload_tmpfiles(path: str) -> str | None:
+                with open(path, "rb") as f:
+                    body = f.read()
+                boundary = "----monstruoboundary7777"
+                payload = (
+                    f"--{boundary}\r\n"
+                    f'Content-Disposition: form-data; name="file"; filename="shot.png"\r\n'
+                    f"Content-Type: image/png\r\n\r\n"
+                ).encode() + body + f"\r\n--{boundary}--\r\n".encode()
+                req = urllib.request.Request(
+                    "https://tmpfiles.org/api/v1/upload",
+                    data=payload,
+                    headers={
+                        "Content-Type": f"multipart/form-data; boundary={boundary}",
+                        "User-Agent": "MonstruoScreenshotDebug/1.0 (sprint88.2)",
+                    },
+                )
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    import json as _json
+                    out = _json.loads(resp.read().decode())
+                    return (out.get("data") or {}).get("url")
+            def _upload(path: str) -> str | None:
+                for fn in (_upload_catbox, _upload_tmpfiles):
+                    try:
+                        u = fn(path)
+                        if u:
+                            return u
+                    except Exception:
+                        continue
+                return None
+            full_url = await asyncio.to_thread(_upload, str(output_path))
             viewport_url = None
             if viewport_path:
-                viewport_url = await asyncio.to_thread(_upload_to_0x0, viewport_path)
+                viewport_url = await asyncio.to_thread(_upload, viewport_path)
             logger.info(
                 "e2e_screenshot_uploaded_for_inspection",
                 full_page_url=full_url,
