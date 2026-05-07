@@ -183,8 +183,52 @@ async def _capture_with_playwright(
                 except Exception as _diag_err:
                     logger.warning("e2e_screenshot_diag_failed", error=str(_diag_err))
                 await page.screenshot(path=str(output_path), full_page=True, type="png")
+                # Sprint 88.2 b: también capturar SOLO viewport (lo que Gemini
+                # "ve" si el screenshot full_page incluye contenido vacío abajo)
+                viewport_path = str(output_path).replace(".png", "_viewport.png")
+                try:
+                    await page.screenshot(path=viewport_path, full_page=False, type="png")
+                except Exception:
+                    viewport_path = None
             finally:
                 await browser.close()
+
+        # Sprint 88.2 b: subir el screenshot a 0x0.st (servicio público, anonymous,
+        # 365d retention) para inspección humana del bug de captura. URL queda
+        # en logs estructurados.
+        try:
+            import urllib.request, mimetypes
+            def _upload_to_0x0(path: str) -> str | None:
+                with open(path, "rb") as f:
+                    body = f.read()
+                # multipart/form-data manual
+                boundary = "----monstruoboundary7777"
+                payload = (
+                    f"--{boundary}\r\n"
+                    f'Content-Disposition: form-data; name="file"; filename="shot.png"\r\n'
+                    f"Content-Type: image/png\r\n\r\n"
+                ).encode() + body + f"\r\n--{boundary}--\r\n".encode()
+                req = urllib.request.Request(
+                    "https://0x0.st",
+                    data=payload,
+                    headers={
+                        "Content-Type": f"multipart/form-data; boundary={boundary}",
+                        "User-Agent": "MonstruoScreenshotDebug/1.0 (sprint88.2)",
+                    },
+                )
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    return resp.read().decode().strip()
+            full_url = await asyncio.to_thread(_upload_to_0x0, str(output_path))
+            viewport_url = None
+            if viewport_path:
+                viewport_url = await asyncio.to_thread(_upload_to_0x0, viewport_path)
+            logger.info(
+                "e2e_screenshot_uploaded_for_inspection",
+                full_page_url=full_url,
+                viewport_url=viewport_url,
+            )
+        except Exception as _up_err:
+            logger.warning("e2e_screenshot_upload_failed", error=str(_up_err))
     except ScreenshotPlaywrightUnavailable:
         raise
     except asyncio.TimeoutError as e:
