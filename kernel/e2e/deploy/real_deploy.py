@@ -441,13 +441,17 @@ def render_landing_html(
     secondary = palette["secondary"]
     accent = palette["accent"]
 
+    # Sprint 88.1 fix: --text DEBE ser graphite legible (#1C1917) del Brand DNA,
+    # no `secondary` que puede ser un color claro de la paleta (beige/crema)
+    # produciendo texto invisible sobre fondo blanco. La paleta de marca se
+    # usa solo para acentos: primary (botones), secondary (badges), accent (links).
     style_css = f""":root {{
   --primary: {primary};
   --secondary: {secondary};
   --accent: {accent};
   --bg: #fafaf9;
   --bg-card: #ffffff;
-  --text: {secondary};
+  --text: #1C1917;
   --text-muted: #57534e;
   --border: #e7e5e4;
   --primary-hover: color-mix(in srgb, {primary} 88%, black);
