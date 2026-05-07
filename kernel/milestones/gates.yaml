@@ -1,0 +1,62 @@
+# kernel/milestones/gates.yaml
+# Contrato ejecutable de DSC-G-014: PIPELINE TECNICO != PRODUCTO COMERCIALIZABLE.
+# Cualquier declaracion de hito pasa por declare.py, que consulta este archivo.
+# Modificar este archivo requiere PR firmado por Alfredo (CODEOWNERS pendiente).
+#
+# Origen: DSC-G-017, 2026-05-07.
+# Texto puede ser desobedecido; este YAML lo lee codigo que no negocia.
+
+version: 1
+firma_alfredo_requerida: true
+fecha_canonizacion: "2026-05-07"
+
+milestones:
+
+  pipeline_tecnico_funcional:
+    descripcion: >
+      Pipeline E2E corre end-to-end sin error. Bug raiz resuelto.
+      Tests verdes >=80% cobertura. Smoke productivo verde.
+      Validacion automatica suficiente.
+    sufre_de_subjetividad: false
+    validacion: automatica
+    gates:
+      - id: pipeline_e2e_runs_clean
+        check_kind: command
+        command: "pytest tests/e2e/ -v --tb=short --junitxml=reports/pytest_e2e.xml"
+        expected_exit: 0
+        evidence_artifact: "reports/pytest_e2e.xml"
+      - id: tests_unit_coverage_above_80
+        check_kind: coverage
+        threshold: 80.0
+        evidence_artifact: "reports/coverage.xml"
+      - id: smoke_productivo_verde
+        check_kind: http_endpoint
+        url: "https://el-monstruo-kernel.up.railway.app/health"
+        expected_status: 200
+        evidence_artifact: "reports/smoke_productivo.json"
+
+  producto_comercializable:
+    descripcion: >
+      PIPELINE TECNICO + output diferenciado per vertical (no template copy/paste) +
+      Capas Transversales operativas (no NotImplementedError) + Apple/Tesla quality +
+      validacion humana magna firmada por Alfredo.
+    sufre_de_subjetividad: true
+    validacion: humana_mandatoria
+    requires_milestone: pipeline_tecnico_funcional
+    gates:
+      - id: capas_transversales_operativas
+        check_kind: python_assertion
+        module: "kernel.transversales"
+        assertion: "all_layers_implemented(['ventas', 'seo', 'publicidad', 'tendencias', 'operaciones', 'finanzas'])"
+        evidence_artifact: "reports/transversales_status.json"
+      - id: output_diferenciado_per_vertical
+        check_kind: visual_audit
+        script: "scripts/audit_visual_diff.py"
+        urls_artifact: "reports/landing_urls_per_vertical.json"
+        min_differentiation_score: 75
+        evidence_artifact: "reports/visual_audit_diff.json"
+      - id: validacion_humana_magna
+        check_kind: human_signature
+        required_signer: "alfredo"
+        signature_artifact: "reports/firma_alfredo_producto.sig"
+        prompt_canonico: "Lo darias con orgullo en un keynote tipo Apple para tu propio negocio?"
