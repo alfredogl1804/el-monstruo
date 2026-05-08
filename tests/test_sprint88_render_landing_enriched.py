@@ -158,7 +158,12 @@ def test_render_includes_features_section_from_estrategia():
         state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
     )
     html = files["index.html"]
-    assert "Nuestro plan" in html
+    # Sprint 88.3 Fix 2/4: title se adapta al vertical detectado.
+    # 'pintura al óleo artesanal' → vertical = ecommerce → 'Cómo comprar'.
+    assert any(
+        title in html
+        for title in ["Nuestro plan", "Cómo comprar", "Cómo funciona", "Nuestro proceso"]
+    )
     assert "Fase 1" in html  # primera fase de estrategia
 
 

@@ -26,6 +26,7 @@ import unicodedata
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
+from kernel.e2e.deploy.image_gen import generate_hero_image
 
 import structlog
 from pydantic import BaseModel, ConfigDict, Field
@@ -377,6 +378,9 @@ def render_landing_html(
 
     # Sprint 88.3 Fix #3: detectar tipo de vertical para CTA + estructura adaptada.
     vertical = _detect_vertical(frase_input, brief, ventas)
+
+    # Sprint 88.3 Fix 4/4: hero image curada per vertical.
+    hero_image_url = generate_hero_image(vertical, frase_input, run_id)
     elevator_pitch = creativo.get("elevator_pitch") or ""
     tono = creativo.get("tono") or "directo y confiable"
     voice_attrs = creativo.get("voice_attributes") or []
@@ -489,15 +493,38 @@ def render_landing_html(
     <ul class="benefits-list">{items}</ul>
   </section>"""
 
-    # Features grid (de fases + stack)
+    # Features grid adaptado al vertical (Fix 2/4)
     features_html = ""
     feature_items = []
-    for f in (fases or [])[:3]:
-        if isinstance(f, str) and f.strip():
-            feature_items.append(("Fase", f))
-    for k in (kpis or [])[:2]:
-        if isinstance(k, str) and k.strip():
-            feature_items.append(("KPI", k))
+    
+    # Determinar título y labels según vertical
+    if vertical == "ecommerce":
+        section_title = "Cómo comprar"
+        labels = ["Selecciona", "Recibe", "Disfruta"]
+    elif vertical == "saas":
+        section_title = "Cómo funciona"
+        labels = ["Crea cuenta", "Configura", "Resultados"]
+    elif vertical == "servicios":
+        section_title = "Nuestro proceso"
+        labels = ["Discovery", "Estrategia", "Ejecución"]
+    else:
+        section_title = "Nuestro plan"
+        labels = ["Paso 1", "Paso 2", "Paso 3"]
+        
+    # Extraer textos de fases o usar fallbacks genéricos si no hay
+    texts = [f for f in (fases or []) if isinstance(f, str) and f.strip()]
+    if not texts:
+        texts = [
+            "Explora nuestras opciones y elige la mejor para ti.",
+            "Nos encargamos de todo para que no te preocupes.",
+            "Obtén resultados garantizados y disfruta los beneficios."
+        ]
+        
+    # Armar los items combinando labels y textos (hasta 3)
+    for i in range(min(3, len(texts))):
+        label = labels[i] if i < len(labels) else f"Paso {i+1}"
+        feature_items.append((label, texts[i]))
+        
     if feature_items:
         cards = "".join(
             f'<article class="feature-card"><div class="feature-tag">{_esc(label)}</div>'
@@ -506,7 +533,7 @@ def render_landing_html(
         )
         features_html = f"""
   <section class="features" aria-labelledby="features-title">
-    <h2 id="features-title">Nuestro plan</h2>
+    <h2 id="features-title">{_esc(section_title)}</h2>
     <div class="features-grid">{cards}</div>
   </section>"""
 
@@ -577,20 +604,23 @@ __INLINE_STYLE_CSS__
 </header>
 <main>
   <section class="hero" aria-labelledby="hero-title">
-    {publico_html}
-    <h1 id="hero-title">{_esc(hero_headline)}</h1>
-    <p class="hero-sub">{_esc(hero_subheadline)}</p>
-    <div class="hero-ctas">
-      <a class="btn btn-primary" href="#contacto">{_esc(cta_primary)}</a>
-      <a class="btn btn-ghost" href="#beneficios">{_esc(cta_secondary)}</a>
+    <div class="hero-content">
+      {publico_html}
+      <h1 id="hero-title">{_esc(hero_headline)}</h1>
+      <p class="hero-sub">{_esc(hero_subheadline)}</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#contacto">{_esc(cta_primary)}</a>
+        <a class="btn btn-ghost" href="#beneficios">{_esc(cta_secondary)}</a>
+      </div>
     </div>
+    {f'<div class="hero-image-wrapper"><img src="{hero_image_url}" alt="Hero Image para {_esc(nombre)}" class="hero-image" loading="lazy" decoding="async"></div>' if hero_image_url else ''}
   </section>
   <section class="copy" aria-labelledby="copy-title">
     <h2 id="copy-title" class="section-title">Lo que ofrecemos</h2>
     <p class="body-copy">{_esc(body_copy)}</p>
   </section>
-  <section id="beneficios" class="benefits-anchor" aria-hidden="true"></section>{beneficios_html}
-  <section id="plan" class="plan-anchor" aria-hidden="true"></section>{features_html}{insights_html}
+  {f'<section id="plan" class="plan-anchor" aria-hidden="true"></section>{features_html}<section id="beneficios" class="benefits-anchor" aria-hidden="true"></section>{beneficios_html}' if vertical == "ecommerce" else f'<section id="beneficios" class="benefits-anchor" aria-hidden="true"></section>{beneficios_html}<section id="plan" class="plan-anchor" aria-hidden="true"></section>{features_html}'}
+  {insights_html}
   <section id="contacto" class="contact" aria-labelledby="contact-title">
     <h2 id="contact-title">Hablemos</h2>
     <p class="contact-copy">{_esc(elevator_pitch or hero_subheadline)}</p>
@@ -679,6 +709,38 @@ main {{ max-width: 1080px; margin: 0 auto; padding: 0 24px; }}
   color: white;
   padding: 8px 16px;
   border-radius: var(--radius);
+}}
+.hero {{
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  align-items: center;
+  text-align: center;
+  padding: 60px 0;
+}}
+@media (min-width: 768px) {{
+  .hero {{
+    flex-direction: row;
+    text-align: left;
+    align-items: center;
+    justify-content: space-between;
+  }}
+  .hero-content {{
+    flex: 1;
+    max-width: 50%;
+  }}
+  .hero-image-wrapper {{
+    flex: 1;
+    max-width: 45%;
+  }}
+}}
+.hero-image {{
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  object-fit: cover;
+  aspect-ratio: 4/3;
 }}
 .site-header nav a.nav-cta:hover {{ background: var(--primary-hover); color: white; }}
 

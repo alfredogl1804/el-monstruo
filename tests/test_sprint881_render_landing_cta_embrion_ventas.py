@@ -211,8 +211,11 @@ class TestRenderLandingDefensivoVentasVacio:
         html = files["index.html"]
         # Hero cae al elevator_pitch
         assert "Pitch fallback" in html
-        # CTA primary usa el nombre del proyecto
-        assert "Comprar FallbackCo" in html
+        # Sprint 88.3 Fix 1/4: CTA primary se adapta al vertical detectado.
+        # 'Test fallback' → vertical = generico → 'Empezar ahora'.
+        # NO debe concatenarse con el nombre del proyecto (eso era el bug DSC-G-013).
+        assert "Empezar ahora" in html or "Comprar ahora" in html or "Agendar llamada" in html
+        assert "Comprar FallbackCo" not in html  # bug viejo NO debe regresar
 
     def test_ventas_solo_propuesta_valor_minima(self):
         state = {
