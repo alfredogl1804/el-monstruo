@@ -25,7 +25,7 @@ import time
 import unicodedata
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import structlog
 from pydantic import BaseModel, ConfigDict, Field
@@ -158,6 +158,182 @@ def _extract_brand_palette(creativo: Dict[str, Any]) -> Dict[str, str]:
     return {"primary": primary, "secondary": secondary, "accent": accent}
 
 
+# ============================================================================
+# Sprint 88.3 helpers — Vertical detection + sanitized name + CTA per vertical
+# ============================================================================
+
+# Verbos conjugados comunes en español que NO deben aparecer como inicio de un "nombre" derivado.
+_VERBOS_PROHIBIDOS = {
+    # vender / comprar / ofrecer
+    "vendo", "vendemos", "vende", "venden", "vender", "vendi", "vendia",
+    "compro", "compramos", "compra", "compran", "comprar",
+    "ofrezco", "ofrecemos", "ofrece", "ofrecen", "ofrecer",
+    # hacer / diseñar / crear
+    "hago", "hacemos", "hace", "hacen", "hacer", "haz",
+    "diseño", "diseñamos", "diseña", "diseñan", "diseñar",
+    "creo", "creamos", "crea", "crean", "crear",
+    # querer / necesitar / construir
+    "quiero", "queremos", "quiere", "quieren", "querer",
+    "necesito", "necesitamos", "necesita", "necesitan", "necesitar",
+    "construir", "construyo", "construimos", "construye",
+    # tener / dar / hacer
+    "tengo", "tenemos", "tiene", "tienen", "tener",
+    "doy", "damos", "dar",
+    # action keywords for product/landing input
+    "vamos", "voy", "somos", "soy", "es", "son", "hay",
+    "genera", "generar", "generamos",
+    "lanzar", "lanzo", "lanzamos",
+    "abrir", "abro", "abrimos",
+    "ayudo", "ayudamos", "ayuda", "ayudar",
+    "enseño", "enseñamos", "enseña", "enseñar",
+    "cobro", "cobramos", "cobra", "cobrar",
+}
+
+# Stopwords gramaticales/funcionales que no aportan al "nombre" del proyecto.
+_STOPWORDS_NOMBRE = {
+    "hace", "haz", "una", "un", "para", "de", "la", "el", "en", "con", "y", "o",
+    "mi", "que", "al", "por", "del", "los", "las", "vender", "necesito", "quiero",
+    "diseña", "landing", "premium", "online", "servicio", "tienda", "web",
+    "sitio", "plataforma", "app", "sistema", "producto", "negocio", "empresa",
+    "como", "porque", "sin", "sobre", "entre", "hasta", "desde", "durante",
+}
+
+
+def _derive_project_name(frase_input: str) -> str:
+    """Deriva un nombre legible y sanitizado desde la frase de input.
+
+    Sprint 88.3 Fix #1: filtra verbos conjugados que producirían CTAs absurdos
+    como "Comprar Vendemos joyeria". Toma 1–2 palabras significativas (no verbos,
+    no stopwords, no preposiciones) en título case.
+    """
+    if not frase_input:
+        return "Tu Negocio"
+    palabras_filtradas: List[str] = []
+    for w in frase_input.split():
+        w_clean = w.strip(".,;:!?\"'()¡¿").lower()
+        if not w_clean or len(w_clean) <= 2:
+            continue
+        if w_clean in _STOPWORDS_NOMBRE:
+            continue
+        if w_clean in _VERBOS_PROHIBIDOS:
+            continue
+        # También filtra cualquier palabra con sufijo claro de verbo conjugado
+        # (-amos, -emos, -imos en posición inicial cuando está al principio).
+        if w_clean.endswith(("amos", "emos", "imos", "éis")) and len(w_clean) > 5:
+            continue
+        palabras_filtradas.append(w.strip(".,;:!?\"'()¡¿"))
+        if len(palabras_filtradas) >= 2:
+            break
+    if not palabras_filtradas:
+        return "Tu Negocio"
+    nombre = " ".join(palabras_filtradas).strip().title()[:40]
+    return nombre or "Tu Negocio"
+
+
+def _matches_keyword(text: str, keyword: str) -> bool:
+    """Match keyword como palabra completa (word boundary) o substring si tiene espacio.
+
+    Sprint 88.3 Fix #1.1: evita falsos positivos como 'demo' matcheando 'vendemos'.
+    """
+    if " " in keyword:
+        return keyword in text
+    pattern = r"\b" + re.escape(keyword) + r"\b"
+    return bool(re.search(pattern, text))
+
+
+def _detect_vertical(
+    frase_input: str,
+    brief: Dict[str, Any],
+    ventas: Dict[str, Any],
+) -> str:
+    """Detecta el tipo de vertical del negocio para adaptar CTA y estructura.
+
+    Returns one of: 'ecommerce' | 'saas' | 'servicios' | 'local' | 'generico'.
+
+    Sprint 88.3 Fix #1.1: usa word boundaries para evitar substring matches
+    ("demo" matcheando "vendemos", "api" matcheando "apicultor").
+    """
+    text_pool = " ".join(
+        str(x) for x in [
+            frase_input,
+            brief.get("problema", ""),
+            brief.get("solucion", ""),
+            brief.get("publico_objetivo", ""),
+            brief.get("categoria", ""),
+            ventas.get("propuesta_valor", {}).get("statement", "")
+            if isinstance(ventas.get("propuesta_valor"), dict)
+            else "",
+        ]
+    ).lower()
+
+    # Señales ecommerce — chequeadas PRIMERO (es lo más común en LATAM SMB)
+    ecommerce_keywords = (
+        "venta", "vender", "vendo", "vendemos", "tienda", "shop",
+        "producto", "productos", "catálogo", "catalogo",
+        "joyería", "joyeria", "ropa", "moda", "calzado", "accesorios",
+        "pintura", "obra", "arte", "artesanía", "hecho a mano",
+        "envío", "shipping", "checkout", "carrito", "ecommerce", "e-commerce",
+    )
+    if any(_matches_keyword(text_pool, k) for k in ecommerce_keywords):
+        return "ecommerce"
+
+    # Señales SaaS / educación digital
+    saas_keywords = (
+        "saas", "software", "plataforma", "webapp",
+        "curso online", "cursos online", "academia online", "e-learning",
+        "suscripción", "subscription", "trial gratis",
+        "dashboard", "crm", "erp", "automatización",
+        "app móvil", "aplicación móvil", "sistema saas",
+    )
+    if any(_matches_keyword(text_pool, k) for k in saas_keywords):
+        return "saas"
+
+    # Señales servicios profesionales (B2B / coaching / consultoría)
+    servicios_keywords = (
+        "coaching", "consultoría", "asesoría", "mentoría",
+        "agencia", "freelance", "servicio profesional", "despacho",
+        "abogado", "contador", "arquitecto", "diseñador", "developer",
+        "b2b", "empresarial", "ejecutivo", "cto", "ceo", "cfo",
+    )
+    if any(_matches_keyword(text_pool, k) for k in servicios_keywords):
+        return "servicios"
+
+    # Señales local business (café, restaurante, salon, gym)
+    local_keywords = (
+        "café", "cafe", "cafetería", "restaurante", "bar", "cocina",
+        "salon", "salón de belleza", "barbería", "spa", "gym", "gimnasio",
+        "taller", "local", "sucursal", "reservar mesa",
+    )
+    if any(_matches_keyword(text_pool, k) for k in local_keywords):
+        return "local"
+
+    return "generico"
+
+
+def _cta_primary_for_vertical(vertical: str, nombre: str = "") -> str:
+    """CTA principal adaptado al tipo de vertical. Sprint 88.3 Fix #1."""
+    mapping = {
+        "ecommerce": "Comprar ahora",
+        "saas": "Empezar gratis",
+        "servicios": "Agendar llamada",
+        "local": "Visitarnos",
+        "generico": "Empezar ahora",
+    }
+    return mapping.get(vertical, "Empezar ahora")
+
+
+def _cta_secondary_for_vertical(vertical: str) -> str:
+    """CTA secundario adaptado al tipo de vertical. Sprint 88.3 Fix #1."""
+    mapping = {
+        "ecommerce": "Ver catálogo",
+        "saas": "Ver demo",
+        "servicios": "Ver portafolio",
+        "local": "Cómo llegar",
+        "generico": "Conocer más",
+    }
+    return mapping.get(vertical, "Conocer más")
+
+
 def render_landing_html(
     *,
     state: Dict[str, Any],
@@ -195,16 +371,12 @@ def render_landing_html(
     ).strip()
     _NOMBRES_INVALIDOS = {"", "TBD", "tbd", "TODO", "PLACEHOLDER", "El Monstruo", "el monstruo"}
     if _raw_nombre in _NOMBRES_INVALIDOS:
-        # Deriva nombre legible desde el primer sustantivo de la frase_input.
-        # Heurística simple: toma 2-3 palabras significativas (no stopwords) de la frase.
-        _stop = {"hace", "haz", "una", "un", "para", "de", "la", "el", "en", "con", "y", "o", "mi", "que", "al", "por", "del", "los", "las", "vender", "necesito", "quiero", "diseña", "landing", "premium", "online", "servicio"}
-        _palabras = [w for w in (frase_input or "").split() if w.lower() not in _stop and len(w) > 2]
-        if _palabras:
-            nombre = " ".join(_palabras[:2]).strip(".,;:")[:40] or "Tu Negocio"
-        else:
-            nombre = "Tu Negocio"
+        nombre = _derive_project_name(frase_input)
     else:
         nombre = _raw_nombre
+
+    # Sprint 88.3 Fix #3: detectar tipo de vertical para CTA + estructura adaptada.
+    vertical = _detect_vertical(frase_input, brief, ventas)
     elevator_pitch = creativo.get("elevator_pitch") or ""
     tono = creativo.get("tono") or "directo y confiable"
     voice_attrs = creativo.get("voice_attributes") or []
@@ -246,22 +418,18 @@ def render_landing_html(
     else:
         body_copy = elevator_pitch or frase_input
 
-    # CTAs contextuales — derivados del proyecto, no genéricos.
-    # Usa nombre del proyecto + canal preferido + diferenciador para personalizar.
+    # CTAs contextuales — derivados del vertical y del proyecto, no genéricos.
+    # Sprint 88.3 Fix #1: nunca usar f"Comprar {nombre}" sin sanitización (bug "Comprar Vendemos joyeria").
+    # CTAs adaptados al tipo de vertical (ecommerce/saas/servicios/local).
     cta_primary = ventas.get("cta_primary")
     if not cta_primary:
-        if nombre and len(nombre) <= 25 and nombre not in ("Tu Negocio",):
-            cta_primary = f"Comprar {nombre}"
-        else:
-            cta_primary = "Comprar ahora"
+        cta_primary = _cta_primary_for_vertical(vertical, nombre)
     cta_secondary = ventas.get("cta_secondary")
     if not cta_secondary:
         if primer_canal:
             cta_secondary = f"Ver en {primer_canal}"[:60]
-        elif pv_beneficios:
-            cta_secondary = "Ver catálogo"
         else:
-            cta_secondary = "Conocer más"
+            cta_secondary = _cta_secondary_for_vertical(vertical)
 
     publico = brief.get("publico_objetivo") or brief.get("publico") or ""
     problema = brief.get("problema") or ""
