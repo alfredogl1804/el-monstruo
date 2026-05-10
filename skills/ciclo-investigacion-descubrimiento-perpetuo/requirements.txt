@@ -16,4 +16,4 @@ google-genai>=1.10.0  # validated 2026-04-17
 
 # Data
 pyyaml>=6.0.2     # validated 2026-04-17
-tiktoken>=0.9.0   # validated 2026-04-17
+tiktoken>=0.12.0   # validated 2026-04-17
