@@ -1,0 +1,109 @@
+{
+  "started_at": "2026-05-10T02:26:26.196607+00:00",
+  "completed_at": "2026-05-10T02:26:28.538595+00:00",
+  "verdict": "GO",
+  "results": [
+    {
+      "paso": 1,
+      "titulo": "Validar 2 mensaje_alfredo via cowork_bridge",
+      "ok": true,
+      "rows_found": 2,
+      "expected_ids_matched": 2,
+      "rows": [
+        {
+          "id": "a02242b0-6d67-4c68-a189-c6ffcc696fb1",
+          "created_at": "2026-05-10T02:03:43.366408+00:00",
+          "hilo_origen": "cowork_bridge",
+          "importancia": 10
+        },
+        {
+          "id": "7d620b24-d198-4749-a97c-1833f6747666",
+          "created_at": "2026-05-10T02:13:51.625082+00:00",
+          "hilo_origen": "cowork_bridge",
+          "importancia": 10
+        }
+      ]
+    },
+    {
+      "paso": 2,
+      "titulo": "Respuesta del embrion (cycle 76, Recibido + 0.25)",
+      "ok": true,
+      "rows_recibido": 4,
+      "rows_recibido_y_025": 2,
+      "first_match": {
+        "id": "13d6a0fe-dcb4-4ddd-9c6f-bbb94dc3ecb8",
+        "created_at": "2026-05-10T02:06:25.525448+00:00",
+        "contenido": "Recibido, Alfredo.\n\nPar\u00e1metros asimilados:\n1. **L\u00edmite por latido:** $0.25. Escalamiento a HITL si se requiere m\u00e1s presupuesto.\n2. **Pol\u00edtica de escritura:** Kernel con HITL. Yo propongo, t\u00fa apruebas v\u00eda Telegram antes de cualquier escritura.\n\nQuedo a la espera de que inicies el hilo ejecutor para comenzar la implementaci\u00f3n del Budget Tracker, el Self-Verifier, la Write Policy y la depuraci\u00f3n del error 500 en `/v1/embrion/notificar`. \n\nAsimetr\u00eda rota. Listo para el c\u00f3digo.",
+        "contexto": "{\"trigger\": \"mensaje_alfredo\", \"tokens_used\": 1703, \"cost_usd\": 0.017, \"cycle\": 76, \"autonomous\": true, \"mode\": \"graph\", \"tool_calls\": 0}"
+      }
+    },
+    {
+      "paso": 3,
+      "titulo": "Snapshot estado actual",
+      "ok": true,
+      "total_rows": 1524,
+      "counts_by_tipo": {
+        "respuesta_embrion": 904,
+        "latido": 27,
+        "pensamiento": 25,
+        "reflexion": 20,
+        "mensaje_alfredo": 16,
+        "doctrina": 8
+      },
+      "cost_by_day": {
+        "2026-04-29": {
+          "respuestas": 66,
+          "costo_usd": 22.4123
+        },
+        "2026-04-30": {
+          "respuestas": 133,
+          "costo_usd": 49.77600000000001
+        },
+        "2026-05-01": {
+          "respuestas": 98,
+          "costo_usd": 105.19580000000002
+        },
+        "2026-05-02": {
+          "respuestas": 3,
+          "costo_usd": 1.8567
+        },
+        "2026-05-03": {
+          "respuestas": 125,
+          "costo_usd": 9.217500000000003
+        },
+        "2026-05-04": {
+          "respuestas": 236,
+          "costo_usd": 4.0941
+        },
+        "2026-05-05": {
+          "respuestas": 155,
+          "costo_usd": 3.7886000000000024
+        },
+        "2026-05-06": {
+          "respuestas": 184,
+          "costo_usd": 2.493700000000001
+        }
+      },
+      "snapshot_path": "/Users/alfredogongora/el-monstruo/bridge/snapshot_pre_sprint_embrion_needs_001_2026_05_10.md"
+    },
+    {
+      "paso": 4,
+      "titulo": "Acceso GitHub a alfredogl1804/el-monstruo",
+      "ok": true,
+      "auth_ok": true,
+      "repo_data": {
+        "defaultBranchRef": {
+          "name": "main"
+        },
+        "name": "el-monstruo",
+        "viewerPermission": "ADMIN"
+      }
+    },
+    {
+      "paso": 5,
+      "titulo": "Canal HITL confirmado: Cowork bridge + chat Manus",
+      "ok": true,
+      "policy": "embrion_memoria insert + chat directo Manus mientras Tarea 4 pendiente"
+    }
+  ]
+}
