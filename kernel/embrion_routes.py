@@ -1139,3 +1139,209 @@ async def listar_proposals(
     except Exception as e:
         logger.error("embrion_list_proposals_failed", error=str(e))
         raise HTTPException(500, f"Error listando proposals: {str(e)[:200]}")
+
+
+
+# ════════════════════════════════════════════════════════════════════
+# Tarea 4 — Telegram Webhook for HITL approval flow
+# ════════════════════════════════════════════════════════════════════
+# Endpoint: POST /v1/embrion/telegram/webhook
+#   Receives callback_query updates from Telegram when Alfredo presses
+#   the "Aprobar" or "Rechazar" button on an HITL proposal message.
+#
+# Security model:
+#   1. X-Telegram-Bot-Api-Secret-Token header MUST match TELEGRAM_WEBHOOK_SECRET
+#      env var. If env var is unset, webhook is DISABLED (returns 503).
+#   2. callback_query.from.id MUST match TELEGRAM_CHAT_ID env var.
+#      Only Alfredo can approve/reject. Other users get 200/denied.
+#   3. callback_data MUST match strict pattern: ^(approve|reject):<uuid>$
+# ════════════════════════════════════════════════════════════════════
+
+
+@router.post("/telegram/webhook")
+async def telegram_webhook(request: Request):
+    """Receive Telegram callback_query for HITL approval/rejection.
+
+    See module-level comment block for security and flow details.
+    """
+    import os  # noqa: PLC0415
+
+    # 1) Verify secret token (defense against forged requests)
+    expected_secret = os.environ.get("TELEGRAM_WEBHOOK_SECRET", "").strip()
+    if not expected_secret:
+        logger.warning(
+            "telegram_webhook_disabled",
+            reason="TELEGRAM_WEBHOOK_SECRET unset",
+        )
+        raise HTTPException(503, "Telegram webhook is disabled (missing secret config)")
+
+    received_secret = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
+    if received_secret != expected_secret:
+        logger.warning(
+            "telegram_webhook_secret_mismatch",
+            received_len=len(received_secret),
+        )
+        raise HTTPException(401, "Invalid X-Telegram-Bot-Api-Secret-Token header")
+
+    # 2) Parse update body
+    try:
+        update = await request.json()
+    except Exception as e:  # noqa: BLE001
+        logger.warning("telegram_webhook_bad_json", error=str(e))
+        raise HTTPException(400, "Body is not valid JSON")
+
+    if not isinstance(update, dict):
+        raise HTTPException(400, "Update must be a JSON object")
+
+    callback_query = update.get("callback_query")
+    if not callback_query:
+        update_type = next(
+            (k for k in update if k not in ("update_id",)),
+            "unknown",
+        )
+        logger.info(
+            "telegram_webhook_ignored_update",
+            update_id=update.get("update_id"),
+            update_type=update_type,
+        )
+        return {"ok": True, "ignored": True, "type": update_type}
+
+    callback_id = callback_query.get("id", "")
+    callback_data = callback_query.get("data", "")
+    from_user = callback_query.get("from", {}) or {}
+    from_user_id = str(from_user.get("id", ""))
+    message = callback_query.get("message", {}) or {}
+    chat_id = str((message.get("chat") or {}).get("id", ""))
+    message_id = message.get("message_id")
+
+    # 3) Verify the user is Alfredo
+    expected_chat_id = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+    if expected_chat_id and from_user_id != expected_chat_id:
+        logger.warning(
+            "telegram_webhook_unauthorized_user",
+            from_user_id=from_user_id,
+            expected_chat_id=expected_chat_id,
+        )
+        try:
+            from kernel.runner.telegram_notifier import TelegramNotifier  # noqa: PLC0415
+            await TelegramNotifier().answer_callback(
+                callback_id, text="No autorizado.", show_alert=True,
+            )
+        except Exception:  # noqa: BLE001
+            pass
+        return {"ok": True, "denied": True, "reason": "unauthorized"}
+
+    # 4) Parse callback_data
+    if ":" not in callback_data:
+        logger.warning("telegram_webhook_bad_callback_data", data=callback_data[:100])
+        return {"ok": True, "ignored": True, "reason": "bad_callback_data"}
+
+    action, _, proposal_id = callback_data.partition(":")
+    action = action.strip().lower()
+    proposal_id = proposal_id.strip()
+
+    if action not in {"approve", "reject"}:
+        logger.warning("telegram_webhook_unknown_action", action=action)
+        return {"ok": True, "ignored": True, "reason": "unknown_action"}
+
+    if len(proposal_id) < 8 or len(proposal_id) > 64:
+        logger.warning("telegram_webhook_bad_proposal_id", length=len(proposal_id))
+        return {"ok": True, "ignored": True, "reason": "bad_proposal_id"}
+
+    _ensure_db()
+
+    # 5) Apply action (reuse existing approve/reject logic from write_policy module)
+    actor_id = f"telegram:{from_user_id}"
+    result_summary: str
+    success: bool = False
+
+    try:
+        current = await _wp_get_proposal(proposal_id)
+        if not current:
+            result_summary = f"Proposal `{proposal_id[:8]}` no encontrada."
+        elif current["approval_status"] != "pending":
+            result_summary = (
+                f"Proposal `{proposal_id[:8]}` ya esta en estado "
+                f"*{current['approval_status']}* — no se puede {action}."
+            )
+        elif action == "approve":
+            update_payload = {
+                "approval_status": "approved",
+                "approved_by": actor_id,
+                "approved_at": datetime.now(timezone.utc).isoformat(),
+            }
+            updated = await _wp_update_proposal(proposal_id, "pending", update_payload)
+            if updated:
+                success = True
+                result_summary = (
+                    f"Aprobada por Alfredo (via Telegram)\nID: `{proposal_id[:8]}`"
+                )
+                logger.info(
+                    "embrion_proposal_approved_via_telegram",
+                    proposal_id=proposal_id,
+                    actor=actor_id,
+                )
+            else:
+                result_summary = f"Race condition aprobando `{proposal_id[:8]}` — reintenta."
+        else:
+            update_payload = {
+                "approval_status": "rejected",
+                "approved_by": actor_id,
+                "approved_at": datetime.now(timezone.utc).isoformat(),
+                "rejection_reason": "Rechazada via Telegram (sin razon explicita)",
+            }
+            updated = await _wp_update_proposal(proposal_id, "pending", update_payload)
+            if updated:
+                success = True
+                result_summary = (
+                    f"Rechazada por Alfredo (via Telegram)\nID: `{proposal_id[:8]}`"
+                )
+                logger.info(
+                    "embrion_proposal_rejected_via_telegram",
+                    proposal_id=proposal_id,
+                    actor=actor_id,
+                )
+            else:
+                result_summary = f"Race condition rechazando `{proposal_id[:8]}` — reintenta."
+    except Exception as e:  # noqa: BLE001
+        logger.error(
+            "telegram_webhook_action_exception",
+            action=action,
+            proposal_id=proposal_id,
+            error=str(e),
+        )
+        result_summary = f"Error procesando `{proposal_id[:8]}`: {str(e)[:100]}"
+
+    # 6) Answer callback + edit message (best-effort, non-fatal)
+    try:
+        from kernel.runner.telegram_notifier import TelegramNotifier  # noqa: PLC0415
+        notifier = TelegramNotifier()
+
+        if success and action == "approve":
+            toast_text = "Aprobada"
+        elif success and action == "reject":
+            toast_text = "Rechazada"
+        else:
+            toast_text = "Sin efecto"
+        await notifier.answer_callback(callback_id, text=toast_text, show_alert=False)
+
+        if chat_id and message_id:
+            await notifier.edit_message_text(
+                chat_id=chat_id,
+                message_id=int(message_id),
+                text=result_summary,
+                parse_mode="Markdown",
+                remove_keyboard=True,
+            )
+    except Exception as e:  # noqa: BLE001
+        logger.warning(
+            "telegram_webhook_post_action_notify_failed",
+            error=str(e),
+        )
+
+    return {
+        "ok": True,
+        "action": action,
+        "proposal_id": proposal_id,
+        "success": success,
+    }
