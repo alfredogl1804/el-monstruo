@@ -922,7 +922,9 @@ async def crear_proposal(req: ProposeRequest):
 
         proposal_id = str(inserted["id"])
 
-        # 3) Notificación HITL (fallback cowork_bridge: insert a embrion_memoria)
+        # 3) Notificación HITL multi-canal (Tarea 4 — 2026-05-10)
+        # Doctrina: 2 canales independientes garantizan resiliencia.
+        # cowork_bridge (insert a embrion_memoria) + telegram (botones inline).
         notify_text = (
             f"[HITL EMBRION] Proposal {proposal_id[:8]} requiere aprobación.\n"
             f"Tipo: {req.proposal_type} | Riesgo: {req.risk_level}\n"
@@ -931,6 +933,9 @@ async def crear_proposal(req: ProposeRequest):
             f"Aprobar: POST /v1/embrion/approve/{proposal_id}\n"
             f"Listar pending: GET /v1/embrion/proposals"
         )
+        notified_channels: list[str] = []
+
+        # Canal 1: cowork_bridge (insert a embrion_memoria)
         try:
             await _db.insert(TABLE, {
                 "tipo": "respuesta_embrion",
@@ -944,16 +949,70 @@ async def crear_proposal(req: ProposeRequest):
                     "risk_level": req.risk_level,
                 }),
             })
-            await _db.update(
-                table=WRITE_PROPOSALS_TABLE,
-                data={
-                    "notified_at": datetime.now(timezone.utc).isoformat(),
-                    "notified_via": "cowork_bridge",
-                },
-                filters={"id": proposal_id},
-            )
+            notified_channels.append("cowork_bridge")
         except Exception as exc:  # noqa: BLE001
-            logger.warning("embrion_propose_notify_failed", proposal_id=proposal_id, error=str(exc))
+            logger.warning(
+                "embrion_propose_notify_cowork_bridge_failed",
+                proposal_id=proposal_id,
+                error=str(exc),
+            )
+
+        # Canal 2: telegram (botones inline Aprobar/Rechazar) — Tarea 4
+        try:
+            from kernel.runner.telegram_notifier import TelegramNotifier  # noqa: PLC0415
+            tg_notifier = TelegramNotifier()
+            if tg_notifier.enabled:
+                proposal_for_tg = {
+                    "id": proposal_id,
+                    "summary": req.summary,
+                    "risk_level": req.risk_level,
+                    "proposal_type": req.proposal_type,
+                    "expires_at": expires_at,
+                }
+                tg_result = await tg_notifier.send_proposal_for_hitl(proposal_for_tg)
+                if tg_result and tg_result.get("ok"):
+                    notified_channels.append("telegram")
+                else:
+                    logger.warning(
+                        "embrion_propose_notify_telegram_send_failed",
+                        proposal_id=proposal_id,
+                        result=tg_result,
+                    )
+            else:
+                logger.info(
+                    "embrion_propose_notify_telegram_disabled",
+                    proposal_id=proposal_id,
+                    hint="TELEGRAM_BOT_TOKEN/CHAT_ID not set",
+                )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "embrion_propose_notify_telegram_failed",
+                proposal_id=proposal_id,
+                error=str(exc),
+            )
+
+        # Persist which channels succeeded
+        if notified_channels:
+            try:
+                await _db.update(
+                    table=WRITE_PROPOSALS_TABLE,
+                    data={
+                        "notified_at": datetime.now(timezone.utc).isoformat(),
+                        "notified_via": ",".join(notified_channels),
+                    },
+                    filters={"id": proposal_id},
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "embrion_propose_mark_notified_failed",
+                    proposal_id=proposal_id,
+                    error=str(exc),
+                )
+        else:
+            logger.error(
+                "embrion_propose_all_channels_failed",
+                proposal_id=proposal_id,
+            )
 
         logger.info(
             "embrion_proposed",
