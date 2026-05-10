@@ -16,7 +16,7 @@ pydantic>=2.11.0,<3.0.0
 structlog>=25.1.0,<26.0.0
 
 # YAML config parsing
-pyyaml>=6.0.2,<7.0.0
+pyyaml>=6.0.3,<7.0.0
 
 # AI model clients (used by CIDP scripts)
 openai>=1.82.0,<2.0.0
