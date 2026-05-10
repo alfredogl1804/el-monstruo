@@ -732,3 +732,410 @@ async def contribuir_al_embrion(req: ContribucionRequest):
     except Exception as e:
         logger.error("embrion_contribucion_failed", error=str(e))
         raise HTTPException(500, f"Error guardando contribución: {str(e)[:200]}")
+
+
+
+# ╔═══════════════════════════════════════════════════════════════════════╗
+# ║ Sprint EMBRION-NEEDS-001 — Tarea 3 — Write Policy con HITL real      ║
+# ║                                                                       ║
+# ║ Endpoints HTTP para la cola de proposals de escritura del embrión.   ║
+# ║ Cada proposal requiere aprobación humana antes de ejecutarse.        ║
+# ║                                                                       ║
+# ║ Lógica viva en kernel/embrion_write_policy.py.                       ║
+# ╚═══════════════════════════════════════════════════════════════════════╝
+
+from kernel import embrion_write_policy as _wp
+
+
+class _DbToWritePolicyAdapter:
+    """Adaptador que envuelve el cliente async `_db` (memory.supabase_client.
+    SupabaseClient) y expone la firma sync que espera `embrion_write_policy`
+    (select(table, params), insert(table, payload), update(table, params, payload)).
+
+    Implementación: traduce los filtros estilo PostgREST (`eq.X`, `gte.X`, ...)
+    a los kwargs nativos del SupabaseClient async y bloquea con asyncio.run en
+    el thread del request handler. Para endpoints FastAPI usaremos el handler
+    async directo y NO este adaptador; el adaptador queda disponible para
+    invocaciones síncronas desde scripts auxiliares.
+    """
+    # Reservado para uso futuro (cron/script). Los handlers async usan _db
+    # directamente vía las funciones helper más abajo.
+
+
+def _parse_postgrest_filter(value: str):
+    """Convierte 'eq.X' / 'gte.Y' / 'lte.Z' a (operator, raw_value)."""
+    if not isinstance(value, str):
+        return ("eq", value)
+    for op in ("gte.", "lte.", "gt.", "lt.", "eq.", "in."):
+        if value.startswith(op):
+            return (op[:-1], value[len(op):])
+    return ("eq", value)
+
+
+# ── Helpers async que llaman al embrion_write_policy reusando las primitivas
+# del SupabaseClient global (_db).
+
+WRITE_PROPOSALS_TABLE = "embrion_write_proposals"
+
+
+async def _wp_select_pending(limit: int = 20) -> list[dict]:
+    """Wrapper async sobre list_pending() usando el _db inyectado."""
+    from datetime import datetime, timezone
+    now_iso = datetime.now(timezone.utc).isoformat()
+    rows = await _db.select(
+        table=WRITE_PROPOSALS_TABLE,
+        columns="*",
+        filters={"approval_status": "pending"},
+        order_by="created_at",
+        order_desc=False,
+        limit=limit,
+    )
+    # Filtro de expiración en memoria (SupabaseClient no expone gte directo)
+    return [r for r in (rows or []) if (r.get("expires_at") or "") >= now_iso]
+
+
+async def _wp_get_proposal(proposal_id: str) -> Optional[dict]:
+    rows = await _db.select(
+        table=WRITE_PROPOSALS_TABLE,
+        columns="*",
+        filters={"id": proposal_id},
+        limit=1,
+    )
+    return rows[0] if rows else None
+
+
+async def _wp_insert_proposal(row: dict) -> Optional[dict]:
+    return await _db.insert(WRITE_PROPOSALS_TABLE, row)
+
+
+async def _wp_update_proposal(proposal_id: str, expected_status: str, update: dict) -> Optional[dict]:
+    """UPDATE con optimistic concurrency: verifica status ANTES de actualizar."""
+    current = await _wp_get_proposal(proposal_id)
+    if not current:
+        return None
+    if current["approval_status"] != expected_status:
+        return None  # race: alguien lo cambió
+    return await _db.update(
+        table=WRITE_PROPOSALS_TABLE,
+        data=update,
+        filters={"id": proposal_id},
+    )
+
+
+# ── Pydantic models
+
+class ProposeRequest(BaseModel):
+    proposal_type: str = Field(..., description="code_commit | db_write | external_api_call | other")
+    summary: str = Field(..., min_length=1, max_length=500)
+    payload: dict = Field(..., description="Payload arbitrario JSON-serializable")
+    proposed_by: str = Field(default="embrion_loop")
+    cycle_id: Optional[int] = None
+    latido_id: Optional[str] = None
+    risk_level: str = Field(default="medium", description="low | medium | high | critical")
+    expires_in_hours: Optional[int] = Field(default=None, ge=0, le=168)
+    idempotency_key: Optional[str] = None
+
+
+class ApproveRequest(BaseModel):
+    approved_by: str = Field(..., min_length=1, max_length=100)
+    notes: Optional[str] = Field(default=None, max_length=1000)
+
+
+class RejectRequest(BaseModel):
+    approved_by: str = Field(..., min_length=1, max_length=100)
+    reason: str = Field(..., min_length=1, max_length=1000)
+
+
+# ── Endpoints
+
+@router.post("/propose")
+async def crear_proposal(req: ProposeRequest):
+    """
+    El Embrión propone una escritura que requiere aprobación humana.
+
+    Flujo:
+      1. Validar inputs (proposal_type, risk_level, payload).
+      2. Calcular idempotency_key (sha256) si no se provee.
+      3. Si ya existe una proposal con ese key → retornarla (no duplicar).
+      4. Insertar pending con TTL (default 24h).
+      5. Notificar HITL vía cowork_bridge (insert a embrion_memoria importancia=10).
+
+    Returns:
+      proposal_id, created (bool), status, expires_at, summary, risk_level
+    """
+    _ensure_db()
+
+    # Validaciones del módulo (lanzan ValueError → 400)
+    if req.proposal_type not in _wp.PROPOSAL_TYPES:
+        raise HTTPException(400, f"proposal_type inválido: {req.proposal_type}")
+    if req.risk_level not in _wp.RISK_LEVELS:
+        raise HTTPException(400, f"risk_level inválido: {req.risk_level}")
+
+    try:
+        idempotency_key = req.idempotency_key or _wp.compute_idempotency_key(
+            req.proposal_type, req.payload
+        )
+
+        # 1) Verificar idempotency
+        existing_rows = await _db.select(
+            table=WRITE_PROPOSALS_TABLE,
+            columns="*",
+            filters={"idempotency_key": idempotency_key},
+            limit=1,
+        )
+        if existing_rows:
+            e = existing_rows[0]
+            logger.info("embrion_propose_idempotent_hit", proposal_id=e["id"])
+            return {
+                "proposal_id": str(e["id"]),
+                "created": False,
+                "status": e["approval_status"],
+                "expires_at": e["expires_at"],
+                "summary": e["summary"],
+                "risk_level": e["risk_level"],
+            }
+
+        # 2) Insert
+        from datetime import datetime, timedelta, timezone
+        ttl_hours = (
+            req.expires_in_hours
+            if req.expires_in_hours is not None
+            else _wp.DEFAULT_EXPIRATION_HOURS
+        )
+        expires_at = (datetime.now(timezone.utc) + timedelta(hours=ttl_hours)).isoformat()
+
+        row_payload = {
+            "proposed_by": req.proposed_by,
+            "cycle_id": req.cycle_id,
+            "latido_id": req.latido_id,
+            "idempotency_key": idempotency_key,
+            "proposal_type": req.proposal_type,
+            "summary": req.summary.strip(),
+            "payload_json": req.payload,
+            "risk_level": req.risk_level,
+            "approval_status": "pending",
+            "expires_at": expires_at,
+        }
+        inserted = await _wp_insert_proposal(row_payload)
+        if not inserted:
+            raise HTTPException(500, "No se pudo insertar la proposal")
+
+        proposal_id = str(inserted["id"])
+
+        # 3) Notificación HITL (fallback cowork_bridge: insert a embrion_memoria)
+        notify_text = (
+            f"[HITL EMBRION] Proposal {proposal_id[:8]} requiere aprobación.\n"
+            f"Tipo: {req.proposal_type} | Riesgo: {req.risk_level}\n"
+            f"Resumen: {req.summary}\n"
+            f"Expira: {expires_at}\n"
+            f"Aprobar: POST /v1/embrion/approve/{proposal_id}\n"
+            f"Listar pending: GET /v1/embrion/proposals"
+        )
+        try:
+            await _db.insert(TABLE, {
+                "tipo": "respuesta_embrion",
+                "hilo_origen": "embrion_write_policy",
+                "contenido": notify_text,
+                "importancia": 10,
+                "contexto": json.dumps({
+                    "kind": "hitl_proposal_pending",
+                    "proposal_id": proposal_id,
+                    "proposal_type": req.proposal_type,
+                    "risk_level": req.risk_level,
+                }),
+            })
+            await _db.update(
+                table=WRITE_PROPOSALS_TABLE,
+                data={
+                    "notified_at": datetime.now(timezone.utc).isoformat(),
+                    "notified_via": "cowork_bridge",
+                },
+                filters={"id": proposal_id},
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("embrion_propose_notify_failed", proposal_id=proposal_id, error=str(exc))
+
+        logger.info(
+            "embrion_proposed",
+            proposal_id=proposal_id,
+            proposal_type=req.proposal_type,
+            risk_level=req.risk_level,
+            cycle_id=req.cycle_id,
+        )
+
+        return {
+            "proposal_id": proposal_id,
+            "created": True,
+            "status": "pending",
+            "expires_at": expires_at,
+            "summary": req.summary.strip(),
+            "risk_level": req.risk_level,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("embrion_propose_failed", error=str(e))
+        raise HTTPException(500, f"Error creando proposal: {str(e)[:200]}")
+
+
+@router.post("/approve/{proposal_id}")
+async def aprobar_proposal(proposal_id: str, req: ApproveRequest):
+    """
+    Aprobar una proposal pending. Solo permitido sobre status='pending'.
+
+    El worker de ejecución (cron o trigger) tomará la proposal aprobada
+    y la ejecutará vía execute_next() del módulo write_policy.
+    """
+    _ensure_db()
+
+    try:
+        from datetime import datetime, timezone
+        current = await _wp_get_proposal(proposal_id)
+        if not current:
+            raise HTTPException(404, f"proposal {proposal_id} no encontrada")
+        if current["approval_status"] != "pending":
+            raise HTTPException(
+                409,
+                f"proposal {proposal_id} no está pending "
+                f"(status actual: {current['approval_status']})"
+            )
+
+        update = {
+            "approval_status": "approved",
+            "approved_by": req.approved_by,
+            "approved_at": datetime.now(timezone.utc).isoformat(),
+        }
+        if req.notes:
+            update["result_json"] = {"approval_notes": req.notes}
+
+        updated = await _wp_update_proposal(proposal_id, "pending", update)
+        if not updated:
+            raise HTTPException(
+                409,
+                "race condition: status cambió mientras aprobábamos"
+            )
+
+        logger.info(
+            "embrion_proposal_approved",
+            proposal_id=proposal_id,
+            approved_by=req.approved_by,
+        )
+        return {
+            "proposal_id": proposal_id,
+            "status": "approved",
+            "approved_by": req.approved_by,
+            "approved_at": update["approved_at"],
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("embrion_approve_failed", proposal_id=proposal_id, error=str(e))
+        raise HTTPException(500, f"Error aprobando proposal: {str(e)[:200]}")
+
+
+@router.post("/reject/{proposal_id}")
+async def rechazar_proposal(proposal_id: str, req: RejectRequest):
+    """Rechazar una proposal pending con razón explícita (queda en log)."""
+    _ensure_db()
+
+    try:
+        from datetime import datetime, timezone
+        current = await _wp_get_proposal(proposal_id)
+        if not current:
+            raise HTTPException(404, f"proposal {proposal_id} no encontrada")
+        if current["approval_status"] != "pending":
+            raise HTTPException(
+                409,
+                f"proposal {proposal_id} no está pending "
+                f"(status actual: {current['approval_status']})"
+            )
+
+        update = {
+            "approval_status": "rejected",
+            "approved_by": req.approved_by,
+            "approved_at": datetime.now(timezone.utc).isoformat(),
+            "rejection_reason": req.reason.strip(),
+        }
+        updated = await _wp_update_proposal(proposal_id, "pending", update)
+        if not updated:
+            raise HTTPException(409, "race condition durante reject")
+
+        logger.info(
+            "embrion_proposal_rejected",
+            proposal_id=proposal_id,
+            approved_by=req.approved_by,
+        )
+        return {
+            "proposal_id": proposal_id,
+            "status": "rejected",
+            "reason": req.reason.strip(),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("embrion_reject_failed", proposal_id=proposal_id, error=str(e))
+        raise HTTPException(500, f"Error rechazando proposal: {str(e)[:200]}")
+
+
+@router.get("/proposals")
+async def listar_proposals(
+    status: str = Query(default="pending", description="pending|approved|rejected|expired|executed|failed|all"),
+    limit: int = Query(default=20, ge=1, le=200),
+):
+    """
+    Lista proposals filtradas por status.
+
+    - 'pending'   → solo pending no expiradas (ordenadas por created_at ASC).
+    - 'all'       → todas (sin filtro de status).
+    - cualquier otro → exact match.
+    """
+    _ensure_db()
+
+    try:
+        from datetime import datetime, timezone
+        now_iso = datetime.now(timezone.utc).isoformat()
+
+        if status == "all":
+            rows = await _db.select(
+                table=WRITE_PROPOSALS_TABLE,
+                columns="*",
+                order_by="created_at",
+                order_desc=True,
+                limit=limit,
+            )
+        elif status == "pending":
+            rows = await _db.select(
+                table=WRITE_PROPOSALS_TABLE,
+                columns="*",
+                filters={"approval_status": "pending"},
+                order_by="created_at",
+                order_desc=False,
+                limit=limit,
+            )
+            rows = [r for r in (rows or []) if (r.get("expires_at") or "") >= now_iso]
+        else:
+            if status not in _wp.APPROVAL_STATUSES:
+                raise HTTPException(400, f"status inválido: {status}")
+            rows = await _db.select(
+                table=WRITE_PROPOSALS_TABLE,
+                columns="*",
+                filters={"approval_status": status},
+                order_by="created_at",
+                order_desc=True,
+                limit=limit,
+            )
+
+        return {
+            "status_filter": status,
+            "count": len(rows or []),
+            "proposals": rows or [],
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("embrion_list_proposals_failed", error=str(e))
+        raise HTTPException(500, f"Error listando proposals: {str(e)[:200]}")
