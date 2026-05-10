@@ -984,7 +984,12 @@ async def crear_proposal(req: ProposeRequest):
                     cost_estimate_usd=tg_cost,
                     expires_at=expires_at,
                 )
-                if tg_result and tg_result.get("ok"):
+                # send_with_keyboard retorna directamente el `result` de la Bot API
+                # de Telegram (NO el envoltorio {ok, result, description}).
+                # Validamos `message_id` como prueba de aceptación: Telegram solo
+                # asigna message_id cuando entrega el mensaje al chat.
+                # Ref: https://core.telegram.org/bots/api#sendmessage
+                if tg_result and tg_result.get("message_id"):
                     notified_channels.append("telegram")
                 else:
                     logger.warning(

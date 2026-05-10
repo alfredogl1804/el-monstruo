@@ -541,3 +541,169 @@ def test_webhook_handles_bad_callback_data(monkeypatch):
     body = resp.json()
     assert body.get("ignored") is True
     assert body.get("reason") == "bad_callback_data"
+
+
+
+# ============================================================================
+# Defensive tests for the message_id validation contract (post-fix Tarea 4)
+# ============================================================================
+#
+# Contexto del fix:
+#   `TelegramNotifier.send_with_keyboard()` retorna directamente el `result` de
+#   la Bot API (un dict como {"message_id": 1915, "chat": {...}, "text": "..."}),
+#   NO el envoltorio {"ok": true, "result": {...}}.
+#
+#   Antes del fix, `embrion_routes._propose_write` validaba `tg_result.get("ok")`,
+#   que siempre era None porque el dict no tenía esa key. Resultado: el flag
+#   `notified_via` caía a 'cowork_bridge' aunque el mensaje SÍ llegara.
+#
+#   El fix valida `tg_result.get("message_id")` — Telegram solo asigna message_id
+#   cuando entrega el mensaje al chat exitosamente.
+#
+# Estos 3 tests previenen regresión si alguien refactoriza send_with_keyboard
+# y vuelve al envoltorio o devuelve dicts incompletos.
+
+
+class _SuccessNotifier:
+    """Fake notifier que simula respuesta exitosa de la Bot API (con message_id)."""
+    enabled = True
+
+    async def send_proposal_for_hitl(self, **kwargs):  # noqa: ARG002
+        # Simula respuesta exitosa real de Telegram: dict con message_id directo
+        return {
+            "message_id": 1915,
+            "chat": {"id": 7712993094, "type": "private"},
+            "date": 1778412027,
+            "text": "⚙️ *Propuesta de escritura del Embrión*\n...",
+        }
+
+
+class _EnvelopeOkFalseNotifier:
+    """Fake notifier que devuelve un envelope-style dict con ok=False (caso defensivo)."""
+    enabled = True
+
+    async def send_proposal_for_hitl(self, **kwargs):  # noqa: ARG002
+        # Simula que algún día alguien envuelve la respuesta o que la API falla
+        # devolviendo un objeto-envelope. NO debe contar como entregado porque
+        # NO hay message_id (Telegram solo lo asigna en éxito real).
+        return {"ok": False, "description": "Bad Request: chat not found"}
+
+
+class _EmptyDictNotifier:
+    """Fake notifier que devuelve un dict vacío (degenerate case)."""
+    enabled = True
+
+    async def send_proposal_for_hitl(self, **kwargs):  # noqa: ARG002
+        return {}
+
+
+class _FakeDBWithIdGen:
+    """FakeDB que genera UUID en insert (para el helper /propose)."""
+    connected = True
+
+    def __init__(self):
+        self.rows: list[dict] = []
+
+    async def select(self, table, columns="*", filters=None, order_by=None,
+                     order_desc=False, limit=100):  # noqa: ARG002
+        rows = list(self.rows)
+        if filters:
+            for k, v in filters.items():
+                rows = [r for r in rows if r.get(k) == v]
+        return rows[:limit]
+
+    async def insert(self, table, payload):  # noqa: ARG002
+        import uuid
+        new_row = dict(payload)
+        if "id" not in new_row:
+            new_row["id"] = str(uuid.uuid4())
+        self.rows.append(new_row)
+        return new_row
+
+    async def update(self, table, data, filters):  # noqa: ARG002
+        matched = []
+        for r in self.rows:
+            if all(r.get(k) == v for k, v in filters.items()):
+                r.update(data)
+                matched.append(r)
+        return matched
+
+    def find_by_id(self, proposal_id):
+        for r in self.rows:
+            if r.get("id") == proposal_id:
+                return r
+        return None
+
+
+def _post_propose(monkeypatch, fake_notifier_cls):
+    """
+    Helper: parchea TelegramNotifier para devolver el fake, posta una proposal,
+    y retorna (db, proposal_id) para inspeccionar `notified_via`.
+    """
+    # Parchea ambos import paths del TelegramNotifier:
+    import kernel.runner.telegram_notifier as tn_mod
+    monkeypatch.setattr(tn_mod, "TelegramNotifier", fake_notifier_cls)
+    # Env vars seguros para que enabled=True en el sitio que importa
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "123:fake")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "7712993094")
+
+    db = _FakeDBWithIdGen()
+    client = _build_test_client(db)
+    resp = client.post(
+        "/v1/embrion/propose",
+        json={
+            "proposal_type": "external_api_call",
+            "risk_level": "low",
+            "summary": "test message_id validation",
+            "payload": {"target": "test_endpoint"},
+            "notification_channels": ["cowork_bridge", "telegram"],
+        },
+        headers={"X-API-Key": "test-key"},
+    )
+    assert resp.status_code == 200, resp.text
+    proposal_id = resp.json()["proposal_id"]
+    return db, proposal_id
+
+
+def test_notify_returns_true_when_telegram_returns_message_id(monkeypatch):
+    """
+    HAPPY PATH: notifier devuelve dict con message_id → notified_via debe
+    incluir 'telegram'.
+    """
+    db, proposal_id = _post_propose(monkeypatch, _SuccessNotifier)
+    row = db.find_by_id(proposal_id)
+    assert row is not None, "Proposal not persisted in fake DB"
+    notified_via = row.get("notified_via") or ""
+    assert "telegram" in notified_via, (
+        f"Expected 'telegram' in notified_via, got: {notified_via!r}"
+    )
+
+
+def test_notify_returns_false_when_telegram_returns_envelope_with_ok_false(monkeypatch):
+    """
+    DEFENSIVE: si alguien refactoriza send_with_keyboard y vuelve al envoltorio
+    estilo {ok:false}, NO debe contar como telegram entregado (sin message_id).
+    """
+    db, proposal_id = _post_propose(monkeypatch, _EnvelopeOkFalseNotifier)
+    row = db.find_by_id(proposal_id)
+    assert row is not None
+    notified_via = row.get("notified_via") or ""
+    assert "telegram" not in notified_via, (
+        f"Envelope con ok=false NO debe contar como telegram entregado. "
+        f"notified_via={notified_via!r}"
+    )
+
+
+def test_notify_returns_false_when_telegram_returns_empty_dict(monkeypatch):
+    """
+    DEGENERATE: si la Bot API devuelve un dict vacío (sin message_id), tampoco
+    debe contar como entregado.
+    """
+    db, proposal_id = _post_propose(monkeypatch, _EmptyDictNotifier)
+    row = db.find_by_id(proposal_id)
+    assert row is not None
+    notified_via = row.get("notified_via") or ""
+    assert "telegram" not in notified_via, (
+        f"Dict vacío NO debe contar como telegram entregado. "
+        f"notified_via={notified_via!r}"
+    )
