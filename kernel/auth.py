@@ -43,7 +43,17 @@ PUBLIC_PATHS = frozenset({"/", "/health", "/health/auth", "/docs", "/openapi.jso
 # Used by anonymous tracking from public landings (monstruo-tracking.js) that must
 # POST without API key. Exact-match only — readers like /v1/traffic/summary/{run_id}
 # remain protected. Brand DNA: e2e_traffic_ingest_public_path.
-PUBLIC_INGEST_PATHS = frozenset({"/v1/traffic/ingest"})
+#
+# Sprint EMBRION-NEEDS-001 / Tarea 4 (2026-05-10) — added /v1/embrion/telegram/webhook:
+# Telegram cannot send X-API-Key header — it sends X-Telegram-Bot-Api-Secret-Token.
+# The endpoint enforces its own stronger auth: a 32-byte URL-safe secret known
+# only by Telegram (via setWebhook) and our service (via TELEGRAM_WEBHOOK_SECRET
+# env var). API key would be weaker because it's shared across many clients,
+# while the webhook secret is per-integration and rotates independently.
+PUBLIC_INGEST_PATHS = frozenset({
+    "/v1/traffic/ingest",
+    "/v1/embrion/telegram/webhook",
+})
 
 
 def _get_api_key() -> Optional[str]:

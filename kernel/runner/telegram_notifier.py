@@ -158,6 +158,202 @@ class TelegramNotifier:
         except Exception:
             return False
 
+    async def send_with_keyboard(
+        self,
+        text: str,
+        inline_keyboard: list,
+        chat_id: Optional[str] = None,
+        parse_mode: str = "Markdown",
+    ) -> Optional[dict]:
+        """
+        Send a message with an inline keyboard attached (HITL approval flow).
+
+        Args:
+            text: Message body (Markdown supported, auto-escaped).
+            inline_keyboard: List of button rows. Each row is a list of dicts:
+                [{"text": "✅ Aprobar", "callback_data": "approve:abc-123"}]
+            chat_id: Override chat ID (defaults to TELEGRAM_CHAT_ID).
+            parse_mode: "Markdown" or "HTML". "Markdown" auto-escapes.
+
+        Returns:
+            Telegram API result dict on success (contains message_id, chat, etc),
+            or None on failure. Caller can persist message_id for later editMessageText.
+        """
+        if not self._enabled:
+            logger.info("hitl_notification_skipped", reason="notifier_disabled")
+            return None
+
+        target_chat_id = chat_id or self._default_chat_id
+        if not target_chat_id:
+            logger.warning("no_chat_id", flow="hitl")
+            return None
+
+        url = f"{TELEGRAM_API_BASE}{self._bot_token}/sendMessage"
+        safe_text = _escape_telegram_markdown(text) if parse_mode == "Markdown" else text
+
+        payload = {
+            "chat_id": target_chat_id,
+            "text": safe_text[:4096],
+            "parse_mode": parse_mode,
+            "reply_markup": {"inline_keyboard": inline_keyboard},
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=15) as client:
+                response = await client.post(url, json=payload)
+            data = response.json() if response.status_code == 200 else {}
+            if response.status_code == 200 and data.get("ok"):
+                logger.info(
+                    "telegram_hitl_sent",
+                    chat_id=target_chat_id,
+                    message_id=data["result"].get("message_id"),
+                )
+                return data["result"]
+            # Markdown fallback for keyboard messages
+            if (
+                response.status_code == 200
+                and "can't parse" in data.get("description", "").lower()
+                and parse_mode == "Markdown"
+            ):
+                payload.pop("parse_mode", None)
+                payload["text"] = text[:4096]
+                async with httpx.AsyncClient(timeout=15) as client:
+                    response = await client.post(url, json=payload)
+                data = response.json() if response.status_code == 200 else {}
+                if response.status_code == 200 and data.get("ok"):
+                    return data["result"]
+            logger.error(
+                "telegram_hitl_failed",
+                status=response.status_code,
+                description=data.get("description", ""),
+            )
+            return None
+        except Exception as e:
+            logger.error("telegram_hitl_exception", error=str(e))
+            return None
+
+    async def answer_callback(
+        self,
+        callback_query_id: str,
+        text: str = "",
+        show_alert: bool = False,
+    ) -> bool:
+        """Acknowledge a callback_query (removes loading spinner). MUST be called within ~10s."""
+        if not self._enabled:
+            return False
+        url = f"{TELEGRAM_API_BASE}{self._bot_token}/answerCallbackQuery"
+        payload = {"callback_query_id": callback_query_id}
+        if text:
+            payload["text"] = text[:200]
+        if show_alert:
+            payload["show_alert"] = True
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.post(url, json=payload)
+            return response.status_code == 200 and response.json().get("ok", False)
+        except Exception as e:
+            logger.error("telegram_answer_callback_failed", error=str(e))
+            return False
+
+    async def edit_message_text(
+        self,
+        chat_id: str,
+        message_id: int,
+        text: str,
+        parse_mode: str = "Markdown",
+        remove_keyboard: bool = True,
+    ) -> bool:
+        """Edit an existing message (typically to replace HITL prompt with resolution)."""
+        if not self._enabled:
+            return False
+        url = f"{TELEGRAM_API_BASE}{self._bot_token}/editMessageText"
+        safe_text = _escape_telegram_markdown(text) if parse_mode == "Markdown" else text
+        payload = {
+            "chat_id": chat_id,
+            "message_id": message_id,
+            "text": safe_text[:4096],
+            "parse_mode": parse_mode,
+        }
+        if remove_keyboard:
+            payload["reply_markup"] = {"inline_keyboard": []}
+        try:
+            async with httpx.AsyncClient(timeout=15) as client:
+                response = await client.post(url, json=payload)
+            data = response.json() if response.status_code == 200 else {}
+            if response.status_code == 200 and data.get("ok"):
+                return True
+            if (
+                response.status_code == 200
+                and "can't parse" in data.get("description", "").lower()
+                and parse_mode == "Markdown"
+            ):
+                payload.pop("parse_mode", None)
+                payload["text"] = text[:4096]
+                async with httpx.AsyncClient(timeout=15) as client:
+                    response = await client.post(url, json=payload)
+                return response.status_code == 200 and response.json().get("ok", False)
+            logger.error("telegram_edit_failed", status=response.status_code, description=data.get("description", ""))
+            return False
+        except Exception as e:
+            logger.error("telegram_edit_exception", error=str(e))
+            return False
+
+    async def send_proposal_for_hitl(
+        self,
+        proposal_id: str,
+        action_type: str,
+        risk_level: str,
+        target: str,
+        reason: str,
+        cost_estimate_usd: float = 0.0,
+        expires_at: str = "",
+        chat_id: Optional[str] = None,
+    ) -> Optional[dict]:
+        """High-level HITL: send a write proposal to Alfredo with Aprobar/Rechazar buttons."""
+        risk_emoji = {
+            "low": "\u26aa",
+            "medium": "\U0001f7e1",
+            "high": "\U0001f7e0",
+            "critical": "\U0001f534",
+        }.get(risk_level.lower(), "\u2753")
+
+        action_emoji = {
+            "db_write": "\U0001f4be",
+            "code_commit": "\U0001f4dd",
+            "external_api_call": "\U0001f310",
+        }.get(action_type, "\u2699\ufe0f")
+
+        text_parts = [
+            f"{action_emoji} *Propuesta de escritura del Embri\u00f3n*",
+            "",
+            f"{risk_emoji} *Riesgo:* {risk_level}",
+            f"*Tipo:* `{action_type}`",
+            f"*Target:* `{target[:120]}`",
+            f"*Razon:* {reason[:600]}",
+        ]
+        if cost_estimate_usd > 0:
+            text_parts.append(f"*Costo estimado:* ${cost_estimate_usd:.4f} USD")
+        if expires_at:
+            text_parts.append(f"*Expira:* {expires_at}")
+        text_parts.append("")
+        text_parts.append(f"`ID: {proposal_id}`")
+
+        text = "\n".join(text_parts)
+
+        keyboard = [
+            [
+                {"text": "\u2705 Aprobar", "callback_data": f"approve:{proposal_id}"},
+                {"text": "\u274c Rechazar", "callback_data": f"reject:{proposal_id}"},
+            ]
+        ]
+
+        return await self.send_with_keyboard(
+            text=text,
+            inline_keyboard=keyboard,
+            chat_id=chat_id,
+            parse_mode="Markdown",
+        )
+
     async def send_job_notification(
         self,
         title: str,

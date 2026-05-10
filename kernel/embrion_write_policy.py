@@ -603,6 +603,103 @@ def execute_next(
     return locked_row
 
 
+def _notify_via_cowork_bridge(client: Any, proposal_id: str, ptype: str, risk: str, text: str) -> bool:
+    """Insert a row in embrion_memoria with importancia=10 to wake Alfredo via cowork."""
+    memo_row = {
+        "tipo": "respuesta_embrion",
+        "hilo_origen": "embrion_write_policy",
+        "contenido": text,
+        "importancia": 10,
+        "metadata": {
+            "kind": "hitl_proposal_pending",
+            "proposal_id": proposal_id,
+            "proposal_type": ptype,
+            "risk_level": risk,
+        },
+    }
+    try:
+        client.insert(TABLE_MEMORIA, memo_row)
+        return True
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "embrion_write_policy.notify_memoria_failed",
+            proposal_id=proposal_id,
+            error=str(exc),
+        )
+        return False
+
+
+def _notify_via_telegram(proposal: dict) -> bool:
+    """Send proposal to Telegram with inline keyboard (Aprobar/Rechazar).
+
+    Async-safe: detects existing event loop and adapts.
+    Returns True if sent, False on any failure (non-fatal).
+    """
+    try:
+        from kernel.runner.telegram_notifier import TelegramNotifier  # noqa: PLC0415
+    except ImportError as exc:
+        logger.warning(
+            "embrion_write_policy.telegram_notifier_unavailable",
+            error=str(exc),
+        )
+        return False
+
+    notifier = TelegramNotifier()
+    if not notifier.enabled:
+        logger.info(
+            "embrion_write_policy.telegram_disabled",
+            hint="set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID env vars",
+        )
+        return False
+
+    proposal_id = str(proposal.get("id"))
+    coro = notifier.send_proposal_for_hitl(
+        proposal_id=proposal_id,
+        action_type=proposal.get("proposal_type", "other"),
+        risk_level=proposal.get("risk_level", "medium"),
+        target=proposal.get("summary", "")[:120],
+        reason=proposal.get("summary", ""),
+        cost_estimate_usd=float(proposal.get("cost_estimate_usd") or 0.0),
+        expires_at=str(proposal.get("expires_at") or ""),
+    )
+
+    import asyncio  # noqa: PLC0415
+
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        try:
+            result = asyncio.run(coro)
+            return result is not None
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "embrion_write_policy.telegram_send_exception",
+                proposal_id=proposal_id,
+                error=str(exc),
+            )
+            return False
+    else:
+        # Running loop: schedule fire-and-forget
+        loop.create_task(coro)
+        logger.info(
+            "embrion_write_policy.telegram_scheduled_async",
+            proposal_id=proposal_id,
+        )
+        return True
+
+
+def _parse_channels(channel: str) -> list[str]:
+    """Split a 'cowork_bridge,telegram' CSV string into a list of valid channels."""
+    valid = {"cowork_bridge", "telegram"}
+    parsed = [c.strip().lower() for c in channel.split(",") if c.strip()]
+    invalid = [c for c in parsed if c not in valid]
+    if invalid:
+        raise ValueError(f"channel inválido: {invalid!r}; permitidos: {sorted(valid)!r}")
+    if not parsed:
+        raise ValueError("channel vacío")
+    return parsed
+
+
 def notify_hitl(
     client: Any,
     proposal: dict,
@@ -611,10 +708,14 @@ def notify_hitl(
 ) -> bool:
     """Notificar a Alfredo de una proposal pending.
 
-    Canal por defecto: 'cowork_bridge' (insert a embrion_memoria con
-    importancia 10). Cuando Tarea 4 cierre, se añade 'telegram'.
+    Canales soportados (CSV): 'cowork_bridge', 'telegram', o ambos
+    ('cowork_bridge,telegram'). Por defecto, sólo cowork_bridge.
 
-    Retorna True si se notificó, False si no se pudo (no fatal).
+    Doctrina: 2 canales independientes garantizan resiliencia. Si telegram está
+    caído, cowork_bridge sigue funcionando, y viceversa.
+
+    Retorna True si AL MENOS UN canal notificó exitosamente.
+    Retorna False sólo si TODOS los canales fallan (no fatal).
     """
     proposal_id = str(proposal.get("id"))
     summary = proposal.get("summary", "")
@@ -631,45 +732,36 @@ def notify_hitl(
         f"Listar pending: GET /v1/embrion/proposals"
     )
 
-    if channel == "cowork_bridge":
-        memo_row = {
-            "tipo": "respuesta_embrion",
-            "hilo_origen": "embrion_write_policy",
-            "contenido": text,
-            "importancia": 10,
-            "metadata": {
-                "kind": "hitl_proposal_pending",
-                "proposal_id": proposal_id,
-                "proposal_type": ptype,
-                "risk_level": risk,
-            },
-        }
-        try:
-            client.insert(TABLE_MEMORIA, memo_row)
-        except Exception as exc:  # noqa: BLE001
-            logger.warning(
-                "embrion_write_policy.notify_memoria_failed",
-                proposal_id=proposal_id,
-                error=str(exc),
-            )
-            return False
+    channels = _parse_channels(channel)
+    successes: list[str] = []
+    failures: list[str] = []
 
-    elif channel == "telegram":
-        # Reservado para Tarea 4. Por ahora no implementado.
-        logger.info(
-            "embrion_write_policy.notify_telegram_pending_task4",
+    for ch in channels:
+        if ch == "cowork_bridge":
+            if _notify_via_cowork_bridge(client, proposal_id, ptype, risk, text):
+                successes.append(ch)
+            else:
+                failures.append(ch)
+        elif ch == "telegram":
+            if _notify_via_telegram(proposal):
+                successes.append(ch)
+            else:
+                failures.append(ch)
+
+    if not successes:
+        logger.warning(
+            "embrion_write_policy.all_channels_failed",
             proposal_id=proposal_id,
+            channels=channels,
         )
         return False
-    else:
-        raise ValueError(f"channel inválido: {channel!r}")
 
-    # Marcar notified_at
+    notified_via = ",".join(successes)
     try:
         client.update(
             TABLE_PROPOSALS,
             {"id": f"eq.{proposal_id}"},
-            {"notified_at": _now_iso(), "notified_via": channel},
+            {"notified_at": _now_iso(), "notified_via": notified_via},
         )
     except Exception as exc:  # noqa: BLE001
         logger.warning(
@@ -681,7 +773,8 @@ def notify_hitl(
     logger.info(
         "embrion_write_policy.notified",
         proposal_id=proposal_id,
-        channel=channel,
+        succeeded=successes,
+        failed=failures,
     )
     return True
 
