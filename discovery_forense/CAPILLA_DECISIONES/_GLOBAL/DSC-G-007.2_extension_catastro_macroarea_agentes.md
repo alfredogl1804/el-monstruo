@@ -3,7 +3,7 @@
 **Tipo:** Decisión Sistémica Canónica (DSC) GLOBAL
 **Fecha:** 2026-05-10
 **Hilo origen:** Hilo Catastro (Manus)
-**Estado:** PROPUESTO — pendiente firma Cowork (DSC-G-008 v2 audit content)
+**Estado:** ✅ **FIRMADO** (audit Cowork DSC-G-008 v2 pasado 13/13 verde, 2026-05-10)
 **Sprint:** S-088
 **Versión:** 1.0
 **Predecesores:** DSC-G-007.1 (Catastro inicial macroárea inteligencia), DSC-MO-009 (Arsenal seleccionable por Catastro)
@@ -46,7 +46,7 @@ Extender el Catastro a macroárea **`agentes`** con **9 dominios canónicos** y 
 
 Campos clave:
 - 5 dimensiones booleanas: `tiene_sandbox`, `acceso_filesystem`, `acceso_internet`, `multi_step_capable`, `multi_swarm_capable`
-- Enums: `dominio`, `persistencia_memoria` (`none`/`session`/`persistent`/`external_db`), `costo_por_uso_tipico` (`gratis`/`bajo`/`medio`/`alto`/`muy_alto`/`enterprise`), `estado` (`production`/`beta`/`preview`/`open-source`/`deprecated`/`alpha`)
+- Enums: `dominio`, `persistencia_memoria` (`none`/`session`/`persistent`/`external_db`), `costo_por_uso_tipico` (`gratis`/`bajo`/`medio`/`alto`/`enterprise` — alineado a Pydantic en migración 035 post-audit Cowork), `estado` (`production`/`beta`/`preview`/`open-source`/`deprecated`/`alpha`)
 - FK opcional: `llm_base_id` → `catastro_modelos(id)` (NULL para productos agnósticos o cuyo modelo base aún no está catalogado)
 - `tier_seed` SMALLINT (1=top-5 por dominio, 2=resto)
 - `bonus_curador` SMALLINT (0-5) + `bonus_curador_razon` TEXT — desempate documentado
@@ -111,6 +111,7 @@ Desempate: open_weights DESC, tier_seed ASC, id ASC.
 | Columna `tier_seed` | `scripts/032_sprint88_tier_seed.sql` | Aplicada |
 | Normalizar CHECKs (drop viejo + ampliar costo/persistencia) | `scripts/033_sprint88_normalizar_checks.sql` | Aplicada |
 | Columna `bonus_curador` + vista materializada `catastro_tronos_agentes` | `scripts/034_sprint88_bonus_curador.sql` | Aplicada |
+| Alinear CHECK costo a 5 valores Pydantic (post-audit Cowork) | `scripts/035_sprint88_alinear_costo_5_valores.sql` | Aplicada |
 | Schema Pydantic | `kernel/catastro/schema.py` (clase `CatastroAgente`, enum `DominioAgentes`, `PersistenciaMemoria`, `CostoPorUsoTipico`) | Commited |
 | Seed Python (84 productos) | `scripts/sprint88_seed_85_productos.py` | Insertado |
 | INSERT batch | `scripts/sprint88_insert_seed.py` | Ejecutado (84/0/0) |
@@ -152,5 +153,6 @@ Desempate: open_weights DESC, tier_seed ASC, id ASC.
 
 ---
 
-**Firma propuesta:** Manus (Hilo Catastro), 2026-05-10
-**Pendiente:** Cowork audit content (DSC-G-008 v2) → firma definitiva
+**Firmas:**
+- ✅ **Manus** (Hilo Catastro), 2026-05-10 — autor
+- ✅ **Cowork** (Hilo A), 2026-05-10 — audit DSC-G-008 v2 aprobado 13/13. Veredicto: "Producción Supabase coincide al milímetro con el reporte. Trabajo magnánimo. Schema limpio. Tronos justificados. DSC sólido."
