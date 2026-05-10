@@ -380,7 +380,10 @@ def verify(
                 "detected_pattern": (
                     "self_verifier_abort" if abort else "self_verifier_pass"
                 ),
-                "severity": "high" if abort else "low",
+                # severity debe cumplir CHECK constraint de la tabla:
+                # ('warning' | 'critical' | 'emergency').
+                # cycle_pass -> warning (informational), cycle_abort -> critical.
+                "severity": "critical" if abort else "warning",
                 "auto_action_taken": "abort_cycle" if abort else None,
                 "resolved": (not abort),
                 "cycle_id": int(cycle_id),
