@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>El Monstruo · Embrión · Cost History</title>
+<style>
+:root {
+  --bg:#0b0f14; --panel:#111821; --line:#1f2a37; --text:#e6edf3;
+  --muted:#8b98a5; --ok:#3fb950; --warn:#d29922; --err:#f85149;
+  --accent:#58a6ff;
+}
+*{box-sizing:border-box}
+body{margin:0;padding:24px;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;
+  font-size:14px;line-height:1.5}
+h1{font-size:20px;margin:0 0 4px}
+h2{font-size:15px;margin:24px 0 12px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.05em}
+.subtitle{color:var(--muted);margin:0 0 24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.kpi-value{font-size:24px;font-weight:600;margin-top:6px;font-variant-numeric:tabular-nums}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
+table{width:100%;border-collapse:collapse;background:var(--panel);
+  border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);
+  font-variant-numeric:tabular-nums;font-size:13px}
+th{background:#0d1520;color:var(--muted);font-weight:500;text-transform:uppercase;
+  letter-spacing:.05em;font-size:11px}
+tr:last-child td{border-bottom:none}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+.tag.ok{background:rgba(63,185,80,.15);color:var(--ok)}
+.tag.warn{background:rgba(210,153,34,.15);color:var(--warn)}
+.tag.err{background:rgba(248,81,73,.15);color:var(--err)}
+.empty{padding:24px;text-align:center;color:var(--muted);font-style:italic}
+.svg-wrap{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px}
+.footer{margin-top:32px;font-size:11px;color:var(--muted);text-align:center}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+  background:#0d1520;padding:2px 6px;border-radius:3px;color:var(--accent)}
+</style>
+</head>
+<body>
+<h1>Embrión · Cost History</h1>
+<p class="subtitle">Histórico de costo por cycle del embrión autónomo · fuente: <span class="code">embrion_budget_state</span></p>
+
+<h2>KPIs</h2>
+<div class="grid"><div class="card"><div class="kpi-label">Gasto últimas 24h</div><div class="kpi-value">$0.7656</div><div class="kpi-sub">15.3% del cap diario ($5.00)</div></div><div class="card"><div class="kpi-label">Gasto últimos 7 días</div><div class="kpi-value">$0.7656</div><div class="kpi-sub">avg/día $0.1094</div></div><div class="card"><div class="kpi-label">Gasto últimos 30 días</div><div class="kpi-value">$0.7656</div><div class="kpi-sub">avg/día $0.0255</div></div><div class="card"><div class="kpi-label">Cycles totales (window)</div><div class="kpi-value">62</div></div><div class="card"><div class="kpi-label">Cap excedido</div><div class="kpi-value">0</div><div class="kpi-sub">cap/latido $0.0500</div></div><div class="card"><div class="kpi-label">Cycles abortados</div><div class="kpi-value">0</div><div class="kpi-sub">frenazos del Budget Tracker</div></div></div>
+
+<h2>Gasto diario (últimos 14 días)</h2>
+<div class="svg-wrap"><svg viewBox="0 0 720 180" width="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="cost history"><text x="4" y="22" fill="#8b98a5" font-size="10">$5.00</text><text x="4" y="156.0" fill="#8b98a5" font-size="10">$0</text><rect x="41.0" y="152.0" width="45.7" height="0.0" fill="#58a6ff" rx="2"><title>2026-04-27: $0.0000</title></rect><rect x="88.7" y="152.0" width="45.7" height="0.0" fill="#58a6ff" rx="2"><title>2026-04-28: $0.0000</title></rect><rect x="136.4" y="152.0" width="45.7" height="0.0" fill="#58a6ff" rx="2"><title>2026-04-29: $0.0000</title></rect><rect x="184.1" y="152.0" width="45.7" height="0.0" fill="#58a6ff" rx="2"><title>2026-04-30: $0.0000</title></rect><rect x="231.9" y="152.0" width="45.7" height="0.0" fill="#58a6ff" rx="2"><title>2026-05-01: $0.0000</title></rect><rect x="279.6" y="152.0" width="45.7" height="0.0" fill="#58a6ff" rx="2"><title>2026-05-02: $0.0000</title></rect><rect x="327.3" y="152.0" width="45.7" height="0.0" fill="#58a6ff" rx="2"><title>2026-05-03: $0.0000</title></rect><rect x="375.0" y="152.0" width="45.7" height="0.0" fill="#58a6ff" rx="2"><title>2026-05-04: $0.0000</title></rect><rect x="422.7" y="152.0" width="45.7" height="0.0" fill="#58a6ff" rx="2"><title>2026-05-05: $0.0000</title></rect><rect x="470.4" y="152.0" width="45.7" height="0.0" fill="#58a6ff" rx="2"><title>2026-05-06: $0.0000</title></rect><rect x="518.1" y="152.0" width="45.7" height="0.0" fill="#58a6ff" rx="2"><title>2026-05-07: $0.0000</title></rect><rect x="565.9" y="152.0" width="45.7" height="0.0" fill="#58a6ff" rx="2"><title>2026-05-08: $0.0000</title></rect><rect x="613.6" y="152.0" width="45.7" height="0.0" fill="#58a6ff" rx="2"><title>2026-05-09: $0.0000</title></rect><rect x="661.3" y="130.6" width="45.7" height="21.4" fill="#58a6ff" rx="2"><title>2026-05-10: $0.7656</title></rect><line x1="40" y1="12.0" x2="708" y2="12.0" stroke="#d29922" stroke-dasharray="4,4" stroke-width="1"/><text x="704" y="8.0" fill="#d29922" font-size="10" text-anchor="end">cap diario $5.00</text><text x="40" y="172" fill="#8b98a5" font-size="10">04-27</text><text x="708" y="172" fill="#8b98a5" font-size="10" text-anchor="end">05-10</text></svg></div>
+
+<h2>Últimos cycles</h2>
+<table><thead><tr><th>cycle_id</th><th>completed_at (UTC)</th><th>model</th><th>cost_actual</th><th>tokens</th><th>status</th><th>trigger</th></tr></thead><tbody><tr><td>21</td><td>2026-05-10 12:41:29</td><td>gpt-5.5</td><td>$0.0208</td><td>2,079</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>16</td><td>2026-05-10 12:35:25</td><td>gpt-5.5</td><td>$0.0200</td><td>1,996</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>11</td><td>2026-05-10 12:29:42</td><td>gpt-5.5</td><td>$0.0206</td><td>2,058</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>6</td><td>2026-05-10 12:23:56</td><td>gpt-5.5</td><td>$0.0239</td><td>2,391</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>1</td><td>2026-05-10 12:18:24</td><td>gpt-5.5</td><td>$0.0000</td><td>—</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>1</td><td>2026-05-10 12:15:23</td><td>gpt-5.5</td><td>$0.0000</td><td>—</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>16</td><td>2026-05-10 12:09:27</td><td>gpt-5.5</td><td>$0.0189</td><td>1,894</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>11</td><td>2026-05-10 12:03:45</td><td>gpt-5.5</td><td>$0.0229</td><td>2,293</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>6</td><td>2026-05-10 11:57:58</td><td>gpt-5.5</td><td>$0.0256</td><td>2,557</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>1</td><td>2026-05-10 11:52:23</td><td>gpt-5.5</td><td>$0.0000</td><td>—</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>7</td><td>2026-05-10 11:50:51</td><td>gpt-5.5</td><td>$0.0155</td><td>1,547</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>1</td><td>2026-05-10 11:44:23</td><td>gpt-5.5</td><td>$0.0000</td><td>—</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>21</td><td>2026-05-10 11:40:47</td><td>gpt-5.5</td><td>$0.0154</td><td>1,536</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>16</td><td>2026-05-10 11:35:06</td><td>gpt-5.5</td><td>$0.0127</td><td>1,275</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>11</td><td>2026-05-10 11:29:33</td><td>gpt-5.5</td><td>$0.0155</td><td>1,550</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>6</td><td>2026-05-10 11:23:50</td><td>gpt-5.5</td><td>$0.0170</td><td>1,704</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>1</td><td>2026-05-10 11:18:21</td><td>gpt-5.5</td><td>$0.0000</td><td>—</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>6</td><td>2026-05-10 11:16:39</td><td>gpt-5.5</td><td>$0.0140</td><td>1,397</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>1</td><td>2026-05-10 11:11:13</td><td>gpt-5.5</td><td>$0.0000</td><td>—</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>1</td><td>2026-05-10 11:06:52</td><td>gpt-5.5</td><td>$0.0000</td><td>—</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>1</td><td>2026-05-10 11:03:49</td><td>gpt-5.5</td><td>$0.0000</td><td>—</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>1</td><td>2026-05-10 11:02:11</td><td>gpt-5.5</td><td>$0.0000</td><td>—</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>11</td><td>2026-05-10 11:01:45</td><td>gpt-5.5</td><td>$0.0155</td><td>1,545</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>6</td><td>2026-05-10 10:56:02</td><td>gpt-5.5</td><td>$0.0144</td><td>1,440</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>1</td><td>2026-05-10 10:50:34</td><td>gpt-5.5</td><td>$0.0000</td><td>—</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>6</td><td>2026-05-10 10:48:35</td><td>gpt-5.5</td><td>$0.0147</td><td>1,467</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>1</td><td>2026-05-10 10:42:55</td><td>gpt-5.5</td><td>$0.0000</td><td>—</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>1</td><td>2026-05-10 10:42:54</td><td>gpt-5.5</td><td>$0.0000</td><td>—</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>98</td><td>2026-05-10 10:37:02</td><td>gpt-5.5</td><td>$0.0156</td><td>1,562</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr><tr><td>93</td><td>2026-05-10 10:31:23</td><td>gpt-5.5</td><td>$0.0148</td><td>1,478</td><td><span class="tag ok">ok</span></td><td>mensaje_alfredo</td></tr></tbody></table>
+
+<h2>Cycles abortados</h2>
+<div class="empty">Sin cycles abortados — el embrión está corriendo limpio</div>
+
+<div class="footer">
+  Generado en 2026-05-10 12:42:17 UTC · El Monstruo · Sprint EMBRION-NEEDS-002
+</div>
+</body>
+</html>

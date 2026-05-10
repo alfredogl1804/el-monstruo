@@ -312,6 +312,48 @@ class TestIntegrationSmoke:
             assert node in mermaid, f"Node {node} missing from graph"
 
     def test_all_imports_clean(self):
-        """All new modules should import without errors."""
+        """All HITL+worker modules importan limpios y exportan su API pública.
+
+        Sustituye el `assert True` heredado del cleanup de bot/hitl_handler.py.
+        Ahora valida en serio el contrato público del stack EMBRION-NEEDS-001/002:
+          * embrion_write_policy: HITL real (Sprint EMBRION-NEEDS-001 T3)
+          * runner.proposal_processor + executor_registry: cron worker (T1 002)
+          * runner.telegram_notifier: HITL bidireccional (T4 001)
+        """
         # bot/hitl_handler.py removed — was dead code (aiogram != python-telegram-bot)
-        assert True  # If we get here, all imports succeeded
+        from kernel import embrion_write_policy
+        from kernel.runner import (
+            executor_registry,
+            proposal_processor,
+            telegram_notifier,
+        )
+
+        # Critical write_policy public API
+        assert hasattr(embrion_write_policy, "propose")
+        assert hasattr(embrion_write_policy, "approve")
+        assert hasattr(embrion_write_policy, "reject")
+        assert hasattr(embrion_write_policy, "execute_next")
+        assert hasattr(embrion_write_policy, "expire_old")
+        assert hasattr(embrion_write_policy, "list_pending")
+        assert hasattr(embrion_write_policy, "notify_hitl")
+        assert hasattr(embrion_write_policy, "compute_idempotency_key")
+
+        # Worker public API (Sprint EMBRION-NEEDS-002 Tarea 1)
+        assert hasattr(executor_registry, "ExecutorRegistry")
+        assert hasattr(proposal_processor, "main")
+        assert hasattr(proposal_processor, "main_async")
+        assert hasattr(proposal_processor, "expire_loop")
+        assert hasattr(proposal_processor, "execute_loop")
+
+        # Telegram notifier public API (extended in Sprint EMBRION-NEEDS-001 Tarea 4)
+        assert hasattr(telegram_notifier, "TelegramNotifier")
+        notifier_methods = [
+            "send_with_keyboard",
+            "answer_callback",
+            "edit_message_text",
+            "send_proposal_for_hitl",
+        ]
+        for m in notifier_methods:
+            assert hasattr(telegram_notifier.TelegramNotifier, m), (
+                f"TelegramNotifier missing public method `{m}`"
+            )
