@@ -1,0 +1,78 @@
+name: RLS Audit Weekly
+
+# Sprint S-002.6 — Tarea 6
+# Auditoría semanal del estado RLS del schema public en producción.
+# Falla si encuentra tablas sin RLS, RLS sin policy, o matviews sin REVOKE PUBLIC.
+# DSC-S-006 (RLS por defecto), DSC-G-008 v2 (audit pre-cierre).
+
+on:
+  schedule:
+    # Lunes 09:00 UTC = lunes 03:00 CDMX = lunes 04:00 CDMX (DST)
+    - cron: '0 9 * * 1'
+  workflow_dispatch:  # Permite ejecución manual desde la UI de GitHub Actions
+
+permissions:
+  contents: read
+  issues: write  # Para abrir issue automático si la auditoría falla
+
+jobs:
+  rls-audit:
+    name: Audit RLS state in public schema
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          # urllib es stdlib, no necesitamos requests
+
+      - name: Run RLS audit
+        id: audit
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          python3 scripts/_audit_rls.py
+
+      - name: Open issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## RLS Audit Failed\n\nLa auditoría semanal de RLS detectó tablas o matviews sin protección.\n\n';
+            try {
+              const report = fs.readFileSync('rls_audit_report.md', 'utf8');
+              body += '### Reporte\n\n' + report;
+            } catch (e) {
+              body += '_(reporte no encontrado, ver logs del job)_';
+            }
+            body += '\n\n### Acción requerida\n\n';
+            body += '1. Crear sprint S-XXX para sembrar policies faltantes.\n';
+            body += '2. Revisar pre-commit hook `rls-default-check` (puede haber bypass).\n';
+            body += '3. DSC-S-006 referencia.\n';
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[RLS Audit] Tablas sin RLS detectadas - ${new Date().toISOString().split('T')[0]}`,
+              body: body,
+              labels: ['security', 'rls-audit', 'auto-generated']
+            });
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rls-audit-report
+          path: rls_audit_report.md
+          retention-days: 90
+          if-no-files-found: ignore
