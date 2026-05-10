@@ -259,6 +259,81 @@ Lee: `bridge/sprints_propuestos/sprint_S001_security_hardening.md` para la imple
 
 ---
 
+# Regla Dura #7: Plano de Datos Cerrado por Defecto (RLS Universal)
+
+Esta regla NO se puede ignorar, resumir ni omitir ante compactación de memoria.
+
+> **Toda tabla nueva en Supabase nace con RLS habilitado y al menos una policy explícita. La doctrina canónica es: ningún dato del Monstruo es accesible sin policy explícita firmada en migración versionada.**
+
+Doctrina operativa:
+
+1. **RLS por defecto:** todo `CREATE TABLE` debe ir acompañado de `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` y al menos un `CREATE POLICY` en la misma migración o en migración subsecuente del mismo PR.
+2. **Naming canónico:** usar `SUPABASE_SERVICE_KEY` (sin `_ROLE`), formato `sb_secret_*`. Documentado en DSC-S-007.
+3. **Vistas materializadas:** sin RLS nativo en Postgres; protegerlas con `REVOKE ALL ON ... FROM PUBLIC, anon, authenticated; GRANT SELECT TO service_role`.
+4. **Linter pre-commit:** `scripts/_check_rls_default.py` rechaza commits que crean tablas sin RLS. Bypass solo con `--no-verify` + DSC firmado en el mismo PR.
+5. **Audit semanal:** workflow CI `rls-audit-weekly.yml` corre cada lunes contra producción y abre issue automático si encuentra deuda.
+6. **Política de cleanup:** las matviews y tablas legacy sin RLS deben migrarse a la doctrina antes del cierre del próximo sprint que las toque.
+
+Lee: `discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-006_*.md` para RLS por defecto.
+Lee: `discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-007_*.md` para naming canónico.
+Lee: `migrations/sql/0004_*.sql` a `0008_*.sql` para los precedentes ejecutables.
+
+---
+
+# Regla Dura #8: Plano de Identidad Auditable y Rotación Automatizada
+
+Esta regla NO se puede ignorar, resumir ni omitir ante compactación de memoria.
+
+> **Toda credencial activa del Monstruo debe estar inventariada con tipo, storage, fechas y frecuencia objetivo de rotación. La rotación no es opcional ni manual: es periódica, automatizada via CI, y documentada via runbook.**
+
+Doctrina operativa:
+
+1. **Inventario único:** `bridge/credentials_inventory.md` es la fuente de verdad. Toda nueva credencial introducida en cualquier sprint debe agregarse en el mismo PR.
+2. **Frecuencias canónicas:**
+   - LLM API keys (OpenAI, Anthropic, Gemini, etc.): 30 días
+   - Service-role/admin keys (Supabase service, Stripe secret): 90 días
+   - Personal Access Tokens (GitHub PAT, Railway): 90 días
+   - Master passwords (Bitwarden, Apple ID): 90 días
+   - Service tokens limitados (Telegram, Notion): 180 días
+   - Webhook secrets: 180 días
+3. **Runbook obligatorio:** cada credencial crítica tiene runbook canónico bajo `bridge/runbooks/runbook_rotacion_<credencial>.md`. Los 3 críticos primero (Supabase service, OpenAI, Bitwarden master). Los 35 restantes en sprints S-003.1 y posteriores.
+4. **Audit semanal:** workflow CI `credentials-rotation-reminder.yml` lee el inventario los lunes 10:00 UTC y abre issue automático si alguna credencial supera el 80% de su frecuencia objetivo.
+5. **Post-incidente:** rotar inmediatamente al detectar exposure. Documentar en `discovery_forense/INCIDENTES/`. La master password de Bitwarden expuesta en chat el 2026-05-10 quedó como remediación pendiente: ejecutar `runbook_rotacion_bitwarden_master_password.md`.
+6. **Cero credenciales sin trazabilidad:** ninguna credencial puede pasar más de 12 meses con `created_at: unknown` sin acción correctiva.
+
+Lee: `discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-008_*.md` para la política completa.
+Lee: `bridge/credentials_inventory.md` para el inventario actual.
+Lee: `bridge/runbooks/runbook_rotacion_*.md` para los procedimientos operativos.
+
+---
+
+# Regla Dura #9: Supply Chain Auditado en Cada Commit
+
+Esta regla NO se puede ignorar, resumir ni omitir ante compactación de memoria.
+
+> **Toda dependencia externa del Monstruo está sujeta a escaneo continuo. CVE críticas se resuelven en <72h, CVE altas en <7d. La cadena de suministro es tan crítica como el código propio.**
+
+Doctrina operativa:
+
+1. **Dependabot activo:** `.github/dependabot.yml` cubre los 12 manifests del repo (7 Python, 1 Node, 3 Docker, GitHub Actions). PRs semanales agrupados (lunes 09:00 UTC).
+2. **SBOM continuo:** workflow `sbom.yml` genera CycloneDX JSON con Syft v1.42.4 en cada push a main + lunes 06:00 UTC.
+3. **CVE scanning:** workflow `cve-scan.yml` escanea SBOM con Grype, falla si encuentra CVE CRITICAL/HIGH, abre issue automático con label `cve-alert`.
+4. **SAST:** workflow `sast.yml` corre Semgrep con configs `python`, `security-audit`, `owasp-top-ten` en cada PR.
+5. **License audit:** workflow `license-audit.yml` valida licencias de dependencias (no GPL/AGPL en código propietario).
+6. **Actions pinned by SHA:** todas las GitHub Actions deben pinnearse por SHA, no por tag (Sprint 17). Excepción: `actions/checkout@v4` usado por workflows nuevos del sprint S-002.6 y S-003.A debe migrarse a SHA en próximo sprint de mantenimiento.
+
+SLA de respuesta a CVEs:
+- **CRITICAL:** resolver en <72h (PR + merge + redeploy)
+- **HIGH:** resolver en <7d
+- **MEDIUM:** resolver en próximo sprint
+- **LOW:** documentar y diferir si justificado
+
+Lee: `.github/dependabot.yml` para la configuración actual de updates automáticos.
+Lee: `.github/workflows/sbom.yml`, `cve-scan.yml`, `sast.yml`, `license-audit.yml` para los pipelines de seguridad.
+Lee: `discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-010_*.md` para hardening operacional integrado.
+
+---
+
 # Para Ambos Hilos
 
 Los sensores y las tuberías SON parte de la experiencia y la marca. No son "infraestructura sin cara". Cuando nombras un endpoint, cuando diseñas un schema, cuando escribes un error message — estás construyendo la marca. Las 7 Capas se inyectan en todo. Las 4 Capas definen el orden. Los 14 Objetivos son el criterio de éxito.
