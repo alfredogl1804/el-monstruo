@@ -1,0 +1,182 @@
+# ============================================================
+# Dependabot configuration — Sprint S-003.A
+# ============================================================
+# Cubre todos los ecosistemas detectados en el repo:
+#   - 7 manifests Python (pip)
+#   - 1 manifest Node (npm)
+#   - 2 Dockerfiles (docker)
+#   - 2 docker-compose
+#   - GitHub Actions (workflows)
+#
+# Política:
+#   - Updates semanales para minimizar ruido (lunes 09:00 UTC)
+#   - Max 5 PRs abiertos por ecosistema (evita spam)
+#   - Group de minor/patch para reducir overhead
+#   - Auto-asigna labels security + dependencies
+#   - Cowork audita PRs de Dependabot antes de mergear
+# ============================================================
+
+version: 2
+
+updates:
+
+  # === Python: kernel principal ===
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "security"
+      - "python"
+    groups:
+      python-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+
+  # === Python: requirements-eval ===
+  - package-ecosystem: "pip"
+    directory: "/"
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:15"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "python"
+      - "eval"
+    allow:
+      - dependency-name: "*"
+        dependency-type: "direct"
+    commit-message:
+      prefix: "chore(deps-eval)"
+
+  # === Python: skills ===
+  - package-ecosystem: "pip"
+    directory: "/skills/api-context-injector"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:30"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "skills"
+
+  - package-ecosystem: "pip"
+    directory: "/skills/ciclo-investigacion-descubrimiento-perpetuo"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:35"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "skills"
+
+  # === Python: cidp ===
+  - package-ecosystem: "pip"
+    directory: "/cidp"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:40"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "cidp"
+
+  # === Python: mobile gateway ===
+  - package-ecosystem: "pip"
+    directory: "/apps/mobile/gateway"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:45"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "mobile"
+
+  # === Node.js: design-tokens ===
+  - package-ecosystem: "npm"
+    directory: "/packages/design-tokens"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "design-system"
+    groups:
+      npm-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # === Docker: kernel principal ===
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:30"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+      - "security"
+
+  # === Docker: cidp ===
+  - package-ecosystem: "docker"
+    directory: "/cidp"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:35"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+      - "cidp"
+
+  # === Docker: mobile gateway ===
+  - package-ecosystem: "docker"
+    directory: "/apps/mobile/gateway"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:40"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+      - "mobile"
+
+  # === GitHub Actions ===
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "11:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "security"
+    commit-message:
+      prefix: "chore(actions)"
