@@ -261,3 +261,167 @@ class CatastroCurador(BaseModel):
             # Auto-corrige en lugar de fallar — el sistema debe ser tolerante
             return True
         return v
+
+
+# ============================================================================
+# Sprint 88 - Macroarea AGENTES (DSC-G-007.2, DSC-MO-009)
+# Migraciones SQL: 030_sprint88_catastro_agentes.sql + 031_sprint88_dominios_expandidos.sql
+# ============================================================================
+
+class DominioAgentes(str, Enum):
+    """
+    9 dominios canonicos dentro de Macroarea AGENTES.
+
+    5 originales (Sprint 88 v1):
+    - AGENTES_DESARROLLO: developer-pro IDEs/CLIs (Manus, Cowork, Claude Code, Codex, Cursor, Devin...)
+    - AGENTES_INVESTIGACION: research/browser (Perplexity, Comet, Deep Research...)
+    - AGENTES_EJECUTORES: workflow automation (n8n, Zapier, Lindy, Gumloop...)
+    - AGENTES_MULTI_SWARM: orquestadores frameworks (LangGraph, CrewAI, AutoGen...)
+    - INTERFACES_USUARIO: apps consumer general (ChatGPT Pro, Claude.ai, Gemini App)
+
+    4 expandidos (Sprint 88 v2 - DSC-G-007.2):
+    - AGENTES_VIBE_CODING: no-code/low-code app builders (Replit Agent, Lovable, Bolt, V0...)
+    - AGENTES_CREACION_AUDIOVISUAL: cine/video largo + SFX/musica (Sora, Veo, Runway, Higgsfield, Suno, Udio...)
+    - AGENTES_BRANDING_DISENO: logos/marca/identidad visual (Ideogram, Recraft, Looka, Kittl...)
+    - AGENTES_MARKETING_VENTAS: pauta/leads/copy/outreach (Apollo, Clay, Agentforce, Sierra, Harvey, Jasper...)
+    """
+    # Originales
+    AGENTES_DESARROLLO = "agentes_desarrollo"
+    AGENTES_INVESTIGACION = "agentes_investigacion"
+    AGENTES_EJECUTORES = "agentes_ejecutores"
+    AGENTES_MULTI_SWARM = "agentes_multi_swarm"
+    INTERFACES_USUARIO = "interfaces_usuario"
+    # Expandidos Sprint 88 v2
+    AGENTES_VIBE_CODING = "agentes_vibe_coding"
+    AGENTES_CREACION_AUDIOVISUAL = "agentes_creacion_audiovisual"
+    AGENTES_BRANDING_DISENO = "agentes_branding_diseno"
+    AGENTES_MARKETING_VENTAS = "agentes_marketing_ventas"
+
+
+class PersistenciaMemoria(str, Enum):
+    """Capacidad de persistencia entre sesiones del agente."""
+    NONE = "none"
+    SESSION = "session"
+    PERSISTENT = "persistent"
+    EXTERNAL_DB = "external_db"
+
+
+class CostoPorUsoTipico(str, Enum):
+    """Bucket de costo por uso tipico (subjetivo, snapshot 2026-05-10)."""
+    GRATIS = "gratis"
+    BAJO = "bajo"          # < $20/mes o < $0.50/run
+    MEDIO = "medio"        # $20-100/mes o $0.50-5/run
+    ALTO = "alto"          # $100-500/mes o $5-50/run
+    ENTERPRISE = "enterprise"  # > $500/mes o pricing on-demand
+
+
+class CatastroAgente(BaseModel):
+    """
+    Tabla: catastro_agentes - macroarea AGENTES del Catastro (Sprint 88).
+
+    Productos/sustratos completos clasificados por dominio. Distinto de
+    `CatastroModelo` (LLM puro): agrega capas de ejecucion (sandbox, fs,
+    internet, multi-step, multi-swarm) y FK opcional al LLM base.
+
+    Cruza con DSC-MO-009 (arsenal seleccionable por Catastro) y
+    DSC-G-007.2 (Macroarea AGENTES con 9 dominios canonizados).
+    """
+    # Identidad
+    id: str = Field(..., min_length=2, max_length=100, description="slug ej. 'manus', 'claude-cowork'")
+    nombre: str
+    proveedor: str
+
+    # Taxonomia
+    macroarea: Macroarea = Macroarea.AGENTES
+    dominio: DominioAgentes
+    subcapacidades: list[str] = Field(default_factory=list)
+
+    # LLM base (opcional)
+    llm_base_id: Optional[str] = Field(
+        None,
+        description="FK a catastro_modelos.id - LLM principal que envuelve. NULL si agnostico de LLM.",
+    )
+    llm_bases_alternativos: list[str] = Field(default_factory=list)
+
+    # Dimensiones tecnicas booleanas
+    tiene_sandbox: bool = False
+    acceso_filesystem: bool = False
+    acceso_internet: bool = False
+    multi_step_capable: bool = False
+    multi_swarm_capable: bool = False
+
+    # Persistencia
+    persistencia_memoria: PersistenciaMemoria = PersistenciaMemoria.NONE
+
+    # Tools y casos de uso
+    tools_nativas: list[str] = Field(default_factory=list)
+    casos_de_uso_primarios: list[str] = Field(default_factory=list)
+
+    # Performance / costo
+    costo_por_uso_tipico: Optional[CostoPorUsoTipico] = None
+    latencia_tipica_segundos: Optional[int] = Field(None, ge=0)
+
+    # Estado
+    estado: EstadoModelo = EstadoModelo.PRODUCTION
+    open_weights: bool = False
+    api_endpoint: Optional[str] = None
+
+    # Metricas Trono AGENTES (formula: 0.30*CT + 0.25*A + 0.20*E + 0.15*I + 0.10*CE)
+    capacidad_tecnica: Optional[float] = Field(None, ge=0.0, le=100.0)
+    adopcion_score: Optional[float] = Field(None, ge=0.0, le=100.0)
+    estabilidad_score: Optional[float] = Field(None, ge=0.0, le=100.0)
+    integracion_score: Optional[float] = Field(None, ge=0.0, le=100.0)
+    costo_eficiencia_score: Optional[float] = Field(None, ge=0.0, le=100.0)
+
+    trono_dominio: Optional[float] = Field(None, ge=0.0, le=100.0)
+    trono_delta: Optional[float] = None
+    rank_dominio: Optional[int] = Field(None, ge=1)
+
+    # Datos extensibles
+    fortalezas: list[str] = Field(default_factory=list)
+    debilidades: list[str] = Field(default_factory=list)
+    limitaciones: list[str] = Field(default_factory=list)
+
+    # Citation tracking obligatorio (DSC-G-007.1)
+    fuentes_evidencia: list[FuenteEvidencia] = Field(default_factory=list)
+    quorum_alcanzado: bool = False
+    confidence: float = Field(0.50, ge=0.0, le=1.0)
+    curador_responsable: Optional[str] = None
+    validacion_adversarial: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Resultado validacion adversarial DSC-G-007.1: {sabios, acuerdo_pct, discrepancias}",
+    )
+
+    # Tier de seed (DSC-G-007.3 - escalonamiento de profundidad)
+    tier_seed: int = Field(1, ge=1, le=2, description="1=validacion profunda 3 sabios, 2=validacion ligera 1 sabio")
+
+    # Extensibilidad
+    data_extra: dict[str, Any] = Field(default_factory=dict)
+    schema_version: int = 1
+
+    # Audit
+    ultima_validacion: datetime = Field(default_factory=datetime.utcnow)
+    proxima_revalidacion: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    @field_validator("id")
+    @classmethod
+    def slug_format(cls, v: str) -> str:
+        if v != v.lower():
+            raise ValueError(f"id debe ser lowercase: {v!r}")
+        if " " in v or "_" in v:
+            raise ValueError(f"id debe usar guiones (-), no espacios ni underscores: {v!r}")
+        return v
+
+    @field_validator("multi_swarm_capable")
+    @classmethod
+    def swarm_implies_multistep(cls, v: bool, info) -> bool:
+        """Invariante: multi_swarm_capable=True implica multi_step_capable=True (espejo del CHECK SQL)."""
+        if v:
+            multi_step = info.data.get("multi_step_capable") if info.data else None
+            if multi_step is False:
+                raise ValueError(
+                    "Invariante violado: multi_swarm_capable=True requiere multi_step_capable=True"
+                )
+        return v
