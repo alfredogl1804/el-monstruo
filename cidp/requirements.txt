@@ -10,7 +10,7 @@ uvicorn[standard]>=0.34.0,<1.0.0
 aiohttp>=3.13.4,<4.0.0
 
 # Data validation (comes with FastAPI but pin explicitly)
-pydantic>=2.11.0,<3.0.0
+pydantic>=2.13.4,<3.0.0
 
 # Logging
 structlog>=25.1.0,<26.0.0
