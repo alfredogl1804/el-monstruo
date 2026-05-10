@@ -1,0 +1,18 @@
+# El Monstruo — Proposal Worker Railway Config
+# Sprint EMBRION-NEEDS-002 (2026-05-10)
+# Servicio Railway separado del kernel web (`el-monstruo-kernel-production`).
+#
+# Para usar este config:
+#   railway service create proposal-worker --root /
+#   railway service update --build-config dockerfilePath=Dockerfile.worker
+# o vincular este toml manualmente desde el dashboard.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.worker"
+
+[deploy]
+# NO healthcheckPath: el worker no expone HTTP.
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+# Cualquier crash del worker debe reiniciarse automáticamente; el embrión depende de él.

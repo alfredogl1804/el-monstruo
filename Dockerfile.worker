@@ -1,0 +1,39 @@
+# El Monstruo — Proposal Worker Dockerfile
+# Sprint EMBRION-NEEDS-002 (2026-05-10)
+# Servicio Railway separado del kernel web. Cierra el ciclo HITL del embrión:
+# expira proposals con TTL vencido + ejecuta proposals approved con executor_registry.
+
+FROM python:3.12-slim AS base
+
+# Cache bust — cambiar este valor fuerza rebuild completo
+ARG CACHE_BUST=enwn002_v1
+
+WORKDIR /app
+
+# System deps mínimas (sin Playwright — el worker no necesita browser automation)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python deps — production only
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    grep -v "^#" requirements.txt | \
+    grep -v "^$" | \
+    grep -v "pytest" | \
+    pip install --no-cache-dir -r /dev/stdin
+
+# App code
+COPY . .
+
+# Environment
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# El worker NO expone puerto HTTP — es un proceso de background.
+# Railway no aplicará healthcheck si no se define healthcheckPath en railway.worker.toml.
+
+CMD ["python", "-m", "kernel.runner.proposal_processor"]
