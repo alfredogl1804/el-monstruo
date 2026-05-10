@@ -55,6 +55,11 @@ import structlog
 
 from kernel.utils.keyword_matcher import compile_keyword_pattern, match_any_keyword
 
+# Sprint EMBRION-NEEDS-001 Tareas 1+2 (PR de integración)
+# Cargados aquí para que la falla de import sea ruidosa al boot, no en runtime.
+from kernel import embrion_budget as _embrion_budget
+from kernel import embrion_self_verifier as _embrion_self_verifier
+
 logger = structlog.get_logger("embrion.loop")
 
 # ── Configuration ────────────────────────────────────────────────────
@@ -68,6 +73,24 @@ SILENCE_THRESHOLD = int(os.environ.get("EMBRION_SILENCE_THRESHOLD", "70"))  # si
 CONSOLIDATION_INTERVAL = int(os.environ.get("EMBRION_CONSOLIDATION_INTERVAL", "10"))  # Every N latidos
 SABIOS_CONSULTATION_INTERVAL = int(os.environ.get("EMBRION_SABIOS_INTERVAL", "20"))  # Consult Sabios every N cycles
 RADAR_INTERVAL = int(os.environ.get("EMBRION_RADAR_INTERVAL", "48"))  # Check agents-radar every N cycles (~48 min with 60s interval)
+
+# ── Sprint EMBRION-NEEDS-001 Tareas 1+2: Feature Flags ──────────────
+# Default True en producción. Permiten rollback sin redeploy bajando la flag.
+#   - EMBRION_BUDGET_TRACKER_ENABLED: cap por latido $0.25 + cap diario + HITL
+#   - EMBRION_SELF_VERIFIER_ENABLED: 3 decisiones antes de hablar (rompe eco)
+EMBRION_BUDGET_TRACKER_ENABLED = (
+    os.environ.get("EMBRION_BUDGET_TRACKER_ENABLED", "true").lower() == "true"
+)
+EMBRION_SELF_VERIFIER_ENABLED = (
+    os.environ.get("EMBRION_SELF_VERIFIER_ENABLED", "true").lower() == "true"
+)
+# Estimación conservadora de tokens por trigger (input + output esperado).
+# Se usa en el pre-flight del Budget Tracker. Calibrada con datos reales del
+# bucle 1-may: respuestas eco rondaron 600-1000 tokens output, prompts ~1500 in.
+EMBRION_EST_TOKENS_IN_REFLEX = int(os.environ.get("EMBRION_EST_TOKENS_IN_REFLEX", "1500"))
+EMBRION_EST_TOKENS_OUT_REFLEX = int(os.environ.get("EMBRION_EST_TOKENS_OUT_REFLEX", "800"))
+EMBRION_EST_TOKENS_IN_DIRECT = int(os.environ.get("EMBRION_EST_TOKENS_IN_DIRECT", "3000"))
+EMBRION_EST_TOKENS_OUT_DIRECT = int(os.environ.get("EMBRION_EST_TOKENS_OUT_DIRECT", "2000"))
 
 # Sprint 84.7 — Circuit breaker para judge fail-open
 # Antes: si _judge_before fallaba, retornaba True (fail-open) sin límite, gastando
@@ -737,6 +760,62 @@ class EmbrionLoop:
         This allows the Embrión to EXECUTE tool calls (github, code_exec, browse_web)
         when Alfredo sends a directive, while keeping autonomous reflections lightweight.
         """
+        # ── Sprint EMBRION-NEEDS-001 Tarea 1: Budget Tracker pre-flight ──
+        # ANTES de construir prompt o llamar al modelo. Si la proyección del
+        # cycle excede cap por latido o el cap diario, abortamos sin gastar.
+        # El cycle abortado se registra en embrion_budget_state para auditoría
+        # y dispara HITL al 3er excedido del día (idempotente por día).
+        if EMBRION_BUDGET_TRACKER_ENABLED:
+            _is_directive = trigger.get("type") == "mensaje_alfredo"
+            _est_tokens_in = (
+                EMBRION_EST_TOKENS_IN_DIRECT if _is_directive else EMBRION_EST_TOKENS_IN_REFLEX
+            )
+            _est_tokens_out = (
+                EMBRION_EST_TOKENS_OUT_DIRECT if _is_directive else EMBRION_EST_TOKENS_OUT_REFLEX
+            )
+            try:
+                _budget_decision = await asyncio.to_thread(
+                    _embrion_budget.check_before_cycle,
+                    estimated_tokens_in=_est_tokens_in,
+                    estimated_tokens_out=_est_tokens_out,
+                    model=ACTOR_MODEL,
+                )
+            except Exception as _be:
+                # Fail-open conservador: si el budget tracker falla, dejamos
+                # pasar pero logueamos. Mejor que congelar el embrión por un
+                # bug en la capa de gobierno.
+                logger.warning("embrion_budget_check_failed", error=str(_be))
+                _budget_decision = None
+
+            if _budget_decision is not None and not _budget_decision.allow:
+                logger.warning(
+                    "embrion_budget_aborted_cycle",
+                    cycle_id=self._cycle_count,
+                    reason=_budget_decision.reason,
+                    estimated_usd=_budget_decision.cost_estimated_usd,
+                    cap_usd=_budget_decision.cap_per_latido_usd,
+                    daily_spent_usd=_budget_decision.daily_spent_usd,
+                    daily_budget_usd=_budget_decision.daily_budget_usd,
+                )
+                # Persistir el cycle abortado (no bloqueante)
+                try:
+                    await asyncio.to_thread(
+                        _embrion_budget.record_aborted_cycle,
+                        cycle_id=self._cycle_count,
+                        decision=_budget_decision,
+                        trigger_type=trigger.get("type"),
+                        trigger_detail=str(trigger.get("detail", ""))[:500],
+                        model_used=ACTOR_MODEL,
+                    )
+                    # HITL escalation al 3er excedido del día
+                    await asyncio.to_thread(
+                        _embrion_budget.maybe_escalate_hitl,
+                    )
+                except Exception as _pe:
+                    logger.warning("embrion_budget_persist_failed", error=str(_pe))
+                # Skip cycle: no gastamos en pensamiento
+                return None
+
         try:
             # Build the thinking prompt based on trigger type
             # Sprint 34: Inject lessons learned before thinking
@@ -910,12 +989,72 @@ class EmbrionLoop:
             # Sprint 81.5: FCS counter — track real tool usage
             self._fcs_tool_calls_total += len(tool_calls)
 
+            # ── Sprint EMBRION-NEEDS-001 Tarea 1: persist real cycle cost ──
+            # Telemetría determinística del cycle real (no sólo el contador en
+            # memoria). Permite auditar costo por cycle, ratio cap_excedido, y
+            # reconstruir histórico independiente del proceso.
+            if EMBRION_BUDGET_TRACKER_ENABLED:
+                try:
+                    _cycle_result = _embrion_budget.CycleResult(
+                        cycle_id=self._cycle_count,
+                        cost_actual_usd=float(estimated_cost),
+                        tokens_used=int(tokens_used or 0),
+                        model_used=ACTOR_MODEL,
+                        trigger_type=trigger.get("type"),
+                        trigger_detail=str(trigger.get("detail", ""))[:500],
+                    )
+                    await asyncio.to_thread(
+                        _embrion_budget.record_after_cycle,
+                        _cycle_result,
+                    )
+                except Exception as _re:
+                    logger.warning("embrion_budget_record_failed", error=str(_re))
+
+            # ── Sprint EMBRION-NEEDS-001 Tarea 2: Self-Verifier post-thought ──
+            # Ejecuta 3 decisiones (PURPOSE, NOVELTY, VERIFIABLE). Si 2/3 dan NO,
+            # NO propagamos como respuesta normal. La memoria se marca como
+            # silencio_verificador para auditoría y _save_memory() entra con
+            # el tipo correcto.
+            _verifier_aborted = False
+            _verifier_reasons: list[str] = []
+            if EMBRION_SELF_VERIFIER_ENABLED and response:
+                try:
+                    _sv_decision = await asyncio.to_thread(
+                        _embrion_self_verifier.verify,
+                        response,
+                        trigger_type=str(trigger.get("type", "unknown")),
+                        cycle_id=int(self._cycle_count),
+                    )
+                    _verifier_aborted = bool(_sv_decision.abort)
+                    _verifier_reasons = list(_sv_decision.reasons)
+                    if _verifier_aborted:
+                        logger.warning(
+                            "embrion_self_verifier_aborted",
+                            cycle_id=self._cycle_count,
+                            votes_no=_sv_decision.votes_no,
+                            d1=_sv_decision.decision_purpose,
+                            d2=_sv_decision.decision_novelty,
+                            d3=_sv_decision.decision_verifiable,
+                            similarity_score=round(float(_sv_decision.similarity_score or 0.0), 3),
+                        )
+                except Exception as _ve:
+                    logger.warning("embrion_self_verifier_failed", error=str(_ve))
+
             # Save the thought as a memory
+            _memoria_tipo = (
+                "silencio_verificador"
+                if _verifier_aborted
+                else (
+                    "latido"
+                    if trigger["type"] == "reflexion_autonoma"
+                    else "respuesta_embrion"
+                )
+            )
             await self._save_memory(
-                tipo="latido" if trigger["type"] == "reflexion_autonoma" else "respuesta_embrion",
+                tipo=_memoria_tipo,
                 contenido=response[:10000],
                 hilo_origen="embrion_loop",
-                importancia=trigger.get("priority", 5),
+                importancia=(1 if _verifier_aborted else trigger.get("priority", 5)),
                 contexto={
                     "trigger": trigger["type"],
                     "tokens_used": tokens_used,
@@ -924,8 +1063,16 @@ class EmbrionLoop:
                     "autonomous": True,
                     "mode": "task_planner" if (trigger["type"] == "mensaje_alfredo" and tool_calls and tool_calls[0].startswith("planner_tool_")) else ("graph" if trigger["type"] == "mensaje_alfredo" else "router"),
                     "tool_calls": len(tool_calls),
+                    "verifier_aborted": _verifier_aborted,
+                    "verifier_reasons": _verifier_reasons,
                 },
             )
+
+            # Si el verifier abortó, devolvemos None para que el caller no
+            # propague la respuesta como acción. La memoria queda registrada
+            # para auditoría y aprendizaje (Sprint 34 lessons).
+            if _verifier_aborted:
+                return None
 
             return {
                 "response": response,
