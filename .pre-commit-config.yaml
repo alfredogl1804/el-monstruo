@@ -37,3 +37,17 @@ repos:
         language: system
         files: ^bridge/sprints_propuestos/.*\.md$
         pass_filenames: true
+
+  # DSC-S-006 regla 1 + DSC-S-004: linter de RLS por defecto en migraciones SQL.
+  # Sprint S-002.6 - Tarea 5.
+  # Bloquea commits con CREATE TABLE/MATERIALIZED VIEW que no agreguen RLS/REVOKE
+  # ni un comentario explícito '-- DSC-S-006: skip RLS justificado: <razón>'.
+  # Tambien detecta os.environ.get(SUPABASE_*, 'default-secreto') en .py.
+  - repo: local
+    hooks:
+      - id: rls-default-check
+        name: rls-default-check (DSC-S-006 + DSC-S-004)
+        entry: python3 scripts/_check_rls_default.py
+        language: system
+        files: \.(sql|py)$
+        pass_filenames: true
