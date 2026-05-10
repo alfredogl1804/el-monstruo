@@ -4,7 +4,7 @@
 
 # Web framework
 fastapi>=0.115.0,<1.0.0
-uvicorn[standard]>=0.34.0,<1.0.0
+uvicorn[standard]>=0.46.0,<1.0.0
 
 # Async HTTP (CVE-2026-22815 patched in 3.13.4+)
 aiohttp>=3.13.4,<4.0.0
