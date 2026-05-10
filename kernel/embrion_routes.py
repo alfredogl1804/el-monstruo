@@ -958,18 +958,32 @@ async def crear_proposal(req: ProposeRequest):
             )
 
         # Canal 2: telegram (botones inline Aprobar/Rechazar) — Tarea 4
+        # Firma de send_proposal_for_hitl (PR #44 final, post-audit Cowork):
+        #   (proposal_id, action_type, risk_level, target, reason,
+        #    cost_estimate_usd=0.0, expires_at="", chat_id=None)
         try:
             from kernel.runner.telegram_notifier import TelegramNotifier  # noqa: PLC0415
             tg_notifier = TelegramNotifier()
             if tg_notifier.enabled:
-                proposal_for_tg = {
-                    "id": proposal_id,
-                    "summary": req.summary,
-                    "risk_level": req.risk_level,
-                    "proposal_type": req.proposal_type,
-                    "expires_at": expires_at,
-                }
-                tg_result = await tg_notifier.send_proposal_for_hitl(proposal_for_tg)
+                # `target` y `cost_estimate_usd` se derivan del payload si los provee el embrión;
+                # si no, fallback a strings/numbers seguros.
+                tg_target = str(
+                    req.payload.get("target")
+                    or req.payload.get("resource")
+                    or req.payload.get("table")
+                    or req.payload.get("endpoint")
+                    or "unspecified"
+                )
+                tg_cost = float(req.payload.get("cost_estimate_usd") or 0.0)
+                tg_result = await tg_notifier.send_proposal_for_hitl(
+                    proposal_id=proposal_id,
+                    action_type=req.proposal_type,
+                    risk_level=req.risk_level,
+                    target=tg_target,
+                    reason=req.summary,
+                    cost_estimate_usd=tg_cost,
+                    expires_at=expires_at,
+                )
                 if tg_result and tg_result.get("ok"):
                     notified_channels.append("telegram")
                 else:
