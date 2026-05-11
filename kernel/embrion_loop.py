@@ -520,6 +520,39 @@ class EmbrionLoop:
         self._last_trigger = trigger
         logger.info("embrion_trigger_detected", trigger=trigger["type"], detail=trigger.get("detail", "")[:200])
 
+        # ═══ CA5+CA7_INBOX_BEGIN — Sprint EMBRION-NEEDS-002 Tarea 5 ═══
+        # Stub MFA: si el comando inbox es alto-riesgo (/override), NO ejecutar.
+        # Marcar requires_mfa, generar PIN simbólico y notificar a Alfredo via Telegram.
+        # Materialización completa de MFA = Tarea 5b (postmortem).
+        if trigger.get("type") == "inbox_command" and trigger.get("requires_mfa"):
+            try:
+                import hashlib  # noqa: PLC0415
+                from kernel.embrion_inbox import (  # noqa: PLC0415
+                    mark_requires_mfa as _inbox_mfa,
+                    _get_supabase_client as _inbox_client,
+                )
+                _pin = uuid4().hex[:6].upper()
+                _pin_hash = hashlib.sha256(_pin.encode()).hexdigest()
+                _expires = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
+                _inbox_mfa(
+                    _inbox_client(),
+                    inbox_id=trigger["inbox_id"],
+                    cycle_id=self._cycle_count,
+                    mfa_pin_hash=_pin_hash,
+                    mfa_expires_at=_expires,
+                )
+                logger.warning(
+                    "embrion_inbox_mfa_required_stub",
+                    inbox_id=trigger["inbox_id"],
+                    command=trigger.get("command_type"),
+                    expires_at=_expires,
+                    note="Stub: comando alto-riesgo escalado, no ejecutado. Materialización MFA = Tarea 5b.",
+                )
+            except Exception as _exc:  # noqa: BLE001
+                logger.error("embrion_inbox_mfa_stub_failed", error=str(_exc))
+            return
+        # ═══ CA5+CA7_INBOX_END ═══
+
         # Judge: should we think about this?
         should_proceed = await self._judge_before(trigger)
         if not should_proceed:
@@ -556,6 +589,24 @@ class EmbrionLoop:
             if len(self._silenced_thoughts) > 100:
                 self._silenced_thoughts = self._silenced_thoughts[-100:]
             logger.info("embrion_silenced", score=silence_score, level=level, trigger=trigger["type"])
+
+        # ═══ CA6_INBOX_AUDIT_BEGIN — Sprint EMBRION-NEEDS-002 Tarea 5 ═══
+        # Si el trigger fue inbox_command, marcar processed para cerrar el ciclo.
+        if trigger.get("type") == "inbox_command" and trigger.get("inbox_id"):
+            try:
+                from kernel.embrion_inbox import (  # noqa: PLC0415
+                    mark_processed as _inbox_processed,
+                    _get_supabase_client as _inbox_client,
+                )
+                _inbox_processed(
+                    _inbox_client(),
+                    trigger["inbox_id"],
+                    cycle_id=self._cycle_count,
+                    notes=f"silence_score={silence_score} level={level}"[:500],
+                )
+            except Exception as _exc:  # noqa: BLE001
+                logger.warning("embrion_inbox_mark_processed_failed", error=str(_exc))
+        # ═══ CA6_INBOX_AUDIT_END ═══
 
         # Update state
         self._last_thought_at = time.time()
@@ -616,6 +667,39 @@ class EmbrionLoop:
                         "message_id": msg_id,
                         "priority": 10,
                     }
+
+            # ═══ CA5_INBOX_BEGIN — Sprint EMBRION-NEEDS-002 Tarea 5 ═══
+            # Embrión consume inbox de Daddy (Telegram → embrion_inbox).
+            # Prioridad 9: por debajo de mensaje_alfredo (10), por encima de Sabios (7).
+            # Rate limit: limit=1 por cycle (los demás pending esperan al próximo).
+            # Revertible: borrar este bloque CA5_INBOX_BEGIN/END deja el comportamiento previo.
+            try:
+                from kernel.embrion_inbox import (  # noqa: PLC0415
+                    consume_next as _inbox_consume,
+                    _get_supabase_client as _inbox_client,
+                    HIGH_RISK_COMMANDS as _INBOX_HIGH_RISK,
+                )
+                _inbox_rows = _inbox_consume(
+                    _inbox_client(),
+                    cycle_id=self._cycle_count,
+                    limit=1,
+                )
+                if _inbox_rows:
+                    _row = _inbox_rows[0]
+                    return {
+                        "type": "inbox_command",
+                        "detail": (_row.get("sanitized_payload") or _row.get("raw_text", ""))[:2000],
+                        "inbox_id": str(_row.get("id", "")),
+                        "command_type": _row.get("tipo_comando", "unknown"),
+                        "intent_class": _row.get("intent_class"),
+                        "chat_id_origen": _row.get("chat_id_origen"),
+                        "requires_mfa": _row.get("tipo_comando") in _INBOX_HIGH_RISK,
+                        "priority": 9,
+                    }
+            except Exception as _exc:  # noqa: BLE001
+                # Fallo del inbox NO debe bloquear el resto de triggers.
+                logger.warning("embrion_inbox_consume_failed", error=str(_exc))
+            # ═══ CA5_INBOX_END ═══
 
             # 2. Check for contributions from Sabios
             contribuciones = await self._db.select(
