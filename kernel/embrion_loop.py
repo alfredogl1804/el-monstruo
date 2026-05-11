@@ -900,6 +900,48 @@ class EmbrionLoop:
                 # Skip cycle: no gastamos en pensamiento
                 return None
 
+        # ── Sprint EMBRION-VERIFIER-001: Pre-Verifier de INPUT (anti eco/saludo) ──
+        # Antes de pagar el LLM, chequear si el mensaje de entrada es saludo
+        # trivial o eco puro. En tal caso, saltamos el ciclo costoso.
+        # Off por default; activar con EMBRION_INPUT_PREVERIFIER_ENABLED=true en Railway
+        # después de validación manual.
+        if (
+            os.environ.get("EMBRION_INPUT_PREVERIFIER_ENABLED", "false").lower() == "true"
+            and trigger.get("type") == "mensaje_alfredo"
+        ):
+            try:
+                _skip, _skip_reason = _embrion_self_verifier.evaluate_input_for_skip(
+                    str(trigger.get("detail", ""))
+                )
+                if _skip:
+                    logger.info(
+                        "embrion_input_preverifier_skip",
+                        cycle_id=self._cycle_count,
+                        reason=_skip_reason,
+                        trigger_type=trigger.get("type"),
+                    )
+                    # Guardar memoria liviana para auditoría (sin pagar LLM)
+                    try:
+                        await self._save_memory(
+                            tipo="silencio_preverifier",
+                            contenido=f"[pre-verifier skip] reason={_skip_reason}",
+                            hilo_origen="embrion_loop",
+                            importancia=1,
+                            contexto={
+                                "trigger": trigger.get("type"),
+                                "cycle": self._cycle_count,
+                                "preverifier_skip": True,
+                                "preverifier_reason": _skip_reason,
+                                "cost_usd": 0.0,
+                            },
+                        )
+                    except Exception as _se:
+                        logger.warning("embrion_preverifier_save_failed", error=str(_se))
+                    return None
+            except Exception as _pve:
+                # Fail-open: si algo falla en el pre-verifier, seguimos al flujo normal
+                logger.warning("embrion_input_preverifier_failed", error=str(_pve))
+
         try:
             # Build the thinking prompt based on trigger type
             # Sprint 34: Inject lessons learned before thinking

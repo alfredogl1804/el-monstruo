@@ -413,6 +413,66 @@ def verify(
     return decision
 
 
+# ── Sprint EMBRION-VERIFIER-001: Pre-Verifier de INPUT (anti eco/saludo) ──
+#
+# Motivo: en 2026-05-11 detectamos 307 ciclos abortados por self-verifier en 24h
+# con trigger_type='mensaje_alfredo'. El verifier post-LLM funcionaba correctamente,
+# pero el costo del LLM ya se pagaba antes (~$0.014/ciclo, ~$3.5/día).
+#
+# Esta función evalúa el INPUT (mensaje entrante) ANTES del LLM. Si el mensaje
+# es saludo trivial, confirmación vacía o eco puro, devuelve skip=True para que
+# el caller (embrion_loop) responda barato/silenciosamente sin pagar el modelo.
+#
+# Heurística conservadora: solo skip si el mensaje es CORTO (<200 chars) Y contiene
+# anti-purpose phrase O es un saludo trivial. Mensajes largos siempre pasan al LLM
+# aunque contengan saludo, porque pueden traer payload útil.
+
+# Saludos triviales que no requieren un LLM caro para procesar.
+# Solo activa skip cuando el mensaje COMPLETO es esencialmente uno de estos.
+TRIVIAL_GREETING_RE = re.compile(
+    r"^\s*(hola|hey|buenas|saludos|hi|hello|ok|okay|vale|listo|claro|si|sí|no)"
+    r"[\s!.,¿?¡]{0,5}\s*$",
+    re.IGNORECASE,
+)
+
+
+def evaluate_input_for_skip(message: str) -> tuple[bool, str]:
+    """Pre-verifier ligero sobre el mensaje DE ENTRADA, antes del LLM.
+
+    Returns:
+        (skip, reason)
+        skip=True  -> el caller debe responder barato sin LLM
+        skip=False -> el caller debe proceder al flujo normal
+
+    Reglas (conservadoras, fail-closed hacia procesar):
+      1. Si message es None o vacío -> skip=True ("empty_input")
+      2. Si message es <200 chars Y contiene anti-purpose phrase -> skip=True
+      3. Si message es <60 chars Y matchea TRIVIAL_GREETING_RE -> skip=True
+      4. En cualquier otro caso -> skip=False (procesar normal)
+
+    NO usa PURPOSE_KEYWORDS para skip porque la ausencia de keyword en el INPUT
+    no significa que sea eco — puede ser una pregunta válida de Alfredo.
+    """
+    if not message or not message.strip():
+        return True, "empty_input"
+
+    msg_stripped = message.strip()
+    length = len(msg_stripped)
+
+    # Regla 3: saludo trivial corto
+    if length < 60 and TRIVIAL_GREETING_RE.match(msg_stripped):
+        return True, f"trivial_greeting: {msg_stripped[:40]!r}"
+
+    # Regla 2: anti-purpose phrase en mensaje corto
+    if length < 200:
+        norm = _normalize_thought(msg_stripped)
+        for anti in ANTI_PURPOSE_PHRASES:
+            if _normalize_thought(anti) in norm:
+                return True, f"anti_purpose_input_match: {anti!r}"
+
+    return False, f"proceed_normal_len={length}"
+
+
 def daily_metrics(*, supabase_client=None) -> dict:
     """Métrica registrada (requerida por el spec):
        ratio de aborts por self-verifier vs cycles totales evaluados hoy."""
