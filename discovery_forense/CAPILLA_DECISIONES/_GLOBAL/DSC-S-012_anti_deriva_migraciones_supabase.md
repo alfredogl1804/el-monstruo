@@ -3,10 +3,12 @@ id: DSC-S-012
 proyecto: GLOBAL
 tipo: restriccion_dura
 titulo: "Prohibido aplicar migraciones SQL a Supabase prod sin PR previo a main. Toda migración aplicada inadvertidamente requiere PR retroactivo del .sql con marca [DERIVA-RESUELTA] en el body del PR."
-estado: DRAFT_PENDIENTE_FIRMA_T1
+estado: firme
 fecha: 2026-05-11
+fecha_firma_T1: 2026-05-11
 autor_borrador: Cowork T2 (Sprint SPECS-FIRMA-001 ampliado bajo autorización T1 directa)
 autor_propuesta_original: Hilo Ejecutor 1 (durante investigación del gap Migration 0010, PR #95)
+autorización_T1: Alfredo, firmada explícitamente en chat 2026-05-11
 fuentes:
   - bridge/manus_to_cowork_RESOLUCION_GAP_MIGRATION_0010_2026_05_11.md
   - PR #95 (commit a0f4b1cb) body — sección "Hallazgos laterales"
@@ -14,6 +16,7 @@ fuentes:
   - audit memory/cowork/audits/CARTOGRAFIA_1B_KERNEL_NUCLEO_2026_05_10.md §3.10 (.pyc huérfano)
 cruza_con: [DSC-S-006 v1.1, DSC-G-008 v2, DSC-G-017, DSC-S-002, DSC-S-007]
 contrato_ejecutable_propuesto: tools/_check_migration_drift.py + pre-commit hook + workflow CI
+contrato_ejecutable_estado: pendiente — sprint Cowork ~2-3h en próxima sesión (sin esto el DSC degrada a aspirational en 30 días per DSC-G-017)
 ---
 
 # DSC-S-012 — Anti-deriva migraciones SQL ↔ Supabase producción
@@ -48,14 +51,14 @@ Reglas duras derivadas:
 | Deriva | Objeto en Supabase prod | Archivo en main | Cuándo se aplicó |
 |---|---|---|---|
 | 1 | Tabla `kernel_audit_log` + 3 triggers (`kal_no_update`, `kal_no_delete`, `kal_no_truncate`) | ❌ NO existe (archivo solo en branch `sprint/s-003-b-audit-middleware-pentest` no mergeada) | Durante Sprint S-003.B audit middleware, sin completar merge |
-| 2 | Tabla `embrion_inbox` (19 columnas + RLS + 3 CHECK constraints) | ❌ NO estaba en main hasta merge de PR #94 (commit `aaf4b298` hoy 2026-05-11 15:27 UTC) | Durante implementación del Sprint EMBRION-NEEDS-002 T5, antes del PR |
-| 3 | Tabla `cowork_sesiones` SIN columnas KPI (`interceptaciones_count`, etc.) | ❌ migración 0010 creada en PR #95 mergeada hoy commit `a0f4b1cb` — falta aplicar | Caso INVERSO: archivo en repo, NO en DB |
+| 2 | Tabla `embrion_inbox` (19 columnas + RLS + 3 CHECK constraints) | ✅ Resuelta hoy via merge PR #94 (commit `aaf4b298` 2026-05-11 15:27 UTC) | Durante implementación del Sprint EMBRION-NEEDS-002 T5, antes del PR. Deriva CERRADA con la firma de este DSC. |
+| 3 | Tabla `cowork_sesiones` SIN columnas KPI (`interceptaciones_count`, etc.) | ✅ Archivo en main via PR #95 (commit `a0f4b1cb`) — falta aplicar | Caso INVERSO: archivo en repo, NO en DB. Hilo Ejecutor 1 ejecuta `scripts/_apply_migration_0010.py` post-merge. |
 
 **Patrón paralelo (no SQL pero similar):** `audit_middleware.py` con fuente perdida (`__pycache__/.pyc` huérfano sin `.py` correspondiente — audit cartografía 1B §3.10). El bytecode existe en producción Railway pero el código fuente no llegó a main. Mismo antipatrón estructural: ejecución desincronizada del repo.
 
 ### Costo de la deriva
 
-1. **Replay imposible:** si un nuevo ambiente intenta aplicar las migraciones desde main (ej. staging fresh, recovery de DR), `kernel_audit_log` y `embrion_inbox` no existirían porque sus migraciones no están. El stack que depende de ellas (Sprint S-003.B middleware, Sprint EMBRION-NEEDS-002 T5) fallaría silenciosamente.
+1. **Replay imposible:** si un nuevo ambiente intenta aplicar las migraciones desde main (ej. staging fresh, recovery de DR), `kernel_audit_log` no existiría porque su migración no está en main (PR S-003.B pendiente).
 
 2. **Síndrome-Dory operacional canonizado:** un hilo futuro (humano o agente) que mire `migrations/sql/` en main NO sabría que `kernel_audit_log` existe en prod. Si necesita modificarla, podría crear migración duplicada → colisión → corrupción de datos.
 
@@ -100,7 +103,7 @@ DSC-S-012 canoniza retroactivamente la regla que las 3 derivas violaban, y previ
 
 ## Contrato ejecutable propuesto
 
-Para que este DSC pase de `aspiracional` a `firme` con contrato adjunto (DSC-G-017 requirement), se propone:
+Para que este DSC pase de `aspiracional` (estado actual en `_dsc_contracts_index.yaml`) a `enforced` con contrato adjunto (DSC-G-017 requirement), se propone:
 
 ### 1. `tools/_check_migration_drift.py` (script de detección)
 
@@ -122,8 +125,8 @@ Identificadas durante la sesión del 2026-05-11:
 
 - `migrations/sql/0013_kernel_audit_log.sql` (renumerado desde 0009 en branch S-003.B — pendiente PR del Hilo Ejecutor 2)
 - `migrations/sql/0014_kernel_audit_log_truncate_guard.sql` (renumerado desde 0010 — pendiente PR del Hilo Ejecutor 2)
-- `migrations/sql/0012_embrion_inbox.sql` (ya en main vía merge PR #94 commit `aaf4b298` HOY — deriva resuelta de facto, NO requiere PR adicional)
-- `migrations/sql/0010_cowork_sesiones_metricas.sql` (drift inverso: archivo en main vía PR #95 commit `a0f4b1cb`, aplicación pendiente — Hilo Ejecutor 1 ejecutará post-merge)
+- ~~`migrations/sql/0012_embrion_inbox.sql`~~ — ✅ deriva resuelta vía merge PR #94 (commit `aaf4b298`).
+- ~~`migrations/sql/0010_cowork_sesiones_metricas.sql`~~ — ✅ deriva inversa resuelta: archivo en main via PR #95. Aplicación post-merge pendiente Hilo Ejecutor 1.
 
 Los 2 primeros bloquean cumplimiento total de DSC-S-012 hasta que Hilo Ejecutor 2 renumere y abra PR. El aviso ya está enviado en `bridge/manus_to_ejecutor2_RENUMERAR_SPRINT_S003B_2026_05_11.md`.
 
@@ -131,15 +134,9 @@ Los 2 primeros bloquean cumplimiento total de DSC-S-012 hasta que Hilo Ejecutor 
 
 ## Estado de validación
 
-**estado:** `DRAFT_PENDIENTE_FIRMA_T1` — pendiente firma de Alfredo.
+**estado:** `firme` — Alfredo firmó como T1 el 2026-05-11.
 
-**Criterio de paso a `firme`:**
-1. Alfredo firma este DSC en chat con sello horario.
-2. Las 2 migraciones pendientes (0013 + 0014 desde S-003.B) llegan a main con marcas `[DERIVA-RESUELTA]`.
-3. `tools/_check_migration_drift.py` (contrato ejecutable §1) está implementado y testeado.
-
-**Criterio de degradación a `aspiracional`:**
-- Si Alfredo firma el DSC pero el contrato ejecutable §1 no se implementa en próximos 30 días, el DSC queda como `aspiracional` (DSC-G-017 enforcement) y debe revisarse para encontrar implementador.
+**Estado en `_dsc_contracts_index.yaml`:** `aspirational` con reason — el contrato ejecutable §1-3 no está implementado todavía. Pendiente sprint Cowork de ~2-3h para crear `tools/_check_migration_drift.py` + pre-commit hook + workflow CI. **Sin contrato ejecutable adjunto en 30 días, el DSC degrada formalmente a aspirational permanente (DSC-G-017 enforcement).**
 
 **Severidad si se viola:** **alta**. Cada deriva nueva agrega Síndrome-Dory operacional al proyecto. Patrón sistémico ya documentado en 3 casos — repetirlo es F2 conocido (afirmar sin verificar) o F22 (pedirle a Alfredo lo que el ejecutor SÍ puede hacer: hacer PR primero antes de aplicar).
 
@@ -149,24 +146,24 @@ Los 2 primeros bloquean cumplimiento total de DSC-S-012 hasta que Hilo Ejecutor 
 
 - **Origen:** Hilo Ejecutor 1 sugirió canonización durante PR #95 (resolución del gap Migration 0010) tras detectar 3 derivas DB↔repo simultáneas.
 - **Audits que respaldan:** cartografía 1B §3.10 (audit_middleware.py fuente perdida — patrón paralelo no-SQL), audit 3A §2 H2 (riesgo de Síndrome-Dory operacional en redeploy).
-- **Sprint que materializa contrato ejecutable:** sin sprint asignado todavía — propuesta es Cowork puro de ~2-3h (tools/script + pre-commit hook + workflow CI). Pendiente firma T1 para asignación.
+- **Sprint que materializa contrato ejecutable:** Cowork puro de ~2-3h (tools/script + pre-commit hook + workflow CI). Pendiente asignación a próxima sesión Cowork.
 - **DSCs derivados potenciales:** DSC-S-013 candidato — "Anti-deriva código compilado vs fuente" (extender principio del .py vs .pyc detectado en audit 1B §3.10).
 
 ---
 
-## Para Alfredo — qué firmás cuando firmás este DSC
+## Para Alfredo — qué firmaste el 2026-05-11
 
-Firmás:
-1. Que la regla del §"Decisión" aplica desde el momento de tu firma a futuro.
-2. Que las derivas pre-existentes (las 3 detectadas hoy) requieren resolución vía PR retroactivo, no se ignoran.
-3. Que Cowork audita PRs de migración SQL con verificación binaria contra Supabase antes de mergear.
-4. Que excepciones requieren tu firma explícita en chat con sello horario.
-5. Que el contrato ejecutable propuesto §1-3 se implementará en próximos 30 días (sin esto, DSC queda aspiracional per DSC-G-017).
+Firmaste:
+1. ✅ Que la regla del §"Decisión" aplica desde el momento de tu firma a futuro.
+2. ✅ Que las derivas pre-existentes (las 3 detectadas el 2026-05-11) requieren resolución vía PR retroactivo, no se ignoran. 2 ya resueltas (PR #94 y PR #95), 1 pendiente (Ejecutor 2 renumeración).
+3. ✅ Que Cowork audita PRs de migración SQL con verificación binaria contra Supabase antes de mergear.
+4. ✅ Que excepciones requieren tu firma explícita en chat con sello horario.
+5. ✅ Que el contrato ejecutable propuesto §1-3 se implementará en próximos 30 días (sin esto, DSC degrada a aspirational permanente per DSC-G-017).
 
-**NO firmás:**
-- El sprint de implementación del contrato ejecutable — ese sprint queda separado.
+**NO firmaste todavía:**
+- El sprint de implementación del contrato ejecutable §1-3 — ese sprint queda separado y se levanta como Cowork puro próximo.
 - La canonización retroactiva de las 2 migraciones pendientes (0013 + 0014 de S-003.B) — esas las firma Hilo Ejecutor 2 cuando abra su PR renumerado.
 
 ---
 
-**estado:** DRAFT_PENDIENTE_FIRMA_T1 — Alfredo firma cambio a `firme` con sello horario en chat. Tras firma, Cowork actualiza el header `estado:` a `firme` + agrega `fecha_firma: YYYY-MM-DD HH:MM UTC` + abre Sprint de implementación del contrato ejecutable §1-3.
+**estado:** firme — Alfredo firmó como T1 el 2026-05-11. Canonizado en `_INDEX` de Capilla y `_dsc_contracts_index.yaml` con status `aspirational` hasta que el contrato ejecutable §1-3 esté implementado (deadline DSC-G-017: 30 días = 2026-06-10).
