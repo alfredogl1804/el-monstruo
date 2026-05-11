@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>Cowork Sessions Dashboard — El Monstruo</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; background:#0f172a; color:#e2e8f0; margin:0; padding:24px; }
+  h1 { color:#fff; margin-top:0; }
+  h2 { color:#cbd5e1; border-bottom:1px solid #334155; padding-bottom:6px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-bottom:24px; }
+  .kpi { background:#1e293b; border-radius:8px; padding:18px; border-left:4px solid #475569; }
+  .kpi .v { font-size:32px; font-weight:bold; color:#fff; }
+  .kpi .l { font-size:13px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; margin-top:4px; }
+  .card { background:#1e293b; border-radius:8px; padding:18px; margin-bottom:16px; }
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid #334155; font-size:13px; }
+  th { color:#94a3b8; font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:0.05em; }
+  code { background:#0f172a; padding:2px 6px; border-radius:3px; font-size:12px; }
+  .ok { color:#22c55e; font-weight:bold; }
+  .fail { color:#ef4444; font-weight:bold; }
+  .footer { margin-top:24px; padding-top:16px; border-top:1px solid #334155; color:#64748b; font-size:12px; }
+  .bar { height:8px; background:#334155; border-radius:4px; overflow:hidden; margin-top:6px; }
+  .bar > div { height:100%; transition:width 0.3s; }
+</style>
+</head>
+<body>
+<h1>Cowork Sessions Dashboard</h1>
+<p style="color:#94a3b8; margin-top:-12px;">M6 — Visibilidad de Alfredo de la salud operacional de Cowork</p>
+
+<div class="grid">
+  <div class="kpi" style="border-left-color:#3b82f6;">
+    <div class="v">1</div>
+    <div class="l">Sesiones totales</div>
+  </div>
+  <div class="kpi" style="border-left-color:#8b5cf6;">
+    <div class="v">1</div>
+    <div class="l">Ultimas 24h</div>
+  </div>
+  <div class="kpi" style="border-left-color:#06b6d4;">
+    <div class="v">1</div>
+    <div class="l">Ultimos 7 dias</div>
+  </div>
+  <div class="kpi" style="border-left-color:#ef4444;">
+    <div class="v">0%</div>
+    <div class="l">Pre-flight Memento</div>
+    <div class="bar"><div style="width:0%; background:#ef4444;"></div></div>
+  </div>
+  <div class="kpi" style="border-left-color:#ef4444;">
+    <div class="v">0%</div>
+    <div class="l">Sesiones con commits</div>
+    <div class="bar"><div style="width:0%; background:#ef4444;"></div></div>
+  </div>
+  <div class="kpi" style="border-left-color:#f59e0b;">
+    <div class="v">0</div>
+    <div class="l">Sesiones audit-only</div>
+  </div>
+</div>
+
+
+            <div class="card">
+              <h2>Ultima sesion</h2>
+              <p><strong>ID:</strong> <code>ed7bfd59-9aee-42c5-b03e-b74fc31b1ae9</code></p>
+              <p><strong>Sprint activo:</strong> COWORK-RUNTIME-001</p>
+              <p><strong>Fecha inicio:</strong> 2026-05-11T08:02:34.22126+00:00</p>
+              <p><strong>Duracion:</strong> — min · <strong>Turnos:</strong> 0</p>
+              <p><strong>Pre-flight ejecutado:</strong>
+                 <span class="fail">
+                   NO
+                 </span>
+              </p>
+              <p><strong>Commits productivos:</strong> 0</p>
+              <p><strong>Violaciones detectadas:</strong> 0</p>
+              <p><strong>Kernel version:</strong> <code>0.84.8-sprint-memento</code></p>
+              <p><strong>Embrion ultimo latido:</strong> <code>—</code></p>
+              <p><strong>Resumen lecciones:</strong> <em>(ninguno)</em></p>
+              <p><strong>Correctivos recibidos:</strong><br><em>ninguno</em></p>
+              <p><strong>Deudas pendientes proxima sesion:</strong><br><em>ninguna</em></p>
+            </div>
+            
+
+<div class="card">
+  <h2>Palabras clave correctivas de Alfredo (ultimos 7 dias)</h2>
+  <table>
+    <thead><tr><th>Palabra clave</th><th>Veces</th></tr></thead>
+    <tbody><tr><td colspan='2'><em>Sin correctivos en los ultimos 7 dias</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Ultimas 20 sesiones</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Inicio (UTC)</th><th>Sprint</th><th>Pre-flight</th>
+        <th>Commits</th><th>Violaciones</th><th>Min</th>
+      </tr>
+    </thead>
+    <tbody><tr><td>2026-05-11 08:02</td><td>COWORK-RUNTIME-001</td><td class='fail'>✗</td><td>0</td><td>0</td><td>—</td></tr>
+</tbody>
+  </table>
+</div>
+
+<div class="footer">
+  Generado: 2026-05-11 08:28 UTC · Fuente: <code>cowork_sesiones</code> (Supabase) ·
+  Lookback: 30d ·
+  Refs: M6 de <code>AUDITORIA_PROFUNDA_COMPORTAMIENTO_2026_05_11.md</code>
+</div>
+</body>
+</html>

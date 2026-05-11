@@ -265,6 +265,24 @@ class SessionMemoryStore:
         rows_sorted = sorted(rows, key=lambda r: r.get("fecha_inicio") or "", reverse=True)
         return CoworkSesion.from_dict(rows_sorted[0])
 
+    def read_recent(self, limit: int = 50) -> list[dict]:
+        """
+        Lee las ultimas N sesiones (dicts crudos para flexibilidad).
+        Usado por dashboard T6. Supabase con fallback local.
+        """
+        if self.use_supabase:
+            try:
+                rows = _supabase_request(
+                    self.config,  # type: ignore[arg-type]
+                    "GET",
+                    f"/cowork_sesiones?order=fecha_inicio.desc&limit={int(limit)}",
+                )
+                return rows or []
+            except SupabaseUnavailableError:
+                pass
+        rows = self._local_load()
+        return sorted(rows, key=lambda r: r.get("fecha_inicio") or "", reverse=True)[:limit]
+
 
 # =============================================================================
 # Operaciones de alto nivel (lo que llama Cowork)

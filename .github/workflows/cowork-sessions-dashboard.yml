@@ -1,0 +1,62 @@
+name: cowork-sessions-dashboard
+
+# T6 PREMIUM Sprint COWORK-RUNTIME-001
+# Regenera bridge/cowork_session_dashboard.html cada 6h leyendo cowork_sesiones
+# desde Supabase, y commitea el resultado a main para que Alfredo lo vea desde
+# GitHub directamente.
+# Refs: M6 de AUDITORIA_PROFUNDA_COMPORTAMIENTO_2026_05_11.md
+
+on:
+  schedule:
+    # Cada 6 horas: 00:00, 06:00, 12:00, 18:00 UTC
+    - cron: '0 */6 * * *'
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - 'kernel/dashboards/cowork_sessions.py'
+      - 'kernel/cowork_runtime/session_memory.py'
+      - '.github/workflows/cowork-sessions-dashboard.yml'
+
+jobs:
+  regenerate:
+    name: Regenerate Cowork Sessions Dashboard
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install minimal deps
+        run: pip install requests
+
+      - name: Generate dashboard
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          python -m kernel.dashboards.cowork_sessions \
+            --output bridge/cowork_session_dashboard.html \
+            --lookback-days 30 \
+            --limit 200
+
+      - name: Commit if changed
+        run: |
+          git config user.name "cowork-dashboard-bot"
+          git config user.email "cowork-dashboard@el-monstruo.local"
+          if git diff --quiet bridge/cowork_session_dashboard.html; then
+            echo "Sin cambios en el dashboard"
+          else
+            git add bridge/cowork_session_dashboard.html
+            git commit -m "chore(cowork-dashboard): auto-regen $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push origin main
+          fi
