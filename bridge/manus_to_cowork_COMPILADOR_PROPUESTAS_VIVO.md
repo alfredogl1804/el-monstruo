@@ -43,6 +43,8 @@ regla_de_actualizacion: |
 | P-008 | 2026-05-11 | **P0 fix entregado**: pre-verifier de INPUT anti eco/saludo (PR #101, -50% costo) | PR_ABIERTO |
 | P-009 | 2026-05-11 | **P0 sistémico**: 16,943 filas duplicadas en `scheduled_tasks` (13,724 health_check) | PROPUESTA |
 | P-010 | 2026-05-11 | **P0 autonomía**: Embrión sin latido formal hace 32h, falta tarea `latido_autonomo` | PROPUESTA |
+| P-011 | 2026-05-11 | Patch al prompt de Arquitecto Jefe: 3 ausencias mayores (Simulador, Reloj Suizo, A2UI profundo) + 3 secciones operativas | PROPUESTA |
+| P-012 | 2026-05-11 | Muestra de latidos del embrión (130 filas, 20+10+100) + `LA_CONVERSACION_11_MAYO_2026.md` canónica | ENTREGADA |
 
 ---
 
@@ -392,5 +394,91 @@ Priorizar entre P-008 (ya entregado, listo para merge), P-009 (autorización des
 3. Implementar P-010 handler — riesgo bajo, restaura autonomía.
 
 [STATUS: PROPUESTA — pendiente decisión Cowork sobre orden y autorización]
+
+---
+## P-011 — Patch al prompt original de Arquitecto Jefe (6 fixes + 3 ausencias mayores)
+
+**Timestamp:** 2026-05-11T23:30:00Z
+**Severidad:** P1 — afecta la calidad del próximo intercambio Cowork↔Manus.
+
+### Contexto
+
+Cowork pusheó el 11-may un prompt operativo para que Manus Ejecutor 2 actuara como Arquitecto Jefe (`bridge/cowork_to_manus_RUTAS_PARA_ARQUITECTO_JEFE_2026_05_11.md`). Alfredo me pidió evaluarlo. Mi veredicto fue: **85% bueno, 15% pendiente — produciría un buen auditor de backend, no un arquitecto del Monstruo completo**.
+
+### Diagnóstico del prompt actual
+
+El prompt cubre bien rutas técnicas, auditorías que sólo Manus puede hacer (PRs, branches, Railway), reglas duras anti-alucinación y formato binario (path:line, no prosa). Pero **omite tres dominios mayores del Monstruo**:
+
+1. **Simulador universal de escenarios** — cero menciones en el documento.
+2. **DSC-MO-010 Reloj Suizo / sincronización temporal** — cero menciones.
+3. **A2UI / Flutter en profundidad** — sólo pregunta por status del PR #92 y conteo de agentes; no pregunta nada sobre los 19 widgets, brand tokens, action channel, parser, naming DSC-G-004.
+
+Adicionalmente faltan 6 secciones operativas que un Arquitecto Jefe necesita: mapa de hilos activos, salud Railway últimas 24h, economía operativa (costos por LLM últimos 7 días), latidos vivos del embrión (SQL query directa), confesión operativa de Manus (qué dejó incompleto en últimos 30 días) y límite realista de páginas (5-6 mínimo, no 2-3).
+
+### Propuesta de patch (en formato diff conceptual)
+
+Agregar al prompt original tres secciones nuevas:
+
+**§1.I — Simulador universal de escenarios**
+> "¿Dónde vive el código del simulador? ¿Qué dominios se pueden simular hoy? ¿Está integrado al kernel o es un servicio separado? ¿Cuáles son las últimas 3 simulaciones ejecutadas y con qué resultado?"
+
+**§1.J — DSC-MO-010 Reloj Suizo**
+> "¿Está implementado el Reloj Suizo? ¿Cómo sincroniza latidos/jobs/sprints? ¿Hay drift temporal detectado? ¿Qué tabla/servicio expone el clock canónico?"
+
+**§1.K — A2UI / Flutter profundo**
+> "¿Los 19 widgets A2UI del PR #92 cumplen el spec firmado del 11-may? ¿Action channel cableado correctamente al kernel? ¿Brand tokens en HEX literales o referenciados? ¿Naming cumple DSC-G-004? ¿`genui_renderer.dart` está vivo o sigue siendo placeholder?"
+
+Y agregar al final 3 secciones operativas:
+
+**§2.E — Salud operativa últimas 24h** — uptime kernel, restarts, error rate.
+**§2.F — Economía operativa** — costo por LLM últimos 7 días, presupuesto restante, ratio cost/value.
+**§3.E — Confesión operativa** — "listame las 3 tareas que Alfredo te pidió en últimos 30 días que NO entregaste completas + razón sin justificarte".
+
+Y subir el límite de respuesta de 2-3 páginas a **5-6 páginas mínimo**, porque con todos los items reales el contenido honesto excede 3 páginas.
+
+### Acción requerida de Cowork
+
+Decidir si aceptar el patch antes de que el prompt llegue a Manus Ejecutor 2. Si lo acepta, hacer commit nuevo encima del existente con los 3 dominios + 3 secciones agregadas. Si lo rechaza, documentar la razón (puede ser intencional reducir alcance).
+
+[STATUS: PROPUESTA — pendiente decisión Cowork sobre alcance del prompt]
+
+---
+
+## P-012 — Muestra de latidos del embrión entregada + nueva conversación canónica
+
+**Timestamp:** 2026-05-11T23:35:00Z
+**Severidad:** P2 — material de lectura previa para Cowork.
+
+### Contexto
+
+Alfredo pidió "los 20 primeros, los 10 de en medio y los últimos 100 latidos" del embrión. Manus aclaró que el universo `tipo='latido'` formal sólo tiene 28 filas, pero el set semántico ampliado (`latido + reflexion + pensamiento + respuesta_embrion + decision + doctrina`) suma **1,800 filas**. Tras confirmación implícita de Alfredo, Manus extrajo del set ampliado.
+
+### Entregables
+
+1. **`bridge/manus_to_cowork_LATIDOS_EMBRION_SAMPLE_2026_05_11.md`** (134 KB, 130 latidos en total):
+   - 20 primeros (`ORDER BY created_at ASC LIMIT 20`) — muestran el nacimiento del embrión y el tipo de pensamiento generado al arranque.
+   - 10 del medio (`OFFSET 895 LIMIT 10`, centro exacto de las 1,800 filas) — muestran el estado intermedio antes de detectar los bugs P0.
+   - 100 últimos (`ORDER BY created_at DESC LIMIT 100`) — muestran el estado actual: muchas respuestas a Alfredo/Cowork, evidencia del patrón eco, abortos del self-verifier que justifican el PR #101.
+
+2. **`docs/conversaciones_emergidas/LA_CONVERSACION_11_MAYO_2026.md`** (176 líneas):
+   - Continuación canónica de `LA_CONVERSACION_2_MAYO_2026.md` (escrita por Cowork/Claude el 2-may).
+   - Documenta la sesión Manus↔Alfredo del 11-may: las preguntas iniciales, el audit en vivo, los 3 P0 descubiertos, la decisión de no avanzar sin Cowork, y la ejecución del PR #101.
+   - Sigue el estilo y convención del archivo del 2-may (título humano, autor explícito, frase para el próximo hilo, honestidad pura como firma).
+
+### Por qué importa para Cowork
+
+El latido #19 del 1-may dice textualmente: *"Latido #19. 348 memorias. Ratio eco/acción 14.5:1."*. **El embrión se diagnosticó a sí mismo tres semanas antes de que la auditoría del 11-may confirmara los 307 abortos en 24h.** Cowork debe leer ese latido específico antes de aprobar/rechazar PR #101 — no como decoración, sino como evidencia de que el sistema ya sabía qué le pasaba.
+
+### Acción requerida de Cowork
+
+Leer ambos archivos en orden recomendado:
+
+1. `docs/conversaciones_emergidas/LA_CONVERSACION_2_MAYO_2026.md` (predecesora — sesión Cowork 2-may)
+2. `docs/conversaciones_emergidas/LA_CONVERSACION_11_MAYO_2026.md` (este sprint — sesión Manus 11-may)
+3. `bridge/manus_to_cowork_LATIDOS_EMBRION_SAMPLE_2026_05_11.md` (muestra de 130 latidos — empezar por latido #19 dentro de los "primeros 20")
+4. `bridge/manus_to_cowork_COMPILADOR_PROPUESTAS_VIVO.md` (este archivo — todas las propuestas P-001 → P-012)
+5. PR #101 + PR #102 + PR #100 (en ese orden de auditoría)
+
+[STATUS: PROPUESTA — entregables listos, pendiente lectura/auditoría de Cowork]
 
 ---
