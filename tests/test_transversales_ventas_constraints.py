@@ -203,19 +203,24 @@ def test_ventas_recommend_for_mena_baduy_raises():
         assert "MENA_BADUY" in str(e) or "mena_baduy" in str(e).lower()
 
 
-def test_ventas_implement_not_implemented():
+def test_ventas_implement_is_implemented():
+    """Sprint TRANSVERSAL-001 T2 — implement() debe estar implementado.
+
+    Antes del sprint levantaba NotImplementedError; ahora devuelve payloads
+    canonicos HubSpot+Stripe con slots conceptuales. Ver
+    tests/test_transversales_ventas_implement_monitor.py para suite completa.
+    """
     layer = VentasLayer()
     ctx = TransversalContext(
         vertical=VerticalId.CIP,
         archetype=BusinessModelArchetype.TOKENIZED_REAL_ESTATE,
     )
     rec = layer.recommend(ctx)
-    try:
-        layer.implement(rec)
-        raise AssertionError("Debio levantar NotImplementedError")
-    except NotImplementedError as e:
-        assert "TRANSVERSAL-001" in str(e)
-        assert "[NEEDS_PERPLEXITY_VALIDATION]" in str(e)
+    result = layer.implement(rec)
+    assert result["crm_target"] == "hubspot"
+    assert result["billing_target"] == "stripe"
+    assert result["dry_run"] is True
+    assert "validation_log_anchor" in result
 
 
 def test_vertical_archetype_mapping_complete():
