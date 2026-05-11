@@ -81,18 +81,23 @@ def test_layer_instantiable_and_recommend():
                for t in result.aggregated_validation_tags)
 
 
-def test_layer_implement_not_implemented():
+def test_layer_implement_is_implemented():
+    """Sprint TRANSVERSAL-001 T5 — TendenciasLayer.implement() implementado.
+
+    Antes del sprint levantaba NotImplementedError; ahora devuelve plan
+    canonico de collectors + trend_signals_row_template.
+    """
     layer = TendenciasLayer()
     ctx = TransversalContext(
         vertical=VerticalId.CIP,
         archetype=BusinessModelArchetype.TOKENIZED_REAL_ESTATE,
     )
     rec = layer.recommend(ctx)
-    try:
-        layer.implement(rec)
-        raise AssertionError("debio levantar NotImplementedError")
-    except NotImplementedError as e:
-        assert "TRANSVERSAL-001" in str(e)
+    result = layer.implement(rec)
+    assert "collectors_plan" in result
+    assert "trend_signals_table" in result
+    assert result["trend_signals_table"] == "trend_signals"
+    assert result["dry_run"] is True
 
 
 def test_recommend_for_mena_baduy_raises():
