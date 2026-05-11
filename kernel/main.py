@@ -1704,6 +1704,15 @@ from kernel.auth import APIKeyAuthMiddleware
 
 app.add_middleware(APIKeyAuthMiddleware)
 
+# Audit trail end-to-end (Sprint S-003.B)
+# Persiste cada request HTTP en kernel_audit_log (append-only via service_role).
+# Orden de ejecucion entrante: CORS -> APIKeyAuth -> AuditMiddleware -> RateLimiter
+# Justificacion: Audit corre DESPUES de auth para registrar caller_identity validado,
+# y ANTES de rate limiter para auditar incluso requests rechazadas por rate limit.
+from kernel.audit_middleware import AuditMiddleware
+
+app.add_middleware(AuditMiddleware)
+
 # Rate limiting & cost caps (Sprint 3)
 # Protects against API key leaks and runaway LLM costs
 # Config: RATE_LIMIT_RPM, RATE_LIMIT_RPH, DAILY_COST_CAP_USD env vars
