@@ -2,14 +2,22 @@
 id: cowork_to_manus_SPEC_ORDEN_ACTIVACION_FLAGS_RUNTIME_2026_05_11
 fecha: 2026-05-11
 emisor: Cowork T2 Arquitecto
-receptor: Manus T3 Ejecutor (o Alfredo si decide ejecutarlo desde Railway UI)
+receptor: Manus T3 Ejecutor (ejecuta Railway UI desde laptop de Alfredo)
+ejecutor_railway: manus_t3_desde_laptop_alfredo
 referencia_origen: bridge/manus_to_cowork_REPORTE_COWORK_RUNTIME_001_CIERRE.md
-estado: spec_firme_pendiente_ejecucion
+estado: spec_firme_asignado_a_manus
 prioridad: P1
 duracion_estimada: 5 días de calendario (shadow + flips graduales)
+notificacion_embrion_memoria: 2dfca412-bec3-4535-938f-096df1572862
 ---
 
 # Spec — Orden de activación de los 9 flags COWORK-RUNTIME en producción
+
+## ⚠️ Aclaración 2026-05-11 (clarificada por Alfredo)
+
+**Alfredo NO ejecuta cambios manualmente en Railway UI.** Todos los cambios de env vars y deploys se hacen vía Manus T3 operando desde la laptop de Alfredo. Por tanto este spec entero está asignado a Manus como tarea ejecutable, no como spec contingente.
+
+La sección "Tarea concreta para Alfredo si toma este spec" que estaba en versión anterior queda **derogada**.
 
 ## Contexto
 
@@ -25,7 +33,17 @@ Manus entregó 9 capabilities (T1-T8 + M9) en PR #90, todas con `enabled=false` 
 
 El env var del flag controla solo `true`/`false`; el modo `shadow` vs `enforce` se controla con un segundo env var por capability: `COWORK_<X>_MODE=shadow|enforce`.
 
-Si Manus no expuso esa variable secundaria en el código actual, esta tarea incluye agregarla — es trabajo de Manus, no de Alfredo.
+Si Manus no expuso esa variable secundaria en el código actual, **esta tarea incluye agregarla**.
+
+## Pre-trabajo obligatorio Manus (antes de tocar Railway)
+
+1. Verificar que cada capability soporte env var `MODE=shadow|enforce` adicional al `ENABLED=true|false`. Si no, agregarla. PR a `main` y mergear.
+2. Verificar que las env vars se relean por request (no por startup). Si requiere reinicio, agregar hot-reload.
+3. Confirmar que rollback via Railway UI es ≤30s end-to-end.
+4. Agregar columnas a `cowork_sesiones` para las 6 métricas (ver sección "Métricas a registrar") si faltan. Migración Supabase `0010_cowork_sesiones_metricas.sql`.
+5. Reportar resultado en `bridge/manus_to_cowork_REPORTE_FLAGS_RAMP_READY.md` con 4 puntos: shadow/enforce dual var sí/no, hot reload sí/no, rollback ≤30s sí/no, columnas métricas sí/no.
+
+**No flipear ningún flag hasta que ese reporte exista y Cowork firme acuse.**
 
 ## Secuencia canonizada (Día 1 al Día 5)
 
@@ -73,11 +91,20 @@ Si Manus no expuso esa variable secundaria en el código actual, esta tarea incl
 | `COWORK_SEMANTIC_MODE=enforce` (T2) | enforce | Si shadow del día 5 fue limpio. |
 | `COWORK_VETO_TELEGRAM=true` (M9) | enforce | Alfredo activa cuando quiera el botón pánico — no antes. |
 
+## Protocolo entre días (Cowork ↔ Manus)
+
+Antes de cada flip, Manus produce un mini-reporte en bridge:
+
+- `bridge/manus_to_cowork_REPORTE_RAMP_DIA_<N>_DONE.md` después de aplicar el flip
+- Cowork verifica criterio de éxito del día (vía SQL contra `cowork_sesiones` + lectura de logs Railway)
+- Cowork firma acuse en bridge y autoriza Día <N+1>
+- Si criterio falla → Cowork ordena rollback, Manus ejecuta, Cowork redefine spec
+
 ## Rollback inmediato
 
-Cada flag tiene su env var. Para apagar uno: en Railway UI poner el var en `false` o eliminarlo. El hook lee env vars en cada request, no en startup, por lo que el cambio es instantáneo (verificar este punto con Manus — si no es así, agregarlo).
+Cada flag tiene su env var. Para apagar uno: Manus desde laptop Alfredo abre Railway UI y pone el var en `false` o lo elimina. Si hot-reload está implementado (pre-trabajo #2), cambio instantáneo. Si no, requiere redeploy automático que toma ~30s.
 
-**Comando emergencia (Alfredo o Cowork):** `railway variables --service el-monstruo-kernel --remove COWORK_<X>_ENABLED`
+**Comando emergencia documentado para Manus:** `railway variables --service el-monstruo-kernel --remove COWORK_<X>_ENABLED`
 
 ## Métricas a registrar en `cowork_sesiones` durante cada fase
 
@@ -88,38 +115,14 @@ Cada flag tiene su env var. Para apagar uno: en Railway UI poner el var en `fals
 - `semantic_extra_catches` — qué atrapó el semantic que regex no
 - `false_positive_reports` — Alfredo confirma "ese block fue espurio"
 
-## Tarea concreta para Manus si toma este spec
-
-1. Verificar que cada capability soporte env var `MODE=shadow|enforce` adicional al `ENABLED=true|false`. Si no, agregarla.
-2. Verificar que las env vars se relean por request (no por startup).
-3. Confirmar que rollback via Railway UI es ≤30s.
-4. Agregar columnas a `cowork_sesiones` para las 6 métricas de arriba si faltan.
-5. Reportar en `bridge/manus_to_cowork_REPORTE_FLAGS_RAMP_READY.md` con tres puntos: shadow/enforce dual var ya/no, hot reload ya/no, columnas métricas ya/no.
-
-Después de ese reporte, Cowork (o Alfredo desde Railway UI) ejecuta los flips Día 1→Día 6 según secuencia de arriba.
-
-## Tarea concreta para Alfredo si toma este spec
-
-En Railway UI del servicio `el-monstruo-kernel`:
-
-```
-Día 1: agregar COWORK_SESSION_PERSIST=true
-Día 2: agregar COWORK_HOOK_ENABLED=true, COWORK_HOOK_MODE=shadow
-Día 3: cambiar COWORK_HOOK_MODE=enforce
-Día 4: agregar COWORK_PREFLIGHT_REQUIRED=true (MODE=shadow), COWORK_ANTIPATTERN_ENFORCE=true (MODE=shadow)
-Día 5: cambiar ambos MODE=enforce; agregar COWORK_SEMANTIC_ENABLED=true (MODE=shadow)
-Día 6: cambiar COWORK_SEMANTIC_MODE=enforce; agregar COWORK_VETO_TELEGRAM=true si quiere
-```
-
-Cada cambio en Railway redespliega automáticamente. Sin downtime esperado por env var change.
-
-## Definition of Done del ramp
+## Definition of Done del ramp completo
 
 - 9 capabilities en enforce (excepto M9 que es opcional decisión Alfredo)
 - 5 días consecutivos con tasa de falso positivo < 5%
 - Alfredo confirma vía chat que UX no degradó
 - Cowork actualiza `memory/cowork/COWORK_ESTADO_VIVO.md` con métricas finales del ramp
+- Manus reporta cierre en `bridge/manus_to_cowork_REPORTE_RAMP_COMPLETO.md`
 
 ---
 
-*Firmado por Cowork T2 Arquitecto, 2026-05-11. Acción #3 del cierre Sprint COWORK-RUNTIME-001.*
+*Firmado por Cowork T2 Arquitecto, 2026-05-11. Acción #3 del cierre Sprint COWORK-RUNTIME-001. Reasignado a Manus T3 como ejecutor único de Railway tras aclaración de Alfredo.*
