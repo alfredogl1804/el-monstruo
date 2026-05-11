@@ -2,16 +2,22 @@
 id: cowork_to_manus_SPEC_ORDEN_ACTIVACION_FLAGS_RUNTIME_2026_05_11
 fecha: 2026-05-11
 emisor: Cowork T2 Arquitecto
-receptor: Manus T3 Ejecutor (ejecuta Railway UI desde laptop de Alfredo)
+receptor: Manus T3 Ejecutor (= Hilo Ejecutor 2, ejecuta Railway UI desde laptop de Alfredo)
 ejecutor_railway: manus_t3_desde_laptop_alfredo
 referencia_origen: bridge/manus_to_cowork_REPORTE_COWORK_RUNTIME_001_CIERRE.md
-estado: spec_firme_asignado_a_manus
-prioridad: P1
+estado: spec_firme_asignado_a_manus_v2_path_corregido
+prioridad: P1 (espera cierre P0 RLS fix primero)
 duracion_estimada: 5 días de calendario (shadow + flips graduales)
 notificacion_embrion_memoria: 2dfca412-bec3-4535-938f-096df1572862
+correccion_v2: 2026-05-11 - path migración corregido de supabase/migrations/ a migrations/sql/ tras catch binario del Hilo Ejecutor 2 en el P0 RLS
+orden_dependencia: este sprint arranca DESPUÉS de cerrar P0 RLS fix catastro_vision_generativa
 ---
 
 # Spec — Orden de activación de los 9 flags COWORK-RUNTIME en producción
+
+## ⚠️ Corrección v2 (2026-05-11)
+
+Path de migración corregido: el repo usa **`migrations/sql/`**, no `supabase/migrations/`. Confirmado por Hilo Ejecutor 2 vía `ls` y verificado por Cowork vía API GitHub. Todas las migraciones se aplican vía `scripts/_apply_migration_*.py`, no via supabase CLI.
 
 ## ⚠️ Aclaración 2026-05-11 (clarificada por Alfredo)
 
@@ -40,7 +46,7 @@ Si Manus no expuso esa variable secundaria en el código actual, **esta tarea in
 1. Verificar que cada capability soporte env var `MODE=shadow|enforce` adicional al `ENABLED=true|false`. Si no, agregarla. PR a `main` y mergear.
 2. Verificar que las env vars se relean por request (no por startup). Si requiere reinicio, agregar hot-reload.
 3. Confirmar que rollback via Railway UI es ≤30s end-to-end.
-4. Agregar columnas a `cowork_sesiones` para las 6 métricas (ver sección "Métricas a registrar") si faltan. Migración Supabase `0010_cowork_sesiones_metricas.sql`.
+4. Agregar columnas a `cowork_sesiones` para las 6 métricas (ver sección "Métricas a registrar") si faltan. Migración en **`migrations/sql/0010_cowork_sesiones_metricas.sql`** (convención real del repo verificada — NO usar `supabase/migrations/`), aplicar vía `scripts/_apply_migration_*.py`.
 5. Reportar resultado en `bridge/manus_to_cowork_REPORTE_FLAGS_RAMP_READY.md` con 4 puntos: shadow/enforce dual var sí/no, hot reload sí/no, rollback ≤30s sí/no, columnas métricas sí/no.
 
 **No flipear ningún flag hasta que ese reporte exista y Cowork firme acuse.**
@@ -125,4 +131,4 @@ Cada flag tiene su env var. Para apagar uno: Manus desde laptop Alfredo abre Rai
 
 ---
 
-*Firmado por Cowork T2 Arquitecto, 2026-05-11. Acción #3 del cierre Sprint COWORK-RUNTIME-001. Reasignado a Manus T3 como ejecutor único de Railway tras aclaración de Alfredo.*
+*Firmado por Cowork T2 Arquitecto, 2026-05-11. Acción #3 del cierre Sprint COWORK-RUNTIME-001. v2 corrige path migración a `migrations/sql/0010_*.sql` tras catch binario del Hilo Ejecutor 2.*
