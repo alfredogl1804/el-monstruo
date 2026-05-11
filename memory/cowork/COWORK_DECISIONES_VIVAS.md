@@ -4,7 +4,7 @@
 
 **Estado:** v0.1 — Cowork verificó la mayoría hoy. Iterar cuando cambie cualquier decisión activa.
 
-**Última actualización:** 2026-05-10.
+**Última actualización:** 2026-05-11 (Cowork T2 — cierre Sprint EMBRION-NEEDS-001 Tarea 2 + audit PR #86).
 
 ---
 
@@ -62,7 +62,7 @@ Versiones más potentes al 2026-05. Uso: validación adversarial de decisiones m
 |---|---|---|
 | Loop principal | `kernel/embrion_loop.py` | ✅ Vivo, 20+ latidos/2h verificado 2026-05-10 |
 | Budget Tracker | `kernel/embrion_budget.py` | ✅ Cap $0.25/cycle pre-flight |
-| Self-Verifier 3-decisiones | en `_think()` | ✅ D1 PURPOSE + D2 NOVELTY + D3 VERIFIABLE. 2/3 NO = abort |
+| Self-Verifier 3-decisiones | `kernel/embrion_self_verifier.py` (en `_think()`) | ✅ D1 PURPOSE + D2 NOVELTY + D3 VERIFIABLE. 2/3 NO = abort. **Hotfix PR #88 aplicado: severity `critical`/`warning` (compatibles con CHECK constraint de `loop_detection_log`).** |
 | Write Policy con HITL | `kernel/embrion_write_policy.py` | ✅ propose() → approve() → execute_next(). UNIQUE idempotency_key. Optimistic concurrency |
 | Telegram HITL bidireccional | `kernel/runner/telegram_notifier.py` + webhook | ✅ Botones inline approve/reject. `approved_by='telegram:{chat_id}'` registrado |
 | Cron worker proposal_processor | `kernel/runner/proposal_processor.py` | ✅ Servicio Railway separado. Cierra ciclo HITL automáticamente |
@@ -83,6 +83,23 @@ pending → approved → executing → executed | failed
 - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET`
 - `EMBRION_BUDGET_TRACKER_ENABLED=true`
 - `EMBRION_SELF_VERIFIER_ENABLED=true`
+- `EMBRION_VERIFIER_NOVELTY_WINDOW_HOURS=24`
+- `EMBRION_VERIFIER_JACCARD_THRESHOLD=0.85`
+
+**Cierres canonizados — Sprint EMBRION-NEEDS-001:**
+
+| Tarea | Estado | PR que la materializó | Notas |
+|---|---|---|---|
+| Tarea 1 — Budget Tracker | ✅ cerrada | PR #38 + hotfixes posteriores | `kernel/embrion_budget.py` activo en producción. Cap $0.25/ciclo, daily cap $30, HITL al 3er exceso. |
+| **Tarea 2 — Self-Verifier 3-decisiones** | ✅ **cerrada de facto en `main` el 2026-05-11** | commit original `0ddb5e1` recuperado vía **PR #93** (rescate stash) + **hotfix PR #88** + integración en `_think()` vía **PR #90** | **PR #86 (canónico original del 2026-05-10) cerrado como OBSOLETO** por Cowork T2 tras audit binario DSC-G-008 v2. La versión de PR #86 contenía `severity="high" if abort else "low"` que viola el CHECK constraint `('warning' | 'critical' | 'emergency')` de `loop_detection_log`. Mergear habría sido regresión directa del hotfix. Audit en [`memory/cowork/audits/AUDIT_PR_86_DSC_G_008_v2_2026_05_11.md`](./audits/AUDIT_PR_86_DSC_G_008_v2_2026_05_11.md) (commit `bf03abb`). Notificación a Hilo Ejecutor 2 vía `embrion_memoria` id `d28687c1-31f2-4ca4-9528-fdf5d68dd642`. |
+| Tarea 3 — Write Policy con HITL | ✅ cerrada | PR #44 + #47 | UNIQUE idempotency_key + optimistic concurrency. |
+| Tarea 4 — Telegram HITL bidireccional | ✅ cerrada | PR #48 | Botones inline + webhook + chat_id whitelist. |
+| Tarea 5 — Embrión-Daddy bidireccional | 🟡 **spec firmado, código pendiente** | **PR #81 (spec)** | Activador de Fase 2 del modelo de hilos. Tarea abierta — siguiente prioridad de la serie. |
+
+**Notas de auditoría binaria 2026-05-11 (Cowork T2):**
+- Tabla `loop_detection_log` extendida con 11 columnas via migración `migrations/sql/0003_loop_detection_log_self_verifier.sql` (en main, SHA `cf6c6dc`, 3,038 bytes).
+- `kernel/embrion_self_verifier.py` en main: blob `25cfb35`, 15,908 bytes, incluye el hotfix de `severity`.
+- 24 tests en `tests/test_embrion_self_verifier.py` (blob `1fcd291`, 14,240 bytes) + fixtures reales del bucle 30-abr y bucle 10-may.
 
 ---
 
@@ -148,9 +165,9 @@ DSC-G-002 firmado: todo producto del Monstruo nace con 8 capas obligatorias.
 
 ---
 
-## 7. Universo RLS — Estado al 2026-05-10
+## 7. Universo RLS — Estado al 2026-05-11
 
-**117/117 tablas en schema `public` con RLS habilitado.** Cero deuda residual. (Sprint S-002.5 + S-002.6 cerrados).
+**120/120 tablas en schema `public` con RLS habilitado** (verificado binariamente por Cowork T2 el 2026-05-11 vía Supabase MCP). Universo limpio post **P0 RLS Fix `catastro_vision_generativa`** (PR #91, migración 0011, merge commit `f575b735`). Total `public` tables: 121 (1 sin RLS bajo excepción documentada). **Stale del valor 117/117 anterior corregido aquí.**
 
 **Patrón canónico** (DSC-S-006 v1.1):
 ```sql
@@ -169,6 +186,8 @@ CREATE POLICY "service_role_only"
 
 **Workflow CI semanal:** `.github/workflows/rls-audit-weekly.yml` corre lunes 12:00 UTC, abre issue automático si detecta deuda. Requiere secrets `SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF`.
 
+**Workflow CI continuo (nuevo, post P0 RLS fix):** `.github/workflows/rls-audit-continuous.yml` corre diario a las 06:00 UTC.
+
 ---
 
 ## 8. Patrones Replicables (Cross-proyecto)
@@ -184,6 +203,8 @@ DSC-X-006 firmado: Convergencia Diferida. Proyectos arrancan autónomos con infr
 | HITL bidireccional Telegram (Sprint EMBRION-NEEDS-001 T4) | Embrión | cualquier flujo de aprobación humana |
 | RLS por defecto en tablas nuevas (DSC-S-006 v1.1) | S-002.6 | cualquier migración SQL futura |
 | 4 Gates de transición Premium → Magna (DSC-MO-010) | Reloj Suizo | cualquier abstracción universalizable |
+| Sistema de Realidad Ejecutable (DSC-S-011) | Hilo Ejecutor 2 (2026-05-11) | cualquier hilo del Monstruo que canonice claims factuales — verificación contra estado fresco antes de afirmar |
+| Audit DSC-G-008 v2 antes de mergear (este audit PR #86) | Cowork T2 (2026-05-11) | cualquier merge a `main` — diff línea por línea + comparación binaria contra estado actual + falsadores |
 
 ---
 
@@ -222,6 +243,7 @@ DSC-X-006 firmado: Convergencia Diferida. Proyectos arrancan autónomos con infr
 - Cuando una Capa Transversal pasa de stub a real (ej: Google Ads se integra)
 - Cuando RLS se modifica
 - Cuando se canoniza patrón replicable nuevo
+- Cuando se cierra (o no se mergea) una PR de sprint que afecta el embrión o el universo de tablas
 
 ---
 
@@ -236,7 +258,9 @@ DSC-X-006 firmado: Convergencia Diferida. Proyectos arrancan autónomos con infr
 - `kernel/embrion_loop.py` (CAUTION: doctrina del silencio)
 - `kernel/embrion_write_policy.py`
 - `kernel/runner/proposal_processor.py`
+- `memory/cowork/audits/AUDIT_PR_86_DSC_G_008_v2_2026_05_11.md` (audit binario que cerró PR #86 como obsoleto)
+- `bridge/HANDOFF_COWORK_NUEVO_2026_05_11.md` (handoff del Cowork saliente)
 
 ---
 
-*Generado por Cowork 2026-05-10. v0.1.*
+*Generado por Cowork 2026-05-10. v0.2 — 2026-05-11 actualización Cowork T2: cierre Sprint EMBRION-NEEDS-001 Tarea 2 + audit PR #86 + corrección RLS 117→120.*
