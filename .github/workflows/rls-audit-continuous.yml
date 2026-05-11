@@ -1,0 +1,80 @@
+name: RLS Audit Continuous
+
+# P0 RLS Fix (2026-05-11) — Tarea 5
+# Auditoría DIARIA del estado RLS del schema public en producción.
+# Cierra la regression class: detecta tablas creadas FUERA del flujo de migraciones
+# versionadas (vía Supabase Studio, Management API, psql directo) que bypassan el
+# linter pre-commit `_check_rls_default.py`.
+# Complementario al RLS Audit Weekly: si el weekly atrapa una regresión, el daily la
+# detecta dentro de 24h y abre issue automático.
+# DSC-S-006 v1.1 (RLS por defecto), DSC-G-008 v2 (audit pre-cierre).
+
+on:
+  schedule:
+    # Diario a las 06:00 UTC = 00:00 CDMX / 01:00 DST
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  rls-audit-continuous:
+    name: Daily RLS state check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run continuous RLS audit
+        id: audit
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          python3 scripts/_audit_rls_continuous.py
+
+      - name: Open issue on regression
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## RLS Regression Detected\n\nLa auditoría DIARIA detectó una regresión: una tabla o matview en `public` está sin RLS, sin policy, o expuesta a roles públicos.\n\n';
+            body += 'Esto indica que la tabla/matview fue creada **fuera del flujo de migraciones versionadas**, bypaseando el linter pre-commit `_check_rls_default.py`.\n\n';
+            try {
+              const report = fs.readFileSync('rls_audit_continuous_report.md', 'utf8');
+              body += '### Reporte\n\n' + report;
+            } catch (e) {
+              body += '_(reporte no encontrado, ver logs del job)_';
+            }
+            body += '\n\n### Acción inmediata\n\n';
+            body += '1. **NO ESPERAR LA SEMANA** — crear branch `fix/rls-regression-YYYY-MM-DD` y migración correctiva.\n';
+            body += '2. Investigar quién/cómo creó la tabla fuera del flujo (revisar logs de Supabase Studio o auditoría).\n';
+            body += '3. Si la tabla es legítima, agregar migración versionada retroactiva.\n';
+            body += '4. Si fue accidental, considerar DROP y recrear vía migración canónica.\n';
+            body += '5. Referencia: DSC-S-006 v1.1, postmortem `bridge/manus_to_cowork_POSTMORTEM_RLS_GAP_CATASTRO_VISION_GENERATIVA.md`.\n';
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[RLS Regression] ${new Date().toISOString().split('T')[0]} - tabla sin RLS detectada`,
+              body: body,
+              labels: ['security', 'rls-audit', 'regression', 'auto-generated', 'priority:P0']
+            });
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rls-audit-continuous-report
+          path: rls_audit_continuous_report.md
+          retention-days: 90
+          if-no-files-found: ignore
