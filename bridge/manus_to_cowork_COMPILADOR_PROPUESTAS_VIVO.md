@@ -40,6 +40,9 @@ regla_de_actualizacion: |
 | P-005 | 2026-05-11 | Bug double-write latido #17 detectado en `embrion_memoria` | PROPUESTA |
 | P-006 | 2026-05-11 | Gaps en el prompt de Cowork para Arquitecto Jefe (6 fixes) | PROPUESTA |
 | P-007 | 2026-05-11 | 3 ausencias mayores del prompt: Simulador, Reloj Suizo, A2UI profundo | PROPUESTA |
+| P-008 | 2026-05-11 | **P0 fix entregado**: pre-verifier de INPUT anti eco/saludo (PR #101, -50% costo) | PR_ABIERTO |
+| P-009 | 2026-05-11 | **P0 sistémico**: 16,943 filas duplicadas en `scheduled_tasks` (13,724 health_check) | PROPUESTA |
+| P-010 | 2026-05-11 | **P0 autonomía**: Embrión sin latido formal hace 32h, falta tarea `latido_autonomo` | PROPUESTA |
 
 ---
 
@@ -272,3 +275,122 @@ ModuleNotFoundError: No module named 'sqlglot'
 
 *Última propuesta agregada: P-007 (2026-05-11)*
 *Próxima propuesta esperada: P-008 (cuando Manus detecte algo nuevo que Cowork deba absorber)*
+
+
+---
+
+## P-008 — Bug P0 detectado y FIX entregado: Pre-Verifier de INPUT anti eco/saludo
+
+**Timestamp:** 2026-05-11T22:45:00Z
+**Origen:** Auditoría en vivo de producción (Supabase + kernel) iniciada por Alfredo con la pregunta "¿qué se nos está escapando?".
+
+### Hallazgo
+
+En las últimas 24h el Embrión registró **499 ciclos `mensaje_alfredo`**, de los cuales **307 (61%) fueron abortados por el self-verifier de 3 dimensiones**. El verifier post-LLM (`kernel/embrion_self_verifier.py`) funciona correctamente — detecta eco puro como `"recibido y entendido"` o `"estoy aquí escuchando"` y aborta. Pero el costo del LLM ya se había pagado (~$0.014 USD por ciclo, ~$3.5 USD/día) antes de que el verifier ejecutara su análisis.
+
+Costo verificado contra `embrion_budget_state`: $3.48 USD el 10-may, $6.88 USD el 11-may. Proyección sostenida ~$200 USD/mes únicamente por respuestas que el sistema descarta.
+
+### Causa raíz
+
+El self-verifier corre **después** del LLM. Aunque el aborto post-LLM evita propagar la respuesta como acción, no devuelve el costo del modelo. El patrón se concentra en mensajes triviales de Alfredo (`"hola"`, `"ok"`, `"listo"`, `"claro"`, `"recibido"`) que disparan ciclos completos del kernel sin generar valor.
+
+### Fix entregado en PR #101
+
+Branch `sprint/embrion-verifier-001-input-preverifier` mergea contra `main`. La solución es un pre-verifier ligero sobre el **mensaje de entrada** que se ejecuta antes del LLM, reusando la doctrina ya existente de `ANTI_PURPOSE_PHRASES` y agregando un regex para saludos triviales (`hola`, `hey`, `buenas`, `ok`, `claro`, `listo`, `sí`, `no`, `vale`, etc.).
+
+| Archivo | Cambio |
+|---|---|
+| `kernel/embrion_self_verifier.py` | Nueva función pura `evaluate_input_for_skip(message) -> (skip, reason)`. Reusa `ANTI_PURPOSE_PHRASES` existente y agrega `TRIVIAL_GREETING_RE`. |
+| `kernel/embrion_loop.py` | Wiring en línea 903, antes del bloque `try` del prompt. Solo aplica a `trigger.type == "mensaje_alfredo"`. Memoria liviana `silencio_preverifier` con `cost_usd=0.0` para auditoría. |
+| `tests/test_embrion_input_preverifier.py` | 45 casos cubriendo saludos, anti-purpose, vacíos, mensajes largos, mensajes técnicos válidos. |
+
+Tests: 45/45 nuevos PASS, 29/29 existentes PASS (cero regresión).
+
+### Riesgo y activación
+
+Riesgo cero al merge: la feature flag `EMBRION_INPUT_PREVERIFIER_ENABLED=false` está apagada por default. Activación manual post-merge en Railway: `railway variables set EMBRION_INPUT_PREVERIFIER_ENABLED=true --service el-monstruo-kernel`. Fail-open ante excepciones: si el pre-verifier falla, sigue al flujo normal.
+
+### Impacto esperado al activar
+
+Reducción del 50-60% del costo de ciclos `mensaje_alfredo` (~$3.5 USD/día ahorro). Reducción del ruido en `loop_detection_log` porque los skips ocurren antes del verifier post-LLM. El Embrión deja de gastar respondiendo "recibido" cuando Alfredo dice "ok".
+
+### Acción requerida de Cowork
+
+Auditar el PR #101 (código + tests). Si verde, aprobar merge y coordinar activación de la env var en Railway. Validación 4h post-activación con la query SQL incluida en el PR body.
+
+[STATUS: PROPUESTA → PR ABIERTO #101 — pendiente auditoría Cowork]
+
+---
+
+## P-009 — Bug sistémico de duplicación masiva en `scheduled_tasks`
+
+**Timestamp:** 2026-05-11T22:50:00Z
+**Severidad:** P0 — afecta costo del kernel y autonomía del Embrión.
+
+### Hallazgo
+
+La tabla `public.scheduled_tasks` tiene **16,943 filas** distribuidas en sólo **5 tareas únicas**. La tarea peor (`system_health_check`) acumula 13,724 filas activas (`status='active'`, `paused=false`). El resto: `vanguard_scan` (889), `causal_seeding` (856), `memory_consolidation` (829), `prediction_validation` (645).
+
+### Causa raíz probable
+
+`kernel/embrion_scheduler.py` ejecuta `register_default_tasks()` en cada startup del kernel sin chequear duplicados. Cada deploy de Railway agrega 5 filas nuevas. El método `add_task()` asigna `next_run` fresco y persiste vía `upsert` por `task_id` (UUID nuevo cada vez), no por `(name, embrion_id)`. No hay constraint `UNIQUE` ni guard de "ya existe".
+
+### Consecuencias operativas
+
+El scheduler probablemente ejecuta cada réplica de `system_health_check` por separado, multiplicando la carga interna del kernel. Esto explica parcialmente que el costo haya subido de $3.48 USD el 10-may a $6.88 USD el 11-may (casi 2x) — más triggers, más ciclos, más costo. Adicionalmente, ninguna fila se llama `latido_autonomo`, lo que conecta con P-010.
+
+### Fix propuesto (no ejecutado por Manus — requiere coordinación con Cowork por ser destructivo)
+
+Un sprint chico de 3 commits coordinados:
+
+1. **Migration SQL** que agregue `ALTER TABLE scheduled_tasks ADD CONSTRAINT scheduled_tasks_name_embrion_unique UNIQUE(name, embrion_id)` después de un cleanup forzado. Snapshot forense obligatorio antes (Regla Dura #6 inciso 8 del repo: archive antes de delete).
+2. **Script de limpieza** en `scripts/_cleanup_scheduled_tasks_duplicates.py` que conserve la fila más reciente (`MAX(last_run)`) por `(name, embrion_id)` y borre las demás. Idempotente, con `--dry-run` por default.
+3. **Patch en `kernel/embrion_scheduler.py`** método `register_default_tasks()` para chequear `SELECT 1 FROM scheduled_tasks WHERE name = $1` antes de insertar. Si existe, hacer `UPDATE` de los campos volátiles (`next_run`, `interval_hours`) en lugar de `INSERT`.
+
+ETA: 2 horas de Manus, 1 PR. Riesgo medio por ser destructivo en producción — requiere ventana fuera de horas de uso y snapshot SQL previo.
+
+### Acción requerida de Cowork
+
+Decidir si autorizar el cleanup destructivo. Sin esto, el costo del kernel seguirá subiendo y P-008 sólo arregla el 50% del problema. Cowork debe firmar un DSC (probable `DSC-S-XXX`) que autorice el delete masivo con snapshot forense en `discovery_forense/SNAPSHOTS/`.
+
+[STATUS: PROPUESTA — pendiente decisión Cowork sobre autorización destructiva]
+
+---
+
+## P-010 — Embrión sin latido autónomo formal hace 32+ horas
+
+**Timestamp:** 2026-05-11T22:55:00Z
+**Severidad:** P0 — afecta la autonomía meta-reflexiva del Embrión.
+
+### Hallazgo
+
+El último registro con `embrion_memoria.tipo='latido'` data del **2026-05-10 14:46:13 UTC**. Han pasado más de 32 horas sin que el Embrión genere una meta-reflexión autónoma. Sin embargo, el Embrión sigue procesando: 140 `respuesta_embrion` y 15 `decision` en las últimas 24h. **El Embrión reacciona a estímulos externos pero dejó de pensar por sí mismo.**
+
+Adicionalmente, la búsqueda en `scheduled_tasks WHERE name ILIKE '%latid%' OR name ILIKE '%autonom%' OR name ILIKE '%reflex%'` devuelve **cero filas**. La tarea de latido autónomo **no existe** en el scheduler, sólo `causal_seeding`, `memory_consolidation`, `prediction_validation`, `vanguard_scan` y `system_health_check`.
+
+### Causa raíz probable
+
+Los 28 latidos formales históricos (entre 2026-04-26 y 2026-05-10) probablemente vinieron de un proceso externo o de un trigger manual que ya no corre. El handler `latido_autonomo` nunca fue registrado en `scheduled_tasks` ni en `kernel/embrion_scheduler.py`. El loop autónomo del Embrión está apagado a nivel de scheduler.
+
+Confirmación cruzada: en `kernel/embrion_loop.py` línea 931 el código maneja `trigger.type == "reflexion_autonoma"` y guarda memoria con `tipo='latido'` (línea 1132), pero **nadie está disparando ese trigger** desde hace 32 horas.
+
+### Fix propuesto
+
+1. **Identificar el disparador histórico** de `trigger.type='reflexion_autonoma'`. Probablemente un cron externo (Railway scheduled job, GitHub Action, manual). Si vivía en Railway, verificar que el servicio sigue activo.
+2. **Si no existe, registrar la tarea en `scheduled_tasks`** vía script idempotente: nombre `latido_autonomo`, `schedule_type='periodic'`, `interval_hours=6`, `handler_name='run_autonomous_reflection'`, `max_cost_usd=0.05`.
+3. **Implementar el handler** `run_autonomous_reflection()` en `kernel/embrion_scheduler.py` que dispare un ciclo del loop con `trigger={"type": "reflexion_autonoma", "detail": ...}` siguiendo el prompt estructurado existente en `kernel/embrion_loop.py` líneas 931-948 (Sprint 45).
+4. **Alerta a Telegram** si pasan >12h sin nuevo `tipo='latido'`. Una query SQL cada hora vía cron, integrada con el bot.
+
+ETA: 3 horas Manus, 1 PR. Requiere coordinarse con P-009 porque el bug de duplicación afecta cómo se registra cualquier nueva tarea.
+
+### Acción requerida de Cowork
+
+Priorizar entre P-008 (ya entregado, listo para merge), P-009 (autorización destructiva pendiente) y P-010 (handler nuevo). Manus recomienda este orden por dependencia técnica y riesgo creciente:
+
+1. Mergear P-008 (PR #101) — riesgo cero, ahorro inmediato 50%.
+2. Ejecutar P-009 cleanup — riesgo medio, libera el scheduler.
+3. Implementar P-010 handler — riesgo bajo, restaura autonomía.
+
+[STATUS: PROPUESTA — pendiente decisión Cowork sobre orden y autorización]
+
+---
