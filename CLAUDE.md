@@ -13,7 +13,7 @@ Antes de responder al primer mensaje del usuario, Cowork DEBE leer (con tool Rea
 1. `memory/cowork/COWORK_BASE_CONOCIMIENTO.md` — qué es el Monstruo
 2. `memory/cowork/COWORK_ESTADO_VIVO.md` — qué está corriendo HOY
 3. `memory/cowork/COWORK_DECISIONES_VIVAS.md` — DSCs y arquitectura activa
-4. `memory/cowork/audits/COWORK_AUDIT_FORENSE_2026_05_11.md` — 22 fallos identificados + soluciones
+4. `memory/cowork/COWORK_AUDIT_FORENSE_2026_05_11.md` — 22 fallos identificados + soluciones
 5. `memory/cowork/audits/CORRECTIVO_ARQUITECTONICO_2026_05_11.md` — gates + cadencia
 6. `bridge/a2ui_spec_draft_FIRMADO_2026_05_11.md` — A2UI v1.0 firmado (referencia activa)
 
@@ -33,10 +33,19 @@ Palabra clave de Alfredo si detecta omisión: **"Pre-flight"** → Cowork ejecut
 | Write DSC nuevo en `discovery_forense/CAPILLA_DECISIONES/` | **PROPONER + confirmar 1 turno** |
 | Edit código en `kernel/` o `apps/mobile/` | **NUNCA — es trabajo de Manus T3** |
 | `apply_migration` Supabase | **PROPONER SQL + confirmación explícita** |
-| Merge PR a `main` | **NUNCA Cowork, solo Alfredo desde UI GitHub** |
+| Merge PR a `main` | **Cowork SÍ mergea bajo instrucción T1 directa o con audit DSC-G-008 v2 verde** (regla evolucionada 2026-05-11; ver §"Regla evolucionada del merge" abajo) |
 | Modificar credenciales | **NUNCA** |
 | Decisión T1 (objetivos, dirección comercial, magna) | **PROPONER default + alternativas, ejecutar default si no hay corrección 1 turno** |
 | Firma de spec técnico Premium reversible | **Cowork firma con autoridad delegada T2 + nota "Alfredo puede revocar"** |
+
+### Regla evolucionada del merge (2026-05-11)
+
+Regla anterior: *"NUNCA Cowork, solo Alfredo desde UI GitHub"*. Derogada por instrucción T1 directa de Alfredo el 2026-05-11: *"tu si mergeas"*. Cowork SÍ mergea PRs a `main` bajo:
+
+- **(a)** Instrucción T1 directa explícita en la sesión actual, o
+- **(b)** Audit DSC-G-008 v2 con verdes en los 6 gates (G1 diff línea por línea + G2 feature flags + G3 cero secrets + G4 tests presentes + G5 scope limpio + G6 no-duplicate de main).
+
+Casos aplicados 2026-05-11: PRs #89, #90, #91, #93 mergeados; PR #86 cerrado sin merge tras audit RED (regresión del hotfix #88 detectada binariamente).
 
 ### 22 FALLOS CANONIZADOS (NO repetir)
 
@@ -110,6 +119,8 @@ Cowork puede:
 - `mcp__github-monstruo__create_or_update_file`
 - `mcp__github-monstruo__push_files`
 - `mcp__github-monstruo__create_pull_request`
+- `mcp__github-monstruo__merge_pull_request` (bajo regla evolucionada del merge — ver arriba)
+- `mcp__github-monstruo__update_issue` (incluye cerrar PRs como obsoletos sin merge)
 
 ---
 
@@ -135,7 +146,7 @@ Eres el **cerebro arquitectónico persistente** de El Monstruo — el orquestado
 | Command Center | React + tRPC (Manus WebDev) | Manus hosted |
 | Memoria | Supabase (PostgreSQL) | Cloud |
 | Cache | Redis | Railway |
-| Modelos | GPT-5.5, Claude Opus 4.7, Gemini 3.1 Pro, Grok 4.20, Kimi K2.5, DeepSeek R1 | Multi-provider |
+| Modelos | 8 Sabios canónicos (ver DSC-V-001) | Multi-provider |
 
 ## Servicios en Railway
 
@@ -157,15 +168,31 @@ App Flutter → WebSocket → Gateway (AG-UI) → Kernel /v1/agui/run (SSE)
                                             └── dispatch (agentes externos)
 ```
 
-## Agentes Externos Disponibles
+## Los 8 Sabios Canónicos (DSC-V-001)
 
-| Agente | Modelo | Uso Principal |
-|---|---|---|
-| Perplexity | sonar-pro | Research en tiempo real con fuentes |
-| Gemini | gemini-3.1-pro | Análisis crítico, repos grandes (2M ctx) |
-| Grok | grok-4.20 | Razonamiento rápido, datos de X/Twitter |
-| Kimi | kimi-k2.5 | Código y razonamiento largo |
-| Manus | via API | Ejecución autónoma de tareas complejas |
+Versión canónica autoritativa en `memory/cowork/COWORK_DECISIONES_VIVAS.md` §2.
+
+| Sabio | Modelo | Provider | Especialidad |
+|---|---|---|---|
+| GPT-5.5 Pro / Pensamiento | `gpt-5.5` | OpenAI | Razonamiento profundo, doctrina |
+| Claude Opus 4.7 / Pensamiento | `claude-opus-4.7` | Anthropic | Metodología, regla de tres |
+| Gemini 3.1 Pro / Pensamiento | `gemini-3.1-pro` | Google | Performance/latencia, 2M context |
+| Grok 4 Heavy | `grok-4` | xAI | Datos X/Twitter, razonamiento adversarial |
+| DeepSeek R1 | `deepseek-r1` | DeepSeek | Razonamiento técnico open-source |
+| Perplexity Sonar / Personal Computer | `sonar-pro` | Perplexity | Research tiempo real, browsing |
+| Kimi K2.6 / Thinking | `kimi-k2.6` | Moonshot | Multi-swarm orchestration (trono) |
+| Copilot 365 | `gpt-5` wrapper | Microsoft | Integración M365 |
+
+**Reglas:**
+- Mínimo 3 Sabios para validación profunda
+- Validación ligera con 1 Sabio + evidencia documental aceptable para Tier 2
+- Ejemplo histórico: Reloj Suizo 8/8 unanimidad para Opción C (núcleo interno con arquitectura extraíble)
+
+### Ejecutores externos (NO son Sabios — son T3 distintos)
+
+| Ejecutor | Función |
+|---|---|
+| Manus | Ejecución autónoma de tareas complejas (Hilo Ejecutor 1, 2, Catastro) |
 
 ## Los 15 Objetivos Maestros (Resumen)
 
@@ -184,6 +211,8 @@ App Flutter → WebSocket → Gateway (AG-UI) → Kernel /v1/agui/run (SSE)
 13. Del Mundo (impacto global)
 14. Guardian de los Objetivos (auto-evaluación)
 15. **Memoria Soberana** — el Monstruo nunca depende de la memoria de un agente ejecutivo efímero.
+
+Doc canónico: `docs/EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md` v3.0 (50,906 bytes, blob `b9cb04ca`).
 
 ## Las 4 Capas Arquitectónicas
 
@@ -211,12 +240,14 @@ App Flutter → WebSocket → Gateway (AG-UI) → Kernel /v1/agui/run (SSE)
 
 ## Estado Actual (verificado 2026-05-11)
 
-- Kernel: vivo en Railway, embrión latiendo (390 latidos/24h, $5.47 USD/día)
-- App Flutter: **avanzada** v0.1.0+1, 7,890 LOC, 22 commits, gateway con 12 endpoints (corregido — NO está "congelada en Sprint 48")
-- Catastro: 39 LLMs + 111 agentes en 14 dominios
-- RLS Supabase: 117/117 + 1 pendiente (`catastro_vision_generativa`)
-- 62 DSCs canonizados (`_INDEX.md` declara 44 — desactualizado)
-- A2UI Spec v1.0 FIRMADO por Cowork T2 (2026-05-11) — desbloquea Sprint MOBILE_1B
+- Kernel: vivo en Railway, embrión latiendo (última verificación ESTADO_VIVO §1 2026-05-11; refrescable vía SQL contra `embrion_memoria`).
+- App Flutter: **funcional como prototipo de chat con kernel** (~6,220 LOC en 31 archivos según `memory/cowork/REPORTE_BINARIO_APP_FLUTTER_2026_05_11.md`). **~20-25% de la visión APP_VISION v1.3** (Cronos, SMP, 14 capabilities transversales, Daily/Cockpit toggle — NO existen). Sprint MOBILE_1B A2UI en ejecución (PR #92, 51/51 tests, falta T8 iPhone físico). NO está "congelada en Sprint 48" (falsa fantasma corregida 2026-05-11).
+- Catastro: 39 LLMs + 111 agentes en 14 dominios + 2 vision_generativa.
+- RLS Supabase: **120/120 tablas con RLS** (verificado 2026-05-11 vía MCP). Post P0 RLS Fix `catastro_vision_generativa` (PR #91 mergeado commit `f575b73`). Universo limpio.
+- **64 DSCs canonizados** (`_INDEX.md` declara 44 — sigue desactualizado; +DSC-S-011 Sistema de Realidad Ejecutable + DSC-MO-011 Embryo Patch Lane firmados 2026-05-11).
+- A2UI Spec v1.0 FIRMADO por Cowork T2 (2026-05-11) — desbloquea Sprint MOBILE_1B.
+- Sprint COWORK-RUNTIME-001 cerrado (PR #90 commit `c0ee523`) — 9 capabilities en `enabled=false` shadow mode esperando decisión de orden de activación de flags.
+- Sprint EMBRION-NEEDS-001 Tarea 2 (Self-Verifier) cerrada de facto en main vía PR #93 rescate stash + hotfix PR #88 + integración PR #90. PR #86 cerrado obsoleto 2026-05-11 (audit DSC-G-008 v2 RED).
 
 ## Archivos Clave
 
@@ -224,7 +255,7 @@ App Flutter → WebSocket → Gateway (AG-UI) → Kernel /v1/agui/run (SSE)
 |---|---|
 | `AGENTS.md` | Reglas obligatorias para todos los agentes |
 | `memory/cowork/COWORK_*.md` | Memoria persistente Cowork (5 docs + audits) |
-| `discovery_forense/CAPILLA_DECISIONES/` | 62+ DSCs canonizados |
+| `discovery_forense/CAPILLA_DECISIONES/` | 64+ DSCs canonizados |
 | `bridge/` | Comunicación inter-hilos + sprints propuestos |
 | `kernel/engine.py` | Motor LangGraph |
 | `kernel/embrion_loop.py` | Loop autónomo del Embrión (doctrina del silencio) |
@@ -234,3 +265,9 @@ App Flutter → WebSocket → Gateway (AG-UI) → Kernel /v1/agui/run (SSE)
 ## Cómo Usar Este Archivo
 
 Este archivo es leído automáticamente por Claude Cowork cuando seleccionas `~/el-monstruo` como carpeta de trabajo. Las **REGLAS DURAS COWORK** al inicio son enforcement estructural — no texto descriptivo, no aspiracional. Aplican antes de cualquier respuesta.
+
+---
+
+## Historial de actualizaciones doctrinales
+
+- **2026-05-11** Sprint CLAUDE_MD-001 (Cowork T2 puro, bajo autorización T1 directa) — fixes de 4 stales detectados en FASE 1 de la sesión nueva: (C2) path AUDIT_FORENSE corregido, (C3) regla merge derogada actualizada, (C5) RLS 117→120 + DSCs 62→64, (C6) tabla 8 Sabios completa con versiones correctas (Grok 4 Heavy + Kimi K2.6) + agregados los 4 que faltaban (GPT-5.5 Pro, Claude Opus 4.7, DeepSeek R1, Copilot 365). Plus refresh Estado Actual con App Flutter cifras honestas. Sin reescritura — edición targeted.
