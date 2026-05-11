@@ -2,9 +2,10 @@
 
 # Sprint ROTOR-001 — Reciclador de Actividad (pieza diferencial Reloj Suizo)
 
-**estado:** DRAFT_PENDIENTE_FIRMA_T1
+**estado:** firme
+**fecha_firma_T1:** 2026-05-11
 **autor_borrador:** Cowork T2 (Sprint SPECS-FIRMA-001 ampliado, 2026-05-11)
-**autorización_T1:** pendiente Alfredo
+**autorización_T1:** Alfredo, firmada explícitamente en chat 2026-05-11 incluyendo los defaults de la tabla energy_units T3 (sin modificación)
 **Hilo principal:** Manus Ejecutor (implementación) + Cowork (diseño doctrinal + audit)
 **ETA recalibrado:** 4-7 días reales — más complejo que Guardian porque agrega código de fondo nuevo + integraciones
 **Objetivo Maestro:** #11 (Multiplicación de Embriones + Reloj Suizo) + #15 (Memoria Soberana — captura actividad como memoria persistente) + #8 (Inteligencia Emergente Colectiva — la actividad alimenta emergencia)
@@ -116,26 +117,26 @@ Lo que NO existe:
 
 **Criterios de cierre:** los 6 capturers tienen test 1:1 con fixture. `pytest tests/rotor/test_capturers_*.py` PASS. Reporte JSON en `reports/rotor_capturers_smoke.json` con 1 row generado por cada source contra Supabase real.
 
-### Tarea T3 — Algoritmo "actividad → energía"
+### Tarea T3 — Algoritmo "actividad → energía" (DEFAULTS FIRMADOS POR ALFREDO T1)
 
 **perfil_riesgo:** write-safe (es lógica pura)
 
-**Descripción:** Implementar `kernel/rotor/energy_calculator.py` con función `compute_energy_units(activity: RotorActivity) -> Decimal`. Reglas iniciales (canonizables como DSC-MO-013 si Alfredo firma):
+**Descripción:** Implementar `kernel/rotor/energy_calculator.py` con función `compute_energy_units(activity: RotorActivity) -> Decimal`. **Tabla de defaults firmada por Alfredo T1 el 2026-05-11:**
 
-| Source | Energy units (USD-equivalent) |
-|---|---|
-| `github_commit` (Cowork, Manus, Alfredo) | $0.05 por commit (vale 1/5 de un cycle del Embrión) |
-| `github_commit` mergeado a `main` | bonus $0.10 (recompensa cierre) |
-| `supabase_query` MCP de Cowork | $0.02 por query no-trivial |
-| `telegram_message` de chat autorizado | $0.05 por mensaje (atención humana es magna) |
-| `cowork_session` >2h | $0.50 por sesión cerrada (sesión productiva real) |
-| `manus_session` con PR mergeado | $0.30 por PR cerrado |
-| `embrion_latido` exitoso (no abort por Self-Verifier) | $0.01 (recarga lenta auto-sostenida) |
-| `embrion_latido` aborted | $-0.05 (penalización por gasto sin output) |
+| Source | Energy units (USD-equivalent) | Firmado T1 |
+|---|---|---|
+| `github_commit` (Cowork, Manus, Alfredo) | $0.05 por commit (vale 1/5 de un cycle del Embrión) | ✅ 2026-05-11 |
+| `github_commit` mergeado a `main` | bonus $0.10 (recompensa cierre) | ✅ 2026-05-11 |
+| `supabase_query` MCP de Cowork | $0.02 por query no-trivial | ✅ 2026-05-11 |
+| `telegram_message` de chat autorizado | $0.05 por mensaje (atención humana es magna) | ✅ 2026-05-11 |
+| `cowork_session` >2h | $0.50 por sesión cerrada (sesión productiva real) | ✅ 2026-05-11 |
+| `manus_session` con PR mergeado | $0.30 por PR cerrado | ✅ 2026-05-11 |
+| `embrion_latido` exitoso (no abort por Self-Verifier) | $0.01 (recarga lenta auto-sostenida) | ✅ 2026-05-11 |
+| `embrion_latido` aborted | $-0.05 (penalización por gasto sin output) | ✅ 2026-05-11 |
 
-**Cap diario por source:** evitar farming. Cada source tiene techo de $5/día.
+**Cap diario por source:** evitar farming. Cada source tiene techo de $5/día. **Firmado T1.**
 
-**Validation magna requerida:** `record_validation("rotor_energy_calibration_2026", ...)` antes de calibrar valores reales. La tabla arriba son **defaults canónicos**, no validados contra producción todavía.
+**Validation magna post-deploy:** `record_validation("rotor_energy_calibration_2026", ...)` documentando primeros 7 días en producción. Si las cifras firmadas resultan estar mal calibradas (ej. el sistema tiende a sobre-recargar o no recarga suficiente), Alfredo puede ajustar via PR retroactivo de los defaults. **Pero los defaults firmados son válidos para v1.0.**
 
 **Criterios de cierre:** función pura testeable, `pytest tests/rotor/test_energy_calculator.py` con ≥20 casos (un test por source × 3 escenarios cada uno). Reporte JSON en `reports/rotor_energy_calculator_calibration.json` con baseline contra 24h de actividad real post-deploy.
 
@@ -147,7 +148,7 @@ Lo que NO existe:
 
 **Doctrina del silencio sobre `embrion_loop.py`:** este sprint NO toca `embrion_loop.py` excepto el capturer T2.6 (latido_capturer) que va en marcadores `ROTOR_LATIDO_BEGIN/END`. Todo lo demás va a `kernel/rotor/`.
 
-**Cap superior:** el recharge NO puede exceder 2× el daily cap original ($30/día). Si Rotor genera $80 de energía un día, $30 entran al budget, $50 quedan registrados como "energía perdida — capacidad excedida" para análisis post-hoc.
+**Cap superior:** el recharge NO puede exceder 2× el daily cap original ($30/día). Si Rotor genera $80 de energía un día, $30 entran al budget, $50 quedan registrados como "energía perdida — capacidad excedida" para análisis post-hoc. **Firmado T1.**
 
 **Criterios de cierre:** test `pytest tests/rotor/test_recharge.py` con simulación de día completo (24h de actividades mock → recharge → budget actualizado). Cap superior verificado. Reporte JSON en `reports/rotor_recharge_smoke.json` post-deploy.
 
@@ -163,11 +164,11 @@ Lo que NO existe:
 
 **perfil_riesgo:** read-only
 
-**Descripción:** `bridge/postmortem_sprint_ROTOR_001.md` documentando timeline, decisiones técnicas (especialmente la tabla de energy_units), bugs encontrados, lecciones, métricas baseline de los primeros 7 días post-deploy.
+**Descripción:** `bridge/postmortem_sprint_ROTOR_001.md` documentando timeline, decisiones técnicas (especialmente la tabla de energy_units firmada por T1), bugs encontrados, lecciones, métricas baseline de los primeros 7 días post-deploy.
 
-**Si Alfredo lo aprueba, crear DSC-MO-013 — "Rotor: reciclador de actividad humano → energía Embrión"** con contrato ejecutable adjunto (la tabla T3 + algoritmo).
+**Si Alfredo lo aprueba post-postmortem, crear DSC-MO-013 — "Rotor: reciclador de actividad humano → energía Embrión"** con contrato ejecutable adjunto (la tabla T3 firmada + algoritmo).
 
-**Criterios de cierre:** postmortem firmado. DSC-MO-013 candidato preparado para firma T1 separada (NO se firma en este sprint — solo redacción).
+**Criterios de cierre:** postmortem firmado. DSC-MO-013 candidato preparado para firma T1 separada post-7-días (NO se firma en este sprint — solo redacción).
 
 ---
 
@@ -198,8 +199,8 @@ Lo que NO existe:
 ## 6. Owner
 
 **Owner técnico principal:** Manus Ejecutor (T1-T5 implementación).
-**Owner arquitectónico:** Cowork (diseño doctrinal + tabla de energy_units T3 + audit pre-cierre).
-**Owner humano final:** Alfredo (firmar tabla T3 antes de calibrar valores reales — decisión económica magna; firmar DSC-MO-013 post-postmortem si la implementación funciona).
+**Owner arquitectónico:** Cowork (diseño doctrinal + tabla de energy_units T3 firmada + audit pre-cierre).
+**Owner humano final:** Alfredo (defaults T3 ya firmados 2026-05-11; firmar DSC-MO-013 post-postmortem si la implementación funciona).
 
 ---
 
@@ -247,20 +248,20 @@ Si cualquier paso falla, NO arrancar. Reportar al bridge.
 
 ## 9. Bloqueante humano declarado
 
-**T3 tabla de energy_units requiere firma explícita de Alfredo antes de calibrar valores reales.** Razón: es decisión económica magna — define cuánto vale cada acción humana en términos de budget para el Embrión. Calibración mal hecha puede crear loops perversos (ej. farming de commits triviales para inflar budget). Alfredo decide las cifras finales antes del flip a producción.
+**T3 tabla de energy_units YA FIRMADA por Alfredo T1 el 2026-05-11.** Los defaults son válidos para v1.0. **No requiere firma adicional para arrancar.**
 
-**T6 DSC-MO-013 canonización requiere firma separada post-postmortem.** Si los primeros 7 días post-deploy muestran que el Rotor funciona como diseñado, Alfredo firma el DSC. Si no, queda como sprint exitoso pero sin canonización doctrinal.
+**T6 DSC-MO-013 canonización requiere firma separada post-postmortem.** Si los primeros 7 días post-deploy muestran que el Rotor funciona como diseñado, Alfredo firma el DSC. Si no, queda como sprint exitoso pero sin canonización doctrinal (los defaults pueden ajustarse via PR retroactivo).
 
 ---
 
 ## 10. Nota sobre dependencias con Guardian
 
-**Recomendación operativa T2:** ejecutar Sprint GUARDIAN-AUTONOMO-001 ANTES de ROTOR-001. Razón:
+**Recomendación operativa T2 honrada por T1:** ejecutar Sprint GUARDIAN-AUTONOMO-001 ANTES de ROTOR-001. Razón:
 - Guardian Autónomo establece el observador que mide `% por Objetivo` continuamente.
 - Sin Guardian, el ROTOR pasa de "ausente" a "implementado" pero **nadie mide si funciona** — Cowork tendría que auditar manualmente cada semana.
 - Con Guardian, el delta del Obj #11 (Multiplicación + Reloj Suizo) se reporta automáticamente.
 
-Si se prioriza ROTOR-001 antes que GUARDIAN, agregar Tarea T0 al sprint: "Verificación manual diaria por Cowork de baseline post-deploy durante 7 días". Esto agrega ~30 min/día de Cowork × 7 días = 3.5h de Cowork. Comparado con Sprint GUARDIAN-AUTONOMO-001 (2-3 días Manus), GUARDIAN primero es más eficiente.
+Si por alguna razón se prioriza ROTOR-001 antes que GUARDIAN, agregar Tarea T0 al sprint: "Verificación manual diaria por Cowork de baseline post-deploy durante 7 días". Esto agrega ~30 min/día de Cowork × 7 días = 3.5h de Cowork. Comparado con Sprint GUARDIAN-AUTONOMO-001 (2-3 días Manus), GUARDIAN primero es más eficiente.
 
 ---
 
@@ -268,4 +269,4 @@ Si se prioriza ROTOR-001 antes que GUARDIAN, agregar Tarea T0 al sprint: "Verifi
 
 ---
 
-**estado:** DRAFT_PENDIENTE_FIRMA_T1 — Alfredo firma cambio a `firme` antes del kickoff a Manus Ejecutor. Calibración T3 + canonización T6 son sub-decisiones T1 separadas que pueden venir post-firma del sprint mismo.
+**estado:** firme — Alfredo firmó como T1 el 2026-05-11, incluyendo los defaults de la tabla energy_units T3 sin modificación. Próximo kickoff a Manus Ejecutor pendiente — recomendación operativa: arrancar GUARDIAN-AUTONOMO-001 primero (más rápido + provee observador automático para validar el Rotor post-deploy).
