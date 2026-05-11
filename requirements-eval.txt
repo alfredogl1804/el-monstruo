@@ -8,7 +8,7 @@
 
 # ── Evaluation ────────────────────────────────────────────────────────────
 ragas==0.4.3                   # RAG evaluation metrics (4 metrics configured)
-garak==0.14.1                  # Red teaming (NVIDIA). Requires datasets<4.0
+garak==0.15.0                  # Red teaming (NVIDIA). Requires datasets<4.0
 datasets==3.6.0                # HuggingFace datasets — pinned <4.0 for garak compat
 
 # ── Evaluation Transitive Deps (explicit pins) ───────────────────────────

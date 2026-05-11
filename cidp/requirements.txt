@@ -3,8 +3,8 @@
 # ─────────────────────────────────
 
 # Web framework
-fastapi>=0.115.0,<1.0.0
-uvicorn[standard]>=0.34.0,<1.0.0
+fastapi>=0.136.1,<1.0.0
+uvicorn[standard]>=0.46.0,<1.0.0
 
 # Async HTTP (CVE-2026-22815 patched in 3.13.4+)
 aiohttp>=3.13.4,<4.0.0
@@ -19,8 +19,8 @@ structlog>=25.1.0,<26.0.0
 pyyaml>=6.0.2,<7.0.0
 
 # AI model clients (used by CIDP scripts)
-openai>=1.82.0,<2.0.0
-anthropic>=0.52.0,<1.0.0
+openai>=2.36.0,<3.0.0
+anthropic>=0.100.0,<1.0.0
 google-genai>=1.14.0,<2.0.0
 requests>=2.32.0,<3.0.0
 
