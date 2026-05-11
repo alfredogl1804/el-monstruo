@@ -2,9 +2,10 @@
 
 # Sprint GUARDIAN-AUTONOMO-001 — Activación del Guardián de los Objetivos
 
-**estado:** DRAFT_PENDIENTE_FIRMA_T1
+**estado:** firme
+**fecha_firma_T1:** 2026-05-11
 **autor_borrador:** Cowork T2 (Sprint SPECS-FIRMA-001 ampliado, 2026-05-11)
-**autorización_T1:** pendiente Alfredo
+**autorización_T1:** Alfredo, firmada explícitamente en chat 2026-05-11
 **Hilo principal:** Manus Ejecutor (wiring) + Cowork (diseño + audit)
 **ETA recalibrado:** 2-3 días reales según audit `AUDIT_OBJETIVOS_2D §6 L1` + `CRUCE_DIMENSIONAL_5A §5 #2`
 **Objetivo Maestro:** #14 (Guardián de los Objetivos — actualmente al 55% codebase-validated) + #4 (No equivocarse dos veces) + #6 (Vanguardia perpetua) + #15 (Memoria Soberana)
@@ -188,4 +189,4 @@ Si cualquier paso falla, NO arrancar. Reportar al bridge.
 
 ---
 
-**estado:** DRAFT_PENDIENTE_FIRMA_T1 — Alfredo firma cambio a `firme` antes del kickoff a Manus Ejecutor.
+**estado:** firme — Alfredo firmó como T1 el 2026-05-11. Kickoff a Manus Ejecutor 1 producido en `bridge/cowork_to_manus_GUARDIAN_AUTONOMO_001_KICKOFF_2026_05_11.md`.
