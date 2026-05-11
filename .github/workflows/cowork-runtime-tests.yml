@@ -1,0 +1,86 @@
+name: cowork-runtime-tests
+
+# T5 PREMIUM Sprint COWORK-RUNTIME-001
+# Doble red de seguridad:
+#  1. push/PR a main que toque kernel/cowork_runtime/, tools/cowork_guardian.py
+#     o tests/test_cowork_*.py
+#  2. cron diario 09:00 UTC (06:00 CDMX) detecta drift tardio aunque nadie haya
+#     pusheado nada
+# Refs: M5 de AUDITORIA_PROFUNDA_COMPORTAMIENTO_2026_05_11.md
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'kernel/cowork_runtime/**'
+      - 'tools/cowork_guardian.py'
+      - 'tools/test_cowork_guardian.py'
+      - 'tests/test_cowork_*.py'
+      - '.github/workflows/cowork-runtime-tests.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'kernel/cowork_runtime/**'
+      - 'tools/cowork_guardian.py'
+      - 'tools/test_cowork_guardian.py'
+      - 'tests/test_cowork_*.py'
+      - '.github/workflows/cowork-runtime-tests.yml'
+  schedule:
+    # Diario a las 09:00 UTC (06:00 CDMX). Detecta drift aunque no haya push.
+    - cron: '0 9 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  cowork-runtime-suite:
+    name: Cowork Runtime Test Suite (T1+T2+T3+T4+guardian)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install minimal deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-asyncio requests
+
+      - name: Run cowork-runtime test suite
+        env:
+          COWORK_HOOK_ENABLED: 'false'
+        run: |
+          python -m pytest \
+            tests/test_cowork_pre_response_hook.py \
+            tests/test_cowork_rule_reinjection.py \
+            tests/test_cowork_session_memory.py \
+            tests/test_cowork_companion_agent.py \
+            tools/test_cowork_guardian.py \
+            -v --tb=short
+
+      - name: Smoke CLI guardian + companion
+        run: |
+          echo "andate a dormir Alfredo, descansa" \
+            | python -m tools.cowork_guardian --user-message "AVANZA YA" \
+            && echo "ERROR: deberia haber fallado" && exit 1 \
+            || echo "OK: guardian bloqueo correctamente"
+
+          echo "Opcion A: x. Opcion B: y. Opcion C: z." \
+            | python -m kernel.cowork_runtime.companion_agent \
+            && echo "ERROR: deberia haber fallado" && exit 1 \
+            || echo "OK: companion bloqueo correctamente"
+
+      - name: Reportar resultado
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "::notice::Cowork runtime suite verde. M1+M2+M3+M4+M5 vigentes."
+          else
+            echo "::error::Cowork runtime suite ROJA. Drift detectado."
+          fi

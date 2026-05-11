@@ -1248,6 +1248,19 @@ async def lifespan(app: FastAPI):
         app.state.memento_validator = None
         app.state.memento_detector = None
 
+    # ── Sprint COWORK-RUNTIME-001 Tarea 8: endpoint /v1/cowork/memento/validate ──
+    # Permite a hilos Manus verificar que Cowork esta operando con contexto fresco
+    # antes de aceptar specs de Cowork. Mismo patron auth que /v1/memento/validate.
+    try:
+        from kernel.cowork_routes import cowork_router
+        app.include_router(cowork_router, prefix="/v1/cowork")
+        logger.info(
+            "sprint_cowork_runtime_t8_initialized",
+            endpoint="/v1/cowork/memento/validate",
+        )
+    except Exception as _e_cw:
+        logger.warning("sprint_cowork_runtime_t8_init_failed", error=str(_e_cw))
+
     # ── Sprint 86 Bloque 5: El Catastro ─ MCP Server catastro.recommend() ──
     # Inicializa el RecommendationEngine singleton (cache LRU compartido entre
     # requests) y monta el APIRouter REST + el sub-server MCP del Catastro.
