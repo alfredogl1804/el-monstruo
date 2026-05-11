@@ -50,3 +50,5 @@ logs/
 .meta_*
 .bw_*
 .tmp_*
+rls_audit_report.md
+rls_audit_continuous_report.md
