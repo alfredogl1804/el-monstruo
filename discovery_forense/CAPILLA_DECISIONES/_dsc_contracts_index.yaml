@@ -17,6 +17,7 @@
 
 version: 1
 fecha_canonizacion: "2026-05-07"
+fecha_ultima_actualizacion: "2026-05-11"  # +DSC-S-012 firmado
 
 dscs:
 
@@ -52,6 +53,28 @@ dscs:
     reason: >
       Sin tool automatizado — politica documentada en AGENTS.md Regla Dura #6.
       Pendiente cleanup tool con default archive y opcion delete + 30 dias.
+
+  "_GLOBAL/DSC-S-012_anti_deriva_migraciones_supabase.md":
+    status: aspirational
+    reason: >
+      DSC firmado por Alfredo T1 el 2026-05-11. Status: aspirational hasta
+      que el contrato ejecutable §1 (tools/_check_migration_drift.py) se
+      implemente. Deadline DSC-G-017: 30 dias desde firma (2026-06-10).
+      Sin implementacion en deadline, DSC degrada a aspirational permanente.
+      Sprint Cowork puro ~2-3h en proxima sesion para crear el script +
+      pre-commit hook + workflow CI semanal.
+    fecha_firma_T1: "2026-05-11"
+    autor_propuesta_original: "Hilo Ejecutor 1 durante PR #95"
+    bloqueante_para_enforced:
+      - "tools/_check_migration_drift.py (script de deteccion)"
+      - ".pre-commit-config.yaml hook migration-drift-check"
+      - ".github/workflows/migration-drift-audit.yml workflow CI semanal"
+    derivas_pre_existentes_resueltas:
+      - "PR #94 commit aaf4b298 — embrion_inbox canonizada"
+      - "PR #95 commit a0f4b1cb — migration 0010 archivo en main"
+    derivas_pre_existentes_pendientes:
+      - "Sprint S-003.B: 0009/0010 -> 0013/0014 renumeracion pendiente PR Hilo Ejecutor 2"
+      - "audit_middleware.py.pyc huerfano (patron paralelo no-SQL)"
 
   "_GLOBAL/DSC-G-001_14_objetivos_maestros_aplican_a_todo.md":
     status: aspirational
