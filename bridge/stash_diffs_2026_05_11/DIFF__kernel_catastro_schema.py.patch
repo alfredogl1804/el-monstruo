@@ -1,0 +1,111 @@
+--- kernel/catastro/schema.py	2026-05-11 01:51:09
++++ -	2026-05-11 05:44:19
+@@ -425,3 +425,108 @@
+                     "Invariante violado: multi_swarm_capable=True requiere multi_step_capable=True"
+                 )
+         return v
++
++
++
++# ============================================================================
++# Sprint 88.3 - Macroarea VISION_GENERATIVA (DSC-G-007.5)
++# Migraciones SQL: 040..045 (catastro_vision_generativa + 12 subdominios + 38 seeds)
++# ============================================================================
++
++class SubdominioVisionGenerativa(str, Enum):
++    """12 subdominios canonicos VISION_GENERATIVA validados por Perplexity."""
++    IMAGEN_ESTATICA_PREMIUM = "imagen_estatica_premium"
++    VIDEO_CLIP_GENERATIVO = "video_clip_generativo"
++    VIDEO_NARRATIVO_CINEMATICO = "video_narrativo_cinematico"
++    AVATAR_HUMANO_ANIMADO = "avatar_humano_animado"
++    REALTIME_VIDEO_AGENTS_CHARACTERS = "realtime_video_agents_characters"
++    LIP_SYNC_VISUAL_DUBBING = "lip_sync_visual_dubbing"
++    TTS_VOCES_SINTETICAS = "tts_voces_sinteticas"
++    MUSICA_GENERADA = "musica_generada"
++    EFECTOS_SONIDO_SFX = "efectos_sonido_sfx"
++    GENERATIVE_EDITING_INPAINTING = "generative_editing_inpainting"
++    UPSCALING_RESTAURACION_ENHANCEMENT = "upscaling_restauracion_enhancement"
++    THREE_D_MOCAP_ASSETS = "3d_mocap_assets"
++
++
++class LicensingRisk(str, Enum):
++    """Riesgo de licenciamiento de outputs (DSC-G-007.5)."""
++    LOW = "low"
++    MEDIUM = "medium"
++    HIGH = "high"
++
++
++class CatastroVisionGenerativa(BaseModel):
++    """
++    Tabla: catastro_vision_generativa - macroarea VISION_GENERATIVA (Sprint 88.3).
++    Espejo Pydantic de migracion 040 + 12 subdominios + 38 seeds.
++    """
++    # Identidad
++    id: str = Field(..., min_length=2, max_length=100)
++    nombre: str
++    proveedor: str
++
++    # Taxonomia
++    macroarea: Macroarea = Macroarea.VISION_GENERATIVA
++    subdominio_primario: SubdominioVisionGenerativa
++    subdominios_secundarios: list[SubdominioVisionGenerativa] = Field(default_factory=list)
++    url_oficial: Optional[str] = None
++
++    # Capacidades tecnicas especificas
++    modalidad_input: list[str] = Field(default_factory=list)
++    modalidad_output: list[str] = Field(default_factory=list)
++    duracion_max_clip_sec: Optional[int] = Field(None, ge=0)
++    resolucion_max: Optional[str] = None
++    audio_nativo: bool = False
++    multi_shot_capable: bool = False
++    consistencia_personaje: bool = False
++    api_disponible: bool = False
++    mcp_server_disponible: bool = False
++
++    # Doctrina + cumplimiento
++    licensing_risk: LicensingRisk = LicensingRisk.LOW
++    consent_required: bool = False
++    c2pa_provenance: bool = False
++    watermark_native: bool = False
++
++    # Estado
++    estado: EstadoModelo = EstadoModelo.PRODUCTION
++    costo_por_uso_tipico: Optional[CostoPorUsoTipico] = None
++    open_weights: bool = False
++
++    # Curaduria + scoring
++    tier_seed: int = Field(1, ge=1, le=2)
++    bonus_curador: int = Field(0, ge=0, le=50)
++    bonus_curador_razon: Optional[str] = None
++    score_subdominio_origen: Optional[int] = Field(None, ge=0, le=100)
++    riesgo_adversarial: Optional[str] = None
++
++    # Validacion
++    fuentes_evidencia: list[FuenteEvidencia] = Field(default_factory=list)
++    validacion_adversarial: dict[str, Any] = Field(default_factory=dict)
++    data_extra: dict[str, Any] = Field(default_factory=dict)
++    confidence: float = Field(0.50, ge=0.0, le=1.0)
++
++    # Timestamps
++    schema_version: int = 1
++    ultima_validacion: datetime = Field(default_factory=datetime.utcnow)
++    proxima_revalidacion: Optional[datetime] = None
++    created_at: datetime = Field(default_factory=datetime.utcnow)
++    updated_at: datetime = Field(default_factory=datetime.utcnow)
++
++    @field_validator("id")
++    @classmethod
++    def slug_format_vg(cls, v: str) -> str:
++        if v != v.lower():
++            raise ValueError(f"id debe ser lowercase: {v!r}")
++        if " " in v:
++            raise ValueError(f"id no puede contener espacios: {v!r}")
++        return v
++
++    @field_validator("subdominios_secundarios")
++    @classmethod
++    def secundarios_no_incluyen_primario(cls, v: list, info) -> list:
++        primario = info.data.get("subdominio_primario") if info.data else None
++        if primario is not None and primario in v:
++            raise ValueError(f"subdominio_primario {primario} no puede estar tambien en subdominios_secundarios")
++        return v

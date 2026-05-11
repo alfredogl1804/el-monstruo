@@ -1,0 +1,236 @@
+--- bridge/sprint_MOBILE_1B_A2UI_IMPLEMENTATION_2026_05_11.md	2026-05-11 01:51:19
++++ -	2026-05-11 05:44:19
+@@ -21,7 +21,7 @@
+ 
+ # Sprint Mobile 1.B — A2UI Rendering Implementation
+ 
+-## Contexto verificado binariamente
++## Contexto verificado binariamente (no asumido)
+ 
+ Estado real de la app Flutter al 2026-05-11 (verificado por Hilo Ejecutor + Cowork via `find`, `git log`, `grep` ejecutables):
+ 
+@@ -30,48 +30,201 @@
+ - 10 features funcionales
+ - Gateway propio en `apps/mobile/gateway/` con 622 LOC + 12 endpoints (REST + WebSocket)
+ - 22 commits hasta 2026-05-02
+-- `features/genui/genui_renderer.dart` existe pero solo 48 LOC = placeholder esperando spec A2UI firmado
++- **`features/genui/genui_renderer.dart` existe pero solo 48 LOC = placeholder** esperando spec A2UI firmado
+ 
+-## Bloqueante: firma A2UI Spec Draft
++**Estado base de A2UI:** spec draft existe desde 2026-05-05 sin firmar. Bloquea desde entonces.
+ 
++---
++
++## Bloqueante magna: firma A2UI Spec Draft
++
+ **Path:** `bridge/a2ui_spec_draft_para_firma.md`
+ 
+-16 tipos de componentes whitelist propuestos: Stack, Card, Section, Text, Markdown, Image, Link, Code, Divider, Button, ButtonGroup, KeyValueList, Table, Badge, Progress, Stepper + 3 especializados Monstruo: EmpresaResultCard, LeadCard, ContenidoCard.
++**Lectura para Alfredo:** 5-10 min (no técnico — vos validás si los 16 tipos canonizados de componentes te hacen sentido como usuario).
+ 
+-## Tareas (8 totales)
++**16 tipos de componentes whitelist propuestos:**
+ 
+-### T1 — Estructura `core/a2ui/` (cumple DSC-G-004 + spec Mobile 1)
+-Crear `apps/mobile/lib/core/a2ui/` con renderer.dart, parser.dart, types/, actions.dart.
++| Categoría | Tipos |
++|---|---|
++| Contenedores | Stack, Card, Section |
++| Contenido | Text, Markdown, Image, Link, Code, Divider |
++| Acción | Button, ButtonGroup |
++| Datos | KeyValueList, Table, Badge |
++| Progreso | Progress, Stepper |
++| Monstruo-específicos | EmpresaResultCard, LeadCard, ContenidoCard |
+ 
+-### T2 — Parser JSON A2UI v1.0
+-Implementar parser que reciba JSON y retorne tree de widgets Dart. Aceptación: 5 fixtures pasan.
++**Decisión binaria de Alfredo:**
++- ✅ Firmo tal cual → Sprint Mobile 1.B arranca
++- 🟡 Falta agregar tipo X → Cowork actualiza spec, Alfredo firma
++- ❌ No firmo → razones específicas, Cowork itera
+ 
+-### T3 — Implementar los 16 tipos del whitelist
+-1 widget Dart por tipo. Usar Brand DNA forja+graphite+acero. Slots para componentes con copy.
++**Si Alfredo duda:** Cowork lee el spec en chat, lo explica en español sin tecnicismos, decide en otro turno.
+ 
+-### T4 — Componentes especializados Monstruo
+-EmpresaResultCard, LeadCard, ContenidoCard según spec draft.
++---
+ 
+-### T5 — Action callbacks WebSocket
+-Button tap → kernel via WebSocket con action_id + payload.
++## Tareas Sprint Mobile 1.B (para Hilo Ejecutor)
+ 
+-### T6 — Tests
+-Unit tests parser, widget tests cada tipo, integration test chat→A2UI.
++### Tarea 1 — Estructura `core/a2ui/` (cumple DSC-G-004 + spec Mobile 1)
++**Acción:** crear `apps/mobile/lib/core/a2ui/` con:
++- `renderer.dart` (mover lógica de `features/genui/genui_renderer.dart` aquí)
++- `parser.dart` (parser JSON → modelo Dart)
++- `types/` con clase por tipo del whitelist
++- `actions.dart` (callbacks WebSocket)
+ 
+-### T7 — Integrar al chat existente
+-`features/chat/chat_screen.dart` detecta `a2ui_version` field → renderiza vía A2UIRenderer.
++**Por qué:** Mobile 1 spec canónico define esa estructura. Naming "a2ui" mejor que "genui" porque alineado con A2UI v0.9 estándar Google. Cumple DSC-G-004 (prohibido naming "service/genui").
+ 
+-### T8 — Smoke test end-to-end con Alfredo
+-Manus envía build firmado al iPhone con A2UI activo. Alfredo prueba caso real.
++### Tarea 2 — Parser JSON A2UI v1.0
++**Acción:** implementar parser que reciba JSON tipo:
++```json
++{
++  "a2ui_version": "1.0",
++  "root": {"type": "Card", "props": {...}, "children": [...]}
++}
++```
++y retorne tree de widgets Dart.
+ 
++**Aceptación:** parser pasa 5 fixtures JSON de prueba (componentes simples + nested + recursivo).
++
++### Tarea 3 — Implementar los 16 tipos del whitelist
++**Acción:** 1 widget Dart por tipo. Usar Brand DNA forja+graphite+acero de `theme/monstruo_theme.dart` para colores. Slots `{{TITLE_SLOT}}` etc para componentes con copy.
++
++**Aceptación:** cada widget renderiza correctamente con fixture JSON dedicada. Tests visuales.
++
++### Tarea 4 — Componentes especializados Monstruo
++**Acción:** implementar `EmpresaResultCard`, `LeadCard`, `ContenidoCard` según spec draft sección "Componentes especializados Monstruo" (líneas 71-76 del A2UI Spec Draft).
++
++**Aceptación:** EmpresaResultCard renderiza correctamente con datos mock simulando output de Sprint 87 E2E.
++
++### Tarea 5 — Action callbacks WebSocket
++**Acción:** cuando usuario tap Button con `action_id`, app envía evento al kernel:
++```json
++{"type":"a2ui_action","action_id":"<id>","payload":{...}}
++```
++
++**Aceptación:** smoke test con kernel respondiendo Button → action fires → kernel recibe evento (verificable en logs Railway).
++
++### Tarea 6 — Tests
++**Acción:**
++- Unit tests para parser (10+ casos)
++- Widget tests para cada tipo (16 tests)
++- Integration test: chat recibe A2UI JSON → renderiza tree completo
++
++**Aceptación:** `flutter test` pasa en CI.
++
++### Tarea 7 — Integrar al chat existente
++**Acción:** `features/chat/chat_screen.dart` detecta cuando mensaje del kernel viene con `a2ui_version` field → renderiza vía `A2UIRenderer` en lugar de Markdown.
++
++**Aceptación:** Alfredo manda mensaje al kernel, kernel responde con A2UI JSON (ej: pregunta de Sprint 87 → kernel devuelve EmpresaResultCard), app renderiza tarjeta hermosa con foto + botones funcionales.
++
++### Tarea 8 — Smoke test end-to-end con Alfredo
++**Acción:** Manus envía a Alfredo build firmado al iPhone con A2UI activo. Alfredo prueba caso real (ej: "buscame los últimos PRs del repo" → kernel responde con Table A2UI con últimos 5 PRs como filas + Button "ver detalle").
++
++**Aceptación:** Alfredo confirma visualmente que renderiza correctamente desde su iPhone.
++
++---
++
+ ## Definition of Done
+ 
+-8 de 8 tareas cerradas = sprint cerrado. Capability A2UI desbloqueada para sprints downstream.
++```
++T1 ✅ core/a2ui/ creado con estructura canónica
++T2 ✅ Parser pasa 5 fixtures JSON
++T3 ✅ 16 widgets renderizan correctamente con tests
++T4 ✅ 3 componentes especializados Monstruo implementados
++T5 ✅ Action callbacks WebSocket funcionales
++T6 ✅ flutter test pasa
++T7 ✅ Chat detecta y renderiza A2UI
++T8 ✅ Alfredo confirma smoke test en iPhone
++```
+ 
++8 de 8 = sprint cerrado. Capability A2UI desbloqueada para sprints downstream.
++
++---
++
++## Riesgos identificados + mitigaciones
++
++### R1 — Bug del scroll del agent selector se vuelve a romper
++**Probabilidad:** baja (ya fix en commit 71f8c9a)
++**Mitigación:** test de regresión específico
++
++### R2 — Action callbacks no llegan al kernel por config de WebSocket
++**Probabilidad:** media (12 endpoints del gateway pero `dispatch_agent` recién wireado el 2-may en commit 0b81eb9)
++**Mitigación:** verificar protocolo WebSocket en `apps/mobile/gateway/server.py` antes de implementar T5
++
++### R3 — Brand DNA inconsistente entre widgets
++**Probabilidad:** media
++**Mitigación:** usar `packages/design-tokens/flutter/monstruo_tokens.dart` (existe, 7KB) como única fuente de tokens
++
++### R4 — Componentes especializados Monstruo necesitan datos del kernel que no existen
++**Probabilidad:** alta para EmpresaResultCard (Sprint 87 no implementado todavía)
++**Mitigación:** implementar componentes con mock data primero, wiring real cuando Sprint 87 ship
++
++---
++
++## Coordinación con sprints paralelos
++
++### Sprint Mobile 0 SMP (prerequisito v1.0 según APP_VISION cap 7)
++**Mientras Hilo Ejecutor trabaja Mobile 1.B,** Cowork puede ir preparando spec para Sprint Mobile 0 SMP (Sovereign Memory Protocol). 2-4 semanas según doctrina, no se acelera.
++
++**Hilos sugeridos:**
++- Hilo Ejecutor: Mobile 1.B (este sprint, 1-2 sesiones)
++- Hilo Catastro: standby para Mobile 0 SMP después
++- Cowork: prepara Mobile 0 SMP spec en background
++
++### Sprint Mobile 1.C Voice Input (paralelizable a Mobile 1.B)
++**Si Hilo Ejecutor tiene bandwidth,** puede arrancar Mobile 1.C en paralelo. iOS code signing está listo. `services/voice_service.dart` solo tiene 34 LOC (stub).
++
++**Riesgo:** scope creep. **Mitigación:** cerrar Mobile 1.B primero, Mobile 1.C después.
++
++---
++
+ ## Output esperado
+ 
+-Hilo Ejecutor reporta cierre en `bridge/manus_to_cowork_REPORTE_MOBILE_1B_A2UI_CIERRE.md` con 8 tareas pass/fail, LOC agregadas, screenshots de A2UI renderizando, tests pasando, bugs encontrados.
++**Hilo Ejecutor reporta cierre en:**
++```
++bridge/manus_to_cowork_REPORTE_MOBILE_1B_A2UI_CIERRE.md
++```
+ 
++**Contenido del reporte:**
++- 8 tareas con estado pass/fail
++- LOC agregadas
++- Screenshots de A2UI renderizando en app real
++- Endpoints WebSocket modificados (si aplica)
++- Tests pasando
++- Bugs encontrados durante implementación
++- Próximas dependencias identificadas
++
+ ---
+ 
+-*Spec firmado por Cowork como Arquitecto T2. 2026-05-11. Bajo modo "actuar sin preguntar" respetando clasificación S7.*
++## Lo que Cowork NO va a hacer durante este sprint
++
++- ❌ Más audits del estado de la app (ya verificado por Hilo Ejecutor + Cowork con evidencia binaria)
++- ❌ Cambiar de scope de Mobile 1.B a otro sprint
++- ❌ Producir documentos meta de Cowork
++- ❌ Adivinar el estado del código de Manus
++
++## Lo que Cowork SÍ va a hacer durante este sprint
++
++- ✅ Preparar Sprint Mobile 0 SMP spec en background
++- ✅ Si Alfredo pide cambio al A2UI spec antes de firma, iterar el spec
++- ✅ Si Manus reporta bloqueante, mediar (consultar Sabio si necesario)
++- ✅ Validar reporte de cierre cuando Manus termine
++
++---
++
++## Siguiente paso operativo concreto
++
++**Acción inmediata de Alfredo:** decidir sobre A2UI Spec Draft.
++
++3 opciones reales:
++
++**A. Firmar tal cual.** Alfredo lee `bridge/a2ui_spec_draft_para_firma.md` (5-10 min), si le hace sentido los 16 tipos, agrega línea al final: *"Firmado por Alfredo Góngora 2026-05-11. Procede implementación."*
++
++**B. Pedir lectura traducida.** Si el spec es muy técnico, Cowork lo explica en chat en español sin tecnicismos. Alfredo decide en 5 min después.
++
++**C. Consultar Sabio.** Si Alfredo duda si los 16 tipos están bien definidos, Cowork prepara prompt para ChatGPT 5.5 Pro o Claude Opus que audite el spec. Tiempo: tu trabajo de pegar prompt + traer respuesta.
++
++**Default que Cowork ejecuta si Alfredo no responde en próximo turno:** opción B (Cowork lee el spec en chat traducido).
++
++---
++
++*Spec firmado por Cowork como Arquitecto T2. 2026-05-11. Bajo modo "actuar sin preguntar" respetando clasificación S7. Listo para entregar a Hilo Ejecutor cuando A2UI Spec Draft esté firmado.*
