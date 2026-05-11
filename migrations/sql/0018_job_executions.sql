@@ -1,5 +1,5 @@
 -- ============================================================================
--- Migracion: 0016_job_executions
+-- Migracion: 0018_job_executions
 -- Autor: Manus (Hilo Ejecutor 1)
 -- Fecha: 2026-05-11
 --
@@ -7,7 +7,11 @@
 -- Materializacion retroactiva de la tabla job_executions (4ta deriva DB-repo).
 -- La tabla ya existe en produccion (Supabase xsumzuhwmivjgftsneov) pero el
 -- codigo DDL nunca se commiteo en main.
--- 
+--
+-- Renumeracion: originalmente 0016, renombrado a 0018 para respetar la
+-- dependencia FK -> public.scheduled_jobs (creado en 0017_scheduled_jobs.sql,
+-- PR #99). Orden de aplicacion: 0017 (parent) antes que 0018 (child).
+--
 -- Patrones aplicados:
 -- 1. Idempotencia completa (IF NOT EXISTS, DO blocks para constraints/policies).
 -- 2. RLS habilitado y policy 'service_role_only' replicada de prod.
@@ -85,4 +89,4 @@ BEGIN
 END $$;
 
 -- 6. Comentarios
-COMMENT ON TABLE public.job_executions IS 'Registro historico de ejecuciones de scheduled_jobs (Sprint S-002.x). Materializado en 0016.';
+COMMENT ON TABLE public.job_executions IS 'Registro historico de ejecuciones de scheduled_jobs (Sprint S-002.x). Materializado en 0018 (renombrado desde 0016 post-dependencia FK con 0017_scheduled_jobs).';
