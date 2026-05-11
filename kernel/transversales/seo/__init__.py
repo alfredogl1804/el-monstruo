@@ -336,9 +336,22 @@ class SeoLayer(TransversalLayer):
 
     def monitor(self, ctx: TransversalContext) -> dict[str, Any]:
         """
-        Health-check structural sin credenciales externas. Search Console
-        API queda pendiente Sprint TRANSVERSAL-001 T3.
+        Health-check estructural + Search Console hooks canonicos.
+
+        Sprint TRANSVERSAL-001 T3:
+        - Hooks de Search Console v1 declarados con endpoints y scopes oficiales
+          (validados magna `search_console_api_2026`, validation_log id=28).
+        - schema.org vocabulary ancla magna `schema_org_vocabulary_2026`
+          (validation_log id=27).
+        - Push real (red) bloqueado mientras GOOGLE_SEARCH_CONSOLE_OAUTH_TOKEN
+          o GOOGLE_SEARCH_CONSOLE_SITE_URL no esten configurados. La capa
+          devuelve `disabled_until_oauth_configured=True` para que
+          orquestador no intente fetch real.
+        - Sin red en este metodo (write-safe). El fetch real lo ejecuta un
+          script de operaciones bajo HITL cuando Alfredo firme el wiring.
         """
+        import os
+
         require_commercial(ctx.vertical)
         recommendations = self.recommend(ctx)
         impl_artifacts = self.implement(recommendations)
@@ -361,6 +374,61 @@ class SeoLayer(TransversalLayer):
                 f"Perplexity pendientes de resolver via DSC-V-001."
             )
 
+        # Search Console v1 wiring canonico.
+        oauth_token_present = bool(
+            os.environ.get("GOOGLE_SEARCH_CONSOLE_OAUTH_TOKEN")
+        )
+        site_url_present = bool(
+            os.environ.get("GOOGLE_SEARCH_CONSOLE_SITE_URL")
+        )
+        pending_envs = []
+        if not oauth_token_present:
+            pending_envs.append("GOOGLE_SEARCH_CONSOLE_OAUTH_TOKEN")
+        if not site_url_present:
+            pending_envs.append("GOOGLE_SEARCH_CONSOLE_SITE_URL")
+
+        disabled = bool(pending_envs)
+        if disabled:
+            warnings.append(
+                f"Search Console wiring incompleto: faltan "
+                f"{', '.join(pending_envs)}. Fetch real bloqueado."
+            )
+
+        search_console_health: dict[str, Any] = {
+            "status": (
+                "disabled_until_oauth_configured" if disabled
+                else "ready_for_fetch"
+            ),
+            "disabled_until_oauth_configured": disabled,
+            "required_envs": [
+                "GOOGLE_SEARCH_CONSOLE_OAUTH_TOKEN",
+                "GOOGLE_SEARCH_CONSOLE_SITE_URL",
+            ],
+            "pending_envs": pending_envs,
+            "api_version": "v1",
+            "oauth_scope_required": (
+                "https://www.googleapis.com/auth/webmasters.readonly"
+            ),
+            "endpoint_searchanalytics": (
+                "POST https://www.googleapis.com/webmasters/v3/sites/"
+                "{siteUrl}/searchAnalytics/query"
+            ),
+            "endpoint_sites_get": (
+                "GET https://www.googleapis.com/webmasters/v3/sites/{siteUrl}"
+            ),
+            "validation_log_anchor": {
+                "claim_type": "search_console_api_2026",
+                "row_id": 28,
+                "validator": "perplexity",
+                "ttl_seconds": 7776000,
+            },
+            "dry_run": True,
+            "dry_run_reason": (
+                "Push/fetch real requiere firma de Alfredo via DSC-G-002 "
+                "(HITL para operaciones write-risky)."
+            ),
+        }
+
         return {
             "vertical": ctx.vertical.value,
             "structural_health": {
@@ -373,12 +441,12 @@ class SeoLayer(TransversalLayer):
             },
             "warnings": warnings,
             "blockers": blockers,
-            "search_console_health": {
-                "status": "pending_implementation",
-                "note": (
-                    "Sprint TRANSVERSAL-001 T3 — requiere Search Console API "
-                    "credentials para crawl errors, indexability monitoring."
-                ),
+            "search_console_health": search_console_health,
+            "schema_org_anchor": {
+                "claim_type": "schema_org_vocabulary_2026",
+                "row_id": 27,
+                "validator": "perplexity",
+                "ttl_seconds": 7776000,
             },
         }
 
