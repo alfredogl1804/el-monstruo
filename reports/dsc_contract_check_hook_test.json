@@ -1,0 +1,74 @@
+{
+  "sprint": "TRANSVERSAL-001",
+  "task": "T8",
+  "criterio_aceptacion": "CA6",
+  "criterio_descripcion": "dsc_contract_check activo como hook bloqueante",
+  "hook_id": "dsc-contract-check",
+  "hook_entry": "python3 tools/dsc_contract_check.py",
+  "hook_files_regex": "^discovery_forense/CAPILLA_DECISIONES/.*\\.md$",
+  "tool_path": "tools/dsc_contract_check.py",
+  "pre_commit_config": ".pre-commit-config.yaml",
+  "cases": [
+    {
+      "case": "invalid_dsc_no_contract",
+      "input": "DSC-X-CA6-EV-INVALID.md",
+      "expected_exit": 1,
+      "expected_behavior": "BLOCKED (hook rechaza commit)",
+      "actual": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "[ERR]  /var/folders/3p/2p23zm6s24d8p6l4qxl2fp1h0000gn/T/DSC-X-CA6-EV-INVALID.md: DSC sin entry en _dsc_contracts_index.yaml, sin seccion '## Contrato ejecutable' y sin marcador aspiracional. DSC-G-017 exige una de las tres.\n\n1/1 DSCs violan DSC-G-017. Anadir entry en _dsc_contracts_index.yaml o seccion '## Contrato ejecutable' o marcador `**Estado:** Aspiracional`.",
+        "duration_ms": 37.0
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "valid_dsc_with_contract",
+      "input": "DSC-X-CA6-EV-VALID.md",
+      "expected_exit": 0,
+      "expected_behavior": "PASSED (hook permite commit)",
+      "actual": {
+        "exit_code": 0,
+        "stdout": "[ok]   /var/folders/3p/2p23zm6s24d8p6l4qxl2fp1h0000gn/T/DSC-X-CA6-EV-VALID.md: OK via .md parsing. 2/2 rutas existen.\n\n[ok] 1 DSCs todos con contrato ejecutable adjunto.",
+        "stderr": "",
+        "duration_ms": 32.3
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "aspirational_dsc",
+      "input": "DSC-X-CA6-EV-ASPI.md",
+      "expected_exit": 0,
+      "expected_behavior": "PASSED con [warn] (aspiracional explicito)",
+      "actual": {
+        "exit_code": 0,
+        "stdout": "[warn] /var/folders/3p/2p23zm6s24d8p6l4qxl2fp1h0000gn/T/DSC-X-CA6-EV-ASPI.md: DSC marcado aspiracional explicitamente — pasa con warning\n\n[ok] 0 DSCs con contrato + 1 aspiracionales documentados.",
+        "stderr": "",
+        "duration_ms": 32.0
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "missing_file_usage_error",
+      "input": "DSC-X-CA6-EV-NOEXIST.md",
+      "expected_exit": 2,
+      "expected_behavior": "ERROR DE USO (archivo no existe)",
+      "actual": {
+        "exit_code": 2,
+        "stdout": "",
+        "stderr": "ERROR: no existe: /Users/alfredogongora/el-monstruo/DSC-X-CA6-EV-NOEXIST.md",
+        "duration_ms": 32.1
+      },
+      "verdict": "PASS"
+    }
+  ],
+  "verdicts": {
+    "invalid_dsc_no_contract": "PASS",
+    "valid_dsc_with_contract": "PASS",
+    "aspirational_dsc": "PASS",
+    "missing_file_usage_error": "PASS"
+  },
+  "global_verdict": "PASS",
+  "generated_by": "scripts/_dsc_contract_check_hook_test.py",
+  "generated_at_unix": 1778515731.339759
+}

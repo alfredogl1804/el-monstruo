@@ -7,10 +7,18 @@
 -- del Monstruo produzca DEBE tener un registro vigente aqui antes de
 -- shipear a produccion.
 --
--- Aplicar en Supabase via:
---   supabase db push   # o psql contra la URL de Supabase
+-- DOCTRINA DSC-S-006 (RLS por defecto):
+--   Esta tabla NACE con RLS habilitado y policy service_role_only.
+--   Estado en produccion (Supabase, 2026-05-11):
+--     relrowsecurity = true
+--     policy validation_log_service_role_only : ALL  TO service_role  USING true WITH CHECK true
+--   Universo RLS: 124/124 (sin regresion).
 --
--- Origen: DSC-V-001, DSC-G-017.
+-- Aplicar en Supabase via:
+--   python3 ~/.monstruo/sb_sql.py sql -f migrations/sql/0001_validation_log.sql
+--   (precedente DSC-S-012: migraciones via Management API, no psql directo)
+--
+-- Origen: DSC-V-001, DSC-G-017, DSC-S-006, DSC-S-012.
 
 CREATE TABLE IF NOT EXISTS validation_log (
     id BIGSERIAL PRIMARY KEY,
@@ -52,11 +60,15 @@ CREATE INDEX IF NOT EXISTS validation_log_claim_type_ts_idx
 CREATE INDEX IF NOT EXISTS validation_log_fingerprint_ts_idx
     ON validation_log (claim_fingerprint, timestamp_unix DESC);
 
--- RLS recomendado (opcional, ajustar a politicas del workspace):
--- ALTER TABLE validation_log ENABLE ROW LEVEL SECURITY;
--- CREATE POLICY validation_log_select ON validation_log FOR SELECT USING (true);
--- CREATE POLICY validation_log_insert ON validation_log
---     FOR INSERT WITH CHECK (validator IN (
---         'perplexity', 'manus_realtime', 'alfredo_human',
---         'gong_call_evidence', 'fireflies_evidence'
---     ));
+-- RLS canonico (DSC-S-006): toda tabla nueva nace con RLS habilitado.
+ALTER TABLE validation_log ENABLE ROW LEVEL SECURITY;
+
+-- Policy unica: solo service_role accede (read + write).
+-- El kernel usa SUPABASE_SERVICE_KEY (DSC-S-007) para autenticarse como service_role.
+-- anon y authenticated NO tienen acceso por defecto (zero-trust).
+CREATE POLICY validation_log_service_role_only
+    ON validation_log
+    FOR ALL
+    TO service_role
+    USING (true)
+    WITH CHECK (true);

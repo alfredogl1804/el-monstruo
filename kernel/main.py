@@ -103,6 +103,19 @@ async def lifespan(app: FastAPI):
     else:
         logger.warning("supabase_not_connected", msg="Memory will be in-memory only")
 
+    # ── TRANSVERSAL-001 T1: validation_log magna wiring (DSC-V-001) ─────────────
+    # Sustituye LocalFileStorage por SupabaseStorage cuando hay conexion.
+    # Sin esto, record_validation() escribe a archivo local y las Capas
+    # Transversales pierden la magna persistente. Fail-safe: si no hay db
+    # conectada, queda LocalFileStorage (no rompe boot).
+    if db_connected:
+        try:
+            from kernel.validation import SupabaseStorage, set_default_storage
+            set_default_storage(SupabaseStorage(db._client))
+            logger.info("validation_storage_wired", backend="supabase", table="validation_log")
+        except Exception as _val_err:
+            logger.warning("validation_storage_wire_failed", error=str(_val_err))
+
     # Initialize sovereign components with Supabase persistence
     event_store = EventStore(db=db if db_connected else None)
     await event_store.initialize()

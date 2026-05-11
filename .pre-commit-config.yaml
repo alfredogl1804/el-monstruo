@@ -67,3 +67,17 @@ repos:
         pass_filenames: false
         stages: [pre-push]
         verbose: true
+
+  # DSC-G-017 enforcement: contrato ejecutable adjunto en DSCs.
+  # Sprint TRANSVERSAL-001 - Tarea T8 (CA6).
+  # Bloquea commits que agreguen/modifiquen DSCs en discovery_forense/CAPILLA_DECISIONES/
+  # sin entry en _dsc_contracts_index.yaml o seccion '## Contrato ejecutable' o
+  # marcador '**Estado:** Aspiracional'.
+  - repo: local
+    hooks:
+      - id: dsc-contract-check
+        name: dsc-contract-check (DSC-G-017)
+        entry: python3 tools/dsc_contract_check.py
+        language: system
+        files: ^discovery_forense/CAPILLA_DECISIONES/.*\.md$
+        pass_filenames: true
