@@ -1,0 +1,11 @@
+--- .gitignore	2026-05-11 05:43:32
++++ -	2026-05-11 05:44:19
+@@ -50,5 +50,6 @@
+ .meta_*
+ .bw_*
+ .tmp_*
+-rls_audit_report.md
+-rls_audit_continuous_report.md
++
++# Hilo B local reality system (no versionar — anti-autoboicot tooling)
++.monstruo-local/

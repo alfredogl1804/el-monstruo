@@ -1,0 +1,203 @@
+--- memory/cowork/COWORK_ESTADO_VIVO.md	2026-05-11 04:20:33
++++ -	2026-05-11 05:44:19
+@@ -2,7 +2,7 @@
+ 
+ **Propósito:** Snapshot operacional ACTUAL del Monstruo. Lo que está corriendo, lo que está en backlog, los bloqueantes. Documento volátil — se actualiza con frecuencia.
+ 
+-**Estado:** v0.2 — sincronizado al 2026-05-11 ~09:00 UTC tras cierre Sprint COWORK-RUNTIME-001.
++**Estado:** v0.1 — sincronizado al 2026-05-10 18:00 UTC tras jornada magna.
+ 
+ **Cuándo actualizar:** después de cada sesión Cowork-Alfredo de >2h o cuando un sprint cambia de estado.
+ 
+@@ -10,14 +10,10 @@
+ 
+ ## 1. Snapshot global (resumen 1 línea)
+ 
+-**Monstruo al ~71%** (vs 70.5% del 10-may). Diferencial: **runtime ejecutable de obediencia Cowork canonizado en código** vía Sprint COWORK-RUNTIME-001 cerrado por Manus el 2026-05-11. Embrión vivo + HITL bidireccional + Universo RLS al 100% + Catastro 14 dominios + App Flutter avanzada (v0.1.0+1, 7,890 LOC, 22 commits) + Cowork ya no depende de su propia memoria para no empujar a Alfredo a pausar — depende de `kernel/cowork_runtime/pre_response_hook.py` que intercepta cada respuesta y bloquea suggest-pause sin advance score. Capas Transversales con código pero integraciones externas huecas. Sin sprint comercial corriendo.
++**Monstruo al 70.5%** (vs 64.4% del audit del 4-may). Embrión vivo + HITL bidireccional cierra ciclos automáticos + Universo RLS al 100% + Catastro extendido a 14 dominios. **App Flutter avanzada y funcional** (v0.1.0+1, compilada, corriendo en Mac/iPhone de Alfredo, 7,890 LOC, 10 features, Gateway con 12 endpoints + 622 LOC, 22 commits — evolución continua hasta 2026-05-02 con Sprints 38, 42, 43, 45, 48 + Agent Selector + dispatch_agent end-to-end + thread persistence). Capas Transversales con código pero integraciones externas huecas. Sin sprint comercial corriendo.
+ 
+-**⚠️ NOTA DE CORRECCIÓN 2026-05-11 (mantener):** La frase "App Flutter congelada en Sprint 48" que estaba aquí hasta hoy era **falsa fantasma desde el 30-abril**. Sprint 48 fue solo uno de los hitos del 30-abr; después hubo Sprints 42/43/45 + 4 commits más en 2026-05-02. Corrección hecha por Cowork tras audit binario del Hilo Ejecutor Manus que demostró estado real con `git log`, `find`, `wc -l` y `grep` ejecutables.
++**⚠️ NOTA DE CORRECCIÓN 2026-05-11:** La frase "App Flutter congelada en Sprint 48" que estaba aquí hasta hoy era **falsa fantasma desde el 30-abril**. Sprint 48 fue solo uno de los hitos del 30-abr; después hubo Sprints 42/43/45 + 4 commits más en 2026-05-02. Corrección hecha por Cowork tras audit binario del Hilo Ejecutor Manus que demostró estado real con `git log`, `find`, `wc -l` y `grep` ejecutables. Verificación independiente de Cowork: 7,890 LOC, 22 commits, gateway con 12 endpoints — confirmados.
+ 
+-**⚠️ NOTA NUEVA 2026-05-11 (Sprint COWORK-RUNTIME-001 cerrado):** Cowork pidió a Manus que construyera infraestructura ejecutable para enforzar las 22 reglas que Cowork mismo canonizaba y luego ignoraba. Manus cerró el sprint con 140/140 tests, 9 capabilities (T1-T8 + M9 Telegram veto), PR #90 mergeado en commit c0ee52309365ca375f939480651d3fbb599568eb. Todos los flags arrancan en `enabled=false` (shadow mode) — activación deliberada y reversible.
+-
+-**Frase canónica del cierre:** *"El runtime de Cowork ya no depende de la memoria de Cowork. La doctrina ahora es código que se ejecuta, no texto que se lee."*
+-
+ ---
+ 
+ ## 2. Estado por Capa Arquitectónica
+@@ -26,7 +22,7 @@
+ |---|---|---|
+ | Capa 0 Cimientos | ~85% | Vanguard Scanner integración con Catastro pendiente. Design System Quality Gate pendiente. |
+ | Capa 1 Manos | ~75% | **Sprint 87 Pagos NO arrancado.** Stripe + Stripe Connect pendientes. Bloquea Objetivo #1. |
+-| Capa 2 IE | ~72% | **Rotor del Reloj Suizo NO localizado.** Embrión-Daddy bidireccional spec firmado, código pendiente. **Runtime de obediencia Cowork ya canonizado en código (T1 MAGNA).** |
++| Capa 2 IE | ~70% | **Rotor del Reloj Suizo NO localizado.** Embrión-Daddy bidireccional spec firmado, código pendiente. |
+ | Capa 3 Soberanía | ~50% | SOVEREIGN-LLM v2 / INFRA / RED specced sin arrancar. |
+ | Capa 4 Del Mundo | ~10% | i18n existe, resto pendiente — depende de Capa 3 al 80%+. |
+ 
+@@ -34,39 +30,73 @@
+ 
+ ---
+ 
+-## 3. Sprint COWORK-RUNTIME-001 — CERRADO 2026-05-11
++## 3. Sprints en estado actual
+ 
+-**Origen:** Alfredo: *"te ordeno que me dejes de empujar a parar ya obedece con codigo crea un script que te obligue."*
++### Cerrados HOY (2026-05-10)
+ 
+-**Manus ejecutor:** entregó 8 tareas + M9 + 1 spec auxiliar en una sesión.
++- **Sprint EMBRION-NEEDS-001** — 6 tareas completadas (Self-Verifier, Budget Tracker, Write Policy, Telegram HITL, Tarea 5 Embrión-Daddy spec firmado, Tarea 6 cleanup). PRs #38, #39, #40, #41, #42, #44, #45, #46, #48, #81.
++- **Sprint EMBRION-NEEDS-002** — 5 tareas (proposal_processor, dashboard cost, cleanup HITL stack, postmortem, spec Daddy). PRs #75, #81.
++- **Sprint S-002.5 RLS Hardening** — 8 tablas P0/P1. PR #43.
++- **Sprint S-002.6 Universo RLS al 100%** — 117/117 tablas. PR #47.
++- **Sprint S-003.A Identity & Supply Chain** — DSC-S-008/S-010, runbooks, Dependabot. PR #49.
++- **Sprint 88 Macroárea AGENTES** — 84 productos / 9 dominios / 9 tronos. DSC-G-007.2 firmado.
++- **Sprint MEGA-CATASTRO (88.1 + 88.2 + 88.3 / 89)** — 14 dominios + 111 agentes + 2 vision_generativa. DSC-G-007.5 firmado.
+ 
+-**Métricas binarias del cierre:**
+-- PR: #90 (rama `sprint/cowork-runtime-001`)
+-- Merge commit: `c0ee52309365ca375f939480651d3fbb599568eb` (2026-05-11 08:38:24 UTC)
+-- Tests: 140/140 PASS en 0.64s (`pytest tests/cowork_runtime/`)
+-- Migración Supabase: `0009_cowork_sesiones.sql` aplicada — tabla `public.cowork_sesiones` viva, RLS verificada (T1 sí, T2 sí, anon no).
+-- Smoke row sembrada: `id=ed7bfd59-9aee-42c5-b03e-b74fc31b1ae9` (2026-05-11 08:02:34 UTC).
++### En curso PARCIAL (al cierre del 10-may)
+ 
+-**9 capabilities entregadas (todas con `enabled=false` por defecto):**
++- **Sprint S-003.B Tareas 1+4** — Audit middleware + linter v1.1. **Código en branch Cowork pendiente push de Alfredo.**
++- **Branch `cowork/canonization-jornada-2026-05-10`** — 9 commits temáticos. Push pendiente.
+ 
+-| # | Capability | Path principal | Activador env var | Estado |
+-|---|---|---|---|---|
+-| T1 | Pre-response hook (intercept + suggest-pause regex + advance gate) | `kernel/cowork_runtime/pre_response_hook.py` | `COWORK_HOOK_ENABLED=true` | Shadow mode |
+-| T2 | Detector semántico (Companion Agent) | `kernel/cowork_runtime/semantic_detector.py` | `COWORK_SEMANTIC_ENABLED=true` | Shadow mode |
+-| T3 | Advance score calculator | `kernel/cowork_runtime/advance_score.py` | siempre activo en evaluación | Live |
+-| T4 | Persistencia sesiones a Supabase | tabla `public.cowork_sesiones` + writer | `COWORK_SESSION_PERSIST=true` | Migración aplicada |
+-| T5 | Pre-flight memento enforcer | `kernel/cowork_runtime/preflight.py` | `COWORK_PREFLIGHT_REQUIRED=true` | Shadow mode |
+-| T6 | Antipattern catalog F1-F22 enforced | `kernel/cowork_runtime/antipatterns.py` | `COWORK_ANTIPATTERN_ENFORCE=true` | Shadow mode |
+-| T7 | CLI `cowork_guardian` validator | `tools/cowork_guardian.py` | uso manual / CI | Live (no flag) |
+-| T8 | Test harness 140 casos | `tests/cowork_runtime/` | siempre activo en CI | Live |
+-| M9 | Veto Telegram channel (Alfredo bloquea Cowork desde su teléfono) | `kernel/cowork_runtime/telegram_veto.py` | `COWORK_VETO_TELEGRAM=true` | Shadow mode |
++### En backlog (specs firmados, no arrancados)
+ 
+-**Reportes auditables:**
+-- `bridge/manus_to_cowork_REPORTE_COWORK_RUNTIME_001_CIERRE.md` (firma Manus)
+-- `bridge/cowork_to_manus_PROMPT_AYUDA_COWORK_OBEDIENCIA_2026_05_11.md` (spec origen)
++- **Sprint EMBRION-NEEDS-003** — implementar Tarea 5 Embrión-Daddy bidireccional (activa Fase 2 del modelo de hilos)
++- **Sprint S-003.B Tareas 2+3** — release signing cosign + pen-test 12 cases
++- **Sprint 87 Pagos del Monstruo** — Stripe + Stripe Connect (BLOQUEANTE Objetivo #1)
++- **Sprint Mobile 1-5** — App Flutter Cara Completa (BLOQUEANTE interfaz primaria)
++- **Sprint Causal-Pop v2** — Simulador Causal poblamiento ampliado
++- **Sprint SOVEREIGN-LLM v2** — modelos propios 50%→90%
++- **Sprint SOVEREIGN-INFRA** — hardware propio total
++- **Sprint SOVEREIGN-RED** — federación de Monstruos
++- **Sprint META-CATASTRO Sprint 90** — 6-7 macroáreas restantes (infra, BD, APIs, observabilidad, hardware personal, finanzas IA)
++- **Sprint Transversal-001** — implement+monitor reales para las 6 capas comerciales (solo SEO cerrada)
+ 
+-**Pendiente de Cowork ahora:** decidir orden de activación de flags en producción (acción #3 del cierre Manus) y soltar próximo spec para Hilo Ejecutor.
++---
+ 
++## 4. Métricas vivas (verificadas 2026-05-10 ~13:00 UTC)
++
++### Embrión
++
++- Latidos últimas 2h: 20 (último hace ~10 min)
++- Budget Tracker entries: 57
++- Costo histórico 12 días (29-abr a 10-may): $204.46 USD
++- Costo diario actual estable: $1-4 USD/día (post Self-Verifier + Budget Tracker)
++
++### HITL
++
++- Proposals total: 4
++- pending: 1 (post-fix smoke `de73e728-...`)
++- approved en limbo: 0 (cron worker procesa)
++- executed: 1 (`6cc845f1-...` — el smoke de Tarea 4 ejecutada por proposal_processor 12:24 UTC)
++- expired: 2 (TTL funcionando)
++
++### Catastro
++
++- catastro_modelos: 39 productos macroárea inteligencia + 2 vision_generativa
++- catastro_agentes: 111 productos en 14 dominios
++- catastro_tronos_agentes: 14 tronos materializados
++
++### RLS
++
++- 117/117 tablas con RLS habilitado
++- 117 policies `service_role_only`
++- 0 deuda residual
++
++### DSCs
++
++- 62 DSCs canonizados al 2026-05-10
++- 12 nuevos hoy (MO-006 a MO-010, G-007.2, G-007.5, G-014, S-006 v1.1, S-007, S-008, S-010)
++- _INDEX.md DESACTUALIZADO (declara 44, real 62) — deuda de indexación
++
+ ---
+ 
+ ## 5. Bloqueantes activos (orden por urgencia arquitectónica)
+@@ -75,12 +105,62 @@
+ |---|---|---|---|
+ | 1 | **Rotor del Reloj Suizo** | Pensamiento + implementación nueva | Capa 2 IE al 100%. Autonomía sostenida. |
+ | 2 | **Embrión-Daddy bidireccional** (PR #81 spec, código pendiente) | Implementación | Activación de Fase 2 modelo de hilos |
+-| ~~3~~ | ~~**App Flutter Cara Completa**~~ | ~~75-150 min total~~ | ~~Interfaz primaria del Monstruo~~ — **CORREGIDO 2026-05-11**: app YA avanzada. Bloqueante real ahora es Sprint MOBILE_1B A2UI Implementation (firmado, no arrancado). |
++| ~~3~~ | ~~**App Flutter Cara Completa** (Sprint Mobile 1-5)~~ | ~~75-150 min total~~ | ~~Interfaz primaria del Monstruo~~ — **CORREGIDO 2026-05-11**: app YA avanzada (v0.1.0+1, 22 commits, 7,890 LOC, gateway con 12 endpoints, running). Bloqueante real ahora es **definir qué features faltantes priorizar** (decisión Alfredo). |
+ | 4 | **Capa Transversal con integraciones reales** (Google Ads, LinkedIn, HubSpot wireado, Apollo/Clay) | Multiple sprints | Capacidad comercial real |
+ | 5 | **Sprint 87 Pagos del Monstruo** | Spec listo | Objetivo #1 al 100%. Cualquier subproyecto comercial. |
+-| 6 | **Decisión orden activación flags COWORK-RUNTIME** (T1→T2→...→M9 vs paralelo, qué ambiente primero, qué criterios para flip) | Spec corto | Encender el runtime ejecutable que Manus dejó listo en shadow mode |
+-| 7 | **Sprint MOBILE_1B A2UI Implementation** | 8 tareas firmadas | Renderizado dinámico kernel→app. EmpresaResultCard, LeadCard, ContenidoCard. |
+ 
++### Bloqueantes secundarios
++
++- _INDEX.md desactualizado (declara 44 DSCs cuando hay 62)
++- Branch Cowork sin push (sandbox bloqueado por proxy)
++- Specs Mobile pueden estar obsoletos vs versión Flutter actual (verificar antes de ejecutar)
++- Crisol-8 validación post-migración (#1 en mis tasks) esperando Manus desde hace días
++
+ ---
+ 
+-*Generado por Cowork 2026-05-10. v0.2 actualizada 2026-05-11 tras cierre Sprint COWORK-RUNTIME-001 por Manus. Próxima actualización tras decisión de orden de activación de flags.*
++## 6. Estado de los 3 Hilos Manus + Cowork
++
++### Hilo Ejecutor 1 (Manus Principal)
++
++- Acabó: EMBRION-NEEDS-001 + EMBRION-NEEDS-002 (cierre Sprint magna)
++- Disponible para: Frente A+B (Rotor + Embrión-Daddy) según propuesta α
++- Standby actual
++
++### Hilo Ejecutor 2 (Manus Hilo B)
++
++- Acabó: S-002.5 + S-002.6 + S-003.A
++- En curso parcial: S-003.B Tareas 1+4 (commit en branch Cowork pendiente push)
++- Disponible para: Frente D (Capa Transversal integraciones) + E (Sprint 87 Pagos)
++
++### Hilo Catastro (Manus Catastro)
++
++- Acabó: Sprint 88 + MEGA-CATASTRO (88.1 + 88.2 + 88.3 / 89)
++- Disponible para: Frente C (App Flutter Mobile 1-5) — tiene los specs ya
++- Standby actual
++
++### Cowork (Hilo A — yo)
++
++- Acabó: 9 commits canonization-jornada-2026-05-10 + 5 documentos memory/cowork/
++- En curso: completando estudio estructurado (este documento)
++- Próximo: actualizar DSC-MO-010 con 4 gates + esperar dirección de Alfredo
++
++---
++
++## 7. Decisiones pendientes de Alfredo
++
++1. **Push branch Cowork** (`git push -u origin cowork/canonization-jornada-2026-05-10`)
++2. **Confirmar/rechazar propuesta α/β/γ** de orden estratégico
++3. **Otros bloqueantes que Cowork no detecta** — cualquier tema que tengas en context y yo no
++
++---
++
++## 8. Cómo se actualiza este documento
++
++- **Después de cada sesión Cowork-Alfredo de >2h** → actualizar §3 (sprints) + §4 (métricas) + §5 (bloqueantes)
++- **Cuando un Sprint cambia de estado** (cerrado, en curso, en backlog) → mover en §3
++- **Cuando se descubre bloqueante nuevo** → agregar en §5
++- **Sincronización mínima:** una vez por semana
++
++---
++
++*Generado por Cowork 2026-05-10. v0.1. Snapshot del cierre de jornada magna.*

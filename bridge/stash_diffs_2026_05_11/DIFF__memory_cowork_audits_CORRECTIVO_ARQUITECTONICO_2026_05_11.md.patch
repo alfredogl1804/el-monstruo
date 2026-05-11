@@ -1,0 +1,259 @@
+--- memory/cowork/audits/CORRECTIVO_ARQUITECTONICO_2026_05_11.md	2026-05-11 01:51:19
++++ -	2026-05-11 05:44:19
+@@ -6,10 +6,16 @@
+ nivel_autoridad: 5 (DSC vigente — canónico operativo)
+ estado: firme
+ proposito: |
+-  Documentar el correctivo adversarial recibido a la serie de 9 audits
+-  producidos hoy, reetiquetarlos honestamente, y canonizar el método
+-  correctivo para que Cowork no vuelva a producir pseudo-certeza en
+-  piloto automático.
++  Documentar el correctivo adversarial recibido a la serie de 9 audits producidos
++  hoy, reetiquetarlos honestamente, y canonizar el método correctivo para que
++  Cowork no vuelva a producir pseudo-certeza en piloto automático.
++cruza_con:
++  - Todos los D*_2026_05_11.md producidos hoy
++  - COWORK_OPERATING_SYSTEM_v0_1_2026_05_10
++  - MAPA_FUENTES_AUTORIDAD_2026_05_11
++  - Objetivo Maestro #14 (Guardian de los Objetivos)
++  - Objetivo Maestro #15 (Memoria Soberana)
++  - DSC-MO-010 (crítica "premature solemnity" registrada)
+ ---
+ 
+ # Correctivo Arquitectónico a Cowork — 2026-05-11
+@@ -20,56 +26,211 @@
+ 
+ > *"Tu hipótesis es probablemente correcta, pero tu método todavía no tiene derecho a canonizarla. Pausa la producción, valida la medición y convierte los 9 audits en backlog de pruebas."*
+ 
++Esta frase es ahora canónica.
++
++---
++
+ ## Errores explícitos reconocidos
+ 
+-1. Hipótesis sobreconfiada (degradar a H1 provisional)
+-2. Porcentajes son pseudo-medición (estimate_by_judgment sin rúbrica)
+-3. Gravedad acumulativa (sesgo de arrastre)
+-4. Sin grupo de control / baseline
+-5. Mezclé madurez con criticidad
+-6. Tríada mal ordenada (D19 GTM antes que D4 Producto)
+-7. Omití D20 Operacional cuando mi propio comportamiento lo hacía P0
+-8. Omití D4 Producto cuando D19 GTM depende de ella
++### Error 1: Hipótesis sobreconfiada
+ 
+-## Gate de Evidencia canonizado
++Mi hipótesis "la doctrina describe un Monstruo que aún no existe" fue producida después de una sesión en piloto automático sin evidencia Nivel 1 fresca entre audits. La hipótesis es **defendible en dirección** pero **no canonizable** hasta validar.
+ 
+-Ningún audit puede recibir porcentaje sin: rúbrica + evidencia Nivel 1/2 + denominador + falsadores. Sin esos 4, el documento se llama "nota exploratoria", no "audit".
++**Forma correcta canonizada:**
+ 
+-## Separación de roles canonizada
++> *H1 provisional: existe una brecha material entre doctrina canonizada y sustrato operacional verificable, especialmente en GTM, economía, sucesión, seguridad, gobernanza y salud operacional del fundador. Requiere validación por evidencia Nivel 1/2 antes de canonizar.*
+ 
++### Error 2: Porcentajes son pseudo-medición
++
++Los rangos 10-15%, 15-20%, 30-35%, 50-55% **parecen cuantitativos pero no nacen de rúbrica calibrada**. Son números narrativos producidos por juicio secuencial bajo el mismo estado cognitivo.
++
++**Etiquetado correcto:** `estimate_by_judgment`, `confidence: low/medium`, `evidence_level: mixed`, `not_canonical`, `requires validation`.
++
++### Error 3: Gravedad acumulativa (sesgo de arrastre)
++
++Una vez detecté fragilidad en D12, vi fragilidad en todas las demás. D12 bajo → D7 bajo → D16 bajo → D14/D19 bajos → "todo el roadmap es ilusorio". **Puede ser verdad pero no fue probado independientemente.**
++
++### Error 4: Sin grupo de control / baseline
++
++No comparé el Monstruo con otro proyecto single-founder en R&D, una startup pre-product, un open source temprano, un SaaS local en beta. Sin baseline, "28% real" puede significar desastre o normalidad para fase R&D — no sé.
++
++### Error 5: Mezclé madurez con criticidad
++
++Una dimensión puede estar inmadura y NO ser la más urgente. Mi scoring mezcló madurez + urgencia + impacto + probabilidad + ansiedad + dependencia del founder en un solo número.
++
++### Error 6: Tríada mal ordenada
++
++Mi tríada fue D19 GTM > D14 Económica > D16 Sucesión. **Esto es defendible solo si el objetivo es "pasar de R&D a empresa" pero ignora dos dimensiones más críticas: D4 Producto y D20 Operacional.**
++
++### Error 7: Omití D20 Operacional cuando mi propio comportamiento lo convertía en P0
++
++Producir 9 audits seguidos sin evidencia fresca **es la evidencia operacional más fuerte de que D20 no es secundaria — es P0**. El sistema operativo del arquitecto está roto. Si Cowork produce outputs con apariencia de rigor sin gates, todo el sistema de auditoría se contamina.
++
++### Error 8: Omití D4 Producto cuando D19 GTM depende de ella
++
++GTM sin producto es teatro. La pregunta anterior a "¿cómo vamos al mercado?" es "¿qué cosa concreta compra alguien?". Mi serie saltó esa pregunta.
++
++---
++
++## Reetiquetado de los 9 audits producidos hoy
++
++**ACCIÓN CANONIZADA:** los siguientes audits se degradan de "Nivel 5 (DSC vigente)" a **"Serie exploratoria H0 — no canónica"**:
++
++| Audit | Nivel original | Nuevo nivel | Etiqueta |
++|---|---|---|---|
++| D1_TECNICA_2026_05_11 | 5 | **3 mixto** | Tiene evidencia Nivel 1 fresca (commit hash, RLS verificada). PARCIALMENTE CANONIZABLE. |
++| D18_SRE_RESILIENCIA_2026_05_11 | 5 | **3 mixto** | Tiene evidencia Nivel 1 fresca (147 latidos, downtime medido). PARCIALMENTE CANONIZABLE. |
++| D12_SEGURIDAD_ADVERSARIAL_2026_05_11 | 5 | **H0 exploratorio** | Integra threat model adversarial, pero los GAPs no fueron cross-verificados con Nivel 1 fresca. |
++| D13_DATOS_MEMORIA_2026_05_11 | 5 | **H0 exploratorio** | Mapeo 11 capas útil como hipótesis. Porcentaje sin rúbrica. |
++| D7_GOBERNANZA_RACI_2026_05_11 | 5 | **H0 exploratorio** | Matriz RACI declarativa útil. Porcentaje sin rúbrica. |
++| D16_SUCESION_BUS_FACTOR_2026_05_11 | 5 | **H0 exploratorio** | Inventario de mitigaciones útil. Porcentaje sin rúbrica. |
++| D11_DOCTRINAL_2026_05_11 | 5 | **H0 exploratorio** | Tensiones doctrinales identificadas útiles. Porcentaje sin rúbrica. |
++| D17_SALUD_FUNDADOR_2026_05_11 | 5 | **H0 exploratorio** | Factores estructurales útiles como mapa. Porcentaje sin rúbrica. NO es diagnóstico. |
++| D19_GTM_ESTRATEGIA_2026_05_11 | 5 | **H0 exploratorio** | 6 hipótesis útiles para canonizar decisión. Porcentaje sin rúbrica. |
++| D15_COMPETITIVO_MERCADO_2026_05_11 | 5 | **H0 exploratorio** | Mapeo competidores útil. Análisis diferenciadores útil. Porcentaje sin rúbrica. |
++| D14_ECONOMICA_UNIT_ECONOMICS_2026_05_11 | 5 | **H0 exploratorio** | Costos ocultos del founder time = hallazgo fuerte. Otras cifras estimadas. Porcentaje sin rúbrica. |
++
++**Acción técnica:** agregar al front matter de cada uno de estos 9 audits el campo `estado_revisado: H0_exploratorio_2026_05_11` (pendiente — siguiente sesión, no en este turno).
++
++**Justificación:** los audits NO se borran. Son **backlog de pruebas**. Cada uno señala dónde mirar con disciplina; ninguno mide.
++
++---
++
++## Gate de Evidencia (canónico desde hoy)
++
++**Regla dura:** Ningún audit puede recibir porcentaje si no tiene rúbrica + evidencia + denominador + falsadores.
++
++**Formato mínimo por dimensión canónica:**
++
+ ```
+-Proposer ≠ Evaluator ≠ Merger
++Dimensión:
++Score propuesto:
++Nivel de evidencia: [1, 2, 3, 4]
++Fuentes Nivel 1 (producción real, código desplegado, logs, métricas):
++Fuentes Nivel 2 (tests, configs, repos):
++Claims sin evidencia:
++Qué refutaría esta conclusión:
++Qué dato específico cambiaría el score:
++Riesgo de sesgo identificado:
++Comparación con baseline (qué proyecto similar):
++Decisión recomendada (no narrativa):
++Estado: exploratorio / validado / canónico
+ ```
+ 
+-## Cadencia dura canonizada
++Si falta alguno → el documento se llama **"nota exploratoria"**, no "audit". El término "audit" queda reservado para documentos con Gate completo.
+ 
+-- Máx 1 audit canónico/día
+-- Máx 2 notas exploratorias/sesión
+-- Cero audits canónicos sin Nivel 1 fresca de la sesión actual
+-- Cero porcentajes sin rúbrica
++---
+ 
++## Separación de roles (canónico desde hoy)
++
++Cowork debe ejecutar 3 fases SEPARADAS antes de canonizar:
++
++1. **Productor:** genera el audit con la hipótesis.
++2. **Verificador:** intenta destruir la hipótesis. Genera lista de "qué refutaría esto".
++3. **Canonizador:** decide si pasa a doctrina o queda como hipótesis.
++
++En sesión continua de Cowork, simular esto con fases explícitas y "enfriamiento" — cerrar contexto entre fases, recopilar evidencia, y revisar antes de canonizar.
++
++**Regla operacional:** sin separación explícita en el documento, el resultado se etiqueta automáticamente `estado: exploratorio`.
++
++---
++
++## Cadencia (canónica desde hoy)
++
++- Máximo **1 audit canónico por día**
++- Máximo **2 notas exploratorias por sesión**
++- **Ningún audit canónico sin al menos una fuente Nivel 1 fresca** de la sesión actual
++- **Ningún porcentaje sin rúbrica**
++- **Ninguna nueva dimensión** si hay una dimensión P0 sin plan de validación
++- Cada audit termina con **decisión o experimento concreto**, NO con más narrativa
++
++---
++
+ ## Tríada corregida según objetivo
+ 
+-| Objetivo | Tríada |
++ChatGPT identificó que no hay una sola tríada universal. Hay 5 tríadas según objetivo declarado:
++
++| Objetivo declarado | Tríada correcta |
+ |---|---|
+-| Evitar autoengaño esta semana | D20 Operacional, D4 Producto, D14 Económica |
++| **Evitar autoengaño esta semana** | D20 Operacional, D4 Producto, D14 Económica |
+ | Lanzar algo vendible | D4 Producto, D14 Económica, D19 GTM |
+ | Abrir T3/T2 público | D12 Seguridad, D13 Datos/Memoria, D8 UX |
+-| Tocar CIP/BioGuard/Mena | D10 Legal/IP, D6 Ética/Daño, D12 Seguridad |
++| Tocar CIP/BioGuard/Mena-Baduy | D10 Legal/IP, D6 Ética/Daño, D12 Seguridad |
+ | Supervivencia founder-led | D17 Salud fundador, D20 Operacional, D16 Sucesión mínima |
+ 
++**Para los próximos 7 días, la tríada operativa es la primera:**
++
++1. **D20 Operacional** — impedir producción automática de pseudo-certeza
++2. **D4 Producto** — definir qué se vende/usa primero
++3. **D14 Económica** — saber si el proyecto respira o se subsidia a ciegas
++
++D19 viene después de D4. D16 se trata como **P0 mínimo constitucional** (no foco principal):
++- Emergency access
++- Inventario de cuentas
++- Protocolo "Alfredo no disponible 24-72h"
++- Segundo contacto
++- Backups
++- Kill switch
++- Documento de autoridad
++
++---
++
+ ## Patrones deliberativos canonizados
+ 
+-**ReAct, Chain-of-Verification, Reflexion, Debate/critic model, Tree/Graph of Thoughts, Deliberative alignment.**
++**ReAct:** razonar + actuar + observar. Cowork NO solo piensa; consulta repo, logs, tablas, facturas, usuarios, tests.
+ 
+-Principio brutal:
++**Chain-of-Verification:** producir conclusión → generar preguntas de verificación → verificar **independientemente**.
+ 
++**Reflexion:** memoria de errores + ajuste. Solo sirve si hay feedback real del entorno. Reflexionar sin nueva evidencia es rumiar.
++
++**Debate / critic model:** un agente propone, otro ataca. Deben tener incentivos opuestos — si comparten premisas, no sirve.
++
++**Tree/Graph of Thoughts:** explorar varias hipótesis, no una. Ejemplo aplicado: "doctrina robusta + ejecución débil" vs "producto indefinido" vs "fase R&D normal" vs "problema de medición".
++
++**Deliberative alignment:** antes de canonizar, revisar Objetivos Maestros, evidencia, daño, seguridad, economía, reversibilidad.
++
++**Principio brutal canonizado:**
++
+ > *"La reflexión de un LLM sin evidencia nueva no es validación. Es estilización de su sesgo."*
+ 
++---
++
++## Lo que NO debo hacer en próximos turnos
++
++- ❌ Producir D20 Operacional como audit canónico hoy mismo
++- ❌ Producir más audits H0 antes de implementar el Gate de Evidencia
++- ❌ Asignar porcentajes sin rúbrica
++- ❌ Pretender que el correctivo "ya canonizado" me da licencia para volver al patrón
++- ❌ Reescribir los 9 audits para "arreglarlos" — son backlog de pruebas, no documentos a reciclar
++
++---
++
++## Lo que SÍ debo hacer en próximos turnos
++
++1. **Aplicar reetiquetado físico** a los 9 audits (agregar `estado_revisado: H0_exploratorio_2026_05_11` al front matter) — acción concreta, no nuevo audit
++2. **Producir nota exploratoria D20 con Gate completo** — la primera dimensión bajo el nuevo método, con evidencia Nivel 1 fresca recopilada antes
++3. **Establecer P0 mínimo de D16** — emergency access + segundo contacto + kill switch documentados como sprint inmediato concreto
++4. **Recopilar paquete de evidencia mínimo** antes de cualquier audit nuevo:
++   - Técnica Nivel 1: facturación real, logs Railway, tests CI, commits, deploys
++   - Económica: facturas reales del mes, runway personal canonizado privadamente
++   - Producto/GTM: 5 entrevistas reales, definición de un usuario inicial
++   - Operacional: WIP actual, sprints cerrados vs reabiertos, decisiones abiertas
++
++---
++
+ ## Frase canónica final
+ 
+-> *"Cowork produjo 9 audits hoy en piloto automático con apariencia de rigor. Cuando un Sabio externo aplicó adversarial real, los 9 resultaron ser hipótesis útiles disfrazadas de mediciones. El correctivo no es invalidar el trabajo — es nombrarlo correctamente y construir el método que impida repetir el error."*
++> *"Cowork produjo 9 audits hoy en piloto automático con apariencia de rigor. Cuando un Sabio externo aplicó adversarial real, los 9 resultaron ser hipótesis útiles disfrazadas de mediciones. El correctivo no es invalidar el trabajo — es nombrarlo correctamente y construir el método que impida repetir el error. El Monstruo no necesita más audits hoy. Necesita un arquitecto que sepa la diferencia entre pensar y medir."*
+ 
+ ---
+ 
+-*Correctivo firmado por Cowork como Arquitecto, 2026-05-11, tras adversarial de ChatGPT 5.5 Pro.*
++## Trabajo pendiente
++
++- Aplicar reetiquetado físico a los 9 audits (próxima sesión Cowork)
++- Compilar paquete de evidencia mínimo para D20
++- Implementar Gate de Evidencia como template canónico antes de próximo audit
++- Decidir qué objetivo declarado prioriza la tríada operativa esta semana
++
++---
++
++*Correctivo firmado por Cowork como Arquitecto, 2026-05-11, tras adversarial de ChatGPT 5.5 Pro. Esta es la canonización del freno antes de continuar.*

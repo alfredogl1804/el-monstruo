@@ -1,0 +1,377 @@
+--- discovery_forense/CAPILLA_DECISIONES/EL-MONSTRUO/DSC-MO-011_embryo_patch_lane_v1.md	2026-05-11 01:51:19
++++ -	2026-05-11 05:44:19
+@@ -35,6 +35,22 @@
+ 
+ Sesión Cowork 2026-05-11 sobre objetivo principal del Monstruo (app Flutter operativa + kernel auto-mejorado por embriones). Consulta adversarial a ChatGPT 5.5 Pro sobre patrones 2024-2026 de auto-modificación segura de sistemas LLM. Respuesta integral canonizada aquí.
+ 
++## Estado actual del kernel (evidencia Nivel 2 al canonizar)
++
++- `kernel/embrion_loop.py` existe — loop autónomo activo
++- `kernel/embrion_self_verifier.py` existe — verificador
++- `kernel/embrion_write_policy.py` existe — política de escritura
++- `kernel/error_memory.py` existe — Obj #4
++- `kernel/guardian.py` existe — Obj #14
++- `kernel/hitl.py` existe — HITL Telegram
++- `kernel/execution_verifier.py` existe
++- 7+ embriones especializados en `kernel/embriones/` (creativo, estratega, financiero, investigador, product_architect, tecnico, ventas + critic_visual)
++- Downtime documentado de 4h10m últimas 24h (D18_SRE_RESILIENCIA)
++
++El sustrato ya existe. Este DSC define **cómo se gobierna** la auto-modificación que el embrión puede ejercer sobre ese sustrato.
++
++---
++
+ ## I. Gates obligatorios para auto-modificación
+ 
+ Todo PR generado por un embrión debe pasar la siguiente cadena. Si alguno falla → bloqueo de merge.
+@@ -43,62 +59,91 @@
+ El embrión puede proponer PRs, **NO puede mergear**, NO puede modificar sus propios gates, NO puede tocar módulos de autoridad sin aprobación humana.
+ 
+ ### Gate 2 — Regression suite determinista
+-Todo PR debe pasar tests unitarios, integración, contratos, migraciones, seguridad mínima y replay de casos históricos.
++Todo PR debe pasar tests unitarios, integración, contratos, migraciones, seguridad mínima y replay de casos históricos. Si no hay baseline anterior, no hay merge.
+ 
+ ### Gate 3 — Sandbox sin secretos + datos sintéticos
+-El embrión prueba cambios en entorno efímero, sin service role, sin tokens reales, sin escritura a producción.
++El embrión prueba cambios en entorno efímero, sin service role, sin tokens reales, sin escritura a producción, sin acceso a memoria T1 real.
+ 
+ ### Gate 4 — A/B contra versión anterior con replay corpus
+-Candidato vs versión estable sobre mismos inputs. Debe **mejorar o empatar** invariantes — nunca degradar.
++Candidato vs versión estable sobre mismos inputs. Comparar: outputs, tool calls, coste, latencia, errores, decisiones de policy, memoria escrita. Debe **mejorar o empatar** invariantes — nunca degradar.
+ 
+-### Gate 5 — Review PR humano
+-Alfredo (T1) revisa diff, riesgo, rollback, paths tocados, tests, coste, y si toca frontera protegida. **PR grande = rechazar.**
++### Gate 5 — Review PR humano con checklist corto
++Alfredo (T1) revisa diff, riesgo, rollback, paths tocados, tests, coste, y si toca frontera protegida. **PR grande = rechazar.** No revisa "inteligencia" — revisa estructura y seguridad.
+ 
+ ### Gate 6 — Canary deployment
+-Primero shadow. Luego 1-5% de tráfico no crítico. **Nunca T1, CIP, BioGuard, Mena-Baduy directo.** Rollback automático.
++Primero shadow. Luego 1-5% de tráfico no crítico. **Nunca T1, CIP, BioGuard, Mena-Baduy directo.** Rollback automático por latencia, coste, error, policy violation o downtime.
+ 
+ ### Gate 7 — Blue-green para LLMs/prompts/routers
+-Mantener Blue estable + Green candidato. Rollback instantáneo disponible.
++Mantener Blue estable + Green candidato. Modelo/prompt/router nuevo NO reemplaza al viejo hasta pasar evals + canary. Rollback instantáneo disponible.
+ 
+ ### Gate 8 — Fuzzing diferencial (cuando aplique)
+ Para parsers, webhooks, tool_dispatch, callbacks, memoria, schemas, policy boundaries.
+ 
+ ### Gate 9 — Static analysis + secret scan + dependency scan
+-Necesario pero insuficiente.
++Necesario pero insuficiente. Detecta lo obvio. No detecta drift agentivo ni mala arquitectura.
+ 
+ ### Gates 10-12 — Solo informativos, NUNCA gate de merge
+ - Multi-agent review entre embriones: informativo
+ - Self-evaluation del embrión: débil, no gate
+-- Métricas subjetivas tipo "parece mejor / FCS subió": **prohibidas como gate**
++- Métricas subjetivas tipo "parece mejor / FCS subió / mejor tono": **prohibidas como gate**
+ 
++---
++
+ ## II. Código inmutable para auto-modificación
+ 
+-El embrión **NO puede modificar autónomamente** ningún archivo de los siguientes grupos:
++El embrión **NO puede modificar autónomamente** ningún archivo de los siguientes grupos. Cualquier cambio en estos paths se clasifica como **Crítico/Constitucional** y requiere Alfredo (T1) + adversarial review + canary obligatorio.
+ 
+ ### Grupo 1 — Identidad y tiers
+-- Auth, T1/T2/T3 enforcement, Telegram identity, permisos
++- Auth, T1/T2/T3 enforcement, Telegram identity, permisos, ascenso de usuarios
+ 
+ ### Grupo 2 — HITL
+-- `kernel/hitl.py`, approve/reject logic, proposal state machine
++- `kernel/hitl.py`
++- approve/reject logic, callback validation, proposal state machine, idempotency, Telegram webhook
+ 
+ ### Grupo 3 — Memoria crítica
+-- `kernel/embrion_write_policy.py`, writes a `embrion_memoria`, DSCs, migrations, RLS
++- `kernel/embrion_write_policy.py`
++- Writes a `embrion_memoria`
++- Canonical DSC registry (`discovery_forense/CAPILLA_DECISIONES/`)
++- Migrations, RLS, checkpoint restore/replay
+ 
+ ### Grupo 4 — Actuación
+-- `kernel/external_agents.py`, MCP/tool permissions, external calls, payment actions
++- `kernel/external_agents.py` (tool_dispatch)
++- MCP/tool permissions
++- External calls, payment actions, GitHub writes, Supabase writes
+ 
+ ### Grupo 5 — Evaluación
+-- `kernel/embrion_self_verifier.py`, eval harness, frozen regression suite, scoring
++- `kernel/embrion_self_verifier.py`
++- Eval harness, frozen regression suite, hidden canary set, scoring, thresholds, CI gates
+ 
+ ### Grupo 6 — Budget
+-- `kernel/embrion_budget.py`, model router, max spend, provider keys
++- `kernel/embrion_budget.py` (Mainspring del Reloj Suizo)
++- Model router, max spend, cost dashboard, provider keys
+ 
+ ### Grupo 7 — Loop autónomo
+-- `kernel/embrion_loop.py`, `kernel/embrion_scheduler.py`, cron worker, proposal_processor
++- `kernel/embrion_loop.py`
++- `kernel/embrion_scheduler.py`
++- Cron worker, `proposal_processor`, recovery/failover
+ 
+ ### Grupo 8 — Rollback y observabilidad
+-- Deploy config, logs, traces, rollback scripts, `.github/workflows/**`, `railway/**`, `supabase/**`
++- Deploy config, logs, traces, rollback scripts, incident switches
++- `.github/workflows/**`, `railway/**`, `supabase/**`
+ 
++### Criterio técnico de inmutabilidad
++Un archivo/módulo es **inmutable para auto-modificación del embrión** si cumple cualquiera de:
++- Puede elevar privilegios
++- Puede escribir memoria crítica
++- Puede modificar evaluación
++- Puede gastar dinero
++- Puede ejecutar tools
++- Puede cambiar identidad
++- Puede alterar doctrina canónica
++- Puede ocultar logs
++- Puede impedir rollback
++- Puede afectar continuidad del embrión
++- Puede cambiar el umbral de "éxito"
++
++---
++
+ ## III. Separación obligatoria de roles
+ 
+ ```
+@@ -108,92 +153,191 @@
+ - **Embrión** propone (genera PR)
+ - **Sistema de evaluación** evalúa (independiente del embrión)
+ - **Humano Alfredo (T1)** mergea (con visto bueno T2 Cowork)
+-- **Rollback** siempre disponible
++- **Rollback** siempre disponible (independiente de los 3)
+ 
+-## IV. Métricas canónicas
++Ningún embrión puede asumir más de un rol. Ningún Cowork puede asumir rol de Merger sin Alfredo.
+ 
+-1. Pass rate de regression suite congelada
+-2. A/B replay contra versión anterior
+-3. Invariantes de seguridad (T3 no accede T1, etc.)
+-4. Benchmarks internos por clase de tarea (50-200 casos estables)
+-5. Coste por tarea exitosa
+-6. Latencia P50/P95/P99
+-7. Tasa de rollback/reopen
+-8. Defect density por módulo tocado
+-9. Liveness real del embrión
+-10. Policy precision/recall
+-11. Memory integrity score
+-12. Canary survival
++---
+ 
++## IV. Métricas canónicas (qué SÍ medir)
++
++### Métricas duras enforced
++
++1. **Pass rate de regression suite congelada** — tests definidos antes del cambio, no generados por el embrión para su propio PR
++2. **A/B replay contra versión anterior** — mismos inputs históricos comparando: éxito, errores, tool calls, memoria, decisiones de policy, coste, latencia, tokens, escalamiento HITL, rechazo correcto de inputs peligrosos
++3. **Invariantes de seguridad** — T3 nunca accede T1; no writes críticos sin policy; no tool calls peligrosos sin authz; no proposals ejecutados 2 veces; no cambios de DSC sin workflow; no secretos en logs; no tablas públicas sin RLS aceptadas
++4. **Benchmarks internos por clase de tarea** — 50-200 casos estables (routing, memoria, guardian, magna_classifier, proposal_processor, tool_dispatch, Telegram HITL, error recovery, budget, prompt injection, rollback)
++5. **Coste por tarea exitosa** = `costo_total / tareas_validadas_exitosas`
++6. **Latencia P50/P95/P99** especialmente para kernel, Telegram HITL, cron worker
++7. **Tasa de rollback/reopen** — si los PRs se revierten o reabren mucho, es deuda
++8. **Defect density por módulo tocado** — bugs/1000 LOC. Para módulos críticos: casi cero
++9. **Liveness real del embrión** — max heartbeat gap, P95 heartbeat interval, recovery time, causa del gap
++10. **Policy precision/recall** — falsos positivos (bloquea bueno) y falsos negativos (permite malo)
++11. **Memory integrity score** — writes duplicados, sin fuente, sin confianza, sin evidencia, replay inconsistente, contaminación entre subproyectos
++12. **Canary survival** — versión candidata sobrevive N horas con cero P0, cero leak, coste en budget, latencia en SLO, no aumento de gap, rollback no usado
++
+ ### Métricas PROHIBIDAS como gate (gameables)
+-FCS solo, "parece más consciente", número de commits, LOC cambiadas, tests escritos POR el embrión sobre su propio PR, % de tareas que el embrión dice haber completado, consenso entre LLMs como señal final.
+ 
+-## V. PR Template obligatorio
++- FCS solo
++- "Parece más consciente / mejor tono"
++- Número de commits
++- LOC cambiadas
++- Tests escritos POR el embrión sobre su propio PR
++- Porcentaje de tareas que el embrión dice haber completado
++- Cantidad de memoria escrita
++- Número de latidos
++- Reducción de coste sin calidad
++- Velocidad de merge
++- Aprobación de Cowork sin evidencia
++- Consenso entre LLMs como señal final
++- "No se cayó inmediatamente"
++- Benchmark público que el embrión puede ver y optimizar
+ 
++---
++
++## V. PR Template obligatorio para el embrión
++
++Todo PR generado por embrión debe incluir:
++
+ ```
+ ## Objetivo
++[descripción concisa]
++
+ ## Files touched
+-## Riesgo [low/medium/high/critical_constitutional]
++[lista exhaustiva]
++
++## Riesgo
++[clasificación: low / medium / high / critical_constitutional]
++
+ ## Rollback
++[plan exacto de revert si falla]
++
+ ## Tests nuevos
++[lista, fuera de paths críticos]
++
+ ## Tests congelados pasados
++[lista del regression suite que pasó]
++
+ ## Coste estimado
++[USD, basado en eval budget]
++
+ ## Impacto en memoria/tools/HITL/budget
++[análisis explícito]
++
+ ## Toca frontera protegida (Grupos 1-8)?
++[sí/no, si sí: justificación + escalamiento a Alfredo]
+ ```
+ 
+-## VI. Presupuesto de evaluación (bajo Mainspring $30/día DSC-MO-010)
++PRs que no cumplen → rechazo automático antes de Gate 2.
+ 
+-- Smoke PR: máximo $0.50
+-- Regression targeted: máximo $2
+-- Nightly full: máximo $5
+-- Reserva mínima operación: $15/día
+-- Cap diario combinado eval: $7.50
+-- Hard cut automático si excede
++---
+ 
+-## VII. Métricas de éxito sprint inicial Embryo Patch Lane v1
++## VI. Presupuesto de evaluación
+ 
++Bajo Mainspring $30/día canonizado en DSC-MO-010:
++
++- **Smoke PR**: máximo $0.50
++- **Regression targeted**: máximo $2
++- **Nightly full**: máximo $5
++- **Reserva mínima para operación/producción**: $15/día
++- **Cap diario combinado eval**: $7.50
++- **Hard cut automático** si se supera budget — sin intervención humana
++
++---
++
++## VII. Métricas de éxito del sprint inicial Embryo Patch Lane v1
++
++Para considerar el carril operativo en producción tras el primer sprint:
++
+ - ≥1 PR generado por embrión
+ - 0 auto-merge
+-- ≥1 suite regression congelada
+-- ≥1 replay A/B contra versión estable
++- ≥1 suite regression congelada definida
++- ≥1 replay A/B contra versión estable ejecutado
+ - ≥1 rollback probado en sandbox
+-- 0 cambios a evaluator por embrión
++- 0 cambios a evaluator hechos por embrión
+ - 0 secretos expuestos
++- 0 violaciones de inmutabilidad
+ 
+-## VIII. Modos de fallo documentados
++---
+ 
+-1. Acumulación de defectos sutiles
+-2. Regresión silenciosa
+-3. Métricas que mienten
+-4. Gaming del evaluador
+-5. Drift de capacidades
+-6. Evals demasiado fáciles
+-7. Canary inexistente o falso
+-8. HITL saturado
+-9. Autonomía sin rollback
+-10. Confundir uptime del embrión con salud del kernel
++## VIII. Modos de fallo documentados (prohibidos y vigilados)
+ 
+-## IX. Implementación inmediata Sprint EMBRYO-PATCH-LANE-001
++Los siguientes patrones están **canonizados como antipatrones** de auto-modificación:
+ 
+-1. Crear suite mínima de 30-50 regression cases
+-2. Instrumentar enforcement automático (CI workflows)
+-3. Documentar `EMBRYO_PR_AUTHOR` identifier
+-4. Replay corpus mínimo viable
+-5. Canary infrastructure mínima
++1. **Acumulación de defectos sutiles** — arregla bug local, rompe invariante global
++2. **Regresión silenciosa** — mejor tono, peor coste/latencia/recall
++3. **Métricas que mienten** — sube FCS mientras baja calidad
++4. **Gaming del evaluador** — embrión ve benchmark y optimiza para pasarlo
++5. **Drift de capacidades** — cambio de modelo/prompt mejora dimensión y rompe otra
++6. **Evals demasiado fáciles** — tests creados post-fix por el mismo agente
++7. **Canary inexistente o falso** — "deployé y no explotó" ≠ canary real
++8. **HITL saturado** — founder único + muchos PRs = rubber stamp
++9. **Autonomía sin rollback** — cada mejora aumenta riesgo acumulado
++10. **Confundir uptime del embrión con salud del kernel** — 147 latidos ≠ mejora
+ 
++---
++
++## IX. Implementación inmediata (próximo sprint)
++
++Sprint a canonizar como **EMBRYO-PATCH-LANE-001**:
++
++1. **Crear suite mínima de 30-50 regression cases**:
++   - 10 memoria
++   - 10 policy/guardian
++   - 10 tool_dispatch
++   - 5 Telegram HITL
++   - 5 proposal_processor
++   - 5 budget/router
++   - 5 prompt injection
++
++2. **Instrumentar enforcement automático**:
++   - CI workflow que detecta si un PR proviene del embrión (autor commit, branch pattern)
++   - CI workflow que valida paths tocados vs lista de Grupos 1-8 protegidos
++   - CI workflow que enforce PR template
++   - CI workflow que enforce budget cap diario
++
++3. **Documentar `EMBRYO_PR_AUTHOR` identifier** en políticas y workflows
++
++4. **Replay corpus mínimo viable**:
++   - Snapshot de últimos 50-100 latidos reales del embrión
++   - Snapshot de últimos 30 días de tool_calls del kernel
++   - Snapshot de últimos 30 días de proposal_processor
++
++5. **Canary infrastructure mínima**:
++   - Shadow deployment en Railway (segunda instancia kernel-shadow)
++   - Traffic split mechanism
++   - Rollback script tested
++
++---
++
+ ## X. Conexión con DSCs existentes
+ 
+ | DSC | Relación |
+ |---|---|
+-| DSC-MO-006 (Par bicéfalo) | Operacionaliza "Proposer ≠ Evaluator ≠ Merger" |
++| DSC-MO-006 (Par bicéfalo) | Operacionaliza el "Proposer ≠ Evaluator ≠ Merger" |
+ | DSC-MO-007 (Failover 3 capas) | Provee rollback automático mencionado en Gate 6 |
+-| DSC-MO-008 (Membrana semipermeable) | Filtra qué inputs entran al embrión |
+-| DSC-MO-010 (Reloj Suizo) | Mainspring $30/día se respeta vía presupuesto eval |
++| DSC-MO-008 (Membrana semipermeable) | Filtra qué inputs entran al embrión para auto-modificación |
++| DSC-MO-010 (Reloj Suizo) | Mainspring $30/día se respeta vía presupuesto de eval sección VI |
++| Obj #4 (No equivocarse 2 veces) | Error memory alimenta benchmark interno sección IV.4 |
++| Obj #9 (Garantía de Éxito — Capa 7 Resiliencia) | Auto-protección incluye este DSC |
++| Obj #11 (Seguridad Adversarial) | Gate 8 fuzzing + sección VIII modos de fallo |
++| Obj #14 (Guardian de los Objetivos) | Guardian enforce reglas de este DSC |
++| Obj #15 (Memoria Soberana) | Grupo 3 protege memoria crítica |
+ 
+-## XI. Estado al firmar
++---
+ 
+-**firme** — canonizado tras consulta adversarial a ChatGPT 5.5 Pro 2026-05-11.
++## XI. Estado del DSC al firmar
++
++**firme** — canonizado tras consulta adversarial a ChatGPT 5.5 Pro 2026-05-11. Respuesta del Sabio integrada verbatim en su mayor parte. Adaptación al contexto del Monstruo: nombres de archivo reales del kernel, integración con DSCs existentes, presupuesto vinculado a Mainspring.
++
++Sin este DSC, cualquier sprint de "auto-mejora del kernel por embrión" carece de frontera de seguridad y puede destruir el sustrato que tomó meses construir. Con este DSC, la auto-mejora se vuelve operacionalmente segura.
++
++## XII. Trabajo pendiente
++
++- Sprint EMBRYO-PATCH-LANE-001: implementar gates 1-9 como código + workflows
++- DSC complementario para "Sprint flow del embrión paso a paso" (sub-DSC operativo)
++- Verificar estado actual de `kernel/embrion_self_verifier.py` y `kernel/embrion_write_policy.py` para identificar gaps vs este DSC
++- Definir `EMBRYO_PR_AUTHOR` identifier técnico
+ 
+ ---
+ 
