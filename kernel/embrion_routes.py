@@ -1271,6 +1271,86 @@ async def telegram_webhook(request: Request):
     if not isinstance(update, dict):
         raise HTTPException(400, "Update must be a JSON object")
 
+    # ────────────────────────────────────────────────────────────────
+    # Sprint EMBRION-NEEDS-002 / Tarea 5 (CA2) — Daddy → Embrión inbox
+    # ────────────────────────────────────────────────────────────────
+    # Si el update es un mensaje de texto con comando (/help, /status, /context,
+    # /override, /answer, /feedback), lo enqueueamos al embrion_inbox. El loop
+    # del embrión lo consumirá en su próximo ciclo (≤60s por CA10).
+    message_update = update.get("message")
+    if message_update and isinstance(message_update, dict):
+        msg_text = (message_update.get("text") or "").strip()
+        msg_from = message_update.get("from", {}) or {}
+        msg_chat = message_update.get("chat", {}) or {}
+        msg_from_id = str(msg_from.get("id", ""))
+        msg_chat_id = str(msg_chat.get("id", ""))
+
+        # Solo procesar mensajes que comienzan con un comando del inbox
+        if msg_text.startswith("/"):
+            import os as _os  # noqa: PLC0415
+            # Validar autor (solo Alfredo / TELEGRAM_CHAT_ID puede enqueue)
+            expected_chat_id = _os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+            if expected_chat_id and msg_from_id != expected_chat_id:
+                logger.warning(
+                    "telegram_webhook_inbox_unauthorized_user",
+                    from_user_id=msg_from_id,
+                    expected_chat_id=expected_chat_id,
+                )
+                # Auditar el intento no autorizado pero no bloquear el webhook
+                try:
+                    from kernel.embrion_inbox import (  # noqa: PLC0415
+                        _get_supabase_client as _inbox_client,
+                        audit as _inbox_audit,
+                    )
+                    _inbox_audit(
+                        _inbox_client(),
+                        inbox_id=None,
+                        decision="unauthorized",
+                        command_type="unauthorized_origin",
+                        chat_id_origen=msg_chat_id,
+                        notes=f"from_id={msg_from_id} expected={expected_chat_id}",
+                        source="telegram_webhook",
+                    )
+                except Exception as _exc:  # noqa: BLE001
+                    logger.warning("telegram_webhook_inbox_audit_failed", error=str(_exc))
+                return {"ok": True, "denied": True, "reason": "unauthorized_inbox"}
+
+            try:
+                from kernel.embrion_inbox import (  # noqa: PLC0415
+                    enqueue as _inbox_enqueue,
+                    _get_supabase_client as _inbox_client,
+                )
+                client = _inbox_client()
+                result = _inbox_enqueue(client, msg_chat_id or msg_from_id, msg_text)
+                logger.info(
+                    "telegram_webhook_inbox_enqueued",
+                    inbox_id=result.inbox_id,
+                    estado=result.estado,
+                    tipo_comando=result.tipo_comando,
+                    intent_class=result.intent_class,
+                )
+                return {
+                    "ok": True,
+                    "enqueued": result.created,
+                    "inbox_id": result.inbox_id,
+                    "estado": result.estado,
+                    "tipo_comando": result.tipo_comando,
+                }
+            except Exception as _exc:  # noqa: BLE001
+                logger.error(
+                    "telegram_webhook_inbox_enqueue_failed",
+                    error=str(_exc),
+                    msg_text_prefix=msg_text[:50],
+                )
+                return {"ok": True, "enqueued": False, "reason": "enqueue_failed"}
+
+        # Mensaje de texto sin comando: ignorar silenciosamente
+        logger.info(
+            "telegram_webhook_ignored_non_command",
+            text_len=len(msg_text),
+        )
+        return {"ok": True, "ignored": True, "reason": "non_command_text"}
+
     callback_query = update.get("callback_query")
     if not callback_query:
         update_type = next(
