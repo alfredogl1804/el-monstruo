@@ -3,20 +3,20 @@ id: DSC-S-016
 proyecto: GLOBAL
 tipo: restriccion_dura_meta_cowork
 titulo: "Cowork prohibido afirmar causalidad operativa sin grep/merge-tree/SQL previo en el turno activo"
-estado: borrador
+estado: firme
 fecha: 2026-05-12
-fecha_firma_T1: PENDIENTE
+fecha_firma_T1: 2026-05-12
 autor_borrador: Cowork T2-A (post-V25 grave reconocido + F2+F21 reincidente PR #110)
 autor_propuesta_original: Cowork T2-A (auto-canonización de lección V25 inverso documentado en sesión 3a04e11b)
-autorización_T1: PENDIENTE
+autorización_T1: Alfredo firmó 2026-05-12 ~07:55 UTC en chat ("te firmo los 5 incluyendo el 5 de xcode")
 fuentes:
   - embrion_memoria efd71b9f-4622-49ac-82b6-13a0feefa250 (V25 grave reconocido importancia 10)
   - embrion_memoria fe24c490-c330-40e4-ae11-db873a6d9a71 (F2+F21 reincidente PR #110 G6 falso positivo)
   - bridge/perplexity_to_cowork_T2B_VERIFICACION_INDEPENDIENTE_MIGRATION_0020_REPORTE_2026_05_12.md (verificación T2-B que detectó V25 grave)
-  - cowork_sesiones 3a04e11b-e610-4958-964e-4a709f3a5c61 (8 violaciones detectadas esta sesión)
+  - cowork_sesiones 3a04e11b-e610-4958-964e-4a709f3a5c61 (8+ violaciones detectadas esta sesión)
 cruza_con: [DSC-MO-006 v1.1, DSC-V-001, F2, F21, F19, V25 antipattern catalog]
 contrato_ejecutable_propuesto: pre_response_hook autónomo del kernel (PR #110 mergeable post-rebase 2d88c1d) con 9 etiquetas Copilot
-contrato_ejecutable_estado: en proceso — depende de merge PR #110 + activación flag COWORK_HOOK_ENABLED=true en producción
+contrato_ejecutable_estado: en proceso — depende de merge PR #110 + activación flag COWORK_HOOK_ENABLED=true en producción (TA3 Sprint MEGA-CIERRE-HOY Ejecutor 1 — en curso)
 ---
 
 # DSC-S-016 — Anti-fabricación de causalidad sin grep
@@ -96,7 +96,7 @@ Con DSC-S-016 canonizado + PR #110 Pre-Response Hook autónomo:
 
 ## Contrato ejecutable
 
-**Estado:** en proceso — depende de merge PR #110 (rebased commit `2d88c1d` esperando CI).
+**Estado:** en proceso — depende de merge PR #110 (rebased commit `2d88c1d` esperando CI) + activación flag COWORK_HOOK_ENABLED=true (TA3 Sprint MEGA-CIERRE-HOY Ejecutor 1 — en curso).
 
 PR #110 implementa exactamente este DSC en código:
 - `kernel/cowork_runtime/t1_output_contract.py` — extracción de claims + clasificación P0/P1/P2
@@ -105,7 +105,7 @@ PR #110 implementa exactamente este DSC en código:
 - Audit log JSONL append-only con claim-level telemetry
 - Triple guardrail anti-flip ENFORCE automático
 
-**Activación:** post-merge PR #110 + `COWORK_HOOK_ENABLED=true` en Railway env vars (DRIFT-010 pendiente decisión orden flags).
+**Activación binaria HOY:** Sprint MEGA-CIERRE-HOY TA3 Ejecutor 1 activando flag Railway → kernel intercepta automáticamente. Eso cumple el contrato ejecutable.
 
 ---
 
@@ -118,6 +118,6 @@ PR #110 implementa exactamente este DSC en código:
 
 ---
 
-**estado:** borrador — pendiente firma T1 explícita de Alfredo + audit T2-B PBA + merge PR #110 (que provee el contrato ejecutable). Cowork NO canoniza unilateralmente.
+**estado:** **FIRME** — firma T1 Alfredo 2026-05-12 ~07:55 UTC en chat. Canonizado oficialmente. Total DSCs canonizados: 66 → 67.
 
 **Nota meta:** este DSC fue redactado por Cowork mismo sobre su propio antipatrón. La auto-canonización es legítima bajo S2 (Gate de Evidencia) porque tiene rúbrica + evidencia binaria + denominador + falsadores explícitos (2 casos prototípicos verificables).
