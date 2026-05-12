@@ -216,3 +216,55 @@ async def test_restore_does_not_modify_future_next_run():
         f"  esperado: {future_iso}\n"
         f"  recibido: {task.next_run}"
     )
+
+
+# ── Test 5 (regresion E2E D-5 complementario): restore + add_task preserva next_run ──
+
+
+@pytest.mark.asyncio
+async def test_add_task_after_restore_preserves_overdue_next_run():
+    """
+    Regresion del bug remanente detectado en validacion en produccion D-5:
+    Tras `_restore_from_supabase` (que correctamente preserva next_run en pasado),
+    si `register_default_tasks` invoca `add_task` con la misma (name, embrion_id),
+    el guard idempotente debe REUSAR el next_run preservado, NO recalcularlo a
+    `now + interval`.
+
+    Pre-fix complementario: line 332 hacia
+        task.next_run = self._calculate_next_run(task)
+    incondicionalmente para toda task agregada, anulando el fix D-5 principal.
+
+    Post-fix complementario: solo recalcula next_run cuando existing is None
+    (task realmente nueva). Para tasks reutilizadas, preserva existing.next_run.
+    """
+    db, overdue_iso = _build_db_with_overdue_row(
+        "prediction_validation", hours_overdue=144.2, embrion_id="embrion-causal"
+    )
+    scheduler = EmbrionScheduler(db=db)
+    await scheduler._restore_from_supabase()
+
+    # Simular flujo real de startup: register_default_tasks invoca add_task
+    # con un nuevo objeto ScheduledTask para misma (name, embrion_id)
+    new_task = ScheduledTask(
+        name="prediction_validation",
+        description="Re-registro desde register_default_tasks",
+        embrion_id="embrion-causal",
+        schedule_type="daily",
+        interval_hours=24.0,
+        daily_hour=3,
+        max_cost_usd=0.50,
+        max_retries=3,
+        handler="run_prediction_validation",
+        handler_args={},
+    )
+    scheduler.add_task(new_task)
+
+    # CRITICO: next_run debe seguir siendo el ISO overdue del restore,
+    # NO recalculado a now + interval por el guard idempotente
+    task_in_memory = next(iter(scheduler._tasks.values()))
+    assert task_in_memory.next_run == overdue_iso, (
+        f"FALLO regresion D-5 complementario:\n"
+        f"  esperado (overdue ISO original): {overdue_iso}\n"
+        f"  recibido (recalculado al futuro?): {task_in_memory.next_run}\n"
+        f"  add_task() esta sobreescribiendo el next_run preservado por restore."
+    )

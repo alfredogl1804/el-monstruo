@@ -322,14 +322,27 @@ class EmbrionScheduler:
             task.consecutive_failures = existing.consecutive_failures
             task.status = existing.status
             task.paused = existing.paused
+            # Sprint D-5 fix complementario (2026-05-12 Hilo Ejecutor 1):
+            # Preservar tambien next_run del registro existente. Antes este
+            # fix, line 332 recalculaba next_run = now + interval para toda
+            # task reutilizada idempotentemente, lo que ANULABA el fix de
+            # _restore_from_supabase (D-5 principal): las tasks overdue
+            # restauradas con next_run en pasado eran inmediatamente empujadas
+            # al futuro por add_task. Resultado: las 3 zombies daily nunca
+            # disparaban porque cada redeploy las re-empujaba al futuro.
+            task.next_run = existing.next_run
             logger.info(
                 "scheduler_task_idempotent_reuse",
                 task_id=task.task_id,
                 name=task.name,
                 embrion=task.embrion_id,
+                next_run_preserved=task.next_run,
             )
 
-        task.next_run = self._calculate_next_run(task)
+        # Solo recalcular next_run si la task es NUEVA (no reutilizada).
+        # Para tasks reutilizadas, next_run viene de existing (ya preservado arriba).
+        if existing is None:
+            task.next_run = self._calculate_next_run(task)
         self._tasks[task.task_id] = task
 
         # Persistir en background (no bloquear)
