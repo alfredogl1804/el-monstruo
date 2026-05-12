@@ -2,8 +2,9 @@
 
 # Sprint ESCAPE-001 — Throttler Determinístico (pieza magna Reloj Suizo)
 
-**estado:** firme — pendiente firma T1 + audit T2-B PBA
+**estado:** FIRME T1 — firmado Alfredo 2026-05-12 ~07:55 UTC ("te firmo los 5 incluyendo el 5 de xcode") junto con 3 DSCs canonizados + Brand Engine canary + T7 smoke Mac PR #114
 **fecha_borrador:** 2026-05-12
+**fecha_firma_T1:** 2026-05-12 ~07:55 UTC
 **autor_borrador:** Cowork T2-A bajo autoridad T1 delegada ("tu dime" + "tarea grande al hilo ejecutor 2 sobre el reloj suizo")
 **Hilo principal:** Manus Hilo Ejecutor 2 (continuidad de dominio post-ROTOR-001)
 **ETA recalibrado:** 90-120 min reales (similar a ROTOR-001 con velocity demostrada)
@@ -333,4 +334,4 @@ Los 6 consumers default propuestos en T2 (60s embrion_loop, 86400s guardian, 300
 
 ---
 
-**estado:** firme borrador — pendiente firma T1 + audit T2-B PBA. Kickoff a Manus Ejecutor 2 producido en `bridge/cowork_to_manus_HILO_EJECUTOR_2_SPRINT_ESCAPE_001_KICKOFF_2026_05_12.md`.
+**estado:** FIRME T1 (Alfredo 2026-05-12 ~07:55 UTC). Audit T2-B PBA convergente. Kickoff a Manus Ejecutor 2 producido en `bridge/cowork_to_manus_HILO_EJECUTOR_2_SPRINT_ESCAPE_001_KICKOFF_2026_05_12.md`. Gate (a) firma T1 VERDE — Ejecutor 2 puede arrancar inmediatamente post-ROTOR-001 merge.
