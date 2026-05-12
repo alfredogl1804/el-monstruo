@@ -632,6 +632,12 @@ async def lifespan(app: FastAPI):
         )
         await embrion_loop.start()
         app.state._embrion_loop = embrion_loop
+        # Sprint D-3 (2026-05-11) Hilo Ejecutor 2 — singleton para scheduler externo
+        try:
+            from kernel.embrion_loop import set_embrion_loop_singleton
+            set_embrion_loop_singleton(embrion_loop)
+        except Exception as _se:
+            logger.warning("embrion_loop_singleton_set_failed", error=str(_se))
         logger.info("embrion_loop_started")
     except Exception as e:
         logger.warning("embrion_loop_init_failed", error=str(e))

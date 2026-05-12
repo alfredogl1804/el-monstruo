@@ -607,11 +607,25 @@ def register_default_tasks(scheduler: EmbrionScheduler) -> None:
         handler="run_memory_consolidation",
     ))
 
+    # 6. Latido Autónomo — Sprint D-3 (2026-05-11) Hilo Ejecutor 2
+    # Cierra el loop de autonomía del Embrión: dispara `reflexion_autonoma` cada 6h
+    # vía `EmbrionLoop.trigger_reflexion_autonoma()`. Cap $0.30 por latido.
+    # Sin esta task el embrión depende del polling interno que requiere
+    # mensajes/contribuciones recientes, generando huecos de 9+ días observados.
+    scheduler.add_task(ScheduledTask(
+        name="latido_autonomo",
+        description="Embrion autonomous latido every 6h (Sprint D-3, Obj #8 Inteligencia Emergente)",
+        embrion_id="embrion-0",
+        schedule_type="periodic",
+        interval_hours=6.0,
+        max_cost_usd=0.30,
+        handler="run_latido_autonomo",
+    ))
     logger.info(
         "scheduler_default_tasks_registered",
-        count=5,
+        count=6,
         tasks=["causal_seeding", "prediction_validation", "vanguard_scan",
-               "system_health_check", "memory_consolidation"],
+               "system_health_check", "memory_consolidation", "latido_autonomo"],
     )
 
 
@@ -646,13 +660,115 @@ async def _stub_handler_health_check(**kwargs: Any) -> None:
     """
     Stub del handler de Health Check.
     Verifica que los componentes principales estén activos.
+
+    Sprint D-3 (2026-05-11) Hilo Ejecutor 2 — extensión:
+      Si el último latido del embrión fue hace >12h, dispara alerta Telegram.
+      Esto cubre el caso observado: 9 días sin latido por scheduler ausente.
     """
     from datetime import datetime, timezone
-    logger.info(
-        "health_check_executed",
-        timestamp=datetime.now(timezone.utc).isoformat(),
-        status="ok",
-    )
+    import time as _time
+
+    timestamp = datetime.now(timezone.utc).isoformat()
+    logger.info("health_check_executed", timestamp=timestamp, status="ok")
+
+    # ── Sprint D-3: alerta latido stale > 12h ──
+    try:
+        from kernel.embrion_loop import get_embrion_loop_singleton
+
+        loop = get_embrion_loop_singleton()
+        if loop is None:
+            logger.warning("health_check_embrion_loop_singleton_unavailable")
+            return
+
+        last_thought_at = getattr(loop, "_last_thought_at", None)
+        if last_thought_at is None:
+            logger.warning("health_check_no_thoughts_yet")
+            return
+
+        hours_since = (_time.time() - last_thought_at) / 3600.0
+        if hours_since > 12.0:
+            logger.warning(
+                "embrion_latido_stale",
+                hours_since_last=round(hours_since, 2),
+                threshold_hours=12.0,
+            )
+            notifier = getattr(loop, "_notifier", None)
+            if notifier and hasattr(notifier, "send_message"):
+                try:
+                    await notifier.send_message(
+                        user_id="embrion",
+                        text=(
+                            "⚠️ *Embrión — Latido Stale*\n\n"
+                            f"*Horas sin latido:* {hours_since:.1f}h\n"
+                            f"*Threshold:* 12h\n"
+                            f"*Detectado por:* health_check (Sprint D-3)\n\n"
+                            "El scheduler debería haber disparado `latido_autonomo` "
+                            "cada 6h. Si no se ve actividad nueva en próximos 30min, "
+                            "revisar `embrion_scheduler` y `EMBRION_LATIDO_AUTONOMO_ENABLED`."
+                        ),
+                        parse_mode="Markdown",
+                    )
+                    logger.info("embrion_latido_stale_alerted", hours_since=hours_since)
+                except Exception as _ne:
+                    logger.warning("embrion_latido_stale_alert_failed", error=str(_ne))
+    except Exception as e:
+        # Fail-open: health_check no debe romperse por la extensión D-3
+        logger.warning("health_check_d3_extension_failed", error=str(e))
+
+
+async def _handler_latido_autonomo(**kwargs: Any) -> None:
+    """
+    Sprint D-3 (2026-05-11) Hilo Ejecutor 2 — handler del scheduler para
+    disparar `reflexion_autonoma` cada 6h vía EmbrionLoop.trigger_reflexion_autonoma().
+
+    Behavior:
+      - Si EMBRION_LATIDO_AUTONOMO_ENABLED=false → skip + log.
+      - Si singleton EmbrionLoop no disponible → skip + log.
+      - Si loop no running → skip + log (delegado a `trigger_reflexion_autonoma`).
+      - Si budget diario remaining < $0.30 → skip + log (delegado a budget tracker
+        dentro de `_think`).
+      - En cualquier otro caso: dispara el trigger y registra el resultado.
+
+    Fail-open: cualquier excepción se loguea pero NO propaga (no queremos
+    que el scheduler marque la task como failed por errores transitorios del
+    embrión; el budget tracker y judge ya manejan el caso).
+
+    kwargs recibidos del scheduler: task_id, task_name, embrion_id, etc.
+    """
+    import os
+
+    task_id = kwargs.get("task_id") or kwargs.get("execution_id") or "unknown"
+
+    if os.environ.get("EMBRION_LATIDO_AUTONOMO_ENABLED", "true").lower() != "true":
+        logger.info("latido_autonomo_disabled_via_env", task_id=task_id)
+        return
+
+    try:
+        from kernel.embrion_loop import get_embrion_loop_singleton
+
+        loop = get_embrion_loop_singleton()
+        if loop is None:
+            logger.warning("latido_autonomo_no_loop_singleton", task_id=task_id)
+            return
+
+        result = await loop.trigger_reflexion_autonoma(
+            source="scheduler",
+            cycle_id=str(task_id),
+        )
+        logger.info(
+            "latido_autonomo_executed",
+            task_id=task_id,
+            triggered=result.get("triggered", False),
+            reason=result.get("reason"),
+            result_chars=result.get("result_chars", 0),
+        )
+    except Exception as e:
+        # Fail-open: scheduler no debe marcar task failed por error transitorio
+        logger.warning(
+            "latido_autonomo_handler_failed",
+            task_id=task_id,
+            error=str(e),
+        )
 
 
 async def _stub_handler_memory_consolidation(**kwargs: Any) -> None:
@@ -681,7 +797,9 @@ def register_stub_handlers(scheduler: EmbrionScheduler) -> None:
     scheduler.register_handler("run_vanguard_scan", _stub_handler_vanguard_scan)
     scheduler.register_handler("run_health_check", _stub_handler_health_check)
     scheduler.register_handler("run_memory_consolidation", _stub_handler_memory_consolidation)
-    logger.info("scheduler_stub_handlers_registered", count=5)
+    # Sprint D-3 (2026-05-11) Hilo Ejecutor 2 — handler real para latido autónomo
+    scheduler.register_handler("run_latido_autonomo", _handler_latido_autonomo)
+    logger.info("scheduler_stub_handlers_registered", count=6)
 
 
 # ── Singleton global ──────────────────────────────────────────────────────────

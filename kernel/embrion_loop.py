@@ -833,6 +833,95 @@ class EmbrionLoop:
 
     # ── Think ────────────────────────────────────────────────────────
 
+    async def trigger_reflexion_autonoma(
+        self,
+        source: str = "scheduler",
+        cycle_id: Optional[str] = None,
+    ) -> dict[str, Any]:
+        """
+        Sprint D-3 (2026-05-11) — Hilo Ejecutor 2.
+
+        Entry-point público para que el Scheduler externo (o cualquier orquestador)
+        dispare un latido `reflexion_autonoma` SIN depender del polling interno
+        (`_last_thought_at > 3600s`). Reusa el pipeline completo de `_think()`:
+        budget tracker, pre-verifier de input, judge, dual-mode execution, write
+        policy, persistencia en `embrion_memoria` con tipo='latido'.
+
+        Caso de uso D-3: `embrion_scheduler` registra task `latido_autonomo`
+        periodic 6h y el handler `run_latido_autonomo` invoca este método.
+        Esto cierra el loop de autonomía sin acoplar al scheduler con `_think`
+        (que es privado por convención).
+
+        Args:
+            source: identidad del origen (ej. 'scheduler', 'manual', 'cron').
+            cycle_id: identificador opcional para correlación con scheduled_tasks.
+
+        Returns:
+            dict con metadata del trigger ejecutado: {triggered:bool, reason, result_chars}
+        """
+        from datetime import datetime, timezone
+
+        if not self._running:
+            logger.warning(
+                "latido_autonomo_skipped_loop_not_running",
+                source=source,
+                cycle_id=cycle_id,
+            )
+            return {
+                "triggered": False,
+                "reason": "embrion_loop_not_running",
+                "source": source,
+                "cycle_id": cycle_id,
+            }
+
+        synthetic_trigger = {
+            "type": "reflexion_autonoma",
+            "detail": (
+                f"[latido_autonomo source={source} cycle_id={cycle_id or 'na'} "
+                f"at={datetime.now(timezone.utc).isoformat()}] "
+                "Disparado por scheduler externo. Pipeline completo: budget → judge → "
+                "think → write_policy → persistencia. Sprint D-3."
+            ),
+            "priority": 3,
+            "source": source,
+            "scheduler_cycle_id": cycle_id,
+        }
+
+        logger.info(
+            "latido_autonomo_dispatching",
+            source=source,
+            cycle_id=cycle_id,
+            internal_cycle=self._cycle_count,
+        )
+
+        try:
+            result = await self._think(synthetic_trigger)
+            result_chars = 0
+            if isinstance(result, dict):
+                _content = result.get("content") or result.get("result") or ""
+                result_chars = len(str(_content))
+            return {
+                "triggered": True,
+                "source": source,
+                "cycle_id": cycle_id,
+                "internal_cycle": self._cycle_count,
+                "result_chars": result_chars,
+            }
+        except Exception as e:
+            logger.error(
+                "latido_autonomo_failed",
+                source=source,
+                cycle_id=cycle_id,
+                error=str(e),
+            )
+            return {
+                "triggered": False,
+                "reason": f"exception:{type(e).__name__}",
+                "error": str(e)[:300],
+                "source": source,
+                "cycle_id": cycle_id,
+            }
+
     async def _think(self, trigger: dict[str, Any]) -> Optional[dict[str, Any]]:
         """
         The Embrión thinks.
@@ -2191,3 +2280,40 @@ Si nada es relevante, responde solo: "Sin hallazgos relevantes hoy."
             logger.error("embrion_radar_timeout", cycle=self._cycle_count)
         except Exception as e:
             logger.error("embrion_radar_failed", error=str(e), cycle=self._cycle_count)
+
+
+
+# ── Sprint D-3 (2026-05-11) — Singleton accessors para Scheduler externo ──────
+#
+# El `embrion_scheduler` necesita una referencia al `EmbrionLoop` activo para
+# disparar `latido_autonomo` cada 6h sin acoplar al scheduler con `app.state`.
+# Patrón módulo-level singleton (igual que `get_embrion_scheduler` en
+# `embrion_scheduler.py`). `main.py` debe llamar `set_embrion_loop_singleton`
+# justo después de construir `embrion_loop` y antes de registrar tasks.
+
+_embrion_loop_singleton: Optional["EmbrionLoop"] = None
+
+
+def set_embrion_loop_singleton(loop: "EmbrionLoop") -> None:
+    """
+    Registrar la instancia activa de EmbrionLoop para acceso global.
+
+    Llamado por `main.py` durante startup, después de `EmbrionLoop(...)`.
+    Idempotente: la última llamada gana (útil para tests con reinicio).
+    """
+    global _embrion_loop_singleton
+    _embrion_loop_singleton = loop
+    logger.info("embrion_loop_singleton_set", running=getattr(loop, "_running", False))
+
+
+def get_embrion_loop_singleton() -> Optional["EmbrionLoop"]:
+    """
+    Obtener la instancia activa de EmbrionLoop si fue registrada.
+
+    Returns:
+        EmbrionLoop si fue registrada via set_embrion_loop_singleton(), None si no.
+
+    Diseño: el caller (ej. scheduler handler) debe manejar el None gracefully
+    porque el loop puede no estar inicializado en tests o entornos degradados.
+    """
+    return _embrion_loop_singleton
