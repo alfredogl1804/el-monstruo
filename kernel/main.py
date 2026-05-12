@@ -1304,6 +1304,33 @@ async def lifespan(app: FastAPI):
         logger.warning("sprint_86_b5_init_failed", error=str(_e))
         app.state.catastro_engine = None
 
+    # ── Sprint CATASTRO-C-SLICE-001: wire-up JSONs standalone al app.state ──
+    # Carga los 3 catastros JSON (tools, suppliers, agentes) al startup para
+    # que cualquier nodo del kernel pueda consultarlos via app.state.catastros.
+    # Antes vivian huerfanos en disco; ahora son consultables.
+    try:
+        import json as _json
+        from pathlib import Path as _Path
+        _catastro_data_dir = _Path(__file__).parent / "catastro" / "data"
+        _catastros_json: dict[str, dict] = {}
+        for _name in ("tools", "suppliers", "agentes"):
+            _path = _catastro_data_dir / f"catastro_{_name}.json"
+            if _path.exists():
+                with open(_path, encoding="utf-8") as _f:
+                    _catastros_json[_name] = _json.load(_f)
+        app.state.catastros = _catastros_json
+        _entries_total = sum(
+            len(c.get("entries", [])) for c in _catastros_json.values()
+        )
+        logger.info(
+            "catastros_json_loaded",
+            catastros=list(_catastros_json.keys()),
+            entries_total=_entries_total,
+        )
+    except Exception as _e_cat:
+        logger.warning("catastros_json_load_failed", error=str(_e_cat))
+        app.state.catastros = {}
+
     # ── Sprint 87 NUEVO: Ejecución Autónoma E2E ─────────────────────────
     # Pipeline lineal de 12 pasos frase→URL viva. Consulta Catastro en runtime.
     try:

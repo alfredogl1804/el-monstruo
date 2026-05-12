@@ -2163,6 +2163,14 @@ Si nada es relevante, responde solo: "Sin hallazgos relevantes hoy."
                     tags=["radar", "ecosystem", "daily"],
                 )
 
+                # ── Sprint CATASTRO-C-SLICE-001: persistir repos en catastro_repos ──
+                # Conecta el bucle descubrir->catalogar->decidir.
+                # Spec: bridge/sprint86_5_preinvestigation/spec_integracion_radar_catastro.md
+                try:
+                    await self._persist_radar_repos(digest)
+                except Exception as e:
+                    logger.warning("embrion_radar_persist_failed", error=str(e))
+
                 logger.info(
                     "embrion_radar_check_done",
                     cycle=self._cycle_count,
@@ -2191,3 +2199,87 @@ Si nada es relevante, responde solo: "Sin hallazgos relevantes hoy."
             logger.error("embrion_radar_timeout", cycle=self._cycle_count)
         except Exception as e:
             logger.error("embrion_radar_failed", error=str(e), cycle=self._cycle_count)
+
+    # ── Sprint CATASTRO-C-SLICE-001 ──────────────────────────────────────────
+    async def _persist_radar_repos(self, digest: dict[str, str]) -> None:
+        """
+        Cierra el bucle descubrir->catalogar->decidir.
+
+        Toma el digest del agents-radar (output de get_daily_digest()), invoca
+        al RadarClassifier (LLM-as-parser, 39va semilla) para extraer repos
+        tipados, y los upserta en `catastro_repos` (migracion 0018).
+
+        Idempotente: el upsert por id evita duplicados en runs sucesivos.
+        Fail-soft: cualquier excepcion se loggea pero NO interrumpe al embrion.
+
+        Spec: bridge/sprint86_5_preinvestigation/spec_integracion_radar_catastro.md
+        """
+        if not self._db or not getattr(self._db, "_connected", False):
+            logger.debug("embrion_radar_persist_skip_no_db")
+            return
+
+        try:
+            from kernel.catastro.radar_classifier import RadarClassifier
+        except ImportError as e:
+            logger.warning("embrion_radar_persist_classifier_missing", error=str(e))
+            return
+
+        classifier = RadarClassifier(use_llm=True)
+        report_date = datetime.now(timezone.utc).date().isoformat()
+        total_persisted = 0
+
+        # Mapear claves del digest a fuente_hint del classifier
+        fuente_map = {
+            "trending": "github_trending",
+            "agents":   "github_trending",
+            "hn":       "hacker_news",
+            "weekly":   "github_trending",
+            "monthly":  "github_trending",
+        }
+
+        for digest_key, markdown in (digest or {}).items():
+            if not markdown or markdown.startswith("Error"):
+                continue
+            fuente_hint = fuente_map.get(digest_key, "github_trending")
+            try:
+                result = classifier.parse(markdown, fuente_hint=fuente_hint)
+            except Exception as e:
+                logger.warning(
+                    "embrion_radar_persist_parse_failed",
+                    digest_key=digest_key, error=str(e),
+                )
+                continue
+
+            for repo in result.repos:
+                row = {
+                    "id":                  repo.id,
+                    "nombre":              repo.nombre[:200],
+                    "proveedor":           repo.proveedor[:200],
+                    "url":                 repo.url[:500],
+                    "descripcion":         (repo.descripcion or "")[:1000],
+                    "fuente":              repo.fuente,
+                    "stars_count":         repo.stars_count or 0,
+                    "topics":              repo.topics,
+                    "radar_report_date":   report_date,
+                    "classification": {
+                        "confidence":  result.confidence,
+                        "notes":       result.notes,
+                        "digest_key":  digest_key,
+                        "fuente_hint": fuente_hint,
+                    },
+                }
+                try:
+                    await self._db.upsert("catastro_repos", row, on_conflict="id")
+                    total_persisted += 1
+                except Exception as e:
+                    logger.debug(
+                        "embrion_radar_persist_upsert_failed",
+                        repo_id=repo.id, error=str(e),
+                    )
+
+        logger.info(
+            "embrion_radar_persist_done",
+            cycle=self._cycle_count,
+            report_date=report_date,
+            total_persisted=total_persisted,
+        )
