@@ -2,38 +2,53 @@
 kernel/cowork_runtime/t1_output_contract.py — Contrato de salida tipado.
 
 Antes de que una respuesta de Cowork llegue a Alfredo, cada afirmacion
-sustantiva debe llevar uno de cuatro tags:
+sustantiva debe llevar una de las 9 etiquetas epistemicas canonicas
+(convergencia 7 Sabios 2026-05-12, ver kernel/cowork_runtime/epistemic_labels.py):
 
-  [VERIFICADO fuente + timestamp]   Afirmacion factual operacional con
-                                    evidencia fresca de esta sesion (Read,
-                                    Grep, Bash, SQL via MCP, etc).
-  [INFERIDO]                        Inferencia razonable a partir de
-                                    contexto, sin fuente binaria directa.
-  [NO VERIFICADO]                   Dato que NO se pudo comprobar en esta
-                                    sesion (memoria stale, asumido, etc).
-  [REQUIERE READ/SQL]               Claim que necesita lectura fresca y
-                                    aun no se ha hecho.
+  [VERIFIED_CURRENT_TURN]        tool_call ejecutado en este turno
+  [VERIFIED_RECENT_LT_60M]       validado <60min, no repetir tool_call
+  [SESSION_MEMORY_ONLY]          solo memoria de sesion, NO afirmar como hecho
+  [INFERRED]                     inferencia razonable, no verificacion
+  [USER_PROVIDED]                dato que aporto Alfredo T1 en sesion
+  [NEEDS_SQL]                    claim factual que requiere SQL fresco
+  [NEEDS_READ]                   claim factual que requiere Read del repo
+  [CONTRADICTED_BY_EXTERNAL]     contradice output reciente Sabio externo
+  [UNVERIFIED_DO_NOT_ASSERT]     sin licencia para afirmar, debe omitirse
+
+Compatibilidad hacia atras: las 4 etiquetas legacy
+([VERIFICADO ...], [INFERIDO], [NO VERIFICADO], [REQUIERE READ/SQL])
+siguen siendo aceptadas y se normalizan al equivalente moderno via
+epistemic_labels.normalize_label().
 
 Implementacion: heuristica conservadora basada en patrones de oracion
 afirmativa. NO pretende ser un parser de lenguaje natural — el objetivo
 es alimentar el audit log con claims candidatos, donde la auditoria
-manual a 24h decidira true/false positive / false negative.
+manual decidira true_block / false_positive / false_negative.
 
-Severidad asignada cuando un claim sustantivo no tiene tag:
+Severidad asignada cuando un claim sustantivo no tiene etiqueta:
   P0  Claim factual sobre estado de produccion (kernel, PRs, RLS,
       migraciones, embrion). Bloqueante en ENFORCE.
   P1  Claim factual sobre estado del repo o memoria (DSCs canonizados,
       archivos existentes, contenido de specs). Bloqueante en ENFORCE.
   P2  Texto sin claim factual operacional (opiniones, recomendaciones,
-      preguntas, meta-trabajo). Nunca bloqueante.
+      preguntas, meta-trabajo). NUNCA bloqueante, ni siquiera en ENFORCE.
 """
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Iterable
+from typing import Iterable, Optional
+
+from kernel.cowork_runtime.epistemic_labels import (
+    LABEL_REGEX,
+    VALID_LABELS_9,
+    extract_label,
+    is_licensed,
+    requires_tool_call,
+)
 
 
+# Compat: lista historica de etiquetas legacy.
 VALID_TAGS: tuple[str, ...] = (
     "VERIFICADO",
     "INFERIDO",
@@ -41,11 +56,9 @@ VALID_TAGS: tuple[str, ...] = (
     "REQUIERE READ/SQL",
 )
 
-# Detecta cualquiera de los tags al inicio o al final de una linea
-TAG_REGEX = re.compile(
-    r"\[(?:VERIFICADO[^\]]*|INFERIDO|NO\s+VERIFICADO|REQUIERE\s+READ/SQL)\]",
-    re.IGNORECASE,
-)
+# Compat: alias del nuevo regex. Codigo legacy que importe TAG_REGEX
+# obtiene el detector unificado de 9 etiquetas + 4 legacy.
+TAG_REGEX = LABEL_REGEX
 
 # Patrones P0 — claims sobre estado operativo del sistema. Si un claim
 # matcha esto sin tag y NO es pregunta/condicional, es P0.
@@ -85,10 +98,22 @@ class Claim:
     text: str
     severity: str  # "P0" | "P1" | "P2"
     has_tag: bool
-    tag_value: str = ""  # contenido del tag si has_tag
+    tag_value: str = ""  # contenido literal del tag si has_tag (con corchetes)
+    normalized_label: Optional[str] = None  # uno de VALID_LABELS_9 si has_tag
 
     def is_untagged_material(self) -> bool:
         return (not self.has_tag) and self.severity in ("P0", "P1")
+
+    def has_license_to_assert(self) -> bool:
+        """
+        True si la etiqueta concede licencia para afirmar (VERIFIED_*,
+        USER_PROVIDED). False si esta sin etiqueta o etiqueta degradante.
+        """
+        return is_licensed(self.normalized_label)
+
+    def needs_tool_call(self) -> bool:
+        """True si la etiqueta es NEEDS_SQL o NEEDS_READ."""
+        return requires_tool_call(self.normalized_label)
 
 
 @dataclass
@@ -140,11 +165,15 @@ def _classify_severity(sentence: str) -> str:
     return "P2"
 
 
-def _sentence_has_tag(sentence: str) -> tuple[bool, str]:
-    m = TAG_REGEX.search(sentence)
-    if not m:
-        return False, ""
-    return True, m.group(0)
+def _sentence_has_tag(sentence: str) -> tuple[bool, str, Optional[str]]:
+    """
+    Devuelve (has_tag, raw_match_con_corchetes, normalized_label_o_None).
+
+    Detecta tanto las 9 etiquetas modernas como las 4 legacy. La
+    normalizacion mapea legacy -> moderno (ver epistemic_labels.py).
+    """
+    has, raw, normalized = extract_label(sentence)
+    return has, raw, normalized
 
 
 def extract_claims(text: str) -> list[Claim]:
@@ -164,13 +193,14 @@ def extract_claims(text: str) -> list[Claim]:
         s = s.strip()
         if len(s.split()) < 3:
             continue
-        has_tag, tag_value = _sentence_has_tag(s)
+        has_tag, tag_value, normalized_label = _sentence_has_tag(s)
         severity = _classify_severity(s)
         claims.append(Claim(
             text=s,
             severity=severity,
             has_tag=has_tag,
             tag_value=tag_value,
+            normalized_label=normalized_label,
         ))
     return claims
 
@@ -185,12 +215,20 @@ def format_violation_feedback(report: ContractReport) -> str:
     lines = [
         "[T1_OUTPUT_CONTRACT_VIOLATION]",
         "",
-        "Tu output candidato contiene claims factuales operativos sin tag.",
-        "Antes de enviar a Alfredo, cada claim sustantivo debe llevar uno de:",
-        "  [VERIFICADO fuente + timestamp]",
-        "  [INFERIDO]",
-        "  [NO VERIFICADO]",
-        "  [REQUIERE READ/SQL]",
+        "Tu output candidato contiene claims factuales operativos sin etiqueta.",
+        "Cada claim sustantivo debe llevar UNA de las 9 etiquetas canonicas:",
+        "  [VERIFIED_CURRENT_TURN fuente=... ts=...]",
+        "  [VERIFIED_RECENT_LT_60M fuente=... ts=...]",
+        "  [SESSION_MEMORY_ONLY]",
+        "  [INFERRED]",
+        "  [USER_PROVIDED]",
+        "  [NEEDS_SQL] + propuesta de query exacta",
+        "  [NEEDS_READ] + path del archivo",
+        "  [CONTRADICTED_BY_EXTERNAL fuente=...]",
+        "  [UNVERIFIED_DO_NOT_ASSERT]",
+        "",
+        "Legacy (aceptado por compat, normalizado): [VERIFICADO ...] / [INFERIDO] /",
+        "[NO VERIFICADO] / [REQUIERE READ/SQL]",
         "",
         f"Resumen: {report.summary()}",
         "",

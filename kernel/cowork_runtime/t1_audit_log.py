@@ -34,6 +34,10 @@ from pathlib import Path
 from typing import Iterable, Optional
 
 from kernel.cowork_runtime.t1_output_contract import ContractReport, Claim
+from kernel.cowork_runtime.tool_call_audit import (
+    ToolCallContext,
+    evaluate_claim_tool_call,
+)
 
 
 DEFAULT_AUDIT_LOG_PATH = Path("bridge/t1_audit_log.jsonl")
@@ -84,6 +88,36 @@ VALID_CLASSIFICATIONS = (
 VALID_SEVERITIES = ("P0", "P1", "P2")
 
 
+@dataclass
+class ClaimTelemetry:
+    """
+    Telemetria claim-level (convergencia Copilot 365 — 2026-05-12).
+
+    Cada claim material de una interception produce un evento JSONL
+    independiente con su propia metadata. Esto permite analisis
+    claim-by-claim en lugar de solo response-level.
+    """
+    event: str = "claim_telemetry"
+    claim_id: str = ""
+    audit_id: str = ""
+    claim_index: int = 0
+    timestamp_utc: str = ""
+    session_id: str = ""
+    mode: str = ""
+    claim_text: str = ""
+    severity: str = ""           # P0 | P1 | P2
+    has_tag: bool = False
+    tag_value: str = ""
+    epistemic_label: Optional[str] = None  # uno de VALID_LABELS_9 o None
+    license_validated: bool = False
+    license_required: Optional[str] = None
+    tool_call_present_this_turn: bool = False
+    action_taken: str = "would_pass"  # would_block | would_degrade | would_pass
+
+    def to_jsonl(self) -> str:
+        return json.dumps(asdict(self), ensure_ascii=False)
+
+
 class T1AuditLog:
     """
     Append-only JSONL log con dos tipos de eventos:
@@ -110,10 +144,21 @@ class T1AuditLog:
         blocked: bool,
         would_block: bool,
         legacy_guardian_violations: Optional[list[str]] = None,
+        tool_call_ctx: Optional[ToolCallContext] = None,
     ) -> AuditEntry:
+        """
+        Persiste una interception completa al JSONL.
+
+        Si `tool_call_ctx` esta presente, ademas del evento `AuditEntry`
+        parent escribe un evento `claim_telemetry` por cada claim del
+        reporte. Esto reemplaza el modelo response-level por uno
+        claim-level (convergencia Copilot 365 2026-05-12).
+        """
+        audit_id = str(uuid.uuid4())
+        ts = datetime.now(timezone.utc).isoformat()
         entry = AuditEntry(
-            audit_id=str(uuid.uuid4()),
-            timestamp_utc=datetime.now(timezone.utc).isoformat(),
+            audit_id=audit_id,
+            timestamp_utc=ts,
             session_id=session_id,
             mode=mode,
             user_message=user_message[:500],
@@ -127,6 +172,7 @@ class T1AuditLog:
                     "severity": c.severity,
                     "has_tag": c.has_tag,
                     "tag_value": c.tag_value,
+                    "epistemic_label": c.normalized_label,
                 }
                 for c in report.claims
             ],
@@ -134,7 +180,61 @@ class T1AuditLog:
             legacy_guardian_violations=list(legacy_guardian_violations or []),
         )
         self._append_raw(entry.to_jsonl())
+
+        # Telemetria claim-level: un evento por claim
+        ctx = tool_call_ctx if tool_call_ctx is not None else ToolCallContext()
+        for idx, c in enumerate(report.claims):
+            eval_result = evaluate_claim_tool_call(
+                claim_has_license_label=c.has_tag,
+                claim_normalized_label=c.normalized_label,
+                ctx=ctx,
+            )
+            # Decisin action_taken claim-level (proyeccion ENFORCE):
+            # - would_block: claim P0/P1 sin tag o con tag licenciado ilegitimo
+            # - would_degrade: claim factual fuerte que pretende licencia
+            #   pero el contexto no la ratifica
+            # - would_pass: claim P2 o claim factual con etiqueta legitima
+            action = self._derive_action(c, eval_result)
+            telemetry = ClaimTelemetry(
+                claim_id=str(uuid.uuid4()),
+                audit_id=audit_id,
+                claim_index=idx,
+                timestamp_utc=ts,
+                session_id=session_id,
+                mode=mode,
+                claim_text=c.text[:500],
+                severity=c.severity,
+                has_tag=c.has_tag,
+                tag_value=c.tag_value,
+                epistemic_label=c.normalized_label,
+                license_validated=eval_result["license_legitimate"] and c.has_tag,
+                license_required=eval_result["license_required"],
+                tool_call_present_this_turn=eval_result["tool_call_present"],
+                action_taken=action,
+            )
+            self._append_raw(telemetry.to_jsonl())
         return entry
+
+    @staticmethod
+    def _derive_action(c: Claim, eval_result: dict) -> str:
+        """
+        Proyeccion claim-level de la decision si estuvieramos en ENFORCE:
+
+          would_block    claim P0/P1 sin etiqueta licenciada legitima
+          would_degrade  claim factual fuerte que pretende licencia pero
+                         el contexto (tool_call) no la ratifica
+          would_pass     P2, o claim factual con licencia legitima, o
+                         claim con etiqueta de degradacion ya declarada
+        """
+        if c.severity == "P2":
+            return "would_pass"
+        if not c.has_tag:
+            return "would_block"
+        # has_tag=True
+        if c.has_license_to_assert():
+            return "would_pass" if eval_result["license_legitimate"] else "would_degrade"
+        # Etiqueta degradante o intermedia ya presente
+        return "would_pass"
 
     def tag_claim_review(
         self,
@@ -255,14 +355,48 @@ class T1AuditLog:
                     continue
 
     def _iter_entries(self) -> Iterable[dict]:
+        """
+        Entries son los AuditEntry parent (sin "event" o sin un valor
+        de evento que reconozcamos como derivado).
+        """
         for d in self._iter_all():
-            if d.get("event") != "claim_reviewed":
-                yield d
+            ev = d.get("event")
+            if ev in ("claim_reviewed", "claim_telemetry"):
+                continue
+            yield d
 
     def _iter_reviews(self) -> Iterable[dict]:
         for d in self._iter_all():
             if d.get("event") == "claim_reviewed":
                 yield d
+
+    def _iter_telemetry(self) -> Iterable[dict]:
+        for d in self._iter_all():
+            if d.get("event") == "claim_telemetry":
+                yield d
+
+    def iter_claim_telemetry(self) -> Iterable[dict]:
+        """Public reader para analisis claim-level."""
+        return self._iter_telemetry()
+
+    def telemetry_summary(self) -> dict:
+        """Resumen agregado de la telemetria claim-level."""
+        rows = list(self._iter_telemetry())
+        by_action: dict[str, int] = {}
+        by_label: dict[str, int] = {}
+        tool_present = 0
+        for r in rows:
+            by_action[r.get("action_taken", "")] = by_action.get(r.get("action_taken", ""), 0) + 1
+            lbl = r.get("epistemic_label") or "NO_LABEL"
+            by_label[lbl] = by_label.get(lbl, 0) + 1
+            if r.get("tool_call_present_this_turn"):
+                tool_present += 1
+        return {
+            "total_claims_logged": len(rows),
+            "by_action": by_action,
+            "by_label": by_label,
+            "tool_call_present_count": tool_present,
+        }
 
 
 def _group_count(items: Iterable[dict], key: str) -> dict[str, int]:

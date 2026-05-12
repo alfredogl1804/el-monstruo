@@ -55,6 +55,7 @@ from kernel.cowork_runtime.t1_output_contract import (  # noqa: E402
     format_violation_feedback as t1_format_feedback,
 )
 from kernel.cowork_runtime.t1_audit_log import T1AuditLog  # noqa: E402
+from kernel.cowork_runtime.tool_call_audit import ToolCallContext  # noqa: E402
 
 
 @dataclass
@@ -98,6 +99,7 @@ class CoworkPreResponseHook:
         t1_config: Optional[T1Config] = None,
         t1_audit_log: Optional[T1AuditLog] = None,
         session_id: Optional[str] = None,
+        tool_call_ctx: Optional[ToolCallContext] = None,
     ) -> None:
         """
         Args:
@@ -130,6 +132,9 @@ class CoworkPreResponseHook:
             "t1_blocked": 0,
             "t1_would_block": 0,
         }
+        # T3 binary metric: contexto de tool_calls del turno actual.
+        # El consumidor lo actualiza via set_tool_call_ctx() antes del intercept.
+        self.tool_call_ctx: ToolCallContext = tool_call_ctx or ToolCallContext()
 
     # ------------------------------------------------------------------
     # API publica
@@ -231,9 +236,27 @@ class CoworkPreResponseHook:
                 blocked=block,
                 would_block=would_block,
                 legacy_guardian_violations=list(verdict.violations),
+                tool_call_ctx=self.tool_call_ctx,
             )
 
         return {"block": block, "would_block": would_block, "report": report}
+
+    def set_tool_call_ctx(self, ctx: ToolCallContext) -> None:
+        """
+        Setea el contexto de tool_calls del turno actual.
+
+        Llamar ANTES de intercept(), idealmente al final de la cadena de
+        tool_use del modelo y antes de envolver la respuesta. La metrica
+        T3 binaria `tool_call_present_this_turn` se evalua contra este ctx.
+        """
+        self.tool_call_ctx = ctx
+
+    def register_tool_call(self, tool_name: str) -> None:
+        """Helper incremental: registra un tool_call observado del turno."""
+        if not self.tool_call_ctx:
+            self.tool_call_ctx = ToolCallContext()
+        self.tool_call_ctx.tool_calls_this_turn.append(tool_name)
+        self.tool_call_ctx.tool_calls_last_60_min.append(tool_name)
 
     def register_productive_commit(self, descripcion: str = "") -> None:
         """
@@ -267,6 +290,8 @@ class CoworkPreResponseHook:
             "shadow_would_block": self.shadow_would_block,
             "t1_mode": self.t1_config.mode.value,
             "t1_allow_enforce": self.t1_config.allow_enforce,
+            "tool_call_present_this_turn": self.tool_call_ctx.tool_call_present,
+            "tool_call_recent_60m": self.tool_call_ctx.tool_call_recent,
             **self.t1_stats,
             **self.stats.as_dict(),
         }

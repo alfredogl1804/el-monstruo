@@ -243,15 +243,24 @@ class TestAuditLog:
             blocked=False,
             would_block=True,
         )
-        # Una linea JSONL escrita
+        # Linea parent + 1 evento claim_telemetry por claim (telemetria claim-level)
         contenido = log.path.read_text(encoding="utf-8").strip().split("\n")
-        assert len(contenido) == 1
-        d = json.loads(contenido[0])
+        # Parsear y separar parent vs telemetry
+        parents = [json.loads(l) for l in contenido if json.loads(l).get("event") not in ("claim_reviewed", "claim_telemetry")]
+        telemetries = [json.loads(l) for l in contenido if json.loads(l).get("event") == "claim_telemetry"]
+        assert len(parents) == 1
+        d = parents[0]
         assert d["audit_id"] == entry.audit_id
         assert d["mode"] == "observe_only"
         assert d["blocked"] is False
         assert d["would_block"] is True
         assert d.get("event") != "claim_reviewed"
+        # Telemetria claim-level: al menos 1 por claim del report
+        assert len(telemetries) == len(report.claims)
+        for t in telemetries:
+            assert t["audit_id"] == entry.audit_id
+            assert "tool_call_present_this_turn" in t
+            assert t["action_taken"] in ("would_block", "would_degrade", "would_pass")
 
     def test_load_for_audit_50_claims(self, tmp_path):
         log = self._make_log(tmp_path)
@@ -394,8 +403,10 @@ class TestHookT1Integration:
         hook.intercept("El kernel esta vivo en Railway hoy.", "status")
         assert log_path.exists()
         lines = log_path.read_text(encoding="utf-8").strip().split("\n")
-        assert len(lines) == 1
-        d = json.loads(lines[0])
+        # 1 parent + N claim_telemetry (uno por claim)
+        parents = [json.loads(l) for l in lines if json.loads(l).get("event") != "claim_telemetry"]
+        assert len(parents) == 1
+        d = parents[0]
         assert d["mode"] == "observe_only"
 
     def test_enforce_bloquea_claim_p0_sin_tag(self, tmp_path, monkeypatch):

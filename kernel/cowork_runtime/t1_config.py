@@ -43,6 +43,8 @@ class T1Mode(str, Enum):
 
 
 MIN_AUDITED_CLAIMS_FOR_ENFORCE = 50
+MIN_PRECISION_FOR_ENFORCE = 0.80  # 80% precision sobre claims sin licencia
+MAX_FALSE_POSITIVES_P2_FOR_ENFORCE = 0  # cero falsos positivos sobre P2
 
 ENV_MODE = "COWORK_T1_MODE"
 ENV_ALLOW_ENFORCE = "COWORK_T1_ALLOW_ENFORCE"
@@ -108,12 +110,24 @@ class T1Config:
         audit_completed: bool,
         confirmed_p0_p1_count: int,
         env_allow_enforce: Optional[bool] = None,
+        precision: Optional[float] = None,
+        false_positives_p2: Optional[int] = None,
+        auditor: Optional[str] = None,
     ) -> "T1Config":
         """
         Construye un T1Config en ENFORCE solo si:
           - audit_completed is True
-          - confirmed_p0_p1_count >= MIN_AUDITED_CLAIMS_FOR_ENFORCE
+          - confirmed_p0_p1_count >= MIN_AUDITED_CLAIMS_FOR_ENFORCE (50)
+          - precision >= MIN_PRECISION_FOR_ENFORCE (80%) sobre claims
+            sin licencia (convergencia Copilot 365 — 2026-05-12)
+          - false_positives_p2 <= MAX_FALSE_POSITIVES_P2_FOR_ENFORCE (0)
           - env COWORK_T1_ALLOW_ENFORCE=true (o env_allow_enforce override)
+          - auditor == "alfredo" (T1 humano, no auto-promotion)
+
+        precision y false_positives_p2 son opcionales para compatibilidad
+        hacia atras con tests previos al spec convergencia 7 Sabios.
+        Si NO se proporcionan, el guardrail nuevo se omite (modo legacy),
+        pero ese path quedara deprecado.
 
         En cualquier otro caso lanza ValueError. NO degrada silencioso a
         OBSERVE_ONLY — el caller pidio ENFORCE explicitamente y debe saber
@@ -133,6 +147,25 @@ class T1Config:
             raise ValueError(
                 f"ENFORCE requiere >= {MIN_AUDITED_CLAIMS_FOR_ENFORCE} "
                 f"claims P0/P1 confirmados. Recibido: {confirmed_p0_p1_count}."
+            )
+        if precision is not None and precision < MIN_PRECISION_FOR_ENFORCE:
+            raise ValueError(
+                f"ENFORCE requiere precision >= {MIN_PRECISION_FOR_ENFORCE:.0%} "
+                f"sobre claims sin licencia. Recibido: {precision:.2%}."
+            )
+        if (
+            false_positives_p2 is not None
+            and false_positives_p2 > MAX_FALSE_POSITIVES_P2_FOR_ENFORCE
+        ):
+            raise ValueError(
+                f"ENFORCE requiere {MAX_FALSE_POSITIVES_P2_FOR_ENFORCE} "
+                f"falsos positivos sobre claims P2. Recibido: "
+                f"{false_positives_p2}."
+            )
+        if auditor is not None and auditor != "alfredo":
+            raise ValueError(
+                f"ENFORCE solo legitimable con auditor='alfredo' (T1 humano). "
+                f"Recibido: {auditor!r}."
             )
         if not env_allow_enforce:
             raise ValueError(

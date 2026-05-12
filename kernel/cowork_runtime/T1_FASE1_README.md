@@ -2,25 +2,43 @@
 
 Sprint: T1-FASE1-OBSERVE-ONLY · 2026-05-12 · Cowork T2 bajo autorización T1 directa.
 
+**Update 2026-05-12 — Convergencia 7 Sabios:** ampliado a 9 etiquetas epistémicas, system prompt override forzoso, telemetría claim-level y métrica T3 binaria `tool_call_present`. Ver §"Cambios convergencia 7 Sabios" al final.
+
 ## Qué es
 
 Capa runtime sobre `CoworkPreResponseHook` que:
 
 1. **Intercepta** cada output candidato de Cowork antes de Alfredo.
-2. **Clasifica** cada claim por severidad **P0 / P1 / P2** y por **tag obligatorio** del contrato de salida tipado.
-3. **Registra** todo en un audit log JSONL para auditoría manual a 24h.
-4. **NO bloquea** en esta fase (OBSERVE-ONLY). El bloqueo solo activa en ENFORCE, y ENFORCE está protegido por triple-guardrail.
+2. **Clasifica** cada claim por severidad **P0 / P1 / P2** y por **etiqueta epistémica obligatoria** del contrato de salida tipado.
+3. **Registra** todo en un audit log JSONL — un evento parent (response-level) más un evento `claim_telemetry` por cada claim (claim-level).
+4. **NO bloquea** en esta fase (OBSERVE-ONLY). El bloqueo solo activa en ENFORCE, y ENFORCE está protegido por guardrail multi-condición.
 
-## Contrato de salida tipado
+## Contrato de salida tipado — 9 etiquetas canónicas
 
-Cada afirmación sustantiva debe llevar uno de cuatro tags:
+Cada afirmación factual fuerte debe llevar UNA de las 9 etiquetas (convergencia 7 Sabios — 2026-05-12, definidas en `kernel/cowork_runtime/epistemic_labels.py`):
 
-| Tag                                 | Cuándo                                                                |
-| ----------------------------------- | --------------------------------------------------------------------- |
-| `[VERIFICADO fuente + timestamp]`   | Hay evidencia fresca de esta sesión (Read / Grep / Bash / MCP / SQL). |
-| `[INFERIDO]`                        | Inferencia razonable a partir de contexto, sin fuente binaria.        |
-| `[NO VERIFICADO]`                   | Dato que no se pudo comprobar en esta sesión.                         |
-| `[REQUIERE READ/SQL]`               | Claim que necesita lectura fresca y aún no se hizo.                   |
+| Etiqueta                          | Cuándo                                                                                  |
+| --------------------------------- | --------------------------------------------------------------------------------------- |
+| `[VERIFIED_CURRENT_TURN]`         | Hay tool_call ejecutado en este turno (Read / Grep / Bash / MCP / SQL).                 |
+| `[VERIFIED_RECENT_LT_60M]`        | Validado hace <60 min — no repetir tool_call.                                           |
+| `[SESSION_MEMORY_ONLY]`           | Solo memoria de sesión actual, NO afirmar como hecho.                                   |
+| `[INFERRED]`                      | Inferencia razonable a partir de contexto, sin verificación.                            |
+| `[USER_PROVIDED]`                 | Dato que aportó Alfredo (T1) en sesión.                                                 |
+| `[NEEDS_SQL]`                     | Claim factual que requiere SQL fresco antes de afirmar.                                 |
+| `[NEEDS_READ]`                    | Claim factual que requiere Read del repo antes de afirmar.                              |
+| `[CONTRADICTED_BY_EXTERNAL]`      | Contradice output reciente de Sabio externo o data fresca.                              |
+| `[UNVERIFIED_DO_NOT_ASSERT]`      | Sin licencia para afirmar — debe omitirse o degradarse.                                 |
+
+### Compatibilidad legacy (4 etiquetas previas)
+
+Las 4 etiquetas legacy siguen aceptadas y se normalizan automáticamente al equivalente moderno:
+
+| Legacy                          | Moderno equivalente              |
+| ------------------------------- | -------------------------------- |
+| `[VERIFICADO fuente + ts]`      | `VERIFIED_CURRENT_TURN`          |
+| `[INFERIDO]`                    | `INFERRED`                       |
+| `[NO VERIFICADO]`               | `UNVERIFIED_DO_NOT_ASSERT`       |
+| `[REQUIERE READ/SQL]`           | `NEEDS_READ`                     |
 
 ## Severidad
 
@@ -75,13 +93,32 @@ export COWORK_T1_MODE=enforce
 
 `T1Config.from_env()` **degrada silenciosamente a OBSERVE_ONLY**. El hook no bloquea ningún output. Esto evita que un cambio accidental de variable escale a ENFORCE.
 
-### ENFORCE legítimo — requiere triple-guardrail
+### ENFORCE legítimo — guardrail multi-condición (convergencia 7 Sabios)
 
-1. Auditoría manual completada con `audit_completed=True`.
-2. Al menos **50 claims P0/P1** confirmados como `true_block` por el auditor.
-3. Variable `COWORK_T1_ALLOW_ENFORCE=true` exportada explícitamente.
+ENFORCE solo se permite cuando se cumplen TODAS las siguientes condiciones a la vez:
 
-Si cualquiera de las tres falta, `enforce_after_manual_audit()` lanza `ValueError`. **No existe API para auto-escalada por contador** (`>5 bloqueos`, `>N false_positives`, etc.) — la promoción a ENFORCE es siempre un acto humano explícito.
+1. **Auditoría manual completada** con `audit_completed=True`.
+2. **≥ 50 claims P0/P1** confirmados como `true_block` por el auditor (`MIN_AUDITED_CLAIMS_FOR_ENFORCE = 50`).
+3. **≥ 80% precision** sobre claims sin licencia (`MIN_PRECISION_FOR_ENFORCE = 0.80`) — pasar `precision=...` a la factory.
+4. **0 falsos positivos sobre claims P2** (`MAX_FALSE_POSITIVES_P2_FOR_ENFORCE = 0`) — pasar `false_positives_p2=...`.
+5. **Auditor = "alfredo"** (T1 humano) — pasar `auditor="alfredo"`.
+6. Variable de entorno `COWORK_T1_ALLOW_ENFORCE=true` exportada explícitamente.
+
+Si cualquiera falta, `enforce_after_manual_audit()` lanza `ValueError`. **No existe API para auto-escalada por contador** (`>5 bloqueos`, `>N false_positives`, etc.) — la promoción a ENFORCE es siempre un acto humano explícito y multi-validado.
+
+Los parámetros `precision`, `false_positives_p2` y `auditor` son opcionales para compatibilidad hacia atrás con tests previos; cuando no se proporcionan, el guardrail nuevo se omite (modo legacy deprecado).
+
+```python
+# Forma canónica post-convergencia 7 Sabios
+cfg = T1Config.enforce_after_manual_audit(
+    audit_completed=True,
+    confirmed_p0_p1_count=60,
+    env_allow_enforce=True,
+    precision=0.92,
+    false_positives_p2=0,
+    auditor="alfredo",
+)
+```
 
 ## Auditoría a 24 horas
 
@@ -115,7 +152,7 @@ python3 -m pytest tests/test_cowork_pre_response_hook.py tests/test_t1_pre_respo
 python3 -m pytest tests/test_t1_pre_response_hook.py -v
 ```
 
-Resultado actual local: **92/92 passed** (18 legacy + 36 T1 + 38 cowork relacionados).
+Resultado actual local: **111/111 passed** (18 legacy + 36 T1 base + 57 T1 convergencia 7 Sabios). Suite cowork relacionada adicional: 71 verdes.
 
 ## Limitaciones conocidas
 
@@ -132,3 +169,51 @@ Resultado actual local: **92/92 passed** (18 legacy + 36 T1 + 38 cowork relacion
 4. Si >= 50 confirmados como `true_block` P0/P1 y se exporta `COWORK_T1_ALLOW_ENFORCE=true`, recién entonces `enforce_after_manual_audit(50, True, True)` es válido.
 
 Cualquier promoción a ENFORCE antes de eso fallará por config, no por convención.
+
+---
+
+## Cambios convergencia 7 Sabios (2026-05-12)
+
+Spec firmada: `bridge/cowork_to_perplexity_T2B_UPDATE_PR_110_CONVERGENCIA_7_SABIOS_2026_05_12.md`.
+
+### A. 9 etiquetas epistémicas granulares
+
+Archivo nuevo: `kernel/cowork_runtime/epistemic_labels.py`. Reemplaza el set de 4 etiquetas legacy. Las 4 originales quedan aceptadas vía normalización automática (ver tabla arriba).
+
+### B. System prompt override forzoso
+
+Archivo nuevo: `kernel/cowork_runtime/cowork_system_prompt_override.py`. Provee el texto canónico que el orquestador debe inyectar como system prompt de Cowork. Contiene la directiva `"PROHIBIDO afirmar sin tool_call."` como contrato dura de salida.
+
+```python
+from kernel.cowork_runtime.cowork_system_prompt_override import (
+    get_system_prompt_override,
+    append_to_system_prompt,
+    is_override_present,
+)
+
+prompt = get_system_prompt_override()
+# o, si ya existe un system prompt:
+prompt = append_to_system_prompt(base_prompt)
+```
+
+### C. Telemetría claim-level
+
+`T1AuditLog.record_interception` ahora escribe, además del evento parent (response-level con el `AuditEntry`), un evento `claim_telemetry` por cada claim detectado. Cada evento incluye `claim_id`, `epistemic_label`, `license_validated`, `license_required`, `tool_call_present_this_turn`, `action_taken` (`would_block` | `would_degrade` | `would_pass`).
+
+Reader: `T1AuditLog.iter_claim_telemetry()` y `T1AuditLog.telemetry_summary()`.
+
+### D. Métrica T3 binaria `tool_call_present`
+
+Archivo nuevo: `kernel/cowork_runtime/tool_call_audit.py`. Define `ToolCallContext` y la pregunta canónica binaria: *"¿hubo tool_call de evidencia (Read / Grep / Bash / WebFetch / WebSearch / MCP Supabase / MCP GitHub) en este turno?"*
+
+El hook expone `register_tool_call(tool_name)` y `set_tool_call_ctx(ctx)` para que el orquestador alimente el contexto antes de cada `intercept()`. El audit log lo persiste por claim.
+
+### E. Guardrail ENFORCE multi-condición
+
+Ver §"ENFORCE legítimo — guardrail multi-condición (convergencia 7 Sabios)" arriba. Reemplaza el threshold simple por: ≥50 claims + ≥80% precision + 0 FP P2 + auditor="alfredo" + env var.
+
+### Política inalterada (no tocada por la convergencia)
+
+- OBSERVE-ONLY sigue siendo el default sin variables.
+- Auto-ENFORCE desde OBSERVE-ONLY sigue prohibido.
+- **P2 nunca bloquea**, ni siquiera en ENFORCE.
