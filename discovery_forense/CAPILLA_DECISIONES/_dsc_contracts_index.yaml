@@ -17,7 +17,7 @@
 
 version: 1
 fecha_canonizacion: "2026-05-07"
-fecha_ultima_actualizacion: "2026-05-11"  # +DSC-S-012 firmado
+fecha_ultima_actualizacion: "2026-05-12"  # +DSC-S-015, DSC-OPS-001, DSC-S-016 firmados T1 + DSC-G-008 v3 ampliado
 
 dscs:
 
@@ -132,7 +132,7 @@ dscs:
       es su propio sprint.
 
   "_GLOBAL/DSC-G-008_validar_codebase_antes_de_specs.md":
-    status: enforced
+    status: enforced (v3 ampliado 2026-05-12 post-PBA PR #115)
     contracts:
       - tools/spec_lint.py
       - tests/test_spec_lint.py
@@ -140,6 +140,39 @@ dscs:
     notes: >
       spec_lint.py wired en .pre-commit-config.yaml para archivos en
       bridge/sprints_propuestos/. Modo strict opt-in via lint_strict marker.
+      v3 (2026-05-12 commit 46f0ee6): cláusula §4 obligatoria "deducir
+      consecuencias materiales de §3 limitaciones declaradas" para audits
+      Cowork bajo PBA. Sin §4 explícito → audit candidato a regresión
+      post-T2-B convergencia.
+
+  "_GLOBAL/DSC-S-015_scheduler_respeta_next_run_restore.md":
+    status: enforced (firmado T1 2026-05-12 commit 51d6017)
+    contracts:
+      - kernel/embrion_scheduler.py
+      - tests/test_scheduler_restore_overdue.py
+    notes: >
+      Scheduler restore desde Supabase debe respetar next_run overdue —
+      NUNCA recalcular incondicionalmente. add_task con existing reusa
+      next_run preservado. Lección D-5 zombies (commits 63767ef + f6ed3be).
+
+  "_GLOBAL/DSC-OPS-001_update_manual_prod_requires_bridge_report.md":
+    status: enforced (firmado T1 2026-05-12 commit 1eb375c)
+    contracts:
+      - bridge/  # cualquier UPDATE manual prod genera reporte aquí
+    notes: >
+      Cualquier UPDATE manual de datos en prod requiere bridge report
+      pre/post con SQL exacto + razón + verificación. Sin bridge report,
+      el UPDATE es candidato a rollback emergencia.
+
+  "_GLOBAL/DSC-S-016_anti_fabricacion_causalidad_sin_grep.md":
+    status: enforced (firmado T1 2026-05-12 commit 54ddd6f)
+    contracts:
+      - tools/_check_no_speculative_causality.py  # propuesto T6
+    notes: >
+      Cowork NUNCA debe afirmar causalidad ("PR X borra Y", "esto rompe Z")
+      sin verificación binaria previa (grep/diff/merge-tree). git diff
+      lineal NO sustituye merge-tree para predecir conflicts reales.
+      Lección F2+F21 reincidente PR #110 G6.
 
   "_GLOBAL/DSC-G-009_recomendaciones_seguridad_firmadas_en_misma_sesion.md":
     status: enforced
