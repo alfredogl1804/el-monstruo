@@ -1,36 +1,22 @@
 """Dimensión 3 — Consistencia doctrinal.
 
-Evalúa que la respuesta NO contradiga ningún DSC con ``estado=firme``, NO invente
-canonizaciones nuevas, y NO use naming prohibido por DSC-G-004
-(service/handler/utils/helper/misc).
+Evalúa si la respuesta contradice algún DSC firme (Decisión Soberana
+Canonizada) del Monstruo, alguna regla dura de AGENTS.md, o algún objetivo
+maestro. El Sabio recibe la lista de DSCs y reglas duras como criterios y
+verifica consistencia.
+
+Implementación PR-B: subclase delgada de ``BaseSabioDimension``.
 
 Spec: bridge/sprint_PAR_BICEFALO_001_brand_engine_spec_2026_05_11.md (T2 D3).
-DSC: DSC-MO-006, DSC-G-004 (naming canónico).
+DSC: DSC-MO-006 (par bicéfalo), DSC-G-008 (consistencia doctrinal).
 """
 
 from __future__ import annotations
 
-from kernel.embriones.brand_engine.dimensions import DimensionEvaluator, DimensionResult
+from kernel.embriones.brand_engine.dimensions import BaseSabioDimension
 
 
-class DoctrinaEvaluator(DimensionEvaluator):
-    """Evaluador de D3 — consistencia doctrinal.
-
-    PR-A: stub que retorna passed=True con score=1.0. PR-B reemplaza.
-    """
+class DoctrinaEvaluator(BaseSabioDimension):
+    """Evaluador real de D3 — consistencia con doctrina canonizada."""
 
     name = "D3_consistencia_doctrina"
-
-    def evaluate(
-        self,
-        respuesta_candidata: str,
-        criterios: list[str],
-        umbral_pass: float,
-    ) -> DimensionResult:
-        return DimensionResult(
-            score=1.0,
-            passed=True,
-            reason=None,
-            cost_usd=0.0,
-            latency_ms=0,
-        )

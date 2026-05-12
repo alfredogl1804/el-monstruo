@@ -84,6 +84,14 @@ EMBRION_BUDGET_TRACKER_ENABLED = (
 EMBRION_SELF_VERIFIER_ENABLED = (
     os.environ.get("EMBRION_SELF_VERIFIER_ENABLED", "true").lower() == "true"
 )
+
+# Sprint PAR_BICEFALO_001 — Brand Engine como segundo embrión del par bicéfalo.
+# Default False: en G6 canary mode=shadow por defecto (DSC-MO-011). Para
+# activarlo en producción Alfredo debe poner BRAND_ENGINE_ENABLED=true en
+# Railway. El config YAML controla mode (shadow|enforce), umbrales y budget.
+BRAND_ENGINE_ENABLED = (
+    os.environ.get("BRAND_ENGINE_ENABLED", "false").lower() == "true"
+)
 # Estimación conservadora de tokens por trigger (input + output esperado).
 # Se usa en el pre-flight del Budget Tracker. Calibrada con datos reales del
 # bucle 1-may: respuestas eco rondaron 600-1000 tokens output, prompts ~1500 in.
@@ -1255,14 +1263,85 @@ class EmbrionLoop:
                 except Exception as _ve:
                     logger.warning("embrion_self_verifier_failed", error=str(_ve))
 
+            # ── Sprint PAR_BICEFALO_001 — Brand Engine (segundo embrión VETO) ──
+            # Solo corre si el Self-Verifier NO abortó (no gastamos Sábios para
+            # reconfirmar un rechazo previo) y si la flag está activa. Cualquier
+            # excepción es fail-open absoluto: el embrion_loop nunca se rompe
+            # por una falla del Brand Engine.
+            _brand_engine_aborted = False
+            _brand_engine_verdict: Optional[str] = None
+            _brand_engine_reason: Optional[str] = None
+            _brand_engine_cost_usd: float = 0.0
+            _brand_engine_latency_ms: int = 0
+            _brand_engine_validation_id: Optional[str] = None
+            if (
+                BRAND_ENGINE_ENABLED
+                and response
+                and not _verifier_aborted
+            ):
+                try:
+                    from kernel.embriones.brand_engine.brand_engine import (
+                        BrandEngine as _BrandEngine,
+                    )
+                    from kernel.embriones.brand_engine.config_loader import (
+                        load_brand_engine_config,
+                        apply_env_overrides,
+                    )
+
+                    _be_config = apply_env_overrides(load_brand_engine_config())
+                    _be_engine = _BrandEngine(_be_config)
+                    _be_result = await _be_engine.validate_async(response)
+
+                    _brand_engine_verdict = _be_result.verdict.value
+                    _brand_engine_cost_usd = round(float(_be_result.cost_usd), 6)
+                    _brand_engine_latency_ms = int(_be_result.latency_ms)
+                    _brand_engine_validation_id = _be_result.validation_id
+                    _brand_engine_reason = _be_result.razon_rejection
+
+                    if _be_result.is_blocking():
+                        # mode=enforce + REJECTED → bloquear como silencio.
+                        _brand_engine_aborted = True
+                        logger.warning(
+                            "brand_engine_veto_applied",
+                            cycle_id=self._cycle_count,
+                            validation_id=_be_result.validation_id,
+                            verdict=_brand_engine_verdict,
+                            reason=_brand_engine_reason,
+                            cost_usd=_brand_engine_cost_usd,
+                            latency_ms=_brand_engine_latency_ms,
+                            mode=_be_config.mode,
+                        )
+                    else:
+                        # mode=shadow OR mode=enforce+APPROVED → solo logear.
+                        logger.info(
+                            "brand_engine_evaluated",
+                            cycle_id=self._cycle_count,
+                            validation_id=_be_result.validation_id,
+                            verdict=_brand_engine_verdict,
+                            cost_usd=_brand_engine_cost_usd,
+                            latency_ms=_brand_engine_latency_ms,
+                            mode=_be_config.mode,
+                        )
+                except Exception as _bee:
+                    # Fail-open absoluto. NO rompemos el embrion_loop.
+                    logger.warning(
+                        "brand_engine_failed_open",
+                        error=str(_bee)[:200],
+                        cycle_id=self._cycle_count,
+                    )
+
             # Save the thought as a memory
             _memoria_tipo = (
-                "silencio_verificador"
-                if _verifier_aborted
+                "silencio_brand_veto"
+                if _brand_engine_aborted
                 else (
-                    "latido"
-                    if trigger["type"] == "reflexion_autonoma"
-                    else "respuesta_embrion"
+                    "silencio_verificador"
+                    if _verifier_aborted
+                    else (
+                        "latido"
+                        if trigger["type"] == "reflexion_autonoma"
+                        else "respuesta_embrion"
+                    )
                 )
             )
             await self._save_memory(
@@ -1280,14 +1359,20 @@ class EmbrionLoop:
                     "tool_calls": len(tool_calls),
                     "verifier_aborted": _verifier_aborted,
                     "verifier_reasons": _verifier_reasons,
+                    "brand_engine_verdict": _brand_engine_verdict,
+                    "brand_engine_aborted": _brand_engine_aborted,
+                    "brand_engine_reason": _brand_engine_reason,
+                    "brand_engine_cost_usd": _brand_engine_cost_usd,
+                    "brand_engine_latency_ms": _brand_engine_latency_ms,
+                    "brand_engine_validation_id": _brand_engine_validation_id,
                 },
             )
-
-            # Si el verifier abortó, devolvemos None para que el caller no
-            # propague la respuesta como acción. La memoria queda registrada
-            # para auditoría y aprendizaje (Sprint 34 lessons).
-            if _verifier_aborted:
-                return None
+            # Si el verifier o el Brand Engine abortaron, devolvemos None para
+            # que el caller no propague la respuesta como acción. La memoria
+            # queda registrada para auditoría y aprendizaje (Sprint 34 lessons,
+            # Sprint PAR_BICEFALO_001 par bicéfalo).
+            if _verifier_aborted or _brand_engine_aborted:
+                return Nonee
 
             return {
                 "response": response,
