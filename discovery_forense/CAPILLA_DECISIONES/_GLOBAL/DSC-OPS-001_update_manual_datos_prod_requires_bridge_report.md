@@ -3,12 +3,12 @@ id: DSC-OPS-001
 proyecto: GLOBAL
 tipo: restriccion_operativa
 titulo: "Todo UPDATE/DELETE manual sobre tablas productivas requiere bridge file reporte con SQL exacto + rollback path"
-estado: borrador
+estado: firme
 fecha: 2026-05-12
-fecha_firma_T1: PENDIENTE
+fecha_firma_T1: 2026-05-12
 autor_borrador: Cowork T2-A (post-D-5 cierre)
 autor_propuesta_original: Manus Hilo Ejecutor 1 (durante Sprint D-5 — declaró UPDATE manual a scheduled_tasks next_run=NOW())
-autorización_T1: PENDIENTE
+autorización_T1: Alfredo firmó 2026-05-12 ~07:55 UTC en chat ("te firmo los 5 incluyendo el 5 de xcode")
 fuentes:
   - bridge/manus_to_cowork_REPORTE_SPRINT_D5_2026_05_12.md (Ejecutor 1 declaró UPDATE manual)
   - DSC-S-012 (patrón análogo para migraciones schema)
@@ -108,4 +108,4 @@ ETA: 1h de Cowork-puro post-firma T1.
 
 ---
 
-**estado:** borrador — pendiente firma T1 explícita + audit T2-B + contrato ejecutable (sprint Cowork). Cowork NO canoniza unilateralmente.
+**estado:** **FIRME** — firma T1 Alfredo 2026-05-12 ~07:55 UTC en chat. Canonizado oficialmente. Total DSCs canonizados: 65 → 66.
