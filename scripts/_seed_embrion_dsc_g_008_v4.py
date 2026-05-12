@@ -37,18 +37,22 @@ def main() -> int:
             "Insight propio canonizado por Cowork T2-A como clausula 5 de "
             "DSC-G-008 v4."
         ),
-        "etiquetas": [
-            "sprint:DSC-G-008-V4-INDEX-DRIFT-ENFORCEMENT-001",
-            "fecha:2026-05-12",
-            "hilo:catastro",
-            "estado:verde",
-            "doctrina:DSC-G-008-v4",
-            "doctrina:DSC-G-009",
-            "doctrina:DSC-G-017",
-            "doctrina:DSC-S-016",
-            "tipo:contrato-ejecutable",
-            "tests:22-verdes",
-        ],
+        "hilo_origen": "catastro",
+        "importancia": 8,
+        "contexto": {
+            "sprint": "DSC-G-008-V4-INDEX-DRIFT-ENFORCEMENT-001",
+            "fecha": "2026-05-12",
+            "estado": "verde",
+            "doctrinas": [
+                "DSC-G-008-v4",
+                "DSC-G-009",
+                "DSC-G-017",
+                "DSC-S-016",
+            ],
+            "tipo_entrega": "contrato-ejecutable",
+            "tests": "22-verdes",
+            "insight_propio": "drifts documentales sobreviven a su resolucion material si no hay enforcement automatizado",
+        },
     }
     data = json.dumps(payload).encode("utf-8")
     url = f"{sb_url.rstrip('/')}/rest/v1/embrion_memoria"
