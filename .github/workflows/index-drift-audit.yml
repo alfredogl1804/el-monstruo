@@ -1,0 +1,128 @@
+name: Index Drift Audit Weekly
+# DSC-G-008-V4-INDEX-DRIFT-ENFORCEMENT-001 (Sprint 2026-05-12)
+# Contrato ejecutable de DSC-G-008 v4 §5 — "drifts documentales sobreviven a su
+# resolución material" (insight Manus Hilo Catastro en spike DSC-S-005-CANONICAL-AUDIT-001,
+# canonizado por Cowork T2-A).
+#
+# Compara declaraciones en _INDEX.md de la Capilla de Decisiones vs los archivos
+# DSC-*.md reales en filesystem. Falla y abre issue automático si hay drift.
+on:
+  schedule:
+    # Lunes 06:00 UTC = lunes 00:00 CDMX (verano) / 23:00 CDMX domingo (invierno)
+    - cron: '0 6 * * 1'
+  workflow_dispatch:  # Permite ejecución manual desde la UI de GitHub Actions
+
+permissions:
+  contents: read
+  issues: write  # Para abrir issue automático si la auditoría detecta drift
+
+jobs:
+  index-drift-audit:
+    name: Audit _INDEX.md vs filesystem drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run index drift audit
+        id: audit
+        run: |
+          mkdir -p reports
+          python3 tools/_check_index_drift.py \
+            --json reports/index_drift_audit.json \
+            | tee reports/index_drift_audit.txt
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+        continue-on-error: true
+
+      - name: Determine drift status
+        id: status
+        run: |
+          if python3 tools/_check_index_drift.py --quiet --json /tmp/_drift_check.json; then
+            echo "has_drift=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_drift=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open issue on drift
+        if: steps.status.outputs.has_drift == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## Index Drift Detected\n\n';
+            body += 'El audit semanal de `_INDEX.md` vs filesystem detectó drift documental.\n\n';
+            body += '**Doctrina:** DSC-G-008 v4 §5 — "drifts documentales sobreviven a su ';
+            body += 'resolución material si no hay enforcement automatizado".\n\n';
+
+            try {
+              const human = fs.readFileSync('reports/index_drift_audit.txt', 'utf8');
+              body += '### Reporte humano\n\n```\n' + human + '\n```\n\n';
+            } catch (e) {
+              body += '_(reporte humano no encontrado, ver logs del job)_\n\n';
+            }
+
+            try {
+              const jsonText = fs.readFileSync('reports/index_drift_audit.json', 'utf8');
+              const report = JSON.parse(jsonText);
+              body += '### Resumen JSON\n\n```json\n' + JSON.stringify(report.summary, null, 2) + '\n```\n\n';
+              if (report.missing_filesystem && report.missing_filesystem.length > 0) {
+                body += '### MISSING_FILESYSTEM (declarado en index sin archivo)\n\n';
+                for (const item of report.missing_filesystem) {
+                  body += `- \`${item.code}\` — declared at _INDEX.md:L${item.index_line} → \`${item.declared_path}\` not found\n`;
+                }
+                body += '\n';
+              }
+              if (report.missing_index && report.missing_index.length > 0) {
+                body += '### MISSING_INDEX (archivo sin entrada en index)\n\n';
+                for (const item of report.missing_index) {
+                  body += `- \`${item.code}\` — present at \`${item.filesystem_path}\` but no entry in _INDEX.md\n`;
+                }
+                body += '\n';
+              }
+            } catch (e) {
+              body += '_(reporte JSON no encontrado o malformado)_\n\n';
+            }
+
+            body += '### Acción requerida\n\n';
+            body += '1. Investigar cada drift listado y decidir si la corrección es:\n';
+            body += '   - Actualizar `_INDEX.md` (caso MISSING_INDEX: archivo nuevo no indexado).\n';
+            body += '   - Restaurar archivo desde git history (caso MISSING_FILESYSTEM: archivo borrado por accidente).\n';
+            body += '   - Mover archivo a `_ARCHIVED/` o `INCIDENTES/` con tombstone si ya no es vigente.\n';
+            body += '2. Abrir PR con la corrección.\n';
+            body += '3. Cerrar este issue cuando el siguiente run del workflow pase verde.\n\n';
+            body += '### Referencias\n\n';
+            body += '- Script: `tools/_check_index_drift.py`\n';
+            body += '- Tests: `tests/test_check_index_drift.py`\n';
+            body += '- DSC: `discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-G-008_validar_codebase_antes_de_specs.md`\n';
+            body += '- Spike de origen: `bridge/manus_to_cowork_DSC_S_005_CANONICAL_AUDIT_DONE_2026_05_12.md`\n';
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[Index Drift] _INDEX.md vs filesystem desincronizado - ${new Date().toISOString().split('T')[0]}`,
+              body: body,
+              labels: ['index-drift', 'auto-detected', 'doctrina']
+            });
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: index-drift-audit-report
+          path: |
+            reports/index_drift_audit.json
+            reports/index_drift_audit.txt
+          retention-days: 90
+          if-no-files-found: ignore
+
+      - name: Fail job if drift detected
+        if: steps.status.outputs.has_drift == 'true'
+        run: |
+          echo "::error::Index drift detected. See uploaded artifact and auto-created issue."
+          exit 1

@@ -1,0 +1,15 @@
+{
+  "capilla_root": "/Users/alfredogongora/el-monstruo/discovery_forense/CAPILLA_DECISIONES",
+  "index_path": "/Users/alfredogongora/el-monstruo/discovery_forense/CAPILLA_DECISIONES/_INDEX.md",
+  "missing_filesystem": [],
+  "missing_index": [],
+  "summary": {
+    "declared_in_index": 62,
+    "files_in_filesystem": 62,
+    "has_drift": false,
+    "missing_filesystem_count": 0,
+    "missing_index_count": 0,
+    "tombstoned_files_count": 0
+  },
+  "tombstoned_files": []
+}

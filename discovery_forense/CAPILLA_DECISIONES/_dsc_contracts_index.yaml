@@ -17,7 +17,7 @@
 
 version: 1
 fecha_canonizacion: "2026-05-07"
-fecha_ultima_actualizacion: "2026-05-12"  # +DSC-S-015, DSC-OPS-001, DSC-S-016 firmados T1 + DSC-G-008 v3 ampliado
+fecha_ultima_actualizacion: "2026-05-12"  # +DSC-S-015, DSC-OPS-001, DSC-S-016 firmados T1 + DSC-G-008 v3 ampliado + DSC-G-008 v4 (index drift enforcement)
 
 dscs:
 
@@ -132,10 +132,19 @@ dscs:
       es su propio sprint.
 
   "_GLOBAL/DSC-G-008_validar_codebase_antes_de_specs.md":
-    status: enforced (v3 ampliado 2026-05-12 post-PBA PR #115)
+    status: enforced
+    version: "v4"
+    version_history:
+      - "v1 (2026-05-06): regla base — validar codebase antes de specs."
+      - "v2 (2026-05-11): audit pre-cierre obligatorio."
+      - "v3 (2026-05-12 commit 46f0ee6): clausula §4 deducir consecuencias materiales bajo PBA."
+      - "v4 (2026-05-12 sprint DSC-G-008-V4-INDEX-DRIFT-ENFORCEMENT-001): clausula §5 — drifts documentales sobreviven a su resolucion material sin enforcement automatizado."
     contracts:
       - tools/spec_lint.py
       - tests/test_spec_lint.py
+      - tools/_check_index_drift.py
+      - tests/test_check_index_drift.py
+      - .github/workflows/index-drift-audit.yml
       - .pre-commit-config.yaml
     notes: >
       spec_lint.py wired en .pre-commit-config.yaml para archivos en
@@ -144,6 +153,16 @@ dscs:
       consecuencias materiales de §3 limitaciones declaradas" para audits
       Cowork bajo PBA. Sin §4 explícito → audit candidato a regresión
       post-T2-B convergencia.
+      v4 (2026-05-12 sprint DSC-G-008-V4-INDEX-DRIFT-ENFORCEMENT-001):
+      cláusula §5 nueva — "drifts documentales sobreviven a su resolución
+      material si no hay enforcement automatizado" (insight Manus Hilo
+      Catastro detonado durante spike DSC-S-005-CANONICAL-AUDIT-001,
+      canonizado por Cowork T2-A). Contrato ejecutable nuevo:
+      tools/_check_index_drift.py compara _INDEX.md declared vs filesystem
+      reality, reporta MISSING_FILESYSTEM y MISSING_INDEX, exit 1 si drift.
+      Workflow .github/workflows/index-drift-audit.yml corre weekly (lunes
+      06:00 UTC) y abre issue automático con labels index-drift +
+      auto-detected + doctrina si detecta drift. Tests: 12/12 verdes.
 
   "_GLOBAL/DSC-S-015_scheduler_respeta_next_run_restore.md":
     status: enforced (firmado T1 2026-05-12 commit 51d6017)
