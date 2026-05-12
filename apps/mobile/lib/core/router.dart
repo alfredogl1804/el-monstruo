@@ -11,7 +11,7 @@ import '../features/onboarding/onboarding_screen.dart';
 import '../features/embrion/embrion_screen.dart';
 import '../features/memory/memory_screen.dart';
 import '../features/finops/finops_screen.dart';
-import '../features/genui/genui_screen.dart';
+import 'a2ui/a2ui_screen.dart';
 import '../features/moc/moc_screen.dart';
 import '../widgets/shell_scaffold.dart';
 
@@ -68,7 +68,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/genui',
-        builder: (context, state) => const GenUIScreen(),
+        builder: (context, state) => const A2UIScreen(),
       ),
       GoRoute(
         path: '/moc',

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../theme/monstruo_theme.dart';
+import '../../core/theme/brand_dna.dart';
 import '../../core/config.dart';
-import '../../services/kernel_service.dart';
+import '../../core/mensajeros/kernel_messenger.dart';
 
 /// Onboarding screen shown on first launch.
 ///

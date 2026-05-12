@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import '../../../models/chat_message.dart';
-import '../../../theme/monstruo_theme.dart';
+import '../../../core/theme/brand_dna.dart';
 
 /// Premium message bubble widget with 2026 design patterns.
 /// AI messages: full-width cards with glass effect.

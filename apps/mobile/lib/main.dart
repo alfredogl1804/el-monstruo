@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 
 import 'app.dart';
-import 'services/kernel_service.dart';
-import 'services/thread_persistence.dart';
+import 'core/mensajeros/kernel_messenger.dart';
+import 'core/mensajeros/thread_persistence.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

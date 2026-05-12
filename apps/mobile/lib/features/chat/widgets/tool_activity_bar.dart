@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../models/tool_event.dart';
-import '../../../theme/monstruo_theme.dart';
+import '../../../core/theme/brand_dna.dart';
 
 class ToolActivityBar extends StatelessWidget {
   const ToolActivityBar({super.key, required this.tools});

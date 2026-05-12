@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../services/agent_service.dart';
-import '../../../theme/monstruo_theme.dart';
+import '../../../core/mensajeros/agent_messenger.dart';
+import '../../../core/theme/brand_dna.dart';
 
 /// Compact agent selector button that opens a bottom sheet with agent options.
 class AgentSelector extends ConsumerWidget {
