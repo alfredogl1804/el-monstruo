@@ -1,0 +1,34 @@
+# Rubrica Guardian de los Objetivos
+# Sprint: GUARDIAN-AUTONOMO-001 (T2)
+# Objetivo Maestro #14: El Guardian
+# Owner: Hilo Ejecutor 2 (manus_hilo_b)
+# DSC enforzados: DSC-G-008 v2 (rubrica + evidencia + falsadores), DSC-G-017
+
+objective_id: 14
+objective_name: "El Guardian"
+rubrica_version: "1.0.0"
+description: "Guardian existe, scheduler activo, audit_log poblandose."
+
+evidence:
+  guardian_module:
+    type: "filesystem"
+    pattern: "kernel/guardian.py"
+    operation: "count_files"
+    threshold_min: 1
+    weight: 2.0
+  scheduler_module:
+    type: "filesystem"
+    pattern: "kernel/embrion_scheduler.py"
+    operation: "count_files"
+    threshold_min: 1
+    weight: 1.5
+  audit_log_table_exists:
+    type: "sql"
+    query: "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_name='guardian_audit_log';"
+    threshold_min: 1
+    weight: 1.5
+
+status_thresholds:
+  emergency_below: 25
+  critical_below: 50
+  warning_below: 80

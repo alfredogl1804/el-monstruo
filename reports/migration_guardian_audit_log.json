@@ -1,0 +1,30 @@
+{
+  "task": "T5",
+  "sprint": "GUARDIAN-AUTONOMO-001",
+  "migration_file": "migrations/sql/0021_guardian_audit_log.sql",
+  "applied_at": "2026-05-12T06:30:00Z",
+  "applied_by": "manus_hilo_b",
+  "target": "production_supabase",
+  "verification": {
+    "rls_enabled": true,
+    "policy_count": 1,
+    "policy_name": "guardian_audit_log_service_role_only",
+    "column_count": 12,
+    "indexes_created": 4,
+    "constraint_checks": [
+      "objective_id BETWEEN 1 AND 15",
+      "score_pct BETWEEN 0 AND 100",
+      "status IN ('ok','warning','critical','emergency')"
+    ]
+  },
+  "idempotency": "CREATE TABLE IF NOT EXISTS + CREATE POLICY IF NOT EXISTS verified safe",
+  "dsc_compliance": [
+    "DSC-S-006 v1.1 (RLS por defecto): VERIFIED via RAISE EXCEPTION inline",
+    "DSC-G-017 (DSC-as-Contract): tabla habilita pre-commit hook anti-stale (T6)"
+  ],
+  "next_steps": [
+    "T2 scoring engine usa esta tabla para persistir score por objective_id",
+    "T6 pre-commit hook lee created_at MAX para validar last-run-within-24h"
+  ],
+  "status": "GREEN"
+}

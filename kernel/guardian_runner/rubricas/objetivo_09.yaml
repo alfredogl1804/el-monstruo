@@ -1,0 +1,29 @@
+# Rubrica Guardian de los Objetivos
+# Sprint: GUARDIAN-AUTONOMO-001 (T2)
+# Objetivo Maestro #9: Transversalidad Total
+# Owner: Hilo Ejecutor 2 (manus_hilo_b)
+# DSC enforzados: DSC-G-008 v2 (rubrica + evidencia + falsadores), DSC-G-017
+
+objective_id: 9
+objective_name: "Transversalidad Total"
+rubrica_version: "1.0.0"
+description: "Las 7 capas transversales activas: Ventas, SEO, Pub, Tendencias, Ops, Finanzas, Resiliencia."
+
+evidence:
+  capas_transversales_documentadas:
+    type: "filesystem"
+    pattern: "AGENTS.md"
+    operation: "count_files"
+    threshold_min: 1
+    weight: 2.0
+  bridge_completados:
+    type: "filesystem"
+    pattern: "bridge/sprints_completados/*.md"
+    operation: "count_files"
+    threshold_min: 3
+    weight: 1.0
+
+status_thresholds:
+  emergency_below: 25
+  critical_below: 50
+  warning_below: 75

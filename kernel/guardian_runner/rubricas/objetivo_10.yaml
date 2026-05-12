@@ -1,0 +1,23 @@
+# Rubrica Guardian de los Objetivos
+# Sprint: GUARDIAN-AUTONOMO-001 (T2)
+# Objetivo Maestro #10: Simulador Predictivo
+# Owner: Hilo Ejecutor 2 (manus_hilo_b)
+# DSC enforzados: DSC-G-008 v2 (rubrica + evidencia + falsadores), DSC-G-017
+
+objective_id: 10
+objective_name: "Simulador Predictivo"
+rubrica_version: "1.0.0"
+description: "Skill simulador-escenarios-ia disponible, ABM+Monte Carlo activos."
+
+evidence:
+  simulador_skill:
+    type: "filesystem"
+    pattern: "skills/simulador-escenarios-ia/SKILL.md"
+    operation: "count_files"
+    threshold_min: 1
+    weight: 2.0
+
+status_thresholds:
+  emergency_below: 30
+  critical_below: 60
+  warning_below: 85

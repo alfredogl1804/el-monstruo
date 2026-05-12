@@ -1,0 +1,29 @@
+# Rubrica Guardian de los Objetivos
+# Sprint: GUARDIAN-AUTONOMO-001 (T2)
+# Objetivo Maestro #8: Inteligencia Emergente Colectiva
+# Owner: Hilo Ejecutor 2 (manus_hilo_b)
+# DSC enforzados: DSC-G-008 v2 (rubrica + evidencia + falsadores), DSC-G-017
+
+objective_id: 8
+objective_name: "Inteligencia Emergente Colectiva"
+rubrica_version: "1.0.0"
+description: "Consulta a sabios activa, enjambre operativo."
+
+evidence:
+  consulta_sabios_skill:
+    type: "filesystem"
+    pattern: "skills/consulta-sabios/SKILL.md"
+    operation: "count_files"
+    threshold_min: 1
+    weight: 2.0
+  perplexity_active:
+    type: "filesystem"
+    pattern: "kernel/perplexity*.py"
+    operation: "count_files"
+    threshold_min: 1
+    weight: 1.5
+
+status_thresholds:
+  emergency_below: 25
+  critical_below: 50
+  warning_below: 75

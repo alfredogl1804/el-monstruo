@@ -1,0 +1,29 @@
+# Rubrica Guardian de los Objetivos
+# Sprint: GUARDIAN-AUTONOMO-001 (T2)
+# Objetivo Maestro #12: Ecosistema de Monstruos
+# Owner: Hilo Ejecutor 2 (manus_hilo_b)
+# DSC enforzados: DSC-G-008 v2 (rubrica + evidencia + falsadores), DSC-G-017
+
+objective_id: 12
+objective_name: "Ecosistema de Monstruos"
+rubrica_version: "1.0.0"
+description: "Bridge inter-cuenta operativo y hilos en colaboracion."
+
+evidence:
+  bridge_skill:
+    type: "filesystem"
+    pattern: "skills/manus-inter-cuenta/SKILL.md"
+    operation: "count_files"
+    threshold_min: 1
+    weight: 2.0
+  bridge_documentos:
+    type: "filesystem"
+    pattern: "bridge/*.md"
+    operation: "count_files"
+    threshold_min: 5
+    weight: 1.0
+
+status_thresholds:
+  emergency_below: 25
+  critical_below: 50
+  warning_below: 75

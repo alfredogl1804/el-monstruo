@@ -1,0 +1,35 @@
+# Rubrica Guardian de los Objetivos
+# Sprint: GUARDIAN-AUTONOMO-001 (T2)
+# Objetivo Maestro #2: Nivel Apple/Tesla
+# Owner: Hilo Ejecutor 2 (manus_hilo_b)
+# DSC enforzados: DSC-G-008 v2 (rubrica + evidencia + falsadores), DSC-G-017
+
+objective_id: 2
+objective_name: "Nivel Apple/Tesla"
+rubrica_version: "1.0.0"
+description: "Calidad premium de output: tests pasando, cobertura, DSCs firmados."
+
+evidence:
+  dscs_firmados:
+    type: "filesystem"
+    pattern: "discovery_forense/CAPILLA_DECISIONES/**/DSC-*.md"
+    operation: "count_files"
+    threshold_min: 30
+    weight: 2.0
+  tests_existentes:
+    type: "filesystem"
+    pattern: "tests/**/test_*.py"
+    operation: "count_files"
+    threshold_min: 50
+    weight: 1.5
+  sprints_completados:
+    type: "filesystem"
+    pattern: "bridge/sprints_completados/*.md"
+    operation: "count_files"
+    threshold_min: 5
+    weight: 1.0
+
+status_thresholds:
+  emergency_below: 30
+  critical_below: 55
+  warning_below: 80

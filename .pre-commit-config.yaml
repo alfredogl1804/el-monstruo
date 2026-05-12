@@ -51,3 +51,19 @@ repos:
         language: system
         files: \.(sql|py)$
         pass_filenames: true
+
+  # Sprint GUARDIAN-AUTONOMO-001 T6 (2026-05-12): hook anti-stale-audit.
+  # Verifica que `guardian_audit_log` tiene una corrida reciente (< 48h).
+  # Si no hay DB local, hace skip (el audit autoritativo corre en Railway).
+  # NO bloquea el commit por diseno (un dev local no puede arreglar un
+  # problema de infraestructura remota). Solo emite WARN visible en stderr.
+  # Escape hatch: GUARDIAN_STALE_HOOK_DISABLED=true.
+  - repo: local
+    hooks:
+      - id: guardian-stale-audit-warn
+        name: guardian-stale-audit-warn (Sprint GUARDIAN-AUTONOMO-001 T6)
+        entry: python3 scripts/_check_guardian_stale_audit.py
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+        verbose: true

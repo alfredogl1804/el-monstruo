@@ -1,0 +1,33 @@
+# Rubrica Guardian de los Objetivos
+# Sprint: GUARDIAN-AUTONOMO-001 (T2)
+# Objetivo Maestro #1: Crear Empresas Digitales Completas
+# Owner: Hilo Ejecutor 2 (manus_hilo_b)
+# DSC enforzados: DSC-G-008 v2 (rubrica + evidencia + falsadores), DSC-G-017
+
+objective_id: 1
+objective_name: "Crear Empresas Digitales Completas"
+rubrica_version: "1.0.0"
+description: "Pipeline activo de empresas digitales generadas por El Monstruo."
+
+evidence:
+  embriones_activos:
+    type: "sql"
+    query: "SELECT COUNT(*) FROM embrion_memoria WHERE created_at > NOW() - INTERVAL '7 days';"
+    threshold_min: 10
+    weight: 2.0
+  tablas_supabase_activas:
+    type: "sql"
+    query: "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';"
+    threshold_min: 20
+    weight: 1.5
+  kernel_modules:
+    type: "filesystem"
+    pattern: "kernel/*.py"
+    operation: "count_files"
+    threshold_min: 15
+    weight: 1.0
+
+status_thresholds:
+  emergency_below: 25
+  critical_below: 50
+  warning_below: 75

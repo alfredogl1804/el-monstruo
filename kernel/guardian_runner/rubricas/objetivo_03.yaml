@@ -1,0 +1,35 @@
+# Rubrica Guardian de los Objetivos
+# Sprint: GUARDIAN-AUTONOMO-001 (T2)
+# Objetivo Maestro #3: Maximo Poder, Minima Complejidad
+# Owner: Hilo Ejecutor 2 (manus_hilo_b)
+# DSC enforzados: DSC-G-008 v2 (rubrica + evidencia + falsadores), DSC-G-017
+
+objective_id: 3
+objective_name: "Maximo Poder, Minima Complejidad"
+rubrica_version: "1.0.0"
+description: "Modulos kernel pequenios y reutilizables. Cero archivos genericos."
+
+evidence:
+  archivos_genericos_zero:
+    type: "filesystem"
+    pattern: "kernel/**/handler.py"
+    operation: "count_files"
+    threshold_max: 0
+    weight: 2.0
+  archivos_misc_zero:
+    type: "filesystem"
+    pattern: "kernel/**/misc.py"
+    operation: "count_files"
+    threshold_max: 0
+    weight: 2.0
+  archivos_utils_limited:
+    type: "filesystem"
+    pattern: "kernel/**/utils.py"
+    operation: "count_files"
+    threshold_max: 1
+    weight: 1.0
+
+status_thresholds:
+  emergency_below: 20
+  critical_below: 50
+  warning_below: 80
