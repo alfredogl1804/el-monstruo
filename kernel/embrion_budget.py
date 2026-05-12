@@ -482,3 +482,107 @@ def _group_cost_by_model(rows: list[dict]) -> dict:
         out[m]["cycles"] += 1
         out[m]["cost_usd"] = round(out[m]["cost_usd"] + float(r.get("cost_actual_usd") or 0), 4)
     return out
+
+
+
+# ── Sprint ROTOR-001 (2026-05-12) Hilo Ejecutor 2 ─────────────────────────
+# add_recycled_energy: API pública para que kernel.rotor.recharge devuelva
+# energy_units (USD-equivalent) al budget del Embrión. Esta función NO calcula
+# nada — solo persiste un registro contable que el daily_summary lee.
+#
+# Diseño:
+#   - Inserta una fila en `embrion_budget_state` con cost_actual_usd = -units_usd
+#     (signo negativo para indicar "recharge" en lugar de "consumo").
+#   - El query de daily_summary suma cost_actual_usd, así que las recharges
+#     reducen el total consumido del día (i.e. recargan presupuesto disponible).
+#   - cycle_id apunta al cycle del Embrión que solicitó el recharge
+#     (trazabilidad post-hoc).
+#   - source_breakdown se persiste en abort_reason (campo libre TEXT) como
+#     JSON serializado para análisis post-hoc del Rotor.
+#
+# Cap superior $30/día firmado T1 — enforced en kernel.rotor.recharge antes
+# de llamar a esta función. Esta función NO valida cap superior (separación
+# de concerns: rotor maneja caps, budget solo registra).
+#
+# Spec firmado: bridge/sprints_propuestos/sprint_ROTOR_001_reciclador_actividad.md
+
+from decimal import Decimal as _RotorDecimal
+import json as _rotor_json
+
+
+def add_recycled_energy(
+    *,
+    units_usd,
+    cycle_id: int,
+    source_breakdown: Optional[dict] = None,
+    supabase_client: Optional[_SupabaseRest] = None,
+) -> dict:
+    """
+    Registra energy_units recargados desde el Rotor al budget del Embrión.
+
+    Escribe una fila contable en embrion_budget_state con cost_actual_usd negativo
+    (recharge = anti-consumo). Cap superior YA enforced en kernel.rotor.recharge.
+
+    Args:
+        units_usd: cantidad en USD-equivalent a recargar (Decimal | float | str, >= 0).
+                   Negativos NO permitidos (las penalizaciones de embrion_latido
+                   se aplican en compute_energy_units, no aquí).
+        cycle_id: id del cycle del Embrión que solicitó el recharge.
+        source_breakdown: dict opcional con detalle por source (para postmortem).
+
+    Returns:
+        dict con la fila persistida (para auditoría).
+
+    Raises:
+        ValueError: si units_usd < 0.
+        RuntimeError: si Supabase no responde (caller debe fail-soft).
+    """
+    units = _RotorDecimal(str(units_usd))
+    if units < 0:
+        raise ValueError(
+            f"add_recycled_energy: units_usd debe ser >= 0 (recibido {units}). "
+            "Las penalizaciones se aplican en compute_energy_units, no aqui."
+        )
+    if units == 0:
+        # No-op silencioso, no spammear DB con zeros
+        logger.info("rotor.budget.add_recycled_energy_zero", cycle_id=cycle_id)
+        return {"recorded": False, "reason": "zero_units"}
+
+    client = supabase_client or _get_supabase_client()
+
+    # cost_actual_usd negativo = recharge (lo opuesto de un consumo)
+    payload = {
+        "cycle_id": cycle_id,
+        "cost_actual_usd": -float(units),  # NEGATIVO = recharge
+        "cost_estimated_usd": -float(units),
+        "cap_excedido": False,
+        "abort_reason": "rotor_recharge",
+        "model_used": "rotor",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    if source_breakdown:
+        # Persistir breakdown como JSON en abort_reason (campo TEXT libre)
+        payload["abort_reason"] = (
+            "rotor_recharge:" + _rotor_json.dumps(source_breakdown, default=str)
+        )[:500]  # truncar para no romper si hay muchos sources
+
+    try:
+        result = client.insert("embrion_budget_state", payload)
+        logger.info(
+            "rotor.budget.add_recycled_energy_ok",
+            cycle_id=cycle_id,
+            units_usd=str(units),
+            sources=list(source_breakdown.keys()) if source_breakdown else [],
+        )
+        return {"recorded": True, "row": result[0] if result else None}
+    except Exception as exc:
+        logger.error(
+            "rotor.budget.add_recycled_energy_failed",
+            err=str(exc),
+            cycle_id=cycle_id,
+            units_usd=str(units),
+        )
+        raise RuntimeError(f"add_recycled_energy: insert fallido: {exc}") from exc
+
+
+# ── /Sprint ROTOR-001 ──────────────────────────────────────────────────────
