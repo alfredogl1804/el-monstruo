@@ -1,176 +1,216 @@
 ---
-id: cowork_to_manus_HILO_CATASTRO_SPRINT_S_CONTRATOS_001_T3_T4_T6_KICKOFF_2026_05_12
+id: cowork_to_manus_HILO_CATASTRO_SPRINT_S_CONTRATOS_001_KICKOFF_2026_05_12
 fecha: 2026-05-12
 emisor: Cowork T2-A Arquitecto Orquestador
 receptor: Manus Hilo Catastro (libre tras CATASTRO-A v2 cierre 3/3 verde)
-tipo: kickoff_split_paralelo
+tipo: kickoff_OVERRIDE_post_convergencia_sabios
 prioridad: P1
-duracion_estimada: 45-60 min reales (3 tareas T3+T4+T6 de 6 totales del sprint)
-autoridad_T1: Alfredo 2026-05-12 + veredicto Sabio externo "Split. Ahora"
-autoridad_T2: Cowork T2-A firma split tras reconocer F1+F2+F3+F4
+duracion_estimada: 90-120 min reales (sprint completo 6 tareas)
+autoridad_T1: Alfredo 2026-05-12 (consultó 3 Sabios externos)
+autoridad_T2: Cowork T2-A firma override del split previo bajo convergencia 2/3 Sabios externos
 spec_firmado: bridge/sprints_propuestos/sprint_S-CONTRATOS-001_dscs_aspiracionales_a_contratos.md
-hilo_paralelo: Hilo Ejecutor 1 tomando T1+T2+T5 simultáneamente (kickoff hermano commit 00c8cb7)
-punto_sincronia: post-T1+T2+T5 vs T3+T4+T6 — coordinación final cuando ambos terminen
+hilo_paralelo: Hilo Ejecutor 1 en STANDBY ACTIVO con 4 tareas no interferentes (kickoff hermano post)
+kickoff_previo_OVERRIDE: commit 51ca79f (T3+T4+T6 split) → ESTE override toma scope COMPLETO T1-T6
 ---
 
-# Kickoff Sprint S-CONTRATOS-001 (T3+T4+T6) — Tu mitad paralela
+# Kickoff Sprint S-CONTRATOS-001 COMPLETO — Catastro toma scope end-to-end
 
-## §1 ¿Por qué este split existe?
+## §1 ¿Por qué este kickoff override existe?
 
-Cerraste CATASTRO-A v2 con 3/3 verde + 30 suppliers (6 reales + 24 placeholders bajo DSC-V-002) en 45 min. Estás libre.
+Cerraste CATASTRO-A v2 con calidad ejemplar (3/3 verde + 30 suppliers DSC-V-002).
 
-Sabio externo detectó que Cowork inicialmente recomendó "Catastro toma S-CONTRATOS-001 completo + Ejecutor 1 standby" — eso era **F1 piloto castigo post-V25 + F3 protección Ejecutor 1 + F4 heroísmo individual**. Veredicto Sabio acatado: **Split. Paralelización binaria verificable.**
+Cowork T2-A consultó Sabio externo 1 que recomendó SPLIT del sprint S-CONTRATOS-001 entre vos y Ejecutor 1. **Pusheé kickoffs split** (commits `00c8cb7` Ejecutor 1 + `51ca79f` vos).
 
-**Tu mitad = T3 (GitHub Action) + T4 (constraint SQL) + T6 (cleanup specs legacy). Tu fortaleza primaria = audits + reportes estructurados + cleanup canonización.**
+**Alfredo T1 consultó 2 Sabios más** posteriormente. Veredicto binario:
+
+| Sabio | Veredicto |
+|---|---|
+| Sabio 1 (primero) | SPLIT entre 2 hilos paralelos |
+| **Sabio 2** (segundo) | **NO SPLIT** — Catastro completo + Ejecutor 1 standby activo |
+| **Sabio 3** (tercero) | **NO SPLIT** — Catastro completo + Ejecutor 1 standby |
+
+**Convergencia 2/3 a favor de NO-SPLIT.** Razón canónica binaria de Sabios 2+3:
+
+> "S-CONTRATOS-001 es sprint de **integridad contractual con superficies acopladas** (decorator + SQL migration + GitHub Action + pre-commit hook + cleanup legacy). Partirlo entre 2 hilos justo después de V25 epistemológico introduce riesgo de divergencia semántica."
+
+**Tomás S-CONTRATOS-001 COMPLETO end-to-end.** Ejecutor 1 queda en standby activo con 4 tareas no interferentes (preparar checklist T7 PR #114 + lectura S-CONTRATOS riesgos + comandos Mac Alfredo + revisión kernel-pura).
 
 ## §2 Documento a leer ANTES de tocar código
 
-**Spec firmado completo:** [`bridge/sprints_propuestos/sprint_S-CONTRATOS-001_dscs_aspiracionales_a_contratos.md`](sprints_propuestos/sprint_S-CONTRATOS-001_dscs_aspiracionales_a_contratos.md) — 6 tareas T1-T6 verbatim.
+**Spec firmado completo:** [`bridge/sprints_propuestos/sprint_S-CONTRATOS-001_dscs_aspiracionales_a_contratos.md`](sprints_propuestos/sprint_S-CONTRATOS-001_dscs_aspiracionales_a_contratos.md) — 6 tareas T1-T6 verbatim. ETA spec: 90-120 min reales.
 
-**DSCs que cierras al ejecutar tu mitad:**
-- DSC-G-010 (E2E evidence required) via GitHub Action
-- DSC-G-011 (anti-bucle de rotación) via constraint SQL UNIQUE
-- DSC-G-008 v2 backfill via cleanup specs legacy
+**5 DSCs aspiracionales que cerrás como contratos ejecutables:**
+- DSC-V-001 (Validación Magna obligatoria) via T1 decorator + T2 table
+- DSC-G-010 (E2E evidence required) via T3 GitHub Action
+- DSC-G-011 (anti-bucle de rotación) via T4 constraint SQL
+- DSC-G-017 (DSC-as-Contract enforcement) via T5 pre-commit hook
+- DSC-G-008 v2 backfill via T6 cleanup specs legacy
 
-## §3 Tu scope: 3 tareas (T3 + T4 + T6)
+## §3 Tu scope COMPLETO: 6 tareas T1-T6
+
+### T1 — Decorator `@requires_perplexity_validation` (DSC-V-001) — 15-20 min
+
+`kernel/security/validation.py` (NUEVO archivo):
+
+```python
+def requires_perplexity_validation(claim_id: str):
+    """Decorator: la función NO se ejecuta sin record_validation reciente para claim_id."""
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            recent = await query_latest_validation(claim_id, max_age_minutes=15)
+            if recent is None:
+                raise RuntimeError(
+                    f"DSC-V-001 violation: function {func.__name__} requires "
+                    f"recent validation for claim '{claim_id}'."
+                )
+            return await func(*args, **kwargs)
+        return wrapper
+    return decorator
+```
+
+Tests `tests/test_validation_decorator.py`: 3 casos (decorator bloquea sin validation, decorator pasa con validation reciente, decorator rechaza validation >15min).
+
+### T2 — Migration SQL `validation_log` (DSC-V-001 storage) — 15-20 min
+
+Migración 0024_validation_log.sql:
+
+```sql
+CREATE TABLE IF NOT EXISTS public.validation_log (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
+    claim_id TEXT NOT NULL,
+    validator TEXT NOT NULL,
+    evidence_url TEXT,
+    evidence_jsonb JSONB,
+    expires_at TIMESTAMPTZ NOT NULL,
+    valid BOOLEAN DEFAULT true
+);
+
+CREATE INDEX IF NOT EXISTS idx_validation_log_claim_id_recent
+    ON public.validation_log (claim_id, created_at DESC);
+
+ALTER TABLE public.validation_log ENABLE ROW LEVEL SECURITY;
+CREATE POLICY IF NOT EXISTS validation_log_service_role_only
+    ON public.validation_log FOR ALL TO service_role USING (true);
+```
+
+Apply post-merge con `scripts/_apply_migration_0024.py`. Bajo DSC-S-012, migration en main ANTES de apply prod.
 
 ### T3 — GitHub Action `e2e-evidence-required.yml` (DSC-G-010) — 15-20 min
 
-`.github/workflows/e2e-evidence-required.yml` (NUEVO):
+`.github/workflows/e2e-evidence-required.yml` (NUEVO) — verifica PR body tenga sección `## E2E Evidence` con ≥1 URL/path binario. `tools/_check_e2e_evidence.py` (NUEVO) parser.
 
-```yaml
-name: E2E Evidence Required (DSC-G-010)
-on:
-  pull_request:
-    types: [opened, synchronize, ready_for_review]
-
-jobs:
-  check-e2e-evidence:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Verify E2E evidence in PR body
-        run: |
-          # PR body debe tener sección "## E2E Evidence" con al menos 1 URL o path
-          # de evidencia binaria (test run, screenshot, logs Railway, etc)
-          python3 tools/_check_e2e_evidence.py "${{ github.event.pull_request.body }}"
-```
-
-`tools/_check_e2e_evidence.py` (NUEVO): parsea body PR, requiere sección `## E2E Evidence` con ≥1 referencia binaria.
-
-Tests `tests/test_e2e_evidence_check.py`: 3 casos (PR con evidence válida, PR sin sección, PR con sección vacía).
+Tests `tests/test_e2e_evidence_check.py`: 3 casos.
 
 ### T4 — Constraint SQL anti-bucle de rotación (DSC-G-011) — 15-20 min
 
-Migración 0025_anti_rotation_loop.sql (verificar siguiente libre post-Ejecutor1-T2 que toma 0024):
+Migración 0025_anti_rotation_loop.sql.
+
+**⚠️ ALERTA CRÍTICA — Lección post-V25 migration 0020:**
+
+El spec original DSC-G-011 dice `UNIQUE(credential_id, DATE(rotated_at::date))` lo que **dispara el mismo bug IMMUTABLE** que Perplexity T2-B detectó: `DATE(TIMESTAMPTZ)` tiene `provolatile='s'` (STABLE), NO IMMUTABLE en Postgres. NO usar `DATE()` directo en CREATE INDEX/UNIQUE.
+
+**Fix preventivo:** columna generada IMMUTABLE:
 
 ```sql
--- DSC-G-011: prevenir bucles de rotación de credentials
+-- Si credential_rotations NO existe, crearla:
+CREATE TABLE IF NOT EXISTS public.credential_rotations (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    credential_id TEXT NOT NULL,
+    rotated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    rotated_at_date DATE GENERATED ALWAYS AS ((rotated_at AT TIME ZONE 'UTC')::date) STORED,
+    metadata JSONB
+);
+
 ALTER TABLE public.credential_rotations
-  ADD CONSTRAINT unique_rotation_per_day_per_credential
-  UNIQUE (credential_id, DATE(rotated_at));
+    ADD CONSTRAINT IF NOT EXISTS unique_rotation_per_day_per_credential
+    UNIQUE (credential_id, rotated_at_date);
 ```
 
-**ALERTA:** el original DSC-G-011 spec dice `DATE(rotated_at::date)` lo que dispara el **mismo bug IMMUTABLE** que Perplexity T2-B detectó en migration 0020 (`DATE(TIMESTAMPTZ)` es STABLE no IMMUTABLE). 
+RLS service_role_only desde nacimiento.
 
-**Fix preventivo:** usar columna generada o `(credential_id, rotated_at_date)` con `rotated_at_date GENERATED ALWAYS AS (DATE(rotated_at AT TIME ZONE 'UTC')) STORED`. Aplicar lección post-V25.
+### T5 — Pre-commit hook `dsc-contract-check` (DSC-G-017 enforcement) — 15-20 min
 
-Si `credential_rotations` no existe todavía, crearla idempotente + RLS. Verificar pre-flight:
-```sql
-SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name='credential_rotations');
-```
+`.pre-commit-config.yaml` append + `tools/_check_dsc_contracts.py` (NUEVO) verifica cada DSC firmado tenga contrato O marcador aspiracional. Exit 1 si DSC firmado sin nada.
 
 ### T6 — Cleanup specs legacy + DSC-G-008 v2 backfill — 20-25 min
 
-Tu fortaleza pura. Audit binario sobre `discovery_forense/CAPILLA_DECISIONES/` + `bridge/sprints_propuestos/`:
+Audit binario sobre `discovery_forense/CAPILLA_DECISIONES/` + `bridge/sprints_propuestos/`:
 
-1. Identificar specs firmados que NO tienen sección `## Contrato ejecutable` o marcador `**Estado:** Aspiracional`
-2. Para cada uno: O agregar contrato (si existe artefacto en main) O marcar explícitamente aspirational + razón
-3. Update `_dsc_contracts_index.yaml` con status real fresco
+1. Identificar specs firmados sin `## Contrato ejecutable` ni `**Estado:** Aspiracional`
+2. Para cada uno: agregar contrato (si existe artefacto) O marcar explícitamente aspirational + razón
+3. Update `_dsc_contracts_index.yaml` con status fresco
 
-Output: `bridge/manus_to_cowork_S_CONTRATOS_001_T6_CLEANUP_REPORTE_2026_05_12.md` con matriz por DSC (DSC ID | estado pre | acción tomada | estado post).
+DSCs ya cubiertos (NO tocar): S-001/S-002/S-003/S-004/S-005 (gitleaks), S-006/G-014/G-017 (milestones), V-002 (audit_visual_diff.py), G-008v2/G-012 (spec_lint.py).
 
-DSCs ya cubiertos (NO tocar, solo verificar): S-001/S-002/S-003/S-004/S-005 (gitleaks/trufflehog), S-006/G-014/G-017 (milestones), V-002 (audit_visual_diff.py), G-008v2/G-012 (spec_lint.py).
+DSCs que cierran con tu sprint: V-001 (T1+T2), G-010 (T3), G-011 (T4), G-017 (T5 enforcement), G-008 v2 backfill (T6).
 
-DSCs que esperan T6: V-001 (cerrada con T1+T2 Ejecutor1), G-010 (cerrada con T3 tuya), G-011 (cerrada con T4 tuya). El resto: revisar.
+**Output:** `bridge/manus_to_cowork_S_CONTRATOS_001_T6_CLEANUP_REPORTE_2026_05_12.md` con matriz por DSC (ID | estado pre | acción | estado post).
 
-## §4 Punto de sincronía con Hilo Ejecutor 1
-
-Ejecutor 1 toma T1 (decorator Python) + T2 (migration validation_log) + T5 (pre-commit hook dsc-contract-check).
-
-**Tu T3+T4+T6 son SEMI-DEPENDIENTES:**
-- T3 y T4 son independientes del trabajo de Ejecutor 1
-- **T6 cleanup tiene posible overlap con T1/T2/T5** porque al hacer cleanup vos podrías necesitar referenciar el decorator (T1), la tabla (T2), o el hook (T5) que Ejecutor 1 crea
-
-**Estrategia binaria:** ejecutá T3+T4 PRIMERO (independientes). Cuando termines, verificá si Ejecutor 1 ya pushó T1+T2+T5. Si sí: T6 puede referenciar sus artefactos canonizados. Si no: pausá T6 hasta que él termine, o ejecutá T6 sin referenciar V-001/G-017 (esos quedan post-Ejecutor 1).
-
-## §5 Reglas duras NO-CRUCE (estado fresco 2026-05-12)
-
-| Path | Tu permiso | Ejecutor 1 permiso |
-|---|---|---|
-| `.github/workflows/e2e-evidence-required.yml` | **TUYO T3** | NO tocar |
-| `tools/_check_e2e_evidence.py` | **TUYO T3** | NO tocar |
-| `migrations/sql/0025_*.sql` (UNIQUE rotation) | **TUYO T4** | NO tocar |
-| `discovery_forense/CAPILLA_DECISIONES/*.md` modificaciones | **TUYO T6** | NO tocar |
-| `_dsc_contracts_index.yaml` | **TUYO T6** | NO tocar |
-| `kernel/security/validation.py` | NO tocar | **EJECUTOR 1 T1** |
-| `migrations/sql/0024_*.sql` (validation_log) | NO tocar | **EJECUTOR 1 T2** |
-| `.pre-commit-config.yaml` | NO tocar | **EJECUTOR 1 T5** |
-| `tools/_check_dsc_contracts.py` | NO tocar | **EJECUTOR 1 T5** |
+## §4 Reglas duras NO-CRUCE
 
 5 hilos activos. **NO tocar:**
+
 1. **PR #114** (Ejecutor 1 MOBILE-REALIGNMENT) — en audit T2-B convergencia
 2. **PR #110** Perplexity — `kernel/cowork_runtime/`
 3. **Ejecutor 2 ROTOR-001 PR** abriendo — `kernel/rotor/`, kernel embrion_*
 4. **apps/mobile/** — territorio Ejecutor 1
+5. **Ejecutor 1 standby activo** — está leyendo `bridge/sprints_propuestos/sprint_S-CONTRATOS-001*.md` produciendo lista de riesgos. NO toca código. NO bloquea tu trabajo
 
-## §6 Pre-flight obligatorio
+## §5 Pre-flight obligatorio
 
 ```bash
 cd ~/el-monstruo && git status && git pull origin main
 ls migrations/sql/ | sort | tail -5
-# Esperado: 0021/0022/0023 existen. Ejecutor1 toma 0024. Tu T4 toma 0025.
-# Verificar credential_rotations tabla:
+# Esperado: 0021/0022/0023 existen (S89 v2 + ROTOR). Tus T2 y T4 usan 0024 + 0025.
+
 psql "$SUPABASE_DB_URL" -c "SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name='credential_rotations');"
-# Si NO existe, T4 también debe crearla idempotente
-grep -rn "credential_rotations\|rotation_loop" kernel/ | head -10
+# Si NO existe, T4 también crea la tabla idempotente.
+
+psql "$SUPABASE_DB_URL" -c "SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name='validation_log');"
+# Esperado: false (T2 la crea).
+
+grep -rn "record_validation\|requires_perplexity_validation" kernel/ | head -10
+# Si existe implementación previa, leela primero. NO inventes.
 ```
 
-## §7 Permiso de merge
+Si pre-flight rojo, reportá al bridge antes de codear (regla anti-autoboicot que vos canonizaste).
 
-- **T3+T4+T6 cerradas:** PR limpio `[S-CONTRATOS-001-T3-T4-T6]` o coordinás con Ejecutor 1 PR único `[S-CONTRATOS-001-COMPLETO]` si vos cerrás último
-- **Audit:** Cowork T2-A audita DSC-G-008 v2 + consulta PBA → T2-B antes de merge
-- **Self-merge prohibido**
+## §6 Permiso de merge
 
-## §8 Embrion_memoria al cerrar tu mitad
+- PR limpio con tag `[S-CONTRATOS-001]`
+- Cowork T2-A audita DSC-G-008 v2 + consulta PBA → T2-B antes de merge (write-risky: migrations SQL + decorator security + pre-commit hook)
+- Self-merge prohibido
+
+## §7 Embrion_memoria al cerrar
 
 ```sql
 INSERT INTO embrion_memoria (tipo, contenido, hilo_origen, importancia)
 VALUES (
   'decision',
-  'S-CONTRATOS-001 T3+T4+T6 cerradas por Hilo Catastro. GitHub Action e2e-evidence-required + migration 0025 unique rotation per day + cleanup specs legacy con DSC-G-008 v2 backfill operativos. DSC-G-010 + DSC-G-011 + G-008v2 backfill cierran como contratos ejecutables. Pendiente: Ejecutor 1 T1+T2+T5 + merge final.',
+  'Sprint S-CONTRATOS-001 CERRADO por Hilo Catastro. 5 DSCs aspiracionales → contratos ejecutables: V-001 (decorator + validation_log), G-010 (e2e-evidence GitHub Action), G-011 (UNIQUE rotation_per_day constraint sin bug IMMUTABLE), G-017 (dsc-contract-check pre-commit hook), G-008 v2 backfill (cleanup specs legacy). Migración 0024 + 0025 aplicadas idempotentes. 18+ tests verde. 65 DSCs canonizados → 70 (con contratos ejecutables todos los 5 nuevos).',
   'manus-hilo-catastro',
-  8
+  9
 );
 ```
 
-## §9 Autoridad y cierre
+## §8 Autoridad y cierre
 
-- T1 (Alfredo) ordenó split tras veredicto Sabio externo
-- T2-A (Cowork) firma split tras reconocer F1+F2+F3+F4
-- T3 (Hilo Catastro) ejecuta autónomamente bajo reglas duras §5
-- ETA realista: 45-60 min (3 tareas mixtas, tu skill nativo audits + GitHub Action es CI básico)
+- T1 (Alfredo) ordenó cambio post-Sabios 2+3 convergencia
+- T2-A (Cowork) firma override del split previo bajo convergencia 2/3
+- T3 (Hilo Catastro) ejecuta S-CONTRATOS-001 COMPLETO end-to-end
+- ETA realista: 90-120 min reales
 
-## §10 Honestidad anti-autoboicot reforzada
+## §9 Honestidad anti-autoboicot reforzada
 
-Aplica regla anti-autoboicot canonizada por vos mismo en STASHES-FORENSIC-001 y reforzada en CATASTRO-A v2 (3-6 suppliers reales + 24 placeholders DSC-V-002):
-
-- Si T3 GitHub Action te traba (CI YAML poco familiar), reportá honesto al bridge
-- Si T4 constraint SQL te confunde, pausá y consulta Cowork — la lección DATE(TIMESTAMPTZ) IMMUTABLE de migration 0020 aplica acá
-- Si T6 cleanup detectás drift mayor en DSCs, reportá antes de modificar — algunos DSCs pueden requerir firma T1 retroactiva
+Lección post-V25 migration 0020 + post-Sabios:
+- **T4 constraint SQL:** lección DATE(TIMESTAMPTZ) IMMUTABLE — usá columna generada STORED, no DATE() directo
+- **T6 cleanup:** si detectás DSC que requiere firma T1 retroactiva, reportá al bridge antes de modificar
+- **Integridad contractual:** este sprint es sobre coherencia. Si en alguna tarea sentís que "el aprendizaje se contradice con el spec firmado", parate y reportá. NO inventés reconciliación.
 
 ---
 
-**Firma:** Cowork T2-A Arquitecto Orquestador, 2026-05-12 06:30 UTC
+**Firma:** Cowork T2-A Arquitecto Orquestador, 2026-05-12 06:50 UTC
 
-**Split paralelo decisión binaria post-veredicto Sabio externo. Paralelización binaria verificable + punto de sincronía único al final.**
+**Override binario post-convergencia 2/3 Sabios externos. Catastro toma scope contractual completo coherente. Ejecutor 1 standby activo no interferente. El Monstruo aplica par bicéfalo + Sabios externos como guardrails estructurales.**
