@@ -6,7 +6,7 @@
 
 **Estado:** v0.1 — semilla. A iterar en cada sesión Cowork con Alfredo.
 
-**Última actualización:** 2026-05-10 por Cowork tras crisis meta-arquitectónica.
+**Última actualización:** 2026-05-12 por Manus Hilo Catastro — MEGA-CATASTRO-DRIFT-RESOLUTION-001 · DRIFT-014 (canoniza 10 Biblias del Monstruo en §1.1) · DRIFT-001 (corrige path canónico de los 15 Objetivos Maestros en §2).
 
 ---
 
@@ -31,9 +31,37 @@ Stack: Python/FastAPI + LangGraph + Flutter (app móvil) + Supabase (PostgreSQL 
 
 ---
 
+## 1.1 Las 10 Biblias del Monstruo (canonizadas DRIFT-014, 2026-05-12)
+
+Las **10 Biblias Industrial-Grade v7.0** son la documentación profunda de cada modelo/agente IA canónico del Catastro. Cada Biblia desarrolla 18 capas (L01–L18) con análisis estratégico, técnico, operativo, de integración, seguridad, resiliencia y benchmarks empíricos del modelo correspondiente. Fueron generadas vía consulta cruzada de 5 Sabios (Grok, Perplexity, Gemini, OpenAI, Anthropic).
+
+**Ubicación canónica:** `monstruo_biblias/` en la raíz del repo (NO bajo `docs/`).
+
+| # | Archivo | Modelo / Agente | Tamaño |
+|---|---|---|---|
+| 1 | `BIBLIA_CHATGPT_ATLAS_v7.0_95.md` | ChatGPT Atlas | 59 KB |
+| 2 | `BIBLIA_CLAUDE_COWORK_v7.0_95.md` | Claude Cowork (Sonnet 4) | 48 KB |
+| 3 | `BIBLIA_DEEPSEEK_V3_v7.0_95.md` | DeepSeek V3.2 | 42 KB |
+| 4 | `BIBLIA_GPT54_OPENAI_v7.0.md` | GPT-5.4 OpenAI | 60 KB |
+| 5 | `BIBLIA_GROK4_v7.0_95.md` | Grok-4 | 58 KB |
+| 6 | `BIBLIA_KIMI_K2.5_v7.0.md` | Kimi K2.5 (versión principal) | 59 KB |
+| 7 | `BIBLIA_KIMI_K2.5_v7.0_MARZO_REF.md` | Kimi K2.5 (referencia histórica marzo) | 59 KB |
+| 8 | `BIBLIA_MANUS_AI_v7.0_95.md` | Manus AI | 70 KB |
+| 9 | `BIBLIA_OPENCLAW_v7.0_95.md` | OpenClaw | 62 KB |
+| 10 | `BIBLIA_PERPLEXITY_v7.0.md` | Perplexity (sonar-reasoning-pro) | 33 KB |
+
+**Doctrina de uso:**
+
+1. **Fuente primaria sobre modelos IA**: cuando se necesite contexto profundo, capacidades, límites, benchmarks o decisiones arquitectónicas que involucren un modelo canónico, esta es la primera fuente a consultar (antes de buscar online).
+2. **Mantenimiento**: las Biblias son documentos vivos. Cuando un Sabio se actualiza (ej. Claude Opus 4.7 reemplaza a Sonnet 4 como Cowork), la Biblia correspondiente debe actualizarse en el mismo PR que canonice el cambio en el Catastro.
+3. **Relación con Catastro**: cada Biblia es la representación textual profunda de una entrada en `kernel/catastro/` (macroárea MODELOS o AGENTES). Cuando el Catastro lista un modelo como activo, su Biblia correspondiente debe existir y estar al día.
+4. **Status de drift**: al 2026-05-12, el catálogo de Sabios canónicos cuenta 8 (DSC-V-001 actualizado), mientras existen 10 Biblias — las 2 adicionales son ChatGPT Atlas (catálogo extendido del Catastro) y la versión MARZO_REF de Kimi (referencia histórica conservada por trazabilidad). NO hay Biblia de Copilot 365 todavía — deuda documentada.
+
+---
+
 ## 2. Los 15 Objetivos Maestros (v3.0)
 
-Sintetizados, NO copy-paste. Versión completa en `docs/EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md`.
+Sintetizados, NO copy-paste. Versión completa en `docs/EL_MONSTRUO_15_OBJETIVOS_MAESTROS.md` (renombrado el 2026-05-12 desde `EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md` bajo MEGA-CATASTRO-DRIFT-RESOLUTION-001 · DRIFT-001; el path legacy persiste como stub redirect).
 
 | # | Objetivo | Esencia | Estado 10-may |
 |---|---|---|---|
