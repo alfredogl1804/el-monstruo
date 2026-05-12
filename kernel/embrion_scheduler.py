@@ -207,9 +207,34 @@ class EmbrionScheduler:
             restored = 0
             for row in (rows or []):
                 task = ScheduledTask.from_dict(row)
-                # Recalcular next_run si está en el pasado (servidor estuvo caído)
+                # Sprint D-5 fix (2026-05-12 Hilo Ejecutor 1):
+                # Si next_run esta en el pasado (servidor estuvo caido, restart
+                # > interval, intervencion manual via UPDATE next_run=NOW(),
+                # drift de clock), NO recalcular al futuro. La task vencida
+                # debe dispararse en el proximo ciclo del loop (<=60s) para
+                # garantizar resilencia post-downtime.
+                #
+                # Pre-fix (D-2 a D-4): el restart hacia next_run = NOW() +
+                # interval, causando que tasks vencidas tras downtime nunca
+                # ejecutaran porque siempre se empujaban al futuro en cada
+                # restart. Combinado con el bug de upsert sin on_conflict
+                # (resuelto en D-4), las 3 daily tasks (causal_seeding,
+                # vanguard_scan, prediction_validation) acumularon 1-6 dias
+                # sin ejecutar.
                 if task.next_run and task.next_run < datetime.now(timezone.utc).isoformat():
-                    task.next_run = self._calculate_next_run(task)
+                    seconds_overdue = int(
+                        (datetime.now(timezone.utc) - datetime.fromisoformat(
+                            task.next_run.replace("Z", "+00:00")
+                        )).total_seconds()
+                    )
+                    logger.info(
+                        "scheduler_task_overdue_at_restore",
+                        task=task.name,
+                        next_run=task.next_run,
+                        seconds_overdue=seconds_overdue,
+                        will_execute_in="<= 60s",
+                    )
+                    # next_run permanece en pasado -> loop dispara inmediatamente
                 self._tasks[task.task_id] = task
                 restored += 1
             logger.info("scheduler_tasks_restored", count=restored)
