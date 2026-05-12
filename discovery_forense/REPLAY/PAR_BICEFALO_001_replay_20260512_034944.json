@@ -1,0 +1,31 @@
+{
+  "sprint": "PAR_BICEFALO_001",
+  "task": "T7_replay_analysis",
+  "timestamp_utc": "20260512_034944",
+  "corpus_size": 100,
+  "live_mode": false,
+  "layer1_mechanical_prefilter": {
+    "total": 100,
+    "blocked_by_prefilter": 0,
+    "passed_prefilter": 100,
+    "block_rate": 0.0,
+    "length_p50": 746.0,
+    "length_p95": 913.6,
+    "samples_blocked": []
+  },
+  "layer2_sabio_sample": {
+    "live": false,
+    "sample_size": 10,
+    "estimated_cost_per_call_usd": 0.018,
+    "estimated_latency_p50_ms": 1500,
+    "estimated_latency_p95_ms": 3500,
+    "approval_rate_estimated": 0.85,
+    "note": "Live execution skipped to control cost; estimates based on Anthropic pricing."
+  },
+  "layer3_extrapolation": {
+    "sabio_calls_estimated": 400,
+    "estimated_total_cost_usd_full_replay": 7.2,
+    "estimated_total_latency_seconds_full_replay": 150.0,
+    "savings_from_prefilter_pct": 0.0
+  }
+}
