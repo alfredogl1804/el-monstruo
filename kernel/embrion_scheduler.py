@@ -217,7 +217,24 @@ class EmbrionScheduler:
             logger.warning("scheduler_restore_failed", error=str(e))
 
     async def _persist_task(self, task: ScheduledTask) -> None:
-        """Persistir o actualizar una tarea en Supabase."""
+        """Persistir o actualizar una tarea en Supabase.
+
+        Sprint D-4 fix (2026-05-12 Hilo Ejecutor 1):
+        Pasar ``on_conflict='name,embrion_id'`` para que el UPSERT use el
+        UNIQUE constraint ``scheduled_tasks_name_embrion_unique`` (creado por
+        migration 0019 / Sprint D-2 / DSC-S-013) como conflict target.
+
+        Sin este parametro, supabase-py intenta resolver conflictos sobre la
+        PK (``id``); si el ``task_id`` reusado por el guard idempotente NO
+        coincide con el ``id`` ya en DB para ese ``(name, embrion_id)``, el
+        upsert degrada a INSERT y choca contra el UNIQUE constraint con
+        Postgres error 23505 ``duplicate key value``. Resultado observado en
+        produccion 2026-05-12 02:55 UTC: las 6 tasks fallaban persist en
+        cada redeploy y el ``next_run`` recalculado en memoria nunca llegaba
+        a DB, dejando 3 tasks zombie con ``next_run`` antiguo en DB y
+        ``next_run = now + interval`` en memoria que el loop nunca ejecutaba
+        antes del proximo redeploy.
+        """
         if not self._db:
             return
         try:
@@ -229,7 +246,7 @@ class EmbrionScheduler:
             # Renombrar task_id → id para Supabase
             row.pop("task_id", None)
             row["id"] = task.task_id
-            await self._db.upsert(self.TABLE, row)
+            await self._db.upsert(self.TABLE, row, on_conflict="name,embrion_id")
         except Exception as e:
             logger.warning("scheduler_persist_failed", task=task.name, error=str(e))
 
