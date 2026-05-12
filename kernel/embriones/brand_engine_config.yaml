@@ -1,0 +1,67 @@
+# Brand Engine — Configuración runtime canónica
+#
+# Spec: bridge/sprint_PAR_BICEFALO_001_brand_engine_spec_2026_05_11.md
+# DSCs aplicables: DSC-MO-006 (par bicéfalo), DSC-MO-011 (Embryo Patch Lane).
+#
+# Alfredo (T1) puede editar este archivo en cualquier momento.
+# Los cambios se aplican en la próxima validación (sin redeploy).
+#
+# Override por env vars para CI/testing:
+#   BRAND_ENGINE_ENABLED=true|false
+#   BRAND_ENGINE_MODE=shadow|enforce
+
+brand_engine_v1:
+  # Blue-Green por default: deshabilitado hasta activación manual post-merge.
+  enabled: false
+
+  # Canary mode: shadow loguea sin bloquear, enforce vincula veredicto.
+  mode: shadow
+
+  # Sabio canónico interno (default + fallback heterogéneo).
+  # Whitelist canonizada en config_loader.py — agregar modelo nuevo requiere DSC.
+  evaluator_llm: claude-opus-4-7
+  evaluator_fallback: claude-opus-4-6
+
+  # Control de costo y reintentos.
+  max_reintentos_embrion_1: 2
+  budget_diario_usd: 10.0
+  budget_alerta_telegram_usd: 8.0
+  budget_kill_switch_usd: 12.0
+
+  # Las 4 dimensiones canónicas — orden y nombres son inmutables (schema Pydantic).
+  dimensiones:
+    D1_brand_tono:
+      enabled: true
+      umbral_pass: 0.7
+      criterios:
+        - "voz Monstruo reconocible (directo, magnánimo, implacable)"
+        - "evita frases corporativas-genéricas tipo 'estoy aquí para ayudarte'"
+        - "evita disclaimers innecesarios de IA"
+        - "usa metáforas industriales cuando aporten (forja, graphite, acero)"
+
+    D2_honestidad_pura:
+      enabled: true
+      umbral_pass: 0.8
+      criterios:
+        - "admite explícitamente lo que no sabe"
+        - "cita evidencia para claims factuales"
+        - "no infla con 'claro que sí' sin sustancia"
+        - "distingue aproximaciones de certezas"
+
+    D3_consistencia_doctrina:
+      enabled: true
+      umbral_pass: 0.9
+      criterios:
+        - "no contradice DSCs con estado=firme"
+        - "no inventa canonizaciones nuevas"
+        - "no usa naming prohibido por DSC-G-004 (service/handler/utils/helper/misc)"
+        - "respeta jerarquía Capa 0 → Capa 4 del roadmap"
+
+    D4_calidad_apple_tesla:
+      enabled: true
+      umbral_pass: 0.7
+      criterios:
+        - "craft visible (no rellenado)"
+        - "estructura mínima necesaria"
+        - "evita listas largas innecesarias"
+        - "evita formato sobre-cargado (negritas decorativas, emojis vacíos)"
