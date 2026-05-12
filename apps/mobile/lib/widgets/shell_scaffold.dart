@@ -1,8 +1,24 @@
+/// ShellScaffold — refactor T5 Sprint MOBILE-REALIGNMENT-001.
+///
+/// Lee `modeProvider` de Riverpod y bifurca la navegación según el modo:
+///
+///   - **AppMode.daily** → BottomNavigationBar con 5 tabs:
+///       Home, Threads, Pendientes, Conexiones, Perfil
+///   - **AppMode.cockpit** → MOC Dashboard como home + Drawer cockpit con 5 features:
+///       FinOps, Sandbox, Memory, Embrion, A2UI
+///
+/// **Toggle gestual:** swipe-down con 2 dedos OR long-press en el logo del
+/// header invocan `ref.read(modeProvider.notifier).toggle()`.
+///
+/// Sprint MOBILE-REALIGNMENT-001 T5
+library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/mensajeros/kernel_messenger.dart';
+import '../core/state/mode_provider.dart';
 import '../core/theme/brand_dna.dart';
 
 class ShellScaffold extends ConsumerWidget {
@@ -10,170 +26,200 @@ class ShellScaffold extends ConsumerWidget {
 
   final Widget child;
 
-  static const _tabs = [
-    _TabItem(path: '/chat', icon: Icons.chat_bubble_outline, activeIcon: Icons.chat_bubble, label: 'Chat'),
-    _TabItem(path: '/sandbox', icon: Icons.terminal_outlined, activeIcon: Icons.terminal, label: 'Sandbox'),
-    _TabItem(path: '/files', icon: Icons.folder_outlined, activeIcon: Icons.folder, label: 'Archivos'),
-    _TabItem(path: '/settings', icon: Icons.settings_outlined, activeIcon: Icons.settings, label: 'Config'),
+  /// 5 tabs del modo Daily (privado para no exponer _TabItem en API pública).
+  static const List<_TabItem> _dailyTabs = [
+    _TabItem(path: '/home', icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home'),
+    _TabItem(path: '/threads', icon: Icons.forum_outlined, activeIcon: Icons.forum, label: 'Threads'),
+    _TabItem(path: '/pendientes', icon: Icons.checklist_rtl, activeIcon: Icons.checklist, label: 'Pendientes'),
+    _TabItem(path: '/conexiones', icon: Icons.hub_outlined, activeIcon: Icons.hub, label: 'Conexiones'),
+    _TabItem(path: '/perfil', icon: Icons.person_outline, activeIcon: Icons.person, label: 'Perfil'),
   ];
 
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
-    final idx = _tabs.indexWhere((t) => location.startsWith(t.path));
+    final idx = _dailyTabs.indexWhere((t) => location.startsWith(t.path));
     return idx >= 0 ? idx : 0;
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentIdx = _currentIndex(context);
+    final mode = ref.watch(modeProvider);
     final connectionState = ref.watch(connectionStateProvider);
 
-    return Scaffold(
-      body: child,
-      // Drawer for secondary screens
-      drawer: _MonstruoDrawer(),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: MonstruoTheme.divider,
-              width: 0.5,
+    // Detectar swipe-down con 2 dedos: ScaleStartDetails / VerticalDragGesture
+    // con multi-touch — usamos GestureDetector con onScaleUpdate como aproximación
+    // multi-touch confiable.
+    return GestureDetector(
+      onScaleUpdate: (details) {
+        // 2+ dedos detectados (pointerCount >= 2) + scale ~ 1.0 + drag vertical down
+        if (details.pointerCount >= 2 && details.focalPointDelta.dy > 30) {
+          ref.read(modeProvider.notifier).toggle();
+                ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                mode == AppMode.daily
+                    ? 'Modo Cockpit activado'
+                    : 'Modo Daily activado',
+                style: const TextStyle(fontSize: 13),
+              ),
+              duration: const Duration(seconds: 1),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        body: child,
+        // Drawer solo en modo Cockpit (Daily usa BottomNav exclusivo).
+        drawer: mode == AppMode.cockpit ? const _CockpitDrawer() : null,
+        bottomNavigationBar: mode == AppMode.daily
+            ? _buildDailyBottomNav(context, connectionState)
+            : null,
+      ),
+    );
+  }
+
+  Widget _buildDailyBottomNav(
+    BuildContext context,
+    AsyncValue<KernelConnectionState> connectionState,
+  ) {
+    final currentIdx = _currentIndex(context);
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(
+          top: BorderSide(color: MonstruoTheme.divider, width: 0.5),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Connection status banner (preservado del scaffold previo)
+          connectionState.when(
+            data: (state) {
+              if (state == KernelConnectionState.connected) {
+                return const SizedBox.shrink();
+              }
+              return _ConnectionBanner(state: state);
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const _ConnectionBanner(
+              state: KernelConnectionState.error,
             ),
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Connection status indicator
-            connectionState.when(
-              data: (state) {
-                if (state == KernelConnectionState.connected) {
-                  return const SizedBox.shrink();
-                }
-                return _ConnectionBanner(state: state);
-              },
-              loading: () => const SizedBox.shrink(),
-              error: (_, __) => const _ConnectionBanner(
-                state: KernelConnectionState.error,
-              ),
-            ),
-            // Bottom nav
-            BottomNavigationBar(
-              currentIndex: currentIdx,
-              onTap: (idx) => context.go(_tabs[idx].path),
-              items: _tabs
-                  .map((tab) => BottomNavigationBarItem(
-                        icon: Icon(tab.icon),
-                        activeIcon: Icon(tab.activeIcon),
-                        label: tab.label,
-                      ))
-                  .toList(),
-            ),
-          ],
-        ),
+          // Bottom nav 5 tabs Daily
+          BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            currentIndex: currentIdx,
+            onTap: (idx) => context.go(_dailyTabs[idx].path),
+            items: _dailyTabs
+                .map((tab) => BottomNavigationBarItem(
+                      icon: Icon(tab.icon),
+                      activeIcon: Icon(tab.activeIcon),
+                      label: tab.label,
+                    ))
+                .toList(),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _MonstruoDrawer extends StatelessWidget {
+/// Drawer del modo Cockpit con las 5 features arquitectónicas.
+class _CockpitDrawer extends ConsumerWidget {
+  const _CockpitDrawer();
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Drawer(
       backgroundColor: MonstruoTheme.background,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    MonstruoTheme.primary.withValues(alpha: 0.15),
-                    MonstruoTheme.secondary.withValues(alpha: 0.08),
-                  ],
+            // Header con long-press para toggle a Daily
+            GestureDetector(
+              onLongPress: () {
+                ref.read(modeProvider.notifier).setMode(AppMode.daily);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Modo Daily activado',
+                        style: TextStyle(fontSize: 13)),
+                    duration: Duration(seconds: 1),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      MonstruoTheme.primary.withValues(alpha: 0.18),
+                      MonstruoTheme.secondary.withValues(alpha: 0.10),
+                    ],
+                  ),
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [MonstruoTheme.primary, MonstruoTheme.secondary],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            MonstruoTheme.primary,
+                            MonstruoTheme.secondary,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'M',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
+                      child: const Center(
+                        child: Text(
+                          'M',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'El Monstruo',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: MonstruoTheme.onBackground,
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Cockpit',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: MonstruoTheme.onBackground,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  const Text(
-                    'Agente IA Soberano',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: MonstruoTheme.onSurfaceDim,
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Modo arquitectónico — long-press logo para Daily',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: MonstruoTheme.onSurfaceDim,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-
             const SizedBox(height: 8),
-
-            // Navigation items
             _DrawerItem(
-              icon: Icons.auto_awesome,
-              label: 'Generative UI',
-              subtitle: 'Interfaces dinámicas del agente',
-              color: MonstruoTheme.primary,
+              icon: Icons.hub,
+              label: 'MOC',
+              subtitle: 'Motor de Orquestación Central',
+              color: const Color(0xFF00BCD4),
               onTap: () {
                 Navigator.pop(context);
-                context.push('/genui');
-              },
-            ),
-            _DrawerItem(
-              icon: Icons.psychology,
-              label: 'Embrión',
-              subtitle: 'Agente autónomo 24/7',
-              color: MonstruoTheme.success,
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/embrion');
-              },
-            ),
-            _DrawerItem(
-              icon: Icons.memory,
-              label: 'Memoria Soberana',
-              subtitle: 'Buscar y explorar memorias',
-              color: const Color(0xFF7C4DFF),
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/memory');
+                context.go('/cockpit/moc');
               },
             ),
             _DrawerItem(
@@ -183,27 +229,54 @@ class _MonstruoDrawer extends StatelessWidget {
               color: MonstruoTheme.warning,
               onTap: () {
                 Navigator.pop(context);
-                context.push('/finops');
+                context.go('/cockpit/finops');
               },
             ),
             _DrawerItem(
-              icon: Icons.hub,
-              label: 'MOC',
-              subtitle: 'Motor de Orquestación Central',
-              color: const Color(0xFF00BCD4),
+              icon: Icons.terminal,
+              label: 'Sandbox',
+              subtitle: 'Terminal + browser + kernel',
+              color: const Color(0xFF7C4DFF),
               onTap: () {
                 Navigator.pop(context);
-                context.push('/moc');
+                context.go('/cockpit/sandbox');
               },
             ),
-
+            _DrawerItem(
+              icon: Icons.memory,
+              label: 'Memoria Soberana',
+              subtitle: 'Buscar y explorar memorias',
+              color: const Color(0xFF7C4DFF),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/cockpit/memory');
+              },
+            ),
+            _DrawerItem(
+              icon: Icons.psychology,
+              label: 'Embrión',
+              subtitle: 'Agente autónomo 24/7',
+              color: MonstruoTheme.success,
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/cockpit/embrion');
+              },
+            ),
+            _DrawerItem(
+              icon: Icons.auto_awesome,
+              label: 'A2UI',
+              subtitle: 'Generative UI components',
+              color: MonstruoTheme.primary,
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/cockpit/a2ui');
+              },
+            ),
             const Spacer(),
-
-            // Version info
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'v0.1.0-alpha',
+                'v0.2.0-realignment',
                 style: TextStyle(
                   fontSize: 11,
                   color: MonstruoTheme.onSurfaceDim.withValues(alpha: 0.5),
