@@ -2,7 +2,7 @@
 
 **Propósito:** Snapshot operacional ACTUAL del Monstruo. Lo que está corriendo, lo que está en backlog, los bloqueantes. Documento volátil — se actualiza con frecuencia.
 
-**Estado:** v0.4 — actualizado 2026-05-12 ~07:25 UTC tras cascada de 13 sprints cerrados + objetivo magno HOY canonizado (kernel asiste memoria persistente Cowork).
+**Estado:** v0.5 — actualizado 2026-05-12 ~08:55 UTC tras cierre MEGA-CIERRE-HOY + Reloj Suizo doctrinal cerrado + créditos P0 cargados.
 
 **Cuándo actualizar:** después de cada sesión Cowork-Alfredo de >2h o cuando un sprint cambia de estado.
 
@@ -26,7 +26,7 @@
 |---|---|---|
 | Capa 0 Cimientos | ~85% | Vanguard Scanner integración con Catastro pendiente. Design System Quality Gate pendiente. |
 | Capa 1 Manos | ~75% | **Sprint 87 Pagos NO arrancado.** Stripe + Stripe Connect pendientes. Bloquea Objetivo #1. |
-| Capa 2 IE | ~72% | **Rotor del Reloj Suizo NO localizado.** Embrión-Daddy bidireccional spec firmado, código pendiente. **Runtime de obediencia Cowork ya canonizado en código (T1 MAGNA).** |
+| Capa 2 IE | ~72% | Reloj Suizo: 4 piezas implementadas + 4 specs firmados pipeline (Espiral/Remontoir T1 ratificadas + Escape PR #116 esperando T2-B + Rubíes T2-A sembrado). **Runtime de obediencia Cowork ya canonizado en código (T1 MAGNA).** |
 | Capa 3 Soberanía | ~50% | SOVEREIGN-LLM v2 / INFRA / RED specced sin arrancar. |
 | Capa 4 Del Mundo | ~10% | i18n existe, resto pendiente — depende de Capa 3 al 80%+. |
 
@@ -51,11 +51,11 @@ Detalle completo en `bridge/ESTADO_MONSTRUO_2026_05_10_vs_PLANES.md`.
 
 | # | Capability | Path principal | Activador env var | Estado |
 |---|---|---|---|---|
-| T1 | Pre-response hook (intercept + suggest-pause regex + advance gate) | `kernel/cowork_runtime/pre_response_hook.py` | `COWORK_HOOK_ENABLED=true` | Shadow mode |
+| T1 | Pre-response hook (intercept + suggest-pause regex + advance gate) | `kernel/cowork_runtime/pre_response_hook.py` | `COWORK_HOOK_ENABLED=true` | **ACTIVO post-TA3** |
 | T2 | Detector semántico (Companion Agent) | `kernel/cowork_runtime/semantic_detector.py` | `COWORK_SEMANTIC_ENABLED=true` | Shadow mode |
 | T3 | Advance score calculator | `kernel/cowork_runtime/advance_score.py` | siempre activo en evaluación | Live |
-| T4 | Persistencia sesiones a Supabase | tabla `public.cowork_sesiones` + writer | `COWORK_SESSION_PERSIST=true` | Migración aplicada |
-| T5 | Pre-flight memento enforcer | `kernel/cowork_runtime/preflight.py` | `COWORK_PREFLIGHT_REQUIRED=true` | Shadow mode |
+| T4 | Persistencia sesiones a Supabase | tabla `public.cowork_sesiones` + writer | auto via SUPABASE_URL+KEY | **ACTIVO pre-TA3** |
+| T5 | Pre-flight memento enforcer | `kernel/cowork_runtime/preflight.py` endpoint `/v1/cowork/memento/validate` | auto si endpoint llamado | **ACTIVO pre-TA3** |
 | T6 | Antipattern catalog F1-F22 enforced | `kernel/cowork_runtime/antipatterns.py` | `COWORK_ANTIPATTERN_ENFORCE=true` | Shadow mode |
 | T7 | CLI `cowork_guardian` validator | `tools/cowork_guardian.py` | uso manual / CI | Live (no flag) |
 | T8 | Test harness 140 casos | `tests/cowork_runtime/` | siempre activo en CI | Live |
@@ -64,8 +64,7 @@ Detalle completo en `bridge/ESTADO_MONSTRUO_2026_05_10_vs_PLANES.md`.
 **Reportes auditables:**
 - `bridge/manus_to_cowork_REPORTE_COWORK_RUNTIME_001_CIERRE.md` (firma Manus)
 - `bridge/cowork_to_manus_PROMPT_AYUDA_COWORK_OBEDIENCIA_2026_05_11.md` (spec origen)
-
-**Pendiente de Cowork ahora:** decidir orden de activación de flags en producción (acción #3 del cierre Manus) y soltar próximo spec para Hilo Ejecutor.
+- `bridge/manus_to_cowork_SPRINT_MEGA_CIERRE_HOY_EJECUTOR1_TA3_2026_05_12.md` (Fase 1 activación T1+T4+T5)
 
 ---
 
@@ -73,7 +72,7 @@ Detalle completo en `bridge/ESTADO_MONSTRUO_2026_05_10_vs_PLANES.md`.
 
 | # | Bloqueante | Magnitud | Bloquea |
 |---|---|---|---|
-| 1 | **Rotor del Reloj Suizo** | Pensamiento + implementación nueva | Capa 2 IE al 100%. Autonomía sostenida. |
+| 1 | **Reloj Suizo Espiral+Remontoir+Rubíes implementación** | 3 sprints pipeline | Capa 2 IE al 100%. Autonomía sostenida. |
 | 2 | **Embrión-Daddy bidireccional** (PR #81 spec, código pendiente) | Implementación | Activación de Fase 2 modelo de hilos |
 | ~~3~~ | ~~**App Flutter Cara Completa**~~ | ~~75-150 min total~~ | ~~Interfaz primaria del Monstruo~~ — **CORREGIDO 2026-05-11**: app YA avanzada. Bloqueante real ahora es Sprint MOBILE_1B A2UI Implementation (firmado, no arrancado). |
 | 4 | **Capa Transversal con integraciones reales** (Google Ads, LinkedIn, HubSpot wireado, Apollo/Clay) | Multiple sprints | Capacidad comercial real |
@@ -95,7 +94,7 @@ Detalle completo en `bridge/ESTADO_MONSTRUO_2026_05_10_vs_PLANES.md`.
 | DRIFT-007 | Universo RLS | Handoff 120/120 | **125/125** (5 tablas nuevas en 24h, RLS automática mantenida) | Baja | Documentar las 5 tablas nuevas en `DECISIONES_VIVAS §7` |
 | DRIFT-008 | Latido autónomo | Acuse 11-may ordenó restaurar cada 6h | **1 latido en 7 días** — handler NO restaurado | **Crítica** | Reparar `kernel/embrion_scheduler.py` (Deuda #2 §6) |
 | DRIFT-009 | Catastro agentes | Handoff 111 | **98** confirmado | Media | Actualizar `BASE_CONOCIMIENTO §9` + `HANDOFF` |
-| DRIFT-010 | Cowork runtime sesiones | Sprint COWORK-RUNTIME-001 "cerrado con persistencia" | **1 row** (sólo smoke seed `ed7bfd59`). Shadow mode. | Alta | Activar flags T4 + decisión orden activación |
+| DRIFT-010 | Cowork runtime sesiones | Sprint COWORK-RUNTIME-001 "cerrado con persistencia" | **Fase 1 ACTIVO desde 2026-05-12 07:57 UTC** (T1 hook + T4 persist + T5 preflight). | **Resuelto Fase 1** | Fase 2+3 post-7-días análisis |
 | DRIFT-011 | scheduled_tasks | Acuse 11-may ordenó cleanup destructivo | **17,700** (Manus reportó 17,695 → +5 rows en ~5h. Drift evolucionado activo) | **Crítica** | Cleanup destructivo urgente (Deuda #1 §6) |
 | DRIFT-012 | Inventario DSCs | Handoff declara 64 | **62 archivos físicos**. 2 commits faltantes | Media | Buscar los 2 DSCs faltantes y/o actualizar `_INDEX.md` |
 | DRIFT-013 | Git stashes | Handoff menciona "6 diffs preservados" | **27 stashes** acumulados | **Crítica** | Auditar stashes pendientes (Deuda #3 §6) |
@@ -154,11 +153,11 @@ Commit canonización: `d4e81d0`. Operacionaliza DSC-MO-006 con **7 triggers obli
 6. Specs nuevos
 7. Override spec firmado
 
-**PBA aplicado exitosamente 3 veces HOY:** PR #112 GUARDIAN + PR #114 MOBILE + PR #113 ROTOR. T2-B detectó: 4 caveats P3 PR #114 + F2 menor narrativa PR #113. Cowork mergeó con caveats verbatim sin ocultar.
+**PBA aplicado exitosamente 5 veces HOY:** PR #112 GUARDIAN + PR #114 MOBILE + PR #113 ROTOR + PR #115 S-CONTRATOS (4 caveats T2-B verbatim) + PR #116 ESCAPE (esperando T2-B). T2-B detectó: 4 caveats P3 PR #114 + F2 menor narrativa PR #113 + 4 caveats P1+P2+P2+P3 PR #115. Cowork mergeó con caveats verbatim sin ocultar.
 
 ### 13.3 V25 grave reconocido sin suavizar
 
-CLAIM-C: Cowork fabricó causalidad sobre migration 0020 (mezcló Sprint T5 con PAR_BICEFALO_001 sin grep previo). **Perplexity T2-B verificación independiente detectó la alucinación**. Documentado verbatim en `embrion_memoria` `efd71b9f-4622-49ac-82b6-13a0feefa250` importancia 10. Alfredo T1 activó PBA permanente como guardrail estructural.
+CLAIM-C: Cowork fabricó causalidad sobre migration 0020 (mezcló Sprint T5 con PAR_BICEFALO_001 sin grep previo). **Perplexity T2-B verificación independiente detectó la alucinación**. Documentado verbatim en `embrion_memoria` `efd71b9f-4622-49ac-82b6-13a0feefa250` importancia 10. Alfredo T1 activó PBA permanente como guardrail estructural. DSC-S-016 anti-fabricación-causalidad-sin-grep canonizado firme T1 2026-05-12.
 
 ### 13.4 Drifts del Consolidado Maestro — RESUELTOS HOY
 
@@ -167,20 +166,20 @@ CLAIM-C: Cowork fabricó causalidad sobre migration 0020 (mezcló Sprint T5 con 
 | DRIFT-008 latido autónomo | Crítico (1 latido 7 días) | ✅ Resuelto — D-3/D-4/D-5/D-6 cascada + tasks revivieron |
 | DRIFT-011 scheduled_tasks | Crítico (17,700 rows saturándose) | ✅ Resuelto — PR #106 cleanup destructivo (17,710→6 rows) + UNIQUE constraint |
 | DRIFT-013 git stashes | Crítico (27-28 stashes acumulados) | ✅ Resuelto — Hilo Catastro produjo matriz 28×7 (commit `457bf6c`) con clasificación canónica DROP/APPLY/CHERRY_PICK/REVIEW; ejecución pendiente firma T1 |
-| DRIFT-010 cowork_sesiones | Crítico (1 row smoke) | 🟡 Parcial — sesión Cowork actual seedeada en row `3a04e11b` + commit canonización CLAUDE.md Paso 0; flags `enabled=false` shadow siguen pendientes |
+| DRIFT-010 cowork_sesiones | Crítico (1 row smoke) | ✅ **Resuelto Fase 1** — sesión Cowork actual seedeada en row `3a04e11b` + commit canonización CLAUDE.md Paso 0 + 3 capabilities Fase 1 ACTIVAS desde 07:57 UTC (T1 hook + T4 persist + T5 preflight) post MEGA-CIERRE-HOY TA3 Ejecutor 1 |
 
-### 13.5 Piezas Reloj Suizo (8 total)
+### 13.5 Piezas Reloj Suizo (8 total) — pipeline doctrinal cerrado
 
 | # | Pieza | Estado |
 |---|---|---|
-| 1 Resorte | `kernel/embrion_budget.py` | ✅ Existe |
-| 2 **Escape** | Sin código | 🟡 **ESCAPE-001 spec firmado borrador** (commit `f7aa7fd`) + kickoff Ejecutor 2 (commit `3c9a5c3`) — esperando firma T1 + audit T2-B PBA |
+| 1 Resorte | `kernel/embrion_budget.py` + consume() PR #116 | ✅ Existe |
+| 2 Escape | `kernel/escape/` PR #116 esperando T2-B PBA | 🟡 Audit DSC-G-008 v3 6/6 VERDE, merge bloqueado pre-T2-B |
 | 3 Áncora | `kernel/embrion_scheduler.py` | ✅ Existe + fortalecida D-3/D-4/D-5/D-6 |
 | 4 Volante | `kernel/embrion_loop.py` | ✅ Existe (doctrina del silencio) |
-| 5 Espiral | Sin código | ❌ Sprint posterior |
-| 6 **Rotor** | `kernel/rotor/` | ✅ **PR #113 mergeado HOY** (cap $30/día firmado T1 + recharge_mainspring 5min) |
-| 7 Rubíes/Caché | `kernel/response_cache.py` | 🟡 Parcial — verificar cobertura |
-| 8 Remontoir | Sin código | ❌ Sprint posterior |
+| 5 Espiral | spec FIRME T1 ratificada commit `0de35e6` | 🟡 spec pipeline |
+| 6 **Rotor** | `kernel/rotor/` PR #113 mergeado | ✅ Implementado |
+| 7 Rubíes/Caché | spec RUBIES-001 FIRME T2-A commit `0de35e6` | 🟡 spec pipeline (cierre simbólico 8/8) |
+| 8 Remontoir | spec FIRME T1 ratificada commit `0de35e6` | 🟡 spec pipeline |
 
 ### 13.6 Objetivo magno HOY canonizado — kernel asiste memoria persistente Cowork
 
@@ -188,37 +187,61 @@ Bajo orden T1 explícita `vamos a ponernos de objetivo usar hoy la memoria persi
 
 - **QW1 ✅** sesión Cowork actual persistida en Supabase `cowork_sesiones` row `3a04e11b-e610-4958-964e-4a709f3a5c61` con 8 violaciones detectadas + 10 palabras clave Alfredo + 6 correctivos recibidos + **16 deudas pendientes para próxima sesión** + resumen lecciones + sprint activo + kernel_version
 - **QW2 ✅** CLAUDE.md canonizado commit `12bacecb` con **Paso 0 Pre-flight Memento extendido** (CLI `session_memory pre-flight` antes de markdown docs) + Paso N cierre sesión + Paso M opcional pre-response hook decisiones magnas
-- **QW3 ⏳** Audit + merge PR #110 Pre-Response Hook OBSERVE-ONLY autónomo del kernel — bloqueado por conflict G6 con CLAUDE.md de QW2; **rebase Perplexity en proceso**
-
-### 13.7 Hilos activos al momento del refresh (07:25 UTC)
-
-| Hilo | Estado |
-|---|---|
-| Ejecutor 1 | Standby activo TA-TD + TE cleanup `_tmp_notif.md` (commit `90e57eb`) |
-| Ejecutor 2 | ESCAPE-001 PA/PB/PC preparatorias + espera firma T1 + audit T2-B PBA |
-| Catastro | S-CONTRATOS-001 COMPLETO T1-T6 (override post Sabios 2+3 commit `59adf28`) arrancando |
-| Perplexity T2-B | **Rebase PR #110** post-conflict G6 con QW2 |
-| Cowork T2-A | Orquestador con PBA proporcional aplicado 3 veces exitosas + post-V25 reconocido |
-
-### 13.8 Deudas T1 pendientes acumuladas (16 en `cowork_sesiones`)
-
-1. T7 smoke binario PR #114 Mac Alfredo (CRÍTICO post-caveats T2-B widget_test debilitado)
-2. Activar Telegram T3 GUARDIAN (chat_id + ventana + rate-limit)
-3. Activar `BRAND_ENGINE_ENABLED=true` shadow canary Railway
-4. Canonizar DSC-S-015 (scheduler respeta next_run de restore)
-5. Canonizar DSC-OPS-001 (UPDATE manual datos prod requires bridge report)
-6. Canonizar DSC anti-fabricación-causalidad-sin-grep (lección V25)
-7. Cleanup `_tmp_notif.md` (delegado a Ejecutor 1 standby TE)
-8. Ticket MOBILE-DSC-G-004-PHASE-2 (class identifiers)
-9. Firmar spec ESCAPE-001 + 6 pulse_intervals defaults T2
-10. Aplicar migration 0023_rotor_activity_log a Supabase prod (anti-IMMUTABLE check post-V25)
-11. Encolar sprint LINT_DEBT_PURGE (84 N818 + 26 semgrep + sqlglot)
-12. Resolver DRIFT-010 orden flags COWORK-RUNTIME-001 9 capabilities shadow
-13. Hilo Catastro arrancando S-CONTRATOS-001 (monitoreo)
-14. Hilo Ejecutor 1 standby activo (monitoreo)
-15. Hilo Ejecutor 2 ESCAPE-001 preparatorias (monitoreo)
-16. Perplexity T2-B LIBRE post-rebase PR #110
+- **QW3 ✅ Fase 1 ACTIVA** Pre-Response Hook OBSERVE-ONLY autónomo del kernel — TA3 Ejecutor 1 activó `COWORK_HOOK_ENABLED=true` Railway commit redeploy 2026-05-12 07:57 UTC. T4+T5 ya estaban activos pre-TA3 (SUPABASE_URL+KEY automático + endpoint `/v1/cowork/memento/validate` montado).
 
 ---
 
-*Generado por Cowork 2026-05-10. v0.2 actualizada 2026-05-11 tras cierre Sprint COWORK-RUNTIME-001 por Manus. v0.3 actualizada 2026-05-12 tras absorción del Consolidado Maestro de Manus. **v0.4 actualizada 2026-05-12 ~07:25 UTC tras cascada de 13 sprints cerrados HOY + objetivo magno kernel asiste memoria persistente Cowork canonizado (QW1+QW2). Sesión persistida Supabase `cowork_sesiones` row `3a04e11b-e610-4958-964e-4a709f3a5c61`.***
+## §14 CASCADA POST-CIERRE MAGNA 2026-05-12 ~08:00-08:55 UTC
+
+### 14.1 PRs mergeados HOY
+
+- **PR #115 S-CONTRATOS-001** mergeado commit `b59bc2a6` con 4 caveats T2-B verbatim (P1+P2+P2+P3). Migration 0025 credential_rotations + DSC-G-010 enforcement.
+- PR #116 ESCAPE-001 abierto por Ejecutor 2 — audit Cowork DSC-G-008 v3 6/6 VERDE posteado (comment 4430500293). **Merge BLOQUEADO** hasta T2-B PBA convergencia ≥5/6 VERDE.
+
+### 14.2 Sprint MEGA-CIERRE-HOY CERRADO 2026-05-12 ~08:04 UTC
+
+| Hilo | Tareas | Estado |
+|---|---|---|
+| Catastro | TA1 cleanup `_tmp_notif.md` commit `afe3d41` + TA2 migration 0023 `rotor_activity_log` aplicada Supabase prod commit `c1d1fc0` + smoke 4/4 verde + TA5 verificación runtime | DECLARADO |
+| Ejecutor 1 | TA3 3 env vars seteadas Railway + redeploy 07:57 UTC + kernel healthy 19/20 active | PARCIAL VERDE 1/3 con efecto real |
+
+**Memoria persistente Monstruo asiste Cowork ACTIVO desde 2026-05-12 07:57 UTC.** DRIFT-010 Fase 1 cerrado.
+
+### 14.3 Reloj Suizo doctrinal cerrado 8/8 piezas
+
+Ver §13.5 actualizado.
+
+### 14.4 DSCs canonizados HOY
+
+- **DSC-S-015** Scheduler respeta next_run de restore (commit `51d6017`)
+- **DSC-OPS-001** UPDATE manual prod requires bridge report (commit `1eb375c`)
+- **DSC-S-016** Anti-fabricación causalidad sin grep (commit `54ddd6f`)
+- **DSC-G-008 v3** ampliado §4 deducir consecuencias materiales (commit `46f0ee6`)
+
+Index `_dsc_contracts_index.yaml` actualizado con 4 entries.
+
+### 14.5 Hallazgos kernel detectados Ejecutor 1 durante MEGA-CIERRE-HOY TA3
+
+**P0 RESUELTOS por T1 ~08:50 UTC carga de créditos:**
+- §5.1 Anthropic API credit balance = 0 → cargado T1 (cuenta identificada vía Manus comando Railway)
+- §5.2 OpenRouter credits = 0 → cargado T1
+
+**P1/P2 pendientes specs follow-up (Cowork puro arma próximo turno):**
+- §5.3 P1 Gemini 3.1 Pro tool schema obsoleto (`additional_properties` rechazado en 3 function declarations)
+- §5.4 P1 tabla `public.run_costs` NO existe — kernel intenta loggear y falla silently
+- §5.5 P2 `embrion_memoria_tipo_check` rechaza tipo `evaluacion`
+- §5.6 P2 Langfuse SDK incompatible (`'Langfuse' object has no attribute 'trace'`)
+
+### 14.6 Deudas pendientes próxima sesión
+
+1. T2-B PBA PR #116 reporte → merge ESCAPE + apply migration 0024 + gate Ejecutor 2 ESPIRAL
+2. T7 smoke binario Mac PR #114 (Alfredo ejecuta local)
+3. Telegram T3 Brand Engine valores (chat_id + window_hours + rate_limit) — solo Alfredo los tiene
+4. 4 specs follow-up P1/P2 hallazgos kernel
+5. PR #110 Pre-Response Hook merge post-CI verde
+6. Ratificar firmas T1 ESPIRAL+REMONTOIR ya completada commit `0de35e6`
+7. RUBIES-001 spec sembrado, espera REMONTOIR cerrado pipeline
+
+---
+
+*Generado por Cowork 2026-05-10. v0.2 actualizada 2026-05-11 tras cierre Sprint COWORK-RUNTIME-001 por Manus. v0.3 actualizada 2026-05-12 tras absorción del Consolidado Maestro de Manus. v0.4 actualizada 2026-05-12 ~07:25 UTC tras cascada de 13 sprints cerrados HOY + objetivo magno kernel asiste memoria persistente Cowork canonizado (QW1+QW2). v0.5 actualizada 2026-05-12 ~08:55 UTC tras MEGA-CIERRE-HOY cerrado + Reloj Suizo doctrinal cerrado + PR #115 mergeado + PR #116 audit DSC-G-008 v3 VERDE 6/6 esperando T2-B + 6 hallazgos kernel + créditos P0 cargados T1. Sesión persistida Supabase `cowork_sesiones` row `3a04e11b-e610-4958-964e-4a709f3a5c61`.***
