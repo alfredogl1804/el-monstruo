@@ -287,7 +287,7 @@ Doc canónico: `docs/EL_MONSTRUO_15_OBJETIVOS_MAESTROS.md` v3.0 (50,906 bytes). 
 
 - Kernel: vivo en Railway, embrión latiendo (última verificación ESTADO_VIVO §1 2026-05-11; refrescable vía SQL contra `embrion_memoria`).
 - App Flutter: **funcional como prototipo de chat con kernel** (~6,220 LOC en 31 archivos según `memory/cowork/REPORTE_BINARIO_APP_FLUTTER_2026_05_11.md`). **~20-25% de la visión APP_VISION v1.3** (Cronos, SMP, 14 capabilities transversales, Daily/Cockpit toggle — NO existen). Sprint MOBILE_1B A2UI en ejecución (PR #92, 51/51 tests, falta T8 iPhone físico). NO está "congelada en Sprint 48" (falsa fantasma corregida 2026-05-11).
-- Catastro: 39 LLMs + 111 agentes en 14 dominios + 2 vision_generativa.
+- Catastro: 39 LLMs + **98 agentes en 12 dominios** + 2 vision_generativa. (Realidad Supabase prod 2026-05-12 confirmada por DRIFT-009 / MEGA-CATASTRO-DRIFT-RESOLUTION-001. Cifras históricas '111 agentes / 14 dominios' eran target aspiracional del handoff 10-may; nunca llegaron a poblarse en DB.)
 - RLS Supabase: **120/120 tablas con RLS** (verificado 2026-05-11 vía MCP). Post P0 RLS Fix `catastro_vision_generativa` (PR #91 mergeado commit `f575b73`). Universo limpio.
 - **64 DSCs canonizados** (`_INDEX.md` declara 44 — sigue desactualizado; +DSC-S-011 Sistema de Realidad Ejecutable + DSC-MO-011 Embryo Patch Lane firmados 2026-05-11).
 - A2UI Spec v1.0 FIRMADO por Cowork T2 (2026-05-11) — desbloquea Sprint MOBILE_1B.

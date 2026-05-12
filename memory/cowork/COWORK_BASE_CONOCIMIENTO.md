@@ -130,7 +130,7 @@ Sintetizados, NO copy-paste. Versión completa en `docs/EL_MONSTRUO_15_OBJETIVOS
 | Infraestructura propia | ❌ 20% | Sprint SOVEREIGN-INFRA specced. Hardware propio NO arrancado. |
 | Economía propia | ❌ 0% | Pendiente Pagos (Capa 1) primero. |
 | Ecosistema de Monstruos | ❌ 5% | Sprint SOVEREIGN-RED specced (federación). NO arrancado. |
-| Catastro extendido (DSC-MO-009) | ✅ 88% | 2 macroáreas pobladas (39 LLMs + 111 agentes + 2 vision). DSC-G-007.5 firmado. ROADMAP META Sprint 90 propuesto. |
+| Catastro extendido (DSC-MO-009) | ✅ 88% | 2 macroáreas pobladas (39 LLMs + **98 agentes en 12 dominios** + 2 vision). DSC-G-007.5 firmado. ROADMAP META Sprint 90 propuesto. (Cifras canonizadas 2026-05-12 bajo DRIFT-009: la versión previa decía '111 agentes / 14 dominios' — target aspiracional, nunca poblado en Supabase.) |
 
 ### Capa 4 — Del Mundo (~10%)
 

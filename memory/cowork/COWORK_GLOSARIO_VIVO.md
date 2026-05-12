@@ -63,7 +63,7 @@ Apertura externa. Cuando todo funciona sin intervención humana.
 Capa transversal anti-Síndrome-Dory. Pre-flight obligatorio + endpoint validate + decorator `@requires_memento_preflight`. Aplicable a Manus y a Cowork mismo. Origen: incidente Falso Positivo TiDB del 4-may.
 
 **Catastro Extendido.**
-Tabla de verdad viva de modelos AI + agentes + herramientas + macroáreas futuras. DSC-MO-009 + DSC-G-007.x. Estado al 10-may: 39 modelos LLM + 2 vision generativa + 111 agentes en 14 dominios.
+Tabla de verdad viva de modelos AI + agentes + herramientas + macroáreas futuras. DSC-MO-009 + DSC-G-007.x. **Estado actualizado 2026-05-12 (DRIFT-009):** 39 modelos LLM + 2 vision generativa + **98 agentes en 12 dominios** (realidad Supabase prod). La cifra histórica '111 agentes / 14 dominios' que circulaba en el handoff 10-may era target aspiracional, nunca poblado en DB.
 
 **Cosecha.**
 Acto de tomar valor real del Monstruo (subproyecto comercial corriendo, revenue, usuarios). Opuesto a "kernel-first". Estado al 10-may: 0% cosecha.
