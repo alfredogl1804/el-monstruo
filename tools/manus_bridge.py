@@ -28,7 +28,9 @@ import httpx
 # Config
 # ---------------------------------------------------------------------------
 
-MANUS_BASE_URL = "https://api.manus.im/v1"
+# Manus API v2 — base URL canónica (v1 fue deprecada)
+# Skill manus-api/SKILL.md confirma: api.manus.ai + header x-manus-api-key + endpoints RPC-style
+MANUS_BASE_URL = os.environ.get("MANUS_API_BASE_URL", "https://api.manus.ai").rstrip("/")
 
 _API_KEYS: dict[str, str] = {
     "google": "MANUS_API_KEY_GOOGLE",
@@ -98,19 +100,31 @@ def _get_api_key(account: AccountType) -> str:
         raise ValueError(
             f"Unknown account type: {account!r}. Use 'google' or 'apple'."
         )
-    key = os.environ.get(env_var)
-    if not key:
+    raw = os.environ.get(env_var)
+    if not raw:
         raise EnvironmentError(
             f"Environment variable {env_var} is not set. "
             f"Configure it in Railway before using account={account!r}."
+        )
+    # Defensive .strip() — incidente 2026-05-12: env vars con trailing newline
+    # producían 'Illegal header value' en httpx. Ver bridge fix DSC.
+    key = raw.strip()
+    if key != raw:
+        logger.warning(
+            "%s contained leading/trailing whitespace (raw_len=%d, clean_len=%d) — auto-stripped.",
+            env_var, len(raw), len(key),
         )
     return key
 
 
 def _headers(account: AccountType) -> dict[str, str]:
-    """Build request headers with auth token."""
+    """Build request headers with auth token.
+
+    Manus API v2 uses custom header `x-manus-api-key` (NOT `Authorization: Bearer`).
+    Source: skills/manus-api/SKILL.md (skill oficial canónico).
+    """
     return {
-        "Authorization": f"Bearer {_get_api_key(account)}",
+        "x-manus-api-key": _get_api_key(account),
         "Content-Type": "application/json",
     }
 
@@ -187,16 +201,20 @@ def create_task(
         "Creating Manus task (account=%s): %.80s...", account, prompt
     )
 
-    result = _request_with_retry(
+    # Manus API v2 RPC-style: POST /v2/task.create (NO REST /v1/tasks)
+    raw_result = _request_with_retry(
         "POST",
-        f"{MANUS_BASE_URL}/tasks",
+        f"{MANUS_BASE_URL}/v2/task.create",
         account=account,
         json_payload=payload,
     )
 
+    # v2 wraps responses in {"ok": true, "data": {...}}
+    result = raw_result.get("data", raw_result) if isinstance(raw_result, dict) else raw_result
+
     logger.info(
         "Manus task created: id=%s status=%s",
-        result.get("task_id", "?"),
+        result.get("task_id", result.get("id", "?")),
         result.get("status", "?"),
     )
     return result
@@ -216,11 +234,13 @@ def get_task_status(
     Returns:
         dict with at least: {"task_id": str, "status": str, "output": ...}
     """
-    return _request_with_retry(
+    # Manus API v2 RPC-style: GET /v2/task.get?task_id=...
+    raw = _request_with_retry(
         "GET",
-        f"{MANUS_BASE_URL}/tasks/{task_id}",
+        f"{MANUS_BASE_URL}/v2/task.get?task_id={task_id}",
         account=account,
     )
+    return raw.get("data", raw) if isinstance(raw, dict) else raw
 
 
 def wait_for_completion(

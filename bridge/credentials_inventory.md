@@ -53,9 +53,9 @@ Las fechas en formato `YYYY-MM-DD`. Cuando no hay fecha confiable de creación, 
 | 29 | ELEVENLABS_API_KEY | TTS API | unknown | unknown | 180 | Alfredo | pendiente |
 | 30 | LANGFUSE_PUBLIC_KEY | observability public | unknown | unknown | 365 | Alfredo | pendiente |
 | 31 | LANGFUSE_SECRET_KEY | observability secret | unknown | unknown | 180 | Alfredo | pendiente |
-| 32 | MANUS_API_KEY | Manus default account | unknown | unknown | 180 | Alfredo | pendiente |
-| 33 | MANUS_API_KEY_APPLE | Manus Apple account | unknown | unknown | 180 | Alfredo | pendiente |
-| 34 | MANUS_API_KEY_GOOGLE | Manus Google account | unknown | unknown | 180 | Alfredo | pendiente |
+| 32 | MANUS_API_KEY | Manus alias (= MANUS_API_KEY_GOOGLE pre-2026-05-12, conservar como fallback) | env Railway | unknown | 180 | alfredogl1@hotmail.com (Google) | revisar duplicidad — mismo token que GOOGLE pero limpio (95 chars vs 100 con \n\n) |
+| 33 | MANUS_API_KEY_APPLE | Manus Apple account API key — bridge inter-cuenta | env Railway | 2026-05-12 (cleaned) | 180 | Apple ID Alfredo | ✅ funcional verificado binariamente HTTP 200 GET /v2/skill.list (smoke 2026-05-12) |
+| 34 | MANUS_API_KEY_GOOGLE | Manus Google account API key — bridge inter-cuenta | env Railway | unknown | 180 | alfredogl1@hotmail.com | ⚠️ INVÁLIDO HTTP 401 incluso limpio — ver ticket MANUS_API_KEY_GOOGLE_REGEN_001 (acción manual Alfredo pendiente) |
 | 35 | MONSTRUO_API_KEY | kernel API key (auth de clientes al kernel) | 2026-04-XX | 2026-04-XX | 90 | Alfredo | pendiente |
 | 36 | COMMAND_CENTER_API_KEY | command center auth | unknown | unknown | 90 | Alfredo | pendiente |
 | 37 | ARTIFICIAL_ANALYSIS_API_KEY | analysis platform | unknown | unknown | 180 | Alfredo | pendiente |
