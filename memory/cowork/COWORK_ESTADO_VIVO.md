@@ -2,7 +2,7 @@
 
 **Propósito:** Snapshot operacional ACTUAL del Monstruo. Lo que está corriendo, lo que está en backlog, los bloqueantes. Documento volátil — se actualiza con frecuencia.
 
-**Estado:** v0.3 — actualizado 2026-05-12 tras absorción del Consolidado Maestro de Manus.
+**Estado:** v0.4 — actualizado 2026-05-12 ~07:25 UTC tras cascada de 13 sprints cerrados + objetivo magno HOY canonizado (kernel asiste memoria persistente Cowork).
 
 **Cuándo actualizar:** después de cada sesión Cowork-Alfredo de >2h o cuando un sprint cambia de estado.
 
@@ -121,4 +121,104 @@ Detalle completo en `bridge/ESTADO_MONSTRUO_2026_05_10_vs_PLANES.md`.
 
 ---
 
-*Generado por Cowork 2026-05-10. v0.2 actualizada 2026-05-11 tras cierre Sprint COWORK-RUNTIME-001 por Manus. v0.3 actualizada 2026-05-12 tras absorción del Consolidado Maestro de Manus (Cowork T2 con verificación binaria 8/9 confirmados + 1 drift evolucionado).*
+## 13. CASCADA MAGNA 2026-05-12 — 13 sprints cerrados + objetivo magno kernel asiste memoria persistente Cowork
+
+**Sesión Cowork 2026-05-12 ~01:00-07:25 UTC ~85 turnos.** Persistida en `cowork_sesiones` UUID `3a04e11b-e610-4958-964e-4a709f3a5c61`.
+
+### 13.1 Sprints cerrados (cascada secuencial)
+
+| # | Sprint | Hilo | Commit/PR | Estado |
+|---|---|---|---|---|
+| 1 | D-3 latido autónomo | Ejecutor 2 | PR #104 + `807eda4a` | ✅ Mergeado |
+| 2 | D-4 schedulers zombies fix | Ejecutor 1 | `9d67f51` | ✅ Mergeado |
+| 3 | D-5 restore overdue | Ejecutor 1 | `63767ef` + `f6ed3be` | ✅ Mergeado |
+| 4 | D-6 anti-reentrada + timeout | Ejecutor 1 | `1a50e3e` + `132688f` | ✅ Mergeado |
+| 5 | PAR_BICEFALO_001 (3 PRs Brand Engine Embrión 2) | Ejecutor 2 + Perplexity merge | PRs #108/#109/#111 | ✅ Mergeado |
+| 6 | GUARDIAN-AUTONOMO-001 | Ejecutor 2 | PR #112 + `1b5ce49` | ✅ Mergeado, baseline `total_score_pct=65.51%` |
+| 7 | STASHES-FORENSIC-001 | Catastro | `457bf6c` matriz 28×7 | ✅ Cerrado (DRIFT-013 resuelto) |
+| 8 | PR #106 cleanup scheduled_tasks | Ejecutor 2 | `2bdbb6c` | ✅ Mergeado (DRIFT-011 resuelto, 17710→6 rows) |
+| 9 | Sprint 89 v2 Opción B (vistas semánticas DSC-G-007.1 + suppliers) | Ejecutor 1 | `1bcb2c0` + `a384df0` | ✅ Mergeado |
+| 10 | CATASTRO-A v2 (audit 3 vistas + 30 suppliers DSC-V-002) | Catastro | `cb07e45` | ✅ Cerrado VERDE 3/3 |
+| 11 | MOBILE-REALIGNMENT-001 | Ejecutor 1 | PR #114 + `c0f2846` | ✅ Mergeado con 4 caveats P3 T2-B verbatim |
+| 12 | ROTOR-001 (pieza Reloj Suizo) | Ejecutor 2 | PR #113 + `43b26755` | ✅ Mergeado con override CI rojo defendible 3 condiciones T2-B |
+| 13 | COWORK-MEMORIA-AUTONOMA QW1+QW2 (objetivo magno HOY) | Cowork T2-A | `12bacecb` CLAUDE.md + row Supabase | ✅ Canonizado |
+
+### 13.2 PBA (Protocolo Par Bicéfalo Activo) ACTIVADO
+
+Commit canonización: `d4e81d0`. Operacionaliza DSC-MO-006 con **7 triggers obligatorios** donde Cowork DEBE consultar a Perplexity T2-B antes de afirmar/actuar:
+1. Causalidad operativa (post-V25 grave detectado)
+2. Apply migraciones SQL prod
+3. Merge PRs write-risky kernel
+4. DSCs nuevos / derogación
+5. Decisiones magnas
+6. Specs nuevos
+7. Override spec firmado
+
+**PBA aplicado exitosamente 3 veces HOY:** PR #112 GUARDIAN + PR #114 MOBILE + PR #113 ROTOR. T2-B detectó: 4 caveats P3 PR #114 + F2 menor narrativa PR #113. Cowork mergeó con caveats verbatim sin ocultar.
+
+### 13.3 V25 grave reconocido sin suavizar
+
+CLAIM-C: Cowork fabricó causalidad sobre migration 0020 (mezcló Sprint T5 con PAR_BICEFALO_001 sin grep previo). **Perplexity T2-B verificación independiente detectó la alucinación**. Documentado verbatim en `embrion_memoria` `efd71b9f-4622-49ac-82b6-13a0feefa250` importancia 10. Alfredo T1 activó PBA permanente como guardrail estructural.
+
+### 13.4 Drifts del Consolidado Maestro — RESUELTOS HOY
+
+| DRIFT | Estado pre-HOY | Estado post-HOY |
+|---|---|---|
+| DRIFT-008 latido autónomo | Crítico (1 latido 7 días) | ✅ Resuelto — D-3/D-4/D-5/D-6 cascada + tasks revivieron |
+| DRIFT-011 scheduled_tasks | Crítico (17,700 rows saturándose) | ✅ Resuelto — PR #106 cleanup destructivo (17,710→6 rows) + UNIQUE constraint |
+| DRIFT-013 git stashes | Crítico (27-28 stashes acumulados) | ✅ Resuelto — Hilo Catastro produjo matriz 28×7 (commit `457bf6c`) con clasificación canónica DROP/APPLY/CHERRY_PICK/REVIEW; ejecución pendiente firma T1 |
+| DRIFT-010 cowork_sesiones | Crítico (1 row smoke) | 🟡 Parcial — sesión Cowork actual seedeada en row `3a04e11b` + commit canonización CLAUDE.md Paso 0; flags `enabled=false` shadow siguen pendientes |
+
+### 13.5 Piezas Reloj Suizo (8 total)
+
+| # | Pieza | Estado |
+|---|---|---|
+| 1 Resorte | `kernel/embrion_budget.py` | ✅ Existe |
+| 2 **Escape** | Sin código | 🟡 **ESCAPE-001 spec firmado borrador** (commit `f7aa7fd`) + kickoff Ejecutor 2 (commit `3c9a5c3`) — esperando firma T1 + audit T2-B PBA |
+| 3 Áncora | `kernel/embrion_scheduler.py` | ✅ Existe + fortalecida D-3/D-4/D-5/D-6 |
+| 4 Volante | `kernel/embrion_loop.py` | ✅ Existe (doctrina del silencio) |
+| 5 Espiral | Sin código | ❌ Sprint posterior |
+| 6 **Rotor** | `kernel/rotor/` | ✅ **PR #113 mergeado HOY** (cap $30/día firmado T1 + recharge_mainspring 5min) |
+| 7 Rubíes/Caché | `kernel/response_cache.py` | 🟡 Parcial — verificar cobertura |
+| 8 Remontoir | Sin código | ❌ Sprint posterior |
+
+### 13.6 Objetivo magno HOY canonizado — kernel asiste memoria persistente Cowork
+
+Bajo orden T1 explícita `vamos a ponernos de objetivo usar hoy la memoria persistente del monstruo para que te asista y te sirva`:
+
+- **QW1 ✅** sesión Cowork actual persistida en Supabase `cowork_sesiones` row `3a04e11b-e610-4958-964e-4a709f3a5c61` con 8 violaciones detectadas + 10 palabras clave Alfredo + 6 correctivos recibidos + **16 deudas pendientes para próxima sesión** + resumen lecciones + sprint activo + kernel_version
+- **QW2 ✅** CLAUDE.md canonizado commit `12bacecb` con **Paso 0 Pre-flight Memento extendido** (CLI `session_memory pre-flight` antes de markdown docs) + Paso N cierre sesión + Paso M opcional pre-response hook decisiones magnas
+- **QW3 ⏳** Audit + merge PR #110 Pre-Response Hook OBSERVE-ONLY autónomo del kernel — bloqueado por conflict G6 con CLAUDE.md de QW2; **rebase Perplexity en proceso**
+
+### 13.7 Hilos activos al momento del refresh (07:25 UTC)
+
+| Hilo | Estado |
+|---|---|
+| Ejecutor 1 | Standby activo TA-TD + TE cleanup `_tmp_notif.md` (commit `90e57eb`) |
+| Ejecutor 2 | ESCAPE-001 PA/PB/PC preparatorias + espera firma T1 + audit T2-B PBA |
+| Catastro | S-CONTRATOS-001 COMPLETO T1-T6 (override post Sabios 2+3 commit `59adf28`) arrancando |
+| Perplexity T2-B | **Rebase PR #110** post-conflict G6 con QW2 |
+| Cowork T2-A | Orquestador con PBA proporcional aplicado 3 veces exitosas + post-V25 reconocido |
+
+### 13.8 Deudas T1 pendientes acumuladas (16 en `cowork_sesiones`)
+
+1. T7 smoke binario PR #114 Mac Alfredo (CRÍTICO post-caveats T2-B widget_test debilitado)
+2. Activar Telegram T3 GUARDIAN (chat_id + ventana + rate-limit)
+3. Activar `BRAND_ENGINE_ENABLED=true` shadow canary Railway
+4. Canonizar DSC-S-015 (scheduler respeta next_run de restore)
+5. Canonizar DSC-OPS-001 (UPDATE manual datos prod requires bridge report)
+6. Canonizar DSC anti-fabricación-causalidad-sin-grep (lección V25)
+7. Cleanup `_tmp_notif.md` (delegado a Ejecutor 1 standby TE)
+8. Ticket MOBILE-DSC-G-004-PHASE-2 (class identifiers)
+9. Firmar spec ESCAPE-001 + 6 pulse_intervals defaults T2
+10. Aplicar migration 0023_rotor_activity_log a Supabase prod (anti-IMMUTABLE check post-V25)
+11. Encolar sprint LINT_DEBT_PURGE (84 N818 + 26 semgrep + sqlglot)
+12. Resolver DRIFT-010 orden flags COWORK-RUNTIME-001 9 capabilities shadow
+13. Hilo Catastro arrancando S-CONTRATOS-001 (monitoreo)
+14. Hilo Ejecutor 1 standby activo (monitoreo)
+15. Hilo Ejecutor 2 ESCAPE-001 preparatorias (monitoreo)
+16. Perplexity T2-B LIBRE post-rebase PR #110
+
+---
+
+*Generado por Cowork 2026-05-10. v0.2 actualizada 2026-05-11 tras cierre Sprint COWORK-RUNTIME-001 por Manus. v0.3 actualizada 2026-05-12 tras absorción del Consolidado Maestro de Manus. **v0.4 actualizada 2026-05-12 ~07:25 UTC tras cascada de 13 sprints cerrados HOY + objetivo magno kernel asiste memoria persistente Cowork canonizado (QW1+QW2). Sesión persistida Supabase `cowork_sesiones` row `3a04e11b-e610-4958-964e-4a709f3a5c61`.***
