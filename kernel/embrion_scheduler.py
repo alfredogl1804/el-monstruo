@@ -175,6 +175,12 @@ class EmbrionScheduler:
         self._daily_reset: Optional[str] = None
         self._running: bool = False
         self._check_task: Optional[asyncio.Task] = None
+        # Sprint D-6: anti-reentrada. Set de task_id actualmente ejecutando.
+        # asyncio single-threaded garantiza atomicidad del check-then-add
+        # dentro del mismo tick del event loop (sin race).
+        self._running_tasks: set[str] = set()
+        # Sprint D-6: timeout default por task (segundos). Override por task.timeout_sec si existe.
+        self.DEFAULT_TIMEOUT_SEC: int = 300
 
     # ── Inicialización ────────────────────────────────────────────────────────
 
@@ -464,7 +470,24 @@ class EmbrionScheduler:
           - Si falla: incrementa consecutive_failures
           - Si falla >= max_retries: pausa la tarea
           - Persiste el estado actualizado en Supabase
+
+        Sprint D-6:
+          - Anti-reentrada: si la task ya está ejecutando, log warning y skip.
+          - Timeout: handler envuelto en asyncio.wait_for con default 300s
+            (configurable per-task vía getattr(task, 'timeout_sec', None)).
+          - Observabilidad: logs scheduler_task_started_at y scheduler_task_finished_at
+            con duration_sec para confirmar Hipótesis A (handler >60s).
         """
+        # ── Sprint D-6 T2: Anti-reentrada ────────────────────────────────
+        if task.task_id in self._running_tasks:
+            logger.warning(
+                "scheduler_task_reentry_blocked",
+                task_id=task.task_id,
+                name=task.name,
+                hint="Previous execution still running. Increase interval_hours or check handler.",
+            )
+            return
+
         handler = self._handlers.get(task.handler)
         if not handler:
             logger.error(
@@ -492,10 +515,24 @@ class EmbrionScheduler:
             handler=task.handler,
         )
 
-        try:
-            await handler(**task.handler_args)
+        # ── Sprint D-6 T2: marcar running antes de invocar handler ──────────────
+        self._running_tasks.add(task.task_id)
+        # Sprint D-6 T1: log started con timestamp para medir duration
+        started = datetime.now(timezone.utc)
+        logger.info(
+            "scheduler_task_started_at",
+            task_id=task.task_id,
+            name=task.name,
+            ts=started.isoformat(),
+        )
+        # Sprint D-6 T3: resolver timeout per-task o default 300s
+        timeout_sec = getattr(task, "timeout_sec", None) or self.DEFAULT_TIMEOUT_SEC
 
-            # ── Éxito ──────────────────────────────────────────────────────
+        try:
+            # Sprint D-6 T3: envolver handler en wait_for con timeout
+            await asyncio.wait_for(handler(**task.handler_args), timeout=timeout_sec)
+
+            # ── Éxito ───────────────────────────────────────────────────────────────
             task.last_run = datetime.now(timezone.utc).isoformat()
             task.total_runs += 1
             task.consecutive_failures = 0
@@ -519,8 +556,25 @@ class EmbrionScheduler:
                 daily_spend_usd=round(self._daily_spend, 4),
             )
 
+        except asyncio.TimeoutError:
+            # ── Sprint D-6 T3: Timeout ───────────────────────────────────────
+            task.consecutive_failures += 1
+            task.last_run = datetime.now(timezone.utc).isoformat()
+            logger.error(
+                "scheduler_task_timeout",
+                task_id=task.task_id,
+                name=task.name,
+                timeout_sec=timeout_sec,
+                failures=task.consecutive_failures,
+            )
+            if task.consecutive_failures >= task.max_retries:
+                task.paused = True
+                task.status = "paused"
+            else:
+                task.next_run = self._calculate_next_run(task)
+
         except Exception as e:
-            # ── Fallo ──────────────────────────────────────────────────────
+            # ── Fallo ───────────────────────────────────────────────────────────────
             task.consecutive_failures += 1
             task.last_run = datetime.now(timezone.utc).isoformat()
 
@@ -545,10 +599,23 @@ class EmbrionScheduler:
                     error=str(e),
                 )
 
+        finally:
+            # ── Sprint D-6 T2: liberar lock SIEMPRE (éxito, timeout, o excepción) ───────
+            self._running_tasks.discard(task.task_id)
+            # Sprint D-6 T1: log finished con duration_sec
+            finished = datetime.now(timezone.utc)
+            logger.info(
+                "scheduler_task_finished_at",
+                task_id=task.task_id,
+                name=task.name,
+                ts=finished.isoformat(),
+                duration_sec=int((finished - started).total_seconds()),
+            )
+
         # Persistir estado actualizado
         await self._persist_task(task)
 
-    # ── Helpers ───────────────────────────────────────────────────────────────
+    # ── Helpers ───────────────────────────────────────────────────────────────────────
 
     def _calculate_next_run(self, task: ScheduledTask) -> str:
         """Calcular la próxima ejecución de una tarea."""
