@@ -25,12 +25,16 @@ Las 7 inconsistencias listadas anteriormente como "pendientes" se resolvieron v�
 
 Refs internas en archivos vivos (`_dsc_contracts_index.yaml`, `tests/test_transversales_*.py`, `skills/manus-oauth-pattern/*`) actualizadas vía sed mass-update en el mismo commit.
 
-### Conflicto de ID DSC-S-005 (pendiente desde 2026-05-06)
+### ✅ Conflicto de ID DSC-S-005 RESUELTO (2026-05-12 DSC-S-005-CANONICAL-AUDIT-001)
 
-| Archivo | Naturaleza | Acción |
-|---|---|---|
-| `_GLOBAL/DSC-S-005_default_archive_antes_que_delete.md` | Política normativa (cleanup) | **Mantener como DSC-S-005** |
-| `_GLOBAL/DSC-S-005_snapshot_forense_breach_2026_05_06.md` | Snapshot forense histórico | **Pendiente de mover a `discovery_forense/INCIDENTES/`** (decisión final T1 al cierre del P0; queda fuera de scope DRIFT-012) |
+Audit binario 2026-05-12 confirmó que el conflicto ya estaba materialmente cerrado desde el 2026-05-07 (commit `61e42ae`). La doctrina del index seguía diciendo "pendiente" por drift documental.
+
+| Archivo | Path final | Naturaleza | Estado |
+|---|---|---|---|
+| Política normativa | `_GLOBAL/DSC-S-005_default_archive_antes_que_delete.md` | Política de cleanup (default a archive) | **CANÓNICO DSC-S-005** ✅ |
+| Snapshot forense | `discovery_forense/INCIDENTES/snapshot_forense_pre_rotacion_jwt_2026_05_06.md` | Registro forense histórico (NO normativo) | **RELOCATED 2026-05-07** con tombstone explicativo en línea 2 del archivo |
+
+La reubicación del snapshot a `INCIDENTES/` ya se había ejecutado en el commit `61e42ae` (Sprint post-P0 security hardening). El cierre del spike DSC-S-005-CANONICAL-AUDIT-001 (2026-05-12) solo actualiza la documentación para reflejar la realidad. **Cero archivos físicos modificados** — solo cierre de drift documental en este índice + audits relacionados.
 
 ---
 
@@ -180,11 +184,10 @@ Refs internas en archivos vivos (`_dsc_contracts_index.yaml`, `tests/test_transv
 3. ✅ **20 entradas Tipo B agregadas al index** — DSCs físicos canonizados que vivían sin entrada (DSC-G-009/012/014/017, DSC-MO-006..011, DSC-OPS-001, DSC-S-006/007/008/010/011/012/013/015/016)
 4. ✅ **Header del DSC-G-001 actualizado** — referencia a "15 Objetivos Maestros" (post DRIFT-001)
 
-## Pendiente fuera de scope DRIFT-012 (decisión T1)
-
-1. **Conflicto DSC-S-005** — mover snapshot forense a `discovery_forense/INCIDENTES/` (decisión final T1 pendiente desde 2026-05-06)
+## Pendiente fuera de scope (decisión T1)
+1. ~~**Conflicto DSC-S-005**~~ — **RESUELTO 2026-05-12 vía spike DSC-S-005-CANONICAL-AUDIT-001.** Audit binario confirmó snapshot ya estaba en `INCIDENTES/snapshot_forense_pre_rotacion_jwt_2026_05_06.md` desde commit `61e42ae` (2026-05-07). Ver sección "Conflicto de ID DSC-S-005 RESUELTO" arriba.
 2. **Renombrar `DSC-G-001_14_objetivos_maestros_aplican_a_todo.md`** — el filename mantiene "14" por trazabilidad histórica de hash; rename a "15" sería opcional y requiere coordinación con git log forensic (riesgo bajo, valor marginal)
 
 ---
 
-**Generado por Cowork (Hilo A) 2026-05-06 · Actualizado por Manus Hilo Catastro 2026-05-12 bajo MEGA-CATASTRO-DRIFT-RESOLUTION-001 · DRIFT-012**
+**Generado por Cowork (Hilo A) 2026-05-06 · Actualizado por Manus Hilo Catastro 2026-05-12 bajo MEGA-CATASTRO-DRIFT-RESOLUTION-001 · DRIFT-012 · Spike DSC-S-005-CANONICAL-AUDIT-001**

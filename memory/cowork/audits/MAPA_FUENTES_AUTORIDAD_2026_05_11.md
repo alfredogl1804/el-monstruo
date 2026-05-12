@@ -123,7 +123,7 @@ Esto NO desautoriza la doctrina. Significa que la doctrina es **prescriptiva** (
 **Deudas canónicas detectadas en snapshot:**
 - `_INDEX.md` declara 44 DSCs cuando hay 62+ (deuda de indexación)
 - Naming inconsistente (DSC-EL-MONSTRUO-* vs DSC-MO-*, DSC-LIKETICKETS-* vs DSC-LT-*, DSC-GLOBAL-* vs DSC-V-*)
-- DSC-S-005 con dos archivos distintos (normativo Cowork + forense Manus)
+- ~~DSC-S-005 con dos archivos distintos (normativo Cowork + forense Manus)~~ — **RESUELTO 2026-05-12** vía spike DSC-S-005-CANONICAL-AUDIT-001: snapshot ya estaba en `INCIDENTES/snapshot_forense_pre_rotacion_jwt_2026_05_06.md` con tombstone desde commit `61e42ae` (2026-05-07)
 - DSC-CIP-002 confusión nominal entre ticket mínimo $1 USD vs CIP-PEND-002 distribución rendimientos
 
 ### Nivel 6 — Docs estratégicos (media autoridad, decay alto)

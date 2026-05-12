@@ -147,7 +147,7 @@
 **Deuda canónica:**
 - `_INDEX.md` declara 44 DSCs cuando hay 62+ (DESACTUALIZADO)
 - Naming inconsistente entre `DSC-EL-MONSTRUO-*` y `DSC-MO-*`, `DSC-GLOBAL-*` y `DSC-V-*`, `DSC-LIKETICKETS-*` y `DSC-LT-*`, `DSC-CIP-002` duplicado (CIP-002 ticket vs CIP-PEND-002 distribución rendimientos)
-- Conflicto DSC-S-005 con dos archivos distintos (Cowork normativo + Manus forense)
+- ~~Conflicto DSC-S-005 con dos archivos distintos (Cowork normativo + Manus forense)~~ — **RESUELTO 2026-05-12** vía spike DSC-S-005-CANONICAL-AUDIT-001: snapshot ya estaba en `INCIDENTES/snapshot_forense_pre_rotacion_jwt_2026_05_06.md` desde commit `61e42ae` (2026-05-07)
 
 ---
 

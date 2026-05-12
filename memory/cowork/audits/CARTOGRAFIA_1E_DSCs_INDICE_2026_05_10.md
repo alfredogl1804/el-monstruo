@@ -198,9 +198,9 @@ Detectado y declarado en `_INDEX.md`:
 
 Sigue sin ejecutarse el `git mv`.
 
-### 4.3 Conflicto resuelto pero filesystem no actualizado: `DSC-S-005`
+### 4.3 ✅ Conflicto `DSC-S-005` RESUELTO (2026-05-12 spike DSC-S-005-CANONICAL-AUDIT-001)
 
-`_INDEX.md` declaró el conflicto entre dos archivos `DSC-S-005`. **Filesystem actual:** sólo existe `DSC-S-005_default_archive_antes_que_delete.md`. El segundo (`DSC-S-005_snapshot_forense_breach_2026_05_06.md`) ya **no está** en `_GLOBAL/`. Falta verificar si fue movido a `discovery_forense/INCIDENTES/` (el cleanup declarado) o eliminado. Acción de verificación pendiente para Hilo B.
+`_INDEX.md` declaró el conflicto entre dos archivos `DSC-S-005`. **Filesystem actual:** sólo existe `DSC-S-005_default_archive_antes_que_delete.md`. El segundo (`DSC-S-005_snapshot_forense_breach_2026_05_06.md`) ya **no está** en `_GLOBAL/`. ~~Falta verificar si fue movido a `discovery_forense/INCIDENTES/` (el cleanup declarado) o eliminado. Acción de verificación pendiente para Hilo B.~~ — **VERIFICADO 2026-05-12 (Manus Hilo Catastro):** snapshot sí fue relocated a `discovery_forense/INCIDENTES/snapshot_forense_pre_rotacion_jwt_2026_05_06.md` con tombstone explicativo en línea 2. Commit de relocate: `61e42ae` (2026-05-07). Doctrina actualizada en `_INDEX.md` sección "Conflicto de ID DSC-S-005 RESUELTO".
 
 ### 4.4 Versionado convivente: `DSC-S-006` v1.0 + v1.1
 
