@@ -52,20 +52,22 @@ Cuando ESPIRAL-001 mergee + arranques REMONTOIR-001:
 1. **Re-leer doctrina verbatim:** `head -100 docs/ARQUITECTURA_RELOJ_SUIZO_v1.0.md` antes de escribir código
 2. **Wiring orden correcto** en `embrion_loop.py`:
    ```python
-   # ROTOR_LATIDO_BEGIN (recarga budget desde pieza #6)
-   # ...ya existe...
-   # ROTOR_LATIDO_END
+   # CORRECCIÓN POST-T2-B AUDIT 2026-05-12 ~09:35 UTC:
+   # ROTOR markers NO existen inline en embrion_loop.py (T2-B forensic).
+   # ROTOR conecta vía kernel/embrion_scheduler.py (pieza #6 = scheduler-driven, no inline).
+   # Por lo tanto, tu wiring REMONTOIR_BEGIN/END puede ir donde tenga más sentido funcional
+   # respetando solo los markers reales:
 
-   # ESCAPE_BEGIN (dosifica budget desde pieza #2)
-   # ...ya existe...
+   # ESCAPE_BEGIN (existe línea 960-995 — ESCAPE-001 PR #116)
+   # ...wiring escape...
    # ESCAPE_END
 
-   # ESPIRAL_BEGIN (homeostasis ajusta pulse_intervals — pieza #5)
-   # ...ESPIRAL-001 lo agregó...
+   # ESPIRAL_BEGIN (lo agregará ESPIRAL-001 que corre ahora)
+   # ...wiring espiral...
    # ESPIRAL_END
 
-   # REMONTOIR_BEGIN (constant force quality_floor — pieza #8 Última magna)
-   # ...REMONTOIR-001 lo agrega...
+   # REMONTOIR_BEGIN (este sprint — pieza #8 última magna)
+   # ...wiring remontoir...
    # REMONTOIR_END
    ```
 3. **Nomenclatura archivos correcta:**
