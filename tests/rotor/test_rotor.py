@@ -17,7 +17,6 @@ Ejecutar: pytest tests/rotor/ -v
 from __future__ import annotations
 
 import asyncio
-import os
 from decimal import Decimal
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -101,7 +100,7 @@ class TestCapturers:
 class TestEnergyCalculator:
     def test_github_commit_main_default(self):
         """Default firmado T1: github_commit merged a main = $0.15"""
-        from kernel.rotor.energy_calculator import compute_energy_units, RotorActivity
+        from kernel.rotor.energy_calculator import RotorActivity, compute_energy_units
 
         a = RotorActivity(
             source="github_commit",
@@ -113,7 +112,7 @@ class TestEnergyCalculator:
 
     def test_github_commit_branch_default(self):
         """github_commit no-main = $0.05"""
-        from kernel.rotor.energy_calculator import compute_energy_units, RotorActivity
+        from kernel.rotor.energy_calculator import RotorActivity, compute_energy_units
 
         a = RotorActivity(
             source="github_commit",
@@ -125,7 +124,7 @@ class TestEnergyCalculator:
 
     def test_cowork_session_3h(self):
         """cowork_session 3 horas = $0.50 (default firmado)"""
-        from kernel.rotor.energy_calculator import compute_energy_units, RotorActivity
+        from kernel.rotor.energy_calculator import RotorActivity, compute_energy_units
 
         a = RotorActivity(
             source="cowork_session",
@@ -137,7 +136,7 @@ class TestEnergyCalculator:
 
     def test_latido_aborted_penalty(self):
         """embrion_latido aborted = -$0.05 (penalización)"""
-        from kernel.rotor.energy_calculator import compute_energy_units, RotorActivity
+        from kernel.rotor.energy_calculator import RotorActivity, compute_energy_units
 
         a = RotorActivity(
             source="embrion_latido",
@@ -472,8 +471,9 @@ class TestDashboard:
         assert "user&amp;admin" in out
 
     def test_render_json(self):
-        from kernel.rotor.dashboard import render_json
         import json as _json
+
+        from kernel.rotor.dashboard import render_json
 
         out = render_json({"foo": "bar", "n": 42})
         parsed = _json.loads(out)
@@ -481,8 +481,9 @@ class TestDashboard:
         assert parsed["n"] == 42
 
     def test_render_json_none_data(self):
-        from kernel.rotor.dashboard import render_json
         import json as _json
+
+        from kernel.rotor.dashboard import render_json
 
         out = render_json(None)
         parsed = _json.loads(out)

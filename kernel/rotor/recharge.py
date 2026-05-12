@@ -30,13 +30,11 @@ from decimal import Decimal
 from typing import Any, Optional
 
 from kernel.rotor.energy_calculator import (
-    CAP_DIARIO_POR_SOURCE_USD,
-    CAP_SUPERIOR_RECHARGE_USD,
     ENERGY_CALCULATOR_VERSION,
+    RotorActivity,
     apply_daily_source_cap,
     apply_total_recharge_cap,
     compute_energy_units,
-    RotorActivity,
 )
 
 try:

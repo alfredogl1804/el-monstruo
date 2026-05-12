@@ -19,14 +19,11 @@ Diseño:
 
 from __future__ import annotations
 
-import json
 import logging
-import os
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Optional
 
-from kernel.rotor.energy_calculator import RotorActivity, VALID_SOURCES
+from kernel.rotor.energy_calculator import VALID_SOURCES, RotorActivity
 
 logger = logging.getLogger(__name__)
 
@@ -108,12 +105,12 @@ class BaseCapturer(ABC):
 # usan este registry para enrutar eventos al capturer correcto.
 def _build_registry() -> dict:
     """Lazy build del registry para evitar circular imports."""
+    from kernel.rotor.capturers.cowork_capturer import CoworkCapturer
     from kernel.rotor.capturers.github_capturer import GitHubCapturer
+    from kernel.rotor.capturers.latido_capturer import LatidoCapturer
+    from kernel.rotor.capturers.manus_capturer import ManusCapturer
     from kernel.rotor.capturers.supabase_capturer import SupabaseCapturer
     from kernel.rotor.capturers.telegram_capturer import TelegramCapturer
-    from kernel.rotor.capturers.cowork_capturer import CoworkCapturer
-    from kernel.rotor.capturers.manus_capturer import ManusCapturer
-    from kernel.rotor.capturers.latido_capturer import LatidoCapturer
     return {
         "github_commit":    GitHubCapturer,
         "supabase_query":   SupabaseCapturer,

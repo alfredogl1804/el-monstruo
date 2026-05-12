@@ -35,7 +35,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping
 
 # ---------------------------------------------------------------------------
 # Versionado del calculador (se persiste en rotor_activity_log.energy_calculator_version)

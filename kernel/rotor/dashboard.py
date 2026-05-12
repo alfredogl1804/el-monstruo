@@ -152,7 +152,8 @@ def _fetch_rotor_state() -> Optional[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 _NO_DATA_HTML = """<!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8"><title>Rotor Dashboard</title>
-<style>body{font-family:-apple-system,sans-serif;max-width:900px;margin:40px auto;padding:20px;background:#fafafa;color:#333}
+<style>body{font-family:-apple-system,sans-serif;max-width:900px;
+margin:40px auto;padding:20px;background:#fafafa;color:#333}
 h1{border-bottom:2px solid #ccc;padding-bottom:10px}
 .warn{background:#fff3cd;border-left:4px solid #f0ad4e;padding:15px;margin:20px 0}</style></head>
 <body><h1>Rotor Dashboard</h1>
@@ -216,7 +217,8 @@ def render_html(data: Optional[dict[str, Any]]) -> str:
     return f"""<!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8"><title>Rotor Dashboard</title>
 <style>
-body{{font-family:-apple-system,BlinkMacSystemFont,sans-serif;max-width:1100px;margin:30px auto;padding:20px;background:#fafafa;color:#333}}
+body{{font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+max-width:1100px;margin:30px auto;padding:20px;background:#fafafa;color:#333}}
 h1{{border-bottom:2px solid #2c3e50;padding-bottom:10px}}
 h2{{color:#2c3e50;margin-top:30px;border-left:4px solid #2c3e50;padding-left:10px}}
 .kpi-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;margin:20px 0}}
@@ -231,7 +233,8 @@ th,td{{padding:8px 12px;text-align:left;border-bottom:1px solid #eee;font-size:1
 th{{background:#2c3e50;color:white;text-transform:uppercase;font-size:11px;letter-spacing:.5px}}
 .ts{{font-family:monospace;color:#7f8c8d;font-size:12px}}
 .id{{font-family:monospace;color:#888;font-size:11px}}
-.badge{{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;text-transform:uppercase;font-weight:bold}}
+.badge{{display:inline-block;padding:2px 8px;border-radius:3px;
+font-size:10px;text-transform:uppercase;font-weight:bold}}
 .badge.ok{{background:#d4edda;color:#155724}}
 .badge.pending{{background:#fff3cd;color:#856404}}
 footer{{margin-top:30px;padding-top:15px;border-top:1px solid #ccc;color:#7f8c8d;font-size:11px}}
