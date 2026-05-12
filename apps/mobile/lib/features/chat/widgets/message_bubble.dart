@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import '../../../core/a2ui/a2ui_message_view.dart';
 import '../../../models/chat_message.dart';
 import '../../../theme/monstruo_theme.dart';
 
@@ -464,12 +465,25 @@ class _MetadataPill extends StatelessWidget {
 }
 
 // ─── GenUI Bubble ───
+// Sprint MOBILE_1B (T7): si el payload del componente trae `a2ui_version`,
+// se delega a [A2UIMessageView] (renderer canon A2UI). Si no, fallback al
+// render legacy (texto descriptivo) para no romper payloads viejos.
 class _GenUIBubble extends StatelessWidget {
   const _GenUIBubble({required this.message});
   final ChatMessage message;
 
   @override
   Widget build(BuildContext context) {
+    final a2uiView = A2UIMessageView.tryBuild(payload: message.genuiPayload);
+    if (a2uiView != null) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: a2uiView,
+      )
+          .animate()
+          .fadeIn(duration: 250.ms)
+          .slideY(begin: 0.02, end: 0);
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Container(
