@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Placeholder GenUI Renderer
-/// TODO: Implement full A2UI rendering when genui package is available
-class GenUIRenderer extends StatelessWidget {
-  const GenUIRenderer({super.key, required this.payload});
+/// Placeholder A2UI Renderer (renamed from GenUIRenderer in MOBILE-REALIGNMENT-001)
+/// TODO: Implement full A2UI rendering when genui package is available (MOBILE-1B/A2UI PR #92)
+class A2UIRenderer extends StatelessWidget {
+  const A2UIRenderer({super.key, required this.payload});
   final Map<String, dynamic>? payload;
 
   @override

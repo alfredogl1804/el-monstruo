@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/monstruo_theme.dart';
-import '../../services/kernel_service.dart';
+import '../../core/theme/brand_dna.dart';
+import '../../core/mensajeros/kernel_messenger.dart';
 
 /// FinOps dashboard — cost tracking and model usage.
 ///

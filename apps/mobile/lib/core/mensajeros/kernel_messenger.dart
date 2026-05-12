@@ -6,10 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import '../core/config.dart';
-import '../models/chat_message.dart';
-import '../models/kernel_health.dart';
-import '../models/tool_event.dart';
+import '../config.dart';
+import '../../models/chat_message.dart';
+import '../../models/kernel_health.dart';
+import '../../models/tool_event.dart';
 
 final _log = Logger('KernelService');
 

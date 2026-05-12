@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../../../theme/monstruo_theme.dart';
+import '../../../core/theme/brand_dna.dart';
 
 /// Structured thinking step from the kernel pipeline.
 class ThinkingStep {

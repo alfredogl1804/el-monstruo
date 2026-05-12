@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/chat_provider.dart';
-import '../../services/agent_service.dart';
-import '../../theme/monstruo_theme.dart';
+import '../../core/mensajeros/agent_messenger.dart';
+import '../../core/theme/brand_dna.dart';
 import 'widgets/chat_input.dart';
 import 'widgets/message_bubble.dart';
 import 'widgets/tool_activity_bar.dart';

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../theme/monstruo_theme.dart';
+import '../../core/theme/brand_dna.dart';
 
 /// File viewer that renders different file types inline.
 ///

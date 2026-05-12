@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../theme/monstruo_theme.dart';
+import '../../../core/theme/brand_dna.dart';
 import 'agent_selector.dart';
 
 /// Premium chat input bar with glassmorphism, auto-expand, and micro-interactions.

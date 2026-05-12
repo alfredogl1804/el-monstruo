@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config.dart';
-import '../../services/kernel_service.dart';
-import '../../theme/monstruo_theme.dart';
+import '../../core/mensajeros/kernel_messenger.dart';
+import '../../core/theme/brand_dna.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});

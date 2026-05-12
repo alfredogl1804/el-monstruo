@@ -7,8 +7,8 @@ import 'package:logging/logging.dart';
 import '../features/chat/widgets/typing_indicator.dart';
 import '../models/chat_message.dart';
 import '../models/tool_event.dart';
-import '../services/kernel_service.dart';
-import '../services/thread_persistence.dart';
+import '../core/mensajeros/kernel_messenger.dart';
+import '../core/mensajeros/thread_persistence.dart';
 
 final _log = Logger('ChatProvider');
 

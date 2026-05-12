@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
-import '../core/config.dart';
+import '../config.dart';
 
 final _log = Logger('AgentService');
 
