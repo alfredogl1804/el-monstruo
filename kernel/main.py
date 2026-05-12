@@ -784,8 +784,50 @@ async def lifespan(app: FastAPI):
                 error=str(_ga_err),
                 fallback="stub _stub_handler_guardian_audit remains active",
             )
-        # ── /Sprint GUARDIAN-AUTONOMO-001 ────────────────────────────────────
-        # ── Sprint 55.2: A2A Registry ──────────────────────────────────────────
+           # ── /Sprint GUARDIAN-AUTONOMO-001 ────────────────────────────
+
+        # ── Sprint ROTOR-001 (2026-05-12) Hilo Ejecutor 2 ──────────────────────
+        # Registrar el handler REAL para `recharge_mainspring` — sobreescribe
+        # el stub `_stub_handler_recharge_mainspring` registrado por
+        # `register_stub_handlers` durante el boot temprano del scheduler.
+        #
+        # El handler real (`recharge_mainspring_handler`) ejecuta el ciclo
+        # de reciclado del Rotor cada 5 minutos:
+        #   1. Lee filas de rotor_activity_log con consumed_by_embrion_at IS NULL
+        #   2. Lazy enrichment de energy_units si está NULL
+        #   3. Aplica caps anti-farming ($5/día por source) + cap superior ($30/día)
+        #   4. Llama embrion_budget.add_recycled_energy() (transacción atómica)
+        #   5. Marca filas consumidas con consumed_by_embrion_at = NOW()
+        #
+        # Trigger: scheduler dispara cada 5min (registrado en `register_default_tasks`).
+        # Defaults T3 energy_units: firmados por Alfredo T1 el 2026-05-11 (NO refirma).
+        # Cap por cycle: $0.05 (no usa LLMs, solo SQL + lógica pura).
+        #
+        # Fail-soft: si el import falla (e.g. psycopg missing, env vars missing),
+        # el handler retorna degraded=True sin raise. La task no se auto-pausa.
+        try:
+            from kernel.rotor.recharge import recharge_mainspring_handler
+            embrion_scheduler.register_handler(
+                "recharge_mainspring",
+                recharge_mainspring_handler,
+            )
+            logger.info(
+                "rotor_recharge_handler_registered",
+                handler="recharge_mainspring_handler",
+                module="kernel.rotor.recharge",
+                schedule="periodic every 5min",
+                cap_diario_usd=30,
+                sprint="ROTOR-001",
+            )
+        except Exception as _rotor_err:
+            logger.warning(
+                "rotor_recharge_handler_register_failed",
+                error=str(_rotor_err),
+                fallback="stub _stub_handler_recharge_mainspring remains active",
+            )
+        # ── /Sprint ROTOR-001 ───────────────────────────────────────
+
+        # ── Sprint 55.2: A2A Registry ───────────────────────────────────────────────
         try:
             from kernel.a2a_registry import init_a2a_registry
             from kernel.a2a_routes import router as a2a_router, set_registry

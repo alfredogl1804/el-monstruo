@@ -1,0 +1,60 @@
+{
+  "sprint": "ROTOR-001",
+  "tarea": "T1 — Migración rotor_activity_log",
+  "perfil_riesgo": "write-risky",
+  "owner": "Hilo Ejecutor 2 (manus_hilo_b)",
+  "fecha": "2026-05-12",
+  "migration_file": "migrations/sql/0023_rotor_activity_log.sql",
+  "migration_number": 23,
+  "table_name": "public.rotor_activity_log",
+  "dscs_honrados": [
+    "DSC-S-006 v1.1 (RLS por defecto)",
+    "DSC-G-017 (DSC-as-Contract)",
+    "DSC-MO-010 (Reloj Suizo)"
+  ],
+  "objetivos_maestros": [11, 15, 8],
+  "estructura": {
+    "columnas": [
+      {"nombre": "id", "tipo": "UUID PRIMARY KEY", "default": "gen_random_uuid()"},
+      {"nombre": "created_at", "tipo": "TIMESTAMPTZ NOT NULL", "default": "NOW()"},
+      {"nombre": "source", "tipo": "TEXT NOT NULL", "check": "IN (6 sources)"},
+      {"nombre": "actor", "tipo": "TEXT NOT NULL"},
+      {"nombre": "payload_jsonb", "tipo": "JSONB NOT NULL", "default": "'{}'"},
+      {"nombre": "energy_units", "tipo": "NUMERIC(8,4) NULL", "comentario": "USD-equivalent, calculado por T3"},
+      {"nombre": "energy_calculator_version", "tipo": "TEXT NULL"},
+      {"nombre": "consumed_by_embrion_at", "tipo": "TIMESTAMPTZ NULL"},
+      {"nombre": "cycle_id_consumer", "tipo": "BIGINT NULL"},
+      {"nombre": "notes", "tipo": "TEXT NULL"}
+    ],
+    "indices": [
+      "idx_rotor_activity_log_source_created (source, created_at DESC)",
+      "idx_rotor_activity_log_consumed (consumed_by_embrion_at NULLS FIRST, created_at) WHERE consumed_by_embrion_at IS NULL",
+      "idx_rotor_activity_log_actor_created (actor, created_at DESC)",
+      "idx_rotor_activity_log_created_at (created_at DESC)",
+      "idx_rotor_activity_log_source_day (source, day(created_at))"
+    ],
+    "rls": {
+      "habilitado": true,
+      "policy": "rotor_activity_log_service_role_only (service_role FOR ALL)",
+      "verificacion_automatica_en_migracion": "RAISE EXCEPTION si RLS no habilitado o policies = 0"
+    }
+  },
+  "sources_canonicos": [
+    {"source": "github_commit", "energy_default_usd": 0.05, "bonus_merged_main_usd": 0.10},
+    {"source": "supabase_query", "energy_default_usd": 0.02},
+    {"source": "telegram_message", "energy_default_usd": 0.05},
+    {"source": "cowork_session", "energy_default_usd": 0.50, "minimum_duration_hours": 2},
+    {"source": "manus_session", "energy_default_usd": 0.30, "requires_pr_merged": true},
+    {"source": "embrion_latido_exitoso", "energy_default_usd": 0.01},
+    {"source": "embrion_latido_aborted", "energy_default_usd": -0.05}
+  ],
+  "caps": {
+    "diario_por_source_usd": 5.00,
+    "diario_total_recharge_usd": 30.00,
+    "comentario": "Anti-farming + cap superior 2x daily original. Firmado T1 2026-05-11."
+  },
+  "estado_aplicacion_local": "PENDING (env vars locales no disponibles — se aplicará en Railway prod por Cowork)",
+  "estado_codigo": "VERDE — migración escrita, idempotente, RLS por defecto, 5 índices",
+  "compile_check": "OK (SQL sintácticamente válido)",
+  "siguiente_tarea": "T2 — Capturadores de actividad (6 sources)"
+}

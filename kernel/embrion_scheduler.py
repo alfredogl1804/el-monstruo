@@ -794,12 +794,31 @@ def register_default_tasks(scheduler: EmbrionScheduler) -> None:
         max_cost_usd=0.10,
         handler="daily_guardian_audit",
     ))
+
+    # 8. Recharge Mainspring — Sprint ROTOR-001 (2026-05-12) Hilo Ejecutor 2
+    # Reciclador de Actividad: cada 5 min consume rotor_activity_log con
+    # consumed_by_embrion_at IS NULL, calcula energy_units, aplica caps
+    # ($5/día por source + $30/día total firmado T1), y devuelve presupuesto
+    # al Embrión via add_recycled_energy().
+    # Cap por cycle: $0.05 (no usa LLMs, solo SQL + lógica pura).
+    # Cap superior diario: $30 firmado T1 — enforced en run_recharge_cycle.
+    # Spec firmado: bridge/sprints_propuestos/sprint_ROTOR_001_reciclador_actividad.md
+    scheduler.add_task(ScheduledTask(
+        name="recharge_mainspring",
+        description="Recharge budget cada 5min con energy_units del Rotor (Sprint ROTOR-001, pieza Reloj Suizo)",
+        embrion_id="embrion-0",
+        schedule_type="periodic",
+        interval_hours=5.0 / 60.0,  # 5 minutos
+        max_cost_usd=0.05,
+        handler="recharge_mainspring",
+    ))
+
     logger.info(
         "scheduler_default_tasks_registered",
-        count=7,
+        count=8,
         tasks=["causal_seeding", "prediction_validation", "vanguard_scan",
                "system_health_check", "memory_consolidation", "latido_autonomo",
-               "daily_guardian_audit"],
+               "daily_guardian_audit", "recharge_mainspring"],
     )
 
 
@@ -980,6 +999,31 @@ async def _stub_handler_guardian_audit(**kwargs: Any) -> dict[str, Any]:
     }
 
 
+async def _stub_handler_recharge_mainspring(**kwargs: Any) -> dict[str, Any]:
+    """
+    Stub del handler Recharge Mainspring (Sprint ROTOR-001).
+
+    Este stub se mantiene SOLO como fallback defensivo. El handler real
+    `recharge_mainspring_handler` de `kernel.rotor.recharge` se registra en
+    `kernel/main.py` durante el boot del kernel y SOBREESCRIBE este stub.
+
+    Si este stub se ejecuta en lugar del handler real, indica que
+    `kernel/main.py` no terminó de cargar el módulo `kernel.rotor.recharge`
+    (e.g. falla de import). Retorna degraded=True para que la task no se
+    auto-pause tras 3 fallos consecutivos.
+    """
+    logger.warning(
+        "recharge_mainspring_stub_executed",
+        note="Real handler not registered. Check kernel/main.py imports of kernel.rotor.recharge.",
+    )
+    return {
+        "degraded": True,
+        "reason": "real_handler_not_registered",
+        "rows_consumed": 0,
+        "units_added_to_budget_usd": "0",
+    }
+
+
 def register_stub_handlers(scheduler: EmbrionScheduler) -> None:
     """
     Registrar handlers stub para las 5 tareas default.
@@ -1005,7 +1049,12 @@ def register_stub_handlers(scheduler: EmbrionScheduler) -> None:
     # daily_guardian_audit_handler de kernel.guardian_runner.runner para evitar
     # dependencia circular scheduler -> guardian_runner -> embrion_loop).
     scheduler.register_handler("daily_guardian_audit", _stub_handler_guardian_audit)
-    logger.info("scheduler_stub_handlers_registered", count=7)
+    # Sprint ROTOR-001 (2026-05-12) Hilo Ejecutor 2 — stub para recharge mainspring
+    # El handler REAL se registra en kernel/main.py (importa
+    # recharge_mainspring_handler de kernel.rotor.recharge para evitar
+    # dependencia circular scheduler -> rotor -> embrion_budget).
+    scheduler.register_handler("recharge_mainspring", _stub_handler_recharge_mainspring)
+    logger.info("scheduler_stub_handlers_registered", count=8)
 
 
 # ── Singleton global ──────────────────────────────────────────────────────────
