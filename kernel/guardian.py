@@ -164,11 +164,16 @@ class GuardianDeObjetivos:
     _evaluations_count: int = 0
 
     def __post_init__(self):
-        """Registrar los 14 objetivos al inicializar."""
-        self._register_14_objetivos()
+        """Registrar los 15 objetivos al inicializar."""
+        self._register_15_objetivos()
 
-    def _register_14_objetivos(self) -> None:
-        """Registrar los 14 Objetivos Maestros del Monstruo."""
+    # Alias backward-compat (post DRIFT-001 2026-05-12)
+    def _register_14_objetivos(self) -> None:  # noqa: D401
+        """Alias deprecado — usa _register_15_objetivos. Mantenido para no romper callers."""
+        return self._register_15_objetivos()
+
+    def _register_15_objetivos(self) -> None:
+        """Registrar los 15 Objetivos Maestros del Monstruo (post DRIFT-001 2026-05-12)."""
         objetivos = [
             (1, "Crear Empresas Digitales Completas", ["pipeline_completions", "empresas_creadas"]),
             (2, "Nivel Apple/Tesla", ["design_audit_scores", "visual_quality_scores"]),
@@ -184,6 +189,7 @@ class GuardianDeObjetivos:
             (12, "Ecosistema de Monstruos", ["monstruos_en_red", "colaboraciones_activas"]),
             (13, "Del Mundo", ["idiomas_soportados", "paises_activos"]),
             (14, "El Guardián", ["objetivos_healthy", "alertas_resueltas_hoy"]),
+            (15, "Memoria Soberana", ["memoria_persistente_hits", "sindrome_dory_eventos"]),
         ]
 
         for obj_id, nombre, metrics_keys in objetivos:
@@ -195,7 +201,7 @@ class GuardianDeObjetivos:
             }
             self._health_history[obj_id] = []
 
-        logger.info("guardian_14_objetivos_registrados", count=len(self._objetivos))
+        logger.info("guardian_15_objetivos_registrados", count=len(self._objetivos))
 
     # ── Evaluación ─────────────────────────────────────────────────────────
 
@@ -204,7 +210,7 @@ class GuardianDeObjetivos:
         """Evaluar el estado de salud de un objetivo.
 
         Args:
-            objetivo_id: ID del objetivo a evaluar (1-14).
+            objetivo_id: ID del objetivo a evaluar (1-15).
             metrics: Métricas actuales del objetivo.
 
         Returns:

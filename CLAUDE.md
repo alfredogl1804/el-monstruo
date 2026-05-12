@@ -257,7 +257,7 @@ Versión canónica autoritativa en `memory/cowork/COWORK_DECISIONES_VIVAS.md` §
 14. Guardian de los Objetivos (auto-evaluación)
 15. **Memoria Soberana** — el Monstruo nunca depende de la memoria de un agente ejecutivo efímero.
 
-Doc canónico: `docs/EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md` v3.0 (50,906 bytes, blob `b9cb04ca`).
+Doc canónico: `docs/EL_MONSTRUO_15_OBJETIVOS_MAESTROS.md` v3.0 (50,906 bytes). Renombrado de `14_OBJETIVOS` el 2026-05-12 bajo MEGA-CATASTRO-DRIFT-RESOLUTION-001 · DRIFT-001.
 
 ## Las 4 Capas Arquitectónicas
 
@@ -305,7 +305,7 @@ Doc canónico: `docs/EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md` v3.0 (50,906 bytes, b
 | `kernel/engine.py` | Motor LangGraph |
 | `kernel/embrion_loop.py` | Loop autónomo del Embrión (doctrina del silencio) |
 | `docs/EL_MONSTRUO_APP_VISION_v1.md` | Visión magna app Flutter (1116 líneas) |
-| `docs/EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md` | Los 15 objetivos v3.0 |
+| `docs/EL_MONSTRUO_15_OBJETIVOS_MAESTROS.md` | Los 15 objetivos v3.0 (renombrado 2026-05-12 desde `14_OBJETIVOS` por DRIFT-001) |
 
 ## Cómo Usar Este Archivo
 

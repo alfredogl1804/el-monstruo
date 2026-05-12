@@ -262,9 +262,9 @@ class TestGuardian:
         self.AlertSeverity = AlertSeverity
         self.GuardianObjetivoNoRegistrado = GuardianObjetivoNoRegistrado
 
-    def test_init_registers_14_objetivos(self):
+    def test_init_registers_15_objetivos(self):
         guardian = self.Guardian()
-        assert len(guardian._objetivos) == 14
+        assert len(guardian._objetivos) == 15
 
     def test_to_dict_has_required_keys(self):
         guardian = self.Guardian()
@@ -301,7 +301,7 @@ class TestGuardian:
     def test_list_objetivos(self):
         guardian = self.Guardian()
         objetivos = guardian.list_objetivos()
-        assert len(objetivos) == 14
+        assert len(objetivos) == 15
         assert all("id" in o and "nombre" in o for o in objetivos)
 
     def test_resolve_alert(self):

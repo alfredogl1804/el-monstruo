@@ -34,11 +34,13 @@ Esto no es opcional. Es CÓDIGO que se ejecuta, no texto que se lee.
 
 ---
 
-# Regla Dura #1: Los 14 Objetivos Maestros Aplican a TODO
+# Regla Dura #1: Los 15 Objetivos Maestros Aplican a TODO
 
 Esta regla NO se puede ignorar, resumir ni omitir ante compactación de memoria.
 
-> **Los 14 Objetivos Maestros de El Monstruo aplican a TODA decisión — incluyendo infraestructura, APIs, pipelines, base de datos, naming, error handling, logs, y cualquier código que se escriba. No existe "backend sin marca". Cada línea de código ES la marca.**
+> **Los 15 Objetivos Maestros de El Monstruo aplican a TODA decisión — incluyendo infraestructura, APIs, pipelines, base de datos, naming, error handling, logs, y cualquier código que se escriba. No existe "backend sin marca". Cada línea de código ES la marca.**
+
+> **Doctrina canónica (post DRIFT-001 2026-05-12):** archivo fuente es `docs/EL_MONSTRUO_15_OBJETIVOS_MAESTROS.md`. El nombre legacy `EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md` quedó como stub redirect para preservar trazabilidad histórica. Objetivo #15 = "Memoria Soberana" (agregado v3.0 el 2026-05-04).
 
 Cuando implementes cualquier cosa, antes de dar por terminado, pregúntate:
 
