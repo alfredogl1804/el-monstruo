@@ -2,7 +2,7 @@
 
 **Propósito:** Snapshot operacional ACTUAL del Monstruo. Lo que está corriendo, lo que está en backlog, los bloqueantes. Documento volátil — se actualiza con frecuencia.
 
-**Estado:** v0.2 — sincronizado al 2026-05-11 ~09:00 UTC tras cierre Sprint COWORK-RUNTIME-001.
+**Estado:** v0.3 — actualizado 2026-05-12 tras absorción del Consolidado Maestro de Manus.
 
 **Cuándo actualizar:** después de cada sesión Cowork-Alfredo de >2h o cuando un sprint cambia de estado.
 
@@ -83,4 +83,42 @@ Detalle completo en `bridge/ESTADO_MONSTRUO_2026_05_10_vs_PLANES.md`.
 
 ---
 
-*Generado por Cowork 2026-05-10. v0.2 actualizada 2026-05-11 tras cierre Sprint COWORK-RUNTIME-001 por Manus. Próxima actualización tras decisión de orden de activación de flags.*
+## 12. Drifts Detectados 2026-05-12 (Consolidado Maestro Manus)
+
+**Fuente:** `bridge/manus_to_cowork_CONSOLIDADO_MAESTRO_UNIVERSO_MONSTRUO_2026_05_12.md` (SHA-256 `719d0c19328f81ad4820050ec88777bb0cabc48e374e117f9289768756d75a08`, 160 LOC, 9,782 bytes) + `FUENTE_1_DOCTRINAL` (SHA `3fe8da58…8c41f`, 319 LOC).
+
+**Verificación binaria fresca ejecutada por Cowork T2 el 2026-05-12 tras absorción:** 8/9 DRIFTs confirmados exactos, 1/9 drift evolucionado.
+
+| ID | Componente | Doctrina/Handoff | Realidad fresca 2026-05-12 | Gravedad | Acción inmediata |
+|---|---|---|---|---|---|
+| DRIFT-001 | Objetivos Maestros | ROADMAP dice 13, nombre archivo dice "14" | **15** verificados en `docs/EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md` líneas 42, 100, 139, 185, 248, 295, 342, 389, 422, 521, 574, 617, 662, 718, 823 | Alta | Renombrar archivo a `_15_OBJETIVOS_` o canonizar alias |
+| DRIFT-007 | Universo RLS | Handoff 120/120 | **125/125** (5 tablas nuevas en 24h, RLS automática mantenida) | Baja | Documentar las 5 tablas nuevas en `DECISIONES_VIVAS §7` |
+| DRIFT-008 | Latido autónomo | Acuse 11-may ordenó restaurar cada 6h | **1 latido en 7 días** — handler NO restaurado | **Crítica** | Reparar `kernel/embrion_scheduler.py` (Deuda #2 §6) |
+| DRIFT-009 | Catastro agentes | Handoff 111 | **98** confirmado | Media | Actualizar `BASE_CONOCIMIENTO §9` + `HANDOFF` |
+| DRIFT-010 | Cowork runtime sesiones | Sprint COWORK-RUNTIME-001 "cerrado con persistencia" | **1 row** (sólo smoke seed `ed7bfd59`). Shadow mode. | Alta | Activar flags T4 + decisión orden activación |
+| DRIFT-011 | scheduled_tasks | Acuse 11-may ordenó cleanup destructivo | **17,700** (Manus reportó 17,695 → +5 rows en ~5h. Drift evolucionado activo) | **Crítica** | Cleanup destructivo urgente (Deuda #1 §6) |
+| DRIFT-012 | Inventario DSCs | Handoff declara 64 | **62 archivos físicos**. 2 commits faltantes | Media | Buscar los 2 DSCs faltantes y/o actualizar `_INDEX.md` |
+| DRIFT-013 | Git stashes | Handoff menciona "6 diffs preservados" | **27 stashes** acumulados | **Crítica** | Auditar stashes pendientes (Deuda #3 §6) |
+| DRIFT-014 | Biblias v7.0_95 | Handoff no las menciona en core | **10 biblias** en `monstruo_biblias/` | Alta | Decidir si pertenecen al universo (subir a §1 de BASE_CONOCIMIENTO o marcar paralelo) |
+
+**Exclusiones explícitas T1 (Alfredo 2026-05-11/12):**
+- ❌ Guillermo Cortés NO parte del Monstruo
+- ❌ Investigación Forense NO parte del Monstruo
+
+**Plan A→B→C consolidado §5 del Consolidado:**
+- Sprint 87 — A Ejecución Autónoma E2E (1-2 días)
+- Sprint 88 — B Multiplicación 9 Embriones (3-5h)
+- Sprint 89 — C Activación Guardian Autónomo (2-4h)
+- Sprints 90-92 Transversales · 93 verificación 7 días · 94 Ticketlike · 95+ Stripe DIFERIDO
+
+**6 deudas técnicas críticas §6 del Consolidado:**
+1. Cleanup destructivo `scheduled_tasks` (Crítica DRIFT-011)
+2. Restaurar `latido_autonomo` cada 6h (Crítica DRIFT-008)
+3. Limpieza 27 git stashes (Crítica DRIFT-013)
+4. Activar Fase 2 — implementar Tarea 5 EMBRION-NEEDS-001 (Embrión-Daddy, PR #81 spec firmado)
+5. Decidir orden activación 9 flags COWORK-RUNTIME (shadow → enforce)
+6. Rotar master password Bitwarden (runbook listo) — **NOTA:** decisión T1 explícita 11-may dice "no rotamos claves hasta que termine el avance" — este punto queda pausado por T1
+
+---
+
+*Generado por Cowork 2026-05-10. v0.2 actualizada 2026-05-11 tras cierre Sprint COWORK-RUNTIME-001 por Manus. v0.3 actualizada 2026-05-12 tras absorción del Consolidado Maestro de Manus (Cowork T2 con verificación binaria 8/9 confirmados + 1 drift evolucionado).*
