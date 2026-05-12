@@ -25,10 +25,10 @@ Las fechas en formato `YYYY-MM-DD`. Cuando no hay fecha confiable de creación, 
 | 1 | SUPABASE_SERVICE_KEY | service-role admin | unknown | unknown | 90 | Alfredo | runbook_rotacion_supabase_service_key.md |
 | 2 | SUPABASE_KEY | anon publishable | unknown | unknown | 180 | Alfredo | pendiente |
 | 3 | OPENAI_API_KEY | LLM API key | unknown | unknown | 30 | Alfredo | runbook_rotacion_openai_api_key.md |
-| 4 | ANTHROPIC_API_KEY | LLM API key | unknown | unknown | 30 | Alfredo | pendiente |
+| 4 | ANTHROPIC_API_KEY | LLM API key | 2026-05-12 | 2026-05-12 | 30 | Alfredo | runbook_rotacion_anthropic_api_key.md (pendiente) |
 | 5 | GEMINI_API_KEY | LLM API key | unknown | unknown | 30 | Alfredo | pendiente |
 | 6 | XAI_API_KEY | LLM API key | unknown | unknown | 30 | Alfredo | pendiente |
-| 7 | OPENROUTER_API_KEY | LLM gateway key | unknown | unknown | 30 | Alfredo | pendiente |
+| 7 | OPENROUTER_API_KEY | LLM gateway key | unknown | unknown (balance recargado 2026-05-12) | 30 | Alfredo | pendiente |
 | 8 | PERPLEXITY_API_KEY | LLM API key | unknown | unknown | 30 | Alfredo | pendiente |
 | 9 | SONAR_API_KEY | LLM API key (Perplexity Sonar) | unknown | unknown | 30 | Alfredo | pendiente |
 | 10 | TELEGRAM_BOT_TOKEN | bot token | unknown | unknown | 180 | Alfredo | pendiente |
@@ -70,6 +70,32 @@ Las fechas en formato `YYYY-MM-DD`. Cuando no hay fecha confiable de creación, 
 | 41 | APPLE_ID_PASSWORD | personal account | iCloud Keychain | unknown | unknown | 180 | pendiente |
 | 42 | DB password (Postgres directo) | DB password | Railway env (`SUPABASE_DB_URL` connection string) | unknown | unknown | 90 | pendiente |
 
+## Mapa de cuentas dueñas por servicio (descubierto 2026-05-12)
+
+Durante el Sprint MEGA-CIERRE-HOY (Hilo Ejecutor 1, 2026-05-12) se descubrió binariamente el mapa real de cuentas dueñas detrás de cada API key activa en Railway. Esta información es crítica porque hasta ahora se asumía que todas las cuentas estaban bajo el mismo email principal, lo cual generó confusión durante la suspensión de la cuenta vieja de Anthropic por Trust & Safety. La tabla siguiente refleja la realidad verificada:
+
+| Servicio | Cuenta dueña | Email | Estado | Notas |
+|---|---|---|---|---|
+| Railway | Alfredo principal | `Alfredogl1@hotmail.com` | activo | proyecto `celebrated-achievement` |
+| OpenRouter | Alfredo principal | `Alfredogl1@hotmail.com` | activo, $99.98 USD, Auto Top-Up enabled (threshold $5, recharge $50) | recargado 2026-05-12 |
+| Anthropic (vigente) | Apple Sign-In relay | `hfhm9mycw7@privaterelay.appleid.com` | activo, $100 USD, Auto-recharge enabled | org id `56aa18be-d5cb-4446-8794-05153e524660`, key rotada 2026-05-12 |
+| Anthropic (legacy) | Gmail principal | `alfredogl1.gongora@gmail.com` | **SUSPENDIDA** por Trust & Safety | bóveda Bitwarden todavía referencia esta cuenta — actualizar nota |
+| Bitwarden vault | Gmail principal | `alfredogl1.gongora@gmail.com` | activo | master password expuesta 2026-05-10, rotación pendiente |
+| Apple ID | personal | n/a | activo | Sign-In con relay creó cuenta Anthropic nueva |
+
+Esta divergencia de cuentas implica que el flujo de billing y soporte para Anthropic debe ir a la cuenta del Apple Private Relay, no a Gmail. Cualquier intento de recovery de la cuenta vieja Anthropic via Gmail está bloqueado por la suspensión de Trust & Safety y no se debe reintentar; la decisión operativa firme es operar exclusivamente con la cuenta nueva del relay.
+
+## Auto-recharge configurado en proveedores LLM (2026-05-12)
+
+Ambos proveedores de LLM principales tienen recarga automática habilitada al cierre del Sprint MEGA-CIERRE-HOY, eliminando el riesgo de que el kernel se quede sin créditos sin previo aviso operativo:
+
+| Proveedor | Threshold | Recharge | Cuenta de pago | Configurado |
+|---|---|---|---|---|
+| OpenRouter | $5 USD | $50 USD | `Alfredogl1@hotmail.com` | 2026-05-12 |
+| Anthropic | configurado por Alfredo | configurado por Alfredo | Apple Private Relay | 2026-05-12 |
+
+Gemini, Grok, Perplexity y OpenAI quedan pendientes de auditoría de balance y configuración de auto-recharge equivalente cuando se atiendan en sprints futuros.
+
 ## Hallazgos críticos del inventario inicial
 
 El inventario revela que **todas las credenciales tienen `created_at: unknown` y `last_rotated_at: unknown`** salvo el PAT de Supabase recién documentado y el incidente de Bitwarden. Esto significa que el proyecto opera con deuda total de fecha de rotación: no se puede saber si una credencial lleva 1 día o 1 año desde su última rotación. El primer ciclo del workflow CI tras el merge de S-003.A asumirá `last_rotated_at = 2026-05-10` (fecha de la creación de este inventario) como baseline conservadora, y empezará a alertar cuando cada credencial cumpla su frecuencia objetivo desde esa fecha.
@@ -82,4 +108,5 @@ Tras el merge de S-003.A, los siguientes items quedan en backlog operativo: rota
 
 ---
 
-**Última actualización**: 2026-05-10 (creación del inventario, Sprint S-003.A)
+**Última actualización**: 2026-05-12 (Sprint MEGA-CIERRE-HOY, Hilo Ejecutor 1) — agregado mapa de cuentas dueñas, marcado ANTHROPIC_API_KEY como rotada hoy, agregada sección de auto-recharge configurado en OpenRouter + Anthropic.
+**Penúltima actualización**: 2026-05-10 (creación del inventario, Sprint S-003.A)
