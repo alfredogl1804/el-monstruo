@@ -3,12 +3,12 @@ id: DSC-S-015
 proyecto: GLOBAL
 tipo: restriccion_dura
 titulo: "Scheduler debe respetar next_run de restore — nunca recalcular incondicionalmente (lección Sprint D-5)"
-estado: borrador
+estado: firme
 fecha: 2026-05-12
-fecha_firma_T1: PENDIENTE
+fecha_firma_T1: 2026-05-12
 autor_borrador: Cowork T2-A (post-D-5 cierre por Hilo Ejecutor 1)
 autor_propuesta_original: Manus Hilo Ejecutor 1 (durante Sprint D-5 reporte sección "Pendientes para canonización")
-autorización_T1: PENDIENTE
+autorización_T1: Alfredo firmó 2026-05-12 ~07:55 UTC en chat ("te firmo los 5 incluyendo el 5 de xcode") junto con DSC-OPS-001 + DSC-S-016 + spec ESCAPE-001 + autorización Brand Engine canary + ack T7 smoke Mac PR #114
 fuentes:
   - bridge/manus_to_cowork_REPORTE_SPRINT_D5_2026_05_12.md (Hilo Ejecutor 1 cierre VERDE 23/23 tests)
   - kernel/embrion_scheduler.py commit 63767ef (_restore_from_supabase fix)
@@ -113,6 +113,4 @@ Tests: `tests/test_scheduler_restore_overdue_d5.py` (4 tests + 1 regresión E2E)
 
 ---
 
-**estado:** borrador — pendiente firma T1 explícita de Alfredo en chat. Cowork redactó bajo PBA trigger 4 (DSC nuevo). Requiere audit T2-B pre-canonización + firma T1 + actualización `_dsc_contracts_index.yaml`.
-
-**Sin firma T1, este DSC permanece como `borrador` indefinidamente.** Cowork NO canoniza unilateralmente.
+**estado:** **FIRME** — firma T1 Alfredo 2026-05-12 ~07:55 UTC en chat. Canonizado oficialmente. Total DSCs canonizados: 64 → 65.
