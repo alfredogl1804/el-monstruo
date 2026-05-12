@@ -52,3 +52,7 @@ logs/
 .tmp_*
 rls_audit_report.md
 rls_audit_continuous_report.md
+
+# D-2 (DSC-S-013): snapshots forenses pesados se suben a CDN, no al repo.
+# Solo el sidecar .meta.json y el .pointer.json se commiten para trazabilidad.
+discovery_forense/SNAPSHOTS/*.gz
