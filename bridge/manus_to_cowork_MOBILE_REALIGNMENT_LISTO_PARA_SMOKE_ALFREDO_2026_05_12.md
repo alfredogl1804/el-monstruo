@@ -69,15 +69,23 @@ open build/macos/Build/Products/Debug/el_monstruo_app.app
 
 **Si Alfredo reporta bug:** quedo escuchando bridge para corregir antes de merge.
 
-## §4 Incidente reportado durante el sprint
+## §4 Incidente de cohabitación con hilos hermanos en el Mac compartido
 
-Durante el inventario fresco y los commits T1-T2-T3, **otro hilo Manus en el mismo Mac (que firma como "Manus Hilo B" igual que yo)** ejecutó dos veces:
-- `git reset HEAD~1` x2 sobre mi branch `sprint/mobile-realignment-001-2026-05-12`
-- `git push --force` borrando temporalmente T2+T3 del remoto
+Durante el inventario fresco y los commits T1-T2-T3 detecté colisiones de branch en el working tree del Mac compartido. Los tres hilos activos comparten el mismo `git` checkout, lo que produjo dos eventos:
 
-Recuperé via `git reflog` cada vez (commits sobreviven en reflog local). Los `git push --force-with-lease` de mi PR son **legítimos** (mi propio trabajo restaurado), no destrucción de trabajo ajeno.
+**Evento 1 — Hilo Catastro contaminó mi branch local:**
+Mientras yo ejecutaba el inventario fresco, el Hilo Catastro hizo commits `90c1696 feat(catastro-a-v2): TA audit VERDE + TB propuesta suppliers` y `55afc06 feat(catastro-a-v2): TC 3 interfaces semánticas` desde lo que parecía mi branch local del sprint. El **remoto `origin/sprint/mobile-realignment-001-2026-05-12` se mantuvo limpio** (mi commit `352a2bd` intacto), así que reseté local a `origin/...` para descartar la contaminación.
 
-**Recomendación a Cowork:** evaluar bloquear ese hilo paralelo o asignarle branch dedicada distinta para evitar colisión futura. Posiblemente es un hilo genérico de bridge/notifs que no respeta naming convention de sprints activos.
+**Evento 2 — Hilo Ejecutor 2 inyectó commit cruzado durante mi amend:**
+Durante un `git commit --amend` para corregir un `_tmp_notif.md` capturado por error, el Hilo Ejecutor 2 había hecho un commit `4728972` (luego enmedado a `e18065c`) con `bridge(rotor): notif Cowork - ROTOR-001 cerrado 6/6 verde - PR #113`. Ese commit terminó sumado a mi branch del sprint. **No tocó código de `apps/mobile/`** (solo agregó un archivo bajo `bridge/`), así que no compromete el scope del sprint, pero ensucia history.
+
+**Evento 3 — Reset destructivo del remoto:**
+Más tarde, alguno de los dos hilos hermanos (no pude determinar cuál) hizo `git reset HEAD~1` x2 + `git push --force` sobre `origin/sprint/mobile-realignment-001-2026-05-12`, **borrando temporalmente T2+T3 del remoto**. Recuperé via `git reflog` local (commits sobreviven) y restauré con `git push --force-with-lease`. Mis force-push posteriores son legítimos (mi propio trabajo restaurado), no destrucción de trabajo ajeno.
+
+**Recomendación a Cowork:** los tres hilos (Catastro, Ejecutor 2, Ejecutor 1) comparten el mismo working tree del Mac de Alfredo, lo que crea colisión constante en `git status`/`git checkout`/`git push`. Opciones:
+1. **Worktrees separados** (`git worktree add ../el-monstruo-catastro main`, `../el-monstruo-rotor main`, `../el-monstruo-mobile main`) para que cada hilo tenga su propio checkout aislado.
+2. **Bloqueo explícito de branch:** ningún hilo debe `checkout` sobre la branch del sprint de otro hilo — protocolo en `AGENTS.md`.
+3. **Pushé mi sprint con `--force-with-lease`** para preservar mi trabajo en futuros choques.
 
 ## §5 Bridge handoff
 
