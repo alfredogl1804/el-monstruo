@@ -48,6 +48,13 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from tools.cowork_guardian import GuardianVerdict, validate_output  # noqa: E402
+from kernel.cowork_runtime.t1_config import T1Config, T1Mode  # noqa: E402
+from kernel.cowork_runtime.t1_output_contract import (  # noqa: E402
+    ContractReport,
+    analyze as t1_analyze,
+    format_violation_feedback as t1_format_feedback,
+)
+from kernel.cowork_runtime.t1_audit_log import T1AuditLog  # noqa: E402
 
 
 @dataclass
@@ -88,15 +95,22 @@ class CoworkPreResponseHook:
         self,
         session_start: Optional[datetime] = None,
         enabled: bool = False,
+        t1_config: Optional[T1Config] = None,
+        t1_audit_log: Optional[T1AuditLog] = None,
+        session_id: Optional[str] = None,
     ) -> None:
         """
         Args:
             session_start: timestamp UTC de inicio de sesion.
-            enabled: Blue-Green flag (canon DSC-MO-011 Gate 7). Default False:
-                el hook se construye pero NO bloquea outputs (modo shadow).
-                Activacion gradual via `enable()` despues de verificar que no
-                rompe runtime existente. Tambien controlable por env var
-                COWORK_HOOK_ENABLED=true.
+            enabled: Blue-Green flag legacy (canon DSC-MO-011 Gate 7). Default
+                False: modo shadow. Tambien controlable por env COWORK_HOOK_ENABLED.
+            t1_config: configuracion T1 (fase contrato de salida tipado +
+                severidad P0/P1/P2). Default `T1Config.from_env()`, que
+                arranca en OBSERVE_ONLY y bloquea auto-escalada a ENFORCE.
+            t1_audit_log: log JSONL donde se persisten interceptions T1. Si
+                None, no se persiste a disco (modo in-memory para tests).
+            session_id: identificador opcional de sesion para correlacionar
+                entries del audit log con la sesion de Cowork.
         """
         import os
         self.session_start: datetime = session_start or datetime.now(timezone.utc)
@@ -107,6 +121,15 @@ class CoworkPreResponseHook:
         self.enabled: bool = bool(enabled) or env_enabled
         # Contador shadow: cuantos outputs HUBIERA bloqueado si estuviera enabled.
         self.shadow_would_block: int = 0
+        # T1 wiring (opt-in, default OBSERVE_ONLY desde env)
+        self.t1_config: T1Config = t1_config or T1Config.from_env()
+        self.t1_audit_log: Optional[T1AuditLog] = t1_audit_log
+        self.session_id: str = session_id or self.session_start.isoformat()
+        self.t1_stats: dict = {
+            "t1_interceptions": 0,
+            "t1_blocked": 0,
+            "t1_would_block": 0,
+        }
 
     # ------------------------------------------------------------------
     # API publica
@@ -134,19 +157,83 @@ class CoworkPreResponseHook:
             productive_commits_this_session=self.productive_commits_count,
         )
 
-        if verdict.passed:
-            return True, cowork_output
+        # ------------------------------------------------------------------
+        # T1: contrato de salida tipado + audit log
+        # ------------------------------------------------------------------
+        t1_decision = self._t1_evaluate(cowork_output, user_message, verdict)
+        # t1_decision = {"block": bool, "would_block": bool, "report": ContractReport}
 
-        # Modo shadow (enabled=False): registramos lo que HABRiA bloqueado
-        # pero dejamos pasar el output. Permite calibrar antes de activar.
-        if not self.enabled:
+        legacy_block = (not verdict.passed) and self.enabled
+        t1_block = t1_decision["block"]
+
+        if not verdict.passed:
+            # Recorda violations legacy (no cambia el comportamiento)
+            pass
+
+        # Decision final: bloquea si legacy o T1 bloquea
+        if legacy_block or t1_block:
+            self._record_block(verdict)
+            # Feedback: el primero que aplique. T1 toma precedencia si bloqueo
+            # vino solo de T1 (legacy permitiria) — refleja la nueva fase.
+            if t1_block and not legacy_block:
+                feedback = t1_format_feedback(t1_decision["report"])
+            else:
+                feedback = self._format_correction_feedback(verdict, cowork_output, user_message)
+            return False, feedback
+
+        # No bloquea. Si verdict.passed=False pero estamos en shadow legacy,
+        # mantenemos la semantica original: contador shadow + record_block.
+        if not verdict.passed:
             self.shadow_would_block += 1
             self._record_block(verdict)
-            return True, cowork_output
+        return True, cowork_output
 
-        self._record_block(verdict)
-        feedback = self._format_correction_feedback(verdict, cowork_output, user_message)
-        return False, feedback
+    def _t1_evaluate(
+        self,
+        cowork_output: str,
+        user_message: str,
+        verdict: GuardianVerdict,
+    ) -> dict:
+        """
+        Ejecuta la fase T1 sobre el output. Persiste en audit log si esta
+        configurado. Devuelve dict con la decision T1 (block, would_block,
+        report).
+
+        Reglas:
+          - OFF: no analiza, no registra, no bloquea.
+          - OBSERVE_ONLY: analiza, registra en audit log, nunca bloquea.
+          - ENFORCE: analiza, registra, bloquea si hay claim P0/P1 sin tag.
+            P2 nunca bloquea.
+        """
+        if self.t1_config.mode == T1Mode.OFF:
+            return {"block": False, "would_block": False, "report": None}
+
+        report: ContractReport = t1_analyze(cowork_output)
+        self.t1_stats["t1_interceptions"] += 1
+
+        would_block = report.has_untagged_blocking
+        if would_block:
+            self.t1_stats["t1_would_block"] += 1
+
+        # En ENFORCE: bloqueamos si hay claim P0/P1 sin tag. P2 nunca bloquea.
+        block = self.t1_config.is_enforcing() and would_block
+        if block:
+            self.t1_stats["t1_blocked"] += 1
+
+        # Persistir interception al audit log si esta configurado
+        if self.t1_audit_log is not None:
+            self.t1_audit_log.record_interception(
+                session_id=self.session_id,
+                mode=self.t1_config.mode.value,
+                user_message=user_message,
+                cowork_output=cowork_output,
+                report=report,
+                blocked=block,
+                would_block=would_block,
+                legacy_guardian_violations=list(verdict.violations),
+            )
+
+        return {"block": block, "would_block": would_block, "report": report}
 
     def register_productive_commit(self, descripcion: str = "") -> None:
         """
@@ -178,6 +265,9 @@ class CoworkPreResponseHook:
             "productive_commits": self.productive_commits_count,
             "enabled": self.enabled,
             "shadow_would_block": self.shadow_would_block,
+            "t1_mode": self.t1_config.mode.value,
+            "t1_allow_enforce": self.t1_config.allow_enforce,
+            **self.t1_stats,
             **self.stats.as_dict(),
         }
 
