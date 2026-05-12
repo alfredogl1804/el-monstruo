@@ -1,0 +1,35 @@
+{
+  "$schema": "discovery_forense/SNAPSHOTS/_pointer_schema_v1.json",
+  "snapshot_id": "2026_05_11_pre_cleanup_scheduled_tasks",
+  "type": "table_dump_column_inserts_gzipped",
+  "table": "public.scheduled_tasks",
+  "purpose": "pre-cleanup forensic backup for D-2 destructive cleanup",
+  "dsc": "DSC-S-013_scheduled_tasks_cleanup_destructivo_v1",
+  "sprint": "D-2",
+  "autor": "manus_hilo_ejecutor_2",
+  "generated_at_utc": "2026-05-12T02:17:28.776965Z",
+  "storage": {
+    "kind": "manus_cdn",
+    "url": "https://files.manuscdn.com/user_upload_by_module/session_file/310519663226724344/AmOqcvhzIgGgnAGm.gz",
+    "size_bytes": 801362,
+    "sha256": "26f63eb6b2edc14b2a4a8271af67f2f3e7957d99bfb0722a3bfcf3f41f9d359d"
+  },
+  "content": {
+    "total_rows": 17700,
+    "rows_in_snapshot": 17700,
+    "columns_count": 21,
+    "format": "INSERT_column_inserts",
+    "compression": "gzip"
+  },
+  "restore_instructions": {
+    "download": "curl -L -o snapshot.sql.gz '{storage.url}'",
+    "verify_integrity": "echo '{storage.sha256}  snapshot.sql.gz' | shasum -a 256 -c",
+    "restore_to_db": "gunzip -c snapshot.sql.gz | psql $SUPABASE_DB_URL"
+  },
+  "notes": [
+    "El archivo .gz está excluido del repo via .gitignore por tamaño (~782 KB).",
+    "La trazabilidad forense vive aquí: este pointer + el sidecar .meta.json.",
+    "Restauración válida solo si SHA256 coincide. Si no coincide, asumir corrupción/tamper y NO restaurar.",
+    "Este snapshot fue tomado ANTES del DELETE masivo del Sprint D-2 (17,700 → 5 filas)."
+  ]
+}
