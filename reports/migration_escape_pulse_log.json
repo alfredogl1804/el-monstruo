@@ -1,0 +1,92 @@
+{
+  "sprint": "ESCAPE-001",
+  "task": "T1",
+  "perfil_riesgo": "write-risky",
+  "migration_file": "migrations/sql/0024_escape_pulse_log.sql",
+  "migration_number": "0024",
+  "loc": 122,
+  "table_name": "public.escape_pulse_log",
+  "fecha_creacion_utc": "2026-05-12",
+  "owner": "manus_hilo_b",
+  "dscs_enforzados": [
+    "DSC-S-006_v1.1_RLS_por_defecto",
+    "DSC-G-017_DSC_as_Contract",
+    "DSC-MO-010_Reloj_Suizo",
+    "DSC-G-008_v2_anti_Goodhart",
+    "DSC-S-012_anti_deriva_migraciones",
+    "Obj_11_Autonomia",
+    "Obj_8_IE_Colectiva"
+  ],
+  "columnas": {
+    "id": "UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+    "created_at": "TIMESTAMPTZ NOT NULL DEFAULT NOW()",
+    "pulse_id": "BIGSERIAL NOT NULL (secuencia monotónica)",
+    "consumer": "TEXT NOT NULL (sin CHECK constraint a propósito — validación a nivel app)",
+    "energy_consumed": "NUMERIC(10,6) NOT NULL DEFAULT 1.000000",
+    "pulse_interval_seconds": "INTEGER NOT NULL DEFAULT 60",
+    "blocked_count": "INTEGER NOT NULL DEFAULT 0",
+    "metadata": "JSONB NOT NULL DEFAULT '{}'::jsonb"
+  },
+  "constraints": [
+    "escape_pulse_log_energy_consumed_nonneg CHECK (energy_consumed >= 0)",
+    "escape_pulse_log_interval_positive CHECK (pulse_interval_seconds > 0)",
+    "escape_pulse_log_blocked_count_nonneg CHECK (blocked_count >= 0)"
+  ],
+  "indices": [
+    "idx_escape_pulse_log_consumer_created (consumer, created_at DESC)",
+    "idx_escape_pulse_log_pulse_id_desc (pulse_id DESC)",
+    "idx_escape_pulse_log_created_at_desc (created_at DESC)"
+  ],
+  "rls": {
+    "enabled": true,
+    "policies": [
+      {
+        "name": "escape_pulse_log_service_role_only",
+        "scope": "ALL operations",
+        "role": "service_role",
+        "using_clause": "true",
+        "with_check_clause": "true"
+      }
+    ],
+    "revoke_explicit": ["PUBLIC", "anon", "authenticated"],
+    "grants_explicit": {
+      "service_role": ["SELECT", "INSERT", "UPDATE", "DELETE"]
+    }
+  },
+  "verificacion_automatica": {
+    "metodo": "DO $$ ... RAISE EXCEPTION $$",
+    "checks": [
+      "RLS enabled vía pg_class.relrowsecurity",
+      "Al menos 1 policy vía pg_policies COUNT"
+    ],
+    "comportamiento": "Migration falla con EXCEPTION si RLS o policies no quedaron correctamente aplicados"
+  },
+  "idempotencia": {
+    "create_table": "IF NOT EXISTS",
+    "policy": "DROP IF EXISTS + CREATE (Postgres <16 no soporta CREATE POLICY IF NOT EXISTS)",
+    "alter_rls": "ENABLE ROW LEVEL SECURITY (idempotente)",
+    "indices": "CREATE INDEX IF NOT EXISTS"
+  },
+  "lecciones_aplicadas": [
+    "V25_lesson_no_DATE_TIMESTAMPTZ_en_INDEX: usados solo índices simples",
+    "Postgres_lt_16_CREATE_POLICY_IF_NOT_EXISTS_no_existe: usado DROP+CREATE",
+    "DSC-S-006_v1.1_RLS_por_defecto_violation_blocks_apply"
+  ],
+  "consumers_canonicos_no_en_check_constraint": [
+    "embrion_loop_latido (60s)",
+    "guardian_daily_audit (86400s)",
+    "rotor_recharge (300s)",
+    "self_verifier_call (30s)",
+    "embrion_specialization (120s)",
+    "external_llm_call (10s)"
+  ],
+  "decision_arquitectonica": "CHECK constraint en consumer OMITIDO a propósito: permite crecimiento futuro (ej: espiral_feedback, remontoir_quality) sin migration nueva. Validación a nivel app vs REGISTRY_CONSUMERS de kernel/escape/config.py.",
+  "apply_en_prod": {
+    "responsable": "Cowork/Catastro post-merge PR",
+    "metodo_esperado": "psql -f migrations/sql/0024_escape_pulse_log.sql contra Supabase prod via Railway script",
+    "patron_canonico": "scripts/_apply_and_smoke_0024_escape_pulse_log.py (similar a 0023 rotor)"
+  },
+  "tests_locales_unit": "tests/escape/test_escape.py::TestMigrationSanity (validates SQL structure + RLS + idempotencia + check constraints)",
+  "tests_smoke_post_apply_pendientes": "scripts/_apply_and_smoke_0024_escape_pulse_log.py (creado en sprint paralelo Catastro)",
+  "result": "T1 entregable cumplido — migration en branch sprint/ESCAPE-001 lista para merge + apply"
+}

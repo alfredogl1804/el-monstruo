@@ -586,3 +586,91 @@ def add_recycled_energy(
 
 
 # ── /Sprint ROTOR-001 ──────────────────────────────────────────────────────
+
+
+# ── Sprint ESCAPE-001 ──────────────────────────────────────────────────────────
+# T4: consume() — único caller autorizado: kernel.escape.throttler.Escapement.
+# Spec firmado: bridge/sprints_propuestos/sprint_ESCAPE_001_throttler_deterministico.md
+# Patrón alineado con record_after_cycle: sync, idempotente, fail-soft.
+# DSC enforzados: DSC-MO-006 v1.1, DSC-MO-010, DSC-G-008 v2, DSC-S-016 (anti-fabricación).
+
+def consume(
+    amount,
+    *,
+    consumer: Optional[str] = None,
+    cycle_id: Optional[str] = None,
+    supabase_client: Optional[_SupabaseRest] = None,
+) -> bool:
+    """Consume `amount` USD del budget activo del día.
+
+    Único caller autorizado: `kernel.escape.throttler.Escapement.record_pulse`.
+
+    Persiste una fila en `embrion_budget_state` con `trigger_type='escape_pulse'`
+    y `cost_actual_usd=amount`. Esto mantiene el modelo declarativo+post-hoc del
+    budget (consume es un cycle "virtual" sin tokens LLM).
+
+    Args:
+        amount: Decimal o float — USD a consumir. Debe ser > 0.
+        consumer: nombre del consumer del Escape (ej. 'embrion_loop_latido').
+            Persistido en `trigger_detail` para auditoría.
+        cycle_id: opcional. Si None, autogenera UUID.
+        supabase_client: opcional, para tests.
+
+    Returns:
+        bool — True si persistencia OK, False si fail-soft (no rompe el flujo
+            del Escape: éste ya pulsó en memoria).
+
+    Idempotencia: NO garantizada a nivel DB (cada call inserta fila). El Escape
+    gestiona idempotencia vía `last_pulse_at` en memoria + `pulse_id` BIGSERIAL
+    en `escape_pulse_log`. Esta función solo refleja el consumo en el budget.
+
+    Raises:
+        ValueError: si amount <= 0.
+    """
+    from decimal import Decimal  # noqa: PLC0415
+    import uuid  # noqa: PLC0415
+
+    amt = Decimal(str(amount))
+    if amt <= 0:
+        raise ValueError(f"consume: amount must be > 0, got {amt}")
+
+    cid = cycle_id or f"escape-{uuid.uuid4()}"
+    consumer_name = consumer or "unknown_consumer"
+
+    payload = {
+        "cycle_id": cid,
+        "latido_id": None,
+        "cap_per_latido_usd": round(float(CAP_PER_LATIDO_USD), 4),
+        "cost_actual_usd": round(float(amt), 6),
+        "cap_excedido": False,
+        "abort_reason": None,
+        "tokens_used": 0,
+        "tokens_input": 0,
+        "tokens_output": 0,
+        "model_used": None,
+        "trigger_type": "escape_pulse",
+        "trigger_detail": consumer_name[:1000],
+        "completed_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    try:
+        client = supabase_client or _get_supabase_client()
+        client.insert("embrion_budget_state", payload)
+        logger.info(
+            "escape.budget.consume_ok",
+            consumer=consumer_name,
+            amount_usd=str(amt),
+            cycle_id=cid,
+        )
+        return True
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "escape.budget.consume_failed",
+            consumer=consumer_name,
+            amount_usd=str(amt),
+            cycle_id=cid,
+            err=str(exc),
+        )
+        return False
+
+# ── /Sprint ESCAPE-001 ─────────────────────────────────────────────────────────
