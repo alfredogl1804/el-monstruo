@@ -60,6 +60,16 @@ from kernel.utils.keyword_matcher import compile_keyword_pattern, match_any_keyw
 from kernel import embrion_budget as _embrion_budget
 from kernel import embrion_self_verifier as _embrion_self_verifier
 
+# Sprint ESCAPE-001 - Throttler Determinístico (Reloj Suizo, magna #2).
+# Importación segura: si el subpaquete kernel.escape no existe en runtime
+# (rollback, deploy parcial), el wiring degrada a no-op silencioso.
+try:
+    from kernel.escape.throttler import Escapement as _Escapement
+    _ESCAPE_AVAILABLE = True
+except ImportError:  # pragma: no cover
+    _Escapement = None  # type: ignore[assignment]
+    _ESCAPE_AVAILABLE = False
+
 logger = structlog.get_logger("embrion.loop")
 
 # ── Configuration ────────────────────────────────────────────────────
@@ -91,6 +101,12 @@ EMBRION_SELF_VERIFIER_ENABLED = (
 # Railway. El config YAML controla mode (shadow|enforce), umbrales y budget.
 BRAND_ENGINE_ENABLED = (
     os.environ.get("BRAND_ENGINE_ENABLED", "false").lower() == "true"
+)
+# Sprint ESCAPE-001 - Throttler Determinístico activable por env. Default true:
+# pieza estructural del Reloj Suizo. Para desactivarlo (emergencia, hotfix)
+# poner EMBRION_ESCAPE_ENABLED=false en Railway.
+EMBRION_ESCAPE_ENABLED = (
+    os.environ.get("EMBRION_ESCAPE_ENABLED", "true").lower() == "true"
 )
 # Estimación conservadora de tokens por trigger (input + output esperado).
 # Se usa en el pre-flight del Budget Tracker. Calibrada con datos reales del
@@ -941,6 +957,43 @@ class EmbrionLoop:
         This allows the Embrión to EXECUTE tool calls (github, code_exec, browse_web)
         when Alfredo sends a directive, while keeping autonomous reflections lightweight.
         """
+        # ── ESCAPE_BEGIN ────────────────────────────────────────────────
+        # Sprint ESCAPE-001 T3 — Throttler Determinístico (Reloj Suizo).
+        # Dosifica el pulso del latido a intervalo canónico (default 60s).
+        # Si el Escape bloquea, el cycle se omite SIN consumir budget ni
+        # tokens LLM. Primera línea de defensa temporal, antes del Budget
+        # Tracker (segunda línea, monetaria). Fail-soft: si el Escape falla
+        # por cualquier razón, dejamos pasar (mejor que congelar el latido).
+        if EMBRION_ESCAPE_ENABLED and _ESCAPE_AVAILABLE:
+            try:
+                _escape = _Escapement(
+                    consumer_name="embrion_loop_latido",
+                    budget_consumer=lambda amt: _embrion_budget.consume(
+                        amt, consumer="embrion_loop_latido"
+                    ),
+                )
+                _decision = await _escape.can_pulse()
+                if not _decision.can_proceed:
+                    await _escape.block_attempt()
+                    logger.info(
+                        "escape_pulse_skipped",
+                        consumer="embrion_loop_latido",
+                        reason=_decision.reason,
+                        next_pulse_at=(
+                            str(_decision.next_pulse_at)
+                            if _decision.next_pulse_at else None
+                        ),
+                    )
+                    return None  # skip cycle, zero budget consumed
+                # Pulse permitido: registrar consumo del Reloj.
+                await _escape.record_pulse(metadata={
+                    "trigger_type": trigger.get("type"),
+                    "cycle_count": self._cycle_count,
+                })
+            except Exception as _ee:  # noqa: BLE001
+                logger.warning("escape_pulse_check_failed", error=str(_ee))
+        # ── ESCAPE_END ──────────────────────────────────────────────────
+
         # ── Sprint EMBRION-NEEDS-001 Tarea 1: Budget Tracker pre-flight ──
         # ANTES de construir prompt o llamar al modelo. Si la proyección del
         # cycle excede cap por latido o el cap diario, abortamos sin gastar.
