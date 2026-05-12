@@ -237,14 +237,14 @@ dscs:
       audit_visual_diff.py detecta diferenciacion cuantitativa. Gate
       `output_diferenciado_per_vertical` en gates.yaml lo invoca.
 
-  "_GLOBAL/DSC-GLOBAL-001_los_6_sabios_canonicos.md":
+  "_GLOBAL/DSC-V-001_los_6_sabios_canonicos.md":
     status: aspirational
     reason: >
       Decision arquitectonica del Embrion. Cada Sabio (GPT, Claude, Gemini,
       Grok, DeepSeek, Perplexity) es su propia integracion. Documentado en
       kernel/embriones/ + AGENTS.md.
 
-  "_GLOBAL/DSC-GLOBAL-003_auth_manus_oauth.md":
+  "_GLOBAL/DSC-X-003_auth_manus_oauth.md":
     status: aspirational
     reason: >
       Patron de auth para integracion Manus. Sin contrato tecnico unitario
@@ -366,18 +366,18 @@ dscs:
       operations_can_launch_mx_today=False + tax_framework_pending_decision=True.
       Bloqueantes hasta decidir SAPI/SOFOM/Fideicomiso.
 
-  "EL-MONSTRUO/DSC-EL-MONSTRUO-001_postgressaver_elegido_sobre_temporal.md":
+  "EL-MONSTRUO/DSC-MO-001_postgressaver_elegido_sobre_temporal.md":
     status: aspirational
     reason: >
       Decision tecnica de stack persistencia. kernel/background_store.py
       implementa el patron — sin contrato unitario auto-validable.
 
-  "EL-MONSTRUO/DSC-EL-MONSTRUO-003_langgraph_orquestador.md":
+  "EL-MONSTRUO/DSC-MO-003_langgraph_orquestador.md":
     status: aspirational
     reason: >
       Decision tecnica. Implementado en kernel/engine.py + kernel/nodes.py.
 
-  "EL-MONSTRUO/DSC-EL-MONSTRUO-004_supabase_langfuse_stack.md":
+  "EL-MONSTRUO/DSC-MO-004_supabase_langfuse_stack.md":
     status: aspirational
     reason: >
       Decision tecnica de stack observabilidad/persistencia. Multiple
@@ -419,7 +419,7 @@ dscs:
     notes: >
       piloto_comercial=zona_like_via_liketickets en pricing canonical.
 
-  "LIKETICKETS/DSC-LIKETICKETS-001_stack_vite_react_tidb_stripe_railway.md":
+  "LIKETICKETS/DSC-LT-001_stack_vite_react_tidb_stripe_railway.md":
     status: enforced
     contracts:
       - kernel/transversales/ventas/_canonical_constraints.py
@@ -428,7 +428,7 @@ dscs:
       stack_canonical (vite/react/tidb/stripe/railway) en ventas.
       ssr_required_for_event_pages en SEO.
 
-  "LIKETICKETS/DSC-LIKETICKETS-003_patron_checkout_stripe_replicable.md":
+  "LIKETICKETS/DSC-LT-003_patron_checkout_stripe_replicable.md":
     status: enforced
     contracts:
       - kernel/transversales/ventas/_canonical_constraints.py

@@ -1,0 +1,116 @@
+{
+  "tipo_a_index_sin_fisico": [
+    {
+      "dsc": "DSC-LT-001",
+      "found_in_history": false,
+      "git_log_AD": "",
+      "ref_search_oneline": "",
+      "deleted_files": []
+    },
+    {
+      "dsc": "DSC-LT-003",
+      "found_in_history": false,
+      "git_log_AD": "",
+      "ref_search_oneline": "",
+      "deleted_files": []
+    },
+    {
+      "dsc": "DSC-MO-001",
+      "found_in_history": false,
+      "git_log_AD": "",
+      "ref_search_oneline": "",
+      "deleted_files": []
+    },
+    {
+      "dsc": "DSC-MO-003",
+      "found_in_history": false,
+      "git_log_AD": "",
+      "ref_search_oneline": "",
+      "deleted_files": []
+    },
+    {
+      "dsc": "DSC-MO-004",
+      "found_in_history": false,
+      "git_log_AD": "",
+      "ref_search_oneline": "",
+      "deleted_files": []
+    },
+    {
+      "dsc": "DSC-X-003",
+      "found_in_history": false,
+      "git_log_AD": "",
+      "ref_search_oneline": "\u001b[33m61e42ae\u001b[m\trefs/heads/sprint/88-mega-catastro feat(post-P0): security hardening completo + audit preventivo + integracion paralela Cowork/Manus\n",
+      "deleted_files": []
+    }
+  ],
+  "tipo_b_fisico_sin_index": {
+    "DSC-G-009": [
+      "discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-G-009_recomendaciones_seguridad_firmadas_en_misma_sesion.md"
+    ],
+    "DSC-G-012": [
+      "discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-G-012_trade_off_honesto_sprints_multi_tarea.md"
+    ],
+    "DSC-G-014": [
+      "discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-G-014_pipeline_tecnico_vs_producto_comercializable.md"
+    ],
+    "DSC-G-017": [
+      "discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-G-017_dsc_as_contract.md"
+    ],
+    "DSC-MO-006": [
+      "discovery_forense/CAPILLA_DECISIONES/EL-MONSTRUO/DSC-MO-006_embriones_operan_siempre_en_par.md"
+    ],
+    "DSC-MO-007": [
+      "discovery_forense/CAPILLA_DECISIONES/EL-MONSTRUO/DSC-MO-007_failover_emergencia_3_capas.md"
+    ],
+    "DSC-MO-008": [
+      "discovery_forense/CAPILLA_DECISIONES/EL-MONSTRUO/DSC-MO-008_membrana_semipermeable_kernel_embriones.md"
+    ],
+    "DSC-MO-009": [
+      "discovery_forense/CAPILLA_DECISIONES/EL-MONSTRUO/DSC-MO-009_arsenal_herramientas_seleccionable_por_catastro.md"
+    ],
+    "DSC-MO-010": [
+      "discovery_forense/CAPILLA_DECISIONES/EL-MONSTRUO/DSC-MO-010_reloj_suizo_universalizable_interno.md"
+    ],
+    "DSC-MO-011": [
+      "discovery_forense/CAPILLA_DECISIONES/EL-MONSTRUO/DSC-MO-011_embryo_patch_lane_v1.md"
+    ],
+    "DSC-OPS-001": [
+      "discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-OPS-001_update_manual_datos_prod_requires_bridge_report.md"
+    ],
+    "DSC-S-006": [
+      "discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-006_rls_por_defecto_tablas_nuevas.md",
+      "discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-006_v1_1_rls_por_defecto_tablas_nuevas.md"
+    ],
+    "DSC-S-007": [
+      "discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-007_naming_canonico_supabase_service_key.md"
+    ],
+    "DSC-S-008": [
+      "discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-008_rotacion_automatizada_credenciales.md"
+    ],
+    "DSC-S-010": [
+      "discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-010_hardening_operacional_integrado.md"
+    ],
+    "DSC-S-011": [
+      "discovery_forense/CAPILLA_DECISIONES/EL-MONSTRUO/DSC-S-011_sistema_realidad_ejecutable_v1.md"
+    ],
+    "DSC-S-012": [
+      "discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-012_anti_deriva_migraciones_supabase.md"
+    ],
+    "DSC-S-013": [
+      "discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-013_scheduled_tasks_cleanup_destructivo_v1.md"
+    ],
+    "DSC-S-015": [
+      "discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-015_scheduler_respeta_next_run_de_restore.md"
+    ],
+    "DSC-S-016": [
+      "discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-016_anti_fabricacion_causalidad_sin_grep.md"
+    ]
+  },
+  "summary": {
+    "tipo_a_count": 6,
+    "tipo_b_count": 20,
+    "fisicos_total": 66,
+    "fisicos_codigos_unicos": 56,
+    "index_codigos_unicos": 42
+  }
+}

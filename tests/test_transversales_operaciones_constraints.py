@@ -60,7 +60,7 @@ def test_dsc_cip_pend_blocks_operations():
 def test_dsc_liketickets_003_canonical_components():
     dsc = _read_dsc(
         CAPILLA / "LIKETICKETS"
-        / "DSC-LIKETICKETS-003_patron_checkout_stripe_replicable.md"
+        / "DSC-LT-003_patron_checkout_stripe_replicable.md"
     )
     assert "checkout.session.completed" in dsc
     lt = OPERACIONES_CANONICAL_PER_VERTICAL[VerticalId.LIKETICKETS]

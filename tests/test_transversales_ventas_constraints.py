@@ -92,7 +92,7 @@ def test_dsc_cip_005_lanzamiento_sureste_mx():
 
 def test_dsc_liketickets_003_stripe_canonico_replicable():
     dsc = _read_dsc(
-        CAPILLA / "LIKETICKETS" / "DSC-LIKETICKETS-003_patron_checkout_stripe_replicable.md"
+        CAPILLA / "LIKETICKETS" / "DSC-LT-003_patron_checkout_stripe_replicable.md"
     )
     text_low = dsc.lower()
     assert "stripe" in text_low
