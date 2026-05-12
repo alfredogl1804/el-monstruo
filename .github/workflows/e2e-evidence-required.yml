@@ -1,0 +1,51 @@
+# DSC-G-010: E2E Evidence Required en cada PR
+#
+# Este workflow falla un PR si su body no contiene una seccion `## E2E Evidence`
+# con evidencia binaria (URL, path al repo, SHA de commit, o resultado de tests).
+#
+# Bypass legitimos via labels:
+#   - `no-e2e-required`         : PRs doc-only / typo-fix
+#   - `e2e-evidence-bypass`     : emergency hotfix (con justificacion en body)
+#
+# Tambien corre los tests del propio checker para evitar regresiones del enforcement.
+name: e2e-evidence-required
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, labeled, unlabeled]
+
+jobs:
+  check-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pytest
+        run: pip install pytest
+
+      - name: Run tests del propio checker (evita regresiones)
+        run: pytest tests/test_e2e_evidence_check.py -q
+
+      - name: Skip si label no-e2e-required o e2e-evidence-bypass
+        id: bypass
+        run: |
+          LABELS='${{ toJSON(github.event.pull_request.labels) }}'
+          if echo "$LABELS" | grep -qE '"name":\s*"(no-e2e-required|e2e-evidence-bypass)"'; then
+            echo "bypass=true" >> "$GITHUB_OUTPUT"
+            echo "Bypass detectado por label. Skipeando enforcement."
+          else
+            echo "bypass=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verificar evidencia E2E en PR body
+        if: steps.bypass.outputs.bypass == 'false'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          python3 tools/_check_e2e_evidence.py "$PR_BODY"
