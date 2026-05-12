@@ -86,13 +86,14 @@ def test_register_default_tasks_double_call():
 
     register_default_tasks(scheduler)
     count_after_first = len(scheduler._tasks)
-    # Sprint D-3 (2026-05-11) agregó latido_autonomo → 6 tasks default.
-    assert count_after_first == 6, f"primera corrida: esperado 6 tasks, got {count_after_first}"
+    # Sprint D-3 (2026-05-11) agregó latido_autonomo → 6 tasks.
+    # Sprint GUARDIAN-AUTONOMO-001 (2026-05-12) agregó daily_guardian_audit → 7 tasks default.
+    assert count_after_first == 7, f"primera corrida: esperado 7 tasks, got {count_after_first}"
 
     # Simula restart del kernel (sin _restore_from_supabase porque no hay DB)
     register_default_tasks(scheduler)
     count_after_second = len(scheduler._tasks)
-    assert count_after_second == 6, f"BUG: segunda corrida creó duplicados, got {count_after_second}"
+    assert count_after_second == 7, f"BUG: segunda corrida creó duplicados, got {count_after_second}"
 
     print(f"OK: register_default_tasks llamado 2x -> {count_after_second} tasks (no duplicación)")
 
