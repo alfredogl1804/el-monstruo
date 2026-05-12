@@ -70,6 +70,24 @@ except ImportError:  # pragma: no cover
     _Escapement = None  # type: ignore[assignment]
     _ESCAPE_AVAILABLE = False
 
+# ── ESPIRAL_BEGIN (imports) ─────────────────────────────────────────
+# Sprint ESPIRAL-001 - Hairspring Homeostasis Dinámica (Reloj Suizo, magna #5).
+# Importación segura: si el subpaquete kernel.espiral no existe en runtime
+# (rollback, deploy parcial), el wiring degrada a no-op silencioso.
+try:
+    from kernel.espiral.homeostasis import Hairspring as _Hairspring
+    from kernel.escape.registry import (
+        apply_temporal_override as _espiral_apply_override,
+        restore_canonical as _espiral_restore_canonical,
+    )
+    _ESPIRAL_AVAILABLE = True
+except ImportError:  # pragma: no cover
+    _Hairspring = None  # type: ignore[assignment]
+    _espiral_apply_override = None  # type: ignore[assignment]
+    _espiral_restore_canonical = None  # type: ignore[assignment]
+    _ESPIRAL_AVAILABLE = False
+# ── ESPIRAL_END (imports) ───────────────────────────────────────────
+
 logger = structlog.get_logger("embrion.loop")
 
 # ── Configuration ────────────────────────────────────────────────────
@@ -108,6 +126,21 @@ BRAND_ENGINE_ENABLED = (
 EMBRION_ESCAPE_ENABLED = (
     os.environ.get("EMBRION_ESCAPE_ENABLED", "true").lower() == "true"
 )
+# ── ESPIRAL_BEGIN (feature flag) ────────────────────────────────────
+# Sprint ESPIRAL-001 - Hairspring activable por env. Default true: pieza
+# estructural del Reloj Suizo (#5). Cada N ciclos del Volante, lee
+# escape_pulse_log en ventana móvil 15min, calcula deviation_ratio, y aplica
+# override temporal del pulse_interval del Escape si abs(deviation - 1) > 0.30.
+# Para desactivarlo (emergencia, hotfix) poner EMBRION_ESPIRAL_ENABLED=false en Railway.
+EMBRION_ESPIRAL_ENABLED = (
+    os.environ.get("EMBRION_ESPIRAL_ENABLED", "true").lower() == "true"
+)
+# Cada cuántos ciclos del Volante revisa la Espiral (default 5 = cada 5 min con
+# CHECK_INTERVAL_S=60). Configurable via env para tuning sin redeploy.
+EMBRION_ESPIRAL_CHECK_EVERY_N_CYCLES = int(
+    os.environ.get("EMBRION_ESPIRAL_CHECK_EVERY_N_CYCLES", "5")
+)
+# ── ESPIRAL_END (feature flag) ──────────────────────────────────────
 # Estimación conservadora de tokens por trigger (input + output esperado).
 # Se usa en el pre-flight del Budget Tracker. Calibrada con datos reales del
 # bucle 1-may: respuestas eco rondaron 600-1000 tokens output, prompts ~1500 in.
@@ -993,6 +1026,44 @@ class EmbrionLoop:
             except Exception as _ee:  # noqa: BLE001
                 logger.warning("escape_pulse_check_failed", error=str(_ee))
         # ── ESCAPE_END ──────────────────────────────────────────────────
+        # ── ESPIRAL_BEGIN ───────────────────────────────────────────────
+        # Sprint ESPIRAL-001 T3 — Hairspring (Reloj Suizo Pieza #5).
+        # Cada N ciclos del Volante, sensar deviation_ratio del consumer
+        # 'embrion_loop_latido' en ventana móvil 15min y aplicar feedback
+        # negativo dinámico al Escape registry. Fail-soft: si la Espiral
+        # falla por cualquier razón, dejamos pasar (mejor que romper el latido).
+        # Ejecutado DESPUÉS del Escape (que ya decidió can_pulse) para no
+        # interferir con la decisión del pulso actual; sólo ajusta intervals
+        # para futuros pulsos. DSC-MO-006 v1.1: cero modificaciones fuera de
+        # marcadores. Patrón pionero ESCAPE replicado para ESPIRAL.
+        if (
+            EMBRION_ESPIRAL_ENABLED
+            and _ESPIRAL_AVAILABLE
+            and self._cycle_count > 0
+            and self._cycle_count % EMBRION_ESPIRAL_CHECK_EVERY_N_CYCLES == 0
+        ):
+            try:
+                _hairspring = _Hairspring(
+                    consumer="embrion_loop_latido",
+                    window_minutes=15,
+                    registry_override_fn=_espiral_apply_override,
+                    registry_restore_fn=_espiral_restore_canonical,
+                )
+                _reading = await _hairspring.sense_deviation()
+                _correction = await _hairspring.apply_correction(_reading)
+                if _correction.action.value != "none":
+                    logger.info(
+                        "espiral_correction_cycle",
+                        cycle=self._cycle_count,
+                        consumer="embrion_loop_latido",
+                        action=_correction.action.value,
+                        deviation_ratio=_reading.deviation_ratio,
+                        new_interval=_correction.new_pulse_interval_seconds,
+                        canonical_interval=_correction.canonical_pulse_interval_seconds,
+                    )
+            except Exception as _ee:  # noqa: BLE001
+                logger.warning("espiral_check_failed", error=str(_ee))
+        # ── ESPIRAL_END ─────────────────────────────────────────────────
 
         # ── Sprint EMBRION-NEEDS-001 Tarea 1: Budget Tracker pre-flight ──
         # ANTES de construir prompt o llamar al modelo. Si la proyección del
