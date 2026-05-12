@@ -1,0 +1,29 @@
+# Rubrica Guardian de los Objetivos
+# Sprint: GUARDIAN-AUTONOMO-001 (T2)
+# Objetivo Maestro #7: No Inventar la Rueda
+# Owner: Hilo Ejecutor 2 (manus_hilo_b)
+# DSC enforzados: DSC-G-008 v2 (rubrica + evidencia + falsadores), DSC-G-017
+
+objective_id: 7
+objective_name: "No Inventar la Rueda"
+rubrica_version: "1.0.0"
+description: "Skills reutilizadas, api-context-injector activo."
+
+evidence:
+  api_context_injector_skill:
+    type: "filesystem"
+    pattern: "skills/api-context-injector/SKILL.md"
+    operation: "count_files"
+    threshold_min: 1
+    weight: 2.0
+  skills_total:
+    type: "filesystem"
+    pattern: "skills/*/SKILL.md"
+    operation: "count_files"
+    threshold_min: 10
+    weight: 1.5
+
+status_thresholds:
+  emergency_below: 25
+  critical_below: 50
+  warning_below: 75

@@ -1,0 +1,33 @@
+# Rubrica Guardian de los Objetivos
+# Sprint: GUARDIAN-AUTONOMO-001 (T2)
+# Objetivo Maestro #15: Memoria Soberana
+# Owner: Hilo Ejecutor 2 (manus_hilo_b)
+# DSC enforzados: DSC-G-008 v2 (rubrica + evidencia + falsadores), DSC-G-017
+
+objective_id: 15
+objective_name: "Memoria Soberana"
+rubrica_version: "1.0.0"
+description: "embrion_memoria persiste eventos clave, no se pierde contexto entre hilos."
+
+evidence:
+  embrion_memoria_total:
+    type: "sql"
+    query: "SELECT COUNT(*) FROM embrion_memoria;"
+    threshold_min: 100
+    weight: 2.0
+  embrion_memoria_recent:
+    type: "sql"
+    query: "SELECT COUNT(*) FROM embrion_memoria WHERE created_at > NOW() - INTERVAL '7 days';"
+    threshold_min: 10
+    weight: 1.5
+  memento_protocol_active:
+    type: "filesystem"
+    pattern: "skills/el-monstruo*/SKILL.md"
+    operation: "count_files"
+    threshold_min: 1
+    weight: 1.0
+
+status_thresholds:
+  emergency_below: 25
+  critical_below: 50
+  warning_below: 75

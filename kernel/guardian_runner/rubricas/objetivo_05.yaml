@@ -1,0 +1,28 @@
+# Rubrica Guardian de los Objetivos
+# Sprint: GUARDIAN-AUTONOMO-001 (T2)
+# Objetivo Maestro #5: Gasolina Magna vs Premium
+# Owner: Hilo Ejecutor 2 (manus_hilo_b)
+# DSC enforzados: DSC-G-008 v2 (rubrica + evidencia + falsadores), DSC-G-017
+
+objective_id: 5
+objective_name: "Gasolina Magna vs Premium"
+rubrica_version: "1.0.0"
+description: "Cost tracking activo: run_costs persiste consumo."
+
+evidence:
+  run_costs_rows_30d:
+    type: "sql"
+    query: "SELECT COUNT(*) FROM run_costs WHERE created_at > NOW() - INTERVAL '30 days';"
+    threshold_min: 1
+    weight: 2.0
+  cost_history_tracked:
+    type: "filesystem"
+    pattern: "kernel/cost_history.py"
+    operation: "count_files"
+    threshold_min: 1
+    weight: 1.0
+
+status_thresholds:
+  emergency_below: 25
+  critical_below: 50
+  warning_below: 75

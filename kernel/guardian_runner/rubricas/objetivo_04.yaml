@@ -1,0 +1,28 @@
+# Rubrica Guardian de los Objetivos
+# Sprint: GUARDIAN-AUTONOMO-001 (T2)
+# Objetivo Maestro #4: Nunca se Equivoca Dos Veces
+# Owner: Hilo Ejecutor 2 (manus_hilo_b)
+# DSC enforzados: DSC-G-008 v2 (rubrica + evidencia + falsadores), DSC-G-017
+
+objective_id: 4
+objective_name: "Nunca se Equivoca Dos Veces"
+rubrica_version: "1.0.0"
+description: "error_memory poblado y patrones registrados."
+
+evidence:
+  error_memory_rows:
+    type: "sql"
+    query: "SELECT COUNT(*) FROM error_memory;"
+    threshold_min: 1
+    weight: 2.0
+  incidentes_documentados:
+    type: "filesystem"
+    pattern: "discovery_forense/INCIDENTES/*.md"
+    operation: "count_files"
+    threshold_min: 1
+    weight: 1.0
+
+status_thresholds:
+  emergency_below: 25
+  critical_below: 50
+  warning_below: 75

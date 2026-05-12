@@ -744,8 +744,48 @@ async def lifespan(app: FastAPI):
             logger.warning("prediction_validator_init_failed", error=str(_pv_err))
             app.state.prediction_validator = None
         # ── /Sprint 56.2 ──────────────────────────────────────────────────────
-
-        # ── Sprint 55.2: A2A Registry ─────────────────────────────────────────
+        # ── Sprint GUARDIAN-AUTONOMO-001 (2026-05-12) Hilo Ejecutor 2 ─────────
+        # Registrar el handler REAL para `daily_guardian_audit` — sobreescribe
+        # el stub `_stub_handler_guardian_audit` registrado por
+        # `register_stub_handlers` durante el boot temprano del scheduler.
+        #
+        # El handler real (`daily_guardian_audit_handler`) ejecuta el ciclo
+        # evaluativo completo de los 15 Objetivos Maestros:
+        #   1. carga 15 rúbricas YAML desde kernel/guardian_runner/rubricas/
+        #   2. evalúa evidencias SQL/filesystem/git/static por objetivo
+        #   3. computa score por dimensión + score global ponderado
+        #   4. persiste en `guardian_audit_log` (migration 0021)
+        #   5. detecta degradaciones >= 10pp en 7 días y prepara payload de
+        #      alerta (T3 alerting Telegram PAUSADO, requiere firma humana
+        #      de Alfredo para chat_id + ventana horaria + rate-limit).
+        #
+        # Trigger: scheduler dispara daily @ 03:00 UTC (registrado en
+        # `register_default_tasks` de kernel/embrion_scheduler.py).
+        #
+        # Fail-soft: si el import falla (e.g. PyYAML missing, rúbricas
+        # corruptas), dejamos el stub activo y logueamos warning. La task
+        # no se auto-pausa porque el stub retorna degraded=True sin raise.
+        try:
+            from kernel.guardian_runner.runner import daily_guardian_audit_handler
+            embrion_scheduler.register_handler(
+                "daily_guardian_audit",
+                daily_guardian_audit_handler,
+            )
+            logger.info(
+                "guardian_audit_handler_registered",
+                handler="daily_guardian_audit_handler",
+                module="kernel.guardian_runner.runner",
+                schedule="daily @ 03:00 UTC",
+                sprint="GUARDIAN-AUTONOMO-001",
+            )
+        except Exception as _ga_err:
+            logger.warning(
+                "guardian_audit_handler_register_failed",
+                error=str(_ga_err),
+                fallback="stub _stub_handler_guardian_audit remains active",
+            )
+        # ── /Sprint GUARDIAN-AUTONOMO-001 ────────────────────────────────────
+        # ── Sprint 55.2: A2A Registry ──────────────────────────────────────────
         try:
             from kernel.a2a_registry import init_a2a_registry
             from kernel.a2a_routes import router as a2a_router, set_registry

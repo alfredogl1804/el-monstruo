@@ -1,0 +1,23 @@
+# Rubrica Guardian de los Objetivos
+# Sprint: GUARDIAN-AUTONOMO-001 (T2)
+# Objetivo Maestro #13: Del Mundo (i18n)
+# Owner: Hilo Ejecutor 2 (manus_hilo_b)
+# DSC enforzados: DSC-G-008 v2 (rubrica + evidencia + falsadores), DSC-G-017
+
+objective_id: 13
+objective_name: "Del Mundo (i18n)"
+rubrica_version: "1.0.0"
+description: "Soporte multi-idioma. Por ahora declarativo, expansion gradual."
+
+evidence:
+  agents_md_spanish:
+    type: "filesystem"
+    pattern: "AGENTS.md"
+    operation: "count_files"
+    threshold_min: 1
+    weight: 1.0
+
+status_thresholds:
+  emergency_below: 30
+  critical_below: 60
+  warning_below: 85

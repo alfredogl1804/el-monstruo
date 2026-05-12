@@ -1,0 +1,35 @@
+# Rubrica Guardian de los Objetivos
+# Sprint: GUARDIAN-AUTONOMO-001 (T2)
+# Objetivo Maestro #6: Vanguardia Perpetua
+# Owner: Hilo Ejecutor 2 (manus_hilo_b)
+# DSC enforzados: DSC-G-008 v2 (rubrica + evidencia + falsadores), DSC-G-017
+
+objective_id: 6
+objective_name: "Vanguardia Perpetua"
+rubrica_version: "1.0.0"
+description: "Anti-autoboicot, validacion en tiempo real, ciclo de descubrimiento."
+
+evidence:
+  skill_validacion_tiempo_real:
+    type: "filesystem"
+    pattern: "skills/validacion-tiempo-real/SKILL.md"
+    operation: "count_files"
+    threshold_min: 1
+    weight: 1.5
+  anti_autoboicot_active:
+    type: "filesystem"
+    pattern: "skills/anti-autoboicot/SKILL.md"
+    operation: "count_files"
+    threshold_min: 1
+    weight: 1.5
+  ciclo_descubrimiento:
+    type: "filesystem"
+    pattern: "skills/ciclo-investigacion-descubrimiento-perpetuo/SKILL.md"
+    operation: "count_files"
+    threshold_min: 1
+    weight: 1.0
+
+status_thresholds:
+  emergency_below: 30
+  critical_below: 55
+  warning_below: 80

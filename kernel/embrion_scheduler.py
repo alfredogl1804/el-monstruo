@@ -776,11 +776,30 @@ def register_default_tasks(scheduler: EmbrionScheduler) -> None:
         max_cost_usd=0.30,
         handler="run_latido_autonomo",
     ))
+
+    # 7. Daily Guardian Audit — Sprint GUARDIAN-AUTONOMO-001 (2026-05-12) Hilo Ejecutor 2
+    # Evalua los 15 Objetivos Maestros del Guardian diariamente y persiste en
+    # `guardian_audit_log` (migration 0021). Detecta degradaciones >= 10pp en
+    # 7 dias y emite alerta (T3 alerting Telegram PAUSADO, requiere firma humana
+    # de Alfredo para chat_id + ventana horaria + rate-limit antes de activar).
+    # Trigger: cron daily @ 03:00 UTC (~ 22:00 CDT, fuera de horario de tipping).
+    # Cap: $0.10 por audit (no usa LLMs caros, solo evidencias SQL/filesystem/git/static).
+    # Spec firmado: bridge/sprints_propuestos/sprint_GUARDIAN_AUTONOMO_001_activacion.md
+    scheduler.add_task(ScheduledTask(
+        name="daily_guardian_audit",
+        description="Daily audit of 15 Objetivos Maestros (Sprint GUARDIAN-AUTONOMO-001, Obj #14 El Guardian)",
+        embrion_id="embrion-0",
+        schedule_type="daily",
+        daily_hour=3,  # 03:00 UTC
+        max_cost_usd=0.10,
+        handler="daily_guardian_audit",
+    ))
     logger.info(
         "scheduler_default_tasks_registered",
-        count=6,
+        count=7,
         tasks=["causal_seeding", "prediction_validation", "vanguard_scan",
-               "system_health_check", "memory_consolidation", "latido_autonomo"],
+               "system_health_check", "memory_consolidation", "latido_autonomo",
+               "daily_guardian_audit"],
     )
 
 
@@ -934,6 +953,33 @@ async def _stub_handler_memory_consolidation(**kwargs: Any) -> None:
     logger.info("memory_consolidation_stub_executed", note="Sprint 57+ will replace this stub")
 
 
+async def _stub_handler_guardian_audit(**kwargs: Any) -> dict[str, Any]:
+    """
+    Stub del handler Guardian Audit (Sprint GUARDIAN-AUTONOMO-001).
+
+    Este stub se mantiene SOLO como fallback defensivo. El handler real
+    `daily_guardian_audit_handler` de `kernel.guardian_runner.runner` se
+    registra en `kernel/main.py` durante el boot del kernel y SOBREESCRIBE
+    este stub via `scheduler.register_handler("daily_guardian_audit", ...)`.
+
+    Si este stub se ejecuta en lugar del handler real, indica que
+    `kernel/main.py` no termino de cargar el modulo `guardian_runner` (e.g.
+    falla de import, dependencia faltante). En ese caso retornamos un dict
+    minimo con `degraded=True` para que la tabla `scheduled_tasks` no
+    marque la corrida como fallo total (evitamos auto-pausar la task
+    tras 3 fallos consecutivos).
+    """
+    logger.warning(
+        "guardian_audit_stub_executed",
+        note="Real handler not registered. Check kernel/main.py imports of guardian_runner.",
+    )
+    return {
+        "degraded": True,
+        "reason": "real_handler_not_registered",
+        "total_score_pct": None,
+    }
+
+
 def register_stub_handlers(scheduler: EmbrionScheduler) -> None:
     """
     Registrar handlers stub para las 5 tareas default.
@@ -954,7 +1000,12 @@ def register_stub_handlers(scheduler: EmbrionScheduler) -> None:
     scheduler.register_handler("run_memory_consolidation", _stub_handler_memory_consolidation)
     # Sprint D-3 (2026-05-11) Hilo Ejecutor 2 — handler real para latido autónomo
     scheduler.register_handler("run_latido_autonomo", _handler_latido_autonomo)
-    logger.info("scheduler_stub_handlers_registered", count=6)
+    # Sprint GUARDIAN-AUTONOMO-001 (2026-05-12) Hilo Ejecutor 2 — stub para guardian audit
+    # El handler REAL se registra en kernel/main.py (importa
+    # daily_guardian_audit_handler de kernel.guardian_runner.runner para evitar
+    # dependencia circular scheduler -> guardian_runner -> embrion_loop).
+    scheduler.register_handler("daily_guardian_audit", _stub_handler_guardian_audit)
+    logger.info("scheduler_stub_handlers_registered", count=7)
 
 
 # ── Singleton global ──────────────────────────────────────────────────────────
