@@ -1,6 +1,6 @@
 """
-Tests Anti-Dory F1 + F2 (Sprint 2026-05-12)
-============================================
+Tests Anti-Dory F1 (Sprint 2026-05-12, post revert F2)
+======================================================
 Verifica que:
 
 F1: ConversationMemory._search_semantic_supabase() YA NO es stub.
@@ -8,17 +8,15 @@ F1: ConversationMemory._search_semantic_supabase() YA NO es stub.
     - Hace fallback DEFENSIVO al local cosine si la RPC falla.
     - Devuelve SearchResult con source="vector".
 
-F2: SovereignCheckpointStore se instancia en kernel/main.py lifespan.
-    - Verificación estática del wiring (import + instancia + app.state).
-
-Estos tests usan mocks para no depender de Supabase real en CI; la
-verificación binaria contra la RPC real ya se hizo vía
-`python3 ~/.monstruo/sb_sql.py sql -q "SELECT * FROM match_memory_events(...)"`.
+Nota: los tests F2 (SovereignCheckpointStore wiring) fueron eliminados
+junto con el revert del wiring F2 en kernel/main.py. AsyncPostgresSaver
+es el checkpointing canónico LangGraph. Si en el futuro vuelve a haber
+un sprint que cablee SovereignCheckpointStore al runtime, los tests
+correspondientes deben ser funcionales (no estáticos por string match).
 """
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
@@ -131,51 +129,7 @@ async def test_f1_search_semantic_supabase_handles_none_response():
     assert results == []  # no hay eventos locales sembrados → lista vacía
 
 
-# ── F2: Wiring estático de SovereignCheckpointStore ─────────────────
-
-
-def test_f2_checkpoint_store_imported_in_kernel_main():
-    """Verifica que el import existe en kernel/main.py."""
-    src = Path(__file__).resolve().parents[1] / "kernel" / "main.py"
-    code = src.read_text(encoding="utf-8")
-    assert "from memory.checkpoint_store import SovereignCheckpointStore" in code
-
-
-def test_f2_checkpoint_store_instantiated_in_lifespan():
-    """Verifica que se instancia con db y se llama initialize() en lifespan."""
-    src = Path(__file__).resolve().parents[1] / "kernel" / "main.py"
-    code = src.read_text(encoding="utf-8")
-    assert "checkpoint_store = SovereignCheckpointStore(db=db if db_connected else None)" in code
-    assert "await checkpoint_store.initialize()" in code
-
-
-def test_f2_checkpoint_store_exposed_in_app_state():
-    """Verifica que se expone en app.state.checkpoint_store para que rutas puedan usarlo."""
-    src = Path(__file__).resolve().parents[1] / "kernel" / "main.py"
-    code = src.read_text(encoding="utf-8")
-    assert "app.state.checkpoint_store = checkpoint_store" in code
-
-
-def test_f2_checkpoint_store_in_health_endpoint():
-    """Verifica que /health reporta el estado del checkpoint_store."""
-    src = Path(__file__).resolve().parents[1] / "kernel" / "main.py"
-    code = src.read_text(encoding="utf-8")
-    # Patrón directo: clave checkpoint_store presente en components
-    assert re.search(r'"checkpoint_store"\s*:\s*\(?\s*await\s+checkpoint_store\.get_stats\(\)', code)
-
-
-def test_f2_global_declaration_includes_checkpoint_store():
-    """El global de lifespan debe incluir checkpoint_store para evitar shadowing."""
-    src = Path(__file__).resolve().parents[1] / "kernel" / "main.py"
-    code = src.read_text(encoding="utf-8")
-    pattern = (
-        r"global\s+kernel,\s+event_store,\s+conversation_memory,\s+"
-        r"knowledge_graph,\s+checkpoint_store,\s+observability"
-    )
-    assert re.search(pattern, code)
-
-
-# ── F1+F2: Verificación de migración SQL ──────────────────────────
+# ── F1: Verificación de migración SQL ──────────────────────────
 
 
 def test_f1_migration_0028_exists_and_creates_rpc():
