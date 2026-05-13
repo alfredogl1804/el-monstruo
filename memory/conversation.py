@@ -615,10 +615,86 @@ class ConversationMemory(MemoryInterface):
         limit: int,
         threshold: float,
     ) -> list[SearchResult]:
-        """Search using pgvector in Supabase via RPC."""
-        # This would call a Postgres function for vector similarity
-        # For now, fall back to local search
-        return self._search_semantic_local(query_embedding, user_id, memory_types, limit, threshold)
+        """Search using pgvector in Supabase via RPC `match_memory_events`.
+
+        Anti-Dory F1 (Sprint 2026-05-12): este método ya NO es stub.
+        Llama a la RPC real (migración 0028) que usa índice HNSW + cosine
+        sobre `memory_events.embedding` (vector(1536)). SECURITY INVOKER
+        respeta RLS service_role_only.
+
+        Si la RPC falla (ej. RLS, ext desactivada, RPC ausente), hace
+        fallback DEFENSIVO al local cosine para no romper el flujo.
+        """
+        try:
+            params: dict[str, Any] = {
+                "query_embedding": query_embedding,
+                "match_threshold": float(threshold),
+                "match_count": int(limit),
+                "p_user_id": user_id,
+                "p_memory_types": (
+                    [mt.value for mt in memory_types] if memory_types else None
+                ),
+            }
+            rows = await self._db.rpc("match_memory_events", params)
+            if rows is None:
+                logger.warning(
+                    "semantic_search_rpc_returned_none",
+                    fallback="local",
+                )
+                return self._search_semantic_local(
+                    query_embedding, user_id, memory_types, limit, threshold
+                )
+
+            results: list[SearchResult] = []
+            for row in rows:
+                try:
+                    eid = row.get("event_id")
+                    event = MemoryEvent(
+                        event_id=UUID(eid) if eid else uuid4(),
+                        memory_type=MemoryType(
+                            row.get("memory_type", "episodic")
+                        ),
+                        run_id=(
+                            UUID(row["run_id"]) if row.get("run_id") else None
+                        ),
+                        user_id=row.get("user_id"),
+                        channel=row.get("channel"),
+                        content=row.get("content", "") or "",
+                        metadata=row.get("metadata", {}) or {},
+                    )
+                    score = float(row.get("score", 0.0))
+                    results.append(
+                        SearchResult(
+                            event=event,
+                            score=score,
+                            source="vector",
+                        )
+                    )
+                except Exception as row_err:
+                    logger.warning(
+                        "semantic_search_row_skipped",
+                        error=str(row_err),
+                        event_id=str(row.get("event_id")),
+                    )
+                    continue
+
+            logger.debug(
+                "semantic_search_rpc_ok",
+                returned=len(results),
+                threshold=threshold,
+                user_id=user_id,
+            )
+            return results
+
+        except Exception as e:
+            logger.warning(
+                "semantic_search_rpc_failed",
+                error=str(e),
+                fallback="local",
+            )
+            return self._search_semantic_local(
+                query_embedding, user_id, memory_types, limit, threshold
+            )
 
     @staticmethod
     def _cosine_similarity(a: list[float], b: list[float]) -> float:
