@@ -18,7 +18,6 @@ verificación binaria contra la RPC real ya se hizo vía
 
 from __future__ import annotations
 
-import asyncio
 import re
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
@@ -29,12 +28,11 @@ import pytest
 from contracts.memory_interface import MemoryEvent, MemoryType, SearchResult
 from memory.conversation import ConversationMemory
 
-
 # ── F1: RPC pgvector real ─────────────────────────────────────────
 
 
 @pytest.mark.asyncio
-async def test_F1_search_semantic_supabase_uses_rpc_when_db_connected():
+async def test_f1_search_semantic_supabase_uses_rpc_when_db_connected():
     """Cuando la db está conectada, debe llamar a la RPC match_memory_events."""
     fake_db = MagicMock()
     fake_db.connected = True
@@ -82,7 +80,7 @@ async def test_F1_search_semantic_supabase_uses_rpc_when_db_connected():
 
 
 @pytest.mark.asyncio
-async def test_F1_search_semantic_supabase_falls_back_on_rpc_failure():
+async def test_f1_search_semantic_supabase_falls_back_on_rpc_failure():
     """Si la RPC lanza excepción, debe caer al búsqueda local in-memory (cero crash)."""
     fake_db = MagicMock()
     fake_db.connected = True
@@ -115,7 +113,7 @@ async def test_F1_search_semantic_supabase_falls_back_on_rpc_failure():
 
 
 @pytest.mark.asyncio
-async def test_F1_search_semantic_supabase_handles_none_response():
+async def test_f1_search_semantic_supabase_handles_none_response():
     """Si la RPC devuelve None, también debe caer al fallback local sin crash."""
     fake_db = MagicMock()
     fake_db.connected = True
@@ -136,14 +134,14 @@ async def test_F1_search_semantic_supabase_handles_none_response():
 # ── F2: Wiring estático de SovereignCheckpointStore ─────────────────
 
 
-def test_F2_checkpoint_store_imported_in_kernel_main():
+def test_f2_checkpoint_store_imported_in_kernel_main():
     """Verifica que el import existe en kernel/main.py."""
     src = Path(__file__).resolve().parents[1] / "kernel" / "main.py"
     code = src.read_text(encoding="utf-8")
     assert "from memory.checkpoint_store import SovereignCheckpointStore" in code
 
 
-def test_F2_checkpoint_store_instantiated_in_lifespan():
+def test_f2_checkpoint_store_instantiated_in_lifespan():
     """Verifica que se instancia con db y se llama initialize() en lifespan."""
     src = Path(__file__).resolve().parents[1] / "kernel" / "main.py"
     code = src.read_text(encoding="utf-8")
@@ -151,14 +149,14 @@ def test_F2_checkpoint_store_instantiated_in_lifespan():
     assert "await checkpoint_store.initialize()" in code
 
 
-def test_F2_checkpoint_store_exposed_in_app_state():
+def test_f2_checkpoint_store_exposed_in_app_state():
     """Verifica que se expone en app.state.checkpoint_store para que rutas puedan usarlo."""
     src = Path(__file__).resolve().parents[1] / "kernel" / "main.py"
     code = src.read_text(encoding="utf-8")
     assert "app.state.checkpoint_store = checkpoint_store" in code
 
 
-def test_F2_checkpoint_store_in_health_endpoint():
+def test_f2_checkpoint_store_in_health_endpoint():
     """Verifica que /health reporta el estado del checkpoint_store."""
     src = Path(__file__).resolve().parents[1] / "kernel" / "main.py"
     code = src.read_text(encoding="utf-8")
@@ -166,17 +164,21 @@ def test_F2_checkpoint_store_in_health_endpoint():
     assert re.search(r'"checkpoint_store"\s*:\s*\(?\s*await\s+checkpoint_store\.get_stats\(\)', code)
 
 
-def test_F2_global_declaration_includes_checkpoint_store():
+def test_f2_global_declaration_includes_checkpoint_store():
     """El global de lifespan debe incluir checkpoint_store para evitar shadowing."""
     src = Path(__file__).resolve().parents[1] / "kernel" / "main.py"
     code = src.read_text(encoding="utf-8")
-    assert re.search(r"global\s+kernel,\s+event_store,\s+conversation_memory,\s+knowledge_graph,\s+checkpoint_store,\s+observability", code)
+    pattern = (
+        r"global\s+kernel,\s+event_store,\s+conversation_memory,\s+"
+        r"knowledge_graph,\s+checkpoint_store,\s+observability"
+    )
+    assert re.search(pattern, code)
 
 
 # ── F1+F2: Verificación de migración SQL ──────────────────────────
 
 
-def test_F1_migration_0028_exists_and_creates_rpc():
+def test_f1_migration_0028_exists_and_creates_rpc():
     """La migración 0028 debe existir y crear la RPC con SECURITY INVOKER + grant a service_role."""
     src = (
         Path(__file__).resolve().parents[1]
@@ -189,5 +191,7 @@ def test_F1_migration_0028_exists_and_creates_rpc():
     assert "CREATE OR REPLACE FUNCTION public.match_memory_events" in sql
     assert "vector(1536)" in sql
     assert "SECURITY INVOKER" in sql
-    assert "GRANT  EXECUTE ON FUNCTION public.match_memory_events" in sql or "GRANT EXECUTE ON FUNCTION public.match_memory_events" in sql
+    grant_a = "GRANT  EXECUTE ON FUNCTION public.match_memory_events"
+    grant_b = "GRANT EXECUTE ON FUNCTION public.match_memory_events"
+    assert grant_a in sql or grant_b in sql
     assert "USING hnsw (embedding vector_cosine_ops)" in sql
