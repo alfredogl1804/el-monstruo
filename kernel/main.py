@@ -47,7 +47,6 @@ from contracts.event_envelope import EventBuilder, EventCategory
 from contracts.kernel_interface import RunInput, RunStatus
 from kernel import __version__
 from kernel.engine import LangGraphKernel
-from memory.checkpoint_store import SovereignCheckpointStore
 from memory.conversation import ConversationMemory
 from memory.event_store import EventStore
 from memory.knowledge_graph import KnowledgeGraph
@@ -71,7 +70,6 @@ kernel: Optional[LangGraphKernel] = None
 event_store: Optional[EventStore] = None
 conversation_memory: Optional[ConversationMemory] = None
 knowledge_graph: Optional[KnowledgeGraph] = None
-checkpoint_store: Optional[SovereignCheckpointStore] = None  # Anti-Dory F2 (2026-05-12)
 observability: Optional[ObservabilityManager] = None
 BOOT_TIME = datetime.now(timezone.utc)
 
@@ -90,7 +88,7 @@ _jobs_lock = asyncio.Lock()  # Sprint 32: protect concurrent access to backgroun
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize all sovereign components on startup."""
-    global kernel, event_store, conversation_memory, knowledge_graph, checkpoint_store, observability, BOOT_TIME
+    global kernel, event_store, conversation_memory, knowledge_graph, observability, BOOT_TIME
 
     BOOT_TIME = datetime.now(timezone.utc)
     logger.info("monstruo_starting", version=__version__, motor="langgraph")
@@ -112,21 +110,6 @@ async def lifespan(app: FastAPI):
     await conversation_memory.initialize()
     knowledge_graph = KnowledgeGraph(db=db if db_connected else None)
     await knowledge_graph.initialize()
-
-    # ── Anti-Dory F2 (Sprint 2026-05-12): SovereignCheckpointStore ─────────
-    # Antes este store estaba importado en memory/__init__.py pero NUNCA
-    # instanciado en runtime, dejando el carry-over inertísimo. Ahora se
-    # cablea como ciudadano de primera clase, con persistencia Supabase
-    # (tabla `checkpoints` + `system_state`), TTL automático y stats.
-    # Obj #15 (Memoria Soberana) + Obj #3 (Mínima Complejidad).
-    checkpoint_store = SovereignCheckpointStore(db=db if db_connected else None)
-    await checkpoint_store.initialize()
-    app.state.checkpoint_store = checkpoint_store
-    logger.info(
-        "checkpoint_store_wired",
-        persistence="supabase" if db_connected else "in-memory",
-        purpose="sovereign_carry_over_anti_dory",
-    )
 
     # ── Sprint 81/55.1: ThreeLayerMemory — Mem0 + Supabase + in-context ───────────
     # Arquitectura de 3 capas: in-context (hot), Supabase (warm), Mem0 (cold)
@@ -240,7 +223,6 @@ async def lifespan(app: FastAPI):
 
     app.state.kernel = kernel  # Sprint 41: expose kernel in app.state for planner_routes
     app.state.db = db if db_connected else None  # Sprint 41: expose db in app.state for planner_routes
-    # checkpoint_store ya fue expuesto en app.state arriba (Anti-Dory F2)
     # Emit startup event
     await event_store.append(
         EventBuilder()
@@ -2928,7 +2910,6 @@ async def health():
             "langfuse": "active" if (observability and observability.langfuse_enabled) else "inactive",
             "opentelemetry": "active" if (observability and observability.otel_enabled) else "inactive",
             "checkpointer": "active (AsyncPostgresSaver)" if (kernel and type(kernel._checkpointer).__name__ == "AsyncPostgresSaver") else "inactive (MemorySaver)" if kernel else "unknown",
-            "checkpoint_store": (await checkpoint_store.get_stats()) if checkpoint_store else "inactive",  # Anti-Dory F2 (2026-05-12)
             "mempalace": "active" if getattr(app.state, "_mempalace_ready", False) else "inactive",
             "lightrag": "active" if getattr(app.state, "_lightrag_ready", False) else "inactive",
             "multi_agent": "active",  # Sprint 21: always available (keyword-based, no external deps)
