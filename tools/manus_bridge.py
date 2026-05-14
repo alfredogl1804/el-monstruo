@@ -271,7 +271,7 @@ def create_task(
                 logger.warning("anti_dory_broker_fallback: %s", _exc)
     # ANTI_DORY_END
 
-    payload: dict[str, Any] = {"prompt": prompt}
+    payload: dict[str, Any] = {"message": {"content": prompt}}
     if project_id:
         payload["project_id"] = project_id
 

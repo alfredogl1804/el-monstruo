@@ -124,7 +124,7 @@ def test_attach_context_false_passthrough(_mock_manus_http, monkeypatch):
     result = create_task("prompt-original-x", account="google", project_id="el-monstruo")
 
     # Verificación 1: payload enviado a Manus contiene el prompt ORIGINAL sin prefijo.
-    assert _mock_manus_http["json_payload"]["prompt"] == "prompt-original-x"
+    assert _mock_manus_http["json_payload"]["message"]["content"] == "prompt-original-x"
     # Verificación 2: response del mock se respeta.
     assert result == {"task_id": "mock-task-id", "status": "queued"}
 
@@ -145,7 +145,7 @@ def test_attach_context_true_flag_off_passthrough(_mock_manus_http, monkeypatch)
     )
 
     # Payload contiene prompt original sin prefijo.
-    assert _mock_manus_http["json_payload"]["prompt"] == "prompt-original-y"
+    assert _mock_manus_http["json_payload"]["message"]["content"] == "prompt-original-y"
     assert result["task_id"] == "mock-task-id"
 
 
@@ -166,7 +166,7 @@ def test_attach_context_true_flag_on_hydrates(_mock_manus_http, monkeypatch, cap
         attach_context=True,
     )
 
-    sent_prompt = _mock_manus_http["json_payload"]["prompt"]
+    sent_prompt = _mock_manus_http["json_payload"]["message"]["content"]
     assert "=== ATTACHMENT_OK (mock) ===" in sent_prompt
     assert "project_id=el-monstruo" in sent_prompt
     assert "front_id=manus-anti-dory-002" in sent_prompt
@@ -197,7 +197,7 @@ def test_broker_exception_fallback_to_original_prompt(_mock_manus_http, monkeypa
     )
 
     # Payload contiene prompt original (no hidratado).
-    assert _mock_manus_http["json_payload"]["prompt"] == "prompt-fail-open-z"
+    assert _mock_manus_http["json_payload"]["message"]["content"] == "prompt-fail-open-z"
     # Logging de fallback warning con la causa del fallo.
     assert any(
         "anti_dory_broker_fallback" in record.message
@@ -229,7 +229,7 @@ def test_factory_none_with_flag_on_fails_open(_mock_manus_http, monkeypatch, cap
         attach_context=True,
     )
 
-    assert _mock_manus_http["json_payload"]["prompt"] == "prompt-no-factory"
+    assert _mock_manus_http["json_payload"]["message"]["content"] == "prompt-no-factory"
     assert any(
         "anti_dory_broker_fallback" in record.message
         and "factory not configured" in record.message
