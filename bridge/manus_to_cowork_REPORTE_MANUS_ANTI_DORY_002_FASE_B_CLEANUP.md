@@ -201,9 +201,10 @@ Esta regla se aplica retroactivamente al reporte FASE B `manus_to_cowork_MANUS_A
 
 | Commit | Hash | Mensaje |
 |---|---|---|
-| Cleanup commit | `887924b9fee908762bff18d720b23ceb4a69e7b2` (short: `887924b`) | `chore(anti-dory): cleanup scope leak — remove 2 reports unrelated to FASE B SPEC + add LOC-VERBATIM rule` |
+| Cleanup commit (contenido) | `887924b9fee908762bff18d720b23ceb4a69e7b2` (short: `887924b`) | `chore(anti-dory): cleanup scope leak + LOC-VERBATIM rule — PR #125 ready` |
+| Cleanup commit (post-amend con hash inyectado) | `45dcbbb66423218ee37f9961c9b990bdc2324c3f` (short: `45dcbbb`) | Mismo mensaje, amend para inyectar `887924b` en este reporte |
 
-> El hash exacto del commit se inyecta vía amend post-commit (regla técnica: el reporte se referencia a sí mismo en el commit, requiere un step de patch).
+> **Nota técnica de auto-referencia:** el commit con el contenido real del cleanup es `887924b`. El amend `45dcbbb` solo agregó la inyección del hash `887924b` en este propio reporte. El hash final del push (HEAD actual) es `45dcbbb`. No se hace re-amend para inyectar `45dcbbb` aquí porque cada amend cambiaría el hash en un bucle infinito.
 
 ---
 
