@@ -1,0 +1,81 @@
+{
+  "sprint": "COWORK-AUTO-DISCIPLINE-REAL-001",
+  "task": "T0 audit kernel/cowork_runtime/ existing",
+  "fecha_audit_utc": "2026-05-12T18:15:00Z",
+  "owner": "Manus Hilo Ejecutor 1 (manus_hilo_a, cuenta apple)",
+  "branch": "feat/cowork-auto-discipline-real-001",
+  "estado_verificado": {
+    "kernel_cowork_runtime_existing_modules": [
+      "kernel/cowork_runtime/__init__.py",
+      "kernel/cowork_runtime/alfredo_veto_channel.py",
+      "kernel/cowork_runtime/companion_agent.py",
+      "kernel/cowork_runtime/drift_detector.py",
+      "kernel/cowork_runtime/pre_response_hook.py",
+      "kernel/cowork_runtime/rule_reinjection.py",
+      "kernel/cowork_runtime/session_memory.py"
+    ],
+    "tools_existing": [
+      "tools/cowork_guardian.py (10720 bytes)",
+      "tools/test_cowork_guardian.py (6427 bytes)"
+    ],
+    "kernel_cowork_runtime_antipatterns_py_existe": false,
+    "ubicacion_actual_antipatterns_canonicos": "kernel/cowork_runtime/rule_reinjection.py (constante HARD_RULES_CANONICAS, 15 reglas inline)",
+    "patrones_F_actualmente_canonizados_en_rule_reinjection": ["F1", "F2", "F3", "F11", "F22"],
+    "reglas_R_canonizadas": ["R1", "R5", "R8"],
+    "DSC_MO_canonizados_inline": ["DSC-MO-005", "DSC-MO-008", "DSC-MO-011"],
+    "DSC_G_canonizados_inline": ["DSC-G-005", "DSC-G-008v2"]
+  },
+  "discrepancia_spec_vs_realidad": {
+    "spec_afirmaba": "kernel/cowork_runtime/antipatterns.py existe con F1-F22",
+    "realidad_verificada": "kernel/cowork_runtime/antipatterns.py NO existe como archivo separado. Las reglas Fxx + Rxx + DSCs viven como tupla HARD_RULES_CANONICAS dentro de kernel/cowork_runtime/rule_reinjection.py (líneas 58-74). Solo 5 patrones F (F1, F2, F3, F11, F22) están listados, no F1-F22 secuencial.",
+    "decision_binaria_T5": "T5 (agregar F23-F27) se ejecutará creando un MÓDULO NUEVO kernel/cowork_runtime/antipatterns.py que centralice F1-F22 (importados/referenciados desde rule_reinjection) + agregue F23-F27 derivados de instancias F21 reincidentes HOY. Esto cumple el spec literal sin tocar reglas F1-F22 existentes (regla NO-CRUCE del kickoff §4).",
+    "spec_afirmaba_2": "PR #90 canonizó semantic_detector.py, advance_score.py, preflight.py, telegram_veto.py",
+    "realidad_verificada_2": "Ninguno de esos 4 módulos existe en kernel/cowork_runtime/. Las funciones equivalentes viven en: tools/cowork_guardian.py (detect_push_to_pause, score_advance, alfredo_demands_advance, validate_output). El kernel runtime actual tiene: alfredo_veto_channel.py (equivalente a telegram_veto), drift_detector.py, companion_agent.py, session_memory.py.",
+    "decision_binaria_T0": "Reportar discrepancia a Cowork sin bloquear. La regla NO-CRUCE original sigue válida en espíritu: NO TOCAR alfredo_veto_channel.py, companion_agent.py, drift_detector.py, session_memory.py, rule_reinjection.py (canonizados Sprint COWORK-RUNTIME-001). Solo modificar pre_response_hook.py (autorizado por kickoff con markers HOOK_AUTO_DISCIPLINE_BEGIN/END)."
+  },
+  "migration_siguiente_libre": {
+    "ultima_existente": "0026_embrion_homeostasis_log.sql",
+    "siguiente_libre_secuencial": "0027",
+    "spec_pidio": "0031",
+    "decision_binaria_T1": "Usar 0027 (siguiente libre real) NO 0031. El gap del spec (0031) violaría DSC-S-012 (anti-deriva migraciones). Reportar a Cowork como F21 propio del spec (asumió numero sin verificar last existing).",
+    "razonamiento": "Numeración secuencial sin gaps es doctrina canonizada en DSC-S-012. Crear 0031 saltando 0027-0030 introduce drift permanente. La sustancia del spec (tabla cowork_protocolo_invocaciones con RLS, indices, schema completo) se preserva integralmente."
+  },
+  "guardian_module_existing_api": {
+    "GuardianVerdict_dataclass_fields": ["passed: bool", "violations: list[str]", "advance_score: AdvanceScore", "user_demands_advance: bool"],
+    "validate_output_signature": "validate_output(cowork_output: str, user_message: str = '', session_duration_minutes: int = 0, productive_commits_this_session: int = 0) -> GuardianVerdict",
+    "current_rules_count": 3,
+    "current_rules": ["R1: push_to_pause detection (17 regex patterns)", "R2: advance score (ratio_advance >= 0.5)", "R3: commits per hour (1/hr min)"],
+    "decision_binaria_T4_integration": "Extender GuardianVerdict via composition (no breaking) en pre_response_hook.py entre markers HOOK_AUTO_DISCIPLINE_BEGIN/END. El hook llamará validate_output() existing PRIMERO + check_cowork_no_speculative_claims() nuevo + _check_cowork_verbatim_citations() nuevo. Si CUALQUIERA bloquea, return (False, feedback). Patrón DSC-MO-006 v1.1 doctrina del silencio."
+  },
+  "pre_response_hook_current_api": {
+    "class": "CoworkPreResponseHook",
+    "intercept_signature": "intercept(cowork_output: str, user_message: str = '') -> tuple[bool, str]",
+    "blue_green_flag": "enabled (default False, env COWORK_HOOK_ENABLED=true)",
+    "shadow_mode": "Si enabled=False, registra shadow_would_block sin bloquear (calibración)",
+    "decision_binaria_T4": "Modificación entre markers HOOK_AUTO_DISCIPLINE_BEGIN/END agrega checks ADICIONALES post-validate_output existing. Si enabled=False (default), nuevos checks también shadow. Si enabled=True, ambos sets bloquean. Esto preserva backward compatibility 100%."
+  },
+  "antipatterns_F1_F22_locacion_canonica": {
+    "fuente": "kernel/cowork_runtime/rule_reinjection.py:58-74",
+    "constante": "HARD_RULES_CANONICAS",
+    "nota": "Solo 5 patrones Fxx (F1, F2, F3, F11, F22) listados verbatim — F4-F10, F12-F21 son referenciados doctrinalmente pero no inline en código",
+    "decision_T5": "Crear kernel/cowork_runtime/antipatterns.py NUEVO con dict completo F1-F27 (importa F1-F22 desde rule_reinjection HARD_RULES_CANONICAS via re-export + agrega F23-F27 nuevos). Spec exige 'NO modificar F1-F22 existing' — esto se cumple porque rule_reinjection sigue como SoR original."
+  },
+  "decisiones_de_integracion_finales": {
+    "T1_migration_numero": "0027 (NO 0031, anti-DSC-S-012)",
+    "T1_filename": "migrations/sql/0027_cowork_protocolo_invocaciones.sql",
+    "T2_f21_patterns_location": "kernel/cowork_runtime/f21_patterns.py (NUEVO, contiene F21_PATTERNS list[dict] con 10 entries P1-P10)",
+    "T2_detector_location": "tools/check_cowork_no_speculative_claims.py (NUEVO)",
+    "T3_verbatim_location": "tools/_check_cowork_verbatim_citations.py (NUEVO, underscore prefix preserva spec)",
+    "T4_hook_modification": "Entre markers HOOK_AUTO_DISCIPLINE_BEGIN/END en pre_response_hook.py; agrega imports + nuevos métodos sin tocar intercept() public signature",
+    "T5_antipatterns_module": "kernel/cowork_runtime/antipatterns.py (NUEVO) con F23-F27 + re-export F1-F22 desde rule_reinjection.HARD_RULES_CANONICAS",
+    "T6_tests_location": "tests/test_cowork_auto_discipline_integration.py (NUEVO)"
+  },
+  "limitaciones_documentadas": [
+    "L1 — Migration número diverge del spec (0031 pedido vs 0027 ejecutado). Razón: DSC-S-012 anti-deriva migraciones. Spec contenía F21 propio (asumió 0031 sin verificar last existing).",
+    "L2 — antipatterns.py es módulo NUEVO, no MODIFICADO. Spec afirmaba existing con F1-F22 inline; realidad es que viven en rule_reinjection.py HARD_RULES_CANONICAS. La creación nueva centraliza + extiende sin tocar fuente original.",
+    "L3 — semantic_detector.py/advance_score.py/preflight.py/telegram_veto.py mencionados en kickoff §4 NO existen en kernel/cowork_runtime/ (viven como funciones en tools/cowork_guardian.py). NO se tocan funciones equivalentes (regla NO-CRUCE en espíritu).",
+    "L4 — Spec exige auto-INSERT a cowork_protocolo_invocaciones desde el hook. Esto requiere SUPABASE_URL + SUPABASE_SERVICE_KEY env vars en runtime kernel. Implementación graceful: si env vars faltan, log warning + skip insert (no romper hook), mismo patrón que rule_reinjection."
+  ],
+  "exit_code": 0,
+  "next_task": "T1 — Migration 0027_cowork_protocolo_invocaciones.sql"
+}
