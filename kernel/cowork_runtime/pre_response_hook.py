@@ -49,6 +49,22 @@ if str(_REPO_ROOT) not in sys.path:
 
 from tools.cowork_guardian import GuardianVerdict, validate_output  # noqa: E402
 
+# CLAIM_CALIBRATION_BEGIN — Sprint COWORK-MEMENTO-001 T3 (pieza 1 anti-Dory D2+D3)
+# Imports lazy + opcionales: si claim_calibration falla al import, el hook
+# debe seguir funcionando (fail-soft, L_A6 declarada en spec §7).
+try:
+    from kernel.cowork_runtime.claim_calibration import (  # noqa: E402
+        ClaimExtractor,
+        ClaimLogger,
+        ClaimRecord,
+        VerificationStatus,
+        infer_verification_status,
+    )
+    _CLAIM_CALIBRATION_AVAILABLE = True
+except Exception:  # pragma: no cover (defensive import guard)
+    _CLAIM_CALIBRATION_AVAILABLE = False
+# CLAIM_CALIBRATION_END
+
 
 @dataclass
 class HookStats:
@@ -134,6 +150,16 @@ class CoworkPreResponseHook:
             productive_commits_this_session=self.productive_commits_count,
         )
 
+        # CLAIM_CALIBRATION_BEGIN — Sprint COWORK-MEMENTO-001 T3 wiring (extract+log claims)
+        # Fire-and-forget: registramos claims independientemente del verdict guardian.
+        # NO bloquea el flujo si la extracción/insert falla (fail-soft, L_A6).
+        try:
+            self._record_claims_calibration(cowork_output)
+        except Exception:
+            # Defense in depth: el flujo Cowork NUNCA se rompe por fallo del logger.
+            pass
+        # CLAIM_CALIBRATION_END
+
         if verdict.passed:
             return True, cowork_output
 
@@ -161,6 +187,78 @@ class CoworkPreResponseHook:
         self.productive_commits_count = 0
         self.stats = HookStats()
         self.shadow_would_block = 0
+
+    # CLAIM_CALIBRATION_BEGIN — Sprint COWORK-MEMENTO-001 T3 (extract+log helpers)
+    def attach_claim_logger(self, logger: "ClaimLogger") -> None:
+        """Inyecta un ClaimLogger externo (opcional). Si no se inyecta, el hook
+        operará en modo extract-only (sin persistencia)."""
+        self._claim_logger = logger
+
+    def register_tool_call(self, tool_call_repr: str) -> None:
+        """Registra una llamada/tool result reciente para inferir verification_status.
+
+        Cowork debería invocar esto cada vez que ejecuta un tool call cuyo
+        resultado pueda servir de evidencia para futuros claims (paths/tablas/PRs).
+        Ventana máxima retenida: 64 entradas (anti-leak memoria long sessions).
+        """
+        if not hasattr(self, "_tool_call_history"):
+            self._tool_call_history = []
+        self._tool_call_history.append(tool_call_repr)
+        if len(self._tool_call_history) > 64:
+            self._tool_call_history = self._tool_call_history[-64:]
+
+    def register_pre_emit_claim(self, claim_value: str) -> None:
+        """Registra explícitamente un claim verificado pre-emit (verified_pre)."""
+        if not hasattr(self, "_pre_registered_claims"):
+            self._pre_registered_claims = []
+        self._pre_registered_claims.append(claim_value)
+        if len(self._pre_registered_claims) > 256:
+            self._pre_registered_claims = self._pre_registered_claims[-256:]
+
+    def _record_claims_calibration(self, cowork_output: str) -> None:
+        """Extrae claims del output + infiere verification_status + log_batch.
+
+        Si claim_calibration no está disponible (import falló), no-op.
+        Si _claim_logger no fue inyectado, solo cuenta extracciones sin persistir.
+        """
+        if not _CLAIM_CALIBRATION_AVAILABLE:
+            return
+        if not hasattr(self, "_claim_extractor"):
+            self._claim_extractor = ClaimExtractor()
+            self._claims_extracted_total = 0
+            self._tool_call_history = getattr(self, "_tool_call_history", [])
+            self._pre_registered_claims = getattr(self, "_pre_registered_claims", [])
+            self._claim_logger = getattr(self, "_claim_logger", None)
+
+        candidates = self._claim_extractor.extract_claims(cowork_output)
+        if not candidates:
+            return
+
+        self._claims_extracted_total += len(candidates)
+        if self._claim_logger is None:
+            return
+
+        turn_index = self.stats.interceptions_total
+        records: list[ClaimRecord] = []
+        for cand in candidates:
+            status, evidence = infer_verification_status(
+                cand,
+                tool_call_history=self._tool_call_history,
+                pre_registered_claims=self._pre_registered_claims,
+            )
+            records.append(
+                ClaimRecord(
+                    claim_type=cand.claim_type,
+                    claim_value=cand.claim_value,
+                    verification_status=status,
+                    turn_index=turn_index,
+                    detected_in_output=cand.detected_in_output,
+                    extraction_regex_id=cand.extraction_regex_id,
+                    tool_call_evidence=evidence,
+                )
+            )
+        self._claim_logger.log_batch(records)
+    # CLAIM_CALIBRATION_END
 
     def enable(self) -> None:
         """Activa el hook (Gate 7 Blue-Green): a partir de ahora bloquea outputs."""
