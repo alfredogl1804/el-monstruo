@@ -18,11 +18,16 @@ Usage:
 from __future__ import annotations
 
 import os
+import re
 import time
 import logging
 from typing import Any, Literal, Optional
 
 import httpx
+
+# F-pattern #11 mitigation: distinguish Manus UUID (22-char alphanumeric)
+# from Anti-Dory logical labels (free-form strings like "el_monstruo").
+_MANUS_PROJECT_ID_REGEX = re.compile(r"^[A-Za-z0-9]{22}$")
 
 # ---------------------------------------------------------------------------
 # Config
@@ -272,8 +277,17 @@ def create_task(
     # ANTI_DORY_END
 
     payload: dict[str, Any] = {"message": {"content": prompt}}
-    if project_id:
+    if project_id and _MANUS_PROJECT_ID_REGEX.match(project_id):
+        # Real Manus UUID (22 alphanumeric chars) → forward to payload
         payload["project_id"] = project_id
+    elif project_id:
+        # Anti-Dory logical label (e.g. "el_monstruo") → broker-only,
+        # NOT forwarded to Manus API (F-pattern #11 mitigation).
+        logger.debug(
+            "manus_bridge: project_id %r treated as logical label (broker-only), "
+            "not forwarded to Manus API payload (F-pattern #11 mitigation)",
+            project_id,
+        )
 
     logger.info(
         "Creating Manus task (account=%s): %.80s...", account, prompt
