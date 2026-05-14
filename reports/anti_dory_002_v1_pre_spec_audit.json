@@ -1,0 +1,154 @@
+{
+  "sprint": "MANUS-ANTI-DORY-002",
+  "fase": "A",
+  "subfase": "A.0_pre_audit_anti_F24",
+  "timestamp_utc": "2026-05-14T16:30:00Z",
+  "owner": "Manus Hilo Ejecutor (Hilo Google)",
+  "purpose": "Verificación binaria pre-SPEC para evitar F24 (referencias inventadas a paths/tablas/migrations).",
+
+  "checks": {
+    "A_migrations": {
+      "command": "ls migrations/sql/ | sort | tail -10",
+      "last_migration": "0028_rpc_match_memory_events.sql",
+      "last_10": [
+        "0019_scheduled_tasks_unique_constraint.sql",
+        "0020_embrion_validation_log.sql",
+        "0021_catastro_suppliers_humanos.sql",
+        "0021_guardian_audit_log.sql",
+        "0022_catastro_vistas_dsc_g_007_1.sql",
+        "0023_rotor_activity_log.sql",
+        "0024_escape_pulse_log.sql",
+        "0025_anti_rotation_loop.sql",
+        "0026_embrion_homeostasis_log.sql",
+        "0028_rpc_match_memory_events.sql"
+      ],
+      "gap_detected": "0027 missing (no es bloqueante; reportado a Catastro)",
+      "next_free_numbers_for_anti_dory": ["0029", "0030", "0031"]
+    },
+    "B_kernel_structure": {
+      "kernel_anti_dory_exists": false,
+      "comment": "Esperado: el módulo se crea en FASE B"
+    },
+    "C_cowork_runtime_intacto": {
+      "files": [
+        "__init__.py",
+        "alfredo_veto_channel.py",
+        "companion_agent.py",
+        "drift_detector.py",
+        "pre_response_hook.py",
+        "rule_reinjection.py",
+        "session_memory.py"
+      ],
+      "policy": "NO-CRUCE: No tocar sin coordinación bridge file con Cowork T2-A"
+    },
+    "D_guardian_existing": {
+      "tools_cowork_guardian_py": {
+        "exists": true,
+        "size_bytes": 10720,
+        "key_symbols": [
+          "AdvanceScore",
+          "GuardianVerdict",
+          "validate_output",
+          "alfredo_demands_advance",
+          "detect_push_to_pause",
+          "score_advance"
+        ]
+      },
+      "kernel_guardian_py": {"exists": true},
+      "policy": "FASE B integrará verificador attachment a tools/cowork_guardian.py — NO duplicar"
+    },
+    "E_manus_bridge_existing": {
+      "tools_manus_bridge_py": {
+        "exists": true,
+        "key_symbols": [
+          "create_task(prompt, account, project_id)",
+          "get_task_status",
+          "wait_for_completion",
+          "ManusBridgeError",
+          "ManusTimeoutError",
+          "ManusTaskFailedError",
+          "ManusRateLimitError"
+        ]
+      },
+      "integration_point_for_context_broker": "tools/manus_bridge.create_task (extender, NO recrear)"
+    },
+    "F_external_agents": {
+      "kernel_external_agents_py_exists": true,
+      "uses_manus_bridge_create_task": true,
+      "comment": "Llama 'from tools.manus_bridge import create_task, wait_for_completion'. Es el patrón canónico para crear hilos Manus desde el kernel."
+    },
+    "G_open_prs": {
+      "count_total_open": 42,
+      "relevant_for_anti_dory": [
+        "#121 doctrina/anti-dory-manus-fase1-plan-2026-05-13",
+        "#118 feat/cowork-auto-discipline-real-001"
+      ]
+    },
+    "H_recent_branches_anti_dory": [
+      "doc/anti-dory-002-v1-audit-report",
+      "doc/anti-dory-audit-package-002",
+      "doctrina/anti-dory-manus-fase1-plan-2026-05-13"
+    ],
+    "I_agents_md": {"exists": true, "policy": "Lectura obligatoria pre-acción"},
+    "J_claude_md": {"exists": true, "policy": "Instrucciones para Cowork"},
+    "K_check_scripts": [
+      "scripts/_check_credential_rotations.py",
+      "scripts/_check_guardian_stale_audit.py",
+      "scripts/_check_no_tokens.sh",
+      "scripts/_check_rls_default.py"
+    ],
+    "L_canonical_migration_template": {
+      "file": "migrations/sql/0026_embrion_homeostasis_log.sql",
+      "contains": [
+        "BEGIN/COMMIT block",
+        "CREATE TABLE IF NOT EXISTS",
+        "CONSTRAINT *_CHECK clauses",
+        "ALTER TABLE ... ENABLE ROW LEVEL SECURITY",
+        "DROP POLICY IF EXISTS / CREATE POLICY",
+        "REVOKE ALL FROM PUBLIC, anon, authenticated",
+        "GRANT to service_role",
+        "DO $$ block with RAISE EXCEPTION 'DSC-S-006 v1.1 VIOLATION'"
+      ],
+      "use_as_template_for": ["0029_runtime_events.sql", "0030_thread_snapshots.sql", "0031_project_runtime_heads.sql"]
+    },
+    "M_tests_layout": {
+      "tests_dir_exists": true,
+      "anti_dory_F1_test_exists": true,
+      "comment": "tests/test_anti_dory_F1.py existe — usar mismo patrón para tests/test_anti_dory_rap_002.py"
+    },
+    "N_supabase_tables_real": {
+      "verified": false,
+      "reason": "Sandbox no tiene SUPABASE_URL/SUPABASE_SERVICE_KEY ni ~/.monstruo/sb_sql.py. Estado: NO_VERIFICABLE_DESDE_SANDBOX. Inferido ACTIVO vía /health del kernel.",
+      "deferred_to": "FASE B — el ejecutor de implementación correrá `python3 ~/.monstruo/sb_sql.py sql -q '...'` para confirmar"
+    }
+  },
+
+  "decisiones": {
+    "migration_numbers": {
+      "use": ["0029", "0030", "0031"],
+      "rationale": "Kickoff lo confirma; gap 0027 no se ocupa para no contaminar el SPEC con fix lateral."
+    },
+    "context_broker_integration_point": {
+      "decision": "Extender tools/manus_bridge.create_task (interceptor pre-call que invoca Context Broker para hidratar prompt)",
+      "alternatives_descartadas": ["Crear nuevo tool wrapper", "Microservice Railway separado"]
+    },
+    "guardian_integration_point": {
+      "decision": "Extender tools/cowork_guardian.GuardianVerdict + agregar fn verify_attachment_contract",
+      "rationale": "NO duplicar; reutilizar la maquinaria existente de validate_output."
+    }
+  },
+
+  "no_cruce_confirmados": [
+    "kernel/cowork_runtime/*.py — NO tocar sin coordinar Cowork T2-A",
+    "PR #118 feat/cowork-auto-discipline-real-001 — NO interferir",
+    "PR #121 doctrina/anti-dory-manus-fase1-plan — superseded por este sprint",
+    "Migrations 0001-0028 — NO modificar",
+    "AGENTS.md / CLAUDE.md — NO modificar sin DSC firmado",
+    "Mac local del usuario (/mnt/desktop/el-monstruo) — NO tocar",
+    "Secrets (rotación) — T1 ACCEPTED_RISK vigente, NO rotar"
+  ],
+
+  "anti_F24_status": "PASS",
+  "anti_F26_status": "PASS_PRE (SPEC se redactará como blueprint para CÓDIGO ejecutable, no doctrina nueva)",
+  "ready_for_spec_drafting": true
+}
