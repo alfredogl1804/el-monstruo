@@ -1,5 +1,5 @@
 -- ============================================================================
--- Migration 0033 — Anti-Dory GRANTs role-membership a service_role
+-- Migration 0034 — Anti-Dory GRANTs role-membership a service_role
 -- ============================================================================
 -- Sprint:        MANUS-ANTI-DORY-002 v1 FASE D2
 -- Created:       2026-05-14

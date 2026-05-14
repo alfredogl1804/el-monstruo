@@ -1,7 +1,7 @@
 # 🔌 FASE D2 — DONE — AUDIT_PENDIENTE (consolidado al cierre D6)
 
 **Sprint:** MANUS-ANTI-DORY-002 v1  
-**Fase:** D2 — Migration 0033 GRANTs role-membership  
+**Fase:** D2 — Migration 0034 GRANTs role-membership (rebase 0033→0034 por colisión MEMENTO PR #128)  
 **Autor:** Manus (Ejecutor 1) bajo autoridad delegada T1  
 **Fecha:** 2026-05-14  
 **Estado terminal:** `🔌 FASE D2 — AUDIT_PENDIENTE` (consolidado D6)
@@ -16,7 +16,7 @@ Entrega la migration faltante para cerrar la cadena de permisos Anti-Dory: `serv
 
 | # | Decisión | Razón |
 |---|---|---|
-| 1 | **Número 0033, no 0034** (kickoff sugería 0034) | DSC-S-012 anti-deriva: verificación binaria `ls migrations/sql/ \| sort \| tail -1` = `0032_anti_dory_rpcs.sql`. Siguiente libre = **0033**. El kickoff partió de un anti-cálculo asumiendo otra migration intermedia. Verificación binaria gana. |
+| 1 | **Número 0034 final** (rebase post-MEMENTO) | Inicialmente asignado 0033 por DSC-S-012 anti-deriva (verificación binaria `ls migrations/sql/ \| sort \| tail -1` = `0032_anti_dory_rpcs.sql`). Tras merge PR #128 MEMENTO (commit 24bc814) que tomó `0033_cowork_claims_calibration.sql`, Cowork T2-A ordenó rebase + rename a **0034**. Verificación binaria post-rebase: `ls migrations/sql/ \| sort \| tail -2` = `0033_cowork_claims_calibration.sql` + `0034_anti_dory_grants.sql`. |
 | 2 | `GRANT role TO role` (membresía), no `GRANT EXECUTE` | Los GRANT EXECUTE en RPCs ya fueron emitidos por 0032 (líneas 352-356). Lo que falta es la membresía explícita para que `pg_has_role(service_role, anti_dory_writer_role, 'MEMBER')` retorne `TRUE`. |
 | 3 | DO block pre-check + DO block post-check | Pre-check protege contra re-run prematuro (0032 no aplicado). Post-check verifica binariamente `pg_has_role` con RAISE EXCEPTION si membresía falla. |
 | 4 | NO aplicada en Supabase prod | Kickoff explícito: "Cowork aplica al cierre total via MCP". |
@@ -28,7 +28,7 @@ Entrega la migration faltante para cerrar la cadena de permisos Anti-Dory: `serv
 
 ## §4. Consecuencias materiales
 
-- **C1**: Cuando Cowork aplique 0033 via MCP, `service_role` heredará permisos de ambos roles segregados. Auditorías `pg_has_role` pasarán.
+- **C1**: Cuando Cowork aplique 0034 via MCP (post-merge PR FASE D2-D3-D4), `service_role` heredará permisos de ambos roles segregados. Auditorías `pg_has_role` pasarán.
 - **C2**: Cumple SPEC v1 §A.5 "keys segregadas (writer/reader)" — el último eslabón del modelo.
 - **C3**: Cuando FASE D6 active `ANTI_DORY_ENABLED=true`, el broker podrá invocar los RPCs con permisos completos sin fallos de autorización.
 
