@@ -1,0 +1,50 @@
+# =============================================================================
+# Railway config — Anti-Dory Heartbeat Cron Service
+# =============================================================================
+#
+# Sprint MANUS-ANTI-DORY-002 v1 FASE D3.
+#
+# ESTE ARCHIVO ES PARA UN SERVICIO RAILWAY SEPARADO. No reemplaza railway.toml
+# del servicio web principal.
+#
+# Setup en Railway (acción manual en FASE D4 con OK T1):
+#   1. Crear "New Service" en el proyecto Railway de El Monstruo
+#   2. Conectar al mismo repo (alfredogl1804/el-monstruo)
+#   3. Branch: main
+#   4. Root config path: railway.cron.toml
+#   5. Variables (heredar del servicio web):
+#        - SUPABASE_URL
+#        - SUPABASE_SERVICE_KEY
+#        - ANTI_DORY_ENABLED ("false" inicial, "true" en D4)
+#        - ANTI_DORY_PROJECT_ID = "el-monstruo"
+#        - ANTI_DORY_FRONT_IDS = "MANUS-ANTI-DORY-002"
+#   6. Deploy
+#
+# Cron Schedule canónico Railway 2026: "*/15 * * * *" (cada 15 minutos UTC).
+# Sintaxis verificada en https://docs.railway.com/config-as-code/reference
+# F24 anti-fabricación: no inventar campos no documentados.
+#
+# Decisiones:
+#   - Reusa Dockerfile.web del servicio principal (no duplica imagen).
+#   - startCommand override: ejecuta el cron entrypoint en lugar del run.py.
+#   - healthcheckPath: omitido (cron services NO requieren healthcheck;
+#     Railway evalúa el exit code del último tick).
+#   - restartPolicy: ON_FAILURE para que un tick fallido NO mate al servicio,
+#     pero un crash de inicialización (exit 1 inmediato) sí.
+#
+# Doctrina:
+#   - NO-CRUCE: este archivo NO altera railway.toml del servicio web.
+#   - GPT-5.5 Pro: "el black-box recorder NO puede depender del agente."
+#     Por eso el cron es un servicio independiente, no un thread dentro
+#     del servicio web.
+# =============================================================================
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.web"
+
+[deploy]
+startCommand = "python scripts/anti_dory_heartbeat_cron.py"
+cronSchedule = "*/15 * * * *"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
