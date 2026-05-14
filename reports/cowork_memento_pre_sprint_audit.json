@@ -1,0 +1,101 @@
+{
+  "sprint_id": "COWORK-MEMENTO-001",
+  "fecha_audit": "2026-05-14",
+  "ejecutor": "Manus Hilo Ejecutor (manus_hilo_b)",
+  "audit_under": "T1 Alfredo firmó kickoff + spec",
+  "spec_commit": "78d1fb00",
+  "spec_path": "bridge/sprints_propuestos/sprint_COWORK_MEMENTO_001.md",
+  "main_head": "d95a725",
+  "main_head_subject": "feat(anti-dory): Sprint MANUS-ANTI-DORY-002 v1 FASE C wire opt-in (#126)",
+  "binary_checks": {
+    "migrations_sorted_tail_3": [
+      "0030_thread_snapshots.sql",
+      "0031_project_runtime_heads.sql",
+      "0032_anti_dory_rpcs.sql"
+    ],
+    "next_free_migration_number": "0033",
+    "expected_per_spec": "0028 (pre-Anti-Dory)",
+    "discrepancy_resolution": "Spec asume 0028 pero kickoff T1 explicita ajuste binario a 0033 si confirmado libre. Confirmado: 0033 libre. Procedemos con 0033 documentando divergencia verbatim en migration comment (cláusula §3.1 spec + DSC-S-012)."
+  },
+  "kernel_cowork_runtime_actual": {
+    "files_present": [
+      "__init__.py",
+      "alfredo_veto_channel.py",
+      "antipatterns.py",
+      "companion_agent.py",
+      "drift_detector.py",
+      "f21_patterns.py",
+      "pre_response_hook.py",
+      "rule_reinjection.py",
+      "session_memory.py"
+    ],
+    "f21_patterns_count": 10,
+    "f21_patterns_expected": 10,
+    "f21_patterns_match": true,
+    "all_antipattern_ids_count": 27,
+    "all_antipattern_ids_expected": 27,
+    "all_antipattern_ids_match": true,
+    "pre_response_hook_loc": 356,
+    "pre_response_hook_existing_markers": "ninguno AUTO_DISCIPLINE/F21_DETECTOR/VERBATIM_CITATION detectado — hook NO modificado por PR #118 con markers; spec original asumió markers PRE-existentes."
+  },
+  "kernel_anti_dory_no_cruce": {
+    "files_present": [
+      "__init__.py",
+      "context_broker.py",
+      "guardian.py",
+      "recovery.py",
+      "writers.py"
+    ],
+    "no_cruce_respected": true,
+    "comment": "FASE B+C ya mergeada commit d95a725. Manus NO toca kernel/anti_dory/ en este sprint."
+  },
+  "tools_existentes": {
+    "cowork_calibration_report_py_exists": false,
+    "decision": "CREATE — siguiendo §4 T4 spec"
+  },
+  "tests_existentes_relevantes": {
+    "test_cowork_auto_discipline_integration_collected_count": 50,
+    "test_cowork_claim_calibration_exists": false,
+    "decision": "CREATE — siguiendo §4 T5 spec, ~150 LOC, 16 tests"
+  },
+  "discrepancies": [
+    {
+      "id": "D1",
+      "kind": "migration_number",
+      "spec_asume": "0028",
+      "realidad": "0033 (post Anti-Dory FASE B+C mergeada)",
+      "resolucion": "Procedemos con 0033 — anticipado por spec §3.1 cláusula fallback + kickoff T1 ajuste binario explícito",
+      "viola_DSC_S_012": false,
+      "anti_F24_respected": true
+    },
+    {
+      "id": "D2",
+      "kind": "hook_markers_existentes",
+      "spec_asume": "markers AUTO_DISCIPLINE/F21_DETECTOR ya en pre_response_hook.py (igual patrón AUTO-DISCIPLINE markers)",
+      "realidad": "no se detectaron markers BEGIN/END existentes con esos nombres en pre_response_hook.py (HEAD main d95a725)",
+      "resolucion": "Procedemos a insertar markers CLAIM_CALIBRATION_BEGIN/END en pre_response_hook.py para wiring, manteniendo backward compat 100% (test_cowork_auto_discipline_integration debe seguir 50/50 PASS). Sin colisión con patrón pre-existente porque no hay markers pre-existentes con esos nombres.",
+      "viola_DSC_S_012": false,
+      "anti_F24_respected": true
+    }
+  ],
+  "no_cruce_verifications": {
+    "kernel_anti_dory_will_NOT_be_modified": true,
+    "kernel_cowork_runtime_only_pre_response_hook_modified": true,
+    "session_memory_NOT_modified": true,
+    "f21_patterns_NOT_modified": true,
+    "antipatterns_NOT_modified": true,
+    "rule_reinjection_NOT_modified": true,
+    "companion_agent_NOT_modified": true,
+    "drift_detector_NOT_modified": true,
+    "alfredo_veto_channel_NOT_modified": true
+  },
+  "go_no_go": "GO",
+  "estimated_loc": {
+    "migration_0033": 95,
+    "claim_calibration_py": 200,
+    "pre_response_hook_delta": 30,
+    "cowork_calibration_report_py": 150,
+    "test_cowork_claim_calibration_py": 150,
+    "total_new_or_modified_loc_estimate": 625
+  }
+}
