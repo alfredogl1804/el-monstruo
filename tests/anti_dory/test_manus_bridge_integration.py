@@ -243,3 +243,35 @@ def test_default_front_id_helper():
     assert bridge_mod._default_front_id("el-monstruo") == "el-monstruo"
     assert bridge_mod._default_front_id(None) == "unknown-project"
     assert bridge_mod._default_front_id("") == "unknown-project"
+
+
+
+# =============================================================================
+# F-pattern #11 mitigation tests (Sprint MANUS-ANTI-DORY-002 v1 FASE D5-FIX-PROJECT-ID)
+# =============================================================================
+# Verifica que tools.manus_bridge.create_task distingue correctamente entre:
+# - Real Manus UUID (22-char alphanumeric) → forwarded to payload
+# - Anti-Dory logical label (e.g. "el_monstruo") → broker-only, NOT in payload
+
+def test_project_id_uuid_manus_passed_to_payload(_mock_manus_http):
+    """UUID Manus real (22 chars alphanumeric) DEBE pasarse al payload."""
+    result = create_task(
+        "prompt-x",
+        account="google",
+        project_id="NXPZPniFoQMdfQ8SYEfhem",  # real Manus UUID format
+    )
+    assert _mock_manus_http["json_payload"]["project_id"] == "NXPZPniFoQMdfQ8SYEfhem"
+    assert _mock_manus_http["json_payload"]["message"]["content"] == "prompt-x"
+    assert result["task_id"] == "mock-task-id"
+
+
+def test_project_id_logical_label_omitted_from_payload(_mock_manus_http):
+    """Etiqueta lógica broker (no UUID) NO debe pasarse al payload Manus (F #11)."""
+    result = create_task(
+        "prompt-x",
+        account="google",
+        project_id="el_monstruo",  # Anti-Dory logical label
+    )
+    assert "project_id" not in _mock_manus_http["json_payload"]
+    assert _mock_manus_http["json_payload"]["message"]["content"] == "prompt-x"
+    assert result["task_id"] == "mock-task-id"
