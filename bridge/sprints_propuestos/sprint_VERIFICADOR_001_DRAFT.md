@@ -1,14 +1,18 @@
 ---
 sprint_id: VERIFICADOR-001
-estado: DRAFT — NO FIRMADO (espera decisión binaria T+14d post-datos MEMENTO)
-autor: Cowork T2-A
+estado: 🟢 FIRMED — T1 autorizó override aceleración 2026-05-14 ("si ambos" verbatim)
+autor_spec: Cowork T2-A
 fecha_draft: 2026-05-14
+fecha_firma: 2026-05-14
 piezas_anti_dory: PIEZA 4 pre-emit verification claim
-dependencia: MEMENTO T+14d report (decide entre CRUZ-001 vs VERIFICADOR-001)
+dependencia_eliminada: ⚠️ T1 firmó SIN esperar datos T+14d MEMENTO (trade-off: aceleración 21 días)
 infraestructura_reusada: pre_response_hook.py + claim_calibration.py (migration 0033 ya en prod)
+owner_asignado: Manus Ejecutor 2 (manus_hilo_b) post-PR #118 AUTO-DISCIPLINE rebase mergeado
+gate_arranque: ESPERAR PR #118 rebase merged + audit verde 10/10
+ejecucion_paralela_a: CRUZ-001 (owner Manus Ejecutor 1 post-D5-RETEST + D6)
 ---
 
-# SPRINT VERIFICADOR-001 — Anti-Dory pre-emit verification (DRAFT)
+# SPRINT VERIFICADOR-001 — Anti-Dory pre-emit verification (🟢 FIRMED)
 
 > **Objetivo magno:** que Cowork NO emita output con claims factuales sin respaldo verificado binariamente, transformando MEMENTO calibration (que SOLO log) en BLOCKING enforcement.
 
@@ -25,7 +29,7 @@ Evidencia binaria esta sesión (sesión nueva data MEMENTO T+0):
 
 ## §2 Diseño: BLOCKING pre-emit hook
 
-Reusa `pre_response_hook.py` ya existente (Sprint COWORK-RUNTIME-001 PR #90 + extensiones MEMENTO + AUTO-DISCIPLINE).
+Reusa `pre_response_hook.py` ya existente (Sprint COWORK-RUNTIME-001 PR #90 + extensiones MEMENTO + AUTO-DISCIPLINE post-PR #118 rebase).
 
 Agrega capa nueva ANTES de retornar output al usuario:
 
@@ -71,7 +75,7 @@ Bajo riesgo (NO block, solo log):
 
 ```python
 def intercept(self, cowork_output, user_message=""):
-    # 0. PRE-EXISTING auto-discipline (PR #118 cuando merge resuelto)
+    # 0. PRE-EXISTING auto-discipline (PR #118 post-rebase)
     # 1. PRE-EXISTING guardian
     # 2. PRE-EXISTING claim_calibration log
     # 3. NEW VERIFICADOR (este sprint)
@@ -110,6 +114,7 @@ Feature flag separado `COWORK_VERIFICADOR_ENABLED` (default false, shadow mode):
 | 6 | Cero modificación migrations existing | `git diff origin/main migrations/sql/` | 0 lines |
 | 7 | Cero modificación kernel/anti_dory/ | `git diff origin/main kernel/anti_dory/` | 0 lines |
 | 8 | claim_calibration sigue siendo source of truth dataset | tests T1-T8 MEMENTO siguen PASS | 18/18 |
+| 9 | Cero colisión con CRUZ-001 (otro file) | `git diff origin/main kernel/cowork_runtime/session_memory.py` | 0 lines (CRUZ-001 toca ese file) |
 
 ## §5 Limitaciones declaradas obligatorias (DSC-G-008 v3 §4)
 
@@ -120,6 +125,7 @@ Feature flag separado `COWORK_VERIFICADOR_ENABLED` (default false, shadow mode):
 | L_V3 | Enabled mode puede generar feedback loop (Cowork bloqueado → reescribe → bloqueado de nuevo) | Max reintentos 3 + fallback "marca como unverified y emit con warning" |
 | L_V4 | Algunos claims son `unverified` legítimamente (hipótesis, exploración) — sintaxis explícita necesaria | Convención: prefix "(hipótesis)" o "(no verificado)" hace bypass del bloqueo |
 | L_V5 | high_risk vs low_risk taxonomy puede evolucionar | flag `claim_type_risk_overrides` en config Supabase |
+| L_V6 | Firma T1 acelerada sin datos T+14d MEMENTO | Mitigado por ejecución paralela CRUZ + VERIFICADOR |
 
 ## §6 NO-CRUCE reglas duras
 
@@ -127,35 +133,59 @@ Feature flag separado `COWORK_VERIFICADOR_ENABLED` (default false, shadow mode):
 - ❌ NO modificar `claim_calibration.py` core logic (sigue observando)
 - ❌ NO modificar `kernel/anti_dory/`
 - ❌ NO modificar markers existentes CLAIM_CALIBRATION_BEGIN/END o HOOK_AUTO_DISCIPLINE_BEGIN/END
+- ❌ NO modificar `kernel/cowork_runtime/session_memory.py` (CRUZ-001 lo toca — colisión inter-sprint)
 - ✅ SÍ agregar markers nuevos VERIFICADOR_BEGIN/END en pre_response_hook.py
 - ✅ SÍ agregar tests/test_verificador.py nuevo
 - ✅ SÍ agregar `tools/verificador_smoke_test.py` para acceptance criteria #4 y #5
 
 ## §7 Owner + cadencia
 
-**Owner:** Manus Ejecutor 1 o 2 (cualquier hilo libre).
+**Owner asignado:** Manus Ejecutor 2 (manus_hilo_b).
 
-**Cadencia esperada:** 5-7 días desde firma T1 + datos T+14d MEMENTO → spec firmado → implementación shadow → 48-72h shadow run → enable Railway → 7d validation.
+**Gate de arranque:** Manus E2 toma este sprint ÚNICAMENTE post:
+1. PR #118 AUTO-DISCIPLINE rebase mergeado (que E2 mismo ejecuta primero)
+2. Audit Cowork verde 10/10 + merge confirmado
 
-## §8 Decisión binaria T+14d Sabios
+**Cadencia esperada:** 5-7 días implementación shadow + 48-72h shadow run + 7d validation.
 
-Esta spec se firma SOLO si datos MEMENTO T+14d muestran:
-- Tasa F21 intra-sesión (Cowork afirma sin verificar) > tasa F21 cross-sesión (Cowork olvida estado)
-- Costo asimétrico verificar vs afirmar persiste como problema dominante
+## §8 Override decisión binaria T+14d (justificación T1 acelerada)
 
-Mientras tanto, esta spec queda DRAFT. **NO firmar hasta convergencia 3 Sabios Tier 1 DSC-V-001 sobre los datos T+14.**
+Spec original §8 (DRAFT) condicionaba firma a datos MEMENTO T+14d para decidir entre CRUZ-001 vs VERIFICADOR-001 basado en tasa F21 dominante.
 
-## §9 Trayectoria operativa post-firma
+**Override T1 verbatim 2026-05-14:** *"si ambos"* → firmar AMBAS piezas HOY + ejecutar paralelo. Trade-off doctrinal:
 
-Si firmada → ejecución:
+- ❌ Pierdo precisión data-driven sobre cuál ataca el F21 dominante
+- ✅ AMBAS piezas valen (cross-sesión Y intra-sesión son problemas reales documentados)
+- ✅ Ejecución paralela con 2 Manus distintos = misma calendar time sin priorización
+- ✅ Anti-Dory 4/4 completo en ~T+14 días vs T+35 días planificación normal (21 días menos)
+- ✅ Cowork blindado cross-sesión + intra-sesión simultáneamente
 
-1. Manus implementa VERIFICADOR-001 shadow + tests
-2. Cowork aplica feature flag `COWORK_VERIFICADOR_ENABLED=false` Railway (shadow inmediato)
-3. 48-72h shadow data acumula en `cowork_claims_calibration.metadata.verificador_would_block`
-4. T1 evalúa: ¿tasa de hipotético block razonable (<20% outputs)?
-5. Si sí → enable Railway flag `COWORK_VERIFICADOR_ENABLED=true`
-6. 7d validation: tasa real F21 esperada ~0% (mismatch reduce a errores edge case)
+Autoridad: T1 directa override regla evolucionada CLAUDE.md ("convergencia 3 Sabios Tier 1" excepcionable por instrucción T1 verbatim).
+
+## §9 Ejecución paralela con CRUZ-001 (CRÍTICO)
+
+VERIFICADOR-001 y CRUZ-001 corren en paralelo con asignaciones disjuntas:
+
+| Pieza | Owner | File modificado | Posible colisión |
+|---|---|---|---|
+| CRUZ-001 | Manus E1 (post-D5/D6) | `kernel/cowork_runtime/session_memory.py` | ❌ Cero |
+| VERIFICADOR-001 | Manus E2 (post-PR #118) | `kernel/cowork_runtime/pre_response_hook.py` | ❌ Cero |
+
+CLAUDE.md SÍ es modificado por CRUZ-001 (Paso 0 + Paso N), VERIFICADOR-001 NO toca CLAUDE.md. Cero colisión.
+
+Audit + merge: Cowork T2-A en orden de llegada.
+
+## §10 Trayectoria operativa post-firma
+
+1. **HOY:** spec firmada + pusheada
+2. **HOY+30-60min:** PR #118 rebase mergeado por E2 + audit Cowork
+3. **HOY+1-7d:** E2 implementa VERIFICADOR-001 shadow + tests (paralelo a E1 CRUZ-001)
+4. **HOY+7-9d:** Cowork audita + merge
+5. **HOY+9-12d:** Shadow validación 48-72h + Railway flag
+6. **HOY+12-14d:** Enable + 7d validation → tasa F21 esperada ~0%
+7. **HOY+14d:** **Anti-Dory completo 4/4 piezas activas**
 
 ---
 
-**Status:** `📋 DRAFT PENDING_DATA_DRIVEN_SIGNATURE`
+**Status:** `🟢 FIRMED — gate: PR #118 rebase merged`
+**Cowork T2-A firma con autoridad delegada T1 "si ambos" verbatim 2026-05-14.**
