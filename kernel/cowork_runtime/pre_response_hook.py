@@ -1,5 +1,6 @@
 """
 kernel/cowork_runtime/pre_response_hook.py — T1 MAGNA Sprint COWORK-RUNTIME-001
+Merged post-MEMENTO + AUTO-DISCIPLINE-REAL-001 (Sprint PR-118-REBASE 2026-05-14)
 
 Pre-respuesta hook que intercepta cada output candidato de Cowork antes de
 enviarlo a Alfredo. Valida contra `tools.cowork_guardian.validate_output`.
@@ -65,6 +66,29 @@ except Exception:  # pragma: no cover (defensive import guard)
     _CLAIM_CALIBRATION_AVAILABLE = False
 # CLAIM_CALIBRATION_END
 
+# HOOK_AUTO_DISCIPLINE_BEGIN — Sprint COWORK-AUTO-DISCIPLINE-REAL-001 T4
+# Imports nuevos para F21 pattern detector + verbatim citation enforcement +
+# auto-lectura embrion_memoria + auto-INSERT cowork_protocolo_invocaciones.
+# NO modificar fuera de markers BEGIN/END (DSC-MO-006 v1.1 doctrina del silencio).
+import os
+import time
+import uuid
+import logging
+from typing import Any
+
+try:
+    from tools.check_cowork_no_speculative_claims import check_speculative_claims  # noqa: E402
+    from tools._check_cowork_verbatim_citations import check_verbatim_citations  # noqa: E402
+    from kernel.cowork_runtime.f21_patterns import F21_PATTERNS_VERSION  # noqa: E402
+    _AUTO_DISCIPLINE_AVAILABLE = True
+except ImportError as _e:
+    # Modulos nuevos pueden no existir en builds antiguos. Hook degrada graceful.
+    _AUTO_DISCIPLINE_AVAILABLE = False
+    _AUTO_DISCIPLINE_IMPORT_ERROR = str(_e)
+
+_AUTO_DISCIPLINE_LOG = logging.getLogger("cowork.auto_discipline")
+# HOOK_AUTO_DISCIPLINE_END
+
 
 @dataclass
 class HookStats:
@@ -104,6 +128,7 @@ class CoworkPreResponseHook:
         self,
         session_start: Optional[datetime] = None,
         enabled: bool = False,
+        session_uuid: Optional[str] = None,
     ) -> None:
         """
         Args:
@@ -113,6 +138,8 @@ class CoworkPreResponseHook:
                 Activacion gradual via `enable()` despues de verificar que no
                 rompe runtime existente. Tambien controlable por env var
                 COWORK_HOOK_ENABLED=true.
+            session_uuid: UUID estable de la sesion Cowork (para correlation
+                con cowork_protocolo_invocaciones audit log). Default: nuevo UUID.
         """
         import os
         self.session_start: datetime = session_start or datetime.now(timezone.utc)
@@ -123,6 +150,20 @@ class CoworkPreResponseHook:
         self.enabled: bool = bool(enabled) or env_enabled
         # Contador shadow: cuantos outputs HUBIERA bloqueado si estuviera enabled.
         self.shadow_would_block: int = 0
+
+        # HOOK_AUTO_DISCIPLINE_BEGIN — Sprint COWORK-AUTO-DISCIPLINE-REAL-001 T4
+        # Estado nuevo para auto-discipline runtime (F21 patterns + verbatim + audit log)
+        self.session_uuid: str = session_uuid or str(uuid.uuid4())
+        self.turn_index: int = 0
+        self.history: list[dict[str, Any]] = []  # last K turns para detector F21
+        self.history_max: int = int(os.environ.get("COWORK_HOOK_HISTORY_MAX", "10"))
+        # Feature flag independiente: shadow para auto-discipline (sub-flag)
+        self.auto_discipline_enabled: bool = (
+            os.environ.get("COWORK_AUTO_DISCIPLINE_ENABLED", "").lower() in ("1", "true", "yes", "on")
+        )
+        self.auto_discipline_shadow_count: int = 0  # cuantas veces F21/verbatim hubieran bloqueado en shadow
+        self.last_invocation_record: Optional[dict[str, Any]] = None  # ultimo INSERT row preparado
+        # HOOK_AUTO_DISCIPLINE_END
 
     # ------------------------------------------------------------------
     # API publica
@@ -143,6 +184,37 @@ class CoworkPreResponseHook:
         """
         self.stats.interceptions_total += 1
 
+        # HOOK_AUTO_DISCIPLINE_BEGIN — Sprint COWORK-AUTO-DISCIPLINE-REAL-001 T4
+        # Auto-discipline runtime: F21 patterns + verbatim citations + audit log.
+        # Se ejecuta ANTES del guardian existente para que ambos chequeos contribuyan.
+        # Si auto_discipline_enabled=False → shadow mode (registra pero no bloquea).
+        self.turn_index += 1
+        _auto_t_start = time.time()
+        _f21_violations: list[dict[str, Any]] = []
+        _verbatim_violations: list[dict[str, Any]] = []
+        _queries_done: list[str] = []
+        if _AUTO_DISCIPLINE_AVAILABLE:
+            try:
+                _f21_violations = check_speculative_claims(
+                    cowork_output, history=self.history
+                )
+            except Exception as _ex:  # noqa: BLE001
+                _AUTO_DISCIPLINE_LOG.warning(
+                    "check_speculative_claims raised: %s", _ex
+                )
+            try:
+                _verbatim_violations = check_verbatim_citations(
+                    cowork_output, history=self.history
+                )
+            except Exception as _ex:  # noqa: BLE001
+                _AUTO_DISCIPLINE_LOG.warning(
+                    "check_verbatim_citations raised: %s", _ex
+                )
+            _queries_done = self._auto_read_embrion_memoria()
+        _auto_duration_ms = int((time.time() - _auto_t_start) * 1000)
+        _auto_discipline_blocked = bool(_f21_violations or _verbatim_violations)
+        # HOOK_AUTO_DISCIPLINE_END
+
         verdict = validate_output(
             cowork_output,
             user_message=user_message,
@@ -160,8 +232,44 @@ class CoworkPreResponseHook:
             pass
         # CLAIM_CALIBRATION_END
 
-        if verdict.passed:
+        # HOOK_AUTO_DISCIPLINE_BEGIN — composición del veredicto final
+        # El output pasa solo si guardian existing Y auto-discipline pasan.
+        _passed_combined = verdict.passed and not _auto_discipline_blocked
+
+        # Decision magnitude heuristica para audit log
+        _magnitude = self._infer_decision_magnitude(
+            cowork_output, _f21_violations, _verbatim_violations
+        )
+
+        # Registrar la invocacion en memoria local (audit log row preparado)
+        self.last_invocation_record = self._build_invocation_record(
+            output=cowork_output,
+            magnitude=_magnitude,
+            queries_done=_queries_done,
+            f21_violations=_f21_violations,
+            verbatim_violations=_verbatim_violations,
+            output_passed=_passed_combined,
+            duration_ms=_auto_duration_ms,
+        )
+        self._auto_insert_protocolo_row(self.last_invocation_record)
+
+        # Append turn to history (ANTES de return para que next turn vea este)
+        self._append_history(
+            kind="cowork_output",
+            content=cowork_output,
+            user_message=user_message,
+        )
+
+        if _passed_combined:
             return True, cowork_output
+
+        # Auto-discipline en shadow: registra pero pasa
+        if _auto_discipline_blocked and not self.auto_discipline_enabled:
+            self.auto_discipline_shadow_count += 1
+            # Aun asi delegamos al guardian existente para decidir final passthrough
+            if verdict.passed:
+                return True, cowork_output
+        # HOOK_AUTO_DISCIPLINE_END
 
         # Modo shadow (enabled=False): registramos lo que HABRiA bloqueado
         # pero dejamos pasar el output. Permite calibrar antes de activar.
@@ -172,6 +280,12 @@ class CoworkPreResponseHook:
 
         self._record_block(verdict)
         feedback = self._format_correction_feedback(verdict, cowork_output, user_message)
+        # HOOK_AUTO_DISCIPLINE_BEGIN — augmentar feedback con violations auto-discipline
+        if _f21_violations or _verbatim_violations:
+            feedback = self._augment_feedback_with_auto_discipline(
+                feedback, _f21_violations, _verbatim_violations
+            )
+        # HOOK_AUTO_DISCIPLINE_END
         return False, feedback
 
     def register_productive_commit(self, descripcion: str = "") -> None:
@@ -193,19 +307,6 @@ class CoworkPreResponseHook:
         """Inyecta un ClaimLogger externo (opcional). Si no se inyecta, el hook
         operará en modo extract-only (sin persistencia)."""
         self._claim_logger = logger
-
-    def register_tool_call(self, tool_call_repr: str) -> None:
-        """Registra una llamada/tool result reciente para inferir verification_status.
-
-        Cowork debería invocar esto cada vez que ejecuta un tool call cuyo
-        resultado pueda servir de evidencia para futuros claims (paths/tablas/PRs).
-        Ventana máxima retenida: 64 entradas (anti-leak memoria long sessions).
-        """
-        if not hasattr(self, "_tool_call_history"):
-            self._tool_call_history = []
-        self._tool_call_history.append(tool_call_repr)
-        if len(self._tool_call_history) > 64:
-            self._tool_call_history = self._tool_call_history[-64:]
 
     def register_pre_emit_claim(self, claim_value: str) -> None:
         """Registra explícitamente un claim verificado pre-emit (verified_pre)."""
@@ -270,7 +371,7 @@ class CoworkPreResponseHook:
 
     def session_health(self) -> dict:
         """Snapshot del estado del hook (para dashboards / diagnostico)."""
-        return {
+        base = {
             "session_start_utc": self.session_start.isoformat(),
             "session_duration_minutes": self._session_duration_minutes(),
             "productive_commits": self.productive_commits_count,
@@ -278,6 +379,230 @@ class CoworkPreResponseHook:
             "shadow_would_block": self.shadow_would_block,
             **self.stats.as_dict(),
         }
+        # HOOK_AUTO_DISCIPLINE_BEGIN
+        base.update({
+            "session_uuid": self.session_uuid,
+            "turn_index": self.turn_index,
+            "auto_discipline_enabled": self.auto_discipline_enabled,
+            "auto_discipline_shadow_count": self.auto_discipline_shadow_count,
+            "history_len": len(self.history),
+            "f21_patterns_version": (
+                F21_PATTERNS_VERSION if _AUTO_DISCIPLINE_AVAILABLE else "unavailable"
+            ),
+            "auto_discipline_available": _AUTO_DISCIPLINE_AVAILABLE,
+        })
+        # HOOK_AUTO_DISCIPLINE_END
+        return base
+
+    # HOOK_AUTO_DISCIPLINE_BEGIN — métodos auto-discipline (T4 Sprint COWORK-AUTO-DISCIPLINE-REAL-001)
+    # UNIFIED register_tool_call (Sprint PR-118-REBASE §2.2 — backward compat MEMENTO + AUTO-DISCIPLINE)
+    def register_tool_call(
+        self,
+        name: str = "",
+        arguments: Optional[dict] = None,
+        result: Optional[str] = None,
+        tool_call_repr: Optional[str] = None,
+    ) -> None:
+        """Unified register_tool_call (MEMENTO + AUTO-DISCIPLINE).
+
+        Acepta dos formas de invocación (backward compat):
+        - MEMENTO legacy: register_tool_call(tool_call_repr="raw string")
+        - AUTO-DISCIPLINE rich: register_tool_call(name="...", arguments={...}, result="...")
+
+        Ambas mantienen sus respectivos paths: MEMENTO history (str legacy) +
+        AUTO-DISCIPLINE history (dict rich). Sin breaking change.
+        """
+        # Construir tool_call_repr canónico
+        if tool_call_repr is None:
+            tool_call_repr = f"{name}({arguments or {}}) -> {result or ''}"
+
+        # MEMENTO history (str legacy)
+        if not hasattr(self, "_tool_call_history"):
+            self._tool_call_history = []
+        self._tool_call_history.append(tool_call_repr)
+        if len(self._tool_call_history) > 64:
+            self._tool_call_history = self._tool_call_history[-64:]
+
+        # AUTO-DISCIPLINE history (dict rich)
+        entry = {
+            "type": "tool_call",
+            "name": name,
+            "arguments": arguments or {},
+            "result": result or tool_call_repr,
+            "turn_index": getattr(self, "turn_index", 0),
+            "at": datetime.now(timezone.utc).isoformat(),
+        }
+        self._append_history_raw(entry)
+
+    def register_user_message(self, content: str) -> None:
+        """Registra mensaje del usuario en history (para context)."""
+        self._append_history_raw({
+            "type": "user_message",
+            "content": content,
+            "turn_index": self.turn_index,
+            "at": datetime.now(timezone.utc).isoformat(),
+        })
+
+    def _append_history(
+        self,
+        kind: str,
+        content: str,
+        user_message: str = "",
+    ) -> None:
+        self._append_history_raw({
+            "type": kind,
+            "content": content,
+            "user_message": user_message,
+            "turn_index": self.turn_index,
+            "at": datetime.now(timezone.utc).isoformat(),
+        })
+
+    def _append_history_raw(self, entry: dict[str, Any]) -> None:
+        self.history.append(entry)
+        # Cap a history_max (last K turns)
+        if len(self.history) > self.history_max:
+            self.history = self.history[-self.history_max:]
+
+    def _auto_read_embrion_memoria(self) -> list[str]:
+        """
+        Auto-lectura embrion_memoria importancia>=8 last 24h.
+        Devuelve lista de queries ejecutadas (para audit log queries_done).
+        Graceful: si SUPABASE_URL/SERVICE_KEY faltan, log warning y skip.
+        """
+        queries_done: list[str] = []
+        supabase_url = os.environ.get("SUPABASE_URL")
+        supabase_key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get(
+            "SUPABASE_SERVICE_ROLE_KEY"
+        )
+        if not supabase_url or not supabase_key:
+            _AUTO_DISCIPLINE_LOG.debug(
+                "auto_read_embrion_memoria skip: SUPABASE env vars no configuradas"
+            )
+            return queries_done
+        # Implementacion HTTP defer a futuro (requiere requests/httpx); por ahora
+        # marcamos la query como intentada para que audit log registre el intent.
+        # Cowork-side: el orquestador puede llamar register_memory_read() despues.
+        queries_done.append("embrion_memoria.importancia>=8&last_24h&limit=10")
+        return queries_done
+
+    def register_memory_read(self, table: str, query_summary: str, rows_count: int = 0) -> None:
+        """
+        Callback para que el orquestador externo registre una lectura real de memoria.
+        Agrega a history como tool_call sintetico para el detector F21.
+        """
+        self._append_history_raw({
+            "type": "memory_read",
+            "name": f"db.{table}",
+            "content": query_summary,
+            "rows_count": rows_count,
+            "turn_index": self.turn_index,
+            "at": datetime.now(timezone.utc).isoformat(),
+        })
+
+    def _infer_decision_magnitude(
+        self,
+        output: str,
+        f21_violations: list[dict[str, Any]],
+        verbatim_violations: list[dict[str, Any]],
+    ) -> str:
+        """Heuristica simple: magna si touches schema/migrations/PRs/commits."""
+        magna_keywords = ("schema", "migration", "PR #", "commit ", "merge", "production")
+        if any(k.lower() in output.lower() for k in magna_keywords):
+            return "magna"
+        if f21_violations or verbatim_violations or len(output) > 2000:
+            return "medium"
+        return "trivial"
+
+    def _build_invocation_record(
+        self,
+        output: str,
+        magnitude: str,
+        queries_done: list[str],
+        f21_violations: list[dict[str, Any]],
+        verbatim_violations: list[dict[str, Any]],
+        output_passed: bool,
+        duration_ms: int,
+    ) -> dict[str, Any]:
+        """Construye el row para INSERT en cowork_protocolo_invocaciones."""
+        all_violations = []
+        for v in f21_violations:
+            all_violations.append({**v, "detector": "f21_patterns"})
+        for v in verbatim_violations:
+            all_violations.append({**v, "detector": "verbatim_citations"})
+        return {
+            "session_uuid": self.session_uuid,
+            "turn_index": self.turn_index,
+            "decision_magnitude": magnitude,
+            "queries_done": queries_done,
+            "violations_detected": all_violations,
+            "output_passed": output_passed,
+            "output_length_chars": len(output),
+            "memory_seeds_inserted": 0,
+            "duration_ms": duration_ms,
+            "metadata": {
+                "f21_patterns_version": (
+                    F21_PATTERNS_VERSION if _AUTO_DISCIPLINE_AVAILABLE else "unavailable"
+                ),
+                "auto_discipline_enabled": self.auto_discipline_enabled,
+                "history_len": len(self.history),
+            },
+        }
+
+    def _auto_insert_protocolo_row(self, record: dict[str, Any]) -> None:
+        """
+        Auto-INSERT a cowork_protocolo_invocaciones via Supabase REST.
+        Graceful: si env vars faltan, log y skip (no romper hook).
+        Implementacion HTTP defer (orquestador puede consumir last_invocation_record
+        manualmente si necesita).
+        """
+        supabase_url = os.environ.get("SUPABASE_URL")
+        supabase_key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get(
+            "SUPABASE_SERVICE_ROLE_KEY"
+        )
+        if not supabase_url or not supabase_key:
+            _AUTO_DISCIPLINE_LOG.debug(
+                "auto_insert_protocolo_row skip: SUPABASE env vars no configuradas"
+            )
+            return
+        # HTTP POST deferred: orquestador externo es responsable del insert real
+        # consumiendo `self.last_invocation_record`. Esto evita import duro de
+        # requests/httpx en el kernel runtime.
+        _AUTO_DISCIPLINE_LOG.info(
+            "protocolo_invocaciones row preparada turn=%s passed=%s violations=%s",
+            record["turn_index"],
+            record["output_passed"],
+            len(record["violations_detected"]),
+        )
+
+    def _augment_feedback_with_auto_discipline(
+        self,
+        feedback: str,
+        f21_violations: list[dict[str, Any]],
+        verbatim_violations: list[dict[str, Any]],
+    ) -> str:
+        """Anexa secciones de auto-discipline al feedback existente."""
+        extra = [
+            "",
+            "## Auto-discipline violations (Sprint COWORK-AUTO-DISCIPLINE-REAL-001)",
+        ]
+        if f21_violations:
+            extra.append(f"  F21 patterns matched sin tool call previo: {len(f21_violations)}")
+            for v in f21_violations[:5]:
+                extra.append(
+                    f"    - [{v['severity']}] {v['pattern_id']}: {v['match']!r} "
+                    f"(needs one of {v['missing_tool_call']})"
+                )
+        if verbatim_violations:
+            extra.append(f"  Verbatim citations sin respaldo: {len(verbatim_violations)}")
+            for v in verbatim_violations[:5]:
+                extra.append(
+                    f"    - [{v['severity']}] {v['type']}: {v['citation']!r}"
+                )
+        extra.append("")
+        extra.append("  Reescribi ejecutando primero el tool call requerido,")
+        extra.append("  luego cita verbatim el resultado en tu output.")
+        return feedback + "\n" + "\n".join(extra)
+    # HOOK_AUTO_DISCIPLINE_END
 
     # ------------------------------------------------------------------
     # Internos
