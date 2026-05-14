@@ -1,0 +1,88 @@
+{
+  "sprint": "MANUS-ANTI-DORY-002",
+  "version": "v1",
+  "phase": "C",
+  "task": "T0_pre_flight_audit",
+  "executed_at": "2026-05-14T11:00:00Z",
+  "executor": "Manus AI (Hilo Google)",
+  "checks": {
+    "1_sync_main": {
+      "status": "PASS",
+      "head_commit": "74f1bec4d319ad6851d6daca89830befcc34d017",
+      "pr_125_merge_commit": "74f1bec4d319ad6851d6daca89830befcc34d017",
+      "pr_125_state": "MERGED",
+      "merged_at": "2026-05-14T10:05:47Z"
+    },
+    "2_create_task_signature": {
+      "status": "VERIFIED",
+      "file": "tools/manus_bridge.py",
+      "line": 174,
+      "signature_verbatim": "def create_task(prompt: str, *, account: AccountType = \"google\", project_id: Optional[str] = None) -> dict[str, Any]",
+      "kwargs_only_after_star": true,
+      "deviation_from_kickoff": "Kickoff suggested 'account: str'; real type is 'AccountType = Literal[\"google\",\"apple\"]'. Decision: preserve AccountType (kickoff doc was illustrative)."
+    },
+    "3_broker_import_and_flag": {
+      "status": "PASS",
+      "command": "python3 -c \"from kernel.anti_dory.context_broker import ContextBroker; from kernel.anti_dory import ANTI_DORY_ENABLED; print(f'broker import OK, flag={ANTI_DORY_ENABLED}')\"",
+      "output_verbatim": "broker import OK, flag=False",
+      "anti_dory_enabled_default": false
+    },
+    "4_callsites_create_task": {
+      "status": "VERIFIED",
+      "real_invokers_count": 1,
+      "matches": [
+        {
+          "file": "kernel/external_agents.py",
+          "line": 335,
+          "context": "from tools.manus_bridge import create_task, wait_for_completion"
+        },
+        {
+          "file": "tools/manus_bridge.py",
+          "line": 11,
+          "context": "docstring usage example, NOT a real callsite"
+        },
+        {
+          "file": "kernel/anti_dory/context_broker.py",
+          "lines": [10, 16],
+          "context": "design reference: broker designed to be invoked BEFORE manus_bridge.create_task. No actual invocation yet."
+        }
+      ],
+      "implication": "Only kernel/external_agents.py:335 needs to consider passing attach_context=True if FASE D activates the flag. For FASE C: NO touch to external_agents.py (backward compat strict)."
+    },
+    "5_tests_baseline": {
+      "status": "PASS",
+      "command": "python3 -m pytest tests/anti_dory/test_rap_002_harness.py -v",
+      "result": "12 passed in 0.06s",
+      "passing_tests": [
+        "test_caso_a_happy_path",
+        "test_caso_b_crash_mid_session_heartbeat_recovers",
+        "test_caso_c_concurrency_cas_conflict",
+        "test_caso_d_stale_snapshot_blocks_attachment",
+        "test_caso_e_invalid_writer_mode_blocks",
+        "test_caso_f_do_not_touch_expuesto_y_visible",
+        "test_caso_g_no_events_hard_failure",
+        "test_feature_flag_off_devuelve_prompt_intacto",
+        "test_canonical_state_hash_is_deterministic",
+        "test_halt_exception_message_includes_violations",
+        "test_writer_on_start_writes_event_and_snapshot",
+        "test_heartbeat_writer_independent_of_agent"
+      ]
+    }
+  },
+  "decisions_made": [
+    {
+      "id": "FASE_C_D1",
+      "topic": "Preserve AccountType type",
+      "decision": "Use AccountType (Literal['google','apple']) instead of str as kickoff suggested",
+      "reason": "Real signature uses AccountType; preserving tipado prevents regression in callsites"
+    },
+    {
+      "id": "FASE_C_D2",
+      "topic": "external_agents.py callsite",
+      "decision": "NO modificar external_agents.py:335 en FASE C; backward compat estricto",
+      "reason": "Wire del broker es OPT-IN via attach_context=False default. external_agents.py sigue funcionando idéntico hoy. FASE D decide cuándo migrarlo."
+    }
+  ],
+  "next_step": "FASE C T1 — wire ContextBroker en create_task con markers ANTI_DORY_BEGIN/END",
+  "no_cruce_check": "TBD post T1"
+}

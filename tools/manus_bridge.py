@@ -171,11 +171,42 @@ def _request_with_retry(
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# Anti-Dory broker factory (Sprint MANUS-ANTI-DORY-002 v1 FASE C)
+# ---------------------------------------------------------------------------
+# Inyectable a través de set_anti_dory_broker_factory() para tests y para FASE D
+# (cuando un RPC client real se conecte a Supabase). Si la factory es None y el
+# usuario pide attach_context=True, se intenta construir un broker desde
+# kernel.anti_dory.context_broker; si falla, fail-open (prompt original).
+_anti_dory_broker_factory: Optional[Any] = None
+
+
+def set_anti_dory_broker_factory(factory: Optional[Any]) -> None:
+    """Override the Anti-Dory broker factory (for tests / FASE D wiring).
+
+    The factory is a zero-arg callable that returns an instance with a
+    ``hydrate_prompt(project_id, front_id, user_prompt)`` method. Passing
+    ``None`` resets to the default (lazy import path).
+    """
+    global _anti_dory_broker_factory
+    _anti_dory_broker_factory = factory
+
+
+def _default_front_id(project_id: Optional[str]) -> str:
+    """Heurística v1: si el callsite no pasa front_id, usa project_id como front_id.
+
+    Documentado como L1 en SPEC §A.13. FASE D introduce un mapping real.
+    """
+    return project_id or "unknown-project"
+
+
 def create_task(
     prompt: str,
     *,
     account: AccountType = "google",
     project_id: Optional[str] = None,
+    front_id: Optional[str] = None,
+    attach_context: bool = False,
 ) -> dict[str, Any]:
     """Create a new Manus task.
 
@@ -183,6 +214,13 @@ def create_task(
         prompt: The instruction/prompt for the Manus agent.
         account: Which Manus account to use ('google' or 'apple').
         project_id: Optional Manus project ID to associate the task with.
+        front_id: Optional Anti-Dory front identifier (sprint/work-front). If
+            ``None`` and ``attach_context`` is ``True``, falls back to
+            ``_default_front_id(project_id)``.
+        attach_context: Anti-Dory opt-in. If ``True`` and the global
+            ``ANTI_DORY_ENABLED`` flag is ``True``, the prompt is hydrated with
+            the latest context head BEFORE being sent to Manus. Default ``False``
+            preserves strict backward compatibility for every existing callsite.
 
     Returns:
         dict with at least: {"task_id": str, "status": str}
@@ -192,6 +230,46 @@ def create_task(
         ManusBridgeError: On API failure after retries.
     """
     _check_rate_limit()
+
+    # ANTI_DORY_BEGIN — Sprint MANUS-ANTI-DORY-002 v1 FASE C T1 wire opt-in
+    if attach_context:
+        try:
+            from kernel.anti_dory import ANTI_DORY_ENABLED as _flag
+        except Exception as _exc:  # noqa: BLE001 — fail-open if import broken
+            logger.warning("anti_dory flag import failed: %s", _exc)
+            _flag = False
+        if _flag:
+            try:
+                if _anti_dory_broker_factory is not None:
+                    _broker = _anti_dory_broker_factory()
+                else:
+                    # Lazy import to avoid circular dependency at module load.
+                    from kernel.anti_dory.context_broker import ContextBroker
+                    # Sin RPC client real disponible en FASE C: fail-open via excepción.
+                    raise RuntimeError(
+                        "anti_dory broker factory not configured; "
+                        "call tools.manus_bridge.set_anti_dory_broker_factory() first"
+                    )
+                _hydrated = _broker.hydrate_prompt(
+                    project_id=project_id or _default_front_id(project_id),
+                    front_id=front_id or _default_front_id(project_id),
+                    user_prompt=prompt,
+                )
+                if getattr(_hydrated.pack, "attachment_ok", False):
+                    logger.info(
+                        "anti_dory_attachment_ok: snapshot_id=%s confidence=%.2f",
+                        _hydrated.pack.snapshot_id,
+                        _hydrated.pack.confidence_score,
+                    )
+                    prompt = _hydrated.hydrated_prompt
+                else:
+                    logger.info(
+                        "anti_dory_attachment_skipped: reason=%s",
+                        getattr(_hydrated.pack, "fallback_reason", "unknown"),
+                    )
+            except Exception as _exc:  # noqa: BLE001 — fail-open
+                logger.warning("anti_dory_broker_fallback: %s", _exc)
+    # ANTI_DORY_END
 
     payload: dict[str, Any] = {"prompt": prompt}
     if project_id:
