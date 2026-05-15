@@ -1,47 +1,72 @@
 /**
  * La Forja — Environment validation (Zod-typed).
  *
- * Sprint LA-FORJA-001 v3.2 — D1 no-SQL.
+ * Sprint LA-FORJA-001 v3.2 — D2 strict.
  * Doctrina: Regla Dura #4 (secretos en env vars únicamente, jamás en código).
  *
- * Required secrets (Railway runtime injection):
- *   - MANUS_API_KEY_GOOGLE   Manus account = Google (este hilo)
- *   - MANUS_API_KEY_APPLE    Manus account = Apple (secundario)
- *   - ANTHROPIC_API_KEY      Claude Opus 4.7 (tutor adaptativo)
- *   - OPENAI_API_KEY         GPT-5.5 Pro (co-piloto de sprints)
- *   - GEMINI_API_KEY         Gemini 3.1 Pro (RAG) + 2.5 Flash (clasificador)
- *   - SONAR_API_KEY          Perplexity (validación tiempo real magna ÚNICAMENTE)
- *   - SUPABASE_URL           Supabase del Monstruo
+ * Required secrets (Railway runtime injection — verificados binariamente §8 SPEC):
+ *   - MANUS_API_KEY_GOOGLE   Manus account = Google
+ *   - MANUS_API_KEY_APPLE    Manus account = Apple
+ *   - ANTHROPIC_API_KEY      Claude Opus 4.7 (tutor adaptativo, modo Adaptive obligatorio)
+ *   - OPENAI_API_KEY         GPT-5.5 Pro (co-piloto sprints, /v1/responses)
+ *   - GEMINI_API_KEY         Gemini 3.1 Pro (RAG) + 2.5 Flash (clasificador AC12)
+ *   - SONAR_API_KEY          Perplexity Sonar Reasoning Pro (DSC-LF-004 única validación externa)
+ *   - SUPABASE_URL           Supabase del Monstruo (LF-1 soberanía)
  *   - SUPABASE_SERVICE_KEY   Service role para RLS bypass server-side
+ *   - LANGFUSE_PUBLIC_KEY    Trazas LLM con redactor PII (R10)
+ *   - LANGFUSE_SECRET_KEY    Trazas LLM con redactor PII (R10)
  *
- * Optional (observability + runtime):
- *   - LANGFUSE_PUBLIC_KEY    Trazas LLM (post-D2)
- *   - LANGFUSE_SECRET_KEY    Trazas LLM (post-D2)
- *   - PORT                   Railway-injected (default 8080)
- *   - MANUS_API_BASE_URL     Override (default https://api.manus.ai)
+ * Required infra URLs (con default conocido binariamente, override permitido):
+ *   - KERNEL_MONSTRUO_BASE_URL  default https://el-monstruo-kernel-production.up.railway.app
+ *   - SIMULADOR_BASE_URL        default https://simulador-api-production.up.railway.app
+ *   - MANUS_API_BASE_URL        default https://api.manus.ai
+ *   - LANGFUSE_HOST             default https://cloud.langfuse.com
+ *
+ * D4 nuevos (no requeridos en D2):
+ *   - GOOGLE_OAUTH_CLIENT_ID
+ *   - GOOGLE_OAUTH_CLIENT_SECRET
+ *
+ * D2 stub auth:
+ *   - DEV_USER_ROLE             default "t1_alfredo" (auth real es D4)
  */
 
 import { z } from "zod";
 
 const EnvSchema = z.object({
-  // Manus M2M Bridge (multi-cuenta)
+  // Manus M2M Bridge (multi-cuenta) — verificados binariamente
   MANUS_API_KEY_GOOGLE: z.string().min(1, "MANUS_API_KEY_GOOGLE is required"),
   MANUS_API_KEY_APPLE: z.string().min(1, "MANUS_API_KEY_APPLE is required"),
   MANUS_API_BASE_URL: z.string().url().default("https://api.manus.ai"),
 
-  // Modelos IA (Opción B confirmada — multi-modelo)
+  // Modelos IA — pricing magna 15 mayo 2026
   ANTHROPIC_API_KEY: z.string().min(1, "ANTHROPIC_API_KEY is required"),
   OPENAI_API_KEY: z.string().min(1, "OPENAI_API_KEY is required"),
   GEMINI_API_KEY: z.string().min(1, "GEMINI_API_KEY is required"),
   SONAR_API_KEY: z.string().min(1, "SONAR_API_KEY is required"),
 
-  // Datos
+  // Datos — Supabase del Monstruo (LF-1)
   SUPABASE_URL: z.string().url("SUPABASE_URL must be a valid URL"),
   SUPABASE_SERVICE_KEY: z.string().min(1, "SUPABASE_SERVICE_KEY is required"),
 
-  // Observabilidad (opcional en D1, obligatorio post-D2)
-  LANGFUSE_PUBLIC_KEY: z.string().optional(),
-  LANGFUSE_SECRET_KEY: z.string().optional(),
+  // Observabilidad — obligatorio D2+ con redactor PII (R10)
+  LANGFUSE_PUBLIC_KEY: z.string().min(1, "LANGFUSE_PUBLIC_KEY is required"),
+  LANGFUSE_SECRET_KEY: z.string().min(1, "LANGFUSE_SECRET_KEY is required"),
+  LANGFUSE_HOST: z.string().url().default("https://cloud.langfuse.com"),
+
+  // Infra del Monstruo — URLs con default conocidos binariamente
+  KERNEL_MONSTRUO_BASE_URL: z
+    .string()
+    .url()
+    .default("https://el-monstruo-kernel-production.up.railway.app"),
+  SIMULADOR_BASE_URL: z
+    .string()
+    .url()
+    .default("https://simulador-api-production.up.railway.app"),
+
+  // D2 stub auth — auth real es D4 (Google OAuth + Supabase Auth)
+  DEV_USER_ROLE: z
+    .enum(["t1_alfredo", "t1_padre", "user"])
+    .default("t1_alfredo"),
 
   // Runtime
   PORT: z
@@ -49,19 +74,37 @@ const EnvSchema = z.object({
     .optional()
     .transform((v) => (v ? Number.parseInt(v, 10) : 8080))
     .pipe(z.number().int().positive().lt(65536)),
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("production"),
+  NODE_ENV: z.enum(["development", "production", "test"]).default("production"),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
+
+/**
+ * Interface User canónica (estable cross D2-D4-D5+).
+ *
+ * En D2: stub middleware lee header `x-user-id` y resuelve role desde `DEV_USER_ROLE`.
+ * En D4: middleware se reemplaza por validación JWT Supabase Auth + Google OAuth.
+ * El interface NO cambia; las rutas que usan `c.get('user')` no se tocan.
+ *
+ * Roles canónicos (LF-9 modelo de contribución):
+ *   - t1_alfredo: dueño del Monstruo, acceso total
+ *   - t1_padre:   Cliente Cero, sin acceso a puerta cowork_local (R5)
+ *   - user:       futuros usuarios, scope reducido
+ */
+export type UserRole = "t1_alfredo" | "t1_padre" | "user";
+
+export interface User {
+  id: string;
+  email: string;
+  role: UserRole;
+}
 
 let _cached: Env | null = null;
 
 /**
  * Lazy validation — only fails at first access.
- * D1 no-SQL: en startup llamamos `loadEnv({ strict: false })` para permitir
- * /health sin todas las llaves; a partir de D2 usaremos `loadEnv({ strict: true })`.
+ * D2: por default strict=true. Modo permisivo solo para `/health` boot-time check
+ * y para tests aislados que mockean process.env.
  */
 export function loadEnv(opts: { strict?: boolean } = {}): Env {
   if (_cached) {
@@ -70,7 +113,7 @@ export function loadEnv(opts: { strict?: boolean } = {}): Env {
   const { strict = true } = opts;
 
   if (!strict) {
-    // Modo permisivo D1: solo PORT y NODE_ENV deben existir.
+    // Modo permisivo: solo PORT y NODE_ENV deben existir. Usado en /health boot.
     const partial = z.object({
       PORT: EnvSchema.shape.PORT,
       NODE_ENV: EnvSchema.shape.NODE_ENV,
@@ -88,10 +131,20 @@ export function loadEnv(opts: { strict?: boolean } = {}): Env {
       OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "",
       GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? "",
       SONAR_API_KEY: process.env.SONAR_API_KEY ?? "",
-      SUPABASE_URL: process.env.SUPABASE_URL ?? "https://placeholder.supabase.co",
+      SUPABASE_URL:
+        process.env.SUPABASE_URL ?? "https://placeholder.supabase.co",
       SUPABASE_SERVICE_KEY: process.env.SUPABASE_SERVICE_KEY ?? "",
-      LANGFUSE_PUBLIC_KEY: process.env.LANGFUSE_PUBLIC_KEY,
-      LANGFUSE_SECRET_KEY: process.env.LANGFUSE_SECRET_KEY,
+      LANGFUSE_PUBLIC_KEY: process.env.LANGFUSE_PUBLIC_KEY ?? "",
+      LANGFUSE_SECRET_KEY: process.env.LANGFUSE_SECRET_KEY ?? "",
+      LANGFUSE_HOST: process.env.LANGFUSE_HOST ?? "https://cloud.langfuse.com",
+      KERNEL_MONSTRUO_BASE_URL:
+        process.env.KERNEL_MONSTRUO_BASE_URL ??
+        "https://el-monstruo-kernel-production.up.railway.app",
+      SIMULADOR_BASE_URL:
+        process.env.SIMULADOR_BASE_URL ??
+        "https://simulador-api-production.up.railway.app",
+      DEV_USER_ROLE:
+        (process.env.DEV_USER_ROLE as UserRole | undefined) ?? "t1_alfredo",
       PORT: parsed.PORT,
       NODE_ENV: parsed.NODE_ENV,
     };
@@ -104,7 +157,7 @@ export function loadEnv(opts: { strict?: boolean } = {}): Env {
       .map((i) => `  - ${i.path.join(".")}: ${i.message}`)
       .join("\n");
     throw new Error(
-      `[la-forja:env] Environment validation failed:\n${issues}\n\n` +
+      `[la-forja:env_load_strict_failed] Environment validation failed:\n${issues}\n\n` +
         `Configure these secrets in Railway before starting the API.`,
     );
   }
