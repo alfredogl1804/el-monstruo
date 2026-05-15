@@ -3,18 +3,35 @@
 
 **Fecha:** 15 mayo 2026
 **Autor:** Manus E1 (Hilo Ejecutor)
-**Estado:** `📋 SPEC V3.1 — AUDIT_PENDIENTE` (firma T1-Alfredo binaria recibida; pendiente audit Cowork DSC-G-008 v3)
-**Versión:** 3.1 (post-eliminación Consejo Sabios + 4 cierres pre-scaffolding)
+**Estado:** `📋 SPEC V3.2 — AUDIT_AMARILLO_RECONCILIADO` (firma T1-Alfredo binaria + audit Cowork DSC-G-008 v3 AMARILLO_CON_OBSERVACIONES; drift §0/§3 reconciliado en v3.2)
+**Versión:** 3.2 (post-audit Cowork: drift naming reconciliado §0/§3, R9+R10 agregados, costos unificados)
 **Sprint ID propuesto:** `LA-FORJA-001`
 **Repo:** `apps/la-forja/` dentro de `el-monstruo` (monorepo)
 **Owner:** Manus E1
 **Audit:** Cowork T2-A (DSC-G-008 v3)
 **Autoridad T1:** Alfredo Góngora (firmó "Adelante" el 15 mayo 2026 para B híbrida)
-**Migrations Asignadas:** `0036_forja_users.sql`, `0037_forja_threads.sql`, `0038_forja_messages.sql`, `0039_forja_sprints.sql`, `0040_forja_telemetry.sql`, `0041_forja_validations.sql`, `0042_forja_simulations.sql`, `0043_forja_budget.sql`, `0044_forja_audit_log.sql` (todas con RLS desde nacimiento)
+**Migrations Asignadas:** `0036_la_forja_profiles.sql`, `0037_la_forja_threads.sql`, `0038_la_forja_messages.sql`, `0039_la_forja_sprints.sql`, `0040_la_forja_actions.sql`, `0041_la_forja_telemetry.sql`, `0042_la_forja_simulations.sql`, `0043_la_forja_validations.sql`, `0044_la_forja_budget.sql` (todas con RLS desde nacimiento, naming canónico §3)
 
 **Objetivo Maestro:** Construir La Forja, app web tutor IA adaptativo + co-piloto de sprints + test bench del Monstruo, sobre la infraestructura soberana del Monstruo (Supabase + Railway + Vercel), con T1-Padre como Cliente Cero validando facilidad de uso del Monstruo construyendo proyectos reales. Cumple Misiones A (Tutor), B (Co-piloto) y C (Cliente Cero/Test Bench) declaradas binariamente por T1-Alfredo el 15 mayo 2026.
 
 **Objetivo:** Entregar MVP funcional D6 con 13 ACs binarios verificables, 5 puertas operativas, costo proyectado $32.65/mes/usuario uso normal y cap $50/mes/usuario, telemetría Test Bench obligatoria, RLS desde nacimiento, sin self-merge, con audit Cowork DSC-G-008 v3 firmado en bridge file.
+
+---
+
+## 0.1 Cambios v3.1 → v3.2 (post-audit Cowork DSC-G-008 v3 AMARILLO)
+
+Tras audit Cowork del 15 mayo 2026 (commit `1bff43d`, archivo `bridge/cowork_to_manus_LA_FORJA_001_AUDIT_RESULT.md`), este SPEC se reconcilia binariamente:
+
+| Cambio v3.1 → v3.2 | Justificación |
+|---|---|
+| **Drift bloqueante §0/§3 reconciliado** | Header §0 ahora coincide con §3 modelo de datos: 9 archivos `0036_la_forja_*.sql` ... `0044_la_forja_*.sql` mapeando a tablas `forja_profiles`, `forja_threads`, `forja_messages`, `forja_sprints`, `forja_actions`, `forja_telemetry`, `forja_simulations`, `forja_validations`, `forja_budget`. Tabla `forja_audit_log` eliminada (no estaba descrita en §3; auditoría cubierta vía Langfuse spans + telemetry trigger) |
+| **AC12 robustecido** | String match `"no entiendo"` reemplazado por clasificador semántico Gemini Flash con threshold 0.7. Detecta 10 frases sinónimas |
+| **Costos Heavy unificados** | Heavy = $65.30/mes (antes $55.30 §11, $60.30 README, $65.30 Anexo C). Fórmula canónica: Light = Normal/2, Heavy = Normal×2, Power = Normal×3. README + Anexo C deben adoptar este valor en próximo commit |
+| **R9 + R10 agregados** | R9 vínculo familiar T1-Padre con escalation automático al 3er turno confuso. R10 PII en Langfuse con redactor + toggle UI + retention 30d |
+| **LF-RATE-LIMIT-001 mecanismo canónico** | Estrategia (a) pre-call estimación + post-call ajuste atómico. Sin race conditions. Sin overshoot |
+| **ETA realista declarada** | Plan oficial D1-D6 mantiene 3 días como ambición. ETA interna realista: 5-7 días calendario. Sin modificar contrato del SPEC |
+
+Los 4 anclajes verdes del audit Cowork (linter, contratos 8/8, DSCs 4/4, ACs 13/13, puertas 5/5, cero colisión, Reglas Duras #1/#7/#8 cumplidas) se mantienen válidos sobre v3.2.
 
 ---
 
@@ -153,7 +170,7 @@ Cuatro páginas iniciales D3:
 
 ---
 
-## 6. Tareas (Plan de ejecución D1-D6, 3 días reales)
+## 6. Tareas (Plan de ejecución D1-D6, 3 días oficiales / 5-7 días ETA realista interna v3.2)
 
 Esta sección cumple `structure.tareas_section` del linter `tools/spec_lint.py`. Cada tarea declara `perfil_riesgo` canónico (DSC-G-012) en uno de cuatro valores: `read-only`, `write-safe`, `write-risky`, `requiere-coordinacion-humana`.
 
@@ -203,7 +220,7 @@ Cada AC tiene comando reproducible + resultado esperado. Audit Cowork verifica c
 | AC9 | Validación tiempo real Perplexity inserta citations | Pregunta sobre versión actual de Next.js → respuesta con `[1][2]` y URLs |
 | AC10 | Máquina de estados rechaza transiciones inválidas | `proposed → executing` → HTTP 400 + log en `forja_telemetry` |
 | AC11 | Rate limit $50/mes/usuario funciona | Mock 1000 calls Opus 4.7 → bloquea al $50, notifica UI |
-| AC12 | Telemetría Test Bench captura confusión | Mensaje "no entiendo" detectado → row en `forja_telemetry` |
+| AC12 | Telemetría Test Bench captura confusión | Clasificador semántico Gemini Flash sobre cada mensaje del usuario; si `intent=="confusion"` con `confidence>=0.7` → row en `forja_telemetry` con `event="confusion_detected"`, `evidence=raw_message`, `classifier_score`. Test: 10 frases sinónimas («no entiendo», «no me queda claro», «explícame de nuevo», «muy abstracto», «wat», «¿podrías simplificar?», «me pierdo», «qué quiere decir eso», «muy técnico», «otísimo») → las 10 generan row |
 | AC13 | Anti-Dory embebido en La Forja | Sesión >5h con resumen automático cada 1h en `forja_threads.canonical_summary` |
 
 ---
@@ -221,7 +238,7 @@ Nuevos a configurar vía `webdev_request_secrets` en D4:
 
 ---
 
-## 9. Riesgos y mitigaciones (8 riesgos, 1 menos que v3)
+## 9. Riesgos y mitigaciones (10 riesgos: 8 originales + R9 + R10 agregados post-audit Cowork v3.2)
 
 | ID | Riesgo | Probabilidad | Mitigación |
 |---|---|---|---|
@@ -233,6 +250,8 @@ Nuevos a configurar vía `webdev_request_secrets` en D4:
 | R6 | Motor Simulador Railway dormido por inactividad | Baja | Healthcheck cada 5 min via Railway cron + warm-up automático |
 | R7 | Costo mensual sube por uso heavy del papá | Baja | Cap $50/mes/usuario + alerta UI a 80% |
 | R8 | PR colisión con sprint MOBILE-1B u otro sprint que toque `apps/` | Baja | Auditoría hecha hoy: 25 sprints abiertos, ninguno toca `apps/la-forja/` |
+| R9 | Cliente Cero humano (T1-Padre) frustrado afecta vínculo familiar | Media-alta | UX explícitamente humilde con copy "Si algo no funciona, no es tu culpa". Botón «Pausar sin culpa» visible. Escalation automático a Alfredo (notificación binaria) cuando `confusion_detected >= 3` turnos consecutivos en mismo hilo. Telemetría dedicada `forja_telemetry.subject="family_relation_risk"` revisada semanalmente por T1-Alfredo |
+| R10 | PII en Langfuse spans (papá comparte info personal de proyectos, contactos, finanzas) | Media | Redactor PII en `manus_bridge.ts.preLog()`: regex emails, teléfonos MX, RFCs, números de cuenta → reemplazo `[REDACTED]`. Toggle UI «No enviar este turn a observabilidad» (default visible). Retention policy Langfuse 30 días. PR de redactor con tests unitarios antes de habilitar Langfuse en producción |
 
 ---
 
@@ -250,10 +269,12 @@ Nuevos a configurar vía `webdev_request_secrets` en D4:
 |---|---|---|---|
 | Light (2 hrs/día) | $11.32 | $5.00 | **$16.32** |
 | Normal (4 hrs/día) | $27.65 | $5.00 | **$32.65** |
-| Heavy (8 hrs/día) | $55.30 | $5.00 | **$60.30** |
-| Power (12 hrs/día) | $82.95 | $5.00 | **$87.95** |
+| Heavy (8 hrs/día) | $60.30 | $5.00 | **$65.30** |
+| Power (12 hrs/día) | $92.95 | $5.00 | **$97.95** |
 
 **Cap recomendado**: $50/mes/usuario. Por encima requiere aprobación T1-Alfredo binaria.
+
+**Fórmula canónica unificada (post-audit Cowork v3.2)**: Light = Normal/2, Heavy = Normal×2, Power = Normal×3, calculados sobre `forja_budget.spent_usd_month` con tokens reales. Esta tabla es la fuente de verdad y reemplaza valores diferentes en otros archivos (`apps/la-forja/README.md`, `bridge/discovery_la_forja_001/cierres.md`).
 
 Cálculo basado en supuestos:
 
@@ -307,7 +328,7 @@ Esta sección cumple `dsc-g-017.contracts_section_missing` del linter. La Forja 
 | `LF-RLS-001` | linter | `python3 scripts/_check_rls_default.py apps/la-forja` | Toda tabla nueva nace con `ENABLE ROW LEVEL SECURITY` y al menos una policy en mismo PR (Regla Dura #7) |
 | `LF-NO-TOKENS-001` | hook + linter | `bash scripts/_check_no_tokens.sh` en pre-commit | Ningún secreto en plaintext en archivos de la-forja |
 | `LF-SPEC-LINT-001` | hook | `python3 tools/spec_lint.py` en pre-commit | Este SPEC y futuros pasan estructura canónica |
-| `LF-RATE-LIMIT-001` | runtime check | middleware Hono valida `forja_budget.spent_usd_month <= 50.0` antes de llamar LLM | Rate limit hard-cap $50/mes/usuario en backend |
+| `LF-RATE-LIMIT-001` | runtime check | middleware Hono valida `forja_budget.spent_usd_month <= 50.0` antes de llamar LLM. **Mecanismo de update canónico (v3.2)**: estrategia (a) pre-call estimación + post-call ajuste con tokens reales. Pre-call calcula `estimated_cost = max_input_tok×input_price + max_output_tok×output_price` y bloquea si `spent_usd_month + estimated_cost > 50`. Post-call calcula `real_cost = actual_input_tok×input_price + actual_output_tok×output_price` y `UPDATE forja_budget SET spent_usd_month = spent_usd_month - estimated_cost + real_cost WHERE user_id=$1` en transacción atómica. Esto evita race conditions y garantiza no overshoot | Rate limit hard-cap $50/mes/usuario en backend con mecanismo atómico |
 | `LF-PERPLEXITY-ONLY-001` | code policy | revisión Cowork DSC-G-008 v3 + grep en CI | NO importar SDK de Consejo Sabios; única capa validación externa = Sonar |
 | `LF-FIVE-DOORS-001` | code policy | revisión Cowork + test enumerator | Exactamente 5 puertas: `manus_apple`, `manus_google`, `cowork_local`, `kernel_monstruo`, `simulador`. Sexta puerta requiere SPEC nuevo |
 | `LF-TELEMETRY-MANDATORY-001` | runtime check | trigger DB en `forja_messages` que inserta en `forja_telemetry` | Sin telemetría, Misión C falla |
