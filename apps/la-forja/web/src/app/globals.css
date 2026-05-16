@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/* La Forja — Brand DNA tokens (Regla Dura #4 + AGENTS.md raíz)
+   Naranja forja + graphite + acero. Brutalismo industrial refinado. */
+@theme {
+  --color-forja-50: #fff7ed;
+  --color-forja-100: #ffedd5;
+  --color-forja-300: #fdba74;
+  --color-forja-500: #f97316;
+  --color-forja-600: #ea580c;
+  --color-forja-700: #c2410c;
+  --color-forja-900: #7c2d12;
+
+  --color-graphite-50: #fafaf9;
+  --color-graphite-100: #f5f5f4;
+  --color-graphite-300: #d6d3d1;
+  --color-graphite-500: #78716c;
+  --color-graphite-700: #44403c;
+  --color-graphite-900: #1c1917;
+
+  --color-acero-300: #d6d3d1;
+  --color-acero-500: #a8a29e;
+  --color-acero-700: #57534e;
+
+  --font-sans: "Inter", "Inter Variable", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+
+  --radius-forja: 2px; /* brutalismo: bordes casi rectos */
+}
+
+/* Default theme: dark forge (la fragua siempre está al rojo vivo) */
+:root {
+  color-scheme: dark;
+  background-color: var(--color-graphite-900);
+  color: var(--color-graphite-100);
+  font-family: var(--font-sans);
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+/* Selección con naranja forja */
+::selection {
+  background-color: var(--color-forja-500);
+  color: var(--color-graphite-900);
+}

@@ -297,16 +297,20 @@ Bridge: `bridge/cowork_to_manus_LA_FORJA_001_D2_AUDIT_RESULT.md`
 
 ## D3 — Frontend (Next.js 16.2.6 + Vercel AI SDK 6.0.183) — EN PROGRESO
 
-### D3.0 — Validación real-time + scaffold base
+### D3.0 — Validación real-time + scaffold base — ✅ COMPLETADO 16-may-2026
 
-- [ ] Validación real-time de versiones (Next.js 16.2.6, Vercel AI SDK 6.0.183, React 19) y compat con Hono backend (anti-autoboicot)
-- [ ] Decisión binaria sobre patrón Vercel AI SDK adapter Hono SSE (H-12 register-only) ANTES de implementar streaming
-- [ ] Scaffold `apps/la-forja/web/` con Next.js App Router + TypeScript strict + ESLint + Tailwind + Tailwind config alineado a Brand DNA (#F97316 forja, #1C1917 graphite, #A8A29E acero)
-- [ ] `package.json` con scripts `dev/build/typecheck/test` y peer-deps coherentes con monorepo
-- [ ] `.env.local.example` con variables `NEXT_PUBLIC_API_URL` y placeholders fail-loud
-- [ ] Cliente API tipado contra backend Hono (fetch wrapper + types compartidos en `packages/types-la-forja/` o re-export de `apps/la-forja/api`)
-- [ ] Página `/health` que pegue `GET /health` del backend y muestre status binario
-- [ ] `npm run typecheck` + `npm run build` verde antes de commit
+- [x] Validación real-time de versiones (Next.js 16.2.6, React 19.2.6, Vercel AI SDK 6.0.184, Tailwind 4.3.0, TypeScript 5.7.3) contra `npm view` registry — documentado en `apps/la-forja/web/_DOCTRINA_D3.md`
+- [x] H-12 RESUELTO sin adapter custom: AI SDK 6 expone `createUIMessageStream` + `createUIMessageStreamResponse` retornando `Response` web-standard — Hono lo soporta nativo. Verificado en runtime real (header `x-vercel-ai-ui-message-stream: v1`)
+- [x] Scaffold `apps/la-forja/web/` con Next.js App Router + TypeScript strict + ESLint flat config + Tailwind 4 + Brand DNA tokens (`forja-500: #F97316`, `graphite-900: #1C1917`, `acero-500: #A8A29E`)
+- [x] `package.json` con scripts `dev/build/typecheck/test` y versiones congeladas
+- [x] `.env.local.example` con `NEXT_PUBLIC_API_URL` documentado
+- [x] `src/lib/env.ts` con Zod fail-loud schema (paridad backend) + 5 tests passing
+- [x] `src/lib/api.ts` cliente API tipado contra backend Hono (`ForjaApiError` + `ForjaHealthResponse`) + 3 tests passing
+- [x] `src/app/page.tsx` landing minimalista con identidad Brand DNA
+- [x] `src/app/salud/page.tsx` Server Component que pega `GET /health` del backend Hono
+- [x] `npm run typecheck` verde
+- [x] `npx vitest run` — 8/8 passing
+- [x] `npx next build` verde — 4 rutas estáticas (`/`, `/_not-found`, `/salud`)
 
 ### D3.1 — Tour onboarding (estructura estática primero, sin LLM)
 
