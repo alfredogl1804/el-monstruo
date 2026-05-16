@@ -374,3 +374,22 @@ Auditoría externa Sonar Reasoning Pro retornó 12 F-patterns + DECISION BINARIA
 - [x] Re-typecheck verde, vitest 8/8, build verde, lint verde, audit pasó de 10 vulns (2 critical) → 2 moderate (postcss transitivo de Next, no fixable sin downgrade)
 - [ ] Commit `hardening(la-forja): D3.0 adversarial fixes Perplexity F-D3.0-01..13 (post-audit)`
 - [ ] Push a `sprint/la-forja-001`
+
+
+## D3.1 — Tour onboarding estático — ✅ COMPLETADO 16-may-2026
+
+Sin LLM. Sin contratos backend nuevos. Riesgo cero de tocar algo D2 verde.
+
+- [x] `src/app/onboarding/page.tsx` Server Component con `dynamic = "force-dynamic"`
+- [x] `src/app/onboarding/OnboardingFinishHandler.tsx` Client Component que provee callback de redirect post-tour
+- [x] `src/components/onboarding/Tour.tsx` Client Component con state local + navegación prev/next/skip + cookie write
+- [x] `src/components/onboarding/StepShell.tsx` layout reutilizable con highlights inline (sin regex global)
+- [x] `src/lib/onboarding/steps.ts` 7 pasos con copywriting Brand DNA y data inmutable `as const`
+- [x] `src/lib/onboarding/cookie.ts` helpers `read/write/clear` con encode/decode + null-safe SSR
+- [x] `src/app/page.tsx` landing actualizado a Server Component async que lee cookie via `next/headers`
+- [x] Test `steps.test.ts` 7 tests (count, ids únicos, no-empty, eyebrow order, highlight literal match, last-cta distinct)
+- [x] Test `cookie.test.ts` 5 tests (null si no existe, read/write round-trip, clear, encodeURIComponent decode, no-throw cookie vacía)
+- [x] Test `Tour.test.tsx` 7 tests (mount renderiza paso 0, next avanza, prev retrocede, last+next → onFinish skipped=false, skip → onFinish skipped=true, primer paso sin secundario, último paso sin skip)
+- [x] Lint 0/0, tsc 0 errores, vitest **27/27**, next build verde con `ƒ /onboarding (Dynamic)`
+- [ ] Commit `feat(la-forja): D3.1 tour onboarding estático 7 pasos sin LLM (27/27 tests)`
+- [ ] Push a `sprint/la-forja-001`
