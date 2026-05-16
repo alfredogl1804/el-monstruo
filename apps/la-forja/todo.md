@@ -352,3 +352,25 @@ Bridge: `bridge/cowork_to_manus_LA_FORJA_001_D2_AUDIT_RESULT.md`
 - [ ] H-12 Vercel AI SDK adapter Hono — verificar antes de D3 codear SSE
 - [ ] H-13 SupabaseBudgetClient D5 — UPDATE arithmetic atómico (NUNCA SELECT-then-UPDATE)
 - [ ] H-14 LLM client cache invalidation — invalidar caches en path strict:false
+
+
+## D3.0 Hardening — Perplexity Adversarial Audit (16-may-2026)
+
+Auditoría externa Sonar Reasoning Pro retornó 12 F-patterns + DECISION BINARIA `DO NOT SHIP`. Triage:
+
+- [x] **F-D3.0-01 [HIGH]** `next lint` no existe en Next 16 → script cambiado a `eslint .`
+- [x] **F-D3.0-02 [CRITICAL]** `eslint-config-next@16` exporta array → `...next` (sin invocar)
+- [x] **F-D3.0-03 [MEDIUM]** Backend Hono default `:8080` confirmado en `api/src/lib/env.ts` → frontend ahora apunta a 8080 + comentario CORS en .env.local.example y next.config.ts
+- [x] **F-D3.0-04 [HIGH]** `/salud` ahora `force-dynamic` + `revalidate=0` — build muestra `ƒ /salud (Dynamic)`
+- [x] **F-D3.0-05 [MEDIUM]** `new Headers(init?.headers)` preserva instancias `Headers` y `string[][]`
+- [x] **F-D3.0-06 [MEDIUM]** `AbortController` + timeout 8s + propaga `signal` externo correctamente
+- [ ] **F-D3.0-07 [LOW]** register-only D6 — Next 16 genera `next-env.d.ts` automáticamente, gitignore estándar (no rompe build)
+- [x] **F-D3.0-08 [LOW]** removidos `streamdown` y `@vitejs/plugin-react` (reintroducir en D3.2)
+- [x] **F-D3.0-09 [LOW]** `id-match` ahora `error` con regex `\\b...\\b` (banea sufijos compuestos)
+- [x] **F-D3.0-10 [LOW]** mock test usa shape `{service, version, timestamp}` + assertion contra `Headers` instance
+- [x] **F-D3.0-11 [CRITICAL]** `happy-dom` 15.11.7 → **20.9.0**
+- [x] **F-D3.0-12 [CRITICAL]** `vitest` 2.1.8 → **4.1.6** (latest stable, drop esbuild vulnerable)
+- [x] **F-D3.0-13 [MEDIUM]** `eslint` 9.17.0 → **9.39.4**, `postcss` 8.4.49 → **8.5.14**
+- [x] Re-typecheck verde, vitest 8/8, build verde, lint verde, audit pasó de 10 vulns (2 critical) → 2 moderate (postcss transitivo de Next, no fixable sin downgrade)
+- [ ] Commit `hardening(la-forja): D3.0 adversarial fixes Perplexity F-D3.0-01..13 (post-audit)`
+- [ ] Push a `sprint/la-forja-001`

@@ -9,8 +9,9 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   // El frontend NUNCA habla con Supabase directo (LF-1 + RLS-aware).
   // Toda data viaja vía el backend Hono en `apps/la-forja/api`.
-  // En dev local, NEXT_PUBLIC_API_URL apunta a http://localhost:3000.
-  // En producción, apunta a https://la-forja-api.up.railway.app.
+  // En dev local, NEXT_PUBLIC_API_URL apunta a http://localhost:8080
+  // (puerto default del backend Hono, ver apps/la-forja/api/src/lib/env.ts).
+  // En producción, apunta al dominio de Railway / Cloud Run.
 };
 
 export default nextConfig;

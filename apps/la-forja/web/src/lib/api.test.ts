@@ -61,8 +61,9 @@ describe("buildForjaApi (D3.0)", () => {
       new Response(
         JSON.stringify({
           status: "ok",
-          commit: "test",
-          ts: "2026-01-01T00:00:00Z",
+          service: "la-forja-api",
+          version: "0.1.0",
+          timestamp: "2026-01-01T00:00:00Z",
         }),
         { status: 200 },
       ),
@@ -70,8 +71,11 @@ describe("buildForjaApi (D3.0)", () => {
     vi.stubGlobal("fetch", mockFetch);
     const api = buildForjaApi({ apiUrl: "http://localhost:3000" });
     await api.health();
+    // F-D3.0-05/10: ahora `headers` es una instancia de `Headers`.
     const init = mockFetch.mock.calls[0]?.[1];
-    expect(init?.headers).toHaveProperty("x-request-id");
-    expect(typeof init.headers["x-request-id"]).toBe("string");
+    expect(init?.headers).toBeInstanceOf(Headers);
+    const reqId = (init?.headers as Headers).get("x-request-id");
+    expect(typeof reqId).toBe("string");
+    expect(reqId?.length ?? 0).toBeGreaterThan(0);
   });
 });

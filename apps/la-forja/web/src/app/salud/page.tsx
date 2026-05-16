@@ -2,12 +2,19 @@ import { buildForjaApi, ForjaApiError } from "@/lib/api";
 
 /**
  * La Forja — diagnóstico de estado.
- * Sprint LA-FORJA-001 D3.0.
+ * Sprint LA-FORJA-001 D3.0 (post-hardening F-D3.0-04).
  *
  * Pega un GET /health al backend Hono y muestra el resultado binario.
  * Server Component: la llamada se hace en el servidor de Next, no expone
  * el backend al cliente directamente.
+ *
+ * F-D3.0-04: forzar render dinámico. Sin esto, Next 16 prerendea
+ * estático al build y bakea "fetch failed" en el HTML cuando el
+ * backend no está levantado en build-time (CI, Vercel build, etc.).
  */
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 async function fetchSalud() {
   const api = buildForjaApi();
   try {

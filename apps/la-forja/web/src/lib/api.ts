@@ -46,6 +46,10 @@ export interface ForjaApiClient {
 export function buildForjaApi(opts: { apiUrl?: string } = {}): ForjaApiClient {
   const baseUrl = opts.apiUrl ?? loadForjaWebEnv().NEXT_PUBLIC_API_URL;
 
+  // F-D3.0-06: timeout SSR (Hono + Cloud Run).
+  // 8 segundos cubre cold start + p99 sin esperar el timeout externo.
+  const REQUEST_TIMEOUT_MS = 8_000;
+
   async function request<T>(
     path: string,
     init?: RequestInit,
@@ -55,24 +59,49 @@ export function buildForjaApi(opts: { apiUrl?: string } = {}): ForjaApiClient {
       typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
         : Math.random().toString(36).slice(2);
-    const res = await fetch(url, {
-      ...init,
-      headers: {
-        "content-type": "application/json",
-        "x-request-id": requestId,
-        ...(init?.headers ?? {}),
-      },
-    });
-    if (!res.ok) {
-      let body: unknown = null;
-      try {
-        body = await res.json();
-      } catch {
-        body = await res.text().catch(() => null);
-      }
-      throw new ForjaApiError(res.status, body, requestId);
+
+    // F-D3.0-05: usar `new Headers(init?.headers)` preserva instancias
+    // `Headers` y `string[][]` además de plain objects.
+    const headers = new Headers(init?.headers);
+    headers.set("content-type", "application/json");
+    headers.set("x-request-id", requestId);
+
+    const controller = new AbortController();
+    const externalSignal = init?.signal;
+    const onExternalAbort = () => controller.abort(externalSignal?.reason);
+    if (externalSignal) {
+      if (externalSignal.aborted) controller.abort(externalSignal.reason);
+      else externalSignal.addEventListener("abort", onExternalAbort, { once: true });
     }
-    return (await res.json()) as T;
+    const timeoutId = setTimeout(
+      () =>
+        controller.abort(
+          new ForjaApiError(0, "timeout", requestId),
+        ),
+      REQUEST_TIMEOUT_MS,
+    );
+
+    try {
+      const res = await fetch(url, {
+        ...init,
+        headers,
+        signal: controller.signal,
+      });
+      if (!res.ok) {
+        let body: unknown = null;
+        try {
+          body = await res.json();
+        } catch {
+          body = await res.text().catch(() => null);
+        }
+        throw new ForjaApiError(res.status, body, requestId);
+      }
+      return (await res.json()) as T;
+    } finally {
+      clearTimeout(timeoutId);
+      if (externalSignal)
+        externalSignal.removeEventListener("abort", onExternalAbort);
+    }
   }
 
   return {
