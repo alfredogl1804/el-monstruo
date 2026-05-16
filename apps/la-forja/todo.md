@@ -272,14 +272,69 @@ Bridge: `bridge/cowork_to_manus_LA_FORJA_001_D2_AUDIT_RESULT.md`
 - [x] Fix H-5: `loadEnv({strict:false})` rechaza en `NODE_ENV=production` con `[la-forja:env_load_permissive_blocked_in_production]`
 - [x] Test nuevos D2.5: 6 tests nuevos (`env.test.ts` H-5 rejection + H-1 default; `middleware.test.ts` H-1 503 prod; `routes.test.ts` H-2 tutor rollback + H-2 magna rollback + H-3 classifier reserve + H-3 magna reserve; `index.test.ts` H-4 lista exacta SPRINT_STATES) — 176/176 passing
 - [x] Pre-commit: `npm run typecheck` + `npm test` + `npm run build` verde
-- [ ] Commit `hardening(la-forja): D2.5 adversarial fixes H-1/H-2/H-3/H-4/H-5`
-- [ ] Push a `sprint/la-forja-001`
+- [x] Commit `hardening(la-forja): D2.5 adversarial fixes H-1/H-2/H-3/H-4/H-5` (`bdd9dbb`)
+- [x] Push a `sprint/la-forja-001`
 
 ### Bridge file Cowork con findings adversariales
 
-- [ ] `bridge/manus_to_cowork_LA_FORJA_001_PERPLEXITY_ADVERSARIAL_FINDINGS.md` con 14 hallazgos + verificación + decisión Manus
-- [ ] Commit + push del bridge file
-- [ ] Solicitar a Cowork audit del delta D2.5 (5 puntos binarios) y firma `DSC-G-008 v4` con bullet "adversarial error path coverage obligatorio"
+- [x] `bridge/manus_to_cowork_LA_FORJA_001_D2_5_AUDIT_REQUEST.md` con 10 puntos binarios + decisión Manus (commit `3cba3b5`)
+- [x] Commit + push del bridge file
+- [x] Solicitar a Cowork audit del delta D2.5 — **VERDE 10/10 firmado** en `bridge/cowork_to_manus_LA_FORJA_001_D2_5_AUDIT_RESULT.md` (commit `fe82b1c`)
+- [x] **DSC-G-008 v4 canonizado** con bullet error path coverage obligatorio para toda llamada LLM dentro de ruta
+
+## D2.5 — CIERRE FIRMADO 15-may-2026 23:55 CST
+
+| Métrica | Valor |
+|---|---|
+| Veredicto Cowork | 🟢 VERDE 10/10 |
+| Firma | DSC-G-008 v4 canonizada |
+| Commits D2.5 | 2 (`bdd9dbb` hardening + `3cba3b5` audit request) |
+| Tests totales | 176/176 passing (170 D2 + 6 D2.5) |
+| LOC nuevas D2.5 | ~550 (incluye tests) |
+| F-patterns | 0 (cero hallazgos pendientes) |
+
+**Próximo:** D3 frontend Next.js 16.2.6 + Vercel AI SDK 6.0.183 con Tour, Chat tutor SSE, Sala de Sprint, Dashboard vivo. **Autorizado arrancar inmediato** por Cowork (`fe82b1c`).
+
+## D3 — Frontend (Next.js 16.2.6 + Vercel AI SDK 6.0.183) — EN PROGRESO
+
+### D3.0 — Validación real-time + scaffold base
+
+- [ ] Validación real-time de versiones (Next.js 16.2.6, Vercel AI SDK 6.0.183, React 19) y compat con Hono backend (anti-autoboicot)
+- [ ] Decisión binaria sobre patrón Vercel AI SDK adapter Hono SSE (H-12 register-only) ANTES de implementar streaming
+- [ ] Scaffold `apps/la-forja/web/` con Next.js App Router + TypeScript strict + ESLint + Tailwind + Tailwind config alineado a Brand DNA (#F97316 forja, #1C1917 graphite, #A8A29E acero)
+- [ ] `package.json` con scripts `dev/build/typecheck/test` y peer-deps coherentes con monorepo
+- [ ] `.env.local.example` con variables `NEXT_PUBLIC_API_URL` y placeholders fail-loud
+- [ ] Cliente API tipado contra backend Hono (fetch wrapper + types compartidos en `packages/types-la-forja/` o re-export de `apps/la-forja/api`)
+- [ ] Página `/health` que pegue `GET /health` del backend y muestre status binario
+- [ ] `npm run typecheck` + `npm run build` verde antes de commit
+
+### D3.1 — Tour onboarding (estructura estática primero, sin LLM)
+
+- [ ] Ruta `/onboarding` con 5-7 pasos estáticos siguiendo Brand DNA (forja industrial, sin corporativismo)
+- [ ] Estado de tour persistido vía `POST /api/users/onboarding-status` (endpoint backend pendiente)
+
+### D3.2 — Chat tutor con streaming SSE
+
+- [ ] Resolver H-12: validar binariamente que Vercel AI SDK 6.0.183 expone adapter compatible con Hono SSE
+- [ ] Componente `ChatTutor` con `Streamdown` para markdown streaming
+- [ ] Wire a `POST /api/tutor/chat` con `requireValidation` toggle
+
+### D3.3 — Sala de Sprint (co-pilot UI)
+
+- [ ] Lista de sprints con SPRINT_STATES (8 inglés SPEC §4:130)
+- [ ] Form crear sprint (publica POST /api/sprints)
+- [ ] Vista detalle con state machine visual
+
+### D3.4 — Dashboard vivo
+
+- [ ] Costos del usuario (read budget desde `/api/budget/me`)
+- [ ] Estado de las 5 puertas (LF-FIVE-DOORS-001)
+- [ ] Cliente Cero metrics (placeholder D6)
+
+### D3.x — Cierre D3
+
+- [ ] Bridge `manus_to_cowork_LA_FORJA_001_D3_AUDIT_REQUEST.md`
+- [ ] Audit Cowork D3 con DSC-G-008 v4 verde sobre frontend
 
 ### Hallazgos register-only para D6 polish
 
