@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { FORJA_TOUR_STEPS, FORJA_TOUR_STEP_COUNT } from "./steps";
+import {
+  FORJA_TOUR_STEPS,
+  FORJA_TOUR_STEP_COUNT,
+  FORJA_TOUR_SPRINT_STATES_LITERAL,
+} from "./steps";
 
 /**
  * La Forja — tests del contrato de pasos del tour.
@@ -62,5 +66,40 @@ describe("FORJA_TOUR_STEPS — contrato de data", () => {
   it("el último paso tiene CTA distinto a 'Continuar'", () => {
     const last = FORJA_TOUR_STEPS[FORJA_TOUR_STEPS.length - 1];
     expect(last?.cta.toLowerCase()).not.toBe("continuar");
+  });
+
+  // F-D3.1-13: el copy del paso `sala-de-sprint` menciona los 8
+  // estados canónicos en inglés. La lista debe coincidir EXACTAMENTE
+  // con `SPRINT_STATES` del backend (`apps/la-forja/api/src/routes/sprints.ts`).
+  // Si el backend cambia y el frontend no, este test rompe el build.
+  it("FORJA_TOUR_SPRINT_STATES_LITERAL contiene los 8 estados SPEC §4:130 en orden", () => {
+    expect(FORJA_TOUR_SPRINT_STATES_LITERAL).toEqual([
+      "proposed",
+      "drafting",
+      "review_alfredo",
+      "review_cowork",
+      "ready_to_execute",
+      "executing",
+      "merged",
+      "canonized",
+    ]);
+  });
+
+  it("el body de `sala-de-sprint` menciona literal los 8 estados en orden", () => {
+    const salaStep = FORJA_TOUR_STEPS.find((s) => s.id === "sala-de-sprint");
+    expect(salaStep).toBeDefined();
+    const fullBody = salaStep!.body.join(" ");
+    for (const state of FORJA_TOUR_SPRINT_STATES_LITERAL) {
+      expect(fullBody).toContain(state);
+    }
+    // Verificamos orden: cada estado aparece después del anterior.
+    let cursor = 0;
+    for (const state of FORJA_TOUR_SPRINT_STATES_LITERAL) {
+      const idx = fullBody.indexOf(state, cursor);
+      expect(idx, `state ${state} fuera de orden o ausente`).toBeGreaterThanOrEqual(
+        cursor,
+      );
+      cursor = idx + state.length;
+    }
   });
 });

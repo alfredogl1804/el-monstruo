@@ -141,3 +141,24 @@ export const FORJA_TOUR_STEPS: readonly ForjaTourStep[] = [
 ] as const;
 
 export const FORJA_TOUR_STEP_COUNT = FORJA_TOUR_STEPS.length;
+
+/**
+ * Lista literal de los 8 estados del sprint que el tour menciona en
+ * el paso `sala-de-sprint`. Se exporta para que el test de contrato
+ * verifique sin ambigüedad que coincide exactamente con
+ * `SPRINT_STATES` del backend (`apps/la-forja/api/src/routes/sprints.ts`).
+ *
+ * Hardening Perplexity F-D3.1-13: si esta lista derive en el futuro,
+ * el test de contrato falla y bloquea el merge antes de que el copy
+ * del tour mienta al usuario.
+ */
+export const FORJA_TOUR_SPRINT_STATES_LITERAL = [
+  "proposed",
+  "drafting",
+  "review_alfredo",
+  "review_cowork",
+  "ready_to_execute",
+  "executing",
+  "merged",
+  "canonized",
+] as const;

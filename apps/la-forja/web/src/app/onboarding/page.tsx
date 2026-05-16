@@ -1,18 +1,23 @@
 import { Tour } from "@/components/onboarding/Tour";
-import { OnboardingFinishHandler } from "./OnboardingFinishHandler";
 
 /**
  * La Forja — página `/onboarding`.
  *
- * Sprint LA-FORJA-001 D3.1.
+ * Sprint LA-FORJA-001 D3.1 + hardening Perplexity F-D3.1-02, -15.
  *
  * Server Component shell. La lógica del tour vive en el Client
- * Component `Tour.tsx`. Esta página solo provee layout, metadata y
- * el handler de finish (que redirige a `/`).
+ * Component `Tour.tsx`. Esta página solo provee layout y metadata.
  *
  * Forzamos render dinámico para que la página respete cualquier
  * cookie ya presente (no queremos prerender estático que bake un
  * estado distinto al del usuario real).
+ *
+ * Hardening aplicado:
+ *   F-D3.1-02 + F-D3.1-15: eliminado el wrapper redundante
+ *   `OnboardingFinishHandler` (que violaba Brand Engine por el
+ *   sufijo `Handler` y solo encapsulaba un `router.push("/")`). El
+ *   `useRouter` ahora vive dentro de `Tour.tsx` y la página le pasa
+ *   `redirectTo="/"` directo.
  */
 export const dynamic = "force-dynamic";
 
@@ -38,9 +43,7 @@ export default function OnboardingPage() {
           </p>
         </header>
 
-        <OnboardingFinishHandler>
-          {(handleFinish) => <Tour onFinish={handleFinish} />}
-        </OnboardingFinishHandler>
+        <Tour redirectTo="/" />
       </div>
     </main>
   );

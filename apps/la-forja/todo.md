@@ -393,3 +393,27 @@ Sin LLM. Sin contratos backend nuevos. Riesgo cero de tocar algo D2 verde.
 - [x] Lint 0/0, tsc 0 errores, vitest **27/27**, next build verde con `ƒ /onboarding (Dynamic)`
 - [ ] Commit `feat(la-forja): D3.1 tour onboarding estático 7 pasos sin LLM (27/27 tests)`
 - [ ] Push a `sprint/la-forja-001`
+
+
+## D3.1 Hardening — Perplexity Adversarial Audit (16-may-2026)
+
+Auditoría externa Perplexity Sonar Reasoning Pro retornó 15 F-patterns + DECISION BINARIA `DO NOT SHIP`. Triage:
+
+- [x] **F-D3.1-01 [HIGH]** id-match regex `\b...\b` aceptaba `UserService`/`OnboardingFinishHandler` — verificado binariamente con `node` script. Reemplazada por regex robusta que matchea sufijo compuesto.
+- [x] **F-D3.1-02 [HIGH]** `OnboardingFinishHandler` violaba Brand Engine. Resuelto eliminando el wrapper completo (ver F-15) y moviendo `useRouter` directo a `Tour.tsx` con prop `redirectTo`.
+- [x] **F-D3.1-03 [MEDIUM]** cookie sin Secure permitía overwrite en HTTP. Helper `shouldUseSecure()` agrega `Secure` solo si `location.protocol === "https:"` (preserva tests locales en localhost).
+- [x] **F-D3.1-04 [MEDIUM]** doble click en último paso podría llamar `onFinish` 2x + escribir cookie 2x. Guard `finished` con `useState` previene cualquier re-llamada idempotente. 2 tests nuevos en `Tour.test.tsx`.
+- [x] **F-D3.1-05 [MEDIUM]** `highlightText` con highlights que solapan podía dar match incorrecto si el más corto era prefijo del más largo. Sort por longitud descendente antes del match.
+- [x] **F-D3.1-06 [MEDIUM]** screen reader no anunciaba transiciones de paso. `aria-live="polite"` + `aria-atomic="true"` en wrapper Tour + `headingRef` con `tabIndex={-1}` recibe foco programático al cambiar `index` (excluyendo mount inicial para no robar scroll).
+- [x] **F-D3.1-07 [MEDIUM]** botones skip y secondary sin `focus-visible:ring`. Agregados con `ring-2 ring-{forja|acero}-300 ring-offset-2 ring-offset-graphite-900` para WCAG AA contra el background dark.
+- [x] **F-D3.1-08 [MEDIUM]** `new Date(cookieValue).toLocaleString()` rendía `"Invalid Date"` literal si cookie manipulada. `formatTourCompletedAt()` valida con `Number.isNaN(parsed.getTime())` y retorna `null` si inválido (no se renderiza).
+- [x] **F-D3.1-09 [MEDIUM]** `cookie.split(";")` no toleraba serializaciones sin espacio. Cambiado a `cookie.split(/;\s*/)`. Test nuevo verifica el caso patológico.
+- [x] **F-D3.1-10 [LOW]** test de decode usaba ISO ASCII (no requería decode). Reemplazado con valor que tiene espacios, `&`, `=`, `/`, `ñ` — fuerza `decodeURIComponent` real.
+- [x] **F-D3.1-11 [LOW]** tests no envolvían en `<StrictMode>`, perdiendo cobertura de double-mount React 19. Wrapper agregado + `vitest.setup.ts` con `globalThis.IS_REACT_ACT_ENVIRONMENT = true`.
+- [ ] **F-D3.1-12 [LOW]** register-only D6 — keys `body-${i}` y `bullet-${i}` solo causan regresión si `body`/`bullets` mutan dinámicamente. La data es `as const` inmutable. Migré a keys `${step.id}-body-${i}` y `${step.id}-bullet-${i}` por defensa preventiva pero el riesgo era teórico.
+- [x] **F-D3.1-13 [LOW]** SPRINT_STATES duplicados en frontend sin contract test. Exportada `FORJA_TOUR_SPRINT_STATES_LITERAL` + 2 tests nuevos: lista exacta y orden literal en body.
+- [x] **F-D3.1-14 [LOW]** `v0.1.0 · D3.1` hard-coded en JSX. Creado `src/lib/version.ts` que importa `pkg.version` de `package.json` (con `resolveJsonModule`) + `NEXT_PUBLIC_FORJA_DELIVERY` env con fallback.
+- [x] **F-D3.1-15 [LOW]** wrapper `OnboardingFinishHandler` redundante. Eliminado completo. Tour.tsx integra `useRouter` directo.
+- [x] Re-validación: lint verde 0/0, typecheck 0 errores, vitest **33/33** passing (8 D3.0 + 25 D3.1), next build verde con 4 rutas (`ƒ /`, `ƒ /onboarding`, `ƒ /salud`, `○ /_not-found`).
+- [ ] Commit `hardening(la-forja): D3.1 adversarial fixes Perplexity F-D3.1-01..15 (33/33 tests)`
+- [ ] Push a `sprint/la-forja-001`

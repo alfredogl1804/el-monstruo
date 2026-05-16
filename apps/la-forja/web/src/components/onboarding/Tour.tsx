@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { StepShell } from "./StepShell";
 import { writeForjaTourCookie } from "@/lib/onboarding/cookie";
 import {
@@ -11,11 +12,21 @@ import {
 /**
  * La Forja — Tour onboarding (Client Component).
  *
- * Sprint LA-FORJA-001 D3.1.
+ * Sprint LA-FORJA-001 D3.1 + D3.1 hardening Perplexity F-D3.1-04, -06, -15.
  *
  * State local del paso, navegación prev/next/skip, persistencia en
- * cookie al completar o saltar, callback `onFinish` para que la
- * página decida a dónde ir después.
+ * cookie al completar o saltar, redirect opcional a `redirectTo`.
+ *
+ * Hardening aplicado:
+ *   F-D3.1-04: guard `finished` previene doble onFinish + doble redirect
+ *              + doble cookie write si el usuario hace doble click
+ *              rápido en el último paso.
+ *   F-D3.1-06: aria-live + foco programático al cambiar de paso para
+ *              que screen readers anuncien la transición.
+ *   F-D3.1-15: useRouter integrado directamente en este Client
+ *              Component. Eliminado el wrapper redundante
+ *              `OnboardingFinishHandler` (que además violaba Brand
+ *              Engine por el sufijo `Handler`).
  */
 
 interface TourProps {
@@ -24,6 +35,11 @@ interface TourProps {
    * es `true`, el usuario lo saltó antes del último paso.
    */
   onFinish?: (result: { skipped: boolean; completedAt: string }) => void;
+  /**
+   * Si está presente, navega a esta ruta tras `onFinish`. Default
+   * `undefined` (no navega — útil para tests y para embedding).
+   */
+  redirectTo?: string;
   /**
    * Para tests: inicia en un paso distinto al primero.
    */
@@ -34,34 +50,64 @@ interface TourProps {
   documentRef?: Document;
 }
 
-export function Tour({ onFinish, initialIndex = 0, documentRef }: TourProps) {
+export function Tour({
+  onFinish,
+  redirectTo,
+  initialIndex = 0,
+  documentRef,
+}: TourProps) {
+  const router = useRouter();
   const [index, setIndex] = useState(() =>
     Math.min(Math.max(initialIndex, 0), FORJA_TOUR_STEP_COUNT - 1),
   );
+  const [finished, setFinished] = useState(false);
+
+  const stepHeadingRef = useRef<HTMLHeadingElement | null>(null);
 
   const step = FORJA_TOUR_STEPS[index];
+
+  // F-D3.1-06: foco al heading del paso al cambiar de index. Solo
+  // mueve foco si ya hubo interacción (no en mount inicial), para no
+  // robarle el scroll al usuario que recién aterrizó.
+  const isFirstRenderRef = useRef(true);
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      return;
+    }
+    stepHeadingRef.current?.focus();
+  }, [index]);
+
+  const finalize = useCallback(
+    (skipped: boolean) => {
+      if (finished) return; // F-D3.1-04: guard idempotencia
+      setFinished(true);
+      const ts = writeForjaTourCookie(
+        documentRef ? { documentRef } : {},
+      );
+      onFinish?.({ skipped, completedAt: ts });
+      if (redirectTo) {
+        router.push(redirectTo);
+      }
+    },
+    [finished, onFinish, documentRef, redirectTo, router],
+  );
 
   const handleNext = useCallback(() => {
     if (index < FORJA_TOUR_STEP_COUNT - 1) {
       setIndex((prev) => prev + 1);
       return;
     }
-    const ts = writeForjaTourCookie(
-      documentRef ? { documentRef } : {},
-    );
-    onFinish?.({ skipped: false, completedAt: ts });
-  }, [index, onFinish, documentRef]);
+    finalize(false);
+  }, [index, finalize]);
 
   const handlePrev = useCallback(() => {
     setIndex((prev) => Math.max(prev - 1, 0));
   }, []);
 
   const handleSkip = useCallback(() => {
-    const ts = writeForjaTourCookie(
-      documentRef ? { documentRef } : {},
-    );
-    onFinish?.({ skipped: true, completedAt: ts });
-  }, [onFinish, documentRef]);
+    finalize(true);
+  }, [finalize]);
 
   if (!step) {
     return null;
@@ -74,12 +120,15 @@ export function Tour({ onFinish, initialIndex = 0, documentRef }: TourProps) {
     <div
       className="mx-auto flex w-full max-w-3xl flex-col gap-6"
       data-testid="forja-tour"
+      aria-live="polite"
+      aria-atomic="true"
     >
       <StepShell
         step={step}
         index={index}
         total={FORJA_TOUR_STEP_COUNT}
         primaryCta={{ label: step.cta, onClick: handleNext }}
+        headingRef={stepHeadingRef}
         {...(isFirst
           ? {}
           : { secondaryCta: { label: "Anterior", onClick: handlePrev } })}
