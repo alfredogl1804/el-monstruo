@@ -56,26 +56,26 @@ describe("forja tour cookie helpers", () => {
     expect(readForjaTourCookie()).toBe(raw);
   });
 
-  // F-D3.1-09: el split debe tolerar separador sin espacio entre cookies.
-  it("read parsea cuando otras cookies usan separador ';' sin espacio", () => {
-    // Inyectamos varias cookies; happy-dom las serializa con `; ` por
-    // default, así que forzamos el caso patológico mutando manualmente.
-    document.cookie = "extra1=val1; path=/";
-    writeForjaTourCookie({ now: new Date("2026-05-16T12:00:00.000Z") });
-    document.cookie = "extra2=val2; path=/";
-
-    // Sanity: con separador estándar funciona.
-    expect(readForjaTourCookie()).toBe("2026-05-16T12:00:00.000Z");
-
-    // Caso patológico: verificamos directamente que la regex
-    // `/;\s*/` parsea sin espacio. Construimos el string a mano.
+  // F-D3.1-09 + PARCIAL fix: el split debe tolerar separador sin espacio.
+  // happy-dom serializa con `; ` por default, así que para el caso
+  // patológico (separador `;` sin espacio) inyectamos un documentRef
+  // mock. El test ahora ejerce el helper end-to-end, no la regex aislada.
+  it("read parsea end-to-end cuando otras cookies usan ';' sin espacio", () => {
     const fakeCookieString = `extra1=val1;${FORJA_TOUR_COOKIE_NAME}=${encodeURIComponent("2026-05-16T12:00:00.000Z")};extra2=val2`;
-    const parts = fakeCookieString.split(/;\s*/);
-    const target = parts.find((p) => p.startsWith(`${FORJA_TOUR_COOKIE_NAME}=`));
-    expect(target).toBeDefined();
-    expect(decodeURIComponent(target!.split("=")[1]!)).toBe(
-      "2026-05-16T12:00:00.000Z",
-    );
+    const fakeDoc = {
+      cookie: fakeCookieString,
+      defaultView: undefined,
+    } as unknown as Document;
+    expect(readForjaTourCookie(fakeDoc)).toBe("2026-05-16T12:00:00.000Z");
+  });
+
+  it("read parsea end-to-end cuando otras cookies usan '; ' con espacio", () => {
+    const fakeCookieString = `extra1=val1; ${FORJA_TOUR_COOKIE_NAME}=${encodeURIComponent("2026-05-16T13:00:00.000Z")}; extra2=val2`;
+    const fakeDoc = {
+      cookie: fakeCookieString,
+      defaultView: undefined,
+    } as unknown as Document;
+    expect(readForjaTourCookie(fakeDoc)).toBe("2026-05-16T13:00:00.000Z");
   });
 
   it("read tolera document.cookie vacío sin throw", () => {

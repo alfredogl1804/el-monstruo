@@ -68,10 +68,14 @@ describe("FORJA_TOUR_STEPS — contrato de data", () => {
     expect(last?.cta.toLowerCase()).not.toBe("continuar");
   });
 
-  // F-D3.1-13: el copy del paso `sala-de-sprint` menciona los 8
-  // estados canónicos en inglés. La lista debe coincidir EXACTAMENTE
-  // con `SPRINT_STATES` del backend (`apps/la-forja/api/src/routes/sprints.ts`).
-  // Si el backend cambia y el frontend no, este test rompe el build.
+  // F-D3.1-13 + R-D3.1-03 (regression):
+  //   v1 prometia un contract test cross-package vs `SPRINT_STATES` del
+  //   backend, pero ambos lados estaban hardcoded — tautológico.
+  //   v2 (D3.1.1): este test verifica solo que la lista frontend
+  //   coincide literal con SPEC §4:130. Cuando exista
+  //   `apps/la-forja/contracts/sprint_states.ts` (TODO D6), tanto este
+  //   test como `apps/la-forja/api/src/routes/routes.test.ts` lo
+  //   importarán y un drift se detectará en cualquiera de los dos.
   it("FORJA_TOUR_SPRINT_STATES_LITERAL contiene los 8 estados SPEC §4:130 en orden", () => {
     expect(FORJA_TOUR_SPRINT_STATES_LITERAL).toEqual([
       "proposed",

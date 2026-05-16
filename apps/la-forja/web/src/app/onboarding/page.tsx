@@ -8,19 +8,18 @@ import { Tour } from "@/components/onboarding/Tour";
  * Server Component shell. La lógica del tour vive en el Client
  * Component `Tour.tsx`. Esta página solo provee layout y metadata.
  *
- * Forzamos render dinámico para que la página respete cualquier
- * cookie ya presente (no queremos prerender estático que bake un
- * estado distinto al del usuario real).
- *
  * Hardening aplicado:
  *   F-D3.1-02 + F-D3.1-15: eliminado el wrapper redundante
- *   `OnboardingFinishHandler` (que violaba Brand Engine por el
- *   sufijo `Handler` y solo encapsulaba un `router.push("/")`). El
- *   `useRouter` ahora vive dentro de `Tour.tsx` y la página le pasa
- *   `redirectTo="/"` directo.
+ *     `OnboardingFinishHandler` (violaba Brand Engine por el sufijo
+ *     `Handler` y solo encapsulaba un `router.push("/")`). El
+ *     `useRouter` ahora vive dentro de `Tour.tsx` y la página le pasa
+ *     `redirectTo="/"` directo.
+ *   R-D3.1-04: removido `export const dynamic = "force-dynamic"`. El
+ *     shell no lee cookies/headers/searchParams en server, así que el
+ *     prerender estático es correcto. El estado del tour vive en el
+ *     Client Component (cookie leída en hidratación). next build
+ *     reporta `○ /onboarding` (static) en vez de `ƒ` (dynamic).
  */
-export const dynamic = "force-dynamic";
-
 export const metadata = {
   title: "La Forja — Tour de bienvenida",
   description:

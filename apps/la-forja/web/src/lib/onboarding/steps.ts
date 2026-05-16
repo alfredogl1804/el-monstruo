@@ -144,13 +144,21 @@ export const FORJA_TOUR_STEP_COUNT = FORJA_TOUR_STEPS.length;
 
 /**
  * Lista literal de los 8 estados del sprint que el tour menciona en
- * el paso `sala-de-sprint`. Se exporta para que el test de contrato
- * verifique sin ambigüedad que coincide exactamente con
+ * el paso `sala-de-sprint`. Debe coincidir exactamente con
  * `SPRINT_STATES` del backend (`apps/la-forja/api/src/routes/sprints.ts`).
  *
- * Hardening Perplexity F-D3.1-13: si esta lista derive en el futuro,
- * el test de contrato falla y bloquea el merge antes de que el copy
- * del tour mienta al usuario.
+ * Hardening Perplexity F-D3.1-13 + R-D3.1-03 (regression):
+ *   v1 (D3.1): el comentario prometia un test de contrato cross-package.
+ *   Defecto (R-D3.1-03): el test solo compara la lista contra una
+ *   copia hardcoded en el mismo archivo de test — tautológico.
+ *   v2 (D3.1.1): mientras no exista un paquete shared o un workspace
+ *   TS path que permita `import { SPRINT_STATES } from "@la-forja/api/..."`,
+ *   el contract test honesto es: (a) verificar que esta lista coincide
+ *   con la documentada en SPEC §4:130, y (b) garantizar que el cuerpo
+ *   del paso `sala-de-sprint` los menciona en orden.
+ *   Cuando se introduzca `apps/la-forja/contracts/sprint_states.ts`,
+ *   ambos lados (web y api) lo importarán y el test pasará a importar
+ *   directamente desde ahí (TODO D6).
  */
 export const FORJA_TOUR_SPRINT_STATES_LITERAL = [
   "proposed",

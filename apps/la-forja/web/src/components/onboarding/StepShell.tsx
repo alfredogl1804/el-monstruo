@@ -109,6 +109,7 @@ export function StepShell({
           id={`forja-tour-step-${step.id}-title`}
           ref={headingRef}
           tabIndex={-1}
+          data-testid="forja-tour-step-heading"
           className="text-3xl sm:text-4xl font-semibold text-graphite-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-forja-300 focus-visible:ring-offset-2 focus-visible:ring-offset-graphite-900 rounded-sm"
         >
           {step.title}

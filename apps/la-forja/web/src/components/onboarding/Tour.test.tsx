@@ -162,4 +162,44 @@ describe("Tour component", () => {
     expect(onFinish).toHaveBeenCalledTimes(1);
     cleanup();
   });
+
+  // R-D3.1-02: dos clicks dentro del MISMO act/task. La V1 pasaba por
+  // closure stale; la V2 con useRef debe rechazar el segundo invoke
+  // dentro del mismo event loop.
+  it("dos clicks síncronos en el mismo task llaman onFinish solo una vez", () => {
+    const onFinish = vi.fn();
+    const { container, cleanup } = setup(FORJA_TOUR_STEP_COUNT - 1, onFinish);
+    const btn = container.querySelector(
+      "[data-testid='forja-tour-primary']",
+    ) as HTMLElement;
+    expect(btn).toBeInstanceOf(HTMLElement);
+    act(() => {
+      btn.click();
+      btn.click();
+      btn.click();
+    });
+    expect(onFinish).toHaveBeenCalledTimes(1);
+    cleanup();
+  });
+
+  // F-D3.1-06 PARCIAL → fix: el contenedor del tour expone aria-live
+  // y el heading del paso es focusable (tabIndex=-1) para que el efecto
+  // de foco programático funcione cuando el usuario navega.
+  it("el contenedor del tour declara aria-live=polite y aria-atomic=true", () => {
+    const { container, cleanup } = setup();
+    const tour = container.querySelector("[data-testid='forja-tour']");
+    expect(tour?.getAttribute("aria-live")).toBe("polite");
+    expect(tour?.getAttribute("aria-atomic")).toBe("true");
+    cleanup();
+  });
+
+  it("el heading del paso es focusable programáticamente (tabIndex=-1)", () => {
+    const { container, cleanup } = setup();
+    const heading = container.querySelector(
+      "[data-testid='forja-tour-step-heading']",
+    );
+    expect(heading).toBeInstanceOf(HTMLElement);
+    expect((heading as HTMLElement).tabIndex).toBe(-1);
+    cleanup();
+  });
 });

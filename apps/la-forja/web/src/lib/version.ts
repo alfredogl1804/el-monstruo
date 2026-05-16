@@ -1,28 +1,35 @@
 /**
  * La Forja — fuente única de versión y delivery label.
  *
- * Sprint LA-FORJA-001 D3.1 hardening Perplexity F-D3.1-14.
+ * Sprint LA-FORJA-001 D3.1 hardening Perplexity F-D3.1-14
+ * + D3.1.1 R-D3.1-01 (regression): el fallback hardcoded "D3.1"
+ * reintroducía el defecto que F-14 prometía cerrar — cuando D3.2
+ * llegue, el label seguiría diciendo "D3.1" sin la env seteada.
  *
- * Antes: el header del landing decía `v0.1.0 · D3.1` hard-coded en
- * JSX. Cualquier bump de versión o cambio de delivery quedaba a la
- * disciplina manual del agente. Cuando D3.2 llegue, el label seguiría
- * mintiendo.
+ * Doctrina:
+ *   - FORJA_VERSION viene de package.json (resuelto en build con
+ *     resolveJsonModule: true).
+ *   - FORJA_DELIVERY_LABEL viene de NEXT_PUBLIC_FORJA_DELIVERY como
+ *     única fuente de verdad. Sin fallback. Si la env no está
+ *     seteada o está vacía, throw inmediato (Regla Dura #6 fail-loud).
  *
- * Ahora:
- *   - `FORJA_VERSION` se importa de `package.json` (resuelto en
- *     build por bundler con `resolveJsonModule: true`).
- *   - `FORJA_DELIVERY_LABEL` se lee de `NEXT_PUBLIC_FORJA_DELIVERY`,
- *     con fallback explícito al delivery actual cuando la variable
- *     no está seteada (dev local sin .env). Fallback es fail-safe,
- *     no fail-loud, porque D3.x es un label informativo del header,
- *     no una credencial.
+ * En dev local, el valor se setea en .env.local (ver .env.local.example).
+ * En producción, viene del pipeline de build de Manus/Vercel/Cloud Run.
+ *
+ * Si esto rompe un build futuro, es la señal correcta: la disciplina
+ * de bumpear la env por delivery se hace explícita.
  */
 
 import pkg from "../../package.json" with { type: "json" };
 
 export const FORJA_VERSION: string = pkg.version;
 
-const DELIVERY_FALLBACK = "D3.1";
+const rawDelivery = process.env.NEXT_PUBLIC_FORJA_DELIVERY;
+if (typeof rawDelivery !== "string" || rawDelivery.trim().length === 0) {
+  throw new Error(
+    "[la-forja:web_missing_env] NEXT_PUBLIC_FORJA_DELIVERY no seteada. " +
+      "Setear en .env.local (dev) o build env (prod). Ver .env.local.example.",
+  );
+}
 
-export const FORJA_DELIVERY_LABEL: string =
-  process.env.NEXT_PUBLIC_FORJA_DELIVERY ?? DELIVERY_FALLBACK;
+export const FORJA_DELIVERY_LABEL: string = rawDelivery.trim();

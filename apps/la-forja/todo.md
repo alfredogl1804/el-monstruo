@@ -417,3 +417,33 @@ Auditoría externa Perplexity Sonar Reasoning Pro retornó 15 F-patterns + DECIS
 - [x] Re-validación: lint verde 0/0, typecheck 0 errores, vitest **33/33** passing (8 D3.0 + 25 D3.1), next build verde con 4 rutas (`ƒ /`, `ƒ /onboarding`, `ƒ /salud`, `○ /_not-found`).
 - [ ] Commit `hardening(la-forja): D3.1 adversarial fixes Perplexity F-D3.1-01..15 (33/33 tests)`
 - [ ] Push a `sprint/la-forja-001`
+
+
+## D3.1-HARDENING — Auditoría regresión Perplexity (delta 6646544..84c728f)
+
+- [ ] Construir prompt adversarial Perplexity D3.1-HARDENING — framing: ¿los 14 fixes que prometí cierran realmente cada F-D3.1 sin introducir regresiones?
+- [ ] Entregar prompt copy-paste a Alfredo
+- [ ] Recoger respuesta + procesar F-patterns nuevos (R-D3.1-NN regression-pattern format)
+- [ ] Aplicar fixes/refutar/registrar binariamente
+- [ ] Re-validar lint + typecheck + vitest + build verde
+- [ ] Si VERDE → autorizar D3.2 (chat tutor SSE) y consultar a Cowork por DSC-LF-004 sobre cambio de contrato `/api/tutor/chat` JSON→SSE
+
+
+## D3.1.1 Hardening — ✅ COMPLETADO 16-may-2026
+
+Veredicto Perplexity D3.1-HARDENING: **SHIP** con 5 R-patterns LOW + 3 PARCIALES.
+Aplicado de todos modos para cerrar residuales antes de D3.2.
+
+- [x] **R-D3.1-01 [LOW]** `version.ts` ahora fail-loud con `throw` si falta `NEXT_PUBLIC_FORJA_DELIVERY` (sin fallback hardcoded). Documentado en `.env.local.example` con namespace `[la-forja:web_missing_env]`. Regla Dura #6.
+- [x] **R-D3.1-02 [LOW]** `Tour.tsx` ahora usa `useRef<boolean>` para idempotencia sincrónica. Test nuevo: 3 clicks dentro del mismo `act()` solo invocan `onFinish` una vez (V1 con state pasaba este test por casualidad de batching, V2 lo pasa por diseño).
+- [x] **R-D3.1-03 [LOW]** Comentario de `steps.ts` y `steps.test.ts` reescrito honestamente: el contract test actual es frontend-vs-SPEC literal, no cross-package. TODO D6 documentado para extraer `apps/la-forja/contracts/sprint_states.ts`.
+- [x] **R-D3.1-04 [LOW]** `/onboarding/page.tsx` removido `force-dynamic`. Build report confirma `○ /onboarding` (Static) en vez de `ƒ` (Dynamic). El estado del tour vive en Client Component con cookie leída en hidratación, no en server.
+- [x] **R-D3.1-05 [LOW]** `eslint.config.mjs` regex con dos lookaheads: PascalCase + ALL_CAPS. Verificado binariamente con `.regex_verify_r05_v2.mjs` que `USERSERVICE`, `FORMAT_UTIL`, `AUTH_MANAGER` ahora son rechazados, y `ForjaTourSteps`, `service`, `FORJA_TOUR_STEPS` siguen pasando.
+- [x] **F-D3.1-06 PARCIAL** → fix: 2 tests nuevos verifican `aria-live="polite"`, `aria-atomic="true"`, y `tabIndex={-1}` en heading.
+- [x] **F-D3.1-09 PARCIAL** → fix: 2 tests nuevos ejercen `readForjaTourCookie()` end-to-end con `documentRef` mock (separador con y sin espacio).
+- [x] **F-D3.1-13 PARCIAL** → resuelto por R-D3.1-03 (comentario honesto + TODO D6).
+- [x] **F-D3.1-14 PARCIAL** → resuelto por R-D3.1-01 (fail-loud sin fallback).
+- [ ] **F-D3.1-03 PARCIAL** register-only D6 (test cobertura HTTPS branch — no defecto operacional, gap de coverage).
+- [x] Lint 0/0, typecheck verde, vitest **37/37** (+4 tests nuevos D3.1.1), build verde con `○ /onboarding` Static.
+- [ ] Commit `hardening(la-forja): D3.1.1 regression fixes Perplexity R-D3.1-01..05 + PARCIALES`
+- [ ] Push a `sprint/la-forja-001`

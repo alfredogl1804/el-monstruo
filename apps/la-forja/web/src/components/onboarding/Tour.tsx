@@ -12,21 +12,26 @@ import {
 /**
  * La Forja — Tour onboarding (Client Component).
  *
- * Sprint LA-FORJA-001 D3.1 + D3.1 hardening Perplexity F-D3.1-04, -06, -15.
+ * Sprint LA-FORJA-001 D3.1 + D3.1 hardening Perplexity F-D3.1-04, -06, -15
+ * + D3.1.1 R-D3.1-02 (regression).
  *
  * State local del paso, navegación prev/next/skip, persistencia en
  * cookie al completar o saltar, redirect opcional a `redirectTo`.
  *
  * Hardening aplicado:
- *   F-D3.1-04: guard `finished` previene doble onFinish + doble redirect
- *              + doble cookie write si el usuario hace doble click
- *              rápido en el último paso.
+ *   F-D3.1-04 + R-D3.1-02: guard de idempotencia.
+ *     V1 (D3.1): `if (finished) return` con state cerrado por closure.
+ *     Defecto: dos clicks síncronos en el MISMO event loop ven el
+ *     mismo `finished=false` y ambos pasan el guard.
+ *     V2 (D3.1.1): `useRef<boolean>` mutado sincrónicamente antes de
+ *     cualquier side-effect. Un segundo click dentro del mismo task
+ *     ve `finishedRef.current=true` y retorna.
  *   F-D3.1-06: aria-live + foco programático al cambiar de paso para
  *              que screen readers anuncien la transición.
  *   F-D3.1-15: useRouter integrado directamente en este Client
  *              Component. Eliminado el wrapper redundante
- *              `OnboardingFinishHandler` (que además violaba Brand
- *              Engine por el sufijo `Handler`).
+ *              `OnboardingFinishHandler` (violaba Brand Engine por
+ *              el sufijo `Handler`).
  */
 
 interface TourProps {
@@ -60,7 +65,11 @@ export function Tour({
   const [index, setIndex] = useState(() =>
     Math.min(Math.max(initialIndex, 0), FORJA_TOUR_STEP_COUNT - 1),
   );
-  const [finished, setFinished] = useState(false);
+  // R-D3.1-02: guard sincrónico via ref. setFinished(true) marca el
+  // state para re-render condicional, pero finishedRef es la fuente
+  // de verdad para idempotencia.
+  const finishedRef = useRef(false);
+  const [, setFinished] = useState(false);
 
   const stepHeadingRef = useRef<HTMLHeadingElement | null>(null);
 
@@ -80,7 +89,11 @@ export function Tour({
 
   const finalize = useCallback(
     (skipped: boolean) => {
-      if (finished) return; // F-D3.1-04: guard idempotencia
+      // R-D3.1-02: chequeo + mutación síncrona del ref ANTES de
+      // cualquier side-effect. Garantiza que dos invocaciones en el
+      // mismo task ven el flag actualizado.
+      if (finishedRef.current) return;
+      finishedRef.current = true;
       setFinished(true);
       const ts = writeForjaTourCookie(
         documentRef ? { documentRef } : {},
@@ -90,7 +103,7 @@ export function Tour({
         router.push(redirectTo);
       }
     },
-    [finished, onFinish, documentRef, redirectTo, router],
+    [onFinish, documentRef, redirectTo, router],
   );
 
   const handleNext = useCallback(() => {
