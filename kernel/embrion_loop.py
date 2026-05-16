@@ -1496,7 +1496,7 @@ class EmbrionLoop:
             # queda registrada para auditoría y aprendizaje (Sprint 34 lessons,
             # Sprint PAR_BICEFALO_001 par bicéfalo).
             if _verifier_aborted or _brand_engine_aborted:
-                return Nonee
+                return None
 
             return {
                 "response": response,
