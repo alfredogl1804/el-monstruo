@@ -89,13 +89,24 @@ describe("createApp() — smoke D2.7", () => {
     ]);
   });
 
-  it("GET /api/sprints/states retorna las 8 states canónicas", async () => {
+  it("GET /api/sprints/states retorna las 8 states canónicas (D2.5 H-4 SPEC §4:130)", async () => {
     const app = createApp();
     const res = await app.request("/api/sprints/states", {
       headers: { "x-user-id": VALID_UUID },
     });
     expect(res.status).toBe(200);
     const body = (await res.json()) as { states: string[] };
+    // D2.5 H-4: validación binaria contra SPEC §4:130 (inglés, no español)
+    expect(body.states).toEqual([
+      "proposed",
+      "drafting",
+      "review_alfredo",
+      "review_cowork",
+      "ready_to_execute",
+      "executing",
+      "merged",
+      "canonized",
+    ]);
     expect(body.states.length).toBe(8);
   });
 

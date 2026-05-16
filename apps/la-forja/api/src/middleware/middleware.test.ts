@@ -107,6 +107,29 @@ describe("forjaAuthStub", () => {
     const body = (await res.json()) as { user: User };
     expect(body.user.role).toBe("t1_padre");
   });
+
+  // D2.5 H-1: el stub debe rechazar 503 en NODE_ENV=production aunque el UUID sea válido.
+  // Cierra la ventana entre D3-deploy y D4-OAuth donde un atacante con cualquier UUID
+  // podía impersonar T1-Alfredo si DEV_USER_ROLE quedaba seteado.
+  it("rechaza con 503 cuando NODE_ENV=production aunque el UUID sea válido (D2.5 H-1)", async () => {
+    // Se debe usar strict:false friendly setup: production + secrets reales valdrían,
+    // pero como reusamos VALID_ENV (con strings 'x') usamos non-strict explícitamente:
+    // el middleware llama loadEnv() en strict mode; necesitamos que parse exitoso.
+    // VALID_ENV ya cumple shape mínimo (URLs+keys) para strict mode, salvo SUPABASE_URL
+    // que es URL válida. Por tanto strict:true funciona.
+    process.env.NODE_ENV = "production";
+    _resetEnvCache();
+    const app = new Hono<ForjaAuthContext>();
+    app.use("*", forjaAuthStub());
+    app.get("/x", (c) => c.json({ user: c.var.user }));
+
+    const res = await app.request("/x", {
+      headers: { "x-user-id": VALID_UUID },
+    });
+    expect(res.status).toBe(503);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain("auth_stub_disabled_in_production");
+  });
 });
 
 describe("forjaBudgetGuard", () => {

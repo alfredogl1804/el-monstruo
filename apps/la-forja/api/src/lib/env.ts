@@ -27,7 +27,12 @@
  *   - GOOGLE_OAUTH_CLIENT_SECRET
  *
  * D2 stub auth:
- *   - DEV_USER_ROLE             default "t1_alfredo" (auth real es D4)
+ *   - DEV_USER_ROLE             default "user" (rol más restrictivo; auth real es D4)
+ *
+ * Hardening D2.5 (audit adversarial Perplexity 15-may-2026):
+ *   - H-1: default DEV_USER_ROLE cambiado de "t1_alfredo" a "user" (rol más restrictivo)
+ *          + auth.ts agrega guard NODE_ENV=production que rechaza con HTTP 503
+ *   - H-5: loadEnv({strict:false}) ahora exige NODE_ENV=test (fail-loud doctrina §4)
  */
 
 import { z } from "zod";
@@ -64,9 +69,10 @@ const EnvSchema = z.object({
     .default("https://simulador-api-production.up.railway.app"),
 
   // D2 stub auth — auth real es D4 (Google OAuth + Supabase Auth)
+  // Hardening D2.5 H-1: default cambiado de "t1_alfredo" a "user" (rol restrictivo)
   DEV_USER_ROLE: z
     .enum(["t1_alfredo", "t1_padre", "user"])
-    .default("t1_alfredo"),
+    .default("user"),
 
   // Runtime
   PORT: z
@@ -113,7 +119,8 @@ export function loadEnv(opts: { strict?: boolean } = {}): Env {
   const { strict = true } = opts;
 
   if (!strict) {
-    // Modo permisivo: solo PORT y NODE_ENV deben existir. Usado en /health boot.
+    // Modo permisivo: solo PORT y NODE_ENV deben existir. Usado en /health boot y tests.
+    // Hardening D2.5 H-5: rechaza permisivo en NODE_ENV=production (fail-loud doctrina §4).
     const partial = z.object({
       PORT: EnvSchema.shape.PORT,
       NODE_ENV: EnvSchema.shape.NODE_ENV,
@@ -122,6 +129,13 @@ export function loadEnv(opts: { strict?: boolean } = {}): Env {
       PORT: process.env.PORT,
       NODE_ENV: process.env.NODE_ENV,
     });
+    if (parsed.NODE_ENV === "production") {
+      throw new Error(
+        "[la-forja:env_load_permissive_blocked_in_production] " +
+          "loadEnv({strict:false}) is forbidden when NODE_ENV=production. " +
+          "Use strict mode (default) so missing secrets fail loud.",
+      );
+    }
     _cached = {
       MANUS_API_KEY_GOOGLE: process.env.MANUS_API_KEY_GOOGLE ?? "",
       MANUS_API_KEY_APPLE: process.env.MANUS_API_KEY_APPLE ?? "",
@@ -144,7 +158,7 @@ export function loadEnv(opts: { strict?: boolean } = {}): Env {
         process.env.SIMULADOR_BASE_URL ??
         "https://simulador-api-production.up.railway.app",
       DEV_USER_ROLE:
-        (process.env.DEV_USER_ROLE as UserRole | undefined) ?? "t1_alfredo",
+        (process.env.DEV_USER_ROLE as UserRole | undefined) ?? "user",
       PORT: parsed.PORT,
       NODE_ENV: parsed.NODE_ENV,
     };

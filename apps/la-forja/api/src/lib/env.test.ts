@@ -93,10 +93,10 @@ describe("loadEnv strict mode", () => {
     expect(env.SIMULADOR_BASE_URL).toBe("http://localhost:9090");
   });
 
-  it("defaults DEV_USER_ROLE to t1_alfredo when absent", () => {
+  it("defaults DEV_USER_ROLE to user (least-privilege, D2.5 H-1)", () => {
     Object.assign(process.env, VALID_ENV);
     const env = loadEnv({ strict: true });
-    expect(env.DEV_USER_ROLE).toBe("t1_alfredo");
+    expect(env.DEV_USER_ROLE).toBe("user");
   });
 
   it("accepts t1_padre and user as DEV_USER_ROLE", () => {
@@ -134,19 +134,28 @@ describe("loadEnv strict mode — fail loud on missing required", () => {
   }
 });
 
-describe("loadEnv non-strict mode (D1 /health boot)", () => {
-  it("loads with placeholders when secrets are absent", () => {
-    process.env.NODE_ENV = "production";
+describe("loadEnv non-strict mode (D1 /health boot + tests)", () => {
+  it("loads with placeholders when secrets are absent (NODE_ENV=test)", () => {
+    process.env.NODE_ENV = "test";
     const env = loadEnv({ strict: false });
     expect(env.MANUS_API_KEY_GOOGLE).toBe("");
     expect(env.SUPABASE_URL).toBe("https://placeholder.supabase.co");
     expect(env.PORT).toBe(8080);
   });
 
-  it("respects PORT override", () => {
+  it("respects PORT override (NODE_ENV=test)", () => {
     process.env.PORT = "3000";
+    process.env.NODE_ENV = "test";
     const env = loadEnv({ strict: false });
     expect(env.PORT).toBe(3000);
+  });
+
+  // D2.5 H-5: rechaza permisivo en production (fail-loud)
+  it("rejects strict:false in NODE_ENV=production (D2.5 H-5)", () => {
+    process.env.NODE_ENV = "production";
+    expect(() => loadEnv({ strict: false })).toThrow(
+      /env_load_permissive_blocked_in_production/,
+    );
   });
 });
 

@@ -10,10 +10,16 @@
  * En D4: este middleware se reemplaza por validación JWT Supabase Auth.
  *   El interface User NO cambia. Las rutas que usan `c.get('user')` no se tocan.
  *
- * Comportamiento binario en D2:
+ * Comportamiento binario en D2.5:
+ *   - Si NODE_ENV=production → HTTP 503 (stub deshabilitado, requiere D4 OAuth real)
  *   - Si NO viene `x-user-id` header → 401 Unauthorized
  *   - Si viene UUID válido → c.set('user', {id, email, role}) y next()
  *   - El test usa user-id determinista (UUID válido) para evitar randomness
+ *
+ * Hardening D2.5 (audit adversarial Perplexity 15-may-2026):
+ *   - H-1: guard NODE_ENV=production que rechaza con HTTP 503 antes de aceptar UUID.
+ *          Cierra la ventana entre D3-deploy-staging y D4-auth-real donde un atacante
+ *          con cualquier UUID válido + DEV_USER_ROLE en env podía impersonar T1-Alfredo.
  */
 
 import type { Context, MiddlewareHandler, Next } from "hono";
@@ -39,6 +45,20 @@ export interface ForjaAuthContext {
  */
 export function forjaAuthStub(): MiddlewareHandler<ForjaAuthContext> {
   return async (c: Context, next: Next) => {
+    // Hardening D2.5 H-1: el stub está PROHIBIDO en producción.
+    // Cualquier deploy que llegue aquí con NODE_ENV=production rechaza con 503.
+    // Sustitución legítima: middleware OAuth real de D4.
+    const env = loadEnv();
+    if (env.NODE_ENV === "production") {
+      return c.json(
+        {
+          ok: false,
+          error:
+            "[la-forja:auth_stub_disabled_in_production] D4 Google OAuth + Supabase Auth required",
+        },
+        503,
+      );
+    }
     const userId = c.req.header("x-user-id");
     if (!userId) {
       return c.json(
@@ -59,7 +79,6 @@ export function forjaAuthStub(): MiddlewareHandler<ForjaAuthContext> {
         401,
       );
     }
-    const env = loadEnv();
     const role: UserRole = env.DEV_USER_ROLE;
     const user: User = {
       id: userId,

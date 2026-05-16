@@ -232,7 +232,7 @@ describe("/api/sprints", () => {
     expect(body.error).toContain("sprints_missing_objective");
   });
 
-  it("200 con propuesta del co-piloto y state=propuesta", async () => {
+  it("200 con propuesta del co-piloto y state=proposed (D2.5 H-4 SPEC §4:130)", async () => {
     const res = await makeApp().request("/api/sprints", {
       method: "POST",
       headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
@@ -249,7 +249,7 @@ describe("/api/sprints", () => {
       costUsd: number;
     };
     expect(body.ok).toBe(true);
-    expect(body.state).toBe("propuesta");
+    expect(body.state).toBe("proposed");
     expect(body.model).toBe("gpt-5.5-pro");
     expect(body.proposal).toContain("Sprint mock");
     expect(body.costUsd).toBeGreaterThan(0);
@@ -380,5 +380,153 @@ describe("/api/telemetry", () => {
     expect(captured[0]!.type).toBe("simplification_requested");
     expect(captured[0]!.confidence).toBe(0.85);
     expect(captured[0]!.userId).toBe(VALID_UUID);
+  });
+});
+
+
+// ============================================================================
+// D2.5 — Tests de hardening adversarial (audit Perplexity 15-may-2026)
+// ============================================================================
+//
+// H-2: budget leak en error path
+//   Si el LLM (tutor o magna) lanza, debe llamarse adjustSpent(-estimated)
+//   para liberar la reserva. Sin esto, el cap $50/mes se "agotaba" con errores.
+//
+// H-3: multi-mission gate
+//   classifier (Gemini Flash) y magna_validation (Sonar) son llamadas LLM
+//   adicionales que también pasan por preCallCheck/postCallCommit. Antes de
+//   D2.5 sólo el tutor cobraba al cap, dejando hueco para abuso.
+
+describe("D2.5 hardening — /api/tutor/chat (H-2 budget rollback + H-3 multi-mission gate)", () => {
+  function spyBudgetClient(): BudgetClient & {
+    reserveSpent: ReturnType<typeof vi.fn>;
+    adjustSpent: ReturnType<typeof vi.fn>;
+  } {
+    const reserveSpent = vi.fn(async () => undefined);
+    const adjustSpent = vi.fn(async () => undefined);
+    return {
+      readSpent: async () => 0,
+      reserveSpent,
+      adjustSpent,
+    };
+  }
+
+  function makeAppWithClient(
+    client: BudgetClient,
+  ) {
+    const app = new Hono<ForjaAuthContext & ForjaBudgetContext>();
+    app.use("*", forjaAuthStub());
+    app.use(
+      "*",
+      forjaBudgetGuard({
+        client,
+        missionFor: () => "tutor",
+      }),
+    );
+    app.route(
+      "/api/tutor",
+      tutorRoutes({
+        budgetClient: client,
+        classifier: {
+          intent: "no_confusion",
+          confidence: 0.2,
+          passesThreshold: false,
+          rawMessage: "test",
+          inputTokens: 10,
+          outputTokens: 5,
+        },
+      }),
+    );
+    return app;
+  }
+
+  it("H-3: classifier mission llama reserveSpent con estimateCost > 0 (preCallCheck)", async () => {
+    const client = spyBudgetClient();
+    const app = makeAppWithClient(client);
+    const res = await app.request("/api/tutor/chat", {
+      method: "POST",
+      headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: "Explícame el SOP" }],
+      }),
+    });
+    expect(res.status).toBe(200);
+    // Esperamos al menos 2 reserveSpent: 1 del middleware (tutor) + 1 del classifier
+    // (preCallCheck dentro de la ruta, H-3). Sin H-3 esto sería 1.
+    expect(client.reserveSpent.mock.calls.length).toBeGreaterThanOrEqual(2);
+    // Los montos reservados deben ser todos > 0 (estimateCost real, no zero)
+    for (const call of client.reserveSpent.mock.calls) {
+      const amount = call[1] as number;
+      expect(amount).toBeGreaterThan(0);
+    }
+  });
+
+  it("H-3: requireValidation=true agrega reserveSpent para magna_validation", async () => {
+    const client = spyBudgetClient();
+    const app = makeAppWithClient(client);
+    const res = await app.request("/api/tutor/chat", {
+      method: "POST",
+      headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: "¿Último sprint?" }],
+        requireValidation: true,
+      }),
+    });
+    expect(res.status).toBe(200);
+    // Esperamos 3 reservas: tutor (middleware) + classifier + magna_validation (H-3)
+    expect(client.reserveSpent.mock.calls.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("H-2: si invokeTutor lanza, adjustSpent(-estimated) se llama para rollback (budget leak fix)", async () => {
+    // Forzamos al mock a lanzar para simular fallo de proveedor
+    const anthropicMod = await import("../lib/llm/anthropic");
+    vi.mocked(anthropicMod.invokeTutor).mockImplementationOnce(async () => {
+      throw new Error("simulated upstream 500");
+    });
+
+    const client = spyBudgetClient();
+    const app = makeAppWithClient(client);
+    const res = await app.request("/api/tutor/chat", {
+      method: "POST",
+      headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: "Hola" }],
+      }),
+    });
+    // Hono onError: la ruta lanza; en handler default → 500.
+    // Lo único que importa para H-2 es que se haya hecho rollback.
+    expect([500, 502]).toContain(res.status);
+    // adjustSpent debe haberse llamado con un valor NEGATIVO para liberar la reserva
+    const negativeCalls = client.adjustSpent.mock.calls.filter(
+      (call) => (call[1] as number) < 0,
+    );
+    expect(negativeCalls.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("H-2: si invokeMagnaValidation lanza con requireValidation=true, adjustSpent(-magnaEstimated) ejecuta rollback", async () => {
+    const perplexityMod = await import("../lib/llm/perplexity");
+    vi.mocked(perplexityMod.invokeMagnaValidation).mockImplementationOnce(
+      async () => {
+        throw new Error("simulated sonar timeout");
+      },
+    );
+
+    const client = spyBudgetClient();
+    const app = makeAppWithClient(client);
+    const res = await app.request("/api/tutor/chat", {
+      method: "POST",
+      headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: "Verifica esto" }],
+        requireValidation: true,
+      }),
+    });
+    expect([500, 502]).toContain(res.status);
+    const negativeCalls = client.adjustSpent.mock.calls.filter(
+      (call) => (call[1] as number) < 0,
+    );
+    // Esperamos al menos 1 rollback (magna). Puede haber más si el código rollbackea
+    // tutor también, pero el invariante mínimo es 1.
+    expect(negativeCalls.length).toBeGreaterThanOrEqual(1);
   });
 });

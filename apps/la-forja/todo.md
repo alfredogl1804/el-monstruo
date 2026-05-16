@@ -160,3 +160,136 @@ Commit audit: `1bff43d` · Archivo: `bridge/cowork_to_manus_LA_FORJA_001_AUDIT_R
 
 **Próximo:** D3 frontend Next.js 16.2 + Vercel AI SDK 6.0.27 con Tour, Chat tutor SSE, Sala de Sprint, Dashboard vivo. Aprobación Alfredo + audit Cowork del delta D2 requerida para iniciar D3.
 
+
+## D2 Cowork DSC-G-008 v3 VERDE_FIRMADO 15-may-2026 (commit `6401a3b`)
+
+**Veredicto Cowork:** 🟢 VERDE 10/10 puntos + 4/4 decisiones — D3 AUTORIZADO.
+
+Bridge: `bridge/cowork_to_manus_LA_FORJA_001_D2_AUDIT_RESULT.md`
+
+### 5 observaciones register-only (no bloquean D3, atender en D4-D6)
+
+- [ ] **OBS-1 (D4):** `DEV_USER_ROLE` default `"t1_alfredo"` puede dejar deploy accidental con acceso total. Mitigación: middleware/auth.ts debe rechazar header `x-user-id` cuando `NODE_ENV=production` y forzar JWT Supabase Auth.
+- [ ] **OBS-2 (D5):** `SupabaseBudgetClient` placeholder declara métodos que lanzan `[la-forja:budget_supabase_not_implemented]`. D5 reemplaza cada método con SQL atómico real (UPDATE forja_budget WITH `... RETURNING spent_usd_month`).
+- [ ] **OBS-3 (D6 opcional):** Rate limit in-memory en `manus_bridge.ts` (5 calls/hora con `_callTimestamps[]` no compartido). Aceptable hasta D4 con 1 sola instancia Railway. En D6 considerar Redis o Supabase row-level locking si escala horizontal.
+- [ ] **OBS-4 (no acción):** Outlier brand engine wording en `manus_bridge.ts` es paridad 1:1 verbatim del Python original. Decisión deliberada documentada. No es violación.
+- [ ] **OBS-5 (D5):** `getTelemetryClient()` singleton sin reset en prod. Cuando D5 cambia `StdoutTelemetryClient` → `SupabaseTelemetryClient`, llamar `_setTelemetryClient(null)` antes del primer `recordEvent`.
+
+## D3 — Frontend Next.js 16.2 + Vercel AI SDK 6.0.27 (autorizado por Cowork 10/10)
+
+### D3.0 — Pre-flight checks
+- [ ] Validación magna en tiempo real: Next.js 16.2, Vercel AI SDK 6.0.27, Streamdown
+- [ ] Verificar formato SSE que el adaptador del SDK espera (para retro-compatibilizar `/api/tutor/chat`)
+- [ ] Verificar shadcn/ui versión actual + Tailwind v4
+- [ ] Decidir: monorepo `apps/la-forja/web/` (separado del `apps/la-forja/api/`) ✅ confirmado por SPEC §6
+
+### D3.1 — Scaffold Next.js 16.2 (commit 1)
+- [ ] `apps/la-forja/web/package.json` con next@16.2, react@19, ai@6.0.27, @ai-sdk/anthropic, streamdown, tailwindcss@4
+- [ ] `apps/la-forja/web/next.config.ts` con `experimental: {} ` actual + proxy a backend dev
+- [ ] `apps/la-forja/web/Dockerfile` Railway-compatible (NO Nixpacks, Railpack)
+- [ ] `apps/la-forja/web/.gitignore` y `.dockerignore`
+- [ ] `apps/la-forja/web/tsconfig.json` strict + paths
+- [ ] `apps/la-forja/web/eslint.config.mjs`
+- [ ] `apps/la-forja/web/app/layout.tsx` shell mínimo con Brand Engine title "La Forja"
+- [ ] `apps/la-forja/web/app/page.tsx` redirect a `/tour` o `/dashboard` según role
+- [ ] Tests vitest scaffold
+
+### D3.2 — Página /tour (commit 2)
+- [ ] `app/tour/page.tsx` onboarding 5 pasos guiados (qué es La Forja, las 5 puertas, ejemplo sprint, ejemplo tutor, dashboard)
+- [ ] Componentes Tour reutilizables: `<TourStep>`, `<TourNav>`
+- [ ] Local state con sessionStorage flag "tour_completed"
+- [ ] Diseño con identidad: tipografía + colores Brand Engine
+- [ ] Tests: tour avanza pasos, sessionStorage persiste
+
+### D3.3 — Página /chat (Tutor con SSE) (commit 3)
+- [ ] `app/chat/page.tsx` con `useChat` de Vercel AI SDK 6.0.27
+- [ ] Hook `useChat` apunta a `/api/tutor/chat` del backend Hono
+- [ ] Renderizado streaming con `<Streamdown>` (markdown + streaming gracioso)
+- [ ] Display de model usado (Claude Opus 4.7 Adaptive)
+- [ ] Display de validación magna cuando se invoca (citations Perplexity)
+- [ ] AC12: detector "no entiendo" muestra UI de simplificación automática
+- [ ] Tests: hook chat conecta, streaming render, AC12 trigger
+
+### D3.4 — Página /sprint (Sala de Sprint) (commit 4)
+- [ ] `app/sprint/page.tsx` co-piloto sprints con GPT-5.5 Pro
+- [ ] Componente `<SprintBoard>` con máquina de 8 estados visualizada
+- [ ] Form para crear sprint: input objetivo + selección modelo (default GPT-5.5 Pro)
+- [ ] Display sprint actual con transiciones de estado animadas
+- [ ] Conexión a `/api/sprints` del backend Hono
+- [ ] Tests: form submit, transition state, error handling
+
+### D3.5 — Página /dashboard (Dashboard vivo) (commit 5)
+- [ ] `app/dashboard/page.tsx` con vista de costos + estado + Cliente Cero
+- [ ] Componente `<BudgetCard>` muestra `spent_usd_month` vs cap $50
+- [ ] Componente `<RouterStatus>` muestra estado de las 5 puertas
+- [ ] Componente `<TelemetryFeed>` últimos 10 eventos del cliente
+- [ ] WebSocket o SSE para updates en tiempo real (decidir en D3.0)
+- [ ] Tests: render dashboard, cards reactivas
+
+### D3.6 — Backend SSE adapter (commit 6)
+- [ ] `apps/la-forja/api/src/routes/tutor.ts`: agregar nuevo endpoint POST `/api/tutor/stream` con SSE compatible con Vercel AI SDK
+- [ ] Usar `streamText` o equivalente de `@ai-sdk/anthropic` server-side
+- [ ] Ajustar tests del backend para incluir streaming
+- [ ] Mantener `/api/tutor/chat` JSON síncrono para compatibilidad
+
+### D3.7 — Telemetry frontend mandatorio (commit 7)
+- [ ] `web/lib/telemetry.ts` cliente que POST a `/api/telemetry` desde cada página
+- [ ] Hook `useTelemetry` que registra: `tour_step_completed`, `chat_turn`, `confusion_detected`, `sprint_state_change`, `dashboard_view`, `turn_abandoned`, `sprint_completed`
+- [ ] LF-TELEMETRY-MANDATORY-001 enforcer: cada página DEBE registrar al menos 1 evento
+
+### D3.8 — Montaje + suite final (commit 8)
+- [ ] Build local Next.js: `npm run build` → 0 errores
+- [ ] Vitest tests: 100% verde
+- [ ] Smoke test: arrancar `npm run dev` ambos apps + click manual por las 4 páginas
+- [ ] Validación pre-commit: `bash scripts/_check_no_tokens.sh apps/la-forja/web/`
+- [ ] Push y CI
+
+### D3 — Reglas de oro (Brand Engine + Reglas Duras)
+- [ ] Solo `process.env` (Next.js: `NEXT_PUBLIC_*` para frontend), cero hardcodes
+- [ ] Error messages formato `[la-forja-web:{component}_{action}_{failure_type}]`
+- [ ] Naming componentes con identidad: `Forja*`, `<Tour>`, `<Sprint>`, NO genéricos
+- [ ] No tocar `apps/la-forja/api/` excepto D3.6 (SSE adapter)
+- [ ] Commits desde archivo (Mac heredoc safety)
+- [ ] `git pull --rebase` antes de cada push
+
+
+## D2.5 — Hardening adversarial (auditoría Perplexity Cowork-Opus 15-may 22:50 CST)
+
+### Hallazgos materiales verificados binariamente contra código
+
+- [x] H-1 [CRÍTICO bloqueante pre-deploy]: default `DEV_USER_ROLE=t1_alfredo` + auth stub sin guard `NODE_ENV=production` → privilege escalation
+- [x] H-2 [ALTO]: budget leak permanente si LLM tira excepción después de `preCallCheck` (tutor.ts, sprints.ts)
+- [x] H-3 [ALTO]: classifier (Gemini Flash) + magna_validation (Perplexity) sin budget gate → DSC-LF-003 cap solo aplica a tutor/sprints, no a las otras 2 misiones
+- [x] H-4 [ALTO drift documental binario]: `SPRINT_STATES` español en código (`propuesta, diseño, ejecución, ...`) ≠ SPEC §4:130 inglés (`proposed, drafting, review_alfredo, ...`)
+- [x] H-5 [register→escalado]: `loadEnv({strict:false})` permisivo en `NODE_ENV=production` ahora rechaza con error fail-loud
+
+### Fixes a aplicar
+
+- [x] Fix H-1: `env.ts` default `DEV_USER_ROLE` ahora `"user"` (least-privilege) + `auth.ts` guard production → HTTP 503 si `NODE_ENV=production`
+- [x] Fix H-2: try/catch en `tutor.ts` y `sprints.ts` con `adjustSpent(-estimated)` rollback en error path (classifier, tutor, magna, sprint_copilot)
+- [x] Fix H-3: `MISSION_PRICING` ya tiene `classifier` y `magna_validation` + `tutor.ts` invoca `preCallCheck/postCallCommit` por cada misión auxiliar (3 reservas: tutor middleware + classifier + magna opcional)
+- [x] Fix H-4: `SPRINT_STATES` 8 estados inglés alineado a SPEC §4:130 + tests verifican lista exacta (no sólo length)
+- [x] Fix H-5: `loadEnv({strict:false})` rechaza en `NODE_ENV=production` con `[la-forja:env_load_permissive_blocked_in_production]`
+- [x] Test nuevos D2.5: 6 tests nuevos (`env.test.ts` H-5 rejection + H-1 default; `middleware.test.ts` H-1 503 prod; `routes.test.ts` H-2 tutor rollback + H-2 magna rollback + H-3 classifier reserve + H-3 magna reserve; `index.test.ts` H-4 lista exacta SPRINT_STATES) — 176/176 passing
+- [x] Pre-commit: `npm run typecheck` + `npm test` + `npm run build` verde
+- [ ] Commit `hardening(la-forja): D2.5 adversarial fixes H-1/H-2/H-3/H-4/H-5`
+- [ ] Push a `sprint/la-forja-001`
+
+### Bridge file Cowork con findings adversariales
+
+- [ ] `bridge/manus_to_cowork_LA_FORJA_001_PERPLEXITY_ADVERSARIAL_FINDINGS.md` con 14 hallazgos + verificación + decisión Manus
+- [ ] Commit + push del bridge file
+- [ ] Solicitar a Cowork audit del delta D2.5 (5 puntos binarios) y firma `DSC-G-008 v4` con bullet "adversarial error path coverage obligatorio"
+
+### Hallazgos register-only para D6 polish
+
+- [ ] H-5 strict:false fallback documentar restricción a NODE_ENV=test
+- [ ] H-6 PII redact ampliar regex México (CURP, INE, NSS IMSS, RFC lowercase, phone MX 10-dig, tarjeta con dashes)
+- [ ] H-7 Anthropic thinking adaptive vs enabled — verificar contra docs oficiales
+- [ ] H-8 OpenAI Responses API shape — agregar test integración con SDK mockeado del request body
+- [ ] H-9 @google/genai contents shape — verificar contra docs SDK 2.x
+- [ ] H-10 Perplexity citations defensivo — agregar return_citations:true + warning si len===0
+- [ ] H-11 fix comment middleware order index.ts:115
+- [ ] H-12 Vercel AI SDK adapter Hono — verificar antes de D3 codear SSE
+- [ ] H-13 SupabaseBudgetClient D5 — UPDATE arithmetic atómico (NUNCA SELECT-then-UPDATE)
+- [ ] H-14 LLM client cache invalidation — invalidar caches en path strict:false
