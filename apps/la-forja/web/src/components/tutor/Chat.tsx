@@ -90,7 +90,17 @@ export function Chat({ apiUrl }: ChatProps) {
   const [requireValidation, setRequireValidation] = useState<boolean>(false);
   const [hydrated, setHydrated] = useState(false);
 
+  // SSR hydration: leemos localStorage solo client-side, una sola vez en mount.
+  // El render inicial usa default `false` (igual SSR y CSR primer render —
+  // sin mismatch de hidratación React 19). Después aplicamos la preferencia
+  // real persistida. El cascading render aquí es deliberado y correcto: es el
+  // contrato canónico de hidratación SSR-safe (Next.js + browser-only API).
+  // No es candidato a `useSyncExternalStore` porque la fuente externa
+  // (localStorage) no emite eventos de cambio inter-tab para esta clave.
+  // Refactor a Server Component prop rompería el contrato D3.3 "self-contained
+  // respecto a su preferencia". DSC-LF-008 T1 · D3.3 lint blocker fix.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRequireValidation(loadRequireValidation());
     setHydrated(true);
   }, []);
