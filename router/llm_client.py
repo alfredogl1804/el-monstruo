@@ -303,8 +303,11 @@ class LLMClient:
         kwargs: dict[str, Any] = {
             "model": model_id,
             "messages": messages,
-            "temperature": temperature,
         }
+        # H2.1 fix 2026-05-17: respect supports_temperature flag from catalog.
+        # GPT-5.x reasoning models reject any temperature != 1.0 with HTTP 400.
+        if model_config.get("supports_temperature", True):
+            kwargs["temperature"] = temperature
         if model_config.get("use_max_completion_tokens"):
             kwargs["max_completion_tokens"] = max_tokens
         else:
@@ -819,12 +822,15 @@ class LLMClient:
             headers["HTTP-Referer"] = "https://elmonstruo.ai"
             headers["X-Title"] = "El Monstruo"
 
+        # H2.1 fix 2026-05-17: respect supports_temperature flag from catalog.
+        from config.model_catalog import supports_temperature as _supports_temp
         payload: dict[str, Any] = {
             "model": model_id,
             "messages": messages,
-            "temperature": temperature,
             "max_tokens": max_tokens,
         }
+        if _supports_temp(model_id):
+            payload["temperature"] = temperature
 
         if tools and provider != "perplexity":
             payload["tools"] = [t.to_openai_format() for t in tools]
@@ -952,9 +958,11 @@ class LLMClient:
         kwargs: dict[str, Any] = {
             "model": model_id,
             "messages": messages,
-            "temperature": temperature,
             "stream": True,
         }
+        # H2.1 fix 2026-05-17: respect supports_temperature flag from catalog.
+        if model_config.get("supports_temperature", True):
+            kwargs["temperature"] = temperature
         if model_config.get("use_max_completion_tokens"):
             kwargs["max_completion_tokens"] = max_tokens
         else:
@@ -1108,13 +1116,16 @@ class LLMClient:
             headers["HTTP-Referer"] = "https://elmonstruo.ai"
             headers["X-Title"] = "El Monstruo"
 
+        # H2.1 fix 2026-05-17: respect supports_temperature flag from catalog.
+        from config.model_catalog import supports_temperature as _supports_temp
         payload = {
             "model": model_id,
             "messages": messages,
-            "temperature": temperature,
             "max_tokens": max_tokens,
             "stream": True,
         }
+        if _supports_temp(model_id):
+            payload["temperature"] = temperature
 
         async with client.stream("POST", url, json=payload, headers=headers) as resp:
             resp.raise_for_status()
