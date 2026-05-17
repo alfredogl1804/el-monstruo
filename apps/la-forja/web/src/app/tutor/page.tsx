@@ -14,7 +14,9 @@
 import { loadForjaWebEnv } from "@/lib/env";
 import { Chat } from "@/components/tutor/Chat";
 
-export const dynamic = "force-dynamic";
+// F-D3.2-07: removido `export const dynamic = "force-dynamic"`. La página
+// solo monta <Chat /> Client Component sin lectura SSR de cookies/headers,
+// así que Next.js 16 puede tratarla como ruta estática con hydration cliente.
 
 export default function TutorPage() {
   const env = loadForjaWebEnv();

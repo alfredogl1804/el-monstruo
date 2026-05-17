@@ -489,10 +489,14 @@ Decisión H-12 = Opción C (migración con doctrina forward, no doble endpoint).
 - [x] Frontend `npm test` → 37/37 (sin regresión)
 - [x] Backend `npm run build` → verde (tsc emit limpio)
 - [x] Frontend `npm run build` → verde, `/tutor` registrada como `ƒ` (server-rendered on demand)
-- [ ] Auditoría adversarial Perplexity primer pase — EN CURSO (bridge `manus_to_perplexity_LA_FORJA_001_D3_2_AUDIT.md` redactado y empujado)
-  - [ ] Pegar el bridge a Perplexity Sonar Reasoning Pro y recolectar respuesta F-patterns + R-patterns
-  - [ ] Aplicar fixes binarios sobre commit `beebff8`
-  - [ ] Empujar commit `hardening(la-forja): D3.2 adversarial fixes Perplexity F-D3.2-*`
-- [ ] Auditoría adversarial Perplexity segundo pase (regresión tras correcciones)
-- [ ] Bridge audit Cowork D3.2
+- [x] Auditoría adversarial Perplexity primer pase — COMPLETADO 16-may-2026 (D3.2.1)
+  - [x] Bridge `manus_to_perplexity_LA_FORJA_001_D3_2_AUDIT.md` redactado y empujado (commit `e16bb26`)
+  - [x] Output Perplexity Sonar Reasoning Pro recolectado: 9 F-patterns + 3 R-patterns + 5 drifts (DO NOT SHIP)
+  - [x] Triage binario: 7 F aplicados (F-01/02/03/04/06/07/09), 2 F disputados con razón documentada (F-05/08)
+  - [x] R-patterns: 3 aplicados (R-01 endurecido, R-02 contract test fs-based, R-03 doctrina honesty)
+  - [x] 5 drifts externos registrados como work item de sprints D5/D6 (D-01 RLS critical, D-02 Notion, D-03/04/05 doc)
+  - [x] Backend tests 180/180 (+4) · Frontend tests 38/38 (+1) · typecheck + builds verdes
+  - [x] Doctrina actualizada (`apps/la-forja/web/_DOCTRINA_D3.md §8`)
+- [ ] Auditoría adversarial Perplexity segundo pase (regresión sobre commit hardening D3.2.1)
+- [ ] Bridge audit Cowork D3.2 (sobre delta D3.2 + D3.2.1)
 - [ ] DSC-LF-005 firmado formalmente al cierre (tras audits)

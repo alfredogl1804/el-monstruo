@@ -186,7 +186,21 @@ export function buildTutorStream(
       });
     },
     onError: async ({ error }) => {
-      await opts.onError(error);
+      // F-D3.2-02: try/catch alrededor del rollback. Si la DB del budget
+      // ledger falla, NO podemos dejar el error silenciado dentro del stream
+      // o el cap quedaría inconsistente sin trazabilidad.
+      try {
+        await opts.onError(error);
+      } catch (rollbackError) {
+        // Fail-loud: namespace [la-forja:*] (Brand Engine + Regla Dura #6).
+        console.error(
+          "[la-forja:tutor_rollback_failed] onError handler threw",
+          {
+            originalError: error,
+            rollbackError,
+          },
+        );
+      }
     },
   });
 

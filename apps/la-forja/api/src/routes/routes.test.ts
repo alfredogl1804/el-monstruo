@@ -17,6 +17,10 @@ import type { BudgetClient } from "../lib/budget";
 import { forjaAuthStub, type ForjaAuthContext } from "../middleware/auth";
 import { forjaBudgetGuard, type ForjaBudgetContext } from "../middleware/budget";
 import { tutorRoutes } from "./tutor";
+import {
+  FORJA_TUTOR_HEADER_KEYS,
+  FORJA_CITATIONS_HEADER_MAX_BYTES,
+} from "../shared/headers";
 import { sprintsRoutes, SPRINT_STATES } from "./sprints";
 import { manusRoutes } from "./manus";
 import { puertasRoutes } from "./puertas";
@@ -270,18 +274,26 @@ describe("/api/tutor/chat (D3.2 SSE)", () => {
     });
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/event-stream");
-    expect(res.headers.get("x-vercel-ai-ui-message-stream")).toBe("v1");
-    expect(res.headers.get("x-la-forja-intent")).toBe("no_confusion");
-    expect(res.headers.get("x-la-forja-model")).toBe("claude-opus-4-7");
-    expect(Number(res.headers.get("x-la-forja-confidence"))).toBeCloseTo(0.2);
-    expect(res.headers.get("x-la-forja-citations")).toBeNull();
-    expect(res.headers.get("x-la-forja-validation-model")).toBeNull();
+    expect(res.headers.get(FORJA_TUTOR_HEADER_KEYS.protocolVersion)).toBe("v1");
+    expect(res.headers.get(FORJA_TUTOR_HEADER_KEYS.intent)).toBe(
+      "no_confusion",
+    );
+    expect(res.headers.get(FORJA_TUTOR_HEADER_KEYS.model)).toBe(
+      "claude-opus-4-7",
+    );
+    expect(
+      Number(res.headers.get(FORJA_TUTOR_HEADER_KEYS.confidence)),
+    ).toBeCloseTo(0.2);
+    expect(res.headers.get(FORJA_TUTOR_HEADER_KEYS.citationsB64)).toBeNull();
+    expect(
+      res.headers.get(FORJA_TUTOR_HEADER_KEYS.validationModel),
+    ).toBeNull();
     // Drena el body para asegurar que el stream cierra limpio
     const text = await res.text();
     expect(text).toContain("Mock tutor reply");
   });
 
-  it("200 SSE: incluye x-la-forja-citations + x-la-forja-validation-model con requireValidation=true", async () => {
+  it("200 SSE: incluye x-la-forja-citations-b64 + x-la-forja-validation-model con requireValidation=true (F-D3.2-03 base64url)", async () => {
     const res = await makeApp().request("/api/tutor/chat", {
       method: "POST",
       headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
@@ -292,13 +304,87 @@ describe("/api/tutor/chat (D3.2 SSE)", () => {
     });
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/event-stream");
-    const citationsHeader = res.headers.get("x-la-forja-citations");
-    expect(citationsHeader).not.toBeNull();
-    const citations = JSON.parse(citationsHeader!) as string[];
-    expect(citations.length).toBeGreaterThan(0);
-    expect(res.headers.get("x-la-forja-validation-model")).toBe(
+    // F-D3.2-03: el header crudo `x-la-forja-citations` (JSON) ya no existe
+    expect(res.headers.get("x-la-forja-citations")).toBeNull();
+    // F-D3.2-03: viaja como base64url(JSON.stringify([...]))
+    const b64 = res.headers.get(FORJA_TUTOR_HEADER_KEYS.citationsB64);
+    expect(b64).not.toBeNull();
+    const decoded = JSON.parse(
+      Buffer.from(b64!, "base64url").toString("utf-8"),
+    ) as string[];
+    expect(decoded.length).toBeGreaterThan(0);
+    expect(decoded[0]).toMatch(/^https:\/\//);
+    expect(res.headers.get(FORJA_TUTOR_HEADER_KEYS.validationModel)).toBe(
       "sonar-reasoning-pro",
     );
+  });
+
+  it("F-D3.2-03: citations con UTF-8 (acentos) sobreviven el round-trip via base64url", async () => {
+    const perplexityMod = await import("../lib/llm/perplexity");
+    vi.mocked(perplexityMod.invokeMagnaValidation).mockImplementationOnce(
+      async () => ({
+        content: "v\u00e1lido",
+        citations: [
+          "https://ejemplo.com/fuente-\u00e1rabe",
+          "https://ejemplo.com/m\u00e9xico",
+        ],
+        inputTokens: 50,
+        outputTokens: 30,
+        model: "sonar-reasoning-pro",
+      }),
+    );
+
+    const res = await makeApp().request("/api/tutor/chat", {
+      method: "POST",
+      headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: "Verifica" }],
+        requireValidation: true,
+      }),
+    });
+    expect(res.status).toBe(200);
+    const b64 = res.headers.get(FORJA_TUTOR_HEADER_KEYS.citationsB64);
+    expect(b64).not.toBeNull();
+    const decoded = JSON.parse(
+      Buffer.from(b64!, "base64url").toString("utf-8"),
+    ) as string[];
+    expect(decoded).toContain("https://ejemplo.com/fuente-\u00e1rabe");
+    expect(decoded).toContain("https://ejemplo.com/m\u00e9xico");
+  });
+
+  it("F-D3.2-04: payload de citations excede el cap → se trunca a FORJA_CITATIONS_HEADER_MAX_BYTES", async () => {
+    const huge = Array.from(
+      { length: 200 },
+      (_, i) => `https://example.com/source-${i.toString().padStart(4, "0")}áéíóú`,
+    );
+    const perplexityMod = await import("../lib/llm/perplexity");
+    vi.mocked(perplexityMod.invokeMagnaValidation).mockImplementationOnce(
+      async () => ({
+        content: "x",
+        citations: huge,
+        inputTokens: 50,
+        outputTokens: 30,
+        model: "sonar-reasoning-pro",
+      }),
+    );
+
+    const res = await makeApp().request("/api/tutor/chat", {
+      method: "POST",
+      headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: "x" }],
+        requireValidation: true,
+      }),
+    });
+    expect(res.status).toBe(200);
+    const b64 = res.headers.get(FORJA_TUTOR_HEADER_KEYS.citationsB64);
+    expect(b64).not.toBeNull();
+    // base64url(N bytes) = ceil(N/3)*4 sin padding. El payload UTF-8 fue
+    // truncado a FORJA_CITATIONS_HEADER_MAX_BYTES bytes ANTES del encode.
+    // El base64url resultante mide aprox 4/3 * cap.
+    const expectedMaxB64Length =
+      Math.ceil(FORJA_CITATIONS_HEADER_MAX_BYTES / 3) * 4;
+    expect(b64!.length).toBeLessThanOrEqual(expectedMaxB64Length);
   });
 });
 
@@ -611,7 +697,7 @@ describe("D2.5 hardening — /api/tutor/chat (H-2 budget rollback + H-3 multi-mi
     expect(negativeCalls.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("H-2: si invokeMagnaValidation lanza con requireValidation=true, adjustSpent(-magnaEstimated) ejecuta rollback", async () => {
+  it("H-2 + R-D3.2-01 (F-D3.2-01): si invokeMagnaValidation lanza con requireValidation=true, adjustSpent rollbackea AMBAS reservas (magna + tutor)", async () => {
     const perplexityMod = await import("../lib/llm/perplexity");
     vi.mocked(perplexityMod.invokeMagnaValidation).mockImplementationOnce(
       async () => {
@@ -633,8 +719,107 @@ describe("D2.5 hardening — /api/tutor/chat (H-2 budget rollback + H-3 multi-mi
     const negativeCalls = client.adjustSpent.mock.calls.filter(
       (call) => (call[1] as number) < 0,
     );
-    // Esperamos al menos 1 rollback (magna). Puede haber más si el código rollbackea
-    // tutor también, pero el invariante mínimo es 1.
-    expect(negativeCalls.length).toBeGreaterThanOrEqual(1);
+    // F-D3.2-01: cuando magna falla, el código DEBE revertir DOS reservas
+    // (magna_validation + tutor reservado por el middleware) para evitar
+    // leak permanente del cap. Si solo aparece 1 rollback, el bug está vivo.
+    expect(negativeCalls.length).toBeGreaterThanOrEqual(2);
+    // El throw debe llevar el namespace canónico
+    const body = await res.json().catch(() => ({}));
+    if (body && typeof body === "object" && "error" in body) {
+      expect(String(body.error)).toMatch(/la-forja:tutor_(magna|stream)/);
+    }
+  });
+
+  it("R-D3.2-01b (F-D3.2-01): si classifier lanza, rollbackea AMBAS reservas (classifier + tutor)", async () => {
+    const ac12Mod = await import("../lib/ac12");
+    vi.spyOn(ac12Mod, "classifyMessage").mockImplementationOnce(async () => {
+      throw new Error("simulated classifier timeout");
+    });
+
+    const client = spyBudgetClient();
+    // Usar app sin classifier deps inyectado para que use classifyMessage real
+    const app = new Hono<ForjaAuthContext & ForjaBudgetContext>();
+    app.use("*", forjaAuthStub());
+    app.use(
+      "*",
+      forjaBudgetGuard({ client, missionFor: () => "tutor" }),
+    );
+    app.route(
+      "/api/tutor",
+      tutorRoutes({ budgetClient: client }),
+    );
+
+    const res = await app.request("/api/tutor/chat", {
+      method: "POST",
+      headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: "Hola" }],
+      }),
+    });
+    expect([500, 502]).toContain(res.status);
+    const negativeCalls = client.adjustSpent.mock.calls.filter(
+      (call) => (call[1] as number) < 0,
+    );
+    // F-D3.2-01: classifier-fail debe revertir classifier + tutor.
+    expect(negativeCalls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("F-D3.2-02: si onError del stream lanza al tocar el budget client, el error queda log fail-loud (no silencia)", async () => {
+    _setTutorStreamShouldThrow(true);
+
+    // Cliente que SOLO lanza en rollback (delta < 0). Los postCallCommit
+    // del classifier (delta > 0) deben pasar para que el flujo llegue al
+    // stream tutor; ahí onError dispara el rollback negativo y nuestra
+    // captura fail-loud (F-D3.2-02) loguea el namespace canónico.
+    const failingClient: BudgetClient = {
+      readSpent: async () => 0,
+      reserveSpent: async () => undefined,
+      adjustSpent: async (_user, delta) => {
+        if (delta < 0) {
+          throw new Error("simulated supabase ledger down");
+        }
+      },
+    };
+
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const app = new Hono<ForjaAuthContext & ForjaBudgetContext>();
+    app.use("*", forjaAuthStub());
+    app.use(
+      "*",
+      forjaBudgetGuard({ client: failingClient, missionFor: () => "tutor" }),
+    );
+    app.route(
+      "/api/tutor",
+      tutorRoutes({
+        budgetClient: failingClient,
+        classifier: {
+          intent: "no_confusion",
+          confidence: 0.2,
+          passesThreshold: false,
+          rawMessage: "x",
+          inputTokens: 10,
+          outputTokens: 5,
+        },
+      }),
+    );
+
+    const res = await app.request("/api/tutor/chat", {
+      method: "POST",
+      headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: "x" }],
+      }),
+    });
+    // El stream cierra; el rollback fallido quedó logueado
+    await res.text();
+    await new Promise((r) => setTimeout(r, 10));
+
+    // F-D3.2-02: el error namespace canónico debe aparecer en el log
+    const calls = errorSpy.mock.calls
+      .map((c) => c.map((v) => String(v)).join(" "))
+      .join("\n");
+    expect(calls).toMatch(/la-forja:tutor_rollback_failed/);
+    errorSpy.mockRestore();
   });
 });

@@ -55,6 +55,10 @@ import {
 import { recordEvent } from "../lib/telemetry";
 import type { ForjaAuthContext } from "../middleware/auth";
 import type { ForjaBudgetContext } from "../middleware/budget";
+import {
+  FORJA_TUTOR_HEADER_KEYS,
+  FORJA_CITATIONS_HEADER_MAX_BYTES,
+} from "../shared/headers";
 
 export interface TutorChatRequest {
   messages: Array<{ role: "user" | "assistant"; content: string }>;
@@ -125,6 +129,9 @@ export function tutorRoutes(deps: TutorRoutesDeps) {
       CLASSIFIER_MAX_INPUT,
       CLASSIFIER_MAX_OUTPUT,
     );
+    // tutorBudgetEstimated lo reserva el middleware ANTES de la ruta. Lo
+    // capturamos aquí para revertirlo si classifier o magna fallan (F-D3.2-01).
+    const tutorBudgetEstimated = c.var.budgetEstimated;
     let ac12: AC12Classification;
     try {
       ac12 =
@@ -132,8 +139,11 @@ export function tutorRoutes(deps: TutorRoutesDeps) {
           ? await deps.classifier()
           : deps.classifier ?? (await classifyMessage(lastUserMsg.content));
     } catch (err) {
+      // F-D3.2-01: si classifier falla, revertir AMBAS reservas para evitar
+      // leak permanente del budget tutor que el middleware ya reservó.
       await deps.budgetClient.adjustSpent(user.id, -classifierEstimated);
-      throw err;
+      await deps.budgetClient.adjustSpent(user.id, -tutorBudgetEstimated);
+      throw new Error("[la-forja:tutor_classifier_failed]", { cause: err });
     }
     await postCallCommit(
       deps.budgetClient,
@@ -189,13 +199,14 @@ export function tutorRoutes(deps: TutorRoutesDeps) {
           magnaEstimated,
         );
       } catch (err) {
+        // F-D3.2-01: rollback AMBAS reservas (magna + tutor) para evitar leak.
         await deps.budgetClient.adjustSpent(user.id, -magnaEstimated);
-        throw err;
+        await deps.budgetClient.adjustSpent(user.id, -tutorBudgetEstimated);
+        throw new Error("[la-forja:tutor_magna_failed]", { cause: err });
       }
     }
 
     // ---- 4. Tutor stream (Claude Opus 4.7 Adaptive — H-2 rollback en onError)
-    const tutorBudgetEstimated = c.var.budgetEstimated;
     const builder = deps.streamBuilder ?? buildTutorStream;
 
     const result = builder({
@@ -212,24 +223,45 @@ export function tutorRoutes(deps: TutorRoutesDeps) {
         );
       },
       onError: async () => {
-        await deps.budgetClient.adjustSpent(user.id, -tutorBudgetEstimated);
+        // F-D3.2-02: try/catch también en el callsite (no solo en el wrapper
+        // de lib/llm/anthropic.ts) porque los mocks del stream builder en
+        // tests pueden invocar onError directo sin pasar por el wrapper.
+        try {
+          await deps.budgetClient.adjustSpent(user.id, -tutorBudgetEstimated);
+        } catch (rollbackError) {
+          console.error(
+            "[la-forja:tutor_rollback_failed] adjustSpent threw inside onError",
+            { rollbackError },
+          );
+        }
       },
     });
 
     // Headers SSE — DSC-LF-005 + protocolo Vercel AI SDK 6 (UI Message Stream).
-    // Las citations viajan en x-la-forja-citations (JSON encoded) para que el
-    // cliente las lea pre-stream sin parsear chunks.
+    // F-D3.2-03/04: citations viajan en x-la-forja-citations-b64 (base64url JSON)
+    // para soportar UTF-8 sin romper RFC 7230 + cap 2KB para evitar truncación
+    // por límites de header de Cloud Run / Hono.
     const headers: Record<string, string> = {
-      "x-vercel-ai-ui-message-stream": "v1",
-      "x-la-forja-intent": ac12.intent,
-      "x-la-forja-confidence": ac12.confidence.toFixed(4),
-      "x-la-forja-model": "claude-opus-4-7",
+      [FORJA_TUTOR_HEADER_KEYS.protocolVersion]: "v1",
+      [FORJA_TUTOR_HEADER_KEYS.intent]: ac12.intent,
+      [FORJA_TUTOR_HEADER_KEYS.confidence]: ac12.confidence.toFixed(4),
+      [FORJA_TUTOR_HEADER_KEYS.model]: "claude-opus-4-7",
     };
     if (citations.length > 0) {
-      headers["x-la-forja-citations"] = JSON.stringify(citations);
+      // F-D3.2-04: truncar por BYTES UTF-8 (no por caracteres) para respetar
+      // FORJA_CITATIONS_HEADER_MAX_BYTES de manera estricta. `slice(0, N)`
+      // sobre el string corta caracteres y deja UTF-8 multi-byte expandir el
+      // payload por encima del cap.
+      const fullPayload = Buffer.from(JSON.stringify(citations), "utf-8");
+      const truncated = fullPayload.subarray(
+        0,
+        FORJA_CITATIONS_HEADER_MAX_BYTES,
+      );
+      headers[FORJA_TUTOR_HEADER_KEYS.citationsB64] =
+        truncated.toString("base64url");
     }
     if (validationModel !== null) {
-      headers["x-la-forja-validation-model"] = validationModel;
+      headers[FORJA_TUTOR_HEADER_KEYS.validationModel] = validationModel;
     }
 
     return result.toUIMessageStreamResponse({ headers });

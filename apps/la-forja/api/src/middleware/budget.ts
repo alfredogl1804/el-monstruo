@@ -21,6 +21,7 @@
 import type { Context, MiddlewareHandler, Next } from "hono";
 import {
   type BudgetClient,
+  FORJA_BUDGET_CAP_USD,
   ForjaBudgetExceededError,
   preCallCheck,
 } from "../lib/budget";
@@ -87,7 +88,8 @@ export function forjaBudgetGuard(
             error: err.message,
             currentSpent: err.currentSpent,
             estimatedCost: err.estimatedCost,
-            cap: 50.0,
+            // F-D3.2-09: usar la constante canónica DSC-LF-003, no literal.
+            cap: FORJA_BUDGET_CAP_USD,
           },
           429,
         );

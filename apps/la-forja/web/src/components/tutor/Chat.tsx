@@ -29,6 +29,10 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useMemo, useState } from "react";
 import { MessageBubble } from "./MessageBubble";
+import {
+  FORJA_TUTOR_HEADER_KEYS,
+  decodeCitationsHeader,
+} from "@/lib/forjaHeaders";
 
 export interface ChatProps {
   apiUrl: string;
@@ -53,23 +57,17 @@ const EMPTY_META: ForjaTutorMetadata = {
 };
 
 function readMetadataFromHeaders(headers: Headers): ForjaTutorMetadata {
-  const intent = headers.get("x-la-forja-intent");
-  const confidenceRaw = headers.get("x-la-forja-confidence");
-  const model = headers.get("x-la-forja-model");
-  const citationsRaw = headers.get("x-la-forja-citations");
-  const validationModel = headers.get("x-la-forja-validation-model");
+  // R-D3.2-02: usamos la misma fuente canónica que el backend; el contract
+  // test bloquea drift binariamente.
+  const intent = headers.get(FORJA_TUTOR_HEADER_KEYS.intent);
+  const confidenceRaw = headers.get(FORJA_TUTOR_HEADER_KEYS.confidence);
+  const model = headers.get(FORJA_TUTOR_HEADER_KEYS.model);
+  const validationModel = headers.get(FORJA_TUTOR_HEADER_KEYS.validationModel);
 
-  let citations: string[] = [];
-  if (citationsRaw) {
-    try {
-      const parsed = JSON.parse(citationsRaw);
-      if (Array.isArray(parsed)) {
-        citations = parsed.filter((c): c is string => typeof c === "string");
-      }
-    } catch {
-      // Header malformado — no rompemos el stream, solo dejamos vacío.
-    }
-  }
+  // F-D3.2-03: citations llegan como base64url(JSON), nunca JSON crudo.
+  const citations = decodeCitationsHeader(
+    headers.get(FORJA_TUTOR_HEADER_KEYS.citationsB64),
+  );
 
   return {
     intent,

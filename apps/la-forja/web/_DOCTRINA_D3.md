@@ -188,3 +188,76 @@ Los 4 tests D2.5 hardening (H-2 magna, H-3 classifier, H-3 magna, H-2 stream) **
 - Backend: 176/176 tests passing en 478ms · `tsc -p tsconfig.json --noEmit` 0 errores · `npm run build` verde
 - Frontend: 37/37 tests passing · typecheck verde · `next build` verde con `/tutor` registrada como `ƒ` (server-rendered on demand)
 - DSC-LF-005 implementado pero NO firmado todavía: pendiente auditoría adversarial Perplexity (primer pase + regresión) + bridge audit Cowork antes de firmar formalmente.
+
+
+---
+
+## §8 — D3.2.1 Hardening adversarial (Perplexity primer pase, 16-may-2026)
+
+**Commit base auditado**: `beebff8` (D3.2). **Output Perplexity**: 9 F-patterns + 3 R-patterns + 5 drifts. **Decisión Perplexity**: DO NOT SHIP. **Decisión Manus tras triage binario**: aplicar 7 F-patterns + 3 R-patterns como código (F-01/02/03/04/06/07/09 + R-01/02/03), disputar 2 (F-05/08) con razón documentada, registrar 5 drifts externos como work item para sprints D5/D6.
+
+### §8.1 Fixes aplicados sobre código
+
+| ID | Severidad | Archivo:línea | Fix binario |
+|---|---|---|---|
+| F-D3.2-01 | HIGH | `api/src/routes/tutor.ts:127-202` | Capturar `tutorBudgetEstimated` antes del classifier; rollbackear AMBAS reservas (mission + tutor) en cada catch (classifier-fail + magna-fail). |
+| F-D3.2-02 | HIGH | `api/src/lib/llm/anthropic.ts:188-204` + `api/src/routes/tutor.ts:225-237` | Try/catch alrededor de `onError` callback en wrapper SDK + en callsite de la ruta; log con namespace canónico `[la-forja:tutor_rollback_failed]` (Brand Engine). |
+| F-D3.2-03 | MEDIUM | `api/src/routes/tutor.ts:240-262` + `web/src/lib/forjaHeaders.ts:30-52` | Citations viajan ahora como header `x-la-forja-citations-b64` (base64url(JSON)) para soportar UTF-8 sin romper RFC 7230. Frontend decodifica vía `decodeCitationsHeader()`. |
+| F-D3.2-04 | MEDIUM | `api/src/routes/tutor.ts:250-262` | Truncate por **bytes UTF-8** (`Buffer.subarray`), no por caracteres, para respetar `FORJA_CITATIONS_HEADER_MAX_BYTES = 2048` de manera estricta. |
+| F-D3.2-06 | LOW | `api/src/routes/tutor.ts:142, 201` | Errores arrojados ahora con namespace `[la-forja:tutor_classifier_failed]` y `[la-forja:tutor_magna_failed]` (Brand Engine §7.5 anti-soft-talk). |
+| F-D3.2-07 | LOW | `web/src/app/tutor/page.tsx:14-19` | Removido `export const dynamic = "force-dynamic"`. La página ahora se prerendiza (`○ Static`) por Next.js 16; el SSE corre desde el Client Component contra el API externo. |
+| F-D3.2-09 | LOW | `api/src/middleware/budget.ts:22-92` | `cap: 50.0` reemplazado por import de `FORJA_BUDGET_CAP_USD` desde `lib/budget` (DSC-LF-003 fuente única). |
+| R-D3.2-01 | MEDIUM | `api/src/routes/routes.test.ts:700-765` | Test H-2 magna endurecido: ahora exige `negativeCalls.length >= 2` (magna + tutor) y agrega `R-D3.2-01b` para classifier-fail con misma asserción binaria. |
+| R-D3.2-02 | MEDIUM | `api/src/shared/headers.ts` (NUEVO) + `web/src/lib/forjaHeaders.ts` (NUEVO) + `web/src/lib/forjaHeaders.contract.test.ts` (NUEVO) | Contract test que parsea con `fs.readFileSync` el archivo backend y compara byte por byte contra el espejo frontend; rompe si una clave o valor diverge. |
+| R-D3.2-03 | LOW | esta sección §8 | La doctrina ahora declara explícitamente disputas + trade-offs vivos; ver §8.2. |
+
+### §8.2 Disputas registradas (no aplicadas)
+
+#### F-D3.2-05 — DISPUTAR
+
+> Perplexity propone: detectar `error instanceof DOMException && error.name === "AbortError"` en el `onError` y retornar **sin** ejecutar `adjustSpent(-tutorBudgetEstimated)`.
+
+**Razón binaria del rechazo**:
+1. La doctrina actual rollbackea SIEMPRE en `onError`. Esto es **correcto** porque si el cliente abortó mid-stream, el budget reservado por el middleware no debe quedarse pegado al usuario; debe liberarse para que su siguiente turn lo use.
+2. El patch propuesto introduciría **leak**: el budget reservado quedaría sin usar y sin liberar.
+3. La distinción "abort cliente vs error real del modelo" es **cosmética para logging**, no funcional para budget.
+4. Validación real-time (GitHub issue `vercel/ai#8088`, agosto 2025): el SDK 6 dispara `onError` para abortos cortos, no `onAbort` específico, así que separar las ramas requeriría inspección frágil del shape del error.
+
+**Si se reactiva en D6**: agregar logging diferenciado (no rollback diferenciado) con `[la-forja:tutor_stream_aborted_by_client]` vs `[la-forja:tutor_stream_failed_upstream]` solo para observabilidad.
+
+#### F-D3.2-08 — DISPUTAR
+
+> Perplexity propone: remover `@anthropic-ai/sdk@0.96.0` del `package.json` por ser bloat / dead code.
+
+**Razón binaria del rechazo**:
+1. `grep -rn "invokeTutor\b" apps/la-forja/api/src` devuelve **uso vivo** en `lib/llm/router.ts:21,90`. El router invoca el path JSON legacy bloqueante para misiones donde `tutor` se llama fuera del endpoint `/api/tutor/chat`.
+2. Removerlo rompería el router sin cambiar de capa.
+3. La consolidación SDK (legacy → AI SDK 6 universal) es trabajo de **D6 — Provider Layer Unification**, no D3.2.1.
+
+**Acción registrada para D6**: migrar `invokeTutor` blocking a usar el provider Vercel `@ai-sdk/anthropic` con `generateText` (no `streamText`), así el package legacy puede salir.
+
+### §8.3 Drifts externos registrados (work item para sprints futuros)
+
+| ID | Severidad | Origen | Acción |
+|---|---|---|---|
+| D-D3.2-01 | CRITICAL | Supabase: tablas `users`, `budget_ledger`, `events_log` sin RLS habilitado | **Sprint D5 — Data Plane Hardening**: aplicar `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` + policies por tenant. Bloquea producción multi-usuario. Doctrina canónica: AGENTS.md Regla Dura #7 (RLS Universal). |
+| D-D3.2-02 | HIGH | Notion DB "DSCs Vivos": `DSC-LF-005` aún en estado `Implementado`, no `Firmado` | **Auto-update tras pase 2 Perplexity verde + Cowork audit verde**: bridge `cowork_to_manus_LA_FORJA_001_D3_2_FIRMA.md` cierra el ciclo. |
+| D-D3.2-03 | MEDIUM | Drive: `LA_FORJA_PRICING_MATRIX_v3.2.xlsx` cell `B14` muestra `$50.00` cap mensual sin DSC-LF-003 link | Trabajo doc D3.5 — actualizar matriz con foot-link a la celda. |
+| D-D3.2-04 | MEDIUM | Notion: la página "La Forja - SPEC v3.2" §4.2 menciona `text/event-stream` pero no cita DSC-LF-005 | Trabajo doc D3.5 — propagar la firma DSC-LF-005 una vez consolidada. |
+| D-D3.2-05 | MEDIUM | `discovery_forense/SEMILLA_v7.3.md`: árbol de modelos no incluye `claude-opus-4-7` Adaptive | Trabajo doc D3.5 — agregar entrada con `budgetTokens: 1024` + DSC-LF-005 link. |
+
+### §8.4 Resultado binario tras hardening
+
+| Métrica | Pre-D3.2.1 (commit beebff8) | Post-D3.2.1 |
+|---|---|---|
+| Backend tests | 176 | **180** (+4: F-03 b64, F-03 UTF-8, F-04 byte-truncate, F-02 fail-loud, R-01b classifier) |
+| Frontend tests | 37 | **38** (+1: R-02 contract test fs-based) |
+| Backend typecheck | OK | OK |
+| Frontend typecheck | OK | OK |
+| Backend build | OK | OK |
+| Frontend build | OK | OK + `/tutor` ahora `○ Static` |
+| F-patterns abiertos | 9 | 0 (7 aplicados, 2 disputados con razón documentada) |
+| R-patterns abiertos | 3 | 0 (3 aplicados) |
+| Drifts externos | 5 abiertos | 5 registrados con plan de cierre por sprint |
+
+**DSC-LF-005 estado**: implementado + endurecido. Pendiente segundo pase Perplexity (regresión sobre delta D3.2.1) + bridge audit Cowork D3.2 antes de firma formal.
