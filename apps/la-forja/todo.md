@@ -489,7 +489,10 @@ Decisión H-12 = Opción C (migración con doctrina forward, no doble endpoint).
 - [x] Frontend `npm test` → 37/37 (sin regresión)
 - [x] Backend `npm run build` → verde (tsc emit limpio)
 - [x] Frontend `npm run build` → verde, `/tutor` registrada como `ƒ` (server-rendered on demand)
-- [ ] Auditoría adversarial Perplexity primer pase — SIGUIENTE PASO operativo
+- [ ] Auditoría adversarial Perplexity primer pase — EN CURSO (bridge `manus_to_perplexity_LA_FORJA_001_D3_2_AUDIT.md` redactado y empujado)
+  - [ ] Pegar el bridge a Perplexity Sonar Reasoning Pro y recolectar respuesta F-patterns + R-patterns
+  - [ ] Aplicar fixes binarios sobre commit `beebff8`
+  - [ ] Empujar commit `hardening(la-forja): D3.2 adversarial fixes Perplexity F-D3.2-*`
 - [ ] Auditoría adversarial Perplexity segundo pase (regresión tras correcciones)
 - [ ] Bridge audit Cowork D3.2
 - [ ] DSC-LF-005 firmado formalmente al cierre (tras audits)
