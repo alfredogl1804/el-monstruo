@@ -80,10 +80,13 @@ Durante el Sprint MEGA-CIERRE-HOY (Hilo Ejecutor 1, 2026-05-12) se descubrió bi
 | OpenRouter | Alfredo principal | `Alfredogl1@hotmail.com` | activo, $99.98 USD, Auto Top-Up enabled (threshold $5, recharge $50) | recargado 2026-05-12 |
 | Anthropic (vigente) | Apple Sign-In relay | `hfhm9mycw7@privaterelay.appleid.com` | activo, $100 USD, Auto-recharge enabled | org id `56aa18be-d5cb-4446-8794-05153e524660`, key rotada 2026-05-12 |
 | Anthropic (legacy) | Gmail principal | `alfredogl1.gongora@gmail.com` | **SUSPENDIDA** por Trust & Safety | bóveda Bitwarden todavía referencia esta cuenta — actualizar nota |
+| Anthropic (Hivecom legacy) | Google Workspace | `alfredogl1@hivecom.mx` | **DEPRECADA 2026-05-12** post-rotación; saldo -$0.18 USD, auto-recharge deshabilitado | org "alfredogl1's Individual Org"; financió el consumo del kernel feb–1-may-2026 (~$245 USD acumulados vía cargas $5 + $90 + $150); reemplazada por Apple Sign-In relay el 12-may; observación pasiva 60 días para detectar zombi consumers, **no recargar** |
 | Bitwarden vault | Gmail principal | `alfredogl1.gongora@gmail.com` | activo | master password expuesta 2026-05-10, rotación pendiente |
 | Apple ID | personal | n/a | activo | Sign-In con relay creó cuenta Anthropic nueva |
 
 Esta divergencia de cuentas implica que el flujo de billing y soporte para Anthropic debe ir a la cuenta del Apple Private Relay, no a Gmail. Cualquier intento de recovery de la cuenta vieja Anthropic via Gmail está bloqueado por la suspensión de Trust & Safety y no se debe reintentar; la decisión operativa firme es operar exclusivamente con la cuenta nueva del relay.
+
+La cuenta **Anthropic (Hivecom legacy)** descubierta el 2026-05-16 mediante screenshots de `platform.claude.com` requiere doctrina explícita aparte de la legacy de Gmail. No está suspendida por Trust & Safety, sino simplemente pausada por saldo pendiente de -$0.18 USD tras consumir las recargas manuales que financiaron al kernel desde febrero. Su último lote de uso real corresponde al período 2-may a 12-may 2026, después del cual la rotación del Sprint MEGA-CIERRE-HOY migró el consumo a la cuenta del Apple Private Relay. La doctrina canonizada en DSC-S-017 es: **no recargar, no cancelar, observación pasiva 60 días**. Si algún consumidor zombi sigue apuntando a la API key vieja, va a fallar con `403 insufficient_credits` y delatará su existencia; ese es precisamente el comportamiento deseado para auditar deuda oculta antes de archivar formalmente la cuenta.
 
 ## Auto-recharge configurado en proveedores LLM (2026-05-12)
 
@@ -108,5 +111,6 @@ Tras el merge de S-003.A, los siguientes items quedan en backlog operativo: rota
 
 ---
 
-**Última actualización**: 2026-05-12 (Sprint MEGA-CIERRE-HOY, Hilo Ejecutor 1) — agregado mapa de cuentas dueñas, marcado ANTHROPIC_API_KEY como rotada hoy, agregada sección de auto-recharge configurado en OpenRouter + Anthropic.
-**Penúltima actualización**: 2026-05-10 (creación del inventario, Sprint S-003.A)
+**Última actualización**: 2026-05-16 (Sprint la-forja-001, Hilo B) — documentada cuenta Anthropic Hivecom legacy descubierta vía screenshots de `platform.claude.com`, canonizada doctrina de observación pasiva 60 días en DSC-S-017.
+**Penúltima actualización**: 2026-05-12 (Sprint MEGA-CIERRE-HOY, Hilo Ejecutor 1) — agregado mapa de cuentas dueñas, marcado ANTHROPIC_API_KEY como rotada hoy, agregada sección de auto-recharge configurado en OpenRouter + Anthropic.
+**Antepenúltima actualización**: 2026-05-10 (creación del inventario, Sprint S-003.A)
