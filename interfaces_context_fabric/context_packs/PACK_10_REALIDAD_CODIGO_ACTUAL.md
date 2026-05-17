@@ -25,10 +25,18 @@ La doctrina canonizada (SRC-001 Cap 0 regla 2, SRC-016 `kernel/brand/brand_dna.p
 
 > Forja **#F97316** + Graphite **#1C1917** + Acero **#A8A29E**
 
-El código real del transport Flutter (`apps/mobile/lib/theme/monstruo_theme.dart` línea 5):
+El código real del transport Flutter (`apps/mobile/lib/core/theme/brand_dna.dart` líneas 10-56, verificado en audit D2 2026-05-17):
 
-> *"Inspired by ChatGPT, Claude, Gemini latest interfaces"*
-> Paleta: primary `#00E5FF` (cyan), secondary `#BB86FC` (púrpura), tertiary `#64FFDA`
+```dart
+// línea 10: static const Color primary = Color(0xFF00E5FF);
+// línea 12: static const Color secondary = Color(0xFFBB86FC);
+// línea 34: static const Color borderFocused = Color(0xFF00E5FF);
+// línea 44: gradient colors: [Color(0xFF00E5FF), Color(0xFFBB86FC)]
+// línea 50: gradient colors: [Color(0xFF00E5FF), Color(0xFF00B8D4)]
+// línea 56: gradient colors: [Color(0x4000E5FF), Color(0x40BB86FC)]
+```
+
+**Severidad nominal agregada:** el archivo se llama literalmente `brand_dna.dart` pero contiene **el anti-brand-DNA**. Es el caso más explícito de drift entre nomenclatura canónica y contenido. Cualquier desarrollador o auditor que abra este archivo asumirá que es la fuente de verdad — y heredará el drift.
 
 **Esta paleta es contradicción binaria a tres fuentes canónicas independientes**: APP_VISION, brand_dna.py kernel, y DSC-MO-002 firmado. La paleta cyan/púrpura es prototipo Tier-Owner heredado de la primera versión y NO debe entrar a producción.
 
@@ -126,6 +134,13 @@ El Command Center PWA (SRC-020) implementa 7 superficies reales (`chat`, `finops
 ## Drift de A2UI
 
 La doctrina (SRC-014 spec firmado) define A2UI v1.0 con whitelist de 16 componentes base + 3 especializados. El código real (SRC-015 `kernel/a2ui/schema.py`) implementa exactamente esa whitelist con validación Pydantic. **Cero drift en la layer kernel.**
+
+**Audit D2 2026-05-17 confirma:**
+- `kernel/a2ui/` directorio existe
+- `kernel/agui_adapter.py` existe (AG-UI adapter ChatGPT)
+- `bridge/a2ui_spec_draft_FIRMADO_2026_05_11.md` firmado
+- `bridge/cowork_to_manus_RESULTADO_AUDIT_A2UI_2026_05_11.md` audit Cowork
+- `bridge/sprint_MOBILE_1B_A2UI_IMPLEMENTATION_2026_05_11.md` sprint propuesto
 
 PR #92 trae primitivos + renderer + 51 tests para que el transport Flutter consuma A2UI. **NO está mergeado.** La decisión T1 magna #4 del audit Cowork pregunta si T8 (smoke en iPhone físico) se hace esta semana o no.
 

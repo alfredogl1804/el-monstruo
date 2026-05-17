@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EXISTING_DESIGN_COVERAGE_MATRIX entry schema",
+  "description": "Cada concepto auditado en EXISTING_DESIGN_COVERAGE_MATRIX.md debe cumplir esta estructura",
+  "type": "object",
+  "required": ["concept_id", "aliases", "verdict", "evidence", "action"],
+  "properties": {
+    "concept_id": {
+      "type": "string",
+      "pattern": "^[a-z_0-9]+$",
+      "description": "Identificador canónico en snake_case"
+    },
+    "aliases": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 1,
+      "description": "Lista de aliases conocidos (incluyendo nombres propuestos T1)"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "EXISTE_PLENO",
+        "EXISTE_PARCIAL",
+        "EXISTE_DISTINTO_PROPOSITO",
+        "NO_EXISTE",
+        "NO_EXISTE_EN_SENTIDO_FAMILIAR",
+        "REQUIERE_VERIFICACION"
+      ]
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["src_id", "path", "hits"],
+        "properties": {
+          "src_id": {"type": "string"},
+          "path": {"type": "string"},
+          "hits": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "FUSIONAR_CON_EXISTENTE",
+        "RENOMBRAR",
+        "PRESERVAR_COMO_ALIAS",
+        "CANONIZAR_NUEVO",
+        "DESCARTAR",
+        "REQUIERE_DECISION_T1"
+      ]
+    },
+    "responsable_decision": {
+      "type": "string",
+      "enum": ["Alfredo", "Cowork", "ChatGPT_iter_002", "Manus", "Auto"]
+    }
+  }
+}

@@ -1,0 +1,294 @@
+# ONTOLOGY_SEED_2020_2021.yaml
+# Estructura ontológica derivada de la libreta manuscrita de Alfredo (2020-2021)
+# Estado: HIPOTESIS_NACIENTE_T1_LIVE — NO CANONIZAR hasta CIERRE BLOQUE PRE-IA
+# Fuente única: interfaces_context_fabric/raw_rescues/alfredo_pre_ia_checkpoint_2020_2021_DRAFT.md
+# Pack vinculado: PACK_11_ORIGEN_PRE_IA_ONTOLOGIA_ALFREDO.md
+
+meta:
+  origen: libreta_manuscrita_alfredo_2020_2021
+  fuente_verbatim: raw_rescues/alfredo_pre_ia_checkpoint_2020_2021_DRAFT.md
+  estado: EN_EXTRACCION_T1
+  iteracion: 001_v2
+  fecha_captura: 2026-05-17
+  cierre_pendiente: "CIERRE BLOQUE PRE-IA"
+
+# 7 categorías ontológicas
+categorias:
+  - id: dominios_de_vida
+    nombre: Dominios de vida
+    items:
+      - Trabajo
+      - Salud
+      - Preparación
+      - Formación
+      - Política
+      - Nuevos Proyectos / Inversión
+      - Economía / Finanzas
+      - Amigos / Social
+      - Familia / Vida
+      - Crecimiento Económico
+      - Crecimiento Intelectual
+      - Mejorar la Salud
+      - Prioridades de la Vida / Familia
+      - Gustos Personales
+    mapeo_actual: 9 capas semánticas de Cronos (APP_VISION cap. 5)
+    estado: HIPOTESIS_FUERTE
+
+  - id: objetos_mentales
+    nombre: Objetos mentales
+    items:
+      - Proyecto
+      - Tarea
+      - Subtarea
+      - Listas
+      - Actividades simples
+      - Actividades complejas
+      - Idea
+      - Pensamiento
+      - Rutina
+      - Meta
+      - Objetivo
+      - Observación
+      - Hecho
+    mapeo_actual: tipos del Catastro de Catastros + entradas Cronos
+    estado: HIPOTESIS_FUERTE
+
+  - id: contenedores
+    nombre: Contenedores
+    items:
+      - Libreta
+      - Nota
+      - Carpeta
+      - Registro
+      - Archivos
+      - Sheets
+      - Docs
+      - PDF
+      - Imágenes
+      - Videos
+      - Emails
+    mapeo_actual: fuentes passive CRONOS_1 + 13 capabilities Cap 4
+    estado: HIPOTESIS_FUERTE
+
+  - id: atributos_metadata
+    nombre: Atributos y metadata
+    items:
+      - Deadline
+      - Responsable
+      - Categorizar
+      - Urgente
+      - Solicitud
+      - Etiqueta
+      - Filtro
+      - Descripción
+      - Contacto
+      - Reglas
+      - Menciones
+      - Notificación
+    mapeo_actual: schema superficies Cockpit (Pendientes, Threads, Conexiones)
+    estado: HIPOTESIS_FUERTE
+
+  - id: acciones
+    nombre: Acciones
+    items:
+      - Almacenar
+      - Recuperar links
+      - Consultar
+      - Automatizar
+      - Flujos de trabajo
+    mapeo_actual: operaciones del kernel (memoria, recuperación, agentes, automatización)
+    estado: HIPOTESIS_FUERTE
+
+  - id: herramientas_evaluadas
+    nombre: Herramientas evaluadas
+    items:
+      - Todoist
+      - Microsoft Lists
+      - Roam Research
+      - Microsoft To Do
+      - Notion
+      - OneNote
+      - Evernote
+      - Zapier
+      - IFTTT
+      - Power Automate
+      - Power BI
+    mapeo_actual: el Monstruo absorbe lo mejor de cada una bajo SMP
+    estado: HIPOTESIS_HISTORICA
+
+  - id: metodos_metodologias
+    nombre: Métodos / metodologías
+    items:
+      - Bullet Journal
+      - GTD
+      - Kanban
+      - Pomodoro
+    mapeo_actual: Methodology-as-a-Service del Acto 2 (PACK_05)
+    estado: HIPOTESIS_FUERTE
+
+# 10 principios pre-IA
+principios:
+  - id: PRE-IA-001
+    nombre: Índice Universal por Capas
+    fuente_manuscrita: |
+      Hay que crear una estructura de clasificación de temas.
+      Estructura por capas. Capa 1: lo más universal.
+    mapeo_actual:
+      - 4 Catastros con Trono Score
+      - 9 capas de Cronos
+      - estructura Daily/Cockpit
+      - organización del kernel
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+
+  - id: PRE-IA-002
+    nombre: Ritmo Soberano
+    fuente_manuscrita: |
+      Es importante no dejar que los pendientes o tareas que surjan durante el día
+      marquen el ritmo de mi día a día. Debo apegarme a tareas previamente planeadas.
+    mapeo_actual:
+      - Rhythm Gate (órgano latente C)
+      - Modo Confidente
+      - ejecución consciente 7 capas
+      - principio "describir, no prescribir" del Modo Espejo de Cronos
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+
+  - id: PRE-IA-003
+    nombre: Delegación por Clasificación Universal
+    fuente_manuscrita: |
+      Tengo que hacer una lista de personas a las que puedo delegar tareas
+      según mi 'Clasificación Universal'.
+    mapeo_actual:
+      - Delegation Router (órgano latente D)
+      - Catastro de Suppliers
+      - Catastro de Herramientas AI
+      - sistema de Embriones
+      - Hilos Manus
+      - Bridge inter-cuenta
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+
+  - id: PRE-IA-004
+    nombre: Foco en 5 Objetivos
+    fuente_manuscrita: |
+      Tengo que definir mis 5 objetivos principales y no concentrarme en otros
+      hasta terminar...
+    mapeo_actual:
+      - Focus Guard (órgano latente E)
+      - Modo Daily reducción a 5 superficies
+      - Portfolio Empresas-Hijas con cardinal limit
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+
+  - id: PRE-IA-005
+    nombre: Productividad Real vs Ocupación
+    fuente_manuscrita: |
+      Estar ocupado todos los días no es igual a ser productivo.
+    mapeo_actual:
+      - Validación Memento
+      - Anti-Síndrome Dory
+      - métricas FCS Embriones
+      - principio Acto 2 "si el usuario abre dashboard, el sistema falló"
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+
+  - id: PRE-IA-006
+    nombre: Captura Reconstruible
+    derivado_de: corrección 2026-05-17 + APP_VISION cap. 5
+    mapeo_actual:
+      - Reconstruction Sufficiency Score 0-5 (PACK_03)
+      - Memory Candidate de Transport Cero
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+
+  - id: PRE-IA-007
+    nombre: Fricción Mínima
+    mapeo_actual:
+      - captura passive WhatsApp/Photos/ambient (CRONOS_1)
+      - ingesta sin formularios
+      - voz "escuchame" sin estructura
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+
+  - id: PRE-IA-008
+    nombre: Memoria de Estado Mental
+    mapeo_actual:
+      - capa Emocional de Cronos
+      - Modo Espejo
+      - Embrión Convergencia (HRV × decisión × clima)
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+
+  - id: PRE-IA-009
+    nombre: Legado / Río de la Vida
+    estado: RESUELTO_PARCIAL
+    cubierto_por:
+      - Modo Cripta de Cronos (APP_VISION cap. 5, v1.1+)
+      - PACK_12_RIO_DE_LA_VIDA_EXISTING_AUDIT.md
+    pendiente:
+      - firma sprints CRONOS_1/2/3
+      - firma AUTH_TIERS_001
+      - sprint Shamir Secret Sharing dedicado
+
+  - id: PRE-IA-010
+    nombre: No Depender del Hábito Humano
+    mapeo_actual:
+      - captura ambient 24/7
+      - WhatsApp passive
+      - Photos passive
+      - Modo Espejo automático
+      - invocación contextual de Embriones
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+
+# 5 órganos latentes
+organos_latentes:
+  - id: indice_vivo
+    nombre: Índice Vivo
+    funcion: convierte ruido conceptual en estructura por capas
+    dimensiones: [dominio, tipo_de_objeto, contenedor, herramienta, accion, riesgo, siguiente_paso]
+    estado_actual: parcialmente implementado en Catastros + tags + schema Memento
+
+  - id: clarificador
+    nombre: Clarificador / Ontólogo
+    funcion: discrimina conceptos mezclados
+    pregunta_base: "¿Qué tipo de cosa es esto?"
+    estado_actual: NO implementado como órgano dedicado
+
+  - id: rhythm_gate
+    nombre: Rhythm Gate
+    funcion: decide si un input emergente interrumpe el ritmo
+    estado_actual: NO implementado / candidato Transport Cero
+
+  - id: delegation_router
+    nombre: Delegation Router
+    funcion: decide quién/qué ejecuta
+    targets: [Alfredo, Manus, Cowork, Perplexity, Sabios, Embrion, herramienta_externa, humano, backlog]
+    estado_actual: distribuido, NO unificado
+
+  - id: focus_guard
+    nombre: Focus Guard
+    funcion: protege los 5 objetivos activos
+    estado_actual: NO implementado / candidato Transport Cero
+
+# 11 frases manuscritas verbatim — 15/04/21
+frases_manuscritas_15_04_21:
+  - "Hay que entrenar nuestras intenciones."
+  - "Ignorar las obligaciones diarias conlleva consecuencias serias e inmediatas."
+  - "Tenemos que anotar nuestros tips para crecer en la vida."
+  - "Pegarse a alguien para aprender."
+  - "Frecuentar a personas para crecer en negocios."
+  - "Tener hábitos de gente exitosa."
+  - "Al día de hoy 15/04/21 no estoy delegando tareas. En consecuencia o no las hago o me quita tiempo valioso para planear lo importante."
+  - "Tengo que hacer una lista de personas a las que puedo delegar tareas según mi 'Clasificación Universal'."
+  - "Es importante no dejar que los pendientes o tareas que surjan durante el día marquen el ritmo de mi día a día. Debo apegarme a tareas previamente planeadas."
+  - "Estar ocupado todos los días no es igual a ser productivo."
+  - "Tengo que definir mis 5 objetivos principales y no concentrarme en otros hasta terminar..."
+
+# 5 frases fundacionales (provisional, NO canonizadas)
+frases_fundacionales:
+  - "El Monstruo no nació para hacer más tareas. Nació para transformar ruido conceptual en arquitectura accionable."
+  - "El primer Monstruo no fue una libreta. Fue el intento de construir un índice universal de vida para dejar de confundir conceptos."
+  - "El Monstruo es el índice vivo que Alfredo intentó dibujar en papel antes de que existiera la IA capaz de sostenerlo."
+  - "El Monstruo no solo debe organizar el caos de Alfredo; debe impedir que el caos decida el ritmo de Alfredo."
+  - "La IA no creó la necesidad. Solo hizo posible resolverla."
+
+reglas_operativas:
+  - "NO canonizar hasta CIERRE BLOQUE PRE-IA"
+  - "NO promover al SURFACE_REGISTRY"
+  - "NO promover al CANON_TRUTH_MATRIX como firmado"
+  - "NO actualizar skill interfaces-monstruo-doctrina con Capa 04/05"
+  - "NO ejecutar PROMPT_CHATGPT_5_5_PRO_ITER_002 con este contenido"
+  - "Toda señal T1 nueva pasa primero por EXISTING_DESIGN_COVERAGE_MATRIX antes de diseño nuevo"

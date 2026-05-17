@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SOURCE_LEDGER entry schema",
+  "description": "Cada línea del archivo 02_SOURCE_LEDGER.jsonl debe cumplir este schema",
+  "type": "object",
+  "required": ["src_id", "title", "path", "kind", "status", "weight"],
+  "properties": {
+    "src_id": {
+      "type": "string",
+      "pattern": "^SRC-[0-9]{3}$",
+      "description": "Identificador único del source"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3,
+      "description": "Título corto del documento fuente"
+    },
+    "path": {
+      "type": "string",
+      "description": "Ruta relativa al repo o URL del documento"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["doctrine", "audit", "spec", "sprint", "code", "skill", "thread", "checkpoint", "registry"],
+      "description": "Tipo de fuente"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["CANON_VIGENTE", "CANON_FRAGIL", "DRAFT", "EN_EXTRACCION_T1", "HIPOTESIS_NACIENTE", "REQUIERE_VERIFICACION", "OBSOLETO", "FANTASMA"],
+      "description": "Estado de verdad del documento"
+    },
+    "weight": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "Peso doctrinal del documento (1=trivial, 10=magna)"
+    },
+    "topics": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Temas que cubre"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date",
+      "description": "Última actualización (ISO 8601 YYYY-MM-DD)"
+    },
+    "frase_canonica_unica": {
+      "type": "boolean",
+      "description": "Marca si este documento es la única fuente de una frase canónica (fragilidad alta)"
+    }
+  }
+}

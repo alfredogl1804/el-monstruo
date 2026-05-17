@@ -1,0 +1,173 @@
+# HYPOTHESIS_REGISTRY.yaml
+# Registro de hipótesis nacientes y T1 pendientes en el Context Fabric
+# Iteración: 001 v2 — generado 2026-05-17
+
+meta:
+  iteracion: 001_v2
+  fecha: 2026-05-17
+  proposito: |
+    Mantener trazabilidad de toda hipótesis no canonizada para que ChatGPT,
+    Cowork y Manus la consulten antes de elevar a canon o de duplicar.
+
+estados:
+  - HIPOTESIS_NACIENTE: detectada, sin desarrollo formal
+  - HIPOTESIS_FUERTE: desarrollada, evidencia múltiple, lista para auditar
+  - HIPOTESIS_T1_LIVE: en extracción T1 con Alfredo (no canonizar)
+  - HIPOTESIS_T1_LIVE_RESUELTO: cubierta por canon existente, queda como trazabilidad
+  - REQUIERE_VERIFICACION: mencionada pero sin evidencia firme
+  - INVALIDADA: descartada explícitamente con razón
+
+# === HIPÓTESIS DE CAPAS ARQUITECTÓNICAS ===
+
+hipotesis_capas:
+  - id: capa_01_curaduria_entorno_digital
+    nombre: Capa 01 — Curaduría del Entorno Digital
+    estado: HIPOTESIS_NACIENTE
+    detonante: APP_VISION + audit Cowork
+    descripcion: Acto 2 Calm Tech como curaduría del entorno digital del usuario
+    confirmacion_pendiente: Alfredo
+
+  - id: capa_02_methodology_as_a_service
+    nombre: Capa 02 — Methodology-as-a-Service
+    estado: HIPOTESIS_NACIENTE
+    detonante: PACK_05_METODOLOGIAS_PRODUCTIVIDAD
+    descripcion: El Monstruo aplica metodologías sobre el usuario, no al revés
+    confirmacion_pendiente: Alfredo
+
+  - id: capa_03_schema_first
+    nombre: Capa 03 — Schema-First como invariante interfaz↔IA
+    estado: HIPOTESIS_NACIENTE
+    detonante: 1 hit grep (DSC-LF-005)
+    descripcion: Toda interfaz nace con schema antes que con UI
+    en_staging: skill interfaces-monstruo-doctrina (etapa_2_v2_staging_capas_emergentes.md)
+    confirmacion_pendiente: Alfredo
+
+  - id: capa_acto_3_ai_first_living
+    nombre: AI-First Living
+    estado: HIPOTESIS_NACIENTE
+    detonante: 3 hits relevantes (tests + kernel + bridge)
+    descripcion: |
+      Alfredo ya no organiza información para leerla él, sino para que la IA
+      la absorba mejor y le devuelva claridad.
+    pregunta_irreducible: "¿Es Acto 3 secuencial o capa transversal de los Actos 1+2?"
+    confirmacion_pendiente: Alfredo + iter 002
+
+  - id: capa_acto_0_origen_pre_ia
+    nombre: Acto 0 — Origen Pre-IA
+    estado: HIPOTESIS_T1_LIVE
+    detonante: Checkpoint manuscrito 2020-2021 + Anexo 1 corrección
+    descripcion: 10 principios pre-IA + 5 órganos latentes + 7 categorías ontológicas
+    pendiente: CIERRE BLOQUE PRE-IA
+    pack: PACK_11_ORIGEN_PRE_IA_ONTOLOGIA_ALFREDO.md
+
+# === HIPÓTESIS DE CAPABILITIES Y ÓRGANOS ===
+
+hipotesis_capabilities:
+  - id: transport_cero
+    nombre: Transport Cero
+    estado: HIPOTESIS_NACIENTE
+    descripcion: Transport invisible con 8 preguntas de juicio (no ingesta de archivos)
+    componentes:
+      - Ontological Intake
+      - Capture Heat Check
+      - Reconstruction Sufficiency Score (0-5)
+      - Microcontext Prompt
+      - Rhythm Gate
+      - Delegation Router
+      - Focus Guard
+      - Memory Candidate
+    pack: PACK_03_AI_FIRST_LIVING.md
+    confirmacion_pendiente: Alfredo + iter 002
+
+  - id: organo_indice_vivo
+    nombre: Índice Vivo
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+    detonante: PRE-IA-001 + libreta manuscrita
+    descripcion: Convierte ruido conceptual en estructura por capas
+
+  - id: organo_clarificador
+    nombre: Clarificador / Ontólogo
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+    pregunta_base: "¿Qué tipo de cosa es esto?"
+
+  - id: organo_rhythm_gate
+    nombre: Rhythm Gate
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+    candidato_a: capability transversal de Transport Cero
+
+  - id: organo_delegation_router
+    nombre: Delegation Router
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+    candidato_a: capability transversal de Transport Cero
+
+  - id: organo_focus_guard
+    nombre: Focus Guard
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+    candidato_a: capability transversal de Transport Cero
+
+# === HIPÓTESIS DE NOMBRES Y ALIASES ===
+
+hipotesis_nombres_descartados:
+  - alias: "Cronista Familiar"
+    propuesto_por: ChatGPT iter 001
+    descartado_porque: cubierto por Cronos + Modo Cripta
+    pack: PACK_12_RIO_DE_LA_VIDA_EXISTING_AUDIT.md
+
+  - alias: "Herencia Narrativa"
+    propuesto_por: ChatGPT iter 001
+    descartado_porque: cubierto por Modo Cripta de Cronos
+    pack: PACK_12_RIO_DE_LA_VIDA_EXISTING_AUDIT.md
+
+  - alias: "Legacy Capture"
+    propuesto_por: ChatGPT iter 001
+    descartado_porque: cubierto por CRONOS_1 (passive capture)
+    pack: PACK_12_RIO_DE_LA_VIDA_EXISTING_AUDIT.md
+
+  - alias: "Río de la Vida"
+    estado: ALIAS_T1_DE_ALFREDO_DOCUMENTADO
+    nombre_canonico_real: Cronos / río de Cronos / River of Life
+    nota: |
+      Memoria T1 de Alfredo: "Cowork lo llamó Río de la Vida". Cowork dice
+      literalmente "River of life" en audit 2026-05-11. Drift menor — referente idéntico.
+
+# === HIPÓTESIS PRE-IA DE LIBRETA ===
+
+hipotesis_pre_ia:
+  - id: PRE-IA-001
+    nombre: Índice Universal por Capas
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+  - id: PRE-IA-002
+    nombre: Ritmo Soberano
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+  - id: PRE-IA-003
+    nombre: Delegación por Clasificación Universal
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+  - id: PRE-IA-004
+    nombre: Foco en 5 Objetivos
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+  - id: PRE-IA-005
+    nombre: Productividad Real vs Ocupación
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+  - id: PRE-IA-006
+    nombre: Captura Reconstruible
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+  - id: PRE-IA-007
+    nombre: Fricción Mínima
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+  - id: PRE-IA-008
+    nombre: Memoria de Estado Mental
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+  - id: PRE-IA-009
+    nombre: Legado / Río de la Vida
+    estado: HIPOTESIS_T1_LIVE_RESUELTO
+    cubierto_por: Modo Cripta de Cronos (PACK_12)
+  - id: PRE-IA-010
+    nombre: No Depender del Hábito Humano
+    estado: HIPOTESIS_NACIENTE_T1_LIVE
+
+# === REGLA OPERATIVA PERMANENTE ===
+
+reglas:
+  - "Toda señal T1 nueva entra primero como HIPOTESIS_T1 y se cruza con EXISTING_DESIGN_COVERAGE_MATRIX antes de diseño nuevo"
+  - "Toda hipótesis naciente debe tener detonante explícito + estado claro + responsable de confirmación"
+  - "Una hipótesis no se canoniza directamente; pasa primero por estado FUERTE y luego decisión Alfredo"

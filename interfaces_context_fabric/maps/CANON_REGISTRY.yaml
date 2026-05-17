@@ -1,0 +1,231 @@
+# CANON_REGISTRY.yaml
+# Registro canónico de conceptos firmados y vigentes en el ecosistema Monstruo
+# Iteración: 001 v2 — generado 2026-05-17
+
+meta:
+  iteracion: 001_v2
+  fecha: 2026-05-17
+  proposito: Registrar todo lo CANON_VIGENTE del Monstruo para que ChatGPT y otros sabios externos no inventen capas paralelas a doctrina firmada
+  fuente_principal: docs/EL_MONSTRUO_APP_VISION_v1.md (1117 líneas, 16 capítulos)
+  fuente_secundaria: discovery_forense/CAPILLA_DECISIONES (DSCs firmados)
+
+canon_vigente:
+  arquitectura:
+    - id: kernel_n_transports
+      nombre: "Kernel + N Transports"
+      descripcion: El Monstruo NO es una app — es un kernel con múltiples cuerpos
+      fuente: APP_VISION cap. 1
+      transport_relacionado: transversal
+
+    - id: a2ui_protocol
+      nombre: A2UI Protocol
+      descripcion: Protocolo Agent-to-UI streaming (no widget)
+      fuente: bridge/a2ui_protocol_spec.md + PR #92
+      estado_codigo: PR pendiente merge
+
+    - id: smp_sovereign_memory_plane
+      nombre: SMP — Sovereign Memory Plane
+      descripcion: Cimiento criptográfico no acelerable (Secure Enclave + Shamir + key rotation)
+      fuente: APP_VISION cap. 1 + sprint mobile_0
+      estado_codigo: SPRINT_ESCRITO no firmado
+
+  modulos_principales:
+    - id: cronos
+      nombre: Cronos
+      aliases: ["río de Cronos", "río de vida", "River of Life", "Río de la Vida (T1)"]
+      descripcion: |
+        Río navegable de la vida del usuario con 9 capas semánticas
+        (Salud, Económica, Relaciones, Profesional, Creativa, Filosófica,
+        Aprendizajes, Decisiones, Emocional). Modos: Espejo, Testigo, Cripta.
+        Apuesta civilizacional firmada.
+      fuente: APP_VISION cap. 5
+      estado_codigo: NO_IMPLEMENTADO
+
+    - id: modo_cripta
+      nombre: Modo Cripta (sub-modo de Cronos)
+      sub_modos:
+        - { id: preservacion, estado: CANON_VIGENTE_v1.1+ }
+        - { id: simulacion, estado: DIFERIDO_v1.2+ }
+      descripcion: |
+        Cuando el usuario muere, su Cronos puede ser legado a herederos
+        vía Shamir Secret Sharing pre-distribuido. Soberano, encriptado,
+        navegable. Cita Alfredo: "lo más cercano a seguir teniendo con
+        vida a un ser vivo."
+      fuente: APP_VISION cap. 5
+
+    - id: memento
+      nombre: Memento
+      descripcion: |
+        Sistema de memoria operativa del agente. Captura eventos,
+        decisiones técnicas, audits, error_memory, validaciones,
+        Síndrome Dory stats.
+      fuente: bridge/sprint_memento_preinvestigation/spec_sprint_memento.md
+      estado_codigo: PRODUCCION (sprint COWORK_MEMENTO_001 verde)
+
+    - id: catastros
+      nombre: 4 Catastros
+      items: [Modelos, Agentes, Suppliers, Herramientas_AI]
+      estado_actual: 2/4 firmados (Modelos + Agentes 2026)
+      pendientes: [Suppliers, Herramientas_AI]
+
+    - id: embriones
+      nombre: Embriones
+      cantidad: 9+
+      tipos:
+        - Critic Visual
+        - Product Architect
+        - Creativo
+        - Estratega
+        - Financiero
+        - Investigador
+        - Técnico
+        - Ventas
+        - Vigía
+        - Manifestación
+        - Convergencia Cronos
+      descripcion: Especialistas con FCS (Functional Consciousness Score). Modos debate/quorum.
+      fuente: kernel/embriones/
+
+    - id: modo_confidente
+      nombre: Modo Confidente (sin nombre)
+      descripcion: |
+        Acceso silencioso al Monstruo en momentos de crisis. Sin nombre
+        visible, deep link encriptado. Convoca todas las piezas.
+      fuente: APP_VISION cap. 5 línea 508+
+      estado_codigo: NO_IMPLEMENTADO
+
+  modos:
+    - id: modo_daily
+      nombre: Modo Daily
+      cardinalidad: 5 superficies
+      superficies: [Home, Threads, Pendientes, Conexiones, Perfil]
+      fuente: APP_VISION cap. 4
+      estado_codigo: 0/5 implementadas
+
+    - id: modo_cockpit
+      nombre: Modo Cockpit
+      cardinalidad: 12-15 superficies
+      superficies:
+        - MOC Dashboard
+        - Threads + Comando
+        - Portfolio Empresas-Hijas
+        - Catastro (4 catastros)
+        - Embriones
+        - Guardian
+        - Memento
+        - Replay (Timelapse Devin-style)
+        - Computer Use / Sandbox
+        - FinOps
+        - Pipeline E2E
+        - Coding embedded
+        - Hilos Manus
+        - Bridge
+        - Settings + Admin
+      fuente: APP_VISION cap. 4
+      estado_codigo: 1/15 (MOC vaga)
+
+    - id: toggle_daily_cockpit
+      nombre: Toggle Daily↔Cockpit
+      mecanismo: 3-dedos + Face ID + segundo factor configurable
+      fuente: APP_VISION cap. 4
+      estado_codigo: NO_IMPLEMENTADO
+
+  capabilities_cap_4:
+    - id: cap_4_capabilities
+      nombre: 13 capabilities transversales
+      items:
+        - visual_search
+        - photo_intelligence
+        - file_intelligence
+        - app_intelligence
+        - vault
+        - shopping
+        - notes
+        - health
+        - ambient_listening
+        - smart_notebook
+        - cronos
+        - manifestation
+        - replay
+      estado_codigo: 0/13 implementadas
+
+  doctrina_brand:
+    - id: brand_dna_forja_graphite_acero
+      nombre: Brand DNA forja-graphite-acero
+      paleta:
+        forja: "#F97316"
+        graphite: "#1C1917"
+        acero: "#A8A29E"
+      filosofia: minimalismo Apple/Tesla
+      fuente: discovery_forense/CAPILLA_DECISIONES/EL-MONSTRUO/DSC-MO-002_*.md
+
+    - id: voice_brand
+      nombre: Voice Brand ElevenLabs
+      lenguaje: español mexicano
+      tono: "registro bajo, gravitas, calidez contenida"
+      estado_codigo: NO_IMPLEMENTADO
+
+  reglas_inviolables:
+    - id: regla_4_describir_no_prescribir
+      nombre: "Regla 4 — describir, no prescribir"
+      texto: |
+        El Monstruo describe, no prescribe. Especialmente en el modo confidente
+        y en las reflexiones de Cronos: el Monstruo NUNCA dice "deberías hacer X".
+        Dice "veo que en patrones similares pasó X — ¿qué te resuena?".
+        Anti-coaching invasivo. Espejo, no entrenador.
+      fuente: APP_VISION (10 reglas inviolables)
+
+    - id: 15_objetivos_maestros
+      nombre: 15 Objetivos Maestros
+      fuente: docs/EL_MONSTRUO_15_OBJETIVOS_MAESTROS.md
+      version: v3.0 (post DRIFT-001 2026-05-12)
+      objetivo_15: Memoria Soberana
+
+    - id: 7_capas_transversales
+      nombre: 7 Capas Transversales
+      items:
+        - Motor de Ventas
+        - SEO y Descubrimiento
+        - Publicidad y Campañas
+        - Tendencias y Adaptación
+        - Administración y Operaciones
+        - Finanzas
+        - Resiliencia Agéntica
+      fuente: AGENTS.md Regla Dura #2
+
+    - id: 4_capas_arquitectonicas
+      nombre: 4 Capas Arquitectónicas
+      fuente: AGENTS.md Regla Dura #3
+      principio: secuenciales, no se puede saltar
+
+  seguridad_soberania:
+    - id: cap_17_seguridad
+      nombre: Cap 17 Seguridad y Soberanía como capa de UI
+      fuente: APP_VISION cap. 17
+      pack_vinculado: PACK_11_SEGURIDAD_SOBERANIA.md
+
+    - id: rls_universal
+      nombre: RLS Universal
+      fuente: AGENTS.md Regla Dura #7
+
+    - id: cero_secrets_plaintext
+      nombre: Cero Secrets en Plaintext
+      fuente: AGENTS.md Regla Dura #6
+
+  acto_2_calm_tech:
+    - id: frase_canonica_9F
+      nombre: "Frase canónica §9.F"
+      fuente_unica: SRC-005 (CANON_METODOLOGIAS_PRODUCTIVIDAD_2026.md)
+      fragilidad: ALTA (única fuente)
+
+    - id: methodology_as_a_service
+      nombre: Methodology-as-a-Service
+      estado: HIPOTESIS_FUERTE pero base canónica es §9.F única
+
+  ejecutiva_consciente:
+    - id: ejecucion_consciente_7_capas
+      nombre: Ejecución Consciente 7 capas
+      fuente: APP_VISION
+
+# Total elementos canon: ~50
+# Próxima actualización: post CIERRE BLOQUE PRE-IA
