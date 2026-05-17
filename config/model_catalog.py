@@ -25,7 +25,7 @@ MODELS: dict = {
         "api_type": "responses",  # Sprint 29: uses /v1/responses API, NOT chat/completions
         "context_window": 1_000_000,
         "max_output_tokens": 16_384,
-        "use_max_completion_tokens": False,  # Uses max_output_tokens param
+        "use_max_completion_tokens": True,  # H2 fix 2026-05-16: chat.completions.create() requires max_completion_tokens; max_output_tokens reserved for future /v1/responses client
         "supports_temperature": False,  # Sprint 29: HTTP 400 confirmed — temperature NOT supported
         "pricing": {"input": 2.50, "output": 10.00},  # $/M tokens
         "roles": [

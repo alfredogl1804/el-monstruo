@@ -293,18 +293,28 @@ class FallbackEngine:
             return await self._call_openai_compat(
                 api_key, base_url, model_id, messages, max_tokens,
                 temperature if supports_temperature(model) else None,
+                model_config=catalog_entry,
             )
 
     async def _call_openai_compat(
         self, api_key: str, base_url: str, model_id: str,
         messages: list, max_tokens: int, temperature: Optional[float],
+        model_config: Optional[dict[str, Any]] = None,
     ) -> dict:
-        """Call OpenAI-compatible API (OpenAI, xAI, OpenRouter, Groq, Together)."""
+        """Call OpenAI-compatible API (OpenAI, xAI, OpenRouter, Groq, Together).
+
+        H2 fix 2026-05-16: respect model_config["use_max_completion_tokens"] for
+        GPT-5.x reasoning models that reject "max_tokens" with HTTP 400.
+        Falls back to "max_tokens" for backward compatibility when no config given.
+        """
         body: dict[str, Any] = {
             "model": model_id,
             "messages": messages,
-            "max_tokens": max_tokens,
         }
+        if model_config and model_config.get("use_max_completion_tokens"):
+            body["max_completion_tokens"] = max_tokens
+        else:
+            body["max_tokens"] = max_tokens
         if temperature is not None:
             body["temperature"] = temperature
 
