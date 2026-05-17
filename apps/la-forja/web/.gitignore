@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+dist/
+
+# Env (NEVER commit local secrets)
+.env*.local
+.env
+
+# TypeScript incremental
+*.tsbuildinfo
+next-env.d.ts
+
+# OS / IDE
+.DS_Store
+.vscode/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+.vitest-cache/

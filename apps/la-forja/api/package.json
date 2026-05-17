@@ -1,0 +1,41 @@
+{
+  "name": "@la-forja/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "La Forja backend — Hono on Railway. Tutor IA Adaptativo + Co-piloto de Sprints + Test Bench. Sprint LA-FORJA-001 v3.2.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . --ext .ts",
+    "contract:headers": "node scripts/generate-headers-contract.mjs"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.78",
+    "@anthropic-ai/sdk": "^0.96.0",
+    "@google/genai": "^2.3.0",
+    "@hono/node-server": "1.16.0",
+    "@hono/zod-validator": "0.7.4",
+    "@supabase/supabase-js": "^2.105.4",
+    "ai": "^6.0.184",
+    "hono": "4.12.18",
+    "openai": "^6.38.0",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.10",
+    "@typescript-eslint/eslint-plugin": "8.34.0",
+    "@typescript-eslint/parser": "8.34.0",
+    "eslint": "9.16.0",
+    "tsx": "4.19.2",
+    "typescript": "5.7.3",
+    "vitest": "2.1.9"
+  }
+}

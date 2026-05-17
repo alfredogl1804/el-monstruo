@@ -1,0 +1,39 @@
+{
+  "name": "@la-forja/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "La Forja — frontend Next.js 16 + Vercel AI SDK 6. Sprint LA-FORJA-001 D3.",
+  "scripts": {
+    "dev": "next dev --turbo",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --reporter=verbose"
+  },
+  "dependencies": {
+    "@ai-sdk/react": "3.0.186",
+    "ai": "6.0.184",
+    "next": "16.2.6",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "streamdown": "^2.5.0",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.0",
+    "@types/node": "22.10.5",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "eslint": "9.39.4",
+    "eslint-config-next": "16.2.6",
+    "happy-dom": "20.9.0",
+    "postcss": "8.5.14",
+    "tailwindcss": "4.3.0",
+    "typescript": "5.7.3",
+    "vitest": "4.1.6"
+  },
+  "engines": {
+    "node": ">=20.18.0"
+  }
+}
