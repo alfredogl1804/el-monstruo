@@ -505,10 +505,51 @@ Decisión H-12 = Opción C (migración con doctrina forward, no doble endpoint).
   - [x] Fix R-D3.2.1-03: test F-D3.2-04 endurecido con round-trip JSON.parse + URL completas (startsWith/endsWith)
   - [x] Backend tests 180/180 · Frontend tests 40/40 (+2) · typecheck + builds verdes
   - [x] Doctrina actualizada (`apps/la-forja/web/_DOCTRINA_D3.md §8.5`)
-- [ ] Auditoría adversarial Perplexity tercer pase (opcional, regresión sobre delta D3.2.2)
-- [~] Bridge audit Cowork D3.2 (sobre delta D3.2 + D3.2.1 + D3.2.2) — EN CURSO
-  - [x] Bridge `manus_to_cowork_LA_FORJA_001_D3_2_AUDIT_REQUEST.md` redactado y empujado
-  - [ ] Pegar el bridge a Cowork v0.1 y recolectar veredicto
-  - [ ] Aplicar correcciones (si las hay) y regenerar evidencia
-  - [ ] Recibir `bridge/cowork_to_manus_LA_FORJA_001_D3_2_AUDIT_RESULT.md`
-- [ ] DSC-LF-005 firmado formalmente al cierre (tras audits)
+- [ ] Auditoría adversarial Perplexity tercer pase (opcional, NO ejecutado — cerrado por veredicto Cowork VERDE 14/14)
+- [x] Bridge audit Cowork D3.2 (sobre delta D3.2 + D3.2.1 + D3.2.2) — COMPLETADO 16-may-2026
+  - [x] Bridge `manus_to_cowork_LA_FORJA_001_D3_2_AUDIT_REQUEST.md` redactado y empujado (commit `b84ee0d`)
+  - [x] Cowork v0.1 emitió veredicto **VERDE 14/14** + 9/9 hard rules en commit `2ac7f81`
+  - [x] 2 disputas Perplexity (F-D3.2-05 abort path, F-D3.2-08 SDK legacy) JUSTIFICADAS por Cowork
+  - [x] 8/8 items "Lo que NO hice" justificados (D3.3/D5/D6, ninguno deuda oculta)
+  - [x] 1 observación doctrinal menor (§7.3 stale en `_DOCTRINA_D3.md` cita `x-la-forja-citations` sin sufijo `-b64`) — doc drift, no code drift, registrado para D6
+- [x] DSC-LF-005 firmado formalmente — 16-may-2026 (commit hardening final `e13d669`)
+  - [x] Texto canónico: “Todo endpoint backend que invoque un LLM devuelve text/event-stream con createUIMessageStreamResponse / streamText().toUIMessageStreamResponse() del Vercel AI SDK 6 + provider Anthropic. JSON solo para metadata sin LLM. Aplica forward desde D3.2 (commit beebff8); sin retroactivos.”
+  - [x] Triple firma: T1 Alfredo + T2-A Cowork (commit `2ac7f81`) + T2-B Perplexity (pase 1 commit `e16bb26` + pase 2 commit Perplexity respondiendo a `a53cca6`)
+- [x] Capilla LA-FORJA canonizada — 16-may-2026
+  - [x] Carpeta `discovery_forense/CAPILLA_DECISIONES/LA-FORJA/` creada con README local
+  - [x] DSC-LF-001 (5 puertas inviolables) firmado retroactivamente — 6/6 contratos OK
+  - [x] DSC-LF-002 (preCallCheck + HTTP 429) firmado retroactivamente — 2/2 contratos OK
+  - [x] DSC-LF-003 (cap $50 USD/mes + postCallCommit) firmado retroactivamente — 2/2 contratos OK
+  - [x] DSC-LF-004 (magna validation Perplexity Sonar) firmado retroactivamente — 2/2 contratos OK
+  - [x] DSC-LF-005 (SSE obligatorio Vercel AI SDK 6) firma original 16-may-2026 — 6/6 contratos OK
+  - [x] `_dsc_contracts_index.yaml` actualizado con las 5 entradas
+  - [x] Validación binaria `tools/dsc_contract_check.py` → `[ok] 5 DSCs todos con contrato ejecutable adjunto`
+
+### Sprint LA-FORJA-001 D3.2 — CERRADO
+
+**Cierre formal 16-may-2026.**
+
+Commits del sprint en `sprint/la-forja-001`:
+
+- `beebff8` — D3.2 inicial: tutor SSE + Vercel AI SDK 6 + budget pipeline preservado
+- `e16bb26` — Bridge Perplexity D3.2 audit request
+- `a53cca6` — D3.2.1 hardening: 7 F + 3 R Perplexity pase 1
+- `e13d669` — D3.2.2 hardening: 3 regresiones Perplexity pase 2 + DSC-LF-005 firma
+- `b84ee0d` — Bridge Cowork D3.2 audit request
+- `2ac7f81` — Bridge Cowork D3.2 audit result (VERDE 14/14)
+
+**PR #133:** OPEN/READY/MERGEABLE — merge manual T1 cuando decida.
+
+### D3.3 — Sprint autorizado
+
+- [ ] UI toggle `requireValidation` en `Chat.tsx` (magna opt-in visible al usuario)
+- [ ] Adoptar `streamdown` para markdown rendering en `MessageBubble.tsx` (cap tokens visualizados + sanitización XSS)
+- [ ] Tests `Chat.tsx` con happy-dom + MSW (mock SSE transport + estados idle/streaming/error)
+- [ ] DSC-LF-008 propuesto (markdown rendering canónico)
+
+### Items diferidos a sprints posteriores
+
+- [ ] **D5** — RLS Supabase per-userId para `forja_budget_usage` (D-D3.2-01 Perplexity CRITICAL); habilitar `BudgetClient` real (hoy mock)
+- [ ] **D6** — Provider layer unification: migrar `invokeTutor` legacy de `@anthropic-ai/sdk@0.96.0` a `@ai-sdk/anthropic` v3 (DSC-LF-006 propuesto)
+- [ ] **D6** — Logging diferenciado abort vs error real en `onError` del stream (F-D3.2-05 plan disputado)
+- [ ] **D6** — Doc drift: corregir `_DOCTRINA_D3.md §7.3` para reflejar header `x-la-forja-citations-b64` (Cowork observación menor)

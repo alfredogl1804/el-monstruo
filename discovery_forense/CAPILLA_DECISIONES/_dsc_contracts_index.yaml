@@ -17,7 +17,7 @@
 
 version: 1
 fecha_canonizacion: "2026-05-07"
-fecha_ultima_actualizacion: "2026-05-12"  # +DSC-S-015, DSC-OPS-001, DSC-S-016 firmados T1 + DSC-G-008 v3 ampliado + DSC-G-008 v4 (index drift enforcement)
+fecha_ultima_actualizacion: "2026-05-16"  # +DSC-LF-001..005 canonizados retroactivamente (capilla LA-FORJA cierre Sprint LA-FORJA-001 D3.2)
 
 dscs:
 
@@ -437,6 +437,85 @@ dscs:
       - kernel/transversales/ventas/_canonical_constraints.py
     notes: >
       piloto_comercial=zona_like_via_liketickets en pricing canonical.
+
+  "LA-FORJA/DSC-LF-001_cinco_puertas_inviolables.md":
+    status: enforced
+    contracts:
+      - apps/la-forja/api/src/puertas/index.ts
+      - apps/la-forja/api/src/puertas/manus_apple.ts
+      - apps/la-forja/api/src/puertas/manus_google.ts
+      - apps/la-forja/api/src/puertas/cowork_local.ts
+      - apps/la-forja/api/src/puertas/kernel_monstruo.ts
+      - apps/la-forja/api/src/puertas/simulador.ts
+    notes: >
+      LF-FIVE-DOORS-001. Las 5 puertas (manus_apple, manus_google,
+      cowork_local, kernel_monstruo, simulador) declaradas como tupla
+      'as const satisfies readonly string[]' en puertas/index.ts:25-31.
+      Cualquier diff que altere la tupla rompe el typecheck. Cowork audit
+      D3.2 (commit 2ac7f81) lo verifico como punto P-13 (LF-1 enforcement).
+      Canonizado retroactivamente 2026-05-16 (capilla LA-FORJA creada al
+      cierre de Sprint LA-FORJA-001 D3.2).
+    fecha_firma_T1: "2026-05-16"
+
+  "LA-FORJA/DSC-LF-002_budget_pre_call_check.md":
+    status: enforced
+    contracts:
+      - apps/la-forja/api/src/middleware/budget.ts
+      - apps/la-forja/api/src/lib/budget.ts
+    notes: >
+      preCallCheck antes de next() en middleware. ForjaBudgetExceededError
+      mapea a HTTP 429. Cowork audits D2 + D2.5 + D3.2 verificaron
+      enforcement binario. Canonizado retroactivamente 2026-05-16.
+    fecha_firma_T1: "2026-05-16"
+
+  "LA-FORJA/DSC-LF-003_cap_budget_usuario_mes.md":
+    status: enforced
+    contracts:
+      - apps/la-forja/api/src/lib/budget.ts
+      - apps/la-forja/api/src/lib/llm/router.ts
+    notes: >
+      FORJA_BUDGET_CAP_USD = 50.0 en lib/budget.ts:28. Formula
+      spent = current - estimated + real con postCallCommit y rollback
+      negativo en error-path. 4 misiones cubiertas: tutor + classifier +
+      magna_validation + sprint_copilot. Caso F-D3.2-09 (cap hardcoded
+      en middleware) cerrado en D3.2.1 commit a53cca6. Canonizado
+      retroactivamente 2026-05-16.
+    fecha_firma_T1: "2026-05-16"
+
+  "LA-FORJA/DSC-LF-004_magna_validation_perplexity_sonar.md":
+    status: enforced
+    contracts:
+      - apps/la-forja/api/src/lib/llm/router.ts
+      - apps/la-forja/api/src/lib/llm/perplexity.ts
+    notes: >
+      magna_validation enruta a sonar-reasoning-pro. PerplexityMagnaResponse
+      con citations: string[] como contrato. Unico proveedor con citations
+      como campo API garantizado. Cowork audit D2 verifico enrutamiento.
+      Canonizado retroactivamente 2026-05-16.
+    fecha_firma_T1: "2026-05-16"
+
+  "LA-FORJA/DSC-LF-005_sse_obligatorio_endpoints_llm.md":
+    status: enforced
+    contracts:
+      - apps/la-forja/api/src/routes/tutor.ts
+      - apps/la-forja/api/src/lib/llm/anthropic.ts
+      - apps/la-forja/api/src/shared/headers.ts
+      - apps/la-forja/web/src/components/tutor/Chat.tsx
+      - apps/la-forja/web/src/lib/forjaHeaders.ts
+      - apps/la-forja/web/src/lib/forjaHeaders.contract.json
+    notes: >
+      SSE obligatorio para endpoints LLM. Vercel AI SDK 6 (ai@^6.0.184) +
+      @ai-sdk/anthropic@^3.0.78 modo Adaptive (budgetTokens 1024).
+      Headers canonicos en shared/headers.ts espejados en forjaHeaders.ts +
+      JSON snapshot regenerable via 'pnpm contract:headers'. Cap citations
+      2KB con truncado JSON-aware (loop por citation completa).
+      Forward-only desde commit beebff8. Firmado VERDE 14/14 por Cowork
+      audit D3.2 commit 2ac7f81. Validado adversarial Perplexity Sonar
+      Reasoning Pro pase 1 (beebff8) + pase 2 (a53cca6) + commit final
+      hardening D3.2.2 (e13d669).
+    fecha_firma_T1: "2026-05-16"
+    fecha_firma_T2A_cowork: "2026-05-16"
+    fecha_firma_T2B_perplexity: "2026-05-16"
 
   "LIKETICKETS/DSC-LT-001_stack_vite_react_tidb_stripe_railway.md":
     status: enforced
