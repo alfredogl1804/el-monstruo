@@ -506,5 +506,9 @@ Decisión H-12 = Opción C (migración con doctrina forward, no doble endpoint).
   - [x] Backend tests 180/180 · Frontend tests 40/40 (+2) · typecheck + builds verdes
   - [x] Doctrina actualizada (`apps/la-forja/web/_DOCTRINA_D3.md §8.5`)
 - [ ] Auditoría adversarial Perplexity tercer pase (opcional, regresión sobre delta D3.2.2)
-- [ ] Bridge audit Cowork D3.2 (sobre delta D3.2 + D3.2.1 + D3.2.2)
+- [~] Bridge audit Cowork D3.2 (sobre delta D3.2 + D3.2.1 + D3.2.2) — EN CURSO
+  - [x] Bridge `manus_to_cowork_LA_FORJA_001_D3_2_AUDIT_REQUEST.md` redactado y empujado
+  - [ ] Pegar el bridge a Cowork v0.1 y recolectar veredicto
+  - [ ] Aplicar correcciones (si las hay) y regenerar evidencia
+  - [ ] Recibir `bridge/cowork_to_manus_LA_FORJA_001_D3_2_AUDIT_RESULT.md`
 - [ ] DSC-LF-005 firmado formalmente al cierre (tras audits)
