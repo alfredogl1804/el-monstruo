@@ -1,0 +1,131 @@
+---
+# SPRINT_REGISTRY.yaml — Sprints UI con estado canónico
+# Iteración 001 — INTERFACES-CONTEXT-FABRIC-001
+# Fuente: bridge/sprints_propuestos/ + audit Cowork SRC-002 §6-§7
+
+version: 1
+generated: 2026-05-17
+note: "Refresh con cada commit al directorio bridge/sprints_propuestos/"
+
+# ═══════════════════════════════════════════════════════════════════════
+# Sprints firmados — listos para ejecución (T1 ya aprobó)
+# ═══════════════════════════════════════════════════════════════════════
+firmados_no_ejecutados:
+  - id: MOBILE_REALIGNMENT_001
+    path: "bridge/sprints_propuestos/sprint_mobile_REALIGNMENT_001.md"
+    firmado_por: T1
+    fecha_firma: 2026-05-12
+    estado: NO_EJECUTADO
+    bloquea: ["mobile 2", "mobile 3", "mobile 4", "mobile 5", "DAILY_5_SUPERFICIES", "COCKPIT_1/2/3"]
+    eta_estimada: "~1 semana"
+
+  - id: ROTOR_001
+    path: "bridge/sprints_propuestos/sprint_ROTOR_001_reciclador_actividad.md"
+    firmado_por: Cowork
+    estado: NO_EJECUTADO
+    pieza_reloj_suizo: "Rotor"
+    depende_de: ["GUARDIAN_AUTONOMO_001"]
+
+  - id: ESPIRAL_001
+    path: "bridge/sprints_propuestos/sprint_ESPIRAL_001_homeostasis_dinamica.md"
+    firmado_por: Cowork
+    estado: NO_EJECUTADO
+    pieza_reloj_suizo: "Espiral"
+    depende_de: ["ROTOR_001"]
+
+  - id: GUARDIAN_AUTONOMO_001
+    estado: KICKOFF
+    commit_kickoff: "93d6d649"
+
+  - id: LA_FORJA_001
+    version: v3.2
+    fecha_firma: 2026-05-15
+    estado: PARCIAL
+    branch: "sprint/la-forja-001"
+
+# ═══════════════════════════════════════════════════════════════════════
+# Sprints parcialmente implementados — Cowork recomienda REWRITE
+# ═══════════════════════════════════════════════════════════════════════
+parciales_rewrite_recomendado:
+  - id: mobile_1_esqueleto
+    porcentaje_implementado: ~35
+    rewrite_target: MOBILE_REALIGNMENT_001
+    razon_rewrite: "Asumía 'una app única' — invalidado por shift conceptual"
+
+  - id: mobile_2_modo_daily_fase_1_stubs
+    porcentaje_implementado: ~20
+    rewrite_target: DAILY_5_SUPERFICIES
+    razon_rewrite: "Stubs from-scratch sin DSCs citados, ETA irreal"
+
+  - id: mobile_3_modo_cockpit_fase_1
+    porcentaje_implementado: ~50
+    rewrite_target: COCKPIT_1
+    razon_rewrite: "Necesita realineación con 15 superficies canónicas"
+
+  - id: mobile_4_modo_cockpit_fase_2
+    porcentaje_implementado: ~10
+    rewrite_target: COCKPIT_2
+    razon_rewrite: "Contiene 'Show API keys' — viola DSC-S-001"
+
+  - id: mobile_5_modo_cockpit_fase_3
+    porcentaje_implementado: ~10
+    rewrite_target: COCKPIT_3
+
+  - id: MOBILE_1B_A2UI_IMPLEMENTATION
+    pr: 92
+    tests: 51
+    estado: NO_MERGEADO
+    blocker: "T8 iPhone smoke pendiente — decisión T1 magna #4"
+
+# ═══════════════════════════════════════════════════════════════════════
+# Sprints faltantes por canonizar (Cowork §7, orden operativo)
+# ═══════════════════════════════════════════════════════════════════════
+por_canonizar:
+  - { orden: 1, nombre: MOBILE_REALIGNMENT_001, ya_firmado: true }
+  - { orden: 2, nombre: MOBILE_0_SMP, decision_pendiente: "timing T1 magna" }
+  - { orden: 3, nombre: KERNEL_0_EJECUCION_CONSCIENTE, eta: "4-6 sem" }
+  - { orden: 4, nombre: WHATSAPP_GATEWAY_P0, prioridad: "P0 paralelo a Flutter" }
+  - { orden: 5, nombre: DAILY_5_SUPERFICIES, depende_de: [MOBILE_REALIGNMENT_001] }
+  - { orden: 6, nombre: VOICE_BRAND_ELEVENLABS }
+  - { orden: 7, nombre: LISTENING_AMBIENT_CAPABILITY, depende_de: [MOBILE_0_SMP] }
+  - { orden: 8, nombre: CAPABILITY_VISUAL_SEARCH }
+  - { orden: 9, nombre: CAPABILITY_PHOTO_INTELLIGENCE }
+  - { orden: 10, nombre: CAPABILITY_FILE_INTELLIGENCE }
+  - { orden: 11, nombre: CAPABILITY_APP_INTELLIGENCE }
+  - { orden: 12, nombre: CAPABILITY_VAULT_SOBERANO, depende_de: [MOBILE_0_SMP] }
+  - { orden: 13, nombre: CAPABILITY_SHOPPING_INTELLIGENCE }
+  - { orden: 14, nombre: CAPABILITY_NOTES_INTELLIGENCE }
+  - { orden: 15, nombre: CAPABILITY_HEALTH_INTELLIGENCE }
+  - { orden: 16, nombre: CRONOS_1_chasis_rio }
+  - { orden: 17, nombre: CRONOS_2_9_capas }
+  - { orden: 18, nombre: CRONOS_3_niebla_futuro }
+  - { orden: 19, nombre: SMART_RENDERING_CAPABILITY }
+  - { orden: 20, nombre: PORTFOLIO_EMPRESAS_HIJAS_UI }
+  - { orden: 21, nombre: COCKPIT_1 }
+  - { orden: 22, nombre: COCKPIT_2 }
+  - { orden: 23, nombre: COCKPIT_3 }
+  - { orden: 24, nombre: TOGGLE_DAILY_COCKPIT }
+  - { orden: 25, nombre: AUTH_TIERS_001 }
+  - { orden: 26, nombre: MODO_CONFIDENTE_UI }
+  - { orden: 27, nombre: MOBILE_6_POLISH_I18N }
+  - { orden: 28, nombre: DSC_S012_EXECUTABLE_CONTRACT, deadline: 2026-06-10 }
+  - { orden: 29, nombre: HOUSEKEEPING_SPRINTS_INDEX }
+
+# ═══════════════════════════════════════════════════════════════════════
+# Sprints completados — archivar
+# ═══════════════════════════════════════════════════════════════════════
+completados_para_archive:
+  - Sprint_88_cierre_v1_producto
+  - Sprint_S001_security_hardening
+  - Sprint_S002.6_RLS_continuacion
+  - Sprint_COWORK_MEMENTO_001  # confirmación en bridge/manus_to_cowork_COWORK_MEMENTO_001_DONE_2026_05_14.md
+
+# ═══════════════════════════════════════════════════════════════════════
+# Métricas
+# ═══════════════════════════════════════════════════════════════════════
+metrics:
+  total_firmados_no_ejecutados: 5
+  total_parciales_rewrite: 6
+  total_por_canonizar: 29
+  total_completados_archive: 4
+  total_estimado_para_v1_producto: "4-6 meses con 3 hilos Manus paralelos"

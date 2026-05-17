@@ -1,0 +1,165 @@
+---
+# TRANSPORT_REGISTRY.yaml — Inventario canónico de transports
+# Iteración 001 — INTERFACES-CONTEXT-FABRIC-001
+# Fuentes: SRC-001 Cap 1 + SRC-002 §0 + SRC-021 (skill interfaces-monstruo-doctrina)
+
+version: 1
+generated: 2026-05-17
+principle: |
+  El Monstruo NO es una app — es un kernel con múltiples cuerpos.
+  Hay un cerebro central (LangGraph + Catastros + Embriones + memoria SMP + ejecución consciente).
+  Hay N transports que sirven el mismo propósito desde distintos contextos.
+  Ningún transport es "la app del Monstruo" — todos son ciudadanos de primera clase.
+
+# ═══════════════════════════════════════════════════════════════════════
+# Transport Cero — HIPOTESIS_NACIENTE (NO firmado)
+# ═══════════════════════════════════════════════════════════════════════
+transport_zero:
+  id: T0
+  name: "Transport Cero"
+  status: HIPOTESIS_NACIENTE
+  description: |
+    El transport ideal es el que no existe — la IA actúa sin que el usuario tenga que abrir nada.
+    Mecanismo: Listening ambient continuo + Embrión Diagnóstico + Confianza Emergente + acción
+    automática + notificación silenciosa O voz mínima O acción visible solo si HITL exigido.
+  origin: Conversación verbal Alfredo ↔ Manus (chat, no commiteado)
+  app_vision_priority: NO_FIRMADO
+  conflict_with: |
+    Acto 1 dice "20 superficies excelentes son el éxito". Transport Cero dice "ninguna superficie es el éxito".
+    Sin firma T1, los sprints UI no saben a cuál servir.
+  decision_pending_chatgpt_iter_002: |
+    ¿Se canoniza Transport Cero como invariante magna? Si sí, los 6 transports listados abajo
+    pasan a ser "backstops cuando el ambient falla", no protagonistas.
+
+# ═══════════════════════════════════════════════════════════════════════
+# 6 Transports canonizados
+# ═══════════════════════════════════════════════════════════════════════
+transports:
+  - id: T1
+    name: "Bot Telegram"
+    path: "bot_v3.py"
+    bot_handle: "@MounstroOC_bot"
+    platform: "Railway service bot-telegram"
+    status: ONLINE
+    app_vision_priority: preexistente (no recategorizado)
+    code_status: EXISTE
+    skill: "el-monstruo-bot"
+    capabilities:
+      ui_capacity: texto + cards + quick replies + voice notes
+      a2ui_compat: parcial (componentes simples sí, complejos NO)
+    drift_notes: "Path bot_v3.py por reverificar — la skill detectó posible cambio de ubicación"
+
+  - id: T2
+    name: "App Flutter"
+    path: "apps/mobile/"
+    file_count: 52  # al 16-may, +19 desde 33 del audit Cowork 11-may
+    platform: "iPhone físico Alfredo (NO en App Store)"
+    status: PROTOTIPO_TIER_OWNER
+    app_vision_priority: P0_paralelo_a_WhatsApp
+    code_status: PARCIAL
+    capabilities:
+      ui_capacity: la_más_rica (A2UI generative + voz + cámara + gestos + biometría)
+      a2ui_compat: pendiente PR #92 merge
+    drift:
+      - theme_actual: "cyan #00E5FF + púrpura #BB86FC"
+      - theme_canonico: "forja #F97316 + graphite #1C1917 + acero #A8A29E"
+      - capabilities_implementadas: "0/13"
+      - superficies_daily: "0/5"
+      - superficies_cockpit: "0/15"
+      - smp: NO_EXISTE
+      - toggle_daily_cockpit: NO_EXISTE
+    blocking_sprint: "MOBILE_REALIGNMENT_001 (firmado T1, NO ejecutado)"
+
+  - id: T3
+    name: "Command Center PWA"
+    path: "github://alfredogl1804/el-monstruo-command-center"
+    stack: "Next.js + TypeScript + Tailwind + Drizzle"
+    platform: "Railway (login wall)"
+    status: ONLINE
+    app_vision_priority: P1_post_app
+    code_status: EXISTE
+    capabilities:
+      ui_capacity: PWA estándar + login auth
+      a2ui_compat: NO_VERIFICADO
+    surfaces_implemented: ["chat", "finops", "fleet", "memory", "runs", "security", "settings"]
+    drift:
+      - canonical_count: 15
+      - implemented_count: 7
+      - out_of_canon: ["security", "fleet"]
+      - missing_canonical: ["MOC", "Portfolio", "Catastro", "Embriones", "Guardian", "Replay", "Computer Use", "Coding", "Hilos Manus", "Bridge"]
+
+  - id: T4
+    name: "WhatsApp Gateway"
+    path: "apps/whatsapp_gateway/  # canónico, NO existe"
+    platform: "Meta WhatsApp Business API"
+    status: NO_EXISTE
+    app_vision_priority: P0_paralelo_a_Flutter
+    code_status: NO_EXISTE
+    capabilities:
+      ui_capacity_prevista: "Interactive Messages + quick replies + cards + deep link silencioso del logo"
+      a2ui_compat_prevista: "subset adaptado para componentes que WhatsApp soporta"
+    rationale: "LATAM 72% comercio conversacional"
+    sprint_canonization_needed: "WHATSAPP_GATEWAY_P0"
+    estructura_canonica:
+      - "kernel_bridge/"
+      - "webhook_handler/"
+      - "interactive_messages/"
+      - "confidente_silent_link/  # SRC-001 Cap 6"
+
+  - id: T5
+    name: "Apple Watch"
+    path: "N/A"
+    platform: "watchOS"
+    status: NO_EXISTE
+    app_vision_priority: P1
+    code_status: NO_EXISTE
+    capabilities_previstas:
+      double_tap_veto: "interrupción rápida del agente sin sacar el iPhone"
+      indicacion_visual_sutil: "estado del Monstruo (escuchando/dormido/procesando)"
+      voz_brand_minima: "respuestas cortas con timbre canónico"
+      notificaciones_contextuales: "Calm Tech alignment"
+    sprint_canonization_needed: "APPLE_WATCH_001"
+    notes: "Si Acto 2 Calm Tech gana en iter 002, este transport sube a P0"
+
+  - id: T6
+    name: "La Forja web"
+    path: "apps/la-forja/"
+    file_count: 85  # versionado en git
+    platform: "branch sprint/la-forja-001 (NO en main)"
+    status: SPRINT_FIRMADO_v3.2
+    app_vision_priority: NO_LISTADO  # proyecto-hijo Cliente Cero
+    code_status: PARCIAL
+    capabilities:
+      ui_capacity: web Next.js
+      a2ui_compat: NO_VERIFICADO
+      sse_obligatorio: "DSC-LF-005 firmado (único hit Schema-First del corpus)"
+    naturaleza: "Vidriera pública del Monstruo, no transport del kernel pero interfaz pública crítica"
+
+# ═══════════════════════════════════════════════════════════════════════
+# Transports diferidos por canon
+# ═══════════════════════════════════════════════════════════════════════
+deferred_transports:
+  - id: T7
+    name: "Vision Pro"
+    app_vision_priority: P3_v1.2_plus
+    status: DIFERIDO_POR_CANON
+    decision_pending: "¿se mantiene P3 o se difiere indefinidamente en iter 002?"
+
+  - id: T8
+    name: "Web Daily (no Command Center, no La Forja)"
+    app_vision_priority: NO_PRIORITARIO
+    status: NO_PROPUESTO
+    decision_pending: |
+      ¿Hay un transport "Web Daily" para usuarios que no usen iPhone?
+      APP_VISION dice "Web no prioritaria". ChatGPT debe firmar si esto cambia.
+
+# ═══════════════════════════════════════════════════════════════════════
+# Métricas
+# ═══════════════════════════════════════════════════════════════════════
+metrics:
+  total_canonical_transports: 6
+  total_implemented_at_some_level: 4  # Telegram, Flutter, Command Center, La Forja
+  total_p0_pending: 1  # WhatsApp
+  total_p1_pending: 1  # Watch
+  total_hipotesis_naciente: 1  # Transport Cero
+  total_deferred: 2  # Vision Pro, Web Daily

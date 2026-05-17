@@ -1,0 +1,171 @@
+---
+# DECISIONS_PENDING_T1.yaml — Decisiones magna pendientes de firma Alfredo
+# Iteración 001 — INTERFACES-CONTEXT-FABRIC-001
+# Fuente: SRC-002 audit Cowork §8 + CONTRADICTIONS_MAP.md
+
+version: 1
+generated: 2026-05-17
+note: |
+  Estas decisiones bloquean la ejecución de sprints UI prioritarios. ChatGPT 5.5 Pro
+  NO puede resolverlas — requieren firma magna de Alfredo (T1).
+  ChatGPT en iter 002 debe ARTICULAR las consecuencias de cada opción para que
+  Alfredo pueda firmar con conocimiento total del impacto.
+
+# ═══════════════════════════════════════════════════════════════════════
+# T1-MAGNA-001 — Acto 1 vs Acto 2 vs integración
+# ═══════════════════════════════════════════════════════════════════════
+- id: T1-MAGNA-001
+  titulo: "¿Acto 1 (20 superficies) vs Acto 2 (Calm Tech) vs integración consciente?"
+  detonante:
+    - "SRC-001 (APP_VISION) firma 20 superficies como métrica de éxito"
+    - "SRC-005 §9.F dice 'si abrís dashboard, ya falló'"
+    - "Sin firma de integración, todo sprint UI arrastra deuda doctrinal"
+  opciones:
+    A: "Acto 1 puro — construir las 20 superficies como prioridad magna"
+    B: "Acto 2 puro — Listening Ambient + Voice + WhatsApp + Watch como P0, Cockpit difiere"
+    C: "H1 — Acto 2 ⊃ Acto 1 (las 20 son backstops cuando ambient falla)"
+    D: "H2 — Modos por situación (Daily ambient, Cockpit consciente)"
+    E: "H3 — Tier-based (Owner Acto 1, Trusted/Funcional Acto 2)"
+    F: "H4 — Temporal (Acto 1 primero porque codebase lo soporta, Acto 2 evolución)"
+  consecuencia_de_no_decidir:
+    - "Los 29 sprints por canonizar quedan en orden indeterminado"
+    - "ChatGPT en iter 002 NO puede priorizar sin esta firma"
+    - "MOBILE_REALIGNMENT_001 ya firmado pero su scope cambia según opción"
+  recomendacion_chatgpt_iter_002: "Articular consecuencias de cada opción con tabla comparativa. NO firmar — solo iluminar"
+
+# ═══════════════════════════════════════════════════════════════════════
+# T1-MAGNA-002 — Timing del SMP
+# ═══════════════════════════════════════════════════════════════════════
+- id: T1-MAGNA-002
+  titulo: "¿Cuándo arranca Sprint MOBILE_0_SMP?"
+  detonante:
+    - "SRC-001 Cap 7 firma SMP como cimiento NO acelerable, pre-requisito de Daily a producción"
+    - "SMP estimado 2-4 semanas"
+    - "Sin SMP arrancado, capabilities sensibles (Vault, Photos, Health, Confidente) no pueden construirse"
+  opciones:
+    A: "Inmediato (esta semana) — destrabar sequencing"
+    B: "Post Realignment (próximas 2 semanas) — primero pavimentar"
+    C: "Post Guardian Autónomo — primero validación, luego cripto"
+    D: "Diferido v0.5 prototipo — construir Daily sin SMP, riesgo aceptado"
+  consecuencia_de_no_decidir:
+    - "Sprints de capabilities sensibles bloqueados indefinidamente"
+    - "Modo confidente (SRC-001 Cap 6) NO puede construirse sin SMP"
+  bloqueo: 5_sprints_capabilities_sensibles
+
+# ═══════════════════════════════════════════════════════════════════════
+# T1-MAGNA-003 — Discreción radical Modo Confidente
+# ═══════════════════════════════════════════════════════════════════════
+- id: T1-MAGNA-003
+  titulo: "¿El Modo Confidente se canoniza como Cap 6 o se reescribe?"
+  detonante:
+    - "SRC-001 Cap 6 firma discreción radical sin onboarding visible"
+    - "UX clásica favorece discoverability — esta posición es contracultural"
+    - "Sin firma, sprints UI pueden 'mejorar' la discoverability rompiendo el cap 6"
+  opciones:
+    A: "Mantener discreción radical — quien lo necesita lo encuentra"
+    B: "Onboarding sutil opt-in — mencionar existencia sin promocionarla"
+    C: "Tutorial estándar — democratizar el acceso"
+  consecuencia_de_no_decidir:
+    - "Sprint MODO_CONFIDENTE_UI no puede canonizarse"
+  recomendacion_chatgpt_iter_002: "Defender opción A con argumentos del Cap 6 — la discoverability sería crueldad para personas en crisis"
+
+# ═══════════════════════════════════════════════════════════════════════
+# T1-MAGNA-004 — Smoke iPhone PR #92
+# ═══════════════════════════════════════════════════════════════════════
+- id: T1-MAGNA-004
+  titulo: "¿T8 (smoke iPhone físico) se hace esta semana o después?"
+  detonante:
+    - "PR #92 trae A2UI primitivos + renderer + 51 tests"
+    - "T8 = ejecución manual smoke en iPhone físico de Alfredo"
+    - "Bloquea merge de PR #92 → bloquea Daily Phase 1"
+  opciones:
+    A: "T8 esta semana — desbloquear merge"
+    B: "T8 post Realignment — primero pavimentar codebase"
+    C: "T8 cuando MOBILE_0 SMP esté arrancado — alinear con cripto"
+  consecuencia_de_no_decidir:
+    - "PR #92 indefinidamente abierto"
+    - "Daily 5 superficies no puede arrancar sin A2UI mergeado"
+
+# ═══════════════════════════════════════════════════════════════════════
+# T1-MAGNA-005 — WhatsApp Gateway P0 vs diferido
+# ═══════════════════════════════════════════════════════════════════════
+- id: T1-MAGNA-005
+  titulo: "¿WhatsApp Gateway entra en P0 ya, o se difiere?"
+  detonante:
+    - "SRC-001 Cap 1 firma P0 paralelo a Flutter — LATAM 72% conversacional"
+    - "0 código existente"
+    - "Si Acto 2 gana en T1-MAGNA-001, este transport sube de P0 a 'crítico inmediato'"
+  opciones:
+    A: "P0 inmediato — empezar canonización spec esta semana"
+    B: "P0 post Flutter Daily 5 — secuencial"
+    C: "P0 paralelo con Flutter Daily 5 — dos hilos Manus paralelos"
+
+# ═══════════════════════════════════════════════════════════════════════
+# T1-MAGNA-006 — Transport Cero canonización
+# ═══════════════════════════════════════════════════════════════════════
+- id: T1-MAGNA-006
+  titulo: "¿Se canoniza Transport Cero?"
+  detonante:
+    - "Mencionado verbalmente por Alfredo, NO commiteado al repo"
+    - "0 hits en grep transversal"
+    - "Si se canoniza, invierte prioridad de los 6 transports listados"
+  opciones:
+    A: "Canonizar como invariante magna con DSC propio + spec del mecanismo"
+    B: "Mantener como hipótesis hasta validación con sabios externos"
+    C: "Rechazar — los 6 transports existentes cubren todos los casos de uso"
+
+# ═══════════════════════════════════════════════════════════════════════
+# T1-MAGNA-007 — AI-First Living commit al repo
+# ═══════════════════════════════════════════════════════════════════════
+- id: T1-MAGNA-007
+  titulo: "¿AI-First Living se canoniza como doctrina propia?"
+  detonante:
+    - "Cita verbatim Alfredo 2026-05-16: 'Todo mi actuar gira en torno a cómo le facilito a la IA las cosas para que la IA me ayude a facilitarme las mías'"
+    - "1 hit relevante en grep (kernel/catastros/interfaces.py — solo flag de prioridad)"
+    - "0 hits 'Soberanía Contextual'"
+  opciones:
+    A: "Canonizar como `docs/AI_FIRST_LIVING_v1.md` con SRC propio"
+    B: "Especialización de Acto 2 sin doctrina separada"
+    C: "Patrón transversal que afecta capabilities existentes (no doctrina nueva)"
+  nombre_canonico_pendiente: |
+    "AI-First Living" es inglés. "Soberanía Contextual" es ambiguo.
+    ChatGPT debe proponer nombre español canónico
+
+# ═══════════════════════════════════════════════════════════════════════
+# T1-MAGNA-008 — Cardinalidad Embriones
+# ═══════════════════════════════════════════════════════════════════════
+- id: T1-MAGNA-008
+  titulo: "¿Cuántos Embriones hay y cómo se llaman canónicamente?"
+  detonante:
+    - "SRC-005 dice '10 Embriones' pero lista 11"
+    - "SRC-001 Cap 3 dice '9+ Embriones'"
+  opciones:
+    A: "10 Embriones de Dominio + 2 meta-Embriones (Diagnóstico, Instalación) = 12"
+    B: "11 Embriones (incluyendo Convergencia Cronos como #11)"
+    C: "9 Embriones core + transversales especializados"
+  bloqueo: "Sprint EMBRIONES_UI no puede canonizarse sin esta firma"
+
+# ═══════════════════════════════════════════════════════════════════════
+# T1-MAGNA-009 — Theme migración Flutter
+# ═══════════════════════════════════════════════════════════════════════
+- id: T1-MAGNA-009
+  titulo: "¿Cuándo se migra el theme Flutter de cyan/púrpura a forja/graphite/acero?"
+  detonante:
+    - "Theme actual viola brand DNA + DSC-MO-002 firmado"
+    - "packages/design-tokens/flutter/monstruo_tokens.dart listo para consumo"
+  opciones:
+    A: "Migración inmediata como parte de MOBILE_REALIGNMENT_001"
+    B: "Big-bang en sprint dedicado THEME_MIGRATION_001"
+    C: "Gradual: cada sprint UI nuevo consume tokens canónicos, theme viejo se mantiene como fallback"
+  recomendacion_cowork: "Opción A — debe ser parte del Realignment para que cada sprint posterior consuma tokens canónicos"
+
+# ═══════════════════════════════════════════════════════════════════════
+# Métricas
+# ═══════════════════════════════════════════════════════════════════════
+metrics:
+  total_decisiones_pendientes: 9
+  total_magna_de_paradigma: 3  # 001, 006, 007
+  total_magna_de_timing: 3  # 002, 004, 005
+  total_de_canonizacion: 3  # 003, 008, 009
+  bloqueantes_de_sprints_actuales: 6
+  estimacion_tiempo_total_decisiones: "1-2 sesiones de 90 min con Alfredo"

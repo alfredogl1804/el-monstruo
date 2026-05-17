@@ -1,0 +1,271 @@
+---
+# SURFACE_REGISTRY.yaml — Inventario canónico de superficies UI
+# Iteración 001 — INTERFACES-CONTEXT-FABRIC-001
+# Fuentes: SRC-001 (APP_VISION) + SRC-002 (audit Cowork) + SRC-019 (mobile) + SRC-020 (Command Center)
+
+version: 1
+generated: 2026-05-17
+notes: |
+  20 superficies canonizadas Acto 1 (5 Daily + 15 Cockpit) + 7 superficies reales Command Center.
+  El drift está documentado: 0/20 canónicas existen en Flutter, 7 surrogadas existen en Command Center
+  con bidirectional drift (2 fuera de canon, 8 canónicas faltantes).
+
+# ═══════════════════════════════════════════════════════════════════════
+# DAILY MODE — 5 superficies primarias (SRC-001 Cap 2)
+# ═══════════════════════════════════════════════════════════════════════
+daily_surfaces:
+  - id: D1
+    name: Home
+    function: |
+      Una superficie, un input, un canvas. Voice-first input universal con interrupción natural,
+      botón de cámara para visual search, río de Cronos como franja horizontal navegable bajo el input.
+    transport_target: Flutter (P0)
+    canon_source: SRC-001 Cap 2
+    code_status: NO_EXISTE
+    canonical_path: "lib/modes/daily/home/"
+    notes: A las 2am una persona en crisis tipea aquí. El padding y la voz brand calibran este caso.
+
+  - id: D2
+    name: Threads
+    function: |
+      Historial de conversaciones con resumen 1-frase, fecha relativa, categoría tonal.
+      Tap entra a la conversación entera.
+    transport_target: Flutter (P0)
+    canon_source: SRC-001 Cap 2
+    code_status: NO_EXISTE
+    canonical_path: "lib/modes/daily/threads/"
+
+  - id: D3
+    name: Pendientes
+    function: |
+      Acciones HITL streaming. Cada item con preview editable inline antes de confirmar.
+      Si vacío, espacio en blanco con brand DNA — sin "no hay nada nuevo".
+    transport_target: Flutter (P0)
+    canon_source: SRC-001 Cap 2
+    code_status: NO_EXISTE
+    canonical_path: "lib/modes/daily/pendientes/"
+
+  - id: D4
+    name: Conexiones
+    function: |
+      Apps externas enchufadas. WhatsApp, Mail, Calendar, Maps, Photos, Files, Drive, Pay.
+      Toggle granular + audit log.
+    transport_target: Flutter (P0)
+    canon_source: SRC-001 Cap 2
+    code_status: NO_EXISTE
+    canonical_path: "lib/modes/daily/conexiones/"
+
+  - id: D5
+    name: Perfil
+    function: |
+      Identidad, privacidad, claves SMP, recovery Shamir, export/delete.
+      Todo lo soberano vive acá.
+    transport_target: Flutter (P0)
+    canon_source: SRC-001 Cap 2
+    code_status: NO_EXISTE
+    canonical_path: "lib/modes/daily/perfil/"
+    blocking: SMP no existe — depende de Sprint MOBILE_0_SMP
+
+# ═══════════════════════════════════════════════════════════════════════
+# COCKPIT MODE — 15 superficies (SRC-001 Cap 3, Alfredo arquitecto)
+# ═══════════════════════════════════════════════════════════════════════
+cockpit_surfaces:
+  - id: C1
+    name: MOC Dashboard
+    function: Operations command center con 15 Objetivos Maestros como panel de instrumentos
+    transport_target: Flutter (P1) + Command Center PWA (P1)
+    canon_source: SRC-001 Cap 3
+    code_status: NO_EXISTE
+    pwa_match: parcial
+
+  - id: C2
+    name: Threads + Comando
+    function: Hilos densos con metadata operacional
+    transport_target: Flutter + Command Center
+    canon_source: SRC-001 Cap 3
+    code_status: NO_EXISTE_FLUTTER
+    pwa_match: chat (parcial, sin metadata operacional)
+
+  - id: C3
+    name: Portfolio Empresas-Hijas
+    function: 20 proyectos como tarjetas vivas (CIP primera, Kukulkán 365, Mundo de Tata, Roche Bobois, etc.)
+    transport_target: Flutter + Command Center
+    canon_source: SRC-001 Cap 3 + Cap 10
+    code_status: NO_EXISTE
+    pwa_match: NO
+
+  - id: C4
+    name: Catastro de los 4
+    function: |
+      Modelos LLM + Agentes 2026 (21 sistemas) + Suppliers Humanos + Herramientas AI Especializadas.
+      Trono Score, anti-gaming, override manual, FinOps trackeable.
+    transport_target: Flutter + Command Center
+    canon_source: SRC-001 Cap 1 + Cap 3
+    code_status: NO_EXISTE_UI
+    backend_status: parcial — kernel/catastros/interfaces.py operativo
+    pwa_match: NO
+
+  - id: C5
+    name: Embriones
+    function: 9+ Embriones especializados con FCS, última invocación, decisiones recientes, modo debate/quorum
+    transport_target: Flutter + Command Center
+    canon_source: SRC-001 Cap 3
+    code_status: NO_EXISTE_UI_DETALLADA
+    backend_status: existe Embrión singleton parcial
+    pwa_match: NO
+
+  - id: C6
+    name: Guardian
+    function: 15 Objetivos como panel de instrumentos, scores rojo/amarillo/verde, recomendaciones accionables
+    transport_target: Flutter + Command Center
+    canon_source: SRC-001 Cap 3
+    code_status: NO_EXISTE_UI
+    backend_status: GUARDIAN_AUTONOMO_001 firmado, NO ejecutado
+    pwa_match: NO
+
+  - id: C7
+    name: Memento
+    function: error_memory + validaciones pre-flight + Síndrome Dory stats + audit SMP + tiers de sensibilidad
+    transport_target: Flutter + Command Center
+    canon_source: SRC-001 Cap 3
+    code_status: NO_EXISTE_UI
+    backend_status: completo — kernel/memento/ 5 archivos
+    pwa_match: memory (parcial)
+
+  - id: C8
+    name: Replay (Timelapse)
+    function: Selector E2E + timeline scrubable estilo Devin Timelapse, bifurcable
+    transport_target: Flutter + Command Center
+    canon_source: SRC-001 Cap 3
+    code_status: NO_EXISTE
+    pwa_match: NO
+
+  - id: C9
+    name: Computer Use / Sandbox
+    function: Browser del agente + terminal + filesystem en vivo, estilo Manus Computer panel
+    transport_target: Flutter + Command Center
+    canon_source: SRC-001 Cap 3
+    code_status: NO_EXISTE
+    pwa_match: NO
+
+  - id: C10
+    name: FinOps
+    function: Tokens por hilo/empresa/sprint + costo por proveedor + ROI + forecast + spending caps
+    transport_target: Flutter + Command Center
+    canon_source: SRC-001 Cap 3
+    code_status: PARCIAL_FLUTTER
+    pwa_match: finops
+
+  - id: C11
+    name: Pipeline E2E
+    function: Sprint 87 NUEVO 12 pasos + extensiones CIP-complejidad
+    transport_target: Flutter + Command Center
+    canon_source: SRC-001 Cap 3
+    code_status: NO_EXISTE
+    pwa_match: runs (parcial)
+
+  - id: C12
+    name: Coding embedded
+    function: IDE liviano para intervenir código sin salir, editor + diff + ejecución sandboxed + terminal
+    transport_target: Flutter + Command Center
+    canon_source: SRC-001 Cap 3
+    code_status: NO_EXISTE
+    pwa_match: NO
+
+  - id: C13
+    name: Hilos Manus
+    function: 3+ hilos activos con sprint actual, status, ETA recalibrada, audit tasks despachadas
+    transport_target: Flutter + Command Center
+    canon_source: SRC-001 Cap 3
+    code_status: NO_EXISTE
+    pwa_match: NO
+
+  - id: C14
+    name: Bridge / Comunicación inter-hilos
+    function: Reportes + audits navegables + decisiones arquitectónicas firmadas
+    transport_target: Flutter + Command Center
+    canon_source: SRC-001 Cap 3
+    code_status: NO_EXISTE
+    pwa_match: NO
+
+  - id: C15
+    name: Settings + Admin
+    function: Variables Railway, override defaults, gestión tier-access, invitaciones nominativas
+    transport_target: Flutter + Command Center
+    canon_source: SRC-001 Cap 3
+    code_status: PARCIAL_FLUTTER
+    pwa_match: settings
+
+# ═══════════════════════════════════════════════════════════════════════
+# SUPERFICIES FUERA DE CANON (drift bidireccional Command Center)
+# ═══════════════════════════════════════════════════════════════════════
+out_of_canon_surfaces:
+  - id: X1
+    name: Security
+    transport: Command Center PWA
+    canon_status: NO_LISTADO_EN_APP_VISION
+    code_status: EXISTE
+    notes: |
+      Implementado en src/app/(protected)/security/. NO está en la lista de 15 superficies del Cockpit.
+      Decisión pendiente para ChatGPT: ¿es parte legítima del Cockpit y debe agregarse a APP_VISION,
+      o es deuda que debe absorberse dentro de Settings+Admin (C15) o Memento (C7)?
+
+  - id: X2
+    name: Fleet
+    transport: Command Center PWA
+    canon_status: NO_LISTADO_EN_APP_VISION
+    code_status: EXISTE
+    notes: |
+      Implementado en src/app/(protected)/fleet/. Posiblemente refiere a "fleet management" de instancias
+      o agentes desplegados. Decisión pendiente: ¿se canoniza, se renombra a algo del registro, o se elimina?
+
+# ═══════════════════════════════════════════════════════════════════════
+# SUPERFICIES LATENTES (HIPOTESIS_NACIENTE — staging Etapa 2)
+# ═══════════════════════════════════════════════════════════════════════
+latent_surfaces:
+  - id: L1
+    name: "Modo Confidente (input universal)"
+    function: |
+      Sin nombre en UI. Sin botón. Vive dentro del input universal de Daily Home.
+      Detección de tono íntimo activa silenciosamente Catastro + Embriones colectivos + Memento + Cronos.
+      Discreción radical: quien lo necesita lo encuentra, quien no, no.
+    transport_target: Flutter + WhatsApp (deep link silencioso del logo)
+    canon_source: SRC-001 Cap 6
+    canon_status: CANON_VIGENTE
+    code_status: NO_EXISTE
+    notes: |
+      No es superficie separada — es una postura del Monstruo dentro del Home. Surface ID separado
+      por trazabilidad pero NO debe construirse como pantalla aparte.
+
+  - id: L2
+    name: "Embrión Diagnóstico (UI conversacional inicial)"
+    function: |
+      Antes de las 20 superficies del Acto 1, antes de la voz del Acto 2, lo primero que el Monstruo
+      entrega es un diagnóstico operativo: "estas son las metodologías que tu operación necesita".
+    transport_target: Flutter + Voz + Command Center
+    canon_source: SRC-005 (CANON Metodologías v1.5)
+    canon_status: HIPOTESIS_NACIENTE
+    code_status: NO_EXISTE
+    notes: |
+      Pieza crítica de Acto 2 que NO está en Acto 1. Decisión pendiente para ChatGPT:
+      ¿es Onboarding, es transversal, o es la PRIMERA superficie que ve cualquier usuario nuevo?
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONTEO Y DRIFT METRICS
+# ═══════════════════════════════════════════════════════════════════════
+metrics:
+  total_canonical_daily: 5
+  total_canonical_cockpit: 15
+  total_canonical: 20
+  total_implemented_flutter: 0
+  total_implemented_command_center: 7
+  total_command_center_canonical: 5  # MOC parcial, chat, memory, finops, settings
+  total_command_center_out_of_canon: 2  # security, fleet
+  total_out_of_canon_pending_decision: 2
+  total_latent_pending_decision: 2
+
+  drift_summary: |
+    Flutter: 0/20 superficies canónicas implementadas. Theme cyan/púrpura viola brand DNA.
+    Command Center: 5/15 superficies canónicas implementadas + 2 fuera de canon + 0 latentes.
+    8 superficies del Cockpit canónico no existen en ningún transport (Portfolio, Catastro,
+    Embriones, Guardian, Replay, Computer Use, Coding embedded, Hilos Manus, Bridge — 9 hard misses).
