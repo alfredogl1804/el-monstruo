@@ -1,22 +1,25 @@
 /**
  * La Forja — MessageBubble.
  *
- * Sprint LA-FORJA-001 D3.2.
- * Doctrina: §6 Brand DNA — forja al rojo vivo, sin chatbot amigable.
+ * Sprint LA-FORJA-001 D3.2 + D3.3 (markdown rendering).
+ * Doctrina:
+ *   - §6 Brand DNA — forja al rojo vivo, sin chatbot amigable, sin avatares,
+ *     sin emojis, sin gradientes.
+ *   - DSC-LF-008 (D3.3): el rendering de markdown del tutor pasa por
+ *     `streamdown` (Vercel, Apache-2.0, react^18||^19). Sanitización XSS
+ *     activa por default (rehype-sanitize + rehype-harden). Solo los
+ *     mensajes del rol "assistant" se renderizan como markdown — el rol
+ *     "user" se conserva en `whitespace-pre-wrap` plano (lo que el usuario
+ *     escribió, sin transformación).
  *
- * Renderiza un mensaje del chat con tipografía mono para timestamps/role
- * y sans para el cuerpo. User a la derecha con borde forja, assistant a la
- * izquierda con borde acero. Sin avatares, sin emojis, sin gradientes —
- * brutalismo industrial.
- *
- * Streaming: cuando el mensaje aún no termina (status="streaming"), pinta
- * un cursor blink al final del último text part para señalar que sigue
- * forjándose. Ese cursor desaparece cuando el stream cierra.
+ * Streaming: el cursor blink se mantiene como sibling fuera de Streamdown
+ * y solo se pinta mientras `isStreaming === true && !isUser`.
  */
 
 "use client";
 
 import type { UIMessage } from "ai";
+import { Streamdown } from "streamdown";
 
 export interface MessageBubbleProps {
   message: UIMessage;
@@ -54,18 +57,28 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
           {isUser ? "Tú" : "Tutor · Claude Opus 4.7"}
         </span>
         <div
-          className={`whitespace-pre-wrap px-4 py-3 text-sm leading-relaxed border ${
+          className={`px-4 py-3 text-sm leading-relaxed border ${
             isUser
-              ? "bg-graphite-700 border-forja-600 text-graphite-100"
+              ? "bg-graphite-700 border-forja-600 text-graphite-100 whitespace-pre-wrap"
               : "bg-graphite-900 border-acero-700 text-graphite-100"
           }`}
           style={{ borderRadius: "var(--radius-forja)" }}
         >
-          {text}
+          {isUser ? (
+            text
+          ) : (
+            <div
+              className="forja-markdown"
+              data-testid="forja-msg-markdown"
+            >
+              <Streamdown>{text}</Streamdown>
+            </div>
+          )}
           {isStreaming && !isUser && (
             <span
               className="inline-block w-[8px] h-[1em] align-text-bottom bg-forja-500 ml-1 animate-pulse"
               aria-label="forjando"
+              data-testid="forja-msg-cursor"
             />
           )}
         </div>

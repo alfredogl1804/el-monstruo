@@ -553,3 +553,86 @@ Commits del sprint en `sprint/la-forja-001`:
 - [ ] **D6** — Provider layer unification: migrar `invokeTutor` legacy de `@anthropic-ai/sdk@0.96.0` a `@ai-sdk/anthropic` v3 (DSC-LF-006 propuesto)
 - [ ] **D6** — Logging diferenciado abort vs error real en `onError` del stream (F-D3.2-05 plan disputado)
 - [ ] **D6** — Doc drift: corregir `_DOCTRINA_D3.md §7.3` para reflejar header `x-la-forja-citations-b64` (Cowork observación menor)
+
+## Sprint LA-FORJA-001 D3.3 — Iniciado 16-may-2026
+
+Autorizado por Cowork audit VERDE 14/14 (commit `2ac7f81`).
+
+### Fase 1 — Mapeo + validación versiones canónicas (anti-autoboicot)
+
+- [x] Leer estado actual de `Chat.tsx` y `MessageBubble.tsx` (D3.2 entregó stub sin markdown ni toggle)
+- [x] Validar versión canónica de `streamdown` en npm registry (real-time, no entrenamiento) — 2.5.0 vigente
+- [x] Validar versión canónica de `happy-dom` en npm registry — 20.9.0 ya instalado
+- [x] Validar versión canónica de `msw` en npm registry — 2.14.6 vigente; **decisión binaria: NO instalar MSW**, mockear `@ai-sdk/react` con `vi.mock` (alineado a patrón canónico Tour.test.tsx + más liviano + sin red)
+- [x] Confirmar `vitest` actual del workspace soporta enfoque vi.mock — sí (vitest 4.1.6)
+- [x] Verificar peer dependencies — streamdown peer react^18||^19 OK con React 19.2.6
+
+### Fase 2 — T1: UI toggle `requireValidation` en Chat.tsx
+
+- [x] Helper `src/lib/tutor/preferences.ts` SSR-safe + fail-soft con clave `la-forja:tutor:require-validation`
+- [x] Tests `preferences.test.ts` 6/6 verde (default, round-trip, corrupt, fail-soft read/write, SSR)
+- [x] State `requireValidation` internalizado en `Chat.tsx` (no más prop) con hidratación `useEffect` + persistencia
+- [x] Componente toggle visual con Brand DNA (forja/graphite/acero, mono uppercase label, role='switch', aria-checked)
+- [x] Sub-label dinámico: "Activa — costo adicional, mayor exactitud" / "Inactiva — respuesta rápida"
+- [x] Toggle se incluye en `sendMessage()` body (preservado en `transport.body.requireValidation`)
+- [x] Disabled durante streaming + pre-hidratación (no permitir cambio mid-flight)
+- [x] Telemetría: log `[la-forja:tutor_validation_toggled]` con `{ prev, next }`
+- [x] `<Chat />` en `page.tsx` ya no recibe prop (limpio)
+
+### Fase 3 — T2: streamdown en MessageBubble.tsx
+
+- [x] `npm install streamdown@2.5.0` en `apps/la-forja/web/` — 225 paquetes nuevos
+- [x] Reemplazar render plano por `<Streamdown>` solo para `role='assistant'`; user mantiene `whitespace-pre-wrap`
+- [x] Sanitización XSS habilitada por default (rehype-sanitize + rehype-harden internos)
+- [x] Cursor blink durante streaming preservado como sibling fuera del Streamdown
+- [x] Wrapper `.forja-markdown` con tokens Brand DNA (mono uppercase headings forja-300, code/pre graphite-700, table acero-700, blockquote forja-600)
+- [x] Code blocks con syntax highlighting nativo de streamdown (Shiki interno)
+- [x] Tests Chat.tsx cubren render markdown vs plain (assistant tiene `forja-msg-markdown`, user no) + cursor blink
+
+### Fase 4 — T3: tests Chat.tsx (decisión binaria: vi.mock en lugar de MSW)
+
+- [x] happy-dom 20.9.0 ya en deps; vitest config validado (`globals: false` requiere imports explícitos)
+- [x] **Decisión binaria documentada**: NO instalar MSW. Usar `vi.mock("@ai-sdk/react")` + `vi.mock("ai")` + `vi.mock("streamdown")` siguiendo patrón canónico Tour.test.tsx. Más liviano, sin service workers, sin red, alineado al codebase.
+- [x] Test 1: render inicial — toggle visible aria-checked=false
+- [x] Test 2: hidratación localStorage true persistido
+- [x] Test 3: click toggle persiste valor binario en localStorage
+- [x] Test 4: toggle disabled durante streaming
+- [x] Test 5: error mid-stream muestra banda + botón Reintentar invoca `regenerate()`
+- [x] Test 6: composer NO envía con input vacío (sendMessage no llamado)
+- [x] Test 7: composer envía texto + `sendMessage({ text })` invocado correcto
+- [x] Test 8: durante streaming muestra botón Detener + `stop()` invocado
+- [x] Test 9: render mensajes assistant + user con sus testids
+- [x] Test 10: cursor blink solo en último assistant durante streaming
+- [x] Test 11: cursor blink ausente cuando status=ready
+- [x] **11/11 nuevos tests verde**, total frontend 57/57
+
+### Fase 5 — DSC-LF-008 (markdown rendering canónico)
+
+- [x] Redactar `discovery_forense/CAPILLA_DECISIONES/LA-FORJA/DSC-LF-008_markdown_rendering_canonico.md`
+- [x] Decisión: streamdown@^2.5.0 obligatorio para role='assistant'; user permanece plano; sanitización XSS no opt-out; mock vi.mock en test layer
+- [x] Contratos ejecutables: `MessageBubble.tsx` + `Chat.test.tsx` + `globals.css` + `package.json`
+- [x] Actualizar `_dsc_contracts_index.yaml` con DSC-LF-008 (status: enforced, 4 contratos)
+- [x] Validar `tools/dsc_contract_check.py` → **6/6 LA-FORJA DSCs OK**
+
+### Fase 6 — Validación binaria
+
+- [x] Backend `npm test` → 180/180 verde (sin regresión)
+- [x] Backend `npx tsc --noEmit` → 0 errores
+- [x] Frontend `npm test` → 57/57 verde (40 base + 6 preferences + 11 Chat)
+- [x] Frontend `npx tsc --noEmit` → 0 errores
+- [x] Frontend `npm run build` → verde, rutas / · /onboarding · /salud · /tutor preservadas
+- [x] `tools/dsc_contract_check.py` → 6/6 LA-FORJA DSCs OK
+
+### Fase 7 — Auditoría externa (decisión)
+
+- [ ] Decidir: lanzar audit Perplexity D3.3 (recomendable) o saltar a Cowork directo
+- [ ] Si Perplexity: redactar `bridge/manus_to_perplexity_LA_FORJA_001_D3_3_AUDIT.md`
+- [ ] Si Cowork directo: redactar `bridge/manus_to_cowork_LA_FORJA_001_D3_3_AUDIT_REQUEST.md`
+
+### Fase 8 — Cierre
+
+- [ ] Commit hardening (si Perplexity reporta)
+- [ ] Audit Cowork D3.3 → veredicto
+- [ ] DSC-LF-008 firmado formalmente
+- [ ] PR D3.3 abierto y autorizado para merge
+- [ ] Sembrar D3.4 backlog

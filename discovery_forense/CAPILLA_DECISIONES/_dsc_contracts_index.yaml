@@ -517,6 +517,24 @@ dscs:
     fecha_firma_T2A_cowork: "2026-05-16"
     fecha_firma_T2B_perplexity: "2026-05-16"
 
+  "LA-FORJA/DSC-LF-008_markdown_rendering_canonico.md":
+    status: enforced
+    contracts:
+      - apps/la-forja/web/src/components/tutor/MessageBubble.tsx
+      - apps/la-forja/web/src/components/tutor/Chat.test.tsx
+      - apps/la-forja/web/src/app/globals.css
+      - apps/la-forja/web/package.json
+    notes: >
+      Markdown rendering canonico via streamdown@^2.5.0 (Vercel, Apache-2.0,
+      peer react ^18 || ^19). Solo aplica a role='assistant'; user permanece
+      whitespace-pre-wrap plano. Sanitizacion XSS por default via
+      rehype-sanitize + rehype-harden internos. Wrapper mandatorio
+      .forja-markdown con tokens Brand DNA. Cursor blink fuera del Streamdown
+      como sibling. Mock vi.mock("streamdown") en test layer para evitar
+      carga de subdeps pesadas. Forward-only desde D3.3.
+    fecha_firma_T1: "2026-05-16"
+    pendiente_firma_T2A_cowork: true
+
   "LIKETICKETS/DSC-LT-001_stack_vite_react_tidb_stripe_railway.md":
     status: enforced
     contracts:

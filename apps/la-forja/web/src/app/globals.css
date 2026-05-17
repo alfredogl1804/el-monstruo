@@ -46,3 +46,123 @@ body {
   background-color: var(--color-forja-500);
   color: var(--color-graphite-900);
 }
+
+/* La Forja — Markdown rendering Brand DNA (DSC-LF-008 / D3.3).
+   Aplica solo dentro de .forja-markdown — el contenedor del Streamdown
+   en MessageBubble (rol assistant). El rol user permanece pre-wrap plano. */
+.forja-markdown {
+  /* Tipografía base hereda de bubble (text-sm leading-relaxed text-graphite-100) */
+}
+.forja-markdown > :first-child {
+  margin-top: 0;
+}
+.forja-markdown > :last-child {
+  margin-bottom: 0;
+}
+.forja-markdown p {
+  margin: 0.6em 0;
+  white-space: pre-wrap;
+}
+.forja-markdown h1,
+.forja-markdown h2,
+.forja-markdown h3,
+.forja-markdown h4,
+.forja-markdown h5,
+.forja-markdown h6 {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-forja-300);
+  margin: 1.2em 0 0.6em;
+  font-weight: 600;
+}
+.forja-markdown h1 { font-size: 1.05em; }
+.forja-markdown h2 { font-size: 1em; }
+.forja-markdown h3,
+.forja-markdown h4,
+.forja-markdown h5,
+.forja-markdown h6 { font-size: 0.92em; }
+
+.forja-markdown a {
+  color: var(--color-forja-300);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.forja-markdown a:hover {
+  color: var(--color-forja-500);
+}
+
+.forja-markdown code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background-color: var(--color-graphite-700);
+  color: var(--color-graphite-100);
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-forja);
+}
+
+.forja-markdown pre {
+  background-color: var(--color-graphite-700);
+  border: 1px solid var(--color-acero-700);
+  border-radius: var(--radius-forja);
+  padding: 0.75em 1em;
+  margin: 0.8em 0;
+  overflow-x: auto;
+}
+.forja-markdown pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--color-graphite-100);
+}
+
+.forja-markdown ul,
+.forja-markdown ol {
+  margin: 0.6em 0;
+  padding-left: 1.4em;
+}
+.forja-markdown li {
+  margin: 0.25em 0;
+}
+
+.forja-markdown blockquote {
+  border-left: 2px solid var(--color-forja-600);
+  padding-left: 0.8em;
+  margin: 0.8em 0;
+  color: var(--color-acero-300);
+  font-style: normal;
+}
+
+.forja-markdown table {
+  border-collapse: collapse;
+  margin: 0.8em 0;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+.forja-markdown th,
+.forja-markdown td {
+  border: 1px solid var(--color-acero-700);
+  padding: 0.4em 0.75em;
+  text-align: left;
+}
+.forja-markdown th {
+  background-color: var(--color-graphite-700);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.85em;
+  color: var(--color-forja-300);
+}
+
+.forja-markdown hr {
+  border: 0;
+  border-top: 1px solid var(--color-acero-700);
+  margin: 1.2em 0;
+}
+
+.forja-markdown strong {
+  color: var(--color-graphite-100);
+  font-weight: 700;
+}
+.forja-markdown em {
+  color: var(--color-graphite-100);
+  font-style: italic;
+}

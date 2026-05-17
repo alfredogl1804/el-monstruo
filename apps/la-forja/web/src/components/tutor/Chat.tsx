@@ -27,17 +27,19 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MessageBubble } from "./MessageBubble";
 import {
   FORJA_TUTOR_HEADER_KEYS,
   decodeCitationsHeader,
 } from "@/lib/forjaHeaders";
+import {
+  loadRequireValidation,
+  saveRequireValidation,
+} from "@/lib/tutor/preferences";
 
 export interface ChatProps {
   apiUrl: string;
-  /** Si true, el backend correrá magna_validation con Sonar antes del stream. */
-  requireValidation?: boolean;
 }
 
 interface ForjaTutorMetadata {
@@ -78,9 +80,20 @@ function readMetadataFromHeaders(headers: Headers): ForjaTutorMetadata {
   };
 }
 
-export function Chat({ apiUrl, requireValidation = false }: ChatProps) {
+export function Chat({ apiUrl }: ChatProps) {
   const [input, setInput] = useState("");
   const [meta, setMeta] = useState<ForjaTutorMetadata>(EMPTY_META);
+  // D3.3 T1: requireValidation ahora es estado interno persistente.
+  // Se hidrata desde localStorage en mount (cliente) y se persiste en cada
+  // toggle. SSR-safe via lazy initializer + load helper que retorna default
+  // cuando window === undefined.
+  const [requireValidation, setRequireValidation] = useState<boolean>(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setRequireValidation(loadRequireValidation());
+    setHydrated(true);
+  }, []);
 
   const transport = useMemo(
     () =>
@@ -109,6 +122,18 @@ export function Chat({ apiUrl, requireValidation = false }: ChatProps) {
   const isStreaming = status === "streaming" || status === "submitted";
   const lastMessageId = messages[messages.length - 1]?.id;
 
+  const handleToggleValidation = () => {
+    if (isStreaming) return;
+    const next = !requireValidation;
+    setRequireValidation(next);
+    saveRequireValidation(next);
+    // F-D3.3-01: telemetría binaria con namespace canonizado.
+    console.info("[la-forja:tutor_validation_toggled]", {
+      prev: requireValidation,
+      next,
+    });
+  };
+
   const handleSend = () => {
     const trimmed = input.trim();
     if (!trimmed || isStreaming) return;
@@ -118,6 +143,51 @@ export function Chat({ apiUrl, requireValidation = false }: ChatProps) {
 
   return (
     <div className="flex h-full flex-col gap-4">
+      {/* D3.3 T1: Toggle magna validation — opt-in del usuario, persistido. */}
+      <div
+        className="flex items-center justify-between border border-acero-700 bg-graphite-900 px-3 py-2"
+        style={{ borderRadius: "var(--radius-forja)" }}
+        data-testid="forja-validation-toggle-row"
+      >
+        <div className="flex flex-col gap-0.5">
+          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-acero-500">
+            Validación magna (Sonar)
+          </span>
+          <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-graphite-500">
+            {requireValidation
+              ? "Activa — costo adicional, mayor exactitud"
+              : "Inactiva — respuesta rápida"}
+          </span>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={requireValidation}
+          aria-label="Activar validación magna"
+          disabled={isStreaming || !hydrated}
+          onClick={handleToggleValidation}
+          data-testid="forja-validation-toggle"
+          className={
+            "relative h-6 w-12 border font-mono text-[9px] uppercase tracking-[0.15em] transition-colors disabled:cursor-not-allowed disabled:opacity-40 " +
+            (requireValidation
+              ? "border-forja-500 bg-forja-500 text-graphite-900"
+              : "border-acero-700 bg-graphite-900 text-acero-500 hover:border-forja-500")
+          }
+          style={{ borderRadius: "var(--radius-forja)" }}
+        >
+          <span
+            className={
+              "absolute top-0.5 h-4 w-4 transition-all " +
+              (requireValidation
+                ? "left-7 bg-graphite-900"
+                : "left-0.5 bg-acero-500")
+            }
+            style={{ borderRadius: "calc(var(--radius-forja) * 0.5)" }}
+            aria-hidden="true"
+          />
+        </button>
+      </div>
+
       {/* Metadata bar — visible solo cuando hay datos del último turn */}
       {(meta.intent !== null || meta.citations.length > 0) && (
         <div
