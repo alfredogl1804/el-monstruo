@@ -1,0 +1,13 @@
+{
+  "$schema": "https://github.com/alfredogl1804/el-monstruo/apps/la-forja/api/scripts/generate-headers-contract.mjs",
+  "$generated": "do not edit by hand — run pnpm contract:headers to regenerate",
+  "forjaTutorHeaderKeys": {
+    "protocolVersion": "x-vercel-ai-ui-message-stream",
+    "intent": "x-la-forja-intent",
+    "confidence": "x-la-forja-confidence",
+    "model": "x-la-forja-model",
+    "citationsB64": "x-la-forja-citations-b64",
+    "validationModel": "x-la-forja-validation-model"
+  },
+  "forjaCitationsHeaderMaxBytes": 2048
+}

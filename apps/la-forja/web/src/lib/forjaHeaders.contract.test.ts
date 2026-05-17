@@ -1,59 +1,43 @@
 /**
- * R-D3.2-02: Contract test backend ↔ frontend para los nombres de headers SSE.
+ * R-D3.2-02 + R-D3.2.1-02: Contract test backend ↔ frontend para los nombres
+ * de headers SSE.
  *
- * Lee el archivo fuente del backend (`apps/la-forja/api/src/shared/headers.ts`)
- * con fs.readFileSync, parsea sus claves del objeto literal y las compara con
- * el espejo del frontend (`forjaHeaders.ts`). Si una clave o valor difiere,
- * el test rompe binariamente y pinta exactamente cuál header está en drift.
+ * Estrategia (R-D3.2.1-02 — pase 2 Perplexity, fix sin fs runtime):
  *
- * Esto cierra el riesgo identificado por Perplexity D3.2-PASS-1: el frontend
- * leía `x-la-forja-citations` mientras el backend emitía `x-la-forja-citations`
- * pero ambos podían divergir sin que ningún test lo detectara.
+ * 1. El backend declara la fuente única en
+ *    `apps/la-forja/api/src/shared/headers.ts`.
+ * 2. El generador `apps/la-forja/api/scripts/generate-headers-contract.mjs`
+ *    parsea ese archivo y emite `forjaHeaders.contract.json` (committed en
+ *    git al lado de este test).
+ * 3. Este test importa el JSON con `import` estándar (sin fs.readFileSync
+ *    runtime, que rompía en CI workspace-aislado).
+ * 4. Si un dev edita el backend pero olvida regenerar el JSON, el test
+ *    rompe binariamente con un diff exacto.
+ *
+ * Comando de regeneración:
+ *   pnpm --filter la-forja-api contract:headers
  */
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { FORJA_TUTOR_HEADER_KEYS } from "./forjaHeaders";
+import {
+  FORJA_TUTOR_HEADER_KEYS,
+  FORJA_CITATIONS_HEADER_MAX_BYTES,
+} from "./forjaHeaders";
+import contract from "./forjaHeaders.contract.json";
 
-function parseBackendKeys(): Record<string, string> {
-  const apiHeadersPath = resolve(
-    __dirname,
-    "../../../api/src/shared/headers.ts",
-  );
-  const src = readFileSync(apiHeadersPath, "utf-8");
-  const objectMatch = src.match(
-    /export const FORJA_TUTOR_HEADER_KEYS\s*=\s*\{([\s\S]*?)\}\s*as const;/,
-  );
-  if (!objectMatch) {
-    throw new Error(
-      "[la-forja:contract_test] no se pudo parsear FORJA_TUTOR_HEADER_KEYS del backend",
-    );
-  }
-  const body = objectMatch[1] ?? "";
-  const out: Record<string, string> = {};
-  // Match líneas tipo `key: "value",` (ignora comentarios JSDoc y bloques).
-  const entryRe = /^\s*([a-zA-Z][a-zA-Z0-9]*)\s*:\s*"([^"]+)"/gm;
-  let m: RegExpExecArray | null;
-  while ((m = entryRe.exec(body)) !== null) {
-    const key = m[1];
-    const value = m[2];
-    if (key && value) {
-      out[key] = value;
-    }
-  }
-  return out;
-}
+describe("R-D3.2-02 + R-D3.2.1-02: backend ↔ frontend headers contract", () => {
+  it("frontend FORJA_TUTOR_HEADER_KEYS está sincronizado byte por byte con el contrato canónico", () => {
+    expect(FORJA_TUTOR_HEADER_KEYS).toEqual(contract.forjaTutorHeaderKeys);
+  });
 
-describe("R-D3.2-02: backend ↔ frontend headers contract", () => {
-  it("FORJA_TUTOR_HEADER_KEYS está sincronizado byte por byte entre api y web", () => {
-    const backendKeys = parseBackendKeys();
-    expect(Object.keys(backendKeys).sort()).toEqual(
-      Object.keys(FORJA_TUTOR_HEADER_KEYS).sort(),
+  it("frontend FORJA_CITATIONS_HEADER_MAX_BYTES está sincronizado con el contrato canónico", () => {
+    expect(FORJA_CITATIONS_HEADER_MAX_BYTES).toBe(
+      contract.forjaCitationsHeaderMaxBytes,
     );
-    for (const [k, v] of Object.entries(FORJA_TUTOR_HEADER_KEYS)) {
-      const backendValue = backendKeys[k];
-      expect(backendValue, `Backend header key '${k}' missing`).toBeDefined();
-      expect(backendValue).toBe(v);
-    }
+  });
+
+  it("el contrato canónico declara TODOS los headers que el frontend importa (no permite drift por omisión)", () => {
+    const contractKeys = Object.keys(contract.forjaTutorHeaderKeys).sort();
+    const frontendKeys = Object.keys(FORJA_TUTOR_HEADER_KEYS).sort();
+    expect(frontendKeys).toEqual(contractKeys);
   });
 });

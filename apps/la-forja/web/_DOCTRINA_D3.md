@@ -261,3 +261,69 @@ Los 4 tests D2.5 hardening (H-2 magna, H-3 classifier, H-3 magna, H-2 stream) **
 | Drifts externos | 5 abiertos | 5 registrados con plan de cierre por sprint |
 
 **DSC-LF-005 estado**: implementado + endurecido. Pendiente segundo pase Perplexity (regresión sobre delta D3.2.1) + bridge audit Cowork D3.2 antes de firma formal.
+
+
+---
+
+## §8.5 — D3.2.2 Hardening adversarial (Perplexity segundo pase, 16-may-2026)
+
+**Commit base auditado**: `a53cca6` (D3.2.1). **Output Perplexity pase 2**:
+- 7 F-patterns del pase 1 → CERRADOS
+- 1 F-pattern del pase 1 → PARCIAL (F-D3.2-04)
+- 2 F-patterns del pase 1 → DISPUTA_VALIDA (F-D3.2-05, F-D3.2-08)
+- 3 R-patterns del pase 1 → CERRADOS
+- **3 regresiones nuevas introducidas por D3.2.1**: F-D3.2.1-01 (HIGH), R-D3.2.1-02 (MEDIUM), R-D3.2.1-03 (LOW)
+- 4 drifts externos siguen ABIERTOS (data plane D5)
+
+**Decisión Perplexity**: DO NOT SHIP — bloqueante F-D3.2.1-01.
+
+**Decisión Manus E1 tras triage**: aplicar las 3 regresiones como D3.2.2; los 4 drifts D5 confirmados como work item, no bloquean SHIP del plano de aplicación una vez cerrado el bug HIGH.
+
+### §8.5.1 Fixes aplicados sobre código
+
+| ID | Severidad | Archivo:línea | Fix binario |
+|---|---|---|---|
+| F-D3.2.1-01 | HIGH | `api/src/routes/tutor.ts:250-274` | Truncado **por citation completa** (loop incremental con `Buffer.byteLength` por candidate). El truncado por bytes ciegos (D3.2.1) cortaba JSON a la mitad y producía base64url cuyo decode rompía `JSON.parse` en frontend → todas las citations se perdían silenciosamente. Ahora el JSON resultante es siempre parseable. |
+| R-D3.2.1-02 | MEDIUM | `api/scripts/generate-headers-contract.mjs` (NUEVO) + `web/src/lib/forjaHeaders.contract.json` (NUEVO) + refactor `forjaHeaders.contract.test.ts` | Contract test ya no depende de `fs.readFileSync` con ruta relativa al backend (frágil en CI workspace-aislado). Nueva estrategia: generador Node ESM emite JSON canónico committed en git al lado del frontend; test importa el JSON con `import` estándar. Si el dev edita backend pero olvida regenerar, test rompe binariamente. Comando: `npm --prefix apps/la-forja/api run contract:headers`. |
+| R-D3.2.1-03 | LOW | `api/src/routes/routes.test.ts:355-402` | Test F-D3.2-04 ya no solo verifica longitud de base64; ahora ejecuta round-trip completo: decode base64url → JSON.parse no debe lanzar → array de strings → cada URL mantiene su forma completa (`startsWith` + `endsWith`). El test anterior pasaba aunque el JSON estuviera roto. |
+
+### §8.5.2 Apex de cambio: el contrato JSON
+
+```
+backend (fuente única)
+  apps/la-forja/api/src/shared/headers.ts
+        │
+        │  npm --prefix apps/la-forja/api run contract:headers
+        ▼
+contrato canónico (committed)
+  apps/la-forja/web/src/lib/forjaHeaders.contract.json
+        │
+        │  import (TS resolveJsonModule)
+        ▼
+test de contrato + frontend espejo
+  apps/la-forja/web/src/lib/forjaHeaders.contract.test.ts
+  apps/la-forja/web/src/lib/forjaHeaders.ts (espejo)
+```
+
+Tres invariantes binarios que el test asegura simultáneamente:
+1. Frontend `FORJA_TUTOR_HEADER_KEYS` byte-equal al JSON.
+2. Frontend `FORJA_CITATIONS_HEADER_MAX_BYTES` value-equal al JSON.
+3. Frontend no omite ninguna clave del JSON (catches drift por omisión).
+
+Cualquier cambio futuro al backend que olvide regenerar el JSON hará fail al test con un diff exacto. Cualquier cambio frontend que olvide reflejar el backend hará fail también.
+
+### §8.5.3 Resultado binario tras D3.2.2
+
+| Métrica | D3.2.1 (a53cca6) | D3.2.2 (delta nuevo) |
+|---|---|---|
+| Backend tests | 180 | **180** (test F-D3.2-04 ENDURECIDO con round-trip + URL completas) |
+| Frontend tests | 38 | **40** (+2: contract maxBytes + sin-omisión-drift) |
+| Backend typecheck | OK | OK |
+| Backend build | OK | OK |
+| Frontend typecheck | OK | OK |
+| Frontend build | OK + `/tutor` ○ Static | OK + `/tutor` ○ Static |
+| F-patterns abiertos | 1 PARCIAL (F-D3.2-04 incompleto) + 1 HIGH nueva (F-D3.2.1-01) | 0 |
+| R-patterns abiertos | 0 | 0 |
+| Drifts externos | 4 ABIERTOS (data plane D5) | 4 REGISTRADOS (data plane D5) |
+
+**DSC-LF-005 estado**: implementado + endurecido en dos pases adversariales. Pendiente tercer pase Perplexity (regresión sobre delta D3.2.2) **opcional** + bridge audit Cowork D3.2 antes de firma formal.

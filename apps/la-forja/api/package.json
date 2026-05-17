@@ -14,7 +14,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "contract:headers": "node scripts/generate-headers-contract.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.78",

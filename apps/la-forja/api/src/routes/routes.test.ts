@@ -352,7 +352,7 @@ describe("/api/tutor/chat (D3.2 SSE)", () => {
     expect(decoded).toContain("https://ejemplo.com/m\u00e9xico");
   });
 
-  it("F-D3.2-04: payload de citations excede el cap → se trunca a FORJA_CITATIONS_HEADER_MAX_BYTES", async () => {
+  it("F-D3.2-04 + F-D3.2.1-01: payload excede el cap → se trunca por CITATION COMPLETA y el JSON sobrevive round-trip", async () => {
     const huge = Array.from(
       { length: 200 },
       (_, i) => `https://example.com/source-${i.toString().padStart(4, "0")}áéíóú`,
@@ -379,12 +379,26 @@ describe("/api/tutor/chat (D3.2 SSE)", () => {
     expect(res.status).toBe(200);
     const b64 = res.headers.get(FORJA_TUTOR_HEADER_KEYS.citationsB64);
     expect(b64).not.toBeNull();
-    // base64url(N bytes) = ceil(N/3)*4 sin padding. El payload UTF-8 fue
-    // truncado a FORJA_CITATIONS_HEADER_MAX_BYTES bytes ANTES del encode.
-    // El base64url resultante mide aprox 4/3 * cap.
-    const expectedMaxB64Length =
-      Math.ceil(FORJA_CITATIONS_HEADER_MAX_BYTES / 3) * 4;
-    expect(b64!.length).toBeLessThanOrEqual(expectedMaxB64Length);
+
+    // F-D3.2.1-01: el truncado por CITATION COMPLETA garantiza que el JSON
+    // resultante es siempre parseable. El test anterior solo verificaba
+    // longitud de base64, no la integridad del JSON → no detectaba el bug
+    // donde el truncado por bytes ciegos rompe codepoints UTF-8.
+    const decoded = Buffer.from(b64!, "base64url").toString("utf-8");
+    const decodedBytes = Buffer.byteLength(decoded, "utf-8");
+    expect(decodedBytes).toBeLessThanOrEqual(FORJA_CITATIONS_HEADER_MAX_BYTES);
+
+    // Round-trip: JSON.parse no debe lanzar.
+    const parsed = JSON.parse(decoded) as string[];
+    expect(Array.isArray(parsed)).toBe(true);
+    // Al menos UNA citation debe sobrevivir (cap binario, no cero-cita).
+    expect(parsed.length).toBeGreaterThan(0);
+    // Cada citation que sobrevivió mantiene su forma URL completa
+    // (no fragmentos cortados a la mitad).
+    for (const url of parsed) {
+      expect(url.startsWith("https://example.com/source-")).toBe(true);
+      expect(url.endsWith("áéíóú")).toBe(true);
+    }
   });
 });
 

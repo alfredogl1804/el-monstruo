@@ -248,17 +248,29 @@ export function tutorRoutes(deps: TutorRoutesDeps) {
       [FORJA_TUTOR_HEADER_KEYS.model]: "claude-opus-4-7",
     };
     if (citations.length > 0) {
-      // F-D3.2-04: truncar por BYTES UTF-8 (no por caracteres) para respetar
-      // FORJA_CITATIONS_HEADER_MAX_BYTES de manera estricta. `slice(0, N)`
-      // sobre el string corta caracteres y deja UTF-8 multi-byte expandir el
-      // payload por encima del cap.
-      const fullPayload = Buffer.from(JSON.stringify(citations), "utf-8");
-      const truncated = fullPayload.subarray(
-        0,
-        FORJA_CITATIONS_HEADER_MAX_BYTES,
-      );
-      headers[FORJA_TUTOR_HEADER_KEYS.citationsB64] =
-        truncated.toString("base64url");
+      // F-D3.2.1-01: truncar por CITATION COMPLETA (no por bytes ciegos).
+      // El truncado por bytes cortaba el JSON a la mitad de un string/codepoint
+      // y producía base64url cuyo decode rompía `JSON.parse` en el frontend,
+      // perdiendo TODAS las citations silenciosamente (forjaHeaders.ts catch
+      // retorna []). Ahora acumulamos citation por citation mientras quepa
+      // dentro de FORJA_CITATIONS_HEADER_MAX_BYTES; el JSON resultante es
+      // siempre parseable.
+      const capped: typeof citations = [];
+      for (const citation of citations) {
+        const candidate = [...capped, citation];
+        const candidateBytes = Buffer.byteLength(
+          JSON.stringify(candidate),
+          "utf-8",
+        );
+        if (candidateBytes > FORJA_CITATIONS_HEADER_MAX_BYTES) break;
+        capped.push(citation);
+      }
+      if (capped.length > 0) {
+        headers[FORJA_TUTOR_HEADER_KEYS.citationsB64] = Buffer.from(
+          JSON.stringify(capped),
+          "utf-8",
+        ).toString("base64url");
+      }
     }
     if (validationModel !== null) {
       headers[FORJA_TUTOR_HEADER_KEYS.validationModel] = validationModel;

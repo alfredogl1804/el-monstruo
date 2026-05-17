@@ -1,15 +1,17 @@
 /**
- * La Forja — Espejo del contract canónico de headers SSE (R-D3.2-02).
+ * La Forja — Espejo del contract canónico de headers SSE (R-D3.2-02 + R-D3.2.1-02).
  *
- * Sprint LA-FORJA-001 D3.2.1.
+ * Sprint LA-FORJA-001 D3.2.2.
  * Doctrina: §7 _DOCTRINA_D3.md (DSC-LF-005).
  *
  * Este módulo es ESPEJO BINARIO de `apps/la-forja/api/src/shared/headers.ts`.
  * No podemos importar cross-workspace, así que ambos lados publican el mismo
- * objeto y un test de contrato (`Chat.contract.test.ts`) compara byte por byte
- * vía snapshot reading del archivo backend con `fs` para garantizar paridad.
+ * objeto y un test de contrato (`forjaHeaders.contract.test.ts`) compara con
+ * el JSON canonico (`forjaHeaders.contract.json`) generado desde el backend
+ * por `pnpm --filter la-forja-api contract:headers`.
  *
- * Si tocas un nombre aquí, tocas el del backend. Si fallan los tests, es drift.
+ * Si tocas un nombre aquí, tocas el del backend Y regeneras el JSON. Si
+ * fallan los tests de contrato, es drift binario.
  */
 
 export const FORJA_TUTOR_HEADER_KEYS = {
@@ -24,6 +26,12 @@ export const FORJA_TUTOR_HEADER_KEYS = {
 export const FORJA_TUTOR_HEADER_NAMES = Object.values(
   FORJA_TUTOR_HEADER_KEYS,
 ) as readonly string[];
+
+/**
+ * Cap de bytes para el payload de citations antes del encode base64url
+ * (espejo de `FORJA_CITATIONS_HEADER_MAX_BYTES` del backend, R-D3.2.1-02).
+ */
+export const FORJA_CITATIONS_HEADER_MAX_BYTES = 2048;
 
 /**
  * Decodifica el header `x-la-forja-citations-b64` (base64url JSON) a array de

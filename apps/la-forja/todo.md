@@ -497,6 +497,14 @@ Decisión H-12 = Opción C (migración con doctrina forward, no doble endpoint).
   - [x] 5 drifts externos registrados como work item de sprints D5/D6 (D-01 RLS critical, D-02 Notion, D-03/04/05 doc)
   - [x] Backend tests 180/180 (+4) · Frontend tests 38/38 (+1) · typecheck + builds verdes
   - [x] Doctrina actualizada (`apps/la-forja/web/_DOCTRINA_D3.md §8`)
-- [ ] Auditoría adversarial Perplexity segundo pase (regresión sobre commit hardening D3.2.1)
-- [ ] Bridge audit Cowork D3.2 (sobre delta D3.2 + D3.2.1)
+- [x] Auditoría adversarial Perplexity segundo pase — COMPLETADO 16-may-2026 (D3.2.2)
+  - [x] Output recolectado: 7 F del pase 1 CERRADOS, 1 PARCIAL (F-D3.2-04), 2 DISPUTA_VALIDA (F-05, F-08), 3 R CERRADOS, 4 drifts D5 confirmados
+  - [x] 3 regresiones nuevas detectadas: F-D3.2.1-01 (HIGH bloqueante), R-D3.2.1-02 (MEDIUM), R-D3.2.1-03 (LOW)
+  - [x] Fix F-D3.2.1-01: truncado por citation completa (loop incremental); JSON resultante siempre parseable
+  - [x] Fix R-D3.2.1-02: contract test sin fs runtime; nuevo generador `contract:headers` + JSON canonico committed
+  - [x] Fix R-D3.2.1-03: test F-D3.2-04 endurecido con round-trip JSON.parse + URL completas (startsWith/endsWith)
+  - [x] Backend tests 180/180 · Frontend tests 40/40 (+2) · typecheck + builds verdes
+  - [x] Doctrina actualizada (`apps/la-forja/web/_DOCTRINA_D3.md §8.5`)
+- [ ] Auditoría adversarial Perplexity tercer pase (opcional, regresión sobre delta D3.2.2)
+- [ ] Bridge audit Cowork D3.2 (sobre delta D3.2 + D3.2.1 + D3.2.2)
 - [ ] DSC-LF-005 firmado formalmente al cierre (tras audits)
