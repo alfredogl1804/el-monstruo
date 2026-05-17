@@ -108,3 +108,83 @@ apps/la-forja/web/
 - ❌ Conexión Supabase directa (NUNCA — siempre vía Hono backend)
 
 D3.0 = scaffold + health check page funcional. Nada más.
+
+
+---
+
+## §7. D3.2 entregado — contrato SSE binario validado (16-may-2026)
+
+### §7.1 Stack SSE elegido (verificado en runtime, no por suposición)
+
+| Pieza | Decisión binaria | Por qué |
+|---|---|---|
+| Backend stream builder | `streamText({ model: anthropic('claude-opus-4-7'), … }).toUIMessageStreamResponse({ headers })` | Devuelve `Response` Web-standard. Hono `HandlerResponse` lo acepta tal cual; sin adapter. |
+| Provider Anthropic | `@ai-sdk/anthropic@3.0.78` con `createAnthropic({ apiKey })` | Permite inyección de `apiKey` desde `loadEnv()` y override del provider en tests sin tocar `process.env`. |
+| Modo Adaptive (§2.4 SPEC) | `providerOptions.anthropic.thinking = { type: "enabled", budgetTokens: 1024 }` | Modo Adaptive obligatorio para el tutor del Cliente Cero. Fija `budgetTokens` (camelCase, no `budget_tokens`). |
+| Frontend hook | `useChat({ transport })` de `@ai-sdk/react@3.0.186` | `input` / `handleInputChange` legacy fueron removidos en v3; ahora se controla con `useState` local. |
+| Frontend transport | `new DefaultChatTransport({ api, fetch, body })` de `ai@6.0.184` | El custom `fetch` permite leer headers SSE pre-stream para hidratar la barra de metadata sin parsear chunks. |
+| Protocolo SSE | UI Message Stream v1 (header `x-vercel-ai-ui-message-stream: v1`) | Único protocolo soportado nativamente por `useChat` v3; reemplaza el "data stream" v0/v1 del SDK 4/5. |
+
+### §7.2 Mapping budget pipeline → callbacks del stream
+
+```
+Pipeline tutor (D3.2):
+
+  preCallCheck(classifier)  ──▶  classifyMessage()  ──▶  postCallCommit(classifier)
+        │                              │
+        └─ rollback en catch ◀─────────┘  (adjustSpent(-classifierEstimated))
+
+  preCallCheck(magna_validation)  ──▶  invokeMagnaValidation()  ──▶  postCallCommit(magna)
+        │                                       │
+        └─ rollback en catch ◀──────────────────┘  (adjustSpent(-magnaEstimated))
+
+  buildTutorStream({
+    onFinish: ({inputTokens, outputTokens}) => postCallCommit(tutor, real, real, c.var.budgetEstimated),
+    onError:  (err) => adjustSpent(user.id, -c.var.budgetEstimated),
+  })
+
+  return result.toUIMessageStreamResponse({ headers })
+```
+
+**Trade-off documentado:** el `Response` SSE se devuelve al cliente ANTES de que `onFinish` se complete (corre en background del stream). Es el patrón canónico del Vercel AI SDK 6. Si `onFinish` falla por error de DB en `postCallCommit`, el cap se enforce en el SIGUIENTE turn vía `preCallCheck`. Si `onError` se dispara mid-stream, el rollback se aplica antes de que el cliente termine de leer el body.
+
+### §7.3 Headers SSE custom que el backend emite
+
+El backend agrega los siguientes headers junto a los del UI Message Stream v1:
+
+| Header | Tipo | Significado |
+|---|---|---|
+| `x-vercel-ai-ui-message-stream` | literal `v1` | Protocolo del SDK; identifica que el body es UI Message Stream. |
+| `x-la-forja-intent` | `"confusion_detected" \| "no_confusion"` | Output de AC12 sobre el último mensaje del usuario. |
+| `x-la-forja-confidence` | número con 4 decimales | Confidence del clasificador. |
+| `x-la-forja-model` | literal `claude-opus-4-7` | Modelo del tutor (registro contra MISSION_TO_MODEL §2.4). |
+| `x-la-forja-citations` | JSON-encoded `string[]` | Solo presente si `requireValidation=true`. URLs devueltas por Sonar. |
+| `x-la-forja-validation-model` | string | Solo presente si `requireValidation=true`. Modelo magna usado (sonar-reasoning-pro). |
+
+El cliente (`Chat.tsx`) consume estos headers vía custom `fetch` del `DefaultChatTransport` y los renderiza en una barra metadata + footer de citations.
+
+### §7.4 Reordenamiento magna_validation: PRE-stream (decisión binaria)
+
+En D2.6 magna_validation corría DESPUÉS del tutor (validaba el output). En D3.2 se mueve ANTES del stream. Justificación binaria:
+
+1. **El cliente necesita las citations en headers.** Si magna corre después, las citations llegarían en un chunk post-finish, pero el cliente ya está pintando la respuesta completa. Romper el flujo SSE para inyectar citations al final viola el contrato `useChat`.
+2. **La validación magna NO depende del output del tutor.** Sonar valida el TEMA del usuario contra fuentes recientes para que el tutor pueda responder citando, no para corregir al tutor a posteriori. El significado semántico no cambia.
+3. **DSC-LF-004 (firmado en D2) no fija el orden,** solo fija que magna usa Sonar Reasoning Pro como capa de validación. La reordenación es interna y no requiere DSC nuevo.
+
+Documentado en el banner del archivo `apps/la-forja/api/src/routes/tutor.ts` para auditoría futura.
+
+### §7.5 Tests retirados vs tests agregados
+
+| Test D2.6 retirado | Reemplazo D3.2 |
+|---|---|
+| `200 con tutor mockeado y AC12 inyectado` (assertaba JSON `body.content`) | `200 SSE: content-type=text/event-stream + headers metadata` |
+| `incluye citations cuando requireValidation=true` (JSON `body.citations`) | `200 SSE: incluye x-la-forja-citations + x-la-forja-validation-model` |
+| `H-2: si invokeTutor lanza, adjustSpent rollback` (catch sincrónico) | `H-2 (D3.2): si el stream del tutor falla mid-stream, adjustSpent ejecuta rollback vía onError` |
+
+Los 4 tests D2.5 hardening (H-2 magna, H-3 classifier, H-3 magna, H-2 stream) **siguen pasando con la misma intención**: el invariante mínimo es que `adjustSpent` se llame con valor negativo en cada error path, y `reserveSpent` se llame ≥2 (sin magna) o ≥3 (con magna) veces.
+
+### §7.6 Resultado binario
+
+- Backend: 176/176 tests passing en 478ms · `tsc -p tsconfig.json --noEmit` 0 errores · `npm run build` verde
+- Frontend: 37/37 tests passing · typecheck verde · `next build` verde con `/tutor` registrada como `ƒ` (server-rendered on demand)
+- DSC-LF-005 implementado pero NO firmado todavía: pendiente auditoría adversarial Perplexity (primer pase + regresión) + bridge audit Cowork antes de firmar formalmente.

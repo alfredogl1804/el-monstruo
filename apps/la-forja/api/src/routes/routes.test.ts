@@ -61,8 +61,96 @@ function mockBudgetClient(spent = 0): BudgetClient {
   };
 }
 
-// Mock del SDK Anthropic vía vi.mock (módulo entero)
+// ----------------------------------------------------------------------------
+// Mocks de LLM providers
+//
+// D3.2: el mock del módulo anthropic provee tanto `invokeTutor` (legacy,
+// usado en otros tests / paths no-stream) como `buildTutorStream`. El stream
+// builder devuelve un objeto compatible con `result.toUIMessageStreamResponse`
+// que retorna un Response SSE simulado y dispara el callback `onFinish`
+// inmediatamente con tokens canónicos. Si `mockTutorStreamShouldThrow` es
+// true, dispara `onError` antes de devolver el Response (simula fallo del
+// proveedor mid-stream).
+// ----------------------------------------------------------------------------
+
+let mockTutorStreamShouldThrow = false;
+export function _setTutorStreamShouldThrow(v: boolean) {
+  mockTutorStreamShouldThrow = v;
+}
+
+function makeMockStreamResult(opts: {
+  onFinish: (e: {
+    inputTokens: number;
+    outputTokens: number;
+    model: string;
+    finishReason: string | undefined;
+  }) => Promise<void> | void;
+  onError: (err: unknown) => Promise<void> | void;
+}) {
+  return {
+    toUIMessageStreamResponse: (
+      init?: { headers?: Record<string, string> },
+    ): Response => {
+      // Si el stream está marcado para fallar, dispara onError de forma
+      // sincrónica antes de devolver el Response (rollback del budget se ve
+      // en el spy del adjustSpent).
+      if (mockTutorStreamShouldThrow) {
+        // Fire-and-forget: el rollback se ejecuta en el siguiente tick.
+        Promise.resolve().then(() =>
+          opts.onError(new Error("simulated upstream stream error")),
+        );
+        return new Response(
+          "event: error\ndata: {\"error\":\"upstream\"}\n\n",
+          {
+            status: 500,
+            headers: {
+              "content-type": "text/event-stream",
+              ...(init?.headers ?? {}),
+            },
+          },
+        );
+      }
+      // Stream feliz: dispara onFinish con tokens canónicos antes de devolver
+      // el Response, así postCallCommit corre en el mismo tick que el test.
+      const finishPromise = Promise.resolve(
+        opts.onFinish({
+          inputTokens: 100,
+          outputTokens: 50,
+          model: "claude-opus-4-7",
+          finishReason: "stop",
+        }),
+      );
+      // Construye un cuerpo SSE mínimo válido v1 con un text-delta y finish.
+      const body =
+        `data: {"type":"start","messageId":"m_mock"}\n\n` +
+        `data: {"type":"text-start","id":"t1"}\n\n` +
+        `data: {"type":"text-delta","id":"t1","delta":"Mock tutor reply"}\n\n` +
+        `data: {"type":"text-end","id":"t1"}\n\n` +
+        `data: {"type":"finish"}\n\n` +
+        `data: [DONE]\n\n`;
+      // Espera el commit antes de cerrar el body para que el test que
+      // verifica adjustSpent vea la llamada cuando lee el body.
+      const stream = new ReadableStream<Uint8Array>({
+        async start(controller) {
+          await finishPromise;
+          controller.enqueue(new TextEncoder().encode(body));
+          controller.close();
+        },
+      });
+      return new Response(stream, {
+        status: 200,
+        headers: {
+          "content-type": "text/event-stream",
+          ...(init?.headers ?? {}),
+        },
+      });
+    },
+  };
+}
+
 vi.mock("../lib/llm/anthropic", () => ({
+  // Legacy blocking path (preservado para compat aunque /api/tutor/chat no lo usa
+  // desde D3.2). Sigue mockeado por si otros tests lo invocan en el futuro.
   invokeTutor: vi.fn(async () => ({
     content: "Mock tutor reply",
     inputTokens: 100,
@@ -70,6 +158,10 @@ vi.mock("../lib/llm/anthropic", () => ({
     model: "claude-opus-4-7",
     stopReason: "end_turn",
   })),
+  // D3.2 SSE streaming builder.
+  buildTutorStream: vi.fn((opts: Parameters<typeof makeMockStreamResult>[0]) =>
+    makeMockStreamResult(opts),
+  ),
 }));
 vi.mock("../lib/llm/openai", () => ({
   invokeSprintCopilot: vi.fn(async () => ({
@@ -104,7 +196,13 @@ vi.mock("../lib/manus_bridge", async () => {
   };
 });
 
-describe("/api/tutor/chat", () => {
+// D3.2 (DSC-LF-005): /api/tutor/chat ahora retorna text/event-stream construido
+// por toUIMessageStreamResponse() de Vercel AI SDK 6. Los tests asseritan:
+//   - 400 JSON sigue funcionando para errores de shape (pre-stream)
+//   - 200 retorna content-type: text/event-stream + headers x-la-forja-*
+//   - intent / confidence / model / validation-model viajan en headers
+//   - citations viajan en x-la-forja-citations (JSON string)
+describe("/api/tutor/chat (D3.2 SSE)", () => {
   function makeApp() {
     const app = new Hono<ForjaAuthContext & ForjaBudgetContext>();
     app.use("*", forjaAuthStub());
@@ -132,18 +230,23 @@ describe("/api/tutor/chat", () => {
     return app;
   }
 
-  it("400 si messages está vacío", async () => {
+  beforeEach(() => {
+    _setTutorStreamShouldThrow(false);
+  });
+
+  it("400 JSON si messages está vacío (validación pre-stream)", async () => {
     const res = await makeApp().request("/api/tutor/chat", {
       method: "POST",
       headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
       body: JSON.stringify({ messages: [] }),
     });
     expect(res.status).toBe(400);
+    expect(res.headers.get("content-type")).toContain("application/json");
     const body = (await res.json()) as { error: string };
     expect(body.error).toContain("tutor_missing_messages");
   });
 
-  it("400 si no hay user message", async () => {
+  it("400 JSON si no hay user message (validación pre-stream)", async () => {
     const res = await makeApp().request("/api/tutor/chat", {
       method: "POST",
       headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
@@ -152,11 +255,12 @@ describe("/api/tutor/chat", () => {
       }),
     });
     expect(res.status).toBe(400);
+    expect(res.headers.get("content-type")).toContain("application/json");
     const body = (await res.json()) as { error: string };
     expect(body.error).toContain("tutor_no_user_message");
   });
 
-  it("200 con tutor mockeado y AC12 inyectado", async () => {
+  it("200 SSE: content-type=text/event-stream + headers metadata x-la-forja-*", async () => {
     const res = await makeApp().request("/api/tutor/chat", {
       method: "POST",
       headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
@@ -165,26 +269,19 @@ describe("/api/tutor/chat", () => {
       }),
     });
     expect(res.status).toBe(200);
-    const body = (await res.json()) as {
-      ok: boolean;
-      content: string;
-      model: string;
-      intent: string;
-      confidence: number;
-      citations: string[];
-      validationModel: string | null;
-      costUsd: number;
-    };
-    expect(body.ok).toBe(true);
-    expect(body.content).toBe("Mock tutor reply");
-    expect(body.model).toBe("claude-opus-4-7");
-    expect(body.intent).toBe("no_confusion");
-    expect(body.citations).toEqual([]);
-    expect(body.validationModel).toBeNull();
-    expect(body.costUsd).toBeGreaterThan(0);
+    expect(res.headers.get("content-type")).toContain("text/event-stream");
+    expect(res.headers.get("x-vercel-ai-ui-message-stream")).toBe("v1");
+    expect(res.headers.get("x-la-forja-intent")).toBe("no_confusion");
+    expect(res.headers.get("x-la-forja-model")).toBe("claude-opus-4-7");
+    expect(Number(res.headers.get("x-la-forja-confidence"))).toBeCloseTo(0.2);
+    expect(res.headers.get("x-la-forja-citations")).toBeNull();
+    expect(res.headers.get("x-la-forja-validation-model")).toBeNull();
+    // Drena el body para asegurar que el stream cierra limpio
+    const text = await res.text();
+    expect(text).toContain("Mock tutor reply");
   });
 
-  it("incluye citations cuando requireValidation=true", async () => {
+  it("200 SSE: incluye x-la-forja-citations + x-la-forja-validation-model con requireValidation=true", async () => {
     const res = await makeApp().request("/api/tutor/chat", {
       method: "POST",
       headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
@@ -194,12 +291,14 @@ describe("/api/tutor/chat", () => {
       }),
     });
     expect(res.status).toBe(200);
-    const body = (await res.json()) as {
-      citations: string[];
-      validationModel: string | null;
-    };
-    expect(body.citations.length).toBeGreaterThan(0);
-    expect(body.validationModel).toBe("sonar-reasoning-pro");
+    expect(res.headers.get("content-type")).toContain("text/event-stream");
+    const citationsHeader = res.headers.get("x-la-forja-citations");
+    expect(citationsHeader).not.toBeNull();
+    const citations = JSON.parse(citationsHeader!) as string[];
+    expect(citations.length).toBeGreaterThan(0);
+    expect(res.headers.get("x-la-forja-validation-model")).toBe(
+      "sonar-reasoning-pro",
+    );
   });
 });
 
@@ -440,6 +539,10 @@ describe("D2.5 hardening — /api/tutor/chat (H-2 budget rollback + H-3 multi-mi
     return app;
   }
 
+  beforeEach(() => {
+    _setTutorStreamShouldThrow(false);
+  });
+
   it("H-3: classifier mission llama reserveSpent con estimateCost > 0 (preCallCheck)", async () => {
     const client = spyBudgetClient();
     const app = makeAppWithClient(client);
@@ -451,6 +554,8 @@ describe("D2.5 hardening — /api/tutor/chat (H-2 budget rollback + H-3 multi-mi
       }),
     });
     expect(res.status).toBe(200);
+    // Drena el body para esperar el onFinish
+    await res.text();
     // Esperamos al menos 2 reserveSpent: 1 del middleware (tutor) + 1 del classifier
     // (preCallCheck dentro de la ruta, H-3). Sin H-3 esto sería 1.
     expect(client.reserveSpent.mock.calls.length).toBeGreaterThanOrEqual(2);
@@ -473,16 +578,16 @@ describe("D2.5 hardening — /api/tutor/chat (H-2 budget rollback + H-3 multi-mi
       }),
     });
     expect(res.status).toBe(200);
+    await res.text();
     // Esperamos 3 reservas: tutor (middleware) + classifier + magna_validation (H-3)
     expect(client.reserveSpent.mock.calls.length).toBeGreaterThanOrEqual(3);
   });
 
-  it("H-2: si invokeTutor lanza, adjustSpent(-estimated) se llama para rollback (budget leak fix)", async () => {
-    // Forzamos al mock a lanzar para simular fallo de proveedor
-    const anthropicMod = await import("../lib/llm/anthropic");
-    vi.mocked(anthropicMod.invokeTutor).mockImplementationOnce(async () => {
-      throw new Error("simulated upstream 500");
-    });
+  it("H-2 (D3.2): si el stream del tutor falla mid-stream, adjustSpent(-estimated) ejecuta rollback vía onError (budget leak fix)", async () => {
+    // D3.2: invokeTutor ya no se llama directo desde la ruta. El builder
+    // del stream dispara el callback onError con un error simulado, lo que
+    // hace que la ruta corra adjustSpent con valor negativo.
+    _setTutorStreamShouldThrow(true);
 
     const client = spyBudgetClient();
     const app = makeAppWithClient(client);
@@ -493,10 +598,13 @@ describe("D2.5 hardening — /api/tutor/chat (H-2 budget rollback + H-3 multi-mi
         messages: [{ role: "user", content: "Hola" }],
       }),
     });
-    // Hono onError: la ruta lanza; en handler default → 500.
-    // Lo único que importa para H-2 es que se haya hecho rollback.
-    expect([500, 502]).toContain(res.status);
-    // adjustSpent debe haberse llamado con un valor NEGATIVO para liberar la reserva
+    // El mock devuelve 500 con SSE error frame; el rollback corre antes.
+    expect(res.status).toBe(500);
+    // Drena el body para asegurar que onError ya se disparo
+    await res.text();
+    // Espera un microtask más para que el callback onError se complete
+    await new Promise((r) => setTimeout(r, 10));
+    // adjustSpent debe haberse llamado con un valor NEGATIVO para liberar reserva
     const negativeCalls = client.adjustSpent.mock.calls.filter(
       (call) => (call[1] as number) < 0,
     );

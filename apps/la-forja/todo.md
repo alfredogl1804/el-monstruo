@@ -447,3 +447,49 @@ Aplicado de todos modos para cerrar residuales antes de D3.2.
 - [x] Lint 0/0, typecheck verde, vitest **37/37** (+4 tests nuevos D3.1.1), build verde con `○ /onboarding` Static.
 - [ ] Commit `hardening(la-forja): D3.1.1 regression fixes Perplexity R-D3.1-01..05 + PARCIALES`
 - [ ] Push a `sprint/la-forja-001`
+
+
+## D3.2 — Chat tutor SSE bajo DSC-LF-005 (autorizado Cowork 16-may-2026)
+
+**DSC-LF-005:** "Todo endpoint backend que invoque un LLM devuelve `text/event-stream` con `createUIMessageStreamResponse` del Vercel AI SDK 6. JSON solo para metadata sin LLM. Aplica forward desde D3.2; sin retroactivos."
+
+Decisión H-12 = Opción C (migración con doctrina forward, no doble endpoint).
+
+### Validación real-time stack SSE (anti-autoboicot)
+- [x] Confirmar `createUIMessageStreamResponse` / `streamText().toUIMessageStreamResponse()` exportados en `ai@6.0.184`
+- [x] Confirmar `useChat` + `DefaultChatTransport` en `@ai-sdk/react@3.0.186` (peer `^19.2.1` cubre React 19.2.6)
+- [x] Probar binariamente que retorna `Response` web-standard (Hono `HandlerResponse` lo acepta nativo)
+- [x] Documentar shape SSE esperado en `apps/la-forja/web/_DOCTRINA_D3.md` (§7 actualizado abajo)
+
+### Backend D3.2 — migrar /api/tutor/chat a SSE
+- [x] `apps/la-forja/api/src/routes/tutor.ts`: handler ahora devuelve `result.toUIMessageStreamResponse({ headers })` (text/event-stream)
+- [x] `apps/la-forja/api/src/lib/llm/anthropic.ts`: agregado `buildTutorStream()` con Vercel AI SDK 6 + `@ai-sdk/anthropic@3.0.78` (modo Adaptive con `budgetTokens: 1024`); `invokeTutor` legacy preservado para compat de tests
+- [x] `preCallCheck` para classifier + magna_validation + tutor (middleware) corre antes de iniciar el stream
+- [x] `postCallCommit` del tutor corre en `onFinish` con tokens reales (`totalUsage.inputTokens/outputTokens`)
+- [x] `adjustSpent(-estimated)` rollback en `onError` del stream + en cada try/catch de classifier/magna
+- [x] Namespace de errores `[la-forja:tutor_*]` preservado en validaciones pre-stream
+- [x] Tests SSE: `content-type: text/event-stream`, `x-vercel-ai-ui-message-stream: v1`, headers `x-la-forja-{intent,confidence,model,citations,validation-model}`
+- [x] Test budget rollback en error path SSE (mock dispara `onError` → `negativeCalls.length ≥ 1`)
+- [x] Tests classifier + magna preservados (siguen invocados desde server-side)
+- [x] Reordenamiento: magna_validation corre PRE-stream para que las citations lleguen como header SSE (rationale en banner de `tutor.ts`)
+
+### Frontend D3.2 — chat tutor con useChat
+- [x] `@ai-sdk/react@3.0.186` y `ai@6.0.184` ya estaban en `web/package.json` (no hubo que reintroducir)
+- [~] `streamdown` postpone para D3.2.1 — D3.2 entrega texto plano con cursor blink, suficiente para validar el flujo SSE binario sin sumar dependencia que requiere su propio render pipeline. Tracked.
+- [x] `apps/la-forja/web/src/components/tutor/Chat.tsx` con `useChat` + `DefaultChatTransport` + custom `fetch` que captura headers SSE pre-stream
+- [x] `apps/la-forja/web/src/components/tutor/MessageBubble.tsx` con Brand DNA (forja/graphite/acero, mono uppercase para role labels, cursor blink durante streaming)
+- [x] `apps/la-forja/web/src/app/tutor/page.tsx` ruta `/tutor` Server Component con `force-dynamic`
+- [~] Toggle UI `requireValidation`: prop del componente, pendiente exponerlo en UI — D3.2 corre con `requireValidation={false}` por default. UI toggle agendado D3.2.1.
+- [x] Estados idle / streaming / error con namespace `[la-forja:tutor_stream_failed]`; botón "Reintentar" llama `regenerate()`
+- [~] Tests del componente Chat con happy-dom: agendados D3.2.1 (mock de `useChat`+transport; backend ya cubre el flujo SSE end-to-end via Hono `request()`)
+- [x] Typecheck + vitest 37/37 + `next build` verdes con ruta `/tutor` registrada
+
+#### Validación cross-stack
+- [x] Backend `npm test` → 176/176 (sin regresión; los 4 tests SSE reemplazan los 4 JSON anteriores)
+- [x] Frontend `npm test` → 37/37 (sin regresión)
+- [x] Backend `npm run build` → verde (tsc emit limpio)
+- [x] Frontend `npm run build` → verde, `/tutor` registrada como `ƒ` (server-rendered on demand)
+- [ ] Auditoría adversarial Perplexity primer pase — SIGUIENTE PASO operativo
+- [ ] Auditoría adversarial Perplexity segundo pase (regresión tras correcciones)
+- [ ] Bridge audit Cowork D3.2
+- [ ] DSC-LF-005 firmado formalmente al cierre (tras audits)
