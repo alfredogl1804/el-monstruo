@@ -136,3 +136,10 @@ stripe==15.1.0
 # See Dockerfile.web for chromium install step
 playwright==1.49.0
 PyYAML>=6.0.0,<7.0.0  # Sprint 86.4.5  explicit (was transitive via fastmcp)
+
+# ── Schema Drift Detection (Mini-Sprint 86.4.5 pre-B2) ─────────────────────
+# H17 fix (issue #156): movido desde requirements-eval.txt a requirements.txt
+# Razon binaria: sqlglot es invocado en CI (test_catastro_schema_drift.py) que
+# solo instala requirements.txt. Mantenerlo en eval-only causaba ModuleNotFoundError
+# recurrente en CI Unit Tests. sqlglot es liviano (~3MB) y NO arrastra torch.
+sqlglot==30.7.0                # PostgreSQL DDL parser, no-deps, multi-dialect
