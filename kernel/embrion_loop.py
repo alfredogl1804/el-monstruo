@@ -46,6 +46,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
 import time
 from datetime import datetime, timezone, timedelta
 from typing import Any, Optional
@@ -59,6 +60,11 @@ from kernel.utils.keyword_matcher import compile_keyword_pattern, match_any_keyw
 # Cargados aquí para que la falla de import sea ruidosa al boot, no en runtime.
 from kernel import embrion_budget as _embrion_budget
 from kernel import embrion_self_verifier as _embrion_self_verifier
+
+# S-EMBRION-009 T3: NO_RESPONDER strict matching (Cowork P2 Q2.b PR #139).
+# Case-sensitive, word-boundary anchored. Evita matches como "NO_RESPONDERIA"
+# o "no_responder" lowercase. Solo reconoce el flag exacto literal.
+_NO_RESPONDER_RE = re.compile(r"\bNO_RESPONDER\b")
 
 # Sprint ESCAPE-001 - Throttler Determinístico (Reloj Suizo, magna #2).
 # Importación segura: si el subpaquete kernel.escape no existe en runtime
@@ -572,10 +578,59 @@ class EmbrionLoop:
         trigger = await self._detect_trigger()
         if not trigger:
             return
-
         # We have a reason to think
         self._last_trigger = trigger
         logger.info("embrion_trigger_detected", trigger=trigger["type"], detail=trigger.get("detail", "")[:200])
+
+        # ═══ S-EMBRION-009 T2 + T3 — Pre-LLM gate ═══
+        # T2: Mark mensaje_alfredo as consumed BEFORE invoking LLM (idempotente).
+        #     Esto rompe el bucle infinito (hallazgo H1 2026-05-17): aunque el
+        #     verifier aborte el thought, el mensaje no se re-procesa.
+        # T3: Pre-flight NO_RESPONDER strict matching (Cowork P2 Q2.b).
+        #     Si el contenido contiene el flag literal \bNO_RESPONDER\b, el
+        #     Embrión honra el silencio SIN invocar LLM (soberanía cognitiva,
+        #     elección upstream del LLM).
+        if trigger.get("type") == "mensaje_alfredo":
+            _msg_id = trigger.get("message_id", "")
+            _detail = trigger.get("detail", "") or ""
+            # T2: marcar consumido (idempotente, antes de cualquier procesamiento)
+            if _msg_id:
+                _consumed_ok = await self._mark_consumed(_msg_id)
+                logger.info(
+                    "embrion_mensaje_consumed",
+                    msg_id=_msg_id,
+                    consumed_ok=_consumed_ok,
+                )
+            # T3: pre-flight NO_RESPONDER — silencio sin LLM
+            if _NO_RESPONDER_RE.search(_detail):
+                logger.info(
+                    "embrion_no_responder_silenced",
+                    msg_id=_msg_id,
+                    reason="pre_llm_directive_honored",
+                )
+                # Persistir registro canónico del silencio (tipo expandido por
+                # Cowork H13 2026-05-17 migration 0047).
+                if self._db and self._db.connected:
+                    try:
+                        await self._db.insert(
+                            table="embrion_memoria",
+                            data={
+                                "tipo": "silencio_preverifier",
+                                "contenido": (
+                                    f"NO_RESPONDER honored upstream of LLM. "
+                                    f"msg_id={_msg_id}, source=mensaje_alfredo. "
+                                    f"S-EMBRION-009 T3."
+                                ),
+                                "importancia": 3,
+                            },
+                        )
+                    except Exception as _exc:  # noqa: BLE001
+                        logger.warning(
+                            "embrion_silencio_persist_failed",
+                            error=str(_exc),
+                        )
+                self._last_thought_at = time.time()
+                return
 
         # ═══ CA5+CA7_INBOX_BEGIN — Sprint EMBRION-NEEDS-002 Tarea 5 ═══
         # Stub MFA: si el comando inbox es alto-riesgo (/override), NO ejecutar.
@@ -669,6 +724,43 @@ class EmbrionLoop:
         self._last_thought_at = time.time()
         self._thoughts_today += 1
 
+    async def _mark_consumed(self, msg_id: str) -> bool:
+        """Mark embrion_memoria row as consumed (S-EMBRION-009 T2).
+
+        Marca el row con consumed_at = NOW() ANTES de invocar el LLM.
+        Idempotente: si ya tiene consumed_at, el UPDATE es no-op funcional.
+
+        Doctrina (PR #139 / Cowork Opción 2):
+          - Soberanía cognitiva: la elección de procesar un mensaje ocurre
+            upstream del LLM, no downstream del verifier.
+          - El verifier puede abortar el thought y aun así el mensaje queda
+            consumido — sin bucle.
+
+        Returns:
+            True si el UPDATE se persistió (aunque el row no exista, supabase
+            no lo reporta como error). False si DB no conectada o el cliente
+            retornó error.
+        """
+        if not self._db or not self._db.connected:
+            return False
+        if not msg_id:
+            return False
+        try:
+            now_iso = datetime.now(timezone.utc).isoformat()
+            result = await self._db.update(
+                table="embrion_memoria",
+                data={"consumed_at": now_iso},
+                filters={"id": msg_id},
+            )
+            return result is not None
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "embrion_mark_consumed_failed",
+                msg_id=msg_id,
+                error=str(exc),
+            )
+            return False
+
     async def _detect_trigger(self) -> Optional[dict[str, Any]]:
         """
         Detect if there's something worth thinking about.
@@ -682,11 +774,19 @@ class EmbrionLoop:
             return None
 
         try:
-            # 1. Check for new messages from Alfredo
+            # 1. Check for new messages from Alfredo (S-EMBRION-009 T2)
+            # Filter consumed_at IS NULL: solo mensajes pendientes (no procesados).
+            # Doctrina: marcamos consumed_at ANTES de invocar LLM (idempotente).
+            # Esto reemplaza la heurística previa basada en timestamps de respuesta
+            # que causaba bucle infinito cuando self_verifier abortaba (hallazgo H1
+            # 2026-05-17). Spec firmado en PR #139 / S-EMBRION-009.
             mensajes = await self._db.select(
                 table="embrion_memoria",
                 columns="id,contenido,created_at",
-                filters={"tipo": "mensaje_alfredo"},
+                filters={
+                    "tipo": "mensaje_alfredo",
+                    "consumed_at": None,  # IS NULL filter (S-EMBRION-009)
+                },
                 order_by="created_at",
                 order_desc=True,
                 limit=1,
@@ -694,36 +794,17 @@ class EmbrionLoop:
 
             if mensajes:
                 msg = mensajes[0]
-                # Check if we already responded to this message
                 msg_id = msg.get("id", "")
-                respuestas = await self._db.select(
-                    table="embrion_memoria",
-                    columns="id",
-                    filters={"tipo": "respuesta_embrion"},
-                    order_by="created_at",
-                    order_desc=True,
-                    limit=5,
-                )
 
-                # Simple heuristic: if last message is newer than last response
-                last_msg_time = msg.get("created_at", "")
-                already_responded = False
-                for r in respuestas:
-                    r_time = r.get("created_at", "")
-                    if r_time > last_msg_time:
-                        already_responded = True
-                        break
-
-                if not already_responded:
-                    # FIX Sprint 33B: Pass FULL message content, not truncated
-                    # The LLM can handle long prompts; truncating here caused
-                    # the Embrión to receive incomplete directives from Alfredo.
-                    return {
-                        "type": "mensaje_alfredo",
-                        "detail": msg.get("contenido", ""),
-                        "message_id": msg_id,
-                        "priority": 10,
-                    }
+                # FIX Sprint 33B: Pass FULL message content, not truncated
+                # The LLM can handle long prompts; truncating here caused
+                # the Embrión to receive incomplete directives from Alfredo.
+                return {
+                    "type": "mensaje_alfredo",
+                    "detail": msg.get("contenido", ""),
+                    "message_id": msg_id,
+                    "priority": 10,
+                }
 
             # ═══ CA5_INBOX_BEGIN — Sprint EMBRION-NEEDS-002 Tarea 5 ═══
             # Embrión consume inbox de Daddy (Telegram → embrion_inbox).
