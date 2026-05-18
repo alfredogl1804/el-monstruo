@@ -1,17 +1,25 @@
 /**
  * La Forja — Implementaciones concretas de BudgetClient.
  *
- * Sprint LA-FORJA-001 v3.2 — D2.7.
+ * Sprint LA-FORJA-001 v3.2 — D2.7 + D5.2.
  *
  * En D2-D4 (sin tabla forja_budget): InMemoryBudgetClient acumula spent
  *   por usuario en un Map. Pierde estado al restart del server. Apto para
  *   smoke test, no para producción.
  *
- * En D5 (con tabla forja_budget): SupabaseBudgetClient hace SELECT/UPDATE
- *   atómico contra Supabase. El interface BudgetClient NO cambia.
+ * En D5.2+ (con tabla forja_budget aplicada): SupabaseBudgetClient (en
+ *   `lib/repositories/budget.ts`) hace UPSERT atómico contra Supabase.
+ *   El interface BudgetClient NO cambia.
+ *
+ * Selección binaria por NODE_ENV en `defaultBudgetClient()`:
+ *   - production           → SupabaseBudgetClient real (lib/repositories/budget.ts)
+ *   - development | test   → InMemoryBudgetClient (zero side effects en tests)
  */
 
 import type { BudgetClient } from "./budget";
+import { loadEnv } from "./env";
+import { SupabaseBudgetClient as SupabaseBudgetClientReal } from "./repositories/budget";
+import type { User } from "./env";
 
 /**
  * Implementación in-memory para D2-D4. Solo apta para arranque de boot.
@@ -41,33 +49,48 @@ export class InMemoryBudgetClient implements BudgetClient {
 }
 
 /**
- * D5 placeholder. Lanza error explícito si se invoca antes de migración.
- *
- * En D5 esta clase se implementa con queries Supabase atómicas:
- *   readSpent  → SELECT spent_usd_month FROM forja_budget WHERE user_id=$1
- *   reserve    → INSERT ... ON CONFLICT UPDATE spent_usd_month = spent_usd_month + $2
- *   adjust     → UPDATE forja_budget SET spent_usd_month = spent_usd_month + $2
+ * D5.2 alias re-exportado: la implementación real vive en
+ * `lib/repositories/budget.ts` (queries reales contra forja_budget).
+ * Re-exportado aquí para preservar compat con imports existentes que
+ * referenciaban `SupabaseBudgetClient` desde `lib/budget_clients`.
  */
-export class SupabaseBudgetClient implements BudgetClient {
-  async readSpent(_userId: string): Promise<number> {
-    throw new Error(
-      "[la-forja:budget_supabase_not_implemented] forja_budget table does not exist until D5. " +
-        "Use InMemoryBudgetClient until migrations are applied.",
-    );
-  }
-  async reserveSpent(_userId: string, _estimatedCost: number): Promise<void> {
-    throw new Error(
-      "[la-forja:budget_supabase_not_implemented] forja_budget table does not exist until D5.",
-    );
-  }
-  async adjustSpent(_userId: string, _delta: number): Promise<void> {
-    throw new Error(
-      "[la-forja:budget_supabase_not_implemented] forja_budget table does not exist until D5.",
-    );
-  }
+export { SupabaseBudgetClientReal as SupabaseBudgetClient };
+
+/**
+ * Resolver de User compartido entre BudgetClient y TelemetryClient cuando
+ * corren en modo Supabase real. Lo rellena el pipeline de la app por request
+ * (en `index.ts` después del middleware auth) y lo consulta el cliente.
+ *
+ * Patrón: process-wide Map<userId, User>. Las entradas se añaden ANTES de
+ * invocar al budget/telemetry y NO se eliminan (cache para resolución de
+ * profile_id en turnos posteriores). El crecimiento es O(usuarios distintos).
+ */
+const USER_RESOLVER_CACHE = new Map<string, User>();
+
+export function registerUserForResolver(user: User): void {
+  USER_RESOLVER_CACHE.set(user.id, user);
 }
 
-/** Default budget client para D2-D4 boot. D5 cambia a SupabaseBudgetClient. */
+export function resolveUserById(userId: string): User | null {
+  return USER_RESOLVER_CACHE.get(userId) ?? null;
+}
+
+export function _resetUserResolver(): void {
+  USER_RESOLVER_CACHE.clear();
+}
+
+/**
+ * Default budget client. Selección binaria por NODE_ENV:
+ *   - production       → SupabaseBudgetClient real
+ *   - development|test → InMemoryBudgetClient (preserva tests sin side effects)
+ */
 export function defaultBudgetClient(): BudgetClient {
+  const env = loadEnv();
+  if (env.NODE_ENV === "production") {
+    return new SupabaseBudgetClientReal({
+      resolveUser: resolveUserById,
+      nodeEnv: env.NODE_ENV,
+    });
+  }
   return new InMemoryBudgetClient();
 }

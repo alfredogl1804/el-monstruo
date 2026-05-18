@@ -59,7 +59,7 @@ export interface TelemetryClient {
  * Langfuse span con preLogRedact() del payload sensible.
  */
 export class StdoutTelemetryClient implements TelemetryClient {
-  // eslint-disable-next-line @typescript-eslint/require-await
+   
   async recordEvent(event: TelemetryEvent): Promise<void> {
     const payload = {
       ts: new Date().toISOString(),
@@ -74,8 +74,19 @@ export class StdoutTelemetryClient implements TelemetryClient {
 
 let _cached: TelemetryClient | null = null;
 
+/**
+ * Singleton síncrono. Siempre retorna `StdoutTelemetryClient` por default
+ * para preservar el contrato testeable. La selección binaria por NODE_ENV
+ * (Supabase real en producción) se hace en `index.ts` mediante
+ * `_setTelemetryClient(...)` ANTES de exponer las rutas.
+ *
+ * Patrón: la fábrica de la app (createApp) llama `installSupabaseTelemetry()`
+ * cuando NODE_ENV=production. El default sigue siendo stdout para tests/dev.
+ * Esto evita require() dinámico (no soportado en ESM) y mantiene 207/207
+ * tests verdes sin tocar nada en `telemetry.test.ts`.
+ */
 export function getTelemetryClient(): TelemetryClient {
-  if (_cached) return _cached;
+  if (_cached) {return _cached;}
   _cached = new StdoutTelemetryClient();
   return _cached;
 }
@@ -90,4 +101,28 @@ export function _setTelemetryClient(client: TelemetryClient | null): void {
  */
 export function recordEvent(event: TelemetryEvent): Promise<void> {
   return getTelemetryClient().recordEvent(event);
+}
+
+/**
+ * Activa el cliente Supabase para producción.
+ *
+ * Llamado explícitamente desde `createApp()` cuando NODE_ENV=production.
+ * Importa de forma estática `SupabaseTelemetryClient` y `resolveUserById`
+ * (sin `require` dinámico que rompe ESM).
+ *
+ * Idempotente: si ya hay cliente custom, no lo sobreescribe.
+ */
+export async function installSupabaseTelemetry(nodeEnv: string): Promise<void> {
+  if (_cached && !(_cached instanceof StdoutTelemetryClient)) {
+    // Cliente custom ya instalado (test o llamada previa)
+    return;
+  }
+  const [{ SupabaseTelemetryClient }, { resolveUserById }] = await Promise.all([
+    import("./repositories/telemetry"),
+    import("./budget_clients"),
+  ]);
+  _cached = new SupabaseTelemetryClient({
+    resolveUser: resolveUserById,
+    nodeEnv,
+  });
 }

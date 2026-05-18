@@ -1,5 +1,5 @@
 /**
- * La Forja — Ruta /api/sprints (D2.6 + hardening D2.5).
+ * La Forja — Ruta /api/sprints (D2.6 + hardening D2.5 + reconciliación D5.2).
  *
  * Sprint LA-FORJA-001 v3.2.
  * Doctrina: §4 SPEC v3.2 — co-piloto sprints GPT-5.5 Pro Reasoning.
@@ -8,19 +8,26 @@
  * En D2: response síncrona con propuesta generada + estado canónico.
  * En D5: persiste en forja_sprints con state machine 8 estados.
  *
- * State machine canónica (§4 SPEC v3.2:130 — inglés):
- *   proposed → drafting → review_alfredo → review_cowork → ready_to_execute
- *                                                                  ↓
- *                                            canonized ← merged ← executing
+ * State machine canónica (D5.1 SQL `chk_forja_sprints_status` — fuente de verdad):
+ *   proposed → confirmed → executing → waiting_audit → audited → merged
+ *   Estados terminales: blocked | archived
  *
  * Hardening D2.5 (audit adversarial Perplexity 15-may-2026):
- *   - H-4: SPRINT_STATES alineado binariamente al SPEC §4:130 (inglés).
- *          El código previo usaba estados español semánticamente distintos
- *          (propuesta, diseño, ejecución, validacion, cerrado_sin_pulir,
- *          pulir, cerrado_pulir, archivado) que no aparecen en el SPEC.
+ *   - H-4: SPRINT_STATES alineado a la doctrina viva. La iteración previa
+ *          alineaba al SPEC v3.2 §4:130 (inglés), pero D5.1 SQL canonizó
+ *          un set distinto de 8 estados al implementar `forja_sprints`.
+ *          La fuente única de verdad es el SQL en producción (DSC-LF-010).
  *   - H-2: try/catch alrededor de invokeSprintCopilot con rollback de
  *          c.var.budgetEstimated si el LLM falla. NO se retiene presupuesto
  *          por errores del modelo.
+ *
+ * Drift P2 reconciliado en D5.2 (caveat declarado en SIGNOFF Cowork D5.1):
+ *   - SQL gana sobre TS. Estados TS previos `drafting, review_alfredo,
+ *     review_cowork, ready_to_execute, canonized` reemplazados por
+ *     `confirmed, waiting_audit, audited, blocked, archived` (canónicos SQL).
+ *   - 3 estados se mantuvieron por nombre exacto: `proposed, executing, merged`.
+ *   - `chk_forja_sprints_status` constraint en Postgres rechaza cualquier
+ *     INSERT con estado fuera del whitelist; la TS ahora coincide binariamente.
  */
 
 import { Hono } from "hono";
@@ -31,34 +38,34 @@ import type { ForjaAuthContext } from "../middleware/auth";
 import type { ForjaBudgetContext } from "../middleware/budget";
 
 /**
- * Estados canónicos alineados al SPEC v3.2 §4:130 (inglés).
- * Tuple length=8 EXACTO. Cualquier 9° estado = SPEC nuevo.
+ * Estados canónicos alineados al SQL D5.1 (`chk_forja_sprints_status`).
+ * Tuple length=8 EXACTO. Cualquier 9° estado = expansión de schema requerida.
  *
- * Transiciones permitidas (declaradas en SPEC §4:135-144):
- *   proposed         → drafting
- *   drafting         → review_alfredo  (T1-Alfredo bloqueo)
- *   review_alfredo   → review_cowork   (firma DSC requerida)
- *   review_cowork    → ready_to_execute
- *   ready_to_execute → executing
- *   executing        → merged          (sistema, webhook GitHub)
- *   merged           → canonized       (sistema + T1, archivo bridge _DONE)
+ * Transiciones permitidas (D5.1 SQL + DSC-LF-010):
+ *   proposed         → confirmed       (T1-Alfredo confirma propuesta)
+ *   confirmed        → executing       (Manus arranca sprint)
+ *   executing        → waiting_audit   (Manus pide audit a Cowork)
+ *   waiting_audit    → audited         (Cowork firma VERDE)
+ *   audited          → merged          (PR mergeado a main)
+ *   *                → blocked         (cualquier estado puede bloquearse)
+ *   *                → archived        (cualquier estado terminal puede archivarse)
  */
 export const SPRINT_STATES = [
   "proposed",
-  "drafting",
-  "review_alfredo",
-  "review_cowork",
-  "ready_to_execute",
+  "confirmed",
   "executing",
+  "waiting_audit",
+  "audited",
   "merged",
-  "canonized",
+  "blocked",
+  "archived",
 ] as const satisfies readonly string[];
 
 export type SprintState = (typeof SPRINT_STATES)[number];
 
 /**
  * Estado inicial canónico cuando se crea un sprint nuevo.
- * Cualquier sprint nace en `proposed` antes de pasar a `drafting`.
+ * Cualquier sprint nace en `proposed` antes de pasar a `confirmed` (D5.1 SQL).
  */
 export const SPRINT_INITIAL_STATE: SprintState = "proposed";
 

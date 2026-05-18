@@ -29,7 +29,11 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 
 import { loadEnv } from "./lib/env";
-import { defaultBudgetClient } from "./lib/budget_clients";
+import {
+  defaultBudgetClient,
+  registerUserForResolver,
+} from "./lib/budget_clients";
+import { installSupabaseTelemetry } from "./lib/telemetry";
 import { forjaAuthStub, type ForjaAuthContext } from "./middleware/auth";
 import {
   forjaBudgetGuard,
@@ -67,6 +71,14 @@ export function createApp(options: CreateAppOptions = {}): Hono<ForjaContext> {
   loadEnv({ strict: strictEnv });
 
   const budgetClient = options.budgetClient ?? defaultBudgetClient();
+
+  // D5.2: en producción activa el cliente Supabase de telemetría. Idempotente.
+  // No bloqueante — el await del dynamic import resuelve antes del primer
+  // request porque createApp() corre síncrono al boot del server.
+  const env = loadEnv({ strict: false });
+  if (env.NODE_ENV === "production") {
+    void installSupabaseTelemetry(env.NODE_ENV);
+  }
 
   const app = new Hono<ForjaContext>();
 
@@ -122,7 +134,7 @@ export function createApp(options: CreateAppOptions = {}): Hono<ForjaContext> {
   app.route("/api/auth", authRoutes());
 
   // -------- Pipeline middleware obligatorio para /api (excepto /auth/*) --------
-  // Orden binario: auth → budget → telemetry → route
+  // Orden binario: auth → register-user → budget → telemetry → route
   // Selector binario por NODE_ENV (D4): production → forjaAuthGoogle, dev/test → forjaAuthStub
   // Skip-list binario para /api/auth/* (esos endpoints son la propia auth y NO
   // pueden requerir sesión previa). El stub ya rechaza producción con 503 (H-1).
@@ -134,6 +146,22 @@ export function createApp(options: CreateAppOptions = {}): Hono<ForjaContext> {
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (authStubMw as any)(c, next);
+  });
+
+  // D5.2: registra User resuelto por auth en el cache compartido para que
+  // SupabaseBudgetClient y SupabaseTelemetryClient puedan resolver userId
+  // → User → google_sub → forja_profiles.id sin reinventar la rueda.
+  // Solo activo en producción; en dev/test los clients son in-memory/stdout.
+  app.use("/api/*", async (c, next) => {
+    if (c.req.path.startsWith("/api/auth/")) {
+      await next();
+      return;
+    }
+    const user = c.var.user;
+    if (user) {
+      registerUserForResolver(user);
+    }
+    await next();
   });
   app.use("/api/*", forjaTelemetry());
 

@@ -59,7 +59,7 @@ export interface AnthropicTutorResponse {
 let _cached: Anthropic | null = null;
 
 function getClient(): Anthropic {
-  if (_cached) return _cached;
+  if (_cached) {return _cached;}
   const env = loadEnv();
   _cached = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
   return _cached;
@@ -110,7 +110,7 @@ type AnthropicProviderFactory = ReturnType<typeof createAnthropic>;
 let _cachedProvider: AnthropicProviderFactory | null = null;
 
 function getTutorProvider(): AnthropicProviderFactory {
-  if (_cachedProvider) return _cachedProvider;
+  if (_cachedProvider) {return _cachedProvider;}
   const env = loadEnv();
   _cachedProvider = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY });
   return _cachedProvider;
@@ -138,6 +138,9 @@ export interface BuildTutorStreamOptions {
     outputTokens: number;
     model: string;
     finishReason: string | undefined;
+    /** Texto agregado del assistant. Disponible en D5.2 para persistir
+     * en forja_messages.content. Puede ser '' si el stream no produjo texto. */
+    text: string;
   }) => Promise<void> | void;
   /**
    * Callback de error mid-stream. Usado por la ruta para rollback del budget
@@ -183,6 +186,7 @@ export function buildTutorStream(
         outputTokens: usage.outputTokens ?? 0,
         model: ANTHROPIC_TUTOR_MODEL,
         finishReason: event.finishReason,
+        text: event.text ?? "",
       });
     },
     onError: async ({ error }) => {
