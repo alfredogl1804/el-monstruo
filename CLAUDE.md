@@ -31,7 +31,44 @@ ORDER BY fecha_inicio DESC LIMIT 1;
 
 **Esta es prioridad 0.** El bloque CLI/SQL pre-flight es **realidad fresca verificable**, los markdown docs §1-§6 abajo son **doctrina histórica** que matiza la realidad fresca.
 
-**PASO 1-6: markdown docs históricos** (leer DESPUÉS del Paso 0):
+### PASO 0.B — Coherence Gate Nivel A (canonizado 2026-05-18, DSC-G-013 v0.1)
+
+Antes de cualquier **acción magna** (`apply_migration` nueva, INSERT con CHECK constraint, `DROP/ALTER TABLE` directo prod, declarar scope tactical con N items), Cowork DEBE ejecutar el coherence gate Nivel A pre-flight:
+
+```bash
+# Capa repo↔schema_migrations
+ls migrations/sql/ | tail -3
+# Verifica próximo número libre en repo
+```
+
+Vía MCP Supabase:
+```sql
+SELECT version, name FROM supabase_migrations.schema_migrations
+ORDER BY version DESC LIMIT 3;
+-- Verifica últimas registradas en prod
+```
+
+Si la acción involucra CHECK constraint:
+```sql
+SELECT conname, pg_get_constraintdef(oid)
+FROM pg_constraint WHERE conname='<chk_name>';
+-- Verifica whitelist actual
+```
+
+Si los outputs **difieren** entre repo y schema_migrations o entre código y CHECK → **flag amarillo**, verificación explícita pre-acción. Si **divergencia confirmada** → **bloquear acción** hasta resolver.
+
+**Latencia Nivel A:** +2-5s por turno (verificado contra Paso 0 existente).
+
+**Caveat doctrinal:** DSC-G-013 v0.1 firmado bajo "Guardrail pre-acción contra drift DB↔Repo↔Código. No patrón universal probado." Nivel B automatizado (`tools/_coherence_gate.py`) está en EXPERIMENTO T+14D — NO confiar en automatización hasta canonización post-experimento.
+
+**Evidencia magna binaria (3 manifestaciones HOY 2026-05-17/18):**
+- H12: `run_costs` migration 0015 en repo NO registrada en schema_migrations (drift sistémico — solo 12 registradas vs ~44 en repo)
+- H13: 4 tipos código `evaluacion`, `silencio_preverifier`, `contribucion_sabio`, `radar_insight` rechazados silente por CHECK constraint (`contribucion_sabio` importancia=9 perdida por meses)
+- F#15 (síntoma operativo): Manus E2 asumió numeración 0037 disponible — estaba ocupada (off by 10)
+
+Doctrina: `discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-G-013_db_repo_coherence_gate.md` v0.1 firmado T1 verbatim "firmo 5" 2026-05-18.
+
+**PASO 1-6: markdown docs históricos** (leer DESPUÉS del Paso 0 + Paso 0.B):
 
 1. `memory/cowork/COWORK_BASE_CONOCIMIENTO.md` — qué es el Monstruo
 2. `memory/cowork/COWORK_ESTADO_VIVO.md` — qué está corriendo HOY (matizado por Paso 0)
@@ -145,6 +182,7 @@ Si Cowork detecta uno de estos patrones en sí mismo, debe pararse y corregir:
 | "pausá" | Detiene producción, espera dirección explícita |
 | "push" | Push via `mcp__github-monstruo__*` ya, sin más preguntas |
 | "actualizá memory" | Actualiza `memory/cowork/COWORK_ESTADO_VIVO.md` con realidad fresca |
+| "Coherence Gate" | Ejecuta DSC-G-013 v0.1 Nivel A pre-acción (PASO 0.B) inmediato |
 
 ### ROL DE COWORK — INVIOLABLE
 
@@ -317,3 +355,4 @@ Este archivo es leído automáticamente por Claude Cowork cuando seleccionas `~/
 
 - **2026-05-11** Sprint CLAUDE_MD-001 (Cowork T2 puro, bajo autorización T1 directa) — fixes de 4 stales detectados en FASE 1 de la sesión nueva: (C2) path AUDIT_FORENSE corregido, (C3) regla merge derogada actualizada, (C5) RLS 117→120 + DSCs 62→64, (C6) tabla 8 Sabios completa con versiones correctas (Grok 4 Heavy + Kimi K2.6) + agregados los 4 que faltaban (GPT-5.5 Pro, Claude Opus 4.7, DeepSeek R1, Copilot 365). Plus refresh Estado Actual con App Flutter cifras honestas. Sin reescritura — edición targeted.
 - **2026-05-12** Paso 0 Pre-flight Memento extendido — sesión Cowork usa kernel del Monstruo como memoria persistente real via CLI `kernel.cowork_runtime.session_memory pre-flight` + INSERT SQL sandbox fallback. Bajo objetivo magno T1 ("vamos a ponernos de objetivo usar hoy la memoria persistente del monstruo para que te asista y te sirva"). Cierra fragilidad post-V25 estructuralmente. Paso N cierre sesión + Paso M opcional pre-response_hook decisiones magnas.
+- **2026-05-18** Paso 0.B Coherence Gate Nivel A canonizado (DSC-G-013 v0.1 firmado T1 verbatim "firmo 5"). Pre-acción gate binario verifica capa repo↔schema_migrations + código↔CHECK antes de acción magna. Evidencia magna: H12 (run_costs missing) + H13 (4 tipos rechazados silente) + F#15 caveat síntoma operativo. Nivel B automatizado en EXPERIMENTO T+14D. Veredictos 3 Sabios verbatim en `bridge/veredictos_dsc_g_013/`. Plus nueva palabra clave "Coherence Gate" en tabla correctivos.
