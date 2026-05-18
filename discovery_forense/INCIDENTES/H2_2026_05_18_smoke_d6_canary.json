@@ -1,0 +1,349 @@
+{
+  "incident_id": "H2_2026_05_18_smoke_d6_canary",
+  "sprint": "LA-FORJA-001 D6",
+  "test_protocol": "C1.C — repos directo (no HTTP/Express)",
+  "canary_marker": "CANARY-D6-2026-05-18",
+  "canary_google_sub": "canary-d6-2026-05-18-001",
+  "authorized_by": "Cowork T2-A 2026-05-18 (paridad H1)",
+  "timestamps": {
+    "started_at_utc": "2026-05-18T07:08:08.291Z",
+    "snapshot_taken_at_utc": "2026-05-18T07:08:15.513Z"
+  },
+  "artifacts": {
+    "profileId": "4d30cf02-b7e3-4f99-ba93-333ad97ad9d5",
+    "threadId": "5a5985aa-5754-44a4-8cc5-61cf9fc96b11",
+    "userMsgId": "15f86070-8c75-4377-871c-645ff1da8e27",
+    "assistantMsgId": "a54b2e75-5135-4a4d-b8bb-52bd34ab86e2",
+    "validationId": "9b4f0cc9-2c2b-46fa-9082-c8e9371d205f",
+    "budgetSpentUsd": 0.001234
+  },
+  "pre_test_counts": {
+    "profile": 0,
+    "thread": 0
+  },
+  "post_exercise_counts": {
+    "forja_profiles": 1,
+    "forja_threads": 1,
+    "forja_messages": 2,
+    "forja_budget": 1,
+    "forja_validations": 1,
+    "forja_telemetry": 1
+  },
+  "rows": {
+    "forja_profiles": [
+      {
+        "id": "4d30cf02-b7e3-4f99-ba93-333ad97ad9d5",
+        "google_sub": "canary-d6-2026-05-18-001",
+        "email": "canary-d6@smoke.la-forja.local",
+        "display_name": "canary-d6",
+        "role": "user",
+        "avatar_url": null,
+        "preferred_mode": "normal",
+        "metadata": {},
+        "created_at": "2026-05-18T07:08:09.726531+00:00",
+        "updated_at": "2026-05-18T07:08:09.726531+00:00",
+        "last_seen_at": "2026-05-18T07:08:09.204+00:00"
+      }
+    ],
+    "forja_threads": [
+      {
+        "id": "5a5985aa-5754-44a4-8cc5-61cf9fc96b11",
+        "profile_id": "4d30cf02-b7e3-4f99-ba93-333ad97ad9d5",
+        "title": "Hilo sin título",
+        "status": "active",
+        "mode": "normal",
+        "canonical_summary": null,
+        "summary_refreshed_at": null,
+        "message_count": 2,
+        "total_tokens_in": 50,
+        "total_tokens_out": 30,
+        "total_usd": 0.001234,
+        "metadata": {
+          "canary": "CANARY-D6-2026-05-18",
+          "smoke_test": "D6_C1C"
+        },
+        "created_at": "2026-05-18T07:08:10.120382+00:00",
+        "updated_at": "2026-05-18T07:08:13.021909+00:00",
+        "archived_at": null
+      }
+    ],
+    "forja_messages": [
+      {
+        "id": "15f86070-8c75-4377-871c-645ff1da8e27",
+        "thread_id": "5a5985aa-5754-44a4-8cc5-61cf9fc96b11",
+        "role": "user",
+        "content": "[CANARY-D6] Mensaje canario para smoke test D5.2 → D6.",
+        "model": null,
+        "mode": null,
+        "tokens_in": 0,
+        "tokens_out": 0,
+        "latency_ms": null,
+        "cost_usd": 0,
+        "require_validation": false,
+        "citations": null,
+        "metadata": {},
+        "created_at": "2026-05-18T07:08:10.9388+00:00"
+      },
+      {
+        "id": "a54b2e75-5135-4a4d-b8bb-52bd34ab86e2",
+        "thread_id": "5a5985aa-5754-44a4-8cc5-61cf9fc96b11",
+        "role": "assistant",
+        "content": "[CANARY-D6] Respuesta canario simulada del tutor.",
+        "model": "claude-opus-4-7-canary",
+        "mode": null,
+        "tokens_in": 50,
+        "tokens_out": 30,
+        "latency_ms": 100,
+        "cost_usd": 0.001234,
+        "require_validation": true,
+        "citations": [
+          "https://example.com/canary-citation"
+        ],
+        "metadata": {},
+        "created_at": "2026-05-18T07:08:12.330054+00:00"
+      }
+    ],
+    "forja_budget": [
+      {
+        "id": "83649b87-7b65-4cf0-8884-0e8e75f7ab1c",
+        "profile_id": "4d30cf02-b7e3-4f99-ba93-333ad97ad9d5",
+        "period_start": "2026-05-01",
+        "spent_usd": 0.001234,
+        "cap_usd": 50,
+        "mode_breakdown": {
+          "heavy": 0,
+          "light": 0,
+          "power": 0,
+          "normal": 0
+        },
+        "message_count": 0,
+        "validation_count": 0,
+        "warning_sent_at": null,
+        "cap_hit_at": null,
+        "metadata": {},
+        "created_at": "2026-05-18T07:08:11.692964+00:00",
+        "updated_at": "2026-05-18T07:08:11.692964+00:00"
+      }
+    ],
+    "forja_validations": [
+      {
+        "id": "9b4f0cc9-2c2b-46fa-9082-c8e9371d205f",
+        "message_id": "a54b2e75-5135-4a4d-b8bb-52bd34ab86e2",
+        "thread_id": "5a5985aa-5754-44a4-8cc5-61cf9fc96b11",
+        "profile_id": "4d30cf02-b7e3-4f99-ba93-333ad97ad9d5",
+        "topic": "canary-smoke-d6",
+        "query": "[CANARY-D6] query para smoke",
+        "provider": "perplexity",
+        "model": "sonar-reasoning-pro-canary",
+        "citations": [
+          "https://example.com/perplexity-citation"
+        ],
+        "citation_count": 1,
+        "raw_response": null,
+        "status": "completed",
+        "error": null,
+        "cost_usd": 0.0005,
+        "latency_ms": 50,
+        "metadata": {},
+        "created_at": "2026-05-18T07:08:13.391714+00:00"
+      }
+    ],
+    "forja_telemetry": [
+      {
+        "id": "04e77c2d-9afb-48bf-9468-a0b2a88a35e3",
+        "thread_id": "5a5985aa-5754-44a4-8cc5-61cf9fc96b11",
+        "message_id": null,
+        "profile_id": "4d30cf02-b7e3-4f99-ba93-333ad97ad9d5",
+        "event": "other",
+        "subject": "magna_validation_used",
+        "evidence": null,
+        "classifier_score": 0.95,
+        "intent": null,
+        "metadata": {
+          "model": "sonar-reasoning-pro-canary",
+          "canary": "CANARY-D6-2026-05-18",
+          "ts_type": "magna_validation_used",
+          "cost_usd": 0.0005,
+          "smoke_test": "D6_C1C"
+        },
+        "created_at": "2026-05-18T07:08:13.542396+00:00"
+      }
+    ]
+  },
+  "smoke_log": [
+    {
+      "ts": "2026-05-18T07:08:08.291Z",
+      "step": "smoke_d6_c1c",
+      "status": "start",
+      "details": {
+        "canary_marker": "CANARY-D6-2026-05-18",
+        "canary_google_sub": "canary-d6-2026-05-18-001",
+        "node_env": "production"
+      }
+    },
+    {
+      "ts": "2026-05-18T07:08:08.292Z",
+      "step": "pre_test_check",
+      "status": "start"
+    },
+    {
+      "ts": "2026-05-18T07:08:08.811Z",
+      "step": "pre_test_check",
+      "status": "info",
+      "details": {
+        "profile_canary_count": 0
+      }
+    },
+    {
+      "ts": "2026-05-18T07:08:09.203Z",
+      "step": "pre_test_check",
+      "status": "info",
+      "details": {
+        "thread_canary_count": 0
+      }
+    },
+    {
+      "ts": "2026-05-18T07:08:09.203Z",
+      "step": "pre_test_check",
+      "status": "ok"
+    },
+    {
+      "ts": "2026-05-18T07:08:09.203Z",
+      "step": "exercise_repos",
+      "status": "start",
+      "details": {
+        "canary_user": {
+          "id": "canary-d6-2026-05-18-001",
+          "email": "canary-d6@smoke.la-forja.local",
+          "role": "user"
+        }
+      }
+    },
+    {
+      "ts": "2026-05-18T07:08:09.204Z",
+      "step": "resolve_profile_id",
+      "status": "start"
+    },
+    {
+      "ts": "2026-05-18T07:08:09.557Z",
+      "step": "resolve_profile_id",
+      "status": "ok",
+      "details": {
+        "profile_id": "4d30cf02-b7e3-4f99-ba93-333ad97ad9d5"
+      }
+    },
+    {
+      "ts": "2026-05-18T07:08:09.557Z",
+      "step": "ensure_thread",
+      "status": "start"
+    },
+    {
+      "ts": "2026-05-18T07:08:09.950Z",
+      "step": "ensure_thread",
+      "status": "ok",
+      "details": {
+        "thread_id": "5a5985aa-5754-44a4-8cc5-61cf9fc96b11"
+      }
+    },
+    {
+      "ts": "2026-05-18T07:08:09.950Z",
+      "step": "set_thread_metadata_canary",
+      "status": "start"
+    },
+    {
+      "ts": "2026-05-18T07:08:10.367Z",
+      "step": "set_thread_metadata_canary",
+      "status": "ok"
+    },
+    {
+      "ts": "2026-05-18T07:08:10.367Z",
+      "step": "append_user_message",
+      "status": "start"
+    },
+    {
+      "ts": "2026-05-18T07:08:10.782Z",
+      "step": "append_user_message",
+      "status": "ok",
+      "details": {
+        "user_msg_id": "15f86070-8c75-4377-871c-645ff1da8e27"
+      }
+    },
+    {
+      "ts": "2026-05-18T07:08:10.782Z",
+      "step": "budget_reserve",
+      "status": "start"
+    },
+    {
+      "ts": "2026-05-18T07:08:11.816Z",
+      "step": "budget_reserve",
+      "status": "ok",
+      "details": {
+        "spent_usd": 0.001234
+      }
+    },
+    {
+      "ts": "2026-05-18T07:08:11.816Z",
+      "step": "append_assistant_message",
+      "status": "start"
+    },
+    {
+      "ts": "2026-05-18T07:08:12.844Z",
+      "step": "append_assistant_message",
+      "status": "ok",
+      "details": {
+        "assistant_msg_id": "a54b2e75-5135-4a4d-b8bb-52bd34ab86e2"
+      }
+    },
+    {
+      "ts": "2026-05-18T07:08:12.844Z",
+      "step": "record_validation",
+      "status": "start"
+    },
+    {
+      "ts": "2026-05-18T07:08:13.236Z",
+      "step": "record_validation",
+      "status": "ok",
+      "details": {
+        "validation_id": "9b4f0cc9-2c2b-46fa-9082-c8e9371d205f"
+      }
+    },
+    {
+      "ts": "2026-05-18T07:08:13.236Z",
+      "step": "telemetry_record",
+      "status": "start"
+    },
+    {
+      "ts": "2026-05-18T07:08:13.382Z",
+      "step": "telemetry_record",
+      "status": "ok"
+    },
+    {
+      "ts": "2026-05-18T07:08:13.382Z",
+      "step": "exercise_repos",
+      "status": "ok"
+    },
+    {
+      "ts": "2026-05-18T07:08:13.382Z",
+      "step": "verify_inserts",
+      "status": "start"
+    },
+    {
+      "ts": "2026-05-18T07:08:15.089Z",
+      "step": "verify_inserts",
+      "status": "ok",
+      "details": {
+        "forja_profiles": 1,
+        "forja_threads": 1,
+        "forja_messages": 2,
+        "forja_budget": 1,
+        "forja_validations": 1,
+        "forja_telemetry": 1
+      }
+    },
+    {
+      "ts": "2026-05-18T07:08:15.089Z",
+      "step": "snapshot_forensic",
+      "status": "start"
+    }
+  ]
+}
