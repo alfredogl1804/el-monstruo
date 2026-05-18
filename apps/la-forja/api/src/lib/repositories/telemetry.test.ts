@@ -20,10 +20,10 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { User } from "../env";
-import type { TelemetryEventType } from "../telemetry";
-import { SupabaseTelemetryClient } from "./telemetry";
-import { _resetProfileIdCache } from "./profiles";
+import type { User } from "../env.js";
+import type { TelemetryEventType } from "../telemetry.js";
+import { SupabaseTelemetryClient } from "./telemetry.js";
+import { _resetProfileIdCache } from "./profiles.js";
 
 const mockInsertResult = vi.fn();
 const mockInsert = vi.fn(() => mockInsertResult());

@@ -31,10 +31,10 @@
  *     hace en `lib/budget.ts:preCallCheck` (capa de aplicación), no aquí.
  */
 
-import type { BudgetClient } from "../budget";
-import { getSupabase } from "../supabase";
-import type { User } from "../env";
-import { resolveProfileId } from "./profiles";
+import type { BudgetClient } from "../budget.js";
+import { getSupabase } from "../supabase.js";
+import type { User } from "../env.js";
+import { resolveProfileId } from "./profiles.js";
 
 /**
  * Calcula el primer día del mes UTC para `now` como string YYYY-MM-DD.

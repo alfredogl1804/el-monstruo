@@ -11,7 +11,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { preLogRedact, redactPII } from "./redact";
+import { preLogRedact, redactPII } from "./redact.js";
 
 describe("redactPII — emails", () => {
   it("redacta email simple", () => {

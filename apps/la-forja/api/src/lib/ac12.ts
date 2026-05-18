@@ -27,7 +27,7 @@
  * en D5 contra Gemini real; en D2 con mocks deterministas.
  */
 
-import { invokeClassifier } from "./llm/google";
+import { invokeClassifier } from "./llm/google.js";
 
 export const AC12_CONFIDENCE_THRESHOLD = 0.7 as const;
 

@@ -12,8 +12,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { User } from "../env";
-import { resolveProfileId, _resetProfileIdCache } from "./profiles";
+import type { User } from "../env.js";
+import { resolveProfileId, _resetProfileIdCache } from "./profiles.js";
 
 // Mock del cliente Supabase. El singleton lazy lee env la primera vez,
 // pero como interceptamos `getSupabase` retornamos un mock con `.from(...)`.

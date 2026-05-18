@@ -20,7 +20,7 @@
  * en su ruta Hono. La puerta solo proxya HTTP).
  */
 
-import { loadEnv } from "../lib/env";
+import { loadEnv } from "../lib/env.js";
 
 export interface PuertaKernelInput {
   /** Path relativo del endpoint (e.g. "/sop/query") */

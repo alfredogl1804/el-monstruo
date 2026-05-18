@@ -15,7 +15,7 @@
  */
 
 import { GoogleGenAI } from "@google/genai";
-import { loadEnv } from "../env";
+import { loadEnv } from "../env.js";
 
 export const GEMINI_RAG_MODEL = "gemini-3.1-pro-preview" as const;
 export const GEMINI_CLASSIFIER_MODEL = "gemini-2.5-flash" as const;

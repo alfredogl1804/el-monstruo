@@ -13,7 +13,7 @@ import {
   AC12_CANONICAL_CONFUSION_PHRASES,
   AC12_CONFIDENCE_THRESHOLD,
   classifyMessage,
-} from "./ac12";
+} from "./ac12.js";
 
 function mockClassifier(intent: string, confidence: number) {
   return vi.fn(async (_prompt: string) => ({

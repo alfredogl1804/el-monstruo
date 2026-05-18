@@ -9,14 +9,14 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { _resetEnvCache } from "../lib/env";
+import { _resetEnvCache } from "../lib/env.js";
 import {
   PUERTAS,
   PUERTA_INVOKERS,
   invokeCoworkLocal,
   invokeKernelMonstruo,
   invokeSimulador,
-} from "./index";
+} from "./index.js";
 
 const VALID_ENV: Record<string, string> = {
   MANUS_API_KEY_GOOGLE: "x",

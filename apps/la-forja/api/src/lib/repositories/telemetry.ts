@@ -45,10 +45,10 @@ import type {
   TelemetryClient,
   TelemetryEvent,
   TelemetryEventType,
-} from "../telemetry";
-import { getSupabase } from "../supabase";
-import type { User } from "../env";
-import { resolveProfileId } from "./profiles";
+} from "../telemetry.js";
+import { getSupabase } from "../supabase.js";
+import type { User } from "../env.js";
+import { resolveProfileId } from "./profiles.js";
 
 /**
  * Mapping TS → SQL. Cada TS event se traduce a un par

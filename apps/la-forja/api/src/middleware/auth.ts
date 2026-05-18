@@ -24,8 +24,8 @@
 
 import type { Context, MiddlewareHandler, Next } from "hono";
 import { getCookie } from "hono/cookie";
-import { loadEnv, type User, type UserRole } from "../lib/env";
-import { verifySession } from "../lib/jwt";
+import { loadEnv, type User, type UserRole } from "../lib/env.js";
+import { verifySession } from "../lib/jwt.js";
 
 /**
  * Nombre canónico de la cookie de sesión (D4).

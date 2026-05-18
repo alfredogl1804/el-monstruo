@@ -11,20 +11,20 @@
 
 import { Hono } from "hono";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { _resetEnvCache } from "../lib/env";
-import { _setTelemetryClient, type TelemetryEvent } from "../lib/telemetry";
-import type { BudgetClient } from "../lib/budget";
-import { forjaAuthStub, type ForjaAuthContext } from "../middleware/auth";
-import { forjaBudgetGuard, type ForjaBudgetContext } from "../middleware/budget";
-import { tutorRoutes } from "./tutor";
+import { _resetEnvCache } from "../lib/env.js";
+import { _setTelemetryClient, type TelemetryEvent } from "../lib/telemetry.js";
+import type { BudgetClient } from "../lib/budget.js";
+import { forjaAuthStub, type ForjaAuthContext } from "../middleware/auth.js";
+import { forjaBudgetGuard, type ForjaBudgetContext } from "../middleware/budget.js";
+import { tutorRoutes } from "./tutor.js";
 import {
   FORJA_TUTOR_HEADER_KEYS,
   FORJA_CITATIONS_HEADER_MAX_BYTES,
-} from "../shared/headers";
-import { sprintsRoutes, SPRINT_STATES } from "./sprints";
-import { manusRoutes } from "./manus";
-import { puertasRoutes } from "./puertas";
-import { telemetryRoutes } from "./telemetry";
+} from "../shared/headers.js";
+import { sprintsRoutes, SPRINT_STATES } from "./sprints.js";
+import { manusRoutes } from "./manus.js";
+import { puertasRoutes } from "./puertas.js";
+import { telemetryRoutes } from "./telemetry.js";
 
 const VALID_ENV: Record<string, string> = {
   MANUS_API_KEY_GOOGLE: "x",

@@ -28,28 +28,28 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 
-import { loadEnv } from "./lib/env";
+import { loadEnv } from "./lib/env.js";
 import {
   defaultBudgetClient,
   registerUserForResolver,
-} from "./lib/budget_clients";
-import { installSupabaseTelemetry } from "./lib/telemetry";
-import { forjaAuthStub, type ForjaAuthContext } from "./middleware/auth";
+} from "./lib/budget_clients.js";
+import { installSupabaseTelemetry } from "./lib/telemetry.js";
+import { forjaAuthStub, type ForjaAuthContext } from "./middleware/auth.js";
 import {
   forjaBudgetGuard,
   type ForjaBudgetContext,
-} from "./middleware/budget";
+} from "./middleware/budget.js";
 import {
   forjaTelemetry,
   type ForjaTelemetryContext,
-} from "./middleware/telemetry";
-import { tutorRoutes } from "./routes/tutor";
-import { sprintsRoutes } from "./routes/sprints";
-import { manusRoutes } from "./routes/manus";
-import { puertasRoutes } from "./routes/puertas";
-import { telemetryRoutes } from "./routes/telemetry";
-import { authRoutes } from "./routes/auth";
-import type { Mission } from "./lib/llm/router";
+} from "./middleware/telemetry.js";
+import { tutorRoutes } from "./routes/tutor.js";
+import { sprintsRoutes } from "./routes/sprints.js";
+import { manusRoutes } from "./routes/manus.js";
+import { puertasRoutes } from "./routes/puertas.js";
+import { telemetryRoutes } from "./routes/telemetry.js";
+import { authRoutes } from "./routes/auth.js";
+import type { Mission } from "./lib/llm/router.js";
 
 const SERVICE_NAME = "la-forja-api";
 const SERVICE_VERSION = "0.1.0-D2";

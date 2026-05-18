@@ -18,7 +18,7 @@
  * inserta evidencia con citations en la respuesta del tutor.
  */
 
-import { loadEnv } from "../env";
+import { loadEnv } from "../env.js";
 
 export const PERPLEXITY_MAGNA_MODEL = "sonar-reasoning-pro" as const;
 export const PERPLEXITY_API_URL =

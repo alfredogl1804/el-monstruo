@@ -17,7 +17,7 @@
  */
 
 import { SignJWT, jwtVerify, errors as joseErrors } from "jose";
-import type { User } from "./env";
+import type { User } from "./env.js";
 
 const ISSUER = "la-forja";
 const AUDIENCE = "la-forja-api";

@@ -16,11 +16,11 @@
  * falla en CI y el commit no puede mergearse a main.
  */
 
-import { invokeCoworkLocal } from "./cowork_local";
-import { invokeKernelMonstruo } from "./kernel_monstruo";
-import { invokeManusApple } from "./manus_apple";
-import { invokeManusGoogle } from "./manus_google";
-import { invokeSimulador } from "./simulador";
+import { invokeCoworkLocal } from "./cowork_local.js";
+import { invokeKernelMonstruo } from "./kernel_monstruo.js";
+import { invokeManusApple } from "./manus_apple.js";
+import { invokeManusGoogle } from "./manus_google.js";
+import { invokeSimulador } from "./simulador.js";
 
 export const PUERTAS = [
   "manus_apple",
@@ -53,7 +53,7 @@ export {
   type ForjaUserRole,
   type PuertaCoworkLocalInput,
   type PuertaCoworkLocalOutput,
-} from "./cowork_local";
+} from "./cowork_local.js";
 export type {
   PuertaKernelInput,
   PuertaKernelOutput,
@@ -66,4 +66,4 @@ export type {
   PuertaSimuladorInput,
   PuertaSimuladorOutput,
 } from "./simulador";
-export { SIMULADOR_BASE_URL } from "./simulador";
+export { SIMULADOR_BASE_URL } from "./simulador.js";

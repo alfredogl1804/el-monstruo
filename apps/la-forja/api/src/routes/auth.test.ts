@@ -11,9 +11,9 @@
 
 import { Hono } from "hono";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { _resetEnvCache } from "../lib/env";
-import { verifySession } from "../lib/jwt";
-import { SESSION_COOKIE_NAME } from "../middleware/auth";
+import { _resetEnvCache } from "../lib/env.js";
+import { verifySession } from "../lib/jwt.js";
+import { SESSION_COOKIE_NAME } from "../middleware/auth.js";
 
 // Mock googleAuth ANTES de importar authRoutes (vi.mock es hoisted).
 // Estrategia: capturamos la URL del redirect_uri que pasaría el handler real,
@@ -61,7 +61,7 @@ import {
   setRoleWhitelist,
   _resetRoleWhitelist,
   _testHelpers,
-} from "./auth";
+} from "./auth.js";
 
 const VALID_ENV: Record<string, string> = {
   MANUS_API_KEY_GOOGLE: "x",

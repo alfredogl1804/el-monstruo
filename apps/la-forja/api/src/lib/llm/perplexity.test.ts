@@ -10,12 +10,12 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { _resetEnvCache } from "../env";
+import { _resetEnvCache } from "../env.js";
 import {
   PERPLEXITY_API_URL,
   PERPLEXITY_MAGNA_MODEL,
   invokeMagnaValidation,
-} from "./perplexity";
+} from "./perplexity.js";
 
 const VALID_ENV: Record<string, string> = {
   MANUS_API_KEY_GOOGLE: "x",

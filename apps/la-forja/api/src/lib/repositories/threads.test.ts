@@ -18,7 +18,7 @@ import {
   appendUserMessage,
   appendAssistantMessage,
   recordValidation,
-} from "./threads";
+} from "./threads.js";
 
 // Setup builder genérico de mock-chains. Cada test re-declara según necesidad.
 const mockSingle = vi.fn();

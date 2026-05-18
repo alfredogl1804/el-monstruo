@@ -35,7 +35,7 @@
  * es importante pero NO crítico para que el usuario obtenga su respuesta.
  */
 
-import { getSupabase } from "../supabase";
+import { getSupabase } from "../supabase.js";
 
 export interface AssistantMessageMetrics {
   content: string;

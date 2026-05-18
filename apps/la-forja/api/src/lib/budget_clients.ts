@@ -16,10 +16,10 @@
  *   - development | test   → InMemoryBudgetClient (zero side effects en tests)
  */
 
-import type { BudgetClient } from "./budget";
-import { loadEnv } from "./env";
-import { SupabaseBudgetClient as SupabaseBudgetClientReal } from "./repositories/budget";
-import type { User } from "./env";
+import type { BudgetClient } from "./budget.js";
+import { loadEnv } from "./env.js";
+import { SupabaseBudgetClient as SupabaseBudgetClientReal } from "./repositories/budget.js";
+import type { User } from "./env.js";
 
 /**
  * Implementación in-memory para D2-D4. Solo apta para arranque de boot.
