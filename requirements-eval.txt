@@ -8,7 +8,7 @@
 
 # ── Evaluation ────────────────────────────────────────────────────────────
 ragas==0.4.3                   # RAG evaluation metrics (4 metrics configured)
-garak==0.14.1                  # Red teaming (NVIDIA). Requires datasets<4.0
+garak==0.15.0                  # Red teaming (NVIDIA). Requires datasets<4.0
 datasets==3.6.0                # HuggingFace datasets — pinned <4.0 for garak compat
 
 # ── Evaluation Transitive Deps (explicit pins) ───────────────────────────
@@ -17,4 +17,4 @@ datasets==3.6.0                # HuggingFace datasets — pinned <4.0 for garak 
 # ── Schema Drift Detection (Mini-Sprint 86.4.5 pre-B2) ───────────────────
 # Usado por scripts/_gen_catastro_pydantic_from_sql.py para parsear migrations
 # PostgreSQL DDL y emitir kernel/catastro/schema_generated.py. Solo dev/CI.
-sqlglot==30.7.0                # PostgreSQL DDL parser, no-deps, multi-dialect
+sqlglot==30.8.0                # PostgreSQL DDL parser, no-deps, multi-dialect
