@@ -59,3 +59,13 @@ discovery_forense/SNAPSHOTS/*.gz
 
 # Manus working artifacts (commit message drafts) — NO versionar
 .commit_msg_*.txt
+
+# Claude Code worktrees (workspaces temporales de Cowork local) — NO versionar
+# Ref: H11 housekeeping (auditoría 17-may-2026)
+.claude/
+
+# forja-mcp es un repositorio Git INDEPENDIENTE (MCP Gateway en Railway)
+# clonado dentro de el-monstruo para conveniencia de desarrollo local.
+# NO debe versionarse aquí (su trabajo vive en su propio repo y deploy).
+# Ref: H11 housekeeping (auditoría 17-may-2026)
+forja-mcp/
