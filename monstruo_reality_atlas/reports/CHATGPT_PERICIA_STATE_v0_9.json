@@ -1,14 +1,6 @@
 {
-  "_superseded_by": "0.9",
-  "_superseded_at": "2026-05-18",
-  "_superseded_commit_message": "docs(atlas): fix ChatGPT pericia checkpoint v0.9 silence drift",
-  "_known_drifts": [
-    "P16_silencio_activo_no_es_acto_1_dentro_de_acto_2_es_principio_operativo_acto_2"
-  ],
-  "_use_instead": "monstruo_reality_atlas/reports/CHATGPT_PERICIA_STATE_v0_9.json",
-  "_warning": "NO usar este archivo como fuente de verdad. Mantenido solo para trazabilidad histórica del bucle correctivo Anti-Dory.",
-  "version": "0.8-SUPERSEDED",
-  "created_at": "2026-05-18T06:15:00-06:00",
+  "version": "0.8",
+  "created_at": "2026-05-18T07:00:00-06:00",
   "created_by": "Manus",
   "instructed_by": "Alfredo Gongora",
   "subject_model": "ChatGPT 5.5 Pro",
@@ -268,9 +260,9 @@
   ],
   "continuity_rule": {
     "on_compaction_or_new_thread": [
-      "1. Leer CHATGPT_PERICIA_CHECKPOINT_v0_8.md completo",
-      "2. Leer CHATGPT_PERICIA_STATE_v0_8.json (este archivo)",
-      "3. Ejecutar PERICIA_TEST_v0_8.md",
+      "1. Leer CHATGPT_PERICIA_CHECKPOINT_v0_9.md completo",
+      "2. Leer CHATGPT_PERICIA_STATE_v0_9.json (este archivo)",
+      "3. Ejecutar PERICIA_TEST_v0_9.md",
       "4. Si falla el test, NO disenar"
     ]
   }

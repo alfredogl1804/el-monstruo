@@ -1,28 +1,12 @@
-# CHATGPT PERICIA CHECKPOINT v0.8 [SUPERSEDED_BY_v0_9]
-
-> **⚠️ SUPERSEDED_BY_v0_9** — Este archivo contenía 1 drift residual menor en P16 (silencio activo etiquetado como "Acto 1 dentro de Acto 2"). Detectado por ChatGPT el 2026-05-18.
->
-> **NO usar como fuente de verdad.** Ir a la versión vigente:
-> - `monstruo_reality_atlas/reports/CHATGPT_PERICIA_CHECKPOINT_v0_9.md`
-> - `monstruo_reality_atlas/reports/CHATGPT_PERICIA_STATE_v0_9.json`
-> - `monstruo_reality_atlas/reports/PERICIA_TEST_v0_9.md`
->
-> **Drift conocido en v0.8:**
-> - **P16** — Silencio activo descrito como "Acto 1 dentro de Acto 2". Correcto: principio operativo del Embrión / Calm Tech / Acto 2; las superficies de Acto 1 lo muestran solo como backstop de auditoría.
->
-> **Commit fix:** `docs(atlas): fix ChatGPT pericia checkpoint v0.9 silence drift`
->
-> Mantenido para trazabilidad histórica del bucle correctivo Anti-Dory.
-
----
+# CHATGPT PERICIA CHECKPOINT v0.9
 
 > **Propósito:** persistir el estado actual de pericia de ChatGPT 5.5 Pro sobre El Monstruo para evitar pérdida por compactación, drift o re-interpretación futura.
 >
-> **Generado por:** Manus, por instrucción de Alfredo Góngora, 2026-05-18.
+> **Generado por:** Manus, por instrucción de Alfredo Góngora, 2026-05-18 (v0.9 fix silence drift en P16).
 >
 > **Estado:** blindaje. NO diseñar, NO canonizar, NO corregir Atlas todavía salvo notas de drift.
 >
-> **Si abrís este archivo en hilo nuevo:** leelo completo antes de proponer cualquier cosa. Después leé `CHATGPT_PERICIA_STATE_v0_8.json` y ejecutá `PERICIA_TEST_v0_8.md`. Si fallás el test, NO diseñes.
+> **Si abrís este archivo en hilo nuevo:** leelo completo antes de proponer cualquier cosa. Después leé `CHATGPT_PERICIA_STATE_v0_9.json` y ejecutá `PERICIA_TEST_v0_9.md`. Si fallás el test, NO diseñes.
 
 ---
 
@@ -272,7 +256,7 @@ Bridge existe como **sistema operativo social**:
 
 ## 7. Lista de cosas que ChatGPT NO debe rediseñar
 
-Espejo del bloque `do_not_redesign` en `CHATGPT_PERICIA_STATE_v0_8.json`. Cualquier hilo nuevo que vaya a proponer módulos debe revisar primero esta lista.
+Espejo del bloque `do_not_redesign` en `CHATGPT_PERICIA_STATE_v0_9.json`. Cualquier hilo nuevo que vaya a proponer módulos debe revisar primero esta lista.
 
 | ID | Concepto propuesto | Razón canónica |
 |---|---|---|
@@ -320,8 +304,8 @@ Objetivo: saber qué módulos están **realmente conectados al API** y qué solo
 Si ChatGPT se compacta o abre hilo nuevo:
 
 1. Leer este checkpoint.
-2. Leer el JSON state (`CHATGPT_PERICIA_STATE_v0_8.json`).
-3. Ejecutar `PERICIA_TEST_v0_8.md`.
+2. Leer el JSON state (`CHATGPT_PERICIA_STATE_v0_9.json`).
+3. Ejecutar `PERICIA_TEST_v0_9.md`.
 4. Si falla el test (puntaje < 18/20), **NO diseñar**. Releer hasta que pase.
 5. Si pasa el test, continuar exactamente desde el Próximo Gate (§8).
 

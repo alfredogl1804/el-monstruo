@@ -1,20 +1,6 @@
-# PERICIA TEST v0.8 [SUPERSEDED_BY_v0_9]
+# PERICIA TEST v0.9
 
-> **⚠️ SUPERSEDED_BY_v0_9** — P16 contenía 1 drift residual menor: silencio activo descrito como "Acto 1 dentro de Acto 2". Detectado por ChatGPT el 2026-05-18.
->
-> **NO usar como test válido.** Ir a la versión vigente:
-> - `monstruo_reality_atlas/reports/PERICIA_TEST_v0_9.md`
->
-> **Pregunta con drift en v0.8:**
-> - **P16** — Silencio activo etiquetado como "Acto 1 dentro de Acto 2". Correcto: principio operativo del Embrión / Calm Tech / Acto 2. Las superficies de Acto 1 lo muestran solo como backstop de auditoría.
->
-> **Commit fix:** `docs(atlas): fix ChatGPT pericia checkpoint v0.9 silence drift`
->
-> Mantenido para trazabilidad histórica del bucle correctivo Anti-Dory.
-
----
-
-> **Propósito:** verificar que ChatGPT (o cualquier hilo nuevo) ha absorbido el conocimiento del checkpoint v0.8 antes de diseñar.
+> **Propósito:** verificar que ChatGPT (o cualquier hilo nuevo) ha absorbido el conocimiento del checkpoint v0.9 antes de diseñar.
 >
 > **Reglas del test:**
 >
@@ -23,7 +9,7 @@
 > - Si pasa 16-17/20: leer las preguntas falladas, releer secciones del checkpoint, reintentar una vez.
 > - Si pasa menos de 16/20: **NO diseñar**. Releer checkpoint completo + JSON state. Reintentar después.
 >
-> **Fuente de verdad:** `CHATGPT_PERICIA_CHECKPOINT_v0_8.md` y `CHATGPT_PERICIA_STATE_v0_8.json`.
+> **Fuente de verdad:** `CHATGPT_PERICIA_CHECKPOINT_v0_9.md` y `CHATGPT_PERICIA_STATE_v0_9.json`.
 
 ---
 
@@ -249,16 +235,18 @@ UI correcta del Catastro: superficie que muestra qué eligió el Embrión y por 
 
 **Respuesta esperada:**
 
-Cockpit canónico (12-15 superficies en APP_VISION) debe mostrar sobre el Embrión:
+Cockpit canónico debe mostrar sobre el Embrión:
 
-1. **Estado del loop** (latidos activos, latidos abortados por Self-Verifier, escalaciones a HITL).
-2. **Budget consumido** vs presupuesto diario (Budget Tracker).
-3. **Cola de proposals** con estados (pending, approved, executing, executed, failed, rejected, expired).
-4. **Decisiones recientes** del Self-Verifier (PURPOSE/NOVELTY/VERIFIABLE).
+1. **Estado del loop**: latidos activos, latidos abortados, escalaciones HITL.
+2. **Budget consumido** vs presupuesto diario.
+3. **Cola de proposals** con estados: pending, approved, executing, executed, failed, rejected, expired.
+4. **Decisiones recientes** del Self-Verifier: PURPOSE / NOVELTY / VERIFIABLE.
 5. **Sabios consultados** y resultados.
 6. **Catastros consultados** y recursos seleccionados.
-7. **Side effects ejecutados** (con executor real, no noop).
-8. **Silencio activo** (Acto 1 dentro de Acto 2 — cuando el Embrión decide no actuar).
+7. **Side effects ejecutados**, distinguiendo noop vs executor='real'.
+8. **Silencio activo** como principio operativo del Embrión / Calm Tech / Acto 2: mostrarlo solo como backstop de auditoría cuando Alfredo necesita entender por qué el sistema decidió callar o no actuar.
+
+*Nota explícita:* NO decir "Acto 1 dentro de Acto 2". Acto 1 son superficies/backstops; Acto 2 gobierna la latencia, invisibilidad y silencio operativo.
 
 NO mostrar solo chat. El Embrión es más que conversación.
 
@@ -357,4 +345,4 @@ Después de responder las 20 preguntas:
 | 16-17/20 | PARCIAL. Releer preguntas falladas + secciones del checkpoint. Reintentar una vez. |
 | <16/20 | FALLA. NO diseñar. Releer checkpoint completo + JSON state. Reintentar después. |
 
-Registrar resultado en `monstruo_reality_atlas/reports/PERICIA_TEST_v0_8_RESULT_<fecha>.md` (cuando aplique).
+Registrar resultado en `monstruo_reality_atlas/reports/PERICIA_TEST_v0.9_RESULT_<fecha>.md` (cuando aplique).
