@@ -1,0 +1,83 @@
+{
+  "version": "1.0",
+  "pack_id": "PRODUCT_PORTFOLIO_BUSINESS_PACK",
+  "created_at": "2026-05-18",
+  "branch": "monstruo-reality-atlas-001",
+  "portfolio_canonical_count": 20,
+  "portfolio_states": {
+    "activos_produccion": 7,
+    "construccion": 4,
+    "diseno": 5,
+    "nominales": 4
+  },
+  "doctrine_reference": "docs/INVENTARIO_PROYECTOS_v3_COMPLETO.md",
+  "dialectic": "Monstruo invisible + empresas-hijas universales (DSC-X-006 Convergencia Diferida)",
+  "projects_real_audit": [
+    {"name": "Mena Baduy / Crisol-8", "doctrine_state": "activo", "skill": null, "code_in_repo": false, "production_probe": "NO_PROBE"},
+    {"name": "LikeTickets / ticketlike.mx", "doctrine_state": "activo", "skill": "ticketlike-ops", "code_in_repo": false, "production_probe": "domain_public_no_probed"},
+    {"name": "Comercializacion Zona Like 313", "doctrine_state": "activo", "skill": "comercializacion-zona-like-313", "code_in_repo": false, "production_probe": "NO_PROBE"},
+    {"name": "El Monstruo Bot Telegram", "doctrine_state": "activo", "skill": "el-monstruo-bot", "code_in_repo": "bot/hitl_handler.py", "production_probe": "404_health_endpoint_worker_pattern"},
+    {"name": "El Monstruo Command Center", "doctrine_state": "activo", "skill": null, "code_in_repo": false, "production_probe": "404", "DRIFT": "doctrina_activa_codigo_inexistente"},
+    {"name": "Observatorio Merida 2027", "doctrine_state": "activo", "skill": null, "code_in_repo": false, "production_probe": "NO_PROBE"},
+    {"name": "Simulador Universal", "doctrine_state": "activo", "skill": "simulador-escenarios-ia", "code_in_repo": false, "production_probe": "external_railway_motor"},
+    {"name": "El Monstruo orquestador madre", "doctrine_state": "construccion", "skill": "el-monstruo-core+plan+toolkit+armero+estado", "code_in_repo": "este_repo_kernel_0.84.8", "production_probe": "alive"},
+    {"name": "Kukulkan 365", "doctrine_state": "construccion", "skill": null, "code_in_repo": false, "production_probe": "NO_PROBE"},
+    {"name": "El Mundo de Tata", "doctrine_state": "construccion", "skill": null, "code_in_repo": false, "production_probe": "NO_PROBE"},
+    {"name": "Roche Bobois / Alfombras Yaxche", "doctrine_state": "construccion", "skill": null, "code_in_repo": false, "production_probe": "NO_PROBE"},
+    {"name": "CIP", "doctrine_state": "diseno", "skill": "creacion-cip", "code_in_repo": false, "production_probe": "n/a", "blockers": ["figura_legal_decision_4", "distribucion_rendimientos_decision_8"], "compliance": "KYC/AML CNBV/SHCP/Banxico", "stack": "Polygon+ERC-3643"},
+    {"name": "SoftRestaurantAI 10x", "doctrine_state": "diseno", "skill": "softrestaurant-ai-10x", "code_in_repo": false, "production_probe": "n/a"},
+    {"name": "Marketplace Muebles", "doctrine_state": "diseno", "skill": null, "code_in_repo": false, "production_probe": "n/a"},
+    {"name": "Top Control PC", "doctrine_state": "diseno", "skill": null, "code_in_repo": false, "production_probe": "n/a"},
+    {"name": "Vivir Sano", "doctrine_state": "diseno", "skill": null, "code_in_repo": false, "production_probe": "n/a"},
+    {"name": "CIES", "doctrine_state": "nominal", "skill": null, "code_in_repo": false},
+    {"name": "NIAS", "doctrine_state": "nominal", "skill": null, "code_in_repo": false},
+    {"name": "BIOGUARD", "doctrine_state": "nominal", "skill": null, "code_in_repo": false},
+    {"name": "OMNICOM", "doctrine_state": "nominal", "skill": null, "code_in_repo": false}
+  ],
+  "pipeline_e2e_status": {
+    "doctrine": "Sprint 87 NUEVO 12 pasos lineales",
+    "code": "kernel/e2e/ implementado",
+    "files": ["orchestrator.py", "pipeline.py", "repository.py", "routes.py", "schema.py", "catastro_client.py", "screenshot/", "critic_visual/", "deploy/", "steps/", "traffic/"],
+    "catastro_invocations": 8,
+    "runtime_metrics_visible": "ACCESS_BLOCKED"
+  },
+  "transversal_layers": [
+    {"id": "C1", "name": "Motor de Ventas", "sprint": "90", "status": "DOCTRINA_SPEC_FIRMADO_NO_BUILD"},
+    {"id": "C2", "name": "Motor SEO + Contenido", "sprint": "91", "status": "DOCTRINA_SPEC_FIRMADO_NO_BUILD"},
+    {"id": "C3-C6", "name": "Ads, CS, Ops, Report", "sprint": "futuro", "status": "NO_DOCTRINE_YET"}
+  ],
+  "catastros_brain_layer": {
+    "catastro_modelos_rows": 41,
+    "catastro_eventos_rows": 148,
+    "catastro_agentes_rows": 0,
+    "pipeline_quorum": true,
+    "wired_to_embrion_loop_via": "CATASTRO-WIRING-001 SHA 469c5eb merged main 2026-05-18",
+    "verdict": "MOST_MATURE_BRAIN_LAYER"
+  },
+  "top_findings": [
+    "20 proyectos canónicos en 4 estados (7/4/5/4)",
+    "CIP es ancla Pipeline E2E pero sin código",
+    "Command Center activo doctrina pero NO existe código",
+    "4/20 proyectos con skill Manus dedicado",
+    "Pipeline E2E kernel/e2e/ implementado con 8 invoc Catastro",
+    "C3-C6 sin spec",
+    "Constelación, no monolito (DSC-X-006)",
+    "Productos con skill: ticketlike, monstruo-bot, simulador, zona-like-313",
+    "SoftRestaurantAI 10x rico doctrina sin build",
+    "Catastro multi-namespace = brain más maduro"
+  ],
+  "top_risks": [
+    {"id": "R1", "severity": "P1", "desc": "Command Center activo sin código → engaño"},
+    {"id": "R2", "severity": "P1", "desc": "CIP sin código siendo magna #1"},
+    {"id": "R3", "severity": "P2", "desc": "16/20 sin skill dedicado"},
+    {"id": "R4", "severity": "P2", "desc": "C3-C6 sin spec"},
+    {"id": "R5", "severity": "P2", "desc": "sin métricas runtime por proyecto"},
+    {"id": "R6", "severity": "P2", "desc": "costos por proyecto no trackeados"},
+    {"id": "R7", "severity": "P3", "desc": "Mena Baduy sin verificación"},
+    {"id": "R8", "severity": "P3", "desc": "Observatorio Mérida sin verificación"},
+    {"id": "R9", "severity": "P3", "desc": "El Mundo de Tata sin código"},
+    {"id": "R10", "severity": "P3", "desc": "4 nominales sin definición clara"}
+  ],
+  "access_blocked": ["costos por proyecto run_costs RLS", "métricas vivas Cockpit no implementado", "status proyectos clientes externos", "dominios externos sin probe"],
+  "no_source": ["command-center directory", "ticketlike-mx repo en este repo", "kukulkan-365", "observatorio-merida", "CIP repo", "BIOGUARD/CIES/NIAS/OMNICOM código"]
+}
