@@ -94,7 +94,10 @@ class SupabaseClient:
         query = self._client.table(table).select(columns)
         if filters:
             for key, value in filters.items():
-                if isinstance(value, list):
+                if value is None:
+                    # S-EMBRION-009: support IS NULL filter
+                    query = query.is_(key, "null")
+                elif isinstance(value, list):
                     query = query.in_(key, value)
                 else:
                     query = query.eq(key, value)
@@ -112,14 +115,20 @@ class SupabaseClient:
     def _update_sync(self, table: str, data: dict[str, Any], filters: dict[str, Any]) -> Optional[dict]:
         query = self._client.table(table).update(data)
         for key, value in filters.items():
-            query = query.eq(key, value)
+            if value is None:
+                query = query.is_(key, "null")
+            else:
+                query = query.eq(key, value)
         result = query.execute()
         return result.data[0] if result.data else None
 
     def _delete_sync(self, table: str, filters: dict[str, Any]) -> bool:
         query = self._client.table(table).delete()
         for key, value in filters.items():
-            query = query.eq(key, value)
+            if value is None:
+                query = query.is_(key, "null")
+            else:
+                query = query.eq(key, value)
         query.execute()
         return True
 
