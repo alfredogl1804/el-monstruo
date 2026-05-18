@@ -381,6 +381,107 @@ Lee: PR #144 (https://github.com/alfredogl1804/el-monstruo/pull/144) para el pre
 
 ---
 
+# Regla Dura #11: Lecciones Operacionales 4-Hilos Manus (Anti-F21 cross-hilo)
+
+Esta regla NO se puede ignorar, resumir ni omitir ante compactación de memoria.
+
+> **Cuando 2 o más hilos Manus operan simultáneamente sobre el mismo repo, los anti-patrones siguientes son violación canónica. Cada uno tiene antídoto binario verificable por código, no por texto. Origen: 5 F21s detectadas y corregidas durante la sesión Sprint S-EMBRION-009 + LA-FORJA D5.3 (2026-05-18).**
+
+## Anti-patrón 1: Commit en branch equivocada
+
+**Síntoma**: `git add` + `git commit` en branch ajena por context switch entre hilos.
+
+**Antídoto binario** (obligatorio antes de cada commit):
+
+```bash
+BRANCH=$(git branch --show-current)
+if [[ "$BRANCH" == "main" ]] || [[ ! "$BRANCH" =~ ^(sprint|chore|feat|fix|docs)/ ]]; then
+    echo "ERROR: branch '$BRANCH' inválida para commit. Crear branch dedicada con prefijo canónico."
+    exit 1
+fi
+```
+
+**Lección**: el `git checkout -b` puede fallar silenciosamente si hay cambios pendientes. Verificar `git branch --show-current` ANTES de `git add`.
+
+## Anti-patrón 2: Auto-merge de PR con código ejecutable
+
+**Síntoma**: Manus mergea su propio PR sin audit Cowork porque "es chore pequeño".
+
+**Antídoto binario**: si el diff no califica para `no-e2e-required` (incluye `*.py`, `*.ts`, `*.sh`, `*.sql`, etc.) → tampoco califica para auto-merge. Coherencia: mismo criterio rige para ambas decisiones.
+
+**Lección**: la Regla Dura #10 implícitamente define la ventana de auto-merge. Salir de esa ventana = F21.
+
+## Anti-patrón 3: Sección `### E2E Evidence` (H3) en vez de `## E2E Evidence` (H2)
+
+**Síntoma**: workflow `check-evidence` falla con regex mismatch.
+
+**Antídoto binario**: el linter `tools/_check_e2e_evidence.py` matchea `^## E2E Evidence$` exacto. H3 (`### `) no califica.
+
+**Lección**: el header debe ser exactamente H2 (`## `). Verificar con `grep -c "^## E2E Evidence$" body.md` antes de crear PR.
+
+## Anti-patrón 4: Sección `## E2E Evidence` con prosa narrativa sin evidencia binaria
+
+**Síntoma**: `check-evidence` falla con "sección presente pero sin evidencia binaria. Necesario: URL HTTP, path a archivo del repo, SHA de commit, o resultado de tests (passed/failed/OK)".
+
+**Antídoto binario**: la sección debe contener AL MENOS UNO de:
+
+- URL HTTP (`https://github.com/...`)
+- Path archivo del repo (`apps/.../file.ts`)
+- SHA commit (formato hash hex 7+ caracteres)
+- Resultado tests literal (`21 passed`, `EXIT=0`, `FAILED`)
+
+**Template canónico**:
+
+```markdown
+## E2E Evidence
+
+**Path archivo modificado**: `apps/la-forja/api/src/routes/tutor.ts` (líneas 186, 211)
+**Commit SHA**: `3dc3ac1` en branch `sprint/foo-bar`
+**Diff URL**: https://github.com/alfredogl1804/el-monstruo/pull/160/files
+**Tests**: `npx vitest run` → 21 passed (21)
+```
+
+**Lección**: el linter regex hace match de patterns literales, no entiende prosa. Estructura el evidencia binaria en líneas separadas con tags claros.
+
+## Anti-patrón 5: `gh pr create` confunde branches con prefijo similar
+
+**Síntoma**: `gh pr create` retorna error apuntando a PR existente de OTRA branch (ej. `sprint/la-forja-d5-3-cost-per-thread` confundido con `sprint/la-forja-d6-fix-esm-imports`).
+
+**Antídoto binario** (obligatorio cuando hay 2+ branches con prefijo común):
+
+```bash
+gh pr create --base main --head sprint/exacto-de-mi-branch ...
+```
+
+**Lección**: usar `--head <branch>` explícito SIEMPRE cuando hay múltiples branches con prefix común en el repo. Cubre el caso 4-hilos Manus operando en paralelo.
+
+## Anti-patrón 6: Atribución mezclada cross-hilo
+
+**Síntoma**: un commit de Hilo X incluye accidentalmente cambios working-tree de Hilo Y.
+
+**Antídoto binario**: cada hilo Manus opera en branch dedicada con prefijo identificable. Antes de `git add .`, verificar `git status -s | grep -v <archivos-míos>` está vacío. Stash agresivo si hay archivos ajenos.
+
+**Lección**: working-tree es compartido entre hilos en el mismo repo. Los stashes y branches dedicadas son la separación de soberanía.
+
+## Regla operativa cross-hilo
+
+1. Cada hilo Manus declara su branch dedicada al inicio de cada PR
+2. Antes de `git commit`: verificar `git branch --show-current` + `git status -s`
+3. Antes de `gh pr create`: verificar `--head <branch>` explícito si hay branches con prefijo común
+4. PRs con código ejecutable: NUNCA auto-merge, siempre Cowork audit
+5. Sección `## E2E Evidence`: H2 estricto + al menos un patrón binario (URL/path/SHA/tests count)
+6. Bridges Cowork ↔ Manus: ruta canónica `bridge/<owner>_<dest>_<topic>_<fecha>.md`
+
+## Precedente canonizado
+
+Las 5 F21s originales documentadas durante sesión 2026-05-18 (commits `0b91891`, `5b95738`, `26b5759c`, `473dfa06`, `68d929c`, `754ebc4d` y otros). Audit Cowork T2-A 2026-05-18 validó cada antídoto binario en PRs sucesivos sin reincidencia.
+
+Lee: `tools/_check_e2e_evidence.py` para el regex linter.
+Lee: `bridge/cowork_to_manus_HILO_EJECUTOR_2_COLA_CERRADA_2026_05_18.md` para el contexto de coordinación 4-hilos.
+Lee: PR #144 + PR #146 (Regla Dura #10) para la base de la cual #11 deriva.
+
+---
+
 # Para Ambos Hilos
 
 Los sensores y las tuberías SON parte de la experiencia y la marca. No son "infraestructura sin cara". Cuando nombras un endpoint, cuando diseñas un schema, cuando escribes un error message — estás construyendo la marca. Las 7 Capas se inyectan en todo. Las 4 Capas definen el orden. Los 14 Objetivos son el criterio de éxito.
