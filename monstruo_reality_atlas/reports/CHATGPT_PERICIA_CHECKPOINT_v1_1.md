@@ -1,29 +1,12 @@
-# [SUPERSEDED_BY_v1_1] CHATGPT PERICIA CHECKPOINT v1.0
-
-> **WARNING SUPERSEDED_BY_v1_1** — Este archivo contiene 5 drifts internos detectados después de absorber v1.0.
-> NO usar como fuente de verdad. Ir a la versión vigente:
-> - `CHATGPT_PERICIA_CHECKPOINT_v1_1.md`
-> - `CHATGPT_PERICIA_STATE_v1_1.json`
-> - `PERICIA_TEST_v1_1.md`
->
-> **Drifts conocidos (corregidos en v1.1):**
-> - **CT-005 Memento**: STATE_v1_0.json decía "Memento validator real, endpoint no confirmado" pero CHECKPOINT y TEST ya confirmaban el endpoint.
-> - **Contradicción activa Memento**: cambiada a "Memento endpoint confirmado vs consumidores reales no verificados".
-> - **DNR-005**: bloqueaba "Memento endpoint completo" cuando el endpoint ya estaba confirmado. Corregido a bloquear "cobertura completa / integración UI completa".
-> - **CT-009 ID roto**: Budget Tracker tenía ID `"CT-1.0"` (path syntax error). Corregido a `"CT-009"`.
-> - **Paths internos**: referencias `_v1.1.json/md` con punto. Corregidos a `_v1_1.json/md`.
->
-> **Commit fix:** `docs(atlas): fix ChatGPT pericia checkpoint v1.1 consistency drift`
-> **Mantenido para trazabilidad histórica del bucle correctivo Anti-Dory.**
-
+# CHATGPT PERICIA CHECKPOINT v1.1
 
 > **Propósito:** persistir el estado actual de pericia de ChatGPT 5.5 Pro sobre El Monstruo para evitar pérdida por compactación, drift o re-interpretación futura.
 >
-> **Generado por:** Manus, por instrucción de Alfredo Góngora, 2026-05-18 (v1.0 fix silence drift en P16).
+> **Generado por:** Manus, por instrucción de Alfredo Góngora, 2026-05-18 (v1.1 microfix consistency drift: CT-005 Memento, contradicción activa, DNR-005, CT-009 ID roto, paths internos).
 >
 > **Estado:** blindaje. NO diseñar, NO canonizar, NO corregir Atlas todavía salvo notas de drift.
 >
-> **Si abrís este archivo en hilo nuevo:** leelo completo antes de proponer cualquier cosa. Después leé `CHATGPT_PERICIA_STATE_v1.0.json` y ejecutá `PERICIA_TEST_v1.0.md`. Si fallás el test, NO diseñes.
+> **Si abrís este archivo en hilo nuevo:** leelo completo antes de proponer cualquier cosa. Después leé `CHATGPT_PERICIA_STATE_v1_1.json` y ejecutá `PERICIA_TEST_v1_1.md`. Si fallás el test, NO diseñes.
 
 ---
 
@@ -241,7 +224,7 @@ Bridge existe como **sistema operativo social**:
 - A2UI schema real vs renderer placeholder.
 - Cronos canonizado vs código vacío.
 - SMP cimiento vs implementación ausente.
-- Memento validator real vs endpoint no confirmado.
+- Memento endpoint confirmado vs consumidores reales no verificados.
 - Command Center producción parcial vs Cockpit canon 12-15.
 - Autonomía del Embrión vs executors noop por default.
 - Catastro como motor de decisión vs posible UI de inventario.
@@ -251,7 +234,7 @@ Bridge existe como **sistema operativo social**:
 
 ## 7. Lista de cosas que ChatGPT NO debe rediseñar
 
-Espejo del bloque `do_not_redesign` en `CHATGPT_PERICIA_STATE_v1.0.json`. Cualquier hilo nuevo que vaya a proponer módulos debe revisar primero esta lista.
+Espejo del bloque `do_not_redesign` en `CHATGPT_PERICIA_STATE_v1_1.json`. Cualquier hilo nuevo que vaya a proponer módulos debe revisar primero esta lista.
 
 | ID | Concepto propuesto | Razón canónica |
 |---|---|---|
@@ -259,7 +242,7 @@ Espejo del bloque `do_not_redesign` en `CHATGPT_PERICIA_STATE_v1.0.json`. Cualqu
 | DNR-002 | Privacidad por Imposibilidad como canon nuevo | Es función de SMP (Sovereign Memory Plane). NO promover a doctrina independiente. |
 | DNR-003 | Transport Cero como canon firmado | Sigue como hipótesis naciente. 0 hits sustantivos en repo. NO firmar. |
 | DNR-004 | Home canónica = `/home` existente | El `/home` actual es proxy de ChatScreen. La Home Daily canónica debe tener contexto/threads, no resúmenes de Cockpit. |
-| DNR-005 | Memento endpoint HTTP completo | Solo el `MementoValidator` está confirmado importable. Endpoint sin verificar. |
+| DNR-005 | Memento cobertura completa / integración UI completa | Memento validator y endpoint HTTP POST `/v1/memento/validate` están confirmados. NO asumir cobertura completa, consumidores reales ni integración UI hasta verificar Flutter / Command Center. |
 | DNR-006 | A2UI renderer ya existente | Solo el schema Pydantic está confirmado. Renderer real es placeholder. |
 | DNR-007 | Acto 1 vs Acto 2 como contradicción binaria | Dirección provisional firmada por Cowork: **Acto 2 contiene Acto 1** (latencia gobierna, superficies son backstops). |
 | DNR-008 | Hipótesis pre-IA-001 a pre-IA-010 antes del cierre | Bloque pre-IA sigue abierto. NO firmar canon hasta literal `CIERRE BLOQUE PRE-IA` de Alfredo. |
@@ -303,8 +286,8 @@ Objetivo: Distinguir módulo existente vs inicializado vs endpoint real vs consu
 Si ChatGPT se compacta o abre hilo nuevo:
 
 1. Leer este checkpoint.
-2. Leer el JSON state (`CHATGPT_PERICIA_STATE_v1.0.json`).
-3. Ejecutar `PERICIA_TEST_v1.0.md`.
+2. Leer el JSON state (`CHATGPT_PERICIA_STATE_v1_1.json`).
+3. Ejecutar `PERICIA_TEST_v1_1.md`.
 4. Si falla el test (puntaje < 18/20), **NO diseñar**. Releer hasta que pase.
 5. Si pasa el test, continuar exactamente desde el Próximo Gate (§8).
 

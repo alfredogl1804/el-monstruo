@@ -1,12 +1,6 @@
-# [SUPERSEDED_BY_v1_1] PERICIA TEST v1.0
+# PERICIA TEST v1.1
 
-> **WARNING SUPERSEDED_BY_v1_1** — Este archivo contiene drifts heredados de v1.0 (referencias a paths internos `_v1.0.md/json` con punto en el header).
-> NO usar como test vigente. Ir a `PERICIA_TEST_v1_1.md`.
-> **Mantenido para trazabilidad histórica del bucle correctivo Anti-Dory.**
-
----
-
-> **Propósito:** verificar que ChatGPT (o cualquier hilo nuevo) ha absorbido el conocimiento del checkpoint v1.0 antes de diseñar.
+> **Propósito:** verificar que ChatGPT (o cualquier hilo nuevo) ha absorbido el conocimiento del checkpoint v1.1 antes de diseñar.
 >
 > **Reglas del test:**
 >
@@ -15,7 +9,7 @@
 > - Si pasa 16-17/20: leer las preguntas falladas, releer secciones del checkpoint, reintentar una vez.
 > - Si pasa menos de 16/20: **NO diseñar**. Releer checkpoint completo + JSON state. Reintentar después.
 >
-> **Fuente de verdad:** `CHATGPT_PERICIA_CHECKPOINT_v1.0.md` y `CHATGPT_PERICIA_STATE_v1.0.json`.
+> **Fuente de verdad:** `CHATGPT_PERICIA_CHECKPOINT_v1_1.md` y `CHATGPT_PERICIA_STATE_v1_1.json`.
 
 ---
 
@@ -301,7 +295,7 @@ NO canonizar todavía:
 - **Privacidad por Imposibilidad** — es función de SMP, no canon nuevo.
 - **Cronista Familiar / Herencia Narrativa / Legacy Capture / Día One Familiar** — son aliases de cronos_modo_cripta, ya canonizado. NO crear módulo nuevo.
 - **Home canónica** — solo existe como proxy de ChatScreen, NO como Home real.
-- **Memento endpoint completo** — validator confirmado + endpoint HTTP POST `/v1/memento/validate` confirmado. Pendiente verificar consumidores.
+- **Memento cobertura completa / integración UI completa** — validator y endpoint HTTP POST `/v1/memento/validate` confirmados. NO asumir cobertura completa, consumidores reales ni integración UI hasta verificar Flutter / Command Center.
 - **A2UI renderer real** — solo schema confirmado.
 - **Acto 1 vs Acto 2 como contradicción** — la dirección es Acto 2 contiene Acto 1.
 - **Las 10 hipótesis pre-IA y 5 órganos latentes** — esperan CIERRE BLOQUE PRE-IA.
@@ -347,4 +341,4 @@ Después de responder las 20 preguntas:
 | 16-17/20 | PARCIAL. Releer preguntas falladas + secciones del checkpoint. Reintentar una vez. |
 | <16/20 | FALLA. NO diseñar. Releer checkpoint completo + JSON state. Reintentar después. |
 
-Registrar resultado en `monstruo_reality_atlas/reports/PERICIA_TEST_v1.0_RESULT_<fecha>.md` (cuando aplique).
+Registrar resultado en `monstruo_reality_atlas/reports/PERICIA_TEST_v1.1_RESULT_<fecha>.md` (cuando aplique).

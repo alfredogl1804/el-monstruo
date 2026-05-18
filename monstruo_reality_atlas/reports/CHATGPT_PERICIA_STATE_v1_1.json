@@ -1,21 +1,5 @@
 {
-  "_superseded_by": "1.1",
-  "_superseded_at": "2026-05-18",
-  "_superseded_commit_message": "docs(atlas): fix ChatGPT pericia checkpoint v1.1 consistency drift",
-  "_known_drifts": [
-    "CT-005_memento_inconsistency_state_vs_checkpoint_test",
-    "active_contradiction_memento_validator_vs_endpoint",
-    "DNR-005_memento_endpoint_completo_vs_real_state",
-    "CT-009_id_roto_CT-1.0_path_syntax",
-    "internal_paths_v1.1.md_v1.1.json_should_be_v1_1"
-  ],
-  "_replacement_files": [
-    "CHATGPT_PERICIA_CHECKPOINT_v1_1.md",
-    "CHATGPT_PERICIA_STATE_v1_1.json",
-    "PERICIA_TEST_v1_1.md"
-  ],
-  "_kept_for": "historical_trazabilidad_bucle_correctivo_anti_dory",
-  "version": "1.0",
+  "version": "1.1",
   "created_at": "2026-05-18T08:00:00-06:00",
   "created_by": "Manus",
   "instructed_by": "Alfredo Gongora",
@@ -59,8 +43,8 @@
     },
     {
       "id": "CT-005",
-      "title": "Memento validator real, endpoint no confirmado",
-      "summary": "Memento existe como validator importable real. NO asumir endpoint HTTP completo sin verificar."
+      "title": "Memento validator y endpoint HTTP confirmados",
+      "summary": "Memento validator confirmado + endpoint HTTP POST /v1/memento/validate confirmado. Pendiente: verificar consumidores reales en Flutter / Command Center."
     },
     {
       "id": "CT-006",
@@ -78,7 +62,7 @@
       "summary": "Loop autonomo real con purpose filter, judge, silence score, HITL escalation, FCS, budget, self-verifier, sabios/radar, piezas Reloj Suizo como Escape/Espiral por flags."
     },
     {
-      "id": "CT-1.0",
+      "id": "CT-009",
       "title": "Budget Tracker real",
       "summary": "Controla cap por latido, presupuesto diario, registro post-flight y escalacion HITL."
     },
@@ -124,7 +108,7 @@
     "A2UI schema real vs renderer placeholder",
     "Cronos canonizado vs codigo vacio",
     "SMP cimiento vs implementacion ausente",
-    "Memento validator real vs endpoint no confirmado",
+    "Memento endpoint confirmado vs consumidores reales no verificados",
     "Command Center produccion parcial vs Cockpit canon 12-15",
     "Autonomia del Embrion vs executors noop por default",
     "Catastro como motor de decision vs posible UI de inventario",
@@ -186,9 +170,9 @@
       "reason": "/home existe en Flutter pero es proxy de ChatScreen. La Home Daily canonica debe incluir contexto/threads/pendientes, no resúmenes de Cockpit."
     },
     {
-      "concept": "Memento endpoint completo",
-      "canonical_id": "memento_validator",
-      "reason": "Solo validator importable confirmado, no endpoint HTTP"
+      "concept": "Memento cobertura completa / integración UI completa",
+      "canonical_id": "memento_validator_endpoint",
+      "reason": "Memento validator y endpoint HTTP POST /v1/memento/validate están confirmados. NO asumir cobertura completa, consumidores reales ni integración UI hasta verificar Flutter / Command Center."
     },
     {
       "concept": "A2UI renderer real",
@@ -281,9 +265,9 @@
   ],
   "continuity_rule": {
     "on_compaction_or_new_thread": [
-      "1. Leer CHATGPT_PERICIA_CHECKPOINT_v1.0.md completo",
-      "2. Leer CHATGPT_PERICIA_STATE_v1.0.json (este archivo)",
-      "3. Ejecutar PERICIA_TEST_v1.0.md",
+      "1. Leer CHATGPT_PERICIA_CHECKPOINT_v1_1.md completo",
+      "2. Leer CHATGPT_PERICIA_STATE_v1_1.json (este archivo)",
+      "3. Ejecutar PERICIA_TEST_v1_1.md",
       "4. Si falla el test, NO disenar"
     ]
   }
