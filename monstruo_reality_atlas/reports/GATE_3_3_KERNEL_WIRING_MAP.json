@@ -1,0 +1,191 @@
+{
+  "version": "gate_3_3_v1",
+  "created_at": "2026-05-18T07:30:00Z",
+  "commit_sha": "0477833bc3435a31a6719cb235551fa7e2deb115",
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/v1/agui/run",
+      "handler": "agui_run",
+      "source_file": "kernel/agui_adapter.py",
+      "lines": "114",
+      "module_dependencies": ["kernel", "asyncio.Queue"],
+      "status": "WIRED_HTTP",
+      "likely_consumers": ["Flutter (kernel_messenger.dart)"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/memento/validate",
+      "handler": "memento_validate",
+      "source_file": "kernel/memento_routes.py",
+      "lines": "170",
+      "module_dependencies": ["kernel.memento.validator"],
+      "status": "WIRED_HTTP",
+      "likely_consumers": ["Command Center", "Flutter"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/embrion/propose",
+      "handler": "crear_proposal",
+      "source_file": "kernel/embrion_routes.py",
+      "lines": "852",
+      "module_dependencies": ["kernel.embrion_write_policy"],
+      "status": "WIRED_HTTP",
+      "likely_consumers": ["Embrion", "Flutter"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/embrion/approve/{proposal_id}",
+      "handler": "aprobar_proposal",
+      "source_file": "kernel/embrion_routes.py",
+      "lines": "1061",
+      "module_dependencies": ["kernel.embrion_write_policy"],
+      "status": "WIRED_HTTP",
+      "likely_consumers": ["Telegram", "Command Center"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/embrion/reject/{proposal_id}",
+      "handler": "rechazar_proposal",
+      "source_file": "kernel/embrion_routes.py",
+      "lines": "1117",
+      "module_dependencies": ["kernel.embrion_write_policy"],
+      "status": "WIRED_HTTP",
+      "likely_consumers": ["Telegram", "Command Center"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/embrion/telegram/webhook",
+      "handler": "telegram_webhook",
+      "source_file": "kernel/embrion_routes.py",
+      "lines": "1240",
+      "module_dependencies": ["kernel.runner.telegram_notifier"],
+      "status": "WIRED_HTTP",
+      "likely_consumers": ["Telegram API"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/catastro/recommend",
+      "handler": "recommend",
+      "source_file": "kernel/catastro/catastro_routes.py",
+      "lines": "165",
+      "module_dependencies": ["kernel.catastro.recommendation"],
+      "status": "WIRED_HTTP",
+      "likely_consumers": ["Embrion", "Command Center"]
+    },
+    {
+      "method": "GET",
+      "path": "/v1/catastro/modelos/{modelo_id}",
+      "handler": "get_modelo",
+      "source_file": "kernel/catastro/catastro_routes.py",
+      "lines": "203",
+      "module_dependencies": ["kernel.catastro.recommendation"],
+      "status": "WIRED_HTTP",
+      "likely_consumers": ["Embrion", "Command Center"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/tools/consult_sabios",
+      "handler": "tool_consult_sabios",
+      "source_file": "kernel/main.py",
+      "lines": "2689",
+      "module_dependencies": ["tools.consult_sabios"],
+      "status": "WIRED_HTTP",
+      "likely_consumers": ["Embrion", "Command Center"]
+    }
+  ],
+  "modules": [
+    {
+      "module": "kernel.a2ui",
+      "source_file": "kernel/a2ui/schema.py",
+      "status": "IMPORTED_ONLY",
+      "wired_in_main": false,
+      "endpoint_paths": [],
+      "notes": "Pydantic models for A2UI. Used by Embrion to validate output. Render side in Flutter is just a placeholder."
+    },
+    {
+      "module": "kernel.memento",
+      "source_file": "kernel/memento/validator.py",
+      "status": "WIRED_HTTP",
+      "wired_in_main": true,
+      "endpoint_paths": ["/v1/memento/validate"],
+      "notes": "Fully wired with /v1/memento/validate endpoint."
+    },
+    {
+      "module": "kernel.embrion_loop",
+      "source_file": "kernel/embrion_loop.py",
+      "status": "WIRED_LIFESPAN",
+      "wired_in_main": true,
+      "endpoint_paths": [],
+      "notes": "Started during app lifespan via async task. Not an endpoint itself, but the core engine."
+    },
+    {
+      "module": "kernel.runner.proposal_processor",
+      "source_file": "kernel/runner/proposal_processor.py",
+      "status": "BACKGROUND_WORKER",
+      "wired_in_main": false,
+      "endpoint_paths": [],
+      "notes": "Independent worker that polls DB for approved proposals."
+    },
+    {
+      "module": "kernel.runner.executor_registry",
+      "source_file": "kernel/runner/executor_registry.py",
+      "status": "IMPORTED_ONLY",
+      "wired_in_main": false,
+      "endpoint_paths": [],
+      "notes": "Default is noop unless executor='real'. code_commit is deferred."
+    },
+    {
+      "module": "kernel.runner.telegram_notifier",
+      "source_file": "kernel/runner/telegram_notifier.py",
+      "status": "WIRED_HTTP",
+      "wired_in_main": true,
+      "endpoint_paths": ["/v1/embrion/telegram/webhook"],
+      "notes": "Sends inline keyboards with approve/reject buttons. Handled by webhook."
+    },
+    {
+      "module": "kernel.catastro",
+      "source_file": "kernel/catastro/catastro_routes.py",
+      "status": "WIRED_HTTP",
+      "wired_in_main": true,
+      "endpoint_paths": ["/v1/catastro/recommend", "/v1/catastro/modelos/{id}"],
+      "notes": "Wired via include_router. Engine loaded in lifespan."
+    },
+    {
+      "module": "kernel.simulator.causal_simulator_v2",
+      "source_file": "kernel/simulator/causal_simulator_v2.py",
+      "status": "IMPORTED_ONLY",
+      "wired_in_main": false,
+      "endpoint_paths": [],
+      "notes": "Monte Carlo simulator. Exists as code but no direct HTTP endpoint found in main.py."
+    },
+    {
+      "module": "kernel.collective",
+      "source_file": "kernel/collective/protocol.py",
+      "status": "IMPORTED_ONLY",
+      "wired_in_main": false,
+      "endpoint_paths": [],
+      "notes": "Protocol for inter-embryo communication. No direct HTTP endpoints found."
+    },
+    {
+      "module": "kernel.embrion_specializations",
+      "source_file": "kernel/embrion_specializations/__init__.py",
+      "status": "DEAD_CODE",
+      "wired_in_main": false,
+      "endpoint_paths": [],
+      "notes": "Directory exists but is empty (only __init__.py). Actual specialized embryos live in kernel/embriones/."
+    }
+  ],
+  "contradictions": [
+    "A2UI renderer in Flutter is just a placeholder, even though the schema is strict.",
+    "Catastro is often thought of as a visual table, but it's actually an API engine (recommend, lookup) for the Embryo.",
+    "Simulador Causal V2 exists as code, but lacks an explicit HTTP endpoint in main.py.",
+    "embrion_specializations/ is empty; the real code is in embriones/."
+  ],
+  "chatgpt_next_reading_order": [
+    "kernel/main.py (para ver el lifespan y el wiring de routers)",
+    "kernel/embrion_routes.py (para ver los endpoints de propose/approve/reject)",
+    "kernel/runner/executor_registry.py (para entender el noop vs real)",
+    "kernel/catastro/catastro_routes.py (para entender que es una API, no una UI estática)"
+  ]
+}
