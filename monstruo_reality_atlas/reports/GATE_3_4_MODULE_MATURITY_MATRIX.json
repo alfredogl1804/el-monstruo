@@ -1,0 +1,147 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-05-18",
+  "commit_sha": "a6be791",
+  "modules": {
+    "moc_routes": {
+      "exists": true,
+      "init_main": true,
+      "endpoints_exposed": 6,
+      "consumer_ui": true,
+      "db_state": true,
+      "tests_exist": false,
+      "maturity_level": "M3_Wired",
+      "risk_level": "Medium"
+    },
+    "finops_routes": {
+      "exists": true,
+      "init_main": true,
+      "endpoints_exposed": 2,
+      "consumer_ui": true,
+      "db_state": true,
+      "tests_exist": false,
+      "maturity_level": "M3_Wired",
+      "risk_level": "Medium"
+    },
+    "magna_routes": {
+      "exists": true,
+      "init_main": true,
+      "endpoints_exposed": 3,
+      "consumer_ui": false,
+      "db_state": true,
+      "tests_exist": true,
+      "maturity_level": "M4_Tested",
+      "risk_level": "Low"
+    },
+    "memory_routes": {
+      "exists": true,
+      "init_main": true,
+      "endpoints_exposed": 8,
+      "consumer_ui": true,
+      "db_state": true,
+      "tests_exist": false,
+      "maturity_level": "M3_Wired",
+      "risk_level": "Medium"
+    },
+    "e2e/routes": {
+      "exists": true,
+      "init_main": true,
+      "endpoints_exposed": 5,
+      "consumer_ui": false,
+      "db_state": true,
+      "tests_exist": true,
+      "maturity_level": "M4_Tested",
+      "risk_level": "Low"
+    },
+    "e2e/traffic/routes": {
+      "exists": true,
+      "init_main": true,
+      "endpoints_exposed": 2,
+      "consumer_ui": false,
+      "db_state": true,
+      "tests_exist": true,
+      "maturity_level": "M4_Tested",
+      "risk_level": "Low"
+    },
+    "catastro/recommendation": {
+      "exists": true,
+      "init_main": true,
+      "endpoints_exposed": 8,
+      "consumer_ui": false,
+      "db_state": true,
+      "tests_exist": false,
+      "maturity_level": "M3_Wired",
+      "risk_level": "Medium"
+    },
+    "embrion_scheduler": {
+      "exists": true,
+      "init_main": true,
+      "endpoints_exposed": 3,
+      "consumer_ui": false,
+      "db_state": true,
+      "tests_exist": false,
+      "maturity_level": "M3_Wired",
+      "risk_level": "High"
+    },
+    "rotor/recharge": {
+      "exists": true,
+      "init_main": true,
+      "endpoints_exposed": 1,
+      "consumer_ui": false,
+      "db_state": true,
+      "tests_exist": true,
+      "maturity_level": "M4_Tested",
+      "risk_level": "Low"
+    },
+    "guardian_runner/runner": {
+      "exists": true,
+      "init_main": true,
+      "endpoints_exposed": 1,
+      "consumer_ui": false,
+      "db_state": true,
+      "tests_exist": true,
+      "maturity_level": "M4_Tested",
+      "risk_level": "Low"
+    },
+    "a2a_routes": {
+      "exists": true,
+      "init_main": true,
+      "endpoints_exposed": 6,
+      "consumer_ui": false,
+      "db_state": true,
+      "tests_exist": false,
+      "maturity_level": "M3_Wired",
+      "risk_level": "High"
+    },
+    "cowork_routes": {
+      "exists": true,
+      "init_main": true,
+      "endpoints_exposed": 2,
+      "consumer_ui": false,
+      "db_state": true,
+      "tests_exist": true,
+      "maturity_level": "M4_Tested",
+      "risk_level": "Low"
+    },
+    "collective/protocol": {
+      "exists": true,
+      "init_main": true,
+      "endpoints_exposed": 0,
+      "consumer_ui": false,
+      "db_state": true,
+      "tests_exist": false,
+      "maturity_level": "M2_Stub",
+      "risk_level": "High"
+    },
+    "embriones/*": {
+      "exists": true,
+      "init_main": true,
+      "endpoints_exposed": 0,
+      "consumer_ui": false,
+      "db_state": false,
+      "tests_exist": true,
+      "maturity_level": "M3_Wired",
+      "risk_level": "Medium"
+    }
+  }
+}
