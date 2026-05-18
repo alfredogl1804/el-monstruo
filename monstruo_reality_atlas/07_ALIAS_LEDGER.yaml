@@ -1,0 +1,325 @@
+# 07 — ALIAS LEDGER
+#
+# Resolución bidireccional de aliases. Cada entrada tiene:
+#   - canonical_term: el nombre firmado en canon
+#   - concept_id: el identificador único usado en el atlas
+#   - source_id: la fuente que canoniza el término
+#   - aliases: lista de nombres alternativos detectados en el corpus
+#   - alias_origins: dónde apareció cada alias
+#
+# Regla operativa: si un agente encuentra un término en aliases[],
+# debe usar canonical_term en su output o referenciar concept_id.
+
+aliases:
+
+  - canonical_term: Cronos Modo Cripta
+    concept_id: cronos_modo_cripta
+    source_id: SRC-001
+    canon_location: docs/EL_MONSTRUO_APP_VISION_v1.md cap.5
+    aliases:
+      - Cronista Familiar
+      - Herencia Narrativa
+      - Legacy Capture
+      - Día One Familiar
+      - Day One Familiar
+      - Modo Cripta
+      - Cripta de Cronos
+      - Legado Familiar
+    alias_origins:
+      - Cronista Familiar: ChatGPT iter previas (propuesta como capa nueva)
+      - Herencia Narrativa: ChatGPT iter previas
+      - Legacy Capture: ChatGPT iter previas
+      - Día One Familiar: hilos antiguos Alfredo
+      - Modo Cripta: APP_VISION verbatim
+      - Legado Familiar: hilos antiguos Alfredo
+    notes: |
+      El concepto está canonizado desde APP_VISION v1.1+ con Shamir Secret Sharing.
+      Propuestas como capa nueva fueron rechazadas en audit por duplicar canon.
+      Implementación pendiente de sprints CRONOS_1/2/3 + AUTH_TIERS_001.
+
+  - canonical_term: Cronos Río de Vida
+    concept_id: cronos_rio_de_vida
+    source_id: SRC-001
+    canon_location: docs/EL_MONSTRUO_APP_VISION_v1.md cap.5
+    aliases:
+      - Río de Vida
+      - Río de la Vida
+      - River of Life
+      - río de vida
+      - Río Cronos
+      - Cronos River
+    alias_origins:
+      - Río de la Vida (con La): memoria T1 Alfredo (drift menor de "río de vida" sin La)
+      - River of life: Cowork audit verbatim 2026-05-11 línea 194
+      - río de vida: APP_VISION verbatim (sin mayúsculas, sin La)
+    notes: |
+      Cowork canonizó como "river of life + 9 capas + Embrión Convergencia"
+      en línea 194 del audit 2026-05-11. APP_VISION usa "río de vida" minúscula sin La.
+      "Río de la Vida" (con La) es drift menor pero válido como alias.
+
+  - canonical_term: A2UI Protocol
+    concept_id: a2ui_protocol
+    source_id: SRC-004
+    canon_location: bridge/a2ui_spec_draft_FIRMADO_2026_05_11.md
+    aliases:
+      - A2UI
+      - Agent-to-UI Protocol
+      - Protocolo A2UI
+      - A2UI widget
+    alias_origins:
+      - A2UI widget: confusión común (NO es widget, es protocolo)
+    notes: |
+      A2UI es PROTOCOLO de interacción agente↔interfaz, NO widget.
+      Spec firmada 2026-05-11. Implementación incipiente en kernel/a2ui/.
+      Sprint MOBILE_1B_A2UI_IMPLEMENTATION pendiente de firma.
+
+  - canonical_term: Memento Protocol
+    concept_id: memento_protocol
+    source_id: SRC-008
+    canon_location: kernel/memento/
+    aliases:
+      - Memento
+      - Memoria Memento
+      - Protocolo Memento
+      - memento_routes
+    alias_origins:
+      - memento_routes: nombre de archivo en kernel
+    notes: |
+      Memento implementado pleno. 107+ archivos referencia. Sirve como base
+      para cualquier hilo nuevo del Monstruo (skill el-monstruo-core).
+
+  - canonical_term: Brand DNA Forja Graphite Acero
+    concept_id: brand_dna_forja_graphite_acero
+    source_id: SRC-013
+    canon_location: discovery_forense/CAPILLA_DECISIONES/EL-MONSTRUO/DSC-MO-002_brand_dna_naranja_forja_graphite_acero.md
+    aliases:
+      - Brand DNA
+      - Paleta del Monstruo
+      - Colores del Monstruo
+      - Forja-Graphite-Acero
+    alias_origins:
+      - Brand DNA: AGENTS.md regla 5
+    canonical_values:
+      forja: "#F97316"
+      graphite: "#1C1917"
+      acero: "#A8A29E"
+    drift_detected:
+      file: apps/mobile/lib/core/theme/brand_dna.dart
+      lines: 10-56
+      values_actuales:
+        primary: "#00E5FF"
+        secondary: "#BB86FC"
+      sprint_resolucion: SPR-BRAND-001
+    notes: |
+      Caso paradigmático de drift binario: el archivo se llama brand_dna.dart
+      pero contiene el anti-brand-DNA. Resolución pendiente.
+
+  - canonical_term: SMP Soberanía Memoria Privacidad
+    concept_id: smp_5_propiedades
+    source_id: SRC-001
+    canon_location: docs/EL_MONSTRUO_APP_VISION_v1.md cap.11
+    aliases:
+      - SMP
+      - Soberanía Memoria Privacidad
+      - Sovereign Memory Protocol
+    alias_origins: []
+    notes: |
+      5 propiedades canonizadas en APP_VISION. Implementación 0/5 según audit
+      Cowork 2026-05-11. Sprint SPR-SMP-001 propuesto sin firma.
+
+  - canonical_term: Modo Daily 5 Superficies
+    concept_id: daily_5_superficies
+    source_id: SRC-001
+    canon_location: docs/EL_MONSTRUO_APP_VISION_v1.md cap.8
+    aliases:
+      - Daily Mode
+      - Modo Diario
+      - 5 superficies daily
+      - Daily
+    surfaces:
+      - Chat
+      - Hoy
+      - Memoria
+      - Cuerpo
+      - Vínculos
+    notes: |
+      Modo Daily definido con 5 superficies. Implementación 0/5 según audit Cowork.
+
+  - canonical_term: Modo Cockpit 12-15 Superficies
+    concept_id: cockpit_12_15_superficies
+    source_id: SRC-001
+    canon_location: docs/EL_MONSTRUO_APP_VISION_v1.md cap.8
+    aliases:
+      - Cockpit Mode
+      - Modo Cockpit
+      - Cockpit
+      - 12 superficies cockpit
+      - 15 superficies cockpit
+    drift_detected:
+      production: el-monstruo-command-center
+      surfaces_actuales:
+        - chat
+        - finops
+        - fleet
+        - memory
+        - runs
+        - security
+        - settings
+      count_actual: 7
+      count_canonico: "12-15"
+      gap: 5-8
+    notes: |
+      Command Center solo tiene 7 superficies vs 12-15 canon. Drift documentado.
+
+  - canonical_term: Niebla del Futuro
+    concept_id: niebla_del_futuro
+    source_id: SRC-001
+    canon_location: docs/EL_MONSTRUO_APP_VISION_v1.md cap.5
+    aliases:
+      - Niebla
+      - Fog of Future
+      - Capa de Incertidumbre
+    notes: |
+      Capa de incertidumbre del Río de Vida sobre futuro. 8 archivos referencia.
+
+  - canonical_term: Embrión Convergencia Cronos
+    concept_id: embrion_convergencia_cronos
+    source_id: SRC-002
+    canon_location: memory/cowork/audits/VISION_APP_MONSTRUO_CLASE_MUNDIAL_2026_05_11.md línea 142
+    aliases:
+      - Embrión Convergencia
+      - Embrión Cronos
+      - Convergencia inter-capa
+    notes: |
+      Embrión Convergencia inter-capa de Cronos. Pieza de UI del Cockpit.
+      Sprint SPR-EMBRION-CRONOS-001 propuesto.
+
+  - canonical_term: Cap 17 Seguridad Modo Confidente
+    concept_id: cap_17_seguridad
+    source_id: SRC-001
+    canon_location: docs/EL_MONSTRUO_APP_VISION_v1.md cap.17
+    aliases:
+      - Cap 17
+      - Modo Confidente
+      - Modo Confidente sin nombre
+      - Confidente
+      - Seguridad Cap 17
+    notes: |
+      Cap 17 incluye Modo Confidente (diálogo sin identificación), criptografía,
+      identidad auditable y rotación.
+
+  - canonical_term: 8 Capabilities Transversales
+    concept_id: 8_capabilities_transversales
+    source_id: SRC-001
+    canon_location: docs/EL_MONSTRUO_APP_VISION_v1.md cap.7
+    aliases:
+      - 8 capabilities
+      - Capabilities transversales
+      - Caps + 2 base
+      - 10 capabilities (8+2)
+    notes: |
+      8 capabilities + 2 base. Implementación 0/8 según audit Cowork.
+
+  - canonical_term: Modo Espejo Testigo Silente
+    concept_id: cronos_modo_espejo
+    source_id: SRC-001
+    canon_location: docs/EL_MONSTRUO_APP_VISION_v1.md cap.5
+    aliases:
+      - Modo Espejo
+      - Modo Testigo
+      - Testigo Silente
+      - Espejo Cronos
+    notes: |
+      Modo de introspección de Cronos. Sprint CRONOS_2 lo incluye.
+
+  - canonical_term: Schema-First Invariante Interfaz IA
+    concept_id: schema_first_invariante
+    source_id: SRC-014
+    canon_location: discovery_forense/CAPILLA_DECISIONES/LA-FORJA/DSC-LF-005_sse_obligatorio_endpoints_llm.md
+    aliases:
+      - Schema-First
+      - SSE obligatorio
+      - Schema First
+    status: HIPOTESIS_NACIENTE_T1_LIVE
+    notes: |
+      Único hit sustantivo en repo. Capa 03 emergente del fabric (staging).
+      No tiene sprint asociado. Decisión T1 magna pendiente.
+
+  - canonical_term: AI-First Living
+    concept_id: ai_first_living
+    source_id: SRC-011
+    canon_location: kernel/catastros/interfaces.py
+    aliases:
+      - AI First
+      - AI-First
+      - Living AI
+    status: HIPOTESIS_NACIENTE
+    notes: |
+      Solo 3 hits relevantes en repo. Hipótesis naciente, no canonizada.
+
+  - canonical_term: Transport Cero
+    concept_id: transport_cero
+    source_id: NULL
+    canon_location: NO_EXISTE_EN_REPO
+    aliases:
+      - Transport 0
+      - Transport Zero
+      - Cero Transport
+    status: NO_EXISTE_FORMALMENTE
+    notes: |
+      0 hits en código y docs. Existe solo verbalmente en hilos.
+      Si Alfredo lo confirma como canon, requiere DSC firmado nuevo.
+
+  - canonical_term: Reloj Suizo + Engranaje
+    concept_id: reloj_suizo_engranaje
+    source_id: scripts/prototipo_engranaje.py
+    canon_location: scripts/prototipo_engranaje.py + docs/CANON_METODOLOGIAS_PRODUCTIVIDAD_2026.md
+    aliases:
+      - Reloj Suizo
+      - Engranaje del Monstruo
+      - Mecanismo Suizo
+    notes: |
+      Existe código prototipo + doc canon metodologías. Implementación incipiente.
+
+  - canonical_term: el-mundo-de-tata
+    concept_id: el_mundo_de_tata
+    source_id: SRC-015
+    canon_location: discovery_forense/PROJECT_MANIFESTS/el-mundo-de-tata.md
+    aliases:
+      - mundo de tata
+      - tata's world
+      - juego tata
+    notes: |
+      Juego interactivo estilo Toca Boca para hija de Alfredo. NO es legado familiar.
+      Comparte dimensión padre-hija con cronos_modo_cripta pero propósito distinto.
+      Decisión topológica pendiente: separado / API-conectado / sub-módulo / renombrado.
+
+  - canonical_term: Embriones Loop
+    concept_id: embriones_loop
+    source_id: SRC-010
+    canon_location: kernel/embriones/embrion_loop.py
+    aliases:
+      - Embriones
+      - Embrion Loop
+      - Loop de Embriones
+    notes: |
+      Implementado en kernel. Loop de embriones del Monstruo.
+
+  - canonical_term: AG-UI Gateway
+    concept_id: agui_gateway
+    source_id: SRC-007
+    canon_location: kernel/agui_adapter.py
+    aliases:
+      - AG-UI
+      - AGUI
+      - Gateway de UI
+      - UI Gateway
+    notes: |
+      Adapter de Agent-to-UI. Conecta agentes a UIs.
+
+# Resumen estadístico:
+# - 19 entradas canónicas en este ledger
+# - 6 con drift detectado (cronos_modo_cripta, brand_dna, cockpit, etc.)
+# - 3 con estado HIPOTESIS_NACIENTE (schema_first, ai_first_living)
+# - 1 NO_EXISTE_FORMALMENTE (transport_cero)
+# - El resto FIRMADO_VIGENTE
