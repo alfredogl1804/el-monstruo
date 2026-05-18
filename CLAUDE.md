@@ -129,7 +129,7 @@ Regla anterior: *"NUNCA Cowork, solo Alfredo desde UI GitHub"*. Derogada por ins
 
 Casos aplicados 2026-05-11: PRs #89, #90, #91, #93 mergeados; PR #86 cerrado sin merge tras audit RED (regresión del hotfix #88 detectada binariamente).
 
-### 22 FALLOS CANONIZADOS (NO repetir)
+### 23 FALLOS CANONIZADOS (NO repetir)
 
 Si Cowork detecta uno de estos patrones en sí mismo, debe pararse y corregir:
 
@@ -155,8 +155,9 @@ Si Cowork detecta uno de estos patrones en sí mismo, debe pararse y corregir:
 20. **F20 no reconocer rol en sesgo histórico**
 21. **F21 confiar en docs canonizados sin verificar contra realidad fresca**
 22. **F22 pedirle a Alfredo lo que Cowork SÍ puede hacer** (push, query Supabase, etc.)
+23. **F23 post-test-collect-reset drift exposure** — PR que resuelve `ModuleNotFoundError` global o reactive `tests/` collect puede exponer drift preexistente escondido detrás del error de import. Declarar verde sin enumerar tests reactivados es F23. (Hallazgo Manus E2 2026-05-18: PR #165 H15+H17 resuelve imports → emerge `test_check_index_drift` que detecta drift `_INDEX.md` ↔ filesystem preexistente.)
 
-### 10 SOLUCIONES OPERATIVAS (aplicar siempre)
+### 11 SOLUCIONES OPERATIVAS (aplicar siempre)
 
 - **S1** Pre-flight Memento al inicio (arriba)
 - **S2** Gate de Evidencia antes de canonizar: rúbrica + evidencia + denominador + falsadores
@@ -168,6 +169,7 @@ Si Cowork detecta uno de estos patrones en sí mismo, debe pararse y corregir:
 - **S8** Inventario tools al inicio de sesión
 - **S9** Respuestas >400 palabras → archivo + link, no chat
 - **S10** No inventar frases canónicas — esa marca para fuentes legítimas
+- **S11** Post-test-collect-reset audit obligatorio — si PR resuelve `ModuleNotFoundError` global o reactive `tests/` collect, enumerar binariamente los tests que ahora corren por primera vez en N días antes de declarar verde. Anti-F23.
 
 ### PALABRAS CLAVE DE ALFREDO PARA CORREGIR COWORK
 
@@ -356,3 +358,4 @@ Este archivo es leído automáticamente por Claude Cowork cuando seleccionas `~/
 - **2026-05-11** Sprint CLAUDE_MD-001 (Cowork T2 puro, bajo autorización T1 directa) — fixes de 4 stales detectados en FASE 1 de la sesión nueva: (C2) path AUDIT_FORENSE corregido, (C3) regla merge derogada actualizada, (C5) RLS 117→120 + DSCs 62→64, (C6) tabla 8 Sabios completa con versiones correctas (Grok 4 Heavy + Kimi K2.6) + agregados los 4 que faltaban (GPT-5.5 Pro, Claude Opus 4.7, DeepSeek R1, Copilot 365). Plus refresh Estado Actual con App Flutter cifras honestas. Sin reescritura — edición targeted.
 - **2026-05-12** Paso 0 Pre-flight Memento extendido — sesión Cowork usa kernel del Monstruo como memoria persistente real via CLI `kernel.cowork_runtime.session_memory pre-flight` + INSERT SQL sandbox fallback. Bajo objetivo magno T1 ("vamos a ponernos de objetivo usar hoy la memoria persistente del monstruo para que te asista y te sirva"). Cierra fragilidad post-V25 estructuralmente. Paso N cierre sesión + Paso M opcional pre-response_hook decisiones magnas.
 - **2026-05-18** Paso 0.B Coherence Gate Nivel A canonizado (DSC-G-013 v0.1 firmado T1 verbatim "firmo 5"). Pre-acción gate binario verifica capa repo↔schema_migrations + código↔CHECK antes de acción magna. Evidencia magna: H12 (run_costs missing) + H13 (4 tipos rechazados silente) + F#15 caveat síntoma operativo. Nivel B automatizado en EXPERIMENTO T+14D. Veredictos 3 Sabios verbatim en `bridge/veredictos_dsc_g_013/`. Plus nueva palabra clave "Coherence Gate" en tabla correctivos.
+- **2026-05-18** Sprint DSC-DRIFT-CLEANUP-2026-05-18 — F#23 + S11 canonizadas (post-test-collect-reset drift exposure). Origen: hallazgo Manus E2 vía test_check_index_drift reactivado post-PR #165 H15/H17 ModuleNotFoundError fix. Plus cierre drift documental `_INDEX.md` ↔ filesystem (8 entradas reconciliadas). Autorización T1 "la firmo" + matización binaria Opción E refinement T2-A.
