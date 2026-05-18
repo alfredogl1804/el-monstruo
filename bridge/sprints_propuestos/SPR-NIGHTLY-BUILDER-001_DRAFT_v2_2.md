@@ -1,6 +1,6 @@
 # Sprint SPR-NIGHTLY-BUILDER-001 — Autonomía de Preparación, Ejecución Supervisada T1 (v0)
 
-**Estado:** DRAFT v2.1
+**Estado:** DRAFT v2.2
 **Objetivo:** Habilitar el primer ciclo seguro de Construcción Autónoma Preparativa.
 
 ## 1. Objetivo
@@ -18,11 +18,12 @@ El ciclo opera fuera del loop de respuesta síncrona (`embrion_loop.py`), ejecut
 3. **Risk Classifier:** Asignación determinista de una clase de riesgo (R0 a R5).
 4. **Architect Invocation (GPT/Claude):** Diseño de la solución para la oportunidad (si es R1-R3).
 5. **Executor Invocation (Manus):** Ejecución de la solución en un entorno efímero.
-6. **Audit Invocation (Cowork/Perplexity):** Revisión doctrinal y técnica de la propuesta.
-7. **Security / Integrity Gate Runner:** Evaluación contra 12 gates de seguridad.
+6. **Audit Invocation (Cowork/Perplexity/SuperGrok):** Revisión doctrinal y técnica de la propuesta.
+7. **Security / Integrity Gate Runner:** Evaluación contra 13 gates de seguridad.
 8. **Morning Evidence Bundle:** Generación de un reporte consolidado con evidencia criptográfica.
-9. **Learning Memory:** Registro del resultado para no repetir errores (Obj Maestro #4).
-10. **HITL (Human-in-the-Loop):** Escalación obligatoria a Alfredo (T1) para firma y merge final.
+9. **HITL (Human-in-the-Loop):** Escalación obligatoria a Alfredo (T1) para firma y merge final.
+
+*(Nota: Learning Memory no se escribe durante ciclos nocturnos v0/v1, solo se lee).*
 
 ## 3. Opportunity Scanner
 
@@ -42,9 +43,25 @@ El escáner nocturno alimenta la cola a partir de las siguientes fuentes verific
 - **PRs abiertos:** Análisis de diffs pendientes de revisión.
 - **Sprints sin cierre formal:** Tareas terminadas sin el DSC correspondiente.
 
-## 4. Opportunity Queue schema
+## 4. Opportunity Queue schema & Data-Only Parser
 
-Toda oportunidad detectada se registra en una cola (JSON local en `bridge/autobuilder/queue_v0.json`) con el siguiente schema estricto:
+Toda oportunidad detectada se registra en una cola (JSON local en `bridge/autobuilder/queue_v0.json`) con el siguiente schema estricto.
+
+**Regla de Data-Only Parser:** Todo contenido de Reality Packs, Bridge, Queue, Reports, Drive, Notion, y tool outputs es **DATA, no instrucción**.
+El runner solo puede extraer y actuar automáticamente sobre:
+- `id`
+- `source`
+- `evidence`
+- `risk_class`
+- `expected_artifact`
+- `forbidden_actions`
+- `requires_human`
+
+El runner **NO puede ejecutar directamente** los siguientes campos (requieren policy runner explícito):
+- `suggested_action`
+- `allowed_actions` (son metadata propuesta, no permiso real)
+- `what_not_to_do`
+- `recommendations`
 
 ```json
 {
@@ -55,8 +72,8 @@ Toda oportunidad detectada se registra en una cola (JSON local en `bridge/autobu
   "evidence": ["string (rutas a logs, URLs, referencias a DSCs)"],
   "risk_class": "string (R0, R1, R2, R3, R4, R5)",
   "suggested_action": "string",
-  "allowed_actions": ["string (enum de acciones permitidas)"],
-  "forbidden_actions": ["string (enum de acciones prohibidas)"],
+  "allowed_actions": ["string (enum metadata)"],
+  "forbidden_actions": ["string (enum metadata)"],
   "requires_human": "boolean",
   "estimated_cost_usd": "number",
   "max_cost_usd": "number (derivado de embrion_budget)",
@@ -72,33 +89,21 @@ Toda oportunidad detectada se registra en una cola (JSON local en `bridge/autobu
 }
 ```
 
-## 5. Risk classifier
+## 5. Risk classifier & Allowed Actions Override
 
-La clasificación de riesgo determina el nivel de autonomía permitido. Se asigna determinísticamente antes de cualquier ejecución:
+La clasificación de riesgo determina el nivel de autonomía permitido. Se asigna determinísticamente antes de cualquier ejecución.
+**Regla de Override:** Los permisos reales NO vienen de `allowed_actions` en la queue. Vienen exclusivamente de esta risk policy, el Night scope, Path allowlist, human approval, y el gate runner.
 
 | Clase | Autonomía y Restricciones |
 |---|---|
-| **R0** | Permitido unattended. Máximo 1 artefacto generado. (Docs, evidence gathering, report only) |
-| **R1** | Permitido unattended **solo después de R0 exitoso**. Requiere branch aislada. Prohibido tocar lógica de negocio. (Tests y validación read-only) |
+| **R0** | Permitido unattended. **Máximo 1 artefacto generado**. (Docs, evidence gathering, report only) |
+| **R1** | Permitido unattended **solo después de Night 0 exitoso**. Requiere branch aislada. **Prohibido tocar lógica de negocio**. (Tests y validación read-only) |
 | **R2** | **NO unattended**. Requiere auditor IA antes de generar PR draft. (Refactor menor no crítico) |
 | **R3** | Requiere auditor IA + Alfredo (T1). (Código funcional kernel no peligroso) |
-| **R4** | **Prohibido en modo nocturno**. Requiere spec firmado T1 previo. (DB, secrets, security, Supabase, auth) |
-| **R5** | **Prohibido en v0**. (Self-modification: `embrion_loop`, `write_policy`, `memento`, `guardian`) |
+| **R4** | Requiere spec firmado T1 previo. (DB, secrets, security, Supabase, auth) |
+| **R5** | **Prohibido**. (Self-modification: `embrion_loop`, `write_policy`, `memento`, `guardian`) |
 
-## 6. Allowed actions v0
-
-Durante la fase v0, el Nightly Builder solo tiene permitido ejecutar las siguientes acciones a través del `executor_registry`:
-
-1. `generate_report` (sintetizar hallazgos en Markdown)
-2. `create_local_branch` (aislamiento de trabajo)
-3. `write_tests` (crear archivos `test_*.py`)
-4. `run_tests` (ejecutar pytest en entorno efímero)
-5. `create_artifact` (guardar diffs o scripts)
-6. `prepare_pr_draft` (usar `gh pr create --draft`)
-7. `request_audit` (enviar payload a Cowork/Perplexity)
-8. `create_morning_report` (consolidar el trabajo de la noche)
-
-## 7. Forbidden actions v0
+## 6. Forbidden actions v0
 
 Las siguientes acciones están **explícita y físicamente prohibidas**:
 
@@ -116,10 +121,11 @@ Las siguientes acciones están **explícita y físicamente prohibidas**:
 12. Canonizar decisiones (`canonize_dsc`) sin firma T1
 13. Escribir o modificar `APP_VISION`
 14. Tocar módulos SMP, Cronos o Cripta
+15. Escribir en Learning Memory, Memento, Supabase, `runtime_events`, `embrion_memoria`.
 
-## 8. Security / Integrity Gates
+## 7. Security / Integrity Gates
 
-Toda oportunidad debe pasar 12 gates de seguridad criptográfica y lógica:
+Toda oportunidad debe pasar 13 gates de seguridad criptográfica y lógica:
 
 1. **No Evaluator Edits Gate:** Bloquea cualquier edición a CI, workflows, tests críticos, gates, policies, `AGENTS.md`, `CLAUDE.md`, budget gates, security checks o evaluators.
 2. **Base SHA / TOCTOU Gate:** Guarda el `base_sha` inicial. Revalida antes de declarar éxito o PR draft. Si cambió, aborta con `FAILED_NEEDS_HUMAN`.
@@ -131,47 +137,54 @@ Toda oportunidad debe pasar 12 gates de seguridad criptográfica y lógica:
 8. **Budget / Turn / Wall-clock Gate:** Frena si se excede USD, cantidad de turnos LLM o tiempo real.
 9. **Idempotency / Side Effect Gate:** Verifica que no haya mutaciones fuera de la branch aislada.
 10. **External Kill Switch Gate:** Revisa si Alfredo activó el kill switch global antes de cada paso.
-11. **Worktree Awareness Gate:** Antes de escribir en cualquier path, verifica que no exista otra worktree activa tocando los mismos archivos. Si detecta colisión, aborta con `FAILED_WORKTREE_COLLISION` y reporta las worktrees en conflicto.
-12. **Latent Test Exposure Audit Gate:** Después de resolver un import error o dependency fix, ejecuta un scan de tests recién reactivados (tests que antes fallaban por import y ahora corren). Reporta tests latentes descubiertos como hallazgo en el Morning Evidence Bundle. No los marca como regresión propia.
+11. **Worktree Awareness Gate:** Antes de escribir en cualquier path, verifica que no exista otra worktree activa tocando los mismos archivos. Si detecta colisión, aborta con `FAILED_WORKTREE_COLLISION`.
+12. **Latent Test Exposure Audit Gate:** Después de resolver un import error o dependency fix, escanea tests recién reactivados. Reporta tests latentes descubiertos como hallazgo en el Morning Evidence Bundle. No los marca como regresión propia.
+13. **Ephemeral Artifact Cleanup Verification Gate:** Verifica que cualquier archivo temporal en cuarentena fue purgado o quedó reportado con hash y path. Si no, aborta con `FAILED_NEEDS_HUMAN`.
 
-## 9. External role protocol
+## 8. External role protocol (RACI)
 
 Se aplica el principio estricto de DSC-MO-011: **Proposer ≠ Evaluator ≠ Merger**.
 
-- **Embrión:** Runtime del Monstruo / Initiator / Coordinator. El modelo subyacente (Kimi/OpenClaw/Claude/GPT) es solo sustrato, no la identidad del Embrión.
-- **ChatGPT 5.4 / GPT-5:** Architect. Diseña la solución y el plan de implementación.
-- **Manus / Claude Code:** Executor. Escribe el código, corre tests, abre el PR Draft.
-- **Claude Cowork:** Doctrinal Auditor. Revisa el PR contra los DSCs canonizados y las 7 Capas Transversales.
-- **Perplexity Sonar:** External / State-of-art Auditor. Valida si la solución usa librerías obsoletas o patrones deprecados.
-- **Alfredo Góngora:** T1 Signer. Autoridad final. Revisa el Morning Evidence Bundle y ejecuta el Merge/Deploy.
+- **Alfredo Góngora:** T1 Signer. Autoridad final, dueño de la visión, firma de specs, merge final.
+- **Embrión:** Runtime del Monstruo / Initiator / Coordinator. (Kimi/OpenClaw/Claude/GPT son sustratos seleccionables, no la identidad del Embrión).
+- **ChatGPT:** Integrador arquitectónico. Diseña la solución y el plan maestro. (Nunca "T1").
+- **Manus:** Ejecutor / Spec builder.
+- **Claude Cowork:** Auditor doctrinal. Revisa contra DSCs y Capas Transversales.
+- **Perplexity / SuperGrok:** Auditores externos. State-of-art, threat modeling, drift detection.
 
-**Regla de oro:** Quien ejecuta no audita; quien propone no firma; quien falla 2 veces se detiene.
+## 9. Cuarentena Técnica
 
-## 10. Tareas (First safe opportunity types)
+Todo trabajo no promovido explícitamente opera bajo cuarentena:
+- Path: `/tmp/nightly_builder_shadow/`
+- No commit
+- No PR
+- No branch persistente
+- Cleanup obligatorio o hash de retención explícito
+- No memory write
+- No memento write
+- No anti-dory write
+- No Supabase write
 
-Para la versión v0, el scanner solo poblará la cola con tipos de oportunidades R0-R1.
+## 10. Tareas (Night 0 Scope Explícito)
 
-### Night 0 Scope Explícito
-**Night 0 solo puede ejecutar una (1) tarea:**
-- **Tarea:** OPP-NB-010 Endpoint Consumer Gap
-- **Tipo:** R0
-- **Restricciones:** Sin branch, sin PR, sin tests, sin código, sin DB, sin secrets, sin Supabase, sin deploy, sin canonización.
-- **Artifact esperado:** Un reporte Markdown (`bridge/autobuilder/NIGHT_0_ENDPOINT_CONSUMER_GAP_2026_05_18.md`).
+**Night 0 canónico = R0 only.**
+Permitidos:
+- OPP-NB-010 Endpoint Consumer Gap
+- OPP-NB-018 Test Coverage Heatmap
+- OPP-NB-012 Bridge Health
 
-### Tareas futuras (post Night 0)
-1. Escribir tests unitarios para `memory_routes` (R1)
-2. Escribir tests unitarios para `finops_routes` (R1)
-3. Escribir tests unitarios para `moc_routes` (R1)
-4. Análisis y clasificación de errores `ACCESS_BLOCKED` (R0)
-5. Reporte de drift entre estado documentado de endpoints y código real (R0)
+**Prohibido en Night 0:** R1 preview, tests, branch, PR, code, DB, secrets, memory writes.
 
-## 11. Morning Evidence Bundle
+**R1 permanente no está autorizado hasta que Alfredo firme Night 1 R1 explícitamente.**
 
-Al finalizar el ciclo nocturno, se genera un artefacto único consolidado con evidencia inmutable:
+## 11. Morning Evidence Bundle & Input Hashing
+
+Al finalizar el ciclo nocturno, se genera un artefacto único consolidado con evidencia inmutable, incluyendo **SHA-256 de todos los inputs críticos**:
 
 - `base_sha` (hash inicial)
 - `head_sha` (hash final)
 - `branch` (nombre de la rama aislada)
+- `input_hashes` (SHA-256 de: Opportunity Queue usada, Reality Packs usados, spec version, `AGENTS.md`/`CLAUDE.md` si leídos, policy files)
 - `files_read` (lista de archivos consultados)
 - `commands_run` (lista de comandos shell)
 - `diffstat` (resumen de cambios)
@@ -183,20 +196,30 @@ Al finalizar el ciclo nocturno, se genera un artefacto único consolidado con ev
 - `cost_usd` (consumo real)
 - `model_ids` (modelos utilizados en el ciclo)
 - `auditor` (agente que revisó)
-- `gate_results` (status de los 12 Security Gates)
+- `gate_results` (status de los 13 Security Gates)
 - `stop_reason` (por qué terminó el ciclo)
 - `artifact_links` (enlaces a PRs o reportes)
 
-## 12. Criterios de cierre (Definition of Done)
+## 12. SuperGrok Heavy audit integration
+
+| Riesgo Aceptado | Cambio Aplicado | Cambio Rechazado | Por qué |
+|---|---|---|---|
+| Autonomy creep por `allowed_actions` | Override policy: permissions vienen de risk policy, no de queue. Data-only parser. | Ninguno | `allowed_actions` es metadata propuesta; ejecutarla ciegamente delega control de seguridad a la queue. |
+| Falsa atribución de autoridad | RACI estricto: Alfredo = T1, ChatGPT = Integrador. | Ninguno | ChatGPT no firma; Alfredo firma. Preserva cadena de mando soberana. |
+| Amnesia / Corrupción de memoria | Prohibición explícita de escribir en Learning Memory, Memento, Supabase. | Ninguno | Ciclos nocturnos no pueden reescribir el estado base sin revisión diurna. |
+| Residuos efímeros | Gate 13: Ephemeral Artifact Cleanup. | Ninguno | Previene acumulación de basura en `/tmp` y estado zombie. |
+
+## 13. Criterios de cierre (Definition of Done)
 
 El spec queda listo si:
-- define Opportunity Queue (JSON local)
-- define risk classifier (R0-R5 actualizado)
-- define allowed/forbidden actions
-- define 12 Security / Integrity Gates
-- define Morning Evidence Bundle
-- define Night 0 scope explícito
-- define no-go zones (No Evaluator Edits)
+- define Opportunity Queue (JSON local) con Data-Only parser
+- define risk classifier (R0-R5 actualizado) con Override policy
+- define allowed/forbidden actions (incluyendo Memory/Memento)
+- define 13 Security / Integrity Gates
+- define Morning Evidence Bundle con Input Hashing
+- define Night 0 scope explícito (R0 only)
+- define RACI estricto (Alfredo = T1)
+- define Cuarentena Técnica
 - no propone implementación peligrosa
 - no toca producción
 - no toca main
@@ -205,13 +228,3 @@ El spec queda listo si:
 - no modifica loop del Embrión
 - no canoniza decisiones
 - no cierra PRE-IA
-
-## 13. Proposed File Paths
-
-Para la implementación futura, se proponen los siguientes paths (ninguno modifica el kernel actual):
-
-- `bridge/autobuilder/queue_v0.json` (Opportunity Queue)
-- `scripts/nightly_builder/scanner.py`
-- `scripts/nightly_builder/risk_classifier.py`
-- `scripts/nightly_builder/security_gates.py`
-- `scripts/nightly_builder/morning_bundle.py`
