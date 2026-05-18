@@ -35,6 +35,10 @@ const VALID_ENV: Record<string, string> = {
   LANGFUSE_PUBLIC_KEY: "x",
   LANGFUSE_SECRET_KEY: "x",
   DEV_USER_ROLE: "t1_alfredo",
+  // D4 — OAuth + JWT (requeridos por superRefine cuando NODE_ENV=production).
+  GOOGLE_OAUTH_CLIENT_ID: "test-client-id.apps.googleusercontent.com",
+  GOOGLE_OAUTH_CLIENT_SECRET: "GOCSPX-test-secret",
+  JWT_SECRET: "forja-test-jwt-secret-must-be-at-least-32-chars-long",
 };
 
 const VALID_UUID = "11111111-2222-3333-4444-555555555555";

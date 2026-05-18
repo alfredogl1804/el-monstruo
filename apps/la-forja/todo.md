@@ -636,3 +636,116 @@ Autorizado por Cowork audit VERDE 14/14 (commit `2ac7f81`).
 - [ ] DSC-LF-008 firmado formalmente
 - [ ] PR D3.3 abierto y autorizado para merge
 - [ ] Sembrar D3.4 backlog
+
+---
+
+## D4 — Google OAuth + JWT middleware (autorizado por Alfredo · 17-may-2026)
+
+**Branch:** `sprint/la-forja-001-d4` (creada desde `main` post-merge `73936df5`)
+**Scope ajustado:** SOLO Google OAuth (RAG diferido a D5/sprint hijo D4.5).
+**Stack canónico (anti-autoboicot validado real-time):**
+- `@hono/oauth-providers@0.8.5` (oficial Hono, peer hono>=3.0.0)
+- `jose@6.2.3` (estándar JWT/JWS)
+- `hono@4.12.18` (instalado, vigente 4.12.19, mantengo 4.12.18 por estabilidad delta)
+
+**Decisión binaria:** JWT propio firmado con `JWT_SECRET` (ya en env) en lugar de Supabase Auth (cuyas tablas `auth.*` no están provisionadas todavía). El interface `User` se mantiene idéntico al stub D2.5 → cero ripple en routes existentes. Migración a Supabase Auth queda como deuda canónica para D5+ si T1-Alfredo lo decide.
+
+### Endpoints
+
+| Método | Ruta | Propósito | AC |
+|---|---|---|---|
+| GET | `/api/auth/google` | redirect 302 → Google OAuth consent | AC5 SPEC v3.2 |
+| GET | `/api/auth/google/callback` | recibe `code`+`state`, intercambia por tokens, set cookie JWT, redirect frontend | nuevo |
+| POST | `/api/auth/logout` | clear cookie, 200 | nuevo |
+
+### Secrets requeridos
+
+- `GOOGLE_OAUTH_CLIENT_ID` — pendiente provisión humana en Google Cloud Console
+- `GOOGLE_OAUTH_CLIENT_SECRET` — pendiente provisión humana en Google Cloud Console
+- `JWT_SECRET` — ya existe en env
+- `OAUTH_REDIRECT_BASE_URL` — nueva, default `http://localhost:8081`, en prod debe ser dominio Railway
+
+**Modo desarrollo:** los secrets `GOOGLE_OAUTH_*` son **opcionales si NODE_ENV !== production**. Si faltan, el endpoint `/api/auth/google` retorna 503 con mensaje claro. En producción son **obligatorios** (zod validation falla loud al boot).
+
+### Cookie de sesión
+
+- Nombre: `la-forja:session`
+- HttpOnly: true
+- Secure: true (en producción)
+- SameSite: Lax (necesario para que el callback OAuth la set sin bloquearse)
+- Path: `/`
+- Max-Age: 7 días (604800 segundos)
+- Payload JWT: `{ sub: googleSubId, email, name, picture, role, iat, exp, iss: "la-forja", aud: "la-forja-api" }`
+
+### Middleware refactor
+
+Mantener `forjaAuthStub()` para tests/dev legacy (sin tocar). Crear nuevo `forjaAuthGoogle()`:
+
+- Lee cookie `la-forja:session`
+- Verifica JWT con `jose.jwtVerify(token, secret, { issuer, audience })`
+- Si válido → `c.set('user', { id, email, role })` y `await next()`
+- Si inválido/ausente → 401
+
+Selector en `index.ts`:
+- Si `NODE_ENV === "production"` → `forjaAuthGoogle()` exclusivo
+- Si `NODE_ENV === "development"` → `forjaAuthGoogle()` con fallback a `forjaAuthStub()` cuando falta cookie (para tests E2E que aún usan x-user-id)
+- Si `NODE_ENV === "test"` → `forjaAuthStub()` exclusivo (preserva 180/180 backend tests sin regresión)
+
+### Plan de ejecución D4
+
+#### D4.0 — Pre-flight + branch
+
+- [x] Crear branch `sprint/la-forja-001-d4` desde `main` (`73936df5`)
+- [x] Verificar Railway: confirmar `GOOGLE_OAUTH_CLIENT_ID/SECRET` NO existen (verificado binariamente, 89 vars revisadas)
+- [x] Decisión: implementar código completo con mocks, secrets reales pueden agregarse en paralelo o D6
+- [ ] Actualizar `todo.md` con plan D4 detallado
+
+#### D4.1 — Env strict + JWT helper
+
+- [ ] Extender `src/lib/env.ts` con `GOOGLE_OAUTH_CLIENT_ID/SECRET/REDIRECT_BASE_URL/JWT_SECRET` (zod refinement: requeridos solo si NODE_ENV=production)
+- [ ] `src/lib/jwt.ts` con `signSession(user, secret)` y `verifySession(token, secret)` usando `jose.SignJWT` + `jwtVerify` con HS256
+- [ ] Tests: round-trip sign+verify, expiración, issuer/audience mismatch, secret incorrecto
+
+#### D4.2 — Routes auth
+
+- [ ] `src/routes/auth.ts` con 3 endpoints
+- [ ] Usar `googleAuth({ client_id, client_secret, scope: ['openid', 'email', 'profile'] })` de `@hono/oauth-providers/google`
+- [ ] Callback: extraer `googleUser` desde `c.get('user-google')`, generar JWT, set cookie, redirect a `${FRONTEND_URL}/post-login`
+- [ ] Logout: clear cookie via `setCookie(c, 'la-forja:session', '', { maxAge: 0 })`, 200 OK
+- [ ] Tests: 302 redirect, 503 sin secrets en dev, callback con code mock, logout limpia cookie
+
+#### D4.3 — Middleware forjaAuthGoogle
+
+- [ ] Refactor `src/middleware/auth.ts` agregando `forjaAuthGoogle()` (no eliminar stub)
+- [ ] Selector binario por NODE_ENV en `index.ts`
+- [ ] Tests: cookie válida → next, cookie inválida → 401, cookie expirada → 401, fallback stub en dev
+
+#### D4.4 — Wiring index.ts
+
+- [ ] Importar y montar `authRoutes` en `/api/auth`
+- [ ] Aplicar selector middleware a rutas protegidas
+- [ ] Tests integración: GET /api/auth/google → 302 con Location header válido
+
+#### D4.5 — Validación binaria
+
+- [ ] Backend `npm test` → todos verde (180 base + N nuevos)
+- [ ] Backend `npx tsc --noEmit` → 0 errores
+- [ ] Backend `npm run lint` → 0 errores
+- [ ] Backend `npm run build` → verde
+- [ ] Frontend sin cambios pero correr suite igual para garantizar 0 regresión
+- [ ] `tools/dsc_contract_check.py` → 6/6 LA-FORJA DSCs OK
+- [ ] AC5 SPEC: `curl -fsSL http://localhost:8081/api/auth/google -I` → 302 con Location apuntando a accounts.google.com
+
+#### D4.6 — DSC-LF-009 (Google OAuth canónico)
+
+- [ ] Redactar `discovery_forense/CAPILLA_DECISIONES/LA-FORJA/DSC-LF-009_google_oauth_canonico.md`
+- [ ] Documentar: stack `@hono/oauth-providers@0.8.5` + `jose@6.2.3`, JWT propio (no Supabase Auth), cookie HttpOnly+Secure+Lax, selector por NODE_ENV
+- [ ] Actualizar `_dsc_contracts_index.yaml` con DSC-LF-009 (4-5 contratos ejecutables)
+- [ ] Validar dsc_contract_check.py → 7/7 LA-FORJA OK
+
+#### D4.7 — Bridge + PR
+
+- [ ] Redactar `bridge/manus_to_cowork_LA_FORJA_001_D4_AUDIT_REQUEST.md` con 12 puntos binarios + reproducción de gates
+- [ ] Commit + push branch
+- [ ] Abrir PR draft hacia `main`
+- [ ] Esperar audit Cowork → fix si AMARILLO → merge si VERDE

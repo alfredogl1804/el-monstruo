@@ -22,9 +22,12 @@
  *   - MANUS_API_BASE_URL        default https://api.manus.ai
  *   - LANGFUSE_HOST             default https://cloud.langfuse.com
  *
- * D4 nuevos (no requeridos en D2):
- *   - GOOGLE_OAUTH_CLIENT_ID
- *   - GOOGLE_OAUTH_CLIENT_SECRET
+ * D4 implementado:
+ *   - GOOGLE_OAUTH_CLIENT_ID       requerido en NODE_ENV=production
+ *   - GOOGLE_OAUTH_CLIENT_SECRET   requerido en NODE_ENV=production
+ *   - JWT_SECRET                   requerido en NODE_ENV=production (fallback dev: "forja-dev-jwt-secret-DO-NOT-USE-IN-PROD")
+ *   - OAUTH_REDIRECT_BASE_URL      default http://localhost:8081
+ *   - FRONTEND_URL                 default http://localhost:3000 (post-login redirect)
  *
  * D2 stub auth:
  *   - DEV_USER_ROLE             default "user" (rol más restrictivo; auth real es D4)
@@ -37,7 +40,7 @@
 
 import { z } from "zod";
 
-const EnvSchema = z.object({
+const BaseSchema = z.object({
   // Manus M2M Bridge (multi-cuenta) — verificados binariamente
   MANUS_API_KEY_GOOGLE: z.string().min(1, "MANUS_API_KEY_GOOGLE is required"),
   MANUS_API_KEY_APPLE: z.string().min(1, "MANUS_API_KEY_APPLE is required"),
@@ -81,6 +84,37 @@ const EnvSchema = z.object({
     .transform((v) => (v ? Number.parseInt(v, 10) : 8080))
     .pipe(z.number().int().positive().lt(65536)),
   NODE_ENV: z.enum(["development", "production", "test"]).default("production"),
+
+  // D4 — Google OAuth + JWT sesión.
+  // Required en producción; opcional en dev/test (fallbacks gestionados en loadEnv).
+  // En dev sin secrets: /api/auth/google retorna 503 con mensaje claro.
+  GOOGLE_OAUTH_CLIENT_ID: z.string().optional(),
+  GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
+  JWT_SECRET: z.string().min(32, "JWT_SECRET must be ≥ 32 chars").optional(),
+  OAUTH_REDIRECT_BASE_URL: z.string().url().default("http://localhost:8081"),
+  FRONTEND_URL: z.string().url().default("http://localhost:3000"),
+});
+
+/** Env final con cross-field validation (superRefine). */
+const EnvSchema = BaseSchema.superRefine((env, ctx) => {
+  // En producción, los secretos OAuth/JWT son obligatorios.
+  if (env.NODE_ENV === "production") {
+    const required: Array<{ key: keyof typeof env; label: string }> = [
+      { key: "GOOGLE_OAUTH_CLIENT_ID", label: "GOOGLE_OAUTH_CLIENT_ID" },
+      { key: "GOOGLE_OAUTH_CLIENT_SECRET", label: "GOOGLE_OAUTH_CLIENT_SECRET" },
+      { key: "JWT_SECRET", label: "JWT_SECRET" },
+    ];
+    for (const { key, label } of required) {
+      const value = env[key as keyof typeof env];
+      if (!value || (typeof value === "string" && value.length === 0)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [label],
+          message: `${label} is required when NODE_ENV=production`,
+        });
+      }
+    }
+  }
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -122,8 +156,8 @@ export function loadEnv(opts: { strict?: boolean } = {}): Env {
     // Modo permisivo: solo PORT y NODE_ENV deben existir. Usado en /health boot y tests.
     // Hardening D2.5 H-5: rechaza permisivo en NODE_ENV=production (fail-loud doctrina §4).
     const partial = z.object({
-      PORT: EnvSchema.shape.PORT,
-      NODE_ENV: EnvSchema.shape.NODE_ENV,
+      PORT: BaseSchema.shape.PORT,
+      NODE_ENV: BaseSchema.shape.NODE_ENV,
     });
     const parsed = partial.parse({
       PORT: process.env.PORT,
@@ -161,6 +195,16 @@ export function loadEnv(opts: { strict?: boolean } = {}): Env {
         (process.env.DEV_USER_ROLE as UserRole | undefined) ?? "user",
       PORT: parsed.PORT,
       NODE_ENV: parsed.NODE_ENV,
+      // D4 OAuth/JWT — fallbacks en modo permisivo (dev/test only)
+      GOOGLE_OAUTH_CLIENT_ID: process.env.GOOGLE_OAUTH_CLIENT_ID,
+      GOOGLE_OAUTH_CLIENT_SECRET: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+      JWT_SECRET:
+        process.env.JWT_SECRET ??
+        "forja-dev-jwt-secret-DO-NOT-USE-IN-PROD-32chars",
+      OAUTH_REDIRECT_BASE_URL:
+        process.env.OAUTH_REDIRECT_BASE_URL ?? "http://localhost:8081",
+      FRONTEND_URL:
+        process.env.FRONTEND_URL ?? "http://localhost:3000",
     };
     return _cached;
   }
