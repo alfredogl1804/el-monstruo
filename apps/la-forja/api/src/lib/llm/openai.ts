@@ -38,7 +38,7 @@ export interface OpenAISprintResponse {
 let _cached: OpenAI | null = null;
 
 function getClient(): OpenAI {
-  if (_cached) return _cached;
+  if (_cached) {return _cached;}
   const env = loadEnv();
   _cached = new OpenAI({ apiKey: env.OPENAI_API_KEY });
   return _cached;

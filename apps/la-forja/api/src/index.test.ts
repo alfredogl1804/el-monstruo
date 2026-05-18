@@ -89,23 +89,25 @@ describe("createApp() — smoke D2.7", () => {
     ]);
   });
 
-  it("GET /api/sprints/states retorna las 8 states canónicas (D2.5 H-4 SPEC §4:130)", async () => {
+  it("GET /api/sprints/states retorna las 8 states canónicas (D5.2 reconciliación SQL)", async () => {
     const app = createApp();
     const res = await app.request("/api/sprints/states", {
       headers: { "x-user-id": VALID_UUID },
     });
     expect(res.status).toBe(200);
     const body = (await res.json()) as { states: string[] };
-    // D2.5 H-4: validación binaria contra SPEC §4:130 (inglés, no español)
+    // D5.2 drift P2 reconciliado: SQL `chk_forja_sprints_status` (D5.1) es la fuente
+    // de verdad. Los estados TS ahora coinciden binariamente con la constraint en
+    // Postgres aplicada en producción (DSC-LF-010 firmado).
     expect(body.states).toEqual([
       "proposed",
-      "drafting",
-      "review_alfredo",
-      "review_cowork",
-      "ready_to_execute",
+      "confirmed",
       "executing",
+      "waiting_audit",
+      "audited",
       "merged",
-      "canonized",
+      "blocked",
+      "archived",
     ]);
     expect(body.states.length).toBe(8);
   });

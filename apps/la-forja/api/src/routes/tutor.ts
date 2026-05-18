@@ -53,6 +53,14 @@ import {
   type BudgetClient,
 } from "../lib/budget";
 import { recordEvent } from "../lib/telemetry";
+import { loadEnv } from "../lib/env";
+import { resolveProfileId } from "../lib/repositories/profiles";
+import {
+  ensureThread,
+  appendUserMessage,
+  appendAssistantMessage,
+  recordValidation,
+} from "../lib/repositories/threads";
 import type { ForjaAuthContext } from "../middleware/auth";
 import type { ForjaBudgetContext } from "../middleware/budget";
 import {
@@ -64,6 +72,12 @@ export interface TutorChatRequest {
   messages: Array<{ role: "user" | "assistant"; content: string }>;
   systemPrompt?: string;
   requireValidation?: boolean;
+  /** ID del thread persistente (D5.2). Si NO viene o no pertenece al usuario,
+   * el server crea uno nuevo (anti-IDOR). */
+  threadId?: string;
+  /** Modo del tutor (light|normal|heavy|power). Solo se persiste en
+   * forja_threads la primera vez que se crea el thread. Default: normal. */
+  mode?: "light" | "normal" | "heavy" | "power";
 }
 
 export interface TutorRoutesDeps {
@@ -206,13 +220,39 @@ export function tutorRoutes(deps: TutorRoutesDeps) {
       }
     }
 
-    // ---- 4. Tutor stream (Claude Opus 4.7 Adaptive — H-2 rollback en onError)
+    // ---- 4. Persistencia D5.2 (solo en producción, fail-soft)
+    // Resuelve threadId real y persiste el mensaje del usuario ANTES de iniciar
+    // el stream. Si la persistencia falla, el stream continúa (telemetría
+    // y persistencia NO deben romper el flujo del tutor — fail-soft binario).
+    const env = loadEnv({ strict: false });
+    let resolvedThreadId: string | null = null;
+    let resolvedProfileId: string | null = null;
+    if (env.NODE_ENV === "production") {
+      try {
+        resolvedProfileId = await resolveProfileId(user, env.NODE_ENV);
+        resolvedThreadId = await ensureThread(
+          resolvedProfileId,
+          body.threadId ?? null,
+          body.mode ?? "normal",
+        );
+        await appendUserMessage(resolvedThreadId, lastUserMsg.content);
+      } catch (persistErr) {
+        // Fail-soft: la respuesta no se rompe; se loguea para forensics.
+        // biome-ignore lint/suspicious/noConsole: tutor persistence fail-soft
+        console.warn(
+          `[la-forja:tutor_persist_user_failed] user=${user.id} ` +
+            `error=${persistErr instanceof Error ? persistErr.message : String(persistErr)}`,
+        );
+      }
+    }
+
+    // ---- 5. Tutor stream (Claude Opus 4.7 Adaptive — H-2 rollback en onError)
     const builder = deps.streamBuilder ?? buildTutorStream;
 
     const result = builder({
       messages: body.messages,
       systemPrompt: body.systemPrompt,
-      onFinish: async ({ inputTokens, outputTokens }) => {
+      onFinish: async ({ inputTokens, outputTokens, text }) => {
         await postCallCommit(
           deps.budgetClient,
           user.id,
@@ -221,6 +261,42 @@ export function tutorRoutes(deps: TutorRoutesDeps) {
           outputTokens,
           tutorBudgetEstimated,
         );
+
+        // D5.2 persistencia assistant + validation (fail-soft).
+        if (
+          env.NODE_ENV === "production" &&
+          resolvedThreadId &&
+          resolvedProfileId
+        ) {
+          try {
+            const messageId = await appendAssistantMessage(resolvedThreadId, {
+              content: text ?? "",
+              model: "claude-opus-4-7",
+              tokensIn: inputTokens,
+              tokensOut: outputTokens,
+              costUsd: 0, // forja_budget materializa el costo agregado por mes
+              requireValidation: Boolean(body.requireValidation),
+              citations: citations.length > 0 ? citations : undefined,
+            });
+
+            if (body.requireValidation && validationModel && citations.length > 0) {
+              await recordValidation(resolvedThreadId, resolvedProfileId, {
+                messageId,
+                topic: lastUserMsg.content.slice(0, 200),
+                query: lastUserMsg.content,
+                model: validationModel,
+                citations,
+                costUsd: 0,
+              });
+            }
+          } catch (persistErr) {
+            // biome-ignore lint/suspicious/noConsole: tutor persistence fail-soft
+            console.warn(
+              `[la-forja:tutor_persist_assistant_failed] thread=${resolvedThreadId} ` +
+                `error=${persistErr instanceof Error ? persistErr.message : String(persistErr)}`,
+            );
+          }
+        }
       },
       onError: async () => {
         // F-D3.2-02: try/catch también en el callsite (no solo en el wrapper
@@ -262,7 +338,7 @@ export function tutorRoutes(deps: TutorRoutesDeps) {
           JSON.stringify(candidate),
           "utf-8",
         );
-        if (candidateBytes > FORJA_CITATIONS_HEADER_MAX_BYTES) break;
+        if (candidateBytes > FORJA_CITATIONS_HEADER_MAX_BYTES) {break;}
         capped.push(citation);
       }
       if (capped.length > 0) {

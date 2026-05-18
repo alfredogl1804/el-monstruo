@@ -39,7 +39,7 @@ export interface GeminiResponse {
 let _cached: GoogleGenAI | null = null;
 
 function getClient(): GoogleGenAI {
-  if (_cached) return _cached;
+  if (_cached) {return _cached;}
   const env = loadEnv();
   _cached = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
   return _cached;

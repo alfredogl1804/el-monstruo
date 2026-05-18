@@ -525,7 +525,7 @@ export async function waitForCompletion(
     `[manus_bridge] Waiting for Manus task ${taskId} (timeout=${Math.round(timeout / 1000)}s)...`,
   );
 
-  // eslint-disable-next-line no-constant-condition
+   
   while (true) {
     const elapsed = Date.now() - start;
     if (elapsed > timeout) {
