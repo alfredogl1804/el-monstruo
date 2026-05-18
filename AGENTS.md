@@ -336,6 +336,51 @@ Lee: `discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-010_*.md` para hardenin
 
 ---
 
+# Regla Dura #10: PRs Doc-Only — Bypass Legitimo de DSC-G-010
+
+Esta regla NO se puede ignorar, resumir ni omitir ante compactación de memoria.
+
+> **PRs cuyo diff modifica EXCLUSIVAMENTE archivos de documentación o configuración sin impacto en runtime pueden aplicar el label `no-e2e-required` en lugar de redactar la sección `## E2E Evidence` manualmente. Para PRs mixtos o que toquen código ejecutable, la sección `## E2E Evidence` sigue siendo obligatoria.**
+
+### Aplicabilidad del label `no-e2e-required`
+
+Un PR califica para `no-e2e-required` si y solo si su diff modifica EXCLUSIVAMENTE archivos de las siguientes categorías:
+
+- `.gitignore`, `.gitattributes`, `.editorconfig`, `LICENSE`
+- `*.md` (documentación: `README.md`, `AGENTS.md`, `docs/**/*.md`, `bridge/**/*.md`)
+- `.github/workflows/*.yml` (solo si el cambio NO modifica lógica de despliegue/tests; cambios en triggers, comments, o reorganización cosmética sí califican)
+- `*.example` (`.env.example`, `*.config.example`)
+- Archivos de doctrina (`discovery_forense/CAPILLA_DECISIONES/**/*.md`, `bridge/sprints_propuestos/*.md`)
+
+Un PR NO califica si toca:
+
+- Código ejecutable (`*.py`, `*.ts`, `*.js`, `*.tsx`, `*.go`, `*.rs`)
+- Migrations SQL (`migrations/sql/*.sql`)
+- Tests (`tests/**/*.py`, `tests/**/*.ts`)
+- Configuración de runtime (`pyproject.toml`, `package.json`, `Dockerfile`, `docker-compose.yml`, `railway.toml`)
+- Schemas (`*.json` de configuración, `*.yaml` de despliegue activo)
+
+### El label `e2e-evidence-bypass` (emergencia)
+
+Reservado para casos excepcionales donde se requiere mergear sin evidencia E2E completa por urgencia operativa. Requiere justificación explicita en el body del PR + audit Cowork + ratificación T1 post-merge.
+
+### Precedente canonizado
+
+PR #144 (`chore(gitignore): add .claude/ and forja-mcp/` — H11 housekeeping, mergeado 2026-05-18) sienta el precedente operativo. Audit Cowork T2-A 2026-05-17 validó el patrón bajo autorización T1.
+
+### Regla operativa para agentes
+
+1. Antes de crear un PR, evaluar si el diff es 100% doc-only según la lista de categorías anterior.
+2. Si sí: crear el PR sin sección `## E2E Evidence` y aplicar label `no-e2e-required` con `gh pr edit <num> --add-label no-e2e-required`.
+3. Si el diff incluye CUALQUIER archivo fuera de las categorías permitidas: redactar la sección `## E2E Evidence` con al menos un path/SHA/URL/test result binario (per `tools/_check_e2e_evidence.py`).
+4. El workflow `e2e-evidence-required` reconoce ambos labels como bypass legítimo y pasa verde sin sección manual.
+
+Lee: `.github/workflows/e2e-evidence-required.yml` para el contrato del workflow.
+Lee: `tools/_check_e2e_evidence.py` para el checker binario.
+Lee: PR #144 (https://github.com/alfredogl1804/el-monstruo/pull/144) para el precedente operativo.
+
+---
+
 # Para Ambos Hilos
 
 Los sensores y las tuberías SON parte de la experiencia y la marca. No son "infraestructura sin cara". Cuando nombras un endpoint, cuando diseñas un schema, cuando escribes un error message — estás construyendo la marca. Las 7 Capas se inyectan en todo. Las 4 Capas definen el orden. Los 14 Objetivos son el criterio de éxito.
