@@ -118,8 +118,8 @@ export async function installSupabaseTelemetry(nodeEnv: string): Promise<void> {
     return;
   }
   const [{ SupabaseTelemetryClient }, { resolveUserById }] = await Promise.all([
-    import("./repositories/telemetry"),
-    import("./budget_clients"),
+    import("./repositories/telemetry.js"),
+    import("./budget_clients.js"),
   ]);
   _cached = new SupabaseTelemetryClient({
     resolveUser: resolveUserById,

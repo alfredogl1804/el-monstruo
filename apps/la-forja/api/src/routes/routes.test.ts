@@ -186,7 +186,7 @@ vi.mock("../lib/llm/perplexity", () => ({
   })),
 }));
 vi.mock("../lib/manus_bridge", async () => {
-  const actual = await vi.importActual<typeof import("../lib/manus_bridge")>(
+  const actual = await vi.importActual<typeof import("../lib/manus_bridge.js")>(
     "../lib/manus_bridge",
   );
   return {
@@ -320,7 +320,7 @@ describe("/api/tutor/chat (D3.2 SSE)", () => {
   });
 
   it("F-D3.2-03: citations con UTF-8 (acentos) sobreviven el round-trip via base64url", async () => {
-    const perplexityMod = await import("../lib/llm/perplexity");
+    const perplexityMod = await import("../lib/llm/perplexity.js");
     vi.mocked(perplexityMod.invokeMagnaValidation).mockImplementationOnce(
       async () => ({
         content: "v\u00e1lido",
@@ -357,7 +357,7 @@ describe("/api/tutor/chat (D3.2 SSE)", () => {
       { length: 200 },
       (_, i) => `https://example.com/source-${i.toString().padStart(4, "0")}áéíóú`,
     );
-    const perplexityMod = await import("../lib/llm/perplexity");
+    const perplexityMod = await import("../lib/llm/perplexity.js");
     vi.mocked(perplexityMod.invokeMagnaValidation).mockImplementationOnce(
       async () => ({
         content: "x",
@@ -712,7 +712,7 @@ describe("D2.5 hardening — /api/tutor/chat (H-2 budget rollback + H-3 multi-mi
   });
 
   it("H-2 + R-D3.2-01 (F-D3.2-01): si invokeMagnaValidation lanza con requireValidation=true, adjustSpent rollbackea AMBAS reservas (magna + tutor)", async () => {
-    const perplexityMod = await import("../lib/llm/perplexity");
+    const perplexityMod = await import("../lib/llm/perplexity.js");
     vi.mocked(perplexityMod.invokeMagnaValidation).mockImplementationOnce(
       async () => {
         throw new Error("simulated sonar timeout");
@@ -745,7 +745,7 @@ describe("D2.5 hardening — /api/tutor/chat (H-2 budget rollback + H-3 multi-mi
   });
 
   it("R-D3.2-01b (F-D3.2-01): si classifier lanza, rollbackea AMBAS reservas (classifier + tutor)", async () => {
-    const ac12Mod = await import("../lib/ac12");
+    const ac12Mod = await import("../lib/ac12.js");
     vi.spyOn(ac12Mod, "classifyMessage").mockImplementationOnce(async () => {
       throw new Error("simulated classifier timeout");
     });
