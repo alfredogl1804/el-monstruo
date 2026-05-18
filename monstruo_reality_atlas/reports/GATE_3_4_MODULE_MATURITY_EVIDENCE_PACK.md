@@ -1,3 +1,20 @@
+# [SUPERSEDED_BY_v1_1] Gate 3.4 — Module Maturity Evidence Pack
+
+> **⚠️ SUPERSEDED_BY_v1_1** — Este archivo contiene 6 microfixes de consistencia detectados por ChatGPT el 2026-05-18.
+> NO usar como fuente de verdad. Ir a la versión vigente:
+> - `GATE_3_4_MODULE_MATURITY_EVIDENCE_PACK_v1_1.md`
+> - `GATE_3_4_MODULE_MATURITY_MATRIX_v1_1.json`
+>
+> Microfixes aplicados en v1.1:
+> 1. `embrion_scheduler`: `endpoints_exposed:3` → `handlers_or_tasks_exposed:3` + `endpoint_http_count:0`
+> 2. `rotor/recharge`: `endpoints_exposed:1` → `handlers_or_tasks_exposed:1` + `endpoint_http_count:0`
+> 3. `guardian_runner/runner`: `endpoints_exposed:1` → `handlers_or_tasks_exposed:1` + `endpoint_http_count:0`
+> 4. `collective/protocol`: `db_state:true` engañoso → `schema_declared:true` + `db_injected:false`
+> 5. `embriones/*`: contradicción UI resuelta → `consumer_ui:"indirect_generic_embrion_api"` + `direct_specialized_ui:false`
+> 6. Caveat M4_Tested: tests de lógica/módulo, no necesariamente route-hardening, UI maturity, error-path coverage ni producción M5
+>
+> Mantenido para trazabilidad histórica del bucle correctivo.
+
 # Gate 3.4 — Module Maturity Evidence Pack
 
 **Commit auditado:** `a6be791d365fb50ff40262be2ce5bdf3fa5e27ee`

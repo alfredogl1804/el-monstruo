@@ -1,24 +1,12 @@
 {
-  "_superseded_by": "1.1",
-  "_superseded_at": "2026-05-18",
-  "_superseded_reason": "6 microfixes de consistencia detectados por ChatGPT",
-  "_superseded_microfixes": [
-    "embrion_scheduler: endpoints_exposed:3 -> handlers_or_tasks_exposed:3 + endpoint_http_count:0",
-    "rotor/recharge: endpoints_exposed:1 -> handlers_or_tasks_exposed:1 + endpoint_http_count:0",
-    "guardian_runner/runner: endpoints_exposed:1 -> handlers_or_tasks_exposed:1 + endpoint_http_count:0",
-    "collective/protocol: db_state:true -> schema_declared:true + db_injected:false",
-    "embriones/*: consumer_ui:false -> consumer_ui:'indirect_generic_embrion_api' + direct_specialized_ui:false",
-    "Caveat M4_Tested explicitado en EVIDENCE_PACK"
-  ],
-  "_superseded_use_instead": "GATE_3_4_MODULE_MATURITY_MATRIX_v1_1.json",
-  "version": "1.0",
+  "version": "1.1",
   "last_updated": "2026-05-18",
   "commit_sha": "a6be791",
   "modules": {
     "moc_routes": {
       "exists": true,
       "init_main": true,
-      "endpoints_exposed": 6,
+      "endpoint_http_count": 6,
       "consumer_ui": true,
       "db_state": true,
       "tests_exist": false,
@@ -28,7 +16,7 @@
     "finops_routes": {
       "exists": true,
       "init_main": true,
-      "endpoints_exposed": 2,
+      "endpoint_http_count": 2,
       "consumer_ui": true,
       "db_state": true,
       "tests_exist": false,
@@ -38,7 +26,7 @@
     "magna_routes": {
       "exists": true,
       "init_main": true,
-      "endpoints_exposed": 3,
+      "endpoint_http_count": 3,
       "consumer_ui": false,
       "db_state": true,
       "tests_exist": true,
@@ -48,7 +36,7 @@
     "memory_routes": {
       "exists": true,
       "init_main": true,
-      "endpoints_exposed": 8,
+      "endpoint_http_count": 8,
       "consumer_ui": true,
       "db_state": true,
       "tests_exist": false,
@@ -58,7 +46,7 @@
     "e2e/routes": {
       "exists": true,
       "init_main": true,
-      "endpoints_exposed": 5,
+      "endpoint_http_count": 5,
       "consumer_ui": false,
       "db_state": true,
       "tests_exist": true,
@@ -68,7 +56,7 @@
     "e2e/traffic/routes": {
       "exists": true,
       "init_main": true,
-      "endpoints_exposed": 2,
+      "endpoint_http_count": 2,
       "consumer_ui": false,
       "db_state": true,
       "tests_exist": true,
@@ -78,7 +66,7 @@
     "catastro/recommendation": {
       "exists": true,
       "init_main": true,
-      "endpoints_exposed": 8,
+      "endpoint_http_count": 8,
       "consumer_ui": false,
       "db_state": true,
       "tests_exist": false,
@@ -88,7 +76,8 @@
     "embrion_scheduler": {
       "exists": true,
       "init_main": true,
-      "endpoints_exposed": 3,
+      "endpoint_http_count": 0,
+      "handlers_or_tasks_exposed": 3,
       "consumer_ui": false,
       "db_state": true,
       "tests_exist": false,
@@ -98,7 +87,8 @@
     "rotor/recharge": {
       "exists": true,
       "init_main": true,
-      "endpoints_exposed": 1,
+      "endpoint_http_count": 0,
+      "handlers_or_tasks_exposed": 1,
       "consumer_ui": false,
       "db_state": true,
       "tests_exist": true,
@@ -108,7 +98,8 @@
     "guardian_runner/runner": {
       "exists": true,
       "init_main": true,
-      "endpoints_exposed": 1,
+      "endpoint_http_count": 0,
+      "handlers_or_tasks_exposed": 1,
       "consumer_ui": false,
       "db_state": true,
       "tests_exist": true,
@@ -118,7 +109,7 @@
     "a2a_routes": {
       "exists": true,
       "init_main": true,
-      "endpoints_exposed": 6,
+      "endpoint_http_count": 6,
       "consumer_ui": false,
       "db_state": true,
       "tests_exist": false,
@@ -128,7 +119,7 @@
     "cowork_routes": {
       "exists": true,
       "init_main": true,
-      "endpoints_exposed": 2,
+      "endpoint_http_count": 2,
       "consumer_ui": false,
       "db_state": true,
       "tests_exist": true,
@@ -138,9 +129,10 @@
     "collective/protocol": {
       "exists": true,
       "init_main": true,
-      "endpoints_exposed": 0,
+      "endpoint_http_count": 0,
       "consumer_ui": false,
-      "db_state": true,
+      "schema_declared": true,
+      "db_injected": false,
       "tests_exist": false,
       "maturity_level": "M2_Stub",
       "risk_level": "High"
@@ -148,8 +140,9 @@
     "embriones/*": {
       "exists": true,
       "init_main": true,
-      "endpoints_exposed": 0,
-      "consumer_ui": false,
+      "endpoint_http_count": 0,
+      "consumer_ui": "indirect_generic_embrion_api",
+      "direct_specialized_ui": false,
       "db_state": false,
       "tests_exist": true,
       "maturity_level": "M3_Wired",
