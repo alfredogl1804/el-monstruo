@@ -254,7 +254,32 @@ Bridge existe como **sistema operativo social**:
 
 ---
 
-## 7. Próximo gate
+## 7. Lista de cosas que ChatGPT NO debe rediseñar
+
+Espejo del bloque `do_not_redesign` en `CHATGPT_PERICIA_STATE_v0_7.json`. Cualquier hilo nuevo que vaya a proponer módulos debe revisar primero esta lista.
+
+| ID | Concepto propuesto | Razón canónica |
+|---|---|---|
+| DNR-001 | Cronista Familiar / Herencia Narrativa / Legacy Capture | Alias de `cronos_modo_cripta`. Canonizado en APP_VISION cap 5. NO crear módulo nuevo. |
+| DNR-002 | Privacidad por Imposibilidad como canon nuevo | Es función de SMP (Sovereign Memory Protocol). NO promover a doctrina independiente. |
+| DNR-003 | Transport Cero como canon firmado | Sigue como hipótesis naciente. 0 hits sustantivos en repo. NO firmar. |
+| DNR-004 | Home canónica = `/home` existente | El `/home` actual es proxy de ChatScreen. La Home canónica del Acto 1 es otra cosa. |
+| DNR-005 | Memento endpoint HTTP completo | Solo el `MementoValidator` está confirmado importable. Endpoint sin verificar. |
+| DNR-006 | A2UI renderer ya existente | Solo el schema Pydantic está confirmado. Renderer real es placeholder. |
+| DNR-007 | Acto 1 vs Acto 2 como contradicción binaria | Dirección provisional firmada por Cowork: **Acto 2 contiene Acto 1**, no se contradicen. |
+| DNR-008 | Hipótesis pre-IA-001 a pre-IA-010 antes del cierre | Bloque pre-IA sigue abierto. NO firmar canon hasta literal `CIERRE BLOQUE PRE-IA` de Alfredo. |
+
+### Regla operativa
+
+Si ChatGPT detecta una propuesta nueva que cae en cualquiera de estos 8 patrones, debe:
+
+1. NO seguir adelante con la propuesta como canon nuevo.
+2. Mapear la propuesta al concept_id canónico que ya existe (vía `monstruo_reality_atlas/07_ALIAS_LEDGER.yaml`).
+3. Si no hay concept_id existente, marcar la propuesta como `HIPOTESIS_T1_REQUIERE_AUDIT` y NO firmar hasta que Alfredo lo autorice.
+
+---
+
+## 8. Próximo gate
 
 **Gate 3.3 — Wiring real en `kernel/main.py`**
 
@@ -274,11 +299,20 @@ Objetivo: saber qué módulos están **realmente conectados al API** y qué solo
 
 ---
 
-## 8. Regla de continuidad
+## 9. Regla de continuidad
 
 Si ChatGPT se compacta o abre hilo nuevo:
 
 1. Leer este checkpoint.
 2. Leer el JSON state (`CHATGPT_PERICIA_STATE_v0_7.json`).
 3. Ejecutar `PERICIA_TEST_v0_7.md`.
-4. Si falla el test, **NO diseñar**.
+4. Si falla el test (puntaje < 18/20), **NO diseñar**. Releer hasta que pase.
+5. Si pasa el test, continuar exactamente desde el Próximo Gate (§8).
+
+### Bloqueo explícito
+
+- NO escribir APP_VISION v1.4 hasta que Alfredo lo autorice.
+- NO firmar sprints CRONOS_1 / CRONOS_2 / CRONOS_3 / AUTH_TIERS_001 hasta que Alfredo los firme.
+- NO ejecutar `CIERRE BLOQUE PRE-IA` hasta que Alfredo lo escriba literal.
+- NO canonizar las 10 hipótesis pre-IA hasta el cierre del bloque.
+- NO rediseñar nada de la lista §7.
