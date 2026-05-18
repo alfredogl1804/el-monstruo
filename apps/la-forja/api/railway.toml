@@ -1,0 +1,14 @@
+# La Forja API — Railway Config Override
+# Sprint LA-FORJA-001 v3.2 — D6 deploy
+# Necesario para overridear el railway.toml root del Monstruo (que apunta a Dockerfile.web)
+# Permite que el service la-forja-api use su propio Dockerfile dentro de apps/la-forja/api/
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
