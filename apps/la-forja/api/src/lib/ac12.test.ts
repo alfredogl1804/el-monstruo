@@ -1,11 +1,13 @@
 /**
- * La Forja — Tests AC12 clasificador semántico (D2.3).
+ * La Forja — Tests AC12 clasificador semántico (D2.3 + D5).
  *
  * Validación binaria:
  *   - threshold canónico 0.7
  *   - 10 frases sinónimas listadas binariamente del SPEC §7
- *   - parsing JSON estructurado
+ *   - parsing JSON estructurado tolerante a prefijos (D5 #2)
+ *   - fallback chain Gemini → Claude → GPT-5.5 (D5 #3)
  *   - errores tipados con prefix la-forja:ac12_*
+ *   - regresión binaria F2 (Gemini "Here is..." prefix)
  */
 
 import { describe, expect, it, vi } from "vitest";
@@ -13,6 +15,7 @@ import {
   AC12_CANONICAL_CONFUSION_PHRASES,
   AC12_CONFIDENCE_THRESHOLD,
   classifyMessage,
+  extractJsonStrict,
 } from "./ac12.js";
 
 function mockClassifier(intent: string, confidence: number) {
@@ -142,4 +145,192 @@ describe("AC12 — las 10 frases sinónimas con classifier mock determinista", (
       expect(r.passesThreshold).toBe(true);
     });
   }
+});
+
+// ============================================================================
+// D5-TUTOR-CLASSIFIER-ROBUSTNESS-001 — 4 tests nuevos post-F2
+// ============================================================================
+
+describe("D5 #2 — extractJsonStrict (parser tolerante a prefijos)", () => {
+  it("REGRESIÓN F2: extrae JSON con prefijo 'Here is...' tipo Gemini Flash", () => {
+    const raw = 'Here is the classification:\n{"intent":"confusion_detected","confidence":0.95}';
+    const parsed = extractJsonStrict(raw) as {
+      intent: string;
+      confidence: number;
+    };
+    expect(parsed.intent).toBe("confusion_detected");
+    expect(parsed.confidence).toBe(0.95);
+  });
+
+  it("extrae JSON con sufijo de texto", () => {
+    const raw = '{"intent":"no_confusion","confidence":0.5}\n\nThanks for asking!';
+    const parsed = extractJsonStrict(raw) as {
+      intent: string;
+      confidence: number;
+    };
+    expect(parsed.intent).toBe("no_confusion");
+  });
+
+  it("extrae JSON con markdown code fence ```json ... ```", () => {
+    const raw = '```json\n{"intent":"confusion_detected","confidence":0.8}\n```';
+    const parsed = extractJsonStrict(raw) as {
+      intent: string;
+      confidence: number;
+    };
+    expect(parsed.intent).toBe("confusion_detected");
+    expect(parsed.confidence).toBe(0.8);
+  });
+
+  it("falla con ac12_classify_invalid_json si no hay bloque JSON", () => {
+    expect(() => extractJsonStrict("plain text without any braces")).toThrow(
+      /ac12_classify_invalid_json/,
+    );
+  });
+
+  it("falla con ac12_classify_invalid_json si el bloque encontrado no es JSON válido", () => {
+    expect(() => extractJsonStrict("Result: {esto no es json}")).toThrow(
+      /ac12_classify_invalid_json/,
+    );
+  });
+});
+
+describe("D5 #2 — classifyMessage con respuestas Gemini ruidosas (regresión F2)", () => {
+  it("REGRESIÓN F2 binaria: prefijo 'Here is' + JSON válido → clasifica OK", async () => {
+    // Reproduce literalmente lo que Gemini Flash 2.5 emitió en producción 2026-05-18.
+    const noisyClassifier = vi.fn(async () => ({
+      content:
+        'Here is the classification:\n{"intent":"confusion_detected","confidence":0.92}',
+      inputTokens: 60,
+      outputTokens: 20,
+    }));
+    const r = await classifyMessage("no entiendo", { classifier: noisyClassifier });
+    expect(r.intent).toBe("confusion_detected");
+    expect(r.confidence).toBe(0.92);
+    expect(r.passesThreshold).toBe(true);
+  });
+
+  it("clasifica OK con respuesta envuelta en code fence", async () => {
+    const fencedClassifier = vi.fn(async () => ({
+      content: '```json\n{"intent":"no_confusion","confidence":0.6}\n```',
+      inputTokens: 55,
+      outputTokens: 18,
+    }));
+    const r = await classifyMessage("Gracias", { classifier: fencedClassifier });
+    expect(r.intent).toBe("no_confusion");
+    expect(r.confidence).toBe(0.6);
+    expect(r.passesThreshold).toBe(false);
+  });
+});
+
+describe("D5 #3 — fallback chain Gemini → Claude → GPT-5.5", () => {
+  it("usa el primer modelo de la chain si responde OK", async () => {
+    const geminiOk = vi.fn(async () => ({
+      content: JSON.stringify({ intent: "confusion_detected", confidence: 0.9 }),
+      inputTokens: 50,
+      outputTokens: 12,
+    }));
+    const claudeNeverCalled = vi.fn(async () => {
+      throw new Error("Claude debería NO ser llamado");
+    });
+    const gptNeverCalled = vi.fn(async () => {
+      throw new Error("GPT debería NO ser llamado");
+    });
+
+    const r = await classifyMessage("test", {
+      fallbackChain: [
+        { name: "gemini-mock", fn: geminiOk },
+        { name: "claude-mock", fn: claudeNeverCalled },
+        { name: "gpt-mock", fn: gptNeverCalled },
+      ],
+    });
+
+    expect(r.intent).toBe("confusion_detected");
+    expect(r.modelUsed).toBe("gemini-mock");
+    expect(geminiOk).toHaveBeenCalledTimes(1);
+    expect(claudeNeverCalled).not.toHaveBeenCalled();
+    expect(gptNeverCalled).not.toHaveBeenCalled();
+  });
+
+  it("salta a Claude si Gemini falla con ac12_classify_invalid_json", async () => {
+    const geminiFails = vi.fn(async () => ({
+      content: "Here is, but no JSON at all",
+      inputTokens: 30,
+      outputTokens: 10,
+    }));
+    const claudeOk = vi.fn(async () => ({
+      content: JSON.stringify({ intent: "confusion_detected", confidence: 0.88 }),
+      inputTokens: 40,
+      outputTokens: 15,
+    }));
+    const gptNeverCalled = vi.fn(async () => {
+      throw new Error("GPT debería NO ser llamado");
+    });
+
+    const r = await classifyMessage("test", {
+      fallbackChain: [
+        { name: "gemini-fail", fn: geminiFails },
+        { name: "claude-ok", fn: claudeOk },
+        { name: "gpt-never", fn: gptNeverCalled },
+      ],
+    });
+
+    expect(r.intent).toBe("confusion_detected");
+    expect(r.confidence).toBe(0.88);
+    expect(r.modelUsed).toBe("claude-ok");
+    expect(geminiFails).toHaveBeenCalledTimes(1);
+    expect(claudeOk).toHaveBeenCalledTimes(1);
+    expect(gptNeverCalled).not.toHaveBeenCalled();
+  });
+
+  it("salta hasta GPT-5.5 si Gemini Y Claude fallan", async () => {
+    const geminiFails = vi.fn(async () => ({
+      content: "garbage no json",
+      inputTokens: 30,
+      outputTokens: 10,
+    }));
+    const claudeFails = vi.fn(async () => ({
+      content: JSON.stringify({ intent: "invalid_intent", confidence: 0.5 }),
+      inputTokens: 35,
+      outputTokens: 12,
+    }));
+    const gptOk = vi.fn(async () => ({
+      content: JSON.stringify({ intent: "no_confusion", confidence: 0.95 }),
+      inputTokens: 45,
+      outputTokens: 14,
+    }));
+
+    const r = await classifyMessage("test", {
+      fallbackChain: [
+        { name: "gemini-fail", fn: geminiFails },
+        { name: "claude-fail", fn: claudeFails },
+        { name: "gpt-ok", fn: gptOk },
+      ],
+    });
+
+    expect(r.intent).toBe("no_confusion");
+    expect(r.modelUsed).toBe("gpt-ok");
+    expect(geminiFails).toHaveBeenCalledTimes(1);
+    expect(claudeFails).toHaveBeenCalledTimes(1);
+    expect(gptOk).toHaveBeenCalledTimes(1);
+  });
+
+  it("falla con ac12_classifier_all_models_failed si los 3 modelos fallan", async () => {
+    const allFail = vi.fn(async () => ({
+      content: "no json en absoluto",
+      inputTokens: 20,
+      outputTokens: 8,
+    }));
+
+    await expect(
+      classifyMessage("test", {
+        fallbackChain: [
+          { name: "gemini-fail", fn: allFail },
+          { name: "claude-fail", fn: allFail },
+          { name: "gpt-fail", fn: allFail },
+        ],
+      }),
+    ).rejects.toThrow(/ac12_classifier_all_models_failed/);
+
+    expect(allFail).toHaveBeenCalledTimes(3);
+  });
 });
