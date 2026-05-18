@@ -1,8 +1,14 @@
 # 📑 Índice Capilla de Decisiones
 
-**Total DSCs físicos:** 66 archivos · **Códigos únicos:** 56
+**Total DSCs físicos:** 71 archivos · **Códigos únicos:** 61
 **Generado:** 2026-05-06 (Sprint Memento)
-**Última actualización:** 2026-05-12 — MEGA-CATASTRO-DRIFT-RESOLUTION-001 · DRIFT-012:
+**Última actualización:** 2026-05-18 — MAGNA-CIERRE-002 · DRIFT-013:
+  - DSC-G-013 v0.1 firmado T1 "firmo 5" 2026-05-18 — DB↔Repo Coherence Gate (post-convergencia 3 Sabios CON CAVEAT — refactor magno desde v1 archivado)
+  - DSC-LF-008 / 009 / 010 / 011 LA-FORJA agregados (sprints D3.3 + D4 + D5.1 + D5.2 — todos firmados Cowork T2-A autoridad delegada)
+  - Nueva sección LA-FORJA en index (antes inexistente)
+  - 2 DSCs vivos en _GLOBAL nuevos pre-DRIFT-013: ya estaban referenciados sin formal entry
+
+**Update previa:** 2026-05-12 — MEGA-CATASTRO-DRIFT-RESOLUTION-001 · DRIFT-012:
   - 7 `git mv` ejecutados resolviendo todas las inconsistencias de naming pendientes desde 2026-05-06
   - 20 DSCs físicos sin entrada en este índice agregados (deuda inversa cerrada)
   - 6 entradas tipo "missing" del cartografía 1E reconciliadas: NUNCA fueron archivos perdidos, eran alias del naming inconsistente ya documentado
@@ -48,12 +54,13 @@ La reubicación del snapshot a `INCIDENTES/` ya se había ejecutado en el commit
 | `DSC-G-004` | [Output del Monstruo nunca es genérico. Naming, errores, endpoints, UI, docs todos llevan marca. Naranja Forja + Graphite + Acero.](_GLOBAL/DSC-G-004_output_nunca_generico.md) | restriccion_dura |
 | `DSC-G-005` | [Modelos IA, versiones de software, frameworks deben verificarse contra realidad presente, no asumir desde training. Anti-Dory + Anti-Autoboicot.](_GLOBAL/DSC-G-005_validacion_tiempo_real_obligatoria.md) | antipatron |
 | `DSC-G-007` | [El Monstruo integra herramientas AI verticales líderes; nunca las reinventa. Tres Catastros paralelos: Modelos LLM + Suppliers Humanos + Herramientas AI Especializadas.](_GLOBAL/DSC-G-007_integrar_herramientas_ai_verticales.md) | restriccion_dura |
-| `DSC-G-008` | [Validar estado actual del codebase ANTES de escribir specs Y ANTES de firmar cierre de sprints. Sin esto las specs son ficticias y los cierres son falsos. **v2 ampliado post-P0**.](_GLOBAL/DSC-G-008_validar_codebase_antes_de_specs.md) | antipatron |
+| `DSC-G-008` | [Validar estado actual del codebase ANTES de escribir specs Y ANTES de firmar cierre de sprints. **v4 vigente** con error-path coverage explícito en LLM calls.](_GLOBAL/DSC-G-008_validar_codebase_antes_de_specs.md) | antipatron |
 | `DSC-G-009` | [Recomendaciones de seguridad merecen DSC firmado en la misma sesión donde se proponen, o se descartan con razón documentada. Prohibido huérfanas en chat sin canonización.](_GLOBAL/DSC-G-009_recomendaciones_seguridad_firmadas_en_misma_sesion.md) | antipatron |
 | `DSC-G-012` | [Trade-off honesto en sprints multi-tarea — gobernanza de ejecución para no sobre-declarar madurez cuando un sprint mezcla pipeline técnico con producto.](_GLOBAL/DSC-G-012_trade_off_honesto_sprints_multi_tarea.md) | gobernanza |
+| `DSC-G-013` | **v0.1** [Guardrail pre-acción contra drift DB↔Repo↔Código. **No patrón universal probado.** Nivel A firmable (pre-flight binario) + Nivel B → EXPERIMENTO T+14D. Firmado T1 "firmo 5" 2026-05-18 post-convergencia 3 Sabios CON CAVEAT.](_GLOBAL/DSC-G-013_db_repo_coherence_gate.md) | guardrail_pre_accion |
 | `DSC-G-014` | [Distinción magna entre v1.0 PIPELINE TÉCNICO FUNCIONAL y v1.0 PRODUCTO COMERCIALIZABLE. Son 2 hitos secuenciales distintos. Confundirlos es sobre-declarar madurez.](_GLOBAL/DSC-G-014_pipeline_tecnico_vs_producto_comercializable.md) | politica |
 | `DSC-G-017` | [DSC-as-Contract — cada DSC nace con su contrato ejecutable. Gobernanza arquitectónica para asegurar trazabilidad runtime de cada decisión canonizada.](_GLOBAL/DSC-G-017_dsc_as_contract.md) | gobernanza_arquitectonica |
-| `DSC-V-001` | [Los 6 Sabios canónicos al 2026-05: GPT-5.5 Pro, Claude Opus 4.7, Gemini 3.1 Pro, Grok 4, DeepSeek R1, Perplexity Sonar Reasoning Pro](_GLOBAL/DSC-V-001_los_6_sabios_canonicos.md) | validacion_realtime |
+| `DSC-V-001` | [Los 8 Sabios canónicos al 2026-05: GPT-5.5 Pro, Claude Opus 4.7, Gemini 3.1 Pro, Grok 4 Heavy, DeepSeek R1, Perplexity Sonar, Kimi K2.6, Copilot 365 (post-DRIFT-012 + adición Grok/Kimi/Copilot 2026-05-11)](_GLOBAL/DSC-V-001_los_6_sabios_canonicos.md) | validacion_realtime |
 | `DSC-V-002` | [Antes de escribir requirements, docker-compose o configs SIEMPRE verificar versiones actuales contra registries oficiales. Manus tiene ventaja realtime sobre LLMs entrenados.](_GLOBAL/DSC-V-002_versiones_software_verificadas.md) | validacion_realtime |
 | `DSC-X-001` | [IGCAR (Instituto Global de Certificación en Alto Rendimiento) es estatuto que cruza 5 proyectos en uno.](_GLOBAL/DSC-X-001_igcar_cruza_5_proyectos.md) | cruce_inter_proyecto |
 | `DSC-X-002` | [Componente compartido del Monstruo: módulo de checkout Stripe + webhook + DB confirmation. Reutilizable en LikeTickets (probado), Marketplace, CIP. Construir 1 vez, usar 3+.](_GLOBAL/DSC-X-002_stripe_checkout_compartido.md) | patron_replicable |
@@ -64,7 +71,7 @@ La reubicación del snapshot a `INCIDENTES/` ya se había ejecutado en el commit
 | `DSC-S-003` | [Scripts deben usar os.environ[VAR] (fail loud) — PROHIBIDO os.environ.get(VAR, default_secret).](_GLOBAL/DSC-S-003_scripts_env_vars_sin_defaults_sensibles.md) | antipatron |
 | `DSC-S-004` | [PROHIBIDO os.environ.get('VAR', 'real_secret_as_fallback') — el secret está en código aunque parezca env var. Anti-patrón paradigmático del incidente P0.](_GLOBAL/DSC-S-004_antipatron_default_value_con_secret_real.md) | antipatron |
 | `DSC-S-005` | [Default a archive antes que delete — reversibilidad > expediencia para cleanup de namespace.](_GLOBAL/DSC-S-005_default_archive_antes_que_delete.md) | politica |
-| `DSC-S-006` | [RLS por defecto en tablas nuevas de Supabase — toda tabla nace con `ENABLE ROW LEVEL SECURITY` + ≥1 policy explícita. Naming canónico `SUPABASE_SERVICE_KEY`.](_GLOBAL/DSC-S-006_rls_por_defecto_tablas_nuevas.md) | politica |
+| `DSC-S-006` | [RLS por defecto en tablas nuevas de Supabase — toda tabla nace con `ENABLE ROW LEVEL SECURITY` + ≥1 policy explícita. **v1.1 vigente** con naming canónico `SUPABASE_SERVICE_KEY`.](_GLOBAL/DSC-S-006_rls_por_defecto_tablas_nuevas.md) | politica |
 | `DSC-S-007` | [Naming canónico para credenciales Supabase — `SUPABASE_SERVICE_KEY` (sin `_ROLE`), formato `sb_secret_*`. Documentación en bridge/credentials_inventory.md.](_GLOBAL/DSC-S-007_naming_canonico_supabase_service_key.md) | politica |
 | `DSC-S-008` | [Rotación automatizada de credenciales — TTL máximo por tipo (12 meses GitHub PAT/Supabase PAT, 6 meses API keys), workflow CI rota y notifica antes de expirar.](_GLOBAL/DSC-S-008_rotacion_automatizada_credenciales.md) | politica |
 | `DSC-S-010` | [Hardening operacional integrado — pre-commit hooks + secret scanning + RLS audit weekly + credentials inventory en bridge/. Plano de identidad auditable.](_GLOBAL/DSC-S-010_hardening_operacional_integrado.md) | politica |
@@ -75,6 +82,8 @@ La reubicación del snapshot a `INCIDENTES/` ya se había ejecutado en el commit
 | `DSC-OPS-001` | [Todo UPDATE/DELETE manual sobre tablas productivas requiere bridge file de reporte con SQL exacto + rollback path.](_GLOBAL/DSC-OPS-001_update_manual_datos_prod_requires_bridge_report.md) | restriccion_operativa |
 
 > Nota DRIFT-001 (2026-05-12): el archivo `DSC-G-001_14_objetivos_maestros_aplican_a_todo.md` mantiene su filename legacy con "14" para preservar trazabilidad histórica de hash, pero su contenido se refiere ahora a los **15 Objetivos Maestros**. Ver `docs/EL_MONSTRUO_15_OBJETIVOS_MAESTROS.md` para el doc canónico.
+
+> Nota DRIFT-013 (2026-05-18): DSC-G-013 v0.1 vivo es la versión firmada post-convergencia 3 Sabios. Su predecesor v1 pre-Sabios fue archivado a `_archived/DSC-G-013_v1_pre_sabios_2026_05_18.md` (con sesgo confirmatorio detectado por GPT-5.5 Pro adversarial). Nivel B automatizado del DSC-G-013 vive como experimento en `EXPERIMENTOS_T14D/DSC-G-013_nivel_B_experimento.md`.
 
 ---
 
@@ -94,6 +103,22 @@ La reubicación del snapshot a `INCIDENTES/` ya se había ejecutado en el commit
 | `DSC-MO-010` | [El Reloj Suizo se implementa como núcleo interno del Monstruo con arquitectura extraíble (SDK-shaped) y reglas anti-acoplamiento doctrinal. Su publicación como SDK universal queda diferida a 10 gates objetivos.](EL-MONSTRUO/DSC-MO-010_reloj_suizo_universalizable_interno.md) | decision_arquitectonica |
 | `DSC-MO-011` | [Embryo Patch Lane v1 — frontera segura de auto-modificación del kernel por embriones. Define qué puede modificar un embrión, bajo qué gates, código inmutable, y cómo medir mejora real vs degradación silenciosa.](EL-MONSTRUO/DSC-MO-011_embryo_patch_lane_v1.md) | decision_arquitectonica |
 | `DSC-S-011` | [Sistema de Realidad Ejecutable v1 — todo hilo del Monstruo verifica realidad binaria antes de actuar; ningún claim canonizado puede sobrevivir un round de auditoría contra Supabase/git/API.](EL-MONSTRUO/DSC-S-011_sistema_realidad_ejecutable_v1.md) | decision_arquitectonica_de_proceso |
+
+---
+
+## LA-FORJA
+
+Sprint LA-FORJA-001 v3.2 (Tutor adaptativo IA + co-piloto sprints + magna validation Perplexity). Owner ejecución: Manus E2. Owner doctrina: Cowork T2-A. Stack: Hono 4.12 + Vercel AI SDK 6.0 + Next.js 16.2 + Supabase + Google OAuth + JWT.
+
+| ID | Título | Tipo |
+|---|---|---|
+| `DSC-LF-003` | [Budget cap $50 USD/mes/usuario — pre-call check + post-call commit + rollback en error. Source-of-truth canonical: `forja_budget.spent_usd` por (profile_id, mes UTC).](LA-FORJA/DSC-LF-003_budget_cap_50_usd_mes.md) | restriccion_dura |
+| `DSC-LF-004` | [Magna validation Perplexity Sonar Reasoning Pro — verificación tiempo real con citations para topics que requieren fuentes recientes. Pre-stream tutor + headers SSE.](LA-FORJA/DSC-LF-004_magna_validation_perplexity_sonar.md) | decision_arquitectonica |
+| `DSC-LF-005` | [SSE protocol Vercel AI SDK 6 — `result.toUIMessageStreamResponse()`. Citations en header `x-la-forja-citations-b64` base64url JSON. JSON solo en error paths.](LA-FORJA/DSC-LF-005_sse_protocol_vercel_ai_sdk_6.md) | decision_arquitectonica |
+| `DSC-LF-008` | [D3.3 SIGNOFF — SSE migration Vercel AI SDK 6 completa con headers structural protocol v1. Firmado Cowork T2-A 2026-05-17 post-audit DSC-G-008 v4.](LA-FORJA/DSC-LF-008_d3_3_sse_migration_signoff.md) | sprint_closure |
+| `DSC-LF-009` | [D4 SIGNOFF — Google OAuth + JWT auth canónica con `forjaAuthGoogle` + `forjaAuthStub` discriminado por NODE_ENV. Cookie `la-forja_session` HttpOnly+secure+SameSite=Lax+maxAge=7d. Firmado Cowork T2-A 2026-05-17.](LA-FORJA/DSC-LF-009_d4_google_oauth_jwt_signoff.md) | sprint_closure |
+| `DSC-LF-010` | [D5.1 SIGNOFF — 9 migraciones forja_* con RLS desde nacimiento (DSC-S-006 v1.1). Tablas: profiles, threads, messages, sprints, actions, telemetry, simulations, validations, budget. Firmado Cowork T2-A 2026-05-17.](LA-FORJA/DSC-LF-010_d5_1_9_migraciones_signoff.md) | sprint_closure |
+| `DSC-LF-011` | [D5.2 SIGNOFF — Persistencia stubs replaced con repositories Supabase reales. 5 decisiones magnas canonizadas: selector binario NODE_ENV, ESM-first sin require, anti-IDOR ensureThread zero data leak, fail-soft binario tutor.ts, drift P2 SPRINT_STATES TS↔SQL reconciliado. Firmado Cowork T2-A 2026-05-18 post-merge PR #147 commit `dc79cb71`.](LA-FORJA/DSC-LF-011_d5_2_persistencia_stubs_replaced.md) | sprint_closure |
 
 ---
 
@@ -159,35 +184,39 @@ La reubicación del snapshot a `INCIDENTES/` ya se había ejecutado en el commit
 
 ---
 
-## Resumen por proyecto (post DRIFT-012)
+## Resumen por proyecto (post DRIFT-013)
 
 | Proyecto | DSCs en index |
 |---|---|
-| _GLOBAL | 30 |
+| _GLOBAL | 31 |
 | EL-MONSTRUO | 12 |
+| LA-FORJA | 7 |
 | CIP | 8 |
 | LIKETICKETS | 3 |
 | MENA-BADUY | 3 |
 | BIOGUARD | 2 |
 | TOP-CONTROL-PC | 2 |
 | KUKULKAN-365 | 2 |
-| **Total códigos únicos en index** | **62** |
+| **Total códigos únicos en index** | **70** |
 
-> **Nota:** Existen 66 archivos físicos `DSC-*.md` en disco. La diferencia (66 archivos vs 62 códigos únicos en index) corresponde a 3 códigos con 2 archivos cada uno (`DSC-S-006` con `_v1_1` versión, `DSC-G-007` con archivo de seguridad además del de doctrina, `DSC-CIP-002` con `_distribucion_rendimientos` además del archivo principal). El conflicto `DSC-S-005` (snapshot vs política) sigue pendiente de resolución T1.
+> **Nota:** Existen 71 archivos físicos `DSC-*.md` en disco. La diferencia (71 archivos vs 70 códigos únicos en index) corresponde a 1 código con 2 archivos (`DSC-S-006_v1_1` + base; `DSC-G-007_security` + base; `DSC-CIP-002_distribucion_rendimientos` + base) — neto +1 archivo físico. La adición de DSC-G-013 (v0.1 vivo + v1 archivado) cuenta como 2 archivos físicos pero 1 código único en index (apunta al v0.1 vivo).
 
 ---
 
-## Operaciones operativas resueltas en DRIFT-012 (2026-05-12)
+## Operaciones operativas resueltas en DRIFT-013 (2026-05-18)
 
-1. ✅ **Naming inconsistency resuelta** — 7 `git mv` ejecutados (ver tabla "Inconsistencias RESUELTAS" arriba)
-2. ✅ **Refs internas actualizadas** — sed mass-update en 7 archivos vivos: `_dsc_contracts_index.yaml`, `_INDEX.md`, `tests/test_transversales_*.py`, `skills/manus-oauth-pattern/{SKILL.md,references/}`
-3. ✅ **20 entradas Tipo B agregadas al index** — DSCs físicos canonizados que vivían sin entrada (DSC-G-009/012/014/017, DSC-MO-006..011, DSC-OPS-001, DSC-S-006/007/008/010/011/012/013/015/016)
-4. ✅ **Header del DSC-G-001 actualizado** — referencia a "15 Objetivos Maestros" (post DRIFT-001)
+1. ✅ **DSC-G-013 v0.1 agregado** — DB↔Repo Coherence Gate firmado T1 "firmo 5" post-convergencia 3 Sabios CON CAVEAT (refactor magno desde v1 archivado por sesgo confirmatorio detectado GPT-5.5 Pro)
+2. ✅ **Sección LA-FORJA creada** — antes inexistente como agrupación
+3. ✅ **4 DSC-LF agregados** — DSC-LF-008 (D3.3) + DSC-LF-009 (D4) + DSC-LF-010 (D5.1) + DSC-LF-011 (D5.2) firmados Cowork T2-A autoridad delegada
+4. ✅ **DSC-LF-003 + DSC-LF-004 + DSC-LF-005 referenciados explícitamente** — antes solo vivían en repo, ahora en index
 
 ## Pendiente fuera de scope (decisión T1)
+
 1. ~~**Conflicto DSC-S-005**~~ — **RESUELTO 2026-05-12 vía spike DSC-S-005-CANONICAL-AUDIT-001.** Audit binario confirmó snapshot ya estaba en `INCIDENTES/snapshot_forense_pre_rotacion_jwt_2026_05_06.md` desde commit `61e42ae` (2026-05-07). Ver sección "Conflicto de ID DSC-S-005 RESUELTO" arriba.
 2. **Renombrar `DSC-G-001_14_objetivos_maestros_aplican_a_todo.md`** — el filename mantiene "14" por trazabilidad histórica de hash; rename a "15" sería opcional y requiere coordinación con git log forensic (riesgo bajo, valor marginal)
+3. **DSC-G-014 propuesto CANARY_SMOKE_PROTOCOL** — propuesta L7.1 del smoke D6 LA-FORJA 2026-05-18, paridad H1/H2 binaria demostrada. Pendiente escribir spec + firma Cowork T2-A autoridad delegada (sin gate Sabios, es protocolo operacional). NO se canoniza hasta spec escrito.
 
 ---
 
 **Generado por Cowork (Hilo A) 2026-05-06 · Actualizado por Manus Hilo Catastro 2026-05-12 bajo MEGA-CATASTRO-DRIFT-RESOLUTION-001 · DRIFT-012 · Spike DSC-S-005-CANONICAL-AUDIT-001**
+**Actualizado por Cowork T2-A 2026-05-18 bajo MAGNA-CIERRE-002 · DRIFT-013 — autorización T1 "firmo 5"**
