@@ -1,0 +1,34 @@
+{
+  "evidence": {
+    "OPP-NB-010": {
+      "type": "grep_counts",
+      "source_paths": ["kernel/*routes*.py", "apps/mobile/lib/features/"],
+      "findings": {
+        "zombie_routes_no_flutter": ["a2a", "memento", "cowork", "catastro", "planner", "magna", "autonomy", "deployments", "e2e"],
+        "heavy_internal_routes": ["catastro (32)", "embrion (30)", "e2e (14)", "memory (14)"],
+        "heavy_flutter_routes": ["brand (21)", "memory (10)", "embrion (10)"]
+      }
+    },
+    "OPP-NB-018": {
+      "type": "loc_counts",
+      "source_paths": ["kernel/*routes*.py", "tests/test_*.py"],
+      "findings": {
+        "zero_coverage_routes": ["a2a", "mission", "autonomy", "deployments", "usage"],
+        "high_coverage_routes": ["moc (9.20)", "cowork (8.92)", "brand (7.63)", "catastro (5.39)"],
+        "low_coverage_routes": ["finops (1.08)", "planner (1.15)", "memory (1.93)"]
+      }
+    },
+    "OPP-NB-012": {
+      "type": "file_counts",
+      "source_paths": ["bridge/"],
+      "findings": {
+        "total_files": 352,
+        "sprints_propuestos": 35,
+        "sprints_completados": 4,
+        "completion_ratio": "11.4%",
+        "runbooks": 3,
+        "postmortems": 4
+      }
+    }
+  }
+}

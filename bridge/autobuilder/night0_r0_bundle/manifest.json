@@ -1,0 +1,20 @@
+{
+  "bundle_id": "NIGHT0_R0_2026_05_18",
+  "version": "1.0",
+  "generated_by": "CELL-NIGHTLY-BUILDER-001",
+  "timestamp": "2026-05-18T22:45:00Z",
+  "contents": [
+    "manifest.json",
+    "report.md",
+    "evidence_index.json",
+    "gate_log.json",
+    "cleanup_log.txt"
+  ],
+  "opps_executed": [
+    "OPP-NB-010",
+    "OPP-NB-018",
+    "OPP-NB-012"
+  ],
+  "status": "SUCCESS",
+  "side_effects": 0
+}
