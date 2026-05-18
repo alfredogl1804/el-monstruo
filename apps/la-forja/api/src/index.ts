@@ -44,6 +44,7 @@ import { sprintsRoutes } from "./routes/sprints";
 import { manusRoutes } from "./routes/manus";
 import { puertasRoutes } from "./routes/puertas";
 import { telemetryRoutes } from "./routes/telemetry";
+import { authRoutes } from "./routes/auth";
 import type { Mission } from "./lib/llm/router";
 
 const SERVICE_NAME = "la-forja-api";
@@ -100,6 +101,9 @@ export function createApp(options: CreateAppOptions = {}): Hono<ForjaContext> {
       phase: "D2 backend Hono completo",
       endpoints: [
         "GET /health",
+        "GET /api/auth/google",
+        "GET /api/auth/google/callback",
+        "POST /api/auth/logout",
         "POST /api/tutor/chat",
         "POST /api/sprints",
         "GET /api/sprints/states",
@@ -111,9 +115,26 @@ export function createApp(options: CreateAppOptions = {}): Hono<ForjaContext> {
     });
   });
 
-  // -------- Pipeline middleware obligatorio para /api --------
+  // -------- Auth routes (PÚBLICAS — sin auth middleware) --------
+  // D4: estos endpoints SON la auth, no pueden requerir sesión previa.
+  // Se montan ANTES del middleware /api/* para evitar que forjaAuthStub
+  // los rechace por falta de x-user-id.
+  app.route("/api/auth", authRoutes());
+
+  // -------- Pipeline middleware obligatorio para /api (excepto /auth/*) --------
   // Orden binario: auth → budget → telemetry → route
-  app.use("/api/*", forjaAuthStub());
+  // Selector binario por NODE_ENV (D4): production → forjaAuthGoogle, dev/test → forjaAuthStub
+  // Skip-list binario para /api/auth/* (esos endpoints son la propia auth y NO
+  // pueden requerir sesión previa). El stub ya rechaza producción con 503 (H-1).
+  const authStubMw = forjaAuthStub();
+  app.use("/api/*", async (c, next) => {
+    if (c.req.path.startsWith("/api/auth/")) {
+      await next();
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (authStubMw as any)(c, next);
+  });
   app.use("/api/*", forjaTelemetry());
 
   // -------- Routes con budget guard específico (necesita missionFor) --------
