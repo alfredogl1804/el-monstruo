@@ -1,4 +1,23 @@
-# CHATGPT PERICIA CHECKPOINT v0.7
+# CHATGPT PERICIA CHECKPOINT v0.7 [SUPERSEDED_BY_v0_8]
+
+> **⚠️ SUPERSEDED_BY_v0_8** — Este archivo contiene 4 derivas detectadas por ChatGPT el 2026-05-18.
+>
+> **NO usar como fuente de verdad.** Ir a la versión vigente:
+> - `monstruo_reality_atlas/reports/CHATGPT_PERICIA_CHECKPOINT_v0_8.md`
+> - `monstruo_reality_atlas/reports/CHATGPT_PERICIA_STATE_v0_8.json`
+> - `monstruo_reality_atlas/reports/PERICIA_TEST_v0_8.md`
+>
+> **Derivas conocidas en v0.7:**
+> - **P1** Home Daily mezclada con resúmenes de Cockpit
+> - **P7** VERIFIABLE descrito como fact-checking en vez de anti-eco / artefacto verificable
+> - **P10** SMP nombrado como "Secure Memory Protocol" en vez de **Sovereign Memory Plane**
+> - **P13** Acto 1 / Acto 2 con mapeo invertido (Acto 1 = 20 superficies, Acto 2 = Calm Tech latente)
+>
+> **Commit fix:** `d876a21` — `docs(atlas): fix ChatGPT pericia checkpoint v0.8 drift`
+>
+> Mantenido para trazabilidad histórica del bucle correctivo Anti-Dory.
+
+---
 
 > **Propósito:** persistir el estado actual de pericia de ChatGPT 5.5 Pro sobre El Monstruo para evitar pérdida por compactación, drift o re-interpretación futura.
 >

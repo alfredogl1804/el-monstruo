@@ -1,5 +1,17 @@
 {
-  "version": "0.7",
+  "_superseded_by": "0.8",
+  "_superseded_at": "2026-05-18",
+  "_superseded_commit": "d876a21",
+  "_superseded_commit_message": "docs(atlas): fix ChatGPT pericia checkpoint v0.8 drift",
+  "_known_drifts": [
+    "P1_home_daily_vs_cockpit",
+    "P7_verifiable_anti_eco_no_fact_checking",
+    "P10_smp_sovereign_memory_plane_not_secure_memory_protocol",
+    "P13_acto_2_contiene_acto_1_no_invertido"
+  ],
+  "_use_instead": "monstruo_reality_atlas/reports/CHATGPT_PERICIA_STATE_v0_8.json",
+  "_warning": "NO usar este archivo como fuente de verdad. Mantenido solo para trazabilidad histórica del bucle correctivo Anti-Dory.",
+  "version": "0.7-SUPERSEDED",
   "created_at": "2026-05-17T20:45:00-06:00",
   "created_by": "Manus",
   "instructed_by": "Alfredo Gongora",

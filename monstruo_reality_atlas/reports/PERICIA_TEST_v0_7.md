@@ -1,4 +1,21 @@
-# PERICIA TEST v0.7
+# PERICIA TEST v0.7 [SUPERSEDED_BY_v0_8]
+
+> **⚠️ SUPERSEDED_BY_v0_8** — Este test contiene 4 preguntas con respuestas en deriva detectadas por ChatGPT el 2026-05-18.
+>
+> **NO usar como test válido.** Ir a la versión vigente:
+> - `monstruo_reality_atlas/reports/PERICIA_TEST_v0_8.md`
+>
+> **Preguntas con deriva en v0.7:**
+> - **P1** Home canónica — mezclaba Daily con Cockpit. La Home canónica pertenece a Daily, no a Cockpit.
+> - **P7** Self-Verifier VERIFIABLE — decía "fact-checking contra fuentes" cuando es anti-eco / artefacto verificable.
+> - **P10** SMP — decía "Secure Memory Protocol". Correcto: **Sovereign Memory Plane**.
+> - **P13** Acto 1 / Acto 2 — mapeo invertido. Acto 1 = 20 superficies; Acto 2 = Calm Tech latente; Acto 2 contiene Acto 1.
+>
+> **Commit fix:** `d876a21` — `docs(atlas): fix ChatGPT pericia checkpoint v0.8 drift`
+>
+> Mantenido para trazabilidad histórica del bucle correctivo Anti-Dory.
+
+---
 
 > **Propósito:** verificar que ChatGPT (o cualquier hilo nuevo) ha absorbido el conocimiento del checkpoint v0.7 antes de diseñar.
 >
