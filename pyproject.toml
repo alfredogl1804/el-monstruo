@@ -14,6 +14,10 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+# H15 fix (issue #145): agregar repo root al sys.path para que pytest
+# resuelva imports `from tools import ...` y `from kernel import ...` sin
+# requerir PYTHONPATH=. manual en CI ni conftest.py raiz.
+pythonpath = ["."]
 
 [tool.ruff]
 target-version = "py311"
