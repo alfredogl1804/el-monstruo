@@ -137,3 +137,68 @@ describe("createApp() — smoke D2.7", () => {
     expect(await customClient.readSpent("seed-user")).toBe(1.23);
   });
 });
+
+
+/**
+ * D4-PROD-AUTH-001 regression test.
+ *
+ * Garantiza que `index.ts` use `forjaAuthSelector()` (NO `forjaAuthStub()` hardcoded).
+ * Drift detectado por Manus E2 durante smoke C3 §7.1 (2026-05-18):
+ *   - Spec D4-PROD-AUTH-001 §1 afirmaba "wiring D4 completo en main"
+ *   - Realidad: `index.ts:141` montaba `forjaAuthStub()` hardcoded
+ *   - Resultado: `/api/sprints/states` sin cookie → 503 en lugar de 401 esperado
+ *
+ * Categoría 4 de drift DSC-G-013 v0.1: código↔código (función definida pero no usada en call site).
+ *
+ * Este test verifica binariamente que el call site discrimina por NODE_ENV:
+ *   - production → forjaAuthGoogle (sin cookie → 401 [la-forja:auth_session_missing])
+ *   - test/dev → forjaAuthStub (con x-user-id válido → 200, preserva 180+ tests existentes)
+ */
+describe("D4-PROD-AUTH-001 — call site usa forjaAuthSelector() (no hardcoded stub)", () => {
+  it("NODE_ENV=production sin cookie → 401 [la-forja:auth_session_missing] (NO 503 stub)", async () => {
+    process.env.NODE_ENV = "production";
+    // Producción exige los 3 secrets D4 + JWT (≥32 chars) por superRefine en env.ts.
+    process.env.GOOGLE_OAUTH_CLIENT_ID =
+      "test-client-id.apps.googleusercontent.com";
+    process.env.GOOGLE_OAUTH_CLIENT_SECRET = "GOCSPX-test-secret";
+    process.env.JWT_SECRET =
+      "forja-test-jwt-secret-must-be-at-least-32-chars-long";
+    _resetEnvCache();
+
+    const app = createApp();
+    const res = await app.request("/api/sprints/states");
+
+    expect(res.status).toBe(401);
+    const body = (await res.json()) as { ok: boolean; error: string };
+    expect(body.ok).toBe(false);
+    expect(body.error).toContain("auth_session_missing");
+    expect(body.error).not.toContain("auth_stub_disabled_in_production");
+  });
+
+  it("NODE_ENV=test (default) con x-user-id válido → 200 (preserva tests existentes)", async () => {
+    // NODE_ENV ya viene "test" por vitest; confirmamos selector → forjaAuthStub.
+    process.env.NODE_ENV = "test";
+    _resetEnvCache();
+
+    const app = createApp();
+    const res = await app.request("/api/sprints/states", {
+      headers: { "x-user-id": VALID_UUID },
+    });
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { ok: boolean };
+    expect(body.ok).toBe(true);
+  });
+
+  it("NODE_ENV=test sin x-user-id → 401 [la-forja:auth_missing_user_id] (stub canónico)", async () => {
+    process.env.NODE_ENV = "test";
+    _resetEnvCache();
+
+    const app = createApp();
+    const res = await app.request("/api/sprints/states");
+
+    expect(res.status).toBe(401);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain("auth_missing_user_id");
+  });
+});

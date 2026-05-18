@@ -34,7 +34,7 @@ import {
   registerUserForResolver,
 } from "./lib/budget_clients.js";
 import { installSupabaseTelemetry } from "./lib/telemetry.js";
-import { forjaAuthStub, type ForjaAuthContext } from "./middleware/auth.js";
+import { forjaAuthSelector, type ForjaAuthContext } from "./middleware/auth.js";
 import {
   forjaBudgetGuard,
   type ForjaBudgetContext,
@@ -138,14 +138,14 @@ export function createApp(options: CreateAppOptions = {}): Hono<ForjaContext> {
   // Selector binario por NODE_ENV (D4): production → forjaAuthGoogle, dev/test → forjaAuthStub
   // Skip-list binario para /api/auth/* (esos endpoints son la propia auth y NO
   // pueden requerir sesión previa). El stub ya rechaza producción con 503 (H-1).
-  const authStubMw = forjaAuthStub();
+  const authMw = forjaAuthSelector();
   app.use("/api/*", async (c, next) => {
     if (c.req.path.startsWith("/api/auth/")) {
       await next();
       return;
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (authStubMw as any)(c, next);
+    return (authMw as any)(c, next);
   });
 
   // D5.2: registra User resuelto por auth en el cache compartido para que
