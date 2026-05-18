@@ -120,6 +120,32 @@ class TestOTelBridge:
             assert result is False
             assert bridge.enabled is False
 
+    @pytest.mark.asyncio
+    async def test_initialize_does_not_fallback_to_langfuse_host(self):
+        """H4 regression: OTel bridge MUST NOT use LANGFUSE_HOST as fallback.
+
+        Langfuse Cloud OTLP endpoint requires Basic auth headers + a specific
+        path that this bridge does NOT set. Sending raw OTLP/gRPC to Langfuse
+        without auth caused spam of `Failed to export span batch code: 401`
+        in production logs. OTel must be opt-in only via OTEL_EXPORTER_OTLP_ENDPOINT.
+        """
+        from observability.otel_bridge import OTelBridge
+
+        bridge = OTelBridge()
+        # Simulate prod: LANGFUSE_HOST set, OTEL_EXPORTER_OTLP_ENDPOINT NOT set.
+        with patch.dict(
+            "os.environ",
+            {"LANGFUSE_HOST": "https://us.cloud.langfuse.com"},
+            clear=True,
+        ):
+            result = await bridge.initialize()
+            # Pre-fix: would return True and spam 401 errors.
+            # Post-fix: must return False (OTel opt-in only).
+            assert result is False, (
+                "OTel bridge must NOT auto-enable via LANGFUSE_HOST fallback (H4)"
+            )
+            assert bridge.enabled is False
+
     def test_span_when_disabled(self):
         """span context manager works as no-op when disabled."""
         from observability.otel_bridge import OTelBridge
