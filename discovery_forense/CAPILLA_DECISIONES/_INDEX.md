@@ -1,10 +1,20 @@
 # 📑 Índice Capilla de Decisiones
 
-**Total DSCs físicos:** 71 archivos · **Códigos únicos:** 61
+**Total DSCs físicos:** 74 archivos · **Códigos únicos:** 74
 **Generado:** 2026-05-06 (Sprint Memento)
-**Última actualización:** 2026-05-18 — MAGNA-CIERRE-002 · DRIFT-013:
+**Última actualización:** 2026-05-18 — Sprint DSC-DRIFT-CLEANUP-2026-05-18 (autorización T1 "la firmo" + matización binaria Opción E refinement T2-A):
+  - LF-008 D3.3 SIGNOFF (declaración HOY) renumerado a LF-012 (LF-008 ya ocupado por `markdown_rendering_canonico.md` preexistente)
+  - LF-009 D4 SIGNOFF (declaración HOY) renumerado a LF-013
+  - LF-010 D5.1 SIGNOFF (declaración HOY) renumerado a LF-014
+  - LF-001 + LF-002 + LF-008 (markdown_rendering) agregados al index (archivos físicos huérfanos preexistentes)
+  - DSC-S-017 agregado a _GLOBAL (archivo físico huérfano)
+  - LF-003 + LF-005 links corregidos al filename real
+  - F#23 + S11 canonizadas (CLAUDE.md): post-test-collect-reset audit obligatorio
+  - F2 estructural reconocido verbatim Cowork T2-A: declaré LF-008/009/010 HOY sin crear archivos físicos
+
+**Update previa:** 2026-05-18 — MAGNA-CIERRE-002 · DRIFT-013:
   - DSC-G-013 v0.1 firmado T1 "firmo 5" 2026-05-18 — DB↔Repo Coherence Gate (post-convergencia 3 Sabios CON CAVEAT — refactor magno desde v1 archivado)
-  - DSC-LF-008 / 009 / 010 / 011 LA-FORJA agregados (sprints D3.3 + D4 + D5.1 + D5.2 — todos firmados Cowork T2-A autoridad delegada)
+  - DSC-LF-008 / 009 / 010 / 011 LA-FORJA agregados (sprints D3.3 + D4 + D5.1 + D5.2 — todos firmados Cowork T2-A autoridad delegada) — **renumerados retroactivamente a LF-012/013/014 por DSC-DRIFT-CLEANUP**
   - Nueva sección LA-FORJA en index (antes inexistente)
   - 2 DSCs vivos en _GLOBAL nuevos pre-DRIFT-013: ya estaban referenciados sin formal entry
 
@@ -80,6 +90,7 @@ La reubicación del snapshot a `INCIDENTES/` ya se había ejecutado en el commit
 | `DSC-S-015` | [Scheduler debe respetar next_run de restore — nunca recalcular incondicionalmente. Lección Sprint D-5.](_GLOBAL/DSC-S-015_scheduler_respeta_next_run_de_restore.md) | restriccion_dura |
 | `DSC-S-016` | [Cowork prohibido afirmar causalidad operativa sin grep/merge-tree/SQL previo en el turno activo. Restricción meta-Cowork (auto-canonización V25).](_GLOBAL/DSC-S-016_anti_fabricacion_causalidad_sin_grep.md) | restriccion_dura |
 | `DSC-OPS-001` | [Todo UPDATE/DELETE manual sobre tablas productivas requiere bridge file de reporte con SQL exacto + rollback path.](_GLOBAL/DSC-OPS-001_update_manual_datos_prod_requires_bridge_report.md) | restriccion_operativa |
+| `DSC-S-017` | [Anthropic Hivecom legacy deprecada — observación pasiva. Cuenta legacy mantiene cuotas/recursos en stand-by sin operación activa.](_GLOBAL/DSC-S-017_anthropic_hivecom_legacy_deprecada_observacion_pasiva.md) | politica_observacional |
 
 > Nota DRIFT-001 (2026-05-12): el archivo `DSC-G-001_14_objetivos_maestros_aplican_a_todo.md` mantiene su filename legacy con "14" para preservar trazabilidad histórica de hash, pero su contenido se refiere ahora a los **15 Objetivos Maestros**. Ver `docs/EL_MONSTRUO_15_OBJETIVOS_MAESTROS.md` para el doc canónico.
 
@@ -112,13 +123,16 @@ Sprint LA-FORJA-001 v3.2 (Tutor adaptativo IA + co-piloto sprints + magna valida
 
 | ID | Título | Tipo |
 |---|---|---|
-| `DSC-LF-003` | [Budget cap $50 USD/mes/usuario — pre-call check + post-call commit + rollback en error. Source-of-truth canonical: `forja_budget.spent_usd` por (profile_id, mes UTC).](LA-FORJA/DSC-LF-003_budget_cap_50_usd_mes.md) | restriccion_dura |
+| `DSC-LF-001` | [Cinco puertas inviolables — sanitización XSS, validación SSE chunks, anti-IDOR ensureThread, budget pre-call, rate limit per profile. Frontera binaria del tutor La Forja.](LA-FORJA/DSC-LF-001_cinco_puertas_inviolables.md) | restriccion_dura |
+| `DSC-LF-002` | [Budget pre-call check obligatorio antes de invocar LLM — short-circuit si profile sobre cap. Anti-overrun proactivo.](LA-FORJA/DSC-LF-002_budget_pre_call_check.md) | restriccion_dura |
+| `DSC-LF-003` | [Budget cap $50 USD/mes/usuario — pre-call check + post-call commit + rollback en error. Source-of-truth canonical: `forja_budget.spent_usd` por (profile_id, mes UTC).](LA-FORJA/DSC-LF-003_cap_budget_usuario_mes.md) | restriccion_dura |
 | `DSC-LF-004` | [Magna validation Perplexity Sonar Reasoning Pro — verificación tiempo real con citations para topics que requieren fuentes recientes. Pre-stream tutor + headers SSE.](LA-FORJA/DSC-LF-004_magna_validation_perplexity_sonar.md) | decision_arquitectonica |
-| `DSC-LF-005` | [SSE protocol Vercel AI SDK 6 — `result.toUIMessageStreamResponse()`. Citations en header `x-la-forja-citations-b64` base64url JSON. JSON solo en error paths.](LA-FORJA/DSC-LF-005_sse_protocol_vercel_ai_sdk_6.md) | decision_arquitectonica |
-| `DSC-LF-008` | [D3.3 SIGNOFF — SSE migration Vercel AI SDK 6 completa con headers structural protocol v1. Firmado Cowork T2-A 2026-05-17 post-audit DSC-G-008 v4.](LA-FORJA/DSC-LF-008_d3_3_sse_migration_signoff.md) | sprint_closure |
-| `DSC-LF-009` | [D4 SIGNOFF — Google OAuth + JWT auth canónica con `forjaAuthGoogle` + `forjaAuthStub` discriminado por NODE_ENV. Cookie `la-forja_session` HttpOnly+secure+SameSite=Lax+maxAge=7d. Firmado Cowork T2-A 2026-05-17.](LA-FORJA/DSC-LF-009_d4_google_oauth_jwt_signoff.md) | sprint_closure |
-| `DSC-LF-010` | [D5.1 SIGNOFF — 9 migraciones forja_* con RLS desde nacimiento (DSC-S-006 v1.1). Tablas: profiles, threads, messages, sprints, actions, telemetry, simulations, validations, budget. Firmado Cowork T2-A 2026-05-17.](LA-FORJA/DSC-LF-010_d5_1_9_migraciones_signoff.md) | sprint_closure |
+| `DSC-LF-005` | [SSE protocol Vercel AI SDK 6 — `result.toUIMessageStreamResponse()`. Citations en header `x-la-forja-citations-b64` base64url JSON. JSON solo en error paths.](LA-FORJA/DSC-LF-005_sse_obligatorio_endpoints_llm.md) | decision_arquitectonica |
+| `DSC-LF-008` | [Markdown rendering canónico — `Streamdown` (Vercel, Apache-2.0) obligatorio para messages role='assistant'. Sanitización XSS por default vía rehype-sanitize + rehype-harden. Brand DNA `.forja-markdown` wrapper.](LA-FORJA/DSC-LF-008_markdown_rendering_canonico.md) | contrato_arquitectonico |
 | `DSC-LF-011` | [D5.2 SIGNOFF — Persistencia stubs replaced con repositories Supabase reales. 5 decisiones magnas canonizadas: selector binario NODE_ENV, ESM-first sin require, anti-IDOR ensureThread zero data leak, fail-soft binario tutor.ts, drift P2 SPRINT_STATES TS↔SQL reconciliado. Firmado Cowork T2-A 2026-05-18 post-merge PR #147 commit `dc79cb71`.](LA-FORJA/DSC-LF-011_d5_2_persistencia_stubs_replaced.md) | sprint_closure |
+| `DSC-LF-012` | [D3.3 SIGNOFF — SSE migration Vercel AI SDK 6 completa con headers structural protocol v1. Firmado Cowork T2-A 2026-05-17 post-audit DSC-G-008 v4 (renumerado desde LF-008 por DSC-DRIFT-CLEANUP 2026-05-18 — slot LF-008 ya ocupado por markdown_rendering).](LA-FORJA/DSC-LF-012_d3_3_sse_migration_signoff.md) | sprint_closure |
+| `DSC-LF-013` | [D4 SIGNOFF — Google OAuth + JWT auth canónica con `forjaAuthGoogle` + `forjaAuthSelector()` discriminado por NODE_ENV. Cookie `la-forja_session` HttpOnly+secure+SameSite=Lax+maxAge=7d. Firmado Cowork T2-A 2026-05-17 + fix call site post-PR #166 commit `82f580ac` (renumerado desde LF-009 por DSC-DRIFT-CLEANUP).](LA-FORJA/DSC-LF-013_d4_google_oauth_jwt_signoff.md) | sprint_closure |
+| `DSC-LF-014` | [D5.1 SIGNOFF — 9 migraciones forja_* con RLS desde nacimiento (DSC-S-006 v1.1). Tablas: profiles, threads, messages, sprints, actions, telemetry, simulations, validations, budget. Firmado Cowork T2-A 2026-05-17 (renumerado desde LF-010 por DSC-DRIFT-CLEANUP).](LA-FORJA/DSC-LF-014_d5_1_9_migraciones_signoff.md) | sprint_closure |
 
 ---
 
@@ -184,30 +198,40 @@ Sprint LA-FORJA-001 v3.2 (Tutor adaptativo IA + co-piloto sprints + magna valida
 
 ---
 
-## Resumen por proyecto (post DRIFT-013)
+## Resumen por proyecto (post DSC-DRIFT-CLEANUP-2026-05-18)
 
 | Proyecto | DSCs en index |
 |---|---|
-| _GLOBAL | 31 |
+| _GLOBAL | 32 |
 | EL-MONSTRUO | 12 |
-| LA-FORJA | 7 |
+| LA-FORJA | 10 |
 | CIP | 8 |
 | LIKETICKETS | 3 |
 | MENA-BADUY | 3 |
 | BIOGUARD | 2 |
 | TOP-CONTROL-PC | 2 |
 | KUKULKAN-365 | 2 |
-| **Total códigos únicos en index** | **70** |
+| **Total códigos únicos en index** | **74** |
 
-> **Nota:** Existen 71 archivos físicos `DSC-*.md` en disco. La diferencia (71 archivos vs 70 códigos únicos en index) corresponde a 1 código con 2 archivos (`DSC-S-006_v1_1` + base; `DSC-G-007_security` + base; `DSC-CIP-002_distribucion_rendimientos` + base) — neto +1 archivo físico. La adición de DSC-G-013 (v0.1 vivo + v1 archivado) cuenta como 2 archivos físicos pero 1 código único en index (apunta al v0.1 vivo).
+> **Nota:** Post-DSC-DRIFT-CLEANUP-2026-05-18 los códigos únicos en index (74) matchean los archivos físicos `DSC-*.md` en disco (74) — drift binariamente cerrado por test_check_index_drift. La numeración LF tiene huecos intencionales en LF-006/007 (slots libres para futuros DSC LA-FORJA del path Streamdown UI o validation flow).
 
 ---
+
+## Operaciones operativas resueltas en DSC-DRIFT-CLEANUP-2026-05-18
+
+1. ✅ **F2 estructural Cowork T2-A reconocido** — declaré LF-008/009/010 HOY en _INDEX.md sin crear archivos físicos
+2. ✅ **Renumeración retroactiva** — LF-008/009/010 declaraciones HOY → LF-012/013/014 (Opción E refinement T2-A vs Opción D firmada — push_files MCP no expone DELETE para renombrar archivo físico preexistente)
+3. ✅ **3 archivos físicos NUEVOS** — LF-012 D3.3 SIGNOFF + LF-013 D4 SIGNOFF + LF-014 D5.1 SIGNOFF creados retroactivos
+4. ✅ **3 huérfanos preexistentes agregados al index** — LF-001 (cinco_puertas_inviolables) + LF-002 (budget_pre_call_check) + LF-008 (markdown_rendering_canonico)
+5. ✅ **1 huérfano _GLOBAL agregado** — DSC-S-017 Anthropic Hivecom legacy deprecada
+6. ✅ **Links naming corregidos** — LF-003 (`cap_budget_usuario_mes.md`) + LF-005 (`sse_obligatorio_endpoints_llm.md`)
+7. ✅ **F#23 + S11 canonizadas en CLAUDE.md** — post-test-collect-reset audit obligatorio (origen: hallazgo Manus E2)
 
 ## Operaciones operativas resueltas en DRIFT-013 (2026-05-18)
 
 1. ✅ **DSC-G-013 v0.1 agregado** — DB↔Repo Coherence Gate firmado T1 "firmo 5" post-convergencia 3 Sabios CON CAVEAT (refactor magno desde v1 archivado por sesgo confirmatorio detectado GPT-5.5 Pro)
 2. ✅ **Sección LA-FORJA creada** — antes inexistente como agrupación
-3. ✅ **4 DSC-LF agregados** — DSC-LF-008 (D3.3) + DSC-LF-009 (D4) + DSC-LF-010 (D5.1) + DSC-LF-011 (D5.2) firmados Cowork T2-A autoridad delegada
+3. ✅ **4 DSC-LF agregados** — DSC-LF-008 (D3.3) + DSC-LF-009 (D4) + DSC-LF-010 (D5.1) + DSC-LF-011 (D5.2) firmados Cowork T2-A autoridad delegada — **LF-008/009/010 renumerados a LF-012/013/014 por DSC-DRIFT-CLEANUP**
 4. ✅ **DSC-LF-003 + DSC-LF-004 + DSC-LF-005 referenciados explícitamente** — antes solo vivían en repo, ahora en index
 
 ## Pendiente fuera de scope (decisión T1)
@@ -220,3 +244,4 @@ Sprint LA-FORJA-001 v3.2 (Tutor adaptativo IA + co-piloto sprints + magna valida
 
 **Generado por Cowork (Hilo A) 2026-05-06 · Actualizado por Manus Hilo Catastro 2026-05-12 bajo MEGA-CATASTRO-DRIFT-RESOLUTION-001 · DRIFT-012 · Spike DSC-S-005-CANONICAL-AUDIT-001**
 **Actualizado por Cowork T2-A 2026-05-18 bajo MAGNA-CIERRE-002 · DRIFT-013 — autorización T1 "firmo 5"**
+**Actualizado por Cowork T2-A 2026-05-18 bajo Sprint DSC-DRIFT-CLEANUP-2026-05-18 — autorización T1 "la firmo" + matización binaria Opción E refinement T2-A (origen: hallazgo Manus E2 vía test_check_index_drift reactivado post-PR #165 H15/H17 ModuleNotFoundError fix)**
