@@ -13,7 +13,7 @@
  */
 
 import OpenAI from "openai";
-import { loadEnv } from "../env";
+import { loadEnv } from "../env.js";
 
 export const OPENAI_SPRINT_MODEL = "gpt-5.5-pro" as const;
 

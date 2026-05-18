@@ -14,12 +14,12 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { User } from "../env";
+import type { User } from "../env.js";
 import {
   SupabaseBudgetClient,
   currentPeriodStart,
-} from "./budget";
-import { _resetProfileIdCache } from "./profiles";
+} from "./budget.js";
+import { _resetProfileIdCache } from "./profiles.js";
 
 const mockMaybeSingle = vi.fn();
 const mockEqProfile = vi.fn(() => ({ maybeSingle: mockMaybeSingle }));

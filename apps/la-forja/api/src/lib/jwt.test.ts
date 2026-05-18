@@ -3,7 +3,7 @@
  * Sprint LA-FORJA-001 v3.2 — D4.1.
  */
 import { describe, it, expect } from "vitest";
-import { signSession, verifySession, type SessionClaims } from "./jwt";
+import { signSession, verifySession, type SessionClaims } from "./jwt.js";
 
 const SECRET = "forja-test-jwt-secret-must-be-at-least-32-chars-long";
 const SECRET_B = "forja-test-jwt-secret-DIFFERENT-must-be-at-least-32-chars";

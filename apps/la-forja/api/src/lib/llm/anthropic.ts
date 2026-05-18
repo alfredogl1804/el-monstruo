@@ -29,7 +29,7 @@ import {
   type ModelMessage,
   type ToolSet,
 } from "ai";
-import { loadEnv } from "../env";
+import { loadEnv } from "../env.js";
 
 export const ANTHROPIC_TUTOR_MODEL = "claude-opus-4-7" as const;
 

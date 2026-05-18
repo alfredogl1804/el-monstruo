@@ -9,19 +9,19 @@
 
 import { Hono } from "hono";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { _resetEnvCache, type User } from "../lib/env";
+import { _resetEnvCache, type User } from "../lib/env.js";
 import {
   type BudgetClient,
   FORJA_BUDGET_CAP_USD,
-} from "../lib/budget";
+} from "../lib/budget.js";
 import {
   _setTelemetryClient,
   type TelemetryClient,
   type TelemetryEvent,
-} from "../lib/telemetry";
-import { forjaAuthStub, type ForjaAuthContext } from "./auth";
-import { forjaBudgetGuard, type ForjaBudgetContext } from "./budget";
-import { forjaTelemetry, type ForjaTelemetryContext } from "./telemetry";
+} from "../lib/telemetry.js";
+import { forjaAuthStub, type ForjaAuthContext } from "./auth.js";
+import { forjaBudgetGuard, type ForjaBudgetContext } from "./budget.js";
+import { forjaTelemetry, type ForjaTelemetryContext } from "./telemetry.js";
 
 const VALID_ENV: Record<string, string> = {
   MANUS_API_KEY_GOOGLE: "x",

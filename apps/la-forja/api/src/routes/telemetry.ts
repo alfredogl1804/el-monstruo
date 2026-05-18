@@ -16,8 +16,8 @@
  */
 
 import { Hono } from "hono";
-import { recordEvent, type TelemetryEventType } from "../lib/telemetry";
-import type { ForjaAuthContext } from "../middleware/auth";
+import { recordEvent, type TelemetryEventType } from "../lib/telemetry.js";
+import type { ForjaAuthContext } from "../middleware/auth.js";
 
 const VALID_EVENT_TYPES: ReadonlyArray<TelemetryEventType> = [
   "simplification_requested",

@@ -24,9 +24,9 @@ import {
   FORJA_BUDGET_CAP_USD,
   ForjaBudgetExceededError,
   preCallCheck,
-} from "../lib/budget";
-import type { Mission } from "../lib/llm/router";
-import type { User } from "../lib/env";
+} from "../lib/budget.js";
+import type { Mission } from "../lib/llm/router.js";
+import type { User } from "../lib/env.js";
 
 export interface ForjaBudgetContext {
   Variables: {

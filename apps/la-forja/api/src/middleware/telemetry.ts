@@ -14,8 +14,8 @@
 
 import { randomUUID } from "node:crypto";
 import type { Context, MiddlewareHandler, Next } from "hono";
-import { recordEvent } from "../lib/telemetry";
-import type { User } from "../lib/env";
+import { recordEvent } from "../lib/telemetry.js";
+import type { User } from "../lib/env.js";
 
 export interface ForjaTelemetryContext {
   Variables: {

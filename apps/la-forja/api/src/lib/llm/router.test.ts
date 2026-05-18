@@ -15,7 +15,7 @@ import {
   MISSION_PRICING,
   MISSION_TO_MODEL,
   type Mission,
-} from "./router";
+} from "./router.js";
 
 describe("MISSIONS canónicas (§2.4 SPEC v3.2)", () => {
   it("contiene exactamente 5 misiones", () => {

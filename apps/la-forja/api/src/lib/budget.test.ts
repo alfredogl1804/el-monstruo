@@ -17,7 +17,7 @@ import {
   postCallCommit,
   preCallCheck,
   realCost,
-} from "./budget";
+} from "./budget.js";
 
 describe("estimateCost (§2.4 SPEC v3.2)", () => {
   it("tutor: 1000 input + 500 output = $0.0175", () => {

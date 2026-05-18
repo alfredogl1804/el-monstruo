@@ -11,10 +11,10 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { _resetEnvCache } from "./lib/env";
-import { _setTelemetryClient } from "./lib/telemetry";
-import { InMemoryBudgetClient } from "./lib/budget_clients";
-import { createApp } from "./index";
+import { _resetEnvCache } from "./lib/env.js";
+import { _setTelemetryClient } from "./lib/telemetry.js";
+import { InMemoryBudgetClient } from "./lib/budget_clients.js";
+import { createApp } from "./index.js";
 
 const VALID_ENV: Record<string, string> = {
   MANUS_API_KEY_GOOGLE: "x",

@@ -44,29 +44,29 @@
  */
 
 import { Hono } from "hono";
-import { buildTutorStream } from "../lib/llm/anthropic";
-import { invokeMagnaValidation } from "../lib/llm/perplexity";
-import { classifyMessage, type AC12Classification } from "../lib/ac12";
+import { buildTutorStream } from "../lib/llm/anthropic.js";
+import { invokeMagnaValidation } from "../lib/llm/perplexity.js";
+import { classifyMessage, type AC12Classification } from "../lib/ac12.js";
 import {
   preCallCheck,
   postCallCommit,
   type BudgetClient,
-} from "../lib/budget";
-import { recordEvent } from "../lib/telemetry";
-import { loadEnv } from "../lib/env";
-import { resolveProfileId } from "../lib/repositories/profiles";
+} from "../lib/budget.js";
+import { recordEvent } from "../lib/telemetry.js";
+import { loadEnv } from "../lib/env.js";
+import { resolveProfileId } from "../lib/repositories/profiles.js";
 import {
   ensureThread,
   appendUserMessage,
   appendAssistantMessage,
   recordValidation,
-} from "../lib/repositories/threads";
-import type { ForjaAuthContext } from "../middleware/auth";
-import type { ForjaBudgetContext } from "../middleware/budget";
+} from "../lib/repositories/threads.js";
+import type { ForjaAuthContext } from "../middleware/auth.js";
+import type { ForjaBudgetContext } from "../middleware/budget.js";
 import {
   FORJA_TUTOR_HEADER_KEYS,
   FORJA_CITATIONS_HEADER_MAX_BYTES,
-} from "../shared/headers";
+} from "../shared/headers.js";
 
 export interface TutorChatRequest {
   messages: Array<{ role: "user" | "assistant"; content: string }>;
@@ -180,6 +180,10 @@ export function tutorRoutes(deps: TutorRoutesDeps) {
     // ---- 3. Magna validation (PRE-STREAM en D3.2 — ver rationale arriba)
     let citations: string[] = [];
     let validationModel: string | null = null;
+    // D5.3 fix #148: capturar realCost de magna para persistirlo en
+    // recordValidation (forja_validations.cost_usd) y satisfacer dashboards
+    // SPEC v3.2 §7. Default null cuando no hay validation.
+    let magnaCommit: { realCost: number; delta: number } | null = null;
     if (body.requireValidation) {
       const magnaEstimated = await preCallCheck(
         deps.budgetClient,
@@ -204,7 +208,7 @@ export function tutorRoutes(deps: TutorRoutesDeps) {
           type: "magna_validation_used",
           model: v.model,
         });
-        await postCallCommit(
+        magnaCommit = await postCallCommit(
           deps.budgetClient,
           user.id,
           "magna_validation",
@@ -253,7 +257,12 @@ export function tutorRoutes(deps: TutorRoutesDeps) {
       messages: body.messages,
       systemPrompt: body.systemPrompt,
       onFinish: async ({ inputTokens, outputTokens, text }) => {
-        await postCallCommit(
+        // D5.3 fix #148: capturar realCost para persistirlo per-message
+        // en forja_messages.cost_usd y forja_threads.total_usd.
+        // forja_budget.spent_usd sigue siendo source-of-truth canonical para
+        // cap enforcement (agregado por mes); estos campos son granularidad
+        // adicional para dashboards SPEC v3.2 §7 (top-N threads costosos).
+        const tutorCommit = await postCallCommit(
           deps.budgetClient,
           user.id,
           "tutor",
@@ -274,7 +283,9 @@ export function tutorRoutes(deps: TutorRoutesDeps) {
               model: "claude-opus-4-7",
               tokensIn: inputTokens,
               tokensOut: outputTokens,
-              costUsd: 0, // forja_budget materializa el costo agregado por mes
+              // D5.3 fix #148: realCost del tutor (era 0 hardcoded).
+              // forja_budget agrega por mes; este campo agrega por thread.
+              costUsd: tutorCommit.realCost,
               requireValidation: Boolean(body.requireValidation),
               citations: citations.length > 0 ? citations : undefined,
             });
@@ -286,7 +297,10 @@ export function tutorRoutes(deps: TutorRoutesDeps) {
                 query: lastUserMsg.content,
                 model: validationModel,
                 citations,
-                costUsd: 0,
+                // D5.3 fix #148: realCost de magna_validation (era 0 hardcoded).
+                // magnaCommit nunca null aqui porque entra al if requireValidation
+                // que solo se cumple si magna corrio exitosamente; defensivo ?? 0.
+                costUsd: magnaCommit?.realCost ?? 0,
               });
             }
           } catch (persistErr) {

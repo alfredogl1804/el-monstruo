@@ -35,9 +35,9 @@ import type { MiddlewareHandler } from "hono";
 import { setCookie, deleteCookie } from "hono/cookie";
 import { googleAuth } from "@hono/oauth-providers/google";
 
-import { loadEnv, type User, type UserRole } from "../lib/env";
-import { signSession } from "../lib/jwt";
-import { SESSION_COOKIE_NAME } from "../middleware/auth";
+import { loadEnv, type User, type UserRole } from "../lib/env.js";
+import { signSession } from "../lib/jwt.js";
+import { SESSION_COOKIE_NAME } from "../middleware/auth.js";
 
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 días
 const POST_LOGIN_PATH = "/post-login";

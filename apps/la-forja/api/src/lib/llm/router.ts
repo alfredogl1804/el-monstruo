@@ -21,23 +21,23 @@ import {
   invokeTutor,
   type AnthropicTutorRequest,
   type AnthropicTutorResponse,
-} from "./anthropic";
+} from "./anthropic.js";
 import {
   invokeRag,
   invokeClassifier,
   type GeminiRequest,
   type GeminiResponse,
-} from "./google";
+} from "./google.js";
 import {
   invokeSprintCopilot,
   type OpenAISprintRequest,
   type OpenAISprintResponse,
-} from "./openai";
+} from "./openai.js";
 import {
   invokeMagnaValidation,
   type PerplexityMagnaRequest,
   type PerplexityMagnaResponse,
-} from "./perplexity";
+} from "./perplexity.js";
 
 export type Mission =
   | "tutor"

@@ -14,7 +14,7 @@ import {
   createTask,
   type CreateTaskOptions,
   type ManusTask,
-} from "../lib/manus_bridge";
+} from "../lib/manus_bridge.js";
 
 export interface PuertaManusInput {
   prompt: string;

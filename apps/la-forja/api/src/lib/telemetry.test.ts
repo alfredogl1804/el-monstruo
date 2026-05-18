@@ -16,7 +16,7 @@ import {
   _setTelemetryClient,
   getTelemetryClient,
   recordEvent,
-} from "./telemetry";
+} from "./telemetry.js";
 
 beforeEach(() => {
   _setTelemetryClient(null);

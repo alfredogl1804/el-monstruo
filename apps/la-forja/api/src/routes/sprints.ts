@@ -31,11 +31,11 @@
  */
 
 import { Hono } from "hono";
-import { invokeSprintCopilot } from "../lib/llm/openai";
-import { postCallCommit, type BudgetClient } from "../lib/budget";
-import { recordEvent } from "../lib/telemetry";
-import type { ForjaAuthContext } from "../middleware/auth";
-import type { ForjaBudgetContext } from "../middleware/budget";
+import { invokeSprintCopilot } from "../lib/llm/openai.js";
+import { postCallCommit, type BudgetClient } from "../lib/budget.js";
+import { recordEvent } from "../lib/telemetry.js";
+import type { ForjaAuthContext } from "../middleware/auth.js";
+import type { ForjaBudgetContext } from "../middleware/budget.js";
 
 /**
  * Estados canónicos alineados al SQL D5.1 (`chk_forja_sprints_status`).

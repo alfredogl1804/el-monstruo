@@ -14,9 +14,9 @@
  */
 
 import { Hono } from "hono";
-import { handleManusBridge } from "../lib/manus_bridge";
-import { recordEvent } from "../lib/telemetry";
-import type { ForjaAuthContext } from "../middleware/auth";
+import { handleManusBridge } from "../lib/manus_bridge.js";
+import { recordEvent } from "../lib/telemetry.js";
+import type { ForjaAuthContext } from "../middleware/auth.js";
 
 export interface ManusBridgeRequest {
   action?: "create_task" | "get_status" | "create_and_wait";

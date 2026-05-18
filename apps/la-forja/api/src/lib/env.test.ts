@@ -9,8 +9,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { _resetEnvCache, loadEnv } from "./env";
-import { _resetSupabaseCache, getSupabase } from "./supabase";
+import { _resetEnvCache, loadEnv } from "./env.js";
+import { _resetSupabaseCache, getSupabase } from "./supabase.js";
 
 const REQUIRED_ENVS = [
   "MANUS_API_KEY_GOOGLE",

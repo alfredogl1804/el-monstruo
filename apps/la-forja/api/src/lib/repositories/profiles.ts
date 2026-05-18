@@ -21,8 +21,8 @@
  *     reset de proceso (Railway redeploy). En D5.3+ se puede agregar TTL.
  */
 
-import { getSupabase } from "../supabase";
-import type { User } from "../env";
+import { getSupabase } from "../supabase.js";
+import type { User } from "../env.js";
 
 /** Cache local proceso → google_sub → profile_id. Reset solo en redeploy. */
 const PROFILE_ID_CACHE = new Map<string, string>();

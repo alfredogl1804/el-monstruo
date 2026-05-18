@@ -23,7 +23,7 @@
  * son reales. El interface NO cambia.
  */
 
-import { MISSION_PRICING, type Mission } from "./llm/router";
+import { MISSION_PRICING, type Mission } from "./llm/router.js";
 
 export const FORJA_BUDGET_CAP_USD = 50.0 as const;
 export const FORJA_BUDGET_TABLE = "forja_budget" as const;

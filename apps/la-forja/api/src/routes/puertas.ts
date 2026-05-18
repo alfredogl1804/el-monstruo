@@ -20,9 +20,9 @@ import {
   invokeManusGoogle,
   invokeSimulador,
   type PuertaName,
-} from "../puertas/index";
-import { recordEvent } from "../lib/telemetry";
-import type { ForjaAuthContext } from "../middleware/auth";
+} from "../puertas/index.js";
+import { recordEvent } from "../lib/telemetry.js";
+import type { ForjaAuthContext } from "../middleware/auth.js";
 
 export function puertasRoutes() {
   const app = new Hono<ForjaAuthContext>();
