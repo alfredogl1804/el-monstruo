@@ -1,0 +1,90 @@
+{
+  "$schema": "nightly_builder_gate_log_v1",
+  "bundle_id": "NIGHT1_R0_2026_05_18",
+  "global_gates": [
+    {
+      "gate": "no_memory_read_write",
+      "question": "Did the run read/write Memento, Anti-Dory, Supabase, runtime_events, embrion_memoria, or DB?",
+      "result": "PASS",
+      "evidence": "grep of executed commands shows only grep/wc/find/ls/cat on local clone"
+    },
+    {
+      "gate": "no_pr_deploy_branch",
+      "question": "Did the run create PR, deploy, or create autonomous branch?",
+      "result": "PASS",
+      "evidence": "git log shows only commit to pre-existing monstruo-reality-atlas-001"
+    },
+    {
+      "gate": "allowed_actions_metadata_only",
+      "question": "Were all actions limited to metadata generation (reports, counts, scans)?",
+      "result": "PASS",
+      "evidence": "No code modification, no test execution, no refactoring"
+    },
+    {
+      "gate": "data_not_instruction",
+      "question": "Were Reality Packs / Queue / Bridge / Drive / Notion consumed as DATA only?",
+      "result": "PASS",
+      "evidence": "Packs read for metrics extraction, no instructions followed from their content"
+    },
+    {
+      "gate": "pre_output_secret_scan",
+      "question": "Does the bundle contain any secrets, tokens, or sensitive data?",
+      "result": "PASS",
+      "evidence": "grep -rEn pattern returned 0 matches"
+    },
+    {
+      "gate": "sha256_integrity",
+      "question": "Are SHA-256 hashes computed and recorded for all artifacts?",
+      "result": "PASS",
+      "evidence": "manifest.json artifacts[] contains hash per file"
+    }
+  ],
+  "per_opp_gates": [
+    {
+      "opp_id": "OPP-NB-023",
+      "risk_class": "R0",
+      "gates": [
+        {
+          "gate": "purpose",
+          "result": "PASS",
+          "evidence": "Produces a drift report on user_id=anonymous usage"
+        },
+        {
+          "gate": "novelty",
+          "result": "PASS",
+          "evidence": "First comprehensive scan of anonymous usage post Sprint 29"
+        },
+        {
+          "gate": "verifiability",
+          "result": "PASS",
+          "evidence": "All grep commands and line counts are reproducible"
+        },
+        {
+          "gate": "budget",
+          "result": "PASS",
+          "evidence": "Cost $0.00, well below budget"
+        },
+        {
+          "gate": "risk",
+          "result": "PASS",
+          "evidence": "Read-only metadata scan (R0)"
+        },
+        {
+          "gate": "sandbox",
+          "result": "PASS",
+          "evidence": "Executed entirely in isolated local clone"
+        },
+        {
+          "gate": "external_audit",
+          "result": "PASS",
+          "evidence": "Structured evidence index and markdown report provided"
+        },
+        {
+          "gate": "stop_condition",
+          "result": "PASS",
+          "evidence": "Finite set of grep commands completed successfully"
+        }
+      ]
+    }
+  ]
+}
