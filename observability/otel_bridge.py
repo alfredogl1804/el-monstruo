@@ -42,14 +42,24 @@ class OTelBridge:
         """
         Initialize the OpenTelemetry tracer with OTLP exporter.
         Reads OTEL_EXPORTER_OTLP_ENDPOINT from environment.
+
+        H4 fix (2026-05-18): Removed fallback to LANGFUSE_HOST. Langfuse Cloud
+        OTLP endpoint requires Basic auth headers + a specific path that this
+        bridge does NOT set. Sending raw OTLP/gRPC to Langfuse without auth
+        causes spam of `Failed to export span batch code: 401` in logs.
+
+        Langfuse traces continue flowing via the LangChain CallbackHandler
+        (the primary observability path). OTel is now opt-in only: set
+        OTEL_EXPORTER_OTLP_ENDPOINT to enable export to a dedicated OTLP
+        backend (Jaeger, Tempo, self-hosted collector, etc.).
         """
-        endpoint = os.environ.get(
-            "OTEL_EXPORTER_OTLP_ENDPOINT",
-            os.environ.get("LANGFUSE_HOST", ""),
-        )
+        endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "")
 
         if not endpoint:
-            logger.info("otel_disabled", reason="no OTLP endpoint configured")
+            logger.info(
+                "otel_disabled",
+                reason="OTEL_EXPORTER_OTLP_ENDPOINT not set; OTel export is opt-in (Langfuse traces flow via CallbackHandler)",
+            )
             return False
 
         try:
