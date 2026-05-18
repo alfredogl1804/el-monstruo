@@ -1,24 +1,30 @@
 /**
  * La Forja — Repository: forja_budget (SupabaseBudgetClient real).
  *
- * Sprint LA-FORJA-001 v3.2 — D5.2.
+ * Sprint LA-FORJA-001 v3.2 — D5.3 (cierra L_B1 declarada D5.2).
  * Doctrina: §15 SPEC v3.2 + DSC-LF-003 + DSC-LF-010.
  *
  * Reemplaza el `SupabaseBudgetClient` placeholder de `lib/budget_clients.ts`
- * con queries reales contra `forja_budget` (migración 0046 D5.1).
+ * con queries reales contra `forja_budget` (migración 0046 D5.1) +
+ * RPC atómico `rpc_increment_budget` (migración 0050 D5.3).
  *
- * Mecanismo atómico:
+ * Mecanismo atómico (post-D5.3):
  *   - readSpent(userId)
  *       → resolveProfileId → SELECT spent_usd FROM forja_budget
  *         WHERE profile_id=$1 AND period_start=<primer día del mes UTC>.
  *       → Si no existe row, retorna 0.
  *   - reserveSpent(userId, estimated)
- *       → INSERT ... ON CONFLICT (profile_id, period_start)
- *         DO UPDATE SET spent_usd = forja_budget.spent_usd + $estimated
- *         (UPSERT atómico — sin race conditions).
+ *       → resolveProfileId → supabase.rpc('rpc_increment_budget', {
+ *           p_profile_id, p_period_start, p_delta: estimated
+ *         })
+ *       → Atomicidad real garantizada por Postgres UPSERT por row
+ *         (UNIQUE constraint actúa como lock implícito). Sin race conditions.
  *   - adjustSpent(userId, delta)
- *       → UPDATE forja_budget SET spent_usd = spent_usd + $delta
- *         WHERE profile_id=$1 AND period_start=<mes>.
+ *       → resolveProfileId → supabase.rpc('rpc_increment_budget', {
+ *           p_profile_id, p_period_start, p_delta: delta
+ *         })
+ *       → delta puede ser negativo (rollback de reservas). RPC clampa a 0
+ *         con GREATEST (matchea CHECK constraint spent_usd >= 0).
  *
  * Notas binarias:
  *   - `userId` que llega es el `User.id` del middleware (NO el profile_id).
@@ -126,28 +132,18 @@ export class SupabaseBudgetClient implements BudgetClient {
 
     const supabase = getSupabase();
 
-    // UPSERT atómico: lee + agrega estimated. Usa una stored RPC
-    // si existiera; en D5.2 la implementamos como flujo SELECT+UPSERT
-    // con `onConflict` y arithmetic en el SET.
+    // RPC atómico (D5.3): cierra L_B1 declarada D5.2. Postgres garantiza
+    // atomicidad por row vía UNIQUE(profile_id, period_start) actuando como
+    // lock implícito durante el UPSERT. Sin race conditions entre requests
+    // concurrentes del mismo user.
     //
-    // Patrón seguro: leer current, calcular new, UPSERT con valor absoluto.
-    // Race conditions con dos requests simultáneos del mismo user son
-    // inherentes hasta que migremos a una RPC `sql_increment_budget`.
-    // Para D5.2 declaramos esta limitación binariamente: el UPSERT es
-    // last-write-wins en la suma — apto hasta D5.3 donde se canoniza RPC.
-    const current = await this.readSpent(userId);
-    const next = current + estimatedCost;
-
-    const { error } = await supabase
-      .from("forja_budget")
-      .upsert(
-        {
-          profile_id: profileId,
-          period_start: period,
-          spent_usd: next,
-        },
-        { onConflict: "profile_id,period_start" },
-      );
+    // estimatedCost > 0 (pre-call reserve). La RPC clampa a 0 (GREATEST)
+    // pero ese path no se ejerce aquí — solo en adjustSpent con delta < 0.
+    const { error } = await supabase.rpc("rpc_increment_budget", {
+      p_profile_id: profileId,
+      p_period_start: period,
+      p_delta: estimatedCost,
+    });
 
     if (error) {
       throw new Error(
@@ -164,23 +160,15 @@ export class SupabaseBudgetClient implements BudgetClient {
 
     const supabase = getSupabase();
 
-    // adjustSpent usa el mismo patrón leer+escribir (last-write-wins).
-    // El delta puede ser negativo (rollback de reservas en error paths).
-    // CHECK constraint enforces spent_usd >= 0; si delta haría negativo el
-    // total, dejamos en 0 (clamp).
-    const current = await this.readSpent(userId);
-    const next = Math.max(0, current + delta);
-
-    const { error } = await supabase
-      .from("forja_budget")
-      .upsert(
-        {
-          profile_id: profileId,
-          period_start: period,
-          spent_usd: next,
-        },
-        { onConflict: "profile_id,period_start" },
-      );
+    // RPC atómico (D5.3): mismo patrón que reserveSpent. delta puede ser
+    // negativo (rollback de reservas en error paths). RPC aplica
+    // GREATEST(0, spent + delta) → clampa a 0 cuando delta haría negativo
+    // el total (matchea CHECK constraint spent_usd >= 0 + previous Math.max).
+    const { error } = await supabase.rpc("rpc_increment_budget", {
+      p_profile_id: profileId,
+      p_period_start: period,
+      p_delta: delta,
+    });
 
     if (error) {
       throw new Error(
