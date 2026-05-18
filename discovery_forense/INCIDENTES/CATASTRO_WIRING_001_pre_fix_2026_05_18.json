@@ -1,0 +1,86 @@
+{
+  "sprint_id": "CATASTRO-WIRING-001",
+  "snapshot_type": "DSC-S-005_pre_fix_state",
+  "fecha": "2026-05-18",
+  "hora_iso": "2026-05-18T08:30:00Z",
+  "owner": "Manus Hilo Catastro",
+  "spec_firmado_por": "Cowork (Architect)",
+  "spec_firma_decision": "OPCION_1_FIX_ESTATICO_HOY",
+  "git_state": {
+    "branch": "monstruo-reality-atlas-001",
+    "head_sha": "657fe0b6029e0a02d5d640eac5e65f9e1f72c4c6",
+    "head_message": "bridge(catastro): sprint CATASTRO-WIRING-001 reporte intermedio - CASO A confirmado estaticamente + L_W5 invocada"
+  },
+  "target_file": {
+    "path": "kernel/embrion_loop.py",
+    "sha256_pre_fix": "0c87e1b57ea9cc3cb711cce04824e53195643b335983d55af080e4f4731fb4df",
+    "size_bytes": 119318,
+    "total_lines": 2528
+  },
+  "evidencia_binaria_caso_a": {
+    "hits_catastro_grep_ic": 0,
+    "hits_recommend_grep_ic": 0,
+    "imports_catastro_client": 0,
+    "imports_recommendation_engine": 0,
+    "http_calls_catastro": 0,
+    "model_actor_judge_hardcoded_calls": 3,
+    "hardcoded_call_lines": [1086, 1578, 2449],
+    "env_var_definitions": {
+      "JUDGE_MODEL": {
+        "linea": 98,
+        "verbatim": "JUDGE_MODEL = os.environ.get(\"EMBRION_JUDGE_MODEL\", \"gpt-5\")"
+      },
+      "ACTOR_MODEL": {
+        "linea": 99,
+        "verbatim": "ACTOR_MODEL = os.environ.get(\"EMBRION_ACTOR_MODEL\", \"gpt-5.5\")"
+      }
+    }
+  },
+  "patron_referencia_existente": {
+    "archivo": "kernel/e2e/catastro_client.py",
+    "clase": "CatastroRuntimeClient",
+    "metodo": "select_model_for_step",
+    "consumidores_existentes_en_pipeline": 8,
+    "step_use_case_map": {
+      "INVESTIGAR": "research_grounded",
+      "ARCHITECT": "product_architect",
+      "ESTRATEGIA": "strategic_reasoning",
+      "FINANZAS": "financial_analysis",
+      "CREATIVO": "creative_writing",
+      "VENTAS": "sales_copywriting",
+      "TECNICO": "code_generation",
+      "CRITIC": "vision_evaluation"
+    },
+    "fallback_model_documented": true
+  },
+  "preflight_checks_dsc_g_013_v0_1": {
+    "1_catastro_db_count": {
+      "status": "OK",
+      "value": "41_modelos_production",
+      "breakdown": "39_llm_frontier + 2_video",
+      "drift_vs_canonico": 0,
+      "metodo": "sb_sql.py_via_mac_pat_keychain"
+    },
+    "2_endpoint_recommend": {
+      "status": "FAIL_L_W5_INVOCADA",
+      "http_status": 404,
+      "url": "https://el-monstruo-kernel.up.railway.app/v1/catastro/recommend",
+      "fallback_aplicado": "audit_estatico_solo_caso_0"
+    },
+    "3_grep_estatico_embrion": {
+      "status": "OK",
+      "result": "CASO_A_confirmado_binariamente"
+    },
+    "4_migrations_recientes": {
+      "status": "OK",
+      "ultima": "0036_radar_runs.sql"
+    }
+  },
+  "f21_estructural": {
+    "hipotesis": "Embrion no consume Catastro = 39 LLMs son peso muerto",
+    "validacion_empirica": "CONFIRMADA",
+    "evidencia": "0/0/0/0 + 3 hardcodes verbatim"
+  },
+  "limitaciones_invocadas": ["L_W5"],
+  "no_cruce_respetado": ["§4_NO_TOCAR", "§9_NO_CRUCE"]
+}

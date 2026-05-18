@@ -97,6 +97,124 @@ DAILY_BUDGET_USD = float(os.environ.get("EMBRION_DAILY_BUDGET", "30.0"))  # $30/
 MAX_THOUGHTS_PER_DAY = int(os.environ.get("EMBRION_MAX_THOUGHTS", "50"))
 JUDGE_MODEL = os.environ.get("EMBRION_JUDGE_MODEL", "gpt-5")  # Cheap but current model
 ACTOR_MODEL = os.environ.get("EMBRION_ACTOR_MODEL", "gpt-5.5")  # Full power for thinking (catalog key)
+
+# ── CATASTRO_WIRING_BEGIN ──────────────────────────────────────────────────
+# Sprint CATASTRO-WIRING-001 (Cowork firma 2026-05-18, Opción 1, Camino B.1).
+# Razón: el Embrión NO consumía el Catastro al elegir modelo (F21 estructural).
+# Antes: 3 hardcodes ACTOR_MODEL/JUDGE_MODEL → 39 LLMs eran peso muerto.
+# Ahora: helper _select_model_via_catastro lee el RecommendationEngine singleton
+# que vive en kernel.catastro.catastro_routes._engine_singleton (seteado por
+# main.py:1366 vía set_dependencies). Lookup tardío para evitar el problema de
+# orden-de-inicialización (Embrión arranca en main.py:626, Catastro en :1362).
+# Fallback siempre al hardcode si engine es None o si recommend lanza excepción.
+# Use cases canónicos para Embrión:
+#   - autonomous_thought   → reemplaza ACTOR_MODEL en _think_with_router
+#   - budget_estimation    → reemplaza ACTOR_MODEL en check_before_cycle
+#   - ecosystem_reflection → reemplaza JUDGE_MODEL en radar reflection
+EMBRION_CATASTRO_USE_CASE_AUTONOMOUS_THOUGHT = "autonomous_thought"
+EMBRION_CATASTRO_USE_CASE_BUDGET_ESTIMATION = "budget_estimation"
+EMBRION_CATASTRO_USE_CASE_ECOSYSTEM_REFLECTION = "ecosystem_reflection"
+
+# Flag para deshabilitar el wiring sin redeploy (rollback instantáneo).
+# Default true: el Catastro debe consumirse. False: rollback total a hardcodes.
+EMBRION_CATASTRO_ENABLED = (
+    os.environ.get("EMBRION_CATASTRO_ENABLED", "true").lower() == "true"
+)
+
+
+async def _select_model_via_catastro(
+    use_case: str,
+    fallback: str,
+    *,
+    cycle_id: Optional[int] = None,
+) -> str:
+    """
+    Helper único que reemplaza los 3 hardcodes ACTOR_MODEL/JUDGE_MODEL en este
+    módulo. Consulta el RecommendationEngine singleton del Catastro para elegir
+    el modelo top dentro del use_case dado. Si el engine no está disponible
+    (Catastro no inicializado, DB caída, exception), regresa al fallback
+    hardcode pasado como argumento (rollback automático, fail-open).
+
+    Async wrapper sobre engine.recommend() que es síncrono — usa asyncio.to_thread
+    para no bloquear el event loop del Embrión.
+
+    Args:
+        use_case: identificador del caso de uso (ej: 'autonomous_thought').
+        fallback: modelo a usar si Catastro no responde o degraded.
+        cycle_id: para correlacionar logs con el ciclo del Embrión.
+
+    Returns:
+        model_id (string) — siempre devuelve algo, nunca None.
+    """
+    if not EMBRION_CATASTRO_ENABLED:
+        return fallback
+
+    try:
+        # Lookup tardío: el singleton lo setea main.py:1366 después del Embrión.
+        # Import dentro de la función para evitar circular imports en boot.
+        from kernel.catastro.catastro_routes import _engine_singleton
+
+        engine = _engine_singleton
+        if engine is None:
+            logger.warning(
+                "embrion_catastro_engine_not_initialized",
+                use_case=use_case,
+                fallback=fallback,
+                cycle_id=cycle_id,
+            )
+            return fallback
+
+        # engine.recommend es síncrono. Wrappear en to_thread para no bloquear.
+        response = await asyncio.to_thread(
+            engine.recommend,
+            use_case=use_case,
+            top_n=1,
+        )
+
+        if response.degraded or not response.modelos:
+            logger.warning(
+                "embrion_catastro_recommend_degraded",
+                use_case=use_case,
+                degraded=response.degraded,
+                degraded_reason=response.degraded_reason,
+                fallback=fallback,
+                cycle_id=cycle_id,
+            )
+            return fallback
+
+        top = response.modelos[0]
+        # Preferir id canónico; si no hay, nombre humano (compat con catalog).
+        model_id = top.id or top.nombre
+        if not model_id:
+            logger.warning(
+                "embrion_catastro_top_model_no_id",
+                use_case=use_case,
+                fallback=fallback,
+                cycle_id=cycle_id,
+            )
+            return fallback
+
+        logger.info(
+            "embrion_catastro_model_selected",
+            use_case=use_case,
+            model_id=model_id,
+            trono_global=top.trono_global,
+            cycle_id=cycle_id,
+            source="catastro",
+        )
+        return model_id
+
+    except Exception as exc:  # pragma: no cover (defensivo)
+        logger.warning(
+            "embrion_catastro_recommend_failed",
+            use_case=use_case,
+            error=str(exc),
+            error_type=type(exc).__name__,
+            fallback=fallback,
+            cycle_id=cycle_id,
+        )
+        return fallback
+# ── CATASTRO_WIRING_END ────────────────────────────────────────────────────
 SILENCE_THRESHOLD = int(os.environ.get("EMBRION_SILENCE_THRESHOLD", "70"))  # silence_score > 70 to speak
 CONSOLIDATION_INTERVAL = int(os.environ.get("EMBRION_CONSOLIDATION_INTERVAL", "10"))  # Every N latidos
 SABIOS_CONSULTATION_INTERVAL = int(os.environ.get("EMBRION_SABIOS_INTERVAL", "20"))  # Consult Sabios every N cycles
@@ -1079,11 +1197,18 @@ class EmbrionLoop:
                 EMBRION_EST_TOKENS_OUT_DIRECT if _is_directive else EMBRION_EST_TOKENS_OUT_REFLEX
             )
             try:
+                # ── CATASTRO_WIRING_BEGIN (budget_estimation) ──────────────
+                _budget_model = await _select_model_via_catastro(
+                    use_case=EMBRION_CATASTRO_USE_CASE_BUDGET_ESTIMATION,
+                    fallback=ACTOR_MODEL,
+                    cycle_id=self._cycle_count,
+                )
+                # ── CATASTRO_WIRING_END ────────────────────────────────────
                 _budget_decision = await asyncio.to_thread(
                     _embrion_budget.check_before_cycle,
                     estimated_tokens_in=_est_tokens_in,
                     estimated_tokens_out=_est_tokens_out,
-                    model=ACTOR_MODEL,
+                    model=_budget_model,
                 )
             except Exception as _be:
                 # Fail-open conservador: si el budget tracker falla, dejamos
@@ -1570,12 +1695,18 @@ class EmbrionLoop:
         Cheaper and faster for autonomous reflections.
         """
         from router.engine import IntentType as RouterIntentType
-
         router = self._kernel._router
+        # ── CATASTRO_WIRING_BEGIN (autonomous_thought) ──────────────────────
+        _think_model = await _select_model_via_catastro(
+            use_case=EMBRION_CATASTRO_USE_CASE_AUTONOMOUS_THOUGHT,
+            fallback=ACTOR_MODEL,
+            cycle_id=self._cycle_count,
+        )
+        # ── CATASTRO_WIRING_END ─────────────────────────────────────────────
         response, usage = await asyncio.wait_for(
             router.execute(
                 message=prompt,
-                model=ACTOR_MODEL,
+                model=_think_model,
                 intent=RouterIntentType.CHAT,
                 context={"source": "embrion_loop", "trigger": trigger["type"]},
             ),
@@ -2445,8 +2576,15 @@ Responde en máximo 3 oraciones:
 
 Si nada es relevante, responde solo: "Sin hallazgos relevantes hoy."
 """
+                # ── CATASTRO_WIRING_BEGIN (ecosystem_reflection) ────────────
+                _reflection_model = await _select_model_via_catastro(
+                    use_case=EMBRION_CATASTRO_USE_CASE_ECOSYSTEM_REFLECTION,
+                    fallback=JUDGE_MODEL,
+                    cycle_id=self._cycle_count,
+                )
+                # ── CATASTRO_WIRING_END ────────────────────────────────────
                 reflection = await call_llm(
-                    model=JUDGE_MODEL,
+                    model=_reflection_model,
                     messages=[{"role": "user", "content": reflection_prompt}],
                     max_tokens=300,
                 )
