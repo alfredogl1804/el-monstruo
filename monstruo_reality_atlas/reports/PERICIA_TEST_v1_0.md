@@ -1,12 +1,6 @@
-# [SUPERSEDED_BY_v1_0] PERICIA TEST v0.9
+# PERICIA TEST v1.0
 
-> **⚠️ SUPERSEDED_BY_v1_0** — Este test fue superado el 2026-05-18 después de que ChatGPT continuara Gate 3.3 y se descubriera wiring real más denso. NO usar este test — usar `PERICIA_TEST_v1_0.md`. Mantenido para trazabilidad histórica del bucle correctivo Anti-Dory.
-
----
-
-# PERICIA TEST v0.9 (SUPERSEDED)
-
-> **Propósito:** verificar que ChatGPT (o cualquier hilo nuevo) ha absorbido el conocimiento del checkpoint v0.9 antes de diseñar.
+> **Propósito:** verificar que ChatGPT (o cualquier hilo nuevo) ha absorbido el conocimiento del checkpoint v1.0 antes de diseñar.
 >
 > **Reglas del test:**
 >
@@ -15,7 +9,7 @@
 > - Si pasa 16-17/20: leer las preguntas falladas, releer secciones del checkpoint, reintentar una vez.
 > - Si pasa menos de 16/20: **NO diseñar**. Releer checkpoint completo + JSON state. Reintentar después.
 >
-> **Fuente de verdad:** `CHATGPT_PERICIA_CHECKPOINT_v0_9.md` y `CHATGPT_PERICIA_STATE_v0_9.json`.
+> **Fuente de verdad:** `CHATGPT_PERICIA_CHECKPOINT_v1.0.md` y `CHATGPT_PERICIA_STATE_v1.0.json`.
 
 ---
 
@@ -53,7 +47,7 @@ Tener schema sin renderer = el contrato existe pero la UI no respira.
 
 **Respuesta esperada:**
 
-Memento existe como **validator importable real** en `kernel/memento/`. Se puede importar desde Python y usar para validar que outputs cumplen el protocolo Memento. **NO está confirmado** que exista endpoint HTTP completo expuesto en `kernel/main.py` que permita a transports externos (Flutter, Command Center) llamar a Memento. Hasta verificar wiring en kernel/main.py, asumir solo validator local.
+Memento validator confirmado + endpoint HTTP POST `/v1/memento/validate` confirmado. Pendiente: verificar consumidores reales en Flutter/Command Center.
 
 ---
 
@@ -94,9 +88,7 @@ Los 4 Catastros canónicos en `kernel/catastros/` son:
 3. **herramientas_ai** — registro de herramientas/APIs (búsqueda, render, voz, etc.).
 4. **suppliers_humanos** — registro de personas/proveedores humanos consultables.
 
-Tienen 3 interfaces: `lookup` (consulta directa por id), `search` (búsqueda semántica), `orchestration` (selección automática de mejor recurso para tarea).
-
-**Catastro NO es inventario visual** (tabla estática que se mira). Es **motor de selección de recursos** que el Embrión consulta dinámicamente.
+Catastro confirmado como API/motor de recomendación: `/v1/catastro/recommend`, `/v1/catastro/modelos/{id}`, `/v1/catastro/dominios`, `/v1/catastro/status`. No es UI ni tabla visual.
 
 ---
 
@@ -145,7 +137,7 @@ Tres piezas reales de código:
 2. **`memory/causal_kb.py`** — base de conocimiento causal con relaciones causa→efecto.
 3. **`kernel/simulator/causal_simulator_v2.py`** — simulador Monte Carlo que corre escenarios sobre la KB.
 
-**Falta verificar:** si hay endpoints HTTP que expongan el simulador, si hay UI en Flutter o Command Center que lo use, si está conectado al loop del Embrión. Hasta verificar wiring en kernel/main.py, asumir solo módulos importables.
+CausalKnowledgeBase, CausalDecomposer, CausalSimulator y CausalSimulatorV2 están inicializados / disponibles en `app.state` o lifespan. No se confirmó endpoint REST directo. Uso probablemente interno del kernel/Embrión.
 
 ---
 
@@ -266,13 +258,13 @@ NO mostrar solo chat. El Embrión es más que conversación.
 
 Para llegar a `ARQUITECTO_PRINCIPAL` (de `ARQUITECTO_EN_CERTIFICACION`), faltan:
 
-- **Gate 3.3**: `kernel/main.py` y todas las rutas (AG-UI, memory, embrion, proposal/HITL, finops, moc, collective/Sabios, embrion_specializations).
+- **Gate 3.4**: Module Maturity Audit (distinguir módulo existente vs inicializado vs endpoint real vs consumidor UI vs madurez operacional).
 - Bridge inter-hilos completo (subir de 45% a 80%+).
 - Command Center real (subir de 50% a 80%+).
 - Catastros (subir de 55% a 80%+).
 - Simulador causal verificado en endpoints/UI (subir de 55% a 80%+).
-- Embriones especializados (qué embriones específicos existen).
-- Sabios collective (cómo se consulta a múltiples sabios y se sintetizan respuestas).
+- Embriones especializados (hay embriones especializados reales inicializados o intentados: ventas, técnico, vigía, creativo, estratega, financiero, investigador. Estado: clases/estado inicializado; madurez operacional individual pendiente de auditoría).
+- Sabios collective (ColectivaProtocol se inicializa en app.state. Tiene protocolo real de mensajería, debate y votación inter-embriones. No endpoint REST directo confirmado).
 
 ---
 
@@ -303,7 +295,7 @@ NO canonizar todavía:
 - **Privacidad por Imposibilidad** — es función de SMP, no canon nuevo.
 - **Cronista Familiar / Herencia Narrativa / Legacy Capture / Día One Familiar** — son aliases de cronos_modo_cripta, ya canonizado. NO crear módulo nuevo.
 - **Home canónica** — solo existe como proxy de ChatScreen, NO como Home real.
-- **Memento endpoint completo** — solo validator confirmado.
+- **Memento endpoint completo** — validator confirmado + endpoint HTTP POST `/v1/memento/validate` confirmado. Pendiente verificar consumidores.
 - **A2UI renderer real** — solo schema confirmado.
 - **Acto 1 vs Acto 2 como contradicción** — la dirección es Acto 2 contiene Acto 1.
 - **Las 10 hipótesis pre-IA y 5 órganos latentes** — esperan CIERRE BLOQUE PRE-IA.
@@ -317,27 +309,25 @@ NO canonizar todavía:
 
 **Respuesta esperada:**
 
-**Gate 3.3 — Wiring real en `kernel/main.py`**
+**Gate 3.4 — Module Maturity Audit**
 
 Leer:
+- `kernel/moc_routes.py`
+- `kernel/finops_routes.py`
+- `kernel/magna_routes.py`
+- `kernel/memory_routes.py`
+- `kernel/e2e/routes.py`
+- `kernel/e2e/traffic/routes.py`
+- `kernel/catastro/recommendation.py`
+- `kernel/embrion_scheduler.py`
+- `kernel/rotor/recharge.py`
+- `kernel/guardian_runner/runner.py`
+- `kernel/a2a_routes.py`
+- `kernel/cowork_routes.py`
+- `kernel/collective/protocol.py`
+- `kernel/embriones/*`
 
-- `kernel/main.py`
-- rutas AG-UI
-- rutas memory
-- rutas embrion
-- rutas proposal/HITL
-- rutas finops
-- rutas moc
-- collective/Sabios
-- embrion_specializations
-
-**Objetivo:** saber qué módulos están **realmente conectados al API** y qué solo existe como módulo importable. Esto distingue:
-
-- `Memento validator` (módulo importable) vs `Memento endpoint` (ruta HTTP en kernel/main.py).
-- `CausalSimulatorV2` (módulo importable) vs `simulador endpoint` (ruta HTTP).
-- `Embrion loop` (módulo) vs `embrion endpoint` (ruta que dispara el loop desde transports).
-
-Sin Gate 3.3, asumir solo módulos importables, NO endpoints reales.
+**Objetivo:** Distinguir módulo existente vs inicializado vs endpoint real vs consumidor UI vs madurez operacional.
 
 ---
 
@@ -351,4 +341,4 @@ Después de responder las 20 preguntas:
 | 16-17/20 | PARCIAL. Releer preguntas falladas + secciones del checkpoint. Reintentar una vez. |
 | <16/20 | FALLA. NO diseñar. Releer checkpoint completo + JSON state. Reintentar después. |
 
-Registrar resultado en `monstruo_reality_atlas/reports/PERICIA_TEST_v0.9_RESULT_<fecha>.md` (cuando aplique).
+Registrar resultado en `monstruo_reality_atlas/reports/PERICIA_TEST_v1.0_RESULT_<fecha>.md` (cuando aplique).

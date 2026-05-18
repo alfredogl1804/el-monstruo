@@ -1,28 +1,13 @@
 {
-  "_superseded_by": "1.0",
-  "_superseded_at": "2026-05-18",
-  "_superseded_commit_message": "docs(atlas): add ChatGPT pericia checkpoint v1.0 post Gate 3.3",
-  "_known_drifts": [
-    "version_field_mismatch_was_0.8_in_v0.9",
-    "memento_endpoint_status_was_unconfirmed",
-    "catastro_was_unconfirmed_as_api",
-    "embrion_hitl_endpoints_were_unconfirmed",
-    "colmena_7_7_was_unconfirmed",
-    "simulador_causal_was_unconfirmed_in_app_state",
-    "collective_was_unconfirmed_protocol",
-    "kernel_wiring_general_was_underestimated"
-  ],
-  "_use_instead": "monstruo_reality_atlas/reports/CHATGPT_PERICIA_STATE_v1_0.json",
-  "_warning": "NO usar este archivo como fuente de verdad. Mantenido solo para trazabilidad histórica del bucle correctivo Anti-Dory.",
-  "version": "0.9-SUPERSEDED",
-  "created_at": "2026-05-18T07:00:00-06:00",
+  "version": "1.0",
+  "created_at": "2026-05-18T08:00:00-06:00",
   "created_by": "Manus",
   "instructed_by": "Alfredo Gongora",
   "subject_model": "ChatGPT 5.5 Pro",
   "status": {
-    "phase": "ARQUITECTO_EN_CERTIFICACION",
+    "phase": "ARQUITECTO_EN_CERTIFICACION_AVANZADO",
     "not_yet": "ARQUITECTO_PRINCIPAL",
-    "estimated_total_pericia_pct": 68
+    "estimated_total_pericia_pct": 73
   },
   "pericia_scores": {
     "atlas_fabric": 80,
@@ -77,7 +62,7 @@
       "summary": "Loop autonomo real con purpose filter, judge, silence score, HITL escalation, FCS, budget, self-verifier, sabios/radar, piezas Reloj Suizo como Escape/Espiral por flags."
     },
     {
-      "id": "CT-009",
+      "id": "CT-1.0",
       "title": "Budget Tracker real",
       "summary": "Controla cap por latido, presupuesto diario, registro post-flight y escalacion HITL."
     },
@@ -205,21 +190,26 @@
       "reason": "No disenar interfaz final antes de conocer sustrato inteligente"
     }
   ],
-  "next_gate": {
-    "id": "Gate 3.3",
-    "title": "Wiring real en kernel/main.py",
+    "next_gate": {
+    "id": "Gate 3.4",
+    "title": "Module Maturity Audit",
     "files_to_read": [
-      "kernel/main.py",
-      "rutas AG-UI",
-      "rutas memory",
-      "rutas embrion",
-      "rutas proposal/HITL",
-      "rutas finops",
-      "rutas moc",
-      "collective/Sabios",
-      "embrion_specializations"
+      "kernel/moc_routes.py",
+      "kernel/finops_routes.py",
+      "kernel/magna_routes.py",
+      "kernel/memory_routes.py",
+      "kernel/e2e/routes.py",
+      "kernel/e2e/traffic/routes.py",
+      "kernel/catastro/recommendation.py",
+      "kernel/embrion_scheduler.py",
+      "kernel/rotor/recharge.py",
+      "kernel/guardian_runner/runner.py",
+      "kernel/a2a_routes.py",
+      "kernel/cowork_routes.py",
+      "kernel/collective/protocol.py",
+      "kernel/embriones/*"
     ],
-    "objective": "Saber que modulos estan realmente conectados al API y que solo existe como modulo importable"
+    "objective": "Distinguir modulo existente vs inicializado vs endpoint real vs consumidor UI vs madurez operacional"
   },
   "source_paths": [
     "monstruo_reality_atlas/00_START_HERE_FOR_CHATGPT.md",
@@ -275,9 +265,9 @@
   ],
   "continuity_rule": {
     "on_compaction_or_new_thread": [
-      "1. Leer CHATGPT_PERICIA_CHECKPOINT_v0_9.md completo",
-      "2. Leer CHATGPT_PERICIA_STATE_v0_9.json (este archivo)",
-      "3. Ejecutar PERICIA_TEST_v0_9.md",
+      "1. Leer CHATGPT_PERICIA_CHECKPOINT_v1.0.md completo",
+      "2. Leer CHATGPT_PERICIA_STATE_v1.0.json (este archivo)",
+      "3. Ejecutar PERICIA_TEST_v1.0.md",
       "4. Si falla el test, NO disenar"
     ]
   }

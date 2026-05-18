@@ -1,27 +1,12 @@
-# [SUPERSEDED_BY_v1_0] CHATGPT PERICIA CHECKPOINT v0.9
-
-> **⚠️ SUPERSEDED_BY_v1_0** — Este archivo fue superado el 2026-05-18 después de que ChatGPT continuara Gate 3.3 leyendo `kernel/main.py` directamente y descubriera wiring real más denso de lo que v0.9 reflejaba.
->
-> **NO usar como fuente de verdad.** Ir a la versión vigente:
-> - `monstruo_reality_atlas/reports/CHATGPT_PERICIA_CHECKPOINT_v1_0.md`
-> - `monstruo_reality_atlas/reports/CHATGPT_PERICIA_STATE_v1_0.json`
-> - `monstruo_reality_atlas/reports/PERICIA_TEST_v1_0.md`
->
-> **Cambios principales en v1.0:** Memento endpoint confirmado, Catastro confirmado como API (4 endpoints), Embrión/HITL endpoints confirmados (4 endpoints), Colmena 7/7 embriones especializados confirmados, Simulador causal y Collective inicializados en app.state, kernel wiring general más denso (memoria multi-capa, MOC, FinOps, ToolRegistry, AG-UI, etc.), pericia 70% → 73%, status `ARQUITECTO_EN_CERTIFICACION` → `ARQUITECTO_EN_CERTIFICACION_AVANZADO`, next_gate `Gate 3.3` → `Gate 3.4 Module Maturity Audit`.
->
-> **Mantenido para trazabilidad histórica del bucle correctivo Anti-Dory.**
-
----
-
-# CHATGPT PERICIA CHECKPOINT v0.9 (SUPERSEDED)
+# CHATGPT PERICIA CHECKPOINT v1.0
 
 > **Propósito:** persistir el estado actual de pericia de ChatGPT 5.5 Pro sobre El Monstruo para evitar pérdida por compactación, drift o re-interpretación futura.
 >
-> **Generado por:** Manus, por instrucción de Alfredo Góngora, 2026-05-18 (v0.9 fix silence drift en P16).
+> **Generado por:** Manus, por instrucción de Alfredo Góngora, 2026-05-18 (v1.0 fix silence drift en P16).
 >
 > **Estado:** blindaje. NO diseñar, NO canonizar, NO corregir Atlas todavía salvo notas de drift.
 >
-> **Si abrís este archivo en hilo nuevo:** leelo completo antes de proponer cualquier cosa. Después leé `CHATGPT_PERICIA_STATE_v0_9.json` y ejecutá `PERICIA_TEST_v0_9.md`. Si fallás el test, NO diseñes.
+> **Si abrís este archivo en hilo nuevo:** leelo completo antes de proponer cualquier cosa. Después leé `CHATGPT_PERICIA_STATE_v1.0.json` y ejecutá `PERICIA_TEST_v1.0.md`. Si fallás el test, NO diseñes.
 
 ---
 
@@ -30,7 +15,7 @@
 ChatGPT está en fase:
 
 ```
-ARQUITECTO_EN_CERTIFICACION
+ARQUITECTO_EN_CERTIFICACION_AVANZADO
 NO_ARQUITECTO_PRINCIPAL_TODAVIA
 ```
 
@@ -47,7 +32,7 @@ NO_ARQUITECTO_PRINCIPAL_TODAVIA
 | Catastros | 55% |
 | Simulador causal | 55% |
 | Bridge inter-hilos | 45% |
-| **Pericia total estimada** | **68%** |
+| **Pericia total estimada** | **73%** |
 
 ---
 
@@ -132,7 +117,7 @@ A2UI existe como **schema Pydantic real** en kernel. Flutter tiene pantalla A2UI
 
 ### 3.5 Memento
 
-Memento existe como **validator importable real**. NO asumir endpoint HTTP completo sin verificar.
+Memento validator confirmado + endpoint HTTP POST `/v1/memento/validate` confirmado. Pendiente: verificar consumidores reales en Flutter/Command Center.
 
 ### 3.6 Cronos / Río de Vida
 
@@ -172,50 +157,28 @@ VERIFIABLE **exige un artefacto/acción verificable real** (commit, archivo, URL
 
 ### 3.11 Write Policy + HITL
 
-Existe cola de proposals con estados:
+Endpoints confirmados: `/v1/embrion/propose`, `/v1/embrion/approve/{id}`, `/v1/embrion/reject/{id}`, `/v1/embrion/telegram/webhook`. Propose crea pending con idempotency; approve/reject operan sobre pending.
 
-```
-pending → approved → executing → executed | failed | rejected | expired
-```
+### 3.12 Kernel Wiring General (Gate 3.3 superado)
+`kernel/main.py` tiene wiring más denso que el Evidence Pack resumía: memoria multi-capa, MOC, FinOps, ToolRegistry, AG-UI, Background jobs, ErrorMemory, Browser endpoints, E2E, Traffic, A2A, Cowork Memento, Catastro, Embrión scheduler, Rotor, Guardian, Colmena, Collective, Marketplace, Learning, Design System.
 
-Incluye idempotency, approve / reject, notify_hitl, execute_next.
-
-### 3.12 Proposal Processor
+### 3.13 Proposal Processor
 
 Existe como **worker independiente** que expira y ejecuta proposals aprobadas.
 
-### 3.13 Executor Registry
+### 3.14 Executor Registry
 
 Por defecto los executors son **noop**. Side effects reales requieren payload `executor='real'`. `code_commit` está diferido. `db_write` y `external_api_call` pueden ser reales bajo opt-in.
 
-### 3.14 Catastros
+### 3.15 Catastros
 
-Existen 4 Catastros canónicos:
+Catastro confirmado como API/motor de recomendación: `/v1/catastro/recommend`, `/v1/catastro/modelos/{id}`, `/v1/catastro/dominios`, `/v1/catastro/status`. No es UI ni tabla visual.
 
-- `modelos_llm`
-- `agentes_2026`
-- `herramientas_ai`
-- `suppliers_humanos`
+### 3.16 Simulador causal
 
-Y 3 interfaces:
+CausalKnowledgeBase, CausalDecomposer, CausalSimulator y CausalSimulatorV2 están inicializados / disponibles en `app.state` o lifespan. No se confirmó endpoint REST directo. Uso probablemente interno del kernel/Embrión.
 
-- `lookup`
-- `search`
-- `orchestration`
-
-Catastro **NO es inventario visual**; es **motor de selección de recursos**.
-
-### 3.15 Simulador causal
-
-Existe:
-
-- `CausalDecomposer`
-- `CausalKnowledgeBase`
-- `CausalSimulatorV2` Monte Carlo
-
-Falta verificar endpoints / UI / uso real.
-
-### 3.16 Bridge inter-hilos
+### 3.17 Bridge inter-hilos
 
 Bridge existe como **sistema operativo social**:
 
@@ -271,7 +234,7 @@ Bridge existe como **sistema operativo social**:
 
 ## 7. Lista de cosas que ChatGPT NO debe rediseñar
 
-Espejo del bloque `do_not_redesign` en `CHATGPT_PERICIA_STATE_v0_9.json`. Cualquier hilo nuevo que vaya a proponer módulos debe revisar primero esta lista.
+Espejo del bloque `do_not_redesign` en `CHATGPT_PERICIA_STATE_v1.0.json`. Cualquier hilo nuevo que vaya a proponer módulos debe revisar primero esta lista.
 
 | ID | Concepto propuesto | Razón canónica |
 |---|---|---|
@@ -296,21 +259,25 @@ Si ChatGPT detecta una propuesta nueva que cae en cualquiera de estos 8 patrones
 
 ## 8. Próximo gate
 
-**Gate 3.3 — Wiring real en `kernel/main.py`**
+**Gate 3.4 — Module Maturity Audit**
 
 Leer:
+- `kernel/moc_routes.py`
+- `kernel/finops_routes.py`
+- `kernel/magna_routes.py`
+- `kernel/memory_routes.py`
+- `kernel/e2e/routes.py`
+- `kernel/e2e/traffic/routes.py`
+- `kernel/catastro/recommendation.py`
+- `kernel/embrion_scheduler.py`
+- `kernel/rotor/recharge.py`
+- `kernel/guardian_runner/runner.py`
+- `kernel/a2a_routes.py`
+- `kernel/cowork_routes.py`
+- `kernel/collective/protocol.py`
+- `kernel/embriones/*`
 
-- `kernel/main.py`
-- rutas AG-UI
-- rutas memory
-- rutas embrion
-- rutas proposal / HITL
-- rutas finops
-- rutas moc
-- collective / Sabios
-- embrion_specializations
-
-Objetivo: saber qué módulos están **realmente conectados al API** y qué solo existe como módulo importable.
+Objetivo: Distinguir módulo existente vs inicializado vs endpoint real vs consumidor UI vs madurez operacional.
 
 ---
 
@@ -319,8 +286,8 @@ Objetivo: saber qué módulos están **realmente conectados al API** y qué solo
 Si ChatGPT se compacta o abre hilo nuevo:
 
 1. Leer este checkpoint.
-2. Leer el JSON state (`CHATGPT_PERICIA_STATE_v0_9.json`).
-3. Ejecutar `PERICIA_TEST_v0_9.md`.
+2. Leer el JSON state (`CHATGPT_PERICIA_STATE_v1.0.json`).
+3. Ejecutar `PERICIA_TEST_v1.0.md`.
 4. Si falla el test (puntaje < 18/20), **NO diseñar**. Releer hasta que pase.
 5. Si pasa el test, continuar exactamente desde el Próximo Gate (§8).
 
