@@ -21,14 +21,31 @@ import os
 import sys
 import time
 
+import pytest
+
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from tools.github import (
-    create_branch,
-    create_or_update_file,
-    create_pull_request,
+# H18 (chore/h18-commit-loop-skip-without-token): skip-on-missing-credential
+# pattern (precedente: tests/anti_dory/test_manus_bridge_e2e_live.py).
+# Si GITHUB_TOKEN no está presente en env, este test integration-real-API
+# debe ser skipped para que CI sin secrets no se rompa. Para ejecutar local:
+#   GITHUB_TOKEN=<token> python -m pytest tests/test_commit_loop.py -v
+pytestmark = pytest.mark.skipif(
+    not os.environ.get("GITHUB_TOKEN"),
+    reason=(
+        "GITHUB_TOKEN no presente en env — test commit-loop integration "
+        "requiere credenciales reales contra GitHub API. CI sin secrets "
+        "hace skip por defecto. Para ejecutar: "
+        "`GITHUB_TOKEN=<token> python -m pytest tests/test_commit_loop.py -v`"
+    ),
 )
+
+# H18 lazy import: mover `from tools.github import ...` dentro de las funciones
+# para que el skip marker (pytestmark arriba) tome efecto antes de la collection-time
+# import. Sin esto, `tools/github.py` importa `aiohttp` en module load, lo que
+# revienta CI con `ModuleNotFoundError: No module named 'aiohttp'` aun cuando el
+# test debería haber sido skipped por GITHUB_TOKEN ausente.
 
 # Auto-detect repo owner from GITHUB_TOKEN
 REPO = os.environ.get("TEST_REPO", "")
@@ -37,7 +54,7 @@ BRANCH_NAME = f"test/commit-loop-{int(time.time())}"
 
 async def detect_repo():
     """Detect the el-monstruo repo from the authenticated user."""
-    import aiohttp
+    import aiohttp  # lazy: solo si test corre con GITHUB_TOKEN
     token = os.environ.get("GITHUB_TOKEN", "")
     if not token:
         print("ERROR: GITHUB_TOKEN not set")
@@ -57,6 +74,12 @@ async def detect_repo():
 
 async def test_commit_loop():
     """Full integration test of the commit loop."""
+    # H18 lazy imports: tools.github importa aiohttp en module load, evitar collection-time
+    from tools.github import (  # noqa: F401
+        create_branch,
+        create_or_update_file,
+        create_pull_request,
+    )
     global REPO
 
     print("\n" + "=" * 60)
