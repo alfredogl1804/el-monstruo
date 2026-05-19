@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Monstruo — HITL Cockpit MVP</title>
+    <title>El Monstruo — HITL Cockpit v0.2 (Supervised Local Demo)</title>
     <style>
         :root {
             --bg: #0d1117;
@@ -16,6 +16,7 @@
             --yellow: #d29922;
             --red: #f85149;
             --orange: #db6d28;
+            --purple: #a371f7;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -24,6 +25,20 @@
             color: var(--text);
             min-height: 100vh;
             padding: 1rem;
+        }
+        /* ── PHASE 2: Permanent supervised banner ── */
+        .supervised-banner {
+            background: rgba(248,81,73,0.08);
+            border: 2px solid var(--red);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--red);
+            margin-bottom: 1rem;
+            text-align: center;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
         }
         h1 {
             font-size: 1.5rem;
@@ -66,6 +81,23 @@
         .card-title .dot.green { background: var(--green); }
         .card-title .dot.yellow { background: var(--yellow); }
         .card-title .dot.red { background: var(--red); }
+        /* ── PHASE 2: Source label badges ── */
+        .source-label {
+            display: inline-block;
+            padding: 0.1rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+        .source-label.real-read-only { background: rgba(63,185,80,0.15); color: var(--green); }
+        .source-label.mock-data { background: rgba(210,153,34,0.15); color: var(--yellow); }
+        .source-label.unknown { background: rgba(139,148,158,0.15); color: var(--text-muted); }
+        .source-label.stale { background: rgba(219,109,40,0.15); color: var(--orange); }
+        .source-label.disabled { background: rgba(248,81,73,0.15); color: var(--red); }
         .metric {
             font-size: 1.8rem;
             font-weight: 700;
@@ -149,20 +181,18 @@
             color: var(--green);
             border-color: var(--green);
         }
-        .btn-approve:hover { background: rgba(63,185,80,0.25); }
+        .btn-approve:hover:not(:disabled) { background: rgba(63,185,80,0.25); }
         .btn-reject {
             background: rgba(248,81,73,0.1);
             color: var(--red);
             border-color: var(--red);
         }
-        .btn-reject:hover { background: rgba(248,81,73,0.25); }
+        .btn-reject:hover:not(:disabled) { background: rgba(248,81,73,0.25); }
         .btn:disabled {
             opacity: 0.4;
             cursor: not-allowed;
         }
-        .issues-list {
-            list-style: none;
-        }
+        .issues-list { list-style: none; }
         .issues-list li {
             padding: 0.4rem 0;
             border-bottom: 1px solid var(--border);
@@ -170,13 +200,8 @@
             color: var(--orange);
         }
         .issues-list li:last-child { border-bottom: none; }
-        .errors-list {
-            list-style: none;
-        }
-        .errors-list li {
-            padding: 0.3rem 0;
-            font-size: 0.8rem;
-        }
+        .errors-list { list-style: none; }
+        .errors-list li { padding: 0.3rem 0; font-size: 0.8rem; }
         .error-type { color: var(--red); font-weight: 600; }
         .error-count { color: var(--text-muted); }
         .empty-state {
@@ -268,11 +293,52 @@
             display: none;
         }
         .demo-banner.visible { display: block; }
+        /* ── PHASE 2: Data Matrix table ── */
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        .matrix-table th {
+            text-align: left;
+            padding: 0.4rem 0.5rem;
+            border-bottom: 2px solid var(--border);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            letter-spacing: 0.04em;
+        }
+        .matrix-table td {
+            padding: 0.35rem 0.5rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+        }
+        .matrix-table tr:last-child td { border-bottom: none; }
+        /* ── PHASE 2: Disabled action warning ── */
+        .action-disabled-notice {
+            background: rgba(248,81,73,0.05);
+            border: 1px dashed var(--red);
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+            color: var(--red);
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- PHASE 2: PERMANENT SUPERVISED BANNER (always visible)         -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div class="supervised-banner">
+        SUPERVISED LOCAL DEMO — not production control plane — no R1 authorization
+    </div>
+
     <h1>El Monstruo — HITL Cockpit</h1>
-    <p class="subtitle">SPR-HITL-COCKPIT-001 | Supervisión humana del Embrión | MVP v0.1</p>
+    <p class="subtitle">SPR-HITL-COCKPIT-001 | Fase 2 Local Supervisada | v0.2</p>
 
     <div class="config-bar">
         <input type="text" id="baseUrl" placeholder="Base URL (e.g. http://localhost:8000/v1/embrion)" value="http://localhost:8000/v1/embrion">
@@ -280,26 +346,35 @@
     </div>
 
     <div class="demo-banner" id="demoBanner">
-        DEMO_DATA — No se pudo conectar al backend. Mostrando datos de ejemplo para visibilidad de layout.
+        MOCK_DATA — No se pudo conectar al backend. Mostrando datos de ejemplo para visibilidad de layout.
         Estos datos NO son reales y NO deben usarse para decisiones.
     </div>
 
     <!-- Row 1: Heartbeat + Budget + Silence -->
     <div class="grid">
         <div class="card">
-            <div class="card-title"><span class="dot" id="loopDot"></span>Loop / Último Latido</div>
+            <div class="card-title">
+                <span class="dot" id="loopDot"></span>Loop / Redacted Cycle Summary
+                <span class="source-label" id="loopLabel">UNKNOWN</span>
+            </div>
             <div id="loopContent">
                 <div class="empty-state">Conectando...</div>
             </div>
         </div>
         <div class="card">
-            <div class="card-title"><span class="dot" id="budgetDot"></span>Budget</div>
+            <div class="card-title">
+                <span class="dot" id="budgetDot"></span>Budget
+                <span class="source-label" id="budgetLabel">UNKNOWN</span>
+            </div>
             <div id="budgetContent">
                 <div class="empty-state">Conectando...</div>
             </div>
         </div>
         <div class="card">
-            <div class="card-title"><span class="dot" id="silenceDot"></span>Silencio</div>
+            <div class="card-title">
+                <span class="dot" id="silenceDot"></span>Silencio
+                <span class="source-label" id="silenceLabel">UNKNOWN</span>
+            </div>
             <div id="silenceContent">
                 <div class="empty-state">Conectando...</div>
             </div>
@@ -309,13 +384,19 @@
     <!-- Row 2: Health / Bloqueos + Errores -->
     <div class="grid">
         <div class="card">
-            <div class="card-title"><span class="dot" id="healthDot"></span>Salud / Bloqueos</div>
+            <div class="card-title">
+                <span class="dot" id="healthDot"></span>Salud / Bloqueos
+                <span class="source-label" id="healthLabel">UNKNOWN</span>
+            </div>
             <div id="healthContent">
                 <div class="empty-state">Conectando...</div>
             </div>
         </div>
         <div class="card">
-            <div class="card-title"><span class="dot" id="errorsDot"></span>Errores Recientes</div>
+            <div class="card-title">
+                <span class="dot" id="errorsDot"></span>Errores Recientes
+                <span class="source-label" id="errorsLabel">UNKNOWN</span>
+            </div>
             <div id="errorsContent">
                 <div class="empty-state">Conectando...</div>
             </div>
@@ -324,36 +405,87 @@
 
     <!-- Row 3: Proposals -->
     <div class="card" style="margin-bottom: 1rem;">
-        <div class="card-title"><span class="dot" id="proposalsDot"></span>Proposals Pendientes (HITL)</div>
+        <div class="card-title">
+            <span class="dot" id="proposalsDot"></span>Proposals Pendientes (HITL)
+            <span class="source-label" id="proposalsLabel">UNKNOWN</span>
+        </div>
+        <!-- PHASE 2: Disabled action notice -->
+        <div class="action-disabled-notice" id="actionDisabledNotice">
+            APPROVE/REJECT: DISABLED — No backend auth validated. Actions are LOCAL_ONLY with double confirmation.
+            No production writes. No real authorization simulated.
+        </div>
         <div class="proposals-list" id="proposalsContent">
             <div class="empty-state">Conectando...</div>
         </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- PHASE 2: DATA SOURCE MATRIX                                    -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div class="card" style="margin-bottom: 1rem;">
+        <div class="card-title">
+            <span class="dot yellow"></span>Data Source Matrix
+            <span class="source-label unknown">META</span>
+        </div>
+        <table class="matrix-table" id="matrixTable">
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Source</th>
+                    <th>Freshness</th>
+                    <th>Action Allowed</th>
+                </tr>
+            </thead>
+            <tbody id="matrixBody">
+                <!-- Populated by JS -->
+            </tbody>
+        </table>
+    </div>
+
     <div class="last-refresh" id="lastRefresh">—</div>
 
-    <!-- Confirm Modal -->
+    <!-- Confirm Modal (PHASE 2: double confirmation) -->
     <div class="confirm-modal" id="confirmModal">
         <div class="confirm-box">
-            <h3 id="confirmTitle">Confirmar acción</h3>
+            <h3 id="confirmTitle">Confirmar accion</h3>
             <p id="confirmDesc"></p>
-            <textarea id="confirmNotes" placeholder="Notas / razón (obligatorio para reject)"></textarea>
+            <p style="color:var(--red);font-size:0.75rem;margin-bottom:0.5rem;font-weight:700;">
+                LOCAL_ONLY: Esta accion NO tiene backend auth. No se ejecutara en produccion.
+            </p>
+            <textarea id="confirmNotes" placeholder="Notas / razon (obligatorio para reject)"></textarea>
+            <!-- PHASE 2: Double confirmation checkbox -->
+            <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.75rem;color:var(--text-muted);margin-bottom:1rem;cursor:pointer;">
+                <input type="checkbox" id="doubleConfirmCheck">
+                Confirmo que entiendo: esto es LOCAL_ONLY, sin auth productiva, sin write real.
+            </label>
             <div class="actions">
                 <button class="btn" onclick="closeModal()">Cancelar</button>
-                <button class="btn btn-approve" id="confirmBtn" onclick="executeAction()">Confirmar</button>
+                <button class="btn btn-approve" id="confirmBtn" onclick="executeAction()" disabled>Confirmar</button>
             </div>
         </div>
     </div>
 
     <script>
         // ═══════════════════════════════════════════════════════════════
-        // HITL Cockpit MVP — Solo lectura + approve/reject con confirmación
-        // NO escribe a DB, NO crea endpoints, NO toca secrets.
-        // Consume: GET /estado, GET /diagnostic, GET /proposals,
-        //          POST /approve/{id}, POST /reject/{id}
+        // HITL Cockpit v0.2 — Fase 2 Local Supervisada
+        // SUPERVISED LOCAL DEMO — not production control plane
+        //
+        // Changes from v0.1:
+        // 1. Permanent supervised banner (always visible, red border)
+        // 2. Source labels on every card (REAL_READ_ONLY / MOCK_DATA / UNKNOWN / STALE / DISABLED)
+        // 3. "thoughts" → "redacted_cycle_summary" (no raw chain-of-thought)
+        // 4. Approve/reject = LOCAL_ONLY with double confirmation
+        // 5. Data source matrix (field / source / freshness / action_allowed)
+        // 6. Zero kernel/DB/Supabase/secrets/deploy/PR/auth changes
         // ═══════════════════════════════════════════════════════════════
 
-        let pendingAction = null; // {type: 'approve'|'reject', proposalId: string}
+        let pendingAction = null;
+        let dataSourceState = 'unknown'; // 'real' | 'mock' | 'unknown'
+
+        // ── PHASE 2: Double confirmation gate ──
+        document.getElementById('doubleConfirmCheck').addEventListener('change', function() {
+            document.getElementById('confirmBtn').disabled = !this.checked;
+        });
 
         function getBaseUrl() {
             return document.getElementById('baseUrl').value.replace(/\/$/, '');
@@ -366,6 +498,14 @@
             return resp.json();
         }
 
+        // ── PHASE 2: Source label updater ──
+        function setSourceLabel(elementId, state) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.textContent = state.replace(/_/g, ' ');
+            el.className = 'source-label ' + state.toLowerCase().replace(/_/g, '-');
+        }
+
         // ── Render functions ──
 
         function renderLoop(diag) {
@@ -374,7 +514,13 @@
             const status = loop.status || 'unknown';
             dot.className = `dot ${status === 'running' ? 'green' : 'red'}`;
 
-            const lastThought = loop.last_thought_at
+            // PHASE 2: redacted_cycle_summary instead of "thoughts"
+            const cycleCount = loop.cycle_count || 0;
+            const redactedSummary = cycleCount > 0
+                ? `${cycleCount} cycles completed`
+                : 'No safe redacted cycle summary source available';
+
+            const lastCycleAt = loop.last_thought_at
                 ? new Date(loop.last_thought_at * 1000).toLocaleString()
                 : 'N/A';
             const secsSince = loop.seconds_since_last_thought != null
@@ -383,10 +529,10 @@
 
             document.getElementById('loopContent').innerHTML = `
                 <div class="metric">${status.toUpperCase()}</div>
-                <div class="metric-row"><span class="label">Ciclos</span><span class="value">${loop.cycle_count || 0}</span></div>
-                <div class="metric-row"><span class="label">Pensamientos hoy</span><span class="value">${loop.thoughts_today || 0} / ${loop.max_thoughts_per_day || '?'}</span></div>
-                <div class="metric-row"><span class="label">Último pensamiento</span><span class="value">${secsSince || lastThought}</span></div>
-                <div class="metric-row"><span class="label">Último trigger</span><span class="value">${loop.last_trigger || 'N/A'}</span></div>
+                <div class="metric-row"><span class="label">Ciclos</span><span class="value">${cycleCount}</span></div>
+                <div class="metric-row"><span class="label">Redacted Cycle Summary</span><span class="value">${redactedSummary}</span></div>
+                <div class="metric-row"><span class="label">Ultimo ciclo</span><span class="value">${secsSince || lastCycleAt}</span></div>
+                <div class="metric-row"><span class="label">Ultimo trigger</span><span class="value">${loop.last_trigger || 'N/A'}</span></div>
                 <div class="metric-row"><span class="label">Intervalo</span><span class="value">${loop.check_interval_s || '?'}s</span></div>
             `;
         }
@@ -401,7 +547,7 @@
 
             document.getElementById('budgetContent').innerHTML = `
                 <div class="metric">$${remaining.toFixed(4)}</div>
-                <div class="metric-label">restante de $${daily.toFixed(2)}/día (${pct}%)</div>
+                <div class="metric-label">restante de $${daily.toFixed(2)}/dia (${pct}%)</div>
                 <div class="metric-row"><span class="label">Gastado hoy</span><span class="value">$${(loop.cost_today_usd || 0).toFixed(4)}</span></div>
             `;
         }
@@ -418,7 +564,7 @@
                 <div class="metric-row"><span class="label">Silenciados hoy</span><span class="value">${s.silenced_today || 0}</span></div>
                 <div class="metric-row"><span class="label">Mensajes enviados</span><span class="value">${s.messages_sent_today || 0}</span></div>
                 <div class="metric-row"><span class="label">Threshold</span><span class="value">${s.threshold || 'N/A'}</span></div>
-                <div class="metric-row"><span class="label">Último score</span><span class="value">${s.last_score != null ? s.last_score : 'N/A'}</span></div>
+                <div class="metric-row"><span class="label">Ultimo score</span><span class="value">${s.last_score != null ? s.last_score : 'N/A'}</span></div>
             `;
         }
 
@@ -456,7 +602,7 @@
                             ${Object.entries(byType).map(([t, c]) => `<li><span class="error-type">${t}</span> <span class="error-count">x${c}</span></li>`).join('')}
                          </ul>`;
                 if (errs.last_error) {
-                    html += `<div class="metric-row"><span class="label">Último</span><span class="value" style="font-size:0.75rem">${errs.last_error.type || 'unknown'}</span></div>`;
+                    html += `<div class="metric-row"><span class="label">Ultimo</span><span class="value" style="font-size:0.75rem">${errs.last_error.type || 'unknown'}</span></div>`;
                 }
             }
             document.getElementById('errorsContent').innerHTML = html;
@@ -469,7 +615,7 @@
 
             if (proposals.length === 0) {
                 document.getElementById('proposalsContent').innerHTML =
-                    `<div class="empty-state">No hay proposals pendientes. El Embrión está en reposo o todas fueron procesadas.</div>`;
+                    `<div class="empty-state">No hay proposals pendientes. El Embrion esta en reposo o todas fueron procesadas.</div>`;
                 return;
             }
 
@@ -485,8 +631,8 @@
                         </div>
                         <div class="proposal-summary">${summary}</div>
                         <div class="proposal-actions">
-                            <button class="btn btn-approve" onclick="confirmAction('approve','${p.id}','${(p.summary||'').replace(/'/g,'')}')">Aprobar</button>
-                            <button class="btn btn-reject" onclick="confirmAction('reject','${p.id}','${(p.summary||'').replace(/'/g,'')}')">Rechazar</button>
+                            <button class="btn btn-approve" onclick="confirmAction('approve','${p.id}','${(p.summary||'').replace(/'/g,'')}')" ${dataSourceState === 'mock' ? 'disabled title="DISABLED: mock data"' : ''}>Aprobar</button>
+                            <button class="btn btn-reject" onclick="confirmAction('reject','${p.id}','${(p.summary||'').replace(/'/g,'')}')" ${dataSourceState === 'mock' ? 'disabled title="DISABLED: mock data"' : ''}>Rechazar</button>
                         </div>
                     </div>
                 `;
@@ -495,20 +641,58 @@
             document.getElementById('proposalsContent').innerHTML = html;
         }
 
-        // ── HITL Actions with human confirmation ──
+        // ── PHASE 2: Data Source Matrix ──
+
+        const MATRIX_FIELDS = [
+            { field: 'loop.status', source: 'GET /v1/embrion/diagnostic', freshness: 'live (30s refresh)', action: 'READ_ONLY' },
+            { field: 'loop.cycle_count', source: 'GET /v1/embrion/diagnostic', freshness: 'live (30s refresh)', action: 'READ_ONLY' },
+            { field: 'redacted_cycle_summary', source: 'derived from cycle_count', freshness: 'live (30s refresh)', action: 'READ_ONLY' },
+            { field: 'budget_remaining_usd', source: 'GET /v1/embrion/diagnostic', freshness: 'live (30s refresh)', action: 'READ_ONLY' },
+            { field: 'cost_today_usd', source: 'GET /v1/embrion/diagnostic', freshness: 'live (30s refresh)', action: 'READ_ONLY' },
+            { field: 'silence.ratio', source: 'GET /v1/embrion/diagnostic', freshness: 'live (30s refresh)', action: 'READ_ONLY' },
+            { field: 'silence.last_score', source: 'GET /v1/embrion/diagnostic', freshness: 'live (30s refresh)', action: 'READ_ONLY' },
+            { field: 'health_verdict', source: 'GET /v1/embrion/diagnostic', freshness: 'live (30s refresh)', action: 'READ_ONLY' },
+            { field: 'errors.total_recent', source: 'GET /v1/embrion/diagnostic', freshness: 'live (30s refresh)', action: 'READ_ONLY' },
+            { field: 'proposals[]', source: 'GET /v1/embrion/proposals', freshness: 'live (30s refresh)', action: 'READ_ONLY' },
+            { field: 'approve(id)', source: 'POST /v1/embrion/approve/{id}', freshness: 'on-demand', action: 'LOCAL_ONLY (no backend auth)' },
+            { field: 'reject(id)', source: 'POST /v1/embrion/reject/{id}', freshness: 'on-demand', action: 'LOCAL_ONLY (no backend auth)' },
+        ];
+
+        function renderMatrix() {
+            const tbody = document.getElementById('matrixBody');
+            tbody.innerHTML = MATRIX_FIELDS.map(f => {
+                const sourceState = dataSourceState === 'real' ? 'REAL_READ_ONLY'
+                    : dataSourceState === 'mock' ? 'MOCK_DATA' : 'UNKNOWN';
+                const actionClass = f.action.includes('LOCAL_ONLY') ? 'color:var(--red)' : 'color:var(--green)';
+                return `<tr>
+                    <td><code>${f.field}</code></td>
+                    <td>${f.source} <span class="source-label ${sourceState.toLowerCase().replace(/_/g,'-')}">${sourceState}</span></td>
+                    <td>${f.freshness}</td>
+                    <td style="${actionClass};font-weight:600">${f.action}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ── HITL Actions with PHASE 2 double confirmation ──
 
         function confirmAction(type, proposalId, summary) {
+            if (dataSourceState === 'mock') {
+                alert('DISABLED: Cannot approve/reject mock data.');
+                return;
+            }
             pendingAction = { type, proposalId };
             document.getElementById('confirmTitle').textContent =
-                type === 'approve' ? 'Confirmar APROBACIÓN' : 'Confirmar RECHAZO';
+                type === 'approve' ? 'Confirmar APROBACION (LOCAL_ONLY)' : 'Confirmar RECHAZO (LOCAL_ONLY)';
             document.getElementById('confirmDesc').textContent =
                 `Proposal: ${proposalId}\n${summary}`;
             document.getElementById('confirmNotes').value = '';
             document.getElementById('confirmNotes').placeholder =
-                type === 'reject' ? 'Razón del rechazo (obligatorio)' : 'Notas (opcional)';
+                type === 'reject' ? 'Razon del rechazo (obligatorio)' : 'Notas (opcional)';
             const btn = document.getElementById('confirmBtn');
-            btn.textContent = type === 'approve' ? 'Aprobar' : 'Rechazar';
+            btn.textContent = type === 'approve' ? 'Aprobar (LOCAL_ONLY)' : 'Rechazar (LOCAL_ONLY)';
             btn.className = type === 'approve' ? 'btn btn-approve' : 'btn btn-reject';
+            btn.disabled = true;
+            document.getElementById('doubleConfirmCheck').checked = false;
             document.getElementById('confirmModal').classList.add('active');
         }
 
@@ -519,18 +703,23 @@
 
         async function executeAction() {
             if (!pendingAction) return;
+            // PHASE 2: Double confirmation gate
+            if (!document.getElementById('doubleConfirmCheck').checked) {
+                alert('Debes marcar la casilla de confirmacion.');
+                return;
+            }
             const { type, proposalId } = pendingAction;
             const notes = document.getElementById('confirmNotes').value.trim();
 
             if (type === 'reject' && !notes) {
-                alert('La razón es obligatoria para rechazar.');
+                alert('La razon es obligatoria para rechazar.');
                 return;
             }
 
             const url = `${getBaseUrl()}/${type === 'approve' ? 'approve' : 'reject'}/${proposalId}`;
             const body = type === 'approve'
-                ? { approved_by: 'alfredo_cockpit_mvp', notes: notes || undefined }
-                : { approved_by: 'alfredo_cockpit_mvp', reason: notes };
+                ? { approved_by: 'alfredo_cockpit_local_only', notes: notes || undefined }
+                : { approved_by: 'alfredo_cockpit_local_only', reason: notes };
 
             try {
                 const resp = await fetch(url, {
@@ -546,7 +735,7 @@
                     refreshAll();
                 }
             } catch (e) {
-                alert(`Error de red: ${e.message}`);
+                alert(`Error de red (LOCAL_ONLY — no hay backend auth): ${e.message}`);
             }
         }
 
@@ -581,33 +770,60 @@
 
             try {
                 const diag = await fetchJSON('/diagnostic');
+                dataSourceState = 'real';
                 renderLoop(diag);
                 renderBudget(diag);
                 renderSilence(diag);
                 renderHealth(diag);
                 renderErrors(diag);
+                // PHASE 2: Update source labels
+                setSourceLabel('loopLabel', 'REAL_READ_ONLY');
+                setSourceLabel('budgetLabel', 'REAL_READ_ONLY');
+                setSourceLabel('silenceLabel', 'REAL_READ_ONLY');
+                setSourceLabel('healthLabel', 'REAL_READ_ONLY');
+                setSourceLabel('errorsLabel', 'REAL_READ_ONLY');
             } catch (e) {
-                console.warn('diagnostic fetch failed, using DEMO_DATA', e);
+                console.warn('diagnostic fetch failed, using MOCK_DATA', e);
+                dataSourceState = 'mock';
                 renderLoop(DEMO_DIAGNOSTIC);
                 renderBudget(DEMO_DIAGNOSTIC);
                 renderSilence(DEMO_DIAGNOSTIC);
                 renderHealth(DEMO_DIAGNOSTIC);
                 renderErrors(DEMO_DIAGNOSTIC);
+                setSourceLabel('loopLabel', 'MOCK_DATA');
+                setSourceLabel('budgetLabel', 'MOCK_DATA');
+                setSourceLabel('silenceLabel', 'MOCK_DATA');
+                setSourceLabel('healthLabel', 'MOCK_DATA');
+                setSourceLabel('errorsLabel', 'MOCK_DATA');
                 usedDemo = true;
             }
 
             try {
                 const props = await fetchJSON('/proposals?status=pending');
                 renderProposals(props);
+                setSourceLabel('proposalsLabel', 'REAL_READ_ONLY');
             } catch (e) {
-                console.warn('proposals fetch failed, using DEMO_DATA', e);
+                console.warn('proposals fetch failed, using MOCK_DATA', e);
+                dataSourceState = 'mock';
                 renderProposals(DEMO_PROPOSALS);
+                setSourceLabel('proposalsLabel', 'MOCK_DATA');
                 usedDemo = true;
+            }
+
+            // PHASE 2: Update action disabled notice
+            const notice = document.getElementById('actionDisabledNotice');
+            if (dataSourceState === 'mock') {
+                notice.textContent = 'APPROVE/REJECT: DISABLED — Backend unreachable. Mock data active. No actions possible.';
+            } else {
+                notice.textContent = 'APPROVE/REJECT: LOCAL_ONLY — No backend auth validated. Double confirmation required. No production writes.';
             }
 
             banner.classList.toggle('visible', usedDemo);
             document.getElementById('lastRefresh').textContent =
-                `Última actualización: ${new Date().toLocaleString()}${usedDemo ? ' (DEMO_DATA)' : ''}`;
+                `Ultima actualizacion: ${new Date().toLocaleString()}${usedDemo ? ' (MOCK_DATA)' : ' (REAL_READ_ONLY)'}`;
+
+            // PHASE 2: Render matrix with current state
+            renderMatrix();
         }
 
         // Auto-refresh every 30s
