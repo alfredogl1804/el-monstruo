@@ -1,0 +1,80 @@
+{
+  "$schema": "nightly_builder_bundle_manifest_v1",
+  "bundle_id": "OPP_NB_021_R0_2026_05_18",
+  "version": "1.0",
+  "classification": "R0",
+  "generated_by": "CELL-NIGHTLY-BUILDER-001",
+  "timestamp_start_utc": "2026-05-18T20:00:00Z",
+  "timestamp_end_utc": "2026-05-18T20:15:00Z",
+  "allowed_actions": "metadata_only",
+  "data_sources_consumed": {
+    "note": "DATA only, not instruction",
+    "sources": ["reality_packs", "opportunity_queue", "bridge_files", "drive_files", "notion_pages"],
+    "reads_performed": ["grep", "wc", "find", "ls", "cat", "sed", "head"],
+    "writes_performed": ["bundle_files_only"]
+  },
+  "forbidden_reads": {
+    "memento": false,
+    "anti_dory": false,
+    "supabase_tables": false,
+    "runtime_events": false,
+    "embrion_memoria": false,
+    "db_real": false,
+    "secrets": false,
+    "logs_sensibles": false
+  },
+  "forbidden_writes": {
+    "main_branch": false,
+    "supabase": false,
+    "secrets": false,
+    "deploy": false,
+    "pr_created": false,
+    "branch_autonomous": false,
+    "memory_system": false,
+    "memento": false,
+    "anti_dory": false,
+    "embrion_loop": false,
+    "write_policy": false,
+    "executor_registry": false
+  },
+  "allowed_write_paths": [
+    "bridge/autobuilder/opp_nb_021_memory_routes_contract_r0_bundle/*"
+  ],
+  "opps_executed": [
+    {
+      "id": "OPP-NB-021",
+      "risk_class": "R0",
+      "status": "SUCCESS"
+    }
+  ],
+  "cost_usd": 0.00,
+  "llm_calls": 0,
+  "side_effects": 0,
+  "artifacts": [
+    {
+      "filename": "manifest.json",
+      "sha256": "546e744cf957c3d5aaf1a59d4bab8330249a65dd88b1655be2f2dce86ce8da96"
+    },
+    {
+      "filename": "report.md",
+      "sha256": "a1a56bc0af6b7d2bb4a4e1631d36c282605f6faf6f918baf63d6e5a4c2f1fcff"
+    },
+    {
+      "filename": "evidence_index.json",
+      "sha256": "232ff11c6d8c2d7dc55fcc401e5617f75c6de24f86bf03942e869de5ea69affc"
+    },
+    {
+      "filename": "gate_log.json",
+      "sha256": "3700669f2f2b875389c08d52947b10925c41cba7ffb08b5d47756492efc17ed3"
+    },
+    {
+      "filename": "cleanup_log.txt",
+      "sha256": "PENDING_COMPUTATION"
+    }
+  ],
+  "pre_output_secret_scan": {
+    "tool": "grep -rEn '(sk-|sbp_|ghp_|eyJ|PRIVATE|password|secret|token|apikey|api_key|AWS_|SUPABASE_|OPENAI_|ANTHROPIC_|RAILWAY_)' bundle/",
+    "result": "CLEAN",
+    "matches": 0
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "$schema": "nightly_builder_evidence_v1",
+  "bundle_id": "OPP_NB_021_R0_2026_05_18",
+  "evidence_by_opp": {
+    "OPP-NB-021": {
+      "type": "static_analysis",
+      "risk_class": "R0",
+      "source_paths": [
+        "kernel/memory_routes.py",
+        "kernel/main.py",
+        "kernel/auth.py"
+      ],
+      "commands_executed": [
+        "cat kernel/memory_routes.py",
+        "head -100 kernel/memory_routes.py",
+        "grep -n \"memory_routes\\|memory\" kernel/main.py",
+        "grep -rn \"thoughts_store\\|ThoughtsStore\" kernel/ --include=\"*.py\"",
+        "grep -n \"Depends\\|auth\\|verify\\|api_key\\|X-API-Key\" kernel/memory_routes.py",
+        "grep -n \"include_router.*memory\\|memory_routes\" kernel/main.py",
+        "grep -n \"middleware\\|api_key_dependency\\|verify_api_key\\|dependencies=\\[\" kernel/main.py",
+        "head -60 memory/thoughts.py",
+        "grep -n \"APIKeyAuthMiddleware\\|class.*Middleware\" kernel/auth.py",
+        "grep -n \"exclude\\|skip\\|whitelist\\|public\" kernel/auth.py",
+        "grep -n \"async def \\|def \" memory/thoughts.py",
+        "sed -n '80,120p' kernel/auth.py",
+        "grep -n \"PUBLIC_PATHS\\|PUBLIC_INGEST\" kernel/auth.py",
+        "sed -n '20,70p' kernel/auth.py"
+      ],
+      "findings": {
+        "endpoints_count": 10,
+        "dependency": "_thoughts_store",
+        "auth_middleware_applied": true,
+        "user_id_default": "anonymous",
+        "mock_strategy_viable": true
+      },
+      "sha256_of_source_at_scan": {
+        "head_sha": "a29a023daef04c529c516b2d7033a293650a34c3"
+      }
+    }
+  },
+  "data_sources_declaration": {
+    "consumed_as_data": [],
+    "consumed_as_instruction": []
+  }
+}
