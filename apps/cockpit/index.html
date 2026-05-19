@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Monstruo — HITL Cockpit MVP</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --green: #3fb950;
+            --yellow: #d29922;
+            --red: #f85149;
+            --orange: #db6d28;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        .card-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-title .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+        .card-title .dot.green { background: var(--green); }
+        .card-title .dot.yellow { background: var(--yellow); }
+        .card-title .dot.red { background: var(--red); }
+        .metric {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .metric-row:last-child { border-bottom: none; }
+        .metric-row .label { color: var(--text-muted); font-size: 0.8rem; }
+        .metric-row .value { font-weight: 600; font-size: 0.9rem; }
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-green { background: rgba(63,185,80,0.15); color: var(--green); }
+        .badge-yellow { background: rgba(210,153,34,0.15); color: var(--yellow); }
+        .badge-red { background: rgba(248,81,73,0.15); color: var(--red); }
+        .badge-blue { background: rgba(88,166,255,0.15); color: var(--accent); }
+        .proposals-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .proposal-item {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .proposal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .proposal-type {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .proposal-risk {
+            font-size: 0.7rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+        }
+        .risk-low { background: rgba(63,185,80,0.2); color: var(--green); }
+        .risk-medium { background: rgba(210,153,34,0.2); color: var(--yellow); }
+        .risk-high { background: rgba(248,81,73,0.2); color: var(--red); }
+        .proposal-summary {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        .proposal-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn {
+            padding: 0.35rem 0.75rem;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-approve {
+            background: rgba(63,185,80,0.1);
+            color: var(--green);
+            border-color: var(--green);
+        }
+        .btn-approve:hover { background: rgba(63,185,80,0.25); }
+        .btn-reject {
+            background: rgba(248,81,73,0.1);
+            color: var(--red);
+            border-color: var(--red);
+        }
+        .btn-reject:hover { background: rgba(248,81,73,0.25); }
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .issues-list {
+            list-style: none;
+        }
+        .issues-list li {
+            padding: 0.4rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--orange);
+        }
+        .issues-list li:last-child { border-bottom: none; }
+        .errors-list {
+            list-style: none;
+        }
+        .errors-list li {
+            padding: 0.3rem 0;
+            font-size: 0.8rem;
+        }
+        .error-type { color: var(--red); font-weight: 600; }
+        .error-count { color: var(--text-muted); }
+        .empty-state {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-style: italic;
+            padding: 1rem 0;
+            text-align: center;
+        }
+        .config-bar {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .config-bar input {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.4rem 0.6rem;
+            color: var(--text);
+            font-size: 0.8rem;
+            flex: 1;
+            min-width: 200px;
+        }
+        .config-bar button {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 4px;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .config-bar button:hover { opacity: 0.85; }
+        .last-refresh {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: right;
+            margin-top: 0.5rem;
+        }
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .confirm-modal.active { display: flex; }
+        .confirm-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            max-width: 400px;
+            width: 90%;
+        }
+        .confirm-box h3 { margin-bottom: 0.75rem; font-size: 1rem; }
+        .confirm-box p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; }
+        .confirm-box textarea {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.5rem;
+            color: var(--text);
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            min-height: 60px;
+            resize: vertical;
+        }
+        .confirm-box .actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+        .demo-banner {
+            background: rgba(210,153,34,0.1);
+            border: 1px solid var(--yellow);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            color: var(--yellow);
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .demo-banner.visible { display: block; }
+    </style>
+</head>
+<body>
+    <h1>El Monstruo — HITL Cockpit</h1>
+    <p class="subtitle">SPR-HITL-COCKPIT-001 | Supervisión humana del Embrión | MVP v0.1</p>
+
+    <div class="config-bar">
+        <input type="text" id="baseUrl" placeholder="Base URL (e.g. http://localhost:8000/v1/embrion)" value="http://localhost:8000/v1/embrion">
+        <button onclick="refreshAll()">Refresh</button>
+    </div>
+
+    <div class="demo-banner" id="demoBanner">
+        DEMO_DATA — No se pudo conectar al backend. Mostrando datos de ejemplo para visibilidad de layout.
+        Estos datos NO son reales y NO deben usarse para decisiones.
+    </div>
+
+    <!-- Row 1: Heartbeat + Budget + Silence -->
+    <div class="grid">
+        <div class="card">
+            <div class="card-title"><span class="dot" id="loopDot"></span>Loop / Último Latido</div>
+            <div id="loopContent">
+                <div class="empty-state">Conectando...</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title"><span class="dot" id="budgetDot"></span>Budget</div>
+            <div id="budgetContent">
+                <div class="empty-state">Conectando...</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title"><span class="dot" id="silenceDot"></span>Silencio</div>
+            <div id="silenceContent">
+                <div class="empty-state">Conectando...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Health / Bloqueos + Errores -->
+    <div class="grid">
+        <div class="card">
+            <div class="card-title"><span class="dot" id="healthDot"></span>Salud / Bloqueos</div>
+            <div id="healthContent">
+                <div class="empty-state">Conectando...</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title"><span class="dot" id="errorsDot"></span>Errores Recientes</div>
+            <div id="errorsContent">
+                <div class="empty-state">Conectando...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 3: Proposals -->
+    <div class="card" style="margin-bottom: 1rem;">
+        <div class="card-title"><span class="dot" id="proposalsDot"></span>Proposals Pendientes (HITL)</div>
+        <div class="proposals-list" id="proposalsContent">
+            <div class="empty-state">Conectando...</div>
+        </div>
+    </div>
+
+    <div class="last-refresh" id="lastRefresh">—</div>
+
+    <!-- Confirm Modal -->
+    <div class="confirm-modal" id="confirmModal">
+        <div class="confirm-box">
+            <h3 id="confirmTitle">Confirmar acción</h3>
+            <p id="confirmDesc"></p>
+            <textarea id="confirmNotes" placeholder="Notas / razón (obligatorio para reject)"></textarea>
+            <div class="actions">
+                <button class="btn" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-approve" id="confirmBtn" onclick="executeAction()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // HITL Cockpit MVP — Solo lectura + approve/reject con confirmación
+        // NO escribe a DB, NO crea endpoints, NO toca secrets.
+        // Consume: GET /estado, GET /diagnostic, GET /proposals,
+        //          POST /approve/{id}, POST /reject/{id}
+        // ═══════════════════════════════════════════════════════════════
+
+        let pendingAction = null; // {type: 'approve'|'reject', proposalId: string}
+
+        function getBaseUrl() {
+            return document.getElementById('baseUrl').value.replace(/\/$/, '');
+        }
+
+        async function fetchJSON(path) {
+            const url = `${getBaseUrl()}${path}`;
+            const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            return resp.json();
+        }
+
+        // ── Render functions ──
+
+        function renderLoop(diag) {
+            const loop = diag.loop || {};
+            const dot = document.getElementById('loopDot');
+            const status = loop.status || 'unknown';
+            dot.className = `dot ${status === 'running' ? 'green' : 'red'}`;
+
+            const lastThought = loop.last_thought_at
+                ? new Date(loop.last_thought_at * 1000).toLocaleString()
+                : 'N/A';
+            const secsSince = loop.seconds_since_last_thought != null
+                ? `${Math.round(loop.seconds_since_last_thought)}s ago`
+                : '';
+
+            document.getElementById('loopContent').innerHTML = `
+                <div class="metric">${status.toUpperCase()}</div>
+                <div class="metric-row"><span class="label">Ciclos</span><span class="value">${loop.cycle_count || 0}</span></div>
+                <div class="metric-row"><span class="label">Pensamientos hoy</span><span class="value">${loop.thoughts_today || 0} / ${loop.max_thoughts_per_day || '?'}</span></div>
+                <div class="metric-row"><span class="label">Último pensamiento</span><span class="value">${secsSince || lastThought}</span></div>
+                <div class="metric-row"><span class="label">Último trigger</span><span class="value">${loop.last_trigger || 'N/A'}</span></div>
+                <div class="metric-row"><span class="label">Intervalo</span><span class="value">${loop.check_interval_s || '?'}s</span></div>
+            `;
+        }
+
+        function renderBudget(diag) {
+            const loop = diag.loop || {};
+            const dot = document.getElementById('budgetDot');
+            const remaining = loop.budget_remaining_usd || 0;
+            const daily = loop.daily_budget_usd || 30;
+            const pct = daily > 0 ? Math.round((remaining / daily) * 100) : 0;
+            dot.className = `dot ${pct > 50 ? 'green' : pct > 20 ? 'yellow' : 'red'}`;
+
+            document.getElementById('budgetContent').innerHTML = `
+                <div class="metric">$${remaining.toFixed(4)}</div>
+                <div class="metric-label">restante de $${daily.toFixed(2)}/día (${pct}%)</div>
+                <div class="metric-row"><span class="label">Gastado hoy</span><span class="value">$${(loop.cost_today_usd || 0).toFixed(4)}</span></div>
+            `;
+        }
+
+        function renderSilence(diag) {
+            const s = diag.silence || {};
+            const dot = document.getElementById('silenceDot');
+            const ratio = s.silence_ratio || 0;
+            dot.className = `dot ${ratio < 0.3 ? 'green' : ratio < 0.6 ? 'yellow' : 'red'}`;
+
+            document.getElementById('silenceContent').innerHTML = `
+                <div class="metric">${Math.round(ratio * 100)}%</div>
+                <div class="metric-label">ratio de silencio</div>
+                <div class="metric-row"><span class="label">Silenciados hoy</span><span class="value">${s.silenced_today || 0}</span></div>
+                <div class="metric-row"><span class="label">Mensajes enviados</span><span class="value">${s.messages_sent_today || 0}</span></div>
+                <div class="metric-row"><span class="label">Threshold</span><span class="value">${s.threshold || 'N/A'}</span></div>
+                <div class="metric-row"><span class="label">Último score</span><span class="value">${s.last_score != null ? s.last_score : 'N/A'}</span></div>
+            `;
+        }
+
+        function renderHealth(diag) {
+            const hv = diag.health_verdict || {};
+            const dot = document.getElementById('healthDot');
+            dot.className = `dot ${hv.healthy ? 'green' : 'red'}`;
+
+            const issues = hv.issues || [];
+            let html = '';
+            if (hv.healthy) {
+                html = `<div class="metric" style="color:var(--green)">HEALTHY</div>
+                         <div class="metric-label">Sin bloqueos detectados</div>`;
+            } else {
+                html = `<div class="metric" style="color:var(--red)">${issues.length} ISSUE${issues.length > 1 ? 'S' : ''}</div>
+                         <ul class="issues-list">${issues.map(i => `<li>${i}</li>`).join('')}</ul>`;
+            }
+            document.getElementById('healthContent').innerHTML = html;
+        }
+
+        function renderErrors(diag) {
+            const errs = diag.errors || {};
+            const dot = document.getElementById('errorsDot');
+            const total = errs.total_recent || 0;
+            dot.className = `dot ${total === 0 ? 'green' : total < 5 ? 'yellow' : 'red'}`;
+
+            let html = '';
+            if (total === 0) {
+                html = `<div class="metric" style="color:var(--green)">0</div><div class="metric-label">errores recientes</div>`;
+            } else {
+                const byType = errs.by_type || {};
+                html = `<div class="metric" style="color:var(--red)">${total}</div>
+                         <div class="metric-label">errores recientes</div>
+                         <ul class="errors-list">
+                            ${Object.entries(byType).map(([t, c]) => `<li><span class="error-type">${t}</span> <span class="error-count">x${c}</span></li>`).join('')}
+                         </ul>`;
+                if (errs.last_error) {
+                    html += `<div class="metric-row"><span class="label">Último</span><span class="value" style="font-size:0.75rem">${errs.last_error.type || 'unknown'}</span></div>`;
+                }
+            }
+            document.getElementById('errorsContent').innerHTML = html;
+        }
+
+        function renderProposals(data) {
+            const proposals = data.proposals || [];
+            const dot = document.getElementById('proposalsDot');
+            dot.className = `dot ${proposals.length === 0 ? 'green' : 'yellow'}`;
+
+            if (proposals.length === 0) {
+                document.getElementById('proposalsContent').innerHTML =
+                    `<div class="empty-state">No hay proposals pendientes. El Embrión está en reposo o todas fueron procesadas.</div>`;
+                return;
+            }
+
+            const html = proposals.map(p => {
+                const riskClass = (p.risk_level || '').includes('high') ? 'risk-high'
+                    : (p.risk_level || '').includes('medium') ? 'risk-medium' : 'risk-low';
+                const summary = p.summary || p.payload?.description || JSON.stringify(p.payload || {}).slice(0, 120);
+                return `
+                    <div class="proposal-item">
+                        <div class="proposal-header">
+                            <span class="proposal-type">${p.proposal_type || 'unknown'}</span>
+                            <span class="proposal-risk badge ${riskClass}">${p.risk_level || '?'}</span>
+                        </div>
+                        <div class="proposal-summary">${summary}</div>
+                        <div class="proposal-actions">
+                            <button class="btn btn-approve" onclick="confirmAction('approve','${p.id}','${(p.summary||'').replace(/'/g,'')}')">Aprobar</button>
+                            <button class="btn btn-reject" onclick="confirmAction('reject','${p.id}','${(p.summary||'').replace(/'/g,'')}')">Rechazar</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('proposalsContent').innerHTML = html;
+        }
+
+        // ── HITL Actions with human confirmation ──
+
+        function confirmAction(type, proposalId, summary) {
+            pendingAction = { type, proposalId };
+            document.getElementById('confirmTitle').textContent =
+                type === 'approve' ? 'Confirmar APROBACIÓN' : 'Confirmar RECHAZO';
+            document.getElementById('confirmDesc').textContent =
+                `Proposal: ${proposalId}\n${summary}`;
+            document.getElementById('confirmNotes').value = '';
+            document.getElementById('confirmNotes').placeholder =
+                type === 'reject' ? 'Razón del rechazo (obligatorio)' : 'Notas (opcional)';
+            const btn = document.getElementById('confirmBtn');
+            btn.textContent = type === 'approve' ? 'Aprobar' : 'Rechazar';
+            btn.className = type === 'approve' ? 'btn btn-approve' : 'btn btn-reject';
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').classList.remove('active');
+            pendingAction = null;
+        }
+
+        async function executeAction() {
+            if (!pendingAction) return;
+            const { type, proposalId } = pendingAction;
+            const notes = document.getElementById('confirmNotes').value.trim();
+
+            if (type === 'reject' && !notes) {
+                alert('La razón es obligatoria para rechazar.');
+                return;
+            }
+
+            const url = `${getBaseUrl()}/${type === 'approve' ? 'approve' : 'reject'}/${proposalId}`;
+            const body = type === 'approve'
+                ? { approved_by: 'alfredo_cockpit_mvp', notes: notes || undefined }
+                : { approved_by: 'alfredo_cockpit_mvp', reason: notes };
+
+            try {
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({}));
+                    alert(`Error: ${err.detail || resp.status}`);
+                } else {
+                    closeModal();
+                    refreshAll();
+                }
+            } catch (e) {
+                alert(`Error de red: ${e.message}`);
+            }
+        }
+
+        // ── DEMO DATA (only shown when backend unreachable) ──
+
+        const DEMO_DIAGNOSTIC = {
+            loop: {
+                status: 'stopped',
+                cycle_count: 0,
+                check_interval_s: 60,
+                thoughts_today: 0,
+                max_thoughts_per_day: 50,
+                cost_today_usd: 0.0,
+                daily_budget_usd: 30.0,
+                budget_remaining_usd: 30.0,
+                last_thought_at: null,
+                seconds_since_last_thought: null,
+                last_trigger: null,
+            },
+            errors: { total_recent: 0, by_type: {}, last_error: null },
+            silence: { threshold: 0, last_score: null, silenced_today: 0, messages_sent_today: 0, silence_ratio: 0 },
+            health_verdict: { healthy: true, issues: [], issue_count: 0 },
+        };
+
+        const DEMO_PROPOSALS = { status_filter: 'pending', count: 0, proposals: [] };
+
+        // ── Main refresh ──
+
+        async function refreshAll() {
+            const banner = document.getElementById('demoBanner');
+            let usedDemo = false;
+
+            try {
+                const diag = await fetchJSON('/diagnostic');
+                renderLoop(diag);
+                renderBudget(diag);
+                renderSilence(diag);
+                renderHealth(diag);
+                renderErrors(diag);
+            } catch (e) {
+                console.warn('diagnostic fetch failed, using DEMO_DATA', e);
+                renderLoop(DEMO_DIAGNOSTIC);
+                renderBudget(DEMO_DIAGNOSTIC);
+                renderSilence(DEMO_DIAGNOSTIC);
+                renderHealth(DEMO_DIAGNOSTIC);
+                renderErrors(DEMO_DIAGNOSTIC);
+                usedDemo = true;
+            }
+
+            try {
+                const props = await fetchJSON('/proposals?status=pending');
+                renderProposals(props);
+            } catch (e) {
+                console.warn('proposals fetch failed, using DEMO_DATA', e);
+                renderProposals(DEMO_PROPOSALS);
+                usedDemo = true;
+            }
+
+            banner.classList.toggle('visible', usedDemo);
+            document.getElementById('lastRefresh').textContent =
+                `Última actualización: ${new Date().toLocaleString()}${usedDemo ? ' (DEMO_DATA)' : ''}`;
+        }
+
+        // Auto-refresh every 30s
+        refreshAll();
+        setInterval(refreshAll, 30000);
+    </script>
+</body>
+</html>
