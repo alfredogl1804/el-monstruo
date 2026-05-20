@@ -21,5 +21,7 @@
   "20_LATEST_IDEAS_STATE.json": ["assistant_synthesis"],
   "21_CONTEXT_BOOT_MINIMAL_FOR_AI.md": ["assistant_synthesis"],
   "22_RESTORE_TEST_LATEST_IDEAS.md": ["assistant_synthesis"],
+  "23_REACTOR_SOBERANO_AI_READABLE.md": ["user_verbatim", "assistant_synthesis"],
+  "24_REACTOR_RESTORE_TEST.md": ["assistant_synthesis"],
   "concept_graph.yaml": ["assistant_synthesis"]
 }

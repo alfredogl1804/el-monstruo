@@ -27,9 +27,11 @@
 20. `20_LATEST_IDEAS_STATE.json`
 21. `21_CONTEXT_BOOT_MINIMAL_FOR_AI.md`
 22. `22_RESTORE_TEST_LATEST_IDEAS.md`
-23. `concept_graph.yaml`
-24. `thread_value_state.json`
-25. `source_map.json`
+23. `23_REACTOR_SOBERANO_AI_READABLE.md`
+24. `24_REACTOR_RESTORE_TEST.md`
+25. `concept_graph.yaml`
+26. `thread_value_state.json`
+27. `source_map.json`
 
 ## Reglas Aplicadas
 - NO canonizado.
@@ -39,6 +41,6 @@
 - Todas las ideas están etiquetadas con su estado correspondiente.
 
 ## Índice de Completitud
-- Archivos creados/actualizados: 25/25 (100%)
+- Archivos creados/actualizados: 27/27 (100%)
 - Conceptos clave mapeados: 10/10 (100%)
 - Tests de restauración: 20/20 (100%)

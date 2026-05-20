@@ -44,3 +44,15 @@ Este addendum documenta las ideas emergidas *después* de la consolidación inic
 - **Bucle de Feedback:** La IA mejora las herramientas que, a su vez, mejoran a la IA.
 - **Roles:** Los humanos producen mejores inputs iniciales. Los embriones mejoran el *harness* (infraestructura).
 - **Efecto:** El ciclo evolutivo acelera exponencialmente por esta retroalimentación.
+
+## 9. Reactor Soberano del Monstruo
+- **Metáfora Raíz:** El Monstruo es como una gran ciudad, portaviones o submarino gigante que necesita un reactor nuclear autónomo.
+- **Diferenciación:** El Engranaje y el Reloj Suizo fueron intentos mecánicos. El Reactor es el núcleo que produce potencia soberana continua.
+- **PAU (Potencia Autónoma Útil):** Es la métrica real. Es la capacidad compuesta para resolver problemas y aprender con mínima intervención humana.
+- **Combustible:** Oportunidad, Contexto, Pericia, Error, Tiempo muerto, Realidad externa.
+- **Núcleo:** 5 motores (Oportunidades, Conversión, Ejecución, Verificación, Acumulación).
+- **Turbinas:** Los embriones (Sprint Factory, Peritos, etc.) NO son el reactor; son turbinas movidas por el reactor.
+- **Barras de Control:** Las reglas (T1, RACI, kill-switches) no son frenos, son barras de control nucleares para evitar un meltdown.
+- **Circuitos:** Circuitos cerrados donde el error se vuelve defensa y el tiempo muerto se vuelve crecimiento.
+- **Modos:** Desde Silent Running hasta Battle Stations.
+- **Estado:** DOCTRINE_CANDIDATE_HIGH_ORDER. NO canon. NO runtime.

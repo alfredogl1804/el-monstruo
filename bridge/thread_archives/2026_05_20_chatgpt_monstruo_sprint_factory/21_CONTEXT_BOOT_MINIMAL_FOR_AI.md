@@ -40,3 +40,7 @@ Cualquier agente IA que lea este boot pack puede proponer:
 - Diseños técnicos para el Hábitat de Emergencia.
 - Mejoras al *Impossible-to-Formula Loop*.
 *Nota: Todas las propuestas deben marcarse estrictamente como DRAFT.*
+
+## 7. Reactor Soberano
+Idea high-order detonada después de Archive 003.
+El Monstruo debe entenderse como reactor de potencia cognitivo-operativa: convierte señales, memoria, pericia, ejecución y verificación en PAU — Potencia Autónoma Útil. Es doctrina candidata, no canon ni runtime.
