@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Chain Validation Report",
+  "description": "Post-execution validation report with 12 gates for the Vigilia chain.",
+  "type": "object",
+  "required": [
+    "chain_id",
+    "validated_at",
+    "total_gates",
+    "gates_passed",
+    "gates_failed",
+    "overall_verdict",
+    "gates"
+  ],
+  "properties": {
+    "chain_id": { "type": "string" },
+    "validated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "total_gates": { "type": "integer" },
+    "gates_passed": { "type": "integer" },
+    "gates_failed": { "type": "integer" },
+    "overall_verdict": {
+      "type": "string",
+      "enum": ["PASS", "FAIL"]
+    },
+    "gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["gate_id", "gate_name", "passed", "evidence"],
+        "properties": {
+          "gate_id": { "type": "integer" },
+          "gate_name": { "type": "string" },
+          "passed": { "type": "boolean" },
+          "evidence": { "type": "string" },
+          "failure_reason": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "handoff_id": "handoff-loop_auditor-to-loop_risk_classification-2026-05-20T23:29:37Z",
+  "source_loop": "loop_auditor",
+  "target_loop": "loop_risk_classification",
+  "created_at": "2026-05-20T23:29:37Z",
+  "artifact_refs": [],
+  "evidence_status": "STATIC_CATALOG",
+  "max_autonomy_level": "A3",
+  "forbidden_assumptions": [
+    "APIs are connected",
+    "Evidence is realtime-verified",
+    "M2 is unlocked",
+    "T1 has signed any decision",
+    "System is in production mode"
+  ],
+  "not_realtime_verified": true,
+  "no_m2_unlock": true,
+  "chain_context": {
+    "chain_step_completed": 2,
+    "total_chain_steps": 4,
+    "previous_verdict": "PASS_WITH_FINDINGS",
+    "pending_t1_decisions": 4
+  }
+}
