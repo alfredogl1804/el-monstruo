@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Loop Output Schema",
+  "type": "object",
+  "properties": {
+    "loop_id": { "type": "string" },
+    "status": { "type": "string", "enum": ["SUCCESS", "HANDOFF_FAILED", "BLOCKED", "ERROR"] },
+    "event_proposals": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "next_suggested_loop": { "type": ["string", "null"] },
+    "message": { "type": "string" }
+  },
+  "required": ["loop_id", "status", "event_proposals", "next_suggested_loop"]
+}

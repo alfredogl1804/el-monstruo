@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Unified Face Summary Schema",
+  "type": "object",
+  "properties": {
+    "timestamp": { "type": "string", "format": "date-time" },
+    "summary_markdown": { "type": "string" },
+    "requires_t1": { "type": "boolean" },
+    "pending_decisions": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["timestamp", "summary_markdown", "requires_t1"]
+}

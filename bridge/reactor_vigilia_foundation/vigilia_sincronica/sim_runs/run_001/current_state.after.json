@@ -1,0 +1,26 @@
+{
+  "stack_vertical_status": "APPROVED_R0",
+  "autonomy_ladder_status": "APPROVED_POLICY_OFFICIAL",
+  "state_fabric_status": "INITIALIZING_V0",
+  "nightly_builder_r1_status": "UNLOCKED",
+  "spr_oracle_ai_status": "APPROVED_PENDING_EXECUTION",
+  "active_blockers": [],
+  "pending_t1_decisions": 8,
+  "active_sprints": [
+    "SPR-VIGILIA-SINCRONICA-001"
+  ],
+  "allowed_self_evolution_scopes": [
+    "bridge/"
+  ],
+  "forbidden_runtime_scopes": [
+    "supabase",
+    "redis",
+    "scheduler",
+    "deploy",
+    "production_db",
+    "secrets",
+    "kernel"
+  ],
+  "last_event_id": 4,
+  "last_updated_at": "2026-05-20T15:06:51.635454Z"
+}

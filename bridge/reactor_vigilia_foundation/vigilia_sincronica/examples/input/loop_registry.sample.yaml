@@ -1,0 +1,16 @@
+loop_vigia:
+  loop_id: loop_vigia
+  max_autonomy_level: A1
+  forbidden_actions: ["write_code", "touch_supabase"]
+loop_memoria_memento:
+  loop_id: loop_memoria_memento
+  max_autonomy_level: A1
+  forbidden_actions: ["write_code", "touch_supabase"]
+loop_auditor:
+  loop_id: loop_auditor
+  max_autonomy_level: A2
+  forbidden_actions: ["write_code", "touch_supabase"]
+loop_unified_face:
+  loop_id: loop_unified_face
+  max_autonomy_level: A2
+  forbidden_actions: ["write_code", "touch_supabase"]
