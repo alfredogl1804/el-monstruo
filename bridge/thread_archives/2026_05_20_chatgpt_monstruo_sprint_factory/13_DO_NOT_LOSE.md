@@ -25,3 +25,6 @@
 - **La conversación no es el runtime.**
 - **Alfredo interviene como evento,** no como reinicio.
 - **Las tareas propias** hacen que el Monstruo no espere instrucciones para mejorar.
+- **Un solo rostro, muchas mentes,** una memoria soberana, una autoridad humana.
+- **La malla simula continuidad para el usuario,** pero nunca simula autoridad ante T1.
+- **El Monstruo no está vivo porque un hilo nunca duerme;** está vivo porque múltiples loops finitos se relevan sin perder estado detrás de un único Monstruo visible.

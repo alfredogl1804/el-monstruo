@@ -31,9 +31,11 @@
 24. `24_REACTOR_RESTORE_TEST.md`
 25. `25_REACTOR_VIGILIA_PERMANENTE_AI_READABLE.md`
 26. `26_REACTOR_VIGILIA_RESTORE_TEST.md`
-27. `concept_graph.yaml`
-28. `thread_value_state.json`
-29. `source_map.json`
+27. `27_VIGILIA_SINCRONICA_AI_READABLE.md`
+28. `28_VIGILIA_SINCRONICA_RESTORE_TEST.md`
+29. `concept_graph.yaml`
+30. `thread_value_state.json`
+31. `source_map.json`
 
 ## Reglas Aplicadas
 - NO canonizado.
@@ -43,6 +45,6 @@
 - Todas las ideas están etiquetadas con su estado correspondiente.
 
 ## Índice de Completitud
-- Archivos creados/actualizados: 29/29 (100%)
+- Archivos creados/actualizados: 31/31 (100%)
 - Conceptos clave mapeados: 10/10 (100%)
 - Tests de restauración: 20/20 (100%)

@@ -65,3 +65,11 @@ Este addendum documenta las ideas emergidas *después* de la consolidación inic
 - **Intervención Viva:** Alfredo interviene como evento (PAUSE, REDIRECT, CHANGE_SCOPE) en el runtime, no como reinicio del sistema.
 - **Escalera de Autonomía:** Framework de permisos granulares desde A0 (observar) hasta A8 (self-modification).
 - **Estado:** DOCTRINE_CANDIDATE_HIGH_ORDER. NO canon. NO runtime.
+
+## 11. Vigilia Sincrónica / Monstruo Multinúcleo
+- **Corrección T1:** El reactor real no es un hilo inmortal, sino un sistema de muchos loops sincronizados detrás de un solo Monstruo visible.
+- **Fórmula Corregida:** Unified Face + Rotor/Dispatcher + State Fabric single-writer + Event Log append-only + Loops de corta vida + Handoff Protocol + T1 humano.
+- **Principio Doctrinal:** "Un solo rostro, muchas mentes, una memoria soberana, una autoridad humana."
+- **Diferenciación:** No es una "mesh" libre (peligrosa), es una coreografía radial. La vida ininterrumpida es una metáfora operativa, no conciencia filosófica.
+- **Riesgos Mitigados:** Split-brain, loop storm, F16 multi-loop, Dory distribuido.
+- **Estado:** DOCTRINE_CANDIDATE_HIGH_ORDER. NO canon. NO runtime.

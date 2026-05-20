@@ -25,5 +25,7 @@
   "24_REACTOR_RESTORE_TEST.md": ["assistant_synthesis"],
   "25_REACTOR_VIGILIA_PERMANENTE_AI_READABLE.md": ["user_verbatim", "assistant_synthesis"],
   "26_REACTOR_VIGILIA_RESTORE_TEST.md": ["assistant_synthesis"],
+  "27_VIGILIA_SINCRONICA_AI_READABLE.md": ["user_verbatim", "assistant_synthesis"],
+  "28_VIGILIA_SINCRONICA_RESTORE_TEST.md": ["assistant_synthesis"],
   "concept_graph.yaml": ["assistant_synthesis"]
 }

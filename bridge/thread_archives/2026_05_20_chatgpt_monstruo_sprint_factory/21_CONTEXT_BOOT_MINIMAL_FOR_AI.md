@@ -47,3 +47,6 @@ El Monstruo debe entenderse como reactor de potencia cognitivo-operativa: convie
 
 ## 8. Reactor de Vigilia Permanente
 El verdadero núcleo del Monstruo. Le da "tiempo propio", autonomía y conciencia operativa (sabe su estado, tareas, bloqueos) sin esperar input. Ejecuta una Dual Task Queue (misiones de usuario + auto-evolución) y permite a T1 intervenir como evento en el runtime sin reiniciar. Posee una escalera de autonomía (A0-A8). Doctrina candidata, no canon.
+
+## 9. Vigilia Sincrónica / Monstruo Multinúcleo
+El reactor real no es un hilo inmortal, sino un sistema de muchos loops finitos sincronizados (coreografía radial, no mesh libre) detrás de un único Monstruo visible. Principio: "Un solo rostro, muchas mentes, una memoria soberana (State Fabric single-writer), una autoridad humana." Mitiga riesgos de split-brain y F16 multi-loop. Doctrina candidata, no canon.

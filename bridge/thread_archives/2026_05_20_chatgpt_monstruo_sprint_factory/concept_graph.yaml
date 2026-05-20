@@ -43,6 +43,8 @@ nodes:
     type: "architecture_core"
   - id: "REACTOR_VIGILIA_PERMANENTE"
     type: "architecture_core"
+  - id: "VIGILIA_SINCRONICA"
+    type: "architecture_pattern"
 
 edges:
   - source: "Human_Plus_E2E"
@@ -130,3 +132,10 @@ edges:
   - source: "REACTOR_VIGILIA_PERMANENTE"
     target: "Cockpit_HITL"
     relation: "monitored_by"
+
+  - source: "VIGILIA_SINCRONICA"
+    target: "REACTOR_VIGILIA_PERMANENTE"
+    relation: "implements"
+  - source: "VIGILIA_SINCRONICA"
+    target: "Sprint_Factory"
+    relation: "orchestrates"
