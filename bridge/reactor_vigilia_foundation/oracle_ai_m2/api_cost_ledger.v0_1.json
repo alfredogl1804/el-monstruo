@@ -1,0 +1,58 @@
+{
+  "sprint_id": "SPR-ORACLE-AI-M2-001",
+  "timestamp_utc": "2026-05-20T23:47:05.907140+00:00",
+  "budget_cap": {
+    "max_total_cost_usd": 5.0,
+    "max_provider_cost_usd": 1.0
+  },
+  "entries": [
+    {
+      "provider_id": "openai",
+      "call_count": 1,
+      "estimated_cost_usd": 0.001,
+      "cost_source": "FREE_ENDPOINT",
+      "confidence": "HIGH"
+    },
+    {
+      "provider_id": "anthropic",
+      "call_count": 1,
+      "estimated_cost_usd": 0.001,
+      "cost_source": "FREE_ENDPOINT",
+      "confidence": "HIGH"
+    },
+    {
+      "provider_id": "google_gemini",
+      "call_count": 1,
+      "estimated_cost_usd": 0.001,
+      "cost_source": "FREE_ENDPOINT",
+      "confidence": "HIGH"
+    },
+    {
+      "provider_id": "xai_grok",
+      "call_count": 1,
+      "estimated_cost_usd": 0.001,
+      "cost_source": "FREE_ENDPOINT",
+      "confidence": "HIGH"
+    },
+    {
+      "provider_id": "perplexity",
+      "call_count": 1,
+      "estimated_cost_usd": 0.001,
+      "cost_source": "FREE_ENDPOINT",
+      "confidence": "HIGH"
+    },
+    {
+      "provider_id": "deepseek",
+      "call_count": 0,
+      "estimated_cost_usd": 0.0,
+      "cost_source": "NOT_APPLICABLE",
+      "confidence": "NA"
+    }
+  ],
+  "totals": {
+    "total_calls": 5,
+    "total_estimated_cost_usd": 0.005,
+    "budget_remaining_usd": 4.995,
+    "within_budget": true
+  }
+}

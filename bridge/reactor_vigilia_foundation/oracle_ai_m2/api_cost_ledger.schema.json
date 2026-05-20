@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "API Cost Ledger",
+  "description": "Cost tracking for M2 API probe execution",
+  "type": "object",
+  "required": ["sprint_id", "timestamp_utc", "budget_cap", "entries", "totals"],
+  "properties": {
+    "sprint_id": { "type": "string" },
+    "timestamp_utc": { "type": "string", "format": "date-time" },
+    "budget_cap": {
+      "type": "object",
+      "properties": {
+        "max_total_cost_usd": { "type": "number" },
+        "max_provider_cost_usd": { "type": "number" }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["provider_id", "call_count", "estimated_cost_usd", "cost_source", "confidence"],
+        "properties": {
+          "provider_id": { "type": "string" },
+          "call_count": { "type": "integer" },
+          "estimated_cost_usd": { "type": "number" },
+          "cost_source": { "type": "string", "enum": ["API_VERIFIED", "COST_ESTIMATE_ONLY", "FREE_ENDPOINT", "NOT_APPLICABLE"] },
+          "confidence": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW", "NA"] }
+        }
+      }
+    },
+    "totals": {
+      "type": "object",
+      "required": ["total_calls", "total_estimated_cost_usd", "budget_remaining_usd", "within_budget"],
+      "properties": {
+        "total_calls": { "type": "integer" },
+        "total_estimated_cost_usd": { "type": "number" },
+        "budget_remaining_usd": { "type": "number" },
+        "within_budget": { "type": "boolean" }
+      }
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "sprint_id": "SPR-ORACLE-AI-M2-001",
+  "timestamp_utc": "2026-05-20T23:47:05.907140+00:00",
+  "providers": [
+    {
+      "provider_id": "openai",
+      "access_status": "REALTIME_VERIFIED",
+      "key_available": true,
+      "models_count": 20,
+      "probe_calls_made": 1,
+      "error_summary": null
+    },
+    {
+      "provider_id": "anthropic",
+      "access_status": "REALTIME_VERIFIED",
+      "key_available": true,
+      "models_count": 9,
+      "probe_calls_made": 1,
+      "error_summary": null
+    },
+    {
+      "provider_id": "google_gemini",
+      "access_status": "REALTIME_VERIFIED",
+      "key_available": true,
+      "models_count": 20,
+      "probe_calls_made": 1,
+      "error_summary": null
+    },
+    {
+      "provider_id": "xai_grok",
+      "access_status": "REALTIME_VERIFIED",
+      "key_available": true,
+      "models_count": 8,
+      "probe_calls_made": 1,
+      "error_summary": null
+    },
+    {
+      "provider_id": "perplexity",
+      "access_status": "ACCESS_BLOCKED_API_ERROR",
+      "key_available": true,
+      "models_count": 0,
+      "probe_calls_made": 1,
+      "error_summary": "HTTP 404: Not Found"
+    },
+    {
+      "provider_id": "deepseek",
+      "access_status": "ACCESS_BLOCKED_NO_KEY",
+      "key_available": false,
+      "models_count": 0,
+      "probe_calls_made": 0,
+      "error_summary": "Environment variable DEEPSEEK_API_KEY not found"
+    }
+  ]
+}

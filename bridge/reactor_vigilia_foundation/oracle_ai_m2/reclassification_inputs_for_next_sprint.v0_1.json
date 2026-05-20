@@ -1,0 +1,73 @@
+{
+  "sprint_id": "SPR-ORACLE-AI-M2-001",
+  "timestamp_utc": "2026-05-20T23:47:05.907140+00:00",
+  "purpose": "Inputs for SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001",
+  "providers_verified": [
+    {
+      "provider_id": "openai",
+      "access_status": "REALTIME_VERIFIED",
+      "models_detected": 20,
+      "capabilities_detected": [
+        "audio",
+        "code_execution",
+        "embeddings",
+        "structured_outputs",
+        "text_reasoning",
+        "tool_use",
+        "vision"
+      ],
+      "suggested_risk_elevation": "R0_TO_R1_CANDIDATE"
+    },
+    {
+      "provider_id": "anthropic",
+      "access_status": "REALTIME_VERIFIED",
+      "models_detected": 9,
+      "capabilities_detected": [
+        "text_reasoning",
+        "tool_use"
+      ],
+      "suggested_risk_elevation": "R0_TO_R1_CANDIDATE"
+    },
+    {
+      "provider_id": "google_gemini",
+      "access_status": "REALTIME_VERIFIED",
+      "models_detected": 20,
+      "capabilities_detected": [
+        "audio",
+        "embeddings",
+        "image_generation",
+        "structured_outputs",
+        "text_reasoning",
+        "tool_use",
+        "vision"
+      ],
+      "suggested_risk_elevation": "R0_TO_R1_CANDIDATE"
+    },
+    {
+      "provider_id": "xai_grok",
+      "access_status": "REALTIME_VERIFIED",
+      "models_detected": 8,
+      "capabilities_detected": [
+        "text_reasoning",
+        "tool_use",
+        "vision"
+      ],
+      "suggested_risk_elevation": "R0_TO_R1_CANDIDATE"
+    },
+    {
+      "provider_id": "perplexity",
+      "access_status": "ACCESS_BLOCKED_API_ERROR",
+      "models_detected": 0,
+      "capabilities_detected": [],
+      "suggested_risk_elevation": "REMAINS_R0"
+    },
+    {
+      "provider_id": "deepseek",
+      "access_status": "ACCESS_BLOCKED_NO_KEY",
+      "models_detected": 0,
+      "capabilities_detected": [],
+      "suggested_risk_elevation": "REMAINS_R0"
+    }
+  ],
+  "decision_required": "T1 must authorize risk reclassification sprint"
+}

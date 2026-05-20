@@ -1,0 +1,121 @@
+{
+  "overlay_id": "oracle-m2-overlay-001",
+  "sprint_id": "SPR-ORACLE-AI-M2-001",
+  "base_catalog_ref": "oraculo_capability_catalog_v0.json",
+  "timestamp_utc": "2026-05-20T23:47:05.907140+00:00",
+  "capabilities": [
+    {
+      "capability_id": "cap_gpt4o_vision",
+      "provider_id": "openai",
+      "evidence_status_before": "STATIC_CATALOG",
+      "evidence_status_after": "REALTIME_VERIFIED",
+      "model_ids_confirmed": [
+        "babbage-002",
+        "chat-latest",
+        "chatgpt-image-latest",
+        "davinci-002",
+        "gpt-3.5-turbo"
+      ],
+      "capability_types_confirmed": [
+        "audio",
+        "code_execution",
+        "embeddings",
+        "structured_outputs",
+        "text_reasoning",
+        "tool_use",
+        "vision"
+      ],
+      "raw_response_hash": "3cc16297e272299b9ba6901731f6ec116e21aad2daa30927fdbc23dcd5b512be",
+      "notes": null
+    },
+    {
+      "capability_id": "cap_claude_opus_extended_thinking",
+      "provider_id": "anthropic",
+      "evidence_status_before": "STATIC_CATALOG",
+      "evidence_status_after": "REALTIME_VERIFIED",
+      "model_ids_confirmed": [
+        "claude-haiku-4-5-20251001",
+        "claude-opus-4-1-20250805",
+        "claude-opus-4-20250514",
+        "claude-opus-4-5-20251101",
+        "claude-opus-4-6"
+      ],
+      "capability_types_confirmed": [
+        "text_reasoning",
+        "tool_use"
+      ],
+      "raw_response_hash": "c9428a09fc1bc1578103db16f83bd615e44506de87d141eb1a2232cc8d429bd3",
+      "notes": null
+    },
+    {
+      "capability_id": "cap_gemini_25pro_1m_context",
+      "provider_id": "google_gemini",
+      "evidence_status_before": "STATIC_CATALOG",
+      "evidence_status_after": "REALTIME_VERIFIED",
+      "model_ids_confirmed": [
+        "antigravity-preview-05-2026",
+        "aqa",
+        "deep-research-max-preview-04-2026",
+        "deep-research-preview-04-2026",
+        "deep-research-pro-preview-12-2025"
+      ],
+      "capability_types_confirmed": [
+        "audio",
+        "embeddings",
+        "image_generation",
+        "structured_outputs",
+        "text_reasoning",
+        "tool_use",
+        "vision"
+      ],
+      "raw_response_hash": "8dca435c96ee2f05160654f9a31d4af507b7efedc7c77fa8b9e5614b8f645993",
+      "notes": null
+    },
+    {
+      "capability_id": "cap_grok3_deepsearch",
+      "provider_id": "xai_grok",
+      "evidence_status_before": "STATIC_CATALOG",
+      "evidence_status_after": "REALTIME_VERIFIED",
+      "model_ids_confirmed": [
+        "grok-4.20-0309-non-reasoning",
+        "grok-4.20-0309-reasoning",
+        "grok-4.20-multi-agent-0309",
+        "grok-4.3",
+        "grok-build-0.1"
+      ],
+      "capability_types_confirmed": [
+        "text_reasoning",
+        "tool_use",
+        "vision"
+      ],
+      "raw_response_hash": "d2541bd74738fd9e516bfc8cc70838878f62ca7d5bc0ce158d18ee5394126bf9",
+      "notes": null
+    },
+    {
+      "capability_id": "cap_perplexity_sonar_pro",
+      "provider_id": "perplexity",
+      "evidence_status_before": "STATIC_CATALOG",
+      "evidence_status_after": "ACCESS_BLOCKED",
+      "model_ids_confirmed": [],
+      "capability_types_confirmed": [],
+      "raw_response_hash": null,
+      "notes": "HTTP 404: Not Found"
+    },
+    {
+      "capability_id": "cap_deepseek_r1",
+      "provider_id": "deepseek",
+      "evidence_status_before": "STATIC_CATALOG",
+      "evidence_status_after": "ACCESS_BLOCKED",
+      "model_ids_confirmed": [],
+      "capability_types_confirmed": [],
+      "raw_response_hash": null,
+      "notes": "Environment variable DEEPSEEK_API_KEY not found"
+    }
+  ],
+  "summary": {
+    "total_capabilities": 6,
+    "realtime_verified": 4,
+    "access_blocked": 2,
+    "unchanged": 0
+  }
+}

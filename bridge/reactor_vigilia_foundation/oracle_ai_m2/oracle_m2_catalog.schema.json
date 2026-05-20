@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Oracle M2 Catalog (Realtime Overlay)",
+  "description": "Overlay of realtime-verified capabilities to apply over the static M1 catalog",
+  "type": "object",
+  "required": ["overlay_id", "sprint_id", "base_catalog_ref", "timestamp_utc", "capabilities"],
+  "properties": {
+    "overlay_id": { "type": "string" },
+    "sprint_id": { "type": "string" },
+    "base_catalog_ref": { "type": "string" },
+    "timestamp_utc": { "type": "string", "format": "date-time" },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["capability_id", "provider_id", "evidence_status_before", "evidence_status_after"],
+        "properties": {
+          "capability_id": { "type": "string" },
+          "provider_id": { "type": "string" },
+          "evidence_status_before": { "type": "string" },
+          "evidence_status_after": { "type": "string" },
+          "model_ids_confirmed": { "type": "array", "items": { "type": "string" } },
+          "capability_types_confirmed": { "type": "array", "items": { "type": "string" } },
+          "raw_response_hash": { "type": ["string", "null"] },
+          "notes": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "total_capabilities": { "type": "integer" },
+        "realtime_verified": { "type": "integer" },
+        "access_blocked": { "type": "integer" },
+        "unchanged": { "type": "integer" }
+      }
+    }
+  }
+}

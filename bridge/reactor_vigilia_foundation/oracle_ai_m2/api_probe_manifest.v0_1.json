@@ -1,0 +1,24 @@
+{
+  "manifest_id": "oracle-m2-probe-001",
+  "sprint_id": "SPR-ORACLE-AI-M2-001",
+  "timestamp_utc": "2026-05-20T23:47:05.907140+00:00",
+  "providers_targeted": [
+    "openai",
+    "anthropic",
+    "google_gemini",
+    "xai_grok",
+    "perplexity",
+    "deepseek"
+  ],
+  "budget_cap": {
+    "max_total_cost_usd": 5.0,
+    "max_provider_cost_usd": 1.0,
+    "max_calls_per_provider": 3,
+    "max_total_calls": 18
+  },
+  "status": "COMPLETED",
+  "total_calls_made": 5,
+  "total_estimated_cost_usd": 0.005,
+  "providers_verified": 4,
+  "providers_blocked": 2
+}
