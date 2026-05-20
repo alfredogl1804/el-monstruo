@@ -1,0 +1,16 @@
+{
+  "01_EXECUTIVE_SUMMARY.md": ["chat_context", "assistant_synthesis"],
+  "02_SPRINT_FACTORY_V2.md": ["assistant_synthesis", "t1_decision"],
+  "03_AGENT_ROLE_MODEL.md": ["assistant_synthesis"],
+  "04_EMBRION_PERITO_MONSTRUO.md": ["assistant_synthesis"],
+  "05_ORACULO_IAS.md": ["assistant_synthesis"],
+  "06_INVISIBLE_METHODOLOGY_ENGINE.md": ["assistant_synthesis"],
+  "07_EMBRION_EXPERTISE_ACCUMULATION.md": ["assistant_synthesis"],
+  "08_AI_FIRST_LIVING_AND_SILENT_SERVICE.md": ["assistant_synthesis"],
+  "09_HITL_COCKPIT_AND_NIGHTLY_BUILDER_STATE.md": ["chat_context", "assistant_synthesis"],
+  "10_DORY_CURE_SABIO_VERDICTS.md": ["assistant_synthesis"],
+  "11_PROMPTS_REUSABLES.md": ["no_source"],
+  "12_OPEN_DECISIONS_T1.md": ["assistant_synthesis", "t1_decision"],
+  "13_DO_NOT_LOSE.md": ["assistant_synthesis"],
+  "14_CONTEXT_RESTORE_TEST.md": ["assistant_synthesis"]
+}
