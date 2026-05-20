@@ -1,0 +1,45 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+title: "Autonomy Policy Schema"
+description: "Schema para validar policies de autonomía del Monstruo"
+type: "object"
+required:
+  - "version"
+  - "default_autonomy_level"
+  - "actions"
+properties:
+  version:
+    type: "string"
+  default_autonomy_level:
+    type: "string"
+    enum: ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"]
+  actions:
+    type: "object"
+    patternProperties:
+      "^[a-z_]+$":
+        type: "object"
+        required:
+          - "autonomy_level_required"
+          - "allowed_by_default"
+          - "t1_required"
+        properties:
+          autonomy_level_required:
+            type: "string"
+            enum: ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"]
+          allowed_by_default:
+            type: "boolean"
+          t1_required:
+            type: "boolean"
+          allowed_paths:
+            type: "array"
+            items:
+              type: "string"
+          forbidden_paths:
+            type: "array"
+            items:
+              type: "string"
+          evidence_required:
+            type: "boolean"
+          auditor_required:
+            type: "boolean"
+          notes:
+            type: "string"

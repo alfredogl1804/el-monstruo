@@ -1,0 +1,10 @@
+version: "v0.1.0"
+default_autonomy_level: "A0"
+description: "Policy base para el Monstruo. Referencia a action_registry_v0.yaml para las acciones específicas."
+actions:
+  # Este archivo puede contener overrides globales o estar vacío si todo se delega al registry.
+  # Por ahora, usamos action_registry_v0.yaml como la fuente principal de acciones.
+  dummy_action:
+    autonomy_level_required: "A0"
+    allowed_by_default: true
+    t1_required: false
