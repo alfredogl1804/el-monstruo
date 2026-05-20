@@ -10,3 +10,6 @@
 - **El rol de SuperGrok:** Mantener un agente P0/P1 dedicado exclusivamente a encontrar fallas catastróficas (Contrarian).
 - **El aprendizaje validado:** Los embriones no deben acumular memoria bruta, sino pericia (soluciones que funcionaron y fueron verificadas).
 - **El estado real del Cockpit:** Es un demo read-only. Asumir que es un control plane productivo causará fallas en cadena.
+- **Lenguaje IA-nativo:** No se diseña ni se impone. Se observa en el Hábitat Semiótico.
+- **Herramientas vs IAs:** Las herramientas se controlan; con las IAs emergidas se coexiste.
+- **Posibilidad Operativa:** Nada es "imposible", solo requiere el Impossible-to-Formula Loop.

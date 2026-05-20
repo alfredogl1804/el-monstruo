@@ -1,0 +1,39 @@
+{
+  "latest_ideas_count": 8,
+  "created_at": "2026-05-20T00:00:00Z",
+  "status_by_idea": {
+    "Human+ End-to-End": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Lenguaje IA-nativo organico": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Habitat Semiotico Emergente": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Herramientas con IA vs IAs emergidas": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Coevolucion humano-IA emergida": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Ciclos evolutivos comprimidos de la IA": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Posibilidad Operativa": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Aceleracion evolutiva recursiva": "DOCTRINE_CANDIDATE_HIGH_ORDER"
+  },
+  "doctrine_candidates_high_order": 8,
+  "sprint_candidates": 0,
+  "blocked_runtime_items": [
+    "Nightly Builder R1",
+    "Universal Solver Runtime"
+  ],
+  "t1_pending_decisions": [
+    "Nightly Builder R1 unlock",
+    "Cockpit v0.3 destino",
+    "Sprint Factory v2 aprobacion formal",
+    "Embrion Perito model aprobacion",
+    "SPR-ORACLE-AI-001 aprobacion"
+  ],
+  "restore_test_coverage": {
+    "14_CONTEXT_RESTORE_TEST": "Original concepts",
+    "22_RESTORE_TEST_LATEST_IDEAS": "Latest high-order concepts"
+  },
+  "must_not_assume": [
+    "Canonization of any concept",
+    "APP_VISION is active",
+    "PRE-IA is closed",
+    "Runtime is authorized",
+    "AI consciousness is affirmed",
+    "Everything is literally possible without formula"
+  ]
+}

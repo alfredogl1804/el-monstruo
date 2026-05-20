@@ -7,10 +7,11 @@
   "app_vision_active": false,
   "pre_ia_closed": false,
   "completeness_index": {
-    "files_created": 17,
-    "files_required": 17,
+    "files_created": 25,
+    "files_required": 25,
     "percentage": 100
   },
+  "ai_absorbability_score": 96,
   "open_decisions": [
     "Nightly Builder R1 unlock",
     "Cockpit v0.3 destination",

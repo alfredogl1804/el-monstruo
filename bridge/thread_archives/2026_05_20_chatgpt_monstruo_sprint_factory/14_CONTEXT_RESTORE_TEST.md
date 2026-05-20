@@ -27,3 +27,5 @@ Este test sirve para verificar que un agente ha recuperado correctamente el cont
 18. Menciona 3 componentes de FORGE_v3.0.
 19. ¿Por qué es peligroso asumir que el Cockpit es un control plane productivo?
 20. ¿Qué significa que las ideas en este atlas "no están canonizadas"?
+
+*(Nota: Para test de conceptos más recientes de alto orden, referirse a `22_RESTORE_TEST_LATEST_IDEAS.md`)*

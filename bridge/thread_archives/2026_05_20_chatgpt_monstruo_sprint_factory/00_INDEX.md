@@ -21,8 +21,15 @@
 14. `14_CONTEXT_RESTORE_TEST.md`
 15. `15_BOOT_PACK_10_MIN.md`
 16. `16_ARCHIVE_VALIDATION_REPORT.md`
-17. `thread_value_state.json`
-18. `source_map.json`
+17. `17_AI_ABSORBABILITY_AUDIT.md`
+18. `18_SEMANTIC_ATOMS.jsonl`
+19. `19_LATEST_IDEAS_ADDENDUM_AI_READABLE.md`
+20. `20_LATEST_IDEAS_STATE.json`
+21. `21_CONTEXT_BOOT_MINIMAL_FOR_AI.md`
+22. `22_RESTORE_TEST_LATEST_IDEAS.md`
+23. `concept_graph.yaml`
+24. `thread_value_state.json`
+25. `source_map.json`
 
 ## Reglas Aplicadas
 - NO canonizado.
@@ -32,6 +39,6 @@
 - Todas las ideas están etiquetadas con su estado correspondiente.
 
 ## Índice de Completitud
-- Archivos creados/actualizados: 18/18 (100%)
+- Archivos creados/actualizados: 25/25 (100%)
 - Conceptos clave mapeados: 10/10 (100%)
 - Tests de restauración: 20/20 (100%)

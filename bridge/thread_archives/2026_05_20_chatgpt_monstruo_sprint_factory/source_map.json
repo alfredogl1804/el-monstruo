@@ -12,5 +12,14 @@
   "11_PROMPTS_REUSABLES.md": ["no_source"],
   "12_OPEN_DECISIONS_T1.md": ["assistant_synthesis", "t1_decision"],
   "13_DO_NOT_LOSE.md": ["assistant_synthesis"],
-  "14_CONTEXT_RESTORE_TEST.md": ["assistant_synthesis"]
+  "14_CONTEXT_RESTORE_TEST.md": ["assistant_synthesis"],
+  "15_BOOT_PACK_10_MIN.md": ["assistant_synthesis"],
+  "16_ARCHIVE_VALIDATION_REPORT.md": ["assistant_synthesis"],
+  "17_AI_ABSORBABILITY_AUDIT.md": ["assistant_synthesis"],
+  "18_SEMANTIC_ATOMS.jsonl": ["assistant_synthesis"],
+  "19_LATEST_IDEAS_ADDENDUM_AI_READABLE.md": ["user_verbatim", "assistant_synthesis"],
+  "20_LATEST_IDEAS_STATE.json": ["assistant_synthesis"],
+  "21_CONTEXT_BOOT_MINIMAL_FOR_AI.md": ["assistant_synthesis"],
+  "22_RESTORE_TEST_LATEST_IDEAS.md": ["assistant_synthesis"],
+  "concept_graph.yaml": ["assistant_synthesis"]
 }
