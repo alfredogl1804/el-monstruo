@@ -1,0 +1,23 @@
+# 04 EMBRYO EXPERTISE SCHEMA
+
+# Estado: DOCTRINE_CANDIDATE
+# Fuente: assistant_synthesis
+
+schema_version: "1.0"
+embryo_perito:
+  name: "string"
+  class: "enum[Domain, System, Strategic, Emergence]"
+  domain: "string"
+  subdomains:
+    - "string"
+  maturity_level: "enum[M0, M1, M2, M3, M4, M5]"
+  boot_pack_path: "string"
+  boundaries:
+    allowed_actions:
+      - "string"
+    forbidden_actions:
+      - "string"
+  expertise_accumulation:
+    successful_cases: "integer"
+    last_validation_date: "date"
+    auditor_required: "boolean"

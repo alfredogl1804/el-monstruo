@@ -1,0 +1,21 @@
+{
+  "module": "Embryo Expertise Architecture",
+  "status": "DOCTRINE_CANDIDATE",
+  "canonized": false,
+  "runtime_active": false,
+  "pre_ia_closed": false,
+  "app_vision_active": false,
+  "date": "2026-05-20",
+  "components": {
+    "domain_peritos": "proposed",
+    "system_peritos": "proposed",
+    "strategic_interpreters": "proposed",
+    "emergence_habitat": "quarantine_concept"
+  },
+  "open_t1_decisions": [
+    "Aprobación del Modelo de Peritos",
+    "Aprobación de la Matriz de 1a Generación",
+    "Aprobación del Hábitat de Emergencia",
+    "Priorización de Implementación"
+  ]
+}
