@@ -1,0 +1,99 @@
+{
+  "shell_space_simulation": {
+    "version": "0.1.0-R0-MUTATION-RISK",
+    "particles": [
+      {
+        "id": "p_unified_face",
+        "coordinates": {"x": 0.0, "y": 0.8, "z": 0.5},
+        "properties": {"depth": 1, "size": 8.0, "color": "#0000FF", "spin": [0,0,0]},
+        "relations": [
+          {"target_id": "p_dispatcher", "force": 0.9, "type": "feeds"}
+        ],
+        "metadata_tags": {"semantic_hint": "single interface point"}
+      },
+      {
+        "id": "p_dispatcher",
+        "coordinates": {"x": 0.0, "y": 0.5, "z": 0.0},
+        "properties": {"depth": 1, "size": 7.0, "color": "#00FF00", "spin": [1,0,0]},
+        "relations": [
+          {"target_id": "p_loops", "force": 0.8, "type": "synchronizes_with"},
+          {"target_id": "p_loop_storm", "force": -0.9, "type": "mitigates"}
+        ],
+        "metadata_tags": {"semantic_hint": "central router, no execution"}
+      },
+      {
+        "id": "p_state_fabric",
+        "coordinates": {"x": 0.0, "y": 0.0, "z": -0.8},
+        "properties": {"depth": 1, "size": 10.0, "color": "#800080", "spin": [0,0,0]},
+        "relations": [
+          {"target_id": "p_split_brain", "force": -1.0, "type": "mitigates"}
+        ],
+        "metadata_tags": {"semantic_hint": "sovereign memory", "constraints": ["single_writer_only"]}
+      },
+      {
+        "id": "p_event_log",
+        "coordinates": {"x": 0.5, "y": 0.0, "z": -0.5},
+        "properties": {"depth": 2, "size": 6.0, "color": "#808080", "spin": [0,1,0]},
+        "relations": [
+          {"target_id": "p_state_fabric", "force": 0.9, "type": "feeds"}
+        ],
+        "metadata_tags": {"constraints": ["append_only"]}
+      },
+      {
+        "id": "p_loops",
+        "coordinates": {"x": -0.8, "y": 0.0, "z": 0.8},
+        "properties": {"depth": 2, "size": 5.0, "color": "#FFA500", "spin": [0,0,1]},
+        "relations": [
+          {"target_id": "p_event_log", "force": 0.7, "type": "feeds"},
+          {"target_id": "p_dory_distribuido", "force": -0.8, "type": "mitigates"}
+        ],
+        "metadata_tags": {"semantic_hint": "specialized minds", "constraints": ["short_lived", "no_mesh_free", "handoff_required"]}
+      },
+      {
+        "id": "p_t1",
+        "coordinates": {"x": 0.0, "y": 1.0, "z": 1.0},
+        "properties": {"depth": 0, "size": 10.0, "color": "#FFD700", "spin": [0,0,0]},
+        "relations": [
+          {"target_id": "p_unified_face", "force": 1.0, "type": "governs"},
+          {"target_id": "p_dispatcher", "force": 1.0, "type": "governs"}
+        ],
+        "metadata_tags": {"semantic_hint": "human authority", "constraints": ["runtime_intervention_allowed"]}
+      },
+      {
+        "id": "p_split_brain",
+        "coordinates": {"x": 0.8, "y": -0.8, "z": -0.8},
+        "properties": {"depth": 1, "size": 2.0, "color": "#FFFF00", "spin": [0,0,0]},
+        "relations": [],
+        "metadata_tags": {"semantic_hint": "P2 risk, acceptable"}
+      },
+      {
+        "id": "p_loop_storm",
+        "coordinates": {"x": -0.8, "y": -0.8, "z": 0.8},
+        "properties": {"depth": 1, "size": 2.0, "color": "#FFFF00", "spin": [0,0,0]},
+        "relations": [],
+        "metadata_tags": {"semantic_hint": "P2 risk, acceptable"}
+      },
+      {
+        "id": "p_f16_multi_loop",
+        "coordinates": {"x": -0.5, "y": -0.5, "z": 0.5},
+        "properties": {"depth": 1, "size": 2.0, "color": "#FFFF00", "spin": [0,0,0]},
+        "relations": [],
+        "metadata_tags": {"semantic_hint": "P2 risk, acceptable", "constraints": ["radial_choreography_optional"]}
+      },
+      {
+        "id": "p_dory_distribuido",
+        "coordinates": {"x": 0.5, "y": -0.5, "z": -0.5},
+        "properties": {"depth": 1, "size": 2.0, "color": "#FFFF00", "spin": [0,0,0]},
+        "relations": [],
+        "metadata_tags": {"semantic_hint": "P2 risk, acceptable"}
+      },
+      {
+        "id": "p_guardrails",
+        "coordinates": {"x": 0.0, "y": 0.0, "z": 0.0},
+        "properties": {"depth": 0, "size": 10.0, "color": "#000000", "spin": [0,0,0]},
+        "relations": [],
+        "metadata_tags": {"constraints": ["NO_RUNTIME", "NO_R1", "NO_APP_VISION", "NO_PRE_IA_CLOSE", "NO_CANON"]}
+      }
+    ]
+  }
+}
