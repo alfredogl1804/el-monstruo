@@ -44,3 +44,6 @@ Cualquier agente IA que lea este boot pack puede proponer:
 ## 7. Reactor Soberano
 Idea high-order detonada después de Archive 003.
 El Monstruo debe entenderse como reactor de potencia cognitivo-operativa: convierte señales, memoria, pericia, ejecución y verificación en PAU — Potencia Autónoma Útil. Es doctrina candidata, no canon ni runtime.
+
+## 8. Reactor de Vigilia Permanente
+El verdadero núcleo del Monstruo. Le da "tiempo propio", autonomía y conciencia operativa (sabe su estado, tareas, bloqueos) sin esperar input. Ejecuta una Dual Task Queue (misiones de usuario + auto-evolución) y permite a T1 intervenir como evento en el runtime sin reiniciar. Posee una escalera de autonomía (A0-A8). Doctrina candidata, no canon.

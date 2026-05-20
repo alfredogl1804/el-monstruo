@@ -41,6 +41,8 @@ nodes:
     type: "domain"
   - id: "REACTOR_SOBERANO_MONSTRUO"
     type: "architecture_core"
+  - id: "REACTOR_VIGILIA_PERMANENTE"
+    type: "architecture_core"
 
 edges:
   - source: "Human_Plus_E2E"
@@ -121,3 +123,10 @@ edges:
   - source: "REACTOR_SOBERANO_MONSTRUO"
     target: "AI_Evolutionary_Stages"
     relation: "connects_to"
+
+  - source: "REACTOR_VIGILIA_PERMANENTE"
+    target: "REACTOR_SOBERANO_MONSTRUO"
+    relation: "complements"
+  - source: "REACTOR_VIGILIA_PERMANENTE"
+    target: "Cockpit_HITL"
+    relation: "monitored_by"

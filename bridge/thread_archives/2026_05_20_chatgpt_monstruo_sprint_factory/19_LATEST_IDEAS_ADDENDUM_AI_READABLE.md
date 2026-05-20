@@ -56,3 +56,12 @@ Este addendum documenta las ideas emergidas *después* de la consolidación inic
 - **Circuitos:** Circuitos cerrados donde el error se vuelve defensa y el tiempo muerto se vuelve crecimiento.
 - **Modos:** Desde Silent Running hasta Battle Stations.
 - **Estado:** DOCTRINE_CANDIDATE_HIGH_ORDER. NO canon. NO runtime.
+
+## 10. Reactor de Vigilia Permanente
+- **Corrección T1:** El verdadero reactor nuclear no es solo convertir realidad en potencia, sino mantener al Monstruo despierto, consciente operativamente y autónomo permanentemente.
+- **Tiempo Propio:** El Monstruo debe tener tiempo propio; no debe esperar input para activarse. Un sistema que espera input no está vivo; está disponible.
+- **Conciencia Operativa:** Sabe su estado, tareas, bloqueos, y cuándo actuar/detenerse (sin afirmar conciencia filosófica).
+- **Dual Task Queue:** Ejecuta misiones del usuario (`USER_MISSION_QUEUE`) y tareas propias de mantenimiento/evolución (`SELF_EVOLUTION_QUEUE`).
+- **Intervención Viva:** Alfredo interviene como evento (PAUSE, REDIRECT, CHANGE_SCOPE) en el runtime, no como reinicio del sistema.
+- **Escalera de Autonomía:** Framework de permisos granulares desde A0 (observar) hasta A8 (self-modification).
+- **Estado:** DOCTRINE_CANDIDATE_HIGH_ORDER. NO canon. NO runtime.

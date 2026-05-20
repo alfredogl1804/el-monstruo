@@ -1,5 +1,5 @@
 {
-  "latest_ideas_count": 9,
+  "latest_ideas_count": 10,
   "created_at": "2026-05-20T00:00:00Z",
   "status_by_idea": {
     "Human+ End-to-End": "DOCTRINE_CANDIDATE_HIGH_ORDER",
@@ -10,15 +10,17 @@
     "Ciclos evolutivos comprimidos de la IA": "DOCTRINE_CANDIDATE_HIGH_ORDER",
     "Posibilidad Operativa": "DOCTRINE_CANDIDATE_HIGH_ORDER",
     "Aceleracion evolutiva recursiva": "DOCTRINE_CANDIDATE_HIGH_ORDER",
-    "Reactor Soberano del Monstruo": "DOCTRINE_CANDIDATE_HIGH_ORDER"
+    "Reactor Soberano del Monstruo": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Reactor de Vigilia Permanente": "DOCTRINE_CANDIDATE_HIGH_ORDER"
   },
-  "doctrine_candidates_high_order": 9,
+  "doctrine_candidates_high_order": 10,
   "sprint_candidates": 0,
   "blocked_runtime_items": [
     "Nightly Builder R1",
     "Universal Solver Runtime"
   ],
   "t1_pending_decisions": [
+    "SPR-REACTOR-VIGILIA-001 aprobacion",
     "SPR-REACTOR-SOBERANO-001 aprobacion",
     "Nightly Builder R1 unlock",
     "Cockpit v0.3 destino",
@@ -31,6 +33,7 @@
     "22_RESTORE_TEST_LATEST_IDEAS": "Latest high-order concepts"
   },
   "must_not_assume": [
+    "Reactor Soberano and Reactor de Vigilia are the same",
     "Reactor is a generic assistant",
     "Embriones are the reactor",
     "Canonization of any concept",
