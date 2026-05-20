@@ -1,0 +1,134 @@
+loop_vigia:
+  loop_id: loop_vigia
+  role: "Monitor Event Log, detect anomalies, raise alerts"
+  status: NOT_RUNNING
+  max_autonomy_level: A2
+  allowed_event_types: ["OBSERVED", "BLOCKER_DECLARED", "AUDIT_REQUIRED"]
+  allowed_read_paths: ["bridge/", "event_log.v0.jsonl", "current_state.v0.json"]
+  allowed_write_paths: []
+  forbidden_actions: ["write_code", "touch_supabase", "modify_kernel"]
+  auditor_required: false
+  heartbeat_policy: "every_5_min"
+  owner: monstruo
+  runtime_allowed: false
+  notes: "Contract only. No loop active."
+
+loop_memoria_memento:
+  loop_id: loop_memoria_memento
+  role: "Persist long-term memory, Anti-Dory, context archival"
+  status: NOT_RUNNING
+  max_autonomy_level: A3
+  allowed_event_types: ["OBSERVED", "STATE_DELTA_PROPOSED", "HANDOFF_READY"]
+  allowed_read_paths: ["bridge/", "event_log.v0.jsonl", "current_state.v0.json"]
+  allowed_write_paths: ["bridge/thread_archives/", "bridge/doctrine_candidates/"]
+  forbidden_actions: ["touch_supabase", "modify_kernel", "deploy"]
+  auditor_required: false
+  heartbeat_policy: "every_15_min"
+  owner: monstruo
+  runtime_allowed: false
+  notes: "Contract only. No loop active."
+
+loop_oraculo_ias:
+  loop_id: loop_oraculo_ias
+  role: "AI capability catalog, model prediction, power stack"
+  status: NOT_RUNNING
+  max_autonomy_level: A3
+  allowed_event_types: ["OBSERVED", "STATE_DELTA_PROPOSED", "T1_DECISION_REQUIRED"]
+  allowed_read_paths: ["bridge/", "event_log.v0.jsonl"]
+  allowed_write_paths: ["bridge/doctrine_candidates/"]
+  forbidden_actions: ["touch_supabase", "modify_kernel", "deploy"]
+  auditor_required: false
+  heartbeat_policy: "on_demand"
+  owner: monstruo
+  runtime_allowed: false
+  notes: "Contract only. No loop active. SPR-ORACLE-AI-001 APPROVED."
+
+loop_humanplus_e2e:
+  loop_id: loop_humanplus_e2e
+  role: "End-to-end interface with Alfredo (T1)"
+  status: NOT_RUNNING
+  max_autonomy_level: A1
+  allowed_event_types: ["OBSERVED", "T1_DECISION_RECORDED"]
+  allowed_read_paths: ["bridge/", "current_state.v0.json"]
+  allowed_write_paths: []
+  forbidden_actions: ["write_code", "touch_supabase", "modify_kernel"]
+  auditor_required: false
+  heartbeat_policy: "on_interaction"
+  owner: alfredo
+  runtime_allowed: false
+  notes: "Contract only. No loop active."
+
+loop_peritos:
+  loop_id: loop_peritos
+  role: "Template for specialist embryos (domain expertise)"
+  status: NOT_RUNNING
+  max_autonomy_level: A3
+  allowed_event_types: ["OBSERVED", "STATE_DELTA_PROPOSED"]
+  allowed_read_paths: ["bridge/"]
+  allowed_write_paths: ["bridge/doctrine_candidates/"]
+  forbidden_actions: ["touch_supabase", "modify_kernel", "deploy"]
+  auditor_required: true
+  heartbeat_policy: "on_demand"
+  owner: monstruo
+  runtime_allowed: false
+  notes: "Contract only. No loop active."
+
+loop_ejecutor:
+  loop_id: loop_ejecutor
+  role: "Heavy execution (Manus/Cowork): code, files, commits"
+  status: NOT_RUNNING
+  max_autonomy_level: A5
+  allowed_event_types: ["OBSERVED", "STATE_DELTA_PROPOSED", "TASK_CREATED", "TASK_UPDATED", "HANDOFF_READY"]
+  allowed_read_paths: ["bridge/", "src/"]
+  allowed_write_paths: ["bridge/", "src/"]
+  forbidden_actions: ["touch_supabase", "modify_kernel", "deploy_production"]
+  auditor_required: true
+  heartbeat_policy: "every_5_min"
+  owner: monstruo
+  runtime_allowed: false
+  notes: "Contract only. No loop active."
+
+loop_auditor:
+  loop_id: loop_auditor
+  role: "Validate work from other loops (Perplexity/Grok)"
+  status: NOT_RUNNING
+  max_autonomy_level: A2
+  allowed_event_types: ["OBSERVED", "AUDIT_COMPLETED", "BLOCKER_DECLARED"]
+  allowed_read_paths: ["bridge/", "src/", "event_log.v0.jsonl"]
+  allowed_write_paths: ["bridge/control_tower/"]
+  forbidden_actions: ["write_code", "touch_supabase", "modify_kernel"]
+  auditor_required: false
+  heartbeat_policy: "on_demand"
+  owner: monstruo
+  runtime_allowed: false
+  notes: "Contract only. No loop active. Cannot audit own lineage."
+
+loop_aprendizaje:
+  loop_id: loop_aprendizaje
+  role: "Analyze past logs, extract lessons, propose improvements"
+  status: NOT_RUNNING
+  max_autonomy_level: A2
+  allowed_event_types: ["OBSERVED", "STATE_DELTA_PROPOSED"]
+  allowed_read_paths: ["bridge/", "event_log.v0.jsonl"]
+  allowed_write_paths: ["bridge/doctrine_candidates/"]
+  forbidden_actions: ["write_code", "touch_supabase", "modify_kernel", "deploy"]
+  auditor_required: false
+  heartbeat_policy: "daily"
+  owner: monstruo
+  runtime_allowed: false
+  notes: "Contract only. No loop active."
+
+loop_unified_face:
+  loop_id: loop_unified_face
+  role: "Main router of Vigilia Sincronica. Dispatches to loops."
+  status: NOT_RUNNING
+  max_autonomy_level: A3
+  allowed_event_types: ["OBSERVED", "TASK_CREATED", "HANDOFF_READY"]
+  allowed_read_paths: ["bridge/", "current_state.v0.json", "loop_registry.v0.yaml"]
+  allowed_write_paths: ["bridge/control_tower/"]
+  forbidden_actions: ["write_code", "touch_supabase", "modify_kernel"]
+  auditor_required: false
+  heartbeat_policy: "always_on"
+  owner: monstruo
+  runtime_allowed: false
+  notes: "Contract only. No loop active. Central dispatcher."
