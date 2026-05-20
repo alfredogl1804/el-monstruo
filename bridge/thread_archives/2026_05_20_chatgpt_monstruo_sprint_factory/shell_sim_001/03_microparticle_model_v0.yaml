@@ -1,0 +1,22 @@
+# SIMULADOR TEMPORAL DEL MODELO DE MICROPARTÍCULA SHELL
+# Nota: YAML usado solo como representación legible del modelo espacial.
+
+microparticle_schema:
+  id: "string (identificador único de la partícula)"
+  coordinates:
+    x: "float (-1.0 a 1.0) - Dominio funcional"
+    y: "float (-1.0 a 1.0) - Nivel de autoridad/control"
+    z: "float (-1.0 a 1.0) - Eje temporal/persistencia"
+  properties:
+    depth: "integer (0-3) - Nivel de abstracción"
+    size: "float (0.1 a 10.0) - Peso gravitacional en el sistema"
+    color: "hex_code - Categoría semántica"
+    spin: "vector_3d - Estado dinámico/mutabilidad"
+  relations:
+    - target_id: "string"
+      force: "float (0.0 a 1.0) - Fuerza de la conexión"
+      type: "enum (governs, mitigates, feeds, synchronizes_with)"
+  metadata_tags:
+    # Tags temporales para ayudar a la IA decodificadora en la simulación
+    semantic_hint: "string"
+    constraints: "list of strings"
