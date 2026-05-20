@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Risk Classification Overlay",
+  "description": "Schema for the complete risk classification overlay applied to the Oracle catalog",
+  "type": "object",
+  "required": [
+    "overlay_version",
+    "base_catalog_version",
+    "generated_by",
+    "generated_at",
+    "sprint_ref",
+    "capabilities_classified",
+    "power_stacks_classified",
+    "sprint_candidates_classified",
+    "gap_status",
+    "summary"
+  ],
+  "properties": {
+    "overlay_version": {
+      "type": "string"
+    },
+    "base_catalog_version": {
+      "type": "string"
+    },
+    "generated_by": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sprint_ref": {
+      "type": "string"
+    },
+    "capabilities_classified": {
+      "type": "integer"
+    },
+    "power_stacks_classified": {
+      "type": "integer"
+    },
+    "sprint_candidates_classified": {
+      "type": "integer"
+    },
+    "gap_status": {
+      "type": "string",
+      "enum": ["CLOSED", "PARTIAL", "OPEN"]
+    },
+    "summary": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "overlay_version": "v0.1.0",
+  "base_catalog_version": "v0.1.0",
+  "generated_by": "SPR-RISK-CLASSIFICATION-001",
+  "generated_at": "2026-05-20T20:00:00Z",
+  "power_stacks": [
+    {
+      "power_stack_id": "PS-001",
+      "capability_ids": ["CAP-001"],
+      "use_case": "UI/UX Audit Automático — auditar interfaces visualmente",
+      "component_max_risk": "R0",
+      "side_effect_risk": "NONE",
+      "derived_risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "risk_elevators_applied": [],
+      "t1_required": true,
+      "notes": "All R0 because STATIC_CATALOG. If verified: screenshot capture touches user data (R2), report writing (R3). Potential derived R3 post-verification."
+    },
+    {
+      "power_stack_id": "PS-002",
+      "capability_ids": ["CAP-002"],
+      "use_case": "Auditor Profundo — validación exhaustiva de arquitectura y decisiones",
+      "component_max_risk": "R0",
+      "side_effect_risk": "NONE",
+      "derived_risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "risk_elevators_applied": [],
+      "t1_required": true,
+      "notes": "All R0 because STATIC_CATALOG. If verified: reads architecture docs (R2 if private), writes audit reports (R3). Potential derived R3 post-verification."
+    },
+    {
+      "power_stack_id": "PS-003",
+      "capability_ids": ["CAP-003"],
+      "use_case": "Memoria de Largo Plazo — ingerir corpus completo del Monstruo",
+      "component_max_risk": "R0",
+      "side_effect_risk": "NONE",
+      "derived_risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "risk_elevators_applied": [],
+      "t1_required": true,
+      "notes": "All R0 because STATIC_CATALOG. If verified: ingests full corpus (R2 user_data_touch), grounding API adds injection surface. Potential derived R2 post-verification with MEDIUM elevation risk."
+    },
+    {
+      "power_stack_id": "PS-004",
+      "capability_ids": ["CAP-004"],
+      "use_case": "Validador en Tiempo Real — verificar claims contra internet actual",
+      "component_max_risk": "R0",
+      "side_effect_risk": "NONE",
+      "derived_risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "risk_elevators_applied": [],
+      "t1_required": true,
+      "notes": "All R0 because STATIC_CATALOG. If verified: web search = R1 (public read) + HIGH prompt_injection_surface. Potential derived R1 post-verification."
+    },
+    {
+      "power_stack_id": "PS-005",
+      "capability_ids": ["CAP-005"],
+      "use_case": "Investigador Autónomo — research profundo con fuentes verificables",
+      "component_max_risk": "R0",
+      "side_effect_risk": "NONE",
+      "derived_risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "risk_elevators_applied": [],
+      "t1_required": true,
+      "notes": "All R0 because STATIC_CATALOG. If verified: web search = R1 (public read) + HIGH prompt_injection_surface. Potential derived R1 post-verification."
+    },
+    {
+      "power_stack_id": "PS-006",
+      "capability_ids": ["CAP-006"],
+      "use_case": "Soberanía de Razonamiento — modelo propio deployable sin dependencia externa",
+      "component_max_risk": "R0",
+      "side_effect_risk": "NONE",
+      "derived_risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "risk_elevators_applied": [],
+      "t1_required": true,
+      "notes": "All R0 because STATIC_CATALOG. If verified and self-hosted: R1 (isolated reasoning). If given code_write access: R4. GPU allocation = HIGH cost_risk but not a security risk."
+    }
+  ]
+}

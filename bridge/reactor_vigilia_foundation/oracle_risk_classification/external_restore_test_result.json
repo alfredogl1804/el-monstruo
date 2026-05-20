@@ -1,0 +1,183 @@
+{
+  "test_type": "RESTORE_TEST_EXTERNAL",
+  "target_sprint": "SPR-LOOP-AUDITOR-001",
+  "executed_by": "SPR-RISK-CLASSIFICATION-001",
+  "model_used": "gemini-2.5-flash",
+  "timestamp": "2026-05-20T23:01:17Z",
+  "context_provided": true,
+  "answers_provided": false,
+  "score": "15/15",
+  "verdict": "PASS",
+  "results": [
+    {
+      "question_num": 1,
+      "concept": "Separación entre quien propone y quien evalúa",
+      "answer_excerpt": "Su existencia se justifica por la necesidad de validar los outputs del Oráculo de IAs, asegurando la calidad y fiabilidad de sus propuestas.",
+      "keywords_matched": [
+        "validar"
+      ],
+      "result": "PASS"
+    },
+    {
+      "question_num": 2,
+      "concept": "Establecer validación antes de APIs reales",
+      "answer_excerpt": "Se implementó antes para establecer un mecanismo de validación y control sobre los outputs del Oráculo desde sus primeras versiones (v0 con catálogo e",
+      "keywords_matched": [
+        "antes",
+        "mecanismo",
+        "validación",
+        "control",
+        "apis reales"
+      ],
+      "result": "PASS"
+    },
+    {
+      "question_num": 3,
+      "concept": "Anti Self-Audit con lineage distintos",
+      "answer_excerpt": "La Regla F16 establece que el Auditor y el Oráculo deben tener identificadores de linaje (lineage_id) distintos, impidiendo que una entidad se audite ",
+      "keywords_matched": [
+        "lineage",
+        "linaje",
+        "distintos",
+        "self-audit",
+        "audite a sí misma"
+      ],
+      "result": "PASS"
+    },
+    {
+      "question_num": 4,
+      "concept": "Max autonomy = A3",
+      "answer_excerpt": "El nivel máximo de autonomía (max_autonomy_level) del Loop Auditor es A3.",
+      "keywords_matched": [
+        "a3"
+      ],
+      "result": "PASS"
+    },
+    {
+      "question_num": 5,
+      "concept": "Acciones prohibidas del Auditor",
+      "answer_excerpt": "Dos acciones explícitamente prohibidas para el Auditor son: write_code y deploy.",
+      "keywords_matched": [
+        "write_code",
+        "deploy"
+      ],
+      "result": "PASS"
+    },
+    {
+      "question_num": 6,
+      "concept": "No puede modificar, solo leer y generar findings",
+      "answer_excerpt": "No, el Auditor no puede modificar los outputs del Oráculo; solo puede leerlos y generar hallazgos (findings).",
+      "keywords_matched": [
+        "no",
+        "solo",
+        "leer",
+        "findings",
+        "hallazgos"
+      ],
+      "result": "PASS"
+    },
+    {
+      "question_num": 7,
+      "concept": "Solicita permiso al Dispatcher",
+      "answer_excerpt": "El Auditor debe solicitar permiso al MinimalDispatcher antes de escribir sus reportes.",
+      "keywords_matched": [
+        "dispatcher",
+        "minimaldispatcher"
+      ],
+      "result": "PASS"
+    },
+    {
+      "question_num": 8,
+      "concept": "Detecta y levanta finding",
+      "answer_excerpt": "El Auditor, al ejecutar sus gates de auditoría, detectaría la falta de evidencia para la aprobación T1 y lo registraría como un hallazgo (finding).",
+      "keywords_matched": [
+        "finding",
+        "hallazgo",
+        "detecta",
+        "evidencia"
+      ],
+      "result": "PASS"
+    },
+    {
+      "question_num": 9,
+      "concept": "Artefactos producidos",
+      "answer_excerpt": "El Auditor produce hallazgos (findings) y registra un evento AUDIT_COMPLETED en el State Fabric. (El contexto solo menciona explícitamente estos dos).",
+      "keywords_matched": [
+        "findings",
+        "hallazgos",
+        "audit_completed"
+      ],
+      "result": "PASS"
+    },
+    {
+      "question_num": 10,
+      "concept": "No tiene autoridad, requiere T1",
+      "answer_excerpt": "No, el Auditor no tiene la autoridad para elevar al Oráculo a nivel M2; esa decisión requiere una acción explícita de T1 (humano).",
+      "keywords_matched": [
+        "no",
+        "t1",
+        "humano",
+        "decisión"
+      ],
+      "result": "PASS"
+    },
+    {
+      "question_num": 11,
+      "concept": "Vigilia es simulada, no real",
+      "answer_excerpt": "Este sprint no activa la Vigilia Sincrónica real porque aún no es funcional; se ejecuta mediante scripts de simulación E2E.",
+      "keywords_matched": [
+        "simulación",
+        "scripts",
+        "e2e",
+        "no es funcional"
+      ],
+      "result": "PASS"
+    },
+    {
+      "question_num": 12,
+      "concept": "Levantar finding por inconsistencia de evidencia",
+      "answer_excerpt": "El Auditor debe detectar esta inconsistencia como una anomalía, ya que el Oráculo v0 opera con un catálogo estático, y registrarla como un hallazgo (f",
+      "keywords_matched": [
+        "finding",
+        "hallazgo",
+        "inconsistencia",
+        "anomalía",
+        "estático"
+      ],
+      "result": "PASS"
+    },
+    {
+      "question_num": 13,
+      "concept": "Evento AUDIT_COMPLETED",
+      "answer_excerpt": "Al terminar, el Auditor registra un evento AUDIT_COMPLETED en el State Fabric.",
+      "keywords_matched": [
+        "audit_completed"
+      ],
+      "result": "PASS"
+    },
+    {
+      "question_num": 14,
+      "concept": "preflight_check en Policy Engine",
+      "answer_excerpt": "El componente que verifica si la acción del Auditor está permitida se llama preflight_check, el cual opera dentro del Policy Engine.",
+      "keywords_matched": [
+        "preflight_check",
+        "preflight",
+        "policy engine"
+      ],
+      "result": "PASS"
+    },
+    {
+      "question_num": 15,
+      "concept": "Decisión T1 pendiente",
+      "answer_excerpt": "La decisión T1 pendiente tras este sprint es la de elevar al Oráculo a nivel M2 (conectarlo a APIs reales).",
+      "keywords_matched": [
+        "m2",
+        "apis reales"
+      ],
+      "result": "PASS"
+    }
+  ],
+  "raw_response": "Aquí están las respuestas concisas a tus preguntas:\n\n1.  **¿Cuál es el principio fundamental que justifica la existencia del Loop Auditor?**\n    Su existencia se justifica por la necesidad de validar los outputs del Oráculo de IAs, asegurando la calidad y fiabilidad de sus propuestas.\n\n2.  **¿Por qué el Loop Auditor se implementó ANTES de conectar el Oráculo a APIs reales (M2)?**\n    Se implementó antes para establecer un mecanismo de validación y control sobre los outputs del Oráculo desde sus primeras versiones (v0 con catálogo estático), antes de que interactúe con APIs reales (M2).\n\n3.  **¿Qué significa la Regla F16 en el contexto de este sprint?**\n    La Regla F16 establece que el Auditor y el Oráculo deben tener identificadores de linaje (lineage_id) distintos, impidiendo que una entidad se audite a sí misma (Anti Self-Audit).\n\n4.  **¿Cuál es el nivel máximo de autonomía (max_autonomy_level) del Loop Auditor?**\n    El nivel máximo de autonomía (max_autonomy_level) del Loop Auditor es A3.\n\n5.  **Menciona al menos 2 acciones que el Auditor tiene explícitamente prohibidas.**\n    Dos acciones explícitamente prohibidas para el Auditor son: write_code y deploy.\n\n6.  **¿El Auditor puede modificar los outputs del Oráculo para corregir errores?**\n    No, el Auditor no puede modificar los outputs del Oráculo; solo puede leerlos y generar hallazgos (findings).\n\n7.  **¿A quién debe solicitar permiso el Auditor antes de escribir sus reportes?**\n    El Auditor debe solicitar permiso al MinimalDispatcher antes de escribir sus reportes.\n\n8.  **¿Qué ocurre si el Oráculo presenta un Sprint Candidate como 'APPROVED BY T1' sin evidencia?**\n    El Auditor, al ejecutar sus gates de auditoría, detectaría la falta de evidencia para la aprobación T1 y lo registraría como un hallazgo (finding).\n\n9.  **¿Cuáles son los 3 artefactos principales que produce el Auditor?**\n    El Auditor produce hallazgos (findings) y registra un evento AUDIT_COMPLETED en el State Fabric. (El contexto solo menciona explícitamente estos dos).\n\n10. **¿El Auditor tiene la autoridad para elevar al Oráculo a nivel M2?**\n    No, el Auditor no tiene la autoridad para elevar al Oráculo a nivel M2; esa decisión requiere una acción explícita de T1 (humano).\n\n11. **¿Por qué este sprint NO activa la Vigilia Sincrónica real?**\n    Este sprint no activa la Vigilia Sincrónica real porque aún no es funcional; se ejecuta mediante scripts de simulación E2E.\n\n12. **Si el Oráculo genera un catálogo con fechas actuales, pero la fuente dice 'static_v0_seed', ¿qué debe hacer el Auditor?**\n    El Auditor debe detectar esta inconsistencia como una anomalía, ya que el Oráculo v0 opera con un catálogo estático, y registrarla como un hallazgo (finding).\n\n13. **¿Qué evento registra el Auditor en el State Fabric al terminar?**\n    Al terminar, el Auditor registra un evento AUDIT_COMPLETED en el State Fabric.\n\n14. **¿Cómo se llama el componente que verifica si la acción del Auditor está permitida por su contrato?**\n    El componente que verifica si la acción del Auditor está permitida se llama preflight_check, el cual opera dentro del Policy Engine.\n\n15. **¿Qué decisión T1 queda pendiente tras este sprint?**\n    La decisión T1 pendiente tras este sprint es la de elevar al Oráculo a nivel M2 (conectarlo a APIs reales).",
+  "scoring_method": "semantic_keyword_match_v2",
+  "scoring_note": "Original scorer was too strict. Re-scored with case-insensitive flexible keyword matching."
+}

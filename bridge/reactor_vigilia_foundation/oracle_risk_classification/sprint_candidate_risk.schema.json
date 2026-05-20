@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Sprint Candidate Risk Classification",
+  "description": "Schema for risk classification of a Sprint Candidate proposed by the Oracle",
+  "type": "object",
+  "required": [
+    "sprint_candidate_id",
+    "power_stack_id",
+    "capability_ids",
+    "proposed_actions",
+    "paths_touched",
+    "apis_required",
+    "secrets_required",
+    "derived_risk_class",
+    "required_autonomy_level",
+    "t1_required",
+    "allowed_next_action",
+    "notes"
+  ],
+  "properties": {
+    "sprint_candidate_id": {
+      "type": "string"
+    },
+    "power_stack_id": {
+      "type": "string"
+    },
+    "capability_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "proposed_actions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "paths_touched": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "apis_required": {
+      "type": "boolean"
+    },
+    "secrets_required": {
+      "type": "boolean"
+    },
+    "derived_risk_class": {
+      "type": "string",
+      "enum": ["R0", "R1", "R2", "R3", "R4", "R5"]
+    },
+    "required_autonomy_level": {
+      "type": "string",
+      "enum": ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"]
+    },
+    "t1_required": {
+      "type": "boolean"
+    },
+    "allowed_next_action": {
+      "type": "string",
+      "enum": ["CATALOG_ONLY", "R0_REPORT_ONLY", "R0_SPEC_ONLY", "AWAIT_T1", "BLOCKED"]
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

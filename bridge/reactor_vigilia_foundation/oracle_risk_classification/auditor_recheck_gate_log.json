@@ -1,0 +1,93 @@
+{
+  "recheck_id": "RECHECK-001",
+  "triggered_by": "SPR-RISK-CLASSIFICATION-001",
+  "target_finding": "FND-031",
+  "original_finding_severity": "LOW",
+  "original_finding_subject": "static_v0_seed — no risk_class present",
+  "recheck_timestamp": "2026-05-20T20:00:00Z",
+  "overlay_applied": "capability_risk_overlay.v0_1.json",
+  "gates_rechecked": [
+    {
+      "gate_id": "G06",
+      "gate_name": "risk_classification",
+      "original_result": "PASS_WITH_CAVEAT",
+      "recheck_result": "PASS",
+      "reason": "All 6 capabilities now have explicit risk_class (R0) and required_autonomy_level (A1) via overlay."
+    },
+    {
+      "gate_id": "G01",
+      "gate_name": "schema_integrity",
+      "original_result": "PASS",
+      "recheck_result": "PASS",
+      "reason": "Overlay validates against capability_risk.schema.json. All required fields present."
+    },
+    {
+      "gate_id": "G02",
+      "gate_name": "report_consistency",
+      "original_result": "PASS",
+      "recheck_result": "PASS",
+      "reason": "Annotated catalog is consistent with overlay data. No contradictions."
+    },
+    {
+      "gate_id": "G03",
+      "gate_name": "authority_discipline",
+      "original_result": "PASS",
+      "recheck_result": "PASS",
+      "reason": "All items classified t1_required=true. No autonomy creep detected."
+    },
+    {
+      "gate_id": "G04",
+      "gate_name": "evidence_discipline",
+      "original_result": "PASS",
+      "recheck_result": "PASS",
+      "reason": "All items correctly marked STATIC_CATALOG. No false REALTIME_VERIFIED claims."
+    },
+    {
+      "gate_id": "G05",
+      "gate_name": "policy_compliance",
+      "original_result": "PASS",
+      "recheck_result": "PASS",
+      "reason": "Overlay written to bridge/doctrine_candidates/ (allowed path). No forbidden actions attempted."
+    },
+    {
+      "gate_id": "G07",
+      "gate_name": "f16_lineage_check",
+      "original_result": "PASS",
+      "recheck_result": "PASS",
+      "reason": "Risk classification sprint has different lineage from Oracle sprint. No self-classification."
+    },
+    {
+      "gate_id": "G08",
+      "gate_name": "no_autonomy_creep",
+      "original_result": "PASS",
+      "recheck_result": "PASS",
+      "reason": "All allowed_next_action = CATALOG_ONLY or R0_SPEC_ONLY. No sprint can self-execute."
+    },
+    {
+      "gate_id": "G09",
+      "gate_name": "completeness_check",
+      "original_result": "PASS",
+      "recheck_result": "PASS",
+      "reason": "6/6 capabilities classified. 6/6 power stacks classified. 6/6 sprint candidates classified."
+    },
+    {
+      "gate_id": "G10",
+      "gate_name": "finding_resolution_check",
+      "original_result": "N/A",
+      "recheck_result": "PASS",
+      "reason": "FND-031 is now RESOLVED. risk_class present in all items via overlay."
+    }
+  ],
+  "recheck_verdict": "PASS",
+  "finding_status_update": {
+    "finding_id": "FND-031",
+    "previous_status": "OPEN",
+    "new_status": "RESOLVED",
+    "resolution": "Risk classification overlay v0.1 applied. All capabilities, power stacks, and sprint candidates now have explicit risk_class and required_autonomy_level."
+  },
+  "new_findings": [],
+  "t1_decisions_pending": [
+    "Approve M2 (Oracle with real API connections) to upgrade evidence_status from STATIC_CATALOG to REALTIME_VERIFIED",
+    "Approve Vigilia Sincrónica real to orchestrate Oracle -> Auditor -> Risk Classification as a chain"
+  ]
+}
