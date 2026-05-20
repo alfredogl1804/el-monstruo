@@ -36,3 +36,15 @@
 - **El significado vive en la configuración,** no en la secuencia.
 - **La prueba no es reproducir texto;** es producir el mismo entendimiento operativo.
 - **El error sería pensar con lo que existe** en lugar de diseñar la física de lo que podría existir.
+
+## Batch Reactor Vigilia SHELL 001
+- La Vigilia Sincrónica es la coreografía radial (no mesh libre) que resuelve el problema de "cómo existe el Monstruo en el tiempo".
+- El State Fabric debe ser single-writer (Dispatcher/Reducer) para evitar split-brain.
+- SHELL no es RAG ni JSON compacto; es una nueva materia para el contexto IA↔IA.
+- El benchmark de SHELL es la Equivalencia Funcional de 50k tokens, midiendo estado, bloqueos y acciones válidas.
+## Batch Shell Math No-Hint 001
+- La formalización matemática de SHELL usa grafos dirigidos ponderados donde el significado es topología.
+- El "No-Hint Encoding" (Stage 1) elimina el texto descriptivo del JSON para forzar inferencia puramente relacional.
+- El "Context Window Bleed" es un riesgo crítico: la validación debe hacerse en sesión limpia con temperatura 0.0.
+- La "Density Path" define 5 stages: desde JSON Hint (Stage 0) hasta Latent Space Mapping (Stage 4).
+- El JSON No-Hint sigue siendo menos denso que el texto humano (Ratio 1.54x), pero es el puente necesario hacia el Stage 2 (Compact Symbolic).

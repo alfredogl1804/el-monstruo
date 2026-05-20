@@ -58,3 +58,5 @@ Idea de investigación R0: El contexto IA↔IA no tiene que viajar como texto, s
 - **Vigilia Sincrónica:** Coreografía radial de loops (Unified Face + Dispatcher + State Fabric single-writer). Evita split-brain y F16 multi-loop.
 - **SHELL:** Micropolvo semántico para IA↔IA. Nueva forma de contexto, no compresión clásica.
 - **Benchmark:** Equivalencia funcional (50k tokens vs micropolvo).
+## 12. Formalización Matemática SHELL (No-Hint)
+El "No-Hint Encoding" (Stage 1 de la Density Path) formaliza SHELL como grafos dirigidos ponderados y elimina todo el texto descriptivo del JSON para forzar a la IA receptora a inferir roles operativos puramente desde la topología matemática y las coordenadas de las partículas. Requiere validación estricta en sesiones limpias (temperatura 0.0) para evitar "Context Window Bleed". Aunque no logra compresión real en bytes respecto al texto (ratio 1.54x), es el paso fundacional necesario para avanzar al Stage 2 (Compact Symbolic).

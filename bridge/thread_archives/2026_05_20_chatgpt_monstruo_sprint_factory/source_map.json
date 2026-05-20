@@ -31,5 +31,9 @@
   "30_SHELL_RESTORE_TEST.md": ["assistant_synthesis"],
   "31_SHELL_SEMANTIC_ATOMS.jsonl": ["assistant_synthesis"],
   "32_SHELL_CONCEPT_GRAPH_DELTA.yaml": ["assistant_synthesis"],
-  "concept_graph.yaml": ["assistant_synthesis"]
+  "concept_graph.yaml": ["assistant_synthesis"],
+  "batch_reactor_vigilia_shell_001/": ["assistant_synthesis"],
+  "shell_sim_001/": ["assistant_synthesis"],
+  "shell_validation_001/": ["assistant_synthesis"],
+  "shell_math_nohint_001/": ["assistant_synthesis"]
 }

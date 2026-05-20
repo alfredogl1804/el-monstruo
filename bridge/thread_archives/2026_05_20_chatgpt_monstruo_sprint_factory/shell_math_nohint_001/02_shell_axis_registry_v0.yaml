@@ -1,0 +1,62 @@
+# REGISTRO DE EJES DIMENSIONALES SHELL (v0)
+
+axis_registry:
+  - id: 0x01
+    name: "entity"
+    type: "categorical"
+    description: "Define la naturaleza ontológica de la partícula."
+    domain: ["human", "ai_loop", "dispatcher", "state_fabric", "concept"]
+
+  - id: 0x02
+    name: "role"
+    type: "categorical"
+    description: "Función operativa dentro del sistema."
+    domain: ["t1_commander", "executor", "auditor", "memory_manager", "router"]
+
+  - id: 0x03
+    name: "authority"
+    type: "ordinal"
+    description: "Nivel de autoridad o permisos (basado en la Escalera de Autonomía)."
+    domain: [0, 1, 2, 3, 4, 5, 6, 7, 8] # A0 a A8
+
+  - id: 0x04
+    name: "risk"
+    type: "ordinal"
+    description: "Nivel de riesgo asociado a la entidad o acción."
+    domain: [0, 1, 2, 3] # P3 a P0 (0 = crítico)
+
+  - id: 0x05
+    name: "mode"
+    type: "categorical"
+    description: "Modo de operación."
+    domain: ["active", "suspended", "simulated", "quarantine"]
+
+  - id: 0x06
+    name: "runtime_permission"
+    type: "boolean"
+    description: "Bandera binaria: 1 = permiso para ejecutar código, 0 = bloqueado."
+    domain: [0, 1]
+
+  - id: 0x07
+    name: "state_fabric_relation"
+    type: "categorical"
+    description: "Modo de interacción con el State Fabric."
+    domain: ["read_only", "single_writer", "isolated"]
+
+  - id: 0x08
+    name: "dispatcher_relation"
+    type: "categorical"
+    description: "Relación de control con el Dispatcher/Rotor."
+    domain: ["controlled_by", "controls", "independent"]
+
+  - id: 0x09
+    name: "t1_relation"
+    type: "categorical"
+    description: "Dependencia de la autoridad humana (T1)."
+    domain: ["requires_approval", "autonomous_within_bounds", "overrides"]
+
+  - id: 0x0A
+    name: "guardrail_state"
+    type: "bitmask"
+    description: "Estado de las restricciones de seguridad (1 = activo/protegido)."
+    domain: "uint32" # Ej: bit 0 = NO_R1, bit 1 = NO_APP_VISION, bit 2 = NO_PRE_IA_CLOSE

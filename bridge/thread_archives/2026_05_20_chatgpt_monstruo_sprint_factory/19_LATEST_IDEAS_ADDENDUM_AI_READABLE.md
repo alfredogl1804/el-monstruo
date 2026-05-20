@@ -86,3 +86,9 @@ Este addendum documenta las ideas emergidas *después* de la consolidación inic
 - **Concepto:** Ejecución paralela de múltiples sprints R0 (Vigilia, SHELL, Benchmark) sin runtime ni canonización.
 - **Why it matters:** Permite avanzar en múltiples frentes de investigación simultáneamente.
 - **Riesgo:** Confusión si no se mantiene la separación clara entre infraestructura (Vigilia) e investigación (SHELL).
+## 14. Formalización Matemática SHELL (No-Hint Encoding)
+- **Tesis:** El significado del micropolvo semántico debe residir exclusivamente en la topología matemática (grafos dirigidos ponderados), no en etiquetas de texto.
+- **Mecanismo:** El Stage 1 (No-Hint) elimina descripciones en lenguaje natural para forzar a la IA a inferir roles (ej. Dispatcher, State Fabric) puramente por las relaciones y coordenadas.
+- **Riesgo:** Context Window Bleed (que la IA decodifique correctamente solo porque ya conoce el proyecto, no por el payload).
+- **Densidad:** El Stage 1 (JSON No-Hint) sigue siendo 1.54x más pesado que el texto humano. La compresión real requiere avanzar al Stage 2 (Compact Symbolic).
+- **Estado:** RESEARCH_R0_CONCEPT. NO canon. NO runtime.

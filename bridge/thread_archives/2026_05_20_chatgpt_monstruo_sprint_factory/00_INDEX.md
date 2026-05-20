@@ -39,8 +39,10 @@
 32. `32_SHELL_CONCEPT_GRAPH_DELTA.yaml`
 33. `concept_graph.yaml`
 34. `thread_value_state.json`
-35. `source_map.json`
-
+35. `source_map.json43	36. `batch_reactor_vigilia_shell_001/` (Sprint Batch R0)
+44	37. `shell_sim_001/` (10 archivos)
+45	38. `shell_validation_001/` (16 archivos)
+46	39. `shell_math_nohint_001/` (21 archivos)
 ## Reglas Aplicadas
 - NO canonizado.
 - NO modifica DSC.
