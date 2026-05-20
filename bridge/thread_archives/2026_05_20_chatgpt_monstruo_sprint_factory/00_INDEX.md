@@ -15,12 +15,14 @@
 8. `08_AI_FIRST_LIVING_AND_SILENT_SERVICE.md`
 9. `09_HITL_COCKPIT_AND_NIGHTLY_BUILDER_STATE.md`
 10. `10_DORY_CURE_SABIO_VERDICTS.md`
-11. `11_PROMPTS_REUSABLES.md`
+11. `11_PROMPTS_REUSABLES.md` (FILLED_FROM_RECONSTRUCTED_CONTEXT)
 12. `12_OPEN_DECISIONS_T1.md`
 13. `13_DO_NOT_LOSE.md`
 14. `14_CONTEXT_RESTORE_TEST.md`
-15. `thread_value_state.json`
-16. `source_map.json`
+15. `15_BOOT_PACK_10_MIN.md`
+16. `16_ARCHIVE_VALIDATION_REPORT.md`
+17. `thread_value_state.json`
+18. `source_map.json`
 
 ## Reglas Aplicadas
 - NO canonizado.
@@ -30,6 +32,6 @@
 - Todas las ideas están etiquetadas con su estado correspondiente.
 
 ## Índice de Completitud
-- Archivos creados: 17/17 (100%)
+- Archivos creados/actualizados: 18/18 (100%)
 - Conceptos clave mapeados: 10/10 (100%)
 - Tests de restauración: 20/20 (100%)
