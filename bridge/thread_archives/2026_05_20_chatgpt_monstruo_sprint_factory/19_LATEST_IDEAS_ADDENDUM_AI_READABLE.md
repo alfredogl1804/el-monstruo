@@ -80,3 +80,9 @@ Este addendum documenta las ideas emergidas *después* de la consolidación inic
 - **Mecanismo:** Toma la esencia (estructura, jerarquía) de formatos viejos y la transpone a coordenadas, rotación, tamaño y color en un espacio SHELL.
 - **Benchmark:** Equivalencia funcional (no reproducción textual) entre 50k de texto y una microconfiguración.
 - **Estado:** DOCTRINE_CANDIDATE_HIGH_ORDER / RESEARCH_R0_CONCEPT. NO canon. NO runtime. NO compresión clásica. NO lenguaje IA-nativo emergente.
+
+## 13. Batch Reactor Vigilia SHELL 001
+- **Fuente:** Síntesis del archivo
+- **Concepto:** Ejecución paralela de múltiples sprints R0 (Vigilia, SHELL, Benchmark) sin runtime ni canonización.
+- **Why it matters:** Permite avanzar en múltiples frentes de investigación simultáneamente.
+- **Riesgo:** Confusión si no se mantiene la separación clara entre infraestructura (Vigilia) e investigación (SHELL).

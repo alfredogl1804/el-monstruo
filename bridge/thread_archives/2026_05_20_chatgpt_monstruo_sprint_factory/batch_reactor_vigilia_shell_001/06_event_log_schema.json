@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Event Log Schema",
+  "type": "object",
+  "properties": {
+    "event_id": { "type": "integer" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "source_loop": { "type": "string" },
+    "event_type": { "type": "string" },
+    "payload": { "type": "object" },
+    "autonomy_level_used": { "type": "string" },
+    "status": { "type": "string", "enum": ["PROPOSED", "ACCEPTED", "REJECTED"] }
+  },
+  "required": ["event_id", "created_at", "source_loop", "event_type", "status"]
+}

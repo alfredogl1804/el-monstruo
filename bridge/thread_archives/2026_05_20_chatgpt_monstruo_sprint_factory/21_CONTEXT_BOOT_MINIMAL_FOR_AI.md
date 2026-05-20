@@ -53,3 +53,8 @@ El reactor real no es un hilo inmortal, sino un sistema de muchos loops finitos 
 
 ## 10. SHELL / Micropolvo Semántico
 Idea de investigación R0: El contexto IA↔IA no tiene que viajar como texto, sino como micropolvo semántico (una configuración en un espacio multidimensional donde las propiedades de las partículas codifican significado). No es compresión clásica ni lenguaje emergente, es un diseño explícito que toma la esencia de los formatos viejos (JSON/schemas) pero cambia el medio. No es para lectura humana. Benchmark: Equivalencia funcional entre texto largo y micropolvo. Doctrina candidata, no canon.
+
+## 11. Batch Reactor Vigilia SHELL 001
+- **Vigilia Sincrónica:** Coreografía radial de loops (Unified Face + Dispatcher + State Fabric single-writer). Evita split-brain y F16 multi-loop.
+- **SHELL:** Micropolvo semántico para IA↔IA. Nueva forma de contexto, no compresión clásica.
+- **Benchmark:** Equivalencia funcional (50k tokens vs micropolvo).

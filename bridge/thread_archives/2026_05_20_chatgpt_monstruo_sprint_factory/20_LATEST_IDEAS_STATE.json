@@ -13,7 +13,8 @@
     "Reactor Soberano del Monstruo": "DOCTRINE_CANDIDATE_HIGH_ORDER",
     "Reactor de Vigilia Permanente": "DOCTRINE_CANDIDATE_HIGH_ORDER",
     "Vigilia Sincronica / Monstruo Multinucleo": "DOCTRINE_CANDIDATE_HIGH_ORDER",
-    "SHELL / Micropolvo Semantico": "DOCTRINE_CANDIDATE_HIGH_ORDER"
+    "SHELL / Micropolvo Semantico": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Batch Reactor Vigilia SHELL 001": "EXECUTED"
   },
   "doctrine_candidates_high_order": 12,
   "sprint_candidates": 1,
