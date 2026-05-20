@@ -1,5 +1,5 @@
 {
-  "latest_ideas_count": 11,
+  "latest_ideas_count": 12,
   "created_at": "2026-05-20T00:00:00Z",
   "status_by_idea": {
     "Human+ End-to-End": "DOCTRINE_CANDIDATE_HIGH_ORDER",
@@ -12,15 +12,17 @@
     "Aceleracion evolutiva recursiva": "DOCTRINE_CANDIDATE_HIGH_ORDER",
     "Reactor Soberano del Monstruo": "DOCTRINE_CANDIDATE_HIGH_ORDER",
     "Reactor de Vigilia Permanente": "DOCTRINE_CANDIDATE_HIGH_ORDER",
-    "Vigilia Sincronica / Monstruo Multinucleo": "DOCTRINE_CANDIDATE_HIGH_ORDER"
+    "Vigilia Sincronica / Monstruo Multinucleo": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "SHELL / Micropolvo Semantico": "DOCTRINE_CANDIDATE_HIGH_ORDER"
   },
-  "doctrine_candidates_high_order": 11,
-  "sprint_candidates": 0,
+  "doctrine_candidates_high_order": 12,
+  "sprint_candidates": 1,
   "blocked_runtime_items": [
     "Nightly Builder R1",
     "Universal Solver Runtime"
   ],
   "t1_pending_decisions": [
+    "SPR-SHELL-001 aprobacion",
     "SPR-VIGILIA-MESH-001 aprobacion",
     "SPR-REACTOR-VIGILIA-001 aprobacion",
     "SPR-REACTOR-SOBERANO-001 aprobacion",
@@ -35,6 +37,9 @@
     "22_RESTORE_TEST_LATEST_IDEAS": "Latest high-order concepts"
   },
   "must_not_assume": [
+    "SHELL is classical compression",
+    "SHELL is an emergent AI-native language",
+    "SHELL is human-readable",
     "Vigilia Sincronica is a free mesh topology",
     "Reactor Soberano and Reactor de Vigilia are the same",
     "Reactor is a generic assistant",

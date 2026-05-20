@@ -73,3 +73,10 @@ Este addendum documenta las ideas emergidas *después* de la consolidación inic
 - **Diferenciación:** No es una "mesh" libre (peligrosa), es una coreografía radial. La vida ininterrumpida es una metáfora operativa, no conciencia filosófica.
 - **Riesgos Mitigados:** Split-brain, loop storm, F16 multi-loop, Dory distribuido.
 - **Estado:** DOCTRINE_CANDIDATE_HIGH_ORDER. NO canon. NO runtime.
+
+## 12. SHELL / Micropolvo Semántico IA↔IA
+- **Detonante T1:** "lo que estoy creando no es para que lea un humano... solo es para que lea una ia contra otro ia... viaja un poco de micropolvo que significa mucho".
+- **Tesis:** El contexto no tiene que viajar como texto, prosa, JSON, YAML o schema. Puede viajar como micropolvo semántico en un espacio multidimensional.
+- **Mecanismo:** Toma la esencia (estructura, jerarquía) de formatos viejos y la transpone a coordenadas, rotación, tamaño y color en un espacio SHELL.
+- **Benchmark:** Equivalencia funcional (no reproducción textual) entre 50k de texto y una microconfiguración.
+- **Estado:** DOCTRINE_CANDIDATE_HIGH_ORDER / RESEARCH_R0_CONCEPT. NO canon. NO runtime. NO compresión clásica. NO lenguaje IA-nativo emergente.

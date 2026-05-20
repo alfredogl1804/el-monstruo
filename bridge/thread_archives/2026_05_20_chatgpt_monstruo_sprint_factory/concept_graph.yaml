@@ -45,6 +45,8 @@ nodes:
     type: "architecture_core"
   - id: "VIGILIA_SINCRONICA"
     type: "architecture_pattern"
+  - id: "SHELL_MICROPOLVO_SEMANTICO"
+    type: "concept"
 
 edges:
   - source: "Human_Plus_E2E"
@@ -139,3 +141,13 @@ edges:
   - source: "VIGILIA_SINCRONICA"
     target: "Sprint_Factory"
     relation: "orchestrates"
+
+  - source: "SHELL_MICROPOLVO_SEMANTICO"
+    target: "VIGILIA_SINCRONICA"
+    relation: "connects_to"
+  - source: "SHELL_MICROPOLVO_SEMANTICO"
+    target: "Human_Plus_E2E"
+    relation: "connects_to"
+  - source: "SHELL_MICROPOLVO_SEMANTICO"
+    target: "MEMENTO_ANTI_DORY"
+    relation: "connects_to"

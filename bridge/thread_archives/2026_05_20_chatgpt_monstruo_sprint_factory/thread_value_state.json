@@ -7,8 +7,8 @@
   "app_vision_active": false,
   "pre_ia_closed": false,
   "completeness_index": {
-    "files_created": 31,
-    "files_required": 31,
+    "files_created": 35,
+    "files_required": 35,
     "percentage": 100
   },
   "ai_absorbability_score": 96,

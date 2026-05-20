@@ -27,5 +27,9 @@
   "26_REACTOR_VIGILIA_RESTORE_TEST.md": ["assistant_synthesis"],
   "27_VIGILIA_SINCRONICA_AI_READABLE.md": ["user_verbatim", "assistant_synthesis"],
   "28_VIGILIA_SINCRONICA_RESTORE_TEST.md": ["assistant_synthesis"],
+  "29_SHELL_MICROPOLVO_SEMANTICO_AI_READABLE.md": ["user_verbatim", "assistant_synthesis"],
+  "30_SHELL_RESTORE_TEST.md": ["assistant_synthesis"],
+  "31_SHELL_SEMANTIC_ATOMS.jsonl": ["assistant_synthesis"],
+  "32_SHELL_CONCEPT_GRAPH_DELTA.yaml": ["assistant_synthesis"],
   "concept_graph.yaml": ["assistant_synthesis"]
 }

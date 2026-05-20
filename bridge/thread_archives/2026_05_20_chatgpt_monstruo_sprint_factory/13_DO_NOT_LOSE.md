@@ -28,3 +28,11 @@
 - **Un solo rostro, muchas mentes,** una memoria soberana, una autoridad humana.
 - **La malla simula continuidad para el usuario,** pero nunca simula autoridad ante T1.
 - **El Monstruo no está vivo porque un hilo nunca duerme;** está vivo porque múltiples loops finitos se relevan sin perder estado detrás de un único Monstruo visible.
+- **Sí viaja el contexto, pero es una nueva forma de contexto.** El contexto viaja como micropolvo semántico.
+- **No es para humanos;** nunca lo va a leer un humano. Solo es para IA contra IA.
+- **No se usan JSON/YAML/schemas;** se usa su esencia.
+- **La primera vez tarda** porque se inventa la estructura del nuevo lenguaje; eso se hace una vez.
+- **No se comprimen palabras.** Se cambia la materia del contexto.
+- **El significado vive en la configuración,** no en la secuencia.
+- **La prueba no es reproducir texto;** es producir el mismo entendimiento operativo.
+- **El error sería pensar con lo que existe** en lugar de diseñar la física de lo que podría existir.

@@ -33,9 +33,13 @@
 26. `26_REACTOR_VIGILIA_RESTORE_TEST.md`
 27. `27_VIGILIA_SINCRONICA_AI_READABLE.md`
 28. `28_VIGILIA_SINCRONICA_RESTORE_TEST.md`
-29. `concept_graph.yaml`
-30. `thread_value_state.json`
-31. `source_map.json`
+29. `29_SHELL_MICROPOLVO_SEMANTICO_AI_READABLE.md`
+30. `30_SHELL_RESTORE_TEST.md`
+31. `31_SHELL_SEMANTIC_ATOMS.jsonl`
+32. `32_SHELL_CONCEPT_GRAPH_DELTA.yaml`
+33. `concept_graph.yaml`
+34. `thread_value_state.json`
+35. `source_map.json`
 
 ## Reglas Aplicadas
 - NO canonizado.
@@ -45,6 +49,6 @@
 - Todas las ideas están etiquetadas con su estado correspondiente.
 
 ## Índice de Completitud
-- Archivos creados/actualizados: 31/31 (100%)
+- Archivos creados/actualizados: 35/35 (100%)
 - Conceptos clave mapeados: 10/10 (100%)
 - Tests de restauración: 20/20 (100%)
