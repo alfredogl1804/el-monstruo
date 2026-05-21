@@ -1,0 +1,113 @@
+%% B9-E2 — VERIFICADOR Authority Decision Flows
+%% Estado: DRAFT_T1_PENDING
+%% Autor: Manus E2 (autor NO-Cowork)
+%% Fuente normativa: closure pack v0.2 section 5
+%% Total: 10 diagramas (cases B9.9.T1 .. B9.9.T10)
+
+%% --- Diagrama T1: Acuerdo trivial completo (todos ALLOW) ---
+flowchart TD
+  T1_start([Acción magna llega]) --> T1_v{VERIFICADOR-001}
+  T1_v -->|ALLOW firma OK| T1_m{Memento Validator}
+  T1_m -->|ALLOW hechos OK| T1_g{Guardian Decision View}
+  T1_g -->|ALLOW HITL OK| T1_t1{T1 firma magna}
+  T1_t1 -->|ALLOW firma magna| T1_ok[/Acción procede - todos validaron/]
+
+---
+
+%% --- Diagrama T2: VERIFICADOR DENY + Memento DENY ---
+flowchart TD
+  T2_start([Acción magna llega]) --> T2_v{VERIFICADOR-001}
+  T2_v -->|DENY firma inválida| T2_block[/Acción bloqueada/]
+  T2_v -->|ALLOW| T2_m{Memento Validator}
+  T2_m -->|DENY hecho falso| T2_block
+  T2_block --> T2_log[(audit_log evento KILL_DOUBLE_DENY)]
+
+---
+
+%% --- Diagrama T3: Guardian DENY + T1 DENY ---
+flowchart TD
+  T3_start([Acción magna llega]) --> T3_g{Guardian Decision View}
+  T3_g -->|DENY HITL rechaza| T3_t1{T1 confirma}
+  T3_t1 -->|DENY T1 confirma rechazo| T3_block[/Acción bloqueada/]
+
+---
+
+%% --- Diagrama T4: VERIFICADOR ALLOW + Guardian ALLOW (sin disputa Memento) ---
+flowchart TD
+  T4_start([Acción magna llega]) --> T4_v{VERIFICADOR-001}
+  T4_v -->|ALLOW firma OK| T4_m{Memento Validator}
+  T4_m -->|ALLOW hechos OK| T4_g{Guardian Decision View}
+  T4_g -->|ALLOW HITL OK| T4_proceed[/Acción procede sin T1 magna si no es requerida/]
+
+---
+
+%% --- Diagrama T5: B9.3 - VERIFICADOR ALLOW + Memento DENY -> Memento gana ---
+flowchart TD
+  T5_start([Acción magna llega]) --> T5_v{VERIFICADOR-001}
+  T5_v -->|ALLOW firma OK| T5_m{Memento Validator}
+  T5_m -->|DENY hecho falso| T5_resolve{B9.3 Memento gana}
+  T5_resolve --> T5_block[/Acción bloqueada/]
+  T5_block --> T5_log[(audit_log evento MEMENTO_WINS_OVER_VERIFICADOR)]
+  T5_log --> T5_review[Review del payload firmado para forensics]
+
+---
+
+%% --- Diagrama T6: B9.4 - VERIFICADOR DENY + Guardian OVERRIDE_REQUEST -> escalación T1 ---
+flowchart TD
+  T6_start([Acción magna llega]) --> T6_v{VERIFICADOR-001}
+  T6_v -->|DENY firma inválida| T6_g{Guardian solicita override}
+  T6_g -->|OVERRIDE_REQUEST| T6_escalate{B9.4 escalación obligatoria T1}
+  T6_escalate --> T6_t1{T1 firma magna requerida}
+  T6_t1 -->|T1 ALLOW con razón verbatim| T6_proceed[/Acción procede como B9.5 T1_OVERRIDE_VERIFICADOR_DENY/]
+  T6_t1 -->|T1 DENY| T6_block[/Acción bloqueada veto VERIFICADOR sostenido/]
+  T6_t1 -->|T1 no responde en SLA| T6_queue[Cola AWAITING_T1 con incident_id]
+
+---
+
+%% --- Diagrama T7: B9.5 - VERIFICADOR DENY + T1 OVERRIDE -> T1 gana con notificación ---
+flowchart TD
+  T7_start([Acción magna llega]) --> T7_v{VERIFICADOR-001}
+  T7_v -->|DENY firma inválida| T7_t1{T1 firma magna OVERRIDE}
+  T7_t1 -->|ALLOW razón verbatim T1| T7_log[(audit_log evento T1_OVERRIDE_VERIFICADOR_DENY)]
+  T7_log --> T7_notify[Notificación obligatoria a Cowork + Sabio auditor designado]
+  T7_notify --> T7_proceed[/Acción procede con flag override_t1=true/]
+
+---
+
+%% --- Diagrama T8: B9.6 - VERIFICADOR-001 caído -> VERIFICADOR_DEGRADED ---
+flowchart TD
+  T8_start([VERIFICADOR-001 caído]) --> T8_detect{Heartbeat fail >3 reintentos}
+  T8_detect --> T8_state[Estado VERIFICADOR_DEGRADED]
+  T8_state --> T8_b8[Aplica B8 DISABLED_FOR_MAGNA_ACTIONS]
+  T8_state --> T8_warn[Acciones no-magnas con warning explícito]
+  T8_state --> T8_failover{Réplica VERIFICADOR-002 existe?}
+  T8_failover -->|Sí| T8_swap[Failover automático a VERIFICADOR-002]
+  T8_failover -->|No| T8_degraded[Operación degradada total]
+  T8_swap --> T8_alert[Alerta proactiva a operador + Cowork]
+  T8_degraded --> T8_alert
+
+---
+
+%% --- Diagrama T9: B9.7 - Memento Validator caído -> MEMENTO_DEGRADED ---
+flowchart TD
+  T9_start([Memento Validator caído]) --> T9_detect{Supabase down OR cuerpo legal ausente}
+  T9_detect --> T9_state[Estado MEMENTO_DEGRADED]
+  T9_state --> T9_verif[VERIFICADOR sigue autoritativo firma criptográfica]
+  T9_state --> T9_block[Ninguna acción magna procede]
+  T9_state --> T9_nonmagna[Acciones no-magnas con warning]
+  T9_block --> T9_unblock{T1 firma override OR Memento restaurado}
+  T9_unblock --> T9_resume[Resume operación normal]
+
+---
+
+%% --- Diagrama T10: B9.8 - Guardian caído -> AWAITING_GUARDIAN ---
+flowchart TD
+  T10_start([Guardian Decision View caído]) --> T10_detect{Operador no disponible OR cola saturada}
+  T10_detect --> T10_state[Estado GUARDIAN_DEGRADED]
+  T10_state --> T10_queue[Cola AWAITING_GUARDIAN acciones HITL-requeridas]
+  T10_state --> T10_norule[Regla binaria NO auto-decisión sin Guardian]
+  T10_queue --> T10_threshold{Cola supera threshold T1?}
+  T10_threshold -->|Sí| T10_escalate[Escalación manual a T1 vía canal redundante]
+  T10_threshold -->|No| T10_wait[Esperar restauración Guardian]
+  T10_escalate --> T10_t1[T1 procesa cola FIFO con firma magna]
+  T10_wait --> T10_restore[Guardian restaurado procesa cola FIFO]
