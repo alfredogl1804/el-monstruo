@@ -1,0 +1,45 @@
+{
+  "sprint": "SPR-MANUS-EXECUTION-AUDIT-LEDGER-001",
+  "auditor": "Cowork T2-A",
+  "fecha": "2026-05-21",
+  "branch_fuente": "origin/monstruo-reality-atlas-001",
+  "metodo": "git diff-tree + hard-rule scan, sin runtime",
+  "total_commits": 21,
+  "hard_rules_global": {
+    "no_main": "21/21 CLEAN",
+    "no_secrets": "21/21 CLEAN",
+    "no_sql_supabase": "21/21 CLEAN",
+    "no_codigo_productivo": "21/21 CLEAN",
+    "no_PR": "21/21 CLEAN"
+  },
+  "commits": [
+    {"sha7": "255f570", "sprint_id": "SPR-REACTOR-HEARTBEAT-R0-001", "files": 26, "ins": 1527, "tests_claimed": null, "event_log": false, "audit_status": "FULLY_AUDITED"},
+    {"sha7": "4521d37", "sprint_id": "SPR-REACTOR-SCHEDULER-R0-001", "files": 10, "ins": 409, "tests_claimed": null, "event_log": false, "audit_status": "FULLY_AUDITED"},
+    {"sha7": "c3f4697", "sprint_id": "SPR-REACTOR-SCHEDULER-ACTIVATION-R0-001", "files": 10, "ins": 235, "tests_claimed": null, "event_log": false, "audit_status": "FULLY_AUDITED"},
+    {"sha7": "5a0bb2f", "sprint_id": "SPR-REACTOR-M2-ONESHOT-001", "files": 12, "ins": 706, "tests_claimed": null, "event_log": false, "audit_status": "FULLY_AUDITED"},
+    {"sha7": "bd2e56e", "sprint_id": "SPR-ORACLE-AI-M2-001", "files": 30, "ins": 2263, "tests_claimed": "12/12", "event_log": false, "audit_status": "PARTIALLY_AUDITED", "caveat": "Real API verification UNVERIFIED cost/calls"},
+    {"sha7": "ee65779", "sprint_id": "SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001", "files": 31, "ins": 2286, "tests_claimed": null, "event_log": false, "audit_status": "FULLY_AUDITED"},
+    {"sha7": "72aa46e", "sprint_id": "SPR-REACTOR-LIMITED-ACTIVE-R0-001", "files": 7, "ins": 172, "tests_claimed": null, "event_log": false, "audit_status": "FULLY_AUDITED"},
+    {"sha7": "4e0745e", "sprint_id": "SPR-ACCELERATOR-WHILE-LIMITED-R0-RUNS-001", "files": 24, "ins": 957, "tests_claimed": null, "event_log": false, "audit_status": "FULLY_AUDITED"},
+    {"sha7": "8aa7cca", "sprint_id": "SPR-LIVE-UPGRADE-LIMITED-R0-EPOCH-002", "files": 15, "ins": 446, "tests_claimed": null, "event_log": false, "audit_status": "FULLY_AUDITED"},
+    {"sha7": "2b9aca2", "sprint_id": "SPR-EPOCH003-PRODUCTION-ACCELERATOR-001", "files": 26, "ins": 1365, "tests_claimed": null, "event_log": false, "audit_status": "FULLY_AUDITED"},
+    {"sha7": "1d79fd7", "sprint_id": "SPR-EPOCH004-R0PLUS-PRODUCTION-FABRIC-001", "files": 26, "ins": 1328, "tests_claimed": "4/4", "event_log": false, "audit_status": "PARTIALLY_AUDITED"},
+    {"sha7": "6bd9caa", "sprint_id": "SPR-EMBRION-AUTONOMO-ORACLE-R0-001", "files": 16, "ins": 892, "tests_claimed": "20/20", "event_log": false, "audit_status": "PARTIALLY_AUDITED"},
+    {"sha7": "b3e1c36", "sprint_id": "SPR-ORACLE-EMBRYO-SCHEDULER-INTEGRATION-R0-001", "files": 14, "ins": 874, "tests_claimed": "40/40", "event_log": true, "audit_status": "NEEDS_REVIEW", "caveat": "ejecucion autonoma + event_log, side-effects no auditados"},
+    {"sha7": "7fb3303", "sprint_id": "SPR-ORACLE-EMBRYO-PAIR-R0-001", "files": 20, "ins": 1059, "tests_claimed": "65/65", "event_log": true, "audit_status": "NEEDS_REVIEW"},
+    {"sha7": "4e5c90c", "sprint_id": "SPR-ORACLE-PAIR-GROUNDING-R0-001", "files": 18, "ins": 1005, "tests_claimed": null, "event_log": true, "audit_status": "NEEDS_REVIEW"},
+    {"sha7": "d61ac0c", "sprint_id": "SPR-EPOCH005-GROUNDED-ORACLE-PRODUCTION-R0PLUS-001", "files": 24, "ins": 1010, "tests_claimed": "78/78", "event_log": true, "audit_status": "NEEDS_REVIEW"},
+    {"sha7": "b54619a", "sprint_id": "SPR-EPOCH006-MEMORY-PALACE-R0PLUS-001", "files": 28, "ins": 1927, "tests_claimed": "95/95", "event_log": true, "audit_status": "NEEDS_REVIEW", "caveat": "Memory Palace artefacto vs Capa 8 Memento revisar"},
+    {"sha7": "ea7080d", "sprint_id": "SPR-EPOCH007-T1-FEEDBACK-LOOP-R0PLUS-001", "files": 28, "ins": 1989, "tests_claimed": null, "event_log": true, "audit_status": "NEEDS_REVIEW", "caveat": "FIN DE SCOPE declarado"},
+    {"sha7": "a913412", "sprint_id": "Epoch 008 (sin SPR-)", "files": 26, "ins": 2413, "tests_claimed": null, "event_log": true, "audit_status": "BLOCKED", "caveat": "FUERA DE SCOPE; Provider Migration Guard revisar"},
+    {"sha7": "9ba7e7f", "sprint_id": "SPR-REACTOR-VIGILIA-FOUNDATION-001", "files": 9, "ins": 267, "tests_claimed": null, "event_log": false, "audit_status": "FULLY_AUDITED"},
+    {"sha7": "c7153f8", "sprint_id": "SPR-EMBRION-PERITO-LOOP-001", "files": 5, "ins": 722, "tests_claimed": null, "event_log": false, "audit_status": "FULLY_AUDITED"}
+  ],
+  "resumen_status": {
+    "FULLY_AUDITED": 11,
+    "PARTIALLY_AUDITED": 3,
+    "NEEDS_REVIEW": 6,
+    "BLOCKED": 1
+  },
+  "recomendacion": "CONTINUE_WITH_LEDGER_REQUIRED"
+}
