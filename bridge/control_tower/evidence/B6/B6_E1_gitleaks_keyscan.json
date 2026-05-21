@@ -1,0 +1,19 @@
+{
+  "scan_type": "B6-E1_GITLEAKS_KEYSCAN",
+  "timestamp": "2026-05-20T00:00:00Z",
+  "tool": "gitleaks v8.18.4",
+  "scope": "all refs (history and branches)",
+  "commits_scanned": 123,
+  "findings": {
+    "gitleaks_leaks_found": 0,
+    "pattern_ed25519_matches": "Doctrinal only (9 commits in control_tower/spec). No key material.",
+    "pattern_private_key_matches": "Doctrinal only (5 commits in audits/specs). No key material.",
+    "pattern_pem_matches": "No key material.",
+    "pattern_minisign_matches": "0 matches.",
+    "pattern_signify_matches": "0 matches.",
+    "pattern_DORY_CURE_DISABLED_matches": "Doctrinal mentions in 7 commits. No runtime triggers found.",
+    "pattern_dory_cure_kill_switch_matches": "0 matches."
+  },
+  "status": "PASS_CANDIDATE",
+  "conclusion": "No ed25519 private keys or suspicious B6 material found in git history."
+}
