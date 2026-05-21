@@ -1,0 +1,37 @@
+oracle_v0_4_scoring_rubric:
+  version: "0.4"
+  description: "Rubrica de scoring obligatorio para Sprint Candidates generados por el Oraculo v0.4"
+  dimensions:
+    power_gain_for_Alfredo:
+      weight: 0.15
+      description: "Cuanto poder operativo o cognitivo le da a Alfredo."
+    speed_to_value:
+      weight: 0.10
+      description: "Que tan rapido se puede implementar y ver el valor."
+    compounding_value:
+      weight: 0.15
+      description: "Si el valor generado facilita o mejora sprints futuros."
+    implementation_feasibility:
+      weight: 0.10
+      description: "Que tan facil es implementarlo dadas las restricciones actuales (NO_R1, etc)."
+    risk:
+      weight: 0.10
+      description: "Riesgo de romper el sistema o violar hard rules (inverso: mayor score = menor riesgo)."
+    dependency:
+      weight: 0.05
+      description: "Dependencia de sistemas externos o inestables (inverso: mayor score = menor dependencia)."
+    evidence_strength:
+      weight: 0.05
+      description: "Fuerza de la evidencia que respalda la necesidad de este sprint."
+    fit_with_current_pilot:
+      weight: 0.10
+      description: "Alineacion con los objetivos de la Epoch 004 y LIMITED_ACTIVE_R0_PLUS."
+    user_visible_value:
+      weight: 0.10
+      description: "Valor directamente visible u observable por T1."
+    harness_value:
+      weight: 0.10
+      description: "Valor para fortalecer el arnes de seguridad o control del sistema."
+  calculation:
+    value_score: "Sum(dimension_score * weight) * 10 (Escala 0-100)"
+    risk_score: "(10 - risk_dimension_score) * 10 (Escala 0-100)"

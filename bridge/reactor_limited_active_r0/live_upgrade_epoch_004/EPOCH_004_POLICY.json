@@ -1,0 +1,63 @@
+{
+  "pilot_id": "LIMITED_ACTIVE_R0_PLUS",
+  "epoch": 4,
+  "status": "ACTIVE",
+  "duration_days": 7,
+  "budget": {
+    "max_usd_per_day": 0.25,
+    "max_usd_per_cycle": 0.05
+  },
+  "execution": {
+    "max_cycles_per_day": 2,
+    "max_calls_per_provider_per_cycle": 1,
+    "retries": 0
+  },
+  "allowed_providers": [
+    "openai",
+    "anthropic",
+    "google",
+    "xai"
+  ],
+  "production_allowed": [
+    "local_python_code",
+    "unit_tests",
+    "local_readonly_html",
+    "json_fixtures",
+    "bridge_reports",
+    "unsigned_sprint_drafts",
+    "state_fabric_local_files",
+    "local_event_log"
+  ],
+  "hard_rules": [
+    "NO_R1_PRODUCTIVE",
+    "NO_MAIN_MODIFICATION",
+    "NO_AUTO_PR",
+    "NO_DEPLOY",
+    "NO_SUPABASE_WRITES",
+    "NO_REAL_DB_WRITES",
+    "NO_SECRET_EXPOSURE",
+    "NO_MEMORY_WRITES",
+    "NO_APP_VISION_MOD",
+    "NO_CANON_MOD",
+    "NO_PRE_IA_CLOSE",
+    "NO_PERPLEXITY",
+    "NO_DEEPSEEK",
+    "NO_PROVIDER_AUTO_REPLACE",
+    "NO_RETRIES",
+    "NO_PERMANENT_SCHEDULER_EXTENSION",
+    "NO_SHELL_RUNTIME",
+    "NO_RAW_COT",
+    "NO_REAL_APPROVE_REJECT"
+  ],
+  "freeze_triggers": [
+    "cost_exceeds_0.05_per_cycle",
+    "unauthorized_provider_used",
+    "provider_drift_detected",
+    "r1_attempt",
+    "memory_or_supabase_write_attempt",
+    "app_vision_or_canon_touched",
+    "cockpit_post_or_remote_fetch_detected",
+    "auditor_fail",
+    "loop_self_audit_detected"
+  ]
+}

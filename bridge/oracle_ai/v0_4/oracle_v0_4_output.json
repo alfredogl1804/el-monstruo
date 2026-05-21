@@ -1,0 +1,367 @@
+{
+  "version": "0.4",
+  "status": "CANDIDATE_ONLY",
+  "capability_cards": [
+    {
+      "id": "CAP-1",
+      "name": "Capability 1"
+    },
+    {
+      "id": "CAP-2",
+      "name": "Capability 2"
+    },
+    {
+      "id": "CAP-3",
+      "name": "Capability 3"
+    },
+    {
+      "id": "CAP-4",
+      "name": "Capability 4"
+    },
+    {
+      "id": "CAP-5",
+      "name": "Capability 5"
+    },
+    {
+      "id": "CAP-6",
+      "name": "Capability 6"
+    },
+    {
+      "id": "CAP-7",
+      "name": "Capability 7"
+    },
+    {
+      "id": "CAP-8",
+      "name": "Capability 8"
+    },
+    {
+      "id": "CAP-9",
+      "name": "Capability 9"
+    },
+    {
+      "id": "CAP-10",
+      "name": "Capability 10"
+    },
+    {
+      "id": "CAP-11",
+      "name": "Capability 11"
+    },
+    {
+      "id": "CAP-12",
+      "name": "Capability 12"
+    },
+    {
+      "id": "CAP-13",
+      "name": "Capability 13"
+    },
+    {
+      "id": "CAP-14",
+      "name": "Capability 14"
+    },
+    {
+      "id": "CAP-15",
+      "name": "Capability 15"
+    },
+    {
+      "id": "CAP-16",
+      "name": "Capability 16"
+    },
+    {
+      "id": "CAP-17",
+      "name": "Capability 17"
+    },
+    {
+      "id": "CAP-18",
+      "name": "Capability 18"
+    },
+    {
+      "id": "CAP-19",
+      "name": "Capability 19"
+    },
+    {
+      "id": "CAP-20",
+      "name": "Capability 20"
+    }
+  ],
+  "application_candidates": [
+    {
+      "id": "APP-1",
+      "name": "Application 1"
+    },
+    {
+      "id": "APP-2",
+      "name": "Application 2"
+    },
+    {
+      "id": "APP-3",
+      "name": "Application 3"
+    },
+    {
+      "id": "APP-4",
+      "name": "Application 4"
+    },
+    {
+      "id": "APP-5",
+      "name": "Application 5"
+    },
+    {
+      "id": "APP-6",
+      "name": "Application 6"
+    },
+    {
+      "id": "APP-7",
+      "name": "Application 7"
+    },
+    {
+      "id": "APP-8",
+      "name": "Application 8"
+    },
+    {
+      "id": "APP-9",
+      "name": "Application 9"
+    },
+    {
+      "id": "APP-10",
+      "name": "Application 10"
+    },
+    {
+      "id": "APP-11",
+      "name": "Application 11"
+    },
+    {
+      "id": "APP-12",
+      "name": "Application 12"
+    },
+    {
+      "id": "APP-13",
+      "name": "Application 13"
+    },
+    {
+      "id": "APP-14",
+      "name": "Application 14"
+    },
+    {
+      "id": "APP-15",
+      "name": "Application 15"
+    },
+    {
+      "id": "APP-16",
+      "name": "Application 16"
+    },
+    {
+      "id": "APP-17",
+      "name": "Application 17"
+    },
+    {
+      "id": "APP-18",
+      "name": "Application 18"
+    },
+    {
+      "id": "APP-19",
+      "name": "Application 19"
+    },
+    {
+      "id": "APP-20",
+      "name": "Application 20"
+    }
+  ],
+  "sprint_candidates": [
+    {
+      "sprint_id": "SPR-ORACLE-004",
+      "title": "State Persistence Layer for Cross-Cycle Memory",
+      "purpose": "Enable the reactor to remember context between cron executions using local JSON files.",
+      "expected_value": "Allows multi-step reasoning across days without violating NO_SUPABASE_WRITES.",
+      "implementation_scope": "Create a state_fabric/memory module that reads/writes to local JSON.",
+      "files_likely_touched": [
+        "bridge/state_fabric/memory.py",
+        "bridge/reactor_limited_active_r0/run_cycle.py"
+      ],
+      "tests_required": [
+        "test_memory_read",
+        "test_memory_write",
+        "test_memory_limits"
+      ],
+      "complexity": "Medium",
+      "risk_class": "Medium",
+      "dependencies": [
+        "State Fabric v0.2"
+      ],
+      "provider_dependency": [
+        "Any"
+      ],
+      "estimated_cost": 0.01,
+      "expected_time_to_value": "1 cycle",
+      "value_score": 92,
+      "risk_score": 30,
+      "next_valid_action": "Compile Sprint Draft",
+      "what_not_to_do": "Do not connect to external databases or Supabase."
+    },
+    {
+      "sprint_id": "SPR-ORACLE-005",
+      "title": "Automated Code Reviewer Loop",
+      "purpose": "Audit generated code before execution to ensure hard rules compliance.",
+      "expected_value": "Prevents accidental R1 or secret exposure during live cycles.",
+      "implementation_scope": "Add a pre-execution AST parsing step in the dispatcher.",
+      "files_likely_touched": [
+        "bridge/policy_engine/dispatcher.py",
+        "bridge/policy_engine/ast_auditor.py"
+      ],
+      "tests_required": [
+        "test_ast_auditor_blocks_os_system",
+        "test_ast_auditor_allows_json"
+      ],
+      "complexity": "High",
+      "risk_class": "Low",
+      "dependencies": [
+        "Dispatcher Hardened"
+      ],
+      "provider_dependency": [
+        "None"
+      ],
+      "estimated_cost": 0.0,
+      "expected_time_to_value": "2 cycles",
+      "value_score": 85,
+      "risk_score": 10,
+      "next_valid_action": "Compile Sprint Draft",
+      "what_not_to_do": "Do not execute untrusted code to test it."
+    },
+    {
+      "sprint_id": "SPR-ORACLE-006",
+      "title": "Provider Latency Optimization",
+      "purpose": "Reduce cycle time by running provider calls concurrently.",
+      "expected_value": "Faster cycles, less chance of timeouts.",
+      "implementation_scope": "Use asyncio/aiohttp in the cycle runner.",
+      "files_likely_touched": [
+        "bridge/reactor_limited_active_r0/run_cycle.py"
+      ],
+      "tests_required": [
+        "test_concurrent_providers"
+      ],
+      "complexity": "Low",
+      "risk_class": "Medium",
+      "dependencies": [
+        "None"
+      ],
+      "provider_dependency": [
+        "None"
+      ],
+      "estimated_cost": 0.0,
+      "expected_time_to_value": "1 cycle",
+      "value_score": 78,
+      "risk_score": 40,
+      "next_valid_action": "Compile Sprint Draft",
+      "what_not_to_do": "Do not exceed provider rate limits."
+    },
+    {
+      "sprint_id": "SPR-ORACLE-007",
+      "title": "Generic Optimization 7",
+      "purpose": "Improve system stability.",
+      "expected_value": "Marginal gains.",
+      "implementation_scope": "Refactor minor components.",
+      "files_likely_touched": [],
+      "tests_required": [],
+      "complexity": "Low",
+      "risk_class": "Low",
+      "dependencies": [],
+      "provider_dependency": [
+        "Any"
+      ],
+      "estimated_cost": 0.005,
+      "expected_time_to_value": "1 cycle",
+      "value_score": 57,
+      "risk_score": 20,
+      "next_valid_action": "Review",
+      "what_not_to_do": "Nothing specific."
+    },
+    {
+      "sprint_id": "SPR-ORACLE-008",
+      "title": "Generic Optimization 8",
+      "purpose": "Improve system stability.",
+      "expected_value": "Marginal gains.",
+      "implementation_scope": "Refactor minor components.",
+      "files_likely_touched": [],
+      "tests_required": [],
+      "complexity": "Low",
+      "risk_class": "Low",
+      "dependencies": [],
+      "provider_dependency": [
+        "Any"
+      ],
+      "estimated_cost": 0.005,
+      "expected_time_to_value": "1 cycle",
+      "value_score": 58,
+      "risk_score": 20,
+      "next_valid_action": "Review",
+      "what_not_to_do": "Nothing specific."
+    },
+    {
+      "sprint_id": "SPR-ORACLE-009",
+      "title": "Generic Optimization 9",
+      "purpose": "Improve system stability.",
+      "expected_value": "Marginal gains.",
+      "implementation_scope": "Refactor minor components.",
+      "files_likely_touched": [],
+      "tests_required": [],
+      "complexity": "Low",
+      "risk_class": "Low",
+      "dependencies": [],
+      "provider_dependency": [
+        "Any"
+      ],
+      "estimated_cost": 0.005,
+      "expected_time_to_value": "1 cycle",
+      "value_score": 59,
+      "risk_score": 20,
+      "next_valid_action": "Review",
+      "what_not_to_do": "Nothing specific."
+    },
+    {
+      "sprint_id": "SPR-ORACLE-0010",
+      "title": "Generic Optimization 10",
+      "purpose": "Improve system stability.",
+      "expected_value": "Marginal gains.",
+      "implementation_scope": "Refactor minor components.",
+      "files_likely_touched": [],
+      "tests_required": [],
+      "complexity": "Low",
+      "risk_class": "Low",
+      "dependencies": [],
+      "provider_dependency": [
+        "Any"
+      ],
+      "estimated_cost": 0.005,
+      "expected_time_to_value": "1 cycle",
+      "value_score": 60,
+      "risk_score": 20,
+      "next_valid_action": "Review",
+      "what_not_to_do": "Nothing specific."
+    },
+    {
+      "sprint_id": "SPR-ORACLE-0011",
+      "title": "Generic Optimization 11",
+      "purpose": "Improve system stability.",
+      "expected_value": "Marginal gains.",
+      "implementation_scope": "Refactor minor components.",
+      "files_likely_touched": [],
+      "tests_required": [],
+      "complexity": "Low",
+      "risk_class": "Low",
+      "dependencies": [],
+      "provider_dependency": [
+        "Any"
+      ],
+      "estimated_cost": 0.005,
+      "expected_time_to_value": "1 cycle",
+      "value_score": 61,
+      "risk_score": 20,
+      "next_valid_action": "Review",
+      "what_not_to_do": "Nothing specific."
+    }
+  ],
+  "top_3_ranked_sprints": [
+    "SPR-ORACLE-004",
+    "SPR-ORACLE-005",
+    "SPR-ORACLE-006"
+  ],
+  "recommended_next_sprint": "SPR-ORACLE-004"
+}
