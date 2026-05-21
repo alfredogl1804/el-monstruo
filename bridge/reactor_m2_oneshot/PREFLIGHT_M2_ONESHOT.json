@@ -1,0 +1,51 @@
+{
+  "preflight_status": "PASS",
+  "constraints": {
+    "kill_switch_initial": {
+      "required": false,
+      "current": false,
+      "status": "PASS"
+    },
+    "scheduler_permanent": {
+      "required": false,
+      "current": false,
+      "status": "PASS"
+    },
+    "anti_loop_clear": {
+      "required": true,
+      "current": true,
+      "status": "PASS"
+    },
+    "dispatcher_available": {
+      "required": true,
+      "current": true,
+      "status": "PASS"
+    },
+    "oracle_shadow_available": {
+      "required": true,
+      "current": true,
+      "status": "PASS"
+    },
+    "auditor_available": {
+      "required": true,
+      "current": true,
+      "status": "PASS"
+    },
+    "providers_verified": {
+      "required": 4,
+      "current": 4,
+      "status": "PASS"
+    },
+    "excluded_providers": {
+      "perplexity": true,
+      "deepseek": true,
+      "status": "PASS"
+    },
+    "budget": {
+      "cap_usd": 2.00,
+      "max_calls_per_provider": 1,
+      "retries": 0,
+      "status": "PASS"
+    }
+  }
+}

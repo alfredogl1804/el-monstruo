@@ -1,7 +1,7 @@
 {
   "active": true,
-  "reason": "Re-frozen after successful 1-cycle activation test (SPR-REACTOR-SCHEDULER-ACTIVATION-R0-001 Phase 3).",
+  "reason": "Re-frozen after SPR-REACTOR-M2-ONESHOT-001 completion.",
   "last_toggled_by": "T1",
-  "last_toggled_at": "2026-05-21T01:14:00Z",
+  "last_toggled_at": "2026-05-21T01:32:00Z",
   "instructions": "Set active=false and ensure scheduler_state.json status=ACTIVE to start heartbeat cycles. Set active=true to stop immediately."
 }

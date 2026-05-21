@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-05-21T01:32:00Z",
+  "kill_switch": {
+    "active": true,
+    "reason": "Re-frozen after SPR-REACTOR-M2-ONESHOT-001 completion."
+  },
+  "scheduler": {
+    "status": "DORMANT",
+    "last_run": "M2-ONESHOT-001"
+  },
+  "constraints_verified": {
+    "zero_supabase_writes": true,
+    "zero_memory_writes": true,
+    "zero_r1_unlocked": true,
+    "zero_pr_created": true,
+    "zero_deployments": true
+  }
+}
