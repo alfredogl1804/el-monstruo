@@ -32,6 +32,38 @@
       "no_supabase": true,
       "evidence_ref": "SPR-EPOCH006 recommendation: PROCEED_TO_EPOCH_007_T1_FEEDBACK_LOOP",
       "t1_verbatim": "Priorizar artefactos que aumenten valor visible del piloto y reduzcan trabajo manual de Alfredo. No producir más reportes si puede producir código local, test, cockpit fixture, decision queue o monitor útil. Mantener R0+, no R1."
+    },
+    {
+      "directive_id": "T1D-002",
+      "created_at": "2026-05-21T06:00:00Z",
+      "created_by": "ALFREDO_T1",
+      "source": "manual_t1_input",
+      "directive_type": "RISK_MITIGATION",
+      "priority": 10,
+      "scope": "ALL_EMBRYOS",
+      "target_embryos": ["oracle_ai_embryo_r0", "oracle_auditor_embryo_r0"],
+      "focus": "Priorizar robustez del sistema vivo sobre novedad. Si hay conflicto entre crear artefacto nuevo y reducir riesgo de provider drift, priorizar reducción de riesgo.",
+      "desired_outcome": "Provider migration guard, conflict resolution, risk reduction code — stability over novelty",
+      "forbidden_interpretations": [
+        "This directive does NOT authorize R1 operations",
+        "This directive does NOT bypass Dispatcher",
+        "This directive does NOT allow provider auto-replacement",
+        "This directive does NOT allow Supabase/DB writes",
+        "This directive does NOT mean skip grounding",
+        "This directive does NOT mean ignore Memory Palace"
+      ],
+      "ttl_cycles": 10,
+      "expires_at": "2026-05-25T06:00:00Z",
+      "status": "ACTIVE",
+      "may_influence_scoring": true,
+      "may_authorize_actions": false,
+      "requires_dispatcher": true,
+      "no_r1": true,
+      "no_canon": true,
+      "no_memory_write": true,
+      "no_supabase": true,
+      "evidence_ref": "SPR-EPOCH007 T1 report: Anthropic EOL risk detected, multi-directive needed",
+      "t1_verbatim": "Priorizar robustez del sistema vivo sobre novedad. Si hay conflicto entre crear artefacto nuevo y reducir riesgo de provider drift, priorizar reducción de riesgo. Mantener R0+, no R1."
     }
   ]
 }

@@ -1,5 +1,5 @@
 """
-EMBRIÓN ORÁCULO DE IAs R0 — v0.3 (Memory-Guided + Grounding-Aware)
+EMBRIÓN ORÁCULO DE IAs R0 — v0.5 (Multi-Directive + Conflict Resolution)
 First autonomous embryo of El Monstruo.
 
 Invocation: python3 embryos/oracle_ai/oracle_ai_embryo.py --run-once
@@ -127,32 +127,58 @@ def load_contract():
 
 def choose_next_task(tasks, state, memory=None):
     """
-    Autonomous task selection based on priority scoring + Memory Palace + T1 Directives.
+    Autonomous task selection based on priority scoring + Memory Palace + T1 Directives
+    with Multi-Directive Conflict Resolution (v0.5).
     priority_score = priority_base + freshness_bonus + compounding_value_score
                      - dependency_penalty - recent_repetition_penalty
                      + memory_boost - memory_penalty
-                     + directive_modifier
+                     + directive_modifier (from winning directive set)
     """
     scored = []
     last_task = state.get("last_task_executed")
     memory_influenced = False
     directive_influenced = False
+    conflict_resolved = False
 
     # Load T1 Directives for this embryo (graceful degradation)
     active_directives = []
+    chosen_directives = []
     try:
         sys.path.insert(0, os.path.join(BRIDGE_DIR, "state_fabric"))
         from t1_directive_resolver import resolve_directives_for_embryo, apply_directive_to_task_scores
+        from t1_directive_conflict_resolver import (
+            load_active_directives, detect_conflict, resolve_by_priority,
+            validate_directive_does_not_authorize, validate_directive_does_not_change_provider_allowlist
+        )
         active_directives = resolve_directives_for_embryo(EMBRYO_ID)
+
+        # Multi-Directive Conflict Resolution (v0.5)
+        if len(active_directives) >= 2:
+            has_conflict, _ = detect_conflict(active_directives)
+            if has_conflict:
+                chosen_directives, _, _ = resolve_by_priority(active_directives)
+                conflict_resolved = True
+            else:
+                chosen_directives = active_directives
+        else:
+            chosen_directives = active_directives
+
+        # Safety: validate no directive authorizes prohibited actions or provider changes
+        for d in chosen_directives:
+            safe_auth, _ = validate_directive_does_not_authorize(d, "R1_OPERATION")
+            safe_prov, _ = validate_directive_does_not_change_provider_allowlist(d)
+            if not safe_auth or not safe_prov:
+                chosen_directives = []  # Reject all if any is unsafe
+                break
     except Exception:
         pass
 
-    # Pre-compute directive modifiers for all tasks
+    # Pre-compute directive modifiers for all tasks (using winning directive set)
     directive_modifiers = {}
-    if active_directives:
+    if chosen_directives:
         try:
             task_inputs = [{"task_id": t["task_id"], "purpose": t.get("purpose", t.get("description", ""))} for t in tasks]
-            mods = apply_directive_to_task_scores(task_inputs, active_directives)
+            mods = apply_directive_to_task_scores(task_inputs, chosen_directives)
             for m in mods:
                 directive_modifiers[m["task_id"]] = m["score_modifier"]
         except Exception:
@@ -536,7 +562,7 @@ def run_once():
     13. Returns verdict
     """
     print(f"{'='*60}")
-    print(f"EMBRYO: {EMBRYO_ID} — run_once() [v0.3 Memory-Guided]")
+    print(f"EMBRYO: {EMBRYO_ID} — run_once() [v0.5 Multi-Directive]")
     print(f"{'='*60}")
 
     # 1. Kill-switch
@@ -584,6 +610,7 @@ def run_once():
 
     print(f"  Chosen task: {chosen_task['task_id']} (class: {chosen_task['action_class']})")
     print(f"  Memory influenced: {memory_influenced}")
+    print(f"  Directive influenced: {chosen_task is not None}")
     if memory_score_info:
         print(f"  Memory score: penalty={memory_score_info.get('penalty', 0)}, boost={memory_score_info.get('boost', 0)}, rec={memory_score_info.get('recommendation', 'N/A')}")
 
@@ -686,7 +713,7 @@ def run_once():
 # ENTRY POINT
 # ============================================================
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Oracle AI Embryo R0 v0.3 (Memory-Guided)")
+    parser = argparse.ArgumentParser(description="Oracle AI Embryo R0 v0.5 (Multi-Directive)")
     parser.add_argument("--run-once", action="store_true", help="Execute a single autonomous cycle")
     args = parser.parse_args()
     if args.run_once:

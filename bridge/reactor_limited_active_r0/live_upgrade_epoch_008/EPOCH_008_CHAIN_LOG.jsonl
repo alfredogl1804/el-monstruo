@@ -1,0 +1,6 @@
+{"epoch": 8, "event": "EPOCH_008_STARTED", "timestamp": "2026-05-21T05:44:00Z", "sprint": "SPR-EPOCH008-PROVIDER-MIGRATION-DIRECTIVE-CONFLICT-R0PLUS-001"}
+{"epoch": 8, "event": "PROVIDER_MIGRATION_GUARD_DEPLOYED", "timestamp": "2026-05-21T05:44:10Z", "risks_detected": 1, "provider": "anthropic", "eol_date": "2026-06-15", "days_remaining": 25}
+{"epoch": 8, "event": "MULTI_DIRECTIVE_CONFLICT_DETECTED", "timestamp": "2026-05-21T05:44:20Z", "directives": ["T1D-001", "T1D-002"], "conflict_type": "OPPOSING_INTENT", "resolution": "T1D-002_WINS"}
+{"epoch": 8, "event": "ORACLE_V05_CYCLE", "timestamp": "2026-05-21T05:44:51Z", "task": "detect_new_ai_capability_candidates", "cost": 0.000438, "grounding": 6, "claims": 5, "memory_influenced": true, "directive_influenced": true}
+{"epoch": 8, "event": "AUDITOR_V05_CYCLE", "timestamp": "2026-05-21T05:45:00Z", "task": "audit_oracle_latest_output", "cost": 0.000198, "grounding": 10, "verdict": "PASS", "memory_influenced": true}
+{"epoch": 8, "event": "EPOCH_008_TOTAL_COST", "timestamp": "2026-05-21T05:45:12Z", "oracle_cost": 0.000438, "auditor_cost": 0.000198, "total_cost": 0.000636, "cumulative_cost": 0.026136}

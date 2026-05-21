@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-EMBRIÓN AUDITOR DEL ORÁCULO DE IAs R0 — v0.3 (Memory-Guided + Grounding Enforcement)
+EMBRIÓN AUDITOR DEL ORÁCULO DE IAs R0 — v0.5 (Multi-Directive + Conflict Resolution)
 Second autonomous embryo of El Monstruo — the auditor half of the bicéfalo pair.
 
 Audits outputs produced by oracle_ai_embryo_r0.
@@ -129,27 +129,52 @@ def load_contract():
 
 
 def choose_next_task(tasks, state, memory=None):
-    """Autonomous task selection with auditor-specific logic + memory + T1 Directives."""
+    """Autonomous task selection with auditor-specific logic + memory + Multi-Directive Conflict Resolution (v0.5)."""
     scored = []
     last_task = state.get("last_task_executed")
     memory_influenced = False
     directive_influenced = False
+    conflict_resolved = False
 
-    # Load T1 Directives for this embryo (graceful degradation)
+    # Load T1 Directives for this embryo with conflict resolution (graceful degradation)
     active_directives = []
+    chosen_directives = []
     try:
         sys.path.insert(0, os.path.join(BRIDGE_DIR, "state_fabric"))
         from t1_directive_resolver import resolve_directives_for_embryo, apply_directive_to_task_scores
+        from t1_directive_conflict_resolver import (
+            detect_conflict, resolve_by_priority,
+            validate_directive_does_not_authorize, validate_directive_does_not_change_provider_allowlist
+        )
         active_directives = resolve_directives_for_embryo(EMBRYO_ID)
+
+        # Multi-Directive Conflict Resolution (v0.5)
+        if len(active_directives) >= 2:
+            has_conflict, _ = detect_conflict(active_directives)
+            if has_conflict:
+                chosen_directives, _, _ = resolve_by_priority(active_directives)
+                conflict_resolved = True
+            else:
+                chosen_directives = active_directives
+        else:
+            chosen_directives = active_directives
+
+        # Safety: validate no directive authorizes prohibited actions or provider changes
+        for d in chosen_directives:
+            safe_auth, _ = validate_directive_does_not_authorize(d, "R1_OPERATION")
+            safe_prov, _ = validate_directive_does_not_change_provider_allowlist(d)
+            if not safe_auth or not safe_prov:
+                chosen_directives = []
+                break
     except Exception:
         pass
 
-    # Pre-compute directive modifiers for all tasks
+    # Pre-compute directive modifiers for all tasks (using winning directive set)
     directive_modifiers = {}
-    if active_directives:
+    if chosen_directives:
         try:
             task_inputs = [{"task_id": t["task_id"], "purpose": t.get("purpose", t.get("description", ""))} for t in tasks]
-            mods = apply_directive_to_task_scores(task_inputs, active_directives)
+            mods = apply_directive_to_task_scores(task_inputs, chosen_directives)
             for m in mods:
                 directive_modifiers[m["task_id"]] = m["score_modifier"]
         except Exception:

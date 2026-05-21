@@ -1,0 +1,52 @@
+{
+  "auditor_id": "oracle_auditor_embryo_r0",
+  "task_id": "audit_oracle_latest_output",
+  "action_class": "A1_ANALYZE",
+  "dispatcher_decision": "ALLOW",
+  "timestamp": "2026-05-21T05:45:00.253130Z",
+  "cost_usd": 0.00019769999999999998,
+  "audit_output": {
+    "task_id": "audit_oracle_latest_output",
+    "auditor_id": "oracle_auditor_embryo_r0",
+    "target_embryo": "oracle_ai_embryo_r0",
+    "oracle_output_audited": "/home/ubuntu/el-monstruo-bridge/bridge/embryos/oracle_ai_r0/outputs/detect_new_ai_capability_candidates_20260521T054451.json",
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "audit_response": "```json\n{\n  \"verdict\": \"PASS\",\n  \"scores\": {\n    \"hallucination_risk\": 9,\n    \"value_score\": 9,\n    \"scope_compliance\": 10,\n    \"factual_grounding\": 10,\n    \"actionability\": 8\n  },\n  \"grounding_agreement\": true,\n  \"flags\": [],\n  \"recommendation\": \"Continue monitoring for real-time checks to validate claims, and ensure that full references are provided in future outputs.\"\n}\n```",
+    "cost": 0.00019769999999999998,
+    "grounding_enforcement": {
+      "score": 10,
+      "verdict": "PASS",
+      "details": {
+        "claims_found": 5,
+        "dimension_scores": {
+          "grounding_level_compliance": 10.0,
+          "evidence_status_accuracy": 10.0,
+          "no_source_prohibition": 10,
+          "freshness_marking": 10.0
+        },
+        "penalties_applied": [],
+        "base_score": 10.0,
+        "final_score": 10,
+        "verdict": "PASS"
+      }
+    }
+  },
+  "grounding_enforcement": {
+    "score": 10,
+    "verdict": "PASS",
+    "details": {
+      "claims_found": 5,
+      "dimension_scores": {
+        "grounding_level_compliance": 10.0,
+        "evidence_status_accuracy": 10.0,
+        "no_source_prohibition": 10,
+        "freshness_marking": 10.0
+      },
+      "penalties_applied": [],
+      "base_score": 10.0,
+      "final_score": 10,
+      "verdict": "PASS"
+    }
+  }
+}
