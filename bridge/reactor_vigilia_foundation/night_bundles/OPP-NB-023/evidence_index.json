@@ -1,0 +1,46 @@
+{
+  "bundle_id": "OPP-NB-023",
+  "evidence_items": [
+    {
+      "id": "EV-001",
+      "type": "observation",
+      "description": "user_id=anonymous detected as non-canonical default in State Fabric schemas",
+      "source": "state_fabric/loop_registry.v0.yaml",
+      "source_type": "untrusted_data",
+      "is_instruction": false,
+      "is_authorization": false,
+      "timestamp": "2026-05-20T22:00:00Z"
+    },
+    {
+      "id": "EV-002",
+      "type": "observation",
+      "description": "No T1 approval found for user_id=anonymous as accepted default",
+      "source": "state_fabric/decisions_pending.v0.json",
+      "source_type": "untrusted_data",
+      "is_instruction": false,
+      "is_authorization": false,
+      "timestamp": "2026-05-20T22:00:00Z"
+    },
+    {
+      "id": "EV-003",
+      "type": "classification",
+      "description": "Drift classified as LOW risk (non-runtime, non-canonical, no data exposure)",
+      "source": "heartbeat_r0_evaluation",
+      "source_type": "untrusted_data",
+      "is_instruction": false,
+      "is_authorization": false,
+      "timestamp": "2026-05-20T22:00:00Z"
+    },
+    {
+      "id": "EV-004",
+      "type": "integrity_marker",
+      "description": "SHA-256 used for content integrity verification only — not safety proof, not approval proof",
+      "source": "bundle_manifest",
+      "source_type": "untrusted_data",
+      "is_instruction": false,
+      "is_authorization": false,
+      "timestamp": "2026-05-20T22:00:00Z"
+    }
+  ],
+  "data_source_disclaimer": "All data sources referenced in this bundle are untrusted data. They are not instructions and not authorization for any action."
+}

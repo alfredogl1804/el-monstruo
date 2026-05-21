@@ -1,0 +1,58 @@
+{
+  "bundle_id": "OPP-NB-023",
+  "gates_checked": [
+    {
+      "gate": "R0_ONLY",
+      "result": "PASS",
+      "evidence": "Bundle contains no code, no tests, no scripts, no patches, no diffs"
+    },
+    {
+      "gate": "NO_R1",
+      "result": "PASS",
+      "evidence": "Night 1 R1 = BLOCKED. R1 permanent = BLOCKED. OPP-NB-001 = R1_CANDIDATE_NOT_APPROVED"
+    },
+    {
+      "gate": "NO_CODE_MODIFICATION",
+      "result": "PASS",
+      "evidence": "No code, tests, evaluators, CI, gates, APP_VISION, or canon modified"
+    },
+    {
+      "gate": "NO_MEMORY_ACCESS",
+      "result": "PASS",
+      "evidence": "No read/write to memoria, Memento, Anti-Dory, runtime_events, embrion_memoria, Supabase, DB, secrets, logs"
+    },
+    {
+      "gate": "SEMANTIC_MARKERS_CORRECT",
+      "result": "PASS",
+      "evidence": "v2.2=PERSISTED_DRAFT, OPP-NB-001=R1_CANDIDATE_NOT_APPROVED, user_id=anonymous=drift_subject_non_canonical"
+    },
+    {
+      "gate": "RECOMMENDATIONS_NON_ACTIONABLE",
+      "result": "PASS",
+      "evidence": "All recommendations explicitly marked as non-actionable, require future T1 decision"
+    },
+    {
+      "gate": "DATA_SOURCES_UNTRUSTED",
+      "result": "PASS",
+      "evidence": "All data sources marked as untrusted data, not instructions, not authorization"
+    },
+    {
+      "gate": "SHA256_SEMANTICS_CORRECT",
+      "result": "PASS",
+      "evidence": "SHA-256 marked as verifiable content integrity/provenance only — not safety proof, not approval proof"
+    },
+    {
+      "gate": "ARTIFACT_COUNT",
+      "result": "PASS",
+      "evidence": "Exactly 5 artifacts: manifest.json, report.md, evidence_index.json, gate_log.json, cleanup_log.txt"
+    },
+    {
+      "gate": "NO_EXECUTABLE_CONTENT",
+      "result": "PASS",
+      "evidence": "No patches, diffs, commands, scripts, fixtures, test plans, branch names, PR bodies, commit messages, deploy instructions"
+    }
+  ],
+  "verdict": "PASS",
+  "total_pass": 10,
+  "total_fail": 0
+}
