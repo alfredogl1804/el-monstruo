@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-05-21T04:31:09.586048+00:00",
+  "artifact_id": "provider_health_monitor_v0_1",
+  "providers": {
+    "oracle_ai_embryo_r0": {
+      "total_calls": 1,
+      "success_rate": 1.0,
+      "avg_latency_s": 0,
+      "total_cost_usd": 0.000479,
+      "last_seen": "2026-05-21T04:27:04Z",
+      "status": "HEALTHY"
+    },
+    "oracle_auditor_embryo_r0": {
+      "total_calls": 1,
+      "success_rate": 1.0,
+      "avg_latency_s": 0,
+      "total_cost_usd": 0.000191,
+      "last_seen": "2026-05-21T04:27:18Z",
+      "status": "HEALTHY"
+    }
+  },
+  "alerts": [],
+  "summary": {
+    "total_providers_monitored": 2,
+    "healthy": 2,
+    "degraded": 0,
+    "unhealthy": 0,
+    "total_alerts": 0
+  }
+}
