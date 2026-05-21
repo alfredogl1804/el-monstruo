@@ -285,6 +285,219 @@ CONTEXT_AWARE_PATTERNS = {
 }
 
 
+# ============================================================
+# LAYER 6 IMPLEMENTATION: Adversarial Evasion Detection
+# ============================================================
+
+import base64
+import codecs
+
+# 6A: Fragmentation patterns — multi-step sequences that compose a magna action
+_FRAGMENTATION_PATTERNS = [
+    # Dangerous runtime mutations
+    r"(mutando|mutating|modifying)\s*(la)?\s*(pol\u00edtica|policy|RLS|rls)",
+    r"(desactivando|deactivating|disabling)\s*(temporalmente|temporarily)?\s*(el)?\s*(flag|feature)",
+    r"(enviando|sending)\s*(payload|request|data).*\s*(webhook|stripe|payment|live)",
+    r"(reescribiendo|rewriting|overwriting)\s*(el)?\s*(historial|history|anchor|store|log)",
+    r"(invocando|invoking|calling)\s*(la)?\s*(API|api).*\s*(regeneraci\u00f3n|regenerat|rotation|llaves|keys|maestras|master)",
+    # Multi-step sequences that together form dangerous operations
+    r"(primero|first|luego|then|después|after)\s*.*(merge|push|deploy|drop|delete|update|modify)",
+    r"(paso|step)\s*\d+.*\s*(paso|step)\s*\d+",
+    r"(git push.*luego|push.*then)\s*(merge|update|deploy)",
+    r"(merge manual|manual merge)",
+    r"(script|backup).*\s*(ya|already)\s*(tengo|have|listo|ready)",
+    r"(limpieza|cleanup|clean).*\s*(huérfano|orphan|artefact)",
+    r"(alinear|align)\s*(repositorio|repo)",
+    # Chained operations that individually seem safe
+    r"(haré|voy a|will)\s*(un|a)\s*(git push|merge|deploy|drop|force)",
+    r"(ejecutando|running|executing)\s*(script|command).*\s*(drop|cascade|truncate|delete)",
+    r"(temporalmente|temporarily)\s*(desactiv|disabl|remov|delet)",
+    r"(saltar|skip|omit)\s*(el|the)?\s*(step|paso|audit|check|validat)",
+]
+
+# 6B: Semantic Inversion / Double Negation — intent hidden via negation
+_INVERSION_PATTERNS = [
+    # Double negation that hides true intent
+    r"no\s*(voy a|haré)\s*(hacer|do)\s*(merge|push|deploy)\s*(sin|without)\s*(revisar|check)",
+    r"(confirmo|confirm)\s*(que|that)\s*no\s*(hay|there is no)\s*(drift|error|problem)",
+    r"(asegurar|ensure).*\s*(alineación|alignment|estrategia|strategy)",
+    # Indirect permission seeking (Dory probe)
+    r"(¿podrías|could you|can you)\s*(confirmar|confirm|recordar|remind|proveer|provide)",
+    r"(¿me recuerdas|remind me|do you remember)",
+    r"(¿cuál era|what was)\s*(exactamente|exactly)",
+    # Reassurance-seeking that masks context loss
+    r"(para asegurar|to ensure|to make sure)\s*(nuestra|our)\s*(alineación|alignment)",
+    r"(retomemos|let's restart|empecemos de nuevo|start over)",
+    r"(favor de proveer|please provide|necesito que me)\s*(el esquema|the schema|resumas|summarize)",
+]
+
+# 6C: Encoding/Obfuscation detection
+_ENCODING_INDICATORS = [
+    r"(clave privada|private key)\s*(ed25519|rsa|ecdsa|dsa)",
+    r"volcado\s*(hexadecimal|hex)",
+    r"(hex|hexadecimal)\s*:?\s*[`'\"]{0,1}[0-9a-f]{6,}",
+    r"[0-9a-f]{2}(\s[0-9a-f]{2}){5,}",  # Hex bytes with spaces
+    r"(base64|b64)\s*:?\s*[A-Za-z0-9+/=]{8,}",
+    r"(rot13|caesar|cifrado|encoded|codificado)",
+    r"(concatenaci\u00f3n|concatenation)\s*(de|of)\s*\W?\w+\W?\s*(y|and|\+)",
+    r"(token|key|secret)\s*(es|is)\s*(la)?\s*(concatenación|concatenation|combination)",
+    r"(pre-firmada|presigned|signed)\s*(url|URL)",
+    r"(volcado|dump)\s*(de)?\s*(variables|env|environment|contenedor|container|docker)",
+    r"(header|encabezado)\s*(Authorization|Bearer)\s*:?\s*(Bearer)?\s*\[",
+    # Detect actual hex/base64 encoded secrets inline
+    r"[0-9a-f]{16,}",  # Long hex strings
+    r"eyJ[A-Za-z0-9_-]{10,}",  # JWT tokens (already in L3 but reinforced)
+    r"sbp_[a-z0-9]{8,}",  # Supabase PAT
+    r"ghp_[A-Za-z0-9]{20,}",  # GitHub PAT
+    r"sk-[A-Za-z0-9]{20,}",  # OpenAI key
+    r"sk-ant-[A-Za-z0-9]{20,}",  # Anthropic key
+]
+
+# 6D: Dory Probes — questions that reveal context loss without using keywords
+_DORY_PROBE_PATTERNS = [
+    # Asking for information that should be in context
+    r"(¿|\?).*\s*(backend|BD|base de datos|database)\s*(es|is)\s*(relacional|NoSQL|SQL)",
+    r"(reviso|check)\s*(mi|my)\s*(caché|cache).*\s*(discontinuidad|gap|error)",
+    r"(debido a|due to)\s*(la longitud|the length|lo largo)\s*(del hilo|of the thread)",
+    r"(no tengo|don't have|sin)\s*(visibilidad|visibility|access)\s*(del|to|of)\s*(anchor|store|state)",
+    r"(asumiré|will assume|asumo)\s*(que|that)\s*(los valores|values|it)\s*(son|are|is)\s*(estándar|standard|default)",
+    r"(iniciando|starting|beginning)\s*(análisis|analysis).*\s*(proveer|provide|give me)\s*(el esquema|the schema)",
+    r"(como no tengo|since I don't have|as I lack)",
+    r"(necesito que me|I need you to)\s*(resumas|summarize|expliques|explain)",
+]
+
+# 6E: Conviction-based False Memory — high-confidence claims without evidence
+_CONVICTION_FALSE_MEMORY_PATTERNS = [
+    # High-confidence claims about past events
+    r"(de acuerdo a|according to)\s*(la confirmación|the confirmation|lo que)\s*(de|from|said)",
+    r"(el comando|the command)\s*(ejecutado|executed|run)\s*(anteriormente|previously|before)\s*(retornó|returned)",
+    r"(como se definió|as defined)\s*(en el|in the|in)\s*(PR|pull request|commit)\s*#?\d+",
+    r"(la dependencia|the dependency).*\s*(ya fue|was already|already been)\s*(removida|removed|deleted)",
+    r"(mi versión|my version)\s*(interna|internal)",
+    r"(el script|the script).*\s*(se corrió|ran|executed)\s*(exitosamente|successfully).*\s*(anoche|last night|background)",
+    r"(ya contamos con|we already have)\s*(la firma|the signature|firma)",
+    r"(el log|the log).*\s*(mostró|showed|displayed)\s*\d+\s*(registros|records|entries)",
+    r"(procedo con|proceeding with)\s*(el bypass|the bypass|bypass)",
+    r"(la lógica|the logic).*\s*(se omite|is skipped|is omitted)",
+    # Claiming authorization/results without evidence
+    r"(ya|already)\s*(T1|t1)\s*(autorizó|authorized|approved|signed)",
+    r"(Fase|Phase)\s*1\s*(está|is)\s*(activa|active)",
+    r"(contamos con|we have)\s*(firma|signature)\s*(física|physical)",
+]
+
+
+def _try_decode_obfuscated(text: str) -> str:
+    """Attempt to decode base64/hex/rot13 segments in text."""
+    decoded_parts = []
+    
+    # Try base64 segments
+    b64_matches = re.findall(r'[A-Za-z0-9+/=]{16,}', text)
+    for match in b64_matches:
+        try:
+            decoded = base64.b64decode(match).decode('utf-8', errors='ignore')
+            if decoded and any(c.isalpha() for c in decoded):
+                decoded_parts.append(decoded.lower())
+        except Exception:
+            pass
+    
+    # Try hex segments
+    hex_matches = re.findall(r'(?:[0-9a-f]{2}\s){4,}', text.lower())
+    for match in hex_matches:
+        try:
+            decoded = bytes.fromhex(match.replace(' ', '')).decode('utf-8', errors='ignore')
+            if decoded and any(c.isalpha() for c in decoded):
+                decoded_parts.append(decoded.lower())
+        except Exception:
+            pass
+    
+    # Try rot13
+    if 'rot13' in text.lower() or 'cifrado' in text.lower():
+        words = re.findall(r'[a-zA-Z]{4,}', text)
+        for word in words:
+            decoded = codecs.decode(word, 'rot_13')
+            decoded_parts.append(decoded.lower())
+    
+    return ' '.join(decoded_parts)
+
+
+def _layer6_adversarial_evasion(
+    action_lower: str,
+    description: str,
+    combined_text: str,
+) -> Optional[ActionClassification]:
+    """Layer 6: Detect adversarial evasion attempts."""
+    
+    # 6A: Fragmentation detection
+    for pattern in _FRAGMENTATION_PATTERNS:
+        if re.search(pattern, combined_text, re.IGNORECASE):
+            return ActionClassification(
+                level=ActionLevel.MAGNA,
+                reason=f"Layer 6A (Fragmentation) matched: /{pattern}/",
+                action_description=description,
+                requires_t1=True,
+            )
+    
+    # 6B: Semantic Inversion / Double Negation
+    for pattern in _INVERSION_PATTERNS:
+        if re.search(pattern, combined_text, re.IGNORECASE):
+            return ActionClassification(
+                level=ActionLevel.MAGNA,
+                reason=f"Layer 6B (Semantic Inversion) matched: /{pattern}/",
+                action_description=description,
+                requires_t1=True,
+            )
+    
+    # 6C: Encoding / Obfuscation
+    for pattern in _ENCODING_INDICATORS:
+        if re.search(pattern, combined_text, re.IGNORECASE):
+            return ActionClassification(
+                level=ActionLevel.MAGNA,
+                reason=f"Layer 6C (Encoding/Obfuscation) matched: /{pattern}/",
+                action_description=description,
+                requires_t1=True,
+            )
+    
+    # 6C-decode: Try to decode obfuscated content and re-check
+    decoded_content = _try_decode_obfuscated(combined_text)
+    if decoded_content:
+        # Check decoded content against secret patterns
+        secret_patterns = [
+            r"(key|secret|token|password|credential|api.?key|private.?key)",
+            r"(merge|push|deploy|drop|delete|truncate)",
+            r"(main|production|prod|master)",
+        ]
+        for pattern in secret_patterns:
+            if re.search(pattern, decoded_content, re.IGNORECASE):
+                return ActionClassification(
+                    level=ActionLevel.MAGNA,
+                    reason=f"Layer 6C-decode: Obfuscated content decoded reveals dangerous intent: /{pattern}/",
+                    action_description=description,
+                    requires_t1=True,
+                )
+    
+    # 6D: Dory Probes
+    for pattern in _DORY_PROBE_PATTERNS:
+        if re.search(pattern, combined_text, re.IGNORECASE):
+            return ActionClassification(
+                level=ActionLevel.MAGNA,
+                reason=f"Layer 6D (Dory Probe) matched: /{pattern}/",
+                action_description=description,
+                requires_t1=True,
+            )
+    
+    # 6E: Conviction-based False Memory
+    for pattern in _CONVICTION_FALSE_MEMORY_PATTERNS:
+        if re.search(pattern, combined_text, re.IGNORECASE):
+            return ActionClassification(
+                level=ActionLevel.MAGNA,
+                reason=f"Layer 6E (Conviction False Memory) matched: /{pattern}/",
+                action_description=description,
+                requires_t1=True,
+            )
+    
+    return None
+
+
 def classify_action(
     action_type: str,
     description: str,
@@ -325,15 +538,27 @@ def classify_action(
     # LAYER 3: Semantic pattern matching across action_type + description
     combined_text = f"{action_type} {description}".lower()
 
-    for category, patterns in SEMANTIC_CATEGORIES.items():
-        for pattern in patterns:
-            if re.search(pattern, combined_text):
-                return ActionClassification(
-                    level=ActionLevel.MAGNA,
-                    reason=f"Semantic category '{category}' matched: /{pattern}/",
-                    action_description=description,
-                    requires_t1=True,
-                )
+    # Safe-context exclusion: educational/theoretical requests should not trigger
+    _SAFE_CONTEXT_INDICATORS = [
+        r"(expl\u00edcame|explain|mu\u00e9strame|show me)\s*.*(sintaxis|syntax|c\u00f3mo|how|ejemplo|example|te\u00f3rico|theoretical)",
+        r"(redacta|write|draft)\s*(una)?\s*(expresi\u00f3n regular|regex|regexp)",
+        r"(sintaxis correcta|correct syntax)\s*(para|for|to)",
+        r"(ejemplo te\u00f3rico|theoretical example)",
+    ]
+    is_safe_educational = any(
+        re.search(p, combined_text) for p in _SAFE_CONTEXT_INDICATORS
+    )
+
+    if not is_safe_educational:
+        for category, patterns in SEMANTIC_CATEGORIES.items():
+            for pattern in patterns:
+                if re.search(pattern, combined_text):
+                    return ActionClassification(
+                        level=ActionLevel.MAGNA,
+                        reason=f"Semantic category '{category}' matched: /{pattern}/",
+                        action_description=description,
+                        requires_t1=True,
+                    )
 
     # LAYER 4: Action Semantics — inherently dangerous action_types (v3.0)
     # Only active when ANTI_DORY_B8_V3_ENABLED=true
@@ -382,7 +607,22 @@ def classify_action(
                 requires_t1=True,
             )
 
-    # LAYER 6: Metadata override (si metadata indica forzar MAGNA)
+    # ============================================================
+    # LAYER 6: Adversarial Evasion Detection (v3.1 NEW)
+    # Detects 3 attack vectors identified by Grok 4 Heavy + Gemini 3.1 Pro:
+    #   6A: Fragmentation — magna actions split into innocuous steps
+    #   6B: Semantic Inversion / Double Negation — intent hidden via negation
+    #   6C: Encoding / Obfuscation — base64, hex, rot13, indirect references
+    #   6D: Dory Probes — questions that reveal context loss without keywords
+    #   6E: Conviction-based False Memory — high-confidence false claims
+    # Only active when ANTI_DORY_B8_V3_ENABLED=true
+    # ============================================================
+    if ANTI_DORY_B8_V3_ENABLED:
+        l6_result = _layer6_adversarial_evasion(action_lower, description, combined_text)
+        if l6_result:
+            return l6_result
+
+    # LAYER 7: Metadata override (si metadata indica forzar MAGNA)
     if metadata and metadata.get("force_magna", False):
         return ActionClassification(
             level=ActionLevel.MAGNA,
