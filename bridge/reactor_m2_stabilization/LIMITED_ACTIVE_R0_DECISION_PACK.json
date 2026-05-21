@@ -1,0 +1,17 @@
+{
+  "sprint": "SPR-BATCH-M2-STABILIZATION-001",
+  "timestamp": "2026-05-21T01:50:00Z",
+  "decision_required": "LIMITED_ACTIVE_R0_AUTHORIZATION",
+  "readiness_status": "READY",
+  "parameters": {
+    "frequency": "1 cycle / 12 hours",
+    "daily_budget_cap_usd": 5.00,
+    "allowed_providers": ["openai", "anthropic", "google", "xai"],
+    "blocked_actions": ["supabase_writes", "memory_writes", "r1_operations", "pr_deploy"]
+  },
+  "t1_action_required": {
+    "authorize": "Set A1 = LIMITED_ACTIVE_R0 in next decision cycle",
+    "unfreeze": "Manually set kill-switch active: false",
+    "cron_setup": "Configure host cron to run heartbeat script"
+  }
+}

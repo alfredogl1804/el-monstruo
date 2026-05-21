@@ -1,0 +1,41 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-05-21T01:40:00Z",
+  "rule": "Only verified providers and models listed here are allowed in M2 chain.",
+  "providers": {
+    "openai": {
+      "status": "VERIFIED",
+      "model": "gpt-4o-mini",
+      "fallback_allowed": false
+    },
+    "anthropic": {
+      "status": "VERIFIED",
+      "model": "claude-sonnet-4-20250514",
+      "fallback_allowed": false
+    },
+    "google": {
+      "status": "VERIFIED",
+      "model": "gemini-2.0-flash",
+      "fallback_allowed": false
+    },
+    "xai": {
+      "status": "VERIFIED",
+      "model": "grok-3-mini-fast",
+      "fallback_allowed": false
+    }
+  },
+  "blocked_providers": {
+    "perplexity": {
+      "status": "BLOCKED_403",
+      "reason": "403 Forbidden error"
+    },
+    "deepseek": {
+      "status": "KEY_REQUIRED",
+      "reason": "Missing API key in environment"
+    }
+  },
+  "deprecated_models": {
+    "claude-3-5-haiku-20241022": "Replaced by claude-sonnet-4-20250514",
+    "gemini-2.0-flash-lite": "Replaced by gemini-2.0-flash"
+  }
+}

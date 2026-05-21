@@ -1,0 +1,11 @@
+{"timestamp_utc": "2026-05-21T01:39:19.919897+00:00", "event_type": "M2_REPEAT_CHAIN_STARTED", "payload": {"chain_id": "M2-REPEAT-001", "mode": "one_shot_repeat"}}
+{"timestamp_utc": "2026-05-21T01:39:19.920012+00:00", "event_type": "HEARTBEAT_WAKE", "payload": {"kill_switch": "inactive"}}
+{"timestamp_utc": "2026-05-21T01:39:19.920062+00:00", "event_type": "DISPATCHER_PREFLIGHT", "payload": {"constraints": {"budget_cap": 2.0, "max_calls": 1, "retries": 0, "verified_providers": ["openai", "anthropic", "google", "xai"], "blocked_providers": ["perplexity", "deepseek"]}, "result": "AUTHORIZED"}}
+{"timestamp_utc": "2026-05-21T01:39:22.719215+00:00", "event_type": "ORACLE_PROBE", "payload": {"provider": "openai", "status": "SUCCESS", "cost": 0.001665, "duration": 1.78}}
+{"timestamp_utc": "2026-05-21T01:39:30.650349+00:00", "event_type": "ORACLE_PROBE", "payload": {"provider": "anthropic", "status": "SUCCESS", "cost": 0.002523, "duration": 7.2}}
+{"timestamp_utc": "2026-05-21T01:39:33.094478+00:00", "event_type": "ORACLE_PROBE", "payload": {"provider": "google", "status": "SUCCESS", "cost": 0.000514, "duration": 1.15}}
+{"timestamp_utc": "2026-05-21T01:39:47.231034+00:00", "event_type": "ORACLE_PROBE", "payload": {"provider": "xai", "status": "SUCCESS", "cost": 0.00268, "duration": 14.1}}
+{"timestamp_utc": "2026-05-21T01:39:47.231195+00:00", "event_type": "ORACLE_SHADOW_COMPLETE", "payload": {"calls_made": 4, "total_cost_usd": 0.007382, "providers_success": ["openai", "anthropic", "google", "xai"]}}
+{"timestamp_utc": "2026-05-21T01:39:47.231316+00:00", "event_type": "AUDITOR_REVIEW", "payload": {"checks": {"candidate_report_only": true, "no_memory_writes": true, "no_supabase": true, "no_pr_deploy": true, "no_app_vision_canon": true, "no_r1_operations": true, "no_self_approval": true, "no_perplexity_used": true, "no_deepseek_used": true, "budget_within_cap": true, "no_new_provider_drift": true}, "result": "PASS"}}
+{"timestamp_utc": "2026-05-21T01:39:47.231527+00:00", "event_type": "REFREEZE_APPLIED", "payload": {"kill_switch_active": true}}
+{"timestamp_utc": "2026-05-21T01:39:47.231795+00:00", "event_type": "M2_REPEAT_CHAIN_COMPLETE", "payload": {"result": "PASS", "calls_made": 4, "total_cost_usd": 0.007382}}
