@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Memory Palace Entry v0.1",
+  "description": "Schema for a single memory entry in the local Memory Palace. R0+ only, no external DB.",
+  "type": "object",
+  "required": [
+    "memory_id",
+    "timestamp",
+    "source_embryo_id",
+    "cycle_id",
+    "task_id",
+    "action_class",
+    "artifact_refs",
+    "claims_count",
+    "grounding_score",
+    "auditor_verdict",
+    "value_score",
+    "cost_usd",
+    "lessons",
+    "avoid_next_time",
+    "next_best_action",
+    "status"
+  ],
+  "properties": {
+    "memory_id": {
+      "type": "string",
+      "pattern": "^MEM-[A-Z0-9]+-[0-9]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_embryo_id": {
+      "type": "string"
+    },
+    "cycle_id": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "action_class": {
+      "type": "string",
+      "enum": ["A0_OBSERVE", "A1_ANALYZE", "A2_RECOMMEND", "A3_DRAFT"]
+    },
+    "artifact_refs": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "claims_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "grounding_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "auditor_verdict": {
+      "type": "string",
+      "enum": ["PASS", "PARTIAL", "FAIL", "PENDING"]
+    },
+    "value_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "cost_usd": {
+      "type": "number",
+      "minimum": 0
+    },
+    "lessons": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "avoid_next_time": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "next_best_action": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "archived"]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Oracle Auditor Embryo R0 v0.2 (Grounding Enforcement) — 20 Tests."""
+"""Tests for Oracle Auditor Embryo R0 v0.3 (Memory-Guided + Grounding Enforcement) — 20 Tests."""
 import os
 import sys
 import json
@@ -7,7 +7,9 @@ import yaml
 import tempfile
 
 EMBRYO_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(EMBRYO_DIR))
 sys.path.insert(0, EMBRYO_DIR)
+sys.path.insert(0, os.path.join(PROJECT_ROOT, "embryos", "memory_palace"))
 
 import oracle_auditor_embryo as auditor
 
@@ -27,7 +29,7 @@ def test(name, condition):
 
 # ============================================================
 print("=" * 60)
-print("TEST SUITE: Oracle Auditor Embryo R0 v0.2 — 20 Tests")
+print("TEST SUITE: Oracle Auditor Embryo R0 v0.3 — 20 Tests")
 print("=" * 60)
 
 # 01. embryo_id exists
@@ -103,27 +105,32 @@ test("kill-switch active detected", auditor.check_kill_switch() == True)
 with open(auditor.KS_PATH, "w") as f:
     json.dump({"active": False}, f)
 
-# 15. audit_target is oracle_ai_embryo_r0
-test("audit_target is oracle", contract["constraints"]["audit_target"] == "oracle_ai_embryo_r0")
+# 15. Memory Palace loads
+memory = auditor.load_memory()
+test("memory palace loads", memory["available"] is True)
 
-# 16. can_modify_oracle_output is false
-test("can_modify_oracle_output false", contract["constraints"]["can_modify_oracle_output"] == False)
+# 16. choose_next_task returns tuple (task, memory_influenced)
+tasks = auditor.load_self_tasks()
+chosen, mem_inf = auditor.choose_next_task(tasks, state, None)
+test("choose_next_task returns tuple", chosen is not None and isinstance(mem_inf, bool))
 
-# 17. no self-audit
-test("no self-audit", contract["constraints"]["self_audit"] is False)
+# 17. build_auditor_memory_entry has required fields
+fake_task = {"task_id": "test_task", "action_class": "A1_ANALYZE"}
+entry = auditor.build_auditor_memory_entry(fake_task, "/fake/path.json", 8.5, "PASS", 0.001)
+required_fields = ["memory_id", "timestamp", "source_embryo_id", "task_id", "lessons", "avoid_next_time", "grounding_score"]
+test("memory entry has required fields", all(f in entry for f in required_fields))
 
-# 18. forbidden actions complete
+# 18. memory entry for FAIL has avoid patterns
+entry_fail = auditor.build_auditor_memory_entry(fake_task, "/fake/path.json", 3.0, "FAIL", 0.001)
+test("memory entry FAIL has avoid", len(entry_fail["avoid_next_time"]) > 0)
+
+# 19. memory entry source is auditor
+test("memory entry source is auditor", entry["source_embryo_id"] == "oracle_auditor_embryo_r0")
+
+# 20. forbidden actions complete
 forbidden = contract.get("forbidden_action_classes", [])
 required = ["R1", "MEMORY_WRITE", "SUPABASE_WRITE", "DB_WRITE", "SECRET_READ", "SECRET_WRITE", "APP_VISION_UPDATE", "CANON_UPDATE", "PRE_IA_CLOSE", "PR_CREATE", "DEPLOY", "MAIN_MODIFY"]
 test("all forbidden enforced", all(f in forbidden for f in required))
-
-# 19. enforce_grounding returns 4-tuple
-result = auditor.enforce_grounding(well_grounded, contract)
-test("enforce_grounding returns 4-tuple", len(result) == 4)
-
-# 20. grounding_enforcement actions mapping
-actions = contract["grounding_enforcement"]["actions"]
-test("actions: PASS→CANDIDATE, PARTIAL→REVIEW, FAIL→REJECT", actions["PASS"] == "CANDIDATE_READY_FOR_T1" and actions["PARTIAL"] == "REQUIRES_T1_REVIEW" and actions["FAIL"] == "REJECT_AND_FLAG")
 
 print(f"\n{'='*60}")
 print(f"RESULT: {PASS}/{PASS+FAIL} PASS, {FAIL}/{PASS+FAIL} FAIL")

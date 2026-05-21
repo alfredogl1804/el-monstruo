@@ -62,7 +62,7 @@ statuses = contract["grounding"]["evidence_statuses"]
 test("evidence_statuses complete", all(s in statuses for s in ["VERIFIED_LOCAL", "VERIFIED_PROVIDER", "NEEDS_REAL_TIME_CHECK", "NO_SOURCE", "HYPOTHESIS", "CANDIDATE_ONLY"]))
 
 # 7. choose_next_task selects a valid task
-chosen = choose_next_task(tasks, state)
+chosen, mem_influenced, mem_info = choose_next_task(tasks, state)
 test("choose_next_task selects valid task", chosen is not None and "task_id" in chosen)
 
 # 8. action A0_OBSERVE is ALLOW
