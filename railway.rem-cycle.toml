@@ -1,0 +1,43 @@
+# =============================================================================
+# Railway config — SMS REM Cycle (Nightly Memory Consolidation)
+# =============================================================================
+#
+# SMS v3.1 — Sovereign Memory System consolidation service.
+#
+# ESTE ARCHIVO ES PARA UN SERVICIO RAILWAY SEPARADO. No reemplaza railway.toml
+# del servicio web principal.
+#
+# Setup en Railway (acción manual):
+#   1. Crear "New Service" en el proyecto Railway de El Monstruo
+#   2. Conectar al mismo repo (alfredogl1804/el-monstruo)
+#   3. Branch: main
+#   4. Root config path: railway.rem-cycle.toml
+#   5. Variables (heredar del servicio web):
+#        - SUPABASE_URL
+#        - SUPABASE_SERVICE_KEY
+#        - OPENAI_API_KEY
+#   6. Deploy
+#
+# Cron Schedule: "0 9 * * *" = 9:00 AM UTC = 3:00 AM CST (America/Merida)
+# Ejecuta consolidación nocturna: decay, crystallize, deduplicate, forget,
+# detect gaps, resolve conflicts, log stats.
+#
+# Alternativa sin servicio separado:
+#   curl -X POST https://el-monstruo-kernel-production.up.railway.app/sms/sms/rem-cycle
+#   (disparar desde cron-job.org, GitHub Actions, o Manus scheduled task)
+#
+# Decisiones:
+#   - Reusa Dockerfile.web del servicio principal (no duplica imagen).
+#   - startCommand override: ejecuta el REM cycle entrypoint.
+#   - healthcheckPath: omitido (cron services NO requieren healthcheck).
+#   - restartPolicy: ON_FAILURE para que un tick fallido NO mate al servicio.
+# =============================================================================
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.web"
+
+[deploy]
+startCommand = "python -m kernel.memory.sms_rem_cycle"
+cronSchedule = "0 9 * * *"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
