@@ -54,8 +54,24 @@ from core.action_envelope import (
 )
 from core.action_validator import validate_and_classify
 from kernel.state import MonstruoState
+from kernel.identity_guard import resolve_user_id, UserIdStatus
 
 logger = structlog.get_logger("kernel.nodes")
+
+
+def _resolve_uid_node(user_id: str, node_name: str) -> str:
+    """OPP-NB-023 R2-B: Resolve user_id through identity guard in kernel nodes.
+    Logs warning on blocked/unresolved but does NOT raise — preserves graph flow."""
+    resolved, status = resolve_user_id(user_id)
+    if status != UserIdStatus.RESOLVED:
+        logger.warning(
+            "nodes_unresolved_user",
+            original=user_id,
+            resolved=resolved,
+            status=status.value,
+            node=node_name,
+        )
+    return resolved
 
 
 # ── OPT-6: Intent Classification Cache ───────────────────────────────
@@ -128,7 +144,7 @@ async def intake(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
     Sets up initial state, timestamps, and emits RUN_STARTED event.
     """
     run_id = state.get("run_id", str(uuid4()))
-    user_id = state.get("user_id", "anonymous")
+    user_id = _resolve_uid_node(state.get("user_id", "anonymous"), "intake")
     channel = state.get("channel", "api")
     message = state.get("message", "")
 
@@ -470,7 +486,7 @@ async def enrich(state: MonstruoState, config: RunnableConfig) -> dict[str, Any]
     Chat gets lighter enrichment (fewer messages/memories) for speed.
     """
     intent = state.get("intent", "chat")
-    user_id = state.get("user_id", "anonymous")
+    user_id = _resolve_uid_node(state.get("user_id", "anonymous"), "enrich")
     channel = state.get("channel", "api")
     message = state.get("message", "")
     _, memory, knowledge, _ = _deps(config)
@@ -1333,7 +1349,7 @@ async def memory_write(state: MonstruoState, config: RunnableConfig) -> dict[str
     _, memory, knowledge, event_store = _deps(config)
 
     run_id = state.get("run_id", "")
-    user_id = state.get("user_id", "anonymous")
+    user_id = _resolve_uid_node(state.get("user_id", "anonymous"), "memory_write")
     channel = state.get("channel", "api")
     message = state.get("message", "")
     response = state.get("response", "")
