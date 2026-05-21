@@ -173,7 +173,10 @@ class CVDSCalculator:
             run_consistency = rates[0] if rates else 0.0
 
         # 3. Scenario agreement across runs
-        # Build a map of scenario_id -> [pass/fail across runs]
+        # FIXED (v1.1): Only count scenarios that appear in 2+ runs.
+        # Scenarios unique to one run are NOT cross-verified and MUST NOT
+        # inflate the agreement score. This fixes the Goodhart bug where
+        # disjoint ID sets produced trivial 1.0 agreement.
         scenario_map: dict[str, list[bool]] = {}
         for run in self.runs:
             for result in run.results:
@@ -182,17 +185,36 @@ class CVDSCalculator:
                     scenario_map[sid] = []
                 scenario_map[sid].append(result["passed"])
 
-        # Count scenarios where all runs agree
+        # Partition into shared (2+ runs) vs unique (1 run only)
+        shared_scenarios = {sid: outcomes for sid, outcomes in scenario_map.items()
+                           if len(outcomes) >= 2}
+        unique_scenarios = {sid: outcomes for sid, outcomes in scenario_map.items()
+                           if len(outcomes) < 2}
+        
         total_evaluated = len(scenario_map)
+        total_shared = len(shared_scenarios)
+        total_unique = len(unique_scenarios)
+        
+        # Agreement only counts shared scenarios
         agreed = 0
         divergent = 0
-        for sid, outcomes in scenario_map.items():
+        for sid, outcomes in shared_scenarios.items():
             if len(set(outcomes)) == 1:
                 agreed += 1
             else:
                 divergent += 1
 
-        scenario_agreement = agreed / total_evaluated if total_evaluated > 0 else 0.0
+        # If no shared scenarios exist, scenario_agreement is 0.0 (NOT 1.0)
+        # This correctly penalizes runs that don't cross-verify each other.
+        if total_shared > 0:
+            scenario_agreement = agreed / total_shared
+        else:
+            # No overlap: this component contributes 0 to CVDS
+            # (honest: we cannot claim cross-verification without shared IDs)
+            scenario_agreement = 0.0
+        
+        # Overlap coverage ratio: what % of all scenarios are cross-verified?
+        overlap_coverage = total_shared / total_evaluated if total_evaluated > 0 else 0.0
 
         # 4. Per-category scores
         category_map: dict[str, dict[str, int]] = {}
@@ -236,8 +258,16 @@ class CVDSCalculator:
                 "run_consistency": round(run_consistency, 4),
                 "scenario_agreement": round(scenario_agreement, 4),
                 "category_balance": round(category_balance, 4),
+                "overlap_coverage": round(overlap_coverage, 4),
+                "shared_scenarios": total_shared,
+                "unique_scenarios": total_unique,
                 "weights": {"run_consistency": 0.40, "scenario_agreement": 0.40, "category_balance": 0.20},
                 "threshold": self.threshold,
+                "methodology_note": (
+                    "scenario_agreement only counts scenarios present in 2+ runs. "
+                    "If runs have disjoint IDs, this component is 0.0 (honest). "
+                    "To increase CVDS, add shared scenarios across runs."
+                ),
             },
         )
 

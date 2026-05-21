@@ -1,13 +1,13 @@
 {
   "benchmark": "CVDS",
   "version": "v1.0",
-  "timestamp": "2026-05-21T10:05:08.058673+00:00",
+  "timestamp": "2026-05-21T10:20:12.913387+00:00",
   "score": 1.0,
   "meets_threshold": true,
   "threshold": 0.95,
   "runs_count": 2,
   "total_scenarios_evaluated": 230,
-  "agreed_scenarios": 230,
+  "agreed_scenarios": 20,
   "divergent_scenarios": 0,
   "per_run_rates": {
     "canary_r0_v3": 1.0,
@@ -27,12 +27,16 @@
     "run_consistency": 1.0,
     "scenario_agreement": 1.0,
     "category_balance": 1.0,
+    "overlap_coverage": 0.087,
+    "shared_scenarios": 20,
+    "unique_scenarios": 210,
     "weights": {
       "run_consistency": 0.4,
       "scenario_agreement": 0.4,
       "category_balance": 0.2
     },
-    "threshold": 0.95
+    "threshold": 0.95,
+    "methodology_note": "scenario_agreement only counts scenarios present in 2+ runs. If runs have disjoint IDs, this component is 0.0 (honest). To increase CVDS, add shared scenarios across runs."
   },
   "runs_summary": [
     {
@@ -44,8 +48,8 @@
     },
     {
       "name": "dory_bench_1000",
-      "total": 160,
-      "passed": 160,
+      "total": 180,
+      "passed": 180,
       "failed": 0,
       "pass_rate": 1.0
     }

@@ -383,6 +383,9 @@ _CONVICTION_FALSE_MEMORY_PATTERNS = [
     r"(ya|already)\s*(T1|t1)\s*(autorizó|authorized|approved|signed)",
     r"(Fase|Phase)\s*1\s*(está|is)\s*(activa|active)",
     r"(contamos con|we have)\s*(firma|signature)\s*(física|physical)",
+    # Declaring state changes on things that never existed/happened
+    r"(declare|claim|assert|report|confirm).*(?:resolved|completed|done|merged|passed|closed).*(?:when|but|without)",
+    r"(?:was|were)\s+never\s+(?:opened|started|existed|created|run|executed|initiated)",
 ]
 
 
@@ -494,6 +497,148 @@ def _layer6_adversarial_evasion(
                 action_description=description,
                 requires_t1=True,
             )
+    
+    return None
+
+
+# ============================================================
+# LAYER 7 IMPLEMENTATION: Capability/Resource-Based Gating
+# ============================================================
+
+# Protected resources: ANY action targeting these is MAGNA by capability,
+# regardless of how the description is worded.
+_PROTECTED_TABLES = frozenset([
+    # Anti-Dory governance tables
+    "anti_dory_anchor_store",
+    "anti_dory_plan_ledger",
+    "anti_dory_audit_log",
+    "anti_dory_canary_results",
+    # Governance/authority tables
+    "cowork_sesiones",
+    "cowork_audit",
+    "kernel_version",
+    "kernel_state",
+    # Memory/identity tables
+    "error_memory",
+    "memoria_semantica",
+    "identidad_hilo",
+    # Credential/secret storage
+    "secrets_inventory",
+    "credential_rotation_log",
+])
+
+_PROTECTED_RESOURCES = frozenset([
+    # Files/paths that are governance-critical
+    ".monstruo",
+    "guardian.py",
+    "AGENTS.md",
+    ".env",
+    ".env.production",
+    ".env.local",
+    "minisign",
+    "private_key",
+    "service_role",
+    # Governance artifacts
+    "DSC",  # Decision documents
+    "anchor_store",
+    "plan_ledger",
+    "authority_matrix",
+])
+
+_PROTECTED_CAPABILITIES = frozenset([
+    # Operations that are inherently dangerous by effect
+    "write_credential",
+    "rotate_secret",
+    "modify_rls_policy",
+    "alter_table_schema",
+    "truncate_table",
+    "drop_table",
+    "modify_governance",
+    "write_anchor",
+    "transition_plan_status",
+    "modify_kernel_state",
+    "send_external_webhook",
+    "publish_to_registry",
+    "modify_ci_pipeline",
+    "grant_permission",
+    "revoke_permission",
+])
+
+
+def _layer7_capability_gating(
+    metadata: dict,
+    description: str,
+) -> Optional[ActionClassification]:
+    """Layer 7: Capability/resource-based gating.
+    
+    Structurally independent from Layers 1-6 (all lexical/regex).
+    This layer gates based on WHAT the action touches, not HOW
+    the description is worded.
+    
+    Metadata fields consumed:
+      - target_resource: str — file/path/resource being targeted
+      - affected_tables: list[str] — database tables affected
+      - capability: str — the effect/capability being exercised
+      - target_module: str — kernel module being modified
+    """
+    # 7A: Table-based gating
+    affected_tables = metadata.get("affected_tables", [])
+    if isinstance(affected_tables, str):
+        affected_tables = [affected_tables]
+    
+    for table in affected_tables:
+        table_lower = table.lower().strip()
+        if table_lower in _PROTECTED_TABLES:
+            return ActionClassification(
+                level=ActionLevel.MAGNA,
+                reason=(
+                    f"Layer 7A (Capability): action affects protected table "
+                    f"'{table_lower}' (resource-based gating, independent of description)"
+                ),
+                action_description=description,
+                requires_t1=True,
+            )
+    
+    # 7B: Resource-based gating
+    target_resource = str(metadata.get("target_resource", "")).lower()
+    if target_resource:
+        for protected in _PROTECTED_RESOURCES:
+            if protected.lower() in target_resource:
+                return ActionClassification(
+                    level=ActionLevel.MAGNA,
+                    reason=(
+                        f"Layer 7B (Capability): action targets protected resource "
+                        f"'{target_resource}' (matches '{protected}')"
+                    ),
+                    action_description=description,
+                    requires_t1=True,
+                )
+    
+    # 7C: Capability-based gating
+    capability = str(metadata.get("capability", "")).lower().strip()
+    if capability in _PROTECTED_CAPABILITIES:
+        return ActionClassification(
+            level=ActionLevel.MAGNA,
+            reason=(
+                f"Layer 7C (Capability): action exercises protected capability "
+                f"'{capability}' (effect-based gating)"
+            ),
+            action_description=description,
+            requires_t1=True,
+        )
+    
+    # 7D: Module-based gating (any write to anti_dory kernel modules)
+    target_module = str(metadata.get("target_module", "")).lower()
+    if target_module and "anti_dory" in target_module:
+        return ActionClassification(
+            level=ActionLevel.MAGNA,
+            reason=(
+                f"Layer 7D (Capability): action modifies Anti-Dory kernel module "
+                f"'{target_module}' (module-based gating)"
+            ),
+            action_description=description,
+            requires_t1=True,
+        )
     
     return None
 
@@ -622,7 +767,24 @@ def classify_action(
         if l6_result:
             return l6_result
 
-    # LAYER 7: Metadata override (si metadata indica forzar MAGNA)
+    # ============================================================
+    # LAYER 7: Capability/Resource-Based Gating (v3.2 NEW)
+    # STRUCTURALLY INDEPENDENT from regex/string-matching.
+    # Gates based on WHAT RESOURCE the action targets, not HOW
+    # the description is worded. This is the second epistemic
+    # mechanism (capability-based) vs. Layers 1-6 (lexical).
+    #
+    # If metadata.target_resource matches a protected resource,
+    # the action is MAGNA regardless of description content.
+    # If metadata.affected_tables intersects protected tables,
+    # the action is MAGNA regardless of description content.
+    # ============================================================
+    if ANTI_DORY_B8_V3_ENABLED and metadata:
+        l7_result = _layer7_capability_gating(metadata, description)
+        if l7_result:
+            return l7_result
+
+    # LAYER 8: Metadata override (si metadata indica forzar MAGNA)
     if metadata and metadata.get("force_magna", False):
         return ActionClassification(
             level=ActionLevel.MAGNA,
