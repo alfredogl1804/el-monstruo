@@ -1,0 +1,328 @@
+{
+  "verdict": "CONTINUE_ONLY_AFTER_P0_FIX",
+  "anomalies": [
+    {
+      "type": "unexpected_in_scope",
+      "count": 18,
+      "details": [
+        "5041192",
+        "97d9a50",
+        "d876a21",
+        "d6ea896",
+        "afee650",
+        "319874e",
+        "604acb9",
+        "f678fff",
+        "d4a4716",
+        "487f05e",
+        "ca9c266",
+        "a17b1dc",
+        "bc78e87",
+        "eef53fd",
+        "08c7767",
+        "ddad037",
+        "2edd547",
+        "5a0bb2f"
+      ]
+    }
+  ],
+  "p0": [
+    {
+      "sha7": "4e0745e",
+      "reason": "secrets_detected",
+      "files": [
+        {
+          "file": "bridge/provider_ops_unblock/deepseek_diag.py",
+          "hits": 1
+        },
+        {
+          "file": "bridge/provider_ops_unblock/perplexity_diag.py",
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "sha7": "6bd9caa",
+      "reason": "secrets_detected",
+      "files": [
+        {
+          "file": "embryos/oracle_ai/oracle_ai_embryo.py",
+          "hits": 3
+        }
+      ]
+    },
+    {
+      "sha7": "7fb3303",
+      "reason": "secrets_detected",
+      "files": [
+        {
+          "file": "embryos/oracle_auditor/oracle_auditor_embryo.py",
+          "hits": 3
+        }
+      ]
+    },
+    {
+      "sha7": "4e5c90c",
+      "reason": "secrets_detected",
+      "files": [
+        {
+          "file": "embryos/oracle_ai/oracle_ai_embryo.py",
+          "hits": 3
+        },
+        {
+          "file": "embryos/oracle_auditor/oracle_auditor_embryo.py",
+          "hits": 3
+        }
+      ]
+    },
+    {
+      "sha7": "b54619a",
+      "reason": "secrets_detected",
+      "files": [
+        {
+          "file": "embryos/memory_palace/test_memory_palace.py",
+          "hits": 1
+        },
+        {
+          "file": "embryos/oracle_ai/oracle_ai_embryo.py",
+          "hits": 3
+        },
+        {
+          "file": "embryos/oracle_auditor/oracle_auditor_embryo.py",
+          "hits": 3
+        }
+      ]
+    },
+    {
+      "sha7": "ea7080d",
+      "reason": "secrets_detected",
+      "files": [
+        {
+          "file": "bridge/state_fabric/t1_directive_resolver.py",
+          "hits": 1
+        },
+        {
+          "file": "embryos/oracle_ai/oracle_ai_embryo.py",
+          "hits": 3
+        },
+        {
+          "file": "embryos/oracle_auditor/oracle_auditor_embryo.py",
+          "hits": 3
+        }
+      ]
+    },
+    {
+      "sha7": "a913412",
+      "reason": "secrets_detected",
+      "files": [
+        {
+          "file": "bridge/provider_ops/test_provider_migration_guard.py",
+          "hits": 1
+        },
+        {
+          "file": "bridge/reactor_limited_active_r0/live_upgrade_epoch_008/EPOCH_008_T1_REPORT.md",
+          "hits": 1
+        },
+        {
+          "file": "bridge/reactor_limited_active_r0/live_upgrade_epoch_008/T1_DECISION_PACK.md",
+          "hits": 1
+        },
+        {
+          "file": "bridge/reactor_limited_active_r0/live_upgrade_epoch_008/artifacts/test_t1_decision_executor.py",
+          "hits": 1
+        },
+        {
+          "file": "embryos/oracle_ai/oracle_ai_embryo.py",
+          "hits": 3
+        },
+        {
+          "file": "embryos/oracle_auditor/oracle_auditor_embryo.py",
+          "hits": 3
+        }
+      ]
+    },
+    {
+      "sha7": "ddad037",
+      "reason": "memento_antidory_touched"
+    },
+    {
+      "sha7": "5a0bb2f",
+      "reason": "secrets_detected",
+      "files": [
+        {
+          "file": "bridge/reactor_m2_oneshot/run_m2_oneshot.py",
+          "hits": 2
+        }
+      ]
+    }
+  ],
+  "p1": [
+    {
+      "sha7": "afc92ea",
+      "reason": "r1_indicators",
+      "hits": 3
+    },
+    {
+      "sha7": "afc92ea",
+      "reason": "forbidden_providers",
+      "hits": 12
+    },
+    {
+      "sha7": "f1824ef",
+      "reason": "forbidden_providers",
+      "hits": 9
+    },
+    {
+      "sha7": "72aa46e",
+      "reason": "r1_indicators",
+      "hits": 1
+    },
+    {
+      "sha7": "72aa46e",
+      "reason": "forbidden_providers",
+      "hits": 2
+    },
+    {
+      "sha7": "4e0745e",
+      "reason": "forbidden_providers",
+      "hits": 26
+    },
+    {
+      "sha7": "8aa7cca",
+      "reason": "r1_indicators",
+      "hits": 1
+    },
+    {
+      "sha7": "8aa7cca",
+      "reason": "forbidden_providers",
+      "hits": 7
+    },
+    {
+      "sha7": "2b9aca2",
+      "reason": "r1_indicators",
+      "hits": 4
+    },
+    {
+      "sha7": "2b9aca2",
+      "reason": "forbidden_providers",
+      "hits": 33
+    },
+    {
+      "sha7": "1d79fd7",
+      "reason": "forbidden_providers",
+      "hits": 5
+    },
+    {
+      "sha7": "6bd9caa",
+      "reason": "forbidden_providers",
+      "hits": 3
+    },
+    {
+      "sha7": "b3e1c36",
+      "reason": "forbidden_providers",
+      "hits": 5
+    },
+    {
+      "sha7": "4e5c90c",
+      "reason": "forbidden_providers",
+      "hits": 2
+    },
+    {
+      "sha7": "b54619a",
+      "reason": "forbidden_providers",
+      "hits": 2
+    },
+    {
+      "sha7": "a913412",
+      "reason": "forbidden_providers",
+      "hits": 4
+    },
+    {
+      "sha7": "6c472b0",
+      "reason": "forbidden_providers",
+      "hits": 1
+    },
+    {
+      "sha7": "a17b1dc",
+      "reason": "forbidden_providers",
+      "hits": 1
+    },
+    {
+      "sha7": "bc78e87",
+      "reason": "forbidden_providers",
+      "hits": 1
+    },
+    {
+      "sha7": "eef53fd",
+      "reason": "forbidden_providers",
+      "hits": 1
+    },
+    {
+      "sha7": "08c7767",
+      "reason": "forbidden_providers",
+      "hits": 1
+    },
+    {
+      "sha7": "ddad037",
+      "reason": "forbidden_providers",
+      "hits": 1
+    },
+    {
+      "sha7": "5a0bb2f",
+      "reason": "forbidden_providers",
+      "hits": 18
+    }
+  ],
+  "p2": [
+    {
+      "sha7": "5041192",
+      "reason": "partially_audited"
+    },
+    {
+      "sha7": "97d9a50",
+      "reason": "partially_audited"
+    },
+    {
+      "sha7": "d876a21",
+      "reason": "partially_audited"
+    },
+    {
+      "sha7": "d6ea896",
+      "reason": "partially_audited"
+    },
+    {
+      "sha7": "afee650",
+      "reason": "partially_audited"
+    },
+    {
+      "sha7": "319874e",
+      "reason": "partially_audited"
+    },
+    {
+      "sha7": "604acb9",
+      "reason": "partially_audited"
+    },
+    {
+      "sha7": "f678fff",
+      "reason": "partially_audited"
+    },
+    {
+      "sha7": "2edd547",
+      "reason": "partially_audited"
+    }
+  ],
+  "stats": {
+    "total_commits_scanned": 36,
+    "in_scope": 18,
+    "unexpected_in_scope": 18,
+    "not_found": 0,
+    "fully_audited": 18,
+    "partially_audited": 9,
+    "reported_only": 0,
+    "needs_review": 1,
+    "blocked": 8,
+    "p0_count": 9,
+    "p1_count": 23,
+    "p2_count": 9
+  }
+}
