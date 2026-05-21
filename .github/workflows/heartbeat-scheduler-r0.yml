@@ -6,13 +6,18 @@ name: Heartbeat Scheduler R0
 # Kill-switch: scheduler/scheduler_kill_switch.json
 # Anti-loop: scheduler_state.json tracks windows.
 # If 2 consecutive failures → PAUSED (requires T1 to resume).
+# MICROFIX MF1: cron at minute 23 to avoid GitHub minute-0 congestion.
 
 on:
   schedule:
-    # Every 12 hours: 06:00 UTC and 18:00 UTC
-    - cron: '0 6,18 * * *'
+    # Every 12 hours: 06:23 UTC and 18:23 UTC (offset from :00 per MF1)
+    - cron: '23 6,18 * * *'
   workflow_dispatch:
     # Manual trigger for testing/dry-run
+    # Respects kill-switch and anti-loop (enforced by scheduler_wrapper.py)
+
+permissions:
+  contents: read
 
 jobs:
   heartbeat-r0:
@@ -36,25 +41,3 @@ jobs:
         run: |
           cd bridge/reactor_vigilia_foundation/reactor_heartbeat_r0
           python3 scheduler/scheduler_wrapper.py
-
-      - name: Commit scheduler state (if changed)
-        run: |
-          git config user.name "monstruo-heartbeat[bot]"
-          git config user.email "heartbeat@monstruo.local"
-          cd bridge/reactor_vigilia_foundation/reactor_heartbeat_r0
-          if git diff --quiet scheduler/ && git diff --quiet scripts/ && git diff --quiet ../state_fabric/; then
-            echo "No state changes to commit."
-          else
-            git add scheduler/scheduler_state.json
-            git add scheduler/scheduler_report.md
-            git add ../state_fabric/event_log.v0.jsonl
-            git add ../state_fabric/current_state.v0.json
-            git add heartbeat_manifest.v0_1.json || true
-            git add heartbeat_decision.v0_1.json || true
-            git add heartbeat_report.v0_1.json || true
-            git add heartbeat_report.v0_1.md || true
-            git add heartbeat_event_log_delta.v0_1.jsonl || true
-            git add unified_face_heartbeat_summary.v0_1.md || true
-            git commit -m "chore(heartbeat): R0 cycle $(date -u +%Y-%m-%dT%H:%M:%SZ)" || true
-            git push || true
-          fi
