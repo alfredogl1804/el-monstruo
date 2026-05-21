@@ -1,0 +1,59 @@
+{
+  "investigation_id": "SPR-R0PLUS-REGRESSION-INVESTIGATION-001",
+  "generated_at": "2026-05-21T07:45:00Z",
+  "generated_by": "hilo_b_executor",
+  "sources_read": [
+    "bridge/r0plus_artifact_ops/T1_OPERATING_SNAPSHOT_v0_3.json",
+    "bridge/reactor_limited_active_r0/live_upgrade_epoch_009/EPOCH_009_OPS_SNAPSHOT.json",
+    "bridge/embryos/oracle_ai_r0/outputs/*.json (13 files)",
+    "embryos/memory_palace/memory_palace_state.json"
+  ],
+  "regression_flag_origin": {
+    "detected_by": "embryo_run_history_analyzer_v0_1",
+    "reported_in": "EPOCH_009_OPS_SNAPSHOT.json → runner_output.results.history_analyzer",
+    "field": "regression_flags",
+    "count": 1
+  },
+  "flagged_regression": {
+    "type": "COST_SPIKE",
+    "run_index": 8,
+    "source_file": "map_capability_to_application_20260521T033525.json",
+    "embryo_id": "oracle_ai_embryo_r0",
+    "task_id": "map_capability_to_application",
+    "action_class": "A1_ANALYZE",
+    "cost_usd_flagged": 0.001,
+    "recent_avg_at_time": 0.000279,
+    "z_score_at_detection": 2.06,
+    "severity_reported": "MEDIUM"
+  },
+  "full_cost_history_oracle_runs": [
+    {"index": 1, "file": "detect_new_ai_capability_candidates_20260521T031131.json", "cost_usd": 0.001, "task": "detect_new_ai_capability_candidates"},
+    {"index": 2, "file": "detect_new_ai_capability_candidates_20260521T031154.json", "cost_usd": 0.00019, "task": "detect_new_ai_capability_candidates"},
+    {"index": 3, "file": "detect_new_ai_capability_candidates_20260521T032450.json", "cost_usd": 0.001, "task": "detect_new_ai_capability_candidates"},
+    {"index": 4, "file": "detect_new_ai_capability_candidates_20260521T033344.json", "cost_usd": 0.000195, "task": "detect_new_ai_capability_candidates"},
+    {"index": 5, "file": "detect_new_ai_capability_candidates_20260521T042704.json", "cost_usd": 0.000478, "task": "detect_new_ai_capability_candidates"},
+    {"index": 6, "file": "detect_new_ai_capability_candidates_20260521T045139.json", "cost_usd": 0.000285, "task": "detect_new_ai_capability_candidates"},
+    {"index": 7, "file": "detect_new_ai_capability_candidates_20260521T054451.json", "cost_usd": 0.000438, "task": "detect_new_ai_capability_candidates"},
+    {"index": 8, "file": "map_capability_to_application_20260521T032340.json", "cost_usd": 0.000114, "task": "map_capability_to_application"},
+    {"index": 9, "file": "map_capability_to_application_20260521T033525.json", "cost_usd": 0.001, "task": "map_capability_to_application"},
+    {"index": 10, "file": "map_capability_to_application_20260521T041323.json", "cost_usd": 0.000295, "task": "map_capability_to_application"},
+    {"index": 11, "file": "map_capability_to_application_20260521T042816.json", "cost_usd": 0.000287, "task": "map_capability_to_application"},
+    {"index": 12, "file": "map_capability_to_application_20260521T051250.json", "cost_usd": 0.000292, "task": "map_capability_to_application"},
+    {"index": 13, "file": "map_capability_to_application_20260521T062759.json", "cost_usd": 0.000294, "task": "map_capability_to_application"}
+  ],
+  "statistical_context": {
+    "total_runs": 13,
+    "total_cost_usd": 0.005869,
+    "mean_cost_usd": 0.000451,
+    "runs_at_0_001": [1, 3, 9],
+    "runs_below_0_0005": [2, 4, 5, 6, 7, 8, 10, 11, 12, 13],
+    "observation": "Runs 1, 3, 9 all cost exactly $0.001 — this is a fixture ceiling/placeholder value, not real provider cost"
+  },
+  "affected_systems": {
+    "oracle": "NOT_AFFECTED — oracle continues running normally after flagged run",
+    "auditor": "NOT_AFFECTED — auditor health 100%, all audits PASS",
+    "memory_palace": "NOT_AFFECTED — health HEALTHY, score 70",
+    "artifact_ops": "NOT_AFFECTED — all 11 artifacts tested, 100% coverage"
+  },
+  "preliminary_hypothesis": "FALSE_POSITIVE — The $0.001 cost is a fixture ceiling value used in early runs (runs 1, 3) and one later run (9). It does not represent real cost degradation. Subsequent runs (10-13) returned to normal range ($0.000287-$0.000295). The history analyzer flagged it because at run_index 8, the recent_avg was $0.000279 and the next value was $0.001 (3.58x), but this is a data artifact, not a system regression."
+}

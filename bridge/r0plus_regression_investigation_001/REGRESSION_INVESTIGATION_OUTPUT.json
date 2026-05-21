@@ -1,0 +1,74 @@
+{
+  "version": "0.1",
+  "generated_at": "2026-05-21T07:53:39.766962+00:00",
+  "generated_by": "regression_investigator_v0_1",
+  "investigation_count": 1,
+  "overall_classification": "FALSE_POSITIVE",
+  "overall_severity": "NONE",
+  "investigations": [
+    {
+      "regression_id": "REG-008-COST_SPIKE",
+      "source": "map_capability_to_application_20260521T033525.json",
+      "affected_embryo": "oracle_ai_embryo_r0",
+      "affected_metric": "cost_usd",
+      "baseline_mean": 0.000451,
+      "observed_value": 0.001,
+      "delta": 0.000549,
+      "severity": "NONE",
+      "classification": "FALSE_POSITIVE",
+      "root_cause_candidate": "fixture_ceiling_value",
+      "confidence": 0.95,
+      "recommended_action": "No action needed. Update history analyzer to recognize fixture ceiling values as non-anomalous.",
+      "analysis": {
+        "flag": {
+          "type": "COST_SPIKE",
+          "run_index": 8,
+          "source_file": "map_capability_to_application_20260521T033525.json",
+          "current_value": 0.001,
+          "recent_avg": 0.000279,
+          "severity": "MEDIUM"
+        },
+        "baseline": {
+          "mean": 0.000451,
+          "stddev": 0.000314,
+          "median": 0.000294,
+          "count": 13,
+          "min": 0.000114,
+          "max": 0.001
+        },
+        "cost_spike_analysis": {
+          "type": "COST_SPIKE",
+          "is_fixture_ceiling": true,
+          "ceiling_occurrences": 3,
+          "recovered_after": true,
+          "subsequent_runs": 4,
+          "subsequent_mean": 0.000292
+        },
+        "grounding_analysis": {
+          "detected": false,
+          "low_score_count": 0,
+          "total_entries": 8,
+          "min_score": 6,
+          "mean_score": 8.25
+        },
+        "repetition_analysis": {
+          "detected": false,
+          "dominant_task": "detect_new_ai_capability_candidates",
+          "dominant_pct": 0.5385,
+          "unique_tasks": 2,
+          "total_runs": 13
+        }
+      }
+    }
+  ],
+  "baseline": {
+    "mean": 0.000451,
+    "stddev": 0.000314,
+    "median": 0.000294,
+    "count": 13,
+    "min": 0.000114,
+    "max": 0.001
+  },
+  "external_api_calls": 0,
+  "secrets_used": 0
+}
