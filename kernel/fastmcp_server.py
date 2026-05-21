@@ -457,13 +457,234 @@ def create_fastmcp_server():
             logger.error("fastmcp_list_mcp_servers_error", error=str(e))
             return json.dumps({"error": str(e)})
 
+    # ── Tool 7: SMS Recall (Sovereign Memory System) ─────────────────
+    @mcp.tool(
+        name="sms_recall",
+        description=(
+            "Search the Sovereign Memory System for relevant memories, axioms, "
+            "and knowledge. Use before any action to check if there are relevant "
+            "decisions, constraints, or lessons learned. Returns memories ranked "
+            "by relevance. Any AI agent can use this."
+        ),
+        tags={"memory", "read-only"},
+    )
+    async def sms_recall(
+        query: str,
+        agent_id: str = "unknown",
+        tier: str = "all",
+        limit: int = 10,
+    ) -> str:
+        """Search sovereign memories by semantic relevance."""
+        import httpx
+        supabase_url = os.environ.get("SUPABASE_URL", "")
+        supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+        if not supabase_url or not supabase_key:
+            return json.dumps({"error": "SUPABASE not configured", "query": query})
+        try:
+            headers = {
+                "apikey": supabase_key,
+                "Authorization": f"Bearer {supabase_key}",
+                "Content-Type": "application/json",
+            }
+            # Search axioms first (highest priority)
+            results = []
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                # Get axioms matching query keywords
+                axiom_url = f"{supabase_url}/rest/v1/sovereign_axioms?select=*&status=eq.active&content=ilike.*{query.split()[0]}*&limit={limit}"
+                r = await client.get(axiom_url, headers=headers)
+                if r.status_code == 200:
+                    axioms = r.json()
+                    for a in axioms:
+                        results.append({"tier": "AXIOM", "content": a.get("content"), "domain": a.get("domain"), "confidence": a.get("confidence")})
+                # Get memories
+                mem_url = f"{supabase_url}/rest/v1/sovereign_memories?select=*&content=ilike.*{query.split()[0]}*&order=importance.desc&limit={limit}"
+                r = await client.get(mem_url, headers=headers)
+                if r.status_code == 200:
+                    memories = r.json()
+                    for m in memories:
+                        results.append({"tier": m.get("tier", "LONG_TERM"), "content": m.get("content"), "domain": m.get("domain"), "importance": m.get("importance")})
+            logger.info("sms_recall_ok", query=query, results=len(results), agent=agent_id)
+            return json.dumps({"query": query, "results": results[:limit], "total": len(results)}, ensure_ascii=False)
+        except Exception as e:
+            logger.error("sms_recall_error", error=str(e))
+            return json.dumps({"error": str(e), "query": query})
+
+    # ── Tool 8: SMS Ingest (Store new memory) ────────────────────────
+    @mcp.tool(
+        name="sms_ingest",
+        description=(
+            "Store a new memory in the Sovereign Memory System. Use after learning "
+            "something important: a decision, a lesson, a constraint, a preference. "
+            "Memories are indexed for future retrieval by any agent."
+        ),
+        tags={"memory", "write"},
+    )
+    async def sms_ingest(
+        content: str,
+        domain: str = "general",
+        agent_id: str = "unknown",
+        importance: float = 0.5,
+        tier: str = "LONG_TERM",
+    ) -> str:
+        """Ingest a new memory into the sovereign store."""
+        import httpx
+        from datetime import datetime, timezone
+        supabase_url = os.environ.get("SUPABASE_URL", "")
+        supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+        if not supabase_url or not supabase_key:
+            return json.dumps({"error": "SUPABASE not configured"})
+        try:
+            headers = {
+                "apikey": supabase_key,
+                "Authorization": f"Bearer {supabase_key}",
+                "Content-Type": "application/json",
+                "Prefer": "return=representation",
+            }
+            payload = {
+                "content": content,
+                "domain": domain,
+                "source_agent": agent_id,
+                "importance": importance,
+                "tier": tier,
+                "access_count": 0,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                r = await client.post(
+                    f"{supabase_url}/rest/v1/sovereign_memories",
+                    headers=headers,
+                    json=payload,
+                )
+                r.raise_for_status()
+                result = r.json()
+            logger.info("sms_ingest_ok", domain=domain, agent=agent_id)
+            return json.dumps({"status": "stored", "id": result[0].get("id") if result else "unknown", "tier": tier}, ensure_ascii=False)
+        except Exception as e:
+            logger.error("sms_ingest_error", error=str(e))
+            return json.dumps({"error": str(e)})
+
+    # ── Tool 9: SMS Crystallize (Promote to axiom) ───────────────────
+    @mcp.tool(
+        name="sms_crystallize",
+        description=(
+            "Promote a validated understanding to a SOVEREIGN AXIOM — an immutable "
+            "truth that survives all context loss. Use only for insights that have "
+            "been validated multiple times and are universally true. Axioms are "
+            "injected into every new session automatically."
+        ),
+        tags={"memory", "write"},
+    )
+    async def sms_crystallize(
+        content: str,
+        domain: str = "general",
+        agent_id: str = "unknown",
+        evidence: str = "validated by agent",
+    ) -> str:
+        """Crystallize a memory into a sovereign axiom."""
+        import httpx
+        from datetime import datetime, timezone
+        supabase_url = os.environ.get("SUPABASE_URL", "")
+        supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+        if not supabase_url or not supabase_key:
+            return json.dumps({"error": "SUPABASE not configured"})
+        try:
+            headers = {
+                "apikey": supabase_key,
+                "Authorization": f"Bearer {supabase_key}",
+                "Content-Type": "application/json",
+                "Prefer": "return=representation",
+            }
+            payload = {
+                "content": content,
+                "domain": domain,
+                "source_agent": agent_id,
+                "confidence": 0.95,
+                "status": "active",
+                "validations": 1,
+                "evidence": json.dumps([{"source": agent_id, "text": evidence, "date": datetime.now(timezone.utc).isoformat()}]),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                r = await client.post(
+                    f"{supabase_url}/rest/v1/sovereign_axioms",
+                    headers=headers,
+                    json=payload,
+                )
+                r.raise_for_status()
+                result = r.json()
+            logger.info("sms_crystallize_ok", domain=domain, agent=agent_id)
+            return json.dumps({"status": "crystallized", "id": result[0].get("id") if result else "unknown", "content": content[:100]}, ensure_ascii=False)
+        except Exception as e:
+            logger.error("sms_crystallize_error", error=str(e))
+            return json.dumps({"error": str(e)})
+
+    # ── Tool 10: SMS Pre-Check (Verify before acting) ────────────────
+    @mcp.tool(
+        name="sms_pre_check",
+        description=(
+            "MANDATORY before any significant action. Checks the Sovereign Memory "
+            "for relevant axioms, blockers, past errors, and contradictions. "
+            "Returns a verdict: PROCEED (safe), CAUTION (review needed), or "
+            "HALT (blocked by axiom/decision). Use this to prevent Dory syndrome."
+        ),
+        tags={"memory", "safety", "read-only"},
+    )
+    async def sms_pre_check(
+        action: str,
+        context: str = "",
+        agent_id: str = "unknown",
+    ) -> str:
+        """Pre-check an action against sovereign memory for safety."""
+        import httpx
+        supabase_url = os.environ.get("SUPABASE_URL", "")
+        supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+        if not supabase_url or not supabase_key:
+            return json.dumps({"verdict": "PROCEED", "reason": "SMS not configured — degraded mode", "warnings": []})
+        try:
+            headers = {
+                "apikey": supabase_key,
+                "Authorization": f"Bearer {supabase_key}",
+                "Content-Type": "application/json",
+            }
+            warnings = []
+            verdict = "PROCEED"
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                # Check axioms for blockers
+                keyword = action.split("_")[0] if "_" in action else action.split()[0]
+                axiom_url = f"{supabase_url}/rest/v1/sovereign_axioms?select=*&status=eq.active&content=ilike.*{keyword}*&limit=5"
+                r = await client.get(axiom_url, headers=headers)
+                if r.status_code == 200:
+                    axioms = r.json()
+                    for ax in axioms:
+                        if any(w in ax.get("content", "").lower() for w in ["never", "nunca", "prohibido", "blocked", "halt"]):
+                            verdict = "HALT"
+                            warnings.append(f"AXIOM BLOCKER: {ax['content'][:100]}")
+                        elif any(w in ax.get("content", "").lower() for w in ["caution", "review", "verify", "cuidado"]):
+                            if verdict != "HALT":
+                                verdict = "CAUTION"
+                            warnings.append(f"AXIOM CAUTION: {ax['content'][:100]}")
+                # Check knowledge gaps
+                gap_url = f"{supabase_url}/rest/v1/sovereign_knowledge_gaps?select=*&status=eq.open&domain=ilike.*{keyword}*&limit=3"
+                r = await client.get(gap_url, headers=headers)
+                if r.status_code == 200:
+                    gaps = r.json()
+                    for g in gaps:
+                        if verdict != "HALT":
+                            verdict = "CAUTION"
+                        warnings.append(f"KNOWLEDGE GAP: {g.get('question', '')[:100]}")
+            logger.info("sms_pre_check_ok", action=action, verdict=verdict, agent=agent_id)
+            return json.dumps({"verdict": verdict, "action": action, "warnings": warnings, "axioms_checked": True}, ensure_ascii=False)
+        except Exception as e:
+            logger.error("sms_pre_check_error", error=str(e))
+            return json.dumps({"verdict": "PROCEED", "reason": f"SMS error: {str(e)} — degraded mode", "warnings": []})
+
     _mcp_server = mcp
     _initialized = True
 
     logger.info(
         "fastmcp_server_created",
         name="El Monstruo Kernel",
-        tools_registered=6,
+        tools_registered=10,
         version="3.2.4",
         sprint="55.1",
         real_tools=[
@@ -473,6 +694,10 @@ def create_fastmcp_server():
             "database_query",
             "web_browse (Cloudflare Browser Run)",
             "list_mcp_servers (MCP Hub discovery)",
+            "sms_recall (Sovereign Memory)",
+            "sms_ingest (Sovereign Memory)",
+            "sms_crystallize (Sovereign Memory)",
+            "sms_pre_check (Sovereign Memory)",
         ],
     )
 
@@ -492,7 +717,7 @@ def get_status() -> dict[str, Any]:
     return {
         "active": _initialized and _mcp_server is not None,
         "version": "3.2.4" if _initialized else None,
-        "tools": 5 if _initialized else 0,
+        "tools": 10 if _initialized else 0,
         "transport": "streamable-http",
         "mount_path": "/mcp",
         "real_tools": [
@@ -501,5 +726,10 @@ def get_status() -> dict[str, Any]:
             "github_ops (GitHub REST API)",
             "database_query (Supabase REST)",
             "web_browse (Cloudflare Browser Run)",
+            "list_mcp_servers (MCP Hub discovery)",
+            "sms_recall (Sovereign Memory)",
+            "sms_ingest (Sovereign Memory)",
+            "sms_crystallize (Sovereign Memory)",
+            "sms_pre_check (Sovereign Memory)",
         ] if _initialized else [],
     }

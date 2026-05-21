@@ -1822,6 +1822,15 @@ except Exception as e:
     logger.warning("brand_engine_routes_failed", error=str(e))
 
 
+# ── Sovereign Memory System (SMS) Universal API ──────────────────────────
+try:
+    from kernel.memory.sms_universal_api import app as sms_app
+    app.mount("/sms", sms_app)
+    logger.info("sms_universal_api_mounted", path="/sms", endpoints=10)
+except Exception as e:
+    logger.warning("sms_universal_api_failed", error=str(e))
+
+
 # ── Request/Response Models ─────────────────────────────────────────
 
 
