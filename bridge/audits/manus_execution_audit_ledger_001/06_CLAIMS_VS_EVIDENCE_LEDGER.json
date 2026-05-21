@@ -1,0 +1,104 @@
+[
+  {
+    "claim": "scheduler installed",
+    "evidence_commit": "f1824ef",
+    "evidence_path": "bridge/reactor_vigilia_foundation/reactor_heartbeat_r0/scheduler/scheduler_kill_switch.json",
+    "verification_status": "VERIFIED_BY_FILE_CONTENT"
+  },
+  {
+    "claim": "scheduler dormant",
+    "evidence_commit": "f1824ef",
+    "evidence_path": "bridge/reactor_vigilia_foundation/reactor_heartbeat_r0/scheduler/scheduler_kill_switch.json",
+    "verification_status": "VERIFIED_BY_FILE_CONTENT"
+  },
+  {
+    "claim": "one-shot heartbeat executed",
+    "evidence_commit": "5a0bb2f",
+    "evidence_path": "bridge/reactor_m2_oneshot/M2_ONESHOT_AUDIT_REPORT.md",
+    "verification_status": "VERIFIED_BY_DIFF"
+  },
+  {
+    "claim": "M2 providers 4/4",
+    "evidence_commit": "2b9aca2",
+    "evidence_path": "bridge/provider_ops/PROVIDER_REGISTRY_GUARD_REPORT.md",
+    "verification_status": "VERIFIED_BY_FILE_CONTENT"
+  },
+  {
+    "claim": "provider drift none",
+    "evidence_commit": "2b9aca2",
+    "evidence_path": "bridge/provider_ops/PROVIDER_REGISTRY_GUARD_REPORT.md",
+    "verification_status": "VERIFIED_BY_FILE_CONTENT"
+  },
+  {
+    "claim": "Limited Active R0 active",
+    "evidence_commit": "72aa46e",
+    "evidence_path": "bridge/reactor_limited_active_r0/LIMITED_ACTIVE_R0_ACTIVATION_PLAN.md",
+    "verification_status": "VERIFIED_BY_DIFF"
+  },
+  {
+    "claim": "Epoch 002 PASS",
+    "evidence_commit": "8aa7cca",
+    "evidence_path": "bridge/reactor_limited_active_r0/live_upgrade_epoch_002/EPOCH_002_AUDIT_REPORT.md",
+    "verification_status": "VERIFIED_BY_DIFF"
+  },
+  {
+    "claim": "Epoch 003 PASS",
+    "evidence_commit": "2b9aca2",
+    "evidence_path": "bridge/reactor_limited_active_r0/live_upgrade_epoch_003/EPOCH_003_AUDIT_REPORT.md",
+    "verification_status": "VERIFIED_BY_DIFF"
+  },
+  {
+    "claim": "Oracle autonomous embryo confirmed",
+    "evidence_commit": "6bd9caa",
+    "evidence_path": "bridge/embryos/oracle_ai_r0/ORACLE_AI_EMBRYO_R0_AUDIT_REPORT.md",
+    "verification_status": "VERIFIED_BY_DIFF"
+  },
+  {
+    "claim": "scheduler-driven autonomy confirmed",
+    "evidence_commit": "6bd9caa",
+    "evidence_path": "bridge/embryos/oracle_ai_r0/ORACLE_AI_EMBRYO_R0_AUDIT_REPORT.md",
+    "verification_status": "VERIFIED_BY_DIFF"
+  },
+  {
+    "claim": "bicefalo pair confirmed",
+    "evidence_commit": "7fb3303",
+    "evidence_path": "embryos/oracle_auditor/README.md",
+    "verification_status": "VERIFIED_BY_FILE_CONTENT"
+  },
+  {
+    "claim": "grounding confirmed",
+    "evidence_commit": "6bd9caa",
+    "evidence_path": "bridge/embryos/oracle_ai_r0/ORACLE_AI_EMBRYO_R0_AUDIT_REPORT.md",
+    "verification_status": "VERIFIED_BY_FILE_CONTENT"
+  },
+  {
+    "claim": "first R0+ artifact produced",
+    "evidence_commit": "d61ac0c",
+    "evidence_path": "bridge/reactor_limited_active_r0/live_upgrade_epoch_005/EPOCH_005_AUDIT_REPORT.md",
+    "verification_status": "VERIFIED_BY_FILE_CONTENT"
+  },
+  {
+    "claim": "Memory Palace confirmed",
+    "evidence_commit": "b54619a",
+    "evidence_path": "bridge/reactor_limited_active_r0/live_upgrade_epoch_006/EPOCH_006_AUDITOR_OUTPUT.json",
+    "verification_status": "VERIFIED_BY_FILE_CONTENT"
+  },
+  {
+    "claim": "T1 Feedback Loop confirmed",
+    "evidence_commit": "ea7080d",
+    "evidence_path": "bridge/reactor_limited_active_r0/live_upgrade_epoch_007/EPOCH_007_AUDIT_REPORT.md",
+    "verification_status": "VERIFIED_BY_FILE_CONTENT"
+  },
+  {
+    "claim": "pericia kit patch merged",
+    "evidence_commit": "2f58f9f",
+    "evidence_path": "monstruo_reality_atlas/reports/GLOBAL_95_REQUIRED_COVERAGE_v1_2.md",
+    "verification_status": "VERIFIED_BY_DIFF"
+  },
+  {
+    "claim": "pericia recalibration completed",
+    "evidence_commit": "d41d14c",
+    "evidence_path": "monstruo_reality_atlas/reports/PERICIA_RECALIBRATION_BASELINE_v1_2.md",
+    "verification_status": "VERIFIED_BY_DIFF"
+  }
+]

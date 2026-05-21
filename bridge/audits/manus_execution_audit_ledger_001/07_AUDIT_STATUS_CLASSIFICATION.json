@@ -1,0 +1,362 @@
+[
+  {
+    "sha7": "afc92ea",
+    "subject": "SPR-BATCH-REACTOR-M2-READINESS-001: T1 Decision Pack, Provid",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  },
+  {
+    "sha7": "f1824ef",
+    "subject": "SPR-BATCH-M2-STABILIZATION-001: Provider registry estabiliza",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  },
+  {
+    "sha7": "72aa46e",
+    "subject": "SPR-REACTOR-LIMITED-ACTIVE-R0-001: Inicio de piloto 48h LIMI",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  },
+  {
+    "sha7": "4e0745e",
+    "subject": "SPR-ACCELERATOR-WHILE-LIMITED-R0-RUNS-001: 6 carriles parale",
+    "audit_status": "BLOCKED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": true,
+    "hard_rule_fails": 1,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "TEST_FILES_PRESENT"
+  },
+  {
+    "sha7": "8aa7cca",
+    "subject": "SPR-LIVE-UPGRADE-LIMITED-R0-EPOCH-002: Live upgrade controla",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  },
+  {
+    "sha7": "2b9aca2",
+    "subject": "SPR-EPOCH003-PRODUCTION-ACCELERATOR-001: Live productive upg",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "TEST_FILES_PRESENT"
+  },
+  {
+    "sha7": "1d79fd7",
+    "subject": "SPR-EPOCH004-R0PLUS-PRODUCTION-FABRIC-001: Epoch 004 with Or",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "TEST_FILES_PRESENT"
+  },
+  {
+    "sha7": "6bd9caa",
+    "subject": "SPR-EMBRION-AUTONOMO-ORACLE-R0-001: First autonomous embryo,",
+    "audit_status": "BLOCKED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": true,
+    "hard_rule_fails": 1,
+    "tests_claimed": "claimed_in_subject",
+    "tests_verifiability": "TEST_FILES_PRESENT"
+  },
+  {
+    "sha7": "b3e1c36",
+    "subject": "SPR-ORACLE-EMBRYO-SCHEDULER-INTEGRATION-R0-001: integrate em",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_subject",
+    "tests_verifiability": "TEST_FILES_PRESENT"
+  },
+  {
+    "sha7": "7fb3303",
+    "subject": "SPR-ORACLE-EMBRYO-PAIR-R0-001: bicefalo pair confirmed, audi",
+    "audit_status": "BLOCKED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": true,
+    "hard_rule_fails": 1,
+    "tests_claimed": "claimed_in_subject",
+    "tests_verifiability": "TEST_FILES_PRESENT"
+  },
+  {
+    "sha7": "4e5c90c",
+    "subject": "SPR-ORACLE-PAIR-GROUNDING-R0-001: Oracle+Auditor v0.2 with g",
+    "audit_status": "BLOCKED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": true,
+    "hard_rule_fails": 1,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "TEST_FILES_PRESENT"
+  },
+  {
+    "sha7": "d61ac0c",
+    "subject": "SPR-EPOCH005-GROUNDED-ORACLE-PRODUCTION-R0PLUS-001: Grounded",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_subject",
+    "tests_verifiability": "TEST_FILES_PRESENT"
+  },
+  {
+    "sha7": "b54619a",
+    "subject": "SPR-EPOCH006-MEMORY-PALACE-R0PLUS-001: Memory Palace v0.1, O",
+    "audit_status": "BLOCKED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": true,
+    "hard_rule_fails": 1,
+    "tests_claimed": "claimed_in_subject",
+    "tests_verifiability": "TEST_FILES_PRESENT"
+  },
+  {
+    "sha7": "ea7080d",
+    "subject": "SPR-EPOCH007-T1-FEEDBACK-LOOP-R0PLUS-001: T1 Directive Queue",
+    "audit_status": "BLOCKED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": true,
+    "hard_rule_fails": 1,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "TEST_FILES_PRESENT"
+  },
+  {
+    "sha7": "a913412",
+    "subject": "Epoch 008: Provider Migration Guard + Multi-Directive Confli",
+    "audit_status": "BLOCKED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": true,
+    "hard_rule_fails": 2,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "TEST_FILES_PRESENT"
+  },
+  {
+    "sha7": "2f58f9f",
+    "subject": "feat(pericia): GLOBAL_95_REQUIRED_COVERAGE patch v1.2",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  },
+  {
+    "sha7": "6c472b0",
+    "subject": "bridge(control_tower): manus_b pericia global95 patch report",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  },
+  {
+    "sha7": "d41d14c",
+    "subject": "Pericia Recalibration v1.2: 18/18 PASS, Reactor/Embryos 95%,",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "ACCEPTED",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_subject",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  },
+  {
+    "sha7": "5041192",
+    "subject": "docs(atlas): add ChatGPT pericia checkpoint v0.7",
+    "audit_status": "PARTIALLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "none",
+    "tests_verifiability": "NOT_APPLICABLE"
+  },
+  {
+    "sha7": "97d9a50",
+    "subject": "docs(atlas): add ChatGPT anti-Dory pericia lock v0.7",
+    "audit_status": "PARTIALLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "none",
+    "tests_verifiability": "NOT_APPLICABLE"
+  },
+  {
+    "sha7": "d876a21",
+    "subject": "docs(atlas): fix ChatGPT pericia checkpoint v0.8 drift",
+    "audit_status": "PARTIALLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "none",
+    "tests_verifiability": "NOT_APPLICABLE"
+  },
+  {
+    "sha7": "d6ea896",
+    "subject": "docs(atlas): mark ChatGPT pericia v0.7 as SUPERSEDED_BY_v0_8",
+    "audit_status": "PARTIALLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "none",
+    "tests_verifiability": "NOT_APPLICABLE"
+  },
+  {
+    "sha7": "afee650",
+    "subject": "docs(atlas): fix ChatGPT pericia checkpoint v0.9 silence dri",
+    "audit_status": "PARTIALLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "none",
+    "tests_verifiability": "NOT_APPLICABLE"
+  },
+  {
+    "sha7": "319874e",
+    "subject": "docs(atlas): add Gate 3.3 kernel wiring evidence pack",
+    "audit_status": "PARTIALLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "none",
+    "tests_verifiability": "NOT_APPLICABLE"
+  },
+  {
+    "sha7": "604acb9",
+    "subject": "docs(atlas): add ChatGPT pericia checkpoint v1.0 post Gate 3",
+    "audit_status": "PARTIALLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "none",
+    "tests_verifiability": "NOT_APPLICABLE"
+  },
+  {
+    "sha7": "f678fff",
+    "subject": "docs(atlas): fix ChatGPT pericia checkpoint v1.1 consistency",
+    "audit_status": "PARTIALLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "none",
+    "tests_verifiability": "NOT_APPLICABLE"
+  },
+  {
+    "sha7": "d4a4716",
+    "subject": "docs(atlas): add Gate 3.4 module maturity evidence pack",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  },
+  {
+    "sha7": "487f05e",
+    "subject": "docs(atlas): fix Gate 3.4 module maturity evidence pack v1.1",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  },
+  {
+    "sha7": "ca9c266",
+    "subject": "atlas(reality): FASE 95 ChatGPT pericia \u2014 5 evidence packs s",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  },
+  {
+    "sha7": "a17b1dc",
+    "subject": "bridge(control_tower): manus_c session consolidation 2026-05",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  },
+  {
+    "sha7": "bc78e87",
+    "subject": "bridge: CONTROL TOWER BRIDGE \u2014 manus_a estado operativo 2026",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  },
+  {
+    "sha7": "eef53fd",
+    "subject": "bridge(control_tower): record T1 decisions on anonymous debt",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  },
+  {
+    "sha7": "08c7767",
+    "subject": "bridge(control_tower): OPP-NB-001 R1 execution report \u2014 21/2",
+    "audit_status": "FULLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "claimed_in_subject",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  },
+  {
+    "sha7": "ddad037",
+    "subject": "bridge(control_tower): Gemini Anti-Dory FORGE v3.0 evaluatio",
+    "audit_status": "NEEDS_REVIEW",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 1,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  },
+  {
+    "sha7": "2edd547",
+    "subject": "bridge: Vigilia Mesh implementability evaluation \u2014 SPRINTABL",
+    "audit_status": "PARTIALLY_AUDITED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": false,
+    "hard_rule_fails": 0,
+    "tests_claimed": "none",
+    "tests_verifiability": "NOT_APPLICABLE"
+  },
+  {
+    "sha7": "5a0bb2f",
+    "subject": "SPR-REACTOR-M2-ONESHOT-001: Ejecuci\u00f3n exitosa de cadena M2 e",
+    "audit_status": "BLOCKED",
+    "chatgpt_prior_status": "UNKNOWN",
+    "has_p0": true,
+    "hard_rule_fails": 1,
+    "tests_claimed": "claimed_in_report",
+    "tests_verifiability": "REPORT_FILE_VERIFIED"
+  }
+]

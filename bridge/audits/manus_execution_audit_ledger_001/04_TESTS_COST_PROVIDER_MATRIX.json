@@ -1,0 +1,509 @@
+[
+  {
+    "sha7": "afc92ea",
+    "subject": "SPR-BATCH-REACTOR-M2-READINESS-001: T1 Decision Pack, Provid",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [
+      "perplexity",
+      "grok",
+      "gemini",
+      "openai",
+      "deepseek",
+      "anthropic"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "bridge/reactor_m2_readiness/T1_DECISION_PACK.md",
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  },
+  {
+    "sha7": "f1824ef",
+    "subject": "SPR-BATCH-M2-STABILIZATION-001: Provider registry estabiliza",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [
+      "perplexity",
+      "gemini",
+      "openai",
+      "deepseek",
+      "anthropic",
+      "grok"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "bridge/reactor_m2_stabilization/RESTORE_TEST.md",
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  },
+  {
+    "sha7": "72aa46e",
+    "subject": "SPR-REACTOR-LIMITED-ACTIVE-R0-001: Inicio de piloto 48h LIMI",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [
+      "perplexity",
+      "gemini",
+      "openai",
+      "deepseek",
+      "anthropic",
+      "grok"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "bridge/reactor_limited_active_r0/LIMITED_ACTIVE_R0_PROVIDER_USAGE.json",
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  },
+  {
+    "sha7": "4e0745e",
+    "subject": "SPR-ACCELERATOR-WHILE-LIMITED-R0-RUNS-001: 6 carriles parale",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "TEST_FILES_PRESENT",
+    "providers_listed": [
+      "perplexity",
+      "gemini",
+      "deepseek",
+      "openai",
+      "anthropic",
+      "grok"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "bridge/shell_nohint_extval_001/NOHINT_EXTVAL_RESULTS.md",
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  },
+  {
+    "sha7": "8aa7cca",
+    "subject": "SPR-LIVE-UPGRADE-LIMITED-R0-EPOCH-002: Live upgrade controla",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [
+      "perplexity",
+      "grok",
+      "gemini",
+      "deepseek",
+      "openai",
+      "anthropic"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "bridge/reactor_limited_active_r0/LIMITED_ACTIVE_R0_POLICY.json",
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  },
+  {
+    "sha7": "2b9aca2",
+    "subject": "SPR-EPOCH003-PRODUCTION-ACCELERATOR-001: Live productive upg",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "TEST_FILES_PRESENT",
+    "providers_listed": [
+      "perplexity",
+      "gemini",
+      "openai",
+      "deepseek",
+      "anthropic",
+      "grok"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "bridge/reactor_limited_active_r0/live_upgrade_epoch_003/PRE_UPGRADE_SNAPSHOT.md",
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  },
+  {
+    "sha7": "1d79fd7",
+    "subject": "SPR-EPOCH004-R0PLUS-PRODUCTION-FABRIC-001: Epoch 004 with Or",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "TEST_FILES_PRESENT",
+    "providers_listed": [
+      "perplexity",
+      "gemini",
+      "deepseek",
+      "openai",
+      "anthropic",
+      "grok"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "bridge/sprint_compiler/compiled_sprints/TOP_3_SPRINT_DRAFT.md",
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  },
+  {
+    "sha7": "6bd9caa",
+    "subject": "SPR-EMBRION-AUTONOMO-ORACLE-R0-001: First autonomous embryo,",
+    "tests_claimed": "claimed_in_subject",
+    "tests_rerun": "no",
+    "tests_verifiability": "TEST_FILES_PRESENT",
+    "providers_listed": [
+      "openai"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "embryos/oracle_ai/oracle_ai_state.json",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "b3e1c36",
+    "subject": "SPR-ORACLE-EMBRYO-SCHEDULER-INTEGRATION-R0-001: integrate em",
+    "tests_claimed": "claimed_in_subject",
+    "tests_rerun": "no",
+    "tests_verifiability": "TEST_FILES_PRESENT",
+    "providers_listed": [
+      "perplexity",
+      "openai",
+      "deepseek"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "embryos/oracle_ai/oracle_ai_state.json",
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  },
+  {
+    "sha7": "7fb3303",
+    "subject": "SPR-ORACLE-EMBRYO-PAIR-R0-001: bicefalo pair confirmed, audi",
+    "tests_claimed": "claimed_in_subject",
+    "tests_rerun": "no",
+    "tests_verifiability": "TEST_FILES_PRESENT",
+    "providers_listed": [
+      "openai"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "embryos/oracle_ai/oracle_ai_state.json",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "4e5c90c",
+    "subject": "SPR-ORACLE-PAIR-GROUNDING-R0-001: Oracle+Auditor v0.2 with g",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "TEST_FILES_PRESENT",
+    "providers_listed": [
+      "openai"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "embryos/oracle_auditor/oracle_auditor_state.json",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "d61ac0c",
+    "subject": "SPR-EPOCH005-GROUNDED-ORACLE-PRODUCTION-R0PLUS-001: Grounded",
+    "tests_claimed": "claimed_in_subject",
+    "tests_rerun": "no",
+    "tests_verifiability": "TEST_FILES_PRESENT",
+    "providers_listed": [
+      "openai",
+      "anthropic"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "embryos/oracle_auditor/oracle_auditor_state.json",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "b54619a",
+    "subject": "SPR-EPOCH006-MEMORY-PALACE-R0PLUS-001: Memory Palace v0.1, O",
+    "tests_claimed": "claimed_in_subject",
+    "tests_rerun": "no",
+    "tests_verifiability": "TEST_FILES_PRESENT",
+    "providers_listed": [
+      "perplexity",
+      "openai",
+      "deepseek",
+      "anthropic"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "embryos/oracle_auditor/oracle_auditor_state.json",
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  },
+  {
+    "sha7": "ea7080d",
+    "subject": "SPR-EPOCH007-T1-FEEDBACK-LOOP-R0PLUS-001: T1 Directive Queue",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "TEST_FILES_PRESENT",
+    "providers_listed": [
+      "openai",
+      "anthropic"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "embryos/oracle_auditor/oracle_auditor_state.json",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "a913412",
+    "subject": "Epoch 008: Provider Migration Guard + Multi-Directive Confli",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "TEST_FILES_PRESENT",
+    "providers_listed": [
+      "openai",
+      "anthropic",
+      "grok",
+      "gemini"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "embryos/oracle_auditor/oracle_auditor_state.json",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "2f58f9f",
+    "subject": "feat(pericia): GLOBAL_95_REQUIRED_COVERAGE patch v1.2",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "monstruo_reality_atlas/reports/CHATGPT_PERICIA_STATE_v1_2_POST_REACTOR_EMBRYOS.json",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "6c472b0",
+    "subject": "bridge(control_tower): manus_b pericia global95 patch report",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [
+      "perplexity"
+    ],
+    "cost_claimed": null,
+    "cost_evidence_path": null,
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  },
+  {
+    "sha7": "d41d14c",
+    "subject": "Pericia Recalibration v1.2: 18/18 PASS, Reactor/Embryos 95%,",
+    "tests_claimed": "claimed_in_subject",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "monstruo_reality_atlas/reports/CHATGPT_PERICIA_STATE_v1_2_POST_REACTOR_EMBRYOS.json",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "5041192",
+    "subject": "docs(atlas): add ChatGPT pericia checkpoint v0.7",
+    "tests_claimed": "none",
+    "tests_rerun": "no",
+    "tests_verifiability": "NOT_APPLICABLE",
+    "providers_listed": [
+      "gemini"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "monstruo_reality_atlas/reports/PERICIA_TEST_v0_7.md",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "97d9a50",
+    "subject": "docs(atlas): add ChatGPT anti-Dory pericia lock v0.7",
+    "tests_claimed": "none",
+    "tests_rerun": "no",
+    "tests_verifiability": "NOT_APPLICABLE",
+    "providers_listed": [],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "monstruo_reality_atlas/reports/CHATGPT_PERICIA_CHECKPOINT_v0_7.md",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "d876a21",
+    "subject": "docs(atlas): fix ChatGPT pericia checkpoint v0.8 drift",
+    "tests_claimed": "none",
+    "tests_rerun": "no",
+    "tests_verifiability": "NOT_APPLICABLE",
+    "providers_listed": [
+      "gemini"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "monstruo_reality_atlas/reports/PERICIA_TEST_v0_8.md",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "d6ea896",
+    "subject": "docs(atlas): mark ChatGPT pericia v0.7 as SUPERSEDED_BY_v0_8",
+    "tests_claimed": "none",
+    "tests_rerun": "no",
+    "tests_verifiability": "NOT_APPLICABLE",
+    "providers_listed": [
+      "gemini"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "monstruo_reality_atlas/reports/PERICIA_TEST_v0_7.md",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "afee650",
+    "subject": "docs(atlas): fix ChatGPT pericia checkpoint v0.9 silence dri",
+    "tests_claimed": "none",
+    "tests_rerun": "no",
+    "tests_verifiability": "NOT_APPLICABLE",
+    "providers_listed": [
+      "gemini"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "monstruo_reality_atlas/reports/PERICIA_TEST_v0_8.md",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "319874e",
+    "subject": "docs(atlas): add Gate 3.3 kernel wiring evidence pack",
+    "tests_claimed": "none",
+    "tests_rerun": "no",
+    "tests_verifiability": "NOT_APPLICABLE",
+    "providers_listed": [],
+    "cost_claimed": null,
+    "cost_evidence_path": null,
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "604acb9",
+    "subject": "docs(atlas): add ChatGPT pericia checkpoint v1.0 post Gate 3",
+    "tests_claimed": "none",
+    "tests_rerun": "no",
+    "tests_verifiability": "NOT_APPLICABLE",
+    "providers_listed": [
+      "gemini"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "monstruo_reality_atlas/reports/PERICIA_TEST_v0_9.md",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "f678fff",
+    "subject": "docs(atlas): fix ChatGPT pericia checkpoint v1.1 consistency",
+    "tests_claimed": "none",
+    "tests_rerun": "no",
+    "tests_verifiability": "NOT_APPLICABLE",
+    "providers_listed": [
+      "gemini"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "monstruo_reality_atlas/reports/PERICIA_TEST_v1_0.md",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "d4a4716",
+    "subject": "docs(atlas): add Gate 3.4 module maturity evidence pack",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "monstruo_reality_atlas/reports/GATE_3_4_MODULE_MATURITY_EVIDENCE_PACK.md",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "487f05e",
+    "subject": "docs(atlas): fix Gate 3.4 module maturity evidence pack v1.1",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "monstruo_reality_atlas/reports/GATE_3_4_MODULE_MATURITY_EVIDENCE_PACK.md",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "ca9c266",
+    "subject": "atlas(reality): FASE 95 ChatGPT pericia \u2014 5 evidence packs s",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [
+      "openai",
+      "anthropic",
+      "gemini"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "monstruo_reality_atlas/reports/SECURITY_SMP_CRONOS_PACK.md",
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "a17b1dc",
+    "subject": "bridge(control_tower): manus_c session consolidation 2026-05",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [
+      "perplexity"
+    ],
+    "cost_claimed": null,
+    "cost_evidence_path": null,
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  },
+  {
+    "sha7": "bc78e87",
+    "subject": "bridge: CONTROL TOWER BRIDGE \u2014 manus_a estado operativo 2026",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [
+      "perplexity"
+    ],
+    "cost_claimed": null,
+    "cost_evidence_path": null,
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  },
+  {
+    "sha7": "eef53fd",
+    "subject": "bridge(control_tower): record T1 decisions on anonymous debt",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [
+      "perplexity"
+    ],
+    "cost_claimed": null,
+    "cost_evidence_path": null,
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  },
+  {
+    "sha7": "08c7767",
+    "subject": "bridge(control_tower): OPP-NB-001 R1 execution report \u2014 21/2",
+    "tests_claimed": "claimed_in_subject",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [
+      "perplexity"
+    ],
+    "cost_claimed": null,
+    "cost_evidence_path": null,
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  },
+  {
+    "sha7": "ddad037",
+    "subject": "bridge(control_tower): Gemini Anti-Dory FORGE v3.0 evaluatio",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [
+      "perplexity",
+      "gemini"
+    ],
+    "cost_claimed": null,
+    "cost_evidence_path": null,
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  },
+  {
+    "sha7": "2edd547",
+    "subject": "bridge: Vigilia Mesh implementability evaluation \u2014 SPRINTABL",
+    "tests_claimed": "none",
+    "tests_rerun": "no",
+    "tests_verifiability": "NOT_APPLICABLE",
+    "providers_listed": [],
+    "cost_claimed": null,
+    "cost_evidence_path": null,
+    "provider_blocked_usage": "no"
+  },
+  {
+    "sha7": "5a0bb2f",
+    "subject": "SPR-REACTOR-M2-ONESHOT-001: Ejecuci\u00f3n exitosa de cadena M2 e",
+    "tests_claimed": "claimed_in_report",
+    "tests_rerun": "no",
+    "tests_verifiability": "REPORT_FILE_VERIFIED",
+    "providers_listed": [
+      "perplexity",
+      "gemini",
+      "deepseek",
+      "openai",
+      "anthropic",
+      "grok"
+    ],
+    "cost_claimed": "mentioned",
+    "cost_evidence_path": "bridge/reactor_m2_oneshot/PREFLIGHT_M2_ONESHOT.md",
+    "provider_blocked_usage": "NEEDS_REVIEW"
+  }
+]

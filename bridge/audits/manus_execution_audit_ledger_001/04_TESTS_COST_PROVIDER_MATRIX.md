@@ -1,0 +1,40 @@
+# 04 — TESTS / COST / PROVIDER MATRIX
+
+| sha7 | tests_claimed | verifiability | providers | cost | blocked |
+|---|---|---|---|---|---|
+| afc92ea | claimed_in_report | REPORT_FILE_VERIFIED | perplexity,grok,gemini,openai,deepseek,anthropic | mentioned | NEEDS_REVIEW |
+| f1824ef | claimed_in_report | REPORT_FILE_VERIFIED | perplexity,gemini,openai,deepseek,anthropic,grok | mentioned | NEEDS_REVIEW |
+| 72aa46e | claimed_in_report | REPORT_FILE_VERIFIED | perplexity,gemini,openai,deepseek,anthropic,grok | mentioned | NEEDS_REVIEW |
+| 4e0745e | claimed_in_report | TEST_FILES_PRESENT | perplexity,gemini,deepseek,openai,anthropic,grok | mentioned | NEEDS_REVIEW |
+| 8aa7cca | claimed_in_report | REPORT_FILE_VERIFIED | perplexity,grok,gemini,deepseek,openai,anthropic | mentioned | NEEDS_REVIEW |
+| 2b9aca2 | claimed_in_report | TEST_FILES_PRESENT | perplexity,gemini,openai,deepseek,anthropic,grok | mentioned | NEEDS_REVIEW |
+| 1d79fd7 | claimed_in_report | TEST_FILES_PRESENT | perplexity,gemini,deepseek,openai,anthropic,grok | mentioned | NEEDS_REVIEW |
+| 6bd9caa | claimed_in_subject | TEST_FILES_PRESENT | openai | mentioned | no |
+| b3e1c36 | claimed_in_subject | TEST_FILES_PRESENT | perplexity,openai,deepseek | mentioned | NEEDS_REVIEW |
+| 7fb3303 | claimed_in_subject | TEST_FILES_PRESENT | openai | mentioned | no |
+| 4e5c90c | claimed_in_report | TEST_FILES_PRESENT | openai | mentioned | no |
+| d61ac0c | claimed_in_subject | TEST_FILES_PRESENT | openai,anthropic | mentioned | no |
+| b54619a | claimed_in_subject | TEST_FILES_PRESENT | perplexity,openai,deepseek,anthropic | mentioned | NEEDS_REVIEW |
+| ea7080d | claimed_in_report | TEST_FILES_PRESENT | openai,anthropic | mentioned | no |
+| a913412 | claimed_in_report | TEST_FILES_PRESENT | openai,anthropic,grok,gemini | mentioned | no |
+| 2f58f9f | claimed_in_report | REPORT_FILE_VERIFIED | none | mentioned | no |
+| 6c472b0 | claimed_in_report | REPORT_FILE_VERIFIED | perplexity | none | NEEDS_REVIEW |
+| d41d14c | claimed_in_subject | REPORT_FILE_VERIFIED | none | mentioned | no |
+| 5041192 | none | NOT_APPLICABLE | gemini | mentioned | no |
+| 97d9a50 | none | NOT_APPLICABLE | none | mentioned | no |
+| d876a21 | none | NOT_APPLICABLE | gemini | mentioned | no |
+| d6ea896 | none | NOT_APPLICABLE | gemini | mentioned | no |
+| afee650 | none | NOT_APPLICABLE | gemini | mentioned | no |
+| 319874e | none | NOT_APPLICABLE | none | none | no |
+| 604acb9 | none | NOT_APPLICABLE | gemini | mentioned | no |
+| f678fff | none | NOT_APPLICABLE | gemini | mentioned | no |
+| d4a4716 | claimed_in_report | REPORT_FILE_VERIFIED | none | mentioned | no |
+| 487f05e | claimed_in_report | REPORT_FILE_VERIFIED | none | mentioned | no |
+| ca9c266 | claimed_in_report | REPORT_FILE_VERIFIED | openai,anthropic,gemini | mentioned | no |
+| a17b1dc | claimed_in_report | REPORT_FILE_VERIFIED | perplexity | none | NEEDS_REVIEW |
+| bc78e87 | claimed_in_report | REPORT_FILE_VERIFIED | perplexity | none | NEEDS_REVIEW |
+| eef53fd | claimed_in_report | REPORT_FILE_VERIFIED | perplexity | none | NEEDS_REVIEW |
+| 08c7767 | claimed_in_subject | REPORT_FILE_VERIFIED | perplexity | none | NEEDS_REVIEW |
+| ddad037 | claimed_in_report | REPORT_FILE_VERIFIED | perplexity,gemini | none | NEEDS_REVIEW |
+| 2edd547 | none | NOT_APPLICABLE | none | none | no |
+| 5a0bb2f | claimed_in_report | REPORT_FILE_VERIFIED | perplexity,gemini,deepseek,openai,anthropic,grok | mentioned | NEEDS_REVIEW |
