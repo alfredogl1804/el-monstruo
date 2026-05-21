@@ -8,7 +8,7 @@
   },
   "sample_validation": {
     "version": "0.1",
-    "generated_at": "2026-05-21T08:10:13.953306+00:00",
+    "generated_at": "2026-05-21T08:31:03.988969+00:00",
     "generated_by": "provider_risk_local_blocker_v0_1",
     "total_operations": 2,
     "allowed": 1,
@@ -60,7 +60,7 @@
           "Secret access is blocked in current policy"
         ],
         "policy_mode": "LOCAL_ONLY",
-        "checked_at": "2026-05-21T08:10:13.953266+00:00"
+        "checked_at": "2026-05-21T08:31:03.988933+00:00"
       },
       {
         "decision": "ALLOW",
@@ -75,7 +75,7 @@
         "violations": [],
         "reasons": [],
         "policy_mode": "LOCAL_ONLY",
-        "checked_at": "2026-05-21T08:10:13.953302+00:00"
+        "checked_at": "2026-05-21T08:31:03.988965+00:00"
       }
     ],
     "policy": {

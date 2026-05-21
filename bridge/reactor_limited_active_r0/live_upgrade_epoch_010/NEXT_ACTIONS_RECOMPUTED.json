@@ -1,0 +1,102 @@
+{
+  "sprint": "SPR-R0PLUS-EPOCH010-SURGE003-INTEGRATION-001",
+  "timestamp": "2026-05-21T09:00:00Z",
+  "ranker_version": "0.1_recomputed",
+  "note": "Recomputed with post-migration, post-surge-003 awareness. Stale actions marked COMPLETED.",
+  "completed_actions": [
+    {
+      "action_id": "VERIFY_PROVIDER_MIGRATION",
+      "completed_in": "SPR-R0PLUS-PROVIDER-FALLBACK-VERIFICATION-001",
+      "commit": "0369bf7",
+      "status": "COMPLETED"
+    },
+    {
+      "action_id": "RUN_ANTHROPIC_MIGRATION_PATCH",
+      "completed_in": "SPR-R0PLUS-ANTHROPIC-MIGRATION-PATCH-001",
+      "commit": "7544bbe",
+      "status": "COMPLETED"
+    },
+    {
+      "action_id": "PRODUCE_NEXT_SURGE_003",
+      "completed_in": "SPR-R0PLUS-PRODUCTION-SURGE-003",
+      "commit": "47504ab",
+      "status": "COMPLETED"
+    },
+    {
+      "action_id": "EXECUTE_EPOCH_010",
+      "completed_in": "SPR-R0PLUS-EPOCH010-SURGE003-INTEGRATION-001",
+      "commit": "in_progress",
+      "status": "IN_PROGRESS"
+    }
+  ],
+  "top_5_next_actions": [
+    {
+      "rank": 1,
+      "action_id": "PRODUCE_NEXT_SURGE_004",
+      "title": "Execute Production Surge 004 — new artifact category",
+      "category": "R0PLUS",
+      "classification": "EXECUTE_NOW",
+      "combined_score": 145,
+      "value": 85,
+      "risk_reduction": 60,
+      "evidence": "System at 18 artifacts, all tests pass, Ops integrated, 3 surges complete"
+    },
+    {
+      "rank": 2,
+      "action_id": "EXECUTE_EPOCH_011_FULL_OPS",
+      "title": "Run Epoch 011 with all Surge 003 artifacts in cycle",
+      "category": "R0PLUS",
+      "classification": "NEEDS_T1",
+      "combined_score": 115,
+      "value": 75,
+      "risk_reduction": 40,
+      "evidence": "Epoch 010 confirms integration. Epoch 011 would be first fully autonomous cycle."
+    },
+    {
+      "rank": 3,
+      "action_id": "ENRICH_MEMORY_PALACE",
+      "title": "Grow Memory Palace to 15+ entries for pattern significance",
+      "category": "R0PLUS",
+      "classification": "TRACK",
+      "combined_score": 95,
+      "value": 65,
+      "risk_reduction": 30,
+      "evidence": "Currently 8 entries, pattern detector needs more data"
+    },
+    {
+      "rank": 4,
+      "action_id": "OPEN_R1_CANDIDATE_LANE",
+      "title": "Evaluate readiness for R1 (main merge, real provider calls)",
+      "category": "GOVERNANCE",
+      "classification": "NEEDS_T1",
+      "combined_score": 90,
+      "value": 60,
+      "risk_reduction": 30,
+      "evidence": "260+ tests, 18 artifacts, 10 epochs, provider migration done. R1 gate criteria approaching."
+    },
+    {
+      "rank": 5,
+      "action_id": "SUPABASE_INTEGRATION",
+      "title": "Connect to Supabase for persistent storage",
+      "category": "R1",
+      "classification": "BLOCKED",
+      "combined_score": 130,
+      "value": 80,
+      "risk_reduction": 50,
+      "evidence": "Requires R1 approval and security review"
+    }
+  ],
+  "blocked_actions": [
+    {"action_id": "MERGE_TO_MAIN", "reason": "R1 required"},
+    {"action_id": "DEPLOY_PRODUCTION", "reason": "R1 required"},
+    {"action_id": "SUPABASE_INTEGRATION", "reason": "R1 required"}
+  ],
+  "stale_action_cleanup": {
+    "actions_removed": ["VERIFY_PROVIDER_MIGRATION", "RUN_ANTHROPIC_MIGRATION_PATCH", "PRODUCE_NEXT_SURGE_003"],
+    "reason": "COMPLETED — no longer pending",
+    "diagnosis": "RANKER_INPUT_STALE (hardcoded candidates, not dynamic)"
+  },
+  "next_recommended_sprint": "SPR-R0PLUS-PRODUCTION-SURGE-004",
+  "external_api_calls": 0,
+  "secrets_used": 0
+}

@@ -173,21 +173,66 @@
       "avoid_next_time": [],
       "next_best_action": "REQUIRES_T1_REVIEW",
       "status": "active"
+    },
+    {
+      "memory_id": "MEM-OAI-1779366652",
+      "timestamp": "2026-05-21T08:30:52.456558Z",
+      "source_embryo_id": "oracle_ai_embryo_r0",
+      "cycle_id": 11,
+      "task_id": "detect_new_ai_capability_candidates",
+      "action_class": "A0_OBSERVE",
+      "artifact_refs": [
+        "detect_new_ai_capability_candidates_20260521T083052.json"
+      ],
+      "claims_count": 5,
+      "grounding_score": 6,
+      "auditor_verdict": "PENDING",
+      "value_score": 8.5,
+      "cost_usd": 0.0004125,
+      "lessons": [
+        "Low grounding score \u2014 need more verified sources"
+      ],
+      "avoid_next_time": [],
+      "next_best_action": "REQUIRES_T1_REVIEW",
+      "status": "active"
+    },
+    {
+      "memory_id": "MEM-AUD-1779366657",
+      "timestamp": "2026-05-21T08:30:57.457464Z",
+      "source_embryo_id": "oracle_auditor_embryo_r0",
+      "cycle_id": 9,
+      "task_id": "score_oracle_sprint_candidate",
+      "action_class": "A1_ANALYZE",
+      "artifact_refs": [
+        "detect_new_ai_capability_candidates_20260521T083052.json"
+      ],
+      "claims_count": 0,
+      "grounding_score": 10,
+      "auditor_verdict": "PASS",
+      "value_score": 10,
+      "cost_usd": 0.0001536,
+      "lessons": [
+        "Oracle grounding quality is improving \u2014 current approach works"
+      ],
+      "avoid_next_time": [],
+      "next_best_action": "CANDIDATE_READY_FOR_T1",
+      "status": "active"
     }
   ],
   "stats": {
-    "total_entries": 8,
+    "total_entries": 10,
     "total_archived": 0,
-    "total_active": 8,
+    "total_active": 10,
     "unique_embryos": [
-      "oracle_ai_embryo_r0",
-      "oracle_auditor_embryo_r0"
+      "oracle_auditor_embryo_r0",
+      "oracle_ai_embryo_r0"
     ],
     "unique_tasks": [
+      "score_oracle_sprint_candidate",
+      "detect_new_ai_capability_candidates",
       "audit_oracle_latest_output",
-      "map_capability_to_application",
-      "detect_new_ai_capability_candidates"
+      "map_capability_to_application"
     ],
-    "total_cost_usd": 0.00209
+    "total_cost_usd": 0.002656
   }
 }

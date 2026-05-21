@@ -1,0 +1,66 @@
+{
+  "embryo_id": "oracle_ai_embryo_r0",
+  "task_id": "detect_new_ai_capability_candidates",
+  "action_class": "A0_OBSERVE",
+  "dispatcher_decision": "ALLOW",
+  "timestamp": "2026-05-21T08:30:52.455996Z",
+  "cost_usd": 0.0004125,
+  "output": {
+    "task_id": "detect_new_ai_capability_candidates",
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "response_raw": "```json\n[\n    {\n        \"claim_id\": \"1\",\n        \"claim_text\": \"OpenAI released a new model optimized for code generation capabilities.\",\n        \"claim_type\": \"factual\",\n        \"evidence_status\": \"NEEDS_REAL_TIME_CHECK\",\n        \"source_ref\": \"none\",\n        \"confidence\": 0.7,\n        \"capability_name\": \"Code Generation Optimization\",\n        \"provider\": \"OpenAI\",\n        \"release_date_approx\": \"2023-09-25\",\n        \"potential_power_gain\": 8,\n        \"integration_complexity\": \"MED\"\n    },\n    {\n        \"claim_id\": \"2\",\n        \"claim_text\": \"Google announced an enhancement to its language model with better context understanding.\",\n        \"claim_type\": \"factual\",\n        \"evidence_status\": \"NEEDS_REAL_TIME_CHECK\",\n        \"source_ref\": \"none\",\n        \"confidence\": 0.75,\n        \"capability_name\": \"Enhanced Contextual Understanding\",\n        \"provider\": \"Google\",\n        \"release_date_approx\": \"2023-09-15\",\n        \"potential_power_gain\": 9,\n        \"integration_complexity\": \"HIGH\"\n ",
+    "claims": [
+      {
+        "claim_id": "1",
+        "claim_text": "OpenAI released a new model optimized for code generation capabilities.",
+        "claim_type": "factual",
+        "evidence_status": "NEEDS_REAL_TIME_CHECK",
+        "source_ref": "none",
+        "freshness_required": true,
+        "confidence": 0.7
+      },
+      {
+        "claim_id": "2",
+        "claim_text": "Google announced an enhancement to its language model with better context understanding.",
+        "claim_type": "factual",
+        "evidence_status": "NEEDS_REAL_TIME_CHECK",
+        "source_ref": "none",
+        "freshness_required": true,
+        "confidence": 0.75
+      },
+      {
+        "claim_id": "3",
+        "claim_text": "Microsoft introduced a new AI feature for automated data analysis in Excel.",
+        "claim_type": "factual",
+        "evidence_status": "NEEDS_REAL_TIME_CHECK",
+        "source_ref": "none",
+        "freshness_required": true,
+        "confidence": 0.6
+      },
+      {
+        "claim_id": "4",
+        "claim_text": "Meta's latest AI model can generate more realistic images from text prompts.",
+        "claim_type": "factual",
+        "evidence_status": "NEEDS_REAL_TIME_CHECK",
+        "source_ref": "none",
+        "freshness_required": true,
+        "confidence": 0.68
+      },
+      {
+        "claim_id": "5",
+        "claim_text": "NVIDIA released an update to its AI toolkit for better training on smaller datasets.",
+        "claim_type": "factual",
+        "evidence_status": "NEEDS_REAL_TIME_CHECK",
+        "source_ref": "none",
+        "freshness_required": true,
+        "confidence": 0.72
+      }
+    ],
+    "grounding_level": 6,
+    "next_valid_action": "REQUIRES_T1_REVIEW",
+    "cost": 0.0004125
+  },
+  "grounding_level": 6,
+  "next_valid_action": "REQUIRES_T1_REVIEW"
+}
