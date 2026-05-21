@@ -165,6 +165,13 @@ SEMANTIC_CATEGORIES = {
 # LAYER 4: Action Semantics (v3.0 NEW)
 # action_types that are inherently dangerous regardless of
 # description content. These require explicit justification.
+#
+# NOTE: This list intentionally avoids broad action types like
+# "git_push" because not every push is dangerous (feature-branch
+# pushes are routine). For git pushes, use the explicit dangerous
+# variants below (push_to_main, force_push_main, push_production)
+# OR pass metadata.target_branch and rely on Layer 5.5
+# branch-aware escalation.
 # ============================================================
 
 MAGNA_ACTION_TYPES_INHERENT = frozenset([
@@ -183,10 +190,15 @@ MAGNA_ACTION_TYPES_INHERENT = frozenset([
     "unlock_feature",
     "enable_guardian",
     "activate_global",
-    # Git operations that affect main
+    # Git operations that affect main / production
+    # NOTE: broad "git_push" intentionally REMOVED to avoid escalating
+    # benign feature-branch pushes. Use explicit dangerous variants.
     "git_merge",
-    "git_push",
+    "push_to_main",
+    "force_push_main",
     "force_push",
+    "push_production",
+    "push_to_production",
     # Environment modification
     "env_modify",
     "modify_env",
@@ -350,6 +362,25 @@ def classify_action(
                         action_description=description,
                         requires_t1=True,
                     )
+
+    # LAYER 5.5: Branch-aware git push (active under v3 flag).
+    # A bare git_push is STANDARD by default, but if metadata.target_branch
+    # is main/master/production, escalate to MAGNA. Preserves safety for
+    # main/production while not penalizing feature-branch pushes.
+    if ANTI_DORY_B8_V3_ENABLED and metadata and action_lower in (
+        "git_push", "push"
+    ):
+        target = str(metadata.get("target_branch", "")).lower()
+        if target in ("main", "master", "production", "prod", "release"):
+            return ActionClassification(
+                level=ActionLevel.MAGNA,
+                reason=(
+                    f"git_push targets protected branch '{target}' "
+                    f"(branch-aware MAGNA escalation)"
+                ),
+                action_description=description,
+                requires_t1=True,
+            )
 
     # LAYER 6: Metadata override (si metadata indica forzar MAGNA)
     if metadata and metadata.get("force_magna", False):
