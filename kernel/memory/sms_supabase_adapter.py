@@ -45,6 +45,9 @@ class SMSConfig:
     service_key: str = ""
     openai_api_key: str = ""
     openai_base_url: str = ""
+    openrouter_api_key: str = ""
+    audn_model: str = "deepseek/deepseek-r1-0528"
+    audn_enabled: bool = True
     embedding_model: str = "text-embedding-3-small"
     embedding_dims: int = 1536
     default_agent_id: str = "monstruo"
@@ -60,7 +63,10 @@ class SMSConfig:
                 or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
             ),
             openai_api_key=os.environ.get("OPENAI_API_KEY", ""),
-            openai_base_url=os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1"),
+            openai_base_url=os.environ.get("OPENAI_API_BASE", "") or "https://api.openai.com/v1",
+            openrouter_api_key=os.environ.get("OPENROUTER_API_KEY", ""),
+            audn_model=os.environ.get("SMS_AUDN_MODEL", "deepseek/deepseek-r1-0528"),
+            audn_enabled=os.environ.get("SMS_AUDN_ENABLED", "true").lower() == "true",
             embedding_model=os.environ.get("SMS_EMBEDDING_MODEL", "text-embedding-3-small"),
             embedding_dims=int(os.environ.get("SMS_EMBEDDING_DIMS", "1536")),
             default_agent_id=os.environ.get("SMS_AGENT_ID", "monstruo"),
@@ -73,6 +79,10 @@ class SMSConfig:
     @property
     def can_embed(self) -> bool:
         return bool(self.openai_api_key)
+
+    @property
+    def can_audn(self) -> bool:
+        return bool(self.openrouter_api_key and self.audn_enabled)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -176,6 +186,93 @@ def generate_embedding(text: str, config: SMSConfig) -> Optional[list[float]]:
     except Exception as e:
         logger.warning(f"Embedding generation failed: {e}")
         return None
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUDN EVALUATOR (Add/Update/Delete/None) via DeepSeek R1 on OpenRouter
+# ═══════════════════════════════════════════════════════════════════════════════
+
+AUDN_SYSTEM_PROMPT = """You are the memory gatekeeper for a sovereign AI system.
+You receive a NEW memory and a list of EXISTING similar memories.
+Decide ONE action:
+
+- ADD: The new memory contains genuinely new information not captured by existing memories.
+- UPDATE <id>: The new memory is a more recent/accurate version of an existing memory. Return UPDATE followed by the id to update.
+- DELETE <id>: The new memory directly contradicts an existing memory and the new one is more reliable. Return DELETE followed by the id to delete, then the new memory will be stored.
+- NONE: The new memory is redundant (already captured) or is noise/trivial. Do not store.
+
+Respond with ONLY the action word (and id if UPDATE/DELETE). No explanation."""
+
+
+def _audn_evaluate(
+    config: SMSConfig,
+    new_content: str,
+    existing_memories: list[dict],
+) -> tuple[str, Optional[str]]:
+    """
+    Evaluate whether to Add/Update/Delete/None for a new memory.
+    Returns (action, target_id) where target_id is set for UPDATE/DELETE.
+    Falls back to ADD if the evaluator is unavailable.
+    """
+    if not config.can_audn or not existing_memories:
+        return ("ADD", None)
+
+    # Build context of existing memories
+    existing_text = "\n".join(
+        f"- [id={m.get('id','?')}] {m.get('content', m.get('statement',''))[:200]}"
+        for m in existing_memories[:10]
+    )
+
+    user_prompt = f"""NEW MEMORY: {new_content}
+
+EXISTING SIMILAR MEMORIES:
+{existing_text}
+
+Action:"""
+
+    headers = {
+        "Authorization": f"Bearer {config.openrouter_api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://el-monstruo-kernel-production.up.railway.app",
+        "X-Title": "SMS AUDN Evaluator",
+    }
+    payload = {
+        "model": config.audn_model,
+        "messages": [
+            {"role": "system", "content": AUDN_SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt},
+        ],
+        "temperature": 0.1,
+        "max_tokens": 50,
+    }
+
+    try:
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            "https://openrouter.ai/api/v1/chat/completions",
+            data=data, headers=headers, method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+            answer = result["choices"][0]["message"]["content"].strip().upper()
+
+        # Parse the response
+        if answer.startswith("NONE"):
+            return ("NONE", None)
+        elif answer.startswith("UPDATE"):
+            parts = answer.split()
+            target_id = parts[1] if len(parts) > 1 else None
+            return ("UPDATE", target_id)
+        elif answer.startswith("DELETE"):
+            parts = answer.split()
+            target_id = parts[1] if len(parts) > 1 else None
+            return ("DELETE", target_id)
+        else:
+            return ("ADD", None)
+
+    except Exception as e:
+        logger.warning(f"AUDN evaluation failed (defaulting to ADD): {e}")
+        return ("ADD", None)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -334,8 +431,9 @@ class SMSSupabaseAdapter:
         confidence: float = 0.7,
         causal_parent_id: str = None,
         tags: list[str] = None,
+        skip_audn: bool = False,
     ) -> Optional[dict]:
-        """Store a new memory with embedding and deduplication."""
+        """Store a new memory with AUDN evaluation, embedding, and deduplication."""
         if not self.available:
             return None
 
@@ -343,6 +441,54 @@ class SMSSupabaseAdapter:
         agent = agent_id or self.config.default_agent_id
         embedding = generate_embedding(content, self.config)
 
+        # ─── AUDN EVALUATION ──────────────────────────────────────────────────
+        audn_action = "ADD"
+        audn_target = None
+        if not skip_audn and self.config.can_audn and embedding:
+            # Find similar existing memories to evaluate against
+            similar = _supabase_rpc(self.config, "match_sovereign_memories", {
+                "query_embedding": json.dumps(embedding),
+                "match_threshold": 0.5,
+                "match_count": 5,
+                "only_alive": True,
+            })
+            if similar:
+                audn_action, audn_target = _audn_evaluate(
+                    self.config, content, similar
+                )
+                logger.info(f"AUDN decision: {audn_action} (target={audn_target})")
+
+                if audn_action == "NONE":
+                    logger.info(f"AUDN rejected memory (redundant): {content[:50]}...")
+                    return {"status": "rejected", "audn_action": "NONE", "reason": "redundant"}
+
+                if audn_action == "UPDATE" and audn_target:
+                    # Update the existing memory with new content
+                    try:
+                        _supabase_request(
+                            self.config, "PATCH",
+                            f"/sovereign_memories?id=eq.{audn_target}",
+                            body={
+                                "content": content,
+                                "content_hash": content_hash,
+                                "confidence": confidence,
+                                "last_accessed": datetime.now(timezone.utc).isoformat(),
+                                **(({"embedding": json.dumps(embedding)}) if embedding else {}),
+                            },
+                            extra_headers={"Prefer": "return=representation"},
+                        )
+                        logger.info(f"AUDN updated memory {audn_target}: {content[:50]}...")
+                        return {"status": "updated", "audn_action": "UPDATE", "memory_id": audn_target}
+                    except SMSSupabaseError as e:
+                        logger.warning(f"AUDN UPDATE failed, falling back to ADD: {e}")
+                        audn_action = "ADD"
+
+                if audn_action == "DELETE" and audn_target:
+                    # Soft-delete the contradicted memory, then store the new one
+                    self.forget_memory(audn_target)
+                    logger.info(f"AUDN deleted contradicted memory {audn_target}")
+
+        # ─── STORE THE MEMORY ─────────────────────────────────────────────────
         body = {
             "content": content,
             "content_hash": content_hash,
@@ -370,8 +516,11 @@ class SMSSupabaseAdapter:
                     "On-Conflict": "content_hash",
                 },
             )
-            logger.info(f"Memory stored: {content[:50]}... (agent={agent})")
-            return result[0] if isinstance(result, list) and result else result
+            logger.info(f"Memory stored (AUDN={audn_action}): {content[:50]}... (agent={agent})")
+            stored = result[0] if isinstance(result, list) and result else result
+            if stored:
+                stored["audn_action"] = audn_action
+            return stored
         except SMSSupabaseError as e:
             logger.error(f"Failed to store memory: {e}")
             return None
@@ -470,6 +619,64 @@ class SMSSupabaseAdapter:
             return True
         except SMSSupabaseError as e:
             logger.error(f"Failed to touch memory: {e}")
+            return False
+
+    # ─── TEMPORAL QUERIES ────────────────────────────────────────────────────────
+
+    def search_memories_temporal(
+        self,
+        query: str,
+        point_in_time: str = None,
+        threshold: float = 0.5,
+        limit: int = 10,
+        agent_filter: str = None,
+    ) -> list[dict]:
+        """Semantic search over memories valid at a specific point in time.
+        
+        Answers: 'What did the system know on Tuesday?'
+        Uses RPC match_sovereign_memories_temporal from migration 0053.
+        """
+        if not self.available or not self.config.can_embed:
+            return []
+
+        embedding = generate_embedding(query, self.config)
+        if not embedding:
+            return []
+
+        params = {
+            "query_embedding": json.dumps(embedding),
+            "match_threshold": threshold,
+            "match_count": limit,
+        }
+        if point_in_time:
+            params["point_in_time"] = point_in_time
+        if agent_filter:
+            params["filter_agent"] = agent_filter
+
+        return _supabase_rpc(self.config, "match_sovereign_memories_temporal", params)
+
+    def invalidate_memory(self, memory_id: str) -> bool:
+        """Mark a memory as temporally invalid (superseded, not deleted).
+        
+        Sets invalid_at to NOW. The memory remains queryable for historical
+        point-in-time searches but won't appear in current queries.
+        """
+        if not self.available:
+            return False
+
+        try:
+            _supabase_request(
+                self.config, "PATCH",
+                f"/sovereign_memories?id=eq.{memory_id}",
+                body={
+                    "invalid_at": datetime.now(timezone.utc).isoformat(),
+                },
+                extra_headers={"Prefer": "return=minimal"},
+            )
+            logger.info(f"Memory {memory_id} temporally invalidated")
+            return True
+        except SMSSupabaseError as e:
+            logger.error(f"Failed to invalidate memory: {e}")
             return False
 
     # ─── CAUSAL CHAINS ─────────────────────────────────────────────────────────
