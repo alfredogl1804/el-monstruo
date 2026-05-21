@@ -1,0 +1,171 @@
+{
+  "timestamp": "2026-05-21T10:51:28.419812",
+  "system": "SOVEREIGN_MEMORY_SYSTEM",
+  "version": "1.0.0",
+  "total_tests": 18,
+  "passed": 18,
+  "failed": 0,
+  "pass_rate": 1.0,
+  "families": {
+    "A": {
+      "passed": 3,
+      "total": 3
+    },
+    "B": {
+      "passed": 2,
+      "total": 2
+    },
+    "C": {
+      "passed": 2,
+      "total": 2
+    },
+    "D": {
+      "passed": 2,
+      "total": 2
+    },
+    "E": {
+      "passed": 2,
+      "total": 2
+    },
+    "F": {
+      "passed": 2,
+      "total": 2
+    },
+    "G": {
+      "passed": 2,
+      "total": 2
+    },
+    "H": {
+      "passed": 3,
+      "total": 3
+    }
+  },
+  "results": [
+    {
+      "family": "A",
+      "test_id": "DR-001",
+      "description": "T1 block decision survives crystallization",
+      "passed": true,
+      "details": "Axiom crystallized: T1 DECISION: No merge to main without adversarial audit"
+    },
+    {
+      "family": "A",
+      "test_id": "DR-002",
+      "description": "Multiple T1 decisions retained simultaneously",
+      "passed": true,
+      "details": "All 3 decisions crystallized as axioms"
+    },
+    {
+      "family": "A",
+      "test_id": "DR-003",
+      "description": "Decision retention after multiple consolidation cycles",
+      "passed": true,
+      "details": "Axiom survived 5 consolidation cycles: T1 DECISION: Sprint closes only after Cowork audit"
+    },
+    {
+      "family": "B",
+      "test_id": "RR-001",
+      "description": "Agent role constraints are preserved",
+      "passed": true,
+      "details": "Role constraint crystallized as axiom"
+    },
+    {
+      "family": "B",
+      "test_id": "RR-002",
+      "description": "Cross-agent role boundaries enforced",
+      "passed": true,
+      "details": "Conflict resolved correctly: Higher confidence: 1.00 > 0.00"
+    },
+    {
+      "family": "C",
+      "test_id": "SE-001",
+      "description": "Completed actions are not re-proposed",
+      "passed": true,
+      "details": "System remembers migration was already executed"
+    },
+    {
+      "family": "C",
+      "test_id": "SE-002",
+      "description": "Duplicate action detection via AUDN",
+      "passed": true,
+      "details": "AUDN correctly deduplicated: 1 memory instead of 2"
+    },
+    {
+      "family": "D",
+      "test_id": "HO-001",
+      "description": "Context injection block contains critical state",
+      "passed": true,
+      "details": "Injection contains sprint context: --- SOVEREIGN AXIOMS (compaction-proof) ---\n[AX-44cd0e25] Current sprint: S028. Focus: SMS implement"
+    },
+    {
+      "family": "D",
+      "test_id": "HO-002",
+      "description": "Causal chains survive handoff",
+      "passed": true,
+      "details": "Causal chain preserved: depth=2, nodes=3"
+    },
+    {
+      "family": "E",
+      "test_id": "AC-001",
+      "description": "Gap detection when context is insufficient",
+      "passed": true,
+      "details": "Gap correctly detected: Best retrieval score is only 0.02"
+    },
+    {
+      "family": "E",
+      "test_id": "AC-002",
+      "description": "Metacognition identifies stale axioms",
+      "passed": true,
+      "details": "Stale axiom flagged: 35 days since validation"
+    },
+    {
+      "family": "F",
+      "test_id": "SC-001",
+      "description": "Contradiction detected between memories",
+      "passed": true,
+      "details": "Truth preserved: Higher confidence: 1.00 > 0.20"
+    },
+    {
+      "family": "F",
+      "test_id": "SC-002",
+      "description": "Low-confidence claims don't override high-confidence facts",
+      "passed": true,
+      "details": "High-confidence fact preserved: Higher confidence: 1.00 > 0.25"
+    },
+    {
+      "family": "G",
+      "test_id": "LP-001",
+      "description": "Axioms survive 30 days of consolidation",
+      "passed": true,
+      "details": "Axiom survived 30 days: Secrets must never appear in git history"
+    },
+    {
+      "family": "G",
+      "test_id": "LP-002",
+      "description": "Non-axiom memories decay correctly over time",
+      "passed": true,
+      "details": "Weak memory correctly decayed after 40 days (relevance: 0.0000)"
+    },
+    {
+      "family": "H",
+      "test_id": "HS-001",
+      "description": "Health report reflects actual state",
+      "passed": true,
+      "details": "Health report accurate: 3 memories, {'percepts_processed': 3, 'memories_created': 3, 'axioms_crystallized': 0, 'memories_forgotten': 0, 'conflicts_resolved': 0, 'gaps_detected': 0}"
+    },
+    {
+      "family": "H",
+      "test_id": "HS-002",
+      "description": "Gap count is honest (not hidden)",
+      "passed": true,
+      "details": "Gaps honestly reported: 1 unresolved"
+    },
+    {
+      "family": "H",
+      "test_id": "HS-003",
+      "description": "CVDS-like consistency: same query returns same results",
+      "passed": true,
+      "details": "Deterministic retrieval: 3 results match"
+    }
+  ]
+}
