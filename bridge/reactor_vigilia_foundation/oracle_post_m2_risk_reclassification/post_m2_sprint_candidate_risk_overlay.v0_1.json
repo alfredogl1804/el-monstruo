@@ -1,0 +1,67 @@
+{
+  "overlay_id": "post-m2-sprint-risk-overlay-001",
+  "sprint_id": "SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001",
+  "timestamp_utc": "2026-05-21T00:00:36.210074+00:00",
+  "candidates": [
+    {
+      "sprint_candidate_id": "SPR-ORACLE-AI-M3-CORE-PROVIDERS-001",
+      "sprint_candidate_name": "Deep Integration of Core Providers",
+      "primary_dependency": "OpenAI + Anthropic + Gemini (REALTIME_VERIFIED)",
+      "derived_risk_class": "R2",
+      "required_autonomy_level": "A3",
+      "t1_required": true,
+      "external_api_required": true,
+      "secrets_required": true,
+      "user_data_touch": false,
+      "recurring_allowed": false,
+      "recurring_status": "T1_PENDING",
+      "allowed_next_action": "T1_APPROVE_THEN_EXECUTE",
+      "blocked_reason": null
+    },
+    {
+      "sprint_candidate_id": "SPR-REACTOR-HEARTBEAT-R0-001",
+      "sprint_candidate_name": "Reactor Heartbeat (Scheduler/Daemon)",
+      "primary_dependency": "State Fabric + Dispatcher + Policy Engine",
+      "derived_risk_class": "R3",
+      "required_autonomy_level": "A4",
+      "t1_required": true,
+      "external_api_required": false,
+      "secrets_required": false,
+      "user_data_touch": false,
+      "recurring_allowed": false,
+      "recurring_status": "T1_PENDING",
+      "allowed_next_action": "T1_APPROVE_THEN_EXECUTE",
+      "blocked_reason": null
+    },
+    {
+      "sprint_candidate_id": "SPR-DEEP-RESEARCH-INTEGRATION-001",
+      "sprint_candidate_name": "Deep Research (Perplexity + Web Search)",
+      "primary_dependency": "Perplexity (ACCESS_BLOCKED)",
+      "derived_risk_class": "BLOCKED",
+      "required_autonomy_level": "N/A",
+      "t1_required": true,
+      "external_api_required": true,
+      "secrets_required": true,
+      "user_data_touch": false,
+      "recurring_allowed": false,
+      "recurring_status": "BLOCKED_BY_DEPENDENCY",
+      "allowed_next_action": "OBTAIN_CREDENTIALS_FIRST",
+      "blocked_reason": "Perplexity is ACCESS_BLOCKED_API_ERROR."
+    },
+    {
+      "sprint_candidate_id": "SPR-CODE-ARCHITECT-EVAL-001",
+      "sprint_candidate_name": "Code Architect Evaluation",
+      "primary_dependency": "OpenAI Code Execution (R3)",
+      "derived_risk_class": "R4",
+      "required_autonomy_level": "A4",
+      "t1_required": true,
+      "external_api_required": true,
+      "secrets_required": true,
+      "user_data_touch": false,
+      "recurring_allowed": false,
+      "recurring_status": "T1_PENDING",
+      "allowed_next_action": "T1_APPROVE_THEN_EXECUTE",
+      "blocked_reason": null
+    }
+  ]
+}

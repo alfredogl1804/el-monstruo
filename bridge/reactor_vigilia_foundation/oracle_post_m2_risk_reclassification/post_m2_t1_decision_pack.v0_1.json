@@ -1,0 +1,82 @@
+{
+  "pack_id": "t1-decision-pack-post-m2-001",
+  "sprint_id": "SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001",
+  "timestamp_utc": "2026-05-21T00:00:36.209131+00:00",
+  "decisions": [
+    {
+      "decision_id": 1,
+      "title": "Approve Core Providers",
+      "description": "Designate OpenAI, Anthropic, Google Gemini as CORE for the Monstruo.",
+      "options": [
+        "Approve as proposed",
+        "Modify list",
+        "Defer"
+      ],
+      "status": "T1_PENDING",
+      "t1_response": null
+    },
+    {
+      "decision_id": 2,
+      "title": "Approve Optional Providers",
+      "description": "Designate xAI Grok as OPTIONAL_CANDIDATE.",
+      "options": [
+        "Approve as Optional",
+        "Elevate to Core",
+        "Retire"
+      ],
+      "status": "T1_PENDING",
+      "t1_response": null
+    },
+    {
+      "decision_id": 3,
+      "title": "Resolve Blocked Providers",
+      "description": "Perplexity (403) and DeepSeek (no key) are blocked.",
+      "options": [
+        "Provide credentials next sprint",
+        "Defer indefinitely"
+      ],
+      "status": "T1_PENDING",
+      "t1_response": null
+    },
+    {
+      "decision_id": 4,
+      "title": "Authorize Scheduler/Daemon",
+      "description": "Enable recurring execution via SPR-REACTOR-HEARTBEAT-R0-001.",
+      "options": [
+        "Authorize heartbeat sprint",
+        "Keep manual execution only"
+      ],
+      "status": "T1_PENDING",
+      "t1_response": null
+    },
+    {
+      "decision_id": 5,
+      "title": "Authorize Supabase Migration",
+      "description": "Move catalogs/overlays from JSON to Supabase Postgres.",
+      "options": [
+        "Authorize migration sprint",
+        "Keep JSON local"
+      ],
+      "status": "T1_PENDING",
+      "t1_response": null
+    },
+    {
+      "decision_id": 6,
+      "title": "Select Next Sprint",
+      "description": "Choose the immediate next sprint after this reclassification.",
+      "options": [
+        "SPR-REACTOR-HEARTBEAT-R0-001",
+        "SPR-ORACLE-AI-M3-CORE-PROVIDERS-001",
+        "SPR-CREDENTIAL-RECOVERY-001"
+      ],
+      "status": "T1_PENDING",
+      "t1_response": null
+    }
+  ],
+  "recommendation": "SPR-REACTOR-HEARTBEAT-R0-001 \u2014 the Monstruo has eyes (APIs) and brain (Policy). It needs a heartbeat (scheduler) to become autonomous.",
+  "next_sprint_options": [
+    "SPR-REACTOR-HEARTBEAT-R0-001",
+    "SPR-ORACLE-AI-M3-CORE-PROVIDERS-001",
+    "SPR-CREDENTIAL-RECOVERY-001"
+  ]
+}

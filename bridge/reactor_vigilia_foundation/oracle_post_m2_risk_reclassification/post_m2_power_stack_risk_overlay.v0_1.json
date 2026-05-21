@@ -1,0 +1,91 @@
+{
+  "overlay_id": "post-m2-stack-risk-overlay-001",
+  "sprint_id": "SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001",
+  "timestamp_utc": "2026-05-21T00:00:36.209909+00:00",
+  "stacks": [
+    {
+      "stack_id": "stack_vision_qa",
+      "stack_name": "Vision Q&A (Gemini Vision + OpenAI Text)",
+      "components": [
+        {
+          "capability_id": "google_gemini_vision",
+          "risk_class": "R1"
+        },
+        {
+          "capability_id": "openai_text_reasoning",
+          "risk_class": "R1"
+        }
+      ],
+      "max_component_risk": "R1",
+      "side_effect_bonus": 0,
+      "derived_risk_class": "R1",
+      "required_autonomy_level": "A2",
+      "blocked_reason": null
+    },
+    {
+      "stack_id": "stack_code_architect",
+      "stack_name": "Code Architect (OpenAI Code Exec + Anthropic Tool Use)",
+      "components": [
+        {
+          "capability_id": "openai_code_execution",
+          "risk_class": "R3"
+        },
+        {
+          "capability_id": "anthropic_tool_use",
+          "risk_class": "R2"
+        }
+      ],
+      "max_component_risk": "R3",
+      "side_effect_bonus": 1,
+      "derived_risk_class": "R4",
+      "required_autonomy_level": "A4",
+      "blocked_reason": null
+    },
+    {
+      "stack_id": "stack_multimodal_reasoning",
+      "stack_name": "Multimodal Reasoning (Gemini Vision + Audio + Text)",
+      "components": [
+        {
+          "capability_id": "google_gemini_vision",
+          "risk_class": "R1"
+        },
+        {
+          "capability_id": "google_gemini_audio",
+          "risk_class": "R1"
+        },
+        {
+          "capability_id": "google_gemini_text_reasoning",
+          "risk_class": "R1"
+        }
+      ],
+      "max_component_risk": "R1",
+      "side_effect_bonus": 0,
+      "derived_risk_class": "R1",
+      "required_autonomy_level": "A2",
+      "blocked_reason": null
+    },
+    {
+      "stack_id": "stack_autonomous_agent",
+      "stack_name": "Autonomous Agent (Tool Use Multi-Provider)",
+      "components": [
+        {
+          "capability_id": "openai_tool_use",
+          "risk_class": "R2"
+        },
+        {
+          "capability_id": "anthropic_tool_use",
+          "risk_class": "R2"
+        },
+        {
+          "capability_id": "xai_grok_tool_use",
+          "risk_class": "R2"
+        }
+      ],
+      "max_component_risk": "R2",
+      "side_effect_bonus": 1,
+      "derived_risk_class": "R3",
+      "required_autonomy_level": "A4",
+      "blocked_reason": null
+    }
+  ]
+}

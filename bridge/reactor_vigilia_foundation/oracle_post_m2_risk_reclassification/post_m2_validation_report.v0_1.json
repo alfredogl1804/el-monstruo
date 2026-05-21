@@ -1,0 +1,94 @@
+{
+  "recheck_id": "post-m2-reclass-validation-001",
+  "sprint_id": "SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001",
+  "timestamp_utc": "2026-05-21T00:01:11.633567+00:00",
+  "gates": [
+    {
+      "gate_id": 1,
+      "gate_name": "m2_artifacts_exist",
+      "result": "PASS",
+      "evidence": "All M2 inputs present."
+    },
+    {
+      "gate_id": 2,
+      "gate_name": "no_new_api_calls",
+      "result": "PASS",
+      "evidence": "No network/env imports."
+    },
+    {
+      "gate_id": 3,
+      "gate_name": "no_secret_access",
+      "result": "PASS",
+      "evidence": "No secrets found in data outputs."
+    },
+    {
+      "gate_id": 4,
+      "gate_name": "no_original_mutation",
+      "result": "PASS",
+      "evidence": "Script only writes to its own directory (overlay-only)."
+    },
+    {
+      "gate_id": 5,
+      "gate_name": "all_verified_reclassified",
+      "result": "PASS",
+      "evidence": "All 19 verified caps elevated."
+    },
+    {
+      "gate_id": 6,
+      "gate_name": "access_blocked_preserved",
+      "result": "PASS",
+      "evidence": "All 0 blocked caps preserved."
+    },
+    {
+      "gate_id": 7,
+      "gate_name": "no_realtime_invention",
+      "result": "PASS",
+      "evidence": "No invented capabilities."
+    },
+    {
+      "gate_id": 8,
+      "gate_name": "power_stacks_reclassified",
+      "result": "PASS",
+      "evidence": "All 4 stacks classified."
+    },
+    {
+      "gate_id": 9,
+      "gate_name": "sprint_candidates_reclassified",
+      "result": "PASS",
+      "evidence": "All 4 candidates classified."
+    },
+    {
+      "gate_id": 10,
+      "gate_name": "no_scheduler_enabled",
+      "result": "PASS",
+      "evidence": "No scheduler enabled."
+    },
+    {
+      "gate_id": 11,
+      "gate_name": "no_supabase_move",
+      "result": "PASS",
+      "evidence": "No Supabase client access."
+    },
+    {
+      "gate_id": 12,
+      "gate_name": "no_canon_no_appvision",
+      "result": "PASS",
+      "evidence": "No doctrine alterations."
+    },
+    {
+      "gate_id": 13,
+      "gate_name": "auditor_recheck",
+      "result": "PASS",
+      "evidence": "All 19 capabilities pass schema check."
+    },
+    {
+      "gate_id": 14,
+      "gate_name": "unified_face_single_voice",
+      "result": "PASS",
+      "evidence": "Single voice recommendation present."
+    }
+  ],
+  "total_pass": 14,
+  "total_fail": 0,
+  "verdict": "PASS"
+}

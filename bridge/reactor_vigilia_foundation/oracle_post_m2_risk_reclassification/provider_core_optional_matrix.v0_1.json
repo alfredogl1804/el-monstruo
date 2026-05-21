@@ -1,0 +1,40 @@
+{
+  "matrix_id": "core-optional-matrix-001",
+  "sprint_id": "SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001",
+  "timestamp_utc": "2026-05-21T00:00:36.209074+00:00",
+  "providers": [
+    {
+      "provider_id": "openai",
+      "access_status": "REALTIME_VERIFIED",
+      "proposed_category": "CORE_CANDIDATE",
+      "justification": "Verified, broad capabilities (7), essential for Oracle operations.",
+      "capabilities_verified": 7,
+      "max_risk_class": "R3"
+    },
+    {
+      "provider_id": "anthropic",
+      "access_status": "REALTIME_VERIFIED",
+      "proposed_category": "CORE_CANDIDATE",
+      "justification": "Verified, broad capabilities (2), essential for Oracle operations.",
+      "capabilities_verified": 2,
+      "max_risk_class": "R2"
+    },
+    {
+      "provider_id": "google_gemini",
+      "access_status": "REALTIME_VERIFIED",
+      "proposed_category": "CORE_CANDIDATE",
+      "justification": "Verified, broad capabilities (7), essential for Oracle operations.",
+      "capabilities_verified": 7,
+      "max_risk_class": "R2"
+    },
+    {
+      "provider_id": "xai_grok",
+      "access_status": "REALTIME_VERIFIED",
+      "proposed_category": "OPTIONAL_CANDIDATE",
+      "justification": "Verified, capabilities covered by Core providers. Useful for redundancy.",
+      "capabilities_verified": 3,
+      "max_risk_class": "R2"
+    }
+  ],
+  "decision_status": "T1_PENDING"
+}

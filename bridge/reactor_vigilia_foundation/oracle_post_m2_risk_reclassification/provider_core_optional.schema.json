@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Provider Core/Optional Matrix",
+  "description": "Classification of providers as Core, Optional, Blocked, Deferred, or Retired.",
+  "type": "object",
+  "required": ["matrix_id", "sprint_id", "timestamp_utc", "providers", "decision_status"],
+  "properties": {
+    "matrix_id": { "type": "string" },
+    "sprint_id": { "type": "string" },
+    "timestamp_utc": { "type": "string", "format": "date-time" },
+    "providers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["provider_id", "access_status", "proposed_category", "justification"],
+        "properties": {
+          "provider_id": { "type": "string" },
+          "access_status": { "type": "string" },
+          "proposed_category": { "type": "string", "enum": ["CORE_CANDIDATE", "OPTIONAL_CANDIDATE", "BLOCKED_PENDING_CREDENTIALS", "DEFER", "RETIRE_CANDIDATE"] },
+          "justification": { "type": "string" },
+          "capabilities_verified": { "type": "integer" },
+          "max_risk_class": { "type": "string" }
+        }
+      }
+    },
+    "decision_status": { "type": "string", "const": "T1_PENDING" }
+  }
+}

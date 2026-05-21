@@ -1,0 +1,32 @@
+{
+  "manifest_id": "post-m2-reclass-manifest-001",
+  "sprint_id": "SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001",
+  "timestamp_utc": "2026-05-21T00:00:36.210450+00:00",
+  "inputs_verified": [
+    "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/oracle_ai_m2/provider_access_status.v0_1.json",
+    "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/oracle_ai_m2/realtime_capability_catalog.v0_1.json",
+    "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/oracle_ai_m2/oracle_catalog_m2_realtime_overlay.v0_1.json",
+    "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/oracle_ai_m2/api_probe_log.redacted.v0_1.jsonl",
+    "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/oracle_ai_m2/api_cost_ledger.v0_1.json",
+    "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/oracle_ai_m2/oracle_m2_validation_report.v0_1.json",
+    "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/oracle_ai_m2/reclassification_inputs_for_next_sprint.v0_1.json",
+    "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/oracle_risk_classification/capability_risk_overlay.v0_1.json",
+    "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/oracle_risk_classification/power_stack_risk_overlay.v0_1.json",
+    "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/oracle_risk_classification/sprint_candidate_risk_overlay.v0_1.json"
+  ],
+  "outputs_generated": [
+    "post_m2_capability_risk_overlay.v0_1.json",
+    "post_m2_provider_risk_matrix.v0_1.json",
+    "post_m2_power_stack_risk_overlay.v0_1.json",
+    "post_m2_sprint_candidate_risk_overlay.v0_1.json",
+    "provider_core_optional_matrix.v0_1.json",
+    "post_m2_t1_decision_pack.v0_1.json"
+  ],
+  "gates_passed": 14,
+  "gates_total": 14,
+  "verdict": "PASS",
+  "new_api_calls_made": false,
+  "secrets_accessed": false,
+  "scheduler_enabled": false,
+  "supabase_moved": false
+}

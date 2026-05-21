@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Post-M2 Provider Risk",
+  "description": "Aggregated risk assessment for a provider based on its verified capabilities.",
+  "type": "object",
+  "required": ["provider_id", "access_status", "max_capability_risk", "aggregate_risk_class", "capabilities_count", "core_optional_status"],
+  "properties": {
+    "provider_id": { "type": "string" },
+    "access_status": { "type": "string", "enum": ["REALTIME_VERIFIED", "ACCESS_BLOCKED_API_ERROR", "ACCESS_BLOCKED_NO_KEY"] },
+    "max_capability_risk": { "type": "string", "enum": ["R0", "R1", "R2", "R3", "R4", "R5", "BLOCKED_FOR_AUTOMATION"] },
+    "aggregate_risk_class": { "type": "string", "enum": ["R0", "R1", "R2", "R3", "R4", "R5", "BLOCKED_FOR_AUTOMATION"] },
+    "capabilities_count": { "type": "integer" },
+    "highest_risk_capability": { "type": "string" },
+    "core_optional_status": { "type": "string", "enum": ["CORE_CANDIDATE", "OPTIONAL_CANDIDATE", "BLOCKED_PENDING_CREDENTIALS", "DEFER", "RETIRE_CANDIDATE"] },
+    "core_justification": { "type": "string" }
+  }
+}

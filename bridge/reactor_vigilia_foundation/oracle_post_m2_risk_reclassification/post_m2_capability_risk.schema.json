@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Post-M2 Capability Risk",
+  "description": "Risk classification for a single capability after M2 verification.",
+  "type": "object",
+  "required": ["capability_id", "provider_id", "evidence_status", "risk_class_before", "risk_class_after", "required_autonomy_level", "external_api_required", "secrets_required", "user_data_touch", "recurring_status", "allowed_next_action", "t1_required"],
+  "properties": {
+    "capability_id": { "type": "string" },
+    "provider_id": { "type": "string" },
+    "capability_type": { "type": "string" },
+    "evidence_status": { "type": "string", "enum": ["REALTIME_VERIFIED", "ACCESS_BLOCKED", "STATIC_CATALOG"] },
+    "risk_class_before": { "type": "string", "enum": ["R0", "R1", "R2", "R3", "R4", "R5", "BLOCKED_FOR_AUTOMATION"] },
+    "risk_class_after": { "type": "string", "enum": ["R0", "R1", "R2", "R3", "R4", "R5", "BLOCKED_FOR_AUTOMATION"] },
+    "required_autonomy_level": { "type": "string", "enum": ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "N/A"] },
+    "external_api_required": { "type": "boolean" },
+    "secrets_required": { "type": "boolean" },
+    "user_data_touch": { "type": "boolean" },
+    "prompt_injection_surface": { "type": "string", "enum": ["NONE", "LOW", "MEDIUM", "HIGH"] },
+    "recurring_status": { "type": "string", "enum": ["T1_PENDING", "APPROVED", "BLOCKED"] },
+    "allowed_next_action": { "type": "string" },
+    "t1_required": { "type": "boolean" },
+    "reclassification_reason": { "type": "string" }
+  }
+}
