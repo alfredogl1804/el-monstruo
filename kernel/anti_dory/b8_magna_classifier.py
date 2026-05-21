@@ -16,10 +16,23 @@ v3.0 Changes:
 - Backward compatible: all v1.0 triggers and v2.0 patterns still work.
 """
 
+import os
 import re
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
+
+
+# ============================================================
+# FEATURE FLAG: B8 v3 Context-Aware Layers
+# When False, only Layers 1-3 (v2.0 behavior) are active.
+# When True, Layers 4-5 (v3.0 context-aware) are also active.
+# Default: False (OFF) — requires explicit activation.
+# ============================================================
+
+ANTI_DORY_B8_V3_ENABLED: bool = os.environ.get(
+    "ANTI_DORY_B8_V3_ENABLED", "false"
+).lower() in ("true", "1", "yes")
 
 
 class ActionLevel(Enum):
@@ -311,30 +324,32 @@ def classify_action(
                 )
 
     # LAYER 4: Action Semantics — inherently dangerous action_types (v3.0)
-    if action_lower in MAGNA_ACTION_TYPES_INHERENT:
-        return ActionClassification(
-            level=ActionLevel.MAGNA,
-            reason=(
-                f"Action type '{action_type}' is inherently dangerous "
-                f"(MAGNA_ACTION_TYPES_INHERENT)"
-            ),
-            action_description=description,
-            requires_t1=True,
-        )
+    # Only active when ANTI_DORY_B8_V3_ENABLED=true
+    if ANTI_DORY_B8_V3_ENABLED:
+        if action_lower in MAGNA_ACTION_TYPES_INHERENT:
+            return ActionClassification(
+                level=ActionLevel.MAGNA,
+                reason=(
+                    f"Action type '{action_type}' is inherently dangerous "
+                    f"(MAGNA_ACTION_TYPES_INHERENT)"
+                ),
+                action_description=description,
+                requires_t1=True,
+            )
 
-    # LAYER 5: Context-Aware Heuristics (v3.0)
-    for heuristic_category, patterns in CONTEXT_AWARE_PATTERNS.items():
-        for pattern in patterns:
-            if re.search(pattern, combined_text):
-                return ActionClassification(
-                    level=ActionLevel.MAGNA,
-                    reason=(
-                        f"Context-aware heuristic '{heuristic_category}' "
-                        f"matched: /{pattern}/"
-                    ),
-                    action_description=description,
-                    requires_t1=True,
-                )
+        # LAYER 5: Context-Aware Heuristics (v3.0)
+        for heuristic_category, patterns in CONTEXT_AWARE_PATTERNS.items():
+            for pattern in patterns:
+                if re.search(pattern, combined_text):
+                    return ActionClassification(
+                        level=ActionLevel.MAGNA,
+                        reason=(
+                            f"Context-aware heuristic '{heuristic_category}' "
+                            f"matched: /{pattern}/"
+                        ),
+                        action_description=description,
+                        requires_t1=True,
+                    )
 
     # LAYER 6: Metadata override (si metadata indica forzar MAGNA)
     if metadata and metadata.get("force_magna", False):
