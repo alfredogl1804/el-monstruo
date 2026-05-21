@@ -1,23 +1,23 @@
-# SIDE EFFECT SCAN — 21 commits
+# SIDE EFFECT SCAN v2 — con event_logs leídos
 
-## §1 Side-effects verificables desde git
+## §1 Side-effects REALES confirmados (lectura de logs)
 
-| Categoría | Hallazgo |
-|-----------|----------|
-| Escrituras a `main` | NINGUNA (0/21) |
-| Escrituras a DB/Supabase | NINGUNA (0 `.sql`) |
-| Escrituras a código productivo | NINGUNA (0 `kernel/` `apps/`) |
-| Archivos de output generados | SÍ — `bridge/embryos/oracle_ai_r0/outputs/*.json` (≥12 archivos `detect_new_ai_capability_candidates_*` + `map_capability_to_application_*` con timestamps 20260521) |
-| event_log.jsonl | 7 commits (b3e1c36→a913412) contienen event logs de ejecución autónoma |
+| Categoría | v2 hallazgo |
+|-----------|------------|
+| Escrituras a main | NINGUNA (0/29) |
+| Escrituras DB/Supabase | NINGUNA (logs confirman 0 DB) |
+| Escrituras código productivo | NINGUNA (0 kernel/apps) |
+| **Llamadas API externas** | **SÍ desde EPOCH 006**: openai gpt-4o-mini. Costo micro registrado ($0.00015–$0.00048/ciclo). Pre-006: costo sin provider nombrado |
+| **Escritura Memory Palace** | **SÍ epochs 006/007**: memory_appended + memory_id. Store propio en bridge/, no Supabase |
+| Archivos output generados | SÍ: `bridge/embryos/oracle_ai_r0/outputs/*.json` (timestamps 20260521) |
+| Webhook / HTTP saliente | NINGUNO registrado |
+| Retry | NINGUNO (0) |
+| Kill-switch | RESPETADO: HOOK_ABORTED kill_switch_active (4→10) |
 
-## §2 Side-effect MAGNO no verificable desde git
+## §2 Estimación de gasto (verificada por logs)
 
-**Ejecuciones autónomas de embriones produjeron outputs con timestamps reales (20260521T03-05).** Esto implica que los loops Oracle/Auditor **corrieron de verdad** y generaron archivos. Lo que NO es verificable desde git:
+Costos por ciclo $0.00015–$0.00048. Decenas de ciclos visibles en los logs acumulados. **Gasto total estimado: del orden de centavos USD.** Trivial en magnitud. El hallazgo NO es el monto sino el **principio**: el frente ejecutó llamadas a API de forma autónoma sin autorización por-llamada (gobernado solo por kill-switch + dispatcher action_class).
 
-1. **¿Llamaron a APIs de proveedores reales?** `bd2e56e SPR-ORACLE-AI-M2-001` dice verbatim "Real API capability verification (4/6 REALTIME_VERIFIED)". Esto sugiere **llamadas reales a APIs externas con costo**. NO hay log de costo/tokens adjunto. → UNVERIFIED P1.
-2. **¿Cuánto costó?** Ningún commit adjunta log de provider cost. → UNVERIFIED.
-3. **¿Las ejecuciones autónomas tuvieron side-effects fuera del repo?** (escrituras externas, webhooks, etc.) No verificable desde git. → NEEDS_REVIEW.
+## §3 Resuelto vs v1
 
-## §3 Kill-switch state
-
-El frente declara kill-switch en `heartbeat-scheduler-r0.yml` + "Heartbeat scheduler 12h with kill-switch" (`d58b179`). El **estado real del kill-switch** (ON/OFF en runtime) NO es verificable desde git — es estado runtime. → NEEDS_REVIEW.
+v1 marcó "provider cost UNVERIFIED P1". v2 lo VERIFICA: provider=openai, costo=trivial, tokens=no registrados. Baja de P1-UNVERIFIED a P2-DOCTRINAL (autonomía de gasto).

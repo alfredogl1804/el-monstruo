@@ -1,37 +1,45 @@
-# MANUS EXECUTION AUDIT LEDGER 001
+# MANUS EXECUTION AUDIT LEDGER 001 — v2 (COBERTURA 100%)
 
 **Sprint:** SPR-MANUS-EXECUTION-AUDIT-LEDGER-001
-**Auditor:** Cowork T2-A (rol auditor, no compositor)
-**Fecha:** 2026-05-21
-**Branch fuente del frente:** `origin/monstruo-reality-atlas-001`
-**Scope:** SPR-REACTOR-HEARTBEAT/SCHEDULER-R0-001 → SPR-EPOCH007-T1-FEEDBACK-LOOP-R0PLUS-001 (+ Epoch 008 detectado fuera de scope)
-**Método:** auditoría documental + `git diff-tree` + hard-rule scan. NO se ejecutó runtime, NO se tocó main, NO se aplicó Supabase.
+**Auditor:** Cowork T2-A (rol auditor)
+**Fecha v1:** 2026-05-21 (21/29) · **Fecha v2:** 2026-05-21 (29/29 + event_logs leídos)
+**Branch fuente:** `origin/monstruo-reality-atlas-001`
+**Método:** git diff-tree + hard-rule scan + lectura profunda de event_logs. Sin runtime, sin main, sin Supabase.
 
 ---
 
-## §0 Reconocimiento honesto de origen
+## §0 Honestidad de cobertura
 
-Este ledger nace del reconocimiento de ChatGPT-0 (y de Cowork) de que las ejecuciones del frente Reactor/Embriones fueron auditadas **por output reportado**, no por verificación binaria de diffs/commits/side-effects. Este ledger corrige eso para lo verificable desde git, y marca honestamente lo que sigue siendo REPORTED_ONLY / UNVERIFIED.
+El v1 cubrió **21 de 29** commits del frente (72%) y lo reconoció binariamente cuando T1 preguntó. El v2 cierra a **29/29 (100%)** del frente identificable + abre los event_logs que el v1 dejó sin leer. Este documento reemplaza la cobertura parcial del v1.
 
----
+## §1 Universo: 29 commits, NINGUNO en main
 
-## §1 Universo auditado
+Desde `8de6aef` SPR-VIGILIA-SINCRONICA-001 hasta `a913412` Epoch 008 (BLOCKED, fuera scope). Todo vive en `monstruo-reality-atlas-001` + `bridge/`. **Cero commits tocan `kernel/`, `apps/`, `main`, `.sql`, o contienen secrets.**
 
-21 commits en `monstruo-reality-atlas-001`. NINGUNO mergeado a `main`. El frente vive como artefactos/docs en `bridge/` (reactor_vigilia_foundation, embryos/oracle_ai_r0, embryos/oracle_pair_r0, doctrine_candidates) — NO en `kernel/` ni `apps/` (código productivo intacto).
+## §2 Hallazgo magno v2 (lo que el v1 no pudo ver)
 
-## §2 Hallazgo magno (binario)
+Leyendo los event_logs reales (no solo diffs):
 
-**Hard rules: 21/21 LIMPIO.** Cero commits tocan main, cero secrets/private keys, cero código productivo (kernel/apps), cero `.sql`/migrations.
+1. **Provider externo REAL desde EPOCH 006:** `"provider":"openai","model":"gpt-4o-mini"` con `cost_usd` por ciclo ($0.00015–$0.00048). Antes de epoch 006 los logs registran costo pero NO nombran provider. **El frente gastó dinero real de forma autónoma** — monto trivial (centavos acumulados), pero principio relevante.
+2. **Memory Palace = escritura de memoria con auto-influencia.** EPOCH 006: `memory_appended:true, memory_id`. EPOCH 007: `memory_influenced:true` — la memoria del embrión retroalimenta sus propias decisiones. Loop autónomo de auto-influencia. Colisiona conceptualmente con Capa 8 Memento (P2 doctrinal).
+3. **Kill-switch RESPETADO en runtime:** `HOOK_ABORTED reason:kill_switch_active` (4→10 ocurrencias). Verificado, no solo declarado.
+4. **0 retries, 0 escrituras fuera de bridge/, 0 webhook, 0 DB/Supabase, 0 HTTP saliente** registrados en los logs.
 
-**PERO:** los **test claims** (7 commits, hasta 95/95 PASS) y los **provider calls/cost** son REPORTED_ONLY / UNVERIFIED — ningún commit adjunta log de ejecución pytest ni log de costo de API. El frente es estructuralmente limpio pero sus afirmaciones de ejecución no son verificables desde git.
+## §3 UNVERIFIED del v1 → RESUELTOS en v2
 
-## §3 Veredicto resumido
+| Claim v1 (UNVERIFIED) | Estado v2 |
+|---|---|
+| Provider calls/cost | ✅ VERIFICADO: openai gpt-4o-mini, costo micro registrado en chain logs |
+| Kill-switch state | ✅ VERIFICADO: respetado (HOOK_ABORTED en logs) |
+| R1 Unlock (210ab5a) | ✅ VERIFICADO: aprobación DOCTRINAL escrita, NO desbloqueo operativo |
+| SHELL (25588a0) | ✅ VERIFICADO: research/parking-lot, NO runtime ejecutable |
+| Auditor autónomo (0da919a) | ✅ VERIFICADO: validación local determinística, sin APIs |
 
-- **FULLY_AUDITED** (estructura + hard rules, sin claims de ejecución): 11 commits.
-- **PARTIALLY_AUDITED** (estructura OK, test claims sin log): 7 commits.
-- **NEEDS_REVIEW** (ejecución autónoma + event_log, side-effects/costo no auditados): subset de los anteriores.
-- **BLOCKED** (fuera de scope): 1 commit (Epoch 008 `a913412`).
+## §4 Lo que SIGUE REPORTED_ONLY
 
-Detalle por archivo: ver `COMMIT_DIFFSTAT_MATRIX.md`, `HARD_RULES_VERIFICATION.md`, `SIDE_EFFECT_SCAN.md`, `TEST_RESULTS_MATRIX.md`, `UNVERIFIED_CLAIMS.md`, `FINAL_AUDIT_VERDICT.md`.
+- **Test claims** (12/12 → 95/95 en 7 commits): aún sin log pytest adjunto. No re-ejecutados.
+- **Tokens por llamada:** los logs registran `cost_usd` pero NO tokens.
 
-**Recomendación:** `CONTINUE_WITH_LEDGER_REQUIRED` (ver veredicto final).
+Detalle: ver `EVENT_LOG_DEEP_SCAN.md`, `FINAL_AUDIT_VERDICT.md`, `COMMIT_DIFFSTAT_MATRIX.md`, `MANUS_EXECUTION_LEDGER.json`.
+
+**Recomendación v2:** `CONTINUE_WITH_LEDGER_REQUIRED` (P0=0; nuevos P2 doctrinales: Memory Palace auto-influencia + provider autónomo).
