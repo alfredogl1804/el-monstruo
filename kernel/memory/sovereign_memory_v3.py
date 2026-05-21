@@ -1,10 +1,10 @@
 """
-Sovereign Memory System v3.0 — The World's Most Powerful Agent Memory
+Sovereign Memory System v3.1 — The World's Most Powerful Agent Memory
 =====================================================================
 
 IMPLEMENTS: contracts/memory_interface.py (MemoryInterface)
 DELEGATES TO: CausalKB, Anti-Dory RPCs, Mem0, LightRAG, Thoughts, ErrorMemory
-ADDS: Crystallization, Forgetting, Metacognition, Conflict Resolution, Rerank, Multi-Embedding
+ADDS: AUDN Loop, Temporal Invalidation, Crystallization, Forgetting, Metacognition, Conflict Resolution, Rerank
 EXPOSES: FastMCP tools + REST API for any AI agent
 
 Architecture:
@@ -32,8 +32,14 @@ Anti-Dory RPC (audit trail):
     - rpc_write_runtime_event(p_project_id, p_front_id, p_actor_type, p_event_type, p_payload, p_thread_id, p_snapshot_id)
 
 Author: El Monstruo (Sovereign Memory)
-Version: 3.0.0
+Version: 3.1.0
 Date: 2026-05-21
+
+v3.1 additions:
+  - AUDN Loop (Mem0 pattern): LLM-based Add/Update/Delete/None decision on every write
+  - Temporal Invalidation (Zep/Graphiti pattern): valid_at/invalid_at for temporal queries
+  - Integration with sms_rem_cycle.py for nightly consolidation
+  - Guardian V5 hook for session-start context injection
 """
 
 from __future__ import annotations
@@ -122,6 +128,10 @@ class MemoryEvent:
     is_alive: bool = True
     access_count: int = 0
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    # Temporal Invalidation (Zep/Graphiti pattern)
+    valid_at: Optional[datetime] = None   # When this memory became true
+    invalid_at: Optional[datetime] = None  # When this memory stopped being true (None = still valid)
+    superseded_by: Optional[str] = None   # content_hash of the memory that replaced this one
     # Internal only (not stored in DB)
     embedding_gemini: Optional[list[float]] = None  # 3072 dims for internal reranking
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -170,6 +180,111 @@ class MetacognitiveGap:
     agent_id: str = "monstruo"
     is_resolved: bool = False
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# AUDN LOOP — Intelligent Write-Time Curation (Mem0 pattern)
+# ═══════════════════════════════════════════════════════════════════════
+
+class AUDNDecision(Enum):
+    """Add, Update, Delete, None — the 4 possible actions on incoming memory."""
+    ADD = "add"          # New knowledge, store it
+    UPDATE = "update"    # Contradicts/supersedes existing memory — update in place
+    DELETE = "delete"    # Incoming info invalidates an existing memory
+    NONE = "none"        # Duplicate or irrelevant — discard
+
+
+@dataclass
+class AUDNResult:
+    """Result of AUDN evaluation."""
+    decision: AUDNDecision
+    reason: str = ""
+    target_memory_id: Optional[str] = None  # For UPDATE/DELETE: which memory to affect
+    confidence: float = 0.9
+
+
+class AUDNEvaluator:
+    """
+    AUDN Loop: Before storing any memory, evaluate against existing memories.
+    Uses a fast LLM call to decide: Add, Update, Delete, or None.
+    
+    This prevents "retrieval pollution" from append-only stores (Mem0 insight).
+    Without AUDN, contradictory memories accumulate and confuse retrieval.
+    """
+
+    def __init__(self):
+        self._http = httpx.AsyncClient(timeout=20.0)
+        self._enabled = os.getenv("SMS_AUDN_ENABLED", "true").lower() == "true"
+        # Use a fast model for AUDN decisions (cost: ~0.001 USD per decision)
+        self._model = os.getenv("SMS_AUDN_MODEL", "gpt-4o-mini")
+
+    async def evaluate(
+        self,
+        incoming: str,
+        existing_memories: list[dict],
+        agent_id: str = "system",
+    ) -> AUDNResult:
+        """
+        Evaluate incoming memory against existing similar memories.
+        Returns AUDN decision.
+        """
+        if not self._enabled or not OPENAI_API_KEY:
+            return AUDNResult(decision=AUDNDecision.ADD, reason="AUDN disabled")
+
+        if not existing_memories:
+            return AUDNResult(decision=AUDNDecision.ADD, reason="No existing memories to compare")
+
+        # Build context of existing memories
+        existing_block = "\n".join([
+            f"- [id={m.get('id','?')}] {m.get('content','')[:200]}"
+            for m in existing_memories[:5]
+        ])
+
+        prompt = f"""You are a memory curation system. Given an INCOMING memory and EXISTING memories, decide the action.
+
+INCOMING: {incoming[:500]}
+
+EXISTING MEMORIES:
+{existing_block}
+
+Decide ONE action:
+- ADD: Incoming is genuinely new information not covered by existing memories
+- UPDATE: Incoming contradicts or supersedes an existing memory (specify which ID)
+- DELETE: Incoming proves an existing memory is false/obsolete (specify which ID)
+- NONE: Incoming is a duplicate or adds no value
+
+Respond in JSON: {{"decision": "add|update|delete|none", "reason": "...", "target_id": "..."|null}}"""
+
+        try:
+            base_url = os.getenv("OPENAI_API_BASE") or "https://api.openai.com/v1"
+            resp = await self._http.post(
+                f"{base_url}/chat/completions",
+                headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
+                json={
+                    "model": self._model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "response_format": {"type": "json_object"},
+                    "max_tokens": 150,
+                    "temperature": 0.1,
+                },
+            )
+            if resp.status_code == 200:
+                content = resp.json()["choices"][0]["message"]["content"]
+                parsed = json.loads(content)
+                decision = AUDNDecision(parsed.get("decision", "add"))
+                return AUDNResult(
+                    decision=decision,
+                    reason=parsed.get("reason", ""),
+                    target_memory_id=parsed.get("target_id"),
+                )
+        except Exception as e:
+            logger.warning(f"AUDN evaluation failed: {e}")
+
+        # Default: ADD on failure (safe fallback)
+        return AUDNResult(decision=AUDNDecision.ADD, reason="AUDN fallback")
+
+    async def close(self):
+        await self._http.aclose()
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -473,6 +588,7 @@ class SovereignMemoryV3:
         self.supabase = SupabaseBackend()
         self.causal_kb = CausalKBAdapter()
         self.anti_dory = AntiDoryAdapter(self.supabase)
+        self.audn = AUDNEvaluator()
 
         # In-memory caches
         self._axiom_cache: dict[str, Axiom] = {}
@@ -487,6 +603,10 @@ class SovereignMemoryV3:
             "conflicts_resolved": 0,
             "gaps_detected": 0,
             "rerank_improvements": 0,
+            "audn_adds": 0,
+            "audn_updates": 0,
+            "audn_deletes": 0,
+            "audn_nones": 0,
         }
 
     async def initialize(self) -> dict[str, bool]:
@@ -529,10 +649,13 @@ class SovereignMemoryV3:
     # CONTRACT: MemoryInterface — Event Log
     # ═══════════════════════════════════════════════════════════════════
 
-    async def append(self, event: MemoryEvent) -> UUID:
+    async def append(self, event: MemoryEvent) -> Optional[UUID]:
         """Append a memory event (implements MemoryInterface.append).
 
-        Stores in sovereign_memories with schema-aligned fields.
+        Uses AUDN Loop: evaluates incoming memory against existing similar
+        memories BEFORE storage. May Add, Update, Delete, or discard (None).
+
+        Returns event_id if stored, None if discarded by AUDN.
         """
         # Generate content hash for deduplication
         if not event.content_hash:
@@ -541,7 +664,58 @@ class SovereignMemoryV3:
         # Generate 1536-dim embedding for DB storage
         event.embedding = await self.embedding.embed_for_db(event.content)
 
-        # Build DB payload aligned with migration 0052
+        # ── AUDN LOOP: Evaluate before storing ──
+        # Find similar existing memories to compare against
+        existing = []
+        if self.supabase.available and event.embedding:
+            similar = await self.supabase.call_rpc("match_sovereign_memories", {
+                "query_embedding": json.dumps(event.embedding),
+                "match_threshold": 0.75,
+                "match_count": 5,
+                "only_alive": True,
+            })
+            if similar:
+                existing = similar
+
+        audn_result = await self.audn.evaluate(
+            incoming=event.content,
+            existing_memories=existing,
+            agent_id=event.agent_id,
+        )
+
+        if audn_result.decision == AUDNDecision.NONE:
+            # Discard — duplicate or irrelevant
+            self._stats["audn_nones"] += 1
+            logger.info(f"AUDN:NONE — discarded: {event.content[:60]}... Reason: {audn_result.reason}")
+            return None
+
+        if audn_result.decision == AUDNDecision.DELETE and audn_result.target_memory_id:
+            # Incoming invalidates an existing memory — soft-delete the old one
+            await self.supabase.patch(
+                "sovereign_memories",
+                f"id=eq.{audn_result.target_memory_id}",
+                {"is_alive": False, "invalidated_by": event.content_hash,
+                 "invalid_at": datetime.now(timezone.utc).isoformat()},
+            )
+            self._stats["audn_deletes"] += 1
+            logger.info(f"AUDN:DELETE — invalidated {audn_result.target_memory_id}")
+            # Still store the incoming memory as the new truth
+
+        if audn_result.decision == AUDNDecision.UPDATE and audn_result.target_memory_id:
+            # Incoming supersedes an existing memory — mark old as superseded
+            await self.supabase.patch(
+                "sovereign_memories",
+                f"id=eq.{audn_result.target_memory_id}",
+                {"is_alive": False, "superseded_by": event.content_hash,
+                 "invalid_at": datetime.now(timezone.utc).isoformat()},
+            )
+            self._stats["audn_updates"] += 1
+            logger.info(f"AUDN:UPDATE — superseded {audn_result.target_memory_id}")
+
+        if audn_result.decision == AUDNDecision.ADD:
+            self._stats["audn_adds"] += 1
+
+        # Build DB payload aligned with migration 0052 + temporal extensions
         data = {
             "content": event.content,
             "content_hash": event.content_hash,
@@ -554,6 +728,7 @@ class SovereignMemoryV3:
             "relevance_score": event.relevance_score,
             "tags": event.tags,
             "is_alive": event.is_alive,
+            "valid_at": (event.valid_at or datetime.now(timezone.utc)).isoformat(),
         }
         if event.embedding:
             data["embedding"] = event.embedding
@@ -774,9 +949,88 @@ class SovereignMemoryV3:
 
         return unique_results[:limit]
 
-    # ═══════════════════════════════════════════════════════════════════
+    # ═════════════════════════════════════════════════════════════════
+    # CAPABILITY 0: TEMPORAL QUERIES (Zep/Graphiti pattern)
+    # ═════════════════════════════════════════════════════════════════
+
+    async def search_temporal(
+        self,
+        query: str,
+        point_in_time: Optional[datetime] = None,
+        time_range: Optional[tuple[datetime, datetime]] = None,
+        agent_id: Optional[str] = None,
+        limit: int = 10,
+    ) -> list[SearchResult]:
+        """
+        Temporal search: "What did the system know at time T?"
+
+        Uses valid_at / invalid_at to filter memories that were true at a given point.
+        This is impossible with pure vector search (Zep/Graphiti insight: 15-point
+        accuracy gap between temporal-aware and temporal-naive architectures).
+        """
+        if not self.supabase.available:
+            return []
+
+        # Build temporal filter
+        filters = "is_alive=eq.true"
+        if point_in_time:
+            ts = point_in_time.isoformat()
+            # Memory was valid at that point: valid_at <= T AND (invalid_at IS NULL OR invalid_at > T)
+            filters = f"valid_at=lte.{ts}&or=(invalid_at.is.null,invalid_at.gt.{ts})"
+        elif time_range:
+            start, end = time_range
+            filters = f"valid_at=gte.{start.isoformat()}&valid_at=lte.{end.isoformat()}&is_alive=eq.true"
+
+        if agent_id:
+            filters += f"&agent_id=eq.{agent_id}"
+
+        # Get temporally-filtered memories
+        memories = await self.supabase.query(
+            "sovereign_memories",
+            "id,content,memory_type,agent_id,confidence,strength,valid_at,invalid_at,created_at",
+            f"{filters}&order=valid_at.desc&limit={limit * 2}"
+        )
+
+        if not memories:
+            return []
+
+        # If we have a query, do semantic reranking on the temporal subset
+        if query:
+            documents = [m.get("content", "") for m in memories]
+            reranked = await self.embedding.rerank_cohere(query, documents, top_n=limit)
+            results = []
+            for rr in reranked:
+                idx = rr.get("index", 0)
+                if idx < len(memories):
+                    m = memories[idx]
+                    results.append(SearchResult(
+                        content=m.get("content", ""),
+                        memory_type=m.get("memory_type", "episodic"),
+                        agent_id=m.get("agent_id", ""),
+                        confidence=m.get("confidence", 0.7),
+                        similarity=rr.get("relevance_score", 0.5),
+                        source="temporal_reranked",
+                        raw_data=m,
+                    ))
+            return results
+
+        # No query — return chronologically
+        return [
+            SearchResult(
+                content=m.get("content", ""),
+                memory_type=m.get("memory_type", "episodic"),
+                agent_id=m.get("agent_id", ""),
+                confidence=m.get("confidence", 0.7),
+                similarity=1.0,
+                source="temporal",
+                raw_data=m,
+            )
+            for m in memories[:limit]
+        ]
+
+    # ═════════════════════════════════════════════════════════════════
     # CAPABILITY 1: CRYSTALLIZATION (Axiom promotion)
-    # ═══════════════════════════════════════════════════════════════════
+    # ═════════════════════════════════════════════════════════════════════
 
     async def crystallize(
         self,
@@ -1185,7 +1439,7 @@ class SovereignMemoryV3:
         status = await self.initialize()
         stats = await self.get_stats()
         return {
-            "version": "3.0.0",
+            "version": "3.1.0",
             "status": "healthy" if status.get("supabase") else "degraded",
             "backends": status,
             "stats": stats,
@@ -1195,6 +1449,7 @@ class SovereignMemoryV3:
         """Cleanup resources."""
         await self.embedding.close()
         await self.supabase.close()
+        await self.audn.close()
 
 
 # ═══════════════════════════════════════════════════════════════════════

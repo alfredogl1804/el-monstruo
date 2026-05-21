@@ -453,6 +453,17 @@ def run_recovery():
     
     print("IDENTIDAD RESTAURADA")
 
+    # === Sovereign Memory System (4th anchor) ===
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from kernel.memory.sms_guardian_hook import inject_sovereign_context
+        inject_sovereign_context(
+            agent_id=identity.get("hilo", "manus_c"),
+            query=identity.get("proyecto_activo"),
+        )
+    except Exception as e:
+        print(f"  SMS: {e}")
+
 
 def self_parse_meta(row):
     """Parse metadata from a memory row."""
