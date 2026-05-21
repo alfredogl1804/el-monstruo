@@ -1,0 +1,44 @@
+%% B8-E2 — Diagrama de decisión binaria runtime para B8.2 / B8.3
+%% Status: DRAFT evidence pack — pendiente firma magna T1
+%% Autor: Manus E2 (autor NO-Cowork)
+%% Fuente normativa: B6_B12_DESIGN_CLOSURE_PACK_v0_2.md sección 4
+%% Acompaña: bridge/spec/B8_MAGNA_ACTION_TAXONOMY.md
+%% Versión: 1.0 DRAFT
+%% Fecha: 2026-05-20
+
+flowchart TD
+    A([Acción candidata recibida por runtime]) --> B[Computar local_unreachable\\nleer ~/.monstruo/kill_switches/DORY_CURE_DISABLED\\n+ verificar firma ed25519]
+
+    B --> C{¿local_unreachable == true?}
+
+    C -- NO --> D[[KILL SWITCH OK\\nFlujo normal continúa\\nNO emit evento B8]]
+    D --> E([Acción ejecutada con autorización normal])
+
+    C -- SI --> F[Computar action_in_magna_set\\nmatching estricto vs lista cerrada\\na-m de B8_MAGNA_ACTION_TAXONOMY.md]
+
+    F --> G{¿action ∈ acción_magna_set?}
+
+    G -- SI --> H[[B8.2 DISABLED_FOR_MAGNA_ACTIONS\\nRECHAZAR acción]]
+    H --> I[Emitir evento\\nMAGNA_ACTION_BLOCKED_LOCAL_UNREACHABLE\\ncon run_id + categoría matched + timestamp UTC\\n+ rationale verbatim + stack trace]
+    I --> J([Acción NO ejecutada\\nReintento solo manual post-restore])
+
+    G -- NO --> K[[B8.3 ENABLED_WITH_DEGRADED_WARN\\nPERMITIR acción con warning]]
+    K --> L[Emitir evento\\nLOCAL_UNREACHABLE_DEGRADED\\ncon run_id + categoría implícita 'no-magna'\\n+ timestamp UTC]
+    L --> M[Mostrar banner warning visible al operador\\n'kill switch unreachable but action non-magna']
+    M --> N([Acción ejecutada con autorización degradada])
+
+    style C fill:#ffecb3,color:#000
+    style G fill:#ffecb3,color:#000
+    style H fill:#ffcdd2,color:#000
+    style K fill:#fff9c4,color:#000
+    style D fill:#c8e6c9,color:#000
+
+    %% NOTAS BINARIAS
+    %% N1: La decisión es binaria. No hay grado intermedio.
+    %% N2: Matching estricto, no fuzzy. Cada categoría a-m corresponde a predicado runtime explícito.
+    %% N3: Si una acción cae en >=2 categorías, gana magna (regla más restrictiva).
+    %% N4: Si una acción NO cae en ninguna categoría a-m, es no-magna por default (B8.3).
+    %% N5: NO override silencioso por operador. Ningún path bypass este flow sin firma T1 magna.
+    %% N6: Drift entre lista taxonómica spec y set hardcodeado runtime => FAIL test B8.5(d).
+    %% N7: Cache local_unreachable runtime con TTL <=5s + invalidación inmediata en write a .monstruo/.
+    %% N8: Eventos B8 son append-only al bridge audit log (no mutables, no borrables).
