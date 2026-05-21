@@ -1,0 +1,11 @@
+{
+  "embryo_id": "oracle_ai_embryo_r0",
+  "task_id": "detect_new_ai_capability_candidates",
+  "action_class": "A0_OBSERVE",
+  "dispatcher_decision": "ALLOW",
+  "timestamp": "2026-05-21T03:24:50.903061Z",
+  "cost_usd": 0.001,
+  "output": {
+    "test": "data"
+  }
+}

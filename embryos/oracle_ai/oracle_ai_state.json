@@ -2,11 +2,11 @@
   "embryo_id": "oracle_ai_embryo_r0",
   "version": "0.1.0",
   "status": "IDLE",
-  "total_cycles": 1,
-  "last_cycle_timestamp": "2026-05-21T03:11:54.431501Z",
-  "last_task_executed": "detect_new_ai_capability_candidates",
+  "total_cycles": 2,
+  "last_cycle_timestamp": "2026-05-21T03:23:40.953189Z",
+  "last_task_executed": "map_capability_to_application",
   "last_task_result": "SUCCESS",
-  "total_cost_usd": 0.00019,
+  "total_cost_usd": 0.000304,
   "consecutive_failures": 0,
   "task_history": [
     {
@@ -14,6 +14,12 @@
       "timestamp": "2026-05-21T03:11:54.431501Z",
       "result": "SUCCESS",
       "cost": 0.00018975
+    },
+    {
+      "task_id": "map_capability_to_application",
+      "timestamp": "2026-05-21T03:23:40.953189Z",
+      "result": "SUCCESS",
+      "cost": 0.00011445
     }
   ],
   "created_at": "2026-05-21T03:00:00Z"
