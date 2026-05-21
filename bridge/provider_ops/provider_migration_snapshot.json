@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "generated_at": "2026-05-21T05:45:04.842984+00:00",
+  "generated_at": "2026-05-21T07:44:41.921670+00:00",
   "migration_candidates": [
     {
       "provider": "anthropic",
@@ -11,7 +11,7 @@
       "requires_t1": true,
       "suggested_replacements": [],
       "notes": "EOL risk detected: 25 days remaining",
-      "detected_at": "2026-05-21T05:45:04.842914+00:00",
+      "detected_at": "2026-05-21T07:44:41.921611+00:00",
       "decided_at": null,
       "t1_decision": null
     }

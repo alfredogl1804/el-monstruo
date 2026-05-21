@@ -1,0 +1,77 @@
+{
+  "sprint": "SPR-R0PLUS-PROVIDER-FALLBACK-VERIFICATION-001",
+  "timestamp": "2026-05-21T07:45:00Z",
+  "provider_registry_version": "1.0.0",
+  "providers": {
+    "anthropic": {
+      "status": "ALLOWED",
+      "model": "claude-sonnet-4-20250514",
+      "risk_flag": true,
+      "reported_eol": "2026-06-15",
+      "eol_source": "INTERNAL_HARDCODED (bridge/provider_ops/provider_migration_guard.py line 288)",
+      "eol_verified": false,
+      "eol_verification_status": "UNVERIFIED_INTERNAL_CLAIM",
+      "days_remaining": 25,
+      "risk_level": "HIGH (per migration guard)",
+      "auto_replacement": false,
+      "requires_t1": true
+    },
+    "openai": {
+      "status": "ALLOWED",
+      "model": "gpt-4o-mini",
+      "risk_flag": false,
+      "reported_eol": null,
+      "eol_verified": "N/A",
+      "risk_level": "LOW"
+    },
+    "google": {
+      "status": "ALLOWED",
+      "model": "gemini-2.0-flash",
+      "risk_flag": false,
+      "reported_eol": null,
+      "eol_verified": "N/A",
+      "risk_level": "LOW"
+    },
+    "xai": {
+      "status": "ALLOWED",
+      "model": "grok-3-mini-fast",
+      "risk_flag": false,
+      "reported_eol": null,
+      "eol_verified": "N/A",
+      "risk_level": "LOW"
+    },
+    "perplexity": {
+      "status": "BLOCKED_403",
+      "model": null,
+      "risk_flag": false,
+      "reason": "API returns 403. Unblock pending T1 authorization.",
+      "risk_level": "BLOCKED"
+    },
+    "deepseek": {
+      "status": "KEY_REQUIRED",
+      "model": null,
+      "risk_flag": false,
+      "reason": "No API key provisioned. Pending T1 authorization.",
+      "risk_level": "BLOCKED"
+    }
+  },
+  "risk_summary": {
+    "anthropic_risk_reported": true,
+    "anthropic_eol_date_reported": "2026-06-15",
+    "anthropic_eol_verified_externally": false,
+    "anthropic_eol_source": "Hardcoded in migration guard code (line 288). No external verification performed.",
+    "evidence_available": [
+      "Internal eol_overrides dict in provider_migration_guard.py",
+      "Migration guard output: 25 days remaining",
+      "Provider registry: model claude-sonnet-4-20250514 listed as ALLOWED"
+    ],
+    "evidence_missing": [
+      "Official Anthropic deprecation announcement",
+      "Anthropic API changelog entry",
+      "Anthropic status page confirmation",
+      "Any external source confirming 2026-06-15 as EOL date",
+      "Model availability test (blocked by no-provider-calls rule)"
+    ],
+    "eol_status": "UNVERIFIED_INTERNAL_CLAIM"
+  }
+}

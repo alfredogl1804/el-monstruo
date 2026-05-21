@@ -1,0 +1,88 @@
+{
+  "sprint": "SPR-R0PLUS-PROVIDER-FALLBACK-VERIFICATION-001",
+  "timestamp": "2026-05-21T07:48:00Z",
+  "context": {
+    "model_at_risk": "claude-sonnet-4-20250514",
+    "retirement_date": "2026-06-15",
+    "days_remaining": 25,
+    "verification_status": "VERIFIED_EOL",
+    "official_replacement": "claude-sonnet-4-6"
+  },
+  "options": [
+    {
+      "id": "A",
+      "name": "KEEP_CURRENT_MONITOR",
+      "benefit": "Zero disruption. Model still works during deprecated phase. Buys time for testing replacement.",
+      "risk": "Model WILL fail on 2026-06-15. If not migrated by then, all Anthropic-dependent operations break.",
+      "cost_impact": "NONE ($0.00 now, potential cost of emergency migration later)",
+      "quality_impact": "NONE (model still functional during deprecated phase, may be less reliable per Anthropic warning)",
+      "required_t1_action": "Set calendar reminder for 2026-06-01 to force migration decision.",
+      "provider_dependency": "Anthropic (current, deprecated)",
+      "implementation_scope": "No code changes. Only monitoring.",
+      "rollback": "N/A (no change made)",
+      "forbidden_actions": ["auto_replacement", "provider_call_to_test"],
+      "recommended_if": "T1 wants to test replacement model before committing.",
+      "not_recommended_if": "T1 cannot guarantee attention before 2026-06-15."
+    },
+    {
+      "id": "B",
+      "name": "MIGRATE_TO_NEW_ANTHROPIC_MODEL",
+      "benefit": "Stays within Anthropic ecosystem. Official replacement (claude-sonnet-4-6) is newer, better, active until 2027-02-17.",
+      "risk": "Requires T1 to approve model change. May have different behavior/pricing. Needs testing.",
+      "cost_impact": "LOW (same provider, similar pricing tier expected)",
+      "quality_impact": "POSITIVE (newer model, 9 months of active support remaining)",
+      "required_t1_action": "Approve model change from claude-sonnet-4-20250514 to claude-sonnet-4-6 in provider_registry.json.",
+      "provider_dependency": "Anthropic (new model, active)",
+      "implementation_scope": "Update provider_registry.json model field. Update eol_overrides in migration guard. Run verification test.",
+      "rollback": "Revert provider_registry.json to previous model (if still available before retirement).",
+      "forbidden_actions": ["auto_replacement", "change_without_t1"],
+      "recommended_if": "T1 wants to stay with Anthropic and the official replacement is acceptable.",
+      "not_recommended_if": "T1 wants to reduce Anthropic dependency or test alternatives first."
+    },
+    {
+      "id": "C",
+      "name": "TEMPORARILY_REMOVE_ANTHROPIC_FROM_R0PLUS",
+      "benefit": "Eliminates Anthropic risk entirely from R0+ operations. Zero dependency on deprecated model.",
+      "risk": "Reduces available providers from 4 to 3. May limit fallback options if another provider fails.",
+      "cost_impact": "NONE (R0+ currently uses $0.00 in provider calls)",
+      "quality_impact": "NONE for R0+ (no provider calls are made). Would matter if R1 operations begin.",
+      "required_t1_action": "Approve setting Anthropic status to SUSPENDED_PENDING_MIGRATION in registry.",
+      "provider_dependency": "OpenAI, Google, xAI only",
+      "implementation_scope": "Update provider_registry.json status to SUSPENDED. No code logic changes needed (R0+ makes no provider calls).",
+      "rollback": "Restore Anthropic status to ALLOWED with new model when ready.",
+      "forbidden_actions": ["delete_provider_permanently", "auto_replacement"],
+      "recommended_if": "T1 wants a clean risk profile while deciding on replacement.",
+      "not_recommended_if": "T1 plans to use Anthropic in R1 operations soon."
+    },
+    {
+      "id": "D",
+      "name": "REPLACE_WITH_EXISTING_ALLOWED_PROVIDER",
+      "benefit": "Uses already-configured provider (OpenAI/Google/xAI) as primary. No new setup needed.",
+      "risk": "Changes the default provider assumption. May affect future R1 quality if Anthropic was preferred.",
+      "cost_impact": "VARIABLE (depends on chosen replacement provider pricing)",
+      "quality_impact": "VARIABLE (depends on task type and chosen model capability)",
+      "required_t1_action": "Approve which existing provider becomes the Anthropic replacement for R1 operations.",
+      "provider_dependency": "OpenAI (gpt-4o-mini) or Google (gemini-2.0-flash) or xAI (grok-3-mini-fast)",
+      "implementation_scope": "Update provider priority/default in registry. Update any code that assumes Anthropic as default.",
+      "rollback": "Restore Anthropic with new model when available.",
+      "forbidden_actions": ["auto_replacement", "use_blocked_provider"],
+      "recommended_if": "T1 wants to move away from Anthropic entirely.",
+      "not_recommended_if": "T1 prefers Anthropic quality and just needs to update the model version."
+    },
+    {
+      "id": "E",
+      "name": "REQUIRE_EXTERNAL_VERIFICATION_BEFORE_DECISION",
+      "benefit": "Maximum caution. Direct API test confirms model availability before any action.",
+      "risk": "Delays decision. If model is already failing, delays response to outage.",
+      "cost_impact": "MINIMAL (one API call to verify model responds)",
+      "quality_impact": "NONE (verification only)",
+      "required_t1_action": "Authorize one diagnostic API call to Anthropic to verify model status.",
+      "provider_dependency": "Anthropic (one verification call)",
+      "implementation_scope": "Single API call with minimal prompt. Record response. Decide based on result.",
+      "rollback": "N/A (verification only, no state change)",
+      "forbidden_actions": ["auto_replacement", "multiple_calls", "change_model_based_on_result_without_t1"],
+      "recommended_if": "T1 wants absolute certainty before acting.",
+      "not_recommended_if": "External source (endoflife.date) already confirms EOL — verification adds delay without new information."
+    }
+  ]
+}
