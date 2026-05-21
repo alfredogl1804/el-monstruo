@@ -1,0 +1,159 @@
+{
+  "epoch_id": "EPOCH_009",
+  "adapter_version": "0.1",
+  "timestamp": "2026-05-21T07:09:47.731289+00:00",
+  "config": {
+    "epoch_id": "EPOCH_009",
+    "base_dir": "/home/ubuntu/el-monstruo-bridge",
+    "runner_path": "/home/ubuntu/el-monstruo-bridge/bridge/r0plus_artifact_ops/artifact_ops_runner_v0_1.py",
+    "kill_switch_path": "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/reactor_heartbeat_r0/scheduler/scheduler_kill_switch.json",
+    "directive_queue_path": "/home/ubuntu/el-monstruo-bridge/bridge/state_fabric/t1_directive_queue.v0_1.json",
+    "timestamp": "2026-05-21T07:09:47.731289+00:00",
+    "adapter_version": "0.1",
+    "external_api_calls": 0,
+    "secrets_used": 0,
+    "r1_operations": 0
+  },
+  "kill_switch": {
+    "exists": true,
+    "state": "INACTIVE",
+    "active": false,
+    "read_only": true
+  },
+  "runner_output": {
+    "status": "SUCCESS",
+    "runner_version": "0.1",
+    "kill_switch": {
+      "exists": false,
+      "state": "NOT_FOUND",
+      "read_only": true
+    },
+    "results": {
+      "indexer": {
+        "status": "SUCCESS",
+        "artifact_count": 11,
+        "artifact_test_coverage": 100.0,
+        "artifacts_without_tests": 0
+      },
+      "pattern_detector": {
+        "status": "SUCCESS",
+        "memory_health": "HEALTHY",
+        "memory_health_score": 70,
+        "cost_anomalies": 1,
+        "task_overspecialization": true
+      },
+      "history_analyzer": {
+        "status": "SUCCESS",
+        "embryo_health": "HEALTHY",
+        "oracle_health": "HEALTHY",
+        "auditor_health": "HEALTHY",
+        "regression_flags": 1,
+        "total_cost_usd": 0.0073
+      }
+    },
+    "consolidated": {
+      "artifact_count": 11,
+      "artifact_test_coverage": 100.0,
+      "memory_health": "HEALTHY",
+      "embryo_health": "HEALTHY",
+      "cost_anomalies": [
+        {
+          "entry_id": "unknown",
+          "cost_usd": 0.00043830000000000003,
+          "z_score": 2.06,
+          "mean_cost": 0.000261,
+          "direction": "HIGH",
+          "recommendation": "Investigate why this cycle cost significantly more/less than average."
+        }
+      ],
+      "task_overspecialization": {
+        "detected": true,
+        "dominant_tasks": [
+          "audit_oracle_latest_output"
+        ],
+        "unique_tasks": 3,
+        "total_runs": 8
+      },
+      "regression_flags": [
+        {
+          "type": "COST_SPIKE",
+          "run_index": 8,
+          "source_file": "map_capability_to_application_20260521T033525.json",
+          "current_value": 0.001,
+          "recent_avg": 0.000279,
+          "severity": "MEDIUM"
+        }
+      ],
+      "next_recommended_action": "PRODUCE_NEXT_SURGE"
+    },
+    "external_api_calls": 0,
+    "secrets_used": 0,
+    "r1_operations": 0
+  },
+  "directive_summary": {
+    "exists": true,
+    "total": 2,
+    "active": 2,
+    "directive_ids": [
+      "T1D-001",
+      "T1D-002"
+    ]
+  },
+  "epoch_ops_snapshot": {
+    "epoch_id": "EPOCH_009",
+    "adapter_version": "0.1",
+    "timestamp": "2026-05-21T07:09:47.731289+00:00",
+    "artifact_ops_health": "HEALTHY",
+    "artifact_count": 11,
+    "artifact_test_coverage": 100.0,
+    "memory_palace_health": "HEALTHY",
+    "embryo_health": "HEALTHY",
+    "kill_switch": {
+      "exists": true,
+      "state": "INACTIVE",
+      "active": false,
+      "read_only": true
+    },
+    "directive_summary": {
+      "exists": true,
+      "total": 2,
+      "active": 2,
+      "directive_ids": [
+        "T1D-001",
+        "T1D-002"
+      ]
+    },
+    "cost_summary": {
+      "epoch_cost_usd": 0.0,
+      "provider_calls": 0,
+      "budget_remaining": 0.0
+    },
+    "top_risks": [
+      {
+        "risk_id": "RISK_COST_ANOMALY",
+        "severity": "MEDIUM",
+        "description": "1 cost anomaly(ies) detected",
+        "source": "memory_palace_pattern_detector"
+      },
+      {
+        "risk_id": "RISK_REGRESSION_COST_SPIKE",
+        "severity": "MEDIUM",
+        "description": "Regression: COST_SPIKE at run 8",
+        "source": "embryo_run_history_analyzer"
+      },
+      {
+        "risk_id": "RISK_TASK_OVERSPECIALIZATION",
+        "severity": "LOW",
+        "description": "Only 3 unique tasks in 8 runs",
+        "source": "memory_palace_pattern_detector"
+      }
+    ],
+    "next_recommended_action": "PRODUCE_NEXT_SURGE",
+    "external_api_calls": 0,
+    "secrets_used": 0,
+    "r1_operations": 0
+  },
+  "external_api_calls": 0,
+  "secrets_used": 0,
+  "r1_operations": 0
+}

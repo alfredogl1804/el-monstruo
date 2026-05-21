@@ -1,0 +1,105 @@
+{
+  "snapshot_version": "v0.3",
+  "generated_at": "2026-05-21T07:10:04Z",
+  "epoch_current": "EPOCH_009",
+  "sprint_current": "SPR-R0PLUS-EPOCH-009-OPS-INTEGRATED",
+  "pilot_health": "HEALTHY",
+  "artifact_ops_health": "HEALTHY",
+  "artifact_count": 11,
+  "artifact_test_coverage": 100.0,
+  "memory_palace_health": {
+    "status": "HEALTHY",
+    "score": 70,
+    "entries": 8
+  },
+  "oracle_health": {
+    "status": "HEALTHY",
+    "version": "v0.5",
+    "total_runs": 13,
+    "score": 100
+  },
+  "auditor_health": {
+    "status": "HEALTHY",
+    "version": "v0.5",
+    "total_runs": 8,
+    "score": 100
+  },
+  "directive_queue_health": {
+    "status": "ACTIVE",
+    "total_directives": 2,
+    "active_directives": 2,
+    "ids": ["T1D-001", "T1D-002"]
+  },
+  "cost_summary": {
+    "epoch_009_cost_usd": 0.0,
+    "total_pilot_cost_usd": 0.027,
+    "provider_calls_this_epoch": 0,
+    "budget_remaining_usd": 0.0
+  },
+  "provider_status": {
+    "anthropic": {
+      "model": "claude-sonnet-4-20250514",
+      "status": "MONITORING",
+      "eol_date": "2026-06-15",
+      "days_remaining": 25,
+      "migration_guard": "ACTIVE"
+    }
+  },
+  "top_3_risks": [
+    {
+      "rank": 1,
+      "risk_id": "RISK_COST_ANOMALY",
+      "severity": "MEDIUM",
+      "description": "1 cost anomaly detected (z-score 2.06)",
+      "source": "memory_palace_pattern_detector"
+    },
+    {
+      "rank": 2,
+      "risk_id": "RISK_REGRESSION_COST_SPIKE",
+      "severity": "MEDIUM",
+      "description": "Cost spike at run 8 (current: $0.001, avg: $0.000279)",
+      "source": "embryo_run_history_analyzer"
+    },
+    {
+      "rank": 3,
+      "risk_id": "RISK_TASK_OVERSPECIALIZATION",
+      "severity": "LOW",
+      "description": "Only 3 unique tasks in 8 Auditor runs",
+      "source": "memory_palace_pattern_detector"
+    }
+  ],
+  "top_3_actions": [
+    {
+      "rank": 1,
+      "action": "PRODUCE_NEXT_SURGE",
+      "rationale": "System healthy, all artifacts tested, no blockers"
+    },
+    {
+      "rank": 2,
+      "action": "VERIFY_ANTHROPIC_MIGRATION_PATH",
+      "rationale": "25 days to EOL, need fallback verified"
+    },
+    {
+      "rank": 3,
+      "action": "DIVERSIFY_AUDITOR_TASKS",
+      "rationale": "Reduce overspecialization risk"
+    }
+  ],
+  "decisions_pending_t1": [
+    {
+      "id": "DEC-ANTHROPIC-MIGRATION",
+      "status": "MONITORING",
+      "deadline": "2026-06-01",
+      "recommendation": "NEEDS_VERIFICATION"
+    },
+    {
+      "id": "DEC-MERGE-TO-MAIN",
+      "status": "NOT_RECOMMENDED_YET",
+      "deadline": null,
+      "recommendation": "Continue branch development"
+    }
+  ],
+  "approve_main": "NOT_RECOMMENDED_YET",
+  "anthropic_migration": "MONITORING",
+  "recommended_next_sprint": "SPR-R0PLUS-PRODUCTION-SURGE-002"
+}
