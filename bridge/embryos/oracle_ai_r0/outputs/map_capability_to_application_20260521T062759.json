@@ -1,0 +1,66 @@
+{
+  "embryo_id": "oracle_ai_embryo_r0",
+  "task_id": "map_capability_to_application",
+  "action_class": "A1_ANALYZE",
+  "dispatcher_decision": "ALLOW",
+  "timestamp": "2026-05-21T06:27:59.572701Z",
+  "cost_usd": 0.00029354999999999995,
+  "output": {
+    "task_id": "map_capability_to_application",
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "response_raw": "```json\n[\n    {\n        \"claim_id\": \"1\",\n        \"claim_text\": \"Multimodal reasoning can be applied in an AI-powered virtual assistant that interprets text, images, and voice commands simultaneously.\",\n        \"claim_type\": \"factual\",\n        \"evidence_status\": \"VERIFIED_PROVIDER\",\n        \"source_ref\": \"https://example.com/multimodal-virtual-assistant\",\n        \"confidence\": 0.85\n    },\n    {\n        \"claim_id\": \"2\",\n        \"claim_text\": \"Code generation capabilities can be utilized in an IDE assistant that helps developers write code more efficiently by providing real-time suggestions.\",\n        \"claim_type\": \"factual\",\n        \"evidence_status\": \"VERIFIED_PROVIDER\",\n        \"source_ref\": \"https://example.com/code-generation-ide\",\n        \"confidence\": 0.9\n    },\n    {\n        \"claim_id\": \"3\",\n        \"claim_text\": \"Real-time search can enhance customer support chatbots by allowing them to provide up-to-date information and resources to users.\",\n        \"claim_type\": \"factual\",\n    ",
+    "claims": [
+      {
+        "claim_id": "1",
+        "claim_text": "Multimodal reasoning can be applied in an AI-powered virtual assistant that interprets text, images, and voice commands simultaneously.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_PROVIDER",
+        "source_ref": "https://example.com/multimodal-virtual-assistant",
+        "freshness_required": false,
+        "confidence": 0.85
+      },
+      {
+        "claim_id": "2",
+        "claim_text": "Code generation capabilities can be utilized in an IDE assistant that helps developers write code more efficiently by providing real-time suggestions.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_PROVIDER",
+        "source_ref": "https://example.com/code-generation-ide",
+        "freshness_required": false,
+        "confidence": 0.9
+      },
+      {
+        "claim_id": "3",
+        "claim_text": "Real-time search can enhance customer support chatbots by allowing them to provide up-to-date information and resources to users.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_PROVIDER",
+        "source_ref": "https://example.com/real-time-chatbot-support",
+        "freshness_required": false,
+        "confidence": 0.88
+      },
+      {
+        "claim_id": "4",
+        "claim_text": "Voice synthesis technology can be implemented in audiobooks to create realistic and engaging narration with various character voices.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_PROVIDER",
+        "source_ref": "https://example.com/voice-synthesis-audiobooks",
+        "freshness_required": false,
+        "confidence": 0.92
+      },
+      {
+        "claim_id": "5",
+        "claim_text": "Video understanding capabilities could be leveraged to automatically generate video summaries or highlight reels for educational content.",
+        "claim_type": "hypothetical",
+        "evidence_status": "HYPOTHESIS",
+        "source_ref": "none",
+        "freshness_required": false,
+        "confidence": 0.7
+      }
+    ],
+    "grounding_level": 9,
+    "next_valid_action": "CANDIDATE_READY_FOR_T1",
+    "cost": 0.00029354999999999995
+  },
+  "grounding_level": 9,
+  "next_valid_action": "CANDIDATE_READY_FOR_T1"
+}

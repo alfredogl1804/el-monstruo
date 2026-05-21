@@ -131,21 +131,63 @@
       "avoid_next_time": [],
       "next_best_action": "CANDIDATE_READY_FOR_T1",
       "status": "active"
+    },
+    {
+      "memory_id": "MEM-OAI-1779359279",
+      "timestamp": "2026-05-21T06:27:59.573346Z",
+      "source_embryo_id": "oracle_ai_embryo_r0",
+      "cycle_id": 10,
+      "task_id": "map_capability_to_application",
+      "action_class": "A1_ANALYZE",
+      "artifact_refs": [
+        "map_capability_to_application_20260521T062759.json"
+      ],
+      "claims_count": 5,
+      "grounding_score": 9,
+      "auditor_verdict": "PENDING",
+      "value_score": 10,
+      "cost_usd": 0.00029354999999999995,
+      "lessons": [],
+      "avoid_next_time": [],
+      "next_best_action": "CANDIDATE_READY_FOR_T1",
+      "status": "active"
+    },
+    {
+      "memory_id": "MEM-AUD-1779359288",
+      "timestamp": "2026-05-21T06:28:08.871334Z",
+      "source_embryo_id": "oracle_auditor_embryo_r0",
+      "cycle_id": 8,
+      "task_id": "audit_oracle_latest_output",
+      "action_class": "A1_ANALYZE",
+      "artifact_refs": [
+        "map_capability_to_application_20260521T062759.json"
+      ],
+      "claims_count": 0,
+      "grounding_score": 6.0,
+      "auditor_verdict": "PARTIAL",
+      "value_score": 8.0,
+      "cost_usd": 0.00020115,
+      "lessons": [
+        "Oracle output partially grounded \u2014 some claims need real-time verification"
+      ],
+      "avoid_next_time": [],
+      "next_best_action": "REQUIRES_T1_REVIEW",
+      "status": "active"
     }
   ],
   "stats": {
-    "total_entries": 6,
+    "total_entries": 8,
     "total_archived": 0,
-    "total_active": 6,
+    "total_active": 8,
     "unique_embryos": [
-      "oracle_auditor_embryo_r0",
-      "oracle_ai_embryo_r0"
+      "oracle_ai_embryo_r0",
+      "oracle_auditor_embryo_r0"
     ],
     "unique_tasks": [
       "audit_oracle_latest_output",
-      "detect_new_ai_capability_candidates",
-      "map_capability_to_application"
+      "map_capability_to_application",
+      "detect_new_ai_capability_candidates"
     ],
-    "total_cost_usd": 0.001595
+    "total_cost_usd": 0.00209
   }
 }

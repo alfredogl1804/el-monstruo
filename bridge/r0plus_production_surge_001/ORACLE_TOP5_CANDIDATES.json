@@ -1,0 +1,132 @@
+{
+  "sprint": "SPR-R0PLUS-PRODUCTION-SURGE-001",
+  "generated_by": "oracle_ai_embryo_r0 v0.5",
+  "timestamp": "2026-05-21T06:29:00Z",
+  "selection_criteria": "T1D-PRODUCTION-SURGE-001 (priority 10): maximize real productivity, minimize reports, maximize reusability",
+  "candidates": [
+    {
+      "rank": 1,
+      "artifact_id": "ART-SURGE-001",
+      "artifact_name": "memory_palace_pattern_detector_v0_1.py",
+      "problem_solved": "Memory Palace has 8 entries but no automated pattern detection. Lessons are repeated manually. No way to detect recurring failures, cost trends, or grounding drift without reading all entries.",
+      "expected_value": "Automated pattern detection across Memory Palace entries: recurring failures, cost anomalies, grounding trends, embryo performance drift. Reduces manual analysis from 15min to 2sec.",
+      "manual_work_reduction_score": 9,
+      "safety_gain_score": 7,
+      "observability_gain_score": 10,
+      "implementation_complexity": "MEDIUM",
+      "risk_class": "LOW",
+      "allowed_files": ["bridge/r0plus_production_surge_001/artifacts/memory_palace_pattern_detector_v0_1.py", "bridge/r0plus_production_surge_001/artifacts/test_memory_palace_pattern_detector.py"],
+      "forbidden_files": ["embryos/memory_palace/memory_palace.py", "kernel/", "migrations/"],
+      "tests_required": 12,
+      "expected_runtime": "< 1s local",
+      "cost_estimate": 0.0,
+      "grounding_claims": [
+        "Memory Palace has 8 entries with lessons field",
+        "Patterns repeat across entries (same lesson text)",
+        "Cost data exists per entry for trend analysis",
+        "Grounding scores exist per entry for drift detection"
+      ],
+      "what_not_to_do": "Do NOT modify Memory Palace itself. Do NOT write to Supabase. Do NOT call external APIs. Read-only analysis of existing data.",
+      "go_no_go": "GO"
+    },
+    {
+      "rank": 2,
+      "artifact_id": "ART-SURGE-002",
+      "artifact_name": "r0plus_artifact_indexer_v0_1.py",
+      "problem_solved": "No central index of all R0+ artifacts produced across 8 epochs. T1 cannot quickly see what exists, where it is, what it does, or if it has tests. Finding artifacts requires manual directory traversal.",
+      "expected_value": "Auto-discovers all R0+ artifacts by scanning directories, extracts metadata (name, path, tests, epoch, purpose), produces a consolidated index JSON. T1 can see everything in one file.",
+      "manual_work_reduction_score": 10,
+      "safety_gain_score": 5,
+      "observability_gain_score": 10,
+      "implementation_complexity": "LOW",
+      "risk_class": "LOW",
+      "allowed_files": ["bridge/r0plus_production_surge_001/artifacts/r0plus_artifact_indexer_v0_1.py", "bridge/r0plus_production_surge_001/artifacts/test_r0plus_artifact_indexer.py"],
+      "forbidden_files": ["kernel/", "migrations/", ".github/"],
+      "tests_required": 10,
+      "expected_runtime": "< 1s local",
+      "cost_estimate": 0.0,
+      "grounding_claims": [
+        "Artifacts exist in bridge/reactor_limited_active_r0/live_upgrade_epoch_*/artifacts/",
+        "Each artifact has a test file with test_ prefix",
+        "Artifact names follow pattern *_v0_1.py",
+        "Epochs 005-008 have artifacts directories"
+      ],
+      "what_not_to_do": "Do NOT modify existing artifacts. Do NOT create new epochs. Do NOT touch main. Read-only scan + index generation.",
+      "go_no_go": "GO"
+    },
+    {
+      "rank": 3,
+      "artifact_id": "ART-SURGE-003",
+      "artifact_name": "embryo_run_history_analyzer_v0_1.py",
+      "problem_solved": "Oracle and Auditor have run 9+ cycles each but no trend analysis exists. Cannot see: cost per cycle trend, grounding improvement over time, task distribution, failure rate, or performance regression.",
+      "expected_value": "Scans all Oracle/Auditor outputs and state files. Produces trend analysis: cost/cycle, grounding/cycle, task frequency, success rate, time between runs. Detects regressions automatically.",
+      "manual_work_reduction_score": 8,
+      "safety_gain_score": 8,
+      "observability_gain_score": 10,
+      "implementation_complexity": "MEDIUM",
+      "risk_class": "LOW",
+      "allowed_files": ["bridge/r0plus_production_surge_001/artifacts/embryo_run_history_analyzer_v0_1.py", "bridge/r0plus_production_surge_001/artifacts/test_embryo_run_history_analyzer.py"],
+      "forbidden_files": ["embryos/oracle_ai/oracle_ai_embryo.py", "embryos/oracle_auditor/oracle_auditor_embryo.py", "kernel/"],
+      "tests_required": 12,
+      "expected_runtime": "< 1s local",
+      "cost_estimate": 0.0,
+      "grounding_claims": [
+        "Oracle state has cycles_completed counter",
+        "Output files have timestamps and cost fields",
+        "Grounding scores are in each output JSON",
+        "Auditor outputs reference oracle outputs for cross-analysis"
+      ],
+      "what_not_to_do": "Do NOT modify embryo code. Do NOT run embryos. Do NOT call providers. Read-only analysis of existing output files and state.",
+      "go_no_go": "GO"
+    },
+    {
+      "rank": 4,
+      "artifact_id": "ART-SURGE-004",
+      "artifact_name": "epoch_value_reporter_v0_1.py",
+      "problem_solved": "8 epochs have been executed but no cross-epoch value comparison exists. Cannot answer: which epoch produced most value? Which had lowest cost? Which introduced most tests?",
+      "expected_value": "Scans all epoch directories, extracts metrics (files created, tests added, cost, artifacts produced, grounding scores), produces comparative report. Identifies highest-value and lowest-value epochs.",
+      "manual_work_reduction_score": 7,
+      "safety_gain_score": 4,
+      "observability_gain_score": 9,
+      "implementation_complexity": "MEDIUM",
+      "risk_class": "LOW",
+      "allowed_files": ["bridge/r0plus_production_surge_001/artifacts/epoch_value_reporter_v0_1.py", "bridge/r0plus_production_surge_001/artifacts/test_epoch_value_reporter.py"],
+      "forbidden_files": ["kernel/", "migrations/", ".github/"],
+      "tests_required": 10,
+      "expected_runtime": "< 1s local",
+      "cost_estimate": 0.0,
+      "grounding_claims": [
+        "Epoch directories exist at bridge/reactor_limited_active_r0/live_upgrade_epoch_00*/",
+        "Each epoch has CHAIN_LOG.jsonl with cost data",
+        "Each epoch has DECLARATION.md with metadata",
+        "Epochs 005-008 have artifacts/ subdirectories"
+      ],
+      "what_not_to_do": "Do NOT create new epochs. Do NOT modify existing epoch files. Read-only analysis.",
+      "go_no_go": "GO"
+    },
+    {
+      "rank": 5,
+      "artifact_id": "ART-SURGE-005",
+      "artifact_name": "directive_conflict_reporter_v0_1.py",
+      "problem_solved": "T1 Directive Conflict Resolver exists but produces no human-readable report. T1 cannot quickly see: which directives conflict, how they were resolved, what was suppressed.",
+      "expected_value": "Reads directive queue, runs conflict resolution, produces human-readable report with conflict matrix, resolution decisions, and recommendations. Useful for T1 visibility into directive system health.",
+      "manual_work_reduction_score": 6,
+      "safety_gain_score": 6,
+      "observability_gain_score": 8,
+      "implementation_complexity": "LOW",
+      "risk_class": "LOW",
+      "allowed_files": ["bridge/r0plus_production_surge_001/artifacts/directive_conflict_reporter_v0_1.py", "bridge/r0plus_production_surge_001/artifacts/test_directive_conflict_reporter.py"],
+      "forbidden_files": ["bridge/state_fabric/t1_directive_conflict_resolver.py", "kernel/"],
+      "tests_required": 10,
+      "expected_runtime": "< 1s local",
+      "cost_estimate": 0.0,
+      "grounding_claims": [
+        "t1_directive_conflict_resolver.py exists with resolve_conflicts()",
+        "t1_directive_queue.v0_1.json has 2 directives",
+        "Conflict resolution produces winner/loser decisions"
+      ],
+      "what_not_to_do": "Do NOT modify the conflict resolver. Do NOT modify the directive queue. Read-only reporting.",
+      "go_no_go": "GO"
+    }
+  ]
+}

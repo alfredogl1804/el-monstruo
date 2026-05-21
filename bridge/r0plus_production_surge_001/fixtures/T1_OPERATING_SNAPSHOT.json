@@ -1,0 +1,41 @@
+{
+  "snapshot_version": "0.1",
+  "generated_by": "T1_Operating_Snapshot_Fixture",
+  "sprint": "SPR-R0PLUS-PRODUCTION-SURGE-001",
+  "artifact_ecosystem": {
+    "total_artifacts": 11,
+    "test_coverage_pct": 36.4,
+    "total_tests": 156,
+    "source_distribution": {
+      "epoch": 4,
+      "surge": 3,
+      "provider_ops": 2,
+      "state_fabric": 2
+    }
+  },
+  "memory_palace_health": {
+    "entries_analyzed": 8,
+    "health_score": 70,
+    "health_status": "HEALTHY",
+    "issues": [
+      "1 cost anomalies detected",
+      "Task over-specialization detected"
+    ]
+  },
+  "embryo_health": {
+    "oracle_runs": 13,
+    "auditor_runs": 8,
+    "total_cost": 0.0073,
+    "oracle_health": "HEALTHY",
+    "auditor_health": "HEALTHY",
+    "combined_health": "HEALTHY"
+  },
+  "pilot_status": {
+    "reactor_level": "R0+",
+    "epochs_completed": 8,
+    "surges_completed": 1,
+    "total_tests_passing": 156,
+    "directives_active": 2,
+    "provider_eol_alert": "claude-sonnet-4-20250514 (25 days)"
+  }
+}

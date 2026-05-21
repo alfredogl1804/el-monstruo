@@ -2,11 +2,11 @@
   "embryo_id": "oracle_auditor_embryo_r0",
   "version": "0.1.0",
   "status": "IDLE",
-  "total_cycles": 7,
-  "last_cycle_timestamp": "2026-05-21T05:45:00.253522Z",
+  "total_cycles": 8,
+  "last_cycle_timestamp": "2026-05-21T06:28:08.871099Z",
   "last_task_executed": "audit_oracle_latest_output",
   "last_task_result": "SUCCESS",
-  "total_cost_usd": 0.00123,
+  "total_cost_usd": 0.001431,
   "consecutive_failures": 0,
   "task_history": [
     {
@@ -64,6 +64,15 @@
       "cost": 0.00019769999999999998,
       "grounding_score": 10,
       "grounding_verdict": "PASS",
+      "memory_influenced": true
+    },
+    {
+      "task_id": "audit_oracle_latest_output",
+      "timestamp": "2026-05-21T06:28:08.871099Z",
+      "result": "SUCCESS",
+      "cost": 0.00020115,
+      "grounding_score": 6.0,
+      "grounding_verdict": "PARTIAL",
       "memory_influenced": true
     }
   ],
