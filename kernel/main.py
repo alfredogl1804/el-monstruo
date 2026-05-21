@@ -825,9 +825,32 @@ async def lifespan(app: FastAPI):
                 error=str(_rotor_err),
                 fallback="stub _stub_handler_recharge_mainspring remains active",
             )
-        # ── /Sprint ROTOR-001 ───────────────────────────────────────
+        # ── /Sprint ROTOR-001 ───────────────────────────────────────────
 
-        # ── Sprint 55.2: A2A Registry ───────────────────────────────────────────────
+        # ── SMS REM Cycle (Obj #15 Memoria Soberana) ─────────────────────────────
+        try:
+            from kernel.memory.sms_rem_cycle import run_sms_rem_cycle
+            embrion_scheduler.register_handler(
+                "run_sms_rem_cycle",
+                run_sms_rem_cycle,
+            )
+            logger.info(
+                "sms_rem_cycle_handler_registered",
+                handler="run_sms_rem_cycle",
+                module="kernel.memory.sms_rem_cycle",
+                schedule="daily 09:00 UTC (3AM CST)",
+                cap_usd=0.15,
+                sprint="SMS-001",
+            )
+        except Exception as _sms_err:
+            logger.warning(
+                "sms_rem_cycle_handler_register_failed",
+                error=str(_sms_err),
+                fallback="stub _stub_handler_sms_rem_cycle remains active",
+            )
+        # ── /SMS REM Cycle ──────────────────────────────────────────────────────
+
+        # ── Sprint 55.2: A2A Registry─────────────────────────────────────────────
         try:
             from kernel.a2a_registry import init_a2a_registry
             from kernel.a2a_routes import router as a2a_router, set_registry
