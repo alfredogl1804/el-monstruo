@@ -1,6 +1,7 @@
 """
-Tests for Provider Registry Guard v1.0
-10 tests as specified in SPR-EPOCH003-PRODUCTION-ACCELERATOR-001 Carril A.
+Tests for Provider Registry Guard v1.1
+10 tests + 4 migration-specific tests = 14 tests.
+Updated for SPR-R0PLUS-ANTHROPIC-MIGRATION-PATCH-001.
 """
 import json
 import os
@@ -34,7 +35,7 @@ def test(name, condition):
 def run_tests():
     global PASS, FAIL
     print("=" * 60)
-    print("Provider Registry Guard Tests")
+    print("Provider Registry Guard Tests (v1.1 post-migration)")
     print("=" * 60)
 
     reg = load_provider_registry()
@@ -49,9 +50,9 @@ def run_tests():
     # Test 3: DeepSeek DENY
     test("3. DeepSeek DENY", reject_blocked_provider("deepseek", reg) is True)
 
-    # Test 4: Modelo deprecated DENY
+    # Test 4: Modelo deprecated DENY (old OpenAI model)
     ok, reason = validate_provider_allowed("openai", "gpt-3.5-turbo", reg)
-    test("4. Modelo deprecated DENY", ok is False and "deprecated" in reason.lower())
+    test("4. Modelo deprecated DENY (openai)", ok is False and "deprecated" in reason.lower())
 
     # Test 5: Provider desconocido DENY
     ok, reason = validate_provider_allowed("unknown_provider", "some-model", reg)
@@ -78,6 +79,28 @@ def run_tests():
     except Exception:
         valid_json = False
     test("10. Registry JSON valido", valid_json)
+
+    # === MIGRATION-SPECIFIC TESTS ===
+
+    # Test 11: Old Anthropic model (claude-sonnet-4-20250514) is now DEPRECATED → DENY
+    ok_old, reason_old = validate_provider_allowed("anthropic", "claude-sonnet-4-20250514", reg)
+    test("11. OLD model claude-sonnet-4-20250514 DENY (deprecated)",
+         ok_old is False and "deprecated" in reason_old.lower())
+
+    # Test 12: New Anthropic model (claude-sonnet-4-6) is ALLOWED
+    ok_new, reason_new = validate_provider_allowed("anthropic", "claude-sonnet-4-6", reg)
+    test("12. NEW model claude-sonnet-4-6 ALLOWED", ok_new is True and reason_new == "ALLOWED")
+
+    # Test 13: Registry version updated to 1.1.0
+    test("13. Registry version 1.1.0", reg["version"] == "1.1.0")
+
+    # Test 14: Migration log exists with T1 decision recorded
+    migration_log = reg.get("migration_log", [])
+    has_migration = any(
+        entry.get("t1_decision") == "APPROVE" and "claude-sonnet-4-6" in entry.get("change", "")
+        for entry in migration_log
+    )
+    test("14. T1 decision recorded in migration_log", has_migration)
 
     print("=" * 60)
     print(f"Results: {PASS} PASS, {FAIL} FAIL, {PASS + FAIL} total")

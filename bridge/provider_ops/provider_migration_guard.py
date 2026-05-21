@@ -284,9 +284,9 @@ if __name__ == "__main__":
     registry = load_provider_registry()
 
     # Known EOL dates (reported by system, not verified externally)
-    eol_overrides = {
-        "anthropic": "2026-06-15"
-    }
+    # NOTE: anthropic EOL removed after T1-approved migration to claude-sonnet-4-6
+    # (SPR-R0PLUS-ANTHROPIC-MIGRATION-PATCH-001, 2026-05-21)
+    eol_overrides = {}
 
     risks = detect_provider_eol_risk(registry, eol_overrides)
     print(f"\n  Risks detected: {len(risks)}")
