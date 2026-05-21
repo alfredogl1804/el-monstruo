@@ -17,7 +17,6 @@ from __future__ import annotations
 import hashlib
 import os
 import subprocess
-import tempfile
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path

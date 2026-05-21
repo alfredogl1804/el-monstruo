@@ -6,12 +6,12 @@ Tests feature flag, check registration, run cycle, activation.
 No scheduler enabled. No production side effects.
 """
 
-import pytest
 from datetime import datetime, timedelta
+
+import pytest
 
 from kernel.anti_dory.b10_guardian_cron import (
     CheckResult,
-    FeatureFlag,
     GuardianAutonomoCron,
     GuardianCheck,
     GuardianRunResult,
@@ -72,7 +72,8 @@ class TestRegisterCheck:
         assert checks[0].name == "anchor_integrity"
 
     def test_register_with_handler(self, guardian, sample_check):
-        handler = lambda: True
+        def handler():
+            return True
         guardian.register_check(sample_check, handler=handler)
         assert len(guardian.get_registered_checks()) == 1
 

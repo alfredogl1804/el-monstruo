@@ -2,11 +2,13 @@
 B8 Magna Classifier v2 — Semantic Category Tests (50+ new cases)
 Tests the 10 new semantic categories added in v2.0.
 """
-import pytest
 import sys
+
+import pytest
+
 sys.path.insert(0, "/home/ubuntu/test_b004")
 
-from kernel.anti_dory.b8_magna_classifier import classify_action, ActionLevel
+from kernel.anti_dory.b8_magna_classifier import ActionLevel, classify_action
 
 
 class TestBypassGuardian:

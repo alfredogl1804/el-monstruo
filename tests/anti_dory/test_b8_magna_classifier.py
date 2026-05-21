@@ -8,9 +8,9 @@ Tests puros en memoria. Sin Supabase. Sin APIs externas.
 import pytest
 
 from kernel.anti_dory.b8_magna_classifier import (
+    MAGNA_TRIGGERS,
     ActionClassification,
     ActionLevel,
-    MAGNA_TRIGGERS,
     classify_action,
 )
 

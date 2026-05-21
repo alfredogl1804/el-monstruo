@@ -17,7 +17,6 @@ Actual execution requires explicit T1 activation.
 
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum

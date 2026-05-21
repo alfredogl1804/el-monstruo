@@ -6,21 +6,19 @@ Tests real minisign verification using public key.
 NO private key. NO signing real actions.
 """
 
-import os
 import subprocess
 import tempfile
-import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from kernel.anti_dory.b6_signature_verifier import (
     SignatureVerifier,
-    VerificationResult,
     VerificationStatus,
     compute_file_hash,
     find_public_key,
     is_minisign_available,
-    PUBLIC_KEY_RELATIVE_PATH,
 )
 
 

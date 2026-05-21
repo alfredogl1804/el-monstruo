@@ -5,9 +5,9 @@ Anti-Dory FORGE v3.0 — Batch 005 Célula C
 Tests with mocked Anchor Store. No external side effects.
 """
 
-import pytest
 from unittest.mock import MagicMock
-from dataclasses import dataclass
+
+import pytest
 
 from kernel.anti_dory.b2_claim_vg import (
     Claim,

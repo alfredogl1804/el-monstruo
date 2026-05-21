@@ -5,9 +5,10 @@ Anti-Dory FORGE v3.0 — Batch 005 Célula A
 Tests with mocked Supabase client. No real DB writes.
 """
 
-import pytest
 from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+
+import pytest
 
 from kernel.anti_dory.b1_anchor_store import (
     Anchor,
@@ -49,8 +50,8 @@ def sample_row():
 
 class TestGetAnchor:
     def test_get_existing_anchor(self, adapter, mock_client, sample_row):
-        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = MagicMock(
-            data=[sample_row]
+        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = (
+            MagicMock(data=[sample_row])
         )
         result = adapter.get_anchor("soberania_datos")
         assert isinstance(result, Anchor)
@@ -58,8 +59,8 @@ class TestGetAnchor:
         assert result.t1_signature == "T1_SIGNED_2026-05-20"
 
     def test_get_nonexistent_anchor(self, adapter, mock_client):
-        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = MagicMock(
-            data=[]
+        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = (
+            MagicMock(data=[])
         )
         with pytest.raises(AnchorNotFoundError, match="not found"):
             adapter.get_anchor("nonexistent")
@@ -67,7 +68,8 @@ class TestGetAnchor:
 
 class TestListAnchors:
     def test_list_returns_anchors(self, adapter, mock_client, sample_row):
-        mock_client.table.return_value.select.return_value.order.return_value.range.return_value.execute.return_value = MagicMock(
+        mock_chain = mock_client.table.return_value.select.return_value
+        mock_chain.order.return_value.range.return_value.execute.return_value = MagicMock(
             data=[sample_row, sample_row]
         )
         result = adapter.list_anchors(limit=10)
@@ -75,7 +77,8 @@ class TestListAnchors:
         assert all(isinstance(a, Anchor) for a in result)
 
     def test_list_empty(self, adapter, mock_client):
-        mock_client.table.return_value.select.return_value.order.return_value.range.return_value.execute.return_value = MagicMock(
+        mock_chain = mock_client.table.return_value.select.return_value
+        mock_chain.order.return_value.range.return_value.execute.return_value = MagicMock(
             data=[]
         )
         result = adapter.list_anchors()
@@ -84,16 +87,16 @@ class TestListAnchors:
 
 class TestSearchAnchors:
     def test_search_finds_matches(self, adapter, mock_client, sample_row):
-        mock_client.table.return_value.select.return_value.or_.return_value.order.return_value.execute.return_value = MagicMock(
-            data=[sample_row]
+        mock_client.table.return_value.select.return_value.or_.return_value.order.return_value.execute.return_value = (
+            MagicMock(data=[sample_row])
         )
         result = adapter.search_anchors("soberania")
         assert len(result) == 1
         assert result[0].concept == "soberania_datos"
 
     def test_search_no_matches(self, adapter, mock_client):
-        mock_client.table.return_value.select.return_value.or_.return_value.order.return_value.execute.return_value = MagicMock(
-            data=[]
+        mock_client.table.return_value.select.return_value.or_.return_value.order.return_value.execute.return_value = (
+            MagicMock(data=[])
         )
         result = adapter.search_anchors("nonexistent_query")
         assert result == []
@@ -101,9 +104,7 @@ class TestSearchAnchors:
 
 class TestInsertAnchor:
     def test_insert_valid_anchor(self, adapter, mock_client, sample_row):
-        mock_client.table.return_value.insert.return_value.execute.return_value = MagicMock(
-            data=[sample_row]
-        )
+        mock_client.table.return_value.insert.return_value.execute.return_value = MagicMock(data=[sample_row])
         request = AnchorInsertRequest(
             concept="soberania_datos",
             definition="Los datos del Monstruo pertenecen exclusivamente a T1.",
@@ -150,16 +151,12 @@ class TestInsertAnchor:
 
 class TestCountAnchors:
     def test_count_returns_number(self, adapter, mock_client):
-        mock_client.table.return_value.select.return_value.execute.return_value = MagicMock(
-            count=42
-        )
+        mock_client.table.return_value.select.return_value.execute.return_value = MagicMock(count=42)
         result = adapter.count_anchors()
         assert result == 42
 
     def test_count_returns_zero(self, adapter, mock_client):
-        mock_client.table.return_value.select.return_value.execute.return_value = MagicMock(
-            count=0
-        )
+        mock_client.table.return_value.select.return_value.execute.return_value = MagicMock(count=0)
         result = adapter.count_anchors()
         assert result == 0
 

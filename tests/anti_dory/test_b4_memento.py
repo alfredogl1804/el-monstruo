@@ -5,16 +5,17 @@ Anti-Dory FORGE v3.0 — Batch 005 Célula D
 Tests with mocked Memento store. No production reads/writes.
 """
 
-import pytest
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 
+import pytest
+
 from kernel.anti_dory.b4_memento import (
+    MementoContext,
+    MementoIntegration,
     Memory,
     MemoryStatus,
     MemoryValidation,
-    MementoContext,
-    MementoIntegration,
     compute_content_hash,
 )
 

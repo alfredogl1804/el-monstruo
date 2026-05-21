@@ -5,11 +5,12 @@ Anti-Dory FORGE v3.0 — Batch 005 Célula B
 Tests with mocked Supabase client. No real DB writes.
 """
 
-import pytest
-from datetime import datetime
 from unittest.mock import MagicMock
 
+import pytest
+
 from kernel.anti_dory.b3_plan_ledger import (
+    VALID_TRANSITIONS,
     InvalidTransitionError,
     PlanCreateRequest,
     PlanDuplicateError,
@@ -18,7 +19,6 @@ from kernel.anti_dory.b3_plan_ledger import (
     PlanLedgerError,
     PlanNotFoundError,
     PlanStatus,
-    VALID_TRANSITIONS,
     compute_plan_hash,
 )
 
@@ -92,12 +92,16 @@ class TestCreatePlan:
 
 class TestGetPlan:
     def test_get_existing(self, adapter, mock_client, sample_row):
-        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = MagicMock(data=[sample_row])
+        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = (
+            MagicMock(data=[sample_row])
+        )
         result = adapter.get_plan("plan-001")
         assert result.id == "plan-001"
 
     def test_get_not_found(self, adapter, mock_client):
-        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = MagicMock(data=[])
+        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = (
+            MagicMock(data=[])
+        )
         with pytest.raises(PlanNotFoundError):
             adapter.get_plan("nonexistent")
 
@@ -105,34 +109,48 @@ class TestGetPlan:
 class TestTransitionStatus:
     def test_valid_transition_created_to_in_progress(self, adapter, mock_client, sample_row):
         # get_plan mock
-        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = MagicMock(data=[sample_row])
+        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = (
+            MagicMock(data=[sample_row])
+        )
         # update mock
         updated_row = {**sample_row, "status": "IN_PROGRESS"}
-        mock_client.table.return_value.update.return_value.eq.return_value.execute.return_value = MagicMock(data=[updated_row])
+        mock_client.table.return_value.update.return_value.eq.return_value.execute.return_value = MagicMock(
+            data=[updated_row]
+        )
         result = adapter.transition_status("plan-001", PlanStatus.IN_PROGRESS)
         assert result.status == PlanStatus.IN_PROGRESS
 
     def test_invalid_transition_completed_to_created(self, adapter, mock_client, sample_row):
         sample_row["status"] = "COMPLETED"
-        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = MagicMock(data=[sample_row])
+        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = (
+            MagicMock(data=[sample_row])
+        )
         with pytest.raises(InvalidTransitionError):
             adapter.transition_status("plan-001", PlanStatus.CREATED)
 
     def test_invalid_transition_failed_to_in_progress(self, adapter, mock_client, sample_row):
         sample_row["status"] = "FAILED"
-        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = MagicMock(data=[sample_row])
+        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = (
+            MagicMock(data=[sample_row])
+        )
         with pytest.raises(InvalidTransitionError):
             adapter.transition_status("plan-001", PlanStatus.IN_PROGRESS)
 
 
 class TestListPlans:
     def test_list_all(self, adapter, mock_client, sample_row):
-        mock_client.table.return_value.select.return_value.order.return_value.limit.return_value.execute.return_value = MagicMock(data=[sample_row])
+        mock_chain = mock_client.table.return_value.select.return_value
+        mock_chain.order.return_value.limit.return_value.execute.return_value = MagicMock(
+            data=[sample_row]
+        )
         result = adapter.list_plans()
         assert len(result) == 1
 
     def test_list_with_status_filter(self, adapter, mock_client, sample_row):
-        mock_client.table.return_value.select.return_value.eq.return_value.order.return_value.limit.return_value.execute.return_value = MagicMock(data=[sample_row])
+        mock_chain = mock_client.table.return_value.select.return_value
+        mock_chain.eq.return_value.order.return_value.limit.return_value.execute.return_value = MagicMock(
+            data=[sample_row]
+        )
         result = adapter.list_plans(status_filter=PlanStatus.CREATED)
         assert len(result) == 1
 
