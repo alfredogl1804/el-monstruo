@@ -1,0 +1,30 @@
+{
+  "epoch": 1,
+  "commit": "4e0745e",
+  "kill_switch": {
+    "active": false
+  },
+  "scheduler": {
+    "status": "ACTIVE",
+    "cycle_count": 1,
+    "total_cost_usd": 0.007233
+  },
+  "providers": {
+    "used": ["openai", "anthropic", "google", "xai"],
+    "blocked": ["perplexity", "deepseek"]
+  },
+  "policy": "LIMITED_ACTIVE_R0_POLICY.json",
+  "allowed_chain": [
+    "Heartbeat",
+    "Dispatcher",
+    "Oracle_Shadow",
+    "Auditor",
+    "T1_Report"
+  ],
+  "t1_decisions_pending": [
+    "D1_PROVIDEROPS_UNBLOCK",
+    "D2_HARDENING_MERGE",
+    "D3_ORACLE_V02_ACTIVATION",
+    "D4_SHELL_NOHINT_ITERATION_2"
+  ]
+}

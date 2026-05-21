@@ -1,0 +1,14 @@
+{
+  "comparison": {
+    "cost_usd": {
+      "epoch_1": 0.007233,
+      "epoch_2": 0.0065,
+      "delta_percent": -10.1
+    },
+    "oracle_utility": "HIGH",
+    "compliance": "PASS",
+    "risks_detected": "NONE",
+    "result": "PASS",
+    "recommendation": "KEEP_EPOCH_2_ACTIVE_UNTIL_END"
+  }
+}
