@@ -1,0 +1,52 @@
+OPP-NB-023 R1 — Inventory of user_id=anonymous occurrences
+============================================================
+Generated: 2026-05-20
+Source: Sprint 29 DT-8 (replaced hardcoded "alfredo" with "anonymous")
+
+KERNEL (runtime code):
+  kernel/agui_adapter.py:194          — fallback in forwarded_props.get("user_id", "anonymous")
+  kernel/autonomy_routes.py:38        — Field(default="anonymous") in AutonomyActionRequest
+  kernel/autonomy_routes.py:120       — function param default
+  kernel/background_store.py:56       — function param default
+  kernel/main.py:390                  — tool_broker.initialize(tenant_id="anonymous")
+  kernel/main.py:1830                 — Field(default="anonymous") in model
+  kernel/main.py:1879                 — Field(default="anonymous") in model
+  kernel/main.py:1995                 — Field(default="anonymous") in model
+  kernel/memory_routes.py:45          — Field(default="anonymous") in CreateThoughtRequest
+  kernel/memory_routes.py:80          — Field(default="anonymous") in UpdateThoughtRequest
+  kernel/memory_routes.py:123         — Query(default="anonymous") in list_thoughts
+  kernel/memory_routes.py:160         — Query(default="anonymous") in update_thought
+  kernel/memory_routes.py:177         — Query(default="anonymous") in delete_thought
+  kernel/memory_routes.py:193         — Query(default="anonymous") in search_thoughts
+  kernel/memory_routes.py:252         — Query(default="anonymous") in boot_context
+  kernel/memory_routes.py:282         — Query(default="anonymous") in memory_stats
+  kernel/mission_routes.py:74         — function param default
+  kernel/mission_routes.py:106        — function param default
+  kernel/mission_routes.py:159        — function param default
+  kernel/mission_routes.py:189        — function param default
+  kernel/moc/moc.py:119               — function param default
+  kernel/moc/moc.py:139               — chat_id="anonymous"
+  kernel/moc/sintetizador.py:54       — function param default
+  kernel/moc_routes.py:47             — Field(default="anonymous")
+  kernel/nodes.py:131                 — state.get("user_id", "anonymous")
+  kernel/nodes.py:473                 — state.get("user_id", "anonymous")
+  kernel/nodes.py:497                 — get_prompt_dossier(db, user_id="anonymous")
+  kernel/nodes.py:1336                — state.get("user_id", "anonymous")
+  kernel/nodes.py:1636                — "anonymous" literal
+  kernel/openai_adapter.py:231        — request.user or "anonymous"
+  kernel/tool_broker.py:104           — function param default
+  kernel/tool_broker.py:189           — function param default
+  kernel/tool_broker.py:439           — function param default
+  kernel/tool_broker.py:469           — function param default
+  kernel/tool_dispatch.py:855         — state.get("user_id", "anonymous")
+  kernel/tool_dispatch.py:1067        — state.get("user_id", "anonymous")
+
+MEMORY:
+  memory/honcho_bridge.py:39          — function param default
+  memory/honcho_bridge.py:45          — function param default
+
+TESTS:
+  tests/test_sprint39_latency_optimizations.py:159,160,180 — uses "anonymous" in test
+  tests/test_memory_routes.py:37,63,77,365,378,383,390     — tests anonymous default
+
+TOTAL: 38 runtime occurrences + 7 test occurrences = 45 lines
