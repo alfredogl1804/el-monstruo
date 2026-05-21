@@ -1,0 +1,75 @@
+{
+  "epoch": "009",
+  "sprint": "SPR-R0PLUS-EPOCH-009-OPS-INTEGRATED",
+  "reactor_level": "R0+",
+  "status": "EXECUTING",
+  "base_commit": "81d0665",
+  "created_at": "2026-05-21T07:20:00Z",
+  "created_by": "manus_b",
+  "objective": "Integrate Artifact Ops Runner as standard R0+ epoch stage",
+  "deliverables": [
+    "artifact_ops_epoch_adapter_v0_1.py",
+    "test_artifact_ops_epoch_adapter_v0_1.py",
+    "EPOCH_009_OPS_SNAPSHOT.json",
+    "EPOCH_009_OPS_REPORT.md",
+    "T1_OPERATING_SNAPSHOT_v0_3.json",
+    "EPOCH_009_VALUE_AUDIT.md",
+    "EPOCH_009_FINAL_RECOMMENDATION.md"
+  ],
+  "hard_rules": {
+    "no_r1": true,
+    "no_main": true,
+    "no_pr": true,
+    "no_deploy": true,
+    "no_supabase": true,
+    "no_db": true,
+    "no_secrets": true,
+    "no_memento": true,
+    "no_anti_dory": true,
+    "no_app_vision": true,
+    "no_canon": true,
+    "no_pre_ia": true,
+    "no_providers": true,
+    "no_retries": true,
+    "no_scheduler_policy_change": true,
+    "no_kill_switch_change": true,
+    "budget_usd": 0.0
+  },
+  "execution_chain": [
+    "CREATE_EPOCH_DECLARATION",
+    "CREATE_EPOCH_POLICY",
+    "CREATE_PRE_UPGRADE_SNAPSHOT",
+    "CREATE_EPOCH_ADAPTER",
+    "CREATE_ADAPTER_TESTS",
+    "RUN_ADAPTER",
+    "GENERATE_OPS_SNAPSHOT",
+    "GENERATE_T1_SNAPSHOT_V03",
+    "RUN_ALL_TESTS",
+    "VALUE_AUDIT",
+    "FINAL_RECOMMENDATION"
+  ],
+  "kill_switch": {
+    "action": "READ_ONLY",
+    "modify": false
+  },
+  "directive_queue": {
+    "action": "READ_ONLY",
+    "modify": false
+  },
+  "provider_policy": {
+    "allowed_calls": 0,
+    "auto_replacement": false,
+    "dispatcher_required": false
+  },
+  "success_criteria": {
+    "ops_snapshot_generated": true,
+    "t1_snapshot_v03_generated": true,
+    "coverage_100_preserved": true,
+    "zero_provider_calls": true,
+    "zero_cost": true,
+    "zero_r1": true,
+    "zero_supabase": true,
+    "zero_secrets": true,
+    "all_tests_pass": true
+  }
+}

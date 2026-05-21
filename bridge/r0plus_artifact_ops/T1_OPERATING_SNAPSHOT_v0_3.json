@@ -1,0 +1,86 @@
+{
+  "version": "0.3",
+  "generated_at": "2026-05-21T07:16:10.757628+00:00",
+  "generated_by": "artifact_ops_epoch_adapter_v0_1",
+  "sprint": "SPR-R0PLUS-EPOCH-009-OPS-INTEGRATED",
+  "epoch_id": "009",
+  "epoch_lineage": {
+    "epochs_completed": 9,
+    "surges_completed": 1,
+    "ops_integrations": 2,
+    "latest_epoch": "009"
+  },
+  "pilot_health": {
+    "reactor_level": "R0+",
+    "overall_status": "GREEN",
+    "artifact_health": "GREEN",
+    "memory_palace_health": "GREEN",
+    "embryo_health": "GREEN",
+    "directive_alignment": "GREEN"
+  },
+  "artifact_ops_summary": {
+    "runner_version": "0.1",
+    "adapter_version": "0.1",
+    "artifacts_executed": 3,
+    "all_succeeded": true,
+    "external_api_calls": 0,
+    "secrets_used": 0,
+    "r1_operations": 0
+  },
+  "artifact_test_coverage": {
+    "total_artifacts": 11,
+    "coverage_pct": 100.0,
+    "untested_count": 0
+  },
+  "memory_palace_health": {
+    "status": "HEALTHY",
+    "cost_anomalies": 1,
+    "task_overspecialization": true
+  },
+  "embryo_status": {
+    "combined_health": "HEALTHY",
+    "oracle_health": "HEALTHY",
+    "auditor_health": "HEALTHY",
+    "regression_flags": 1,
+    "total_cost_usd": 0.0073
+  },
+  "directive_queue_summary": {
+    "active_count": 2,
+    "total_directives": 2
+  },
+  "cost_summary": {
+    "total_embryo_cost_usd": 0.0073,
+    "this_sprint_cost_usd": 0.0,
+    "budget_remaining_usd": 0.0
+  },
+  "top_risks": [
+    {
+      "risk": "1 regression flag(s) detected in embryo history",
+      "severity": "MEDIUM",
+      "action": "INVESTIGATE"
+    },
+    {
+      "risk": "1 cost anomaly/anomalies detected",
+      "severity": "LOW",
+      "action": "MONITOR"
+    },
+    {
+      "risk": "Task overspecialization detected in Memory Palace",
+      "severity": "LOW",
+      "action": "DIVERSIFY_TASKS"
+    }
+  ],
+  "next_3_actions": [
+    "SPR-R0PLUS-PRODUCTION-SURGE-002",
+    "MONITOR_PROVIDER_EOL",
+    "PRODUCE_NEXT_SURGE"
+  ],
+  "T1_decisions_pending": [
+    {
+      "decision": "Approve merge to main",
+      "deadline": "when_ready",
+      "status": "PENDING_T1"
+    }
+  ],
+  "recommended_next_sprint": "SPR-R0PLUS-PRODUCTION-SURGE-002"
+}

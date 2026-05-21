@@ -1,0 +1,92 @@
+{
+  "version": "0.1",
+  "epoch_id": "009",
+  "epoch_status": "COMPLETE",
+  "generated_at": "2026-05-21T07:16:10.757615+00:00",
+  "generated_by": "artifact_ops_epoch_adapter_v0_1",
+  "sprint": "SPR-R0PLUS-EPOCH-009-OPS-INTEGRATED",
+  "runner_output_version": "0.1",
+  "kill_switch": {
+    "exists": false,
+    "state": "NOT_FOUND",
+    "read_only": true
+  },
+  "external_api_calls": 0,
+  "secrets_used": 0,
+  "r1_operations": 0,
+  "supabase_calls": 0,
+  "cost_usd": 0.0,
+  "health": {
+    "overall": "GREEN",
+    "artifact_health": "GREEN",
+    "memory_palace_health": "GREEN",
+    "embryo_health": "GREEN",
+    "directive_alignment": "GREEN",
+    "artifact_coverage_pct": 100.0,
+    "memory_status": "HEALTHY",
+    "embryo_status": "HEALTHY"
+  },
+  "artifact_coverage": {
+    "total_artifacts": 11,
+    "coverage_pct": 100.0,
+    "untested_count": 0
+  },
+  "memory_palace": {
+    "status": "HEALTHY",
+    "cost_anomalies": 1,
+    "task_overspecialization": true
+  },
+  "embryo_status": {
+    "combined_health": "HEALTHY",
+    "oracle_health": "HEALTHY",
+    "auditor_health": "HEALTHY",
+    "regression_flags": 1,
+    "total_cost_usd": 0.0073
+  },
+  "directive_queue": {
+    "exists": true,
+    "total_directives": 2,
+    "active_count": 2,
+    "active_directives": [
+      {
+        "directive_id": "T1D-001",
+        "priority": 9,
+        "directive_type": "STRATEGIC_GUIDANCE",
+        "focus": "Produce artifacts that increase visible pilot value and reduce Alfredo manual work"
+      },
+      {
+        "directive_id": "T1D-002",
+        "priority": 10,
+        "directive_type": "RISK_MITIGATION",
+        "focus": "Priorizar robustez del sistema vivo sobre novedad. Si hay conflicto entre crear artefacto nuevo y reducir riesgo de provider drift, priorizar reducción de riesgo."
+      }
+    ],
+    "last_updated": "2026-05-21T05:00:00Z"
+  },
+  "remediation_queue": {
+    "exists": true,
+    "total": 11,
+    "done": 7,
+    "ready": 4,
+    "all_done": false
+  },
+  "top_risks": [
+    {
+      "risk": "1 regression flag(s) detected in embryo history",
+      "severity": "MEDIUM",
+      "action": "INVESTIGATE"
+    },
+    {
+      "risk": "1 cost anomaly/anomalies detected",
+      "severity": "LOW",
+      "action": "MONITOR"
+    },
+    {
+      "risk": "Task overspecialization detected in Memory Palace",
+      "severity": "LOW",
+      "action": "DIVERSIFY_TASKS"
+    }
+  ],
+  "next_recommended_action": "PRODUCE_NEXT_SURGE",
+  "next_recommended_sprint": "SPR-R0PLUS-PRODUCTION-SURGE-002"
+}
