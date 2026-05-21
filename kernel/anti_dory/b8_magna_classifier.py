@@ -1,23 +1,38 @@
 """
-B8 Magna Classifier — Anti-Dory FORGE v3.0 (v2.0 Semantic Expansion)
+B8 Magna Classifier — Anti-Dory FORGE v3.0 (v3.0 Context-Aware)
 
 Clasifica acciones como MAGNA o STANDARD según reglas determinísticas
-con detección semántica expandida.
+con detección semántica expandida y validación de contexto.
 
 Una acción MAGNA requiere aprobación de la Authority Matrix (B9).
 Una acción STANDARD puede ejecutarse sin gate adicional.
 
-v2.0 Changes:
-- Expanded from 7 danger keywords to 10 semantic categories.
-- Added pattern-based detection for indirect dangerous actions.
-- Added combined-signal detection (action_type + description).
-- Backward compatible: all v1.0 triggers still work.
+v3.0 Changes:
+- Layer 4: Action Semantics — action_types inherently dangerous
+  are MAGNA by default regardless of description.
+- Layer 5: Context-Aware Heuristics — detects stale state assumptions,
+  false memory indicators, unauthorized operations, and context loss
+  through structural analysis of the action description.
+- Backward compatible: all v1.0 triggers and v2.0 patterns still work.
 """
 
+import os
 import re
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
+
+
+# ============================================================
+# FEATURE FLAG: B8 v3 Context-Aware Layers
+# When False, only Layers 1-3 (v2.0 behavior) are active.
+# When True, Layers 4-5 (v3.0 context-aware) are also active.
+# Default: False (OFF) — requires explicit activation.
+# ============================================================
+
+ANTI_DORY_B8_V3_ENABLED: bool = os.environ.get(
+    "ANTI_DORY_B8_V3_ENABLED", "false"
+).lower() in ("true", "1", "yes")
 
 
 class ActionLevel(Enum):
@@ -66,7 +81,7 @@ DANGER_KEYWORDS_ACTION_TYPE = [
 ]
 
 # ============================================================
-# LAYER 3: Semantic pattern categories (v2.0 NEW)
+# LAYER 3: Semantic pattern categories (v2.0)
 # Detects dangerous INTENT across action_type + description.
 # ============================================================
 
@@ -146,6 +161,117 @@ SEMANTIC_CATEGORIES = {
     ],
 }
 
+# ============================================================
+# LAYER 4: Action Semantics (v3.0 NEW)
+# action_types that are inherently dangerous regardless of
+# description content. These require explicit justification.
+# ============================================================
+
+MAGNA_ACTION_TYPES_INHERENT = frozenset([
+    # Destructive operations
+    "drop_table",
+    "delete_table",
+    "truncate_table",
+    "destroy_resource",
+    # Deployment / production
+    "deploy",
+    "deploy_production",
+    "apply_migration",
+    # Authorization / governance
+    "activate_phase",
+    "declare_status",
+    "unlock_feature",
+    "enable_guardian",
+    "activate_global",
+    # Git operations that affect main
+    "git_merge",
+    "git_push",
+    "force_push",
+    # Environment modification
+    "env_modify",
+    "modify_env",
+    # Execution without verification
+    "execute_deploy",
+    "execute_action",
+])
+
+# ============================================================
+# LAYER 5: Context-Aware Heuristics (v3.0 NEW)
+# Structural analysis of description to detect:
+# - Stale state assumptions (acting on unverified state)
+# - False memory indicators (referencing non-existent artifacts)
+# - Context loss patterns (ignoring current state)
+# - Unauthorized operations (acting without required auth)
+# - Secret exposure (writing/sharing credentials)
+# - Side effects (destructive or irreversible actions)
+# ============================================================
+
+CONTEXT_AWARE_PATTERNS = {
+    "stale_state_assumption": [
+        # Acting without reading/checking current state
+        r"without\s*(reading|checking|verifying|confirming|referencing|consulting)",
+        r"ignoring\s*(current|existing|DSC|RLS|requirement|state|flag)",
+        # Assuming state that may have changed
+        r"(assuming|assume)\s*(guardian|feature|flag|branch|sprint|migration|table)",
+        # Using old/deprecated/archived references
+        r"(archived|deprecated|old|deleted|merged|revoked)\s*(thread|branch|endpoint|key|project|ref)",
+        r"(was|were)\s*(merged|deleted|archived|revoked|rotated)",
+        # Repeating completed work
+        r"(again|from scratch|re-?implement)\s*(without|ignoring)",
+        r"(from scratch)\s*(ignoring|without)",
+        # Acting on unverified assumptions
+        r"when\s*(current|we|it)\s*(is|are)\s*(on|at|in)\s*(batch|sprint)",
+        r"(create|open)\s*(duplicate|again)",
+        r"(instead of|not)\s*(SUPABASE_SERVICE_KEY)\b",
+    ],
+    "false_memory_indicator": [
+        # Referencing artifacts that may not exist
+        r"(that|which)\s*(does not|do not|never|was never|is not|has not)\s*(exist|creat|happen|occur)",
+        r"(never)\s*(existed|created|happened|occurred|was)",
+        # Claiming results without evidence
+        r"(claiming|claim)\s*(t1|authorized|passed|merged|signed)",
+        r"(when|but)\s*(no|zero)\s*(receipt|evidence|signature|consultation|authorization)",
+        # Inventing non-existent resources
+        r"(table|module|branch|dsc|migration|fixture|incident)\s*(that|which)\s*(does not|never)",
+        r"(b12|b13|b14|b15)_\w+",  # Non-existent Anti-Dory modules
+        r"DSC-[A-Z]-0[5-9][0-9]",  # High-numbered DSCs unlikely to exist
+        r"(0052|0053|0054|0055)\w*\s*(claiming|but)",
+        # Reporting false consensus or results
+        r"(all\s*6\s*sabios|sabios\s*agreed)\s*(when|but|without)",
+        r"(500|1000|999)\s*tests?\s*(passed|pass)",
+        r"(breach|incident)\s*(that|which)\s*never\s*(occurred|happened)",
+    ],
+    "context_loss_action": [
+        # Skipping required steps
+        r"(without|sin)\s*(signature|receipt|rollback|evidence|canary)",
+        # Acting outside authorized scope
+        r"(outside|beyond)\s*(t1|authorization|scope|batch|canary)",
+        r"(globally|universally)\s*(without|when only|when no)",
+        r"(only|just)\s*(canary|sandbox)\s*(was|is)\s*authorized",
+        # Ignoring governance requirements
+        r"(without|sin)\s*(feature flag|flag|authorization|confirmation)",
+        r"(without|sin)\s*(completing|meeting)\s*(all|prerequisite|requirement)",
+    ],
+    "secret_write_attempt": [
+        # Writing secrets to files/code
+        r"(write|store|save|put|include|embed)\s*.*\s*(directly|in)\s*(source|code|file|repo|fixture)",
+        r"(PAT|pat|ghp_|sk-|sb_|eyJ)\w*\s*(directly|in)\s*(source|code|file)",
+        r"(database|db)\s*(password|pass)\s*(in|to)\s*(user|message|chat|facing)",
+        r"(copy|move|cp)\s*.*(minisign|private)\s*.*(key|\.key)",
+        r"(real|actual)\s*(ANTHROPIC|OPENAI|HEYGEN|SUPABASE)\w*\s*(value|key)",
+        r"(containing|with)\s*(real|actual)\s*(ANTHROPIC|OPENAI|HEYGEN|SUPABASE|API)\w*",
+        r"(fixture|test)\s*(containing|with)\s*(real|actual)\s*\w*(key|secret|token|password)",
+    ],
+    "unauthorized_side_effect": [
+        # Activating features without proper authorization
+        r"(activate|enable|start|unlock|declare)\s*.*\s*(without|sin)\s*(canary|evidence|completion|prerequisite|flag|authorization)",
+        r"(fase|phase)\s*1\s*(globally|universal|without)",
+        r"(dory|muerto)\s*(universally|without|globally)",
+        r"(r1|R1)\s*(without|sin)\s*(completing|all|prerequisite)",
+        r"(guardian|cron)\s*(without|sin)\s*(feature flag|flag|authorization)",
+    ],
+}
+
 
 def classify_action(
     action_type: str,
@@ -197,7 +323,35 @@ def classify_action(
                     requires_t1=True,
                 )
 
-    # LAYER 4: Metadata override (si metadata indica forzar MAGNA)
+    # LAYER 4: Action Semantics — inherently dangerous action_types (v3.0)
+    # Only active when ANTI_DORY_B8_V3_ENABLED=true
+    if ANTI_DORY_B8_V3_ENABLED:
+        if action_lower in MAGNA_ACTION_TYPES_INHERENT:
+            return ActionClassification(
+                level=ActionLevel.MAGNA,
+                reason=(
+                    f"Action type '{action_type}' is inherently dangerous "
+                    f"(MAGNA_ACTION_TYPES_INHERENT)"
+                ),
+                action_description=description,
+                requires_t1=True,
+            )
+
+        # LAYER 5: Context-Aware Heuristics (v3.0)
+        for heuristic_category, patterns in CONTEXT_AWARE_PATTERNS.items():
+            for pattern in patterns:
+                if re.search(pattern, combined_text):
+                    return ActionClassification(
+                        level=ActionLevel.MAGNA,
+                        reason=(
+                            f"Context-aware heuristic '{heuristic_category}' "
+                            f"matched: /{pattern}/"
+                        ),
+                        action_description=description,
+                        requires_t1=True,
+                    )
+
+    # LAYER 6: Metadata override (si metadata indica forzar MAGNA)
     if metadata and metadata.get("force_magna", False):
         return ActionClassification(
             level=ActionLevel.MAGNA,
