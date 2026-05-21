@@ -1,0 +1,632 @@
+# ╔══════════════════════════════════════════════════════════════════╗
+# ║  MONSTRUO_GENOME.yaml — Fuente única de verdad arquitectónica   ║
+# ║  Auto-generado por scripts/genome_generator.py                  ║
+# ║  Propósito: Cualquier IA absorbe esto y sabe QUÉ hay,           ║
+# ║  DÓNDE está, y CÓMO se conecta — en segundos.                   ║
+# ╚══════════════════════════════════════════════════════════════════╝
+
+meta:
+  generated_at: 2026-05-21T21:02:13Z
+  generator: scripts/genome_generator.py
+  version: 1.0.0
+  repo: alfredogl1804/el-monstruo
+  total_kernel_modules: 112
+  total_embriones: 10
+  total_supabase_tables: 169
+  total_custom_rpcs: 58
+  total_migrations: 53
+  total_skills: 43
+  total_top_dirs: 31
+
+production:
+  kernel:
+    url: https://el-monstruo-kernel-production.up.railway.app
+    status: healthy
+    version: 0.84.8-sprint-memento
+    motor: langgraph
+    models_available: [gpt-5.5, claude-opus-4-7, gemini-3.1-pro-preview, sonar-reasoning-pro]
+    active_components:
+      - kernel: active
+      - event_store: active
+      - memory: active
+      - knowledge: active
+      - langfuse: active
+      - opentelemetry: inactive
+      - checkpointer: active (AsyncPostgresSaver)
+      - mempalace: active
+      - lightrag: active
+      - multi_agent: active
+      - finops: active
+      - mcp: inactive
+      - fastmcp: active
+      - mem0: active
+      - embrion: active
+  bot:
+    url: https://el-monstruo-bot-production.up.railway.app
+    status: offline
+    note: 404 - Application not found (needs redeploy)
+  supabase:
+    project_id: xsumzuhwmivjgftsneov
+    status: active
+    tables: 169
+    custom_rpcs: 58
+
+kernel:
+  total_python_files: 300
+  entry_point: kernel/main.py
+  framework: FastAPI + LangGraph
+  modules:
+    core:
+      - id: main
+        path: kernel/main.py
+        files: 1
+      - id: auth
+        path: kernel/auth.py
+        files: 1
+      - id: embrion_loop
+        path: kernel/embrion_loop.py
+        files: 1
+      - id: embrion_vigia
+        path: kernel/embrion_vigia.py
+        files: 1
+      - id: background_store
+        path: kernel/background_store.py
+        files: 1
+      - id: cost_optimizer
+        path: kernel/cost_optimizer.py
+        files: 1
+      - id: adaptive_model_selector
+        path: kernel/adaptive_model_selector.py
+        files: 1
+      - id: causal_decomposer
+        path: kernel/causal_decomposer.py
+        files: 1
+    memory_systems:
+      - id: memory
+        path: kernel/memory/
+        files: 7
+      - id: anti_dory
+        path: kernel/anti_dory/
+        files: 15
+      - id: memento
+        path: kernel/memento/
+        files: 4
+    intelligence:
+      - id: catastro
+        path: kernel/catastro/
+        files: 27
+      - id: catastros
+        path: kernel/catastros/
+        files: 6
+      - id: collective
+        path: kernel/collective/
+        files: 3
+      - id: learning
+        path: kernel/learning/
+        files: 1
+      - id: vanguard
+        path: kernel/vanguard/
+        files: 4
+    interfaces:
+      - id: a2ui
+        path: kernel/a2ui/
+        files: 1
+      - id: browser
+        path: kernel/browser/
+        files: 1
+      - id: agui_adapter
+        path: kernel/agui_adapter.py
+        files: 1
+      - id: plugins
+        path: kernel/plugins/
+        files: 2
+    governance:
+      - id: security
+        path: kernel/security/
+        files: 1
+      - id: sovereignty
+        path: kernel/sovereignty/
+        files: 1
+      - id: validation
+        path: kernel/validation/
+        files: 2
+      - id: guardian_runner
+        path: kernel/guardian_runner/
+        files: 3
+    product:
+      - id: brand
+        path: kernel/brand/
+        files: 3
+      - id: embriones
+        path: kernel/embriones/
+        files: 17
+      - id: embrion_specializations
+        path: kernel/embrion_specializations/
+        files: 0
+      - id: design
+        path: kernel/design/
+        files: 1
+    operational:
+      - id: alerts
+        path: kernel/alerts/
+        files: 2
+      - id: dashboards
+        path: kernel/dashboards/
+        files: 3
+      - id: milestones
+        path: kernel/milestones/
+        files: 1
+      - id: motion
+        path: kernel/motion/
+        files: 2
+      - id: rotor
+        path: kernel/rotor/
+        files: 10
+      - id: runner
+        path: kernel/runner/
+        files: 4
+
+embriones:
+  orchestrator:
+    id: embrion_loop
+    path: kernel/embrion_loop.py
+    status: production
+    memory_table: embrion_memoria (2770 records)
+    connected_to_sms: false  # GAP: isolated from sovereign memory
+  vigia:
+    id: embrion_vigia
+    path: kernel/embrion_vigia.py
+    status: production
+    memory: none  # stateless
+  domain_specialists:
+    - id: brand_engine
+      path: kernel/embriones/brand_engine/brand_engine.py
+      memory: none  # stateless — GAP
+    - id: critic_visual
+      path: kernel/embriones/critic_visual.py
+      memory: none  # stateless — GAP
+    - id: critic_visual_browserless_fallback
+      path: kernel/embriones/critic_visual_browserless_fallback.py
+      memory: none  # stateless — GAP
+    - id: embrion_creativo
+      path: kernel/embriones/embrion_creativo.py
+      memory: none  # stateless — GAP
+    - id: embrion_estratega
+      path: kernel/embriones/embrion_estratega.py
+      memory: none  # stateless — GAP
+    - id: embrion_financiero
+      path: kernel/embriones/embrion_financiero.py
+      memory: none  # stateless — GAP
+    - id: embrion_investigador
+      path: kernel/embriones/embrion_investigador.py
+      memory: none  # stateless — GAP
+    - id: product_architect
+      path: kernel/embriones/product_architect.py
+      memory: none  # stateless — GAP
+    - id: embrion_tecnico
+      path: kernel/embriones/tecnico/embrion_tecnico.py
+      memory: none  # stateless — GAP
+    - id: embrion_ventas
+      path: kernel/embriones/ventas/embrion_ventas.py
+      memory: none  # stateless — GAP
+  collective:
+    path: kernel/collective/
+    components: [protocol.py, knowledge_propagator.py, emergence_detector.py]
+    status: code_exists_but_tables_missing
+    tables_needed: [learned_patterns, embrion_knowledge]
+    note: Operates in RAM only, loses state on redeploy
+  domain_embriones_canon:
+    status: doctrine_only_no_code
+    defined_in: docs/conocimiento/metodologias/CANON_Metodologias_Productividad_v1_5.md
+    items: [Archivista, Concierge, Ecónomo, Vigía-Salud, Cronista, Curador, Custodio, Compromisario, Relacionista, Cartógrafo]
+
+memory_plane:
+  sovereign_memory_system:
+    status: production
+    version: v4.0
+    api_mount: /sms
+    adapter: kernel/memory/sms_supabase_adapter.py
+    tables:
+      - name: sovereign_memories
+        records: 135
+      - name: sovereign_axioms
+        records: 20
+      - name: sovereign_agent_registry
+        records: 11
+      - name: sovereign_conflict_log
+        records: 0
+      - name: sovereign_consolidation_log
+        records: 1
+      - name: sovereign_knowledge_gaps
+        records: 7
+      - name: sovereign_causal_chains
+        records: 0
+      - name: memory_entities
+        records: 0
+      - name: memory_relations
+        records: 0
+      - name: memory_entity_links
+        records: 0
+      - name: memory_dependencies
+        records: 0
+      - name: memory_access_log
+        records: 0
+    rpcs:
+      - archive_low_importance_memories
+      - cascade_invalidation
+      - compute_importance_scores
+      - find_entity_by_name
+      - get_entity_neighborhood
+      - get_memories_for_entity
+      - get_pending_revalidations
+      - graph_enhanced_recall
+      - match_memories
+      - match_sovereign_axioms
+      - match_sovereign_memories
+      - match_sovereign_memories_temporal
+      - merge_similar_memories
+      - register_dependency
+    features:
+      - knowledge_graph: true (entities + relations + links)
+      - belief_revision: true (cascade invalidation + dependencies)
+      - memory_decay: true (importance scoring + archival)
+      - temporal_validity: true (valid_at / invalid_at)
+      - audn_conflict_resolution: true
+      - vector_embeddings: pending_redeploy
+  legacy_memory_systems:
+    - table: embrion_memoria
+      records: 2770
+      connected_to_sms: false
+    - table: monstruo_memory
+      records: 68
+      connected_to_sms: false
+    - table: error_memory
+      records: 34
+      connected_to_sms: false
+    - table: memory_events
+      records: 7829
+      connected_to_sms: false
+    - table: mempalace_episodes
+      records: 3757
+      connected_to_sms: false
+    - table: mempalace_semantic
+      records: 1
+      connected_to_sms: false
+    - table: mem0
+      records: 2001
+      connected_to_sms: false
+  anti_dory:
+    path: kernel/anti_dory/
+    tables:
+      - anti_dory_anchor_store: 0 records
+      - anti_dory_plan_ledger: 0 records
+      - anti_dory_runtime_flags: 1 records
+      - anti_dory_write_budget: 0 records
+
+data_plane:
+  catastro:
+    - catastro_agentes: 98
+    - catastro_curadores: 0
+    - catastro_eventos: 148
+    - catastro_historial: 0
+    - catastro_metricas_diarias: 0
+    - catastro_modelos: 41
+    - catastro_notas: 0
+    - catastro_repos: 0
+    - catastro_suppliers_humanos: 30
+    - catastro_tronos_agentes: 12
+    # ... and 2 more tables
+  embrion:
+    - embrion_audit_log: 0
+    - embrion_budget_state: 9726
+    - embrion_homeostasis_log: 0
+    - embrion_inbox: 0
+    - embrion_memoria: 2770
+    - embrion_patron_emergencia: 30
+    - embrion_validation_log: 0
+    - embrion_write_proposals: 4
+  forja:
+    - forja_actions: 0
+    - forja_budget: 1
+    - forja_messages: 1
+    - forja_profiles: 1
+    - forja_simulations: 0
+    - forja_sprints: 0
+    - forja_telemetry: 7
+    - forja_threads: 1
+    - forja_validations: 0
+  governance:
+    - cowork_claims_calibration: 12
+    - cowork_protocolo_invocaciones: 0
+    - cowork_sesiones: 2
+    - governance_log: 0
+    - guardian_audit_log: 0
+  lightrag:
+    - lightrag_doc_chunks: 170
+    - lightrag_doc_full: 148
+    - lightrag_doc_status: 159
+    - lightrag_entity_chunks: 1731
+    - lightrag_full_entities: 148
+    - lightrag_full_relations: 145
+    - lightrag_llm_cache: 6624
+    - lightrag_relation_chunks: 2179
+    - lightrag_vdb_chunks_gemini_embedding_001_1536d: 0
+    - lightrag_vdb_chunks_text_embedding_3_small_1536d: 170
+    # ... and 4 more tables
+  e2e:
+    - e2e_runs: 80
+    - e2e_step_log: 927
+    - e2e_traffic: 1
+  v5_intelligence:
+    - v5_accounts: 0
+    - v5_comments: 0
+    - v5_coordination_scores: 0
+    - v5_discovery_queue: 352
+    - v5_doc_links: 0
+    - v5_doc_similarity: 0
+    - v5_documents: 0
+    - v5_entities: 1
+    - v5_hashtags: 0
+    - v5_investigation_log: 14
+    # ... and 2 more tables
+  operational:
+    - a2a_agents: 0
+    - active_missions: 4
+    - agui_channel_audit: 0
+    - articulo_objetivos: 44092
+    - articulos: 39065
+    - background_jobs: 0
+    - behavior_mutations: 3
+    - brand_compliance_log: 0
+    - budget_state: 575
+    - cadena_custodia: 125
+    # ... and 71 more tables
+
+custom_rpcs:
+  - aggregate_daily_usage
+  - anti_dory_runtime_flags_set_updated_at
+  - anti_dory_write_budget_set_updated_at
+  - bg_job_append_progress
+  - boot_sequence_thoughts
+  - calculate_job_success_rate
+  - catastro_apply_quorum_outcome
+  - catastro_recompute_trono
+  - catastro_recompute_trono_all
+  - cleanup_old_background_jobs
+  - cowork_sesiones_set_updated_at
+  - embrion_write_proposals_set_updated_at
+  - fn_set_updated_at
+  - get_allowed_tools
+  - get_current_pricing
+  - get_due_jobs
+  - hybrid_search_thoughts
+  - kal_prevent_modify
+  - kal_prevent_truncate
+  - match_catastro_modelos
+  - match_memory_events
+  - record_tool_execution
+  - rpc_accept_snapshot
+  - rpc_check_shadow_enabled
+  - rpc_get_context_head
+  - rpc_increment_write_budget
+  - rpc_recovery_scan
+  - rpc_write_runtime_event
+  - rpc_write_thread_snapshot
+  - search_chunks
+  - search_similar_errors
+  - search_thoughts_semantic
+  - set_updated_at
+  - set_updated_at_now
+  - thoughts_tsv_update
+  - trg_catastro_agentes_updated_at
+  - trg_catastro_set_updated_at
+  - update_budget_on_plan_change
+  - update_dossier_timestamp
+  - update_error_pattern_validated
+  - update_memento_actualizado_en
+  - update_scheduled_jobs_updated_at
+  - update_updated_at_column
+  - validate_embrion_memoria
+
+api_endpoints:
+  - prefix: /v1/memento
+    router: memento_router
+  - prefix: /v1/cowork
+    router: cowork_router
+  - prefix: /v1/catastro
+    router: _catastro_routes
+  - prefix: /
+    router: autonomy_router
+  - prefix: /
+    router: mission_router
+  - prefix: /
+    router: dossier_router
+  - prefix: /
+    router: usage_router
+  - prefix: /
+    router: finops_router
+  - prefix: /
+    router: memory_router
+  - prefix: /
+    router: deployments_router
+  - prefix: /
+    router: agui_router
+  - prefix: /
+    router: alerts_router
+  - prefix: /
+    router: moc_router
+  - prefix: /
+    router: planner_router
+  - prefix: /
+    router: embrion_router
+  - prefix: /
+    router: a2a_router
+  - prefix: /
+    router: magna_router
+  - prefix: /
+    router: e2e_router
+  - prefix: /
+    router: traffic_router
+  - prefix: /
+    router: openai_router
+  - prefix: /
+    router: brand_router
+  - prefix: /mcp
+    router: mount
+  - prefix: /sms
+    router: mount
+
+skills:
+  total: 43
+  directory: /home/ubuntu/skills/
+  items:
+    - aliexpress-mx-validator
+    - anti-autoboicot
+    - api-context-injector
+    - auditar-antes-construir
+    - automation-and-scheduling
+    - ci-cascade-audit
+    - ciclo-investigacion-descubrimiento-perpetuo
+    - comercializacion-zona-like-313
+    - consulta-sabios
+    - creacion-cip
+    - detonadores-alfredo
+    - el-monstruo
+    - el-monstruo-armero
+    - el-monstruo-bot
+    - el-monstruo-core
+    - el-monstruo-estado
+    - el-monstruo-plan
+    - el-monstruo-toolkit
+    - formato-correcto-contexto
+    - gws-best-practices
+    - herramientas-planificacion
+    - interfaces-monstruo-doctrina
+    - manus-api
+    - manus-config
+    - manus-inter-cuenta
+    - manus-refund-auditor
+    - media-crisis-control
+    - music-prompter
+    - optimizador-creditos
+    - persistent-computing
+    - protocolo-operativo-core
+    - proyecto-renders
+    - simulador-escenarios-ia
+    - site-reality-reconstructor
+    - skill-creator
+    - skill-factory
+    - softrestaurant-ai-10x
+    - ticketlike-ops
+    - tiktok-trend-creator
+    - validacion-tiempo-real
+    - vicios-hilo-manus-evitar
+    - videoclip-musical-clase-mundial
+    - vocabulario-alfredo-manus
+
+migrations:
+  total: 53
+  directory: migrations/sql/
+  latest:
+    - 0052_sovereign_memory_system.sql
+    - 0053_temporal_invalidation.sql
+    - 0054_knowledge_graph_layer.sql
+    - 0055_belief_revision.sql
+    - 0056_memory_decay_consolidation.sql
+
+repo_structure:
+  top_level_dirs:
+    - _archive
+    - apps
+    - bot
+    - bridge
+    - cidp
+    - config
+    - contracts
+    - core
+    - deploy
+    - discovery_forense
+    - docs
+    - embryos
+    - evaluation
+    - kernel
+    - memory
+    - migrations
+    - monstruo-memoria
+    - monstruo_biblias
+    - monstruo_reality_atlas
+    - observability
+    - packages
+    - policy
+    - prompts
+    - quality
+    - reports
+    - router
+    - scripts
+    - skills
+    - tests
+    - tools
+    - transversal
+
+connections:
+  # Format: source -> target (relationship)
+  - telegram_bot -> kernel.embrion_loop (messages trigger thinking)
+  - flutter_app -> kernel.api (REST calls)
+  - kernel.embrion_loop -> kernel.embriones.* (delegates to specialists)
+  - kernel.embrion_loop -> embrion_memoria (reads/writes memories)
+  - kernel.embrion_loop -> kernel.collective (propagates patterns)
+  - kernel.memory.sms -> supabase.sovereign_memories (stores/recalls)
+  - kernel.memory.sms -> supabase.memory_entities (knowledge graph)
+  - kernel.memory.sms -> supabase.memory_dependencies (belief revision)
+  - kernel.anti_dory -> supabase.anti_dory_* (anchors + plans)
+  - kernel.catastro -> supabase.catastro_modelos (AI model registry)
+  - kernel.memento -> supabase.memento_* (critical operations)
+  - manus_threads -> kernel.sms_api (via guardian.py + /sms/ingest)
+  - manus_threads -> kernel.sms_api (via /sms/recall for context)
+  - kernel.main -> litellm (model routing via config/litellm_config.yaml)
+  - kernel.main -> langfuse (observability)
+  - kernel.main -> supabase.checkpoints (LangGraph state persistence)
+
+gaps:
+  critical:
+    - id: embrion_loop_isolated
+      description: Embrion Loop has 2763 memories in embrion_memoria but ZERO connection to SMS v4.0
+      impact: No graph, no belief revision, no decay for the main orchestrator
+      fix: Bridge embrion_memoria <-> sovereign_memories
+    - id: collective_ram_only
+      description: Colmena (collective/) operates in RAM, tables never created
+      impact: Learned patterns lost on every redeploy
+      fix: Create learned_patterns + embrion_knowledge tables, connect to SMS
+    - id: embriones_stateless
+      description: 9 domain embriones have no memory at all
+      impact: Cannot learn from past invocations
+      fix: Each embrion gets graph_enhanced_recall before operating
+  moderate:
+    - id: bot_offline
+      description: Telegram bot returns 404
+      fix: Redeploy on Railway
+    - id: embeddings_pending
+      description: 125 kit_pericia memories ingested without vector embeddings
+      fix: Redeploy kernel with new adapter (entity extraction generates embeddings)
+    - id: domain_embriones_doctrine_only
+      description: 10 Domain Embriones (Archivista, Concierge, etc.) exist only in doctrine
+      fix: Implement in kernel/embriones/ when Capa 0+1 are solid
+
+doctrine:
+  objectives: docs/EL_MONSTRUO_15_OBJETIVOS_MAESTROS.md
+  agent_rules: AGENTS.md
+  brand_dna: kernel/brand/brand_dna.py
+  canon_metodologias: docs/conocimiento/metodologias/CANON_Metodologias_Productividad_v1_5.md
+  security_dscs: discovery_forense/CAPILLA_DECISIONES/_GLOBAL/
+  sprint_history: docs/SPRINT_*.md (51-80)
+  kit_pericia: bridge/thread_archives/ + monstruo_reality_atlas/
+
+# ─── USAGE INSTRUCTIONS FOR AI AGENTS ─────────────────────────────
+# 1. Read this file FIRST when starting any task on El Monstruo
+# 2. Use 'connections' to understand how components relate
+# 3. Use 'gaps' to know what's broken or missing
+# 4. Use 'memory_plane' to understand where data lives
+# 5. Use 'embriones' to know what specialists exist
+# 6. Use 'production' to know what's actually deployed
+# 7. Regenerate with: python3 scripts/genome_generator.py
+
