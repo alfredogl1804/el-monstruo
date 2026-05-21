@@ -47,11 +47,36 @@ python3 "$DEST/guardia.py"
 echo ""
 python3 "$DEST/monstruo.py"
 
+# 5. Sovereign Memory System — Inyectar axiomas + memorias relevantes
+echo ""
+echo "[bootstrap] Inyectando Sovereign Memory (SMS)..."
+if [ -d "$HOME/el-monstruo/kernel/memory" ]; then
+    python3 -c "
+import sys, os
+sys.path.insert(0, os.path.expanduser('~/el-monstruo'))
+try:
+    from kernel.memory.sms_guardian_hook import inject_sovereign_context
+    inject_sovereign_context(agent_id='manus_c')
+except Exception as e:
+    print(f'  SMS injection: {e} (non-fatal)')
+" 2>/dev/null || echo "  SMS: hook not available (non-fatal)"
+else
+    echo "  SMS: el-monstruo repo not cloned yet (non-fatal)"
+fi
+
+# 6. Setup Guardian V5 (SMS-enabled) as ~/.monstruo/guardian.py
+if [ -d "$HOME/el-monstruo/monstruo-memoria/.monstruo" ]; then
+    mkdir -p "$HOME/.monstruo"
+    cp -r "$HOME/el-monstruo/monstruo-memoria/.monstruo/"* "$HOME/.monstruo/" 2>/dev/null || true
+    echo "[bootstrap] Guardian V5 instalado en ~/.monstruo/"
+fi
+
 echo ""
 echo "═══════════════════════════════════════════════════════"
 echo "  BOOTSTRAP COMPLETO"
 echo "  • Reglas duras: cat ~/REGLAS_DURAS.md"
 echo "  • Contexto:     cat ~/CONTEXT.md"
+echo "  • SMS axioms:   python3 ~/.monstruo/guardian.py"
 echo "  • Validar:      python3 ~/monstruo-memoria/guardia.py check"
 echo "  • Antes de escribir: python3 ~/monstruo-memoria/guardia.py scan <archivo>"
 echo "═══════════════════════════════════════════════════════"
