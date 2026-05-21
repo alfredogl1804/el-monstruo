@@ -1,0 +1,119 @@
+{
+  "sprint": "SPR-R0PLUS-TEST-REMEDIATION-TOP3-001",
+  "executed_at": "2026-05-21T07:10:00Z",
+  "executor": "manus_b",
+  "environment": "sandbox (Ubuntu 22.04, Python 3.11)",
+  "suites_run": 11,
+  "suites_passed": 11,
+  "suites_failed": 0,
+  "individual_tests_passed": 156,
+  "individual_tests_failed": 0,
+  "new_tests_created": 0,
+  "cost_usd": 0.0,
+  "external_api_calls": 0,
+  "supabase_calls": 0,
+  "secrets_used": 0,
+  "network_calls": 0,
+  "r1_operations": 0,
+  "suites": [
+    {
+      "name": "test_provider_health_monitor",
+      "artifact": "provider_health_monitor_v0_1.py",
+      "path": "bridge/reactor_limited_active_r0/live_upgrade_epoch_005/artifacts/test_provider_health_monitor.py",
+      "tests": 18,
+      "passed": 18,
+      "failed": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "test_memory_analytics",
+      "artifact": "memory_analytics_v0_1.py",
+      "path": "bridge/reactor_limited_active_r0/live_upgrade_epoch_006/artifacts/test_memory_analytics.py",
+      "tests": 12,
+      "passed": 12,
+      "failed": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "test_t1_cockpit_data_injector",
+      "artifact": "t1_cockpit_data_injector_v0_1.py",
+      "path": "bridge/reactor_limited_active_r0/live_upgrade_epoch_007/artifacts/test_t1_cockpit_data_injector.py",
+      "tests": 14,
+      "passed": 14,
+      "failed": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "test_t1_decision_executor",
+      "artifact": "t1_decision_executor_v0_1.py",
+      "path": "bridge/reactor_limited_active_r0/live_upgrade_epoch_008/artifacts/test_t1_decision_executor.py",
+      "tests": 14,
+      "passed": 14,
+      "failed": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "test_r0plus_artifact_indexer",
+      "artifact": "r0plus_artifact_indexer_v0_1.py",
+      "path": "bridge/r0plus_production_surge_001/artifacts/test_r0plus_artifact_indexer.py",
+      "tests": 14,
+      "passed": 14,
+      "failed": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "test_memory_palace_pattern_detector",
+      "artifact": "memory_palace_pattern_detector_v0_1.py",
+      "path": "bridge/r0plus_production_surge_001/artifacts/test_memory_palace_pattern_detector.py",
+      "tests": 15,
+      "passed": 15,
+      "failed": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "test_embryo_run_history_analyzer",
+      "artifact": "embryo_run_history_analyzer_v0_1.py",
+      "path": "bridge/r0plus_production_surge_001/artifacts/test_embryo_run_history_analyzer.py",
+      "tests": 15,
+      "passed": 15,
+      "failed": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "test_provider_registry",
+      "artifact": "provider_registry.py",
+      "path": "bridge/provider_ops/test_provider_registry.py",
+      "tests": 10,
+      "passed": 10,
+      "failed": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "test_provider_migration_guard",
+      "artifact": "provider_migration_guard.py",
+      "path": "bridge/provider_ops/test_provider_migration_guard.py",
+      "tests": 12,
+      "passed": 12,
+      "failed": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "test_t1_directive_resolver",
+      "artifact": "t1_directive_resolver.py",
+      "path": "bridge/state_fabric/test_t1_directive_resolver.py",
+      "tests": 10,
+      "passed": 10,
+      "failed": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "test_t1_directive_conflict_resolver",
+      "artifact": "t1_directive_conflict_resolver.py",
+      "path": "bridge/state_fabric/test_t1_directive_conflict_resolver.py",
+      "tests": 10,
+      "passed": 10,
+      "failed": 0,
+      "exit_code": 0
+    }
+  ]
+}

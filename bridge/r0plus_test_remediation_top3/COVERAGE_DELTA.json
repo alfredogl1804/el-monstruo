@@ -1,0 +1,37 @@
+{
+  "sprint": "SPR-R0PLUS-TEST-REMEDIATION-TOP3-001",
+  "computed_at": "2026-05-21T07:15:00Z",
+  "artifacts_total_before": 11,
+  "artifacts_with_tests_before": 4,
+  "coverage_percent_before": 36.4,
+  "artifacts_total_after": 11,
+  "artifacts_with_tests_after": 11,
+  "coverage_percent_after": 100.0,
+  "delta_percent": 63.6,
+  "delta_type": "REPORTING_CORRECTION",
+  "delta_explanation": "No new tests were created. The index was stale; all artifacts already had tests from their epoch sprints.",
+  "new_tests_created_this_sprint": 0,
+  "total_tests_verified": 156,
+  "remaining_untested_artifacts": 0,
+  "remaining_untested_list": [],
+  "next_top3_targets": [
+    {
+      "target": "DEPTH_INCREASE",
+      "description": "Increase test count for suites with <15 tests (provider_registry, t1_directive_resolver, t1_directive_conflict_resolver)",
+      "priority": "LOW"
+    },
+    {
+      "target": "INTEGRATION_TESTS",
+      "description": "Cross-artifact interaction tests (decision executor + directive resolver + provider registry)",
+      "priority": "MEDIUM"
+    },
+    {
+      "target": "MUTATION_TESTING",
+      "description": "Verify test quality by introducing deliberate bugs and checking detection rate",
+      "priority": "MEDIUM"
+    }
+  ],
+  "target_met": true,
+  "target_was": "60%",
+  "actual_coverage": "100%"
+}
