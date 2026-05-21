@@ -478,6 +478,13 @@ class SMSSupabaseAdapter:
                             extra_headers={"Prefer": "return=representation"},
                         )
                         logger.info(f"AUDN updated memory {audn_target}: {content[:50]}...")
+                        # Log conflict: new content supersedes existing memory
+                        self._log_audn_conflict(
+                            existing_id=audn_target,
+                            new_content=content,
+                            action="UPDATE",
+                            agent=agent,
+                        )
                         return {"status": "updated", "audn_action": "UPDATE", "memory_id": audn_target}
                     except SMSSupabaseError as e:
                         logger.warning(f"AUDN UPDATE failed, falling back to ADD: {e}")
@@ -486,7 +493,16 @@ class SMSSupabaseAdapter:
                 if audn_action == "DELETE" and audn_target:
                     # Soft-delete the contradicted memory, then store the new one
                     self.forget_memory(audn_target)
+                    # Also temporally invalidate (sets invalid_at for history)
+                    self.invalidate_memory(audn_target)
                     logger.info(f"AUDN deleted contradicted memory {audn_target}")
+                    # Log conflict: new memory contradicts existing
+                    self._log_audn_conflict(
+                        existing_id=audn_target,
+                        new_content=content,
+                        action="DELETE",
+                        agent=agent,
+                    )
 
         # ─── STORE THE MEMORY ─────────────────────────────────────────────────
         body = {
@@ -821,6 +837,48 @@ class SMSSupabaseAdapter:
         except SMSSupabaseError as e:
             logger.error(f"Failed to log conflict: {e}")
             return None
+
+    def _log_audn_conflict(
+        self,
+        existing_id: str,
+        new_content: str,
+        action: str,
+        agent: str,
+    ) -> None:
+        """Log AUDN conflict resolution to sovereign_conflict_log.
+        
+        Called when AUDN decides UPDATE or DELETE — meaning the new memory
+        supersedes or contradicts an existing one. This creates an audit trail
+        of all AUDN arbitration decisions.
+        """
+        # Generate a deterministic placeholder ID for the "new" memory
+        # (it hasn't been stored yet, so we use a hash-based UUID)
+        new_memory_pseudo_id = str(uuid4())
+
+        reason = (
+            f"AUDN {action}: new content supersedes existing memory. "
+            f"New: {new_content[:100]}..."
+        )
+
+        body = {
+            "memory_a_id": existing_id,
+            "memory_b_id": new_memory_pseudo_id,
+            "winner_id": new_memory_pseudo_id if action == "DELETE" else existing_id,
+            "reason": reason[:500],
+            "resolution_method": f"audn_{action.lower()}",
+            "resolved_by": agent or "monstruo",
+        }
+
+        try:
+            _supabase_request(
+                self.config, "POST", "/sovereign_conflict_log",
+                body=body,
+                extra_headers={"Prefer": "return=minimal"},
+            )
+            logger.info(f"AUDN conflict logged: {action} on {existing_id}")
+        except SMSSupabaseError as e:
+            # Non-fatal: conflict logging failure shouldn't block memory operations
+            logger.warning(f"Failed to log AUDN conflict (non-fatal): {e}")
 
     # ─── AGENT REGISTRY ────────────────────────────────────────────────────────
 

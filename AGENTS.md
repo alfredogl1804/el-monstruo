@@ -492,6 +492,7 @@ Doctrina operativa:
 
 1. **Cuándo escribir:** Inmediatamente al descubrir un hecho nuevo, tomar una decisión arquitectónica, resolver un bug, aprender un patrón, o detectar un error que no debe repetirse.
 2. **Endpoint:** `POST https://el-monstruo-kernel-production.up.railway.app/sms/sms/ingest`
+   - **Auth:** `Authorization: Bearer sms_sk_0Q-zvCdyDLqMIVdczpWL67wLUR3dvK6ALcL1qt5808E`
 3. **Payload mínimo:**
    ```json
    {
@@ -517,12 +518,14 @@ Doctrina operativa:
 # Después de resolver un bug
 curl -X POST https://el-monstruo-kernel-production.up.railway.app/sms/sms/ingest \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sms_sk_0Q-zvCdyDLqMIVdczpWL67wLUR3dvK6ALcL1qt5808E" \
   -d '{"content":"SyntaxError en SMS v3 línea 469 causado por doble llave {{ en f-string. Fix: usar dict literal fuera del f-string.","memory_type":"procedural","agent_id":"manus_c","source":"PR #180","tags":["bug","python","sms"],"confidence":0.95}'
 
 # Después de una decisión arquitectónica
 curl -X POST https://el-monstruo-kernel-production.up.railway.app/sms/sms/ingest \
   -H "Content-Type: application/json" \
-  -d '{"content":"AUDN Loop usa gpt-4o-mini para decisiones Add/Update/Delete/None. Costo ~$0.001/decisión. Modelo elegido por balance velocidad/costo.","memory_type":"semantic","agent_id":"manus_c","source":"SMS v3.1 design","tags":["audn","arquitectura","costos"],"confidence":0.9}'
+  -H "Authorization: Bearer sms_sk_0Q-zvCdyDLqMIVdczpWL67wLUR3dvK6ALcL1qt5808E" \
+  -d '{"content":"AUDN Loop usa DeepSeek R1 (deepseek-r1-0528) para decisiones Add/Update/Delete/None. Modelo reasoning elegido por calidad de arbitraje.","memory_type":"semantic","agent_id":"manus_c","source":"SMS v3.1 design","tags":["audn","arquitectura"],"confidence":0.9}'
 ```
 
 ### Frecuencia esperada:
