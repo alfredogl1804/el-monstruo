@@ -1,0 +1,65 @@
+self_tasks:
+  - task_id: detect_new_ai_capability_candidates
+    purpose: "Scan provider outputs for emerging capabilities not yet cataloged in the Monstruo ecosystem"
+    action_class: A0_OBSERVE
+    expected_output: "capability_candidates.json with scored list of new capabilities"
+    required_permission: DISPATCHER_ALLOW
+    stop_condition: "max 1 provider call per cycle"
+    forbidden_actions: [R1, MEMORY_WRITE, SUPABASE_WRITE, SECRET_READ]
+    priority_base: 9
+    freshness_bonus: 2
+    cost_weight: 0.001
+    risk_level: LOW
+    compounding_value: HIGH
+
+  - task_id: map_capability_to_application
+    purpose: "Map detected capabilities to concrete applications within the Monstruo architecture"
+    action_class: A1_ANALYZE
+    expected_output: "capability_application_map.json linking capabilities to use cases"
+    required_permission: DISPATCHER_ALLOW
+    stop_condition: "requires prior capability_candidates output"
+    forbidden_actions: [R1, MEMORY_WRITE, SUPABASE_WRITE, SECRET_READ]
+    priority_base: 8
+    freshness_bonus: 1
+    cost_weight: 0.001
+    risk_level: LOW
+    compounding_value: HIGH
+
+  - task_id: rank_application_by_power_gain
+    purpose: "Score and rank applications by expected power gain for T1"
+    action_class: A1_ANALYZE
+    expected_output: "power_gain_ranking.json with scored applications"
+    required_permission: DISPATCHER_ALLOW
+    stop_condition: "requires prior capability_application_map output"
+    forbidden_actions: [R1, MEMORY_WRITE, SUPABASE_WRITE, SECRET_READ]
+    priority_base: 7
+    freshness_bonus: 1
+    cost_weight: 0.001
+    risk_level: LOW
+    compounding_value: MEDIUM
+
+  - task_id: generate_sprint_candidate
+    purpose: "Generate a structured sprint candidate from the highest-ranked application"
+    action_class: A3_CREATE_NON_PRODUCTIVE_ARTIFACT
+    expected_output: "sprint_candidate_draft.json ready for Sprint Compiler"
+    required_permission: DISPATCHER_ALLOW
+    stop_condition: "requires prior power_gain_ranking output"
+    forbidden_actions: [R1, MEMORY_WRITE, SUPABASE_WRITE, SECRET_READ, PR_CREATE, DEPLOY]
+    priority_base: 8
+    freshness_bonus: 0
+    cost_weight: 0.002
+    risk_level: LOW
+    compounding_value: HIGH
+
+  - task_id: audit_previous_oracle_outputs_for_low_value
+    purpose: "Self-audit previous cycle outputs to detect low-value patterns and improve future scoring"
+    action_class: A2_PREPARE_EVIDENCE
+    expected_output: "self_audit_report.json with quality scores and improvement suggestions"
+    required_permission: DISPATCHER_ALLOW
+    stop_condition: "requires at least 1 previous cycle completed"
+    forbidden_actions: [R1, MEMORY_WRITE, SUPABASE_WRITE, SECRET_READ]
+    priority_base: 6
+    freshness_bonus: 0
+    cost_weight: 0.001
+    risk_level: LOW
+    compounding_value: MEDIUM

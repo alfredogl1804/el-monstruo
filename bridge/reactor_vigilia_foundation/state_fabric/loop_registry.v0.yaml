@@ -31,17 +31,19 @@ loop_memoria_memento:
 loop_oraculo_ias:
   loop_id: loop_oraculo_ias
   role: "AI capability catalog, model prediction, power stack"
-  status: NOT_RUNNING
+  status: RUNNING_R0_SHADOW
   max_autonomy_level: A3
   allowed_event_types: ["OBSERVED", "STATE_DELTA_PROPOSED", "T1_DECISION_REQUIRED"]
   allowed_read_paths: ["bridge/", "event_log.v0.jsonl"]
-  allowed_write_paths: ["bridge/doctrine_candidates/"]
+  allowed_write_paths: ["bridge/doctrine_candidates/", "bridge/embryos/oracle_ai_r0/"]
   forbidden_actions: ["touch_supabase", "modify_kernel", "deploy"]
   auditor_required: false
   heartbeat_policy: "on_demand"
   owner: monstruo
-  runtime_allowed: false
-  notes: "Contract only. No loop active. SPR-ORACLE-AI-001 APPROVED."
+  runtime_allowed: true
+  embryo_ref: "embryos/oracle_ai/oracle_ai_embryo.py"
+  embryo_id: oracle_ai_embryo_r0
+  notes: "AUTONOMOUS_EMBRYO_R0_CONFIRMED. SPR-EMBRION-AUTONOMO-ORACLE-R0-001."
 
 loop_humanplus_e2e:
   loop_id: loop_humanplus_e2e

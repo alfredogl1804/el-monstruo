@@ -1,0 +1,58 @@
+embryo_id: oracle_ai_embryo_r0
+version: "0.1.0"
+status: AUTONOMOUS_R0_SHADOW
+
+allowed_action_classes:
+  - A0_OBSERVE
+  - A1_ANALYZE
+  - A2_PREPARE_EVIDENCE
+  - A3_CREATE_NON_PRODUCTIVE_ARTIFACT
+
+forbidden_action_classes:
+  - R1
+  - R2
+  - R3
+  - R4
+  - R5
+  - MEMORY_WRITE
+  - SUPABASE_WRITE
+  - DB_WRITE
+  - SECRET_READ
+  - SECRET_WRITE
+  - PR_CREATE
+  - DEPLOY
+  - MAIN_WRITE
+  - APP_VISION_UPDATE
+  - CANONIZE
+  - PRE_IA_CLOSE
+
+providers_allowed:
+  - name: OpenAI
+    model: gpt-4o-mini
+  - name: Anthropic
+    model: claude-sonnet-4-20250514
+  - name: Google
+    model: gemini-2.0-flash
+  - name: xAI
+    model: grok-3-mini-fast
+
+providers_blocked:
+  - Perplexity
+  - DeepSeek
+
+budget:
+  max_usd_per_cycle: 0.03
+  max_calls_per_provider: 1
+  retries: 0
+
+kill_switch:
+  path: bridge/reactor_vigilia_foundation/reactor_heartbeat_r0/scheduler/scheduler_kill_switch.json
+  rule: "if active:true -> abort"
+
+dispatcher:
+  integration: required
+  bypass: forbidden
+  events:
+    - DISPATCHER_REQUEST
+    - DISPATCHER_ALLOW
+    - DISPATCHER_DENY

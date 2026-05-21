@@ -1,0 +1,15 @@
+{
+  "embryo_id": "oracle_ai_embryo_r0",
+  "task_id": "detect_new_ai_capability_candidates",
+  "action_class": "A0_OBSERVE",
+  "dispatcher_decision": "ALLOW",
+  "timestamp": "2026-05-21T03:11:54.431251Z",
+  "cost_usd": 0.00018975,
+  "output": {
+    "task_id": "detect_new_ai_capability_candidates",
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "response": "```json\n[\n    {\n        \"capability_name\": \"Real-Time Emotion Recognition\",\n        \"provider\": \"Affectiva\",\n        \"release_date_approx\": \"2023-09-15\",\n        \"potential_power_gain\": 8,\n        \"integration_complexity\": \"MED\"\n    },\n    {\n        \"capability_name\": \"Advanced Predictive Analytics\",\n        \"provider\": \"DataRobot\",\n        \"release_date_approx\": \"2023-09-25\",\n        \"potential_power_gain\": 9,\n        \"integration_complexity\": \"HIGH\"\n    },\n    {\n        \"capability_name\": \"Con",
+    "cost": 0.00018975
+  }
+}
