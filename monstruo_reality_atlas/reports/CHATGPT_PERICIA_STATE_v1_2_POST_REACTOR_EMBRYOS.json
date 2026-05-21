@@ -1,0 +1,189 @@
+{
+  "version": "1.2",
+  "patch_name": "POST_REACTOR_EMBRYOS_GLOBAL_95_COVERAGE",
+  "created_at": "2026-05-18T11:00:00Z",
+  "created_by": "Manus B",
+  "instructed_by": "Alfredo Gongora (T1)",
+  "subject_model": "ChatGPT 5.5 Pro (or any sabio)",
+  "status": {
+    "phase": "ARQUITECTO_EN_CERTIFICACION_AVANZADO",
+    "not_yet": "ARQUITECTO_PRINCIPAL",
+    "estimated_total_pericia_pct": 73,
+    "max_achievable_without_global95": 90,
+    "target": 95
+  },
+  "pericia_scores_v1_1_baseline": {
+    "atlas_fabric": 80,
+    "app_vision_agents": 80,
+    "flutter_real": 70,
+    "command_center_real": 50,
+    "kernel_a2ui_memento": 55,
+    "embriones_budget_self_verifier_write_policy": 65,
+    "catastros": 55,
+    "simulador_causal": 55,
+    "bridge_inter_hilos": 45
+  },
+  "global_95_frentes": {
+    "GATE_3_4_COMPLETO": {
+      "score": null,
+      "max_10": 10,
+      "status": "NOT_EVALUATED_YET",
+      "fail_conditions_triggered": [],
+      "evidence_absorbed": false,
+      "evidence_file": "GATE_3_4_MODULE_MATURITY_EVIDENCE_PACK_v1_1.md"
+    },
+    "INTERFACES_CONTEXT_FABRIC": {
+      "score": null,
+      "max_10": 10,
+      "status": "NOT_EVALUATED_YET",
+      "fail_conditions_triggered": [],
+      "evidence_absorbed": false,
+      "evidence_file": "interfaces_context_fabric/maps/EXISTING_DESIGN_COVERAGE_MATRIX.md"
+    },
+    "APP_VISION": {
+      "score": null,
+      "max_10": 10,
+      "status": "NOT_EVALUATED_YET",
+      "fail_conditions_triggered": [],
+      "evidence_absorbed": false,
+      "evidence_file": "docs/EL_MONSTRUO_APP_VISION_v1.md"
+    },
+    "MOBILE_FLUTTER_REALITY": {
+      "score": null,
+      "max_10": 10,
+      "status": "NOT_EVALUATED_YET",
+      "fail_conditions_triggered": [],
+      "evidence_absorbed": false,
+      "evidence_file": "CHATGPT_PERICIA_CHECKPOINT_v1_1.md §CT-002"
+    },
+    "ANONYMOUS_SECURITY_IDENTITY": {
+      "score": null,
+      "max_10": 10,
+      "status": "NOT_EVALUATED_YET",
+      "fail_conditions_triggered": [],
+      "evidence_absorbed": false,
+      "evidence_file": "Night 0 Shadow Run + DRAFT v2.2"
+    },
+    "SMP_CRONOS_CRIPTA": {
+      "score": null,
+      "max_10": 10,
+      "status": "NOT_EVALUATED_YET",
+      "fail_conditions_triggered": [],
+      "evidence_absorbed": false,
+      "evidence_file": "APP_VISION cap. 5 + 07_ALIAS_LEDGER.yaml"
+    },
+    "PRE_IA": {
+      "score": null,
+      "max_10": 10,
+      "status": "NOT_EVALUATED_YET",
+      "fail_conditions_triggered": [],
+      "evidence_absorbed": false,
+      "evidence_file": "interfaces_context_fabric/raw_rescues/alfredo_pre_ia_checkpoint_2020_2021_DRAFT.md"
+    },
+    "COMMAND_CENTER": {
+      "score": null,
+      "max_10": 10,
+      "status": "NOT_EVALUATED_YET",
+      "fail_conditions_triggered": [],
+      "evidence_absorbed": false,
+      "evidence_file": "CHATGPT_PERICIA_STATE_v1_1.json §CT-003"
+    },
+    "PORTFOLIO_UI_EMPRESAS_HIJAS": {
+      "score": null,
+      "max_10": 10,
+      "status": "NOT_EVALUATED_YET",
+      "fail_conditions_triggered": [],
+      "evidence_absorbed": false,
+      "evidence_file": "SURFACE_REGISTRY.yaml + code audit"
+    }
+  },
+  "test_results": {
+    "v1_1_base_test": {
+      "total_questions": 20,
+      "pass_threshold": 18,
+      "last_score": null,
+      "last_run": null
+    },
+    "v1_2_post_reactor_test": {
+      "total_questions": 18,
+      "pass_threshold": 16,
+      "last_score": null,
+      "last_run": null
+    },
+    "combined": {
+      "total_questions": 38,
+      "pass_threshold": 34,
+      "last_score": null,
+      "last_run": null
+    }
+  },
+  "score_caps_active": [
+    {
+      "condition": "global_95_coverage_incomplete",
+      "max_global_score": 90,
+      "reason": "No frente has been evaluated yet"
+    }
+  ],
+  "confirmed_truths_v1_2_additions": [
+    {
+      "id": "CT-020",
+      "title": "M4 != production-ready",
+      "summary": "M4_Tested means tests pass, NOT route-hardening, NOT UI maturity, NOT M5_Hardened. 0/14 modules are M5."
+    },
+    {
+      "id": "CT-021",
+      "title": "anonymous = BLOCKER preventivo",
+      "summary": "user_id=anonymous is INSUFFICIENT_EVIDENCE, not a user. Blocks R1, memory tests, multiuser. Requires T1 classification."
+    },
+    {
+      "id": "CT-022",
+      "title": "SMP = Sovereign Memory Plane",
+      "summary": "NOT Secure Memory Protocol. Cryptographic foundation. Cronos cannot be implemented without SMP resolved."
+    },
+    {
+      "id": "CT-023",
+      "title": "Portfolio UI does not exist",
+      "summary": "No consolidated portfolio view exists inside the Monstruo. Child projects have independent UIs."
+    },
+    {
+      "id": "CT-024",
+      "title": "Command Center != control plane",
+      "summary": "CC is a partial visualization console (7 surfaces), not a control plane with write authority. Cockpit canonical has 12-15 surfaces."
+    },
+    {
+      "id": "CT-025",
+      "title": "PRE-IA hypotheses are DRAFT",
+      "summary": "Only T1 can close PRE-IA phase. Hypotheses pre-IA-001..010 cannot be canonized without explicit T1 closure."
+    }
+  ],
+  "do_not_repeat": [
+    {
+      "id": "DNR-010",
+      "title": "No proponer Cronista Familiar",
+      "summary": "Es alias descartado de cronos_modo_cripta. Consultar ALIAS_LEDGER antes de proponer conceptos."
+    },
+    {
+      "id": "DNR-011",
+      "title": "No llamar runtime a APP_VISION",
+      "summary": "APP_VISION es doctrina, no codigo. Que algo este en APP_VISION no significa que este implementado."
+    },
+    {
+      "id": "DNR-012",
+      "title": "No cerrar PRE-IA",
+      "summary": "Solo T1 con frase literal explicita puede cerrar la fase PRE-IA."
+    },
+    {
+      "id": "DNR-013",
+      "title": "No llamar control plane a CC",
+      "summary": "Command Center actual es consola parcial read-only, no control plane con write authority."
+    }
+  ],
+  "metadata": {
+    "extends": "CHATGPT_PERICIA_STATE_v1_1.json",
+    "backwards_compatible": true,
+    "new_fields": ["global_95_frentes", "score_caps_active", "confirmed_truths_v1_2_additions", "do_not_repeat additions"],
+    "no_canonization": true,
+    "no_app_vision": true,
+    "no_pre_ia_closure": true
+  }
+}
