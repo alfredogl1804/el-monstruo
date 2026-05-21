@@ -1,0 +1,15 @@
+{
+  "embryo_id": "oracle_auditor_embryo_r0",
+  "name": "Oracle Auditor Embryo R0",
+  "version": "0.1.0",
+  "role": "AUTONOMOUS_R0_SHADOW_AUDITOR",
+  "pair_target": "oracle_ai_embryo_r0",
+  "entry_point": "embryos/oracle_auditor/oracle_auditor_embryo.py",
+  "state_file": "embryos/oracle_auditor/oracle_auditor_state.json",
+  "contract_file": "embryos/oracle_auditor/oracle_auditor_contract.yaml",
+  "self_tasks_file": "embryos/oracle_auditor/oracle_auditor_self_tasks.yaml",
+  "event_log_dir": "bridge/embryos/oracle_pair_r0",
+  "output_dir": "bridge/embryos/oracle_pair_r0/auditor_outputs",
+  "invocation": "python3 embryos/oracle_auditor/oracle_auditor_embryo.py --run-once",
+  "created_at": "2026-05-21T03:30:00Z"
+}

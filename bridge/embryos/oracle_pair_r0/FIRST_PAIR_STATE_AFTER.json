@@ -1,0 +1,24 @@
+{
+  "pair_id": "oracle_pair_r0",
+  "mission_id": "PAIR-MISSION-001",
+  "timestamp": "2026-05-21T03:33:54Z",
+  "oracle": {
+    "embryo_id": "oracle_ai_embryo_r0",
+    "total_cycles": 3,
+    "last_task": "detect_new_ai_capability_candidates",
+    "last_result": "SUCCESS",
+    "total_cost_usd": 0.000689
+  },
+  "auditor": {
+    "embryo_id": "oracle_auditor_embryo_r0",
+    "total_cycles": 1,
+    "last_task": "audit_oracle_latest_output",
+    "last_result": "SUCCESS",
+    "total_cost_usd": 0.000151
+  },
+  "pair_verdict": "PARTIAL",
+  "contract_mapping": "REQUIRES_T1_REVIEW",
+  "total_pair_cost_usd": 0.000346,
+  "kill_switch": "INACTIVE",
+  "hard_rules": "ALL_PASS"
+}

@@ -1,1 +1,3 @@
-{"timestamp": "2026-05-21T03:24:50.902889Z", "embryo_id": "oracle_ai_embryo_r0", "event_type": "TEST_EVENT", "payload": {"test": true}}
+{"timestamp": "2026-05-21T03:35:25.099836Z", "embryo_id": "oracle_ai_embryo_r0", "event_type": "TEST_EVENT", "payload": {"test": true}}
+{"timestamp": "2026-05-21T03:35:25.217827Z", "source": "heartbeat_oracle_hook_r0", "event_type": "HOOK_ABORTED", "payload": {"reason": "kill_switch_active"}}
+{"timestamp": "2026-05-21T03:35:25.218062Z", "source": "heartbeat_oracle_hook_r0", "event_type": "HOOK_ABORTED", "payload": {"reason": "kill_switch_active"}}
