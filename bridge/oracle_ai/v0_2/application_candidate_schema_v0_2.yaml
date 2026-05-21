@@ -1,0 +1,27 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+title: "Application Candidate v0.2"
+description: "Conecta capabilities a un caso de uso específico para El Monstruo."
+type: "object"
+properties:
+  id:
+    type: "string"
+    pattern: "^APP-CAND-[A-Z0-9]+-[0-9]{3}$"
+  title:
+    type: "string"
+  required_capabilities:
+    type: "array"
+    items:
+      type: "string"
+      pattern: "^CAP-[A-Z0-9]+-[0-9]{3}$"
+  target_layer:
+    type: "string"
+    enum: ["0_Foundation", "1_Autonomy", "2_Sovereignty", "3_MultiAgent"]
+  power_gain_hypothesis:
+    type: "string"
+  implementation_speed:
+    type: "string"
+    enum: ["hours", "days", "weeks"]
+  risk_level:
+    type: "string"
+    enum: ["low", "medium", "high"]
+required: ["id", "title", "required_capabilities", "target_layer", "power_gain_hypothesis", "implementation_speed", "risk_level"]

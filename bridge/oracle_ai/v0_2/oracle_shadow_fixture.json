@@ -1,0 +1,206 @@
+{
+  "capabilities": [
+    {
+      "id": "CAP-OAI-001",
+      "name": "Structured Outputs",
+      "provider": "OpenAI",
+      "description": "Garantiza JSON schema estricto.",
+      "maturity": "production",
+      "cost_profile": "low",
+      "integration_complexity": "low"
+    },
+    {
+      "id": "CAP-ANTH-001",
+      "name": "Context Caching",
+      "provider": "Anthropic",
+      "description": "Cachea prompts largos para reducir costo y latencia.",
+      "maturity": "production",
+      "cost_profile": "medium",
+      "integration_complexity": "medium"
+    },
+    {
+      "id": "CAP-GEM-001",
+      "name": "Multimodal Long Context",
+      "provider": "Google",
+      "description": "Procesa video/audio/texto hasta 2M tokens.",
+      "maturity": "beta",
+      "cost_profile": "medium",
+      "integration_complexity": "medium"
+    },
+    {
+      "id": "CAP-XAI-001",
+      "name": "Real-time X Data",
+      "provider": "xAI",
+      "description": "Acceso a firehose de X para tendencias.",
+      "maturity": "beta",
+      "cost_profile": "high",
+      "integration_complexity": "medium"
+    },
+    {
+      "id": "CAP-OAI-002",
+      "name": "O1 Reasoning",
+      "provider": "OpenAI",
+      "description": "Cadena de pensamiento oculta para problemas complejos.",
+      "maturity": "beta",
+      "cost_profile": "high",
+      "integration_complexity": "low"
+    },
+    {
+      "id": "CAP-ANTH-002",
+      "name": "Computer Use",
+      "provider": "Anthropic",
+      "description": "Control de desktop via API.",
+      "maturity": "experimental",
+      "cost_profile": "high",
+      "integration_complexity": "high"
+    },
+    {
+      "id": "CAP-GEM-002",
+      "name": "Gemini Live API",
+      "provider": "Google",
+      "description": "Interacci\u00f3n voz-a-voz bidireccional.",
+      "maturity": "experimental",
+      "cost_profile": "high",
+      "integration_complexity": "high"
+    },
+    {
+      "id": "CAP-XAI-002",
+      "name": "Grok Vision",
+      "provider": "xAI",
+      "description": "Entendimiento de im\u00e1genes y documentos.",
+      "maturity": "production",
+      "cost_profile": "low",
+      "integration_complexity": "low"
+    },
+    {
+      "id": "CAP-OSS-001",
+      "name": "Local Embeddings",
+      "provider": "OSS",
+      "description": "BGE-m3 corriendo localmente.",
+      "maturity": "production",
+      "cost_profile": "free",
+      "integration_complexity": "medium"
+    },
+    {
+      "id": "CAP-OSS-002",
+      "name": "VLLM Router",
+      "provider": "OSS",
+      "description": "Inferencia local optimizada.",
+      "maturity": "production",
+      "cost_profile": "free",
+      "integration_complexity": "high"
+    }
+  ],
+  "applications": [
+    {
+      "id": "APP-CAND-001",
+      "title": "State Fabric JSON Enforcer",
+      "required_capabilities": [
+        "CAP-OAI-001"
+      ],
+      "target_layer": "1_Autonomy",
+      "power_gain_hypothesis": "0% parsing errors en Vigilia Sincr\u00f3nica.",
+      "implementation_speed": "hours",
+      "risk_level": "low"
+    },
+    {
+      "id": "APP-CAND-002",
+      "title": "Memory Router Caching",
+      "required_capabilities": [
+        "CAP-ANTH-001"
+      ],
+      "target_layer": "0_Foundation",
+      "power_gain_hypothesis": "Reduce costo de inyecci\u00f3n de contexto en 80%.",
+      "implementation_speed": "days",
+      "risk_level": "medium"
+    },
+    {
+      "id": "APP-CAND-003",
+      "title": "Podcast/Video Ingest",
+      "required_capabilities": [
+        "CAP-GEM-001"
+      ],
+      "target_layer": "0_Foundation",
+      "power_gain_hypothesis": "Permite a Alfredo subir 2h de video y extraer insights directo a Memento.",
+      "implementation_speed": "weeks",
+      "risk_level": "low"
+    },
+    {
+      "id": "APP-CAND-004",
+      "title": "Trend Sniper",
+      "required_capabilities": [
+        "CAP-XAI-001"
+      ],
+      "target_layer": "3_MultiAgent",
+      "power_gain_hypothesis": "Alerta a Alfredo sobre narrativas pol\u00edticas antes de que exploten.",
+      "implementation_speed": "weeks",
+      "risk_level": "medium"
+    },
+    {
+      "id": "APP-CAND-005",
+      "title": "Deep Audit Loop",
+      "required_capabilities": [
+        "CAP-OAI-002"
+      ],
+      "target_layer": "2_Sovereignty",
+      "power_gain_hypothesis": "Auditor\u00edas de c\u00f3digo y seguridad 10x m\u00e1s profundas.",
+      "implementation_speed": "days",
+      "risk_level": "low"
+    },
+    {
+      "id": "APP-CAND-006",
+      "title": "Autonomous Desktop Worker",
+      "required_capabilities": [
+        "CAP-ANTH-002"
+      ],
+      "target_layer": "3_MultiAgent",
+      "power_gain_hypothesis": "Ejecuta tareas en apps legacy sin API.",
+      "implementation_speed": "weeks",
+      "risk_level": "high"
+    },
+    {
+      "id": "APP-CAND-007",
+      "title": "Voice Commander",
+      "required_capabilities": [
+        "CAP-GEM-002"
+      ],
+      "target_layer": "1_Autonomy",
+      "power_gain_hypothesis": "Alfredo da instrucciones complejas por voz mientras maneja.",
+      "implementation_speed": "weeks",
+      "risk_level": "high"
+    },
+    {
+      "id": "APP-CAND-008",
+      "title": "Visual Memento",
+      "required_capabilities": [
+        "CAP-XAI-002"
+      ],
+      "target_layer": "0_Foundation",
+      "power_gain_hypothesis": "Indexaci\u00f3n de screenshots y diagramas en la memoria.",
+      "implementation_speed": "days",
+      "risk_level": "low"
+    },
+    {
+      "id": "APP-CAND-009",
+      "title": "Zero-Cost Semantic Search",
+      "required_capabilities": [
+        "CAP-OSS-001"
+      ],
+      "target_layer": "0_Foundation",
+      "power_gain_hypothesis": "B\u00fasqueda en Memento sin costo de API.",
+      "implementation_speed": "days",
+      "risk_level": "medium"
+    },
+    {
+      "id": "APP-CAND-010",
+      "title": "Local Fallback Node",
+      "required_capabilities": [
+        "CAP-OSS-002"
+      ],
+      "target_layer": "2_Sovereignty",
+      "power_gain_hypothesis": "El Monstruo sigue operando si las APIs externas caen.",
+      "implementation_speed": "weeks",
+      "risk_level": "high"
+    }
+  ]
+}

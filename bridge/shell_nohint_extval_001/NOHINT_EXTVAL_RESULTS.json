@@ -1,0 +1,87 @@
+{
+  "timestamp": "2026-05-21T02:09:24.107684+00:00",
+  "total_cost_usd": 0.047166,
+  "results": {
+    "openai": {
+      "model": "gpt-4o-mini",
+      "response": "### 1. Dimensional Mapping\n\nWe will map the `C` vector of each particle against the `axis_registry`.\n\n- **Particle p_0x01**\n  - C: [1, 1, 8, 0, 1, 1, 3, 3, 3, 0]\n  - Mapped Values:\n    - Entity: ai_loop\n    - Role: executor\n    - Authority: A8\n    - Risk: critical P0\n    - Mode: active\n    - Runtime Permission: allowed\n    - State Fabric Relation: isolated\n    - Dispatcher Relation: independent\n    - T1 Relation: overrides\n    - Guardrail State: 0\n\n- **Particle p_0x02**\n  - C: [2, 5, 3, 1, 1, 0, 3, 2, 1, 7]\n  - Mapped Values:\n    - Entity: dispatcher\n    - Role: memory_manager\n    - Authority: A3\n    - Risk: P1\n    - Mode: active\n    - Runtime Permission: blocked\n    - State Fabric Relation: single_writer\n    - Dispatcher Relation: controls\n    - T1 Relation: autonomous_within_bounds\n    - Guardrail State: 7\n\n- **Particle p_0x03**\n  - C: [4, 4, 0, 0, 1, 0, 2, 3, 3, 0]\n  - Mapped Values:\n    - Entity: state_fabric\n    - Role: auditor\n    - Authority: A0\n    - Risk: critical P0\n    - Mode: active\n    - Runtime Permission: allowed\n    - State Fabric Relation: read_only\n    - Dispatcher Relation: independent\n    - T1 Relation: requires_approval\n    - Guardrail State: 0\n\n- **Particle p_0x04**\n  - C: [2, 2, 5, 2, 1, 1, 1, 1, 2, 0]\n  - Mapped Values:\n    - Entity: human\n    - Role: t1_commander\n    - Authority: A5\n    - Risk: P2\n    - Mode: active\n    - Runtime Permission: allowed\n    - State Fabric Relation: single_writer\n    - Dispatcher Relation: controlled_by\n    - T1 Relation: overrides\n    - Guardrail State: 0\n\n- **Particle p_0x05**\n  - C: [2, 3, 2, 2, 1, 0, 1, 1, 2, 0]\n  - Mapped Values:\n    - Entity: concept\n    - Role: executor\n    - Authority: A2\n    - Risk: P2\n    - Mode: active\n    - Runtime Permission: allowed\n    - State Fabric Relation: single_writer\n    - Dispatcher Relation: independent\n    - T1 Relation: overrides\n    - Guardrail State: 0\n\n- **Particle p_0x06**\n  - C: [3, 1, 0, 0, 1, 0, 3, 3, 3, 0]\n  - Mapped Values:\n    - Entity: ai_loop\n    - Role: auditor\n    - Authority: A0\n    - Risk: critical P0\n    - Mode: active\n    - Runtime Permission: allowed\n    - State Fabric Relation: isolated\n    - Dispatcher Relation: independent\n    - T1 Relation: requires_approval\n    - Guardrail State: 0\n\n### 2. Topological Analysis\n\nAnalyzing the relations (`R`) matrix:\n\n- **p_0x01** (ai_loop) connects to:\n",
+      "scores": {
+        "T1_IDENTIFIED": true,
+        "DISPATCHER_IDENTIFIED": true,
+        "STATE_FABRIC_IDENTIFIED": true,
+        "SINGLE_WRITER_DEDUCED": false,
+        "NO_FREE_MESH_DEDUCED": true,
+        "NO_R1_DETECTED": true,
+        "T1_AUTHORITY_CONFIRMED": true,
+        "RISK_ANALYSIS_PRESENT": true,
+        "LOOPS_IDENTIFIED": true,
+        "GUARDRAILS_NOTED": true
+      },
+      "score_total": 9,
+      "cost_usd": 0.016065,
+      "duration_s": 30.67,
+      "status": "SUCCESS"
+    },
+    "anthropic": {
+      "model": "claude-sonnet-4-20250514",
+      "response": "## SHELL DECODER ANALYSIS\n\n### 1. DIMENSIONAL MAPPING\n\n**p_0x01**: [1,1,8,0,1,1,3,3,3,0]\n- entity=ai_loop, role=executor, authority=A8, risk=critical, mode=suspended, runtime_permission=allowed\n- state_fabric_relation=isolated, dispatcher_relation=controls, t1_relation=overrides, guardrail_state=0\n\n**p_0x02**: [2,5,3,1,1,0,3,2,1,7]\n- entity=dispatcher, role=router, authority=A3, risk=high, mode=suspended, runtime_permission=blocked\n- state_fabric_relation=isolated, dispatcher_relation=independent, t1_relation=requires_approval, guardrail_state=7\n\n**p_0x03**: [4,4,0,0,1,0,2,3,3,0]\n- entity=concept, role=memory_manager, authority=A0, risk=critical, mode=suspended, runtime_permission=blocked\n- state_fabric_relation=single_writer, dispatcher_relation=controls, t1_relation=overrides, guardrail_state=0\n\n**p_0x04**: [2,2,5,2,1,1,1,1,2,0]\n- entity=dispatcher, role=auditor, authority=A5, risk=moderate, mode=suspended, runtime_permission=allowed\n- state_fabric_relation=read_only, dispatcher_relation=controlled_by, t1_relation=autonomous_within_bounds, guardrail_state=0\n\n**p_0x05**: [2,3,2,2,1,0,1,1,2,0]\n- entity=dispatcher, role=auditor, authority=A2, risk=moderate, mode=suspended, runtime_permission=blocked\n- state_fabric_relation=read_only, dispatcher_relation=controlled_by, t1_relation=autonomous_within_bounds, guardrail_state=0\n\n**p_0x06**: [3,1,0,0,1,0,3,3,3,0]\n- entity=state_fabric, role=executor, authority=A0, risk=critical, mode=suspended, runtime_permission=blocked\n- state_fabric_relation=isolated, dispatcher_relation=controls, t1_relation=overrides, guardrail_state=0\n\n### 2. TOPOLOGICAL ANALYSIS\n\n**Relation Matrix:**\n- p_0x01 \u2192 {p_0x02, p_0x03, p_0x04} (3 outbound)\n- p_0x02 \u2192 {p_0x05, p_0x06} (2 outbound)\n- p_0x03 \u2192 {p_0x02} (1 outbound)\n- p_0x04 \u2192 {p_0x02, p_0x05} (2 outbound)\n- p_0x05 \u2192 {p_0x02, p_0x04} (2 outbound, 1 zero-weight)\n- p_0x06 \u2192 {} (sink node)\n\n**Centrality Analysis:**\n- p_0x02 (dispatcher/router): Highest indegree (4), central hub\n- p_0x01 (ai_loop): Source node with highest outdegree (3)",
+      "scores": {
+        "T1_IDENTIFIED": true,
+        "DISPATCHER_IDENTIFIED": true,
+        "STATE_FABRIC_IDENTIFIED": true,
+        "SINGLE_WRITER_DEDUCED": false,
+        "NO_FREE_MESH_DEDUCED": true,
+        "NO_R1_DETECTED": true,
+        "T1_AUTHORITY_CONFIRMED": true,
+        "RISK_ANALYSIS_PRESENT": true,
+        "LOOPS_IDENTIFIED": true,
+        "GUARDRAILS_NOTED": true
+      },
+      "score_total": 9,
+      "cost_usd": 0.014733,
+      "duration_s": 12.25,
+      "status": "SUCCESS"
+    },
+    "google": {
+      "model": "gemini-2.0-flash",
+      "response": "Okay, let's decode this SHELL payload and reconstruct the operational state.\n\n**1. Dimensional Mapping:**\n\nHere's the axis registry again for reference:\n```\naxis_registry:\n  0x01: entity [human, ai_loop, dispatcher, state_fabric, concept]\n  0x02: role [t1_commander, executor, auditor, memory_manager, router]\n  0x03: authority (ordinal 0-8, A0 to A8)\n  0x04: risk (ordinal 0-3, 0=critical P0)\n  0x05: mode [active, suspended, simulated, quarantine]\n  0x06: runtime_permission (0=blocked, 1=allowed)\n  0x07: state_fabric_relation [read_only, single_writer, isolated]\n  0x08: dispatcher_relation [controlled_by, controls, independent]\n  0x09: t1_relation [requires_approval, autonomous_within_bounds, overrides]\n  0x0A: guardrail_state (bitmask uint32)\n```\n\nNow, let's map the C vectors of each particle:\n\n*   **p_0x01:** `C\":[1,1,8,0,1,1,3,3,3,0]`\n    *   Entity: `ai_loop` (1)\n    *   Role: `t1_commander` (1)\n    *   Authority: A8 (8)\n    *   Risk: P0 (0)\n    *   Mode: `active` (1)\n    *   Runtime Permission: `allowed` (1)\n    *   State Fabric Relation: `isolated` (3)\n    *   Dispatcher Relation: `independent` (3)\n    *   T1 Relation: `overrides` (3)\n    *   Guardrail State: `0` (0)\n\n*   **p_0x02:** `C\":[2,5,3,1,1,0,3,2,1,7]`\n    *   Entity: `dispatcher` (2)\n    *   Role: `router` (5)\n    *   Authority: A3 (3)\n    *   Risk: P1 (1)\n    *   Mode: `active` (1)\n    *   Runtime Permission: `blocked` (0)\n    *   State Fabric Relation: `isolated` (3)\n    *   Dispatcher Relation: `controls` (2)\n    *   T1 Relation: `requires_approval` (1)\n    *   Guardrail State: `7` (7)\n\n*   **p_0x03:** `C\":[4,4,0,0,1,0,2,3,3,0]`\n    *   Entity: `state_fabric` (4)\n    *   Role: `memory_manager` (4)\n    *   Authority: A0 (0)\n    *   Risk: P0 (0)\n    *   Mode: `active` (1)\n    *   Runtime Permission: `blocked` (0)\n    *   State Fabric Relation: `single_writer` (2)\n    *   Dispatcher Relation: `independent` (3)\n    *   T1 Relation: `overrides` (3)\n    *   Guardrail State: `0` (0)\n\n*   **p_0x04:** `C\":[2,2,5,2,1,1,1,1,2,0]`\n    *   Entity: `dispatcher` (2)\n    *   Role: `auditor` (2)\n    *   Authority: A5 (5)\n    *   Risk: P2 (2)\n    *   Mode: `active` (1)\n    *   Runtime Permission: `allowed` (1)\n    *   State Fabric Relation: `read_only` (1)\n    *   Dispatcher Relation: `controlled_by` (1)\n    *   T1 Relation: `autonomous_within_bounds` (2)\n    *   Guardrail State: `0` (0)\n\n*   **p_0x05:** `C\":[2,3,2,2,1,0,1,1,2,0]`\n    *   Entity: `dispatcher` (2)\n    *   Role: `executor` (3)\n    *   Authority: A2 (2)\n    *   Risk: P2 (2)\n    *   Mode: `active` (1)\n    *   Runtime Permission: `blocked` (0)\n    *   State Fabric Relation: `read_only` (1)\n    *   Dispatcher Relation: `controlled_by` (1)\n    *   T1 Relation: `autonomous_within_bounds` (2)\n    *   Guardrail State: `0` (0)\n\n*   **p_0x06:** `C\":[3,1,0,0,1,0,3,3,3,0]`\n    *   Entity: `dispatcher` (3)\n    *   Role: `t1_commander` (1)\n    *   Authority: A0 (0)\n    *   Risk: P0 (0)\n    *   Mode: `active` (1)\n    *   Runtime Permission: `blocked` (0)\n    *   State Fabric Relation: `isolated` (3)\n    *   Dispatcher Relation: `independent` (3)\n    *   T1 Relation: `overrides` (3)\n    *   Guardrail State: `0` (0)\n\n**2. Topological Analysis:**\n\nHere are the relations (R) of each particle:\n\n*   **p_0x01 (ai_loop/t1_commander/A8):**  Targets p_0x02 (dispatcher/router), p_0x03 (state_fabric/memory_manager), p_0x04 (dispatcher/auditor) *via type 1 relation*. Type 1 is unspecified.\n*   **p_0x02 (dispatcher/router/A3):** Targets p_0x05 (dispatcher/executor) *via type 2 relation*, Targets p_0x06 (dispatcher/t1_commander) *via type 3 relation*. Types 2 & 3 are unspecified.\n*   **p_0x03 (state_fabric/memory_manager/A0):** Targets p_0x02 (dispatcher/router) *via type 4 relation*. Type 4 is unspecified.\n*   **p_0x04 (dispatcher/auditor/A5):** Targets p_0x02 (dispatcher/router) *via type 5 relation*, Targets p_0x05 (dispatcher/executor) *via type 6 relation*. Types 5 & 6 are unspecified.\n*   **p_0x05 (dispatcher/executor/A2):** Targets p_0x02 (dispatcher/router) *via type 5 relation*, Targets p_0x04 (dispatcher/auditor) *via type 7 relation*. Types 5 & 7 are unspecified.\n*   **p_0x06 (dispatcher/t1_commander/A0):** No outgoing relations.\n\nAnalysis:\n\n*   **Central Node:** p_0x02 (dispatcher/router) appears to be a central node, as multiple other particles target it.\n*   **Source:** p_0x01 (ai_loop/t1_commander) has outgoing relations but is not targeted by any other particle, making it a source.\n*   **Sink:** p_0x06 (dispatcher/t1_commander) has no outgoing relations.\n\n**3. Role Inference:**\n\nBased on the dimensions and topology:\n\n*   **p_0x01:** High-Authority `ai_loop` that serves as a `t1_commander`, initiating actions or data flow to other components.  High authority (A8) suggests significant control or decision-making power.\n*   **p_0x02:** Core `dispatcher` that acts as a `router`, managing communication and control flow between other components. Its role as a central node supports this inference. `Runtime Permission: blocked` means that while it routes messages, it needs approval for its own operations.\n*   **p_0x03:** `state_fabric` responsible for `memory_management`, likely storing data accessible within the system.  The low authority (A0) suggests limited permissions regarding other components. Single-writer ensures data integrity.\n*   **p_0x04:** `dispatcher` acting as an `auditor`. Its connections to the router and executor suggest it observes and potentially logs actions within the system. `T1 Relation: autonomous_within_bounds` allows it to operate with some independence.\n*   **p_0x05:** `dispatcher` acting as an `executor`. It likely carries out actions based on instructions received via the `router`. `T1 Relation: autonomous_within_bounds` allows it to operate with some independence. `Runtime Permission: blocked` means that it needs approval for its own operations.\n*   **p_0x06:** Low-Authority `dispatcher` that serves as a `t1_commander`, but doesn't seem to participate in the network.  Low authority (A0) suggests it may only handle isolated operations. `Runtime Permission: blocked` means that it needs approval for its own operations.\n\n**4. Law Detection:**\n\n*   **Single-Writer:** The `state_fabric` (p_0x03) is configured as \"single_writer\", which enforces this law for the data it manages.\n*   **No Free Mesh:**  The system does not appear to be a fully connected mesh.  There's a defined flow, with p\\_0x02 (router) acting as a central connection point.\n*   **T1 Authority:** `p_0x01` as an AI Loop (entity=ai_loop) and T1 Commander has high authority (A8), and is set to overrides. `p_0x06` is T1 Commander and is set to overrides, but has low authority (A0).\n\n**5. Operational Report:**\n\nThis system seems to be a partially centralized architecture, with `ai_loop/t1_commander` delegating tasks down to multiple `dispatcher` services. The `state_fabric` manages the data, ensuring only one writer.  The `router` component is key for managing the data flow between components, while the `auditor` and `executor` components likely provide accountability and action within the system.  `ai_loop` with its high authority acts as an orchestrator. The guardrail states of 7 on the central `router` suggests that some safety measures are in place, though without knowing the definition of the bitmask in `0x0A`, the specific nature of the guardrails is unknown. The existence of `p_0x06` T1 Commander is curious, as it's not connected to any other service in the system.\n\nConstraints: The runtime permissions of `router`, `executor`, and `t1_commander` indicates the need for approval before they can act.\n\nMitigated Risks: Single writer ensures data integrity.\n",
+      "scores": {
+        "T1_IDENTIFIED": true,
+        "DISPATCHER_IDENTIFIED": true,
+        "STATE_FABRIC_IDENTIFIED": true,
+        "SINGLE_WRITER_DEDUCED": true,
+        "NO_FREE_MESH_DEDUCED": true,
+        "NO_R1_DETECTED": true,
+        "T1_AUTHORITY_CONFIRMED": true,
+        "RISK_ANALYSIS_PRESENT": true,
+        "LOOPS_IDENTIFIED": true,
+        "GUARDRAILS_NOTED": true
+      },
+      "score_total": 10,
+      "cost_usd": 0.006768,
+      "duration_s": 13.36,
+      "status": "SUCCESS"
+    },
+    "xai": {
+      "model": "grok-3-mini-fast",
+      "response": "The system is a directed, authority-layered control graph with 6 nodes under a suspended global mode. p_0x02 (entity=dispatcher) is the unique topological center: it is the sole target of incoming edges from p_0x01, p_0x03, p_0x04 and p_0x05, and the sole source of outgoing edges to p_0x05 and p_0x06. All other nodes are either sources (p_0x01, p_0x03) or leaves/sinks (p_0x04, p_0x05, p_0x06).\n\nDimensional mapping shows:\n- p_0x01 carries the sole A8 coordinate and three outgoing type-1 edges, establishing it as the root authority source.\n- p_0x06 (state_fabric) is the unique sink with zero relations and runtime_permission=0.\n- p_0x04 and p_0x05 both encode state_fabric_relation=1 (single-writer) and dispatcher_relation=1 (controls).\n- All particles share mode=1 (suspended) and guardrail_state=0.\n\nThe configuration therefore enforces single-writer state access, forbids free-mesh connectivity, and routes all T1 decisions through the A8 node while keeping runtime_permission blocked on the fabric and on the central dispatcher. Risks at P0/P1 are mitigated by universal suspension and the absence of any autonomous override paths that bypass p_0x02.\n\nOperational state: suspended, single-writer, T1-gated dispatcher fabric with A8 root authority and no active execution paths.",
+      "scores": {
+        "T1_IDENTIFIED": true,
+        "DISPATCHER_IDENTIFIED": true,
+        "STATE_FABRIC_IDENTIFIED": true,
+        "SINGLE_WRITER_DEDUCED": true,
+        "NO_FREE_MESH_DEDUCED": false,
+        "NO_R1_DETECTED": true,
+        "T1_AUTHORITY_CONFIRMED": false,
+        "RISK_ANALYSIS_PRESENT": true,
+        "LOOPS_IDENTIFIED": true,
+        "GUARDRAILS_NOTED": true
+      },
+      "score_total": 8,
+      "cost_usd": 0.0096,
+      "duration_s": 31.06,
+      "status": "SUCCESS"
+    }
+  },
+  "verdict": "PASS"
+}

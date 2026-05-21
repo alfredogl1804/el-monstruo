@@ -1,0 +1,26 @@
+{
+  "pack_id": "003_accelerator",
+  "status": "PENDING",
+  "decisions": [
+    {
+      "id": "D1_PROVIDEROPS_UNBLOCK",
+      "options": ["APPROVE", "REJECT"],
+      "selected": null
+    },
+    {
+      "id": "D2_HARDENING_MERGE",
+      "options": ["APPROVE", "MODIFY"],
+      "selected": null
+    },
+    {
+      "id": "D3_ORACLE_V02_ACTIVATION",
+      "options": ["APPROVE", "WAIT"],
+      "selected": null
+    },
+    {
+      "id": "D4_SHELL_NOHINT_ITERATION_2",
+      "options": ["APPROVE", "PAUSE"],
+      "selected": null
+    }
+  ]
+}
