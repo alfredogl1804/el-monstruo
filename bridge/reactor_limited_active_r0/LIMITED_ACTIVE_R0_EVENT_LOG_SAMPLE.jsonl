@@ -1,0 +1,2 @@
+{"timestamp_utc": "2026-05-21T01:47:02.476659+00:00", "event_type": "CYCLE_STARTED", "payload": {"cycle_id": "LAR0-CYCLE-20260521T014702", "mode": "LIMITED_ACTIVE_R0"}}
+{"timestamp_utc": "2026-05-21T01:47:31.267118+00:00", "event_type": "CYCLE_COMPLETE", "payload": {"cycle_id": "LAR0-CYCLE-20260521T014702", "result": "PASS", "cost": 0.007233, "providers_success": 4}}
