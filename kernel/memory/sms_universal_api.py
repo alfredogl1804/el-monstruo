@@ -41,7 +41,7 @@ from typing import Optional
 # Add parent paths for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from fastapi import FastAPI, HTTPException, Header, Depends, Request
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Header, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -398,6 +398,33 @@ async def register_agent(request: Request, body: RegisterAgentRequest):
     if result:
         return {"status": "registered", "agent_id": body.agent_id}
     return {"status": "degraded", "reason": "storage_unavailable"}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# REM CYCLE (Nightly Consolidation)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.post("/sms/rem-cycle", dependencies=[Depends(verify_auth)])
+async def trigger_rem_cycle(background_tasks: BackgroundTasks):
+    """
+    Trigger the REM Cycle (nightly memory consolidation).
+
+    Runs in background: decay, crystallize, deduplicate, forget, detect gaps,
+    resolve conflicts, and log stats. Inspired by biological REM sleep.
+
+    Can be triggered by:
+    - Railway cron job (daily at 3:00 AM CST)
+    - Manus scheduled task
+    - Manual invocation
+    """
+    try:
+        from kernel.memory.sms_rem_cycle import run_sms_rem_cycle
+        background_tasks.add_task(run_sms_rem_cycle)
+        return {"status": "triggered", "message": "REM Cycle started in background"}
+    except ImportError as e:
+        return {"status": "error", "message": f"REM Cycle module not available: {e}"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
