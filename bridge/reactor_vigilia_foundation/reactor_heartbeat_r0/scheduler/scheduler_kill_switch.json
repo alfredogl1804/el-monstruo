@@ -1,0 +1,7 @@
+{
+  "active": false,
+  "reason": "Kill-switch inactive. Scheduler operates normally.",
+  "last_toggled_by": "T1",
+  "last_toggled_at": null,
+  "instructions": "Set active=true to immediately stop all scheduler executions. Set active=false and reset scheduler_state.json status to ACTIVE to resume."
+}

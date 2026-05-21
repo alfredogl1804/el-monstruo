@@ -1,6 +1,6 @@
 {
   "heartbeat_id": "HB-R0-001",
-  "timestamp_utc": "2026-05-21T00:08:13.591961+00:00",
+  "timestamp_utc": "2026-05-21T00:49:42.438201+00:00",
   "decision": "REQUEST_T1",
   "reason": "T1 decisions pending in post_m2_t1_decision_pack (scheduler authorization, core providers, budget). Cannot proceed autonomously.",
   "rule_applied": "Rule 2: T1 Pending Check",
