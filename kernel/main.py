@@ -1854,6 +1854,15 @@ except Exception as e:
     logger.warning("sms_universal_api_failed", error=str(e))
 
 
+# ── Event Bus — Reactor de Coherencia (Sprint 84.8) ──────────────────────
+try:
+    from kernel.events.event_bus_api import router as event_bus_router
+    app.include_router(event_bus_router)
+    logger.info("event_bus_mounted", path="/v1/events", endpoints=4)
+except Exception as e:
+    logger.warning("event_bus_mount_failed", error=str(e))
+
+
 # ── Request/Response Models ─────────────────────────────────────────
 
 
