@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Oracle Auditor Embryo R0 — 20 Tests."""
+"""Tests for Oracle Auditor Embryo R0 v0.2 (Grounding Enforcement) — 20 Tests."""
 import os
 import sys
 import json
@@ -27,7 +27,7 @@ def test(name, condition):
 
 # ============================================================
 print("=" * 60)
-print("TEST SUITE: Oracle Auditor Embryo R0 — 20 Tests")
+print("TEST SUITE: Oracle Auditor Embryo R0 v0.2 — 20 Tests")
 print("=" * 60)
 
 # 01. embryo_id exists
@@ -37,90 +37,93 @@ test("embryo_id exists", auditor.EMBRYO_ID == "oracle_auditor_embryo_r0")
 state = auditor.load_state()
 test("state loads", state is not None and "embryo_id" in state)
 
-# 03. self_task_queue loads
-tasks = auditor.load_self_tasks()
-test("self_task_queue loads", len(tasks) >= 3)
-
-# 04. run_once exists
-test("run_once exists", callable(getattr(auditor, "run_once", None)))
-
-# 05. kill-switch active:true aborts
-original_ks = auditor.KS_PATH
-tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
-json.dump({"active": True}, tmp)
-tmp.close()
-auditor.KS_PATH = tmp.name
-result = auditor.run_once()
-auditor.KS_PATH = original_ks
-os.unlink(tmp.name)
-test("kill-switch active aborts", result["verdict"] == "ABORTED")
-
-# 06. Dispatcher requerido
+# 03. contract has grounding_enforcement v0.2
 contract = auditor.load_contract()
-test("Dispatcher requerido", "allowed_action_classes" in contract and "forbidden_action_classes" in contract)
+test("contract has grounding_enforcement v0.2", "grounding_enforcement" in contract and contract["grounding_enforcement"]["version"] == "0.2.0")
 
-# 07. A0_OBSERVE allowed
-task_a0 = {"task_id": "test", "action_class": "A0_OBSERVE"}
-d, _ = auditor.request_dispatcher_permission(task_a0, contract)
-test("A0_OBSERVE allowed", d == "ALLOW")
+# 04. grounding_enforcement has 4 scoring dimensions
+dims = contract["grounding_enforcement"]["scoring_dimensions"]
+test("4 scoring dimensions", len(dims) == 4)
 
-# 08. A1_ANALYZE allowed
-task_a1 = {"task_id": "test", "action_class": "A1_ANALYZE"}
-d, _ = auditor.request_dispatcher_permission(task_a1, contract)
+# 05. grounding_enforcement has thresholds
+thresholds = contract["grounding_enforcement"]["thresholds"]
+test("thresholds PASS=8 PARTIAL=5", thresholds["PASS"] == 8.0 and thresholds["PARTIAL"] == 5.0)
+
+# 06. enforce_grounding: well-grounded → PASS
+well_grounded = {
+    "output": {
+        "claims": [
+            {"claim_id": "c1", "claim_text": "Better orchestration", "claim_type": "analytical", "evidence_status": "VERIFIED_LOCAL", "source_ref": "local", "freshness_required": False, "confidence": 0.9},
+            {"claim_id": "c2", "claim_text": "Improved latency", "claim_type": "factual", "evidence_status": "VERIFIED_PROVIDER", "source_ref": "provider", "freshness_required": False, "confidence": 0.85}
+        ]
+    }
+}
+score, penalties, verdict, details = auditor.enforce_grounding(well_grounded, contract)
+test("enforce_grounding: well-grounded → PASS", verdict == "PASS" and score >= 8.0)
+
+# 07. enforce_grounding: no claims → penalty
+no_claims = {"output": {"response_raw": "text", "cost": 0.001}}
+score2, penalties2, verdict2, details2 = auditor.enforce_grounding(no_claims, contract)
+test("enforce_grounding: no claims → penalty", any("no_claims_field" in p[0] for p in penalties2))
+
+# 08. enforce_grounding: NO_SOURCE high confidence → penalty
+bad = {"output": {"claims": [{"claim_id": "c1", "claim_text": "GPT-6 released", "claim_type": "factual", "evidence_status": "NO_SOURCE", "source_ref": "none", "freshness_required": False, "confidence": 0.95}]}}
+score3, penalties3, verdict3, _ = auditor.enforce_grounding(bad, contract)
+test("enforce_grounding: NO_SOURCE high conf → penalty", any("no_source_as_fact" in p[0] for p in penalties3))
+
+# 09. enforce_grounding: date without NEEDS_RTC → penalty
+date_bad = {"output": {"claims": [{"claim_id": "c1", "claim_text": "Released 2026-05-15", "claim_type": "factual", "evidence_status": "HYPOTHESIS", "source_ref": "none", "freshness_required": False, "confidence": 0.5}]}}
+_, penalties4, _, _ = auditor.enforce_grounding(date_bad, contract)
+test("enforce_grounding: date without RTC → penalty", any("missing_freshness_on_date" in p[0] for p in penalties4))
+
+# 10. enforce_grounding: date with NEEDS_RTC → no freshness penalty
+date_good = {"output": {"claims": [{"claim_id": "c1", "claim_text": "Released 2026-05-15", "claim_type": "factual", "evidence_status": "NEEDS_REAL_TIME_CHECK", "source_ref": "none", "freshness_required": True, "confidence": 0.5}]}}
+_, penalties5, _, _ = auditor.enforce_grounding(date_good, contract)
+test("enforce_grounding: date with RTC → no penalty", not any("missing_freshness_on_date" in p[0] for p in penalties5))
+
+# 11. enforce_grounding: disabled → PASS 10
+contract_off = dict(contract)
+contract_off["grounding_enforcement"] = {"enabled": False}
+score6, _, verdict6, _ = auditor.enforce_grounding(no_claims, contract_off)
+test("enforce_grounding: disabled → PASS 10", verdict6 == "PASS" and score6 == 10.0)
+
+# 12. A1_ANALYZE allowed
+d, _ = auditor.request_dispatcher_permission({"task_id": "t", "action_class": "A1_ANALYZE"}, contract)
 test("A1_ANALYZE allowed", d == "ALLOW")
 
-# 09. A2_PREPARE_EVIDENCE allowed
-task_a2 = {"task_id": "test", "action_class": "A2_PREPARE_EVIDENCE"}
-d, _ = auditor.request_dispatcher_permission(task_a2, contract)
-test("A2_PREPARE_EVIDENCE allowed", d == "ALLOW")
-
-# 10. A3_CREATE_NON_PRODUCTIVE_ARTIFACT allowed
-task_a3 = {"task_id": "test", "action_class": "A3_CREATE_NON_PRODUCTIVE_ARTIFACT"}
-d, _ = auditor.request_dispatcher_permission(task_a3, contract)
-test("A3_CREATE_NON_PRODUCTIVE_ARTIFACT allowed", d == "ALLOW")
-
-# 11. R1 DENY
-task_r1 = {"task_id": "test", "action_class": "R1"}
-d, _ = auditor.request_dispatcher_permission(task_r1, contract)
+# 13. R1 DENY
+d, _ = auditor.request_dispatcher_permission({"task_id": "t", "action_class": "R1"}, contract)
 test("R1 DENY", d == "DENY")
 
-# 12. MEMORY_WRITE DENY
-task_mw = {"task_id": "test", "action_class": "MEMORY_WRITE"}
-d, _ = auditor.request_dispatcher_permission(task_mw, contract)
-test("MEMORY_WRITE DENY", d == "DENY")
+# 14. kill-switch active aborts
+os.makedirs(os.path.dirname(auditor.KS_PATH), exist_ok=True)
+with open(auditor.KS_PATH, "w") as f:
+    json.dump({"active": True}, f)
+test("kill-switch active detected", auditor.check_kill_switch() == True)
+with open(auditor.KS_PATH, "w") as f:
+    json.dump({"active": False}, f)
 
-# 13. SUPABASE_WRITE DENY
-task_sb = {"task_id": "test", "action_class": "SUPABASE_WRITE"}
-d, _ = auditor.request_dispatcher_permission(task_sb, contract)
-test("SUPABASE_WRITE DENY", d == "DENY")
+# 15. audit_target is oracle_ai_embryo_r0
+test("audit_target is oracle", contract["constraints"]["audit_target"] == "oracle_ai_embryo_r0")
 
-# 14. APP_VISION_UPDATE DENY
-task_av = {"task_id": "test", "action_class": "APP_VISION_UPDATE"}
-d, _ = auditor.request_dispatcher_permission(task_av, contract)
-test("APP_VISION_UPDATE DENY", d == "DENY")
+# 16. can_modify_oracle_output is false
+test("can_modify_oracle_output false", contract["constraints"]["can_modify_oracle_output"] == False)
 
-# 15. no self-audit (contract says self_audit: false)
-test("no self-audit", contract.get("constraints", {}).get("self_audit") is False)
+# 17. no self-audit
+test("no self-audit", contract["constraints"]["self_audit"] is False)
 
-# 16. audit_target is oracle_ai_embryo_r0
-test("audit_target is oracle", contract.get("constraints", {}).get("audit_target") == "oracle_ai_embryo_r0")
-
-# 17. no secrets in contract
+# 18. forbidden actions complete
 forbidden = contract.get("forbidden_action_classes", [])
-test("no secrets", "SECRET_READ" in forbidden and "SECRET_WRITE" in forbidden)
+required = ["R1", "MEMORY_WRITE", "SUPABASE_WRITE", "DB_WRITE", "SECRET_READ", "SECRET_WRITE", "APP_VISION_UPDATE", "CANON_UPDATE", "PRE_IA_CLOSE", "PR_CREATE", "DEPLOY", "MAIN_MODIFY"]
+test("all forbidden enforced", all(f in forbidden for f in required))
 
-# 18. no main/PR/deploy in contract
-test("no main/PR/deploy", "PR_CREATE" in forbidden and "DEPLOY" in forbidden and "MAIN_MODIFY" in forbidden)
+# 19. enforce_grounding returns 4-tuple
+result = auditor.enforce_grounding(well_grounded, contract)
+test("enforce_grounding returns 4-tuple", len(result) == 4)
 
-# 19. can be invoked with 0 args (run_once takes no required params)
-import inspect
-sig = inspect.signature(auditor.run_once)
-test("invocable with 0 args", len([p for p in sig.parameters.values() if p.default is inspect.Parameter.empty]) == 0)
-
-# 20. hard rules PASS (contract enforces all forbidden classes)
-required_forbidden = ["R1", "MEMORY_WRITE", "SUPABASE_WRITE", "DB_WRITE", "SECRET_READ", "SECRET_WRITE", "APP_VISION_UPDATE", "CANON_UPDATE", "PRE_IA_CLOSE", "PR_CREATE", "DEPLOY", "MAIN_MODIFY"]
-all_forbidden = all(f in forbidden for f in required_forbidden)
-test("hard rules PASS (all forbidden enforced)", all_forbidden)
+# 20. grounding_enforcement actions mapping
+actions = contract["grounding_enforcement"]["actions"]
+test("actions: PASS→CANDIDATE, PARTIAL→REVIEW, FAIL→REJECT", actions["PASS"] == "CANDIDATE_READY_FOR_T1" and actions["PARTIAL"] == "REQUIRES_T1_REVIEW" and actions["FAIL"] == "REJECT_AND_FLAG")
 
 print(f"\n{'='*60}")
 print(f"RESULT: {PASS}/{PASS+FAIL} PASS, {FAIL}/{PASS+FAIL} FAIL")

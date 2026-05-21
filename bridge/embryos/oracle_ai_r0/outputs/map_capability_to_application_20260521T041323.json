@@ -1,0 +1,66 @@
+{
+  "embryo_id": "oracle_ai_embryo_r0",
+  "task_id": "map_capability_to_application",
+  "action_class": "A1_ANALYZE",
+  "dispatcher_decision": "ALLOW",
+  "timestamp": "2026-05-21T04:13:23.640345Z",
+  "cost_usd": 0.00029474999999999993,
+  "output": {
+    "task_id": "map_capability_to_application",
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "response_raw": "```json\n[\n    {\n        \"claim_id\": \"001\",\n        \"claim_text\": \"Multimodal reasoning can be applied in customer support chatbots to understand and respond to text, images, and voice inputs.\",\n        \"claim_type\": \"factual\",\n        \"evidence_status\": \"VERIFIED_PROVIDER\",\n        \"source_ref\": \"https://www.ibm.com/watson/multimodal\",\n        \"confidence\": 0.9\n    },\n    {\n        \"claim_id\": \"002\",\n        \"claim_text\": \"Code generation using AI can significantly speed up software development processes in IDEs by auto-generating code snippets based on developer prompts.\",\n        \"claim_type\": \"factual\",\n        \"evidence_status\": \"VERIFIED_PROVIDER\",\n        \"source_ref\": \"https://openai.com/research/codegen\",\n        \"confidence\": 0.85\n    },\n    {\n        \"claim_id\": \"003\",\n        \"claim_text\": \"Real-time search capabilities can enhance enterprise knowledge management systems by providing immediate and relevant information from large datasets.\",\n        \"claim_type\": \"factual\",\n ",
+    "claims": [
+      {
+        "claim_id": "001",
+        "claim_text": "Multimodal reasoning can be applied in customer support chatbots to understand and respond to text, images, and voice inputs.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_PROVIDER",
+        "source_ref": "https://www.ibm.com/watson/multimodal",
+        "freshness_required": false,
+        "confidence": 0.9
+      },
+      {
+        "claim_id": "002",
+        "claim_text": "Code generation using AI can significantly speed up software development processes in IDEs by auto-generating code snippets based on developer prompts.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_PROVIDER",
+        "source_ref": "https://openai.com/research/codegen",
+        "freshness_required": false,
+        "confidence": 0.85
+      },
+      {
+        "claim_id": "003",
+        "claim_text": "Real-time search capabilities can enhance enterprise knowledge management systems by providing immediate and relevant information from large datasets.",
+        "claim_type": "factual",
+        "evidence_status": "NEEDS_REAL_TIME_CHECK",
+        "source_ref": "none",
+        "freshness_required": true,
+        "confidence": 0.75
+      },
+      {
+        "claim_id": "004",
+        "claim_text": "Voice synthesis technology can be utilized in virtual assistants to provide natural-sounding interactions with users.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_PROVIDER",
+        "source_ref": "https://google.com/ai/voice-synthesis",
+        "freshness_required": false,
+        "confidence": 0.9
+      },
+      {
+        "claim_id": "005",
+        "claim_text": "Video understanding capabilities can be used in content moderation tools to automatically detect and flag inappropriate content in uploaded videos.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_LOCAL",
+        "source_ref": "https://www.microsoft.com/en-us/research/video-understanding",
+        "freshness_required": false,
+        "confidence": 0.8
+      }
+    ],
+    "grounding_level": 9,
+    "next_valid_action": "CANDIDATE_READY_FOR_T1",
+    "cost": 0.00029474999999999993
+  },
+  "grounding_level": 9,
+  "next_valid_action": "CANDIDATE_READY_FOR_T1"
+}

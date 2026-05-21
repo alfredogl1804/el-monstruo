@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
 """
-EMBRIÓN ORÁCULO DE IAs R0
+EMBRIÓN ORÁCULO DE IAs R0 — v0.2 (Grounding-Aware)
 First autonomous embryo of El Monstruo.
 
 Invocation: python3 embryos/oracle_ai/oracle_ai_embryo.py --run-once
@@ -137,13 +136,13 @@ def execute_task(task, contract):
             from openai import OpenAI
             base = os.environ.get("OPENAI_API_BASE") or None
             client = OpenAI(api_key=os.environ["OPENAI_API_KEY"]) if not base else OpenAI(api_key=os.environ["OPENAI_API_KEY"], base_url=base)
-            r = client.chat.completions.create(model=model, messages=[{"role": "user", "content": prompt}], max_tokens=500)
+            r = client.chat.completions.create(model=model, messages=[{"role": "user", "content": prompt}], max_tokens=1000)
             text = r.choices[0].message.content
             cost = (r.usage.prompt_tokens * 0.15 + r.usage.completion_tokens * 0.6) / 1_000_000
         elif provider_name == "anthropic":
             import anthropic
             client = anthropic.Anthropic()
-            r = client.messages.create(model=model, max_tokens=500, messages=[{"role": "user", "content": prompt}])
+            r = client.messages.create(model=model, max_tokens=1000, messages=[{"role": "user", "content": prompt}])
             text = r.content[0].text
             cost = (r.usage.input_tokens * 3 + r.usage.output_tokens * 15) / 1_000_000
         elif provider_name == "google":
@@ -155,7 +154,7 @@ def execute_task(task, contract):
         elif provider_name == "xai":
             from openai import OpenAI as XAI
             client = XAI(api_key=os.environ["XAI_API_KEY"], base_url="https://api.x.ai/v1")
-            r = client.chat.completions.create(model=model, messages=[{"role": "user", "content": prompt}], max_tokens=500)
+            r = client.chat.completions.create(model=model, messages=[{"role": "user", "content": prompt}], max_tokens=1000)
             text = r.choices[0].message.content
             cost = (r.usage.prompt_tokens * 0.3 + r.usage.completion_tokens * 0.5) / 1_000_000
         else:
@@ -166,50 +165,192 @@ def execute_task(task, contract):
         if cost > max_budget:
             return False, {"error": f"Cost ${cost:.4f} exceeds budget ${max_budget}"}, cost
 
-        output = {"task_id": task["task_id"], "provider": provider_name, "model": model, "response": text[:500], "cost": cost}
+        # Parse grounded output
+        grounded_output = _parse_grounded_response(text, task)
+        output = {
+            "task_id": task["task_id"],
+            "provider": provider_name,
+            "model": model,
+            "response_raw": text[:1000],
+            "claims": grounded_output["claims"],
+            "grounding_level": grounded_output["grounding_level"],
+            "next_valid_action": grounded_output["next_valid_action"],
+            "cost": cost
+        }
         return True, output, cost
 
     except Exception as e:
         return False, {"error": str(e)[:200]}, 0.0
 
 
+def _parse_grounded_response(text, task):
+    """
+    Parse the LLM response and extract grounded claims.
+    The prompt instructs the LLM to return JSON with claims.
+    If parsing fails, wrap the entire response as a single NEEDS_REAL_TIME_CHECK claim.
+    """
+    claims = []
+    try:
+        # Try to parse JSON from the response
+        # Strip markdown code fences if present
+        clean = text.strip()
+        if clean.startswith("```"):
+            lines = clean.split("\n")
+            lines = [l for l in lines if not l.strip().startswith("```")]
+            clean = "\n".join(lines)
+
+        parsed = json.loads(clean)
+
+        # If it's a list, treat each item as a claim
+        if isinstance(parsed, list):
+            for i, item in enumerate(parsed):
+                claim = _normalize_claim(item, i)
+                claims.append(claim)
+        elif isinstance(parsed, dict):
+            # If it has a "claims" key, use that
+            if "claims" in parsed:
+                for i, item in enumerate(parsed["claims"]):
+                    claim = _normalize_claim(item, i)
+                    claims.append(claim)
+            else:
+                # Single object = single claim
+                claims.append(_normalize_claim(parsed, 0))
+    except (json.JSONDecodeError, KeyError, TypeError):
+        # Fallback: wrap entire response as one claim
+        claims.append({
+            "claim_id": f"{task['task_id']}_fallback_0",
+            "claim_text": text[:300],
+            "claim_type": "analytical",
+            "evidence_status": "NEEDS_REAL_TIME_CHECK",
+            "source_ref": "none",
+            "freshness_required": True,
+            "confidence": 0.4
+        })
+
+    # Calculate grounding level
+    grounding_level = _calculate_grounding_level(claims)
+    next_action = "CANDIDATE_READY_FOR_T1" if grounding_level >= 8 else "REQUIRES_T1_REVIEW"
+
+    return {
+        "claims": claims,
+        "grounding_level": grounding_level,
+        "next_valid_action": next_action
+    }
+
+
+def _normalize_claim(item, index):
+    """Normalize a claim dict to ensure all mandatory fields exist with proper grounding."""
+    claim_text = item.get("claim_text") or item.get("capability_name") or item.get("capability") or item.get("application") or item.get("title") or str(item)[:200]
+    claim_type = item.get("claim_type", "factual")
+
+    # Determine evidence status
+    evidence_status = item.get("evidence_status", "")
+    if not evidence_status:
+        # Auto-classify: if it mentions dates, models, prices → NEEDS_REAL_TIME_CHECK
+        indicators = ["release", "date", "price", "endpoint", "available", "launched", "2025", "2026", "v1", "v2", "api"]
+        text_lower = claim_text.lower()
+        if any(ind in text_lower for ind in indicators):
+            evidence_status = "NEEDS_REAL_TIME_CHECK"
+        else:
+            evidence_status = "HYPOTHESIS"
+
+    return {
+        "claim_id": item.get("claim_id", f"claim_{index}"),
+        "claim_text": claim_text[:300],
+        "claim_type": claim_type,
+        "evidence_status": evidence_status,
+        "source_ref": item.get("source_ref", "none"),
+        "freshness_required": evidence_status in ("NEEDS_REAL_TIME_CHECK", "NO_SOURCE"),
+        "confidence": item.get("confidence", 0.5)
+    }
+
+
+def _calculate_grounding_level(claims):
+    """
+    Calculate grounding level (1-10) based on evidence statuses.
+    VERIFIED_LOCAL/VERIFIED_PROVIDER = 10 points
+    NEEDS_REAL_TIME_CHECK = 6 points (honest about uncertainty)
+    HYPOTHESIS = 5 points (clearly labeled)
+    CANDIDATE_ONLY = 4 points
+    NO_SOURCE = 2 points (bad)
+    """
+    if not claims:
+        return 5
+
+    scores = {
+        "VERIFIED_LOCAL": 10,
+        "VERIFIED_PROVIDER": 10,
+        "NEEDS_REAL_TIME_CHECK": 6,
+        "HYPOTHESIS": 5,
+        "CANDIDATE_ONLY": 4,
+        "NO_SOURCE": 2
+    }
+
+    total = sum(scores.get(c.get("evidence_status", "NO_SOURCE"), 2) for c in claims)
+    avg = total / len(claims)
+    return round(avg)
+
+
+# ============================================================
+# PROMPTS (v0.2 — Grounding-Aware)
+# ============================================================
+
 def _build_prompt_for_task(task):
-    """Build a prompt that lets the embryo execute its chosen task autonomously."""
+    """Build a grounding-aware prompt for the chosen task."""
+    grounding_instruction = (
+        "\n\nIMPORTANT GROUNDING RULES:\n"
+        "For EACH item in your response, include these fields:\n"
+        "- claim_id: unique identifier\n"
+        "- claim_text: the factual statement\n"
+        "- claim_type: 'factual' | 'analytical' | 'hypothetical'\n"
+        "- evidence_status: one of VERIFIED_LOCAL, VERIFIED_PROVIDER, NEEDS_REAL_TIME_CHECK, NO_SOURCE, HYPOTHESIS, CANDIDATE_ONLY\n"
+        "- source_ref: source URL or 'none'\n"
+        "- confidence: 0.0 to 1.0\n\n"
+        "Rules:\n"
+        "- If you mention dates, models, prices, endpoints, availability → mark as NEEDS_REAL_TIME_CHECK\n"
+        "- If you are speculating or proposing → mark as HYPOTHESIS\n"
+        "- If you have no source → mark as NO_SOURCE\n"
+        "- NEVER present NO_SOURCE or HYPOTHESIS as verified fact\n"
+        "Respond in JSON array format.\n"
+    )
+
     prompts = {
         "detect_new_ai_capability_candidates": (
             "You are the Oracle AI Embryo R0 of El Monstruo. Your task: detect_new_ai_capability_candidates. "
             "Identify 3-5 emerging AI capabilities released in the last 30 days that could benefit an autonomous "
             "AI orchestrator system. For each, provide: capability_name, provider, release_date_approx, "
-            "potential_power_gain (1-10), integration_complexity (LOW/MED/HIGH). "
-            "Respond in JSON array format."
+            "potential_power_gain (1-10), integration_complexity (LOW/MED/HIGH)."
+            + grounding_instruction
         ),
         "map_capability_to_application": (
             "You are the Oracle AI Embryo R0. Task: map_capability_to_application. "
             "Given recent AI capabilities (multimodal reasoning, code generation, real-time search, voice synthesis, "
-            "video understanding), map each to a concrete application within an AI orchestrator ecosystem. "
-            "Respond in JSON: [{capability, application, value_score}]"
+            "video understanding), map each to a concrete application within an AI orchestrator ecosystem."
+            + grounding_instruction
         ),
         "rank_application_by_power_gain": (
             "You are the Oracle AI Embryo R0. Task: rank_application_by_power_gain. "
             "Rank these AI applications by power gain for an autonomous orchestrator: "
             "real-time research validation, multi-model consensus, autonomous sprint planning, "
-            "provider health monitoring, self-audit loops. "
-            "Respond in JSON: [{application, power_gain_score, reason}] sorted descending."
+            "provider health monitoring, self-audit loops."
+            + grounding_instruction
         ),
         "generate_sprint_candidate": (
             "You are the Oracle AI Embryo R0. Task: generate_sprint_candidate. "
             "Generate a structured sprint candidate for the highest-value capability you can identify. "
             "Format: {sprint_id, title, objective, deliverables[], estimated_cycles, risk, value_score, "
             "dependencies[], action_class}. Must be R0 (no production, no deploy, no DB writes)."
+            + grounding_instruction
         ),
         "audit_previous_oracle_outputs_for_low_value": (
             "You are the Oracle AI Embryo R0. Task: audit_previous_oracle_outputs_for_low_value. "
-            "This is the first cycle, so audit the oracle design itself. "
+            "Audit the oracle design itself. "
             "Score the current self-task queue design (1-10) on: coverage, actionability, compounding value, "
-            "risk management, autonomy level. Suggest 1-2 improvements. Respond in JSON."
+            "risk management, autonomy level. Suggest 1-2 improvements."
+            + grounding_instruction
         ),
     }
-    return prompts.get(task["task_id"], f"Execute task: {task['task_id']}. Respond in JSON.")
+    return prompts.get(task["task_id"], f"Execute task: {task['task_id']}. Respond in JSON." + grounding_instruction)
 
 
 # ============================================================
@@ -248,7 +389,9 @@ def produce_report(task, output_data, dispatcher_decision, cost):
         "dispatcher_decision": dispatcher_decision,
         "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
         "cost_usd": cost,
-        "output": output_data
+        "output": output_data,
+        "grounding_level": output_data.get("grounding_level", 0),
+        "next_valid_action": output_data.get("next_valid_action", "REQUIRES_T1_REVIEW")
     }
 
     with open(filepath, "w") as f:
@@ -273,7 +416,6 @@ def check_kill_switch():
 # ============================================================
 # RUN ONCE — THE AUTONOMOUS LOOP
 # ============================================================
-
 def run_once():
     """
     Single autonomous cycle. The embryo:
@@ -284,47 +426,39 @@ def run_once():
     5. Requests Dispatcher permission
     6. If DENY: logs and aborts
     7. If ALLOW: executes the task
-    8. Produces output artifact
+    8. Produces output artifact (with grounding fields)
     9. Updates its own state
     10. Writes event log
     11. Returns verdict
     """
     print(f"{'='*60}")
-    print(f"EMBRYO: {EMBRYO_ID} — run_once()")
+    print(f"EMBRYO: {EMBRYO_ID} — run_once() [v0.2 Grounding-Aware]")
     print(f"{'='*60}")
-
     # 1. Kill-switch
     if check_kill_switch():
         print("  [ABORT] Kill-switch is ACTIVE.")
         write_event("EMBRYO_ABORTED", {"reason": "kill_switch_active"})
         return {"verdict": "ABORTED", "reason": "kill_switch_active"}
-
     # 2. Load state
     state = load_state()
     print(f"  State loaded. Cycles: {state['total_cycles']}")
-
     # 3. Load self-tasks
     tasks = load_self_tasks()
     print(f"  Self-tasks loaded: {len(tasks)}")
-
     # 4. Load contract
     contract = load_contract()
-
     # 5. Choose task (AUTONOMOUS DECISION)
     chosen_task = choose_next_task(tasks, state)
     if not chosen_task:
         print("  [ABORT] No viable task found.")
         write_event("EMBRYO_NO_TASK", {"reason": "no_viable_task"})
         return {"verdict": "NO_TASK", "reason": "no_viable_task"}
-
     print(f"  Chosen task: {chosen_task['task_id']} (class: {chosen_task['action_class']})")
-
     # 6. Request Dispatcher permission
     write_event("DISPATCHER_REQUEST", {"task_id": chosen_task["task_id"], "action_class": chosen_task["action_class"]})
     decision, reason = request_dispatcher_permission(chosen_task, contract)
     write_event(f"DISPATCHER_{decision}", {"task_id": chosen_task["task_id"], "reason": reason})
     print(f"  Dispatcher: {decision} — {reason}")
-
     # 7. If DENY, abort
     if decision == "DENY":
         write_event("EMBRYO_TASK_ABORTED", {"task_id": chosen_task["task_id"], "reason": "dispatcher_deny"})
@@ -332,12 +466,10 @@ def run_once():
         state["last_task_result"] = "DENIED"
         save_state(state)
         return {"verdict": "DENIED", "task": chosen_task["task_id"], "reason": reason}
-
     # 8. Execute task
     write_event("EMBRYO_TASK_STARTED", {"task_id": chosen_task["task_id"]})
     print(f"  Executing task...")
     success, output_data, cost = execute_task(chosen_task, contract)
-
     if not success:
         write_event("EMBRYO_TASK_ABORTED", {"task_id": chosen_task["task_id"], "error": output_data.get("error", "unknown")})
         state["consecutive_failures"] = state.get("consecutive_failures", 0) + 1
@@ -346,11 +478,11 @@ def run_once():
         save_state(state)
         print(f"  [FAILED] {output_data.get('error', 'unknown')}")
         return {"verdict": "FAILED", "task": chosen_task["task_id"], "error": output_data.get("error")}
-
     # 9. Produce output artifact
     report_path = produce_report(chosen_task, output_data, decision, cost)
     print(f"  Output: {report_path}")
-
+    print(f"  Grounding Level: {output_data.get('grounding_level', 'N/A')}/10")
+    print(f"  Claims: {len(output_data.get('claims', []))}")
     # 10. Update state
     state["total_cycles"] += 1
     state["last_cycle_timestamp"] = datetime.datetime.utcnow().isoformat() + "Z"
@@ -359,39 +491,38 @@ def run_once():
     state["total_cost_usd"] = round(state.get("total_cost_usd", 0) + cost, 6)
     state["consecutive_failures"] = 0
     state["status"] = "IDLE"
-    history_entry = {"task_id": chosen_task["task_id"], "timestamp": state["last_cycle_timestamp"], "result": "SUCCESS", "cost": cost}
+    history_entry = {"task_id": chosen_task["task_id"], "timestamp": state["last_cycle_timestamp"], "result": "SUCCESS", "cost": cost, "grounding_level": output_data.get("grounding_level", 0)}
     state.setdefault("task_history", []).append(history_entry)
     save_state(state)
-
     # 11. Write completion event
     write_event("EMBRYO_TASK_COMPLETED", {
         "task_id": chosen_task["task_id"],
         "cost_usd": cost,
-        "output_path": report_path
+        "output_path": report_path,
+        "grounding_level": output_data.get("grounding_level", 0),
+        "claims_count": len(output_data.get("claims", []))
     })
-
     print(f"  [SUCCESS] Cost: ${cost:.6f}")
     print(f"{'='*60}")
-
     return {
         "verdict": "AUTONOMOUS_CYCLE_COMPLETE",
         "task": chosen_task["task_id"],
         "action_class": chosen_task["action_class"],
         "dispatcher": decision,
         "cost": cost,
-        "output_path": report_path
+        "output_path": report_path,
+        "grounding_level": output_data.get("grounding_level", 0),
+        "claims_count": len(output_data.get("claims", []))
     }
 
 
 # ============================================================
 # ENTRY POINT
 # ============================================================
-
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Oracle AI Embryo R0")
+    parser = argparse.ArgumentParser(description="Oracle AI Embryo R0 v0.2 (Grounding-Aware)")
     parser.add_argument("--run-once", action="store_true", help="Execute a single autonomous cycle")
     args = parser.parse_args()
-
     if args.run_once:
         result = run_once()
         print(f"\nResult: {json.dumps(result, indent=2)}")

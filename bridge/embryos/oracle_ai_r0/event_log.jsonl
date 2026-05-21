@@ -1,3 +1,9 @@
 {"timestamp": "2026-05-21T03:35:25.099836Z", "embryo_id": "oracle_ai_embryo_r0", "event_type": "TEST_EVENT", "payload": {"test": true}}
 {"timestamp": "2026-05-21T03:35:25.217827Z", "source": "heartbeat_oracle_hook_r0", "event_type": "HOOK_ABORTED", "payload": {"reason": "kill_switch_active"}}
 {"timestamp": "2026-05-21T03:35:25.218062Z", "source": "heartbeat_oracle_hook_r0", "event_type": "HOOK_ABORTED", "payload": {"reason": "kill_switch_active"}}
+{"timestamp": "2026-05-21T04:13:14.066481Z", "embryo_id": "oracle_ai_embryo_r0", "event_type": "DISPATCHER_REQUEST", "payload": {"task_id": "map_capability_to_application", "action_class": "A1_ANALYZE"}}
+{"timestamp": "2026-05-21T04:13:14.066630Z", "embryo_id": "oracle_ai_embryo_r0", "event_type": "DISPATCHER_ALLOW", "payload": {"task_id": "map_capability_to_application", "reason": "Action class A1_ANALYZE is in allowed list"}}
+{"timestamp": "2026-05-21T04:13:14.066685Z", "embryo_id": "oracle_ai_embryo_r0", "event_type": "EMBRYO_TASK_STARTED", "payload": {"task_id": "map_capability_to_application"}}
+{"timestamp": "2026-05-21T04:13:23.640901Z", "embryo_id": "oracle_ai_embryo_r0", "event_type": "EMBRYO_TASK_COMPLETED", "payload": {"task_id": "map_capability_to_application", "cost_usd": 0.00029474999999999993, "output_path": "/home/ubuntu/el-monstruo-bridge/bridge/embryos/oracle_ai_r0/outputs/map_capability_to_application_20260521T041323.json", "grounding_level": 9, "claims_count": 5}}
+{"timestamp": "2026-05-21T04:14:37.093153Z", "source": "heartbeat_oracle_hook_r0", "event_type": "HOOK_ABORTED", "payload": {"reason": "kill_switch_active"}}
+{"timestamp": "2026-05-21T04:14:37.093379Z", "source": "heartbeat_oracle_hook_r0", "event_type": "HOOK_ABORTED", "payload": {"reason": "kill_switch_active"}}

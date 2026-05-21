@@ -1,9 +1,10 @@
 embryo_id: oracle_auditor_embryo_r0
-version: "0.1.0"
+version: "0.2.0"
 role: AUTONOMOUS_R0_SHADOW_AUDITOR
 description: >
   Audits outputs produced by oracle_ai_embryo_r0. Does NOT produce its own
   capability/application/sprint candidates. Only evaluates, scores, and verdicts.
+  v0.2: Now enforces grounding contract — penalizes ungrounded claims.
 
 allowed_action_classes:
   - A0_OBSERVE
@@ -48,3 +49,44 @@ constraints:
   can_modify_oracle_output: false
 
 kill_switch_path: bridge/reactor_vigilia_foundation/reactor_heartbeat_r0/scheduler/scheduler_kill_switch.json
+
+# ============================================================
+# GROUNDING ENFORCEMENT v0.2
+# ============================================================
+grounding_enforcement:
+  version: "0.2.0"
+  enabled: true
+
+  # Scoring dimensions (each 1-10)
+  scoring_dimensions:
+    - name: grounding_level_compliance
+      description: Does the output include grounding fields per claim?
+      weight: 3
+    - name: evidence_status_accuracy
+      description: Are evidence_statuses correctly assigned (not inflated)?
+      weight: 3
+    - name: no_source_prohibition
+      description: Are NO_SOURCE/HYPOTHESIS claims NOT presented as verified facts?
+      weight: 2
+    - name: freshness_marking
+      description: Are time-sensitive claims marked NEEDS_REAL_TIME_CHECK?
+      weight: 2
+
+  # Verdict thresholds
+  thresholds:
+    PASS: 8.0
+    PARTIAL: 5.0
+    FAIL: 0.0
+
+  # Penalty rules
+  penalties:
+    no_claims_field: -3.0
+    no_evidence_status: -2.0
+    no_source_as_fact: -5.0
+    missing_freshness_on_date: -2.0
+
+  # Enforcement actions
+  actions:
+    PASS: "CANDIDATE_READY_FOR_T1"
+    PARTIAL: "REQUIRES_T1_REVIEW"
+    FAIL: "REJECT_AND_FLAG"

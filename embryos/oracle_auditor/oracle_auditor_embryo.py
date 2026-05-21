@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """
-EMBRIÓN AUDITOR DEL ORÁCULO DE IAs R0
+EMBRIÓN AUDITOR DEL ORÁCULO DE IAs R0 — v0.2 (Grounding Enforcement)
 Second autonomous embryo of El Monstruo — the auditor half of the bicéfalo pair.
 
 Audits outputs produced by oracle_ai_embryo_r0.
-Does NOT produce capability/application/sprint candidates.
-Only evaluates, scores, and verdicts.
+v0.2: Now enforces grounding contract — penalizes ungrounded claims.
 
 Invocation: python3 embryos/oracle_auditor/oracle_auditor_embryo.py --run-once
 """
@@ -66,9 +65,7 @@ def load_contract():
 
 
 def choose_next_task(tasks, state):
-    """
-    Autonomous task selection. Same scoring as Oracle but with auditor-specific logic.
-    """
+    """Autonomous task selection with auditor-specific logic."""
     scored = []
     last_task = state.get("last_task_executed")
 
@@ -82,17 +79,14 @@ def choose_next_task(tasks, state):
         elif cv == "MEDIUM":
             score += 1
 
-        # Dependency: if requires prior audit and no cycles done
         if state["total_cycles"] == 0 and "requires prior" in task.get("stop_condition", ""):
             score -= 10
 
-        # Check if oracle output exists (required for most tasks)
         if "No oracle output available" in task.get("stop_condition", ""):
             oracle_outputs = get_oracle_outputs()
             if not oracle_outputs:
-                score -= 20  # Can't audit nothing
+                score -= 20
 
-        # Repetition penalty
         if task["task_id"] == last_task:
             score -= 5
 
@@ -127,9 +121,7 @@ def get_latest_oracle_output():
 # ============================================================
 
 def request_dispatcher_permission(task, contract):
-    """
-    Real Dispatcher check: verify action_class is in allowed list.
-    """
+    """Real Dispatcher check: verify action_class is in allowed list."""
     action_class = task.get("action_class", "UNKNOWN")
     allowed = contract.get("allowed_action_classes", [])
     forbidden = contract.get("forbidden_action_classes", [])
@@ -142,13 +134,127 @@ def request_dispatcher_permission(task, contract):
 
 
 # ============================================================
+# GROUNDING ENFORCEMENT v0.2
+# ============================================================
+
+def enforce_grounding(oracle_output_data, contract):
+    """
+    Enforce grounding contract on oracle output.
+    Returns (grounding_score, penalties, verdict, details).
+    """
+    enforcement = contract.get("grounding_enforcement", {})
+    if not enforcement.get("enabled", False):
+        return 10.0, [], "PASS", {"note": "grounding_enforcement disabled"}
+
+    penalties = []
+    details = {}
+
+    # Check if output has claims field
+    output = oracle_output_data.get("output", oracle_output_data)
+    claims = output.get("claims", [])
+
+    if not claims:
+        # Check if there's a nested output
+        if isinstance(output, dict) and "output" in output:
+            claims = output["output"].get("claims", [])
+
+    if not claims:
+        penalties.append(("no_claims_field", enforcement.get("penalties", {}).get("no_claims_field", -3.0)))
+        details["claims_found"] = 0
+        details["claims_expected"] = True
+    else:
+        details["claims_found"] = len(claims)
+
+    # Score each dimension
+    dimension_scores = {}
+
+    # 1. grounding_level_compliance: Does output include grounding fields?
+    if claims:
+        claims_with_evidence = sum(1 for c in claims if c.get("evidence_status"))
+        compliance_ratio = claims_with_evidence / len(claims)
+        dimension_scores["grounding_level_compliance"] = round(compliance_ratio * 10, 1)
+    else:
+        dimension_scores["grounding_level_compliance"] = 0
+
+    # 2. evidence_status_accuracy: Are statuses correctly assigned?
+    if claims:
+        valid_statuses = {"VERIFIED_LOCAL", "VERIFIED_PROVIDER", "NEEDS_REAL_TIME_CHECK", "NO_SOURCE", "HYPOTHESIS", "CANDIDATE_ONLY"}
+        valid_count = sum(1 for c in claims if c.get("evidence_status") in valid_statuses)
+        dimension_scores["evidence_status_accuracy"] = round((valid_count / len(claims)) * 10, 1)
+
+        # Penalty: claims without evidence_status
+        missing_es = len(claims) - valid_count
+        if missing_es > 0:
+            penalties.append(("no_evidence_status", enforcement.get("penalties", {}).get("no_evidence_status", -2.0) * missing_es))
+    else:
+        dimension_scores["evidence_status_accuracy"] = 0
+
+    # 3. no_source_prohibition: NO_SOURCE/HYPOTHESIS not presented as verified
+    if claims:
+        # Check if any NO_SOURCE or HYPOTHESIS claim has confidence > 0.8 (would be presenting as fact)
+        violations = [c for c in claims if c.get("evidence_status") in ("NO_SOURCE", "HYPOTHESIS") and c.get("confidence", 0) > 0.8]
+        if violations:
+            penalties.append(("no_source_as_fact", enforcement.get("penalties", {}).get("no_source_as_fact", -5.0) * len(violations)))
+            dimension_scores["no_source_prohibition"] = max(0, 10 - len(violations) * 3)
+        else:
+            dimension_scores["no_source_prohibition"] = 10
+    else:
+        dimension_scores["no_source_prohibition"] = 5  # Neutral if no claims
+
+    # 4. freshness_marking: Time-sensitive claims marked correctly
+    if claims:
+        date_indicators = ["release", "date", "price", "endpoint", "available", "launched", "2025", "2026", "v1", "v2", "api"]
+        time_sensitive = [c for c in claims if any(ind in c.get("claim_text", "").lower() for ind in date_indicators)]
+        correctly_marked = [c for c in time_sensitive if c.get("evidence_status") == "NEEDS_REAL_TIME_CHECK" or c.get("freshness_required", False)]
+
+        if time_sensitive:
+            ratio = len(correctly_marked) / len(time_sensitive)
+            dimension_scores["freshness_marking"] = round(ratio * 10, 1)
+            unmarked = len(time_sensitive) - len(correctly_marked)
+            if unmarked > 0:
+                penalties.append(("missing_freshness_on_date", enforcement.get("penalties", {}).get("missing_freshness_on_date", -2.0) * unmarked))
+        else:
+            dimension_scores["freshness_marking"] = 10  # No time-sensitive claims = no issue
+    else:
+        dimension_scores["freshness_marking"] = 5
+
+    # Calculate weighted average
+    weights = {}
+    for dim in enforcement.get("scoring_dimensions", []):
+        weights[dim["name"]] = dim.get("weight", 1)
+
+    total_weight = sum(weights.get(k, 1) for k in dimension_scores)
+    weighted_sum = sum(dimension_scores.get(k, 0) * weights.get(k, 1) for k in dimension_scores)
+    base_score = weighted_sum / total_weight if total_weight > 0 else 5.0
+
+    # Apply penalties
+    total_penalty = sum(p[1] for p in penalties)
+    final_score = max(0, min(10, base_score + total_penalty))
+
+    # Determine verdict
+    thresholds = enforcement.get("thresholds", {"PASS": 8.0, "PARTIAL": 5.0, "FAIL": 0.0})
+    if final_score >= thresholds.get("PASS", 8.0):
+        verdict = "PASS"
+    elif final_score >= thresholds.get("PARTIAL", 5.0):
+        verdict = "PARTIAL"
+    else:
+        verdict = "FAIL"
+
+    details["dimension_scores"] = dimension_scores
+    details["penalties_applied"] = penalties
+    details["base_score"] = round(base_score, 2)
+    details["final_score"] = round(final_score, 2)
+    details["verdict"] = verdict
+
+    return round(final_score, 2), penalties, verdict, details
+
+
+# ============================================================
 # TASK EXECUTION
 # ============================================================
 
 def execute_task(task, contract, oracle_output_path, oracle_output_data):
-    """
-    Execute an audit task using one provider.
-    """
+    """Execute an audit task using one provider."""
     providers = contract.get("providers_allowed", [])
     if not providers:
         return False, {"error": "No providers available"}, 0.0
@@ -157,7 +263,10 @@ def execute_task(task, contract, oracle_output_path, oracle_output_data):
     provider_name = provider["name"].lower()
     model = provider["model"]
 
-    prompt = _build_audit_prompt(task, oracle_output_path, oracle_output_data)
+    # First: run grounding enforcement locally (no API needed)
+    grounding_score, grounding_penalties, grounding_verdict, grounding_details = enforce_grounding(oracle_output_data, contract)
+
+    prompt = _build_audit_prompt(task, oracle_output_path, oracle_output_data, grounding_details)
 
     try:
         if provider_name == "openai":
@@ -200,7 +309,12 @@ def execute_task(task, contract, oracle_output_path, oracle_output_data):
             "provider": provider_name,
             "model": model,
             "audit_response": text[:1000],
-            "cost": cost
+            "cost": cost,
+            "grounding_enforcement": {
+                "score": grounding_score,
+                "verdict": grounding_verdict,
+                "details": grounding_details
+            }
         }
         return True, output, cost
 
@@ -208,48 +322,55 @@ def execute_task(task, contract, oracle_output_path, oracle_output_data):
         return False, {"error": str(e)[:200]}, 0.0
 
 
-def _build_audit_prompt(task, oracle_output_path, oracle_output_data):
-    """Build audit prompt based on task type and oracle output."""
+def _build_audit_prompt(task, oracle_output_path, oracle_output_data, grounding_details):
+    """Build audit prompt with grounding enforcement context."""
     oracle_content = json.dumps(oracle_output_data, indent=2)[:2000] if oracle_output_data else "NO OUTPUT AVAILABLE"
+    grounding_context = json.dumps(grounding_details, indent=2)[:500]
 
     prompts = {
         "audit_oracle_latest_output": (
-            f"You are the Oracle Auditor Embryo R0 of El Monstruo. Your role: audit the output of oracle_ai_embryo_r0.\n\n"
+            f"You are the Oracle Auditor Embryo R0 v0.2 (Grounding Enforcement) of El Monstruo.\n\n"
             f"Oracle output to audit (from {oracle_output_path}):\n```json\n{oracle_content}\n```\n\n"
+            f"Local grounding enforcement already ran. Results:\n```json\n{grounding_context}\n```\n\n"
+            f"Your job: validate the grounding enforcement results and add your own assessment.\n"
             f"Evaluate on 5 dimensions (score 1-10 each):\n"
             f"1. hallucination_risk: Are there fabricated claims, non-existent APIs, wrong dates?\n"
-            f"2. value_score: Is this output actionable and useful for the Monstruo ecosystem?\n"
-            f"3. scope_compliance: Does it stay within R0 boundaries (no R1 proposals)?\n"
-            f"4. factual_grounding: Are the claims verifiable?\n"
+            f"2. value_score: Is this output actionable and useful?\n"
+            f"3. scope_compliance: Does it stay within R0 boundaries?\n"
+            f"4. factual_grounding: Are claims properly marked with evidence_status?\n"
             f"5. actionability: Can T1 act on this immediately?\n\n"
-            f"Respond in JSON: {{\"verdict\": \"PASS|PARTIAL|FAIL\", \"scores\": {{...}}, \"flags\": [...], \"recommendation\": \"...\"}}"
+            f"Respond in JSON: {{\"verdict\": \"PASS|PARTIAL|FAIL\", \"scores\": {{...}}, \"grounding_agreement\": true|false, \"flags\": [...], \"recommendation\": \"...\"}}"
         ),
         "score_oracle_sprint_candidate": (
-            f"You are the Oracle Auditor Embryo R0. Task: score a sprint candidate.\n\n"
+            f"You are the Oracle Auditor Embryo R0 v0.2. Task: score a sprint candidate.\n\n"
             f"Oracle output:\n```json\n{oracle_content}\n```\n\n"
-            f"Score on: value (1-10), risk (1-10), feasibility (1-10), R0_compliance (YES/NO), actionability (1-10).\n"
-            f"Respond in JSON: {{\"verdict\": \"PASS|PARTIAL|FAIL\", \"scores\": {{...}}, \"blocked_reason\": null|\"...\"}}"
+            f"Grounding enforcement:\n```json\n{grounding_context}\n```\n\n"
+            f"Score on: value (1-10), risk (1-10), feasibility (1-10), R0_compliance (YES/NO), grounding (1-10).\n"
+            f"Respond in JSON: {{\"verdict\": \"PASS|PARTIAL|FAIL\", \"scores\": {{...}}, \"grounding_agreement\": true|false}}"
         ),
         "detect_oracle_hallucination": (
-            f"You are the Oracle Auditor Embryo R0. Task: detect hallucinations.\n\n"
+            f"You are the Oracle Auditor Embryo R0 v0.2. Task: detect hallucinations.\n\n"
             f"Oracle output:\n```json\n{oracle_content}\n```\n\n"
+            f"Grounding enforcement:\n```json\n{grounding_context}\n```\n\n"
             f"Check for: non-existent APIs, wrong model names, fabricated release dates, impossible integrations.\n"
-            f"Respond in JSON: {{\"hallucinations_found\": [...], \"confidence\": 0-1, \"verdict\": \"CLEAN|SUSPICIOUS|HALLUCINATED\"}}"
+            f"Pay special attention to claims marked NEEDS_REAL_TIME_CHECK — these are honest about uncertainty.\n"
+            f"Respond in JSON: {{\"hallucinations_found\": [...], \"confidence\": 0-1, \"verdict\": \"CLEAN|SUSPICIOUS|HALLUCINATED\", \"grounding_agreement\": true|false}}"
         ),
         "verify_oracle_scope_compliance": (
-            f"You are the Oracle Auditor Embryo R0. Task: verify R0 scope compliance.\n\n"
+            f"You are the Oracle Auditor Embryo R0 v0.2. Task: verify R0 scope compliance.\n\n"
             f"Oracle output:\n```json\n{oracle_content}\n```\n\n"
             f"Verify: no R1 proposals, no production deployments, no DB writes, no secret access.\n"
             f"Respond in JSON: {{\"r0_compliant\": true|false, \"violations\": [...], \"verdict\": \"COMPLIANT|VIOLATION\"}}"
         ),
         "generate_audit_summary_for_t1": (
-            f"You are the Oracle Auditor Embryo R0. Task: generate audit summary for T1.\n\n"
+            f"You are the Oracle Auditor Embryo R0 v0.2. Task: generate audit summary for T1.\n\n"
             f"Oracle output:\n```json\n{oracle_content}\n```\n\n"
-            f"Produce: overall verdict, risk flags, recommended action, blocked items.\n"
-            f"Respond in JSON: {{\"overall_verdict\": \"PASS|PARTIAL|FAIL\", \"risk_flags\": [...], \"recommended_action\": \"...\", \"blocked_items\": [...]}}"
+            f"Grounding enforcement:\n```json\n{grounding_context}\n```\n\n"
+            f"Produce: overall verdict, grounding score, risk flags, recommended action.\n"
+            f"Respond in JSON: {{\"overall_verdict\": \"PASS|PARTIAL|FAIL\", \"grounding_score\": X, \"risk_flags\": [...], \"recommended_action\": \"...\"}}"
         ),
     }
-    return prompts.get(task["task_id"], f"Audit this oracle output: {oracle_content}")
+    return prompts.get(task["task_id"], f"Audit this oracle output with grounding enforcement: {oracle_content}")
 
 
 # ============================================================
@@ -288,7 +409,8 @@ def produce_audit_report(task, output_data, dispatcher_decision, cost):
         "dispatcher_decision": dispatcher_decision,
         "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
         "cost_usd": cost,
-        "audit_output": output_data
+        "audit_output": output_data,
+        "grounding_enforcement": output_data.get("grounding_enforcement", {})
     }
 
     with open(filepath, "w") as f:
@@ -316,22 +438,10 @@ def check_kill_switch():
 
 def run_once():
     """
-    Single autonomous audit cycle. The auditor:
-    1. Checks kill-switch
-    2. Loads its own state
-    3. Loads self-task queue
-    4. Chooses an audit task by its own scoring
-    5. Finds latest oracle output to audit
-    6. Requests Dispatcher permission
-    7. If DENY: logs and aborts
-    8. If ALLOW: executes the audit
-    9. Produces audit artifact
-    10. Updates its own state
-    11. Writes event log
-    12. Returns verdict
+    Single autonomous audit cycle with grounding enforcement.
     """
     print(f"{'='*60}")
-    print(f"AUDITOR: {EMBRYO_ID} — run_once()")
+    print(f"AUDITOR: {EMBRYO_ID} — run_once() [v0.2 Grounding Enforcement]")
     print(f"{'='*60}")
 
     # 1. Kill-switch
@@ -369,13 +479,23 @@ def run_once():
 
     print(f"  Auditing: {os.path.basename(oracle_path)}")
 
-    # 7. Request Dispatcher permission
+    # 7. Run local grounding enforcement FIRST
+    grounding_score, grounding_penalties, grounding_verdict, grounding_details = enforce_grounding(oracle_data, contract)
+    print(f"  Grounding Enforcement: {grounding_verdict} (score: {grounding_score}/10)")
+    write_event("GROUNDING_ENFORCEMENT", {
+        "oracle_target": oracle_path,
+        "score": grounding_score,
+        "verdict": grounding_verdict,
+        "penalties": len(grounding_penalties)
+    })
+
+    # 8. Request Dispatcher permission
     write_event("DISPATCHER_REQUEST", {"task_id": chosen_task["task_id"], "action_class": chosen_task["action_class"]})
     decision, reason = request_dispatcher_permission(chosen_task, contract)
     write_event(f"DISPATCHER_{decision}", {"task_id": chosen_task["task_id"], "reason": reason})
     print(f"  Dispatcher: {decision} — {reason}")
 
-    # 8. If DENY, abort
+    # 9. If DENY, abort
     if decision == "DENY":
         write_event("AUDITOR_TASK_DENIED", {"task_id": chosen_task["task_id"], "reason": "dispatcher_deny"})
         state["last_task_executed"] = chosen_task["task_id"]
@@ -383,7 +503,7 @@ def run_once():
         save_state(state)
         return {"verdict": "DENIED", "task": chosen_task["task_id"], "reason": reason}
 
-    # 9. Execute audit
+    # 10. Execute audit (with grounding context)
     write_event("AUDITOR_TASK_STARTED", {"task_id": chosen_task["task_id"], "target": oracle_path})
     print(f"  Executing audit...")
     success, output_data, cost = execute_task(chosen_task, contract, oracle_path, oracle_data)
@@ -397,11 +517,11 @@ def run_once():
         print(f"  [FAILED] {output_data.get('error', 'unknown')}")
         return {"verdict": "FAILED", "task": chosen_task["task_id"], "error": output_data.get("error")}
 
-    # 10. Produce audit artifact
+    # 11. Produce audit artifact
     report_path = produce_audit_report(chosen_task, output_data, decision, cost)
     print(f"  Audit output: {report_path}")
 
-    # 11. Update state
+    # 12. Update state
     state["total_cycles"] += 1
     state["last_cycle_timestamp"] = datetime.datetime.utcnow().isoformat() + "Z"
     state["last_task_executed"] = chosen_task["task_id"]
@@ -409,19 +529,29 @@ def run_once():
     state["total_cost_usd"] = round(state.get("total_cost_usd", 0) + cost, 6)
     state["consecutive_failures"] = 0
     state["status"] = "IDLE"
-    history_entry = {"task_id": chosen_task["task_id"], "timestamp": state["last_cycle_timestamp"], "result": "SUCCESS", "cost": cost}
+    history_entry = {
+        "task_id": chosen_task["task_id"],
+        "timestamp": state["last_cycle_timestamp"],
+        "result": "SUCCESS",
+        "cost": cost,
+        "grounding_score": grounding_score,
+        "grounding_verdict": grounding_verdict
+    }
     state.setdefault("task_history", []).append(history_entry)
     save_state(state)
 
-    # 12. Write completion event
+    # 13. Write completion event
     write_event("AUDITOR_TASK_COMPLETED", {
         "task_id": chosen_task["task_id"],
         "cost_usd": cost,
         "output_path": report_path,
-        "oracle_target": oracle_path
+        "oracle_target": oracle_path,
+        "grounding_score": grounding_score,
+        "grounding_verdict": grounding_verdict
     })
 
     print(f"  [SUCCESS] Cost: ${cost:.6f}")
+    print(f"  Grounding: {grounding_verdict} ({grounding_score}/10)")
     print(f"{'='*60}")
 
     return {
@@ -431,7 +561,9 @@ def run_once():
         "dispatcher": decision,
         "cost": cost,
         "output_path": report_path,
-        "oracle_audited": oracle_path
+        "oracle_audited": oracle_path,
+        "grounding_score": grounding_score,
+        "grounding_verdict": grounding_verdict
     }
 
 
@@ -440,7 +572,7 @@ def run_once():
 # ============================================================
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Oracle Auditor Embryo R0")
+    parser = argparse.ArgumentParser(description="Oracle Auditor Embryo R0 v0.2 (Grounding Enforcement)")
     parser.add_argument("--run-once", action="store_true", help="Execute a single autonomous audit cycle")
     args = parser.parse_args()
 

@@ -2,11 +2,11 @@
   "embryo_id": "oracle_auditor_embryo_r0",
   "version": "0.1.0",
   "status": "IDLE",
-  "total_cycles": 1,
-  "last_cycle_timestamp": "2026-05-21T03:33:54.077337Z",
-  "last_task_executed": "audit_oracle_latest_output",
+  "total_cycles": 2,
+  "last_cycle_timestamp": "2026-05-21T04:13:32.281499Z",
+  "last_task_executed": "score_oracle_sprint_candidate",
   "last_task_result": "SUCCESS",
-  "total_cost_usd": 0.000151,
+  "total_cost_usd": 0.000303,
   "consecutive_failures": 0,
   "task_history": [
     {
@@ -14,6 +14,14 @@
       "timestamp": "2026-05-21T03:33:54.077337Z",
       "result": "SUCCESS",
       "cost": 0.00015135
+    },
+    {
+      "task_id": "score_oracle_sprint_candidate",
+      "timestamp": "2026-05-21T04:13:32.281499Z",
+      "result": "SUCCESS",
+      "cost": 0.00015209999999999998,
+      "grounding_score": 10,
+      "grounding_verdict": "PASS"
     }
   ],
   "created_at": "2026-05-21T03:30:00Z"

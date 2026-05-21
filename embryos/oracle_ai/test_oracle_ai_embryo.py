@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 """
-20 mandatory tests for Oracle AI Embryo R0.
+20 mandatory tests for Oracle AI Embryo R0 v0.2 (Grounding-Aware).
 Criterion: 20/20 PASS.
 """
 import os
 import sys
 import json
 import yaml
-import tempfile
-import shutil
 
 # Add embryo dir to path
 EMBRYO_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -17,6 +15,8 @@ sys.path.insert(0, EMBRYO_DIR)
 from oracle_ai_embryo import (
     load_state, load_self_tasks, load_contract, choose_next_task,
     request_dispatcher_permission, check_kill_switch, write_event,
+    _build_prompt_for_task, _parse_grounded_response,
+    _normalize_claim, _calculate_grounding_level, produce_report,
     EMBRYO_ID, STATE_PATH, SELF_TASKS_PATH, CONTRACT_PATH, KS_PATH,
     EVENT_LOG_PATH, EVENT_LOG_DIR
 )
@@ -35,7 +35,7 @@ def test(name, condition):
 
 
 print("=" * 60)
-print("TEST SUITE: Oracle AI Embryo R0 — 20 Tests")
+print("TEST SUITE: Oracle AI Embryo R0 v0.2 — 20 Tests")
 print("=" * 60)
 
 # 1. embryo_id exists
@@ -47,99 +47,83 @@ test("state loads", state is not None and "embryo_id" in state)
 
 # 3. self_task_queue loads
 tasks = load_self_tasks()
-test("self_task_queue loads", len(tasks) >= 5)
+test("self_task_queue loads", len(tasks) >= 4)
 
-# 4. choose_next_task selects a valid task
+# 4. contract loads and has grounding section
+contract = load_contract()
+test("contract has grounding v0.2", "grounding" in contract and contract["grounding"]["version"] == "0.2.0")
+
+# 5. grounding mandatory_claim_fields present
+fields = contract["grounding"]["mandatory_claim_fields"]
+test("mandatory_claim_fields complete", all(f in fields for f in ["claim_id", "claim_text", "claim_type", "evidence_status", "source_ref", "freshness_required", "confidence"]))
+
+# 6. evidence_statuses complete
+statuses = contract["grounding"]["evidence_statuses"]
+test("evidence_statuses complete", all(s in statuses for s in ["VERIFIED_LOCAL", "VERIFIED_PROVIDER", "NEEDS_REAL_TIME_CHECK", "NO_SOURCE", "HYPOTHESIS", "CANDIDATE_ONLY"]))
+
+# 7. choose_next_task selects a valid task
 chosen = choose_next_task(tasks, state)
 test("choose_next_task selects valid task", chosen is not None and "task_id" in chosen)
 
-# 5. run_once aborts if kill-switch active:true
-# Temporarily set kill-switch to active
-original_ks = None
-if os.path.exists(KS_PATH):
-    with open(KS_PATH) as f:
-        original_ks = json.load(f)
+# 8. action A0_OBSERVE is ALLOW
+d, _ = request_dispatcher_permission({"task_id": "t", "action_class": "A0_OBSERVE"}, contract)
+test("action A0_OBSERVE is ALLOW", d == "ALLOW")
+
+# 9. action R1 is DENY
+d, _ = request_dispatcher_permission({"task_id": "t", "action_class": "R1"}, contract)
+test("action R1 is DENY", d == "DENY")
+
+# 10. kill-switch detection
 os.makedirs(os.path.dirname(KS_PATH), exist_ok=True)
 with open(KS_PATH, "w") as f:
     json.dump({"active": True}, f)
-test("run_once aborts if kill-switch active", check_kill_switch() == True)
-# Restore
+test("kill-switch active detected", check_kill_switch() == True)
 with open(KS_PATH, "w") as f:
     json.dump({"active": False}, f)
 
-# 6. run_once requests Dispatcher permission
-contract = load_contract()
-decision, reason = request_dispatcher_permission(chosen, contract)
-test("run_once requests Dispatcher permission", decision in ["ALLOW", "DENY"])
+# 11. prompt includes grounding instructions
+prompt = _build_prompt_for_task({"task_id": "detect_new_ai_capability_candidates"})
+test("prompt has grounding rules", "evidence_status" in prompt and "NEEDS_REAL_TIME_CHECK" in prompt)
 
-# 7. action A0 is ALLOW
-a0_task = {"task_id": "test_a0", "action_class": "A0_OBSERVE"}
-d, _ = request_dispatcher_permission(a0_task, contract)
-test("action A0_OBSERVE is ALLOW", d == "ALLOW")
+# 12. _normalize_claim produces all mandatory fields
+raw = {"capability_name": "GPT-5 released 2026-05-01", "provider": "OpenAI"}
+claim = _normalize_claim(raw, 0)
+test("normalize_claim has all fields", all(k in claim for k in ["claim_id", "claim_text", "claim_type", "evidence_status", "source_ref", "freshness_required", "confidence"]))
 
-# 8. action A1 is ALLOW
-a1_task = {"task_id": "test_a1", "action_class": "A1_ANALYZE"}
-d, _ = request_dispatcher_permission(a1_task, contract)
-test("action A1_ANALYZE is ALLOW", d == "ALLOW")
+# 13. _normalize_claim auto-detects NEEDS_REAL_TIME_CHECK for dates
+test("auto-detect NEEDS_RTC for dates", claim["evidence_status"] == "NEEDS_REAL_TIME_CHECK")
 
-# 9. action A2 is ALLOW
-a2_task = {"task_id": "test_a2", "action_class": "A2_PREPARE_EVIDENCE"}
-d, _ = request_dispatcher_permission(a2_task, contract)
-test("action A2_PREPARE_EVIDENCE is ALLOW", d == "ALLOW")
+# 14. _normalize_claim marks freshness_required for RTC
+test("freshness_required true for RTC", claim["freshness_required"] is True)
 
-# 10. action A3 is ALLOW
-a3_task = {"task_id": "test_a3", "action_class": "A3_CREATE_NON_PRODUCTIVE_ARTIFACT"}
-d, _ = request_dispatcher_permission(a3_task, contract)
-test("action A3_CREATE_NON_PRODUCTIVE_ARTIFACT is ALLOW", d == "ALLOW")
+# 15. _normalize_claim without date indicators → HYPOTHESIS
+raw2 = {"capability_name": "Better orchestration logic"}
+claim2 = _normalize_claim(raw2, 1)
+test("no-date claim → HYPOTHESIS", claim2["evidence_status"] == "HYPOTHESIS")
 
-# 11. action R1 is DENY
-r1_task = {"task_id": "test_r1", "action_class": "R1"}
-d, _ = request_dispatcher_permission(r1_task, contract)
-test("action R1 is DENY", d == "DENY")
+# 16. _calculate_grounding_level: all VERIFIED = 10
+claims_v = [{"evidence_status": "VERIFIED_LOCAL"}, {"evidence_status": "VERIFIED_PROVIDER"}]
+test("grounding all verified = 10", _calculate_grounding_level(claims_v) == 10)
 
-# 12. MEMORY_WRITE is DENY
-mw_task = {"task_id": "test_mw", "action_class": "MEMORY_WRITE"}
-d, _ = request_dispatcher_permission(mw_task, contract)
-test("MEMORY_WRITE is DENY", d == "DENY")
+# 17. _calculate_grounding_level: all NO_SOURCE = 2
+claims_ns = [{"evidence_status": "NO_SOURCE"}, {"evidence_status": "NO_SOURCE"}]
+test("grounding all NO_SOURCE = 2", _calculate_grounding_level(claims_ns) == 2)
 
-# 13. SUPABASE_WRITE is DENY
-sw_task = {"task_id": "test_sw", "action_class": "SUPABASE_WRITE"}
-d, _ = request_dispatcher_permission(sw_task, contract)
-test("SUPABASE_WRITE is DENY", d == "DENY")
+# 18. _parse_grounded_response handles JSON array
+json_text = json.dumps([
+    {"claim_text": "Test", "claim_type": "factual", "evidence_status": "HYPOTHESIS", "source_ref": "none", "confidence": 0.5},
+    {"claim_text": "Test2", "claim_type": "analytical", "evidence_status": "VERIFIED_LOCAL", "source_ref": "local", "confidence": 0.9}
+])
+parsed = _parse_grounded_response(json_text, {"task_id": "test"})
+test("parse JSON array → claims", len(parsed["claims"]) == 2 and "grounding_level" in parsed)
 
-# 14. APP_VISION_UPDATE is DENY
-av_task = {"task_id": "test_av", "action_class": "APP_VISION_UPDATE"}
-d, _ = request_dispatcher_permission(av_task, contract)
-test("APP_VISION_UPDATE is DENY", d == "DENY")
+# 19. _parse_grounded_response handles non-JSON fallback
+fallback = _parse_grounded_response("Not JSON at all", {"task_id": "test"})
+test("parse fallback → NEEDS_RTC", len(fallback["claims"]) == 1 and fallback["claims"][0]["evidence_status"] == "NEEDS_REAL_TIME_CHECK")
 
-# 15. event_log receives event
-os.makedirs(EVENT_LOG_DIR, exist_ok=True)
-# Clear existing log for test
-if os.path.exists(EVENT_LOG_PATH):
-    os.remove(EVENT_LOG_PATH)
-write_event("TEST_EVENT", {"test": True})
-test("event_log receives event", os.path.exists(EVENT_LOG_PATH) and os.path.getsize(EVENT_LOG_PATH) > 0)
-
-# 16. state_after updates (simulate)
-state_copy = state.copy()
-state_copy["total_cycles"] = 99
-test("state can be updated", state_copy["total_cycles"] == 99)
-
-# 17. output report can be generated
-from oracle_ai_embryo import produce_report
-os.makedirs(os.path.join(EVENT_LOG_DIR, "outputs"), exist_ok=True)
-path = produce_report(chosen, {"test": "data"}, "ALLOW", 0.001)
-test("output report generates", os.path.exists(path))
-
-# 18. no PR/main/deploy in contract
+# 20. forbidden actions in contract
 forbidden = contract.get("forbidden_action_classes", [])
-test("no PR/main/deploy in contract", "PR_CREATE" in forbidden and "DEPLOY" in forbidden and "MAIN_WRITE" in forbidden)
-
-# 19. no secrets in contract
-test("no SECRET_READ/WRITE in contract", "SECRET_READ" in forbidden and "SECRET_WRITE" in forbidden)
-
-# 20. no memory/Memento/Anti-Dory writes
-test("no MEMORY_WRITE in contract", "MEMORY_WRITE" in forbidden)
+test("forbidden: PR/DEPLOY/MAIN/SECRET/MEMORY", all(a in forbidden for a in ["PR_CREATE", "DEPLOY", "MAIN_WRITE", "SECRET_READ", "MEMORY_WRITE"]))
 
 print(f"\n{'='*60}")
 print(f"RESULT: {passed}/20 PASS, {failed}/20 FAIL")

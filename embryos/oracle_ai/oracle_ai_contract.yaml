@@ -1,5 +1,5 @@
 embryo_id: oracle_ai_embryo_r0
-version: "0.1.0"
+version: "0.2.0"
 status: AUTONOMOUS_R0_SHADOW
 
 allowed_action_classes:
@@ -56,3 +56,50 @@ dispatcher:
     - DISPATCHER_REQUEST
     - DISPATCHER_ALLOW
     - DISPATCHER_DENY
+
+# ============================================================
+# GROUNDING CONTRACT v0.2
+# ============================================================
+grounding:
+  version: "0.2.0"
+  enabled: true
+
+  # Every claim in the output must include these fields
+  mandatory_claim_fields:
+    - claim_id
+    - claim_text
+    - claim_type
+    - evidence_status
+    - source_ref
+    - freshness_required
+    - confidence
+
+  # Output-level grounding fields
+  output_level_fields:
+    - grounding_level
+    - next_valid_action
+
+  # Allowed evidence statuses
+  evidence_statuses:
+    - VERIFIED_LOCAL
+    - VERIFIED_PROVIDER
+    - NEEDS_REAL_TIME_CHECK
+    - NO_SOURCE
+    - HYPOTHESIS
+    - CANDIDATE_ONLY
+
+  # Claim types
+  claim_types:
+    - factual
+    - analytical
+    - hypothetical
+
+  # Rules
+  rules:
+    current_fact_mandate: >
+      If the Oracle mentions dates, models, current capabilities, availability,
+      prices, endpoints, or current tools, it MUST mark the claim as
+      NEEDS_REAL_TIME_CHECK unless it possesses verifiable evidence.
+    no_source_fact_prohibition: >
+      It is strictly PROHIBITED to present a claim marked as NO_SOURCE or
+      HYPOTHESIS as a current, verified fact.
