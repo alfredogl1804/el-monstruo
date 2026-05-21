@@ -1,1 +1,812 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# PLAN_REGULADOR.yaml v2.0
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROPÓSITO: Sistema de estado vivo para toma de decisiones de IA.
+# NO es documentación. Es un GRAFO DE DECISIÓN evaluable programáticamente.
+# CONSUMIDOR: Cualquier IA que opere sobre el Monstruo o sus proyectos.
+# ACCIÓN AL LEER: Usar para decidir QUÉ construir, DÓNDE, y SI se debe.
+# ═══════════════════════════════════════════════════════════════════════════════
 
+schema_version: "2.0"
+last_sync: "2026-05-21T23:00:00Z"
+next_sync_trigger: "on_merge_to_main OR manual"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SISTEMA SOLAR: El Monstruo (sol) + sus proyectos (planetas)
+# Cada planeta hereda las reglas del sol pero tiene autonomía interna.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+solar_system:
+  sol:
+    id: el-monstruo
+    role: factory_and_command_center
+    repo: alfredogl1804/el-monstruo
+    runtime: railway
+    db: supabase/xsumzuhwmivjgftsneov
+    state: production
+    capabilities:
+      - orchestration
+      - memory_sovereign
+      - agent_registry
+      - knowledge_graph
+      - belief_revision
+      - decay_consolidation
+      - catastro_ias
+      - governance
+
+  planets:
+    - id: ticketlike
+      repo: alfredogl1804/like-kukulkan-tickets
+      connection_to_sol: [memory_read, catastro_query, brand_compliance]
+      state: production
+      autonomy: high  # tiene su propia DB, deploy, dominio
+
+    - id: cip
+      repo: null
+      connection_to_sol: [memory_read, memory_write, financial_embrion]
+      state: proposal
+      autonomy: null
+
+    - id: softrestaurant-10x
+      repo: null
+      connection_to_sol: [memory_read, catastro_query, research_engine]
+      state: proposal
+      autonomy: null
+
+    - id: zona-like-313
+      repo: null
+      connection_to_sol: [memory_read, brand_engine, ventas_embrion]
+      state: active_planning
+      autonomy: low  # depende del sol para casi todo
+
+    - id: leones-cortometraje
+      repo: null
+      connection_to_sol: [memory_read, creative_embrion, brand_engine]
+      state: active_planning
+      autonomy: low
+
+  connection_contract:
+    every_planet_must:
+      - read_from: sol.memory  # Heredar conocimiento del Monstruo
+      - register_in: sol.catastro  # Estar inventariado
+      - comply_with: sol.brand  # Respetar marca
+      - report_to: sol.governance  # Auditable
+    every_planet_can:
+      - have_own_db: true
+      - have_own_deploy: true
+      - have_own_domain: true
+      - ignore_sol_embriones: false  # DEBEN usar los embriones del sol
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ESTADO DE COMPONENTES
+# Cada componente tiene UN estado. No hay ambigüedad.
+# Estados posibles: production | debt | proposal | deprecated | demolished
+# ═══════════════════════════════════════════════════════════════════════════════
+
+component_states:
+  # ─── PRODUCTION (existe, funciona, desplegado) ───
+  production:
+    - id: kernel_main
+      zone: central
+      path: kernel/main.py
+      health: healthy
+      last_verified: "2026-05-21"
+
+    - id: sms_v4
+      zone: memory
+      path: kernel/memory/sms_supabase_adapter.py
+      health: healthy
+      features: [audn, temporal, knowledge_graph, belief_revision, decay]
+      tables: 16
+      last_verified: "2026-05-21"
+
+    - id: embrion_loop
+      zone: specialists
+      path: kernel/embrion_loop.py
+      health: healthy
+      memory_connected: false  # USA embrion_memoria, NO el SMS
+      last_verified: "2026-05-21"
+
+    - id: catastro
+      zone: intelligence
+      path: kernel/catastro/
+      health: healthy
+      tables: 10
+      last_verified: "2026-05-21"
+
+    - id: lightrag
+      zone: intelligence
+      path: kernel/learning/
+      health: degraded  # funciona pero no se actualiza
+      tables: 14
+      last_verified: "2026-05-21"
+
+    - id: bot_telegram
+      zone: interfaces
+      path: bot/
+      health: offline
+      last_verified: "2026-05-21"
+
+    - id: app_flutter
+      zone: interfaces
+      path: apps/mobile/
+      health: unknown
+      last_verified: "2026-05-21"
+
+    - id: mcp_server
+      zone: interfaces
+      path: kernel/mcp/
+      health: healthy
+      last_verified: "2026-05-21"
+
+    - id: genome_generator
+      zone: governance
+      path: scripts/genome_generator.py
+      health: healthy
+      last_verified: "2026-05-21"
+
+  # ─── DEBT (debería existir/funcionar pero no lo hace) ───
+  debt:
+    - id: embrion_loop_sms_bridge
+      description: "El embrion_loop tiene 2,770 memorias aisladas en embrion_memoria que no pasan por el SMS"
+      impact: critical
+      fix: "Migrar embrion_memoria → sovereign_memories + conectar loop a graph_enhanced_recall"
+      estimated_effort: 1_sprint
+      blocks: [embrion_domain_launch]
+
+    - id: colmena_persistence
+      description: "La Colmena (kernel/collective/) opera en RAM. Se pierde en cada redeploy"
+      impact: high
+      fix: "Crear tablas learned_patterns + embrion_knowledge y conectar al SMS"
+      estimated_effort: 1_sprint
+      blocks: [collective_intelligence]
+
+    - id: specialists_memory
+      description: "9 embriones especialistas son stateless — no recuerdan nada entre invocaciones"
+      impact: high
+      fix: "Agregar graph_enhanced_recall pre-ejecución + store_memory post-ejecución"
+      estimated_effort: 0.5_sprint
+      blocks: [embrion_domain_launch]
+
+    - id: table_overdensity
+      description: "169 tablas en Supabase vs límite saludable de 100. 22+ tablas con 0 registros"
+      impact: medium
+      fix: "Demoler tablas vacías + migrar datos de tablas legacy"
+      estimated_effort: 1_sprint
+      blocks: [clean_architecture]
+
+    - id: bot_offline
+      description: "Bot de Telegram no responde. Deploy roto o deshabilitado"
+      impact: medium
+      fix: "Diagnosticar Railway service, redeploy"
+      estimated_effort: 0.25_sprint
+      blocks: [user_interface_telegram]
+
+    - id: legacy_memory_systems
+      description: "3 sistemas de memoria paralelos (embrion_memoria, monstruo_memory, mem0) sin conexión al SMS"
+      impact: high
+      fix: "Migrar datos valiosos al SMS, demoler tablas legacy"
+      estimated_effort: 1_sprint
+      blocks: [unified_memory]
+
+    - id: embeddings_missing
+      description: "135 memorias en sovereign_memories sin vector embeddings (ingesta directa via SQL)"
+      impact: medium
+      fix: "Ejecutar embedding generation batch via OpenRouter/OpenAI"
+      estimated_effort: 0.25_sprint
+      blocks: [semantic_recall_quality]
+
+    - id: rem_cycle_automation
+      description: "REM Cycle existe pero no se ejecuta automáticamente. Requiere trigger manual"
+      impact: medium
+      fix: "Cron job cada 24h que ejecute compute_importance + archive_low_importance + merge_similar"
+      estimated_effort: 0.25_sprint
+      blocks: [memory_hygiene]
+
+  # ─── PROPOSALS (ideas validadas pero sin código) ───
+  proposals:
+    - id: embrion_concierge
+      description: "Embrión de Dominio que gestiona calendario, reuniones, tiempo"
+      origin: "CANON Metodologías v1.5 + ChatGPT thread 2026-05-20"
+      approved_by: alfredo
+      approved_date: null
+      dependencies: [embrion_loop_sms_bridge, specialists_memory]
+      estimated_effort: 2_sprints
+
+    - id: embrion_archivista
+      description: "Embrión de Dominio que organiza archivos, detecta duplicados, propone estructura"
+      origin: "CANON Metodologías v1.5"
+      approved_by: null
+      dependencies: [embrion_loop_sms_bridge, specialists_memory]
+      estimated_effort: 2_sprints
+
+    - id: embrion_relacionista
+      description: "Embrión de Dominio que mantiene grafo de personas, contexto social, compromisos"
+      origin: "CANON Metodologías v1.5"
+      approved_by: null
+      dependencies: [embrion_loop_sms_bridge, specialists_memory, knowledge_graph]
+      estimated_effort: 2_sprints
+
+    - id: embrion_perito
+      description: "Embrión que acumula pericia sobre el propio Monstruo — niveles M0-M5, Boot Packs, Drift Detection"
+      origin: "ChatGPT thread 2026-05-20 + Kit Pericia 95%"
+      approved_by: null
+      dependencies: [sms_v4, genome_generator]
+      estimated_effort: 3_sprints
+
+    - id: oraculo_ias
+      description: "Evolución del Catastro — no solo registra IAs sino predice cuál usar para cada tarea"
+      origin: "ChatGPT thread 2026-05-20"
+      approved_by: null
+      dependencies: [catastro, sms_v4]
+      estimated_effort: 2_sprints
+
+    - id: reactor_soberano
+      description: "Motor de ejecución autónoma que puede operar sin supervisión humana por períodos definidos"
+      origin: "ChatGPT thread 2026-05-20"
+      approved_by: null
+      dependencies: [embrion_loop_sms_bridge, colmena_persistence, governance]
+      estimated_effort: 4_sprints
+
+    - id: vigilia_permanente
+      description: "Sistema de monitoreo 24/7 que detecta cambios en el entorno y reacciona"
+      origin: "ChatGPT thread 2026-05-20"
+      approved_by: null
+      dependencies: [reactor_soberano, rem_cycle_automation]
+      estimated_effort: 3_sprints
+
+    - id: plan_regulador_linter
+      description: "CI check que valida PRs contra este archivo — rechaza violaciones automáticamente"
+      origin: "Plan Regulador v2.0"
+      approved_by: null
+      dependencies: [genome_generator]
+      estimated_effort: 0.5_sprint
+
+    - id: multi_project_orchestration
+      description: "El Monstruo como fábrica que puede crear y operar N proyectos simultáneamente"
+      origin: "Alfredo 2026-05-21"
+      approved_by: alfredo
+      approved_date: "2026-05-21"
+      dependencies: [embrion_loop_sms_bridge, colmena_persistence, reactor_soberano]
+      estimated_effort: 5_sprints
+
+  # ─── DEPRECATED (existe pero marcado para demolición) ───
+  deprecated:
+    - id: episodic_memory_table
+      table: episodic_memory
+      records: 0
+      demolish_after: "2026-06-21"
+      reason: "Reemplazado por sovereign_memories"
+
+    - id: mem0_system
+      table: mem0
+      records: 2001
+      demolish_after: "2026-07-01"
+      reason: "Migrar datos valiosos a SMS, luego demoler"
+      migration_required: true
+
+    - id: monstruo_memory_table
+      table: monstruo_memory
+      records: 68
+      demolish_after: "2026-06-21"
+      reason: "Legacy, migrar a SMS"
+      migration_required: true
+
+    - id: embrion_memoria_table
+      table: embrion_memoria
+      records: 2770
+      demolish_after: "2026-07-15"
+      reason: "Migrar a sovereign_memories cuando bridge esté listo"
+      migration_required: true
+      blocks_demolition: [embrion_loop_sms_bridge]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DECISION ENGINE
+# Reglas evaluables que una IA ejecuta ANTES de construir algo.
+# Formato: condition → action. Sin prosa.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+decision_rules:
+  before_building:
+    - id: DR-001
+      condition: "component_exists_in(MONSTRUO_GENOME.yaml, proposed_name)"
+      action: HALT
+      message: "Ya existe. Usa o mejora lo existente."
+
+    - id: DR-002
+      condition: "proposed_component.needs_persistence AND NOT uses(sms_api)"
+      action: REJECT
+      message: "Toda persistencia pasa por el SMS. No crear tablas propias."
+
+    - id: DR-003
+      condition: "proposed_component.zone == null"
+      action: REJECT
+      message: "No cabe en ninguna zona. Replantear o solicitar zona nueva."
+
+    - id: DR-004
+      condition: "zone(proposed_component.zone).table_count + proposed_tables > zone.max_tables"
+      action: REJECT
+      message: "Zona sobre-densa. Demoler antes de construir."
+
+    - id: DR-005
+      condition: "proposed_component.is_embrion AND NOT proposed_component.sms_connected"
+      action: REJECT
+      message: "Todo embrión debe conectarse al SMS (recall + store)."
+
+    - id: DR-006
+      condition: "proposed_component.dependencies.any(d => d.state == 'debt')"
+      action: WARN
+      message: "Depende de deuda no resuelta. Resolver deuda primero o aceptar riesgo."
+
+    - id: DR-007
+      condition: "proposed_component.is_new_project AND NOT connection_to_sol.defined"
+      action: REJECT
+      message: "Todo proyecto (planeta) debe definir su conexión al sol."
+
+  before_demolishing:
+    - id: DR-008
+      condition: "table.records > 0 AND NOT migration_plan.exists"
+      action: HALT
+      message: "No demoler datos sin plan de migración."
+
+    - id: DR-009
+      condition: "component.state != 'deprecated'"
+      action: REJECT
+      message: "Solo se demoler lo previamente marcado como deprecated."
+
+  before_proposing:
+    - id: DR-010
+      condition: "proposal.dependencies.all(d => d.state == 'production')"
+      action: APPROVE_FOR_BUILD
+      message: "Todas las dependencias están en producción. Se puede construir."
+
+    - id: DR-011
+      condition: "proposal.dependencies.any(d => d.state == 'debt')"
+      action: DEFER
+      message: "Resolver deuda primero. Propuesta queda en cola."
+
+    - id: DR-012
+      condition: "proposal.dependencies.any(d => d.state == 'proposal')"
+      action: CHAIN
+      message: "Depende de otra propuesta. Construir en secuencia."
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ZONES (definición pura — sin analogías)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+zones:
+  central:
+    purpose: routing_auth_orchestration
+    location: kernel/main.py + kernel/auth.py + kernel/rotor/
+    max_tables: 6
+    current_tables: 3
+    allowed_operations: [route, authenticate, health_check, rate_limit]
+    forbidden_operations: [business_logic, data_storage, model_inference]
+
+  memory:
+    purpose: persistent_knowledge_sovereign
+    location: kernel/memory/ + kernel/anti_dory/
+    max_tables: 20
+    current_tables: 16
+    allowed_operations: [store, recall, invalidate, consolidate, graph_query, decay]
+    forbidden_operations: [direct_model_call, user_facing_response, file_storage]
+    is_single_source_of_truth: true
+
+  specialists:
+    purpose: task_execution_by_domain
+    location: kernel/embriones/ + kernel/embrion_loop.py + kernel/collective/
+    max_tables: 5
+    current_tables: 3
+    allowed_operations: [execute_task, read_memory, write_memory, collaborate]
+    forbidden_operations: [own_persistence, direct_db_access, bypass_kernel]
+    mandatory_pre_hook: graph_enhanced_recall
+    mandatory_post_hook: store_memory_if_valuable
+
+  interfaces:
+    purpose: external_connection_transport
+    location: bot/ + apps/ + kernel/a2ui/ + kernel/mcp/
+    max_tables: 0
+    current_tables: 0
+    allowed_operations: [receive_input, send_output, format_response]
+    forbidden_operations: [db_access, model_inference, state_storage]
+
+  intelligence:
+    purpose: research_catalog_evaluate
+    location: kernel/catastro/ + kernel/learning/ + kernel/vanguard/
+    max_tables: 15
+    current_tables: 14
+    allowed_operations: [register_model, evaluate_model, research, index_knowledge]
+    forbidden_operations: [execute_production_task, user_facing_response]
+
+  governance:
+    purpose: security_audit_decisions_compliance
+    location: kernel/security/ + kernel/sovereignty/ + discovery_forense/
+    max_tables: 8
+    current_tables: 5
+    allowed_operations: [audit, decide, enforce, rotate_secrets, document]
+    forbidden_operations: [build_features, execute_tasks, store_user_data]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PRIORITY QUEUE (qué construir/resolver primero)
+# Ordenado por: impacto × desbloqueo. Lo que más desbloquea va primero.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+priority_queue:
+  - rank: 1
+    id: embrion_loop_sms_bridge
+    type: debt
+    unlocks: [specialists_memory, embrion_domain_launch, colmena_persistence]
+    unlocks_count: 3
+
+  - rank: 2
+    id: specialists_memory
+    type: debt
+    unlocks: [embrion_concierge, embrion_archivista, embrion_relacionista]
+    unlocks_count: 3
+
+  - rank: 3
+    id: colmena_persistence
+    type: debt
+    unlocks: [collective_intelligence, reactor_soberano]
+    unlocks_count: 2
+
+  - rank: 4
+    id: embeddings_missing
+    type: debt
+    unlocks: [semantic_recall_quality]
+    unlocks_count: 1
+
+  - rank: 5
+    id: rem_cycle_automation
+    type: debt
+    unlocks: [memory_hygiene, vigilia_permanente]
+    unlocks_count: 2
+
+  - rank: 6
+    id: table_overdensity
+    type: debt
+    unlocks: [clean_architecture]
+    unlocks_count: 1
+
+  - rank: 7
+    id: bot_offline
+    type: debt
+    unlocks: [user_interface_telegram]
+    unlocks_count: 1
+
+  - rank: 8
+    id: plan_regulador_linter
+    type: proposal
+    unlocks: [automated_governance]
+    unlocks_count: 1
+
+  - rank: 9
+    id: embrion_perito
+    type: proposal
+    unlocks: [self_awareness, onboarding_acceleration]
+    unlocks_count: 2
+
+  - rank: 10
+    id: oraculo_ias
+    type: proposal
+    unlocks: [intelligent_routing, cost_optimization]
+    unlocks_count: 2
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# GOLDEN PATHS (rutas obligatorias — formato evaluable)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+golden_paths:
+  knowledge_write:
+    route: [any_component, sms_api_ingest, audn_validation, sovereign_memories]
+    violation_check: "INSERT INTO sovereign_memories WITHOUT going through /sms/ingest"
+    violation_action: REJECT_PR
+
+  knowledge_read:
+    route: [any_component, graph_enhanced_recall_or_sms_recall, response]
+    violation_check: "SELECT FROM embrion_memoria OR monstruo_memory OR mem0 directly"
+    violation_action: WARN_DEPRECATED
+
+  execution:
+    route: [interface, kernel_router, embrion, response]
+    violation_check: "interface calls embrion directly without kernel routing"
+    violation_action: REJECT_PR
+
+  observability:
+    route: [any_action, langfuse_trace, cost_logged]
+    violation_check: "model call without trace_id"
+    violation_action: WARN
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DENSITY LIMITS (números duros — evaluables)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+density_limits:
+  supabase_tables:
+    max: 100
+    current: 169
+    status: OVER_LIMIT
+    action_required: demolish_69_tables
+
+  supabase_rpcs:
+    max: 80
+    current: 58
+    status: OK
+
+  kernel_modules:
+    max: 20
+    current: 31
+    status: OVER_LIMIT
+    action_required: consolidate_11_modules
+
+  skills:
+    max: 50
+    current: 43
+    status: WARNING
+    threshold_for_review: 40
+
+  embriones_production:
+    max: 15
+    current: 10
+    status: OK
+
+  lines_per_file:
+    max: 500
+    violations: [embrion_loop.py, sms_supabase_adapter.py]
+    action_required: split_files
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# OBJECTIVE COMPLIANCE ENGINE
+# Cada componente/propuesta se evalúa contra los 15 Objetivos Maestros.
+# Score 0.0-1.0 por objetivo aplicable. null = no aplica.
+# overall_score = weighted_average(applicable_objectives_only)
+# Threshold mínimo: 0.7 para aprobar construcción.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+objective_compliance:
+  objectives:
+    - id: obj_01
+      name: crear_empresas_digitales
+      weight: 5
+      applies_to: [planet, interface]
+      evaluation: "pipeline E2E funcional: frase → negocio desplegado"
+      metric: pipeline_e2e_coverage_percent
+
+    - id: obj_02
+      name: apple_tesla_quality
+      weight: 10
+      applies_to: [interface, planet, specialist]
+      evaluation: "craft obsesivo, diseño premium, cero mediocridad"
+      metric: hig_benchmark_score_60_criteria
+
+    - id: obj_03
+      name: minima_complejidad
+      weight: 10
+      applies_to: [all]
+      evaluation: "solución más simple que funciona, zero-config para usuario"
+      metric: time_to_result_seconds
+
+    - id: obj_04
+      name: no_error_2x
+      weight: 15
+      applies_to: [all]
+      evaluation: "consulta error_memory antes de actuar, registra errores nuevos"
+      metric: repeated_error_rate_must_be_zero
+
+    - id: obj_05
+      name: magna_premium_validation
+      weight: 10
+      applies_to: [intelligence, specialist, governance]
+      evaluation: "valida datos magna en tiempo real antes de usarlos"
+      metric: percent_claims_validated_realtime
+
+    - id: obj_06
+      name: vanguardia_perpetua
+      weight: 8
+      applies_to: [intelligence, specialist]
+      evaluation: "usa la mejor herramienta disponible HOY"
+      metric: stack_age_vs_latest_days
+
+    - id: obj_07
+      name: no_inventar_rueda
+      weight: 10
+      applies_to: [all]
+      evaluation: "buscó si ya existe antes de construir, adopta vs construye"
+      metric: percent_adopted_vs_custom
+
+    - id: obj_08
+      name: inteligencia_emergente
+      weight: 5
+      applies_to: [specialist, memory]
+      evaluation: "múltiples agentes generan conocimiento nuevo colectivamente"
+      metric: emergent_events_per_month
+
+    - id: obj_09
+      name: transversalidad_universal
+      weight: 8
+      applies_to: [planet, interface]
+      evaluation: "capas transversales activas del total de 8"
+      metric: active_layers_count_of_8
+
+    - id: obj_10
+      name: simulador_predictivo
+      weight: 3
+      applies_to: [intelligence]
+      evaluation: "contribuye a capacidad predictiva causal"
+      metric: brier_crps_score
+
+    - id: obj_11
+      name: multiplicacion_embriones
+      weight: 5
+      applies_to: [specialist]
+      evaluation: "permite que embriones se multipliquen y especialicen"
+      metric: active_embriones_count
+
+    - id: obj_12
+      name: soberania_ecosistema
+      weight: 10
+      applies_to: [all]
+      evaluation: "no crea dependencia sin alternativa, tiene migration playbook"
+      metric: services_with_migration_playbook_percent
+
+    - id: obj_13
+      name: del_mundo
+      weight: 2
+      applies_to: [planet, interface]
+      evaluation: "accesible, internacionalizable, no exclusivo"
+      metric: i18n_coverage_plus_wcag
+
+    - id: obj_14
+      name: guardian_objetivos
+      weight: 5
+      applies_to: [governance]
+      evaluation: "tiene scoring, alarma, corrección, memoria constitucional"
+      metric: regression_detection_rate_percent
+
+    - id: obj_15
+      name: memoria_soberana
+      weight: 15
+      applies_to: [all]
+      evaluation: "usa el SMS, no depende de memoria efímera, persiste aprendizaje"
+      metric: sms_connected_and_persists_learning
+
+  transversal_layers:
+    - id: layer_01
+      name: motor_ventas
+      applies_to: [planet]
+      checks: [pricing, funnels, ab_testing, retention, upsell]
+
+    - id: layer_02
+      name: seo_descubrimiento
+      applies_to: [planet, interface]
+      checks: [architecture_seo, keywords, content_strategy, technical_seo]
+
+    - id: layer_03
+      name: publicidad_campanas
+      applies_to: [planet]
+      checks: [auto_campaigns, creatives, targeting, budget_allocation]
+
+    - id: layer_04
+      name: tendencias_adaptacion
+      applies_to: [planet, intelligence]
+      checks: [trend_monitoring, opportunity_detection, competitor_watch]
+
+    - id: layer_05
+      name: admin_operaciones
+      applies_to: [planet, central]
+      checks: [automated_processes, support, compliance, inventory]
+
+    - id: layer_06
+      name: finanzas
+      applies_to: [planet]
+      checks: [projections, cashflow, unit_economics, burn_rate_alerts]
+
+    - id: layer_07
+      name: resiliencia_agentica
+      applies_to: [central, memory, governance]
+      checks: [deterministic_orchestration, tool_gateway, policy_engine, adversarial_security, grounding_ttl, observability]
+
+    - id: layer_08
+      name: capa_memento
+      applies_to: [all]
+      checks: [preflight_source_of_truth, checkpoints, close_summary, contamination_detection]
+
+  # ─── SCORING RULES ───
+  scoring:
+    threshold_approve: 0.7
+    threshold_warn: 0.5
+    threshold_reject_below: 0.5
+    calculation: weighted_average_of_applicable_objectives
+    null_handling: "objectives where applies_to does not match component.zone are excluded"
+
+  # ─── DECISION RULES ───
+  rules:
+    - id: DR-013
+      condition: "objective_score < 0.5"
+      action: REJECT
+      message: "No cumple mínimo 50% de objetivos aplicables. Rediseñar."
+
+    - id: DR-014
+      condition: "objective_score >= 0.5 AND < 0.7"
+      action: WARN
+      message: "Cumplimiento bajo. Documentar qué objetivos se sacrifican y por qué."
+
+    - id: DR-015
+      condition: "objective_score >= 0.7"
+      action: APPROVE
+      message: "Cumplimiento aceptable. Proceder."
+
+    - id: DR-016
+      condition: "obj_15_score == 0 AND needs_persistence == true"
+      action: REJECT
+      message: "Viola Objetivo #15 (Memoria Soberana). DEBE conectarse al SMS."
+
+    - id: DR-017
+      condition: "is_planet AND active_layers < 3"
+      action: WARN
+      message: "Proyecto con menos de 3 capas transversales. Riesgo de fracaso."
+
+    - id: DR-018
+      condition: "is_planet AND active_layers == 0"
+      action: REJECT
+      message: "Proyecto sin ninguna capa transversal. No se aprueba."
+
+  # ─── CURRENT COMPLIANCE SNAPSHOT ───
+  current_scores:
+    - id: sms_v4
+      zone: memory
+      scores:
+        obj_03: 0.8
+        obj_04: 0.9
+        obj_07: 0.7
+        obj_12: 0.6
+        obj_15: 1.0
+      overall: 0.85
+      status: APPROVED
+
+    - id: embrion_loop
+      zone: specialists
+      scores:
+        obj_03: 0.5
+        obj_04: 0.7
+        obj_07: 0.6
+        obj_12: 0.5
+        obj_15: 0.2
+      overall: 0.52
+      status: WARN
+      gaps: ["obj_15 CRITICAL — embrion_memoria aislada del SMS"]
+
+    - id: catastro
+      zone: intelligence
+      scores:
+        obj_05: 0.9
+        obj_06: 0.8
+        obj_07: 0.9
+        obj_12: 0.7
+        obj_15: 0.4
+      overall: 0.76
+      status: APPROVED
+
+    - id: ticketlike
+      zone: planet
+      scores:
+        obj_01: 0.9
+        obj_02: 0.7
+        obj_09: 0.4
+        obj_12: 0.8
+        obj_15: 0.3
+      overall: 0.62
+      status: WARN
+      layers_active: [motor_ventas, admin_operaciones, resiliencia_agentica]
+      layers_missing: [seo, publicidad, tendencias, finanzas, capa_memento]
+      gaps: ["obj_09 — faltan 5/8 capas transversales"]
+
+    - id: bot_telegram
+      zone: interfaces
+      scores:
+        obj_02: 0.3
+        obj_03: 0.8
+        obj_15: 0.1
+      overall: 0.38
+      status: REJECT
+      gaps: ["obj_02 CRITICAL — interfaz no premium", "obj_15 CRITICAL — sin memoria"]
