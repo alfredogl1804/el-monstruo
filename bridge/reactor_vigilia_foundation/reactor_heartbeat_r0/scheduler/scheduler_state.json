@@ -1,0 +1,11 @@
+{
+  "total_cycles": 0,
+  "successful_cycles": 0,
+  "failed_cycles": 0,
+  "consecutive_failures": 0,
+  "last_run_at": null,
+  "last_result": null,
+  "last_decision": null,
+  "status": "ACTIVE",
+  "history": []
+}

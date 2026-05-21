@@ -1,7 +1,7 @@
 {
   "heartbeat_id": "HB-R0-001",
-  "started_at": "2026-05-21T00:08:13.591216+00:00",
-  "ended_at": "2026-05-21T00:08:13.592002+00:00",
+  "started_at": "2026-05-21T00:49:42.437623+00:00",
+  "ended_at": "2026-05-21T00:49:42.438210+00:00",
   "input_state_refs": [
     "state_fabric/current_state.v0.json",
     "state_fabric/event_log.v0.jsonl",
