@@ -1,0 +1,436 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║  PLAN_REGULADOR.yaml — Urbanismo Digital del Monstruo                      ║
+# ║  Propósito: Definir CÓMO debe crecer el sistema para escalar 20x sin caos  ║
+# ║  Analogía: Este archivo es el Plan de Desarrollo Urbano de Singapur,       ║
+# ║  no el mapa satelital (ese es MONSTRUO_GENOME.yaml).                       ║
+# ║  Autoridad: Todo hilo que construya algo nuevo DEBE respetar este plan.    ║
+# ║  Violación: Construir fuera del plan genera deuda que se paga con interés. ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+meta:
+  version: 1.0.0
+  created: 2026-05-21
+  author: Alfredo Góngora + Manus
+  principle: "El Monstruo no es la Ciudad de México. Es Singapur."
+  enforcement: mandatory
+  applies_to: [manus_threads, cowork, embriones, any_new_component]
+  companion_files:
+    - MONSTRUO_GENOME.yaml  # QUÉ hay (mapa satelital)
+    - AGENTS.md             # Reglas operativas por hilo
+    - docs/EL_MONSTRUO_15_OBJETIVOS_MAESTROS.md  # POR QUÉ existe
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 1: ZONIFICACIÓN (Zoning)
+# Cada zona tiene un propósito exclusivo. Mezclar propósitos = caos.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+zones:
+  distrito_central:
+    purpose: Enrutamiento, autenticación, orquestación, observabilidad
+    location: kernel/main.py + kernel/auth.py + kernel/rotor/
+    rules:
+      - CERO lógica de negocio aquí — solo routing y middleware
+      - Alta disponibilidad obligatoria (health check < 200ms)
+      - Modificaciones requieren PR con justificación arquitectónica
+      - Máximo 5 dependencias externas directas
+    owns_tables: [checkpoints, checkpoint_writes, checkpoint_blobs, budget_state]
+    max_tables: 6
+    analogy: "El centro financiero de Singapur — compacto, eficiente, crítico"
+
+  zona_memoria:
+    purpose: Almacenamiento persistente, grafo de conocimiento, resolución de conflictos, decay
+    location: kernel/memory/ + kernel/anti_dory/
+    rules:
+      - ÚNICA fuente de verdad para todo conocimiento persistente
+      - Prohibido crear tablas de memoria fuera de esta zona
+      - Todo dato que necesite sobrevivir un redeploy DEBE pasar por aquí
+      - Toda memoria nueva pasa por AUDN (no se acepta sin validación)
+      - Vector embeddings obligatorios para toda memoria semántica
+    owns_tables:
+      - sovereign_memories
+      - sovereign_axioms
+      - sovereign_agent_registry
+      - sovereign_conflict_log
+      - sovereign_consolidation_log
+      - sovereign_knowledge_gaps
+      - sovereign_causal_chains
+      - memory_entities
+      - memory_relations
+      - memory_entity_links
+      - memory_dependencies
+      - memory_access_log
+      - anti_dory_anchor_store
+      - anti_dory_plan_ledger
+      - anti_dory_runtime_flags
+      - anti_dory_write_budget
+    max_tables: 20
+    analogy: "El sistema de agua potable — todo pasa por aquí, sin él nada funciona"
+
+  distrito_especialistas:
+    purpose: Ejecución de tareas específicas por embriones de dominio
+    location: kernel/embriones/ + kernel/embrion_loop.py + kernel/collective/
+    rules:
+      - Stateless en ejecución (no guardan estado propio)
+      - OBLIGATORIO llamar graph_enhanced_recall ANTES de operar
+      - OBLIGATORIO llamar store_memory DESPUÉS de producir un resultado valioso
+      - Cada embrión tiene un scope definido — no puede operar fuera de él
+      - La Colmena propaga patrones SOLO a través de la Zona de Memoria
+      - Nuevos embriones requieren registro en sovereign_agent_registry
+    owns_tables:
+      - embrion_budget_state
+      - embrion_patron_emergencia
+      - embrion_write_proposals
+    max_tables: 5
+    deprecated_tables_to_demolish:
+      - embrion_memoria  # Migrar a sovereign_memories, luego demoler
+      - embrion_audit_log  # Vacía, nunca usada
+      - embrion_homeostasis_log  # Vacía
+      - embrion_validation_log  # Vacía
+      - embrion_inbox  # Vacía
+    analogy: "Los distritos industriales — cada fábrica produce algo específico"
+
+  zona_interfaces:
+    purpose: Conexión con el mundo exterior (Telegram, Flutter, Web, MCP)
+    location: bot/ + apps/ + kernel/a2ui/ + kernel/mcp/
+    rules:
+      - Prohibido acceso directo a base de datos
+      - DEBEN usar la API del Distrito Central exclusivamente
+      - Cada interfaz es un "transport" reemplazable — el kernel no depende de ella
+      - Autenticación delegada al Distrito Central
+      - No almacenan estado propio (stateless)
+    owns_tables: []
+    max_tables: 0
+    analogy: "Los puertos y aeropuertos — conectan con el exterior pero no definen la ciudad"
+
+  zona_inteligencia:
+    purpose: Catastro de IAs, LightRAG, investigación, vanguardia
+    location: kernel/catastro/ + kernel/catastros/ + kernel/learning/ + kernel/vanguard/
+    rules:
+      - Registra y evalúa modelos de IA disponibles
+      - Mantiene el grafo de conocimiento externo (LightRAG)
+      - No ejecuta tareas de producción — solo investiga y cataloga
+      - Resultados de investigación se persisten en Zona de Memoria
+    owns_tables:
+      - catastro_modelos
+      - catastro_agentes
+      - catastro_eventos
+      - catastro_tronos_agentes
+      - catastro_suppliers_humanos
+      - lightrag_doc_chunks
+      - lightrag_doc_full
+      - lightrag_entity_chunks
+      - lightrag_full_entities
+      - lightrag_full_relations
+    max_tables: 15
+    analogy: "El distrito universitario — investiga, cataloga, no produce bienes"
+
+  zona_gobernanza:
+    purpose: Seguridad, auditoría, decisiones arquitectónicas, compliance
+    location: kernel/security/ + kernel/sovereignty/ + discovery_forense/
+    rules:
+      - Toda decisión arquitectónica se documenta como DSC (Decision)
+      - Auditorías de seguridad bloquean cierre de sprint
+      - RLS obligatorio en toda tabla nueva
+      - Rotación de secrets según TTL definido
+      - Incidents se documentan con postmortem completo
+    owns_tables:
+      - governance_log
+      - guardian_audit_log
+      - cadena_custodia
+      - cowork_claims_calibration
+      - cowork_sesiones
+    max_tables: 8
+    analogy: "El gobierno municipal — establece reglas, audita, no construye edificios"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 2: VIALIDADES PRINCIPALES (Golden Paths)
+# Rutas obligatorias de comunicación. Atajos prohibidos.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+golden_paths:
+  ruta_conocimiento:
+    description: "Todo conocimiento que necesite persistir fluye por aquí"
+    path: "Cualquier componente -> POST /sms/ingest -> AUDN -> sovereign_memories"
+    rules:
+      - Ningún embrión escribe directamente a una tabla de memoria
+      - Ningún hilo Manus inserta directamente en Supabase para persistir conocimiento
+      - El SMS es el ÚNICO gateway de escritura de conocimiento
+      - Violación = deuda técnica inmediata + issue automático
+
+  ruta_recall:
+    description: "Todo componente que necesite contexto lo obtiene por aquí"
+    path: "Componente -> GET /sms/recall o graph_enhanced_recall RPC -> contexto"
+    rules:
+      - Prohibido leer directamente de tablas legacy (embrion_memoria, monstruo_memory)
+      - El recall siempre pasa por el SMS que aplica temporal validity + importance
+      - Access logging automático (alimenta el decay system)
+
+  ruta_ejecucion:
+    description: "Las interfaces invocan al kernel, nunca a los embriones directamente"
+    path: "Interface (bot/app/web) -> Kernel Router -> Embrión correspondiente"
+    rules:
+      - Las interfaces NO conocen la existencia de embriones específicos
+      - El kernel decide qué embrión invocar basado en el intent
+      - Los embriones NO se invocan entre sí directamente — pasan por la Colmena
+
+  ruta_observabilidad:
+    description: "Todo lo que ocurre se registra para auditoría"
+    path: "Cualquier acción -> Langfuse/OpenTelemetry -> dashboards"
+    rules:
+      - Toda llamada a modelo externo se registra con costo
+      - Todo error se persiste en error_memory via SMS
+      - Métricas de latencia obligatorias en endpoints críticos
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 3: CÓDIGO DE EDIFICACIÓN (Building Code)
+# Estándares que todo componente nuevo DEBE cumplir antes de existir.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+building_code:
+  pre_construction:
+    - id: BC-001
+      rule: "Leer MONSTRUO_GENOME.yaml antes de proponer algo nuevo"
+      reason: "Para verificar que no existe ya"
+      enforcement: obligatorio
+
+    - id: BC-002
+      rule: "Verificar que el componente cabe en una zona existente"
+      reason: "Si no cabe en ninguna zona, es señal de que no debería existir o que falta una zona"
+      enforcement: obligatorio
+
+    - id: BC-003
+      rule: "Máximo 3 tablas nuevas por componente"
+      reason: "Control de densidad — evita proliferación de tablas"
+      enforcement: obligatorio_con_excepcion_justificada
+
+    - id: BC-004
+      rule: "RLS habilitado en toda tabla nueva desde el CREATE TABLE"
+      reason: "Seguridad por defecto, no por remediación"
+      enforcement: bloqueante
+
+  during_construction:
+    - id: BC-005
+      rule: "Toda memoria persistente pasa por el SMS — no tablas propias"
+      reason: "Evita crear sistemas de memoria paralelos"
+      enforcement: bloqueante
+
+    - id: BC-006
+      rule: "Registrar el componente en MONSTRUO_GENOME.yaml al terminar"
+      reason: "El mapa debe reflejar la realidad"
+      enforcement: obligatorio
+
+    - id: BC-007
+      rule: "Tests mínimos: health check + 1 happy path + 1 error path"
+      reason: "Nada se despliega sin verificación mínima"
+      enforcement: obligatorio
+
+    - id: BC-008
+      rule: "Observabilidad: logging estructurado + métricas de costo"
+      reason: "Si no se puede medir, no se puede mejorar"
+      enforcement: obligatorio
+
+  post_construction:
+    - id: BC-009
+      rule: "Ejecutar genome_generator.py y commitear el YAML actualizado"
+      reason: "El mapa siempre refleja la realidad"
+      enforcement: obligatorio
+
+    - id: BC-010
+      rule: "Documentar la decisión en un DSC si es arquitectónica"
+      reason: "Las decisiones se olvidan, los DSCs no"
+      enforcement: condicional
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 4: PLAN DE DEMOLICIÓN (Scheduled Demolition)
+# Lo que no se usa, se destruye. Acumular = CDMX.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+demolition_plan:
+  criteria_for_demolition:
+    - "Tabla con 0 registros por más de 60 días"
+    - "Código no referenciado por ningún import en 90 días"
+    - "Endpoint con 0 requests en 30 días"
+    - "Skill no invocada en 60 días"
+
+  demolition_process:
+    step_1: "Marcar como deprecated en MONSTRUO_GENOME.yaml"
+    step_2: "Archivar (no borrar) por 30 días"
+    step_3: "Si nadie reclama, eliminar definitivamente"
+    step_4: "Actualizar GENOME y commitear"
+
+  immediate_demolition_candidates:
+    tables:
+      - episodic_memory  # 0 registros, abandonada
+      - embrion_audit_log  # 0 registros
+      - embrion_homeostasis_log  # 0 registros
+      - embrion_validation_log  # 0 registros
+      - embrion_inbox  # 0 registros
+      - a2a_agents  # 0 registros
+      - background_jobs  # 0 registros
+      - brand_compliance_log  # 0 registros
+      - agui_channel_audit  # 0 registros
+      - v5_accounts  # 0 registros
+      - v5_comments  # 0 registros
+      - v5_coordination_scores  # 0 registros
+      - catastro_curadores  # 0 registros
+      - catastro_historial  # 0 registros
+      - catastro_notas  # 0 registros
+      - catastro_repos  # 0 registros
+      - forja_actions  # 0 registros
+      - forja_simulations  # 0 registros
+      - forja_sprints  # 0 registros
+      - forja_validations  # 0 registros
+      - governance_log  # 0 registros
+      - guardian_audit_log  # 0 registros
+    note: "Revisar antes de demoler — algunas pueden ser tablas recién creadas esperando datos"
+
+  migration_before_demolition:
+    - source: embrion_memoria (2,770 records)
+      target: sovereign_memories
+      reason: "Unificar en la Zona de Memoria"
+      priority: critical
+
+    - source: monstruo_memory (68 records)
+      target: sovereign_memories
+      reason: "Legacy, contenido valioso pero aislado"
+      priority: high
+
+    - source: mem0 (2,001 records)
+      target: sovereign_memories
+      reason: "Sistema paralelo que duplica funcionalidad del SMS"
+      priority: high
+
+    - source: mempalace_episodes (3,757 records)
+      target: sovereign_memories
+      reason: "Datos valiosos atrapados en sistema legacy"
+      priority: medium
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 5: CONTROL DE DENSIDAD (Density Control)
+# Límites duros para evitar crecimiento descontrolado.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+density_limits:
+  supabase:
+    max_total_tables: 100  # Hoy: 169 (SOBRE-DENSIDAD — necesita demolición)
+    max_tables_per_zone: 20
+    max_rpcs_total: 80
+    max_empty_tables_allowed: 5  # Más de 5 tablas vacías = trigger de demolición
+
+  kernel:
+    max_top_level_py_files: 15  # Evita el "main.py de 5000 líneas"
+    max_modules: 20  # Hoy: 31 dirs — necesita consolidación
+    max_lines_per_file: 500  # Archivos más largos se dividen
+
+  skills:
+    max_total_skills: 50  # Hoy: 43 — cerca del límite
+    max_skill_size_kb: 100  # Skills más grandes se dividen
+    mandatory_review_at: 40  # Al llegar a 40, revisar cuáles demoler
+
+  embriones:
+    max_production_embriones: 15  # Evita la "explosión de microservicios"
+    max_doctrine_only: 10  # No más de 10 conceptos sin código
+    mandatory_memory_connection: true  # Ningún embrión sin acceso al SMS
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 6: PLAN DE CRECIMIENTO (Growth Plan)
+# Cómo debe crecer el Monstruo en los próximos 12 meses.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+growth_plan:
+  quarter_1:  # Mayo-Julio 2026
+    theme: "Consolidación y Demolición"
+    objectives:
+      - Reducir tablas de 169 a <100 (demolición + migración)
+      - Conectar embrion_loop al SMS (bridge)
+      - Conectar Colmena al SMS (persistencia)
+      - Todos los embriones con graph_enhanced_recall
+      - Bot Telegram re-desplegado y funcional
+    forbidden:
+      - Crear nuevos embriones
+      - Crear nuevas tablas (solo migrar/demoler)
+      - Agregar nuevas skills (solo consolidar existentes)
+
+  quarter_2:  # Agosto-Octubre 2026
+    theme: "Infraestructura de Crecimiento"
+    objectives:
+      - Implementar 3 Embriones de Dominio (Concierge, Archivista, Relacionista)
+      - Auto-generación del GENOME en CI (cada merge a main)
+      - Linter que rechaza PRs que violen el Plan Regulador
+      - REM Cycle automatizado (cron cada 24h)
+    allowed:
+      - Nuevos embriones (máximo 3, con justificación)
+      - Nuevas tablas (máximo 5, dentro de zonas existentes)
+
+  quarter_3:  # Noviembre 2026 - Enero 2027
+    theme: "Escala Controlada"
+    objectives:
+      - Implementar 4 Embriones de Dominio más
+      - Multi-tenant (el Monstruo puede servir a más de 1 usuario)
+      - Federación de memoria (múltiples instancias de SMS sincronizadas)
+    allowed:
+      - Crecimiento libre DENTRO de las zonas definidas
+      - Nueva zona solo con DSC firmado por Alfredo
+
+  quarter_4:  # Febrero-Abril 2027
+    theme: "Autonomía"
+    objectives:
+      - El Monstruo puede proponer y ejecutar mejoras a sí mismo
+      - Auto-demolición de componentes que no se usan
+      - Auto-generación de embriones cuando detecta un gap
+    allowed:
+      - Crecimiento autónomo supervisado por el Plan Regulador
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 7: ENFORCEMENT (Cómo se hace cumplir)
+# Un plan sin enforcement es solo un deseo.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+enforcement:
+  automated:
+    - trigger: "PR a main"
+      check: "genome_generator.py produce YAML sin errores"
+      action: "Block merge si falla"
+
+    - trigger: "Nueva tabla en migración"
+      check: "Tabla tiene RLS + pertenece a una zona del Plan"
+      action: "Block merge si viola"
+
+    - trigger: "Merge a main"
+      check: "MONSTRUO_GENOME.yaml actualizado en el mismo PR"
+      action: "Warning (no bloqueante en Q1, bloqueante desde Q2)"
+
+  manual:
+    - trigger: "Nuevo embrión propuesto"
+      check: "¿Cabe en distrito_especialistas? ¿Tiene SMS connection?"
+      reviewer: "Alfredo o Cowork"
+
+    - trigger: "Nueva zona propuesta"
+      check: "¿Por qué no cabe en las 6 existentes?"
+      reviewer: "Alfredo (decisión magna)"
+
+  periodic:
+    - frequency: weekly
+      action: "Ejecutar genome_generator.py y comparar con versión anterior"
+      alert_if: "Tablas nuevas sin zona asignada"
+
+    - frequency: monthly
+      action: "Revisar tablas con 0 registros → marcar para demolición"
+      alert_if: "Más de 5 tablas vacías"
+
+    - frequency: quarterly
+      action: "Auditoría completa del Plan Regulador vs realidad"
+      alert_if: "Densidad excede límites"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INSTRUCCIONES PARA IAs
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# 1. Lee este archivo JUNTO con MONSTRUO_GENOME.yaml al inicio de cualquier tarea
+# 2. GENOME te dice QUÉ hay. Este archivo te dice QUÉ DEBERÍA haber.
+# 3. Si lo que vas a construir viola una regla de este plan, DETENTE y pregunta.
+# 4. Si necesitas crear algo que no cabe en ninguna zona, es señal de que:
+#    a) Estás resolviendo el problema equivocado, o
+#    b) Falta una zona (requiere aprobación de Alfredo)
+# 5. Ante la duda: consolidar > crear. Demoler > acumular. Conectar > aislar.
+# 6. El principio supremo: "¿Esto escala 20x sin crear caos?"
