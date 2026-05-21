@@ -1,0 +1,66 @@
+{
+  "version": "0.1",
+  "generated_at": "2026-05-21T08:10:13.886690+00:00",
+  "generated_by": "t1_decision_pack_compiler_v0_1",
+  "pilot_health": "UNKNOWN",
+  "regression_status": {
+    "classification": "UNKNOWN",
+    "severity": "UNKNOWN",
+    "blocks_next": false
+  },
+  "cost_status": {
+    "guard": "GREEN",
+    "anomalies": 0,
+    "drift": false
+  },
+  "diversity_status": {
+    "status": "YELLOW",
+    "overspecialized": false,
+    "entropy": 0.65
+  },
+  "provider_risk": {
+    "anthropic_risk": "VERIFIED_REAL",
+    "local_only_mode": true,
+    "migration_required": true,
+    "provider_calls_allowed": false
+  },
+  "top_actions": [
+    {
+      "action_id": "PRODUCE_NEXT_SURGE",
+      "composite_score": 0.42
+    },
+    {
+      "action_id": "DIVERSIFY_TASKS",
+      "composite_score": 0.38
+    },
+    {
+      "action_id": "UPGRADE_OPS_LAYER",
+      "composite_score": 0.35
+    },
+    {
+      "action_id": "RUN_ANTHROPIC_MIGRATION_PATCH",
+      "composite_score": 0.32
+    },
+    {
+      "action_id": "ADDRESS_COST_DRIFT",
+      "composite_score": 0.28
+    }
+  ],
+  "blocked_actions": [
+    "ENABLE_PROVIDER_CALLS",
+    "RUN_ANTHROPIC_MIGRATION_PATCH",
+    "ACTIVATE_R1"
+  ],
+  "audit_ledger": {
+    "p0_open": 0,
+    "p1_blocking": 0,
+    "track_items": 6,
+    "escalated_to_p0": 0,
+    "r0plus_can_continue": true
+  },
+  "recommended_sprint": "EXECUTE_NEXT_PRODUCTION_SURGE",
+  "decision_confidence": 0.56,
+  "sections_populated": 5,
+  "external_api_calls": 0,
+  "secrets_used": 0
+}

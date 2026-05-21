@@ -1,0 +1,116 @@
+{
+  "sprint_compliance": {
+    "compliant": true,
+    "violations": [],
+    "violation_count": 0,
+    "policy_mode": "LOCAL_ONLY",
+    "recommendation": "PROCEED"
+  },
+  "sample_validation": {
+    "version": "0.1",
+    "generated_at": "2026-05-21T08:10:13.953306+00:00",
+    "generated_by": "provider_risk_local_blocker_v0_1",
+    "total_operations": 2,
+    "allowed": 1,
+    "blocked": 1,
+    "batch_decision": "BLOCK",
+    "results": [
+      {
+        "decision": "BLOCK",
+        "operation": {
+          "type": "provider_call",
+          "provider": "anthropic",
+          "estimated_cost_usd": 0.05,
+          "requires_network": true,
+          "requires_secret": true,
+          "modifies_state": []
+        },
+        "violations": [
+          {
+            "check": "operation_type",
+            "value": "provider_call"
+          },
+          {
+            "check": "provider",
+            "value": "anthropic"
+          },
+          {
+            "check": "provider_calls_disabled",
+            "value": "provider_call"
+          },
+          {
+            "check": "cost_exceeded",
+            "value": 0.05
+          },
+          {
+            "check": "network_blocked",
+            "value": true
+          },
+          {
+            "check": "secret_blocked",
+            "value": true
+          }
+        ],
+        "reasons": [
+          "Operation type 'provider_call' is blocked by policy",
+          "Provider 'anthropic' is blocked (risk: VERIFIED_REAL)",
+          "Provider calls are not allowed in current mode",
+          "Cost $0.05 exceeds budget $0.0",
+          "Network access required but mode is LOCAL_ONLY",
+          "Secret access is blocked in current policy"
+        ],
+        "policy_mode": "LOCAL_ONLY",
+        "checked_at": "2026-05-21T08:10:13.953266+00:00"
+      },
+      {
+        "decision": "ALLOW",
+        "operation": {
+          "type": "local_python",
+          "provider": "",
+          "estimated_cost_usd": 0.0,
+          "requires_network": false,
+          "requires_secret": false,
+          "modifies_state": []
+        },
+        "violations": [],
+        "reasons": [],
+        "policy_mode": "LOCAL_ONLY",
+        "checked_at": "2026-05-21T08:10:13.953302+00:00"
+      }
+    ],
+    "policy": {
+      "mode": "LOCAL_ONLY",
+      "anthropic_risk": "VERIFIED_REAL",
+      "provider_calls_allowed": false,
+      "migration_required": true,
+      "blocked_providers": [
+        "anthropic",
+        "claude",
+        "perplexity",
+        "deepseek"
+      ],
+      "blocked_operations": [
+        "provider_call",
+        "api_call",
+        "network_request",
+        "supabase_query",
+        "db_write",
+        "secret_access",
+        "memento_write",
+        "anti_dory_write",
+        "deploy",
+        "pr_create",
+        "main_push",
+        "scheduler_modify",
+        "kill_switch_modify",
+        "r1_activate"
+      ],
+      "max_cost_usd": 0.0,
+      "kill_switch": "OFF"
+    },
+    "external_api_calls": 0,
+    "secrets_used": 0
+  },
+  "external_api_calls": 0,
+  "secrets_used": 0
+}
