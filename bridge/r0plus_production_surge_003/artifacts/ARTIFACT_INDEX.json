@@ -1,0 +1,49 @@
+{
+  "version": "0.1",
+  "sprint": "SPR-R0PLUS-PRODUCTION-SURGE-003",
+  "generated_at": "2026-05-21T08:25:00Z",
+  "total_artifacts": 3,
+  "total_new_tests": 39,
+  "all_tests_pass": true,
+  "artifacts": [
+    {
+      "id": 1,
+      "name": "t1_decision_pack_compiler_v0_1",
+      "file": "t1_decision_pack_compiler_v0_1.py",
+      "test_file": "test_t1_decision_pack_compiler.py",
+      "tests": 13,
+      "tests_pass": true,
+      "output_file": "T1_DECISION_PACK.json",
+      "category": "INFRASTRUCTURE",
+      "purpose": "Compiles all R0+ signals into single T1 decision pack",
+      "provider_calls": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "id": 2,
+      "name": "regression_false_positive_filter_v0_1",
+      "file": "regression_false_positive_filter_v0_1.py",
+      "test_file": "test_regression_false_positive_filter.py",
+      "tests": 13,
+      "tests_pass": true,
+      "output_file": "FALSE_POSITIVE_FILTER_OUTPUT.json",
+      "category": "OPTIMIZATION",
+      "purpose": "Filters known false positive patterns from regression flags",
+      "provider_calls": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "id": 3,
+      "name": "provider_risk_local_blocker_v0_1",
+      "file": "provider_risk_local_blocker_v0_1.py",
+      "test_file": "test_provider_risk_local_blocker.py",
+      "tests": 13,
+      "tests_pass": true,
+      "output_file": "PROVIDER_RISK_BLOCKER_OUTPUT.json",
+      "category": "SAFETY",
+      "purpose": "Programmatic enforcement of provider risk constraints",
+      "provider_calls": 0,
+      "cost_usd": 0.0
+    }
+  ]
+}
