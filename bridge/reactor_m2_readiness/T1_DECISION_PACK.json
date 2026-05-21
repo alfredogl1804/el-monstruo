@@ -1,0 +1,27 @@
+{
+  "A1_scheduler_authorization": {
+    "options": ["KEEP_DORMANT", "ONE_SHOT_ONLY", "LIMITED_ACTIVE_R0", "PERMANENT_ACTIVE_R0"],
+    "selected": null
+  },
+  "A2_budget": {
+    "options": ["$0 local only", "capped external provider calls", "no paid calls", "max per day"],
+    "selected": null
+  },
+  "A3_provider_readiness": {
+    "perplexity_status_fix_required": true,
+    "deepseek_key_required": true,
+    "openai_ready": true,
+    "anthropic_ready": true,
+    "google_ready": true,
+    "xai_ready": true
+  },
+  "A4_allowed_chain": {
+    "options": ["Heartbeat only", "Heartbeat -> Dispatcher", "Heartbeat -> Dispatcher -> Oráculo shadow", "Heartbeat -> Dispatcher -> M2 chain"],
+    "selected": null
+  },
+  "A5_kill_switch_policy": {
+    "file_based_supreme": true,
+    "t1_can_freeze_any_time": true,
+    "no_auto_unfreeze": true
+  }
+}
