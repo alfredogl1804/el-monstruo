@@ -127,14 +127,36 @@ def load_contract():
 
 def choose_next_task(tasks, state, memory=None):
     """
-    Autonomous task selection based on priority scoring + Memory Palace.
+    Autonomous task selection based on priority scoring + Memory Palace + T1 Directives.
     priority_score = priority_base + freshness_bonus + compounding_value_score
                      - dependency_penalty - recent_repetition_penalty
                      + memory_boost - memory_penalty
+                     + directive_modifier
     """
     scored = []
     last_task = state.get("last_task_executed")
     memory_influenced = False
+    directive_influenced = False
+
+    # Load T1 Directives for this embryo (graceful degradation)
+    active_directives = []
+    try:
+        sys.path.insert(0, os.path.join(BRIDGE_DIR, "state_fabric"))
+        from t1_directive_resolver import resolve_directives_for_embryo, apply_directive_to_task_scores
+        active_directives = resolve_directives_for_embryo(EMBRYO_ID)
+    except Exception:
+        pass
+
+    # Pre-compute directive modifiers for all tasks
+    directive_modifiers = {}
+    if active_directives:
+        try:
+            task_inputs = [{"task_id": t["task_id"], "purpose": t.get("purpose", t.get("description", ""))} for t in tasks]
+            mods = apply_directive_to_task_scores(task_inputs, active_directives)
+            for m in mods:
+                directive_modifiers[m["task_id"]] = m["score_modifier"]
+        except Exception:
+            pass
 
     for task in tasks:
         score = task.get("priority_base", 5)
@@ -166,6 +188,12 @@ def choose_next_task(tasks, state, memory=None):
                     memory_influenced = True
             except Exception:
                 pass
+
+        # T1 Directive scoring
+        d_mod = directive_modifiers.get(task["task_id"], 0)
+        if d_mod != 0:
+            score += d_mod
+            directive_influenced = True
 
         scored.append((score, task, memory_score_info))
 

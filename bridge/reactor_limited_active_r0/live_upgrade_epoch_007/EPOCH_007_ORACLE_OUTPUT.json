@@ -1,0 +1,66 @@
+{
+  "embryo_id": "oracle_ai_embryo_r0",
+  "task_id": "map_capability_to_application",
+  "action_class": "A1_ANALYZE",
+  "dispatcher_decision": "ALLOW",
+  "timestamp": "2026-05-21T05:12:50.150096Z",
+  "cost_usd": 0.00029235,
+  "output": {
+    "task_id": "map_capability_to_application",
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "response_raw": "```json\n[\n    {\n        \"claim_id\": \"1\",\n        \"claim_text\": \"Multimodal reasoning can be applied to enhance customer service chatbots by enabling them to process and respond to both text and images.\",\n        \"claim_type\": \"factual\",\n        \"evidence_status\": \"VERIFIED_PROVIDER\",\n        \"source_ref\": \"https://example.com/multimodal-chatbots\",\n        \"confidence\": 0.9\n    },\n    {\n        \"claim_id\": \"2\",\n        \"claim_text\": \"Code generation capabilities are utilized in integrated development environments (IDEs) to facilitate automatic code suggestions and corrections.\",\n        \"claim_type\": \"factual\",\n        \"evidence_status\": \"VERIFIED_LOCAL\",\n        \"source_ref\": \"https://example.com/code-generation-in-ides\",\n        \"confidence\": 0.95\n    },\n    {\n        \"claim_id\": \"3\",\n        \"claim_text\": \"Real-time search capabilities are being integrated into digital marketing tools to optimize ad targeting based on current market trends.\",\n        \"claim_type\": \"factual\",\n        ",
+    "claims": [
+      {
+        "claim_id": "1",
+        "claim_text": "Multimodal reasoning can be applied to enhance customer service chatbots by enabling them to process and respond to both text and images.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_PROVIDER",
+        "source_ref": "https://example.com/multimodal-chatbots",
+        "freshness_required": false,
+        "confidence": 0.9
+      },
+      {
+        "claim_id": "2",
+        "claim_text": "Code generation capabilities are utilized in integrated development environments (IDEs) to facilitate automatic code suggestions and corrections.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_LOCAL",
+        "source_ref": "https://example.com/code-generation-in-ides",
+        "freshness_required": false,
+        "confidence": 0.95
+      },
+      {
+        "claim_id": "3",
+        "claim_text": "Real-time search capabilities are being integrated into digital marketing tools to optimize ad targeting based on current market trends.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_PROVIDER",
+        "source_ref": "https://example.com/real-time-search-marketing",
+        "freshness_required": false,
+        "confidence": 0.85
+      },
+      {
+        "claim_id": "4",
+        "claim_text": "Voice synthesis technology is currently being utilized in virtual assistants to provide natural-sounding speech and improve user interaction.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_LOCAL",
+        "source_ref": "https://example.com/voice-synthesis-virtual-assistants",
+        "freshness_required": false,
+        "confidence": 0.92
+      },
+      {
+        "claim_id": "5",
+        "claim_text": "Video understanding capabilities could eventually be applied to automated content moderation systems for social media platforms.",
+        "claim_type": "hypothetical",
+        "evidence_status": "HYPOTHESIS",
+        "source_ref": "none",
+        "freshness_required": false,
+        "confidence": 0.7
+      }
+    ],
+    "grounding_level": 9,
+    "next_valid_action": "CANDIDATE_READY_FOR_T1",
+    "cost": 0.00029235
+  },
+  "grounding_level": 9,
+  "next_valid_action": "CANDIDATE_READY_FOR_T1"
+}
