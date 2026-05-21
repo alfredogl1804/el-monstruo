@@ -1,0 +1,25 @@
+scoring_criteria:
+  power_gain_for_Alfredo:
+    description: "Impact on the main user's capability and control over the ecosystem."
+    scale: "1-10 (10 = Transformational empowerment, 1 = Negligible impact)"
+  speed_to_value:
+    description: "Time required to implement and observe tangible benefits."
+    scale: "1-10 (10 = Immediate/Hours, 1 = Months)"
+  compounding_value:
+    description: "Potential for the feature to exponentially increase value over time or enable future features."
+    scale: "1-10 (10 = Foundational enabler, 1 = Isolated feature)"
+  implementation_complexity:
+    description: "Technical difficulty and required effort."
+    scale: "1-10 (10 = Trivial/Config only, 1 = Extremely complex/Research required)"
+  risk:
+    description: "Potential for negative impact (security, stability, cost overruns)."
+    scale: "1-10 (10 = Completely safe/Isolated, 1 = High risk/System-wide impact)"
+  dependency:
+    description: "Reliance on external systems, pending approvals, or unresolved blockers."
+    scale: "1-10 (10 = Fully autonomous, 1 = Blocked by multiple external factors)"
+  evidence_strength:
+    description: "Level of certainty that the approach will work based on prior tests or established patterns."
+    scale: "1-10 (10 = Proven in production, 1 = Purely theoretical)"
+  fit_with_current_pilot:
+    description: "Alignment with the constraints and goals of the current LIMITED_ACTIVE_R0 pilot."
+    scale: "1-10 (10 = Perfect fit/No rule changes needed, 1 = Requires major policy overhaul)"

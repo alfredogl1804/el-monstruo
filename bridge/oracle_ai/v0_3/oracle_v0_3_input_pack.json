@@ -1,0 +1,16 @@
+{
+  "ecosystem_state": {
+    "pilot": "LIMITED_ACTIVE_R0",
+    "epoch": 3,
+    "active_guards": ["Provider Registry Guard", "Dispatcher Hardened", "State Fabric v0.2"],
+    "hard_rules": ["NO_R1", "NO_SUPABASE_WRITES", "NO_MEMORY_WRITES", "NO_APP_VISION_MOD"]
+  },
+  "available_capabilities": [
+    "Context Caching",
+    "State Fabric Logging",
+    "Multi-Provider Dispatch",
+    "Read-Only Cockpit UI",
+    "Cron-based Execution"
+  ],
+  "request": "Generate 12 capability cards, 12 application candidates, and 5 actionable sprint candidates based on the current ecosystem state. Output MUST be valid JSON matching the v0.3 schema."
+}

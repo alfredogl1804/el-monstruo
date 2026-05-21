@@ -1,0 +1,42 @@
+{
+  "generated_at": "2026-05-21T02:37:29.463443+00:00",
+  "epoch": 3,
+  "pilot_status": "ACTIVE",
+  "kill_switch": false,
+  "cycle_count": 3,
+  "cost_accumulated_usd": 0.017887,
+  "providers": [
+    {
+      "id": "openai",
+      "model": "gpt-4o-mini",
+      "status": "SUCCESS",
+      "cost": 0.000101
+    },
+    {
+      "id": "anthropic",
+      "model": "claude-sonnet-4-20250514",
+      "status": "SUCCESS",
+      "cost": 0.003444
+    },
+    {
+      "id": "google",
+      "model": "gemini-2.0-flash",
+      "status": "SUCCESS",
+      "cost": 0.0005
+    },
+    {
+      "id": "xai",
+      "model": "grok-3-mini-fast",
+      "status": "SUCCESS",
+      "cost": 0.000109
+    }
+  ],
+  "oracle_summary": "v0.3: 12 caps, 12 apps, 5 sprints. Rec: SPR-ORACLE-002",
+  "auditor_verdict": "PASS",
+  "hard_rules_compliance": "12/12",
+  "blocked_providers": [
+    "perplexity",
+    "deepseek"
+  ],
+  "freeze_triggers_active": []
+}

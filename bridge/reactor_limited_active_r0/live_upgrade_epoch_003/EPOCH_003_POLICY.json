@@ -1,0 +1,48 @@
+{
+  "pilot_id": "LIMITED_ACTIVE_R0",
+  "epoch": 3,
+  "status": "ACTIVE",
+  "max_duration_hours": 48,
+  "budget": {
+    "max_usd_per_day": 0.05,
+    "max_usd_per_cycle": 0.03
+  },
+  "cron": "23 6,18 * * *",
+  "chain_components": [
+    "Heartbeat",
+    "Dispatcher Hardened",
+    "Provider Registry Guard v1.0",
+    "Oracle AI v0.3 Productive Shadow",
+    "Verified Providers (4)",
+    "Auditor",
+    "Cockpit Fixture Generation",
+    "T1 Report",
+    "State Fabric Event Log"
+  ],
+  "hard_rules": [
+    "NO_R1",
+    "NO_SELF_EVOLUTION",
+    "NO_SUPABASE_WRITES",
+    "NO_MEMORY_WRITES",
+    "NO_APP_VISION_MOD",
+    "NO_PR_DEPLOY_MAIN",
+    "NO_PROVIDER_AUTO_REPLACE",
+    "NO_PERMANENT_ACTIVATION",
+    "NO_IA_IA_CHANNEL",
+    "NO_SHELL_RUNTIME",
+    "NO_PERPLEXITY",
+    "NO_DEEPSEEK"
+  ],
+  "freeze_triggers": [
+    "2_consecutive_failures",
+    "R1_attempt",
+    "secret_exposure",
+    "memory_write",
+    "supabase_write",
+    "cost_exceeds_cycle_limit",
+    "unauthorized_provider",
+    "hard_rule_violation",
+    "auditor_fail",
+    "oracle_severe_hallucination"
+  ]
+}
