@@ -536,6 +536,13 @@ class SMSSupabaseAdapter:
             stored = result[0] if isinstance(result, list) and result else result
             if stored:
                 stored["audn_action"] = audn_action
+                # Extract entities and link to knowledge graph (non-blocking)
+                try:
+                    mem_id = stored.get("id")
+                    if mem_id:
+                        self.extract_and_link_entities(mem_id, content, agent)
+                except Exception as e:
+                    logger.debug(f"Entity extraction failed (non-fatal): {e}")
             return stored
         except SMSSupabaseError as e:
             logger.error(f"Failed to store memory: {e}")
@@ -569,7 +576,15 @@ class SMSSupabaseAdapter:
         if type_filter:
             params["filter_type"] = type_filter
 
-        return _supabase_rpc(self.config, "match_sovereign_memories", params)
+        results = _supabase_rpc(self.config, "match_sovereign_memories", params)
+        # Log access for importance scoring (non-blocking, fire-and-forget)
+        for mem in (results or [])[:5]:  # Only log top 5 to avoid spam
+            try:
+                if mem.get("id"):
+                    self.log_access(mem["id"], agent_filter or "system", "recall")
+            except Exception:
+                pass
+        return results
 
     def get_memories(
         self,
@@ -1098,6 +1113,422 @@ class SMSSupabaseAdapter:
             }
         except SMSSupabaseError as e:
             return {"status": "error", "reason": str(e)}
+
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # KNOWLEDGE GRAPH (Migration 0054)
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    def extract_and_link_entities(
+        self,
+        memory_id: str,
+        content: str,
+        agent_id: str = "system",
+    ) -> list[dict]:
+        """Extract entities from memory content and link them in the knowledge graph.
+
+        Uses LLM (via OpenRouter) to extract entities, then upserts them into
+        memory_entities and creates memory_entity_links.
+        Falls back to pattern-based extraction if LLM unavailable.
+        """
+        if not self.available:
+            return []
+
+        entities = self._extract_entities_llm(content)
+        if not entities:
+            entities = self._extract_entities_pattern(content)
+
+        linked = []
+        for ent in entities:
+            entity_id = self._upsert_entity(ent)
+            if entity_id:
+                self._link_memory_entity(memory_id, entity_id, ent.get("role", "mentions"))
+                linked.append({"entity_id": entity_id, **ent})
+
+        return linked
+
+    def _extract_entities_llm(self, content: str) -> list[dict]:
+        """Use LLM to extract entities from content. Returns list of dicts."""
+        if not self.config.openrouter_api_key:
+            return []
+
+        prompt = (
+            "Extract entities from this text. Return JSON array only.\n"
+            "Each entity: {\"name\": str, \"type\": person|object|location|event|"
+            "organization|concept|system|decision, \"role\": subject|object|context|mentions}\n\n"
+            f"Text: {content[:2000]}\n\nJSON:"
+        )
+        try:
+            url = "https://openrouter.ai/api/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {self.config.openrouter_api_key}",
+                "Content-Type": "application/json",
+            }
+            body = {
+                "model": "deepseek/deepseek-chat",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.1,
+                "max_tokens": 500,
+            }
+            data = json.dumps(body).encode("utf-8")
+            req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+                text = result["choices"][0]["message"]["content"].strip()
+                # Parse JSON from response (handle markdown code blocks)
+                if text.startswith("```"):
+                    text = text.split("\n", 1)[1].rsplit("```", 1)[0]
+                return json.loads(text)
+        except Exception as e:
+            logger.debug(f"LLM entity extraction failed: {e}")
+            return []
+
+    def _extract_entities_pattern(self, content: str) -> list[dict]:
+        """Fallback pattern-based entity extraction for Monstruo domain."""
+        entities = []
+        content_lower = content.lower()
+
+        patterns = {
+            "system": ["sms", "audn", "rem cycle", "guardian", "kernel", "monstruo",
+                       "supabase", "railway", "langfuse", "langchain", "langgraph"],
+            "person": ["alfredo", "cowork", "manus"],
+            "concept": ["dory", "axiom", "crystallization", "compaction", "sovereign",
+                        "memory", "embedding", "rls", "deploy", "sprint"],
+            "organization": ["leones", "ticketlike", "cip"],
+        }
+
+        for entity_type, terms in patterns.items():
+            for term in terms:
+                if term in content_lower:
+                    entities.append({
+                        "name": term.title() if entity_type == "person" else term,
+                        "type": entity_type,
+                        "role": "mentions",
+                    })
+        return entities
+
+    def _upsert_entity(self, entity: dict) -> Optional[str]:
+        """Upsert an entity into memory_entities. Returns entity ID."""
+        canonical = entity["name"].lower().strip()
+        body = {
+            "name": entity["name"],
+            "entity_type": entity.get("type", "concept"),
+            "canonical_name": canonical,
+            "last_seen": datetime.now(timezone.utc).isoformat(),
+        }
+        try:
+            result = _supabase_request(
+                self.config, "POST", "/memory_entities",
+                body=body,
+                extra_headers={
+                    "Prefer": "resolution=merge-duplicates,return=representation",
+                    "On-Conflict": "canonical_name,entity_type",
+                },
+            )
+            if isinstance(result, list) and result:
+                # Increment mention_count
+                eid = result[0]["id"]
+                _supabase_request(
+                    self.config, "PATCH",
+                    f"/memory_entities?id=eq.{eid}",
+                    body={"mention_count": result[0].get("mention_count", 0) + 1},
+                    extra_headers={"Prefer": "return=minimal"},
+                )
+                return eid
+            return None
+        except SMSSupabaseError as e:
+            logger.debug(f"Entity upsert failed: {e}")
+            return None
+
+    def _link_memory_entity(self, memory_id: str, entity_id: str, role: str = "mentions") -> bool:
+        """Create a link between a memory and an entity."""
+        try:
+            _supabase_request(
+                self.config, "POST", "/memory_entity_links",
+                body={
+                    "memory_id": memory_id,
+                    "entity_id": entity_id,
+                    "role": role,
+                },
+                extra_headers={
+                    "Prefer": "resolution=merge-duplicates,return=minimal",
+                    "On-Conflict": "memory_id,entity_id,role",
+                },
+            )
+            return True
+        except SMSSupabaseError:
+            return False
+
+    def graph_enhanced_recall(
+        self,
+        query: str,
+        threshold: float = 0.6,
+        limit: int = 10,
+        use_graph: bool = True,
+    ) -> list[dict]:
+        """Hybrid retrieval: vector similarity + knowledge graph expansion.
+
+        First finds memories by embedding similarity, then expands via shared
+        entities in the knowledge graph. Returns both direct matches and
+        graph-connected memories.
+        """
+        if not self.available or not self.config.can_embed:
+            return []
+
+        embedding = generate_embedding(query, self.config)
+        if not embedding:
+            return []
+
+        results = _supabase_rpc(self.config, "graph_enhanced_recall", {
+            "query_embedding": json.dumps(embedding),
+            "match_threshold": threshold,
+            "match_count": limit,
+            "graph_expansion": use_graph,
+        })
+        return results if isinstance(results, list) else []
+
+    def get_entity_neighborhood(self, entity_id: str, relation_filter: str = None) -> list[dict]:
+        """Get all entities connected to a given entity (1-hop graph traversal)."""
+        if not self.available:
+            return []
+
+        params = {"p_entity_id": entity_id}
+        if relation_filter:
+            params["p_relation_filter"] = relation_filter
+
+        return _supabase_rpc(self.config, "get_entity_neighborhood", params)
+
+    def get_memories_for_entity(self, entity_id: str, limit: int = 20) -> list[dict]:
+        """Get all memories that reference a specific entity."""
+        if not self.available:
+            return []
+
+        return _supabase_rpc(self.config, "get_memories_for_entity", {
+            "p_entity_id": entity_id,
+            "p_limit": limit,
+        })
+
+    def create_relation(
+        self,
+        source_entity_id: str,
+        target_entity_id: str,
+        relation_type: str = "related_to",
+        weight: float = 1.0,
+        evidence_memory_id: str = None,
+    ) -> bool:
+        """Create a typed relation between two entities in the knowledge graph."""
+        if not self.available:
+            return False
+
+        body = {
+            "source_entity_id": source_entity_id,
+            "target_entity_id": target_entity_id,
+            "relation_type": relation_type,
+            "weight": weight,
+        }
+        if evidence_memory_id:
+            body["evidence_memory_id"] = evidence_memory_id
+
+        try:
+            _supabase_request(
+                self.config, "POST", "/memory_relations",
+                body=body,
+                extra_headers={
+                    "Prefer": "resolution=merge-duplicates,return=minimal",
+                    "On-Conflict": "source_entity_id,target_entity_id,relation_type",
+                },
+            )
+            return True
+        except SMSSupabaseError as e:
+            logger.debug(f"Relation creation failed: {e}")
+            return False
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # BELIEF REVISION (Migration 0055)
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    def cascade_invalidation(
+        self,
+        memory_id: str,
+        reason: str = "contradicted by newer evidence",
+        agent_id: str = "system",
+        strategy: str = "mark_for_revalidation",
+        max_depth: int = 5,
+    ) -> dict:
+        """Invalidate a memory and cascade to all dependents.
+
+        Strategies:
+        - mark_for_revalidation: dependents flagged for review (safest)
+        - auto_invalidate: dependents auto-killed (aggressive)
+        - reduce_confidence: dependents lose 50% confidence (moderate)
+        """
+        if not self.available:
+            return {"error": "unavailable"}
+
+        result = _supabase_rpc(self.config, "cascade_invalidation", {
+            "p_memory_id": memory_id,
+            "p_reason": reason,
+            "p_agent_id": agent_id,
+            "p_strategy": strategy,
+            "p_max_depth": max_depth,
+        })
+        return result if isinstance(result, dict) else {"result": result}
+
+    def register_dependency(
+        self,
+        premise_id: str,
+        dependent_id: str,
+        dependency_type: str = "logical",
+        strength: float = 1.0,
+    ) -> bool:
+        """Register a dependency: dependent_id depends on premise_id.
+
+        If premise is later invalidated, dependent will be flagged for revalidation.
+        """
+        if not self.available:
+            return False
+
+        result = _supabase_rpc(self.config, "register_dependency", {
+            "p_premise_id": premise_id,
+            "p_dependent_id": dependent_id,
+            "p_type": dependency_type,
+            "p_strength": strength,
+        })
+        return bool(result)
+
+    def get_pending_revalidations(self, limit: int = 50) -> list[dict]:
+        """Get memories that need revalidation after a belief revision cascade."""
+        if not self.available:
+            return []
+
+        return _supabase_rpc(self.config, "get_pending_revalidations", {
+            "p_limit": limit,
+        })
+
+    def revalidate_memory(self, memory_id: str, is_still_valid: bool = True) -> bool:
+        """Mark a memory as revalidated (or invalidated) after review."""
+        if not self.available:
+            return False
+
+        new_status = "revalidated" if is_still_valid else "invalidated"
+        try:
+            body = {"revalidation_status": new_status, "updated_at": datetime.now(timezone.utc).isoformat()}
+            if not is_still_valid:
+                body["is_alive"] = False
+                body["invalid_at"] = datetime.now(timezone.utc).isoformat()
+            _supabase_request(
+                self.config, "PATCH",
+                f"/sovereign_memories?id=eq.{memory_id}",
+                body=body,
+                extra_headers={"Prefer": "return=minimal"},
+            )
+            return True
+        except SMSSupabaseError as e:
+            logger.error(f"Revalidation failed: {e}")
+            return False
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # MEMORY DECAY & CONSOLIDATION (Migration 0056)
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    def log_access(self, memory_id: str, agent_id: str = "system", access_type: str = "recall") -> bool:
+        """Log a memory access event for importance scoring."""
+        if not self.available:
+            return False
+
+        try:
+            _supabase_request(
+                self.config, "POST", "/memory_access_log",
+                body={
+                    "memory_id": memory_id,
+                    "agent_id": agent_id,
+                    "access_type": access_type,
+                },
+                extra_headers={"Prefer": "return=minimal"},
+            )
+            # Also touch the memory (update last_accessed + access_count)
+            self.touch_memory(memory_id)
+            return True
+        except SMSSupabaseError:
+            return False
+
+    def compute_importance_scores(self, batch_size: int = 500) -> dict:
+        """Recalculate importance_score for all alive memories.
+
+        Formula: 0.25*recency + 0.25*frequency + 0.25*connectivity + 0.25*confidence
+        Called by REM Cycle.
+        """
+        if not self.available:
+            return {"error": "unavailable"}
+
+        result = _supabase_rpc(self.config, "compute_importance_scores", {
+            "p_batch_size": batch_size,
+        })
+        return result if isinstance(result, dict) else {"result": result}
+
+    def archive_low_importance(self, threshold: float = 0.15, min_age_days: int = 30) -> dict:
+        """Archive memories below importance threshold.
+
+        Archived memories remain in DB but are excluded from recall.
+        Never archives Layer 4+, procedural, or pending-review memories.
+        """
+        if not self.available:
+            return {"error": "unavailable"}
+
+        result = _supabase_rpc(self.config, "archive_low_importance_memories", {
+            "p_threshold": threshold,
+            "p_min_age_days": min_age_days,
+        })
+        return result if isinstance(result, dict) else {"result": result}
+
+    def merge_similar_memories(self, similarity_threshold: float = 0.95) -> dict:
+        """Find and merge semantically duplicate memories.
+
+        Keeps the highest-confidence version, archives the duplicate.
+        Logs all merges for audit trail.
+        """
+        if not self.available:
+            return {"error": "unavailable"}
+
+        result = _supabase_rpc(self.config, "merge_similar_memories", {
+            "p_similarity_threshold": similarity_threshold,
+        })
+        return result if isinstance(result, dict) else {"result": result}
+
+    def get_memory_stats(self) -> dict:
+        """Extended health stats including graph, revision, and archival metrics."""
+        if not self.available:
+            return {}
+
+        try:
+            entities = _supabase_request(
+                self.config, "GET",
+                "/memory_entities?select=id&is_active=eq.true",
+                extra_headers={"Prefer": "count=exact"},
+            )
+            relations = _supabase_request(
+                self.config, "GET",
+                "/memory_relations?select=id",
+                extra_headers={"Prefer": "count=exact"},
+            )
+            pending_reval = _supabase_request(
+                self.config, "GET",
+                "/sovereign_memories?select=id&revalidation_status=eq.needs_revalidation",
+                extra_headers={"Prefer": "count=exact"},
+            )
+            archived = _supabase_request(
+                self.config, "GET",
+                "/sovereign_memories?select=id&is_archived=eq.true",
+                extra_headers={"Prefer": "count=exact"},
+            )
+            return {
+                "entity_count": len(entities) if entities else 0,
+                "relation_count": len(relations) if relations else 0,
+                "pending_revalidations": len(pending_reval) if pending_reval else 0,
+                "archived_memories": len(archived) if archived else 0,
+            }
+        except SMSSupabaseError:
+            return {}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
