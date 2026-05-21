@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R0+ Artifact Ops Viewer — LOCAL READ-ONLY</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0a; color: #e0e0e0; padding: 20px; }
+        .banner { background: #1a1a2e; border: 1px solid #e94560; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 12px; color: #e94560; font-weight: bold; }
+        h1 { color: #00d4aa; margin-bottom: 8px; font-size: 24px; }
+        h2 { color: #4ecdc4; margin: 20px 0 10px; font-size: 18px; border-bottom: 1px solid #333; padding-bottom: 6px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        .card { background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 16px; }
+        .card-title { color: #4ecdc4; font-size: 14px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .metric { font-size: 28px; font-weight: bold; color: #00d4aa; }
+        .metric-label { font-size: 12px; color: #888; margin-top: 4px; }
+        .status-healthy { color: #00d4aa; }
+        .status-warning { color: #ffd93d; }
+        .status-critical { color: #e94560; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #222; font-size: 13px; }
+        th { color: #4ecdc4; font-weight: 600; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .tag-done { background: #1a3a2a; color: #00d4aa; }
+        .tag-ready { background: #1a2a3a; color: #4ecdc4; }
+        .tag-pending { background: #3a3a1a; color: #ffd93d; }
+        .risk-high { color: #e94560; }
+        .risk-medium { color: #ffd93d; }
+        .risk-low { color: #00d4aa; }
+        .actions-list { list-style: none; padding: 0; }
+        .actions-list li { padding: 8px 0; border-bottom: 1px solid #222; font-size: 13px; }
+        .actions-list li:last-child { border-bottom: none; }
+        #load-section { text-align: center; padding: 40px; }
+        #load-section input { margin: 10px; }
+        #load-section button { background: #4ecdc4; color: #0a0a0a; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        #dashboard { display: none; }
+    </style>
+</head>
+<body>
+    <div class="banner">
+        LOCAL READ-ONLY R0+ ARTIFACT OPS VIEWER — no production control plane — no R1 authorization
+    </div>
+
+    <h1>R0+ Artifact Ops Dashboard</h1>
+
+    <div id="load-section">
+        <p>Load T1_OPERATING_SNAPSHOT_v0_2.json to view dashboard:</p>
+        <input type="file" id="file-input" accept=".json">
+        <button onclick="loadFixture()">Load Fixture</button>
+        <p style="margin-top: 10px; font-size: 12px; color: #666;">Or paste JSON below:</p>
+        <textarea id="json-input" rows="4" cols="60" style="background: #1a1a2e; color: #e0e0e0; border: 1px solid #333; border-radius: 4px; padding: 8px; font-family: monospace; font-size: 11px;"></textarea>
+        <br>
+        <button onclick="loadFromTextarea()" style="margin-top: 8px; background: #4ecdc4; color: #0a0a0a; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Load from Text</button>
+    </div>
+
+    <div id="dashboard">
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">Pilot Health</div>
+                <div class="metric" id="pilot-status">—</div>
+                <div class="metric-label">Reactor: <span id="reactor-level">—</span></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Artifact Coverage</div>
+                <div class="metric" id="coverage-pct">—</div>
+                <div class="metric-label"><span id="artifacts-tested">—</span> / <span id="artifacts-total">—</span> artifacts tested</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Total Tests</div>
+                <div class="metric" id="total-tests">—</div>
+                <div class="metric-label">All passing</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Memory Palace</div>
+                <div class="metric" id="memory-score">—</div>
+                <div class="metric-label" id="memory-status">—</div>
+            </div>
+        </div>
+
+        <h2>Embryo Health</h2>
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">Oracle</div>
+                <div class="metric" id="oracle-status">—</div>
+                <div class="metric-label">Regressions: <span id="oracle-regressions">—</span></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Auditor</div>
+                <div class="metric" id="auditor-status">—</div>
+                <div class="metric-label">Regressions: <span id="auditor-regressions">—</span></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Total Cost</div>
+                <div class="metric" id="total-cost">—</div>
+                <div class="metric-label">Embryo operations</div>
+            </div>
+        </div>
+
+        <h2>Top Risks</h2>
+        <table>
+            <thead><tr><th>Risk</th><th>Severity</th><th>Action</th></tr></thead>
+            <tbody id="risks-table"></tbody>
+        </table>
+
+        <h2>Next Actions</h2>
+        <ul class="actions-list" id="actions-list"></ul>
+
+        <h2>T1 Decisions Pending</h2>
+        <table>
+            <thead><tr><th>Decision</th><th>Deadline</th><th>Status</th></tr></thead>
+            <tbody id="decisions-table"></tbody>
+        </table>
+
+        <h2>Recommended Next Sprint</h2>
+        <div class="card" style="margin-top: 10px;">
+            <div class="metric" id="next-sprint" style="font-size: 18px;">—</div>
+        </div>
+    </div>
+
+    <script>
+        function loadFixture() {
+            const input = document.getElementById('file-input');
+            if (input.files.length === 0) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    renderDashboard(data);
+                } catch (err) {
+                    alert('Invalid JSON: ' + err.message);
+                }
+            };
+            reader.readAsText(input.files[0]);
+        }
+
+        function loadFromTextarea() {
+            const text = document.getElementById('json-input').value.trim();
+            if (!text) return;
+            try {
+                const data = JSON.parse(text);
+                renderDashboard(data);
+            } catch (err) {
+                alert('Invalid JSON: ' + err.message);
+            }
+        }
+
+        function renderDashboard(data) {
+            document.getElementById('load-section').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+
+            // Pilot Health
+            const status = data.pilot_health?.overall_status || 'UNKNOWN';
+            const el = document.getElementById('pilot-status');
+            el.textContent = status;
+            el.className = 'metric status-' + status.toLowerCase();
+            document.getElementById('reactor-level').textContent = data.pilot_health?.reactor_level || '—';
+
+            // Coverage
+            document.getElementById('coverage-pct').textContent = (data.artifact_test_coverage?.coverage_pct || 0) + '%';
+            document.getElementById('artifacts-tested').textContent = data.artifact_test_coverage?.artifacts_with_tests || 0;
+            document.getElementById('artifacts-total').textContent = data.artifact_test_coverage?.total_artifacts || 0;
+
+            // Tests
+            document.getElementById('total-tests').textContent = data.artifact_test_coverage?.total_test_count || 0;
+
+            // Memory
+            document.getElementById('memory-score').textContent = (data.memory_palace_health?.score || 0) + '/100';
+            document.getElementById('memory-status').textContent = data.memory_palace_health?.status || '—';
+
+            // Embryo
+            document.getElementById('oracle-status').textContent = data.oracle_health?.status || '—';
+            document.getElementById('oracle-regressions').textContent = data.oracle_health?.regressions || 0;
+            document.getElementById('auditor-status').textContent = data.auditor_health?.status || '—';
+            document.getElementById('auditor-regressions').textContent = data.auditor_health?.regressions || 0;
+            document.getElementById('total-cost').textContent = '$' + (data.cost_summary?.total_embryo_cost_usd || 0).toFixed(4);
+
+            // Risks
+            const risksTable = document.getElementById('risks-table');
+            risksTable.innerHTML = '';
+            (data.top_risks || []).forEach(r => {
+                const sevClass = r.severity === 'HIGH' ? 'risk-high' : r.severity === 'MEDIUM' ? 'risk-medium' : 'risk-low';
+                risksTable.innerHTML += `<tr><td>${r.risk}</td><td class="${sevClass}">${r.severity}</td><td>${r.action}</td></tr>`;
+            });
+
+            // Actions
+            const actionsList = document.getElementById('actions-list');
+            actionsList.innerHTML = '';
+            (data.next_3_actions || []).forEach((a, i) => {
+                actionsList.innerHTML += `<li><strong>${i+1}.</strong> ${a}</li>`;
+            });
+
+            // Decisions
+            const decisionsTable = document.getElementById('decisions-table');
+            decisionsTable.innerHTML = '';
+            (data.T1_decisions_pending || []).forEach(d => {
+                decisionsTable.innerHTML += `<tr><td>${d.decision}</td><td>${d.deadline}</td><td><span class="tag tag-pending">${d.status}</span></td></tr>`;
+            });
+
+            // Next Sprint
+            document.getElementById('next-sprint').textContent = data.recommended_next_sprint || '—';
+        }
+    </script>
+</body>
+</html>

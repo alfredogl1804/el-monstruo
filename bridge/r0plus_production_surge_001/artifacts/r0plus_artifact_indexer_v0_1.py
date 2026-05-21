@@ -103,13 +103,21 @@ def _extract_artifact_metadata(py_file: Path, source_num: int, source_type: str)
     functions = re.findall(r"^def (\w+)", content, re.MULTILINE)
     public_functions = [f for f in functions if not f.startswith("_")]
     
-    # Find test file
+    # Find test file (check multiple naming patterns)
     test_file = py_file.parent / f"test_{py_file.name}"
+    if not test_file.exists():
+        # Try without version suffix: test_<stem_without_version>.py
+        stem_no_ver = re.sub(r'_v\d+_\d+$', '', py_file.stem)
+        test_file = py_file.parent / f"test_{stem_no_ver}.py"
     has_tests = test_file.exists()
     test_count = 0
     if has_tests:
         test_content = test_file.read_text(encoding="utf-8")
+        # Count def test_xxx() style tests
         test_count = len(re.findall(r"^def test_", test_content, re.MULTILINE))
+        # Also count test("name", ...) helper-style tests
+        if test_count == 0:
+            test_count = len(re.findall(r'^\s*test\("', test_content, re.MULTILINE))
     
     # File stats
     stat = py_file.stat()

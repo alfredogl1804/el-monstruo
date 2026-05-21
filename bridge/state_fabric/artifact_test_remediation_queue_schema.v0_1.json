@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Artifact Test Remediation Queue v0.1",
+  "description": "Schema for the R0+ artifact test remediation queue. Each item represents an artifact that needs test coverage improvement.",
+  "type": "object",
+  "required": ["version", "generated_at", "source", "total_artifacts", "items"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "0.1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string",
+      "description": "The tool/script that generated this queue"
+    },
+    "total_artifacts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "artifact_path",
+          "has_tests",
+          "test_path_expected",
+          "risk_if_untested",
+          "value_if_tested",
+          "recommended_action",
+          "priority",
+          "status",
+          "forbidden_actions",
+          "source_ref"
+        ],
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "pattern": "^ART-"
+          },
+          "artifact_path": {
+            "type": "string"
+          },
+          "has_tests": {
+            "type": "boolean"
+          },
+          "test_path_expected": {
+            "type": "string"
+          },
+          "risk_if_untested": {
+            "type": "string",
+            "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+          },
+          "value_if_tested": {
+            "type": "string",
+            "minLength": 5
+          },
+          "recommended_action": {
+            "type": "string",
+            "enum": ["WRITE_TESTS", "IMPROVE_TESTS", "REFACTOR_THEN_TEST", "SKIP_WITH_REASON"]
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING_T1", "READY_R0PLUS", "BLOCKED", "IN_PROGRESS", "DONE"]
+          },
+          "forbidden_actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "source_ref": {
+            "type": "string",
+            "minLength": 5
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
