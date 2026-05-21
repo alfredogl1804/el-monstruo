@@ -1,8 +1,8 @@
 {
   "heartbeat_id": "HB-R0-001",
   "sprint_id": "SPR-REACTOR-HEARTBEAT-R0-001",
-  "started_at": "2026-05-21T00:49:42.437623+00:00",
-  "ended_at": "2026-05-21T00:49:42.438210+00:00",
+  "started_at": "2026-05-21T01:12:35.662241+00:00",
+  "ended_at": "2026-05-21T01:12:35.662858+00:00",
   "preconditions_verified": 10,
   "decision": "REQUEST_T1",
   "actions_taken": [],

@@ -1,7 +1,7 @@
 {
   "active": true,
-  "reason": "Installed but OFF by default. Requires explicit T1 decision to activate (set active=false).",
+  "reason": "Re-frozen after successful 1-cycle activation test (SPR-REACTOR-SCHEDULER-ACTIVATION-R0-001 Phase 3).",
   "last_toggled_by": "T1",
-  "last_toggled_at": "2026-05-21T00:55:00Z",
+  "last_toggled_at": "2026-05-21T01:14:00Z",
   "instructions": "Set active=false and ensure scheduler_state.json status=ACTIVE to start heartbeat cycles. Set active=true to stop immediately."
 }

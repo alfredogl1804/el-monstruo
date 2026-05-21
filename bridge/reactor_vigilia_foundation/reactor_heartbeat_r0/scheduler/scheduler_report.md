@@ -1,17 +1,17 @@
 # Scheduler Report — SPR-REACTOR-SCHEDULER-R0-001
 
-**Generated:** 2026-05-21T00:49:42.443123+00:00
+**Generated:** 2026-05-21T01:12:35.668296+00:00
 **Status:** ACTIVE
 
 ## Current State
 
 | Metric | Value |
 |--------|-------|
-| Total cycles | 2 |
-| Successful | 2 |
+| Total cycles | 1 |
+| Successful | 1 |
 | Failed | 0 |
 | Consecutive failures | 0 |
-| Last run | 2026-05-21T00:49:42.442936+00:00 |
+| Last run | 2026-05-21T01:12:35.668017+00:00 |
 | Last result | SUCCESS |
 | Last decision | REQUEST_T1 |
 
@@ -19,7 +19,7 @@
 
 | Field | Value |
 |-------|-------|
-| Timestamp | 2026-05-21T00:49:42.442923+00:00 |
+| Timestamp | 2026-05-21T01:12:35.667998+00:00 |
 | Exit code | 0 |
 | Duration | 0.03s |
 | Decision | REQUEST_T1 |
