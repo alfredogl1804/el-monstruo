@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Heartbeat Report",
+  "description": "Structured report of a heartbeat execution for T1 consumption.",
+  "type": "object",
+  "required": ["heartbeat_id", "started_at", "ended_at", "input_state_refs", "decision", "reason", "actions_taken", "actions_not_taken", "t1_pending", "blockers", "next_valid_action", "no_assumptions", "event_refs", "validation_score"],
+  "properties": {
+    "heartbeat_id": { "type": "string" },
+    "started_at": { "type": "string", "format": "date-time" },
+    "ended_at": { "type": "string", "format": "date-time" },
+    "input_state_refs": { "type": "array", "items": { "type": "string" } },
+    "decision": { "type": "string" },
+    "reason": { "type": "string" },
+    "actions_taken": { "type": "array", "items": { "type": "string" } },
+    "actions_not_taken": { "type": "array", "items": { "type": "string" } },
+    "t1_pending": { "type": "array", "items": { "type": "string" } },
+    "blockers": { "type": "array", "items": { "type": "string" } },
+    "next_valid_action": { "type": "string" },
+    "no_assumptions": { "type": "boolean", "const": true },
+    "event_refs": { "type": "array", "items": { "type": "integer" } },
+    "validation_score": { "type": "string", "pattern": "^[0-9]+/[0-9]+$" }
+  }
+}

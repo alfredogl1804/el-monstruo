@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Heartbeat R0 Manifest",
+  "description": "Top-level manifest for a single heartbeat one-shot execution.",
+  "type": "object",
+  "required": ["heartbeat_id", "sprint_id", "started_at", "ended_at", "preconditions_verified", "decision", "actions_taken", "events_appended", "status"],
+  "properties": {
+    "heartbeat_id": { "type": "string", "pattern": "^HB-R0-[0-9]{3}$" },
+    "sprint_id": { "type": "string", "const": "SPR-REACTOR-HEARTBEAT-R0-001" },
+    "started_at": { "type": "string", "format": "date-time" },
+    "ended_at": { "type": "string", "format": "date-time" },
+    "preconditions_verified": { "type": "integer", "minimum": 5 },
+    "decision": { "type": "string", "enum": ["NO_ACTION", "REQUEST_T1", "RUN_ORACLE_CHAIN_R0", "RUN_AUDIT_ONLY_R0", "BLOCKED"] },
+    "actions_taken": { "type": "array", "items": { "type": "string" } },
+    "actions_not_taken": { "type": "array", "items": { "type": "string" } },
+    "events_appended": { "type": "integer", "minimum": 0 },
+    "status": { "type": "string", "enum": ["COMPLETED", "BLOCKED", "ERROR"] },
+    "no_assumptions": { "type": "boolean", "const": true }
+  }
+}

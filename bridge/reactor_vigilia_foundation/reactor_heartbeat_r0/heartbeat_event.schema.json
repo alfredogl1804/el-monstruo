@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Heartbeat Event",
+  "description": "An event appended to the State Fabric event_log during heartbeat execution.",
+  "type": "object",
+  "required": ["event_id", "timestamp_utc", "source", "event_type", "payload"],
+  "properties": {
+    "event_id": { "type": "integer", "minimum": 1 },
+    "timestamp_utc": { "type": "string", "format": "date-time" },
+    "source": { "type": "string", "const": "heartbeat_r0" },
+    "event_type": { "type": "string", "enum": ["HEARTBEAT_STARTED", "HEARTBEAT_DECISION", "HEARTBEAT_COMPLETED"] },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "heartbeat_id": { "type": "string" },
+        "decision": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}

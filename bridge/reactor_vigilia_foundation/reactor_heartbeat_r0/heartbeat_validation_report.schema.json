@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Heartbeat Validation Report",
+  "description": "12-gate validation report for the heartbeat execution.",
+  "type": "object",
+  "required": ["validation_id", "heartbeat_id", "timestamp_utc", "gates", "total_pass", "total_fail", "verdict"],
+  "properties": {
+    "validation_id": { "type": "string" },
+    "heartbeat_id": { "type": "string" },
+    "timestamp_utc": { "type": "string", "format": "date-time" },
+    "gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["gate_id", "gate_name", "result", "evidence"],
+        "properties": {
+          "gate_id": { "type": "integer" },
+          "gate_name": { "type": "string" },
+          "result": { "type": "string", "enum": ["PASS", "FAIL"] },
+          "evidence": { "type": "string" }
+        }
+      },
+      "minItems": 12,
+      "maxItems": 12
+    },
+    "total_pass": { "type": "integer" },
+    "total_fail": { "type": "integer" },
+    "verdict": { "type": "string", "enum": ["PASS", "PASS_WITH_FINDINGS", "FAIL"] }
+  }
+}
