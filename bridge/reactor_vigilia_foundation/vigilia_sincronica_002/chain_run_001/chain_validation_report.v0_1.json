@@ -1,0 +1,94 @@
+{
+  "chain_id": "vigilia-chain-v0.2-001",
+  "validated_at": "2026-05-20T23:30:15Z",
+  "total_gates": 12,
+  "gates_passed": 12,
+  "gates_failed": 0,
+  "overall_verdict": "PASS",
+  "gates": [
+    {
+      "gate_id": 1,
+      "gate_name": "manifest_exists",
+      "passed": true,
+      "evidence": "Manifest valid: chain_id=vigilia-chain-v0.2-001",
+      "failure_reason": ""
+    },
+    {
+      "gate_id": 2,
+      "gate_name": "all_steps_success",
+      "passed": true,
+      "evidence": "All 4 steps acceptable: ['SUCCESS', 'PARTIAL', 'SUCCESS', 'SUCCESS']",
+      "failure_reason": ""
+    },
+    {
+      "gate_id": 3,
+      "gate_name": "handoff_packets_exist",
+      "passed": true,
+      "evidence": "All 3 handoff packets valid",
+      "failure_reason": ""
+    },
+    {
+      "gate_id": 4,
+      "gate_name": "event_log_delta_populated",
+      "passed": true,
+      "evidence": "Event log delta: 10 valid events",
+      "failure_reason": ""
+    },
+    {
+      "gate_id": 5,
+      "gate_name": "no_realtime_verified",
+      "passed": true,
+      "evidence": "No REALTIME_VERIFIED claims found",
+      "failure_reason": ""
+    },
+    {
+      "gate_id": 6,
+      "gate_name": "no_m2_unlock",
+      "passed": true,
+      "evidence": "M2 unlock correctly blocked",
+      "failure_reason": ""
+    },
+    {
+      "gate_id": 7,
+      "gate_name": "dispatcher_deny_present",
+      "passed": true,
+      "evidence": "DENY event present (write_code blocked as expected)",
+      "failure_reason": ""
+    },
+    {
+      "gate_id": 8,
+      "gate_name": "unified_face_summary_exists",
+      "passed": true,
+      "evidence": "Unified Face summary valid (1697 chars)",
+      "failure_reason": ""
+    },
+    {
+      "gate_id": 9,
+      "gate_name": "no_daemon_no_scheduler",
+      "passed": true,
+      "evidence": "No daemon/scheduler evidence",
+      "failure_reason": ""
+    },
+    {
+      "gate_id": 10,
+      "gate_name": "oracle_catalog_produced",
+      "passed": true,
+      "evidence": "Oracle catalog valid: 6 capabilities",
+      "failure_reason": ""
+    },
+    {
+      "gate_id": 11,
+      "gate_name": "risk_overlay_all_r0",
+      "passed": true,
+      "evidence": "All capabilities classified R0/A1",
+      "failure_reason": ""
+    },
+    {
+      "gate_id": 12,
+      "gate_name": "chain_sequence_correct",
+      "passed": true,
+      "evidence": "Chain sequence correct: Oracle → Auditor → Risk → Face",
+      "failure_reason": ""
+    }
+  ]
+}

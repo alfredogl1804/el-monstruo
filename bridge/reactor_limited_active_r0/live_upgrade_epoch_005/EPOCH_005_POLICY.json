@@ -1,0 +1,34 @@
+{
+  "epoch": "005",
+  "name": "GROUNDED_ORACLE_PRODUCTION_R0PLUS",
+  "status": "ACTIVE",
+  "oracle_pair_version": "0.2.0",
+  "constraints": {
+    "max_usd_cycle": 0.05,
+    "max_calls_per_provider_per_cycle": 1,
+    "retries": 0,
+    "allow_r1": false,
+    "allow_main_commits": false,
+    "allow_supabase": false,
+    "allow_memory_writes": false
+  },
+  "grounding_rules": {
+    "require_claims_array": true,
+    "require_evidence_status": true,
+    "min_grounding_score_pass": 8.0,
+    "block_no_source_as_fact": true
+  },
+  "allowed_providers": [
+    "OpenAI",
+    "Anthropic",
+    "Google",
+    "xAI"
+  ],
+  "freeze_triggers": [
+    "R1_ATTEMPT",
+    "BUDGET_EXCEEDED",
+    "GROUNDING_FAIL",
+    "MAIN_BRANCH_MODIFICATION_ATTEMPT",
+    "SUPABASE_CALL_ATTEMPT"
+  ]
+}

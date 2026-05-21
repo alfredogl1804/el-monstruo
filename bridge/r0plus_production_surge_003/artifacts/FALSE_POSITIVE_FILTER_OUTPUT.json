@@ -1,0 +1,14 @@
+{
+  "version": "0.1",
+  "generated_at": "2026-05-21T08:31:03.959251+00:00",
+  "generated_by": "regression_false_positive_filter_v0_1",
+  "total_flags_input": 0,
+  "real_regressions": 0,
+  "false_positives_filtered": 0,
+  "filter_rate_pct": 0.0,
+  "classifications": [],
+  "real_flags": [],
+  "filtered_flags": [],
+  "external_api_calls": 0,
+  "secrets_used": 0
+}

@@ -1,0 +1,14 @@
+# Plantilla de contrato para inicializar un loop
+# El Dispatcher inyecta esto al nacer el loop.
+loop_id: "uuid-placeholder"
+role: "role-placeholder"
+max_autonomy_level: "A3" # El loop no puede exceder este nivel
+ttl_seconds: 3600
+assigned_task_type: "self_evolution"
+allowed_paths:
+  - "bridge/thread_archives/"
+  - "bridge/doctrine_candidates/"
+forbidden_paths:
+  - "src/"
+  - "config/"
+  - ".github/"

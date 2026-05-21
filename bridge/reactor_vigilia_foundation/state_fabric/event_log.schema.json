@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Event Log Schema v0",
+  "type": "object",
+  "properties": {
+    "event_id": { "type": "integer" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "source_loop": { "type": "string" },
+    "source_lineage": { "type": "string" },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "OBSERVED",
+        "STATE_DELTA_PROPOSED",
+        "BLOCKER_DECLARED",
+        "HANDOFF_READY",
+        "TASK_CREATED",
+        "TASK_UPDATED",
+        "TASK_BLOCKED",
+        "RESTORE_TEST_PASSED",
+        "RESTORE_TEST_FAILED",
+        "T1_DECISION_REQUIRED",
+        "T1_DECISION_RECORDED",
+        "AUDIT_REQUIRED",
+        "AUDIT_COMPLETED",
+        "SUPERSEDED"
+      ]
+    },
+    "subject": { "type": "string" },
+    "summary": { "type": "string" },
+    "payload_ref": { "type": "string" },
+    "evidence_ref": { "type": "string" },
+    "autonomy_level": { "type": "string" },
+    "authority_required": { "type": "string" },
+    "t1_required": { "type": "boolean" },
+    "risk_class": { "type": "string" },
+    "confidence": { "type": "number" },
+    "status": { "type": "string" },
+    "supersedes_event_id": { "type": ["integer", "null"] },
+    "dedupe_key": { "type": "string" },
+    "ttl_hours": { "type": "integer" },
+    "forbidden_inferences": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "required": [
+    "event_id",
+    "created_at",
+    "source_loop",
+    "source_lineage",
+    "event_type",
+    "subject",
+    "summary",
+    "autonomy_level",
+    "status",
+    "dedupe_key"
+  ]
+}

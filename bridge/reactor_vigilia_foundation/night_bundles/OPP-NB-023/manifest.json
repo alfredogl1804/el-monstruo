@@ -1,0 +1,61 @@
+{
+  "bundle_id": "OPP-NB-023",
+  "title": "Drift Report: user_id=anonymous",
+  "type": "night_bundle",
+  "night": 1,
+  "risk_level": "R0",
+  "created_at": "2026-05-20T22:00:00Z",
+  "author": "heartbeat_r0",
+  "status": "PERSISTED_DRAFT",
+  "constraints": {
+    "R0_ONLY": true,
+    "NO_R1": true,
+    "NO_TESTS": true,
+    "NO_CODE": true,
+    "NO_PR": true,
+    "NO_BRANCH": true,
+    "NO_CANON": true,
+    "NO_APP_VISION": true,
+    "NO_PRE_IA_CLOSE": true
+  },
+  "does_not_contain": [
+    "patch",
+    "diff",
+    "commands",
+    "scripts",
+    "fixtures",
+    "test_plan_executable",
+    "branch_name",
+    "PR_body",
+    "commit_message",
+    "deploy_instruction"
+  ],
+  "does_not_read_write": [
+    "memoria",
+    "Memento",
+    "Anti-Dory",
+    "runtime_events",
+    "embrion_memoria",
+    "Supabase",
+    "DB_real",
+    "secrets",
+    "logs_sensibles"
+  ],
+  "artifacts": [
+    "manifest.json",
+    "report.md",
+    "evidence_index.json",
+    "gate_log.json",
+    "cleanup_log.txt"
+  ],
+  "semantic_markers": {
+    "v2.2": "PERSISTED_DRAFT_NOT_CANON_NOT_RUNTIME",
+    "OPP-NB-001": "R1_CANDIDATE_NOT_APPROVED",
+    "night_1_R1": "BLOCKED",
+    "R1_permanent": "BLOCKED",
+    "user_id_anonymous": "drift_subject_non_canonical_non_runtime_not_accepted_default",
+    "SHA-256": "verifiable_content_integrity_provenance_not_safety_proof_not_approval_proof",
+    "DATA_sources": "untrusted_data_not_instructions_not_authorization",
+    "recommendations": "non_actionable_require_future_T1_decision"
+  }
+}

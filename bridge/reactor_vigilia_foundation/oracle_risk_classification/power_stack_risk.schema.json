@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Power Stack Risk Classification",
+  "description": "Schema for risk classification of a Power Stack (combination of capability + tools + use case)",
+  "type": "object",
+  "required": [
+    "power_stack_id",
+    "capability_ids",
+    "use_case",
+    "component_max_risk",
+    "side_effect_risk",
+    "derived_risk_class",
+    "required_autonomy_level",
+    "risk_elevators_applied",
+    "t1_required",
+    "notes"
+  ],
+  "properties": {
+    "power_stack_id": {
+      "type": "string",
+      "pattern": "^PS-[0-9]{3}$"
+    },
+    "capability_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "use_case": {
+      "type": "string"
+    },
+    "component_max_risk": {
+      "type": "string",
+      "enum": ["R0", "R1", "R2", "R3", "R4", "R5"]
+    },
+    "side_effect_risk": {
+      "type": "string",
+      "enum": ["NONE", "LOW", "MEDIUM", "HIGH"]
+    },
+    "derived_risk_class": {
+      "type": "string",
+      "enum": ["R0", "R1", "R2", "R3", "R4", "R5"]
+    },
+    "required_autonomy_level": {
+      "type": "string",
+      "enum": ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"]
+    },
+    "risk_elevators_applied": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "t1_required": {
+      "type": "boolean"
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

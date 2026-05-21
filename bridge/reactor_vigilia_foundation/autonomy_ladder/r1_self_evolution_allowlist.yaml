@@ -1,0 +1,31 @@
+version: "v0.1.0"
+description: "Allowlist estricto para el primer batch de R1 Nightly Builder"
+
+allowed_actions:
+  - "create_report"
+  - "create_semantic_atoms"
+  - "update_thread_archive"
+  - "create_state_fabric_draft"
+  - "create_loop_contract"
+  - "run_restore_test"
+
+allowed_paths:
+  - "bridge/thread_archives/"
+  - "bridge/doctrine_candidates/"
+  - "bridge/reactor_vigilia_foundation/"
+
+forbidden_actions:
+  - "write_code"
+  - "modify_kernel"
+  - "touch_supabase"
+  - "touch_secrets"
+  - "modify_APP_VISION"
+  - "canonize_DSC"
+  - "close_PRE_IA"
+  - "write_memory" # Memento/Anti-Dory writes
+
+forbidden_paths:
+  - "src/"
+  - "main" # Branch
+  - "config/"
+  - "supabase/"

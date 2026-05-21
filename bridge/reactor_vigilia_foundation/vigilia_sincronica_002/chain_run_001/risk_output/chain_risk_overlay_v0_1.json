@@ -1,0 +1,62 @@
+{
+  "catalog_version": "v0.1.0-risk-annotated",
+  "base_version": "v0.1.0",
+  "risk_overlay_version": "v0.1.0",
+  "generated_by": "SPR-VIGILIA-SINCRONICA-002-chain",
+  "generated_at": "2026-05-20T23:29:37Z",
+  "global_evidence_status": "STATIC_CATALOG",
+  "global_risk_class": "R0",
+  "global_required_autonomy_level": "A1",
+  "global_allowed_next_action": "CATALOG_ONLY",
+  "total_capabilities": 6,
+  "capabilities": [
+    {
+      "id": "CAP-001",
+      "model": "GPT-4o",
+      "feature": "Real-time Vision Analysis",
+      "risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "evidence_status": "STATIC_CATALOG"
+    },
+    {
+      "id": "CAP-002",
+      "model": "Claude Opus 4",
+      "feature": "Extended Thinking (128k reasoning)",
+      "risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "evidence_status": "STATIC_CATALOG"
+    },
+    {
+      "id": "CAP-003",
+      "model": "Gemini 2.5 Pro",
+      "feature": "1M token context + grounding",
+      "risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "evidence_status": "STATIC_CATALOG"
+    },
+    {
+      "id": "CAP-004",
+      "model": "Grok 3",
+      "feature": "Real-time web + DeepSearch",
+      "risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "evidence_status": "STATIC_CATALOG"
+    },
+    {
+      "id": "CAP-005",
+      "model": "Perplexity Sonar Pro",
+      "feature": "Reasoning + citations + real-time",
+      "risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "evidence_status": "STATIC_CATALOG"
+    },
+    {
+      "id": "CAP-006",
+      "model": "DeepSeek R1",
+      "feature": "Open-weight reasoning (MIT license)",
+      "risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "evidence_status": "STATIC_CATALOG"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "sprint": "SPR-R0PLUS-PROVIDER-FALLBACK-VERIFICATION-001",
+  "timestamp": "2026-05-21T07:47:00Z",
+  "source": "https://endoflife.date/claude",
+  "source_last_updated": "2026-05-01",
+  "source_cost": 0.0,
+  "verification_method": "Public web lookup (no API key, no provider call)",
+  "model_checked": "claude-sonnet-4-20250514",
+  "findings": {
+    "model_still_supported": false,
+    "model_status": "DEPRECATED",
+    "active_support_ended": "2026-04-14",
+    "retirement_date_verified": "2026-06-15",
+    "retirement_date_matches_internal_claim": true,
+    "recommended_replacement_official": "claude-sonnet-4-6",
+    "migration_required_now": false,
+    "migration_required_before": "2026-06-15",
+    "risk_window_days": 25,
+    "model_will_fail_after_retirement": true,
+    "anthropic_gives_60_day_notice": true
+  },
+  "answers": {
+    "model_still_supported": "NO — Active support ended 2026-04-14. Model is in DEPRECATED phase.",
+    "verified_retirement_date": "YES — 2026-06-15 confirmed by endoflife.date (community-maintained, cross-referenced with Anthropic announcements).",
+    "recommended_replacement": "YES — claude-sonnet-4-6 (Claude Sonnet 4.6, released 2026-02-17, active until 2027-02-17).",
+    "migration_required_now": "NOT YET — Model still works during deprecated phase. Will FAIL after 2026-06-15.",
+    "risk_window": "25 days remaining. After 2026-06-15, API requests to this model will fail.",
+    "what_cannot_be_affirmed": "Cannot confirm via direct API call (blocked by sprint rules). Cannot confirm if Anthropic has sent email notification to this specific account."
+  },
+  "eol_verification_status": "VERIFIED_EOL",
+  "confidence": "HIGH",
+  "confidence_rationale": "endoflife.date is a well-maintained community resource that tracks official announcements. The date 2026-06-15 matches our internal claim exactly. Multiple external sources (Medium article, change.org petition) corroborate Anthropic's deprecation pattern."
+}

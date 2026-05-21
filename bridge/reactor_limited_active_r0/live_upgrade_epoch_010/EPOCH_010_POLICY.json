@@ -1,0 +1,57 @@
+{
+  "epoch": "EPOCH_010",
+  "type": "INTEGRATION_EPOCH",
+  "sprint": "SPR-R0PLUS-EPOCH010-SURGE003-INTEGRATION-001",
+  "date": "2026-05-21",
+  "constraints": {
+    "r0_plus_only": true,
+    "no_r1": true,
+    "no_main": true,
+    "no_pr": true,
+    "no_deploy": true,
+    "no_supabase": true,
+    "no_db": true,
+    "no_secrets": true,
+    "no_provider_calls": true,
+    "no_retries": true,
+    "no_auto_replacement": true,
+    "no_kill_switch_modify": true,
+    "no_scheduler_modify": true,
+    "no_memento_writes": true,
+    "no_anti_dory_writes": true,
+    "no_app_vision": true,
+    "no_canon": true,
+    "no_pre_ia": true,
+    "budget_usd": 0.00
+  },
+  "artifacts_integrated": [
+    {
+      "name": "t1_decision_pack_compiler_v0_1",
+      "role": "T1 decision pack synthesizer",
+      "path": "bridge/r0plus_production_surge_003/artifacts/t1_decision_pack_compiler_v0_1.py",
+      "tests": 13
+    },
+    {
+      "name": "regression_false_positive_filter_v0_1",
+      "role": "Regression pre-check filter",
+      "path": "bridge/r0plus_production_surge_003/artifacts/regression_false_positive_filter_v0_1.py",
+      "tests": 13
+    },
+    {
+      "name": "provider_risk_local_blocker_v0_1",
+      "role": "Provider risk local gate",
+      "path": "bridge/r0plus_production_surge_003/artifacts/provider_risk_local_blocker_v0_1.py",
+      "tests": 13
+    }
+  ],
+  "reconciliation": {
+    "status": "CLEAN",
+    "conflicts": 0,
+    "merge_commit": "abfc5a0"
+  },
+  "anthropic_migration": {
+    "status": "COMPLETE",
+    "model": "claude-sonnet-4-6",
+    "no_longer_pending": true
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "API Probe Manifest",
+  "description": "Manifest describing the M2 probe execution run",
+  "type": "object",
+  "required": ["manifest_id", "sprint_id", "timestamp_utc", "providers_targeted", "budget_cap", "status"],
+  "properties": {
+    "manifest_id": { "type": "string" },
+    "sprint_id": { "type": "string", "const": "SPR-ORACLE-AI-M2-001" },
+    "timestamp_utc": { "type": "string", "format": "date-time" },
+    "providers_targeted": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "budget_cap": {
+      "type": "object",
+      "required": ["max_total_cost_usd", "max_provider_cost_usd", "max_calls_per_provider", "max_total_calls"],
+      "properties": {
+        "max_total_cost_usd": { "type": "number" },
+        "max_provider_cost_usd": { "type": "number" },
+        "max_calls_per_provider": { "type": "integer" },
+        "max_total_calls": { "type": "integer" }
+      }
+    },
+    "status": { "type": "string", "enum": ["COMPLETED", "PARTIAL", "FAILED"] },
+    "total_calls_made": { "type": "integer" },
+    "total_estimated_cost_usd": { "type": "number" },
+    "providers_verified": { "type": "integer" },
+    "providers_blocked": { "type": "integer" }
+  }
+}

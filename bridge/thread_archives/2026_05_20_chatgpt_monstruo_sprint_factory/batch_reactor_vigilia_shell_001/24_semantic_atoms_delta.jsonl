@@ -1,0 +1,9 @@
+{"id": "ATOM_BG", "term": "Vigilia Mesh", "definition": "Alias histórico para Vigilia Sincrónica. Descartado como topología libre.", "source_refs": ["01_vigilia_sincronica_vision.md"]}
+{"id": "ATOM_BH", "term": "Unified Face", "definition": "El único loop autorizado a sintetizar estado y hablar con T1.", "source_refs": ["02_unified_face_many_loops.md"]}
+{"id": "ATOM_BI", "term": "State Fabric Single-Writer", "definition": "El estado operativo central que solo puede ser mutado por el Dispatcher/Reducer para evitar split-brain.", "source_refs": ["03_state_fabric_single_writer.md"]}
+{"id": "ATOM_BJ", "term": "Rotor/Dispatcher", "definition": "Orquestador central que despierta loops, empaca Handoffs y aplica Reducer.", "source_refs": ["04_rotor_dispatcher_protocol.md"]}
+{"id": "ATOM_BK", "term": "Handoff Packet", "definition": "Contexto estricto empacado por el Dispatcher para el loop entrante.", "source_refs": ["07_handoff_restore_protocol.md"]}
+{"id": "ATOM_BL", "term": "Split-Brain", "definition": "Riesgo de dos loops escribiendo estados divergentes. Mitigado por Single-Writer.", "source_refs": ["08_split_brain_and_loop_storm_risks.md"]}
+{"id": "ATOM_BM", "term": "Loop Storm", "definition": "Riesgo de invocaciones infinitas entre loops. Mitigado por Coreografía Radial.", "source_refs": ["08_split_brain_and_loop_storm_risks.md"]}
+{"id": "ATOM_BN", "term": "Micropolvo Semántico", "definition": "Forma matemática/multidimensional en que viaja el contexto IA↔IA en SHELL.", "source_refs": ["09_shell_vision.md"]}
+{"id": "ATOM_BO", "term": "Equivalencia Funcional", "definition": "Métrica de éxito para SHELL: derivar el mismo estado operativo que leyendo 50k tokens.", "source_refs": ["17_50k_microcontext_equivalence_benchmark.md"]}

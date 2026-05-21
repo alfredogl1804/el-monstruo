@@ -1,0 +1,100 @@
+{
+  "version": "1.0",
+  "pack_id": "OPERATIONS_BRIDGE_RACI_PACK",
+  "created_at": "2026-05-18",
+  "branch": "monstruo-reality-atlas-001",
+  "bridge_health": {
+    "total_md_root": 237,
+    "cowork_to_manus": 73,
+    "manus_to_cowork": 84,
+    "sprints_completados": 4,
+    "sprints_propuestos": 34,
+    "completion_ratio_pct": 11.8,
+    "postmortems_real": 2,
+    "postmortems_placeholder": 2,
+    "runbooks": 3,
+    "subcarpetas_preinvest": 18,
+    "archive_entries": 1,
+    "fresh_today": 5,
+    "verdict": "ALIVE_BUT_SATURATED"
+  },
+  "hilos_roles": [
+    {"actor": "Alfredo Góngora", "rol": "T1_magna_owner", "señales": ["firmo 5", "firmo verde"]},
+    {"actor": "Cowork (Claude)", "rol": "T2_Arquitecto", "doctrina": "DSC explícito; F9=falla confundir identidad"},
+    {"actor": "Manus (esta cuenta)", "rol": "Hilo_Principal_ejecutor", "subhilos": ["Hilo Ejecutor 1", "Hilo Ejecutor 2", "Hilo Catastro"]},
+    {"actor": "Sabios", "rol": "8_canonicos_DSC-V-001", "consulta": "API + manual"},
+    {"actor": "Embrión", "rol": "subagente_runtime_24_7", "vivo": true}
+  ],
+  "raci_implicit": [
+    {"accion": "merge_main", "R": "Manus|Cowork", "A": "Alfredo", "C": "Cowork_audit_DSC-G-008", "I": "bridge"},
+    {"accion": "cierre_sprint", "R": "Manus", "A": "Alfredo", "C": "Cowork", "I": "bridge"},
+    {"accion": "canonizar_DSC", "R": "Cowork", "A": "Alfredo", "C": "Manus", "I": "bridge"},
+    {"accion": "rotar_credencial", "R": "Manus", "A": "Alfredo", "C": "Cowork", "I": "runbooks"},
+    {"accion": "aprobar_propuesta_embrion", "R": "Telegram_HITL", "A": "Alfredo", "C": "-", "I": "guardian_audit_log"},
+    {"accion": "cambios_doctrinales", "R": "Cowork", "A": "Alfredo", "C": "Manus+Sabios", "I": "docs"},
+    {"accion": "cleanup_destructivo_supabase", "R": "Manus", "A": "Alfredo_DSC-S-005", "C": "Cowork", "I": "bridge+snapshot"},
+    {"accion": "spec_sprint", "R": "Cowork", "A": "Alfredo", "C": "Manus_pre_flight_DSC-G-008", "I": "bridge"}
+  ],
+  "anti_dory_status": {
+    "module_path": "kernel/anti_dory/",
+    "files": ["__init__.py", "guardian.py", "context_broker.py", "recovery.py", "supabase_client.py", "writers.py"],
+    "migrations": ["0032_anti_dory_rpcs.sql", "0034_anti_dory_grants.sql", "0035_anti_dory_runtime_flags.sql"],
+    "fases_done_reported": ["A", "B", "C", "D1", "D2", "D3", "D4", "D5"],
+    "extras": ["D4_MIGRATIONS_APPLIED", "D4_PR_READY", "D4_REVERT_PLAN"],
+    "audit_sabio_externo": "bridge/sabios/SABIO_GPT_5_5_PRO_audit_anti_dory_002_2026_05_13.md",
+    "verdict": "FULLY_OPERATIONAL"
+  },
+  "runbooks": [
+    "runbook_rotacion_bitwarden_master_password.md",
+    "runbook_rotacion_openai_api_key.md",
+    "runbook_rotacion_supabase_service_key.md"
+  ],
+  "credenciales_sin_runbook": [
+    "DROPBOX_API_KEY", "ELEVENLABS_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY",
+    "XAI_API_KEY", "SONAR_API_KEY", "OPENROUTER_API_KEY", "HEYGEN_API_KEY",
+    "CLOUDFLARE_API_TOKEN", "GitHub_PAT", "Railway_tokens"
+  ],
+  "postmortems": [
+    {"id": "COWORK_AUTO_DISCIPLINE_REAL_001", "tipo": "REAL"},
+    {"id": "COWORK_MEMENTO_001", "tipo": "REAL"},
+    {"id": "ESCAPE_001", "tipo": "PLACEHOLDER", "fecha": "2026-05-12"},
+    {"id": "ROTOR_001", "tipo": "PLACEHOLDER", "fecha": "2026-05-12"},
+    {"id": "P0_2026_05_06_credenciales_repo_publico", "tipo": "INCIDENT_CLOSED"}
+  ],
+  "crisis_playbooks": [
+    {"escenario": "credenciales_repo_publico", "playbook": "DSC-S-001..004 + postmortem P0", "tested": true},
+    {"escenario": "drift_migraciones_supabase", "playbook": "DSC-S-012 + scripts check", "tested": "PARTIAL"},
+    {"escenario": "ci_rojo_preexistente", "playbook": "regla_Cowork_T2-A_2026-05-18", "tested": "RECIENTE"},
+    {"escenario": "bridge_inter_hilos_roto", "playbook": "NO_RUNBOOK", "tested": false},
+    {"escenario": "embrion_cost_overrun", "playbook": "budget_runtime_30usd_fail_open", "tested": "PARTIAL"},
+    {"escenario": "kernel_railway_down", "playbook": "NO_RUNBOOK", "tested": false},
+    {"escenario": "memento_contamination", "playbook": "DSC + memento_routes.validate", "tested": "DOCTRINE"},
+    {"escenario": "sabios_api_down", "playbook": "NO_RUNBOOK", "tested": false}
+  ],
+  "top_findings": [
+    "Bridge vivo 237 md, 5 fresh hoy 2026-05-18",
+    "Cowork=T2 Arquitecto explícito (F9 protege)",
+    "Anti-Dory cobertura completa kernel+migs+fases+audit externo",
+    "Solo 4/34 sprints en completados/",
+    "Postmortems placeholder explícitos (cultura sana)",
+    "Runbooks 3/13 credenciales",
+    "Gaps crisis playbooks kernel-down/sabios-down/bridge-roto",
+    "RACI implícita no documentada formal",
+    "archive/ casi sin uso 1/237",
+    "18+ subcarpetas pre-investigación (Cowork spec-driven sano)"
+  ],
+  "top_risks": [
+    {"id": "R1", "severity": "P2", "desc": "saturación bridge sin archivado"},
+    {"id": "R2", "severity": "P2", "desc": "10/13 credenciales sin runbook"},
+    {"id": "R3", "severity": "P1", "desc": "no runbook kernel-down"},
+    {"id": "R4", "severity": "P2", "desc": "no runbook bridge-roto"},
+    {"id": "R5", "severity": "P2", "desc": "RACI implícita"},
+    {"id": "R6", "severity": "P3", "desc": "disciplina sprints_completados"},
+    {"id": "R7", "severity": "P3", "desc": "sin métricas latencia bridge"},
+    {"id": "R8", "severity": "P3", "desc": "postmortems placeholder olvidables"},
+    {"id": "R9", "severity": "P2", "desc": "F9 recurrente cultural"},
+    {"id": "R10", "severity": "P2", "desc": "sabios consulta sin observabilidad central"}
+  ],
+  "access_blocked": ["métricas latencia bridge", "logs uso runbooks", "audit F9 violations histórico"],
+  "no_source": ["RACI doc formal canonizado", "runbook kernel-down", "runbook sabios-down", "runbook bridge-roto", "métricas latencia bridge"]
+}

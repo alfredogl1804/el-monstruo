@@ -1,0 +1,99 @@
+{
+  "version": "0.6",
+  "epoch": "EPOCH_010",
+  "sprint": "SPR-R0PLUS-EPOCH010-SURGE003-INTEGRATION-001",
+  "timestamp": "2026-05-21T08:32:00Z",
+  "type": "INTEGRATION_EPOCH",
+  "system_health": {
+    "overall": "HEALTHY",
+    "pilot_health_score": 85,
+    "oracle": {"version": "v0.5", "health": "HEALTHY", "total_runs": 14},
+    "auditor": {"version": "v0.5", "health": "HEALTHY", "total_runs": 9},
+    "memory_palace": {"entries": 9, "health_score": 72, "status": "HEALTHY"},
+    "directive_queue": {"active": 2, "ids": ["T1D-001", "T1D-002"]},
+    "kill_switch": "OFF",
+    "artifact_ops": {"status": "HEALTHY", "adapter_version": "v0.1"}
+  },
+  "artifacts": {
+    "total": 15,
+    "test_coverage_pct": 100,
+    "categories": {
+      "indexing": ["r0plus_artifact_indexer_v0_1"],
+      "pattern_detection": ["memory_palace_pattern_detector_v0_1"],
+      "history_analysis": ["embryo_run_history_analyzer_v0_1"],
+      "cost_control": ["r0plus_cost_anomaly_guard_v0_1"],
+      "diversity": ["embryo_task_diversity_balancer_v0_1"],
+      "action_ranking": ["epoch_next_action_ranker_v0_1"],
+      "ops_orchestration": ["artifact_ops_runner_v0_1", "artifact_ops_epoch_adapter_v0_1"],
+      "t1_interface": ["t1_cockpit_data_injector_v0_1", "t1_decision_executor_v0_1", "t1_decision_pack_compiler_v0_1"],
+      "provider_ops": ["provider_migration_guard", "provider_fallback_verifier_v0_1", "provider_risk_local_blocker_v0_1"],
+      "regression_filter": ["regression_false_positive_filter_v0_1"]
+    }
+  },
+  "provider": {
+    "anthropic": {
+      "model": "claude-sonnet-4-6",
+      "status": "ACTIVE",
+      "eol_risk": "ELIMINATED",
+      "migration_complete": true,
+      "support_until": "2027-02-17"
+    },
+    "openai": {"status": "AVAILABLE", "model": "gpt-4o"},
+    "google": {"status": "AVAILABLE", "model": "gemini-2.5-flash"},
+    "xai": {"status": "AVAILABLE", "model": "grok-3"},
+    "perplexity": {"status": "BLOCKED_403"},
+    "deepseek": {"status": "KEY_REQUIRED"}
+  },
+  "cost": {
+    "epoch_010_cost_usd": 0.000566,
+    "total_pilot_cost_usd": 0.028,
+    "budget_remaining_usd": 0.972,
+    "cost_per_epoch_avg": 0.0028,
+    "provider_calls": 0
+  },
+  "epochs_completed": {
+    "total": 10,
+    "list": ["001", "002", "003", "004", "005", "006", "007", "008", "009", "010"]
+  },
+  "surges_completed": {
+    "total": 3,
+    "list": ["001", "002", "003"]
+  },
+  "risks": {
+    "active": [
+      {"id": "COST_SPIKE", "severity": "MEDIUM", "status": "GUARDED"},
+      {"id": "MEMORY_PALACE_SHALLOW", "severity": "LOW", "status": "TRACKING"}
+    ],
+    "eliminated": [
+      {"id": "ANTHROPIC_EOL", "resolved_in": "7544bbe"},
+      {"id": "STALE_ACTIONS", "resolved_in": "EPOCH_010"}
+    ]
+  },
+  "reconciliation": {
+    "surge_003_integrated": true,
+    "anthropic_patch_preserved": true,
+    "stale_actions_cleaned": true,
+    "merge_commit": "abfc5a0"
+  },
+  "decisions_pending": [
+    {"id": "D1", "title": "Open R1 candidate lane", "urgency": "LOW", "classification": "NEEDS_T1"},
+    {"id": "D2", "title": "Approve main merge", "urgency": "LOW", "classification": "NEEDS_T1"}
+  ],
+  "next_actions": {
+    "top_1": "PRODUCE_NEXT_SURGE_004",
+    "classification": "EXECUTE_NOW",
+    "recommended_sprint": "SPR-R0PLUS-PRODUCTION-SURGE-004"
+  },
+  "hard_rules_compliance": {
+    "r0_plus_only": true,
+    "no_r1": true,
+    "no_main": true,
+    "no_pr": true,
+    "no_deploy": true,
+    "no_supabase": true,
+    "no_secrets": true,
+    "no_provider_calls": true,
+    "no_kill_switch_modify": true,
+    "budget_0": true
+  }
+}

@@ -1,0 +1,11 @@
+# Modelo Conceptual de Micropartícula SHELL
+# (No es un schema productivo, es notación de research R0)
+microparticle:
+  properties:
+    x_coord: "Ubicación en el eje semántico primario"
+    y_coord: "Ubicación en el eje de autoridad/restricción"
+    z_coord: "Profundidad jerárquica (core vs detalle)"
+    rotation: "Estado temporal (activo, bloqueado, completado)"
+    color_frequency: "Clase de riesgo o urgencia"
+    mass_size: "Peso semántico o importancia relativa"
+    vector_links: "Relaciones espaciales con otras partículas"

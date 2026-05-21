@@ -1,0 +1,24 @@
+{
+  "hook_id": "heartbeat_oracle_hook_r0",
+  "adapter_id": "oracle_ai_scheduler_adapter_r0",
+  "embryo_id": "oracle_ai_embryo_r0",
+  "integration_run_timestamp": "2026-05-21T03:23:40.953509Z",
+  "verdict": "AUTONOMOUS_CYCLE_COMPLETE",
+  "embryo_state": {
+    "total_cycles": 2,
+    "last_task_executed": "map_capability_to_application",
+    "last_task_result": "SUCCESS",
+    "total_cost_usd": 0.000304,
+    "consecutive_failures": 0,
+    "status": "IDLE"
+  },
+  "checks": {
+    "kill_switch": "INACTIVE",
+    "dispatcher": "AVAILABLE",
+    "budget": "OK"
+  },
+  "chain_duration_seconds": 4.27,
+  "provider_used": "openai",
+  "model_used": "gpt-4o-mini",
+  "cost_this_run": 0.000114
+}

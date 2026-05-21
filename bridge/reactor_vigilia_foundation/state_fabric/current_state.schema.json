@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Current State Schema v0",
+  "type": "object",
+  "properties": {
+    "stack_vertical_status": { "type": "string" },
+    "autonomy_ladder_status": { "type": "string" },
+    "state_fabric_status": { "type": "string" },
+    "nightly_builder_r1_status": { "type": "string" },
+    "spr_oracle_ai_status": { "type": "string" },
+    "active_blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "description": { "type": "string" },
+          "severity": { "type": "string" }
+        },
+        "required": ["id", "description", "severity"]
+      }
+    },
+    "pending_t1_decisions": { "type": "integer" },
+    "active_sprints": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "allowed_self_evolution_scopes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "forbidden_runtime_scopes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "last_event_id": { "type": "integer" },
+    "last_updated_at": { "type": "string", "format": "date-time" }
+  },
+  "required": [
+    "stack_vertical_status",
+    "autonomy_ladder_status",
+    "state_fabric_status",
+    "nightly_builder_r1_status",
+    "spr_oracle_ai_status",
+    "active_blockers",
+    "pending_t1_decisions",
+    "active_sprints",
+    "allowed_self_evolution_scopes",
+    "forbidden_runtime_scopes",
+    "last_event_id",
+    "last_updated_at"
+  ]
+}

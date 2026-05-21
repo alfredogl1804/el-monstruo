@@ -1,0 +1,66 @@
+{
+  "embryo_id": "oracle_ai_embryo_r0",
+  "task_id": "detect_new_ai_capability_candidates",
+  "action_class": "A0_OBSERVE",
+  "dispatcher_decision": "ALLOW",
+  "timestamp": "2026-05-21T04:27:04.926556Z",
+  "cost_usd": 0.0004785,
+  "output": {
+    "task_id": "detect_new_ai_capability_candidates",
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "response_raw": "```json\n[\n    {\n        \"claim_id\": \"001\",\n        \"claim_text\": \"OpenAI released an enhanced version of GPT-4 that improves context retention and logical reasoning, which could benefit automated decision-making systems.\",\n        \"claim_type\": \"factual\",\n        \"evidence_status\": \"NEEDS_REAL_TIME_CHECK\",\n        \"source_ref\": \"https://www.openai.com/research/gpt-4-update\",\n        \"confidence\": 0.8,\n        \"capability_name\": \"Improved Contextual AI\",\n        \"provider\": \"OpenAI\",\n        \"release_date_approx\": \"2023-09-30\",\n        \"potential_power_gain\": 9,\n        \"integration_complexity\": \"MED\"\n    },\n    {\n        \"claim_id\": \"002\",\n        \"claim_text\": \"Google introduced an AI model designed for real-time adaptive learning, which helps systems learn from ongoing user interactions.\",\n        \"claim_type\": \"factual\",\n        \"evidence_status\": \"NEEDS_REAL_TIME_CHECK\",\n        \"source_ref\": \"https://ai.googleblog.com/2023/09/real-time-adaptive-learning.html\",\n        \"confidence\"",
+    "claims": [
+      {
+        "claim_id": "001",
+        "claim_text": "OpenAI released an enhanced version of GPT-4 that improves context retention and logical reasoning, which could benefit automated decision-making systems.",
+        "claim_type": "factual",
+        "evidence_status": "NEEDS_REAL_TIME_CHECK",
+        "source_ref": "https://www.openai.com/research/gpt-4-update",
+        "freshness_required": true,
+        "confidence": 0.8
+      },
+      {
+        "claim_id": "002",
+        "claim_text": "Google introduced an AI model designed for real-time adaptive learning, which helps systems learn from ongoing user interactions.",
+        "claim_type": "factual",
+        "evidence_status": "NEEDS_REAL_TIME_CHECK",
+        "source_ref": "https://ai.googleblog.com/2023/09/real-time-adaptive-learning.html",
+        "freshness_required": true,
+        "confidence": 0.75
+      },
+      {
+        "claim_id": "003",
+        "claim_text": "Microsoft's latest AI update includes enhanced multimodal capabilities, allowing systems to process both text and visual data more effectively.",
+        "claim_type": "factual",
+        "evidence_status": "NEEDS_REAL_TIME_CHECK",
+        "source_ref": "https://tech.microsoft.com/en-us/multimodal-updates",
+        "freshness_required": true,
+        "confidence": 0.7
+      },
+      {
+        "claim_id": "004",
+        "claim_text": "NVIDIA launched a new AI toolkit that accelerates the training of reinforcement learning algorithms for quicker deployment.",
+        "claim_type": "factual",
+        "evidence_status": "NEEDS_REAL_TIME_CHECK",
+        "source_ref": "https://www.nvidia.com/en-us/research/ai-toolkit/",
+        "freshness_required": true,
+        "confidence": 0.85
+      },
+      {
+        "claim_id": "005",
+        "claim_text": "Meta has developed a new AI model that enhances emotional intelligence in interactive systems, improving user engagement.",
+        "claim_type": "factual",
+        "evidence_status": "NEEDS_REAL_TIME_CHECK",
+        "source_ref": "https://ai.facebook.com/emotional-intelligence-models.html",
+        "freshness_required": true,
+        "confidence": 0.65
+      }
+    ],
+    "grounding_level": 6,
+    "next_valid_action": "REQUIRES_T1_REVIEW",
+    "cost": 0.0004785
+  },
+  "grounding_level": 6,
+  "next_valid_action": "REQUIRES_T1_REVIEW"
+}

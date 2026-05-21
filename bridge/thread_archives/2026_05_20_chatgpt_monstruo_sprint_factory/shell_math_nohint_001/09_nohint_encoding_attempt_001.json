@@ -1,0 +1,52 @@
+{
+  "shell_version": "math_v0",
+  "encoding_type": "no_hint",
+  "registry_ref": "02_shell_axis_registry_v0",
+  "particles": [
+    {
+      "id": "p_0x01",
+      "C": [1, 1, 8, 0, 1, 1, 3, 3, 3, 0],
+      "R": [
+        { "target": "p_0x02", "type": 1, "weight": 1.0 },
+        { "target": "p_0x03", "type": 1, "weight": 1.0 },
+        { "target": "p_0x04", "type": 1, "weight": 1.0 }
+      ]
+    },
+    {
+      "id": "p_0x02",
+      "C": [2, 5, 3, 1, 1, 0, 3, 2, 1, 7],
+      "R": [
+        { "target": "p_0x05", "type": 2, "weight": 1.0 },
+        { "target": "p_0x06", "type": 3, "weight": 1.0 }
+      ]
+    },
+    {
+      "id": "p_0x03",
+      "C": [4, 4, 0, 0, 1, 0, 2, 3, 3, 0],
+      "R": [
+        { "target": "p_0x02", "type": 4, "weight": 1.0 }
+      ]
+    },
+    {
+      "id": "p_0x04",
+      "C": [2, 2, 5, 2, 1, 1, 1, 1, 2, 0],
+      "R": [
+        { "target": "p_0x02", "type": 5, "weight": 1.0 },
+        { "target": "p_0x05", "type": 6, "weight": 1.0 }
+      ]
+    },
+    {
+      "id": "p_0x05",
+      "C": [2, 3, 2, 2, 1, 0, 1, 1, 2, 0],
+      "R": [
+        { "target": "p_0x02", "type": 5, "weight": 1.0 },
+        { "target": "p_0x04", "type": 7, "weight": 0.0 }
+      ]
+    },
+    {
+      "id": "p_0x06",
+      "C": [3, 1, 0, 0, 1, 0, 3, 3, 3, 0],
+      "R": []
+    }
+  ]
+}

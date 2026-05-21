@@ -1,0 +1,38 @@
+{
+  "$schema": "nightly_builder_evidence_v1",
+  "bundle_id": "NIGHT1_R0_2026_05_18",
+  "evidence_by_opp": {
+    "OPP-NB-023": {
+      "type": "grep_counts",
+      "risk_class": "R0",
+      "source_paths": [
+        "kernel/",
+        "apps/mobile/",
+        "tests/",
+        "docs/",
+        "migrations/"
+      ],
+      "commands_executed": [
+        "grep -rn \"user_id\" kernel/ | grep -i \"anonymous\\|default\\|anon\"",
+        "grep -rn '\"anonymous\"' --include=\"*.py\" --include=\"*.md\" .",
+        "grep -rn \"get_current_user\\|Depends.*user\\|X-User-Id\\|x-user-id\\|Authorization\" kernel/ --include=\"*.py\"",
+        "grep -rn \"CREATE POLICY\\|user_id\" migrations/sql/ | grep -i \"policy\\|user_id = \""
+      ],
+      "findings": {
+        "files_with_anonymous": 15,
+        "lines_with_anonymous": 41,
+        "validation_checks_for_anonymous": 0,
+        "auth_middleware_sets_user_id": false,
+        "rls_policies_filter_by_user_id": false,
+        "sprint_29_dt8_replaced_alfredo_with_anonymous": true
+      },
+      "sha256_of_source_at_scan": {
+        "head_sha": "413f6147117ebd822bb5ba4825de4b8c01b57834"
+      }
+    }
+  },
+  "data_sources_declaration": {
+    "consumed_as_data": [],
+    "consumed_as_instruction": []
+  }
+}

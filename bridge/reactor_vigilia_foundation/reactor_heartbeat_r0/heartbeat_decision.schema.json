@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Heartbeat Decision",
+  "description": "The decision produced by the heartbeat evaluation step.",
+  "type": "object",
+  "required": ["heartbeat_id", "timestamp_utc", "decision", "reason", "rule_applied", "inputs_read", "t1_pending", "blockers"],
+  "properties": {
+    "heartbeat_id": { "type": "string" },
+    "timestamp_utc": { "type": "string", "format": "date-time" },
+    "decision": { "type": "string", "enum": ["NO_ACTION", "REQUEST_T1", "RUN_ORACLE_CHAIN_R0", "RUN_AUDIT_ONLY_R0", "BLOCKED"] },
+    "reason": { "type": "string", "minLength": 10 },
+    "rule_applied": { "type": "string", "description": "Which rule from the Decision Table triggered this decision." },
+    "inputs_read": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "t1_pending": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "blockers": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "next_valid_action": { "type": "string" }
+  }
+}

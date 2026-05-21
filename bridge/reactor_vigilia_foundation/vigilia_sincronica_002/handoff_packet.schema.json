@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Handoff Packet (Vigilia Chain v0.2)",
+  "description": "Immutable context packet passed between chain steps via the Orchestrator.",
+  "type": "object",
+  "required": [
+    "handoff_id",
+    "source_loop",
+    "target_loop",
+    "created_at",
+    "artifact_refs",
+    "evidence_status",
+    "max_autonomy_level",
+    "forbidden_assumptions",
+    "not_realtime_verified",
+    "no_m2_unlock"
+  ],
+  "properties": {
+    "handoff_id": {
+      "type": "string",
+      "description": "Unique identifier for this handoff packet."
+    },
+    "source_loop": {
+      "type": "string",
+      "description": "Loop ID that produced the artifacts."
+    },
+    "target_loop": {
+      "type": "string",
+      "description": "Loop ID that will receive this context."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of handoff creation."
+    },
+    "artifact_refs": {
+      "type": "array",
+      "description": "Paths to artifacts produced by source_loop.",
+      "items": { "type": "string" }
+    },
+    "evidence_status": {
+      "type": "string",
+      "enum": ["STATIC_CATALOG", "REALTIME_VERIFIED", "T1_SIGNED"],
+      "description": "Level of verification of the evidence in the artifacts."
+    },
+    "max_autonomy_level": {
+      "type": "string",
+      "description": "Maximum autonomy level for the target loop."
+    },
+    "forbidden_assumptions": {
+      "type": "array",
+      "description": "Explicit list of assumptions the target loop must NOT make.",
+      "items": { "type": "string" }
+    },
+    "not_realtime_verified": {
+      "type": "boolean",
+      "description": "If true, target loop must treat evidence as static/unverified."
+    },
+    "no_m2_unlock": {
+      "type": "boolean",
+      "description": "If true, target loop cannot propose M2 transition."
+    },
+    "chain_context": {
+      "type": "object",
+      "description": "Optional additional context from the chain state.",
+      "properties": {
+        "chain_step_completed": { "type": "integer" },
+        "total_chain_steps": { "type": "integer" },
+        "previous_verdict": { "type": "string" },
+        "pending_t1_decisions": { "type": "integer" }
+      }
+    }
+  }
+}

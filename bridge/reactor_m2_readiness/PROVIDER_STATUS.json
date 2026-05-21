@@ -1,0 +1,52 @@
+{
+  "providers": {
+    "perplexity": {
+      "has_key": true,
+      "status": "403_FIX_REQUIRED",
+      "ready": false
+    },
+    "deepseek": {
+      "has_key": false,
+      "status": "KEY_REQUIRED",
+      "ready": false
+    },
+    "openai": {
+      "has_key": true,
+      "status": "VERIFIED_M2",
+      "ready": true
+    },
+    "anthropic": {
+      "has_key": true,
+      "status": "VERIFIED_M2",
+      "ready": true
+    },
+    "google": {
+      "has_key": true,
+      "status": "VERIFIED_M2",
+      "ready": true
+    },
+    "xai": {
+      "has_key": true,
+      "status": "VERIFIED_M2",
+      "ready": true
+    }
+  },
+  "summary": {
+    "total": 6,
+    "ready": 4,
+    "unavailable": 2
+  },
+  "capabilities": {
+    "zero_cost_local": [
+      "Or\u00e1culo shadow (mock)",
+      "Heartbeat local",
+      "Dispatcher routing"
+    ],
+    "requires_t1_budget": [
+      "OpenAI",
+      "Anthropic",
+      "Google",
+      "xAI"
+    ]
+  }
+}

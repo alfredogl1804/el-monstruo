@@ -1,0 +1,43 @@
+{
+  "heartbeat_id": "HB-R0-001",
+  "started_at": "2026-05-21T01:12:35.662241+00:00",
+  "ended_at": "2026-05-21T01:12:35.662858+00:00",
+  "input_state_refs": [
+    "state_fabric/current_state.v0.json",
+    "state_fabric/event_log.v0.jsonl",
+    "state_fabric/decisions_pending.v0.json",
+    "oracle_post_m2_risk_reclassification/post_m2_validation_report.v0_1.json",
+    "oracle_post_m2_risk_reclassification/post_m2_t1_decision_pack.v0_1.json"
+  ],
+  "decision": "REQUEST_T1",
+  "reason": "T1 decisions pending in post_m2_t1_decision_pack (scheduler authorization, core providers, budget). Cannot proceed autonomously.",
+  "actions_taken": [],
+  "actions_not_taken": [
+    "RUN_M2_API_REALTIME",
+    "RUN_SCHEDULER",
+    "RUN_DAEMON",
+    "WRITE_CODE",
+    "OPEN_PR",
+    "DEPLOY",
+    "TOUCH_SUPABASE",
+    "TOUCH_MEMORY",
+    "CANONIZE"
+  ],
+  "t1_pending": [
+    "Approve Core Providers",
+    "Approve Optional Providers",
+    "Resolve Blocked Providers",
+    "Authorize Scheduler/Daemon",
+    "Authorize Supabase Migration",
+    "Select Next Sprint"
+  ],
+  "blockers": [],
+  "next_valid_action": "Await T1 decisions on scheduler, core providers, and budget.",
+  "no_assumptions": true,
+  "event_refs": [
+    2,
+    3,
+    4
+  ],
+  "validation_score": "pending"
+}

@@ -1,0 +1,21 @@
+{
+  "thread_id": "SPR-THREAD-ARCHIVE-001",
+  "title": "ChatGPT Thread Value Atlas 2026-05-20",
+  "date": "2026-05-20",
+  "status": "EVIDENCE",
+  "canonized": false,
+  "app_vision_active": false,
+  "pre_ia_closed": false,
+  "completeness_index": {
+    "files_created": 39,
+    "files_required": 39,
+    "percentage": 100
+  },
+  "ai_absorbability_score": 96,
+  "open_decisions": [
+    "Nightly Builder R1 unlock",
+    "Cockpit v0.3 destination",
+    "Sprint Factory v2 approval",
+    "Embrión Perito model approval"
+  ]
+}

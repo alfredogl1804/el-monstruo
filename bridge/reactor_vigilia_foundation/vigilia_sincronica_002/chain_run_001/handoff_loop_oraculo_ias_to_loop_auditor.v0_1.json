@@ -1,0 +1,27 @@
+{
+  "handoff_id": "handoff-loop_oraculo_ias-to-loop_auditor-2026-05-20T23:29:37Z",
+  "source_loop": "loop_oraculo_ias",
+  "target_loop": "loop_auditor",
+  "created_at": "2026-05-20T23:29:37Z",
+  "artifact_refs": [
+    "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/vigilia_sincronica_002/chain_run_001/oracle_output/oraculo_capability_catalog_v0.json",
+    "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/vigilia_sincronica_002/chain_run_001/oracle_output/oraculo_power_stacks_v0.md"
+  ],
+  "evidence_status": "STATIC_CATALOG",
+  "max_autonomy_level": "A3",
+  "forbidden_assumptions": [
+    "APIs are connected",
+    "Evidence is realtime-verified",
+    "M2 is unlocked",
+    "T1 has signed any decision",
+    "System is in production mode"
+  ],
+  "not_realtime_verified": true,
+  "no_m2_unlock": true,
+  "chain_context": {
+    "chain_step_completed": 1,
+    "total_chain_steps": 4,
+    "previous_verdict": null,
+    "pending_t1_decisions": 4
+  }
+}

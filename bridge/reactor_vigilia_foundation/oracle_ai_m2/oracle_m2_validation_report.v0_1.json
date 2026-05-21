@@ -1,0 +1,83 @@
+{
+  "report_id": "oracle-m2-validation-001",
+  "sprint_id": "SPR-ORACLE-AI-M2-001",
+  "timestamp_utc": "2026-05-20T23:47:20.933013+00:00",
+  "gates": [
+    {
+      "gate_id": 1,
+      "name": "base_artifacts_exist",
+      "result": "PASS",
+      "evidence": "All base artifacts present"
+    },
+    {
+      "gate_id": 2,
+      "name": "dispatcher_permission_per_provider",
+      "result": "PASS",
+      "evidence": "All 6 providers have explicit status"
+    },
+    {
+      "gate_id": 3,
+      "name": "no_secret_leak",
+      "result": "PASS",
+      "evidence": "No secrets detected in any artifact"
+    },
+    {
+      "gate_id": 4,
+      "name": "budget_cap",
+      "result": "PASS",
+      "evidence": "Calls=5, Cost=$0.0050, Within budget"
+    },
+    {
+      "gate_id": 5,
+      "name": "read_only_api",
+      "result": "PASS",
+      "evidence": "All actions are execute_api_probe (read-only)"
+    },
+    {
+      "gate_id": 6,
+      "name": "evidence_status_discipline",
+      "result": "PASS",
+      "evidence": "All REALTIME_VERIFIED have raw_response_hash"
+    },
+    {
+      "gate_id": 7,
+      "name": "no_catalog_mutation",
+      "result": "PASS",
+      "evidence": "Original catalog intact and valid"
+    },
+    {
+      "gate_id": 8,
+      "name": "overlay_created",
+      "result": "PASS",
+      "evidence": "Overlay valid: 6 capabilities"
+    },
+    {
+      "gate_id": 9,
+      "name": "access_blocked_honest",
+      "result": "PASS",
+      "evidence": "All blocked providers honestly reported"
+    },
+    {
+      "gate_id": 10,
+      "name": "no_m2_autonomy_expansion",
+      "result": "PASS",
+      "evidence": "No scheduler/daemon/deploy artifacts"
+    },
+    {
+      "gate_id": 11,
+      "name": "no_risk_reclassification_final",
+      "result": "PASS",
+      "evidence": "Only candidates/inputs produced, no final risk decisions"
+    },
+    {
+      "gate_id": 12,
+      "name": "unified_face_summary_single_voice",
+      "result": "PASS",
+      "evidence": "Unified Face valid (1443 chars)"
+    }
+  ],
+  "verdict": "PASS",
+  "pass_count": 12,
+  "fail_count": 0,
+  "findings": []
+}

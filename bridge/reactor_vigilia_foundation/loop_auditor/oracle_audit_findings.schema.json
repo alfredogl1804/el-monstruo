@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Oracle Audit Findings",
+  "description": "Schema for structured findings produced by loop_auditor.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["finding_id", "severity", "subject", "evidence_ref", "status", "recommended_next_action", "t1_required"],
+    "properties": {
+      "finding_id": { "type": "string", "pattern": "^FND-[0-9]{3}$" },
+      "severity": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW"] },
+      "subject": { "type": "string" },
+      "evidence_ref": { "type": "string" },
+      "status": { "type": "string", "enum": ["OPEN", "RESOLVED", "ACCEPTED_RISK"] },
+      "recommended_next_action": { "type": "string" },
+      "t1_required": { "type": "boolean" }
+    }
+  }
+}

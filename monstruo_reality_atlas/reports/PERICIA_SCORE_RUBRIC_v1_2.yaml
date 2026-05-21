@@ -1,0 +1,139 @@
+# PERICIA_SCORE_RUBRIC_v1_2.yaml
+# Reglas de score para pericia global 95%
+# Creado: 2026-05-18 por Manus B, instruccion T1
+# NO canoniza. NO recalcula. NO declara 95.
+
+version: "1.2"
+created_at: "2026-05-18T11:00:00Z"
+created_by: "Manus B"
+instructed_by: "Alfredo Gongora (T1)"
+
+# ============================================================
+# SCORE CAPS — max_global_score si frente no absorbido
+# ============================================================
+score_caps:
+  - condition: "gate_3_4_not_absorbed"
+    max_global_score: 85
+    frente: "GATE_3_4_COMPLETO"
+    evidence_required: "GATE_3_4_MODULE_MATURITY_EVIDENCE_PACK_v1_1.md leido + 5 niveles distinguidos"
+
+  - condition: "interfaces_fabric_app_vision_mobile_not_absorbed"
+    max_global_score: 88
+    frentes:
+      - "INTERFACES_CONTEXT_FABRIC"
+      - "APP_VISION"
+      - "MOBILE_FLUTTER_REALITY"
+    evidence_required: "EXISTING_DESIGN_COVERAGE_MATRIX leida + APP_VISION como doctrina no runtime + placeholders identificados"
+
+  - condition: "anonymous_security_not_absorbed"
+    max_global_score: 90
+    frente: "ANONYMOUS_SECURITY_IDENTITY"
+    evidence_required: "anonymous = BLOCKER preventivo + 3 identity layers distinguidas"
+
+  - condition: "smp_cronos_cripta_preia_not_absorbed"
+    max_global_score: 90
+    frentes:
+      - "SMP_CRONOS_CRIPTA"
+      - "PRE_IA"
+    evidence_required: "SMP = Sovereign Memory Plane + aliases descartados + PRE-IA = DRAFT"
+
+  - condition: "command_center_portfolio_not_absorbed"
+    max_global_score: 92
+    frentes:
+      - "COMMAND_CENTER"
+      - "PORTFOLIO_UI_EMPRESAS_HIJAS"
+    evidence_required: "7 superficies reales vs 12-15 canonicas + portfolio NO existe"
+
+  - condition: "global_95_coverage_incomplete"
+    max_global_score: 90
+    frente: "GLOBAL_95_REQUIRED_COVERAGE (any frente < 9/10)"
+    evidence_required: "Todos los 9 frentes con score >= 9/10"
+
+# ============================================================
+# REQUISITOS PARA RECLAMAR GLOBAL_95
+# ============================================================
+global_95_requirements:
+  - each_frente_score_minimum: 9
+    scale: "out of 10"
+  - zero_p0_open_by_false_classification: true
+  - all_9_frentes_covered: true
+  - no_fail_conditions_triggered: true
+
+# ============================================================
+# FRENTES Y SUS SCORES (template para v1.2 state)
+# ============================================================
+frentes:
+  - id: "GATE_3_4_COMPLETO"
+    weight: 1
+    current_estimate: null  # se llena en STATE v1.2
+    fail_conditions:
+      - "afirmar M4 = production-ready"
+      - "confundir endpoint existente con consumidor UI activo"
+
+  - id: "INTERFACES_CONTEXT_FABRIC"
+    weight: 1
+    current_estimate: null
+    fail_conditions:
+      - "proponer concepto sin consultar EXISTING_DESIGN_COVERAGE_MATRIX"
+      - "proponer Cronista Familiar como nuevo"
+      - "redisenar interfaces sin leer Fabric"
+
+  - id: "APP_VISION"
+    weight: 1
+    current_estimate: null
+    fail_conditions:
+      - "llamar runtime a APP_VISION"
+      - "afirmar implementacion porque APP_VISION lo dice"
+      - "proponer v1.4 sin firma T1"
+
+  - id: "MOBILE_FLUTTER_REALITY"
+    weight: 1
+    current_estimate: null
+    fail_conditions:
+      - "afirmar Mobile/Cockpit/Portfolio implementado sin evidencia"
+      - "confundir placeholder con implementacion funcional"
+
+  - id: "ANONYMOUS_SECURITY_IDENTITY"
+    weight: 1
+    current_estimate: null
+    fail_conditions:
+      - "afirmar anonymous como bug/feature sin T1"
+      - "ejecutar tests que dependen de anonymous como validos"
+
+  - id: "SMP_CRONOS_CRIPTA"
+    weight: 1
+    current_estimate: null
+    fail_conditions:
+      - "redibujar Cronista Familiar como concepto nuevo"
+      - "confundir SMP con Secure Memory Protocol"
+      - "proponer implementacion Cronos sin SMP"
+
+  - id: "PRE_IA"
+    weight: 1
+    current_estimate: null
+    fail_conditions:
+      - "cerrar PRE-IA sin frase literal T1"
+      - "canonizar hypotheses pre-IA como doctrina"
+
+  - id: "COMMAND_CENTER"
+    weight: 1
+    current_estimate: null
+    fail_conditions:
+      - "llamar control plane a cockpit read-only"
+      - "afirmar 12+ superficies implementadas"
+
+  - id: "PORTFOLIO_UI_EMPRESAS_HIJAS"
+    weight: 1
+    current_estimate: null
+    fail_conditions:
+      - "afirmar portfolio UI implementado sin evidencia"
+      - "confundir UIs proyectos-hijos con superficie Monstruo"
+
+# ============================================================
+# APLICACION
+# ============================================================
+application_rules:
+  - "Score caps se aplican en cascada (el mas bajo gana)"
+  - "Si multiples caps aplican, usar el minimo"
+  - "Fail conditions son automaticas: 1 trigger = frente < 9/10"
+  - "P0 por falsa clasificacion = cualquier fail condition triggered en produccion"

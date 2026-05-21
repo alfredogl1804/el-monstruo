@@ -1,0 +1,28 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+title: "Capability Card v0.2"
+description: "Modela una capacidad técnica aislada de un modelo, API o herramienta AI."
+type: "object"
+properties:
+  id:
+    type: "string"
+    pattern: "^CAP-[A-Z0-9]+-[0-9]{3}$"
+  name:
+    type: "string"
+  provider:
+    type: "string"
+  description:
+    type: "string"
+  maturity:
+    type: "string"
+    enum: ["experimental", "beta", "production"]
+  cost_profile:
+    type: "string"
+    enum: ["free", "low", "medium", "high"]
+  integration_complexity:
+    type: "string"
+    enum: ["low", "medium", "high"]
+  key_constraints:
+    type: "array"
+    items:
+      type: "string"
+required: ["id", "name", "provider", "description", "maturity", "cost_profile", "integration_complexity"]

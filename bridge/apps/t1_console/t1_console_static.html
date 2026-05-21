@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T1 Decision Operating Console (Local Read-Only)</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .section { margin-top: 30px; }
+        .card { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 4px; background-color: #fafafa; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+        .badge-draft { background-color: #ffeeba; color: #856404; }
+        .badge-score { background-color: #cce5ff; color: #856404; }
+        .action-area { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: not-allowed; font-weight: bold; }
+        .btn-approve { background-color: #28a745; color: white; opacity: 0.5; }
+        .btn-reject { background-color: #dc3545; color: white; opacity: 0.5; }
+        .warning { color: #dc3545; font-weight: bold; margin-bottom: 20px; padding: 10px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; }
+        code { background-color: #eee; padding: 2px 4px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>T1 Decision Operating Console</h1>
+        <div class="warning">
+            WARNING: This is a static, read-only HTML file generated locally. Buttons are disabled. To approve a sprint, T1 must create a JSON file in the State Fabric Decision Queue.
+        </div>
+
+        <div class="section">
+            <h2>Pending Sprint Drafts (from Sprint Compiler v0.1)</h2>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3>SPR-ORACLE-004: State Persistence Layer for Cross-Cycle Memory</h3>
+                    <div>
+                        <span class="badge badge-draft">DRAFT</span>
+                        <span class="badge badge-score">Value: 92 | Risk: 30</span>
+                    </div>
+                </div>
+                <p><strong>Objective:</strong> Enable the reactor to remember context between cron executions using local JSON files.</p>
+                <p><strong>Cost:</strong> $0.01 USD | <strong>Time to Value:</strong> 1 cycle</p>
+                <p><strong>T1 Decision Needed:</strong> Approve creation of memory module and confirm local JSON is acceptable.</p>
+                <div class="action-area">
+                    <p><em>To approve, run in sandbox:</em></p>
+                    <code>echo '{"sprint_id": "SPR-ORACLE-004", "decision": "APPROVE", "signature": "T1"}' > bridge/state_fabric/queue/decision_001.json</code>
+                    <br><br>
+                    <button class="btn btn-approve" disabled>Approve (Disabled)</button>
+                    <button class="btn btn-reject" disabled>Reject (Disabled)</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>SPR-ORACLE-005: Automated Code Reviewer Loop</h3>
+                    <div>
+                        <span class="badge badge-draft">DRAFT</span>
+                        <span class="badge badge-score">Value: 85 | Risk: 10</span>
+                    </div>
+                </div>
+                <p><strong>Objective:</strong> Audit generated code before execution to ensure hard rules compliance.</p>
+                <p><strong>Cost:</strong> $0.00 USD | <strong>Time to Value:</strong> 2 cycles</p>
+                <p><strong>T1 Decision Needed:</strong> Approve AST parsing rules.</p>
+                <div class="action-area">
+                    <p><em>To approve, run in sandbox:</em></p>
+                    <code>echo '{"sprint_id": "SPR-ORACLE-005", "decision": "APPROVE", "signature": "T1"}' > bridge/state_fabric/queue/decision_002.json</code>
+                    <br><br>
+                    <button class="btn btn-approve" disabled>Approve (Disabled)</button>
+                    <button class="btn btn-reject" disabled>Reject (Disabled)</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

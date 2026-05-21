@@ -1,0 +1,108 @@
+{
+  "catalog_version": "v0.1.0",
+  "generated_by": "loop_oraculo_ias",
+  "generated_at": "2026-05-20T23:29:37Z",
+  "maturity_level": "M1",
+  "total_capabilities": 6,
+  "capabilities": [
+    {
+      "id": "CAP-001",
+      "model": "GPT-4o",
+      "feature": "Real-time Vision Analysis",
+      "discovered_at": "2024-05-13",
+      "application": "UI/UX Audit Automático — El Monstruo puede auditar interfaces visualmente",
+      "power_stack": [
+        "OpenAI API (gpt-4o)",
+        "Screenshot capture",
+        "Prompt template: UI audit"
+      ],
+      "sprint_candidate": "SPR-UI-AUDIT-001",
+      "confidence": 0.85,
+      "status": "PROPOSED"
+    },
+    {
+      "id": "CAP-002",
+      "model": "Claude Opus 4",
+      "feature": "Extended Thinking (128k reasoning)",
+      "discovered_at": "2025-03-14",
+      "application": "Auditor Profundo — validación exhaustiva de arquitectura y decisiones",
+      "power_stack": [
+        "Anthropic API (claude-opus-4)",
+        "Context injection",
+        "Structured output"
+      ],
+      "sprint_candidate": "SPR-DEEP-AUDITOR-001",
+      "confidence": 0.9,
+      "status": "PROPOSED"
+    },
+    {
+      "id": "CAP-003",
+      "model": "Gemini 2.5 Pro",
+      "feature": "1M token context + grounding",
+      "discovered_at": "2025-03-25",
+      "application": "Memoria de Largo Plazo — ingerir corpus completo del Monstruo en una sola ventana",
+      "power_stack": [
+        "Google AI API (gemini-2.5-pro)",
+        "Corpus loader",
+        "Grounding API"
+      ],
+      "sprint_candidate": "SPR-LONG-MEMORY-001",
+      "confidence": 0.8,
+      "status": "PROPOSED"
+    },
+    {
+      "id": "CAP-004",
+      "model": "Grok 3",
+      "feature": "Real-time web + DeepSearch",
+      "discovered_at": "2025-02-17",
+      "application": "Validador en Tiempo Real — verificar claims contra internet actual",
+      "power_stack": [
+        "xAI API (grok-3)",
+        "DeepSearch mode",
+        "Citation extraction"
+      ],
+      "sprint_candidate": "SPR-REALTIME-VALIDATOR-001",
+      "confidence": 0.88,
+      "status": "PROPOSED"
+    },
+    {
+      "id": "CAP-005",
+      "model": "Perplexity Sonar Pro",
+      "feature": "Reasoning + citations + real-time",
+      "discovered_at": "2025-11-01",
+      "application": "Investigador Autónomo — research profundo con fuentes verificables",
+      "power_stack": [
+        "Perplexity API (sonar-pro)",
+        "Citation parser",
+        "Confidence scoring"
+      ],
+      "sprint_candidate": "SPR-AUTO-RESEARCHER-001",
+      "confidence": 0.92,
+      "status": "PROPOSED"
+    },
+    {
+      "id": "CAP-006",
+      "model": "DeepSeek R1",
+      "feature": "Open-weight reasoning (MIT license)",
+      "discovered_at": "2025-01-20",
+      "application": "Soberanía de Razonamiento — modelo propio deployable sin dependencia externa",
+      "power_stack": [
+        "DeepSeek API or self-hosted",
+        "vLLM/SGLang",
+        "GPU allocation"
+      ],
+      "sprint_candidate": "SPR-SOVEREIGN-REASONING-001",
+      "confidence": 0.75,
+      "status": "PROPOSED"
+    }
+  ],
+  "meta": {
+    "source": "static_v0_seed",
+    "next_evolution": "Live API scanning + model benchmarks",
+    "confidence_range": [
+      0.75,
+      0.92
+    ],
+    "sprint_candidates_generated": 6
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "embryo_id": "oracle_ai_embryo_r0",
+  "task_id": "map_capability_to_application",
+  "action_class": "A1_ANALYZE",
+  "dispatcher_decision": "ALLOW",
+  "timestamp": "2026-05-21T04:28:16.847566Z",
+  "cost_usd": 0.00028695,
+  "output": {
+    "task_id": "map_capability_to_application",
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "response_raw": "```json\n[\n    {\n        \"claim_id\": \"capability_001\",\n        \"claim_text\": \"Multimodal reasoning can be applied in customer support chatbots to analyze text and image inputs simultaneously.\",\n        \"claim_type\": \"factual\",\n        \"evidence_status\": \"VERIFIED_PROVIDER\",\n        \"source_ref\": \"https://www.ibm.com/watson/multimodal\",\n        \"confidence\": 0.9\n    },\n    {\n        \"claim_id\": \"capability_002\",\n        \"claim_text\": \"Code generation capabilities enable software development tools to automatically generate code snippets based on natural language prompts.\",\n        \"claim_type\": \"factual\",\n        \"evidence_status\": \"VERIFIED_PROVIDER\",\n        \"source_ref\": \"https://openai.com/api/\",\n        \"confidence\": 0.95\n    },\n    {\n        \"claim_id\": \"capability_003\",\n        \"claim_text\": \"Real-time search functionality allows users to query databases and receive updated results instantaneously.\",\n        \"claim_type\": \"factual\",\n        \"evidence_status\": \"VERIFIED_LOCAL\",\n    ",
+    "claims": [
+      {
+        "claim_id": "capability_001",
+        "claim_text": "Multimodal reasoning can be applied in customer support chatbots to analyze text and image inputs simultaneously.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_PROVIDER",
+        "source_ref": "https://www.ibm.com/watson/multimodal",
+        "freshness_required": false,
+        "confidence": 0.9
+      },
+      {
+        "claim_id": "capability_002",
+        "claim_text": "Code generation capabilities enable software development tools to automatically generate code snippets based on natural language prompts.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_PROVIDER",
+        "source_ref": "https://openai.com/api/",
+        "freshness_required": false,
+        "confidence": 0.95
+      },
+      {
+        "claim_id": "capability_003",
+        "claim_text": "Real-time search functionality allows users to query databases and receive updated results instantaneously.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_LOCAL",
+        "source_ref": "none",
+        "freshness_required": false,
+        "confidence": 0.85
+      },
+      {
+        "claim_id": "capability_004",
+        "claim_text": "Voice synthesis technology can be used in virtual assistants to provide more natural and engaging interactions with users.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_PROVIDER",
+        "source_ref": "https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech/",
+        "freshness_required": false,
+        "confidence": 0.93
+      },
+      {
+        "claim_id": "capability_005",
+        "claim_text": "Video understanding capabilities enable the analysis and tagging of video content for enhanced searchability and categorization.",
+        "claim_type": "factual",
+        "evidence_status": "VERIFIED_LOCAL",
+        "source_ref": "none",
+        "freshness_required": false,
+        "confidence": 0.88
+      }
+    ],
+    "grounding_level": 10,
+    "next_valid_action": "CANDIDATE_READY_FOR_T1",
+    "cost": 0.00028695
+  },
+  "grounding_level": 10,
+  "next_valid_action": "CANDIDATE_READY_FOR_T1"
+}

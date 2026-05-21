@@ -1,0 +1,107 @@
+{
+  "version": "0.1.0",
+  "created_at": "2026-05-21T05:00:00Z",
+  "entries": [
+    {
+      "memory_id": "MEM-OAI-1779353499",
+      "timestamp": "2026-05-21T04:51:39.068635Z",
+      "source_embryo_id": "oracle_ai_embryo_r0",
+      "cycle_id": 7,
+      "task_id": "detect_new_ai_capability_candidates",
+      "action_class": "A0_OBSERVE",
+      "artifact_refs": [
+        "detect_new_ai_capability_candidates_20260521T045139.json"
+      ],
+      "claims_count": 3,
+      "grounding_score": 6,
+      "auditor_verdict": "PENDING",
+      "value_score": 7.5,
+      "cost_usd": 0.00028529999999999994,
+      "lessons": [
+        "Low grounding score \u2014 need more verified sources"
+      ],
+      "avoid_next_time": [],
+      "next_best_action": "REQUIRES_T1_REVIEW",
+      "status": "active"
+    },
+    {
+      "memory_id": "MEM-AUD-1779353514",
+      "timestamp": "2026-05-21T04:51:54.478104Z",
+      "source_embryo_id": "oracle_auditor_embryo_r0",
+      "cycle_id": 5,
+      "task_id": "audit_oracle_latest_output",
+      "action_class": "A1_ANALYZE",
+      "artifact_refs": [
+        "detect_new_ai_capability_candidates_20260521T045139.json"
+      ],
+      "claims_count": 0,
+      "grounding_score": 10,
+      "auditor_verdict": "PASS",
+      "value_score": 10,
+      "cost_usd": 0.00019395,
+      "lessons": [
+        "Oracle grounding quality is improving \u2014 current approach works"
+      ],
+      "avoid_next_time": [],
+      "next_best_action": "CANDIDATE_READY_FOR_T1",
+      "status": "active"
+    },
+    {
+      "memory_id": "MEM-OAI-1779354770",
+      "timestamp": "2026-05-21T05:12:50.150738Z",
+      "source_embryo_id": "oracle_ai_embryo_r0",
+      "cycle_id": 8,
+      "task_id": "map_capability_to_application",
+      "action_class": "A1_ANALYZE",
+      "artifact_refs": [
+        "map_capability_to_application_20260521T051250.json"
+      ],
+      "claims_count": 5,
+      "grounding_score": 9,
+      "auditor_verdict": "PENDING",
+      "value_score": 10,
+      "cost_usd": 0.00029235,
+      "lessons": [],
+      "avoid_next_time": [],
+      "next_best_action": "CANDIDATE_READY_FOR_T1",
+      "status": "active"
+    },
+    {
+      "memory_id": "MEM-AUD-1779354779",
+      "timestamp": "2026-05-21T05:12:59.775894Z",
+      "source_embryo_id": "oracle_auditor_embryo_r0",
+      "cycle_id": 6,
+      "task_id": "audit_oracle_latest_output",
+      "action_class": "A1_ANALYZE",
+      "artifact_refs": [
+        "map_capability_to_application_20260521T051250.json"
+      ],
+      "claims_count": 0,
+      "grounding_score": 10,
+      "auditor_verdict": "PASS",
+      "value_score": 10,
+      "cost_usd": 0.0001875,
+      "lessons": [
+        "Oracle grounding quality is improving \u2014 current approach works"
+      ],
+      "avoid_next_time": [],
+      "next_best_action": "CANDIDATE_READY_FOR_T1",
+      "status": "active"
+    }
+  ],
+  "stats": {
+    "total_entries": 4,
+    "total_archived": 0,
+    "total_active": 4,
+    "unique_embryos": [
+      "oracle_auditor_embryo_r0",
+      "oracle_ai_embryo_r0"
+    ],
+    "unique_tasks": [
+      "detect_new_ai_capability_candidates",
+      "audit_oracle_latest_output",
+      "map_capability_to_application"
+    ],
+    "total_cost_usd": 0.000959
+  }
+}

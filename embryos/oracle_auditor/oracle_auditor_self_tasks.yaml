@@ -1,0 +1,52 @@
+self_tasks:
+  - task_id: audit_oracle_latest_output
+    description: >
+      Audit the most recent output produced by oracle_ai_embryo_r0.
+      Evaluate for: hallucination, low value, scope creep, R0 compliance,
+      actionability, and factual grounding.
+    action_class: A1_ANALYZE
+    priority_base: 9
+    freshness_bonus: 2
+    compounding_value: HIGH
+    stop_condition: "No oracle output available"
+
+  - task_id: score_oracle_sprint_candidate
+    description: >
+      Score the latest sprint candidate produced by the Oracle on 5 dimensions:
+      value (1-10), risk (1-10), feasibility (1-10), R0_compliance (binary),
+      actionability (1-10).
+    action_class: A1_ANALYZE
+    priority_base: 8
+    freshness_bonus: 1
+    compounding_value: HIGH
+    stop_condition: "No sprint candidate available"
+
+  - task_id: detect_oracle_hallucination
+    description: >
+      Analyze oracle output for hallucinated claims: non-existent APIs,
+      wrong model names, fabricated release dates, impossible integrations.
+    action_class: A1_ANALYZE
+    priority_base: 8
+    freshness_bonus: 2
+    compounding_value: MEDIUM
+    stop_condition: "No oracle output available"
+
+  - task_id: verify_oracle_scope_compliance
+    description: >
+      Verify that oracle output stays within R0 boundaries: no R1 proposals,
+      no production deployments, no DB writes, no secret access.
+    action_class: A0_OBSERVE
+    priority_base: 7
+    freshness_bonus: 1
+    compounding_value: MEDIUM
+    stop_condition: "No oracle output available"
+
+  - task_id: generate_audit_summary_for_t1
+    description: >
+      Produce a structured audit summary for T1 consumption: overall verdict,
+      risk flags, recommended action, blocked items.
+    action_class: A3_CREATE_NON_PRODUCTIVE_ARTIFACT
+    priority_base: 6
+    freshness_bonus: 0
+    compounding_value: LOW
+    stop_condition: "requires prior audit results"

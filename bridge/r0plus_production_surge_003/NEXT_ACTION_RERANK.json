@@ -1,0 +1,81 @@
+{
+  "version": "0.1",
+  "generated_at": "2026-05-21T08:12:00Z",
+  "context": "Post-regression clearance, provider risk verified, local-only mode",
+  "top_5_actions_updated": [
+    {
+      "rank": 1,
+      "action_id": "PRODUCE_NEXT_SURGE",
+      "score": 0.42,
+      "category": "PRODUCTION",
+      "status": "IN_PROGRESS",
+      "blocked_by_provider": false,
+      "description": "Produce 3 new local R0+ artifacts"
+    },
+    {
+      "rank": 2,
+      "action_id": "DIVERSIFY_TASKS",
+      "score": 0.38,
+      "category": "OPTIMIZATION",
+      "status": "OPEN",
+      "blocked_by_provider": false,
+      "description": "Reduce overspecialization via new artifact categories"
+    },
+    {
+      "rank": 3,
+      "action_id": "UPGRADE_OPS_LAYER",
+      "score": 0.35,
+      "category": "INFRASTRUCTURE",
+      "status": "OPEN",
+      "blocked_by_provider": false,
+      "description": "Add capabilities to artifact ops"
+    },
+    {
+      "rank": 4,
+      "action_id": "RUN_ANTHROPIC_MIGRATION_PATCH",
+      "score": 0.32,
+      "category": "MIGRATION",
+      "status": "BLOCKED",
+      "blocked_by_provider": true,
+      "description": "Migrate from Anthropic to alternative provider — requires T1 approval"
+    },
+    {
+      "rank": 5,
+      "action_id": "ADDRESS_COST_DRIFT",
+      "score": 0.28,
+      "category": "MONITORING",
+      "status": "OPEN",
+      "blocked_by_provider": false,
+      "description": "Improve cost monitoring with ceiling filter"
+    }
+  ],
+  "actions_blocked_by_provider_risk": [
+    "RUN_ANTHROPIC_MIGRATION_PATCH",
+    "ENABLE_PROVIDER_CALLS",
+    "ACTIVATE_R1"
+  ],
+  "actions_allowed_local_only": [
+    "PRODUCE_NEXT_SURGE",
+    "DIVERSIFY_TASKS",
+    "UPGRADE_OPS_LAYER",
+    "ADDRESS_COST_DRIFT",
+    "INVESTIGATE_REGRESSION"
+  ],
+  "selected_artifacts_for_surge_003": [
+    {
+      "id": "C",
+      "name": "t1_decision_pack_compiler_v0_1.py",
+      "rationale": "Highest T1 value — compiles all signals into a single decision pack for T1, reducing manual synthesis. Directly serves PRODUCE_NEXT_SURGE and UPGRADE_OPS_LAYER."
+    },
+    {
+      "id": "A",
+      "name": "regression_false_positive_filter_v0_1.py",
+      "rationale": "Directly addresses the regression investigation finding — prevents future false positives from fixture ceiling values. Serves ADDRESS_COST_DRIFT and reduces noise."
+    },
+    {
+      "id": "I",
+      "name": "provider_risk_local_blocker_v0_1.py",
+      "rationale": "Enforces the provider risk constraint programmatically — blocks any operation that would require provider calls. Critical safety artifact given Anthropic risk status."
+    }
+  ]
+}

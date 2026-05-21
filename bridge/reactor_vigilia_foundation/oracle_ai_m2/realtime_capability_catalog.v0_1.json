@@ -1,0 +1,202 @@
+{
+  "catalog_id": "oracle-m2-realtime-catalog-001",
+  "sprint_id": "SPR-ORACLE-AI-M2-001",
+  "timestamp_utc": "2026-05-20T23:47:05.907140+00:00",
+  "capabilities": [
+    {
+      "capability_id": "openai_audio",
+      "provider_id": "openai",
+      "capability_type": "audio",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "babbage-002",
+      "verified_at_utc": "2026-05-20T23:47:05.907197+00:00",
+      "raw_response_hash": "3cc16297e272299b9ba6901731f6ec116e21aad2daa30927fdbc23dcd5b512be",
+      "notes": null
+    },
+    {
+      "capability_id": "openai_code_execution",
+      "provider_id": "openai",
+      "capability_type": "code_execution",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "babbage-002",
+      "verified_at_utc": "2026-05-20T23:47:05.907197+00:00",
+      "raw_response_hash": "3cc16297e272299b9ba6901731f6ec116e21aad2daa30927fdbc23dcd5b512be",
+      "notes": null
+    },
+    {
+      "capability_id": "openai_embeddings",
+      "provider_id": "openai",
+      "capability_type": "embeddings",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "babbage-002",
+      "verified_at_utc": "2026-05-20T23:47:05.907197+00:00",
+      "raw_response_hash": "3cc16297e272299b9ba6901731f6ec116e21aad2daa30927fdbc23dcd5b512be",
+      "notes": null
+    },
+    {
+      "capability_id": "openai_structured_outputs",
+      "provider_id": "openai",
+      "capability_type": "structured_outputs",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "babbage-002",
+      "verified_at_utc": "2026-05-20T23:47:05.907197+00:00",
+      "raw_response_hash": "3cc16297e272299b9ba6901731f6ec116e21aad2daa30927fdbc23dcd5b512be",
+      "notes": null
+    },
+    {
+      "capability_id": "openai_text_reasoning",
+      "provider_id": "openai",
+      "capability_type": "text_reasoning",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "babbage-002",
+      "verified_at_utc": "2026-05-20T23:47:05.907197+00:00",
+      "raw_response_hash": "3cc16297e272299b9ba6901731f6ec116e21aad2daa30927fdbc23dcd5b512be",
+      "notes": null
+    },
+    {
+      "capability_id": "openai_tool_use",
+      "provider_id": "openai",
+      "capability_type": "tool_use",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "babbage-002",
+      "verified_at_utc": "2026-05-20T23:47:05.907197+00:00",
+      "raw_response_hash": "3cc16297e272299b9ba6901731f6ec116e21aad2daa30927fdbc23dcd5b512be",
+      "notes": null
+    },
+    {
+      "capability_id": "openai_vision",
+      "provider_id": "openai",
+      "capability_type": "vision",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "babbage-002",
+      "verified_at_utc": "2026-05-20T23:47:05.907197+00:00",
+      "raw_response_hash": "3cc16297e272299b9ba6901731f6ec116e21aad2daa30927fdbc23dcd5b512be",
+      "notes": null
+    },
+    {
+      "capability_id": "anthropic_text_reasoning",
+      "provider_id": "anthropic",
+      "capability_type": "text_reasoning",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "claude-haiku-4-5-20251001",
+      "verified_at_utc": "2026-05-20T23:47:07.069703+00:00",
+      "raw_response_hash": "c9428a09fc1bc1578103db16f83bd615e44506de87d141eb1a2232cc8d429bd3",
+      "notes": null
+    },
+    {
+      "capability_id": "anthropic_tool_use",
+      "provider_id": "anthropic",
+      "capability_type": "tool_use",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "claude-haiku-4-5-20251001",
+      "verified_at_utc": "2026-05-20T23:47:07.069703+00:00",
+      "raw_response_hash": "c9428a09fc1bc1578103db16f83bd615e44506de87d141eb1a2232cc8d429bd3",
+      "notes": null
+    },
+    {
+      "capability_id": "google_gemini_audio",
+      "provider_id": "google_gemini",
+      "capability_type": "audio",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "antigravity-preview-05-2026",
+      "verified_at_utc": "2026-05-20T23:47:09.732501+00:00",
+      "raw_response_hash": "8dca435c96ee2f05160654f9a31d4af507b7efedc7c77fa8b9e5614b8f645993",
+      "notes": null
+    },
+    {
+      "capability_id": "google_gemini_embeddings",
+      "provider_id": "google_gemini",
+      "capability_type": "embeddings",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "antigravity-preview-05-2026",
+      "verified_at_utc": "2026-05-20T23:47:09.732501+00:00",
+      "raw_response_hash": "8dca435c96ee2f05160654f9a31d4af507b7efedc7c77fa8b9e5614b8f645993",
+      "notes": null
+    },
+    {
+      "capability_id": "google_gemini_image_generation",
+      "provider_id": "google_gemini",
+      "capability_type": "image_generation",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "antigravity-preview-05-2026",
+      "verified_at_utc": "2026-05-20T23:47:09.732501+00:00",
+      "raw_response_hash": "8dca435c96ee2f05160654f9a31d4af507b7efedc7c77fa8b9e5614b8f645993",
+      "notes": null
+    },
+    {
+      "capability_id": "google_gemini_structured_outputs",
+      "provider_id": "google_gemini",
+      "capability_type": "structured_outputs",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "antigravity-preview-05-2026",
+      "verified_at_utc": "2026-05-20T23:47:09.732501+00:00",
+      "raw_response_hash": "8dca435c96ee2f05160654f9a31d4af507b7efedc7c77fa8b9e5614b8f645993",
+      "notes": null
+    },
+    {
+      "capability_id": "google_gemini_text_reasoning",
+      "provider_id": "google_gemini",
+      "capability_type": "text_reasoning",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "antigravity-preview-05-2026",
+      "verified_at_utc": "2026-05-20T23:47:09.732501+00:00",
+      "raw_response_hash": "8dca435c96ee2f05160654f9a31d4af507b7efedc7c77fa8b9e5614b8f645993",
+      "notes": null
+    },
+    {
+      "capability_id": "google_gemini_tool_use",
+      "provider_id": "google_gemini",
+      "capability_type": "tool_use",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "antigravity-preview-05-2026",
+      "verified_at_utc": "2026-05-20T23:47:09.732501+00:00",
+      "raw_response_hash": "8dca435c96ee2f05160654f9a31d4af507b7efedc7c77fa8b9e5614b8f645993",
+      "notes": null
+    },
+    {
+      "capability_id": "google_gemini_vision",
+      "provider_id": "google_gemini",
+      "capability_type": "vision",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "antigravity-preview-05-2026",
+      "verified_at_utc": "2026-05-20T23:47:09.732501+00:00",
+      "raw_response_hash": "8dca435c96ee2f05160654f9a31d4af507b7efedc7c77fa8b9e5614b8f645993",
+      "notes": null
+    },
+    {
+      "capability_id": "xai_grok_text_reasoning",
+      "provider_id": "xai_grok",
+      "capability_type": "text_reasoning",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "grok-4.20-0309-non-reasoning",
+      "verified_at_utc": "2026-05-20T23:47:10.338215+00:00",
+      "raw_response_hash": "d2541bd74738fd9e516bfc8cc70838878f62ca7d5bc0ce158d18ee5394126bf9",
+      "notes": null
+    },
+    {
+      "capability_id": "xai_grok_tool_use",
+      "provider_id": "xai_grok",
+      "capability_type": "tool_use",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "grok-4.20-0309-non-reasoning",
+      "verified_at_utc": "2026-05-20T23:47:10.338215+00:00",
+      "raw_response_hash": "d2541bd74738fd9e516bfc8cc70838878f62ca7d5bc0ce158d18ee5394126bf9",
+      "notes": null
+    },
+    {
+      "capability_id": "xai_grok_vision",
+      "provider_id": "xai_grok",
+      "capability_type": "vision",
+      "evidence_status": "REALTIME_VERIFIED",
+      "model_id": "grok-4.20-0309-non-reasoning",
+      "verified_at_utc": "2026-05-20T23:47:10.338215+00:00",
+      "raw_response_hash": "d2541bd74738fd9e516bfc8cc70838878f62ca7d5bc0ce158d18ee5394126bf9",
+      "notes": null
+    }
+  ],
+  "summary": {
+    "total_capabilities": 19,
+    "providers_verified": 4,
+    "providers_blocked": 2
+  }
+}

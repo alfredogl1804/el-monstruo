@@ -1,0 +1,40 @@
+# 05 — EVENT LOG / STATE SCAN
+
+| sha7 | event_log | current_state | scheduler_state | embryo_state | t1_directive | decision_queue |
+|---|---|---|---|---|---|---|
+| afc92ea | False | False | False | False | False | False |
+| f1824ef | True | False | False | False | False | False |
+| 72aa46e | True | False | False | False | False | False |
+| 4e0745e | True | False | False | False | False | False |
+| 8aa7cca | True | False | False | False | False | False |
+| 2b9aca2 | True | False | False | False | False | False |
+| 1d79fd7 | False | False | False | False | False | False |
+| 6bd9caa | True | False | False | True | False | False |
+| b3e1c36 | True | False | False | True | False | False |
+| 7fb3303 | True | False | False | True | False | False |
+| 4e5c90c | True | False | False | True | False | False |
+| d61ac0c | True | False | False | True | False | False |
+| b54619a | True | False | False | True | False | False |
+| ea7080d | True | False | False | True | True | False |
+| a913412 | True | False | False | True | True | False |
+| 2f58f9f | False | False | False | False | False | False |
+| 6c472b0 | False | False | False | False | False | False |
+| d41d14c | False | False | False | False | False | False |
+| 5041192 | False | False | False | False | False | False |
+| 97d9a50 | False | False | False | False | False | False |
+| d876a21 | False | False | False | False | False | False |
+| d6ea896 | False | False | False | False | False | False |
+| afee650 | False | False | False | False | False | False |
+| 319874e | False | False | False | False | False | False |
+| 604acb9 | False | False | False | False | False | False |
+| f678fff | False | False | False | False | False | False |
+| d4a4716 | False | False | False | False | False | False |
+| 487f05e | False | False | False | False | False | False |
+| ca9c266 | False | False | False | False | False | False |
+| a17b1dc | False | False | False | False | False | False |
+| bc78e87 | False | False | False | False | False | False |
+| eef53fd | False | False | False | False | False | False |
+| 08c7767 | False | False | False | False | False | False |
+| ddad037 | False | False | False | False | False | False |
+| 2edd547 | False | False | False | False | False | False |
+| 5a0bb2f | True | False | False | False | False | False |

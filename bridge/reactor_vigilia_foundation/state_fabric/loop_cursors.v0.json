@@ -1,0 +1,11 @@
+{
+  "loop_vigia": { "last_event_id": 0, "updated_at": "2026-05-20T15:30:00Z" },
+  "loop_memoria_memento": { "last_event_id": 0, "updated_at": "2026-05-20T15:30:00Z" },
+  "loop_oraculo_ias": { "last_event_id": 0, "updated_at": "2026-05-20T15:30:00Z" },
+  "loop_humanplus_e2e": { "last_event_id": 0, "updated_at": "2026-05-20T15:30:00Z" },
+  "loop_peritos": { "last_event_id": 0, "updated_at": "2026-05-20T15:30:00Z" },
+  "loop_ejecutor": { "last_event_id": 0, "updated_at": "2026-05-20T15:30:00Z" },
+  "loop_auditor": { "last_event_id": 0, "updated_at": "2026-05-20T15:30:00Z" },
+  "loop_aprendizaje": { "last_event_id": 0, "updated_at": "2026-05-20T15:30:00Z" },
+  "loop_unified_face": { "last_event_id": 0, "updated_at": "2026-05-20T15:30:00Z" }
+}

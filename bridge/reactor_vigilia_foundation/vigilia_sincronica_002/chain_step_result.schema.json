@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Chain Step Result",
+  "description": "Result of a single step in the Vigilia chain execution.",
+  "type": "object",
+  "required": [
+    "step_id",
+    "loop_id",
+    "status",
+    "started_at",
+    "completed_at",
+    "actions_allowed",
+    "actions_denied",
+    "output_files",
+    "events_emitted"
+  ],
+  "properties": {
+    "step_id": {
+      "type": "integer",
+      "description": "Sequential step number in the chain."
+    },
+    "loop_id": {
+      "type": "string",
+      "description": "ID of the loop that executed this step."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["SUCCESS", "PARTIAL", "BLOCKED", "ERROR"],
+      "description": "Outcome of the step execution."
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actions_allowed": {
+      "type": "integer",
+      "description": "Number of actions approved by the Dispatcher."
+    },
+    "actions_denied": {
+      "type": "integer",
+      "description": "Number of actions denied by the Dispatcher."
+    },
+    "output_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Paths to files produced by this step."
+    },
+    "events_emitted": {
+      "type": "integer",
+      "description": "Total events written to the chain event log delta."
+    },
+    "verdict": {
+      "type": "string",
+      "description": "Optional verdict (for auditor/risk steps)."
+    },
+    "message": {
+      "type": "string",
+      "description": "Human-readable summary of the step outcome."
+    }
+  }
+}

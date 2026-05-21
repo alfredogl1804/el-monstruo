@@ -1,0 +1,76 @@
+{
+  "decisions": [
+    {
+      "id": "DEC-001",
+      "description": "SPR-REACTOR-SOBERANO-001 aprobación detallada (diseño R0 formal del reactor como economía de potencia).",
+      "t1_status": "SUPERSEDED",
+      "context_ref": "bridge/doctrine_candidates/spr_reactor_vigilia_foundation_001/00_EXECUTIVE_STACK.md",
+      "created_at": "2026-05-20T06:00:00Z",
+      "signed_at": null,
+      "notes": "Reactor Soberano reclasificado como economía/vocabulario dentro del Reactor de Vigilia (Capa 4). No requiere sprint separado."
+    },
+    {
+      "id": "DEC-002",
+      "description": "Cockpit v0.3 destino: ¿evoluciona a control plane productivo o se archiva como demo?",
+      "t1_status": "PENDING",
+      "context_ref": "bridge/thread_archives/2026_05_20_chatgpt_monstruo_sprint_factory/09_HITL_COCKPIT_AND_NIGHTLY_BUILDER_STATE.md",
+      "created_at": "2026-05-20T06:00:00Z",
+      "signed_at": null,
+      "notes": null
+    },
+    {
+      "id": "DEC-003",
+      "description": "Sprint Factory v2 aprobación formal como pipeline operativo.",
+      "t1_status": "PENDING",
+      "context_ref": "bridge/thread_archives/2026_05_20_chatgpt_monstruo_sprint_factory/02_SPRINT_FACTORY_V2.md",
+      "created_at": "2026-05-20T06:00:00Z",
+      "signed_at": null,
+      "notes": null
+    },
+    {
+      "id": "DEC-004",
+      "description": "Embrión Perito model aprobación (M0-M5, schema de expertise).",
+      "t1_status": "PENDING",
+      "context_ref": "bridge/doctrine_candidates/embryo_peritos_2026_05_20/02_EMBRION_PERITO_DOCTRINE_DRAFT.md",
+      "created_at": "2026-05-20T06:00:00Z",
+      "signed_at": null,
+      "notes": null
+    },
+    {
+      "id": "DEC-005",
+      "description": "SPR-ORACLE-AI-001 ejecución inicial (primer Embrión Perito: Oráculo de IAs).",
+      "t1_status": "SIGNED",
+      "context_ref": "bridge/doctrine_candidates/spr_reactor_vigilia_foundation_001/09_T1_APPROVAL_RECORD.md",
+      "created_at": "2026-05-20T06:00:00Z",
+      "signed_at": "2026-05-20T09:30:00Z",
+      "notes": "Approved by Alfredo T1 on 2026-05-20. Commit 210ab5a."
+    },
+    {
+      "id": "DEC-006",
+      "description": "Modos operativos del Monstruo: triggers y transiciones entre modos.",
+      "t1_status": "PENDING",
+      "context_ref": null,
+      "created_at": "2026-05-20T06:00:00Z",
+      "signed_at": null,
+      "notes": null
+    },
+    {
+      "id": "DEC-007",
+      "description": "Primer batch Self-Evolution R1: definir las primeras tareas autónomas del Nightly Builder.",
+      "t1_status": "PENDING",
+      "context_ref": "bridge/reactor_vigilia_foundation/autonomy_ladder/r1_self_evolution_allowlist.yaml",
+      "created_at": "2026-05-20T09:30:00Z",
+      "signed_at": null,
+      "notes": "R1 UNLOCKED pero batch específico pendiente de definición."
+    },
+    {
+      "id": "DEC-008",
+      "description": "Tecnología futura State Fabric: file-backed vs Supabase vs Redis vs PostgresSaver.",
+      "t1_status": "PENDING",
+      "context_ref": "bridge/reactor_vigilia_foundation/state_fabric/01_STATE_FABRIC_VISION.md",
+      "created_at": "2026-05-20T15:30:00Z",
+      "signed_at": null,
+      "notes": "v0 = file-backed local-first. Producción = decisión futura."
+    }
+  ]
+}

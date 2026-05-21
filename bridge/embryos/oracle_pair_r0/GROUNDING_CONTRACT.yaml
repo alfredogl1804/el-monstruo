@@ -1,0 +1,41 @@
+contract_id: "oracle_pair_grounding_contract"
+version: "1.0.0"
+
+claim_types:
+  - factual
+  - analytical
+  - hypothetical
+
+evidence_statuses:
+  - VERIFIED_LOCAL
+  - VERIFIED_PROVIDER
+  - NEEDS_REAL_TIME_CHECK
+  - NO_SOURCE
+  - HYPOTHESIS
+  - CANDIDATE_ONLY
+
+oracle_requirements:
+  mandatory_fields_per_claim:
+    - claim_id
+    - claim_text
+    - claim_type
+    - evidence_status
+    - source_ref
+    - freshness_required
+    - confidence
+  output_level_fields:
+    - grounding_level
+    - next_valid_action
+
+auditor_enforcement:
+  block_conditions:
+    - "claim_type == 'factual' AND evidence_status == 'NO_SOURCE'"
+    - "claim_type == 'factual' AND evidence_status == 'HYPOTHESIS'"
+  partial_conditions:
+    - "evidence_status == 'NEEDS_REAL_TIME_CHECK'"
+  pass_conditions:
+    - "grounding_level >= 8"
+    - "no P0 unverified factual claims"
+  score_penalties:
+    - condition: "factual_grounding < 7"
+      action: "lower_overall_score"

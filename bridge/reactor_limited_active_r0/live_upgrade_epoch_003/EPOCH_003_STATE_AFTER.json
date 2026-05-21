@@ -1,0 +1,13 @@
+{
+  "epoch": 3,
+  "cycle_number": 3,
+  "timestamp": "2026-05-21T02:37:29.463926+00:00",
+  "kill_switch_active": false,
+  "total_cost_this_cycle": 0.004154,
+  "total_cost_accumulated": 0.017887,
+  "providers_success": 4,
+  "providers_total": 4,
+  "auditor_verdict": "PASS",
+  "oracle_sprint_candidates": 5,
+  "recommendation": "KEEP_EPOCH_3_ACTIVE"
+}

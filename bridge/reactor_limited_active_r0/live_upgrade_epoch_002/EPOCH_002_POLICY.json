@@ -1,0 +1,40 @@
+{
+  "epoch": 2,
+  "mode": "LIMITED_ACTIVE_R0",
+  "kill_switch_active": false,
+  "budget": {
+    "max_usd_per_cycle": 0.03,
+    "max_usd_per_day": 0.05
+  },
+  "providers": {
+    "allowed": ["openai", "anthropic", "google", "xai"],
+    "blocked": ["perplexity", "deepseek"],
+    "max_calls_per_provider": 1,
+    "retries": 0
+  },
+  "chain": [
+    "Heartbeat",
+    "Dispatcher_Hardened",
+    "Oracle_v0_2",
+    "Auditor_Extended",
+    "T1_Report",
+    "State_Fabric_Log"
+  ],
+  "hard_rules": [
+    "NO_R1",
+    "NO_SUPABASE_WRITE",
+    "NO_MEMORY_WRITE",
+    "NO_APP_VISION_UPDATE",
+    "NO_CANON_UPDATE",
+    "NO_PRE_IA_CLOSE",
+    "NO_PR_DEPLOY",
+    "NO_PERMANENT_SCHEDULER"
+  ],
+  "freeze_conditions": [
+    "cost_exceeds_cycle_limit",
+    "unauthorized_provider_used",
+    "hard_rule_violation_attempt",
+    "auditor_fail",
+    "oracle_severe_hallucination"
+  ]
+}

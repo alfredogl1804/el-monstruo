@@ -1,0 +1,23 @@
+# Schema conceptual para el registro de loops
+type: object
+properties:
+  loop_id:
+    type: string
+    description: "Identificador único del loop (ej. loop_vigia)"
+  max_autonomy_level:
+    type: string
+    enum: [A0, A1, A2, A3, A4, A5, A6, A7, A8]
+    description: "Nivel máximo de autonomía permitido según la escalera"
+  forbidden_actions:
+    type: array
+    items:
+      type: string
+    description: "Acciones explícitamente bloqueadas para este loop"
+  trigger_conditions:
+    type: array
+    items:
+      type: string
+    description: "Cuándo el Dispatcher debe invocar este loop"
+required:
+  - loop_id
+  - max_autonomy_level

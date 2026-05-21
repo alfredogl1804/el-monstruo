@@ -1,0 +1,73 @@
+{
+  "runner_version": "0.1",
+  "timestamp": "2026-05-21T06:59:07.722291+00:00",
+  "base_dir": "/home/ubuntu/el-monstruo-bridge",
+  "kill_switch": {
+    "exists": false,
+    "state": "NOT_FOUND",
+    "read_only": true
+  },
+  "external_api_calls": 0,
+  "secrets_used": 0,
+  "r1_operations": 0,
+  "results": {
+    "indexer": {
+      "status": "SUCCESS",
+      "artifact_count": 11,
+      "artifact_test_coverage": 100.0,
+      "artifacts_without_tests": 0
+    },
+    "pattern_detector": {
+      "status": "SUCCESS",
+      "memory_health": "HEALTHY",
+      "memory_health_score": 70,
+      "cost_anomalies": 1,
+      "task_overspecialization": true
+    },
+    "history_analyzer": {
+      "status": "SUCCESS",
+      "embryo_health": "HEALTHY",
+      "oracle_health": "HEALTHY",
+      "auditor_health": "HEALTHY",
+      "regression_flags": 1,
+      "total_cost_usd": 0.0073
+    }
+  },
+  "consolidated": {
+    "artifact_count": 11,
+    "artifact_test_coverage": 100.0,
+    "memory_health": "HEALTHY",
+    "embryo_health": "HEALTHY",
+    "cost_anomalies": [
+      {
+        "entry_id": "unknown",
+        "cost_usd": 0.00043830000000000003,
+        "z_score": 2.06,
+        "mean_cost": 0.000261,
+        "direction": "HIGH",
+        "recommendation": "Investigate why this cycle cost significantly more/less than average."
+      }
+    ],
+    "task_overspecialization": {
+      "detected": true,
+      "dominant_tasks": [
+        "audit_oracle_latest_output"
+      ],
+      "unique_tasks": 3,
+      "total_runs": 8
+    },
+    "regression_flags": [
+      {
+        "type": "COST_SPIKE",
+        "run_index": 8,
+        "source_file": "map_capability_to_application_20260521T033525.json",
+        "current_value": 0.001,
+        "recent_avg": 0.000279,
+        "severity": "MEDIUM"
+      }
+    ],
+    "next_recommended_action": "PRODUCE_NEXT_SURGE"
+  },
+  "remediation_queue": [],
+  "untested_artifacts": []
+}

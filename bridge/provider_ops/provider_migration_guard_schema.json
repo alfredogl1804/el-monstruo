@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Provider Migration Guard Schema v0.1",
+  "description": "Schema for tracking provider model EOL risks and migration candidates without auto-replacement.",
+  "type": "object",
+  "required": ["version", "generated_at", "migration_candidates", "blocked_models", "policy"],
+  "properties": {
+    "version": {"type": "string", "const": "0.1.0"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "migration_candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["provider", "current_model", "eol_date", "risk_level", "status", "requires_t1"],
+        "properties": {
+          "provider": {"type": "string"},
+          "current_model": {"type": "string"},
+          "eol_date": {"type": ["string", "null"], "format": "date"},
+          "risk_level": {"type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]},
+          "status": {"type": "string", "enum": ["MONITORING", "MIGRATION_CANDIDATE", "T1_DECISION_PENDING", "MIGRATED", "BLOCKED"]},
+          "requires_t1": {"type": "boolean"},
+          "suggested_replacements": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "notes": {"type": "string"},
+          "detected_at": {"type": "string", "format": "date-time"},
+          "decided_at": {"type": ["string", "null"], "format": "date-time"},
+          "t1_decision": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "blocked_models": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["provider", "model", "reason"],
+        "properties": {
+          "provider": {"type": "string"},
+          "model": {"type": "string"},
+          "reason": {"type": "string"},
+          "blocked_at": {"type": "string", "format": "date-time"}
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "required": ["auto_replacement_allowed", "t1_required_for_model_change", "unknown_provider_default"],
+      "properties": {
+        "auto_replacement_allowed": {"type": "boolean", "const": false},
+        "t1_required_for_model_change": {"type": "boolean", "const": true},
+        "unknown_provider_default": {"type": "string", "const": "DENY"},
+        "eol_risk_threshold_days": {"type": "integer", "minimum": 1}
+      }
+    }
+  }
+}

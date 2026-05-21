@@ -1,0 +1,141 @@
+version: "v0.1.0"
+default_autonomy_level: "A8" # Si no está aquí, se asume A8 (bloqueado)
+actions:
+  observe_repo:
+    autonomy_level_required: "A0"
+    allowed_by_default: true
+    t1_required: false
+    evidence_required: false
+    auditor_required: false
+  
+  read_archive:
+    autonomy_level_required: "A0"
+    allowed_by_default: true
+    t1_required: false
+    evidence_required: false
+    auditor_required: false
+
+  create_report:
+    autonomy_level_required: "A2"
+    allowed_by_default: true
+    t1_required: false
+    evidence_required: false
+    auditor_required: false
+
+  create_semantic_atoms:
+    autonomy_level_required: "A2"
+    allowed_by_default: true
+    t1_required: false
+    evidence_required: false
+    auditor_required: false
+
+  update_thread_archive:
+    autonomy_level_required: "A3"
+    allowed_by_default: true
+    t1_required: false
+    allowed_paths: ["bridge/thread_archives/"]
+    evidence_required: true
+    auditor_required: false
+
+  create_state_fabric_draft:
+    autonomy_level_required: "A3"
+    allowed_by_default: true
+    t1_required: false
+    allowed_paths: ["bridge/doctrine_candidates/"]
+    evidence_required: true
+    auditor_required: false
+
+  create_sprint_spec:
+    autonomy_level_required: "A3"
+    allowed_by_default: true
+    t1_required: false
+    evidence_required: true
+    auditor_required: false
+
+  create_loop_contract:
+    autonomy_level_required: "A3"
+    allowed_by_default: true
+    t1_required: false
+    evidence_required: true
+    auditor_required: false
+
+  run_restore_test:
+    autonomy_level_required: "A2"
+    allowed_by_default: true
+    t1_required: false
+    evidence_required: true
+    auditor_required: false
+
+  prepare_draft_pr:
+    autonomy_level_required: "A4"
+    allowed_by_default: true
+    t1_required: false
+    evidence_required: true
+    auditor_required: true
+    notes: "Auditor must be of different lineage"
+
+  write_code:
+    autonomy_level_required: "A5"
+    allowed_by_default: false
+    t1_required: false
+    evidence_required: true
+    auditor_required: false
+    notes: "Only in isolated local environment"
+
+  run_tests:
+    autonomy_level_required: "A5"
+    allowed_by_default: false
+    t1_required: false
+    evidence_required: true
+    auditor_required: false
+
+  modify_kernel:
+    autonomy_level_required: "A8"
+    allowed_by_default: false
+    t1_required: true
+    evidence_required: true
+    auditor_required: true
+    notes: "Only in Magna Sprints"
+
+  touch_supabase:
+    autonomy_level_required: "A7"
+    allowed_by_default: false
+    t1_required: true
+    evidence_required: true
+    auditor_required: true
+
+  touch_secrets:
+    autonomy_level_required: "A7"
+    allowed_by_default: false
+    t1_required: true
+    evidence_required: true
+    auditor_required: true
+
+  write_memory:
+    autonomy_level_required: "A7"
+    allowed_by_default: false
+    t1_required: true
+    evidence_required: true
+    auditor_required: false
+    notes: "Requires specific Memento/Anti-Dory authorization"
+
+  modify_APP_VISION:
+    autonomy_level_required: "A8"
+    allowed_by_default: false
+    t1_required: true
+    evidence_required: true
+    auditor_required: true
+
+  canonize_DSC:
+    autonomy_level_required: "A7"
+    allowed_by_default: false
+    t1_required: true
+    evidence_required: true
+    auditor_required: true
+
+  close_PRE_IA:
+    autonomy_level_required: "A8"
+    allowed_by_default: false
+    t1_required: true
+    evidence_required: true
+    auditor_required: true

@@ -1,0 +1,32 @@
+nodes:
+  - id: VIGILIA_SINCRONICA
+    type: architecture
+  - id: UNIFIED_FACE
+    type: component
+  - id: STATE_FABRIC
+    type: state
+  - id: DISPATCHER
+    type: component
+  - id: SHELL
+    type: concept
+  - id: MICROPOLVO_SEMANTICO
+    type: concept
+  - id: EQUIVALENCIA_FUNCIONAL
+    type: metric
+
+edges:
+  - source: VIGILIA_SINCRONICA
+    target: UNIFIED_FACE
+    relation: uses
+  - source: VIGILIA_SINCRONICA
+    target: STATE_FABRIC
+    relation: uses
+  - source: VIGILIA_SINCRONICA
+    target: DISPATCHER
+    relation: uses
+  - source: SHELL
+    target: MICROPOLVO_SEMANTICO
+    relation: implements
+  - source: SHELL
+    target: EQUIVALENCIA_FUNCIONAL
+    relation: validated_by

@@ -1,0 +1,6 @@
+{"timestamp_utc": "2026-05-20T23:47:05.907197+00:00", "provider_id": "openai", "action": "execute_api_probe", "access_status": "REALTIME_VERIFIED", "models_count": 20, "error": null}
+{"timestamp_utc": "2026-05-20T23:47:07.069703+00:00", "provider_id": "anthropic", "action": "execute_api_probe", "access_status": "REALTIME_VERIFIED", "models_count": 9, "error": null}
+{"timestamp_utc": "2026-05-20T23:47:09.732501+00:00", "provider_id": "google_gemini", "action": "execute_api_probe", "access_status": "REALTIME_VERIFIED", "models_count": 20, "error": null}
+{"timestamp_utc": "2026-05-20T23:47:10.338215+00:00", "provider_id": "xai_grok", "action": "execute_api_probe", "access_status": "REALTIME_VERIFIED", "models_count": 8, "error": null}
+{"timestamp_utc": "2026-05-20T23:47:12.918255+00:00", "provider_id": "perplexity", "action": "execute_api_probe", "access_status": "ACCESS_BLOCKED_API_ERROR", "models_count": 0, "error": "HTTP 404: Not Found"}
+{"timestamp_utc": "2026-05-20T23:47:15.753331+00:00", "provider_id": "deepseek", "action": "execute_api_probe", "access_status": "ACCESS_BLOCKED_NO_KEY", "models_count": 0, "error": "Environment variable DEEPSEEK_API_KEY not found"}

@@ -1,0 +1,284 @@
+{
+  "_superseded_by": "1.0",
+  "_superseded_at": "2026-05-18",
+  "_superseded_commit_message": "docs(atlas): add ChatGPT pericia checkpoint v1.0 post Gate 3.3",
+  "_known_drifts": [
+    "version_field_mismatch_was_0.8_in_v0.9",
+    "memento_endpoint_status_was_unconfirmed",
+    "catastro_was_unconfirmed_as_api",
+    "embrion_hitl_endpoints_were_unconfirmed",
+    "colmena_7_7_was_unconfirmed",
+    "simulador_causal_was_unconfirmed_in_app_state",
+    "collective_was_unconfirmed_protocol",
+    "kernel_wiring_general_was_underestimated"
+  ],
+  "_use_instead": "monstruo_reality_atlas/reports/CHATGPT_PERICIA_STATE_v1_0.json",
+  "_warning": "NO usar este archivo como fuente de verdad. Mantenido solo para trazabilidad histórica del bucle correctivo Anti-Dory.",
+  "version": "0.9-SUPERSEDED",
+  "created_at": "2026-05-18T07:00:00-06:00",
+  "created_by": "Manus",
+  "instructed_by": "Alfredo Gongora",
+  "subject_model": "ChatGPT 5.5 Pro",
+  "status": {
+    "phase": "ARQUITECTO_EN_CERTIFICACION",
+    "not_yet": "ARQUITECTO_PRINCIPAL",
+    "estimated_total_pericia_pct": 68
+  },
+  "pericia_scores": {
+    "atlas_fabric": 80,
+    "app_vision_agents": 80,
+    "flutter_real": 70,
+    "command_center_real": 50,
+    "kernel_a2ui_memento": 55,
+    "embriones_budget_self_verifier_write_policy": 65,
+    "catastros": 55,
+    "simulador_causal": 55,
+    "bridge_inter_hilos": 45
+  },
+  "confirmed_truths": [
+    {
+      "id": "CT-001",
+      "title": "Monstruo no es app",
+      "summary": "El Monstruo = kernel + multiples transports. Flutter, Command Center, Telegram, WhatsApp, Watch/Vision Pro son cuerpos."
+    },
+    {
+      "id": "CT-002",
+      "title": "Flutter chasis real con brechas",
+      "summary": "Chasis Daily/Cockpit real existe. Home es proxy de ChatScreen, no la Home Daily canonica. Threads/Pendientes/Conexiones son placeholders. A2UI renderer placeholder. Brand DNA en drift."
+    },
+    {
+      "id": "CT-003",
+      "title": "Command Center parcial",
+      "summary": "Consola parcial, no Cockpit completo. Nav real: Chat, Runs, FinOps, Security, Memory, Settings. Theme en drift."
+    },
+    {
+      "id": "CT-004",
+      "title": "A2UI schema real, renderer placeholder",
+      "summary": "Schema Pydantic real en kernel. Pantalla A2UI en Flutter pero renderer placeholder."
+    },
+    {
+      "id": "CT-005",
+      "title": "Memento validator real, endpoint no confirmado",
+      "summary": "Memento existe como validator importable real. NO asumir endpoint HTTP completo sin verificar."
+    },
+    {
+      "id": "CT-006",
+      "title": "Cronos / Rio de Vida canonizado pero sin codigo",
+      "summary": "Canonizado/doctrinal en APP_VISION cap 5. NO hay kernel/cronos leido/existente. Cronista Familiar es alias de Cronos / Modo Cripta."
+    },
+    {
+      "id": "CT-007",
+      "title": "SMP cimiento criptografico sin implementacion",
+      "summary": "SMP es Sovereign Memory Plane, cimiento criptografico. Privacidad por Imposibilidad es su funcion. No se vio implementacion real en codigo. No tocar datos sensibles sin resolver SMP."
+    },
+    {
+      "id": "CT-008",
+      "title": "Embrion loop autonomo real",
+      "summary": "Loop autonomo real con purpose filter, judge, silence score, HITL escalation, FCS, budget, self-verifier, sabios/radar, piezas Reloj Suizo como Escape/Espiral por flags."
+    },
+    {
+      "id": "CT-009",
+      "title": "Budget Tracker real",
+      "summary": "Controla cap por latido, presupuesto diario, registro post-flight y escalacion HITL."
+    },
+    {
+      "id": "CT-010",
+      "title": "Self-Verifier con 3 decisiones",
+      "summary": "PURPOSE, NOVELTY, VERIFIABLE. VERIFIABLE exige artefacto/accion real para evitar eco/output vacio, no es fact-checking general."
+    },
+    {
+      "id": "CT-011",
+      "title": "Write Policy + HITL con cola de proposals",
+      "summary": "Estados: pending -> approved -> executing -> executed/failed/rejected/expired. Incluye idempotency, approve/reject, notify_hitl, execute_next."
+    },
+    {
+      "id": "CT-012",
+      "title": "Proposal Processor worker independiente",
+      "summary": "Worker que expira y ejecuta proposals aprobadas."
+    },
+    {
+      "id": "CT-013",
+      "title": "Executor Registry noop por default",
+      "summary": "Side effects reales requieren payload executor='real'. code_commit diferido. db_write y external_api_call pueden ser reales bajo opt-in."
+    },
+    {
+      "id": "CT-014",
+      "title": "4 Catastros canonicos",
+      "summary": "modelos_llm, agentes_2026, herramientas_ai, suppliers_humanos. 3 interfaces: lookup, search, orchestration. Motor de seleccion de recursos, NO inventario visual."
+    },
+    {
+      "id": "CT-015",
+      "title": "Simulador causal con 3 piezas reales",
+      "summary": "CausalDecomposer, CausalKnowledgeBase, CausalSimulatorV2 Monte Carlo. Falta verificar endpoints/UI/uso real."
+    },
+    {
+      "id": "CT-016",
+      "title": "Bridge inter-hilos como sistema operativo social",
+      "summary": "Append-only, versionado, Cowork audita, Manus ejecuta, Alfredo firma, archivo activo + archive por epoca."
+    }
+  ],
+  "active_contradictions": [
+    "Flutter chasis real vs Daily real incompleto",
+    "Brand DNA canon vs codigo cyan/purpura",
+    "A2UI schema real vs renderer placeholder",
+    "Cronos canonizado vs codigo vacio",
+    "SMP cimiento vs implementacion ausente",
+    "Memento validator real vs endpoint no confirmado",
+    "Command Center produccion parcial vs Cockpit canon 12-15",
+    "Autonomia del Embrion vs executors noop por default",
+    "Catastro como motor de decision vs posible UI de inventario",
+    "Simulador causal real vs UI/endpoint no verificado"
+  ],
+  "t1_live_rescues": [
+    {
+      "id": "T1-LIVE-001",
+      "name": "Entrada Universal Inteligente / Boca del Monstruo"
+    },
+    {
+      "id": "T1-LIVE-002",
+      "name": "Toda captura debe conectar con lo que tenga que conectar"
+    },
+    {
+      "id": "T1-LIVE-003",
+      "name": "Ley de Persistencia por Conexion"
+    },
+    {
+      "id": "T1-LIVE-004",
+      "name": "Solo debe perderse lo que realmente no sirve"
+    },
+    {
+      "id": "T1-LIVE-005",
+      "name": "Federacion Soberana de Contexto entre Monstruos"
+    },
+    {
+      "id": "T1-LIVE-006",
+      "name": "Espacio Vital Soberano / Mundo Paralelo Soberano"
+    },
+    {
+      "id": "T1-LIVE-007",
+      "name": "AI-First Living como hipotesis viva, no canon"
+    },
+    {
+      "id": "T1-LIVE-008",
+      "name": "Bloque pre-IA abierto. NO cerrar hasta literal CIERRE BLOQUE PRE-IA"
+    }
+  ],
+  "do_not_redesign": [
+    {
+      "concept": "Cronista Familiar / Herencia Narrativa / Legacy Capture / Dia One Familiar",
+      "canonical_id": "cronos_modo_cripta",
+      "reason": "Canonizado en APP_VISION cap 5 con Shamir Secret Sharing"
+    },
+    {
+      "concept": "Privacidad por Imposibilidad",
+      "canonical_id": "smp",
+      "reason": "Es funcion de SMP (Sovereign Memory Plane), no canon nuevo"
+    },
+    {
+      "concept": "Transport Cero",
+      "canonical_id": "transport_cero",
+      "reason": "Hipotesis naciente, no canon"
+    },
+    {
+      "concept": "Home canonica",
+      "canonical_id": "n/a",
+      "reason": "/home existe en Flutter pero es proxy de ChatScreen. La Home Daily canonica debe incluir contexto/threads/pendientes, no resúmenes de Cockpit."
+    },
+    {
+      "concept": "Memento endpoint completo",
+      "canonical_id": "memento_validator",
+      "reason": "Solo validator importable confirmado, no endpoint HTTP"
+    },
+    {
+      "concept": "A2UI renderer real",
+      "canonical_id": "a2ui_schema",
+      "reason": "Solo schema Pydantic confirmado, renderer placeholder"
+    },
+    {
+      "concept": "Acto 1 vs Acto 2 contradiccion",
+      "canonical_id": "acto_2_contiene_acto_1",
+      "reason": "Direccion provisional: Acto 2 (latencia) contiene Acto 1 (20 superficies como backstops)"
+    },
+    {
+      "concept": "Interfaz final antes de sustrato",
+      "canonical_id": "n/a",
+      "reason": "No disenar interfaz final antes de conocer sustrato inteligente"
+    }
+  ],
+  "next_gate": {
+    "id": "Gate 3.3",
+    "title": "Wiring real en kernel/main.py",
+    "files_to_read": [
+      "kernel/main.py",
+      "rutas AG-UI",
+      "rutas memory",
+      "rutas embrion",
+      "rutas proposal/HITL",
+      "rutas finops",
+      "rutas moc",
+      "collective/Sabios",
+      "embrion_specializations"
+    ],
+    "objective": "Saber que modulos estan realmente conectados al API y que solo existe como modulo importable"
+  },
+  "source_paths": [
+    "monstruo_reality_atlas/00_START_HERE_FOR_CHATGPT.md",
+    "monstruo_reality_atlas/01_SCOPE_AND_RULES.md",
+    "monstruo_reality_atlas/02_SOURCE_LEDGER.jsonl",
+    "monstruo_reality_atlas/03_REPOSITORY_INVENTORY.md",
+    "monstruo_reality_atlas/04_PRODUCTION_INVENTORY.md",
+    "monstruo_reality_atlas/05_CANON_REGISTRY.md",
+    "monstruo_reality_atlas/06_SPRINT_REGISTRY.md",
+    "monstruo_reality_atlas/07_ALIAS_LEDGER.yaml",
+    "monstruo_reality_atlas/08_EXISTING_DESIGN_COVERAGE_MATRIX.md",
+    "monstruo_reality_atlas/09_GAPS_AND_UNKNOWN_UNKNOWNS.md",
+    "monstruo_reality_atlas/10_DO_NOT_REDESIGN_BEFORE_READING.md",
+    "monstruo_reality_atlas/ITERATION_001_REPORT.md",
+    "interfaces_context_fabric/maps/EXISTING_DESIGN_COVERAGE_MATRIX.md",
+    "interfaces_context_fabric/maps/CANON_REGISTRY.yaml",
+    "interfaces_context_fabric/maps/SPRINT_REGISTRY.yaml",
+    "interfaces_context_fabric/maps/HYPOTHESIS_REGISTRY.yaml",
+    "interfaces_context_fabric/maps/DECISIONS_PENDING_T1.yaml",
+    "interfaces_context_fabric/context_packs/PACK_03_AI_FIRST_LIVING.md",
+    "interfaces_context_fabric/context_packs/PACK_04_CRONOS_RIO_DE_VIDA.md",
+    "interfaces_context_fabric/context_packs/PACK_05_METODOLOGIAS_PRODUCTIVIDAD.md",
+    "interfaces_context_fabric/context_packs/PACK_06_RELOJ_SUIZO_ENGRANAJE.md",
+    "interfaces_context_fabric/context_packs/PACK_12_RIO_DE_LA_VIDA_EXISTING_AUDIT.md",
+    "interfaces_context_fabric/raw_rescues/alfredo_pre_ia_checkpoint_2020_2021_DRAFT.md",
+    "docs/EL_MONSTRUO_APP_VISION_v1.md",
+    "AGENTS.md",
+    "apps/mobile/lib/main.dart",
+    "apps/mobile/lib/app.dart",
+    "apps/mobile/lib/routing/mode_router.dart",
+    "apps/mobile/lib/core/state/mode_provider.dart",
+    "apps/mobile/lib/widgets/shell_scaffold.dart",
+    "apps/mobile/lib/features/chat/*",
+    "apps/mobile/lib/features/chat/widgets/typing_indicator.dart",
+    "apps/mobile/lib/core/mensajeros/kernel_messenger.dart",
+    "apps/mobile/lib/core/config.dart",
+    "apps/mobile/lib/modes/daily/*",
+    "apps/mobile/lib/modes/cockpit/*",
+    "apps/mobile/lib/core/a2ui/*",
+    "kernel/a2ui/*",
+    "kernel/memento/*",
+    "kernel/embrion_loop.py",
+    "kernel/embrion_budget.py",
+    "kernel/embrion_self_verifier.py",
+    "kernel/embrion_write_policy.py",
+    "kernel/runner/proposal_processor.py",
+    "kernel/runner/executor_registry.py",
+    "kernel/catastros/*",
+    "kernel/causal_decomposer.py",
+    "memory/causal_kb.py",
+    "kernel/simulator/causal_simulator_v2.py",
+    "bridge/cowork_to_manus.md"
+  ],
+  "continuity_rule": {
+    "on_compaction_or_new_thread": [
+      "1. Leer CHATGPT_PERICIA_CHECKPOINT_v0_9.md completo",
+      "2. Leer CHATGPT_PERICIA_STATE_v0_9.json (este archivo)",
+      "3. Ejecutar PERICIA_TEST_v0_9.md",
+      "4. Si falla el test, NO disenar"
+    ]
+  }
+}

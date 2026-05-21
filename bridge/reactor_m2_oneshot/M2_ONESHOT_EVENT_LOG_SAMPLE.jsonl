@@ -1,0 +1,10 @@
+{"timestamp_utc": "2026-05-21T01:30:02.966198+00:00", "event_type": "M2_CHAIN_STARTED", "payload": {"chain_id": "M2-ONESHOT-001", "mode": "one_shot"}}
+{"timestamp_utc": "2026-05-21T01:30:02.966394+00:00", "event_type": "HEARTBEAT_WAKE", "payload": {"kill_switch": "inactive", "chain_id": "M2-ONESHOT-001"}}
+{"timestamp_utc": "2026-05-21T01:30:02.966446+00:00", "event_type": "DISPATCHER_PREFLIGHT", "payload": {"constraints": {"budget_cap": 2.0, "max_calls": 1, "retries": 0, "allowed_providers": ["openai", "anthropic", "google", "xai"], "excluded_providers": ["perplexity", "deepseek"], "supabase_calls": 0, "memory_writes": 0, "r1_operations": 0}, "result": "AUTHORIZED"}}
+{"timestamp_utc": "2026-05-21T01:30:07.408220+00:00", "event_type": "ORACLE_PROBE", "payload": {"provider": "openai", "status": "SUCCESS", "cost": 0.001605}}
+{"timestamp_utc": "2026-05-21T01:30:14.355675+00:00", "event_type": "ORACLE_PROBE", "payload": {"provider": "anthropic", "status": "SUCCESS", "cost": 0.001899}}
+{"timestamp_utc": "2026-05-21T01:30:16.974461+00:00", "event_type": "ORACLE_PROBE", "payload": {"provider": "google", "status": "SUCCESS", "cost": 0.000517}}
+{"timestamp_utc": "2026-05-21T01:30:24.929442+00:00", "event_type": "ORACLE_PROBE", "payload": {"provider": "xai", "status": "SUCCESS", "cost": 0.002365}}
+{"timestamp_utc": "2026-05-21T01:30:24.929593+00:00", "event_type": "ORACLE_SHADOW_COMPLETE", "payload": {"calls_made": 4, "total_cost_usd": 0.006386, "providers_success": ["openai", "anthropic", "google", "xai"], "providers_error": []}}
+{"timestamp_utc": "2026-05-21T01:30:24.929695+00:00", "event_type": "AUDITOR_REVIEW", "payload": {"checks": {"candidate_report_only": true, "no_memory_writes": true, "no_supabase": true, "no_pr_deploy": true, "no_app_vision_canon": true, "no_r1_operations": true, "no_self_approval": true, "no_perplexity_used": true, "no_deepseek_used": true, "budget_within_cap": true}, "result": "PASS"}}
+{"timestamp_utc": "2026-05-21T01:30:24.929952+00:00", "event_type": "M2_CHAIN_COMPLETE", "payload": {"chain_id": "M2-ONESHOT-001", "result": "PASS", "calls_made": 4, "total_cost_usd": 0.006386, "audit_pass": true}}

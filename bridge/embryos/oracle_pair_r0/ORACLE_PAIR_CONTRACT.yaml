@@ -1,0 +1,31 @@
+pair_id: oracle_pair_r0
+version: "0.1.0"
+status: ACTIVE
+
+producer:
+  embryo_id: oracle_ai_embryo_r0
+  role: AUTONOMOUS_R0_SHADOW_ORACLE
+  responsibilities:
+    - detect_capabilities
+    - map_applications
+    - compile_sprints
+
+auditor:
+  embryo_id: oracle_auditor_embryo_r0
+  role: AUTONOMOUS_R0_SHADOW_AUDITOR
+  responsibilities:
+    - audit_outputs
+    - score_candidates
+    - detect_hallucinations
+    - verify_scope
+
+rules:
+  no_auto_approval: true
+  no_cross_modification: true
+  dispatcher_required: true
+  state_fabric_logging: true
+
+verdict_matrix:
+  PASS: CANDIDATE_READY_FOR_T1
+  PARTIAL: REQUIRES_T1_REVIEW
+  FAIL: BLOCKED

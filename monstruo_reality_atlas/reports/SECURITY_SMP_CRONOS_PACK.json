@@ -1,0 +1,108 @@
+{
+  "version": "1.0",
+  "pack_id": "SECURITY_SMP_CRONOS_PACK",
+  "created_at": "2026-05-18",
+  "branch": "monstruo-reality-atlas-001",
+  "executive_summary": "Seguridad fuerte en RLS y secrets. SMP/Cronos/Cripta = doctrina sin código.",
+  "dscs_security": [
+    {"id": "S-001", "title": "Política de credenciales", "code_status": "PARTIAL"},
+    {"id": "S-002", "title": "Pre-commit hooks obligatorios", "code_status": "IMPLEMENTED"},
+    {"id": "S-003", "title": "Scripts/env vars sin defaults sensibles", "code_status": "IMPLEMENTED"},
+    {"id": "S-004", "title": "Antipatrón default value con secret real", "code_status": "PARTIAL"},
+    {"id": "S-005", "title": "Default archive antes que delete", "code_status": "DOCTRINE_APPLIED"},
+    {"id": "S-006", "title": "RLS por defecto tablas nuevas", "code_status": "IMPLEMENTED"},
+    {"id": "S-006-v1.1", "title": "RLS v1.1", "code_status": "IMPLEMENTED"},
+    {"id": "S-007", "title": "Naming canónico Supabase service key", "code_status": "PARTIAL"},
+    {"id": "S-008", "title": "Rotación automatizada credenciales", "code_status": "PARTIAL_HOOK_EXISTS"},
+    {"id": "S-010", "title": "Hardening operacional integrado", "code_status": "DOCTRINE"},
+    {"id": "S-012", "title": "Anti-deriva migraciones Supabase", "code_status": "DOCTRINE"},
+    {"id": "S-013", "title": "Scheduled tasks cleanup destructivo v1", "code_status": "DOCTRINE_EXECUTED"},
+    {"id": "S-015", "title": "Scheduler respeta next_run de restore", "code_status": "IMPLEMENTED"},
+    {"id": "S-016", "title": "Anti-fabricación causalidad sin grep", "code_status": "PROCESS"},
+    {"id": "S-009", "title": "MISSING", "code_status": "GAP"},
+    {"id": "S-011", "title": "MISSING", "code_status": "GAP"},
+    {"id": "S-014", "title": "MISSING", "code_status": "GAP"}
+  ],
+  "rls_migrations_applied": [
+    "0004_enable_rls_p0_critico.sql",
+    "0005_enable_rls_p1_embrion_stack.sql",
+    "0007_rls_tablas_post_s002_5.sql",
+    "0008_rls_p2_completion.sql",
+    "0011_rls_catastro_vision_generativa.sql"
+  ],
+  "secrets_management": {
+    "pre_commit_hooks_active": [
+      "_check_credential_rotations.py",
+      "_check_guardian_stale_audit.py",
+      "_check_no_tokens.sh",
+      "_check_rls_default.py"
+    ],
+    "config_file": ".pre-commit-config.yaml",
+    "config_size_bytes": 2557,
+    "credentials_inventory": "bridge/credentials_inventory.md",
+    "tokens_in_repo_scan_2026_05_18": "0_HITS",
+    "p0_2026_05_06_postmortem": "discovery_forense/INCIDENTES/P0_2026_05_06_credenciales_repo_publico.md"
+  },
+  "smp_status": {
+    "doctrine_chapter": "APP_VISION_v1_Capítulo_7",
+    "kernel_module": "NO_SOURCE",
+    "smp_files_in_kernel": 0,
+    "shamir_in_code": 0,
+    "supabase_smp_tables": 0,
+    "verdict": "DOCTRINE_ONLY"
+  },
+  "cronos_status": {
+    "doctrine_chapter": "APP_VISION_v1_Capítulo_5",
+    "kernel_module": "NO_SOURCE",
+    "cronos_files": 0,
+    "cronos_functions_or_classes": 0,
+    "convergencia_cronos_embrion": "NOT_IMPLEMENTED",
+    "smart_notebook_service_dart": "NOT_VERIFIED_NO_API_CALLS",
+    "rio_de_cronos_ui": "NOT_IMPLEMENTED",
+    "verdict": "DOCTRINE_ONLY"
+  },
+  "capa_seguridad_magna_cap17": {
+    "cripta": "DOCTRINE_ONLY",
+    "tee_encryption_in_use": "NO_SOURCE",
+    "anomaly_detection_runtime": "NO_SOURCE",
+    "audit_trail_soberano": "PARTIAL_guardian_audit_log",
+    "privacy_budget_dp_epsilon": "NO_SOURCE",
+    "confidential_compute": "NO_SOURCE",
+    "personal_data_sovereignty_controls": "NO_SOURCE"
+  },
+  "datos_sensibles_real_vs_aspiracional": [
+    {"categoria": "conversaciones_chat", "aspiracional": "SMP_index_kernel", "real": "plain_text_thoughts_RLS", "riesgo": "P2"},
+    {"categoria": "tokens_api_usuario", "aspiracional": "SMP_export", "real": "no_se_guardan", "riesgo": "BAJO"},
+    {"categoria": "health_data", "aspiracional": "SMP_index_cifrado", "real": "no_se_ingiere", "riesgo": "BAJO"},
+    {"categoria": "ambient_audio_24_7", "aspiracional": "SMP_secure_enclave", "real": "no_se_captura", "riesgo": "BAJO"},
+    {"categoria": "cronos_vida", "aspiracional": "indice_cifrado", "real": "no_se_construye", "riesgo": "BAJO"},
+    {"categoria": "decisiones_embrion", "aspiracional": "guardian_audit_propose_approve", "real": "runtime_events_anon_blocked", "riesgo": "BAJO"},
+    {"categoria": "emails_gmail_mcp", "aspiracional": "mcp_kernel_cifrado", "real": "mcp_sandbox_usuario", "riesgo": "P2"}
+  ],
+  "top_findings": [
+    "RLS fuerte y verificado runtime (5 migs + 9 tablas críticas RLS-protected)",
+    "SMP cero código",
+    "Cronos cero código",
+    "Capa Seguridad Magna 100% aspiracional",
+    "Pre-commit hooks funcionan y rechazan secrets/tablas sin RLS",
+    "Naming SUPABASE_SERVICE_KEY parcialmente migrado",
+    "Catastro modelos/eventos públicos read INTENCIONAL mig 0011",
+    "P0 2026-05-06 cerrado con postmortem y lecciones aplicadas",
+    "runtime_events bloqueada gateway-level (401 anon)",
+    "credentials_inventory.md gobierna rotación"
+  ],
+  "top_risks": [
+    {"id": "R1", "severity": "P0_DOCTRINAL", "desc": "SMP cero código pero APP_VISION promete features dependientes"},
+    {"id": "R2", "severity": "P0_DOCTRINAL", "desc": "Cronos cero código pero Daily/Cockpit lo asumen"},
+    {"id": "R3", "severity": "P1", "desc": "TEE/Cripta sin implementación"},
+    {"id": "R4", "severity": "P2", "desc": "Conversaciones chat plain text"},
+    {"id": "R5", "severity": "P2", "desc": "DSC-S-007 naming parcial"},
+    {"id": "R6", "severity": "P3", "desc": "Saltos numéricos DSC-S sin documentar"},
+    {"id": "R7", "severity": "P2", "desc": "MCP gmail/notion scopes amplios fuera kernel"},
+    {"id": "R8", "severity": "P3", "desc": "--no-verify uso histórico no auditado"},
+    {"id": "R9", "severity": "P3", "desc": "guardian_stale_audit hook bypaseable"},
+    {"id": "R10", "severity": "P3", "desc": "runtime_events policy uniformity review"}
+  ],
+  "access_blocked": ["Secure Enclave/TEE inspect", "pre-commit bypass histórico (Railway CI logs)", "credentials_inventory vs Railway env real cross-check", "MCP scopes audit"],
+  "no_source": ["kernel/smp/", "kernel/cronos/", "Embrión Convergencia Cronos", "apps/mobile/lib/core/smp.dart", "kernel/cripta/"]
+}

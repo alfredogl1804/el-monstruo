@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Oracle Audit Result",
+  "description": "Schema for the final audit result produced by loop_auditor after evaluating loop_oraculo_ias outputs.",
+  "type": "object",
+  "required": ["audit_id", "target_loop", "auditor_loop", "auditor_lineage", "verdict", "timestamp", "gates_passed", "gates_total", "findings_summary", "t1_decisions_pending"],
+  "properties": {
+    "audit_id": { "type": "string", "pattern": "^AUD-[0-9]{3}$" },
+    "target_loop": { "type": "string" },
+    "auditor_loop": { "type": "string" },
+    "auditor_lineage": { "type": "string" },
+    "verdict": { "type": "string", "enum": ["PASS", "PASS_WITH_FINDINGS", "FAIL"] },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "gates_passed": { "type": "integer", "minimum": 0 },
+    "gates_total": { "type": "integer", "minimum": 1 },
+    "findings_summary": {
+      "type": "object",
+      "required": ["total", "high", "medium", "low"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "high": { "type": "integer", "minimum": 0 },
+        "medium": { "type": "integer", "minimum": 0 },
+        "low": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "t1_decisions_pending": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

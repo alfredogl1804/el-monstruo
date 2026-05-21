@@ -1,0 +1,59 @@
+{
+  "latest_ideas_count": 13,
+  "created_at": "2026-05-20T00:00:00Z",
+  "status_by_idea": {
+    "Human+ End-to-End": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Lenguaje IA-nativo organico": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Habitat Semiotico Emergente": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Herramientas con IA vs IAs emergidas": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Coevolucion humano-IA emergida": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Ciclos evolutivos comprimidos de la IA": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Posibilidad Operativa": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Aceleracion evolutiva recursiva": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Reactor Soberano del Monstruo": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Reactor de Vigilia Permanente": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Vigilia Sincronica / Monstruo Multinucleo": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "SHELL / Micropolvo Semantico": "DOCTRINE_CANDIDATE_HIGH_ORDER",
+    "Formalizacion Matematica SHELL (No-Hint)": "RESEARCH_R0_CONCEPT",
+    "Batch Reactor Vigilia SHELL 001": "EXECUTED"
+  },
+  "doctrine_candidates_high_order": 12,
+  "research_r0_concepts": 1,
+  "sprint_candidates": 1,
+  "blocked_runtime_items": [
+    "Nightly Builder R1",
+    "Universal Solver Runtime"
+  ],
+  "t1_pending_decisions": [
+    "SPR-SHELL-001 aprobacion",
+    "Prueba Ciega SHELL No-Hint",
+    "Direccion Density Path Stage 2",
+    "SPR-VIGILIA-MESH-001 aprobacion",
+    "SPR-REACTOR-VIGILIA-001 aprobacion",
+    "SPR-REACTOR-SOBERANO-001 aprobacion",
+    "Nightly Builder R1 unlock",
+    "Cockpit v0.3 destino",
+    "Sprint Factory v2 aprobacion formal",
+    "Embrion Perito model aprobacion",
+    "SPR-ORACLE-AI-001 aprobacion"
+  ],
+  "restore_test_coverage": {
+    "14_CONTEXT_RESTORE_TEST": "Original concepts",
+    "22_RESTORE_TEST_LATEST_IDEAS": "Latest high-order concepts"
+  },
+  "must_not_assume": [
+    "SHELL is classical compression",
+    "SHELL is an emergent AI-native language",
+    "SHELL is human-readable",
+    "Vigilia Sincronica is a free mesh topology",
+    "Reactor Soberano and Reactor de Vigilia are the same",
+    "Reactor is a generic assistant",
+    "Embriones are the reactor",
+    "Canonization of any concept",
+    "APP_VISION is active",
+    "PRE-IA is closed",
+    "Runtime is authorized",
+    "AI consciousness is affirmed",
+    "Everything is literally possible without formula"
+  ]
+}

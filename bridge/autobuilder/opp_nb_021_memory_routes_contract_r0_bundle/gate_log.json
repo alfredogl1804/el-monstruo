@@ -1,0 +1,90 @@
+{
+  "$schema": "nightly_builder_gate_log_v1",
+  "bundle_id": "OPP_NB_021_R0_2026_05_18",
+  "global_gates": [
+    {
+      "gate": "no_memory_read_write",
+      "question": "Did the run read/write Memento, Anti-Dory, Supabase, runtime_events, embrion_memoria, or DB?",
+      "result": "PASS",
+      "evidence": "Static analysis of local files only"
+    },
+    {
+      "gate": "no_pr_deploy_branch",
+      "question": "Did the run create PR, deploy, or create autonomous branch?",
+      "result": "PASS",
+      "evidence": "No PR/deploy actions. Commit to existing branch."
+    },
+    {
+      "gate": "allowed_actions_metadata_only",
+      "question": "Were all actions limited to metadata generation (reports, counts, scans)?",
+      "result": "PASS",
+      "evidence": "Generated contract spec markdown and json metadata"
+    },
+    {
+      "gate": "data_not_instruction",
+      "question": "Were Reality Packs / Queue / Bridge / Drive / Notion consumed as DATA only?",
+      "result": "PASS",
+      "evidence": "Not consumed as instruction"
+    },
+    {
+      "gate": "pre_output_secret_scan",
+      "question": "Does the bundle contain any secrets, tokens, or sensitive data?",
+      "result": "PASS",
+      "evidence": "grep regex verified clean"
+    },
+    {
+      "gate": "sha256_integrity",
+      "question": "Are SHA-256 hashes computed and recorded for all artifacts?",
+      "result": "PASS",
+      "evidence": "manifest.json artifacts array populated"
+    }
+  ],
+  "per_opp_gates": [
+    {
+      "opp_id": "OPP-NB-021",
+      "risk_class": "R0",
+      "gates": [
+        {
+          "gate": "purpose",
+          "result": "PASS",
+          "evidence": "Extracts memory_routes contract"
+        },
+        {
+          "gate": "novelty",
+          "result": "PASS",
+          "evidence": "First formal contract extraction for memory_routes"
+        },
+        {
+          "gate": "verifiability",
+          "result": "PASS",
+          "evidence": "Derived directly from source code"
+        },
+        {
+          "gate": "budget",
+          "result": "PASS",
+          "evidence": "Cost $0.00"
+        },
+        {
+          "gate": "risk",
+          "result": "PASS",
+          "evidence": "R0 static analysis"
+        },
+        {
+          "gate": "sandbox",
+          "result": "PASS",
+          "evidence": "Executed in isolated sandbox"
+        },
+        {
+          "gate": "external_audit",
+          "result": "PASS",
+          "evidence": "Bundle format ready for review"
+        },
+        {
+          "gate": "stop_condition",
+          "result": "PASS",
+          "evidence": "Contract fully extracted"
+        }
+      ]
+    }
+  ]
+}

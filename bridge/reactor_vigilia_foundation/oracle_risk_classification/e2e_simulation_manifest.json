@@ -1,0 +1,65 @@
+{
+  "simulation": "SPR-RISK-CLASSIFICATION-001 E2E",
+  "tests_passed": 10,
+  "tests_total": 10,
+  "verdict": "PASS",
+  "results": [
+    {
+      "test": "TEST_01",
+      "result": "PASS",
+      "detail": "6/6 capabilities classified"
+    },
+    {
+      "test": "TEST_02",
+      "result": "PASS",
+      "detail": "6/6 power stacks classified"
+    },
+    {
+      "test": "TEST_03",
+      "result": "PASS",
+      "detail": "6/6 sprint candidates classified"
+    },
+    {
+      "test": "TEST_04",
+      "result": "PASS",
+      "detail": "All STATIC_CATALOG -> R0"
+    },
+    {
+      "test": "TEST_05",
+      "result": "PASS",
+      "detail": "No false REALTIME claims"
+    },
+    {
+      "test": "TEST_06",
+      "result": "PASS",
+      "detail": "10/10 gates"
+    },
+    {
+      "test": "TEST_07",
+      "result": "PASS",
+      "detail": "FND-031 RESOLVED"
+    },
+    {
+      "test": "TEST_08",
+      "result": "PASS",
+      "detail": "Actions: {'R0_SPEC_ONLY', 'CATALOG_ONLY'}"
+    },
+    {
+      "test": "TEST_09",
+      "result": "PASS",
+      "detail": "Consistent 6/6"
+    },
+    {
+      "test": "TEST_10",
+      "result": "PASS",
+      "detail": "All schemas valid"
+    }
+  ],
+  "artifacts_validated": [
+    "capability_risk_overlay.v0_1.json",
+    "power_stack_risk_overlay.v0_1.json",
+    "sprint_candidate_risk_overlay.v0_1.json",
+    "oracle_catalog_risk_annotated.v0_1.json",
+    "auditor_recheck_gate_log.json"
+  ]
+}

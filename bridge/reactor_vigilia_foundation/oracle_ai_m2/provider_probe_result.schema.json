@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Provider Probe Result",
+  "description": "Result of a single provider probe attempt",
+  "type": "object",
+  "required": ["provider_id", "probe_method", "access_status", "timestamp_utc"],
+  "properties": {
+    "provider_id": { "type": "string" },
+    "probe_method": { "type": "string", "enum": ["official_api", "official_docs_only", "unavailable"] },
+    "access_status": {
+      "type": "string",
+      "enum": ["REALTIME_VERIFIED", "ACCESS_BLOCKED_NO_KEY", "ACCESS_BLOCKED_API_ERROR", "ACCESS_BLOCKED_RATE_LIMIT", "ACCESS_BLOCKED_UNSUPPORTED", "ACCESS_BLOCKED_POLICY", "NO_SOURCE"]
+    },
+    "model_ids_detected": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "capability_types_detected": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["text_reasoning", "vision", "audio", "video", "tool_use", "web_search", "code_execution", "file_input", "long_context", "structured_outputs", "embeddings", "image_generation", "realtime_voice", "agents_background"]
+      }
+    },
+    "context_window_if_available": { "type": ["integer", "null"] },
+    "tool_calling_support": { "type": ["boolean", "null"] },
+    "structured_output_support": { "type": ["boolean", "null"] },
+    "file_support": { "type": ["boolean", "null"] },
+    "web_search_support": { "type": ["boolean", "null"] },
+    "pricing_status": {
+      "type": "string",
+      "enum": ["API_VERIFIED", "OFFICIAL_DOC_REQUIRED", "ACCESS_BLOCKED", "NOT_QUERIED"]
+    },
+    "evidence_ref": { "type": "string" },
+    "timestamp_utc": { "type": "string", "format": "date-time" },
+    "raw_response_hash": { "type": ["string", "null"] },
+    "redacted_sample": { "type": ["string", "null"] },
+    "error_message": { "type": ["string", "null"] }
+  }
+}

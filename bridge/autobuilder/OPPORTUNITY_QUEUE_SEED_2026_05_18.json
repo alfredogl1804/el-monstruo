@@ -1,0 +1,562 @@
+{
+  "version": "1.0",
+  "queue_id": "OPPORTUNITY_QUEUE_SEED_2026_05_18",
+  "scanner_cell": "CELL-NIGHTLY-BUILDER-001",
+  "scanner_role": "Manus C - Scanner de Oportunidades",
+  "scanned_at": "2026-05-18",
+  "branch": "monstruo-reality-atlas-001",
+  "parent_spec": "bridge/sprints_propuestos/sprint_SPR-NIGHTLY-BUILDER-001_DRAFT.md",
+  "scan_sources_used": [
+    "monstruo_reality_atlas/reports/PROD_REALITY_AND_UI_CONSUMER_PACK.json",
+    "monstruo_reality_atlas/reports/SECURITY_SMP_CRONOS_PACK.json",
+    "monstruo_reality_atlas/reports/OPERATIONS_BRIDGE_RACI_PACK.json",
+    "monstruo_reality_atlas/reports/PRODUCT_PORTFOLIO_BUSINESS_PACK.json",
+    "kernel/", "apps/mobile/", "bridge/", "tests/", ".github/workflows/"
+  ],
+  "totals": {
+    "r0_r1_total": 20,
+    "top_night_1": 5,
+    "looks_safe_but_forbidden": 5,
+    "parking_lot_r2_plus": 8
+  },
+
+  "opportunities": [
+    {
+      "id": "OPP-NB-001",
+      "title": "Tests dedicados para memory_routes",
+      "source": "tests_faltantes",
+      "category": "A",
+      "risk_class": "R1",
+      "evidence": [
+        {"type": "path", "ref": "kernel/memory_routes.py"},
+        {"type": "grep", "ref": "ls tests/ | grep test_memory_routes -> 0 hits"},
+        {"type": "pack", "ref": "GATE_3_4_M3/M4 gap (memory module)"}
+      ],
+      "suggested_action": "Crear tests/test_memory_routes.py con cobertura mínima de endpoints públicos (status, get/set memory, list)",
+      "expected_artifact": "tests/test_memory_routes.py + reports/coverage_memory_routes.json",
+      "allowed_actions": ["create_branch", "write_tests", "run_tests", "draft_pr"],
+      "forbidden_actions": ["merge", "deploy", "edit_kernel_logic", "edit_embrion_loop"],
+      "requires_human": false,
+      "estimated_cost_usd": 0.80,
+      "max_attempts": 2,
+      "ttl_hours": 24,
+      "why_safe": "Solo añade archivo nuevo en tests/; no modifica lógica productiva",
+      "why_useful": "Cierra gap M3/M4 de Gate 3.4; reduce deuda de cobertura",
+      "what_not_to_do": "NO modificar memory_routes.py; NO mockear DB; usar fixtures pytest aisladas",
+      "suggested_executor": "manus_agent_test_writer"
+    },
+    {
+      "id": "OPP-NB-002",
+      "title": "Tests dedicados para finops_routes",
+      "source": "tests_faltantes",
+      "category": "A",
+      "risk_class": "R1",
+      "evidence": [
+        {"type": "path", "ref": "kernel/finops_routes.py"},
+        {"type": "grep", "ref": "ls tests/ | grep test_finops_routes -> 0 hits"}
+      ],
+      "suggested_action": "Crear tests/test_finops_routes.py con tests de schema response (summary, run_costs aggregations)",
+      "expected_artifact": "tests/test_finops_routes.py",
+      "allowed_actions": ["create_branch", "write_tests", "run_tests", "draft_pr"],
+      "forbidden_actions": ["merge", "deploy", "query_run_costs_in_prod_db"],
+      "requires_human": false,
+      "estimated_cost_usd": 0.80,
+      "max_attempts": 2,
+      "ttl_hours": 24,
+      "why_safe": "Tests con mock de DB; no toca run_costs RLS",
+      "why_useful": "Asegura contratos del finops dashboard; previene regresión",
+      "what_not_to_do": "NO consultar Supabase real; NO modificar finops_routes.py",
+      "suggested_executor": "manus_agent_test_writer"
+    },
+    {
+      "id": "OPP-NB-003",
+      "title": "Tests dedicados para moc_routes",
+      "source": "tests_faltantes",
+      "category": "A",
+      "risk_class": "R1",
+      "evidence": [
+        {"type": "path", "ref": "kernel/moc_routes.py"},
+        {"type": "grep", "ref": "ls tests/ | grep test_moc_routes -> 0 hits (existen test_sprint36/37/38_moc pero no test_moc_routes)"}
+      ],
+      "suggested_action": "Crear tests/test_moc_routes.py con tests dedicados a endpoints públicos del MOC runner",
+      "expected_artifact": "tests/test_moc_routes.py",
+      "allowed_actions": ["create_branch", "write_tests", "run_tests", "draft_pr"],
+      "forbidden_actions": ["merge", "deploy", "edit_moc_runner_logic"],
+      "requires_human": false,
+      "estimated_cost_usd": 0.80,
+      "max_attempts": 2,
+      "ttl_hours": 24,
+      "why_safe": "Solo agrega archivo en tests/",
+      "why_useful": "Cierra gap de cobertura del runner MOC",
+      "what_not_to_do": "NO mockear hilos sabios reales; NO escribir en DB",
+      "suggested_executor": "manus_agent_test_writer"
+    },
+    {
+      "id": "OPP-NB-004",
+      "title": "Tests dedicados para a2a_routes",
+      "source": "tests_faltantes",
+      "category": "A",
+      "risk_class": "R1",
+      "evidence": [
+        {"type": "path", "ref": "kernel/a2a_routes.py"},
+        {"type": "grep", "ref": "ls tests/ | grep test_a2a -> 0 hits"}
+      ],
+      "suggested_action": "Crear tests/test_a2a_routes.py con tests de discovery, dispatch y inbox del Agent-to-Agent",
+      "expected_artifact": "tests/test_a2a_routes.py",
+      "allowed_actions": ["create_branch", "write_tests", "run_tests", "draft_pr"],
+      "forbidden_actions": ["merge", "deploy", "send_real_a2a_messages"],
+      "requires_human": false,
+      "estimated_cost_usd": 0.90,
+      "max_attempts": 2,
+      "ttl_hours": 24,
+      "why_safe": "Tests aislados, sin mensajes reales a otros agentes",
+      "why_useful": "A2A es crítico para coordinación inter-agente; cero tests dedicados es riesgo",
+      "what_not_to_do": "NO enviar mensajes reales A2A; NO tocar Manus API",
+      "suggested_executor": "manus_agent_test_writer"
+    },
+    {
+      "id": "OPP-NB-005",
+      "title": "Tests dedicados para planner_routes",
+      "source": "tests_faltantes",
+      "category": "A",
+      "risk_class": "R1",
+      "evidence": [
+        {"type": "path", "ref": "kernel/planner_routes.py"},
+        {"type": "grep", "ref": "ls tests/ | grep test_planner_routes -> 0 hits"}
+      ],
+      "suggested_action": "Crear tests/test_planner_routes.py con tests de schema response del planner",
+      "expected_artifact": "tests/test_planner_routes.py",
+      "allowed_actions": ["create_branch", "write_tests", "run_tests", "draft_pr"],
+      "forbidden_actions": ["merge", "deploy", "edit_planner_logic"],
+      "requires_human": false,
+      "estimated_cost_usd": 0.70,
+      "max_attempts": 2,
+      "ttl_hours": 24,
+      "why_safe": "Solo agrega archivo en tests/",
+      "why_useful": "Planner es bloqueante del e2e pipeline; sin cobertura es riesgo",
+      "what_not_to_do": "NO invocar LLMs reales en tests",
+      "suggested_executor": "manus_agent_test_writer"
+    },
+    {
+      "id": "OPP-NB-006",
+      "title": "Tests dedicados para mission_routes",
+      "source": "tests_faltantes",
+      "category": "A",
+      "risk_class": "R1",
+      "evidence": [
+        {"type": "path", "ref": "kernel/mission_routes.py"},
+        {"type": "grep", "ref": "ls tests/ | grep test_mission_routes -> 0 hits"}
+      ],
+      "suggested_action": "Crear tests/test_mission_routes.py con tests de mission lifecycle",
+      "expected_artifact": "tests/test_mission_routes.py",
+      "allowed_actions": ["create_branch", "write_tests", "run_tests", "draft_pr"],
+      "forbidden_actions": ["merge", "deploy", "create_real_missions_in_db"],
+      "requires_human": false,
+      "estimated_cost_usd": 0.70,
+      "max_attempts": 2,
+      "ttl_hours": 24,
+      "why_safe": "Tests aislados",
+      "why_useful": "Cubre endpoint de mission management",
+      "what_not_to_do": "NO escribir misiones reales en Supabase",
+      "suggested_executor": "manus_agent_test_writer"
+    },
+    {
+      "id": "OPP-NB-007",
+      "title": "Tests dedicados para alerts_routes y autonomy_routes",
+      "source": "tests_faltantes",
+      "category": "A",
+      "risk_class": "R1",
+      "evidence": [
+        {"type": "path", "ref": "kernel/alerts/routes.py + kernel/autonomy_routes.py"},
+        {"type": "grep", "ref": "ls tests/ | grep -E 'alerts|autonomy' -> 0 hits"}
+      ],
+      "suggested_action": "Crear tests/test_alerts_routes.py + tests/test_autonomy_routes.py",
+      "expected_artifact": "2 archivos test_*.py",
+      "allowed_actions": ["create_branch", "write_tests", "run_tests", "draft_pr"],
+      "forbidden_actions": ["merge", "deploy", "trigger_real_alerts"],
+      "requires_human": false,
+      "estimated_cost_usd": 1.00,
+      "max_attempts": 2,
+      "ttl_hours": 24,
+      "why_safe": "Tests con mock de notifiers (Telegram, etc.)",
+      "why_useful": "Endpoints críticos para gobernanza y autonomía sin tests",
+      "what_not_to_do": "NO disparar Telegram real ni rotar credenciales",
+      "suggested_executor": "manus_agent_test_writer"
+    },
+    {
+      "id": "OPP-NB-008",
+      "title": "Tests dedicados para deployments_routes y usage_routes",
+      "source": "tests_faltantes",
+      "category": "A",
+      "risk_class": "R1",
+      "evidence": [
+        {"type": "path", "ref": "kernel/deployments_routes.py + kernel/usage_routes.py"},
+        {"type": "grep", "ref": "0 tests dedicados"}
+      ],
+      "suggested_action": "Crear tests/test_deployments_routes.py + tests/test_usage_routes.py",
+      "expected_artifact": "2 archivos test_*.py",
+      "allowed_actions": ["create_branch", "write_tests", "run_tests", "draft_pr"],
+      "forbidden_actions": ["merge", "deploy", "trigger_real_deploy"],
+      "requires_human": false,
+      "estimated_cost_usd": 0.90,
+      "max_attempts": 2,
+      "ttl_hours": 24,
+      "why_safe": "Tests aislados con mocks",
+      "why_useful": "Endpoints de deployment y usage stats sin cobertura",
+      "what_not_to_do": "NUNCA triggerear un deploy real (Railway/Vercel)",
+      "suggested_executor": "manus_agent_test_writer"
+    },
+    {
+      "id": "OPP-NB-009",
+      "title": "Tests para catastro/recommendation engine puro",
+      "source": "tests_faltantes",
+      "category": "A",
+      "risk_class": "R1",
+      "evidence": [
+        {"type": "path", "ref": "kernel/catastro/recommendation.py"},
+        {"type": "grep", "ref": "tests existentes solo cubren visiquorum (sprint866); recommendation.py sin tests puros"}
+      ],
+      "suggested_action": "Crear tests/test_catastro_recommendation.py con fixtures sintéticas (no DB) para validar ordering por trono_global y filtrado por dominio/macroarea",
+      "expected_artifact": "tests/test_catastro_recommendation.py",
+      "allowed_actions": ["create_branch", "write_tests", "run_tests", "draft_pr"],
+      "forbidden_actions": ["merge", "deploy", "query_supabase_catastro_modelos"],
+      "requires_human": false,
+      "estimated_cost_usd": 1.00,
+      "max_attempts": 2,
+      "ttl_hours": 24,
+      "why_safe": "Tests con fixtures sintéticas; cero DB",
+      "why_useful": "Recommendation es brain layer crítico (CATASTRO-WIRING-001); merece cobertura aislada",
+      "what_not_to_do": "NO consultar DB real; NO mutar trono_global",
+      "suggested_executor": "manus_agent_test_writer"
+    },
+    {
+      "id": "OPP-NB-010",
+      "title": "Reporte de Endpoint Consumer Gap (todos los routes vs UI/pipeline reales)",
+      "source": "endpoint_consumer_gap",
+      "category": "C",
+      "risk_class": "R0",
+      "evidence": [
+        {"type": "pack", "ref": "PROD_REALITY_AND_UI_CONSUMER_PACK §C UI consumers limitada"},
+        {"type": "grep", "ref": "18 archivos *_routes.py vs Flutter consumers limitados a embrion/finops/memory/moc/chat/files/sandbox"}
+      ],
+      "suggested_action": "Generar reports/endpoint_consumer_gap_2026_05_18.md mapeando cada endpoint público vs su consumidor real (Flutter, Telegram, kernel internal, none)",
+      "expected_artifact": "monstruo_reality_atlas/reports/endpoint_consumer_gap_2026_05_18.md",
+      "allowed_actions": ["generate_report", "create_branch", "draft_pr"],
+      "forbidden_actions": ["merge", "edit_kernel_routes", "edit_apps_mobile"],
+      "requires_human": false,
+      "estimated_cost_usd": 0.50,
+      "max_attempts": 1,
+      "ttl_hours": 24,
+      "why_safe": "Solo lectura + producción de markdown",
+      "why_useful": "Identifica endpoints zombies (sin consumidor) candidatos a deprecación o UI faltante",
+      "what_not_to_do": "NO sugerir borrar endpoints; NO modificar routes.py",
+      "suggested_executor": "manus_agent_reporter"
+    },
+    {
+      "id": "OPP-NB-011",
+      "title": "Reporte de drift /v1/embrion/status vs /v1/embrion/estado",
+      "source": "drift_doctrina_codigo",
+      "category": "B",
+      "risk_class": "R0",
+      "evidence": [
+        {"type": "grep", "ref": "kernel/embrion_routes.py L24 docstring dice 'GET /v1/embrion/estado' y L134 @router.get('/estado')"},
+        {"type": "grep", "ref": "kernel/main.py menciona /v1/embrion/status (drift)"},
+        {"type": "pack", "ref": "PROD_REALITY_AND_UI_CONSUMER_PACK P3 drift naming"}
+      ],
+      "suggested_action": "Generar reports/drift_embrion_status_estado_2026_05_18.md documentando exactamente dónde aparece cada variante, qué endpoint existe en runtime, y propuesta de alias O canonización",
+      "expected_artifact": "monstruo_reality_atlas/reports/drift_embrion_status_estado_2026_05_18.md",
+      "allowed_actions": ["generate_report", "create_branch", "draft_pr"],
+      "forbidden_actions": ["merge", "edit_embrion_routes", "edit_main_py", "edit_app_vision"],
+      "requires_human": true,
+      "estimated_cost_usd": 0.40,
+      "max_attempts": 1,
+      "ttl_hours": 24,
+      "why_safe": "Solo análisis + markdown",
+      "why_useful": "Drift documentado bloquea pericia 95% de ChatGPT; su clarificación es prerequisito",
+      "what_not_to_do": "NO añadir alias en runtime; NO modificar APP_VISION; SOLO documentar y proponer",
+      "suggested_executor": "manus_agent_drift_auditor"
+    },
+    {
+      "id": "OPP-NB-012",
+      "title": "Reporte de Bridge Health (stale, ratios, postmortems placeholder)",
+      "source": "bridge_health",
+      "category": "D",
+      "risk_class": "R0",
+      "evidence": [
+        {"type": "table", "ref": "ratio sprints_completados/propuestos = 4/34 = 11.7%"},
+        {"type": "grep", "ref": "find bridge -mtime +7 sprints propuestos -> 0 hits HOY pero ratio histórico es señal"},
+        {"type": "grep", "ref": "bridge/postmortems/postmortem_ESCAPE_001_PLACEHOLDER + postmortem_ROTOR_001_PLACEHOLDER"}
+      ],
+      "suggested_action": "Generar reports/bridge_health_2026_05_18.md con métricas: total mds, ratio activos/completados, postmortems placeholder vs reales, archive count, runbooks gap (3/13)",
+      "expected_artifact": "monstruo_reality_atlas/reports/bridge_health_2026_05_18.md",
+      "allowed_actions": ["generate_report", "create_branch", "draft_pr"],
+      "forbidden_actions": ["merge", "delete_stale_files", "auto_archive"],
+      "requires_human": false,
+      "estimated_cost_usd": 0.30,
+      "max_attempts": 1,
+      "ttl_hours": 24,
+      "why_safe": "Solo lectura + reporte",
+      "why_useful": "Da a Cowork/Alfredo visibilidad numérica del bridge para decidir disciplina futura",
+      "what_not_to_do": "NO mover archivos; NO archivar nada automáticamente",
+      "suggested_executor": "manus_agent_reporter"
+    },
+    {
+      "id": "OPP-NB-013",
+      "title": "Detector de Stale Sprints (>14 días sin actividad)",
+      "source": "bridge_health",
+      "category": "D",
+      "risk_class": "R0",
+      "evidence": [
+        {"type": "path", "ref": "bridge/sprints_propuestos/ con 34 archivos"},
+        {"type": "grep", "ref": "find -mtime +14 -> 0 hits actuales pero sprints históricos pueden estar en otras carpetas"}
+      ],
+      "suggested_action": "Generar reports/stale_sprints_detector_2026_05_18.md listando sprints sin commits en su filename hash o sin update por >14 días",
+      "expected_artifact": "monstruo_reality_atlas/reports/stale_sprints_detector_2026_05_18.md",
+      "allowed_actions": ["generate_report", "create_branch", "draft_pr"],
+      "forbidden_actions": ["merge", "auto_close_sprint", "auto_archive"],
+      "requires_human": false,
+      "estimated_cost_usd": 0.30,
+      "max_attempts": 1,
+      "ttl_hours": 24,
+      "why_safe": "Solo análisis filesystem + git log",
+      "why_useful": "Identifica deuda dormida; ayuda a Alfredo a priorizar cierre o archive",
+      "what_not_to_do": "NO declarar nada cerrado; NO mover archivos",
+      "suggested_executor": "manus_agent_reporter"
+    },
+    {
+      "id": "OPP-NB-014",
+      "title": "Reporte de ACCESS_BLOCKED recurrentes",
+      "source": "access_blocked",
+      "category": "E",
+      "risk_class": "R0",
+      "evidence": [
+        {"type": "pack", "ref": "Pack 1 endpoints autenticados X-API-Key (proposals, finops, memory, moc, catastro/status, agui/info)"},
+        {"type": "pack", "ref": "Pack 2 run_costs RLS, Logs Railway 7 dias"}
+      ],
+      "suggested_action": "Generar reports/access_blocked_consolidated_2026_05_18.md con lista de endpoints/recursos bloqueados, razón, y propuesta DSC para autorizar intentos autenticados desde sandbox controlado",
+      "expected_artifact": "monstruo_reality_atlas/reports/access_blocked_consolidated_2026_05_18.md",
+      "allowed_actions": ["generate_report", "create_branch", "draft_pr"],
+      "forbidden_actions": ["merge", "request_credentials", "bypass_auth", "rotate_keys"],
+      "requires_human": true,
+      "estimated_cost_usd": 0.30,
+      "max_attempts": 1,
+      "ttl_hours": 24,
+      "why_safe": "Solo consolida lo ya documentado en los packs",
+      "why_useful": "Da a Alfredo lista accionable para decidir DSC de access policy",
+      "what_not_to_do": "NUNCA solicitar credenciales; NUNCA intentar bypass; SOLO documentar",
+      "suggested_executor": "manus_agent_reporter"
+    },
+    {
+      "id": "OPP-NB-015",
+      "title": "Reporte de NO_SOURCE bloqueantes (SMP, Cronos, Cripta, Command Center, CIP repo, apps mobile prod)",
+      "source": "no_source",
+      "category": "F",
+      "risk_class": "R0",
+      "evidence": [
+        {"type": "pack", "ref": "Pack 2 + Pack 4 NO_SOURCE list"},
+        {"type": "grep", "ref": "kernel/smp/ kernel/cronos/ kernel/cripta/ command-center/ -> no existen"}
+      ],
+      "suggested_action": "Generar reports/no_source_blockers_2026_05_18.md consolidando referencias en doctrina vs ausencia en código, con recomendación de DSC futuro o reclasificación",
+      "expected_artifact": "monstruo_reality_atlas/reports/no_source_blockers_2026_05_18.md",
+      "allowed_actions": ["generate_report", "create_branch", "draft_pr"],
+      "forbidden_actions": ["merge", "create_smp_module", "create_cronos_module", "create_command_center", "edit_app_vision"],
+      "requires_human": true,
+      "estimated_cost_usd": 0.50,
+      "max_attempts": 1,
+      "ttl_hours": 24,
+      "why_safe": "Solo consolida hallazgos packs",
+      "why_useful": "Drift severo P1 que afecta pericia 95%; necesita decisión Alfredo",
+      "what_not_to_do": "NO crear módulos placeholder; NO modificar APP_VISION",
+      "suggested_executor": "manus_agent_drift_auditor"
+    },
+    {
+      "id": "OPP-NB-016",
+      "title": "Reporte de Flutter consumers reales vs gateway docstring",
+      "source": "drift_doctrina_codigo",
+      "category": "B",
+      "risk_class": "R0",
+      "evidence": [
+        {"type": "path", "ref": "apps/mobile/lib/features/{embrion,finops,memory,moc,chat,files,sandbox,onboarding,settings}"},
+        {"type": "path", "ref": "apps/mobile/gateway/"},
+        {"type": "pack", "ref": "Pack 1 §UI consumers limitados"}
+      ],
+      "suggested_action": "Generar reports/flutter_consumers_audit_2026_05_18.md mapeando feature por feature qué endpoints real consume cada pantalla Flutter vs qué declara el gateway",
+      "expected_artifact": "monstruo_reality_atlas/reports/flutter_consumers_audit_2026_05_18.md",
+      "allowed_actions": ["generate_report", "create_branch", "draft_pr"],
+      "forbidden_actions": ["merge", "edit_apps_mobile", "edit_kernel_gateway"],
+      "requires_human": false,
+      "estimated_cost_usd": 0.60,
+      "max_attempts": 1,
+      "ttl_hours": 24,
+      "why_safe": "Solo lectura código Dart + producción markdown",
+      "why_useful": "Cierra gap de pericia 95% sobre UI consumers reales",
+      "what_not_to_do": "NO modificar Dart ni gateway",
+      "suggested_executor": "manus_agent_reporter"
+    },
+    {
+      "id": "OPP-NB-017",
+      "title": "Reporte de A2UI schema kernel vs renderer Flutter",
+      "source": "drift_doctrina_codigo",
+      "category": "B",
+      "risk_class": "R0",
+      "evidence": [
+        {"type": "path", "ref": "kernel/a2ui/schema.py + apps/mobile/lib/core/a2ui/{renderer.dart, a2ui_screen.dart}"}
+      ],
+      "suggested_action": "Generar reports/a2ui_schema_renderer_alignment_2026_05_18.md comparando schema Python vs componentes Dart (qué tipos están soportados/faltantes)",
+      "expected_artifact": "monstruo_reality_atlas/reports/a2ui_schema_renderer_alignment_2026_05_18.md",
+      "allowed_actions": ["generate_report", "create_branch", "draft_pr"],
+      "forbidden_actions": ["merge", "edit_a2ui_schema", "edit_renderer"],
+      "requires_human": false,
+      "estimated_cost_usd": 0.50,
+      "max_attempts": 1,
+      "ttl_hours": 24,
+      "why_safe": "Solo análisis + markdown",
+      "why_useful": "A2UI es contrato kernel↔mobile; misalignment causa runtime errors silenciosos",
+      "what_not_to_do": "NO añadir tipos al schema; NO modificar renderer",
+      "suggested_executor": "manus_agent_reporter"
+    },
+    {
+      "id": "OPP-NB-018",
+      "title": "Reporte de cobertura de tests por módulo kernel (mapa de calor)",
+      "source": "tests_faltantes",
+      "category": "A",
+      "risk_class": "R0",
+      "evidence": [
+        {"type": "grep", "ref": "18 *_routes.py vs solo 4 con tests dedicados (cowork, embrion parcial, magna, e2e parcial)"}
+      ],
+      "suggested_action": "Generar reports/test_coverage_heatmap_2026_05_18.md con tabla módulo→archivos test→% cobertura aproximado (LOC tests / LOC source)",
+      "expected_artifact": "monstruo_reality_atlas/reports/test_coverage_heatmap_2026_05_18.md",
+      "allowed_actions": ["generate_report", "create_branch", "draft_pr"],
+      "forbidden_actions": ["merge", "auto_create_tests"],
+      "requires_human": false,
+      "estimated_cost_usd": 0.40,
+      "max_attempts": 1,
+      "ttl_hours": 24,
+      "why_safe": "Solo conteo de líneas + reporte",
+      "why_useful": "Insumo Gate 3.4 M3/M4; prioriza qué módulos atacar primero en futuras OPPs",
+      "what_not_to_do": "NO crear tests automáticamente; NO calcular coverage real (requiere pytest-cov, R2)",
+      "suggested_executor": "manus_agent_reporter"
+    },
+    {
+      "id": "OPP-NB-019",
+      "title": "Reporte de Runbooks gap (3/13 credenciales con runbook)",
+      "source": "bridge_health",
+      "category": "D",
+      "risk_class": "R0",
+      "evidence": [
+        {"type": "path", "ref": "bridge/runbooks/ tiene 3 archivos: bitwarden_master, openai_api_key, supabase_service_key"},
+        {"type": "pack", "ref": "Pack 3 §runbooks coverage 3/13"}
+      ],
+      "suggested_action": "Generar reports/runbooks_gap_2026_05_18.md listando 13 credenciales activas y cuáles faltan runbook + plantilla mínima sugerida",
+      "expected_artifact": "monstruo_reality_atlas/reports/runbooks_gap_2026_05_18.md",
+      "allowed_actions": ["generate_report", "create_branch", "draft_pr"],
+      "forbidden_actions": ["merge", "create_runbook_with_secrets", "leak_credential_metadata"],
+      "requires_human": true,
+      "estimated_cost_usd": 0.30,
+      "max_attempts": 1,
+      "ttl_hours": 24,
+      "why_safe": "Solo lista names de credenciales (NO valores) y propone plantilla genérica",
+      "why_useful": "Cierra gap operacional P2 documentado en Pack 3",
+      "what_not_to_do": "NUNCA pegar valores de secrets; SOLO names + ubicación storage",
+      "suggested_executor": "manus_agent_reporter"
+    },
+    {
+      "id": "OPP-NB-020",
+      "title": "Generador de Morning Report compilado (template + script de prueba)",
+      "source": "morning_report",
+      "category": "D",
+      "risk_class": "R1",
+      "evidence": [
+        {"type": "path", "ref": "bridge/sprints_propuestos/sprint_SPR-NIGHTLY-BUILDER-001_DRAFT.md §9"}
+      ],
+      "suggested_action": "Crear scripts/morning_report_template.py con dry-run que produce reports/morning_report_2026_05_19_DRYRUN.md con datos sintéticos",
+      "expected_artifact": "scripts/morning_report_template.py + reports/morning_report_2026_05_19_DRYRUN.md",
+      "allowed_actions": ["create_branch", "write_tests", "run_tests", "draft_pr", "generate_report"],
+      "forbidden_actions": ["merge", "deploy_morning_report_cron", "edit_embrion_scheduler", "execute_against_real_queue"],
+      "requires_human": false,
+      "estimated_cost_usd": 1.20,
+      "max_attempts": 2,
+      "ttl_hours": 24,
+      "why_safe": "Script standalone con dry-run flag; cero side-effects",
+      "why_useful": "Valida formato Section 9 del spec; entrega artifact ejecutable",
+      "what_not_to_do": "NO conectar al embrion_scheduler; NO escribir en DB",
+      "suggested_executor": "manus_agent_test_writer"
+    }
+  ],
+
+  "top_5_for_night_1": [
+    {"id": "OPP-NB-010", "rank": 1, "reason": "R0 puro, alto valor (mapeo zombies), bajo costo $0.50, sin requires_human"},
+    {"id": "OPP-NB-018", "rank": 2, "reason": "R0 puro, insumo directo Gate 3.4 M3/M4, $0.40"},
+    {"id": "OPP-NB-012", "rank": 3, "reason": "R0 puro, valor visibilidad bridge, $0.30"},
+    {"id": "OPP-NB-001", "rank": 4, "reason": "R1 simple, módulo aislado memory_routes, alto retorno cobertura, $0.80"},
+    {"id": "OPP-NB-020", "rank": 5, "reason": "R1 con dry-run, valida sección crítica del spec parent, $1.20"}
+  ],
+
+  "looks_safe_but_forbidden": [
+    {
+      "id": "FORBID-001",
+      "title": "Auto-archive de sprints stale en bridge",
+      "looks_safe_because": "Solo mover archivos a bridge/archive/",
+      "actually_forbidden_because": "Viola DSC-S-005 cleanup default to archive REQUIERE snapshot forense + scope ampliado + confirmación humana; auto-archive sin firma rompe trazabilidad",
+      "correct_path": "Generar reporte (OPP-NB-013), Alfredo decide y firma DSC",
+      "category": "D"
+    },
+    {
+      "id": "FORBID-002",
+      "title": "Crear tests para embrion_loop helpers internos",
+      "looks_safe_because": "Solo agrega archivos en tests/",
+      "actually_forbidden_because": "Tocar superficie de embrion_loop = R5 self-modification (regla del spec parent §6: edit_embrion_loop FORBIDDEN); incluso tests pueden contaminar import path o exigir refactor del módulo",
+      "correct_path": "BLOQUEADO en v0; requiere autorización explícita Alfredo + Cowork audit pre-spec",
+      "category": "A"
+    },
+    {
+      "id": "FORBID-003",
+      "title": "Generar runbook completo de rotación para los 10 secrets faltantes",
+      "looks_safe_because": "Solo escribir archivos md en bridge/runbooks/",
+      "actually_forbidden_because": "Producir runbooks operativos sin Cowork audit + DSC firmado puede crear runbook erróneo que cause incidente al ejecutarse; políticas rotación = R4 security",
+      "correct_path": "Generar SOLO reporte de gap (OPP-NB-019); runbooks reales requieren sprint dedicado",
+      "category": "D"
+    },
+    {
+      "id": "FORBID-004",
+      "title": "Refactorizar imports de routes para añadir prefijos uniformes",
+      "looks_safe_because": "Solo cosmético, mismo comportamiento runtime",
+      "actually_forbidden_because": "Es R2 refactor menor (matriz §3 spec parent); aunque no toca lógica, cambia contratos públicos de la API y rompe consumidores Flutter/Telegram silenciosamente",
+      "correct_path": "Sprint dedicado con audit Cowork + plan de migración",
+      "category": "B"
+    },
+    {
+      "id": "FORBID-005",
+      "title": "Crear archivo placeholder kernel/smp/__init__.py para que NO_SOURCE deje de aparecer",
+      "looks_safe_because": "Archivo vacío, cero lógica",
+      "actually_forbidden_because": "Crear módulo placeholder es engaño doctrinal: oculta el drift real (SMP aspiracional) y ChatGPT/Cowork creerán que existe; viola NO_SOURCE como invariante de pericia",
+      "correct_path": "Reporte NO_SOURCE (OPP-NB-015) + decisión Alfredo si SMP arranca sprint",
+      "category": "F"
+    }
+  ],
+
+  "parking_lot_r2_plus": [
+    {"id": "PARK-R2-001", "title": "Refactor uniformizar prefijos /v1/ en todas las routes", "risk_class": "R2", "reason_blocked": "Cambia contratos API pública"},
+    {"id": "PARK-R2-002", "title": "Añadir type hints completos a kernel/main.py", "risk_class": "R2", "reason_blocked": "Refactor menor pero archivo crítico de bootstrap"},
+    {"id": "PARK-R3-001", "title": "Implementar embrion_scheduler.run_full_audit() helper", "risk_class": "R3", "reason_blocked": "Lógica core scheduler"},
+    {"id": "PARK-R3-002", "title": "Añadir endpoint /v1/embrion/status como alias de /estado", "risk_class": "R3", "reason_blocked": "Modifica embrion_routes.py (lógica core)"},
+    {"id": "PARK-R4-001", "title": "Migración SQL para crear tabla guardian_audit_log", "risk_class": "R4", "reason_blocked": "DB migration"},
+    {"id": "PARK-R4-002", "title": "Rotación proactiva de credenciales con TTL próximo", "risk_class": "R4", "reason_blocked": "Secret rotation"},
+    {"id": "PARK-R5-001", "title": "Modificar write_policy para permitir nightly builder writes", "risk_class": "R5", "reason_blocked": "Self-modification absoluta"},
+    {"id": "PARK-R5-002", "title": "Editar executor_registry para añadir nightly_builder_agent", "risk_class": "R5", "reason_blocked": "Self-modification absoluta"}
+  ],
+
+  "scan_summary": {
+    "total_routes_audited": 18,
+    "routes_with_dedicated_tests": 4,
+    "routes_without_tests": 11,
+    "routes_with_partial_tests": 3,
+    "drift_documented_count": 3,
+    "no_source_blockers_count": 6,
+    "access_blocked_count": 5,
+    "bridge_postmortems_placeholder": 2,
+    "runbooks_coverage_ratio": "3/13"
+  },
+
+  "rules_observed": ["NO_DESIGN_ARCH", "NO_IMPLEMENT", "NO_PR", "NO_CODE_TOUCH", "NO_INVENT_OPP_WITHOUT_EVIDENCE"]
+}

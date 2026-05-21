@@ -1,0 +1,4 @@
+{"timestamp": "2026-05-21T03:11:47.230997Z", "embryo_id": "oracle_ai_embryo_r0", "event_type": "DISPATCHER_REQUEST", "payload": {"task_id": "detect_new_ai_capability_candidates", "action_class": "A0_OBSERVE"}}
+{"timestamp": "2026-05-21T03:11:47.231107Z", "embryo_id": "oracle_ai_embryo_r0", "event_type": "DISPATCHER_ALLOW", "payload": {"task_id": "detect_new_ai_capability_candidates", "reason": "Action class A0_OBSERVE is in allowed list"}}
+{"timestamp": "2026-05-21T03:11:47.231171Z", "embryo_id": "oracle_ai_embryo_r0", "event_type": "EMBRYO_TASK_STARTED", "payload": {"task_id": "detect_new_ai_capability_candidates"}}
+{"timestamp": "2026-05-21T03:11:54.431726Z", "embryo_id": "oracle_ai_embryo_r0", "event_type": "EMBRYO_TASK_COMPLETED", "payload": {"task_id": "detect_new_ai_capability_candidates", "cost_usd": 0.00018975, "output_path": "/home/ubuntu/el-monstruo-bridge/bridge/embryos/oracle_ai_r0/outputs/detect_new_ai_capability_candidates_20260521T031154.json"}}

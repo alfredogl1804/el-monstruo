@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "run_id": "NIGHT0_R0_2026_05_18",
+    "cell": "CELL-NIGHTLY-BUILDER-001",
+    "timestamp_start": "2026-05-18T22:00:00Z",
+    "timestamp_end": "2026-05-18T22:45:00Z",
+    "total_opps_attempted": 3,
+    "total_gates_evaluated": 24,
+    "total_gates_passed": 24,
+    "total_gates_failed": 0
+  },
+  "gates_per_opp": [
+    {
+      "opp_id": "OPP-NB-010",
+      "title": "Endpoint Consumer Gap Report",
+      "risk_class": "R0",
+      "gates": [
+        {"gate": "purpose", "question": "Does this produce a useful artifact?", "result": "PASS", "evidence": "Produces endpoint-consumer matrix identifying zombie routes"},
+        {"gate": "novelty", "question": "Is this information not already documented?", "result": "PASS", "evidence": "No existing consumer gap report in bridge/ or docs/"},
+        {"gate": "verifiability", "question": "Can the output be verified against source?", "result": "PASS", "evidence": "grep -rl counts verifiable against kernel/*routes*.py and apps/mobile/lib/"},
+        {"gate": "budget", "question": "Estimated cost < max_cost_usd?", "result": "PASS", "evidence": "Actual: $0.00 (pure grep/wc, no LLM calls). Budget: $0.50"},
+        {"gate": "risk", "question": "Risk class <= R1?", "result": "PASS", "evidence": "R0 - read-only scan, zero writes to production"},
+        {"gate": "sandbox", "question": "Executed in sandbox only?", "result": "PASS", "evidence": "All commands ran in /tmp/el-monstruo-fresh (local clone)"},
+        {"gate": "external_audit", "question": "Output auditable by Cowork/Alfredo?", "result": "PASS", "evidence": "Structured table in report.md + JSON evidence_index"},
+        {"gate": "stop_condition", "question": "No infinite loop or runaway detected?", "result": "PASS", "evidence": "Single-pass grep loop over 18 routes, completed in <5s"}
+      ]
+    },
+    {
+      "opp_id": "OPP-NB-018",
+      "title": "Test Coverage Heatmap",
+      "risk_class": "R0",
+      "gates": [
+        {"gate": "purpose", "question": "Does this produce a useful artifact?", "result": "PASS", "evidence": "Produces LOC source vs LOC test ratio per module for Gate 3.4 M3/M4"},
+        {"gate": "novelty", "question": "Is this information not already documented?", "result": "PASS", "evidence": "No existing coverage heatmap in repo"},
+        {"gate": "verifiability", "question": "Can the output be verified against source?", "result": "PASS", "evidence": "wc -l counts reproducible by anyone with repo access"},
+        {"gate": "budget", "question": "Estimated cost < max_cost_usd?", "result": "PASS", "evidence": "Actual: $0.00 (pure wc/find, no LLM calls). Budget: $0.40"},
+        {"gate": "risk", "question": "Risk class <= R1?", "result": "PASS", "evidence": "R0 - read-only scan, zero writes to production"},
+        {"gate": "sandbox", "question": "Executed in sandbox only?", "result": "PASS", "evidence": "All commands ran in /tmp/el-monstruo-fresh (local clone)"},
+        {"gate": "external_audit", "question": "Output auditable by Cowork/Alfredo?", "result": "PASS", "evidence": "Structured table with module/src_loc/test_loc/ratio/verdict"},
+        {"gate": "stop_condition", "question": "No infinite loop or runaway detected?", "result": "PASS", "evidence": "Single-pass loop over 16 route files, completed in <3s"}
+      ]
+    },
+    {
+      "opp_id": "OPP-NB-012",
+      "title": "Bridge Health Report",
+      "risk_class": "R0",
+      "gates": [
+        {"gate": "purpose", "question": "Does this produce a useful artifact?", "result": "PASS", "evidence": "Produces bridge health metrics: ratios, stale detection, postmortem coverage, runbook gaps"},
+        {"gate": "novelty", "question": "Is this information not already documented?", "result": "PASS", "evidence": "No existing bridge health report in repo"},
+        {"gate": "verifiability", "question": "Can the output be verified against source?", "result": "PASS", "evidence": "ls/find/wc counts reproducible by anyone with repo access"},
+        {"gate": "budget", "question": "Estimated cost < max_cost_usd?", "result": "PASS", "evidence": "Actual: $0.00 (pure ls/find/wc, no LLM calls). Budget: $0.30"},
+        {"gate": "risk", "question": "Risk class <= R1?", "result": "PASS", "evidence": "R0 - read-only scan, zero writes to production"},
+        {"gate": "sandbox", "question": "Executed in sandbox only?", "result": "PASS", "evidence": "All commands ran in /tmp/el-monstruo-fresh (local clone)"},
+        {"gate": "external_audit", "question": "Output auditable by Cowork/Alfredo?", "result": "PASS", "evidence": "Structured metrics in report.md + JSON evidence"},
+        {"gate": "stop_condition", "question": "No infinite loop or runaway detected?", "result": "PASS", "evidence": "Single-pass find/ls over bridge/, completed in <2s"}
+      ]
+    }
+  ]
+}

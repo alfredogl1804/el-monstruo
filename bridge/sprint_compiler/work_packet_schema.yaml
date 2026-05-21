@@ -1,0 +1,32 @@
+work_packet_schema:
+  version: "0.1"
+  type: object
+  properties:
+    packet_id:
+      type: string
+    parent_sprint_id:
+      type: string
+    description:
+      type: string
+    assigned_agent:
+      type: string
+      enum: [loop_reactor, loop_oracle, loop_sprint_compiler, loop_cockpit, loop_state_fabric, loop_auditor, external_agent]
+    input_artifacts:
+      type: array
+      items:
+        type: string
+    output_artifacts:
+      type: array
+      items:
+        type: string
+    validation_script:
+      type: string
+    status:
+      type: string
+      enum: [DRAFT, READY, IN_PROGRESS, COMPLETED, FAILED]
+  required:
+    - packet_id
+    - parent_sprint_id
+    - description
+    - assigned_agent
+    - status

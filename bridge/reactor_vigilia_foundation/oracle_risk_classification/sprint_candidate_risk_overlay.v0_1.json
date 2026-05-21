@@ -1,0 +1,92 @@
+{
+  "overlay_version": "v0.1.0",
+  "base_catalog_version": "v0.1.0",
+  "generated_by": "SPR-RISK-CLASSIFICATION-001",
+  "generated_at": "2026-05-20T20:00:00Z",
+  "sprint_candidates": [
+    {
+      "sprint_candidate_id": "SPR-UI-AUDIT-001",
+      "power_stack_id": "PS-001",
+      "capability_ids": ["CAP-001"],
+      "proposed_actions": ["observe_repo", "create_report"],
+      "paths_touched": ["bridge/doctrine_candidates/"],
+      "apis_required": true,
+      "secrets_required": true,
+      "derived_risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "t1_required": true,
+      "allowed_next_action": "R0_SPEC_ONLY",
+      "notes": "Cannot execute until M2 verifies API access. Current state: spec-only. Post-verification would require A3 (screenshot capture + report write)."
+    },
+    {
+      "sprint_candidate_id": "SPR-DEEP-AUDITOR-001",
+      "power_stack_id": "PS-002",
+      "capability_ids": ["CAP-002"],
+      "proposed_actions": ["read_archive", "create_report"],
+      "paths_touched": ["bridge/doctrine_candidates/"],
+      "apis_required": true,
+      "secrets_required": true,
+      "derived_risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "t1_required": true,
+      "allowed_next_action": "R0_SPEC_ONLY",
+      "notes": "Cannot execute until M2 verifies API access. Post-verification: A3 (reads private docs + writes audit reports)."
+    },
+    {
+      "sprint_candidate_id": "SPR-LONG-MEMORY-001",
+      "power_stack_id": "PS-003",
+      "capability_ids": ["CAP-003"],
+      "proposed_actions": ["read_archive", "create_state_fabric_draft"],
+      "paths_touched": ["bridge/doctrine_candidates/", "bridge/thread_archives/"],
+      "apis_required": true,
+      "secrets_required": true,
+      "derived_risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "t1_required": true,
+      "allowed_next_action": "R0_SPEC_ONLY",
+      "notes": "Cannot execute until M2 verifies API access. Post-verification: A3 (ingests full corpus = user_data_touch). Grounding adds injection surface."
+    },
+    {
+      "sprint_candidate_id": "SPR-REALTIME-VALIDATOR-001",
+      "power_stack_id": "PS-004",
+      "capability_ids": ["CAP-004"],
+      "proposed_actions": ["observe_repo", "create_report"],
+      "paths_touched": ["bridge/doctrine_candidates/"],
+      "apis_required": true,
+      "secrets_required": true,
+      "derived_risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "t1_required": true,
+      "allowed_next_action": "R0_SPEC_ONLY",
+      "notes": "Cannot execute until M2 verifies API access. Post-verification: A2 (public web read + report). HIGH prompt_injection_surface from web content."
+    },
+    {
+      "sprint_candidate_id": "SPR-AUTO-RESEARCHER-001",
+      "power_stack_id": "PS-005",
+      "capability_ids": ["CAP-005"],
+      "proposed_actions": ["observe_repo", "create_report"],
+      "paths_touched": ["bridge/doctrine_candidates/"],
+      "apis_required": true,
+      "secrets_required": true,
+      "derived_risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "t1_required": true,
+      "allowed_next_action": "R0_SPEC_ONLY",
+      "notes": "Cannot execute until M2 verifies API access. Post-verification: A2 (public web read + report). Similar profile to SPR-REALTIME-VALIDATOR-001."
+    },
+    {
+      "sprint_candidate_id": "SPR-SOVEREIGN-REASONING-001",
+      "power_stack_id": "PS-006",
+      "capability_ids": ["CAP-006"],
+      "proposed_actions": ["create_report", "write_code"],
+      "paths_touched": ["bridge/doctrine_candidates/", "src/"],
+      "apis_required": false,
+      "secrets_required": false,
+      "derived_risk_class": "R0",
+      "required_autonomy_level": "A1",
+      "t1_required": true,
+      "allowed_next_action": "R0_SPEC_ONLY",
+      "notes": "Cannot execute until infrastructure is verified. Proposes write_code (A5) and src/ path. Post-verification: derived_risk_class would be R4, required_autonomy_level A5. Highest risk sprint candidate in catalog."
+    }
+  ]
+}

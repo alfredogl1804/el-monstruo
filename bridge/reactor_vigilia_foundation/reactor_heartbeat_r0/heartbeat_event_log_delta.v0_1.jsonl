@@ -1,0 +1,3 @@
+{"event_id": 2, "timestamp_utc": "2026-05-21T00:08:13.591719+00:00", "source": "heartbeat_r0", "event_type": "HEARTBEAT_STARTED", "payload": {"heartbeat_id": "HB-R0-001"}}
+{"event_id": 3, "timestamp_utc": "2026-05-21T00:08:13.591900+00:00", "source": "heartbeat_r0", "event_type": "HEARTBEAT_DECISION", "payload": {"heartbeat_id": "HB-R0-001", "decision": "REQUEST_T1", "reason": "T1 decisions pending in post_m2_t1_decision_pack (scheduler authorization, core providers, budget). Cannot proceed autonomously."}}
+{"event_id": 4, "timestamp_utc": "2026-05-21T00:08:13.592002+00:00", "source": "heartbeat_r0", "event_type": "HEARTBEAT_COMPLETED", "payload": {"heartbeat_id": "HB-R0-001", "decision": "REQUEST_T1", "actions_taken": []}}

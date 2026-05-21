@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Post-M2 Power Stack Risk",
+  "description": "Derived risk for a Power Stack (combination of capabilities).",
+  "type": "object",
+  "required": ["stack_id", "components", "max_component_risk", "side_effect_bonus", "derived_risk_class", "required_autonomy_level", "blocked_reason"],
+  "properties": {
+    "stack_id": { "type": "string" },
+    "stack_name": { "type": "string" },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "capability_id": { "type": "string" },
+          "risk_class": { "type": "string" }
+        }
+      }
+    },
+    "max_component_risk": { "type": "string", "enum": ["R0", "R1", "R2", "R3", "R4", "R5", "BLOCKED_FOR_AUTOMATION"] },
+    "side_effect_bonus": { "type": "integer", "minimum": 0, "maximum": 2 },
+    "derived_risk_class": { "type": "string", "enum": ["R1", "R2", "R3", "R4", "R5", "BLOCKED_FOR_AUTOMATION"] },
+    "required_autonomy_level": { "type": "string", "enum": ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "N/A"] },
+    "blocked_reason": { "type": ["string", "null"] }
+  }
+}

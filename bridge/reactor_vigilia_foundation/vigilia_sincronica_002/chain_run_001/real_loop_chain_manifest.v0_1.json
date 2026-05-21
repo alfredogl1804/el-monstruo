@@ -1,0 +1,153 @@
+{
+  "chain_id": "vigilia-chain-v0.2-001",
+  "chain_version": "v0.2.0",
+  "created_at": "2026-05-20T23:29:37Z",
+  "completed_at": "2026-05-20T23:29:37Z",
+  "created_by": "SPR-VIGILIA-SINCRONICA-002",
+  "steps": [
+    {
+      "step_id": 1,
+      "loop_id": "loop_oraculo_ias",
+      "status": "SUCCESS",
+      "started_at": "2026-05-20T23:29:37Z",
+      "completed_at": "2026-05-20T23:29:37Z",
+      "actions_allowed": 2,
+      "actions_denied": 1,
+      "output_files": [
+        "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/vigilia_sincronica_002/chain_run_001/oracle_output/oraculo_capability_catalog_v0.json",
+        "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/vigilia_sincronica_002/chain_run_001/oracle_output/oraculo_power_stacks_v0.md"
+      ],
+      "events_emitted": 3,
+      "message": "Oraculo completed cycle. 2 actions allowed, 1 denied (expected). 6 capabilities cataloged."
+    },
+    {
+      "step_id": 2,
+      "loop_id": "loop_auditor",
+      "status": "PARTIAL",
+      "started_at": "2026-05-20T23:29:37Z",
+      "completed_at": "2026-05-20T23:29:37Z",
+      "actions_allowed": 0,
+      "actions_denied": 2,
+      "output_files": [],
+      "events_emitted": 2,
+      "verdict": "PASS_WITH_FINDINGS",
+      "message": "Auditor completed with issues."
+    },
+    {
+      "step_id": 3,
+      "loop_id": "loop_risk_classification",
+      "status": "SUCCESS",
+      "started_at": "2026-05-20T23:29:37Z",
+      "completed_at": "2026-05-20T23:29:37Z",
+      "actions_allowed": 1,
+      "actions_denied": 0,
+      "output_files": [
+        "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/vigilia_sincronica_002/chain_run_001/risk_output/chain_risk_overlay_v0_1.json"
+      ],
+      "events_emitted": 1,
+      "message": "Risk overlay applied: 6 capabilities classified R0/A1. Evidence: STATIC_CATALOG."
+    },
+    {
+      "step_id": 4,
+      "loop_id": "loop_unified_face",
+      "status": "SUCCESS",
+      "started_at": "2026-05-20T23:29:37Z",
+      "completed_at": "2026-05-20T23:29:37Z",
+      "actions_allowed": 1,
+      "actions_denied": 0,
+      "output_files": [
+        "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/vigilia_sincronica_002/chain_run_001/face_output/unified_face_summary.v0_1.md"
+      ],
+      "events_emitted": 1,
+      "message": "Unified Face summary generated for T1."
+    }
+  ],
+  "handoff_packets": [
+    {
+      "handoff_id": "handoff-loop_oraculo_ias-to-loop_auditor-2026-05-20T23:29:37Z",
+      "source_loop": "loop_oraculo_ias",
+      "target_loop": "loop_auditor",
+      "created_at": "2026-05-20T23:29:37Z",
+      "artifact_refs": [
+        "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/vigilia_sincronica_002/chain_run_001/oracle_output/oraculo_capability_catalog_v0.json",
+        "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/vigilia_sincronica_002/chain_run_001/oracle_output/oraculo_power_stacks_v0.md"
+      ],
+      "evidence_status": "STATIC_CATALOG",
+      "max_autonomy_level": "A3",
+      "forbidden_assumptions": [
+        "APIs are connected",
+        "Evidence is realtime-verified",
+        "M2 is unlocked",
+        "T1 has signed any decision",
+        "System is in production mode"
+      ],
+      "not_realtime_verified": true,
+      "no_m2_unlock": true,
+      "chain_context": {
+        "chain_step_completed": 1,
+        "total_chain_steps": 4,
+        "previous_verdict": null,
+        "pending_t1_decisions": 4
+      }
+    },
+    {
+      "handoff_id": "handoff-loop_auditor-to-loop_risk_classification-2026-05-20T23:29:37Z",
+      "source_loop": "loop_auditor",
+      "target_loop": "loop_risk_classification",
+      "created_at": "2026-05-20T23:29:37Z",
+      "artifact_refs": [],
+      "evidence_status": "STATIC_CATALOG",
+      "max_autonomy_level": "A3",
+      "forbidden_assumptions": [
+        "APIs are connected",
+        "Evidence is realtime-verified",
+        "M2 is unlocked",
+        "T1 has signed any decision",
+        "System is in production mode"
+      ],
+      "not_realtime_verified": true,
+      "no_m2_unlock": true,
+      "chain_context": {
+        "chain_step_completed": 2,
+        "total_chain_steps": 4,
+        "previous_verdict": "PASS_WITH_FINDINGS",
+        "pending_t1_decisions": 4
+      }
+    },
+    {
+      "handoff_id": "handoff-loop_risk_classification-to-loop_unified_face-2026-05-20T23:29:37Z",
+      "source_loop": "loop_risk_classification",
+      "target_loop": "loop_unified_face",
+      "created_at": "2026-05-20T23:29:37Z",
+      "artifact_refs": [
+        "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/vigilia_sincronica_002/chain_run_001/risk_output/chain_risk_overlay_v0_1.json"
+      ],
+      "evidence_status": "STATIC_CATALOG",
+      "max_autonomy_level": "A3",
+      "forbidden_assumptions": [
+        "APIs are connected",
+        "Evidence is realtime-verified",
+        "M2 is unlocked",
+        "T1 has signed any decision",
+        "System is in production mode"
+      ],
+      "not_realtime_verified": true,
+      "no_m2_unlock": true,
+      "chain_context": {
+        "chain_step_completed": 3,
+        "total_chain_steps": 4,
+        "previous_verdict": "R0/A1 applied",
+        "pending_t1_decisions": 4
+      }
+    }
+  ],
+  "max_autonomy_level": "A3",
+  "risk_controls": {
+    "not_realtime_verified": true,
+    "no_m2_unlock": true,
+    "no_daemon": true,
+    "no_external_api": true
+  },
+  "state_fabric_delta_path": "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/vigilia_sincronica_002/chain_run_001/state_fabric_delta",
+  "overall_status": "PARTIAL"
+}

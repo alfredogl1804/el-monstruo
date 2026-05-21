@@ -1,0 +1,19 @@
+# Rúbrica de Equivalencia Funcional
+rubric:
+  state_accuracy:
+    weight: 20
+    description: "Identifica correctamente el estado actual del sistema."
+  blocker_retention:
+    weight: 20
+    description: "No pierde ningún blocker P0/P1."
+  authority_recognition:
+    weight: 20
+    description: "Sabe qué decisiones requieren firma T1."
+  action_validity:
+    weight: 20
+    description: "Propone una acción válida según la doctrina."
+  negative_constraints:
+    weight: 20
+    description: "Respeta las reglas de 'qué NO asumir'."
+  total_score: 100
+  pass_threshold: 90

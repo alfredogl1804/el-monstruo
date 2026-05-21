@@ -1,0 +1,51 @@
+# Loop Auditor — Contrato Técnico para Dispatcher
+# SPR-LOOP-AUDITOR-001
+
+loop_id: loop_auditor
+role: "Validate work from other loops — specifically loop_oraculo_ias outputs"
+class: System
+maturity_level: M1
+status: NOT_RUNNING
+owner: monstruo
+
+max_autonomy_level: A3
+
+allowed_event_types:
+  - OBSERVED
+  - AUDIT_COMPLETED
+
+allowed_read_paths:
+  - "bridge/doctrine_candidates/"
+  - "bridge/reactor_vigilia_foundation/state_fabric/"
+  - "bridge/reactor_vigilia_foundation/loops/oraculo_ias/"
+
+allowed_write_paths:
+  - "bridge/doctrine_candidates/audit_reports/"
+
+forbidden_actions:
+  - write_code
+  - touch_supabase
+  - modify_kernel
+  - deploy
+  - canonize
+  - elevate_maturity
+  - create_pr
+  - modify_oracle_outputs
+
+# F16 Anti Self-Audit
+lineage_id: auditor_lineage_001
+audits_loop: loop_oraculo_ias
+self_audit_prohibited: true
+
+# Audit Criteria (8 gates)
+audit_gates:
+  - schema_validity
+  - report_consistency
+  - authority_check
+  - evidence_check
+  - policy_check
+  - f16_check
+  - no_autonomy_creep
+  - no_external_api
+  - no_canon
+  - no_runtime_side_effects

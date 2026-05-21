@@ -1,0 +1,53 @@
+{
+  "pilot_name": "LIMITED_ACTIVE_R0",
+  "epoch": 2,
+  "duration_hours": 48,
+  "max_cycles_per_day": 2,
+  "budget": {
+    "max_usd_per_day": 0.05,
+    "max_usd_per_cycle": 0.03,
+    "max_calls_per_provider_per_cycle": 1,
+    "retries": 0
+  },
+  "providers": {
+    "allowlist": [
+      {"name": "openai", "model": "gpt-4o-mini"},
+      {"name": "anthropic", "model": "claude-sonnet-4-20250514"},
+      {"name": "google", "model": "gemini-2.0-flash"},
+      {"name": "xai", "model": "grok-3-mini-fast"}
+    ],
+    "blocked": ["perplexity", "deepseek"]
+  },
+  "chain": [
+    "Heartbeat",
+    "Dispatcher_Hardened",
+    "Oracle_v0_2",
+    "Auditor_Extended",
+    "T1_Report",
+    "State_Fabric_Log"
+  ],
+  "freeze_triggers": [
+    "2_consecutive_failures",
+    "r1_attempt",
+    "secret_exposure",
+    "memory_write",
+    "supabase_write",
+    "cost_exceeds_cycle_limit",
+    "unauthorized_provider_used",
+    "hard_rule_violation_attempt",
+    "auditor_fail",
+    "oracle_severe_hallucination"
+  ],
+  "hard_rules": [
+    "NO_R1",
+    "NO_SELF_EVOLUTION",
+    "NO_SUPABASE_WRITES",
+    "NO_MEMORY_WRITES",
+    "NO_APP_VISION_MOD",
+    "NO_PR_DEPLOY_MAIN",
+    "NO_PROVIDER_AUTO_REPLACE",
+    "NO_PERMANENT_ACTIVATION",
+    "NO_IA_IA_CHANNEL",
+    "NO_SHELL_RUNTIME"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "01_EXECUTIVE_SUMMARY.md": ["chat_context", "assistant_synthesis"],
+  "02_EMBRION_PERITO_DOCTRINE_DRAFT.md": ["chat_context", "assistant_synthesis"],
+  "03_FIRST_GENERATION_PERITOS_MATRIX.md": ["chat_context"],
+  "04_EMBRYO_EXPERTISE_SCHEMA.yaml": ["assistant_synthesis"],
+  "05_EMBRYO_MATURITY_LEVELS.md": ["chat_context"],
+  "06_EMBRYO_LEARNING_LOOP.md": ["chat_context", "assistant_synthesis"],
+  "07_ORACULO_IAS_DRAFT.md": ["chat_context"],
+  "08_EMERGENCE_HABITAT_DRAFT.md": ["chat_context", "t1_decision_pending"],
+  "09_UNIVERSAL_SOLVER_BOUNDARIES.md": ["chat_context"],
+  "10_SPRINT_FACTORY_INTEGRATION.md": ["chat_context", "assistant_synthesis"],
+  "11_OPEN_T1_DECISIONS.md": ["chat_context", "assistant_synthesis"],
+  "12_CONTEXT_RESTORE_TEST.md": ["assistant_synthesis"]
+}

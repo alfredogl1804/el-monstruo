@@ -1,0 +1,19 @@
+{
+  "run_id": "sim_202605d150651",
+  "timestamp": "2026-05-20T15:06:51.635836Z",
+  "loops_executed": [
+    "loop_vigia",
+    "loop_memoria_memento",
+    "loop_auditor",
+    "loop_unified_face"
+  ],
+  "events_proposed": 3,
+  "events_accepted": 3,
+  "validation_score": "PENDING",
+  "files_generated": [
+    "event_proposals.jsonl",
+    "event_log.after.jsonl",
+    "current_state.after.json",
+    "unified_face_summary.md"
+  ]
+}

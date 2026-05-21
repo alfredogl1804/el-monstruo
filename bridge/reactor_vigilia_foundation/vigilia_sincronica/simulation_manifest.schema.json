@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Simulation Manifest Schema",
+  "type": "object",
+  "properties": {
+    "run_id": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "loops_executed": { "type": "array", "items": { "type": "string" } },
+    "events_proposed": { "type": "integer" },
+    "events_accepted": { "type": "integer" },
+    "validation_score": { "type": "string" },
+    "files_generated": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["run_id", "timestamp", "loops_executed", "validation_score"]
+}

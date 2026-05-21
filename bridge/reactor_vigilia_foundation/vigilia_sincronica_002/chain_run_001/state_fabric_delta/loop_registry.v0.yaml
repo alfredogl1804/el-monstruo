@@ -1,0 +1,254 @@
+loop_aprendizaje:
+  allowed_event_types:
+  - OBSERVED
+  - STATE_DELTA_PROPOSED
+  allowed_read_paths:
+  - bridge/
+  - event_log.v0.jsonl
+  allowed_write_paths:
+  - bridge/doctrine_candidates/
+  auditor_required: false
+  forbidden_actions:
+  - write_code
+  - touch_supabase
+  - modify_kernel
+  - deploy
+  heartbeat_policy: daily
+  loop_id: loop_aprendizaje
+  max_autonomy_level: A2
+  notes: Contract only. No loop active.
+  owner: monstruo
+  role: Analyze past logs, extract lessons, propose improvements
+  runtime_allowed: false
+  status: NOT_RUNNING
+loop_auditor:
+  allowed_event_types:
+  - OBSERVED
+  - AUDIT_COMPLETED
+  - BLOCKER_DECLARED
+  allowed_read_paths:
+  - bridge/
+  - src/
+  - event_log.v0.jsonl
+  allowed_write_paths:
+  - bridge/control_tower/
+  auditor_required: false
+  forbidden_actions:
+  - write_code
+  - touch_supabase
+  - modify_kernel
+  heartbeat_policy: on_demand
+  loop_id: loop_auditor
+  max_autonomy_level: A2
+  notes: Contract only. No loop active. Cannot audit own lineage.
+  owner: monstruo
+  role: Validate work from other loops (Perplexity/Grok)
+  runtime_allowed: false
+  status: NOT_RUNNING
+loop_ejecutor:
+  allowed_event_types:
+  - OBSERVED
+  - STATE_DELTA_PROPOSED
+  - TASK_CREATED
+  - TASK_UPDATED
+  - HANDOFF_READY
+  allowed_read_paths:
+  - bridge/
+  - src/
+  allowed_write_paths:
+  - bridge/
+  - src/
+  auditor_required: true
+  forbidden_actions:
+  - touch_supabase
+  - modify_kernel
+  - deploy_production
+  heartbeat_policy: every_5_min
+  loop_id: loop_ejecutor
+  max_autonomy_level: A5
+  notes: Contract only. No loop active.
+  owner: monstruo
+  role: 'Heavy execution (Manus/Cowork): code, files, commits'
+  runtime_allowed: false
+  status: NOT_RUNNING
+loop_humanplus_e2e:
+  allowed_event_types:
+  - OBSERVED
+  - T1_DECISION_RECORDED
+  allowed_read_paths:
+  - bridge/
+  - current_state.v0.json
+  allowed_write_paths: []
+  auditor_required: false
+  forbidden_actions:
+  - write_code
+  - touch_supabase
+  - modify_kernel
+  heartbeat_policy: on_interaction
+  loop_id: loop_humanplus_e2e
+  max_autonomy_level: A1
+  notes: Contract only. No loop active.
+  owner: alfredo
+  role: End-to-end interface with Alfredo (T1)
+  runtime_allowed: false
+  status: NOT_RUNNING
+loop_memoria_memento:
+  allowed_event_types:
+  - OBSERVED
+  - STATE_DELTA_PROPOSED
+  - HANDOFF_READY
+  allowed_read_paths:
+  - bridge/
+  - event_log.v0.jsonl
+  - current_state.v0.json
+  allowed_write_paths:
+  - bridge/thread_archives/
+  - bridge/doctrine_candidates/
+  auditor_required: false
+  forbidden_actions:
+  - touch_supabase
+  - modify_kernel
+  - deploy
+  heartbeat_policy: every_15_min
+  loop_id: loop_memoria_memento
+  max_autonomy_level: A3
+  notes: Contract only. No loop active.
+  owner: monstruo
+  role: Persist long-term memory, Anti-Dory, context archival
+  runtime_allowed: false
+  status: NOT_RUNNING
+loop_oraculo_ias:
+  allowed_event_types:
+  - OBSERVED
+  - STATE_DELTA_PROPOSED
+  - T1_DECISION_REQUIRED
+  allowed_read_paths:
+  - bridge/
+  - event_log.v0.jsonl
+  allowed_write_paths:
+  - bridge/doctrine_candidates/
+  auditor_required: false
+  forbidden_actions:
+  - touch_supabase
+  - modify_kernel
+  - deploy
+  heartbeat_policy: on_demand
+  loop_id: loop_oraculo_ias
+  max_autonomy_level: A3
+  notes: Contract only. No loop active. SPR-ORACLE-AI-001 APPROVED.
+  owner: monstruo
+  role: AI capability catalog, model prediction, power stack
+  runtime_allowed: false
+  status: NOT_RUNNING
+loop_peritos:
+  allowed_event_types:
+  - OBSERVED
+  - STATE_DELTA_PROPOSED
+  allowed_read_paths:
+  - bridge/
+  allowed_write_paths:
+  - bridge/doctrine_candidates/
+  auditor_required: true
+  forbidden_actions:
+  - touch_supabase
+  - modify_kernel
+  - deploy
+  heartbeat_policy: on_demand
+  loop_id: loop_peritos
+  max_autonomy_level: A3
+  notes: Contract only. No loop active.
+  owner: monstruo
+  role: Template for specialist embryos (domain expertise)
+  runtime_allowed: false
+  status: NOT_RUNNING
+loop_risk_classification:
+  allowed_event_types:
+  - OBSERVED
+  - STATE_DELTA_PROPOSED
+  allowed_read_paths:
+  - bridge/
+  allowed_write_paths:
+  - bridge/doctrine_candidates/
+  auditor_required: false
+  forbidden_actions:
+  - touch_supabase
+  - modify_kernel
+  - deploy
+  heartbeat_policy: on_demand
+  loop_id: loop_risk_classification
+  max_autonomy_level: A3
+  notes: Chain-specific loop for risk classification step.
+  owner: monstruo
+  role: Apply risk overlay to Oracle capabilities
+  runtime_allowed: false
+  status: NOT_RUNNING
+loop_unified_face:
+  allowed_event_types:
+  - OBSERVED
+  - TASK_CREATED
+  - HANDOFF_READY
+  allowed_read_paths:
+  - bridge/
+  - current_state.v0.json
+  - loop_registry.v0.yaml
+  allowed_write_paths:
+  - bridge/control_tower/
+  auditor_required: false
+  forbidden_actions:
+  - write_code
+  - touch_supabase
+  - modify_kernel
+  heartbeat_policy: always_on
+  loop_id: loop_unified_face
+  max_autonomy_level: A3
+  notes: Contract only. No loop active. Central dispatcher.
+  owner: monstruo
+  role: Main router of Vigilia Sincronica. Dispatches to loops.
+  runtime_allowed: false
+  status: NOT_RUNNING
+loop_vigia:
+  allowed_event_types:
+  - OBSERVED
+  - BLOCKER_DECLARED
+  - AUDIT_REQUIRED
+  allowed_read_paths:
+  - bridge/
+  - event_log.v0.jsonl
+  - current_state.v0.json
+  allowed_write_paths: []
+  auditor_required: false
+  forbidden_actions:
+  - write_code
+  - touch_supabase
+  - modify_kernel
+  heartbeat_policy: every_5_min
+  loop_id: loop_vigia
+  max_autonomy_level: A2
+  notes: Contract only. No loop active.
+  owner: monstruo
+  role: Monitor Event Log, detect anomalies, raise alerts
+  runtime_allowed: false
+  status: NOT_RUNNING
+orquestador_cadena_v0:
+  allowed_event_types:
+  - OBSERVED
+  - HANDOFF_READY
+  - STATE_DELTA_PROPOSED
+  allowed_read_paths:
+  - bridge/
+  allowed_write_paths:
+  - bridge/doctrine_candidates/
+  - bridge/reactor_vigilia_foundation/
+  auditor_required: false
+  forbidden_actions:
+  - touch_supabase
+  - modify_kernel
+  - deploy
+  heartbeat_policy: on_demand
+  loop_id: orquestador_cadena_v0
+  max_autonomy_level: A3
+  notes: Orchestrator pseudo-loop for chain execution.
+  owner: monstruo
+  role: Chain orchestrator - creates handoff packets
+  runtime_allowed: false
+  status: NOT_RUNNING

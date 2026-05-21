@@ -1,0 +1,55 @@
+{
+  "generated_at": "2026-05-20T23:29:37Z",
+  "generated_by": "loop_unified_face",
+  "chain_id": "vigilia-chain-v0.2-001",
+  "chain_status": "PARTIAL",
+  "summary_markdown_path": "/home/ubuntu/el-monstruo-bridge/bridge/reactor_vigilia_foundation/vigilia_sincronica_002/chain_run_001/face_output/unified_face_summary.v0_1.md",
+  "what_was_executed": [
+    "Oracle AI capability catalog generation (6 capabilities)",
+    "Auditor validation (10 gates)",
+    "Risk classification overlay (R0/A1)",
+    "Unified Face synthesis"
+  ],
+  "what_was_validated": [
+    "Catalog structure and completeness",
+    "Dispatcher authorization flow",
+    "Handoff packet immutability",
+    "Risk overlay correctness"
+  ],
+  "what_was_not_executed": [
+    "Real API connections (M1 only)",
+    "Daemon/scheduler deployment",
+    "Production event log writes",
+    "T1 decision signing"
+  ],
+  "pending_t1_decisions": [
+    {
+      "decision_id": "D-001",
+      "description": "Approve SPR-ORACLE-AI-M2-001",
+      "recommended_action": "APPROVE"
+    },
+    {
+      "decision_id": "D-002",
+      "description": "Approve risk reclassification post-M2",
+      "recommended_action": "APPROVE_AFTER_M2"
+    },
+    {
+      "decision_id": "D-003",
+      "description": "Approve daemon/scheduler development",
+      "recommended_action": "DEFER"
+    },
+    {
+      "decision_id": "D-004",
+      "description": "Approve loop expansion (vigia/memoria)",
+      "recommended_action": "DEFER"
+    }
+  ],
+  "recommended_next_action": "Approve SPR-ORACLE-AI-M2-001 to connect real APIs",
+  "active_restrictions": [
+    "not_realtime_verified",
+    "no_m2_unlock",
+    "no_daemon",
+    "no_external_api",
+    "max_autonomy_A3"
+  ]
+}

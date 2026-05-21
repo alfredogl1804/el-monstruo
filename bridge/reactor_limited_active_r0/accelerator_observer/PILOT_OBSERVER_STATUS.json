@@ -1,0 +1,19 @@
+{
+  "observer_mode": "passive",
+  "pilot_state": {
+    "mode": "LIMITED_ACTIVE_R0",
+    "kill_switch_active": false,
+    "cycles_completed": 1,
+    "max_expected_cycles": 4,
+    "accumulated_cost_usd": 0.007233,
+    "freezes": 0,
+    "failures": 0,
+    "drift_detected": false
+  },
+  "providers_used": ["openai", "anthropic", "google", "xai"],
+  "closure_conditions": [
+    "48h_timeout",
+    "2_consecutive_failures",
+    "hard_rule_violation"
+  ]
+}

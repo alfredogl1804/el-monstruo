@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Handoff Packet Schema",
+  "type": "object",
+  "properties": {
+    "loop_id": { "type": "string" },
+    "max_autonomy_level": { "type": "string" },
+    "current_state": { "type": "object" },
+    "recent_events": { "type": "array", "items": { "type": "object" } },
+    "active_blockers": { "type": "array", "items": { "type": "object" } },
+    "forbidden_actions": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["loop_id", "max_autonomy_level", "current_state", "recent_events", "forbidden_actions"]
+}

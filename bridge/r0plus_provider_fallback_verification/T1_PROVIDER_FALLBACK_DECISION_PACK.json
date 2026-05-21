@@ -1,0 +1,50 @@
+{
+  "sprint": "SPR-R0PLUS-PROVIDER-FALLBACK-VERIFICATION-001",
+  "timestamp": "2026-05-21T07:49:00Z",
+  "decisions": {
+    "D1_anthropic_status": {
+      "options": ["VERIFIED_SAFE", "VERIFIED_EOL", "UNVERIFIED_RISK", "BLOCKED_UNKNOWN"],
+      "selected": "VERIFIED_EOL",
+      "confidence": "HIGH",
+      "evidence": "endoflife.date confirms claude-sonnet-4 deprecated support ends 2026-06-15. Active support already ended 2026-04-14. Official replacement: claude-sonnet-4-6.",
+      "source": "https://endoflife.date/claude"
+    },
+    "D2_action": {
+      "options": ["KEEP_CURRENT_MONITOR", "MIGRATE_NOW", "REMOVE_ANTHROPIC_TEMPORARILY", "WAIT_FOR_EXTERNAL_VERIFICATION"],
+      "recommended": "MIGRATE_NOW",
+      "rationale": "EOL is verified. Official replacement exists (claude-sonnet-4-6, active until 2027-02-17). Migration is a single registry field change. No code logic changes needed. 25 days remaining is sufficient for orderly migration but not for indefinite delay.",
+      "alternative": "KEEP_CURRENT_MONITOR (if T1 wants to test replacement first, but must decide by 2026-06-01)",
+      "blocked_options": {
+        "WAIT_FOR_EXTERNAL_VERIFICATION": "Already verified externally. No additional value.",
+        "REMOVE_ANTHROPIC_TEMPORARILY": "Valid but unnecessary if migrating to new model."
+      }
+    },
+    "D3_r0plus_next_step": {
+      "options": ["EXECUTE_PRODUCTION_SURGE_003", "PAUSE_PROVIDER_DEPENDENT_TASKS", "RUN_ONE_MORE_ZERO_PROVIDER_SURGE", "BLOCKED"],
+      "recommended": "EXECUTE_PRODUCTION_SURGE_003",
+      "rationale": "R0+ operations make ZERO provider calls. The Anthropic risk does not affect R0+ execution. Production surges can continue safely regardless of provider status. The migration decision is orthogonal to R0+ progress.",
+      "alternative": "RUN_ONE_MORE_ZERO_PROVIDER_SURGE (identical to EXECUTE_PRODUCTION_SURGE_003 since all surges are zero-provider)"
+    }
+  },
+  "summary": {
+    "anthropic_status": "VERIFIED_EOL",
+    "recommended_action": "MIGRATE_NOW (to claude-sonnet-4-6)",
+    "r0plus_impact": "NONE (zero provider calls)",
+    "r0plus_next": "EXECUTE_PRODUCTION_SURGE_003",
+    "urgency": "MEDIUM (25 days, but no R0+ impact)",
+    "deadline_hard": "2026-06-15",
+    "deadline_recommended": "2026-06-01"
+  },
+  "implementation_if_approved": {
+    "file_to_change": "bridge/provider_ops/provider_registry.json",
+    "field_to_change": "providers.anthropic.model",
+    "old_value": "claude-sonnet-4-20250514",
+    "new_value": "claude-sonnet-4-6",
+    "additional_changes": [
+      "Remove or update eol_overrides in provider_migration_guard.py",
+      "Add claude-sonnet-4-20250514 to deprecated_models list"
+    ],
+    "requires_t1_approval": true,
+    "auto_execution": false
+  }
+}

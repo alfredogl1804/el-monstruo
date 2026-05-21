@@ -1,0 +1,29 @@
+{
+  "mission": "SECOND_PAIR_MISSION",
+  "timestamp": "2026-05-21T04:13:32Z",
+  "pair_version": "0.2.0",
+  "oracle": {
+    "embryo_id": "oracle_ai_embryo_r0",
+    "version": "0.2.0",
+    "task_executed": "map_capability_to_application",
+    "cost": 0.000295,
+    "grounding_level_declared": 9,
+    "claims_produced": 5
+  },
+  "auditor": {
+    "embryo_id": "oracle_auditor_embryo_r0",
+    "version": "0.2.0",
+    "task_executed": "score_oracle_sprint_candidate",
+    "cost": 0.000152,
+    "grounding_enforcement": {
+      "score": 10,
+      "verdict": "PASS",
+      "penalties": 0
+    },
+    "llm_verdict": "PASS",
+    "grounding_agreement": true
+  },
+  "pair_total_cost": 0.000447,
+  "pair_verdict": "ORACLE_PAIR_GROUNDED_R0_CONFIRMED",
+  "kill_switch": "active:false"
+}

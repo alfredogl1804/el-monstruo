@@ -1,0 +1,137 @@
+{
+  "cockpit_version": "0.1.0",
+  "generated_at": "2026-05-21T05:15:14.554289+00:00",
+  "generator": "t1_cockpit_data_injector_v0_1",
+  "pilot_health": {
+    "score": 80,
+    "max_score": 100,
+    "status": "HEALTHY",
+    "checks": [
+      [
+        "kill_switch_inactive",
+        false
+      ],
+      [
+        "memory_palace_active",
+        true
+      ],
+      [
+        "oracle_has_cycles",
+        true
+      ],
+      [
+        "auditor_has_cycles",
+        true
+      ],
+      [
+        "directives_active",
+        true
+      ]
+    ]
+  },
+  "embryos": {
+    "oracle": {
+      "name": "oracle_ai_embryo_r0",
+      "status": "IDLE",
+      "cycles": 8,
+      "cost_usd": 0.002136,
+      "last_task": "map_capability_to_application",
+      "last_result": "SUCCESS",
+      "last_cycle": "2026-05-21T05:12:50.150459Z",
+      "consecutive_failures": 0
+    },
+    "auditor": {
+      "name": "oracle_auditor_embryo_r0",
+      "status": "IDLE",
+      "cycles": 6,
+      "cost_usd": 0.001032,
+      "last_task": "audit_oracle_latest_output",
+      "last_result": "SUCCESS",
+      "last_cycle": "2026-05-21T05:12:59.775631Z",
+      "consecutive_failures": 0
+    }
+  },
+  "directives": {
+    "total": 1,
+    "active": 1,
+    "expired": 0,
+    "paused": 0,
+    "directives": [
+      {
+        "id": "T1D-001",
+        "type": "STRATEGIC_GUIDANCE",
+        "priority": 9,
+        "focus": "Produce artifacts that increase visible pilot value and reduce Alfredo manual wo",
+        "expires": "2026-05-25T05:00:00Z",
+        "ttl_cycles": 10
+      }
+    ]
+  },
+  "memory_palace": {
+    "total_entries": 4,
+    "active": 4,
+    "archived": 0,
+    "unique_embryos": [
+      "oracle_auditor_embryo_r0",
+      "oracle_ai_embryo_r0"
+    ],
+    "unique_tasks": [
+      "detect_new_ai_capability_candidates",
+      "audit_oracle_latest_output",
+      "map_capability_to_application"
+    ],
+    "total_cost_usd": 0.000959,
+    "avg_grounding_score": 8.8,
+    "lessons_count": 3
+  },
+  "epoch_history": [
+    {
+      "epoch": "002",
+      "directory": "live_upgrade_epoch_002",
+      "has_chain_log": true,
+      "artifacts_count": 0
+    },
+    {
+      "epoch": "003",
+      "directory": "live_upgrade_epoch_003",
+      "has_chain_log": true,
+      "artifacts_count": 0
+    },
+    {
+      "epoch": "004",
+      "directory": "live_upgrade_epoch_004",
+      "has_chain_log": false,
+      "artifacts_count": 0
+    },
+    {
+      "epoch": "005",
+      "directory": "live_upgrade_epoch_005",
+      "has_chain_log": true,
+      "artifacts_count": 1
+    },
+    {
+      "epoch": "006",
+      "directory": "live_upgrade_epoch_006",
+      "has_chain_log": true,
+      "artifacts_count": 1
+    },
+    {
+      "epoch": "007",
+      "directory": "live_upgrade_epoch_007",
+      "has_chain_log": true,
+      "artifacts_count": 0
+    }
+  ],
+  "outputs": {
+    "oracle_total": 11,
+    "auditor_total": 6,
+    "latest_oracle": "map_capability_to_application_20260521T051250.json",
+    "latest_auditor": "audit_audit_oracle_latest_output_20260521T051259.json"
+  },
+  "cost_summary": {
+    "oracle_total_usd": 0.002136,
+    "auditor_total_usd": 0.001032,
+    "memory_palace_total_usd": 0.000959,
+    "combined_usd": 0.003168
+  }
+}

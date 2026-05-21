@@ -24,7 +24,25 @@ import structlog
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from kernel.identity_guard import resolve_user_id, UserIdStatus
+
 logger = structlog.get_logger("memory_routes")
+
+
+def _resolve_uid(user_id: str, context: str) -> str:
+    """OPP-NB-023 R2-B: Resolve user_id through identity guard.
+    Logs warning on blocked/unresolved but does NOT raise — preserves backward compat.
+    Returns resolved user_id or UNRESOLVED_USER_CONTEXT marker."""
+    resolved, status = resolve_user_id(user_id)
+    if status != UserIdStatus.RESOLVED:
+        logger.warning(
+            "memory_routes_unresolved_user",
+            original=user_id,
+            resolved=resolved,
+            status=status.value,
+            context=context,
+        )
+    return resolved
 
 router = APIRouter(prefix="/v1/memory", tags=["memory"])
 
@@ -95,7 +113,7 @@ async def create_thought(req: CreateThoughtRequest):
         raise HTTPException(503, "Thoughts store not initialized")
 
     result = await _thoughts_store.create(
-        user_id=req.user_id,
+        user_id=_resolve_uid(req.user_id, "create_thought"),
         layer=req.layer,
         content=req.content,
         summary=req.summary,
@@ -132,7 +150,7 @@ async def list_thoughts(
         raise HTTPException(503, "Thoughts store not initialized")
 
     thoughts = await _thoughts_store.list_thoughts(
-        user_id=user_id,
+        user_id=_resolve_uid(user_id, "list_thoughts"),
         layer=layer,
         project=project,
         include_superseded=include_superseded,
@@ -166,7 +184,7 @@ async def update_thought(thought_id: str, req: UpdateThoughtRequest, user_id: st
     if not updates:
         raise HTTPException(400, "No fields to update")
 
-    result = await _thoughts_store.update(thought_id, user_id, updates)
+    result = await _thoughts_store.update(thought_id, _resolve_uid(user_id, "update_thought"), updates)
     if not result:
         raise HTTPException(404, "Thought not found or update failed")
 
@@ -179,7 +197,7 @@ async def delete_thought(thought_id: str, user_id: str = Query(default="anonymou
     if not _thoughts_store:
         raise HTTPException(503, "Thoughts store not initialized")
 
-    success = await _thoughts_store.delete(thought_id, user_id)
+    success = await _thoughts_store.delete(thought_id, _resolve_uid(user_id, "delete_thought"))
     if not success:
         raise HTTPException(404, "Thought not found or delete failed")
 
@@ -198,7 +216,7 @@ async def supersede_thought(
 
     new_thought = await _thoughts_store.supersede(
         old_thought_id=thought_id,
-        user_id=user_id,
+        user_id=_resolve_uid(user_id, "supersede_thought"),
         new_content=req.new_content,
         new_summary=req.new_summary,
         new_tags=req.new_tags,
@@ -218,7 +236,7 @@ async def hybrid_search(req: SearchRequest):
         raise HTTPException(503, "Thoughts store not initialized")
 
     results = await _thoughts_store.hybrid_search(
-        user_id=req.user_id,
+        user_id=_resolve_uid(req.user_id, "hybrid_search"),
         query=req.query,
         layer=req.layer,
         project=req.project,
@@ -236,7 +254,7 @@ async def semantic_search(req: SearchRequest):
         raise HTTPException(503, "Thoughts store not initialized")
 
     results = await _thoughts_store.semantic_search(
-        user_id=req.user_id,
+        user_id=_resolve_uid(req.user_id, "semantic_search"),
         query=req.query,
         layer=req.layer,
         project=req.project,
@@ -260,7 +278,7 @@ async def boot_sequence(
         raise HTTPException(503, "Thoughts store not initialized")
 
     memories = await _thoughts_store.boot_sequence(
-        user_id=user_id,
+        user_id=_resolve_uid(user_id, "boot_sequence"),
         project=project,
         procedural_limit=procedural_limit,
         semantic_limit=semantic_limit,
@@ -284,5 +302,5 @@ async def memory_stats(user_id: str = Query(default="anonymous")):  # Sprint 29 
     if not _thoughts_store:
         raise HTTPException(503, "Thoughts store not initialized")
 
-    stats = await _thoughts_store.get_stats(user_id)
+    stats = await _thoughts_store.get_stats(_resolve_uid(user_id, "memory_stats"))
     return {"stats": stats}

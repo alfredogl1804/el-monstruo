@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "State Fabric Manifest Schema v0",
+  "type": "object",
+  "properties": {
+    "version": { "type": "string" },
+    "technology": { "type": "string" },
+    "files": {
+      "type": "object",
+      "properties": {
+        "current_state": { "type": "string" },
+        "event_log": { "type": "string" },
+        "loop_registry": { "type": "string" },
+        "loop_cursors": { "type": "string" },
+        "decisions_pending": { "type": "string" }
+      },
+      "required": ["current_state", "event_log", "loop_registry", "loop_cursors", "decisions_pending"]
+    },
+    "schemas": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    }
+  },
+  "required": ["version", "technology", "files", "schemas"]
+}

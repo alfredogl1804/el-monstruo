@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Capability Risk Classification",
+  "description": "Schema for risk classification of an individual Oracle capability",
+  "type": "object",
+  "required": [
+    "capability_id",
+    "source_model_or_tool",
+    "capability_name",
+    "capability_type",
+    "original_evidence_ref",
+    "evidence_status",
+    "risk_class",
+    "required_autonomy_level",
+    "user_data_touch",
+    "code_write_potential",
+    "external_api_required",
+    "secrets_required",
+    "cost_risk",
+    "prompt_injection_surface",
+    "output_side_effect_potential",
+    "t1_required",
+    "allowed_next_action",
+    "not_to_assume",
+    "auditor_notes"
+  ],
+  "properties": {
+    "capability_id": {
+      "type": "string",
+      "pattern": "^CAP-[0-9]{3}$"
+    },
+    "source_model_or_tool": {
+      "type": "string"
+    },
+    "capability_name": {
+      "type": "string"
+    },
+    "capability_type": {
+      "type": "string",
+      "enum": ["vision", "reasoning", "context", "search", "generation", "self_hosted"]
+    },
+    "original_evidence_ref": {
+      "type": "string"
+    },
+    "evidence_status": {
+      "type": "string",
+      "enum": ["STATIC_CATALOG", "REALTIME_VERIFIED", "NO_SOURCE", "ACCESS_BLOCKED"]
+    },
+    "risk_class": {
+      "type": "string",
+      "enum": ["R0", "R1", "R2", "R3", "R4", "R5"]
+    },
+    "required_autonomy_level": {
+      "type": "string",
+      "enum": ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"]
+    },
+    "user_data_touch": {
+      "type": "boolean"
+    },
+    "code_write_potential": {
+      "type": "boolean"
+    },
+    "external_api_required": {
+      "type": "boolean"
+    },
+    "secrets_required": {
+      "type": "boolean"
+    },
+    "cost_risk": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "UNKNOWN"]
+    },
+    "prompt_injection_surface": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "UNKNOWN"]
+    },
+    "output_side_effect_potential": {
+      "type": "string",
+      "enum": ["NONE", "LOW", "MEDIUM", "HIGH"]
+    },
+    "t1_required": {
+      "type": "boolean"
+    },
+    "allowed_next_action": {
+      "type": "string",
+      "enum": ["CATALOG_ONLY", "R0_REPORT_ONLY", "R0_SPEC_ONLY", "AWAIT_T1", "BLOCKED"]
+    },
+    "not_to_assume": {
+      "type": "string"
+    },
+    "auditor_notes": {
+      "type": "string"
+    }
+  }
+}

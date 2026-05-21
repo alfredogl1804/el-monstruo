@@ -1,0 +1,56 @@
+{
+  "epoch_id": "EPOCH_009",
+  "sprint": "SPR-R0PLUS-EPOCH-009-OPS-INTEGRATED",
+  "reactor_level": "R0+",
+  "branch": "monstruo-reality-atlas-001",
+  "date": "2026-05-21",
+  "integration": {
+    "artifact_ops_runner": true,
+    "epoch_adapter": true,
+    "t1_snapshot_version": "v0.3"
+  },
+  "allowed": [
+    "local_python_code",
+    "unit_tests",
+    "json_fixtures",
+    "bridge_reports",
+    "event_log_local",
+    "state_fabric_local",
+    "file_reads",
+    "artifact_ops_runner_execution"
+  ],
+  "forbidden": [
+    "R1",
+    "main",
+    "PR_automatic",
+    "deploy",
+    "Supabase",
+    "DB_real",
+    "secrets",
+    "Memento_writes",
+    "Anti-Dory_writes",
+    "memory_canonical",
+    "APP_VISION",
+    "canon",
+    "PRE-IA_close",
+    "Perplexity",
+    "DeepSeek",
+    "provider_calls",
+    "provider_auto_replacement",
+    "retries",
+    "SHELL_runtime",
+    "raw_CoT",
+    "approve_reject_real",
+    "scheduler_policy_change",
+    "kill_switch_change"
+  ],
+  "budget": {
+    "max_usd_total": 0.00,
+    "provider_calls": 0
+  },
+  "kill_switch": {
+    "read": true,
+    "modify": false
+  },
+  "expected_result": "EPOCH_009_OPS_INTEGRATED_CONFIRMED"
+}

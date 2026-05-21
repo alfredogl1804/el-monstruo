@@ -1,0 +1,22 @@
+{
+  "version": "0.1.0",
+  "technology": "file-backed-local-first",
+  "created_at": "2026-05-20T15:30:00Z",
+  "sprint": "SPR-STATE-FABRIC-001",
+  "files": {
+    "current_state": "current_state.v0.json",
+    "event_log": "event_log.v0.jsonl",
+    "loop_registry": "loop_registry.v0.yaml",
+    "loop_cursors": "loop_cursors.v0.json",
+    "decisions_pending": "decisions_pending.v0.json"
+  },
+  "schemas": {
+    "current_state": "current_state.schema.json",
+    "event_log": "event_log.schema.json",
+    "loop_registry": "loop_registry.schema.yaml",
+    "loop_cursors": "loop_cursors.schema.json",
+    "decisions_pending": "decisions_pending.schema.json",
+    "manifest": "state_fabric_manifest.schema.json"
+  },
+  "notes": "v0 is file-backed and local-first. No Supabase, no Redis, no scheduler, no runtime. Production technology is a T1 decision pending."
+}

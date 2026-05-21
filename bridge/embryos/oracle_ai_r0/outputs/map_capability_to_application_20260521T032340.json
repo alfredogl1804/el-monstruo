@@ -1,0 +1,15 @@
+{
+  "embryo_id": "oracle_ai_embryo_r0",
+  "task_id": "map_capability_to_application",
+  "action_class": "A1_ANALYZE",
+  "dispatcher_decision": "ALLOW",
+  "timestamp": "2026-05-21T03:23:40.952955Z",
+  "cost_usd": 0.00011445,
+  "output": {
+    "task_id": "map_capability_to_application",
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "response": "```json\n[\n    {\n        \"capability\": \"multimodal reasoning\",\n        \"application\": \"Intelligent Virtual Assistant\",\n        \"value_score\": 9\n    },\n    {\n        \"capability\": \"code generation\",\n        \"application\": \"Automated Software Development Tools\",\n        \"value_score\": 8\n    },\n    {\n        \"capability\": \"real-time search\",\n        \"application\": \"Dynamic Information Retrieval System\",\n        \"value_score\": 10\n    },\n    {\n        \"capability\": \"voice synthesis\",\n        \"applicat",
+    "cost": 0.00011445
+  }
+}

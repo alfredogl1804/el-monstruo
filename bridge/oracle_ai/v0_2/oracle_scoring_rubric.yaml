@@ -1,0 +1,14 @@
+title: "Oracle Scoring Rubric v0.2"
+description: "Sistema de puntuación para rankear Application Candidates."
+weights:
+  power_for_alfredo: 0.35      # Impacto directo en la capacidad de Alfredo
+  implementation_speed: 0.20   # Qué tan rápido se puede integrar (horas > días > semanas)
+  compound_value: 0.15         # ¿Habilita otras capacidades a futuro?
+  fit_with_monstruo: 0.15      # Alineación con la arquitectura actual (State Fabric, Vigilia)
+  cost_efficiency: 0.10        # ROI del costo de API/Compute
+  external_dependency: 0.05    # Riesgo de vendor lock-in (menor es mejor)
+
+scoring_scale:
+  1: "Poor / High Risk / Low Value"
+  3: "Average / Moderate Risk / Moderate Value"
+  5: "Excellent / Low Risk / High Value"

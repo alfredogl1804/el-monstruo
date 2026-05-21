@@ -1,0 +1,43 @@
+name: Heartbeat Scheduler R0
+
+# SPR-REACTOR-SCHEDULER-R0-001
+# Executes Heartbeat R0 audit-only every 12 hours.
+# Mode: report-only, $0 budget (100% local).
+# Kill-switch: scheduler/scheduler_kill_switch.json
+# Anti-loop: scheduler_state.json tracks windows.
+# If 2 consecutive failures → PAUSED (requires T1 to resume).
+# MICROFIX MF1: cron at minute 23 to avoid GitHub minute-0 congestion.
+
+on:
+  schedule:
+    # Every 12 hours: 06:23 UTC and 18:23 UTC (offset from :00 per MF1)
+    - cron: '23 6,18 * * *'
+  workflow_dispatch:
+    # Manual trigger for testing/dry-run
+    # Respects kill-switch and anti-loop (enforced by scheduler_wrapper.py)
+
+permissions:
+  contents: read
+
+jobs:
+  heartbeat-r0:
+    runs-on: ubuntu-latest
+    # Only run on the monstruo-reality-atlas-001 branch
+    if: github.ref == 'refs/heads/monstruo-reality-atlas-001'
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: monstruo-reality-atlas-001
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Scheduler Wrapper
+        run: |
+          cd bridge/reactor_vigilia_foundation/reactor_heartbeat_r0
+          python3 scheduler/scheduler_wrapper.py

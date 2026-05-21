@@ -1,0 +1,35 @@
+{
+  "snapshot_timestamp": "2026-05-21T04:52:00Z",
+  "epoch": "006",
+  "memory_palace_version": "0.1.0",
+  "total_entries": 2,
+  "total_active": 2,
+  "total_archived": 0,
+  "unique_embryos": ["oracle_ai_embryo_r0", "oracle_auditor_embryo_r0"],
+  "unique_tasks": ["detect_new_ai_capability_candidates", "audit_oracle_latest_output"],
+  "total_cost_tracked": 0.000479,
+  "entries_summary": [
+    {
+      "memory_id": "MEM-OAI-1779353499",
+      "source": "oracle_ai_embryo_r0",
+      "task": "detect_new_ai_capability_candidates",
+      "grounding_score": 6,
+      "lesson": "Low grounding score — need more verified sources",
+      "next_action": "REQUIRES_T1_REVIEW"
+    },
+    {
+      "memory_id": "MEM-AUD-1779353514",
+      "source": "oracle_auditor_embryo_r0",
+      "task": "audit_oracle_latest_output",
+      "grounding_score": 10,
+      "lesson": "Oracle grounding quality is improving — current approach works",
+      "next_action": "CANDIDATE_READY_FOR_T1"
+    }
+  ],
+  "cross_embryo_insights": {
+    "oracle_self_assessment": "grounding_score=6 (needs improvement)",
+    "auditor_assessment": "grounding_score=10 (PASS)",
+    "discrepancy": "Oracle is self-critical (6/10) but Auditor finds output well-grounded (10/10). This suggests Oracle's self-assessment is conservative — a healthy trait.",
+    "recommendation": "Trust auditor score for T1 decisions, use oracle self-score for internal improvement"
+  }
+}

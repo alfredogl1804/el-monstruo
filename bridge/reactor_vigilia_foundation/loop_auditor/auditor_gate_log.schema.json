@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Auditor Gate Log",
+  "description": "Schema for the gate-by-gate validation log produced by loop_auditor.",
+  "type": "object",
+  "required": ["audit_id", "timestamp", "gates"],
+  "properties": {
+    "audit_id": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "gates": {
+      "type": "object",
+      "required": ["schema_validity", "report_consistency", "authority_check", "evidence_check", "policy_check", "f16_check", "no_autonomy_creep", "no_external_api", "no_canon", "no_runtime_side_effects"],
+      "properties": {
+        "schema_validity": { "$ref": "#/definitions/gate_entry" },
+        "report_consistency": { "$ref": "#/definitions/gate_entry" },
+        "authority_check": { "$ref": "#/definitions/gate_entry" },
+        "evidence_check": { "$ref": "#/definitions/gate_entry" },
+        "policy_check": { "$ref": "#/definitions/gate_entry" },
+        "f16_check": { "$ref": "#/definitions/gate_entry" },
+        "no_autonomy_creep": { "$ref": "#/definitions/gate_entry" },
+        "no_external_api": { "$ref": "#/definitions/gate_entry" },
+        "no_canon": { "$ref": "#/definitions/gate_entry" },
+        "no_runtime_side_effects": { "$ref": "#/definitions/gate_entry" }
+      }
+    }
+  },
+  "definitions": {
+    "gate_entry": {
+      "type": "object",
+      "required": ["passed", "detail"],
+      "properties": {
+        "passed": { "type": "boolean" },
+        "detail": { "type": "string" }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "auditor_id": "oracle_auditor_embryo_r0",
+  "task_id": "audit_oracle_latest_output",
+  "action_class": "A1_ANALYZE",
+  "dispatcher_decision": "ALLOW",
+  "timestamp": "2026-05-21T03:33:54.077094Z",
+  "cost_usd": 0.00015135,
+  "audit_output": {
+    "task_id": "audit_oracle_latest_output",
+    "auditor_id": "oracle_auditor_embryo_r0",
+    "target_embryo": "oracle_ai_embryo_r0",
+    "oracle_output_audited": "/home/ubuntu/el-monstruo-bridge/bridge/embryos/oracle_ai_r0/outputs/detect_new_ai_capability_candidates_20260521T033344.json",
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "audit_response": "```json\n{\n  \"verdict\": \"PARTIAL\",\n  \"scores\": {\n    \"hallucination_risk\": 6,\n    \"value_score\": 7,\n    \"scope_compliance\": 9,\n    \"factual_grounding\": 5,\n    \"actionability\": 6\n  },\n  \"flags\": [\n    \"Potential concerns with the release dates and accuracy of the claimed capabilities.\",\n    \"Verification of the capabilities and their integrations is needed.\"\n  ],\n  \"recommendation\": \"Review the claims for factual accuracy and verify the presence of the cited capabilities before considering any action.\"\n}\n```",
+    "cost": 0.00015135
+  }
+}

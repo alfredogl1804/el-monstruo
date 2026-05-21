@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Unified Face Output",
+  "description": "Structured output of the Unified Face loop for T1 consumption.",
+  "type": "object",
+  "required": [
+    "generated_at",
+    "generated_by",
+    "chain_id",
+    "chain_status",
+    "summary_markdown_path",
+    "what_was_executed",
+    "what_was_validated",
+    "what_was_not_executed",
+    "pending_t1_decisions",
+    "recommended_next_action",
+    "active_restrictions"
+  ],
+  "properties": {
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "generated_by": {
+      "type": "string",
+      "description": "Always 'loop_unified_face'."
+    },
+    "chain_id": {
+      "type": "string"
+    },
+    "chain_status": {
+      "type": "string",
+      "enum": ["COMPLETED", "PARTIAL", "ABORTED"]
+    },
+    "summary_markdown_path": {
+      "type": "string",
+      "description": "Path to the human-readable summary .md file."
+    },
+    "what_was_executed": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "what_was_validated": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "what_was_not_executed": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "pending_t1_decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["decision_id", "description"],
+        "properties": {
+          "decision_id": { "type": "string" },
+          "description": { "type": "string" },
+          "recommended_action": { "type": "string" }
+        }
+      }
+    },
+    "recommended_next_action": {
+      "type": "string"
+    },
+    "active_restrictions": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

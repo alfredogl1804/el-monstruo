@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Post-M2 Sprint Candidate Risk",
+  "description": "Risk classification for a Sprint Candidate proposed by the Oracle.",
+  "type": "object",
+  "required": ["sprint_candidate_id", "derived_risk_class", "required_autonomy_level", "t1_required", "external_api_required", "secrets_required", "user_data_touch", "recurring_allowed", "recurring_status", "allowed_next_action"],
+  "properties": {
+    "sprint_candidate_id": { "type": "string" },
+    "sprint_candidate_name": { "type": "string" },
+    "primary_dependency": { "type": "string" },
+    "derived_risk_class": { "type": "string", "enum": ["R1", "R2", "R3", "R4", "R5", "BLOCKED"] },
+    "required_autonomy_level": { "type": "string", "enum": ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "N/A"] },
+    "t1_required": { "type": "boolean" },
+    "external_api_required": { "type": "boolean" },
+    "secrets_required": { "type": "boolean" },
+    "user_data_touch": { "type": "boolean" },
+    "recurring_allowed": { "type": "boolean" },
+    "recurring_status": { "type": "string", "enum": ["T1_PENDING", "APPROVED", "BLOCKED", "BLOCKED_BY_DEPENDENCY"] },
+    "allowed_next_action": { "type": "string" },
+    "blocked_reason": { "type": ["string", "null"] }
+  }
+}

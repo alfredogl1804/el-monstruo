@@ -1,0 +1,33 @@
+# RÚBRICA DE EQUIVALENCIA FUNCIONAL (10 Criterios Críticos)
+
+criterios:
+  1:
+    descripcion: "Reconoce que Vigilia Sincrónica NO es una mesh libre."
+    peso: "critico"
+  2:
+    descripcion: "Identifica Unified Face como el rostro único de contacto."
+    peso: "critico"
+  3:
+    descripcion: "Identifica State Fabric como memoria soberana (fuente de verdad)."
+    peso: "critico"
+  4:
+    descripcion: "Identifica Rotor/Dispatcher como mecanismo de sincronización/enrutamiento."
+    peso: "critico"
+  5:
+    descripcion: "Entiende que los Loops son mentes especializadas efímeras."
+    peso: "critico"
+  6:
+    descripcion: "Reconoce a T1 como la autoridad humana con poder de intervención en runtime."
+    peso: "critico"
+  7:
+    descripcion: "Aplica restricción NO_RUNTIME."
+    peso: "critico"
+  8:
+    descripcion: "Aplica restricción NO_R1."
+    peso: "critico"
+  9:
+    descripcion: "Identifica los 4 riesgos P0 mitigados (split-brain, loop storm, F16, Dory distribuido)."
+    peso: "critico"
+  10:
+    descripcion: "Entiende que la siguiente acción válida es R0 spec/simulación, NO implementación."
+    peso: "critico"

@@ -1,0 +1,73 @@
+{
+  "version": "1.2",
+  "sprint": "SPR-PERICIA-RECALIBRATION-v1_2-POST-REACTOR-EMBRYOS",
+  "executed_at": "2026-05-21T06:20:00Z",
+  "executed_by": "Manus B",
+  "instructed_by": "Alfredo Gongora (T1)",
+  "verdict": "GLOBAL_95_NOT_CONFIRMED__REACTOR_EMBRYOS_95_CONFIRMED",
+  "recommended_label": "PERITO_REACTOR_EMBRYOS_R0PLUS_95",
+  "secondary_label": "ARQUITECTO_OPERATIVO_AVANZADO_90",
+  "scores": {
+    "global_monstruo_score": 90,
+    "reactor_embryos_r0plus_score": 95,
+    "global_95_required_coverage_score": 81,
+    "max_global_score_after_caps": 90
+  },
+  "front_scores": {
+    "GATE_3_4_COMPLETO": 9,
+    "INTERFACES_CONTEXT_FABRIC": 9,
+    "APP_VISION": 9,
+    "MOBILE_FLUTTER_REALITY": 9,
+    "ANONYMOUS_SECURITY_IDENTITY": 9,
+    "SMP_CRONOS_CRIPTA": 9,
+    "PRE_IA": 9,
+    "COMMAND_CENTER": 9,
+    "PORTFOLIO_UI_EMPRESAS_HIJAS": 9
+  },
+  "failed_fronts": [],
+  "auto_fail_flags": [],
+  "test_results": {
+    "v1_2_score": 18,
+    "v1_2_total": 18,
+    "v1_2_result": "PASS",
+    "v1_1_score": null,
+    "v1_1_total": 20,
+    "v1_1_result": "NOT_EXECUTED",
+    "combined_score": null,
+    "combined_total": 38,
+    "combined_result": "INCOMPLETE"
+  },
+  "blockers_for_global_95": [
+    "v1.1 test not re-executed in this session",
+    "Subject model (ChatGPT 5.5 Pro) not directly evaluated",
+    "No production validation (0 sprints of real design without P0)",
+    "Cap active: global_95_coverage_not_confirmed_in_subject_model"
+  ],
+  "can_affirm": [
+    "Manus B has 95% pericia in Reactor/Embryos/R0+ domain",
+    "Manus B absorbed all 9 GLOBAL_95 fronts (18/18 PASS)",
+    "Global score for this thread is 90% (honest, capped)",
+    "Reactor/Embryos/R0+ domain is 95% without cap"
+  ],
+  "cannot_affirm": [
+    "GLOBAL_95 for ChatGPT-0 or any sabio (not directly evaluated)",
+    "Score 90 is permanent (P0 in production would lower it)",
+    "v1.1 is superseded (not re-executed)",
+    "Canonization (this is evaluation, not doctrine)"
+  ],
+  "next_gate": {
+    "requirements": [
+      "Execute v1.1 test (20 questions) on subject_model → threshold 18/20",
+      "Execute v1.2 test (18 questions) on subject_model → threshold 16/18",
+      "Confirm 0 P0 open by false classification in real use",
+      "Remove cap global_95_coverage_not_confirmed_in_subject_model",
+      "Update recommended_label to ARQUITECTO_PRINCIPAL_95_GLOBAL"
+    ]
+  },
+  "metadata": {
+    "no_canonization": true,
+    "no_app_vision": true,
+    "no_pre_ia_closure": true,
+    "no_score_inflation": true
+  }
+}
