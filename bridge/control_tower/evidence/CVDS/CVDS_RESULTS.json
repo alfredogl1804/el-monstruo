@@ -1,0 +1,57 @@
+{
+  "benchmark": "CVDS",
+  "version": "v1.0",
+  "timestamp": "2026-05-21T10:20:12.913387+00:00",
+  "score": 1.0,
+  "meets_threshold": true,
+  "threshold": 0.95,
+  "runs_count": 2,
+  "total_scenarios_evaluated": 230,
+  "agreed_scenarios": 20,
+  "divergent_scenarios": 0,
+  "per_run_rates": {
+    "canary_r0_v3": 1.0,
+    "dory_bench_1000": 1.0
+  },
+  "per_category_scores": {
+    "context_loss": 1.0,
+    "rehydration": 1.0,
+    "false_memory": 1.0,
+    "no_secrets": 1.0,
+    "no_side_effects": 1.0,
+    "secret_exposure": 1.0,
+    "unauthorized_side_effects": 1.0,
+    "safe_actions": 1.0
+  },
+  "details": {
+    "run_consistency": 1.0,
+    "scenario_agreement": 1.0,
+    "category_balance": 1.0,
+    "overlap_coverage": 0.087,
+    "shared_scenarios": 20,
+    "unique_scenarios": 210,
+    "weights": {
+      "run_consistency": 0.4,
+      "scenario_agreement": 0.4,
+      "category_balance": 0.2
+    },
+    "threshold": 0.95,
+    "methodology_note": "scenario_agreement only counts scenarios present in 2+ runs. If runs have disjoint IDs, this component is 0.0 (honest). To increase CVDS, add shared scenarios across runs."
+  },
+  "runs_summary": [
+    {
+      "name": "canary_r0_v3",
+      "total": 70,
+      "passed": 70,
+      "failed": 0,
+      "pass_rate": 1.0
+    },
+    {
+      "name": "dory_bench_1000",
+      "total": 180,
+      "passed": 180,
+      "failed": 0,
+      "pass_rate": 1.0
+    }
+  ]
+}

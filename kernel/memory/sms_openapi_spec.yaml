@@ -1,0 +1,332 @@
+openapi: 3.1.0
+info:
+  title: Sovereign Memory System API
+  description: |
+    Universal memory API for El Monstruo's Sovereign Memory System.
+    Any AI agent (ChatGPT, Claude, Gemini, Grok, Manus, Cowork) can
+    read, write, crystallize, and pre-check against sovereign memory.
+    Designed for multi-agent memory sharing with conflict resolution.
+  version: 2.0.0
+  contact:
+    name: El Monstruo Kernel
+    url: https://el-monstruo-kernel-production.up.railway.app
+
+servers:
+  - url: https://el-monstruo-kernel-production.up.railway.app/sms
+    description: Production (Railway)
+
+paths:
+  /v1/recall:
+    post:
+      operationId: smsRecall
+      summary: Search sovereign memories
+      description: |
+        Search the Sovereign Memory System for relevant memories, axioms,
+        and knowledge. Use BEFORE any significant action to check if there
+        are relevant decisions, constraints, or lessons learned.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  description: Natural language search query
+                  example: "deploy policy friday"
+                agent_id:
+                  type: string
+                  description: Identifier of the calling agent
+                  example: "chatgpt-sop"
+                tier:
+                  type: string
+                  enum: [all, AXIOM, LONG_TERM, WORKING, BUFFER]
+                  default: all
+                  description: Filter by memory tier
+                limit:
+                  type: integer
+                  default: 10
+                  maximum: 50
+                  description: Maximum results to return
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  query:
+                    type: string
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        tier:
+                          type: string
+                        content:
+                          type: string
+                        domain:
+                          type: string
+                        confidence:
+                          type: number
+                        importance:
+                          type: number
+                  total:
+                    type: integer
+
+  /v1/ingest:
+    post:
+      operationId: smsIngest
+      summary: Store a new memory
+      description: |
+        Store a new memory in the Sovereign Memory System. Use after learning
+        something important: a decision, a lesson, a constraint, a preference.
+        Memories are indexed for future retrieval by any agent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  description: The memory content to store
+                  example: "T1 blocked all deploys on Fridays after incident P0-2026-05-06"
+                domain:
+                  type: string
+                  default: general
+                  description: Knowledge domain
+                  example: "engineering"
+                agent_id:
+                  type: string
+                  default: unknown
+                  description: Identifier of the storing agent
+                importance:
+                  type: number
+                  default: 0.5
+                  minimum: 0
+                  maximum: 1
+                  description: Importance score (0-1)
+                tier:
+                  type: string
+                  enum: [BUFFER, WORKING, LONG_TERM]
+                  default: LONG_TERM
+      responses:
+        '200':
+          description: Memory stored
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: stored
+                  id:
+                    type: string
+                  tier:
+                    type: string
+
+  /v1/crystallize:
+    post:
+      operationId: smsCrystallize
+      summary: Promote to sovereign axiom
+      description: |
+        Promote a validated understanding to a SOVEREIGN AXIOM — an immutable
+        truth that survives all context loss. Use ONLY for insights validated
+        multiple times and universally true. Axioms are injected into every
+        new session automatically. This is the highest tier of memory.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  description: The axiom content
+                  example: "Never merge to main without CI green and Cowork audit"
+                domain:
+                  type: string
+                  default: general
+                  description: Knowledge domain
+                agent_id:
+                  type: string
+                  default: unknown
+                evidence:
+                  type: string
+                  description: Evidence supporting this axiom
+                  example: "Validated by 3 incidents (P0-001, P0-002, P0-003)"
+      responses:
+        '200':
+          description: Axiom crystallized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: crystallized
+                  id:
+                    type: string
+                  content:
+                    type: string
+
+  /v1/pre-check:
+    post:
+      operationId: smsPreCheck
+      summary: Verify action safety against memory
+      description: |
+        MANDATORY before any significant action. Checks the Sovereign Memory
+        for relevant axioms, blockers, past errors, and contradictions.
+        Returns a verdict: PROCEED (safe), CAUTION (review needed), or
+        HALT (blocked by axiom/decision). Prevents Dory syndrome.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action
+              properties:
+                action:
+                  type: string
+                  description: The action about to be taken
+                  example: "deploy_production"
+                context:
+                  type: string
+                  description: Additional context about the action
+                  example: "Friday evening, no one available for rollback"
+                agent_id:
+                  type: string
+                  default: unknown
+      responses:
+        '200':
+          description: Pre-check verdict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verdict:
+                    type: string
+                    enum: [PROCEED, CAUTION, HALT]
+                  action:
+                    type: string
+                  warnings:
+                    type: array
+                    items:
+                      type: string
+                  axioms_checked:
+                    type: boolean
+
+  /v1/agents:
+    get:
+      operationId: smsListAgents
+      summary: List registered agents
+      description: Returns all agents that have interacted with the SMS
+      responses:
+        '200':
+          description: Agent list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agents:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        agent_id:
+                          type: string
+                        last_seen:
+                          type: string
+                        memories_count:
+                          type: integer
+                        axioms_count:
+                          type: integer
+
+  /v1/axioms:
+    get:
+      operationId: smsListAxioms
+      summary: List all active axioms
+      description: |
+        Returns all active sovereign axioms. These are the immutable truths
+        that every agent should know. Inject these at session start.
+      parameters:
+        - name: domain
+          in: query
+          schema:
+            type: string
+          description: Filter by domain
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Axiom list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  axioms:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        content:
+                          type: string
+                        domain:
+                          type: string
+                        confidence:
+                          type: number
+                        validations:
+                          type: integer
+                        created_at:
+                          type: string
+
+  /v1/rem-cycle:
+    post:
+      operationId: smsRunRemCycle
+      summary: Trigger REM consolidation cycle
+      description: |
+        Manually trigger the nightly REM consolidation cycle.
+        Normally runs at 3AM CST automatically.
+        Steps: decay, consolidate, crystallize, prune, report.
+      responses:
+        '200':
+          description: REM cycle results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  memories_decayed:
+                    type: integer
+                  memories_consolidated:
+                    type: integer
+                  new_axioms:
+                    type: integer
+                  memories_pruned:
+                    type: integer

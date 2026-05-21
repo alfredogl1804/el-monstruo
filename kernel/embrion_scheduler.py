@@ -813,12 +813,32 @@ def register_default_tasks(scheduler: EmbrionScheduler) -> None:
         handler="recharge_mainspring",
     ))
 
+    # 9. SMS REM Cycle — Obj #15: Memoria Soberana
+    # Sovereign Memory System nightly consolidation:
+    #   - Ebbinghaus decay on stale memories
+    #   - Promote validated insights to axioms (crystallization)
+    #   - Prune dead memories (confidence < 0.1)
+    #   - Cross-agent conflict resolution
+    #   - Generate consolidation report
+    # Trigger: 09:00 UTC (3AM CST) — after memory_consolidation (2AM UTC)
+    # Cap: $0.15 per cycle (no LLM calls, pure SQL + logic)
+    # Spec: kernel/memory/SOVEREIGN_MEMORY_SYSTEM_SPEC.md
+    scheduler.add_task(ScheduledTask(
+        name="sms_rem_cycle",
+        description="Sovereign Memory System nightly REM consolidation (Obj #15 Memoria Soberana)",
+        embrion_id="embrion-0",
+        schedule_type="daily",
+        daily_hour=9,  # 09:00 UTC = 3:00 AM CST
+        max_cost_usd=0.15,
+        handler="run_sms_rem_cycle",
+    ))
+
     logger.info(
         "scheduler_default_tasks_registered",
-        count=8,
+        count=9,
         tasks=["causal_seeding", "prediction_validation", "vanguard_scan",
                "system_health_check", "memory_consolidation", "latido_autonomo",
-               "daily_guardian_audit", "recharge_mainspring"],
+               "daily_guardian_audit", "recharge_mainspring", "sms_rem_cycle"],
     )
 
 
@@ -1024,6 +1044,30 @@ async def _stub_handler_recharge_mainspring(**kwargs: Any) -> dict[str, Any]:
     }
 
 
+async def _stub_handler_sms_rem_cycle(**kwargs: Any) -> dict[str, Any]:
+    """
+    Stub del handler SMS REM Cycle (Obj #15 Memoria Soberana).
+
+    Este stub se mantiene SOLO como fallback defensivo. El handler real
+    `run_sms_rem_cycle` de `kernel.memory.sms_rem_cycle` se registra en
+    `kernel/main.py` durante el boot del kernel y SOBREESCRIBE este stub.
+
+    Si este stub se ejecuta, indica que kernel/main.py no cargó el módulo
+    kernel.memory.sms_rem_cycle (e.g. falla de import).
+    """
+    logger.warning(
+        "sms_rem_cycle_stub_executed",
+        note="Real handler not registered. Check kernel/main.py imports of kernel.memory.sms_rem_cycle.",
+    )
+    return {
+        "degraded": True,
+        "reason": "real_handler_not_registered",
+        "memories_decayed": 0,
+        "axioms_crystallized": 0,
+        "memories_pruned": 0,
+    }
+
+
 def register_stub_handlers(scheduler: EmbrionScheduler) -> None:
     """
     Registrar handlers stub para las 5 tareas default.
@@ -1054,7 +1098,11 @@ def register_stub_handlers(scheduler: EmbrionScheduler) -> None:
     # recharge_mainspring_handler de kernel.rotor.recharge para evitar
     # dependencia circular scheduler -> rotor -> embrion_budget).
     scheduler.register_handler("recharge_mainspring", _stub_handler_recharge_mainspring)
-    logger.info("scheduler_stub_handlers_registered", count=8)
+    # SMS REM Cycle — Obj #15: Memoria Soberana
+    # Handler REAL se registra en kernel/main.py (importa
+    # run_sms_rem_cycle de kernel.memory.sms_rem_cycle).
+    scheduler.register_handler("run_sms_rem_cycle", _stub_handler_sms_rem_cycle)
+    logger.info("scheduler_stub_handlers_registered", count=9)
 
 
 # ── Singleton global ──────────────────────────────────────────────────────────
