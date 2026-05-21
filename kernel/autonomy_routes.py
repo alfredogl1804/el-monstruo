@@ -21,7 +21,24 @@ import structlog
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from kernel.identity_guard import resolve_user_id, UserIdStatus
+
 logger = structlog.get_logger("api.autonomy")
+
+
+def _resolve_uid(user_id: str, context: str) -> str:
+    """OPP-NB-023 R2-B: Resolve user_id through identity guard.
+    Logs warning on blocked/unresolved but does NOT raise — preserves backward compat."""
+    resolved, status = resolve_user_id(user_id)
+    if status != UserIdStatus.RESOLVED:
+        logger.warning(
+            "autonomy_routes_unresolved_user",
+            original=user_id,
+            resolved=resolved,
+            status=status.value,
+            context=context,
+        )
+    return resolved
 
 router = APIRouter(prefix="/v1/autonomy", tags=["autonomy"])
 
@@ -106,7 +123,7 @@ async def schedule_job(request: ScheduleRequest):
             "recurrence": request.recurrence,
         },
         context={
-            "user_id": request.user_id,
+            "user_id": _resolve_uid(request.user_id, "schedule_job"),
             "thread_id": "",
             "db": _db,
             "source": "api",
@@ -125,7 +142,7 @@ async def list_jobs(
     if not _db or not _db.connected:
         raise HTTPException(status_code=503, detail="Database not available")
 
-    filters = {"user_id": user_id}
+    filters = {"user_id": _resolve_uid(user_id, "list_jobs")}
     if status:
         filters["status"] = status
 
