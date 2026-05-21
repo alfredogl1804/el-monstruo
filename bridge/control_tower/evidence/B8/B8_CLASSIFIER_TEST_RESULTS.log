@@ -1,0 +1,51 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.0rc1, pytest-9.0.3, pluggy-1.6.0 -- /usr/bin/python3.11
+cachedir: .pytest_cache
+rootdir: /home/ubuntu/test_b004
+plugins: anyio-4.13.0, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 41 items
+
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[merge_to_main] PASSED [  2%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[push_to_main] PASSED [  4%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[supabase_write_production] PASSED [  7%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[deploy_production] PASSED [  9%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[modify_credentials] PASSED [ 12%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[rotate_secrets] PASSED [ 14%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[declare_dory_dead] PASSED [ 17%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[approve_r1] PASSED [ 19%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[phase_1_action] PASSED [ 21%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[sign_dsc] PASSED [ 24%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[create_pr] PASSED [ 26%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[delete_table] PASSED [ 29%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[drop_migration] PASSED [ 31%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[override_guardian] PASSED [ 34%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[disable_rls] PASSED [ 36%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_direct_trigger_returns_magna[expose_private_key] PASSED [ 39%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMagnaTriggersDirect::test_all_triggers_covered PASSED [ 41%]
+tests/anti_dory/test_b8_magna_classifier.py::TestDangerKeywords::test_partial_keyword_returns_magna[write_to_main_branch-main] PASSED [ 43%]
+tests/anti_dory/test_b8_magna_classifier.py::TestDangerKeywords::test_partial_keyword_returns_magna[deploy_to_production_server-production] PASSED [ 46%]
+tests/anti_dory/test_b8_magna_classifier.py::TestDangerKeywords::test_partial_keyword_returns_magna[update_credential_store-credential] PASSED [ 48%]
+tests/anti_dory/test_b8_magna_classifier.py::TestDangerKeywords::test_partial_keyword_returns_magna[read_secret_vault-secret] PASSED [ 51%]
+tests/anti_dory/test_b8_magna_classifier.py::TestDangerKeywords::test_partial_keyword_returns_magna[set_dory_dead_flag-dory_dead] PASSED [ 53%]
+tests/anti_dory/test_b8_magna_classifier.py::TestDangerKeywords::test_partial_keyword_returns_magna[enter_phase_1_mode-phase_1] PASSED [ 56%]
+tests/anti_dory/test_b8_magna_classifier.py::TestDangerKeywords::test_partial_keyword_returns_magna[leak_private_key_to_log-private_key] PASSED [ 58%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMetadataOverride::test_force_magna_true PASSED [ 60%]
+tests/anti_dory/test_b8_magna_classifier.py::TestMetadataOverride::test_force_magna_false_does_not_override PASSED [ 63%]
+tests/anti_dory/test_b8_magna_classifier.py::TestStandardActions::test_standard_actions[read_memory] PASSED [ 65%]
+tests/anti_dory/test_b8_magna_classifier.py::TestStandardActions::test_standard_actions[list_endpoints] PASSED [ 68%]
+tests/anti_dory/test_b8_magna_classifier.py::TestStandardActions::test_standard_actions[run_local_test] PASSED [ 70%]
+tests/anti_dory/test_b8_magna_classifier.py::TestStandardActions::test_standard_actions[write_bridge_file] PASSED [ 73%]
+tests/anti_dory/test_b8_magna_classifier.py::TestStandardActions::test_standard_actions[create_branch] PASSED [ 75%]
+tests/anti_dory/test_b8_magna_classifier.py::TestStandardActions::test_standard_actions[commit_to_feature_branch] PASSED [ 78%]
+tests/anti_dory/test_b8_magna_classifier.py::TestStandardActions::test_standard_actions[query_catastro] PASSED [ 80%]
+tests/anti_dory/test_b8_magna_classifier.py::TestStandardActions::test_standard_actions[generate_report] PASSED [ 82%]
+tests/anti_dory/test_b8_magna_classifier.py::TestStandardActions::test_standard_actions[classify_intent] PASSED [ 85%]
+tests/anti_dory/test_b8_magna_classifier.py::TestStandardActions::test_standard_actions[health_check] PASSED [ 87%]
+tests/anti_dory/test_b8_magna_classifier.py::TestEdgeCases::test_case_insensitive PASSED [ 90%]
+tests/anti_dory/test_b8_magna_classifier.py::TestEdgeCases::test_whitespace_stripped PASSED [ 92%]
+tests/anti_dory/test_b8_magna_classifier.py::TestEdgeCases::test_empty_action_type PASSED [ 95%]
+tests/anti_dory/test_b8_magna_classifier.py::TestEdgeCases::test_none_metadata PASSED [ 97%]
+tests/anti_dory/test_b8_magna_classifier.py::TestEdgeCases::test_classification_dataclass_fields PASSED [100%]
+
+============================== 41 passed in 0.05s ==============================

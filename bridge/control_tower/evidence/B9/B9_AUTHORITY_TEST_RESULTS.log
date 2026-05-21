@@ -1,0 +1,24 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.0rc1, pytest-9.0.3, pluggy-1.6.0 -- /usr/bin/python3.11
+cachedir: .pytest_cache
+rootdir: /home/ubuntu/test_b004
+plugins: anyio-4.13.0, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 14 items
+
+tests/anti_dory/test_b9_authority_matrix.py::TestB9_1_AllAgreeAllow::test_unanimous_allow PASSED [  7%]
+tests/anti_dory/test_b9_authority_matrix.py::TestB9_2_AllAgreeDeny::test_unanimous_deny PASSED [ 14%]
+tests/anti_dory/test_b9_authority_matrix.py::TestB9_3_AllAgreeHalt::test_unanimous_halt PASSED [ 21%]
+tests/anti_dory/test_b9_authority_matrix.py::TestB9_4_AllAgreeWait::test_unanimous_wait_becomes_awaiting_guardian PASSED [ 28%]
+tests/anti_dory/test_b9_authority_matrix.py::TestB9_5_MementoOverridesVerificador::test_memento_deny_overrides_verificador_allow PASSED [ 35%]
+tests/anti_dory/test_b9_authority_matrix.py::TestB9_6_GuardianCannotOverrideWithoutT1::test_guardian_allow_cannot_override_verificador_deny PASSED [ 42%]
+tests/anti_dory/test_b9_authority_matrix.py::TestB9_7_T1Override::test_t1_overrides_verificador_deny PASSED [ 50%]
+tests/anti_dory/test_b9_authority_matrix.py::TestB9_7_T1Override::test_t1_override_logs_correctly PASSED [ 57%]
+tests/anti_dory/test_b9_authority_matrix.py::TestB9_8_VerificadorDegraded::test_verificador_timeout PASSED [ 64%]
+tests/anti_dory/test_b9_authority_matrix.py::TestB9_8_VerificadorDegraded::test_verificador_none PASSED [ 71%]
+tests/anti_dory/test_b9_authority_matrix.py::TestB9_9_MementoDegraded::test_memento_timeout PASSED [ 78%]
+tests/anti_dory/test_b9_authority_matrix.py::TestB9_9_MementoDegraded::test_memento_none PASSED [ 85%]
+tests/anti_dory/test_b9_authority_matrix.py::TestB9_10_GuardianDegraded::test_guardian_timeout PASSED [ 92%]
+tests/anti_dory/test_b9_authority_matrix.py::TestB9_10_GuardianDegraded::test_guardian_none PASSED [100%]
+
+============================== 14 passed in 0.03s ==============================
