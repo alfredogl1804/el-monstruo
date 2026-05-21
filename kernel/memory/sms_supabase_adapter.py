@@ -746,11 +746,11 @@ class SMSSupabaseAdapter:
 
         blocks = []
 
-        # 1. Sovereign Axioms (compaction-proof truths)
+        # 1. Sovereign Axioms (compaction-proof truths) — ALWAYS global, never filtered by agent
         if query and self.config.can_embed:
-            axioms = self.search_axioms_semantic(query, threshold=0.5, limit=max_axioms, agent_filter=agent_id)
+            axioms = self.search_axioms_semantic(query, threshold=0.5, limit=max_axioms)
         else:
-            axioms = self.get_axioms(source_agent=agent_id, limit=max_axioms)
+            axioms = self.get_axioms(limit=max_axioms)
 
         if axioms:
             blocks.append("--- SOVEREIGN AXIOMS (compaction-proof, NEVER ignore) ---")
@@ -769,7 +769,7 @@ class SMSSupabaseAdapter:
 
         # 2. Relevant memories (if query provided)
         if query and self.config.can_embed:
-            memories = self.search_memories_semantic(query, threshold=0.65, limit=max_memories, agent_filter=agent_id)
+            memories = self.search_memories_semantic(query, threshold=0.4, limit=max_memories, agent_filter=agent_id)
             if memories:
                 blocks.append("")
                 blocks.append("--- RELEVANT MEMORIES ---")

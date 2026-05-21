@@ -418,8 +418,8 @@ async def trigger_rem_cycle(background_tasks: BackgroundTasks):
     - Manual invocation
     """
     try:
-        from kernel.memory.sms_rem_cycle import run_sms_rem_cycle
-        background_tasks.add_task(run_sms_rem_cycle)
+        from kernel.memory.sms_rem_cycle import run_rem_cycle
+        background_tasks.add_task(run_rem_cycle)
         return {"status": "triggered", "message": "REM Cycle started in background"}
     except ImportError as e:
         return {"status": "error", "message": f"REM Cycle module not available: {e}"}
