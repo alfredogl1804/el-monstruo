@@ -482,6 +482,56 @@ Lee: PR #144 + PR #146 (Regla Dura #10) para la base de la cual #11 deriva.
 
 ---
 
+# Regla Dura #12: Memoria Orgánica — Escribir al SMS en Tiempo Real
+
+Esta regla NO se puede ignorar, resumir ni omitir ante compactación de memoria.
+
+> **Todo hilo de Manus que trabaje en El Monstruo DEBE escribir memorias al Sovereign Memory System (SMS) en tiempo real. No existe "fin de sesión" — la escritura ocurre en el momento del descubrimiento.**
+
+Doctrina operativa:
+
+1. **Cuándo escribir:** Inmediatamente al descubrir un hecho nuevo, tomar una decisión arquitectónica, resolver un bug, aprender un patrón, o detectar un error que no debe repetirse.
+2. **Endpoint:** `POST https://el-monstruo-kernel-production.up.railway.app/sms/sms/ingest`
+3. **Payload mínimo:**
+   ```json
+   {
+     "content": "Descripción clara y concisa del aprendizaje/hecho/decisión",
+     "memory_type": "semantic|episodic|procedural",
+     "agent_id": "<tu_hilo_id>",
+     "source": "<contexto: PR, sprint, tarea>",
+     "tags": ["tag1", "tag2"],
+     "confidence": 0.9
+   }
+   ```
+4. **Tipos de memoria:**
+   - `semantic` — Hechos, verdades, definiciones ("Supabase legacy keys están deshabilitadas desde 2026-05-07")
+   - `episodic` — Eventos, decisiones, contexto temporal ("Sprint 27 cerrado con SMS v3.0 mergeado")
+   - `procedural` — Cómo hacer algo, patrones, recetas ("Para rotar secrets: primero Railway env, luego .env.local")
+5. **Qué NO escribir:** Datos transitorios, contenido de archivos completos, embeddings, o información que ya existe como axioma.
+6. **AUDN Loop activo:** El SMS tiene un evaluador inteligente que descarta duplicados y resuelve contradicciones automáticamente. No te preocupes por escribir de más — el sistema filtra.
+7. **Lectura al inicio:** Ejecutar `python3 guardian.py` inyecta axiomas soberanos + memorias relevantes automáticamente. Si no puedes ejecutar guardian, consulta `GET /sms/sms/axioms` y `POST /sms/sms/recall` con tu query.
+
+### Ejemplos de escritura correcta:
+
+```bash
+# Después de resolver un bug
+curl -X POST https://el-monstruo-kernel-production.up.railway.app/sms/sms/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"content":"SyntaxError en SMS v3 línea 469 causado por doble llave {{ en f-string. Fix: usar dict literal fuera del f-string.","memory_type":"procedural","agent_id":"manus_c","source":"PR #180","tags":["bug","python","sms"],"confidence":0.95}'
+
+# Después de una decisión arquitectónica
+curl -X POST https://el-monstruo-kernel-production.up.railway.app/sms/sms/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"content":"AUDN Loop usa gpt-4o-mini para decisiones Add/Update/Delete/None. Costo ~$0.001/decisión. Modelo elegido por balance velocidad/costo.","memory_type":"semantic","agent_id":"manus_c","source":"SMS v3.1 design","tags":["audn","arquitectura","costos"],"confidence":0.9}'
+```
+
+### Frecuencia esperada:
+- Mínimo 1-3 memorias por sesión de trabajo significativa
+- No hay máximo — el AUDN Loop filtra ruido
+- Si no escribiste nada en una sesión larga, pregúntate qué aprendiste
+
+---
+
 # Para Ambos Hilos
 
 Los sensores y las tuberías SON parte de la experiencia y la marca. No son "infraestructura sin cara". Cuando nombras un endpoint, cuando diseñas un schema, cuando escribes un error message — estás construyendo la marca. Las 7 Capas se inyectan en todo. Las 4 Capas definen el orden. Los 14 Objetivos son el criterio de éxito.
