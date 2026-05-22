@@ -1,0 +1,55 @@
+name: Regenerate Genome & Reality Kernel
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'kernel/**'
+      - 'migrations/**'
+      - 'scripts/genome_generator.py'
+      - 'scripts/generate_reality_kernel.py'
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Genome Generator
+        run: python3 scripts/genome_generator.py
+        env:
+          # Note: Supabase MCP and Railway health won't be available in CI.
+          # The script handles failures gracefully (returns empty data).
+          # For full regeneration with live data, run locally or via Manus.
+          CI: true
+
+      - name: Run Reality Kernel Generator
+        run: python3 scripts/generate_reality_kernel.py
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git diff --quiet || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push if changed
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "Genome Bot"
+          git config user.email "genome-bot@el-monstruo.ai"
+          git add MONSTRUO_GENOME.yaml monstruo_reality_atlas/
+          git commit -m "chore(genome): auto-regenerate Genome + Reality Kernel [skip ci]"
+          git push
