@@ -1,0 +1,613 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# EL MONSTRUO — PISO 3: AGRUPADOR INTERMEDIO
+# ═══════════════════════════════════════════════════════════════════════════════
+# Propósito: Cada área del Piso 4 se descompone en sus componentes con:
+#   - Qué hace cada componente
+#   - Dónde vive (path, servicio, tabla)
+#   - Estado real (activo/parcial/código_existe/vacío/diseñado/0%)
+#   - Dependencias (qué necesita de otras áreas)
+#   - Gaps conocidos
+#
+# Tiempo de lectura: 5-8 minutos. Suficiente para entender la arquitectura
+# sin leer código. Si necesitas implementar → baja al Piso 2 (Genoma) o Piso 1 (repo).
+#
+# Última actualización: 2026-05-21
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ÁREA A: CEREBRO (Orquestación + Razonamiento)
+# ═══════════════════════════════════════════════════════════════════════════════
+A_CEREBRO:
+
+  A1_LANGGRAPH_ENGINE:
+    que_hace: Grafo de ejecución principal — recibe input, rutea a nodos, ejecuta tools, genera output
+    donde_vive:
+      codigo: kernel/engine.py, kernel/nodes.py, kernel/state.py
+      servicio: el-monstruo-kernel (Railway)
+    estado: ACTIVO
+    dependencias: [B_MEMORIA.checkpointer, C_AUTONOMIA.finops]
+    gaps: []
+
+  A2_MOC:
+    que_hace: Motor de Orquestación Central — prioriza tareas y sintetiza resultados de ciclos
+    donde_vive:
+      codigo: kernel/moc/ (moc.py, priorizador.py, sintetizador.py)
+    estado: ACTIVO
+    dependencias: [A1_LANGGRAPH_ENGINE]
+    gaps: ["No conectado al Plan Regulador para auto-priorización"]
+
+  A3_EMBRION_LOOP:
+    que_hace: >
+      Pensamiento autónomo. Cada 60s revisa triggers (mensajes, patrones, radar).
+      Si hay trigger → piensa (consulta sabios, ejecuta tools, genera respuesta).
+      Budget: $30/day, max 50 thoughts/day, cooldown 300s entre pensamientos.
+    donde_vive:
+      codigo: kernel/embrion_loop.py (2,666 LOC)
+      servicio: el-monstruo-kernel (Railway, background task)
+      tablas: embrion_memoria, embrion_budget_state, embrion_inbox
+    estado: ACTIVO pero PARALIZADO
+    dependencias: [B_MEMORIA.sms, C_AUTONOMIA.escape, C_AUTONOMIA.espiral, D_INTELIGENCIA.sabios]
+    gaps:
+      - "Último trigger: mayo 10 (11 días sin pensar)"
+      - "write_policy_rejected: 95 (el loop intenta escribir pero algo lo bloquea)"
+      - "No hay canal directo Alfredo→embrion_loop excepto via embrion_memoria manual"
+
+  A4_SUPERVISOR:
+    que_hace: Multi-agent routing — decide qué agente/embrión maneja cada request
+    donde_vive:
+      codigo: kernel/supervisor.py, kernel/multi_agent.py
+    estado: CODIGO_EXISTE
+    dependencias: [A1_LANGGRAPH_ENGINE, D_INTELIGENCIA.embriones]
+    gaps: ["No hay evidencia de routing real en producción"]
+
+  A5_TOOL_SYSTEM:
+    que_hace: 39 herramientas registradas que el kernel puede invocar (browser, code, deploy, email, etc.)
+    donde_vive:
+      codigo: tools/ (39 archivos), kernel/tool_broker.py, kernel/tool_dispatch.py, kernel/tool_registry.py
+    estado: ACTIVO
+    dependencias: [A1_LANGGRAPH_ENGINE]
+    gaps: ["tool_calls_total: 0 hoy — las tools existen pero no se invocan sin pensamientos"]
+
+  A6_CATASTRO_MODELOS:
+    que_hace: Inventario de 41 modelos LLM con benchmarks, costos, y routing rules
+    donde_vive:
+      codigo: kernel/catastro/, kernel/catastros/
+      tablas: catastro_modelos (41 registros)
+    estado: ACTIVO (datos poblados)
+    dependencias: []
+    gaps: ["El kernel usa 4 modelos fijos — no consulta el catastro para routing dinámico"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ÁREA B: MEMORIA (Soberana + Multi-Capa)
+# ═══════════════════════════════════════════════════════════════════════════════
+B_MEMORIA:
+
+  B1_SMS:
+    que_hace: Sovereign Memory System — almacén principal de memorias cristalizadas con 3 layers
+    donde_vive:
+      codigo: kernel/memory/ (sms_*.py, three_layer_memory.py)
+      tablas: sovereign_memories (1,482 registros)
+      rpcs: store_sovereign_memory, recall_memories, search_memories
+    estado: ACTIVO (almacena bien)
+    dependencias: [B5_EMBEDDINGS]
+    gaps:
+      - "recall semántico requiere embeddings — solo 10/1,482 tienen vector"
+      - "Layer 1 (working) vacía — no hay memorias de corto plazo activas"
+
+  B2_EVENT_BUS:
+    que_hace: Stream de eventos del ecosistema — qué pasó, cuándo, quién lo hizo
+    donde_vive:
+      codigo: kernel/events/ (event_bus_api.py)
+      tablas: monstruo_event_stream (9 eventos)
+      rpcs: emit_event, crystallize_pending_events, query_event_stream, get_event_stream_stats
+    estado: ACTIVO (nuevo, construido hoy)
+    dependencias: [B1_SMS para cristalización]
+    gaps: ["Solo 9 eventos — necesita que más sistemas emitan"]
+
+  B3_EMBRION_KNOWLEDGE:
+    que_hace: Conocimiento persistente por especialista (preferences, constraints, anti-patterns)
+    donde_vive:
+      tablas: embrion_knowledge (8 seeds), embrion_task_history (0 registros)
+      rpcs: remember_specialist_knowledge, recall_specialist_context, log_specialist_task
+    estado: ACTIVO (nuevo, construido hoy)
+    dependencias: [D_INTELIGENCIA.embriones]
+    gaps: ["Solo seeds — no hay tareas reales loggeadas aún"]
+
+  B4_COLMENA_PERSISTENCE:
+    que_hace: Persistencia para la inteligencia colectiva (patrones, mensajes, debates, emergencias)
+    donde_vive:
+      tablas: learned_patterns, embrion_messages, emergent_behaviors, collective_debates, collective_votes (todos vacíos)
+      rpcs: get_colmena_stats, propagate_pattern_to_embriones
+    estado: ACTIVO (nuevo, construido hoy) — tablas vacías
+    dependencias: [D_INTELIGENCIA.colmena]
+    gaps: ["El código Python (kernel/collective/) necesita redeploy para usar estas tablas"]
+
+  B5_EMBEDDINGS:
+    que_hace: Vectores semánticos para recall por similitud (text-embedding-3-small)
+    donde_vive:
+      tablas: sovereign_memories.embedding (column pgvector)
+    estado: CRITICO — 10/1,482 (0.7% coverage)
+    dependencias: [OpenAI API para generación]
+    gaps:
+      - "Sin embeddings, el SMS es un almacén de texto plano sin búsqueda semántica"
+      - "graph_enhanced_recall, LightRAG, y Mem0 dependen de esto para funcionar"
+
+  B6_ANTI_DORY:
+    que_hace: Sistema de 8+ pasos contra amnesia — anclas, claims, plans, memento, signatures
+    donde_vive:
+      codigo: kernel/anti_dory/ (14 archivos)
+      tablas: anti_dory_* (múltiples, estado desconocido)
+    estado: CODIGO_EXISTE
+    dependencias: [B1_SMS, B5_EMBEDDINGS]
+    gaps: ["No hay evidencia de que corra automáticamente — las tablas pueden estar vacías"]
+
+  B7_REM_CYCLE:
+    que_hace: Higiene de memoria — consolida, decae, y limpia memorias cada 24h
+    donde_vive:
+      servicio: sms-rem-cycle (Railway cron, next in ~19h)
+      codigo: (probablemente script en el monorepo)
+    estado: SCHEDULED (cron activo)
+    dependencias: [B1_SMS]
+    gaps: ["No verificado si realmente ejecuta o solo está scheduled"]
+
+  B8_KNOWLEDGE_GRAPH:
+    que_hace: Grafo de conocimiento para relaciones entre entidades
+    donde_vive:
+      codigo: kernel/memory/knowledge_graph.py, kernel/memory/pg_graph_storage.py
+    estado: CODIGO_EXISTE
+    dependencias: [B5_EMBEDDINGS]
+    gaps: ["No hay evidencia de datos en el grafo"]
+
+  B9_BRIDGES_MEMORIA:
+    que_hace: Bridges a sistemas externos de memoria (MemPalace, LightRAG, Mem0, Honcho)
+    donde_vive:
+      codigo: kernel/memory/mempalace_bridge.py, lightrag_bridge.py, mem0_bridge.py, honcho_bridge.py
+      servicio: honcho-railway (repo separado)
+    estado: ACTIVO (kernel reporta mempalace, lightrag, mem0 como active)
+    dependencias: [B5_EMBEDDINGS, Redis]
+    gaps: ["Honcho repo existe pero estado de deploy incierto"]
+
+  B10_CHECKPOINTER:
+    que_hace: Persistencia de estado del grafo LangGraph entre ejecuciones
+    donde_vive:
+      codigo: kernel/memory/checkpoint_store.py (AsyncPostgresSaver)
+      tablas: checkpoint_* (327K+ registros)
+    estado: ACTIVO
+    dependencias: [Postgres Railway]
+    gaps: ["327K registros — posible necesidad de cleanup"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ÁREA C: AUTONOMÍA (Reloj Suizo + Energía + Homeostasis)
+# ═══════════════════════════════════════════════════════════════════════════════
+C_AUTONOMIA:
+
+  C1_ESCAPE_THROTTLER:
+    que_hace: Dosifica el presupuesto en pulsos discretos — impide que el agente gaste todo de golpe
+    donde_vive:
+      codigo: kernel/escape/ (throttler.py, config.py, dashboard.py, registry.py)
+      tablas: escape_pulse_log
+    estado: ACTIVO (Sprint ESCAPE-001 completado)
+    dependencias: [C5_FINOPS]
+    gaps: []
+
+  C2_ESPIRAL_HOMEOSTASIS:
+    que_hace: Feedback negativo — detecta deviation del pulse_rate y aplica corrección dinámica
+    donde_vive:
+      codigo: kernel/espiral/ (homeostasis.py, sensor.py, __init__.py)
+      tablas: embrion_homeostasis_log
+    estado: ACTIVO (Sprint ESPIRAL-001 completado)
+    dependencias: [C1_ESCAPE_THROTTLER]
+    gaps: []
+
+  C3_ROTOR_ENERGY:
+    que_hace: Recicla actividad humana (commits, queries, clicks) en energía para el Monstruo
+    donde_vive:
+      codigo: kernel/rotor/ (energy_calculator.py, capturers/, recharge.py, persistence.py, dashboard.py)
+      tablas: rotor_activity_log
+    estado: ACTIVO (Sprint ROTOR-001 completado)
+    dependencias: [GitHub webhooks, Supabase activity]
+    gaps:
+      - "Solo captura commits — no captura actividad de Mac/browser/Command Center"
+      - "Energía real capturada es mínima vs potencial"
+
+  C4_VOLANTE_CRON:
+    que_hace: Latido constante del Monstruo — ciclo de 60s que nunca se detiene
+    donde_vive:
+      codigo: kernel/embrion_loop.py (el loop principal)
+    estado: ACTIVO (141 ciclos hoy)
+    dependencias: []
+    gaps: []
+
+  C5_FINOPS:
+    que_hace: Tracking de costos en tiempo real — budget diario, cost per thought, alerts
+    donde_vive:
+      codigo: kernel/finops.py, kernel/finops_routes.py, kernel/cost_optimizer.py, kernel/usage_tracker.py
+      tablas: embrion_budget_state
+    estado: ACTIVO ($13.69/$30 hoy)
+    dependencias: []
+    gaps: []
+
+  C6_SOVEREIGNTY_ENGINE:
+    que_hace: Portabilidad y auto-mejora — capacidad de migrar entre providers sin lock-in
+    donde_vive:
+      codigo: kernel/sovereignty/ (engine.py), kernel/portability/ (portability_engine.py)
+    estado: CODIGO_EXISTE
+    dependencias: []
+    gaps: ["No hay evidencia de uso real — es preparación para el futuro"]
+
+  C7_REMONTOIR:
+    que_hace: Estabilizador de calidad — fallback dinámico de modelos cuando el presupuesto baja
+    donde_vive:
+      codigo: (distribuido en engine.py, model selection logic)
+    estado: PARCIAL
+    dependencias: [A6_CATASTRO_MODELOS, C5_FINOPS]
+    gaps: ["No hay fallback chain explícita documentada — el kernel usa 4 modelos fijos"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ÁREA D: INTELIGENCIA COLECTIVA (Embriones + Colmena + Sabios)
+# ═══════════════════════════════════════════════════════════════════════════════
+D_INTELIGENCIA:
+
+  D1_EMBRIONES:
+    que_hace: 8 especialistas con personalidad, knowledge, y dominio propio
+    donde_vive:
+      codigo: kernel/embriones/ (8 archivos), kernel/embrion_specializations/
+      tablas: embrion_knowledge (8 seeds)
+    estado: PARCIAL — definidos pero no ejecutan tareas independientes
+    dependencias: [A3_EMBRION_LOOP, B3_EMBRION_KNOWLEDGE]
+    gaps:
+      - "embrion_task_history vacío — nunca han ejecutado una tarea loggeada"
+      - "No hay routing real de tareas a embriones específicos"
+
+  D2_COLMENA:
+    que_hace: Coordinación colectiva — debates, votaciones, propagación de patrones, emergencia
+    donde_vive:
+      codigo: kernel/collective/ (protocol.py, knowledge_propagator.py, emergence_detector.py)
+      tablas: learned_patterns, embrion_messages, emergent_behaviors, collective_debates, collective_votes (todos vacíos)
+    estado: CODIGO_EXISTE + TABLAS_VACIAS
+    dependencias: [D1_EMBRIONES, B4_COLMENA_PERSISTENCE]
+    gaps:
+      - "Todas las tablas vacías — el código necesita redeploy para usarlas"
+      - "No hay evidencia de un debate o votación real ejecutada"
+
+  D3_SABIOS:
+    que_hace: 6 modelos externos consultados para decisiones complejas (enjambre iterativo)
+    donde_vive:
+      codigo: tools/consult_sabios.py
+      modelos: GPT-5.5, Claude Opus 4.7, Gemini 3.1 Pro, Grok 4, DeepSeek R1, Sonar Reasoning Pro
+    estado: ACTIVO (5 consultations total en el kernel)
+    dependencias: [APIs externas, OpenRouter]
+    gaps: ["Solo 5 consultas totales — infraestructura lista pero poco usada"]
+
+  D4_CIDP:
+    que_hace: Ciclo de Investigación y Descubrimiento Perpetuo — research async en background
+    donde_vive:
+      codigo: cidp/ (api_server.py, client.py, scripts/, config/)
+      servicio: el-monstruo (Railway, CIDP worker)
+    estado: HEALTHY (servicio responde)
+    dependencias: [APIs externas, SQLite local]
+    gaps: ["0 jobs activos — el servicio está listo pero nadie lo invoca"]
+
+  D5_COWORK_RUNTIME:
+    que_hace: Sistema para que Cowork (ChatGPT) opere dentro del kernel como companion agent
+    donde_vive:
+      codigo: kernel/cowork_runtime/ (9 archivos)
+    estado: CODIGO_EXISTE (shadow mode)
+    dependencias: [A1_LANGGRAPH_ENGINE]
+    gaps: ["No hay evidencia de activación real — Cowork opera via chat, no via kernel"]
+
+  D6_CATASTRO_AGENTES:
+    que_hace: Inventario de 98 agentes IA evaluados con capabilities y scores
+    donde_vive:
+      tablas: catastro_agentes (98 registros)
+      codigo: kernel/catastros/
+    estado: ACTIVO (datos poblados)
+    dependencias: []
+    gaps: ["El kernel no consulta el catastro para decidir a quién delegar"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ÁREA E: INTERFACES (Transports + Superficies)
+# ═══════════════════════════════════════════════════════════════════════════════
+E_INTERFACES:
+
+  E1_BOT_TELEGRAM:
+    que_hace: Transport conversacional — Alfredo habla con el Monstruo via Telegram
+    donde_vive:
+      repo: el-monstruo-bot
+      servicio: Railway (estado incierto)
+    estado: MVP_DEPLOYED (última actualización abril 26)
+    dependencias: [A1_LANGGRAPH_ENGINE]
+    gaps: ["Posiblemente caído — no verificado en esta sesión"]
+
+  E2_COMMAND_CENTER:
+    que_hace: PWA con 7 superficies de control (de 12-15 canonizadas)
+    donde_vive:
+      repo: el-monstruo-command-center
+      servicio: Vercel (command-center-production)
+    estado: PRODUCCION (pero 404 en Railway — vive en Vercel)
+    dependencias: [A1_LANGGRAPH_ENGINE, APIs del kernel]
+    gaps:
+      - "7/12-15 superficies implementadas"
+      - "No es daily driver de Alfredo"
+
+  E3_APP_FLUTTER:
+    que_hace: App móvil nativa (iOS + Mac) — interfaz premium del Monstruo
+    donde_vive:
+      codigo: apps/mobile/ (52 dart files)
+      gateway: apps/mobile/gateway/ (Dockerfile Railway)
+    estado: PARCIAL (~35% según estimación)
+    dependencias: [A1_LANGGRAPH_ENGINE, ag-ui-gateway]
+    gaps:
+      - "NO deployed"
+      - "Gateway existe pero estado de deploy incierto"
+      - "APP_VISION de 17 capítulos — solo fracción implementada"
+
+  E4_LA_FORJA:
+    que_hace: Tutor IA adaptativo + co-piloto de sprints — Cliente Cero del Monstruo
+    donde_vive:
+      codigo: apps/la-forja/ (frontend Next.js + backend Hono)
+      servicio: la-forja-api (Railway, HEALTHY)
+    estado: D2_BACKEND_COMPLETO
+    dependencias: [Manus API, Cowork, kernel, simulador]
+    gaps:
+      - "Frontend no deployed aún"
+      - "D4 auth en progreso"
+      - "SQL migration 0036 BLOQUEADA"
+
+  E5_AG_UI_GATEWAY:
+    que_hace: Protocolo AG-UI — interfaz agéntica estandarizada
+    donde_vive:
+      servicio: ag-ui-gateway (Railway, ONLINE)
+    estado: ONLINE (requiere auth)
+    dependencias: [A1_LANGGRAPH_ENGINE]
+    gaps: ["No verificado qué superficies lo consumen"]
+
+  E6_OPEN_WEBUI:
+    que_hace: Interfaz web para chat con LLMs (Open WebUI)
+    donde_vive:
+      servicio: open-webui (Railway)
+    estado: 404 (CAIDO)
+    dependencias: []
+    gaps: ["Servicio no responde — posiblemente desactivado o mal configurado"]
+
+  E7_WHATSAPP:
+    que_hace: Transport WhatsApp (diseñado, no construido)
+    donde_vive: No existe
+    estado: "0%"
+    dependencias: []
+    gaps: ["Solo existe como concepto en APP_VISION"]
+
+  E8_A2UI:
+    que_hace: Protocolo de interfaz adaptativa — el Monstruo adapta su UI al contexto
+    donde_vive:
+      codigo: kernel/a2ui/ (schema.py)
+    estado: SPEC_FIRMADA + CODIGO_MINIMO
+    dependencias: [E_INTERFACES.*]
+    gaps: ["Spec existe, implementación mínima"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ÁREA F: SEGURIDAD (Identidad + RLS + Governance)
+# ═══════════════════════════════════════════════════════════════════════════════
+F_SEGURIDAD:
+
+  F1_GUARDIAN:
+    que_hace: Restauración de identidad al inicio de cada hilo — ejecuta guardian.py
+    donde_vive:
+      codigo: monstruo-memoria/.monstruo/guardian.py
+      activacion: AGENTS.md (obligatorio antes de cualquier acción)
+    estado: ACTIVO
+    dependencias: [Supabase, GitHub]
+    gaps: []
+
+  F2_RLS_UNIVERSAL:
+    que_hace: Row Level Security en todas las tablas — ningún dato accesible sin policy
+    donde_vive:
+      tablas: 174 tablas con RLS habilitado
+      linter: scripts/_check_rls_default.py
+    estado: ACTIVO
+    dependencias: []
+    gaps: ["Matviews legacy sin RLS nativo — protegidas con REVOKE"]
+
+  F3_DSC_SYSTEM:
+    que_hace: Capilla de Decisiones — ~50 decisiones canónicas firmadas e inmutables
+    donde_vive:
+      codigo: discovery_forense/CAPILLA_DECISIONES/
+    estado: ACTIVO
+    dependencias: []
+    gaps: []
+
+  F4_AUDIT_MIDDLEWARE:
+    que_hace: Middleware de auditoría para requests al kernel
+    donde_vive:
+      codigo: kernel/security/ (Sprint S-003.B)
+    estado: ACTIVO
+    dependencias: [A1_LANGGRAPH_ENGINE]
+    gaps: []
+
+  F5_CREDENTIAL_MANAGEMENT:
+    que_hace: Inventario de credenciales con rotación programada
+    donde_vive:
+      codigo: scripts/_check_no_tokens.sh
+      docs: discovery_forense/CAPILLA_DECISIONES/_GLOBAL/DSC-S-*
+    estado: ACTIVO (post-incidente P0)
+    dependencias: []
+    gaps: []
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ÁREA G: CONOCIMIENTO (Catastros + Biblias + Investigación)
+# ═══════════════════════════════════════════════════════════════════════════════
+G_CONOCIMIENTO:
+
+  G1_CATASTROS:
+    que_hace: 4+ inventarios curados de modelos, agentes, suppliers, y herramientas
+    donde_vive:
+      tablas: catastro_modelos (41), catastro_agentes (98), catastro_suppliers_humanos (30), catastro_vision_generativa (38)
+      codigo: kernel/catastro/, kernel/catastros/, docs/biblias*/
+    estado: ACTIVO (poblados)
+    dependencias: []
+    gaps: ["catastro_curadores y catastro_repos vacíos"]
+
+  G2_BIBLIAS:
+    que_hace: 113 documentos de investigación profunda sobre herramientas y agentes
+    donde_vive:
+      codigo: docs/biblias/ (82), docs/biblias_agentes/ (21), docs/ (10 originales)
+    estado: COMPLETO
+    dependencias: []
+    gaps: []
+
+  G3_VANGUARD_TECH_RADAR:
+    que_hace: Intelligence engine + Semantic Scholar + weekly digest — detecta tendencias tech
+    donde_vive:
+      codigo: kernel/vanguard/ (intelligence_engine.py, tech_radar.py, semantic_scholar.py, weekly_digest.py)
+    estado: CODIGO_EXISTE
+    dependencias: [APIs externas]
+    gaps: ["No hay evidencia de ejecución regular — radar_checks: 2 total"]
+
+  G4_LEARNING_ADAPTIVE:
+    que_hace: Aprendizaje adaptativo — el Monstruo mejora sus respuestas con feedback
+    donde_vive:
+      codigo: kernel/learning/ (adaptive.py)
+    estado: CODIGO_EXISTE
+    dependencias: [B1_SMS, D1_EMBRIONES]
+    gaps: ["No hay métricas de aprendizaje real"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ÁREA H: PROYECTOS SATÉLITE (Planetas del Sistema Solar)
+# ═══════════════════════════════════════════════════════════════════════════════
+H_PROYECTOS:
+
+  H1_TICKETLIKE:
+    que_hace: Boletería digital para Leones de Yucatán (313 butacas Zona Like)
+    donde_vive:
+      repo: like-kukulkan-tickets
+      db: TiDB (high-volume)
+      pagos: Stripe
+      servicio: Railway
+    estado: PRODUCCION
+    connection_contract: "Usa Supabase del Monstruo para analytics, el Monstruo no lo opera"
+
+  H2_OBSERVATORIO_MERIDA_2027:
+    que_hace: Análisis electoral — monitoreo de candidatos, encuestas, estrategia
+    donde_vive:
+      repo: observatorio-merida-2027
+      memoria: manus-memory-merida2027
+    estado: ACTIVO (investigación)
+    connection_contract: "El Monstruo investiga y analiza — output va a Alfredo"
+
+  H3_SIMULADOR_UNIVERSAL:
+    que_hace: Simulación predictiva causal multi-dominio (electoral, financiero, crisis, etc.)
+    donde_vive:
+      repo: simulador-universal
+      skill: simulador-escenarios-ia
+    estado: ACTIVO (motor en Railway)
+    connection_contract: "El Monstruo lo invoca como herramienta de análisis"
+
+  H4_EL_MUNDO_DE_TATA:
+    que_hace: Juego/experiencia interactiva para Renata (hija de Alfredo)
+    donde_vive:
+      repo: el-mundo-de-tata
+    estado: ACTIVO (desarrollo)
+    connection_contract: "Proyecto personal — sin conexión directa al kernel"
+
+  H5_CRISOL_8:
+    que_hace: Investigación política OSINT
+    donde_vive:
+      repo: crisol-8
+    estado: ACTIVO
+    connection_contract: "El Monstruo investiga — output va a estrategia"
+
+  H6_CIP:
+    que_hace: Plataforma de inversión inmobiliaria fraccionada con tokens
+    donde_vive:
+      skill: creacion-cip
+    estado: DISEÑO (0% código)
+    connection_contract: "Futuro planeta — diseñado pero no construido"
+
+  H7_K365:
+    que_hace: Knowledge base de Kukulcán 365
+    donde_vive:
+      repo: k365-knowledge-repo
+    estado: ACTIVO
+    connection_contract: "Base de conocimiento consultable"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INFRAESTRUCTURA COMPARTIDA (no es un área — es el suelo)
+# ═══════════════════════════════════════════════════════════════════════════════
+INFRAESTRUCTURA:
+
+  SUPABASE:
+    que_es: Base de datos principal + auth + storage + realtime
+    tablas: 174
+    proyecto: xsumzuhwmivjgftsneov
+    estado: ACTIVO
+
+  RAILWAY:
+    que_es: Plataforma de deploy para todos los servicios backend
+    servicios: 12
+    proyecto: celebrated-achieve...
+    estado: ACTIVO
+
+  REDIS:
+    que_es: Cache y queue para el kernel
+    servicio: Redis (Railway)
+    estado: ONLINE
+
+  POSTGRES_RAILWAY:
+    que_es: Base de datos para checkpointer LangGraph (separada de Supabase)
+    servicio: Postgres (Railway)
+    estado: ONLINE
+
+  VERCEL:
+    que_es: Deploy para frontends (Command Center, La Forja frontend futuro)
+    estado: ACTIVO
+
+  GITHUB:
+    que_es: Source of truth para código — 24 repos reales
+    cuenta: alfredogl1804
+    estado: ACTIVO
+
+  LANGFUSE:
+    que_es: Observabilidad — traces de LLM calls, costos, latencia
+    estado: ACTIVO (kernel reporta langfuse: active)
+
+  OPENROUTER:
+    que_es: Router de modelos LLM — acceso unificado a múltiples providers
+    estado: ACTIVO
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DOCTRINA Y GOBIERNO (no es un área — es la constitución)
+# ═══════════════════════════════════════════════════════════════════════════════
+DOCTRINA:
+
+  OBJETIVOS_MAESTROS:
+    que_es: 15 objetivos que aplican a TODA decisión
+    donde_vive: docs/EL_MONSTRUO_15_OBJETIVOS_MAESTROS.md
+    estado: CANONIZADO
+
+  CAPAS_TRANSVERSALES:
+    que_es: 7 capas obligatorias en todo proyecto (ventas, SEO, publicidad, tendencias, admin, finanzas, resiliencia)
+    estado: CANONIZADO (0% implementado en código)
+
+  CAPAS_ARQUITECTONICAS:
+    que_es: 4 capas secuenciales (Cimientos → Manos → Inteligencia → Soberanía)
+    estado: CANONIZADO
+
+  PLAN_REGULADOR:
+    que_es: Sistema de decisión — qué se debe hacer, en qué orden, con qué score
+    donde_vive: PLAN_REGULADOR.yaml
+    estado: ACTIVO (v2.0)
+
+  GENOMA:
+    que_es: Mapa de existencia — qué existe y dónde está (Piso 2)
+    donde_vive: MONSTRUO_GENOME.yaml
+    estado: ACTIVO (pero incompleto — no cubre Context Fabric ni servicios Railway)
+
+  APP_VISION:
+    que_es: Visión de producto completa — 17 capítulos, 1,116 líneas
+    donde_vive: docs/EL_MONSTRUO_APP_VISION_v1.3.md
+    estado: CANONIZADO (v1.3)
+
+  RELOJ_SUIZO_DOCTRINA:
+    que_es: Arquitectura de autonomía sostenida — 8 piezas horológicas
+    donde_vive: docs/ARQUITECTURA_RELOJ_SUIZO_v1.0.md
+    estado: CANONIZADO + PARCIALMENTE_IMPLEMENTADO (6/8 piezas)

@@ -1,0 +1,218 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# EL MONSTRUO — PISO 4: ÁREAS (Vista Ejecutiva para IAs)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Propósito: En 60 segundos de lectura, cualquier hilo entiende QUÉ ES el
+# Monstruo, en QUÉ ÁREAS se divide, y CUÁL es el estado de cada una.
+#
+# Regla: Este archivo se lee PRIMERO. Si necesitas más detalle → Piso 3.
+#        Si necesitas código/tablas → Piso 2 (Genoma). Si necesitas implementar → Piso 1 (repo).
+#
+# Última actualización: 2026-05-21
+# ═══════════════════════════════════════════════════════════════════════════════
+
+identidad:
+  nombre: El Monstruo
+  definicion: >
+    Asistente IA soberano de Alfredo Góngora. No es un chatbot, no es una app,
+    no es un framework. Es un organismo distribuido que piensa, recuerda, actúa,
+    y aprende — con el objetivo de ser el asistente IA más poderoso del mundo.
+  principio_fundacional: >
+    Conectar los modelos más poderosos + el cerebro más poderoso + las manos
+    agénticas más poderosas. No construir desde cero — orquestar lo mejor que existe.
+  metafora_central: Reloj Suizo (autonomía sostenida por 8 piezas mecánicas)
+  dueño: Alfredo Góngora (T1-Padre)
+  arquitecto: Cowork (ChatGPT, T2-Architect)
+  ejecutores: Hilos Manus (T3-Ejecutores)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAS 8 ÁREAS DEL MONSTRUO
+# ═══════════════════════════════════════════════════════════════════════════════
+
+areas:
+  # ─────────────────────────────────────────────────────────────────────────────
+  A_CEREBRO:
+    nombre: Cerebro (Orquestación + Razonamiento)
+    que_es: >
+      El motor central que decide qué hacer, cuándo, con qué modelo, y en qué orden.
+      Incluye el grafo LangGraph, el MOC (priorizador), el embrion_loop (pensamiento
+      autónomo), y la selección dinámica de modelos.
+    componentes_clave:
+      - LangGraph engine (nodes.py, state.py, engine.py)
+      - MOC (Motor de Orquestación Central — priorizador + sintetizador)
+      - Embrion Loop (pensamiento autónomo cada 60s, 50 thoughts/day max)
+      - Supervisor (multi-agent routing)
+      - Tool Broker + Dispatch (39 herramientas)
+      - Catastro de Modelos (41 modelos catalogados, 4 activos en kernel)
+    estado: ACTIVO — kernel v0.84.8 en Railway, 141 ciclos hoy, 0 pensamientos
+    salud: AMARILLO — piensa 0 veces porque no recibe triggers nuevos desde mayo 10
+    servicios: el-monstruo-kernel (Railway)
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  B_MEMORIA:
+    nombre: Memoria (Soberana + Multi-Capa)
+    que_es: >
+      Todo lo que el Monstruo recuerda, cómo lo almacena, cómo lo recupera, y cómo
+      lo limpia. Desde memorias episódicas hasta conocimiento cristalizado.
+    componentes_clave:
+      - SMS (Sovereign Memory System) — 1,482 memorias soberanas
+      - Event Bus — 9 eventos emitidos
+      - Embrion Knowledge — 8 seeds por especialista
+      - Anti-Dory (8+ pasos contra amnesia)
+      - MemPalace + LightRAG + Mem0 (bridges activos)
+      - REM Cycle (cron cada 24h — higiene de memoria)
+      - Embeddings (0.7% coverage — CRÍTICO)
+      - Knowledge Graph (código existe, no poblado)
+    estado: ACTIVO — almacena bien, recupera mal (sin embeddings = sin recall semántico)
+    salud: ROJO — 99.3% de memorias sin vector. El sistema recuerda pero no puede BUSCAR.
+    servicios: sms-rem-cycle (Railway cron), Supabase (174 tablas)
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  C_AUTONOMIA:
+    nombre: Autonomía (Reloj Suizo + Energía + Homeostasis)
+    que_es: >
+      El sistema que permite al Monstruo funcionar sin prompts directos de Alfredo.
+      8 piezas inspiradas en alta horología que dosifican energía, reciclan actividad
+      humana, y mantienen homeostasis.
+    componentes_clave:
+      - Escape/Throttler (dosifica presupuesto en pulsos)
+      - Espiral/Hairspring (feedback negativo, homeostasis)
+      - Rotor (recicla actividad humana → energía)
+      - Volante (cron 60s — latido constante)
+      - Resorte (embrion_budget — almacén de energía)
+      - FinOps (tracking de costos, $30/day budget)
+      - Sovereignty Engine (portabilidad, auto-mejora)
+    estado: ACTIVO — 6/8 piezas implementadas, presupuesto tracking funcional
+    salud: AMARILLO — Rotor captura poca energía real (solo commits), Remontoir no calibrado
+    servicios: Integrado en el-monstruo-kernel
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  D_INTELIGENCIA_COLECTIVA:
+    nombre: Inteligencia Colectiva (Embriones + Colmena + Sabios)
+    que_es: >
+      Los 8 especialistas (embriones) que piensan en dominios específicos, la Colmena
+      que los coordina, y los 6 Sabios externos que consultan para decisiones complejas.
+    componentes_clave:
+      - 8 Embriones (creativo, estratega, financiero, investigador, técnico, ventas, critic_visual, product_architect)
+      - Colmena (protocol, knowledge_propagator, emergence_detector)
+      - 6 Sabios (GPT-5.5, Claude Opus 4.7, Gemini 3.1 Pro, Grok 4, DeepSeek R1, Sonar Reasoning Pro)
+      - CIDP (Ciclo de Investigación y Descubrimiento Perpetuo — microservicio)
+      - Catastro de Agentes (98 agentes catalogados)
+    estado: PARCIAL — embriones tienen knowledge seeds pero no ejecutan tareas reales
+    salud: AMARILLO — Colmena tiene tablas vacías, CIDP healthy pero sin jobs activos
+    servicios: el-monstruo (CIDP worker, Railway), consulta_sabios via APIs
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  E_INTERFACES:
+    nombre: Interfaces (Transports + Superficies)
+    que_es: >
+      Cómo Alfredo (y eventualmente otros) interactúan con el Monstruo.
+      Doctrina: "kernel + N transports" — NO una app monolítica.
+      6 transports diseñados, 3 parcialmente construidos.
+    componentes_clave:
+      - Bot Telegram (MVP, Railway — estado incierto)
+      - Command Center (Next.js, Vercel — 7 superficies de 12-15 canon)
+      - App Flutter Mobile (52 dart files, NO deployed)
+      - La Forja Web (tutor IA + co-piloto, D2 backend completo)
+      - AG-UI Gateway (protocolo agéntico, Railway)
+      - Open WebUI (LLM chat, Railway — 404)
+      - WhatsApp (0% — no existe)
+      - Apple Watch (0% — no existe)
+    estado: FRAGMENTADO — múltiples interfaces parciales, ninguna es el "daily driver"
+    salud: ROJO — Alfredo solo puede hablar con el Monstruo via hilos Manus, no via sus propias interfaces
+    servicios: command-center (Vercel), la-forja-api (Railway), ag-ui-gateway (Railway)
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  F_SEGURIDAD:
+    nombre: Seguridad (Identidad + RLS + Governance)
+    que_es: >
+      Todo lo que protege al Monstruo: autenticación, RLS universal en Supabase,
+      rotación de secrets, audit middleware, guardian.py, y el protocolo de
+      decisiones canónicas (DSCs).
+    componentes_clave:
+      - Guardian V4 (identity restoration en cada hilo)
+      - RLS Universal (174 tablas con policy explícita)
+      - DSC System (Capilla de Decisiones — ~50 decisiones firmadas)
+      - Audit Middleware (Sprint S-003.B)
+      - Identity Guard + Auth module
+      - Linter pre-commit (_check_rls_default.py, _check_no_tokens.sh)
+      - Credential Inventory (rotación programada)
+    estado: ACTIVO — doctrina firme, linters funcionando
+    salud: VERDE — post-incidente P0 (mayo 6) se hardeneó todo
+    servicios: Integrado en kernel + CI/CD
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  G_CONOCIMIENTO:
+    nombre: Conocimiento (Catastros + Biblias + Investigación)
+    que_es: >
+      La base de conocimiento curada del Monstruo: 4 catastros (modelos, agentes,
+      suppliers, herramientas), 113 biblias investigadas, y el motor de investigación
+      perpetua (CIDP + Vanguard Tech Radar).
+    componentes_clave:
+      - Catastro Modelos LLM (41 modelos con benchmarks)
+      - Catastro Agentes 2026 (98 agentes evaluados)
+      - Catastro Suppliers Humanos (30 proveedores)
+      - Catastro Visión Generativa (38 herramientas)
+      - 82 Biblias v7.3 (herramientas/plataformas)
+      - 21 Biblias Agentes (agentes IA)
+      - 10 Biblias Originales (Manus, Claude, Cursor, etc.)
+      - Vanguard Tech Radar (intelligence engine + semantic scholar)
+      - CIDP microservice (investigación async)
+    estado: ACTIVO — catastros poblados, biblias completas
+    salud: VERDE — el conocimiento existe, falta que el kernel lo consulte automáticamente
+    servicios: CIDP (Railway), Supabase (catastro_*)
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  H_PROYECTOS_SATELITE:
+    nombre: Proyectos Satélite (Planetas del Sistema Solar)
+    que_es: >
+      Proyectos de Alfredo que orbitan al Monstruo. Cada uno tiene un connection_contract
+      que define cómo se alimenta del Monstruo y qué le devuelve.
+    componentes_clave:
+      - Ticketlike (boletería Leones de Yucatán — TiDB + Railway + Stripe)
+      - Observatorio Mérida 2027 (análisis electoral)
+      - Simulador Universal (predicción causal multi-dominio)
+      - El Mundo de Tata (juego para Renata)
+      - Crisol-8 (investigación política OSINT)
+      - K365 Knowledge Repo (Kukulcán 365)
+      - CIP (inversión inmobiliaria fraccionada — diseño)
+    estado: MIXTO — Ticketlike en producción, otros en desarrollo/pausa
+    salud: AMARILLO — cada proyecto tiene su propio ritmo, no todos conectados al Monstruo aún
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MÉTRICAS GLOBALES (snapshot 2026-05-21)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+metricas:
+  kernel_version: "0.84.8-sprint-memento"
+  lineas_codigo_python: 98868
+  modulos_kernel: 114
+  tablas_supabase: 174
+  memorias_soberanas: 1482
+  eventos_bus: 9
+  embeddings_coverage: "0.7%"
+  servicios_railway: 12
+  tools_registradas: 39
+  catastro_modelos: 41
+  catastro_agentes: 98
+  biblias_total: 113
+  sprints_documentados: "~100"
+  dscs_firmados: "~50"
+  presupuesto_diario: "$30 USD"
+  costo_hoy: "$13.69"
+  pensamientos_hoy: 0
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SALUD GENERAL
+# ═══════════════════════════════════════════════════════════════════════════════
+
+salud_general:
+  veredicto: AMARILLO
+  razon: >
+    El Monstruo tiene cerebro, memoria, autonomía, conocimiento, y seguridad
+    construidos. Pero NO piensa (0 thoughts/day), NO recuerda semánticamente
+    (0.7% embeddings), y NO tiene interfaz funcional para su dueño.
+    Es un Ferrari con el motor encendido en el garage — nadie lo maneja.
+  bloqueadores_criticos:
+    - "Embeddings: 99.3% de memorias sin vector = recall semántico imposible"
+    - "Triggers: último trigger mayo 10 = el loop no tiene razón para pensar"
+    - "Interfaces: ninguna interfaz funciona como daily driver para Alfredo"
