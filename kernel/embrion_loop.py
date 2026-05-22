@@ -1489,7 +1489,15 @@ class EmbrionLoop:
             # el tipo correcto.
             _verifier_aborted = False
             _verifier_reasons: list[str] = []
-            if EMBRION_SELF_VERIFIER_ENABLED and response:
+            # Mensajes directos de Alfredo NUNCA se abortan por self-verifier.
+            # Patron doctrinal identico a `_judge_before` linea 927:
+            # un mensaje directo de T1 SIEMPRE procede.
+            # Fix bug embrion thoughts_today=0 - 2026-05-22.
+            if (
+                EMBRION_SELF_VERIFIER_ENABLED
+                and response
+                and trigger.get("type") != "mensaje_alfredo"
+            ):
                 try:
                     _sv_decision = await asyncio.to_thread(
                         _embrion_self_verifier.verify,
