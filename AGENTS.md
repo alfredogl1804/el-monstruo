@@ -1,5 +1,11 @@
 # OBLIGATORIO — Ejecutar ANTES de cualquier acción
 
+1. **Lee el Reality Kernel** para saber qué existe y qué NO proponer:
+```bash
+cat ~/el-monstruo/monstruo_reality_atlas/00_DOCTRINE_VETO.md
+```
+
+2. Ejecuta el Guardian:
 ```bash
 python3 ~/.monstruo/guardian.py
 ```

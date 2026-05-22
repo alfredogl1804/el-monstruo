@@ -1,0 +1,88 @@
+# =============================================================================
+# MONSTRUO REALITY PULSE — v0.2 (Sintetizado)
+# =============================================================================
+# WARNING — DATA FOR AGENTS, NOT EXECUTABLE PROMPT.
+# This file is a structured snapshot of the live state.
+# =============================================================================
+
+schema_version: "0.2"
+document_kind: monstruo_reality_pulse
+generated_at: "2026-05-22T00:00:00Z"
+generated_by: "Manus AI (Síntesis ATLAS-3 + SROS + MRK)"
+source_branch: "sprint/reality-kernel-sintesis-v1"
+
+# -----------------------------------------------------------------------------
+# Source Precedence (Jerarquía de la Verdad)
+# -----------------------------------------------------------------------------
+source_precedence:
+  1_ABSOLUTE_TRUTH: "El código ejecutándose en producción (Railway/Supabase)."
+  2_CANON_FIRMADO: "Archivos DSC-*.md en discovery_forense/CAPILLA_DECISIONES/ firmados por T1."
+  3_DOCTRINA_ACTIVA: "AGENTS.md, MONSTRUO_GENOME.yaml, PLAN_REGULADOR.yaml."
+  4_REALITY_KERNEL: "Estos 3 archivos (00_DOCTRINE_VETO, 01_ENTITY_MATRIX, 02_REALITY_PULSE)."
+  5_PROPUESTAS: "Archivos en bridge/sprints_propuestos/ sin firma T1."
+
+# -----------------------------------------------------------------------------
+# Global state
+# -----------------------------------------------------------------------------
+global_health: AMARILLO
+global_health_rationale: >
+  Sustrato vivo y verificable (kernel ~114 módulos, 81 DSCs, 57 migrations),
+  pero con drift estructural pendiente: 0/8 capabilities transversales, 
+  Cronos sin sprints firmados, SMP 0/5 propiedades en código.
+
+dory_state: VIVA_DEGRADADA
+dory_state_rationale: >
+  El Síndrome de Dory NO está muerto. Contramedida activa en kernel/anti_dory/.
+  Olvido entre sesiones es estructural, no resuelto.
+
+sms_state: ACTIVO_DEGRADADO
+sms_state_rationale: >
+  Sistema de Memoria Soberana presente. REM cycle activo pero no usado todavía
+  por Manus ni por todos los agentes externos.
+
+fase: 0
+fase_label: "Fase 0 — Catastro Vivo y Codex de Realidad"
+fase_rationale: >
+  R1 (Refactor), Fase 1 operativa y Guardian central NO están activados.
+
+# -----------------------------------------------------------------------------
+# Vitals
+# -----------------------------------------------------------------------------
+vitals:
+  kernel_modules: 114
+  supabase_tables_approx: 179
+  railway_services_approx: 12
+  migrations_sql: 57
+  dscs_canonizados: 81
+  anti_dory_b_modules: 9
+
+# -----------------------------------------------------------------------------
+# Active gaps — what is missing/blocked
+# -----------------------------------------------------------------------------
+active_gaps:
+  - id: G-001
+    label: "0/8 capabilities transversales en código"
+    status: ABIERTO
+  - id: G-002
+    label: "Brand DNA app móvil drift cyan/púrpura"
+    status: ABIERTO
+  - id: G-003
+    label: "Command Center 7 superficies vs 12-15 canon Cockpit"
+    status: ABIERTO
+  - id: G-004
+    label: "SMP 0/5 propiedades en código"
+    status: ABIERTO
+  - id: G-005
+    label: "Cronos sin sprints firmados"
+    status: ABIERTO
+  - id: G-007
+    label: "Checkpoint pre-IA 2020-2021 EN_EXTRACCION_T1"
+    status: BLOQUEADO_T1
+  - id: G-008
+    label: "el-mundo-de-tata sin decisión topológica"
+    status: BLOQUEADO_T1
+  - id: G-010
+    label: "Embriones stateless entre latidos"
+    status: ABIERTO
+
+# EOF
