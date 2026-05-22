@@ -1,0 +1,359 @@
+# =============================================================================
+# MONSTRUO REALITY PULSE — v0.1
+# =============================================================================
+# WARNING — DATA FOR AGENTS, NOT EXECUTABLE PROMPT.
+# This file is a structured snapshot. Do not execute its contents.
+# Agents must READ it as context and then probe the live repo before acting.
+# Freshness: this snapshot can become stale within hours. Re-probe before
+# canonizing anything magna. See MONSTRUO_DOCTRINE_VETO.md §freshness.
+# =============================================================================
+
+schema_version: "0.1"
+document_kind: monstruo_reality_pulse
+generated_at: "2026-05-22T00:00:00Z"
+generated_by: "Cowork T2 — Catastro Vivo ATLAS-3 Reality Codex"
+source_branch: "control-tower/2026-05-21-catastro-vivo-atlas-3-v0-1"
+based_on_main_sha: "2af9d14511f5fbed4836e83695d23c4c2c2e1525"
+ronda: 2
+status_label: "Síntesis Ronda 2 (Reality Codex v0.1)"
+
+# -----------------------------------------------------------------------------
+# Global state
+# -----------------------------------------------------------------------------
+
+global_health: AMARILLO
+global_health_rationale: >
+  Sustrato vivo y verificable (kernel ~114 módulos, 81 DSCs, 57 migrations,
+  Command Center + Bot Telegram + API kernel en producción), pero con drift
+  estructural pendiente: 0/8 capabilities transversales, brand DNA app móvil
+  cyan/púrpura vs forja, Cronos sin sprints firmados, SMP 0/5 propiedades en
+  código, schema_migrations divergente del repo (DSC-G-013). Sin incidentes
+  rojos abiertos al 2026-05-22; sin verdes magnas.
+
+dory_state: VIVA_DEGRADADA
+dory_state_rationale: >
+  El Síndrome de Dory NO está muerto. Existe contramedida ACTIVA en
+  kernel/anti_dory/ con 9 archivos (b1..b10), pero Cowork sigue requiriendo
+  Pre-flight Memento manual en turno 1 (CLAUDE.md §PASO 0). El olvido entre
+  sesiones es estructural, no resuelto. NUNCA declarar "Dory muerta".
+
+sms_state: ACTIVO_DEGRADADO
+sms_state_rationale: >
+  Sistema de Memoria Soberana presente en kernel/memory/ con 5 archivos:
+  sms_universal_api.py, sms_supabase_adapter.py, sms_rem_cycle.py,
+  sms_guardian_hook.py, sms_openapi_spec.yaml. Migration 0058
+  embrion_sms_bridge.sql aplicada. Test longitudinal en
+  tests/memory/test_sms_longitudinal.py. Estado degradado: REM cycle
+  presente pero sin métricas vivas verificadas en este atlas; no usado
+  todavía por Manus ni por todos los agentes externos.
+
+fase: 0
+fase_label: "Fase 0 — Catastro Vivo y Codex de Realidad"
+fase_rationale: >
+  R1 (Refactor), Fase 1 operativa y Guardian central NO están activados.
+  Esta v0.1 es solo el codex de realidad para agentes; no autoriza pasar a
+  Fase 1, no autoriza R1, no activa Guardian. Cualquier propuesta de
+  activación requiere autoridad T1 explícita.
+
+t1_authority: "Alfredo González (T1) — Hive Business Center, Mérida, Yucatán"
+t1_authority_rules:
+  - "Solo T1 firma canonizaciones magna y activación de fases."
+  - "Cowork T2 propone + ejecuta acciones reversibles; nunca firma fases."
+  - "Manus T3 ejecuta tareas técnicas; no canoniza doctrina."
+  - "Embrión T3 autónomo bajo Embryo Patch Lane (DSC-MO-011), no toca core."
+  - "Esta v0.1 fue producida por Cowork sin firma T1 — es CODEX, no CANON."
+
+# -----------------------------------------------------------------------------
+# Vitals — measured against repo HEAD 2af9d14
+# -----------------------------------------------------------------------------
+
+vitals:
+  kernel_modules:
+    value: 114
+    unit: top_level_entries_in_kernel
+    evidence: "ls kernel/ | wc -l → 114 al 2026-05-22"
+    note: "Aproximadamente 112 según conteos previos; valor exacto 114 en HEAD."
+  supabase_tables:
+    value_range: [169, 179]
+    unit: tables_in_public_schema
+    evidence: "Atlas Iter 001 + RLS audit 2026-05-11 (120 tablas con RLS); rango ampliado por crecimiento desde entonces y migrations 0058-0060 aplicadas."
+    confidence: MEDIA
+    note: "Cifra no verificada vía MCP Supabase en esta v0.1 (no se debe contactar Supabase per guardrail)."
+  railway_services:
+    value_range: [4, 12]
+    unit: deployed_services
+    evidence: "4 archivos railway*.toml en raíz (railway.toml, railway.cron.toml, railway.rem-cycle.toml, railway.worker.toml) + 1 en cidp/; histórico Atlas Iter 001 menciona ~12 servicios incluyendo command-center, bot, kernel, gateway, ag-ui-gateway."
+    confidence: MEDIA
+  migrations_sql:
+    value: 57
+    unit: sql_files_in_migrations_sql
+    evidence: "ls migrations/sql/ | wc -l → 57"
+  dscs_canonizados:
+    value: 81
+    unit: dsc_md_files
+    evidence: "find discovery_forense/CAPILLA_DECISIONES -name 'DSC-*.md' | wc -l → 81"
+    note: "CLAUDE.md declara 64; _INDEX.md histórico declara 44; realidad HEAD 81 — drift documental conocido."
+  sprints_referenced:
+    value_approx: 200
+    unit: sprint_references_in_bridge
+    evidence: "bridge/ contiene 72 archivos con 'sprint' en nombre + sprints_completados/ + sprints_propuestos/ + thread_archives + 14+ directorios sprint*_preinvestigation; estimación ~200 referencias agregadas."
+    confidence: BAJA
+  embriones_specializations:
+    value: 8
+    unit: embryo_specialization_modules
+    evidence: "kernel/embriones/: brand_engine, critic_visual, embrion_creativo, embrion_estratega, embrion_financiero, embrion_investigador, product_architect, tecnico, ventas (+ subdirs)."
+    note: "Stateless / gaps: cada embrión instancia su contexto por latido; no comparten estado persistente más allá de embrion_memoria en Supabase."
+  anti_dory_b_modules:
+    value: 9
+    unit: anti_dory_python_files
+    evidence: "kernel/anti_dory/: b1_anchor_store, b2_claim_vg, b3_plan_ledger, b4_memento, b6_signature_verifier, b8_magna_classifier, b9_authority_matrix, b10_guardian_cron, KNOWN_BLIND_SPOTS.md (b5/b7 ausentes en HEAD)."
+
+# -----------------------------------------------------------------------------
+# Live truth claims — each must carry status + evidence
+# -----------------------------------------------------------------------------
+
+live_truth:
+  - id: LT-001
+    claim: "El kernel del Monstruo está vivo en producción (Railway) sirviendo /v1/agui/run vía SSE."
+    status: VIVO
+    evidence: "kernel/engine.py + kernel/agui_adapter.py existen; railway.toml en raíz; Atlas Iter 001 §04_PRODUCTION confirmó kernel API en Railway."
+    last_verified: "2026-05-17 (Iter 001) + presencia en HEAD 2026-05-22"
+
+  - id: LT-002
+    claim: "Command Center (Next.js, Vercel) sirve 7 superficies en producción."
+    status: VIVO_DEGRADADO
+    evidence: "Atlas Iter 001 §04_PRODUCTION: 7 superficies (chat, finops, fleet, memory, runs, security, settings) vs 12-15 canon Cockpit (drift G-003)."
+
+  - id: LT-003
+    claim: "Bot de Telegram MVP operativo como transport conversacional."
+    status: VIVO
+    evidence: "kernel/runner/telegram_notifier.py + kernel/rotor/capturers/telegram_capturer.py + Atlas Iter 001; repo separado el-monstruo-bot en Railway."
+
+  - id: LT-004
+    claim: "Sistema de Memoria Soberana (SMS) existe en kernel/memory/ con REM cycle, OpenAPI spec, Supabase adapter y guardian hook."
+    status: ACTIVO_DEGRADADO
+    evidence: "5 archivos sms_*.py/yaml + migration 0058_embrion_sms_bridge.sql + tests/memory/test_sms_longitudinal.py."
+    do_not: "NO redibujar SMS como sistema nuevo. Extender el existente."
+
+  - id: LT-005
+    claim: "Anti-Dory B8 (Magna Classifier) implementado en kernel/anti_dory/b8_magna_classifier.py."
+    status: ACTIVO
+    evidence: "Archivo presente en HEAD. Forma parte de la batería b1..b10 (b5 y b7 ausentes; documentado en KNOWN_BLIND_SPOTS.md)."
+    do_not: "NO proponer 'nuevo magna classifier'. Es B8."
+
+  - id: LT-006
+    claim: "Anti-Dory B9 (Authority Matrix) implementado."
+    status: ACTIVO
+    evidence: "kernel/anti_dory/b9_authority_matrix.py presente en HEAD."
+
+  - id: LT-007
+    claim: "REM cycle del SMS implementado."
+    status: ACTIVO
+    evidence: "kernel/memory/sms_rem_cycle.py + railway.rem-cycle.toml indicando deploy del REM cycle como servicio Railway."
+
+  - id: LT-008
+    claim: "Embrion Loop autónomo presente con suite de soporte (budget, inbox, parser, sanitizer, scheduler, self_verifier, write_policy, specializations)."
+    status: VIVO_DEGRADADO
+    evidence: "kernel/embrion_loop.py + 11 archivos embrion_*.py + kernel/embrion_specializations/."
+    gaps: "Embriones operan stateless entre latidos; coordinación via embrion_memoria en Supabase; gaps de sincronía documentados."
+
+  - id: LT-009
+    claim: "Cronos (río de vida + Modo Cripta) está canonizado en doctrina pero 0% en código en HEAD."
+    status: DOCTRINA_SIN_CODIGO
+    evidence: "kernel/cronos/ NO EXISTE; sólo aparece en monstruo_reality_atlas/reports/SECURITY_SMP_CRONOS_PACK.* (reportes); APP_VISION cap.5 + DSC referencian Cronos; sprints CRONOS_1/2/3 + AUTH_TIERS_001 propuestos sin firma."
+    do_not: "NO redibujar Cronos. Esperar firma T1 de los sprints existentes."
+
+  - id: LT-010
+    claim: "Modo Cripta (Shamir Secret Sharing) canonizado pero 0% código."
+    status: DOCTRINA_SIN_CODIGO
+    evidence: "Atlas Iter 001 G-006; aliases conocidos: Cronista Familiar / Herencia Narrativa / Legacy Capture / Día One Familiar (todos son Modo Cripta — ver alias ledger)."
+
+  - id: LT-011
+    claim: "Catastro Vivo existe en kernel/catastro/ con pipeline, quorum, trono, multi_namespace, persistence, schema, mcp_tools, cron, dashboard."
+    status: VIVO
+    evidence: "kernel/catastro/ con 15+ archivos; kernel/catastros/ adicional con agentes_2026, herramientas_ai, modelos_llm, suppliers_humanos."
+    realidad_supabase: "98 agentes en 12 dominios + 39 LLMs + 2 vision_generativa (Atlas Iter 001 + DRIFT-009 MEGA-CATASTRO 2026-05-12)."
+    do_not: "NO crear 'nuevo catastro'. Extender el existente."
+
+  - id: LT-012
+    claim: "La Forja (apps/la-forja) en desarrollo activo."
+    status: EN_DESARROLLO
+    evidence: "apps/la-forja/ presente; sprint la-forja-001-d4 referenciado en Atlas Iter 001."
+
+  - id: LT-013
+    claim: "App móvil Flutter (apps/mobile/) funcional como prototipo de chat con kernel, NO deployed."
+    status: NO_DEPLOYED_DRIFT
+    evidence: "apps/mobile/ presente con ~6,220 LOC (audit Cowork 2026-05-11); brand_dna.dart con drift cyan/púrpura vs forja (G-002)."
+
+  - id: LT-014
+    claim: "Telegram capturer y notifier existen en kernel/rotor + kernel/runner."
+    status: ACTIVO
+    evidence: "kernel/rotor/capturers/telegram_capturer.py + kernel/runner/telegram_notifier.py."
+    do_not: "NO crear 'nuevo conector Telegram'. Ya existe."
+
+  - id: LT-015
+    claim: "Simulador Causal v2 presente en kernel/simulator/."
+    status: ACTIVO
+    evidence: "kernel/simulator/causal_simulator_v2.py + kernel/causal_decomposer.py + kernel/causal_seeder.py."
+    do_not: "NO crear 'nuevo simulador'. Extender."
+
+  - id: LT-016
+    claim: "Inteligencia Colectiva implementada con emergence_detector, knowledge_propagator, protocol."
+    status: ACTIVO
+    evidence: "kernel/collective/ con 4 archivos + migration 0060 Colmena Persistence aplicada (commit 360b2c3 en main reciente)."
+
+  - id: LT-017
+    claim: "Guardian implementado pero NO central."
+    status: PARCIAL_NO_CENTRAL
+    evidence: "kernel/guardian.py + kernel/guardian_runner/ con runner, scoring, rubricas, dashboard."
+    do_not: "NO activar Guardian como autoridad central en esta v0.1. Requiere firma T1 explícita."
+
+  - id: LT-018
+    claim: "el-mundo-de-tata existe como proyecto adyacente, no integrado al Monstruo."
+    status: ADYACENTE_SIN_DECISION
+    evidence: "discovery_forense/PROJECT_MANIFESTS/el-mundo-de-tata.md + Atlas Iter 001 G-009 (cuatro opciones topológicas sin decisión)."
+
+  - id: LT-019
+    claim: "Bridge SMS↔Embrión aplicado vía migration 0058 (commit 55dbe07 en main)."
+    status: ACTIVO
+    evidence: "migrations/sql/0058_embrion_sms_bridge.sql + git log main."
+
+  - id: LT-020
+    claim: "Doctrina Pirámide de Comprensión Pisos 4 y 3 firmada (commit 3d8fdc7)."
+    status: ACTIVO_DOCTRINAL
+    evidence: "PISO_4_AREAS.yaml + PISO_3_AGRUPADOR.yaml en raíz + MONSTRUO_GENOME.yaml + PLAN_REGULADOR.yaml."
+
+  - id: LT-021
+    claim: "8 Sabios canónicos definidos en DSC-V-001 + COWORK_DECISIONES_VIVAS.md."
+    status: ACTIVO_DOCTRINAL
+    evidence: "CLAUDE.md §'Los 8 Sabios Canónicos' + memory/cowork/COWORK_DECISIONES_VIVAS.md §2."
+    sabios:
+      - "GPT-5.5 Pro (OpenAI)"
+      - "Claude Opus 4.7 (Anthropic)"
+      - "Gemini 3.1 Pro (Google)"
+      - "Grok 4 Heavy (xAI)"
+      - "DeepSeek R1 (DeepSeek)"
+      - "Perplexity Sonar Pro (Perplexity)"
+      - "Kimi K2.6 Thinking (Moonshot)"
+      - "Copilot 365 (Microsoft)"
+
+  - id: LT-022
+    claim: "Magic Video / Magic Code / Magic Render / Magic Music / Magic Search NO existen como módulos kernel."
+    status: NO_IMPLEMENTADO
+    evidence: "find por 'magic' en kernel/ → 0 hits. Conceptos referenciados como sufijos de proyectos adyacentes (videoclip-musical-clase-mundial, proyecto-renders) pero no como capabilities Monstruo."
+    do_not: "NO inventar capa 'Magic*' nueva sin verificar primero contra capabilities transversales existentes y proyectos adyacentes."
+
+  - id: LT-023
+    claim: "Repo conectado vía proxy Perplexity (no GitHub directo en sandbox)."
+    status: VIVO
+    evidence: "git remote -v → https://git-agent-proxy.perplexity.ai/alfredogl1804/el-monstruo"
+
+# -----------------------------------------------------------------------------
+# Active gaps — what is missing/blocked
+# -----------------------------------------------------------------------------
+
+active_gaps:
+  - id: G-001
+    label: "0/8 capabilities transversales en código"
+    status: ABIERTO
+    source: "Audit Cowork 2026-05-11"
+    blocks: "Feature transversales (Memento, Magna, Vanguard, etc.)"
+
+  - id: G-002
+    label: "Brand DNA app móvil drift cyan/púrpura"
+    status: ABIERTO
+    source: "Atlas Iter 001 G-002; DSC-MO-002 firmado vs apps/mobile/lib/core/theme/brand_dna.dart"
+
+  - id: G-003
+    label: "Command Center 7 superficies vs 12-15 canon Cockpit"
+    status: ABIERTO
+    source: "Atlas Iter 001 G-003"
+
+  - id: G-004
+    label: "SMP 0/5 propiedades en código"
+    status: ABIERTO
+    source: "Atlas Iter 001 G-005"
+
+  - id: G-005
+    label: "Cronos sin sprints firmados (CRONOS_1/2/3 + AUTH_TIERS_001)"
+    status: ABIERTO
+    source: "Atlas Iter 001 G-006"
+
+  - id: G-006
+    label: "Schema-First sin sprint asociado"
+    status: ABIERTO
+    source: "Atlas Iter 001 G-007"
+
+  - id: G-007
+    label: "Checkpoint pre-IA 2020-2021 EN_EXTRACCION_T1"
+    status: BLOQUEADO_T1
+    source: "Atlas Iter 001 G-008; espera 'CIERRE BLOQUE PRE-IA'"
+
+  - id: G-008
+    label: "el-mundo-de-tata sin decisión topológica"
+    status: BLOQUEADO_T1
+    source: "Atlas Iter 001 G-009 (4 opciones)"
+
+  - id: G-009
+    label: "Drift schema_migrations vs repo (DSC-G-013)"
+    status: ABIERTO_EXPERIMENTO
+    source: "CLAUDE.md §PASO 0.B; Coherence Gate Nivel A canon; Nivel B en experimento T+14D"
+
+  - id: G-010
+    label: "Embriones stateless entre latidos"
+    status: ABIERTO
+    source: "kernel/embrion_loop.py + comportamiento histórico documentado"
+
+  - id: G-011
+    label: "Embrión B5 + B7 ausentes en anti_dory/"
+    status: ABIERTO
+    source: "kernel/anti_dory/KNOWN_BLIND_SPOTS.md"
+
+  - id: G-012
+    label: "_INDEX.md DSCs declara 44/64; realidad HEAD 81"
+    status: ABIERTO_DRIFT_DOCUMENTAL
+    source: "Conteo find -name 'DSC-*.md' vs CLAUDE.md vs _INDEX.md"
+
+  - id: G-013
+    label: "Decisión topológica Magic* (no existe en kernel; capacidades implícitas en proyectos adyacentes)"
+    status: ABIERTO_HIPOTESIS_NACIENTE
+
+# -----------------------------------------------------------------------------
+# Unknowns flagged for next probe
+# -----------------------------------------------------------------------------
+
+unknown_unknowns:
+  - "Cifra exacta supabase tablas: NO verificada vía MCP en esta v0.1 (rango 169-179)."
+  - "Número exacto servicios Railway desplegados: NO verificado vía Railway API (rango 4-12)."
+  - "Estado vivo de REM cycle métricas: archivo presente, métricas no consultadas."
+  - "Repos privados Alfredo en otras orgs: no listados (Atlas Iter 001 UU-003)."
+  - "Drift APP_VISION repo (v1.3) vs versión wip ChatGPT (potencial v1.4): UU-007."
+
+# -----------------------------------------------------------------------------
+# Guardrails applied to this snapshot
+# -----------------------------------------------------------------------------
+
+guardrails_applied:
+  - "No tokens, secrets, API keys, ni credenciales incluidos."
+  - "No se contactó Supabase, Railway, GitHub remoto (más allá del proxy git ya configurado)."
+  - "No se activó R1, Fase 1, ni Guardian central."
+  - "No se declaró Dory muerta."
+  - "No se merge a main; trabajo aislado en rama side."
+  - "No se firmó canon T1; este documento es CODEX, no CANON."
+
+# -----------------------------------------------------------------------------
+# Companion files (this Codex v0.1)
+# -----------------------------------------------------------------------------
+
+companions:
+  parcels: "monstruo_reality_atlas/MONSTRUO_ENTITY_PARCELS.jsonl"
+  doctrine_veto: "monstruo_reality_atlas/MONSTRUO_DOCTRINE_VETO.md"
+  prior_atlas_iter_001:
+    - "monstruo_reality_atlas/03_REPOSITORY_INVENTORY.md"
+    - "monstruo_reality_atlas/04_PRODUCTION_INVENTORY.md"
+    - "monstruo_reality_atlas/07_ALIAS_LEDGER.yaml"
+    - "monstruo_reality_atlas/08_EXISTING_DESIGN_COVERAGE_MATRIX.md"
+    - "monstruo_reality_atlas/09_GAPS_AND_UNKNOWN_UNKNOWNS.md"
+    - "monstruo_reality_atlas/10_DO_NOT_REDESIGN_BEFORE_READING.md"
+
+# EOF
