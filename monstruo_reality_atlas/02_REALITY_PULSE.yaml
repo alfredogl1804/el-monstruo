@@ -1,0 +1,67 @@
+# 02_REALITY_PULSE.yaml - Estado global del Monstruo
+# Auto-derivado de MONSTRUO_GENOME.yaml
+# Generado: 2026-05-22T06:52:46Z
+
+meta:
+  derived_from: MONSTRUO_GENOME.yaml (2.0.0)
+  generated_at: 2026-05-22T06:52:46Z
+  generator: scripts/generate_reality_kernel.py
+  status: PROPUESTA  # Requiere firma T1 para canonizar
+
+source_precedence:
+  - level: 1
+    source: production_runtime
+    description: Codigo corriendo en Railway /health
+    authority: maxima
+  - level: 2
+    source: dsc_firmado
+    description: DSC con firma T1 + T2
+    authority: alta
+  - level: 3
+    source: agents_md
+    description: AGENTS.md reglas operativas
+    authority: alta
+  - level: 4
+    source: genome_yaml
+    description: MONSTRUO_GENOME.yaml auto-generado
+    authority: media
+  - level: 5
+    source: reality_kernel
+    description: Este archivo y sus hermanos (derivados)
+    authority: media-baja
+  - level: 6
+    source: propuestas
+    description: PRs, bridges, propuestas no firmadas
+    authority: baja
+
+vitals:
+  kernel_modules: 113
+  embriones: 10
+  supabase_tables: 177
+  satellites: 4
+  skills: 43
+  genome_version: 2.0.0
+  genome_generated: 2026-05-22T06:52:42Z
+
+gaps:
+  - id: embrion_loop_isolated
+    description: Embrion Loop has memories in embrion_memoria but ZERO connection to SMS v4.0
+  - id: collective_ram_only
+    description: Colmena (collective/) operates in RAM, tables never created
+  - id: embriones_stateless
+    description: Domain embriones have no memory at all
+  - id: bot_offline
+    description: Telegram bot returns 404
+  - id: embeddings_pending
+    description: Memories ingested without vector embeddings
+  - id: domain_embriones_doctrine_only
+    description: 10 Domain Embriones (Archivista, Concierge, etc.) exist only in doctrine
+
+uncertainties:
+  - field: production.kernel.status
+    reason: Requiere curl a Railway - puede haber cambiado
+  - field: supabase.table_counts
+    reason: Conteos son snapshot, no live
+  - field: satellites.railway_status
+    reason: Health checks son puntuales
+
