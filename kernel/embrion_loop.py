@@ -816,7 +816,7 @@ class EmbrionLoop:
                 msg_id = msg.get("id", "")
                 respuestas = await self._db.select(
                     table="embrion_memoria",
-                    columns="id",
+                    columns="id,created_at",
                     filters={"tipo": "respuesta_embrion"},
                     order_by="created_at",
                     order_desc=True,
