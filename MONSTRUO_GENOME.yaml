@@ -1,22 +1,106 @@
 # ╔══════════════════════════════════════════════════════════════════╗
 # ║  MONSTRUO_GENOME.yaml — Fuente única de verdad arquitectónica   ║
-# ║  Auto-generado por scripts/genome_generator.py                  ║
+# ║  Auto-generado por scripts/genome_generator.py v2.0             ║
 # ║  Propósito: Cualquier IA absorbe esto y sabe QUÉ hay,           ║
 # ║  DÓNDE está, y CÓMO se conecta — en segundos.                   ║
 # ╚══════════════════════════════════════════════════════════════════╝
 
 meta:
-  generated_at: 2026-05-21T21:02:13Z
+  generated_at: 2026-05-23T07:30:31Z
   generator: scripts/genome_generator.py
-  version: 1.0.0
+  version: 2.0.0
   repo: alfredogl1804/el-monstruo
-  total_kernel_modules: 112
+  total_kernel_modules: 113
   total_embriones: 10
-  total_supabase_tables: 169
-  total_custom_rpcs: 58
-  total_migrations: 53
+  total_supabase_tables: 177
+  total_custom_rpcs: 71
+  total_migrations: 57
   total_skills: 43
   total_top_dirs: 31
+  total_satellites: 8
+
+# ─── ECOSYSTEM: Satellites ──────────────────────────────────────────
+# Satélites = repos que son productos, transportes o extensiones
+# del Monstruo. El Genoma los registra de forma LIGERA: sabe que
+# existen, qué son, y su estado — sin escanear sus tripas.
+satellites:
+  - id: like-kukulkan-tickets
+    repo: alfredogl1804/like-kukulkan-tickets
+    type: product
+    status: active
+    relationship: satellite_active
+    description: Boletería Leones de Yucatán — primer producto del Monstruo
+    last_push: 2026-05-04T05:42:56Z
+  - id: el-monstruo-bot
+    repo: alfredogl1804/el-monstruo-bot
+    type: transport
+    status: offline
+    relationship: transport
+    description: Telegram Bot — Transport T1 del Monstruo
+    last_push: 2026-04-26T13:29:29Z
+    railway_url: https://el-monstruo-bot-production.up.railway.app
+    railway_status: offline (404)
+    supabase_project: xsumzuhwmivjgftsneov
+  - id: el-mundo-de-tata
+    repo: alfredogl1804/el-mundo-de-tata
+    type: aspirant
+    status: in_development
+    relationship: satellite_aspirant
+    description: Proyecto adyacente — aspira a ser satélite del Monstruo
+    last_push: 2026-03-25T19:23:01Z
+  - id: forja-mcp
+    repo: alfredogl1804/forja-mcp
+    type: infrastructure
+    status: active
+    relationship: infrastructure
+    description: MCP Gateway — HTTP/SSE multiplexer para 7+ APIs
+    last_push: 2026-05-14T09:57:04Z
+  - id: el-monstruo-command-center
+    repo: alfredogl1804/el-monstruo-command-center
+    type: interface
+    status: active_unmapped
+    relationship: interface_principal
+    description: UI principal del Monstruo (Vercel, Next.js) — superficie operativa primaria
+    last_push: 2026-04-20T21:42:06Z
+    supabase_project: xsumzuhwmivjgftsneov
+  - id: apps_la_forja
+    repo: None
+    path: apps/la-forja
+    type: subsystem
+    status: active_development
+    relationship: subsystem
+    description: Backend Hono + Next.js. Contiene Bridge M2M Manus↔Manus en api/src/lib/manus_bridge.ts y 5 puertas canónicas en api/src/puertas/ (cowork_local, kernel_monstruo, manus_apple, manus_google, simulador)
+    last_push: 2026-05-18T05:39:56-06:00
+    key_files:
+      - apps/la-forja/api/src/lib/manus_bridge.ts
+      - apps/la-forja/api/src/puertas/cowork_local.ts
+      - apps/la-forja/api/src/puertas/kernel_monstruo.ts
+      - apps/la-forja/api/src/puertas/manus_apple.ts
+      - apps/la-forja/api/src/puertas/manus_google.ts
+      - apps/la-forja/api/src/puertas/simulador.ts
+      - tools/manus_bridge.py
+  - id: apps_mobile
+    repo: None
+    path: apps/mobile
+    type: subsystem
+    status: active_with_drift
+    relationship: subsystem
+    description: App Flutter del Monstruo — drift binario detectado en brand_dna.dart vs DSC-MO-002 (G-002 del Atlas)
+    last_push: 2026-05-12T00:03:24-06:00
+  - id: monstruo-quantum-realm
+    repo: None
+    type: interface_visualization
+    status: active_drift_risk
+    relationship: interface_visualization
+    description: Visualización 3D del Genoma + Catastro de IAs (R3F + Three.js). Sirve genome_visual_data.json (120 nodos) y catastro_visual_data.json (120 candidatas, 7 familias, Nano Banana Pro operable). JSONs editados manualmente — drift garantizado vs MONSTRUO_GENOME.yaml hasta que exista scripts/generate_visual_data.py.
+    last_push: no_repo_no_path
+    prod_url: https://monstrrealm-ntoi5bex.manus.space
+    prod_status: online
+    drift_risk: manual_json_edits
+    data_sources_consumed:
+      - client/public/genome_visual_data.json
+      - client/public/catastro_visual_data.json
+      - client/public/genome_data.json
 
 production:
   kernel:
@@ -48,11 +132,11 @@ production:
   supabase:
     project_id: xsumzuhwmivjgftsneov
     status: active
-    tables: 169
-    custom_rpcs: 58
+    tables: 177
+    custom_rpcs: 71
 
 kernel:
-  total_python_files: 300
+  total_python_files: 302
   entry_point: kernel/main.py
   framework: FastAPI + LangGraph
   modules:
@@ -171,7 +255,7 @@ embriones:
     id: embrion_loop
     path: kernel/embrion_loop.py
     status: production
-    memory_table: embrion_memoria (2770 records)
+    memory_table: embrion_memoria (2848 records)
     connected_to_sms: false  # GAP: isolated from sovereign memory
   vigia:
     id: embrion_vigia
@@ -228,29 +312,29 @@ memory_plane:
     adapter: kernel/memory/sms_supabase_adapter.py
     tables:
       - name: sovereign_memories
-        records: 135
+        records: 1517
       - name: sovereign_axioms
-        records: 20
+        records: 40
       - name: sovereign_agent_registry
-        records: 11
+        records: 14
       - name: sovereign_conflict_log
-        records: 0
+        records: 10
       - name: sovereign_consolidation_log
-        records: 1
+        records: 2
       - name: sovereign_knowledge_gaps
-        records: 7
+        records: 14
       - name: sovereign_causal_chains
         records: 0
       - name: memory_entities
-        records: 0
+        records: 199
       - name: memory_relations
         records: 0
       - name: memory_entity_links
-        records: 0
+        records: 199
       - name: memory_dependencies
         records: 0
       - name: memory_access_log
-        records: 0
+        records: 96
     rpcs:
       - archive_low_importance_memories
       - cascade_invalidation
@@ -275,7 +359,7 @@ memory_plane:
       - vector_embeddings: pending_redeploy
   legacy_memory_systems:
     - table: embrion_memoria
-      records: 2770
+      records: 2848
       connected_to_sms: false
     - table: monstruo_memory
       records: 68
@@ -284,16 +368,16 @@ memory_plane:
       records: 34
       connected_to_sms: false
     - table: memory_events
-      records: 7829
+      records: 8747
       connected_to_sms: false
     - table: mempalace_episodes
-      records: 3757
+      records: 4216
       connected_to_sms: false
     - table: mempalace_semantic
       records: 1
       connected_to_sms: false
     - table: mem0
-      records: 2001
+      records: 2503
       connected_to_sms: false
   anti_dory:
     path: kernel/anti_dory/
@@ -318,13 +402,16 @@ data_plane:
     # ... and 2 more tables
   embrion:
     - embrion_audit_log: 0
-    - embrion_budget_state: 9726
+    - embrion_budget_state: 10998
     - embrion_homeostasis_log: 0
     - embrion_inbox: 0
-    - embrion_memoria: 2770
+    - embrion_knowledge: 8
+    - embrion_memoria: 2848
+    - embrion_messages: 0
     - embrion_patron_emergencia: 30
+    - embrion_task_history: 0
     - embrion_validation_log: 0
-    - embrion_write_proposals: 4
+    # ... and 1 more tables
   forja:
     - forja_actions: 0
     - forja_budget: 1
@@ -338,20 +425,20 @@ data_plane:
   governance:
     - cowork_claims_calibration: 12
     - cowork_protocolo_invocaciones: 0
-    - cowork_sesiones: 2
+    - cowork_sesiones: 3
     - governance_log: 0
     - guardian_audit_log: 0
   lightrag:
-    - lightrag_doc_chunks: 170
-    - lightrag_doc_full: 148
-    - lightrag_doc_status: 159
-    - lightrag_entity_chunks: 1731
-    - lightrag_full_entities: 148
-    - lightrag_full_relations: 145
-    - lightrag_llm_cache: 6624
-    - lightrag_relation_chunks: 2179
+    - lightrag_doc_chunks: 174
+    - lightrag_doc_full: 152
+    - lightrag_doc_status: 163
+    - lightrag_entity_chunks: 1748
+    - lightrag_full_entities: 151
+    - lightrag_full_relations: 148
+    - lightrag_llm_cache: 6698
+    - lightrag_relation_chunks: 2204
     - lightrag_vdb_chunks_gemini_embedding_001_1536d: 0
-    - lightrag_vdb_chunks_text_embedding_3_small_1536d: 170
+    - lightrag_vdb_chunks_text_embedding_3_small_1536d: 174
     # ... and 4 more tables
   e2e:
     - e2e_runs: 80
@@ -378,9 +465,9 @@ data_plane:
     - background_jobs: 0
     - behavior_mutations: 3
     - brand_compliance_log: 0
-    - budget_state: 575
+    - budget_state: 584
     - cadena_custodia: 125
-    # ... and 71 more tables
+    # ... and 76 more tables
 
 custom_rpcs:
   - aggregate_daily_usage
@@ -388,23 +475,36 @@ custom_rpcs:
   - anti_dory_write_budget_set_updated_at
   - bg_job_append_progress
   - boot_sequence_thoughts
+  - bridge_embrion_to_sms
   - calculate_job_success_rate
   - catastro_apply_quorum_outcome
   - catastro_recompute_trono
   - catastro_recompute_trono_all
   - cleanup_old_background_jobs
   - cowork_sesiones_set_updated_at
+  - crystallize_pending_events
   - embrion_write_proposals_set_updated_at
+  - emit_event
   - fn_set_updated_at
   - get_allowed_tools
+  - get_colmena_stats
   - get_current_pricing
   - get_due_jobs
+  - get_embrion_bridge_status
+  - get_event_stream_stats
+  - get_specialists_memory_stats
   - hybrid_search_thoughts
   - kal_prevent_modify
   - kal_prevent_truncate
+  - log_specialist_task
+  - mark_embrion_noise_consumed
   - match_catastro_modelos
   - match_memory_events
+  - propagate_pattern_to_embriones
+  - query_event_stream
+  - recall_specialist_context
   - record_tool_execution
+  - remember_specialist_knowledge
   - rpc_accept_snapshot
   - rpc_check_shadow_enabled
   - rpc_get_context_head
@@ -471,6 +571,8 @@ api_endpoints:
     router: openai_router
   - prefix: /
     router: brand_router
+  - prefix: /
+    router: event_bus_router
   - prefix: /mcp
     router: mount
   - prefix: /sms
@@ -525,14 +627,14 @@ skills:
     - vocabulario-alfredo-manus
 
 migrations:
-  total: 53
+  total: 57
   directory: migrations/sql/
   latest:
-    - 0052_sovereign_memory_system.sql
-    - 0053_temporal_invalidation.sql
-    - 0054_knowledge_graph_layer.sql
-    - 0055_belief_revision.sql
     - 0056_memory_decay_consolidation.sql
+    - 0057_event_bus.sql
+    - 0058_embrion_sms_bridge.sql
+    - 0059_specialists_memory.sql
+    - 0060_colmena_persistence.sql
 
 repo_structure:
   top_level_dirs:
@@ -586,11 +688,13 @@ connections:
   - kernel.main -> litellm (model routing via config/litellm_config.yaml)
   - kernel.main -> langfuse (observability)
   - kernel.main -> supabase.checkpoints (LangGraph state persistence)
+  - like-kukulkan-tickets -> kernel (satellite product, future integration)
+  - forja-mcp -> kernel (MCP gateway, HTTP/SSE multiplexer)
 
 gaps:
   critical:
     - id: embrion_loop_isolated
-      description: Embrion Loop has 2763 memories in embrion_memoria but ZERO connection to SMS v4.0
+      description: Embrion Loop has memories in embrion_memoria but ZERO connection to SMS v4.0
       impact: No graph, no belief revision, no decay for the main orchestrator
       fix: Bridge embrion_memoria <-> sovereign_memories
     - id: collective_ram_only
@@ -598,7 +702,7 @@ gaps:
       impact: Learned patterns lost on every redeploy
       fix: Create learned_patterns + embrion_knowledge tables, connect to SMS
     - id: embriones_stateless
-      description: 9 domain embriones have no memory at all
+      description: Domain embriones have no memory at all
       impact: Cannot learn from past invocations
       fix: Each embrion gets graph_enhanced_recall before operating
   moderate:
@@ -606,7 +710,7 @@ gaps:
       description: Telegram bot returns 404
       fix: Redeploy on Railway
     - id: embeddings_pending
-      description: 125 kit_pericia memories ingested without vector embeddings
+      description: Memories ingested without vector embeddings
       fix: Redeploy kernel with new adapter (entity extraction generates embeddings)
     - id: domain_embriones_doctrine_only
       description: 10 Domain Embriones (Archivista, Concierge, etc.) exist only in doctrine
@@ -618,15 +722,17 @@ doctrine:
   brand_dna: kernel/brand/brand_dna.py
   canon_metodologias: docs/conocimiento/metodologias/CANON_Metodologias_Productividad_v1_5.md
   security_dscs: discovery_forense/CAPILLA_DECISIONES/_GLOBAL/
-  sprint_history: docs/SPRINT_*.md (51-80)
+  sprint_history: docs/SPRINT_*.md
   kit_pericia: bridge/thread_archives/ + monstruo_reality_atlas/
 
 # ─── USAGE INSTRUCTIONS FOR AI AGENTS ─────────────────────────────
 # 1. Read this file FIRST when starting any task on El Monstruo
-# 2. Use 'connections' to understand how components relate
-# 3. Use 'gaps' to know what's broken or missing
-# 4. Use 'memory_plane' to understand where data lives
-# 5. Use 'embriones' to know what specialists exist
-# 6. Use 'production' to know what's actually deployed
-# 7. Regenerate with: python3 scripts/genome_generator.py
+# 2. Use 'satellites' to know what products/extensions exist
+# 3. Use 'connections' to understand how components relate
+# 4. Use 'gaps' to know what's broken or missing
+# 5. Use 'memory_plane' to understand where data lives
+# 6. Use 'embriones' to know what specialists exist
+# 7. Use 'production' to know what's actually deployed
+# 8. Regenerate with: python3 scripts/genome_generator.py
+# 9. DO NOT propose creating something that already appears here
 

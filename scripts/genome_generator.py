@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """
-MONSTRUO_GENOME Generator v1.0
+MONSTRUO_GENOME Generator v2.0
 ===============================
 Genera el archivo MONSTRUO_GENOME.yaml — índice vivo, legible por IA,
 que representa la totalidad del Monstruo en un solo archivo absorbible.
+
+v2.0 — Expandido con:
+  - Registro de satélites (repos adyacentes del ecosistema)
+  - Metadata de ecosistema completa
+  - Sección 'satellites' con health check ligero
 
 Ejecutar: python3 scripts/genome_generator.py
 Output:   MONSTRUO_GENOME.yaml (raíz del repo)
@@ -14,6 +19,7 @@ Fuentes de datos:
   3. Railway health endpoint
   4. Skills directory
   5. Migrations directory
+  6. GitHub API (satélites del ecosistema)
 """
 
 import os
@@ -32,6 +38,112 @@ KERNEL_DIR = REPO_ROOT / "kernel"
 MIGRATIONS_DIR = REPO_ROOT / "migrations" / "sql"
 SKILLS_DIR = Path("/home/ubuntu/skills")
 RAILWAY_HEALTH_URL = "https://el-monstruo-kernel-production.up.railway.app/health"
+GITHUB_OWNER = "alfredogl1804"
+
+# ─── Satellite Registry ────────────────────────────────────────────────────────
+# Satélites = repos que son productos o extensiones del Monstruo.
+# Se registran manualmente aquí porque la relación es semántica, no técnica.
+SATELLITES = [
+    {
+        "id": "like-kukulkan-tickets",
+        "repo": "alfredogl1804/like-kukulkan-tickets",
+        "type": "product",
+        "status": "active",
+        "description": "Boletería Leones de Yucatán — primer producto del Monstruo",
+        "railway_url": None,  # TBD
+        "supabase_project": None,  # Uses shared or own?
+        "relationship": "satellite_active",
+    },
+    {
+        "id": "el-monstruo-bot",
+        "repo": "alfredogl1804/el-monstruo-bot",
+        "type": "transport",
+        "status": "offline",
+        "description": "Telegram Bot — Transport T1 del Monstruo",
+        "railway_url": "https://el-monstruo-bot-production.up.railway.app",
+        "supabase_project": "xsumzuhwmivjgftsneov",  # Shared with kernel
+        "relationship": "transport",
+    },
+    {
+        "id": "el-mundo-de-tata",
+        "repo": "alfredogl1804/el-mundo-de-tata",
+        "type": "aspirant",
+        "status": "in_development",
+        "description": "Proyecto adyacente — aspira a ser satélite del Monstruo",
+        "railway_url": None,
+        "supabase_project": None,
+        "relationship": "satellite_aspirant",
+    },
+    {
+        "id": "forja-mcp",
+        "repo": "alfredogl1804/forja-mcp",
+        "type": "infrastructure",
+        "status": "active",
+        "description": "MCP Gateway — HTTP/SSE multiplexer para 7+ APIs",
+        "railway_url": None,
+        "supabase_project": None,
+        "relationship": "infrastructure",
+    },
+    {
+        "id": "el-monstruo-command-center",
+        "repo": "alfredogl1804/el-monstruo-command-center",
+        "type": "interface",
+        "status": "active_unmapped",
+        "description": "UI principal del Monstruo (Vercel, Next.js) — superficie operativa primaria",
+        "railway_url": None,
+        "vercel_url": None,  # TBD: confirmar dominio en Vercel
+        "supabase_project": "xsumzuhwmivjgftsneov",  # Shared con kernel
+        "relationship": "interface_principal",
+    },
+    {
+        "id": "apps_la_forja",
+        "repo": None,  # subsistema interno del monorepo el-monstruo
+        "path": "apps/la-forja",
+        "type": "subsystem",
+        "status": "active_development",
+        "description": "Backend Hono + Next.js. Contiene Bridge M2M Manus↔Manus en api/src/lib/manus_bridge.ts y 5 puertas canónicas en api/src/puertas/ (cowork_local, kernel_monstruo, manus_apple, manus_google, simulador)",
+        "railway_url": None,
+        "supabase_project": None,
+        "relationship": "subsystem",
+        "key_files": [
+            "apps/la-forja/api/src/lib/manus_bridge.ts",
+            "apps/la-forja/api/src/puertas/cowork_local.ts",
+            "apps/la-forja/api/src/puertas/kernel_monstruo.ts",
+            "apps/la-forja/api/src/puertas/manus_apple.ts",
+            "apps/la-forja/api/src/puertas/manus_google.ts",
+            "apps/la-forja/api/src/puertas/simulador.ts",
+            "tools/manus_bridge.py",
+        ],
+    },
+    {
+        "id": "apps_mobile",
+        "repo": None,
+        "path": "apps/mobile",
+        "type": "subsystem",
+        "status": "active_with_drift",
+        "description": "App Flutter del Monstruo — drift binario detectado en brand_dna.dart vs DSC-MO-002 (G-002 del Atlas)",
+        "railway_url": None,
+        "supabase_project": None,
+        "relationship": "subsystem",
+    },
+    {
+        "id": "monstruo-quantum-realm",
+        "repo": None,  # vive en webdev S3, sin repo GitHub
+        "webdev_origin": "s3://vida-prod-gitrepo/webdev-git/310519663226724344/Ntoi5bEXUaoi4YAZrYm5TQ",
+        "type": "interface_visualization",
+        "status": "active_drift_risk",
+        "description": "Visualización 3D del Genoma + Catastro de IAs (R3F + Three.js). Sirve genome_visual_data.json (120 nodos) y catastro_visual_data.json (120 candidatas, 7 familias, Nano Banana Pro operable). JSONs editados manualmente — drift garantizado vs MONSTRUO_GENOME.yaml hasta que exista scripts/generate_visual_data.py.",
+        "prod_url": "https://monstrrealm-ntoi5bex.manus.space",
+        "supabase_project": None,
+        "relationship": "interface_visualization",
+        "drift_risk": "manual_json_edits",
+        "data_sources_consumed": [
+            "client/public/genome_visual_data.json",
+            "client/public/catastro_visual_data.json",
+            "client/public/genome_data.json",
+        ],
+    },
+]
 
 
 def yaml_str(val, indent=0):
@@ -198,23 +310,21 @@ def query_supabase(sql):
         ]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
         output = result.stdout + result.stderr
-        # Extract JSON from the tool result - handle escaped quotes from MCP
+        # Extract JSON from the tool result
         json_match = re.search(r'\[.*?\]', output)
         if json_match:
             raw = json_match.group()
-            # MCP output may have escaped quotes
             if '\\"' in raw:
                 raw = raw.replace('\\"', '"')
             try:
                 return json.loads(raw)
             except json.JSONDecodeError:
-                # Try unescaping differently
                 raw2 = re.sub(r'\\"', '"', json_match.group())
                 try:
                     return json.loads(raw2)
                 except:
                     pass
-        # Try finding JSON in the saved result file
+        # Try finding JSON in saved result file
         result_files = sorted(Path('/home/ubuntu/.mcp/tool-results/').glob('*supabase*'))
         if result_files:
             latest = result_files[-1]
@@ -282,44 +392,92 @@ def get_railway_health():
     return None
 
 
-# ─── Phase 4: Assemble Genome ─────────────────────────────────────────────────
+# ─── Phase 4: Query Satellites (GitHub API) ───────────────────────────────────
 
-def build_genome():
-    """Assemble all data into the genome structure."""
-    print("🧬 MONSTRUO GENOME Generator v1.0")
-    print("=" * 50)
+def get_satellite_info(satellite):
+    """Get basic info about a satellite. Tolerant a entries sin repo (subsystems internos)."""
+    repo = satellite.get("repo")
+    info = dict(satellite)  # Copy base info
 
-    # 1. Repo scan
-    print("  [1/5] Scanning repo structure...")
-    kernel_modules = scan_kernel_modules()
-    embriones = scan_embriones()
-    routes = scan_routes()
-    migrations = scan_migrations()
-    skills = scan_skills()
-    top_dirs = scan_top_level_dirs()
+    if repo:
+        try:
+            # Get last commit date and default branch via gh CLI
+            result = subprocess.run(
+                ["gh", "repo", "view", repo, "--json", "pushedAt,defaultBranchRef,description"],
+                capture_output=True, text=True, timeout=15
+            )
+            if result.returncode == 0 and result.stdout:
+                data = json.loads(result.stdout)
+                info["last_push"] = data.get("pushedAt", "unknown")
+                info["github_description"] = data.get("description", "")
+                branch_ref = data.get("defaultBranchRef", {})
+                info["default_branch"] = branch_ref.get("name", "main") if branch_ref else "main"
+        except Exception as e:
+            info["last_push"] = "unreachable"
+            info["github_description"] = ""
+            info["default_branch"] = "unknown"
+    else:
+        # Subsystem interno (path within monorepo) o webdev sin repo
+        path = satellite.get("path")
+        if path:
+            full_path = REPO_ROOT / path
+            if full_path.exists():
+                # Get last modified time of the path
+                try:
+                    git_log = subprocess.run(
+                        ["git", "-C", str(REPO_ROOT), "log", "-1", "--format=%cI", "--", path],
+                        capture_output=True, text=True, timeout=10
+                    )
+                    info["last_push"] = git_log.stdout.strip() or "unknown"
+                except Exception:
+                    info["last_push"] = "unknown"
+                info["path_exists"] = True
+            else:
+                info["path_exists"] = False
+                info["last_push"] = "path_not_found"
+        else:
+            info["last_push"] = "no_repo_no_path"
 
-    # 2. Supabase
-    print("  [2/5] Querying Supabase...")
-    table_counts = get_table_counts()
-    custom_rpcs = get_custom_rpcs()
+    # Check Railway health if URL provided
+    if satellite.get("railway_url"):
+        try:
+            result = subprocess.run(
+                ["curl", "-s", "--max-time", "5", "-o", "/dev/null", "-w", "%{http_code}",
+                 satellite["railway_url"]],
+                capture_output=True, text=True, timeout=10
+            )
+            http_code = result.stdout.strip()
+            info["railway_status"] = "online" if http_code in ("200", "301", "302") else f"offline ({http_code})"
+        except Exception:
+            info["railway_status"] = "unreachable"
 
-    # 3. Railway
-    print("  [3/5] Checking Railway health...")
-    railway_health = get_railway_health()
+    # Check prod_url health if provided (webdev/vercel deploys)
+    if satellite.get("prod_url"):
+        try:
+            result = subprocess.run(
+                ["curl", "-s", "--max-time", "5", "-o", "/dev/null", "-w", "%{http_code}",
+                 satellite["prod_url"]],
+                capture_output=True, text=True, timeout=10
+            )
+            http_code = result.stdout.strip()
+            info["prod_status"] = "online" if http_code in ("200", "301", "302") else f"offline ({http_code})"
+        except Exception:
+            info["prod_status"] = "unreachable"
 
-    # 4. Classify tables into domains
-    print("  [4/5] Classifying components...")
-    table_domains = classify_tables(table_counts)
+    return info
 
-    # 5. Build YAML
-    print("  [5/5] Assembling genome...")
-    genome = assemble_yaml(
-        kernel_modules, embriones, routes, migrations, skills,
-        top_dirs, table_counts, custom_rpcs, railway_health, table_domains
-    )
 
-    return genome
+def scan_satellites():
+    """Scan all registered satellites for current status."""
+    results = []
+    for sat in SATELLITES:
+        print(f"    Checking satellite: {sat['id']}...")
+        info = get_satellite_info(sat)
+        results.append(info)
+    return results
 
+
+# ─── Phase 5: Assemble Genome ─────────────────────────────────────────────────
 
 def classify_tables(table_counts):
     """Classify tables into functional domains."""
@@ -366,8 +524,51 @@ def classify_tables(table_counts):
     return domains
 
 
+def build_genome():
+    """Assemble all data into the genome structure."""
+    print("🧬 MONSTRUO GENOME Generator v2.0")
+    print("=" * 50)
+
+    # 1. Repo scan
+    print("  [1/6] Scanning repo structure...")
+    kernel_modules = scan_kernel_modules()
+    embriones = scan_embriones()
+    routes = scan_routes()
+    migrations = scan_migrations()
+    skills = scan_skills()
+    top_dirs = scan_top_level_dirs()
+
+    # 2. Supabase
+    print("  [2/6] Querying Supabase...")
+    table_counts = get_table_counts()
+    custom_rpcs = get_custom_rpcs()
+
+    # 3. Railway
+    print("  [3/6] Checking Railway health...")
+    railway_health = get_railway_health()
+
+    # 4. Satellites
+    print("  [4/6] Scanning satellites...")
+    satellites = scan_satellites()
+
+    # 5. Classify tables
+    print("  [5/6] Classifying components...")
+    table_domains = classify_tables(table_counts)
+
+    # 6. Build YAML
+    print("  [6/6] Assembling genome...")
+    genome = assemble_yaml(
+        kernel_modules, embriones, routes, migrations, skills,
+        top_dirs, table_counts, custom_rpcs, railway_health, table_domains,
+        satellites
+    )
+
+    return genome
+
+
 def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
-                  top_dirs, table_counts, custom_rpcs, railway_health, table_domains):
+                  top_dirs, table_counts, custom_rpcs, railway_health, table_domains,
+                  satellites):
     """Produce the final YAML string."""
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -377,6 +578,7 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
     total_embriones = len(embriones)
     total_skills = len(skills)
     total_migrations = len(migrations)
+    total_satellites = len(satellites)
 
     # Build table count map
     tc_map = {}
@@ -399,7 +601,7 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
     lines = []
     lines.append("# ╔══════════════════════════════════════════════════════════════════╗")
     lines.append("# ║  MONSTRUO_GENOME.yaml — Fuente única de verdad arquitectónica   ║")
-    lines.append("# ║  Auto-generado por scripts/genome_generator.py                  ║")
+    lines.append("# ║  Auto-generado por scripts/genome_generator.py v2.0             ║")
     lines.append("# ║  Propósito: Cualquier IA absorbe esto y sabe QUÉ hay,           ║")
     lines.append("# ║  DÓNDE está, y CÓMO se conecta — en segundos.                   ║")
     lines.append("# ╚══════════════════════════════════════════════════════════════════╝")
@@ -409,8 +611,8 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
     lines.append("meta:")
     lines.append(f"  generated_at: {now}")
     lines.append("  generator: scripts/genome_generator.py")
-    lines.append("  version: 1.0.0")
-    lines.append(f"  repo: alfredogl1804/el-monstruo")
+    lines.append("  version: 2.0.0")
+    lines.append(f"  repo: {GITHUB_OWNER}/el-monstruo")
     lines.append(f"  total_kernel_modules: {total_kernel_modules}")
     lines.append(f"  total_embriones: {total_embriones}")
     lines.append(f"  total_supabase_tables: {total_tables}")
@@ -418,6 +620,46 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
     lines.append(f"  total_migrations: {total_migrations}")
     lines.append(f"  total_skills: {total_skills}")
     lines.append(f"  total_top_dirs: {len(top_dirs)}")
+    lines.append(f"  total_satellites: {total_satellites}")
+    lines.append("")
+
+    # ─── SATELLITES (NEW in v2.0) ──────────────────────────────────────────────
+    lines.append("# ─── ECOSYSTEM: Satellites ──────────────────────────────────────────")
+    lines.append("# Satélites = repos que son productos, transportes o extensiones")
+    lines.append("# del Monstruo. El Genoma los registra de forma LIGERA: sabe que")
+    lines.append("# existen, qué son, y su estado — sin escanear sus tripas.")
+    lines.append("satellites:")
+    for sat in satellites:
+        lines.append(f"  - id: {sat['id']}")
+        lines.append(f"    repo: {sat['repo']}")
+        if sat.get("path"):
+            lines.append(f"    path: {sat['path']}")
+        lines.append(f"    type: {sat['type']}")
+        lines.append(f"    status: {sat['status']}")
+        lines.append(f"    relationship: {sat['relationship']}")
+        lines.append(f"    description: {sat['description']}")
+        if sat.get("last_push") and sat["last_push"] != "unreachable":
+            lines.append(f"    last_push: {sat['last_push']}")
+        if sat.get("railway_url"):
+            lines.append(f"    railway_url: {sat['railway_url']}")
+            lines.append(f"    railway_status: {sat.get('railway_status', 'unknown')}")
+        if sat.get("prod_url"):
+            lines.append(f"    prod_url: {sat['prod_url']}")
+            lines.append(f"    prod_status: {sat.get('prod_status', 'unknown')}")
+        if sat.get("vercel_url"):
+            lines.append(f"    vercel_url: {sat['vercel_url']}")
+        if sat.get("supabase_project"):
+            lines.append(f"    supabase_project: {sat['supabase_project']}")
+        if sat.get("drift_risk"):
+            lines.append(f"    drift_risk: {sat['drift_risk']}")
+        if sat.get("key_files"):
+            lines.append("    key_files:")
+            for kf in sat["key_files"]:
+                lines.append(f"      - {kf}")
+        if sat.get("data_sources_consumed"):
+            lines.append("    data_sources_consumed:")
+            for ds in sat["data_sources_consumed"]:
+                lines.append(f"      - {ds}")
     lines.append("")
 
     # ─── PRODUCTION STATUS ─────────────────────────────────────────────────────
@@ -445,7 +687,8 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
 
     # ─── KERNEL ARCHITECTURE ───────────────────────────────────────────────────
     lines.append("kernel:")
-    lines.append(f"  total_python_files: 300")
+    total_py = sum(1 for _ in KERNEL_DIR.rglob("*.py")) if KERNEL_DIR.exists() else 0
+    lines.append(f"  total_python_files: {total_py}")
     lines.append("  entry_point: kernel/main.py")
     lines.append("  framework: FastAPI + LangGraph")
     lines.append("  modules:")
@@ -576,7 +819,6 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
 
     # ─── CUSTOM RPCS ───────────────────────────────────────────────────────────
     lines.append("custom_rpcs:")
-    # Filter out the ones already listed under SMS
     other_rpcs = [r for r in rpc_names if r not in sms_rpcs]
     for rpc in other_rpcs:
         lines.append(f"  - {rpc}")
@@ -634,6 +876,8 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
         "kernel.main -> litellm (model routing via config/litellm_config.yaml)",
         "kernel.main -> langfuse (observability)",
         "kernel.main -> supabase.checkpoints (LangGraph state persistence)",
+        "like-kukulkan-tickets -> kernel (satellite product, future integration)",
+        "forja-mcp -> kernel (MCP gateway, HTTP/SSE multiplexer)",
     ]
     for c in connections:
         lines.append(f"  - {c}")
@@ -643,7 +887,7 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
     lines.append("gaps:")
     lines.append("  critical:")
     lines.append("    - id: embrion_loop_isolated")
-    lines.append("      description: Embrion Loop has 2763 memories in embrion_memoria but ZERO connection to SMS v4.0")
+    lines.append("      description: Embrion Loop has memories in embrion_memoria but ZERO connection to SMS v4.0")
     lines.append("      impact: No graph, no belief revision, no decay for the main orchestrator")
     lines.append("      fix: Bridge embrion_memoria <-> sovereign_memories")
     lines.append("    - id: collective_ram_only")
@@ -651,7 +895,7 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
     lines.append("      impact: Learned patterns lost on every redeploy")
     lines.append("      fix: Create learned_patterns + embrion_knowledge tables, connect to SMS")
     lines.append("    - id: embriones_stateless")
-    lines.append("      description: 9 domain embriones have no memory at all")
+    lines.append("      description: Domain embriones have no memory at all")
     lines.append("      impact: Cannot learn from past invocations")
     lines.append("      fix: Each embrion gets graph_enhanced_recall before operating")
     lines.append("  moderate:")
@@ -659,7 +903,7 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
     lines.append("      description: Telegram bot returns 404")
     lines.append("      fix: Redeploy on Railway")
     lines.append("    - id: embeddings_pending")
-    lines.append("      description: 125 kit_pericia memories ingested without vector embeddings")
+    lines.append("      description: Memories ingested without vector embeddings")
     lines.append("      fix: Redeploy kernel with new adapter (entity extraction generates embeddings)")
     lines.append("    - id: domain_embriones_doctrine_only")
     lines.append("      description: 10 Domain Embriones (Archivista, Concierge, etc.) exist only in doctrine")
@@ -673,19 +917,21 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
     lines.append("  brand_dna: kernel/brand/brand_dna.py")
     lines.append("  canon_metodologias: docs/conocimiento/metodologias/CANON_Metodologias_Productividad_v1_5.md")
     lines.append("  security_dscs: discovery_forense/CAPILLA_DECISIONES/_GLOBAL/")
-    lines.append("  sprint_history: docs/SPRINT_*.md (51-80)")
+    lines.append("  sprint_history: docs/SPRINT_*.md")
     lines.append("  kit_pericia: bridge/thread_archives/ + monstruo_reality_atlas/")
     lines.append("")
 
     # ─── HOW TO USE THIS FILE ──────────────────────────────────────────────────
     lines.append("# ─── USAGE INSTRUCTIONS FOR AI AGENTS ─────────────────────────────")
     lines.append("# 1. Read this file FIRST when starting any task on El Monstruo")
-    lines.append("# 2. Use 'connections' to understand how components relate")
-    lines.append("# 3. Use 'gaps' to know what's broken or missing")
-    lines.append("# 4. Use 'memory_plane' to understand where data lives")
-    lines.append("# 5. Use 'embriones' to know what specialists exist")
-    lines.append("# 6. Use 'production' to know what's actually deployed")
-    lines.append("# 7. Regenerate with: python3 scripts/genome_generator.py")
+    lines.append("# 2. Use 'satellites' to know what products/extensions exist")
+    lines.append("# 3. Use 'connections' to understand how components relate")
+    lines.append("# 4. Use 'gaps' to know what's broken or missing")
+    lines.append("# 5. Use 'memory_plane' to understand where data lives")
+    lines.append("# 6. Use 'embriones' to know what specialists exist")
+    lines.append("# 7. Use 'production' to know what's actually deployed")
+    lines.append("# 8. Regenerate with: python3 scripts/genome_generator.py")
+    lines.append("# 9. DO NOT propose creating something that already appears here")
     lines.append("")
 
     return "\n".join(lines) + "\n"
