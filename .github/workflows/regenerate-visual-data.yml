@@ -1,0 +1,125 @@
+name: Regenerate Visual Data (Quantum Realm)
+
+# Regenera genome_visual_data.json del sitio Quantum Realm
+# con cada push a main que toque las fuentes canónicas.
+#
+# El sitio Quantum Realm vive en webdev (s3://vida-prod-gitrepo/webdev-git/...)
+# NO en este repo. Este workflow solo:
+#   1. Detecta cambios en fuentes
+#   2. Genera el JSON actualizado
+#   3. Lo sube como artifact descargable (el deploy al sitio es manual o vía MCP)
+#
+# Cuando exista un mecanismo de bridge automatizado al webdev, agregar paso de push.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'MONSTRUO_GENOME.yaml'
+      - 'kernel/**'
+      - 'apps/la-forja/**'
+      - 'apps/mobile/**'
+      - 'scripts/generate_visual_data.py'
+      - 'tools/**'
+      - 'embriones/**'
+  workflow_dispatch:
+    inputs:
+      target_nodes:
+        description: 'Cantidad objetivo de nodos'
+        required: false
+        default: '120'
+
+jobs:
+  regenerate:
+    name: Generar genome_visual_data.json
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml
+
+      - name: Run generator
+        run: |
+          mkdir -p /tmp/visual_out
+          python3 scripts/generate_visual_data.py \
+            --output-dir /tmp/visual_out \
+            --target-nodes "${{ github.event.inputs.target_nodes || '120' }}"
+
+      - name: Validate output schema
+        run: |
+          python3 - <<'EOF'
+          import json
+          import sys
+          from pathlib import Path
+
+          out = Path("/tmp/visual_out/genome_visual_data.json")
+          if not out.exists():
+              print(f"ERROR: {out} no fue generado")
+              sys.exit(1)
+
+          data = json.loads(out.read_text())
+
+          # Validaciones duras
+          required_top = {"meta", "nodes", "zones", "districts"}
+          missing_top = required_top - set(data.keys())
+          if missing_top:
+              print(f"ERROR: faltan top-level keys: {missing_top}")
+              sys.exit(1)
+
+          required_node = {"id", "zona", "distrito", "estado", "lineas",
+                           "geometria", "ast", "visual_scale", "position"}
+          for i, n in enumerate(data["nodes"]):
+              missing = required_node - set(n.keys())
+              if missing:
+                  print(f"ERROR: nodo[{i}] id={n.get('id')} sin keys: {missing}")
+                  sys.exit(1)
+
+          # Validaciones blandas
+          if data["meta"]["total_nodes"] < 50:
+              print(f"WARN: solo {data['meta']['total_nodes']} nodos generados")
+
+          if data["meta"]["total_districts"] != 5:
+              print(f"ERROR: esperaba 5 distritos, hay {data['meta']['total_districts']}")
+              sys.exit(1)
+
+          print(f"OK schema válido — {data['meta']['total_nodes']} nodos / {data['meta']['total_districts']} distritos")
+          EOF
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: genome-visual-data
+          path: /tmp/visual_out/genome_visual_data.json
+          retention-days: 30
+
+      - name: Summary
+        run: |
+          echo "### Genome Visual Data regenerado" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Artifact disponible para descarga (\`genome-visual-data\`)." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Para aplicar al sitio Quantum Realm:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Descargar artifact" >> $GITHUB_STEP_SUMMARY
+          echo "2. Reemplazar \`monstruo-quantum-realm/client/public/genome_visual_data.json\`" >> $GITHUB_STEP_SUMMARY
+          echo "3. Crear checkpoint en webdev" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          python3 -c "
+          import json
+          d = json.load(open('/tmp/visual_out/genome_visual_data.json'))
+          print(f\"- Total nodos: {d['meta']['total_nodes']}\")
+          print(f\"- Distritos: {d['meta']['total_districts']}\")
+          print(f\"- Nodo más pesado: {d['meta']['heaviest']}\")
+          print(f\"- Generado: {d['meta']['generated_at_utc']}\")
+          " >> $GITHUB_STEP_SUMMARY
