@@ -176,19 +176,26 @@ def test_publicidad_recommend_for_mena_baduy_raises():
         pass
 
 
-def test_publicidad_implement_not_implemented():
+def test_publicidad_implement_is_implemented():
+    """Sprint TRANSVERSAL-001 T4 — PublicidadLayer.implement() implementado.
+
+    Antes del sprint levantaba NotImplementedError; ahora devuelve plan
+    canonico de campaigns con status='paused' HARD por defecto.
+    """
     layer = PublicidadLayer()
     ctx = TransversalContext(
         vertical=VerticalId.CIP,
         archetype=BusinessModelArchetype.TOKENIZED_REAL_ESTATE,
     )
     rec = layer.recommend(ctx)
-    try:
-        layer.implement(rec)
-        raise AssertionError("Debio levantar NotImplementedError")
-    except NotImplementedError as e:
-        assert "TRANSVERSAL-001" in str(e)
-        assert "[NEEDS_PERPLEXITY_VALIDATION]" in str(e)
+    result = layer.implement(rec)
+    assert "campaigns_plan" in result
+    assert result["dry_run"] is True
+    # SAFEGUARD CRITICO: todas las campanas deben estar paused.
+    assert all(c["status"] == "paused" for c in result["campaigns_plan"])
+    assert result["hard_safeguards"]["campaign_status_default"] == "paused"
+    assert result["hard_safeguards"]["spend_cap_daily_usd"] == 0.0
+    assert result["hard_safeguards"]["activation_requires_firma_alfredo"] is True
 
 
 if __name__ == "__main__":

@@ -28,20 +28,28 @@ Para validar un claim:
         ttl_hours=24,
     )
 
+Wiring en produccion (kernel/main.py, post db.connect()):
+    from kernel.validation import SupabaseStorage, set_default_storage
+    set_default_storage(SupabaseStorage(db._client))
+
 Origen: DSC-V-001, DSC-G-017.
 """
+from kernel.validation._storage_supabase import SupabaseStorage
 from kernel.validation.perplexity_decorator import (
     ClaimRecord,
     StaleClaimError,
     ValidationLogStorage,
     record_validation,
     requires_perplexity_validation,
+    set_default_storage,
 )
 
 __all__ = [
     "ClaimRecord",
     "StaleClaimError",
+    "SupabaseStorage",
     "ValidationLogStorage",
     "record_validation",
     "requires_perplexity_validation",
+    "set_default_storage",
 ]

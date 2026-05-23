@@ -214,19 +214,24 @@ def test_seo_recommend_for_mena_baduy_raises():
         assert "MENA" in str(e).upper() or "comercial" in str(e).lower()
 
 
-def test_seo_implement_not_implemented():
+def test_seo_implement_is_implemented():
+    """Sprint TRANSVERSAL-001 T3 — SeoLayer.implement() ya implementado.
+
+    Antes del sprint levantaba NotImplementedError; ahora devuelve artefactos
+    SEO canonicos (json_ld_block, meta_tags_html, hreflang_links_html, etc.).
+    Test legacy actualizado a la realidad post-sprint.
+    """
     layer = SeoLayer()
     ctx = TransversalContext(
         vertical=VerticalId.CIP,
         archetype=BusinessModelArchetype.TOKENIZED_REAL_ESTATE,
     )
     rec = layer.recommend(ctx)
-    try:
-        layer.implement(rec)
-        raise AssertionError("Debio levantar NotImplementedError")
-    except NotImplementedError as e:
-        assert "TRANSVERSAL-001" in str(e)
-        assert "[NEEDS_PERPLEXITY_VALIDATION]" in str(e)
+    result = layer.implement(rec)
+    assert "json_ld_block" in result
+    assert "meta_tags_html" in result
+    assert "canonical_strategy" in result
+    assert result["vertical"] == "cip"
 
 
 def test_seo_aggregates_validation_tags():

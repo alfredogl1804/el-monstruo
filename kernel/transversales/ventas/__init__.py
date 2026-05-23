@@ -174,18 +174,226 @@ class VentasLayer(TransversalLayer):
     def implement(
         self, recommendations: TransversalRecommendations
     ) -> dict[str, Any]:
-        raise NotImplementedError(
-            "VentasLayer.implement pendiente Sprint TRANSVERSAL-001. "
-            "Requiere CRM (HubSpot) + billing (Stripe) integration. "
-            "Tag: [NEEDS_PERPLEXITY_VALIDATION] integration_pattern_2026"
+        """
+        Genera payloads canonicos listos para inyectar en HubSpot CRM
+        (Products + Pipeline + Deals) y Stripe (Products + Prices). NO ejecuta
+        llamadas a red — produce payloads validables, dry-run por defecto.
+
+        El push real a HubSpot/Stripe queda fuera de esta funcion: lo ejecuta
+        un script de operaciones bajo HITL (DSC-G-002) cuando las credenciales
+        esten configuradas y Alfredo firme la operacion.
+
+        Patron canonico HubSpot (validado magna `hubspot_api_2026`,
+        validation_log id=26 vigente hasta 2026-08-09):
+          - Auth: Private App access token via header
+            'Authorization: Bearer <HUBSPOT_ACCESS_TOKEN>'.
+          - Endpoint Products: POST /crm/v3/objects/products
+          - Endpoint Deals:    POST /crm/v3/objects/deals
+          - Rate limits 2026: ~150 req/10s, ~250k req/day en Marketing Hub
+            Enterprise (variar por tier; metadata.full_answer tiene detalle).
+
+        Returns dict con keys:
+            vertical: str
+            crm_target: 'hubspot'
+            billing_target: 'stripe'
+            hubspot_products_payload: list[dict]
+            stripe_products_payload: list[dict]
+            funnel_pipeline_stages: list[str]
+            checkout_pattern: str
+            dry_run: bool (True hasta firma de Alfredo via DSC-G-002)
+            pending_credentials: list[str] (vacio si ambas envs presentes)
+            validation_log_anchor: dict (id+claim_type+ttl del row vigente)
+            validation_tags_pending: list[str]
+        """
+        import os
+
+        rules = {r.rule_id: r.value for r in recommendations.recommendations}
+
+        # 1. Pricing tiers → HubSpot Products + Stripe Products/Prices.
+        # Patron canonico: payload sale con SLOTS conceptuales
+        # (TITLE_SLOT, PRICE_SLOT, DESCRIPTION_SLOT). Los slots se llenan por
+        # brand-voice plugin o humano antes del push real. Mismo patron SEO
+        # (TITLE_SLOT, DESCRIPTION_SLOT). Aisla estructura de copy/precios
+        # finales — obj #9 (Capa Transversal sin texto-irreducible).
+        pricing_rule = rules.get("ventas.pricing.tiers.structural", {})
+        tier_count = pricing_rule.get("tier_count_recommended", 0)
+        tier_label_slots = pricing_rule.get("tier_label_slots", [])
+        min_ticket_usd = pricing_rule.get("min_ticket_usd")
+        max_ticket_usd = pricing_rule.get("max_ticket_usd")
+        pricing_basis = pricing_rule.get("pricing_basis")
+
+        vertical_slug = recommendations.vertical.value
+        hubspot_products_payload: list[dict[str, Any]] = []
+        stripe_products_payload: list[dict[str, Any]] = []
+
+        for idx, tier_label_slot in enumerate(tier_label_slots):
+            # tier_label_slot es ej. 'tier_entry_label' — lo convertimos en
+            # slot template upper para que el brand-voice plugin lo llene.
+            slot_upper = tier_label_slot.upper()
+            name_slot = f"{{{{{slot_upper}_NAME_SLOT}}}}"
+            desc_slot = f"{{{{{slot_upper}_DESCRIPTION_SLOT}}}}"
+            price_slot = f"{{{{{slot_upper}_PRICE_AMOUNT_SLOT}}}}"
+            currency_slot = f"{{{{{slot_upper}_CURRENCY_SLOT}}}}"
+            period_slot = f"{{{{{slot_upper}_BILLING_PERIOD_SLOT}}}}"
+
+            hubspot_products_payload.append({
+                "vertical": vertical_slug,
+                "tier_idx": idx,
+                "tier_label_slot": tier_label_slot,
+                "endpoint": "POST /crm/v3/objects/products",
+                "properties": {
+                    "name": name_slot,
+                    "price": price_slot,
+                    "description": desc_slot,
+                    "hs_recurring_billing_period": period_slot,
+                    "hs_sku": f"{vertical_slug}-{tier_label_slot}",
+                },
+                "slots_required": [
+                    name_slot, price_slot, desc_slot, period_slot,
+                ],
+            })
+
+            stripe_products_payload.append({
+                "vertical": vertical_slug,
+                "tier_idx": idx,
+                "tier_label_slot": tier_label_slot,
+                "product": {
+                    "name": name_slot,
+                    "description": desc_slot,
+                    "metadata": {
+                        "vertical": vertical_slug,
+                        "tier_label_slot": tier_label_slot,
+                    },
+                },
+                "price": {
+                    "unit_amount_slot": price_slot,
+                    "currency_slot": currency_slot,
+                    "recurring_interval_slot": period_slot,
+                },
+                "slots_required": [
+                    name_slot, price_slot, currency_slot,
+                    desc_slot, period_slot,
+                ],
+            })
+
+        pricing_envelope = {
+            "tier_count_recommended": tier_count,
+            "min_ticket_usd": min_ticket_usd,
+            "max_ticket_usd": max_ticket_usd,
+            "pricing_basis": pricing_basis,
+        }
+
+        # 2. Funnel pipeline stages → HubSpot deal pipeline.
+        funnel_rule = rules.get("ventas.funnel.stages", {})
+        funnel_pipeline_stages = funnel_rule.get("stages", [])
+        checkout_pattern = funnel_rule.get(
+            "checkout_pattern", "stripe_session_webhook_canonical"
         )
 
+        # 3. Credenciales pendientes (no las leemos como valores — solo presencia).
+        pending_credentials: list[str] = []
+        if not os.environ.get("HUBSPOT_ACCESS_TOKEN"):
+            pending_credentials.append("HUBSPOT_ACCESS_TOKEN")
+        if not os.environ.get("STRIPE_SECRET_KEY"):
+            pending_credentials.append("STRIPE_SECRET_KEY")
+
+        return {
+            "vertical": recommendations.vertical.value,
+            "crm_target": "hubspot",
+            "billing_target": "stripe",
+            "pricing_envelope": pricing_envelope,
+            "hubspot_products_payload": hubspot_products_payload,
+            "stripe_products_payload": stripe_products_payload,
+            "funnel_pipeline_stages": funnel_pipeline_stages,
+            "checkout_pattern": checkout_pattern,
+            "dry_run": True,
+            "dry_run_reason": (
+                "Push real requiere firma de Alfredo via DSC-G-002 "
+                "(HITL para operaciones write-risky)."
+            ),
+            "pending_credentials": pending_credentials,
+            "validation_log_anchor": {
+                "claim_type": "hubspot_api_2026",
+                "row_id": 26,
+                "validator": "perplexity",
+                "ttl_seconds": 7776000,
+                "valid_until_iso": "2026-08-09T16:14:05Z",
+            },
+            "validation_tags_pending": list(
+                recommendations.aggregated_validation_tags
+            ),
+        }
+
     def monitor(self, ctx: TransversalContext) -> dict[str, Any]:
-        raise NotImplementedError(
-            "VentasLayer.monitor pendiente Sprint TRANSVERSAL-001. "
-            "Requiere event_store integration para CAC/LTV/conversion. "
-            "Tag: [NEEDS_PERPLEXITY_VALIDATION] kpi_benchmark_2026"
-        )
+        """
+        Health-check estructural sin red. CAC/LTV/conversion reales requieren
+        Amplitude/PostHog/HubSpot Analytics y quedan en status
+        'pending_credentials' hasta que Alfredo firme el wiring.
+
+        Verifica:
+          - vertical comercial (RestrictedVerticalError si no)
+          - payloads structuralmente validos (tier count > 0, funnel stages > 0)
+          - credenciales presentes/ausentes
+          - tags Perplexity pendientes
+        """
+        require_commercial(ctx.vertical)
+        recommendations = self.recommend(ctx)
+        impl_artifacts = self.implement(recommendations)
+
+        warnings: list[str] = []
+        blockers: list[str] = []
+
+        if not impl_artifacts["hubspot_products_payload"]:
+            blockers.append(
+                "No hay pricing tiers en payload — imposible push a HubSpot."
+            )
+        if not impl_artifacts["funnel_pipeline_stages"]:
+            warnings.append(
+                "Funnel pipeline stages vacios — no se puede crear deal pipeline."
+            )
+        if impl_artifacts["pending_credentials"]:
+            warnings.append(
+                f"Credenciales pendientes: "
+                f"{', '.join(impl_artifacts['pending_credentials'])}. "
+                f"Push real bloqueado hasta wiring + firma Alfredo."
+            )
+        if impl_artifacts["validation_tags_pending"]:
+            warnings.append(
+                f"{len(impl_artifacts['validation_tags_pending'])} tags "
+                f"Perplexity pendientes de resolver via DSC-V-001."
+            )
+
+        return {
+            "vertical": ctx.vertical.value,
+            "structural_health": {
+                "hubspot_products_count": len(
+                    impl_artifacts["hubspot_products_payload"]
+                ),
+                "stripe_products_count": len(
+                    impl_artifacts["stripe_products_payload"]
+                ),
+                "funnel_stages_count": len(
+                    impl_artifacts["funnel_pipeline_stages"]
+                ),
+                "checkout_pattern": impl_artifacts["checkout_pattern"],
+                "dry_run": impl_artifacts["dry_run"],
+            },
+            "warnings": warnings,
+            "blockers": blockers,
+            "cac_ltv_health": {
+                "status": "pending_credentials",
+                "required_envs": [
+                    "HUBSPOT_ACCESS_TOKEN", "STRIPE_SECRET_KEY",
+                    "AMPLITUDE_API_KEY", "POSTHOG_API_KEY",
+                ],
+                "note": (
+                    "CAC/LTV calculation requiere event source real (Amplitude o"
+                    " PostHog) + billing source (Stripe API). Pendiente wiring"
+                    " — stub estructural emitido para no bloquear pipeline."
+                ),
+            },
+            "validation_log_anchor": impl_artifacts["validation_log_anchor"],
+        }
 
 
 _TIER_COUNT_BY_ARCHETYPE: dict[BusinessModelArchetype, int] = {

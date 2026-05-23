@@ -116,18 +116,23 @@ def test_layer_instantiable_and_recommend():
     assert reg.value["operations_can_launch_mx_today"] is False
 
 
-def test_layer_implement_not_implemented():
+def test_layer_implement_is_implemented():
+    """Sprint TRANSVERSAL-001 T6 — OperacionesLayer.implement() implementado.
+
+    Antes del sprint levantaba NotImplementedError; ahora devuelve plan
+    canonico de helpdesk + regulatory_gates + sla_thresholds.
+    """
     layer = OperacionesLayer()
     ctx = TransversalContext(
         vertical=VerticalId.CIP,
         archetype=BusinessModelArchetype.TOKENIZED_REAL_ESTATE,
     )
     rec = layer.recommend(ctx)
-    try:
-        layer.implement(rec)
-        raise AssertionError("debio levantar NotImplementedError")
-    except NotImplementedError as e:
-        assert "TRANSVERSAL-001" in str(e)
+    result = layer.implement(rec)
+    assert "helpdesk_plan" in result
+    assert "regulatory_gates" in result
+    assert result["dry_run"] is True
+    assert result["regulatory_gates"]["operations_can_launch_mx_today"] is False
 
 
 if __name__ == "__main__":
