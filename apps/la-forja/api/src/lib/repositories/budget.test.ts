@@ -1,16 +1,17 @@
 /**
  * La Forja — Tests repository forja_budget (SupabaseBudgetClient real).
  *
- * Sprint LA-FORJA-001 v3.2 — D5.2.
+ * Sprint LA-FORJA-001 v3.2 — D5.3 (cierre L_B1 declarada D5.2).
  *
  * Validación binaria:
  *   1. readSpent retorna 0 cuando no hay row (mes nuevo)
  *   2. readSpent parsea NUMERIC string a number (precisión preservada)
- *   3. reserveSpent UPSERT con onConflict=profile_id,period_start
- *   4. adjustSpent clampea a 0 cuando delta haría negativo (CHECK constraint)
+ *   3. reserveSpent invoca rpc('rpc_increment_budget') con p_delta=estimated
+ *   4. adjustSpent invoca rpc('rpc_increment_budget') con p_delta=delta
+ *      (clamp a 0 lo aplica el lado servidor — RPC GREATEST(0, ...))
  *   5. period_start es siempre día 1 del mes UTC (CHECK constraint)
  *   6. resolveUser=null lanza error explícito [la-forja:budget_unknown_user]
- *   7. errores Supabase propagan con namespace canónico
+ *   7. errores Supabase RPC propagan con namespace canónico
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -25,8 +26,8 @@ const mockMaybeSingle = vi.fn();
 const mockEqProfile = vi.fn(() => ({ maybeSingle: mockMaybeSingle }));
 const mockEqPeriod = vi.fn(() => ({ eq: mockEqProfile }));
 const mockSelect = vi.fn(() => ({ eq: mockEqPeriod }));
-const mockUpsertResult = vi.fn();
-const mockUpsert = vi.fn(() => mockUpsertResult());
+const mockRpcResult = vi.fn();
+const mockRpc = vi.fn((_name: string, _args: unknown) => mockRpcResult());
 const mockSingleProfile = vi.fn();
 const mockSelectProfile = vi.fn(() => ({ single: mockSingleProfile }));
 const mockUpsertProfile = vi.fn(() => ({ select: mockSelectProfile }));
@@ -35,15 +36,14 @@ const mockFrom = vi.fn((table: string) => {
   if (table === "forja_profiles") {
     return { upsert: mockUpsertProfile };
   }
-  // forja_budget
+  // forja_budget — solo SELECT (las escrituras van por rpc)
   return {
     select: mockSelect,
-    upsert: mockUpsert,
   };
 });
 
 vi.mock("../supabase", () => ({
-  getSupabase: () => ({ from: mockFrom }),
+  getSupabase: () => ({ from: mockFrom, rpc: mockRpc }),
   _resetSupabaseCache: () => undefined,
 }));
 
@@ -62,7 +62,7 @@ beforeEach(() => {
     data: { id: PROFILE_ID },
     error: null,
   });
-  mockUpsertResult.mockResolvedValue({ error: null });
+  mockRpcResult.mockResolvedValue({ data: null, error: null });
 });
 
 afterEach(() => {
@@ -126,58 +126,73 @@ describe("SupabaseBudgetClient.readSpent", () => {
   });
 });
 
-describe("SupabaseBudgetClient.reserveSpent", () => {
-  it("UPSERT con onConflict=profile_id,period_start", async () => {
-    mockMaybeSingle.mockResolvedValueOnce({
-      data: { spent_usd: "5.00" },
-      error: null,
-    });
-
+describe("SupabaseBudgetClient.reserveSpent (D5.3 RPC atómico)", () => {
+  it("invoca rpc('rpc_increment_budget') con p_delta=estimated", async () => {
     const client = makeClient();
     await client.reserveSpent(VALID_USER.id, 0.5);
 
-    expect(mockUpsert).toHaveBeenCalledOnce();
-    const [row, opts] = mockUpsert.mock.calls[0]!;
-    expect(row).toMatchObject({
-      profile_id: PROFILE_ID,
-      spent_usd: 5.5,
+    expect(mockRpc).toHaveBeenCalledOnce();
+    const [name, args] = mockRpc.mock.calls[0]!;
+    expect(name).toBe("rpc_increment_budget");
+    expect(args).toMatchObject({
+      p_profile_id: PROFILE_ID,
+      p_delta: 0.5,
     });
-    expect((row as { period_start: string }).period_start).toMatch(
+    expect((args as { p_period_start: string }).p_period_start).toMatch(
       /^\d{4}-\d{2}-01$/,
     );
-    expect(opts).toEqual({ onConflict: "profile_id,period_start" });
+  });
+
+  it("NO invoca readSpent antes de la RPC (atomicidad single-roundtrip)", async () => {
+    const client = makeClient();
+    await client.reserveSpent(VALID_USER.id, 0.25);
+
+    // SELECT spent_usd no debe invocarse durante reserveSpent: la RPC hace
+    // todo en un solo roundtrip atómico.
+    expect(mockSelect).not.toHaveBeenCalled();
+    expect(mockRpc).toHaveBeenCalledOnce();
+  });
+
+  it("fail-loud con error de RPC", async () => {
+    mockRpcResult.mockResolvedValueOnce({
+      data: null,
+      error: { message: "function rpc_increment_budget does not exist" },
+    });
+    const client = makeClient();
+    await expect(client.reserveSpent(VALID_USER.id, 0.5)).rejects.toThrow(
+      /\[la-forja:budget_reserve_failed\]/,
+    );
   });
 });
 
-describe("SupabaseBudgetClient.adjustSpent", () => {
-  it("aplica delta positivo correctamente", async () => {
-    mockMaybeSingle.mockResolvedValueOnce({
-      data: { spent_usd: "10.00" },
-      error: null,
-    });
+describe("SupabaseBudgetClient.adjustSpent (D5.3 RPC atómico)", () => {
+  it("invoca rpc('rpc_increment_budget') con delta positivo", async () => {
     const client = makeClient();
     await client.adjustSpent(VALID_USER.id, 0.25);
-    const row = mockUpsert.mock.calls[0]![0] as { spent_usd: number };
-    expect(row.spent_usd).toBeCloseTo(10.25, 6);
+
+    expect(mockRpc).toHaveBeenCalledOnce();
+    const [name, args] = mockRpc.mock.calls[0]!;
+    expect(name).toBe("rpc_increment_budget");
+    expect(args).toMatchObject({
+      p_profile_id: PROFILE_ID,
+      p_delta: 0.25,
+    });
   });
 
-  it("clampea a 0 cuando delta haría negativo (CHECK constraint)", async () => {
-    mockMaybeSingle.mockResolvedValueOnce({
-      data: { spent_usd: "0.10" },
-      error: null,
-    });
+  it("invoca rpc con delta negativo (rollback)", async () => {
     const client = makeClient();
     await client.adjustSpent(VALID_USER.id, -1.0);
-    const row = mockUpsert.mock.calls[0]![0] as { spent_usd: number };
-    expect(row.spent_usd).toBe(0);
+
+    // Clamp a 0 lo aplica la RPC server-side via GREATEST(0, ...).
+    // El cliente solo pasa el delta tal cual.
+    expect(mockRpc).toHaveBeenCalledOnce();
+    const [, args] = mockRpc.mock.calls[0]!;
+    expect((args as { p_delta: number }).p_delta).toBe(-1.0);
   });
 
-  it("fail-loud con error en UPSERT", async () => {
-    mockMaybeSingle.mockResolvedValueOnce({
-      data: { spent_usd: "1.00" },
-      error: null,
-    });
-    mockUpsertResult.mockResolvedValueOnce({
+  it("fail-loud con error de RPC en adjustSpent", async () => {
+    mockRpcResult.mockResolvedValueOnce({
+      data: null,
       error: { message: "constraint chk_forja_budget_metrics violated" },
     });
     const client = makeClient();
