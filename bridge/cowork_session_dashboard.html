@@ -29,7 +29,7 @@
 
 <div class="grid">
   <div class="kpi" style="border-left-color:#3b82f6;">
-    <div class="v">0</div>
+    <div class="v">3</div>
     <div class="l">Sesiones totales</div>
   </div>
   <div class="kpi" style="border-left-color:#8b5cf6;">
@@ -37,18 +37,18 @@
     <div class="l">Ultimas 24h</div>
   </div>
   <div class="kpi" style="border-left-color:#06b6d4;">
-    <div class="v">0</div>
+    <div class="v">1</div>
     <div class="l">Ultimos 7 dias</div>
   </div>
   <div class="kpi" style="border-left-color:#ef4444;">
-    <div class="v">0%</div>
+    <div class="v">33%</div>
     <div class="l">Pre-flight Memento</div>
-    <div class="bar"><div style="width:0%; background:#ef4444;"></div></div>
+    <div class="bar"><div style="width:33%; background:#ef4444;"></div></div>
   </div>
-  <div class="kpi" style="border-left-color:#ef4444;">
-    <div class="v">0%</div>
+  <div class="kpi" style="border-left-color:#f59e0b;">
+    <div class="v">33%</div>
     <div class="l">Sesiones con commits</div>
-    <div class="bar"><div style="width:0%; background:#ef4444;"></div></div>
+    <div class="bar"><div style="width:33%; background:#f59e0b;"></div></div>
   </div>
   <div class="kpi" style="border-left-color:#f59e0b;">
     <div class="v">0</div>
@@ -57,6 +57,26 @@
 </div>
 
 
+            <div class="card">
+              <h2>Ultima sesion</h2>
+              <p><strong>ID:</strong> <code>c8b2b6e2-a650-4487-995c-8f0e76b3f8d4</code></p>
+              <p><strong>Sprint activo:</strong> EMBRION-DISPATCHER-FIX-001</p>
+              <p><strong>Fecha inicio:</strong> 2026-05-22T23:00:00+00:00</p>
+              <p><strong>Duracion:</strong> — min · <strong>Turnos:</strong> 0</p>
+              <p><strong>Pre-flight ejecutado:</strong>
+                 <span class="fail">
+                   NO
+                 </span>
+              </p>
+              <p><strong>Commits productivos:</strong> 0</p>
+              <p><strong>Violaciones detectadas:</strong> 0</p>
+              <p><strong>Kernel version:</strong> <code>—</code></p>
+              <p><strong>Embrion ultimo latido:</strong> <code>—</code></p>
+              <p><strong>Resumen lecciones:</strong> <em>Sesión 2026-05-22/23. Dos PRs mergeados bajo DSC-G-008 v2 (6/6 verde ambos). PR #195: bypass Self-Verifier para mensaje_alfredo en embrion_loop.py. PR #196: fix dispatcher loop — columns=&quot;id&quot; → &quot;id,created_at&quot; en _detect_trigger() L819. Root cause: string vacío &quot;&quot; nunca &gt; timestamp, already_responded nunca activado, bucle 12 días. Post-deploy validado binariamente por Manus E2: 20 cycles, 1 think, costo $0/h. Lección magna: falta de columna en select puede romper lógica comparativa silenciosamente. SMS endpoint muerto detectado: sms-production-ee6c.up.railway.app (404) — endpoint correcto es el-monstruo-kernel-production.up.railway.app/sms/sms/ingest.</em></p>
+              <p><strong>Correctivos recibidos:</strong><br><em>ninguno</em></p>
+              <p><strong>Deudas pendientes proxima sesion:</strong><br>Actualizar doctrina/skills que citen sms-production-ee6c.up.railway.app — dominio muerto, reemplazar con el-monstruo-kernel-production.up.railway.app/sms/sms/ingest<br>Sub-deuda embrion: añadir accion stand_by al action registry para cierre limpio post-rompe-bucle<br>EMBRION-DISPATCHER-FIX-001 Tareas 2/3 pendientes (consumed_at arquitectural fix) — baja prioridad por ahora<br>Cleanup respuesta_embrion previos del bucle de 12 dias para evitar ruido en recall — bug-debt baja prioridad<br>Revisar Quantum Realm genoma_core.yaml contra doctrina actual (sesion interrumpida antes de completar revision)</p>
+            </div>
+            
 
 <div class="card">
   <h2>Palabras clave correctivas de Alfredo (ultimos 7 dias)</h2>
@@ -75,12 +95,15 @@
         <th>Commits</th><th>Violaciones</th><th>Min</th>
       </tr>
     </thead>
-    <tbody><tr><td colspan='6'><em>Sin sesiones registradas</em></td></tr></tbody>
+    <tbody><tr><td>2026-05-22 23:00</td><td>EMBRION-DISPATCHER-FIX-001</td><td class='fail'>✗</td><td>0</td><td>0</td><td>—</td></tr>
+<tr><td>2026-05-12 01:00</td><td>COWORK-MEMORIA-AUTONOMA-001 (quick wins QW1+QW2+QW3 activables HOY sin sprint nuevo)</td><td class='ok'>✓</td><td>28</td><td>11</td><td>—</td></tr>
+<tr><td>2026-05-11 08:02</td><td>COWORK-RUNTIME-001</td><td class='fail'>✗</td><td>0</td><td>0</td><td>—</td></tr>
+</tbody>
   </table>
 </div>
 
 <div class="footer">
-  Generado: 2026-05-25 02:29 UTC · Fuente: <code>cowork_sesiones</code> (Supabase) ·
+  Generado: 2026-05-25 09:47 UTC · Fuente: <code>cowork_sesiones</code> (Supabase) ·
   Lookback: 30d ·
   Refs: M6 de <code>AUDITORIA_PROFUNDA_COMPORTAMIENTO_2026_05_11.md</code>
 </div>
