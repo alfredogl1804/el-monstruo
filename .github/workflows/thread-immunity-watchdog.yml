@@ -1,0 +1,81 @@
+name: Thread Immunity Watchdog
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verify-thread-immunity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run Thread Immunity Verify
+        id: verify
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          THREAD_IMMUNITY_TTL_HOURS: "6"
+        run: |
+          set +e
+          python3 scripts/thread_immunity/thread_immunity.py verify > thread_immunity_report.txt 2>&1
+          code=$?
+          cat thread_immunity_report.txt
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Open issue on drift
+        if: steps.verify.outputs.exit_code != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('thread_immunity_report.txt', 'utf8');
+            const title = 'THREAD-IMMUNITY-DRIFT — Hilo Manus sin cierre canonizado';
+            const { owner, repo } = context.repo;
+            const existing = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'open',
+              labels: 'thread-immunity-drift'
+            });
+            const issueBody = [
+              '## Drift detectado por Thread Immunity Watchdog',
+              '',
+              '```text',
+              body.slice(0, 6000),
+              '```',
+              '',
+              'Acción requerida:',
+              '- Revisar sesión sin CLOSE_CANONIZED.',
+              '- Ejecutar cierre o canonizar aprendizaje.',
+              '- No abrir otro hilo Manus sobre el mismo tema hasta resolver.'
+            ].join('\n');
+            if (existing.data.length > 0) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: existing.data[0].number,
+                body: issueBody
+              });
+            } else {
+              await github.rest.issues.create({
+                owner,
+                repo,
+                title,
+                body: issueBody,
+                labels: ['thread-immunity-drift', 'P1']
+              });
+            }
+            core.setFailed('THREAD_IMMUNITY_WATCHDOG_FAIL');

@@ -69,3 +69,9 @@ discovery_forense/SNAPSHOTS/*.gz
 # NO debe versionarse aquí (su trabajo vive en su propio repo y deploy).
 # Ref: H11 housekeeping (auditoría 17-may-2026)
 forja-mcp/
+
+# THREAD-IMMUNITY-GATE-v1: receipts locales runtime (no commitear)
+# Cada sesión escribe bridge/thread_immunity/<uuid>/startup_receipt.json en runtime.
+# Solo se commitea el .gitkeep para preservar el directorio.
+bridge/thread_immunity/*/
+!bridge/thread_immunity/.gitkeep

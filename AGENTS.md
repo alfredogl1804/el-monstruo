@@ -23,6 +23,58 @@ El output del script ES tu contexto. Contiene:
 Si dice HALT → pregunta al usuario.
 Si no puedes ejecutar código → di "Necesito ejecutar guardian.py para recuperar contexto".
 
+---
+
+## Regla Dura #0.1: THREAD-IMMUNITY-GATE-v1
+
+Después de `python3 ~/.monstruo/guardian.py`, ejecuta **obligatoriamente**:
+
+```bash
+python3 scripts/thread_immunity/thread_immunity.py start \
+  --thread-id manus_b \
+  --topic "${MONSTRUO_ACTIVE_TOPIC:-unknown}"
+```
+
+**NO declares** "hilo anclado", "reanclado", "listo", "puedo proceder" ni equivalente hasta que el comando imprima:
+
+```text
+THREAD_IMMUNITY_STARTUP_PASS
+```
+
+Guarda el valor impreso:
+
+```text
+THREAD_IMMUNITY_SESSION_ID=<uuid>
+```
+
+Antes de cerrar, compactar o terminar el hilo, ejecuta:
+
+```bash
+python3 scripts/thread_immunity/thread_immunity.py close \
+  --session-id "$THREAD_IMMUNITY_SESSION_ID" \
+  --thread-id manus_b \
+  --summary "<resumen operativo del hilo>" \
+  --canon "<lección crítica que debe sobrevivir al siguiente hilo, si aplica>"
+```
+
+Si no hay lección nueva, ejecuta `close` sin `--canon`, pero con `--summary`.
+
+Un hilo sin `CLOSE_CANONIZED` será reportado por GitHub Actions como:
+
+```text
+THREAD_IMMUNITY_WATCHDOG_FAIL
+```
+
+Tratamiento canónico:
+
+- Usuario: **Alfredo**.
+- No usar "don Alfredo".
+- Don Hugo es su papá.
+
+Ver `docs/THREAD_IMMUNITY_GATE_v1.md` para el contrato completo.
+
+---
+
 ## Capas adicionales de contexto (leer si existen):
 
 1. Si existe `~/EMERGENCIAS_DIGEST.md`, léelo — contiene alertas críticas.
