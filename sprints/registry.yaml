@@ -1,0 +1,574 @@
+# Sprint Registry — Fuente única de verdad
+# Generado por scripts/migrate_to_sprint_registry.py (Sprint 91.16)
+# Schema: ver sprints/REGISTRY_SCHEMA.md
+
+version: 1
+generated_at: '2026-05-26T15:13:16Z'
+schema_doc: sprints/REGISTRY_SCHEMA.md
+sprints:
+- id: '88'
+  title: Cierre v1.0 PRODUCTO COMERCIALIZABLE
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 1
+  - 6
+  - 14
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_88_cierre_v1_producto.md
+- id: '89'
+  title: 'Extensión Catastros: Suppliers Humanos + Herramientas AI Especializadas'
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 3
+  - 7
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_89_catastros_extension_suppliers_herramientas_ai.md
+- id: '90'
+  title: 'Stripe Checkout: Extraction a Paquete Reutilizable `@monstruo/checkout-stripe`'
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 6
+  - 7
+  - 11
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_90_checkout_stripe_package.md
+- id: CAPA_ADS_001
+  title: Publicidad y Campañas Universal
+  status: PROPOSED
+  paradigm: capa_transversal_comercial
+  objetivos_maestros:
+  - 1
+  - 3
+  - 9
+  capas_transversales:
+  - C3
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_CAPA_ADS_001_publicidad_y_campanas_universal.md
+  aliases:
+  - CAPA-ADS-001
+- id: CAPA_FINANZAS_001
+  title: Finanzas Universal
+  status: PROPOSED
+  paradigm: capa_transversal_comercial
+  objetivos_maestros:
+  - 1
+  - 6
+  - 9
+  capas_transversales:
+  - C6
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_CAPA_FINANZAS_001_finanzas_universal.md
+  aliases:
+  - CAPA-FINANZAS-001
+- id: CAPA_OPS_001
+  title: Administración y Operaciones Universal
+  status: PROPOSED
+  paradigm: capa_transversal_comercial
+  objetivos_maestros:
+  - 1
+  - 5
+  - 9
+  capas_transversales:
+  - C5
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_CAPA_OPS_001_administracion_operaciones_universal.md
+  aliases:
+  - CAPA-OPS-001
+- id: CAPA_SEO_001
+  title: SEO y Descubrimiento Universal
+  status: PROPOSED
+  paradigm: capa_transversal_comercial
+  objetivos_maestros:
+  - 1
+  - 2
+  - 9
+  capas_transversales:
+  - C2
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_CAPA_SEO_001_seo_descubrimiento_universal.md
+  aliases:
+  - CAPA-SEO-001
+- id: CAPA_TENDENCIAS_001
+  title: Tendencias y Adaptación Universal
+  status: PROPOSED
+  paradigm: capa_transversal_comercial
+  objetivos_maestros:
+  - 4
+  - 5
+  - 6
+  - 9
+  capas_transversales:
+  - C4
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_CAPA_TENDENCIAS_001_tendencias_y_adaptacion_universal.md
+  aliases:
+  - CAPA-TENDENCIAS-001
+- id: CAPA_VENTAS_001
+  title: Motor de Ventas Universal
+  status: PROPOSED
+  paradigm: capa_transversal_comercial
+  objetivos_maestros:
+  - 1
+  - 9
+  capas_transversales:
+  - C1
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_CAPA_VENTAS_001_motor_de_ventas_universal.md
+  aliases:
+  - CAPA-VENTAS-001
+- id: CATASTRO_A_INVESTIGACION_POBLAMIENTO
+  title: Catastro A Investigacion Poblamiento
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 1
+  - 4
+  - 7
+  - 11
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_catastro_A_investigacion_poblamiento.md
+  aliases:
+  - catastro_A_investigacion_poblamiento
+- id: CATASTRO_B_DESIGN_TOKENS_OAUTH_SKILL_BIBLIA_TEMPLATE
+  title: Catastro B Design Tokens Oauth Skill Biblia Template
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 5
+  - 7
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_catastro_B_design_tokens_oauth_skill_biblia_template.md
+  aliases:
+  - catastro_B_design_tokens_oauth_skill_biblia_template
+- id: COWORK_AUTO_DISCIPLINE_REAL_001
+  title: 'Mejora kernel REAL anti-F21 Cowork (combina mejoras #1+#2+#7)'
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 4
+  - 8
+  - 10
+  - 11
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_COWORK_AUTO_DISCIPLINE_REAL_001.md
+  pr_merged: 90
+  aliases:
+  - COWORK-AUTO-DISCIPLINE-REAL-001
+- id: CRUZ_001
+  title: Cruz 001 Draft
+  status: PROPOSED
+  paradigm: transversal
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_CRUZ_001_DRAFT.md
+  pr_merged: 118
+  aliases:
+  - CRUZ_001_DRAFT
+- id: MANUS_ANTI_DORY_003_INTRA_HILO
+  title: Manus-Anti-Dory-003 Intra Hilo Draft
+  status: PROPOSED
+  paradigm: transversal
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_MANUS-ANTI-DORY-003_intra_hilo_DRAFT.md
+  aliases:
+  - MANUS-ANTI-DORY-003_intra_hilo_DRAFT
+- id: MANUS_ANTI_DORY_003_V0_2
+  title: Manus-Anti-Dory-003 V0 2 Draft
+  status: PROPOSED
+  paradigm: transversal
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_MANUS-ANTI-DORY-003_v0_2_DRAFT.md
+  pr_merged: 170
+  aliases:
+  - MANUS-ANTI-DORY-003_v0_2_DRAFT
+- id: MEGA_CATASTRO_DRIFT_RESOLUTION_001
+  title: Resolución doctrinal magna 4 drifts críticos
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 4
+  - 5
+  - 14
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_MEGA_CATASTRO_DRIFT_RESOLUTION_001.md
+  aliases:
+  - MEGA-CATASTRO-DRIFT-RESOLUTION-001
+- id: MIGRATION_DRIFT_RESOLUTION_001
+  title: Cierre estructural drift DB↔repo + renumber forensic
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 4
+  - 5
+  - 11
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_MIGRATION_DRIFT_RESOLUTION_001.md
+  pr_merged: 100
+  aliases:
+  - MIGRATION-DRIFT-RESOLUTION-001
+- id: MIGRATION_DRIFT_RESOLUTION_001_V2_CHERRY_PICK
+  title: Migration Drift Resolution 001 V2 Cherry Pick
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 4
+  - 11
+  - 12
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_MIGRATION_DRIFT_RESOLUTION_001_v2_cherry_pick.md
+  pr_merged: 100
+  aliases:
+  - MIGRATION_DRIFT_RESOLUTION_001_v2_cherry_pick
+- id: MOBILE_1_ESQUELETO_FLUTTER
+  title: Mobile 1 Esqueleto Flutter
+  status: PROPOSED
+  paradigm: acto_2_calm_tech
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_mobile_1_esqueleto_flutter.md
+  aliases:
+  - mobile_1_esqueleto_flutter
+- id: MOBILE_2_MODO_DAILY_FASE1_STUBS
+  title: Mobile 2 Modo Daily Fase1 Stubs
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 6
+  - 9
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_mobile_2_modo_daily_fase1_stubs.md
+  pr_merged: 42
+  aliases:
+  - mobile_2_modo_daily_fase1_stubs
+- id: MOBILE_3_MODO_COCKPIT_FASE1
+  title: Mobile 3 Modo Cockpit Fase1
+  status: PROPOSED
+  paradigm: obsoleto_pendiente_decision
+  objetivos_maestros:
+  - 9
+  - 14
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_mobile_3_modo_cockpit_fase1.md
+  aliases:
+  - mobile_3_modo_cockpit_fase1
+- id: MOBILE_4_MODO_COCKPIT_FASE2
+  title: Mobile 4 Modo Cockpit Fase2
+  status: PROPOSED
+  paradigm: obsoleto_pendiente_decision
+  objetivos_maestros:
+  - 12
+  - 15
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_mobile_4_modo_cockpit_fase2.md
+  aliases:
+  - mobile_4_modo_cockpit_fase2
+- id: MOBILE_5_MODO_COCKPIT_FASE3
+  title: Mobile 5 Modo Cockpit Fase3
+  status: PROPOSED
+  paradigm: obsoleto_pendiente_decision
+  objetivos_maestros:
+  - 1
+  - 14
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_mobile_5_modo_cockpit_fase3.md
+  aliases:
+  - mobile_5_modo_cockpit_fase3
+- id: MOBILE_REALIGNMENT_001
+  title: Mobile Realignment 001
+  status: PROPOSED
+  paradigm: acto_2_calm_tech
+  objetivos_maestros:
+  - 2
+  - 3
+  - 6
+  - 14
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_mobile_REALIGNMENT_001.md
+  pr_merged: 92
+  aliases:
+  - mobile_REALIGNMENT_001
+- id: REMONTOIR_001
+  title: 'Constant Force Quality Floor (pieza magna #8 Reloj Suizo)'
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 2
+  - 11
+  - 12
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_REMONTOIR_001_constant_force_quality.md
+  aliases:
+  - REMONTOIR-001
+- id: REMONTOIR_001_V3_DECISOR_DINAMICO
+  title: Remontoir 001 V3 Decisor Dinamico
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 2
+  - 4
+  - 5
+  - 11
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_REMONTOIR_001_v3_decisor_dinamico.md
+  pr_merged: 116
+  aliases:
+  - REMONTOIR_001_v3_decisor_dinamico
+- id: RUBIES_001
+  title: 'Caché Semántica Expansión (pieza #7 Reloj Suizo CIERRA SIMBÓLICO 8/8)'
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 2
+  - 3
+  - 11
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_RUBIES_001_cache_semantica_expansion.md
+  pr_merged: 116
+  aliases:
+  - RUBIES-001
+- id: SPR_NIGHTLY_BUILDER_001
+  title: Construcción Autónoma Gobernada (Nightly Builder)
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 6
+  - 14
+  - 15
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_SPR-NIGHTLY-BUILDER-001_DRAFT.md
+  aliases:
+  - SPR-NIGHTLY-BUILDER-001
+- id: STACK_REFRESH_001
+  title: Vanguardia Perpetua
+  status: PROPOSED
+  paradigm: vanguardia_perpetua
+  objetivos_maestros:
+  - 5
+  - 6
+  - 14
+  capas_transversales:
+  - C7
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_STACK_REFRESH_001_vanguardia_perpetua.md
+  aliases:
+  - STACK-REFRESH-001
+- id: S_001
+  title: Security Hardening (post-incidente P0 credenciales)
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 4
+  - 11
+  - 14
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_S001_security_hardening.md
+  aliases:
+  - S-001
+- id: S_002_6
+  title: Hardening RLS (Continuación)
+  status: PROPOSED
+  paradigm: transversal
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_S002_6_rls_continuacion.md
+  aliases:
+  - S-002.6
+- id: VERIFICADOR_001
+  title: Verificador 001 Draft
+  status: PROPOSED
+  paradigm: transversal
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_VERIFICADOR_001_DRAFT.md
+  pr_merged: 118
+  aliases:
+  - VERIFICADOR_001_DRAFT
+- id: DORY_CURE_CONVERGED_001_V1_0_DRAFT_COWORK
+  title: Dory Cure Converged 001 V1 0 Draft Cowork
+  status: SIGNED
+  paradigm: acto_2_calm_tech
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_DORY_CURE_CONVERGED_001_v1_0_DRAFT_COWORK.md
+  pr_merged: 125
+  aliases:
+  - DORY_CURE_CONVERGED_001_v1_0_DRAFT_COWORK
+- id: DORY_CURE_CONVERGED_001_V1_1_1_DELTA_POST_3_SABIOS_COWORK
+  title: Dory Cure Converged 001 V1 1 1 Delta Post 3 Sabios Cowork
+  status: SIGNED
+  paradigm: transversal
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_DORY_CURE_CONVERGED_001_v1_1_1_DELTA_POST_3_SABIOS_COWORK.md
+  pr_merged: 9999
+  aliases:
+  - DORY_CURE_CONVERGED_001_v1_1_1_DELTA_POST_3_SABIOS_COWORK
+- id: DORY_CURE_CONVERGED_001_V1_1_RESHAPED_POST_GROK_COWORK
+  title: Dory Cure Converged 001 V1 1 Reshaped Post Grok Cowork
+  status: SIGNED
+  paradigm: transversal
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_DORY_CURE_CONVERGED_001_v1_1_RESHAPED_POST_GROK_COWORK.md
+  aliases:
+  - DORY_CURE_CONVERGED_001_v1_1_RESHAPED_POST_GROK_COWORK
+- id: CATASTRO_WIRING_001
+  title: Wiring real /v1/catastro/recommend ↔ Embrión Loop
+  status: COMPLETED
+  paradigm: transversal
+  priority: BACKLOG
+  path: bridge/sprints_completados/sprint_CATASTRO_WIRING_001_FIRMADO_2026_05_18.md
+  aliases:
+  - CATASTRO-WIRING-001
+- id: COWORK_MEMENTO_001
+  title: Claim calibration retrospectiva
+  status: COMPLETED
+  paradigm: transversal
+  priority: BACKLOG
+  path: bridge/sprints_completados/sprint_COWORK_MEMENTO_001.md
+  pr_merged: 118
+  aliases:
+  - COWORK-MEMENTO-001
+- id: D4_PROD_AUTH_001
+  title: Activar Google OAuth real en Railway producción
+  status: COMPLETED
+  paradigm: transversal
+  priority: BACKLOG
+  path: bridge/sprints_completados/sprint_D4_PROD_AUTH_001_FIRMADO_2026_05_18.md
+  aliases:
+  - D4-PROD-AUTH-001
+- id: D5_TUTOR_CLASSIFIER_ROBUSTNESS_001
+  title: FIRMADO
+  status: COMPLETED
+  paradigm: transversal
+  priority: BACKLOG
+  path: bridge/sprints_completados/sprint_D5_TUTOR_CLASSIFIER_ROBUSTNESS_001_FIRMADO_2026_05_18.md
+  pr_merged: 5
+  aliases:
+  - D5-TUTOR-CLASSIFIER-ROBUSTNESS-001
+- id: D6_CREDITS_RESTORE_001
+  title: FIRMADO
+  status: COMPLETED
+  paradigm: transversal
+  priority: BACKLOG
+  path: bridge/sprints_completados/sprint_D6_CREDITS_RESTORE_001_FIRMADO_2026_05_18.md
+  pr_merged: 169
+  aliases:
+  - D6-CREDITS-RESTORE-001
+- id: ESCAPE_001
+  title: Throttler Determinístico (pieza magna Reloj Suizo)
+  status: COMPLETED
+  paradigm: transversal
+  objetivos_maestros:
+  - 4
+  - 8
+  - 11
+  priority: BACKLOG
+  path: bridge/sprints_completados/sprint_ESCAPE_001_throttler_deterministico.md
+  pr_merged: 114
+  aliases:
+  - ESCAPE-001
+- id: ESPIRAL_001
+  title: 'Homeostasis Dinámica (pieza magna #5 Reloj Suizo)'
+  status: COMPLETED
+  paradigm: transversal
+  objetivos_maestros:
+  - 2
+  - 4
+  - 11
+  priority: BACKLOG
+  path: bridge/sprints_completados/sprint_ESPIRAL_001_homeostasis_dinamica.md
+  pr_merged: 113
+  aliases:
+  - ESPIRAL-001
+- id: GUARDIAN_AUTONOMO_001
+  title: Activación del Guardián de los Objetivos
+  status: COMPLETED
+  paradigm: transversal
+  objetivos_maestros:
+  - 4
+  - 6
+  - 14
+  - 15
+  priority: BACKLOG
+  path: bridge/sprints_completados/sprint_GUARDIAN_AUTONOMO_001_activacion.md
+  pr_merged: 90
+  aliases:
+  - GUARDIAN-AUTONOMO-001
+- id: LA_FORJA_001
+  title: La Forja 001 V3 1
+  status: COMPLETED
+  paradigm: transversal
+  objetivos_maestros:
+  - 1
+  - 15
+  priority: BACKLOG
+  path: bridge/sprints_completados/sprint_LA_FORJA_001_v3_1.md
+  aliases:
+  - LA_FORJA_001_v3_1
+- id: MANUS_ANTI_DORY_002
+  title: MANUS-ANTI-DORY-002
+  status: COMPLETED
+  paradigm: transversal
+  priority: BACKLOG
+  path: bridge/sprints_completados/sprint_MANUS_ANTI_DORY_002_v1.md
+  pr_merged: 118
+  aliases:
+  - MANUS-ANTI-DORY-002
+  - MANUS_ANTI_DORY_002_v1
+- id: PAR_BICEFALO_001
+  title: Brand Engine como segundo embrión
+  status: COMPLETED
+  paradigm: transversal
+  priority: BACKLOG
+  path: bridge/sprints_completados/sprint_PAR_BICEFALO_001_brand_engine_spec_2026_05_11.md
+  pr_merged: 101
+- id: ROTOR_001
+  title: Reporte de Cierre
+  status: COMPLETED
+  paradigm: transversal
+  objetivos_maestros:
+  - 8
+  - 11
+  - 15
+  priority: BACKLOG
+  path: bridge/sprints_completados/sprint_ROTOR_001_cierre.md
+  pr_merged: 112
+  aliases:
+  - ROTOR-001
+- id: S_CONTRATOS_001
+  title: Traducción de DSCs aspiracionales a contratos ejecutables
+  status: COMPLETED
+  paradigm: transversal
+  objetivos_maestros:
+  - 4
+  - 8
+  - 9
+  - 11
+  - 14
+  priority: BACKLOG
+  path: bridge/sprints_completados/sprint_S-CONTRATOS-001_dscs_aspiracionales_a_contratos.md
+  aliases:
+  - S-CONTRATOS-001
+- id: S_EMBRION_009
+  title: '`consumed_at` + Silencio Pre-LLM'
+  status: COMPLETED
+  paradigm: transversal
+  objetivos_maestros:
+  - 3
+  - 4
+  - 12
+  priority: BACKLOG
+  path: bridge/sprints_completados/sprint_S-EMBRION-009_consumed_at_pre_llm_silence.md
+  pr_merged: 136
+  aliases:
+  - S-EMBRION-009
+- id: TRANSVERSAL_001
+  title: 'Capas Transversales: implement() + monitor() reales'
+  status: COMPLETED
+  paradigm: transversal
+  objetivos_maestros:
+  - 2
+  - 9
+  - 11
+  - 15
+  priority: BACKLOG
+  path: bridge/sprints_completados/sprint_TRANSVERSAL_001_capas_implement_monitor.md
+  aliases:
+  - TRANSVERSAL-001
