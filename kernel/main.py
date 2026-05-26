@@ -1876,6 +1876,15 @@ except Exception as e:
     logger.warning("event_bus_mount_failed", error=str(e))
 
 
+# ── Genome Vivo /v1/genome/now (Sprint 91 F5) ─────────────────────
+try:
+    from kernel.genome_now_routes import genome_now_router
+    app.include_router(genome_now_router, prefix="/v1/genome")
+    logger.info("genome_now_mounted", path="/v1/genome/now", endpoints=2)
+except Exception as e:
+    logger.warning("genome_now_mount_failed", error=str(e))
+
+
 # ── Request/Response Models ─────────────────────────────────────────
 
 

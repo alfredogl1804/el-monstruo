@@ -50,7 +50,15 @@
 - coverage_match: True
 - HALLAZGO: 14 servicios Railway con drift > 7 días — base de evidencia para auditoría binaria futura.
 
-### F5 — Aggregator + endpoint /v1/genome/now ⏳ PENDIENTE
+### F5 — Aggregator + endpoint /v1/genome/now ✅ CERRADO
+- Ejecutado: 2026-05-26 09:46 UTC
+- Output: `_genome_out/genome_now.json` (361 KB)
+- meta.binario_100: True
+- Endpoint montado: GET /v1/genome/now (kernel/genome_now_routes.py)
+- Endpoint health: GET /v1/genome/now/health
+- include_router agregado en kernel/main.py línea 1879-1885
+- Sintaxis main.py validada
+- Pendiente: deploy en Railway (siguiente push activa autodeploy)
 
 ### F6 — Validación cruzada ⏳ PENDIENTE
 
