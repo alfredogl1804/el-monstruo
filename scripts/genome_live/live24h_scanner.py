@@ -81,17 +81,30 @@ def scan() -> dict[str, Any]:
     sb = load_json("supabase.json") or {}
 
     # 1. Commits recientes (≤24h) por repo
+    # Sprint 91.6 hotfix — contrato correcto: el github_scanner produce
+    # repo["branches"][i]["last_commit"], NO repo["last_commit"].
     print("  github commits 24h...", flush=True)
     gh_recent = []
+    seen_shas: set[str] = set()
     for repo in gh.get("repos", []):
-        last_commit = repo.get("last_commit") or {}
-        ts = parse_iso(last_commit.get("date"))
-        if ts and ts >= T24H:
+        repo_full = repo.get("full_name") or repo.get("name")
+        for branch in repo.get("branches", []) or []:
+            last_commit = branch.get("last_commit") or {}
+            sha = last_commit.get("sha")
+            ts = parse_iso(last_commit.get("date"))
+            if not (ts and ts >= T24H):
+                continue
+            # Deduplicar por sha (mismo commit en múltiples branches del mismo repo)
+            dedup_key = f"{repo_full}:{sha}" if sha else None
+            if dedup_key and dedup_key in seen_shas:
+                continue
+            if dedup_key:
+                seen_shas.add(dedup_key)
             gh_recent.append(
                 {
-                    "repo": repo.get("full_name") or repo.get("name"),
-                    "branch": last_commit.get("branch") or repo.get("default_branch"),
-                    "sha": last_commit.get("sha"),
+                    "repo": repo_full,
+                    "branch": branch.get("name") or repo.get("default_branch"),
+                    "sha": sha,
                     "message": (last_commit.get("message") or "")[:200],
                     "date": last_commit.get("date"),
                     "author": last_commit.get("author"),
