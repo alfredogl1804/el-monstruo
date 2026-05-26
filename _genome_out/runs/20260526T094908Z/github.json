@@ -1,8 +1,8 @@
 {
   "scanner": "github",
   "version": 1,
-  "started_at": "2026-05-26T09:58:03.899604+00:00",
-  "finished_at": "2026-05-26T10:05:52.703073+00:00",
+  "started_at": "2026-05-26T09:49:08.734867+00:00",
+  "finished_at": "2026-05-26T09:57:04.100173+00:00",
   "user": "alfredogl1804",
   "expected_total": 102,
   "got_total": 103,
@@ -829,14 +829,6 @@
       "open_issues_count": 1,
       "recent_workflow_runs": [
         {
-          "name": "Embrión · Cost History Dashboard",
-          "status": "completed",
-          "conclusion": "success",
-          "head_branch": "main",
-          "head_sha": "be00a39",
-          "updated_at": "2026-05-26T09:58:23Z"
-        },
-        {
           "name": "cowork-sessions-dashboard",
           "status": "completed",
           "conclusion": "success",
@@ -907,6 +899,14 @@
           "head_branch": "main",
           "head_sha": "bb6d1c0",
           "updated_at": "2026-05-26T07:48:33Z"
+        },
+        {
+          "name": "CI — El Monstruo Kernel",
+          "status": "completed",
+          "conclusion": "failure",
+          "head_branch": "main",
+          "head_sha": "bb6d1c0",
+          "updated_at": "2026-05-26T07:49:15Z"
         }
       ],
       "files_present": {

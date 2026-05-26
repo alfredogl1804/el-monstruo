@@ -1,7 +1,7 @@
 {
   "scanner": "supabase",
   "version": 1,
-  "started_at": "2026-05-26T10:05:53.237495+00:00",
+  "started_at": "2026-05-26T09:57:05.850961+00:00",
   "schemas": [
     "auth",
     "crisis",
@@ -840,7 +840,7 @@
       "table_name": "checkpoint_writes",
       "table_type": "BASE TABLE",
       "columns_count": 9,
-      "row_estimate": 601523
+      "row_estimate": 546751
     },
     {
       "table_schema": "public",
@@ -1953,7 +1953,7 @@
       "table_name": "subscription",
       "table_type": "BASE TABLE",
       "columns_count": 8,
-      "row_estimate": 2
+      "row_estimate": 3
     },
     {
       "table_schema": "storage",
@@ -4491,6 +4491,6 @@
   "migrations_count": 26,
   "indexes_count": 892,
   "triggers_count": 42,
-  "finished_at": "2026-05-26T10:06:02.500752+00:00",
+  "finished_at": "2026-05-26T09:57:12.514494+00:00",
   "coverage_match": true
 }

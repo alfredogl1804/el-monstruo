@@ -1,0 +1,32 @@
+{
+  "ts": "20260526T095803Z",
+  "started_at": "2026-05-26T09:58:03.784295+00:00",
+  "finished_at": "2026-05-26T10:06:03.214419+00:00",
+  "duration_seconds": 479.430124,
+  "previous_run": "20260526T094908Z",
+  "scanner_results": {
+    "github": {
+      "ok": true,
+      "tail": "  match   : True\n    output  : /Users/alfredogongora/el-monstruo/_genome_out/github.json\n    size    : 172,953 bytes"
+    },
+    "railway": {
+      "ok": true,
+      "tail": "  coverage_match     : True\n    output             : /Users/alfredogongora/el-monstruo/_genome_out/railway.json\n    size               : 30,110 bytes"
+    },
+    "supabase": {
+      "ok": true,
+      "tail": "  coverage_match : True\n    output         : /Users/alfredogongora/el-monstruo/_genome_out/supabase.json\n    size           : 120,990 bytes"
+    },
+    "live24h": {
+      "ok": true,
+      "tail": "  coverage_match        : True\n    output                : /Users/alfredogongora/el-monstruo/_genome_out/live24h.json\n    size                  : 11,961 bytes"
+    },
+    "aggregator": {
+      "ok": true,
+      "tail": "  cross_findings     : 1\n    output             : /Users/alfredogongora/el-monstruo/_genome_out/genome_now.json\n    size               : 359,421 bytes"
+    }
+  },
+  "binario_100": true,
+  "diff_vs_previous": {},
+  "diff_count": 0
+}

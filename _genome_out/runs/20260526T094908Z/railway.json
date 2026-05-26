@@ -1,8 +1,8 @@
 {
   "scanner": "railway",
   "version": 1,
-  "started_at": "2026-05-26T10:05:52.844589+00:00",
-  "finished_at": "2026-05-26T10:05:53.198281+00:00",
+  "started_at": "2026-05-26T09:57:04.260810+00:00",
+  "finished_at": "2026-05-26T09:57:05.801744+00:00",
   "user": {
     "id": "1ad0d22b-6552-465a-8ca8-6c832f7406cd",
     "name": null,
@@ -258,11 +258,11 @@
                   "id": "059e3355-cdb0-4a0b-9539-11420a4c040b",
                   "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
                   "deploy": {
-                    "id": "795b0b14-23a2-4ea2-b429-49d4d95ca5f7",
+                    "id": "75c8ecb1-f043-459d-ba93-d91318a71ffd",
                     "status": "SUCCESS",
-                    "created_at": "2026-05-26T09:58:21.842Z",
-                    "commit_hash": "7d77555fd4f0cce970641c3645ba930641405c66",
-                    "commit_message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+                    "created_at": "2026-05-26T09:35:22.779Z",
+                    "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+                    "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
                     "branch": "main",
                     "repo": "alfredogl1804/el-monstruo"
                   },
@@ -349,11 +349,11 @@
                   "id": "4cfc7c0b-b068-4a4f-8d69-7838d7198ba4",
                   "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
                   "deploy": {
-                    "id": "4360ff4e-faf0-4288-9bde-b95689b2bc98",
+                    "id": "b145d2e5-505c-4408-a713-a2a89cff4bba",
                     "status": "SUCCESS",
-                    "created_at": "2026-05-26T09:58:22.219Z",
-                    "commit_hash": "7d77555fd4f0cce970641c3645ba930641405c66",
-                    "commit_message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+                    "created_at": "2026-05-26T09:35:23.226Z",
+                    "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+                    "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
                     "branch": "main",
                     "repo": "alfredogl1804/el-monstruo"
                   },
@@ -471,11 +471,11 @@
                   "id": "2ccc2f1d-6b9b-4cd9-8699-88f776631f8e",
                   "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
                   "deploy": {
-                    "id": "f86d378b-5a05-4f43-aa14-7219b34c33a7",
+                    "id": "a4fbe0a9-67a6-4d5c-be03-f5922353365f",
                     "status": "SUCCESS",
-                    "created_at": "2026-05-26T09:58:22.136Z",
-                    "commit_hash": "7d77555fd4f0cce970641c3645ba930641405c66",
-                    "commit_message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+                    "created_at": "2026-05-26T09:35:23.147Z",
+                    "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+                    "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
                     "branch": "main",
                     "repo": "alfredogl1804/el-monstruo"
                   },
@@ -560,11 +560,11 @@
                   "id": "671726b5-181b-4da1-afe5-30bbab738ed8",
                   "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
                   "deploy": {
-                    "id": "5fb9a7ef-bc55-4220-ac2c-bbfeb4f24e61",
+                    "id": "b2f957ac-64a5-4a02-a306-08c254474866",
                     "status": "SUCCESS",
-                    "created_at": "2026-05-26T09:58:22.061Z",
-                    "commit_hash": "7d77555fd4f0cce970641c3645ba930641405c66",
-                    "commit_message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+                    "created_at": "2026-05-26T09:35:23.075Z",
+                    "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+                    "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
                     "branch": "main",
                     "repo": "alfredogl1804/el-monstruo"
                   },
@@ -589,11 +589,11 @@
                   "id": "8abd0870-60b6-4f80-b59d-0855a37d8a13",
                   "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
                   "deploy": {
-                    "id": "83f753b0-56e0-44d5-8d09-2b199da12af2",
+                    "id": "a7a812ab-4c1b-4fba-8d7d-df8fc40ed3dd",
                     "status": "SUCCESS",
-                    "created_at": "2026-05-26T09:58:21.958Z",
-                    "commit_hash": "7d77555fd4f0cce970641c3645ba930641405c66",
-                    "commit_message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+                    "created_at": "2026-05-26T09:35:22.993Z",
+                    "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+                    "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
                     "branch": "main",
                     "repo": "alfredogl1804/el-monstruo"
                   },

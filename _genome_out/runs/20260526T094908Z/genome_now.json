@@ -1,7 +1,7 @@
 {
   "version": 1,
   "meta": {
-    "generated_at": "2026-05-26T10:06:03.204555+00:00",
+    "generated_at": "2026-05-26T09:57:13.208057+00:00",
     "generated_by": "scripts/genome_live/aggregator.py",
     "binario_100": true,
     "sprint": "Sprint 91 — Mapa Vivo 100% del Monstruo",
@@ -12,7 +12,7 @@
       "repos_total": 0,
       "expected_total": 0,
       "match": true,
-      "scanned_at": "2026-05-26T10:05:52.703073+00:00"
+      "scanned_at": "2026-05-26T09:57:04.100173+00:00"
     },
     "railway": {
       "workspaces": 1,
@@ -20,7 +20,7 @@
       "total_services": 19,
       "expected_services": 19,
       "match": true,
-      "scanned_at": "2026-05-26T10:05:53.198281+00:00"
+      "scanned_at": "2026-05-26T09:57:05.801744+00:00"
     },
     "supabase": {
       "schemas": 17,
@@ -32,7 +32,7 @@
       "indexes": 892,
       "triggers": 42,
       "match": true,
-      "scanned_at": "2026-05-26T10:06:02.500752+00:00"
+      "scanned_at": "2026-05-26T09:57:12.514494+00:00"
     },
     "live24h": {
       "github_commits_24h": 0,
@@ -41,7 +41,7 @@
       "drift_over_7d": 14,
       "kernel_health": "healthy",
       "match": true,
-      "scanned_at": "2026-05-26T10:06:03.164711+00:00"
+      "scanned_at": "2026-05-26T09:57:13.164272+00:00"
     }
   },
   "cross_validation": {
@@ -64,8 +64,8 @@
   "github": {
     "scanner": "github",
     "version": 1,
-    "started_at": "2026-05-26T09:58:03.899604+00:00",
-    "finished_at": "2026-05-26T10:05:52.703073+00:00",
+    "started_at": "2026-05-26T09:49:08.734867+00:00",
+    "finished_at": "2026-05-26T09:57:04.100173+00:00",
     "user": "alfredogl1804",
     "expected_total": 102,
     "got_total": 103,
@@ -892,14 +892,6 @@
         "open_issues_count": 1,
         "recent_workflow_runs": [
           {
-            "name": "Embrión · Cost History Dashboard",
-            "status": "completed",
-            "conclusion": "success",
-            "head_branch": "main",
-            "head_sha": "be00a39",
-            "updated_at": "2026-05-26T09:58:23Z"
-          },
-          {
             "name": "cowork-sessions-dashboard",
             "status": "completed",
             "conclusion": "success",
@@ -970,6 +962,14 @@
             "head_branch": "main",
             "head_sha": "bb6d1c0",
             "updated_at": "2026-05-26T07:48:33Z"
+          },
+          {
+            "name": "CI — El Monstruo Kernel",
+            "status": "completed",
+            "conclusion": "failure",
+            "head_branch": "main",
+            "head_sha": "bb6d1c0",
+            "updated_at": "2026-05-26T07:49:15Z"
           }
         ],
         "files_present": {
@@ -5356,8 +5356,8 @@
   "railway": {
     "scanner": "railway",
     "version": 1,
-    "started_at": "2026-05-26T10:05:52.844589+00:00",
-    "finished_at": "2026-05-26T10:05:53.198281+00:00",
+    "started_at": "2026-05-26T09:57:04.260810+00:00",
+    "finished_at": "2026-05-26T09:57:05.801744+00:00",
     "user": {
       "id": "1ad0d22b-6552-465a-8ca8-6c832f7406cd",
       "name": null,
@@ -5613,11 +5613,11 @@
                     "id": "059e3355-cdb0-4a0b-9539-11420a4c040b",
                     "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
                     "deploy": {
-                      "id": "795b0b14-23a2-4ea2-b429-49d4d95ca5f7",
+                      "id": "75c8ecb1-f043-459d-ba93-d91318a71ffd",
                       "status": "SUCCESS",
-                      "created_at": "2026-05-26T09:58:21.842Z",
-                      "commit_hash": "7d77555fd4f0cce970641c3645ba930641405c66",
-                      "commit_message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+                      "created_at": "2026-05-26T09:35:22.779Z",
+                      "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+                      "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
                       "branch": "main",
                       "repo": "alfredogl1804/el-monstruo"
                     },
@@ -5704,11 +5704,11 @@
                     "id": "4cfc7c0b-b068-4a4f-8d69-7838d7198ba4",
                     "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
                     "deploy": {
-                      "id": "4360ff4e-faf0-4288-9bde-b95689b2bc98",
+                      "id": "b145d2e5-505c-4408-a713-a2a89cff4bba",
                       "status": "SUCCESS",
-                      "created_at": "2026-05-26T09:58:22.219Z",
-                      "commit_hash": "7d77555fd4f0cce970641c3645ba930641405c66",
-                      "commit_message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+                      "created_at": "2026-05-26T09:35:23.226Z",
+                      "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+                      "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
                       "branch": "main",
                       "repo": "alfredogl1804/el-monstruo"
                     },
@@ -5826,11 +5826,11 @@
                     "id": "2ccc2f1d-6b9b-4cd9-8699-88f776631f8e",
                     "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
                     "deploy": {
-                      "id": "f86d378b-5a05-4f43-aa14-7219b34c33a7",
+                      "id": "a4fbe0a9-67a6-4d5c-be03-f5922353365f",
                       "status": "SUCCESS",
-                      "created_at": "2026-05-26T09:58:22.136Z",
-                      "commit_hash": "7d77555fd4f0cce970641c3645ba930641405c66",
-                      "commit_message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+                      "created_at": "2026-05-26T09:35:23.147Z",
+                      "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+                      "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
                       "branch": "main",
                       "repo": "alfredogl1804/el-monstruo"
                     },
@@ -5915,11 +5915,11 @@
                     "id": "671726b5-181b-4da1-afe5-30bbab738ed8",
                     "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
                     "deploy": {
-                      "id": "5fb9a7ef-bc55-4220-ac2c-bbfeb4f24e61",
+                      "id": "b2f957ac-64a5-4a02-a306-08c254474866",
                       "status": "SUCCESS",
-                      "created_at": "2026-05-26T09:58:22.061Z",
-                      "commit_hash": "7d77555fd4f0cce970641c3645ba930641405c66",
-                      "commit_message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+                      "created_at": "2026-05-26T09:35:23.075Z",
+                      "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+                      "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
                       "branch": "main",
                       "repo": "alfredogl1804/el-monstruo"
                     },
@@ -5944,11 +5944,11 @@
                     "id": "8abd0870-60b6-4f80-b59d-0855a37d8a13",
                     "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
                     "deploy": {
-                      "id": "83f753b0-56e0-44d5-8d09-2b199da12af2",
+                      "id": "a7a812ab-4c1b-4fba-8d7d-df8fc40ed3dd",
                       "status": "SUCCESS",
-                      "created_at": "2026-05-26T09:58:21.958Z",
-                      "commit_hash": "7d77555fd4f0cce970641c3645ba930641405c66",
-                      "commit_message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+                      "created_at": "2026-05-26T09:35:22.993Z",
+                      "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+                      "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
                       "branch": "main",
                       "repo": "alfredogl1804/el-monstruo"
                     },
@@ -6118,7 +6118,7 @@
   "supabase": {
     "scanner": "supabase",
     "version": 1,
-    "started_at": "2026-05-26T10:05:53.237495+00:00",
+    "started_at": "2026-05-26T09:57:05.850961+00:00",
     "schemas": [
       "auth",
       "crisis",
@@ -6957,7 +6957,7 @@
         "table_name": "checkpoint_writes",
         "table_type": "BASE TABLE",
         "columns_count": 9,
-        "row_estimate": 601523
+        "row_estimate": 546751
       },
       {
         "table_schema": "public",
@@ -8070,7 +8070,7 @@
         "table_name": "subscription",
         "table_type": "BASE TABLE",
         "columns_count": 8,
-        "row_estimate": 2
+        "row_estimate": 3
       },
       {
         "table_schema": "storage",
@@ -10608,18 +10608,18 @@
     "migrations_count": 26,
     "indexes_count": 892,
     "triggers_count": 42,
-    "finished_at": "2026-05-26T10:06:02.500752+00:00",
+    "finished_at": "2026-05-26T09:57:12.514494+00:00",
     "coverage_match": true
   },
   "live24h": {
     "scanner": "live24h",
     "version": 1,
-    "started_at": "2026-05-26T10:06:02.578328+00:00",
-    "finished_at": "2026-05-26T10:06:03.164711+00:00",
+    "started_at": "2026-05-26T09:57:12.601545+00:00",
+    "finished_at": "2026-05-26T09:57:13.164272+00:00",
     "window": {
-      "now_utc": "2026-05-26T10:06:02.578328+00:00",
-      "since_24h": "2026-05-25T10:06:02.578328+00:00",
-      "since_7d": "2026-05-19T10:06:02.578328+00:00"
+      "now_utc": "2026-05-26T09:57:12.601545+00:00",
+      "since_24h": "2026-05-25T09:57:12.601545+00:00",
+      "since_7d": "2026-05-19T09:57:12.601545+00:00"
     },
     "github_commits_24h": [],
     "github_commits_24h_count": 0,
@@ -10629,55 +10629,55 @@
         "service": "el-monstruo",
         "service_id": "68cd07f3-5518-4b62-a9da-5ca054dc2437",
         "status": "SUCCESS",
-        "commit_hash": "7d77555fd4f0cce970641c3645ba930641405c66",
-        "commit_message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+        "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+        "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
         "branch": "main",
         "repo": "alfredogl1804/el-monstruo",
-        "deployed_at": "2026-05-26T09:58:22.219Z"
+        "deployed_at": "2026-05-26T09:35:23.226Z"
       },
       {
         "project": "celebrated-achievement",
         "service": "la-forja-api",
         "service_id": "bcdfddc2-dd04-4676-8de7-88b503b3de0b",
         "status": "SUCCESS",
-        "commit_hash": "7d77555fd4f0cce970641c3645ba930641405c66",
-        "commit_message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+        "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+        "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
         "branch": "main",
         "repo": "alfredogl1804/el-monstruo",
-        "deployed_at": "2026-05-26T09:58:22.136Z"
+        "deployed_at": "2026-05-26T09:35:23.147Z"
       },
       {
         "project": "celebrated-achievement",
         "service": "sms-rem-cycle",
         "service_id": "e00abeef-b69b-445d-8659-88ecb201e55c",
         "status": "SUCCESS",
-        "commit_hash": "7d77555fd4f0cce970641c3645ba930641405c66",
-        "commit_message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+        "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+        "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
         "branch": "main",
         "repo": "alfredogl1804/el-monstruo",
-        "deployed_at": "2026-05-26T09:58:22.061Z"
+        "deployed_at": "2026-05-26T09:35:23.075Z"
       },
       {
         "project": "celebrated-achievement",
         "service": "ag-ui-gateway",
         "service_id": "fa0a0162-a206-4ef5-bb8d-1f9c01bf4f33",
         "status": "SUCCESS",
-        "commit_hash": "7d77555fd4f0cce970641c3645ba930641405c66",
-        "commit_message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+        "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+        "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
         "branch": "main",
         "repo": "alfredogl1804/el-monstruo",
-        "deployed_at": "2026-05-26T09:58:21.958Z"
+        "deployed_at": "2026-05-26T09:35:22.993Z"
       },
       {
         "project": "celebrated-achievement",
         "service": "el-monstruo-kernel",
         "service_id": "46b0f118-6f9b-407a-af53-a2545a955fa7",
         "status": "SUCCESS",
-        "commit_hash": "7d77555fd4f0cce970641c3645ba930641405c66",
-        "commit_message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+        "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+        "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
         "branch": "main",
         "repo": "alfredogl1804/el-monstruo",
-        "deployed_at": "2026-05-26T09:58:21.842Z"
+        "deployed_at": "2026-05-26T09:35:22.779Z"
       }
     ],
     "railway_deploys_24h_count": 5,
@@ -10863,7 +10863,7 @@
       "status": "healthy",
       "version": "0.84.8-sprint-memento",
       "motor": "langgraph",
-      "uptime_seconds": 404,
+      "uptime_seconds": 1250,
       "models_available": [
         "gpt-5.5",
         "claude-opus-4-7",
@@ -10893,9 +10893,9 @@
           "think_cooldown_s": 300,
           "thoughts_today": 0,
           "max_thoughts_per_day": 50,
-          "cost_today_usd": 0.06,
+          "cost_today_usd": 0.19,
           "daily_budget_usd": 30.0,
-          "cycle_count": 6,
+          "cycle_count": 19,
           "last_thought_at": null,
           "last_trigger": {
             "type": "reflexion_autonoma",
@@ -10905,10 +10905,64 @@
           "last_result": "_think returned None",
           "errors": [
             {
-              "cycle": 1,
+              "cycle": 2,
               "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
               "type": "RuntimeError",
-              "ts": "2026-05-26T09:59:50.281199+00:00"
+              "ts": "2026-05-26T09:38:01.393041+00:00"
+            },
+            {
+              "cycle": 3,
+              "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+              "type": "RuntimeError",
+              "ts": "2026-05-26T09:39:08.072061+00:00"
+            },
+            {
+              "cycle": 4,
+              "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+              "type": "RuntimeError",
+              "ts": "2026-05-26T09:40:14.896004+00:00"
+            },
+            {
+              "cycle": 5,
+              "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+              "type": "RuntimeError",
+              "ts": "2026-05-26T09:41:21.696852+00:00"
+            },
+            {
+              "cycle": 6,
+              "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+              "type": "RuntimeError",
+              "ts": "2026-05-26T09:42:30.819641+00:00"
+            },
+            {
+              "cycle": 7,
+              "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+              "type": "RuntimeError",
+              "ts": "2026-05-26T09:43:37.599561+00:00"
+            },
+            {
+              "cycle": 8,
+              "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+              "type": "RuntimeError",
+              "ts": "2026-05-26T09:44:44.165565+00:00"
+            },
+            {
+              "cycle": 9,
+              "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+              "type": "RuntimeError",
+              "ts": "2026-05-26T09:45:51.224196+00:00"
+            },
+            {
+              "cycle": 10,
+              "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+              "type": "RuntimeError",
+              "ts": "2026-05-26T09:46:58.318869+00:00"
+            },
+            {
+              "cycle": 11,
+              "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+              "type": "RuntimeError",
+              "ts": "2026-05-26T09:48:07.841274+00:00"
             }
           ],
           "silence": {
@@ -10919,19 +10973,19 @@
           },
           "consolidation": {
             "interval": 10,
-            "latidos_since": 6,
+            "latidos_since": 9,
             "total_consolidations": 0,
             "last_at": null
           },
           "sabios": {
             "interval": 20,
-            "cycles_since": 6,
+            "cycles_since": 19,
             "total_consultations": 0,
             "last_at": null
           },
           "radar": {
             "interval": 48,
-            "cycles_since": 6,
+            "cycles_since": 19,
             "total_checks": 0,
             "last_at": null
           },
