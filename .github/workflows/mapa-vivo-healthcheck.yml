@@ -1,0 +1,177 @@
+name: Mapa Vivo Healthcheck (Sprint 91.9-B)
+
+# Verifica cada 6 horas que /v1/genome/now en producción reporta:
+#   - HTTP 200
+#   - meta.binario_100 == true
+#   - generated_at reciente (< 24h)
+#
+# Si algo falla, abre/actualiza un GitHub issue. NO usa MONSTRUO_API_KEY
+# (solo GET público al endpoint, sin refresh).
+#
+# El refresh real lo dispara el scheduler interno del kernel
+# (kernel/genome_refresh_scheduler.py) cada 6h.
+# Este workflow es la red de seguridad externa: si el scheduler interno
+# muere, este healthcheck lo detecta.
+
+on:
+  schedule:
+    - cron: '15 */6 * * *'  # Cada 6h en :15 (offset del scheduler interno).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  healthcheck:
+    name: Verificar /v1/genome/now
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Curl al endpoint
+        id: probe
+        run: |
+          set +e
+          HTTP_CODE=$(curl -sS -o /tmp/genome_now.json -w "%{http_code}" \
+            "https://el-monstruo-kernel-production.up.railway.app/v1/genome/now/health")
+          echo "http_code=$HTTP_CODE" >> $GITHUB_OUTPUT
+          echo "HTTP code: $HTTP_CODE"
+          if [ -f /tmp/genome_now.json ]; then
+            echo "----- Response -----"
+            cat /tmp/genome_now.json
+            echo ""
+          fi
+
+      - name: Validar payload
+        id: validate
+        run: |
+          python3 - <<'EOF' >> $GITHUB_OUTPUT
+          import json, sys, os
+          from datetime import datetime, timezone, timedelta
+          
+          ok = True
+          reasons = []
+          
+          try:
+              data = json.load(open("/tmp/genome_now.json"))
+          except Exception as e:
+              print(f"healthy=false")
+              print(f"reason=cannot_parse_response: {e}")
+              sys.exit(0)
+          
+          if not data.get("ok"):
+              ok = False
+              reasons.append("ok=false")
+          
+          if not data.get("binario_100"):
+              ok = False
+              reasons.append(f"binario_100={data.get('binario_100')}")
+          
+          gen_at = data.get("generated_at")
+          if gen_at:
+              try:
+                  gen_dt = datetime.fromisoformat(gen_at.replace("Z", "+00:00"))
+                  age_h = (datetime.now(timezone.utc) - gen_dt).total_seconds() / 3600
+                  if age_h > 24:
+                      ok = False
+                      reasons.append(f"snapshot_stale_{age_h:.1f}h")
+                  print(f"snapshot_age_hours={age_h:.1f}")
+              except Exception as e:
+                  reasons.append(f"cannot_parse_generated_at: {e}")
+          else:
+              reasons.append("generated_at_missing")
+          
+          print(f"healthy={'true' if ok else 'false'}")
+          print(f"reason={'; '.join(reasons) if reasons else 'all_checks_passed'}")
+          EOF
+          cat $GITHUB_OUTPUT
+
+      - name: Abrir issue si unhealthy
+        if: steps.validate.outputs.healthy == 'false' || steps.probe.outputs.http_code != '200'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const httpCode = "${{ steps.probe.outputs.http_code }}";
+            const reason = "${{ steps.validate.outputs.reason }}";
+            const ageH = "${{ steps.validate.outputs.snapshot_age_hours }}";
+            const title = `[Mapa Vivo Unhealthy] /v1/genome/now reporta ${reason || 'http_'+httpCode}`;
+            
+            // Buscar issue abierto previo con mismo título base
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'mapa-vivo-unhealthy',
+            });
+            
+            const body = `## Mapa Vivo Healthcheck falló
+            
+            **Run:** ${{ github.run_id }}
+            **HTTP code:** ${httpCode}
+            **Reason:** ${reason}
+            **Snapshot age:** ${ageH || 'unknown'} h
+            
+            ### Posibles causas
+            1. El scheduler interno del kernel (kernel/genome_refresh_scheduler.py) está muerto.
+            2. run_all.py está fallando (validar logs Railway).
+            3. Algún scanner tiene match=false (revisar /v1/genome/now full).
+            
+            ### Acción manual
+            \`\`\`
+            curl -X POST -H "X-API-Key: \$MONSTRUO_API_KEY" \\
+              "https://el-monstruo-kernel-production.up.railway.app/v1/genome/now?refresh=full"
+            \`\`\`
+            
+            Cerrar este issue cuando el endpoint vuelva a reportar binario_100=true.`;
+            
+            if (issues.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues[0].number,
+                body: `Healthcheck falló de nuevo en run ${{ github.run_id }} — ${reason}`,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['mapa-vivo-unhealthy', 'sprint-91', 'auto'],
+              });
+            }
+
+      - name: Cerrar issue si volvió a healthy
+        if: steps.validate.outputs.healthy == 'true' && steps.probe.outputs.http_code == '200'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'mapa-vivo-unhealthy',
+            });
+            for (const issue of issues) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `Healthcheck verde de nuevo en run ${{ github.run_id }}. Cerrando issue.`,
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+              });
+            }
+
+      - name: Summary
+        run: |
+          echo "### Mapa Vivo Healthcheck" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- HTTP: ${{ steps.probe.outputs.http_code }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Healthy: ${{ steps.validate.outputs.healthy }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Reason: ${{ steps.validate.outputs.reason }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Snapshot age (h): ${{ steps.validate.outputs.snapshot_age_hours }}" >> $GITHUB_STEP_SUMMARY

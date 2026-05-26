@@ -1775,7 +1775,27 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("sprint82_brand_validator_init_failed", error=str(e))
 
+    # ── Sprint 91.9: Genome Refresh Scheduler (cada 6h) ─────────────────
+    # Mantiene _genome_out/genome_now.json actualizado automáticamente
+    # ejecutando run_all.py en background. NO depende de GitHub Actions.
+    _genome_refresh_scheduler = None
+    try:
+        from kernel.genome_refresh_scheduler import start_genome_refresh_scheduler
+        _genome_refresh_scheduler = start_genome_refresh_scheduler()
+        if _genome_refresh_scheduler is not None:
+            app.state.genome_refresh_scheduler = _genome_refresh_scheduler
+    except Exception as e:
+        logger.warning("genome_refresh_scheduler_init_failed", error=str(e))
+
     yield
+
+    # Shutdown Genome Refresh Scheduler (Sprint 91.9)
+    if _genome_refresh_scheduler is not None:
+        try:
+            from kernel.genome_refresh_scheduler import shutdown_genome_refresh_scheduler
+            shutdown_genome_refresh_scheduler(_genome_refresh_scheduler)
+        except Exception as e:
+            logger.warning("genome_refresh_scheduler_shutdown_error", error=str(e))
 
     # Shutdown FastMCP lifespan (StreamableHTTPSessionManager)
     if _mcp_lifespan_cm:
