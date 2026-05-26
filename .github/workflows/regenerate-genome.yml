@@ -6,11 +6,13 @@ name: Regenerate MONSTRUO_GENOME (Sprint 91.8)
 #   - Push a main que toque kernel/**, embriones/**, apps/**, scripts/genome_generator.py.
 # Acción:
 #   - Corre scripts/genome_generator.py.
-#   - Si hay diff vs main, abre/actualiza una PR con el genoma regenerado.
+#   - Si hay diff vs main, commitea directamente a main como bot[bot].
 #   - Si no hay diff, termina silenciosamente (idempotente).
 #
-# El _genome_out/supabase.json se lee como fallback (Sprint 91.7.3) cuando MCP
-# no esté disponible. Para rehidratar ese JSON, correr scripts/genome_live/run_all.py.
+# Decisión binaria: commit directo a main (no PR) porque GitHub Actions no
+# tiene permiso de "create or approve pull requests" sin un PAT, y este
+# repo se mergea con --admin --squash de todas formas. Aceptamos commits
+# directos del bot — son siempre regeneraciones determinísticas del genoma.
 
 on:
   schedule:
@@ -33,7 +35,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 concurrency:
   group: regenerate-genome
@@ -44,6 +45,8 @@ jobs:
     name: Regenerar MONSTRUO_GENOME.yaml
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Skip if commit was already made by this bot (avoid infinite loop on push trigger).
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip-genome-regen]')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -80,47 +83,27 @@ jobs:
         run: |
           if diff -q /tmp/genome_before.yaml MONSTRUO_GENOME.yaml > /dev/null; then
             echo "has_diff=false" >> $GITHUB_OUTPUT
-            echo "El genoma no cambió — no hay PR que abrir."
+            echo "El genoma no cambió — nada que commitear."
           else
             echo "has_diff=true" >> $GITHUB_OUTPUT
             echo "El genoma cambió. Diff resumido:"
             diff /tmp/genome_before.yaml MONSTRUO_GENOME.yaml | head -50 || true
           fi
 
-      - name: Abrir/actualizar PR si hay diff
+      - name: Commit directo a main si hay diff
         if: steps.diff.outputs.has_diff == 'true'
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: bot/regenerate-genome
-          base: main
-          commit-message: |
-            chore(genome): regenerar MONSTRUO_GENOME.yaml automático (Sprint 91.8)
+        run: |
+          git config user.name "monstruo-bot[bot]"
+          git config user.email "monstruo-bot@users.noreply.github.com"
+          git add MONSTRUO_GENOME.yaml
+          git commit -m "chore(genome): regenerar MONSTRUO_GENOME.yaml [skip-genome-regen]
 
-            Workflow regenerate-genome.yml detectó cambios en la realidad del repo
-            que no estaban reflejados en MONSTRUO_GENOME.yaml. Regenerado vía
-            scripts/genome_generator.py.
-          title: 'chore(genome): regenerar MONSTRUO_GENOME (auto)'
-          body: |
-            ## Sprint 91.8 — Auto-regeneración del genoma
+          Auto-regenerado por workflow regenerate-genome.yml
+          Trigger: ${{ github.event_name }}
+          Run: ${{ github.run_id }}
 
-            El workflow `regenerate-genome.yml` detectó que el `MONSTRUO_GENOME.yaml`
-            estaba desincronizado con la realidad del repo. Regenerado automáticamente
-            por `scripts/genome_generator.py`.
-
-            **Trigger:** ${{ github.event_name }}
-            **Run:** ${{ github.run_id }}
-
-            ### Verificación rápida
-            - Revisar el diff antes de mergear.
-            - Si el diff incluye `mapa_vivo:` o counts de Supabase, validar contra
-              el endpoint `/v1/genome/now` que también esté actualizado.
-            - Auto-mergeable si el diff es trivial (kernel modules count, satellites pushed_at).
-
-            **No tocar a mano** — esta PR se sobrescribe en cada corrida del workflow.
-          delete-branch: false
-          add-paths: |
-            MONSTRUO_GENOME.yaml
+          [skip-genome-regen] evita infinite loop en push trigger."
+          git push origin main
 
       - name: Summary
         run: |
