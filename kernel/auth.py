@@ -37,7 +37,25 @@ from starlette.responses import JSONResponse
 logger = structlog.get_logger("kernel.auth")
 
 # Public paths that never require auth (always exact-match)
-PUBLIC_PATHS = frozenset({"/", "/health", "/health/auth", "/docs", "/openapi.json", "/redoc"})
+#
+# Sprint 91 hotfix (2026-05-26) — Mapa Vivo del Monstruo:
+#   /v1/genome/now y /v1/genome/now/health son read-only y publicos por contrato
+#   declarado en PR #201 ("La lectura simple es publica para que cualquier hilo
+#   pueda consumirlo sin credenciales"). El JSON expuesto pasa secret-scan
+#   (Gitleaks/Trufflehog/Secret Scan verdes en sha 88c35e9). El refresh con
+#   side-effects (?refresh=1) sigue exigiendo X-API-Key dentro del router.
+PUBLIC_PATHS = frozenset(
+    {
+        "/",
+        "/health",
+        "/health/auth",
+        "/docs",
+        "/openapi.json",
+        "/redoc",
+        "/v1/genome/now",
+        "/v1/genome/now/health",
+    }
+)
 
 # Public ingest paths under /v1/* that bypass auth (Sprint 88 — 2026-05-06).
 # Used by anonymous tracking from public landings (monstruo-tracking.js) that must
