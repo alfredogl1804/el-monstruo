@@ -1,9 +1,5 @@
-# Sprint Registry — Fuente única de verdad
-# Generado por scripts/migrate_to_sprint_registry.py (Sprint 91.16)
-# Schema: ver sprints/REGISTRY_SCHEMA.md
-
 version: 1
-generated_at: '2026-05-26T15:13:16Z'
+generated_at: '2026-05-26T15:55:13Z'
 schema_doc: sprints/REGISTRY_SCHEMA.md
 sprints:
 - id: '88'
@@ -572,3 +568,19 @@ sprints:
   path: bridge/sprints_completados/sprint_TRANSVERSAL_001_capas_implement_monitor.md
   aliases:
   - TRANSVERSAL-001
+- id: T1_MAGNAS_PREFORJA_OMEGA_v1
+  title: Articulacion de magnas pre-Forja Omega (T1-005, T1-006, T1-007 + incidente
+    embrion-down + propuesta DSC-S-012)
+  status: PROPOSED
+  paradigm: transversal
+  objetivos_maestros:
+  - 1
+  - 3
+  - 7
+  - 9
+  capas_transversales:
+  - C0
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_T1_MAGNAS_PREFORJA_OMEGA_v1.md
+  aliases:
+  - T1-MAGNAS-PREFORJA-OMEGA-v1
