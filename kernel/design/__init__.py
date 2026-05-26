@@ -1,9 +1,10 @@
 """Módulo de Design System — El Monstruo Sprint 61."""
+
 from .system import (
+    DesignAuditoriaFallida,
+    DesignAuditResult,
     DesignSystemEngine,
     DesignTokens,
-    DesignAuditResult,
-    DesignAuditoriaFallida,
     DesignTokensInvalidos,
     get_design_system_engine,
     init_design_system_engine,

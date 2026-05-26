@@ -21,7 +21,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from conector_sabios import consultar_sabio
 
-
 SYSTEM_CONDENSADOR = """Eres un experto en síntesis de documentos complejos. Tu tarea es crear un RESUMEN EJECUTIVO
 que preserve TODA la información crítica, decisiones clave, datos numéricos, y matices importantes del documento original.
 
@@ -41,6 +40,7 @@ async def condensar(input_text_or_path: str, output_path: str = None, max_chars:
     Retorna el texto condensado.
     """
     import os as _os
+
     if _os.path.isfile(input_text_or_path):
         with open(input_text_or_path, "r", encoding="utf-8") as f:
             contenido = f.read()
@@ -60,7 +60,7 @@ async def condensar(input_text_or_path: str, output_path: str = None, max_chars:
     ratio = max_chars / chars_original
     print(f"📐 Ratio de compresión necesario: {ratio:.1%}")
     print(f"🎯 Objetivo: ~{max_chars:,} caracteres")
-    print(f"🤖 Enviando a GPT-5.4 para condensar...")
+    print("🤖 Enviando a GPT-5.4 para condensar...")
 
     prompt = f"""Condensa el siguiente documento a un RESUMEN EJECUTIVO de máximo {max_chars:,} caracteres.
 
@@ -84,11 +84,13 @@ Genera el resumen ejecutivo ahora. Recuerda: máximo {max_chars:,} caracteres, p
     if resultado["exito"]:
         resumen = resultado["respuesta"]
         chars_resumen = len(resumen)
-        print(f"\u2705 Resumen generado: {chars_resumen:,} caracteres ({chars_resumen/chars_original:.1%} del original)")
+        print(
+            f"\u2705 Resumen generado: {chars_resumen:,} caracteres ({chars_resumen / chars_original:.1%} del original)"
+        )
 
         if output_path:
             with open(output_path, "w", encoding="utf-8") as f:
-                f.write(f"<!-- Resumen ejecutivo generado por GPT-5.4 -->\n")
+                f.write("<!-- Resumen ejecutivo generado por GPT-5.4 -->\n")
                 f.write(f"<!-- Original: {chars_original:,} chars \u2192 Resumen: {chars_resumen:,} chars -->\n\n")
                 f.write(resumen)
             print(f"\ud83d\udcc1 Guardado en: {output_path}")

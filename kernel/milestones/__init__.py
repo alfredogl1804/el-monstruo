@@ -10,6 +10,7 @@ Origen: DSC-G-017 (DSC-as-Contract), 2026-05-07.
 Refuerza: DSC-G-014 (PIPELINE TECNICO != PRODUCTO COMERCIALIZABLE).
 Texto puede ser desobedecido. Codigo no.
 """
+
 from .declare import (
     GateFailure,
     GateResult,

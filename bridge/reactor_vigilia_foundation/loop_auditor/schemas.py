@@ -20,10 +20,10 @@ ORACLE_AUDIT_RESULT_SCHEMA = {
                 "total": {"type": "integer"},
                 "high": {"type": "integer"},
                 "medium": {"type": "integer"},
-                "low": {"type": "integer"}
-            }
-        }
-    }
+                "low": {"type": "integer"},
+            },
+        },
+    },
 }
 
 ORACLE_AUDIT_FINDINGS_SCHEMA = {
@@ -38,9 +38,9 @@ ORACLE_AUDIT_FINDINGS_SCHEMA = {
             "evidence_ref": {"type": "string"},
             "status": {"type": "string", "enum": ["OPEN", "RESOLVED", "ACCEPTED_RISK"]},
             "recommended_next_action": {"type": "string"},
-            "t1_required": {"type": "boolean"}
-        }
-    }
+            "t1_required": {"type": "boolean"},
+        },
+    },
 }
 
 AUDITOR_GATE_LOG_SCHEMA = {
@@ -55,6 +55,6 @@ AUDITOR_GATE_LOG_SCHEMA = {
         "no_autonomy_creep": {"type": "boolean"},
         "no_external_api": {"type": "boolean"},
         "no_canon": {"type": "boolean"},
-        "no_runtime_side_effects": {"type": "boolean"}
-    }
+        "no_runtime_side_effects": {"type": "boolean"},
+    },
 }

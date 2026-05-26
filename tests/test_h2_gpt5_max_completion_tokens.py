@@ -25,7 +25,7 @@ Validates that:
 
 Author: Manus (T2-B mandate, 2026-05-16)
 """
-import asyncio
+
 import sys
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -109,9 +109,7 @@ class TestFallbackEngineOpenAICompat:
             f"Expected 'max_completion_tokens' in body, got keys: {list(captured_body.keys())}"
         )
         assert captured_body["max_completion_tokens"] == 4000
-        assert "max_tokens" not in captured_body, (
-            f"Expected NO 'max_tokens' for gpt-5.x, got body: {captured_body}"
-        )
+        assert "max_tokens" not in captured_body, f"Expected NO 'max_tokens' for gpt-5.x, got body: {captured_body}"
 
     @pytest.mark.asyncio
     async def test_legacy_model_sends_max_tokens_default(self):
@@ -150,9 +148,7 @@ class TestFallbackEngineOpenAICompat:
                 model_config=None,  # legacy / non-reasoning
             )
 
-        assert "max_tokens" in captured_body, (
-            f"Expected 'max_tokens' for non-reasoning, got: {captured_body}"
-        )
+        assert "max_tokens" in captured_body, f"Expected 'max_tokens' for non-reasoning, got: {captured_body}"
         assert captured_body["max_tokens"] == 4096
         assert "max_completion_tokens" not in captured_body
 

@@ -1,4 +1,5 @@
 """Tests for Memory Palace v0.1 — 12 mandatory tests."""
+
 import json
 import sys
 import tempfile
@@ -6,14 +7,20 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from memory_palace import (
-    load_memory_palace, append_memory_entry, retrieve_recent_entries,
-    retrieve_by_embryo_id, retrieve_by_artifact_id, retrieve_lessons,
-    retrieve_low_value_patterns, score_task_against_memory,
-    prune_memory_if_needed, export_memory_snapshot
+    append_memory_entry,
+    export_memory_snapshot,
+    load_memory_palace,
+    prune_memory_if_needed,
+    retrieve_by_artifact_id,
+    retrieve_by_embryo_id,
+    retrieve_lessons,
+    retrieve_low_value_patterns,
+    score_task_against_memory,
 )
 
 PASS = 0
 FAIL = 0
+
 
 def test(name, condition):
     global PASS, FAIL
@@ -25,9 +32,18 @@ def test(name, condition):
         print(f"  [FAIL] {name}")
 
 
-def make_entry(memory_id="MEM-OAI-001", task_id="detect_new_ai", embryo_id="oracle_ai_embryo_r0",
-               value_score=7.0, status="active", lessons=None, avoid=None, cost=0.001,
-               grounding=8.0, verdict="PASS"):
+def make_entry(
+    memory_id="MEM-OAI-001",
+    task_id="detect_new_ai",
+    embryo_id="oracle_ai_embryo_r0",
+    value_score=7.0,
+    status="active",
+    lessons=None,
+    avoid=None,
+    cost=0.001,
+    grounding=8.0,
+    verdict="PASS",
+):
     return {
         "memory_id": memory_id,
         "timestamp": "2026-05-21T04:00:00Z",
@@ -44,16 +60,29 @@ def make_entry(memory_id="MEM-OAI-001", task_id="detect_new_ai", embryo_id="orac
         "lessons": lessons or ["Use real-time validation for release dates"],
         "avoid_next_time": avoid or ["Relying on training data for dates"],
         "next_best_action": "map_capability_to_application",
-        "status": status
+        "status": status,
     }
 
 
 # Use temp files for isolation
 def get_temp_state():
-    tf = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode='w')
-    json.dump({"version": "0.1.0", "created_at": "2026-05-21T04:00:00Z", "entries": [],
-               "stats": {"total_entries": 0, "total_archived": 0, "total_active": 0,
-                         "unique_embryos": [], "unique_tasks": [], "total_cost_usd": 0.0}}, tf)
+    tf = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w")
+    json.dump(
+        {
+            "version": "0.1.0",
+            "created_at": "2026-05-21T04:00:00Z",
+            "entries": [],
+            "stats": {
+                "total_entries": 0,
+                "total_archived": 0,
+                "total_active": 0,
+                "unique_embryos": [],
+                "unique_tasks": [],
+                "total_cost_usd": 0.0,
+            },
+        },
+        tf,
+    )
     tf.close()
     return Path(tf.name)
 
@@ -96,10 +125,13 @@ test("6. Low value pattern detected", len(patterns) == 1 and patterns[0]["value_
 sf3 = get_temp_state()
 # Add 3 low-value repetitions
 for i in range(3):
-    e = make_entry(memory_id=f"MEM-OAI-{i+10}", task_id="bad_task", value_score=3.0)
+    e = make_entry(memory_id=f"MEM-OAI-{i + 10}", task_id="bad_task", value_score=3.0)
     append_memory_entry(e, sf3)
 score = score_task_against_memory("bad_task", "oracle_ai_embryo_r0", sf3)
-test("7. Task scoring penalizes repeated low-value", score["penalty"] >= 3.0 and score["recommendation"] == "AVOID_REPEATED_LOW_VALUE")
+test(
+    "7. Task scoring penalizes repeated low-value",
+    score["penalty"] >= 3.0 and score["recommendation"] == "AVOID_REPEATED_LOW_VALUE",
+)
 
 # Test 8: No raw CoT permitted
 sf4 = get_temp_state()
@@ -123,19 +155,28 @@ state = load_memory_palace(sf6)
 initial_count = len(state["entries"])
 prune_memory_if_needed(max_active=0, state_file=sf6)
 state_after = load_memory_palace(sf6)
-test("10. Append-only (prune archives, not deletes)", len(state_after["entries"]) == initial_count and state_after["entries"][0]["status"] == "archived")
+test(
+    "10. Append-only (prune archives, not deletes)",
+    len(state_after["entries"]) == initial_count and state_after["entries"][0]["status"] == "archived",
+)
 
 # Test 11: Archive marker without physical delete
-test("11. Archive marker set correctly", state_after["entries"][0]["status"] == "archived" and state_after["stats"]["total_archived"] == 1)
+test(
+    "11. Archive marker set correctly",
+    state_after["entries"][0]["status"] == "archived" and state_after["stats"]["total_archived"] == 1,
+)
 
 # Test 12: Export snapshot
 sf7 = get_temp_state()
 append_memory_entry(make_entry(memory_id="MEM-OAI-300"), sf7)
 snapshot = export_memory_snapshot(sf7)
-test("12. Export snapshot has required fields", "stats" in snapshot and "recent_entries" in snapshot and "lessons" in snapshot)
+test(
+    "12. Export snapshot has required fields",
+    "stats" in snapshot and "recent_entries" in snapshot and "lessons" in snapshot,
+)
 
-print(f"\n{'='*60}")
+print(f"\n{'=' * 60}")
 print(f"RESULT: {PASS}/12 PASS, {FAIL}/12 FAIL")
-print(f"{'='*60}")
+print(f"{'=' * 60}")
 if FAIL > 0:
     sys.exit(1)

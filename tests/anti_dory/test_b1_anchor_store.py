@@ -69,18 +69,14 @@ class TestGetAnchor:
 class TestListAnchors:
     def test_list_returns_anchors(self, adapter, mock_client, sample_row):
         mock_chain = mock_client.table.return_value.select.return_value
-        mock_chain.order.return_value.range.return_value.execute.return_value = MagicMock(
-            data=[sample_row, sample_row]
-        )
+        mock_chain.order.return_value.range.return_value.execute.return_value = MagicMock(data=[sample_row, sample_row])
         result = adapter.list_anchors(limit=10)
         assert len(result) == 2
         assert all(isinstance(a, Anchor) for a in result)
 
     def test_list_empty(self, adapter, mock_client):
         mock_chain = mock_client.table.return_value.select.return_value
-        mock_chain.order.return_value.range.return_value.execute.return_value = MagicMock(
-            data=[]
-        )
+        mock_chain.order.return_value.range.return_value.execute.return_value = MagicMock(data=[])
         result = adapter.list_anchors()
         assert result == []
 

@@ -11,12 +11,11 @@ Coverage:
 
 [Hilo Manus Catastro] · Sprint 86.5 · 2026-05-05
 """
+
 from __future__ import annotations
 
 import asyncio
 import os
-
-import pytest
 
 from kernel.catastro.coding_classifier import (
     CODING_TAGS_VOCABULARY,
@@ -30,10 +29,10 @@ from kernel.catastro.sources import (
     SWEBenchFuente,
 )
 
-
 # ============================================================================
 # 1. SWE-BENCH FUENTE
 # ============================================================================
+
 
 class TestSWEBenchFuente:
     """Tests para SWEBenchFuente y su detector de gaming."""
@@ -97,6 +96,7 @@ class TestSWEBenchFuente:
 # 2. HUMAN EVAL FUENTE
 # ============================================================================
 
+
 class TestHumanEvalFuente:
     def test_nombre_y_env_key(self):
         f = HumanEvalFuente(dry_run=True)
@@ -117,6 +117,7 @@ class TestHumanEvalFuente:
 # 3. MBPP FUENTE
 # ============================================================================
 
+
 class TestMBPPFuente:
     def test_nombre_y_env_key(self):
         f = MBPPFuente(dry_run=True)
@@ -131,6 +132,7 @@ class TestMBPPFuente:
 # ============================================================================
 # 4. CODING CLASSIFIER
 # ============================================================================
+
 
 class TestCodingClassifier:
     def test_vocabulario_15_tags(self):
@@ -189,6 +191,7 @@ class TestCodingClassifier:
 # 5. PIPELINE INTEGRATION (dry-run, sin red)
 # ============================================================================
 
+
 class TestPipelineCodingIntegration:
     def test_pipeline_coding_disabled_por_default(self):
         """Sin CATASTRO_ENABLE_CODING, las 3 fuentes coding no entran."""
@@ -216,6 +219,7 @@ class TestPipelineCodingIntegration:
 # 6. INTEGRATION TEST E2E ANTI-GAMING UC BERKELEY
 # ============================================================================
 
+
 class TestE2EAntiGaming:
     def test_e2e_overfit_coder_detectado(self):
         """
@@ -229,15 +233,14 @@ class TestE2EAntiGaming:
 
             # Verificar que el smoke pipeline corrió sin crash
             assert result.is_success
-            
+
             # Verificar que el cache de coding tiene entries
             assert hasattr(pipeline, "_coding_cache")
             cache = pipeline._coding_cache
             assert "overfit-coder-v1" in cache, f"Slugs en cache: {list(cache.keys())}"
-            
+
             overfit = cache["overfit-coder-v1"]
-            assert overfit.get("gaming_detected") is True, \
-                f"Gaming NO detectado en overfit-coder-v1: {overfit}"
+            assert overfit.get("gaming_detected") is True, f"Gaming NO detectado en overfit-coder-v1: {overfit}"
 
             # Caso clean: Claude 3.5 Sonnet no debería tener gaming
             claude_slug = "claude-3-5-sonnet-20241022"

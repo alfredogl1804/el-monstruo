@@ -50,10 +50,12 @@ PUBLIC_PATHS = frozenset({"/", "/health", "/health/auth", "/docs", "/openapi.jso
 # only by Telegram (via setWebhook) and our service (via TELEGRAM_WEBHOOK_SECRET
 # env var). API key would be weaker because it's shared across many clients,
 # while the webhook secret is per-integration and rotates independently.
-PUBLIC_INGEST_PATHS = frozenset({
-    "/v1/traffic/ingest",
-    "/v1/embrion/telegram/webhook",
-})
+PUBLIC_INGEST_PATHS = frozenset(
+    {
+        "/v1/traffic/ingest",
+        "/v1/embrion/telegram/webhook",
+    }
+)
 
 
 def _get_api_key() -> Optional[str]:

@@ -27,17 +27,17 @@ Disciplina anti-Dory:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 5 · 2026-05-04 · v0.86.5
 """
+
 from __future__ import annotations
 
 import os
 import threading
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
-
 
 # ============================================================================
 # Constantes
@@ -387,11 +387,7 @@ class RecommendationEngine:
 
         # Sprint 86.8 - si filtro tier dejo lista vacia y el caller pidio
         # excepcion explicita, lanzar antes de armar response degraded.
-        if (
-            not modelos
-            and raise_on_no_eligible_tier
-            and degraded_reason == DEGRADED_REASON_NO_ELIGIBLE_TIER
-        ):
+        if not modelos and raise_on_no_eligible_tier and degraded_reason == DEGRADED_REASON_NO_ELIGIBLE_TIER:
             raise CatastroChooseModelNoEligibleTier(
                 f"Ningun modelo satisface min_tier_required={min_tier_required!r} "
                 f"(dominio={dominio!r}, macroarea={macroarea!r}, estado={estado!r})",
@@ -432,13 +428,7 @@ class RecommendationEngine:
         if client is None:
             return None
         try:
-            res = (
-                client.table(CATASTRO_MODELOS_TABLE)
-                .select("*")
-                .eq("id", modelo_id.strip())
-                .limit(1)
-                .execute()
-            )
+            res = client.table(CATASTRO_MODELOS_TABLE).select("*").eq("id", modelo_id.strip()).limit(1).execute()
             data = getattr(res, "data", None) or []
             if not data:
                 return None
@@ -487,10 +477,7 @@ class RecommendationEngine:
             )
         try:
             res = (
-                client.table(CATASTRO_MODELOS_TABLE)
-                .select("macroarea,dominios")
-                .neq("estado", "deprecated")
-                .execute()
+                client.table(CATASTRO_MODELOS_TABLE).select("macroarea,dominios").neq("estado", "deprecated").execute()
             )
             rows = getattr(res, "data", None) or []
         except Exception:
@@ -508,7 +495,7 @@ class RecommendationEngine:
         for r in rows:
             ma = r.get("macroarea") or "sin_macroarea"
             agg.setdefault(ma, {})
-            for d in (r.get("dominios") or []):
+            for d in r.get("dominios") or []:
                 agg[ma][d] = agg[ma].get(d, 0) + 1
 
         macroareas_out: dict[str, list[DominioInfo]] = {}
@@ -516,9 +503,7 @@ class RecommendationEngine:
         for ma in sorted(agg.keys()):
             lst = []
             for dom in sorted(agg[ma].keys()):
-                lst.append(DominioInfo(
-                    dominio=dom, macroarea=ma, modelos_count=agg[ma][dom]
-                ))
+                lst.append(DominioInfo(dominio=dom, macroarea=ma, modelos_count=agg[ma][dom]))
                 total += 1
             macroareas_out[ma] = lst
 
@@ -572,7 +557,7 @@ class RecommendationEngine:
         for r in rows:
             if r.get("macroarea"):
                 macroareas.add(r["macroarea"])
-            for d in (r.get("dominios") or []):
+            for d in r.get("dominios") or []:
                 dominios.add(d)
             ts = _parse_dt(r.get("ultima_validacion") or r.get("last_validated_at"))
             if ts and (last_update is None or ts > last_update):
@@ -635,10 +620,7 @@ class RecommendationEngine:
         max_required_rank = CONFIDENTIALITY_TIER_RANK[min_tier_required]
         fetch_limit = top_n if max_required_rank == 3 else MAX_TOP_N
         try:
-            q = (
-                client.table(CATASTRO_TRONO_VIEW)
-                .select("*")
-            )
+            q = client.table(CATASTRO_TRONO_VIEW).select("*")
             if dominio:
                 q = q.eq("dominio", dominio)
             if macroarea:
@@ -658,11 +640,13 @@ class RecommendationEngine:
         # Sprint 86.8 - aplicar filtro de confidentiality_tier
         if max_required_rank < 3:
             rows = [
-                r for r in rows
+                r
+                for r in rows
                 if CONFIDENTIALITY_TIER_RANK.get(
                     str(r.get("confidentiality_tier") or "cloud_only"),
                     3,
-                ) <= max_required_rank
+                )
+                <= max_required_rank
             ]
 
         if not rows:
@@ -674,29 +658,31 @@ class RecommendationEngine:
         out: list[ModeloRecomendado] = []
         for r in rows[:top_n]:  # Sprint 86.8 - recorte final tras filtro
             try:
-                out.append(ModeloRecomendado(
-                    id=r["id"],
-                    nombre=r.get("nombre", r["id"]),
-                    proveedor=r.get("proveedor", "unknown"),
-                    macroarea=r.get("macroarea"),
-                    dominio=r.get("dominio", dominio or ""),
-                    trono_global=float(r.get("trono_global") or 50.0),
-                    trono_delta=r.get("trono_delta"),
-                    trono_low=float(r.get("trono_low") or 0.0),
-                    trono_high=float(r.get("trono_high") or 100.0),
-                    rank_dominio=int(r.get("rank_dominio") or 0),
-                    quality_score=r.get("quality_score"),
-                    cost_efficiency=r.get("cost_efficiency"),
-                    speed_score=r.get("speed_score"),
-                    reliability_score=r.get("reliability_score"),
-                    brand_fit=r.get("brand_fit"),
-                    confidence=r.get("confidence"),
-                    precio_input_per_million=r.get("precio_input_per_million"),
-                    precio_output_per_million=r.get("precio_output_per_million"),
-                    open_weights=bool(r.get("open_weights") or False),
-                    confidentiality_tier=r.get("confidentiality_tier"),  # Sprint 86.8
-                    last_validated_at=_parse_dt(r.get("ultima_validacion") or r.get("last_validated_at")),
-                ))
+                out.append(
+                    ModeloRecomendado(
+                        id=r["id"],
+                        nombre=r.get("nombre", r["id"]),
+                        proveedor=r.get("proveedor", "unknown"),
+                        macroarea=r.get("macroarea"),
+                        dominio=r.get("dominio", dominio or ""),
+                        trono_global=float(r.get("trono_global") or 50.0),
+                        trono_delta=r.get("trono_delta"),
+                        trono_low=float(r.get("trono_low") or 0.0),
+                        trono_high=float(r.get("trono_high") or 100.0),
+                        rank_dominio=int(r.get("rank_dominio") or 0),
+                        quality_score=r.get("quality_score"),
+                        cost_efficiency=r.get("cost_efficiency"),
+                        speed_score=r.get("speed_score"),
+                        reliability_score=r.get("reliability_score"),
+                        brand_fit=r.get("brand_fit"),
+                        confidence=r.get("confidence"),
+                        precio_input_per_million=r.get("precio_input_per_million"),
+                        precio_output_per_million=r.get("precio_output_per_million"),
+                        open_weights=bool(r.get("open_weights") or False),
+                        confidentiality_tier=r.get("confidentiality_tier"),  # Sprint 86.8
+                        last_validated_at=_parse_dt(r.get("ultima_validacion") or r.get("last_validated_at")),
+                    )
+                )
             except Exception:
                 # Fila corrupta — skip silencioso, no rompemos el batch
                 continue
@@ -745,12 +731,10 @@ def build_default_db_factory() -> Optional[Callable[[], Any]]:
     Returns:
         Callable que construye client al invocarse. None si no hay env vars.
     """
+
     def _factory() -> Any:
         url = os.environ.get("SUPABASE_URL", "")
-        key = (
-            os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
-            or os.environ.get("SUPABASE_SERVICE_KEY", "")
-        )
+        key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "") or os.environ.get("SUPABASE_SERVICE_KEY", "")
         if not url or not key:
             raise CatastroRecommendError(
                 "catastro_recommend_supabase_env_missing",

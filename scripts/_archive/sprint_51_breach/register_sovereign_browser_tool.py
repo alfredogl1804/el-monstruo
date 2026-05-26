@@ -1,5 +1,6 @@
-import psycopg2
 import json
+
+import psycopg2
 
 DB_URL = "postgresql://postgres.xsumzuhwmivjgftsneov:0SsKDCchJpN5GhO3@aws-1-us-east-2.pooler.supabase.com:5432/postgres?sslmode=require"
 

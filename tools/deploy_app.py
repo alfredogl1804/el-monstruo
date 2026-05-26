@@ -11,6 +11,7 @@ Brand:
 - Errores: DeployAppMagnaInconcluso, DeployAppFalla
 - Logs:    deploy_app_magna_decide, deploy_app_estatico, deploy_app_backend
 """
+
 from __future__ import annotations
 
 from typing import Any, Optional
@@ -79,10 +80,7 @@ def _decide_target(files: dict[str, str]) -> tuple[str, str, float]:
 
     # Regla 2: si hay index.html y todos los demás son estáticos → GitHub Pages
     has_index = "index.html" in file_names
-    all_static = all(
-        any(name.lower().endswith(ext) for ext in STATIC_EXTENSIONS)
-        for name in file_names
-    )
+    all_static = all(any(name.lower().endswith(ext) for ext in STATIC_EXTENSIONS) for name in file_names)
     if has_index and all_static:
         return (
             "github_pages",
@@ -124,9 +122,7 @@ async def deploy_app(
     que el código vive en GitHub primero (auditable) y Railway solo lo hospeda.
     """
     if target_override and target_override not in {"github_pages", "railway"}:
-        raise DeployAppFalla(
-            f"deploy_app_target_invalido: '{target_override}' no es 'github_pages' ni 'railway'."
-        )
+        raise DeployAppFalla(f"deploy_app_target_invalido: '{target_override}' no es 'github_pages' ni 'railway'.")
 
     if target_override:
         target = target_override
@@ -160,12 +156,14 @@ async def deploy_app(
                 status="in_flight",
             )
 
-        result = await execute_deploy_to_github_pages({
-            "repo_name": project_name,
-            "files": files,
-            "description": description,
-            "private": private,
-        })
+        result = await execute_deploy_to_github_pages(
+            {
+                "repo_name": project_name,
+                "files": files,
+                "description": description,
+                "private": private,
+            }
+        )
 
         if embrion_loop and hasattr(embrion_loop, "report_orchestration_step"):
             embrion_loop.report_orchestration_step(
@@ -190,12 +188,14 @@ async def deploy_app(
             status="in_flight",
         )
 
-    pages_result = await execute_deploy_to_github_pages({
-        "repo_name": project_name,
-        "files": files,
-        "description": description,
-        "private": private,
-    })
+    pages_result = await execute_deploy_to_github_pages(
+        {
+            "repo_name": project_name,
+            "files": files,
+            "description": description,
+            "private": private,
+        }
+    )
 
     if pages_result.get("error"):
         if embrion_loop and hasattr(embrion_loop, "report_orchestration_step"):
@@ -226,13 +226,15 @@ async def deploy_app(
 
     # Paso 2: deploy a Railway desde el repo recién creado
     repo_full = pages_result.get("repo")  # "owner/repo"
-    railway_result = await execute_deploy_to_railway({
-        "repo": repo_full,
-        "project_name": project_name,
-        "service_name": "API",
-        "env_vars": env_vars,
-        "create_domain": True,
-    })
+    railway_result = await execute_deploy_to_railway(
+        {
+            "repo": repo_full,
+            "project_name": project_name,
+            "service_name": "API",
+            "env_vars": env_vars,
+            "create_domain": True,
+        }
+    )
 
     if embrion_loop and hasattr(embrion_loop, "report_orchestration_step"):
         embrion_loop.report_orchestration_step(
@@ -255,7 +257,6 @@ async def deploy_app(
 
 # ── Sprint 84.5 — Helpers para los 3 modos (Cowork spec, Fix 3) ────────
 import re as _re
-import time as _time
 from datetime import datetime as _dt
 
 _SLUG_RE = _re.compile(r"[^a-z0-9]+")
@@ -301,6 +302,7 @@ async def execute_deploy_app(params: dict[str, Any], embrion_loop: Optional[Any]
 
     # Normalizar repo (acepta 'repo' canonico o 'repo_url' compat)
     from tools.deploy_to_railway import _normalize_repo as _norm_repo
+
     repo_canonico = _norm_repo(params.get("repo"), params.get("repo_url"))
 
     app_name = params.get("app_name") or params.get("project_name") or params.get("repo_name")
@@ -321,6 +323,7 @@ async def execute_deploy_app(params: dict[str, Any], embrion_loop: Optional[Any]
     # ---- Modo C: solo repo → deploy directo a Railway ----
     if has_repo and not has_files:
         from tools.deploy_to_railway import execute_deploy_to_railway
+
         project_name = app_name or repo_canonico.split("/")[-1]
         if embrion_loop and hasattr(embrion_loop, "report_orchestration_step"):
             embrion_loop.report_orchestration_step(
@@ -328,13 +331,15 @@ async def execute_deploy_app(params: dict[str, Any], embrion_loop: Optional[Any]
                 agent="deploy_to_railway",
                 status="in_flight",
             )
-        railway_result = await execute_deploy_to_railway({
-            "repo": repo_canonico,
-            "project_name": project_name,
-            "service_name": params.get("service_name", "API"),
-            "env_vars": env_vars,
-            "create_domain": bool(params.get("create_domain", True)),
-        })
+        railway_result = await execute_deploy_to_railway(
+            {
+                "repo": repo_canonico,
+                "project_name": project_name,
+                "service_name": params.get("service_name", "API"),
+                "env_vars": env_vars,
+                "create_domain": bool(params.get("create_domain", True)),
+            }
+        )
         if embrion_loop and hasattr(embrion_loop, "report_orchestration_step"):
             embrion_loop.report_orchestration_step(
                 step_name="deploy_app_modo_c_railway",

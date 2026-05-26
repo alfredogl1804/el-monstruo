@@ -121,11 +121,11 @@ Origen: Sprint 86 Bloque 6 (commit pendiente)
 Aplicabilidad: TODOS los dominios del Monstruo que necesiten primer run
                productivo coordinado entre hilos.
 """
+
 import json
 import os
 import sys
 import urllib.request
-
 
 SEED = {
     "id": "seed_35_orquestacion_run_productivo_v1",

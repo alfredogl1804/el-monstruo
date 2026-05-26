@@ -9,16 +9,17 @@ Ejecuta 4 verificaciones binarias del kickoff §TA5:
 
 Run con `railway run --service el-monstruo-kernel python3 scripts/_ta5_runtime_verification.py`.
 """
+
 from __future__ import annotations
+
 import json
 import os
-import subprocess
 import sys
+import urllib.request
 from pathlib import Path
 from typing import Any
 
 import psycopg
-import urllib.request
 
 KERNEL_URL = "https://el-monstruo-kernel-production.up.railway.app"
 COWORK_CANONICAL_SESSION_ID = "3a04e11b-e610-4958-964e-4a709f3a5c61"
@@ -142,7 +143,8 @@ def v4_check_kernel_health() -> dict[str, Any]:
             "components_checkpointer": body.get("components", {}).get("checkpointer"),
             "components_embrion": body.get("components", {}).get("embrion"),
             "embrion_loop_running": (body.get("components", {}).get("embrion_loop") or {}).get("running")
-                if isinstance(body.get("components", {}).get("embrion_loop"), dict) else None,
+            if isinstance(body.get("components", {}).get("embrion_loop"), dict)
+            else None,
         }
     except Exception as e:
         return {"check": "V4_kernel_health", "status": "ERROR", "error": str(e)[:200]}

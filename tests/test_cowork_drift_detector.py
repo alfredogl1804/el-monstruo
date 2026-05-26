@@ -1,4 +1,5 @@
 """tests/test_cowork_drift_detector.py — T7 drift detector."""
+
 from __future__ import annotations
 
 import sys
@@ -10,8 +11,8 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from kernel.cowork_runtime.drift_detector import (
-    DriftDetector,
     DriftAction,
+    DriftDetector,
     SessionDriftState,
 )
 
@@ -65,7 +66,8 @@ def test_reinject_por_turnos_sin_preflight():
 def test_no_reinject_si_reinjeccion_reciente():
     detector = DriftDetector(enabled=True, max_turnos_sin_preflight=5)
     state = SessionDriftState(
-        turnos=5, pre_flight_ejecutado=True,
+        turnos=5,
+        pre_flight_ejecutado=True,
         ts_ultima_reinjeccion=time.time(),
     )
     signal = detector.evaluate(state)
@@ -115,10 +117,12 @@ def test_helpers_mutators():
 
 def test_cli_smoke_halt():
     import subprocess
+
     result = subprocess.run(
-        [sys.executable, "-m", "kernel.cowork_runtime.drift_detector",
-         "--enable", "--correctivos", "5"],
-        cwd=REPO_ROOT, capture_output=True, text=True,
+        [sys.executable, "-m", "kernel.cowork_runtime.drift_detector", "--enable", "--correctivos", "5"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
     )
     # exit code 2 = halt
     assert result.returncode == 2
@@ -127,10 +131,12 @@ def test_cli_smoke_halt():
 
 def test_cli_smoke_no_op():
     import subprocess
+
     result = subprocess.run(
-        [sys.executable, "-m", "kernel.cowork_runtime.drift_detector",
-         "--enable"],
-        cwd=REPO_ROOT, capture_output=True, text=True,
+        [sys.executable, "-m", "kernel.cowork_runtime.drift_detector", "--enable"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
     )
     assert result.returncode == 0
 
@@ -145,4 +151,5 @@ def test_env_vars_overrides(monkeypatch):
 
 if __name__ == "__main__":
     import pytest
+
     pytest.main([__file__, "-v"])

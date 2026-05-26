@@ -3,6 +3,7 @@
 
 import os
 import sys
+
 import psycopg2
 
 DB_URL = os.environ.get("SUPABASE_DB_URL")

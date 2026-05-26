@@ -19,6 +19,7 @@ Entry points:
   * `write_dashboard(output_path=...)` — escribe a disco
   * `python -m kernel.dashboards.cost_history --output bridge/embrion_dashboard.html`
 """
+
 from __future__ import annotations
 
 import argparse
@@ -27,13 +28,13 @@ import os
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Any, Iterable, Optional
+from typing import Iterable, Optional
 
-from kernel.embrion_budget import _SupabaseRest, _get_supabase_client
-
+from kernel.embrion_budget import _get_supabase_client, _SupabaseRest
 
 # ────────────────────────────────────────────────────────────────────
 # Modelo
+
 
 @dataclass
 class CostHistorySnapshot:
@@ -89,6 +90,7 @@ class CostHistorySnapshot:
 
 # ────────────────────────────────────────────────────────────────────
 # Helpers
+
 
 def _parse_iso(value: Optional[str]) -> Optional[datetime]:
     if not value:
@@ -189,8 +191,8 @@ def _render_kpi(label: str, value: str, sub: str = "") -> str:
         '<div class="card">'
         f'<div class="kpi-label">{html.escape(label)}</div>'
         f'<div class="kpi-value">{html.escape(value)}</div>'
-        f'{sub_html}'
-        '</div>'
+        f"{sub_html}"
+        "</div>"
     )
 
 
@@ -215,34 +217,33 @@ def _render_chart_svg(buckets: list[tuple[str, float]], daily_budget: float) -> 
         y = pad_t + (chart_h - h_px)
         color = "#f85149" if v > daily_budget else "#58a6ff"
         bars.append(
-            f'<rect x="{x:.1f}" y="{y:.1f}" width="{bar_w-2:.1f}" '
+            f'<rect x="{x:.1f}" y="{y:.1f}" width="{bar_w - 2:.1f}" '
             f'height="{h_px:.1f}" fill="{color}" rx="2">'
-            f'<title>{html.escape(day)}: ${v:.4f}</title></rect>'
+            f"<title>{html.escape(day)}: ${v:.4f}</title></rect>"
         )
 
     # Línea de daily budget
     budget_y = pad_t + chart_h - (daily_budget / max_v) * chart_h
     budget_line = (
-        f'<line x1="{pad_l}" y1="{budget_y:.1f}" x2="{width-pad_r}" '
+        f'<line x1="{pad_l}" y1="{budget_y:.1f}" x2="{width - pad_r}" '
         f'y2="{budget_y:.1f}" stroke="#d29922" stroke-dasharray="4,4" stroke-width="1"/>'
-        f'<text x="{width-pad_r-4}" y="{budget_y-4:.1f}" fill="#d29922" '
+        f'<text x="{width - pad_r - 4}" y="{budget_y - 4:.1f}" fill="#d29922" '
         f'font-size="10" text-anchor="end">cap diario ${daily_budget:.2f}</text>'
     )
 
     # Eje Y simplificado
     y_axis = (
-        f'<text x="4" y="{pad_t+10}" fill="#8b98a5" font-size="10">${max_v:.2f}</text>'
-        f'<text x="4" y="{pad_t+chart_h+4:.1f}" fill="#8b98a5" font-size="10">$0</text>'
+        f'<text x="4" y="{pad_t + 10}" fill="#8b98a5" font-size="10">${max_v:.2f}</text>'
+        f'<text x="4" y="{pad_t + chart_h + 4:.1f}" fill="#8b98a5" font-size="10">$0</text>'
     )
 
     # Etiquetas X (primero, último)
     if buckets:
         first_lbl = (
-            f'<text x="{pad_l}" y="{height-8}" fill="#8b98a5" font-size="10">'
-            f'{html.escape(buckets[0][0][5:])}</text>'
+            f'<text x="{pad_l}" y="{height - 8}" fill="#8b98a5" font-size="10">{html.escape(buckets[0][0][5:])}</text>'
         )
         last_lbl = (
-            f'<text x="{width-pad_r}" y="{height-8}" fill="#8b98a5" font-size="10" '
+            f'<text x="{width - pad_r}" y="{height - 8}" fill="#8b98a5" font-size="10" '
             f'text-anchor="end">{html.escape(buckets[-1][0][5:])}</text>'
         )
     else:
@@ -251,8 +252,8 @@ def _render_chart_svg(buckets: list[tuple[str, float]], daily_budget: float) -> 
     return (
         f'<svg viewBox="0 0 {width} {height}" width="100%" '
         f'preserveAspectRatio="xMidYMid meet" role="img" aria-label="cost history">'
-        f'{y_axis}{"".join(bars)}{budget_line}{first_lbl}{last_lbl}'
-        f'</svg>'
+        f"{y_axis}{''.join(bars)}{budget_line}{first_lbl}{last_lbl}"
+        f"</svg>"
     )
 
 
@@ -314,9 +315,9 @@ def _render_aborts(rows: Iterable[dict]) -> str:
         est = float(r.get("cost_estimated_usd") or 0)
         model = html.escape(str(r.get("model_used") or "—"))
         body_rows.append(
-            f'<tr><td>{cycle_id}</td><td>{ts_short}</td>'
+            f"<tr><td>{cycle_id}</td><td>{ts_short}</td>"
             f'<td><span class="tag err">{reason}</span></td>'
-            f'<td>${est:.4f}</td><td>{model}</td></tr>'
+            f"<td>${est:.4f}</td><td>{model}</td></tr>"
         )
     return f"<table>{head}<tbody>{''.join(body_rows)}</tbody></table>"
 
@@ -327,23 +328,21 @@ def render_dashboard_html(snapshot: CostHistorySnapshot) -> str:
     spend_7d = snapshot.spend_in_window(24 * 7)
     spend_30d = snapshot.spend_in_window(24 * 30)
 
-    pct_today = (
-        (spend_24h / snapshot.daily_budget_usd) * 100
-        if snapshot.daily_budget_usd > 0 else 0
-    )
+    pct_today = (spend_24h / snapshot.daily_budget_usd) * 100 if snapshot.daily_budget_usd > 0 else 0
 
     kpis = (
-        _render_kpi("Gasto últimas 24h", f"${spend_24h:.4f}",
-                    f"{pct_today:.1f}% del cap diario (${snapshot.daily_budget_usd:.2f})")
-        + _render_kpi("Gasto últimos 7 días", f"${spend_7d:.4f}",
-                      f"avg/día ${spend_7d/7:.4f}")
-        + _render_kpi("Gasto últimos 30 días", f"${spend_30d:.4f}",
-                      f"avg/día ${spend_30d/30:.4f}")
+        _render_kpi(
+            "Gasto últimas 24h",
+            f"${spend_24h:.4f}",
+            f"{pct_today:.1f}% del cap diario (${snapshot.daily_budget_usd:.2f})",
+        )
+        + _render_kpi("Gasto últimos 7 días", f"${spend_7d:.4f}", f"avg/día ${spend_7d / 7:.4f}")
+        + _render_kpi("Gasto últimos 30 días", f"${spend_30d:.4f}", f"avg/día ${spend_30d / 30:.4f}")
         + _render_kpi("Cycles totales (window)", str(snapshot.total_cycles))
-        + _render_kpi("Cap excedido", str(snapshot.cap_excedido_count),
-                      f"cap/latido ${snapshot.cap_per_latido_usd:.4f}")
-        + _render_kpi("Cycles abortados", str(len(snapshot.aborted_cycles)),
-                      "frenazos del Budget Tracker")
+        + _render_kpi(
+            "Cap excedido", str(snapshot.cap_excedido_count), f"cap/latido ${snapshot.cap_per_latido_usd:.4f}"
+        )
+        + _render_kpi("Cycles abortados", str(len(snapshot.aborted_cycles)), "frenazos del Budget Tracker")
     )
 
     chart = _render_chart_svg(snapshot.daily_buckets(days=14), snapshot.daily_budget_usd)
@@ -411,10 +410,9 @@ def write_dashboard(
 # ────────────────────────────────────────────────────────────────────
 # CLI
 
+
 def _main(argv: Optional[list[str]] = None) -> int:
-    parser = argparse.ArgumentParser(
-        description="Genera el dashboard estático de cost history del embrión."
-    )
+    parser = argparse.ArgumentParser(description="Genera el dashboard estático de cost history del embrión.")
     parser.add_argument(
         "--output",
         "-o",

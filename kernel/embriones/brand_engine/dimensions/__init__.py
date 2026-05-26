@@ -88,9 +88,7 @@ class DimensionEvaluator(abc.ABC):
         Subclases pueden override para invocar ``await router.execute(...)``
         directamente sin bloquear ni anidar event loops.
         """
-        return await asyncio.to_thread(
-            self.evaluate, respuesta_candidata, criterios, umbral_pass
-        )
+        return await asyncio.to_thread(self.evaluate, respuesta_candidata, criterios, umbral_pass)
 
 
 class BaseSabioDimension(DimensionEvaluator):
@@ -146,9 +144,7 @@ class BaseSabioDimension(DimensionEvaluator):
             # No hay loop activo — asyncio.run es seguro.
             pass
 
-        return asyncio.run(
-            self.evaluate_async(respuesta_candidata, criterios, umbral_pass)
-        )
+        return asyncio.run(self.evaluate_async(respuesta_candidata, criterios, umbral_pass))
 
     async def evaluate_async(
         self,

@@ -1,0 +1,393 @@
+{
+  "scanner": "live24h",
+  "version": 1,
+  "started_at": "2026-05-26T09:57:12.601545+00:00",
+  "finished_at": "2026-05-26T09:57:13.164272+00:00",
+  "window": {
+    "now_utc": "2026-05-26T09:57:12.601545+00:00",
+    "since_24h": "2026-05-25T09:57:12.601545+00:00",
+    "since_7d": "2026-05-19T09:57:12.601545+00:00"
+  },
+  "github_commits_24h": [],
+  "github_commits_24h_count": 0,
+  "railway_deploys_24h": [
+    {
+      "project": "celebrated-achievement",
+      "service": "el-monstruo",
+      "service_id": "68cd07f3-5518-4b62-a9da-5ca054dc2437",
+      "status": "SUCCESS",
+      "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+      "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
+      "branch": "main",
+      "repo": "alfredogl1804/el-monstruo",
+      "deployed_at": "2026-05-26T09:35:23.226Z"
+    },
+    {
+      "project": "celebrated-achievement",
+      "service": "la-forja-api",
+      "service_id": "bcdfddc2-dd04-4676-8de7-88b503b3de0b",
+      "status": "SUCCESS",
+      "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+      "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
+      "branch": "main",
+      "repo": "alfredogl1804/el-monstruo",
+      "deployed_at": "2026-05-26T09:35:23.147Z"
+    },
+    {
+      "project": "celebrated-achievement",
+      "service": "sms-rem-cycle",
+      "service_id": "e00abeef-b69b-445d-8659-88ecb201e55c",
+      "status": "SUCCESS",
+      "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+      "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
+      "branch": "main",
+      "repo": "alfredogl1804/el-monstruo",
+      "deployed_at": "2026-05-26T09:35:23.075Z"
+    },
+    {
+      "project": "celebrated-achievement",
+      "service": "ag-ui-gateway",
+      "service_id": "fa0a0162-a206-4ef5-bb8d-1f9c01bf4f33",
+      "status": "SUCCESS",
+      "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+      "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
+      "branch": "main",
+      "repo": "alfredogl1804/el-monstruo",
+      "deployed_at": "2026-05-26T09:35:22.993Z"
+    },
+    {
+      "project": "celebrated-achievement",
+      "service": "el-monstruo-kernel",
+      "service_id": "46b0f118-6f9b-407a-af53-a2545a955fa7",
+      "status": "SUCCESS",
+      "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+      "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
+      "branch": "main",
+      "repo": "alfredogl1804/el-monstruo",
+      "deployed_at": "2026-05-26T09:35:22.779Z"
+    }
+  ],
+  "railway_deploys_24h_count": 5,
+  "supabase_migrations_24h": [
+    {
+      "version": "20260525040428",
+      "name": "0061_thread_immunity_events"
+    }
+  ],
+  "supabase_migrations_24h_count": 1,
+  "drift_services_over_7d": [
+    {
+      "project": "simulador-universal",
+      "service": "simulador-api",
+      "service_id": "201c0cd8-61d2-49ac-b7b7-e04c57a6c387",
+      "status": "SUCCESS",
+      "commit_hash": "f2e73b9b8505344342159e41f45dfbfed251ac25",
+      "commit_message": "feat: add Supabase electoral schema SQL (4 tables + views)",
+      "branch": "main",
+      "repo": "alfredogl1804/simulador-universal",
+      "deployed_at": "2026-04-14T09:18:54.684Z",
+      "days_since_deploy": 42
+    },
+    {
+      "project": "celebrated-achievement",
+      "service": "open-webui",
+      "service_id": "46eda8a1-1885-4590-a68a-51a6e2765f45",
+      "status": "SUCCESS",
+      "commit_hash": null,
+      "commit_message": "",
+      "branch": null,
+      "repo": null,
+      "deployed_at": "2026-04-17T03:08:08.120Z",
+      "days_since_deploy": 39
+    },
+    {
+      "project": "truthful-freedom",
+      "service": "ticketlike-staging",
+      "service_id": "2398f2ea-b7c9-4fa4-8a0b-0407e258d0a5",
+      "status": "SUCCESS",
+      "commit_hash": "c21b9e5881b89d587ee3245bb2e40038a5a25795",
+      "commit_message": "feat: mobile bottom sheet replaces tooltip on seat tap\n\n- VenueMap: new onSeatTapMobile prop suppresses tooltip on mobile\n- VenueMap: new highlightedSeatId prop shows pulsing ring on previewed seat\n- ",
+      "branch": "staging",
+      "repo": "alfredogl1804/like-kukulkan-tickets",
+      "deployed_at": "2026-04-17T02:26:02.986Z",
+      "days_since_deploy": 39
+    },
+    {
+      "project": "celebrated-achievement",
+      "service": "Redis",
+      "service_id": "59dcc47b-ea62-4a96-b547-b1741b506573",
+      "status": "SUCCESS",
+      "commit_hash": null,
+      "commit_message": "",
+      "branch": null,
+      "repo": null,
+      "deployed_at": "2026-04-21T07:31:37.423Z",
+      "days_since_deploy": 35
+    },
+    {
+      "project": "celebrated-achievement",
+      "service": "Postgres",
+      "service_id": "cd75e977-e7f8-41b9-a0ad-72116babed8a",
+      "status": "SUCCESS",
+      "commit_hash": null,
+      "commit_message": "",
+      "branch": null,
+      "repo": null,
+      "deployed_at": "2026-04-21T07:26:22.175Z",
+      "days_since_deploy": 35
+    },
+    {
+      "project": "celebrated-achievement",
+      "service": "command-center",
+      "service_id": "8d7f4cc7-8f2b-4404-801a-106417275225",
+      "status": "SUCCESS",
+      "commit_hash": "814ddf3a673e54cd6f2e95e35dc8b6e8f6633fa7",
+      "commit_message": "sprint18: PIN checkout@v6.0.2 SHA (IVD-confirmed de0fac2e)",
+      "branch": "main",
+      "repo": "alfredogl1804/el-monstruo-command-center",
+      "deployed_at": "2026-05-02T04:31:45.847Z",
+      "days_since_deploy": 24
+    },
+    {
+      "project": "celebrated-achievement",
+      "service": "worker",
+      "service_id": "c8b23424-49b9-46b9-b744-cf2886e356d1",
+      "status": "SUCCESS",
+      "commit_hash": "2149129e4b6f7494a79289d0ad72514ba027974c",
+      "commit_message": "feat(sprint-30): Embrión IA commands via kernel\n\n- New commands:\n  /embrion          — estado y memorias del Embrión\n  /embrion estado   — estado detallado\n  /embrion memorias — últimas memorias\n  /em",
+      "branch": "master",
+      "repo": "alfredogl1804/el-monstruo-bot",
+      "deployed_at": "2026-05-02T04:33:49.807Z",
+      "days_since_deploy": 24
+    },
+    {
+      "project": "forja-monstruo-direct-1777801048",
+      "service": "API",
+      "service_id": "c40947eb-2e5b-410f-ba9f-2ed944d9f736",
+      "status": "SUCCESS",
+      "commit_hash": "dd46d53b61b29ce2bd0856dbcfd382aec44acc21",
+      "commit_message": "Add Procfile for Railway deployment",
+      "branch": "main",
+      "repo": "alfredogl1804/forja-saludo-monstruo-1777800772",
+      "deployed_at": "2026-05-03T09:37:30.125Z",
+      "days_since_deploy": 23
+    },
+    {
+      "project": "forja-monstruo-direct-1777801110",
+      "service": "API",
+      "service_id": "57fd33a3-2b1a-46eb-b44f-6fb958229254",
+      "status": "SUCCESS",
+      "commit_hash": "dd46d53b61b29ce2bd0856dbcfd382aec44acc21",
+      "commit_message": "Add Procfile for Railway deployment",
+      "branch": "main",
+      "repo": "alfredogl1804/forja-saludo-monstruo-1777800772",
+      "deployed_at": "2026-05-03T09:39:00.080Z",
+      "days_since_deploy": 23
+    },
+    {
+      "project": "forja-saludo-v2",
+      "service": "API",
+      "service_id": "09ecd476-531b-4331-aeb6-050aea45479f",
+      "status": "SUCCESS",
+      "commit_hash": "c4f2f82d19c4bf3ffa53e4f64c348e2e8b925bdb",
+      "commit_message": "chore: add Procfile",
+      "branch": "main",
+      "repo": "alfredogl1804/forja-saludo-monstruo-v2-1777801675",
+      "deployed_at": "2026-05-03T09:48:35.137Z",
+      "days_since_deploy": 23
+    },
+    {
+      "project": "forja-marketplace-mate",
+      "service": "API",
+      "service_id": "ff0d953e-6a19-4075-ba99-c745d2b3d39f",
+      "status": "SUCCESS",
+      "commit_hash": "c9c07adf8824d0ac536a6818f60fa545f8469086",
+      "commit_message": "chore: Procfile",
+      "branch": "main",
+      "repo": "alfredogl1804/forja-marketplace-mate-1777801830",
+      "deployed_at": "2026-05-03T09:51:23.694Z",
+      "days_since_deploy": 23
+    },
+    {
+      "project": "truthful-freedom",
+      "service": "like-kukulkan-tickets",
+      "service_id": "0aabcefd-4de2-4e88-804e-73c5196dfb7e",
+      "status": "SUCCESS",
+      "commit_hash": "10e724932b1b87c7a859387f003024346d95ea05",
+      "commit_message": "Merge: La Manada referral system",
+      "branch": "main",
+      "repo": "alfredogl1804/like-kukulkan-tickets",
+      "deployed_at": "2026-05-04T10:32:21.746Z",
+      "days_since_deploy": 21
+    },
+    {
+      "project": "celebrated-achievement",
+      "service": "proposal-worker",
+      "service_id": "7becfa99-3e14-417b-8f27-f7fc68f58f1f",
+      "status": "SUCCESS",
+      "commit_hash": "a8040bf8ebd1536609c88b1e8329bc8dc288d4fc",
+      "commit_message": "feat(embrion): EMBRION-NEEDS-002 Tarea 1 — proposal_processor cierra ciclo HITL (#75)\n\nResuelve el limbo aprobado: proposals approved via Telegram que quedaban sin\nejecutarse porque NADIE invocaba exp",
+      "branch": "main",
+      "repo": "alfredogl1804/el-monstruo",
+      "deployed_at": "2026-05-10T12:23:26.827Z",
+      "days_since_deploy": 15
+    },
+    {
+      "project": "celebrated-achievement",
+      "service": "forja-mcp",
+      "service_id": "6fe5e75b-8f77-49e9-a521-9059d7ebe32f",
+      "status": "SUCCESS",
+      "commit_hash": null,
+      "commit_message": "",
+      "branch": null,
+      "repo": null,
+      "deployed_at": "2026-05-14T09:57:09.733Z",
+      "days_since_deploy": 12
+    }
+  ],
+  "drift_services_over_7d_count": 14,
+  "kernel_health": {
+    "status": "healthy",
+    "version": "0.84.8-sprint-memento",
+    "motor": "langgraph",
+    "uptime_seconds": 1250,
+    "models_available": [
+      "gpt-5.5",
+      "claude-opus-4-7",
+      "gemini-3.1-pro-preview",
+      "sonar-reasoning-pro"
+    ],
+    "observability": "active",
+    "components": {
+      "kernel": "active",
+      "event_store": "active",
+      "memory": "active",
+      "knowledge": "active",
+      "langfuse": "active",
+      "opentelemetry": "inactive",
+      "checkpointer": "active (AsyncPostgresSaver)",
+      "mempalace": "inactive",
+      "lightrag": "active",
+      "multi_agent": "active",
+      "finops": "active",
+      "mcp": "inactive",
+      "fastmcp": "active",
+      "mem0": "active",
+      "embrion": "active",
+      "embrion_loop": {
+        "running": true,
+        "check_interval_s": 60,
+        "think_cooldown_s": 300,
+        "thoughts_today": 0,
+        "max_thoughts_per_day": 50,
+        "cost_today_usd": 0.19,
+        "daily_budget_usd": 30.0,
+        "cycle_count": 19,
+        "last_thought_at": null,
+        "last_trigger": {
+          "type": "reflexion_autonoma",
+          "detail": "Tiempo suficiente para pensar autónomamente sobre el progreso del Monstruo.",
+          "priority": 3
+        },
+        "last_result": "_think returned None",
+        "errors": [
+          {
+            "cycle": 2,
+            "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+            "type": "RuntimeError",
+            "ts": "2026-05-26T09:38:01.393041+00:00"
+          },
+          {
+            "cycle": 3,
+            "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+            "type": "RuntimeError",
+            "ts": "2026-05-26T09:39:08.072061+00:00"
+          },
+          {
+            "cycle": 4,
+            "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+            "type": "RuntimeError",
+            "ts": "2026-05-26T09:40:14.896004+00:00"
+          },
+          {
+            "cycle": 5,
+            "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+            "type": "RuntimeError",
+            "ts": "2026-05-26T09:41:21.696852+00:00"
+          },
+          {
+            "cycle": 6,
+            "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+            "type": "RuntimeError",
+            "ts": "2026-05-26T09:42:30.819641+00:00"
+          },
+          {
+            "cycle": 7,
+            "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+            "type": "RuntimeError",
+            "ts": "2026-05-26T09:43:37.599561+00:00"
+          },
+          {
+            "cycle": 8,
+            "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+            "type": "RuntimeError",
+            "ts": "2026-05-26T09:44:44.165565+00:00"
+          },
+          {
+            "cycle": 9,
+            "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+            "type": "RuntimeError",
+            "ts": "2026-05-26T09:45:51.224196+00:00"
+          },
+          {
+            "cycle": 10,
+            "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+            "type": "RuntimeError",
+            "ts": "2026-05-26T09:46:58.318869+00:00"
+          },
+          {
+            "cycle": 11,
+            "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
+            "type": "RuntimeError",
+            "ts": "2026-05-26T09:48:07.841274+00:00"
+          }
+        ],
+        "silence": {
+          "threshold": 70,
+          "last_score": null,
+          "silenced_today": 0,
+          "messages_sent_today": 0
+        },
+        "consolidation": {
+          "interval": 10,
+          "latidos_since": 9,
+          "total_consolidations": 0,
+          "last_at": null
+        },
+        "sabios": {
+          "interval": 20,
+          "cycles_since": 19,
+          "total_consultations": 0,
+          "last_at": null
+        },
+        "radar": {
+          "interval": 48,
+          "cycles_since": 19,
+          "total_checks": 0,
+          "last_at": null
+        },
+        "fcs": {
+          "tool_calls_total": 0,
+          "calidad_promedio": null,
+          "evaluaciones_totales": 0,
+          "lecciones_estrategia": 0,
+          "guardrails_activos": 0,
+          "manus_delegations": 0,
+          "write_policy_rejected": 0,
+          "score": 0.0
+        }
+      }
+    }
+  },
+  "coverage_match": true
+}

@@ -28,16 +28,15 @@ EXIT CODES:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 6 · 2026-05-04
 """
+
 from __future__ import annotations
 
 import json
 import os
 import sys
-from typing import Any, Optional
-
-import urllib.request
 import urllib.error
-
+import urllib.request
+from typing import Optional
 
 # ============================================================================
 # CONFIG
@@ -52,6 +51,7 @@ TIMEOUT = float(os.environ.get("CATASTRO_SMOKE_TIMEOUT", "20"))
 # ============================================================================
 # COLORES
 # ============================================================================
+
 
 class C:
     RESET = "\033[0m"
@@ -71,15 +71,26 @@ def step(label: str) -> None:
     print(f"\n{C.BOLD}── {label}{C.RESET}")
 
 
-def ok(msg: str) -> None: print(f"  {C.OK}✓{C.RESET} {msg}")
-def warn(msg: str) -> None: print(f"  {C.WARN}⚠{C.RESET} {msg}")
-def err(msg: str) -> None: print(f"  {C.ERR}✗{C.RESET} {msg}")
-def info(msg: str) -> None: print(f"  {C.INFO}·{C.RESET} {msg}")
+def ok(msg: str) -> None:
+    print(f"  {C.OK}✓{C.RESET} {msg}")
+
+
+def warn(msg: str) -> None:
+    print(f"  {C.WARN}⚠{C.RESET} {msg}")
+
+
+def err(msg: str) -> None:
+    print(f"  {C.ERR}✗{C.RESET} {msg}")
+
+
+def info(msg: str) -> None:
+    print(f"  {C.INFO}·{C.RESET} {msg}")
 
 
 # ============================================================================
 # HTTP HELPER
 # ============================================================================
+
 
 def http_call(method: str, path: str, body: Optional[dict] = None) -> tuple[int, dict]:
     """Llama al endpoint con auth Bearer. Retorna (status_code, json_body)."""
@@ -108,6 +119,7 @@ def http_call(method: str, path: str, body: Optional[dict] = None) -> tuple[int,
 # ASSERTIONS
 # ============================================================================
 
+
 def assert_status_healthy() -> tuple[bool, dict]:
     step("1. GET /v1/catastro/status")
     code, body = http_call("GET", "/v1/catastro/status")
@@ -134,10 +146,14 @@ def assert_status_healthy() -> tuple[bool, dict]:
 
 def assert_recommend_devuelve_modelos() -> tuple[bool, list]:
     step("2. POST /v1/catastro/recommend (use_case=LLM frontier)")
-    code, body = http_call("POST", "/v1/catastro/recommend", {
-        "use_case": "Tareas de razonamiento de frontera con contextos largos",
-        "top_n": 5,
-    })
+    code, body = http_call(
+        "POST",
+        "/v1/catastro/recommend",
+        {
+            "use_case": "Tareas de razonamiento de frontera con contextos largos",
+            "top_n": 5,
+        },
+    )
     if code != 200:
         err(f"status {code}: {body}")
         return False, []
@@ -190,6 +206,7 @@ def assert_dominios_no_vacio() -> bool:
 # ============================================================================
 # MAIN
 # ============================================================================
+
 
 def main() -> int:
     header(f"CATASTRO · Smoke E2E primer run · {KERNEL_URL}")

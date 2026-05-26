@@ -39,11 +39,7 @@ class TelegramCapturer(BaseCapturer):
     ) -> None:
         super().__init__(persist_fn=persist_fn)
         # Permite inyección explícita para tests
-        self._authorized = (
-            authorized_chat_ids
-            if authorized_chat_ids is not None
-            else _get_authorized_chat_ids()
-        )
+        self._authorized = authorized_chat_ids if authorized_chat_ids is not None else _get_authorized_chat_ids()
 
     def capture(self, raw_event: Mapping[str, Any]) -> RotorActivity:
         """

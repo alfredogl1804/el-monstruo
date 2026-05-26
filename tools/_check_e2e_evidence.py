@@ -20,6 +20,7 @@ Bypass legítimos (NO usar este checker):
     - PR con label `no-e2e-required` (typo fix, doc-only)
     - PR con label `e2e-evidence-bypass` (emergency hotfix con justificación)
 """
+
 from __future__ import annotations
 
 import re

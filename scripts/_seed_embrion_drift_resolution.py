@@ -1,13 +1,16 @@
 """Sembrar semilla en embrion_memoria del cierre MEGA-CATASTRO-DRIFT-RESOLUTION-001."""
+
 from __future__ import annotations
-import json, os, sys, urllib.request
+
+import json
+import os
+import sys
+import urllib.request
 
 
 def main() -> int:
     url = os.environ.get("SUPABASE_URL", "https://xsumzuhwmivjgftsneov.supabase.co")
-    key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get(
-        "SUPABASE_SERVICE_ROLE_KEY"
-    )
+    key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
     if not key:
         print("[FAIL] SUPABASE_SERVICE_KEY no presente")
         return 1

@@ -9,6 +9,7 @@ en `bridge/cowork_session_dashboard.html` con metricas binarias visibles para Al
 Sin servidor, sin auth. Mismo patron que kernel/dashboards/cost_history.py.
 Refs: M6 de AUDITORIA_PROFUNDA_COMPORTAMIENTO_2026_05_11.md
 """
+
 from __future__ import annotations
 
 import argparse
@@ -25,8 +26,8 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from kernel.cowork_runtime.session_memory import (  # noqa: E402
-    SessionMemoryStore,
     CoworkSesion,
+    SessionMemoryStore,
 )
 
 
@@ -103,9 +104,9 @@ class CoworkSessionsDashboard:
         preflight_ok = sum(1 for s in sesiones if s.get("pre_flight_ejecutado"))
         avance_ok = sum(1 for s in sesiones if (s.get("commits_productivos") or 0) > 0)
         audit_only = sum(
-            1 for s in sesiones
-            if (s.get("commits_productivos") or 0) == 0
-            and self._as_list(s.get("violaciones_detectadas"))
+            1
+            for s in sesiones
+            if (s.get("commits_productivos") or 0) == 0 and self._as_list(s.get("violaciones_detectadas"))
         )
 
         preflight_ratio = (preflight_ok / total) if total else 0.0
@@ -141,7 +142,9 @@ class CoworkSessionsDashboard:
 
     def _render_html(self, m: DashboardMetrics, sesiones: list[dict]) -> str:
         now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-        preflight_color = "#22c55e" if m.preflight_ratio >= 0.95 else "#f59e0b" if m.preflight_ratio >= 0.5 else "#ef4444"
+        preflight_color = (
+            "#22c55e" if m.preflight_ratio >= 0.95 else "#f59e0b" if m.preflight_ratio >= 0.5 else "#ef4444"
+        )
         avance_color = "#22c55e" if m.avance_ratio >= 0.7 else "#f59e0b" if m.avance_ratio >= 0.3 else "#ef4444"
 
         kw_rows = ""
@@ -184,20 +187,20 @@ class CoworkSessionsDashboard:
             ultima_block = f"""
             <div class="card">
               <h2>Ultima sesion</h2>
-              <p><strong>ID:</strong> <code>{html.escape(u.id or '—')}</code></p>
-              <p><strong>Sprint activo:</strong> {html.escape(u.sprint_activo or '—')}</p>
-              <p><strong>Fecha inicio:</strong> {html.escape(u.fecha_inicio or '—')}</p>
-              <p><strong>Duracion:</strong> {u.duracion_minutos or '—'} min · <strong>Turnos:</strong> {u.turnos_totales}</p>
+              <p><strong>ID:</strong> <code>{html.escape(u.id or "—")}</code></p>
+              <p><strong>Sprint activo:</strong> {html.escape(u.sprint_activo or "—")}</p>
+              <p><strong>Fecha inicio:</strong> {html.escape(u.fecha_inicio or "—")}</p>
+              <p><strong>Duracion:</strong> {u.duracion_minutos or "—"} min · <strong>Turnos:</strong> {u.turnos_totales}</p>
               <p><strong>Pre-flight ejecutado:</strong>
-                 <span class="{'ok' if u.pre_flight_ejecutado else 'fail'}">
-                   {'SI' if u.pre_flight_ejecutado else 'NO'}
+                 <span class="{"ok" if u.pre_flight_ejecutado else "fail"}">
+                   {"SI" if u.pre_flight_ejecutado else "NO"}
                  </span>
               </p>
               <p><strong>Commits productivos:</strong> {u.commits_productivos}</p>
               <p><strong>Violaciones detectadas:</strong> {len(violaciones_list)}</p>
-              <p><strong>Kernel version:</strong> <code>{html.escape(u.kernel_version or '—')}</code></p>
-              <p><strong>Embrion ultimo latido:</strong> <code>{html.escape(u.embrion_ultimo_latido or '—')}</code></p>
-              <p><strong>Resumen lecciones:</strong> <em>{html.escape(u.resumen_lecciones or '(ninguno)')}</em></p>
+              <p><strong>Kernel version:</strong> <code>{html.escape(u.kernel_version or "—")}</code></p>
+              <p><strong>Embrion ultimo latido:</strong> <code>{html.escape(u.embrion_ultimo_latido or "—")}</code></p>
+              <p><strong>Resumen lecciones:</strong> <em>{html.escape(u.resumen_lecciones or "(ninguno)")}</em></p>
               <p><strong>Correctivos recibidos:</strong><br>{correctivos}</p>
               <p><strong>Deudas pendientes proxima sesion:</strong><br>{deudas}</p>
             </div>
@@ -246,14 +249,14 @@ class CoworkSessionsDashboard:
     <div class="l">Ultimos 7 dias</div>
   </div>
   <div class="kpi" style="border-left-color:{preflight_color};">
-    <div class="v">{m.preflight_ratio*100:.0f}%</div>
+    <div class="v">{m.preflight_ratio * 100:.0f}%</div>
     <div class="l">Pre-flight Memento</div>
-    <div class="bar"><div style="width:{m.preflight_ratio*100:.0f}%; background:{preflight_color};"></div></div>
+    <div class="bar"><div style="width:{m.preflight_ratio * 100:.0f}%; background:{preflight_color};"></div></div>
   </div>
   <div class="kpi" style="border-left-color:{avance_color};">
-    <div class="v">{m.avance_ratio*100:.0f}%</div>
+    <div class="v">{m.avance_ratio * 100:.0f}%</div>
     <div class="l">Sesiones con commits</div>
-    <div class="bar"><div style="width:{m.avance_ratio*100:.0f}%; background:{avance_color};"></div></div>
+    <div class="bar"><div style="width:{m.avance_ratio * 100:.0f}%; background:{avance_color};"></div></div>
   </div>
   <div class="kpi" style="border-left-color:#f59e0b;">
     <div class="v">{m.sesiones_audit_only}</div>

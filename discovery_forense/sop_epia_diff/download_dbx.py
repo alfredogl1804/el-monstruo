@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Download SOP/EPIA pair files from Dropbox using DROPBOX_API_KEY env."""
+
 import os
-import json
 from pathlib import Path
+
 import dropbox
 
 OUT_DIR = Path("/home/ubuntu/discovery_2026_05_05/sop_epia_diff/dropbox")
@@ -18,6 +19,7 @@ FILES = [
     ("/Repositorio_Maestro_SOP_EPIA_v4_0_Live.docx", "REPOSITORIO_MAESTRO_SOP_EPIA_DBX.docx"),
     ("/SOP+EPIA \u2014 REESTRUCTURACI\u00d3N Y EVOLUCI\u00d3N (Abril 2026).md", "SOP_EPIA_REESTRUCTURACION_DBX.md"),
 ]
+
 
 def parse_creds():
     blob = os.environ["DROPBOX_API_KEY"]
@@ -45,6 +47,7 @@ def main():
             print(f"  OK  {dst:55s} ({len(res.content)} bytes)")
         except Exception as e:
             print(f"  ERR {dst:55s} -> {type(e).__name__}: {str(e)[:120]}")
+
 
 if __name__ == "__main__":
     main()

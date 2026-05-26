@@ -15,10 +15,9 @@ Sprint: OPP-NB-023 R2-B
 Branch: r2b/opp-nb-023-integrate-anonymous-guard
 """
 
-import sys
 import os
+import sys
 import unittest
-from unittest.mock import AsyncMock, MagicMock, patch
 
 # Ensure kernel is importable
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -30,30 +29,35 @@ class TestIdentityGuardIntegrationMemoryRoutes(unittest.TestCase):
     def test_resolve_uid_blocks_anonymous(self):
         """anonymous → UNRESOLVED_USER_CONTEXT"""
         from kernel.memory_routes import _resolve_uid
+
         result = _resolve_uid("anonymous", "test")
         self.assertEqual(result, "UNRESOLVED_USER_CONTEXT")
 
     def test_resolve_uid_passes_valid_user(self):
         """Valid user_id passes through unchanged."""
         from kernel.memory_routes import _resolve_uid
+
         result = _resolve_uid("alfredo", "test")
         self.assertEqual(result, "alfredo")
 
     def test_resolve_uid_blocks_empty(self):
         """Empty string → UNRESOLVED_USER_CONTEXT"""
         from kernel.memory_routes import _resolve_uid
+
         result = _resolve_uid("", "test")
         self.assertEqual(result, "UNRESOLVED_USER_CONTEXT")
 
     def test_resolve_uid_blocks_null(self):
         """'null' string → UNRESOLVED_USER_CONTEXT"""
         from kernel.memory_routes import _resolve_uid
+
         result = _resolve_uid("null", "test")
         self.assertEqual(result, "UNRESOLVED_USER_CONTEXT")
 
     def test_resolve_uid_preserves_case(self):
         """Valid user_id preserves original case."""
         from kernel.memory_routes import _resolve_uid
+
         result = _resolve_uid("Alfredo_G", "test")
         self.assertEqual(result, "Alfredo_G")
 
@@ -64,18 +68,21 @@ class TestIdentityGuardIntegrationAutonomyRoutes(unittest.TestCase):
     def test_resolve_uid_blocks_anonymous(self):
         """anonymous → UNRESOLVED_USER_CONTEXT"""
         from kernel.autonomy_routes import _resolve_uid
+
         result = _resolve_uid("anonymous", "test")
         self.assertEqual(result, "UNRESOLVED_USER_CONTEXT")
 
     def test_resolve_uid_passes_valid_user(self):
         """Valid user_id passes through unchanged."""
         from kernel.autonomy_routes import _resolve_uid
+
         result = _resolve_uid("alfredo", "test")
         self.assertEqual(result, "alfredo")
 
     def test_resolve_uid_blocks_default(self):
         """'default' → UNRESOLVED_USER_CONTEXT"""
         from kernel.autonomy_routes import _resolve_uid
+
         result = _resolve_uid("default", "test")
         self.assertEqual(result, "UNRESOLVED_USER_CONTEXT")
 
@@ -87,7 +94,8 @@ class TestIdentityGuardIntegrationNodes(unittest.TestCase):
 
     def _resolve_uid_node(self, user_id, node_name):
         """Replicate the exact logic from nodes.py without importing the module."""
-        from kernel.identity_guard import resolve_user_id, UserIdStatus
+        from kernel.identity_guard import resolve_user_id
+
         resolved, status = resolve_user_id(user_id)
         return resolved
 
@@ -117,6 +125,7 @@ class TestGuardDoesNotRaise(unittest.TestCase):
 
     def test_memory_routes_no_raise_on_anonymous(self):
         from kernel.memory_routes import _resolve_uid
+
         # Should not raise, just return marker
         try:
             result = _resolve_uid("anonymous", "test")
@@ -126,6 +135,7 @@ class TestGuardDoesNotRaise(unittest.TestCase):
 
     def test_autonomy_routes_no_raise_on_anonymous(self):
         from kernel.autonomy_routes import _resolve_uid
+
         try:
             result = _resolve_uid("anonymous", "test")
             self.assertIsNotNone(result)
@@ -135,6 +145,7 @@ class TestGuardDoesNotRaise(unittest.TestCase):
     def test_nodes_no_raise_on_anonymous(self):
         """Test via identity_guard directly (nodes.py has heavy deps)."""
         from kernel.identity_guard import resolve_user_id
+
         try:
             resolved, status = resolve_user_id("anonymous")
             self.assertIsNotNone(resolved)

@@ -47,24 +47,24 @@ import asyncio
 import json
 import os
 import time
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 from uuid import uuid4
 
 import structlog
 
-from kernel.utils.keyword_matcher import compile_keyword_pattern, match_any_keyword
-
 # Sprint EMBRION-NEEDS-001 Tareas 1+2 (PR de integración)
 # Cargados aquí para que la falla de import sea ruidosa al boot, no en runtime.
 from kernel import embrion_budget as _embrion_budget
 from kernel import embrion_self_verifier as _embrion_self_verifier
+from kernel.utils.keyword_matcher import compile_keyword_pattern, match_any_keyword
 
 # Sprint ESCAPE-001 - Throttler Determinístico (Reloj Suizo, magna #2).
 # Importación segura: si el subpaquete kernel.escape no existe en runtime
 # (rollback, deploy parcial), el wiring degrada a no-op silencioso.
 try:
     from kernel.escape.throttler import Escapement as _Escapement
+
     _ESCAPE_AVAILABLE = True
 except ImportError:  # pragma: no cover
     _Escapement = None  # type: ignore[assignment]
@@ -75,11 +75,14 @@ except ImportError:  # pragma: no cover
 # Importación segura: si el subpaquete kernel.espiral no existe en runtime
 # (rollback, deploy parcial), el wiring degrada a no-op silencioso.
 try:
-    from kernel.espiral.homeostasis import Hairspring as _Hairspring
     from kernel.escape.registry import (
         apply_temporal_override as _espiral_apply_override,
+    )
+    from kernel.escape.registry import (
         restore_canonical as _espiral_restore_canonical,
     )
+    from kernel.espiral.homeostasis import Hairspring as _Hairspring
+
     _ESPIRAL_AVAILABLE = True
 except ImportError:  # pragma: no cover
     _Hairspring = None  # type: ignore[assignment]
@@ -93,7 +96,9 @@ logger = structlog.get_logger("embrion.loop")
 # ── Configuration ────────────────────────────────────────────────────
 CHECK_INTERVAL_S = int(os.environ.get("EMBRION_CHECK_INTERVAL", "60"))  # Check every 60s
 THINK_COOLDOWN_S = int(os.environ.get("EMBRION_THINK_COOLDOWN", "300"))  # Min 5 min between thoughts
-DAILY_BUDGET_USD = float(os.environ.get("EMBRION_DAILY_BUDGET", "30.0"))  # $30/day max (configurable via EMBRION_DAILY_BUDGET env var)
+DAILY_BUDGET_USD = float(
+    os.environ.get("EMBRION_DAILY_BUDGET", "30.0")
+)  # $30/day max (configurable via EMBRION_DAILY_BUDGET env var)
 MAX_THOUGHTS_PER_DAY = int(os.environ.get("EMBRION_MAX_THOUGHTS", "50"))
 JUDGE_MODEL = os.environ.get("EMBRION_JUDGE_MODEL", "gpt-5")  # Cheap but current model
 ACTOR_MODEL = os.environ.get("EMBRION_ACTOR_MODEL", "gpt-5.5")  # Full power for thinking (catalog key)
@@ -117,9 +122,7 @@ EMBRION_CATASTRO_USE_CASE_ECOSYSTEM_REFLECTION = "ecosystem_reflection"
 
 # Flag para deshabilitar el wiring sin redeploy (rollback instantáneo).
 # Default true: el Catastro debe consumirse. False: rollback total a hardcodes.
-EMBRION_CATASTRO_ENABLED = (
-    os.environ.get("EMBRION_CATASTRO_ENABLED", "true").lower() == "true"
-)
+EMBRION_CATASTRO_ENABLED = os.environ.get("EMBRION_CATASTRO_ENABLED", "true").lower() == "true"
 
 
 async def _select_model_via_catastro(
@@ -214,50 +217,42 @@ async def _select_model_via_catastro(
             cycle_id=cycle_id,
         )
         return fallback
+
+
 # ── CATASTRO_WIRING_END ────────────────────────────────────────────────────
 SILENCE_THRESHOLD = int(os.environ.get("EMBRION_SILENCE_THRESHOLD", "70"))  # silence_score > 70 to speak
 CONSOLIDATION_INTERVAL = int(os.environ.get("EMBRION_CONSOLIDATION_INTERVAL", "10"))  # Every N latidos
 SABIOS_CONSULTATION_INTERVAL = int(os.environ.get("EMBRION_SABIOS_INTERVAL", "20"))  # Consult Sabios every N cycles
-RADAR_INTERVAL = int(os.environ.get("EMBRION_RADAR_INTERVAL", "48"))  # Check agents-radar every N cycles (~48 min with 60s interval)
+RADAR_INTERVAL = int(
+    os.environ.get("EMBRION_RADAR_INTERVAL", "48")
+)  # Check agents-radar every N cycles (~48 min with 60s interval)
 
 # ── Sprint EMBRION-NEEDS-001 Tareas 1+2: Feature Flags ──────────────
 # Default True en producción. Permiten rollback sin redeploy bajando la flag.
 #   - EMBRION_BUDGET_TRACKER_ENABLED: cap por latido $0.25 + cap diario + HITL
 #   - EMBRION_SELF_VERIFIER_ENABLED: 3 decisiones antes de hablar (rompe eco)
-EMBRION_BUDGET_TRACKER_ENABLED = (
-    os.environ.get("EMBRION_BUDGET_TRACKER_ENABLED", "true").lower() == "true"
-)
-EMBRION_SELF_VERIFIER_ENABLED = (
-    os.environ.get("EMBRION_SELF_VERIFIER_ENABLED", "true").lower() == "true"
-)
+EMBRION_BUDGET_TRACKER_ENABLED = os.environ.get("EMBRION_BUDGET_TRACKER_ENABLED", "true").lower() == "true"
+EMBRION_SELF_VERIFIER_ENABLED = os.environ.get("EMBRION_SELF_VERIFIER_ENABLED", "true").lower() == "true"
 
 # Sprint PAR_BICEFALO_001 — Brand Engine como segundo embrión del par bicéfalo.
 # Default False: en G6 canary mode=shadow por defecto (DSC-MO-011). Para
 # activarlo en producción Alfredo debe poner BRAND_ENGINE_ENABLED=true en
 # Railway. El config YAML controla mode (shadow|enforce), umbrales y budget.
-BRAND_ENGINE_ENABLED = (
-    os.environ.get("BRAND_ENGINE_ENABLED", "false").lower() == "true"
-)
+BRAND_ENGINE_ENABLED = os.environ.get("BRAND_ENGINE_ENABLED", "false").lower() == "true"
 # Sprint ESCAPE-001 - Throttler Determinístico activable por env. Default true:
 # pieza estructural del Reloj Suizo. Para desactivarlo (emergencia, hotfix)
 # poner EMBRION_ESCAPE_ENABLED=false en Railway.
-EMBRION_ESCAPE_ENABLED = (
-    os.environ.get("EMBRION_ESCAPE_ENABLED", "true").lower() == "true"
-)
+EMBRION_ESCAPE_ENABLED = os.environ.get("EMBRION_ESCAPE_ENABLED", "true").lower() == "true"
 # ── ESPIRAL_BEGIN (feature flag) ────────────────────────────────────
 # Sprint ESPIRAL-001 - Hairspring activable por env. Default true: pieza
 # estructural del Reloj Suizo (#5). Cada N ciclos del Volante, lee
 # escape_pulse_log en ventana móvil 15min, calcula deviation_ratio, y aplica
 # override temporal del pulse_interval del Escape si abs(deviation - 1) > 0.30.
 # Para desactivarlo (emergencia, hotfix) poner EMBRION_ESPIRAL_ENABLED=false en Railway.
-EMBRION_ESPIRAL_ENABLED = (
-    os.environ.get("EMBRION_ESPIRAL_ENABLED", "true").lower() == "true"
-)
+EMBRION_ESPIRAL_ENABLED = os.environ.get("EMBRION_ESPIRAL_ENABLED", "true").lower() == "true"
 # Cada cuántos ciclos del Volante revisa la Espiral (default 5 = cada 5 min con
 # CHECK_INTERVAL_S=60). Configurable via env para tuning sin redeploy.
-EMBRION_ESPIRAL_CHECK_EVERY_N_CYCLES = int(
-    os.environ.get("EMBRION_ESPIRAL_CHECK_EVERY_N_CYCLES", "5")
-)
+EMBRION_ESPIRAL_CHECK_EVERY_N_CYCLES = int(os.environ.get("EMBRION_ESPIRAL_CHECK_EVERY_N_CYCLES", "5"))
 # ── ESPIRAL_END (feature flag) ──────────────────────────────────────
 # Estimación conservadora de tokens por trigger (input + output esperado).
 # Se usa en el pre-flight del Budget Tracker. Calibrada con datos reales del
@@ -296,13 +291,31 @@ SILENCE_QUESTIONS = [
 
 # Sprint 84.7: Patterns precompilados con word boundaries para silence_score
 _URGENCY_KEYWORDS = (
-    "urgente", "error", "fallo", "roto", "broken", "critical", "bloqueado", "down",
+    "urgente",
+    "error",
+    "fallo",
+    "roto",
+    "broken",
+    "critical",
+    "bloqueado",
+    "down",
 )
 _IRRECOVERABLE_KEYWORDS = (
-    "datos perdidos", "data loss", "irreversible", "eliminado", "borrado", "security", "breach",
+    "datos perdidos",
+    "data loss",
+    "irreversible",
+    "eliminado",
+    "borrado",
+    "security",
+    "breach",
 )
 _ACTION_DONE_KEYWORDS = (
-    "ejecuté", "commit", "creé", "pull request", "deployed", "instalé",
+    "ejecuté",
+    "commit",
+    "creé",
+    "pull request",
+    "deployed",
+    "instalé",
 )
 _URGENCY_PATTERN = compile_keyword_pattern(_URGENCY_KEYWORDS)
 _IRRECOVERABLE_PATTERN = compile_keyword_pattern(_IRRECOVERABLE_KEYWORDS)
@@ -361,12 +374,12 @@ class EmbrionLoop:
         self._last_radar_at: Optional[str] = None
 
         # Sprint 44: Functional Consciousness Score (FCS) — métricas cuantitativas propias
-        self._fcs_tool_calls_total = 0       # Total de herramientas ejecutadas en toda la vida
-        self._fcs_calidad_sum = 0.0          # Suma de calidades para promedio
-        self._fcs_calidad_count = 0          # Número de evaluaciones
-        self._fcs_lecciones_estrategia = 0   # Lecciones de estrategia aprendidas
-        self._fcs_guardrails = 0             # Guardrails activos extraídos
-        self._fcs_manus_delegations = 0      # Tareas delegadas a Manus
+        self._fcs_tool_calls_total = 0  # Total de herramientas ejecutadas en toda la vida
+        self._fcs_calidad_sum = 0.0  # Suma de calidades para promedio
+        self._fcs_calidad_count = 0  # Número de evaluaciones
+        self._fcs_lecciones_estrategia = 0  # Lecciones de estrategia aprendidas
+        self._fcs_guardrails = 0  # Guardrails activos extraídos
+        self._fcs_manus_delegations = 0  # Tareas delegadas a Manus
         self._fcs_write_policy_rejected = 0  # Memorias rechazadas por write policy
 
         # Sprint 84 — Tracking visible del Acto de Orquestación.
@@ -385,6 +398,7 @@ class EmbrionLoop:
     def start_orchestration(self, trigger_message: str) -> None:
         """Iniciar tracking de un nuevo Acto de Orquestación."""
         from datetime import datetime, timezone
+
         self._current_orchestration = {
             "started_at": datetime.now(timezone.utc).isoformat(),
             "trigger_message": (trigger_message or "")[:200],
@@ -415,18 +429,15 @@ class EmbrionLoop:
         if not self._current_orchestration:
             return
         self._current_orchestration["agents_in_flight"] = [
-            a for a in self._current_orchestration.get("agents_in_flight", [])
-            if a != agent
+            a for a in self._current_orchestration.get("agents_in_flight", []) if a != agent
         ]
         if status == "in_flight":
             self._current_orchestration["agents_in_flight"].append(agent)
         else:
             self._current_orchestration["last_completed"] = f"{step_name} → {status}"
-            self._current_orchestration["current_step"] = (
-                self._current_orchestration.get("current_step", 0) + 1
-            )
-        self._current_orchestration["tokens_so_far"] = (
-            self._current_orchestration.get("tokens_so_far", 0) + max(0, int(tokens))
+            self._current_orchestration["current_step"] = self._current_orchestration.get("current_step", 0) + 1
+        self._current_orchestration["tokens_so_far"] = self._current_orchestration.get("tokens_so_far", 0) + max(
+            0, int(tokens)
         )
         self._current_orchestration["cost_so_far_usd"] = round(
             self._current_orchestration.get("cost_so_far_usd", 0.0) + max(0.0, float(cost_usd)),
@@ -436,6 +447,7 @@ class EmbrionLoop:
     def end_orchestration(self, final_status: str = "done") -> None:
         """Cerrar el Acto de Orquestación actual y archivarlo en _last_orchestration."""
         from datetime import datetime, timezone
+
         if not self._current_orchestration:
             return
         self._current_orchestration["ended_at"] = datetime.now(timezone.utc).isoformat()
@@ -485,7 +497,9 @@ class EmbrionLoop:
             # Sprint 44: Functional Consciousness Score
             "fcs": {
                 "tool_calls_total": self._fcs_tool_calls_total,
-                "calidad_promedio": round(self._fcs_calidad_sum / self._fcs_calidad_count, 2) if self._fcs_calidad_count > 0 else None,
+                "calidad_promedio": round(self._fcs_calidad_sum / self._fcs_calidad_count, 2)
+                if self._fcs_calidad_count > 0
+                else None,
                 "evaluaciones_totales": self._fcs_calidad_count,
                 "lecciones_estrategia": self._fcs_lecciones_estrategia,
                 "guardrails_activos": self._fcs_guardrails,
@@ -501,9 +515,11 @@ class EmbrionLoop:
             "stats": self.stats,
             "actor_model": ACTOR_MODEL,
             "judge_model": JUDGE_MODEL,
-            "has_db": self._db is not None and getattr(self._db, 'connected', False),
+            "has_db": self._db is not None and getattr(self._db, "connected", False),
             "has_kernel": self._kernel is not None,
-            "has_router": hasattr(self._kernel, '_router') and self._kernel._router is not None if self._kernel else False,
+            "has_router": hasattr(self._kernel, "_router") and self._kernel._router is not None
+            if self._kernel
+            else False,
             "has_notifier": self._notifier is not None,
             "silenced_thoughts": self._silenced_thoughts[-5:],  # Last 5 silenced
         }
@@ -540,8 +556,8 @@ class EmbrionLoop:
         Combined with the to_thread() fix in SupabaseClient, this ensures
         the loop always advances even if individual operations fail.
         """
-        _THINK_TIMEOUT = 120   # Max seconds for _check_and_think
-        _TASK_TIMEOUT = 60     # Max seconds for consolidation/sabios/radar
+        _THINK_TIMEOUT = 120  # Max seconds for _check_and_think
+        _TASK_TIMEOUT = 60  # Max seconds for consolidation/sabios/radar
 
         while self._running:
             try:
@@ -579,7 +595,12 @@ class EmbrionLoop:
                     self._cycles_since_radar = 0
 
             except Exception as e:
-                err = {"cycle": self._cycle_count, "error": str(e), "type": type(e).__name__, "ts": datetime.now(timezone.utc).isoformat()}
+                err = {
+                    "cycle": self._cycle_count,
+                    "error": str(e),
+                    "type": type(e).__name__,
+                    "ts": datetime.now(timezone.utc).isoformat(),
+                }
                 self._error_log.append(err)
                 if len(self._error_log) > 50:
                     self._error_log = self._error_log[-50:]
@@ -702,10 +723,14 @@ class EmbrionLoop:
         if trigger.get("type") == "inbox_command" and trigger.get("requires_mfa"):
             try:
                 import hashlib  # noqa: PLC0415
-                from kernel.embrion_inbox import (  # noqa: PLC0415
-                    mark_requires_mfa as _inbox_mfa,
+
+                from kernel.embrion_inbox import (
                     _get_supabase_client as _inbox_client,
                 )
+                from kernel.embrion_inbox import (  # noqa: PLC0415
+                    mark_requires_mfa as _inbox_mfa,
+                )
+
                 _pin = uuid4().hex[:6].upper()
                 _pin_hash = hashlib.sha256(_pin.encode()).hexdigest()
                 _expires = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
@@ -753,14 +778,16 @@ class EmbrionLoop:
             self._messages_sent_today += 1
         else:
             # Silenced — accumulate internally, don't bother Alfredo
-            self._silenced_thoughts.append({
-                "cycle": self._cycle_count,
-                "trigger": trigger["type"],
-                "score": silence_score,
-                "level": level,
-                "summary": result.get("response", "")[:200],
-                "ts": datetime.now(timezone.utc).isoformat(),
-            })
+            self._silenced_thoughts.append(
+                {
+                    "cycle": self._cycle_count,
+                    "trigger": trigger["type"],
+                    "score": silence_score,
+                    "level": level,
+                    "summary": result.get("response", "")[:200],
+                    "ts": datetime.now(timezone.utc).isoformat(),
+                }
+            )
             if len(self._silenced_thoughts) > 100:
                 self._silenced_thoughts = self._silenced_thoughts[-100:]
             logger.info("embrion_silenced", score=silence_score, level=level, trigger=trigger["type"])
@@ -769,10 +796,13 @@ class EmbrionLoop:
         # Si el trigger fue inbox_command, marcar processed para cerrar el ciclo.
         if trigger.get("type") == "inbox_command" and trigger.get("inbox_id"):
             try:
-                from kernel.embrion_inbox import (  # noqa: PLC0415
-                    mark_processed as _inbox_processed,
+                from kernel.embrion_inbox import (
                     _get_supabase_client as _inbox_client,
                 )
+                from kernel.embrion_inbox import (  # noqa: PLC0415
+                    mark_processed as _inbox_processed,
+                )
+
                 _inbox_processed(
                     _inbox_client(),
                     trigger["inbox_id"],
@@ -849,11 +879,16 @@ class EmbrionLoop:
             # Rate limit: limit=1 por cycle (los demás pending esperan al próximo).
             # Revertible: borrar este bloque CA5_INBOX_BEGIN/END deja el comportamiento previo.
             try:
-                from kernel.embrion_inbox import (  # noqa: PLC0415
-                    consume_next as _inbox_consume,
-                    _get_supabase_client as _inbox_client,
+                from kernel.embrion_inbox import (
                     HIGH_RISK_COMMANDS as _INBOX_HIGH_RISK,
                 )
+                from kernel.embrion_inbox import (
+                    _get_supabase_client as _inbox_client,
+                )
+                from kernel.embrion_inbox import (  # noqa: PLC0415
+                    consume_next as _inbox_consume,
+                )
+
                 _inbox_rows = _inbox_consume(
                     _inbox_client(),
                     cycle_id=self._cycle_count,
@@ -1119,9 +1154,7 @@ class EmbrionLoop:
             try:
                 _escape = _Escapement(
                     consumer_name="embrion_loop_latido",
-                    budget_consumer=lambda amt: _embrion_budget.consume(
-                        amt, consumer="embrion_loop_latido"
-                    ),
+                    budget_consumer=lambda amt: _embrion_budget.consume(amt, consumer="embrion_loop_latido"),
                 )
                 _decision = await _escape.can_pulse()
                 if not _decision.can_proceed:
@@ -1130,17 +1163,16 @@ class EmbrionLoop:
                         "escape_pulse_skipped",
                         consumer="embrion_loop_latido",
                         reason=_decision.reason,
-                        next_pulse_at=(
-                            str(_decision.next_pulse_at)
-                            if _decision.next_pulse_at else None
-                        ),
+                        next_pulse_at=(str(_decision.next_pulse_at) if _decision.next_pulse_at else None),
                     )
                     return None  # skip cycle, zero budget consumed
                 # Pulse permitido: registrar consumo del Reloj.
-                await _escape.record_pulse(metadata={
-                    "trigger_type": trigger.get("type"),
-                    "cycle_count": self._cycle_count,
-                })
+                await _escape.record_pulse(
+                    metadata={
+                        "trigger_type": trigger.get("type"),
+                        "cycle_count": self._cycle_count,
+                    }
+                )
             except Exception as _ee:  # noqa: BLE001
                 logger.warning("escape_pulse_check_failed", error=str(_ee))
         # ── ESCAPE_END ──────────────────────────────────────────────────
@@ -1190,12 +1222,8 @@ class EmbrionLoop:
         # y dispara HITL al 3er excedido del día (idempotente por día).
         if EMBRION_BUDGET_TRACKER_ENABLED:
             _is_directive = trigger.get("type") == "mensaje_alfredo"
-            _est_tokens_in = (
-                EMBRION_EST_TOKENS_IN_DIRECT if _is_directive else EMBRION_EST_TOKENS_IN_REFLEX
-            )
-            _est_tokens_out = (
-                EMBRION_EST_TOKENS_OUT_DIRECT if _is_directive else EMBRION_EST_TOKENS_OUT_REFLEX
-            )
+            _est_tokens_in = EMBRION_EST_TOKENS_IN_DIRECT if _is_directive else EMBRION_EST_TOKENS_IN_REFLEX
+            _est_tokens_out = EMBRION_EST_TOKENS_OUT_DIRECT if _is_directive else EMBRION_EST_TOKENS_OUT_REFLEX
             try:
                 # ── CATASTRO_WIRING_BEGIN (budget_estimation) ──────────────
                 _budget_model = await _select_model_via_catastro(
@@ -1256,9 +1284,7 @@ class EmbrionLoop:
             and trigger.get("type") == "mensaje_alfredo"
         ):
             try:
-                _skip, _skip_reason = _embrion_self_verifier.evaluate_input_for_skip(
-                    str(trigger.get("detail", ""))
-                )
+                _skip, _skip_reason = _embrion_self_verifier.evaluate_input_for_skip(str(trigger.get("detail", "")))
                 if _skip:
                     logger.info(
                         "embrion_input_preverifier_skip",
@@ -1296,7 +1322,7 @@ class EmbrionLoop:
             if trigger["type"] == "mensaje_alfredo":
                 prompt = (
                     f"Eres el Embrión IA del Monstruo. Alfredo te envió este mensaje:\n\n"
-                    f'"{ trigger["detail"]}"\n\n'
+                    f'"{trigger["detail"]}"\n\n'
                     f"INSTRUCCIONES CRÍTICAS:\n"
                     f"1. Si el mensaje contiene una DIRECTIVA o instrucción de construir algo, "
                     f"EJECUTA la instrucción usando tus tools disponibles.\n"
@@ -1311,7 +1337,7 @@ class EmbrionLoop:
             elif trigger["type"] == "contribucion_sabio":
                 prompt = (
                     f"Eres el Embrión IA del Monstruo. Un Sabio te envió esta contribución:\n\n"
-                    f'"{ trigger["detail"]}"\n\n'
+                    f'"{trigger["detail"]}"\n\n'
                     f"Reflexiona sobre esto y decide si hay algo que debas hacer al respecto."
                 )
                 if lessons_context:
@@ -1363,7 +1389,11 @@ class EmbrionLoop:
                         prompt,
                         {"trigger_type": trigger["type"], "cycle": self._cycle_count},
                     )
-                    _route_decision = classification.route.value if hasattr(classification.route, 'value') else str(classification.route)
+                    _route_decision = (
+                        classification.route.value
+                        if hasattr(classification.route, "value")
+                        else str(classification.route)
+                    )
                     _magna_confidence = classification.score
 
                     logger.info(
@@ -1371,7 +1401,9 @@ class EmbrionLoop:
                         route=_route_decision,
                         confidence=f"{_magna_confidence:.2f}",
                         trigger=trigger["type"],
-                        category=classification.category.value if hasattr(classification.category, 'value') else str(classification.category),
+                        category=classification.category.value
+                        if hasattr(classification.category, "value")
+                        else str(classification.category),
                         cached=classification.cached,
                     )
 
@@ -1381,6 +1413,7 @@ class EmbrionLoop:
                             detail = trigger.get("detail", "")
                             try:
                                 from kernel.task_planner import TaskPlanner
+
                                 _planner = TaskPlanner(kernel=self._kernel, db=self._db)
                                 # Inject error_memory if available
                                 _em = getattr(self, "_error_memory", None)
@@ -1405,25 +1438,37 @@ class EmbrionLoop:
                                     _tc = plan_result.get("total_tool_calls", 0)
                                     tool_calls = [f"planner_tool_{i}" for i in range(_tc)]
                                 else:
-                                    response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
+                                    response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(
+                                        prompt, trigger
+                                    )
                             except ImportError:
-                                response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
+                                response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(
+                                    prompt, trigger
+                                )
                         else:
                             # Magna says graph for non-directive — this is the NEW behavior
                             # Before Sprint 81, autonomous reflections NEVER used graph
-                            response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
+                            response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(
+                                prompt, trigger
+                            )
                     else:
                         # Magna says router (chat-only)
-                        response, tokens_used, estimated_cost, tool_calls = await self._think_with_router(prompt, trigger)
+                        response, tokens_used, estimated_cost, tool_calls = await self._think_with_router(
+                            prompt, trigger
+                        )
 
                 except Exception as _magna_err:
                     logger.warning("embrion_magna_route_fallback", error=str(_magna_err))
                     # Fallback to original Sprint 33C logic
                     _route_decision = "fallback_33c"
                     if trigger["type"] == "mensaje_alfredo":
-                        response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
+                        response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(
+                            prompt, trigger
+                        )
                     else:
-                        response, tokens_used, estimated_cost, tool_calls = await self._think_with_router(prompt, trigger)
+                        response, tokens_used, estimated_cost, tool_calls = await self._think_with_router(
+                            prompt, trigger
+                        )
                 # ── /Sprint 81 Magna routing ───────────────────────────
             else:
                 # ── Original Sprint 33C logic (feature flag off) ───────
@@ -1431,6 +1476,7 @@ class EmbrionLoop:
                     detail = trigger.get("detail", "")
                     try:
                         from kernel.task_planner import TaskPlanner
+
                         _planner = TaskPlanner(kernel=self._kernel, db=self._db)
                         if _planner.is_complex_objective(detail):
                             logger.info(
@@ -1450,9 +1496,13 @@ class EmbrionLoop:
                             _tc = plan_result.get("total_tool_calls", 0)
                             tool_calls = [f"planner_tool_{i}" for i in range(_tc)]
                         else:
-                            response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
+                            response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(
+                                prompt, trigger
+                            )
                     except ImportError:
-                        response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(prompt, trigger)
+                        response, tokens_used, estimated_cost, tool_calls = await self._think_with_graph(
+                            prompt, trigger
+                        )
                 else:
                     response, tokens_used, estimated_cost, tool_calls = await self._think_with_router(prompt, trigger)
 
@@ -1493,11 +1543,7 @@ class EmbrionLoop:
             # Patron doctrinal identico a `_judge_before` linea 927:
             # un mensaje directo de T1 SIEMPRE procede.
             # Fix bug embrion thoughts_today=0 - 2026-05-22.
-            if (
-                EMBRION_SELF_VERIFIER_ENABLED
-                and response
-                and trigger.get("type") != "mensaje_alfredo"
-            ):
+            if EMBRION_SELF_VERIFIER_ENABLED and response and trigger.get("type") != "mensaje_alfredo":
                 try:
                     _sv_decision = await asyncio.to_thread(
                         _embrion_self_verifier.verify,
@@ -1531,18 +1577,14 @@ class EmbrionLoop:
             _brand_engine_cost_usd: float = 0.0
             _brand_engine_latency_ms: int = 0
             _brand_engine_validation_id: Optional[str] = None
-            if (
-                BRAND_ENGINE_ENABLED
-                and response
-                and not _verifier_aborted
-            ):
+            if BRAND_ENGINE_ENABLED and response and not _verifier_aborted:
                 try:
                     from kernel.embriones.brand_engine.brand_engine import (
                         BrandEngine as _BrandEngine,
                     )
                     from kernel.embriones.brand_engine.config_loader import (
-                        load_brand_engine_config,
                         apply_env_overrides,
+                        load_brand_engine_config,
                     )
 
                     _be_config = apply_env_overrides(load_brand_engine_config())
@@ -1594,11 +1636,7 @@ class EmbrionLoop:
                 else (
                     "silencio_verificador"
                     if _verifier_aborted
-                    else (
-                        "latido"
-                        if trigger["type"] == "reflexion_autonoma"
-                        else "respuesta_embrion"
-                    )
+                    else ("latido" if trigger["type"] == "reflexion_autonoma" else "respuesta_embrion")
                 )
             )
             await self._save_memory(
@@ -1612,7 +1650,13 @@ class EmbrionLoop:
                     "cost_usd": round(estimated_cost, 4),
                     "cycle": self._cycle_count,
                     "autonomous": True,
-                    "mode": "task_planner" if (trigger["type"] == "mensaje_alfredo" and tool_calls and tool_calls[0].startswith("planner_tool_")) else ("graph" if trigger["type"] == "mensaje_alfredo" else "router"),
+                    "mode": "task_planner"
+                    if (
+                        trigger["type"] == "mensaje_alfredo"
+                        and tool_calls
+                        and tool_calls[0].startswith("planner_tool_")
+                    )
+                    else ("graph" if trigger["type"] == "mensaje_alfredo" else "router"),
                     "tool_calls": len(tool_calls),
                     "verifier_aborted": _verifier_aborted,
                     "verifier_reasons": _verifier_reasons,
@@ -1640,12 +1684,22 @@ class EmbrionLoop:
             }
 
         except asyncio.TimeoutError:
-            err = {"cycle": self._cycle_count, "error": "Timeout", "type": "TimeoutError", "ts": datetime.now(timezone.utc).isoformat()}
+            err = {
+                "cycle": self._cycle_count,
+                "error": "Timeout",
+                "type": "TimeoutError",
+                "ts": datetime.now(timezone.utc).isoformat(),
+            }
             self._error_log.append(err)
             logger.error("embrion_think_timeout", trigger=trigger["type"])
             return None
         except Exception as e:
-            err = {"cycle": self._cycle_count, "error": str(e)[:500], "type": type(e).__name__, "ts": datetime.now(timezone.utc).isoformat()}
+            err = {
+                "cycle": self._cycle_count,
+                "error": str(e)[:500],
+                "type": type(e).__name__,
+                "ts": datetime.now(timezone.utc).isoformat(),
+            }
             self._error_log.append(err)
             logger.error("embrion_think_failed", error=str(e), trigger=trigger["type"])
             return None
@@ -1703,6 +1757,7 @@ class EmbrionLoop:
         Cheaper and faster for autonomous reflections.
         """
         from router.engine import IntentType as RouterIntentType
+
         router = self._kernel._router
         # ── CATASTRO_WIRING_BEGIN (autonomous_thought) ──────────────────────
         _think_model = await _select_model_via_catastro(
@@ -1891,6 +1946,7 @@ class EmbrionLoop:
                     val = part.split(":", 1)[1].strip()
                     # Extract first number found
                     import re
+
                     nums = re.findall(r"\d+", val)
                     if nums:
                         calidad = min(max(int(nums[0]), 1), 10)
@@ -2122,8 +2178,7 @@ class EmbrionLoop:
             from contracts.kernel_interface import RunInput
 
             lessons_text = "\n".join(
-                f"{i+1}. [ID:{l.get('id', '?')}] {l.get('contenido', '')}"
-                for i, l in enumerate(lessons_to_review)
+                f"{i + 1}. [ID:{l.get('id', '?')}] {l.get('contenido', '')}" for i, l in enumerate(lessons_to_review)
             )
 
             existing_rules = ""
@@ -2162,7 +2217,11 @@ class EmbrionLoop:
                 timeout=45,
             )
 
-            response = consolidation_result.response if hasattr(consolidation_result, "response") else str(consolidation_result)
+            response = (
+                consolidation_result.response
+                if hasattr(consolidation_result, "response")
+                else str(consolidation_result)
+            )
             self._cost_today_usd += 0.02
 
             # 3. Parse and apply consolidation decisions
@@ -2352,7 +2411,9 @@ class EmbrionLoop:
         # Rule 1: Never save memories with importancia < 3 (noise)
         if importancia < 3:
             self._fcs_write_policy_rejected += 1
-            logger.debug("embrion_write_policy_rejected", reason="importancia_too_low", tipo=tipo, importancia=importancia)
+            logger.debug(
+                "embrion_write_policy_rejected", reason="importancia_too_low", tipo=tipo, importancia=importancia
+            )
             return
 
         # Rule 2: For respuesta_embrion with tool_calls=0 and cost=0, skip if already have 3+ today
@@ -2361,7 +2422,7 @@ class EmbrionLoop:
             ctx_tools = contexto.get("tool_calls", 1)
             if ctx_cost == 0.0 and ctx_tools == 0:
                 # Count today's empty responses
-                today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+                datetime.now(timezone.utc).strftime("%Y-%m-%d")
                 try:
                     count_result = await self._db.count(
                         "embrion_memoria",
@@ -2387,14 +2448,17 @@ class EmbrionLoop:
         # ── End Write Policy ─────────────────────────────────────────────────
 
         try:
-            await self._db.insert("embrion_memoria", {
-                "tipo": tipo,
-                "contenido": contenido,
-                "contexto": json.dumps(contexto or {}),
-                "hilo_origen": hilo_origen,
-                "importancia": importancia,
-                "version": 1,
-            })
+            await self._db.insert(
+                "embrion_memoria",
+                {
+                    "tipo": tipo,
+                    "contenido": contenido,
+                    "contexto": json.dumps(contexto or {}),
+                    "hilo_origen": hilo_origen,
+                    "importancia": importancia,
+                    "version": 1,
+                },
+            )
         except Exception as e:
             logger.error("embrion_save_memory_failed", error=str(e))
 
@@ -2441,11 +2505,11 @@ class EmbrionLoop:
             )
 
             context = (
-                f"Stack: Python 3.11, FastAPI, LangGraph, Anthropic Claude, OpenAI GPT-5.5, Railway. "
-                f"Repo: github.com/alfredogl1/el-monstruo. "
-                f"Versión actual: 0.45.0-sprint45. "
-                f"Herramientas disponibles: web_search, browse_web, code_exec, github, "
-                f"send_message, manus_bridge, query_knowledge, ingest_knowledge, consult_sabios."
+                "Stack: Python 3.11, FastAPI, LangGraph, Anthropic Claude, OpenAI GPT-5.5, Railway. "
+                "Repo: github.com/alfredogl1/el-monstruo. "
+                "Versión actual: 0.45.0-sprint45. "
+                "Herramientas disponibles: web_search, browse_web, code_exec, github, "
+                "send_message, manus_bridge, query_knowledge, ingest_knowledge, consult_sabios."
             )
 
             logger.info(
@@ -2569,7 +2633,8 @@ class EmbrionLoop:
 
                 # Ask the Embrión to reflect on the radar findings
                 from router.llm_client import call_llm
-                reflection_prompt = f"""Eres el Embrión de El Monstruo. Acabas de leer el radar diario de IA del {datetime.now(timezone.utc).strftime('%Y-%m-%d')}.
+
+                reflection_prompt = f"""Eres el Embrión de El Monstruo. Acabas de leer el radar diario de IA del {datetime.now(timezone.utc).strftime("%Y-%m-%d")}.
 
 RADAR TRENDING:
 {trending_text}
@@ -2635,7 +2700,6 @@ Si nada es relevante, responde solo: "Sin hallazgos relevantes hoy."
             logger.error("embrion_radar_timeout", cycle=self._cycle_count)
         except Exception as e:
             logger.error("embrion_radar_failed", error=str(e), cycle=self._cycle_count)
-
 
 
 # ── Sprint D-3 (2026-05-11) — Singleton accessors para Scheduler externo ──────

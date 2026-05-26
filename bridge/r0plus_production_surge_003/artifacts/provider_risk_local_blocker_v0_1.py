@@ -23,6 +23,7 @@ Constraints:
   - No network
   - Pure local computation
 """
+
 import json
 import os
 from datetime import datetime, timezone

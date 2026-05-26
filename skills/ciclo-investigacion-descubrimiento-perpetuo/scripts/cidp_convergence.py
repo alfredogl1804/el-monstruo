@@ -14,10 +14,16 @@ import json
 from pathlib import Path
 
 
-def run_convergence_gate(current_score: float, new_score: float, iteration: int,
-                         max_iterations: int, budget_remaining: float,
-                         threshold: float, validation: dict,
-                         output_dir: Path) -> dict:
+def run_convergence_gate(
+    current_score: float,
+    new_score: float,
+    iteration: int,
+    max_iterations: int,
+    budget_remaining: float,
+    threshold: float,
+    validation: dict,
+    output_dir: Path,
+) -> dict:
     """Execute Stage 7: Convergence Gate."""
     score_delta = new_score - current_score
     target_score = threshold * 100  # Convert 0-1 threshold to 0-100
@@ -52,10 +58,7 @@ def run_convergence_gate(current_score: float, new_score: float, iteration: int,
         # Don't stop, but flag it
 
     # Check critical contradictions
-    critical_contradictions = [
-        c for c in validation.get("contradictions", [])
-        if c.get("type") == "outdated"
-    ]
+    critical_contradictions = [c for c in validation.get("contradictions", []) if c.get("type") == "outdated"]
     if len(critical_contradictions) > 3:
         reasons.append(f"High contradiction count: {len(critical_contradictions)} outdated claims")
 

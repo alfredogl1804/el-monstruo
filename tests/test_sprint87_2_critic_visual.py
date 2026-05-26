@@ -12,11 +12,10 @@ Coverage:
 8. Mock Gemini call exitoso → score real parsing
 9. Mock Gemini call falla → fallback con razón
 """
+
 from __future__ import annotations
 
 import asyncio
-import json
-from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -32,7 +31,6 @@ from kernel.e2e.critic_visual.gemini_vision import (
     _read_image_bytes,
     evaluate_landing,
 )
-
 
 # ── 1. Sin screenshot → fallback ────────────────────────────────────────────
 
@@ -84,9 +82,7 @@ def test_missing_screenshot_file_uses_fallback(monkeypatch):
         )
     )
     assert result.source == "heuristic_fallback"
-    assert "no existe" in (result.fallback_reason or "") or "critic_visual" in (
-        result.fallback_reason or ""
-    )
+    assert "no existe" in (result.fallback_reason or "") or "critic_visual" in (result.fallback_reason or "")
 
 
 # ── 4. Screenshot demasiado grande → error→ fallback ────────────────────────
@@ -105,9 +101,7 @@ def test_image_too_large(tmp_path):
 def test_critic_visual_report_strict():
     r = CriticVisualReport(
         score=85,
-        sub_scores=CriticVisualSubScores(
-            estetica=85, cta_claridad=80, jerarquia_visual=90, profesionalismo=85
-        ),
+        sub_scores=CriticVisualSubScores(estetica=85, cta_claridad=80, jerarquia_visual=90, profesionalismo=85),
         razones_aprobacion=["clean"],
         razones_mejora=[],
         veredicto="comercializable",
@@ -121,9 +115,7 @@ def test_critic_visual_report_strict():
     with pytest.raises(Exception):
         CriticVisualReport(
             score=85,
-            sub_scores=CriticVisualSubScores(
-                estetica=85, cta_claridad=80, jerarquia_visual=90, profesionalismo=85
-            ),
+            sub_scores=CriticVisualSubScores(estetica=85, cta_claridad=80, jerarquia_visual=90, profesionalismo=85),
             veredicto="x",
             deploy_url="x",
             modelo_consultado="x",
@@ -215,12 +207,8 @@ def test_mock_gemini_failure_falls_back(tmp_path, monkeypatch):
     fake_png = tmp_path / "fake.png"
     fake_png.write_bytes(b"\x89PNG\r\n\x1a\n" + b"X" * 100)
 
-    fake = AsyncMock(
-        side_effect=GeminiVisionAPIFailed("critic_visual_evaluate_api_failed: fake")
-    )
-    with patch(
-        "kernel.e2e.critic_visual.gemini_vision._call_gemini_vision", new=fake
-    ):
+    fake = AsyncMock(side_effect=GeminiVisionAPIFailed("critic_visual_evaluate_api_failed: fake"))
+    with patch("kernel.e2e.critic_visual.gemini_vision._call_gemini_vision", new=fake):
         result = asyncio.run(
             evaluate_landing(
                 deploy_url="https://x.io",

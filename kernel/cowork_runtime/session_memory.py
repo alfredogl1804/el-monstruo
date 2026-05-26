@@ -27,6 +27,7 @@ Uso CLI:
     python -m kernel.cowork_runtime.session_memory close \\
         --session-id <uuid> --resumen "..." --deudas '["X","Y"]'
 """
+
 from __future__ import annotations
 
 import argparse
@@ -39,7 +40,6 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
-
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 LOCAL_FALLBACK_PATH = _REPO_ROOT / ".cowork_sesiones_local.json"
@@ -73,10 +73,7 @@ class SupabaseConfig:
         """Lectura fresca anti-Dory. None si no esta configurado."""
         url = os.environ.get("SUPABASE_URL")
         # Aceptamos ambos nombres por compat con doctrina DSC-S-007
-        key = (
-            os.environ.get("SUPABASE_SERVICE_KEY")
-            or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-        )
+        key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
         if not url or not key:
             return None
         return cls(url=url.rstrip("/"), service_key=key)
@@ -110,9 +107,7 @@ def _supabase_request(
             return json.loads(payload)
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8", errors="replace")
-        raise SupabaseUnavailableError(
-            f"HTTP {e.code} en {method} {url}: {body[:200]}"
-        ) from e
+        raise SupabaseUnavailableError(f"HTTP {e.code} en {method} {url}: {body[:200]}") from e
     except urllib.error.URLError as e:
         raise SupabaseUnavailableError(f"URLError {method} {url}: {e}") from e
 
@@ -240,6 +235,7 @@ class SessionMemoryStore:
 
     def _local_insert(self, sesion: CoworkSesion) -> CoworkSesion:
         import uuid
+
         rows = self._local_load()
         if not sesion.id:
             sesion.id = str(uuid.uuid4())
@@ -382,35 +378,43 @@ def build_pre_flight_block(
         f"  kernel_version: {last.kernel_version or 'N/A'}",
     ]
     if last.violaciones_detectadas:
-        lines.extend([
-            "",
-            f"## Violaciones detectadas en la sesion previa ({len(last.violaciones_detectadas)})",
-        ])
+        lines.extend(
+            [
+                "",
+                f"## Violaciones detectadas en la sesion previa ({len(last.violaciones_detectadas)})",
+            ]
+        )
         for v in last.violaciones_detectadas[:5]:
             v_str = v if isinstance(v, str) else json.dumps(v, ensure_ascii=False)
             lines.append(f"  - {v_str[:200]}")
     if last.correctivos_recibidos:
-        lines.extend([
-            "",
-            f"## Correctivos recibidos de Alfredo en la sesion previa ({len(last.correctivos_recibidos)})",
-        ])
+        lines.extend(
+            [
+                "",
+                f"## Correctivos recibidos de Alfredo en la sesion previa ({len(last.correctivos_recibidos)})",
+            ]
+        )
         for c in last.correctivos_recibidos[:5]:
             c_str = c if isinstance(c, str) else json.dumps(c, ensure_ascii=False)
             lines.append(f"  - {c_str[:200]}")
     if last.deudas_pendientes_proxima_sesion:
-        lines.extend([
-            "",
-            f"## DEUDAS PENDIENTES (atender en esta sesion — {len(last.deudas_pendientes_proxima_sesion)})",
-        ])
+        lines.extend(
+            [
+                "",
+                f"## DEUDAS PENDIENTES (atender en esta sesion — {len(last.deudas_pendientes_proxima_sesion)})",
+            ]
+        )
         for d in last.deudas_pendientes_proxima_sesion:
             d_str = d if isinstance(d, str) else json.dumps(d, ensure_ascii=False)
             lines.append(f"  - {d_str[:200]}")
     if last.resumen_lecciones:
-        lines.extend([
-            "",
-            "## Resumen de lecciones",
-            f"  {last.resumen_lecciones[:500]}",
-        ])
+        lines.extend(
+            [
+                "",
+                "## Resumen de lecciones",
+                f"  {last.resumen_lecciones[:500]}",
+            ]
+        )
     lines.append("==========================================")
     return "\n".join(lines)
 

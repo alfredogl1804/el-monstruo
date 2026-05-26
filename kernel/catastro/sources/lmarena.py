@@ -31,10 +31,10 @@ gpt-5.5 (#6), gemini-3.1-pro (#13), kimi-k2.6 (#10).
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 2 · 2026-05-04
 """
+
 from __future__ import annotations
 
 import asyncio
-import json
 from typing import Any, Optional
 
 import httpx
@@ -171,7 +171,7 @@ class LMArenaFuente(BaseFuente):
                         {"status_code": response.status_code, "attempt": attempt + 1},
                     )
                     if attempt < self.max_retries:
-                        await asyncio.sleep(self.backoff_base_seconds * (2 ** attempt))
+                        await asyncio.sleep(self.backoff_base_seconds * (2**attempt))
                         continue
                     raise last_error
 
@@ -188,7 +188,7 @@ class LMArenaFuente(BaseFuente):
                     {"attempt": attempt + 1},
                 )
                 if attempt < self.max_retries:
-                    await asyncio.sleep(self.backoff_base_seconds * (2 ** attempt))
+                    await asyncio.sleep(self.backoff_base_seconds * (2**attempt))
                     continue
                 raise last_error from e
 
@@ -199,7 +199,7 @@ class LMArenaFuente(BaseFuente):
                     {"attempt": attempt + 1},
                 )
                 if attempt < self.max_retries:
-                    await asyncio.sleep(self.backoff_base_seconds * (2 ** attempt))
+                    await asyncio.sleep(self.backoff_base_seconds * (2**attempt))
                     continue
                 raise last_error from e
 

@@ -20,26 +20,26 @@ from __future__ import annotations
 
 import os
 import re
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from kernel.audit_middleware import (
-    AuditMiddleware,
-    redact_secrets,
-    redact_headers,
-    extract_caller_identity,
-    SENSITIVE_HEADERS,
-    SECRET_PATTERNS,
     EXCLUDED_PATHS,
+    SECRET_PATTERNS,
+    SENSITIVE_HEADERS,
+    AuditMiddleware,
+    extract_caller_identity,
+    redact_headers,
+    redact_secrets,
 )
-
 
 # ============================================================================
 # Tests unitarios: redact_secrets
 # ============================================================================
+
 
 class TestRedactSecrets:
     def test_redacts_bearer_token(self):
@@ -91,6 +91,7 @@ class TestRedactSecrets:
 # Tests unitarios: redact_headers
 # ============================================================================
 
+
 class TestRedactHeaders:
     def test_redacts_authorization_header(self):
         headers = {"Authorization": "Bearer abc123def456"}
@@ -124,10 +125,12 @@ class TestRedactHeaders:
 # Tests unitarios: extract_caller_identity
 # ============================================================================
 
+
 class TestCallerIdentity:
     def _make_request(self, headers: dict[str, str] = None):
         """Mock minimal request object."""
         from unittest.mock import MagicMock
+
         req = MagicMock()
         req.headers = headers or {}
         return req
@@ -168,6 +171,7 @@ class TestCallerIdentity:
 # ============================================================================
 # Tests integración: AuditMiddleware
 # ============================================================================
+
 
 class TestAuditMiddlewareIntegration:
     def _make_app(self):
@@ -217,7 +221,6 @@ class TestAuditMiddlewareIntegration:
         resp = client.get("/v1/test", headers={"X-API-Key": "test-key"})
         assert resp.status_code == 200
         # Esperar a que el background task se procese
-        import asyncio
         # En TestClient síncrono, el create_task del middleware dispara el insert
         # (puede tomar algunos ms; en CI puede requerir sleep corto)
         # Si no se ejecutó, el test pasa igual porque la response no se bloquea (fail-open)
@@ -239,6 +242,7 @@ class TestAuditMiddlewareIntegration:
 # Tests E2E: append-only enforcement (skip si no hay credenciales)
 # ============================================================================
 
+
 @pytest.mark.skipif(
     not os.environ.get("SUPABASE_ACCESS_TOKEN"),
     reason="Requires SUPABASE_ACCESS_TOKEN to run E2E append-only tests",
@@ -255,6 +259,7 @@ class TestAppendOnlyEnforcement:
         # Resultado: TRUNCATE → ERROR 42501 "kernel_audit_log es append-only".
         # Migrationes 0009 y 0010 quedan en el repo como evidencia.
         from pathlib import Path
+
         m9 = Path("migrations/sql/0009_kernel_audit_log.sql")
         m10 = Path("migrations/sql/0010_kernel_audit_log_truncate_guard.sql")
         assert m9.exists() or Path(__file__).parent.parent.joinpath(m9).exists()

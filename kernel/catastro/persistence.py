@@ -32,6 +32,7 @@ Memento (decisiones contextuales · anti-Dory):
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 3 · 2026-05-04
 """
+
 from __future__ import annotations
 
 import json
@@ -44,12 +45,12 @@ from typing import Any, Literal, Optional
 # Categorías canónicas de error (mejora #2 audit Cowork Bloque 3).
 # Permiten al monitor de cron detectar degradación por categoría.
 ErrorCategory = Literal[
-    "db_down",          # red/socket/connection refused → infra Supabase caída
-    "rpc_validation",   # la función PL/pgSQL rechazó input (ERRCODE P0001 etc)
-    "item_crash",       # excepción local antes de llegar a la red
+    "db_down",  # red/socket/connection refused → infra Supabase caída
+    "rpc_validation",  # la función PL/pgSQL rechazó input (ERRCODE P0001 etc)
+    "item_crash",  # excepción local antes de llegar a la red
     "network_timeout",  # timeout HTTP
-    "none",             # éxito (placeholder)
-    "unknown",          # default cuando no encaja en categorías
+    "none",  # éxito (placeholder)
+    "unknown",  # default cuando no encaja en categorías
 ]
 
 from kernel.catastro.quorum import QuorumResult
@@ -60,13 +61,13 @@ from kernel.catastro.schema import (
     TipoEvento,
 )
 
-
 logger = logging.getLogger(__name__)
 
 
 # ============================================================================
 # RESULTADO DE PERSISTENCIA
 # ============================================================================
+
 
 @dataclass
 class PersistResult:
@@ -113,6 +114,7 @@ class PersistResult:
 # EXCEPCIONES (identidad de marca: catastro_persist_*)
 # ============================================================================
 
+
 class CatastroPersistError(Exception):
     """Base de errores de la capa de persistencia."""
 
@@ -134,6 +136,7 @@ class CatastroPersistMissingClient(CatastroPersistError):
 # ============================================================================
 # CAPA DE PERSISTENCIA
 # ============================================================================
+
 
 class CatastroPersistence:
     """
@@ -287,9 +290,7 @@ class CatastroPersistence:
         except CatastroPersistError:
             raise
         except Exception as e:  # noqa: BLE001
-            logger.exception(
-                f"[catastro_persist_rpc_failure] modelo={modelo.id} error={e}"
-            )
+            logger.exception(f"[catastro_persist_rpc_failure] modelo={modelo.id} error={e}")
             return PersistResult(
                 modelo_id=modelo.id,
                 success=False,
@@ -353,9 +354,7 @@ class CatastroPersistence:
                     trust_deltas=item.get("trust_deltas"),
                 )
             except Exception as e:  # noqa: BLE001
-                logger.exception(
-                    f"[catastro_persist_item_crash] idx={idx} modelo={getattr(modelo, 'id', '?')}"
-                )
+                logger.exception(f"[catastro_persist_item_crash] idx={idx} modelo={getattr(modelo, 'id', '?')}")
                 result = PersistResult(
                     modelo_id=getattr(modelo, "id", "unknown"),
                     success=False,
@@ -386,9 +385,15 @@ class CatastroPersistence:
         # Forzar campos JSON anidados a string-de-json para que el SQL los
         # parsee con (->>'key')::jsonb (la RPC usa ese pattern para listas/dicts)
         for key in (
-            "dominios", "subcapacidades", "limitaciones", "fortalezas",
-            "debilidades", "casos_uso_recomendados_monstruo",
-            "fuentes_evidencia", "capacidades_tecnicas", "velocidad",
+            "dominios",
+            "subcapacidades",
+            "limitaciones",
+            "fortalezas",
+            "debilidades",
+            "casos_uso_recomendados_monstruo",
+            "fuentes_evidencia",
+            "capacidades_tecnicas",
+            "velocidad",
             "data_extra",
         ):
             if key in data and not isinstance(data[key], str):
@@ -433,18 +438,35 @@ class CatastroPersistence:
 
         # Errores de red / conectividad
         network_markers = (
-            "connection", "refused", "unreachable", "dns", "socket",
-            "name resolution", "no route to host", "network is unreachable",
+            "connection",
+            "refused",
+            "unreachable",
+            "dns",
+            "socket",
+            "name resolution",
+            "no route to host",
+            "network is unreachable",
         )
         if any(m in msg for m in network_markers) or name in (
-            "ConnectionError", "ConnectionRefusedError", "OSError", "gaierror",
+            "ConnectionError",
+            "ConnectionRefusedError",
+            "OSError",
+            "gaierror",
         ):
             return "db_down"
 
         # Errores de validación del lado servidor (PostgREST/PL/pgSQL)
         validation_markers = (
-            "postgrest", "check constraint", "violates", "invalid input",
-            "errcode", "p0001", "23502", "23503", "23505", "22p02",
+            "postgrest",
+            "check constraint",
+            "violates",
+            "invalid input",
+            "errcode",
+            "p0001",
+            "23502",
+            "23503",
+            "23505",
+            "22p02",
             "catastro_persist_invalid_input",
         )
         if any(m in msg for m in validation_markers) or name == "APIError":
@@ -487,6 +509,7 @@ class CatastroPersistence:
 # ============================================================================
 # Helper de alto nivel para integración en pipeline.py
 # ============================================================================
+
 
 def build_modelo_from_pipeline_persistible(
     slug: str,

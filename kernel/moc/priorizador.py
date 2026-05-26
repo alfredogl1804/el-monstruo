@@ -16,9 +16,8 @@ El Runner ejecuta. El MOC decide qué ejecutar primero.
 
 from __future__ import annotations
 
-import time
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 
@@ -28,21 +27,21 @@ logger = structlog.get_logger("kernel.moc.priorizador")
 # Cada factor contribuye a un score final (0-100).
 # Score más alto = mayor prioridad.
 
-WEIGHT_URGENCY = 0.40       # Cuánto tiempo lleva pendiente
-WEIGHT_IMPACT = 0.30        # Tipo de tarea / impacto en sistema
-WEIGHT_BUDGET = 0.20        # Costo estimado vs presupuesto disponible
-WEIGHT_HISTORY = 0.10       # Tasa de éxito histórica
+WEIGHT_URGENCY = 0.40  # Cuánto tiempo lleva pendiente
+WEIGHT_IMPACT = 0.30  # Tipo de tarea / impacto en sistema
+WEIGHT_BUDGET = 0.20  # Costo estimado vs presupuesto disponible
+WEIGHT_HISTORY = 0.10  # Tasa de éxito histórica
 
 # Impacto por tipo de tarea (0-10)
 TASK_IMPACT_MAP: dict[str, float] = {
-    "embrion_cycle": 9.0,       # Ciclos del Embrión — máxima prioridad
-    "deep_think": 8.0,          # Análisis profundo
-    "memory_consolidation": 7.5, # Consolidación de memoria
-    "knowledge_graph": 7.0,     # Actualización del grafo de conocimiento
-    "report": 6.0,              # Generación de reportes
-    "notification": 5.0,        # Notificaciones al usuario
-    "maintenance": 4.0,         # Tareas de mantenimiento
-    "default": 5.0,             # Tarea genérica
+    "embrion_cycle": 9.0,  # Ciclos del Embrión — máxima prioridad
+    "deep_think": 8.0,  # Análisis profundo
+    "memory_consolidation": 7.5,  # Consolidación de memoria
+    "knowledge_graph": 7.0,  # Actualización del grafo de conocimiento
+    "report": 6.0,  # Generación de reportes
+    "notification": 5.0,  # Notificaciones al usuario
+    "maintenance": 4.0,  # Tareas de mantenimiento
+    "default": 5.0,  # Tarea genérica
 }
 
 # Presupuesto diario del sistema (USD)

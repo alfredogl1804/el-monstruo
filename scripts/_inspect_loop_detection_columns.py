@@ -1,4 +1,5 @@
 """Lista columnas reales de loop_detection_log usando psycopg directo."""
+
 from __future__ import annotations
 
 import os

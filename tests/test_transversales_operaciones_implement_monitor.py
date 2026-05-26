@@ -2,6 +2,7 @@
 """
 Sprint TRANSVERSAL-001 T6 — tests de OperacionesLayer.implement+monitor.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -50,9 +51,7 @@ def test_implement_sla_seconds_derived(liketickets_ctx):
     rec = layer.recommend(liketickets_ctx)
     impl = layer.implement(rec)
     assert impl["sla_first_response_seconds"] is not None
-    assert impl["sla_first_response_seconds"] == (
-        impl["sla_first_response_hours"] * 3600
-    )
+    assert impl["sla_first_response_seconds"] == (impl["sla_first_response_hours"] * 3600)
 
 
 def test_implement_helpdesk_endpoints_canonical(liketickets_ctx):
@@ -62,9 +61,7 @@ def test_implement_helpdesk_endpoints_canonical(liketickets_ctx):
     impl = layer.implement(rec)
     targets = {c["helpdesk_target"] for c in impl["helpdesk_plan"]}
     # LIKETICKETS canonico tiene chat_web + email + whatsapp + phone → intercom/front
-    valid_targets = {
-        "intercom", "front", "twilio", "discord_bot", "telegram_bot"
-    }
+    valid_targets = {"intercom", "front", "twilio", "discord_bot", "telegram_bot"}
     assert targets.issubset(valid_targets)
     # Validar URL canonica de Intercom si presente.
     for c in impl["helpdesk_plan"]:
@@ -114,9 +111,7 @@ def test_implement_validation_log_anchors(liketickets_ctx):
     impl = layer.implement(rec)
     claim_types = {a["claim_type"] for a in impl["validation_log_anchors"]}
     assert "helpdesk_api_2026" in claim_types
-    assert any(
-        c.startswith("regulatory_landscape_2026:") for c in claim_types
-    )
+    assert any(c.startswith("regulatory_landscape_2026:") for c in claim_types)
 
 
 def test_implement_dry_run_default_true(liketickets_ctx):

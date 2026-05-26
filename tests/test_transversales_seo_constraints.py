@@ -17,6 +17,7 @@ Cubrimiento:
   - SeoLayer recommend para BG marca indexable False con razon CofePRIS
   - SeoLayer recommend etiqueta keyword research con NEEDS_PERPLEXITY_VALIDATION
 """
+
 from __future__ import annotations
 
 import sys
@@ -41,7 +42,6 @@ from kernel.transversales.seo._canonical_constraints import (  # noqa: E402
     require_commercial,
 )
 
-
 CAPILLA = ROOT / "discovery_forense" / "CAPILLA_DECISIONES"
 
 
@@ -51,9 +51,7 @@ def _read_dsc(path: Path) -> str:
 
 
 def test_dsc_cip_005_seo_geo_target_sureste():
-    dsc = _read_dsc(
-        CAPILLA / "CIP" / "DSC-CIP-005_lanzamiento_focalizado_sureste_mx.md"
-    )
+    dsc = _read_dsc(CAPILLA / "CIP" / "DSC-CIP-005_lanzamiento_focalizado_sureste_mx.md")
     text_low = dsc.lower()
     assert "sureste" in text_low
     cip = SEO_CANONICAL_PER_VERTICAL[VerticalId.CIP]
@@ -82,9 +80,7 @@ def test_dsc_cip_seo_schema_types_canonical():
 
 
 def test_dsc_lt_002_seo_event_schema():
-    dsc = _read_dsc(
-        CAPILLA / "LIKETICKETS" / "DSC-LT-002_producto_piloto_313_butacas.md"
-    )
+    dsc = _read_dsc(CAPILLA / "LIKETICKETS" / "DSC-LT-002_producto_piloto_313_butacas.md")
     assert "313" in dsc
     lt = SEO_CANONICAL_PER_VERTICAL[VerticalId.LIKETICKETS]
     assert "Event" in lt["schema_org_types"]
@@ -96,9 +92,7 @@ def test_dsc_lt_002_seo_event_schema():
 
 
 def test_dsc_k365_001_seo_365_differentiator_keyword():
-    dsc = _read_dsc(
-        CAPILLA / "KUKULKAN-365" / "DSC-K365-001_distrito_entretenimiento_climatizado.md"
-    )
+    dsc = _read_dsc(CAPILLA / "KUKULKAN-365" / "DSC-K365-001_distrito_entretenimiento_climatizado.md")
     assert "365" in dsc
     text_low = dsc.lower()
     assert "merida" in text_low or "mérida" in text_low
@@ -166,22 +160,17 @@ def test_seo_recommend_for_cip_returns_structured_data():
     assert geo is not None
     assert "yucatan" in geo.value["geo_target_states"]
     disclosure = next(
-        (r for r in result.recommendations
-         if r.rule_id == "seo.disclosures.required"),
+        (r for r in result.recommendations if r.rule_id == "seo.disclosures.required"),
         None,
     )
     assert disclosure is not None
     assert "tokens_no_son_equity_inmueble" in disclosure.value["disclosures"]
     keyword = next(
-        (r for r in result.recommendations
-         if r.rule_id == "seo.keywords.research_pending"),
+        (r for r in result.recommendations if r.rule_id == "seo.keywords.research_pending"),
         None,
     )
     assert keyword is not None
-    assert any(
-        "[NEEDS_PERPLEXITY_VALIDATION]" in tag
-        for tag in keyword.needs_validation_tags
-    )
+    assert any("[NEEDS_PERPLEXITY_VALIDATION]" in tag for tag in keyword.needs_validation_tags)
 
 
 def test_seo_recommend_for_bioguard_blocks_indexability():
@@ -258,6 +247,6 @@ if __name__ == "__main__":
     test_seo_recommend_for_cip_returns_structured_data()
     test_seo_recommend_for_bioguard_blocks_indexability()
     test_seo_recommend_for_mena_baduy_raises()
-    test_seo_implement_not_implemented()
+    test_seo_implement_is_implemented()
     test_seo_aggregates_validation_tags()
     print("\n[ok] Los 13 tests del DSC-as-Contract de Capa SEO pasaron.")

@@ -13,7 +13,6 @@ from datetime import datetime, timedelta, timezone
 import psycopg2
 from psycopg2 import errors as pg_errors
 
-
 MIGRATION_PATH = "migrations/sql/0025_anti_rotation_loop.sql"
 
 
@@ -75,12 +74,15 @@ def main() -> int:
     conn.commit()
 
     # 3.1 Insert hoy → debe pasar
-    cur.execute("""
+    cur.execute(
+        """
         INSERT INTO public.credential_rotations
         (credential_id, rotated_by, razon, rotated_at)
         VALUES (%s, %s, %s, %s)
         RETURNING id, rotated_at_date
-    """, (test_key, "smoke", "manual", datetime.now(timezone.utc)))
+    """,
+        (test_key, "smoke", "manual", datetime.now(timezone.utc)),
+    )
     id1, date1 = cur.fetchone()
     conn.commit()
     print(f"       3.1 Insert #1 hoy → OK (id={id1}, date={date1})")
@@ -88,11 +90,14 @@ def main() -> int:
     # 3.2 Insert hoy otra vez → debe FALLAR con UniqueViolation
     sp = conn.cursor()
     try:
-        sp.execute("""
+        sp.execute(
+            """
             INSERT INTO public.credential_rotations
             (credential_id, rotated_by, razon, rotated_at)
             VALUES (%s, %s, %s, %s)
-        """, (test_key, "smoke", "manual", datetime.now(timezone.utc) + timedelta(hours=1)))
+        """,
+            (test_key, "smoke", "manual", datetime.now(timezone.utc) + timedelta(hours=1)),
+        )
         conn.commit()
         print("       3.2 Insert #2 hoy → ERROR: NO truena (constraint roto)", file=sys.stderr)
         return 5
@@ -103,12 +108,15 @@ def main() -> int:
         sp.close()
 
     # 3.3 Insert AYER (mismo key) → debe pasar (rotated_at_date diferente)
-    cur.execute("""
+    cur.execute(
+        """
         INSERT INTO public.credential_rotations
         (credential_id, rotated_by, razon, rotated_at)
         VALUES (%s, %s, %s, %s)
         RETURNING id, rotated_at_date
-    """, (test_key, "smoke", "manual", datetime.now(timezone.utc) - timedelta(days=1)))
+    """,
+        (test_key, "smoke", "manual", datetime.now(timezone.utc) - timedelta(days=1)),
+    )
     id3, date3 = cur.fetchone()
     conn.commit()
     print(f"       3.3 Insert ayer (mismo key) → OK (id={id3}, date={date3})")

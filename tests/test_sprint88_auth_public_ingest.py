@@ -10,14 +10,14 @@ Verifica que:
 DSC-G-008: estas pruebas codifican el contrato del bypass para evitar regresión
 silenciosa por drift futuro.
 """
+
 from __future__ import annotations
 
-import os
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from kernel.auth import APIKeyAuthMiddleware, PUBLIC_INGEST_PATHS
+from kernel.auth import PUBLIC_INGEST_PATHS, APIKeyAuthMiddleware
 
 
 @pytest.fixture

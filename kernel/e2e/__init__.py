@@ -6,17 +6,17 @@ Patrón firme: consultar Catastro en runtime para cada step LLM (NO hardcodear m
 """
 
 from kernel.e2e.schema import (
+    PIPELINE_STEPS,
+    DashboardSnapshot,
+    E2ERun,
+    E2EStepLog,
     EstadoRun,
+    JudgmentRequest,
+    RunRequest,
+    RunResponse,
     StepName,
     StepStatus,
     Veredicto,
-    E2ERun,
-    E2EStepLog,
-    RunRequest,
-    RunResponse,
-    JudgmentRequest,
-    DashboardSnapshot,
-    PIPELINE_STEPS,
 )
 
 __all__ = [

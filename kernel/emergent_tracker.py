@@ -20,6 +20,7 @@ Soberanía:
   - structlog (observabilidad)
   - Sin dependencia de LLM para detección básica (heurísticas propias)
 """
+
 from __future__ import annotations
 
 import json
@@ -27,7 +28,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Optional, Any
+from typing import Optional
 
 import structlog
 
@@ -36,9 +37,10 @@ logger = structlog.get_logger("monstruo.emergent_tracker")
 
 # ── Errores con identidad ──────────────────────────────────────────────────────
 
+
 class EMERGENT_TRACKER_SIN_SUPABASE(RuntimeError):
     """No hay cliente Supabase configurado para persistir comportamientos.
-    
+
     Sugerencia: Inyecta _supabase al instanciar EmergentBehaviorTracker.
     Los comportamientos se acumularán en memoria hasta que se configure Supabase.
     """
@@ -46,15 +48,17 @@ class EMERGENT_TRACKER_SIN_SUPABASE(RuntimeError):
 
 class EMERGENT_TRACKER_COMPORTAMIENTO_INVALIDO(ValueError):
     """El comportamiento registrado no tiene los campos mínimos requeridos.
-    
+
     Campos requeridos: embrion_id, behavior_type, description.
     """
 
 
 # ── Enums ──────────────────────────────────────────────────────────────────────
 
+
 class BehaviorType(str, Enum):
     """Tipos de comportamiento emergente detectables."""
+
     COLABORACION_ESPONTANEA = "colaboracion_espontanea"
     ESTRATEGIA_NO_PROGRAMADA = "estrategia_no_programada"
     OPTIMIZACION_AUTONOMA = "optimizacion_autonoma"
@@ -67,6 +71,7 @@ class BehaviorType(str, Enum):
 
 class BehaviorSignificance(str, Enum):
     """Nivel de significancia del comportamiento emergente."""
+
     BAJA = "baja"
     MEDIA = "media"
     ALTA = "alta"
@@ -75,10 +80,11 @@ class BehaviorSignificance(str, Enum):
 
 # ── Dataclasses ────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class EmergentBehavior:
     """Comportamiento emergente detectado en el sistema.
-    
+
     Args:
         id: UUID único del comportamiento.
         embrion_id: ID del Embrión que generó el comportamiento.
@@ -90,6 +96,7 @@ class EmergentBehavior:
         metadata: Datos adicionales específicos del comportamiento.
         detected_at: Timestamp de detección.
     """
+
     id: str
     embrion_id: str
     behavior_type: BehaviorType
@@ -98,9 +105,7 @@ class EmergentBehavior:
     significance: BehaviorSignificance
     reproducible: bool = False
     metadata: dict = field(default_factory=dict)
-    detected_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    detected_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:
         """Serializar para el Command Center y Supabase."""
@@ -119,22 +124,24 @@ class EmergentBehavior:
 
 # ── Tracker principal ──────────────────────────────────────────────────────────
 
+
 @dataclass
 class EmergentBehaviorTracker:
     """Tracker de comportamientos emergentes del sistema El Monstruo.
-    
+
     Detecta, registra y analiza patrones de comportamiento no programados
     que emergen de la interacción entre los componentes del sistema.
-    
+
     Args:
         _supabase: Cliente Supabase para persistencia (soberanía: in-memory fallback).
         _sabios: Cliente de Sabios para análisis de patrones (opcional).
         significance_threshold: Nivel mínimo para alertar (default: MEDIA).
-    
+
     Soberanía:
         - Supabase → in-memory list si no está configurado
         - LLM pattern analysis → heurísticas de frecuencia si Sabios no disponible
     """
+
     _supabase: Optional[object] = field(default=None, repr=False)
     _sabios: Optional[object] = field(default=None, repr=False)
     significance_threshold: BehaviorSignificance = BehaviorSignificance.MEDIA
@@ -153,7 +160,7 @@ class EmergentBehaviorTracker:
         metadata: Optional[dict] = None,
     ) -> EmergentBehavior:
         """Registrar un comportamiento emergente detectado.
-        
+
         Args:
             embrion_id: ID del Embrión que generó el comportamiento.
             behavior_type: Tipo de comportamiento emergente.
@@ -162,10 +169,10 @@ class EmergentBehaviorTracker:
             significance: Nivel de significancia del comportamiento.
             reproducible: Si el comportamiento es reproducible.
             metadata: Datos adicionales (opcional).
-        
+
         Returns:
             EmergentBehavior registrado con ID único.
-        
+
         Raises:
             EMERGENT_TRACKER_COMPORTAMIENTO_INVALIDO: Si faltan campos requeridos.
         """
@@ -201,9 +208,7 @@ class EmergentBehaviorTracker:
 
         # Actualizar métricas
         self._total_registered += 1
-        self._total_by_type[behavior_type.value] = (
-            self._total_by_type.get(behavior_type.value, 0) + 1
-        )
+        self._total_by_type[behavior_type.value] = self._total_by_type.get(behavior_type.value, 0) + 1
 
         # Log según significancia
         log_level = "info"
@@ -223,10 +228,10 @@ class EmergentBehaviorTracker:
 
     async def _persist_to_supabase(self, behavior: EmergentBehavior) -> None:
         """Persistir comportamiento en tabla emergent_behaviors de Supabase.
-        
+
         Args:
             behavior: EmergentBehavior a persistir.
-        
+
         Soberanía: Si Supabase falla, el comportamiento se guarda in-memory.
         """
         data = behavior.to_dict()
@@ -246,22 +251,19 @@ class EmergentBehaviorTracker:
         behavior_type: Optional[BehaviorType] = None,
     ) -> list[dict]:
         """Obtener comportamientos recientes con filtros opcionales.
-        
+
         Args:
             limit: Máximo de comportamientos a retornar.
             embrion_id: Filtrar por Embrión específico (opcional).
             behavior_type: Filtrar por tipo de comportamiento (opcional).
-        
+
         Returns:
             Lista de comportamientos serializados como dicts.
         """
         if self._supabase:
             try:
                 query = (
-                    self._supabase.table("emergent_behaviors")
-                    .select("*")
-                    .order("detected_at", desc=True)
-                    .limit(limit)
+                    self._supabase.table("emergent_behaviors").select("*").order("detected_at", desc=True).limit(limit)
                 )
                 if embrion_id:
                     query = query.eq("embrion_id", embrion_id)
@@ -280,18 +282,21 @@ class EmergentBehaviorTracker:
         if behavior_type:
             behaviors = [b for b in behaviors if b.behavior_type == behavior_type]
 
-        return [b.to_dict() for b in sorted(
-            behaviors,
-            key=lambda x: x.detected_at,
-            reverse=True,
-        )[:limit]]
+        return [
+            b.to_dict()
+            for b in sorted(
+                behaviors,
+                key=lambda x: x.detected_at,
+                reverse=True,
+            )[:limit]
+        ]
 
     async def analyze_patterns(self) -> dict:
         """Analizar patrones en los comportamientos emergentes registrados.
-        
+
         Detecta comportamientos repetitivos, colaboraciones frecuentes
         y anomalías que merecen atención.
-        
+
         Returns:
             Dict con patrones detectados, frecuencias y recomendaciones.
         """
@@ -316,11 +321,13 @@ class EmergentBehaviorTracker:
         patterns = []
         for t, count in sorted(type_freq.items(), key=lambda x: -x[1]):
             if count >= 3:
-                patterns.append({
-                    "pattern": f"Comportamiento '{t}' repetido {count} veces",
-                    "frequency": count,
-                    "significance": "alta" if count >= 10 else "media",
-                })
+                patterns.append(
+                    {
+                        "pattern": f"Comportamiento '{t}' repetido {count} veces",
+                        "frequency": count,
+                        "significance": "alta" if count >= 10 else "media",
+                    }
+                )
 
         # Si hay Sabios, enriquecer el análisis
         recommendations = []
@@ -359,7 +366,7 @@ Respond in JSON array of strings."""
 
     def to_dict(self) -> dict:
         """Estado del tracker para consumo del Command Center.
-        
+
         Returns:
             Dict serializable con estado actual del EmergentBehaviorTracker.
         """
@@ -386,17 +393,16 @@ _emergent_tracker: Optional[EmergentBehaviorTracker] = None
 
 def get_emergent_tracker() -> EmergentBehaviorTracker:
     """Obtener la instancia global del EmergentBehaviorTracker.
-    
+
     Returns:
         Instancia global del tracker.
-    
+
     Raises:
         RuntimeError: Si el tracker no ha sido inicializado.
     """
     if _emergent_tracker is None:
         raise RuntimeError(
-            "EmergentBehaviorTracker no inicializado. "
-            "Llama a init_emergent_tracker() en el lifespan de main.py."
+            "EmergentBehaviorTracker no inicializado. Llama a init_emergent_tracker() en el lifespan de main.py."
         )
     return _emergent_tracker
 
@@ -406,11 +412,11 @@ def init_emergent_tracker(
     sabios_client: Optional[object] = None,
 ) -> EmergentBehaviorTracker:
     """Inicializar el singleton global del EmergentBehaviorTracker.
-    
+
     Args:
         supabase_client: Cliente Supabase para persistencia (opcional).
         sabios_client: Cliente de Sabios para análisis de patrones (opcional).
-    
+
     Returns:
         Instancia inicializada del tracker.
     """

@@ -3,9 +3,9 @@ Test Suite: Regression False Positive Filter v0.1
 Sprint: SPR-R0PLUS-PRODUCTION-SURGE-003
 13 tests.
 """
-import sys
+
 import os
-import json
+import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from regression_false_positive_filter_v0_1 import RegressionFalsePositiveFilter
@@ -76,7 +76,9 @@ result2 = f.filter([recovered_flag], spike_history)
 test("05. detects recovered spike", result2["false_positives_filtered"] == 1)
 
 # 6. Recovered spike reason
-test("06. recovered spike reason is RECOVERED_SPIKE", result2["classifications"][0]["filter_reason"] == "RECOVERED_SPIKE")
+test(
+    "06. recovered spike reason is RECOVERED_SPIKE", result2["classifications"][0]["filter_reason"] == "RECOVERED_SPIKE"
+)
 
 # 7. Insufficient baseline detection
 short_history = [{"cost_usd": 0.001, "run_index": 0}, {"cost_usd": 0.002, "run_index": 1}]
@@ -110,8 +112,15 @@ result5 = f.filter(mixed_flags, run_history)
 test("10. filter rate calculation correct", result5["filter_rate_pct"] == 50.0)
 
 # 11. Custom config thresholds applied
-custom_filter = RegressionFalsePositiveFilter({"ceiling_values": [0.002], "ceiling_occurrence_threshold": 1, "min_baseline_runs": 3})
-custom_history = [{"cost_usd": 0.002, "run_index": 0}, {"cost_usd": 0.0003, "run_index": 1}, {"cost_usd": 0.0003, "run_index": 2}, {"cost_usd": 0.0003, "run_index": 3}]
+custom_filter = RegressionFalsePositiveFilter(
+    {"ceiling_values": [0.002], "ceiling_occurrence_threshold": 1, "min_baseline_runs": 3}
+)
+custom_history = [
+    {"cost_usd": 0.002, "run_index": 0},
+    {"cost_usd": 0.0003, "run_index": 1},
+    {"cost_usd": 0.0003, "run_index": 2},
+    {"cost_usd": 0.0003, "run_index": 3},
+]
 custom_flag = {"type": "COST_SPIKE", "current_value": 0.002, "run_index": 0}
 result6 = custom_filter.filter([custom_flag], custom_history)
 test("11. custom config thresholds applied", result6["false_positives_filtered"] == 1)

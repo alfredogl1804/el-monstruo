@@ -29,7 +29,7 @@ from __future__ import annotations
 import hashlib
 import re
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Optional
@@ -53,9 +53,9 @@ DEFAULT_THRESHOLD = 0.6
 DEFAULT_GRAPH_CALLS_PER_DAY = 30
 
 # TTL por categoría (en segundos)
-TTL_API_FRAMEWORKS = 86400     # 24h — APIs, SDKs, frameworks
-TTL_PRECIOS = 3600             # 1h  — precios, cotizaciones, tipos de cambio
-TTL_TRENDING = 21600           # 6h  — trending tech, noticias
+TTL_API_FRAMEWORKS = 86400  # 24h — APIs, SDKs, frameworks
+TTL_PRECIOS = 3600  # 1h  — precios, cotizaciones, tipos de cambio
+TTL_TRENDING = 21600  # 6h  — trending tech, noticias
 
 # Tabla en Supabase
 CACHE_TABLE = "magna_cache"
@@ -63,20 +63,23 @@ CACHE_TABLE = "magna_cache"
 
 # ── Enums y Dataclasses ─────────────────────────────────────────────
 
+
 class RouteType(str, Enum):
     """Ruta que el Embrión debe tomar."""
-    GRAPH = "graph"              # Grafo completo con tools
-    ROUTER = "router"            # Chat directo, sin tools
+
+    GRAPH = "graph"  # Grafo completo con tools
+    ROUTER = "router"  # Chat directo, sin tools
     TOOL_SPECIFIC = "tool_specific"  # Atajo: tool específica con alta confianza
 
 
 class ContentCategory(str, Enum):
     """Categoría del contenido clasificado."""
-    TECH = "tech"                # Dato técnico que cambia (APIs, versiones, etc.)
-    ACTION = "action"            # Solicitud de acción ejecutable
-    REFLECTION = "reflection"    # Reflexión, análisis, consolidación
+
+    TECH = "tech"  # Dato técnico que cambia (APIs, versiones, etc.)
+    ACTION = "action"  # Solicitud de acción ejecutable
+    REFLECTION = "reflection"  # Reflexión, análisis, consolidación
     QUERY_REALTIME = "query_realtime"  # Pregunta que requiere datos en tiempo real
-    UNKNOWN = "unknown"          # No clasificable con reglas
+    UNKNOWN = "unknown"  # No clasificable con reglas
 
 
 @dataclass
@@ -92,6 +95,7 @@ class ClassificationResult:
         cached: Si el resultado vino del cache.
         ttl_seconds: TTL aplicado si se cachea.
     """
+
     route: RouteType
     score: float
     category: ContentCategory
@@ -115,6 +119,7 @@ class ClassificationResult:
 
 # ── Excepciones con identidad ──────────────────────────────────────
 
+
 class MagnaClasificacionFallida(Exception):
     """El clasificador no pudo procesar el input.
 
@@ -122,6 +127,7 @@ class MagnaClasificacionFallida(Exception):
         causa: Descripción técnica del fallo.
         sugerencia: Acción recomendada para el operador.
     """
+
     def __init__(self, causa: str, sugerencia: str = "Verificar input y reintentar"):
         self.causa = causa
         self.sugerencia = sugerencia
@@ -135,6 +141,7 @@ class MagnaCacheVencido(Exception):
         cache_key: Key del cache expirado.
         ttl: TTL original en segundos.
     """
+
     def __init__(self, cache_key: str, ttl: int):
         self.cache_key = cache_key
         self.ttl = ttl
@@ -146,43 +153,126 @@ class MagnaCacheVencido(Exception):
 # Palabras que indican contenido técnico/volátil (requiere graph + tools)
 TECH_TRIGGERS: set[str] = {
     # Infraestructura y desarrollo
-    "api", "sdk", "framework", "library", "version", "release",
-    "deploy", "endpoint", "schema", "migration", "package",
-    "docker", "kubernetes", "railway", "vercel", "supabase",
-    "postgres", "redis", "nginx", "cloudflare",
+    "api",
+    "sdk",
+    "framework",
+    "library",
+    "version",
+    "release",
+    "deploy",
+    "endpoint",
+    "schema",
+    "migration",
+    "package",
+    "docker",
+    "kubernetes",
+    "railway",
+    "vercel",
+    "supabase",
+    "postgres",
+    "redis",
+    "nginx",
+    "cloudflare",
     # IA y modelos
-    "model", "llm", "agent", "tool", "mcp", "embedding",
-    "openai", "anthropic", "gemini", "claude", "gpt",
-    "langchain", "langgraph", "langsmith",
+    "model",
+    "llm",
+    "agent",
+    "tool",
+    "mcp",
+    "embedding",
+    "openai",
+    "anthropic",
+    "gemini",
+    "claude",
+    "gpt",
+    "langchain",
+    "langgraph",
+    "langsmith",
     # Datos en tiempo real
-    "precio", "cotización", "tipo de cambio", "pricing",
-    "noticia", "actual", "hoy", "última", "reciente",
-    "trending", "tendencia", "mercado",
+    "precio",
+    "cotización",
+    "tipo de cambio",
+    "pricing",
+    "noticia",
+    "actual",
+    "hoy",
+    "última",
+    "reciente",
+    "trending",
+    "tendencia",
+    "mercado",
     # Código específico
-    "bug", "error", "fix", "patch", "commit", "pull request",
-    "test", "lint", "build", "pipeline", "ci/cd",
+    "bug",
+    "error",
+    "fix",
+    "patch",
+    "commit",
+    "pull request",
+    "test",
+    "lint",
+    "build",
+    "pipeline",
+    "ci/cd",
 }
 
 # Palabras que indican solicitud de acción (requiere graph + tools)
 ACTION_TRIGGERS: set[str] = {
     # Español
-    "busca", "investiga", "consulta", "delega", "ejecuta",
-    "crea", "lanza", "publica", "envía", "verifica", "agenda",
-    "despliega", "instala", "configura", "actualiza", "repara",
-    "analiza datos", "genera reporte", "escanea",
+    "busca",
+    "investiga",
+    "consulta",
+    "delega",
+    "ejecuta",
+    "crea",
+    "lanza",
+    "publica",
+    "envía",
+    "verifica",
+    "agenda",
+    "despliega",
+    "instala",
+    "configura",
+    "actualiza",
+    "repara",
+    "analiza datos",
+    "genera reporte",
+    "escanea",
     # Inglés
-    "search", "query", "fetch", "run", "deploy", "send",
-    "create", "launch", "publish", "install", "configure",
-    "scan", "monitor", "check",
+    "search",
+    "query",
+    "fetch",
+    "run",
+    "deploy",
+    "send",
+    "create",
+    "launch",
+    "publish",
+    "install",
+    "configure",
+    "scan",
+    "monitor",
+    "check",
 }
 
 # Palabras que indican reflexión pura (ruta router, sin tools)
 REFLECTION_TRIGGERS: set[str] = {
-    "reflexiona", "considera", "piensa", "evalúa",
-    "qué opinas", "cómo te sientes", "consolida", "resume",
-    "medita", "pondera", "sopesa", "contempla",
-    "silencio activo", "sin acción concreta",
-    "doctrina", "filosofía", "principio",
+    "reflexiona",
+    "considera",
+    "piensa",
+    "evalúa",
+    "qué opinas",
+    "cómo te sientes",
+    "consolida",
+    "resume",
+    "medita",
+    "pondera",
+    "sopesa",
+    "contempla",
+    "silencio activo",
+    "sin acción concreta",
+    "doctrina",
+    "filosofía",
+    "principio",
 }
 
 # Mapeo de keywords a tools específicas (para route == tool_specific)
@@ -221,15 +311,12 @@ RE_JSON_LIKE = re.compile(r"\{[^}]*:[^}]*\}")
 _TECH_PATTERN = compile_keyword_pattern(TECH_TRIGGERS)
 _ACTION_PATTERN = compile_keyword_pattern(ACTION_TRIGGERS)
 _REFLECTION_PATTERN = compile_keyword_pattern(REFLECTION_TRIGGERS)
-_PRECIO_PATTERN = compile_keyword_pattern(
-    ("precio", "cotización", "tipo de cambio", "pricing")
-)
-_TRENDING_PATTERN = compile_keyword_pattern(
-    ("trending", "tendencia", "noticia", "hoy")
-)
+_PRECIO_PATTERN = compile_keyword_pattern(("precio", "cotización", "tipo de cambio", "pricing"))
+_TRENDING_PATTERN = compile_keyword_pattern(("trending", "tendencia", "noticia", "hoy"))
 
 
 # ── Clase Principal ─────────────────────────────────────────────────
+
 
 class MagnaClassifier:
     """Clasifica inputs del Embrión para decidir la ruta óptima.
@@ -339,7 +426,7 @@ class MagnaClassifier:
                     score=result.score,
                     category=result.category,
                     reasoning=f"Cap diario alcanzado ({self._graph_calls_per_day}). "
-                              f"Ruta original: {result.route.value}. Degradando a router.",
+                    f"Ruta original: {result.route.value}. Degradando a router.",
                     ttl_seconds=0,  # No cachear decisiones de cap
                 )
             else:
@@ -389,9 +476,7 @@ class MagnaClassifier:
 
     # ── Clasificación por Reglas ────────────────────────────────────
 
-    def _classify_by_rules(
-        self, text_lower: str, text_original: str, context: dict
-    ) -> ClassificationResult:
+    def _classify_by_rules(self, text_lower: str, text_original: str, context: dict) -> ClassificationResult:
         """Motor de clasificación basado en reglas determinísticas.
 
         Evalúa el texto contra tres vocabularios (tech, action, reflection)
@@ -486,7 +571,7 @@ class MagnaClassifier:
 
         # ── Decidir ruta ────────────────────────────────────────────
         max_category = max(scores, key=scores.get)
-        max_score = scores[max_category]
+        scores[max_category]
 
         # Normalizar score a 0-1
         combined_graph_score = scores["tech"] + scores["action"]
@@ -535,8 +620,7 @@ class MagnaClassifier:
         else:
             route = RouteType.ROUTER
             reasoning = (
-                f"Contenido es reflexión/chat (score={final_score:.2f}). "
-                f"Señales: {', '.join(signals) or 'ninguna'}"
+                f"Contenido es reflexión/chat (score={final_score:.2f}). Señales: {', '.join(signals) or 'ninguna'}"
             )
 
         return ClassificationResult(
@@ -580,9 +664,7 @@ class MagnaClassifier:
 
         return None
 
-    def _store_cache(
-        self, cache_key: str, result: ClassificationResult, query: str
-    ) -> None:
+    def _store_cache(self, cache_key: str, result: ClassificationResult, query: str) -> None:
         """Guardar resultado en cache de memoria.
 
         El cache en DB (Supabase) se maneja desde magna_routes.py
@@ -600,9 +682,7 @@ class MagnaClassifier:
         expires_at = time.time() + result.ttl_seconds
         self._memory_cache[cache_key] = (result, expires_at)
 
-    async def store_cache_db(
-        self, cache_key: str, result: ClassificationResult, query: str
-    ) -> None:
+    async def store_cache_db(self, cache_key: str, result: ClassificationResult, query: str) -> None:
         """Persistir resultado en Supabase (async, llamado desde routes).
 
         Args:
@@ -614,9 +694,7 @@ class MagnaClassifier:
             return
 
         try:
-            expires_at = (
-                datetime.now(timezone.utc) + timedelta(seconds=result.ttl_seconds)
-            ).isoformat()
+            expires_at = (datetime.now(timezone.utc) + timedelta(seconds=result.ttl_seconds)).isoformat()
 
             await self._db.upsert(
                 CACHE_TABLE,
@@ -696,7 +774,7 @@ class MagnaClassifier:
         try:
             # Supabase client no tiene delete con lt() directo,
             # usamos RPC o select + delete
-            now = datetime.now(timezone.utc).isoformat()
+            datetime.now(timezone.utc).isoformat()
             expired = await self._db.select(
                 CACHE_TABLE,
                 columns="cache_key",
@@ -704,7 +782,6 @@ class MagnaClassifier:
                 limit=100,
             )
             # Filtrar expirados manualmente
-            count = 0
             for row in expired:
                 # Solo podemos filtrar por equality en el client simple
                 # La limpieza real se haría con un cron SQL
@@ -712,9 +789,7 @@ class MagnaClassifier:
 
             # Limpiar cache en memoria
             now_ts = time.time()
-            expired_keys = [
-                k for k, (_, exp) in self._memory_cache.items() if exp < now_ts
-            ]
+            expired_keys = [k for k, (_, exp) in self._memory_cache.items() if exp < now_ts]
             for k in expired_keys:
                 del self._memory_cache[k]
 

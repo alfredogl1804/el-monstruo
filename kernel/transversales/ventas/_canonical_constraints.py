@@ -13,6 +13,7 @@ los SOBREESCRIBEN per-vertical.
 Origen: DSC-G-017 (DSC-as-Contract) — texto puede ser desobedecido,
 codigo no.
 """
+
 from __future__ import annotations
 
 from kernel.transversales.base import (
@@ -21,7 +22,6 @@ from kernel.transversales.base import (
     RestrictedVerticalError,
     VerticalId,
 )
-
 
 NON_COMMERCIAL_VERTICALS: dict[VerticalId, str] = {
     VerticalId.MENA_BADUY: (
@@ -38,9 +38,7 @@ def is_commercial(vertical: VerticalId) -> bool:
 def require_commercial(vertical: VerticalId) -> None:
     if not is_commercial(vertical):
         reason = NON_COMMERCIAL_VERTICALS[vertical]
-        raise RestrictedVerticalError(
-            f"Vertical '{vertical.value}' NO es comercial. {reason}"
-        )
+        raise RestrictedVerticalError(f"Vertical '{vertical.value}' NO es comercial. {reason}")
 
 
 VERTICAL_ARCHETYPE: dict[VerticalId, BusinessModelArchetype] = {

@@ -19,10 +19,9 @@ Cubre los casos REQUERIDOS por el spec:
 Estrategia: FakeClient en memoria con la misma firma que _SupabaseRest
 (select/insert/update). Cero red.
 """
+
 from __future__ import annotations
 
-import os
-import re
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import uuid4
@@ -32,10 +31,10 @@ import pytest
 # Importamos antes de tocar env porque DEFAULT_EXPIRATION_HOURS lee al import.
 from kernel import embrion_write_policy as wp
 
-
 # ──────────────────────────────────────────────────────────────────────
 # FakeClient: cliente in-memory con misma firma que _SupabaseRest
 # ──────────────────────────────────────────────────────────────────────
+
 
 class FakeClient:
     """In-memory store por tabla con select/insert/update y filtros estilo
@@ -54,7 +53,7 @@ class FakeClient:
             if not isinstance(v, str):
                 continue
             if v.startswith("eq."):
-                expected = v[len("eq."):]
+                expected = v[len("eq.") :]
                 if expected == "true":
                     if row.get(k) is not True:
                         return False
@@ -65,15 +64,15 @@ class FakeClient:
                     if str(row.get(k)) != expected:
                         return False
             elif v.startswith("gte."):
-                cutoff = v[len("gte."):]
+                cutoff = v[len("gte.") :]
                 if (str(row.get(k) or "")) < cutoff:
                     return False
             elif v.startswith("lte."):
-                cutoff = v[len("lte."):]
+                cutoff = v[len("lte.") :]
                 if (str(row.get(k) or "")) > cutoff:
                     return False
             elif v.startswith("in."):
-                allowed = v[len("in."):].strip("()").split(",")
+                allowed = v[len("in.") :].strip("()").split(",")
                 if str(row.get(k)) not in allowed:
                     return False
         return True
@@ -84,11 +83,11 @@ class FakeClient:
         order = params.get("order", "")
         if order:
             field, _, direction = order.partition(".")
-            rows.sort(key=lambda r: (r.get(field) or ""), reverse=(direction == "desc"))
+            rows.sort(key=lambda r: r.get(field) or "", reverse=(direction == "desc"))
         lim = params.get("limit")
         if lim is not None:
             rows = rows[: int(lim)]
-        return rows, {"Content-Range": f"0-{max(0, len(rows)-1)}/{len(rows)}"}
+        return rows, {"Content-Range": f"0-{max(0, len(rows) - 1)}/{len(rows)}"}
 
     def insert(self, table: str, payload: Any):
         self.calls.append(("insert", table, payload))
@@ -118,6 +117,7 @@ class FakeClient:
 # Helpers
 # ──────────────────────────────────────────────────────────────────────
 
+
 def _make_payload(extra: int = 0) -> dict:
     return {"action": "test", "n": extra, "nested": {"k": "v"}}
 
@@ -125,6 +125,7 @@ def _make_payload(extra: int = 0) -> dict:
 # ──────────────────────────────────────────────────────────────────────
 # 1. propose() básico
 # ──────────────────────────────────────────────────────────────────────
+
 
 def test_propose_creates_pending_proposal():
     client = FakeClient()
@@ -199,6 +200,7 @@ def test_propose_validates_summary_not_empty():
 # 2. Idempotency
 # ──────────────────────────────────────────────────────────────────────
 
+
 def test_propose_is_idempotent_on_same_payload():
     client = FakeClient()
     payload = _make_payload(extra=1)
@@ -238,6 +240,7 @@ def test_compute_idempotency_key_salt_changes_hash():
 # 3. approve() / reject()
 # ──────────────────────────────────────────────────────────────────────
 
+
 def test_approve_pending_proposal():
     client = FakeClient()
     p = wp.propose(client, proposal_type="db_write", summary="A", payload=_make_payload())
@@ -272,9 +275,7 @@ def test_approve_fails_on_unknown_id():
 def test_reject_pending_proposal():
     client = FakeClient()
     p = wp.propose(client, proposal_type="db_write", summary="A", payload=_make_payload())
-    updated = wp.reject(
-        client, p.proposal_id, approved_by="alfredo", reason="Riesgo no aceptado"
-    )
+    updated = wp.reject(client, p.proposal_id, approved_by="alfredo", reason="Riesgo no aceptado")
     assert updated["approval_status"] == "rejected"
     assert updated["rejection_reason"] == "Riesgo no aceptado"
 
@@ -298,6 +299,7 @@ def test_reject_fails_on_non_pending():
 # 4. list_pending()
 # ──────────────────────────────────────────────────────────────────────
 
+
 def test_list_pending_returns_only_pending_unexpired():
     client = FakeClient()
     p1 = wp.propose(client, proposal_type="db_write", summary="A", payload=_make_payload(1))
@@ -316,6 +318,7 @@ def test_list_pending_returns_only_pending_unexpired():
 # ──────────────────────────────────────────────────────────────────────
 # 5. expire_old() y timeout E2E
 # ──────────────────────────────────────────────────────────────────────
+
 
 def test_expire_old_marks_expired_proposals():
     client = FakeClient()
@@ -370,12 +373,14 @@ def test_expire_old_with_threshold_hours():
     """threshold_hours fuerza expiración por created_at + threshold."""
     client = FakeClient()
     # Insert manual con created_at viejo
-    client.tables[wp.TABLE_PROPOSALS] = [{
-        "id": str(uuid4()),
-        "approval_status": "pending",
-        "created_at": (datetime.now(timezone.utc) - timedelta(hours=48)).isoformat(),
-        "expires_at": (datetime.now(timezone.utc) + timedelta(hours=10)).isoformat(),
-    }]
+    client.tables[wp.TABLE_PROPOSALS] = [
+        {
+            "id": str(uuid4()),
+            "approval_status": "pending",
+            "created_at": (datetime.now(timezone.utc) - timedelta(hours=48)).isoformat(),
+            "expires_at": (datetime.now(timezone.utc) + timedelta(hours=10)).isoformat(),
+        }
+    ]
     n = wp.expire_old(client, threshold_hours=24)
     assert n == 1
     assert client.tables[wp.TABLE_PROPOSALS][0]["approval_status"] == "expired"
@@ -384,6 +389,7 @@ def test_expire_old_with_threshold_hours():
 # ──────────────────────────────────────────────────────────────────────
 # 6. execute_next() — happy path, error path, lock perdido
 # ──────────────────────────────────────────────────────────────────────
+
 
 def test_execute_next_returns_none_when_no_approved():
     client = FakeClient()
@@ -413,9 +419,7 @@ def test_execute_next_with_executor_fn_success():
 
     def fn(proposal):
         captured["id"] = proposal["id"]
-        return wp.ExecutionResult(
-            proposal_id=proposal["id"], success=True, result={"affected_rows": 7}
-        )
+        return wp.ExecutionResult(proposal_id=proposal["id"], success=True, result={"affected_rows": 7})
 
     result = wp.execute_next(client, executor="worker-1", executor_fn=fn)
     assert captured["id"] == p.proposal_id
@@ -456,7 +460,9 @@ def test_execute_next_processes_one_at_a_time_in_order():
     p2 = wp.propose(client, proposal_type="db_write", summary="B", payload=_make_payload(2))
     wp.approve(client, p1.proposal_id, approved_by="alfredo")
     # Avanzamos el reloj garantizando approved_at distinto vía sleep simulado:
-    import time; time.sleep(0.01)
+    import time
+
+    time.sleep(0.01)
     wp.approve(client, p2.proposal_id, approved_by="alfredo")
 
     r1 = wp.execute_next(client, executor="w")
@@ -471,10 +477,14 @@ def test_execute_next_processes_one_at_a_time_in_order():
 # 7. notify_hitl()
 # ──────────────────────────────────────────────────────────────────────
 
+
 def test_notify_hitl_inserts_to_embrion_memoria():
     client = FakeClient()
     p = wp.propose(
-        client, proposal_type="db_write", summary="A", payload=_make_payload(),
+        client,
+        proposal_type="db_write",
+        summary="A",
+        payload=_make_payload(),
         auto_notify=False,  # lo llamamos manualmente para aislar
     )
     proposal = client.tables[wp.TABLE_PROPOSALS][0]
@@ -506,8 +516,11 @@ def test_propose_auto_notifies_by_default():
 def test_notify_hitl_telegram_returns_false_pending_task4():
     client = FakeClient()
     proposal = {
-        "id": str(uuid4()), "summary": "x", "risk_level": "low",
-        "proposal_type": "db_write", "expires_at": _now_iso_plus(24),
+        "id": str(uuid4()),
+        "summary": "x",
+        "risk_level": "low",
+        "proposal_type": "db_write",
+        "expires_at": _now_iso_plus(24),
     }
     ok = wp.notify_hitl(client, proposal, channel="telegram")
     assert ok is False  # placeholder hasta Tarea 4
@@ -517,8 +530,11 @@ def test_notify_hitl_telegram_returns_false_pending_task4():
 def test_notify_hitl_invalid_channel_raises():
     client = FakeClient()
     proposal = {
-        "id": str(uuid4()), "summary": "x", "risk_level": "low",
-        "proposal_type": "db_write", "expires_at": _now_iso_plus(24),
+        "id": str(uuid4()),
+        "summary": "x",
+        "risk_level": "low",
+        "proposal_type": "db_write",
+        "expires_at": _now_iso_plus(24),
     }
     with pytest.raises(ValueError, match="channel inválido"):
         wp.notify_hitl(client, proposal, channel="carrier_pigeon")
@@ -527,6 +543,7 @@ def test_notify_hitl_invalid_channel_raises():
 # ──────────────────────────────────────────────────────────────────────
 # 8. E2E: propose → approve → execute → executed
 # ──────────────────────────────────────────────────────────────────────
+
 
 def test_e2e_full_flow_propose_approve_execute():
     client = FakeClient()
@@ -607,6 +624,7 @@ def test_e2e_propose_timeout_then_expire():
 # 9. Helpers públicos
 # ──────────────────────────────────────────────────────────────────────
 
+
 def test_get_pending_count():
     client = FakeClient()
     assert wp.get_pending_count(client) == 0
@@ -623,6 +641,7 @@ def test_get_proposal_returns_none_for_unknown():
 # ──────────────────────────────────────────────────────────────────────
 # Helpers de tests
 # ──────────────────────────────────────────────────────────────────────
+
 
 def _now_iso_plus(hours: int) -> str:
     return (datetime.now(timezone.utc) + timedelta(hours=hours)).isoformat()

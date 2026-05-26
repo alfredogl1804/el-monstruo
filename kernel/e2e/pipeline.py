@@ -25,19 +25,17 @@ from typing import Any, Dict, Optional
 import structlog
 
 from kernel.e2e.catastro_client import CatastroRuntimeClient
-from kernel.e2e.repository import E2ERepository
-from kernel.e2e.schema import (
-    EstadoRun,
-    PIPELINE_STEPS,
-    StepName,
-    StepStatus,
-    Veredicto,
-)
+from kernel.e2e.critic_visual import evaluate_landing
 
 # Sprint 87.2 — Bloques 1-4 reales
 from kernel.e2e.deploy import run_real_deploy
+from kernel.e2e.repository import E2ERepository
+from kernel.e2e.schema import (
+    EstadoRun,
+    StepName,
+    StepStatus,
+)
 from kernel.e2e.screenshot import capture_screenshot
-from kernel.e2e.critic_visual import evaluate_landing
 
 logger = structlog.get_logger("e2e_pipeline")
 
@@ -86,9 +84,7 @@ async def _step_architect(
         from kernel.embriones import product_architect  # type: ignore[attr-defined]
 
         if hasattr(product_architect, "build_brief"):
-            real_brief = await asyncio.to_thread(
-                product_architect.build_brief, frase_input
-            )
+            real_brief = await asyncio.to_thread(product_architect.build_brief, frase_input)
             return {
                 "modelo_elegido": selection,
                 "brief": real_brief,
@@ -103,9 +99,7 @@ async def _step_architect(
             "nombre_proyecto": "TBD",
             "audiencia": "TBD",
             "propuesta_valor": frase_input,
-            "secciones_landing": [
-                "hero", "beneficios", "galeria", "testimonios", "cta_final"
-            ],
+            "secciones_landing": ["hero", "beneficios", "galeria", "testimonios", "cta_final"],
         },
         "source": "stub_v1",
     }
@@ -146,9 +140,7 @@ async def _step_llm_generic(
 
         selection = await cat.select_model_for_step(step_name)
         embrion = EmbrionVentas()
-        report = await asyncio.to_thread(
-            embrion.analizar, frase_input=frase, brief=brief
-        )
+        report = await asyncio.to_thread(embrion.analizar, frase_input=frase, brief=brief)
         return {
             "modelo_elegido": selection,
             "step_name": step_name,
@@ -163,9 +155,7 @@ async def _step_llm_generic(
 
         selection = await cat.select_model_for_step(step_name)
         embrion = EmbrionTecnico()
-        report = await asyncio.to_thread(
-            embrion.analizar, frase_input=frase, brief=brief
-        )
+        report = await asyncio.to_thread(embrion.analizar, frase_input=frase, brief=brief)
         return {
             "modelo_elegido": selection,
             "step_name": step_name,

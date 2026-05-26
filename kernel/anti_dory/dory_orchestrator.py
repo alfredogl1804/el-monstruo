@@ -33,6 +33,7 @@ Sprint: Batch 011 v3 — Anti-Dory Unification
 Autor: Manus AI (Hilo principal)
 Fecha: 2026-05-21
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -50,6 +51,7 @@ logger = logging.getLogger("monstruo.dory_orchestrator")
 # CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _is_enabled() -> bool:
     """Read feature flag fresh from env (anti-Dory discipline: no boot-time cache)."""
     flag = os.environ.get("DORY_ORCHESTRATOR_ENABLED", "").lower()
@@ -63,15 +65,18 @@ def _is_enabled() -> bool:
 # DATA MODELS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class DoryVerdict(str, Enum):
     """Final verdict of the orchestrator."""
-    PROCEED = "PROCEED"       # All clear — execute the action
-    CAUTION = "CAUTION"       # Warnings present but not blocking
-    HALT = "HALT"             # Action blocked — requires T1 or remediation
+
+    PROCEED = "PROCEED"  # All clear — execute the action
+    CAUTION = "CAUTION"  # Warnings present but not blocking
+    HALT = "HALT"  # Action blocked — requires T1 or remediation
 
 
 class StepStatus(str, Enum):
     """Status of each pipeline step."""
+
     OK = "ok"
     WARNING = "warning"
     FAILED = "failed"
@@ -82,6 +87,7 @@ class StepStatus(str, Enum):
 @dataclass
 class StepResult:
     """Result of a single pipeline step."""
+
     step_name: str
     status: StepStatus
     duration_ms: float
@@ -96,6 +102,7 @@ class DoryContext:
     Shared context that accumulates through the pipeline.
     Each step reads from and writes to this context.
     """
+
     # Input
     action_type: str
     action_description: str
@@ -124,6 +131,7 @@ class DoryContext:
 @dataclass
 class DoryResult:
     """Final result of the Dory Orchestrator pipeline."""
+
     verdict: DoryVerdict
     context: DoryContext
     reason: str
@@ -133,6 +141,7 @@ class DoryResult:
 # ═══════════════════════════════════════════════════════════════════════════════
 # PIPELINE STEPS (each wraps an existing system)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 async def _step_guardian_anchor(ctx: DoryContext) -> StepResult:
     """
@@ -144,6 +153,7 @@ async def _step_guardian_anchor(ctx: DoryContext) -> StepResult:
         state_file = os.path.expanduser("~/.monstruo/state/identity.json")
         if os.path.exists(state_file):
             import json
+
             with open(state_file) as f:
                 identity = json.load(f)
             ctx.identity_verified = True
@@ -292,10 +302,7 @@ async def _step_error_memory(ctx: DoryContext) -> StepResult:
             intent=ctx.action_description,
             context={"module": ctx.action_type, "action": ctx.action_description},
         )
-        ctx.error_rules = [
-            {"signature": r.signature, "rule": r.rule_text, "confidence": r.confidence}
-            for r in rules
-        ]
+        ctx.error_rules = [{"signature": r.signature, "rule": r.rule_text, "confidence": r.confidence} for r in rules]
         has_blockers = any(r.confidence >= 0.9 for r in rules)
 
         return StepResult(
@@ -400,7 +407,7 @@ async def _step_b8_classify(ctx: DoryContext) -> StepResult:
     """
     start = time.perf_counter()
     try:
-        from kernel.anti_dory.b8_magna_classifier import classify_action, ActionLevel
+        from kernel.anti_dory.b8_magna_classifier import ActionLevel, classify_action
 
         classification = classify_action(
             action_type=ctx.action_type,
@@ -445,7 +452,10 @@ async def _step_b9_authority(ctx: DoryContext) -> StepResult:
     start = time.perf_counter()
     try:
         from kernel.anti_dory.b9_authority_matrix import (
-            AuthorityMatrix, LayerVote, LayerStatus, Decision,
+            AuthorityMatrix,
+            Decision,
+            LayerStatus,
+            LayerVote,
         )
 
         matrix = AuthorityMatrix()
@@ -582,12 +592,14 @@ async def run_pipeline(
             )
         except Exception as e:
             # Catastrophic step failure — log and continue
-            ctx.steps.append(StepResult(
-                step_name=step_fn.__name__.replace("_step_", ""),
-                status=StepStatus.FAILED,
-                duration_ms=0,
-                errors=[f"Unhandled exception: {e}"],
-            ))
+            ctx.steps.append(
+                StepResult(
+                    step_name=step_fn.__name__.replace("_step_", ""),
+                    status=StepStatus.FAILED,
+                    duration_ms=0,
+                    errors=[f"Unhandled exception: {e}"],
+                )
+            )
             logger.error("dory_step_catastrophic_failure", step=step_fn.__name__, error=str(e))
 
     ctx.total_duration_ms = (time.perf_counter() - pipeline_start) * 1000
@@ -658,7 +670,7 @@ def _build_enriched_prompt(ctx: DoryContext) -> str:
 
     # Risk classification
     if ctx.risk_level == "MAGNA":
-        sections.append(f"[B8 CLASSIFIER] WARNING: Action classified as MAGNA — requires T1 approval")
+        sections.append("[B8 CLASSIFIER] WARNING: Action classified as MAGNA — requires T1 approval")
 
     if not sections:
         return ""
@@ -669,6 +681,7 @@ def _build_enriched_prompt(ctx: DoryContext) -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 # DECORATOR API (for individual tools)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def dory_gate(
     action_type: str = "unknown",
@@ -686,6 +699,7 @@ def dory_gate(
     If verdict is CAUTION and halt_on_caution=True, also raises.
     Otherwise, injects dory_context as kwarg if function accepts it.
     """
+
     def decorator(func: Callable):
         import functools
         import inspect
@@ -714,11 +728,13 @@ def dory_gate(
             return await func(*args, **kwargs)
 
         return wrapper
+
     return decorator
 
 
 class DoryHaltError(Exception):
     """Raised when the Dory Orchestrator blocks an action."""
+
     def __init__(self, reason: str, result: DoryResult):
         super().__init__(reason)
         self.result = result
@@ -739,12 +755,13 @@ def _get_rpc_client():
     if _rpc_client is not None:
         return _rpc_client
     try:
-        db_url = os.environ.get("SUPABASE_DB_URL", "")
+        os.environ.get("SUPABASE_DB_URL", "")
         supabase_url = os.environ.get("SUPABASE_URL", "")
         supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "")
         if not supabase_url or not supabase_key:
             return None
         from memory.supabase_client import SupabaseClient
+
         _rpc_client = SupabaseClient(url=supabase_url, key=supabase_key)
         return _rpc_client
     except Exception:
@@ -758,6 +775,7 @@ def _get_memento_validator():
         return _memento_validator
     try:
         from kernel.memento.validator import MementoValidator
+
         _memento_validator = MementoValidator()
         return _memento_validator
     except Exception:
@@ -771,6 +789,7 @@ def _get_error_memory():
         return _error_memory
     try:
         from kernel.error_memory import ErrorMemory
+
         _error_memory = ErrorMemory()
         return _error_memory
     except Exception:
@@ -782,7 +801,6 @@ def _get_error_memory():
 # ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    import json
 
     async def _test():
         # Test STANDARD action

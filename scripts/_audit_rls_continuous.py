@@ -98,19 +98,21 @@ def main() -> int:
     """
     no_rls = supabase_sql(token, project_ref, sql1)
     for row in no_rls:
-        violations.append({
-            "class": "REGRESSION_CLASS_1",
-            "severity": "P0",
-            "table": row["relname"],
-            "issue": "RLS no habilitado",
-            "remediation": (
-                f"ALTER TABLE public.{row['relname']} ENABLE ROW LEVEL SECURITY;\n"
-                f"CREATE POLICY \"service_role_only\" ON public.{row['relname']} "
-                f"AS PERMISSIVE FOR ALL TO public "
-                f"USING (auth.role() = 'service_role') "
-                f"WITH CHECK (auth.role() = 'service_role');"
-            ),
-        })
+        violations.append(
+            {
+                "class": "REGRESSION_CLASS_1",
+                "severity": "P0",
+                "table": row["relname"],
+                "issue": "RLS no habilitado",
+                "remediation": (
+                    f"ALTER TABLE public.{row['relname']} ENABLE ROW LEVEL SECURITY;\n"
+                    f'CREATE POLICY "service_role_only" ON public.{row["relname"]} '
+                    f"AS PERMISSIVE FOR ALL TO public "
+                    f"USING (auth.role() = 'service_role') "
+                    f"WITH CHECK (auth.role() = 'service_role');"
+                ),
+            }
+        )
 
     # CHECK 2 — RLS habilitado pero sin policies
     sql2 = """
@@ -126,18 +128,20 @@ def main() -> int:
     """
     rls_no_pol = supabase_sql(token, project_ref, sql2)
     for row in rls_no_pol:
-        violations.append({
-            "class": "REGRESSION_CLASS_2",
-            "severity": "P1",
-            "table": row["relname"],
-            "issue": "RLS habilitado pero sin policies (deny-all por defecto, pero anómalo)",
-            "remediation": (
-                f"CREATE POLICY \"service_role_only\" ON public.{row['relname']} "
-                f"AS PERMISSIVE FOR ALL TO public "
-                f"USING (auth.role() = 'service_role') "
-                f"WITH CHECK (auth.role() = 'service_role');"
-            ),
-        })
+        violations.append(
+            {
+                "class": "REGRESSION_CLASS_2",
+                "severity": "P1",
+                "table": row["relname"],
+                "issue": "RLS habilitado pero sin policies (deny-all por defecto, pero anómalo)",
+                "remediation": (
+                    f'CREATE POLICY "service_role_only" ON public.{row["relname"]} '
+                    f"AS PERMISSIVE FOR ALL TO public "
+                    f"USING (auth.role() = 'service_role') "
+                    f"WITH CHECK (auth.role() = 'service_role');"
+                ),
+            }
+        )
 
     # CHECK 3 — matviews con grants públicos
     sql3 = """
@@ -159,39 +163,22 @@ def main() -> int:
     """
     matviews = supabase_sql(token, project_ref, sql3)
     for row in matviews:
-        violations.append({
-            "class": "REGRESSION_CLASS_3",
-            "severity": "P1",
-            "matview": row["relname"],
-            "issue": f"matview expuesta a roles públicos: {row.get('exposed_to')}",
-            "remediation": (
-                f"REVOKE ALL ON public.{row['relname']} FROM PUBLIC, anon, authenticated;\n"
-                f"GRANT SELECT ON public.{row['relname']} TO service_role;"
-            ),
-        })
+        violations.append(
+            {
+                "class": "REGRESSION_CLASS_3",
+                "severity": "P1",
+                "matview": row["relname"],
+                "issue": f"matview expuesta a roles públicos: {row.get('exposed_to')}",
+                "remediation": (
+                    f"REVOKE ALL ON public.{row['relname']} FROM PUBLIC, anon, authenticated;\n"
+                    f"GRANT SELECT ON public.{row['relname']} TO service_role;"
+                ),
+            }
+        )
 
     # CHECK 4 (NUEVO) — tablas con relcomment vacío que pueden ser bypassed by linter
     # Patrón: tabla sin policy comment "DSC-S-006" — útil para detectar tablas
     # creadas fuera del flujo canónico.
-    sql4 = """
-        SELECT c.relname
-        FROM pg_class c
-        JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE n.nspname = 'public'
-          AND c.relkind = 'r'
-          AND c.relrowsecurity = true
-          AND NOT EXISTS (
-            SELECT 1 FROM pg_policies p
-            WHERE p.tablename = c.relname AND p.schemaname = 'public'
-              AND EXISTS (
-                SELECT 1 FROM pg_description d
-                WHERE d.objoid = (SELECT oid FROM pg_policy WHERE polname = p.policyname AND polrelid = c.oid LIMIT 1)
-                  AND d.description LIKE '%DSC-S-006%'
-              )
-          )
-        ORDER BY c.relname
-        LIMIT 50;
-    """
     # Este check 4 es informativo (no falla CI), solo lista tablas sin trazabilidad DSC.
     # Lo dejamos comentado en el reporte; no se considera violación dura.
 
@@ -206,7 +193,7 @@ def main() -> int:
            WHERE n.nspname = 'public' AND c.relkind = 'm') AS total_matviews;
     """
     stats = supabase_sql(token, project_ref, sql_stats)[0]
-    report.append(f"\n## Coverage global\n")
+    report.append("\n## Coverage global\n")
     report.append(f"- Total tablas: {stats['total_tables']}")
     report.append(f"- Tablas con RLS: {stats['tables_rls']}")
     report.append(f"- Total matviews: {stats['total_matviews']}\n")

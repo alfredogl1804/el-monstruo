@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Apply migration 040 — Sprint 88.3 macroárea VISION_GENERATIVA."""
+
 import os
 import sys
 from pathlib import Path
+
 import psycopg
 
 

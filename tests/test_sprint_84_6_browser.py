@@ -11,6 +11,7 @@ Cubre:
 
 NO requiere Playwright instalado (todos los tests son unitarios + mocks).
 """
+
 import os
 import sys
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -19,14 +20,6 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from kernel.browser_automation import (
-    BLOCKED_DOMAINS,
-    BLOCKED_HOSTNAMES,
-    BLOCKED_HOSTNAME_SUFFIXES,
-    DEFAULT_VIEWPORT,
-    BrowserAutomation,
-    BrowserResult,
-)
 from kernel.browser import (
     DEFAULT_DESKTOP_VIEWPORT,
     MOBILE_VIEWPORT,
@@ -35,7 +28,14 @@ from kernel.browser import (
     RenderResult,
     SovereignBrowser,
 )
-
+from kernel.browser_automation import (
+    BLOCKED_DOMAINS,
+    BLOCKED_HOSTNAME_SUFFIXES,
+    BLOCKED_HOSTNAMES,
+    DEFAULT_VIEWPORT,
+    BrowserAutomation,
+    BrowserResult,
+)
 
 # ============================================================================
 # 1. _is_blocked_url - regression contra el bug de substring crudo
@@ -189,9 +189,7 @@ class TestCollectWebVitals:
         b = BrowserAutomation()
         b._initialized = True
         page = MagicMock()
-        page.evaluate = AsyncMock(
-            return_value={"ttfb_ms": 123, "lcp_ms": 456, "load_time_ms": 789}
-        )
+        page.evaluate = AsyncMock(return_value={"ttfb_ms": 123, "lcp_ms": 456, "load_time_ms": 789})
         b._page = page
         m = await b._collect_web_vitals()
         assert m["ttfb_ms"] == 123
@@ -256,9 +254,7 @@ class TestRenderResult:
 
 class TestMetricsResult:
     def test_to_dict(self):
-        r = MetricsResult(
-            success=True, url="https://x", ttfb_ms=100, lcp_ms=500, load_time_ms=1000
-        )
+        r = MetricsResult(success=True, url="https://x", ttfb_ms=100, lcp_ms=500, load_time_ms=1000)
         d = r.to_dict()
         assert d["ttfb_ms"] == 100
         assert d["lcp_ms"] == 500
@@ -310,12 +306,8 @@ class TestSovereignBrowserFlow:
         sb = SovereignBrowser()
         with patch("kernel.browser.sovereign_browser.BrowserAutomation") as MockBA:
             instance = MagicMock()
-            instance.initialize = AsyncMock(
-                return_value=BrowserResult(success=True, data="ok")
-            )
-            instance.navigate = AsyncMock(
-                return_value=BrowserResult(success=False, error="dns_failed")
-            )
+            instance.initialize = AsyncMock(return_value=BrowserResult(success=True, data="ok"))
+            instance.navigate = AsyncMock(return_value=BrowserResult(success=False, error="dns_failed"))
             instance.close = AsyncMock(return_value=BrowserResult(success=True))
             MockBA.return_value = instance
 
@@ -328,9 +320,7 @@ class TestSovereignBrowserFlow:
         sb = SovereignBrowser()
         with patch("kernel.browser.sovereign_browser.BrowserAutomation") as MockBA:
             instance = MagicMock()
-            instance.initialize = AsyncMock(
-                return_value=BrowserResult(success=True)
-            )
+            instance.initialize = AsyncMock(return_value=BrowserResult(success=True))
             instance.navigate = AsyncMock(
                 return_value=BrowserResult(
                     success=True,
@@ -357,27 +347,19 @@ class TestSovereignBrowserFlow:
         sb = SovereignBrowser()
         captured_viewports = []
         with patch("kernel.browser.sovereign_browser.BrowserAutomation") as MockBA:
+
             def factory(*args, **kwargs):
                 captured_viewports.append(kwargs.get("viewport"))
                 instance = MagicMock()
-                instance.initialize = AsyncMock(
-                    return_value=BrowserResult(success=True)
-                )
-                instance.navigate = AsyncMock(
-                    return_value=BrowserResult(
-                        success=True, data={"status_code": 200}
-                    )
-                )
+                instance.initialize = AsyncMock(return_value=BrowserResult(success=True))
+                instance.navigate = AsyncMock(return_value=BrowserResult(success=True, data={"status_code": 200}))
                 page = MagicMock()
                 page.evaluate = AsyncMock(return_value=400)  # > 375 -> overflow
                 instance._page = page
-                instance.screenshot = AsyncMock(
-                    return_value=BrowserResult(
-                        success=True, screenshot_path="/tmp/m.png"
-                    )
-                )
+                instance.screenshot = AsyncMock(return_value=BrowserResult(success=True, screenshot_path="/tmp/m.png"))
                 instance.close = AsyncMock(return_value=BrowserResult(success=True))
                 return instance
+
             MockBA.side_effect = factory
 
             res = await sb.check_mobile(url="https://example.com")
@@ -402,6 +384,7 @@ class TestSovereignBrowserTool:
             sovereign_browser_metrics,
             sovereign_browser_render,
         )
+
         assert callable(sovereign_browser_render)
         assert callable(sovereign_browser_metrics)
         assert callable(sovereign_browser_check_mobile)
@@ -409,6 +392,7 @@ class TestSovereignBrowserTool:
 
     def test_tool_spec_has_required_fields(self):
         from tools.sovereign_browser import SOVEREIGN_BROWSER_TOOL_SPEC
+
         assert "description" in SOVEREIGN_BROWSER_TOOL_SPEC
         params = SOVEREIGN_BROWSER_TOOL_SPEC["parameters"]
         assert "url" in params["properties"]

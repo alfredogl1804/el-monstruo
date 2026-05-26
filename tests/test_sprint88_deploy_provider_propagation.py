@@ -9,18 +9,19 @@ Verifica que:
 
 Brand DNA: errores con prefijo e2e_deploy_provider_*_failed.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
 
 import pytest
 
-from kernel.e2e.schema import E2ERun, EstadoRun
-
+from kernel.e2e.schema import E2ERun
 
 # ============================================================================
 # Schema
 # ============================================================================
+
 
 class TestE2ERunSchemaDeployProvider:
     """E2ERun ahora expone deploy_provider opcional."""
@@ -71,6 +72,7 @@ class TestE2ERunSchemaDeployProvider:
 # ============================================================================
 # Repository
 # ============================================================================
+
 
 class _MockDB:
     """Mock minimal para verificar que el patch contiene deploy_provider."""
@@ -159,6 +161,7 @@ class TestRepositoryUpdateRunDeployProvider:
 # ============================================================================
 # Pipeline propagation contract
 # ============================================================================
+
 
 class TestPipelineDeployProviderContract:
     """

@@ -55,6 +55,7 @@ REFS:
     - kernel/memento/models.py (shape de Request/Response)
     - tools/memento_preflight_README.md (guía operativa para los 3 hilos)
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -66,8 +67,8 @@ import logging
 import os
 import threading
 import time
-from dataclasses import dataclass, field, asdict
-from typing import Any, Awaitable, Callable, Dict, Optional, TypeVar, Union
+from dataclasses import asdict, dataclass, field
+from typing import Any, Callable, Dict, Optional, TypeVar
 
 import httpx
 
@@ -77,9 +78,7 @@ logger = logging.getLogger("memento.preflight")
 # Defaults (overridables vía env)
 # ===========================================================================
 
-DEFAULT_VALIDATOR_URL = (
-    "https://el-monstruo-kernel-production.up.railway.app/v1/memento/validate"
-)
+DEFAULT_VALIDATOR_URL = "https://el-monstruo-kernel-production.up.railway.app/v1/memento/validate"
 DEFAULT_TIMEOUT_SECONDS = 5.0
 DEFAULT_RETRY_ATTEMPTS = 3
 DEFAULT_RETRY_BACKOFF_BASE = 1.0  # 1s, 2s, 4s
@@ -91,6 +90,7 @@ DEFAULT_FALLBACK_POLICY = "block"  # "block" | "warn"
 # ===========================================================================
 # Excepciones
 # ===========================================================================
+
 
 class MementoPreflightError(Exception):
     """Base para errores de pre-flight."""
@@ -116,6 +116,7 @@ class MementoPreflightConfigError(MementoPreflightError):
 # Resultado
 # ===========================================================================
 
+
 @dataclass
 class PreflightResult:
     """
@@ -123,6 +124,7 @@ class PreflightResult:
 
     Espejo del shape devuelto por kernel/memento_routes.py:memento_validate.
     """
+
     validation_id: str
     validation_status: str  # "ok" | "discrepancy_detected" | "unknown_operation" | "source_unavailable"
     proceed: bool
@@ -155,6 +157,7 @@ class PreflightResult:
 # Cache local thread-safe
 # ===========================================================================
 
+
 class PreflightCache:
     """
     Cache LRU-naive (sin tope de tamaño en v1.0) con TTL.
@@ -169,6 +172,7 @@ class PreflightCache:
         - invalidate(operation, context_used) borra una entrada específica.
         - clear() vacía todo el cache.
     """
+
     def __init__(self, default_ttl_seconds: int = DEFAULT_CACHE_TTL_SECONDS) -> None:
         self._store: Dict[str, tuple[PreflightResult, float]] = {}
         self._lock = threading.Lock()
@@ -225,6 +229,7 @@ class PreflightCache:
 # Config helpers (siempre lectura fresh — anti-Dory)
 # ===========================================================================
 
+
 def _resolve_validator_url() -> str:
     return os.environ.get("MEMENTO_VALIDATOR_URL", DEFAULT_VALIDATOR_URL)
 
@@ -234,14 +239,9 @@ def _resolve_api_key() -> str:
     Acepta MEMENTO_API_KEY (alias preferido para hilos no-kernel) o
     MONSTRUO_API_KEY (mismo key del kernel).
     """
-    key = (
-        os.environ.get("MEMENTO_API_KEY", "").strip()
-        or os.environ.get("MONSTRUO_API_KEY", "").strip()
-    )
+    key = os.environ.get("MEMENTO_API_KEY", "").strip() or os.environ.get("MONSTRUO_API_KEY", "").strip()
     if not key:
-        raise MementoPreflightConfigError(
-            "memento_api_key_missing: set MEMENTO_API_KEY or MONSTRUO_API_KEY env var"
-        )
+        raise MementoPreflightConfigError("memento_api_key_missing: set MEMENTO_API_KEY or MONSTRUO_API_KEY env var")
     return key
 
 
@@ -297,6 +297,7 @@ def get_cache() -> PreflightCache:
 # Cliente principal
 # ===========================================================================
 
+
 async def _do_request(
     *,
     url: str,
@@ -307,7 +308,10 @@ async def _do_request(
 ) -> httpx.Response:
     """Una sola llamada HTTP. Inyectable para tests."""
     if http_client_factory is None:
-        http_client_factory = lambda: httpx.AsyncClient(timeout=timeout)
+
+        def http_client_factory():
+            return httpx.AsyncClient(timeout=timeout)
+
     async with http_client_factory() as client:
         return await client.post(url, json=payload, headers=headers)
 
@@ -359,14 +363,16 @@ async def preflight_check_async(
     url = _resolve_validator_url()
     api_key = _resolve_api_key()
     auth_format = _resolve_auth_format()
-    timeout = timeout if timeout is not None else _resolve_float_env(
-        "MEMENTO_TIMEOUT_SECONDS", DEFAULT_TIMEOUT_SECONDS
+    timeout = timeout if timeout is not None else _resolve_float_env("MEMENTO_TIMEOUT_SECONDS", DEFAULT_TIMEOUT_SECONDS)
+    retry_attempts = (
+        retry_attempts
+        if retry_attempts is not None
+        else _resolve_int_env("MEMENTO_RETRY_ATTEMPTS", DEFAULT_RETRY_ATTEMPTS)
     )
-    retry_attempts = retry_attempts if retry_attempts is not None else _resolve_int_env(
-        "MEMENTO_RETRY_ATTEMPTS", DEFAULT_RETRY_ATTEMPTS
-    )
-    retry_backoff_base = retry_backoff_base if retry_backoff_base is not None else _resolve_float_env(
-        "MEMENTO_RETRY_BACKOFF_BASE", DEFAULT_RETRY_BACKOFF_BASE
+    retry_backoff_base = (
+        retry_backoff_base
+        if retry_backoff_base is not None
+        else _resolve_float_env("MEMENTO_RETRY_BACKOFF_BASE", DEFAULT_RETRY_BACKOFF_BASE)
     )
     fallback_policy = (fallback_policy or _resolve_fallback_policy()).lower()
     if fallback_policy not in ("block", "warn"):
@@ -415,20 +421,23 @@ async def preflight_check_async(
                 )
             elif response.status_code == 422:
                 # Body inválido — no reintentar, error del caller
-                raise MementoPreflightError(
-                    f"memento_request_invalid: {response.text[:300]}"
-                )
+                raise MementoPreflightError(f"memento_request_invalid: {response.text[:300]}")
             else:
                 # 500, 503, etc. — reintentar
                 last_exc = MementoPreflightError(
                     f"memento_endpoint_status_{response.status_code}: {response.text[:200]}"
                 )
-                logger.warning("memento_preflight_retry_due_to_status attempt=%s status=%s",
-                    attempt, response.status_code)
+                logger.warning(
+                    "memento_preflight_retry_due_to_status attempt=%s status=%s", attempt, response.status_code
+                )
         except (httpx.TimeoutException, httpx.NetworkError, httpx.ConnectError, httpx.ReadError) as exc:
             last_exc = exc
-            logger.warning("memento_preflight_retry_due_to_exception attempt=%s exc_type=%s error=%s",
-                attempt, type(exc).__name__, str(exc))
+            logger.warning(
+                "memento_preflight_retry_due_to_exception attempt=%s exc_type=%s error=%s",
+                attempt,
+                type(exc).__name__,
+                str(exc),
+            )
         except (MementoPreflightConfigError, MementoPreflightError):
             # Errores hard — no reintentar
             raise
@@ -440,8 +449,12 @@ async def preflight_check_async(
 
     # Todos los retries fallaron
     if fallback_policy == "warn":
-        logger.warning("memento_preflight_unavailable_warn operation=%s attempts=%s last_error=%s",
-            operation, retry_attempts, str(last_exc))
+        logger.warning(
+            "memento_preflight_unavailable_warn operation=%s attempts=%s last_error=%s",
+            operation,
+            retry_attempts,
+            str(last_exc),
+        )
         # Devolver un resultado "permisivo" no validado
         return PreflightResult(
             validation_id="mv_fallback_warn",
@@ -456,9 +469,7 @@ async def preflight_check_async(
         )
 
     # fallback_policy == "block"
-    raise MementoPreflightUnavailableError(
-        f"memento_endpoint_unavailable_after_{retry_attempts}_retries: {last_exc}"
-    )
+    raise MementoPreflightUnavailableError(f"memento_endpoint_unavailable_after_{retry_attempts}_retries: {last_exc}")
 
 
 def preflight_check(
@@ -484,25 +495,25 @@ def preflight_check(
     try:
         loop = asyncio.get_event_loop()
         if loop.is_running():
-            raise RuntimeError(
-                "memento_preflight_sync_in_running_loop: usá preflight_check_async + await"
-            )
+            raise RuntimeError("memento_preflight_sync_in_running_loop: usá preflight_check_async + await")
     except RuntimeError:
         pass  # No hay loop activo, podemos crear uno nuevo
 
-    return asyncio.run(preflight_check_async(
-        operation=operation,
-        context_used=context_used,
-        hilo_id=hilo_id,
-        intent_summary=intent_summary,
-        use_cache=use_cache,
-        cache_ttl_seconds=cache_ttl_seconds,
-        timeout=timeout,
-        retry_attempts=retry_attempts,
-        retry_backoff_base=retry_backoff_base,
-        fallback_policy=fallback_policy,
-        http_client_factory=http_client_factory,
-    ))
+    return asyncio.run(
+        preflight_check_async(
+            operation=operation,
+            context_used=context_used,
+            hilo_id=hilo_id,
+            intent_summary=intent_summary,
+            use_cache=use_cache,
+            cache_ttl_seconds=cache_ttl_seconds,
+            timeout=timeout,
+            retry_attempts=retry_attempts,
+            retry_backoff_base=retry_backoff_base,
+            fallback_policy=fallback_policy,
+            http_client_factory=http_client_factory,
+        )
+    )
 
 
 # ===========================================================================
@@ -551,6 +562,7 @@ def requires_memento_preflight(
         )
         async def query_tidb(host: str, user: str, query: str): ...
     """
+
     def decorator(func: F) -> F:
         is_async = inspect.iscoroutinefunction(func)
         sig = inspect.signature(func)
@@ -584,6 +596,7 @@ def requires_memento_preflight(
             return ctx
 
         if is_async:
+
             @functools.wraps(func)
             async def async_wrapper(*args, **kwargs):
                 ctx = _build_context(args, kwargs)
@@ -605,6 +618,7 @@ def requires_memento_preflight(
                         result=result,
                     )
                 return await func(*args, **kwargs)
+
             return async_wrapper  # type: ignore[return-value]
 
         @functools.wraps(func)
@@ -623,11 +637,11 @@ def requires_memento_preflight(
             )
             if not result.proceed:
                 raise MementoPreflightDiscrepancyError(
-                    f"memento_preflight_blocked: status={result.validation_status} "
-                    f"remediation={result.remediation}",
+                    f"memento_preflight_blocked: status={result.validation_status} remediation={result.remediation}",
                     result=result,
                 )
             return func(*args, **kwargs)
+
         return sync_wrapper  # type: ignore[return-value]
 
     return decorator

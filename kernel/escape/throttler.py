@@ -23,6 +23,7 @@ DSC enforzados:
 - DSC-S-006 v1.1 (RLS) — persistencia vía service_role only
 - DSC-S-016 (anti-fabricación) — único caller autorizado de budget.consume()
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -54,6 +55,7 @@ class PulseDecision:
     Si can_proceed=True, el caller puede ejecutar y debe llamar record_pulse() después.
     Si can_proceed=False, el caller debe esperar hasta next_pulse_at (o llamar block_attempt()).
     """
+
     can_proceed: bool
     next_pulse_at: Optional[datetime]
     last_pulse_at: Optional[datetime]
@@ -64,6 +66,7 @@ class PulseDecision:
 @dataclass
 class PulseRecord:
     """Pulso registrado tras record_pulse() exitoso."""
+
     consumer: str
     energy_consumed: Decimal
     pulse_interval_seconds: int
@@ -85,6 +88,7 @@ class _ConsumerState:
     Postgres `pulse_id` BIGSERIAL es la fuente de verdad cross-proceso.
     Este estado en memoria es para decisiones rápidas locales.
     """
+
     last_pulse_at: Optional[datetime] = None
     blocked_count_in_window: int = 0
 
@@ -124,10 +128,10 @@ class Escapement:
         budget_consumer=None,
     ):
         """Args:
-            consumer: nombre canónico (validado vs REGISTRY_CONSUMERS, warning si desconocido).
-            pulse_interval_seconds: override del default. Si None, usa get_pulse_interval_seconds(consumer).
-            budget_consumer: callable async/sync que decrementa budget. Si None, lazy import
-                de kernel.embrion_budget.consume cuando se necesite. Útil para inyectar mock en tests.
+        consumer: nombre canónico (validado vs REGISTRY_CONSUMERS, warning si desconocido).
+        pulse_interval_seconds: override del default. Si None, usa get_pulse_interval_seconds(consumer).
+        budget_consumer: callable async/sync que decrementa budget. Si None, lazy import
+            de kernel.embrion_budget.consume cuando se necesite. Útil para inyectar mock en tests.
         """
         self.consumer = consumer
         if pulse_interval_seconds is None:

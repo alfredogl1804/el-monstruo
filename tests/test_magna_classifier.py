@@ -16,26 +16,24 @@ Cobertura:
   10. Reset diario automático de contadores
 """
 
-import time
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+
 from kernel.magna_classifier import (
-    MagnaClassifier,
-    ClassificationResult,
-    RouteType,
-    ContentCategory,
-    MagnaClasificacionFallida,
-    MagnaCacheVencido,
     DEFAULT_THRESHOLD,
-    DEFAULT_GRAPH_CALLS_PER_DAY,
+    TTL_API_FRAMEWORKS,
     TTL_PRECIOS,
     TTL_TRENDING,
-    TTL_API_FRAMEWORKS,
+    ContentCategory,
+    MagnaCacheVencido,
+    MagnaClasificacionFallida,
+    MagnaClassifier,
+    RouteType,
 )
 
-
 # ── Fixtures ────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def classifier():
@@ -74,6 +72,7 @@ def classifier_with_db(mock_db):
 
 # ── Test 1: Contenido técnico → graph ──────────────────────────────
 
+
 class TestTechClassification:
     """Contenido técnico debe clasificarse como graph."""
 
@@ -93,8 +92,7 @@ class TestTechClassification:
     def test_code_with_url_routes_to_graph(self, classifier):
         """Texto con URL y código → graph."""
         result = classifier.classify(
-            "Revisa este error en https://api.example.com/v1/users "
-            "```python\nraise ValueError('bad input')\n```"
+            "Revisa este error en https://api.example.com/v1/users ```python\nraise ValueError('bad input')\n```"
         )
         assert result.route in (RouteType.GRAPH, RouteType.TOOL_SPECIFIC)
         assert "contains_url" in result.reasoning or "contains_code_block" in result.reasoning
@@ -111,6 +109,7 @@ class TestTechClassification:
 
 
 # ── Test 2: Acciones → graph ───────────────────────────────────────
+
 
 class TestActionClassification:
     """Solicitudes de acción deben clasificarse como graph."""
@@ -143,6 +142,7 @@ class TestActionClassification:
 
 # ── Test 3: Reflexiones → router ───────────────────────────────────
 
+
 class TestReflectionClassification:
     """Contenido reflexivo debe clasificarse como router."""
 
@@ -162,9 +162,7 @@ class TestReflectionClassification:
 
     def test_philosophical_content(self, classifier):
         """Contenido filosófico → router."""
-        result = classifier.classify(
-            "Contempla qué opinas sobre la evolución de tu consciencia emergente"
-        )
+        result = classifier.classify("Contempla qué opinas sobre la evolución de tu consciencia emergente")
         assert result.route == RouteType.ROUTER
 
     def test_empty_reflection_no_signals(self, classifier):
@@ -175,6 +173,7 @@ class TestReflectionClassification:
 
 
 # ── Test 4: Tool-specific detection ────────────────────────────────
+
 
 class TestToolSpecificDetection:
     """Keywords específicas deben mapear a tools concretas."""
@@ -207,6 +206,7 @@ class TestToolSpecificDetection:
 
 # ── Test 5: Cap diario de graph calls ──────────────────────────────
 
+
 class TestGraphCallsCap:
     """El cap diario debe degradar graph → router."""
 
@@ -235,6 +235,7 @@ class TestGraphCallsCap:
 
 # ── Test 6: Cache en memoria ──────────────────────────────────────
 
+
 class TestMemoryCache:
     """Cache en memoria debe funcionar correctamente."""
 
@@ -248,7 +249,7 @@ class TestMemoryCache:
 
     def test_cache_miss_different_text(self, classifier):
         """Textos diferentes no deben compartir cache."""
-        result1 = classifier.classify("Busca el precio del API de OpenAI")
+        classifier.classify("Busca el precio del API de OpenAI")
         result2 = classifier.classify("Reflexiona sobre la doctrina operativa")
         assert result2.cached is False
 
@@ -275,6 +276,7 @@ class TestMemoryCache:
 
 # ── Test 7: Score threshold ────────────────────────────────────────
 
+
 class TestThreshold:
     """El threshold debe controlar la decisión graph vs router."""
 
@@ -294,6 +296,7 @@ class TestThreshold:
 
 
 # ── Test 8: Edge cases ─────────────────────────────────────────────
+
 
 class TestEdgeCases:
     """Inputs extremos deben manejarse sin crash."""
@@ -328,6 +331,7 @@ class TestEdgeCases:
 
 # ── Test 9: Estadísticas ──────────────────────────────────────────
 
+
 class TestStats:
     """get_stats() debe devolver datos completos y correctos."""
 
@@ -358,6 +362,7 @@ class TestStats:
 
 # ── Test 10: Reset diario ─────────────────────────────────────────
 
+
 class TestDailyReset:
     """Contadores deben resetearse al cambiar de día."""
 
@@ -381,6 +386,7 @@ class TestDailyReset:
 
 # ── Test 11: TTL por categoría ────────────────────────────────────
 
+
 class TestTTLCategories:
     """TTL debe variar según la categoría del contenido."""
 
@@ -402,6 +408,7 @@ class TestTTLCategories:
 
 
 # ── Test 12: ClassificationResult serialization ───────────────────
+
 
 class TestSerialization:
     """to_dict() debe producir JSON serializable."""
@@ -432,6 +439,7 @@ class TestSerialization:
 
 
 # ── Test 13: Cache key determinism ────────────────────────────────
+
 
 class TestCacheKeyDeterminism:
     """Cache keys deben ser determinísticas y estables."""
@@ -464,6 +472,7 @@ class TestCacheKeyDeterminism:
 
 
 # ── Test 14: Excepciones con identidad ────────────────────────────
+
 
 class TestExceptions:
     """Excepciones deben tener atributos de marca."""

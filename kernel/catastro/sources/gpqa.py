@@ -9,10 +9,12 @@ contaminación). El subset main es ~5x más grande.
 
 [Hilo Manus Catastro] · Sprint 86.7 · 2026-05-05
 """
+
 from __future__ import annotations
 
+from typing import Any
+
 import httpx
-from typing import Any, Optional
 
 from kernel.catastro.sources.base import (
     BaseFuente,
@@ -48,9 +50,7 @@ class GPQAFuente(BaseFuente):
                 if response.status_code == 429:
                     raise FuenteRateLimitError(self.nombre, "Rate limit en BenchLM GPQA")
                 if response.status_code >= 500:
-                    raise FuenteUnavailableError(
-                        self.nombre, f"Error {response.status_code} en BenchLM GPQA"
-                    )
+                    raise FuenteUnavailableError(self.nombre, f"Error {response.status_code} en BenchLM GPQA")
 
                 response.raise_for_status()
                 payload = response.json()

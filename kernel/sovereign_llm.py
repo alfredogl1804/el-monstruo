@@ -20,9 +20,9 @@ Benefits:
 
 Validated: ollama==0.6.2 (MIT, Apr 29, 2026), AsyncClient nativo
 """
+
 from __future__ import annotations
 
-import json
 import os
 import time
 from dataclasses import dataclass
@@ -36,15 +36,17 @@ logger = structlog.get_logger("kernel.sovereign_llm")
 
 class TaskTier(IntEnum):
     """Tier de complejidad de tarea."""
-    SIMPLE = 1      # Clasificación, formatting, extracción
-    MEDIUM = 2      # Resumen, Q&A, análisis básico
-    COMPLEX = 3     # Razonamiento profundo, código, causal
-    CRITICAL = 4    # Decisiones de negocio, predicciones (usa Sabios)
+
+    SIMPLE = 1  # Clasificación, formatting, extracción
+    MEDIUM = 2  # Resumen, Q&A, análisis básico
+    COMPLEX = 3  # Razonamiento profundo, código, causal
+    CRITICAL = 4  # Decisiones de negocio, predicciones (usa Sabios)
 
 
 @dataclass
 class LLMResponse:
     """Respuesta unificada de cualquier proveedor."""
+
     content: str
     model: str
     provider: str  # openai, anthropic, google, ollama_local, ollama_cloud
@@ -127,6 +129,7 @@ class SovereignLLM:
         ollama_host = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
         try:
             from ollama import AsyncClient
+
             self._ollama_local = AsyncClient(host=ollama_host)
             # Test connection — si falla, Ollama no está disponible
             await self._ollama_local.list()
@@ -140,6 +143,7 @@ class SovereignLLM:
         if ollama_api_key:
             try:
                 from ollama import AsyncClient
+
                 self._ollama_cloud = AsyncClient(
                     host="https://ollama.com",
                     headers={"Authorization": f"Bearer {ollama_api_key}"},
@@ -154,6 +158,7 @@ class SovereignLLM:
         if openai_key:
             try:
                 from openai import AsyncOpenAI
+
                 self._openai = AsyncOpenAI(api_key=openai_key)
                 logger.info("openai_configured")
             except Exception as e:
@@ -164,6 +169,7 @@ class SovereignLLM:
         if gemini_key:
             try:
                 import google.generativeai as genai
+
                 genai.configure(api_key=gemini_key)
                 self._gemini = genai
                 logger.info("gemini_configured")
@@ -219,12 +225,8 @@ class SovereignLLM:
                 latency = (time.time() - start) * 1000
 
                 # Track stats
-                self._stats["calls_by_provider"][provider] = (
-                    self._stats["calls_by_provider"].get(provider, 0) + 1
-                )
-                self._stats["calls_by_tier"][str(tier.value)] = (
-                    self._stats["calls_by_tier"].get(str(tier.value), 0) + 1
-                )
+                self._stats["calls_by_provider"][provider] = self._stats["calls_by_provider"].get(provider, 0) + 1
+                self._stats["calls_by_tier"][str(tier.value)] = self._stats["calls_by_tier"].get(str(tier.value), 0) + 1
                 self._stats["total_calls"] += 1
                 if i > 0:
                     self._stats["fallbacks_used"] += 1
@@ -264,9 +266,7 @@ class SovereignLLM:
                 continue
 
         # Todos los proveedores fallaron
-        raise RuntimeError(
-            f"All LLM providers failed for tier {tier}. Last error: {last_error}"
-        )
+        raise RuntimeError(f"All LLM providers failed for tier {tier}. Last error: {last_error}")
 
     async def _call_provider(
         self,

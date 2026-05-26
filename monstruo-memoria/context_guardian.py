@@ -29,9 +29,8 @@ La diferencia es que "ejecuta" produce OUTPUT que el agente ve.
 "Lee" es una instrucción que el agente puede saltarse.
 """
 
-import os
-import sys
 import json
+import os
 import subprocess
 from datetime import datetime
 
@@ -90,10 +89,7 @@ def restore_from_repo(missing):
             else:
                 # Try to pull from git
                 try:
-                    subprocess.run(
-                        ["git", "-C", REPO_DIR, "pull", "--rebase"],
-                        capture_output=True, timeout=15
-                    )
+                    subprocess.run(["git", "-C", REPO_DIR, "pull", "--rebase"], capture_output=True, timeout=15)
                     if os.path.exists(source_path):
                         subprocess.run(["cp", source_path, target_path], check=True)
                         restored.append(name)
@@ -151,8 +147,8 @@ def print_context_summary():
         # Extraer sección de estado real
         if "ESTADO REAL DEL KERNEL" in content:
             start = content.index("ESTADO REAL DEL KERNEL")
-            end = content.index("---", start + 10) if "---" in content[start + 10:] else len(content)
-            section = content[start:start + end - start]
+            end = content.index("---", start + 10) if "---" in content[start + 10 :] else len(content)
+            section = content[start : start + end - start]
             for line in section.split("\n")[:20]:
                 if line.strip():
                     print(f"  {line.strip()}")
@@ -170,7 +166,7 @@ def print_context_summary():
             end_markers = ["---", "## PENDIENTES"]
             end = len(content)
             for marker in end_markers:
-                if marker in content[start + 10:]:
+                if marker in content[start + 10 :]:
                     candidate = content.index(marker, start + 10)
                     end = min(end, candidate)
             section = content[start:end]
@@ -205,11 +201,8 @@ def run_kernel_health_check():
 
     try:
         import requests
-        resp = requests.get(
-            f"{kernel_url}/v1/health",
-            headers={"x-api-key": api_key},
-            timeout=10
-        )
+
+        resp = requests.get(f"{kernel_url}/v1/health", headers={"x-api-key": api_key}, timeout=10)
         if resp.status_code == 200:
             data = resp.json()
             status = data.get("status", "unknown")

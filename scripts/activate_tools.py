@@ -32,6 +32,7 @@ Fail-closed (Obj #11):
 Sprint 81 prep — 2026-05-02
 Autor: Hilo B (Cowork)
 """
+
 from __future__ import annotations
 
 import argparse
@@ -39,7 +40,7 @@ import asyncio
 import json
 import os
 import sys
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -50,6 +51,7 @@ if REPO_ROOT not in sys.path:
 
 
 # ─── Excepciones con identidad ─────────────────────────────────────────
+
 
 class DespertadorDbNoDisponible(RuntimeError):
     """No se pudo conectar a Supabase para escribir el registro de tools.
@@ -268,6 +270,7 @@ def validar_nombre_tool(tool_name: str) -> tuple[bool, list[str]]:
 
 # ─── Tipos de decisión ─────────────────────────────────────────────────
 
+
 @dataclass
 class DecisionTool:
     tool_name: str
@@ -282,6 +285,7 @@ class DecisionTool:
 
 
 # ─── Lógica principal ──────────────────────────────────────────────────
+
 
 async def _cargar_estado_db(db) -> tuple[dict[str, dict], dict[str, dict]]:
     """Carga estado actual de tool_registry y tool_bindings."""
@@ -473,10 +477,12 @@ ON CONFLICT (tenant_id, tool_name) DO UPDATE SET
 
 # ─── Entrypoint ────────────────────────────────────────────────────────
 
+
 async def main_async(args) -> int:
     # Importar las ToolSpecs reales
     try:
         from kernel.tool_dispatch import get_tool_specs
+
         specs = get_tool_specs()
     except Exception as e:
         print(f"despertador_specs_no_cargadas: {e}", file=sys.stderr)
@@ -489,8 +495,7 @@ async def main_async(args) -> int:
     sobrantes = nombres_canon - nombres_specs
     if faltantes:
         print(
-            f"despertador_inventario_desincronizado: ToolSpecs sin "
-            f"metadata canónica: {sorted(faltantes)}",
+            f"despertador_inventario_desincronizado: ToolSpecs sin metadata canónica: {sorted(faltantes)}",
             file=sys.stderr,
         )
         return 3
@@ -509,12 +514,11 @@ async def main_async(args) -> int:
         try:
             # Sprint 84: fix import path — el módulo vive en memory/, no en kernel/memory/
             from memory.supabase_client import SupabaseClient
+
             db = SupabaseClient()
             await db.connect()
             if not db.connected:
-                raise DespertadorDbNoDisponible(
-                    "SupabaseClient.connect() retornó connected=False"
-                )
+                raise DespertadorDbNoDisponible("SupabaseClient.connect() retornó connected=False")
             registry_actual, bindings_actual = await _cargar_estado_db(db)
         except Exception as e:
             print(
@@ -575,22 +579,20 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="El Despertador — activa tools dormidas en El Monstruo",
     )
-    parser.add_argument("--apply", action="store_true",
-                        help="Ejecuta cambios. Sin esto, dry-run.")
-    parser.add_argument("--json", action="store_true",
-                        help="Output JSON para consumo del Command Center.")
-    parser.add_argument("--print-sql", action="store_true",
-                        help="Imprime SQL equivalente (no requiere DB).")
-    parser.add_argument("--tenant", default=os.environ.get("MONSTRUO_TENANT", "alfredo"),
-                        help="Tenant para tool_bindings. Default: alfredo")
-    parser.add_argument("--list", action="store_true",
-                        help="Lista el inventario canónico y sale.")
+    parser.add_argument("--apply", action="store_true", help="Ejecuta cambios. Sin esto, dry-run.")
+    parser.add_argument("--json", action="store_true", help="Output JSON para consumo del Command Center.")
+    parser.add_argument("--print-sql", action="store_true", help="Imprime SQL equivalente (no requiere DB).")
+    parser.add_argument(
+        "--tenant",
+        default=os.environ.get("MONSTRUO_TENANT", "alfredo"),
+        help="Tenant para tool_bindings. Default: alfredo",
+    )
+    parser.add_argument("--list", action="store_true", help="Lista el inventario canónico y sale.")
     args = parser.parse_args()
 
     if args.list:
         for name, meta in sorted(INVENTARIO_CANONICO.items()):
-            print(f"{name:25s} {meta['risk_level']:7s} {meta['category']:14s} "
-                  f"{meta['secret_env_var'] or '-'}")
+            print(f"{name:25s} {meta['risk_level']:7s} {meta['category']:14s} {meta['secret_env_var'] or '-'}")
         return 0
 
     return asyncio.run(main_async(args))

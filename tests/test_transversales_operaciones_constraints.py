@@ -1,4 +1,5 @@
 """Tests del DSC-as-Contract de la Capa Operaciones (DSC-G-017)."""
+
 from __future__ import annotations
 
 import sys
@@ -18,16 +19,10 @@ from kernel.transversales.operaciones._canonical_constraints import (  # noqa: E
     OPERACIONES_CANONICAL_PER_VERTICAL,
     SUPPORTED_FULFILLMENT_PATTERNS,
     SUPPORTED_SUPPORT_CHANNELS,
-    is_commercial,
     require_commercial,
 )
 
-
-CAPILLA = (
-    Path(__file__).resolve().parent.parent
-    / "discovery_forense"
-    / "CAPILLA_DECISIONES"
-)
+CAPILLA = Path(__file__).resolve().parent.parent / "discovery_forense" / "CAPILLA_DECISIONES"
 
 
 def _read_dsc(p: Path) -> str:
@@ -37,17 +32,13 @@ def _read_dsc(p: Path) -> str:
 def test_support_channels_subset_of_supported():
     for v, cfg in OPERACIONES_CANONICAL_PER_VERTICAL.items():
         for ch in cfg.get("support_channels", []):
-            assert ch in SUPPORTED_SUPPORT_CHANNELS, (
-                f"{v.value} usa channel {ch!r} no soportado"
-            )
+            assert ch in SUPPORTED_SUPPORT_CHANNELS, f"{v.value} usa channel {ch!r} no soportado"
 
 
 def test_fulfillment_patterns_subset_of_supported():
     for v, cfg in OPERACIONES_CANONICAL_PER_VERTICAL.items():
         for fp in cfg.get("fulfillment_patterns", []):
-            assert fp in SUPPORTED_FULFILLMENT_PATTERNS, (
-                f"{v.value} usa fulfillment {fp!r} no soportado"
-            )
+            assert fp in SUPPORTED_FULFILLMENT_PATTERNS, f"{v.value} usa fulfillment {fp!r} no soportado"
 
 
 def test_dsc_cip_pend_blocks_operations():
@@ -58,10 +49,7 @@ def test_dsc_cip_pend_blocks_operations():
 
 
 def test_dsc_liketickets_003_canonical_components():
-    dsc = _read_dsc(
-        CAPILLA / "LIKETICKETS"
-        / "DSC-LT-003_patron_checkout_stripe_replicable.md"
-    )
+    dsc = _read_dsc(CAPILLA / "LIKETICKETS" / "DSC-LT-003_patron_checkout_stripe_replicable.md")
     assert "checkout.session.completed" in dsc
     lt = OPERACIONES_CANONICAL_PER_VERTICAL[VerticalId.LIKETICKETS]
     components = lt["fulfillment_components_required"]
@@ -109,10 +97,7 @@ def test_layer_instantiable_and_recommend():
     assert "operaciones.support.channels" in rule_ids
     assert "operaciones.fulfillment.patterns" in rule_ids
     assert "operaciones.regulatory.gates" in rule_ids
-    reg = next(
-        r for r in result.recommendations
-        if r.rule_id == "operaciones.regulatory.gates"
-    )
+    reg = next(r for r in result.recommendations if r.rule_id == "operaciones.regulatory.gates")
     assert reg.value["operations_can_launch_mx_today"] is False
 
 
@@ -145,5 +130,5 @@ if __name__ == "__main__":
     test_dsc_bg_pend_cofepris_ops_blocked()
     test_mena_baduy_no_operaciones()
     test_layer_instantiable_and_recommend()
-    test_layer_implement_not_implemented()
+    test_layer_implement_is_implemented()
     print("\n[ok] Los 10 tests del DSC-as-Contract de Capa Operaciones pasaron.")

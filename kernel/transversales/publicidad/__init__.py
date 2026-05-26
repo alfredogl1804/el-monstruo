@@ -17,6 +17,7 @@ IMPORTANTE — magna validation:
 
 Origen: AGENTS.md Regla Dura #2 (Capa 3 de las 7), DSC-G-002.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -78,16 +79,11 @@ class PublicidadLayer(TransversalLayer):
                 value={
                     "platforms_allowed": platforms_allowed,
                     "platforms_explicitly_blocked": platforms_blocked,
-                    "platforms_block_reason": canonical.get(
-                        "ad_platforms_block_reason"
-                    ),
-                    "ad_priority_phase_1": canonical.get(
-                        "ad_priority_phase_1", False
-                    ),
+                    "platforms_block_reason": canonical.get("ad_platforms_block_reason"),
+                    "ad_priority_phase_1": canonical.get("ad_priority_phase_1", False),
                 },
                 rationale=(
-                    "Ad platforms canonicas per vertical. Bloqueos derivados "
-                    "de DSCs (regulatorios o de audiencia)."
+                    "Ad platforms canonicas per vertical. Bloqueos derivados de DSCs (regulatorios o de audiencia)."
                 ),
                 source_dsc=canonical.get("source_dscs", []),
             )
@@ -103,13 +99,9 @@ class PublicidadLayer(TransversalLayer):
                     severity="must",
                     value={
                         "geo_target": geo_target,
-                        "geo_target_states": canonical.get(
-                            "geo_target_states", []
-                        ),
+                        "geo_target_states": canonical.get("geo_target_states", []),
                         "geo_blocked": geo_blocked,
-                        "geo_blocked_reason": canonical.get(
-                            "geo_blocked_reason"
-                        ),
+                        "geo_blocked_reason": canonical.get("geo_blocked_reason"),
                     },
                     rationale=(
                         "Geo targeting derivado de DSCs. Bloqueos regulatorios "
@@ -130,21 +122,14 @@ class PublicidadLayer(TransversalLayer):
                         "audience_archetypes": audiences,
                         "audience_count": len(audiences),
                     },
-                    rationale=(
-                        "Audience archetypes derivados del modelo de negocio "
-                        "y DSCs canonicos del vertical."
-                    ),
+                    rationale=("Audience archetypes derivados del modelo de negocio y DSCs canonicos del vertical."),
                     needs_validation_tags=[
-                        f"[NEEDS_PERPLEXITY_VALIDATION] audience_size_2026:"
-                        f"{ctx.vertical.value}",
+                        f"[NEEDS_PERPLEXITY_VALIDATION] audience_size_2026:{ctx.vertical.value}",
                     ],
                     source_dsc=canonical.get("source_dscs", []),
                 )
             )
-            validation_tags.append(
-                f"[NEEDS_PERPLEXITY_VALIDATION] audience_size_2026:"
-                f"{ctx.vertical.value}"
-            )
+            validation_tags.append(f"[NEEDS_PERPLEXITY_VALIDATION] audience_size_2026:{ctx.vertical.value}")
 
         angles = canonical.get("creative_angles_canonical", [])
         if angles:
@@ -178,8 +163,7 @@ class PublicidadLayer(TransversalLayer):
                         "placement": "ad_creative_or_landing_post_click",
                     },
                     rationale=(
-                        "Disclaimers regulatorios obligatorios en ads del "
-                        "vertical. Derivados de DSCs canonicos."
+                        "Disclaimers regulatorios obligatorios en ads del vertical. Derivados de DSCs canonicos."
                     ),
                     source_dsc=canonical.get("source_dscs", []),
                 )
@@ -200,22 +184,20 @@ class PublicidadLayer(TransversalLayer):
                     "Validacion via Perplexity requerida antes de campaign live."
                 ),
                 needs_validation_tags=[
-                    f"[NEEDS_PERPLEXITY_VALIDATION] cpc_benchmark_2026:"
-                    f"{ctx.vertical.value}",
-                    f"[NEEDS_PERPLEXITY_VALIDATION] ad_formats_2026:"
-                    f"{ctx.archetype.value}",
+                    f"[NEEDS_PERPLEXITY_VALIDATION] cpc_benchmark_2026:{ctx.vertical.value}",
+                    f"[NEEDS_PERPLEXITY_VALIDATION] ad_formats_2026:{ctx.archetype.value}",
                     "[NEEDS_PERPLEXITY_VALIDATION] platform_policy_2026",
                 ],
                 source_dsc=[],
             )
         )
-        validation_tags.extend([
-            f"[NEEDS_PERPLEXITY_VALIDATION] cpc_benchmark_2026:"
-            f"{ctx.vertical.value}",
-            f"[NEEDS_PERPLEXITY_VALIDATION] ad_formats_2026:"
-            f"{ctx.archetype.value}",
-            "[NEEDS_PERPLEXITY_VALIDATION] platform_policy_2026",
-        ])
+        validation_tags.extend(
+            [
+                f"[NEEDS_PERPLEXITY_VALIDATION] cpc_benchmark_2026:{ctx.vertical.value}",
+                f"[NEEDS_PERPLEXITY_VALIDATION] ad_formats_2026:{ctx.archetype.value}",
+                "[NEEDS_PERPLEXITY_VALIDATION] platform_policy_2026",
+            ]
+        )
 
         return TransversalRecommendations(
             layer_name="publicidad",
@@ -226,9 +208,7 @@ class PublicidadLayer(TransversalLayer):
             aggregated_validation_tags=validation_tags,
         )
 
-    def implement(
-        self, recommendations: TransversalRecommendations
-    ) -> dict[str, Any]:
+    def implement(self, recommendations: TransversalRecommendations) -> dict[str, Any]:
         """
         Genera plan canonico de campanas publicitarias en estado PAUSED.
 
@@ -247,35 +227,27 @@ class PublicidadLayer(TransversalLayer):
         import os
 
         rules = {r.rule_id: r.value for r in recommendations.recommendations}
-        platforms_rule = rules.get(
-            "publicidad.platforms.allowed_blocked", {}
-        )
+        platforms_rule = rules.get("publicidad.platforms.allowed_blocked", {})
         geo_rule = rules.get("publicidad.geo.targeting", {})
         audience_rule = rules.get("publicidad.audience.archetypes", {})
         creative_rule = rules.get("publicidad.creative.angles", {})
         disclaimers_rule = rules.get("publicidad.disclaimers.required", {})
 
         platforms_allowed = platforms_rule.get("platforms_allowed", [])
-        platforms_blocked = platforms_rule.get(
-            "platforms_explicitly_blocked", []
-        )
+        platforms_blocked = platforms_rule.get("platforms_explicitly_blocked", [])
 
         # Endpoints REST canonicos per ad platform (validados magna
         # platform_policy_2026, validation_log id=36).
         ad_platform_endpoints = {
             "meta_ads": {
-                "create_campaign":
-                    "POST https://graph.facebook.com/v20.0/act_{account_id}/campaigns",
-                "insights":
-                    "GET https://graph.facebook.com/v20.0/act_{account_id}/insights",
+                "create_campaign": "POST https://graph.facebook.com/v20.0/act_{account_id}/campaigns",
+                "insights": "GET https://graph.facebook.com/v20.0/act_{account_id}/insights",
                 "env_required": ["META_ACCESS_TOKEN", "META_AD_ACCOUNT_ID"],
                 "campaign_default_status": "PAUSED",
             },
             "google_ads": {
-                "create_campaign":
-                    "POST https://googleads.googleapis.com/v17/customers/{customer_id}/campaigns:mutate",
-                "insights":
-                    "POST https://googleads.googleapis.com/v17/customers/{customer_id}/googleAds:searchStream",
+                "create_campaign": "POST https://googleads.googleapis.com/v17/customers/{customer_id}/campaigns:mutate",
+                "insights": "POST https://googleads.googleapis.com/v17/customers/{customer_id}/googleAds:searchStream",
                 "env_required": [
                     "GOOGLE_ADS_DEVELOPER_TOKEN",
                     "GOOGLE_ADS_CUSTOMER_ID",
@@ -284,10 +256,8 @@ class PublicidadLayer(TransversalLayer):
                 "campaign_default_status": "PAUSED",
             },
             "tiktok_ads": {
-                "create_campaign":
-                    "POST https://business-api.tiktok.com/open_api/v1.3/campaign/create/",
-                "insights":
-                    "GET https://business-api.tiktok.com/open_api/v1.3/report/integrated/get/",
+                "create_campaign": "POST https://business-api.tiktok.com/open_api/v1.3/campaign/create/",
+                "insights": "GET https://business-api.tiktok.com/open_api/v1.3/report/integrated/get/",
                 "env_required": [
                     "TIKTOK_ACCESS_TOKEN",
                     "TIKTOK_ADVERTISER_ID",
@@ -295,10 +265,8 @@ class PublicidadLayer(TransversalLayer):
                 "campaign_default_status": "DISABLE",
             },
             "linkedin_ads": {
-                "create_campaign":
-                    "POST https://api.linkedin.com/rest/adCampaigns",
-                "insights":
-                    "GET https://api.linkedin.com/rest/adAnalytics",
+                "create_campaign": "POST https://api.linkedin.com/rest/adCampaigns",
+                "insights": "GET https://api.linkedin.com/rest/adAnalytics",
                 "env_required": [
                     "LINKEDIN_ACCESS_TOKEN",
                     "LINKEDIN_AD_ACCOUNT_ID",
@@ -319,33 +287,30 @@ class PublicidadLayer(TransversalLayer):
             pending = [e for e in req_envs if not os.environ.get(e)]
             all_pending_envs.update(pending)
             for angle in angles:
-                campaigns_plan.append({
-                    "platform": platform,
-                    "angle": angle,
-                    "campaign_name_slot":
-                        f"{{{{CAMPAIGN_NAME_{platform.upper()}_{angle.upper()}_SLOT}}}}",
-                    "primary_text_slot":
-                        f"{{{{PRIMARY_TEXT_{angle.upper()}_SLOT}}}}",
-                    "headline_slot":
-                        f"{{{{HEADLINE_{angle.upper()}_SLOT}}}}",
-                    "cta_slot": "{{CTA_BUTTON_SLOT}}",
-                    "image_url_slot": "{{IMAGE_URL_SLOT}}",
-                    "status": "paused",  # HARD DEFAULT
-                    "spend_cap_daily_usd": 0.0,  # HARD DEFAULT
-                    "endpoints": ep,
-                    "required_envs": req_envs,
-                    "pending_envs": pending,
-                    "ready_for_dryrun_payload": not pending,
-                })
+                campaigns_plan.append(
+                    {
+                        "platform": platform,
+                        "angle": angle,
+                        "campaign_name_slot": f"{{{{CAMPAIGN_NAME_{platform.upper()}_{angle.upper()}_SLOT}}}}",
+                        "primary_text_slot": f"{{{{PRIMARY_TEXT_{angle.upper()}_SLOT}}}}",
+                        "headline_slot": f"{{{{HEADLINE_{angle.upper()}_SLOT}}}}",
+                        "cta_slot": "{{CTA_BUTTON_SLOT}}",
+                        "image_url_slot": "{{IMAGE_URL_SLOT}}",
+                        "status": "paused",  # HARD DEFAULT
+                        "spend_cap_daily_usd": 0.0,  # HARD DEFAULT
+                        "endpoints": ep,
+                        "required_envs": req_envs,
+                        "pending_envs": pending,
+                        "ready_for_dryrun_payload": not pending,
+                    }
+                )
 
         return {
             "vertical": recommendations.vertical.value,
             "campaigns_plan": campaigns_plan,
             "platforms_allowed": platforms_allowed,
             "platforms_explicitly_blocked": platforms_blocked,
-            "platforms_block_reason": platforms_rule.get(
-                "platforms_block_reason"
-            ),
+            "platforms_block_reason": platforms_rule.get("platforms_block_reason"),
             "geo_target": geo_rule.get("geo_target"),
             "geo_target_states": geo_rule.get("geo_target_states", []),
             "geo_blocked": geo_rule.get("geo_blocked", []),
@@ -366,26 +331,20 @@ class PublicidadLayer(TransversalLayer):
             "pending_envs": sorted(all_pending_envs),
             "dry_run": True,
             "dry_run_reason": (
-                "DSC-G-002 HITL: cero spend publicitario sin firma humana. "
-                "Payload generado para revision pre-firma."
+                "DSC-G-002 HITL: cero spend publicitario sin firma humana. Payload generado para revision pre-firma."
             ),
             "validation_log_anchors": [
                 {
-                    "claim_type":
-                        f"cpc_benchmark_2026:"
-                        f"{recommendations.vertical.value}",
+                    "claim_type": f"cpc_benchmark_2026:{recommendations.vertical.value}",
                     "row_id_hint": 34,
                 },
                 {
-                    "claim_type":
-                        f"ad_formats_2026:{recommendations.archetype.value}",
+                    "claim_type": f"ad_formats_2026:{recommendations.archetype.value}",
                     "row_id_hint": 35,
                 },
                 {"claim_type": "platform_policy_2026", "row_id": 36},
             ],
-            "validation_tags_pending": list(
-                recommendations.aggregated_validation_tags
-            ),
+            "validation_tags_pending": list(recommendations.aggregated_validation_tags),
         }
 
     def monitor(self, ctx: TransversalContext) -> dict[str, Any]:
@@ -404,18 +363,10 @@ class PublicidadLayer(TransversalLayer):
         blockers: list[str] = []
 
         # BLOCKER duro: si geo_blocked tiene contenido sin razon documentada.
-        if (
-            impl_artifacts["geo_blocked"]
-            and not impl_artifacts["geo_blocked_reason"]
-        ):
-            blockers.append(
-                "geo_blocked sin razon documentada — violacion DSC-G-008 v2."
-            )
+        if impl_artifacts["geo_blocked"] and not impl_artifacts["geo_blocked_reason"]:
+            blockers.append("geo_blocked sin razon documentada — violacion DSC-G-008 v2.")
 
-        not_ready = [
-            c for c in impl_artifacts["campaigns_plan"]
-            if not c["ready_for_dryrun_payload"]
-        ]
+        not_ready = [c for c in impl_artifacts["campaigns_plan"] if not c["ready_for_dryrun_payload"]]
         if not_ready:
             warnings.append(
                 f"{len(not_ready)} de {len(impl_artifacts['campaigns_plan'])} "
@@ -424,15 +375,11 @@ class PublicidadLayer(TransversalLayer):
             )
         if impl_artifacts["validation_tags_pending"]:
             warnings.append(
-                f"{len(impl_artifacts['validation_tags_pending'])} tags "
-                f"Perplexity pendientes via DSC-V-001."
+                f"{len(impl_artifacts['validation_tags_pending'])} tags Perplexity pendientes via DSC-V-001."
             )
 
         # Verificacion HARD: TODAS las campanas DEBEN estar en paused.
-        active_campaigns = [
-            c for c in impl_artifacts["campaigns_plan"]
-            if c["status"] != "paused"
-        ]
+        active_campaigns = [c for c in impl_artifacts["campaigns_plan"] if c["status"] != "paused"]
         if active_campaigns:
             blockers.append(
                 f"VIOLACION DSC-G-002: {len(active_campaigns)} campanas "
@@ -444,10 +391,7 @@ class PublicidadLayer(TransversalLayer):
             "spend_cap_daily_usd": 0.0,
             "spend_observed_24h_usd": 0.0,
             "active_campaigns_count": len(active_campaigns),
-            "status": (
-                "all_paused" if not active_campaigns
-                else "VIOLATION_active_without_firma"
-            ),
+            "status": ("all_paused" if not active_campaigns else "VIOLATION_active_without_firma"),
             "note": (
                 "Spend observado real requiere ad platform reporting APIs. "
                 "Mientras Alfredo no firme activacion, spend permanece $0."
@@ -457,14 +401,10 @@ class PublicidadLayer(TransversalLayer):
         return {
             "vertical": ctx.vertical.value,
             "structural_health": {
-                "campaigns_planned_count":
-                    len(impl_artifacts["campaigns_plan"]),
-                "campaigns_ready_count":
-                    len(impl_artifacts["campaigns_plan"]) - len(not_ready),
-                "platforms_allowed_count":
-                    len(impl_artifacts["platforms_allowed"]),
-                "audience_archetypes_count":
-                    len(impl_artifacts["audience_archetypes"]),
+                "campaigns_planned_count": len(impl_artifacts["campaigns_plan"]),
+                "campaigns_ready_count": len(impl_artifacts["campaigns_plan"]) - len(not_ready),
+                "platforms_allowed_count": len(impl_artifacts["platforms_allowed"]),
+                "audience_archetypes_count": len(impl_artifacts["audience_archetypes"]),
                 "all_paused": not active_campaigns,
                 "dry_run": impl_artifacts["dry_run"],
             },
@@ -472,8 +412,7 @@ class PublicidadLayer(TransversalLayer):
             "hard_safeguards": impl_artifacts["hard_safeguards"],
             "warnings": warnings,
             "blockers": blockers,
-            "validation_log_anchors":
-                impl_artifacts["validation_log_anchors"],
+            "validation_log_anchors": impl_artifacts["validation_log_anchors"],
         }
 
 

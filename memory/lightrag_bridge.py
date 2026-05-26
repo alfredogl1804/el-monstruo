@@ -113,7 +113,7 @@ def _inject_postgres_env_from_db_url() -> bool:
 
 async def _get_rag(force_retry: bool = False):
     """Lazy-initialize LightRAG instance with pgvector storage and OpenAI models.
-    
+
     Protected by asyncio.Lock to prevent race condition when multiple
     concurrent requests trigger init simultaneously (Sprint 32 fix).
     """
@@ -211,9 +211,8 @@ async def _get_rag(force_retry: bool = False):
                     graph_storage._graph = pg_graph
                     # Also write to filesystem so NetworkXStorage's file-based sync works
                     from lightrag.kg.networkx_impl import NetworkXStorage
-                    NetworkXStorage.write_nx_graph(
-                        pg_graph, graph_storage._graphml_xml_file, graph_storage.workspace
-                    )
+
+                    NetworkXStorage.write_nx_graph(pg_graph, graph_storage._graphml_xml_file, graph_storage.workspace)
                     logger.info(
                         "pg_graph_restored_to_networkx",
                         extra={

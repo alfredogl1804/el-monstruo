@@ -19,15 +19,14 @@ Formato:
 Usage:
   python3 scripts/_snapshot_scheduled_tasks.py
 """
+
 import datetime as dt
 import gzip
 import json
 import os
-import shlex
 import subprocess
 import sys
 from pathlib import Path
-
 
 SNAPSHOT_PATH = Path("discovery_forense/SNAPSHOTS/2026_05_11_pre_cleanup_scheduled_tasks.sql.gz")
 SB_SQL = os.path.expanduser("~/.monstruo/sb_sql.py")

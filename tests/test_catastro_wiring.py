@@ -25,12 +25,12 @@ Cobertura mínima por §4 spec:
 Strategy: mocks puros — NO toca DB real, NO toca Railway, NO red.
 Determinístico, rápido (<1s), CI-friendly.
 """
+
 from __future__ import annotations
 
-import os
 import re
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -45,6 +45,7 @@ def test_use_cases_canonicos_definidos():
         EMBRION_CATASTRO_USE_CASE_BUDGET_ESTIMATION,
         EMBRION_CATASTRO_USE_CASE_ECOSYSTEM_REFLECTION,
     )
+
     assert EMBRION_CATASTRO_USE_CASE_AUTONOMOUS_THOUGHT == "autonomous_thought"
     assert EMBRION_CATASTRO_USE_CASE_BUDGET_ESTIMATION == "budget_estimation"
     assert EMBRION_CATASTRO_USE_CASE_ECOSYSTEM_REFLECTION == "ecosystem_reflection"
@@ -161,9 +162,7 @@ async def test_select_model_returns_fallback_on_recommend_exception():
     from kernel.embrion_loop import _select_model_via_catastro
 
     fake_engine = MagicMock()
-    fake_engine.recommend = MagicMock(
-        side_effect=RuntimeError("simulated db crash")
-    )
+    fake_engine.recommend = MagicMock(side_effect=RuntimeError("simulated db crash"))
 
     with patch("kernel.catastro.catastro_routes._engine_singleton", fake_engine):
         result = await _select_model_via_catastro(
@@ -185,8 +184,10 @@ async def test_select_model_bypasses_when_flag_disabled():
     fake_engine = MagicMock()
     fake_engine.recommend = MagicMock()
 
-    with patch.object(embrion_loop, "EMBRION_CATASTRO_ENABLED", False), \
-         patch("kernel.catastro.catastro_routes._engine_singleton", fake_engine):
+    with (
+        patch.object(embrion_loop, "EMBRION_CATASTRO_ENABLED", False),
+        patch("kernel.catastro.catastro_routes._engine_singleton", fake_engine),
+    ):
         result = await embrion_loop._select_model_via_catastro(
             use_case="autonomous_thought",
             fallback="hardcoded-fallback",
@@ -210,9 +211,7 @@ def test_invariante_estructural_no_hay_hardcodes_en_sitios_ejecutables():
     Si este test falla en el futuro, alguien revirtió el wiring del sprint
     CATASTRO-WIRING-001 por accidente. Investigar git blame inmediatamente.
     """
-    embrion_loop_path = (
-        Path(__file__).parent.parent / "kernel" / "embrion_loop.py"
-    )
+    embrion_loop_path = Path(__file__).parent.parent / "kernel" / "embrion_loop.py"
     content = embrion_loop_path.read_text(encoding="utf-8")
 
     # Los hardcodes ya NO deben aparecer como argumentos de llamada.
@@ -239,17 +238,12 @@ def test_invariante_estructural_no_hay_hardcodes_en_sitios_ejecutables():
         matches = re.findall(pattern, content)
         # 1 definición + 3 llamadas = 4 ocurrencias mínimo
         assert len(matches) >= 4, (
-            f"El helper _select_model_via_catastro tiene {len(matches)} "
-            f"ocurrencias, esperadas >=4 (1 def + 3 sitios)."
+            f"El helper _select_model_via_catastro tiene {len(matches)} ocurrencias, esperadas >=4 (1 def + 3 sitios)."
         )
 
     # Markers de auditoría deben existir
-    assert "CATASTRO_WIRING_BEGIN" in content, (
-        "Marker CATASTRO_WIRING_BEGIN ausente en embrion_loop.py"
-    )
-    assert "CATASTRO_WIRING_END" in content, (
-        "Marker CATASTRO_WIRING_END ausente en embrion_loop.py"
-    )
+    assert "CATASTRO_WIRING_BEGIN" in content, "Marker CATASTRO_WIRING_BEGIN ausente en embrion_loop.py"
+    assert "CATASTRO_WIRING_END" in content, "Marker CATASTRO_WIRING_END ausente en embrion_loop.py"
 
 
 # ============================================================================
@@ -263,6 +257,7 @@ async def test_helper_no_bloquea_event_loop_si_recommend_es_lento():
     junto a otra tarea async sin congelar el loop.
     """
     import asyncio
+
     from kernel.embrion_loop import _select_model_via_catastro
 
     fake_top = MagicMock()
@@ -277,6 +272,7 @@ async def test_helper_no_bloquea_event_loop_si_recommend_es_lento():
 
     # Simulamos un recommend que tarda 50ms
     import time
+
     def slow_recommend(*args, **kwargs):
         time.sleep(0.05)
         return fake_response

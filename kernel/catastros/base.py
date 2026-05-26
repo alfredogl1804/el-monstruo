@@ -34,9 +34,7 @@ class CatastroBase:
 
     def __init__(self, db_client: Any) -> None:
         if not self.TABLE:
-            raise ValueError(
-                f"{self.__class__.__name__} debe definir TABLE en subclase"
-            )
+            raise ValueError(f"{self.__class__.__name__} debe definir TABLE en subclase")
         self._db = db_client
         self._cache: Dict[str, Dict[str, Any]] = {}
         self._loaded: bool = False

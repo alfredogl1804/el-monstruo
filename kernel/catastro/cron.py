@@ -29,6 +29,7 @@ Disciplina os.environ verificada en runtime:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 2 · 2026-05-04 (extendido Bloque 4)
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -40,10 +41,10 @@ from datetime import datetime, timezone
 
 from kernel.catastro.pipeline import CatastroPipeline
 
-
 # ============================================================================
 # LOGGING SETUP
 # ============================================================================
+
 
 def _configure_logging() -> None:
     """Configura logging para Railway (stdout, formato simple legible)."""
@@ -83,6 +84,7 @@ def _check_env() -> dict[str, list[str]]:
 # ============================================================================
 # MAIN
 # ============================================================================
+
 
 async def _run_async(*, dry_run: bool) -> int:
     """Ejecuta el pipeline async y retorna exit code."""

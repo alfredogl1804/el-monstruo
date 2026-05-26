@@ -7,6 +7,7 @@ restrictions y disclaimers obligatorios derivados de DSCs firmes.
 
 Origen: DSC-G-017. Texto puede ser desobedecido, codigo no.
 """
+
 from __future__ import annotations
 
 from kernel.transversales.base import GeoRegion, VerticalId
@@ -15,7 +16,6 @@ from kernel.transversales.ventas._canonical_constraints import (
     is_commercial,
     require_commercial,
 )
-
 
 SUPPORTED_AD_PLATFORMS = {
     "meta_ads",
@@ -56,7 +56,10 @@ PUBLICIDAD_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
         ],
         "ad_priority_phase_1": True,
         "source_dscs": [
-            "DSC-CIP-001", "DSC-CIP-002", "DSC-CIP-005", "DSC-CIP-006",
+            "DSC-CIP-001",
+            "DSC-CIP-002",
+            "DSC-CIP-005",
+            "DSC-CIP-006",
         ],
     },
     VerticalId.LIKETICKETS: {
@@ -104,7 +107,9 @@ PUBLICIDAD_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
     VerticalId.BIOGUARD: {
         "ad_platforms_allowed": ["linkedin_ads"],
         "ad_platforms_explicitly_blocked": [
-            "meta_ads", "tiktok_ads", "x_ads",
+            "meta_ads",
+            "tiktok_ads",
+            "x_ads",
         ],
         "ad_platforms_block_reason": (
             "DSC-BG-PEND-001 COFEPRIS pendiente. Comercializacion MX "

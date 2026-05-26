@@ -4,13 +4,14 @@ Embrión Ventas — análisis comercial de un brief de producto.
 Sprint 87.1 Bloque 2.
 Cierra el resto de la deuda #2 del Sprint 87 NUEVO (embriones stubs).
 """
+
 from kernel.embriones.ventas.embrion_ventas import (
+    EMBRION_VENTAS_LLM_INVALIDO,
+    CanalAdquisicion,
     EmbrionVentas,
     EmbrionVentasReport,
-    PropuestaValor,
-    CanalAdquisicion,
     PricingTentativo,
-    EMBRION_VENTAS_LLM_INVALIDO,
+    PropuestaValor,
 )
 
 __all__ = [

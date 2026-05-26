@@ -5,12 +5,18 @@ bucle 30-abr → 1-may para usar como fixtures en los tests del Self-Verifier.
 
 Output: tests/fixtures/embrion_loop_samples.json
 """
-import json, os, sys
+
+import json
+import os
+import sys
+
 import psycopg2
 import psycopg2.extras
 
 DB_URL = os.environ.get("SUPABASE_DB_URL")
-if not DB_URL: print("FATAL"); sys.exit(99)
+if not DB_URL:
+    print("FATAL")
+    sys.exit(99)
 
 conn = psycopg2.connect(DB_URL)
 out = {}
@@ -28,13 +34,17 @@ with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
     """)
     rows = cur.fetchall()
 
+
 # Convertir UUIDs a str y datetime a iso
 def serialize(row):
     o = {}
-    for k,v in row.items():
-        if hasattr(v, "isoformat"): o[k] = v.isoformat()
-        else: o[k] = str(v) if hasattr(v, "hex") else v
+    for k, v in row.items():
+        if hasattr(v, "isoformat"):
+            o[k] = v.isoformat()
+        else:
+            o[k] = str(v) if hasattr(v, "hex") else v
     return o
+
 
 out["bucle_10_may_02h_05h"] = [serialize(r) for r in rows]
 

@@ -2,6 +2,7 @@
 Tests for Embryo Task Diversity Balancer v0.1
 Minimum 12 tests required.
 """
+
 import json
 import sys
 from pathlib import Path
@@ -12,6 +13,7 @@ import embryo_task_diversity_balancer_v0_1 as balancer
 passed = 0
 failed = 0
 
+
 def test(name, condition):
     global passed, failed
     if condition:
@@ -21,14 +23,17 @@ def test(name, condition):
         failed += 1
         print(f"  FAIL [{passed + failed:02d}] {name}")
 
+
 print("=" * 60)
 print("Embryo Task Diversity Balancer v0.1 Tests")
 print("=" * 60)
 
 # Test 01: Happy path - run_balancer returns valid structure
 result = balancer.run_balancer()
-test("happy path returns valid structure",
-     "artifact" in result and "overall_diversity_score" in result and "recommendation" in result)
+test(
+    "happy path returns valid structure",
+    "artifact" in result and "overall_diversity_score" in result and "recommendation" in result,
+)
 
 # Test 02: Count diversity with varied tasks
 runs_varied = [{"task": f"task_{i}"} for i in range(8)]

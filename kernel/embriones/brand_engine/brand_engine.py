@@ -139,9 +139,7 @@ class BrandEngine:
                     "brand_engine_validate_called_inside_loop",
                     extra={"hint": "use validate_async()"},
                 )
-                return self._approved_sintetico(
-                    respuesta_candidata, reason="called_inside_loop"
-                )
+                return self._approved_sintetico(respuesta_candidata, reason="called_inside_loop")
         except RuntimeError:
             pass
         return asyncio.run(self.validate_async(respuesta_candidata))
@@ -216,13 +214,9 @@ class BrandEngine:
                 d2_honestidad=None,
                 d3_doctrina=None,
                 d4_apple_tesla=None,
-                razon_rejection=(
-                    f"pre-filtro anti-corp: contiene la frase plantilla "
-                    f"{anti_corp_phrase!r}"
-                ),
+                razon_rejection=(f"pre-filtro anti-corp: contiene la frase plantilla {anti_corp_phrase!r}"),
                 sugerencia_reintento=(
-                    "Reemplaza la frase plantilla por una formulación directa, "
-                    "sin disclaimers de IA genéricos."
+                    "Reemplaza la frase plantilla por una formulación directa, sin disclaimers de IA genéricos."
                 ),
                 cost_usd=0.0,
                 latency_ms=int((time.perf_counter() - t0) * 1000),
@@ -239,9 +233,7 @@ class BrandEngine:
         d3 = dim_results.get("D3_consistencia_doctrina")
         d4 = dim_results.get("D4_calidad_apple_tesla")
 
-        total_cost = sum(
-            r.cost_usd for r in dim_results.values() if r is not None
-        )
+        total_cost = sum(r.cost_usd for r in dim_results.values() if r is not None)
         self._get_budget_tracker().record(total_cost)
 
         # Computar verdict global.
@@ -265,9 +257,7 @@ class BrandEngine:
 
     # ── Internals ──────────────────────────────────────────────────────
 
-    async def _evaluate_all_dimensions(
-        self, respuesta_candidata: str
-    ) -> dict[str, Optional["DimensionResult"]]:
+    async def _evaluate_all_dimensions(self, respuesta_candidata: str) -> dict[str, Optional["DimensionResult"]]:
         """Invoca las 4 dimensiones habilitadas en paralelo con timeout global.
 
         Cualquier dimensión que falle individualmente retorna None en el dict.
@@ -339,10 +329,7 @@ class BrandEngine:
             r_str = r.reason or "score bajo umbral"
             razones.append(f"{key} (score={r.score:.2f}): {r_str}")
         razon = " | ".join(razones)
-        sugerencia = (
-            "Reintenta con énfasis en las dimensiones fallidas. "
-            "Revisa los criterios canónicos del YAML."
-        )
+        sugerencia = "Reintenta con énfasis en las dimensiones fallidas. Revisa los criterios canónicos del YAML."
         return (ValidationVerdict.REJECTED, razon, sugerencia)
 
     def _approved_sintetico(

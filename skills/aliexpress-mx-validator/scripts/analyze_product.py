@@ -11,9 +11,8 @@ It can work with:
 """
 
 import json
-import sys
 import os
-import re
+import sys
 from datetime import datetime
 
 
@@ -176,7 +175,9 @@ def calculate_risk_score(data: dict) -> dict:
         photo_ratio = reviews_with_photos / total_reviews
         if photo_ratio >= 0.3:
             score -= 5
-            green_flags.append(f"{reviews_with_photos} reseñas con fotos ({photo_ratio:.0%}) — buena verificación visual")
+            green_flags.append(
+                f"{reviews_with_photos} reseñas con fotos ({photo_ratio:.0%}) — buena verificación visual"
+            )
         elif photo_ratio >= 0.1:
             score -= 2
 
@@ -185,7 +186,9 @@ def calculate_risk_score(data: dict) -> dict:
             # Suspiciously high can be fake
             if total_reviews > 100:
                 score += 3
-                reasons.append(f"Calificación sospechosamente perfecta: {avg_review_rating}/5 con {total_reviews} reseñas")
+                reasons.append(
+                    f"Calificación sospechosamente perfecta: {avg_review_rating}/5 con {total_reviews} reseñas"
+                )
         elif avg_review_rating >= 4.5:
             score -= 5
             green_flags.append(f"Buena calificación promedio: {avg_review_rating}/5")
@@ -281,7 +284,9 @@ def generate_report(data: dict, analysis: dict) -> str:
     report.append(f"| Método de envío | {method} |")
     report.append(f"| Tiempo estimado de entrega | {delivery} días |")
     report.append(f"| Rastreo incluido | {'Sí' if tracking is True else 'No' if tracking is False else 'N/D'} |")
-    report.append(f"| Impuesto importación incluido | {'Sí' if import_tax is True else 'No (~20% adicional)' if import_tax is False else 'N/D'} |")
+    report.append(
+        f"| Impuesto importación incluido | {'Sí' if import_tax is True else 'No (~20% adicional)' if import_tax is False else 'N/D'} |"
+    )
 
     if isinstance(price, (int, float)) and isinstance(shipping, (int, float)):
         total = price + shipping
@@ -310,14 +315,18 @@ def generate_report(data: dict, analysis: dict) -> str:
         report.append(f"| Antigüedad | {store_age} | — |")
 
     if isinstance(feedback, (int, float)):
-        eval_fb = "Excelente" if feedback >= 98 else "Bueno" if feedback >= 95 else "Regular" if feedback >= 90 else "Malo"
+        eval_fb = (
+            "Excelente" if feedback >= 98 else "Bueno" if feedback >= 95 else "Regular" if feedback >= 90 else "Malo"
+        )
         report.append(f"| Feedback positivo | {feedback}% | {eval_fb} |")
     else:
         report.append(f"| Feedback positivo | {feedback} | — |")
 
     report.append(f"| Seguidores | {followers} | — |")
     if isinstance(orders, (int, float)):
-        eval_ord = "Excelente" if orders >= 1000 else "Bueno" if orders >= 100 else "Bajo" if orders >= 10 else "Muy bajo"
+        eval_ord = (
+            "Excelente" if orders >= 1000 else "Bueno" if orders >= 100 else "Bajo" if orders >= 10 else "Muy bajo"
+        )
         report.append(f"| Órdenes totales | {orders:,} | {eval_ord} |")
     else:
         report.append(f"| Órdenes totales | {orders} | — |")
@@ -354,9 +363,9 @@ def generate_report(data: dict, analysis: dict) -> str:
         report.append("")
         for rev in sample_reviews[:5]:
             stars = "⭐" * int(rev.get("rating", 0))
-            report.append(f"> {stars} — *\"{rev.get('text', '')}\"*")
+            report.append(f'> {stars} — *"{rev.get("text", "")}"*')
             if rev.get("has_photo"):
-                report.append(f"> 📷 Incluye foto del producto recibido")
+                report.append("> 📷 Incluye foto del producto recibido")
             if rev.get("country"):
                 report.append(f"> 🌍 País: {rev['country']}")
             report.append("")
@@ -389,7 +398,9 @@ def generate_report(data: dict, analysis: dict) -> str:
     report.append("## Recomendaciones")
     report.append("")
     if analysis["risk_score"] <= 40:
-        report.append("1. Procede con la compra usando el método de pago de AliExpress (nunca pagues fuera de la plataforma)")
+        report.append(
+            "1. Procede con la compra usando el método de pago de AliExpress (nunca pagues fuera de la plataforma)"
+        )
         report.append("2. Toma capturas de pantalla de la descripción del producto antes de comprar")
         report.append("3. Verifica que el método de envío incluya rastreo")
         report.append("4. Recuerda que el impuesto de importación a México es ~20%")

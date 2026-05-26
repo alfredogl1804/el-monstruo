@@ -8,6 +8,7 @@ Para cada par:
 3. Si SHA256 difiere: calcula similitud por SequenceMatcher + diff por bloques.
 4. Genera reporte markdown con estado por par y diffs específicos.
 """
+
 import hashlib
 import re
 from difflib import SequenceMatcher
@@ -20,24 +21,16 @@ REPORT = ROOT / "diff_report.md"
 
 # Pares (nombre_humano, archivo_drive, archivo_dropbox)
 PAIRS = [
-    ("SOP — Documento Fundacional Maestro v1.2",
-     "SOP_v1.2_DRIVE.md",
-     "ENTREGABLE_2_SOP_DBX.txt"),
-    ("EPIA — Documento Fundacional Maestro v1.0",
-     "EPIA_fundacional_completo_v1_DRIVE.txt",
-     "EPIA_FUNDACIONAL_DBX.txt"),
-    ("Genealogía Evolutiva SOP/EPIA v2",
-     "GENEALOGIA_SOP_EPIA_v2_DRIVE.md",
-     "GENEALOGIA_SOP_EPIA_DBX.txt"),
-    ("SOP+EPIA Reestructuración 6 Sabios (Abr 2026)",
-     "SOP_EPIA_REESTRUCTURACION_DRIVE.md",
-     "SOP_EPIA_REESTRUCTURACION_DBX.md"),
-    ("EPIA Documento Fundacional (md vs md)",
-     "EPIA_fundacional_completo_v1_DRIVE.txt",
-     "EPIA_FUNDACIONAL_DBX.md"),
-    ("ENTREGABLE 2 SOP (md vs md)",
-     "ENTREGABLE_2_SOP_FUNDACIONAL_DRIVE.md",
-     "ENTREGABLE_2_SOP_DBX.md"),
+    ("SOP — Documento Fundacional Maestro v1.2", "SOP_v1.2_DRIVE.md", "ENTREGABLE_2_SOP_DBX.txt"),
+    ("EPIA — Documento Fundacional Maestro v1.0", "EPIA_fundacional_completo_v1_DRIVE.txt", "EPIA_FUNDACIONAL_DBX.txt"),
+    ("Genealogía Evolutiva SOP/EPIA v2", "GENEALOGIA_SOP_EPIA_v2_DRIVE.md", "GENEALOGIA_SOP_EPIA_DBX.txt"),
+    (
+        "SOP+EPIA Reestructuración 6 Sabios (Abr 2026)",
+        "SOP_EPIA_REESTRUCTURACION_DRIVE.md",
+        "SOP_EPIA_REESTRUCTURACION_DBX.md",
+    ),
+    ("EPIA Documento Fundacional (md vs md)", "EPIA_fundacional_completo_v1_DRIVE.txt", "EPIA_FUNDACIONAL_DBX.md"),
+    ("ENTREGABLE 2 SOP (md vs md)", "ENTREGABLE_2_SOP_FUNDACIONAL_DRIVE.md", "ENTREGABLE_2_SOP_DBX.md"),
 ]
 
 
@@ -80,30 +73,36 @@ def first_diff_block(a: str, b: str, max_blocks: int = 5):
             continue
         a_lines = a.splitlines()[i1:i2]
         b_lines = b.splitlines()[j1:j2]
-        blocks.append({
-            "tag": tag,
-            "drive_range": (i1, i2),
-            "dbx_range": (j1, j2),
-            "drive_lines": a_lines[:3],
-            "dbx_lines": b_lines[:3],
-        })
+        blocks.append(
+            {
+                "tag": tag,
+                "drive_range": (i1, i2),
+                "dbx_range": (j1, j2),
+                "drive_lines": a_lines[:3],
+                "dbx_lines": b_lines[:3],
+            }
+        )
         if len(blocks) >= max_blocks:
             break
     return blocks, sm.ratio()
 
 
 def main():
-    report = ["# Diff semántico SOP/EPIA — Drive (.md) vs Dropbox (.docx/.md)",
-              "",
-              "**Fecha:** 2026-05-05",
-              "**Generado por:** Manus (Tarea 4 Discovery Forense Fase III)",
-              "**Método:** normalización (whitespace, BOM, line endings) + SHA256 + SequenceMatcher",
-              "",
-              "## Resumen ejecutivo",
-              ""]
+    report = [
+        "# Diff semántico SOP/EPIA — Drive (.md) vs Dropbox (.docx/.md)",
+        "",
+        "**Fecha:** 2026-05-05",
+        "**Generado por:** Manus (Tarea 4 Discovery Forense Fase III)",
+        "**Método:** normalización (whitespace, BOM, line endings) + SHA256 + SequenceMatcher",
+        "",
+        "## Resumen ejecutivo",
+        "",
+    ]
 
-    rows = ["| # | Par | Drive bytes | DBX bytes | SHA Drive | SHA DBX | Similaridad | Estado |",
-            "|---|---|---|---|---|---|---|---|"]
+    rows = [
+        "| # | Par | Drive bytes | DBX bytes | SHA Drive | SHA DBX | Similaridad | Estado |",
+        "|---|---|---|---|---|---|---|---|",
+    ]
 
     details = []
 
@@ -141,7 +140,9 @@ def main():
             else:
                 estado = "DOCUMENTOS DISTINTOS"
 
-        rows.append(f"| {i} | {label} | {len(a_raw)} | {len(b_raw)} | `{a_hash}` | `{b_hash}` | {similarity:.3f} | {estado} |")
+        rows.append(
+            f"| {i} | {label} | {len(a_raw)} | {len(b_raw)} | `{a_hash}` | `{b_hash}` | {similarity:.3f} | {estado} |"
+        )
 
         det = [f"### {i}. {label}", ""]
         det.append(f"- Drive: `{drive_file}` ({len(a_raw)} bytes, normalizado: {len(a_norm)})")

@@ -25,13 +25,14 @@ Pre-flight anti-Dory:
     - Cada request lleva timeout de 15s
     - Si alguno de los 4 checks falla, exit code != 0 y log explícito
 """
+
 from __future__ import annotations
 
 import argparse
 import json
 import os
 import sys
-from typing import Any, Dict, Optional, Tuple
+from typing import Optional, Tuple
 
 import httpx
 

@@ -19,7 +19,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-
 # ─────────────────────────────────────────────────────────────────────────
 #  Las 15 rubricas en forma declarativa
 # ─────────────────────────────────────────────────────────────────────────

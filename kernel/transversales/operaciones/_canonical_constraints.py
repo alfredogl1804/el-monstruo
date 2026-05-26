@@ -1,27 +1,43 @@
 """Hard constraints per-vertical para Capa Operaciones (DSC-G-017)."""
+
 from __future__ import annotations
-from kernel.transversales.base import GeoRegion, VerticalId
+
+from kernel.transversales.base import VerticalId
 from kernel.transversales.ventas._canonical_constraints import (
-    NON_COMMERCIAL_VERTICALS, is_commercial, require_commercial,
+    NON_COMMERCIAL_VERTICALS,
+    is_commercial,
+    require_commercial,
 )
 
 SUPPORTED_SUPPORT_CHANNELS = {
-    "email_async", "chat_live_business_hours", "chat_live_24x7",
-    "phone_business_hours", "phone_24x7", "in_app_messaging",
-    "whatsapp_business", "knowledge_base_self_serve", "community_forum",
+    "email_async",
+    "chat_live_business_hours",
+    "chat_live_24x7",
+    "phone_business_hours",
+    "phone_24x7",
+    "in_app_messaging",
+    "whatsapp_business",
+    "knowledge_base_self_serve",
+    "community_forum",
 }
 
 SUPPORTED_FULFILLMENT_PATTERNS = {
-    "digital_delivery_instant", "stripe_session_webhook_canonical",
-    "escrow_pre_release", "physical_shipping_courier", "pickup_in_person",
-    "saas_subscription_provisioning", "blockchain_token_mint_polygon",
+    "digital_delivery_instant",
+    "stripe_session_webhook_canonical",
+    "escrow_pre_release",
+    "physical_shipping_courier",
+    "pickup_in_person",
+    "saas_subscription_provisioning",
+    "blockchain_token_mint_polygon",
     "hardware_dispatch_b2b",
 }
 
 OPERACIONES_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
     VerticalId.CIP: {
         "support_channels": [
-            "in_app_messaging", "email_async", "whatsapp_business",
+            "in_app_messaging",
+            "email_async",
+            "whatsapp_business",
             "knowledge_base_self_serve",
         ],
         "support_sla_first_response_hours": 4,
@@ -38,12 +54,17 @@ OPERACIONES_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
             "transferencia_propiedad_a_token_holder",
         ],
         "source_dscs": [
-            "DSC-CIP-001", "DSC-CIP-002", "DSC-CIP-006", "DSC-CIP-PEND-001",
+            "DSC-CIP-001",
+            "DSC-CIP-002",
+            "DSC-CIP-006",
+            "DSC-CIP-PEND-001",
         ],
     },
     VerticalId.LIKETICKETS: {
         "support_channels": [
-            "in_app_messaging", "email_async", "chat_live_business_hours",
+            "in_app_messaging",
+            "email_async",
+            "chat_live_business_hours",
             "whatsapp_business",
         ],
         "support_sla_first_response_hours": 1,
@@ -60,31 +81,39 @@ OPERACIONES_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
         "inventory_canonical_count": 313,
         "operations_can_launch_mx_today": True,
         "source_dscs": [
-            "DSC-LIKETICKETS-001", "DSC-LIKETICKETS-003", "DSC-LT-002",
+            "DSC-LIKETICKETS-001",
+            "DSC-LIKETICKETS-003",
+            "DSC-LT-002",
         ],
     },
     VerticalId.KUKULKAN_365: {
         "support_channels": [
-            "phone_24x7", "chat_live_24x7", "in_app_messaging",
+            "phone_24x7",
+            "chat_live_24x7",
+            "in_app_messaging",
             "knowledge_base_self_serve",
         ],
         "support_sla_first_response_hours": 0.5,
         "support_24_7_required": True,
         "support_business_hours_timezone": "America/Merida",
         "fulfillment_patterns": [
-            "pickup_in_person", "stripe_session_webhook_canonical",
+            "pickup_in_person",
+            "stripe_session_webhook_canonical",
         ],
         "operations_can_launch_mx_today": True,
         "source_dscs": ["DSC-K365-001"],
     },
     VerticalId.BIOGUARD: {
         "support_channels": [
-            "phone_business_hours", "email_async", "knowledge_base_self_serve",
+            "phone_business_hours",
+            "email_async",
+            "knowledge_base_self_serve",
         ],
         "support_sla_first_response_hours": 24,
         "support_business_hours_timezone": "America/Mexico_City",
         "fulfillment_patterns": [
-            "hardware_dispatch_b2b", "saas_subscription_provisioning",
+            "hardware_dispatch_b2b",
+            "saas_subscription_provisioning",
         ],
         "regulatory_blockers": ["cofepris_pendiente"],
         "operations_can_launch_mx_today": False,
@@ -98,38 +127,47 @@ OPERACIONES_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
     },
     VerticalId.TOP_CONTROL_PC: {
         "support_channels": [
-            "in_app_messaging", "email_async", "community_forum",
+            "in_app_messaging",
+            "email_async",
+            "community_forum",
             "knowledge_base_self_serve",
         ],
         "support_sla_first_response_hours": 12,
         "support_business_hours_timezone": "UTC",
         "fulfillment_patterns": [
-            "saas_subscription_provisioning", "digital_delivery_instant",
+            "saas_subscription_provisioning",
+            "digital_delivery_instant",
         ],
         "operations_can_launch_mx_today": True,
         "source_dscs": ["DSC-TC-001"],
     },
     VerticalId.MUNDO_DE_TATA: {
         "support_channels": [
-            "whatsapp_business", "email_async", "in_app_messaging",
+            "whatsapp_business",
+            "email_async",
+            "in_app_messaging",
         ],
         "support_sla_first_response_hours": 24,
         "support_business_hours_timezone": "America/Mexico_City",
         "fulfillment_patterns": [
-            "stripe_session_webhook_canonical", "physical_shipping_courier",
+            "stripe_session_webhook_canonical",
+            "physical_shipping_courier",
         ],
         "operations_can_launch_mx_today": True,
         "source_dscs": [],
     },
     VerticalId.EL_MONSTRUO_APP: {
         "support_channels": [
-            "in_app_messaging", "email_async", "knowledge_base_self_serve",
+            "in_app_messaging",
+            "email_async",
+            "knowledge_base_self_serve",
             "community_forum",
         ],
         "support_sla_first_response_hours": 8,
         "support_business_hours_timezone": "UTC",
         "fulfillment_patterns": [
-            "saas_subscription_provisioning", "digital_delivery_instant",
+            "saas_subscription_provisioning",
+            "digital_delivery_instant",
         ],
         "operations_can_launch_mx_today": True,
         "source_dscs": [],
@@ -137,7 +175,10 @@ OPERACIONES_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
 }
 
 __all__ = [
-    "OPERACIONES_CANONICAL_PER_VERTICAL", "SUPPORTED_SUPPORT_CHANNELS",
-    "SUPPORTED_FULFILLMENT_PATTERNS", "is_commercial", "require_commercial",
+    "OPERACIONES_CANONICAL_PER_VERTICAL",
+    "SUPPORTED_SUPPORT_CHANNELS",
+    "SUPPORTED_FULFILLMENT_PATTERNS",
+    "is_commercial",
+    "require_commercial",
     "NON_COMMERCIAL_VERTICALS",
 ]

@@ -12,6 +12,7 @@ No reemplaza Guardian. Lo envuelve con checks binarios.
 Diseño autoría: GPT-5.5 Pro (oráculo externo verificado contra GitHub).
 Verificación binaria: Hilo B (Manus, ejecutor técnico).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -21,12 +22,11 @@ import os
 import subprocess
 import sys
 import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
 from urllib.parse import quote
-
+from urllib.request import Request, urlopen
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BRIDGE_DIR = REPO_ROOT / "bridge" / "thread_immunity"
@@ -150,10 +150,12 @@ def insert_axiom(fingerprint: str, statement: str) -> None:
         "confidence": 1.0,
         "validation_count": 1,
         "is_active": True,
-        "implications": json.dumps([
-            "Bloquea auto-declaraciones de anclaje sin evidencia externa.",
-            "Obliga cierre con canonización o watchdog reporta drift.",
-        ]),
+        "implications": json.dumps(
+            [
+                "Bloquea auto-declaraciones de anclaje sin evidencia externa.",
+                "Obliga cierre con canonización o watchdog reporta drift.",
+            ]
+        ),
     }
     supabase_request("POST", "sovereign_axioms", axiom)
 
@@ -338,11 +340,7 @@ def cmd_verify(_: argparse.Namespace) -> None:
         "GET",
         "thread_immunity_events?event_type=eq.CLOSE_CANONIZED&select=session_id,created_at&order=created_at.desc&limit=200",
     )
-    close_sessions = {
-        c.get("session_id")
-        for c in closes
-        if isinstance(c, dict) and c.get("session_id")
-    }
+    close_sessions = {c.get("session_id") for c in closes if isinstance(c, dict) and c.get("session_id")}
     now = datetime.now(timezone.utc)
     ttl = timedelta(hours=SESSION_TTL_HOURS)
     if isinstance(starts, list):
@@ -357,9 +355,7 @@ def cmd_verify(_: argparse.Namespace) -> None:
                 failures.append(f"bad_created_at:{sid}")
                 continue
             if now - created > ttl:
-                failures.append(
-                    f"session_without_close:{sid}:{s.get('thread_id')}:{s.get('topic')}"
-                )
+                failures.append(f"session_without_close:{sid}:{s.get('thread_id')}:{s.get('topic')}")
     session_id = str(uuid.uuid4())
     if failures:
         insert_event(

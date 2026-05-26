@@ -1,6 +1,6 @@
 import ast
 
-files = ['kernel/embrion_loop.py', 'kernel/main.py', 'tools/github.py']
+files = ["kernel/embrion_loop.py", "kernel/main.py", "tools/github.py"]
 ok = 0
 for f in files:
     try:

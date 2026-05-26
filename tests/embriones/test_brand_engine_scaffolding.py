@@ -32,20 +32,14 @@ from kernel.embriones.brand_engine.dimensions import (
     DimensionEvaluator,
     DimensionResult,
 )
-from kernel.embriones.brand_engine.dimensions.brand_tono import BrandTonoEvaluator
-from kernel.embriones.brand_engine.dimensions.honestidad import HonestidadEvaluator
-from kernel.embriones.brand_engine.dimensions.doctrina import DoctrinaEvaluator
 from kernel.embriones.brand_engine.dimensions.apple_tesla import AppleTeslaEvaluator
-
+from kernel.embriones.brand_engine.dimensions.brand_tono import BrandTonoEvaluator
+from kernel.embriones.brand_engine.dimensions.doctrina import DoctrinaEvaluator
+from kernel.embriones.brand_engine.dimensions.honestidad import HonestidadEvaluator
 
 # ── Fixtures ──────────────────────────────────────────────────────────────
 
-CONFIG_YAML_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "kernel"
-    / "embriones"
-    / "brand_engine_config.yaml"
-)
+CONFIG_YAML_PATH = Path(__file__).resolve().parents[2] / "kernel" / "embriones" / "brand_engine_config.yaml"
 
 
 def _make_test_config(enabled: bool = True, mode: str = "shadow") -> BrandEngineConfig:
@@ -108,18 +102,11 @@ class TestModuleStructure:
 
     def test_no_prohibited_naming_in_module_paths(self):
         """DSC-G-004: ningún archivo del módulo usa nombres prohibidos."""
-        module_root = (
-            Path(__file__).resolve().parents[2]
-            / "kernel"
-            / "embriones"
-            / "brand_engine"
-        )
+        module_root = Path(__file__).resolve().parents[2] / "kernel" / "embriones" / "brand_engine"
         prohibited = {"service", "handler", "utils", "helper", "misc"}
         for py_file in module_root.rglob("*.py"):
             stem = py_file.stem.lower()
-            assert stem not in prohibited, (
-                f"Archivo {py_file} viola DSC-G-004 naming canónico"
-            )
+            assert stem not in prohibited, f"Archivo {py_file} viola DSC-G-004 naming canónico"
 
 
 # ── T2: las 4 dimensiones implementan la interfaz ─────────────────────────
@@ -183,9 +170,7 @@ class TestBrandEngineValidate:
 
     def test_validate_monstruo_voice_is_approved(self):
         engine = BrandEngine(_make_test_config(enabled=True))
-        result = engine.validate(
-            "Forja activada. Tres opciones, costo binario, decides tú."
-        )
+        result = engine.validate("Forja activada. Tres opciones, costo binario, decides tú.")
         assert result.verdict == ValidationVerdict.APPROVED
 
     def test_shadow_mode_never_blocks(self):
@@ -284,36 +269,17 @@ class TestMigration0020:
     """Smoke test del archivo SQL — no aplica contra DB en este test suite."""
 
     def test_migration_file_exists(self):
-        migration_path = (
-            Path(__file__).resolve().parents[2]
-            / "migrations"
-            / "sql"
-            / "0020_embrion_validation_log.sql"
-        )
+        migration_path = Path(__file__).resolve().parents[2] / "migrations" / "sql" / "0020_embrion_validation_log.sql"
         assert migration_path.exists(), "Migration 0020 file missing"
 
     def test_migration_has_rls_enabled(self):
-        migration_path = (
-            Path(__file__).resolve().parents[2]
-            / "migrations"
-            / "sql"
-            / "0020_embrion_validation_log.sql"
-        )
+        migration_path = Path(__file__).resolve().parents[2] / "migrations" / "sql" / "0020_embrion_validation_log.sql"
         content = migration_path.read_text(encoding="utf-8")
-        assert "ENABLE ROW LEVEL SECURITY" in content, (
-            "Migration 0020 NO habilita RLS — viola DSC-S-006"
-        )
-        assert "CREATE POLICY" in content, (
-            "Migration 0020 NO crea policy — viola DSC-S-006"
-        )
+        assert "ENABLE ROW LEVEL SECURITY" in content, "Migration 0020 NO habilita RLS — viola DSC-S-006"
+        assert "CREATE POLICY" in content, "Migration 0020 NO crea policy — viola DSC-S-006"
 
     def test_migration_has_verification_block(self):
-        migration_path = (
-            Path(__file__).resolve().parents[2]
-            / "migrations"
-            / "sql"
-            / "0020_embrion_validation_log.sql"
-        )
+        migration_path = Path(__file__).resolve().parents[2] / "migrations" / "sql" / "0020_embrion_validation_log.sql"
         content = migration_path.read_text(encoding="utf-8")
         # Verifica que la migración tiene su propio bloque de assertion post.
         assert "RAISE EXCEPTION" in content

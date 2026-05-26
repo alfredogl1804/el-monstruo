@@ -20,9 +20,10 @@ Constraints:
     - No scheduler policy changes
     - Kill-switch: read-only
 """
+
+import importlib.util
 import json
 import sys
-import importlib.util
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -30,7 +31,13 @@ from typing import Optional
 # Paths
 SELF_DIR = Path(__file__).parent
 RUNNER_PATH = SELF_DIR / "artifact_ops_runner_v0_1.py"
-KILL_SWITCH_PATH = Path(__file__).parents[1] / "reactor_vigilia_foundation" / "reactor_heartbeat_r0" / "scheduler" / "scheduler_kill_switch.json"
+KILL_SWITCH_PATH = (
+    Path(__file__).parents[1]
+    / "reactor_vigilia_foundation"
+    / "reactor_heartbeat_r0"
+    / "scheduler"
+    / "scheduler_kill_switch.json"
+)
 DIRECTIVE_QUEUE_PATH = Path(__file__).parents[1] / "state_fabric" / "t1_directive_queue.v0_1.json"
 
 
@@ -81,6 +88,7 @@ def invoke_runner(config: dict) -> dict:
 
         # Capture stdout
         import io
+
         old_stdout = sys.stdout
         sys.stdout = io.StringIO()
         try:
@@ -147,33 +155,39 @@ def detect_top_risks(runner_output: dict) -> list:
     # Cost anomalies
     anomalies = consolidated.get("cost_anomalies", [])
     if anomalies:
-        risks.append({
-            "risk_id": "RISK_COST_ANOMALY",
-            "severity": "MEDIUM",
-            "description": f"{len(anomalies)} cost anomaly(ies) detected",
-            "source": "memory_palace_pattern_detector",
-        })
+        risks.append(
+            {
+                "risk_id": "RISK_COST_ANOMALY",
+                "severity": "MEDIUM",
+                "description": f"{len(anomalies)} cost anomaly(ies) detected",
+                "source": "memory_palace_pattern_detector",
+            }
+        )
 
     # Regression flags
     regressions = consolidated.get("regression_flags", [])
     if regressions:
         for r in regressions[:2]:
-            risks.append({
-                "risk_id": f"RISK_REGRESSION_{r.get('type', 'UNKNOWN')}",
-                "severity": r.get("severity", "MEDIUM"),
-                "description": f"Regression: {r.get('type')} at run {r.get('run_index')}",
-                "source": "embryo_run_history_analyzer",
-            })
+            risks.append(
+                {
+                    "risk_id": f"RISK_REGRESSION_{r.get('type', 'UNKNOWN')}",
+                    "severity": r.get("severity", "MEDIUM"),
+                    "description": f"Regression: {r.get('type')} at run {r.get('run_index')}",
+                    "source": "embryo_run_history_analyzer",
+                }
+            )
 
     # Task overspecialization
     overspec = consolidated.get("task_overspecialization", {})
     if isinstance(overspec, dict) and overspec.get("detected"):
-        risks.append({
-            "risk_id": "RISK_TASK_OVERSPECIALIZATION",
-            "severity": "LOW",
-            "description": f"Only {overspec.get('unique_tasks', 0)} unique tasks in {overspec.get('total_runs', 0)} runs",
-            "source": "memory_palace_pattern_detector",
-        })
+        risks.append(
+            {
+                "risk_id": "RISK_TASK_OVERSPECIALIZATION",
+                "severity": "LOW",
+                "description": f"Only {overspec.get('unique_tasks', 0)} unique tasks in {overspec.get('total_runs', 0)} runs",
+                "source": "memory_palace_pattern_detector",
+            }
+        )
 
     return risks[:3]
 
@@ -252,6 +266,7 @@ def run_epoch_adapter(epoch_id: str = "EPOCH_009", base_dir: Optional[Path] = No
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Artifact Ops Epoch Adapter v0.1")
     parser.add_argument("--epoch-id", default="EPOCH_009", help="Epoch identifier")
     parser.add_argument("--base-dir", default=None, help="Base directory of the repo")

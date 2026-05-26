@@ -134,12 +134,7 @@ async def test_f1_search_semantic_supabase_handles_none_response():
 
 def test_f1_migration_0028_exists_and_creates_rpc():
     """La migración 0028 debe existir y crear la RPC con SECURITY INVOKER + grant a service_role."""
-    src = (
-        Path(__file__).resolve().parents[1]
-        / "migrations"
-        / "sql"
-        / "0028_rpc_match_memory_events.sql"
-    )
+    src = Path(__file__).resolve().parents[1] / "migrations" / "sql" / "0028_rpc_match_memory_events.sql"
     assert src.exists(), "Migración 0028 no existe"
     sql = src.read_text(encoding="utf-8")
     assert "CREATE OR REPLACE FUNCTION public.match_memory_events" in sql

@@ -3,15 +3,14 @@ Sprint 88.3 Fix #1: tests para CTA sanitizer + vertical detector + name derivati
 
 Cubre los 5 verticales del eval canónico que produjeron el bug original.
 """
+
 from __future__ import annotations
 
-import pytest
-
 from kernel.e2e.deploy.real_deploy import (
-    _derive_project_name,
-    _detect_vertical,
     _cta_primary_for_vertical,
     _cta_secondary_for_vertical,
+    _derive_project_name,
+    _detect_vertical,
 )
 
 

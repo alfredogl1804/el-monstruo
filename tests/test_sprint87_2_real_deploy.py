@@ -12,10 +12,10 @@ Coverage:
 8. RealDeployResult Pydantic valida estructura
 9. Brand DNA en errores
 """
+
 from __future__ import annotations
 
 import asyncio
-import os
 
 import pytest
 
@@ -28,7 +28,6 @@ from kernel.e2e.deploy.real_deploy import (
     render_landing_html,
     run_real_deploy,
 )
-
 
 # ── 1. Render produce 4 archivos ─────────────────────────────────────────────
 
@@ -70,9 +69,7 @@ def test_render_landing_produces_expected_files():
             }
         },
     }
-    files = render_landing_html(
-        state=state, run_id="e2e_test_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_test_001", ingest_url="https://api.test/ingest")
     # Contrato de archivos (sin cambios)
     assert set(files.keys()) == {"index.html", "style.css", "monstruo-tracking.js", ".nojekyll"}
     # Contrato de contenido: nombre + headlines + CTA reales
@@ -95,9 +92,7 @@ def test_render_landing_produces_expected_files():
 
 def test_render_injects_tracking_with_run_id():
     state = {"frase_input": "test"}
-    files = render_landing_html(
-        state=state, run_id="e2e_999_abc", ingest_url="https://x/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_999_abc", ingest_url="https://x/ingest")
     assert 'window.__MONSTRUO_RUN_ID__ = "e2e_999_abc"' in files["index.html"]
     assert 'window.__MONSTRUO_INGEST_URL__ = "https://x/ingest"' in files["index.html"]
     assert 'src="/monstruo-tracking.js"' in files["index.html"]
@@ -142,6 +137,7 @@ def test_slugify_handles_accents_and_spaces():
     assert _slugify("") == "monstruo-site"
     # Verifica que SOLO contiene [a-z0-9-]
     import re as _re
+
     assert _re.fullmatch(r"[a-z0-9-]+", _slugify("Pintura al óleo ñandutí")) is not None
 
 
@@ -174,11 +170,7 @@ def test_run_real_deploy_explicit_preview_target(monkeypatch):
     monkeypatch.setenv("GITHUB_TOKEN", "fake_token")
     state = {"frase_input": "test"}
 
-    result = asyncio.run(
-        run_real_deploy(
-            state=state, run_id="e2e_explicit_pre", target=DeployTarget.HEURISTIC_PREVIEW
-        )
-    )
+    result = asyncio.run(run_real_deploy(state=state, run_id="e2e_explicit_pre", target=DeployTarget.HEURISTIC_PREVIEW))
     assert result.deploy_target == DeployTarget.HEURISTIC_PREVIEW
     assert result.fallback_reason == "explicit_preview_target"
 

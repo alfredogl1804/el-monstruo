@@ -15,6 +15,7 @@ Exit code:
     1  = declaracion rechazada (>=1 gate fallido)
     2  = error de configuracion (hito no canonizado, yaml invalido, etc.)
 """
+
 from __future__ import annotations
 
 import argparse
@@ -27,7 +28,6 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-
 
 GATES_FILE = Path(__file__).parent / "gates.yaml"
 
@@ -58,7 +58,8 @@ def _check_command(gate: dict[str, Any]) -> GateResult:
     cmd = gate["command"]
     expected = gate.get("expected_exit", 0)
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, timeout=600)
+        # nosemgrep: subprocess-shell-true — cmd viene de gates.yaml controlado por equipo (DSC-G-017), no input externo
+        result = subprocess.run(cmd, shell=True, capture_output=True, timeout=600)  # noqa: S602
         passed = result.returncode == expected
         return GateResult(
             gate_id=gate["id"],
@@ -141,6 +142,7 @@ def _check_python_assertion(gate: dict[str, Any]) -> GateResult:
 def _check_http_endpoint(gate: dict[str, Any]) -> GateResult:
     import urllib.error
     import urllib.request
+
     try:
         req = urllib.request.Request(gate["url"])
         with urllib.request.urlopen(req, timeout=30) as resp:
@@ -193,9 +195,7 @@ CHECKERS = {
 def evaluate_milestone(name: str) -> tuple[bool, list[GateResult]]:
     cfg = _load_gates()
     if name not in cfg["milestones"]:
-        raise KeyError(
-            f"Hito no canonizado: '{name}'. Editar kernel/milestones/gates.yaml."
-        )
+        raise KeyError(f"Hito no canonizado: '{name}'. Editar kernel/milestones/gates.yaml.")
 
     milestone = cfg["milestones"][name]
     results: list[GateResult] = []
@@ -248,9 +248,7 @@ def declare(name: str, fail_loud: bool = True) -> dict[str, Any]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Declarar un hito del Monstruo contra gates.yaml (DSC-G-017)."
-    )
+    parser = argparse.ArgumentParser(description="Declarar un hito del Monstruo contra gates.yaml (DSC-G-017).")
     parser.add_argument(
         "milestone",
         help="Nombre del hito (ver kernel/milestones/gates.yaml)",
@@ -286,8 +284,7 @@ def main() -> int:
 
     if not args.json_only:
         print(
-            f"\n[ok] Hito declarado: {payload['milestone']}. "
-            f"{len(payload['gates'])} gates verde.",
+            f"\n[ok] Hito declarado: {payload['milestone']}. {len(payload['gates'])} gates verde.",
             file=sys.stderr,
         )
     return 0

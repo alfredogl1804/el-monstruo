@@ -13,17 +13,16 @@ Cobertura T1-T6:
 
 Total: 27 tests esperados verdes.
 """
+
 from __future__ import annotations
 
 import asyncio
 import importlib
 import json
 import os
-import re
 import sys
 from decimal import Decimal
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -50,12 +49,14 @@ def _isolate_config_env(monkeypatch):
             monkeypatch.delenv(k, raising=False)
     try:
         from kernel.escape import config
+
         importlib.reload(config)
     except ImportError:
         pass
     yield
     try:
         from kernel.escape import config
+
         importlib.reload(config)
     except ImportError:
         pass
@@ -66,6 +67,7 @@ class TestConfig:
 
     def test_registry_has_six_consumers(self):
         from kernel.escape import config
+
         assert len(config.REGISTRY_CONSUMERS) == 6
         expected = {
             "embrion_loop_latido",
@@ -79,6 +81,7 @@ class TestConfig:
 
     def test_default_pulse_intervals_match_spec(self):
         from kernel.escape import config
+
         assert config.DEFAULT_PULSE_INTERVALS_SECONDS["embrion_loop_latido"] == 60
         assert config.DEFAULT_PULSE_INTERVALS_SECONDS["guardian_daily_audit"] == 86400
         assert config.DEFAULT_PULSE_INTERVALS_SECONDS["rotor_recharge"] == 300
@@ -88,16 +91,19 @@ class TestConfig:
 
     def test_get_pulse_interval_for_registered_consumer(self):
         from kernel.escape import config
+
         assert config.get_pulse_interval_seconds("embrion_loop_latido") == 60
         assert config.get_pulse_interval_seconds("external_llm_call") == 10
 
     def test_is_registered_consumer(self):
         from kernel.escape import config
+
         assert config.is_registered_consumer("embrion_loop_latido") is True
         assert config.is_registered_consumer("unknown_consumer") is False
 
     def test_env_override(self, monkeypatch):
         from kernel.escape import config
+
         monkeypatch.setenv("ESCAPE_PULSE_INTERVAL_EMBRION_LOOP_LATIDO", "120")
         # Forzar reload del módulo para que tome el env actualizado
         importlib.reload(config)
@@ -122,18 +128,21 @@ class TestEscapement:
 
     def test_instantiate_with_registered_consumer(self):
         from kernel.escape.throttler import Escapement
+
         e = Escapement(consumer="embrion_loop_latido")
         assert e.consumer == "embrion_loop_latido"
         assert e.pulse_interval_seconds == 60
 
     def test_instantiate_with_unregistered_consumer_warns(self, caplog):
         from kernel.escape.throttler import Escapement
+
         e = Escapement(consumer="non_canonical", pulse_interval_seconds=10)
         assert e.consumer == "non_canonical"
         assert e.pulse_interval_seconds == 10
 
     def test_first_pulse_can_proceed(self):
         from kernel.escape.throttler import Escapement, reset_consumer_state
+
         loop = self._new_loop()
         try:
             loop.run_until_complete(reset_consumer_state())
@@ -147,6 +156,7 @@ class TestEscapement:
 
     def test_record_pulse_then_immediate_can_pulse_blocked(self):
         from kernel.escape.throttler import Escapement, reset_consumer_state
+
         loop = self._new_loop()
         try:
             loop.run_until_complete(reset_consumer_state())
@@ -168,6 +178,7 @@ class TestEscapement:
 
     def test_record_pulse_default_energy_matches_spec(self):
         from kernel.escape.throttler import Escapement, reset_consumer_state
+
         loop = self._new_loop()
         try:
             loop.run_until_complete(reset_consumer_state())
@@ -179,6 +190,7 @@ class TestEscapement:
 
     def test_record_pulse_persist_failsoft_without_supabase(self):
         from kernel.escape.throttler import Escapement, reset_consumer_state
+
         loop = self._new_loop()
         try:
             loop.run_until_complete(reset_consumer_state())
@@ -192,13 +204,12 @@ class TestEscapement:
 
     def test_record_pulse_with_metadata(self):
         from kernel.escape.throttler import Escapement, reset_consumer_state
+
         loop = self._new_loop()
         try:
             loop.run_until_complete(reset_consumer_state())
             e = Escapement(consumer="guardian_daily_audit")
-            rec = loop.run_until_complete(
-                e.record_pulse(metadata={"trigger": "test", "version": 1})
-            )
+            rec = loop.run_until_complete(e.record_pulse(metadata={"trigger": "test", "version": 1}))
             assert rec.metadata == {"trigger": "test", "version": 1}
         finally:
             loop.close()
@@ -209,6 +220,7 @@ class TestEscapement:
             reset_consumer_state,
             snapshot_state,
         )
+
         loop = self._new_loop()
         try:
             loop.run_until_complete(reset_consumer_state())
@@ -234,6 +246,7 @@ class TestEscapementBlockAttempt:
 
     def test_block_attempt_increments_counter(self):
         from kernel.escape.throttler import Escapement, reset_consumer_state
+
         loop = self._new_loop()
         try:
             loop.run_until_complete(reset_consumer_state())
@@ -246,6 +259,7 @@ class TestEscapementBlockAttempt:
 
     def test_blocked_count_resets_after_pulse(self):
         from kernel.escape.throttler import Escapement, reset_consumer_state
+
         loop = self._new_loop()
         try:
             loop.run_until_complete(reset_consumer_state())
@@ -277,16 +291,19 @@ class TestBudgetConsume:
 
     def test_consume_rejects_zero(self):
         from kernel.embrion_budget import consume
+
         with pytest.raises(ValueError):
             consume(amount=Decimal("0"), consumer="external_llm_call")
 
     def test_consume_rejects_negative(self):
         from kernel.embrion_budget import consume
+
         with pytest.raises(ValueError):
             consume(amount=Decimal("-1"), consumer="external_llm_call")
 
     def test_consume_failsoft_without_supabase(self, monkeypatch):
         from kernel.embrion_budget import consume
+
         # Asegurar sin env
         monkeypatch.delenv("SUPABASE_URL", raising=False)
         monkeypatch.delenv("SUPABASE_SERVICE_KEY", raising=False)
@@ -308,6 +325,7 @@ class TestDashboard:
         monkeypatch.delenv("SUPABASE_SERVICE_KEY", raising=False)
         monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
         from kernel.escape.dashboard import render
+
         html = render(mode="html")
         assert "<!DOCTYPE html>" in html
         assert "No data disponible" in html
@@ -318,6 +336,7 @@ class TestDashboard:
         monkeypatch.delenv("SUPABASE_SERVICE_KEY", raising=False)
         monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
         from kernel.escape.dashboard import render
+
         text = render(mode="json")
         data = json.loads(text)
         assert data["available"] is False
@@ -326,16 +345,29 @@ class TestDashboard:
 
     def test_aggregate_function_with_synthetic_rows(self):
         from kernel.escape.dashboard import _aggregate
+
         rows = [
-            {"consumer": "embrion_loop_latido", "decision": "allow",
-             "energy_consumed": "1.0", "budget_consumed_usd": "0.001",
-             "occurred_at": "2026-05-12T08:00:00Z"},
-            {"consumer": "embrion_loop_latido", "decision": "block",
-             "energy_consumed": "0", "budget_consumed_usd": "0",
-             "occurred_at": "2026-05-12T08:00:30Z"},
-            {"consumer": "external_llm_call", "decision": "allow",
-             "energy_consumed": "1.0", "budget_consumed_usd": "0.01",
-             "occurred_at": "2026-05-12T08:01:00Z"},
+            {
+                "consumer": "embrion_loop_latido",
+                "decision": "allow",
+                "energy_consumed": "1.0",
+                "budget_consumed_usd": "0.001",
+                "occurred_at": "2026-05-12T08:00:00Z",
+            },
+            {
+                "consumer": "embrion_loop_latido",
+                "decision": "block",
+                "energy_consumed": "0",
+                "budget_consumed_usd": "0",
+                "occurred_at": "2026-05-12T08:00:30Z",
+            },
+            {
+                "consumer": "external_llm_call",
+                "decision": "allow",
+                "energy_consumed": "1.0",
+                "budget_consumed_usd": "0.01",
+                "occurred_at": "2026-05-12T08:01:00Z",
+            },
         ]
         agg = _aggregate(rows)
         assert agg["total_pulses"] == 3
@@ -347,12 +379,18 @@ class TestDashboard:
         assert pytest.approx(agg["total_energy"], 0.01) == 2.0
 
     def test_render_html_xss_protection(self):
-        from kernel.escape.dashboard import _render_html, _aggregate
+        from kernel.escape.dashboard import _aggregate, _render_html
+
         evil_rows = [
-            {"consumer": "<script>alert(1)</script>", "decision": "allow",
-             "energy_consumed": "1", "budget_consumed_usd": "0.001",
-             "occurred_at": "2026-05-12T08:00:00Z",
-             "pulse_id": "1", "reason": ""},
+            {
+                "consumer": "<script>alert(1)</script>",
+                "decision": "allow",
+                "energy_consumed": "1",
+                "budget_consumed_usd": "0.001",
+                "occurred_at": "2026-05-12T08:00:00Z",
+                "pulse_id": "1",
+                "reason": "",
+            },
         ]
         agg = _aggregate(evil_rows)
         html = _render_html(evil_rows, agg, limit=10)
@@ -412,8 +450,7 @@ class TestPostmortemSanity:
     """T6: placeholder + DSC-MO-014 candidato presente."""
 
     def test_postmortem_file_exists(self):
-        path = REPO_ROOT / "bridge" / "postmortems" / \
-            "postmortem_ESCAPE_001_PLACEHOLDER_2026_05_12.md"
+        path = REPO_ROOT / "bridge" / "postmortems" / "postmortem_ESCAPE_001_PLACEHOLDER_2026_05_12.md"
         assert path.exists(), f"Postmortem {path} not found"
         content = path.read_text(encoding="utf-8")
         assert "DSC-MO-014" in content

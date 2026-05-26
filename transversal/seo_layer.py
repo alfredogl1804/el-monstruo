@@ -13,6 +13,7 @@ Componentes:
 
 Sprint 57 — "Las Capas Transversales"
 """
+
 from __future__ import annotations
 
 import json
@@ -26,9 +27,11 @@ logger = logging.getLogger("seo_layer")
 
 # ── Data models ───────────────────────────────────────────────────────────────
 
+
 @dataclass
 class SEOConfig:
     """Configuración SEO para un proyecto."""
+
     project_id: str
     site_name: str
     site_url: str
@@ -41,6 +44,7 @@ class SEOConfig:
 
 
 # ── SEOLayer ──────────────────────────────────────────────────────────────────
+
 
 class SEOLayer:
     """Capa SEO transversal — inyectada en cada proyecto."""
@@ -122,6 +126,7 @@ Sitemap: {self._config.site_url}/sitemap.xml
 
 # ── SchemaGenerator ───────────────────────────────────────────────────────────
 
+
 class SchemaGenerator:
     """Generador de JSON-LD schema markup."""
 
@@ -147,23 +152,27 @@ class SchemaGenerator:
         schema_type = page.get("schema_type", "WebPage")
 
         if schema_type == "Product":
-            schema.update({
-                "offers": {
-                    "@type": "Offer",
-                    "price": page.get("price", 0),
-                    "priceCurrency": page.get("currency", "USD"),
-                    "availability": "https://schema.org/InStock",
-                },
-            })
+            schema.update(
+                {
+                    "offers": {
+                        "@type": "Offer",
+                        "price": page.get("price", 0),
+                        "priceCurrency": page.get("currency", "USD"),
+                        "availability": "https://schema.org/InStock",
+                    },
+                }
+            )
         elif schema_type == "Article":
-            schema.update({
-                "author": {
-                    "@type": "Person",
-                    "name": page.get("author", "El Monstruo"),
-                },
-                "datePublished": page.get("published_at", datetime.now(timezone.utc).isoformat()),
-                "dateModified": page.get("updated_at", datetime.now(timezone.utc).isoformat()),
-            })
+            schema.update(
+                {
+                    "author": {
+                        "@type": "Person",
+                        "name": page.get("author", "El Monstruo"),
+                    },
+                    "datePublished": page.get("published_at", datetime.now(timezone.utc).isoformat()),
+                    "dateModified": page.get("updated_at", datetime.now(timezone.utc).isoformat()),
+                }
+            )
         elif schema_type == "FAQPage":
             faqs = page.get("faqs", [])
             schema["mainEntity"] = [
@@ -200,6 +209,7 @@ class SchemaGenerator:
 
 # ── MetaTagEngine ─────────────────────────────────────────────────────────────
 
+
 class MetaTagEngine:
     """Motor de meta tags optimizados."""
 
@@ -216,11 +226,11 @@ class MetaTagEngine:
 
         # Truncar description a 160 chars para SEO
         if len(description) > self.MAX_DESCRIPTION_LENGTH:
-            description = description[:self.MAX_DESCRIPTION_LENGTH - 3] + "..."
+            description = description[: self.MAX_DESCRIPTION_LENGTH - 3] + "..."
 
         full_title = f"{title} | {self._config.site_name}"
         if len(full_title) > self.MAX_TITLE_LENGTH:
-            full_title = title[:self.MAX_TITLE_LENGTH - 3] + "..."
+            full_title = title[: self.MAX_TITLE_LENGTH - 3] + "..."
 
         return {
             "title": full_title,
@@ -274,6 +284,7 @@ class MetaTagEngine:
 
 # ── SitemapGenerator ──────────────────────────────────────────────────────────
 
+
 class SitemapGenerator:
     """Generador de sitemaps XML."""
 
@@ -319,6 +330,7 @@ class SitemapGenerator:
 
 
 # ── Factory ───────────────────────────────────────────────────────────────────
+
 
 def create_seo_layer(
     project_id: str,

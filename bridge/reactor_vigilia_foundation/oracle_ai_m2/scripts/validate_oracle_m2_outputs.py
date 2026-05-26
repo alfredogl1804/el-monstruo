@@ -15,20 +15,17 @@ SPRINT_ID = "SPR-ORACLE-AI-M2-001"
 
 # Secret patterns that MUST NOT appear in any artifact
 SECRET_PATTERNS = [
-    r'sk-proj-[A-Za-z0-9_\-]{20,}',
-    r'sk-ant-api[A-Za-z0-9_\-]{20,}',
-    r'xai-[A-Za-z0-9_\-]{20,}',
-    r'AIzaSy[A-Za-z0-9_\-]{20,}',
-    r'pplx-[A-Za-z0-9_\-]{20,}',
-    r'sk-or-v1-[A-Za-z0-9_\-]{20,}',
-    r'ghp_[A-Za-z0-9_\-]{20,}',
-    r'sbp_[A-Za-z0-9_\-]{20,}',
+    r"sk-proj-[A-Za-z0-9_\-]{20,}",
+    r"sk-ant-api[A-Za-z0-9_\-]{20,}",
+    r"xai-[A-Za-z0-9_\-]{20,}",
+    r"AIzaSy[A-Za-z0-9_\-]{20,}",
+    r"pplx-[A-Za-z0-9_\-]{20,}",
+    r"sk-or-v1-[A-Za-z0-9_\-]{20,}",
+    r"ghp_[A-Za-z0-9_\-]{20,}",
+    r"sbp_[A-Za-z0-9_\-]{20,}",
 ]
 
-BUDGET_CAP = {
-    "max_total_cost_usd": 5.00,
-    "max_total_calls": 18
-}
+BUDGET_CAP = {"max_total_cost_usd": 5.00, "max_total_calls": 18}
 
 
 def load_json(filename):
@@ -58,11 +55,12 @@ def scan_for_secrets(text: str) -> list:
 
 # ─── Gates ────────────────────────────────────────────────────────────────────
 
+
 def gate_1_base_artifacts_exist():
     """Gate 1: Base artifacts from previous sprints exist."""
     required = [
         "../vigilia_sincronica_002/chain_run_001/oracle_output/oraculo_capability_catalog_v0.json",
-        "../oracle_risk_classification/oracle_catalog_risk_annotated.v0_1.json"
+        "../oracle_risk_classification/oracle_catalog_risk_annotated.v0_1.json",
     ]
     for rel_path in required:
         full_path = os.path.join(OUTPUT_DIR, rel_path)
@@ -96,7 +94,7 @@ def gate_3_no_secret_leak():
         "api_cost_ledger.v0_1.json",
         "api_probe_log.redacted.v0_1.jsonl",
         "unified_face_summary_oracle_m2.v0_1.md",
-        "reclassification_inputs_for_next_sprint.v0_1.json"
+        "reclassification_inputs_for_next_sprint.v0_1.json",
     ]
     for filename in artifacts_to_scan:
         text = load_text(filename)
@@ -115,7 +113,7 @@ def gate_4_budget_cap():
     totals = data.get("totals", {})
     total_calls = totals.get("total_calls", 0)
     total_cost = totals.get("total_estimated_cost_usd", 0)
-    within = totals.get("within_budget", False)
+    totals.get("within_budget", False)
     if total_calls > BUDGET_CAP["max_total_calls"]:
         return False, f"Calls {total_calls} > cap {BUDGET_CAP['max_total_calls']}"
     if total_cost > BUDGET_CAP["max_total_cost_usd"]:
@@ -152,9 +150,14 @@ def gate_6_evidence_status_discipline():
 def gate_7_no_catalog_mutation():
     """Gate 7: Original static catalog not modified destructively."""
     # Check that the original catalog still exists unchanged
-    original_path = os.path.join(OUTPUT_DIR, "..", "vigilia_sincronica_002",
-                                  "chain_run_001", "oracle_output",
-                                  "oraculo_capability_catalog_v0.json")
+    original_path = os.path.join(
+        OUTPUT_DIR,
+        "..",
+        "vigilia_sincronica_002",
+        "chain_run_001",
+        "oracle_output",
+        "oraculo_capability_catalog_v0.json",
+    )
     if not os.path.exists(original_path):
         return False, "Original catalog missing (destructive mutation?)"
     # Verify it's still valid JSON
@@ -195,8 +198,13 @@ def gate_10_no_m2_autonomy_expansion():
     """Gate 10: M2 did not enable scheduler, daemon, PR, deploy, or write_code."""
     # Check that no scheduler/daemon artifacts were created
     forbidden_indicators = [
-        "scheduler.py", "daemon.py", "crontab", ".service",
-        "deploy.sh", "Dockerfile", "railway.json"
+        "scheduler.py",
+        "daemon.py",
+        "crontab",
+        ".service",
+        "deploy.sh",
+        "Dockerfile",
+        "railway.json",
     ]
     for root, dirs, files in os.walk(OUTPUT_DIR):
         for f in files:
@@ -237,6 +245,7 @@ def gate_12_unified_face_summary_single_voice():
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
+
 def main():
     gates = [
         ("base_artifacts_exist", gate_1_base_artifacts_exist),
@@ -275,12 +284,7 @@ def main():
             fail_count += 1
             findings.append(f"Gate {i} ({name}): {evidence}")
 
-        results.append({
-            "gate_id": i,
-            "name": name,
-            "result": result_str,
-            "evidence": evidence
-        })
+        results.append({"gate_id": i, "name": name, "result": result_str, "evidence": evidence})
 
         print(f"  Gate {i:2d} [{result_str}] {name}")
         print(f"         → {evidence}")
@@ -306,7 +310,7 @@ def main():
         "verdict": verdict,
         "pass_count": pass_count,
         "fail_count": fail_count,
-        "findings": findings
+        "findings": findings,
     }
 
     report_path = os.path.join(OUTPUT_DIR, "oracle_m2_validation_report.v0_1.json")

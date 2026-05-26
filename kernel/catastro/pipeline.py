@@ -23,6 +23,7 @@ Disciplina os.environ:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 2 · 2026-05-04
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -33,6 +34,9 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Optional
 
+from kernel.catastro.coding_classifier import (
+    CodingClassifier,
+)
 from kernel.catastro.persistence import (
     CatastroPersistence,
     PersistResult,
@@ -44,6 +48,9 @@ from kernel.catastro.quorum import (
     QuorumOutcome,
     QuorumResult,
     QuorumValidator,
+)
+from kernel.catastro.reasoning_classifier import (
+    ReasoningClassifier,
 )
 from kernel.catastro.sources import (
     AIMEFuente,
@@ -59,18 +66,10 @@ from kernel.catastro.sources import (
     RawSnapshot,
     SWEBenchFuente,
 )
-from kernel.catastro.coding_classifier import (
-    CodingClassifier,
-    CodingClassification,
-)
-from kernel.catastro.reasoning_classifier import (
-    ReasoningClassifier,
-    ReasoningClassification,
-)
 from kernel.catastro.sources.field_mapping import (
+    FieldMappingError,
     apply_field_mapping,
     load_field_mapping,
-    FieldMappingError,
 )
 from kernel.catastro.trono import (
     TronoCalculator,
@@ -78,13 +77,13 @@ from kernel.catastro.trono import (
     apply_results_to_models,
 )
 
-
 logger = logging.getLogger(__name__)
 
 
 # ============================================================================
 # RESULTADO DE UN RUN COMPLETO
 # ============================================================================
+
 
 @dataclass
 class PipelineRunResult:
@@ -156,12 +155,8 @@ class PipelineRunResult:
             "dominios": len(self.trono_results),
             "modelos_calculados": sum(len(rs) for rs in self.trono_results.values()),
             "modos": {
-                "z_score": sum(
-                    1 for rs in self.trono_results.values() for r in rs if r.mode == "z_score"
-                ),
-                "neutral": sum(
-                    1 for rs in self.trono_results.values() for r in rs if r.mode == "neutral"
-                ),
+                "z_score": sum(1 for rs in self.trono_results.values() for r in rs if r.mode == "z_score"),
+                "neutral": sum(1 for rs in self.trono_results.values() for r in rs if r.mode == "neutral"),
             },
         }
 
@@ -192,6 +187,7 @@ class PipelineRunResult:
 # ============================================================================
 # PIPELINE
 # ============================================================================
+
 
 class CatastroPipeline:
     """
@@ -266,15 +262,11 @@ class CatastroPipeline:
             # Sprint 86.5: agregar coding sources si flag activo
             enable_coding = os.environ.get("CATASTRO_ENABLE_CODING", "").strip().lower()
             if enable_coding in ("true", "1", "yes", "on"):
-                self.sources.extend(
-                    cls(dry_run=dry_run) for cls in self.CODING_SOURCES
-                )
+                self.sources.extend(cls(dry_run=dry_run) for cls in self.CODING_SOURCES)
             # Sprint 86.7: agregar reasoning sources si flag activo
             enable_reasoning = os.environ.get("CATASTRO_ENABLE_REASONING", "").strip().lower()
             if enable_reasoning in ("true", "1", "yes", "on"):
-                self.sources.extend(
-                    cls(dry_run=dry_run) for cls in self.REASONING_SOURCES
-                )
+                self.sources.extend(cls(dry_run=dry_run) for cls in self.REASONING_SOURCES)
 
         self.validator = validator or QuorumValidator(numeric_tolerance=0.10)
         # Sprint 86.5 — coding classifier (heuristic fallback si no hay OPENAI_API_KEY)
@@ -315,8 +307,7 @@ class CatastroPipeline:
         # Paso 2: si <2 fuentes respondieron, marcar como degradado
         if not result.is_success:
             logger.error(
-                f"[catastro_pipeline] Run {run_id} DEGRADED: solo "
-                f"{len(result.snapshots)} fuente(s) respondieron"
+                f"[catastro_pipeline] Run {run_id} DEGRADED: solo {len(result.snapshots)} fuente(s) respondieron"
             )
             result.finished_at = datetime.now(timezone.utc)
             return result
@@ -346,9 +337,7 @@ class CatastroPipeline:
         # Paso 8: persistencia atómica via RPC (Bloque 3 + skip_persist Bloque 4)
         if self.skip_persist:
             result.persist_skipped = True
-            logger.info(
-                f"[catastro_pipeline] Paso 8 SKIP: skip_persist=True (run={run_id})"
-            )
+            logger.info(f"[catastro_pipeline] Paso 8 SKIP: skip_persist=True (run={run_id})")
         else:
             await self._persist_all(result)
 
@@ -357,18 +346,10 @@ class CatastroPipeline:
             "total_modelos_vistos": len(result.modelos_procesados),
             "total_modelos_persistibles": len(result.modelos_persistibles),
             "total_quorum_validations": len(flat_results),
-            "quorum_unanimous_count": sum(
-                1 for qr in flat_results if qr.outcome == QuorumOutcome.QUORUM_UNANIMOUS
-            ),
-            "quorum_reached_count": sum(
-                1 for qr in flat_results if qr.outcome == QuorumOutcome.QUORUM_REACHED
-            ),
-            "quorum_failed_count": sum(
-                1 for qr in flat_results if qr.outcome == QuorumOutcome.QUORUM_FAILED
-            ),
-            "insufficient_data_count": sum(
-                1 for qr in flat_results if qr.outcome == QuorumOutcome.INSUFFICIENT_DATA
-            ),
+            "quorum_unanimous_count": sum(1 for qr in flat_results if qr.outcome == QuorumOutcome.QUORUM_UNANIMOUS),
+            "quorum_reached_count": sum(1 for qr in flat_results if qr.outcome == QuorumOutcome.QUORUM_REACHED),
+            "quorum_failed_count": sum(1 for qr in flat_results if qr.outcome == QuorumOutcome.QUORUM_FAILED),
+            "insufficient_data_count": sum(1 for qr in flat_results if qr.outcome == QuorumOutcome.INSUFFICIENT_DATA),
         }
 
         result.finished_at = datetime.now(timezone.utc)
@@ -416,15 +397,15 @@ class CatastroPipeline:
         for slug, persistible in result.modelos_persistibles.items():
             quorum_results = result.modelos_procesados.get(slug, [])
             try:
-                modelos.append(build_modelo_from_pipeline_persistible(
-                    slug=slug,
-                    persistible=persistible,
-                    quorum_results=quorum_results,
-                ))
-            except Exception as e:  # noqa: BLE001
-                logger.warning(
-                    f"[catastro_pipeline] trono build_modelo skip slug={slug}: {e}"
+                modelos.append(
+                    build_modelo_from_pipeline_persistible(
+                        slug=slug,
+                        persistible=persistible,
+                        quorum_results=quorum_results,
+                    )
                 )
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[catastro_pipeline] trono build_modelo skip slug={slug}: {e}")
 
         if not modelos:
             return
@@ -432,9 +413,7 @@ class CatastroPipeline:
         try:
             result.trono_results = self.trono_calculator.compute_all(modelos)
         except Exception as e:  # noqa: BLE001
-            logger.exception(
-                f"[catastro_pipeline] trono CRASH (run={result.run_id}): {e}"
-            )
+            logger.exception(f"[catastro_pipeline] trono CRASH (run={result.run_id}): {e}")
             result.trono_results = {}
             return
 
@@ -495,9 +474,7 @@ class CatastroPipeline:
                     modelo.trono_global = trono.trono_new
                     modelo.trono_delta = trono.trono_delta
             except Exception as e:  # noqa: BLE001
-                logger.exception(
-                    f"[catastro_pipeline] persist build_modelo CRASH slug={slug}: {e}"
-                )
+                logger.exception(f"[catastro_pipeline] persist build_modelo CRASH slug={slug}: {e}")
                 result.persist_results.append(
                     PersistResult(
                         modelo_id=slug,
@@ -519,9 +496,7 @@ class CatastroPipeline:
                     trust_deltas=result.trust_deltas,
                 )
             except Exception as e:  # noqa: BLE001
-                logger.exception(
-                    f"[catastro_pipeline] persist CRASH slug={slug}: {e}"
-                )
+                logger.exception(f"[catastro_pipeline] persist CRASH slug={slug}: {e}")
                 pr = PersistResult(
                     modelo_id=slug,
                     success=False,
@@ -534,10 +509,7 @@ class CatastroPipeline:
         # Calcular failure_rate del batch y propagarlo a todos los items.
         # Mejora #2 audit Cowork Bloque 3 — monitor lo usa para alertar.
         if result.persist_results:
-            failed = sum(
-                1 for r in result.persist_results
-                if not r.success and not r.dry_run
-            )
+            failed = sum(1 for r in result.persist_results if not r.success and not r.dry_run)
             rate = failed / len(result.persist_results)
             for r in result.persist_results:
                 # Solo seteamos si no viene ya seteado por persist_many
@@ -559,8 +531,7 @@ class CatastroPipeline:
             snapshot = await source.fetch()
             result.snapshots[source.nombre] = snapshot
             logger.info(
-                f"[catastro_pipeline] {source.nombre} OK · "
-                f"hash={snapshot.payload_hash} · meta={snapshot.metadata}"
+                f"[catastro_pipeline] {source.nombre} OK · hash={snapshot.payload_hash} · meta={snapshot.metadata}"
             )
         except FuenteError as e:
             result.fuente_errors[source.nombre] = str(e)
@@ -573,9 +544,7 @@ class CatastroPipeline:
     # Paso 3: normalización
     # ------------------------------------------------------------------
 
-    def _normalize_snapshots(
-        self, result: PipelineRunResult
-    ) -> dict[str, dict[str, dict[str, Any]]]:
+    def _normalize_snapshots(self, result: PipelineRunResult) -> dict[str, dict[str, dict[str, Any]]]:
         """
         Normaliza cada snapshot a dict por modelo:
           { modelo_slug: { fuente: campos_normalizados } }
@@ -824,8 +793,7 @@ class CatastroPipeline:
 
             # Validation 1: presence (¿en cuántas fuentes aparece?)
             presence_votes = [
-                FuenteVote(f, True if f in fuentes_data else None)
-                for f in QuorumValidator.OFFICIAL_SOURCES
+                FuenteVote(f, True if f in fuentes_data else None) for f in QuorumValidator.OFFICIAL_SOURCES
             ]
             quorum_results.append(
                 self.validator.validate(
@@ -854,7 +822,8 @@ class CatastroPipeline:
                 FuenteVote(
                     f,
                     (fuentes_data.get(f, {}).get("pricing") or {}).get("input_per_million")
-                    if f in fuentes_data else None,
+                    if f in fuentes_data
+                    else None,
                 )
                 for f in QuorumValidator.OFFICIAL_SOURCES
             ]
@@ -872,7 +841,8 @@ class CatastroPipeline:
                 FuenteVote(
                     f,
                     (fuentes_data.get(f, {}).get("pricing") or {}).get("output_per_million")
-                    if f in fuentes_data else None,
+                    if f in fuentes_data
+                    else None,
                 )
                 for f in QuorumValidator.OFFICIAL_SOURCES
             ]
@@ -922,8 +892,7 @@ class CatastroPipeline:
         """
         # Quorum de presencia coding (¿aparece en >=2 fuentes coding?)
         coding_presence_votes = [
-            FuenteVote(f, True if f in fuentes_data else None)
-            for f in self.CODING_OFFICIAL_SOURCES
+            FuenteVote(f, True if f in fuentes_data else None) for f in self.CODING_OFFICIAL_SOURCES
         ]
         if sum(1 for v in coding_presence_votes if v.has_data) >= 1:
             coding_presence_qr = self.validator.validate(
@@ -1006,10 +975,7 @@ class CatastroPipeline:
         try:
             mapping = load_field_mapping()
         except FieldMappingError as e:
-            logger.warning(
-                f"[catastro_pipeline] Paso 5.5 SKIP: "
-                f"field_mapping_load_failed err={e}"
-            )
+            logger.warning(f"[catastro_pipeline] Paso 5.5 SKIP: field_mapping_load_failed err={e}")
             result.metrics["metrics_extraction_failed"] = True
             result.metrics["metrics_extraction_error"] = str(e)
             return
@@ -1022,23 +988,15 @@ class CatastroPipeline:
             )
             result.metrics_extracted = extracted
         except FieldMappingError as e:
-            logger.warning(
-                f"[catastro_pipeline] Paso 5.5 PARTIAL FAILURE: "
-                f"field_mapping_apply_failed err={e}"
-            )
+            logger.warning(f"[catastro_pipeline] Paso 5.5 PARTIAL FAILURE: field_mapping_apply_failed err={e}")
             result.metrics["metrics_extraction_failed"] = True
             result.metrics["metrics_extraction_error"] = str(e)
             return
 
         # Métricas resumen para observabilidad
         n_modelos = len(extracted)
-        n_with_4_plus = sum(
-            1 for slug, m in extracted.items()
-            if sum(1 for v in m.values() if v is not None) >= 4
-        )
-        coverage_pct = (
-            round(100.0 * n_with_4_plus / n_modelos, 2) if n_modelos else 0.0
-        )
+        n_with_4_plus = sum(1 for slug, m in extracted.items() if sum(1 for v in m.values() if v is not None) >= 4)
+        coverage_pct = round(100.0 * n_with_4_plus / n_modelos, 2) if n_modelos else 0.0
         result.metrics["metrics_extraction_failed"] = False
         result.metrics["metrics_modelos_enriched"] = n_modelos
         result.metrics["metrics_modelos_with_4plus_fields"] = n_with_4_plus
@@ -1102,9 +1060,7 @@ class CatastroPipeline:
                 "reasoning": classification.reasoning,
             }
         except Exception as e:  # noqa: BLE001
-            logger.warning(
-                f"[catastro_pipeline] coding_classifier crash slug={slug}: {e}"
-            )
+            logger.warning(f"[catastro_pipeline] coding_classifier crash slug={slug}: {e}")
             coding_data["classification"] = None
 
         # Sprint 86.6: Anti-gaming v2 cross-area (Visión Quorum 2-de-3)
@@ -1137,9 +1093,7 @@ class CatastroPipeline:
                     tags.append("coding-overfit-suspected")
                 coding_data["classification"]["tags"] = tags
         except Exception as e:  # noqa: BLE001
-            logger.warning(
-                f"[catastro_pipeline] catastro_overfit_cross_area_detection_failed slug={slug}: {e}"
-            )
+            logger.warning(f"[catastro_pipeline] catastro_overfit_cross_area_detection_failed slug={slug}: {e}")
             coding_data["overfit_suspected"] = False
             coding_data["overfit_evidence"] = {"error": str(e)}
 
@@ -1182,10 +1136,7 @@ class CatastroPipeline:
         # de cada par sano/difícil). El classifier opera sobre los scores
         # aceptados; gaming v1 ya se anotó en cache_entry.
         # Para AIME: usar el promedio de 2024+2025 como "score base"
-        aime_scores = [
-            s for s in [reasoning_data.get("aime_2024"), reasoning_data.get("aime_2025")]
-            if s is not None
-        ]
+        aime_scores = [s for s in [reasoning_data.get("aime_2024"), reasoning_data.get("aime_2025")] if s is not None]
         aime_avg = sum(aime_scores) / len(aime_scores) if aime_scores else None
 
         # Para GPQA: priorizar Diamond (más exigente) sobre Main
@@ -1222,9 +1173,7 @@ class CatastroPipeline:
                 "reasoning": classification.reasoning,
             }
         except Exception as e:  # noqa: BLE001
-            logger.warning(
-                f"[catastro_pipeline] catastro_reasoning_classify_run_failed slug={slug}: {e}"
-            )
+            logger.warning(f"[catastro_pipeline] catastro_reasoning_classify_run_failed slug={slug}: {e}")
             reasoning_data["classification"] = None
 
         # Anti-gaming v2 cross-area Sprint 86.7
@@ -1258,9 +1207,7 @@ class CatastroPipeline:
                     tags.append("reasoning-overfit-suspected")
                 reasoning_data["classification"]["tags"] = tags
         except Exception as e:  # noqa: BLE001
-            logger.warning(
-                f"[catastro_pipeline] catastro_reasoning_overfit_cross_area_failed slug={slug}: {e}"
-            )
+            logger.warning(f"[catastro_pipeline] catastro_reasoning_overfit_cross_area_failed slug={slug}: {e}")
             reasoning_data["overfit_suspected"] = False
             reasoning_data["overfit_evidence"] = {"error": str(e)}
 

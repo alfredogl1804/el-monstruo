@@ -9,6 +9,7 @@ Aplica preflight Memento (operation="kernel_admin_call") antes de tocar la DB.
 Uso:
     SUPABASE_DB_URL=postgresql://... python3.11 scripts/run_migration_020.py
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -22,7 +23,7 @@ sys.path.insert(0, str(ROOT))
 
 import psycopg2  # type: ignore
 
-from tools.memento_preflight import preflight_check, MementoPreflightError
+from tools.memento_preflight import MementoPreflightError, preflight_check
 
 MIGRATION_SQL_FILE = Path(__file__).parent / "020_memento_contamination_index.sql"
 HILO_ID = "manus_ejecutor_run_migration_020"
@@ -44,8 +45,7 @@ def _run_preflight(db_url: str) -> bool:
             },
             hilo_id=HILO_ID,
             intent_summary=(
-                f"Ejecutar migration {MIGRATION_SQL_FILE.name} (idx + COMMENT) "
-                f"contra Supabase production."
+                f"Ejecutar migration {MIGRATION_SQL_FILE.name} (idx + COMMENT) contra Supabase production."
             ),
         )
     except MementoPreflightError as exc:
@@ -61,8 +61,7 @@ def _run_preflight(db_url: str) -> bool:
         return False
 
     print(
-        f"✓ Pre-flight Memento OK: validation_id={result.validation_id} "
-        f"freshness_s={result.context_freshness_seconds}"
+        f"✓ Pre-flight Memento OK: validation_id={result.validation_id} freshness_s={result.context_freshness_seconds}"
     )
     return True
 
@@ -71,7 +70,7 @@ def _run_migration(db_url: str) -> int:
     """Ejecuta el SQL. Retorna 0 si OK, !=0 si error."""
     sql = MIGRATION_SQL_FILE.read_text(encoding="utf-8")
 
-    print(f"→ Conectando a Supabase…")
+    print("→ Conectando a Supabase…")
     try:
         conn = psycopg2.connect(db_url)
     except Exception as exc:

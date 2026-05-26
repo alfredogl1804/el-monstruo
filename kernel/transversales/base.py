@@ -14,6 +14,7 @@ saas_b2b, ecommerce_artisanal, etc.) y hard constraints per-vertical
 
 Origen: AGENTS.md Regla Dura #2, DSC-G-002.
 """
+
 from __future__ import annotations
 
 import enum
@@ -139,22 +140,16 @@ class TransversalLayer(ABC):
     layer_name: str
 
     @abstractmethod
-    def diagnose(self, ctx: TransversalContext) -> dict[str, Any]:
-        ...
+    def diagnose(self, ctx: TransversalContext) -> dict[str, Any]: ...
 
     @abstractmethod
-    def recommend(self, ctx: TransversalContext) -> TransversalRecommendations:
-        ...
+    def recommend(self, ctx: TransversalContext) -> TransversalRecommendations: ...
 
     @abstractmethod
-    def implement(
-        self, recommendations: TransversalRecommendations
-    ) -> dict[str, Any]:
-        ...
+    def implement(self, recommendations: TransversalRecommendations) -> dict[str, Any]: ...
 
     @abstractmethod
-    def monitor(self, ctx: TransversalContext) -> dict[str, Any]:
-        ...
+    def monitor(self, ctx: TransversalContext) -> dict[str, Any]: ...
 
 
 def all_layers_implemented(layer_names: list[str]) -> bool:
@@ -167,6 +162,7 @@ def all_layers_implemented(layer_names: list[str]) -> bool:
     PRODUCTO_COMERCIALIZABLE (DSC-G-014).
     """
     import importlib
+
     for name in layer_names:
         try:
             mod = importlib.import_module(f"kernel.transversales.{name}")

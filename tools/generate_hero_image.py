@@ -31,6 +31,7 @@ Errores con identidad:
 
 Sprint 85 — 2026-05-04
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -62,19 +63,16 @@ REPLICATE_FLUX_MODEL = os.environ.get(
 REPLICATE_FLUX_COST_USD = 0.04  # $0.04/imagen 1024x1024 (mayo 2026)
 RECRAFT_COST_USD = 0.08  # $0.08/imagen (más caro, fallback)
 
-PLACEHOLDER_BASE_URL = (
-    "https://placehold.co/{width}x{height}/F97316/1C1917"
-    "?text=El+Monstruo+%7C+Hero+Pendiente"
-)
+PLACEHOLDER_BASE_URL = "https://placehold.co/{width}x{height}/F97316/1C1917?text=El+Monstruo+%7C+Hero+Pendiente"
 
 # ── Estilos curados (alineados con verticals) ────────────────────────────────
 ESTILOS_VALIDOS = {
-    "warm_artisan",        # education_arts, ecommerce_artisanal
-    "bold_corporate",      # saas_b2b
+    "warm_artisan",  # education_arts, ecommerce_artisanal
+    "bold_corporate",  # saas_b2b
     "appetizing_natural",  # restaurant
-    "trustworthy_clean",   # professional_services
-    "energetic_youth",     # marketplace_services
-    "minimal_premium",     # default genérico premium
+    "trustworthy_clean",  # professional_services
+    "energetic_youth",  # marketplace_services
+    "minimal_premium",  # default genérico premium
 }
 
 
@@ -224,9 +222,7 @@ async def generate_hero_image(
 
 
 # ── Provider: Replicate Flux 1.1 Pro ─────────────────────────────────────────
-async def _generar_via_replicate(
-    *, prompt: str, width: int, height: int, prompt_hash: str
-) -> HeroImageResult:
+async def _generar_via_replicate(*, prompt: str, width: int, height: int, prompt_hash: str) -> HeroImageResult:
     token = os.environ.get("REPLICATE_API_TOKEN", "")
     if not token:
         return HeroImageResult(
@@ -286,7 +282,7 @@ async def _generar_via_replicate(
                 )
 
             prediction = create_resp.json()
-            prediction_id = prediction.get("id")
+            prediction.get("id")
             poll_url = prediction.get("urls", {}).get("get")
 
             # Poll hasta succeeded/failed (max 60s)
@@ -340,9 +336,7 @@ async def _generar_via_replicate(
 
 
 # ── Provider: Recraft (fallback) ─────────────────────────────────────────────
-async def _generar_via_recraft(
-    *, prompt: str, width: int, height: int, prompt_hash: str
-) -> HeroImageResult:
+async def _generar_via_recraft(*, prompt: str, width: int, height: int, prompt_hash: str) -> HeroImageResult:
     token = os.environ.get("RECRAFT_API_TOKEN", "")
     if not token:
         return HeroImageResult(

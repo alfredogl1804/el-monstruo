@@ -17,16 +17,19 @@ Invocation:
   from oracle_ai_scheduler_adapter import invoke_embryo
   result = invoke_embryo()
 """
+
+import datetime
+import json
 import os
 import sys
-import json
-import datetime
 
 # Resolve paths
 ADAPTER_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(ADAPTER_DIR))
 BRIDGE_DIR = os.path.join(PROJECT_ROOT, "bridge")
-KS_PATH = os.path.join(BRIDGE_DIR, "reactor_vigilia_foundation", "reactor_heartbeat_r0", "scheduler", "scheduler_kill_switch.json")
+KS_PATH = os.path.join(
+    BRIDGE_DIR, "reactor_vigilia_foundation", "reactor_heartbeat_r0", "scheduler", "scheduler_kill_switch.json"
+)
 CONTRACT_PATH = os.path.join(ADAPTER_DIR, "oracle_ai_contract.yaml")
 STATE_PATH = os.path.join(ADAPTER_DIR, "oracle_ai_state.json")
 
@@ -53,6 +56,7 @@ def check_dispatcher_available():
         return False, "Contract file not found"
     try:
         import yaml
+
         with open(CONTRACT_PATH, "r") as f:
             contract = yaml.safe_load(f)
         if not contract.get("allowed_action_classes"):
@@ -88,7 +92,7 @@ def invoke_embryo():
         "verdict": None,
         "embryo_result": None,
         "abort_reason": None,
-        "checks": {}
+        "checks": {},
     }
 
     # CHECK 1: Kill-switch
@@ -111,7 +115,9 @@ def invoke_embryo():
 
     # CHECK 3: Budget headroom
     budget_ok, spent = check_budget_headroom()
-    result["checks"]["budget"] = f"OK (spent: ${spent:.4f}, cap: ${INTEGRATION_BUDGET_CAP})" if budget_ok else f"EXCEEDED (spent: ${spent:.4f})"
+    result["checks"]["budget"] = (
+        f"OK (spent: ${spent:.4f}, cap: ${INTEGRATION_BUDGET_CAP})" if budget_ok else f"EXCEEDED (spent: ${spent:.4f})"
+    )
     if not budget_ok:
         result["verdict"] = "ABORTED"
         result["abort_reason"] = "budget_exceeded"
@@ -123,6 +129,7 @@ def invoke_embryo():
         # Import and call run_once from the embryo module
         sys.path.insert(0, ADAPTER_DIR)
         from oracle_ai_embryo import run_once
+
         embryo_result = run_once()
         result["embryo_result"] = embryo_result
         result["verdict"] = embryo_result.get("verdict", "UNKNOWN")

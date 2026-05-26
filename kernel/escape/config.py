@@ -26,6 +26,7 @@ DSC enforzado:
 - DSC-G-008 v2 (anti-Goodhart): blocked_count tracking obligatorio
 - DSC-S-006 v1.1 (RLS): escape_pulse_log con service_role only
 """
+
 from __future__ import annotations
 
 import os
@@ -124,9 +125,7 @@ def snapshot() -> dict:
         "signed_by": SIGNED_BY,
         "spec_commit": SPEC_COMMIT,
         "registry_consumers": list_registered_consumers(),
-        "effective_intervals_seconds": {
-            c: get_pulse_interval_seconds(c) for c in list_registered_consumers()
-        },
+        "effective_intervals_seconds": {c: get_pulse_interval_seconds(c) for c in list_registered_consumers()},
         "default_energy_per_pulse": str(DEFAULT_ENERGY_CONSUMED_PER_PULSE),
         "bounds_seconds": {
             "min": MIN_PULSE_INTERVAL_SECONDS,

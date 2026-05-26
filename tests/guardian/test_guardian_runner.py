@@ -19,6 +19,7 @@ Filosofia:
   - Smoke + integration livianos: deben correr en <30s.
   - Anti-Goodhart: los tests verifican shape y contratos, NO valores fijos.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -45,6 +46,7 @@ class TestT2Scoring:
 
     def test_compute_all_objectives_returns_15(self):
         from kernel.guardian_runner import scoring
+
         scores = scoring.compute_all_objectives_scores()
         assert isinstance(scores, dict), "debe retornar dict"
         assert len(scores) == 15, f"esperaba 15 objetivos, vino {len(scores)}"
@@ -53,6 +55,7 @@ class TestT2Scoring:
 
     def test_each_objective_has_required_fields(self):
         from kernel.guardian_runner import scoring
+
         scores = scoring.compute_all_objectives_scores()
         for oid, score in scores.items():
             assert hasattr(score, "objective_id"), f"obj {oid}: falta objective_id"
@@ -61,15 +64,13 @@ class TestT2Scoring:
             assert hasattr(score, "status"), f"obj {oid}: falta status"
             assert hasattr(score, "evidence"), f"obj {oid}: falta evidence"
             # score_pct debe ser numerico [0, 100]
-            assert 0 <= score.score_pct <= 100, (
-                f"obj {oid}: score_pct fuera de rango: {score.score_pct}"
-            )
+            assert 0 <= score.score_pct <= 100, f"obj {oid}: score_pct fuera de rango: {score.score_pct}"
             # status debe ser uno de los validos
             # El scoring engine usa 'ok' como status canonico; el runner
             # lo normaliza a 'passing' para el contrato del dashboard.
-            assert score.status in (
-                "ok", "passing", "warning", "critical", "emergency", "error"
-            ), f"obj {oid}: status invalido: {score.status}"
+            assert score.status in ("ok", "passing", "warning", "critical", "emergency", "error"), (
+                f"obj {oid}: status invalido: {score.status}"
+            )
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -85,23 +86,22 @@ class TestT1RunAudit:
         monkeypatch.delenv("SUPABASE_DB_URL", raising=False)
         monkeypatch.delenv("DATABASE_URL", raising=False)
 
-        from kernel.guardian_runner.runner import run_audit, AuditCycleResult
+        from kernel.guardian_runner.runner import AuditCycleResult, run_audit
+
         result = run_audit(trigger="manual", persist=False)
         assert isinstance(result, AuditCycleResult)
         assert result.run_id, "run_id debe estar poblado"
         assert result.trigger == "manual"
         assert result.duration_ms >= 0
         # Agregados consistentes
-        total = (
-            result.passing_count + result.warning_count
-            + result.critical_count + result.emergency_count
-        )
+        total = result.passing_count + result.warning_count + result.critical_count + result.emergency_count
         assert total <= 15, f"total cuenta debe ser <= 15, vino {total}"
         # total_score_pct debe ser numerico [0, 100]
         assert 0 <= result.total_score_pct <= 100
 
     def test_run_audit_invalid_trigger_raises(self):
         from kernel.guardian_runner.runner import run_audit
+
         with pytest.raises(ValueError, match="trigger"):
             run_audit(trigger="invalid_trigger_xyz", persist=False)
 
@@ -111,6 +111,7 @@ class TestT1RunAudit:
         monkeypatch.delenv("DATABASE_URL", raising=False)
 
         from kernel.guardian_runner.runner import run_audit
+
         result = run_audit(trigger="manual", persist=False)
         assert hasattr(result, "objective_scores"), "AuditCycleResult debe tener objective_scores"
         assert isinstance(result.objective_scores, dict)
@@ -128,6 +129,7 @@ class TestT1RunAudit:
         monkeypatch.delenv("DATABASE_URL", raising=False)
 
         from kernel.guardian_runner.runner import run_audit
+
         result = run_audit(trigger="manual", persist=False)
         d = result.to_dict()
         assert d["run_id"] == result.run_id
@@ -151,6 +153,7 @@ class TestT1Handler:
         monkeypatch.setenv("GUARDIAN_HANDLER_PERSIST", "false")
 
         from kernel.guardian_runner.runner import daily_guardian_audit_handler
+
         result = asyncio.run(daily_guardian_audit_handler())
         assert isinstance(result, dict)
         # Keys minimos del contrato del handler
@@ -170,7 +173,8 @@ class TestT3TelegramStub:
         monkeypatch.delenv("TELEGRAM_GUARDIAN_CHAT_ID", raising=False)
         monkeypatch.delenv("GUARDIAN_TELEGRAM_ALERTS", raising=False)
 
-        from kernel.guardian_runner.runner import _emit_telegram_alert, AuditCycleResult
+        from kernel.guardian_runner.runner import AuditCycleResult, _emit_telegram_alert
+
         result = AuditCycleResult(
             run_id="test-run",
             trigger="manual",
@@ -192,7 +196,8 @@ class TestT3TelegramStub:
         hasta que se implemente el envio post-firma humana."""
         monkeypatch.setenv("TELEGRAM_GUARDIAN_CHAT_ID", "fake_chat_id_12345")
 
-        from kernel.guardian_runner.runner import _emit_telegram_alert, AuditCycleResult
+        from kernel.guardian_runner.runner import AuditCycleResult, _emit_telegram_alert
+
         result = AuditCycleResult(
             run_id="test-run-2",
             trigger="manual",
@@ -220,6 +225,7 @@ class TestT4Dashboard:
 
     def test_generate_html_report_with_none_returns_html(self):
         from kernel.guardian_runner.dashboard import generate_html_report
+
         html = generate_html_report(latest=None, history=None)
         assert isinstance(html, str)
         assert "<html" in html.lower()
@@ -229,6 +235,7 @@ class TestT4Dashboard:
 
     def test_generate_html_report_with_data(self):
         from kernel.guardian_runner.dashboard import generate_html_report
+
         latest = {
             "run_id": "test-uuid",
             "trigger": "manual",
@@ -258,6 +265,7 @@ class TestT4Dashboard:
 
     def test_classify_levels(self):
         from kernel.guardian_runner.dashboard import _classify
+
         assert _classify(95.0) == "passing"
         assert _classify(80.0) == "passing"
         assert _classify(70.0) == "warning"
@@ -267,6 +275,7 @@ class TestT4Dashboard:
 
     def test_html_escape_xss_protection(self):
         from kernel.guardian_runner.dashboard import _html_escape
+
         evil = '<script>alert("xss")</script>'
         escaped = _html_escape(evil)
         assert "<script>" not in escaped
@@ -290,8 +299,7 @@ class TestT6PreCommitHook:
         assert hook_path.exists(), f"hook no existe en {hook_path}"
 
         # Limpiar env para el subprocess
-        clean_env = {k: v for k, v in os.environ.items()
-                     if k not in ("SUPABASE_DB_URL", "DATABASE_URL")}
+        clean_env = {k: v for k, v in os.environ.items() if k not in ("SUPABASE_DB_URL", "DATABASE_URL")}
         result = subprocess.run(
             [sys.executable, str(hook_path)],
             capture_output=True,
@@ -300,8 +308,7 @@ class TestT6PreCommitHook:
             env=clean_env,
         )
         assert result.returncode == 0, (
-            f"hook debe retornar 0 sin DB URL, vino {result.returncode}. "
-            f"stderr: {result.stderr}"
+            f"hook debe retornar 0 sin DB URL, vino {result.returncode}. stderr: {result.stderr}"
         )
         # Banner OK skip debe aparecer
         assert "skip" in result.stderr.lower() or "OK" in result.stderr
@@ -335,16 +342,14 @@ class TestT1Wiring:
             asyncio.get_event_loop()
         except RuntimeError:
             asyncio.set_event_loop(asyncio.new_event_loop())
-        from kernel.embrion_scheduler import (
-            EmbrionScheduler, register_default_tasks
-        )
+        from kernel.embrion_scheduler import EmbrionScheduler, register_default_tasks
+
         scheduler = EmbrionScheduler(db=None)
         register_default_tasks(scheduler)
         # `get_all_tasks()` puede retornar dicts (.to_dict()) o ScheduledTask
         # objects dependiendo de la version. Soportamos ambos via attr/key access.
         raw_tasks = (
-            scheduler.get_all_tasks() if hasattr(scheduler, "get_all_tasks")
-            else list(scheduler._tasks.values())
+            scheduler.get_all_tasks() if hasattr(scheduler, "get_all_tasks") else list(scheduler._tasks.values())
         )
 
         def _get(t, key, default=None):
@@ -355,9 +360,7 @@ class TestT1Wiring:
             return default
 
         names = [_get(t, "name") for t in raw_tasks]
-        assert "daily_guardian_audit" in names, (
-            f"daily_guardian_audit no encontrada. Tasks: {names}"
-        )
+        assert "daily_guardian_audit" in names, f"daily_guardian_audit no encontrada. Tasks: {names}"
         # Verificar schedule daily @ 3am UTC
         ga = next(t for t in raw_tasks if _get(t, "name") == "daily_guardian_audit")
         assert _get(ga, "schedule_type") == "daily"
@@ -366,11 +369,8 @@ class TestT1Wiring:
         assert _get(ga, "max_cost_usd", 0.0) <= 0.20, "cap de costo debe ser bajo"
 
     def test_register_stub_handlers_includes_guardian_audit(self):
-        from kernel.embrion_scheduler import (
-            EmbrionScheduler, register_stub_handlers
-        )
+        from kernel.embrion_scheduler import EmbrionScheduler, register_stub_handlers
+
         scheduler = EmbrionScheduler(db=None)
         register_stub_handlers(scheduler)
-        assert "daily_guardian_audit" in scheduler._handlers, (
-            "handler stub debe estar registrado"
-        )
+        assert "daily_guardian_audit" in scheduler._handlers, "handler stub debe estar registrado"

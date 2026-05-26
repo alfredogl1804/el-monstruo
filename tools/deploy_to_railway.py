@@ -19,6 +19,7 @@ Brand:
 - Logs:    deploy_railway_started, deploy_railway_completed,
            deploy_railway_build_timeout
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -70,19 +71,13 @@ async def _graphql(query: str, variables: dict[str, Any] | None = None) -> dict[
         async with session.post(RAILWAY_API_URL, headers=headers, json=payload) as resp:
             text = await resp.text()
             if resp.status >= 400:
-                raise RailwayDeployFalla(
-                    f"deploy_railway_http_{resp.status}: {text[:500]}"
-                )
+                raise RailwayDeployFalla(f"deploy_railway_http_{resp.status}: {text[:500]}")
             try:
                 data = await resp.json(content_type=None)
             except Exception as e:
-                raise RailwayDeployFalla(
-                    f"deploy_railway_json_decode: {e} | body={text[:200]}"
-                ) from e
+                raise RailwayDeployFalla(f"deploy_railway_json_decode: {e} | body={text[:200]}") from e
             if "errors" in data and data["errors"]:
-                raise RailwayDeployFalla(
-                    f"deploy_railway_graphql_errors: {data['errors']}"
-                )
+                raise RailwayDeployFalla(f"deploy_railway_graphql_errors: {data['errors']}")
             return data.get("data", {})
 
 
@@ -134,16 +129,13 @@ async def _resolve_workspace_id() -> str:
     workspaces = (data.get("me") or {}).get("workspaces", []) or []
     if not workspaces:
         raise RailwayDeployFalla(
-            "deploy_railway_no_workspaces: la cuenta no tiene workspaces. "
-            "Crea uno en https://railway.com/dashboard."
+            "deploy_railway_no_workspaces: la cuenta no tiene workspaces. Crea uno en https://railway.com/dashboard."
         )
     first = workspaces[0] or {}
     ws_id = first.get("id")
     ws_name = first.get("name", "unknown")
     if not ws_id:
-        raise RailwayDeployFalla(
-            f"deploy_railway_workspace_sin_id: workspaces={workspaces[:2]}"
-        )
+        raise RailwayDeployFalla(f"deploy_railway_workspace_sin_id: workspaces={workspaces[:2]}")
     _WORKSPACE_ID_CACHE["id"] = ws_id
     logger.info(
         "deploy_railway_workspace_resolved",
@@ -152,6 +144,7 @@ async def _resolve_workspace_id() -> str:
         workspace_name=ws_name,
     )
     return ws_id
+
 
 _Q_PROJECT_DETAIL = """
 query project($id: String!) {
@@ -230,13 +223,9 @@ async def deploy_to_railway(
         }
     """
     if not RAILWAY_TOKEN:
-        raise RailwayMissingToken(
-            "deploy_railway_missing_token: RAILWAY_API_TOKEN no está configurada."
-        )
+        raise RailwayMissingToken("deploy_railway_missing_token: RAILWAY_API_TOKEN no está configurada.")
     if "/" not in repo:
-        raise RailwayDeployFalla(
-            f"deploy_railway_repo_invalido: '{repo}' no es 'owner/repo'."
-        )
+        raise RailwayDeployFalla(f"deploy_railway_repo_invalido: '{repo}' no es 'owner/repo'.")
 
     logger.info(
         "deploy_railway_started",
@@ -267,9 +256,7 @@ async def deploy_to_railway(
             raise
     project_id = proj_data.get("projectCreate", {}).get("id")
     if not project_id:
-        raise RailwayDeployFalla(
-            f"deploy_railway_project_create_fallido: {proj_data}"
-        )
+        raise RailwayDeployFalla(f"deploy_railway_project_create_fallido: {proj_data}")
 
     # 2. Obtener environment_id (el 'production' default se crea con el proyecto)
     detail = await _graphql(_Q_PROJECT_DETAIL, {"id": project_id})
@@ -302,9 +289,7 @@ async def deploy_to_railway(
     )
     service_id = svc_data.get("serviceCreate", {}).get("id")
     if not service_id:
-        raise RailwayDeployFalla(
-            f"deploy_railway_service_create_fallido: {svc_data}"
-        )
+        raise RailwayDeployFalla(f"deploy_railway_service_create_fallido: {svc_data}")
 
     # 4. Inyectar env vars (antes del primer deploy)
     if env_vars:

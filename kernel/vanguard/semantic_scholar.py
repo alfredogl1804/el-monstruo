@@ -11,8 +11,9 @@ Soberanía:
     - httpx: alternativa → requests (sync) o aiohttp (async)
 """
 
-import structlog
 from typing import Optional
+
+import structlog
 
 logger = structlog.get_logger("vanguard.semantic_scholar")
 
@@ -51,6 +52,7 @@ class SemanticScholarClient:
     def __init__(self):
         try:
             import httpx
+
             self._client = httpx.AsyncClient(timeout=30)
             self._httpx_available = True
         except ImportError:
@@ -180,8 +182,8 @@ class SemanticScholarClient:
             arXiv API: completamente gratuita, sin rate limits agresivos
         """
         try:
-            import urllib.request
             import urllib.parse
+            import urllib.request
             import xml.etree.ElementTree as ET
 
             encoded_query = urllib.parse.quote(query)
@@ -201,14 +203,16 @@ class SemanticScholarClient:
                 title_el = entry.find("atom:title", ns)
                 summary_el = entry.find("atom:summary", ns)
                 id_el = entry.find("atom:id", ns)
-                papers.append({
-                    "paperId": id_el.text if id_el is not None else "",
-                    "title": title_el.text.strip() if title_el is not None else "",
-                    "abstract": summary_el.text.strip() if summary_el is not None else "",
-                    "citationCount": 0,
-                    "url": id_el.text if id_el is not None else "",
-                    "source": "arxiv",
-                })
+                papers.append(
+                    {
+                        "paperId": id_el.text if id_el is not None else "",
+                        "title": title_el.text.strip() if title_el is not None else "",
+                        "abstract": summary_el.text.strip() if summary_el is not None else "",
+                        "citationCount": 0,
+                        "url": id_el.text if id_el is not None else "",
+                        "source": "arxiv",
+                    }
+                )
 
             logger.info("arxiv_fallback_success", query=query, count=len(papers))
             return papers

@@ -14,10 +14,10 @@ realidad de producción:
 Mapping verbatim: bridge/manus_to_cowork_S89_V2_MAPPING_2026_05_12.md
 """
 
-from kernel.catastros.base import CatastroBase
-from kernel.catastros.modelos_llm import CatastroModelosLLM
 from kernel.catastros.agentes_2026 import CatastroAgentes2026
+from kernel.catastros.base import CatastroBase
 from kernel.catastros.herramientas_ai import CatastroHerramientasAI
+from kernel.catastros.modelos_llm import CatastroModelosLLM
 from kernel.catastros.suppliers_humanos import CatastroSuppliers
 
 __all__ = [

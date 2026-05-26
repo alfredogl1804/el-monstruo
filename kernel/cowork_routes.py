@@ -31,22 +31,23 @@ Refs:
   - kernel/cowork_runtime/session_memory.py (T3)
   - kernel/cowork_runtime/drift_detector.py (T7)
 """
+
 from __future__ import annotations
 
 import os
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Optional
 
 import structlog
 from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
-from kernel.cowork_runtime.session_memory import SessionMemoryStore
 from kernel.cowork_runtime.drift_detector import (
-    DriftDetector,
     DriftAction,
+    DriftDetector,
     SessionDriftState,
 )
+from kernel.cowork_runtime.session_memory import SessionMemoryStore
 
 logger = structlog.get_logger(__name__)
 
@@ -54,6 +55,7 @@ logger = structlog.get_logger(__name__)
 # =============================================================================
 # Auth helper (reusa MONSTRUO_API_KEY, mismo patron que memento)
 # =============================================================================
+
 
 def require_cowork_admin_key(request: Request) -> None:
     """
@@ -86,8 +88,10 @@ def require_cowork_admin_key(request: Request) -> None:
 # Modelos Pydantic
 # =============================================================================
 
+
 class CoworkValidateRequest(BaseModel):
     """Request body para POST /v1/cowork/memento/validate."""
+
     hilo_solicitante: str = Field(
         ...,
         description="Identificador del hilo Manus que valida (ej: 'hilo_ejecutor_t1').",
@@ -101,6 +105,7 @@ class CoworkValidateRequest(BaseModel):
 
 class CoworkValidateResponse(BaseModel):
     """Respuesta del endpoint."""
+
     cowork_fresco: bool = Field(..., description="Si Cowork esta operando con contexto fresco.")
     razon: str = Field(..., description="Explicacion humano-leible.")
     drift_action: str = Field(..., description="Accion recomendada: no_op|reinject|force_preflight|hard_halt.")
@@ -160,6 +165,7 @@ async def validate_cowork_memento(
     if isinstance(violaciones, str):
         try:
             import json
+
             violaciones = json.loads(violaciones)
         except Exception:
             violaciones = []
@@ -175,11 +181,7 @@ async def validate_cowork_memento(
     signal = detector.evaluate(state)
 
     # Determinar fresco binario
-    cowork_fresco = (
-        pre_flight_ok
-        and signal.action in (DriftAction.NO_OP,)
-        and n_violaciones < 3
-    )
+    cowork_fresco = pre_flight_ok and signal.action in (DriftAction.NO_OP,) and n_violaciones < 3
 
     razon_partes = []
     if pre_flight_ok:
@@ -204,10 +206,18 @@ async def validate_cowork_memento(
 
     # Ultima sesion: dict slim para no enviar todo el payload
     ultima_slim = {
-        k: ultima.get(k) for k in (
-            "id", "fecha_inicio", "fecha_fin", "duracion_minutos",
-            "sprint_activo", "pre_flight_ejecutado", "commits_productivos",
-            "turnos_totales", "kernel_version", "embrion_ultimo_latido",
+        k: ultima.get(k)
+        for k in (
+            "id",
+            "fecha_inicio",
+            "fecha_fin",
+            "duracion_minutos",
+            "sprint_activo",
+            "pre_flight_ejecutado",
+            "commits_productivos",
+            "turnos_totales",
+            "kernel_version",
+            "embrion_ultimo_latido",
         )
     }
 

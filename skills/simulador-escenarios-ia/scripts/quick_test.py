@@ -3,6 +3,7 @@
 Test rápido del Simulador Universal.
 Verifica conectividad con el motor y ejecuta una simulación mínima.
 """
+
 import json
 import sys
 import time

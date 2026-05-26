@@ -2,6 +2,7 @@
 Provider Registry Guard v1.0
 Prevents provider drift, deprecated models, and unauthorized access during M2 cycles.
 """
+
 import json
 import os
 
@@ -26,12 +27,18 @@ def validate_provider_allowed(provider_id, model_id, registry=None):
     entry = providers[provider_id]
 
     if entry["status"] not in ("ALLOWED",):
-        return False, f"DENY: Provider '{provider_id}' status is '{entry['status']}'. Reason: {entry.get('reason', 'N/A')}"
+        return (
+            False,
+            f"DENY: Provider '{provider_id}' status is '{entry['status']}'. Reason: {entry.get('reason', 'N/A')}",
+        )
 
     if model_id != entry["model"]:
         if model_id in entry.get("deprecated_models", []):
             return False, f"DENY: Model '{model_id}' is deprecated for provider '{provider_id}'."
-        return False, f"DENY: Model '{model_id}' is not the registered model for '{provider_id}'. Expected: '{entry['model']}'."
+        return (
+            False,
+            f"DENY: Model '{model_id}' is not the registered model for '{provider_id}'. Expected: '{entry['model']}'.",
+        )
 
     return True, "ALLOWED"
 
@@ -94,5 +101,5 @@ def estimate_budget_for_cycle(registry=None):
         "providers_count": num_providers,
         "max_calls_per_provider": max_calls,
         "retries": budget.get("retries", 0),
-        "estimated_max_cost": max_per_cycle
+        "estimated_max_cost": max_per_cycle,
     }

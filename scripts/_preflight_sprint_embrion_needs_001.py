@@ -44,6 +44,7 @@ HEADERS = {
 
 # -------- helpers --------------------------------------------------------------
 
+
 def supa_rest(path, params=None, prefer=None):
     """GET a la REST API de Supabase. Devuelve (status, body_json)."""
     url = f"{SUPA_URL}/rest/v1/{path}"
@@ -57,6 +58,7 @@ def supa_rest(path, params=None, prefer=None):
         body = r.text
     return r.status_code, body, r.headers
 
+
 def supa_rpc_sql(sql_text):
     """
     Supabase no expone /rest/v1/rpc/_sql arbitrario sin función previa.
@@ -68,13 +70,16 @@ def supa_rpc_sql(sql_text):
     """
     return False, None, "rpc_sql_no_disponible_usar_mcp_o_filtro_postgrest"
 
+
 def section(title):
     print()
     print("=" * 70)
     print(title)
     print("=" * 70)
 
+
 # -------- paso 1: validar 2 mensaje_alfredo via cowork_bridge -----------------
+
 
 def paso_1():
     section("PASO 1 — Validar 2 mensaje_alfredo via cowork_bridge del 10 mayo")
@@ -112,7 +117,9 @@ def paso_1():
         "rows": rows,
     }
 
+
 # -------- paso 2: validar respuesta del embrion --------------------------------
+
 
 def paso_2():
     section("PASO 2 — Validar respuesta del embrion (Recibido + 0.25)")
@@ -149,7 +156,9 @@ def paso_2():
         "first_match": matching[0] if matching else None,
     }
 
+
 # -------- paso 3: snapshot del estado -----------------------------------------
+
 
 def paso_3():
     section("PASO 3 — Snapshot estado actual (count por tipo + costo 14d)")
@@ -167,7 +176,7 @@ def paso_3():
     counts_sorted = sorted(counts.items(), key=lambda x: -x[1])
 
     print(f"  Total filas embrion_memoria: {total} (count={len(rows)})")
-    print(f"  Distribución por tipo:")
+    print("  Distribución por tipo:")
     for t, c in counts_sorted:
         print(f"    {t:30s} {c:6d}")
 
@@ -184,6 +193,7 @@ def paso_3():
 
     # Agrupar por dia y sumar cost_usd
     from collections import defaultdict
+
     cost_by_day = defaultdict(lambda: {"respuestas": 0, "costo_usd": 0.0})
     for r in resps:
         created = r.get("created_at", "")[:10]
@@ -200,22 +210,20 @@ def paso_3():
             pass
 
     print()
-    print(f"  Respuestas embrion últimos 14 días:")
+    print("  Respuestas embrion últimos 14 días:")
     print(f"    {'fecha':12s} {'resps':>8s} {'costo_usd':>12s}")
     for day in sorted(cost_by_day.keys(), reverse=True):
         d = cost_by_day[day]
         print(f"    {day:12s} {d['respuestas']:>8d} {d['costo_usd']:>12.4f}")
 
     # Escribir el snapshot a bridge/
-    snapshot_path = os.path.join(
-        REPO_ROOT, "bridge", "snapshot_pre_sprint_embrion_needs_001_2026_05_10.md"
-    )
+    snapshot_path = os.path.join(REPO_ROOT, "bridge", "snapshot_pre_sprint_embrion_needs_001_2026_05_10.md")
     lines = [
         "# Snapshot pre-Sprint EMBRION-NEEDS-001",
         "",
         f"**Generado:** {datetime.now(timezone.utc).isoformat()}",
-        f"**Por:** Manus pre-flight script",
-        f"**Sprint:** EMBRION-NEEDS-001",
+        "**Por:** Manus pre-flight script",
+        "**Sprint:** EMBRION-NEEDS-001",
         "",
         "## Distribución por tipo en `embrion_memoria`",
         "",
@@ -253,7 +261,7 @@ def paso_3():
 
     print()
     print(f"  Snapshot escrito en: {snapshot_path}")
-    print(f"  >>> RESULTADO: PASS")
+    print("  >>> RESULTADO: PASS")
 
     return {
         "paso": 3,
@@ -265,14 +273,18 @@ def paso_3():
         "snapshot_path": snapshot_path,
     }
 
+
 # -------- paso 4: validar acceso GitHub ---------------------------------------
+
 
 def paso_4():
     section("PASO 4 — Validar acceso GitHub")
     try:
         out = subprocess.run(
             ["gh", "auth", "status"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         print(out.stdout or "")
         print(out.stderr or "")
@@ -291,9 +303,11 @@ def paso_4():
         env["NO_COLOR"] = "1"
         env["CLICOLOR"] = "0"
         out2 = subprocess.run(
-            ["gh", "repo", "view", "alfredogl1804/el-monstruo",
-             "--json", "name,viewerPermission,defaultBranchRef"],
-            capture_output=True, text=True, timeout=15, env=env,
+            ["gh", "repo", "view", "alfredogl1804/el-monstruo", "--json", "name,viewerPermission,defaultBranchRef"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            env=env,
         )
         raw = (out2.stdout or "").strip()
         # Strip ANSI escape codes (gh los emite incluso con NO_COLOR en Macs)
@@ -312,7 +326,9 @@ def paso_4():
         print(f"  ERROR: {e}")
 
     ok = ok_auth and ok_repo
-    print(f"  Auth OK: {ok_auth} | Permisos repo: {data.get('viewerPermission', '?')} | Branch protegido: {data.get('defaultBranchRef',{}).get('branchProtectionRule') is not None}")
+    print(
+        f"  Auth OK: {ok_auth} | Permisos repo: {data.get('viewerPermission', '?')} | Branch protegido: {data.get('defaultBranchRef', {}).get('branchProtectionRule') is not None}"
+    )
     print(f"  >>> RESULTADO: {'PASS' if ok else 'FAIL'}")
     return {
         "paso": 4,
@@ -322,7 +338,9 @@ def paso_4():
         "repo_data": data,
     }
 
+
 # -------- paso 5: confirmar canal HITL ----------------------------------------
+
 
 def paso_5():
     section("PASO 5 — Confirmar canal HITL (Cowork bridge temporal)")
@@ -335,7 +353,7 @@ def paso_5():
     print()
     print("  Esto es protocolo declarado en el handoff (lineas 98-104).")
     print("  No requiere validacion runtime — es un protocolo de comunicacion.")
-    print(f"  >>> RESULTADO: PASS (acordado)")
+    print("  >>> RESULTADO: PASS (acordado)")
     return {
         "paso": 5,
         "titulo": "Canal HITL confirmado: Cowork bridge + chat Manus",
@@ -343,11 +361,13 @@ def paso_5():
         "policy": "embrion_memoria insert + chat directo Manus mientras Tarea 4 pendiente",
     }
 
+
 # -------- main ----------------------------------------------------------------
+
 
 def main():
     started = datetime.now(timezone.utc).isoformat()
-    print(f"Pre-flight Sprint EMBRION-NEEDS-001")
+    print("Pre-flight Sprint EMBRION-NEEDS-001")
     print(f"Inicio: {started}")
     print(f"Project ref: {PROJECT_REF}")
 
@@ -356,11 +376,13 @@ def main():
         try:
             results.append(fn())
         except Exception as e:
-            results.append({
-                "paso": "?",
-                "ok": False,
-                "error": f"{type(e).__name__}: {e}",
-            })
+            results.append(
+                {
+                    "paso": "?",
+                    "ok": False,
+                    "error": f"{type(e).__name__}: {e}",
+                }
+            )
 
     # Veredicto final
     section("VEREDICTO FINAL")
@@ -369,7 +391,7 @@ def main():
     if fails:
         print(f"  Pasos FAIL: {len(fails)}")
         for r in fails:
-            print(f"    - paso {r.get('paso')}: {r.get('titulo','?')}")
+            print(f"    - paso {r.get('paso')}: {r.get('titulo', '?')}")
         print()
         print("  >>> NO-GO. Escalá a Alfredo antes de arrancar Tarea 1.")
         verdict = "NO-GO"
@@ -383,15 +405,21 @@ def main():
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, "_preflight_sprint_embrion_needs_001.json")
     with open(out_path, "w") as f:
-        json.dump({
-            "started_at": started,
-            "completed_at": datetime.now(timezone.utc).isoformat(),
-            "verdict": verdict,
-            "results": results,
-        }, f, indent=2, default=str)
+        json.dump(
+            {
+                "started_at": started,
+                "completed_at": datetime.now(timezone.utc).isoformat(),
+                "verdict": verdict,
+                "results": results,
+            },
+            f,
+            indent=2,
+            default=str,
+        )
     print(f"  Telemetría completa: {out_path}")
 
     sys.exit(0 if verdict == "GO" else 2)
+
 
 if __name__ == "__main__":
     main()

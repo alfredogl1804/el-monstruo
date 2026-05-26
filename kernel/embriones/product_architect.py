@@ -27,10 +27,10 @@ el Brief evita ambigüedad).
 
 Sprint 85 — 2026-05-04
 """
+
 from __future__ import annotations
 
 import json
-import os
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -72,12 +72,12 @@ PRODUCT_ARCHITECT_BRIEF_INVALIDO = (
 
 # ── Verticales soportados (Bloque 6) ─────────────────────────────────────────
 VERTICALES_VALIDOS = [
-    "education_arts",          # Talleres, escuelas, academias creativas
-    "saas_b2b",                # Software B2B, dashboards, herramientas pro
-    "restaurant",              # Restaurantes, cafés, catering
-    "professional_services",   # Consultoría, abogados, contadores, agencias
-    "ecommerce_artisanal",     # E-commerce de productos artesanales/premium
-    "marketplace_services",    # Marketplaces de servicios locales
+    "education_arts",  # Talleres, escuelas, academias creativas
+    "saas_b2b",  # Software B2B, dashboards, herramientas pro
+    "restaurant",  # Restaurantes, cafés, catering
+    "professional_services",  # Consultoría, abogados, contadores, agencias
+    "ecommerce_artisanal",  # E-commerce de productos artesanales/premium
+    "marketplace_services",  # Marketplaces de servicios locales
 ]
 
 # ── HOTFIX Sprint 85 (post-audit Sprint 84.5) ────────────────────────────
@@ -97,29 +97,89 @@ VERTICALES_VALIDOS = [
 
 VERTICALES_KEYWORDS: dict[str, list[str]] = {
     "education_arts": [
-        "taller", "clase", "curso", "academia", "escuela", "estudio", "ballet",
-        "música", "música", "arte", "danza", "pintura", "yoga", "talleres",
-        "aprender", "enseñar", "alumnos", "alumnas",
+        "taller",
+        "clase",
+        "curso",
+        "academia",
+        "escuela",
+        "estudio",
+        "ballet",
+        "música",
+        "música",
+        "arte",
+        "danza",
+        "pintura",
+        "yoga",
+        "talleres",
+        "aprender",
+        "enseñar",
+        "alumnos",
+        "alumnas",
     ],
     "saas_b2b": [
-        "saas", "software", "plataforma", "dashboard", "api", "herramienta",
-        "automatización", "crm", "erp", "b2b", "empresas", "integración",
+        "saas",
+        "software",
+        "plataforma",
+        "dashboard",
+        "api",
+        "herramienta",
+        "automatización",
+        "crm",
+        "erp",
+        "b2b",
+        "empresas",
+        "integración",
     ],
     "restaurant": [
-        "restaurante", "café", "cafetería", "menú", "comida", "cocina",
-        "chef", "delivery", "reservar", "platillos", "bebidas", "bar",
+        "restaurante",
+        "café",
+        "cafetería",
+        "menú",
+        "comida",
+        "cocina",
+        "chef",
+        "delivery",
+        "reservar",
+        "platillos",
+        "bebidas",
+        "bar",
     ],
     "professional_services": [
-        "consultoría", "abogado", "contador", "asesoría", "agencia", "estudio",
-        "despacho", "consultor", "freelance", "servicios profesionales",
+        "consultoría",
+        "abogado",
+        "contador",
+        "asesoría",
+        "agencia",
+        "estudio",
+        "despacho",
+        "consultor",
+        "freelance",
+        "servicios profesionales",
     ],
     "ecommerce_artisanal": [
-        "tienda", "producto", "artesanal", "hecho a mano", "venta", "carrito",
-        "comprar", "envío", "boutique", "marca", "premium", "limited edition",
+        "tienda",
+        "producto",
+        "artesanal",
+        "hecho a mano",
+        "venta",
+        "carrito",
+        "comprar",
+        "envío",
+        "boutique",
+        "marca",
+        "premium",
+        "limited edition",
     ],
     "marketplace_services": [
-        "marketplace", "directorio", "buscar", "comparar", "reservar online",
-        "marketplace local", "proveedores", "categorías", "filtros",
+        "marketplace",
+        "directorio",
+        "buscar",
+        "comparar",
+        "reservar online",
+        "marketplace local",
+        "proveedores",
+        "categorías",
+        "filtros",
     ],
 }
 
@@ -165,9 +225,7 @@ class Brief:
     architect_cost_usd: float = 0.0
     architect_duration_ms: int = 0
     brief_id: Optional[str] = None  # Asignado al persistir en DB
-    created_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def is_complete(self) -> bool:
         """True si no hay data_missing crítica."""
@@ -271,9 +329,7 @@ class ProductArchitect:
 
         if vertical not in VERTICALES_VALIDOS:
             raise EmbrionProductArchitectError(
-                PRODUCT_ARCHITECT_VERTICAL_DESCONOCIDO.format(
-                    vertical=vertical, validos=", ".join(VERTICALES_VALIDOS)
-                )
+                PRODUCT_ARCHITECT_VERTICAL_DESCONOCIDO.format(vertical=vertical, validos=", ".join(VERTICALES_VALIDOS))
             )
 
         # Paso 2: Cargar template del vertical
@@ -281,13 +337,9 @@ class ProductArchitect:
 
         # Paso 3: Generar Brief estructurado (LLM o heurístico)
         if self._sabios:
-            brief = await self._generar_brief_con_llm(
-                full_prompt, vertical, template
-            )
+            brief = await self._generar_brief_con_llm(full_prompt, vertical, template)
         else:
-            brief = self._generar_brief_heuristico(
-                full_prompt, vertical, template
-            )
+            brief = self._generar_brief_heuristico(full_prompt, vertical, template)
 
         # Paso 4: Validar schema
         self._validar_brief(brief)
@@ -297,9 +349,7 @@ class ProductArchitect:
             brief.user_question_emitted = self._construir_user_question(brief)
 
         # Paso 6: Métricas
-        elapsed_ms = int(
-            (datetime.now(timezone.utc) - started).total_seconds() * 1000
-        )
+        elapsed_ms = int((datetime.now(timezone.utc) - started).total_seconds() * 1000)
         brief.architect_duration_ms = elapsed_ms
 
         # Paso 7: Persistir si hay DB
@@ -349,9 +399,7 @@ class ProductArchitect:
         confidence = scores[best] / total if total > 0 else 0.0
         return (best, confidence)
 
-    async def _refinar_vertical_con_llm(
-        self, prompt: str, vertical_inicial: str
-    ) -> str:
+    async def _refinar_vertical_con_llm(self, prompt: str, vertical_inicial: str) -> str:
         """Pregunta al LLM cuál vertical es el correcto cuando hay ambigüedad."""
         verticales_str = "\n".join(f"- {v}" for v in VERTICALES_VALIDOS)
         llm_prompt = f"""Eres el Product Architect del Monstruo.
@@ -470,11 +518,14 @@ JSON:"""
         defaults = template.get("defaults", {})
         client_brand = defaults.get("client_brand", {})
         product_meta = defaults.get("product_meta", {})
-        structure = defaults.get("structure", {
-            "sections": ["hero", "about", "services", "contact"],
-            "primary_cta": "Contactar",
-            "hero_message": "Pendiente — completar con info del cliente",
-        })
+        structure = defaults.get(
+            "structure",
+            {
+                "sections": ["hero", "about", "services", "contact"],
+                "primary_cta": "Contactar",
+                "hero_message": "Pendiente — completar con info del cliente",
+            },
+        )
 
         return Brief(
             prompt_original=prompt,
@@ -494,9 +545,7 @@ JSON:"""
         missing = BRIEF_SCHEMA_KEYS - set(d.keys())
         if missing:
             raise EmbrionProductArchitectError(
-                PRODUCT_ARCHITECT_BRIEF_INVALIDO.format(
-                    missing_keys=", ".join(sorted(missing))
-                )
+                PRODUCT_ARCHITECT_BRIEF_INVALIDO.format(missing_keys=", ".join(sorted(missing)))
             )
 
     # ── User question ──────────────────────────────────────────────────
@@ -511,15 +560,14 @@ JSON:"""
             elif key == "product_meta.value_proposition":
                 partes.append("¿Cuál es el valor diferenciador (qué hace único a este negocio)?")
             elif key == "structure.primary_cta":
-                partes.append("¿Cuál es la acción principal que debe hacer el visitante (reservar, comprar, contactar)?")
+                partes.append(
+                    "¿Cuál es la acción principal que debe hacer el visitante (reservar, comprar, contactar)?"
+                )
 
         if not partes:
             return ""
 
-        return (
-            "Para construir un sitio comercializable necesito 3 datos:\n"
-            + "\n".join(f"  • {p}" for p in partes)
-        )
+        return "Para construir un sitio comercializable necesito 3 datos:\n" + "\n".join(f"  • {p}" for p in partes)
 
     # ── Helpers ─────────────────────────────────────────────────────────
     @staticmethod

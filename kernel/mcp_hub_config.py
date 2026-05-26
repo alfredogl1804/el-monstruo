@@ -13,6 +13,7 @@ Arquitectura (Biblia Manus v3 — Tool Masking pattern):
 Sprint 55.1 | Validated: mcp==1.27.0, fastmcp==3.2.4
 Biblia de referencia: Manus v3 (Tool Masking, SSE transport)
 """
+
 from __future__ import annotations
 
 import json
@@ -27,6 +28,7 @@ logger = structlog.get_logger("kernel.mcp_hub")
 @dataclass
 class MCPHubStatus:
     """Estado completo del MCP Hub."""
+
     total_servers: int = 0
     active_servers: int = 0
     total_tools: int = 0
@@ -63,8 +65,8 @@ class MCPHub:
             manager: Instancia de MCPClientManager (kernel.mcp_client)
         """
         self._manager = manager
-        self._usage_stats: dict[str, int] = {}   # server_name → call_count
-        self._masked_servers: set[str] = set()   # Servidores enmascarados (Manus v3 pattern)
+        self._usage_stats: dict[str, int] = {}  # server_name → call_count
+        self._masked_servers: set[str] = set()  # Servidores enmascarados (Manus v3 pattern)
 
     @property
     def status(self) -> MCPHubStatus:
@@ -99,6 +101,7 @@ class MCPHub:
             # Descubrir herramientas del nuevo servidor
             tools = await session.list_tools()
             from kernel.mcp_client import MCPTool
+
             for tool in tools.tools:
                 mcp_tool = MCPTool(
                     server_name=config.name,
@@ -149,11 +152,7 @@ class MCPHub:
         """
         if not hasattr(self._manager, "_tools"):
             return []
-        return [
-            t.qualified_name
-            for t in self._manager._tools
-            if t.server_name not in self._masked_servers
-        ]
+        return [t.qualified_name for t in self._manager._tools if t.server_name not in self._masked_servers]
 
     def record_usage(self, server_name: str) -> None:
         """Registrar uso de un servidor MCP."""
@@ -170,11 +169,14 @@ class MCPHub:
     def to_json(self) -> str:
         """Serializar estado completo del hub a JSON."""
         status = self.status
-        return json.dumps({
-            **status.to_dict(),
-            "masked_servers": list(self._masked_servers),
-            "usage_stats": self._usage_stats,
-        }, default=str)
+        return json.dumps(
+            {
+                **status.to_dict(),
+                "masked_servers": list(self._masked_servers),
+                "usage_stats": self._usage_stats,
+            },
+            default=str,
+        )
 
 
 # ── Singleton global ──────────────────────────────────────────────────────────

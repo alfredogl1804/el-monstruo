@@ -128,20 +128,20 @@ Para sembrar al endpoint /v1/error-memory/seed:
 
 Sin red disponible, este archivo solo imprime el JSON sin invocar HTTP.
 """
+
 from __future__ import annotations
+
 import json
 import os
 import sys
-import urllib.request
 import urllib.error
+import urllib.request
 
 SEED = {
     "id": "catastro-schema-authority-unico-pydantic-from-sql",
     "categoria": "infraestructura_anti_drift",
     "severidad": "alta",
-    "titulo": (
-        "Schema authority unico: Pydantic generado desde SQL como fuente de verdad"
-    ),
+    "titulo": ("Schema authority unico: Pydantic generado desde SQL como fuente de verdad"),
     "lección": (
         "Las definiciones Pydantic que espejan tablas SQL deben generarse "
         "automaticamente desde las migrations DDL, no escribirse a mano. "
@@ -202,10 +202,7 @@ def main() -> int:
     print(json.dumps(SEED, indent=2, ensure_ascii=False))
     print("=" * 76)
     if not api_key:
-        print(
-            "[INFO] MONSTRUO_API_KEY no presente en el entorno. "
-            "Mostrando JSON solamente. No se invoca HTTP."
-        )
+        print("[INFO] MONSTRUO_API_KEY no presente en el entorno. Mostrando JSON solamente. No se invoca HTTP.")
         return 0
     # Mapeo al schema actual del endpoint (igual que runner _seed_32_to_36):
     # error_signature ← id
@@ -214,22 +211,25 @@ def main() -> int:
     body = {
         "error_signature": SEED["id"],
         "sanitized_message": SEED["titulo"],
-        "resolution": json.dumps({
-            "leccion": SEED["lección"],
-            "evidencia": SEED["evidencia"],
-            "patron_ganador": SEED["patron_ganador"],
-            "anti_patron_evitado": SEED["anti_patron_evitado"],
-            "categoria": SEED["categoria"],
-            "severidad": SEED["severidad"],
-            "objetivos_satisfechos": SEED["objetivos_satisfechos"],
-            "sprint": SEED["sprint"],
-            "bloque": SEED["bloque"],
-            "version": SEED["version"],
-            "fecha": SEED["fecha"],
-            "autor": SEED["autor"],
-            "co_autor": SEED["co_autor"],
-            "complementaria_de": SEED["complementaria_de"],
-        }, ensure_ascii=False),
+        "resolution": json.dumps(
+            {
+                "leccion": SEED["lección"],
+                "evidencia": SEED["evidencia"],
+                "patron_ganador": SEED["patron_ganador"],
+                "anti_patron_evitado": SEED["anti_patron_evitado"],
+                "categoria": SEED["categoria"],
+                "severidad": SEED["severidad"],
+                "objetivos_satisfechos": SEED["objetivos_satisfechos"],
+                "sprint": SEED["sprint"],
+                "bloque": SEED["bloque"],
+                "version": SEED["version"],
+                "fecha": SEED["fecha"],
+                "autor": SEED["autor"],
+                "co_autor": SEED["co_autor"],
+                "complementaria_de": SEED["complementaria_de"],
+            },
+            ensure_ascii=False,
+        ),
     }
     payload = json.dumps(body).encode("utf-8")
     req = urllib.request.Request(

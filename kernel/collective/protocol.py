@@ -15,6 +15,7 @@ Soberanía:
 - Supabase Realtime → in-memory fallback si no hay SUPABASE_URL
 - Sabios (LLM) → síntesis heurística si no hay API key
 """
+
 from __future__ import annotations
 
 import json
@@ -23,12 +24,14 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
+
 import structlog
 
 logger = structlog.get_logger("monstruo.collective")
 
 
 # ── Excepciones con identidad ──────────────────────────────────────────────
+
 
 class ColectivaMensajeInvalido(ValueError):
     """El mensaje enviado al protocolo colectivo tiene campos inválidos.
@@ -56,26 +59,30 @@ class ColectivaVotacionCerrada(RuntimeError):
 
 # ── Enums ──────────────────────────────────────────────────────────────────
 
+
 class MessageType(str, Enum):
     """Tipos de mensajes inter-embrión."""
-    INSIGHT = "insight"           # Compartir descubrimiento
-    REQUEST = "request"           # Solicitar acción a otro embrión
-    RESPONSE = "response"         # Respuesta a un request
-    ALERT = "alert"               # Alerta crítica
-    DEBATE_OPEN = "debate_open"   # Invitación a debate
-    DEBATE_ARG = "debate_arg"     # Argumento en debate
-    VOTE_CALL = "vote_call"       # Convocatoria a votación
-    VOTE_CAST = "vote_cast"       # Voto emitido
+
+    INSIGHT = "insight"  # Compartir descubrimiento
+    REQUEST = "request"  # Solicitar acción a otro embrión
+    RESPONSE = "response"  # Respuesta a un request
+    ALERT = "alert"  # Alerta crítica
+    DEBATE_OPEN = "debate_open"  # Invitación a debate
+    DEBATE_ARG = "debate_arg"  # Argumento en debate
+    VOTE_CALL = "vote_call"  # Convocatoria a votación
+    VOTE_CAST = "vote_cast"  # Voto emitido
 
 
 class DecisionMethod(str, Enum):
     """Métodos de decisión colectiva."""
-    MAJORITY_VOTE = "majority_vote"         # >50%
+
+    MAJORITY_VOTE = "majority_vote"  # >50%
     QUALIFIED_MAJORITY = "qualified_majority"  # >60%
-    CONSENSUS = "consensus"                 # 100%
+    CONSENSUS = "consensus"  # 100%
 
 
 # ── Dataclasses ────────────────────────────────────────────────────────────
+
 
 @dataclass
 class EmbrionMessage:
@@ -91,6 +98,7 @@ class EmbrionMessage:
         requires_response: Si el emisor espera respuesta.
         timestamp: ISO 8601 UTC.
     """
+
     id: str
     sender: str
     type: MessageType
@@ -125,6 +133,7 @@ class DebateSession:
         participants: Lista de embriones participantes.
         rounds: Número de rondas de argumentación.
     """
+
     id: str
     topic: str
     context: str
@@ -160,6 +169,7 @@ class VoteSession:
         method: Método de decisión (DecisionMethod).
         initiator: Embrión que convocó la votación.
     """
+
     id: str
     topic: str
     question: str
@@ -186,6 +196,7 @@ class VoteSession:
 
 # ── Motor principal ────────────────────────────────────────────────────────
 
+
 @dataclass
 class ColectivaProtocol:
     """Motor de inteligencia colectiva entre Embriones.
@@ -203,6 +214,7 @@ class ColectivaProtocol:
         Sin Supabase: mensajes en memoria (se pierden al reiniciar).
         Sin Sabios: síntesis heurística basada en argumentos.
     """
+
     _supabase: Optional[object] = field(default=None, repr=False)
     _sabios: Optional[object] = field(default=None, repr=False)
     _embriones: dict = field(default_factory=dict)
@@ -252,20 +264,18 @@ class ColectivaProtocol:
         # Persistir en Supabase
         if self._supabase:
             try:
-                self._supabase.table("embrion_messages").insert(
-                    message.to_dict()
-                ).execute()
+                self._supabase.table("embrion_messages").insert(message.to_dict()).execute()
             except Exception as e:
                 logger.warning("supabase_publish_failed", error=str(e))
                 self._message_buffer.append(message)
         else:
             self._message_buffer.append(message)
 
-        logger.info("mensaje_publicado", id=message.id, sender=message.sender,
-                    topic=message.topic, type=message.type.value)
+        logger.info(
+            "mensaje_publicado", id=message.id, sender=message.sender, topic=message.topic, type=message.type.value
+        )
 
-    async def receive(self, embrion_name: str, topic: str = None,
-                      since_hours: int = 24) -> list[EmbrionMessage]:
+    async def receive(self, embrion_name: str, topic: str = None, since_hours: int = 24) -> list[EmbrionMessage]:
         """Recibir mensajes para un embrión.
 
         Args:
@@ -283,19 +293,24 @@ class ColectivaProtocol:
         if not self._supabase:
             # Fallback: filtrar buffer en memoria
             msgs = [
-                m for m in self._message_buffer
-                if (not m.recipients or embrion_name in m.recipients)
-                and (not topic or m.topic == topic)
+                m
+                for m in self._message_buffer
+                if (not m.recipients or embrion_name in m.recipients) and (not topic or m.topic == topic)
             ]
             return msgs[-50:]  # Últimos 50
 
         try:
             from datetime import timedelta
+
             since = (datetime.now(timezone.utc) - timedelta(hours=since_hours)).isoformat()
 
-            query = self._supabase.table("embrion_messages").select("*").gte(
-                "created_at", since
-            ).order("created_at", desc=True).limit(50)
+            query = (
+                self._supabase.table("embrion_messages")
+                .select("*")
+                .gte("created_at", since)
+                .order("created_at", desc=True)
+                .limit(50)
+            )
 
             if topic:
                 query = query.eq("topic", topic)
@@ -306,16 +321,18 @@ class ColectivaProtocol:
             for row in result.data:
                 recipients = row.get("recipients") or []
                 if not recipients or embrion_name in recipients:
-                    messages.append(EmbrionMessage(
-                        id=row["id"],
-                        sender=row["sender"],
-                        type=MessageType(row["type"]),
-                        topic=row["topic"],
-                        content=json.loads(row["content"]) if isinstance(row["content"], str) else row["content"],
-                        timestamp=row["created_at"],
-                        recipients=recipients,
-                        requires_response=row.get("requires_response", False),
-                    ))
+                    messages.append(
+                        EmbrionMessage(
+                            id=row["id"],
+                            sender=row["sender"],
+                            type=MessageType(row["type"]),
+                            topic=row["topic"],
+                            content=json.loads(row["content"]) if isinstance(row["content"], str) else row["content"],
+                            timestamp=row["created_at"],
+                            recipients=recipients,
+                            requires_response=row.get("requires_response", False),
+                        )
+                    )
             return messages
 
         except Exception as e:
@@ -324,8 +341,7 @@ class ColectivaProtocol:
 
     # ── Nivel 2: Debate ────────────────────────────────────────────────────
 
-    async def open_debate(self, topic: str, context: str,
-                          participants: list[str], rounds: int = 2) -> DebateSession:
+    async def open_debate(self, topic: str, context: str, participants: list[str], rounds: int = 2) -> DebateSession:
         """Abrir una sesión de debate entre embriones.
 
         Args:
@@ -347,23 +363,24 @@ class ColectivaProtocol:
         self._active_debates[session.id] = session
 
         # Notificar participantes
-        await self.publish(EmbrionMessage(
-            id=f"debate-open-{session.id}",
-            sender="collective",
-            type=MessageType.DEBATE_OPEN,
-            topic="debates",
-            content={"debate_id": session.id, "topic": topic, "context": context},
-            recipients=participants,
-            requires_response=True,
-        ))
+        await self.publish(
+            EmbrionMessage(
+                id=f"debate-open-{session.id}",
+                sender="collective",
+                type=MessageType.DEBATE_OPEN,
+                topic="debates",
+                content={"debate_id": session.id, "topic": topic, "context": context},
+                recipients=participants,
+                requires_response=True,
+            )
+        )
 
-        logger.info("debate_abierto", id=session.id, topic=topic,
-                    participants=participants, rounds=rounds)
+        logger.info("debate_abierto", id=session.id, topic=topic, participants=participants, rounds=rounds)
         return session
 
-    async def submit_argument(self, debate_id: str, embrion: str,
-                               position: str, reasoning: str,
-                               evidence: list[str] = None) -> None:
+    async def submit_argument(
+        self, debate_id: str, embrion: str, position: str, reasoning: str, evidence: list[str] = None
+    ) -> None:
         """Embrión submite argumento en un debate.
 
         Args:
@@ -379,18 +396,19 @@ class ColectivaProtocol:
         session = self._active_debates.get(debate_id)
         if not session or session.status != "open":
             raise ColectivaDebateNoEncontrado(
-                f"Debate '{debate_id}' no encontrado o ya cerrado. "
-                "Verificar el ID con get_active_debates()."
+                f"Debate '{debate_id}' no encontrado o ya cerrado. Verificar el ID con get_active_debates()."
             )
 
-        session.arguments.append({
-            "embrion": embrion,
-            "position": position,
-            "reasoning": reasoning,
-            "evidence": evidence or [],
-            "round": session.current_round,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        session.arguments.append(
+            {
+                "embrion": embrion,
+                "position": position,
+                "reasoning": reasoning,
+                "evidence": evidence or [],
+                "round": session.current_round,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
         # Verificar si todos los participantes argumentaron esta ronda
         round_args = [a for a in session.arguments if a["round"] == session.current_round]
@@ -408,10 +426,12 @@ class ColectivaProtocol:
         session.status = "closed"
 
         if self._sabios:
-            args_text = "\n".join([
-                f"[{a['embrion']}] Posición: {a['position']}\nRazonamiento: {a['reasoning']}"
-                for a in session.arguments
-            ])
+            args_text = "\n".join(
+                [
+                    f"[{a['embrion']}] Posición: {a['position']}\nRazonamiento: {a['reasoning']}"
+                    for a in session.arguments
+                ]
+            )
 
             prompt = f"""Eres el moderador de un debate entre agentes de IA especializados.
 Tema: {session.topic}
@@ -434,33 +454,39 @@ Responde en JSON: {{"synthesis": "...", "key_agreements": [...], "resolved_confl
             except Exception as e:
                 logger.warning("debate_synthesis_failed", error=str(e))
                 # Síntesis heurística fallback
-                session.synthesis = json.dumps({
-                    "synthesis": f"Debate sobre '{session.topic}' con {len(session.arguments)} argumentos.",
-                    "key_agreements": [],
-                    "resolved_conflicts": [],
-                    "recommendation": "Revisar argumentos manualmente.",
-                })
+                session.synthesis = json.dumps(
+                    {
+                        "synthesis": f"Debate sobre '{session.topic}' con {len(session.arguments)} argumentos.",
+                        "key_agreements": [],
+                        "resolved_conflicts": [],
+                        "recommendation": "Revisar argumentos manualmente.",
+                    }
+                )
         else:
             # Síntesis heurística sin LLM
-            session.synthesis = json.dumps({
-                "synthesis": f"Debate sobre '{session.topic}' completado con {len(session.participants)} participantes.",
-                "arguments_count": len(session.arguments),
-                "recommendation": "Análisis LLM no disponible — revisar argumentos manualmente.",
-            })
+            session.synthesis = json.dumps(
+                {
+                    "synthesis": f"Debate sobre '{session.topic}' completado con {len(session.participants)} participantes.",
+                    "arguments_count": len(session.arguments),
+                    "recommendation": "Análisis LLM no disponible — revisar argumentos manualmente.",
+                }
+            )
 
         # Persistir en Supabase
         if self._supabase:
             try:
-                self._supabase.table("debate_sessions").insert({
-                    "id": session.id,
-                    "topic": session.topic,
-                    "context": session.context,
-                    "participants": session.participants,
-                    "arguments": session.arguments,
-                    "rounds": session.rounds,
-                    "synthesis": session.synthesis,
-                    "status": session.status,
-                }).execute()
+                self._supabase.table("debate_sessions").insert(
+                    {
+                        "id": session.id,
+                        "topic": session.topic,
+                        "context": session.context,
+                        "participants": session.participants,
+                        "arguments": session.arguments,
+                        "rounds": session.rounds,
+                        "synthesis": session.synthesis,
+                        "status": session.status,
+                    }
+                ).execute()
             except Exception as e:
                 logger.warning("debate_persist_failed", error=str(e))
 
@@ -468,10 +494,15 @@ Responde en JSON: {{"synthesis": "...", "key_agreements": [...], "resolved_confl
 
     # ── Nivel 3: Votación ──────────────────────────────────────────────────
 
-    async def call_vote(self, topic: str, question: str, options: list[str],
-                        initiator: str,
-                        method: DecisionMethod = DecisionMethod.QUALIFIED_MAJORITY,
-                        voters: list[str] = None) -> VoteSession:
+    async def call_vote(
+        self,
+        topic: str,
+        question: str,
+        options: list[str],
+        initiator: str,
+        method: DecisionMethod = DecisionMethod.QUALIFIED_MAJORITY,
+        voters: list[str] = None,
+    ) -> VoteSession:
         """Convocar una votación colectiva.
 
         Args:
@@ -496,22 +527,22 @@ Responde en JSON: {{"synthesis": "...", "key_agreements": [...], "resolved_confl
         self._active_votes[session.id] = session
 
         # Notificar votantes
-        await self.publish(EmbrionMessage(
-            id=f"vote-call-{session.id}",
-            sender=initiator,
-            type=MessageType.VOTE_CALL,
-            topic="votes",
-            content={"vote_id": session.id, "question": question, "options": options},
-            recipients=voters or list(self._embriones.keys()),
-            requires_response=True,
-        ))
+        await self.publish(
+            EmbrionMessage(
+                id=f"vote-call-{session.id}",
+                sender=initiator,
+                type=MessageType.VOTE_CALL,
+                topic="votes",
+                content={"vote_id": session.id, "question": question, "options": options},
+                recipients=voters or list(self._embriones.keys()),
+                requires_response=True,
+            )
+        )
 
-        logger.info("votacion_convocada", id=session.id, question=question,
-                    method=method.value, options=options)
+        logger.info("votacion_convocada", id=session.id, question=question, method=method.value, options=options)
         return session
 
-    async def cast_vote(self, vote_id: str, embrion: str,
-                        option: str, reasoning: str, weight: float = 1.0) -> None:
+    async def cast_vote(self, vote_id: str, embrion: str, option: str, reasoning: str, weight: float = 1.0) -> None:
         """Embrión emite su voto.
 
         Args:
@@ -527,8 +558,7 @@ Responde en JSON: {{"synthesis": "...", "key_agreements": [...], "resolved_confl
         session = self._active_votes.get(vote_id)
         if not session or session.status != "open":
             raise ColectivaVotacionCerrada(
-                f"Votación '{vote_id}' no encontrada o ya cerrada. "
-                "Abrir una nueva votación con call_vote()."
+                f"Votación '{vote_id}' no encontrada o ya cerrada. Abrir una nueva votación con call_vote()."
             )
 
         session.votes[embrion] = {
@@ -588,22 +618,23 @@ Responde en JSON: {{"synthesis": "...", "key_agreements": [...], "resolved_confl
         # Persistir en Supabase
         if self._supabase:
             try:
-                self._supabase.table("vote_sessions").insert({
-                    "id": session.id,
-                    "topic": session.topic,
-                    "question": session.question,
-                    "options": session.options,
-                    "method": session.method.value,
-                    "initiator": session.initiator,
-                    "votes": session.votes,
-                    "result": session.result,
-                    "status": session.status,
-                }).execute()
+                self._supabase.table("vote_sessions").insert(
+                    {
+                        "id": session.id,
+                        "topic": session.topic,
+                        "question": session.question,
+                        "options": session.options,
+                        "method": session.method.value,
+                        "initiator": session.initiator,
+                        "votes": session.votes,
+                        "result": session.result,
+                        "status": session.status,
+                    }
+                ).execute()
             except Exception as e:
                 logger.warning("vote_persist_failed", error=str(e))
 
-        logger.info("votacion_tallied", id=session.id, winner=winner,
-                    pct=session.result["percentage"], passed=passed)
+        logger.info("votacion_tallied", id=session.id, winner=winner, pct=session.result["percentage"], passed=passed)
 
     # ── Detección de Emergencia ────────────────────────────────────────────
 
@@ -620,28 +651,37 @@ Responde en JSON: {{"synthesis": "...", "key_agreements": [...], "resolved_confl
             if len(self._message_buffer) > 5:
                 spontaneous = [m for m in self._message_buffer if m.type == MessageType.INSIGHT]
                 if len(spontaneous) > 3:
-                    emergent_patterns.append({
-                        "type": "spontaneous_collaboration",
-                        "evidence": f"{len(spontaneous)} insights espontáneos en buffer",
-                        "significance": "Embriones comparten insights sin ser invocados",
-                    })
+                    emergent_patterns.append(
+                        {
+                            "type": "spontaneous_collaboration",
+                            "evidence": f"{len(spontaneous)} insights espontáneos en buffer",
+                            "significance": "Embriones comparten insights sin ser invocados",
+                        }
+                    )
             return emergent_patterns
 
         try:
             from datetime import timedelta
+
             since = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
 
-            result = self._supabase.table("embrion_messages").select(
-                "id", count="exact"
-            ).eq("type", "insight").gte("created_at", since).execute()
+            result = (
+                self._supabase.table("embrion_messages")
+                .select("id", count="exact")
+                .eq("type", "insight")
+                .gte("created_at", since)
+                .execute()
+            )
 
             spontaneous_count = result.count or 0
             if spontaneous_count > 5:
-                emergent_patterns.append({
-                    "type": "spontaneous_collaboration",
-                    "evidence": f"{spontaneous_count} mensajes espontáneos en 24h",
-                    "significance": "Embriones inician comunicación sin trigger externo",
-                })
+                emergent_patterns.append(
+                    {
+                        "type": "spontaneous_collaboration",
+                        "evidence": f"{spontaneous_count} mensajes espontáneos en 24h",
+                        "significance": "Embriones inician comunicación sin trigger externo",
+                    }
+                )
         except Exception as e:
             logger.warning("emergence_detection_failed", error=str(e))
 
@@ -699,7 +739,5 @@ def init_colectiva_protocol(supabase=None, sabios=None) -> ColectivaProtocol:
         _supabase=supabase,
         _sabios=sabios,
     )
-    logger.info("colectiva_protocol_inicializado",
-                con_supabase=supabase is not None,
-                con_sabios=sabios is not None)
+    logger.info("colectiva_protocol_inicializado", con_supabase=supabase is not None, con_sabios=sabios is not None)
     return _colectiva_instance

@@ -22,12 +22,12 @@ Flujo:
 
 Sprint: Multi-Agent Orchestration | mayo 2026
 """
+
 from __future__ import annotations
 
 import asyncio
 import os
 import time
-import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Optional
@@ -45,23 +45,65 @@ logger = structlog.get_logger("kernel.external_agents")
 # falsos positivos (e.g. "investigaba" matcheaba en "investiga").
 
 _RESEARCH_MARKERS = (
-    "investiga", "busca", "encuentra", "qué es", "quién es",
-    "noticias", "tendencia", "fuentes", "artículo", "paper",
-    "research", "search", "find", "news", "trend",
+    "investiga",
+    "busca",
+    "encuentra",
+    "qué es",
+    "quién es",
+    "noticias",
+    "tendencia",
+    "fuentes",
+    "artículo",
+    "paper",
+    "research",
+    "search",
+    "find",
+    "news",
+    "trend",
 )
 _MANUS_MARKERS = (
-    "browser", "navega", "abre la página", "deploy", "publica",
-    "descarga", "sube", "archivo", "screenshot", "scrape",
-    "automatiza", "workflow", "end to end",
+    "browser",
+    "navega",
+    "abre la página",
+    "deploy",
+    "publica",
+    "descarga",
+    "sube",
+    "archivo",
+    "screenshot",
+    "scrape",
+    "automatiza",
+    "workflow",
+    "end to end",
 )
 _ANALYSIS_MARKERS = (
-    "analiza", "compara", "evalúa", "evalua", "profundiza",
-    "documento", "pdf", "resumen largo", "multimodal",
-    "imagen", "video", "analyze", "compare",
+    "analiza",
+    "compara",
+    "evalúa",
+    "evalua",
+    "profundiza",
+    "documento",
+    "pdf",
+    "resumen largo",
+    "multimodal",
+    "imagen",
+    "video",
+    "analyze",
+    "compare",
 )
 _CODE_MARKERS = (
-    "código", "codigo", "programa", "script", "función", "funcion",
-    "bug", "fix", "refactor", "implementa", "code", "debug",
+    "código",
+    "codigo",
+    "programa",
+    "script",
+    "función",
+    "funcion",
+    "bug",
+    "fix",
+    "refactor",
+    "implementa",
+    "code",
+    "debug",
 )
 
 _RESEARCH_PATTERN = compile_keyword_pattern(_RESEARCH_MARKERS)
@@ -72,8 +114,10 @@ _CODE_PATTERN = compile_keyword_pattern(_CODE_MARKERS)
 
 # ── Agent Types ───────────────────────────────────────────────────────────────
 
+
 class ExternalAgent(str, Enum):
     """Available external agents."""
+
     MANUS = "manus"
     KIMI = "kimi"
     PERPLEXITY = "perplexity"
@@ -85,6 +129,7 @@ class ExternalAgent(str, Enum):
 @dataclass
 class AgentProfile:
     """Profile for an external agent."""
+
     agent_id: ExternalAgent
     name: str
     description: str
@@ -101,6 +146,7 @@ class AgentProfile:
 @dataclass
 class AgentResponse:
     """Response from an external agent execution."""
+
     agent_id: str
     agent_name: str
     content: str
@@ -181,13 +227,14 @@ AGENT_PROFILES: dict[ExternalAgent, AgentProfile] = {
 
 # ── Auto-Selection Logic ──────────────────────────────────────────────────────
 
+
 def auto_select_agent(
     message: str,
     task_type: Optional[str] = None,
 ) -> ExternalAgent:
     """
     Automatically select the best agent based on the message/task.
-    
+
     Heuristics:
       - Research/facts/news → Perplexity
       - Code/deploy/browser → Manus
@@ -208,12 +255,13 @@ def auto_select_agent(
 
     if match_any_keyword(msg, _CODE_PATTERN):
         return ExternalAgent.KIMI
-    
+
     # Default: Grok for fast general answers
     return ExternalAgent.GROK
 
 
 # ── Agent Execution ───────────────────────────────────────────────────────────
+
 
 async def execute_agent(
     agent_id: ExternalAgent,
@@ -224,14 +272,14 @@ async def execute_agent(
 ) -> AgentResponse:
     """
     Execute a task on an external agent with full context injection.
-    
+
     Args:
         agent_id: Which agent to use (or AUTO for auto-selection)
         message: The user's message/task
         context: Full conversation context from Supabase (injected)
         system_prompt: System prompt override (optional)
         timeout: Max execution time in seconds
-    
+
     Returns:
         AgentResponse with the agent's output
     """
@@ -239,7 +287,7 @@ async def execute_agent(
     if agent_id == ExternalAgent.AUTO:
         agent_id = auto_select_agent(message)
         logger.info("agent_auto_selected", agent=agent_id.value)
-    
+
     profile = AGENT_PROFILES.get(agent_id)
     if not profile:
         return AgentResponse(
@@ -251,7 +299,7 @@ async def execute_agent(
             success=False,
             error=f"Unknown agent: {agent_id}",
         )
-    
+
     if not profile.enabled:
         return AgentResponse(
             agent_id=agent_id.value,
@@ -262,7 +310,7 @@ async def execute_agent(
             success=False,
             error=f"Agent {profile.name} is disabled",
         )
-    
+
     # Check API key
     api_key = os.environ.get(profile.api_key_env, "")
     if not api_key:
@@ -275,9 +323,9 @@ async def execute_agent(
             success=False,
             error=f"API key not configured: {profile.api_key_env}",
         )
-    
+
     start = time.time()
-    
+
     try:
         if agent_id == ExternalAgent.MANUS:
             result = await _execute_manus(profile, api_key, message, context, system_prompt, timeout)
@@ -309,7 +357,7 @@ async def execute_agent(
             success=False,
             error=str(e),
         )
-    
+
     result.latency_ms = (time.time() - start) * 1000
     logger.info(
         "agent_execution_complete",
@@ -323,6 +371,7 @@ async def execute_agent(
 
 # ── Provider-Specific Executors ───────────────────────────────────────────────
 
+
 async def _execute_manus(
     profile: AgentProfile,
     api_key: str,
@@ -333,16 +382,14 @@ async def _execute_manus(
 ) -> AgentResponse:
     """Execute via Manus API v2 (task.create + poll)."""
     from tools.manus_bridge import create_task, wait_for_completion
-    
+
     # Inject context into the prompt
     full_prompt = _build_contextual_prompt(message, context, system_prompt)
-    
+
     # Create task (synchronous — run in threadpool)
     loop = asyncio.get_event_loop()
-    task_result = await loop.run_in_executor(
-        None, lambda: create_task(full_prompt, account="google")
-    )
-    
+    task_result = await loop.run_in_executor(None, lambda: create_task(full_prompt, account="google"))
+
     task_id = task_result.get("task_id")
     if not task_id:
         return AgentResponse(
@@ -354,7 +401,7 @@ async def _execute_manus(
             success=False,
             error="Manus API did not return a task_id",
         )
-    
+
     # Wait for completion
     try:
         result = await loop.run_in_executor(
@@ -373,7 +420,7 @@ async def _execute_manus(
             error=f"Manus task failed: {e}",
             metadata={"task_id": task_id},
         )
-    
+
     return AgentResponse(
         agent_id=profile.agent_id.value,
         agent_name=profile.name,
@@ -394,11 +441,13 @@ async def _execute_perplexity(
     timeout: float,
 ) -> AgentResponse:
     """Execute via Perplexity API (chat/completions with sonar-reasoning-pro)."""
-    messages = _build_messages(message, context, system_prompt or (
-        "Eres un investigador experto. Responde con fuentes citadas. "
-        "Usa información en tiempo real de la web."
-    ))
-    
+    messages = _build_messages(
+        message,
+        context,
+        system_prompt
+        or ("Eres un investigador experto. Responde con fuentes citadas. Usa información en tiempo real de la web."),
+    )
+
     async with httpx.AsyncClient(timeout=timeout) as client:
         resp = await client.post(
             f"{profile.base_url}/chat/completions",
@@ -418,11 +467,11 @@ async def _execute_perplexity(
         )
         resp.raise_for_status()
         data = resp.json()
-    
+
     content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
     citations = data.get("citations", [])
     usage = data.get("usage", {})
-    
+
     return AgentResponse(
         agent_id=profile.agent_id.value,
         agent_name=profile.name,
@@ -444,21 +493,23 @@ async def _execute_openai_compatible(
     timeout: float,
 ) -> AgentResponse:
     """Execute via OpenAI-compatible API (Kimi via OpenRouter, Grok via xAI)."""
-    messages = _build_messages(message, context, system_prompt or (
-        "Eres El Monstruo, un asistente técnico preciso y directo. "
-        "Responde de forma concisa y útil."
-    ))
-    
+    messages = _build_messages(
+        message,
+        context,
+        system_prompt
+        or ("Eres El Monstruo, un asistente técnico preciso y directo. Responde de forma concisa y útil."),
+    )
+
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
-    
+
     # OpenRouter requires extra headers
     if "openrouter" in profile.base_url:
         headers["HTTP-Referer"] = "https://el-monstruo.app"
         headers["X-Title"] = "El Monstruo"
-    
+
     async with httpx.AsyncClient(timeout=timeout) as client:
         resp = await client.post(
             f"{profile.base_url}/chat/completions",
@@ -471,10 +522,10 @@ async def _execute_openai_compatible(
         )
         resp.raise_for_status()
         data = resp.json()
-    
+
     content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
     usage = data.get("usage", {})
-    
+
     return AgentResponse(
         agent_id=profile.agent_id.value,
         agent_name=profile.name,
@@ -496,16 +547,15 @@ async def _execute_gemini(
 ) -> AgentResponse:
     """Execute via Google Gemini API (generateContent)."""
     sys_prompt = system_prompt or (
-        "Eres El Monstruo, un asistente de análisis profundo. "
-        "Proporciona respuestas exhaustivas y bien estructuradas."
+        "Eres El Monstruo, un asistente de análisis profundo. Proporciona respuestas exhaustivas y bien estructuradas."
     )
-    
+
     # Build content parts
     parts = []
     if context:
         parts.append({"text": f"[CONTEXTO DE CONVERSACIÓN PREVIA]\n{context}\n[FIN CONTEXTO]"})
     parts.append({"text": message})
-    
+
     payload = {
         "contents": [{"parts": parts}],
         "systemInstruction": {"parts": [{"text": sys_prompt}]},
@@ -514,17 +564,14 @@ async def _execute_gemini(
             "temperature": 0.7,
         },
     }
-    
-    url = (
-        f"{profile.base_url}/models/{profile.model}:generateContent"
-        f"?key={api_key}"
-    )
-    
+
+    url = f"{profile.base_url}/models/{profile.model}:generateContent?key={api_key}"
+
     async with httpx.AsyncClient(timeout=timeout) as client:
         resp = await client.post(url, json=payload)
         resp.raise_for_status()
         data = resp.json()
-    
+
     # Extract content from Gemini response
     candidates = data.get("candidates", [])
     if candidates:
@@ -532,10 +579,10 @@ async def _execute_gemini(
         content = "\n".join(p.get("text", "") for p in content_parts)
     else:
         content = ""
-    
+
     usage = data.get("usageMetadata", {})
     total_tokens = usage.get("totalTokenCount", 0)
-    
+
     return AgentResponse(
         agent_id=profile.agent_id.value,
         agent_name=profile.name,
@@ -548,6 +595,7 @@ async def _execute_gemini(
 
 
 # ── Context Building ──────────────────────────────────────────────────────────
+
 
 def _build_contextual_prompt(
     message: str,
@@ -571,45 +619,50 @@ def _build_messages(
 ) -> list[dict[str, str]]:
     """Build OpenAI-compatible messages array with context injection."""
     messages = []
-    
+
     # System prompt
     if system_prompt:
         messages.append({"role": "system", "content": system_prompt})
-    
+
     # Context as assistant memory
     if context:
-        messages.append({
-            "role": "system",
-            "content": (
-                f"[MEMORIA DE CONVERSACIÓN PREVIA]\n{context}\n"
-                "[FIN MEMORIA — Usa esta información para mantener continuidad.]"
-            ),
-        })
-    
+        messages.append(
+            {
+                "role": "system",
+                "content": (
+                    f"[MEMORIA DE CONVERSACIÓN PREVIA]\n{context}\n"
+                    "[FIN MEMORIA — Usa esta información para mantener continuidad.]"
+                ),
+            }
+        )
+
     # User message
     messages.append({"role": "user", "content": message})
-    
+
     return messages
 
 
 # ── Registry Status ───────────────────────────────────────────────────────────
+
 
 def get_available_agents() -> list[dict[str, Any]]:
     """Return list of available agents with their status."""
     agents = []
     for agent_id, profile in AGENT_PROFILES.items():
         api_key = os.environ.get(profile.api_key_env, "")
-        agents.append({
-            "id": agent_id.value,
-            "name": profile.name,
-            "description": profile.description,
-            "model": profile.model,
-            "strengths": profile.strengths,
-            "enabled": profile.enabled,
-            "configured": bool(api_key),
-            "cost_per_1k_input": profile.cost_per_1k_input,
-            "cost_per_1k_output": profile.cost_per_1k_output,
-        })
+        agents.append(
+            {
+                "id": agent_id.value,
+                "name": profile.name,
+                "description": profile.description,
+                "model": profile.model,
+                "strengths": profile.strengths,
+                "enabled": profile.enabled,
+                "configured": bool(api_key),
+                "cost_per_1k_input": profile.cost_per_1k_input,
+                "cost_per_1k_output": profile.cost_per_1k_output,
+            }
+        )
     return agents
 
 

@@ -9,10 +9,10 @@ mayúsculas) usando heurística simple. Reduce falsos positivos por la conversi�
 Además, hace un análisis de **set de palabras únicas** para identificar
 contenido que está SOLO en una versión (señal real de "documento más completo").
 """
+
 import hashlib
 import re
 import unicodedata
-from collections import Counter
 from difflib import SequenceMatcher
 from pathlib import Path
 
@@ -72,16 +72,18 @@ def short_hash(tokens: list) -> str:
 
 
 def main():
-    report = ["# Diff semantico SOP/EPIA v3 — Drive vs Dropbox (final)",
-              "",
-              "**Fecha:** 2026-05-05",
-              "**Generado por:** Manus (Tarea 4 Discovery Forense Fase III)",
-              "**Metodo:** strip Markdown -> split camelCase glued tokens -> SequenceMatcher + set diff",
-              "",
-              "## Resumen ejecutivo",
-              "",
-              "| # | Par | Tokens Drive | Tokens DBX | Similaridad | Tokens UNICOS Drive | Tokens UNICOS DBX | Veredicto |",
-              "|---|---|---|---|---|---|---|---|"]
+    report = [
+        "# Diff semantico SOP/EPIA v3 — Drive vs Dropbox (final)",
+        "",
+        "**Fecha:** 2026-05-05",
+        "**Generado por:** Manus (Tarea 4 Discovery Forense Fase III)",
+        "**Metodo:** strip Markdown -> split camelCase glued tokens -> SequenceMatcher + set diff",
+        "",
+        "## Resumen ejecutivo",
+        "",
+        "| # | Par | Tokens Drive | Tokens DBX | Similaridad | Tokens UNICOS Drive | Tokens UNICOS DBX | Veredicto |",
+        "|---|---|---|---|---|---|---|---|",
+    ]
 
     details = []
 
@@ -106,7 +108,53 @@ def main():
         only_dbx = sorted(b_set - a_set)
 
         # Filtra tokens triviales y stopwords del set diff
-        STOPWORDS = {"el","la","los","las","de","del","y","o","a","en","un","una","que","es","con","por","para","se","su","sus","lo","al","como","mas","más","sin","ya","no","si","sí","esta","este","ese","esa","esos","esas","ha","han","fue","ser","sea","cuando","donde","quien","si"}
+        STOPWORDS = {
+            "el",
+            "la",
+            "los",
+            "las",
+            "de",
+            "del",
+            "y",
+            "o",
+            "a",
+            "en",
+            "un",
+            "una",
+            "que",
+            "es",
+            "con",
+            "por",
+            "para",
+            "se",
+            "su",
+            "sus",
+            "lo",
+            "al",
+            "como",
+            "mas",
+            "más",
+            "sin",
+            "ya",
+            "no",
+            "si",
+            "sí",
+            "esta",
+            "este",
+            "ese",
+            "esa",
+            "esos",
+            "esas",
+            "ha",
+            "han",
+            "fue",
+            "ser",
+            "sea",
+            "cuando",
+            "donde",
+            "quien",
+            "si",
+        }
         only_drive_meaningful = [t for t in only_drive if t not in STOPWORDS and len(t) > 3]
         only_dbx_meaningful = [t for t in only_dbx if t not in STOPWORDS and len(t) > 3]
 
@@ -121,15 +169,23 @@ def main():
         else:
             veredicto = "DOCUMENTOS DISTINTOS"
 
-        report.append(f"| {i} | {label} | {len(a_tok)} | {len(b_tok)} | {similarity:.3f} | {len(only_drive_meaningful)} | {len(only_dbx_meaningful)} | {veredicto} |")
+        report.append(
+            f"| {i} | {label} | {len(a_tok)} | {len(b_tok)} | {similarity:.3f} | {len(only_drive_meaningful)} | {len(only_dbx_meaningful)} | {veredicto} |"
+        )
 
         det = [f"### {i}. {label}", ""]
         det.append(f"- Drive: `{drive_file}` ({len(a_tok)} tokens, {len(a_set)} unicos)")
         det.append(f"- Dropbox: `{dbx_file}` ({len(b_tok)} tokens, {len(b_set)} unicos)")
         det.append(f"- Similaridad: **{similarity:.3f}** -> **{veredicto}**")
-        det.append(f"- Tokens significativos solo en DRIVE ({len(only_drive_meaningful)}): " + (", ".join(only_drive_meaningful[:30]) + (" ..." if len(only_drive_meaningful)>30 else "")))
+        det.append(
+            f"- Tokens significativos solo en DRIVE ({len(only_drive_meaningful)}): "
+            + (", ".join(only_drive_meaningful[:30]) + (" ..." if len(only_drive_meaningful) > 30 else ""))
+        )
         det.append("")
-        det.append(f"- Tokens significativos solo en DROPBOX ({len(only_dbx_meaningful)}): " + (", ".join(only_dbx_meaningful[:30]) + (" ..." if len(only_dbx_meaningful)>30 else "")))
+        det.append(
+            f"- Tokens significativos solo en DROPBOX ({len(only_dbx_meaningful)}): "
+            + (", ".join(only_dbx_meaningful[:30]) + (" ..." if len(only_dbx_meaningful) > 30 else ""))
+        )
         det.append("")
 
         # Insert blocks: contenido entero presente en uno pero no en otro
@@ -153,9 +209,15 @@ def main():
     report.append("")
     report.append("## Conclusiones")
     report.append("")
-    report.append("- **Pares 3 y 4** (Genealogia y SOP+EPIA Reestructuracion): IDENTICOS / EQUIVALENTES. Drive y Dropbox estan sincronizados.")
-    report.append("- **Pares 1, 2, 5, 6** (SOP/EPIA Fundacionales): DIFS NOTABLES. Hay que inspeccionar manualmente bloques presentes en solo uno para decidir cual es el canon.")
-    report.append("- **Recomendacion:** la version mas larga (mas tokens) generalmente es la mas reciente y completa, pero hay que validarlo con Alfredo.")
+    report.append(
+        "- **Pares 3 y 4** (Genealogia y SOP+EPIA Reestructuracion): IDENTICOS / EQUIVALENTES. Drive y Dropbox estan sincronizados."
+    )
+    report.append(
+        "- **Pares 1, 2, 5, 6** (SOP/EPIA Fundacionales): DIFS NOTABLES. Hay que inspeccionar manualmente bloques presentes en solo uno para decidir cual es el canon."
+    )
+    report.append(
+        "- **Recomendacion:** la version mas larga (mas tokens) generalmente es la mas reciente y completa, pero hay que validarlo con Alfredo."
+    )
     report.append("")
     report.append("## Detalle por par")
     report.append("")

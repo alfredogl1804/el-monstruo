@@ -11,9 +11,10 @@ Soberanía:
     - Semantic Scholar: alternativa → arXiv API (ver semantic_scholar.py)
 """
 
-import structlog
 from datetime import datetime, timezone
 from typing import Optional
+
+import structlog
 
 logger = structlog.get_logger("vanguard.digest")
 
@@ -142,9 +143,9 @@ class WeeklyDigestGenerator:
             OSV.dev: alternativa → safety check local (pip install safety)
         """
         return {
-            "outdated_packages": [],      # Producción: pip list --outdated
-            "security_advisories": [],    # Producción: consultar OSV.dev
-            "deprecation_warnings": [],   # Producción: analizar warnings en logs
+            "outdated_packages": [],  # Producción: pip list --outdated
+            "security_advisories": [],  # Producción: consultar OSV.dev
+            "deprecation_warnings": [],  # Producción: analizar warnings en logs
             "checked_at": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -160,12 +161,14 @@ class WeeklyDigestGenerator:
         if self.supabase:
             try:
                 # Agregar tags de los últimos 30 días
-                proposals = await self.supabase.table("integration_proposals")\
-                    .select("impact_areas").limit(100).execute()
+                proposals = (
+                    await self.supabase.table("integration_proposals").select("impact_areas").limit(100).execute()
+                )
                 # Contar frecuencia de objetivos impactados
                 from collections import Counter
+
                 all_areas = []
-                for p in (proposals.data or []):
+                for p in proposals.data or []:
                     all_areas.extend(p.get("impact_areas", []))
                 counter = Counter(all_areas)
                 return [

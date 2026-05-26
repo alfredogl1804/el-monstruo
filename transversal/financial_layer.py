@@ -12,28 +12,30 @@ Componentes:
 
 Sprint 57 — "Las Capas Transversales"
 """
+
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Optional
 
 logger = logging.getLogger("financial_layer")
 
 
 # ── Data models ───────────────────────────────────────────────────────────────
 
+
 @dataclass
 class UnitEconomics:
     """Métricas de unit economics para un proyecto."""
-    cac: float = 0.0           # Customer Acquisition Cost
-    ltv: float = 0.0           # Lifetime Value
-    arpu: float = 0.0          # Average Revenue Per User
-    churn_rate: float = 0.0    # Monthly churn rate (0.0-1.0)
+
+    cac: float = 0.0  # Customer Acquisition Cost
+    ltv: float = 0.0  # Lifetime Value
+    arpu: float = 0.0  # Average Revenue Per User
+    churn_rate: float = 0.0  # Monthly churn rate (0.0-1.0)
     gross_margin: float = 0.0  # Gross margin (0.0-1.0)
     payback_months: float = 0.0  # Months to recover CAC
-    ltv_cac_ratio: float = 0.0   # LTV/CAC ratio
+    ltv_cac_ratio: float = 0.0  # LTV/CAC ratio
 
     def calculate_derived(self) -> None:
         """Calcular métricas derivadas."""
@@ -59,6 +61,7 @@ class UnitEconomics:
 @dataclass
 class MonthlySnapshot:
     """Snapshot financiero mensual."""
+
     month: str  # YYYY-MM
     revenue: float = 0.0
     costs: float = 0.0
@@ -78,14 +81,15 @@ class MonthlySnapshot:
 
 # ── FinancialLayer ────────────────────────────────────────────────────────────
 
+
 class FinancialLayer:
     """Capa financiera transversal — dashboard para cada proyecto."""
 
     # Alertas de burn rate
     BURN_RATE_THRESHOLDS = {
-        "critical": 3,   # < 3 meses de runway
-        "warning": 6,    # < 6 meses de runway
-        "healthy": 12,   # >= 12 meses de runway
+        "critical": 3,  # < 3 meses de runway
+        "warning": 6,  # < 6 meses de runway
+        "healthy": 12,  # >= 12 meses de runway
     }
 
     def __init__(self, project_id: str, db=None):
@@ -137,17 +141,17 @@ class FinancialLayer:
         current_users = last.users
 
         for i in range(1, months_ahead + 1):
-            current_users = int(
-                current_users * (1 + growth_rate) * (1 - self._unit_economics.churn_rate)
-            )
+            current_users = int(current_users * (1 + growth_rate) * (1 - self._unit_economics.churn_rate))
             current_revenue = current_users * self._unit_economics.arpu
 
-            projections.append({
-                "month": i,
-                "projected_users": current_users,
-                "projected_revenue": round(current_revenue, 2),
-                "projected_costs": round(last.costs * (1 + 0.03 * i), 2),  # 3% cost growth
-            })
+            projections.append(
+                {
+                    "month": i,
+                    "projected_users": current_users,
+                    "projected_revenue": round(current_revenue, 2),
+                    "projected_costs": round(last.costs * (1 + 0.03 * i), 2),  # 3% cost growth
+                }
+            )
 
         return projections
 
@@ -176,9 +180,7 @@ class FinancialLayer:
             "monthly_burn": round(monthly_burn, 2),
             "cash_balance": cash_balance,
             "status": status,
-            "alert": (
-                f"ALERT: Only {runway:.1f} months of runway!" if status == "critical" else None
-            ),
+            "alert": (f"ALERT: Only {runway:.1f} months of runway!" if status == "critical" else None),
         }
 
     def get_financial_report(self) -> dict:
@@ -226,6 +228,7 @@ class FinancialLayer:
 
 
 # ── Factory ───────────────────────────────────────────────────────────────────
+
 
 def create_financial_layer(project_id: str, db=None) -> FinancialLayer:
     """Factory para crear un FinancialLayer para un proyecto."""

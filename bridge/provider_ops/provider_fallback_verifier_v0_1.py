@@ -12,12 +12,11 @@ No provider calls. No scheduler/kill-switch changes.
 Usage:
     python3 provider_fallback_verifier_v0_1.py [--base-dir /path]
 """
+
 import json
-import sys
-from datetime import datetime, timezone, date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
-
 
 # Blocked providers (cannot be used as fallback)
 BLOCKED_PROVIDERS = {"perplexity", "deepseek"}
@@ -59,13 +58,15 @@ def detect_risk_candidates(registry: dict, eol_overrides: Optional[dict] = None)
             risk_flags.append(f"STATUS:{config.get('status')}")
 
         if risk_flags:
-            candidates.append({
-                "provider": name,
-                "model": config.get("model"),
-                "status": config.get("status"),
-                "risk_flags": risk_flags,
-                "is_blocked": name in BLOCKED_PROVIDERS,
-            })
+            candidates.append(
+                {
+                    "provider": name,
+                    "model": config.get("model"),
+                    "status": config.get("status"),
+                    "risk_flags": risk_flags,
+                    "is_blocked": name in BLOCKED_PROVIDERS,
+                }
+            )
 
     return candidates
 
@@ -98,12 +99,14 @@ def construct_fallback_candidates(registry: dict, risk_provider: str) -> list:
         if config.get("model") is None:
             continue
 
-        candidates.append({
-            "provider": name,
-            "model": config["model"],
-            "status": "FALLBACK_CANDIDATE",
-            "requires_t1_approval": True,
-        })
+        candidates.append(
+            {
+                "provider": name,
+                "model": config["model"],
+                "status": "FALLBACK_CANDIDATE",
+                "requires_t1_approval": True,
+            }
+        )
 
     return candidates
 
@@ -196,6 +199,7 @@ def run_verifier(base_dir: Optional[Path] = None) -> dict:
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Provider Fallback Verifier v0.1")
     parser.add_argument("--base-dir", default=None)
     args = parser.parse_args()

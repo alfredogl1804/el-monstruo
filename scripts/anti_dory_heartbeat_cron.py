@@ -50,6 +50,7 @@ GPT-5.5 — Timeout estricto httpx (10.0s) + finally close: previene bug
 
 ═══════════════════════════════════════════════════════════════════════════
 """
+
 from __future__ import annotations
 
 import logging
@@ -84,9 +85,7 @@ SHADOW_NAMESPACE: Dict[str, Any] = {
 # GPT-5.5 Pro — Timeout estricto httpx (anti-stuck Railway cron bug dic 2025).
 # Override via env var para tests/staging si necesario.
 _RPC_TIMEOUT_SECONDS: float = float(os.getenv("ANTI_DORY_CRON_RPC_TIMEOUT", "10.0"))
-_RPC_CONNECT_TIMEOUT_SECONDS: float = float(
-    os.getenv("ANTI_DORY_CRON_RPC_CONNECT_TIMEOUT", "3.0")
-)
+_RPC_CONNECT_TIMEOUT_SECONDS: float = float(os.getenv("ANTI_DORY_CRON_RPC_CONNECT_TIMEOUT", "3.0"))
 
 # PC3 — Whitelist de env vars que el cron PUEDE leer. Anti-leak segregación.
 _ALLOWED_ENV_VARS = {
@@ -125,6 +124,7 @@ _FORBIDDEN_ENV_VARS = {
 # =============================================================================
 # Utilidades
 # =============================================================================
+
 
 def _parse_front_ids(csv: str) -> List[str]:
     """Parsea CSV de fronts. Vacío → ['default']."""
@@ -190,6 +190,7 @@ def _build_shadow_payload(
 # Broker / RPC wrappers (httpx con timeout + finally close)
 # =============================================================================
 
+
 def _build_supabase_client():
     """GPT-5.5 — Construye HTTPXSupabaseRPCClient con timeout estricto.
 
@@ -208,7 +209,8 @@ def _build_supabase_client():
     if not url or not key:
         logger.warning(
             "anti_dory_cron: Supabase env vars missing (url=%s key=%s)",
-            bool(url), bool(key),
+            bool(url),
+            bool(key),
         )
         return None
 
@@ -273,6 +275,7 @@ def _increment_budget(rpc_client) -> Dict[str, Any]:
 # =============================================================================
 # Tick principal
 # =============================================================================
+
 
 def tick_once(
     *,
@@ -350,20 +353,28 @@ def tick_once(
                 errors += 1
                 logger.error(
                     "anti_dory_cron front=%s error=%s elapsed_ms=%d idem=%s",
-                    front_id, result.error, elapsed_ms, idem_key,
+                    front_id,
+                    result.error,
+                    elapsed_ms,
+                    idem_key,
                 )
             else:
                 logger.info(
-                    "anti_dory_cron front=%s snapshot_id=%s accepted=%s "
-                    "elapsed_ms=%d idem=%s shadow_namespace=%s",
-                    front_id, result.snapshot_id, result.accepted,
-                    elapsed_ms, idem_key, SHADOW_NAMESPACE["mode"],
+                    "anti_dory_cron front=%s snapshot_id=%s accepted=%s elapsed_ms=%d idem=%s shadow_namespace=%s",
+                    front_id,
+                    result.snapshot_id,
+                    result.accepted,
+                    elapsed_ms,
+                    idem_key,
+                    SHADOW_NAMESPACE["mode"],
                 )
         except Exception as exc:  # noqa: BLE001 — cron debe seguir con otros frentes
             errors += 1
             logger.exception(
                 "anti_dory_cron front=%s fatal_exception=%s idem=%s",
-                front_id, exc, idem_key,
+                front_id,
+                exc,
+                idem_key,
             )
 
         if sleep_between_fronts_s > 0:
@@ -386,6 +397,7 @@ def _load_writer(*, rpc_client=None, actor_type: str = "system"):
 # =============================================================================
 # Smoke test (C7)
 # =============================================================================
+
 
 def _run_smoke_test() -> int:
     """C7 — Build + validate payload sin tocar Supabase.
@@ -416,8 +428,7 @@ def _run_smoke_test() -> int:
             assert "idempotency_key" in payload, "C4: idempotency_key obligatoria"
             idem = payload["idempotency_key"]
             assert idem.count(":") == 2, f"C4: idempotency_key format inválido: {idem}"
-            logger.info("smoke_test front=%s payload_keys=%s idem=%s",
-                        front_id, sorted(payload.keys()), idem)
+            logger.info("smoke_test front=%s payload_keys=%s idem=%s", front_id, sorted(payload.keys()), idem)
         except AssertionError as exc:
             errors += 1
             logger.error("smoke_test FAILED front=%s: %s", front_id, exc)
@@ -427,7 +438,8 @@ def _run_smoke_test() -> int:
     if leaked:
         logger.warning(
             "smoke_test PC3 violation: cron env tiene %d vars prohibidas: %s",
-            len(leaked), sorted(leaked),
+            len(leaked),
+            sorted(leaked),
         )
         # NO es fatal en smoke test local — Railway debe filtrar.
 
@@ -441,6 +453,7 @@ def _run_smoke_test() -> int:
 # =============================================================================
 # Main entrypoint
 # =============================================================================
+
 
 def main(argv: Optional[List[str]] = None) -> int:
     """Entrypoint principal con manejo de cliente HTTPX en try/finally.
@@ -473,7 +486,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         logger.warning(
             "anti_dory_cron: PC3 LEAK DETECTED — %d vars prohibidas presentes: %s. "
             "Continúa pero T1 debe revisar Railway service vars.",
-            len(leaked), sorted(leaked),
+            len(leaked),
+            sorted(leaked),
         )
 
     project_id = os.getenv("ANTI_DORY_PROJECT_ID", "el-monstruo").strip() or "el-monstruo"
@@ -483,7 +497,10 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     logger.info(
         "anti_dory_cron: starting tick project=%s fronts=%s actor=%s timeout=%.1fs",
-        project_id, front_ids, actor_type, _RPC_TIMEOUT_SECONDS,
+        project_id,
+        front_ids,
+        actor_type,
+        _RPC_TIMEOUT_SECONDS,
     )
 
     # GPT-5.5 — try/finally con close del httpx client

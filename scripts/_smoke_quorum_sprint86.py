@@ -1,5 +1,6 @@
 """Smoke test del Quorum Validator (Sprint 86 Bloque 2)."""
-from kernel.catastro.quorum import QuorumValidator, FuenteVote, FieldType, QuorumOutcome
+
+from kernel.catastro.quorum import FieldType, FuenteVote, QuorumOutcome, QuorumValidator
 
 
 def main() -> None:

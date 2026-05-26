@@ -30,6 +30,7 @@ Disciplina anti-Dory:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 7 · 2026-05-04 · v0.86.7
 """
+
 from __future__ import annotations
 
 import os
@@ -40,7 +41,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
-
 
 # ============================================================================
 # Constantes
@@ -321,16 +321,14 @@ class DashboardEngine:
             pass  # drift es nice-to-have, no bloqueante
 
         modelos_total = len(modelos_rows or [])
-        modelos_prod = sum(1 for r in (modelos_rows or [])
-                           if str(r.get("estado", "")).lower() == "production")
+        modelos_prod = sum(1 for r in (modelos_rows or []) if str(r.get("estado", "")).lower() == "production")
         # `dominios` es text[] en la tabla — expandir todos los dominios de cada modelo
         dominios = set()
-        for r in (modelos_rows or []):
-            for d in (r.get("dominios") or []):
+        for r in modelos_rows or []:
+            for d in r.get("dominios") or []:
                 if d:
                     dominios.add(d)
-        macroareas = sorted({r.get("macroarea") for r in (modelos_rows or [])
-                             if r.get("macroarea")})
+        macroareas = sorted({r.get("macroarea") for r in (modelos_rows or []) if r.get("macroarea")})
 
         # ultima_validacion fallback si no hay eventos cron
         if last_run_at is None and modelos_rows:
@@ -412,8 +410,7 @@ class DashboardEngine:
         buckets: dict[str, dict[str, Any]] = {}
         for i in range(days):
             d = (now - timedelta(days=days - 1 - i)).strftime("%Y-%m-%d")
-            buckets[d] = {"runs": 0, "eventos": 0, "drift_alto": 0,
-                          "failures": 0, "totals": 0}
+            buckets[d] = {"runs": 0, "eventos": 0, "drift_alto": 0, "failures": 0, "totals": 0}
 
         for ev in ev_rows or []:
             dt = _parse_dt(ev.get("detectado_en"))
@@ -440,13 +437,15 @@ class DashboardEngine:
             if b["totals"] > 0:
                 fr = round(b["failures"] / b["totals"], 3)
                 all_rates.append(fr)
-            points.append(TimelinePoint(
-                fecha=fecha,
-                runs=b["runs"],
-                eventos=b["eventos"],
-                drift_alto=b["drift_alto"],
-                failure_rate=fr,
-            ))
+            points.append(
+                TimelinePoint(
+                    fecha=fecha,
+                    runs=b["runs"],
+                    eventos=b["eventos"],
+                    drift_alto=b["drift_alto"],
+                    failure_rate=fr,
+                )
+            )
             total_runs += b["runs"]
             total_eventos += b["eventos"]
 
@@ -485,8 +484,10 @@ class DashboardEngine:
             cur_rows = self._safe_select(
                 client,
                 CATASTRO_CURADORES_TABLE,
-                fields=("id,proveedor,modelo_llm,trust_score,invocations_total,"
-                        "last_invocation_at,rol,estado,trust_delta_7d,invocations_7d"),
+                fields=(
+                    "id,proveedor,modelo_llm,trust_score,invocations_total,"
+                    "last_invocation_at,rol,estado,trust_delta_7d,invocations_7d"
+                ),
                 limit=200,
             )
         except Exception:
@@ -602,11 +603,13 @@ class DashboardEngine:
         # MVP: solo agrega un health agregado — fuentes individuales se
         # pueden discriminar cuando se agregue catastro_runs (siguiente
         # bloque o sprint 86.5).
-        return [FuenteHealth(
-            nombre="agregado",
-            estado=estado,
-            last_seen=last_dt,
-        )]
+        return [
+            FuenteHealth(
+                nombre="agregado",
+                estado=estado,
+                last_seen=last_dt,
+            )
+        ]
 
 
 # ============================================================================
@@ -865,6 +868,7 @@ def dashboard_requires_auth() -> bool:
 
 def build_default_dashboard_db_factory() -> Optional[Callable[[], Any]]:
     """Construye db_factory para el dashboard (espejo de recommendation)."""
+
     def _factory() -> Any:
         url = os.environ.get("SUPABASE_URL", "")
         key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")

@@ -12,12 +12,11 @@ Construye un modelo espacial unificado del sitio combinando:
 
 Produce un Spatial Reality Model (SRM) que es la base para el SRD.
 """
+
 import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
-
 
 # ── Evidence Hierarchy ───────────────────────────────────────────────────────
 
@@ -62,6 +61,7 @@ def _get_all_zones():
 
 # ── Main Builder ─────────────────────────────────────────────────────────────
 
+
 async def build_spatial_model(
     site_info: dict,
     collected_results: dict,
@@ -102,8 +102,7 @@ async def build_spatial_model(
             source_stats[source_name] = {
                 "count": len(obs_list),
                 "rank": EVIDENCE_HIERARCHY.get(
-                    obs_list[0].get("source", "inference") if obs_list else "inference",
-                    {"rank": 99}
+                    obs_list[0].get("source", "inference") if obs_list else "inference", {"rank": 99}
                 ).get("rank", 99),
             }
 
@@ -152,15 +151,13 @@ async def build_spatial_model(
             # Sort by source rank (higher rank = more reliable)
             sorted_obs = sorted(
                 obs_list,
-                key=lambda o: EVIDENCE_HIERARCHY.get(
-                    o.get("source", "inference"), {"rank": 99}
-                ).get("rank", 99)
+                key=lambda o: EVIDENCE_HIERARCHY.get(o.get("source", "inference"), {"rank": 99}).get("rank", 99),
             )
             zone_evidence[zone] = sorted_obs
 
     evidence_json = json.dumps(zone_evidence, indent=1, ensure_ascii=False, default=str)
 
-    prompt = f"""Eres un arquitecto de modelos espaciales. Tu trabajo es construir un MODELO ESPACIAL UNIFICADO del sitio "{site_info['name']}" (coordenadas: {site_info['lat']}, {site_info['lng']}, radio: {site_info['radius_m']}m).
+    prompt = f"""Eres un arquitecto de modelos espaciales. Tu trabajo es construir un MODELO ESPACIAL UNIFICADO del sitio "{site_info["name"]}" (coordenadas: {site_info["lat"]}, {site_info["lng"]}, radio: {site_info["radius_m"]}m).
 
 ## JERARQUÍA DE VERDAD (rank 1 = más confiable)
 {json.dumps(EVIDENCE_HIERARCHY, indent=1, ensure_ascii=False)}
@@ -185,9 +182,9 @@ Responde en JSON con esta estructura:
 
 {{
   "model_metadata": {{
-    "name": "{site_info['name']}",
-    "coordinates": {{"lat": {site_info['lat']}, "lng": {site_info['lng']}}},
-    "radius_m": {site_info['radius_m']},
+    "name": "{site_info["name"]}",
+    "coordinates": {{"lat": {site_info["lat"]}, "lng": {site_info["lng"]}}},
+    "radius_m": {site_info["radius_m"]},
     "model_date": "{datetime.now().isoformat()}",
     "total_observations": {len(all_observations)},
     "sources_used": {len(source_stats)},
@@ -305,7 +302,7 @@ REGLAS CRÍTICAS:
             messages=[
                 {
                     "role": "system",
-                    "content": "Eres un sistema de modelado espacial. Respondes SOLO en JSON válido. Tu modelo debe ser la representación más fiel posible de la realidad basada en la evidencia disponible."
+                    "content": "Eres un sistema de modelado espacial. Respondes SOLO en JSON válido. Tu modelo debe ser la representación más fiel posible de la realidad basada en la evidencia disponible.",
                 },
                 {"role": "user", "content": prompt},
             ],
@@ -334,11 +331,17 @@ REGLAS CRÍTICAS:
     # Save zone evidence for debugging
     evidence_path = output_path / "zone_evidence.json"
     with open(evidence_path, "w") as f:
-        json.dump({
-            "source_stats": source_stats,
-            "zone_counts": {z: len(obs) for z, obs in zone_observations.items() if obs},
-            "total_observations": len(all_observations),
-        }, f, indent=2, ensure_ascii=False, default=str)
+        json.dump(
+            {
+                "source_stats": source_stats,
+                "zone_counts": {z: len(obs) for z, obs in zone_observations.items() if obs},
+                "total_observations": len(all_observations),
+            },
+            f,
+            indent=2,
+            ensure_ascii=False,
+            default=str,
+        )
 
     print(f"\n  ✓ Modelo espacial guardado: {model_path}")
     print(f"  ✓ Resumen: {summary_path}")

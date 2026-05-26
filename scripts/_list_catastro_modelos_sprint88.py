@@ -6,6 +6,7 @@ para cruzar con propuesta de 18 agentes.
 Uso:
     railway run --service el-monstruo-kernel python3 scripts/_list_catastro_modelos_sprint88.py
 """
+
 from __future__ import annotations
 
 import json
@@ -51,6 +52,7 @@ def main() -> int:
     # Resumen por proveedor
     print("\n--- RESUMEN POR PROVEEDOR ---")
     from collections import Counter
+
     counts = Counter(r.get("proveedor") for r in data)
     for prov, n in sorted(counts.items(), key=lambda x: -x[1]):
         print(f"  {prov:<25} {n}")

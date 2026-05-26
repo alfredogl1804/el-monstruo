@@ -13,19 +13,18 @@ Verifica que la integración del inbox en `embrion_loop._detect_trigger` y
 
 from __future__ import annotations
 
-import asyncio
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-
 # ─── Fixture: cargar embrion_loop con stubs mínimos ─────────────────────
+
 
 @pytest.fixture
 def loop_module():
     """Importar el módulo embrion_loop después de mockear deps pesadas."""
     import kernel.embrion_loop as mod
+
     return mod
 
 
@@ -63,6 +62,7 @@ def loop_instance(loop_module, mock_db):
 # Tests de _detect_trigger
 # ═══════════════════════════════════════════════════════════════════════
 
+
 # ─── 1) Si NO hay mensaje_alfredo y SÍ hay inbox row → trigger inbox ────
 @pytest.mark.asyncio
 async def test_inbox_row_becomes_trigger_priority_9(loop_instance):
@@ -75,8 +75,10 @@ async def test_inbox_row_becomes_trigger_priority_9(loop_instance):
         "raw_text": "/help",
         "sanitized_payload": "/help",
     }
-    with patch("kernel.embrion_inbox.consume_next", return_value=[inbox_row]), \
-         patch("kernel.embrion_inbox._get_supabase_client", return_value=object()):
+    with (
+        patch("kernel.embrion_inbox.consume_next", return_value=[inbox_row]),
+        patch("kernel.embrion_inbox._get_supabase_client", return_value=object()),
+    ):
         trigger = await loop_instance._detect_trigger()
 
     assert trigger is not None
@@ -98,8 +100,10 @@ async def test_inbox_override_marks_requires_mfa(loop_instance):
         "raw_text": "/override hash=xxx",
         "sanitized_payload": "/override hash=xxx",
     }
-    with patch("kernel.embrion_inbox.consume_next", return_value=[inbox_row]), \
-         patch("kernel.embrion_inbox._get_supabase_client", return_value=object()):
+    with (
+        patch("kernel.embrion_inbox.consume_next", return_value=[inbox_row]),
+        patch("kernel.embrion_inbox._get_supabase_client", return_value=object()),
+    ):
         trigger = await loop_instance._detect_trigger()
 
     assert trigger["requires_mfa"] is True
@@ -110,20 +114,24 @@ async def test_inbox_override_marks_requires_mfa(loop_instance):
 @pytest.mark.asyncio
 async def test_alfredo_message_beats_inbox(loop_instance, mock_db):
     """Si hay tanto mensaje_alfredo NUEVO como inbox_row, gana mensaje_alfredo."""
-    mock_db.select = AsyncMock(side_effect=[
-        # 1ra llamada: mensajes (mensaje_alfredo)
-        [{"id": "msg-1", "contenido": "Test directiva", "created_at": "2026-05-11T20:00:00Z"}],
-        # 2da llamada: respuestas (vacío → no hemos respondido)
-        [],
-    ])
+    mock_db.select = AsyncMock(
+        side_effect=[
+            # 1ra llamada: mensajes (mensaje_alfredo)
+            [{"id": "msg-1", "contenido": "Test directiva", "created_at": "2026-05-11T20:00:00Z"}],
+            # 2da llamada: respuestas (vacío → no hemos respondido)
+            [],
+        ]
+    )
     inbox_row = {
         "id": "abc-789",
         "tipo_comando": "/help",
         "raw_text": "/help",
         "sanitized_payload": "/help",
     }
-    with patch("kernel.embrion_inbox.consume_next", return_value=[inbox_row]), \
-         patch("kernel.embrion_inbox._get_supabase_client", return_value=object()):
+    with (
+        patch("kernel.embrion_inbox.consume_next", return_value=[inbox_row]),
+        patch("kernel.embrion_inbox._get_supabase_client", return_value=object()),
+    ):
         trigger = await loop_instance._detect_trigger()
 
     # Debe ganar mensaje_alfredo (priority 10), NO el inbox
@@ -136,14 +144,18 @@ async def test_alfredo_message_beats_inbox(loop_instance, mock_db):
 async def test_inbox_exception_does_not_block_other_triggers(loop_instance, mock_db):
     """Si consume_next() lanza, el flujo continúa a Sabios y reflexión."""
     # Mock contribuciones vacías y reflexion = trigger
-    mock_db.select = AsyncMock(side_effect=[
-        [],  # mensajes
-        [],  # contribuciones (paso 2)
-    ])
+    mock_db.select = AsyncMock(
+        side_effect=[
+            [],  # mensajes
+            [],  # contribuciones (paso 2)
+        ]
+    )
     loop_instance._last_thought_at = None  # forzar trigger reflexion (paso 3)
 
-    with patch("kernel.embrion_inbox.consume_next", side_effect=RuntimeError("boom")), \
-         patch("kernel.embrion_inbox._get_supabase_client", return_value=object()):
+    with (
+        patch("kernel.embrion_inbox.consume_next", side_effect=RuntimeError("boom")),
+        patch("kernel.embrion_inbox._get_supabase_client", return_value=object()),
+    ):
         trigger = await loop_instance._detect_trigger()
 
     # Debe caer al trigger de reflexión autónoma (priority 3)
@@ -154,14 +166,18 @@ async def test_inbox_exception_does_not_block_other_triggers(loop_instance, mock
 # ─── 5) Inbox vacío → no crea trigger inbox ────────────────────────────
 @pytest.mark.asyncio
 async def test_empty_inbox_does_not_create_trigger(loop_instance, mock_db):
-    mock_db.select = AsyncMock(side_effect=[
-        [],  # mensajes
-        [],  # contribuciones
-    ])
+    mock_db.select = AsyncMock(
+        side_effect=[
+            [],  # mensajes
+            [],  # contribuciones
+        ]
+    )
     loop_instance._last_thought_at = 99999999999  # cooldown infinito → no reflexion
 
-    with patch("kernel.embrion_inbox.consume_next", return_value=[]), \
-         patch("kernel.embrion_inbox._get_supabase_client", return_value=object()):
+    with (
+        patch("kernel.embrion_inbox.consume_next", return_value=[]),
+        patch("kernel.embrion_inbox._get_supabase_client", return_value=object()),
+    ):
         trigger = await loop_instance._detect_trigger()
 
     assert trigger is None
@@ -170,6 +186,7 @@ async def test_empty_inbox_does_not_create_trigger(loop_instance, mock_db):
 # ═══════════════════════════════════════════════════════════════════════
 # Tests del flujo MFA stub en _check_and_think
 # ═══════════════════════════════════════════════════════════════════════
+
 
 # ─── 6) Trigger inbox_command requires_mfa → mark_requires_mfa, NO _think ─
 @pytest.mark.asyncio
@@ -188,12 +205,15 @@ async def test_high_risk_inbox_command_skips_think_and_marks_mfa(loop_instance):
     loop_instance._think = AsyncMock(return_value={"response": "should not happen"})
 
     mfa_calls = []
+
     def fake_mfa(client, **kwargs):
         mfa_calls.append(kwargs)
         return {"id": kwargs.get("inbox_id")}
 
-    with patch("kernel.embrion_inbox.mark_requires_mfa", side_effect=fake_mfa) as mfa_mock, \
-         patch("kernel.embrion_inbox._get_supabase_client", return_value=object()):
+    with (
+        patch("kernel.embrion_inbox.mark_requires_mfa", side_effect=fake_mfa) as mfa_mock,
+        patch("kernel.embrion_inbox._get_supabase_client", return_value=object()),
+    ):
         await loop_instance._check_and_think()
 
     assert mfa_mock.called
@@ -225,12 +245,15 @@ async def test_safe_inbox_command_completes_with_mark_processed(loop_instance):
     loop_instance._report = AsyncMock(return_value=None)
 
     processed_calls = []
+
     def fake_processed(client, inbox_id, **kwargs):
         processed_calls.append({"inbox_id": inbox_id, **kwargs})
         return {"id": inbox_id}
 
-    with patch("kernel.embrion_inbox.mark_processed", side_effect=fake_processed) as proc_mock, \
-         patch("kernel.embrion_inbox._get_supabase_client", return_value=object()):
+    with (
+        patch("kernel.embrion_inbox.mark_processed", side_effect=fake_processed) as proc_mock,
+        patch("kernel.embrion_inbox._get_supabase_client", return_value=object()),
+    ):
         await loop_instance._check_and_think()
 
     assert proc_mock.called
@@ -258,8 +281,10 @@ async def test_mark_processed_exception_swallowed(loop_instance):
     loop_instance._judge_after = AsyncMock(return_value={"useful": True})
     loop_instance._should_speak = MagicMock(return_value=(False, 30, "silencioso"))
 
-    with patch("kernel.embrion_inbox.mark_processed", side_effect=RuntimeError("db down")), \
-         patch("kernel.embrion_inbox._get_supabase_client", return_value=object()):
+    with (
+        patch("kernel.embrion_inbox.mark_processed", side_effect=RuntimeError("db down")),
+        patch("kernel.embrion_inbox._get_supabase_client", return_value=object()),
+    ):
         # NO debe propagar la excepción
         await loop_instance._check_and_think()
 

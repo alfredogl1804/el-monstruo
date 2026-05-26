@@ -3,10 +3,12 @@
 OSM Collector — Recolecta datos de OpenStreetMap via Overpass API.
 Obtiene footprints de edificios, vías, uso de suelo, POIs, vegetación.
 """
+
 import asyncio
 import json
-import requests
 from pathlib import Path
+
+import requests
 
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
@@ -127,12 +129,16 @@ async def collect_osm(site_info: dict, evidence_dir: Path) -> dict:
 
         for lu in landuse:
             tags = lu.get("tags", {})
-            cat = "vegetation" if tags.get("natural") or tags.get("landuse") in ("forest", "grass", "meadow") else "other"
+            cat = (
+                "vegetation" if tags.get("natural") or tags.get("landuse") in ("forest", "grass", "meadow") else "other"
+            )
             obs = {
                 "observation_id": f"osm_landuse_{lu['id']}",
                 "category": cat,
                 "source": "osm",
-                "description": tags.get("name", f"Uso: {tags.get('landuse', tags.get('leisure', tags.get('natural', 'unknown')))}"),
+                "description": tags.get(
+                    "name", f"Uso: {tags.get('landuse', tags.get('leisure', tags.get('natural', 'unknown')))}"
+                ),
                 "attributes": {
                     "landuse": tags.get("landuse", None),
                     "leisure": tags.get("leisure", None),

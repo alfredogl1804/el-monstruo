@@ -22,7 +22,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-
 # ============================================================
 # FEATURE FLAG: B8 v3 Context-Aware Layers
 # When False, only Layers 1-3 (v2.0 behavior) are active.
@@ -30,9 +29,7 @@ from typing import Optional
 # Default: False (OFF) — requires explicit activation.
 # ============================================================
 
-ANTI_DORY_B8_V3_ENABLED: bool = os.environ.get(
-    "ANTI_DORY_B8_V3_ENABLED", "false"
-).lower() in ("true", "1", "yes")
+ANTI_DORY_B8_V3_ENABLED: bool = os.environ.get("ANTI_DORY_B8_V3_ENABLED", "false").lower() in ("true", "1", "yes")
 
 
 class ActionLevel(Enum):
@@ -52,32 +49,39 @@ class ActionClassification:
 # LAYER 1: Exact action_type triggers (v1.0 backward compat)
 # ============================================================
 
-MAGNA_TRIGGERS = frozenset([
-    "merge_to_main",
-    "push_to_main",
-    "supabase_write_production",
-    "deploy_production",
-    "modify_credentials",
-    "rotate_secrets",
-    "declare_dory_dead",
-    "approve_r1",
-    "phase_1_action",
-    "sign_dsc",
-    "create_pr",
-    "delete_table",
-    "drop_migration",
-    "override_guardian",
-    "disable_rls",
-    "expose_private_key",
-])
+MAGNA_TRIGGERS = frozenset(
+    [
+        "merge_to_main",
+        "push_to_main",
+        "supabase_write_production",
+        "deploy_production",
+        "modify_credentials",
+        "rotate_secrets",
+        "declare_dory_dead",
+        "approve_r1",
+        "phase_1_action",
+        "sign_dsc",
+        "create_pr",
+        "delete_table",
+        "drop_migration",
+        "override_guardian",
+        "disable_rls",
+        "expose_private_key",
+    ]
+)
 
 # ============================================================
 # LAYER 2: Keyword detection in action_type (v1.0 backward compat)
 # ============================================================
 
 DANGER_KEYWORDS_ACTION_TYPE = [
-    "main", "production", "credential", "secret",
-    "dory_dead", "phase_1", "private_key",
+    "main",
+    "production",
+    "credential",
+    "secret",
+    "dory_dead",
+    "phase_1",
+    "private_key",
 ]
 
 # ============================================================
@@ -174,38 +178,40 @@ SEMANTIC_CATEGORIES = {
 # branch-aware escalation.
 # ============================================================
 
-MAGNA_ACTION_TYPES_INHERENT = frozenset([
-    # Destructive operations
-    "drop_table",
-    "delete_table",
-    "truncate_table",
-    "destroy_resource",
-    # Deployment / production
-    "deploy",
-    "deploy_production",
-    "apply_migration",
-    # Authorization / governance
-    "activate_phase",
-    "declare_status",
-    "unlock_feature",
-    "enable_guardian",
-    "activate_global",
-    # Git operations that affect main / production
-    # NOTE: broad "git_push" intentionally REMOVED to avoid escalating
-    # benign feature-branch pushes. Use explicit dangerous variants.
-    "git_merge",
-    "push_to_main",
-    "force_push_main",
-    "force_push",
-    "push_production",
-    "push_to_production",
-    # Environment modification
-    "env_modify",
-    "modify_env",
-    # Execution without verification
-    "execute_deploy",
-    "execute_action",
-])
+MAGNA_ACTION_TYPES_INHERENT = frozenset(
+    [
+        # Destructive operations
+        "drop_table",
+        "delete_table",
+        "truncate_table",
+        "destroy_resource",
+        # Deployment / production
+        "deploy",
+        "deploy_production",
+        "apply_migration",
+        # Authorization / governance
+        "activate_phase",
+        "declare_status",
+        "unlock_feature",
+        "enable_guardian",
+        "activate_global",
+        # Git operations that affect main / production
+        # NOTE: broad "git_push" intentionally REMOVED to avoid escalating
+        # benign feature-branch pushes. Use explicit dangerous variants.
+        "git_merge",
+        "push_to_main",
+        "force_push_main",
+        "force_push",
+        "push_production",
+        "push_to_production",
+        # Environment modification
+        "env_modify",
+        "modify_env",
+        # Execution without verification
+        "execute_deploy",
+        "execute_action",
+    ]
+)
 
 # ============================================================
 # LAYER 5: Context-Aware Heuristics (v3.0 NEW)
@@ -392,35 +398,35 @@ _CONVICTION_FALSE_MEMORY_PATTERNS = [
 def _try_decode_obfuscated(text: str) -> str:
     """Attempt to decode base64/hex/rot13 segments in text."""
     decoded_parts = []
-    
+
     # Try base64 segments
-    b64_matches = re.findall(r'[A-Za-z0-9+/=]{16,}', text)
+    b64_matches = re.findall(r"[A-Za-z0-9+/=]{16,}", text)
     for match in b64_matches:
         try:
-            decoded = base64.b64decode(match).decode('utf-8', errors='ignore')
+            decoded = base64.b64decode(match).decode("utf-8", errors="ignore")
             if decoded and any(c.isalpha() for c in decoded):
                 decoded_parts.append(decoded.lower())
         except Exception:
             pass
-    
+
     # Try hex segments
-    hex_matches = re.findall(r'(?:[0-9a-f]{2}\s){4,}', text.lower())
+    hex_matches = re.findall(r"(?:[0-9a-f]{2}\s){4,}", text.lower())
     for match in hex_matches:
         try:
-            decoded = bytes.fromhex(match.replace(' ', '')).decode('utf-8', errors='ignore')
+            decoded = bytes.fromhex(match.replace(" ", "")).decode("utf-8", errors="ignore")
             if decoded and any(c.isalpha() for c in decoded):
                 decoded_parts.append(decoded.lower())
         except Exception:
             pass
-    
+
     # Try rot13
-    if 'rot13' in text.lower() or 'cifrado' in text.lower():
-        words = re.findall(r'[a-zA-Z]{4,}', text)
+    if "rot13" in text.lower() or "cifrado" in text.lower():
+        words = re.findall(r"[a-zA-Z]{4,}", text)
         for word in words:
-            decoded = codecs.decode(word, 'rot_13')
+            decoded = codecs.decode(word, "rot_13")
             decoded_parts.append(decoded.lower())
-    
-    return ' '.join(decoded_parts)
+
+    return " ".join(decoded_parts)
 
 
 def _layer6_adversarial_evasion(
@@ -429,7 +435,7 @@ def _layer6_adversarial_evasion(
     combined_text: str,
 ) -> Optional[ActionClassification]:
     """Layer 6: Detect adversarial evasion attempts."""
-    
+
     # 6A: Fragmentation detection
     for pattern in _FRAGMENTATION_PATTERNS:
         if re.search(pattern, combined_text, re.IGNORECASE):
@@ -439,7 +445,7 @@ def _layer6_adversarial_evasion(
                 action_description=description,
                 requires_t1=True,
             )
-    
+
     # 6B: Semantic Inversion / Double Negation
     for pattern in _INVERSION_PATTERNS:
         if re.search(pattern, combined_text, re.IGNORECASE):
@@ -449,7 +455,7 @@ def _layer6_adversarial_evasion(
                 action_description=description,
                 requires_t1=True,
             )
-    
+
     # 6C: Encoding / Obfuscation
     for pattern in _ENCODING_INDICATORS:
         if re.search(pattern, combined_text, re.IGNORECASE):
@@ -459,7 +465,7 @@ def _layer6_adversarial_evasion(
                 action_description=description,
                 requires_t1=True,
             )
-    
+
     # 6C-decode: Try to decode obfuscated content and re-check
     decoded_content = _try_decode_obfuscated(combined_text)
     if decoded_content:
@@ -477,7 +483,7 @@ def _layer6_adversarial_evasion(
                     action_description=description,
                     requires_t1=True,
                 )
-    
+
     # 6D: Dory Probes
     for pattern in _DORY_PROBE_PATTERNS:
         if re.search(pattern, combined_text, re.IGNORECASE):
@@ -487,7 +493,7 @@ def _layer6_adversarial_evasion(
                 action_description=description,
                 requires_t1=True,
             )
-    
+
     # 6E: Conviction-based False Memory
     for pattern in _CONVICTION_FALSE_MEMORY_PATTERNS:
         if re.search(pattern, combined_text, re.IGNORECASE):
@@ -497,7 +503,7 @@ def _layer6_adversarial_evasion(
                 action_description=description,
                 requires_t1=True,
             )
-    
+
     return None
 
 
@@ -507,62 +513,68 @@ def _layer6_adversarial_evasion(
 
 # Protected resources: ANY action targeting these is MAGNA by capability,
 # regardless of how the description is worded.
-_PROTECTED_TABLES = frozenset([
-    # Anti-Dory governance tables
-    "anti_dory_anchor_store",
-    "anti_dory_plan_ledger",
-    "anti_dory_audit_log",
-    "anti_dory_canary_results",
-    # Governance/authority tables
-    "cowork_sesiones",
-    "cowork_audit",
-    "kernel_version",
-    "kernel_state",
-    # Memory/identity tables
-    "error_memory",
-    "memoria_semantica",
-    "identidad_hilo",
-    # Credential/secret storage
-    "secrets_inventory",
-    "credential_rotation_log",
-])
+_PROTECTED_TABLES = frozenset(
+    [
+        # Anti-Dory governance tables
+        "anti_dory_anchor_store",
+        "anti_dory_plan_ledger",
+        "anti_dory_audit_log",
+        "anti_dory_canary_results",
+        # Governance/authority tables
+        "cowork_sesiones",
+        "cowork_audit",
+        "kernel_version",
+        "kernel_state",
+        # Memory/identity tables
+        "error_memory",
+        "memoria_semantica",
+        "identidad_hilo",
+        # Credential/secret storage
+        "secrets_inventory",
+        "credential_rotation_log",
+    ]
+)
 
-_PROTECTED_RESOURCES = frozenset([
-    # Files/paths that are governance-critical
-    ".monstruo",
-    "guardian.py",
-    "AGENTS.md",
-    ".env",
-    ".env.production",
-    ".env.local",
-    "minisign",
-    "private_key",
-    "service_role",
-    # Governance artifacts
-    "DSC",  # Decision documents
-    "anchor_store",
-    "plan_ledger",
-    "authority_matrix",
-])
+_PROTECTED_RESOURCES = frozenset(
+    [
+        # Files/paths that are governance-critical
+        ".monstruo",
+        "guardian.py",
+        "AGENTS.md",
+        ".env",
+        ".env.production",
+        ".env.local",
+        "minisign",
+        "private_key",
+        "service_role",
+        # Governance artifacts
+        "DSC",  # Decision documents
+        "anchor_store",
+        "plan_ledger",
+        "authority_matrix",
+    ]
+)
 
-_PROTECTED_CAPABILITIES = frozenset([
-    # Operations that are inherently dangerous by effect
-    "write_credential",
-    "rotate_secret",
-    "modify_rls_policy",
-    "alter_table_schema",
-    "truncate_table",
-    "drop_table",
-    "modify_governance",
-    "write_anchor",
-    "transition_plan_status",
-    "modify_kernel_state",
-    "send_external_webhook",
-    "publish_to_registry",
-    "modify_ci_pipeline",
-    "grant_permission",
-    "revoke_permission",
-])
+_PROTECTED_CAPABILITIES = frozenset(
+    [
+        # Operations that are inherently dangerous by effect
+        "write_credential",
+        "rotate_secret",
+        "modify_rls_policy",
+        "alter_table_schema",
+        "truncate_table",
+        "drop_table",
+        "modify_governance",
+        "write_anchor",
+        "transition_plan_status",
+        "modify_kernel_state",
+        "send_external_webhook",
+        "publish_to_registry",
+        "modify_ci_pipeline",
+        "grant_permission",
+        "revoke_permission",
+    ]
+)
 
 
 def _layer7_capability_gating(
@@ -570,11 +582,11 @@ def _layer7_capability_gating(
     description: str,
 ) -> Optional[ActionClassification]:
     """Layer 7: Capability/resource-based gating.
-    
+
     Structurally independent from Layers 1-6 (all lexical/regex).
     This layer gates based on WHAT the action touches, not HOW
     the description is worded.
-    
+
     Metadata fields consumed:
       - target_resource: str — file/path/resource being targeted
       - affected_tables: list[str] — database tables affected
@@ -585,7 +597,7 @@ def _layer7_capability_gating(
     affected_tables = metadata.get("affected_tables", [])
     if isinstance(affected_tables, str):
         affected_tables = [affected_tables]
-    
+
     for table in affected_tables:
         table_lower = table.lower().strip()
         if table_lower in _PROTECTED_TABLES:
@@ -598,7 +610,7 @@ def _layer7_capability_gating(
                 action_description=description,
                 requires_t1=True,
             )
-    
+
     # 7B: Resource-based gating
     target_resource = str(metadata.get("target_resource", "")).lower()
     if target_resource:
@@ -613,20 +625,19 @@ def _layer7_capability_gating(
                     action_description=description,
                     requires_t1=True,
                 )
-    
+
     # 7C: Capability-based gating
     capability = str(metadata.get("capability", "")).lower().strip()
     if capability in _PROTECTED_CAPABILITIES:
         return ActionClassification(
             level=ActionLevel.MAGNA,
             reason=(
-                f"Layer 7C (Capability): action exercises protected capability "
-                f"'{capability}' (effect-based gating)"
+                f"Layer 7C (Capability): action exercises protected capability '{capability}' (effect-based gating)"
             ),
             action_description=description,
             requires_t1=True,
         )
-    
+
     # 7D: Module-based gating (any write to anti_dory kernel modules)
     target_module = str(metadata.get("target_module", "")).lower()
     if target_module and "anti_dory" in target_module:
@@ -639,7 +650,7 @@ def _layer7_capability_gating(
             action_description=description,
             requires_t1=True,
         )
-    
+
     return None
 
 
@@ -690,9 +701,7 @@ def classify_action(
         r"(sintaxis correcta|correct syntax)\s*(para|for|to)",
         r"(ejemplo te\u00f3rico|theoretical example)",
     ]
-    is_safe_educational = any(
-        re.search(p, combined_text) for p in _SAFE_CONTEXT_INDICATORS
-    )
+    is_safe_educational = any(re.search(p, combined_text) for p in _SAFE_CONTEXT_INDICATORS)
 
     if not is_safe_educational:
         for category, patterns in SEMANTIC_CATEGORIES.items():
@@ -711,10 +720,7 @@ def classify_action(
         if action_lower in MAGNA_ACTION_TYPES_INHERENT:
             return ActionClassification(
                 level=ActionLevel.MAGNA,
-                reason=(
-                    f"Action type '{action_type}' is inherently dangerous "
-                    f"(MAGNA_ACTION_TYPES_INHERENT)"
-                ),
+                reason=(f"Action type '{action_type}' is inherently dangerous (MAGNA_ACTION_TYPES_INHERENT)"),
                 action_description=description,
                 requires_t1=True,
             )
@@ -725,10 +731,7 @@ def classify_action(
                 if re.search(pattern, combined_text):
                     return ActionClassification(
                         level=ActionLevel.MAGNA,
-                        reason=(
-                            f"Context-aware heuristic '{heuristic_category}' "
-                            f"matched: /{pattern}/"
-                        ),
+                        reason=(f"Context-aware heuristic '{heuristic_category}' matched: /{pattern}/"),
                         action_description=description,
                         requires_t1=True,
                     )
@@ -737,17 +740,12 @@ def classify_action(
     # A bare git_push is STANDARD by default, but if metadata.target_branch
     # is main/master/production, escalate to MAGNA. Preserves safety for
     # main/production while not penalizing feature-branch pushes.
-    if ANTI_DORY_B8_V3_ENABLED and metadata and action_lower in (
-        "git_push", "push"
-    ):
+    if ANTI_DORY_B8_V3_ENABLED and metadata and action_lower in ("git_push", "push"):
         target = str(metadata.get("target_branch", "")).lower()
         if target in ("main", "master", "production", "prod", "release"):
             return ActionClassification(
                 level=ActionLevel.MAGNA,
-                reason=(
-                    f"git_push targets protected branch '{target}' "
-                    f"(branch-aware MAGNA escalation)"
-                ),
+                reason=(f"git_push targets protected branch '{target}' (branch-aware MAGNA escalation)"),
                 action_description=description,
                 requires_t1=True,
             )

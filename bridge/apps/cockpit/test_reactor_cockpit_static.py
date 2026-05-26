@@ -2,6 +2,7 @@
 Tests for Reactor Cockpit Static HTML.
 Validates security constraints: no fetch POST, no localStorage, no secrets, no approve/reject.
 """
+
 import os
 import sys
 
@@ -38,26 +39,40 @@ def run_tests():
     test("2. No fetch POST", "fetch(" not in content and ".post(" not in content_lower)
 
     # Test 3: No localStorage/sessionStorage
-    test("3. No localStorage/sessionStorage",
-         "localstorage" not in content_lower and "sessionstorage" not in content_lower)
+    test(
+        "3. No localStorage/sessionStorage",
+        "localstorage" not in content_lower and "sessionstorage" not in content_lower,
+    )
 
     # Test 4: No supabase/openai/anthropic keys
-    forbidden_keys = ["sk-", "sbp_", "eyJ", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY", "XAI_API_KEY", "SONAR_API_KEY"]
+    forbidden_keys = [
+        "sk-",
+        "sbp_",
+        "eyJ",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "GEMINI_API_KEY",
+        "XAI_API_KEY",
+        "SONAR_API_KEY",
+    ]
     has_keys = any(k in content for k in forbidden_keys)
     test("4. No API keys or secrets in HTML", not has_keys)
 
     # Test 5: No approve/reject real (no form action, no submit button)
-    test("5. No approve/reject real",
-         "<form" not in content_lower and "type=\"submit\"" not in content_lower and "onclick" not in content_lower)
+    test(
+        "5. No approve/reject real",
+        "<form" not in content_lower and 'type="submit"' not in content_lower and "onclick" not in content_lower,
+    )
 
     # Test 6: README explains local-only
     readme_path = os.path.join(os.path.dirname(__file__), "reactor_limited_active_r0_README.md")
-    test("6. README exists and explains local-only",
-         os.path.isfile(readme_path) and "local" in open(readme_path).read().lower())
+    test(
+        "6. README exists and explains local-only",
+        os.path.isfile(readme_path) and "local" in open(readme_path).read().lower(),
+    )
 
     # Test 7: Banner present
-    test("7. Banner 'LOCAL READ-ONLY REACTOR COCKPIT' present",
-         "LOCAL READ-ONLY REACTOR COCKPIT" in content)
+    test("7. Banner 'LOCAL READ-ONLY REACTOR COCKPIT' present", "LOCAL READ-ONLY REACTOR COCKPIT" in content)
 
     # Test 8: No XMLHttpRequest
     test("8. No XMLHttpRequest", "xmlhttprequest" not in content_lower)
@@ -66,7 +81,9 @@ def run_tests():
     test("9. No WebSocket", "websocket" not in content_lower)
 
     # Test 10: No supabase connection (URL/client/import)
-    supabase_connection = any(x in content_lower for x in ["supabase.co", "createclient", "import supabase", "from supabase"])
+    supabase_connection = any(
+        x in content_lower for x in ["supabase.co", "createclient", "import supabase", "from supabase"]
+    )
     test("10. No supabase connection", not supabase_connection)
 
     print("=" * 60)

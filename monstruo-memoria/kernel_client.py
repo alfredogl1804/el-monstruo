@@ -20,13 +20,12 @@ Schemas verificados:
 """
 
 import os
-import requests
 from typing import Optional
 
-KERNEL_URL = os.environ.get(
-    "MONSTRUO_KERNEL_URL",
-    "https://el-monstruo-kernel-production.up.railway.app"
-)
+import requests
+
+KERNEL_URL = os.environ.get("MONSTRUO_KERNEL_URL", "https://el-monstruo-kernel-production.up.railway.app")
+
 
 # La key se busca en este orden:
 # 1. Variable de entorno MONSTRUO_API_KEY
@@ -86,15 +85,16 @@ def _get(path: str, timeout: int = 15) -> dict:
 # ENDPOINTS VERIFICADOS
 # ============================================================
 
+
 def knowledge_ingest(content: str, source: Optional[str] = None, doc_type: Optional[str] = None) -> dict:
     """
     Ingestar un documento en LightRAG.
-    
+
     Args:
         content: El texto a ingestar (REQUERIDO)
         source: Identificador de origen (opcional)
         doc_type: Tipo de documento (opcional)
-    
+
     Returns:
         {"status": "ok", "ingested": true, "content_length": N, "metadata": {...}}
     """
@@ -109,10 +109,10 @@ def knowledge_ingest(content: str, source: Optional[str] = None, doc_type: Optio
 def knowledge_query(query: str) -> dict:
     """
     Consultar el knowledge graph de LightRAG.
-    
+
     Args:
         query: La pregunta o búsqueda (REQUERIDO)
-    
+
     Returns:
         Resultados del knowledge graph
     """
@@ -122,11 +122,11 @@ def knowledge_query(query: str) -> dict:
 def chat(message: str, thread_id: Optional[str] = None) -> dict:
     """
     Enviar un mensaje al Monstruo vía el kernel.
-    
+
     Args:
         message: El mensaje (REQUERIDO)
         thread_id: ID del hilo de conversación (opcional)
-    
+
     Returns:
         Respuesta del Monstruo
     """
@@ -139,11 +139,11 @@ def chat(message: str, thread_id: Optional[str] = None) -> dict:
 def feedback(run_id: str, action: str) -> dict:
     """
     Enviar feedback sobre una ejecución.
-    
+
     Args:
         run_id: ID de la ejecución (REQUERIDO)
         action: Acción de feedback (REQUERIDO)
-    
+
     Returns:
         Confirmación
     """
@@ -153,10 +153,10 @@ def feedback(run_id: str, action: str) -> dict:
 def health(auth: bool = False) -> dict:
     """
     Verificar salud del kernel.
-    
+
     Args:
         auth: Si True, usa /health/auth (requiere API key)
-    
+
     Returns:
         Estado del kernel con componentes
     """
@@ -180,10 +180,11 @@ def stats() -> dict:
 
 if __name__ == "__main__":
     import sys
+
     print("kernel_client.py — Verificación rápida")
     print(f"  URL: {KERNEL_URL}")
     print(f"  Key: {_get_key()[:10]}...")
-    
+
     try:
         h = health()
         print(f"  Health: {h.get('status')} (v{h.get('version')})")
@@ -192,7 +193,7 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"  ✗ Kernel inaccesible: {e}")
         sys.exit(1)
-    
+
     try:
         ha = health(auth=True)
         print(f"  Auth: {ha.get('status')} (mode={ha.get('mode')})")

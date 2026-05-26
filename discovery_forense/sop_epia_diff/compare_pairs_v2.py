@@ -13,6 +13,7 @@ Estrategia:
 3. Comparar listas de tokens con SequenceMatcher.
 4. Para diff visualmente útil, también guardar diffs por párrafo equivalente.
 """
+
 import hashlib
 import re
 import unicodedata
@@ -25,24 +26,16 @@ DBX = ROOT / "dropbox"
 REPORT = ROOT / "diff_report_v2.md"
 
 PAIRS = [
-    ("SOP Fundacional v1.2",
-     "SOP_v1.2_DRIVE.md",
-     "ENTREGABLE_2_SOP_DBX.txt"),
-    ("EPIA Fundacional v1.0",
-     "EPIA_fundacional_completo_v1_DRIVE.txt",
-     "EPIA_FUNDACIONAL_DBX.txt"),
-    ("Genealogia SOP/EPIA v2",
-     "GENEALOGIA_SOP_EPIA_v2_DRIVE.md",
-     "GENEALOGIA_SOP_EPIA_DBX.txt"),
-    ("SOP+EPIA Reestructuracion 6 Sabios Abr2026",
-     "SOP_EPIA_REESTRUCTURACION_DRIVE.md",
-     "SOP_EPIA_REESTRUCTURACION_DBX.md"),
-    ("EPIA Fundacional (md vs md)",
-     "EPIA_fundacional_completo_v1_DRIVE.txt",
-     "EPIA_FUNDACIONAL_DBX.md"),
-    ("ENTREGABLE 2 SOP (md vs md)",
-     "ENTREGABLE_2_SOP_FUNDACIONAL_DRIVE.md",
-     "ENTREGABLE_2_SOP_DBX.md"),
+    ("SOP Fundacional v1.2", "SOP_v1.2_DRIVE.md", "ENTREGABLE_2_SOP_DBX.txt"),
+    ("EPIA Fundacional v1.0", "EPIA_fundacional_completo_v1_DRIVE.txt", "EPIA_FUNDACIONAL_DBX.txt"),
+    ("Genealogia SOP/EPIA v2", "GENEALOGIA_SOP_EPIA_v2_DRIVE.md", "GENEALOGIA_SOP_EPIA_DBX.txt"),
+    (
+        "SOP+EPIA Reestructuracion 6 Sabios Abr2026",
+        "SOP_EPIA_REESTRUCTURACION_DRIVE.md",
+        "SOP_EPIA_REESTRUCTURACION_DBX.md",
+    ),
+    ("EPIA Fundacional (md vs md)", "EPIA_fundacional_completo_v1_DRIVE.txt", "EPIA_FUNDACIONAL_DBX.md"),
+    ("ENTREGABLE 2 SOP (md vs md)", "ENTREGABLE_2_SOP_FUNDACIONAL_DRIVE.md", "ENTREGABLE_2_SOP_DBX.md"),
 ]
 
 
@@ -95,29 +88,33 @@ def diff_tokens(a: list, b: list, max_blocks: int = 5):
     for tag, i1, i2, j1, j2 in sm.get_opcodes():
         if tag == "equal":
             continue
-        blocks.append({
-            "tag": tag,
-            "drive": a[i1:i2][:30],
-            "dbx": b[j1:j2][:30],
-            "drive_count": i2 - i1,
-            "dbx_count": j2 - j1,
-        })
+        blocks.append(
+            {
+                "tag": tag,
+                "drive": a[i1:i2][:30],
+                "dbx": b[j1:j2][:30],
+                "drive_count": i2 - i1,
+                "dbx_count": j2 - j1,
+            }
+        )
         if len(blocks) >= max_blocks:
             break
     return blocks, sm.ratio()
 
 
 def main():
-    report = ["# Diff semantico SOP/EPIA v2 — Drive vs Dropbox (token-level)",
-              "",
-              "**Fecha:** 2026-05-05",
-              "**Generado por:** Manus (Tarea 4 Discovery Forense Fase III)",
-              "**Metodo:** strip_markdown -> tokenize -> SequenceMatcher sobre tokens (neutraliza formato)",
-              "",
-              "## Resumen ejecutivo",
-              "",
-              "| # | Par | Tokens Drive | Tokens DBX | Hash Drive | Hash DBX | Similaridad | Veredicto |",
-              "|---|---|---|---|---|---|---|---|"]
+    report = [
+        "# Diff semantico SOP/EPIA v2 — Drive vs Dropbox (token-level)",
+        "",
+        "**Fecha:** 2026-05-05",
+        "**Generado por:** Manus (Tarea 4 Discovery Forense Fase III)",
+        "**Metodo:** strip_markdown -> tokenize -> SequenceMatcher sobre tokens (neutraliza formato)",
+        "",
+        "## Resumen ejecutivo",
+        "",
+        "| # | Par | Tokens Drive | Tokens DBX | Hash Drive | Hash DBX | Similaridad | Veredicto |",
+        "|---|---|---|---|---|---|---|---|",
+    ]
 
     details = []
 
@@ -150,7 +147,9 @@ def main():
             else:
                 veredicto = "DOCUMENTOS DISTINTOS"
 
-        report.append(f"| {i} | {label} | {len(a_tok)} | {len(b_tok)} | `{a_hash}` | `{b_hash}` | {similarity:.3f} | {veredicto} |")
+        report.append(
+            f"| {i} | {label} | {len(a_tok)} | {len(b_tok)} | `{a_hash}` | `{b_hash}` | {similarity:.3f} | {veredicto} |"
+        )
 
         det = [f"### {i}. {label}", ""]
         det.append(f"- Drive: `{drive_file}` ({len(a_tok)} tokens)")
@@ -164,7 +163,9 @@ def main():
             det.append("**Bloques de diferencia (token-level):**")
             det.append("")
             for j, blk in enumerate(blocks, 1):
-                det.append(f"#### Bloque {j} ({blk['tag']}, drive={blk['drive_count']} tokens, dbx={blk['dbx_count']} tokens)")
+                det.append(
+                    f"#### Bloque {j} ({blk['tag']}, drive={blk['drive_count']} tokens, dbx={blk['dbx_count']} tokens)"
+                )
                 det.append("```")
                 drive_str = " ".join(blk["drive"])[:300]
                 dbx_str = " ".join(blk["dbx"])[:300]

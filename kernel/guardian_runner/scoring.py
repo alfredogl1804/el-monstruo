@@ -37,7 +37,7 @@ import json
 import logging
 import os
 import subprocess
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
@@ -53,6 +53,7 @@ RUBRICAS_DIR = Path(__file__).parent / "rubricas"
 
 
 # ── Tipos ─────────────────────────────────────────────────────────────────
+
 
 @dataclass(frozen=True)
 class EvidenceResult:
@@ -105,6 +106,7 @@ class ScoringError(Exception):
 
 # ── Carga de rubricas ────────────────────────────────────────────────────
 
+
 def load_rubrica(objetivo_id: int) -> dict[str, Any]:
     """Cargar rubrica YAML del objetivo."""
     if yaml is None:
@@ -135,6 +137,7 @@ def load_rubrica(objetivo_id: int) -> dict[str, Any]:
 
 
 # ── Evaluadores de evidencia ─────────────────────────────────────────────
+
 
 def _eval_evidence_sql(evidence_spec: dict[str, Any]) -> tuple[Optional[float], Optional[str]]:
     """Ejecutar SQL contra Supabase via sb_sql.py wrapper."""
@@ -312,6 +315,7 @@ def _evaluate_one_evidence(metric_key: str, spec: dict[str, Any]) -> EvidenceRes
 
 
 # ── Scoring publico ──────────────────────────────────────────────────────
+
 
 def _status_from_score(score_pct: float, thresholds: dict[str, float]) -> str:
     """Mapear score_pct a status segun thresholds de la rubrica."""

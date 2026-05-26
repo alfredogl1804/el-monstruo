@@ -2,11 +2,13 @@
 Static validation tests for R0+ Artifact Ops Viewer.
 Verifies the HTML is safe, read-only, and references correct fixture.
 """
+
 import sys
 from pathlib import Path
 
 passed = 0
 failed = 0
+
 
 def test(name, condition):
     global passed, failed
@@ -16,6 +18,7 @@ def test(name, condition):
     else:
         failed += 1
         print(f"  FAIL [{passed + failed:02d}] {name}")
+
 
 print("=" * 60)
 print("R0+ Artifact Ops Viewer Static Tests")
@@ -38,8 +41,9 @@ test("no localStorage", "localStorage" not in content and "sessionStorage" not i
 
 # 5. No secrets (sk- must not be preceded by alphanumeric to avoid 'risk-' false positive)
 import re
+
 secret_patterns_simple = ["sbp_", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "password", "Bearer"]
-sk_pattern = re.search(r'(?<![a-zA-Z])sk-', content)
+sk_pattern = re.search(r"(?<![a-zA-Z])sk-", content)
 no_secrets = sk_pattern is None and not any(p in content for p in secret_patterns_simple)
 test("no secrets", no_secrets)
 

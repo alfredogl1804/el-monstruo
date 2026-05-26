@@ -1,4 +1,5 @@
 """Storage Supabase para validation_log (DSC-V-001)."""
+
 from __future__ import annotations
 
 from typing import Any, Optional
@@ -16,8 +17,7 @@ class SupabaseStorage:
 
     def find_latest(self, claim_type: str) -> Optional[ClaimRecord]:
         result = (
-            self._client
-            .table(self.TABLE_NAME)
+            self._client.table(self.TABLE_NAME)
             .select("*")
             .eq("claim_type", claim_type)
             .order("timestamp_unix", desc=True)
@@ -31,8 +31,7 @@ class SupabaseStorage:
 
     def find_latest_by_fingerprint(self, fingerprint: str) -> Optional[ClaimRecord]:
         result = (
-            self._client
-            .table(self.TABLE_NAME)
+            self._client.table(self.TABLE_NAME)
             .select("*")
             .eq("claim_fingerprint", fingerprint)
             .order("timestamp_unix", desc=True)
@@ -46,6 +45,7 @@ class SupabaseStorage:
 
     def insert(self, record: ClaimRecord) -> None:
         from dataclasses import asdict
+
         data = asdict(record)
         self._client.table(self.TABLE_NAME).insert(data).execute()
 

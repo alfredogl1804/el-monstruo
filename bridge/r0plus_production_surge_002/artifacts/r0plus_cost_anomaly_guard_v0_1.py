@@ -11,9 +11,9 @@ No external API calls. No state modification. Pure local computation.
 Usage:
     python3 r0plus_cost_anomaly_guard_v0_1.py [--base-dir /path]
 """
+
 import json
 import math
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -33,12 +33,17 @@ def load_cost_data(base_dir: Path) -> dict:
                         try:
                             entry = json.loads(line)
                             if "cost" in entry.get("event", "").lower() or entry.get("event") in [
-                                "EPOCH_005_COMPLETED", "EPOCH_006_COMPLETED", "EPOCH_007_COMPLETED",
-                                "EPOCH_008_COMPLETED", "EPOCH_009_COMPLETED"
+                                "EPOCH_005_COMPLETED",
+                                "EPOCH_006_COMPLETED",
+                                "EPOCH_007_COMPLETED",
+                                "EPOCH_008_COMPLETED",
+                                "EPOCH_009_COMPLETED",
                             ]:
                                 cost = entry.get("cost_usd", entry.get("cost", 0))
                                 if cost is not None:
-                                    costs.append({"epoch": epoch_dir.name, "cost_usd": float(cost), "event": entry.get("event")})
+                                    costs.append(
+                                        {"epoch": epoch_dir.name, "cost_usd": float(cost), "event": entry.get("event")}
+                                    )
                         except (json.JSONDecodeError, ValueError):
                             continue
 
@@ -51,7 +56,13 @@ def load_cost_data(base_dir: Path) -> dict:
                 if "cost" in str(entry.get("metrics", {})):
                     cost = entry.get("metrics", {}).get("cost_usd", 0)
                     if cost:
-                        costs.append({"epoch": entry.get("epoch", "unknown"), "cost_usd": float(cost), "event": "MEMORY_PALACE_ENTRY"})
+                        costs.append(
+                            {
+                                "epoch": entry.get("epoch", "unknown"),
+                                "cost_usd": float(cost),
+                                "event": "MEMORY_PALACE_ENTRY",
+                            }
+                        )
         except (json.JSONDecodeError, IOError):
             pass
 
@@ -72,12 +83,14 @@ def calculate_statistics(costs: list) -> dict:
     z_scores = []
     for i, c in enumerate(costs):
         z = (c["cost_usd"] - mean) / std if std > 0 else 0
-        z_scores.append({
-            "index": i,
-            "epoch": c["epoch"],
-            "cost_usd": c["cost_usd"],
-            "z_score": round(z, 4),
-        })
+        z_scores.append(
+            {
+                "index": i,
+                "epoch": c["epoch"],
+                "cost_usd": c["cost_usd"],
+                "z_score": round(z, 4),
+            }
+        )
 
     return {"mean": round(mean, 6), "std": round(std, 6), "count": n, "z_scores": z_scores}
 
@@ -87,12 +100,14 @@ def detect_anomalies(stats: dict, threshold: float = 2.0) -> list:
     anomalies = []
     for entry in stats.get("z_scores", []):
         if abs(entry["z_score"]) >= threshold:
-            anomalies.append({
-                "epoch": entry["epoch"],
-                "cost_usd": entry["cost_usd"],
-                "z_score": entry["z_score"],
-                "direction": "SPIKE" if entry["z_score"] > 0 else "DROP",
-            })
+            anomalies.append(
+                {
+                    "epoch": entry["epoch"],
+                    "cost_usd": entry["cost_usd"],
+                    "z_score": entry["z_score"],
+                    "direction": "SPIKE" if entry["z_score"] > 0 else "DROP",
+                }
+            )
     return anomalies
 
 
@@ -107,13 +122,15 @@ def detect_cost_spike(costs: list, spike_multiplier: float = 3.0) -> list:
         prev_avg = sum(prev_costs) / len(prev_costs) if prev_costs else 0
         current = costs[i]["cost_usd"]
         if prev_avg > 0 and current > prev_avg * spike_multiplier:
-            spikes.append({
-                "index": i,
-                "epoch": costs[i]["epoch"],
-                "cost_usd": current,
-                "prev_avg": round(prev_avg, 6),
-                "multiplier": round(current / prev_avg, 2),
-            })
+            spikes.append(
+                {
+                    "index": i,
+                    "epoch": costs[i]["epoch"],
+                    "cost_usd": current,
+                    "prev_avg": round(prev_avg, 6),
+                    "multiplier": round(current / prev_avg, 2),
+                }
+            )
     return spikes
 
 
@@ -192,6 +209,7 @@ def run_guard(base_dir: Optional[Path] = None) -> dict:
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="R0+ Cost Anomaly Guard v0.1")
     parser.add_argument("--base-dir", default=None)
     args = parser.parse_args()

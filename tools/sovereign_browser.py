@@ -18,6 +18,7 @@ Uso desde el Embrion:
         capture_html=True,
     )
 """
+
 from __future__ import annotations
 
 import logging
@@ -35,8 +36,8 @@ logger = logging.getLogger("monstruo.tools.sovereign_browser")
 _MEMENTO_AVAILABLE = True
 try:
     from tools.memento_preflight import (  # type: ignore
-        preflight_check_async,
         MementoPreflightError,
+        preflight_check_async,
     )
 except Exception as _import_exc:
     _MEMENTO_AVAILABLE = False
@@ -71,8 +72,7 @@ async def _maybe_run_preflight(
         )
         if not preflight.proceed:
             err = (
-                f"preflight bloqueó ejecución: status={preflight.validation_status} "
-                f"remediation={preflight.remediation}"
+                f"preflight bloqueó ejecución: status={preflight.validation_status} remediation={preflight.remediation}"
             )
             logger.warning("sovereign_browser %s: %s", operation_func, err)
             return err

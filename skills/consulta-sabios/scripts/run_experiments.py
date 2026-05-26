@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from db_store import query_improvements, save_improvement
+from db_store import query_improvements
 
 
 async def run_experiment(
@@ -32,12 +32,12 @@ async def run_experiment(
 ) -> dict:
     """
     Ejecuta un experimento A/B para una mejora propuesta.
-    
+
     Args:
         improvement_id: ID de la mejora a probar
         test_prompt: Ruta al prompt de prueba
         n_runs: Número de runs por variante (A=control, B=experimental)
-    
+
     Returns:
         dict con resultados del experimento
     """
@@ -48,7 +48,7 @@ async def run_experiment(
         if imp.get("improvement_id") == improvement_id:
             target = imp
             break
-    
+
     if not target:
         print(f"❌ Mejora {improvement_id} no encontrada")
         return {"error": "improvement_not_found"}
@@ -71,19 +71,19 @@ async def run_experiment(
     # En esta versión, el experimento se registra como framework.
     # La ejecución real requiere que el agente ejecute runs manuales
     # con y sin la mejora aplicada, y registre los scores.
-    
+
     print(f"\n📋 Protocolo de experimento {experiment['experiment_id']}:")
     print(f"   1. Ejecutar {n_runs} runs con configuración ACTUAL (control)")
-    print(f"   2. Aplicar la mejora temporalmente")
+    print("   2. Aplicar la mejora temporalmente")
     print(f"   3. Ejecutar {n_runs} runs con configuración MODIFICADA (experimental)")
-    print(f"   4. Comparar scores y decidir")
+    print("   4. Comparar scores y decidir")
     print(f"\n   Mejora a probar: {target['descripcion']}")
     print(f"   Diff: {target.get('diff_json', target.get('diff', 'N/A'))}")
 
     # Guardar el experimento como artefacto
     output_dir = Path(os.path.dirname(os.path.abspath(__file__))).parent / "data" / "experiments"
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     exp_file = output_dir / f"{experiment['experiment_id']}.json"
     with open(exp_file, "w", encoding="utf-8") as f:
         json.dump(experiment, f, ensure_ascii=False, indent=2, default=str)
@@ -101,7 +101,7 @@ def record_experiment_result(
 ):
     """
     Registra el resultado de un run dentro de un experimento.
-    
+
     Args:
         experiment_id: ID del experimento
         variant: "control" o "experimental"
@@ -111,37 +111,37 @@ def record_experiment_result(
     """
     exp_dir = Path(os.path.dirname(os.path.abspath(__file__))).parent / "data" / "experiments"
     exp_file = exp_dir / f"{experiment_id}.json"
-    
+
     if not exp_file.exists():
         print(f"❌ Experimento {experiment_id} no encontrado")
         return
-    
+
     with open(exp_file, "r", encoding="utf-8") as f:
         experiment = json.load(f)
-    
+
     result = {
         "run_id": run_id,
         "score_global": score_global,
         "scores_detail": scores_detail or {},
         "timestamp": datetime.now().isoformat(),
     }
-    
+
     key = f"resultados_{variant}"
     if key not in experiment:
         experiment[key] = []
     experiment[key].append(result)
-    
+
     # Evaluar si el experimento está completo
     n_runs = experiment.get("n_runs", 2)
     control_done = len(experiment.get("resultados_control", []))
     exp_done = len(experiment.get("resultados_experimental", []))
-    
+
     if control_done >= n_runs and exp_done >= n_runs:
         experiment["veredicto"] = _evaluate_experiment(experiment)
-    
+
     with open(exp_file, "w", encoding="utf-8") as f:
         json.dump(experiment, f, ensure_ascii=False, indent=2, default=str)
-    
+
     print(f"✅ Resultado registrado: {variant} run {run_id} (score: {score_global})")
     if experiment["veredicto"] != "pendiente":
         print(f"🏁 Veredicto: {experiment['veredicto']}")
@@ -151,24 +151,25 @@ def _evaluate_experiment(experiment: dict) -> str:
     """Evalúa los resultados de un experimento completado."""
     control_scores = [r["score_global"] for r in experiment.get("resultados_control", [])]
     exp_scores = [r["score_global"] for r in experiment.get("resultados_experimental", [])]
-    
+
     if not control_scores or not exp_scores:
         return "insuficiente"
-    
+
     from statistics import mean
+
     control_mean = mean(control_scores)
     exp_mean = mean(exp_scores)
-    
+
     delta = exp_mean - control_mean
     delta_pct = (delta / control_mean * 100) if control_mean > 0 else 0
-    
+
     experiment["analisis"] = {
         "control_mean": round(control_mean, 3),
         "experimental_mean": round(exp_mean, 3),
         "delta": round(delta, 3),
         "delta_pct": round(delta_pct, 1),
     }
-    
+
     # Criterios de aceptación:
     # - Mejora >= 5% → aceptar
     # - Neutro (-2% a +5%) → rechazar (no vale la complejidad)
@@ -184,6 +185,7 @@ def _evaluate_experiment(experiment: dict) -> str:
 # ═══════════════════════════════════════════════════════════════
 # CLI
 # ═══════════════════════════════════════════════════════════════
+
 
 async def main():
     parser = argparse.ArgumentParser(description="Motor de experimentación A/B")

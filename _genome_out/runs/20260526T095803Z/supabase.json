@@ -1,0 +1,4496 @@
+{
+  "scanner": "supabase",
+  "version": 1,
+  "started_at": "2026-05-26T10:05:53.237495+00:00",
+  "schemas": [
+    "auth",
+    "crisis",
+    "crisol8",
+    "crisol8_v3",
+    "extensions",
+    "graphql",
+    "graphql_public",
+    "pg_temp_3",
+    "pg_temp_36",
+    "pg_toast_temp_3",
+    "pg_toast_temp_36",
+    "pgbouncer",
+    "public",
+    "realtime",
+    "storage",
+    "supabase_migrations",
+    "vault"
+  ],
+  "schemas_count": 17,
+  "tables": [
+    {
+      "table_schema": "auth",
+      "table_name": "audit_log_entries",
+      "table_type": "BASE TABLE",
+      "columns_count": 5,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "custom_oauth_providers",
+      "table_type": "BASE TABLE",
+      "columns_count": 24,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "flow_state",
+      "table_type": "BASE TABLE",
+      "columns_count": 17,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "identities",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "instances",
+      "table_type": "BASE TABLE",
+      "columns_count": 5,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "mfa_amr_claims",
+      "table_type": "BASE TABLE",
+      "columns_count": 5,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "mfa_challenges",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "mfa_factors",
+      "table_type": "BASE TABLE",
+      "columns_count": 13,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "oauth_authorizations",
+      "table_type": "BASE TABLE",
+      "columns_count": 17,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "oauth_client_states",
+      "table_type": "BASE TABLE",
+      "columns_count": 4,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "oauth_clients",
+      "table_type": "BASE TABLE",
+      "columns_count": 13,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "oauth_consents",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "one_time_tokens",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "refresh_tokens",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "saml_providers",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "saml_relay_states",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "schema_migrations",
+      "table_type": "BASE TABLE",
+      "columns_count": 1,
+      "row_estimate": 75
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "sessions",
+      "table_type": "BASE TABLE",
+      "columns_count": 15,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "sso_domains",
+      "table_type": "BASE TABLE",
+      "columns_count": 5,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "sso_providers",
+      "table_type": "BASE TABLE",
+      "columns_count": 5,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "users",
+      "table_type": "BASE TABLE",
+      "columns_count": 35,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "webauthn_challenges",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "auth",
+      "table_name": "webauthn_credentials",
+      "table_type": "BASE TABLE",
+      "columns_count": 14,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "actors",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": 1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "ai_analysis",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "alerts",
+      "table_type": "BASE TABLE",
+      "columns_count": 11,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "briefings",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "claims_matrix",
+      "table_type": "BASE TABLE",
+      "columns_count": 13,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "crisis_config",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "decision_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "evidence",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "incidents",
+      "table_type": "BASE TABLE",
+      "columns_count": 11,
+      "row_estimate": 2
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "media_contacts",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "mentions",
+      "table_type": "BASE TABLE",
+      "columns_count": 15,
+      "row_estimate": 3803
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "narratives",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "response_queue",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "scraping_jobs",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "talking_points",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "team_members",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "timeline",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "v_active_narratives",
+      "table_type": "VIEW",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "v_dashboard",
+      "table_type": "VIEW",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "v_pending_responses",
+      "table_type": "VIEW",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisis",
+      "table_name": "v_threat_actors",
+      "table_type": "VIEW",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8",
+      "table_name": "analisis_versiones",
+      "table_type": "BASE TABLE",
+      "columns_count": 13,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8",
+      "table_name": "articles",
+      "table_type": "BASE TABLE",
+      "columns_count": 14,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8",
+      "table_name": "bot_analysis",
+      "table_type": "BASE TABLE",
+      "columns_count": 15,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8",
+      "table_name": "comments",
+      "table_type": "BASE TABLE",
+      "columns_count": 15,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8",
+      "table_name": "entity_connections",
+      "table_type": "BASE TABLE",
+      "columns_count": 14,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8",
+      "table_name": "persons",
+      "table_type": "BASE TABLE",
+      "columns_count": 16,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8",
+      "table_name": "portal_clusters",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8",
+      "table_name": "portals",
+      "table_type": "BASE TABLE",
+      "columns_count": 19,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8",
+      "table_name": "pseudonimos",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8",
+      "table_name": "social_media_posts",
+      "table_type": "BASE TABLE",
+      "columns_count": 19,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8",
+      "table_name": "timeline_events",
+      "table_type": "BASE TABLE",
+      "columns_count": 11,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "actor_profile_links",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "actors",
+      "table_type": "BASE TABLE",
+      "columns_count": 14,
+      "row_estimate": 1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "audit_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "cluster_members",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "cluster_signals",
+      "table_type": "BASE TABLE",
+      "columns_count": 4,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "content_authorship",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "content_items",
+      "table_type": "BASE TABLE",
+      "columns_count": 22,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "content_narratives",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "content_normalized",
+      "table_type": "BASE TABLE",
+      "columns_count": 14,
+      "row_estimate": 88
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "coordination_clusters",
+      "table_type": "BASE TABLE",
+      "columns_count": 14,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "coordination_signals",
+      "table_type": "BASE TABLE",
+      "columns_count": 17,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "data_sources",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "enrichments",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "events",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": 29682
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "evidence_items",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "interactions",
+      "table_type": "BASE TABLE",
+      "columns_count": 12,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "jobs",
+      "table_type": "BASE TABLE",
+      "columns_count": 13,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "media_assets",
+      "table_type": "BASE TABLE",
+      "columns_count": 16,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "media_extractions",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "mentions",
+      "table_type": "BASE TABLE",
+      "columns_count": 15,
+      "row_estimate": 3803
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "narratives",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "pipeline_jobs",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "platforms",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "profiles",
+      "table_type": "BASE TABLE",
+      "columns_count": 19,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "raw_objects",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": 3803
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "social_interactions",
+      "table_type": "BASE TABLE",
+      "columns_count": 12,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "sources",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "subject_identity_markers",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": 59
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "subjects",
+      "table_type": "BASE TABLE",
+      "columns_count": 11,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "crisol8_v3",
+      "table_name": "validated_clusters",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "extensions",
+      "table_name": "pg_stat_statements",
+      "table_type": "VIEW",
+      "columns_count": 49,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "extensions",
+      "table_name": "pg_stat_statements_info",
+      "table_type": "VIEW",
+      "columns_count": 2,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "a2a_agents",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "active_missions",
+      "table_type": "BASE TABLE",
+      "columns_count": 13,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "agui_channel_audit",
+      "table_type": "BASE TABLE",
+      "columns_count": 12,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "anti_dory_anchor_store",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "anti_dory_plan_ledger",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "anti_dory_runtime_flags",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "anti_dory_write_budget",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "articulo_objetivos",
+      "table_type": "BASE TABLE",
+      "columns_count": 2,
+      "row_estimate": 44092
+    },
+    {
+      "table_schema": "public",
+      "table_name": "articulos",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": 39065
+    },
+    {
+      "table_schema": "public",
+      "table_name": "background_jobs",
+      "table_type": "BASE TABLE",
+      "columns_count": 22,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "behavior_mutations",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "brand_compliance_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "budget_state",
+      "table_type": "BASE TABLE",
+      "columns_count": 11,
+      "row_estimate": 541
+    },
+    {
+      "table_schema": "public",
+      "table_name": "cadena_custodia",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": 125
+    },
+    {
+      "table_schema": "public",
+      "table_name": "catastro_agentes",
+      "table_type": "BASE TABLE",
+      "columns_count": 46,
+      "row_estimate": 84
+    },
+    {
+      "table_schema": "public",
+      "table_name": "catastro_agentes_2026",
+      "table_type": "VIEW",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "catastro_curadores",
+      "table_type": "BASE TABLE",
+      "columns_count": 15,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "catastro_eventos",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": 148
+    },
+    {
+      "table_schema": "public",
+      "table_name": "catastro_herramientas_ai",
+      "table_type": "VIEW",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "catastro_historial",
+      "table_type": "BASE TABLE",
+      "columns_count": 5,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "catastro_modelos",
+      "table_type": "BASE TABLE",
+      "columns_count": 42,
+      "row_estimate": 37
+    },
+    {
+      "table_schema": "public",
+      "table_name": "catastro_modelos_llm",
+      "table_type": "VIEW",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "catastro_notas",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "catastro_repos",
+      "table_type": "BASE TABLE",
+      "columns_count": 18,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "catastro_suppliers_humanos",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "catastro_trono_view",
+      "table_type": "VIEW",
+      "columns_count": 24,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "catastro_vision_generativa",
+      "table_type": "BASE TABLE",
+      "columns_count": 37,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "checkpoint_blobs",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": 151485
+    },
+    {
+      "table_schema": "public",
+      "table_name": "checkpoint_migrations",
+      "table_type": "BASE TABLE",
+      "columns_count": 1,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "checkpoint_writes",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": 601523
+    },
+    {
+      "table_schema": "public",
+      "table_name": "checkpoints",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": 73292
+    },
+    {
+      "table_schema": "public",
+      "table_name": "checkpoints_v1_legacy",
+      "table_type": "BASE TABLE",
+      "columns_count": 15,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "chunk_embeddings",
+      "table_type": "BASE TABLE",
+      "columns_count": 4,
+      "row_estimate": 23461
+    },
+    {
+      "table_schema": "public",
+      "table_name": "chunks",
+      "table_type": "BASE TABLE",
+      "columns_count": 22,
+      "row_estimate": 25573
+    },
+    {
+      "table_schema": "public",
+      "table_name": "circuit_breaker_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "collective_debates",
+      "table_type": "BASE TABLE",
+      "columns_count": 11,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "collective_votes",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "comentarios",
+      "table_type": "BASE TABLE",
+      "columns_count": 14,
+      "row_estimate": 3723
+    },
+    {
+      "table_schema": "public",
+      "table_name": "cowork_claims_calibration",
+      "table_type": "BASE TABLE",
+      "columns_count": 11,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "cowork_protocolo_invocaciones",
+      "table_type": "BASE TABLE",
+      "columns_count": 12,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "cowork_sesiones",
+      "table_type": "BASE TABLE",
+      "columns_count": 17,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credential_rotations",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "datos_campo",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "decision_records",
+      "table_type": "BASE TABLE",
+      "columns_count": 18,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "documents",
+      "table_type": "BASE TABLE",
+      "columns_count": 17,
+      "row_estimate": 578
+    },
+    {
+      "table_schema": "public",
+      "table_name": "e2e_runs",
+      "table_type": "BASE TABLE",
+      "columns_count": 13,
+      "row_estimate": 80
+    },
+    {
+      "table_schema": "public",
+      "table_name": "e2e_step_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 12,
+      "row_estimate": 840
+    },
+    {
+      "table_schema": "public",
+      "table_name": "e2e_traffic",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "elecciones_historicas",
+      "table_type": "BASE TABLE",
+      "columns_count": 12,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "embrion_audit_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 13,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "embrion_budget_state",
+      "table_type": "BASE TABLE",
+      "columns_count": 18,
+      "row_estimate": 10652
+    },
+    {
+      "table_schema": "public",
+      "table_name": "embrion_homeostasis_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "embrion_inbox",
+      "table_type": "BASE TABLE",
+      "columns_count": 20,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "embrion_knowledge",
+      "table_type": "BASE TABLE",
+      "columns_count": 18,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "embrion_memoria",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": 2772
+    },
+    {
+      "table_schema": "public",
+      "table_name": "embrion_messages",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "embrion_patron_emergencia",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "embrion_task_history",
+      "table_type": "BASE TABLE",
+      "columns_count": 14,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "embrion_validation_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 16,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "embrion_write_proposals",
+      "table_type": "BASE TABLE",
+      "columns_count": 22,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "emergent_behaviors",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "encuestas_tracking",
+      "table_type": "BASE TABLE",
+      "columns_count": 18,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "entities",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "episodes",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "episodic_memory",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "error_memory",
+      "table_type": "BASE TABLE",
+      "columns_count": 15,
+      "row_estimate": 33
+    },
+    {
+      "table_schema": "public",
+      "table_name": "error_memory_patterns",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "escape_pulse_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "events",
+      "table_type": "BASE TABLE",
+      "columns_count": 15,
+      "row_estimate": 29682
+    },
+    {
+      "table_schema": "public",
+      "table_name": "firma_tecnica",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "forja_actions",
+      "table_type": "BASE TABLE",
+      "columns_count": 15,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "forja_budget",
+      "table_type": "BASE TABLE",
+      "columns_count": 13,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "forja_messages",
+      "table_type": "BASE TABLE",
+      "columns_count": 14,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "forja_profiles",
+      "table_type": "BASE TABLE",
+      "columns_count": 11,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "forja_simulations",
+      "table_type": "BASE TABLE",
+      "columns_count": 16,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "forja_sprints",
+      "table_type": "BASE TABLE",
+      "columns_count": 21,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "forja_telemetry",
+      "table_type": "BASE TABLE",
+      "columns_count": 11,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "forja_threads",
+      "table_type": "BASE TABLE",
+      "columns_count": 15,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "forja_validations",
+      "table_type": "BASE TABLE",
+      "columns_count": 17,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "frontend_sessions",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "github_radar_reports",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "github_radar_scans",
+      "table_type": "BASE TABLE",
+      "columns_count": 18,
+      "row_estimate": 77
+    },
+    {
+      "table_schema": "public",
+      "table_name": "governance_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "guardian_audit_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 12,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "job_executions",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "kernel_audit_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 15,
+      "row_estimate": 398
+    },
+    {
+      "table_schema": "public",
+      "table_name": "kernel_events_stream_signed",
+      "table_type": "BASE TABLE",
+      "columns_count": 17,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "learned_patterns",
+      "table_type": "BASE TABLE",
+      "columns_count": 14,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "lightrag_doc_chunks",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": 163
+    },
+    {
+      "table_schema": "public",
+      "table_name": "lightrag_doc_full",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": 108
+    },
+    {
+      "table_schema": "public",
+      "table_name": "lightrag_doc_status",
+      "table_type": "BASE TABLE",
+      "columns_count": 13,
+      "row_estimate": 162
+    },
+    {
+      "table_schema": "public",
+      "table_name": "lightrag_entity_chunks",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": 1731
+    },
+    {
+      "table_schema": "public",
+      "table_name": "lightrag_full_entities",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": 107
+    },
+    {
+      "table_schema": "public",
+      "table_name": "lightrag_full_relations",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": 107
+    },
+    {
+      "table_schema": "public",
+      "table_name": "lightrag_llm_cache",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": 6384
+    },
+    {
+      "table_schema": "public",
+      "table_name": "lightrag_relation_chunks",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": 2114
+    },
+    {
+      "table_schema": "public",
+      "table_name": "lightrag_vdb_chunks_gemini_embedding_001_1536d",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "lightrag_vdb_chunks_text_embedding_3_small_1536d",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": 144
+    },
+    {
+      "table_schema": "public",
+      "table_name": "lightrag_vdb_entity_gemini_embedding_001_1536d",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "lightrag_vdb_entity_text_embedding_3_small_1536d",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": 1748
+    },
+    {
+      "table_schema": "public",
+      "table_name": "lightrag_vdb_relation_gemini_embedding_001_1536d",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "lightrag_vdb_relation_text_embedding_3_small_1536d",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": 2179
+    },
+    {
+      "table_schema": "public",
+      "table_name": "loop_detection_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 18,
+      "row_estimate": 7701
+    },
+    {
+      "table_schema": "public",
+      "table_name": "magna_cache",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "medios",
+      "table_type": "BASE TABLE",
+      "columns_count": 14,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "mem0",
+      "table_type": "BASE TABLE",
+      "columns_count": 3,
+      "row_estimate": 2368
+    },
+    {
+      "table_schema": "public",
+      "table_name": "mem0migrations",
+      "table_type": "BASE TABLE",
+      "columns_count": 3,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "memento_critical_operations",
+      "table_type": "BASE TABLE",
+      "columns_count": 12,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "memento_sources_of_truth",
+      "table_type": "BASE TABLE",
+      "columns_count": 13,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "memento_validations",
+      "table_type": "BASE TABLE",
+      "columns_count": 15,
+      "row_estimate": 14
+    },
+    {
+      "table_schema": "public",
+      "table_name": "memory_access_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 5,
+      "row_estimate": 96
+    },
+    {
+      "table_schema": "public",
+      "table_name": "memory_dependencies",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "memory_entities",
+      "table_type": "BASE TABLE",
+      "columns_count": 14,
+      "row_estimate": 188
+    },
+    {
+      "table_schema": "public",
+      "table_name": "memory_entity_links",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": 188
+    },
+    {
+      "table_schema": "public",
+      "table_name": "memory_events",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": 14859
+    },
+    {
+      "table_schema": "public",
+      "table_name": "memory_relations",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "mempalace_episodes",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": 4094
+    },
+    {
+      "table_schema": "public",
+      "table_name": "mempalace_semantic",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "menciones_bm",
+      "table_type": "BASE TABLE",
+      "columns_count": 12,
+      "row_estimate": 20514
+    },
+    {
+      "table_schema": "public",
+      "table_name": "moc_insights",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "monstruo_event_stream",
+      "table_type": "BASE TABLE",
+      "columns_count": 20,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "monstruo_graph_snapshots",
+      "table_type": "BASE TABLE",
+      "columns_count": 5,
+      "row_estimate": 1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "monstruo_inventario_suscripciones",
+      "table_type": "BASE TABLE",
+      "columns_count": 35,
+      "row_estimate": 1156
+    },
+    {
+      "table_schema": "public",
+      "table_name": "monstruo_memory",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": 63
+    },
+    {
+      "table_schema": "public",
+      "table_name": "objetivos",
+      "table_type": "BASE TABLE",
+      "columns_count": 5,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "operator_preferences",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "predictions",
+      "table_type": "BASE TABLE",
+      "columns_count": 16,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "pricing_catalog",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "project_runtime_heads",
+      "table_type": "BASE TABLE",
+      "columns_count": 5,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "radar_run_repos",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "radar_runs",
+      "table_type": "BASE TABLE",
+      "columns_count": 17,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "relations",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "rotor_activity_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "run_costs",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": 4520
+    },
+    {
+      "table_schema": "public",
+      "table_name": "runtime_events",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "scheduled_jobs",
+      "table_type": "BASE TABLE",
+      "columns_count": 20,
+      "row_estimate": 5
+    },
+    {
+      "table_schema": "public",
+      "table_name": "scheduled_tasks",
+      "table_type": "BASE TABLE",
+      "columns_count": 21,
+      "row_estimate": 18
+    },
+    {
+      "table_schema": "public",
+      "table_name": "secciones_electorales",
+      "table_type": "BASE TABLE",
+      "columns_count": 15,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "security_web_events",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "seeding_cycles",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": 482
+    },
+    {
+      "table_schema": "public",
+      "table_name": "simulation_results",
+      "table_type": "BASE TABLE",
+      "columns_count": 5,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "simulation_rounds",
+      "table_type": "BASE TABLE",
+      "columns_count": 5,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "simulations",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sovereign_agent_registry",
+      "table_type": "BASE TABLE",
+      "columns_count": 13,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sovereign_axioms",
+      "table_type": "BASE TABLE",
+      "columns_count": 17,
+      "row_estimate": 57
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sovereign_causal_chains",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sovereign_conflict_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sovereign_consolidation_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 11,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sovereign_knowledge_gaps",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sovereign_memories",
+      "table_type": "BASE TABLE",
+      "columns_count": 32,
+      "row_estimate": 1517
+    },
+    {
+      "table_schema": "public",
+      "table_name": "summaries",
+      "table_type": "BASE TABLE",
+      "columns_count": 13,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "system_state",
+      "table_type": "BASE TABLE",
+      "columns_count": 12,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "task_plans",
+      "table_type": "BASE TABLE",
+      "columns_count": 16,
+      "row_estimate": 916
+    },
+    {
+      "table_schema": "public",
+      "table_name": "thoughts",
+      "table_type": "BASE TABLE",
+      "columns_count": 24,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "thread_immunity_events",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "thread_snapshots",
+      "table_type": "BASE TABLE",
+      "columns_count": 18,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tool_bindings",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": 18
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tool_executions",
+      "table_type": "BASE TABLE",
+      "columns_count": 17,
+      "row_estimate": 498
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tool_registry",
+      "table_type": "BASE TABLE",
+      "columns_count": 18,
+      "row_estimate": 19
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tool_secrets",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": 4
+    },
+    {
+      "table_schema": "public",
+      "table_name": "trend_signals",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "ui_view_state",
+      "table_type": "BASE TABLE",
+      "columns_count": 5,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "usage_daily",
+      "table_type": "BASE TABLE",
+      "columns_count": 12,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "usage_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 13,
+      "row_estimate": 7088
+    },
+    {
+      "table_schema": "public",
+      "table_name": "user_dossier",
+      "table_type": "BASE TABLE",
+      "columns_count": 18,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "v5_accounts",
+      "table_type": "BASE TABLE",
+      "columns_count": 16,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "v5_comments",
+      "table_type": "BASE TABLE",
+      "columns_count": 11,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "v5_coordination_scores",
+      "table_type": "BASE TABLE",
+      "columns_count": 13,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "v5_discovery_queue",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": 352
+    },
+    {
+      "table_schema": "public",
+      "table_name": "v5_doc_links",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "v5_doc_similarity",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "v5_documents",
+      "table_type": "BASE TABLE",
+      "columns_count": 25,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "v5_entities",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "v5_hashtags",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "v5_investigation_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "v5_propagation_edges",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "v5_sources",
+      "table_type": "BASE TABLE",
+      "columns_count": 14,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "validation_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "verification_results",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": 255
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vw_inventario_actual",
+      "table_type": "VIEW",
+      "columns_count": 35,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "public",
+      "table_name": "write_policy_log",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": 3769
+    },
+    {
+      "table_schema": "realtime",
+      "table_name": "messages",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "realtime",
+      "table_name": "messages_2026_05_25",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "realtime",
+      "table_name": "messages_2026_05_26",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "realtime",
+      "table_name": "messages_2026_05_27",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "realtime",
+      "table_name": "messages_2026_05_28",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "realtime",
+      "table_name": "messages_2026_05_29",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "realtime",
+      "table_name": "schema_migrations",
+      "table_type": "BASE TABLE",
+      "columns_count": 2,
+      "row_estimate": 75
+    },
+    {
+      "table_schema": "realtime",
+      "table_name": "subscription",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": 2
+    },
+    {
+      "table_schema": "storage",
+      "table_name": "buckets",
+      "table_type": "BASE TABLE",
+      "columns_count": 11,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "storage",
+      "table_name": "buckets_analytics",
+      "table_type": "BASE TABLE",
+      "columns_count": 7,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "storage",
+      "table_name": "buckets_vectors",
+      "table_type": "BASE TABLE",
+      "columns_count": 4,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "storage",
+      "table_name": "migrations",
+      "table_type": "BASE TABLE",
+      "columns_count": 4,
+      "row_estimate": 57
+    },
+    {
+      "table_schema": "storage",
+      "table_name": "objects",
+      "table_type": "BASE TABLE",
+      "columns_count": 12,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "storage",
+      "table_name": "s3_multipart_uploads",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "storage",
+      "table_name": "s3_multipart_uploads_parts",
+      "table_type": "BASE TABLE",
+      "columns_count": 10,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "storage",
+      "table_name": "vector_indexes",
+      "table_type": "BASE TABLE",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "supabase_migrations",
+      "table_name": "schema_migrations",
+      "table_type": "BASE TABLE",
+      "columns_count": 6,
+      "row_estimate": 75
+    },
+    {
+      "table_schema": "vault",
+      "table_name": "decrypted_secrets",
+      "table_type": "VIEW",
+      "columns_count": 9,
+      "row_estimate": -1
+    },
+    {
+      "table_schema": "vault",
+      "table_name": "secrets",
+      "table_type": "BASE TABLE",
+      "columns_count": 8,
+      "row_estimate": -1
+    }
+  ],
+  "tables_count": 287,
+  "tables_by_schema": {
+    "auth": 23,
+    "crisis": 21,
+    "crisol8": 11,
+    "crisol8_v3": 30,
+    "extensions": 2,
+    "public": 181,
+    "realtime": 8,
+    "storage": 8,
+    "supabase_migrations": 1,
+    "vault": 2
+  },
+  "functions": [
+    {
+      "schema": "auth",
+      "name": "email",
+      "args": "",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "auth",
+      "name": "jwt",
+      "args": "",
+      "returns": "jsonb",
+      "security_definer": false
+    },
+    {
+      "schema": "auth",
+      "name": "role",
+      "args": "",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "auth",
+      "name": "uid",
+      "args": "",
+      "returns": "uuid",
+      "security_definer": false
+    },
+    {
+      "schema": "crisis",
+      "name": "add_timeline_event",
+      "args": "p_title text, p_description text, p_category text DEFAULT 'event'::text, p_impact_score real DEFAULT 0, p_source_url text DEFAULT NULL::text",
+      "returns": "json",
+      "security_definer": false
+    },
+    {
+      "schema": "crisis",
+      "name": "alert_on_severity_change",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "crisis",
+      "name": "approve_response",
+      "args": "p_response_id bigint, p_approved_by text",
+      "returns": "json",
+      "security_definer": false
+    },
+    {
+      "schema": "crisis",
+      "name": "calculate_crisis_score",
+      "args": "",
+      "returns": "json",
+      "security_definer": false
+    },
+    {
+      "schema": "crisis",
+      "name": "get_executive_briefing",
+      "args": "",
+      "returns": "json",
+      "security_definer": false
+    },
+    {
+      "schema": "crisis",
+      "name": "ingest_mention",
+      "args": "p_source text, p_platform text, p_url text, p_author text, p_content text, p_sentiment real DEFAULT NULL::real, p_narrative text DEFAULT NULL::text",
+      "returns": "json",
+      "security_definer": false
+    },
+    {
+      "schema": "crisis",
+      "name": "update_timestamp",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "armor",
+      "args": "bytea",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "armor",
+      "args": "bytea, text[], text[]",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "crypt",
+      "args": "text, text",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "dearmor",
+      "args": "text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "decrypt",
+      "args": "bytea, bytea, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "decrypt_iv",
+      "args": "bytea, bytea, bytea, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "digest",
+      "args": "bytea, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "digest",
+      "args": "text, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "encrypt",
+      "args": "bytea, bytea, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "encrypt_iv",
+      "args": "bytea, bytea, bytea, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "gen_random_bytes",
+      "args": "integer",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "gen_random_uuid",
+      "args": "",
+      "returns": "uuid",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "gen_salt",
+      "args": "text, integer",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "gen_salt",
+      "args": "text",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "grant_pg_cron_access",
+      "args": "",
+      "returns": "event_trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "grant_pg_graphql_access",
+      "args": "",
+      "returns": "event_trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "grant_pg_net_access",
+      "args": "",
+      "returns": "event_trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "hmac",
+      "args": "bytea, bytea, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "hmac",
+      "args": "text, text, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pg_stat_statements",
+      "args": "showtext boolean, OUT userid oid, OUT dbid oid, OUT toplevel boolean, OUT queryid bigint, OUT query text, OUT plans bigint, OUT total_plan_time double precision, OUT min_plan_time double precision, OUT max_plan_time double precision, OUT mean_plan_time double precision, OUT stddev_plan_time double precision, OUT calls bigint, OUT total_exec_time double precision, OUT min_exec_time double precision, OUT max_exec_time double precision, OUT mean_exec_time double precision, OUT stddev_exec_time double precision, OUT rows bigint, OUT shared_blks_hit bigint, OUT shared_blks_read bigint, OUT shared_blks_dirtied bigint, OUT shared_blks_written bigint, OUT local_blks_hit bigint, OUT local_blks_read bigint, OUT local_blks_dirtied bigint, OUT local_blks_written bigint, OUT temp_blks_read bigint, OUT temp_blks_written bigint, OUT shared_blk_read_time double precision, OUT shared_blk_write_time double precision, OUT local_blk_read_time double precision, OUT local_blk_write_time double precision, OUT temp_blk_read_time double precision, OUT temp_blk_write_time double precision, OUT wal_records bigint, OUT wal_fpi bigint, OUT wal_bytes numeric, OUT jit_functions bigint, OUT jit_generation_time double precision, OUT jit_inlining_count bigint, OUT jit_inlining_time double precision, OUT jit_optimization_count bigint, OUT jit_optimization_time double precision, OUT jit_emission_count bigint, OUT jit_emission_time double precision, OUT jit_deform_count bigint, OUT jit_deform_time double precision, OUT stats_since timestamp with time zone, OUT minmax_stats_since timestamp with time zone",
+      "returns": "SETOF record",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pg_stat_statements_info",
+      "args": "OUT dealloc bigint, OUT stats_reset timestamp with time zone",
+      "returns": "record",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pg_stat_statements_reset",
+      "args": "userid oid DEFAULT 0, dbid oid DEFAULT 0, queryid bigint DEFAULT 0, minmax_only boolean DEFAULT false",
+      "returns": "timestamp with time zone",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_armor_headers",
+      "args": "text, OUT key text, OUT value text",
+      "returns": "SETOF record",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_key_id",
+      "args": "bytea",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_pub_decrypt",
+      "args": "bytea, bytea, text, text",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_pub_decrypt",
+      "args": "bytea, bytea, text",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_pub_decrypt",
+      "args": "bytea, bytea",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_pub_decrypt_bytea",
+      "args": "bytea, bytea, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_pub_decrypt_bytea",
+      "args": "bytea, bytea",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_pub_decrypt_bytea",
+      "args": "bytea, bytea, text, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_pub_encrypt",
+      "args": "text, bytea, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_pub_encrypt",
+      "args": "text, bytea",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_pub_encrypt_bytea",
+      "args": "bytea, bytea",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_pub_encrypt_bytea",
+      "args": "bytea, bytea, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_sym_decrypt",
+      "args": "bytea, text",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_sym_decrypt",
+      "args": "bytea, text, text",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_sym_decrypt_bytea",
+      "args": "bytea, text, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_sym_decrypt_bytea",
+      "args": "bytea, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_sym_encrypt",
+      "args": "text, text, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_sym_encrypt",
+      "args": "text, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_sym_encrypt_bytea",
+      "args": "bytea, text, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgp_sym_encrypt_bytea",
+      "args": "bytea, text",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgrst_ddl_watch",
+      "args": "",
+      "returns": "event_trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "pgrst_drop_watch",
+      "args": "",
+      "returns": "event_trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "set_graphql_placeholder",
+      "args": "",
+      "returns": "event_trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "uuid_generate_v1",
+      "args": "",
+      "returns": "uuid",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "uuid_generate_v1mc",
+      "args": "",
+      "returns": "uuid",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "uuid_generate_v3",
+      "args": "namespace uuid, name text",
+      "returns": "uuid",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "uuid_generate_v4",
+      "args": "",
+      "returns": "uuid",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "uuid_generate_v5",
+      "args": "namespace uuid, name text",
+      "returns": "uuid",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "uuid_nil",
+      "args": "",
+      "returns": "uuid",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "uuid_ns_dns",
+      "args": "",
+      "returns": "uuid",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "uuid_ns_oid",
+      "args": "",
+      "returns": "uuid",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "uuid_ns_url",
+      "args": "",
+      "returns": "uuid",
+      "security_definer": false
+    },
+    {
+      "schema": "extensions",
+      "name": "uuid_ns_x500",
+      "args": "",
+      "returns": "uuid",
+      "security_definer": false
+    },
+    {
+      "schema": "graphql_public",
+      "name": "graphql",
+      "args": "\"operationName\" text DEFAULT NULL::text, query text DEFAULT NULL::text, variables jsonb DEFAULT NULL::jsonb, extensions jsonb DEFAULT NULL::jsonb",
+      "returns": "jsonb",
+      "security_definer": false
+    },
+    {
+      "schema": "pgbouncer",
+      "name": "get_auth",
+      "args": "p_usename text",
+      "returns": "TABLE(username text, password text)",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "aggregate_daily_usage",
+      "args": "target_date date DEFAULT CURRENT_DATE",
+      "returns": "void",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "anti_dory_runtime_flags_set_updated_at",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "anti_dory_write_budget_set_updated_at",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "archive_low_importance_memories",
+      "args": "p_threshold double precision DEFAULT 0.15, p_min_age_days integer DEFAULT 30",
+      "returns": "jsonb",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "array_to_halfvec",
+      "args": "numeric[], integer, boolean",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "array_to_halfvec",
+      "args": "real[], integer, boolean",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "array_to_halfvec",
+      "args": "double precision[], integer, boolean",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "array_to_halfvec",
+      "args": "integer[], integer, boolean",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "array_to_sparsevec",
+      "args": "real[], integer, boolean",
+      "returns": "sparsevec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "array_to_sparsevec",
+      "args": "numeric[], integer, boolean",
+      "returns": "sparsevec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "array_to_sparsevec",
+      "args": "integer[], integer, boolean",
+      "returns": "sparsevec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "array_to_sparsevec",
+      "args": "double precision[], integer, boolean",
+      "returns": "sparsevec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "array_to_vector",
+      "args": "numeric[], integer, boolean",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "array_to_vector",
+      "args": "double precision[], integer, boolean",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "array_to_vector",
+      "args": "real[], integer, boolean",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "array_to_vector",
+      "args": "integer[], integer, boolean",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "avg",
+      "args": "halfvec",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "avg",
+      "args": "vector",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "bg_job_append_progress",
+      "args": "p_job_id uuid, p_pct integer, p_msg text",
+      "returns": "void",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "binary_quantize",
+      "args": "vector",
+      "returns": "bit",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "binary_quantize",
+      "args": "halfvec",
+      "returns": "bit",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "boot_sequence_thoughts",
+      "args": "p_user_id uuid, p_project text DEFAULT NULL::text, p_procedural_limit integer DEFAULT 5, p_semantic_limit integer DEFAULT 5, p_episodic_limit integer DEFAULT 10",
+      "returns": "TABLE(id uuid, content text, summary text, layer memory_layer, importance integer, tags text[], project text, created_at timestamp with time zone)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "bridge_embrion_to_sms",
+      "args": "p_min_importancia integer DEFAULT 7, p_batch_size integer DEFAULT 100, p_mark_consumed boolean DEFAULT true",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "calculate_job_success_rate",
+      "args": "p_job_id uuid",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "canonical_jsonb",
+      "args": "input jsonb",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "cascade_invalidation",
+      "args": "p_memory_id uuid, p_reason text DEFAULT 'contradicted'::text, p_agent_id uuid DEFAULT NULL::uuid, p_strategy text DEFAULT 'mark_for_revalidation'::text, p_max_depth integer DEFAULT 5",
+      "returns": "jsonb",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "catastro_apply_quorum_outcome",
+      "args": "p_modelo jsonb, p_evento jsonb, p_trust_deltas jsonb DEFAULT '{}'::jsonb",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "catastro_recompute_trono",
+      "args": "p_dominio text",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "catastro_recompute_trono_all",
+      "args": "",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "cleanup_old_background_jobs",
+      "args": "",
+      "returns": "void",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "compute_importance_scores",
+      "args": "p_batch_size integer DEFAULT 500",
+      "returns": "jsonb",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "cosine_distance",
+      "args": "vector, vector",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "cosine_distance",
+      "args": "halfvec, halfvec",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "cosine_distance",
+      "args": "sparsevec, sparsevec",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "cowork_sesiones_set_updated_at",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "crystallize_pending_events",
+      "args": "p_limit integer DEFAULT 50",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "embrion_write_proposals_set_updated_at",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "emit_event",
+      "args": "p_event_type text, p_source text, p_source_type text, p_title text, p_content text, p_context text DEFAULT NULL::text, p_value_signal text DEFAULT 'medium'::text, p_related_entities text[] DEFAULT '{}'::text[], p_related_events uuid[] DEFAULT '{}'::uuid[], p_personal_layer jsonb DEFAULT NULL::jsonb",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "f_unaccent",
+      "args": "text",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "find_entity_by_name",
+      "args": "p_name text, p_type text DEFAULT NULL::text",
+      "returns": "TABLE(id uuid, name text, entity_type text, canonical_name text, mention_count integer, confidence double precision)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "fn_set_updated_at",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "get_allowed_tools",
+      "args": "p_tenant_id text DEFAULT 'alfredo'::text",
+      "returns": "TABLE(tool_name text, display_name text, category text, description text, risk_level text, requires_hitl boolean, schema jsonb, secret_env_var text, is_enabled boolean, capabilities jsonb, rate_limit integer, binding_id uuid)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "get_colmena_stats",
+      "args": "",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "get_current_pricing",
+      "args": "target_model text DEFAULT NULL::text",
+      "returns": "TABLE(model_id text, provider text, price_input_per_1m numeric, price_output_per_1m numeric, effective_from timestamp with time zone)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "get_due_jobs",
+      "args": "max_jobs integer DEFAULT 10",
+      "returns": "SETOF scheduled_jobs",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "get_embrion_bridge_status",
+      "args": "",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "get_entity_neighborhood",
+      "args": "p_entity_id uuid, p_max_depth integer DEFAULT 1, p_relation_filter text DEFAULT NULL::text",
+      "returns": "TABLE(entity_id uuid, entity_name text, entity_type text, relation_type text, direction text, weight double precision, depth integer)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "get_event_stream_stats",
+      "args": "",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "get_memories_for_entity",
+      "args": "p_entity_id uuid, p_limit integer DEFAULT 20",
+      "returns": "TABLE(memory_id uuid, content text, memory_type text, confidence double precision, strength double precision, role text, created_at timestamp with time zone)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "get_pending_revalidations",
+      "args": "p_limit integer DEFAULT 50",
+      "returns": "TABLE(memory_id uuid, content text, memory_type text, confidence double precision, revalidation_status text, invalidation_reason text, created_at timestamp with time zone)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "get_specialists_memory_stats",
+      "args": "",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "gin_extract_query_trgm",
+      "args": "text, internal, smallint, internal, internal, internal, internal",
+      "returns": "internal",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "gin_extract_value_trgm",
+      "args": "text, internal",
+      "returns": "internal",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "gin_trgm_consistent",
+      "args": "internal, smallint, text, integer, internal, internal, internal, internal",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "gin_trgm_triconsistent",
+      "args": "internal, smallint, text, integer, internal, internal, internal",
+      "returns": "\"char\"",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "graph_enhanced_recall",
+      "args": "query_embedding vector, match_threshold double precision DEFAULT 0.6, match_count integer DEFAULT 10, graph_expansion boolean DEFAULT true",
+      "returns": "TABLE(memory_id uuid, content text, memory_type text, confidence double precision, strength double precision, similarity double precision, source text, related_entities jsonb)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "gtrgm_compress",
+      "args": "internal",
+      "returns": "internal",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "gtrgm_consistent",
+      "args": "internal, text, smallint, oid, internal",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "gtrgm_decompress",
+      "args": "internal",
+      "returns": "internal",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "gtrgm_distance",
+      "args": "internal, text, smallint, oid, internal",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "gtrgm_in",
+      "args": "cstring",
+      "returns": "gtrgm",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "gtrgm_options",
+      "args": "internal",
+      "returns": "void",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "gtrgm_out",
+      "args": "gtrgm",
+      "returns": "cstring",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "gtrgm_penalty",
+      "args": "internal, internal, internal",
+      "returns": "internal",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "gtrgm_picksplit",
+      "args": "internal, internal",
+      "returns": "internal",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "gtrgm_same",
+      "args": "gtrgm, gtrgm, internal",
+      "returns": "internal",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "gtrgm_union",
+      "args": "internal, internal",
+      "returns": "gtrgm",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec",
+      "args": "halfvec, integer, boolean",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_accum",
+      "args": "double precision[], halfvec",
+      "returns": "double precision[]",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_add",
+      "args": "halfvec, halfvec",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_avg",
+      "args": "double precision[]",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_cmp",
+      "args": "halfvec, halfvec",
+      "returns": "integer",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_combine",
+      "args": "double precision[], double precision[]",
+      "returns": "double precision[]",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_concat",
+      "args": "halfvec, halfvec",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_eq",
+      "args": "halfvec, halfvec",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_ge",
+      "args": "halfvec, halfvec",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_gt",
+      "args": "halfvec, halfvec",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_in",
+      "args": "cstring, oid, integer",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_l2_squared_distance",
+      "args": "halfvec, halfvec",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_le",
+      "args": "halfvec, halfvec",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_lt",
+      "args": "halfvec, halfvec",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_mul",
+      "args": "halfvec, halfvec",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_ne",
+      "args": "halfvec, halfvec",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_negative_inner_product",
+      "args": "halfvec, halfvec",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_out",
+      "args": "halfvec",
+      "returns": "cstring",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_recv",
+      "args": "internal, oid, integer",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_send",
+      "args": "halfvec",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_spherical_distance",
+      "args": "halfvec, halfvec",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_sub",
+      "args": "halfvec, halfvec",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_to_float4",
+      "args": "halfvec, integer, boolean",
+      "returns": "real[]",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_to_sparsevec",
+      "args": "halfvec, integer, boolean",
+      "returns": "sparsevec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_to_vector",
+      "args": "halfvec, integer, boolean",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "halfvec_typmod_in",
+      "args": "cstring[]",
+      "returns": "integer",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "hamming_distance",
+      "args": "bit, bit",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "hnsw_bit_support",
+      "args": "internal",
+      "returns": "internal",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "hnsw_halfvec_support",
+      "args": "internal",
+      "returns": "internal",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "hnsw_sparsevec_support",
+      "args": "internal",
+      "returns": "internal",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "hnswhandler",
+      "args": "internal",
+      "returns": "index_am_handler",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "hybrid_search_thoughts",
+      "args": "p_user_id uuid, p_query text, p_embedding vector, p_layer memory_layer DEFAULT NULL::memory_layer, p_project text DEFAULT NULL::text, p_limit integer DEFAULT 10, p_rrf_k integer DEFAULT 60, p_min_importance integer DEFAULT 1",
+      "returns": "TABLE(id uuid, content text, summary text, layer memory_layer, importance integer, tags text[], project text, created_at timestamp with time zone, score double precision)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "inner_product",
+      "args": "vector, vector",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "inner_product",
+      "args": "halfvec, halfvec",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "inner_product",
+      "args": "sparsevec, sparsevec",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "ivfflat_bit_support",
+      "args": "internal",
+      "returns": "internal",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "ivfflat_halfvec_support",
+      "args": "internal",
+      "returns": "internal",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "ivfflathandler",
+      "args": "internal",
+      "returns": "index_am_handler",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "jaccard_distance",
+      "args": "bit, bit",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "kal_prevent_modify",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "kal_prevent_truncate",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "l1_distance",
+      "args": "sparsevec, sparsevec",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "l1_distance",
+      "args": "halfvec, halfvec",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "l1_distance",
+      "args": "vector, vector",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "l2_distance",
+      "args": "halfvec, halfvec",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "l2_distance",
+      "args": "vector, vector",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "l2_distance",
+      "args": "sparsevec, sparsevec",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "l2_norm",
+      "args": "sparsevec",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "l2_norm",
+      "args": "halfvec",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "l2_normalize",
+      "args": "sparsevec",
+      "returns": "sparsevec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "l2_normalize",
+      "args": "vector",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "l2_normalize",
+      "args": "halfvec",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "log_specialist_task",
+      "args": "p_specialist_id text, p_task_type text, p_task_input_summary text, p_task_output_summary text DEFAULT NULL::text, p_outcome text DEFAULT 'success'::text, p_feedback text DEFAULT NULL::text, p_correction_applied text DEFAULT NULL::text, p_project_context text DEFAULT NULL::text, p_duration_ms integer DEFAULT NULL::integer, p_tokens_used integer DEFAULT NULL::integer, p_model_used text DEFAULT NULL::text",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "mark_embrion_noise_consumed",
+      "args": "",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "match_catastro_modelos",
+      "args": "query_embedding vector, match_threshold double precision DEFAULT 0.70, match_count integer DEFAULT 10, filtro_macroarea text DEFAULT NULL::text, filtro_dominio text DEFAULT NULL::text, excluir_deprecated boolean DEFAULT true",
+      "returns": "TABLE(id text, nombre text, proveedor text, macroarea text, dominios text[], estado text, trono_global numeric, rank_dominio integer, precio_input_per_million numeric, precio_output_per_million numeric, confidence numeric, quorum_alcanzado boolean, fuentes_evidencia jsonb, similarity double precision)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "match_memories",
+      "args": "query_embedding vector, match_threshold double precision, match_count integer, filter_user_id text",
+      "returns": "TABLE(id uuid, user_id text, role text, content text, task_type text, brain_used text, metadata jsonb, similarity double precision, created_at timestamp with time zone)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "match_memory_events",
+      "args": "query_embedding vector, match_threshold double precision DEFAULT 0.7, match_count integer DEFAULT 10, p_user_id text DEFAULT NULL::text, p_memory_types text[] DEFAULT NULL::text[]",
+      "returns": "TABLE(event_id uuid, memory_type text, run_id uuid, user_id text, channel text, content text, metadata jsonb, created_at timestamp with time zone, score double precision)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "match_sovereign_axioms",
+      "args": "query_embedding vector, match_threshold double precision DEFAULT 0.6, match_count integer DEFAULT 5, filter_agent text DEFAULT NULL::text",
+      "returns": "TABLE(id uuid, statement text, confidence double precision, validation_count integer, implications jsonb, similarity double precision, first_observed timestamp with time zone)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "match_sovereign_memories",
+      "args": "query_embedding vector, match_threshold double precision DEFAULT 0.7, match_count integer DEFAULT 10, filter_agent text DEFAULT NULL::text, filter_type text DEFAULT NULL::text, only_alive boolean DEFAULT true",
+      "returns": "TABLE(id uuid, content text, memory_type text, agent_id text, confidence double precision, strength double precision, similarity double precision, created_at timestamp with time zone)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "match_sovereign_memories_temporal",
+      "args": "query_embedding vector, match_threshold double precision DEFAULT 0.5, match_count integer DEFAULT 10, point_in_time timestamp with time zone DEFAULT now(), filter_agent text DEFAULT NULL::text",
+      "returns": "TABLE(id uuid, content text, memory_type text, agent_id text, confidence double precision, strength double precision, tags text[], valid_at timestamp with time zone, invalid_at timestamp with time zone, created_at timestamp with time zone, similarity double precision)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "merge_similar_memories",
+      "args": "p_similarity_threshold double precision DEFAULT 0.95",
+      "returns": "jsonb",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "propagate_pattern_to_embriones",
+      "args": "p_pattern_id uuid, p_target_embriones text[]",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "query_event_stream",
+      "args": "p_event_type text DEFAULT NULL::text, p_source_type text DEFAULT NULL::text, p_value_signal text DEFAULT NULL::text, p_since timestamp with time zone DEFAULT NULL::timestamp with time zone, p_entity text DEFAULT NULL::text, p_limit integer DEFAULT 50",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "recall_specialist_context",
+      "args": "p_specialist_id text, p_task_type text DEFAULT NULL::text, p_limit_knowledge integer DEFAULT 20, p_limit_history integer DEFAULT 5",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "record_tool_execution",
+      "args": "p_run_id uuid, p_thread_id text, p_tenant_id text DEFAULT 'alfredo'::text, p_tool_name text DEFAULT ''::text, p_status text DEFAULT 'pending'::text, p_input_args jsonb DEFAULT '{}'::jsonb, p_output_summary text DEFAULT NULL::text, p_error_message text DEFAULT NULL::text, p_wall_ms integer DEFAULT 0, p_api_calls integer DEFAULT 1, p_cost_usd numeric DEFAULT 0",
+      "returns": "uuid",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "register_dependency",
+      "args": "p_premise_id uuid, p_dependent_id uuid, p_type text DEFAULT 'logical'::text, p_strength double precision DEFAULT 1.0",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "remember_specialist_knowledge",
+      "args": "p_specialist_id text, p_knowledge_type text, p_content text, p_source_description text DEFAULT NULL::text, p_source_task_id uuid DEFAULT NULL::uuid, p_is_shared boolean DEFAULT false, p_shared_with text[] DEFAULT '{}'::text[], p_confidence double precision DEFAULT 0.8, p_expires_at timestamp with time zone DEFAULT NULL::timestamp with time zone",
+      "returns": "jsonb",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "rpc_accept_snapshot",
+      "args": "p_project_id text, p_front_id text, p_snapshot_id uuid, p_expected_lock_version integer",
+      "returns": "TABLE(accepted boolean, new_lock_version integer, conflict_reason text)",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "rpc_check_shadow_enabled",
+      "args": "",
+      "returns": "boolean",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "rpc_get_context_head",
+      "args": "p_project_id text, p_front_id text",
+      "returns": "TABLE(snapshot_id uuid, project_id text, front_id text, actor_type text, sprint_id text, phase text, last_t1_decision text, next_expected_action text, do_not_touch jsonb, evidence_refs jsonb, confidence_score numeric, state_hash text, writer_mode text, snapshot_created_at timestamp with time zone, head_updated_at timestamp with time zone, lock_version integer)",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "rpc_increment_write_budget",
+      "args": "p_now timestamp with time zone DEFAULT now()",
+      "returns": "TABLE(within_budget boolean, exceeded_window text, w10min_count integer, w1h_count integer, w24h_count integer)",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "rpc_recovery_scan",
+      "args": "p_project_id text, p_front_id text",
+      "returns": "TABLE(last_event_id uuid, last_event_type text, last_actor_type text, last_payload jsonb, last_thread_id text, last_event_at timestamp with time zone, event_count bigint)",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "rpc_write_runtime_event",
+      "args": "p_project_id text, p_front_id text, p_actor_type text, p_event_type text, p_payload jsonb DEFAULT '{}'::jsonb, p_thread_id text DEFAULT NULL::text, p_snapshot_id uuid DEFAULT NULL::uuid",
+      "returns": "uuid",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "rpc_write_thread_snapshot",
+      "args": "p_project_id text, p_front_id text, p_actor_type text, p_state_hash text, p_writer_mode text, p_parent_snapshot_id uuid DEFAULT NULL::uuid, p_sprint_id text DEFAULT NULL::text, p_phase text DEFAULT NULL::text, p_last_t1_decision text DEFAULT NULL::text, p_next_expected_action text DEFAULT NULL::text, p_do_not_touch jsonb DEFAULT '[]'::jsonb, p_evidence_refs jsonb DEFAULT '[]'::jsonb, p_confidence_score numeric DEFAULT 1.00, p_summary text DEFAULT NULL::text",
+      "returns": "uuid",
+      "security_definer": true
+    },
+    {
+      "schema": "public",
+      "name": "search_chunks",
+      "args": "query_embedding vector, match_count integer DEFAULT 10, filter_domain text DEFAULT NULL::text",
+      "returns": "TABLE(chunk_id text, doc_id text, title text, heading text, text text, summary text, domain text, similarity double precision)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "search_similar_errors",
+      "args": "query_embedding vector, match_threshold double precision DEFAULT 0.78, match_count integer DEFAULT 5",
+      "returns": "TABLE(id uuid, error_signature text, error_type text, module text, action text, sanitized_message text, resolution text, confidence numeric, occurrences integer, similarity double precision)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "search_thoughts_semantic",
+      "args": "p_user_id uuid, p_embedding vector, p_layer memory_layer DEFAULT NULL::memory_layer, p_project text DEFAULT NULL::text, p_limit integer DEFAULT 10, p_min_importance integer DEFAULT 1",
+      "returns": "TABLE(id uuid, content text, summary text, layer memory_layer, importance integer, tags text[], project text, created_at timestamp with time zone, similarity double precision)",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "set_limit",
+      "args": "real",
+      "returns": "real",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "set_updated_at",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "set_updated_at_now",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "show_limit",
+      "args": "",
+      "returns": "real",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "show_trgm",
+      "args": "text",
+      "returns": "text[]",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "similarity",
+      "args": "text, text",
+      "returns": "real",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "similarity_dist",
+      "args": "text, text",
+      "returns": "real",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "similarity_op",
+      "args": "text, text",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec",
+      "args": "sparsevec, integer, boolean",
+      "returns": "sparsevec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_cmp",
+      "args": "sparsevec, sparsevec",
+      "returns": "integer",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_eq",
+      "args": "sparsevec, sparsevec",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_ge",
+      "args": "sparsevec, sparsevec",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_gt",
+      "args": "sparsevec, sparsevec",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_in",
+      "args": "cstring, oid, integer",
+      "returns": "sparsevec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_l2_squared_distance",
+      "args": "sparsevec, sparsevec",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_le",
+      "args": "sparsevec, sparsevec",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_lt",
+      "args": "sparsevec, sparsevec",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_ne",
+      "args": "sparsevec, sparsevec",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_negative_inner_product",
+      "args": "sparsevec, sparsevec",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_out",
+      "args": "sparsevec",
+      "returns": "cstring",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_recv",
+      "args": "internal, oid, integer",
+      "returns": "sparsevec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_send",
+      "args": "sparsevec",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_to_halfvec",
+      "args": "sparsevec, integer, boolean",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_to_vector",
+      "args": "sparsevec, integer, boolean",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sparsevec_typmod_in",
+      "args": "cstring[]",
+      "returns": "integer",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "strict_word_similarity",
+      "args": "text, text",
+      "returns": "real",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "strict_word_similarity_commutator_op",
+      "args": "text, text",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "strict_word_similarity_dist_commutator_op",
+      "args": "text, text",
+      "returns": "real",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "strict_word_similarity_dist_op",
+      "args": "text, text",
+      "returns": "real",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "strict_word_similarity_op",
+      "args": "text, text",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "subvector",
+      "args": "vector, integer, integer",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "subvector",
+      "args": "halfvec, integer, integer",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sum",
+      "args": "vector",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "sum",
+      "args": "halfvec",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "thoughts_tsv_update",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "trg_catastro_agentes_updated_at",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "trg_catastro_set_updated_at",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "unaccent",
+      "args": "text",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "unaccent",
+      "args": "regdictionary, text",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "unaccent_init",
+      "args": "internal",
+      "returns": "internal",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "unaccent_lexize",
+      "args": "internal, internal, internal, internal",
+      "returns": "internal",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "update_budget_on_plan_change",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "update_dossier_timestamp",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "update_error_pattern_validated",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "update_memento_actualizado_en",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "update_scheduled_jobs_updated_at",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "update_updated_at_column",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "validate_embrion_memoria",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector",
+      "args": "vector, integer, boolean",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_accum",
+      "args": "double precision[], vector",
+      "returns": "double precision[]",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_add",
+      "args": "vector, vector",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_avg",
+      "args": "double precision[]",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_cmp",
+      "args": "vector, vector",
+      "returns": "integer",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_combine",
+      "args": "double precision[], double precision[]",
+      "returns": "double precision[]",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_concat",
+      "args": "vector, vector",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_dims",
+      "args": "vector",
+      "returns": "integer",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_dims",
+      "args": "halfvec",
+      "returns": "integer",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_eq",
+      "args": "vector, vector",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_ge",
+      "args": "vector, vector",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_gt",
+      "args": "vector, vector",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_in",
+      "args": "cstring, oid, integer",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_l2_squared_distance",
+      "args": "vector, vector",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_le",
+      "args": "vector, vector",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_lt",
+      "args": "vector, vector",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_mul",
+      "args": "vector, vector",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_ne",
+      "args": "vector, vector",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_negative_inner_product",
+      "args": "vector, vector",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_norm",
+      "args": "vector",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_out",
+      "args": "vector",
+      "returns": "cstring",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_recv",
+      "args": "internal, oid, integer",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_send",
+      "args": "vector",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_spherical_distance",
+      "args": "vector, vector",
+      "returns": "double precision",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_sub",
+      "args": "vector, vector",
+      "returns": "vector",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_to_float4",
+      "args": "vector, integer, boolean",
+      "returns": "real[]",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_to_halfvec",
+      "args": "vector, integer, boolean",
+      "returns": "halfvec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_to_sparsevec",
+      "args": "vector, integer, boolean",
+      "returns": "sparsevec",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "vector_typmod_in",
+      "args": "cstring[]",
+      "returns": "integer",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "word_similarity",
+      "args": "text, text",
+      "returns": "real",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "word_similarity_commutator_op",
+      "args": "text, text",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "word_similarity_dist_commutator_op",
+      "args": "text, text",
+      "returns": "real",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "word_similarity_dist_op",
+      "args": "text, text",
+      "returns": "real",
+      "security_definer": false
+    },
+    {
+      "schema": "public",
+      "name": "word_similarity_op",
+      "args": "text, text",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "realtime",
+      "name": "apply_rls",
+      "args": "wal jsonb, max_record_bytes integer DEFAULT (1024 * 1024)",
+      "returns": "SETOF realtime.wal_rls",
+      "security_definer": false
+    },
+    {
+      "schema": "realtime",
+      "name": "broadcast_changes",
+      "args": "topic_name text, event_name text, operation text, table_name text, table_schema text, new record, old record, level text DEFAULT 'ROW'::text",
+      "returns": "void",
+      "security_definer": false
+    },
+    {
+      "schema": "realtime",
+      "name": "build_prepared_statement_sql",
+      "args": "prepared_statement_name text, entity regclass, columns realtime.wal_column[]",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "realtime",
+      "name": "cast",
+      "args": "val text, type_ regtype",
+      "returns": "jsonb",
+      "security_definer": false
+    },
+    {
+      "schema": "realtime",
+      "name": "check_equality_op",
+      "args": "op realtime.equality_op, type_ regtype, val_1 text, val_2 text",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "realtime",
+      "name": "is_visible_through_filters",
+      "args": "columns realtime.wal_column[], filters realtime.user_defined_filter[]",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "realtime",
+      "name": "list_changes",
+      "args": "publication name, slot_name name, max_changes integer, max_record_bytes integer",
+      "returns": "TABLE(wal jsonb, is_rls_enabled boolean, subscription_ids uuid[], errors text[], slot_changes_count bigint)",
+      "security_definer": false
+    },
+    {
+      "schema": "realtime",
+      "name": "quote_wal2json",
+      "args": "entity regclass",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "realtime",
+      "name": "send",
+      "args": "payload jsonb, event text, topic text, private boolean DEFAULT true",
+      "returns": "void",
+      "security_definer": false
+    },
+    {
+      "schema": "realtime",
+      "name": "subscription_check_filters",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "realtime",
+      "name": "to_regrole",
+      "args": "role_name text",
+      "returns": "regrole",
+      "security_definer": false
+    },
+    {
+      "schema": "realtime",
+      "name": "topic",
+      "args": "",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "allow_any_operation",
+      "args": "expected_operations text[]",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "allow_only_operation",
+      "args": "expected_operation text",
+      "returns": "boolean",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "can_insert_object",
+      "args": "bucketid text, name text, owner uuid, metadata jsonb",
+      "returns": "void",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "enforce_bucket_name_length",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "extension",
+      "args": "name text",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "filename",
+      "args": "name text",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "foldername",
+      "args": "name text",
+      "returns": "text[]",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "get_common_prefix",
+      "args": "p_key text, p_prefix text, p_delimiter text",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "get_size_by_bucket",
+      "args": "",
+      "returns": "TABLE(size bigint, bucket_id text)",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "list_multipart_uploads_with_delimiter",
+      "args": "bucket_id text, prefix_param text, delimiter_param text, max_keys integer DEFAULT 100, next_key_token text DEFAULT ''::text, next_upload_token text DEFAULT ''::text",
+      "returns": "TABLE(key text, id text, created_at timestamp with time zone)",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "list_objects_with_delimiter",
+      "args": "_bucket_id text, prefix_param text, delimiter_param text, max_keys integer DEFAULT 100, start_after text DEFAULT ''::text, next_token text DEFAULT ''::text, sort_order text DEFAULT 'asc'::text",
+      "returns": "TABLE(name text, id uuid, metadata jsonb, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone)",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "operation",
+      "args": "",
+      "returns": "text",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "protect_delete",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "search",
+      "args": "prefix text, bucketname text, limits integer DEFAULT 100, levels integer DEFAULT 1, offsets integer DEFAULT 0, search text DEFAULT ''::text, sortcolumn text DEFAULT 'name'::text, sortorder text DEFAULT 'asc'::text",
+      "returns": "TABLE(name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb)",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "search_by_timestamp",
+      "args": "p_prefix text, p_bucket_id text, p_limit integer, p_level integer, p_start_after text, p_sort_order text, p_sort_column text, p_sort_column_after text",
+      "returns": "TABLE(key text, name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb)",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "search_v2",
+      "args": "prefix text, bucket_name text, limits integer DEFAULT 100, levels integer DEFAULT 1, start_after text DEFAULT ''::text, sort_order text DEFAULT 'asc'::text, sort_column text DEFAULT 'name'::text, sort_column_after text DEFAULT ''::text",
+      "returns": "TABLE(key text, name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb)",
+      "security_definer": false
+    },
+    {
+      "schema": "storage",
+      "name": "update_updated_at_column",
+      "args": "",
+      "returns": "trigger",
+      "security_definer": false
+    },
+    {
+      "schema": "vault",
+      "name": "_crypto_aead_det_decrypt",
+      "args": "message bytea, additional bytea, key_id bigint, context bytea DEFAULT '\\x7067736f6469756d'::bytea, nonce bytea DEFAULT NULL::bytea",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "vault",
+      "name": "_crypto_aead_det_encrypt",
+      "args": "message bytea, additional bytea, key_id bigint, context bytea DEFAULT '\\x7067736f6469756d'::bytea, nonce bytea DEFAULT NULL::bytea",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "vault",
+      "name": "_crypto_aead_det_noncegen",
+      "args": "",
+      "returns": "bytea",
+      "security_definer": false
+    },
+    {
+      "schema": "vault",
+      "name": "create_secret",
+      "args": "new_secret text, new_name text DEFAULT NULL::text, new_description text DEFAULT ''::text, new_key_id uuid DEFAULT NULL::uuid",
+      "returns": "uuid",
+      "security_definer": true
+    },
+    {
+      "schema": "vault",
+      "name": "update_secret",
+      "args": "secret_id uuid, new_secret text DEFAULT NULL::text, new_name text DEFAULT NULL::text, new_description text DEFAULT NULL::text, new_key_id uuid DEFAULT NULL::uuid",
+      "returns": "void",
+      "security_definer": true
+    }
+  ],
+  "functions_count": 328,
+  "extensions": [
+    {
+      "name": "pg_stat_statements",
+      "version": "1.11"
+    },
+    {
+      "name": "pg_trgm",
+      "version": "1.6"
+    },
+    {
+      "name": "pgcrypto",
+      "version": "1.3"
+    },
+    {
+      "name": "plpgsql",
+      "version": "1.0"
+    },
+    {
+      "name": "supabase_vault",
+      "version": "0.3.1"
+    },
+    {
+      "name": "unaccent",
+      "version": "1.1"
+    },
+    {
+      "name": "uuid-ossp",
+      "version": "1.1"
+    },
+    {
+      "name": "vector",
+      "version": "0.8.0"
+    }
+  ],
+  "extensions_count": 8,
+  "buckets": [],
+  "buckets_count": 0,
+  "migrations_recent": [
+    {
+      "version": "20260525040428",
+      "name": "0061_thread_immunity_events"
+    },
+    {
+      "version": "20260521170742",
+      "name": "create_decay_rpcs"
+    },
+    {
+      "version": "20260521170720",
+      "name": "create_memory_decay_tables"
+    },
+    {
+      "version": "20260521170708",
+      "name": "create_belief_revision_rpcs"
+    },
+    {
+      "version": "20260521170649",
+      "name": "create_belief_revision_tables"
+    },
+    {
+      "version": "20260521170638",
+      "name": "create_graph_enhanced_recall"
+    },
+    {
+      "version": "20260521170624",
+      "name": "create_kg_rpcs"
+    },
+    {
+      "version": "20260521170608",
+      "name": "create_memory_entity_links"
+    },
+    {
+      "version": "20260521170558",
+      "name": "create_memory_relations"
+    },
+    {
+      "version": "20260521170547",
+      "name": "create_memory_entities"
+    },
+    {
+      "version": "20260518062157",
+      "name": "0049_embrion_memoria_consumed_at_backfill"
+    },
+    {
+      "version": "20260518060548",
+      "name": "0048_embrion_memoria_consumed_at"
+    },
+    {
+      "version": "20260518042343",
+      "name": "0047_embrion_memoria_tipo_check_expand_vivos"
+    },
+    {
+      "version": "20260518000851",
+      "name": "0015_run_costs"
+    },
+    {
+      "version": "20260516160559",
+      "name": "0036_radar_runs"
+    },
+    {
+      "version": "20260514130603",
+      "name": "0035_anti_dory_runtime_flags"
+    },
+    {
+      "version": "20260514130515",
+      "name": "0034_anti_dory_grants"
+    },
+    {
+      "version": "20260514124043",
+      "name": "0033_cowork_claims_calibration"
+    },
+    {
+      "version": "20260514100752",
+      "name": "0032_anti_dory_rpcs"
+    },
+    {
+      "version": "20260514100712",
+      "name": "0031_project_runtime_heads"
+    },
+    {
+      "version": "20260514100656",
+      "name": "0030_thread_snapshots"
+    },
+    {
+      "version": "20260514100632",
+      "name": "0029_runtime_events"
+    },
+    {
+      "version": "20260512193837",
+      "name": "0027_cowork_protocolo_invocaciones"
+    },
+    {
+      "version": "20260512155100",
+      "name": "0026_embrion_homeostasis_log"
+    },
+    {
+      "version": "20260512132646",
+      "name": "0024_escape_pulse_log"
+    },
+    {
+      "version": "20260512051356",
+      "name": "0020_embrion_validation_log_fixed"
+    }
+  ],
+  "migrations_count": 26,
+  "indexes_count": 892,
+  "triggers_count": 42,
+  "finished_at": "2026-05-26T10:06:02.500752+00:00",
+  "coverage_match": true
+}

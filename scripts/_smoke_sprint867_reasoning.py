@@ -12,10 +12,10 @@ Smoke productivo Sprint 86.7 — Catastro Macroárea 4 LLM Razonamiento Estructu
 
 [Hilo Manus Catastro] · Sprint 86.7 · 2026-05-05
 """
+
 from __future__ import annotations
 
 import asyncio
-import json
 import os
 import sys
 import time
@@ -28,7 +28,6 @@ os.environ["CATASTRO_SKIP_PERSIST"] = "true"
 sys.path.insert(0, ".")
 from kernel.catastro.pipeline import CatastroPipeline  # noqa: E402
 from kernel.catastro.reasoning_classifier import REASONING_TAGS_VOCABULARY  # noqa: E402
-
 
 GATES_RESULTS: list[tuple[str, bool, str]] = []
 
@@ -58,10 +57,8 @@ async def main() -> int:
     print("[2/6] Ejecutando pipeline E2E...")
     try:
         result = await p.run()
-        run_ok = True
         gate("pipeline_run_e2e", True, f"run_id={result.run_id[:8]}")
     except Exception as e:
-        run_ok = False
         gate("pipeline_run_e2e", False, f"error: {e}")
         print("FAIL temprano - abortando smoke")
         return 1
@@ -69,8 +66,7 @@ async def main() -> int:
     # GATE 3: al menos 1 modelo persistible con data_extra.reasoning
     print("[3/6] Verificando data_extra.reasoning poblado...")
     persistibles_with_reasoning = [
-        (slug, m) for slug, m in result.modelos_persistibles.items()
-        if "reasoning" in m.get("data_extra", {})
+        (slug, m) for slug, m in result.modelos_persistibles.items() if "reasoning" in m.get("data_extra", {})
     ]
     gate(
         "data_extra_reasoning_populated",

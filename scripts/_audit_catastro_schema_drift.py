@@ -23,6 +23,7 @@ Uso:
 
 Mini-Sprint 86.4.5 pre-B2 · 2026-05-05 · Hilo Manus
 """
+
 from __future__ import annotations
 
 import argparse
@@ -63,6 +64,7 @@ def _load_generated() -> dict[str, list[str]]:
     """Carga TABLE_COLUMNS del schema generado."""
     try:
         from kernel.catastro.schema_generated import TABLE_COLUMNS  # type: ignore
+
         return TABLE_COLUMNS
     except ImportError as e:
         print(f"ERROR: catastro_schema_drift_generated_missing: {e}", file=sys.stderr)

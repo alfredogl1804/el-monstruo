@@ -2,6 +2,7 @@
 """
 Tests del linter de specs (DSC-G-008 v2 + DSC-G-012 + DSC-G-017).
 """
+
 from __future__ import annotations
 
 import sys
@@ -12,7 +13,6 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import tools.spec_lint as sl  # noqa: E402
-
 
 SPEC_VALID_LEGACY = """\
 # Sprint S-XX — Mi sprint legacy
@@ -153,9 +153,7 @@ def test_strict_missing_perfil_riesgo_fails():
         print(f"   {f}")
     assert res.strict_mode, "Auto-strict via comentario HTML deberia activarse"
     rules = {f.rule for f in res.errors}
-    assert "dsc-g-012.perfil_riesgo_missing" in rules, (
-        f"En strict, perfil_riesgo missing debe ser ERROR. got: {rules}"
-    )
+    assert "dsc-g-012.perfil_riesgo_missing" in rules, f"En strict, perfil_riesgo missing debe ser ERROR. got: {rules}"
 
 
 def test_lenient_missing_perfil_is_warning():

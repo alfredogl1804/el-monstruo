@@ -4,9 +4,10 @@ Resolves T1 directives into scoring modifiers for embryo task selection.
 
 Principle: Directives influence scoring. Directives NEVER authorize actions.
 """
-import os
-import json
+
 import datetime
+import json
+import os
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 QUEUE_PATH = os.path.join(DIR, "t1_directive_queue.v0_1.json")
@@ -101,7 +102,7 @@ def get_active_directives():
 
 def resolve_directives_for_embryo(embryo_id):
     """Get active directives that target a specific embryo.
-    
+
     Logic: scope=ALL_EMBRYOS means 'all embryos listed in target_embryos'.
     An embryo_id NOT in target_embryos never receives the directive,
     regardless of scope. This prevents unknown/unregistered embryos
@@ -173,11 +174,9 @@ def apply_directive_to_task_scores(tasks, directives):
                     total_modifier -= weight * min(misalignment, 3)
                     applied_directives.append(d["directive_id"])
 
-        modifiers.append({
-            "task_id": task.get("task_id"),
-            "score_modifier": total_modifier,
-            "applied_directives": applied_directives
-        })
+        modifiers.append(
+            {"task_id": task.get("task_id"), "score_modifier": total_modifier, "applied_directives": applied_directives}
+        )
 
     return modifiers
 
@@ -201,8 +200,9 @@ def detect_conflicting_directives(directives):
             if not t1.intersection(t2):
                 continue
             # Check if opposing types
-            if (d1["directive_type"] in boost_types and d2["directive_type"] in suppress_types) or \
-               (d1["directive_type"] in suppress_types and d2["directive_type"] in boost_types):
+            if (d1["directive_type"] in boost_types and d2["directive_type"] in suppress_types) or (
+                d1["directive_type"] in suppress_types and d2["directive_type"] in boost_types
+            ):
                 conflicts.append((d1["directive_id"], d2["directive_id"]))
 
     return conflicts
@@ -251,5 +251,5 @@ def export_directive_snapshot():
         "expired_count": sum(1 for d in directives if d["status"] == "EXPIRED"),
         "paused_count": sum(1 for d in directives if d["status"] == "PAUSED"),
         "active_directive_ids": [d["directive_id"] for d in active],
-        "total_priority_weight": sum(compute_directive_weight(d) for d in active)
+        "total_priority_weight": sum(compute_directive_weight(d) for d in active),
     }

@@ -58,14 +58,10 @@ logger = logging.getLogger(__name__)
 
 # Timeout default para llamadas RPC. Anti-Dory broker NUNCA debe bloquear
 # task.create más allá de este límite. Si timeout → broker fail-open.
-_DEFAULT_RPC_TIMEOUT_SECONDS: float = float(
-    os.environ.get("ANTI_DORY_RPC_TIMEOUT_SECONDS", "5.0")
-)
+_DEFAULT_RPC_TIMEOUT_SECONDS: float = float(os.environ.get("ANTI_DORY_RPC_TIMEOUT_SECONDS", "5.0"))
 
 # Connect timeout separado (no debe colgar arrancando la conexión).
-_DEFAULT_RPC_CONNECT_TIMEOUT_SECONDS: float = float(
-    os.environ.get("ANTI_DORY_RPC_CONNECT_TIMEOUT_SECONDS", "2.0")
-)
+_DEFAULT_RPC_CONNECT_TIMEOUT_SECONDS: float = float(os.environ.get("ANTI_DORY_RPC_CONNECT_TIMEOUT_SECONDS", "2.0"))
 
 # User-Agent identificable para logs Supabase / observabilidad.
 _USER_AGENT = "el-monstruo/anti-dory-v1 (sprint MANUS-ANTI-DORY-002)"
@@ -123,9 +119,7 @@ class HTTPXSupabaseRPCClient:
         if not url:
             raise ValueError("HTTPXSupabaseRPCClient requires non-empty url")
         if not service_key:
-            raise ValueError(
-                "HTTPXSupabaseRPCClient requires non-empty service_key"
-            )
+            raise ValueError("HTTPXSupabaseRPCClient requires non-empty service_key")
 
         # Normalizar URL: garantizar terminación sin "/"
         self._url = url.rstrip("/")
@@ -177,9 +171,7 @@ class HTTPXSupabaseRPCClient:
         if not name or not isinstance(name, str):
             raise ValueError(f"RPC name must be non-empty str, got: {name!r}")
         if not isinstance(params, dict):
-            raise ValueError(
-                f"RPC params must be dict, got: {type(params).__name__}"
-            )
+            raise ValueError(f"RPC params must be dict, got: {type(params).__name__}")
 
         endpoint = f"{self._url}/rest/v1/rpc/{name}"
 

@@ -16,6 +16,7 @@ Refs:
   - M7 de AUDITORIA_PROFUNDA_COMPORTAMIENTO_2026_05_11.md
   - DSC-MO-011 Gate 7 (Blue-Green: enabled flag default false)
 """
+
 from __future__ import annotations
 
 import os
@@ -24,10 +25,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
-
 # ============================================================================
 # Tipos
 # ============================================================================
+
 
 class DriftAction(str, Enum):
     NO_OP = "no_op"
@@ -39,6 +40,7 @@ class DriftAction(str, Enum):
 @dataclass
 class DriftSignal:
     """Senal de drift detectada con metadata para accion."""
+
     action: DriftAction
     razon: str
     severidad: int  # 0=info, 1=warn, 2=error, 3=halt
@@ -48,6 +50,7 @@ class DriftSignal:
 @dataclass
 class SessionDriftState:
     """Estado mutable que el detector observa."""
+
     turnos: int = 0
     ts_inicio: float = field(default_factory=time.time)
     ts_ultimo_preflight: Optional[float] = None
@@ -60,6 +63,7 @@ class SessionDriftState:
 # ============================================================================
 # Detector
 # ============================================================================
+
 
 class DriftDetector:
     """
@@ -170,12 +174,8 @@ class DriftDetector:
         if state.ts_ultimo_preflight:
             # Aproximamos: contamos turnos totales como proxy si no hay tracking finer
             pass
-        if (
-            turnos_desde_preflight >= self.max_turnos_sin_preflight
-            and (
-                state.ts_ultima_reinjeccion is None
-                or (ahora - state.ts_ultima_reinjeccion) > 60
-            )
+        if turnos_desde_preflight >= self.max_turnos_sin_preflight and (
+            state.ts_ultima_reinjeccion is None or (ahora - state.ts_ultima_reinjeccion) > 60
         ):
             return DriftSignal(
                 action=DriftAction.REINJECT_RULES,
@@ -224,9 +224,11 @@ class DriftDetector:
 # CLI
 # ============================================================================
 
+
 def main(argv: Optional[list[str]] = None) -> int:
     import argparse
     import json
+
     parser = argparse.ArgumentParser(description="Drift detector CLI (T7).")
     parser.add_argument("--turnos", type=int, default=0)
     parser.add_argument("--violaciones", type=int, default=0)

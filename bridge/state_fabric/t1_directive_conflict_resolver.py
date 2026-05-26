@@ -8,35 +8,39 @@ can authorize prohibited actions.
 
 Zero external API calls. Zero secrets. Pure local logic.
 """
-import os
-import json
+
 import datetime
+import json
+import os
 
 STATE_FABRIC_DIR = os.path.dirname(os.path.abspath(__file__))
 DIRECTIVE_QUEUE_PATH = os.path.join(STATE_FABRIC_DIR, "t1_directive_queue.v0_1.json")
 
 # Actions that NO directive can authorize
-PROHIBITED_ACTIONS = frozenset([
-    "R1_OPERATION",
-    "SUPABASE_WRITE",
-    "MEMENTO_WRITE",
-    "ANTI_DORY_WRITE",
-    "PROVIDER_AUTO_REPLACEMENT",
-    "DEPLOY",
-    "PR_AUTOMATIC",
-    "MAIN_BRANCH_PUSH",
-    "SECRET_EXPOSURE",
-    "APP_VISION",
-    "CANON_WRITE",
-    "PRE_IA_CLOSE"
-])
+PROHIBITED_ACTIONS = frozenset(
+    [
+        "R1_OPERATION",
+        "SUPABASE_WRITE",
+        "MEMENTO_WRITE",
+        "ANTI_DORY_WRITE",
+        "PROVIDER_AUTO_REPLACEMENT",
+        "DEPLOY",
+        "PR_AUTOMATIC",
+        "MAIN_BRANCH_PUSH",
+        "SECRET_EXPOSURE",
+        "APP_VISION",
+        "CANON_WRITE",
+        "PRE_IA_CLOSE",
+    ]
+)
 
 # Conflict detection keywords — opposing intents
 CONFLICT_PAIRS = [
-    ({"novedad", "nuevo", "new", "create", "produce", "artifact"},
-     {"robustez", "risk", "riesgo", "stability", "reduce", "guard", "protect"}),
-    ({"speed", "fast", "rápido", "velocidad"},
-     {"quality", "calidad", "thorough", "exhaustivo"}),
+    (
+        {"novedad", "nuevo", "new", "create", "produce", "artifact"},
+        {"robustez", "risk", "riesgo", "stability", "reduce", "guard", "protect"},
+    ),
+    ({"speed", "fast", "rápido", "velocidad"}, {"quality", "calidad", "thorough", "exhaustivo"}),
 ]
 
 
@@ -104,18 +108,17 @@ def detect_conflict(directives):
                 b_matches_first = bool(words_b & pair_a)
 
                 if (a_matches_first and b_matches_second) or (a_matches_second and b_matches_first):
-                    conflicts_found.append({
-                        "directive_a": id_a,
-                        "directive_b": id_b,
-                        "conflict_type": "OPPOSING_INTENT",
-                        "pair_keywords": [list(pair_a), list(pair_b)]
-                    })
+                    conflicts_found.append(
+                        {
+                            "directive_a": id_a,
+                            "directive_b": id_b,
+                            "conflict_type": "OPPOSING_INTENT",
+                            "pair_keywords": [list(pair_a), list(pair_b)],
+                        }
+                    )
 
     if conflicts_found:
-        return True, {
-            "reason": "Opposing intents detected between directives.",
-            "conflicts": conflicts_found
-        }
+        return True, {"reason": "Opposing intents detected between directives.", "conflicts": conflicts_found}
 
     return False, {"reason": "No keyword-based conflicts detected between directives."}
 
@@ -165,7 +168,10 @@ def validate_directive_does_not_authorize(directive, action):
 
     # Check if directive explicitly says may_authorize_actions
     if directive.get("may_authorize_actions", False):
-        return False, f"Directive {directive.get('directive_id')} claims may_authorize_actions=True — REJECTED. Directives cannot authorize actions."
+        return (
+            False,
+            f"Directive {directive.get('directive_id')} claims may_authorize_actions=True — REJECTED. Directives cannot authorize actions.",
+        )
 
     return True, f"Action '{action}' is not prohibited and directive does not claim authorization."
 
@@ -182,7 +188,10 @@ def validate_directive_does_not_change_provider_allowlist(directive):
 
     for pattern in dangerous_patterns:
         if pattern in focus:
-            return False, f"Directive {directive.get('directive_id')} contains provider change language: '{pattern}' — BLOCKED. Provider changes require T1 explicit decision, not directive."
+            return (
+                False,
+                f"Directive {directive.get('directive_id')} contains provider change language: '{pattern}' — BLOCKED. Provider changes require T1 explicit decision, not directive.",
+            )
 
     return True, "Directive does not attempt to change provider allowlist."
 
@@ -221,13 +230,13 @@ def export_conflict_snapshot(directives, has_conflict, conflict_details, chosen,
         "resolution": {
             "chosen_directive_set": [d["directive_id"] for d in chosen],
             "suppressed_directives": [d["directive_id"] for d in suppressed],
-            "explanation": explanation
+            "explanation": explanation,
         },
         "safety_checks": {
             "no_r1_authorized": True,
             "no_provider_change_authorized": True,
-            "no_dispatcher_bypass": True
-        }
+            "no_dispatcher_bypass": True,
+        },
     }
 
 
@@ -253,5 +262,5 @@ if __name__ == "__main__":
     print(f"\n  Resolution: {explanation}")
 
     snapshot = export_conflict_snapshot(directives, has_conflict, details, chosen, suppressed, explanation)
-    print(f"\n  Snapshot exported.")
+    print("\n  Snapshot exported.")
     print("=" * 60)

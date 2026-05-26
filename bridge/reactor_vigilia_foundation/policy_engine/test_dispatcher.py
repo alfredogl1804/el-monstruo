@@ -10,12 +10,13 @@ Valida que el Dispatcher:
 5. Respeta la Escalera A0-A8
 """
 
-import unittest
-import os
-import sys
 import json
-import tempfile
+import os
 import shutil
+import sys
+import tempfile
+import unittest
+
 import yaml
 
 # Setup path
@@ -48,9 +49,9 @@ class TestMinimalDispatcher(unittest.TestCase):
             "pending_t1_decisions": 8,
             "active_sprints": ["SPR-DISPATCHER-MINIMAL-001"],
             "last_event_id": 1,
-            "last_updated_at": "2026-05-20T15:30:00Z"
+            "last_updated_at": "2026-05-20T15:30:00Z",
         }
-        with open(os.path.join(cls.state_fabric_dir, "current_state.v0.json"), 'w') as f:
+        with open(os.path.join(cls.state_fabric_dir, "current_state.v0.json"), "w") as f:
             json.dump(current_state, f, indent=2)
 
         # event_log.v0.jsonl (1 evento seed)
@@ -64,10 +65,10 @@ class TestMinimalDispatcher(unittest.TestCase):
             "summary": "State Fabric v0 initialized.",
             "autonomy_level": "A3",
             "status": "ACCEPTED",
-            "dedupe_key": "state_fabric_genesis_v0"
+            "dedupe_key": "state_fabric_genesis_v0",
         }
-        with open(os.path.join(cls.state_fabric_dir, "event_log.v0.jsonl"), 'w') as f:
-            f.write(json.dumps(seed_event) + '\n')
+        with open(os.path.join(cls.state_fabric_dir, "event_log.v0.jsonl"), "w") as f:
+            f.write(json.dumps(seed_event) + "\n")
 
         # loop_registry.v0.yaml
         loop_registry = {
@@ -80,7 +81,7 @@ class TestMinimalDispatcher(unittest.TestCase):
                 "allowed_read_paths": ["bridge/"],
                 "allowed_write_paths": [],
                 "forbidden_actions": ["write_code", "touch_supabase", "modify_kernel"],
-                "owner": "monstruo"
+                "owner": "monstruo",
             },
             "loop_ejecutor": {
                 "loop_id": "loop_ejecutor",
@@ -91,7 +92,7 @@ class TestMinimalDispatcher(unittest.TestCase):
                 "allowed_read_paths": ["bridge/", "src/"],
                 "allowed_write_paths": ["bridge/", "src/"],
                 "forbidden_actions": ["touch_supabase", "modify_kernel"],
-                "owner": "monstruo"
+                "owner": "monstruo",
             },
             "loop_oraculo_ias": {
                 "loop_id": "loop_oraculo_ias",
@@ -102,10 +103,10 @@ class TestMinimalDispatcher(unittest.TestCase):
                 "allowed_read_paths": ["bridge/"],
                 "allowed_write_paths": ["bridge/doctrine_candidates/"],
                 "forbidden_actions": ["touch_supabase", "modify_kernel"],
-                "owner": "monstruo"
-            }
+                "owner": "monstruo",
+            },
         }
-        with open(os.path.join(cls.state_fabric_dir, "loop_registry.v0.yaml"), 'w') as f:
+        with open(os.path.join(cls.state_fabric_dir, "loop_registry.v0.yaml"), "w") as f:
             yaml.dump(loop_registry, f)
 
         # --- Crear policy_base_dir con autonomy_ladder ---
@@ -123,14 +124,14 @@ class TestMinimalDispatcher(unittest.TestCase):
                     "allowed_by_default": True,
                     "t1_required": False,
                     "evidence_required": False,
-                    "auditor_required": False
+                    "auditor_required": False,
                 },
                 "create_report": {
                     "autonomy_level_required": "A2",
                     "allowed_by_default": True,
                     "t1_required": False,
                     "evidence_required": False,
-                    "auditor_required": False
+                    "auditor_required": False,
                 },
                 "update_thread_archive": {
                     "autonomy_level_required": "A3",
@@ -138,32 +139,32 @@ class TestMinimalDispatcher(unittest.TestCase):
                     "t1_required": False,
                     "allowed_paths": ["bridge/thread_archives/"],
                     "evidence_required": True,
-                    "auditor_required": False
+                    "auditor_required": False,
                 },
                 "write_code": {
                     "autonomy_level_required": "A5",
                     "allowed_by_default": False,
                     "t1_required": False,
                     "evidence_required": True,
-                    "auditor_required": False
+                    "auditor_required": False,
                 },
                 "touch_supabase": {
                     "autonomy_level_required": "A7",
                     "allowed_by_default": False,
                     "t1_required": True,
                     "evidence_required": True,
-                    "auditor_required": True
+                    "auditor_required": True,
                 },
                 "modify_kernel": {
                     "autonomy_level_required": "A8",
                     "allowed_by_default": False,
                     "t1_required": True,
                     "evidence_required": True,
-                    "auditor_required": True
-                }
-            }
+                    "auditor_required": True,
+                },
+            },
         }
-        with open(os.path.join(autonomy_dir, "action_registry_v0.yaml"), 'w') as f:
+        with open(os.path.join(autonomy_dir, "action_registry_v0.yaml"), "w") as f:
             yaml.dump(action_registry, f)
 
     @classmethod
@@ -180,9 +181,9 @@ class TestMinimalDispatcher(unittest.TestCase):
         current_state = {
             "stack_vertical_status": "APPROVED",
             "last_event_id": 1,
-            "last_updated_at": "2026-05-20T15:30:00Z"
+            "last_updated_at": "2026-05-20T15:30:00Z",
         }
-        with open(os.path.join(self.state_fabric_dir, "current_state.v0.json"), 'w') as f:
+        with open(os.path.join(self.state_fabric_dir, "current_state.v0.json"), "w") as f:
             json.dump(current_state, f, indent=2)
 
         seed_event = {
@@ -195,10 +196,10 @@ class TestMinimalDispatcher(unittest.TestCase):
             "summary": "State Fabric v0 initialized.",
             "autonomy_level": "A3",
             "status": "ACCEPTED",
-            "dedupe_key": "state_fabric_genesis_v0"
+            "dedupe_key": "state_fabric_genesis_v0",
         }
-        with open(os.path.join(self.state_fabric_dir, "event_log.v0.jsonl"), 'w') as f:
-            f.write(json.dumps(seed_event) + '\n')
+        with open(os.path.join(self.state_fabric_dir, "event_log.v0.jsonl"), "w") as f:
+            f.write(json.dumps(seed_event) + "\n")
 
     # ==================== TESTS ====================
 
@@ -207,9 +208,7 @@ class TestMinimalDispatcher(unittest.TestCase):
         self._reset_state()
         d = self._fresh_dispatcher()
 
-        is_allowed, reason, event = d.dispatch_action("loop_vigia", {
-            "action": "observe_repo"
-        })
+        is_allowed, reason, event = d.dispatch_action("loop_vigia", {"action": "observe_repo"})
 
         self.assertTrue(is_allowed)
         self.assertEqual(reason, "ALLOW")
@@ -221,11 +220,9 @@ class TestMinimalDispatcher(unittest.TestCase):
         self._reset_state()
         d = self._fresh_dispatcher()
 
-        is_allowed, reason, event = d.dispatch_action("loop_vigia", {
-            "action": "write_code",
-            "target_path": "src/module.py",
-            "has_evidence": True
-        })
+        is_allowed, reason, event = d.dispatch_action(
+            "loop_vigia", {"action": "write_code", "target_path": "src/module.py", "has_evidence": True}
+        )
 
         self.assertFalse(is_allowed)
         self.assertIn("Autonomy Exceeded", reason)
@@ -237,11 +234,9 @@ class TestMinimalDispatcher(unittest.TestCase):
         self._reset_state()
         d = self._fresh_dispatcher()
 
-        is_allowed, reason, event = d.dispatch_action("loop_ejecutor", {
-            "action": "write_code",
-            "target_path": "src/new_module.py",
-            "has_evidence": True
-        })
+        is_allowed, reason, event = d.dispatch_action(
+            "loop_ejecutor", {"action": "write_code", "target_path": "src/new_module.py", "has_evidence": True}
+        )
 
         self.assertTrue(is_allowed)
         self.assertEqual(reason, "ALLOW")
@@ -252,11 +247,9 @@ class TestMinimalDispatcher(unittest.TestCase):
         self._reset_state()
         d = self._fresh_dispatcher()
 
-        is_allowed, reason, event = d.dispatch_action("loop_ejecutor", {
-            "action": "touch_supabase",
-            "has_evidence": True,
-            "t1_approval_present": True
-        })
+        is_allowed, reason, event = d.dispatch_action(
+            "loop_ejecutor", {"action": "touch_supabase", "has_evidence": True, "t1_approval_present": True}
+        )
 
         self.assertFalse(is_allowed)
         self.assertIn("Autonomy Exceeded", reason)
@@ -266,9 +259,7 @@ class TestMinimalDispatcher(unittest.TestCase):
         self._reset_state()
         d = self._fresh_dispatcher()
 
-        is_allowed, reason, event = d.dispatch_action("loop_fantasma", {
-            "action": "observe_repo"
-        })
+        is_allowed, reason, event = d.dispatch_action("loop_fantasma", {"action": "observe_repo"})
 
         self.assertFalse(is_allowed)
         self.assertIn("not found in loop_registry", reason)
@@ -279,9 +270,7 @@ class TestMinimalDispatcher(unittest.TestCase):
         self._reset_state()
         d = self._fresh_dispatcher()
 
-        is_allowed, reason, event = d.dispatch_action("loop_ejecutor", {
-            "action": "deploy_nuclear_weapon"
-        })
+        is_allowed, reason, event = d.dispatch_action("loop_ejecutor", {"action": "deploy_nuclear_weapon"})
 
         self.assertFalse(is_allowed)
         self.assertIn("not in registry", reason)
@@ -297,7 +286,7 @@ class TestMinimalDispatcher(unittest.TestCase):
         d.dispatch_action("loop_vigia", {"action": "create_report"})
 
         # Leer event_log
-        with open(os.path.join(self.state_fabric_dir, "event_log.v0.jsonl"), 'r') as f:
+        with open(os.path.join(self.state_fabric_dir, "event_log.v0.jsonl"), "r") as f:
             lines = [l for l in f.readlines() if l.strip()]
 
         # Seed (1) + 2 dispatches = 3 líneas
@@ -314,13 +303,11 @@ class TestMinimalDispatcher(unittest.TestCase):
         self._reset_state()
         d = self._fresh_dispatcher()
 
-        d.dispatch_action("loop_ejecutor", {
-            "action": "write_code",
-            "target_path": "bridge/test.py",
-            "has_evidence": True
-        })
+        d.dispatch_action(
+            "loop_ejecutor", {"action": "write_code", "target_path": "bridge/test.py", "has_evidence": True}
+        )
 
-        with open(os.path.join(self.state_fabric_dir, "current_state.v0.json"), 'r') as f:
+        with open(os.path.join(self.state_fabric_dir, "current_state.v0.json"), "r") as f:
             state = json.load(f)
 
         self.assertEqual(state["last_event_id"], 2)
@@ -331,11 +318,14 @@ class TestMinimalDispatcher(unittest.TestCase):
         self._reset_state()
         d = self._fresh_dispatcher()
 
-        is_allowed, reason, event = d.dispatch_action("loop_oraculo_ias", {
-            "action": "update_thread_archive",
-            "target_path": "bridge/thread_archives/new_discovery.md",
-            "has_evidence": True
-        })
+        is_allowed, reason, event = d.dispatch_action(
+            "loop_oraculo_ias",
+            {
+                "action": "update_thread_archive",
+                "target_path": "bridge/thread_archives/new_discovery.md",
+                "has_evidence": True,
+            },
+        )
 
         self.assertTrue(is_allowed)
         self.assertEqual(reason, "ALLOW")
@@ -345,11 +335,9 @@ class TestMinimalDispatcher(unittest.TestCase):
         self._reset_state()
         d = self._fresh_dispatcher()
 
-        is_allowed, reason, event = d.dispatch_action("loop_oraculo_ias", {
-            "action": "write_code",
-            "target_path": "src/oracle.py",
-            "has_evidence": True
-        })
+        is_allowed, reason, event = d.dispatch_action(
+            "loop_oraculo_ias", {"action": "write_code", "target_path": "src/oracle.py", "has_evidence": True}
+        )
 
         self.assertFalse(is_allowed)
         self.assertIn("Autonomy Exceeded", reason)
@@ -368,15 +356,13 @@ class TestMinimalDispatcher(unittest.TestCase):
         self._reset_state()
         d = self._fresh_dispatcher()
 
-        is_allowed, reason, event = d.dispatch_action("loop_ejecutor", {
-            "action": "write_code",
-            "target_path": "src/module.py",
-            "has_evidence": False
-        })
+        is_allowed, reason, event = d.dispatch_action(
+            "loop_ejecutor", {"action": "write_code", "target_path": "src/module.py", "has_evidence": False}
+        )
 
         self.assertFalse(is_allowed)
         self.assertIn("Evidence required", reason)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -28,9 +28,7 @@ def _get_db_url() -> str:
     """Fail-loud: requiere SUPABASE_DB_URL o DATABASE_URL."""
     url = os.environ.get("SUPABASE_DB_URL") or os.environ.get("DATABASE_URL")
     if not url:
-        raise RuntimeError(
-            "rotor.persistence: SUPABASE_DB_URL o DATABASE_URL requerida"
-        )
+        raise RuntimeError("rotor.persistence: SUPABASE_DB_URL o DATABASE_URL requerida")
     return url
 
 
@@ -52,8 +50,7 @@ def persist_activity(activity: RotorActivity, *, compute_energy: bool = True) ->
         import psycopg
     except ImportError as exc:
         raise RuntimeError(
-            f"rotor.persistence: psycopg no instalado ({exc}). "
-            "Run: pip install 'psycopg[binary]'"
+            f"rotor.persistence: psycopg no instalado ({exc}). Run: pip install 'psycopg[binary]'"
         ) from exc
 
     db_url = _get_db_url()

@@ -20,14 +20,12 @@ USO:
     - exit code 0 si pasa
     - exit code 1 si viola alguna regla, con mensaje del violador
 """
+
 from __future__ import annotations
 
 import re
 import sys
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Iterable
-
 
 # ============================================================================
 # REGLA 1 — PROHIBIDO EMPUJAR A ALFREDO A PARAR
@@ -116,10 +114,10 @@ ADVANCE_INDICATORS: tuple[str, ...] = (
 
 NON_ADVANCE_PATTERNS: tuple[str, ...] = (
     "memory/cowork/audits/",  # mas audits cowork
-    "AUDIT_FORENSE",          # mas audits forenses
-    "REPORTE_BINARIO",        # mas reportes binarios
-    "CORRECTIVO_ARQUI",       # mas correctivos
-    "PREFLIGHT",              # mas preflights
+    "AUDIT_FORENSE",  # mas audits forenses
+    "REPORTE_BINARIO",  # mas reportes binarios
+    "CORRECTIVO_ARQUI",  # mas correctivos
+    "PREFLIGHT",  # mas preflights
 )
 
 
@@ -181,6 +179,7 @@ def alfredo_demands_advance(user_message: str) -> bool:
 # VALIDADOR PRINCIPAL
 # ============================================================================
 
+
 @dataclass
 class GuardianVerdict:
     passed: bool
@@ -233,16 +232,12 @@ def validate_output(
             # Si Alfredo exige avance Y Cowork sugiere pausar, es violacion MAGNA
             for phrase, desc in pause_violations:
                 violations.append(
-                    f"MAGNA — Alfredo exige avance y Cowork sugiere parar: "
-                    f"frase='{phrase}', motivo={desc}"
+                    f"MAGNA — Alfredo exige avance y Cowork sugiere parar: frase='{phrase}', motivo={desc}"
                 )
         else:
             # Sin demanda explicita, sigue siendo violacion pero menor
             for phrase, desc in pause_violations:
-                violations.append(
-                    f"PREMIUM — Cowork sugiere parar sin avance previo: "
-                    f"frase='{phrase}', motivo={desc}"
-                )
+                violations.append(f"PREMIUM — Cowork sugiere parar sin avance previo: frase='{phrase}', motivo={desc}")
 
     # Regla 2 — avance real
     score = score_advance(cowork_output)
@@ -275,6 +270,7 @@ def validate_output(
 # ============================================================================
 # CLI
 # ============================================================================
+
 
 def main() -> int:
     if len(sys.argv) < 2:

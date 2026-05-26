@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Apply migration 032 (tier_seed column) to Supabase prod via Railway DSN."""
+
 import os
 import sys
 from pathlib import Path
+
 import psycopg
 
 

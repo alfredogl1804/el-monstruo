@@ -15,6 +15,7 @@ Patrón de credenciales: lectura via os.environ.get(...) en cada uso del cliente
 Supabase. Cumple decisión de Cowork de no cachear credenciales al boot — las
 keys rotadas por el Hilo Credenciales se aplican sin reinicio.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timezone

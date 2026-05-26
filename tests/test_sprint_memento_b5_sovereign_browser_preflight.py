@@ -8,6 +8,7 @@ correctamente:
   - excepción de Memento → fallback degradado (continúa con warning)
   - import fallido → no llama preflight, opera normal
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -59,14 +60,18 @@ def patched_browser_module():
     fake_kb.sovereign_browser = fake_kbs
     fake_kernel = sys.modules.get("kernel") or types.ModuleType("kernel")
 
-    with patch.dict(sys.modules, {
-        "kernel": fake_kernel,
-        "kernel.browser": fake_kb,
-        "kernel.browser.sovereign_browser": fake_kbs,
-    }):
+    with patch.dict(
+        sys.modules,
+        {
+            "kernel": fake_kernel,
+            "kernel.browser": fake_kb,
+            "kernel.browser.sovereign_browser": fake_kbs,
+        },
+    ):
         # Force re-import
         sys.modules.pop("tools.sovereign_browser", None)
         import tools.sovereign_browser as sb_tool
+
         yield sb_tool
         sys.modules.pop("tools.sovereign_browser", None)
 
@@ -87,11 +92,13 @@ def test_render_calls_preflight_with_external_api_call(patched_browser_module):
 
 def test_render_blocks_when_preflight_proceed_false(patched_browser_module):
     sb_tool = patched_browser_module
-    fake_pf = AsyncMock(return_value=_fake_preflight_result(
-        proceed=False,
-        status="block_critical",
-        remediation="dominio bloqueado por catálogo",
-    ))
+    fake_pf = AsyncMock(
+        return_value=_fake_preflight_result(
+            proceed=False,
+            status="block_critical",
+            remediation="dominio bloqueado por catálogo",
+        )
+    )
     with patch.object(sb_tool, "preflight_check_async", fake_pf):
         result = asyncio.run(sb_tool.sovereign_browser_render(url="https://example.com"))
     assert result["success"] is False
@@ -143,8 +150,7 @@ def test_render_no_preflight_when_memento_unavailable(patched_browser_module):
     """Si _MEMENTO_AVAILABLE=False, no llama preflight y opera normal."""
     sb_tool = patched_browser_module
     fake_pf = AsyncMock(return_value=_fake_preflight_result(proceed=False))
-    with patch.object(sb_tool, "_MEMENTO_AVAILABLE", False), \
-         patch.object(sb_tool, "preflight_check_async", fake_pf):
+    with patch.object(sb_tool, "_MEMENTO_AVAILABLE", False), patch.object(sb_tool, "preflight_check_async", fake_pf):
         result = asyncio.run(sb_tool.sovereign_browser_render(url="https://example.com"))
     fake_pf.assert_not_awaited()
     assert result.get("actually_rendered") is True
@@ -154,12 +160,14 @@ def test_render_passes_extra_context(patched_browser_module):
     sb_tool = patched_browser_module
     fake_pf = AsyncMock(return_value=_fake_preflight_result(proceed=True))
     with patch.object(sb_tool, "preflight_check_async", fake_pf):
-        asyncio.run(sb_tool.sovereign_browser_render(
-            url="https://example.com",
-            viewport_preset="mobile",
-            full_page=False,
-            capture_html=False,
-        ))
+        asyncio.run(
+            sb_tool.sovereign_browser_render(
+                url="https://example.com",
+                viewport_preset="mobile",
+                full_page=False,
+                capture_html=False,
+            )
+        )
     ctx = fake_pf.call_args.kwargs["context_used"]
     assert ctx["viewport_preset"] == "mobile"
     assert ctx["full_page"] is False

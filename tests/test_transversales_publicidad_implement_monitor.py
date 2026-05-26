@@ -5,6 +5,7 @@ Sprint TRANSVERSAL-001 T4 — tests de PublicidadLayer.implement+monitor.
 Foco: garantizar HARD SAFEGUARDS (paused default + spend_cap=0 + firma
 Alfredo requerida). Cero spend sin DSC firmado.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -41,8 +42,7 @@ def test_all_campaigns_paused_by_default(liketickets_ctx):
     assert len(impl["campaigns_plan"]) >= 1
     for c in impl["campaigns_plan"]:
         assert c["status"] == "paused", (
-            f"VIOLACION SAFEGUARD: campaign {c['platform']}/{c['angle']} "
-            f"con status={c['status']}"
+            f"VIOLACION SAFEGUARD: campaign {c['platform']}/{c['angle']} con status={c['status']}"
         )
 
 

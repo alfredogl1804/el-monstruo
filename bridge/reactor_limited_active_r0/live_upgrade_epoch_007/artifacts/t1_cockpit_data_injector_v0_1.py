@@ -11,12 +11,12 @@ Invocation: python3 t1_cockpit_data_injector_v0_1.py [--output PATH]
 
 Output: cockpit_fixture_latest.json (or custom path)
 """
-import os
-import sys
-import json
-import glob
-import datetime
+
 import argparse
+import datetime
+import glob
+import json
+import os
 
 # Resolve paths
 ARTIFACT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -131,7 +131,7 @@ def build_embryo_summary(state_path, name):
         "last_task": state.get("last_task_executed", "none"),
         "last_result": state.get("last_task_result", "none"),
         "last_cycle": state.get("last_cycle_timestamp", "never"),
-        "consecutive_failures": state.get("consecutive_failures", 0)
+        "consecutive_failures": state.get("consecutive_failures", 0),
     }
 
 
@@ -146,21 +146,23 @@ def build_directive_summary():
 
     summaries = []
     for d in active:
-        summaries.append({
-            "id": d["directive_id"],
-            "type": d["directive_type"],
-            "priority": d["priority"],
-            "focus": d.get("focus", "")[:80],
-            "expires": d.get("expires_at", "never"),
-            "ttl_cycles": d.get("ttl_cycles", 0)
-        })
+        summaries.append(
+            {
+                "id": d["directive_id"],
+                "type": d["directive_type"],
+                "priority": d["priority"],
+                "focus": d.get("focus", "")[:80],
+                "expires": d.get("expires_at", "never"),
+                "ttl_cycles": d.get("ttl_cycles", 0),
+            }
+        )
 
     return {
         "total": len(directives),
         "active": len(active),
         "expired": sum(1 for d in directives if d.get("status") == "EXPIRED"),
         "paused": sum(1 for d in directives if d.get("status") == "PAUSED"),
-        "directives": summaries
+        "directives": summaries,
     }
 
 
@@ -180,10 +182,8 @@ def build_memory_summary():
         "unique_embryos": stats.get("unique_embryos", []),
         "unique_tasks": stats.get("unique_tasks", []),
         "total_cost_usd": stats.get("total_cost_usd", 0),
-        "avg_grounding_score": round(
-            sum(e.get("grounding_score", 0) for e in entries) / max(len(entries), 1), 1
-        ),
-        "lessons_count": sum(len(e.get("lessons", [])) for e in entries)
+        "avg_grounding_score": round(sum(e.get("grounding_score", 0) for e in entries) / max(len(entries), 1), 1),
+        "lessons_count": sum(len(e.get("lessons", [])) for e in entries),
     }
 
 
@@ -200,12 +200,14 @@ def build_epoch_history():
             epoch_path = os.path.join(epoch_base, d)
             chain_log = os.path.join(epoch_path, f"EPOCH_{epoch_num}_CHAIN_LOG.jsonl")
             has_chain = os.path.exists(chain_log)
-            epochs.append({
-                "epoch": epoch_num,
-                "directory": d,
-                "has_chain_log": has_chain,
-                "artifacts_count": count_files(os.path.join(epoch_path, "artifacts"))
-            })
+            epochs.append(
+                {
+                    "epoch": epoch_num,
+                    "directory": d,
+                    "has_chain_log": has_chain,
+                    "artifacts_count": count_files(os.path.join(epoch_path, "artifacts")),
+                }
+            )
 
     return epochs
 
@@ -226,11 +228,11 @@ def generate_cockpit_fixture(output_path=None):
             "score": health_score,
             "max_score": 100,
             "status": "HEALTHY" if health_score >= 80 else "DEGRADED" if health_score >= 40 else "CRITICAL",
-            "checks": health_checks
+            "checks": health_checks,
         },
         "embryos": {
             "oracle": build_embryo_summary(ORACLE_STATE_PATH, "oracle_ai_embryo_r0"),
-            "auditor": build_embryo_summary(AUDITOR_STATE_PATH, "oracle_auditor_embryo_r0")
+            "auditor": build_embryo_summary(AUDITOR_STATE_PATH, "oracle_auditor_embryo_r0"),
         },
         "directives": build_directive_summary(),
         "memory_palace": build_memory_summary(),
@@ -239,19 +241,24 @@ def generate_cockpit_fixture(output_path=None):
             "oracle_total": count_files(ORACLE_OUTPUTS_DIR),
             "auditor_total": count_files(AUDITOR_OUTPUTS_DIR),
             "latest_oracle": os.path.basename(get_latest_file(ORACLE_OUTPUTS_DIR) or "none"),
-            "latest_auditor": os.path.basename(get_latest_file(AUDITOR_OUTPUTS_DIR) or "none")
+            "latest_auditor": os.path.basename(get_latest_file(AUDITOR_OUTPUTS_DIR) or "none"),
         },
         "cost_summary": {
-            "oracle_total_usd": load_json_safe(ORACLE_STATE_PATH).get("total_cost_usd", 0) if load_json_safe(ORACLE_STATE_PATH) else 0,
-            "auditor_total_usd": load_json_safe(AUDITOR_STATE_PATH).get("total_cost_usd", 0) if load_json_safe(AUDITOR_STATE_PATH) else 0,
-            "memory_palace_total_usd": load_json_safe(MEMORY_PALACE_PATH).get("stats", {}).get("total_cost_usd", 0) if load_json_safe(MEMORY_PALACE_PATH) else 0
-        }
+            "oracle_total_usd": load_json_safe(ORACLE_STATE_PATH).get("total_cost_usd", 0)
+            if load_json_safe(ORACLE_STATE_PATH)
+            else 0,
+            "auditor_total_usd": load_json_safe(AUDITOR_STATE_PATH).get("total_cost_usd", 0)
+            if load_json_safe(AUDITOR_STATE_PATH)
+            else 0,
+            "memory_palace_total_usd": load_json_safe(MEMORY_PALACE_PATH).get("stats", {}).get("total_cost_usd", 0)
+            if load_json_safe(MEMORY_PALACE_PATH)
+            else 0,
+        },
     }
 
     # Compute combined cost
     fixture["cost_summary"]["combined_usd"] = round(
-        fixture["cost_summary"]["oracle_total_usd"] +
-        fixture["cost_summary"]["auditor_total_usd"], 6
+        fixture["cost_summary"]["oracle_total_usd"] + fixture["cost_summary"]["auditor_total_usd"], 6
     )
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)

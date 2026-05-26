@@ -10,10 +10,10 @@ Roadmap futuro: integrar Imagen 4 Fast (gemini-2.5-flash-image) cuando
 GEMINI_API_KEY tenga permisos de generacion de imagenes y se valide
 el round-trip (S3 upload).
 """
+
 from __future__ import annotations
 
 from typing import Optional
-
 
 _HERO_IMAGES = {
     "ecommerce": "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=1200&q=80&auto=format&fit=crop",
@@ -24,9 +24,7 @@ _HERO_IMAGES = {
 }
 
 
-def generate_hero_image(
-    vertical: str, frase_input: str, run_id: str
-) -> Optional[str]:
+def generate_hero_image(vertical: str, frase_input: str, run_id: str) -> Optional[str]:
     """
     Devuelve una URL de hero image apropiada al vertical.
 

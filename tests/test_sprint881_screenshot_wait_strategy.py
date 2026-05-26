@@ -16,6 +16,7 @@ Fix v4:
 
 Tests verifican que la lógica esté presente; integración E2E real corre en eval suite.
 """
+
 from __future__ import annotations
 
 import inspect
@@ -30,43 +31,28 @@ class TestScreenshotWaitStrategy:
         """`wait_until="load"` garantiza que CSS externo se descargue y aplique."""
         source = inspect.getsource(capture_module._capture_with_playwright)
         assert 'wait_until="load"' in source, (
-            "_capture_with_playwright DEBE usar wait_until='load' (no 'domcontentloaded') "
-            "para esperar CSS externo"
+            "_capture_with_playwright DEBE usar wait_until='load' (no 'domcontentloaded') para esperar CSS externo"
         )
-        assert 'wait_until="domcontentloaded"' not in source, (
-            "domcontentloaded se dispara antes que CSS aplique"
-        )
+        assert 'wait_until="domcontentloaded"' not in source, "domcontentloaded se dispara antes que CSS aplique"
 
     def test_capture_espera_h1_con_texto_real(self):
         """Debe haber wait_for_function que confirme h1 con >10 chars."""
         source = inspect.getsource(capture_module._capture_with_playwright)
-        assert "wait_for_function" in source, (
-            "Debe haber wait_for_function explícito"
-        )
-        assert "h1" in source.lower(), (
-            "Debe verificar la presencia del h1"
-        )
-        assert "trim().length > 10" in source, (
-            "Debe verificar texto real (>10 chars), no solo h1 vacío"
-        )
+        assert "wait_for_function" in source, "Debe haber wait_for_function explícito"
+        assert "h1" in source.lower(), "Debe verificar la presencia del h1"
+        assert "trim().length > 10" in source, "Debe verificar texto real (>10 chars), no solo h1 vacío"
 
     def test_capture_tiene_settle_adicional(self):
         """Debe haber settle final (sleep) para compositing del browser."""
         source = inspect.getsource(capture_module._capture_with_playwright)
-        assert "asyncio.sleep" in source, (
-            "Debe haber asyncio.sleep final para compositing"
-        )
+        assert "asyncio.sleep" in source, "Debe haber asyncio.sleep final para compositing"
 
     def test_capture_doble_networkidle(self):
         """Networkidle se mantiene como settle adicional para fuentes/imágenes."""
         source = inspect.getsource(capture_module._capture_with_playwright)
-        assert "networkidle" in source, (
-            "networkidle se mantiene como settle adicional"
-        )
+        assert "networkidle" in source, "networkidle se mantiene como settle adicional"
 
     def test_capture_screenshot_full_page(self):
         """Screenshot debe ser full_page (toda la altura), no solo viewport."""
         source = inspect.getsource(capture_module._capture_with_playwright)
-        assert "full_page=True" in source, (
-            "Screenshot debe ser full_page=True para capturar toda la landing"
-        )
+        assert "full_page=True" in source, "Screenshot debe ser full_page=True para capturar toda la landing"

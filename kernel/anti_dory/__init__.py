@@ -16,6 +16,7 @@ NO importa cowork_runtime ni cowork_guardian. NO-CRUCE estricto.
 Feature flag de entrada: ANTI_DORY_ENABLED (default False mientras no hay
 migrations aplicadas en Supabase). El agente cae a flujo legacy si flag=False.
 """
+
 from __future__ import annotations
 
 import os

@@ -7,9 +7,10 @@ blocks auto-replacement, and requires T1 for any model change.
 
 Zero external API calls. Zero secrets. Pure local logic.
 """
-import os
-import json
+
 import datetime
+import json
+import os
 
 GUARD_DIR = os.path.dirname(os.path.abspath(__file__))
 REGISTRY_PATH = os.path.join(GUARD_DIR, "provider_registry.json")
@@ -83,13 +84,15 @@ def detect_provider_eol_risk(registry=None, eol_overrides=None, reference_date=N
         else:
             risk_level = "LOW"
 
-        risks.append({
-            "provider": provider_name,
-            "model": model,
-            "eol_date": eol_date_str,
-            "risk_level": risk_level,
-            "days_remaining": days_remaining
-        })
+        risks.append(
+            {
+                "provider": provider_name,
+                "model": model,
+                "eol_date": eol_date_str,
+                "risk_level": risk_level,
+                "days_remaining": days_remaining,
+            }
+        )
 
     return risks
 
@@ -112,7 +115,7 @@ def mark_model_migration_candidate(provider_name, current_model, eol_date, sugge
         "notes": notes,
         "detected_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "decided_at": None,
-        "t1_decision": None
+        "t1_decision": None,
     }
 
 
@@ -135,7 +138,7 @@ def block_auto_replacement(registry=None):
     return is_blocked, {
         "auto_replacement": auto_replacement,
         "auto_fallback": auto_fallback,
-        "enforcement": "BLOCKED" if is_blocked else "VIOLATION"
+        "enforcement": "BLOCKED" if is_blocked else "VIOLATION",
     }
 
 
@@ -156,7 +159,10 @@ def require_t1_for_model_change(requested_model, current_model, provider_name, t
         return True, "No change requested — current model maintained."
 
     if t1_decision is None:
-        return False, f"Model change from '{current_model}' to '{requested_model}' for {provider_name} BLOCKED: requires explicit T1 decision."
+        return (
+            False,
+            f"Model change from '{current_model}' to '{requested_model}' for {provider_name} BLOCKED: requires explicit T1 decision.",
+        )
 
     if t1_decision == "APPROVE":
         return True, f"T1 approved model change to '{requested_model}' for {provider_name}."
@@ -178,29 +184,29 @@ def produce_migration_options(provider_name, current_model, eol_date):
             "description": f"Keep {current_model} until EOL date ({eol_date}). Monitor for issues.",
             "risk": "Model may stop working on EOL date.",
             "requires_t1": True,
-            "auto_executable": False
+            "auto_executable": False,
         },
         {
             "option_id": "MIGRATE_NOW",
             "description": f"Migrate {provider_name} to a new model immediately.",
             "risk": "New model may behave differently. Requires testing.",
             "requires_t1": True,
-            "auto_executable": False
+            "auto_executable": False,
         },
         {
             "option_id": "BLOCK_PROVIDER_UNTIL_VERIFIED",
             "description": f"Block {provider_name} entirely until new model is verified.",
             "risk": "Reduces available providers. May affect cycle diversity.",
             "requires_t1": True,
-            "auto_executable": False
+            "auto_executable": False,
         },
         {
             "option_id": "REQUIRE_EXTERNAL_VERIFICATION",
             "description": f"Keep {current_model} but require external verification of EOL claim before acting.",
             "risk": "May delay necessary migration if EOL is real.",
             "requires_t1": True,
-            "auto_executable": False
-        }
+            "auto_executable": False,
+        },
     ]
     return options
 
@@ -249,12 +255,14 @@ def export_provider_migration_snapshot(risks, candidates, registry=None):
     blocked_models = []
     for pname, pdata in registry.get("providers", {}).items():
         for dep_model in pdata.get("deprecated_models", []):
-            blocked_models.append({
-                "provider": pname,
-                "model": dep_model,
-                "reason": "Listed in deprecated_models",
-                "blocked_at": "2026-05-21T00:00:00Z"
-            })
+            blocked_models.append(
+                {
+                    "provider": pname,
+                    "model": dep_model,
+                    "reason": "Listed in deprecated_models",
+                    "blocked_at": "2026-05-21T00:00:00Z",
+                }
+            )
 
     snapshot = {
         "version": "0.1.0",
@@ -266,8 +274,8 @@ def export_provider_migration_snapshot(risks, candidates, registry=None):
             "auto_replacement_allowed": False,
             "t1_required_for_model_change": True,
             "unknown_provider_default": "DENY",
-            "eol_risk_threshold_days": DEFAULT_EOL_THRESHOLD_DAYS
-        }
+            "eol_risk_threshold_days": DEFAULT_EOL_THRESHOLD_DAYS,
+        },
     }
 
     return snapshot
@@ -297,8 +305,10 @@ if __name__ == "__main__":
     for r in risks:
         if r["risk_level"] in ("HIGH", "CRITICAL"):
             c = mark_model_migration_candidate(
-                r["provider"], r["model"], r["eol_date"],
-                notes=f"EOL risk detected: {r['days_remaining']} days remaining"
+                r["provider"],
+                r["model"],
+                r["eol_date"],
+                notes=f"EOL risk detected: {r['days_remaining']} days remaining",
             )
             candidates.append(c)
             print(f"\n  Migration candidate: {r['provider']}/{r['model']}")

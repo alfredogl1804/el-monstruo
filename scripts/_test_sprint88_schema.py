@@ -5,6 +5,7 @@ Sprint 88 - Test rapido del schema Pydantic CatastroAgente.
 Ejecutar via:
     railway run --service el-monstruo-kernel python3 scripts/_test_sprint88_schema.py
 """
+
 from __future__ import annotations
 
 import sys
@@ -14,6 +15,7 @@ def main() -> int:
     # Importar directamente del modulo, no via __init__ (evita cargar pipeline + sources)
     import importlib.util
     from pathlib import Path
+
     schema_path = Path(__file__).parent.parent / "kernel" / "catastro" / "schema.py"
     spec = importlib.util.spec_from_file_location("_catastro_schema", schema_path)
     schema = importlib.util.module_from_spec(spec)
@@ -51,7 +53,7 @@ def main() -> int:
 
     # Test 2: invariante swarm implies multistep
     try:
-        bad = CatastroAgente(
+        CatastroAgente(
             id="bad-swarm",
             nombre="Bad",
             proveedor="Test",
@@ -70,7 +72,7 @@ def main() -> int:
 
     # Test 3: slug format
     try:
-        bad = CatastroAgente(
+        CatastroAgente(
             id="Bad_Slug",
             nombre="X",
             proveedor="X",
@@ -80,7 +82,7 @@ def main() -> int:
         print("TEST_3_FAIL: slug format NO validado")
     except Exception as e:
         if "lowercase" in str(e) or "guiones" in str(e) or "underscores" in str(e):
-            print(f"TEST_3_OK: slug format validado")
+            print("TEST_3_OK: slug format validado")
         else:
             failures.append(("TEST_3", f"error inesperado: {e}"))
             print(f"TEST_3_FAIL: error inesperado: {e}")

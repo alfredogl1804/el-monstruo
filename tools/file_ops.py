@@ -16,7 +16,6 @@ Integration:
 Sprint 46.2 | 2026-04-30
 """
 
-import asyncio
 import logging
 import os
 from typing import Any, Optional
@@ -25,7 +24,7 @@ logger = logging.getLogger("monstruo.tools.file_ops")
 
 # ── Constants ────────────────────────────────────────────────────────
 MAX_FILE_SIZE = 100_000  # 100KB max per file write
-MAX_READ_SIZE = 50_000   # 50KB max read output
+MAX_READ_SIZE = 50_000  # 50KB max read output
 
 
 async def execute_file_ops(
@@ -84,7 +83,12 @@ async def _execute_e2b_file_ops(
             if not content:
                 return {"success": False, "result": "No content provided", "action": action, "path": path}
             if len(content) > MAX_FILE_SIZE:
-                return {"success": False, "result": f"Content too large ({len(content)} chars, max {MAX_FILE_SIZE})", "action": action, "path": path}
+                return {
+                    "success": False,
+                    "result": f"Content too large ({len(content)} chars, max {MAX_FILE_SIZE})",
+                    "action": action,
+                    "path": path,
+                }
 
             # Ensure parent directory exists
             parent_dir = "/".join(path.rsplit("/", 1)[:-1])
@@ -93,7 +97,12 @@ async def _execute_e2b_file_ops(
 
             await sandbox.files.write(path, content)
             logger.info("file_ops_write", path=path, size=len(content))
-            return {"success": True, "result": f"File written: {path} ({len(content)} chars)", "action": action, "path": path}
+            return {
+                "success": True,
+                "result": f"File written: {path} ({len(content)} chars)",
+                "action": action,
+                "path": path,
+            }
 
         elif action == "read_file":
             file_content = await sandbox.files.read(path)
@@ -109,15 +118,27 @@ async def _execute_e2b_file_ops(
 
             file_content = await sandbox.files.read(path)
             if find not in file_content:
-                return {"success": False, "result": f"Text '{find[:50]}...' not found in {path}", "action": action, "path": path}
+                return {
+                    "success": False,
+                    "result": f"Text '{find[:50]}...' not found in {path}",
+                    "action": action,
+                    "path": path,
+                }
 
             new_content = file_content.replace(find, replace, 1)
             await sandbox.files.write(path, new_content)
             logger.info("file_ops_edit", path=path, find_len=len(find), replace_len=len(replace))
-            return {"success": True, "result": f"File edited: {path} (replaced {len(find)} chars with {len(replace)} chars)", "action": action, "path": path}
+            return {
+                "success": True,
+                "result": f"File edited: {path} (replaced {len(find)} chars with {len(replace)} chars)",
+                "action": action,
+                "path": path,
+            }
 
         elif action == "list_files":
-            result = await sandbox.commands.run(f"find {path} -maxdepth {'999' if recursive else '1'} -type f 2>/dev/null | head -100")
+            result = await sandbox.commands.run(
+                f"find {path} -maxdepth {'999' if recursive else '1'} -type f 2>/dev/null | head -100"
+            )
             files = result.stdout.strip() if result.stdout else "No files found"
             return {"success": True, "result": files, "action": action, "path": path}
 
@@ -160,7 +181,12 @@ print(f"Written {{len({repr(content)})}} chars to {path}")
 """
         result = await execute_code(code=code, language="python", timeout=30)
         stdout = result.get("stdout", "")
-        return {"success": result.get("success", False), "result": stdout or result.get("stderr", ""), "action": action, "path": path}
+        return {
+            "success": result.get("success", False),
+            "result": stdout or result.get("stderr", ""),
+            "action": action,
+            "path": path,
+        }
 
     elif action == "read_file":
         code = f"""
@@ -169,7 +195,12 @@ with open({repr(path)}, 'r') as f:
 print(content)
 """
         result = await execute_code(code=code, language="python", timeout=30)
-        return {"success": result.get("success", False), "result": result.get("stdout", result.get("stderr", "")), "action": action, "path": path}
+        return {
+            "success": result.get("success", False),
+            "result": result.get("stdout", result.get("stderr", "")),
+            "action": action,
+            "path": path,
+        }
 
     elif action == "edit_file":
         code = f"""
@@ -178,7 +209,7 @@ with open({repr(path)}, 'r') as f:
 if {repr(find)} not in content:
     print(f"ERROR: text not found in file")
 else:
-    content = content.replace({repr(find)}, {repr(replace or '')}, 1)
+    content = content.replace({repr(find)}, {repr(replace or "")}, 1)
     with open({repr(path)}, 'w') as f:
         f.write(content)
     print(f"Edited {path}")
@@ -198,7 +229,12 @@ for root, dirs, files in os.walk({repr(path)}):
         break
 """
         result = await execute_code(code=code, language="python", timeout=30)
-        return {"success": result.get("success", False), "result": result.get("stdout", ""), "action": action, "path": path}
+        return {
+            "success": result.get("success", False),
+            "result": result.get("stdout", ""),
+            "action": action,
+            "path": path,
+        }
 
     elif action == "delete_file":
         code = f"""
@@ -210,7 +246,12 @@ elif os.path.exists({repr(path)}):
 print(f"Deleted {path}")
 """
         result = await execute_code(code=code, language="python", timeout=30)
-        return {"success": result.get("success", False), "result": result.get("stdout", ""), "action": action, "path": path}
+        return {
+            "success": result.get("success", False),
+            "result": result.get("stdout", ""),
+            "action": action,
+            "path": path,
+        }
 
     elif action == "mkdir":
         code = f"""
@@ -219,7 +260,12 @@ os.makedirs({repr(path)}, exist_ok=True)
 print(f"Created {path}")
 """
         result = await execute_code(code=code, language="python", timeout=30)
-        return {"success": result.get("success", False), "result": result.get("stdout", ""), "action": action, "path": path}
+        return {
+            "success": result.get("success", False),
+            "result": result.get("stdout", ""),
+            "action": action,
+            "path": path,
+        }
 
     else:
         return {"success": False, "result": f"Unknown action: {action}", "action": action, "path": path}

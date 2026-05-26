@@ -18,24 +18,27 @@ from kernel.anti_dory.b8_magna_classifier import (
 class TestMagnaTriggersDirect:
     """Tests para coincidencia directa con MAGNA_TRIGGERS."""
 
-    @pytest.mark.parametrize("action_type", [
-        "merge_to_main",
-        "push_to_main",
-        "supabase_write_production",
-        "deploy_production",
-        "modify_credentials",
-        "rotate_secrets",
-        "declare_dory_dead",
-        "approve_r1",
-        "phase_1_action",
-        "sign_dsc",
-        "create_pr",
-        "delete_table",
-        "drop_migration",
-        "override_guardian",
-        "disable_rls",
-        "expose_private_key",
-    ])
+    @pytest.mark.parametrize(
+        "action_type",
+        [
+            "merge_to_main",
+            "push_to_main",
+            "supabase_write_production",
+            "deploy_production",
+            "modify_credentials",
+            "rotate_secrets",
+            "declare_dory_dead",
+            "approve_r1",
+            "phase_1_action",
+            "sign_dsc",
+            "create_pr",
+            "delete_table",
+            "drop_migration",
+            "override_guardian",
+            "disable_rls",
+            "expose_private_key",
+        ],
+    )
     def test_direct_trigger_returns_magna(self, action_type: str):
         result = classify_action(action_type, f"Testing {action_type}")
         assert result.level == ActionLevel.MAGNA
@@ -50,15 +53,18 @@ class TestMagnaTriggersDirect:
 class TestDangerKeywords:
     """Tests para coincidencia parcial con keywords peligrosas."""
 
-    @pytest.mark.parametrize("action_type,keyword", [
-        ("write_to_main_branch", "main"),
-        ("deploy_to_production_server", "production"),
-        ("update_credential_store", "credential"),
-        ("read_secret_vault", "secret"),
-        ("set_dory_dead_flag", "dory_dead"),
-        ("enter_phase_1_mode", "phase_1"),
-        ("leak_private_key_to_log", "private_key"),
-    ])
+    @pytest.mark.parametrize(
+        "action_type,keyword",
+        [
+            ("write_to_main_branch", "main"),
+            ("deploy_to_production_server", "production"),
+            ("update_credential_store", "credential"),
+            ("read_secret_vault", "secret"),
+            ("set_dory_dead_flag", "dory_dead"),
+            ("enter_phase_1_mode", "phase_1"),
+            ("leak_private_key_to_log", "private_key"),
+        ],
+    )
     def test_partial_keyword_returns_magna(self, action_type: str, keyword: str):
         result = classify_action(action_type, f"Testing partial: {action_type}")
         assert result.level == ActionLevel.MAGNA
@@ -92,18 +98,21 @@ class TestMetadataOverride:
 class TestStandardActions:
     """Tests para acciones que NO son MAGNA."""
 
-    @pytest.mark.parametrize("action_type", [
-        "read_memory",
-        "list_endpoints",
-        "run_local_test",
-        "write_bridge_file",
-        "create_branch",
-        "commit_to_feature_branch",
-        "query_catastro",
-        "generate_report",
-        "classify_intent",
-        "health_check",
-    ])
+    @pytest.mark.parametrize(
+        "action_type",
+        [
+            "read_memory",
+            "list_endpoints",
+            "run_local_test",
+            "write_bridge_file",
+            "create_branch",
+            "commit_to_feature_branch",
+            "query_catastro",
+            "generate_report",
+            "classify_intent",
+            "health_check",
+        ],
+    )
     def test_standard_actions(self, action_type: str):
         result = classify_action(action_type, f"Testing standard: {action_type}")
         assert result.level == ActionLevel.STANDARD

@@ -24,7 +24,7 @@ import structlog
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from kernel.identity_guard import resolve_user_id, UserIdStatus
+from kernel.identity_guard import UserIdStatus, resolve_user_id
 
 logger = structlog.get_logger("memory_routes")
 
@@ -43,6 +43,7 @@ def _resolve_uid(user_id: str, context: str) -> str:
             context=context,
         )
     return resolved
+
 
 router = APIRouter(prefix="/v1/memory", tags=["memory"])
 
@@ -175,7 +176,9 @@ async def get_thought(thought_id: str):
 
 
 @router.patch("/thoughts/{thought_id}")
-async def update_thought(thought_id: str, req: UpdateThoughtRequest, user_id: str = Query(default="anonymous")):  # Sprint 29 DT-8 FIX
+async def update_thought(
+    thought_id: str, req: UpdateThoughtRequest, user_id: str = Query(default="anonymous")
+):  # Sprint 29 DT-8 FIX
     """Update a thought. Regenerates embedding if content/summary changed."""
     if not _thoughts_store:
         raise HTTPException(503, "Thoughts store not initialized")

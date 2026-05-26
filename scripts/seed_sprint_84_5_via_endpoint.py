@@ -26,10 +26,9 @@ import json
 import os
 import sys
 import time
-from pathlib import Path
-
-import urllib.request
 import urllib.error
+import urllib.request
+from pathlib import Path
 
 # Importar las semillas del módulo del kernel
 HERE = Path(__file__).resolve().parent
@@ -37,7 +36,6 @@ ROOT = HERE.parent
 sys.path.insert(0, str(ROOT))
 
 from kernel.seeds_sprint_84_5 import SEEDS_SPRINT_84_5  # noqa: E402
-
 
 KERNEL_URL = os.environ.get(
     "KERNEL_URL",
@@ -116,11 +114,7 @@ def main() -> int:
         }
         results.append(record)
         if status == 200 and isinstance(body, dict) and body.get("ok"):
-            print(
-                f"   ✓ {body.get('seeded', 'unknown')} "
-                f"(occurrences={body.get('occurrences')}, "
-                f"{elapsed:.0f}ms)"
-            )
+            print(f"   ✓ {body.get('seeded', 'unknown')} (occurrences={body.get('occurrences')}, {elapsed:.0f}ms)")
             ok += 1
         else:
             print(f"   ✗ http={status} body={body!r} ({elapsed:.0f}ms)")

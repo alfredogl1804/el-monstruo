@@ -134,13 +134,14 @@ Objetivos Maestros que satisface:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 7 · 2026-05-04 · v0.86.7
 """
+
 from __future__ import annotations
 
+import json
 import os
 import sys
 import urllib.error
 import urllib.request
-import json
 
 
 def main() -> int:
@@ -163,8 +164,7 @@ def main() -> int:
         "categoria": "patron_arquitectonico",
         "severidad": "critica",
         "titulo": (
-            "Dashboard de Salud como visibilidad obligatoria de cualquier "
-            "dominio del Monstruo (Catastro Bloque 7)"
+            "Dashboard de Salud como visibilidad obligatoria de cualquier dominio del Monstruo (Catastro Bloque 7)"
         ),
         "leccion": __doc__,
         "fuente": "hilo_manus_catastro",

@@ -7,14 +7,15 @@ USO:
 
 Por defecto usa https://el-monstruo-kernel-production.up.railway.app
 """
+
 from __future__ import annotations
 
 import json
 import os
 import sys
 import time
-import urllib.request
 import urllib.error
+import urllib.request
 
 # Importar las 8 semillas
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

@@ -36,6 +36,7 @@ Backend: BrowserAutomation (soberano) o BrowserlessClient (fallback temporal).
 
 Sprint 85 — 2026-05-04
 """
+
 from __future__ import annotations
 
 import os
@@ -131,9 +132,7 @@ class CriticReport:
     iteration: int = 1
     duration_ms: int = 0
     error: Optional[str] = None
-    created_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -175,10 +174,12 @@ class CriticVisualBrowserAdapter:
             from kernel.embriones.critic_visual_browserless_fallback import (
                 BrowserlessClient,
             )
+
             return BrowserlessClient()
         elif backend == "soberano":
             try:
                 from kernel.browser_automation import BrowserAutomation
+
                 return BrowserAutomation()
             except Exception as exc:
                 # Fallback automático a browserless si soberano no está listo
@@ -189,12 +190,12 @@ class CriticVisualBrowserAdapter:
                 from kernel.embriones.critic_visual_browserless_fallback import (
                     BrowserlessClient,
                 )
+
                 self.backend = "browserless"
                 return BrowserlessClient()
         else:
             raise EmbrionCriticVisualError(
-                f"CRITIC_BROWSER_BACKEND inválido: {backend}. "
-                f"Válidos: soberano, browserless."
+                f"CRITIC_BROWSER_BACKEND inválido: {backend}. Válidos: soberano, browserless."
             )
 
     async def initialize(self):
@@ -351,9 +352,7 @@ class CriticVisual:
                 pass
 
         # Métricas
-        report.duration_ms = int(
-            (datetime.now(timezone.utc) - started).total_seconds() * 1000
-        )
+        report.duration_ms = int((datetime.now(timezone.utc) - started).total_seconds() * 1000)
 
         # Persistir en `deployments` si hay DB
         await self._persistir_report(report)
@@ -390,34 +389,24 @@ class CriticVisual:
 
         # ── 1. Estructura (20pts) ────────────────────────────────────────
         secciones_requeridas = structure.get("sections", []) or []
-        scores["estructura"], structure_findings = self._evaluar_estructura(
-            secciones_requeridas, body_text
-        )
+        scores["estructura"], structure_findings = self._evaluar_estructura(secciones_requeridas, body_text)
         findings.extend(structure_findings)
 
         # ── 2. Contenido (25pts) ──────────────────────────────────────────
-        scores["contenido"], content_findings = self._evaluar_contenido(
-            body_text, brief
-        )
+        scores["contenido"], content_findings = self._evaluar_contenido(body_text, brief)
         findings.extend(content_findings)
 
         # ── 3. Visual (15pts) ─────────────────────────────────────────────
         # Sin LLM multimodal en MVP, scoring conservador basado en heurísticas
-        scores["visual"], visual_findings = self._evaluar_visual(
-            hero_text, body_text
-        )
+        scores["visual"], visual_findings = self._evaluar_visual(hero_text, body_text)
         findings.extend(visual_findings)
 
         # ── 4. Brand Fit (15pts) ──────────────────────────────────────────
-        scores["brand_fit"], brand_findings = self._evaluar_brand_fit(
-            body_text, client_brand
-        )
+        scores["brand_fit"], brand_findings = self._evaluar_brand_fit(body_text, client_brand)
         findings.extend(brand_findings)
 
         # ── 5. Mobile (10pts) ─────────────────────────────────────────────
-        scores["mobile"], mobile_findings = self._evaluar_mobile(
-            screenshot_mobile_path
-        )
+        scores["mobile"], mobile_findings = self._evaluar_mobile(screenshot_mobile_path)
         findings.extend(mobile_findings)
 
         # ── 6. Performance (5pts) ─────────────────────────────────────────
@@ -434,9 +423,7 @@ class CriticVisual:
 
         return scores, findings
 
-    def _evaluar_estructura(
-        self, secciones_requeridas: list, body_text: str
-    ) -> tuple[int, list[CriticFinding]]:
+    def _evaluar_estructura(self, secciones_requeridas: list, body_text: str) -> tuple[int, list[CriticFinding]]:
         """20pts. Todas las secciones del brief deben estar presentes."""
         findings = []
         if not secciones_requeridas:
@@ -451,10 +438,7 @@ class CriticVisual:
                 seccion_id = str(seccion)
 
             seccion_id_lower = seccion_id.lower()
-            keywords = [
-                kw for kw in seccion_id_lower.replace("_", " ").split()
-                if len(kw) > 2
-            ]
+            keywords = [kw for kw in seccion_id_lower.replace("_", " ").split() if len(kw) > 2]
             # Sprint 85 HOTFIX + 84.7 migration: usa utility centralizada
             # kernel.utils.keyword_matcher (compile + match) para evitar
             # "learn" matcheando "learning" sin estar en un heading real.
@@ -466,12 +450,14 @@ class CriticVisual:
             if seccion_match:
                 secciones_encontradas += 1
             else:
-                findings.append(CriticFinding(
-                    componente="estructura",
-                    severity="major",
-                    descripcion=f"Sección '{seccion_id}' del Brief no detectada en el output",
-                    sugerencia=f"Agregar sección '{seccion_id}' con heading visible",
-                ))
+                findings.append(
+                    CriticFinding(
+                        componente="estructura",
+                        severity="major",
+                        descripcion=f"Sección '{seccion_id}' del Brief no detectada en el output",
+                        sugerencia=f"Agregar sección '{seccion_id}' con heading visible",
+                    )
+                )
 
         if not secciones_requeridas:
             return RUBRICA_PESOS["estructura"], findings
@@ -480,9 +466,7 @@ class CriticVisual:
         score = int(RUBRICA_PESOS["estructura"] * ratio)
         return score, findings
 
-    def _evaluar_contenido(
-        self, body_text: str, brief: dict
-    ) -> tuple[int, list[CriticFinding]]:
+    def _evaluar_contenido(self, body_text: str, brief: dict) -> tuple[int, list[CriticFinding]]:
         """25pts. Sin Lorem ipsum, sin placeholders no autorizados."""
         findings = []
         score = RUBRICA_PESOS["contenido"]
@@ -490,12 +474,14 @@ class CriticVisual:
 
         # Detectar Lorem ipsum
         if "lorem ipsum" in body_lower or "lorem ipsum dolor" in body_lower:
-            findings.append(CriticFinding(
-                componente="contenido",
-                severity="blocker",
-                descripcion="Lorem ipsum detectado en el contenido",
-                sugerencia="Reemplazar con contenido real basado en el Brief",
-            ))
+            findings.append(
+                CriticFinding(
+                    componente="contenido",
+                    severity="blocker",
+                    descripcion="Lorem ipsum detectado en el contenido",
+                    sugerencia="Reemplazar con contenido real basado en el Brief",
+                )
+            )
             score -= 15
 
         # Detectar placeholders no autorizados (<<X>>, [X], TODO)
@@ -506,57 +492,61 @@ class CriticVisual:
         no_autorizados = [p for p in unauthorized_placeholders if p not in autorizados_set]
 
         if no_autorizados:
-            findings.append(CriticFinding(
-                componente="contenido",
-                severity="major",
-                descripcion=f"Placeholders no autorizados: {', '.join(set(no_autorizados[:3]))}",
-                sugerencia="Eliminar TODO/FIXME y placeholders no declarados en data_missing",
-            ))
+            findings.append(
+                CriticFinding(
+                    componente="contenido",
+                    severity="major",
+                    descripcion=f"Placeholders no autorizados: {', '.join(set(no_autorizados[:3]))}",
+                    sugerencia="Eliminar TODO/FIXME y placeholders no declarados en data_missing",
+                )
+            )
             score -= 5
 
         # Longitud mínima de contenido
         word_count = len(body_text.split())
         if word_count < 100:
-            findings.append(CriticFinding(
-                componente="contenido",
-                severity="major",
-                descripcion=f"Contenido muy escaso: {word_count} palabras (mínimo 100)",
-                sugerencia="Expandir cada sección con copy real basado en value_proposition",
-            ))
+            findings.append(
+                CriticFinding(
+                    componente="contenido",
+                    severity="major",
+                    descripcion=f"Contenido muy escaso: {word_count} palabras (mínimo 100)",
+                    sugerencia="Expandir cada sección con copy real basado en value_proposition",
+                )
+            )
             score -= 5
 
         return max(0, score), findings
 
-    def _evaluar_visual(
-        self, hero_text: str, body_text: str
-    ) -> tuple[int, list[CriticFinding]]:
+    def _evaluar_visual(self, hero_text: str, body_text: str) -> tuple[int, list[CriticFinding]]:
         """15pts. Heurísticas de jerarquía visual sin LLM multimodal."""
         findings = []
         score = RUBRICA_PESOS["visual"]
 
         if not hero_text.strip():
-            findings.append(CriticFinding(
-                componente="visual",
-                severity="major",
-                descripcion="No se detectó hero (h1 / .hero) en la página",
-                sugerencia="Agregar un hero con h1 visible y mensaje del Brief",
-            ))
+            findings.append(
+                CriticFinding(
+                    componente="visual",
+                    severity="major",
+                    descripcion="No se detectó hero (h1 / .hero) en la página",
+                    sugerencia="Agregar un hero con h1 visible y mensaje del Brief",
+                )
+            )
             score -= 8
 
         if len(body_text.strip()) < 50:
-            findings.append(CriticFinding(
-                componente="visual",
-                severity="blocker",
-                descripcion="Body text casi vacío — la página puede estar en blanco",
-                sugerencia="Verificar que el deploy renderizó correctamente",
-            ))
+            findings.append(
+                CriticFinding(
+                    componente="visual",
+                    severity="blocker",
+                    descripcion="Body text casi vacío — la página puede estar en blanco",
+                    sugerencia="Verificar que el deploy renderizó correctamente",
+                )
+            )
             score -= 7
 
         return max(0, score), findings
 
-    def _evaluar_brand_fit(
-        self, body_text: str, client_brand: dict
-    ) -> tuple[int, list[CriticFinding]]:
+    def _evaluar_brand_fit(self, body_text: str, client_brand: dict) -> tuple[int, list[CriticFinding]]:
         """15pts. Anti-patrones de copy + presencia del nombre."""
         findings = []
         score = RUBRICA_PESOS["brand_fit"]
@@ -565,48 +555,50 @@ class CriticVisual:
         # Nombre de marca presente
         nombre = (client_brand.get("name") or "").strip()
         if nombre and nombre.lower() not in body_lower:
-            findings.append(CriticFinding(
-                componente="brand_fit",
-                severity="major",
-                descripcion=f"Nombre de marca '{nombre}' no aparece en el output",
-                sugerencia=f"Incluir '{nombre}' en hero, footer o título",
-            ))
+            findings.append(
+                CriticFinding(
+                    componente="brand_fit",
+                    severity="major",
+                    descripcion=f"Nombre de marca '{nombre}' no aparece en el output",
+                    sugerencia=f"Incluir '{nombre}' en hero, footer o título",
+                )
+            )
             score -= 8
 
         # Anti-patrones genéricos
         anti_patterns = ["10x", "growth hack", "lorem", "scale your", "disrupt"]
         encontrados = [ap for ap in anti_patterns if ap in body_lower]
         if encontrados:
-            findings.append(CriticFinding(
-                componente="brand_fit",
-                severity="minor",
-                descripcion=f"Anti-patrones de copy genérico: {', '.join(encontrados)}",
-                sugerencia="Reemplazar con copy alineado al tono del vertical",
-            ))
+            findings.append(
+                CriticFinding(
+                    componente="brand_fit",
+                    severity="minor",
+                    descripcion=f"Anti-patrones de copy genérico: {', '.join(encontrados)}",
+                    sugerencia="Reemplazar con copy alineado al tono del vertical",
+                )
+            )
             score -= 3
 
         return max(0, score), findings
 
-    def _evaluar_mobile(
-        self, screenshot_path: Optional[str]
-    ) -> tuple[int, list[CriticFinding]]:
+    def _evaluar_mobile(self, screenshot_path: Optional[str]) -> tuple[int, list[CriticFinding]]:
         """10pts. Screenshot mobile capturado = base. Detección de overflow horizontal queda para Sprint 86."""
         findings = []
         if not screenshot_path or not os.path.exists(screenshot_path):
-            findings.append(CriticFinding(
-                componente="mobile",
-                severity="major",
-                descripcion="No se pudo capturar screenshot mobile (375px)",
-                sugerencia="Verificar que el browser soporta set_viewport runtime",
-            ))
+            findings.append(
+                CriticFinding(
+                    componente="mobile",
+                    severity="major",
+                    descripcion="No se pudo capturar screenshot mobile (375px)",
+                    sugerencia="Verificar que el browser soporta set_viewport runtime",
+                )
+            )
             return 0, findings
 
         # MVP: si captura OK, asumimos pass parcial. Análisis visual queda para Sprint 86.
         return RUBRICA_PESOS["mobile"], findings
 
-    def _evaluar_performance(
-        self, perf_metrics: dict
-    ) -> tuple[int, list[CriticFinding]]:
+    def _evaluar_performance(self, perf_metrics: dict) -> tuple[int, list[CriticFinding]]:
         """5pts. TTFB < 1000ms, LCP < 2500ms, CLS < 0.1."""
         findings = []
         score = RUBRICA_PESOS["performance"]
@@ -615,47 +607,53 @@ class CriticVisual:
         lcp = perf_metrics.get("lcp_ms", 0)
 
         if ttfb > 1000:
-            findings.append(CriticFinding(
-                componente="performance",
-                severity="minor",
-                descripcion=f"TTFB elevado: {ttfb}ms (target < 1000ms)",
-                sugerencia="Optimizar respuesta del servidor o usar CDN",
-            ))
+            findings.append(
+                CriticFinding(
+                    componente="performance",
+                    severity="minor",
+                    descripcion=f"TTFB elevado: {ttfb}ms (target < 1000ms)",
+                    sugerencia="Optimizar respuesta del servidor o usar CDN",
+                )
+            )
             score -= 2
 
         if lcp > 2500:
-            findings.append(CriticFinding(
-                componente="performance",
-                severity="minor",
-                descripcion=f"LCP elevado: {lcp}ms (target < 2500ms)",
-                sugerencia="Optimizar imágenes hero, lazy load, comprimir assets",
-            ))
+            findings.append(
+                CriticFinding(
+                    componente="performance",
+                    severity="minor",
+                    descripcion=f"LCP elevado: {lcp}ms (target < 2500ms)",
+                    sugerencia="Optimizar imágenes hero, lazy load, comprimir assets",
+                )
+            )
             score -= 2
 
         return max(0, score), findings
 
-    def _evaluar_cta(
-        self, cta_text: str, structure: dict
-    ) -> tuple[int, list[CriticFinding]]:
+    def _evaluar_cta(self, cta_text: str, structure: dict) -> tuple[int, list[CriticFinding]]:
         """5pts. Al menos 1 CTA visible above-the-fold."""
         findings = []
         if not cta_text.strip():
-            findings.append(CriticFinding(
-                componente="cta",
-                severity="major",
-                descripcion="No se detectaron CTAs (button, .cta, [role='button'])",
-                sugerencia=f"Agregar CTA primario: '{structure.get('primary_cta', 'Contactar')}'",
-            ))
+            findings.append(
+                CriticFinding(
+                    componente="cta",
+                    severity="major",
+                    descripcion="No se detectaron CTAs (button, .cta, [role='button'])",
+                    sugerencia=f"Agregar CTA primario: '{structure.get('primary_cta', 'Contactar')}'",
+                )
+            )
             return 0, findings
 
         primary = (structure.get("primary_cta") or "").strip().lower()
         if primary and primary not in cta_text.lower():
-            findings.append(CriticFinding(
-                componente="cta",
-                severity="minor",
-                descripcion=f"CTA primario del Brief ('{primary}') no aparece literal en buttons",
-                sugerencia=f"Renombrar uno de los CTAs a '{primary}'",
-            ))
+            findings.append(
+                CriticFinding(
+                    componente="cta",
+                    severity="minor",
+                    descripcion=f"CTA primario del Brief ('{primary}') no aparece literal en buttons",
+                    sugerencia=f"Renombrar uno de los CTAs a '{primary}'",
+                )
+            )
             return RUBRICA_PESOS["cta"] - 2, findings
 
         return RUBRICA_PESOS["cta"], findings
@@ -672,12 +670,14 @@ class CriticVisual:
 
         # Heurística simple basada en strings esperados
         if "og:" not in head_lower:
-            findings.append(CriticFinding(
-                componente="meta_tags",
-                severity="minor",
-                descripcion="Open Graph tags no detectados (og:title, og:description)",
-                sugerencia="Agregar <meta property='og:title'> y og:description",
-            ))
+            findings.append(
+                CriticFinding(
+                    componente="meta_tags",
+                    severity="minor",
+                    descripcion="Open Graph tags no detectados (og:title, og:description)",
+                    sugerencia="Agregar <meta property='og:title'> y og:description",
+                )
+            )
             score -= 2
 
         return max(0, score), findings

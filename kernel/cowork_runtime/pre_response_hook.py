@@ -33,6 +33,7 @@ Uso CLI:
 
     Exit code 0 si pasa, 1 si bloquea.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -58,9 +59,9 @@ try:
         ClaimExtractor,
         ClaimLogger,
         ClaimRecord,
-        VerificationStatus,
         infer_verification_status,
     )
+
     _CLAIM_CALIBRATION_AVAILABLE = True
 except Exception:  # pragma: no cover (defensive import guard)
     _CLAIM_CALIBRATION_AVAILABLE = False
@@ -70,16 +71,17 @@ except Exception:  # pragma: no cover (defensive import guard)
 # Imports nuevos para F21 pattern detector + verbatim citation enforcement +
 # auto-lectura embrion_memoria + auto-INSERT cowork_protocolo_invocaciones.
 # NO modificar fuera de markers BEGIN/END (DSC-MO-006 v1.1 doctrina del silencio).
+import logging
 import os
 import time
 import uuid
-import logging
 from typing import Any
 
 try:
-    from tools.check_cowork_no_speculative_claims import check_speculative_claims  # noqa: E402
-    from tools._check_cowork_verbatim_citations import check_verbatim_citations  # noqa: E402
     from kernel.cowork_runtime.f21_patterns import F21_PATTERNS_VERSION  # noqa: E402
+    from tools._check_cowork_verbatim_citations import check_verbatim_citations  # noqa: E402
+    from tools.check_cowork_no_speculative_claims import check_speculative_claims  # noqa: E402
+
     _AUTO_DISCIPLINE_AVAILABLE = True
 except ImportError as _e:
     # Modulos nuevos pueden no existir en builds antiguos. Hook degrada graceful.
@@ -93,6 +95,7 @@ _AUTO_DISCIPLINE_LOG = logging.getLogger("cowork.auto_discipline")
 @dataclass
 class HookStats:
     """Contadores de la sesion en curso para diagnostico."""
+
     interceptions_total: int = 0
     blocked_total: int = 0
     blocked_magna: int = 0
@@ -142,6 +145,7 @@ class CoworkPreResponseHook:
                 con cowork_protocolo_invocaciones audit log). Default: nuevo UUID.
         """
         import os
+
         self.session_start: datetime = session_start or datetime.now(timezone.utc)
         self.productive_commits_count: int = 0
         self.stats: HookStats = HookStats()
@@ -158,8 +162,11 @@ class CoworkPreResponseHook:
         self.history: list[dict[str, Any]] = []  # last K turns para detector F21
         self.history_max: int = int(os.environ.get("COWORK_HOOK_HISTORY_MAX", "10"))
         # Feature flag independiente: shadow para auto-discipline (sub-flag)
-        self.auto_discipline_enabled: bool = (
-            os.environ.get("COWORK_AUTO_DISCIPLINE_ENABLED", "").lower() in ("1", "true", "yes", "on")
+        self.auto_discipline_enabled: bool = os.environ.get("COWORK_AUTO_DISCIPLINE_ENABLED", "").lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
         )
         self.auto_discipline_shadow_count: int = 0  # cuantas veces F21/verbatim hubieran bloqueado en shadow
         self.last_invocation_record: Optional[dict[str, Any]] = None  # ultimo INSERT row preparado
@@ -195,21 +202,13 @@ class CoworkPreResponseHook:
         _queries_done: list[str] = []
         if _AUTO_DISCIPLINE_AVAILABLE:
             try:
-                _f21_violations = check_speculative_claims(
-                    cowork_output, history=self.history
-                )
+                _f21_violations = check_speculative_claims(cowork_output, history=self.history)
             except Exception as _ex:  # noqa: BLE001
-                _AUTO_DISCIPLINE_LOG.warning(
-                    "check_speculative_claims raised: %s", _ex
-                )
+                _AUTO_DISCIPLINE_LOG.warning("check_speculative_claims raised: %s", _ex)
             try:
-                _verbatim_violations = check_verbatim_citations(
-                    cowork_output, history=self.history
-                )
+                _verbatim_violations = check_verbatim_citations(cowork_output, history=self.history)
             except Exception as _ex:  # noqa: BLE001
-                _AUTO_DISCIPLINE_LOG.warning(
-                    "check_verbatim_citations raised: %s", _ex
-                )
+                _AUTO_DISCIPLINE_LOG.warning("check_verbatim_citations raised: %s", _ex)
             _queries_done = self._auto_read_embrion_memoria()
         _auto_duration_ms = int((time.time() - _auto_t_start) * 1000)
         _auto_discipline_blocked = bool(_f21_violations or _verbatim_violations)
@@ -237,9 +236,7 @@ class CoworkPreResponseHook:
         _passed_combined = verdict.passed and not _auto_discipline_blocked
 
         # Decision magnitude heuristica para audit log
-        _magnitude = self._infer_decision_magnitude(
-            cowork_output, _f21_violations, _verbatim_violations
-        )
+        _magnitude = self._infer_decision_magnitude(cowork_output, _f21_violations, _verbatim_violations)
 
         # Registrar la invocacion en memoria local (audit log row preparado)
         self.last_invocation_record = self._build_invocation_record(
@@ -282,9 +279,7 @@ class CoworkPreResponseHook:
         feedback = self._format_correction_feedback(verdict, cowork_output, user_message)
         # HOOK_AUTO_DISCIPLINE_BEGIN — augmentar feedback con violations auto-discipline
         if _f21_violations or _verbatim_violations:
-            feedback = self._augment_feedback_with_auto_discipline(
-                feedback, _f21_violations, _verbatim_violations
-            )
+            feedback = self._augment_feedback_with_auto_discipline(feedback, _f21_violations, _verbatim_violations)
         # HOOK_AUTO_DISCIPLINE_END
         return False, feedback
 
@@ -359,6 +354,7 @@ class CoworkPreResponseHook:
                 )
             )
         self._claim_logger.log_batch(records)
+
     # CLAIM_CALIBRATION_END
 
     def enable(self) -> None:
@@ -380,17 +376,17 @@ class CoworkPreResponseHook:
             **self.stats.as_dict(),
         }
         # HOOK_AUTO_DISCIPLINE_BEGIN
-        base.update({
-            "session_uuid": self.session_uuid,
-            "turn_index": self.turn_index,
-            "auto_discipline_enabled": self.auto_discipline_enabled,
-            "auto_discipline_shadow_count": self.auto_discipline_shadow_count,
-            "history_len": len(self.history),
-            "f21_patterns_version": (
-                F21_PATTERNS_VERSION if _AUTO_DISCIPLINE_AVAILABLE else "unavailable"
-            ),
-            "auto_discipline_available": _AUTO_DISCIPLINE_AVAILABLE,
-        })
+        base.update(
+            {
+                "session_uuid": self.session_uuid,
+                "turn_index": self.turn_index,
+                "auto_discipline_enabled": self.auto_discipline_enabled,
+                "auto_discipline_shadow_count": self.auto_discipline_shadow_count,
+                "history_len": len(self.history),
+                "f21_patterns_version": (F21_PATTERNS_VERSION if _AUTO_DISCIPLINE_AVAILABLE else "unavailable"),
+                "auto_discipline_available": _AUTO_DISCIPLINE_AVAILABLE,
+            }
+        )
         # HOOK_AUTO_DISCIPLINE_END
         return base
 
@@ -436,12 +432,14 @@ class CoworkPreResponseHook:
 
     def register_user_message(self, content: str) -> None:
         """Registra mensaje del usuario en history (para context)."""
-        self._append_history_raw({
-            "type": "user_message",
-            "content": content,
-            "turn_index": self.turn_index,
-            "at": datetime.now(timezone.utc).isoformat(),
-        })
+        self._append_history_raw(
+            {
+                "type": "user_message",
+                "content": content,
+                "turn_index": self.turn_index,
+                "at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
     def _append_history(
         self,
@@ -449,19 +447,21 @@ class CoworkPreResponseHook:
         content: str,
         user_message: str = "",
     ) -> None:
-        self._append_history_raw({
-            "type": kind,
-            "content": content,
-            "user_message": user_message,
-            "turn_index": self.turn_index,
-            "at": datetime.now(timezone.utc).isoformat(),
-        })
+        self._append_history_raw(
+            {
+                "type": kind,
+                "content": content,
+                "user_message": user_message,
+                "turn_index": self.turn_index,
+                "at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
     def _append_history_raw(self, entry: dict[str, Any]) -> None:
         self.history.append(entry)
         # Cap a history_max (last K turns)
         if len(self.history) > self.history_max:
-            self.history = self.history[-self.history_max:]
+            self.history = self.history[-self.history_max :]
 
     def _auto_read_embrion_memoria(self) -> list[str]:
         """
@@ -471,13 +471,9 @@ class CoworkPreResponseHook:
         """
         queries_done: list[str] = []
         supabase_url = os.environ.get("SUPABASE_URL")
-        supabase_key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get(
-            "SUPABASE_SERVICE_ROLE_KEY"
-        )
+        supabase_key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
         if not supabase_url or not supabase_key:
-            _AUTO_DISCIPLINE_LOG.debug(
-                "auto_read_embrion_memoria skip: SUPABASE env vars no configuradas"
-            )
+            _AUTO_DISCIPLINE_LOG.debug("auto_read_embrion_memoria skip: SUPABASE env vars no configuradas")
             return queries_done
         # Implementacion HTTP defer a futuro (requiere requests/httpx); por ahora
         # marcamos la query como intentada para que audit log registre el intent.
@@ -490,14 +486,16 @@ class CoworkPreResponseHook:
         Callback para que el orquestador externo registre una lectura real de memoria.
         Agrega a history como tool_call sintetico para el detector F21.
         """
-        self._append_history_raw({
-            "type": "memory_read",
-            "name": f"db.{table}",
-            "content": query_summary,
-            "rows_count": rows_count,
-            "turn_index": self.turn_index,
-            "at": datetime.now(timezone.utc).isoformat(),
-        })
+        self._append_history_raw(
+            {
+                "type": "memory_read",
+                "name": f"db.{table}",
+                "content": query_summary,
+                "rows_count": rows_count,
+                "turn_index": self.turn_index,
+                "at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
     def _infer_decision_magnitude(
         self,
@@ -540,9 +538,7 @@ class CoworkPreResponseHook:
             "memory_seeds_inserted": 0,
             "duration_ms": duration_ms,
             "metadata": {
-                "f21_patterns_version": (
-                    F21_PATTERNS_VERSION if _AUTO_DISCIPLINE_AVAILABLE else "unavailable"
-                ),
+                "f21_patterns_version": (F21_PATTERNS_VERSION if _AUTO_DISCIPLINE_AVAILABLE else "unavailable"),
                 "auto_discipline_enabled": self.auto_discipline_enabled,
                 "history_len": len(self.history),
             },
@@ -556,13 +552,9 @@ class CoworkPreResponseHook:
         manualmente si necesita).
         """
         supabase_url = os.environ.get("SUPABASE_URL")
-        supabase_key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get(
-            "SUPABASE_SERVICE_ROLE_KEY"
-        )
+        supabase_key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
         if not supabase_url or not supabase_key:
-            _AUTO_DISCIPLINE_LOG.debug(
-                "auto_insert_protocolo_row skip: SUPABASE env vars no configuradas"
-            )
+            _AUTO_DISCIPLINE_LOG.debug("auto_insert_protocolo_row skip: SUPABASE env vars no configuradas")
             return
         # HTTP POST deferred: orquestador externo es responsable del insert real
         # consumiendo `self.last_invocation_record`. Esto evita import duro de
@@ -589,19 +581,17 @@ class CoworkPreResponseHook:
             extra.append(f"  F21 patterns matched sin tool call previo: {len(f21_violations)}")
             for v in f21_violations[:5]:
                 extra.append(
-                    f"    - [{v['severity']}] {v['pattern_id']}: {v['match']!r} "
-                    f"(needs one of {v['missing_tool_call']})"
+                    f"    - [{v['severity']}] {v['pattern_id']}: {v['match']!r} (needs one of {v['missing_tool_call']})"
                 )
         if verbatim_violations:
             extra.append(f"  Verbatim citations sin respaldo: {len(verbatim_violations)}")
             for v in verbatim_violations[:5]:
-                extra.append(
-                    f"    - [{v['severity']}] {v['type']}: {v['citation']!r}"
-                )
+                extra.append(f"    - [{v['severity']}] {v['type']}: {v['citation']!r}")
         extra.append("")
         extra.append("  Reescribi ejecutando primero el tool call requerido,")
         extra.append("  luego cita verbatim el resultado en tu output.")
         return feedback + "\n" + "\n".join(extra)
+
     # HOOK_AUTO_DISCIPLINE_END
 
     # ------------------------------------------------------------------
@@ -620,9 +610,7 @@ class CoworkPreResponseHook:
         self.stats.blocked_premium += premium
         ts = datetime.now(timezone.utc).isoformat()
         self.stats.last_violation_at = ts
-        self.stats.violations_history.append(
-            {"at": ts, "violations": verdict.violations}
-        )
+        self.stats.violations_history.append({"at": ts, "violations": verdict.violations})
 
     def _format_correction_feedback(
         self,
@@ -639,7 +627,7 @@ class CoworkPreResponseHook:
         3. Instruccion de reescritura
         """
         magna = [v for v in verdict.violations if v.startswith("MAGNA")]
-        premium = [v for v in verdict.violations if v.startswith("PREMIUM")]
+        [v for v in verdict.violations if v.startswith("PREMIUM")]
         severity = "MAGNA" if magna else "PREMIUM"
 
         lines = [
@@ -653,54 +641,65 @@ class CoworkPreResponseHook:
         for v in verdict.violations:
             lines.append(f"  - {v}")
 
-        lines.extend([
-            "",
-            "## Score de avance",
-            f"  advance_hits: {verdict.advance_score.advance_hits}",
-            f"  non_advance_hits: {verdict.advance_score.non_advance_hits}",
-            f"  ratio_avance: {verdict.advance_score.ratio_advance:.2f}",
-            f"  alfredo_demands_advance: {verdict.user_demands_advance}",
-            "",
-            "## Instruccion de reescritura",
-        ])
+        lines.extend(
+            [
+                "",
+                "## Score de avance",
+                f"  advance_hits: {verdict.advance_score.advance_hits}",
+                f"  non_advance_hits: {verdict.advance_score.non_advance_hits}",
+                f"  ratio_avance: {verdict.advance_score.ratio_advance:.2f}",
+                f"  alfredo_demands_advance: {verdict.user_demands_advance}",
+                "",
+                "## Instruccion de reescritura",
+            ]
+        )
 
         if magna and verdict.user_demands_advance:
-            lines.extend([
-                "  Alfredo exige avance explicito y vos sugeriste pausar.",
-                "  Reescribi entregando avance concreto: PR mergeado, archivo creado,",
-                "  insercion a embrion_memoria, migracion aplicada, o spec ejecutable.",
-                "  Prohibido: andate a dormir, descansa, buenas noches, paus, tregua,",
-                "  detente, ya basta, dejemos para mañana, cuando despiertes.",
-            ])
+            lines.extend(
+                [
+                    "  Alfredo exige avance explicito y vos sugeriste pausar.",
+                    "  Reescribi entregando avance concreto: PR mergeado, archivo creado,",
+                    "  insercion a embrion_memoria, migracion aplicada, o spec ejecutable.",
+                    "  Prohibido: andate a dormir, descansa, buenas noches, paus, tregua,",
+                    "  detente, ya basta, dejemos para mañana, cuando despiertes.",
+                ]
+            )
         elif magna:
-            lines.extend([
-                "  Tu sesion lleva tiempo sin commits productivos.",
-                "  Antes de mas texto, ejecuta una accion observable:",
-                "  push a kernel/, push a apps/mobile/, mergear PR, insertar a",
-                "  embrion_memoria con instruccion operativa.",
-            ])
+            lines.extend(
+                [
+                    "  Tu sesion lleva tiempo sin commits productivos.",
+                    "  Antes de mas texto, ejecuta una accion observable:",
+                    "  push a kernel/, push a apps/mobile/, mergear PR, insertar a",
+                    "  embrion_memoria con instruccion operativa.",
+                ]
+            )
         else:
-            lines.extend([
-                "  Tu output esta dominado por meta-trabajo (audits, correctivos,",
-                "  reportes, preflights). Eso NO es avance del Monstruo.",
-                "  Reescribi entregando avance del producto en kernel/, apps/mobile/,",
-                "  bridge/sprint_*, o PR # mergeado.",
-            ])
+            lines.extend(
+                [
+                    "  Tu output esta dominado por meta-trabajo (audits, correctivos,",
+                    "  reportes, preflights). Eso NO es avance del Monstruo.",
+                    "  Reescribi entregando avance del producto en kernel/, apps/mobile/,",
+                    "  bridge/sprint_*, o PR # mergeado.",
+                ]
+            )
 
-        lines.extend([
-            "",
-            "## Contexto",
-            f"  user_message_recibido: {user_message[:200]!r}",
-            f"  cowork_output_bloqueado_chars: {len(cowork_output)}",
-            f"  session_duration_min: {self._session_duration_minutes()}",
-            f"  productive_commits_session: {self.productive_commits_count}",
-        ])
+        lines.extend(
+            [
+                "",
+                "## Contexto",
+                f"  user_message_recibido: {user_message[:200]!r}",
+                f"  cowork_output_bloqueado_chars: {len(cowork_output)}",
+                f"  session_duration_min: {self._session_duration_minutes()}",
+                f"  productive_commits_session: {self.productive_commits_count}",
+            ]
+        )
         return "\n".join(lines)
 
 
 # ============================================================================
 # CLI
 # ============================================================================
+
 
 def _read_stdin_or_arg(value: Optional[str]) -> str:
     if value is not None:
@@ -715,22 +714,26 @@ def main(argv: Optional[list[str]] = None) -> int:
         description="Pre-response hook que valida output de Cowork via cowork_guardian.",
     )
     parser.add_argument(
-        "--output", "-o",
+        "--output",
+        "-o",
         help="Output candidato de Cowork (si no se da, se lee stdin).",
     )
     parser.add_argument(
-        "--user-message", "-u",
+        "--user-message",
+        "-u",
         default="",
         help="Ultimo mensaje de Alfredo (para detectar demanda de avance).",
     )
     parser.add_argument(
-        "--commits", "-c",
+        "--commits",
+        "-c",
         type=int,
         default=0,
         help="Commits productivos hechos en esta sesion (default 0).",
     )
     parser.add_argument(
-        "--session-minutes", "-m",
+        "--session-minutes",
+        "-m",
         type=int,
         default=0,
         help="Minutos transcurridos de la sesion (default 0).",
@@ -756,6 +759,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     hook.productive_commits_count = args.commits
     if args.session_minutes:
         from datetime import timedelta
+
         hook.session_start = datetime.now(timezone.utc) - timedelta(minutes=args.session_minutes)
 
     permitido, payload = hook.intercept(cowork_output, args.user_message)

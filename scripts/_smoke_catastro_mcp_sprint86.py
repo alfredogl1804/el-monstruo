@@ -13,12 +13,11 @@ Run:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 5 · 2026-05-04
 """
+
 from __future__ import annotations
 
 import os
 import sys
-from datetime import datetime, timezone
-from typing import Any
 from unittest.mock import MagicMock
 
 # Ensure repo root in path
@@ -26,15 +25,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from kernel.catastro import (
     CATASTRO_TRONO_VIEW,
-    DEFAULT_TOP_N,
-    MAX_TOP_N,
     RecommendationEngine,
-    __version__,
     __bloque__,
+    __version__,
 )
 from kernel.catastro import catastro_routes as _routes
 from kernel.catastro import mcp_tools as _mcp_tools
-
 
 # ============================================================================
 # FAKES
@@ -47,12 +43,19 @@ class _FakeQuery:
         self._filters = []
         self._limit = None
 
-    def select(self, *a, **k): return self
+    def select(self, *a, **k):
+        return self
+
     def eq(self, col, val, **k):
         self._filters.append((col, val))
         return self
-    def neq(self, col, val, **k): return self
-    def order(self, *a, **k): return self
+
+    def neq(self, col, val, **k):
+        return self
+
+    def order(self, *a, **k):
+        return self
+
     def limit(self, n, **k):
         self._limit = n
         return self
@@ -134,19 +137,36 @@ def main():
         view_row("gamma-model", trono=58.0, rank=3),
     ]
     rows_modelos = [
-        {"id": "alpha-model", "nombre": "Alpha", "proveedor": "test",
-         "macroarea": "Inteligencia", "dominios": ["llm_frontier"],
-         "trono_global": 85.0, "estado": "production",
-         "last_validated_at": "2026-05-04T20:00:00Z"},
-        {"id": "beta-model", "nombre": "Beta", "proveedor": "test",
-         "macroarea": "Inteligencia", "dominios": ["llm_frontier"],
-         "trono_global": 72.0, "estado": "production",
-         "last_validated_at": "2026-05-04T20:00:00Z"},
+        {
+            "id": "alpha-model",
+            "nombre": "Alpha",
+            "proveedor": "test",
+            "macroarea": "Inteligencia",
+            "dominios": ["llm_frontier"],
+            "trono_global": 85.0,
+            "estado": "production",
+            "last_validated_at": "2026-05-04T20:00:00Z",
+        },
+        {
+            "id": "beta-model",
+            "nombre": "Beta",
+            "proveedor": "test",
+            "macroarea": "Inteligencia",
+            "dominios": ["llm_frontier"],
+            "trono_global": 72.0,
+            "estado": "production",
+            "last_validated_at": "2026-05-04T20:00:00Z",
+        },
     ]
-    factory = lambda: _FakeClient({
-        CATASTRO_TRONO_VIEW: rows_view,
-        "catastro_modelos": rows_modelos,
-    })
+
+    def factory():
+        return _FakeClient(
+            {
+                CATASTRO_TRONO_VIEW: rows_view,
+                "catastro_modelos": rows_modelos,
+            }
+        )
+
     e2 = RecommendationEngine(db_factory=factory)
     resp = e2.recommend(use_case="razonamiento legal", dominio="llm_frontier", top_n=2)
     print(f"  modelos retornados: {len(resp.modelos)}")
@@ -194,6 +214,7 @@ def main():
     try:
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
+
         os.environ["MONSTRUO_API_KEY"] = "smoke-test-key-b5"
         app = FastAPI()
         app.state.catastro_engine = e2
@@ -207,14 +228,15 @@ def main():
         assert r.status_code == 401
 
         # Con auth → 200
-        r = client.get("/v1/catastro/status",
-                       headers={"X-API-Key": "smoke-test-key-b5"})
+        r = client.get("/v1/catastro/status", headers={"X-API-Key": "smoke-test-key-b5"})
         print(f"  GET /status con auth: {r.status_code} - trust_level={r.json().get('trust_level')}")
         assert r.status_code == 200
 
-        r = client.post("/v1/catastro/recommend",
-                        json={"use_case": "test", "dominio": "llm_frontier"},
-                        headers={"X-API-Key": "smoke-test-key-b5"})
+        r = client.post(
+            "/v1/catastro/recommend",
+            json={"use_case": "test", "dominio": "llm_frontier"},
+            headers={"X-API-Key": "smoke-test-key-b5"},
+        )
         print(f"  POST /recommend con auth: {r.status_code} - modelos={len(r.json().get('modelos', []))}")
         assert r.status_code == 200
     finally:

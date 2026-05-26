@@ -16,11 +16,11 @@ Cobertura:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 3 · 2026-05-04
 """
+
 from __future__ import annotations
 
-import os
 import asyncio
-from datetime import datetime, timezone
+import os
 from unittest.mock import MagicMock
 
 import pytest
@@ -33,17 +33,16 @@ from kernel.catastro import (
     CatastroPersistMissingClient,
     CatastroPersistRpcFailure,
     CatastroPipeline,
-    PersistResult,
     PrioridadEvento,
     TipoEvento,
-    build_modelo_from_pipeline_persistible,
     __version__,
+    build_modelo_from_pipeline_persistible,
 )
-
 
 # ============================================================================
 # FIXTURES
 # ============================================================================
+
 
 @pytest.fixture
 def modelo_minimo() -> CatastroModelo:
@@ -111,6 +110,7 @@ def _make_mock_client(rpc_response_data, rpc_raises: Exception = None):
 # 1. Versionado y exports
 # ============================================================================
 
+
 class TestVersionado:
     def test_version_es_sprint_86_bloque_3_o_superior(self):
         # Bloque 3 entregó v0.86.3. Aceptamos bumps menores del mismo Sprint 86.
@@ -121,16 +121,19 @@ class TestVersionado:
 
     def test_persistence_exportada(self):
         from kernel.catastro import CatastroPersistence as CP
+
         assert CP is CatastroPersistence
 
     def test_helper_exportado(self):
         from kernel.catastro import build_modelo_from_pipeline_persistible as bm
+
         assert callable(bm)
 
 
 # ============================================================================
 # 2. Serialización
 # ============================================================================
+
 
 class TestSerializacion:
     def test_serialize_modelo_devuelve_dict(self, modelo_minimo):
@@ -164,6 +167,7 @@ class TestSerializacion:
 # ============================================================================
 # 3. Resolución de credenciales / dry_run
 # ============================================================================
+
 
 class TestCredenciales:
     def test_sin_env_vars_es_dry_run(self, env_clean):
@@ -201,6 +205,7 @@ class TestCredenciales:
 # 4. Persist en modo dry_run
 # ============================================================================
 
+
 class TestPersistDryRun:
     def test_dry_run_devuelve_success_true_y_dry_true(
         self, env_clean, modelo_minimo, evento_minimo, trust_deltas_sample
@@ -232,10 +237,9 @@ class TestPersistDryRun:
 # 5. Persist con mock client (RPC OK)
 # ============================================================================
 
+
 class TestPersistConMockOk:
-    def test_rpc_dict_response_se_parsea(
-        self, env_with_keys, modelo_minimo, evento_minimo
-    ):
+    def test_rpc_dict_response_se_parsea(self, env_with_keys, modelo_minimo, evento_minimo):
         rpc_data = {
             "modelo_id": "gpt-test-mini",
             "evento_id": "11111111-1111-1111-1111-111111111111",
@@ -250,11 +254,14 @@ class TestPersistConMockOk:
         assert result.evento_id == "11111111-1111-1111-1111-111111111111"
         assert result.curadores_actualizados == 2
 
-    def test_rpc_list_response_toma_primer_elemento(
-        self, env_with_keys, modelo_minimo
-    ):
+    def test_rpc_list_response_toma_primer_elemento(self, env_with_keys, modelo_minimo):
         rpc_data = [
-            {"modelo_id": "gpt-test-mini", "curadores_actualizados": 1, "evento_id": None, "aplicado_at": "2026-05-04T12:00:00+00:00"},
+            {
+                "modelo_id": "gpt-test-mini",
+                "curadores_actualizados": 1,
+                "evento_id": None,
+                "aplicado_at": "2026-05-04T12:00:00+00:00",
+            },
         ]
         client = _make_mock_client(rpc_data)
         p = CatastroPersistence(client_factory=lambda u, k: client)
@@ -270,9 +277,7 @@ class TestPersistConMockOk:
         assert result.success is True
         assert result.curadores_actualizados == 3
 
-    def test_rpc_llamada_con_nombre_funcion_correcto(
-        self, env_with_keys, modelo_minimo
-    ):
+    def test_rpc_llamada_con_nombre_funcion_correcto(self, env_with_keys, modelo_minimo):
         client = _make_mock_client({"modelo_id": "gpt-test-mini"})
         p = CatastroPersistence(client_factory=lambda u, k: client)
         p.persist(modelo=modelo_minimo)
@@ -291,10 +296,9 @@ class TestPersistConMockOk:
 # 6. Persist con mock client (errores)
 # ============================================================================
 
+
 class TestPersistConMockError:
-    def test_rpc_excepcion_devuelve_persist_failure(
-        self, env_with_keys, modelo_minimo
-    ):
+    def test_rpc_excepcion_devuelve_persist_failure(self, env_with_keys, modelo_minimo):
         client = _make_mock_client(None, rpc_raises=RuntimeError("PostgREST 500"))
         p = CatastroPersistence(client_factory=lambda u, k: client)
         result = p.persist(modelo=modelo_minimo)
@@ -302,21 +306,18 @@ class TestPersistConMockError:
         assert result.error_code == CatastroPersistRpcFailure.code
         assert "PostgREST 500" in result.error_message
 
-    def test_rpc_response_data_none_devuelve_failure(
-        self, env_with_keys, modelo_minimo
-    ):
+    def test_rpc_response_data_none_devuelve_failure(self, env_with_keys, modelo_minimo):
         client = _make_mock_client(None)
         p = CatastroPersistence(client_factory=lambda u, k: client)
         result = p.persist(modelo=modelo_minimo)
         assert result.success is False
         assert "vacía o no parseable" in result.error_message
 
-    def test_falta_supabase_lib_lanza_missing_client(
-        self, env_with_keys, modelo_minimo, monkeypatch
-    ):
+    def test_falta_supabase_lib_lanza_missing_client(self, env_with_keys, modelo_minimo, monkeypatch):
         """Si no se pasa client_factory y supabase no está instalado."""
         # Forzamos que el import falle
         import sys
+
         original_modules = sys.modules.copy()
         sys.modules["supabase"] = None  # Hace que `from supabase import ...` falle
 
@@ -333,6 +334,7 @@ class TestPersistConMockError:
 # ============================================================================
 # 7. persist_many
 # ============================================================================
+
 
 class TestPersistMany:
     def test_persist_many_dry_run_todos_ok(self, env_clean):
@@ -357,7 +359,12 @@ class TestPersistMany:
                     chain.execute.side_effect = RuntimeError("boom")
                 else:
                     response = MagicMock()
-                    response.data = {"modelo_id": params["p_modelo"]["id"], "curadores_actualizados": 0, "evento_id": None, "aplicado_at": "2026-05-04T12:00:00+00:00"}
+                    response.data = {
+                        "modelo_id": params["p_modelo"]["id"],
+                        "curadores_actualizados": 0,
+                        "evento_id": None,
+                        "aplicado_at": "2026-05-04T12:00:00+00:00",
+                    }
                     chain.execute.return_value = response
                 return chain
 
@@ -377,6 +384,7 @@ class TestPersistMany:
 # 8. Identidad de marca en errores
 # ============================================================================
 
+
 class TestIdentidadMarca:
     def test_error_codes_tienen_prefijo_catastro_persist(self):
         assert CatastroPersistError.code.startswith("catastro_persist_")
@@ -390,6 +398,7 @@ class TestIdentidadMarca:
 # ============================================================================
 # 9. build_modelo_from_pipeline_persistible
 # ============================================================================
+
 
 class TestBuildModeloHelper:
     def test_construye_modelo_valido_con_minimo(self):
@@ -421,6 +430,7 @@ class TestBuildModeloHelper:
 # 10. Integración con pipeline (sin red)
 # ============================================================================
 
+
 class TestIntegracionPipeline:
     def test_pipeline_acepta_persistence_inyectada(self):
         custom_p = CatastroPersistence(dry_run=True)
@@ -446,9 +456,10 @@ class TestIntegracionPipeline:
 # 11. Test opt-in real (skip default)
 # ============================================================================
 
+
 @pytest.mark.skipif(
     os.environ.get("SUPABASE_INTEGRATION_TESTS", "").lower() != "true",
-    reason="opt-in: setea SUPABASE_INTEGRATION_TESTS=true + SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY"
+    reason="opt-in: setea SUPABASE_INTEGRATION_TESTS=true + SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY",
 )
 class TestIntegracionRealOptIn:
     def test_rpc_real_smoke(self, modelo_minimo):

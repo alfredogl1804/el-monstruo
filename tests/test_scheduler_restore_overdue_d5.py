@@ -89,9 +89,7 @@ async def test_restore_keeps_overdue_next_run_in_past():
 
     # Y debe estar efectivamente en el pasado vs ahora
     now_iso = _now_utc_iso()
-    assert task.next_run < now_iso, (
-        f"next_run debe ser < now: next_run={task.next_run} now={now_iso}"
-    )
+    assert task.next_run < now_iso, f"next_run debe ser < now: next_run={task.next_run} now={now_iso}"
 
 
 # ── Test 2: loop dispara la task overdue inmediatamente ──────────────────────
@@ -116,6 +114,7 @@ async def test_overdue_task_executes_within_one_loop_cycle():
     # asyncio.create_task se uso dentro de _check_and_execute_due_tasks; dejar
     # tiempo a que se schedulee y se ejecute el handler
     import asyncio
+
     await asyncio.sleep(0.05)
 
     assert handler_called.await_count >= 1, (
@@ -137,6 +136,7 @@ async def test_log_seconds_overdue_calculated_correctly(caplog):
 
     # structlog escribe via logging stdlib; capturar todo a nivel INFO
     import structlog
+
     structlog.configure(
         processors=[structlog.stdlib.render_to_log_kwargs],
         logger_factory=structlog.stdlib.LoggerFactory(),
@@ -148,7 +148,8 @@ async def test_log_seconds_overdue_calculated_correctly(caplog):
 
     # Buscar el log estructurado de overdue
     overdue_logs = [
-        rec for rec in caplog.records
+        rec
+        for rec in caplog.records
         if rec.name == "kernel.embrion_scheduler"
         and (
             "scheduler_task_overdue_at_restore" in (rec.getMessage() or "")
@@ -212,9 +213,7 @@ async def test_restore_does_not_modify_future_next_run():
 
     task = next(iter(scheduler._tasks.values()))
     assert task.next_run == future_iso, (
-        f"REGRESION: next_run en futuro fue modificado.\n"
-        f"  esperado: {future_iso}\n"
-        f"  recibido: {task.next_run}"
+        f"REGRESION: next_run en futuro fue modificado.\n  esperado: {future_iso}\n  recibido: {task.next_run}"
     )
 
 

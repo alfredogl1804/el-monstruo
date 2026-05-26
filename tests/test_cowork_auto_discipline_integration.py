@@ -15,6 +15,7 @@ Cubre:
 Run:
     pytest tests/test_cowork_auto_discipline_integration.py -v
 """
+
 from __future__ import annotations
 
 import sys
@@ -38,31 +39,37 @@ from kernel.cowork_runtime.pre_response_hook import CoworkPreResponseHook
 from tools._check_cowork_verbatim_citations import check_verbatim_citations
 from tools.check_cowork_no_speculative_claims import check_speculative_claims
 
-
 # ============================================================================
 # F21_PATTERNS CATALOG
 # ============================================================================
+
 
 class TestF21PatternsCatalog:
     """Catálogo F21_PATTERNS canónico — 10 patterns P1-P10."""
 
     def test_catalog_has_10_patterns(self):
-        assert len(F21_PATTERNS) == 10, (
-            f"Spec firmado §2.1 exige 10 patterns P1-P10. Found {len(F21_PATTERNS)}."
-        )
+        assert len(F21_PATTERNS) == 10, f"Spec firmado §2.1 exige 10 patterns P1-P10. Found {len(F21_PATTERNS)}."
 
     def test_version_string(self):
         assert F21_PATTERNS_VERSION == "1.0.0"
 
-    @pytest.mark.parametrize("expected_id", [
-        "diff_stats", "db_schema", "model_versions", "commit_hashes",
-        "git_state", "pr_existence", "migration_filename", "branch_overlap",
-        "test_count", "rls_policy",
-    ])
+    @pytest.mark.parametrize(
+        "expected_id",
+        [
+            "diff_stats",
+            "db_schema",
+            "model_versions",
+            "commit_hashes",
+            "git_state",
+            "pr_existence",
+            "migration_filename",
+            "branch_overlap",
+            "test_count",
+            "rls_policy",
+        ],
+    )
     def test_pattern_id_present(self, expected_id):
-        assert expected_id in all_pattern_ids(), (
-            f"Pattern id {expected_id} ausente del catálogo canónico."
-        )
+        assert expected_id in all_pattern_ids(), f"Pattern id {expected_id} ausente del catálogo canónico."
 
     def test_all_patterns_have_required_fields(self):
         required = {"id", "regex", "description", "requires_tool_call", "severity"}
@@ -73,9 +80,7 @@ class TestF21PatternsCatalog:
     def test_severity_values_valid(self):
         valid_severities = {"P0", "P1", "P2"}
         for p in F21_PATTERNS:
-            assert p["severity"] in valid_severities, (
-                f"Pattern {p['id']} severity inválido: {p['severity']}"
-            )
+            assert p["severity"] in valid_severities, f"Pattern {p['id']} severity inválido: {p['severity']}"
 
     def test_get_pattern_by_id(self):
         assert get_pattern_by_id("diff_stats") is not None
@@ -85,6 +90,7 @@ class TestF21PatternsCatalog:
 # ============================================================================
 # F21 PATTERN DETECTOR
 # ============================================================================
+
 
 class TestF21PatternDetector:
     """tools/check_cowork_no_speculative_claims.py — detector runtime."""
@@ -164,6 +170,7 @@ class TestF21PatternDetector:
 # VERBATIM CITATIONS
 # ============================================================================
 
+
 class TestVerbatimCitations:
     """tools/_check_cowork_verbatim_citations.py — citation enforcement."""
 
@@ -209,6 +216,7 @@ class TestVerbatimCitations:
 # ============================================================================
 # HOOK INTEGRATION
 # ============================================================================
+
 
 class TestHookIntegration:
     """CoworkPreResponseHook con auto-discipline T4 integrado."""
@@ -262,10 +270,7 @@ class TestHookIntegration:
         hook.intercept(output, user_message="ya")
         rec = hook.last_invocation_record
         # Con tool calls registrados, no debe haber F21 violations de diff_stats
-        f21_ids = {
-            v.get("pattern_id") for v in rec["violations_detected"]
-            if v.get("detector") == "f21_patterns"
-        }
+        f21_ids = {v.get("pattern_id") for v in rec["violations_detected"] if v.get("detector") == "f21_patterns"}
         assert "diff_stats" not in f21_ids
 
     def test_history_capped_at_max(self):
@@ -302,16 +307,18 @@ class TestHookIntegration:
 # ANTIPATTERNS MODULE F23-F27
 # ============================================================================
 
+
 class TestAntipatternsModule:
     """kernel/cowork_runtime/antipatterns.py — F23-F27 + re-export F1-F22."""
 
     def test_module_imports(self):
         from kernel.cowork_runtime.antipatterns import (
-            NEW_ANTIPATTERNS,
-            ANTIPATTERNS_VERSION,
             ALL_ANTIPATTERN_IDS,
+            ANTIPATTERNS_VERSION,
             HISTORICAL_ANTIPATTERN_IDS,
+            NEW_ANTIPATTERNS,
         )
+
         assert ANTIPATTERNS_VERSION == "1.0.0"
         assert len(NEW_ANTIPATTERNS) == 5
         assert len(HISTORICAL_ANTIPATTERN_IDS) == 22
@@ -320,6 +327,7 @@ class TestAntipatternsModule:
     @pytest.mark.parametrize("ap_id", ["F23", "F24", "F25", "F26", "F27"])
     def test_new_antipatterns_present(self, ap_id):
         from kernel.cowork_runtime.antipatterns import get_antipattern_by_id
+
         ap = get_antipattern_by_id(ap_id)
         assert ap is not None
         assert ap["id"] == ap_id
@@ -330,12 +338,14 @@ class TestAntipatternsModule:
 
     def test_historical_f1_f22_referenced(self):
         from kernel.cowork_runtime.antipatterns import HISTORICAL_ANTIPATTERN_IDS
+
         for i in range(1, 23):
             assert f"F{i}" in HISTORICAL_ANTIPATTERN_IDS
 
     def test_get_canonical_hard_rules_returns_string(self):
         """Re-export F1-F22 desde rule_reinjection no debe romperse."""
         from kernel.cowork_runtime.antipatterns import get_canonical_hard_rules
+
         rules = get_canonical_hard_rules()
         assert isinstance(rules, str)
         # rules debe contener al menos algún F-pattern reference
@@ -345,6 +355,7 @@ class TestAntipatternsModule:
 # ============================================================================
 # HEURISTICA AUDIT vs CHAT
 # ============================================================================
+
 
 class TestAuditHeuristic:
     """output_parece_audit — heurística para patterns only_in_audit_outputs."""

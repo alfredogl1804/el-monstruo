@@ -29,6 +29,7 @@ CI / opt-in:
     test_integration_dashboard_against_railway (gated por
     MEMENTO_INTEGRATION_TESTS=true).
 """
+
 from __future__ import annotations
 
 import json
@@ -99,7 +100,14 @@ def main() -> int:
     if ok:
         try:
             data = json.loads(body)
-            for key in ("health", "window", "validations_last_24h", "contamination_last_24h", "top_operations", "top_hilos"):
+            for key in (
+                "health",
+                "window",
+                "validations_last_24h",
+                "contamination_last_24h",
+                "top_operations",
+                "top_hilos",
+            ):
                 present = key in data
                 _print(f"presente '{key}'", present)
                 failures += 0 if present else 1
@@ -131,7 +139,7 @@ def main() -> int:
     failures += 0 if ok else 1
     ctype = hdrs.get("content-type", hdrs.get("Content-Type", ""))
     is_html = "text/html" in ctype.lower()
-    _print(f"content-type es text/html", is_html, f"got '{ctype}'")
+    _print("content-type es text/html", is_html, f"got '{ctype}'")
     failures += 0 if is_html else 1
 
     # ── Caso 4: reload sin auth → 401 ─────────────────────────────────────
@@ -154,12 +162,22 @@ def main() -> int:
     if ok:
         try:
             data = json.loads(body)
-            for key in ("status", "loaded_from", "critical_operations_count", "sources_of_truth_count", "reload_runtime_ms"):
+            for key in (
+                "status",
+                "loaded_from",
+                "critical_operations_count",
+                "sources_of_truth_count",
+                "reload_runtime_ms",
+            ):
                 _print(f"presente '{key}'", key in data)
                 failures += 0 if key in data else 1
             print(f"  → loaded_from: {data.get('loaded_from')}")
-            print(f"  → critical_operations: {data.get('critical_operations_count')} (antes {data.get('previous_critical_operations_count')})")
-            print(f"  → sources_of_truth:    {data.get('sources_of_truth_count')} (antes {data.get('previous_sources_of_truth_count')})")
+            print(
+                f"  → critical_operations: {data.get('critical_operations_count')} (antes {data.get('previous_critical_operations_count')})"
+            )
+            print(
+                f"  → sources_of_truth:    {data.get('sources_of_truth_count')} (antes {data.get('previous_sources_of_truth_count')})"
+            )
             print(f"  → reload_runtime_ms:   {data.get('reload_runtime_ms')}")
         except json.JSONDecodeError:
             _print("JSON parseable", False, body[:200])

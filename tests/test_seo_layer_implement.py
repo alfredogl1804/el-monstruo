@@ -1,4 +1,5 @@
 """Tests del SeoLayer.implement() y .monitor() reales (DSC-G-002)."""
+
 from __future__ import annotations
 
 import json
@@ -10,7 +11,6 @@ sys.path.insert(0, str(ROOT))
 
 from kernel.transversales import (  # noqa: E402
     BusinessModelArchetype,
-    GeoRegion,
     RestrictedVerticalError,
     TransversalContext,
     VerticalId,
@@ -120,10 +120,7 @@ def test_implement_propagates_validation_tags():
     ctx = _ctx(VerticalId.CIP, BusinessModelArchetype.TOKENIZED_REAL_ESTATE)
     rec = layer.recommend(ctx)
     art = layer.implement(rec)
-    assert any(
-        "[NEEDS_PERPLEXITY_VALIDATION]" in t
-        for t in art["validation_tags_pending"]
-    )
+    assert any("[NEEDS_PERPLEXITY_VALIDATION]" in t for t in art["validation_tags_pending"])
 
 
 def test_implement_for_mena_baduy_raises_via_recommend():

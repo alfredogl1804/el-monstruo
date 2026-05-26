@@ -5,19 +5,22 @@ Aplicar migración 0002_embrion_budget_state.sql.
 Idempotente: usa CREATE TABLE IF NOT EXISTS y CREATE INDEX IF NOT EXISTS.
 Reentrante: se puede correr múltiples veces sin efectos secundarios.
 """
+
 import os
 import sys
 
 import psycopg2
-from psycopg2 import sql
 
 DB_URL = os.environ.get("SUPABASE_DB_URL")
 if not DB_URL:
-    print("FATAL: SUPABASE_DB_URL no esta seteada"); sys.exit(99)
+    print("FATAL: SUPABASE_DB_URL no esta seteada")
+    sys.exit(99)
 
 MIGRATION_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "migrations", "sql", "0002_embrion_budget_state.sql",
+    "migrations",
+    "sql",
+    "0002_embrion_budget_state.sql",
 )
 
 with open(MIGRATION_PATH) as f:

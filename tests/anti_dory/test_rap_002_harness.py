@@ -21,6 +21,7 @@ Casos (corresponden a §A.11 del SPEC):
 
 Ejecución: pytest tests/anti_dory/test_rap_002_harness.py -v
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -29,29 +30,24 @@ from typing import Any, Optional
 import pytest
 
 from kernel.anti_dory.context_broker import (
-    AttachmentPack,
-    CONFIDENCE_MIN_AUTO,
-    ContextBroker,
     STALENESS_THRESHOLD_SECONDS,
+    ContextBroker,
     canonical_state_hash,
 )
 from kernel.anti_dory.guardian import (
-    AttachmentVerdict,
     HaltAttachmentMismatch,
     verify_attachment_contract,
-    verify_state_hash,
 )
 from kernel.anti_dory.recovery import RecoveryMode
 from kernel.anti_dory.writers import (
     AgentExplicitWriter,
     HeartbeatWriter,
-    WriteResult,
 )
-
 
 # =============================================================================
 # Mock RPC client (NO toca Supabase real)
 # =============================================================================
+
 
 class MockRPCClient:
     """RPC client en memoria. Soporta los 5 RPCs canónicos.
@@ -88,8 +84,7 @@ class MockRPCClient:
 
         if name == "rpc_accept_snapshot":
             if self.accept_should_fail:
-                return [{"accepted": False, "new_lock_version": None,
-                         "conflict_reason": "lock_version_mismatch"}]
+                return [{"accepted": False, "new_lock_version": None, "conflict_reason": "lock_version_mismatch"}]
             return [{"accepted": True, "new_lock_version": 1, "conflict_reason": None}]
 
         if name == "rpc_recovery_scan":
@@ -101,6 +96,7 @@ class MockRPCClient:
 # =============================================================================
 # Fixtures
 # =============================================================================
+
 
 @pytest.fixture
 def rpc() -> MockRPCClient:
@@ -135,6 +131,7 @@ def fresh_head_payload() -> dict[str, Any]:
 # CASO A — Happy path
 # =============================================================================
 
+
 def test_caso_a_happy_path(rpc: MockRPCClient, fresh_head_payload: dict[str, Any]) -> None:
     """Snapshot fresh + confidence alta → ATTACHMENT_OK + Guardian passed."""
     rpc.stub_head = fresh_head_payload
@@ -160,6 +157,7 @@ def test_caso_a_happy_path(rpc: MockRPCClient, fresh_head_payload: dict[str, Any
 # =============================================================================
 # CASO B — Crash mid-session (no write_on_final)
 # =============================================================================
+
 
 def test_caso_b_crash_mid_session_heartbeat_recovers(rpc: MockRPCClient) -> None:
     """Sin head (write_on_final no ocurrió) pero heartbeat dejó pending snapshot.
@@ -197,6 +195,7 @@ def test_caso_b_crash_mid_session_heartbeat_recovers(rpc: MockRPCClient) -> None
 # CASO C — Concurrencia CAS
 # =============================================================================
 
+
 def test_caso_c_concurrency_cas_conflict(rpc: MockRPCClient) -> None:
     """Dos writers intentan accept_snapshot → uno gana, otro conflict."""
     rpc.accept_should_fail = True  # simula que ya hubo otro accept antes
@@ -221,6 +220,7 @@ def test_caso_c_concurrency_cas_conflict(rpc: MockRPCClient) -> None:
 # =============================================================================
 # CASO D — Stale snapshot
 # =============================================================================
+
 
 def test_caso_d_stale_snapshot_blocks_attachment(rpc: MockRPCClient) -> None:
     """Snapshot age > threshold → attachment_ok=False, fallback_reason='stale'."""
@@ -261,6 +261,7 @@ def test_caso_d_stale_snapshot_blocks_attachment(rpc: MockRPCClient) -> None:
 # CASO E — Sprint bloqueado / writer_mode inválido
 # =============================================================================
 
+
 def test_caso_e_invalid_writer_mode_blocks(rpc: MockRPCClient) -> None:
     """Si head tiene writer_mode inválido → R7 violation."""
     rpc.stub_head = {
@@ -295,6 +296,7 @@ def test_caso_e_invalid_writer_mode_blocks(rpc: MockRPCClient) -> None:
 # CASO F — do_not_touch expuesto correctamente
 # =============================================================================
 
+
 def test_caso_f_do_not_touch_expuesto_y_visible(rpc: MockRPCClient, fresh_head_payload: dict[str, Any]) -> None:
     """do_not_touch debe aparecer en el prompt hidratado para que el agente lo respete."""
     rpc.stub_head = fresh_head_payload
@@ -319,6 +321,7 @@ def test_caso_f_do_not_touch_expuesto_y_visible(rpc: MockRPCClient, fresh_head_p
 # CASO G — No-events → HARD_FAILURE
 # =============================================================================
 
+
 def test_caso_g_no_events_hard_failure(rpc: MockRPCClient) -> None:
     """Front sin runtime_events → RecoveryMode declara HARD_FAILURE explícito."""
     rpc.stub_head = None
@@ -340,6 +343,7 @@ def test_caso_g_no_events_hard_failure(rpc: MockRPCClient) -> None:
 # =============================================================================
 # Extras de robustez
 # =============================================================================
+
 
 def test_feature_flag_off_devuelve_prompt_intacto(rpc: MockRPCClient, fresh_head_payload: dict[str, Any]) -> None:
     rpc.stub_head = fresh_head_payload

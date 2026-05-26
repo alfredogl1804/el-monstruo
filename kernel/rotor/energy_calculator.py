@@ -101,10 +101,7 @@ class RotorActivity:
 
     def __post_init__(self) -> None:
         if self.source not in VALID_SOURCES:
-            raise ValueError(
-                f"RotorActivity.source invalido: {self.source!r}. "
-                f"Validos: {sorted(VALID_SOURCES)}"
-            )
+            raise ValueError(f"RotorActivity.source invalido: {self.source!r}. Validos: {sorted(VALID_SOURCES)}")
         if not isinstance(self.actor, str) or not self.actor.strip():
             raise ValueError("RotorActivity.actor debe ser un string no vacio")
 

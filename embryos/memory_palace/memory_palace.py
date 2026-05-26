@@ -56,10 +56,22 @@ def _check_for_raw_cot(text: str) -> bool:
 def _validate_entry(entry: dict) -> tuple[bool, str]:
     """Validate a memory entry against constraints."""
     required_fields = [
-        "memory_id", "timestamp", "source_embryo_id", "cycle_id",
-        "task_id", "action_class", "artifact_refs", "claims_count",
-        "grounding_score", "auditor_verdict", "value_score", "cost_usd",
-        "lessons", "avoid_next_time", "next_best_action", "status"
+        "memory_id",
+        "timestamp",
+        "source_embryo_id",
+        "cycle_id",
+        "task_id",
+        "action_class",
+        "artifact_refs",
+        "claims_count",
+        "grounding_score",
+        "auditor_verdict",
+        "value_score",
+        "cost_usd",
+        "lessons",
+        "avoid_next_time",
+        "next_best_action",
+        "status",
     ]
     for field in required_fields:
         if field not in entry:
@@ -103,8 +115,8 @@ def load_memory_palace(state_file: Optional[Path] = None) -> dict:
             "total_active": 0,
             "unique_embryos": [],
             "unique_tasks": [],
-            "total_cost_usd": 0.0
-        }
+            "total_cost_usd": 0.0,
+        },
     }
 
 
@@ -125,7 +137,7 @@ def _update_stats(state: dict):
         "total_active": len(active),
         "unique_embryos": list(set(e["source_embryo_id"] for e in entries)),
         "unique_tasks": list(set(e["task_id"] for e in entries)),
-        "total_cost_usd": round(sum(e["cost_usd"] for e in entries), 6)
+        "total_cost_usd": round(sum(e["cost_usd"] for e in entries), 6),
     }
 
 
@@ -152,15 +164,13 @@ def retrieve_recent_entries(n: int = 5, state_file: Optional[Path] = None) -> li
 def retrieve_by_embryo_id(embryo_id: str, state_file: Optional[Path] = None) -> list:
     """Retrieve all active entries for a specific embryo."""
     state = load_memory_palace(state_file)
-    return [e for e in state["entries"]
-            if e["source_embryo_id"] == embryo_id and e["status"] == "active"]
+    return [e for e in state["entries"] if e["source_embryo_id"] == embryo_id and e["status"] == "active"]
 
 
 def retrieve_by_artifact_id(artifact_ref: str, state_file: Optional[Path] = None) -> list:
     """Retrieve all entries referencing a specific artifact."""
     state = load_memory_palace(state_file)
-    return [e for e in state["entries"]
-            if artifact_ref in e["artifact_refs"] and e["status"] == "active"]
+    return [e for e in state["entries"] if artifact_ref in e["artifact_refs"] and e["status"] == "active"]
 
 
 def retrieve_lessons(state_file: Optional[Path] = None) -> list:
@@ -170,20 +180,21 @@ def retrieve_lessons(state_file: Optional[Path] = None) -> list:
     for e in state["entries"]:
         if e["status"] == "active" and e["lessons"]:
             for lesson in e["lessons"]:
-                lessons.append({
-                    "lesson": lesson,
-                    "source_embryo": e["source_embryo_id"],
-                    "task_id": e["task_id"],
-                    "timestamp": e["timestamp"]
-                })
+                lessons.append(
+                    {
+                        "lesson": lesson,
+                        "source_embryo": e["source_embryo_id"],
+                        "task_id": e["task_id"],
+                        "timestamp": e["timestamp"],
+                    }
+                )
     return lessons
 
 
 def retrieve_low_value_patterns(threshold: float = 4.0, state_file: Optional[Path] = None) -> list:
     """Retrieve entries with value_score below threshold (low value patterns)."""
     state = load_memory_palace(state_file)
-    return [e for e in state["entries"]
-            if e["status"] == "active" and e["value_score"] < threshold]
+    return [e for e in state["entries"] if e["status"] == "active" and e["value_score"] < threshold]
 
 
 def score_task_against_memory(task_id: str, embryo_id: str, state_file: Optional[Path] = None) -> dict:
@@ -192,8 +203,7 @@ def score_task_against_memory(task_id: str, embryo_id: str, state_file: Optional
     active = [e for e in state["entries"] if e["status"] == "active"]
 
     # Find previous executions of this task by this embryo
-    prev_executions = [e for e in active
-                       if e["task_id"] == task_id and e["source_embryo_id"] == embryo_id]
+    prev_executions = [e for e in active if e["task_id"] == task_id and e["source_embryo_id"] == embryo_id]
 
     if not prev_executions:
         return {
@@ -202,7 +212,7 @@ def score_task_against_memory(task_id: str, embryo_id: str, state_file: Optional
             "avg_value_score": 0,
             "penalty": 0.0,
             "boost": 0.0,
-            "recommendation": "NEW_TASK_NO_HISTORY"
+            "recommendation": "NEW_TASK_NO_HISTORY",
         }
 
     repetition_count = len(prev_executions)
@@ -230,7 +240,7 @@ def score_task_against_memory(task_id: str, embryo_id: str, state_file: Optional
         "avg_value_score": round(avg_value, 2),
         "penalty": round(penalty, 2),
         "boost": round(boost, 2),
-        "recommendation": recommendation
+        "recommendation": recommendation,
     }
 
 
@@ -269,5 +279,5 @@ def export_memory_snapshot(state_file: Optional[Path] = None) -> dict:
         "stats": state["stats"],
         "recent_entries": retrieve_recent_entries(5, state_file),
         "lessons": retrieve_lessons(state_file),
-        "low_value_patterns": retrieve_low_value_patterns(state_file=state_file)
+        "low_value_patterns": retrieve_low_value_patterns(state_file=state_file),
     }

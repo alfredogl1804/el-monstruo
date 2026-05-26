@@ -31,7 +31,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from conector_sabios import consultar_sabio
 from json_parser import parse_json
 
-
 JUDGE_PROMPT = """Eres un juez experto evaluando la calidad de una síntesis generada por un orquestador AI.
 
 Tu trabajo es evaluar si la síntesis refleja fielmente y de manera útil las respuestas individuales de los sabios consultados.
@@ -80,12 +79,12 @@ async def judge(
 ) -> dict:
     """
     Evalúa la calidad de una síntesis.
-    
+
     Args:
         sintesis_text: Texto de la síntesis final
         respuestas_individuales: dict {sabio_id: respuesta_text}
         judge_model: Modelo a usar como juez (diferente al orquestador)
-    
+
     Returns:
         dict con scores, fortalezas, debilidades, recomendaciones
     """
@@ -95,21 +94,21 @@ async def judge(
         # Truncar respuestas muy largas para no exceder contexto del juez
         truncated = resp[:8000] if len(resp) > 8000 else resp
         resp_text += f"\n### {sabio_id.upper()}\n{truncated}\n"
-    
+
     prompt = JUDGE_PROMPT.format(
         respuestas_individuales=resp_text,
         sintesis=sintesis_text[:15000],  # Truncar síntesis si es muy larga
     )
-    
+
     print(f"⚖️  Evaluando síntesis con {judge_model} como juez...")
-    
+
     resultado = await consultar_sabio(
         sabio_id=judge_model,
         prompt=prompt,
         system="Eres un evaluador experto de síntesis multi-agente. Responde SOLO con JSON válido.",
         reintentos=2,
     )
-    
+
     if not resultado["exito"]:
         print(f"❌ Error del juez: {resultado.get('error', 'desconocido')}")
         # Intentar con modelo alternativo
@@ -123,41 +122,39 @@ async def judge(
         )
         if not resultado["exito"]:
             return {"error": "Ningún juez pudo evaluar", "score_global": 0}
-    
+
     # Parsear resultado
     evaluation = parse_json(resultado["respuesta"])
-    
+
     if not evaluation or not isinstance(evaluation, dict):
         return {"error": "No se pudo parsear la evaluación", "score_global": 0}
-    
+
     # Calcular score global si no viene
     if "score_global" not in evaluation or not evaluation["score_global"]:
         scores = evaluation.get("scores", {})
         if scores:
-            evaluation["score_global"] = round(
-                sum(scores.values()) / len(scores), 3
-            )
-    
+            evaluation["score_global"] = round(sum(scores.values()) / len(scores), 3)
+
     evaluation["judge_model"] = judge_model
-    
+
     # Imprimir resumen
-    print(f"\n📊 Evaluación de la síntesis:")
+    print("\n📊 Evaluación de la síntesis:")
     scores = evaluation.get("scores", {})
     for dim, score in scores.items():
         bar = "█" * int(score * 10) + "░" * (10 - int(score * 10))
         print(f"   {dim:20s} {bar} {score:.2f}")
-    print(f"   {'GLOBAL':20s} {'='*10} {evaluation.get('score_global', 0):.2f}")
-    
+    print(f"   {'GLOBAL':20s} {'=' * 10} {evaluation.get('score_global', 0):.2f}")
+
     if evaluation.get("debilidades"):
-        print(f"\n   ⚠️  Debilidades:")
+        print("\n   ⚠️  Debilidades:")
         for d in evaluation["debilidades"][:3]:
             print(f"      • {d}")
-    
+
     if evaluation.get("ideas_omitidas"):
-        print(f"\n   🔍 Ideas omitidas:")
+        print("\n   🔍 Ideas omitidas:")
         for i in evaluation["ideas_omitidas"][:3]:
             print(f"      • {i}")
-    
+
     return evaluation
 
 
@@ -168,7 +165,7 @@ async def judge_from_files(
 ) -> dict:
     """
     Evalúa desde archivos en disco.
-    
+
     Args:
         sintesis_path: Ruta a la síntesis final
         respuestas_dir: Directorio con resp_*.md
@@ -177,30 +174,31 @@ async def judge_from_files(
     # Leer síntesis
     with open(sintesis_path, "r", encoding="utf-8") as f:
         sintesis_text = f.read()
-    
+
     # Leer respuestas individuales
     respuestas = {}
     resp_dir = Path(respuestas_dir)
     for f in sorted(resp_dir.glob("resp_*.md")):
         sabio_id = f.stem.replace("resp_", "")
         respuestas[sabio_id] = f.read_text(encoding="utf-8")
-    
+
     if not respuestas:
         # Intentar con .json
         for f in sorted(resp_dir.glob("resp_*.json")):
             sabio_id = f.stem.replace("resp_", "")
             data = json.loads(f.read_text(encoding="utf-8"))
             respuestas[sabio_id] = data.get("respuesta", str(data))
-    
+
     print(f"📄 Síntesis: {len(sintesis_text):,} chars")
     print(f"📄 Respuestas: {len(respuestas)} sabios ({', '.join(respuestas.keys())})")
-    
+
     return await judge(sintesis_text, respuestas, judge_model)
 
 
 # ═══════════════════════════════════════════════════════════════
 # CLI
 # ═══════════════════════════════════════════════════════════════
+
 
 async def main():
     parser = argparse.ArgumentParser(description="Juez automático de síntesis")

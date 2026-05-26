@@ -14,24 +14,20 @@ Cubre:
 Disciplina anti-Dory: mocks aislados, no asume estado del repo real,
 usa fixtures temporales con git init para H1.
 """
+
 from __future__ import annotations
 
 import asyncio
-import os
 import subprocess
-import tempfile
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock
 
 import pytest
 
 from kernel.memento.contamination_detector import (
     ContaminationDetector,
     ContaminationFinding,
-    ContaminationReport,
 )
-
 
 # ===========================================================================
 # Fixtures — Mock DB y repo git temporal
@@ -413,7 +409,12 @@ class TestH3NoRecentPreflight:
         """Hilo nuevo con < 5 validaciones recientes → no dispara (anti-FP)."""
         now = datetime.now(timezone.utc)
         rows = [
-            {"validation_id": f"mv_{i}", "operation": "other", "hilo_id": "hilo_nuevo", "ts": (now - timedelta(minutes=i)).isoformat()}
+            {
+                "validation_id": f"mv_{i}",
+                "operation": "other",
+                "hilo_id": "hilo_nuevo",
+                "ts": (now - timedelta(minutes=i)).isoformat(),
+            }
             for i in range(2)
         ]
         db = MockDB(rows)

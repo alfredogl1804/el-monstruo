@@ -4,9 +4,9 @@ Debug del error rpc_validation observado en el primer run del Catastro
 (37/37 modelos fallaron). Llama UNA RPC real con un modelo sintético y
 captura el error_message completo para diagnóstico.
 """
+
 from __future__ import annotations
 
-import json
 import os
 import sys
 from pathlib import Path
@@ -19,10 +19,7 @@ from supabase import create_client  # type: ignore
 
 def main() -> int:
     url = os.environ.get("SUPABASE_URL", "").strip()
-    key = (
-        os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
-        or os.environ.get("SUPABASE_SERVICE_KEY", "")
-    ).strip()
+    key = (os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "") or os.environ.get("SUPABASE_SERVICE_KEY", "")).strip()
     if not (url and key):
         print("ERROR: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY requeridas", file=sys.stderr)
         return 1

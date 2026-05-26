@@ -2,21 +2,27 @@
 14 mandatory tests for T1 Cockpit Data Injector v0.1.
 Criterion: 14/14 PASS.
 """
+
+import json
 import os
 import sys
-import json
 import tempfile
 
 ARTIFACT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ARTIFACT_DIR)
 
 from t1_cockpit_data_injector_v0_1 import (
-    load_json_safe, count_files, get_latest_file,
-    compute_pilot_health, build_embryo_summary,
-    build_directive_summary, build_memory_summary,
-    build_epoch_history, generate_cockpit_fixture,
-    MEMORY_PALACE_PATH, DIRECTIVE_QUEUE_PATH, KILL_SWITCH_PATH,
-    ORACLE_STATE_PATH, AUDITOR_STATE_PATH
+    MEMORY_PALACE_PATH,
+    ORACLE_STATE_PATH,
+    build_directive_summary,
+    build_embryo_summary,
+    build_epoch_history,
+    build_memory_summary,
+    compute_pilot_health,
+    count_files,
+    generate_cockpit_fixture,
+    get_latest_file,
+    load_json_safe,
 )
 
 passed = 0
@@ -30,7 +36,7 @@ def test(name, condition):
         print(f"  PASS [{passed:02d}] {name}")
     else:
         failed += 1
-        print(f"  FAIL [{passed+failed:02d}] {name}")
+        print(f"  FAIL [{passed + failed:02d}] {name}")
 
 
 print("=" * 60)
@@ -88,9 +94,18 @@ finally:
         os.unlink(tmp_path)
 
 # 13. fixture has all required top-level keys
-required_keys = ["cockpit_version", "generated_at", "generator", "pilot_health",
-                 "embryos", "directives", "memory_palace", "epoch_history",
-                 "outputs", "cost_summary"]
+required_keys = [
+    "cockpit_version",
+    "generated_at",
+    "generator",
+    "pilot_health",
+    "embryos",
+    "directives",
+    "memory_palace",
+    "epoch_history",
+    "outputs",
+    "cost_summary",
+]
 test("fixture has all keys", all(k in fixture for k in required_keys))
 
 # 14. No secrets in fixture output
@@ -100,7 +115,7 @@ no_secrets = not any(p in fixture_str for p in secret_patterns)
 test("no secrets in fixture", no_secrets)
 
 print("=" * 60)
-print(f"RESULT: {passed}/{passed+failed} PASS, {failed}/{passed+failed} FAIL")
+print(f"RESULT: {passed}/{passed + failed} PASS, {failed}/{passed + failed} FAIL")
 print("=" * 60)
 
 sys.exit(0 if failed == 0 else 1)

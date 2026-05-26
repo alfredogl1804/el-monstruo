@@ -23,9 +23,9 @@ Métricas globales:
 T3: get_global_metrics() retorna dashboard completo
 T5: Command Center puede consumir /v1/embrion/metrics para dashboard
 """
+
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Optional
@@ -38,6 +38,7 @@ logger = structlog.get_logger("observability.embrion_metrics")
 @dataclass
 class EmbrionMetrics:
     """Métricas de un Embrión individual."""
+
     embrion_id: str = ""
     tasks_completed: int = 0
     tasks_failed: int = 0
@@ -183,10 +184,7 @@ class EmbrionMetricsCollector:
         total_completed = sum(m.tasks_completed for m in self._metrics.values())
         total_failed = sum(m.tasks_failed for m in self._metrics.values())
         total_tasks = total_completed + total_failed
-        active = sum(
-            1 for m in self._metrics.values()
-            if m.last_action_at is not None
-        )
+        active = sum(1 for m in self._metrics.values() if m.last_action_at is not None)
 
         # Embrión más activo
         top_embrion = None

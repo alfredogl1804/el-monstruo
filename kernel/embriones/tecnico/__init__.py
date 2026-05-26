@@ -9,12 +9,13 @@ Patrón:
 - Capa Memento: lee OPENAI_API_KEY en runtime, fallback heurístico determinístico
 - Brand DNA en errores: embrion_tecnico_*_failed
 """
+
 from kernel.embriones.tecnico.embrion_tecnico import (
+    EMBRION_TECNICO_LLM_INVALIDO,
     EmbrionTecnico,
     EmbrionTecnicoReport,
-    StackRecomendado,
     RiesgoTecnico,
-    EMBRION_TECNICO_LLM_INVALIDO,
+    StackRecomendado,
 )
 
 __all__ = [

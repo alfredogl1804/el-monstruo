@@ -39,12 +39,12 @@ Vars de entorno:
   GUARDIAN_STALE_HOURS: threshold de horas (default 48)
   GUARDIAN_STALE_HOOK_DISABLED: si "true", el hook no hace nada (escape hatch)
 """
+
 from __future__ import annotations
 
 import os
 import sys
 from datetime import datetime, timezone
-
 
 STALE_HOURS_DEFAULT = 48
 
@@ -141,8 +141,7 @@ def main() -> int:
 
     _print_banner(
         "OK",
-        f"ultima corrida del Guardian hace {age_hours:.1f}h "
-        f"(fresco, threshold {threshold_hours:.0f}h)",
+        f"ultima corrida del Guardian hace {age_hours:.1f}h (fresco, threshold {threshold_hours:.0f}h)",
     )
     return 0
 

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Tests for Oracle Auditor Embryo R0 v0.3 (Memory-Guided + Grounding Enforcement) — 20 Tests."""
+
+import json
 import os
 import sys
-import json
-import yaml
-import tempfile
 
 EMBRYO_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(EMBRYO_DIR))
@@ -24,7 +23,7 @@ def test(name, condition):
         print(f"  PASS [{PASS:02d}] {name}")
     else:
         FAIL += 1
-        print(f"  FAIL [{PASS+FAIL:02d}] {name}")
+        print(f"  FAIL [{PASS + FAIL:02d}] {name}")
 
 
 # ============================================================
@@ -41,7 +40,10 @@ test("state loads", state is not None and "embryo_id" in state)
 
 # 03. contract has grounding_enforcement v0.2
 contract = auditor.load_contract()
-test("contract has grounding_enforcement v0.2", "grounding_enforcement" in contract and contract["grounding_enforcement"]["version"] == "0.2.0")
+test(
+    "contract has grounding_enforcement v0.2",
+    "grounding_enforcement" in contract and contract["grounding_enforcement"]["version"] == "0.2.0",
+)
 
 # 04. grounding_enforcement has 4 scoring dimensions
 dims = contract["grounding_enforcement"]["scoring_dimensions"]
@@ -55,8 +57,24 @@ test("thresholds PASS=8 PARTIAL=5", thresholds["PASS"] == 8.0 and thresholds["PA
 well_grounded = {
     "output": {
         "claims": [
-            {"claim_id": "c1", "claim_text": "Better orchestration", "claim_type": "analytical", "evidence_status": "VERIFIED_LOCAL", "source_ref": "local", "freshness_required": False, "confidence": 0.9},
-            {"claim_id": "c2", "claim_text": "Improved latency", "claim_type": "factual", "evidence_status": "VERIFIED_PROVIDER", "source_ref": "provider", "freshness_required": False, "confidence": 0.85}
+            {
+                "claim_id": "c1",
+                "claim_text": "Better orchestration",
+                "claim_type": "analytical",
+                "evidence_status": "VERIFIED_LOCAL",
+                "source_ref": "local",
+                "freshness_required": False,
+                "confidence": 0.9,
+            },
+            {
+                "claim_id": "c2",
+                "claim_text": "Improved latency",
+                "claim_type": "factual",
+                "evidence_status": "VERIFIED_PROVIDER",
+                "source_ref": "provider",
+                "freshness_required": False,
+                "confidence": 0.85,
+            },
         ]
     }
 }
@@ -69,17 +87,59 @@ score2, penalties2, verdict2, details2 = auditor.enforce_grounding(no_claims, co
 test("enforce_grounding: no claims → penalty", any("no_claims_field" in p[0] for p in penalties2))
 
 # 08. enforce_grounding: NO_SOURCE high confidence → penalty
-bad = {"output": {"claims": [{"claim_id": "c1", "claim_text": "GPT-6 released", "claim_type": "factual", "evidence_status": "NO_SOURCE", "source_ref": "none", "freshness_required": False, "confidence": 0.95}]}}
+bad = {
+    "output": {
+        "claims": [
+            {
+                "claim_id": "c1",
+                "claim_text": "GPT-6 released",
+                "claim_type": "factual",
+                "evidence_status": "NO_SOURCE",
+                "source_ref": "none",
+                "freshness_required": False,
+                "confidence": 0.95,
+            }
+        ]
+    }
+}
 score3, penalties3, verdict3, _ = auditor.enforce_grounding(bad, contract)
 test("enforce_grounding: NO_SOURCE high conf → penalty", any("no_source_as_fact" in p[0] for p in penalties3))
 
 # 09. enforce_grounding: date without NEEDS_RTC → penalty
-date_bad = {"output": {"claims": [{"claim_id": "c1", "claim_text": "Released 2026-05-15", "claim_type": "factual", "evidence_status": "HYPOTHESIS", "source_ref": "none", "freshness_required": False, "confidence": 0.5}]}}
+date_bad = {
+    "output": {
+        "claims": [
+            {
+                "claim_id": "c1",
+                "claim_text": "Released 2026-05-15",
+                "claim_type": "factual",
+                "evidence_status": "HYPOTHESIS",
+                "source_ref": "none",
+                "freshness_required": False,
+                "confidence": 0.5,
+            }
+        ]
+    }
+}
 _, penalties4, _, _ = auditor.enforce_grounding(date_bad, contract)
 test("enforce_grounding: date without RTC → penalty", any("missing_freshness_on_date" in p[0] for p in penalties4))
 
 # 10. enforce_grounding: date with NEEDS_RTC → no freshness penalty
-date_good = {"output": {"claims": [{"claim_id": "c1", "claim_text": "Released 2026-05-15", "claim_type": "factual", "evidence_status": "NEEDS_REAL_TIME_CHECK", "source_ref": "none", "freshness_required": True, "confidence": 0.5}]}}
+date_good = {
+    "output": {
+        "claims": [
+            {
+                "claim_id": "c1",
+                "claim_text": "Released 2026-05-15",
+                "claim_type": "factual",
+                "evidence_status": "NEEDS_REAL_TIME_CHECK",
+                "source_ref": "none",
+                "freshness_required": True,
+                "confidence": 0.5,
+            }
+        ]
+    }
+}
 _, penalties5, _, _ = auditor.enforce_grounding(date_good, contract)
 test("enforce_grounding: date with RTC → no penalty", not any("missing_freshness_on_date" in p[0] for p in penalties5))
 
@@ -101,7 +161,7 @@ test("R1 DENY", d == "DENY")
 os.makedirs(os.path.dirname(auditor.KS_PATH), exist_ok=True)
 with open(auditor.KS_PATH, "w") as f:
     json.dump({"active": True}, f)
-test("kill-switch active detected", auditor.check_kill_switch() == True)
+test("kill-switch active detected", auditor.check_kill_switch())
 with open(auditor.KS_PATH, "w") as f:
     json.dump({"active": False}, f)
 
@@ -117,7 +177,15 @@ test("choose_next_task returns tuple", chosen is not None and isinstance(mem_inf
 # 17. build_auditor_memory_entry has required fields
 fake_task = {"task_id": "test_task", "action_class": "A1_ANALYZE"}
 entry = auditor.build_auditor_memory_entry(fake_task, "/fake/path.json", 8.5, "PASS", 0.001)
-required_fields = ["memory_id", "timestamp", "source_embryo_id", "task_id", "lessons", "avoid_next_time", "grounding_score"]
+required_fields = [
+    "memory_id",
+    "timestamp",
+    "source_embryo_id",
+    "task_id",
+    "lessons",
+    "avoid_next_time",
+    "grounding_score",
+]
 test("memory entry has required fields", all(f in entry for f in required_fields))
 
 # 18. memory entry for FAIL has avoid patterns
@@ -129,10 +197,23 @@ test("memory entry source is auditor", entry["source_embryo_id"] == "oracle_audi
 
 # 20. forbidden actions complete
 forbidden = contract.get("forbidden_action_classes", [])
-required = ["R1", "MEMORY_WRITE", "SUPABASE_WRITE", "DB_WRITE", "SECRET_READ", "SECRET_WRITE", "APP_VISION_UPDATE", "CANON_UPDATE", "PRE_IA_CLOSE", "PR_CREATE", "DEPLOY", "MAIN_MODIFY"]
+required = [
+    "R1",
+    "MEMORY_WRITE",
+    "SUPABASE_WRITE",
+    "DB_WRITE",
+    "SECRET_READ",
+    "SECRET_WRITE",
+    "APP_VISION_UPDATE",
+    "CANON_UPDATE",
+    "PRE_IA_CLOSE",
+    "PR_CREATE",
+    "DEPLOY",
+    "MAIN_MODIFY",
+]
 test("all forbidden enforced", all(f in forbidden for f in required))
 
-print(f"\n{'='*60}")
-print(f"RESULT: {PASS}/{PASS+FAIL} PASS, {FAIL}/{PASS+FAIL} FAIL")
-print(f"{'='*60}")
+print(f"\n{'=' * 60}")
+print(f"RESULT: {PASS}/{PASS + FAIL} PASS, {FAIL}/{PASS + FAIL} FAIL")
+print(f"{'=' * 60}")
 sys.exit(0 if FAIL == 0 else 1)

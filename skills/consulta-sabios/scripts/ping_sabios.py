@@ -9,13 +9,13 @@ Uso:
 """
 
 import asyncio
-import sys
 import os
+import sys
 
 # Agregar el directorio del script al path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from conector_sabios import ping_todos, resumen_resultados, SABIOS
+from conector_sabios import ping_todos, resumen_resultados
 
 
 async def main():

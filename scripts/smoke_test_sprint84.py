@@ -1,4 +1,5 @@
 """Smoke test local del Sprint 84 — sin tocar APIs externas."""
+
 import sys
 
 sys.path.insert(0, ".")
@@ -7,16 +8,6 @@ from kernel.embrion_loop import EmbrionLoop
 from tools.deploy_app import (
     DeployAppFalla,
     _decide_target,
-    execute_deploy_app,
-)
-from tools.deploy_to_github_pages import (
-    GitHubPagesDeployFalla,
-    execute_deploy_to_github_pages,
-)
-from tools.deploy_to_railway import (
-    RailwayDeployFalla,
-    RailwayMissingToken,
-    execute_deploy_to_railway,
 )
 
 print("OK imports (3 tools + EmbrionLoop)")

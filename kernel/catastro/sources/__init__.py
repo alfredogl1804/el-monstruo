@@ -17,26 +17,27 @@ Railway inyecte secretos en runtime sin reiniciar el proceso.
 
 [Hilo Manus Catastro] · 2026-05-04
 """
+
 from __future__ import annotations
 
+from kernel.catastro.sources.aime import AIMEFuente
+from kernel.catastro.sources.artificial_analysis import ArtificialAnalysisFuente
 from kernel.catastro.sources.base import (
     BaseFuente,
-    RawSnapshot,
     FuenteError,
     FuenteRateLimitError,
     FuenteTimeoutError,
     FuenteUnauthorizedError,
     FuenteUnavailableError,
+    RawSnapshot,
 )
-from kernel.catastro.sources.artificial_analysis import ArtificialAnalysisFuente
-from kernel.catastro.sources.openrouter import OpenRouterFuente
-from kernel.catastro.sources.lmarena import LMArenaFuente
-from kernel.catastro.sources.swe_bench import SWEBenchFuente
-from kernel.catastro.sources.human_eval import HumanEvalFuente
-from kernel.catastro.sources.mbpp import MBPPFuente
-from kernel.catastro.sources.aime import AIMEFuente
 from kernel.catastro.sources.gpqa import GPQAFuente
+from kernel.catastro.sources.human_eval import HumanEvalFuente
+from kernel.catastro.sources.lmarena import LMArenaFuente
+from kernel.catastro.sources.mbpp import MBPPFuente
 from kernel.catastro.sources.mmlu_pro import MMLUProFuente
+from kernel.catastro.sources.openrouter import OpenRouterFuente
+from kernel.catastro.sources.swe_bench import SWEBenchFuente
 
 __all__ = [
     "BaseFuente",

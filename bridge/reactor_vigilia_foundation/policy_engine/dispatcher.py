@@ -13,13 +13,12 @@ Principios:
   - Fail-loud: si no puede cargar estado, lanza excepción.
 """
 
-import os
 import json
-import yaml
+import os
 from datetime import datetime, timezone
 
-from .preflight import preflight_check
 from .loader import load_yaml
+from .preflight import preflight_check
 
 
 class MinimalDispatcher:
@@ -44,34 +43,26 @@ class MinimalDispatcher:
         self.policy_base_dir = policy_base_dir
 
         # Cargar action registry
-        registry_path = os.path.join(
-            policy_base_dir, 'autonomy_ladder', 'action_registry_v0.yaml'
-        )
+        registry_path = os.path.join(policy_base_dir, "autonomy_ladder", "action_registry_v0.yaml")
         if not os.path.exists(registry_path):
             raise FileNotFoundError(f"Action registry not found: {registry_path}")
         self.action_registry = load_yaml(registry_path)
 
         # Cargar loop registry
-        loop_registry_path = os.path.join(
-            state_fabric_dir, 'loop_registry.v0.yaml'
-        )
+        loop_registry_path = os.path.join(state_fabric_dir, "loop_registry.v0.yaml")
         if not os.path.exists(loop_registry_path):
             raise FileNotFoundError(f"Loop registry not found: {loop_registry_path}")
         self.loop_registry = load_yaml(loop_registry_path)
 
         # Cargar current_state
-        current_state_path = os.path.join(
-            state_fabric_dir, 'current_state.v0.json'
-        )
+        current_state_path = os.path.join(state_fabric_dir, "current_state.v0.json")
         if not os.path.exists(current_state_path):
             raise FileNotFoundError(f"Current state not found: {current_state_path}")
-        with open(current_state_path, 'r', encoding='utf-8') as f:
+        with open(current_state_path, "r", encoding="utf-8") as f:
             self.current_state = json.load(f)
 
         # Paths de persistencia
-        self._event_log_path = os.path.join(
-            state_fabric_dir, 'event_log.v0.jsonl'
-        )
+        self._event_log_path = os.path.join(state_fabric_dir, "event_log.v0.jsonl")
         self._current_state_path = current_state_path
 
     def get_loop_contract(self, loop_id):
@@ -113,14 +104,12 @@ class MinimalDispatcher:
                 loop_id=loop_id,
                 action_request=action_request,
                 reason=reason,
-                is_allowed=False
+                is_allowed=False,
             )
             return False, reason, event
 
         # 2. Consultar Policy Engine
-        is_allowed, reason = preflight_check(
-            loop_contract, action_request, self.action_registry
-        )
+        is_allowed, reason = preflight_check(loop_contract, action_request, self.action_registry)
 
         # 3. Registrar evento
         if is_allowed:
@@ -129,7 +118,7 @@ class MinimalDispatcher:
                 loop_id=loop_id,
                 action_request=action_request,
                 reason=reason,
-                is_allowed=True
+                is_allowed=True,
             )
         else:
             event = self._record_event(
@@ -137,7 +126,7 @@ class MinimalDispatcher:
                 loop_id=loop_id,
                 action_request=action_request,
                 reason=reason,
-                is_allowed=False
+                is_allowed=False,
             )
 
         return is_allowed, reason, event
@@ -166,9 +155,9 @@ class MinimalDispatcher:
             "event_type": event_type,
             "subject": f"Action {'Allowed' if is_allowed else 'Denied'}: {action_name}",
             "summary": f"Loop {loop_id} {'authorized' if is_allowed else 'denied'} "
-                       f"to {action_name}"
-                       f"{' at ' + target_path if target_path else ''}. "
-                       f"Reason: {reason}",
+            f"to {action_name}"
+            f"{' at ' + target_path if target_path else ''}. "
+            f"Reason: {reason}",
             "autonomy_level": action_request.get("autonomy_level_used", "A0"),
             "authority_required": "T1_SIGNED" if action_request.get("t1_approval_present") else "NONE",
             "t1_required": action_request.get("t1_approval_present", False),
@@ -178,17 +167,17 @@ class MinimalDispatcher:
             "supersedes_event_id": None,
             "dedupe_key": f"dispatch_{new_id}_{action_name}_{loop_id}",
             "ttl_hours": None,
-            "forbidden_inferences": []
+            "forbidden_inferences": [],
         }
 
         # Persist: append to event_log
-        with open(self._event_log_path, 'a', encoding='utf-8') as f:
-            f.write(json.dumps(event) + '\n')
+        with open(self._event_log_path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(event) + "\n")
 
         # Persist: update current_state
         self.current_state["last_event_id"] = new_id
         self.current_state["last_updated_at"] = now
-        with open(self._current_state_path, 'w', encoding='utf-8') as f:
+        with open(self._current_state_path, "w", encoding="utf-8") as f:
             json.dump(self.current_state, f, indent=2)
 
         return event

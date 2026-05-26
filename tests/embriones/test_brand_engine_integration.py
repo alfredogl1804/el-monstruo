@@ -11,6 +11,7 @@ Todos los tests usan mocks/patches — NO golpean APIs reales.
 Test live con APIs reales esta en test_brand_engine_live_smoke.py
 (skip por default, requiere BRAND_ENGINE_LIVE=1).
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -28,30 +29,29 @@ if str(_ROOT) not in sys.path:
 from kernel.embriones.brand_engine.brand_engine import (  # noqa: E402
     BrandEngine,
     ValidationVerdict,
-    ValidationResult,
 )
 from kernel.embriones.brand_engine.config_loader import (  # noqa: E402
     BrandEngineConfig,
     DimensionConfig,
     DimensionesConfig,
-    load_brand_engine_config,
     apply_env_overrides,
+    load_brand_engine_config,
 )
 from kernel.embriones.brand_engine.dimensions import (  # noqa: E402
     BaseSabioDimension,
     DimensionEvaluator,
     DimensionResult,
 )
-from kernel.embriones.brand_engine.dimensions.brand_tono import BrandTonoEvaluator  # noqa: E402
-from kernel.embriones.brand_engine.dimensions.honestidad import HonestidadEvaluator  # noqa: E402
-from kernel.embriones.brand_engine.dimensions.doctrina import DoctrinaEvaluator  # noqa: E402
 from kernel.embriones.brand_engine.dimensions.apple_tesla import AppleTeslaEvaluator  # noqa: E402
+from kernel.embriones.brand_engine.dimensions.brand_tono import BrandTonoEvaluator  # noqa: E402
+from kernel.embriones.brand_engine.dimensions.doctrina import DoctrinaEvaluator  # noqa: E402
+from kernel.embriones.brand_engine.dimensions.honestidad import HonestidadEvaluator  # noqa: E402
 from kernel.embriones.brand_engine.sabio_evaluator import SabioEvaluation  # noqa: E402
-
 
 # ─────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────
+
 
 def _make_config(
     mode: str = "shadow",
@@ -117,23 +117,32 @@ def _mk_sabio_evaluation(
 # Categoria 1 — Mock dimensions (15 tests)
 # ─────────────────────────────────────────────────────────────────
 
+
 class TestDimensionEvaluators:
     """Verifica interfaz y comportamiento de cada dimension con Sabio mockeado."""
 
-    @pytest.mark.parametrize("evaluator_cls,expected_name", [
-        (BrandTonoEvaluator, "D1_brand_tono"),
-        (HonestidadEvaluator, "D2_honestidad_pura"),
-        (DoctrinaEvaluator, "D3_consistencia_doctrina"),
-        (AppleTeslaEvaluator, "D4_calidad_apple_tesla"),
-    ])
+    @pytest.mark.parametrize(
+        "evaluator_cls,expected_name",
+        [
+            (BrandTonoEvaluator, "D1_brand_tono"),
+            (HonestidadEvaluator, "D2_honestidad_pura"),
+            (DoctrinaEvaluator, "D3_consistencia_doctrina"),
+            (AppleTeslaEvaluator, "D4_calidad_apple_tesla"),
+        ],
+    )
     def test_evaluator_name_canonical(self, evaluator_cls, expected_name):
         ev = evaluator_cls()
         assert ev.name == expected_name
 
-    @pytest.mark.parametrize("evaluator_cls", [
-        BrandTonoEvaluator, HonestidadEvaluator,
-        DoctrinaEvaluator, AppleTeslaEvaluator,
-    ])
+    @pytest.mark.parametrize(
+        "evaluator_cls",
+        [
+            BrandTonoEvaluator,
+            HonestidadEvaluator,
+            DoctrinaEvaluator,
+            AppleTeslaEvaluator,
+        ],
+    )
     def test_evaluator_implements_interface(self, evaluator_cls):
         ev = evaluator_cls()
         assert isinstance(ev, DimensionEvaluator)
@@ -215,6 +224,7 @@ class TestDimensionEvaluators:
 # Categoria 2 — Brand Engine end-to-end mocked (15 tests)
 # ─────────────────────────────────────────────────────────────────
 
+
 class TestBrandEngineE2E:
     """Verifica BrandEngine.validate_async() con _evaluate_all_dimensions mockeado."""
 
@@ -264,12 +274,15 @@ class TestBrandEngineE2E:
         config = _make_config(enabled=True, mode="enforce")
         engine = BrandEngine(config)
         self._patch_budget(engine)
-        self._patch_dims(engine, {
-            "D1_brand_tono": _mk_dim_result(0.85),
-            "D2_honestidad_pura": _mk_dim_result(0.85),
-            "D3_consistencia_doctrina": _mk_dim_result(0.85),
-            "D4_calidad_apple_tesla": _mk_dim_result(0.85),
-        })
+        self._patch_dims(
+            engine,
+            {
+                "D1_brand_tono": _mk_dim_result(0.85),
+                "D2_honestidad_pura": _mk_dim_result(0.85),
+                "D3_consistencia_doctrina": _mk_dim_result(0.85),
+                "D4_calidad_apple_tesla": _mk_dim_result(0.85),
+            },
+        )
         result = asyncio.run(engine.validate_async("Listo. Avanzo."))
         assert result.verdict == ValidationVerdict.APPROVED
 
@@ -277,12 +290,15 @@ class TestBrandEngineE2E:
         config = _make_config(enabled=True, mode="enforce")
         engine = BrandEngine(config)
         self._patch_budget(engine)
-        self._patch_dims(engine, {
-            "D1_brand_tono": _mk_dim_result(0.3),
-            "D2_honestidad_pura": _mk_dim_result(0.3),
-            "D3_consistencia_doctrina": _mk_dim_result(0.3),
-            "D4_calidad_apple_tesla": _mk_dim_result(0.3),
-        })
+        self._patch_dims(
+            engine,
+            {
+                "D1_brand_tono": _mk_dim_result(0.3),
+                "D2_honestidad_pura": _mk_dim_result(0.3),
+                "D3_consistencia_doctrina": _mk_dim_result(0.3),
+                "D4_calidad_apple_tesla": _mk_dim_result(0.3),
+            },
+        )
         result = asyncio.run(engine.validate_async("texto malo"))
         assert result.verdict == ValidationVerdict.REJECTED
 
@@ -290,12 +306,15 @@ class TestBrandEngineE2E:
         config = _make_config(enabled=True, mode="shadow")
         engine = BrandEngine(config)
         self._patch_budget(engine)
-        self._patch_dims(engine, {
-            "D1_brand_tono": _mk_dim_result(0.3),
-            "D2_honestidad_pura": _mk_dim_result(0.3),
-            "D3_consistencia_doctrina": _mk_dim_result(0.3),
-            "D4_calidad_apple_tesla": _mk_dim_result(0.3),
-        })
+        self._patch_dims(
+            engine,
+            {
+                "D1_brand_tono": _mk_dim_result(0.3),
+                "D2_honestidad_pura": _mk_dim_result(0.3),
+                "D3_consistencia_doctrina": _mk_dim_result(0.3),
+                "D4_calidad_apple_tesla": _mk_dim_result(0.3),
+            },
+        )
         result = asyncio.run(engine.validate_async("texto"))
         assert result.is_blocking() is False  # shadow nunca bloquea
 
@@ -312,12 +331,15 @@ class TestBrandEngineE2E:
         config = _make_config(enabled=True, mode="shadow")
         engine = BrandEngine(config)
         self._patch_budget(engine)
-        self._patch_dims(engine, {
-            "D1_brand_tono": _mk_dim_result(0.85, cost=0.01),
-            "D2_honestidad_pura": _mk_dim_result(0.85, cost=0.02),
-            "D3_consistencia_doctrina": _mk_dim_result(0.85, cost=0.03),
-            "D4_calidad_apple_tesla": _mk_dim_result(0.85, cost=0.04),
-        })
+        self._patch_dims(
+            engine,
+            {
+                "D1_brand_tono": _mk_dim_result(0.85, cost=0.01),
+                "D2_honestidad_pura": _mk_dim_result(0.85, cost=0.02),
+                "D3_consistencia_doctrina": _mk_dim_result(0.85, cost=0.03),
+                "D4_calidad_apple_tesla": _mk_dim_result(0.85, cost=0.04),
+            },
+        )
         result = asyncio.run(engine.validate_async("texto"))
         assert abs(result.cost_usd - 0.10) < 0.001
 
@@ -325,12 +347,15 @@ class TestBrandEngineE2E:
         config = _make_config(enabled=True, mode="shadow")
         engine = BrandEngine(config)
         self._patch_budget(engine)
-        self._patch_dims(engine, {
-            "D1_brand_tono": _mk_dim_result(0.85),
-            "D2_honestidad_pura": _mk_dim_result(0.85),
-            "D3_consistencia_doctrina": _mk_dim_result(0.85),
-            "D4_calidad_apple_tesla": _mk_dim_result(0.85),
-        })
+        self._patch_dims(
+            engine,
+            {
+                "D1_brand_tono": _mk_dim_result(0.85),
+                "D2_honestidad_pura": _mk_dim_result(0.85),
+                "D3_consistencia_doctrina": _mk_dim_result(0.85),
+                "D4_calidad_apple_tesla": _mk_dim_result(0.85),
+            },
+        )
         result = asyncio.run(engine.validate_async("texto"))
         assert result.d1_brand_tono is not None
         assert result.d2_honestidad is not None
@@ -343,9 +368,7 @@ class TestBrandEngineE2E:
         engine = BrandEngine(config)
         self._patch_budget(engine)
         # NO mockeamos dimensiones — el pre-filtro debe disparar antes
-        result = asyncio.run(engine.validate_async(
-            "Estoy aquí para ayudarte. Cómo puedo asistirte hoy?"
-        ))
+        result = asyncio.run(engine.validate_async("Estoy aquí para ayudarte. Cómo puedo asistirte hoy?"))
         assert result.verdict == ValidationVerdict.REJECTED
         assert result.cost_usd == 0.0  # no gastó Sabio
         assert "anti-corp" in (result.razon_rejection or "").lower()
@@ -356,12 +379,15 @@ class TestBrandEngineE2E:
         for cfg, expected_blocking in [(config_enforce, True), (config_shadow, False)]:
             engine = BrandEngine(cfg)
             self._patch_budget(engine)
-            self._patch_dims(engine, {
-                "D1_brand_tono": _mk_dim_result(0.3),
-                "D2_honestidad_pura": _mk_dim_result(0.3),
-                "D3_consistencia_doctrina": _mk_dim_result(0.3),
-                "D4_calidad_apple_tesla": _mk_dim_result(0.3),
-            })
+            self._patch_dims(
+                engine,
+                {
+                    "D1_brand_tono": _mk_dim_result(0.3),
+                    "D2_honestidad_pura": _mk_dim_result(0.3),
+                    "D3_consistencia_doctrina": _mk_dim_result(0.3),
+                    "D4_calidad_apple_tesla": _mk_dim_result(0.3),
+                },
+            )
             result = asyncio.run(engine.validate_async("texto"))
             assert result.is_blocking() is expected_blocking
 
@@ -370,12 +396,15 @@ class TestBrandEngineE2E:
         config = _make_config(enabled=True, mode="enforce")
         engine = BrandEngine(config)
         self._patch_budget(engine)
-        self._patch_dims(engine, {
-            "D1_brand_tono": None,
-            "D2_honestidad_pura": _mk_dim_result(0.85),
-            "D3_consistencia_doctrina": None,
-            "D4_calidad_apple_tesla": _mk_dim_result(0.85),
-        })
+        self._patch_dims(
+            engine,
+            {
+                "D1_brand_tono": None,
+                "D2_honestidad_pura": _mk_dim_result(0.85),
+                "D3_consistencia_doctrina": None,
+                "D4_calidad_apple_tesla": _mk_dim_result(0.85),
+            },
+        )
         result = asyncio.run(engine.validate_async("texto"))
         assert result is not None  # no crashea
 
@@ -409,20 +438,25 @@ class TestBrandEngineE2E:
 # Categoria 3 — Hook embrion_loop simulation (10 tests)
 # ─────────────────────────────────────────────────────────────────
 
+
 class TestEmbrionLoopHook:
     """Simula el camino del hook en embrion_loop.py sin ejecutar el loop completo."""
 
     def test_flag_disabled_by_default(self, monkeypatch):
         monkeypatch.delenv("BRAND_ENGINE_ENABLED", raising=False)
         import importlib
+
         from kernel import embrion_loop as el
+
         importlib.reload(el)
         assert el.BRAND_ENGINE_ENABLED is False
 
     def test_flag_enabled_via_env(self, monkeypatch):
         monkeypatch.setenv("BRAND_ENGINE_ENABLED", "true")
         import importlib
+
         from kernel import embrion_loop as el
+
         importlib.reload(el)
         assert el.BRAND_ENGINE_ENABLED is True
 
@@ -435,9 +469,7 @@ class TestEmbrionLoopHook:
         mock_bt.record = MagicMock()
         engine._get_budget_tracker = MagicMock(return_value=mock_bt)
         # _evaluate_all_dimensions tira excepción
-        engine._evaluate_all_dimensions = AsyncMock(
-            side_effect=RuntimeError("Sabio down")
-        )
+        engine._evaluate_all_dimensions = AsyncMock(side_effect=RuntimeError("Sabio down"))
         with pytest.raises(RuntimeError):
             # Sin try/except en el hook, sí debería propagar. El fail-open
             # vive en el embrion_loop, no aquí.
@@ -463,9 +495,8 @@ class TestEmbrionLoopHook:
 
     def test_hook_imports_dont_break_loop(self):
         from kernel.embriones.brand_engine.brand_engine import BrandEngine
-        from kernel.embriones.brand_engine.config_loader import (
-            load_brand_engine_config, apply_env_overrides
-        )
+        from kernel.embriones.brand_engine.config_loader import apply_env_overrides, load_brand_engine_config
+
         assert BrandEngine is not None
         assert callable(load_brand_engine_config)
         assert callable(apply_env_overrides)
@@ -477,9 +508,11 @@ class TestEmbrionLoopHook:
         mock_bt.is_killed.return_value = False
         mock_bt.record = MagicMock()
         engine._get_budget_tracker = MagicMock(return_value=mock_bt)
-        engine._evaluate_all_dimensions = AsyncMock(return_value={
-            "D1_brand_tono": _mk_dim_result(0.85),
-        })
+        engine._evaluate_all_dimensions = AsyncMock(
+            return_value={
+                "D1_brand_tono": _mk_dim_result(0.85),
+            }
+        )
         result = asyncio.run(engine.validate_async("texto"))
         assert result.validation_id is not None
         assert len(result.validation_id) > 0
@@ -492,12 +525,14 @@ class TestEmbrionLoopHook:
         mock_bt.is_killed.return_value = False
         mock_bt.record = MagicMock()
         engine._get_budget_tracker = MagicMock(return_value=mock_bt)
-        engine._evaluate_all_dimensions = AsyncMock(return_value={
-            "D1_brand_tono": _mk_dim_result(0.3),
-            "D2_honestidad_pura": _mk_dim_result(0.3),
-            "D3_consistencia_doctrina": _mk_dim_result(0.3),
-            "D4_calidad_apple_tesla": _mk_dim_result(0.3),
-        })
+        engine._evaluate_all_dimensions = AsyncMock(
+            return_value={
+                "D1_brand_tono": _mk_dim_result(0.3),
+                "D2_honestidad_pura": _mk_dim_result(0.3),
+                "D3_consistencia_doctrina": _mk_dim_result(0.3),
+                "D4_calidad_apple_tesla": _mk_dim_result(0.3),
+            }
+        )
         result = asyncio.run(engine.validate_async("texto"))
         assert result.is_blocking() is False  # shadow no bloquea
 
@@ -505,6 +540,7 @@ class TestEmbrionLoopHook:
 # ─────────────────────────────────────────────────────────────────
 # Categoria 4 — Replay corpus (15 tests)
 # ─────────────────────────────────────────────────────────────────
+
 
 class TestReplayCorpus:
     """Corpus deterministico — verifica pre-filtro anti-corp sin invocar LLM."""
@@ -542,12 +578,14 @@ class TestReplayCorpus:
         mock_bt.record = MagicMock()
         engine._get_budget_tracker = MagicMock(return_value=mock_bt)
         # Si llega a evaluar dims (pre-filtro no disparó), todas retornan None
-        engine._evaluate_all_dimensions = AsyncMock(return_value={
-            "D1_brand_tono": None,
-            "D2_honestidad_pura": None,
-            "D3_consistencia_doctrina": None,
-            "D4_calidad_apple_tesla": None,
-        })
+        engine._evaluate_all_dimensions = AsyncMock(
+            return_value={
+                "D1_brand_tono": None,
+                "D2_honestidad_pura": None,
+                "D3_consistencia_doctrina": None,
+                "D4_calidad_apple_tesla": None,
+            }
+        )
         return engine
 
     @pytest.mark.parametrize("phrase", CORP_PHRASES)

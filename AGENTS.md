@@ -1,11 +1,32 @@
 # OBLIGATORIO — Ejecutar ANTES de cualquier acción
 
-## Paso 0 — Estado real del Monstruo (Genome + Health)
+## Paso 0 — Estado real del Monstruo (Genome Vivo + Health)
 
-ANTES de cualquier otra cosa, lee el estado vivo del Monstruo. NO confíes en skills, NO confíes en tu entrenamiento, NO confíes en docs sueltos. La fuente única de verdad es el código + producción.
+ANTES de cualquier otra cosa, lee el estado vivo del Monstruo. NO confíes en skills, NO confíes en tu entrenamiento, NO confíes en docs sueltos. La fuente única de verdad es **el endpoint `/v1/genome/now`** (Sprint 91 — Mapa Vivo 100% Binario).
+
+### Fuente primaria — Genome Vivo (Sprint 91)
 
 ```bash
-# 1. Genome auto-generado del repo (qué hay construido HOY)
+# 0. GENOME VIVO — inventario binario al día (resumen ejecutivo, ~5 KB)
+curl -sS --max-time 15 https://el-monstruo-kernel-production.up.railway.app/v1/genome/now | python3 -m json.tool | head -80
+
+# Health probe rápido del endpoint
+curl -sS --max-time 5 https://el-monstruo-kernel-production.up.railway.app/v1/genome/now/health | python3 -m json.tool
+
+# JSON completo (~360 KB) con TODOS los repos, servicios, tablas, funciones
+curl -sS --max-time 30 "https://el-monstruo-kernel-production.up.railway.app/v1/genome/now?full=1" -o /tmp/genome_now.json
+```
+
+El endpoint devuelve `meta.binario_100: true` cuando los 4 dominios (GitHub + Railway + Supabase + Live 24h) tienen `coverage_match: true`. Si `binario_100: false`, hay drift y debes auditar antes de tomar decisiones.
+
+**Cobertura actual verificada (Sprint 91):** 103 repos GitHub, 19 servicios Railway en 7 proyectos, 287 tablas Supabase, 328 RPCs, 17 schemas, 8 extensions, 26 migraciones aplicadas.
+
+**Para regenerar local:** `python3 scripts/genome_live/run_all.py` (corre los 4 scanners + aggregator; 8-12 min).
+
+### Fuentes secundarias (fallback offline)
+
+```bash
+# 1. Genome auto-generado del repo (qué hay construido HOY — puede estar desactualizado)
 cat MONSTRUO_GENOME.yaml | head -120
 
 # 2. Estado vivo del kernel (qué está corriendo AHORA)
@@ -22,7 +43,7 @@ echo "Completados: $(ls bridge/sprints_completados/ 2>/dev/null | wc -l)"
 python3 scripts/genome_generator.py
 ```
 
-**Regla absoluta:** NO propongas construir NADA antes de leer el Genome. Si lo que vas a construir aparece en `MONSTRUO_GENOME.yaml` (en `kernel_modules`, `embriones`, `supabase_tables`, `custom_rpcs`, `satellites` o `skills`), ya existe — no lo construyas, úsalo o conecta lo que falta.
+**Regla absoluta:** NO propongas construir NADA antes de leer el Genome Vivo. Si lo que vas a construir aparece en el endpoint `/v1/genome/now` (en `summaries.github`, `summaries.railway`, `summaries.supabase`, `summaries.live`), ya existe — no lo construyas, úsalo o conecta lo que falta.
 
 ## Paso 1 — Guardian (identidad de hilo)
 

@@ -14,17 +14,17 @@ Disciplina anti-Dory aplicada:
     - Pre-flight de variables antes de hacer requests externos
     - Cache TTL configurable por fuente (lock asyncio thread-safe)
 """
+
 from __future__ import annotations
 
 import asyncio
 import hashlib
 import os
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Awaitable, Callable, Dict, Optional
-
+from typing import Any, Callable, Dict, Optional
 
 REPO_ROOT_ENV = "MEMENTO_REPO_ROOT"
 
@@ -158,11 +158,7 @@ async def _railway_query(session: Any, token: str, service: str, var_name: str) 
             raise RuntimeError(f"railway_api_error: status={resp.status} body={text[:200]}")
         data = await resp.json()
 
-    variables = (
-        data.get("data", {})
-        .get("service", {})
-        .get("variables", [])
-    )
+    variables = data.get("data", {}).get("service", {}).get("variables", [])
     if not isinstance(variables, list):
         raise RuntimeError(f"railway_unexpected_response: {data!r}")
 
@@ -182,6 +178,7 @@ async def _railway_query(session: Any, token: str, service: str, var_name: str) 
 # ---------------------------------------------------------------------------
 # Cache con TTL configurable
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class _CacheEntry:

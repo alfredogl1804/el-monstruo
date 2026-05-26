@@ -30,9 +30,11 @@ Acceptance criterion implícito:
 NOTA: este test NO verifica `attach_context=True` ni hidratación del snapshot canónico — eso lo
 valida el re-test D5 RAP-001 LIVE post-merge según §SECUENCIA del kickoff D5-FIX.
 """
+
 from __future__ import annotations
 
 import os
+
 import pytest
 
 # Marker: live → tests que tocan APIs externas reales (no mock)
@@ -79,6 +81,4 @@ def test_create_task_payload_v2_contract_real(manus_api_key: str) -> None:
         f"Esperaba task_id/id no vacío en response — recibí: {response!r}. "
         "Si este assert falla con 400, el payload del fix se rompió."
     )
-    assert isinstance(task_id, str) and len(task_id) > 0, (
-        f"task_id debe ser string no vacío, recibí: {task_id!r}"
-    )
+    assert isinstance(task_id, str) and len(task_id) > 0, f"task_id debe ser string no vacío, recibí: {task_id!r}"

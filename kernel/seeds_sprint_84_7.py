@@ -17,6 +17,7 @@ Convención:
 - fix_steps: pasos exactos del refactor aplicado, en orden
 - prevention: cómo evitar reintroducir el bug (code review checklist)
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -130,7 +131,7 @@ SEED_24_TASK_PLANNER_NODES: dict[str, Any] = {
     "description": (
         "task_planner.py (línea 1686) y nodes.py (línea 1639 personal_markers) "
         "tenían cada uno 1 instancia del antipatrón. nodes.py tenía caso "
-        "delicado: markers con espacio trailing (\"mi \", \"tu \") que se "
+        'delicado: markers con espacio trailing ("mi ", "tu ") que se '
         "stripearon porque \\b ya garantiza el boundary."
     ),
     "fix_steps": [
@@ -139,7 +140,7 @@ SEED_24_TASK_PLANNER_NODES: dict[str, Any] = {
     ],
     "prevention": (
         "Documentar en código que markers con espacio trailing son anti-pattern: "
-        "\\b ya garantiza el word boundary, agregar \" \" causa miss en \"mi.\" o \"mi,\""
+        '\\b ya garantiza el word boundary, agregar " " causa miss en "mi." o "mi,"'
     ),
 }
 

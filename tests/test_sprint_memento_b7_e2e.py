@@ -26,6 +26,7 @@ Disciplina:
      filters, order_by, order_desc, limit)` y `insert(table, data)`).
    - Sin red ni Supabase real para los tests core. El opt-in está skipeado por default.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -33,7 +34,6 @@ import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from unittest.mock import patch
 
 import pytest
 from fastapi import FastAPI
@@ -48,11 +48,9 @@ from kernel.memento.models import CriticalOperation, SourceOfTruth
 from kernel.memento.validator import MementoValidator
 from kernel.memento_routes import (
     MEMENTO_DASHBOARD_LOOKBACK_HOURS,
-    MEMENTO_RELOAD_TIMEOUT_SECONDS,
     MEMENTO_VALIDATIONS_TABLE,
     memento_router,
 )
-
 
 FIXTURE_PATH = "tests/fixtures/credentials_md_sample.md"
 TEST_API_KEY = "test_monstruo_api_key_b7_secret"
@@ -332,9 +330,7 @@ def test_e2e_flow_contamination_warning_h3_medium(validator):
     assert isinstance(last_insert["contamination_evidence"], dict)
 
 
-def test_e2e_flow_contamination_warning_high_synthetic_via_monkeypatch(
-    validator, monkeypatch
-):
+def test_e2e_flow_contamination_warning_high_synthetic_via_monkeypatch(validator, monkeypatch):
     """
     HIGH severity sintética: stub-eamos detector.detect para retornar
     un finding HIGH (H1 simulado). Verificamos que se loguea, persiste,
@@ -700,8 +696,8 @@ def test_admin_dashboard_no_db_returns_zero_metrics(validator):
 )
 def test_integration_dashboard_against_railway():
     """Smoke productivo opcional contra Railway."""
-    import urllib.request
     import json as _json
+    import urllib.request
 
     base = os.environ.get("KERNEL_URL", "https://el-monstruo-kernel-production.up.railway.app")
     api_key = os.environ.get("MONSTRUO_API_KEY")

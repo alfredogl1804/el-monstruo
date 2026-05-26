@@ -3,9 +3,10 @@
 Audit Supabase memory tables del kernel por leakage de tokens GitHub.
 Sprint 85 — Pre-rotación de tokens. Ejecutar UNA vez.
 """
-import psycopg2
-import re
+
 import sys
+
+import psycopg2
 
 DSN = "postgresql://postgres.xsumzuhwmivjgftsneov:0SsKDCchJpN5GhO3@aws-1-us-east-2.pooler.supabase.com:5432/postgres?sslmode=require"
 

@@ -23,6 +23,7 @@ Constraints:
   - No network
   - Pure local computation
 """
+
 import json
 import os
 from datetime import datetime, timezone
@@ -85,9 +86,9 @@ class RegressionFalsePositiveFilter:
 
     def _classify_flag(self, flag: dict, run_history: list) -> dict:
         """Classify a single flag as real regression or false positive."""
-        flag_type = flag.get("type", "UNKNOWN")
+        flag.get("type", "UNKNOWN")
         current_value = flag.get("current_value", 0)
-        metric = flag.get("metric", flag.get("type", "unknown"))
+        flag.get("metric", flag.get("type", "unknown"))
 
         classification = {
             "flag": flag,
@@ -179,7 +180,7 @@ class RegressionFalsePositiveFilter:
             return False
 
         window = self.config["recovery_window"]
-        subsequent = run_history[run_index + 1: run_index + 1 + window]
+        subsequent = run_history[run_index + 1 : run_index + 1 + window]
         if len(subsequent) == 0:
             return False
 
@@ -203,7 +204,7 @@ class RegressionFalsePositiveFilter:
         run_index = flag.get("run_index", -1)
         if run_index < 0:
             return 0
-        return len(run_history[run_index + 1:])
+        return len(run_history[run_index + 1 :])
 
     def _is_known_placeholder(self, value: float) -> bool:
         """Check if value matches known placeholder patterns."""
@@ -229,7 +230,7 @@ class RegressionFalsePositiveFilter:
 
         mean = sum(baseline_costs) / len(baseline_costs)
         variance = sum((c - mean) ** 2 for c in baseline_costs) / len(baseline_costs)
-        stddev = variance ** 0.5
+        stddev = variance**0.5
 
         # Only noise if within 3x stddev of baseline
         return abs(value - mean) <= 3 * stddev
@@ -243,7 +244,9 @@ def run_from_files(base_path: str = None) -> dict:
     filter_instance = RegressionFalsePositiveFilter()
 
     # Load regression investigation output for flags
-    reg_path = os.path.join(base_path, "bridge", "r0plus_regression_investigation_001", "REGRESSION_INVESTIGATION_OUTPUT.json")
+    reg_path = os.path.join(
+        base_path, "bridge", "r0plus_regression_investigation_001", "REGRESSION_INVESTIGATION_OUTPUT.json"
+    )
     flags = []
     run_history = []
 

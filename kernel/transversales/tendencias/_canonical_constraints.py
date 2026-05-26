@@ -1,16 +1,31 @@
 """Hard constraints per-vertical para Capa Tendencias (DSC-G-017)."""
+
 from __future__ import annotations
+
 from kernel.transversales.base import GeoRegion, VerticalId
 from kernel.transversales.ventas._canonical_constraints import (
-    NON_COMMERCIAL_VERTICALS, is_commercial, require_commercial,
+    NON_COMMERCIAL_VERTICALS,
+    is_commercial,
+    require_commercial,
 )
 
 SUPPORTED_DATA_SOURCES = {
-    "blockchain_analytics", "real_estate_market_reports", "regulatory_feeds",
-    "events_calendar", "sports_leagues_feeds", "social_trends",
-    "tourism_data", "weather_feeds", "industry_reports_b2b", "tech_news",
-    "github_trending", "ai_research_feeds", "ecommerce_trends",
-    "enterprise_tech_news", "competitor_pricing_scrape", "search_trend_signals",
+    "blockchain_analytics",
+    "real_estate_market_reports",
+    "regulatory_feeds",
+    "events_calendar",
+    "sports_leagues_feeds",
+    "social_trends",
+    "tourism_data",
+    "weather_feeds",
+    "industry_reports_b2b",
+    "tech_news",
+    "github_trending",
+    "ai_research_feeds",
+    "ecommerce_trends",
+    "enterprise_tech_news",
+    "competitor_pricing_scrape",
+    "search_trend_signals",
 }
 
 MONITORING_CADENCES = {"real_time", "hourly", "daily", "weekly", "monthly"}
@@ -18,8 +33,10 @@ MONITORING_CADENCES = {"real_time", "hourly", "daily", "weekly", "monthly"}
 TENDENCIAS_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
     VerticalId.CIP: {
         "data_sources": [
-            "blockchain_analytics", "real_estate_market_reports",
-            "regulatory_feeds", "competitor_pricing_scrape",
+            "blockchain_analytics",
+            "real_estate_market_reports",
+            "regulatory_feeds",
+            "competitor_pricing_scrape",
             "search_trend_signals",
         ],
         "monitoring_cadence": "daily",
@@ -35,8 +52,11 @@ TENDENCIAS_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
     },
     VerticalId.LIKETICKETS: {
         "data_sources": [
-            "events_calendar", "sports_leagues_feeds", "social_trends",
-            "tourism_data", "weather_feeds",
+            "events_calendar",
+            "sports_leagues_feeds",
+            "social_trends",
+            "tourism_data",
+            "weather_feeds",
         ],
         "monitoring_cadence": "real_time",
         "geo_focus": GeoRegion.MX_MERIDA.value,
@@ -50,7 +70,9 @@ TENDENCIAS_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
     },
     VerticalId.KUKULKAN_365: {
         "data_sources": [
-            "tourism_data", "events_calendar", "weather_feeds",
+            "tourism_data",
+            "events_calendar",
+            "weather_feeds",
             "social_trends",
         ],
         "monitoring_cadence": "daily",
@@ -65,7 +87,9 @@ TENDENCIAS_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
     },
     VerticalId.BIOGUARD: {
         "data_sources": [
-            "regulatory_feeds", "industry_reports_b2b", "ai_research_feeds",
+            "regulatory_feeds",
+            "industry_reports_b2b",
+            "ai_research_feeds",
         ],
         "monitoring_cadence": "weekly",
         "monitoring_cadence_critical_signals": "real_time",
@@ -80,7 +104,9 @@ TENDENCIAS_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
     },
     VerticalId.TOP_CONTROL_PC: {
         "data_sources": [
-            "tech_news", "github_trending", "ai_research_feeds",
+            "tech_news",
+            "github_trending",
+            "ai_research_feeds",
             "social_trends",
         ],
         "monitoring_cadence": "real_time",
@@ -95,7 +121,9 @@ TENDENCIAS_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
     },
     VerticalId.MUNDO_DE_TATA: {
         "data_sources": [
-            "ecommerce_trends", "social_trends", "competitor_pricing_scrape",
+            "ecommerce_trends",
+            "social_trends",
+            "competitor_pricing_scrape",
         ],
         "monitoring_cadence": "daily",
         "geo_focus": GeoRegion.MX_NACIONAL.value,
@@ -108,7 +136,9 @@ TENDENCIAS_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
     },
     VerticalId.EL_MONSTRUO_APP: {
         "data_sources": [
-            "tech_news", "ai_research_feeds", "enterprise_tech_news",
+            "tech_news",
+            "ai_research_feeds",
+            "enterprise_tech_news",
             "github_trending",
         ],
         "monitoring_cadence": "daily",
@@ -123,7 +153,10 @@ TENDENCIAS_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
 }
 
 __all__ = [
-    "TENDENCIAS_CANONICAL_PER_VERTICAL", "SUPPORTED_DATA_SOURCES",
-    "MONITORING_CADENCES", "is_commercial", "require_commercial",
+    "TENDENCIAS_CANONICAL_PER_VERTICAL",
+    "SUPPORTED_DATA_SOURCES",
+    "MONITORING_CADENCES",
+    "is_commercial",
+    "require_commercial",
     "NON_COMMERCIAL_VERTICALS",
 ]

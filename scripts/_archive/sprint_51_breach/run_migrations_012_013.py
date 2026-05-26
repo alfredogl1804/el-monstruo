@@ -2,6 +2,7 @@
 El Despertador — Sprint 81: Ejecutar migraciones 012 + 013
 Conexión directa via psycopg2 al PostgreSQL de Supabase.
 """
+
 import subprocess
 import sys
 

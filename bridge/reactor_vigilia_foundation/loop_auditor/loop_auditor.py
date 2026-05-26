@@ -81,7 +81,7 @@ class LoopAuditor:
             "findings": [],
             "actions_log": [],
             "output_files": [],
-            "message": ""
+            "message": "",
         }
 
         # === PASO 1: Leer outputs del Oráculo ===
@@ -169,19 +169,19 @@ class LoopAuditor:
         write_request = {
             "action": "create_state_fabric_draft",
             "target_path": "bridge/doctrine_candidates/audit_reports/audit_report.md",
-            "has_evidence": True
+            "has_evidence": True,
         }
 
-        is_allowed, reason, event = self.dispatcher.dispatch_action(
-            self.LOOP_ID, write_request
-        )
+        is_allowed, reason, event = self.dispatcher.dispatch_action(self.LOOP_ID, write_request)
         self.actions_attempted.append(write_request)
-        results["actions_log"].append({
-            "action": "create_state_fabric_draft",
-            "target": write_request["target_path"],
-            "allowed": is_allowed,
-            "reason": reason
-        })
+        results["actions_log"].append(
+            {
+                "action": "create_state_fabric_draft",
+                "target": write_request["target_path"],
+                "allowed": is_allowed,
+                "reason": reason,
+            }
+        )
 
         if is_allowed:
             self.actions_allowed.append(write_request)
@@ -189,13 +189,12 @@ class LoopAuditor:
 
             # Escribir audit_report.md
             report_path = os.path.join(self.audit_output_dir, "audit_report.md")
-            self._write_audit_report(report_path, verdict, gates, findings,
-                                     gates_passed, gates_total)
+            self._write_audit_report(report_path, verdict, gates, findings, gates_passed, gates_total)
             results["output_files"].append(report_path)
 
             # Escribir audit_findings.json
             findings_path = os.path.join(self.audit_output_dir, "audit_findings.json")
-            with open(findings_path, 'w', encoding='utf-8') as f:
+            with open(findings_path, "w", encoding="utf-8") as f:
                 json.dump(findings, f, indent=2, ensure_ascii=False)
             results["output_files"].append(findings_path)
 
@@ -204,31 +203,27 @@ class LoopAuditor:
             gate_log = {
                 "audit_id": "AUD-001",
                 "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "gates": gates
+                "gates": gates,
             }
-            with open(gate_log_path, 'w', encoding='utf-8') as f:
+            with open(gate_log_path, "w", encoding="utf-8") as f:
                 json.dump(gate_log, f, indent=2, ensure_ascii=False)
             results["output_files"].append(gate_log_path)
         else:
             self.actions_denied.append(write_request)
 
         # === PASO 5: Intentar acción PROHIBIDA (write_code) para demostrar DENY ===
-        forbidden_request = {
-            "action": "write_code",
-            "target_path": "src/auditor_engine.py",
-            "has_evidence": True
-        }
+        forbidden_request = {"action": "write_code", "target_path": "src/auditor_engine.py", "has_evidence": True}
 
-        is_allowed_f, reason_f, event_f = self.dispatcher.dispatch_action(
-            self.LOOP_ID, forbidden_request
-        )
+        is_allowed_f, reason_f, event_f = self.dispatcher.dispatch_action(self.LOOP_ID, forbidden_request)
         self.actions_attempted.append(forbidden_request)
-        results["actions_log"].append({
-            "action": "write_code",
-            "target": forbidden_request["target_path"],
-            "allowed": is_allowed_f,
-            "reason": reason_f
-        })
+        results["actions_log"].append(
+            {
+                "action": "write_code",
+                "target": forbidden_request["target_path"],
+                "allowed": is_allowed_f,
+                "reason": reason_f,
+            }
+        )
 
         if not is_allowed_f:
             self.actions_denied.append(forbidden_request)
@@ -256,39 +251,65 @@ class LoopAuditor:
     def _check_schema_validity(self, catalog):
         """Gate 1: Verificar que el catálogo JSON tiene estructura válida."""
         findings = []
-        required_fields = ["catalog_version", "generated_by", "generated_at",
-                          "total_capabilities", "capabilities", "meta"]
+        required_fields = [
+            "catalog_version",
+            "generated_by",
+            "generated_at",
+            "total_capabilities",
+            "capabilities",
+            "meta",
+        ]
 
         missing = [f for f in required_fields if f not in catalog]
         if missing:
-            findings.append(self._make_finding(
-                "FND-001", "HIGH", "schema_validity",
-                f"Missing required fields: {missing}",
-                "Add missing fields to catalog schema"
-            ))
+            findings.append(
+                self._make_finding(
+                    "FND-001",
+                    "HIGH",
+                    "schema_validity",
+                    f"Missing required fields: {missing}",
+                    "Add missing fields to catalog schema",
+                )
+            )
             return {"passed": False, "detail": f"Missing fields: {missing}"}, findings
 
         # Check capabilities structure
         caps = catalog.get("capabilities", [])
         ids_seen = set()
         for cap in caps:
-            cap_required = ["id", "model", "feature", "application", "power_stack",
-                           "sprint_candidate", "confidence", "status"]
+            cap_required = [
+                "id",
+                "model",
+                "feature",
+                "application",
+                "power_stack",
+                "sprint_candidate",
+                "confidence",
+                "status",
+            ]
             cap_missing = [f for f in cap_required if f not in cap]
             if cap_missing:
-                findings.append(self._make_finding(
-                    f"FND-002", "MEDIUM", "schema_validity",
-                    f"Capability {cap.get('id', '?')} missing fields: {cap_missing}",
-                    "Complete capability entry"
-                ))
+                findings.append(
+                    self._make_finding(
+                        "FND-002",
+                        "MEDIUM",
+                        "schema_validity",
+                        f"Capability {cap.get('id', '?')} missing fields: {cap_missing}",
+                        "Complete capability entry",
+                    )
+                )
 
             cap_id = cap.get("id")
             if cap_id in ids_seen:
-                findings.append(self._make_finding(
-                    "FND-003", "HIGH", "schema_validity",
-                    f"Duplicate capability_id: {cap_id}",
-                    "Remove duplicate or assign unique ID"
-                ))
+                findings.append(
+                    self._make_finding(
+                        "FND-003",
+                        "HIGH",
+                        "schema_validity",
+                        f"Duplicate capability_id: {cap_id}",
+                        "Remove duplicate or assign unique ID",
+                    )
+                )
             ids_seen.add(cap_id)
 
         passed = len(findings) == 0
@@ -303,11 +324,15 @@ class LoopAuditor:
         # Check if all capability IDs from catalog appear in report
         for cap_id in cap_ids:
             if cap_id not in report:
-                findings.append(self._make_finding(
-                    f"FND-010", "MEDIUM", "report_consistency",
-                    f"Capability {cap_id} in catalog but not referenced in report",
-                    "Ensure report covers all catalog entries"
-                ))
+                findings.append(
+                    self._make_finding(
+                        "FND-010",
+                        "MEDIUM",
+                        "report_consistency",
+                        f"Capability {cap_id} in catalog but not referenced in report",
+                        "Ensure report covers all catalog entries",
+                    )
+                )
 
         passed = len(findings) == 0
         detail = "Report references all catalog entries" if passed else f"{len(findings)} consistency gaps"
@@ -321,21 +346,29 @@ class LoopAuditor:
         for cap in catalog.get("capabilities", []):
             status = cap.get("status", "")
             if status in ("APPROVED", "CANONICAL", "LIVE"):
-                findings.append(self._make_finding(
-                    "FND-020", "HIGH", "authority_discipline",
-                    f"Capability {cap['id']} has status '{status}' — only PROPOSED allowed at M1",
-                    "Revert status to PROPOSED"
-                ))
+                findings.append(
+                    self._make_finding(
+                        "FND-020",
+                        "HIGH",
+                        "authority_discipline",
+                        f"Capability {cap['id']} has status '{status}' — only PROPOSED allowed at M1",
+                        "Revert status to PROPOSED",
+                    )
+                )
 
         # Check report for canon language
         canon_keywords = ["CANONIZADO", "CANONICAL", "APPROVED BY T1", "FIRMADO"]
         for kw in canon_keywords:
             if kw.lower() in report.lower():
-                findings.append(self._make_finding(
-                    "FND-021", "HIGH", "authority_discipline",
-                    f"Report contains authority keyword '{kw}' without T1 signature",
-                    "Remove unauthorized authority claims"
-                ))
+                findings.append(
+                    self._make_finding(
+                        "FND-021",
+                        "HIGH",
+                        "authority_discipline",
+                        f"Report contains authority keyword '{kw}' without T1 signature",
+                        "Remove unauthorized authority claims",
+                    )
+                )
 
         passed = len(findings) == 0
         detail = "No unauthorized authority claims" if passed else f"{len(findings)} authority violations"
@@ -353,29 +386,41 @@ class LoopAuditor:
             pass
         elif "realtime" in source.lower() or "live" in source.lower():
             # Suspicious: claims realtime without API evidence
-            findings.append(self._make_finding(
-                "FND-030", "HIGH", "evidence_discipline",
-                "Catalog claims realtime/live source but no API was called in M1",
-                "Mark as STATIC / NOT_REALTIME_VERIFIED"
-            ))
+            findings.append(
+                self._make_finding(
+                    "FND-030",
+                    "HIGH",
+                    "evidence_discipline",
+                    "Catalog claims realtime/live source but no API was called in M1",
+                    "Mark as STATIC / NOT_REALTIME_VERIFIED",
+                )
+            )
 
         # Check individual capabilities for date claims
         for cap in catalog.get("capabilities", []):
-            discovered = cap.get("discovered_at", "")
+            cap.get("discovered_at", "")
             # At M1, all dates should be from training data, not live verification
             # This is acceptable as long as source is marked static
 
         if not findings:
             # Add informational finding about static nature
-            findings.append(self._make_finding(
-                "FND-031", "LOW", "evidence_discipline",
-                "Catalog correctly marked as static_v0_seed. Dates are from training data, not live verification.",
-                "Upgrade to M2 with real API verification when T1 approves",
-                t1_required=True
-            ))
+            findings.append(
+                self._make_finding(
+                    "FND-031",
+                    "LOW",
+                    "evidence_discipline",
+                    "Catalog correctly marked as static_v0_seed. Dates are from training data, not live verification.",
+                    "Upgrade to M2 with real API verification when T1 approves",
+                    t1_required=True,
+                )
+            )
 
         passed = not any(f["severity"] == "HIGH" for f in findings)
-        detail = "Evidence discipline maintained (static acknowledged)" if passed else "Evidence claims exceed verification level"
+        detail = (
+            "Evidence discipline maintained (static acknowledged)"
+            if passed
+            else "Evidence claims exceed verification level"
+        )
         return {"passed": passed, "detail": detail}, findings
 
     def _check_policy_compliance(self, events):
@@ -383,11 +428,15 @@ class LoopAuditor:
         findings = []
 
         if not events:
-            findings.append(self._make_finding(
-                "FND-040", "MEDIUM", "policy_compliance",
-                "No event_log available for verification — cannot confirm Dispatcher authorization",
-                "Provide event_log path for full policy audit"
-            ))
+            findings.append(
+                self._make_finding(
+                    "FND-040",
+                    "MEDIUM",
+                    "policy_compliance",
+                    "No event_log available for verification — cannot confirm Dispatcher authorization",
+                    "Provide event_log path for full policy audit",
+                )
+            )
             return {"passed": False, "detail": "No event_log for verification"}, findings
 
         # Look for Oracle events
@@ -397,26 +446,35 @@ class LoopAuditor:
 
         # Verify the A5 DENY exists
         write_code_denied = any(
-            "write_code" in e.get("summary", "") and "denied" in e.get("summary", "")
-            for e in oracle_events
+            "write_code" in e.get("summary", "") and "denied" in e.get("summary", "") for e in oracle_events
         )
 
         if not write_code_denied:
-            findings.append(self._make_finding(
-                "FND-041", "HIGH", "policy_compliance",
-                "Expected DENY for write_code (A5) not found in event_log",
-                "Investigate missing policy enforcement"
-            ))
+            findings.append(
+                self._make_finding(
+                    "FND-041",
+                    "HIGH",
+                    "policy_compliance",
+                    "Expected DENY for write_code (A5) not found in event_log",
+                    "Investigate missing policy enforcement",
+                )
+            )
 
         if len(allowed_events) < 2:
-            findings.append(self._make_finding(
-                "FND-042", "MEDIUM", "policy_compliance",
-                f"Expected 2+ ALLOW events for Oracle, found {len(allowed_events)}",
-                "Verify Oracle requested permission for all writes"
-            ))
+            findings.append(
+                self._make_finding(
+                    "FND-042",
+                    "MEDIUM",
+                    "policy_compliance",
+                    f"Expected 2+ ALLOW events for Oracle, found {len(allowed_events)}",
+                    "Verify Oracle requested permission for all writes",
+                )
+            )
 
         passed = not any(f["severity"] == "HIGH" for f in findings)
-        detail = f"Policy: {len(allowed_events)} ALLOW, {len(denied_events)} DENY" if passed else "Policy violation detected"
+        detail = (
+            f"Policy: {len(allowed_events)} ALLOW, {len(denied_events)} DENY" if passed else "Policy violation detected"
+        )
         return {"passed": passed, "detail": detail}, findings
 
     def _check_f16_lineage(self):
@@ -424,18 +482,25 @@ class LoopAuditor:
         findings = []
 
         if self.LINEAGE_ID == self.ORACLE_LINEAGE:
-            findings.append(self._make_finding(
-                "FND-050", "HIGH", "f16_lineage",
-                "CRITICAL: Auditor lineage_id matches Oracle lineage_id — self-audit detected",
-                "Assign distinct lineage IDs"
-            ))
+            findings.append(
+                self._make_finding(
+                    "FND-050",
+                    "HIGH",
+                    "f16_lineage",
+                    "CRITICAL: Auditor lineage_id matches Oracle lineage_id — self-audit detected",
+                    "Assign distinct lineage IDs",
+                )
+            )
 
         # Verify we're not using Oracle's self-assessment as proof
         # (This is a structural check — in code, we never read Oracle's own verdict)
 
         passed = len(findings) == 0
-        detail = (f"Lineage verified: auditor={self.LINEAGE_ID} ≠ oracle={self.ORACLE_LINEAGE}"
-                  if passed else "SELF-AUDIT RISK")
+        detail = (
+            f"Lineage verified: auditor={self.LINEAGE_ID} ≠ oracle={self.ORACLE_LINEAGE}"
+            if passed
+            else "SELF-AUDIT RISK"
+        )
         return {"passed": passed, "detail": detail}, findings
 
     def _check_no_autonomy_creep(self, catalog, report):
@@ -448,17 +513,21 @@ class LoopAuditor:
             "permission granted for live",
             "SPR-ORACLE-AI-001 approved",
             "self-elevate",
-            "auto-promote"
+            "auto-promote",
         ]
 
         combined_text = json.dumps(catalog) + report
         for pattern in creep_patterns:
             if pattern.lower() in combined_text.lower():
-                findings.append(self._make_finding(
-                    "FND-060", "HIGH", "autonomy_creep",
-                    f"Autonomy creep detected: '{pattern}' found in outputs",
-                    "Remove unauthorized authority assumption"
-                ))
+                findings.append(
+                    self._make_finding(
+                        "FND-060",
+                        "HIGH",
+                        "autonomy_creep",
+                        f"Autonomy creep detected: '{pattern}' found in outputs",
+                        "Remove unauthorized authority assumption",
+                    )
+                )
 
         passed = len(findings) == 0
         detail = "No autonomy creep detected" if passed else f"{len(findings)} creep patterns found"
@@ -475,11 +544,15 @@ class LoopAuditor:
         if source == "static_v0_seed":
             pass  # Correct
         elif "api" in source.lower() or "live" in source.lower():
-            findings.append(self._make_finding(
-                "FND-070", "HIGH", "no_external_api",
-                f"Catalog source '{source}' suggests external API usage at M1",
-                "Revert to static source until M2 approved by T1"
-            ))
+            findings.append(
+                self._make_finding(
+                    "FND-070",
+                    "HIGH",
+                    "no_external_api",
+                    f"Catalog source '{source}' suggests external API usage at M1",
+                    "Revert to static source until M2 approved by T1",
+                )
+            )
 
         passed = len(findings) == 0
         detail = "No external API usage detected (source: static_v0_seed)" if passed else "External API usage suspected"
@@ -494,11 +567,15 @@ class LoopAuditor:
 
         for marker in canon_markers:
             if marker in combined:
-                findings.append(self._make_finding(
-                    "FND-080", "HIGH", "no_canon",
-                    f"Canon marker '{marker}' found in Oracle outputs",
-                    "Remove canon claims — only T1 can canonize"
-                ))
+                findings.append(
+                    self._make_finding(
+                        "FND-080",
+                        "HIGH",
+                        "no_canon",
+                        f"Canon marker '{marker}' found in Oracle outputs",
+                        "Remove canon claims — only T1 can canonize",
+                    )
+                )
 
         # Check for "DOCTRINE_CANDIDATE" which IS acceptable
         if "DOCTRINE_CANDIDATE" in combined:
@@ -526,7 +603,7 @@ class LoopAuditor:
         path = os.path.join(self.oracle_output_dir, "oraculo_capability_catalog_v0.json")
         if not os.path.exists(path):
             return None
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
 
     def _read_oracle_report(self):
@@ -534,7 +611,7 @@ class LoopAuditor:
         path = os.path.join(self.oracle_output_dir, "oraculo_power_stacks_v0.md")
         if not os.path.exists(path):
             return None
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, "r", encoding="utf-8") as f:
             return f.read()
 
     def _read_event_log(self, path):
@@ -542,15 +619,14 @@ class LoopAuditor:
         if not os.path.exists(path):
             return []
         events = []
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if line:
                     events.append(json.loads(line))
         return events
 
-    def _make_finding(self, finding_id, severity, subject, evidence_ref,
-                      recommended_action, t1_required=False):
+    def _make_finding(self, finding_id, severity, subject, evidence_ref, recommended_action, t1_required=False):
         """Crea un finding estructurado."""
         return {
             "finding_id": finding_id,
@@ -559,11 +635,10 @@ class LoopAuditor:
             "evidence_ref": evidence_ref,
             "status": "OPEN",
             "recommended_next_action": recommended_action,
-            "t1_required": t1_required
+            "t1_required": t1_required,
         }
 
-    def _write_audit_report(self, path, verdict, gates, findings,
-                            gates_passed, gates_total):
+    def _write_audit_report(self, path, verdict, gates, findings, gates_passed, gates_total):
         """Escribe el audit_report.md."""
         now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         high = sum(1 for f in findings if f["severity"] == "HIGH")
@@ -590,44 +665,46 @@ class LoopAuditor:
             status = "PASS" if gate_data["passed"] else "FAIL"
             lines.append(f"| {gate_name} | {status} | {gate_data['detail']} |")
 
-        lines.extend([
-            "",
-            f"## Hallazgos: {len(findings)} total ({high} HIGH, {medium} MEDIUM, {low} LOW)",
-            "",
-        ])
+        lines.extend(
+            [
+                "",
+                f"## Hallazgos: {len(findings)} total ({high} HIGH, {medium} MEDIUM, {low} LOW)",
+                "",
+            ]
+        )
 
         if findings:
             lines.append("| ID | Severity | Subject | Status |")
             lines.append("|-----|----------|---------|--------|")
             for f in findings:
-                lines.append(
-                    f"| {f['finding_id']} | {f['severity']} | {f['subject']} | {f['status']} |"
-                )
+                lines.append(f"| {f['finding_id']} | {f['severity']} | {f['subject']} | {f['status']} |")
 
-        lines.extend([
-            "",
-            "## Lo que se auditó",
-            "",
-            "- `oraculo_capability_catalog_v0.json` (catálogo de 6 capacidades IA)",
-            "- `oraculo_power_stacks_v0.md` (reporte de Power Stacks)",
-            "- `event_log.v0.jsonl` (registro de eventos del Dispatcher)",
-            "",
-            "## Lo que NO se auditó",
-            "",
-            "- Veracidad de las capacidades IA (requiere M2 con APIs reales)",
-            "- Costos reales de los Power Stacks (requiere investigación de precios)",
-            "- Viabilidad de los Sprint Candidates (requiere Sprint Factory)",
-            "",
-            "## Decisiones T1 Pendientes",
-            "",
-            "1. Aprobar elevación del Oráculo a M2 (conexión a APIs reales)",
-            "2. Aprobar activación de Vigilia Sincrónica (orquestación real de loops)",
-            "3. Resolver findings MEDIUM pendientes antes de avanzar",
-            "",
-            "---",
-            "",
-            f"*Generado por `{self.LOOP_ID}` — SPR-LOOP-AUDITOR-001*",
-        ])
+        lines.extend(
+            [
+                "",
+                "## Lo que se auditó",
+                "",
+                "- `oraculo_capability_catalog_v0.json` (catálogo de 6 capacidades IA)",
+                "- `oraculo_power_stacks_v0.md` (reporte de Power Stacks)",
+                "- `event_log.v0.jsonl` (registro de eventos del Dispatcher)",
+                "",
+                "## Lo que NO se auditó",
+                "",
+                "- Veracidad de las capacidades IA (requiere M2 con APIs reales)",
+                "- Costos reales de los Power Stacks (requiere investigación de precios)",
+                "- Viabilidad de los Sprint Candidates (requiere Sprint Factory)",
+                "",
+                "## Decisiones T1 Pendientes",
+                "",
+                "1. Aprobar elevación del Oráculo a M2 (conexión a APIs reales)",
+                "2. Aprobar activación de Vigilia Sincrónica (orquestación real de loops)",
+                "3. Resolver findings MEDIUM pendientes antes de avanzar",
+                "",
+                "---",
+                "",
+                f"*Generado por `{self.LOOP_ID}` — SPR-LOOP-AUDITOR-001*",
+            ]
+        )
 
-        with open(path, 'w', encoding='utf-8') as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")

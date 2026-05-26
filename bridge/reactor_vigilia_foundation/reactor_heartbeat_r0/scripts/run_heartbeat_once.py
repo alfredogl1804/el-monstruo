@@ -124,7 +124,7 @@ def step_wake():
         "timestamp_utc": now_utc(),
         "source": "heartbeat_r0",
         "event_type": "HEARTBEAT_STARTED",
-        "payload": {"heartbeat_id": HEARTBEAT_ID}
+        "payload": {"heartbeat_id": HEARTBEAT_ID},
     }
     append_event(start_event)
     state["events_appended"] = [next_event_id]
@@ -216,7 +216,14 @@ def step_decision_table(state, evaluation):
     if isinstance(pack, dict) and "decisions" in pack:
         t1_pending = [d.get("title", d.get("id", "unknown")) for d in pack["decisions"]]
     elif isinstance(pack, dict) and "recommendation" in pack:
-        t1_pending = ["Approve scheduler", "Define frequency", "Define scope", "Define budget", "Cockpit integration", "Supabase migration"]
+        t1_pending = [
+            "Approve scheduler",
+            "Define frequency",
+            "Define scope",
+            "Define budget",
+            "Cockpit integration",
+            "Supabase migration",
+        ]
 
     # Register HEARTBEAT_DECISION event
     next_event_id = state["events_appended"][-1] + 1
@@ -225,11 +232,7 @@ def step_decision_table(state, evaluation):
         "timestamp_utc": now_utc(),
         "source": "heartbeat_r0",
         "event_type": "HEARTBEAT_DECISION",
-        "payload": {
-            "heartbeat_id": HEARTBEAT_ID,
-            "decision": decision,
-            "reason": reason
-        }
+        "payload": {"heartbeat_id": HEARTBEAT_ID, "decision": decision, "reason": reason},
     }
     append_event(decision_event)
     state["events_appended"].append(next_event_id)
@@ -250,7 +253,7 @@ def step_decision_table(state, evaluation):
         ],
         "t1_pending": t1_pending,
         "blockers": [],
-        "next_valid_action": "Await T1 decisions on scheduler, core providers, and budget."
+        "next_valid_action": "Await T1 decisions on scheduler, core providers, and budget.",
     }
 
     return decision_obj
@@ -298,11 +301,7 @@ def step_sleep(state, decision_obj, actions_taken, started_at):
         "timestamp_utc": ended_at,
         "source": "heartbeat_r0",
         "event_type": "HEARTBEAT_COMPLETED",
-        "payload": {
-            "heartbeat_id": HEARTBEAT_ID,
-            "decision": decision_obj["decision"],
-            "actions_taken": actions_taken
-        }
+        "payload": {"heartbeat_id": HEARTBEAT_ID, "decision": decision_obj["decision"], "actions_taken": actions_taken},
     }
     append_event(complete_event)
     state["events_appended"].append(next_event_id)
@@ -342,12 +341,20 @@ def step_sleep(state, decision_obj, actions_taken, started_at):
         "preconditions_verified": state["preconditions_verified"],
         "decision": decision_obj["decision"],
         "actions_taken": actions_taken,
-        "actions_not_taken": ["RUN_M2_API_REALTIME", "RUN_SCHEDULER", "RUN_DAEMON",
-                              "WRITE_CODE", "OPEN_PR", "DEPLOY", "TOUCH_SUPABASE",
-                              "TOUCH_MEMORY", "CANONIZE"],
+        "actions_not_taken": [
+            "RUN_M2_API_REALTIME",
+            "RUN_SCHEDULER",
+            "RUN_DAEMON",
+            "WRITE_CODE",
+            "OPEN_PR",
+            "DEPLOY",
+            "TOUCH_SUPABASE",
+            "TOUCH_MEMORY",
+            "CANONIZE",
+        ],
         "events_appended": len(state["events_appended"]),
         "status": "COMPLETED",
-        "no_assumptions": True
+        "no_assumptions": True,
     }
     manifest_path = BASE / "heartbeat_manifest.v0_1.json"
     with open(manifest_path, "w") as f:
@@ -369,7 +376,7 @@ def step_sleep(state, decision_obj, actions_taken, started_at):
         "next_valid_action": decision_obj["next_valid_action"],
         "no_assumptions": True,
         "event_refs": state["events_appended"],
-        "validation_score": "pending"
+        "validation_score": "pending",
     }
     report_json_path = BASE / "heartbeat_report.v0_1.json"
     with open(report_json_path, "w") as f:
@@ -381,7 +388,7 @@ def step_sleep(state, decision_obj, actions_taken, started_at):
 
 **Started:** {started_at}
 **Ended:** {ended_at}
-**Decision:** `{decision_obj['decision']}`
+**Decision:** `{decision_obj["decision"]}`
 **Status:** COMPLETED
 
 ## What the Heartbeat Reviewed
@@ -390,33 +397,33 @@ The heartbeat read and verified 10 preconditions from State Fabric, Autonomy Lad
 
 ## Decision
 
-**`{decision_obj['decision']}`** — {decision_obj['reason']}
+**`{decision_obj["decision"]}`** — {decision_obj["reason"]}
 
-Rule applied: {decision_obj['rule_applied']}
+Rule applied: {decision_obj["rule_applied"]}
 
 ## Actions Taken
 
-{chr(10).join(f'- {a}' for a in actions_taken) if actions_taken else '- None (NO_ACTION equivalent — valid outcome).'}
+{chr(10).join(f"- {a}" for a in actions_taken) if actions_taken else "- None (NO_ACTION equivalent — valid outcome)."}
 
 ## Actions NOT Taken (Hard Blocks)
 
-{chr(10).join(f'- {a}' for a in manifest['actions_not_taken'])}
+{chr(10).join(f"- {a}" for a in manifest["actions_not_taken"])}
 
 ## T1 Pending
 
-{chr(10).join(f'- {t}' for t in decision_obj['t1_pending'])}
+{chr(10).join(f"- {t}" for t in decision_obj["t1_pending"])}
 
 ## Blockers
 
-{chr(10).join(f'- {b}' for b in decision_obj['blockers']) if decision_obj['blockers'] else '- None.'}
+{chr(10).join(f"- {b}" for b in decision_obj["blockers"]) if decision_obj["blockers"] else "- None."}
 
 ## Next Valid Action
 
-{decision_obj['next_valid_action']}
+{decision_obj["next_valid_action"]}
 
 ## Events Registered
 
-{len(state['events_appended'])} events appended to State Fabric (IDs: {state['events_appended']}).
+{len(state["events_appended"])} events appended to State Fabric (IDs: {state["events_appended"]}).
 """
     report_md_path = BASE / "heartbeat_report.v0_1.md"
     with open(report_md_path, "w") as f:
@@ -434,7 +441,7 @@ Verifiqué 10 precondiciones: State Fabric, Autonomy Ladder, Vigilia Sincrónica
 
 ## 2. Qué decisión tomó
 
-**`{decision_obj['decision']}`** — Hay decisiones T1 pendientes que requieren tu autorización antes de que pueda avanzar autónomamente.
+**`{decision_obj["decision"]}`** — Hay decisiones T1 pendientes que requieren tu autorización antes de que pueda avanzar autónomamente.
 
 ## 3. Si hizo algo o no
 
@@ -509,11 +516,11 @@ def main():
     print(f"  Decision: {decision_obj['decision']}")
     print(f"  Actions: {len(actions_taken)}")
     print(f"  Events appended: {len(state['events_appended'])}")
-    print(f"  Status: COMPLETED")
-    print(f"  Daemon: NO")
-    print(f"  Cron: NO")
-    print(f"  Scheduler: NO")
-    print(f"  Process alive: NO (dying now)")
+    print("  Status: COMPLETED")
+    print("  Daemon: NO")
+    print("  Cron: NO")
+    print("  Scheduler: NO")
+    print("  Process alive: NO (dying now)")
     print("=" * 60)
 
     return 0

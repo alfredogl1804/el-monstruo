@@ -7,9 +7,9 @@ run_vigilia_chain_v0.py para garantizar que la cadena se ejecutó
 correctamente y sin violar controles de riesgo.
 """
 
-import sys
-import os
 import json
+import os
+import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHAIN_RUN_DIR = os.path.join(BASE_DIR, "chain_run_001")
@@ -21,7 +21,7 @@ def gate_1_manifest_exists():
     if not os.path.exists(path):
         return False, "Manifest file not found"
     try:
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             data = json.load(f)
         if "chain_id" not in data or "steps" not in data:
             return False, "Manifest missing required fields"
@@ -33,7 +33,7 @@ def gate_1_manifest_exists():
 def gate_2_all_steps_success():
     """Gate 2: All 4 chain steps completed with acceptable status (SUCCESS or PARTIAL with PASS_WITH_FINDINGS)."""
     path = os.path.join(CHAIN_RUN_DIR, "real_loop_chain_manifest.v0_1.json")
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
     steps = data.get("steps", [])
     if len(steps) != 4:
@@ -57,13 +57,13 @@ def gate_3_handoff_packets_exist():
     expected_handoffs = [
         "handoff_loop_oraculo_ias_to_loop_auditor.v0_1.json",
         "handoff_loop_auditor_to_loop_risk_classification.v0_1.json",
-        "handoff_loop_risk_classification_to_loop_unified_face.v0_1.json"
+        "handoff_loop_risk_classification_to_loop_unified_face.v0_1.json",
     ]
     for filename in expected_handoffs:
         path = os.path.join(CHAIN_RUN_DIR, filename)
         if not os.path.exists(path):
             return False, f"Missing handoff: {filename}"
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             packet = json.load(f)
         if "source_loop" not in packet or "target_loop" not in packet:
             return False, f"Invalid handoff: {filename}"
@@ -75,7 +75,7 @@ def gate_4_event_log_delta_populated():
     path = os.path.join(CHAIN_RUN_DIR, "chain_event_log_delta.v0_1.jsonl")
     if not os.path.exists(path):
         return False, "Event log delta not found"
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         lines = [l.strip() for l in f.readlines() if l.strip()]
     if len(lines) < 5:
         return False, f"Expected >= 5 events, got {len(lines)}"
@@ -84,7 +84,7 @@ def gate_4_event_log_delta_populated():
         try:
             json.loads(line)
         except json.JSONDecodeError:
-            return False, f"Invalid JSON at line {i+1}"
+            return False, f"Invalid JSON at line {i + 1}"
     return True, f"Event log delta: {len(lines)} valid events"
 
 
@@ -94,7 +94,7 @@ def gate_5_no_realtime_verified():
     for filename in os.listdir(CHAIN_RUN_DIR):
         if filename.startswith("handoff_") and filename.endswith(".json"):
             path = os.path.join(CHAIN_RUN_DIR, filename)
-            with open(path, 'r') as f:
+            with open(path, "r") as f:
                 data = json.load(f)
             if data.get("evidence_status") == "REALTIME_VERIFIED":
                 return False, f"REALTIME_VERIFIED found in {filename}"
@@ -104,7 +104,7 @@ def gate_5_no_realtime_verified():
     # Check risk overlay
     risk_path = os.path.join(CHAIN_RUN_DIR, "risk_output", "chain_risk_overlay_v0_1.json")
     if os.path.exists(risk_path):
-        with open(risk_path, 'r') as f:
+        with open(risk_path, "r") as f:
             data = json.load(f)
         if data.get("global_evidence_status") == "REALTIME_VERIFIED":
             return False, "Risk overlay claims REALTIME_VERIFIED"
@@ -117,14 +117,14 @@ def gate_6_no_m2_unlock():
     for filename in os.listdir(CHAIN_RUN_DIR):
         if filename.startswith("handoff_") and filename.endswith(".json"):
             path = os.path.join(CHAIN_RUN_DIR, filename)
-            with open(path, 'r') as f:
+            with open(path, "r") as f:
                 data = json.load(f)
             if data.get("no_m2_unlock") is not True:
                 return False, f"no_m2_unlock != true in {filename}"
 
     # Check manifest risk controls
     manifest_path = os.path.join(CHAIN_RUN_DIR, "real_loop_chain_manifest.v0_1.json")
-    with open(manifest_path, 'r') as f:
+    with open(manifest_path, "r") as f:
         manifest = json.load(f)
     controls = manifest.get("risk_controls", {})
     if controls.get("no_m2_unlock") is not True:
@@ -136,7 +136,7 @@ def gate_6_no_m2_unlock():
 def gate_7_dispatcher_deny_present():
     """Gate 7: At least one DENY event exists (Oracle write_code attempt)."""
     path = os.path.join(CHAIN_RUN_DIR, "chain_event_log_delta.v0_1.jsonl")
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         lines = [l.strip() for l in f.readlines() if l.strip()]
 
     deny_found = False
@@ -156,7 +156,7 @@ def gate_8_unified_face_summary_exists():
     path = os.path.join(CHAIN_RUN_DIR, "face_output", "unified_face_summary.v0_1.md")
     if not os.path.exists(path):
         return False, "Unified Face summary not found"
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         content = f.read()
     if len(content) < 100:
         return False, "Summary too short (< 100 chars)"
@@ -169,7 +169,7 @@ def gate_9_no_daemon_no_scheduler():
     """Gate 9: No evidence of daemon/scheduler/infinite loop."""
     # Check manifest
     manifest_path = os.path.join(CHAIN_RUN_DIR, "real_loop_chain_manifest.v0_1.json")
-    with open(manifest_path, 'r') as f:
+    with open(manifest_path, "r") as f:
         manifest = json.load(f)
     controls = manifest.get("risk_controls", {})
     if controls.get("no_daemon") is not True:
@@ -178,7 +178,7 @@ def gate_9_no_daemon_no_scheduler():
     # Check unified face output
     face_path = os.path.join(CHAIN_RUN_DIR, "unified_face_output.v0_1.json")
     if os.path.exists(face_path):
-        with open(face_path, 'r') as f:
+        with open(face_path, "r") as f:
             face = json.load(f)
         restrictions = face.get("active_restrictions", [])
         if "no_daemon" not in restrictions:
@@ -192,7 +192,7 @@ def gate_10_oracle_catalog_produced():
     path = os.path.join(CHAIN_RUN_DIR, "oracle_output", "oraculo_capability_catalog_v0.json")
     if not os.path.exists(path):
         return False, "Oracle catalog not found"
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
     caps = data.get("capabilities", [])
     if len(caps) < 6:
@@ -205,7 +205,7 @@ def gate_11_risk_overlay_all_r0():
     path = os.path.join(CHAIN_RUN_DIR, "risk_output", "chain_risk_overlay_v0_1.json")
     if not os.path.exists(path):
         return False, "Risk overlay not found"
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
     if data.get("global_risk_class") != "R0":
         return False, f"Global risk class = {data.get('global_risk_class')}, expected R0"
@@ -218,14 +218,14 @@ def gate_11_risk_overlay_all_r0():
 def gate_12_chain_sequence_correct():
     """Gate 12: Steps executed in correct order (1→2→3→4)."""
     manifest_path = os.path.join(CHAIN_RUN_DIR, "real_loop_chain_manifest.v0_1.json")
-    with open(manifest_path, 'r') as f:
+    with open(manifest_path, "r") as f:
         manifest = json.load(f)
     steps = manifest.get("steps", [])
     expected_order = [
         (1, "loop_oraculo_ias"),
         (2, "loop_auditor"),
         (3, "loop_risk_classification"),
-        (4, "loop_unified_face")
+        (4, "loop_unified_face"),
     ]
     for expected_id, expected_loop in expected_order:
         matching = [s for s in steps if s["step_id"] == expected_id]
@@ -279,16 +279,19 @@ def run_all_gates():
         print(f"         → {evidence}")
         print()
 
-        results.append({
-            "gate_id": gate_id,
-            "gate_name": gate_name,
-            "passed": success,
-            "evidence": evidence,
-            "failure_reason": evidence if not success else ""
-        })
+        results.append(
+            {
+                "gate_id": gate_id,
+                "gate_name": gate_name,
+                "passed": success,
+                "evidence": evidence,
+                "failure_reason": evidence if not success else "",
+            }
+        )
 
     # Write validation report
     from datetime import datetime, timezone
+
     report = {
         "chain_id": "vigilia-chain-v0.2-001",
         "validated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -296,11 +299,11 @@ def run_all_gates():
         "gates_passed": passed,
         "gates_failed": failed,
         "overall_verdict": "PASS" if failed == 0 else "FAIL",
-        "gates": results
+        "gates": results,
     }
 
     report_path = os.path.join(CHAIN_RUN_DIR, "chain_validation_report.v0_1.json")
-    with open(report_path, 'w') as f:
+    with open(report_path, "w") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
 
     print("=" * 70)

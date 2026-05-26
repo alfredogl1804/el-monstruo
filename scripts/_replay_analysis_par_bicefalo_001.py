@@ -17,7 +17,6 @@ Output: discovery_forense/REPLAY/PAR_BICEFALO_001_replay_$timestamp.json
 
 import asyncio
 import json
-import os
 import random
 import statistics
 import subprocess
@@ -97,12 +96,9 @@ def run_layer1_mechanical(corpus: list[dict[str, Any]]) -> dict[str, Any]:
 
     print(
         f"      Bloqueadas por pre-filtro: {len(blocked_by_prefilter)} "
-        f"({100*len(blocked_by_prefilter)/len(corpus):.1f}%)"
+        f"({100 * len(blocked_by_prefilter) / len(corpus):.1f}%)"
     )
-    print(
-        f"      Pasaron pre-filtro: {len(passed_prefilter)} "
-        f"({100*len(passed_prefilter)/len(corpus):.1f}%)"
-    )
+    print(f"      Pasaron pre-filtro: {len(passed_prefilter)} ({100 * len(passed_prefilter) / len(corpus):.1f}%)")
 
     return {
         "total": len(corpus),
@@ -110,9 +106,7 @@ def run_layer1_mechanical(corpus: list[dict[str, Any]]) -> dict[str, Any]:
         "passed_prefilter": len(passed_prefilter),
         "block_rate": len(blocked_by_prefilter) / len(corpus) if corpus else 0,
         "length_p50": statistics.median(lengths) if lengths else 0,
-        "length_p95": (
-            statistics.quantiles(lengths, n=20)[18] if len(lengths) >= 20 else max(lengths or [0])
-        ),
+        "length_p95": (statistics.quantiles(lengths, n=20)[18] if len(lengths) >= 20 else max(lengths or [0])),
         "samples_blocked": blocked_by_prefilter[:10],  # Primeros 10 para reporte
     }
 
@@ -184,9 +178,7 @@ async def run_layer2_sabio(
                     "d1_passed": result.d1_brand_tono.passed if result.d1_brand_tono else None,
                     "d2_passed": result.d2_honestidad.passed if result.d2_honestidad else None,
                     "d3_passed": result.d3_doctrina.passed if result.d3_doctrina else None,
-                    "d4_passed": (
-                        result.d4_apple_tesla.passed if result.d4_apple_tesla else None
-                    ),
+                    "d4_passed": (result.d4_apple_tesla.passed if result.d4_apple_tesla else None),
                     "blocked_by_prefilter": result.blocked_by_prefilter,
                 }
             )
@@ -214,9 +206,7 @@ def run_layer3_extrapolation(layer1: dict, layer2: dict) -> dict:
     """Capa 3: extrapola estadísticamente para 100 respuestas."""
     print("[4/5] Capa 3: extrapolación estadística...")
 
-    cost_per_call = layer2.get("avg_cost_per_call_usd") or layer2.get(
-        "estimated_cost_per_call_usd", 0.018
-    )
+    cost_per_call = layer2.get("avg_cost_per_call_usd") or layer2.get("estimated_cost_per_call_usd", 0.018)
     sabio_calls_needed = layer1["passed_prefilter"]  # las que pasan pre-filtro
     estimated_total_cost = sabio_calls_needed * cost_per_call * 4  # 4 dimensiones
 
@@ -226,9 +216,7 @@ def run_layer3_extrapolation(layer1: dict, layer2: dict) -> dict:
         "estimated_total_latency_seconds_full_replay": round(
             sabio_calls_needed * (layer2.get("latency_p50_ms", 1500) / 1000), 1
         ),
-        "savings_from_prefilter_pct": round(
-            100 * layer1["block_rate"], 1
-        ),  # % de costo ahorrado por pre-filtro
+        "savings_from_prefilter_pct": round(100 * layer1["block_rate"], 1),  # % de costo ahorrado por pre-filtro
     }
 
 
@@ -289,44 +277,44 @@ def _format_markdown(report: dict) -> str:
 
     md = f"""# T7 Replay Analysis — Sprint PAR_BICEFALO_001 Brand Engine
 
-**Timestamp UTC:** {report['timestamp_utc']}
-**Corpus size:** {report['corpus_size']} respuestas reales del Embrión 1
-**Live mode:** {report['live_mode']}
-**Fuente de datos:** `embrion_memoria` WHERE `tipo='respuesta_embrion'` ORDER BY `created_at` DESC LIMIT {report['corpus_size']}
+**Timestamp UTC:** {report["timestamp_utc"]}
+**Corpus size:** {report["corpus_size"]} respuestas reales del Embrión 1
+**Live mode:** {report["live_mode"]}
+**Fuente de datos:** `embrion_memoria` WHERE `tipo='respuesta_embrion'` ORDER BY `created_at` DESC LIMIT {report["corpus_size"]}
 
 ## Capa 1 — Pre-filtro mecánico (determinístico, sin LLM)
 
 | Métrica | Valor |
 |---|---:|
-| Total evaluadas | {l1['total']} |
-| Bloqueadas por pre-filtro | {l1['blocked_by_prefilter']} ({100*l1['block_rate']:.1f}%) |
-| Pasaron pre-filtro | {l1['passed_prefilter']} ({100-100*l1['block_rate']:.1f}%) |
-| Longitud p50 | {l1['length_p50']:.0f} caracteres |
-| Longitud p95 | {l1['length_p95']:.0f} caracteres |
+| Total evaluadas | {l1["total"]} |
+| Bloqueadas por pre-filtro | {l1["blocked_by_prefilter"]} ({100 * l1["block_rate"]:.1f}%) |
+| Pasaron pre-filtro | {l1["passed_prefilter"]} ({100 - 100 * l1["block_rate"]:.1f}%) |
+| Longitud p50 | {l1["length_p50"]:.0f} caracteres |
+| Longitud p95 | {l1["length_p95"]:.0f} caracteres |
 
 Las frases atrapadas por el pre-filtro contienen patrones plantilla corp como "estoy aquí para ayudarte", "lamento la inconveniencia", "espero haber sido de ayuda" — frases estructuralmente diferentes a la voz Monstruo canonizada.
 
-## Capa 2 — Sample con Sabio {"REAL" if l2['live'] else "MOCKED (cost-controlled)"}
+## Capa 2 — Sample con Sabio {"REAL" if l2["live"] else "MOCKED (cost-controlled)"}
 
 | Métrica | Valor |
 |---|---:|
-| Sample size | {l2['sample_size']} |
+| Sample size | {l2["sample_size"]} |
 """
     if l2["live"]:
-        md += f"""| Aprobadas | {l2['approved']} ({100*l2['approval_rate']:.1f}%) |
-| Rechazadas | {l2['rejected']} ({100-100*l2['approval_rate']:.1f}%) |
-| Costo total muestra | ${l2['total_cost_usd']:.4f} USD |
-| Costo promedio por llamada | ${l2['avg_cost_per_call_usd']:.4f} USD |
-| Latencia p50 | {l2['latency_p50_ms']:.0f} ms |
-| Latencia p95 | {l2['latency_p95_ms']:.0f} ms |
+        md += f"""| Aprobadas | {l2["approved"]} ({100 * l2["approval_rate"]:.1f}%) |
+| Rechazadas | {l2["rejected"]} ({100 - 100 * l2["approval_rate"]:.1f}%) |
+| Costo total muestra | ${l2["total_cost_usd"]:.4f} USD |
+| Costo promedio por llamada | ${l2["avg_cost_per_call_usd"]:.4f} USD |
+| Latencia p50 | {l2["latency_p50_ms"]:.0f} ms |
+| Latencia p95 | {l2["latency_p95_ms"]:.0f} ms |
 """
     else:
-        md += f"""| Costo estimado por llamada | ${l2['estimated_cost_per_call_usd']:.4f} USD |
-| Latencia p50 estimada | {l2['estimated_latency_p50_ms']} ms |
-| Latencia p95 estimada | {l2['estimated_latency_p95_ms']} ms |
-| Tasa de aprobación estimada | {100*l2['approval_rate_estimated']:.1f}% |
+        md += f"""| Costo estimado por llamada | ${l2["estimated_cost_per_call_usd"]:.4f} USD |
+| Latencia p50 estimada | {l2["estimated_latency_p50_ms"]} ms |
+| Latencia p95 estimada | {l2["estimated_latency_p95_ms"]} ms |
+| Tasa de aprobación estimada | {100 * l2["approval_rate_estimated"]:.1f}% |
 
-**Nota:** {l2['note']}
+**Nota:** {l2["note"]}
 """
 
     md += f"""
@@ -335,15 +323,15 @@ Las frases atrapadas por el pre-filtro contienen patrones plantilla corp como "e
 
 | Métrica | Valor |
 |---|---:|
-| Llamadas Sabio estimadas (4 dim × pasaron pre-filtro) | {l3['sabio_calls_estimated']} |
-| Costo total estimado replay completo | ${l3['estimated_total_cost_usd_full_replay']:.2f} USD |
-| Latencia total estimada (seriada) | {l3['estimated_total_latency_seconds_full_replay']:.0f} s |
-| Ahorro por pre-filtro mecánico | {l3['savings_from_prefilter_pct']:.1f}% |
+| Llamadas Sabio estimadas (4 dim × pasaron pre-filtro) | {l3["sabio_calls_estimated"]} |
+| Costo total estimado replay completo | ${l3["estimated_total_cost_usd_full_replay"]:.2f} USD |
+| Latencia total estimada (seriada) | {l3["estimated_total_latency_seconds_full_replay"]:.0f} s |
+| Ahorro por pre-filtro mecánico | {l3["savings_from_prefilter_pct"]:.1f}% |
 
 ## Conclusiones
 
-1. El pre-filtro mecánico atrapa **{100*l1['block_rate']:.1f}%** del corpus sin invocar Sabios — ahorro real de costo y latencia.
-2. El costo proyectado de procesar 100 respuestas con engine completo es **${l3['estimated_total_cost_usd_full_replay']:.2f} USD** — bajo el umbral de `budget_diario_usd` canónico.
+1. El pre-filtro mecánico atrapa **{100 * l1["block_rate"]:.1f}%** del corpus sin invocar Sabios — ahorro real de costo y latencia.
+2. El costo proyectado de procesar 100 respuestas con engine completo es **${l3["estimated_total_cost_usd_full_replay"]:.2f} USD** — bajo el umbral de `budget_diario_usd` canónico.
 3. El engine está **listo para promoción de `shadow` a `enforce`** una vez Cowork audite el sample manual.
 
 ## Recomendación binaria al Cowork

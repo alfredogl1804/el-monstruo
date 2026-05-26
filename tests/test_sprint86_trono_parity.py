@@ -40,6 +40,7 @@ Salvaguardas:
 
 [Hilo Manus Catastro] · Sprint 86 standby productivo · 2026-05-04
 """
+
 from __future__ import annotations
 
 import random
@@ -56,7 +57,6 @@ from kernel.catastro.trono import (
     TronoCalculator,
 )
 
-
 # ============================================================================
 # Réplica fiel del SQL en Python puro (réplica directa de las líneas 263-345
 # de scripts/019_sprint86_catastro_trono.sql).
@@ -66,6 +66,7 @@ from kernel.catastro.trono import (
 @dataclass
 class SqlTronoResult:
     """Espejo de lo que el SQL retornaría tras UPDATE."""
+
     modelo_id: str
     trono_old: Optional[float]
     trono_new: float
@@ -91,11 +92,10 @@ def _simulate_sql_trono(
 
     # Filtrar dominio + estado != deprecated (línea 263-266 del SQL)
     in_domain = [
-        m for m in modelos
+        m
+        for m in modelos
         if p_dominio in (m.dominios or [])
-        and (m.estado is None or str(
-            m.estado.value if hasattr(m.estado, "value") else m.estado
-        ) != "deprecated")
+        and (m.estado is None or str(m.estado.value if hasattr(m.estado, "value") else m.estado) != "deprecated")
     ]
 
     v_count = len(in_domain)
@@ -106,26 +106,23 @@ def _simulate_sql_trono(
         for m in in_domain:
             trono_old = m.trono_global
             trono_new = 50.00
-            trono_delta = trono_new - (
-                trono_old if trono_old is not None else trono_new
+            trono_delta = trono_new - (trono_old if trono_old is not None else trono_new)
+            out.append(
+                SqlTronoResult(
+                    modelo_id=m.id,
+                    trono_old=trono_old,
+                    trono_new=round(trono_new, 2),
+                    trono_delta=round(trono_delta, 2),
+                    modo="neutral",
+                )
             )
-            out.append(SqlTronoResult(
-                modelo_id=m.id,
-                trono_old=trono_old,
-                trono_new=round(trono_new, 2),
-                trono_delta=round(trono_delta, 2),
-                modo="neutral",
-            ))
         return out
 
     # Calcular medias y stddev_samp por métrica (línea 288-302 del SQL)
     means: dict[str, Optional[float]] = {}
     stds: dict[str, float] = {}
     for metric in METRIC_FIELDS:
-        valores = [
-            getattr(m, metric) for m in in_domain
-            if getattr(m, metric) is not None
-        ]
+        valores = [getattr(m, metric) for m in in_domain if getattr(m, metric) is not None]
         if not valores:
             # AVG sobre todos NULL = NULL; SQL maneja con COALESCE(NULL, 0)=0 al z_calc
             means[metric] = None
@@ -171,17 +168,17 @@ def _simulate_sql_trono(
 
         trono_old = m.trono_global
         # COALESCE(n.trono_new - n.trono_old, 0) → si trono_old None, delta=0
-        trono_delta = round(
-            trono_new - trono_old, 2
-        ) if trono_old is not None else 0.0
+        trono_delta = round(trono_new - trono_old, 2) if trono_old is not None else 0.0
 
-        out2.append(SqlTronoResult(
-            modelo_id=m.id,
-            trono_old=trono_old,
-            trono_new=trono_new,
-            trono_delta=trono_delta,
-            modo="z_score",
-        ))
+        out2.append(
+            SqlTronoResult(
+                modelo_id=m.id,
+                trono_old=trono_old,
+                trono_new=trono_new,
+                trono_delta=trono_delta,
+                modo="z_score",
+            )
+        )
 
     return out2
 
@@ -392,9 +389,7 @@ class TestTronoParity:
             sql_by_id = {r.modelo_id: r for r in sql_results}
             for py_r in py_results:
                 sql_r = sql_by_id.get(py_r.modelo_id)
-                assert sql_r is not None, (
-                    f"Modelo {py_r.modelo_id} en Python pero no en SQL"
-                )
+                assert sql_r is not None, f"Modelo {py_r.modelo_id} en Python pero no en SQL"
                 diff_new = abs(py_r.trono_new - sql_r.trono_new)
                 if diff_new > 0.01:
                     divergencias.append(
@@ -404,7 +399,7 @@ class TestTronoParity:
                     )
 
         assert not divergencias, (
-            f"Divergencias detectadas (tolerancia 0.01):\n  - "
+            "Divergencias detectadas (tolerancia 0.01):\n  - "
             + "\n  - ".join(divergencias[:20])
             + (f"\n  ... y {len(divergencias) - 20} más" if len(divergencias) > 20 else "")
         )
@@ -430,10 +425,7 @@ class TestTronoParity:
                         f"diff={diff_delta:.4f}"
                     )
 
-        assert not divergencias, (
-            f"Divergencias en trono_delta:\n  - "
-            + "\n  - ".join(divergencias[:20])
-        )
+        assert not divergencias, "Divergencias en trono_delta:\n  - " + "\n  - ".join(divergencias[:20])
 
     def test_modos_coinciden(self, calc, casos):
         """Cuando n<2, ambos deben retornar mode='neutral'; si n>=2, 'z_score'."""
@@ -449,9 +441,7 @@ class TestTronoParity:
             # En el TronoResult Python, .mode es 'neutral' o 'z_score'
             py_mode = py_results[0].mode
             sql_mode = sql_results[0].modo
-            assert py_mode == sql_mode, (
-                f"Modo distinto en {dominio}: py={py_mode} sql={sql_mode}"
-            )
+            assert py_mode == sql_mode, f"Modo distinto en {dominio}: py={py_mode} sql={sql_mode}"
 
     def test_clamp_trono_within_0_100(self, calc, casos):
         """Ningún trono_new debe estar fuera de [0, 100] en ninguna implementación."""

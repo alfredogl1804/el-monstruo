@@ -5,13 +5,16 @@ Código copy-paste listo para conectar cada servicio.
 
 USO: Copiar el snippet relevante al proyecto. Todos usan env vars.
 """
+
 import os
+
 
 # =====================================================================
 # 1. GPT-5.4 (Estratega + Clasificador + Embeddings)
 # =====================================================================
 def connect_gpt54(prompt: str, system: str = "Eres un estratega experto.") -> str:
     from openai import OpenAI
+
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     response = client.chat.completions.create(
         model="gpt-5.4",
@@ -26,6 +29,7 @@ def connect_gpt54(prompt: str, system: str = "Eres un estratega experto.") -> st
 
 def get_embedding(text: str) -> list:
     from openai import OpenAI
+
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     response = client.embeddings.create(
         model="text-embedding-3-small",
@@ -39,6 +43,7 @@ def get_embedding(text: str) -> list:
 # =====================================================================
 def connect_claude(prompt: str, system: str = "Eres un arquitecto experto.") -> str:
     import anthropic
+
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     response = client.messages.create(
         model="claude-opus-4-6",  # NO claude-4-20250514
@@ -54,6 +59,7 @@ def connect_claude(prompt: str, system: str = "Eres un arquitecto experto.") -> 
 # =====================================================================
 def connect_gemini(prompt: str) -> str:
     from google import genai
+
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     response = client.models.generate_content(
         model="gemini-3.1-pro-preview",
@@ -67,6 +73,7 @@ def connect_gemini(prompt: str) -> str:
 # =====================================================================
 def connect_grok(prompt: str, system: str = "Eres un experto.") -> str:
     from openai import OpenAI
+
     client = OpenAI(
         api_key=os.environ["XAI_API_KEY"],
         base_url="https://api.x.ai/v1",
@@ -87,6 +94,7 @@ def connect_grok(prompt: str, system: str = "Eres un experto.") -> str:
 # =====================================================================
 def connect_deepseek(prompt: str, system: str = "Eres un analista técnico.") -> str:
     from openai import OpenAI
+
     client = OpenAI(
         api_key=os.environ["OPENROUTER_API_KEY"],
         base_url="https://openrouter.ai/api/v1",  # SIEMPRE via OpenRouter
@@ -107,6 +115,7 @@ def connect_deepseek(prompt: str, system: str = "Eres un analista técnico.") ->
 # =====================================================================
 def connect_perplexity(prompt: str, system: str = "Investiga con fuentes.") -> str:
     import requests
+
     headers = {
         "Authorization": f"Bearer {os.environ['SONAR_API_KEY']}",
         "Content-Type": "application/json",
@@ -120,7 +129,9 @@ def connect_perplexity(prompt: str, system: str = "Investiga con fuentes.") -> s
     }
     resp = requests.post(
         "https://api.perplexity.ai/chat/completions",
-        headers=headers, json=data, timeout=120,  # Timeout largo
+        headers=headers,
+        json=data,
+        timeout=120,  # Timeout largo
     )
     return resp.json()["choices"][0]["message"]["content"]
 
@@ -130,6 +141,7 @@ def connect_perplexity(prompt: str, system: str = "Investiga con fuentes.") -> s
 # =====================================================================
 def connect_free_model(prompt: str, model: str = "nvidia/nemotron-3-super:free") -> str:
     from openai import OpenAI
+
     client = OpenAI(
         api_key=os.environ["OPENROUTER_API_KEY"],
         base_url="https://openrouter.ai/api/v1",
@@ -145,9 +157,9 @@ def connect_free_model(prompt: str, model: str = "nvidia/nemotron-3-super:free")
 # =====================================================================
 # 8. Supabase — Memoria Semántica
 # =====================================================================
-def save_memory(user_id: str, role: str, content: str,
-                task_type: str = None, brain_used: str = None) -> bool:
+def save_memory(user_id: str, role: str, content: str, task_type: str = None, brain_used: str = None) -> bool:
     import requests
+
     url = os.environ.get("SUPABASE_URL", "https://xsumzuhwmivjgftsneov.supabase.co")
     key = os.environ["SUPABASE_SERVICE_KEY"]
     headers = {
@@ -172,6 +184,7 @@ def save_memory(user_id: str, role: str, content: str,
 
 def recall_memories(user_id: str, query: str, limit: int = 5) -> list:
     import requests
+
     url = os.environ.get("SUPABASE_URL", "https://xsumzuhwmivjgftsneov.supabase.co")
     key = os.environ["SUPABASE_SERVICE_KEY"]
     headers = {
@@ -201,6 +214,7 @@ def recall_memories(user_id: str, query: str, limit: int = 5) -> list:
 # =====================================================================
 def generate_speech(text: str, voice_id: str = "21m00Tcm4TlvDq8ikWAM") -> bytes:
     from elevenlabs import ElevenLabs
+
     client = ElevenLabs(api_key=os.environ["ELEVENLABS_API_KEY"])
     audio = client.text_to_speech.convert(
         text=text,
@@ -215,15 +229,18 @@ def generate_speech(text: str, voice_id: str = "21m00Tcm4TlvDq8ikWAM") -> bytes:
 # =====================================================================
 def create_video(text: str, avatar_id: str = "default") -> str:
     import requests
+
     headers = {
         "X-Api-Key": os.environ["HEYGEN_API_KEY"],
         "Content-Type": "application/json",
     }
     payload = {
-        "video_inputs": [{
-            "character": {"type": "avatar", "avatar_id": avatar_id},
-            "voice": {"type": "text", "input_text": text},
-        }],
+        "video_inputs": [
+            {
+                "character": {"type": "avatar", "avatar_id": avatar_id},
+                "voice": {"type": "text", "input_text": text},
+            }
+        ],
     }
     resp = requests.post("https://api.heygen.com/v2/video/generate", headers=headers, json=payload)
     return resp.json().get("data", {}).get("video_id", "")
@@ -231,6 +248,7 @@ def create_video(text: str, avatar_id: str = "default") -> str:
 
 def check_video_status(video_id: str) -> dict:
     import requests
+
     headers = {"X-Api-Key": os.environ["HEYGEN_API_KEY"]}
     resp = requests.get(
         f"https://api.heygen.com/v1/video_status.get?video_id={video_id}",
@@ -245,14 +263,18 @@ def check_video_status(video_id: str) -> dict:
 def classify_task(task_text: str) -> str:
     """Clasifica en: investigacion, codigo, estrategia, creativo, analisis, leads."""
     from openai import OpenAI
+
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     response = client.chat.completions.create(
         model="gpt-5.4",
         messages=[
-            {"role": "system", "content": (
-                "Clasifica la tarea en UNA categoría: investigacion, codigo, estrategia, "
-                "creativo, analisis, leads. Responde SOLO con la categoría."
-            )},
+            {
+                "role": "system",
+                "content": (
+                    "Clasifica la tarea en UNA categoría: investigacion, codigo, estrategia, "
+                    "creativo, analisis, leads. Responde SOLO con la categoría."
+                ),
+            },
             {"role": "user", "content": task_text},
         ],
         max_completion_tokens=20,
@@ -265,12 +287,13 @@ def classify_task(task_text: str) -> str:
 # =====================================================================
 BRAIN_MAP = {
     "investigacion": ("perplexity", connect_perplexity),
-    "leads":         ("perplexity", connect_perplexity),
-    "codigo":        ("grok",       connect_grok),
-    "estrategia":    ("gpt54",      connect_gpt54),
-    "creativo":      ("gemini",     connect_gemini),
-    "analisis":      ("deepseek",   connect_deepseek),
+    "leads": ("perplexity", connect_perplexity),
+    "codigo": ("grok", connect_grok),
+    "estrategia": ("gpt54", connect_gpt54),
+    "creativo": ("gemini", connect_gemini),
+    "analisis": ("deepseek", connect_deepseek),
 }
+
 
 def route_and_execute(task_text: str) -> tuple:
     """Clasifica la tarea y la ejecuta con el cerebro óptimo."""

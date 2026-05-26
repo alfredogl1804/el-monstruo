@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Inspecciona el step CRITIC de los 5 runs del eval Sprint 88.1+88.2 post-revert."""
+
 import json
 import os
-import sys
 import urllib.request
 
 KEY = os.environ["MONSTRUO_API_KEY"]

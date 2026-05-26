@@ -16,6 +16,7 @@ Brand DNA en errores: e2e_deploy_*_failed.
 LLM-as-parser: NO aplica directamente acá; la generación de HTML/CSS viene de
 los outputs de los steps CREATIVO + TECNICO + VENTAS del pipeline.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -26,10 +27,11 @@ import unicodedata
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from kernel.e2e.deploy.image_gen import generate_hero_image
 
 import structlog
 from pydantic import BaseModel, ConfigDict, Field
+
+from kernel.e2e.deploy.image_gen import generate_hero_image
 
 logger = structlog.get_logger("kernel.e2e.deploy.real_deploy")
 
@@ -75,15 +77,9 @@ class RealDeployResult(BaseModel):
     deploy_at: str = Field(..., description="ISO timestamp UTC")
     repo: Optional[str] = Field(None, description="owner/repo si aplica")
     files_committed: int = Field(0, description="Cantidad de archivos publicados")
-    build_confirmed: bool = Field(
-        False, description="Si el provider confirmó que el build terminó"
-    )
-    real_deploy_pending: bool = Field(
-        False, description="Si quedan pasos pendientes (sovereign domain, etc.)"
-    )
-    fallback_reason: Optional[str] = Field(
-        None, description="Por qué se usó heuristic_preview, si aplica"
-    )
+    build_confirmed: bool = Field(False, description="Si el provider confirmó que el build terminó")
+    real_deploy_pending: bool = Field(False, description="Si quedan pasos pendientes (sovereign domain, etc.)")
+    fallback_reason: Optional[str] = Field(None, description="Por qué se usó heuristic_preview, si aplica")
 
 
 # ── Validación pre-deploy (Capa Memento) ─────────────────────────────────────
@@ -166,37 +162,141 @@ def _extract_brand_palette(creativo: Dict[str, Any]) -> Dict[str, str]:
 # Verbos conjugados comunes en español que NO deben aparecer como inicio de un "nombre" derivado.
 _VERBOS_PROHIBIDOS = {
     # vender / comprar / ofrecer
-    "vendo", "vendemos", "vende", "venden", "vender", "vendi", "vendia",
-    "compro", "compramos", "compra", "compran", "comprar",
-    "ofrezco", "ofrecemos", "ofrece", "ofrecen", "ofrecer",
+    "vendo",
+    "vendemos",
+    "vende",
+    "venden",
+    "vender",
+    "vendi",
+    "vendia",
+    "compro",
+    "compramos",
+    "compra",
+    "compran",
+    "comprar",
+    "ofrezco",
+    "ofrecemos",
+    "ofrece",
+    "ofrecen",
+    "ofrecer",
     # hacer / diseñar / crear
-    "hago", "hacemos", "hace", "hacen", "hacer", "haz",
-    "diseño", "diseñamos", "diseña", "diseñan", "diseñar",
-    "creo", "creamos", "crea", "crean", "crear",
+    "hago",
+    "hacemos",
+    "hace",
+    "hacen",
+    "hacer",
+    "haz",
+    "diseño",
+    "diseñamos",
+    "diseña",
+    "diseñan",
+    "diseñar",
+    "creo",
+    "creamos",
+    "crea",
+    "crean",
+    "crear",
     # querer / necesitar / construir
-    "quiero", "queremos", "quiere", "quieren", "querer",
-    "necesito", "necesitamos", "necesita", "necesitan", "necesitar",
-    "construir", "construyo", "construimos", "construye",
+    "quiero",
+    "queremos",
+    "quiere",
+    "quieren",
+    "querer",
+    "necesito",
+    "necesitamos",
+    "necesita",
+    "necesitan",
+    "necesitar",
+    "construir",
+    "construyo",
+    "construimos",
+    "construye",
     # tener / dar / hacer
-    "tengo", "tenemos", "tiene", "tienen", "tener",
-    "doy", "damos", "dar",
+    "tengo",
+    "tenemos",
+    "tiene",
+    "tienen",
+    "tener",
+    "doy",
+    "damos",
+    "dar",
     # action keywords for product/landing input
-    "vamos", "voy", "somos", "soy", "es", "son", "hay",
-    "genera", "generar", "generamos",
-    "lanzar", "lanzo", "lanzamos",
-    "abrir", "abro", "abrimos",
-    "ayudo", "ayudamos", "ayuda", "ayudar",
-    "enseño", "enseñamos", "enseña", "enseñar",
-    "cobro", "cobramos", "cobra", "cobrar",
+    "vamos",
+    "voy",
+    "somos",
+    "soy",
+    "es",
+    "son",
+    "hay",
+    "genera",
+    "generar",
+    "generamos",
+    "lanzar",
+    "lanzo",
+    "lanzamos",
+    "abrir",
+    "abro",
+    "abrimos",
+    "ayudo",
+    "ayudamos",
+    "ayuda",
+    "ayudar",
+    "enseño",
+    "enseñamos",
+    "enseña",
+    "enseñar",
+    "cobro",
+    "cobramos",
+    "cobra",
+    "cobrar",
 }
 
 # Stopwords gramaticales/funcionales que no aportan al "nombre" del proyecto.
 _STOPWORDS_NOMBRE = {
-    "hace", "haz", "una", "un", "para", "de", "la", "el", "en", "con", "y", "o",
-    "mi", "que", "al", "por", "del", "los", "las", "vender", "necesito", "quiero",
-    "diseña", "landing", "premium", "online", "servicio", "tienda", "web",
-    "sitio", "plataforma", "app", "sistema", "producto", "negocio", "empresa",
-    "como", "porque", "sin", "sobre", "entre", "hasta", "desde", "durante",
+    "hace",
+    "haz",
+    "una",
+    "un",
+    "para",
+    "de",
+    "la",
+    "el",
+    "en",
+    "con",
+    "y",
+    "o",
+    "mi",
+    "que",
+    "al",
+    "por",
+    "del",
+    "los",
+    "las",
+    "vender",
+    "necesito",
+    "quiero",
+    "diseña",
+    "landing",
+    "premium",
+    "online",
+    "servicio",
+    "tienda",
+    "web",
+    "sitio",
+    "plataforma",
+    "app",
+    "sistema",
+    "producto",
+    "negocio",
+    "empresa",
+    "como",
+    "porque",
+    "sin",
+    "sobre",
+    "entre",
+    "hasta",
+    "desde",
+    "durante",
 }
 
 
@@ -255,7 +355,8 @@ def _detect_vertical(
     ("demo" matcheando "vendemos", "api" matcheando "apicultor").
     """
     text_pool = " ".join(
-        str(x) for x in [
+        str(x)
+        for x in [
             frase_input,
             brief.get("problema", ""),
             brief.get("solucion", ""),
@@ -269,41 +370,104 @@ def _detect_vertical(
 
     # Señales ecommerce — chequeadas PRIMERO (es lo más común en LATAM SMB)
     ecommerce_keywords = (
-        "venta", "vender", "vendo", "vendemos", "tienda", "shop",
-        "producto", "productos", "catálogo", "catalogo",
-        "joyería", "joyeria", "ropa", "moda", "calzado", "accesorios",
-        "pintura", "obra", "arte", "artesanía", "hecho a mano",
-        "envío", "shipping", "checkout", "carrito", "ecommerce", "e-commerce",
+        "venta",
+        "vender",
+        "vendo",
+        "vendemos",
+        "tienda",
+        "shop",
+        "producto",
+        "productos",
+        "catálogo",
+        "catalogo",
+        "joyería",
+        "joyeria",
+        "ropa",
+        "moda",
+        "calzado",
+        "accesorios",
+        "pintura",
+        "obra",
+        "arte",
+        "artesanía",
+        "hecho a mano",
+        "envío",
+        "shipping",
+        "checkout",
+        "carrito",
+        "ecommerce",
+        "e-commerce",
     )
     if any(_matches_keyword(text_pool, k) for k in ecommerce_keywords):
         return "ecommerce"
 
     # Señales SaaS / educación digital
     saas_keywords = (
-        "saas", "software", "plataforma", "webapp",
-        "curso online", "cursos online", "academia online", "e-learning",
-        "suscripción", "subscription", "trial gratis",
-        "dashboard", "crm", "erp", "automatización",
-        "app móvil", "aplicación móvil", "sistema saas",
+        "saas",
+        "software",
+        "plataforma",
+        "webapp",
+        "curso online",
+        "cursos online",
+        "academia online",
+        "e-learning",
+        "suscripción",
+        "subscription",
+        "trial gratis",
+        "dashboard",
+        "crm",
+        "erp",
+        "automatización",
+        "app móvil",
+        "aplicación móvil",
+        "sistema saas",
     )
     if any(_matches_keyword(text_pool, k) for k in saas_keywords):
         return "saas"
 
     # Señales servicios profesionales (B2B / coaching / consultoría)
     servicios_keywords = (
-        "coaching", "consultoría", "asesoría", "mentoría",
-        "agencia", "freelance", "servicio profesional", "despacho",
-        "abogado", "contador", "arquitecto", "diseñador", "developer",
-        "b2b", "empresarial", "ejecutivo", "cto", "ceo", "cfo",
+        "coaching",
+        "consultoría",
+        "asesoría",
+        "mentoría",
+        "agencia",
+        "freelance",
+        "servicio profesional",
+        "despacho",
+        "abogado",
+        "contador",
+        "arquitecto",
+        "diseñador",
+        "developer",
+        "b2b",
+        "empresarial",
+        "ejecutivo",
+        "cto",
+        "ceo",
+        "cfo",
     )
     if any(_matches_keyword(text_pool, k) for k in servicios_keywords):
         return "servicios"
 
     # Señales local business (café, restaurante, salon, gym)
     local_keywords = (
-        "café", "cafe", "cafetería", "restaurante", "bar", "cocina",
-        "salon", "salón de belleza", "barbería", "spa", "gym", "gimnasio",
-        "taller", "local", "sucursal", "reservar mesa",
+        "café",
+        "cafe",
+        "cafetería",
+        "restaurante",
+        "bar",
+        "cocina",
+        "salon",
+        "salón de belleza",
+        "barbería",
+        "spa",
+        "gym",
+        "gimnasio",
+        "taller",
+        "local",
+        "sucursal",
+        "reservar mesa",
     )
     if any(_matches_keyword(text_pool, k) for k in local_keywords):
         return "local"
@@ -398,26 +562,16 @@ def render_landing_html(
     canales = ventas.get("canales_adquisicion") or []
     primer_canal = canales[0].get("canal") if canales and isinstance(canales[0], dict) else ""
 
-    hero_headline = (
-        ventas.get("hero_headline")
-        or pv_statement
-        or elevator_pitch
-        or nombre
-    )
-    hero_subheadline = (
-        ventas.get("hero_subheadline")
-        or pv_diferenciador
-        or elevator_pitch
-        or frase_input
-    )
+    hero_headline = ventas.get("hero_headline") or pv_statement or elevator_pitch or nombre
+    hero_subheadline = ventas.get("hero_subheadline") or pv_diferenciador or elevator_pitch or frase_input
     if ventas.get("body_copy"):
         body_copy = ventas["body_copy"]
     elif pv_beneficios:
         # Construye body_copy a partir de beneficios + diferenciador (>50 palabras objetivo)
         body_copy = (
-            f"{pv_statement} " if pv_statement else ""
-        ) + " ".join(str(b) for b in pv_beneficios[:4]) + (
-            f" {pv_diferenciador}" if pv_diferenciador else ""
+            (f"{pv_statement} " if pv_statement else "")
+            + " ".join(str(b) for b in pv_beneficios[:4])
+            + (f" {pv_diferenciador}" if pv_diferenciador else "")
         )
     else:
         body_copy = elevator_pitch or frase_input
@@ -436,12 +590,12 @@ def render_landing_html(
             cta_secondary = _cta_secondary_for_vertical(vertical)
 
     publico = brief.get("publico_objetivo") or brief.get("publico") or ""
-    problema = brief.get("problema") or ""
+    brief.get("problema") or ""
     solucion = brief.get("solucion") or ""
 
     # Fases de go-to-market y KPIs (de ESTRATEGIA) como prueba de plan
     fases = estrategia.get("fases") or []
-    kpis = estrategia.get("kpis") or []
+    estrategia.get("kpis") or []
 
     # Tech stack (TECNICO) para credibilidad
     stack = tecnico.get("stack_propuesto") or tecnico.get("stack") or []
@@ -459,13 +613,7 @@ def render_landing_html(
 
     # Sanitización mínima HTML
     def _esc(s: str) -> str:
-        return (
-            str(s)
-            .replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace('"', "&quot;")
-        )
+        return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
     # ---- Bloques opcionales ----
     # Beneficios derivados de voice_attributes + brief
@@ -496,7 +644,7 @@ def render_landing_html(
     # Features grid adaptado al vertical (Fix 2/4)
     features_html = ""
     feature_items = []
-    
+
     # Determinar título y labels según vertical
     if vertical == "ecommerce":
         section_title = "Cómo comprar"
@@ -510,21 +658,21 @@ def render_landing_html(
     else:
         section_title = "Nuestro plan"
         labels = ["Paso 1", "Paso 2", "Paso 3"]
-        
+
     # Extraer textos de fases o usar fallbacks genéricos si no hay
     texts = [f for f in (fases or []) if isinstance(f, str) and f.strip()]
     if not texts:
         texts = [
             "Explora nuestras opciones y elige la mejor para ti.",
             "Nos encargamos de todo para que no te preocupes.",
-            "Obtén resultados garantizados y disfruta los beneficios."
+            "Obtén resultados garantizados y disfruta los beneficios.",
         ]
-        
+
     # Armar los items combinando labels y textos (hasta 3)
     for i in range(min(3, len(texts))):
-        label = labels[i] if i < len(labels) else f"Paso {i+1}"
+        label = labels[i] if i < len(labels) else f"Paso {i + 1}"
         feature_items.append((label, texts[i]))
-        
+
     if feature_items:
         cards = "".join(
             f'<article class="feature-card"><div class="feature-tag">{_esc(label)}</div>'
@@ -541,10 +689,7 @@ def render_landing_html(
     insights_html = ""
     insight_items = [i for i in insights if isinstance(i, str) and i.strip()]
     if insight_items:
-        items = "".join(
-            f'<blockquote class="insight">{_esc(ins)}</blockquote>'
-            for ins in insight_items[:3]
-        )
+        items = "".join(f'<blockquote class="insight">{_esc(ins)}</blockquote>' for ins in insight_items[:3])
         insights_html = f"""
   <section class="insights" aria-labelledby="insights-title">
     <h2 id="insights-title">Lo que descubrimos</h2>
@@ -560,9 +705,7 @@ def render_landing_html(
     # Público objetivo (cuando existe)
     publico_html = ""
     if publico:
-        publico_html = (
-            f'<p class="hero-eyebrow">Pensado para {_esc(publico)}</p>'
-        )
+        publico_html = f'<p class="hero-eyebrow">Pensado para {_esc(publico)}</p>'
 
     # Stack tecnológico (footer credencial)
     stack_str = ""
@@ -613,7 +756,7 @@ __INLINE_STYLE_CSS__
         <a class="btn btn-ghost" href="#beneficios">{_esc(cta_secondary)}</a>
       </div>
     </div>
-    {f'<div class="hero-image-wrapper"><img src="{hero_image_url}" alt="Hero Image para {_esc(nombre)}" class="hero-image" loading="lazy" decoding="async"></div>' if hero_image_url else ''}
+    {f'<div class="hero-image-wrapper"><img src="{hero_image_url}" alt="Hero Image para {_esc(nombre)}" class="hero-image" loading="lazy" decoding="async"></div>' if hero_image_url else ""}
   </section>
   <section class="copy" aria-labelledby="copy-title">
     <h2 id="copy-title" class="section-title">Lo que ofrecemos</h2>
@@ -629,7 +772,7 @@ __INLINE_STYLE_CSS__
 </main>
 <footer class="site-footer" role="contentinfo">
   <p>{_esc(nombre)} · Forjado por <a href="https://github.com/alfredogl1804/el-monstruo">El Monstruo</a></p>
-  {f'<p class="footer-stack">{_esc(stack_str)}</p>' if stack_str else ''}
+  {f'<p class="footer-stack">{_esc(stack_str)}</p>' if stack_str else ""}
   <p class="run-id">Run {_esc(run_id)}</p>
 </footer>
 {_BRAND_FOOTER}
@@ -1051,14 +1194,12 @@ _MONSTRUO_TRACKING_JS = """// monstruo-tracking.js — Sprint 87.2 Bloque 4
 # ── Provider invocation ──────────────────────────────────────────────────────
 
 
-async def _deploy_via_github_pages(
-    *, repo_name: str, files: Dict[str, str], description: str
-) -> Dict[str, Any]:
+async def _deploy_via_github_pages(*, repo_name: str, files: Dict[str, str], description: str) -> Dict[str, Any]:
     """Invoca tools/deploy_to_github_pages reusando Capa 1 Manos."""
     from tools.deploy_to_github_pages import (
-        deploy_to_github_pages,
-        GitHubPagesDeployFalla,
         GitHubPagesBuildTimeout,
+        GitHubPagesDeployFalla,
+        deploy_to_github_pages,
     )
 
     try:
@@ -1071,9 +1212,7 @@ async def _deploy_via_github_pages(
         )
         return result
     except (GitHubPagesDeployFalla, GitHubPagesBuildTimeout) as e:
-        raise E2EDeployProviderFailed(
-            f"e2e_deploy_provider_failed: GitHub Pages — {e!s}"
-        ) from e
+        raise E2EDeployProviderFailed(f"e2e_deploy_provider_failed: GitHub Pages — {e!s}") from e
 
 
 def _heuristic_preview_result(*, run_id: str, reason: str) -> RealDeployResult:
@@ -1121,9 +1260,7 @@ async def run_real_deploy(
         )
         files = render_landing_html(state=state, run_id=run_id, ingest_url=ingest)
     except Exception as e:
-        raise E2EDeployRenderFailed(
-            f"e2e_deploy_render_failed: render_landing_html — {e!s}"
-        ) from e
+        raise E2EDeployRenderFailed(f"e2e_deploy_render_failed: render_landing_html — {e!s}") from e
 
     # 2. Validación PII pre-deploy (Capa Memento)
     _validate_no_pii(files["index.html"])
@@ -1162,9 +1299,7 @@ async def run_real_deploy(
 
     try:
         provider_result = await asyncio.wait_for(
-            _deploy_via_github_pages(
-                repo_name=repo_name, files=files, description=description
-            ),
+            _deploy_via_github_pages(repo_name=repo_name, files=files, description=description),
             timeout=deploy_timeout_s,
         )
         result = RealDeployResult(

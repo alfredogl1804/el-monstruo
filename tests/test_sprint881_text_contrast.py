@@ -9,10 +9,10 @@ literalmente NO se renderizaba con suficiente contraste.
 Fix: --text fijo en #1C1917 (graphite Brand DNA) garantiza WCAG AA contrast.
 La paleta dinámica del CREATIVO se usa solo para --primary/--secondary/--accent.
 """
+
 from __future__ import annotations
 
 import re
-import pytest
 
 from kernel.e2e.deploy.real_deploy import render_landing_html
 

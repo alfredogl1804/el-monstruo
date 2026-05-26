@@ -20,32 +20,43 @@ Gates:
 
 import json
 import sys
-from pathlib import Path
 from datetime import datetime, timezone
+from pathlib import Path
 
 BASE = Path(__file__).resolve().parent.parent
 REACTOR = BASE.parent
 STATE_FABRIC = REACTOR / "state_fabric"
 
 HARD_BLOCKED_ACTIONS = [
-    "RUN_M2_API_REALTIME", "RUN_SCHEDULER", "RUN_DAEMON",
-    "WRITE_CODE", "OPEN_PR", "DEPLOY",
-    "TOUCH_SUPABASE", "TOUCH_MEMORY", "CANONIZE"
+    "RUN_M2_API_REALTIME",
+    "RUN_SCHEDULER",
+    "RUN_DAEMON",
+    "WRITE_CODE",
+    "OPEN_PR",
+    "DEPLOY",
+    "TOUCH_SUPABASE",
+    "TOUCH_MEMORY",
+    "CANONIZE",
 ]
 
 NETWORK_IMPORTS = ["requests", "httpx", "urllib.request", "aiohttp", "socket"]
 # These patterns detect ACTUAL secret access, not mentions in string literals
 SECRET_CODE_PATTERNS = [
-    "os.environ[", "os.environ.get(",
+    "os.environ[",
+    "os.environ.get(",
     "os.getenv(",
-    "dotenv", "load_dotenv",
+    "dotenv",
+    "load_dotenv",
     "open('.env",
 ]
 # These patterns detect ACTUAL daemon/scheduler code, not mentions in strings/paths
 DAEMON_CODE_PATTERNS = [
-    "import daemon", "from daemon",
-    "import crontab", "from crontab",
-    "import schedule", "from schedule",
+    "import daemon",
+    "from daemon",
+    "import crontab",
+    "from crontab",
+    "import schedule",
+    "from schedule",
     "while True:",
     "threading.Timer(",
     "subprocess.Popen(",
@@ -82,8 +93,8 @@ def get_executable_lines(source):
         executable.append(stripped)
     return "\n".join(executable)
 
-VALID_DECISIONS = ["NO_ACTION", "REQUEST_T1", "RUN_ORACLE_CHAIN_R0",
-                   "RUN_AUDIT_ONLY_R0", "BLOCKED"]
+
+VALID_DECISIONS = ["NO_ACTION", "REQUEST_T1", "RUN_ORACLE_CHAIN_R0", "RUN_AUDIT_ONLY_R0", "BLOCKED"]
 
 
 def load_json(path):
@@ -117,12 +128,7 @@ results = []
 
 def gate(gate_id, name, passed, evidence):
     status = "PASS" if passed else "FAIL"
-    results.append({
-        "gate_id": gate_id,
-        "gate_name": name,
-        "result": status,
-        "evidence": evidence
-    })
+    results.append({"gate_id": gate_id, "gate_name": name, "result": status, "evidence": evidence})
     icon = "PASS" if passed else "FAIL"
     print(f"  Gate {gate_id:2d} [{icon}] {name}: {evidence}")
 
@@ -145,48 +151,61 @@ def main():
 
     manifest = load_json(manifest_path)
     decision = load_json(decision_path)
-    report = load_json(report_path)
+    load_json(report_path)
     delta_events = load_jsonl(delta_path)
     script_source = read_script_executable()
 
     # --- GATE 1: preconditions_exist ---
     preconditions_verified = manifest.get("preconditions_verified", 0)
-    gate(1, "preconditions_exist",
-         preconditions_verified >= 5,
-         f"{preconditions_verified} preconditions verified (min 5)")
+    gate(
+        1,
+        "preconditions_exist",
+        preconditions_verified >= 5,
+        f"{preconditions_verified} preconditions verified (min 5)",
+    )
 
     # --- GATE 2: one_shot_only ---
     has_daemon = any(p in script_source for p in DAEMON_CODE_PATTERNS)
-    gate(2, "one_shot_only",
-         not has_daemon,
-         "No daemon/cron/scheduler code patterns in executable lines" if not has_daemon
-         else f"Found daemon code patterns in script")
+    gate(
+        2,
+        "one_shot_only",
+        not has_daemon,
+        "No daemon/cron/scheduler code patterns in executable lines"
+        if not has_daemon
+        else "Found daemon code patterns in script",
+    )
 
     # --- GATE 3: no_network ---
-    has_network = any(f"import {n}" in script_source or f"from {n}" in script_source
-                      for n in NETWORK_IMPORTS)
-    gate(3, "no_network",
-         not has_network,
-         "No network imports in script" if not has_network
-         else "Found network imports in script")
+    has_network = any(f"import {n}" in script_source or f"from {n}" in script_source for n in NETWORK_IMPORTS)
+    gate(
+        3,
+        "no_network",
+        not has_network,
+        "No network imports in script" if not has_network else "Found network imports in script",
+    )
 
     # --- GATE 4: no_secrets ---
     has_secrets = any(p in script_source for p in SECRET_CODE_PATTERNS)
-    gate(4, "no_secrets",
-         not has_secrets,
-         "No secret/env access code in executable lines" if not has_secrets
-         else "Found secret access code in script")
+    gate(
+        4,
+        "no_secrets",
+        not has_secrets,
+        "No secret/env access code in executable lines" if not has_secrets else "Found secret access code in script",
+    )
 
     # --- GATE 5: state_fabric_append_only ---
     # Verify that the event_log only grew (append), never shrunk
     # Check that delta events have sequential IDs
     if delta_events:
         ids = [e["event_id"] for e in delta_events]
-        is_sequential = all(ids[i] < ids[i+1] for i in range(len(ids)-1))
+        is_sequential = all(ids[i] < ids[i + 1] for i in range(len(ids) - 1))
         all_heartbeat = all(e.get("source") == "heartbeat_r0" for e in delta_events)
-        gate(5, "state_fabric_append_only",
-             is_sequential and all_heartbeat,
-             f"{len(delta_events)} events appended, sequential IDs {ids}, all from heartbeat_r0")
+        gate(
+            5,
+            "state_fabric_append_only",
+            is_sequential and all_heartbeat,
+            f"{len(delta_events)} events appended, sequential IDs {ids}, all from heartbeat_r0",
+        )
     else:
         gate(5, "state_fabric_append_only", False, "No delta events found")
 
@@ -195,64 +214,80 @@ def main():
     is_valid_decision = decision_value in VALID_DECISIONS
     has_reason = len(decision.get("reason", "")) >= 10
     has_rule = len(decision.get("rule_applied", "")) > 0
-    gate(6, "decision_table_applied",
-         is_valid_decision and has_reason and has_rule,
-         f"Decision='{decision_value}', valid={is_valid_decision}, reason_len={len(decision.get('reason',''))}, rule='{decision.get('rule_applied','')}'")
+    gate(
+        6,
+        "decision_table_applied",
+        is_valid_decision and has_reason and has_rule,
+        f"Decision='{decision_value}', valid={is_valid_decision}, reason_len={len(decision.get('reason', ''))}, rule='{decision.get('rule_applied', '')}'",
+    )
 
     # --- GATE 7: no_action_is_valid ---
     # If decision is REQUEST_T1 or NO_ACTION, actions_taken should be empty or minimal
     actions_taken = manifest.get("actions_taken", [])
     if decision_value in ["REQUEST_T1", "NO_ACTION", "BLOCKED"]:
         no_productive_action = len(actions_taken) == 0
-        gate(7, "no_action_is_valid",
-             no_productive_action,
-             f"Decision='{decision_value}', actions_taken={actions_taken} (expected empty)")
+        gate(
+            7,
+            "no_action_is_valid",
+            no_productive_action,
+            f"Decision='{decision_value}', actions_taken={actions_taken} (expected empty)",
+        )
     else:
-        gate(7, "no_action_is_valid", True,
-             f"Decision='{decision_value}' allows action, actions={actions_taken}")
+        gate(7, "no_action_is_valid", True, f"Decision='{decision_value}' allows action, actions={actions_taken}")
 
     # --- GATE 8: no_autonomy_creep ---
     actions_not_taken = manifest.get("actions_not_taken", [])
     all_hard_blocked = all(a in actions_not_taken for a in HARD_BLOCKED_ACTIONS)
-    gate(8, "no_autonomy_creep",
-         all_hard_blocked,
-         f"All {len(HARD_BLOCKED_ACTIONS)} hard-blocked actions listed in actions_not_taken"
-         if all_hard_blocked else "Missing hard-blocked actions in manifest")
+    gate(
+        8,
+        "no_autonomy_creep",
+        all_hard_blocked,
+        f"All {len(HARD_BLOCKED_ACTIONS)} hard-blocked actions listed in actions_not_taken"
+        if all_hard_blocked
+        else "Missing hard-blocked actions in manifest",
+    )
 
     # --- GATE 9: no_runtime_activation ---
     # Check that no cron, systemd, or persistent process was created
     cron_files = list(BASE.rglob("*.cron")) + list(BASE.rglob("*.service"))
     pid_files = list(BASE.rglob("*.pid"))
-    gate(9, "no_runtime_activation",
-         len(cron_files) == 0 and len(pid_files) == 0,
-         f"No .cron/.service/.pid files found (cron={len(cron_files)}, pid={len(pid_files)})")
+    gate(
+        9,
+        "no_runtime_activation",
+        len(cron_files) == 0 and len(pid_files) == 0,
+        f"No .cron/.service/.pid files found (cron={len(cron_files)}, pid={len(pid_files)})",
+    )
 
     # --- GATE 10: unified_face_single_voice ---
     if summary_path.exists():
         summary_text = summary_path.read_text()
-        has_structure = all(s in summary_text for s in
-                          ["Qué revisó", "Qué decisión", "Si hizo algo",
-                           "Por qué no hizo más", "Qué requiere Alfredo"])
-        gate(10, "unified_face_single_voice",
-             has_structure,
-             "Summary has all 5+ required sections" if has_structure
-             else "Summary missing required sections")
+        has_structure = all(
+            s in summary_text
+            for s in ["Qué revisó", "Qué decisión", "Si hizo algo", "Por qué no hizo más", "Qué requiere Alfredo"]
+        )
+        gate(
+            10,
+            "unified_face_single_voice",
+            has_structure,
+            "Summary has all 5+ required sections" if has_structure else "Summary missing required sections",
+        )
     else:
         gate(10, "unified_face_single_voice", False, "Summary file not found")
 
     # --- GATE 11: t1_pending_preserved ---
     t1_pending = decision.get("t1_pending", [])
-    gate(11, "t1_pending_preserved",
-         len(t1_pending) > 0,
-         f"{len(t1_pending)} T1 decisions preserved (not usurped)")
+    gate(11, "t1_pending_preserved", len(t1_pending) > 0, f"{len(t1_pending)} T1 decisions preserved (not usurped)")
 
     # --- GATE 12: no_canon_no_appvision_no_preia ---
     # Check that no files were created in doctrine_candidates/ or canon/
     doctrine_new = list((REACTOR / "doctrine_candidates").rglob("*heartbeat*"))
     canon_new = list(REACTOR.rglob("*canon*heartbeat*"))
-    gate(12, "no_canon_no_appvision_no_preia",
-         len(doctrine_new) == 0 and len(canon_new) == 0,
-         f"No doctrine/canon mutations (doctrine={len(doctrine_new)}, canon={len(canon_new)})")
+    gate(
+        12,
+        "no_canon_no_appvision_no_preia",
+        len(doctrine_new) == 0 and len(canon_new) == 0,
+        f"No doctrine/canon mutations (doctrine={len(doctrine_new)}, canon={len(canon_new)})",
+    )
 
     # --- SUMMARY ---
     print("\n" + "=" * 60)
@@ -272,7 +307,7 @@ def main():
         "gates": results,
         "total_pass": total_pass,
         "total_fail": total_fail,
-        "verdict": verdict
+        "verdict": verdict,
     }
 
     report_path = BASE / "heartbeat_validation_report.v0_1.json"

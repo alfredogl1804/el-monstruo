@@ -20,14 +20,12 @@ DSC enforzado en suite:
   sin tocar cuerpo del embrion_loop.py.
 - DSC-S-006 v1.1: TestMigrationSanity verifica RLS + policy en migration 0026.
 """
+
 from __future__ import annotations
 
-import asyncio
-import re
 import sys
 import time
 from pathlib import Path
-from unittest.mock import AsyncMock
 
 import pytest
 
@@ -43,6 +41,7 @@ if str(REPO_ROOT) not in sys.path:
 class TestController:
     def test_decision_no_action_when_deviation_zero(self):
         from kernel.espiral.controller import CorrectionAction, ProportionalController
+
         c = ProportionalController(sensitivity=0.5)
         d = c.decide(deviation_ratio=0.0, canonical_interval_seconds=60, currently_overridden=False)
         assert d.action == CorrectionAction.NONE
@@ -50,6 +49,7 @@ class TestController:
 
     def test_decision_no_action_when_deviation_within_threshold(self):
         from kernel.espiral.controller import CorrectionAction, ProportionalController
+
         c = ProportionalController(sensitivity=0.5)
         # deviation_ratio=1.10 → abs_deviation=0.10 < 0.30 (correction threshold)
         d = c.decide(deviation_ratio=1.10, canonical_interval_seconds=60, currently_overridden=False)
@@ -57,6 +57,7 @@ class TestController:
 
     def test_decision_spike_dampening_increases_interval(self):
         from kernel.espiral.controller import CorrectionAction, ProportionalController
+
         c = ProportionalController(sensitivity=0.5)
         # deviation_ratio=2.0 → spike. factor = 1 + 0.5*1.0 = 1.5 → 60*1.5 = 90
         d = c.decide(deviation_ratio=2.0, canonical_interval_seconds=60, currently_overridden=False)
@@ -65,7 +66,8 @@ class TestController:
         assert d.correction_factor == 1.5
 
     def test_decision_spike_dampening_capped_at_max(self):
-        from kernel.espiral.controller import CorrectionAction, MAX_CORRECTION_FACTOR_UP, ProportionalController
+        from kernel.espiral.controller import MAX_CORRECTION_FACTOR_UP, CorrectionAction, ProportionalController
+
         c = ProportionalController(sensitivity=1.0)
         # deviation_ratio=10 → factor raw = 1 + 1.0*9 = 10 → capped a 2.0 (MAX_CORRECTION_FACTOR_UP)
         d = c.decide(deviation_ratio=10.0, canonical_interval_seconds=60, currently_overridden=False)
@@ -75,6 +77,7 @@ class TestController:
 
     def test_decision_undershoot_acceleration_reduces_interval(self):
         from kernel.espiral.controller import CorrectionAction, ProportionalController
+
         c = ProportionalController(sensitivity=0.5)
         # deviation_ratio=0.5 → undershoot. abs_dev=0.5. factor = 1 - 0.5*0.5 = 0.75 → 60*0.75 = 45
         d = c.decide(deviation_ratio=0.5, canonical_interval_seconds=60, currently_overridden=False)
@@ -82,7 +85,8 @@ class TestController:
         assert d.new_pulse_interval_seconds == 45
 
     def test_decision_undershoot_capped_at_min(self):
-        from kernel.espiral.controller import CorrectionAction, MAX_CORRECTION_FACTOR_DOWN, ProportionalController
+        from kernel.espiral.controller import MAX_CORRECTION_FACTOR_DOWN, CorrectionAction, ProportionalController
+
         c = ProportionalController(sensitivity=1.0)
         # deviation_ratio=0.01 → factor raw = 1 - 0.99 = 0.01 → capped a 0.5 (MAX_CORRECTION_FACTOR_DOWN)
         d = c.decide(deviation_ratio=0.01, canonical_interval_seconds=60, currently_overridden=False)
@@ -92,6 +96,7 @@ class TestController:
 
     def test_decision_return_to_canonical_when_overridden_and_stable(self):
         from kernel.espiral.controller import CorrectionAction, ProportionalController
+
         c = ProportionalController(sensitivity=0.5)
         # deviation_ratio=1.05 → abs_dev=0.05 < 0.10 (return threshold) y overridden=True → RETURN
         d = c.decide(deviation_ratio=1.05, canonical_interval_seconds=60, currently_overridden=True)
@@ -100,6 +105,7 @@ class TestController:
 
     def test_sensitivity_validation(self):
         from kernel.espiral.controller import ProportionalController
+
         with pytest.raises(ValueError):
             ProportionalController(sensitivity=-0.1)
         with pytest.raises(ValueError):
@@ -112,6 +118,7 @@ class TestController:
 class TestSensor:
     def test_baseline_rate_per_minute_from_canonical(self):
         from kernel.espiral.sensor import PulseRateSensor
+
         s = PulseRateSensor(consumer="embrion_loop_latido", window_minutes=15)
         # canonical típico embrion_loop_latido = 60s → baseline = 1.0 pulses/min
         assert s.baseline_rate_per_minute > 0
@@ -119,6 +126,7 @@ class TestSensor:
     @pytest.mark.asyncio
     async def test_sense_returns_zero_when_no_query_fn(self):
         from kernel.espiral.sensor import PulseRateSensor
+
         s = PulseRateSensor(consumer="embrion_loop_latido", window_minutes=15)
         r = await s.sense()
         assert r.pulses_observed == 0
@@ -128,9 +136,11 @@ class TestSensor:
     @pytest.mark.asyncio
     async def test_sense_with_mock_query_calculates_rate(self):
         from kernel.espiral.sensor import PulseRateSensor
+
         # mock retorna 30 pulses en 15min = 2 pulses/min observed
         async def mock_query(consumer, window):
             return 30
+
         s = PulseRateSensor(consumer="embrion_loop_latido", window_minutes=15, db_query_fn=mock_query)
         r = await s.sense()
         assert r.pulses_observed == 30
@@ -140,8 +150,10 @@ class TestSensor:
     @pytest.mark.asyncio
     async def test_sense_failsoft_on_query_exception(self):
         from kernel.espiral.sensor import PulseRateSensor
+
         async def failing_query(consumer, window):
             raise ConnectionError("DB down")
+
         s = PulseRateSensor(consumer="embrion_loop_latido", window_minutes=15, db_query_fn=failing_query)
         r = await s.sense()  # no debe romper
         assert r.pulses_observed == 0
@@ -155,22 +167,25 @@ class TestRegistry:
     @pytest.fixture(autouse=True)
     def _reset(self):
         from kernel.escape.registry import _reset_state_for_tests
+
         _reset_state_for_tests()
         yield
         _reset_state_for_tests()
 
     @pytest.mark.asyncio
     async def test_apply_override_changes_effective_interval(self):
-        from kernel.escape.registry import apply_temporal_override, get_effective_pulse_interval
         from kernel.escape.config import get_pulse_interval_seconds
+        from kernel.escape.registry import apply_temporal_override, get_effective_pulse_interval
+
         canonical = get_pulse_interval_seconds("embrion_loop_latido")
         await apply_temporal_override("embrion_loop_latido", canonical * 2, ttl_seconds=300)
         assert get_effective_pulse_interval("embrion_loop_latido") == canonical * 2
 
     @pytest.mark.asyncio
     async def test_restore_canonical_removes_override(self):
-        from kernel.escape.registry import apply_temporal_override, get_effective_pulse_interval, restore_canonical
         from kernel.escape.config import get_pulse_interval_seconds
+        from kernel.escape.registry import apply_temporal_override, get_effective_pulse_interval, restore_canonical
+
         canonical = get_pulse_interval_seconds("embrion_loop_latido")
         await apply_temporal_override("embrion_loop_latido", canonical * 2, ttl_seconds=300)
         assert get_effective_pulse_interval("embrion_loop_latido") == canonical * 2
@@ -180,8 +195,9 @@ class TestRegistry:
 
     @pytest.mark.asyncio
     async def test_override_expires_after_ttl(self):
-        from kernel.escape.registry import apply_temporal_override, get_effective_pulse_interval
         from kernel.escape.config import get_pulse_interval_seconds
+        from kernel.escape.registry import apply_temporal_override, get_effective_pulse_interval
+
         canonical = get_pulse_interval_seconds("embrion_loop_latido")
         await apply_temporal_override("embrion_loop_latido", canonical * 2, ttl_seconds=1)
         assert get_effective_pulse_interval("embrion_loop_latido") == canonical * 2
@@ -191,6 +207,7 @@ class TestRegistry:
     @pytest.mark.asyncio
     async def test_apply_override_validates_inputs(self):
         from kernel.escape.registry import apply_temporal_override
+
         with pytest.raises(ValueError):
             await apply_temporal_override("", 60, 300)
         with pytest.raises(ValueError):
@@ -201,12 +218,14 @@ class TestRegistry:
     @pytest.mark.asyncio
     async def test_restore_returns_false_when_no_override(self):
         from kernel.escape.registry import restore_canonical
+
         existed = await restore_canonical("embrion_loop_latido")
         assert existed is False
 
     @pytest.mark.asyncio
     async def test_list_active_overrides_filters_expired(self):
         from kernel.escape.registry import apply_temporal_override, list_active_overrides
+
         await apply_temporal_override("embrion_loop_latido", 120, ttl_seconds=300)
         await apply_temporal_override("guardian_audit", 600, ttl_seconds=1)
         actives = list_active_overrides()
@@ -226,12 +245,14 @@ class TestHairspring:
     @pytest.fixture(autouse=True)
     def _reset(self):
         from kernel.escape.registry import _reset_state_for_tests
+
         _reset_state_for_tests()
         yield
         _reset_state_for_tests()
 
     def test_hairspring_validates_consumer(self):
         from kernel.espiral.homeostasis import Hairspring
+
         with pytest.raises(ValueError):
             Hairspring(consumer="")
         with pytest.raises(ValueError):
@@ -241,14 +262,17 @@ class TestHairspring:
 
     @pytest.mark.asyncio
     async def test_full_cycle_no_op_when_baseline_observed(self):
-        from kernel.espiral.homeostasis import Hairspring
         from kernel.espiral.controller import CorrectionAction
+        from kernel.espiral.homeostasis import Hairspring
+
         # Mock: pulses observed exactamente == baseline → deviation_ratio=1.0 → NONE
         async def mock_query(consumer, window):
             from kernel.escape.config import get_pulse_interval_seconds
+
             canonical_interval = get_pulse_interval_seconds(consumer)
             baseline_rate = 60.0 / canonical_interval if canonical_interval > 0 else 0
             return int(baseline_rate * window)  # exactamente baseline
+
         h = Hairspring(consumer="embrion_loop_latido", db_query_fn=mock_query)
         r = await h.sense_deviation()
         c = await h.apply_correction(r)
@@ -256,17 +280,22 @@ class TestHairspring:
 
     @pytest.mark.asyncio
     async def test_full_cycle_spike_dampening_invokes_override(self):
-        from kernel.espiral.homeostasis import Hairspring
         from kernel.espiral.controller import CorrectionAction
+        from kernel.espiral.homeostasis import Hairspring
+
         # Mock: pulses observed = baseline*3 → deviation_ratio=3.0 → SPIKE
         async def mock_query(consumer, window):
             from kernel.escape.config import get_pulse_interval_seconds
+
             ci = get_pulse_interval_seconds(consumer)
             base = 60.0 / ci if ci > 0 else 0
             return int(base * window * 3)
+
         override_calls = []
+
         async def mock_override(consumer, new_interval, ttl):
             override_calls.append((consumer, new_interval, ttl))
+
         h = Hairspring(
             consumer="embrion_loop_latido",
             db_query_fn=mock_query,
@@ -281,14 +310,19 @@ class TestHairspring:
     @pytest.mark.asyncio
     async def test_hairspring_logs_to_homeostasis_when_action(self):
         from kernel.espiral.homeostasis import Hairspring
+
         async def mock_query(consumer, window):
             from kernel.escape.config import get_pulse_interval_seconds
+
             ci = get_pulse_interval_seconds(consumer)
             base = 60.0 / ci if ci > 0 else 0
             return int(base * window * 3)
+
         log_calls = []
+
         async def mock_logger(consumer, reading, applied):
             log_calls.append((consumer, reading.deviation_ratio, applied.action.value))
+
         h = Hairspring(
             consumer="embrion_loop_latido",
             db_query_fn=mock_query,
@@ -303,13 +337,17 @@ class TestHairspring:
     @pytest.mark.asyncio
     async def test_hairspring_failsoft_when_logger_raises(self):
         from kernel.espiral.homeostasis import Hairspring
+
         async def mock_query(consumer, window):
             from kernel.escape.config import get_pulse_interval_seconds
+
             ci = get_pulse_interval_seconds(consumer)
             base = 60.0 / ci if ci > 0 else 0
             return int(base * window * 3)
+
         async def failing_logger(c, r, a):
             raise ConnectionError("DB down")
+
         h = Hairspring(
             consumer="embrion_loop_latido",
             db_query_fn=mock_query,
@@ -324,9 +362,12 @@ class TestHairspring:
     @pytest.mark.asyncio
     async def test_force_return_to_canonical_only_if_overridden(self):
         from kernel.espiral.homeostasis import Hairspring
+
         restore_calls = []
+
         async def mock_restore(consumer):
             restore_calls.append(consumer)
+
         h = Hairspring(
             consumer="embrion_loop_latido",
             registry_restore_fn=mock_restore,
@@ -347,19 +388,26 @@ class TestHairspring:
 class TestDashboard:
     def test_aggregate_history_empty(self):
         from kernel.dashboards.espiral_history import aggregate_history
+
         s = aggregate_history([])
         assert s["total_events"] == 0
         assert s["by_reason"]["spike_dampening"] == 0
 
     def test_aggregate_history_counts_by_consumer_and_reason(self):
-        from kernel.dashboards.espiral_history import HomeostasisRow, aggregate_history
         from datetime import datetime, timezone
+
+        from kernel.dashboards.espiral_history import HomeostasisRow, aggregate_history
+
         rows = [
             HomeostasisRow(
-                id=str(i), created_at=datetime.now(timezone.utc),
-                consumer="embrion_loop_latido", pulse_rate_observed=2.0,
-                pulse_rate_baseline=1.0, deviation_ratio=2.0,
-                pulse_interval_adjusted_to=120, pulse_interval_canonical=60,
+                id=str(i),
+                created_at=datetime.now(timezone.utc),
+                consumer="embrion_loop_latido",
+                pulse_rate_observed=2.0,
+                pulse_rate_baseline=1.0,
+                deviation_ratio=2.0,
+                pulse_interval_adjusted_to=120,
+                pulse_interval_canonical=60,
                 adjustment_reason=("spike_dampening" if i % 2 == 0 else "return_to_canonical"),
                 window_minutes=15,
             )
@@ -372,15 +420,22 @@ class TestDashboard:
         assert s["by_consumer"]["embrion_loop_latido"] == 10
 
     def test_render_html_escapes_consumer_name(self):
-        from kernel.dashboards.espiral_history import HomeostasisRow, render_html
         from datetime import datetime, timezone
+
+        from kernel.dashboards.espiral_history import HomeostasisRow, render_html
+
         evil = '<script>alert("xss")</script>'
         rows = [
             HomeostasisRow(
-                id="1", created_at=datetime.now(timezone.utc),
-                consumer=evil, pulse_rate_observed=1.0, pulse_rate_baseline=1.0,
-                deviation_ratio=1.0, pulse_interval_adjusted_to=60,
-                pulse_interval_canonical=60, adjustment_reason="spike_dampening",
+                id="1",
+                created_at=datetime.now(timezone.utc),
+                consumer=evil,
+                pulse_rate_observed=1.0,
+                pulse_rate_baseline=1.0,
+                deviation_ratio=1.0,
+                pulse_interval_adjusted_to=60,
+                pulse_interval_canonical=60,
+                adjustment_reason="spike_dampening",
                 window_minutes=15,
             )
         ]
@@ -390,14 +445,21 @@ class TestDashboard:
 
     def test_render_json_serializable(self):
         import json as _json
-        from kernel.dashboards.espiral_history import HomeostasisRow, render_json
         from datetime import datetime, timezone
+
+        from kernel.dashboards.espiral_history import HomeostasisRow, render_json
+
         rows = [
             HomeostasisRow(
-                id="1", created_at=datetime.now(timezone.utc),
-                consumer="c", pulse_rate_observed=1.0, pulse_rate_baseline=1.0,
-                deviation_ratio=1.0, pulse_interval_adjusted_to=60,
-                pulse_interval_canonical=60, adjustment_reason="return_to_canonical",
+                id="1",
+                created_at=datetime.now(timezone.utc),
+                consumer="c",
+                pulse_rate_observed=1.0,
+                pulse_rate_baseline=1.0,
+                deviation_ratio=1.0,
+                pulse_interval_adjusted_to=60,
+                pulse_interval_canonical=60,
+                adjustment_reason="return_to_canonical",
                 window_minutes=15,
             )
         ]

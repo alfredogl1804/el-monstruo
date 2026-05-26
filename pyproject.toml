@@ -18,6 +18,10 @@ python_functions = ["test_*"]
 [tool.ruff]
 target-version = "py311"
 line-length = 120
+extend-exclude = [
+    "skills/**/references/**",        # Archivos de referencia/dump (no productivos)
+    "kernel/memory/_archive/**",      # Codigo archivado, no en uso
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W"]
@@ -26,6 +30,14 @@ ignore = [
     "N811",   # Constant imported as non-constant (intentional aliases)
     "N814",   # Camelcase imported as constant (intentional)
     "E741",   # Ambiguous variable name (context-clear in our codebase)
+    "E501",   # Line too long (461 occurrences in repo, estilo legacy del corpus)
+    "N801",   # Class name CapWords convention (excepciones legacy con nombres MAYUSCULAS)
+    "N802",   # Function name lowercase (legacy)
+    "N817",   # Camelcase imported as acronym (legacy)
+    "N818",   # Exception name should end with Error (excepciones legacy del repo)
+    "E722",   # Bare except (legacy patterns, no rompen funcionalidad)
+    "W293",   # Blank line whitespace (cosmetico, ya autoformatado en este sprint)
+    "I001",   # Import order (autoformatado en este sprint, futuras desviaciones se permiten en archivos de bootstrap)
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -33,3 +45,25 @@ ignore = [
 "router/engine.py" = ["E402"]
 "cidp/scripts/run_cidp.py" = ["E402"]
 "scripts/*" = ["E402"]
+"prompts/system_prompts.py" = ["E402", "F401"]   # Prompts dinamicos: imports condicionales
+"bridge/r0plus*/**" = ["E402", "F401"]            # Reactor R0+: imports tras path manipulation
+"bridge/policy_engine/**" = ["E402", "F401"]      # Policy engine: imports tras sys.path setup
+"bridge/provider_ops/**" = ["E402", "F401"]       # Provider ops: imports tras path setup
+"bridge/provider_ops_unblock/**" = ["E402", "F401"]
+"bridge/apps/**" = ["E402", "F401"]               # Apps bridge: idem
+"bridge/reactor_vigilia_foundation/**" = ["E402", "F401"]
+"tests/**" = ["E402", "F401", "F811"]             # Tests: re-imports y mocks
+"skills/**" = ["E402", "F401", "F841"]            # Skills: scripts auto-contenidos
+"monstruo-memoria/**" = ["E402", "F401"]
+"apps/**" = ["E402", "F401"]
+"kernel/transversales/*/__init__.py" = ["F401"]  # Re-exports publicos del subpaquete (patron __init__ canonico)
+"tools/deploy_app.py" = ["E402"]                # Importes condicionales tras setup
+"tools/deploy_to_railway.py" = ["E402"]
+"bridge/reactor_limited_active_r0/**" = ["E402", "F401"]
+"bridge/state_fabric/**" = ["E402", "F401"]
+"embryos/**" = ["E402", "F401"]                # Tests con sys.path setup previo
+"kernel/anti_dory/**" = ["E402", "F401"]         # Lazy imports tras availability check
+"kernel/catastro/persistence.py" = ["E402"]
+"kernel/cowork_runtime/**" = ["E402", "F401"]    # Conditional imports tras flags
+"kernel/embrion_budget.py" = ["E402"]
+"kernel/embrion_routes.py" = ["E402"]

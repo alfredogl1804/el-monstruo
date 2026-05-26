@@ -132,7 +132,7 @@ def check_sql_file(path: Path) -> list[str]:
             f"{path}: tabla '{table}' creada sin RLS ni policy ni skip explícito "
             f"(viola DSC-S-006 regla 1). Agregar:\n"
             f"  ALTER TABLE public.{table} ENABLE ROW LEVEL SECURITY;\n"
-            f"  CREATE POLICY \"service_role_only\" ON public.{table} ... ;"
+            f'  CREATE POLICY "service_role_only" ON public.{table} ... ;'
         )
 
     # Matviews nuevas
@@ -160,8 +160,7 @@ def check_python_file(path: Path) -> list[str]:
     for m in DEFAULT_SECRET_RE.finditer(content):
         line_no = content[: m.start()].count("\n") + 1
         errors.append(
-            f"{path}:{line_no}: os.environ.get() con default value sospechoso. "
-            f"Usar require_env() (DSC-S-004)."
+            f"{path}:{line_no}: os.environ.get() con default value sospechoso. Usar require_env() (DSC-S-004)."
         )
     return errors
 

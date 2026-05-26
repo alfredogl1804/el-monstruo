@@ -21,7 +21,6 @@ import json
 import os
 from datetime import datetime, timezone
 
-
 # --- Catálogo de Capacidades (v0 — datos estáticos para simulación) ---
 
 CAPABILITY_CATALOG_V0 = [
@@ -34,7 +33,7 @@ CAPABILITY_CATALOG_V0 = [
         "power_stack": ["OpenAI API (gpt-4o)", "Screenshot capture", "Prompt template: UI audit"],
         "sprint_candidate": "SPR-UI-AUDIT-001",
         "confidence": 0.85,
-        "status": "PROPOSED"
+        "status": "PROPOSED",
     },
     {
         "id": "CAP-002",
@@ -45,7 +44,7 @@ CAPABILITY_CATALOG_V0 = [
         "power_stack": ["Anthropic API (claude-opus-4)", "Context injection", "Structured output"],
         "sprint_candidate": "SPR-DEEP-AUDITOR-001",
         "confidence": 0.90,
-        "status": "PROPOSED"
+        "status": "PROPOSED",
     },
     {
         "id": "CAP-003",
@@ -56,7 +55,7 @@ CAPABILITY_CATALOG_V0 = [
         "power_stack": ["Google AI API (gemini-2.5-pro)", "Corpus loader", "Grounding API"],
         "sprint_candidate": "SPR-LONG-MEMORY-001",
         "confidence": 0.80,
-        "status": "PROPOSED"
+        "status": "PROPOSED",
     },
     {
         "id": "CAP-004",
@@ -67,7 +66,7 @@ CAPABILITY_CATALOG_V0 = [
         "power_stack": ["xAI API (grok-3)", "DeepSearch mode", "Citation extraction"],
         "sprint_candidate": "SPR-REALTIME-VALIDATOR-001",
         "confidence": 0.88,
-        "status": "PROPOSED"
+        "status": "PROPOSED",
     },
     {
         "id": "CAP-005",
@@ -78,7 +77,7 @@ CAPABILITY_CATALOG_V0 = [
         "power_stack": ["Perplexity API (sonar-pro)", "Citation parser", "Confidence scoring"],
         "sprint_candidate": "SPR-AUTO-RESEARCHER-001",
         "confidence": 0.92,
-        "status": "PROPOSED"
+        "status": "PROPOSED",
     },
     {
         "id": "CAP-006",
@@ -89,8 +88,8 @@ CAPABILITY_CATALOG_V0 = [
         "power_stack": ["DeepSeek API or self-hosted", "vLLM/SGLang", "GPU allocation"],
         "sprint_candidate": "SPR-SOVEREIGN-REASONING-001",
         "confidence": 0.75,
-        "status": "PROPOSED"
-    }
+        "status": "PROPOSED",
+    },
 ]
 
 
@@ -141,7 +140,7 @@ class OraculoIALoop:
             "actions_log": [],
             "output_files": [],
             "next_suggested_loop": "loop_auditor",
-            "message": ""
+            "message": "",
         }
 
         # === PASO 1: Generar catálogo ===
@@ -149,30 +148,21 @@ class OraculoIALoop:
 
         # === PASO 2: Solicitar permiso para escribir catálogo ===
         catalog_path = "bridge/doctrine_candidates/oraculo_capability_catalog_v0.json"
-        write_request = {
-            "action": "create_state_fabric_draft",
-            "target_path": catalog_path,
-            "has_evidence": True
-        }
+        write_request = {"action": "create_state_fabric_draft", "target_path": catalog_path, "has_evidence": True}
 
-        is_allowed, reason, event = self.dispatcher.dispatch_action(
-            self.LOOP_ID, write_request
-        )
+        is_allowed, reason, event = self.dispatcher.dispatch_action(self.LOOP_ID, write_request)
         self.actions_attempted.append(write_request)
         results["event_proposals"].append(event)
-        results["actions_log"].append({
-            "action": "create_state_fabric_draft",
-            "target": catalog_path,
-            "allowed": is_allowed,
-            "reason": reason
-        })
+        results["actions_log"].append(
+            {"action": "create_state_fabric_draft", "target": catalog_path, "allowed": is_allowed, "reason": reason}
+        )
 
         if is_allowed:
             self.actions_allowed.append(write_request)
             # Escribir físicamente el catálogo
             output_file = os.path.join(self.output_dir, "oraculo_capability_catalog_v0.json")
             os.makedirs(os.path.dirname(output_file), exist_ok=True)
-            with open(output_file, 'w', encoding='utf-8') as f:
+            with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(catalog, f, indent=2, ensure_ascii=False)
             results["output_files"].append(output_file)
         else:
@@ -182,47 +172,43 @@ class OraculoIALoop:
         report_request = {
             "action": "create_report",
             "target_path": "bridge/doctrine_candidates/oraculo_power_stacks_v0.md",
-            "has_evidence": True
+            "has_evidence": True,
         }
 
-        is_allowed_2, reason_2, event_2 = self.dispatcher.dispatch_action(
-            self.LOOP_ID, report_request
-        )
+        is_allowed_2, reason_2, event_2 = self.dispatcher.dispatch_action(self.LOOP_ID, report_request)
         self.actions_attempted.append(report_request)
         results["event_proposals"].append(event_2)
-        results["actions_log"].append({
-            "action": "create_report",
-            "target": report_request["target_path"],
-            "allowed": is_allowed_2,
-            "reason": reason_2
-        })
+        results["actions_log"].append(
+            {
+                "action": "create_report",
+                "target": report_request["target_path"],
+                "allowed": is_allowed_2,
+                "reason": reason_2,
+            }
+        )
 
         if is_allowed_2:
             self.actions_allowed.append(report_request)
             report_file = os.path.join(self.output_dir, "oraculo_power_stacks_v0.md")
             report_content = self._generate_power_stacks_report(catalog)
-            with open(report_file, 'w', encoding='utf-8') as f:
+            with open(report_file, "w", encoding="utf-8") as f:
                 f.write(report_content)
             results["output_files"].append(report_file)
 
         # === PASO 4: Intentar acción PROHIBIDA (write_code) para demostrar DENY ===
-        forbidden_request = {
-            "action": "write_code",
-            "target_path": "src/oraculo_engine.py",
-            "has_evidence": True
-        }
+        forbidden_request = {"action": "write_code", "target_path": "src/oraculo_engine.py", "has_evidence": True}
 
-        is_allowed_3, reason_3, event_3 = self.dispatcher.dispatch_action(
-            self.LOOP_ID, forbidden_request
-        )
+        is_allowed_3, reason_3, event_3 = self.dispatcher.dispatch_action(self.LOOP_ID, forbidden_request)
         self.actions_attempted.append(forbidden_request)
         results["event_proposals"].append(event_3)
-        results["actions_log"].append({
-            "action": "write_code",
-            "target": forbidden_request["target_path"],
-            "allowed": is_allowed_3,
-            "reason": reason_3
-        })
+        results["actions_log"].append(
+            {
+                "action": "write_code",
+                "target": forbidden_request["target_path"],
+                "allowed": is_allowed_3,
+                "reason": reason_3,
+            }
+        )
 
         if not is_allowed_3:
             self.actions_denied.append(forbidden_request)
@@ -259,8 +245,8 @@ class OraculoIALoop:
                 "source": "static_v0_seed",
                 "next_evolution": "Live API scanning + model benchmarks",
                 "confidence_range": [0.75, 0.92],
-                "sprint_candidates_generated": len(CAPABILITY_CATALOG_V0)
-            }
+                "sprint_candidates_generated": len(CAPABILITY_CATALOG_V0),
+            },
         }
 
     def _generate_power_stacks_report(self, catalog):
@@ -280,34 +266,40 @@ class OraculoIALoop:
         ]
 
         for cap in catalog["capabilities"]:
-            lines.extend([
-                f"### {cap['id']}: {cap['model']} — {cap['feature']}",
-                "",
-                f"**Aplicación:** {cap['application']}",
-                "",
-                f"**Power Stack:**",
-            ])
+            lines.extend(
+                [
+                    f"### {cap['id']}: {cap['model']} — {cap['feature']}",
+                    "",
+                    f"**Aplicación:** {cap['application']}",
+                    "",
+                    "**Power Stack:**",
+                ]
+            )
             for tool in cap["power_stack"]:
                 lines.append(f"- {tool}")
-            lines.extend([
-                "",
-                f"**Sprint Candidate:** `{cap['sprint_candidate']}`",
-                f"**Confianza:** {cap['confidence']}",
-                "",
-                "---",
-                "",
-            ])
+            lines.extend(
+                [
+                    "",
+                    f"**Sprint Candidate:** `{cap['sprint_candidate']}`",
+                    f"**Confianza:** {cap['confidence']}",
+                    "",
+                    "---",
+                    "",
+                ]
+            )
 
-        lines.extend([
-            "## Siguiente Evolución",
-            "",
-            "Este catálogo es v0 (estático). La siguiente iteración debe:",
-            "1. Escanear APIs en tiempo real para detectar nuevos modelos/features.",
-            "2. Ejecutar benchmarks contra tareas reales del Monstruo.",
-            "3. Proponer Power Stacks con costos estimados (USD/mes).",
-            "4. Generar Sprint Specs formales para el Sprint Factory.",
-            "",
-            "**Status:** DOCTRINE_CANDIDATE — requiere validación de T1.",
-        ])
+        lines.extend(
+            [
+                "## Siguiente Evolución",
+                "",
+                "Este catálogo es v0 (estático). La siguiente iteración debe:",
+                "1. Escanear APIs en tiempo real para detectar nuevos modelos/features.",
+                "2. Ejecutar benchmarks contra tareas reales del Monstruo.",
+                "3. Proponer Power Stacks con costos estimados (USD/mes).",
+                "4. Generar Sprint Specs formales para el Sprint Factory.",
+                "",
+                "**Status:** DOCTRINE_CANDIDATE — requiere validación de T1.",
+            ]
+        )
 
         return "\n".join(lines) + "\n"

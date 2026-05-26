@@ -3,12 +3,11 @@
 Render Validator — Valida un render contra el Site Reality Document.
 Compara el render con las restricciones del SRD y emite un reporte de fidelidad.
 """
+
 import argparse
-import base64
 import json
 import os
 import sys
-from pathlib import Path
 
 
 def _encode_image(path: str) -> bytes:
@@ -40,34 +39,34 @@ async def validate_render(srd_path: str, render_path: str) -> dict:
 
     prompt = f"""Eres un validador de renders arquitectónicos. Tu trabajo es comparar este render con el Site Reality Document (SRD) y determinar si es fiel a la realidad.
 
-## SITIO: {srd.get('site_metadata', {}).get('name', 'Unknown')}
+## SITIO: {srd.get("site_metadata", {}).get("name", "Unknown")}
 
 ## CONTEXTO REAL POR ORIENTACIÓN
-Norte: {json.dumps(context.get('north', {}), ensure_ascii=False)}
-Sur: {json.dumps(context.get('south', {}), ensure_ascii=False)}
-Este: {json.dumps(context.get('east', {}), ensure_ascii=False)}
-Oeste: {json.dumps(context.get('west', {}), ensure_ascii=False)}
+Norte: {json.dumps(context.get("north", {}), ensure_ascii=False)}
+Sur: {json.dumps(context.get("south", {}), ensure_ascii=False)}
+Este: {json.dumps(context.get("east", {}), ensure_ascii=False)}
+Oeste: {json.dumps(context.get("west", {}), ensure_ascii=False)}
 
 ## RESTRICCIONES — DEBE INCLUIR
-{json.dumps(constraints.get('must_include', []), indent=1, ensure_ascii=False)}
+{json.dumps(constraints.get("must_include", []), indent=1, ensure_ascii=False)}
 
 ## RESTRICCIONES — NO DEBE INCLUIR
-{json.dumps(constraints.get('must_not_include', []), indent=1, ensure_ascii=False)}
+{json.dumps(constraints.get("must_not_include", []), indent=1, ensure_ascii=False)}
 
 ## LÍMITES DE ALTURA
-{json.dumps(constraints.get('height_limits', []), indent=1, ensure_ascii=False)}
+{json.dumps(constraints.get("height_limits", []), indent=1, ensure_ascii=False)}
 
 ## RESTRICCIONES DE PAISAJE
-{json.dumps(constraints.get('landscape_constraints', []), indent=1, ensure_ascii=False)}
+{json.dumps(constraints.get("landscape_constraints", []), indent=1, ensure_ascii=False)}
 
 ## BLIND SPOTS (zonas sin información — no deben tener detalle)
 {json.dumps(blind_spots, indent=1, ensure_ascii=False)}
 
 ## REGLAS CRÍTICAS (fallo automático si se viola)
-{json.dumps(validation_rules.get('critical', []), indent=1, ensure_ascii=False)}
+{json.dumps(validation_rules.get("critical", []), indent=1, ensure_ascii=False)}
 
 ## REGLAS MAYORES
-{json.dumps(validation_rules.get('major', []), indent=1, ensure_ascii=False)}
+{json.dumps(validation_rules.get("major", []), indent=1, ensure_ascii=False)}
 
 ## TU TAREA
 Analiza el render y responde en JSON:
@@ -99,7 +98,7 @@ REGLA: Si hay CUALQUIER critical_violation, pass_fail DEBE ser "FAIL" sin import
 
     try:
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model="gemini-2.5-flash",
             contents=[
                 types.Content(
                     parts=[
@@ -129,11 +128,13 @@ REGLA: Si hay CUALQUIER critical_violation, pass_fail DEBE ser "FAIL" sin import
 
 async def validate_all_renders(srd_path: str, renders_dir: str, output_path: str):
     """Valida todos los renders en un directorio contra un SRD."""
-    renders = sorted([
-        os.path.join(renders_dir, f)
-        for f in os.listdir(renders_dir)
-        if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))
-    ])
+    renders = sorted(
+        [
+            os.path.join(renders_dir, f)
+            for f in os.listdir(renders_dir)
+            if f.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))
+        ]
+    )
 
     results = []
     passed = 0

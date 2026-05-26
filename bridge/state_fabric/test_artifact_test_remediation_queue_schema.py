@@ -2,6 +2,7 @@
 Tests for Artifact Test Remediation Queue Schema v0.1
 10 tests covering all required criteria.
 """
+
 import json
 import sys
 from pathlib import Path
@@ -37,9 +38,11 @@ def test_01_schema_valid():
 def test_02_all_11_artifacts_represented():
     """Queue contains all 11 artifacts."""
     queue = load_queue()
-    test("02_all_11_artifacts_represented",
-         queue["total_artifacts"] == 11 and len(queue["items"]) == 11,
-         f"total={queue['total_artifacts']}, items={len(queue['items'])}")
+    test(
+        "02_all_11_artifacts_represented",
+        queue["total_artifacts"] == 11 and len(queue["items"]) == 11,
+        f"total={queue['total_artifacts']}, items={len(queue['items'])}",
+    )
 
 
 def test_03_artifacts_without_tests_pending_or_ready():
@@ -48,20 +51,17 @@ def test_03_artifacts_without_tests_pending_or_ready():
     untested = [i for i in queue["items"] if not i["has_tests"]]
     valid_statuses = {"PENDING_T1", "READY_R0PLUS"}
     all_valid = all(i["status"] in valid_statuses for i in untested)
-    test("03_artifacts_without_tests_pending_or_ready",
-         all_valid or len(untested) == 0,
-         f"untested={len(untested)}")
+    test("03_artifacts_without_tests_pending_or_ready", all_valid or len(untested) == 0, f"untested={len(untested)}")
 
 
 def test_04_no_approved_without_t1():
     """No item has status that implies T1 approval without T1 decision."""
     queue = load_queue()
     # APPROVED is not a valid status in the schema
-    invalid = [i for i in queue["items"] if i["status"] not in
-               {"PENDING_T1", "READY_R0PLUS", "BLOCKED", "IN_PROGRESS", "DONE"}]
-    test("04_no_approved_without_t1",
-         len(invalid) == 0,
-         f"invalid_statuses={[i['status'] for i in invalid]}")
+    invalid = [
+        i for i in queue["items"] if i["status"] not in {"PENDING_T1", "READY_R0PLUS", "BLOCKED", "IN_PROGRESS", "DONE"}
+    ]
+    test("04_no_approved_without_t1", len(invalid) == 0, f"invalid_statuses={[i['status'] for i in invalid]}")
 
 
 def test_05_no_r1():
@@ -79,27 +79,21 @@ def test_06_no_main_pr_deploy():
         forbidden = item.get("forbidden_actions", [])
         if "main" not in forbidden or "deploy" not in forbidden:
             violations.append(item["artifact_id"])
-    test("06_no_main_pr_deploy",
-         len(violations) == 0,
-         f"violations={violations}")
+    test("06_no_main_pr_deploy", len(violations) == 0, f"violations={violations}")
 
 
 def test_07_priority_valid():
     """All priorities are valid integers >= 1."""
     queue = load_queue()
     invalid = [i for i in queue["items"] if not isinstance(i["priority"], int) or i["priority"] < 1]
-    test("07_priority_valid",
-         len(invalid) == 0,
-         f"invalid={[i['artifact_id'] for i in invalid]}")
+    test("07_priority_valid", len(invalid) == 0, f"invalid={[i['artifact_id'] for i in invalid]}")
 
 
 def test_08_source_ref_required():
     """All items have a source_ref with minimum length."""
     queue = load_queue()
     missing = [i for i in queue["items"] if not i.get("source_ref") or len(i["source_ref"]) < 5]
-    test("08_source_ref_required",
-         len(missing) == 0,
-         f"missing={[i['artifact_id'] for i in missing]}")
+    test("08_source_ref_required", len(missing) == 0, f"missing={[i['artifact_id'] for i in missing]}")
 
 
 def test_09_export_snapshot():
@@ -108,9 +102,9 @@ def test_09_export_snapshot():
     try:
         exported = json.dumps(queue, indent=2)
         re_parsed = json.loads(exported)
-        test("09_export_snapshot",
-             re_parsed["version"] == "0.1" and len(re_parsed["items"]) == 11,
-             "export+reimport OK")
+        test(
+            "09_export_snapshot", re_parsed["version"] == "0.1" and len(re_parsed["items"]) == 11, "export+reimport OK"
+        )
     except Exception as e:
         test("09_export_snapshot", False, str(e))
 
@@ -120,9 +114,7 @@ def test_10_no_secrets():
     queue_text = QUEUE_PATH.read_text(encoding="utf-8")
     secret_patterns = ["sk-", "sbp_", "ghp_", "password", "secret_key", "api_key="]
     found = [p for p in secret_patterns if p in queue_text.lower()]
-    test("10_no_secrets",
-         len(found) == 0,
-         f"found_patterns={found}")
+    test("10_no_secrets", len(found) == 0, f"found_patterns={found}")
 
 
 if __name__ == "__main__":

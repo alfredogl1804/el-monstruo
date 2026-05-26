@@ -108,17 +108,14 @@ from __future__ import annotations
 import json
 import os
 import sys
-import urllib.request
 import urllib.error
-
+import urllib.request
 
 SEED = {
     "id": "catastro-validar-columnas-implicitas-funciones-rpc",
     "categoria": "anti_patron_sql",
     "severidad": "alta",
-    "titulo": (
-        "Validar columnas implicitas en funciones PL/pgSQL antes del primer commit"
-    ),
+    "titulo": ("Validar columnas implicitas en funciones PL/pgSQL antes del primer commit"),
     "lección": (
         "Las funciones PL/pgSQL son lazy-validated: PostgreSQL acepta CREATE OR "
         "REPLACE FUNCTION con referencias a columnas inexistentes y solo falla en "
@@ -171,10 +168,7 @@ def main() -> int:
     print("=" * 76)
 
     if not api_key:
-        print(
-            "[INFO] MONSTRUO_API_KEY no presente en el entorno. "
-            "Mostrando JSON solamente. No se invoca HTTP."
-        )
+        print("[INFO] MONSTRUO_API_KEY no presente en el entorno. Mostrando JSON solamente. No se invoca HTTP.")
         return 0
 
     payload = json.dumps(SEED).encode("utf-8")

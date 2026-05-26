@@ -292,18 +292,24 @@ def create_fastmcp_server():
                     r = await client.get(f"/search/repositories?q={query}&per_page=5", headers=headers)
                     r.raise_for_status()
                     items = r.json().get("items", [])
-                    return json.dumps([{
-                        "name": i["full_name"],
-                        "description": i.get("description", ""),
-                        "stars": i["stargazers_count"],
-                        "url": i["html_url"],
-                    } for i in items[:5]])
+                    return json.dumps(
+                        [
+                            {
+                                "name": i["full_name"],
+                                "description": i.get("description", ""),
+                                "stars": i["stargazers_count"],
+                                "url": i["html_url"],
+                            }
+                            for i in items[:5]
+                        ]
+                    )
 
                 elif action == "get_file":
                     path = parsed_params.get("path", "README.md")
                     r = await client.get(f"/repos/{repo}/contents/{path}", headers=headers)
                     r.raise_for_status()
                     import base64
+
                     content = base64.b64decode(r.json().get("content", "")).decode("utf-8")
                     return json.dumps({"path": path, "content": content[:5000]})
 
@@ -311,36 +317,56 @@ def create_fastmcp_server():
                     state = parsed_params.get("state", "open")
                     r = await client.get(f"/repos/{repo}/issues?state={state}&per_page=10", headers=headers)
                     r.raise_for_status()
-                    return json.dumps([{
-                        "number": i["number"],
-                        "title": i["title"],
-                        "state": i["state"],
-                        "labels": [l["name"] for l in i.get("labels", [])],
-                    } for i in r.json()[:10]])
+                    return json.dumps(
+                        [
+                            {
+                                "number": i["number"],
+                                "title": i["title"],
+                                "state": i["state"],
+                                "labels": [l["name"] for l in i.get("labels", [])],
+                            }
+                            for i in r.json()[:10]
+                        ]
+                    )
 
                 elif action == "list_prs":
                     state = parsed_params.get("state", "open")
                     r = await client.get(f"/repos/{repo}/pulls?state={state}&per_page=10", headers=headers)
                     r.raise_for_status()
-                    return json.dumps([{
-                        "number": p["number"],
-                        "title": p["title"],
-                        "state": p["state"],
-                        "author": p["user"]["login"],
-                    } for p in r.json()[:10]])
+                    return json.dumps(
+                        [
+                            {
+                                "number": p["number"],
+                                "title": p["title"],
+                                "state": p["state"],
+                                "author": p["user"]["login"],
+                            }
+                            for p in r.json()[:10]
+                        ]
+                    )
 
                 elif action == "search_code":
                     query = parsed_params.get("query", "")
                     r = await client.get(f"/search/code?q={query}+repo:{repo}&per_page=5", headers=headers)
                     r.raise_for_status()
-                    return json.dumps([{
-                        "path": i["path"],
-                        "name": i["name"],
-                        "url": i["html_url"],
-                    } for i in r.json().get("items", [])[:5]])
+                    return json.dumps(
+                        [
+                            {
+                                "path": i["path"],
+                                "name": i["name"],
+                                "url": i["html_url"],
+                            }
+                            for i in r.json().get("items", [])[:5]
+                        ]
+                    )
 
                 else:
-                    return json.dumps({"error": f"Unknown action: {action}", "available": ["search_repos", "get_file", "list_issues", "list_prs", "search_code"]})
+                    return json.dumps(
+                        {
+                            "error": f"Unknown action: {action}",
+                            "available": ["search_repos", "get_file", "list_issues", "list_prs", "search_code"],
+                        }
+                    )
 
         except Exception as e:
             logger.error("fastmcp_github_error", action=action, error=str(e))
@@ -444,11 +470,13 @@ def create_fastmcp_server():
         """List connected MCP servers and their tools."""
         try:
             from kernel.mcp_hub_config import get_mcp_hub
+
             hub = get_mcp_hub()
             if hub:
                 return hub.to_json()
             # Fallback: usar MCPClientManager directamente
             from kernel.main import app
+
             manager = getattr(app.state, "mcp_client_manager", None)
             if manager:
                 return json.dumps(manager.get_status(), default=str)
@@ -476,6 +504,7 @@ def create_fastmcp_server():
     ) -> str:
         """Search sovereign memories by semantic relevance."""
         import httpx
+
         supabase_url = os.environ.get("SUPABASE_URL", "")
         supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
         if not supabase_url or not supabase_key:
@@ -495,14 +524,28 @@ def create_fastmcp_server():
                 if r.status_code == 200:
                     axioms = r.json()
                     for a in axioms:
-                        results.append({"tier": "AXIOM", "content": a.get("content"), "domain": a.get("domain"), "confidence": a.get("confidence")})
+                        results.append(
+                            {
+                                "tier": "AXIOM",
+                                "content": a.get("content"),
+                                "domain": a.get("domain"),
+                                "confidence": a.get("confidence"),
+                            }
+                        )
                 # Get memories
                 mem_url = f"{supabase_url}/rest/v1/sovereign_memories?select=*&content=ilike.*{query.split()[0]}*&order=importance.desc&limit={limit}"
                 r = await client.get(mem_url, headers=headers)
                 if r.status_code == 200:
                     memories = r.json()
                     for m in memories:
-                        results.append({"tier": m.get("tier", "LONG_TERM"), "content": m.get("content"), "domain": m.get("domain"), "importance": m.get("importance")})
+                        results.append(
+                            {
+                                "tier": m.get("tier", "LONG_TERM"),
+                                "content": m.get("content"),
+                                "domain": m.get("domain"),
+                                "importance": m.get("importance"),
+                            }
+                        )
             logger.info("sms_recall_ok", query=query, results=len(results), agent=agent_id)
             return json.dumps({"query": query, "results": results[:limit], "total": len(results)}, ensure_ascii=False)
         except Exception as e:
@@ -527,8 +570,10 @@ def create_fastmcp_server():
         tier: str = "LONG_TERM",
     ) -> str:
         """Ingest a new memory into the sovereign store."""
-        import httpx
         from datetime import datetime, timezone
+
+        import httpx
+
         supabase_url = os.environ.get("SUPABASE_URL", "")
         supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
         if not supabase_url or not supabase_key:
@@ -558,7 +603,10 @@ def create_fastmcp_server():
                 r.raise_for_status()
                 result = r.json()
             logger.info("sms_ingest_ok", domain=domain, agent=agent_id)
-            return json.dumps({"status": "stored", "id": result[0].get("id") if result else "unknown", "tier": tier}, ensure_ascii=False)
+            return json.dumps(
+                {"status": "stored", "id": result[0].get("id") if result else "unknown", "tier": tier},
+                ensure_ascii=False,
+            )
         except Exception as e:
             logger.error("sms_ingest_error", error=str(e))
             return json.dumps({"error": str(e)})
@@ -581,8 +629,10 @@ def create_fastmcp_server():
         evidence: str = "validated by agent",
     ) -> str:
         """Crystallize a memory into a sovereign axiom."""
-        import httpx
         from datetime import datetime, timezone
+
+        import httpx
+
         supabase_url = os.environ.get("SUPABASE_URL", "")
         supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
         if not supabase_url or not supabase_key:
@@ -601,7 +651,9 @@ def create_fastmcp_server():
                 "confidence": 0.95,
                 "status": "active",
                 "validations": 1,
-                "evidence": json.dumps([{"source": agent_id, "text": evidence, "date": datetime.now(timezone.utc).isoformat()}]),
+                "evidence": json.dumps(
+                    [{"source": agent_id, "text": evidence, "date": datetime.now(timezone.utc).isoformat()}]
+                ),
                 "created_at": datetime.now(timezone.utc).isoformat(),
             }
             async with httpx.AsyncClient(timeout=15.0) as client:
@@ -613,7 +665,14 @@ def create_fastmcp_server():
                 r.raise_for_status()
                 result = r.json()
             logger.info("sms_crystallize_ok", domain=domain, agent=agent_id)
-            return json.dumps({"status": "crystallized", "id": result[0].get("id") if result else "unknown", "content": content[:100]}, ensure_ascii=False)
+            return json.dumps(
+                {
+                    "status": "crystallized",
+                    "id": result[0].get("id") if result else "unknown",
+                    "content": content[:100],
+                },
+                ensure_ascii=False,
+            )
         except Exception as e:
             logger.error("sms_crystallize_error", error=str(e))
             return json.dumps({"error": str(e)})
@@ -636,6 +695,7 @@ def create_fastmcp_server():
     ) -> str:
         """Pre-check an action against sovereign memory for safety."""
         import httpx
+
         supabase_url = os.environ.get("SUPABASE_URL", "")
         supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
         if not supabase_url or not supabase_key:
@@ -656,10 +716,15 @@ def create_fastmcp_server():
                 if r.status_code == 200:
                     axioms = r.json()
                     for ax in axioms:
-                        if any(w in ax.get("content", "").lower() for w in ["never", "nunca", "prohibido", "blocked", "halt"]):
+                        if any(
+                            w in ax.get("content", "").lower()
+                            for w in ["never", "nunca", "prohibido", "blocked", "halt"]
+                        ):
                             verdict = "HALT"
                             warnings.append(f"AXIOM BLOCKER: {ax['content'][:100]}")
-                        elif any(w in ax.get("content", "").lower() for w in ["caution", "review", "verify", "cuidado"]):
+                        elif any(
+                            w in ax.get("content", "").lower() for w in ["caution", "review", "verify", "cuidado"]
+                        ):
                             if verdict != "HALT":
                                 verdict = "CAUTION"
                             warnings.append(f"AXIOM CAUTION: {ax['content'][:100]}")
@@ -673,7 +738,9 @@ def create_fastmcp_server():
                             verdict = "CAUTION"
                         warnings.append(f"KNOWLEDGE GAP: {g.get('question', '')[:100]}")
             logger.info("sms_pre_check_ok", action=action, verdict=verdict, agent=agent_id)
-            return json.dumps({"verdict": verdict, "action": action, "warnings": warnings, "axioms_checked": True}, ensure_ascii=False)
+            return json.dumps(
+                {"verdict": verdict, "action": action, "warnings": warnings, "axioms_checked": True}, ensure_ascii=False
+            )
         except Exception as e:
             logger.error("sms_pre_check_error", error=str(e))
             return json.dumps({"verdict": "PROCEED", "reason": f"SMS error: {str(e)} — degraded mode", "warnings": []})
@@ -731,5 +798,7 @@ def get_status() -> dict[str, Any]:
             "sms_ingest (Sovereign Memory)",
             "sms_crystallize (Sovereign Memory)",
             "sms_pre_check (Sovereign Memory)",
-        ] if _initialized else [],
+        ]
+        if _initialized
+        else [],
     }

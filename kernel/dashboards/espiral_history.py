@@ -23,6 +23,7 @@ Cierre del PR #116 puntualizó tickets de seguimiento:
   hereda esa deuda. Aplicamos html.escape() defensivo en todo string user-controlled
   (consumer es app-controlled pero por defensa en profundidad escapamos).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -30,7 +31,7 @@ import html
 import json
 import sys
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Awaitable, Callable, Optional
 
 import structlog
@@ -180,28 +181,33 @@ def render_html(rows: list[HomeostasisRow], window_hours: int) -> str:
     event_rows_html = ""
     for r in rows[:200]:  # cap visual a 200 eventos más recientes
         dev_class = (
-            "spike" if r.adjustment_reason == "spike_dampening"
-            else "under" if r.adjustment_reason == "undershoot_acceleration"
+            "spike"
+            if r.adjustment_reason == "spike_dampening"
+            else "under"
+            if r.adjustment_reason == "undershoot_acceleration"
             else "ret"
         )
         ts = r.created_at.strftime("%Y-%m-%d %H:%M:%S") if isinstance(r.created_at, datetime) else str(r.created_at)
         event_rows_html += (
             f'<tr class="{dev_class}">'
-            f'<td>{html.escape(ts)}</td>'
-            f'<td>{html.escape(r.consumer)}</td>'
-            f'<td>{r.pulse_rate_observed:.4f}</td>'
-            f'<td>{r.pulse_rate_baseline:.4f}</td>'
-            f'<td><strong>{r.deviation_ratio:.4f}</strong></td>'
-            f'<td>{r.pulse_interval_adjusted_to}s</td>'
-            f'<td>{r.pulse_interval_canonical}s</td>'
-            f'<td>{html.escape(r.adjustment_reason)}</td>'
-            f'</tr>'
+            f"<td>{html.escape(ts)}</td>"
+            f"<td>{html.escape(r.consumer)}</td>"
+            f"<td>{r.pulse_rate_observed:.4f}</td>"
+            f"<td>{r.pulse_rate_baseline:.4f}</td>"
+            f"<td><strong>{r.deviation_ratio:.4f}</strong></td>"
+            f"<td>{r.pulse_interval_adjusted_to}s</td>"
+            f"<td>{r.pulse_interval_canonical}s</td>"
+            f"<td>{html.escape(r.adjustment_reason)}</td>"
+            f"</tr>"
         )
 
-    by_consumer_html = "".join(
-        f'<li>{html.escape(c)}: <strong>{n}</strong></li>'
-        for c, n in sorted(summary["by_consumer"].items(), key=lambda x: -x[1])
-    ) or "<li>(sin eventos)</li>"
+    by_consumer_html = (
+        "".join(
+            f"<li>{html.escape(c)}: <strong>{n}</strong></li>"
+            for c, n in sorted(summary["by_consumer"].items(), key=lambda x: -x[1])
+        )
+        or "<li>(sin eventos)</li>"
+    )
 
     by_reason = summary["by_reason"]
     return f"""<!DOCTYPE html>

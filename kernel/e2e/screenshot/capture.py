@@ -14,6 +14,7 @@ pipeline. Validación post-captura limita el tamaño máximo (5 MB).
 
 Brand DNA en errores: e2e_screenshot_*_failed.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -21,7 +22,7 @@ import os
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Optional
 
 import structlog
 from pydantic import BaseModel, ConfigDict, Field
@@ -80,9 +81,7 @@ def _get_storage_dir() -> Path:
     return target
 
 
-async def _wait_for_github_pages_ready(
-    *, url: str, max_wait_s: int = 90, marker: str = "<h1"
-) -> bool:
+async def _wait_for_github_pages_ready(*, url: str, max_wait_s: int = 90, marker: str = "<h1") -> bool:
     """Sprint 88.1: GitHub Pages tarda 30-90s en propagar nuevos paths.
 
     Polea la URL hasta que devuelva HTTP 200 + contenga `marker` (default `<h1`)
@@ -93,17 +92,22 @@ async def _wait_for_github_pages_ready(
     if "github.io" not in url:
         return True  # solo aplica a GitHub Pages
     import urllib.request
+
     deadline = time.perf_counter() + max_wait_s
     poll_interval_s = 5
     while time.perf_counter() < deadline:
         try:
+
             def _fetch() -> tuple[int, str]:
                 req = urllib.request.Request(url, headers={"User-Agent": "MonstruoScreenshot/1.0"})
                 with urllib.request.urlopen(req, timeout=8) as resp:
                     return resp.status, resp.read(8192).decode("utf-8", errors="ignore")
+
             status, body = await asyncio.to_thread(_fetch)
             if status == 200 and marker in body:
-                logger.info("e2e_github_pages_ready", url=url, waited_s=int(max_wait_s - (deadline - time.perf_counter())))
+                logger.info(
+                    "e2e_github_pages_ready", url=url, waited_s=int(max_wait_s - (deadline - time.perf_counter()))
+                )
                 return True
         except Exception:
             pass
@@ -112,9 +116,7 @@ async def _wait_for_github_pages_ready(
     return False
 
 
-async def _capture_with_playwright(
-    *, url: str, output_path: Path, timeout_s: int
-) -> int:
+async def _capture_with_playwright(*, url: str, output_path: Path, timeout_s: int) -> int:
     """Invoca Playwright; retorna bytes escritos."""
     # Sprint 88.1: esperar propagación GitHub Pages antes de capturar
     await _wait_for_github_pages_ready(url=url, max_wait_s=90)
@@ -188,26 +190,18 @@ async def _capture_with_playwright(
     except ScreenshotPlaywrightUnavailable:
         raise
     except asyncio.TimeoutError as e:
-        raise ScreenshotTimeout(
-            f"e2e_screenshot_timeout: {url} — más de {timeout_s}s"
-        ) from e
+        raise ScreenshotTimeout(f"e2e_screenshot_timeout: {url} — más de {timeout_s}s") from e
     except Exception as e:
-        raise ScreenshotCaptureFailed(
-            f"e2e_screenshot_capture_failed: {url} — {e!s}"
-        ) from e
+        raise ScreenshotCaptureFailed(f"e2e_screenshot_capture_failed: {url} — {e!s}") from e
 
     if not output_path.exists():
-        raise ScreenshotCaptureFailed(
-            f"e2e_screenshot_capture_failed: PNG no se escribió en {output_path}"
-        )
+        raise ScreenshotCaptureFailed(f"e2e_screenshot_capture_failed: PNG no se escribió en {output_path}")
 
     size = output_path.stat().st_size
     if size > MAX_SCREENSHOT_BYTES:
         # Capa Memento: rechazar screenshots desproporcionados
         output_path.unlink(missing_ok=True)
-        raise ScreenshotTooLarge(
-            f"e2e_screenshot_too_large: {size} bytes > {MAX_SCREENSHOT_BYTES} cap"
-        )
+        raise ScreenshotTooLarge(f"e2e_screenshot_too_large: {size} bytes > {MAX_SCREENSHOT_BYTES} cap")
     return size
 
 
@@ -243,9 +237,7 @@ async def capture_screenshot(
         )
 
     try:
-        bytes_written = await _capture_with_playwright(
-            url=deploy_url, output_path=output_path, timeout_s=timeout_s
-        )
+        bytes_written = await _capture_with_playwright(url=deploy_url, output_path=output_path, timeout_s=timeout_s)
         result = ScreenshotResult(
             deploy_url=deploy_url,
             screenshot_path=str(output_path),

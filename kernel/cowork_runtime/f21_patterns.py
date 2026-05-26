@@ -37,6 +37,7 @@ Patrón doctrinal: NO modificar F21_PATTERNS in-place — agregar nuevas entries
 final de la lista para preservar índices estables. Cambio de regex existente
 requiere DSC firmado + bump de version.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -59,7 +60,6 @@ F21_PATTERNS: list[dict[str, Any]] = [
         "severity": "P1",
         "only_in_audit_outputs": False,
     },
-
     # P2: Schema DB sin SQL query previa
     {
         "id": "db_schema",
@@ -86,7 +86,6 @@ F21_PATTERNS: list[dict[str, Any]] = [
         "severity": "P0",
         "only_in_audit_outputs": False,
     },
-
     # P3: Versiones de modelos sin grep/web fetch
     {
         "id": "model_versions",
@@ -119,7 +118,6 @@ F21_PATTERNS: list[dict[str, Any]] = [
         "severity": "P1",
         "only_in_audit_outputs": False,
     },
-
     # P4: Commit hashes sin verificación git log
     {
         "id": "commit_hashes",
@@ -139,7 +137,6 @@ F21_PATTERNS: list[dict[str, Any]] = [
         "severity": "P0",
         "only_in_audit_outputs": False,
     },
-
     # P5: Git state branches stale/ahead/behind sin tool call
     {
         "id": "git_state",
@@ -158,7 +155,6 @@ F21_PATTERNS: list[dict[str, Any]] = [
         "severity": "P1",
         "only_in_audit_outputs": False,
     },
-
     # P6: PR existence claim sin gh pr view
     {
         "id": "pr_existence",
@@ -177,7 +173,6 @@ F21_PATTERNS: list[dict[str, Any]] = [
         "severity": "P1",
         "only_in_audit_outputs": False,
     },
-
     # P7: Migration filename claims sin ls
     {
         "id": "migration_filename",
@@ -196,7 +191,6 @@ F21_PATTERNS: list[dict[str, Any]] = [
         "severity": "P1",
         "only_in_audit_outputs": False,
     },
-
     # P8: Branch overlap claims sin diff
     {
         "id": "branch_overlap",
@@ -214,7 +208,6 @@ F21_PATTERNS: list[dict[str, Any]] = [
         "severity": "P1",
         "only_in_audit_outputs": False,
     },
-
     # P9: Test count claims sin ejecución
     {
         "id": "test_count",
@@ -233,7 +226,6 @@ F21_PATTERNS: list[dict[str, Any]] = [
         "severity": "P1",
         "only_in_audit_outputs": False,
     },
-
     # P10: RLS/policy claims sin SQL verification
     {
         "id": "rls_policy",

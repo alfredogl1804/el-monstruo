@@ -11,9 +11,9 @@ The --with-tax flag adds the 20% Mexico import tax estimate.
 
 import json
 import sys
-import requests
 from datetime import datetime
 
+import requests
 
 # Free exchange rate API endpoints (tried in order)
 EXCHANGE_APIS = [
@@ -110,7 +110,7 @@ def main():
         if result["import_tax_usd"] > 0:
             print(f"🏛️  Impuesto:  ${result['import_tax_usd']:.2f} USD = ${result['import_tax_mxn']:.2f} MXN (~20%)")
         else:
-            print(f"🏛️  Impuesto:  Incluido en el precio")
+            print("🏛️  Impuesto:  Incluido en el precio")
         print(f"\n💰 TOTAL:     ${result['total_usd']:.2f} USD = ${result['total_mxn']:.2f} MXN")
     else:
         print(f"Error: {result.get('error', 'desconocido')}")

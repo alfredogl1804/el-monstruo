@@ -16,16 +16,14 @@ from __future__ import annotations
 import pytest
 
 from contracts.kernel_interface import IntentType
-from kernel.nodes import _local_classify, _is_negation_or_question
+from kernel.nodes import _is_negation_or_question, _local_classify
 
 
 # ── Test A: Prompt corto execute (fast-path actual ya funciona) ──
 def test_a_prompt_corto_execute() -> None:
     """Caso A: 'crea landing pintura' → EXECUTE (fast-path)."""
     result = _local_classify("crea landing pintura")
-    assert result == IntentType.EXECUTE, (
-        f"Test A FAIL: esperado EXECUTE, got {result.value}"
-    )
+    assert result == IntentType.EXECUTE, f"Test A FAIL: esperado EXECUTE, got {result.value}"
 
 
 # ── Test B: Prompt LARGO execute (BUG #1 — 8va semilla) ──
@@ -56,8 +54,7 @@ def test_c_prompt_largo_background_legitimo() -> None:
     # 'investiga' es think keyword → DEEP_THINK (clasificación local;
     # el LLM router en slow-path lo refinaría a BACKGROUND si aplica).
     assert result == IntentType.DEEP_THINK, (
-        f"Test C FAIL: esperado DEEP_THINK, got {result.value}. "
-        "'investiga' es think keyword, no execute."
+        f"Test C FAIL: esperado DEEP_THINK, got {result.value}. 'investiga' es think keyword, no execute."
     )
 
 
@@ -65,15 +62,11 @@ def test_c_prompt_largo_background_legitimo() -> None:
 def test_d_prompt_vacio_no_crash() -> None:
     """Caso D: '' → CHAT (sin crash, error controlado)."""
     result = _local_classify("")
-    assert result == IntentType.CHAT, (
-        f"Test D FAIL: esperado CHAT (no crash), got {result.value}"
-    )
+    assert result == IntentType.CHAT, f"Test D FAIL: esperado CHAT (no crash), got {result.value}"
 
     # También probar solo whitespace
     result_ws = _local_classify("   \n\t  ")
-    assert result_ws == IntentType.CHAT, (
-        f"Test D FAIL (whitespace): esperado CHAT, got {result_ws.value}"
-    )
+    assert result_ws == IntentType.CHAT, f"Test D FAIL (whitespace): esperado CHAT, got {result_ws.value}"
 
 
 # ── Test E: Negación con execute keyword (BUG #2 — 14va semilla) ──
@@ -93,9 +86,7 @@ def test_e_negacion_con_execute_keyword_bug_14va() -> None:
     ]
     for v in variantes:
         r = _local_classify(v)
-        assert r == IntentType.CHAT, (
-            f"Test E FAIL en variante '{v}': esperado CHAT, got {r.value}"
-        )
+        assert r == IntentType.CHAT, f"Test E FAIL en variante '{v}': esperado CHAT, got {r.value}"
 
 
 # ── Test F: Pregunta con execute keyword (BUG #2 — 14va semilla) ──
@@ -104,8 +95,7 @@ def test_f_pregunta_con_execute_keyword_bug_14va() -> None:
     result = _local_classify("¿Cómo se actualiza el sistema?")
     # Es pregunta (¿?) y tiene "cómo se" → no es orden ejecutable.
     assert result in (IntentType.CHAT, IntentType.DEEP_THINK), (
-        f"Test F FAIL (bug 14va): esperado CHAT o DEEP_THINK, got {result.value}. "
-        "Pregunta no debe disparar EXECUTE."
+        f"Test F FAIL (bug 14va): esperado CHAT o DEEP_THINK, got {result.value}. Pregunta no debe disparar EXECUTE."
     )
     # El filtro debe haberse activado.
     assert _is_negation_or_question("¿cómo se actualiza el sistema?"), (
@@ -120,9 +110,7 @@ def test_f_pregunta_con_execute_keyword_bug_14va() -> None:
     ]
     for q in preguntas:
         r = _local_classify(q)
-        assert r != IntentType.EXECUTE, (
-            f"Test F FAIL en pregunta '{q}': no debe ser EXECUTE, got {r.value}"
-        )
+        assert r != IntentType.EXECUTE, f"Test F FAIL en pregunta '{q}': no debe ser EXECUTE, got {r.value}"
 
 
 # ── Smoke tests adicionales: no regresión del fast-path ──
@@ -142,9 +130,7 @@ def test_smoke_no_regression_fast_path_execute() -> None:
     ]
     for caso in casos_execute:
         r = _local_classify(caso)
-        assert r == IntentType.EXECUTE, (
-            f"Regresión fast-path: '{caso}' debe ser EXECUTE, got {r.value}"
-        )
+        assert r == IntentType.EXECUTE, f"Regresión fast-path: '{caso}' debe ser EXECUTE, got {r.value}"
 
 
 def test_smoke_no_regression_think() -> None:
@@ -157,9 +143,7 @@ def test_smoke_no_regression_think() -> None:
     ]
     for caso in casos_think:
         r = _local_classify(caso)
-        assert r == IntentType.DEEP_THINK, (
-            f"Regresión think: '{caso}' debe ser DEEP_THINK, got {r.value}"
-        )
+        assert r == IntentType.DEEP_THINK, f"Regresión think: '{caso}' debe ser DEEP_THINK, got {r.value}"
 
 
 def test_smoke_system_commands() -> None:

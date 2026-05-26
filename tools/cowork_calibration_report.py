@@ -29,6 +29,7 @@ con fallback sandbox a impresión "sandbox-mode" si SUPABASE_* no presentes.
 
 Spec firmado T1: bridge/sprints_propuestos/sprint_COWORK_MEMENTO_001.md commit 78d1fb00
 """
+
 from __future__ import annotations
 
 import argparse
@@ -46,10 +47,10 @@ if str(_REPO_ROOT) not in sys.path:
 
 from kernel.cowork_runtime.claim_calibration import ClaimLogger  # noqa: E402
 
-
 # ============================================================================
 # Supabase client adapter (sandbox-friendly)
 # ============================================================================
+
 
 def _get_supabase_client() -> Optional[Any]:
     """Carga cliente Supabase desde env vars, o None si no hay credenciales.
@@ -59,9 +60,7 @@ def _get_supabase_client() -> Optional[Any]:
         SUPABASE_SERVICE_KEY (formato sb_secret_*)
     """
     url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get(
-        "SUPABASE_SERVICE_ROLE_KEY"
-    )
+    key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
     if not url or not key:
         return None
     try:
@@ -86,11 +85,10 @@ class _SupabaseAggregateAdapter:
         Estrategia: usar RPC si existe, sino SELECT + agregación local
         (preferimos local para evitar añadir RPC nueva en el sprint).
         """
-        query = self._raw.table("cowork_claims_calibration").select(
-            "claim_type, verification_status"
-        )
+        query = self._raw.table("cowork_claims_calibration").select("claim_type, verification_status")
         # Filtro por ventana temporal
         from datetime import timedelta
+
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)
         query = query.gte("created_at", cutoff.isoformat())
         if claim_type:
@@ -103,15 +101,13 @@ class _SupabaseAggregateAdapter:
             ct = r.get("claim_type", "unknown")
             vs = r.get("verification_status", "unverified")
             agg[(ct, vs)] = agg.get((ct, vs), 0) + 1
-        return [
-            {"claim_type": ct, "verification_status": vs, "n": n}
-            for (ct, vs), n in agg.items()
-        ]
+        return [{"claim_type": ct, "verification_status": vs, "n": n} for (ct, vs), n in agg.items()]
 
 
 # ============================================================================
 # Sandbox fallback (sin credenciales Supabase)
 # ============================================================================
+
 
 class _SandboxClient:
     """Cliente fake para sandbox / dev sin Supabase. Devuelve agregado vacío."""
@@ -123,6 +119,7 @@ class _SandboxClient:
 # ============================================================================
 # CLI main
 # ============================================================================
+
 
 def build_report(days: int, claim_type: Optional[str]) -> dict:
     """Construye el reporte agregado usando ClaimLogger.aggregate_daily()."""
@@ -162,9 +159,18 @@ def main(argv: Optional[list[str]] = None) -> int:
         type=str,
         default=None,
         choices=[
-            "file_path", "table_name", "column_name", "migration_number",
-            "pr_number", "commit_hash", "branch_name", "sprint_name",
-            "loc_count", "test_count", "fecha_iso", "version_string",
+            "file_path",
+            "table_name",
+            "column_name",
+            "migration_number",
+            "pr_number",
+            "commit_hash",
+            "branch_name",
+            "sprint_name",
+            "loc_count",
+            "test_count",
+            "fecha_iso",
+            "version_string",
         ],
         help="Filtrar agregado por claim_type específico.",
     )

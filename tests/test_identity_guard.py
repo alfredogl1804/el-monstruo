@@ -11,17 +11,16 @@ from pathlib import Path
 # Add project root to path for import
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import unittest
+
 from kernel.identity_guard import (
-    ANONYMOUS_SENTINEL,
     UNRESOLVED_USER_CONTEXT,
-    BLOCKED_USER_IDS,
     UserIdStatus,
-    resolve_user_id,
+    annotate_user_id,
     is_anonymous_blocked,
     require_resolved_user,
-    annotate_user_id,
+    resolve_user_id,
 )
-import unittest
 
 
 class TestResolveUserId(unittest.TestCase):

@@ -17,9 +17,9 @@ Cobertura del spec del Sprint 84.5 / audit Cowork:
 Run:
     pytest tests/test_sprint85_hotfix_substring.py -v
 """
+
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 
@@ -34,11 +34,13 @@ try:
 except ImportError:
     sys.modules["structlog"] = type(sys)("structlog")
     sys.modules["structlog"].get_logger = lambda *a, **k: type(
-        "L", (), {
+        "L",
+        (),
+        {
             "info": lambda s, *a, **k: None,
             "warning": lambda s, *a, **k: None,
             "error": lambda s, *a, **k: None,
-        }
+        },
     )()
 
 
@@ -48,6 +50,7 @@ class TestProductArchitectVertical:
 
     def setup_method(self):
         from kernel.embriones.product_architect import ProductArchitect
+
         self.pa = ProductArchitect(_sabios=None, _db=None)
 
     # Caso A — Cero regresión funcional (keyword aislada matchea)
@@ -69,13 +72,9 @@ class TestProductArchitectVertical:
         """'artesanal' contiene 'arte'. Antes: matcheaba education_arts.
         Ahora: solo matchea 'artesanal' (ecommerce_artisanal)."""
         # Texto sin keywords de education_arts excepto el potencial substring
-        v, _ = self.pa._detectar_vertical(
-            "Tienda de productos artesanales hechos a mano premium"
-        )
+        v, _ = self.pa._detectar_vertical("Tienda de productos artesanales hechos a mano premium")
         # Debería rutear a ecommerce_artisanal, NO a education_arts
-        assert v == "ecommerce_artisanal", (
-            f"Falso positivo: 'artesanal' matcheó 'arte' → vertical={v}"
-        )
+        assert v == "ecommerce_artisanal", f"Falso positivo: 'artesanal' matcheó 'arte' → vertical={v}"
 
     def test_estudiosos_no_matchea_estudio(self):
         """'estudiosos' contiene 'estudio'. Antes: matcheaba.
@@ -84,24 +83,18 @@ class TestProductArchitectVertical:
         # como 'empresas', 'consultor' se evitan a propsito).
         # As el nico potencial match sera substring 'estudio' dentro
         # de 'estudiosos' — que ahora NO matchea.
-        v, c = self.pa._detectar_vertical(
-            "Texto con clientes estudiosos del mercado"
-        )
+        v, c = self.pa._detectar_vertical("Texto con clientes estudiosos del mercado")
         # Sin matches reales, fallback a professional_services con confidence 0
         assert c == 0.0, f"'estudiosos' matcheó algo (falso positivo): vertical={v}, conf={c}"
         assert v == "professional_services"  # fallback genérico
 
     # Caso C — Multi-word keywords siguen funcionando
     def test_hecho_a_mano_multiword_matchea(self):
-        v, _ = self.pa._detectar_vertical(
-            "Vendo joyería hecho a mano en tienda boutique"
-        )
+        v, _ = self.pa._detectar_vertical("Vendo joyería hecho a mano en tienda boutique")
         assert v == "ecommerce_artisanal"
 
     def test_servicios_profesionales_multiword_matchea(self):
-        v, _ = self.pa._detectar_vertical(
-            "Despacho de servicios profesionales para PYMES"
-        )
+        v, _ = self.pa._detectar_vertical("Despacho de servicios profesionales para PYMES")
         assert v == "professional_services"
 
     # Caso D — Sin keywords → fallback genérico con confidence 0
@@ -119,6 +112,7 @@ class TestPlannerEsProyectoWeb:
         # Importamos solo el helper sin instanciar el planner completo
         # (que requiere Supabase + LLM)
         from kernel.task_planner import _get_web_project_pattern
+
         self.pattern = _get_web_project_pattern()
 
     def _es_web(self, text: str) -> bool:
@@ -127,25 +121,31 @@ class TestPlannerEsProyectoWeb:
         return bool(self.pattern.search(text))
 
     # Caso A — Zero regresión funcional
-    @pytest.mark.parametrize("text", [
-        "hazme una landing del taller de Yuna",
-        "construye un dashboard SaaS para mi startup",
-        "crea un sitio web para mi restaurante",
-        "monta una academia online",
-        "necesito una página web profesional",
-    ])
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "hazme una landing del taller de Yuna",
+            "construye un dashboard SaaS para mi startup",
+            "crea un sitio web para mi restaurante",
+            "monta una academia online",
+            "necesito una página web profesional",
+        ],
+    )
     def test_proyectos_web_legitimos_matchean(self, text):
         assert self._es_web(text), f"Falso negativo: '{text}'"
 
     # Caso B — Falsos positivos resueltos
-    @pytest.mark.parametrize("text,reason", [
-        ("calcula 2+2", "matemática"),
-        ("manda un mensaje al usuario", "comunicación"),
-        ("redeploy del kernel", "ops"),
-        ("la saasoso es buena", "saasoso debería NO matchear saas"),
-        ("escuelajo no aplica", "escuelajo no es escuela"),
-        ("ese cafetero es bueno", "cafetero contiene café pero no es café"),
-    ])
+    @pytest.mark.parametrize(
+        "text,reason",
+        [
+            ("calcula 2+2", "matemática"),
+            ("manda un mensaje al usuario", "comunicación"),
+            ("redeploy del kernel", "ops"),
+            ("la saasoso es buena", "saasoso debería NO matchear saas"),
+            ("escuelajo no aplica", "escuelajo no es escuela"),
+            ("ese cafetero es bueno", "cafetero contiene café pero no es café"),
+        ],
+    )
     def test_no_proyectos_web(self, text, reason):
         assert not self._es_web(text), f"Falso positivo ({reason}): '{text}'"
 
@@ -159,9 +159,9 @@ class TestPlannerEsProyectoWeb:
 
 # ── HOTFIX 3: critic_visual._evaluar_estructura ─────────────────────────────
 class TestCriticVisualEstructura:
-
     def setup_method(self):
         from kernel.embriones.critic_visual import CriticVisual
+
         self.critic = CriticVisual(_sabios=None, _db=None)
 
     def test_seccion_pricing_detectada_aislada(self):

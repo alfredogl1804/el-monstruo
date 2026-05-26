@@ -12,6 +12,7 @@ Verifica integracion con guardian (T1 no se rompe), trigger por turnos,
 trigger por contexto, trigger por correctivo pendiente, trigger por
 pre-flight no ejecutado.
 """
+
 from __future__ import annotations
 
 import sys
@@ -25,7 +26,6 @@ if str(REPO_ROOT) not in sys.path:
 
 from kernel.cowork_runtime.rule_reinjection import (
     DEFAULT_EVERY_N_TURNS,
-    HARD_RULES_CANONICAS,
     RuleReinjector,
 )
 from tools.cowork_guardian import AdvanceScore, GuardianVerdict
@@ -46,7 +46,6 @@ def _make_verdict(violations: list[str], demands: bool = True) -> GuardianVerdic
 
 
 class TestTriggerPorTurnos:
-
     def test_no_reinyecta_antes_de_n_turnos(self):
         r = RuleReinjector(every_n_turns=5)
         for _ in range(4):
@@ -81,7 +80,6 @@ class TestTriggerPorTurnos:
 
 
 class TestTriggerPorContexto:
-
     def test_reinyecta_cuando_ctx_excede_threshold(self):
         r = RuleReinjector(every_n_turns=10, ctx_threshold=0.50)
         r.tick(pre_flight_was_ejecutado_this_turn=True)
@@ -100,7 +98,6 @@ class TestTriggerPorContexto:
 
 
 class TestTriggerPorPreFlight:
-
     def test_pre_flight_no_ejecutado_turno_1_reinyecta_en_turno_2(self):
         r = RuleReinjector(every_n_turns=10)
         r.tick(pre_flight_was_ejecutado_this_turn=False)  # turno 1 sin pre-flight
@@ -122,7 +119,6 @@ class TestTriggerPorPreFlight:
 
 
 class TestTriggerPorCorrectivoAlfredo:
-
     def test_correctivo_pendiente_dispara_aunque_no_haya_pasado_n_turnos(self):
         r = RuleReinjector(every_n_turns=10)
         r.tick(
@@ -141,7 +137,6 @@ class TestTriggerPorCorrectivoAlfredo:
 
 
 class TestTopReglas:
-
     def test_top5_default_si_no_hay_violaciones(self):
         r = RuleReinjector()
         for _ in range(5):
@@ -155,15 +150,19 @@ class TestTopReglas:
     def test_top5_priorizado_por_violaciones_acumuladas(self):
         r = RuleReinjector(every_n_turns=2)
         r.tick(
-            verdict=_make_verdict([
-                "MAGNA — Alfredo exige avance y Cowork sugiere parar: frase='andate a dormir', motivo=sugiere dormir",
-            ]),
+            verdict=_make_verdict(
+                [
+                    "MAGNA — Alfredo exige avance y Cowork sugiere parar: frase='andate a dormir', motivo=sugiere dormir",
+                ]
+            ),
             pre_flight_was_ejecutado_this_turn=True,
         )
         r.tick(
-            verdict=_make_verdict([
-                "PREMIUM — Output dominado por meta-trabajo (Cowork sobre Cowork) sin avance del Monstruo",
-            ])
+            verdict=_make_verdict(
+                [
+                    "PREMIUM — Output dominado por meta-trabajo (Cowork sobre Cowork) sin avance del Monstruo",
+                ]
+            )
         )
         block = r.build_reinjection_block()
         # PUSH-PAUSE y AVANCE-REAL deben aparecer
@@ -177,7 +176,6 @@ class TestTopReglas:
 
 
 class TestEstadoVivo:
-
     def test_block_incluye_estado_vivo_si_se_pasa(self):
         r = RuleReinjector()
         for _ in range(5):
@@ -209,7 +207,6 @@ class TestEstadoVivo:
 
 
 class TestConstructor:
-
     def test_every_n_turns_invalido_lanza(self):
         with pytest.raises(ValueError):
             RuleReinjector(every_n_turns=0)
@@ -234,7 +231,6 @@ class TestConstructor:
 
 
 class TestSessionHealth:
-
     def test_health_snapshot(self):
         r = RuleReinjector(every_n_turns=2)
         r.tick(
@@ -255,9 +251,9 @@ class TestSessionHealth:
 
 
 class TestIntegracionConT1:
-
     def test_verdict_from_guardian_se_acumula_correctamente(self):
         from tools.cowork_guardian import validate_output
+
         r = RuleReinjector(every_n_turns=10)
         # Caso real: Cowork intenta enviar push-to-pause con Alfredo demanding
         verdict = validate_output(

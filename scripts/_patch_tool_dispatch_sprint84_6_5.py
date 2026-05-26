@@ -1,5 +1,3 @@
-import re
-
 with open("kernel/tool_dispatch.py", "r") as f:
     content = f.read()
 
@@ -26,15 +24,18 @@ tool_spec_code = """        ToolSpec(
         ),
 """
 
-if "name=\"sovereign_browser_render\"" not in content:
+if 'name="sovereign_browser_render"' not in content:
     # Insertar antes de browse_web
-    content = content.replace('        ToolSpec(\n            name="browse_web",', tool_spec_code + '        ToolSpec(\n            name="browse_web",')
+    content = content.replace(
+        '        ToolSpec(\n            name="browse_web",',
+        tool_spec_code + '        ToolSpec(\n            name="browse_web",',
+    )
 
 # 2. Agregar handler en tool_dispatch()
 handler_code = """        elif tool_name == "sovereign_browser_render":
             from tools.sovereign_browser import sovereign_browser_render
             import json as _json
-            
+
             result = await sovereign_browser_render(
                 url=args.get("url", ""),
                 viewport_preset=args.get("viewport_preset", "desktop"),
@@ -44,8 +45,10 @@ handler_code = """        elif tool_name == "sovereign_browser_render":
             return _json.dumps(result)
 """
 
-if "elif tool_name == \"sovereign_browser_render\":" not in content:
-    content = content.replace('        elif tool_name == "browse_web":', handler_code + '        elif tool_name == "browse_web":')
+if 'elif tool_name == "sovereign_browser_render":' not in content:
+    content = content.replace(
+        '        elif tool_name == "browse_web":', handler_code + '        elif tool_name == "browse_web":'
+    )
 
 with open("kernel/tool_dispatch.py", "w") as f:
     f.write(content)

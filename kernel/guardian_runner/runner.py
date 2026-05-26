@@ -321,12 +321,12 @@ def run_audit(
         # del Guardian/dashboard (que usa 'passing'). Cualquier status
         # desconocido degrada a 'critical' por safety (fail-closed).
         status_counter = {
-            "ok": "passing",         # scoring engine canon
-            "passing": "passing",    # alias defensivo
+            "ok": "passing",  # scoring engine canon
+            "passing": "passing",  # alias defensivo
             "warning": "warning",
             "critical": "critical",
             "emergency": "emergency",
-            "error": "critical",     # error degrada a critical para safety
+            "error": "critical",  # error degrada a critical para safety
         }.get(objective_score.status, "critical")
 
         if status_counter == "passing":
@@ -361,9 +361,7 @@ def run_audit(
             "rubrica_version": objective_score.rubrica_version,
             "rationale": getattr(objective_score, "rationale", "") or "",
             "evidence_count": len(objective_score.evidence),
-            "evidence_passed": sum(
-                1 for e in objective_score.evidence if e.passed
-            ),
+            "evidence_passed": sum(1 for e in objective_score.evidence if e.passed),
         }
 
     result = AuditCycleResult(
@@ -445,15 +443,15 @@ def _emit_telegram_alert(result: AuditCycleResult) -> None:
 async def daily_guardian_audit_handler(**kwargs: Any) -> dict[str, Any]:
     """
     Handler async registrado en EmbrionScheduler como `daily_guardian_audit`.
-    
+
     Llamado por el scheduler con kwargs `task_id`, `task_name`, etc.
     Ejecuta el audit en thread pool (es CPU+IO bound, no async-native).
-    
+
     Returns:
         dict con métricas agregadas. El scheduler lo persiste en su own log.
     """
     sprint_id = kwargs.get("sprint_id")
-    
+
     # Ejecutar audit en thread pool (psycopg2 no es async)
     loop = asyncio.get_event_loop()
     result = await loop.run_in_executor(

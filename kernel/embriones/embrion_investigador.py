@@ -17,6 +17,7 @@ Sprint 60 — 2026-05-01
 Soberanía: Usa Perplexity para research en tiempo real.
            Alternativa: DuckDuckGo API + Sabios para síntesis.
 """
+
 from __future__ import annotations
 
 import json
@@ -31,6 +32,7 @@ logger = structlog.get_logger("monstruo.embrion.investigador")
 
 
 # ── Errores con identidad ────────────────────────────────────────────────────
+
 
 class EmbrionInvestigadorError(Exception):
     """Error base del Embrión-Investigador."""
@@ -51,6 +53,7 @@ EMBRION_INVESTIGADOR_BUDGET_AGOTADO = (
 
 # ── Dataclasses ──────────────────────────────────────────────────────────────
 
+
 @dataclass
 class ResearchReport:
     """
@@ -69,6 +72,7 @@ class ResearchReport:
         generated_at: ISO timestamp de generación.
         cost_usd: Costo del research en USD.
     """
+
     topic: str
     summary: str
     key_findings: list[dict]
@@ -106,8 +110,8 @@ class ResearchReport:
         if self.key_findings:
             md += "## Hallazgos Clave\n"
             for f in self.key_findings:
-                conf = f.get('confidence', 'unknown')
-                source = f.get('source', 'unknown')
+                conf = f.get("confidence", "unknown")
+                source = f.get("source", "unknown")
                 md += f"- [{conf}] {f.get('finding', '')} *(Fuente: {source})*\n"
 
         if self.data_points:
@@ -239,6 +243,7 @@ class EmbrionInvestigador:
         real_data = ""
         try:
             import httpx
+
             sonar_key = os.getenv("SONAR_API_KEY")
             if sonar_key:
                 async with httpx.AsyncClient() as client:
@@ -247,7 +252,9 @@ class EmbrionInvestigador:
                         headers={"Authorization": f"Bearer {sonar_key}"},
                         json={
                             "model": "sonar-pro",
-                            "messages": [{"role": "user", "content": f"Latest data and statistics about {topic} in 2026"}],
+                            "messages": [
+                                {"role": "user", "content": f"Latest data and statistics about {topic} in 2026"}
+                            ],
                         },
                         timeout=30.0,
                     )
@@ -320,13 +327,15 @@ RULES:
         # Persistir en Supabase si disponible
         if self._supabase:
             try:
-                self._supabase.table("research_reports").insert({
-                    "topic": topic,
-                    "summary": report.summary,
-                    "findings_count": len(report.key_findings),
-                    "generated_at": report.generated_at,
-                    "cost_usd": report.cost_usd,
-                }).execute()
+                self._supabase.table("research_reports").insert(
+                    {
+                        "topic": topic,
+                        "summary": report.summary,
+                        "findings_count": len(report.key_findings),
+                        "generated_at": report.generated_at,
+                        "cost_usd": report.cost_usd,
+                    }
+                ).execute()
             except Exception:
                 pass
 
@@ -361,7 +370,7 @@ RULES:
 
         prompt = f"""Perform competitive analysis:
 Our product: {our_product}
-Competitors: {', '.join(competitors)}
+Competitors: {", ".join(competitors)}
 
 For each competitor, analyze:
 1. Product features vs ours
@@ -397,6 +406,7 @@ Respond in JSON."""
         # Intentar con Perplexity primero
         try:
             import httpx
+
             sonar_key = os.getenv("SONAR_API_KEY")
             if sonar_key:
                 async with httpx.AsyncClient() as client:
@@ -405,14 +415,23 @@ Respond in JSON."""
                         headers={"Authorization": f"Bearer {sonar_key}"},
                         json={
                             "model": "sonar-pro",
-                            "messages": [{"role": "user", "content": "Top AI and digital business news today, focus on startups, SaaS, and AI tools. Be concise."}],
+                            "messages": [
+                                {
+                                    "role": "user",
+                                    "content": "Top AI and digital business news today, focus on startups, SaaS, and AI tools. Be concise.",
+                                }
+                            ],
                         },
                         timeout=30.0,
                     )
                     if resp.status_code == 200:
                         briefing = resp.json()["choices"][0]["message"]["content"]
                         self._spent_today += 0.01
-                        return {"briefing": briefing, "source": "perplexity", "timestamp": datetime.now(timezone.utc).isoformat()}
+                        return {
+                            "briefing": briefing,
+                            "source": "perplexity",
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                        }
         except Exception as e:
             logger.warning("perplexity_briefing_fallido", error=str(e))
 
@@ -422,11 +441,19 @@ Respond in JSON."""
                 prompt = "What are the most important AI and digital business developments happening right now? Focus on actionable insights for a startup building AI-powered SaaS products."
                 response = await self._sabios.ask(prompt)
                 self._spent_today += 0.01
-                return {"briefing": response, "source": "llm_knowledge", "timestamp": datetime.now(timezone.utc).isoformat()}
+                return {
+                    "briefing": response,
+                    "source": "llm_knowledge",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }
             except Exception as e:
                 logger.warning("sabios_briefing_fallido", error=str(e))
 
-        return {"briefing": "No research backends available", "source": "none", "timestamp": datetime.now(timezone.utc).isoformat()}
+        return {
+            "briefing": "No research backends available",
+            "source": "none",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
 
     async def fact_check_claims(self, claims: list[str]) -> list[dict]:
         """
@@ -457,11 +484,13 @@ Respond in JSON (no markdown wrapper):
                     except json.JSONDecodeError:
                         verification = {"verdict": "unverifiable", "evidence": response[:200], "confidence": "low"}
 
-                    results.append({
-                        "claim": claim,
-                        "verification": verification,
-                        "source": "llm_knowledge",
-                    })
+                    results.append(
+                        {
+                            "claim": claim,
+                            "verification": verification,
+                            "source": "llm_knowledge",
+                        }
+                    )
                 except Exception as e:
                     logger.warning("fact_check_fallido", claim=claim[:50], error=str(e))
                     results.append({"claim": claim, "verification": {"verdict": "error"}, "source": "error"})
@@ -485,7 +514,7 @@ Respond in JSON (no markdown wrapper):
 
         nichos = nichos or ["AI tools", "SaaS", "no-code platforms", "developer tools", "B2B automation"]
 
-        prompt = f"""Analyze emerging trends in these niches: {', '.join(nichos)}
+        prompt = f"""Analyze emerging trends in these niches: {", ".join(nichos)}
 
 For each niche, identify:
 1. Top 3 emerging trends (with evidence)

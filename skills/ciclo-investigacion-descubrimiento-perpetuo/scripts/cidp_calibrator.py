@@ -9,7 +9,6 @@ Recalibra semanalmente o bajo demanda.
 
 import asyncio
 import json
-import os
 import sys
 import time
 from datetime import datetime, timedelta
@@ -63,7 +62,8 @@ def _simple_eval(response_text: str, criteria: list) -> float:
         score += 0.2
     except json.JSONDecodeError:
         import re
-        if re.search(r'\{[\s\S]*\}', response_text):
+
+        if re.search(r"\{[\s\S]*\}", response_text):
             score += 0.1
 
     # Criteria-based scoring

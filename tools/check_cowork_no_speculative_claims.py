@@ -44,6 +44,7 @@ Doctrina:
 - DSC-G-008 v3 §4: deducir consecuencias materiales (cada violation va a embrion_memoria)
 - Patrón "habla con código, no con texto": este es el código que enforza F21 anti-doctrina
 """
+
 from __future__ import annotations
 
 import argparse
@@ -64,10 +65,10 @@ from kernel.cowork_runtime.f21_patterns import (  # noqa: E402
     output_parece_audit,
 )
 
-
 # ============================================================================
 # CORE DETECTOR
 # ============================================================================
+
 
 def _flatten_history_to_text(history: list[dict[str, Any]]) -> str:
     """
@@ -182,15 +183,17 @@ def check_speculative_claims(
             # ¿Hay tool call que justifique este claim?
             tool_found = _tool_call_present(required_tools, history_text)
             if tool_found is None:
-                violations.append({
-                    "pattern_id": pattern["id"],
-                    "match": matched_text,
-                    "missing_tool_call": required_tools,
-                    "severity": pattern.get("severity", "P1"),
-                    "description": pattern.get("description", ""),
-                    "match_start": match.start(),
-                    "match_end": match.end(),
-                })
+                violations.append(
+                    {
+                        "pattern_id": pattern["id"],
+                        "match": matched_text,
+                        "missing_tool_call": required_tools,
+                        "severity": pattern.get("severity", "P1"),
+                        "description": pattern.get("description", ""),
+                        "match_start": match.start(),
+                        "match_end": match.end(),
+                    }
+                )
 
     return violations
 
@@ -219,6 +222,7 @@ def format_violations_human(violations: list[dict[str, Any]]) -> str:
 # CLI
 # ============================================================================
 
+
 def _load_history(path: Path | None) -> list[dict[str, Any]]:
     if path is None:
         if not sys.stdin.isatty():
@@ -245,7 +249,8 @@ def main(argv: list[str] | None = None) -> int:
         description="F21 pattern detector — bloquea claims especulativos sin tool call previo.",
     )
     parser.add_argument(
-        "--output", "-o",
+        "--output",
+        "-o",
         help="Output candidato de Cowork (string). Si no, se lee --output-file o stdin.",
     )
     parser.add_argument(

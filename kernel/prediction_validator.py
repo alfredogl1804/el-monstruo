@@ -23,12 +23,13 @@ Obj #10: "precisión que sube perpetuamente" — este módulo es el motor de ese
 Validated: APScheduler 3.11.2 (MIT), Perplexity Sonar (ya en stack),
            OpenAI GPT-4o-mini (bajo costo para assessment semántico)
 """
+
 from __future__ import annotations
 
 import json
 import os
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 from uuid import uuid4
 
@@ -40,9 +41,11 @@ logger = structlog.get_logger("kernel.prediction_validator")
 
 # ── Prediction dataclass ──────────────────────────────────────────────────────
 
+
 @dataclass
 class Prediction:
     """Una predicción registrada para validación futura."""
+
     prediction_id: str = field(default_factory=lambda: str(uuid4()))
     scenario: str = ""
     predicted_probability: float = 0.5
@@ -56,7 +59,7 @@ class Prediction:
     # Post-validación
     actual_outcome: Optional[str] = None
     outcome_probability: Optional[float] = None  # 0=no ocurrió, 1=ocurrió exactamente
-    accuracy_score: Optional[float] = None       # 1 - |predicted - actual|
+    accuracy_score: Optional[float] = None  # 1 - |predicted - actual|
     factors_adjusted: list[dict[str, Any]] = field(default_factory=list)
     lesson_learned: Optional[str] = None
     validated_at: Optional[str] = None
@@ -127,6 +130,7 @@ class Prediction:
 
 
 # ── PredictionValidator ───────────────────────────────────────────────────────
+
 
 class PredictionValidator:
     """
@@ -220,17 +224,20 @@ class PredictionValidator:
 
         if self._db:
             try:
-                await self._db.upsert(self.TABLE, {
-                    "id": prediction.prediction_id,
-                    "scenario": prediction.scenario,
-                    "predicted_probability": prediction.predicted_probability,
-                    "confidence_interval": json.dumps(list(prediction.confidence_interval)),
-                    "dominant_factors": prediction.dominant_factors,
-                    "factors_used": json.dumps(prediction.factors_used),
-                    "predicted_at": prediction.predicted_at,
-                    "validation_date": prediction.validation_date,
-                    "status": "pending",
-                })
+                await self._db.upsert(
+                    self.TABLE,
+                    {
+                        "id": prediction.prediction_id,
+                        "scenario": prediction.scenario,
+                        "predicted_probability": prediction.predicted_probability,
+                        "confidence_interval": json.dumps(list(prediction.confidence_interval)),
+                        "dominant_factors": prediction.dominant_factors,
+                        "factors_used": json.dumps(prediction.factors_used),
+                        "predicted_at": prediction.predicted_at,
+                        "validation_date": prediction.validation_date,
+                        "status": "pending",
+                    },
+                )
             except Exception as e:
                 logger.warning("prediction_persist_failed", error=str(e))
 
@@ -274,10 +281,7 @@ class PredictionValidator:
             return []
 
         # Filtrar por fecha de validación
-        due = [
-            p for p in all_pending
-            if p.get("validation_date", "9999-99-99") <= today
-        ]
+        due = [p for p in all_pending if p.get("validation_date", "9999-99-99") <= today]
 
         if not due:
             logger.info("no_due_predictions", today=today, total_pending=len(all_pending))
@@ -297,10 +301,7 @@ class PredictionValidator:
                     error=str(e),
                 )
 
-        avg_accuracy = (
-            sum(r.get("accuracy", 0) for r in results) / len(results)
-            if results else 0.0
-        )
+        avg_accuracy = sum(r.get("accuracy", 0) for r in results) / len(results) if results else 0.0
 
         logger.info(
             "validation_cycle_complete",
@@ -335,9 +336,7 @@ class PredictionValidator:
         else:
             factors_used = []
 
-        adjustments = self._calculate_factor_adjustments(
-            factors_used, predicted_prob, outcome_prob
-        )
+        adjustments = self._calculate_factor_adjustments(factors_used, predicted_prob, outcome_prob)
 
         # Paso 5: Extraer lección aprendida
         lesson = self._extract_lesson(scenario, predicted_prob, outcome_prob, adjustments)
@@ -447,9 +446,7 @@ class PredictionValidator:
 
     # ── Assessment semántico ──────────────────────────────────────────────────
 
-    async def _assess_outcome(
-        self, scenario: str, actual_outcome: str, predicted_prob: float
-    ) -> float:
+    async def _assess_outcome(self, scenario: str, actual_outcome: str, predicted_prob: float) -> float:
         """
         Evaluar si el evento predicho ocurrió (0.0 = no ocurrió, 1.0 = ocurrió exactamente).
         Usa LLM para evaluación semántica cuando está disponible.
@@ -504,14 +501,37 @@ Where score 0.0 = did not occur at all, 1.0 = occurred exactly as predicted."""
         outcome_lower = actual_outcome.lower()
 
         positive_indicators = [
-            "succeeded", "achieved", "happened", "confirmed", "reached",
-            "surpassed", "completed", "launched", "approved", "passed",
-            "grew", "increased", "expanded", "won", "acquired",
+            "succeeded",
+            "achieved",
+            "happened",
+            "confirmed",
+            "reached",
+            "surpassed",
+            "completed",
+            "launched",
+            "approved",
+            "passed",
+            "grew",
+            "increased",
+            "expanded",
+            "won",
+            "acquired",
         ]
         negative_indicators = [
-            "failed", "did not", "hasn't", "unlikely", "cancelled",
-            "abandoned", "rejected", "declined", "fell", "dropped",
-            "missed", "lost", "shutdown", "bankrupt",
+            "failed",
+            "did not",
+            "hasn't",
+            "unlikely",
+            "cancelled",
+            "abandoned",
+            "rejected",
+            "declined",
+            "fell",
+            "dropped",
+            "missed",
+            "lost",
+            "shutdown",
+            "bankrupt",
         ]
 
         pos_count = sum(1 for w in positive_indicators if w in outcome_lower)
@@ -559,14 +579,16 @@ Where score 0.0 = did not occur at all, 1.0 = occurred exactly as predicted."""
 
             # Solo registrar cambios significativos (>1%)
             if abs(new_weight - weight) > 0.01:
-                adjustments.append({
-                    "description": factor.get("description", "")[:100],
-                    "category": factor.get("category", "general"),
-                    "old_weight": round(weight, 4),
-                    "new_weight": round(new_weight, 4),
-                    "adjustment": round(new_weight - weight, 4),
-                    "reason": "over-estimated" if error < 0 else "under-estimated",
-                })
+                adjustments.append(
+                    {
+                        "description": factor.get("description", "")[:100],
+                        "category": factor.get("category", "general"),
+                        "old_weight": round(weight, 4),
+                        "new_weight": round(new_weight, 4),
+                        "adjustment": round(new_weight - weight, 4),
+                        "reason": "over-estimated" if error < 0 else "under-estimated",
+                    }
+                )
 
         return adjustments
 
@@ -582,10 +604,7 @@ Where score 0.0 = did not occur at all, 1.0 = occurred exactly as predicted."""
         direction = "under" if actual > predicted else "over"
 
         if error < 0.1:
-            return (
-                f"Prediction accurate (error={error:.2f}). "
-                f"Model well-calibrated for this type of scenario."
-            )
+            return f"Prediction accurate (error={error:.2f}). Model well-calibrated for this type of scenario."
         elif error < 0.3:
             top_adj = adjustments[0]["description"] if adjustments else "unknown factor"
             return (
@@ -622,10 +641,7 @@ Where score 0.0 = did not occur at all, 1.0 = occurred exactly as predicted."""
 
     def get_stats(self) -> dict[str, Any]:
         """Estadísticas del validador para el EmbrionScheduler."""
-        avg_accuracy = (
-            round(self._total_accuracy_sum / self._total_validated, 4)
-            if self._total_validated > 0 else None
-        )
+        avg_accuracy = round(self._total_accuracy_sum / self._total_validated, 4) if self._total_validated > 0 else None
         return {
             "pending_predictions": self._pending_count,
             "total_validated": self._total_validated,

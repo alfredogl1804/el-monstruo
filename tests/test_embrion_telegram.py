@@ -9,21 +9,17 @@ Coverage:
 All HTTP I/O to api.telegram.org is mocked. All DB I/O is mocked via FakeClient.
 Zero network calls. Should run in < 1 second total.
 """
+
 from __future__ import annotations
 
-import asyncio
-import json
-import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from kernel import embrion_routes
-from kernel import embrion_write_policy
+from kernel import embrion_routes, embrion_write_policy
 from kernel.runner.telegram_notifier import TelegramNotifier
-
 
 # ════════════════════════════════════════════════════════════════════
 # FakeClient — same pattern as test_embrion_write_policy.py
@@ -82,9 +78,7 @@ async def test_send_with_keyboard_disabled_returns_none():
 async def test_send_with_keyboard_success_returns_message_dict():
     """Successful send returns the result dict with message_id."""
     notifier = TelegramNotifier(bot_token="t" * 20, default_chat_id="123")
-    fake_resp = _mock_httpx_response(
-        200, {"ok": True, "result": {"message_id": 999, "chat": {"id": 123}}}
-    )
+    fake_resp = _mock_httpx_response(200, {"ok": True, "result": {"message_id": 999, "chat": {"id": 123}}})
 
     fake_client = MagicMock()
     fake_client.__aenter__ = AsyncMock(return_value=fake_client)
@@ -94,9 +88,7 @@ async def test_send_with_keyboard_success_returns_message_dict():
     with patch("kernel.runner.telegram_notifier.httpx.AsyncClient", return_value=fake_client):
         result = await notifier.send_with_keyboard(
             text="HITL test",
-            inline_keyboard=[
-                [{"text": "Yes", "callback_data": "yes:1"}, {"text": "No", "callback_data": "no:1"}]
-            ],
+            inline_keyboard=[[{"text": "Yes", "callback_data": "yes:1"}, {"text": "No", "callback_data": "no:1"}]],
         )
 
     assert result is not None
@@ -245,9 +237,7 @@ def test_notify_hitl_multi_channel_succeeds_if_any_succeeds(monkeypatch):
     # Insert a row in proposals so update doesn't fail silently
     client.insert(embrion_write_policy.TABLE_PROPOSALS, {"id": "test-uuid-456", "approval_status": "pending"})
 
-    result = embrion_write_policy.notify_hitl(
-        client, proposal, channel="cowork_bridge,telegram"
-    )
+    result = embrion_write_policy.notify_hitl(client, proposal, channel="cowork_bridge,telegram")
     assert result is True
     # cowork inserted to embrion_memoria
     memos = client.tables.get(embrion_write_policy.TABLE_MEMORIA, [])
@@ -279,8 +269,15 @@ class FakeDB:
     def __init__(self):
         self.proposals: list[dict] = []
 
-    async def select(self, table: str, columns: str = "*", filters: dict | None = None,
-                     order_by: str | None = None, order_desc: bool = False, limit: int = 100):
+    async def select(
+        self,
+        table: str,
+        columns: str = "*",
+        filters: dict | None = None,
+        order_by: str | None = None,
+        order_desc: bool = False,
+        limit: int = 100,
+    ):
         rows = list(self.proposals)
         if filters:
             for k, v in filters.items():
@@ -381,14 +378,16 @@ def test_webhook_approve_flow_marks_proposal_approved(monkeypatch):
 
     db = FakeDB()
     proposal_id = "prop-uuid-aaaa-bbbb-cccc-dddd-eeee"
-    db.proposals.append({
-        "id": proposal_id,
-        "approval_status": "pending",
-        "proposal_type": "db_write",
-        "summary": "test approve flow",
-        "risk_level": "low",
-        "expires_at": "2099-01-01T00:00:00+00:00",
-    })
+    db.proposals.append(
+        {
+            "id": proposal_id,
+            "approval_status": "pending",
+            "proposal_type": "db_write",
+            "summary": "test approve flow",
+            "risk_level": "low",
+            "expires_at": "2099-01-01T00:00:00+00:00",
+        }
+    )
 
     client = _build_test_client(db)
 
@@ -430,14 +429,16 @@ def test_webhook_reject_flow_marks_proposal_rejected(monkeypatch):
 
     db = FakeDB()
     proposal_id = "prop-uuid-rej-1234-5678-9abc-def0"
-    db.proposals.append({
-        "id": proposal_id,
-        "approval_status": "pending",
-        "proposal_type": "code_commit",
-        "summary": "test reject flow",
-        "risk_level": "high",
-        "expires_at": "2099-01-01T00:00:00+00:00",
-    })
+    db.proposals.append(
+        {
+            "id": proposal_id,
+            "approval_status": "pending",
+            "proposal_type": "code_commit",
+            "summary": "test reject flow",
+            "risk_level": "high",
+            "expires_at": "2099-01-01T00:00:00+00:00",
+        }
+    )
 
     client = _build_test_client(db)
     update = {
@@ -477,15 +478,17 @@ def test_webhook_idempotent_on_already_approved(monkeypatch):
 
     db = FakeDB()
     proposal_id = "prop-uuid-idempotent"
-    db.proposals.append({
-        "id": proposal_id,
-        "approval_status": "approved",  # ← already approved
-        "proposal_type": "db_write",
-        "summary": "test",
-        "risk_level": "low",
-        "approved_by": "telegram:777",
-        "expires_at": "2099-01-01T00:00:00+00:00",
-    })
+    db.proposals.append(
+        {
+            "id": proposal_id,
+            "approval_status": "approved",  # ← already approved
+            "proposal_type": "db_write",
+            "summary": "test",
+            "risk_level": "low",
+            "approved_by": "telegram:777",
+            "expires_at": "2099-01-01T00:00:00+00:00",
+        }
+    )
 
     client = _build_test_client(db)
     update = {
@@ -543,7 +546,6 @@ def test_webhook_handles_bad_callback_data(monkeypatch):
     assert body.get("reason") == "bad_callback_data"
 
 
-
 # ============================================================================
 # Defensive tests for the message_id validation contract (post-fix Tarea 4)
 # ============================================================================
@@ -566,6 +568,7 @@ def test_webhook_handles_bad_callback_data(monkeypatch):
 
 class _SuccessNotifier:
     """Fake notifier que simula respuesta exitosa de la Bot API (con message_id)."""
+
     enabled = True
 
     async def send_proposal_for_hitl(self, **kwargs):  # noqa: ARG002
@@ -580,6 +583,7 @@ class _SuccessNotifier:
 
 class _EnvelopeOkFalseNotifier:
     """Fake notifier que devuelve un envelope-style dict con ok=False (caso defensivo)."""
+
     enabled = True
 
     async def send_proposal_for_hitl(self, **kwargs):  # noqa: ARG002
@@ -591,6 +595,7 @@ class _EnvelopeOkFalseNotifier:
 
 class _EmptyDictNotifier:
     """Fake notifier que devuelve un dict vacío (degenerate case)."""
+
     enabled = True
 
     async def send_proposal_for_hitl(self, **kwargs):  # noqa: ARG002
@@ -599,13 +604,13 @@ class _EmptyDictNotifier:
 
 class _FakeDBWithIdGen:
     """FakeDB que genera UUID en insert (para el helper /propose)."""
+
     connected = True
 
     def __init__(self):
         self.rows: list[dict] = []
 
-    async def select(self, table, columns="*", filters=None, order_by=None,
-                     order_desc=False, limit=100):  # noqa: ARG002
+    async def select(self, table, columns="*", filters=None, order_by=None, order_desc=False, limit=100):  # noqa: ARG002
         rows = list(self.rows)
         if filters:
             for k, v in filters.items():
@@ -614,6 +619,7 @@ class _FakeDBWithIdGen:
 
     async def insert(self, table, payload):  # noqa: ARG002
         import uuid
+
         new_row = dict(payload)
         if "id" not in new_row:
             new_row["id"] = str(uuid.uuid4())
@@ -642,6 +648,7 @@ def _post_propose(monkeypatch, fake_notifier_cls):
     """
     # Parchea ambos import paths del TelegramNotifier:
     import kernel.runner.telegram_notifier as tn_mod
+
     monkeypatch.setattr(tn_mod, "TelegramNotifier", fake_notifier_cls)
     # Env vars seguros para que enabled=True en el sitio que importa
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "123:fake")
@@ -674,9 +681,7 @@ def test_notify_returns_true_when_telegram_returns_message_id(monkeypatch):
     row = db.find_by_id(proposal_id)
     assert row is not None, "Proposal not persisted in fake DB"
     notified_via = row.get("notified_via") or ""
-    assert "telegram" in notified_via, (
-        f"Expected 'telegram' in notified_via, got: {notified_via!r}"
-    )
+    assert "telegram" in notified_via, f"Expected 'telegram' in notified_via, got: {notified_via!r}"
 
 
 def test_notify_returns_false_when_telegram_returns_envelope_with_ok_false(monkeypatch):
@@ -689,8 +694,7 @@ def test_notify_returns_false_when_telegram_returns_envelope_with_ok_false(monke
     assert row is not None
     notified_via = row.get("notified_via") or ""
     assert "telegram" not in notified_via, (
-        f"Envelope con ok=false NO debe contar como telegram entregado. "
-        f"notified_via={notified_via!r}"
+        f"Envelope con ok=false NO debe contar como telegram entregado. notified_via={notified_via!r}"
     )
 
 
@@ -704,6 +708,5 @@ def test_notify_returns_false_when_telegram_returns_empty_dict(monkeypatch):
     assert row is not None
     notified_via = row.get("notified_via") or ""
     assert "telegram" not in notified_via, (
-        f"Dict vacío NO debe contar como telegram entregado. "
-        f"notified_via={notified_via!r}"
+        f"Dict vacío NO debe contar como telegram entregado. notified_via={notified_via!r}"
     )

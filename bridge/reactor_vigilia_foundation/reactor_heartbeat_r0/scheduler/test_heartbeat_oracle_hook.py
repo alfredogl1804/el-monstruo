@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Tests for Heartbeat Oracle Hook."""
+
+import json
 import os
 import sys
-import json
 import tempfile
 
 HOOK_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -36,7 +37,7 @@ def test_hook_id():
 # ============================================================
 def test_ks_active():
     original = hook.KS_PATH
-    tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
     json.dump({"active": True}, tmp)
     tmp.close()
     hook.KS_PATH = tmp.name
@@ -51,7 +52,7 @@ def test_ks_active():
 # ============================================================
 def test_ks_inactive():
     original = hook.KS_PATH
-    tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
     json.dump({"active": False}, tmp)
     tmp.close()
     hook.KS_PATH = tmp.name
@@ -66,7 +67,7 @@ def test_ks_inactive():
 # ============================================================
 def test_run_once_aborts_ks():
     original = hook.KS_PATH
-    tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
     json.dump({"active": True}, tmp)
     tmp.close()
     hook.KS_PATH = tmp.name
@@ -81,7 +82,7 @@ def test_run_once_aborts_ks():
 # ============================================================
 def test_run_once_structure():
     original = hook.KS_PATH
-    tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
     json.dump({"active": True}, tmp)
     tmp.close()
     hook.KS_PATH = tmp.name
@@ -104,7 +105,7 @@ def test_event_log_path():
 # ============================================================
 def test_write_event():
     original = hook.EVENT_LOG_PATH
-    tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.jsonl', delete=False)
+    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False)
     tmp.close()
     hook.EVENT_LOG_PATH = tmp.name
     hook.write_event("TEST_EVENT", {"test": True})
@@ -113,7 +114,9 @@ def test_write_event():
     event = json.loads(line)
     hook.EVENT_LOG_PATH = original
     os.unlink(tmp.name)
-    test("write_event_valid_jsonl", event["event_type"] == "TEST_EVENT" and event["source"] == "heartbeat_oracle_hook_r0")
+    test(
+        "write_event_valid_jsonl", event["event_type"] == "TEST_EVENT" and event["source"] == "heartbeat_oracle_hook_r0"
+    )
 
 
 # ============================================================
@@ -135,7 +138,7 @@ if __name__ == "__main__":
     test_event_log_path()
     test_write_event()
     test_ks_path_location()
-    print(f"\n{'='*60}")
-    print(f"RESULT: {PASS}/{PASS+FAIL} PASS, {FAIL} FAIL")
-    print(f"{'='*60}")
+    print(f"\n{'=' * 60}")
+    print(f"RESULT: {PASS}/{PASS + FAIL} PASS, {FAIL} FAIL")
+    print(f"{'=' * 60}")
     sys.exit(0 if FAIL == 0 else 1)

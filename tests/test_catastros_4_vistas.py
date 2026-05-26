@@ -34,7 +34,6 @@ from kernel.catastros import (
     CatastroSuppliers,
 )
 
-
 # ───────────────────────────────────────────────────────────────────────────
 # Helpers
 # ───────────────────────────────────────────────────────────────────────────
@@ -155,9 +154,7 @@ async def test_refresh_reloads():
     assert catastro.count() == 1
 
     # Mutamos los rows underlying y refresh debería detectar
-    fake_rows["catastro_herramientas_ai"].append(
-        {"key": "sora-2", "name": "Sora 2", "category": "vision_generativa"}
-    )
+    fake_rows["catastro_herramientas_ai"].append({"key": "sora-2", "name": "Sora 2", "category": "vision_generativa"})
     count_after = await catastro.refresh()
     assert count_after == 2
     assert catastro.get("sora-2") is not None

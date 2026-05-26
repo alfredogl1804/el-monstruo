@@ -2,6 +2,7 @@
 Sprint 81.5: Fix the trg_budget_tracker trigger that references NEW.cycles
 (column doesn't exist in task_plans — should use revision_count).
 """
+
 import psycopg2
 
 CONN = {
@@ -13,6 +14,7 @@ CONN = {
     "sslmode": "require",
     "options": "-c statement_timeout=30000",
 }
+
 
 def run():
     conn = psycopg2.connect(**CONN)
@@ -34,7 +36,7 @@ def run():
 
         # Replace cycles with revision_count
         new_src = old_src.replace("NEW.cycles", "NEW.revision_count")
-        print(f"  Replaced NEW.cycles -> NEW.revision_count")
+        print("  Replaced NEW.cycles -> NEW.revision_count")
 
         # Recreate the function
         cur.execute(f"""
@@ -59,6 +61,7 @@ def run():
     cur.close()
     conn.close()
     print("\n=== Trigger fix complete ===")
+
 
 if __name__ == "__main__":
     run()

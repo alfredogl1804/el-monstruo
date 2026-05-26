@@ -17,8 +17,8 @@ from typing import Optional
 import yaml
 from pydantic import BaseModel, Field, field_validator
 
-
 # ── Schema canónico ────────────────────────────────────────────────────────
+
 
 class DimensionConfig(BaseModel):
     """Configuración de una dimensión individual del Brand Engine."""
@@ -119,14 +119,13 @@ def load_brand_engine_config(path: Optional[str] = None) -> BrandEngineConfig:
         raw = yaml.safe_load(f)
 
     if not isinstance(raw, dict) or "brand_engine_v1" not in raw:
-        raise ValueError(
-            "Brand Engine config inválido: debe tener root key 'brand_engine_v1'"
-        )
+        raise ValueError("Brand Engine config inválido: debe tener root key 'brand_engine_v1'")
 
     return BrandEngineConfig.model_validate(raw["brand_engine_v1"])
 
 
 # ── Override por env vars (para CI / testing) ─────────────────────────────
+
 
 def apply_env_overrides(config: BrandEngineConfig) -> BrandEngineConfig:
     """Aplica overrides desde env vars sin mutar el archivo.

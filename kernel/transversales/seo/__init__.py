@@ -26,6 +26,7 @@ IMPORTANTE — magna validation:
 
 Origen: AGENTS.md Regla Dura #2 (Capa 2 de las 7), DSC-G-002, DSC-G-014.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -74,131 +75,132 @@ class SeoLayer(TransversalLayer):
         validation_tags: list[str] = []
 
         is_indexable = canonical.get("robots_indexable", True)
-        recs.append(TransversalRecommendation(
-            layer_name="seo",
-            rule_id="seo.robots.indexable",
-            severity="must",
-            value={
-                "indexable": is_indexable,
-                "blocker_reason": canonical.get("robots_indexable_blocker_reason"),
-                "robots_meta": "index,follow" if is_indexable else "noindex,nofollow",
-            },
-            rationale=(
-                "Indexability gate. Bloqueado si DSC regulatorio lo exige "
-                "hasta resolver constraint."
-            ),
-            source_dsc=canonical.get("source_dscs", []),
-        ))
+        recs.append(
+            TransversalRecommendation(
+                layer_name="seo",
+                rule_id="seo.robots.indexable",
+                severity="must",
+                value={
+                    "indexable": is_indexable,
+                    "blocker_reason": canonical.get("robots_indexable_blocker_reason"),
+                    "robots_meta": "index,follow" if is_indexable else "noindex,nofollow",
+                },
+                rationale=("Indexability gate. Bloqueado si DSC regulatorio lo exige hasta resolver constraint."),
+                source_dsc=canonical.get("source_dscs", []),
+            )
+        )
 
         schema_types = canonical.get("schema_org_types", [])
         if schema_types:
-            recs.append(TransversalRecommendation(
-                layer_name="seo",
-                rule_id="seo.schema_org.types",
-                severity="must",
-                value={
-                    "types": schema_types,
-                    "required_fields": (
-                        canonical.get("required_schema_fields_event")
-                        or canonical.get("required_schema_fields_application")
-                        or []
+            recs.append(
+                TransversalRecommendation(
+                    layer_name="seo",
+                    rule_id="seo.schema_org.types",
+                    severity="must",
+                    value={
+                        "types": schema_types,
+                        "required_fields": (
+                            canonical.get("required_schema_fields_event")
+                            or canonical.get("required_schema_fields_application")
+                            or []
+                        ),
+                        "json_ld_injection_required": True,
+                    },
+                    rationale=(
+                        f"Schema.org types canonicos para {ctx.vertical.value}. "
+                        "Vocabulary estable, no requiere validacion magna."
                     ),
-                    "json_ld_injection_required": True,
-                },
-                rationale=(
-                    f"Schema.org types canonicos para {ctx.vertical.value}. "
-                    "Vocabulary estable, no requiere validacion magna."
-                ),
-                source_dsc=canonical.get("source_dscs", []),
-            ))
+                    source_dsc=canonical.get("source_dscs", []),
+                )
+            )
 
         geo_target = canonical.get("geo_target")
         hreflang = canonical.get("hreflang", [])
         if geo_target or hreflang:
-            recs.append(TransversalRecommendation(
-                layer_name="seo",
-                rule_id="seo.geo.targeting",
-                severity="must",
-                value={
-                    "geo_target": geo_target,
-                    "geo_target_states": canonical.get("geo_target_states", []),
-                    "hreflang_locales": hreflang,
-                    "expansion_phase_2_locales": canonical.get(
-                        "hreflang_expansion_phase_2", []),
-                },
-                rationale=(
-                    "Geo targeting derivado de DSC del vertical. "
-                    "Expansion fuera de phase 1 requiere decision explicita."
-                ),
-                source_dsc=canonical.get("source_dscs", []),
-            ))
+            recs.append(
+                TransversalRecommendation(
+                    layer_name="seo",
+                    rule_id="seo.geo.targeting",
+                    severity="must",
+                    value={
+                        "geo_target": geo_target,
+                        "geo_target_states": canonical.get("geo_target_states", []),
+                        "hreflang_locales": hreflang,
+                        "expansion_phase_2_locales": canonical.get("hreflang_expansion_phase_2", []),
+                    },
+                    rationale=(
+                        "Geo targeting derivado de DSC del vertical. "
+                        "Expansion fuera de phase 1 requiere decision explicita."
+                    ),
+                    source_dsc=canonical.get("source_dscs", []),
+                )
+            )
 
         url_pattern = canonical.get("url_pattern_template")
         if url_pattern:
-            recs.append(TransversalRecommendation(
-                layer_name="seo",
-                rule_id="seo.url_structure",
-                severity="must",
-                value={
-                    "url_pattern_template": url_pattern,
-                    "canonical_strategy": canonical.get(
-                        "canonical_url_strategy", "self_canonical"),
-                    "ssr_required": canonical.get(
-                        "ssr_required_for_event_pages", False),
-                },
-                rationale=(
-                    "URL pattern y canonical strategy estables. SSR requerido "
-                    "si el archetype tiene paginas con datos dinamicos."
-                ),
-                source_dsc=canonical.get("source_dscs", []),
-            ))
+            recs.append(
+                TransversalRecommendation(
+                    layer_name="seo",
+                    rule_id="seo.url_structure",
+                    severity="must",
+                    value={
+                        "url_pattern_template": url_pattern,
+                        "canonical_strategy": canonical.get("canonical_url_strategy", "self_canonical"),
+                        "ssr_required": canonical.get("ssr_required_for_event_pages", False),
+                    },
+                    rationale=(
+                        "URL pattern y canonical strategy estables. SSR requerido "
+                        "si el archetype tiene paginas con datos dinamicos."
+                    ),
+                    source_dsc=canonical.get("source_dscs", []),
+                )
+            )
 
         disclosures = canonical.get("required_disclosures", [])
         if disclosures:
-            recs.append(TransversalRecommendation(
+            recs.append(
+                TransversalRecommendation(
+                    layer_name="seo",
+                    rule_id="seo.disclosures.required",
+                    severity="must",
+                    value={
+                        "disclosures": disclosures,
+                        "placement": "above_fold_or_footer_per_page",
+                    },
+                    rationale=("Disclosures regulatorias derivadas de DSCs del vertical."),
+                    source_dsc=canonical.get("source_dscs", []),
+                )
+            )
+
+        recs.append(
+            TransversalRecommendation(
                 layer_name="seo",
-                rule_id="seo.disclosures.required",
-                severity="must",
+                rule_id="seo.keywords.research_pending",
+                severity="should",
                 value={
-                    "disclosures": disclosures,
-                    "placement": "above_fold_or_footer_per_page",
+                    "differentiator_keywords": canonical.get("differentiator_keywords", []),
+                    "research_pending": True,
                 },
                 rationale=(
-                    "Disclosures regulatorias derivadas de DSCs del vertical."
+                    "Keywords convertentes en mayo 2026 estan fuera del cutoff de "
+                    "Cowork. Differentiator keywords son estables (de DSCs canonicos), "
+                    "pero keyword research completo requiere Perplexity."
                 ),
+                needs_validation_tags=[
+                    f"[NEEDS_PERPLEXITY_VALIDATION] keyword_research_2026:{ctx.vertical.value}",
+                    f"[NEEDS_PERPLEXITY_VALIDATION] competitor_seo_2026:{ctx.archetype.value}",
+                    "[NEEDS_PERPLEXITY_VALIDATION] google_ranking_factors_2026",
+                ],
                 source_dsc=canonical.get("source_dscs", []),
-            ))
-
-        recs.append(TransversalRecommendation(
-            layer_name="seo",
-            rule_id="seo.keywords.research_pending",
-            severity="should",
-            value={
-                "differentiator_keywords": canonical.get(
-                    "differentiator_keywords", []),
-                "research_pending": True,
-            },
-            rationale=(
-                "Keywords convertentes en mayo 2026 estan fuera del cutoff de "
-                "Cowork. Differentiator keywords son estables (de DSCs canonicos), "
-                "pero keyword research completo requiere Perplexity."
-            ),
-            needs_validation_tags=[
-                f"[NEEDS_PERPLEXITY_VALIDATION] keyword_research_2026:"
-                f"{ctx.vertical.value}",
-                f"[NEEDS_PERPLEXITY_VALIDATION] competitor_seo_2026:"
-                f"{ctx.archetype.value}",
+            )
+        )
+        validation_tags.extend(
+            [
+                f"[NEEDS_PERPLEXITY_VALIDATION] keyword_research_2026:{ctx.vertical.value}",
+                f"[NEEDS_PERPLEXITY_VALIDATION] competitor_seo_2026:{ctx.archetype.value}",
                 "[NEEDS_PERPLEXITY_VALIDATION] google_ranking_factors_2026",
-            ],
-            source_dsc=canonical.get("source_dscs", []),
-        ))
-        validation_tags.extend([
-            f"[NEEDS_PERPLEXITY_VALIDATION] keyword_research_2026:"
-            f"{ctx.vertical.value}",
-            f"[NEEDS_PERPLEXITY_VALIDATION] competitor_seo_2026:"
-            f"{ctx.archetype.value}",
-            "[NEEDS_PERPLEXITY_VALIDATION] google_ranking_factors_2026",
-        ])
+            ]
+        )
 
         return TransversalRecommendations(
             layer_name="seo",
@@ -209,9 +211,7 @@ class SeoLayer(TransversalLayer):
             aggregated_validation_tags=validation_tags,
         )
 
-    def implement(
-        self, recommendations: TransversalRecommendations
-    ) -> dict[str, Any]:
+    def implement(self, recommendations: TransversalRecommendations) -> dict[str, Any]:
         """
         Genera artefactos de SEO listos para inyectar en cualquier render
         pipeline: JSON-LD block, meta tags HTML, hreflang links, canonical
@@ -250,9 +250,7 @@ class SeoLayer(TransversalLayer):
             json_ld_doc["@type"] = schema_types
         for field_path in required_fields:
             self._set_nested_slot(json_ld_doc, field_path)
-        json_ld_block = _json.dumps(
-            json_ld_doc, ensure_ascii=False, indent=2
-        )
+        json_ld_block = _json.dumps(json_ld_doc, ensure_ascii=False, indent=2)
 
         # 3. Meta tags HTML
         meta_tags_html: list[str] = [
@@ -261,19 +259,14 @@ class SeoLayer(TransversalLayer):
         geo_rule = rules.get("seo.geo.targeting", {})
         geo_target = geo_rule.get("geo_target")
         if geo_target:
-            meta_tags_html.append(
-                f'<meta name="geo.region" content="{self._geo_region_code(geo_target)}">'
-            )
-        meta_tags_html.append('<title>{{TITLE_SLOT}}</title>')
-        meta_tags_html.append(
-            '<meta name="description" content="{{DESCRIPTION_SLOT}}">'
-        )
+            meta_tags_html.append(f'<meta name="geo.region" content="{self._geo_region_code(geo_target)}">')
+        meta_tags_html.append("<title>{{TITLE_SLOT}}</title>")
+        meta_tags_html.append('<meta name="description" content="{{DESCRIPTION_SLOT}}">')
 
         # 4. Hreflang links
         hreflang = geo_rule.get("hreflang_locales") or []
         hreflang_links_html = [
-            f'<link rel="alternate" hreflang="{loc}" href="{{{{URL_SLOT_{loc}}}}}">'
-            for loc in hreflang
+            f'<link rel="alternate" hreflang="{loc}" href="{{{{URL_SLOT_{loc}}}}}">' for loc in hreflang
         ]
 
         # 5. Canonical
@@ -283,16 +276,11 @@ class SeoLayer(TransversalLayer):
 
         # 6. Disclosures slot keys
         disclosures_rule = rules.get("seo.disclosures.required", {})
-        disclosures_slots = [
-            f"disclosure_{d}_slot"
-            for d in disclosures_rule.get("disclosures", [])
-        ]
+        disclosures_slots = [f"disclosure_{d}_slot" for d in disclosures_rule.get("disclosures", [])]
 
         # 7. Differentiator keywords
         keywords_rule = rules.get("seo.keywords.research_pending", {})
-        differentiator_keywords = keywords_rule.get(
-            "differentiator_keywords", []
-        )
+        differentiator_keywords = keywords_rule.get("differentiator_keywords", [])
 
         return {
             "vertical": recommendations.vertical.value,
@@ -308,9 +296,7 @@ class SeoLayer(TransversalLayer):
             "differentiator_keywords": differentiator_keywords,
             "url_pattern_template": url_rule.get("url_pattern_template"),
             "ssr_required": url_rule.get("ssr_required", False),
-            "validation_tags_pending": list(
-                recommendations.aggregated_validation_tags
-            ),
+            "validation_tags_pending": list(recommendations.aggregated_validation_tags),
         }
 
     @staticmethod
@@ -360,10 +346,7 @@ class SeoLayer(TransversalLayer):
         blockers: list[str] = []
 
         if not impl_artifacts["indexable"]:
-            blockers.append(
-                f"Vertical no indexable. Razon: "
-                f"{impl_artifacts['indexable_blocker_reason']}"
-            )
+            blockers.append(f"Vertical no indexable. Razon: {impl_artifacts['indexable_blocker_reason']}")
         if not impl_artifacts["json_ld_types"]:
             warnings.append("No hay schema.org types configurados.")
         if not impl_artifacts["hreflang_links_html"]:
@@ -375,12 +358,8 @@ class SeoLayer(TransversalLayer):
             )
 
         # Search Console v1 wiring canonico.
-        oauth_token_present = bool(
-            os.environ.get("GOOGLE_SEARCH_CONSOLE_OAUTH_TOKEN")
-        )
-        site_url_present = bool(
-            os.environ.get("GOOGLE_SEARCH_CONSOLE_SITE_URL")
-        )
+        oauth_token_present = bool(os.environ.get("GOOGLE_SEARCH_CONSOLE_OAUTH_TOKEN"))
+        site_url_present = bool(os.environ.get("GOOGLE_SEARCH_CONSOLE_SITE_URL"))
         pending_envs = []
         if not oauth_token_present:
             pending_envs.append("GOOGLE_SEARCH_CONSOLE_OAUTH_TOKEN")
@@ -390,15 +369,11 @@ class SeoLayer(TransversalLayer):
         disabled = bool(pending_envs)
         if disabled:
             warnings.append(
-                f"Search Console wiring incompleto: faltan "
-                f"{', '.join(pending_envs)}. Fetch real bloqueado."
+                f"Search Console wiring incompleto: faltan {', '.join(pending_envs)}. Fetch real bloqueado."
             )
 
         search_console_health: dict[str, Any] = {
-            "status": (
-                "disabled_until_oauth_configured" if disabled
-                else "ready_for_fetch"
-            ),
+            "status": ("disabled_until_oauth_configured" if disabled else "ready_for_fetch"),
             "disabled_until_oauth_configured": disabled,
             "required_envs": [
                 "GOOGLE_SEARCH_CONSOLE_OAUTH_TOKEN",
@@ -406,16 +381,11 @@ class SeoLayer(TransversalLayer):
             ],
             "pending_envs": pending_envs,
             "api_version": "v1",
-            "oauth_scope_required": (
-                "https://www.googleapis.com/auth/webmasters.readonly"
-            ),
+            "oauth_scope_required": ("https://www.googleapis.com/auth/webmasters.readonly"),
             "endpoint_searchanalytics": (
-                "POST https://www.googleapis.com/webmasters/v3/sites/"
-                "{siteUrl}/searchAnalytics/query"
+                "POST https://www.googleapis.com/webmasters/v3/sites/{siteUrl}/searchAnalytics/query"
             ),
-            "endpoint_sites_get": (
-                "GET https://www.googleapis.com/webmasters/v3/sites/{siteUrl}"
-            ),
+            "endpoint_sites_get": ("GET https://www.googleapis.com/webmasters/v3/sites/{siteUrl}"),
             "validation_log_anchor": {
                 "claim_type": "search_console_api_2026",
                 "row_id": 28,
@@ -424,8 +394,7 @@ class SeoLayer(TransversalLayer):
             },
             "dry_run": True,
             "dry_run_reason": (
-                "Push/fetch real requiere firma de Alfredo via DSC-G-002 "
-                "(HITL para operaciones write-risky)."
+                "Push/fetch real requiere firma de Alfredo via DSC-G-002 (HITL para operaciones write-risky)."
             ),
         }
 
@@ -435,8 +404,7 @@ class SeoLayer(TransversalLayer):
                 "indexable": impl_artifacts["indexable"],
                 "schema_types_count": len(impl_artifacts["json_ld_types"]),
                 "hreflang_count": len(impl_artifacts["hreflang_links_html"]),
-                "disclosures_required_count": len(
-                    impl_artifacts["disclosures_required"]),
+                "disclosures_required_count": len(impl_artifacts["disclosures_required"]),
                 "ssr_required": impl_artifacts["ssr_required"],
             },
             "warnings": warnings,

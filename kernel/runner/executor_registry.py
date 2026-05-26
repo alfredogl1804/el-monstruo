@@ -13,6 +13,7 @@ Doctrina v1 (Sprint EMBRION-NEEDS-002):
   - external_api_call: HTTP request según payload.method/url/body.
   - other: noop fijo.
 """
+
 from __future__ import annotations
 
 import os
@@ -73,8 +74,13 @@ def _exec_external_api_call(proposal: Dict[str, Any]) -> ExecutionResult:
 
     try:
         with httpx.Client(timeout=timeout) as client:
-            resp = client.request(method, url, headers=headers, json=body if isinstance(body, (dict, list)) else None,
-                                  content=body if isinstance(body, (str, bytes)) else None)
+            resp = client.request(
+                method,
+                url,
+                headers=headers,
+                json=body if isinstance(body, (dict, list)) else None,
+                content=body if isinstance(body, (str, bytes)) else None,
+            )
         success = 200 <= resp.status_code < 300
         return ExecutionResult(
             proposal_id=str(proposal["id"]),

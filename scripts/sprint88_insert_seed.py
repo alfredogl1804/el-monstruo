@@ -7,6 +7,7 @@ Ejecutar via:
 
 Idempotente: usa ON CONFLICT (id) DO UPDATE para re-corridas.
 """
+
 from __future__ import annotations
 
 import json
@@ -18,7 +19,7 @@ import psycopg
 
 # Importar el seed
 sys.path.insert(0, str(Path(__file__).parent))
-from sprint88_seed_85_productos import PRODUCTOS, attach_tier_seed
+from sprint88_seed_85_productos import attach_tier_seed
 
 
 def main() -> int:

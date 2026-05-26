@@ -18,6 +18,7 @@ Ejecutar dos veces seguidas NO rompe nada.
 Usage:
   python3 scripts/_apply_migration_0019.py
 """
+
 import os
 import sys
 

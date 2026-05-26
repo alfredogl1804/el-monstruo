@@ -1,4 +1,5 @@
 """Decorator + storage para validacion magna de claims (DSC-V-001)."""
+
 from __future__ import annotations
 
 import functools
@@ -61,9 +62,7 @@ class LocalFileStorage:
         return max(candidates, key=lambda r: r.timestamp_unix) if candidates else None
 
     def find_latest_by_fingerprint(self, fingerprint: str) -> Optional[ClaimRecord]:
-        candidates = [
-            r for r in self._read_all() if r.claim_fingerprint == fingerprint
-        ]
+        candidates = [r for r in self._read_all() if r.claim_fingerprint == fingerprint]
         return max(candidates, key=lambda r: r.timestamp_unix) if candidates else None
 
     def insert(self, record: ClaimRecord) -> None:
@@ -127,6 +126,7 @@ def requires_perplexity_validation(
     storage: ValidationLogStorage | None = None,
 ) -> Callable:
     """Decorator: levanta StaleClaimError si no hay validacion vigente."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -149,11 +149,13 @@ def requires_perplexity_validation(
                     f"Re-validar via Perplexity y re-llamar record_validation()."
                 )
             return func(*args, **kwargs)
+
         wrapper.__perplexity_validation__ = {  # type: ignore[attr-defined]
             "claim_type": claim_type,
             "ttl_hours": ttl_hours,
         }
         return wrapper
+
     return decorator
 
 

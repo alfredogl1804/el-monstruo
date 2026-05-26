@@ -1,4 +1,5 @@
 """Tests for Embryo Run History Analyzer v0.1"""
+
 import json
 import sys
 import tempfile
@@ -6,14 +7,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from embryo_run_history_analyzer_v0_1 import (
-    discover_oracle_outputs,
-    discover_auditor_outputs,
-    extract_run_metrics,
     analyze_cost_trend,
     analyze_grounding_trend,
     analyze_task_distribution,
-    detect_regressions,
     compute_health_score,
+    detect_regressions,
+    discover_auditor_outputs,
+    discover_oracle_outputs,
+    extract_run_metrics,
     run_full_analysis,
 )
 
@@ -23,53 +24,53 @@ def _create_test_structure(tmp_dir: Path):
     # Oracle outputs
     oracle_dir = tmp_dir / "embryos" / "oracle_ai_r0" / "outputs"
     oracle_dir.mkdir(parents=True)
-    
+
     for i in range(5):
         output = {
             "embryo_id": "oracle_ai_embryo_r0",
             "task_id": "map_capability" if i % 2 == 0 else "detect_candidates",
             "action_class": "A1_ANALYZE",
             "dispatcher_decision": "ALLOW",
-            "timestamp": f"2026-05-{15+i}T10:00:00Z",
+            "timestamp": f"2026-05-{15 + i}T10:00:00Z",
             "cost_usd": 0.0003 + (i * 0.00005),
             "grounding_level": 7 + (i * 0.5),
             "output": {
                 "claims": [{"claim_id": str(j)} for j in range(3 + i)],
                 "grounding_level": 7 + (i * 0.5),
-                "cost": 0.0003 + (i * 0.00005)
-            }
+                "cost": 0.0003 + (i * 0.00005),
+            },
         }
-        (oracle_dir / f"task_{i}_2026051{5+i}T100000.json").write_text(json.dumps(output))
-    
+        (oracle_dir / f"task_{i}_2026051{5 + i}T100000.json").write_text(json.dumps(output))
+
     # Oracle state
     state_dir = tmp_dir / "embryos" / "oracle_ai_r0"
     (state_dir / "state.json").write_text(json.dumps({"cycles_completed": 5}))
-    
+
     # Auditor outputs
     auditor_dir = tmp_dir / "embryos" / "oracle_pair_r0" / "auditor_outputs"
     auditor_dir.mkdir(parents=True)
-    
+
     for i in range(4):
         output = {
             "embryo_id": "oracle_auditor_embryo_r0",
             "task_id": "audit_oracle_latest_output",
             "action_class": "A1_ANALYZE",
             "dispatcher_decision": "ALLOW",
-            "timestamp": f"2026-05-{15+i}T10:05:00Z",
+            "timestamp": f"2026-05-{15 + i}T10:05:00Z",
             "cost_usd": 0.0002 + (i * 0.00003),
             "grounding_level": 6 + i,
             "output": {
                 "claims": [{"claim_id": str(j)} for j in range(2)],
                 "grounding_level": 6 + i,
-                "cost": 0.0002 + (i * 0.00003)
-            }
+                "cost": 0.0002 + (i * 0.00003),
+            },
         }
-        (auditor_dir / f"audit_{i}_2026051{5+i}T100500.json").write_text(json.dumps(output))
-    
+        (auditor_dir / f"audit_{i}_2026051{5 + i}T100500.json").write_text(json.dumps(output))
+
     # Auditor state
     auditor_state_dir = tmp_dir / "embryos" / "oracle_pair_r0"
     (auditor_state_dir / "auditor_state.json").write_text(json.dumps({"cycles_completed": 4}))
-    
+
     return tmp_dir
 
 
@@ -226,7 +227,7 @@ if __name__ == "__main__":
         except Exception as e:
             failed += 1
             print(f"  FAIL: {t.__name__} — {e}")
-    print(f"\n{'='*60}")
-    print(f"Embryo Run History Analyzer Tests: {passed}/{passed+failed} PASS")
+    print(f"\n{'=' * 60}")
+    print(f"Embryo Run History Analyzer Tests: {passed}/{passed + failed} PASS")
     if failed:
         sys.exit(1)

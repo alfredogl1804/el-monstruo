@@ -30,6 +30,7 @@ Soberanía:
   - GPT-4o (análisis estratégico, planes)
   - Gemini Flash (fallback)
 """
+
 from __future__ import annotations
 
 import json
@@ -44,26 +45,28 @@ logger = structlog.get_logger("monstruo.embrion.estratega")
 
 # ── Errores con identidad ──────────────────────────────────────────────────────
 
+
 class EMBRION_ESTRATEGA_SIN_SABIOS(RuntimeError):
     """No hay cliente de Sabios configurado para análisis estratégico.
-    
+
     Sugerencia: Inyecta _sabios al instanciar EmbrionEstratega.
     """
 
 
 class EMBRION_ESTRATEGA_JSON_INVALIDO(ValueError):
     """El LLM retornó JSON inválido en la respuesta estratégica.
-    
+
     Sugerencia: Verifica el prompt o usa el fallback de análisis simplificado.
     """
 
 
 # ── Dataclasses de dominio ─────────────────────────────────────────────────────
 
+
 @dataclass
 class MarketAnalysis:
     """Análisis de mercado estructurado.
-    
+
     Args:
         market_size_usd: TAM estimado con fuente.
         growth_rate: CAGR con período de tiempo.
@@ -74,6 +77,7 @@ class MarketAnalysis:
         recommended_positioning: Estrategia de posicionamiento recomendada.
         analyzed_at: Timestamp del análisis.
     """
+
     market_size_usd: str
     growth_rate: str
     key_players: list[dict]
@@ -81,9 +85,7 @@ class MarketAnalysis:
     threats: list[str]
     entry_barriers: list[str]
     recommended_positioning: str
-    analyzed_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    analyzed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:
         """Serializar para el Command Center."""
@@ -102,7 +104,7 @@ class MarketAnalysis:
 @dataclass
 class StrategicPlan:
     """Plan estratégico con fases, KPIs y criterios de abandono.
-    
+
     Args:
         vision: Visión en una oración.
         phases: Fases del plan con nombre, duración, objetivos, KPIs y presupuesto.
@@ -111,14 +113,13 @@ class StrategicPlan:
         kill_criteria: Criterios para pivotar o abandonar el proyecto.
         created_at: Timestamp de creación.
     """
+
     vision: str
     phases: list[dict]
     risks: list[dict]
     success_metrics: list[str]
     kill_criteria: list[str]
-    created_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:
         """Serializar para el Command Center."""
@@ -151,22 +152,24 @@ RESTRICCIONES:
 
 # ── Embrión principal ──────────────────────────────────────────────────────────
 
+
 @dataclass
 class EmbrionEstratega:
     """Embrión especializado en estrategia, planning y análisis de mercado.
-    
+
     Genera análisis de mercado con datos cuantitativos, planes estratégicos
     por fases y prioriza tareas via framework ICE.
-    
+
     Args:
         _sabios: Cliente de Sabios para análisis estratégico via LLM.
         budget_daily_usd: Presupuesto diario máximo en USD.
-    
+
     Soberanía:
         - Perplexity Sonar Pro (market data con fuentes)
         - GPT-4o (análisis estratégico)
         - Gemini Flash (fallback)
     """
+
     _sabios: Optional[object] = field(default=None, repr=False)
     budget_daily_usd: float = 2.0
     _spent_today: float = field(default=0.0, repr=False)
@@ -174,32 +177,33 @@ class EmbrionEstratega:
     _last_market_scan: Optional[str] = field(default=None, repr=False)
 
     EMBRION_ID: str = field(default="embrion-estratega", init=False)
-    SPECIALIZATION: str = field(
-        default="Estrategia, Planning, Market Analysis, Priorización", init=False
-    )
+    SPECIALIZATION: str = field(default="Estrategia, Planning, Market Analysis, Priorización", init=False)
 
-    DEFAULT_TASKS: dict = field(default_factory=lambda: {
-        "market_scan": {
-            "description": "Escanear oportunidades de mercado para proyectos activos",
-            "interval_hours": 12,
-            "handler": "scan_market_opportunities",
+    DEFAULT_TASKS: dict = field(
+        default_factory=lambda: {
+            "market_scan": {
+                "description": "Escanear oportunidades de mercado para proyectos activos",
+                "interval_hours": 12,
+                "handler": "scan_market_opportunities",
+            },
+            "priority_review": {
+                "description": "Revisar y re-priorizar tareas pendientes",
+                "interval_hours": 6,
+                "handler": "review_priorities",
+            },
+            "risk_assessment": {
+                "description": "Evaluar riesgos de proyectos activos",
+                "interval_hours": 24,
+                "handler": "assess_project_risks",
+            },
+            "competitive_intel": {
+                "description": "Monitorear competencia de proyectos activos",
+                "interval_hours": 48,
+                "handler": "monitor_competition",
+            },
         },
-        "priority_review": {
-            "description": "Revisar y re-priorizar tareas pendientes",
-            "interval_hours": 6,
-            "handler": "review_priorities",
-        },
-        "risk_assessment": {
-            "description": "Evaluar riesgos de proyectos activos",
-            "interval_hours": 24,
-            "handler": "assess_project_risks",
-        },
-        "competitive_intel": {
-            "description": "Monitorear competencia de proyectos activos",
-            "interval_hours": 48,
-            "handler": "monitor_competition",
-        },
-    }, init=False)
+        init=False,
+    )
 
     async def analyze_market(
         self,
@@ -207,21 +211,19 @@ class EmbrionEstratega:
         geography: str = "global",
     ) -> MarketAnalysis:
         """Analizar mercado para un nicho específico.
-        
+
         Args:
             niche: Nicho o industria a analizar (ej: 'SaaS para restaurantes').
             geography: Geografía de análisis (ej: 'México', 'LATAM', 'global').
-        
+
         Returns:
             MarketAnalysis con TAM, CAGR, competidores, oportunidades y amenazas.
-        
+
         Raises:
             EMBRION_ESTRATEGA_SIN_SABIOS: Si no hay cliente LLM configurado.
         """
         if not self._sabios:
-            raise EMBRION_ESTRATEGA_SIN_SABIOS(
-                "EmbrionEstratega requiere _sabios para análisis de mercado."
-            )
+            raise EMBRION_ESTRATEGA_SIN_SABIOS("EmbrionEstratega requiere _sabios para análisis de mercado.")
 
         prompt = f"""{STRATEGIST_SYSTEM_PROMPT}
 
@@ -269,23 +271,21 @@ Respond in JSON:
         timeline: str = "6 months",
     ) -> StrategicPlan:
         """Crear plan estratégico completo con fases y criterios de abandono.
-        
+
         Args:
             business_type: Tipo de negocio ('ecommerce', 'saas', 'content', 'service').
             niche: Nicho específico del negocio.
             budget: Presupuesto disponible ('bootstrap', '$5000', '$50000').
             timeline: Horizonte temporal del plan ('3 months', '6 months', '1 year').
-        
+
         Returns:
             StrategicPlan con fases, KPIs, riesgos y kill criteria.
-        
+
         Raises:
             EMBRION_ESTRATEGA_SIN_SABIOS: Si no hay cliente LLM configurado.
         """
         if not self._sabios:
-            raise EMBRION_ESTRATEGA_SIN_SABIOS(
-                "EmbrionEstratega requiere _sabios para crear planes estratégicos."
-            )
+            raise EMBRION_ESTRATEGA_SIN_SABIOS("EmbrionEstratega requiere _sabios para crear planes estratégicos.")
 
         prompt = f"""{STRATEGIST_SYSTEM_PROMPT}
 
@@ -345,20 +345,18 @@ Respond in JSON:
 
     async def prioritize_tasks(self, tasks: list[dict]) -> list[dict]:
         """Priorizar tareas usando framework ICE (Impact × Confidence × Ease).
-        
+
         Args:
             tasks: Lista de dicts con al menos 'task' y opcionalmente 'description'.
-        
+
         Returns:
             Lista de tareas ordenada por ICE score descendente, con scores individuales.
-        
+
         Raises:
             EMBRION_ESTRATEGA_SIN_SABIOS: Si no hay cliente LLM configurado.
         """
         if not self._sabios:
-            raise EMBRION_ESTRATEGA_SIN_SABIOS(
-                "EmbrionEstratega requiere _sabios para priorizar tareas."
-            )
+            raise EMBRION_ESTRATEGA_SIN_SABIOS("EmbrionEstratega requiere _sabios para priorizar tareas.")
 
         prompt = f"""Prioritize these tasks using the ICE framework:
 (Impact × Confidence × Ease, each scored 1-10)
@@ -387,7 +385,7 @@ Sort by ICE score descending. Be strict — most tasks should score 1-5, not 8-1
 
     async def scan_market_opportunities(self) -> dict:
         """Tarea autónoma: escanear oportunidades de mercado emergentes.
-        
+
         Returns:
             Dict con lista de oportunidades y timestamp de escaneo.
         """
@@ -419,10 +417,10 @@ Respond in JSON array."""
 
     async def assess_project_risks(self, project_context: Optional[dict] = None) -> dict:
         """Tarea autónoma: evaluar riesgos de proyectos activos.
-        
+
         Args:
             project_context: Contexto del proyecto a evaluar (opcional).
-        
+
         Returns:
             Dict con lista de riesgos priorizados y timestamp.
         """
@@ -455,13 +453,13 @@ Respond in JSON array. Be specific, not generic."""
 
     def _parse_json_response(self, response: str) -> dict:
         """Extraer y parsear JSON de respuesta LLM.
-        
+
         Args:
             response: Respuesta raw del LLM.
-        
+
         Returns:
             Dict o list parseado del JSON.
-        
+
         Raises:
             EMBRION_ESTRATEGA_JSON_INVALIDO: Si el JSON no es parseable.
         """
@@ -474,13 +472,11 @@ Respond in JSON array. Be specific, not generic."""
         try:
             return json.loads(json_str)
         except json.JSONDecodeError as _e:
-            raise EMBRION_ESTRATEGA_JSON_INVALIDO(
-                f"JSON inválido en respuesta del LLM: {str(_e)[:100]}"
-            ) from _e
+            raise EMBRION_ESTRATEGA_JSON_INVALIDO(f"JSON inválido en respuesta del LLM: {str(_e)[:100]}") from _e
 
     def to_dict(self) -> dict:
         """Estado del embrión para consumo del Command Center.
-        
+
         Returns:
             Dict serializable con estado actual del Embrión-Estratega.
         """

@@ -12,34 +12,32 @@ Soberanía:
     - Pagos: Stripe (futuro) → alternativa → PayPal / transferencia manual
 """
 
-import structlog
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional
+
+import structlog
 
 logger = structlog.get_logger("marketplace.registry")
 
 # ── Errores con identidad ──────────────────────────────────────────────────────
 
 MARKETPLACE_ITEM_NO_ENCONTRADO = (
-    "El ítem del marketplace no fue encontrado. "
-    "Verifica el ID o busca en el catálogo con search()."
+    "El ítem del marketplace no fue encontrado. Verifica el ID o busca en el catálogo con search()."
 )
 MARKETPLACE_PUBLICACION_FALLIDA = (
-    "No se pudo publicar el ítem en el marketplace. "
-    "Verifica que todos los campos requeridos estén completos."
+    "No se pudo publicar el ítem en el marketplace. Verifica que todos los campos requeridos estén completos."
 )
 MARKETPLACE_INSTALACION_FALLIDA = (
-    "No se pudo instalar el ítem del marketplace. "
-    "Verifica que el ítem esté verificado y disponible."
+    "No se pudo instalar el ítem del marketplace. Verifica que el ítem esté verificado y disponible."
 )
 MARKETPLACE_CALIFICACION_INVALIDA = (
-    "La calificación debe estar entre 1 y 5 estrellas. "
-    "Proporciona un valor entero en ese rango."
+    "La calificación debe estar entre 1 y 5 estrellas. Proporciona un valor entero en ese rango."
 )
 
 
 # ── Modelo de datos ────────────────────────────────────────────────────────────
+
 
 @dataclass
 class MarketplaceItem:
@@ -69,6 +67,7 @@ class MarketplaceItem:
     Soberanía:
         Pagos: Stripe → PayPal → transferencia manual
     """
+
     id: str
     name: str
     type: str
@@ -266,6 +265,7 @@ SEED_ITEMS: list = [
 
 # ── Registry principal ─────────────────────────────────────────────────────────
 
+
 class MarketplaceRegistry:
     """Registry global del marketplace de plugins, templates y componentes.
 
@@ -332,7 +332,8 @@ class MarketplaceRegistry:
         if query:
             query_lower = query.lower()
             results = [
-                i for i in results
+                i
+                for i in results
                 if query_lower in i.name.lower()
                 or query_lower in i.description.lower()
                 or any(query_lower in tag for tag in i.tags)
@@ -350,9 +351,7 @@ class MarketplaceRegistry:
 
         return [i.to_dict() for i in results[:50]]
 
-    async def _search_supabase(
-        self, query: str, item_type: str, category: str, sort: str, free_only: bool
-    ) -> list:
+    async def _search_supabase(self, query: str, item_type: str, category: str, sort: str, free_only: bool) -> list:
         """Búsqueda en Supabase."""
         q = self.supabase.table("marketplace_items").select("*")
         if item_type:
@@ -440,8 +439,7 @@ class MarketplaceRegistry:
 
         if not item and self.supabase:
             try:
-                result = await self.supabase.table("marketplace_items")\
-                    .select("*").eq("id", item_id).single().execute()
+                result = await self.supabase.table("marketplace_items").select("*").eq("id", item_id).single().execute()
                 if result.data:
                     item = result.data
             except Exception:
@@ -456,14 +454,23 @@ class MarketplaceRegistry:
 
         if self.supabase:
             try:
-                await self.supabase.table("marketplace_installations").insert({
-                    "item_id": item_id,
-                    "user_id": user_id,
-                    "installed_at": datetime.now(timezone.utc).isoformat(),
-                }).execute()
-                await self.supabase.table("marketplace_items")\
-                    .update({"downloads": (item.downloads if hasattr(item, "downloads") else 0) + 1})\
-                    .eq("id", item_id).execute()
+                await (
+                    self.supabase.table("marketplace_installations")
+                    .insert(
+                        {
+                            "item_id": item_id,
+                            "user_id": user_id,
+                            "installed_at": datetime.now(timezone.utc).isoformat(),
+                        }
+                    )
+                    .execute()
+                )
+                await (
+                    self.supabase.table("marketplace_items")
+                    .update({"downloads": (item.downloads if hasattr(item, "downloads") else 0) + 1})
+                    .eq("id", item_id)
+                    .execute()
+                )
             except Exception as exc:
                 logger.warning("install_supabase_error", error=str(exc))
 
@@ -491,20 +498,30 @@ class MarketplaceRegistry:
 
         if self.supabase:
             try:
-                await self.supabase.table("marketplace_reviews").insert({
-                    "item_id": item_id,
-                    "user_id": user_id,
-                    "score": score,
-                    "review": review,
-                }).execute()
+                await (
+                    self.supabase.table("marketplace_reviews")
+                    .insert(
+                        {
+                            "item_id": item_id,
+                            "user_id": user_id,
+                            "score": score,
+                            "review": review,
+                        }
+                    )
+                    .execute()
+                )
                 # Recalcular rating promedio
-                reviews = await self.supabase.table("marketplace_reviews")\
-                    .select("score").eq("item_id", item_id).execute()
+                reviews = (
+                    await self.supabase.table("marketplace_reviews").select("score").eq("item_id", item_id).execute()
+                )
                 scores = [r["score"] for r in (reviews.data or [])]
                 avg = sum(scores) / len(scores) if scores else score
-                await self.supabase.table("marketplace_items")\
-                    .update({"rating": round(avg, 2), "rating_count": len(scores)})\
-                    .eq("id", item_id).execute()
+                await (
+                    self.supabase.table("marketplace_items")
+                    .update({"rating": round(avg, 2), "rating_count": len(scores)})
+                    .eq("id", item_id)
+                    .execute()
+                )
             except Exception as exc:
                 logger.warning("rate_supabase_error", error=str(exc))
 
@@ -529,8 +546,9 @@ class MarketplaceRegistry:
             "verified_items": sum(1 for i in items if i.verified),
             "total_downloads": sum(i.downloads for i in items),
             "avg_rating": round(
-                sum(i.rating for i in items if i.rating_count > 0) /
-                max(1, sum(1 for i in items if i.rating_count > 0)), 2
+                sum(i.rating for i in items if i.rating_count > 0)
+                / max(1, sum(1 for i in items if i.rating_count > 0)),
+                2,
             ),
         }
 

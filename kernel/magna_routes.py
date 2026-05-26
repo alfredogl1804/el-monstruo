@@ -53,14 +53,17 @@ def _ensure_classifier():
 
 # ── Request/Response Models ─────────────────────────────────────────
 
+
 class ClassifyRequest(BaseModel):
     """Payload para clasificar un texto."""
+
     text: str = Field(..., min_length=1, max_length=10000, description="Texto a clasificar")
     context: Optional[dict] = Field(default=None, description="Contexto adicional (trigger_type, cycle, etc.)")
 
 
 class ClassifyResponse(BaseModel):
     """Resultado de clasificación."""
+
     route: str = Field(..., description="Ruta recomendada: graph | router | tool_specific")
     score: float = Field(..., description="Confianza de la clasificación (0.0 a 1.0)")
     category: str = Field(..., description="Categoría: tech | action | reflection | query_realtime | unknown")
@@ -70,6 +73,7 @@ class ClassifyResponse(BaseModel):
 
 
 # ── Endpoints ───────────────────────────────────────────────────────
+
 
 @router.post("/classify", response_model=ClassifyResponse)
 async def classify_text(request: ClassifyRequest):

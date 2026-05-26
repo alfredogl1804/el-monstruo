@@ -16,6 +16,7 @@ Usage:
 
 Target repo: The user's own el-monstruo repo (auto-detected).
 """
+
 import asyncio
 import os
 import sys
@@ -55,6 +56,7 @@ BRANCH_NAME = f"test/commit-loop-{int(time.time())}"
 async def detect_repo():
     """Detect the el-monstruo repo from the authenticated user."""
     import aiohttp  # lazy: solo si test corre con GITHUB_TOKEN
+
     token = os.environ.get("GITHUB_TOKEN", "")
     if not token:
         print("ERROR: GITHUB_TOKEN not set")
@@ -80,6 +82,7 @@ async def test_commit_loop():
         create_or_update_file,
         create_pull_request,
     )
+
     global REPO
 
     print("\n" + "=" * 60)

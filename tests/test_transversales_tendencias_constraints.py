@@ -1,4 +1,5 @@
 """Tests del DSC-as-Contract de la Capa Tendencias (DSC-G-017)."""
+
 from __future__ import annotations
 
 import sys
@@ -18,7 +19,6 @@ from kernel.transversales.tendencias._canonical_constraints import (  # noqa: E4
     MONITORING_CADENCES,
     SUPPORTED_DATA_SOURCES,
     TENDENCIAS_CANONICAL_PER_VERTICAL,
-    is_commercial,
     require_commercial,
 )
 
@@ -26,9 +26,7 @@ from kernel.transversales.tendencias._canonical_constraints import (  # noqa: E4
 def test_data_sources_are_subset_of_supported():
     for vertical, cfg in TENDENCIAS_CANONICAL_PER_VERTICAL.items():
         for ds in cfg.get("data_sources", []):
-            assert ds in SUPPORTED_DATA_SOURCES, (
-                f"{vertical.value} usa data_source {ds!r} no soportado"
-            )
+            assert ds in SUPPORTED_DATA_SOURCES, f"{vertical.value} usa data_source {ds!r} no soportado"
 
 
 def test_cadence_in_canonical_set():
@@ -77,8 +75,7 @@ def test_layer_instantiable_and_recommend():
     assert "tendencias.data_sources" in rule_ids
     assert "tendencias.monitoring_cadence" in rule_ids
     assert "tendencias.signal_types" in rule_ids
-    assert any("[NEEDS_PERPLEXITY_VALIDATION]" in t
-               for t in result.aggregated_validation_tags)
+    assert any("[NEEDS_PERPLEXITY_VALIDATION]" in t for t in result.aggregated_validation_tags)
 
 
 def test_layer_implement_is_implemented():
@@ -121,6 +118,6 @@ if __name__ == "__main__":
     test_bg_regulatory_feeds_priorized()
     test_mena_baduy_no_tendencias_comercial()
     test_layer_instantiable_and_recommend()
-    test_layer_implement_not_implemented()
+    test_layer_implement_is_implemented()
     test_recommend_for_mena_baduy_raises()
     print("\n[ok] Los 9 tests del DSC-as-Contract de Capa Tendencias pasaron.")

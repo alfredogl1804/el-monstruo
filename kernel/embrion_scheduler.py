@@ -29,13 +29,14 @@ Integración:
 Validated: APScheduler 3.11.2 (MIT, Dec 2025), Supabase (ya en stack)
 Sprint 56.3 | Biblias: Kimi K2.6 (Agent Swarm budget), Mem0 v2 (memory consolidation)
 """
+
 from __future__ import annotations
 
 import asyncio
 import json
 import os
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Coroutine, Optional
 from uuid import uuid4
 
@@ -59,32 +60,33 @@ class ScheduledTask:
       - Estado: status, last_run, next_run, total_runs, total_cost_usd
       - Ejecución: handler (nombre del callable registrado) + handler_args
     """
+
     task_id: str = field(default_factory=lambda: str(uuid4()))
     name: str = ""
     description: str = ""
     embrion_id: str = "embrion-0"  # Quién la ejecuta
 
     # Scheduling
-    schedule_type: str = "periodic"   # periodic | daily | triggered | one_shot
-    interval_hours: float = 6.0       # Para periodic: cada N horas
-    daily_hour: int = 3               # Para daily: hora UTC (0-23)
+    schedule_type: str = "periodic"  # periodic | daily | triggered | one_shot
+    interval_hours: float = 6.0  # Para periodic: cada N horas
+    daily_hour: int = 3  # Para daily: hora UTC (0-23)
     trigger_condition: Optional[str] = None  # Para triggered: expresión evaluable
 
     # Governance
-    max_cost_usd: float = 0.50        # Budget máximo por ejecución
-    max_retries: int = 3              # Fallos consecutivos antes de pausar
+    max_cost_usd: float = 0.50  # Budget máximo por ejecución
+    max_retries: int = 3  # Fallos consecutivos antes de pausar
     consecutive_failures: int = 0
     paused: bool = False
 
     # Estado
-    status: str = "active"            # active | paused | completed | failed
-    last_run: Optional[str] = None    # ISO timestamp última ejecución
-    next_run: Optional[str] = None    # ISO timestamp próxima ejecución
+    status: str = "active"  # active | paused | completed | failed
+    last_run: Optional[str] = None  # ISO timestamp última ejecución
+    next_run: Optional[str] = None  # ISO timestamp próxima ejecución
     total_runs: int = 0
     total_cost_usd: float = 0.0
 
     # Ejecución
-    handler: Optional[str] = None     # Nombre del handler registrado
+    handler: Optional[str] = None  # Nombre del handler registrado
     handler_args: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -211,7 +213,7 @@ class EmbrionScheduler:
                 filters={"status": "active"},
             )
             restored = 0
-            for row in (rows or []):
+            for row in rows or []:
                 task = ScheduledTask.from_dict(row)
                 # Sprint D-5 fix (2026-05-12 Hilo Ejecutor 1):
                 # Si next_run esta en el pasado (servidor estuvo caido, restart
@@ -229,9 +231,9 @@ class EmbrionScheduler:
                 # sin ejecutar.
                 if task.next_run and task.next_run < datetime.now(timezone.utc).isoformat():
                     seconds_overdue = int(
-                        (datetime.now(timezone.utc) - datetime.fromisoformat(
-                            task.next_run.replace("Z", "+00:00")
-                        )).total_seconds()
+                        (
+                            datetime.now(timezone.utc) - datetime.fromisoformat(task.next_run.replace("Z", "+00:00"))
+                        ).total_seconds()
                     )
                     logger.info(
                         "scheduler_task_overdue_at_restore",
@@ -314,8 +316,7 @@ class EmbrionScheduler:
         """
         # Guard de idempotencia por (name, embrion_id) — Sprint D-2
         existing = next(
-            (t for t in self._tasks.values()
-             if t.name == task.name and t.embrion_id == task.embrion_id),
+            (t for t in self._tasks.values() if t.name == task.name and t.embrion_id == task.embrion_id),
             None,
         )
         if existing is not None:
@@ -377,7 +378,9 @@ class EmbrionScheduler:
         if task_id in self._tasks:
             self._tasks[task_id].paused = True
             self._tasks[task_id].status = "paused"
-            asyncio.create_task(self._persist_task(self._tasks[task_id])) if asyncio.get_event_loop().is_running() else None
+            asyncio.create_task(
+                self._persist_task(self._tasks[task_id])
+            ) if asyncio.get_event_loop().is_running() else None
             logger.info("scheduler_task_paused", task_id=task_id)
             return True
         return False
@@ -704,78 +707,90 @@ def register_default_tasks(scheduler: EmbrionScheduler) -> None:
     # 1. Causal Seeding — Obj #10: Simulador Predictivo
     # Alimenta la Causal KB con eventos históricos descompuestos
     # Prerequisito para que el Simulador tenga datos históricos
-    scheduler.add_task(ScheduledTask(
-        name="causal_seeding",
-        description="Feed the Causal KB with new decomposed events (Obj #10)",
-        embrion_id="embrion-causal",
-        schedule_type="periodic",
-        interval_hours=6.0,
-        max_cost_usd=1.00,
-        handler="run_causal_seeding_cycle",
-    ))
+    scheduler.add_task(
+        ScheduledTask(
+            name="causal_seeding",
+            description="Feed the Causal KB with new decomposed events (Obj #10)",
+            embrion_id="embrion-causal",
+            schedule_type="periodic",
+            interval_hours=6.0,
+            max_cost_usd=1.00,
+            handler="run_causal_seeding_cycle",
+        )
+    )
 
     # 2. Prediction Validation — Obj #10: Feedback loop del Simulador
     # Valida predicciones vencidas y ajusta pesos de factores causales
-    scheduler.add_task(ScheduledTask(
-        name="prediction_validation",
-        description="Validate due predictions and adjust causal factor weights (Obj #10)",
-        embrion_id="embrion-causal",
-        schedule_type="daily",
-        daily_hour=3,  # 3am UTC
-        max_cost_usd=0.50,
-        handler="run_prediction_validation",
-    ))
+    scheduler.add_task(
+        ScheduledTask(
+            name="prediction_validation",
+            description="Validate due predictions and adjust causal factor weights (Obj #10)",
+            embrion_id="embrion-causal",
+            schedule_type="daily",
+            daily_hour=3,  # 3am UTC
+            max_cost_usd=0.50,
+            handler="run_prediction_validation",
+        )
+    )
 
     # 3. Vanguard Scan — Obj #7: Vanguardia Tecnológica
     # Detecta nuevas herramientas y tecnologías relevantes para El Monstruo
-    scheduler.add_task(ScheduledTask(
-        name="vanguard_scan",
-        description="Scan for new technologies and tools relevant to El Monstruo (Obj #7)",
-        embrion_id="embrion-0",
-        schedule_type="daily",
-        daily_hour=6,  # 6am UTC
-        max_cost_usd=0.30,
-        handler="run_vanguard_scan",
-    ))
+    scheduler.add_task(
+        ScheduledTask(
+            name="vanguard_scan",
+            description="Scan for new technologies and tools relevant to El Monstruo (Obj #7)",
+            embrion_id="embrion-0",
+            schedule_type="daily",
+            daily_hour=6,  # 6am UTC
+            max_cost_usd=0.30,
+            handler="run_vanguard_scan",
+        )
+    )
 
     # 4. Health Check — Obj #4: Nunca se equivoca dos veces
     # Verifica salud de todos los subsistemas y reporta anomalías
-    scheduler.add_task(ScheduledTask(
-        name="system_health_check",
-        description="Check health of all subsystems and report anomalies (Obj #4)",
-        embrion_id="embrion-0",
-        schedule_type="periodic",
-        interval_hours=2.0,
-        max_cost_usd=0.05,
-        handler="run_health_check",
-    ))
+    scheduler.add_task(
+        ScheduledTask(
+            name="system_health_check",
+            description="Check health of all subsystems and report anomalies (Obj #4)",
+            embrion_id="embrion-0",
+            schedule_type="periodic",
+            interval_hours=2.0,
+            max_cost_usd=0.05,
+            handler="run_health_check",
+        )
+    )
 
     # 5. Memory Consolidation — Obj #3: Memoria Perfecta
     # Consolida memorias de corto plazo en patrones de largo plazo (ThreeLayerMemory)
-    scheduler.add_task(ScheduledTask(
-        name="memory_consolidation",
-        description="Consolidate short-term memories into long-term patterns (Obj #3)",
-        embrion_id="embrion-0",
-        schedule_type="daily",
-        daily_hour=2,  # 2am UTC
-        max_cost_usd=0.20,
-        handler="run_memory_consolidation",
-    ))
+    scheduler.add_task(
+        ScheduledTask(
+            name="memory_consolidation",
+            description="Consolidate short-term memories into long-term patterns (Obj #3)",
+            embrion_id="embrion-0",
+            schedule_type="daily",
+            daily_hour=2,  # 2am UTC
+            max_cost_usd=0.20,
+            handler="run_memory_consolidation",
+        )
+    )
 
     # 6. Latido Autónomo — Sprint D-3 (2026-05-11) Hilo Ejecutor 2
     # Cierra el loop de autonomía del Embrión: dispara `reflexion_autonoma` cada 6h
     # vía `EmbrionLoop.trigger_reflexion_autonoma()`. Cap $0.30 por latido.
     # Sin esta task el embrión depende del polling interno que requiere
     # mensajes/contribuciones recientes, generando huecos de 9+ días observados.
-    scheduler.add_task(ScheduledTask(
-        name="latido_autonomo",
-        description="Embrion autonomous latido every 6h (Sprint D-3, Obj #8 Inteligencia Emergente)",
-        embrion_id="embrion-0",
-        schedule_type="periodic",
-        interval_hours=6.0,
-        max_cost_usd=0.30,
-        handler="run_latido_autonomo",
-    ))
+    scheduler.add_task(
+        ScheduledTask(
+            name="latido_autonomo",
+            description="Embrion autonomous latido every 6h (Sprint D-3, Obj #8 Inteligencia Emergente)",
+            embrion_id="embrion-0",
+            schedule_type="periodic",
+            interval_hours=6.0,
+            max_cost_usd=0.30,
+            handler="run_latido_autonomo",
+        )
+    )
 
     # 7. Daily Guardian Audit — Sprint GUARDIAN-AUTONOMO-001 (2026-05-12) Hilo Ejecutor 2
     # Evalua los 15 Objetivos Maestros del Guardian diariamente y persiste en
@@ -785,15 +800,17 @@ def register_default_tasks(scheduler: EmbrionScheduler) -> None:
     # Trigger: cron daily @ 03:00 UTC (~ 22:00 CDT, fuera de horario de tipping).
     # Cap: $0.10 por audit (no usa LLMs caros, solo evidencias SQL/filesystem/git/static).
     # Spec firmado: bridge/sprints_propuestos/sprint_GUARDIAN_AUTONOMO_001_activacion.md
-    scheduler.add_task(ScheduledTask(
-        name="daily_guardian_audit",
-        description="Daily audit of 15 Objetivos Maestros (Sprint GUARDIAN-AUTONOMO-001, Obj #14 El Guardian)",
-        embrion_id="embrion-0",
-        schedule_type="daily",
-        daily_hour=3,  # 03:00 UTC
-        max_cost_usd=0.10,
-        handler="daily_guardian_audit",
-    ))
+    scheduler.add_task(
+        ScheduledTask(
+            name="daily_guardian_audit",
+            description="Daily audit of 15 Objetivos Maestros (Sprint GUARDIAN-AUTONOMO-001, Obj #14 El Guardian)",
+            embrion_id="embrion-0",
+            schedule_type="daily",
+            daily_hour=3,  # 03:00 UTC
+            max_cost_usd=0.10,
+            handler="daily_guardian_audit",
+        )
+    )
 
     # 8. Recharge Mainspring — Sprint ROTOR-001 (2026-05-12) Hilo Ejecutor 2
     # Reciclador de Actividad: cada 5 min consume rotor_activity_log con
@@ -803,15 +820,17 @@ def register_default_tasks(scheduler: EmbrionScheduler) -> None:
     # Cap por cycle: $0.05 (no usa LLMs, solo SQL + lógica pura).
     # Cap superior diario: $30 firmado T1 — enforced en run_recharge_cycle.
     # Spec firmado: bridge/sprints_propuestos/sprint_ROTOR_001_reciclador_actividad.md
-    scheduler.add_task(ScheduledTask(
-        name="recharge_mainspring",
-        description="Recharge budget cada 5min con energy_units del Rotor (Sprint ROTOR-001, pieza Reloj Suizo)",
-        embrion_id="embrion-0",
-        schedule_type="periodic",
-        interval_hours=5.0 / 60.0,  # 5 minutos
-        max_cost_usd=0.05,
-        handler="recharge_mainspring",
-    ))
+    scheduler.add_task(
+        ScheduledTask(
+            name="recharge_mainspring",
+            description="Recharge budget cada 5min con energy_units del Rotor (Sprint ROTOR-001, pieza Reloj Suizo)",
+            embrion_id="embrion-0",
+            schedule_type="periodic",
+            interval_hours=5.0 / 60.0,  # 5 minutos
+            max_cost_usd=0.05,
+            handler="recharge_mainspring",
+        )
+    )
 
     # 9. SMS REM Cycle — Obj #15: Memoria Soberana
     # Sovereign Memory System nightly consolidation:
@@ -823,22 +842,32 @@ def register_default_tasks(scheduler: EmbrionScheduler) -> None:
     # Trigger: 09:00 UTC (3AM CST) — after memory_consolidation (2AM UTC)
     # Cap: $0.15 per cycle (no LLM calls, pure SQL + logic)
     # Spec: kernel/memory/SOVEREIGN_MEMORY_SYSTEM_SPEC.md
-    scheduler.add_task(ScheduledTask(
-        name="sms_rem_cycle",
-        description="Sovereign Memory System nightly REM consolidation (Obj #15 Memoria Soberana)",
-        embrion_id="embrion-0",
-        schedule_type="daily",
-        daily_hour=9,  # 09:00 UTC = 3:00 AM CST
-        max_cost_usd=0.15,
-        handler="run_sms_rem_cycle",
-    ))
+    scheduler.add_task(
+        ScheduledTask(
+            name="sms_rem_cycle",
+            description="Sovereign Memory System nightly REM consolidation (Obj #15 Memoria Soberana)",
+            embrion_id="embrion-0",
+            schedule_type="daily",
+            daily_hour=9,  # 09:00 UTC = 3:00 AM CST
+            max_cost_usd=0.15,
+            handler="run_sms_rem_cycle",
+        )
+    )
 
     logger.info(
         "scheduler_default_tasks_registered",
         count=9,
-        tasks=["causal_seeding", "prediction_validation", "vanguard_scan",
-               "system_health_check", "memory_consolidation", "latido_autonomo",
-               "daily_guardian_audit", "recharge_mainspring", "sms_rem_cycle"],
+        tasks=[
+            "causal_seeding",
+            "prediction_validation",
+            "vanguard_scan",
+            "system_health_check",
+            "memory_consolidation",
+            "latido_autonomo",
+            "daily_guardian_audit",
+            "recharge_mainspring",
+            "sms_rem_cycle",
+        ],
     )
 
 
@@ -878,8 +907,8 @@ async def _stub_handler_health_check(**kwargs: Any) -> None:
       Si el último latido del embrión fue hace >12h, dispara alerta Telegram.
       Esto cubre el caso observado: 9 días sin latido por scheduler ausente.
     """
-    from datetime import datetime, timezone
     import time as _time
+    from datetime import datetime, timezone
 
     timestamp = datetime.now(timezone.utc).isoformat()
     logger.info("health_check_executed", timestamp=timestamp, status="ok")

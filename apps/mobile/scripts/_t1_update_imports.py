@@ -4,6 +4,7 @@
 Reemplazos verbatim string-a-string (no regex) para cero ambigüedad.
 Ejecutar desde apps/mobile/.
 """
+
 import pathlib
 
 REPLACEMENTS = [

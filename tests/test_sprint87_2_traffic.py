@@ -14,6 +14,7 @@ Coverage:
 10. Endpoint POST /v1/traffic/ingest valida JSON
 11. Endpoint GET /v1/traffic/summary/{run_id}
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -30,10 +31,8 @@ from kernel.e2e.traffic.repository import (
     TrafficIngestPersistenceFailed,
     TrafficIngestValidationFailed,
     TrafficRepository,
-    TrafficSummary,
 )
 from kernel.e2e.traffic.routes import MAX_BODY_BYTES, traffic_router
-
 
 # ── Mock DBClient ────────────────────────────────────────────────────────────
 
@@ -52,8 +51,9 @@ class MockDB:
         self.inserted.append({"table": table, "data": data})
         return {"id": len(self.inserted), **data}
 
-    async def select(self, table: str, columns: str = "*", filters=None,
-                     order_by=None, order_desc=True, limit=None) -> list[dict]:
+    async def select(
+        self, table: str, columns: str = "*", filters=None, order_by=None, order_desc=True, limit=None
+    ) -> list[dict]:
         return self._rows
 
 
@@ -132,9 +132,7 @@ def test_ingest_event_success():
 def test_ingest_fails_when_db_disconnected():
     db = MockDB(connected=False)
     repo = TrafficRepository(db)
-    event = TrafficEvent(
-        run_id="e2e_999", session_id="sid", event_type="pageview", url="x"
-    )
+    event = TrafficEvent(run_id="e2e_999", session_id="sid", event_type="pageview", url="x")
     with pytest.raises(TrafficIngestPersistenceFailed):
         asyncio.run(repo.ingest_event(event))
 

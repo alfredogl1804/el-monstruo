@@ -14,13 +14,14 @@ Este script:
 
 NO modifica datos. Solo reporta.
 """
+
 from __future__ import annotations
 
 import json
 import os
 import sys
-import urllib.request
 import urllib.parse
+import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -30,9 +31,7 @@ OUT_REPORT = ROOT / "bridge" / "DRIFT_009_RECONCILIATION_98_VS_111_2026_05_12.js
 
 def supabase_count() -> int | None:
     url = os.environ.get("SUPABASE_URL", "https://xsumzuhwmivjgftsneov.supabase.co")
-    key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get(
-        "SUPABASE_SERVICE_ROLE_KEY"
-    )
+    key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
     if not key:
         print("[WARN] SUPABASE_SERVICE_KEY no presente; skip Supabase REST count")
         return None

@@ -3,19 +3,19 @@ Tests for Provider Registry Guard v1.1
 10 tests + 4 migration-specific tests = 14 tests.
 Updated for SPR-R0PLUS-ANTHROPIC-MIGRATION-PATCH-001.
 """
+
 import json
 import os
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 from provider_registry import (
-    load_provider_registry,
-    validate_provider_allowed,
-    reject_blocked_provider,
-    reject_deprecated_model,
-    get_allowed_m2_providers,
     assert_no_provider_auto_replacement,
     estimate_budget_for_cycle,
+    get_allowed_m2_providers,
+    load_provider_registry,
+    reject_blocked_provider,
+    validate_provider_allowed,
 )
 
 PASS = 0
@@ -84,8 +84,10 @@ def run_tests():
 
     # Test 11: Old Anthropic model (claude-sonnet-4-20250514) is now DEPRECATED → DENY
     ok_old, reason_old = validate_provider_allowed("anthropic", "claude-sonnet-4-20250514", reg)
-    test("11. OLD model claude-sonnet-4-20250514 DENY (deprecated)",
-         ok_old is False and "deprecated" in reason_old.lower())
+    test(
+        "11. OLD model claude-sonnet-4-20250514 DENY (deprecated)",
+        ok_old is False and "deprecated" in reason_old.lower(),
+    )
 
     # Test 12: New Anthropic model (claude-sonnet-4-6) is ALLOWED
     ok_new, reason_new = validate_provider_allowed("anthropic", "claude-sonnet-4-6", reg)

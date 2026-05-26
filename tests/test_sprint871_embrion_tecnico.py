@@ -8,9 +8,8 @@ Tests Sprint 87.1 Bloque 1 — Embrión Técnico.
 
 Plus tests de schema validation y fallback heurístico.
 """
-from __future__ import annotations
 
-import os
+from __future__ import annotations
 
 import pytest
 
@@ -22,10 +21,10 @@ from kernel.embriones.tecnico import (
     StackRecomendado,
 )
 
-
 # ─────────────────────────────────────────────────────────────────────────
 # Fixtures
 # ─────────────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def embrion_no_llm() -> EmbrionTecnico:
@@ -44,12 +43,10 @@ def embrion_no_key(monkeypatch) -> EmbrionTecnico:
 # Caso 1: Landing premium
 # ─────────────────────────────────────────────────────────────────────────
 
+
 def test_landing_premium_heuristico(embrion_no_llm: EmbrionTecnico) -> None:
     """Frase canónica de Alfredo → stack Next.js + Vercel."""
-    frase = (
-        "Hacé una landing premium para vender pintura al óleo "
-        "artesanal hecha en Mérida"
-    )
+    frase = "Hacé una landing premium para vender pintura al óleo artesanal hecha en Mérida"
     report = embrion_no_llm.analizar(frase_input=frase)
 
     assert isinstance(report, EmbrionTecnicoReport)
@@ -68,6 +65,7 @@ def test_landing_premium_heuristico(embrion_no_llm: EmbrionTecnico) -> None:
 # Caso 2: Tienda online
 # ─────────────────────────────────────────────────────────────────────────
 
+
 def test_tienda_online_heuristico(embrion_no_llm: EmbrionTecnico) -> None:
     """Frase tienda → stack ecommerce con FastAPI + Stripe."""
     frase = "Quiero una tienda online para vender vinos de Mendoza con Stripe"
@@ -77,10 +75,7 @@ def test_tienda_online_heuristico(embrion_no_llm: EmbrionTecnico) -> None:
     assert "Stripe" in report.stack_recomendado.backend
     assert report.complejidad_1_5 >= 3
     # Ecommerce → riesgo PCI/payments alta
-    riesgo_pagos = [
-        r for r in report.riesgos
-        if "pago" in r.descripcion.lower() or "pci" in r.descripcion.lower()
-    ]
+    riesgo_pagos = [r for r in report.riesgos if "pago" in r.descripcion.lower() or "pci" in r.descripcion.lower()]
     assert len(riesgo_pagos) >= 1
     assert riesgo_pagos[0].severidad == "alta"
 
@@ -88,6 +83,7 @@ def test_tienda_online_heuristico(embrion_no_llm: EmbrionTecnico) -> None:
 # ─────────────────────────────────────────────────────────────────────────
 # Caso 3: App móvil
 # ─────────────────────────────────────────────────────────────────────────
+
 
 def test_app_movil_heuristico(embrion_no_llm: EmbrionTecnico) -> None:
     """Frase app móvil → stack Expo."""
@@ -104,6 +100,7 @@ def test_app_movil_heuristico(embrion_no_llm: EmbrionTecnico) -> None:
 # ─────────────────────────────────────────────────────────────────────────
 # Capa Memento: env var lookup en runtime + Brand DNA
 # ─────────────────────────────────────────────────────────────────────────
+
 
 def test_memento_runtime_env_lookup(embrion_no_key: EmbrionTecnico) -> None:
     """Sin OPENAI_API_KEY → fallback heurístico (no crash)."""
@@ -122,6 +119,7 @@ def test_brand_dna_error_class_naming() -> None:
 # ─────────────────────────────────────────────────────────────────────────
 # Schema validation
 # ─────────────────────────────────────────────────────────────────────────
+
 
 def test_report_schema_extra_forbid() -> None:
     """Schema rechaza campos extra (extra='forbid')."""

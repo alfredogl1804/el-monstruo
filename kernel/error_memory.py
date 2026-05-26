@@ -57,27 +57,26 @@ DEFAULT_TOP_K_RULES = 3
 
 # Sanitización de mensajes — quita ruido determinístico para que
 # errores equivalentes hashen al mismo signature
-RE_TIMESTAMP = re.compile(
-    r'\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?'
-)
+RE_TIMESTAMP = re.compile(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?")
 RE_UUID = re.compile(
-    r'\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b',
+    r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b",
     re.IGNORECASE,
 )
-RE_HEX_HASH = re.compile(r'\b[0-9a-f]{16,}\b', re.IGNORECASE)
-RE_PATH_LINE = re.compile(r'(/[\w/.\-]+):(\d+)')
-RE_INTEGER_ID = re.compile(r'\bid=\d+\b')
-RE_PORT = re.compile(r':\d{4,5}\b')
-RE_MULTI_SPACE = re.compile(r'\s+')
+RE_HEX_HASH = re.compile(r"\b[0-9a-f]{16,}\b", re.IGNORECASE)
+RE_PATH_LINE = re.compile(r"(/[\w/.\-]+):(\d+)")
+RE_INTEGER_ID = re.compile(r"\bid=\d+\b")
+RE_PORT = re.compile(r":\d{4,5}\b")
+RE_MULTI_SPACE = re.compile(r"\s+")
 # Identificadores cortos comunes que cambian entre ejecuciones equivalentes:
 # "run abc-123", "thread xyz_456", "job foo-bar", "req-789", "tx_abc"
 RE_RUN_THREAD_ID = re.compile(
-    r'\b(run|thread|job|tx|req|task|step|trace|session|plan)[\s_=:-]+[\w\-]{2,}\b',
+    r"\b(run|thread|job|tx|req|task|step|trace|session|plan)[\s_=:-]+[\w\-]{2,}\b",
     re.IGNORECASE,
 )
 
 
 # ── Excepciones con identidad ──────────────────────────────────────────
+
 
 class ErrorMemoryDbNoDisponible(RuntimeError):
     """No se pudo conectar a Supabase para escribir/leer la memoria de errores.
@@ -107,9 +106,11 @@ class ErrorMemoryPgvectorFaltante(RuntimeError):
 
 # ── Tipos ──────────────────────────────────────────────────────────────
 
+
 @dataclass
 class ErrorRule:
     """Regla aprendida desde un error registrado, lista para inyectar al prompt."""
+
     error_signature: str
     sanitized_message: str
     resolution: Optional[str]
@@ -121,10 +122,7 @@ class ErrorRule:
     def to_prompt_hint(self) -> str:
         """Renderiza la regla como sugerencia para el system prompt."""
         confianza_pct = int(self.confidence * 100)
-        prefix = (
-            f"⚠ Error similar previo (confianza {confianza_pct}%, "
-            f"visto {self.occurrences}x"
-        )
+        prefix = f"⚠ Error similar previo (confianza {confianza_pct}%, visto {self.occurrences}x"
         if self.module:
             prefix += f", módulo {self.module}"
         prefix += f"): {self.sanitized_message[:200]}"
@@ -136,6 +134,7 @@ class ErrorRule:
 @dataclass
 class ErrorPattern:
     """Patrón agregado detectado por el cron de aggregate_patterns()."""
+
     pattern_name: str
     description: str
     signature_cluster: list[str]
@@ -145,6 +144,7 @@ class ErrorPattern:
 
 
 # ── Implementación ────────────────────────────────────────────────────
+
 
 class ErrorMemory:
     """Registro persistente de errores + consulta semántica pre-action.
@@ -387,9 +387,7 @@ class ErrorMemory:
                 if len(members) < DEFAULT_PATTERN_MIN_CLUSTER_SIZE:
                     continue
                 pattern_name = f"{etype}_{mod}_recurrente".replace(".", "_")
-                total_occurrences = sum(
-                    int(m.get("occurrences", 1)) for m in members
-                )
+                total_occurrences = sum(int(m.get("occurrences", 1)) for m in members)
                 description = (
                     f"{len(members)} errores únicos del tipo {etype} "
                     f"en módulo {mod}. Total ocurrencias: {total_occurrences}."
@@ -397,9 +395,7 @@ class ErrorMemory:
                 pattern = ErrorPattern(
                     pattern_name=pattern_name,
                     description=description,
-                    signature_cluster=[
-                        m["error_signature"] for m in members
-                    ],
+                    signature_cluster=[m["error_signature"] for m in members],
                     confidence=0.5,
                     suggested_rule=None,
                     detected_at=now_iso,
@@ -468,10 +464,7 @@ class ErrorMemory:
         )
         if not rows:
             return []
-        filtrados = [
-            r for r in rows
-            if float(r.get("confidence", 0)) >= min_confidence
-        ]
+        filtrados = [r for r in rows if float(r.get("confidence", 0)) >= min_confidence]
         return filtrados[:limit]
 
     async def resolve(self, signature: str, resolution: str) -> bool:
@@ -540,9 +533,7 @@ class ErrorMemory:
             dict con `seeded` ("inserted" | "updated") y `error_signature`.
         """
         if not self._initialized:
-            raise ErrorMemoryDbNoDisponible(
-                "error_memory no inicializada — no se puede sembrar"
-            )
+            raise ErrorMemoryDbNoDisponible("error_memory no inicializada — no se puede sembrar")
         confidence = max(0.0, min(1.0, float(confidence)))
         sanitized_truncado = sanitized_message[:1000]
         resolution_truncado = resolution[:2000]
@@ -669,11 +660,13 @@ class ErrorMemory:
         top_k: int,
     ) -> Optional[list[ErrorRule]]:
         """Consulta vía pgvector. Retorna None si falla embedding."""
-        query_text = " ".join([
-            intent,
-            context.get("module", ""),
-            context.get("action", ""),
-        ]).strip()
+        query_text = " ".join(
+            [
+                intent,
+                context.get("module", ""),
+                context.get("action", ""),
+            ]
+        ).strip()
         embedding = await self._embed_safe(query_text)
         if embedding is None:
             return None
@@ -693,10 +686,7 @@ class ErrorMemory:
                 fallback="modo_degradado",
             )
             return None
-        rules = [
-            self._row_to_rule(r) for r in (rows or [])
-            if float(r.get("confidence", 0)) >= self._min_confidence
-        ]
+        rules = [self._row_to_rule(r) for r in (rows or []) if float(r.get("confidence", 0)) >= self._min_confidence]
         return rules
 
     async def _consult_exact(
@@ -711,19 +701,13 @@ class ErrorMemory:
             return []
         rows = await self._db.select(
             self.TABLE,
-            columns=(
-                "error_signature, sanitized_message, resolution, "
-                "confidence, occurrences, module, action"
-            ),
+            columns=("error_signature, sanitized_message, resolution, confidence, occurrences, module, action"),
             filters={"module": module, "status": "open"},
             limit=top_k * 3,
         )
         if not rows:
             return []
-        rules = [
-            self._row_to_rule(r) for r in rows
-            if float(r.get("confidence", 0)) >= self._min_confidence
-        ]
+        rules = [self._row_to_rule(r) for r in rows if float(r.get("confidence", 0)) >= self._min_confidence]
         # Priorizar matches exactos de action
         if action:
             rules.sort(key=lambda r: 0 if action in r.sanitized_message else 1)
@@ -792,10 +776,7 @@ class ErrorMemory:
                 out[k] = (v[:500] + "…[truncado]") if len(v) > 500 else v
             elif isinstance(v, (list, dict)):
                 s = str(v)
-                out[k] = (
-                    {"_truncated": True, "preview": s[:500]}
-                    if len(s) > 500 else v
-                )
+                out[k] = {"_truncated": True, "preview": s[:500]} if len(s) > 500 else v
             elif isinstance(v, (int, float, bool)) or v is None:
                 out[k] = v
             else:
@@ -834,6 +815,7 @@ class ErrorMemory:
 
 # ── Helpers de bootstrap ───────────────────────────────────────────────
 
+
 def build_embedding_client():
     """Crea cliente de embeddings si OPENAI_API_KEY está disponible.
 
@@ -849,6 +831,7 @@ def build_embedding_client():
         return None
     try:
         from openai import AsyncOpenAI
+
         return AsyncOpenAI(api_key=api_key)
     except ImportError:
         logger.warning(

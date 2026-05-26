@@ -27,6 +27,7 @@ Identidad de marca (Brand Engine, AGENTS.md regla #4):
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 4 · 2026-05-04 · v0.86.4
 """
+
 from __future__ import annotations
 
 import statistics
@@ -35,18 +36,17 @@ from typing import Iterable, Optional
 
 from kernel.catastro.schema import CatastroModelo
 
-
 # ============================================================================
 # Constantes canónicas
 # ============================================================================
 
 # Pesos por defecto del SPEC sección 4. Σ = 1.00.
 DEFAULT_WEIGHTS: dict[str, float] = {
-    "quality_score":     0.40,
-    "cost_efficiency":   0.25,
-    "speed_score":       0.15,
+    "quality_score": 0.40,
+    "cost_efficiency": 0.25,
+    "speed_score": 0.15,
     "reliability_score": 0.10,
-    "brand_fit":         0.10,
+    "brand_fit": 0.10,
 }
 
 # Métricas que aporta el Trono (orden canónico para iteración).
@@ -117,15 +117,15 @@ class TronoResult:
 
     modelo_id: str
     dominio: str
-    trono_old: Optional[float]      # valor previo en BD (puede ser None)
-    trono_new: float                # valor nuevo calculado
-    trono_delta: float              # trono_new - (trono_old or 50.0)
-    trono_low: float                # banda inferior de confianza
-    trono_high: float               # banda superior de confianza
-    z_scores: dict[str, float]      # z por métrica (puede ser 0.0 si NULL)
-    contributions: dict[str, float] # w_i * z_i por métrica
-    confidence: float               # confidence del modelo (band width)
-    mode: str = "z_score"           # "z_score" | "neutral" | "skipped"
+    trono_old: Optional[float]  # valor previo en BD (puede ser None)
+    trono_new: float  # valor nuevo calculado
+    trono_delta: float  # trono_new - (trono_old or 50.0)
+    trono_low: float  # banda inferior de confianza
+    trono_high: float  # banda superior de confianza
+    z_scores: dict[str, float]  # z por métrica (puede ser 0.0 si NULL)
+    contributions: dict[str, float]  # w_i * z_i por métrica
+    confidence: float  # confidence del modelo (band width)
+    mode: str = "z_score"  # "z_score" | "neutral" | "skipped"
     warnings: list[str] = field(default_factory=list)
 
 
@@ -168,8 +168,7 @@ class TronoCalculator:
         extra = set(self.weights.keys()) - set(METRIC_FIELDS)
         if missing or extra:
             raise CatastroTronoInvalidWeights(
-                f"weights debe contener exactamente {METRIC_FIELDS}; "
-                f"missing={missing} extra={extra}",
+                f"weights debe contener exactamente {METRIC_FIELDS}; missing={missing} extra={extra}",
                 missing=list(missing),
                 extra=list(extra),
             )
@@ -214,21 +213,20 @@ class TronoCalculator:
 
         # Filtrar modelos del dominio + estado válido
         in_domain = [
-            m for m in modelos
+            m
+            for m in modelos
             if dominio in (m.dominios or [])
             and (m.estado is None or str(m.estado.value if hasattr(m.estado, "value") else m.estado) != "deprecated")
         ]
 
         if len(in_domain) < 2:
-            return self._neutral_results(in_domain, dominio,
-                                         razon="menos_de_2_modelos")
+            return self._neutral_results(in_domain, dominio, razon="menos_de_2_modelos")
 
         # Calcular medias y std por métrica
         means: dict[str, float] = {}
         stds: dict[str, float] = {}
         for metric in METRIC_FIELDS:
-            valores = [getattr(m, metric) for m in in_domain
-                       if getattr(m, metric) is not None]
+            valores = [getattr(m, metric) for m in in_domain if getattr(m, metric) is not None]
             if not valores:
                 # Toda la métrica es NULL en el dominio → z=0 para todos
                 means[metric] = 0.0
@@ -263,7 +261,7 @@ class TronoCalculator:
 
         dominios: set[str] = set()
         for m in modelos:
-            for d in (m.dominios or []):
+            for d in m.dominios or []:
                 dominios.add(d)
 
         out: dict[str, list[TronoResult]] = {}
@@ -336,20 +334,22 @@ class TronoCalculator:
             confidence = m.confidence if m.confidence is not None else DEFAULT_CONFIDENCE
             band = self.scale * (1.0 - confidence)
             trono_old = m.trono_global
-            out.append(TronoResult(
-                modelo_id=m.id,
-                dominio=dominio,
-                trono_old=trono_old,
-                trono_new=self.base,
-                trono_delta=round(self.base - (trono_old if trono_old is not None else self.base), 2),
-                trono_low=round(_clamp(self.base - band, TRONO_MIN, TRONO_MAX), 2),
-                trono_high=round(_clamp(self.base + band, TRONO_MIN, TRONO_MAX), 2),
-                z_scores={k: 0.0 for k in METRIC_FIELDS},
-                contributions={k: 0.0 for k in METRIC_FIELDS},
-                confidence=confidence,
-                mode="neutral",
-                warnings=[razon],
-            ))
+            out.append(
+                TronoResult(
+                    modelo_id=m.id,
+                    dominio=dominio,
+                    trono_old=trono_old,
+                    trono_new=self.base,
+                    trono_delta=round(self.base - (trono_old if trono_old is not None else self.base), 2),
+                    trono_low=round(_clamp(self.base - band, TRONO_MIN, TRONO_MAX), 2),
+                    trono_high=round(_clamp(self.base + band, TRONO_MIN, TRONO_MAX), 2),
+                    z_scores={k: 0.0 for k in METRIC_FIELDS},
+                    contributions={k: 0.0 for k in METRIC_FIELDS},
+                    confidence=confidence,
+                    mode="neutral",
+                    warnings=[razon],
+                )
+            )
         return out
 
 

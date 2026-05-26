@@ -24,12 +24,10 @@ from __future__ import annotations
 import json
 import logging
 import os
-import sys
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone, timedelta
-from typing import Optional
+from datetime import datetime, timezone
 
 logger = logging.getLogger("monstruo.sms.rem")
 
@@ -50,10 +48,7 @@ def _get_config() -> dict:
     """Get config from environment."""
     return {
         "url": os.environ.get("SUPABASE_URL", ""),
-        "service_key": (
-            os.environ.get("SUPABASE_SERVICE_KEY")
-            or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
-        ),
+        "service_key": (os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")),
         "openai_api_key": os.environ.get("OPENAI_API_KEY", ""),
         "openai_base_url": os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1"),
     }
@@ -107,8 +102,10 @@ def _supabase_rpc(function_name: str, params: dict, timeout=15):
 # REM CYCLE STEPS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class REMCycleStats:
     """Track consolidation statistics."""
+
     def __init__(self):
         self.memories_processed = 0
         self.memories_decayed = 0
@@ -240,11 +237,14 @@ def step_3_deduplicate(stats: REMCycleStats):
     print("  [3/7] Deduplicating memories...")
     # This step requires embeddings comparison — use RPC if available
     # For now, use content_hash dedup (exact matches)
-    
-    result = _supabase_rpc("deduplicate_sovereign_memories", {
-        "similarity_threshold": DEDUP_SIMILARITY_THRESHOLD,
-    })
-    
+
+    result = _supabase_rpc(
+        "deduplicate_sovereign_memories",
+        {
+            "similarity_threshold": DEDUP_SIMILARITY_THRESHOLD,
+        },
+    )
+
     if isinstance(result, list):
         stats.duplicates_merged = len(result)
         print(f"    Merged {len(result)} duplicates")
@@ -385,17 +385,18 @@ def step_7_log(stats: REMCycleStats, duration_ms: int):
         },
         extra_headers={"Prefer": "return=minimal"},
     )
-    print(f"    Logged to sovereign_consolidation_log")
+    print("    Logged to sovereign_consolidation_log")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # MAIN: RUN REM CYCLE
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def run_rem_cycle() -> dict:
     """
     Execute the full REM Cycle consolidation.
-    
+
     Returns stats dict with results.
     """
     print()

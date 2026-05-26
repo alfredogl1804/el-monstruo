@@ -25,6 +25,7 @@ NOTA: estos tests son los que validan finalmente el cierre del Sprint 85.
 Hasta que las credenciales estén verdes (Hilo Credenciales Ola 5+6),
 los unit tests + smoke tests por bloque son la garantía estructural.
 """
+
 from __future__ import annotations
 
 import os
@@ -56,6 +57,7 @@ def _missing_browser() -> bool:
     # soberano: requiere Sprint 84.6 cerrado
     try:
         from kernel.browser_automation import BrowserAutomation
+
         b = BrowserAutomation()
         # Si la implementación es solo stub, no podemos correr E2E
         return not hasattr(b, "_real_implementation")
@@ -77,7 +79,6 @@ class TestSprint85E2E:
     async def test_1_v2_landing_pintura_oleo(self):
         """Test 1 v2: Landing curso pintura óleo. Critic Score >= 80."""
         from kernel.embriones.product_architect import ProductArchitect
-        from kernel.embriones.critic_visual import CriticVisual
 
         prompt = (
             "Crea una landing page para Yuna, instructora de pintura al óleo "

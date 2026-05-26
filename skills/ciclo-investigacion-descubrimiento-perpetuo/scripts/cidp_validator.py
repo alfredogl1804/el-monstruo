@@ -9,7 +9,6 @@ Aplica protocolo anti-autoboicot obligatoriamente.
 
 import asyncio
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -25,23 +24,27 @@ async def extract_claims(responses: list) -> list:
     for resp in responses:
         claims = resp.get("claims", [])
         needs_validation = resp.get("needs_validation", [])
-        output = resp.get("output", "")
+        resp.get("output", "")
 
         for claim in claims:
-            all_claims.append({
-                "claim": claim,
-                "source_sabio": resp.get("sabio", "unknown"),
-                "task_id": resp.get("task_id", "unknown"),
-                "type": "explicit",
-            })
+            all_claims.append(
+                {
+                    "claim": claim,
+                    "source_sabio": resp.get("sabio", "unknown"),
+                    "task_id": resp.get("task_id", "unknown"),
+                    "type": "explicit",
+                }
+            )
 
         for item in needs_validation:
-            all_claims.append({
-                "claim": item,
-                "source_sabio": resp.get("sabio", "unknown"),
-                "task_id": resp.get("task_id", "unknown"),
-                "type": "needs_validation",
-            })
+            all_claims.append(
+                {
+                    "claim": item,
+                    "source_sabio": resp.get("sabio", "unknown"),
+                    "task_id": resp.get("task_id", "unknown"),
+                    "type": "needs_validation",
+                }
+            )
 
     return all_claims
 
@@ -53,7 +56,7 @@ async def verify_claim(claim: dict) -> dict:
     prompt = f"""Verifica esta afirmación en tiempo real (abril 2026):
 
 AFIRMACIÓN: {claim_text}
-FUENTE: {claim.get('source_sabio', 'unknown')}
+FUENTE: {claim.get("source_sabio", "unknown")}
 
 Responde con JSON:
 {{
@@ -74,7 +77,8 @@ Responde con JSON:
             result = json.loads(text)
         except json.JSONDecodeError:
             import re
-            match = re.search(r'\{[\s\S]*\}', text)
+
+            match = re.search(r"\{[\s\S]*\}", text)
             if match:
                 result = json.loads(match.group())
             else:
@@ -110,35 +114,38 @@ async def detect_contradictions(verified_claims: list, orchestrator_plan: dict) 
 
     # Check for claims that contradict each other
     for i, c1 in enumerate(verified_claims):
-        for c2 in verified_claims[i+1:]:
+        for c2 in verified_claims[i + 1 :]:
             if c1.get("verified") is True and c2.get("verified") is True:
                 # Both verified but from different sabios — check for conflict
                 if c1.get("source_sabio") != c2.get("source_sabio"):
                     # Simple heuristic: if corrections exist, there might be contradictions
                     if c1.get("correction") and c2.get("correction"):
-                        contradictions.append({
-                            "type": "inter_sabio",
-                            "claim_1": c1.get("claim", ""),
-                            "claim_2": c2.get("claim", ""),
-                            "sabio_1": c1.get("source_sabio", ""),
-                            "sabio_2": c2.get("source_sabio", ""),
-                        })
+                        contradictions.append(
+                            {
+                                "type": "inter_sabio",
+                                "claim_1": c1.get("claim", ""),
+                                "claim_2": c2.get("claim", ""),
+                                "sabio_1": c1.get("source_sabio", ""),
+                                "sabio_2": c2.get("source_sabio", ""),
+                            }
+                        )
 
     # Check for outdated claims (anti-autoboicot)
     for claim in verified_claims:
         if claim.get("freshness") == "outdated":
-            contradictions.append({
-                "type": "outdated",
-                "claim": claim.get("claim", ""),
-                "sabio": claim.get("source_sabio", ""),
-                "correction": claim.get("correction", ""),
-            })
+            contradictions.append(
+                {
+                    "type": "outdated",
+                    "claim": claim.get("claim", ""),
+                    "sabio": claim.get("source_sabio", ""),
+                    "correction": claim.get("correction", ""),
+                }
+            )
 
     return contradictions
 
 
-async def run_validator(swarm_responses: list, orchestrator_plan: dict,
-                        memory, output_dir: Path) -> dict:
+async def run_validator(swarm_responses: list, orchestrator_plan: dict, memory, output_dir: Path) -> dict:
     """Execute Stage 5: Reality Validation Loop."""
     # Step 1: Extract claims
     print("  Step 1: Extracting claims...")
@@ -154,17 +161,14 @@ async def run_validator(swarm_responses: list, orchestrator_plan: dict,
     # Modificado: si no hay suficientes "needs_validation", tomar más "explicit"
     needs_val = [c for c in claims if c.get("type") == "needs_validation"]
     explicit = [c for c in claims if c.get("type") == "explicit"]
-    
+
     priority_claims = needs_val[:15]
     remaining_slots = 25 - len(priority_claims)
     priority_claims.extend(explicit[:remaining_slots])
 
     for i in range(0, len(priority_claims), 3):
-        batch = priority_claims[i:i+3]
-        results = await asyncio.gather(
-            *[verify_claim(c) for c in batch],
-            return_exceptions=True
-        )
+        batch = priority_claims[i : i + 3]
+        results = await asyncio.gather(*[verify_claim(c) for c in batch], return_exceptions=True)
         for r in results:
             if isinstance(r, Exception):
                 verified.append({"verified": None, "error": str(r)})

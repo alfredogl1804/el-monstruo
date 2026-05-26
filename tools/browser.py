@@ -76,6 +76,7 @@ def _truncate(text: str, max_len: int = MAX_CONTENT_LENGTH) -> str:
 
 # ── Cloudflare Browser Run Backend ─────────────────────────────────────────
 
+
 async def _cf_request(action: str, payload: dict) -> dict:
     """Make a request to Cloudflare Browser Run Quick Actions API."""
     import httpx
@@ -93,6 +94,7 @@ async def _cf_request(action: str, payload: dict) -> dict:
         # /screenshot returns binary, everything else returns JSON
         if action == "screenshot":
             import base64
+
             return {
                 "success": True,
                 "result": base64.b64encode(response.content).decode("utf-8"),
@@ -152,6 +154,7 @@ async def _cf_links(url: str) -> list[dict]:
 
 # ── Fallback Backend (httpx + basic HTML parsing) ──────────────────────────
 
+
 async def _fallback_browse(url: str) -> str:
     """Basic HTTP GET with HTML-to-text extraction (no JS rendering)."""
     import httpx
@@ -190,6 +193,7 @@ async def _fallback_browse(url: str) -> str:
 
 
 # ── Public API ─────────────────────────────────────────────────────────────
+
 
 async def browse_web(
     url: str,

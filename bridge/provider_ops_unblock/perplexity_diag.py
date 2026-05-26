@@ -1,9 +1,12 @@
 """
 Diagnóstico aislado para Perplexity API (403 Forbidden).
 """
-import os
-import requests
+
 import json
+import os
+
+import requests
+
 
 def test_perplexity():
     api_key = os.environ.get("SONAR_API_KEY")
@@ -12,21 +15,17 @@ def test_perplexity():
         return
 
     url = "https://api.perplexity.ai/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-    }
-    
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json", "Accept": "application/json"}
+
     payload = {
         "model": "sonar-pro",
         "messages": [
             {"role": "system", "content": "Be precise and concise."},
-            {"role": "user", "content": "What is the capital of France?"}
+            {"role": "user", "content": "What is the capital of France?"},
         ],
-        "max_tokens": 50
+        "max_tokens": 50,
     }
-    
+
     print(f"Testing Perplexity API at {url}...")
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=10)
@@ -39,6 +38,7 @@ def test_perplexity():
             print(response.text)
     except Exception as e:
         print(f"Exception during request: {e}")
+
 
 if __name__ == "__main__":
     test_perplexity()

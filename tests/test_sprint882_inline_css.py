@@ -10,33 +10,37 @@ Fix Sprint 88.2: incluir el CSS inline dentro del <head><style>...</style></head
 del index.html. Eso elimina la dependencia de fetch externo. style.css se sigue
 generando como archivo separado por SEO/cache/inspección.
 """
+
 from __future__ import annotations
 
 import re
 
 from kernel.e2e.deploy.real_deploy import render_landing_html
 
-
 STATE_BASE = {
     "frase_input": "Test Sprint 88.2",
-    "creativo": {"output_payload": {
-        "colores_primarios": ["#7B5B3A", "#D9C8B2", "#F2E1D2"],
-        "tono": "calido",
-        "voice_attributes": ["premium"],
-        "elevator_pitch": "test pitch",
-    }},
-    "ventas": {"output_payload": {
-        "propuesta_valor": {
-            "statement": "Statement test premium",
-            "diferenciador": "Diferenciador test",
-            "beneficios": ["B1", "B2"],
-        },
-        "icp_refinado": {"perfil": "test"},
-        "pricing_tentativo": {"modelo": "test"},
-        "canales_adquisicion": [{"nombre": "Instagram", "razon": "test"}],
-        "primer_funnel": {},
-        "metricas_clave": ["m1"],
-    }},
+    "creativo": {
+        "output_payload": {
+            "colores_primarios": ["#7B5B3A", "#D9C8B2", "#F2E1D2"],
+            "tono": "calido",
+            "voice_attributes": ["premium"],
+            "elevator_pitch": "test pitch",
+        }
+    },
+    "ventas": {
+        "output_payload": {
+            "propuesta_valor": {
+                "statement": "Statement test premium",
+                "diferenciador": "Diferenciador test",
+                "beneficios": ["B1", "B2"],
+            },
+            "icp_refinado": {"perfil": "test"},
+            "pricing_tentativo": {"modelo": "test"},
+            "canales_adquisicion": [{"nombre": "Instagram", "razon": "test"}],
+            "primer_funnel": {},
+            "metricas_clave": ["m1"],
+        }
+    },
     "architect": {"brief": {"nombre_proyecto": "TestProj"}},
 }
 
@@ -62,7 +66,7 @@ def test_index_html_no_contiene_link_stylesheet_externo():
     html = files["index.html"]
     # NO debe haber <link rel="stylesheet" href="style.css"> ya que el CSS está inline
     assert 'rel="stylesheet"' not in html, (
-        f"index.html NO debe tener <link rel=\"stylesheet\"> externo (CSS inline). "
+        f'index.html NO debe tener <link rel="stylesheet"> externo (CSS inline). '
         f"Encontrado fragmento: {[l for l in html.split(chr(10)) if 'stylesheet' in l]}"
     )
 
@@ -92,6 +96,4 @@ def test_placeholder_no_quedo_en_html():
     """El placeholder __INLINE_STYLE_CSS__ debe haber sido reemplazado."""
     files = _render()
     html = files["index.html"]
-    assert "__INLINE_STYLE_CSS__" not in html, (
-        "Placeholder __INLINE_STYLE_CSS__ debe ser reemplazado por el CSS real"
-    )
+    assert "__INLINE_STYLE_CSS__" not in html, "Placeholder __INLINE_STYLE_CSS__ debe ser reemplazado por el CSS real"

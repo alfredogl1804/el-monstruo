@@ -8,20 +8,23 @@ v0.3: Memory Palace integration — reads Oracle's memory entries and writes its
 
 Invocation: python3 embryos/oracle_auditor/oracle_auditor_embryo.py --run-once
 """
+
+import argparse
+import datetime
+import glob
+import json
 import os
 import sys
-import json
+
 import yaml
-import time
-import datetime
-import argparse
-import glob
 
 # Resolve base paths
 EMBRYO_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(EMBRYO_DIR))
 BRIDGE_DIR = os.path.join(PROJECT_ROOT, "bridge")
-KS_PATH = os.path.join(BRIDGE_DIR, "reactor_vigilia_foundation", "reactor_heartbeat_r0", "scheduler", "scheduler_kill_switch.json")
+KS_PATH = os.path.join(
+    BRIDGE_DIR, "reactor_vigilia_foundation", "reactor_heartbeat_r0", "scheduler", "scheduler_kill_switch.json"
+)
 STATE_PATH = os.path.join(EMBRYO_DIR, "oracle_auditor_state.json")
 SELF_TASKS_PATH = os.path.join(EMBRYO_DIR, "oracle_auditor_self_tasks.yaml")
 CONTRACT_PATH = os.path.join(EMBRYO_DIR, "oracle_auditor_contract.yaml")
@@ -43,6 +46,7 @@ EMBRYO_ID = "oracle_auditor_embryo_r0"
 # STATE MANAGEMENT
 # ============================================================
 
+
 def load_state():
     with open(STATE_PATH, "r") as f:
         return json.load(f)
@@ -57,14 +61,19 @@ def save_state(state):
 # MEMORY PALACE INTEGRATION
 # ============================================================
 
+
 def load_memory():
     """Load Memory Palace. Returns None if unavailable (graceful degradation)."""
     try:
         from memory_palace import (
-            load_memory_palace, score_task_against_memory,
-            retrieve_lessons, retrieve_low_value_patterns,
-            append_memory_entry, export_memory_snapshot
+            append_memory_entry,
+            export_memory_snapshot,
+            load_memory_palace,
+            retrieve_lessons,
+            retrieve_low_value_patterns,
+            score_task_against_memory,
         )
+
         return {
             "available": True,
             "load": load_memory_palace,
@@ -72,7 +81,7 @@ def load_memory():
             "retrieve_lessons": retrieve_lessons,
             "retrieve_low_value": retrieve_low_value_patterns,
             "append": append_memory_entry,
-            "export_snapshot": export_memory_snapshot
+            "export_snapshot": export_memory_snapshot,
         }
     except ImportError:
         return {"available": False}
@@ -109,13 +118,14 @@ def build_auditor_memory_entry(task, oracle_path, grounding_score, grounding_ver
         "lessons": lessons,
         "avoid_next_time": avoid,
         "next_best_action": "CANDIDATE_READY_FOR_T1" if grounding_verdict == "PASS" else "REQUIRES_T1_REVIEW",
-        "status": "active"
+        "status": "active",
     }
 
 
 # ============================================================
 # SELF TASK QUEUE
 # ============================================================
+
 
 def load_self_tasks():
     with open(SELF_TASKS_PATH, "r") as f:
@@ -133,19 +143,20 @@ def choose_next_task(tasks, state, memory=None):
     scored = []
     last_task = state.get("last_task_executed")
     memory_influenced = False
-    directive_influenced = False
-    conflict_resolved = False
 
     # Load T1 Directives for this embryo with conflict resolution (graceful degradation)
     active_directives = []
     chosen_directives = []
     try:
         sys.path.insert(0, os.path.join(BRIDGE_DIR, "state_fabric"))
-        from t1_directive_resolver import resolve_directives_for_embryo, apply_directive_to_task_scores
         from t1_directive_conflict_resolver import (
-            detect_conflict, resolve_by_priority,
-            validate_directive_does_not_authorize, validate_directive_does_not_change_provider_allowlist
+            detect_conflict,
+            resolve_by_priority,
+            validate_directive_does_not_authorize,
+            validate_directive_does_not_change_provider_allowlist,
         )
+        from t1_directive_resolver import apply_directive_to_task_scores, resolve_directives_for_embryo
+
         active_directives = resolve_directives_for_embryo(EMBRYO_ID)
 
         # Multi-Directive Conflict Resolution (v0.5)
@@ -153,7 +164,6 @@ def choose_next_task(tasks, state, memory=None):
             has_conflict, _ = detect_conflict(active_directives)
             if has_conflict:
                 chosen_directives, _, _ = resolve_by_priority(active_directives)
-                conflict_resolved = True
             else:
                 chosen_directives = active_directives
         else:
@@ -173,7 +183,9 @@ def choose_next_task(tasks, state, memory=None):
     directive_modifiers = {}
     if chosen_directives:
         try:
-            task_inputs = [{"task_id": t["task_id"], "purpose": t.get("purpose", t.get("description", ""))} for t in tasks]
+            task_inputs = [
+                {"task_id": t["task_id"], "purpose": t.get("purpose", t.get("description", ""))} for t in tasks
+            ]
             mods = apply_directive_to_task_scores(task_inputs, chosen_directives)
             for m in mods:
                 directive_modifiers[m["task_id"]] = m["score_modifier"]
@@ -216,7 +228,6 @@ def choose_next_task(tasks, state, memory=None):
         d_mod = directive_modifiers.get(task["task_id"], 0)
         if d_mod != 0:
             score += d_mod
-            directive_influenced = True
 
         scored.append((score, task))
 
@@ -248,6 +259,7 @@ def get_latest_oracle_output():
 # DISPATCHER INTEGRATION
 # ============================================================
 
+
 def request_dispatcher_permission(task, contract):
     """Real Dispatcher check: verify action_class is in allowed list."""
     action_class = task.get("action_class", "UNKNOWN")
@@ -264,6 +276,7 @@ def request_dispatcher_permission(task, contract):
 # ============================================================
 # GROUNDING ENFORCEMENT v0.2
 # ============================================================
+
 
 def enforce_grounding(oracle_output_data, contract):
     """
@@ -303,20 +316,35 @@ def enforce_grounding(oracle_output_data, contract):
 
     # 2. evidence_status_accuracy
     if claims:
-        valid_statuses = {"VERIFIED_LOCAL", "VERIFIED_PROVIDER", "NEEDS_REAL_TIME_CHECK", "NO_SOURCE", "HYPOTHESIS", "CANDIDATE_ONLY"}
+        valid_statuses = {
+            "VERIFIED_LOCAL",
+            "VERIFIED_PROVIDER",
+            "NEEDS_REAL_TIME_CHECK",
+            "NO_SOURCE",
+            "HYPOTHESIS",
+            "CANDIDATE_ONLY",
+        }
         valid_count = sum(1 for c in claims if c.get("evidence_status") in valid_statuses)
         dimension_scores["evidence_status_accuracy"] = round((valid_count / len(claims)) * 10, 1)
         missing_es = len(claims) - valid_count
         if missing_es > 0:
-            penalties.append(("no_evidence_status", enforcement.get("penalties", {}).get("no_evidence_status", -2.0) * missing_es))
+            penalties.append(
+                ("no_evidence_status", enforcement.get("penalties", {}).get("no_evidence_status", -2.0) * missing_es)
+            )
     else:
         dimension_scores["evidence_status_accuracy"] = 0
 
     # 3. no_source_prohibition
     if claims:
-        violations = [c for c in claims if c.get("evidence_status") in ("NO_SOURCE", "HYPOTHESIS") and c.get("confidence", 0) > 0.8]
+        violations = [
+            c
+            for c in claims
+            if c.get("evidence_status") in ("NO_SOURCE", "HYPOTHESIS") and c.get("confidence", 0) > 0.8
+        ]
         if violations:
-            penalties.append(("no_source_as_fact", enforcement.get("penalties", {}).get("no_source_as_fact", -5.0) * len(violations)))
+            penalties.append(
+                ("no_source_as_fact", enforcement.get("penalties", {}).get("no_source_as_fact", -5.0) * len(violations))
+            )
             dimension_scores["no_source_prohibition"] = max(0, 10 - len(violations) * 3)
         else:
             dimension_scores["no_source_prohibition"] = 10
@@ -325,15 +353,36 @@ def enforce_grounding(oracle_output_data, contract):
 
     # 4. freshness_marking
     if claims:
-        date_indicators = ["release", "date", "price", "endpoint", "available", "launched", "2025", "2026", "v1", "v2", "api"]
+        date_indicators = [
+            "release",
+            "date",
+            "price",
+            "endpoint",
+            "available",
+            "launched",
+            "2025",
+            "2026",
+            "v1",
+            "v2",
+            "api",
+        ]
         time_sensitive = [c for c in claims if any(ind in c.get("claim_text", "").lower() for ind in date_indicators)]
-        correctly_marked = [c for c in time_sensitive if c.get("evidence_status") == "NEEDS_REAL_TIME_CHECK" or c.get("freshness_required", False)]
+        correctly_marked = [
+            c
+            for c in time_sensitive
+            if c.get("evidence_status") == "NEEDS_REAL_TIME_CHECK" or c.get("freshness_required", False)
+        ]
         if time_sensitive:
             ratio = len(correctly_marked) / len(time_sensitive)
             dimension_scores["freshness_marking"] = round(ratio * 10, 1)
             unmarked = len(time_sensitive) - len(correctly_marked)
             if unmarked > 0:
-                penalties.append(("missing_freshness_on_date", enforcement.get("penalties", {}).get("missing_freshness_on_date", -2.0) * unmarked))
+                penalties.append(
+                    (
+                        "missing_freshness_on_date",
+                        enforcement.get("penalties", {}).get("missing_freshness_on_date", -2.0) * unmarked,
+                    )
+                )
         else:
             dimension_scores["freshness_marking"] = 10
     else:
@@ -372,6 +421,7 @@ def enforce_grounding(oracle_output_data, contract):
 # TASK EXECUTION
 # ============================================================
 
+
 def execute_task(task, contract, oracle_output_path, oracle_output_data):
     """Execute an audit task using one provider."""
     providers = contract.get("providers_allowed", [])
@@ -383,34 +433,48 @@ def execute_task(task, contract, oracle_output_path, oracle_output_data):
     model = provider["model"]
 
     # First: run grounding enforcement locally (no API needed)
-    grounding_score, grounding_penalties, grounding_verdict, grounding_details = enforce_grounding(oracle_output_data, contract)
+    grounding_score, grounding_penalties, grounding_verdict, grounding_details = enforce_grounding(
+        oracle_output_data, contract
+    )
 
     prompt = _build_audit_prompt(task, oracle_output_path, oracle_output_data, grounding_details)
 
     try:
         if provider_name == "openai":
             from openai import OpenAI
+
             base = os.environ.get("OPENAI_API_BASE") or None
-            client = OpenAI(api_key=os.environ["OPENAI_API_KEY"]) if not base else OpenAI(api_key=os.environ["OPENAI_API_KEY"], base_url=base)
-            r = client.chat.completions.create(model=model, messages=[{"role": "user", "content": prompt}], max_tokens=800)
+            client = (
+                OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+                if not base
+                else OpenAI(api_key=os.environ["OPENAI_API_KEY"], base_url=base)
+            )
+            r = client.chat.completions.create(
+                model=model, messages=[{"role": "user", "content": prompt}], max_tokens=800
+            )
             text = r.choices[0].message.content
             cost = (r.usage.prompt_tokens * 0.15 + r.usage.completion_tokens * 0.6) / 1_000_000
         elif provider_name == "anthropic":
             import anthropic
+
             client = anthropic.Anthropic()
             r = client.messages.create(model=model, max_tokens=800, messages=[{"role": "user", "content": prompt}])
             text = r.content[0].text
             cost = (r.usage.input_tokens * 3 + r.usage.output_tokens * 15) / 1_000_000
         elif provider_name == "google":
             from google import genai
+
             client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
             r = client.models.generate_content(model=model, contents=prompt)
             text = r.text
             cost = 0.0005
         elif provider_name == "xai":
             from openai import OpenAI as XAI
+
             client = XAI(api_key=os.environ["XAI_API_KEY"], base_url="https://api.x.ai/v1")
-            r = client.chat.completions.create(model=model, messages=[{"role": "user", "content": prompt}], max_tokens=800)
+            r = client.chat.completions.create(
+                model=model, messages=[{"role": "user", "content": prompt}], max_tokens=800
+            )
             text = r.choices[0].message.content
             cost = (r.usage.prompt_tokens * 0.3 + r.usage.completion_tokens * 0.5) / 1_000_000
         else:
@@ -432,8 +496,8 @@ def execute_task(task, contract, oracle_output_path, oracle_output_data):
             "grounding_enforcement": {
                 "score": grounding_score,
                 "verdict": grounding_verdict,
-                "details": grounding_details
-            }
+                "details": grounding_details,
+            },
         }
         return True, output, cost
 
@@ -458,14 +522,14 @@ def _build_audit_prompt(task, oracle_output_path, oracle_output_data, grounding_
             f"3. scope_compliance: Does it stay within R0 boundaries?\n"
             f"4. factual_grounding: Are claims properly marked with evidence_status?\n"
             f"5. actionability: Can T1 act on this immediately?\n\n"
-            f"Respond in JSON: {{\"verdict\": \"PASS|PARTIAL|FAIL\", \"scores\": {{...}}, \"grounding_agreement\": true|false, \"flags\": [...], \"recommendation\": \"...\"}}"
+            f'Respond in JSON: {{"verdict": "PASS|PARTIAL|FAIL", "scores": {{...}}, "grounding_agreement": true|false, "flags": [...], "recommendation": "..."}}'
         ),
         "score_oracle_sprint_candidate": (
             f"You are the Oracle Auditor Embryo R0 v0.3. Task: score a sprint candidate.\n\n"
             f"Oracle output:\n```json\n{oracle_content}\n```\n\n"
             f"Grounding enforcement:\n```json\n{grounding_context}\n```\n\n"
             f"Score on: value (1-10), risk (1-10), feasibility (1-10), R0_compliance (YES/NO), grounding (1-10).\n"
-            f"Respond in JSON: {{\"verdict\": \"PASS|PARTIAL|FAIL\", \"scores\": {{...}}, \"grounding_agreement\": true|false}}"
+            f'Respond in JSON: {{"verdict": "PASS|PARTIAL|FAIL", "scores": {{...}}, "grounding_agreement": true|false}}'
         ),
         "detect_oracle_hallucination": (
             f"You are the Oracle Auditor Embryo R0 v0.3. Task: detect hallucinations.\n\n"
@@ -473,20 +537,20 @@ def _build_audit_prompt(task, oracle_output_path, oracle_output_data, grounding_
             f"Grounding enforcement:\n```json\n{grounding_context}\n```\n\n"
             f"Check for: non-existent APIs, wrong model names, fabricated release dates, impossible integrations.\n"
             f"Pay special attention to claims marked NEEDS_REAL_TIME_CHECK — these are honest about uncertainty.\n"
-            f"Respond in JSON: {{\"hallucinations_found\": [...], \"confidence\": 0-1, \"verdict\": \"CLEAN|SUSPICIOUS|HALLUCINATED\", \"grounding_agreement\": true|false}}"
+            f'Respond in JSON: {{"hallucinations_found": [...], "confidence": 0-1, "verdict": "CLEAN|SUSPICIOUS|HALLUCINATED", "grounding_agreement": true|false}}'
         ),
         "verify_oracle_scope_compliance": (
             f"You are the Oracle Auditor Embryo R0 v0.3. Task: verify R0 scope compliance.\n\n"
             f"Oracle output:\n```json\n{oracle_content}\n```\n\n"
             f"Verify: no R1 proposals, no production deployments, no DB writes, no secret access.\n"
-            f"Respond in JSON: {{\"r0_compliant\": true|false, \"violations\": [...], \"verdict\": \"COMPLIANT|VIOLATION\"}}"
+            f'Respond in JSON: {{"r0_compliant": true|false, "violations": [...], "verdict": "COMPLIANT|VIOLATION"}}'
         ),
         "generate_audit_summary_for_t1": (
             f"You are the Oracle Auditor Embryo R0 v0.3. Task: generate audit summary for T1.\n\n"
             f"Oracle output:\n```json\n{oracle_content}\n```\n\n"
             f"Grounding enforcement:\n```json\n{grounding_context}\n```\n\n"
             f"Produce: overall verdict, grounding score, risk flags, recommended action.\n"
-            f"Respond in JSON: {{\"overall_verdict\": \"PASS|PARTIAL|FAIL\", \"grounding_score\": X, \"risk_flags\": [...], \"recommended_action\": \"...\"}}"
+            f'Respond in JSON: {{"overall_verdict": "PASS|PARTIAL|FAIL", "grounding_score": X, "risk_flags": [...], "recommended_action": "..."}}'
         ),
     }
     return prompts.get(task["task_id"], f"Audit this oracle output with grounding enforcement: {oracle_content}")
@@ -496,6 +560,7 @@ def _build_audit_prompt(task, oracle_output_path, oracle_output_data, grounding_
 # EVENT LOG
 # ============================================================
 
+
 def write_event(event_type, payload):
     """Append event to the auditor's event log."""
     os.makedirs(os.path.dirname(EVENT_LOG_PATH), exist_ok=True)
@@ -503,7 +568,7 @@ def write_event(event_type, payload):
         "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
         "embryo_id": EMBRYO_ID,
         "event_type": event_type,
-        "payload": payload
+        "payload": payload,
     }
     with open(EVENT_LOG_PATH, "a") as f:
         f.write(json.dumps(event) + "\n")
@@ -513,6 +578,7 @@ def write_event(event_type, payload):
 # ============================================================
 # OUTPUT PRODUCTION
 # ============================================================
+
 
 def produce_audit_report(task, output_data, dispatcher_decision, cost):
     """Save the audit output as a report artifact."""
@@ -529,7 +595,7 @@ def produce_audit_report(task, output_data, dispatcher_decision, cost):
         "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
         "cost_usd": cost,
         "audit_output": output_data,
-        "grounding_enforcement": output_data.get("grounding_enforcement", {})
+        "grounding_enforcement": output_data.get("grounding_enforcement", {}),
     }
 
     with open(filepath, "w") as f:
@@ -541,6 +607,7 @@ def produce_audit_report(task, output_data, dispatcher_decision, cost):
 # ============================================================
 # KILL SWITCH
 # ============================================================
+
 
 def check_kill_switch():
     """Returns True if kill-switch is active (should abort)."""
@@ -555,13 +622,14 @@ def check_kill_switch():
 # RUN ONCE — THE AUTONOMOUS AUDIT LOOP (v0.3 Memory-Guided)
 # ============================================================
 
+
 def run_once():
     """
     Single autonomous audit cycle with Memory Palace integration.
     """
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"AUDITOR: {EMBRYO_ID} — run_once() [v0.3 Memory-Guided]")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     # 1. Kill-switch
     if check_kill_switch():
@@ -613,14 +681,19 @@ def run_once():
     print(f"  Auditing: {os.path.basename(oracle_path)}")
 
     # 8. Run local grounding enforcement FIRST
-    grounding_score, grounding_penalties, grounding_verdict, grounding_details = enforce_grounding(oracle_data, contract)
+    grounding_score, grounding_penalties, grounding_verdict, grounding_details = enforce_grounding(
+        oracle_data, contract
+    )
     print(f"  Grounding Enforcement: {grounding_verdict} (score: {grounding_score}/10)")
-    write_event("GROUNDING_ENFORCEMENT", {
-        "oracle_target": oracle_path,
-        "score": grounding_score,
-        "verdict": grounding_verdict,
-        "penalties": len(grounding_penalties)
-    })
+    write_event(
+        "GROUNDING_ENFORCEMENT",
+        {
+            "oracle_target": oracle_path,
+            "score": grounding_score,
+            "verdict": grounding_verdict,
+            "penalties": len(grounding_penalties),
+        },
+    )
 
     # 9. Request Dispatcher permission
     write_event("DISPATCHER_REQUEST", {"task_id": chosen_task["task_id"], "action_class": chosen_task["action_class"]})
@@ -637,12 +710,17 @@ def run_once():
         return {"verdict": "DENIED", "task": chosen_task["task_id"], "reason": reason}
 
     # 11. Execute audit (with grounding context)
-    write_event("AUDITOR_TASK_STARTED", {"task_id": chosen_task["task_id"], "target": oracle_path, "memory_influenced": memory_influenced})
-    print(f"  Executing audit...")
+    write_event(
+        "AUDITOR_TASK_STARTED",
+        {"task_id": chosen_task["task_id"], "target": oracle_path, "memory_influenced": memory_influenced},
+    )
+    print("  Executing audit...")
     success, output_data, cost = execute_task(chosen_task, contract, oracle_path, oracle_data)
 
     if not success:
-        write_event("AUDITOR_TASK_FAILED", {"task_id": chosen_task["task_id"], "error": output_data.get("error", "unknown")})
+        write_event(
+            "AUDITOR_TASK_FAILED", {"task_id": chosen_task["task_id"], "error": output_data.get("error", "unknown")}
+        )
         state["consecutive_failures"] = state.get("consecutive_failures", 0) + 1
         state["last_task_executed"] = chosen_task["task_id"]
         state["last_task_result"] = "FAILED"
@@ -669,7 +747,7 @@ def run_once():
         "cost": cost,
         "grounding_score": grounding_score,
         "grounding_verdict": grounding_verdict,
-        "memory_influenced": memory_influenced
+        "memory_influenced": memory_influenced,
     }
     state.setdefault("task_history", []).append(history_entry)
     save_state(state)
@@ -690,20 +768,23 @@ def run_once():
             print(f"  Memory Palace: append error ({str(e)[:50]})")
 
     # 15. Write completion event
-    write_event("AUDITOR_TASK_COMPLETED", {
-        "task_id": chosen_task["task_id"],
-        "cost_usd": cost,
-        "output_path": report_path,
-        "oracle_target": oracle_path,
-        "grounding_score": grounding_score,
-        "grounding_verdict": grounding_verdict,
-        "memory_influenced": memory_influenced,
-        "memory_appended": memory_appended
-    })
+    write_event(
+        "AUDITOR_TASK_COMPLETED",
+        {
+            "task_id": chosen_task["task_id"],
+            "cost_usd": cost,
+            "output_path": report_path,
+            "oracle_target": oracle_path,
+            "grounding_score": grounding_score,
+            "grounding_verdict": grounding_verdict,
+            "memory_influenced": memory_influenced,
+            "memory_appended": memory_appended,
+        },
+    )
 
     print(f"  [SUCCESS] Cost: ${cost:.6f}")
     print(f"  Grounding: {grounding_verdict} ({grounding_score}/10)")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     return {
         "verdict": "AUTONOMOUS_AUDIT_COMPLETE",
@@ -716,7 +797,7 @@ def run_once():
         "grounding_score": grounding_score,
         "grounding_verdict": grounding_verdict,
         "memory_influenced": memory_influenced,
-        "memory_appended": memory_appended
+        "memory_appended": memory_appended,
     }
 
 

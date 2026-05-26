@@ -18,6 +18,7 @@ Capa Memento:
 
 [Hilo Manus Memento — Ejecutor] · Sprint 87.1 Bloque 2 · 2026-05-05
 """
+
 from __future__ import annotations
 
 import logging
@@ -25,8 +26,7 @@ import os
 from datetime import datetime, timezone
 from typing import Optional
 
-from pydantic import BaseModel, Field, ConfigDict
-
+from pydantic import BaseModel, ConfigDict, Field
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 # ERRORES CON IDENTIDAD DE MARCA (Brand DNA)
 # ============================================================================
+
 
 class EMBRION_VENTAS_LLM_INVALIDO(ValueError):
     """El LLM retornó output que no satisface el schema EmbrionVentasReport.
@@ -45,6 +46,7 @@ class EMBRION_VENTAS_LLM_INVALIDO(ValueError):
 # ============================================================================
 # DOMAIN MODELS — STRUCTURED OUTPUT SCHEMA (39va semilla)
 # ============================================================================
+
 
 class PropuestaValor(BaseModel):
     """Propuesta de valor sintetizada del producto."""
@@ -167,9 +169,7 @@ class EmbrionVentasReport(BaseModel):
 # EMBRIÓN VENTAS
 # ============================================================================
 
-_VALID_PRICING_MODELOS = {
-    "one-time", "subscription", "freemium", "usage-based", "enterprise"
-}
+_VALID_PRICING_MODELOS = {"one-time", "subscription", "freemium", "usage-based", "enterprise"}
 
 
 class EmbrionVentas:
@@ -230,9 +230,7 @@ class EmbrionVentas:
         try:
             from openai import OpenAI
         except ImportError as exc:  # pragma: no cover
-            raise EMBRION_VENTAS_LLM_INVALIDO(
-                f"openai SDK no instalado: {exc}"
-            ) from exc
+            raise EMBRION_VENTAS_LLM_INVALIDO(f"openai SDK no instalado: {exc}") from exc
 
         client = OpenAI()
         prompt = self._build_prompt(frase_input, brief)
@@ -256,9 +254,7 @@ class EmbrionVentas:
         )
         parsed = response.choices[0].message.parsed
         if parsed is None:
-            raise EMBRION_VENTAS_LLM_INVALIDO(
-                "LLM devolvió None en structured parse"
-            )
+            raise EMBRION_VENTAS_LLM_INVALIDO("LLM devolvió None en structured parse")
         # Validar pricing modelo contra vocabulario controlado
         if parsed.pricing_tentativo.modelo not in _VALID_PRICING_MODELOS:
             logger.warning(
@@ -289,20 +285,11 @@ class EmbrionVentas:
                 f"productos artesanales o premium. {audiencia_brief}"
             ).strip()
         elif "tienda" in frase_lower or "ecommerce" in frase_lower or "vender" in frase_lower:
-            icp = (
-                f"Consumidores online que buscan {propuesta_valor_brief}. "
-                f"{audiencia_brief}"
-            ).strip()
+            icp = (f"Consumidores online que buscan {propuesta_valor_brief}. {audiencia_brief}").strip()
         elif "app" in frase_lower or "móvil" in frase_lower or "movil" in frase_lower:
-            icp = (
-                f"Usuarios móviles que buscan {propuesta_valor_brief}. "
-                f"{audiencia_brief}"
-            ).strip()
+            icp = (f"Usuarios móviles que buscan {propuesta_valor_brief}. {audiencia_brief}").strip()
         else:
-            icp = (
-                f"Audiencia objetivo derivada de la frase: {propuesta_valor_brief}. "
-                f"{audiencia_brief}"
-            ).strip()
+            icp = (f"Audiencia objetivo derivada de la frase: {propuesta_valor_brief}. {audiencia_brief}").strip()
 
         # ── Propuesta de valor heurística ──────────────────────────────────
         beneficios = [
@@ -316,10 +303,9 @@ class EmbrionVentas:
             beneficios[2] = "Origen yucateco autentico con denominación de identidad"
 
         propuesta = PropuestaValor(
-            statement=(
-                f"Solución diseñada para {icp.split('.')[0]}, "
-                f"diferenciada por calidad y experiencia premium."
-            )[:300],
+            statement=(f"Solución diseñada para {icp.split('.')[0]}, diferenciada por calidad y experiencia premium.")[
+                :300
+            ],
             beneficios=beneficios,
             diferenciador=(
                 "Calidad artesanal verificable + branding premium + storytelling auténtico."
@@ -344,27 +330,21 @@ class EmbrionVentas:
                 modelo="subscription",
                 rango_min=29.0,
                 rango_max=199.0,
-                razonamiento=(
-                    "Heurístico: producto SaaS → modelo de suscripción mensual estándar."
-                ),
+                razonamiento=("Heurístico: producto SaaS → modelo de suscripción mensual estándar."),
             )
         elif "freemium" in frase_lower or "gratis" in frase_lower:
             pricing = PricingTentativo(
                 modelo="freemium",
                 rango_min=0.0,
                 rango_max=49.0,
-                razonamiento=(
-                    "Heurístico: producto con tier gratuito → freemium con upsell."
-                ),
+                razonamiento=("Heurístico: producto con tier gratuito → freemium con upsell."),
             )
         else:
             pricing = PricingTentativo(
                 modelo="one-time",
                 rango_min=49.0,
                 rango_max=199.0,
-                razonamiento=(
-                    "Heurístico default: pricing one-time mid-market."
-                ),
+                razonamiento=("Heurístico default: pricing one-time mid-market."),
             )
 
         # ── Canales heurísticos ────────────────────────────────────────────
@@ -384,16 +364,14 @@ class EmbrionVentas:
                 CanalAdquisicion(
                     canal="Pinterest Ads",
                     cac_usd_estimado=12.0,
-                    razonamiento="Audiencia compradora premium con alta intención visual."
+                    razonamiento="Audiencia compradora premium con alta intención visual.",
                 )
             )
             canales.append(
                 CanalAdquisicion(
                     canal="Galerías/showrooms locales (B2B)",
                     cac_usd_estimado=25.0,
-                    razonamiento=(
-                        "Distribución física en galerías permite acceso a coleccionistas."
-                    ),
+                    razonamiento=("Distribución física en galerías permite acceso a coleccionistas."),
                 )
             )
         elif "tienda" in frase_lower or "ecommerce" in frase_lower:

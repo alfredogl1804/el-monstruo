@@ -29,18 +29,17 @@ MULTI-AGENT:
     Cualquier IA (ChatGPT, Claude, Gemini, Grok, Manus, Cowork)
     se identifica con agent_id y puede leer/escribir/cristalizar.
 """
+
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import json
 import logging
 import os
-import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Optional
+from typing import Optional
 from uuid import uuid4
 
 logger = logging.getLogger("sms_v2")
@@ -49,25 +48,29 @@ logger = logging.getLogger("sms_v2")
 # DOMAIN MODELS
 # ═══════════════════════════════════════════════════════════════
 
+
 class MemoryTier(str, Enum):
     """5 tiers biológicos de memoria."""
-    BUFFER = "buffer"           # TTL: 1 sesión, raw inputs
-    WORKING = "working"         # Context window activo
-    LONG_TERM = "long_term"     # Episódica + semántica + causal
-    SOVEREIGN = "sovereign"     # Axiomas cristalizados (NUNCA se pierden)
-    META = "meta"               # Metacognición: lo que el sistema sabe que NO sabe
+
+    BUFFER = "buffer"  # TTL: 1 sesión, raw inputs
+    WORKING = "working"  # Context window activo
+    LONG_TERM = "long_term"  # Episódica + semántica + causal
+    SOVEREIGN = "sovereign"  # Axiomas cristalizados (NUNCA se pierden)
+    META = "meta"  # Metacognición: lo que el sistema sabe que NO sabe
 
 
 class AxiomSource(str, Enum):
     """Quién cristalizó el axioma."""
-    HUMAN_T1 = "human_t1"           # Alfredo declaró directamente
+
+    HUMAN_T1 = "human_t1"  # Alfredo declaró directamente
     MULTI_AGENT_CONSENSUS = "consensus"  # 3+ agentes convergieron
-    EMPIRICAL = "empirical"          # Validado por evidencia repetida
-    SYSTEM = "system"                # Regla dura del sistema
+    EMPIRICAL = "empirical"  # Validado por evidencia repetida
+    SYSTEM = "system"  # Regla dura del sistema
 
 
 class ConflictResolution(str, Enum):
     """Estrategias de resolución de conflictos."""
+
     NEWEST_WINS = "newest_wins"
     HIGHEST_CONFIDENCE = "highest_confidence"
     HUMAN_ARBITRATION = "human_arbitration"
@@ -77,14 +80,15 @@ class ConflictResolution(str, Enum):
 @dataclass
 class Axiom:
     """Entendimiento cristalizado — inmutable, sobrevive todo."""
+
     id: str = field(default_factory=lambda: f"AX-{uuid4().hex[:8]}")
     content: str = ""
     source: AxiomSource = AxiomSource.EMPIRICAL
-    created_by: str = ""           # agent_id que lo cristalizó
+    created_by: str = ""  # agent_id que lo cristalizó
     validated_by: list[str] = field(default_factory=list)  # agent_ids que confirmaron
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     confidence: float = 1.0
-    domain: str = "general"        # dominio temático
+    domain: str = "general"  # dominio temático
     supersedes: Optional[str] = None  # axiom_id que reemplaza
     immutable: bool = True
     access_count: int = 0
@@ -92,11 +96,17 @@ class Axiom:
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id, "content": self.content, "source": self.source.value,
-            "created_by": self.created_by, "validated_by": self.validated_by,
-            "created_at": self.created_at, "confidence": self.confidence,
-            "domain": self.domain, "supersedes": self.supersedes,
-            "immutable": self.immutable, "access_count": self.access_count,
+            "id": self.id,
+            "content": self.content,
+            "source": self.source.value,
+            "created_by": self.created_by,
+            "validated_by": self.validated_by,
+            "created_at": self.created_at,
+            "confidence": self.confidence,
+            "domain": self.domain,
+            "supersedes": self.supersedes,
+            "immutable": self.immutable,
+            "access_count": self.access_count,
             "last_accessed": self.last_accessed,
         }
 
@@ -104,12 +114,13 @@ class Axiom:
 @dataclass
 class MetacognitiveGap:
     """Algo que el sistema sabe que NO sabe."""
+
     id: str = field(default_factory=lambda: f"GAP-{uuid4().hex[:8]}")
     description: str = ""
-    detected_by: str = ""          # agent_id
+    detected_by: str = ""  # agent_id
     detected_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     domain: str = "general"
-    severity: str = "medium"       # low, medium, high, critical
+    severity: str = "medium"  # low, medium, high, critical
     resolution_strategy: str = ""  # qué hacer para cerrar el gap
     resolved: bool = False
     resolved_at: Optional[str] = None
@@ -119,9 +130,10 @@ class MetacognitiveGap:
 @dataclass
 class ConflictRecord:
     """Registro de un conflicto entre backends o agentes."""
+
     id: str = field(default_factory=lambda: f"CONF-{uuid4().hex[:8]}")
     claim_a: str = ""
-    source_a: str = ""             # backend o agent_id
+    source_a: str = ""  # backend o agent_id
     claim_b: str = ""
     source_b: str = ""
     detected_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
@@ -133,6 +145,7 @@ class ConflictRecord:
 # ═══════════════════════════════════════════════════════════════
 # BACKEND ADAPTERS (delegates to existing production systems)
 # ═══════════════════════════════════════════════════════════════
+
 
 class BackendAdapter:
     """
@@ -168,7 +181,8 @@ class BackendAdapter:
 
         # Mem0
         try:
-            from memory.mem0_bridge import add_memory, search_memory, get_stats
+            from memory.mem0_bridge import add_memory, get_stats, search_memory
+
             _check = await get_stats()
             self._mem0 = {"add": add_memory, "search": search_memory}
             status["mem0"] = _check.get("status") == "active"
@@ -178,7 +192,9 @@ class BackendAdapter:
 
         # LightRAG
         try:
-            from memory.lightrag_bridge import query_knowledge, ingest_document, get_stats as lr_stats
+            from memory.lightrag_bridge import get_stats as lr_stats
+            from memory.lightrag_bridge import ingest_document, query_knowledge
+
             _check = await lr_stats()
             self._lightrag = {"query": query_knowledge, "ingest": ingest_document}
             status["lightrag"] = _check.get("status") == "active"
@@ -188,7 +204,8 @@ class BackendAdapter:
 
         # MemPalace
         try:
-            from memory.mempalace_bridge import recall, store_episode, _ensure_initialized
+            from memory.mempalace_bridge import _ensure_initialized, recall, store_episode
+
             if _ensure_initialized():
                 self._mempalace = {"recall": recall, "store": store_episode}
                 status["mempalace"] = True
@@ -201,6 +218,7 @@ class BackendAdapter:
         # Thoughts Store
         try:
             from memory.thoughts import ThoughtsStore
+
             self._thoughts = ThoughtsStore()
             status["thoughts"] = True
         except Exception as e:
@@ -209,16 +227,14 @@ class BackendAdapter:
 
         # Error Memory
         try:
-            from kernel.error_memory import ErrorMemory
             status["error_memory"] = True
-        except Exception as e:
+        except Exception:
             status["error_memory"] = False
 
         # Memento Validator
         try:
-            from kernel.memento.validator import MementoValidator
             status["memento"] = True
-        except Exception as e:
+        except Exception:
             status["memento"] = False
 
         self._initialized = True
@@ -232,13 +248,15 @@ class BackendAdapter:
         if self._mem0:
             try:
                 mem0_results = await self._mem0["search"](query, user_id=agent_id, limit=limit)
-                for r in (mem0_results or []):
-                    results.append({
-                        "source": "mem0",
-                        "content": r.get("memory", r.get("content", "")),
-                        "score": r.get("score", 0.5),
-                        "metadata": r.get("metadata", {}),
-                    })
+                for r in mem0_results or []:
+                    results.append(
+                        {
+                            "source": "mem0",
+                            "content": r.get("memory", r.get("content", "")),
+                            "score": r.get("score", 0.5),
+                            "metadata": r.get("metadata", {}),
+                        }
+                    )
             except Exception as e:
                 logger.warning(f"Mem0 search failed: {e}")
 
@@ -247,12 +265,16 @@ class BackendAdapter:
             try:
                 lr_result = await self._lightrag["query"](query, mode="hybrid", top_k=limit)
                 if lr_result and lr_result.get("results"):
-                    results.append({
-                        "source": "lightrag",
-                        "content": lr_result["results"] if isinstance(lr_result["results"], str) else str(lr_result["results"]),
-                        "score": 0.8,
-                        "metadata": {"mode": lr_result.get("mode", "hybrid")},
-                    })
+                    results.append(
+                        {
+                            "source": "lightrag",
+                            "content": lr_result["results"]
+                            if isinstance(lr_result["results"], str)
+                            else str(lr_result["results"]),
+                            "score": 0.8,
+                            "metadata": {"mode": lr_result.get("mode", "hybrid")},
+                        }
+                    )
             except Exception as e:
                 logger.warning(f"LightRAG search failed: {e}")
 
@@ -260,13 +282,15 @@ class BackendAdapter:
         if self._mempalace:
             try:
                 mp_results = await self._mempalace["recall"](query, user_id=agent_id, n_results=limit)
-                for r in (mp_results or []):
-                    results.append({
-                        "source": "mempalace",
-                        "content": r.get("content", ""),
-                        "score": r.get("similarity", 0.5),
-                        "metadata": r.get("metadata", {}),
-                    })
+                for r in mp_results or []:
+                    results.append(
+                        {
+                            "source": "mempalace",
+                            "content": r.get("content", ""),
+                            "score": r.get("similarity", 0.5),
+                            "metadata": r.get("metadata", {}),
+                        }
+                    )
             except Exception as e:
                 logger.warning(f"MemPalace recall failed: {e}")
 
@@ -322,10 +346,11 @@ class BackendAdapter:
 # ENGINE 1: CRYSTALLIZATION
 # ═══════════════════════════════════════════════════════════════
 
+
 class CrystallizationEngine:
     """
     Promueve entendimientos validados a axiomas inmutables.
-    
+
     Criterios de cristalización:
     1. Validado por 2+ agentes independientes
     2. Sin contradicción con axiomas existentes
@@ -344,7 +369,7 @@ class CrystallizationEngine:
             return
         try:
             rows = await self._supabase.select(self._table, columns="*")
-            for row in (rows or []):
+            for row in rows or []:
                 ax = Axiom(
                     id=row["id"],
                     content=row["content"],
@@ -451,8 +476,11 @@ class CrystallizationEngine:
         """
         new_lower = new_content.lower()
         negation_pairs = [
-            ("always", "never"), ("must", "must not"), ("required", "forbidden"),
-            ("enabled", "disabled"), ("active", "inactive"),
+            ("always", "never"),
+            ("must", "must not"),
+            ("required", "forbidden"),
+            ("enabled", "disabled"),
+            ("active", "inactive"),
         ]
         for ax in self._axioms.values():
             ax_lower = ax.content.lower()
@@ -471,15 +499,16 @@ class CrystallizationEngine:
 # ENGINE 2: INTELLIGENT FORGETTING
 # ═══════════════════════════════════════════════════════════════
 
+
 class ForgettingEngine:
     """
     Ebbinghaus decay + AUDN (Accessed, Useful, Decayed, Nuked).
-    
+
     NO borra axiomas (inmutables). Solo aplica decay a:
     - MemPalace episodes
     - Mem0 memories
     - Thoughts (non-boot)
-    
+
     Principio: Olvidar es tan importante como recordar.
     Sin forgetting, el retrieval se degrada por ruido.
     """
@@ -487,7 +516,7 @@ class ForgettingEngine:
     # Ebbinghaus retention curve: R = e^(-t/S)
     # S = stability (increases with each successful recall)
     DECAY_THRESHOLD = 0.3  # Below this, memory is candidate for archival
-    NUKE_THRESHOLD = 0.1   # Below this, memory is candidate for deletion
+    NUKE_THRESHOLD = 0.1  # Below this, memory is candidate for deletion
 
     def __init__(self, supabase_adapter=None):
         self._supabase = supabase_adapter
@@ -501,7 +530,7 @@ class ForgettingEngine:
     ) -> float:
         """
         Calcula retención actual de una memoria.
-        
+
         R = e^(-t/S) * importance_boost
         S = base_stability * (1 + 0.3 * access_count)
         """
@@ -524,7 +553,7 @@ class ForgettingEngine:
         retention = math.exp(-t_days / stability)
 
         # Importance boost (axiom-adjacent memories decay slower)
-        retention *= (1 + importance * 0.5)
+        retention *= 1 + importance * 0.5
 
         return min(retention, 1.0)
 
@@ -570,15 +599,16 @@ class ForgettingEngine:
 # ENGINE 3: METACOGNITION
 # ═══════════════════════════════════════════════════════════════
 
+
 class MetacognitionEngine:
     """
     El sistema sabe lo que NO sabe.
-    
+
     Antes de cada acción, detecta:
     1. ¿Hay gaps en mi contexto para esta acción?
     2. ¿Mi confianza es suficiente para actuar?
     3. ¿Debería preguntar antes de proceder?
-    
+
     A diferencia del ContaminationDetector (shadow mode),
     este engine BLOQUEA cuando detecta gap crítico.
     """
@@ -596,7 +626,7 @@ class MetacognitionEngine:
     ) -> dict:
         """
         Verifica si el agente tiene suficiente contexto para actuar.
-        
+
         Returns:
             {
                 "can_proceed": bool,
@@ -648,12 +678,14 @@ class MetacognitionEngine:
 
         # Register gaps
         for gap_desc in gaps:
-            self._gaps.append(MetacognitiveGap(
-                description=gap_desc,
-                detected_by=agent_id,
-                domain=action.split("_")[0] if "_" in action else "general",
-                severity="high" if confidence < 0.4 else "medium",
-            ))
+            self._gaps.append(
+                MetacognitiveGap(
+                    description=gap_desc,
+                    detected_by=agent_id,
+                    domain=action.split("_")[0] if "_" in action else "general",
+                    severity="high" if confidence < 0.4 else "medium",
+                )
+            )
 
         return {
             "can_proceed": recommendation in ("proceed", "proceed_with_caution"),
@@ -683,13 +715,14 @@ class MetacognitionEngine:
 # ENGINE 4: CONFLICT RESOLUTION
 # ═══════════════════════════════════════════════════════════════
 
+
 class ConflictResolutionEngine:
     """
     Arbitraje cuando backends o agentes se contradicen.
-    
+
     Ejemplo: Mem0 dice "proyecto usa TiDB" pero LightRAG dice
     "proyecto migró a Supabase". ¿Cuál es verdad?
-    
+
     Estrategias:
     1. Temporal: el más reciente gana (si timestamps disponibles)
     2. Authority: fuente con mayor confianza gana
@@ -782,10 +815,11 @@ class ConflictResolutionEngine:
 # ENGINE 5: UNIVERSAL MULTI-AGENT API
 # ═══════════════════════════════════════════════════════════════
 
+
 class UniversalAgentAPI:
     """
     API unificada que cualquier IA puede consumir.
-    
+
     Cada agente se identifica con agent_id:
     - "chatgpt-sop" → ChatGPT con SOP
     - "claude-cowork" → Claude Cowork
@@ -793,7 +827,7 @@ class UniversalAgentAPI:
     - "gemini-sabio" → Gemini como sabio
     - "grok-redteam" → Grok como red-team
     - "embrion" → El Embrión IA
-    
+
     Operaciones:
     - remember(content) → almacena en todos los backends
     - recall(query) → búsqueda federada
@@ -848,12 +882,15 @@ class UniversalAgentAPI:
         # Also include relevant axioms
         axioms = await self._crystallization.query_axioms(keyword=query.split()[0] if query else None)
         for ax in axioms[:3]:
-            results.insert(0, {
-                "source": "axiom",
-                "content": ax.content,
-                "score": 1.0,
-                "metadata": {"id": ax.id, "domain": ax.domain, "immutable": True},
-            })
+            results.insert(
+                0,
+                {
+                    "source": "axiom",
+                    "content": ax.content,
+                    "score": 1.0,
+                    "metadata": {"id": ax.id, "domain": ax.domain, "immutable": True},
+                },
+            )
 
         return {"results": results, "total": len(results), "agent_id": agent_id}
 
@@ -927,11 +964,13 @@ class UniversalAgentAPI:
 
     def _log_access(self, agent_id: str, operation: str):
         """Log de acceso para auditoría."""
-        self._access_log.append({
-            "agent_id": agent_id,
-            "operation": operation,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        self._access_log.append(
+            {
+                "agent_id": agent_id,
+                "operation": operation,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
         # Update agent last_active
         if agent_id in self._agent_registry:
             self._agent_registry[agent_id]["last_active"] = datetime.now(timezone.utc).isoformat()
@@ -941,17 +980,18 @@ class UniversalAgentAPI:
 # SOVEREIGN MEMORY SYSTEM v2 — MAIN CLASS
 # ═══════════════════════════════════════════════════════════════
 
+
 class SovereignMemorySystemV2:
     """
     El sistema de memoria más poderoso del mundo para agentes IA.
-    
+
     Orquesta 18 backends existentes + 5 engines nuevos.
     Cualquier IA del mundo puede conectarse y beneficiarse.
-    
+
     Usage:
         sms = SovereignMemorySystemV2()
         await sms.initialize()
-        
+
         # Any agent can use it
         result = await sms.api.recall("What is the deploy policy?", agent_id="chatgpt-sop")
         check = await sms.api.pre_check("deploy_production", context={}, agent_id="manus-c")
@@ -1018,12 +1058,13 @@ class SovereignMemorySystemV2:
 # FASTAPI HTTP SERVER (Universal API endpoint)
 # ═══════════════════════════════════════════════════════════════
 
+
 def create_sms_app() -> "FastAPI":
     """
     Crea la app FastAPI para el SMS Universal API.
     Montable como sub-app en el kernel principal o standalone.
     """
-    from fastapi import FastAPI, HTTPException, Header
+    from fastapi import FastAPI, Header, HTTPException
     from pydantic import BaseModel
 
     app = FastAPI(
@@ -1110,9 +1151,7 @@ def create_sms_app() -> "FastAPI":
     @app.post("/v1/memory/resolve-conflict")
     async def resolve_conflict(req: ConflictRequest, x_agent_id: str = Header(None)):
         agent_id = x_agent_id or "anonymous"
-        return await sms.api.resolve_conflict(
-            req.claim_a, req.source_a, req.claim_b, req.source_b, agent_id
-        )
+        return await sms.api.resolve_conflict(req.claim_a, req.source_a, req.claim_b, req.source_b, agent_id)
 
     @app.get("/v1/memory/state")
     async def system_state():
@@ -1124,6 +1163,7 @@ def create_sms_app() -> "FastAPI":
 # ═══════════════════════════════════════════════════════════════
 # STANDALONE DEMO
 # ═══════════════════════════════════════════════════════════════
+
 
 async def _demo():
     """Demo standalone del SMS v2."""

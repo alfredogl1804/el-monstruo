@@ -22,14 +22,12 @@ Fuentes de datos:
   6. GitHub API (satélites del ecosistema)
 """
 
-import os
-import sys
 import json
-import subprocess
 import re
+import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from collections import defaultdict
 
 # ─── Config ────────────────────────────────────────────────────────────────────
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -170,10 +168,10 @@ def yaml_str(val, indent=0):
                 first = True
                 for k, v in item.items():
                     if first:
-                        lines.append(f"{prefix}- {k}: {yaml_str(v, indent+2)}")
+                        lines.append(f"{prefix}- {k}: {yaml_str(v, indent + 2)}")
                         first = False
                     else:
-                        lines.append(f"{prefix}  {k}: {yaml_str(v, indent+2)}")
+                        lines.append(f"{prefix}  {k}: {yaml_str(v, indent + 2)}")
             else:
                 lines.append(f"{prefix}- {yaml_str(item)}")
         return "\n" + "\n".join(lines)
@@ -190,6 +188,7 @@ def yaml_str(val, indent=0):
 
 
 # ─── Phase 1: Scan Repo Structure ─────────────────────────────────────────────
+
 
 def scan_kernel_modules():
     """Scan kernel/ for modules, their files, and key characteristics."""
@@ -234,10 +233,12 @@ def scan_embriones():
             continue
         name = f.stem
         if "embrion" in name or "brand_engine" in name or "critic" in name or "architect" in name:
-            embriones.append({
-                "id": name,
-                "path": str(f.relative_to(REPO_ROOT)),
-            })
+            embriones.append(
+                {
+                    "id": name,
+                    "path": str(f.relative_to(REPO_ROOT)),
+                }
+            )
 
     return embriones
 
@@ -253,7 +254,7 @@ def scan_routes():
     # Find include_router and app.mount calls
     for match in re.finditer(r'app\.include_router\((\w+).*?prefix="([^"]*)"', content):
         routes.append({"router": match.group(1), "prefix": match.group(2)})
-    for match in re.finditer(r'app\.include_router\((\w+)\)', content):
+    for match in re.finditer(r"app\.include_router\((\w+)\)", content):
         routes.append({"router": match.group(1), "prefix": "/"})
     for match in re.finditer(r'app\.mount\("([^"]+)"', content):
         routes.append({"router": "mount", "prefix": match.group(1)})
@@ -300,18 +301,24 @@ def scan_top_level_dirs():
 
 # ─── Phase 2: Query Supabase ──────────────────────────────────────────────────
 
+
 def query_supabase(sql):
     """Execute SQL via Supabase MCP and return parsed result."""
     try:
         cmd = [
-            "manus-mcp-cli", "tool", "call", "execute_sql",
-            "--server", "supabase",
-            "--input", json.dumps({"project_id": "xsumzuhwmivjgftsneov", "query": sql})
+            "manus-mcp-cli",
+            "tool",
+            "call",
+            "execute_sql",
+            "--server",
+            "supabase",
+            "--input",
+            json.dumps({"project_id": "xsumzuhwmivjgftsneov", "query": sql}),
         ]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
         output = result.stdout + result.stderr
         # Extract JSON from the tool result
-        json_match = re.search(r'\[.*?\]', output)
+        json_match = re.search(r"\[.*?\]", output)
         if json_match:
             raw = json_match.group()
             if '\\"' in raw:
@@ -325,13 +332,13 @@ def query_supabase(sql):
                 except:
                     pass
         # Try finding JSON in saved result file
-        result_files = sorted(Path('/home/ubuntu/.mcp/tool-results/').glob('*supabase*'))
+        result_files = sorted(Path("/home/ubuntu/.mcp/tool-results/").glob("*supabase*"))
         if result_files:
             latest = result_files[-1]
             try:
                 data = json.loads(latest.read_text())
-                result_str = data.get('result', '')
-                json_match2 = re.search(r'\[.*?\]', result_str)
+                result_str = data.get("result", "")
+                json_match2 = re.search(r"\[.*?\]", result_str)
                 if json_match2:
                     return json.loads(json_match2.group())
             except:
@@ -378,12 +385,12 @@ def get_custom_rpcs():
 
 # ─── Phase 3: Query Railway ───────────────────────────────────────────────────
 
+
 def get_railway_health():
     """Get health status from Railway production."""
     try:
         result = subprocess.run(
-            ["curl", "-s", "--max-time", "10", RAILWAY_HEALTH_URL],
-            capture_output=True, text=True, timeout=15
+            ["curl", "-s", "--max-time", "10", RAILWAY_HEALTH_URL], capture_output=True, text=True, timeout=15
         )
         if result.returncode == 0 and result.stdout:
             return json.loads(result.stdout)
@@ -393,6 +400,7 @@ def get_railway_health():
 
 
 # ─── Phase 4: Query Satellites (GitHub API) ───────────────────────────────────
+
 
 def get_satellite_info(satellite):
     """Get basic info about a satellite. Tolerant a entries sin repo (subsystems internos)."""
@@ -404,7 +412,9 @@ def get_satellite_info(satellite):
             # Get last commit date and default branch via gh CLI
             result = subprocess.run(
                 ["gh", "repo", "view", repo, "--json", "pushedAt,defaultBranchRef,description"],
-                capture_output=True, text=True, timeout=15
+                capture_output=True,
+                text=True,
+                timeout=15,
             )
             if result.returncode == 0 and result.stdout:
                 data = json.loads(result.stdout)
@@ -412,7 +422,7 @@ def get_satellite_info(satellite):
                 info["github_description"] = data.get("description", "")
                 branch_ref = data.get("defaultBranchRef", {})
                 info["default_branch"] = branch_ref.get("name", "main") if branch_ref else "main"
-        except Exception as e:
+        except Exception:
             info["last_push"] = "unreachable"
             info["github_description"] = ""
             info["default_branch"] = "unknown"
@@ -426,7 +436,9 @@ def get_satellite_info(satellite):
                 try:
                     git_log = subprocess.run(
                         ["git", "-C", str(REPO_ROOT), "log", "-1", "--format=%cI", "--", path],
-                        capture_output=True, text=True, timeout=10
+                        capture_output=True,
+                        text=True,
+                        timeout=10,
                     )
                     info["last_push"] = git_log.stdout.strip() or "unknown"
                 except Exception:
@@ -442,9 +454,10 @@ def get_satellite_info(satellite):
     if satellite.get("railway_url"):
         try:
             result = subprocess.run(
-                ["curl", "-s", "--max-time", "5", "-o", "/dev/null", "-w", "%{http_code}",
-                 satellite["railway_url"]],
-                capture_output=True, text=True, timeout=10
+                ["curl", "-s", "--max-time", "5", "-o", "/dev/null", "-w", "%{http_code}", satellite["railway_url"]],
+                capture_output=True,
+                text=True,
+                timeout=10,
             )
             http_code = result.stdout.strip()
             info["railway_status"] = "online" if http_code in ("200", "301", "302") else f"offline ({http_code})"
@@ -455,9 +468,10 @@ def get_satellite_info(satellite):
     if satellite.get("prod_url"):
         try:
             result = subprocess.run(
-                ["curl", "-s", "--max-time", "5", "-o", "/dev/null", "-w", "%{http_code}",
-                 satellite["prod_url"]],
-                capture_output=True, text=True, timeout=10
+                ["curl", "-s", "--max-time", "5", "-o", "/dev/null", "-w", "%{http_code}", satellite["prod_url"]],
+                capture_output=True,
+                text=True,
+                timeout=10,
             )
             http_code = result.stdout.strip()
             info["prod_status"] = "online" if http_code in ("200", "301", "302") else f"offline ({http_code})"
@@ -479,6 +493,7 @@ def scan_satellites():
 
 # ─── Phase 5: Assemble Genome ─────────────────────────────────────────────────
 
+
 def classify_tables(table_counts):
     """Classify tables into functional domains."""
     domains = {
@@ -496,8 +511,12 @@ def classify_tables(table_counts):
     }
 
     prefixes = {
-        "memory_": "memory", "sovereign_": "sovereign", "episodic_": "memory",
-        "monstruo_memory": "memory", "error_memory": "memory", "mem0": "memory",
+        "memory_": "memory",
+        "sovereign_": "sovereign",
+        "episodic_": "memory",
+        "monstruo_memory": "memory",
+        "error_memory": "memory",
+        "mem0": "memory",
         "mempalace_": "memory",
         "anti_dory_": "anti_dory",
         "catastro_": "catastro",
@@ -506,7 +525,8 @@ def classify_tables(table_counts):
         "lightrag_": "lightrag",
         "e2e_": "e2e",
         "v5_": "v5_intelligence",
-        "governance_": "governance", "guardian_": "governance",
+        "governance_": "governance",
+        "guardian_": "governance",
         "cowork_": "governance",
     }
 
@@ -558,17 +578,35 @@ def build_genome():
     # 6. Build YAML
     print("  [6/6] Assembling genome...")
     genome = assemble_yaml(
-        kernel_modules, embriones, routes, migrations, skills,
-        top_dirs, table_counts, custom_rpcs, railway_health, table_domains,
-        satellites
+        kernel_modules,
+        embriones,
+        routes,
+        migrations,
+        skills,
+        top_dirs,
+        table_counts,
+        custom_rpcs,
+        railway_health,
+        table_domains,
+        satellites,
     )
 
     return genome
 
 
-def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
-                  top_dirs, table_counts, custom_rpcs, railway_health, table_domains,
-                  satellites):
+def assemble_yaml(
+    kernel_modules,
+    embriones,
+    routes,
+    migrations,
+    skills,
+    top_dirs,
+    table_counts,
+    custom_rpcs,
+    railway_health,
+    table_domains,
+    satellites,
+):
     """Produce the final YAML string."""
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -694,8 +732,16 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
     lines.append("  modules:")
 
     # Group kernel modules by functional area
-    core_modules = ["main", "auth", "embrion_loop", "embrion_vigia", "background_store",
-                    "cost_optimizer", "adaptive_model_selector", "causal_decomposer"]
+    core_modules = [
+        "main",
+        "auth",
+        "embrion_loop",
+        "embrion_vigia",
+        "background_store",
+        "cost_optimizer",
+        "adaptive_model_selector",
+        "causal_decomposer",
+    ]
     memory_modules = ["memory", "anti_dory", "memento"]
     intelligence_modules = ["catastro", "catastros", "collective", "learning", "vanguard"]
     interface_modules = ["a2ui", "browser", "mcp", "agui_adapter", "plugins"]
@@ -739,7 +785,7 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
         if e["id"] not in ("embrion_loop", "embrion_vigia"):
             lines.append(f"    - id: {e['id']}")
             lines.append(f"      path: {e['path']}")
-            lines.append(f"      memory: none  # stateless — GAP")
+            lines.append("      memory: none  # stateless — GAP")
     lines.append("  collective:")
     lines.append("    path: kernel/collective/")
     lines.append("    components: [protocol.py, knowledge_propagator.py, emergence_detector.py]")
@@ -749,7 +795,9 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
     lines.append("  domain_embriones_canon:")
     lines.append("    status: doctrine_only_no_code")
     lines.append("    defined_in: docs/conocimiento/metodologias/CANON_Metodologias_Productividad_v1_5.md")
-    lines.append("    items: [Archivista, Concierge, Ecónomo, Vigía-Salud, Cronista, Curador, Custodio, Compromisario, Relacionista, Cartógrafo]")
+    lines.append(
+        "    items: [Archivista, Concierge, Ecónomo, Vigía-Salud, Cronista, Curador, Custodio, Compromisario, Relacionista, Cartógrafo]"
+    )
     lines.append("")
 
     # ─── MEMORY PLANE ──────────────────────────────────────────────────────────
@@ -760,20 +808,46 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
     lines.append("    api_mount: /sms")
     lines.append("    adapter: kernel/memory/sms_supabase_adapter.py")
     lines.append("    tables:")
-    for t in ["sovereign_memories", "sovereign_axioms", "sovereign_agent_registry",
-              "sovereign_conflict_log", "sovereign_consolidation_log",
-              "sovereign_knowledge_gaps", "sovereign_causal_chains",
-              "memory_entities", "memory_relations", "memory_entity_links",
-              "memory_dependencies", "memory_access_log"]:
+    for t in [
+        "sovereign_memories",
+        "sovereign_axioms",
+        "sovereign_agent_registry",
+        "sovereign_conflict_log",
+        "sovereign_consolidation_log",
+        "sovereign_knowledge_gaps",
+        "sovereign_causal_chains",
+        "memory_entities",
+        "memory_relations",
+        "memory_entity_links",
+        "memory_dependencies",
+        "memory_access_log",
+    ]:
         count = tc_map.get(t, 0)
         lines.append(f"      - name: {t}")
         lines.append(f"        records: {count}")
     lines.append("    rpcs:")
-    sms_rpcs = [r for r in rpc_names if any(x in r for x in
-                ["sovereign", "match_sovereign", "graph_enhanced", "cascade_invalidation",
-                 "compute_importance", "archive_low", "merge_similar", "register_dependency",
-                 "get_entity", "get_memories_for", "find_entity", "get_pending_revalidation",
-                 "match_memories"])]
+    sms_rpcs = [
+        r
+        for r in rpc_names
+        if any(
+            x in r
+            for x in [
+                "sovereign",
+                "match_sovereign",
+                "graph_enhanced",
+                "cascade_invalidation",
+                "compute_importance",
+                "archive_low",
+                "merge_similar",
+                "register_dependency",
+                "get_entity",
+                "get_memories_for",
+                "find_entity",
+                "get_pending_revalidation",
+                "match_memories",
+            ]
+        )
+    ]
     for rpc in sms_rpcs:
         lines.append(f"      - {rpc}")
     lines.append("    features:")
@@ -784,20 +858,26 @@ def assemble_yaml(kernel_modules, embriones, routes, migrations, skills,
     lines.append("      - audn_conflict_resolution: true")
     lines.append("      - vector_embeddings: pending_redeploy")
     lines.append("  legacy_memory_systems:")
-    legacy_tables = ["embrion_memoria", "monstruo_memory", "error_memory",
-                     "episodic_memory", "memory_events", "mempalace_episodes",
-                     "mempalace_semantic", "mem0"]
+    legacy_tables = [
+        "embrion_memoria",
+        "monstruo_memory",
+        "error_memory",
+        "episodic_memory",
+        "memory_events",
+        "mempalace_episodes",
+        "mempalace_semantic",
+        "mem0",
+    ]
     for t in legacy_tables:
         count = tc_map.get(t, 0)
         if count > 0:
             lines.append(f"    - table: {t}")
             lines.append(f"      records: {count}")
-            lines.append(f"      connected_to_sms: false")
+            lines.append("      connected_to_sms: false")
     lines.append("  anti_dory:")
     lines.append("    path: kernel/anti_dory/")
     lines.append("    tables:")
-    for t in ["anti_dory_anchor_store", "anti_dory_plan_ledger",
-              "anti_dory_runtime_flags", "anti_dory_write_budget"]:
+    for t in ["anti_dory_anchor_store", "anti_dory_plan_ledger", "anti_dory_runtime_flags", "anti_dory_write_budget"]:
         count = tc_map.get(t, 0)
         lines.append(f"      - {t}: {count} records")
     lines.append("")

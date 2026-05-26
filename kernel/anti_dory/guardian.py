@@ -12,22 +12,23 @@ Función pública: verify_attachment_contract(pack, evidence_verifier) → Attac
 Si verdict.passed=False → callsite debe lanzar HALT_ATTACHMENT_MISMATCH y NO
 ejecutar el prompt. El recovery_mode (FASE B.6) toma desde aquí.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
 from kernel.anti_dory.context_broker import (
-    AttachmentPack,
     CONFIDENCE_MIN_AUTO,
     STALENESS_THRESHOLD_SECONDS,
+    AttachmentPack,
     canonical_state_hash,
 )
-
 
 # =============================================================================
 # Excepciones canónicas
 # =============================================================================
+
 
 class HaltAttachmentMismatch(Exception):
     """Halt explícito: el attachment no es seguro de adjuntar.
@@ -44,6 +45,7 @@ class HaltAttachmentMismatch(Exception):
 # =============================================================================
 # Verdict
 # =============================================================================
+
 
 @dataclass
 class AttachmentVerdict:
@@ -97,6 +99,7 @@ def default_evidence_verifier(_ref: dict[str, Any]) -> bool:
 # Validador principal
 # =============================================================================
 
+
 def verify_attachment_contract(
     pack: AttachmentPack,
     *,
@@ -135,15 +138,11 @@ def verify_attachment_contract(
 
     # R3
     if pack.confidence_score < CONFIDENCE_MIN_AUTO:
-        violations.append(
-            f"R3:confidence_below_min:got={pack.confidence_score:.2f},min={CONFIDENCE_MIN_AUTO:.2f}"
-        )
+        violations.append(f"R3:confidence_below_min:got={pack.confidence_score:.2f},min={CONFIDENCE_MIN_AUTO:.2f}")
 
     # R4
     if pack.snapshot_age_seconds is not None and pack.snapshot_age_seconds > STALENESS_THRESHOLD_SECONDS:
-        violations.append(
-            f"R4:stale:age={pack.snapshot_age_seconds}s,threshold={STALENESS_THRESHOLD_SECONDS}s"
-        )
+        violations.append(f"R4:stale:age={pack.snapshot_age_seconds}s,threshold={STALENESS_THRESHOLD_SECONDS}s")
 
     # R5
     if not isinstance(pack.do_not_touch, list):
@@ -160,8 +159,13 @@ def verify_attachment_contract(
 
     # R7
     valid_writer_modes = {
-        "explicit_start", "explicit_transition", "explicit_artifact",
-        "explicit_final", "heartbeat", "external_polling", "recovery_scan",
+        "explicit_start",
+        "explicit_transition",
+        "explicit_artifact",
+        "explicit_final",
+        "heartbeat",
+        "external_polling",
+        "recovery_scan",
     }
     if pack.writer_mode and pack.writer_mode not in valid_writer_modes:
         violations.append(f"R7:invalid_writer_mode:{pack.writer_mode}")
@@ -178,6 +182,7 @@ def verify_attachment_contract(
 # =============================================================================
 # Helper: verify_state_hash (integridad)
 # =============================================================================
+
 
 def verify_state_hash(pack: AttachmentPack, reconstructed_payload: dict[str, Any]) -> bool:
     """Recalcula hash desde payload reconstruido y compara contra pack.state_hash.

@@ -21,13 +21,15 @@ Soberanía:
 Sprint 58 — "La Fortaleza Completa"
 Obj #11 — Embrión especializado #2
 """
+
 from __future__ import annotations
 
-import re
 import ast
-import structlog
+import re
 from datetime import datetime, timezone
 from typing import Any, Optional
+
+import structlog
 
 from kernel.embrion_loop import EmbrionLoop
 
@@ -36,22 +38,27 @@ logger = structlog.get_logger("embrion.tecnico")
 
 # ─── Errores con identidad (Brand Check #2) ──────────────────────────────────
 
+
 class EmbrionTecnicoError(Exception):
     """Error base del Embrión-Técnico."""
+
     pass
 
 
 class EMBRION_TECNICO_PROYECTO_VACIO(EmbrionTecnicoError):
     """La estructura del proyecto está vacía. Proporciona un dict con 'files' como lista."""
+
     pass
 
 
 class EMBRION_TECNICO_CODIGO_INVALIDO(EmbrionTecnicoError):
     """El código proporcionado no es Python válido y no puede ser analizado."""
+
     pass
 
 
 # ─── Clase principal ─────────────────────────────────────────────────────────
+
 
 class EmbrionTecnico(EmbrionLoop):
     """
@@ -161,8 +168,7 @@ class EmbrionTecnico(EmbrionLoop):
         files = project_structure.get("files", [])
         if not files:
             raise EMBRION_TECNICO_PROYECTO_VACIO(
-                "La estructura del proyecto no tiene archivos. "
-                "Proporciona un dict con 'files' como lista de rutas."
+                "La estructura del proyecto no tiene archivos. Proporciona un dict con 'files' como lista de rutas."
             )
 
         issues = []
@@ -194,10 +200,7 @@ class EmbrionTecnico(EmbrionLoop):
             recommendations.append("Agregar Dockerfile para deployments consistentes")
 
         # Verificar CI/CD
-        ci_files = [
-            f for f in files
-            if ".github/workflows" in f or "Jenkinsfile" in f or ".gitlab-ci" in f
-        ]
+        ci_files = [f for f in files if ".github/workflows" in f or "Jenkinsfile" in f or ".gitlab-ci" in f]
         if not ci_files:
             recommendations.append("Agregar pipeline CI/CD para testing automatizado")
             score -= 5
@@ -266,8 +269,7 @@ class EmbrionTecnico(EmbrionLoop):
 
         # Verificar TODOs sin resolver
         todos = [
-            i + 1 for i, line in enumerate(lines)
-            if any(t in line.upper() for t in ["TODO", "FIXME", "HACK", "XXX"])
+            i + 1 for i, line in enumerate(lines) if any(t in line.upper() for t in ["TODO", "FIXME", "HACK", "XXX"])
         ]
         if todos:
             issues.append(f"TODOs/FIXMEs sin resolver en líneas: {todos[:5]}")
@@ -275,8 +277,8 @@ class EmbrionTecnico(EmbrionLoop):
         # Verificar secretos hardcodeados
         secret_patterns = [
             r'(api_key|apikey|secret|password|token)\s*=\s*["\'][^"\']{8,}["\']',
-            r'sk_live_[a-zA-Z0-9]+',
-            r'AKIA[A-Z0-9]{16}',
+            r"sk_live_[a-zA-Z0-9]+",
+            r"AKIA[A-Z0-9]{16}",
         ]
         for pattern in secret_patterns:
             if re.search(pattern, code, re.IGNORECASE):
@@ -293,13 +295,11 @@ class EmbrionTecnico(EmbrionLoop):
                         func_lines = getattr(node, "end_lineno", 0) - node.lineno
                         if func_lines > 50:
                             issues.append(
-                                f"Función '{node.name}' muy larga ({func_lines} líneas) — "
-                                f"considera dividirla"
+                                f"Función '{node.name}' muy larga ({func_lines} líneas) — considera dividirla"
                             )
             except SyntaxError as e:
                 raise EMBRION_TECNICO_CODIGO_INVALIDO(
-                    f"El código Python no puede ser analizado: {e}. "
-                    f"Verifica la sintaxis antes de hacer review."
+                    f"El código Python no puede ser analizado: {e}. Verifica la sintaxis antes de hacer review."
                 )
 
         quality_score = max(0, 100 - len(issues) * 10)

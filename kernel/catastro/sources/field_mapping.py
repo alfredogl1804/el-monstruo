@@ -25,6 +25,7 @@ de `_extract_persistible` y antes de `_enrich_with_coding`.
 
 Brand-DNA: errores como `field_mapping_*`, naming explícito, sin emoji.
 """
+
 from __future__ import annotations
 
 import logging
@@ -40,6 +41,7 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 # Errores con identidad de marca
 # ============================================================================
+
 
 class FieldMappingError(Exception):
     """Errores del field mapping del Catastro."""
@@ -71,24 +73,19 @@ def load_field_mapping(path: Path | None = None) -> dict[str, Any]:
         with open(target, "r", encoding="utf-8") as fh:
             data = yaml.safe_load(fh)
     except FileNotFoundError as exc:
-        raise FieldMappingLoadError(
-            f"field_mapping_yaml_not_found path={target}"
-        ) from exc
+        raise FieldMappingLoadError(f"field_mapping_yaml_not_found path={target}") from exc
     except yaml.YAMLError as exc:
-        raise FieldMappingLoadError(
-            f"field_mapping_yaml_parse_error path={target} err={exc}"
-        ) from exc
+        raise FieldMappingLoadError(f"field_mapping_yaml_parse_error path={target} err={exc}") from exc
 
     if not isinstance(data, dict) or "fields" not in data:
-        raise FieldMappingLoadError(
-            f"field_mapping_yaml_invalid_shape path={target}"
-        )
+        raise FieldMappingLoadError(f"field_mapping_yaml_invalid_shape path={target}")
     return data
 
 
 # ============================================================================
 # Helpers
 # ============================================================================
+
 
 def _get_dot_path(d: dict[str, Any], path: str) -> Any:
     """Navega `path` con dots sobre dict (e.g. 'pricing.input_per_million')."""
@@ -117,6 +114,7 @@ def _to_float(v: Any) -> float | None:
 # ============================================================================
 # Normalizaciones
 # ============================================================================
+
 
 def _normalize_minmax(value: float, all_values: list[float]) -> float:
     """Normaliza al rango 0-100 con min-max global del run."""
@@ -226,9 +224,7 @@ def apply_field_mapping(
             if value is not None and field_name not in persistible["fields"]:
                 persistible["fields"][field_name] = value
             elif (
-                value is not None
-                and field_name in persistible["fields"]
-                and persistible["fields"][field_name] != value
+                value is not None and field_name in persistible["fields"] and persistible["fields"][field_name] != value
             ):
                 # quorum-derived ya existe (e.g. pricing.input_per_million),
                 # mantenerlo y solo registrar en metrics local.
@@ -314,11 +310,7 @@ def _memento_preflight(
                     found = True
                     break
             if not found:
-                msg = (
-                    f"[catastro_field_mapping] memento_preflight_missing "
-                    f"source={src} path={path} "
-                    f"action={on_missing}"
-                )
+                msg = f"[catastro_field_mapping] memento_preflight_missing source={src} path={path} action={on_missing}"
                 if on_missing == "raise":
                     raise FieldMappingApplyError(msg)
                 logger.warning(msg)

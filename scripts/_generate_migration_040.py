@@ -8,6 +8,7 @@ Lee el archivo JSON con 12 sub-dominios y produce:
   4. UPDATE bonus_curador para tronos
   5. CREATE MATERIALIZED VIEW catastro_tronos_vision_generativa
 """
+
 import json
 import sys
 from pathlib import Path
@@ -47,18 +48,54 @@ CONSENT_REQUIRED_BY_SUBDOMINIO = {
 # Tronos por subdominio (del JSON Perplexity)
 # Bonus_curador asignado: trono = 10, acompañante seed = 0
 BONUS_TRONOS = {
-    "midjourney_v7": (10, "Trono imagen_estatica_premium según Perplexity (validación adversarial). Midjourney v7 default desde 2025: precision de prompts, texturas, cuerpos, manos, Draft Mode + Omni Reference. Score subdominio 95/100."),
-    "veo_3_1": (10, "Trono video_clip_generativo según Perplexity. Veo 3.1 genera clips 8s con audio nativo, referencias múltiples y video vertical (Gemini). Score subdominio 85/100. Acompañantes fuertes: Runway Gen-4.5 (top Artificial Analysis), Luma Ray2."),
-    "runway_gen_4_5": (10, "Trono video_narrativo_cinematico según Perplexity. Runway Gen-4.5 top Artificial Analysis Text-to-Video benchmark (1247 Elo). Visual fidelity + prompt adherence + motion quality + creative control. Score subdominio 55/100 (no valida cine 60s+ nativo, solo workflow narrativo)."),
-    "synthesia": (10, "Trono avatar_humano_animado según Perplexity. Synthesia 240+ stock avatars, avatar personal con consentimiento, voice cloning, escenas con Veo 3. Enterprise-grade. HeyGen como creator/localization Tier 1. Score subdominio 90/100."),
-    "runway_characters": (10, "Trono realtime_video_agents_characters según Perplexity. Runway Characters: video agents en tiempo real con apariencia, voz, personalidad, conocimiento, acciones configurables. Dominio emergente estratégico. Score subdominio 68/100."),
-    "sync_labs": (10, "Trono lip_sync_visual_dubbing según Perplexity. sync.labs API especializada en lipsync. Distinto a TTS y avatar: modifica boca sobre video existente. Score subdominio 82/100. Riesgos: consentimiento, deepfake, multi-speaker."),
-    "elevenlabs_tts": (10, "Trono tts_voces_sinteticas según Perplexity. ElevenLabs biblioteca + clonación líder 2026. OpenAI/Inworld Tier 1 para realtime. Score subdominio 95/100. Requiere flags consent + voice cloning + uso comercial."),
-    "suno_v5_5": (10, "Trono musica_generada según Perplexity. Suno v5.5 canción completa. Udio licensing strategic agreements UMG = challenger licenciado. Score subdominio 80/100. licensing_risk=high obligatorio."),
-    "elevenlabs_sfx": (10, "Trono efectos_sonido_sfx según Perplexity. ElevenLabs SFX producto hosted. Stable Audio Open OSS Tier 1. Score subdominio 70/100 (menos maduro que music+TTS)."),
-    "adobe_firefly_video_editor": (10, "Trono generative_editing_inpainting según Perplexity. Adobe Firefly Video Editor (Apr 2026) suite creativa para edición semántica. FLUX.2 + Runway Tier 1. Score subdominio 88/100."),
-    "topaz_video": (10, "Trono upscaling_restauracion_enhancement según Perplexity. Topaz Video estándar de la industria para upscaling+restauración objetiva. Magnific Tier 1 para upscaling creativo multimodal. Score subdominio 86/100."),
-    "meshy": (10, "Trono 3d_mocap_assets según Perplexity. Meshy text-to-3D + image-to-3D. Tripo Tier 1 challenger. Move AI + Autodesk Flow Studio para mocap. Score subdominio 78/100."),
+    "midjourney_v7": (
+        10,
+        "Trono imagen_estatica_premium según Perplexity (validación adversarial). Midjourney v7 default desde 2025: precision de prompts, texturas, cuerpos, manos, Draft Mode + Omni Reference. Score subdominio 95/100.",
+    ),
+    "veo_3_1": (
+        10,
+        "Trono video_clip_generativo según Perplexity. Veo 3.1 genera clips 8s con audio nativo, referencias múltiples y video vertical (Gemini). Score subdominio 85/100. Acompañantes fuertes: Runway Gen-4.5 (top Artificial Analysis), Luma Ray2.",
+    ),
+    "runway_gen_4_5": (
+        10,
+        "Trono video_narrativo_cinematico según Perplexity. Runway Gen-4.5 top Artificial Analysis Text-to-Video benchmark (1247 Elo). Visual fidelity + prompt adherence + motion quality + creative control. Score subdominio 55/100 (no valida cine 60s+ nativo, solo workflow narrativo).",
+    ),
+    "synthesia": (
+        10,
+        "Trono avatar_humano_animado según Perplexity. Synthesia 240+ stock avatars, avatar personal con consentimiento, voice cloning, escenas con Veo 3. Enterprise-grade. HeyGen como creator/localization Tier 1. Score subdominio 90/100.",
+    ),
+    "runway_characters": (
+        10,
+        "Trono realtime_video_agents_characters según Perplexity. Runway Characters: video agents en tiempo real con apariencia, voz, personalidad, conocimiento, acciones configurables. Dominio emergente estratégico. Score subdominio 68/100.",
+    ),
+    "sync_labs": (
+        10,
+        "Trono lip_sync_visual_dubbing según Perplexity. sync.labs API especializada en lipsync. Distinto a TTS y avatar: modifica boca sobre video existente. Score subdominio 82/100. Riesgos: consentimiento, deepfake, multi-speaker.",
+    ),
+    "elevenlabs_tts": (
+        10,
+        "Trono tts_voces_sinteticas según Perplexity. ElevenLabs biblioteca + clonación líder 2026. OpenAI/Inworld Tier 1 para realtime. Score subdominio 95/100. Requiere flags consent + voice cloning + uso comercial.",
+    ),
+    "suno_v5_5": (
+        10,
+        "Trono musica_generada según Perplexity. Suno v5.5 canción completa. Udio licensing strategic agreements UMG = challenger licenciado. Score subdominio 80/100. licensing_risk=high obligatorio.",
+    ),
+    "elevenlabs_sfx": (
+        10,
+        "Trono efectos_sonido_sfx según Perplexity. ElevenLabs SFX producto hosted. Stable Audio Open OSS Tier 1. Score subdominio 70/100 (menos maduro que music+TTS).",
+    ),
+    "adobe_firefly_video_editor": (
+        10,
+        "Trono generative_editing_inpainting según Perplexity. Adobe Firefly Video Editor (Apr 2026) suite creativa para edición semántica. FLUX.2 + Runway Tier 1. Score subdominio 88/100.",
+    ),
+    "topaz_video": (
+        10,
+        "Trono upscaling_restauracion_enhancement según Perplexity. Topaz Video estándar de la industria para upscaling+restauración objetiva. Magnific Tier 1 para upscaling creativo multimodal. Score subdominio 86/100.",
+    ),
+    "meshy": (
+        10,
+        "Trono 3d_mocap_assets según Perplexity. Meshy text-to-3D + image-to-3D. Tripo Tier 1 challenger. Move AI + Autodesk Flow Studio para mocap. Score subdominio 78/100.",
+    ),
 }
 
 
@@ -112,7 +149,8 @@ def main() -> int:
     # Generar SQL
     sql_parts = []
 
-    sql_parts.append(dedent("""\
+    sql_parts.append(
+        dedent("""\
         -- ============================================================================
         -- Migration 040 — Sprint 88.3: Macroárea VISION_GENERATIVA
         -- ============================================================================
@@ -229,13 +267,14 @@ def main() -> int:
         -- ----------------------------------------------------------------------------
         -- 4) INSERT 38 productos seed (Perplexity validation)
         -- ----------------------------------------------------------------------------
-    """))
+    """)
+    )
 
     # Generar INSERTs por producto
     for slug, p in productos.items():
         primario = p["subdominios"][0]
         secundarios = [s for s in p["subdominios"][1:] if s != primario]
-        es_trono = bool(p["es_trono_de"])
+        bool(p["es_trono_de"])
 
         bonus = 0
         bonus_razon = "NULL"
@@ -251,19 +290,24 @@ def main() -> int:
         # Perplexity no los entregó. Quedan NULL para investigación posterior.
         sec_arr = "ARRAY[" + ",".join(f"'{s}'" for s in secundarios) + "]::TEXT[]" if secundarios else "'{}'::TEXT[]"
         evidencia = json.dumps([{"fuente": p["url"], "fecha": "2026-05-10", "validador": "Perplexity"}])
-        validacion = json.dumps({
-            "sabios": ["perplexity"],
-            "consenso": "Validado por Perplexity adversarial sobre macroárea VISION_GENERATIVA",
-            "subdominio_origen_score": p["score_subdominio_origen"],
-            "riesgo_adversarial": p["riesgo_adversarial"],
-            "criterio_inclusion": p["criterio_de_inclusion"],
-        })
-        data_extra = json.dumps({
-            "es_trono_de": p["es_trono_de"],
-            "subdominios_aparece": p["subdominios"],
-        })
+        validacion = json.dumps(
+            {
+                "sabios": ["perplexity"],
+                "consenso": "Validado por Perplexity adversarial sobre macroárea VISION_GENERATIVA",
+                "subdominio_origen_score": p["score_subdominio_origen"],
+                "riesgo_adversarial": p["riesgo_adversarial"],
+                "criterio_inclusion": p["criterio_de_inclusion"],
+            }
+        )
+        data_extra = json.dumps(
+            {
+                "es_trono_de": p["es_trono_de"],
+                "subdominios_aparece": p["subdominios"],
+            }
+        )
 
-        sql_parts.append(dedent(f"""\
+        sql_parts.append(
+            dedent(f"""\
             INSERT INTO catastro_vision_generativa (
                 id, nombre, proveedor, subdominio_primario, subdominios_secundarios, url_oficial,
                 licensing_risk, consent_required,
@@ -296,10 +340,12 @@ def main() -> int:
                 bonus_curador_razon = EXCLUDED.bonus_curador_razon,
                 data_extra = EXCLUDED.data_extra,
                 updated_at = NOW();
-        """))
+        """)
+        )
 
     # Vista materializada de tronos
-    sql_parts.append(dedent("""\
+    sql_parts.append(
+        dedent("""\
 
         COMMIT;
 
@@ -382,7 +428,8 @@ def main() -> int:
         -- ============================================================================
         -- FIN MIGRACION 040
         -- ============================================================================
-    """))
+    """)
+    )
 
     out_path = Path(__file__).parent / "040_sprint88_3_vision_generativa.sql"
     out_path.write_text("\n".join(sql_parts))

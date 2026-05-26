@@ -16,6 +16,7 @@ Uso:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 4 · 2026-05-04
 """
+
 from __future__ import annotations
 
 import sys
@@ -27,8 +28,8 @@ sys.path.insert(0, str(ROOT))
 import asyncio  # noqa: E402
 import os  # noqa: E402
 
-from kernel.catastro.schema import CatastroModelo  # noqa: E402
 from kernel.catastro.pipeline import CatastroPipeline  # noqa: E402
+from kernel.catastro.schema import CatastroModelo  # noqa: E402
 from kernel.catastro.trono import (  # noqa: E402
     DEFAULT_WEIGHTS,
     METRIC_FIELDS,
@@ -50,28 +51,48 @@ def smoke_z_score_mode() -> None:
     calc = TronoCalculator()
     modelos = [
         CatastroModelo(
-            id="model-alpha", nombre="Alpha", proveedor="anthropic",
+            id="model-alpha",
+            nombre="Alpha",
+            proveedor="anthropic",
             dominios=["llm_frontier"],
-            quality_score=90.0, cost_efficiency=80.0, speed_score=70.0,
-            reliability_score=95.0, brand_fit=0.9, confidence=0.85,
+            quality_score=90.0,
+            cost_efficiency=80.0,
+            speed_score=70.0,
+            reliability_score=95.0,
+            brand_fit=0.9,
+            confidence=0.85,
         ),
         CatastroModelo(
-            id="model-beta", nombre="Beta", proveedor="openai",
+            id="model-beta",
+            nombre="Beta",
+            proveedor="openai",
             dominios=["llm_frontier"],
-            quality_score=70.0, cost_efficiency=90.0, speed_score=85.0,
-            reliability_score=80.0, brand_fit=0.5, confidence=0.70,
+            quality_score=70.0,
+            cost_efficiency=90.0,
+            speed_score=85.0,
+            reliability_score=80.0,
+            brand_fit=0.5,
+            confidence=0.70,
         ),
         CatastroModelo(
-            id="model-gamma", nombre="Gamma", proveedor="google",
+            id="model-gamma",
+            nombre="Gamma",
+            proveedor="google",
             dominios=["llm_frontier"],
-            quality_score=80.0, cost_efficiency=60.0, speed_score=75.0,
-            reliability_score=88.0, brand_fit=0.7, confidence=0.60,
+            quality_score=80.0,
+            cost_efficiency=60.0,
+            speed_score=75.0,
+            reliability_score=88.0,
+            brand_fit=0.7,
+            confidence=0.60,
         ),
     ]
     results = calc.compute_for_domain(modelos, "llm_frontier")
     for r in results:
-        print(f"  {r.modelo_id}: trono={r.trono_new} delta={r.trono_delta} "
-              f"band=[{r.trono_low},{r.trono_high}] mode={r.mode}")
+        print(
+            f"  {r.modelo_id}: trono={r.trono_new} delta={r.trono_delta} "
+            f"band=[{r.trono_low},{r.trono_high}] mode={r.mode}"
+        )
         # Sanity: low <= new <= high
         assert r.trono_low <= r.trono_new <= r.trono_high, "banda invertida"
         assert r.mode == "z_score"
@@ -87,10 +108,16 @@ def smoke_neutral_mode() -> None:
     calc = TronoCalculator()
     modelos = [
         CatastroModelo(
-            id="lonely-model", nombre="Solo", proveedor="x",
+            id="lonely-model",
+            nombre="Solo",
+            proveedor="x",
             dominios=["coding_llms"],
-            quality_score=75.0, cost_efficiency=70.0, speed_score=80.0,
-            reliability_score=90.0, brand_fit=0.8, confidence=0.50,
+            quality_score=75.0,
+            cost_efficiency=70.0,
+            speed_score=80.0,
+            reliability_score=90.0,
+            brand_fit=0.8,
+            confidence=0.50,
         ),
     ]
     results = calc.compute_for_domain(modelos, "coding_llms")
@@ -107,22 +134,35 @@ def smoke_compute_all() -> None:
     header("3. compute_all — múltiples dominios")
     calc = TronoCalculator()
     modelos = [
-        CatastroModelo(id=f"model-front-{i}", nombre=f"F{i}", proveedor="x",
-                       dominios=["llm_frontier"],
-                       quality_score=70 + i * 5, cost_efficiency=80,
-                       speed_score=75, reliability_score=90, brand_fit=0.7)
+        CatastroModelo(
+            id=f"model-front-{i}",
+            nombre=f"F{i}",
+            proveedor="x",
+            dominios=["llm_frontier"],
+            quality_score=70 + i * 5,
+            cost_efficiency=80,
+            speed_score=75,
+            reliability_score=90,
+            brand_fit=0.7,
+        )
         for i in range(3)
     ] + [
-        CatastroModelo(id=f"model-code-{i}", nombre=f"C{i}", proveedor="y",
-                       dominios=["coding_llms"],
-                       quality_score=60 + i * 10, cost_efficiency=70,
-                       speed_score=80, reliability_score=85, brand_fit=0.6)
+        CatastroModelo(
+            id=f"model-code-{i}",
+            nombre=f"C{i}",
+            proveedor="y",
+            dominios=["coding_llms"],
+            quality_score=60 + i * 10,
+            cost_efficiency=70,
+            speed_score=80,
+            reliability_score=85,
+            brand_fit=0.6,
+        )
         for i in range(2)
     ]
     by_dominio = calc.compute_all(modelos)
     for dom, results in by_dominio.items():
-        print(f"  {dom}: {len(results)} modelos, "
-              f"trono_avg={sum(r.trono_new for r in results)/len(results):.2f}")
+        print(f"  {dom}: {len(results)} modelos, trono_avg={sum(r.trono_new for r in results) / len(results):.2f}")
     assert "llm_frontier" in by_dominio
     assert "coding_llms" in by_dominio
     assert len(by_dominio["llm_frontier"]) == 3
@@ -134,10 +174,17 @@ def smoke_apply_results() -> None:
     header("4. apply_results_to_models — actualización in-place")
     calc = TronoCalculator()
     modelos = [
-        CatastroModelo(id=f"apply-{i}", nombre=f"M{i}", proveedor="x",
-                       dominios=["llm_frontier"],
-                       quality_score=70 + i * 10, cost_efficiency=80,
-                       speed_score=75, reliability_score=90, brand_fit=0.7)
+        CatastroModelo(
+            id=f"apply-{i}",
+            nombre=f"M{i}",
+            proveedor="x",
+            dominios=["llm_frontier"],
+            quality_score=70 + i * 10,
+            cost_efficiency=80,
+            speed_score=75,
+            reliability_score=90,
+            brand_fit=0.7,
+        )
         for i in range(3)
     ]
     # Inicialmente trono_global = None
@@ -156,10 +203,15 @@ def smoke_invalid_weights() -> None:
     header("5. Validación de pesos inválidos")
     # Pesos que NO suman 1.0
     try:
-        TronoCalculator(weights={
-            "quality_score": 0.5, "cost_efficiency": 0.3,
-            "speed_score": 0.1, "reliability_score": 0.05, "brand_fit": 0.0,
-        })
+        TronoCalculator(
+            weights={
+                "quality_score": 0.5,
+                "cost_efficiency": 0.3,
+                "speed_score": 0.1,
+                "reliability_score": 0.05,
+                "brand_fit": 0.0,
+            }
+        )
         raise AssertionError("Debió haber lanzado CatastroTronoInvalidWeights")
     except CatastroTronoInvalidWeights as e:
         print(f"  OK: {e.code} = {e}")
@@ -176,17 +228,18 @@ def smoke_invalid_weights() -> None:
 def smoke_pipeline_integration() -> None:
     header("6. Pipeline integration — trono + persist + skip_persist")
     # Limpiar env vars que podrían interferir
-    for k in ("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY",
-              "CATASTRO_SKIP_PERSIST"):
+    for k in ("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "CATASTRO_SKIP_PERSIST"):
         os.environ.pop(k, None)
 
     # 6a. Pipeline en dry_run sin skip_persist → trono se calcula y persist es dry
     pipe = CatastroPipeline(dry_run=True, skip_persist=False)
     result = asyncio.run(pipe.run())
     summary = result.summary()
-    print(f"  6a (no skip): persistibles={summary['modelos_persistibles']} "
-          f"trono_dominios={summary['trono_summary']['dominios']} "
-          f"persist_skipped={summary['persist_summary']['skipped']}")
+    print(
+        f"  6a (no skip): persistibles={summary['modelos_persistibles']} "
+        f"trono_dominios={summary['trono_summary']['dominios']} "
+        f"persist_skipped={summary['persist_summary']['skipped']}"
+    )
     assert summary["persist_summary"]["skipped"] is False
     assert "failure_rate_observed" in summary["persist_summary"]
     assert "error_categories" in summary["persist_summary"]
@@ -198,9 +251,11 @@ def smoke_pipeline_integration() -> None:
     pipe2 = CatastroPipeline(dry_run=True, skip_persist=True)
     result2 = asyncio.run(pipe2.run())
     summary2 = result2.summary()
-    print(f"  6b (skip):    persistibles={summary2['modelos_persistibles']} "
-          f"trono_dominios={summary2['trono_summary']['dominios']} "
-          f"persist_skipped={summary2['persist_summary']['skipped']}")
+    print(
+        f"  6b (skip):    persistibles={summary2['modelos_persistibles']} "
+        f"trono_dominios={summary2['trono_summary']['dominios']} "
+        f"persist_skipped={summary2['persist_summary']['skipped']}"
+    )
     assert summary2["persist_summary"]["skipped"] is True
     assert result2.persist_results == []
     # Trono SI debe haberse calculado aunque persist se omita
@@ -212,12 +267,12 @@ def smoke_pipeline_integration() -> None:
     pipe3 = CatastroPipeline(dry_run=True)  # sin pasar skip_persist
     assert pipe3.skip_persist is True, "env CATASTRO_SKIP_PERSIST no respetado"
     os.environ.pop("CATASTRO_SKIP_PERSIST")
-    print(f"  6c (env):     skip_persist leído correctamente desde env var")
+    print("  6c (env):     skip_persist leído correctamente desde env var")
     print("  OK")
 
 
 def main() -> int:
-    print(f"\n[Catastro] Smoke test Sprint 86 Bloque 4 — TronoCalculator\n")
+    print("\n[Catastro] Smoke test Sprint 86 Bloque 4 — TronoCalculator\n")
     print(f"  pesos default: {DEFAULT_WEIGHTS}")
     print(f"  Σ pesos: {sum(DEFAULT_WEIGHTS.values())}")
     print(f"  métricas: {METRIC_FIELDS}")

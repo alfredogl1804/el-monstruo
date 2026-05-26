@@ -24,6 +24,7 @@ Uso:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 7 · 2026-05-04
 """
+
 from __future__ import annotations
 
 import json
@@ -152,11 +153,7 @@ def assert_html(body: str, label: str) -> bool:
 
 
 def main() -> int:
-    base_url = (
-        sys.argv[1]
-        if len(sys.argv) > 1
-        else os.environ.get("KERNEL_URL", "")
-    )
+    base_url = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("KERNEL_URL", "")
     if not base_url:
         fail("KERNEL_URL no definido (env o argv[1])")
         info("Ejemplo: KERNEL_URL=https://el-monstruo-mvp.up.railway.app python3 ...")
@@ -164,7 +161,9 @@ def main() -> int:
 
     api_key = os.environ.get("MONSTRUO_API_KEY", "")
     require_auth = os.environ.get("CATASTRO_DASHBOARD_REQUIRE_AUTH", "").lower() in (
-        "true", "1", "yes",
+        "true",
+        "1",
+        "yes",
     )
 
     header(f"Smoke Dashboard Sprint 86 B7 → {base_url}")
@@ -187,13 +186,11 @@ def main() -> int:
         assert_key_in(body, "trust_level", "summary")
         assert_key_in(body, "modelos_total", "summary")
         assert_key_in(body, "macroareas", "summary")
-        info(f"  trust={body.get('trust_level')} modelos={body.get('modelos_total')} "
-             f"degraded={body.get('degraded')}")
+        info(f"  trust={body.get('trust_level')} modelos={body.get('modelos_total')} degraded={body.get('degraded')}")
 
     # 2. /timeline
     header("[2/4] /v1/catastro/dashboard/timeline?days=14")
-    status, body = http_call(base_url, "/v1/catastro/dashboard/timeline?days=14",
-                             api_key=auth_kwarg)
+    status, body = http_call(base_url, "/v1/catastro/dashboard/timeline?days=14", api_key=auth_kwarg)
     if not assert_status(status, 200, "timeline"):
         failures += 1
     elif not isinstance(body, dict):
@@ -206,13 +203,14 @@ def main() -> int:
             fail(f"timeline: días esperado 14, recibido {body.get('days')}")
             failures += 1
         else:
-            ok(f"timeline: days=14 points={len(body.get('points', []))} "
-               f"runs={body.get('total_runs')} eventos={body.get('total_eventos')}")
+            ok(
+                f"timeline: days=14 points={len(body.get('points', []))} "
+                f"runs={body.get('total_runs')} eventos={body.get('total_eventos')}"
+            )
 
     # 3. /curators
     header("[3/4] /v1/catastro/dashboard/curators")
-    status, body = http_call(base_url, "/v1/catastro/dashboard/curators",
-                             api_key=auth_kwarg)
+    status, body = http_call(base_url, "/v1/catastro/dashboard/curators", api_key=auth_kwarg)
     if not assert_status(status, 200, "curators"):
         failures += 1
     elif not isinstance(body, dict):
@@ -226,8 +224,10 @@ def main() -> int:
     # 4. /  (HTML)
     header("[4/4] /v1/catastro/dashboard/  (HTML)")
     status, body = http_call(
-        base_url, "/v1/catastro/dashboard/",
-        api_key=auth_kwarg, accept="text/html",
+        base_url,
+        "/v1/catastro/dashboard/",
+        api_key=auth_kwarg,
+        accept="text/html",
     )
     if not assert_status(status, 200, "html"):
         failures += 1
@@ -237,7 +237,7 @@ def main() -> int:
     # Resumen
     header("RESUMEN")
     if failures == 0:
-        ok(f"4/4 endpoints PASS → smoke verde")
+        ok("4/4 endpoints PASS → smoke verde")
         return EXIT_OK
     else:
         fail(f"{failures} fallos detectados")

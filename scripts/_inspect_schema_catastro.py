@@ -1,5 +1,7 @@
 """Inspección cruda del schema de catastro_agentes y catastro_tronos_agentes."""
+
 import os
+
 import psycopg
 
 DB_URL = os.environ["SUPABASE_DB_URL"]

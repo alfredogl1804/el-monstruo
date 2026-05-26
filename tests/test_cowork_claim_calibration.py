@@ -28,11 +28,10 @@ Adicionales (cobertura defensiva):
   - TestClaimRecord.test_to_db_row_shape
   - TestCLIReport.test_sandbox_fallback_empty
 """
+
 from __future__ import annotations
 
-import json
 import sys
-from io import StringIO
 from pathlib import Path
 from uuid import uuid4
 
@@ -52,10 +51,10 @@ from kernel.cowork_runtime.claim_calibration import (  # noqa: E402
     infer_verification_status,
 )
 
-
 # ============================================================================
 # Mocks
 # ============================================================================
+
 
 class _MockSupabaseClient:
     """Cliente Supabase mock para tests — captura inserts en lista interna."""
@@ -85,6 +84,7 @@ class _MockSupabaseClient:
 # ============================================================================
 # TestClaimExtractor
 # ============================================================================
+
 
 class TestClaimExtractor:
     def setup_method(self) -> None:
@@ -152,6 +152,7 @@ class TestClaimExtractor:
 # TestClaimLogger
 # ============================================================================
 
+
 class TestClaimLogger:
     def setup_method(self) -> None:
         self.client = _MockSupabaseClient()
@@ -190,11 +191,13 @@ class TestClaimLogger:
         assert len(self.client.batch_inserts[0]["rows"]) == 3
 
     def test_aggregate_daily_grouping(self) -> None:
-        self.client.set_aggregate_rows([
-            {"claim_type": "file_path", "verification_status": "verified_post_match", "n": 5},
-            {"claim_type": "file_path", "verification_status": "unverified", "n": 2},
-            {"claim_type": "pr_number", "verification_status": "verified_post_match", "n": 3},
-        ])
+        self.client.set_aggregate_rows(
+            [
+                {"claim_type": "file_path", "verification_status": "verified_post_match", "n": 5},
+                {"claim_type": "file_path", "verification_status": "unverified", "n": 2},
+                {"claim_type": "pr_number", "verification_status": "verified_post_match", "n": 3},
+            ]
+        )
         result = self.logger.aggregate_daily(days=7)
         assert result["days"] == 7
         assert result["total_claims"] == 10
@@ -204,10 +207,12 @@ class TestClaimLogger:
         assert result["f21_rate"] == 0.2  # 2 unverified / 10 total
 
     def test_aggregate_filter_by_type(self) -> None:
-        self.client.set_aggregate_rows([
-            {"claim_type": "file_path", "verification_status": "unverified", "n": 4},
-            {"claim_type": "pr_number", "verification_status": "verified_pre", "n": 6},
-        ])
+        self.client.set_aggregate_rows(
+            [
+                {"claim_type": "file_path", "verification_status": "unverified", "n": 4},
+                {"claim_type": "pr_number", "verification_status": "verified_pre", "n": 6},
+            ]
+        )
         result = self.logger.aggregate_daily(days=1, claim_type="file_path")
         assert "file_path" in result["by_type"]
         assert "pr_number" not in result["by_type"]
@@ -218,6 +223,7 @@ class TestClaimLogger:
 # ============================================================================
 # TestVerificationStatusInference
 # ============================================================================
+
 
 class TestVerificationStatusInference:
     def _cand(self, claim_type: ClaimType, value: str) -> ClaimCandidate:
@@ -256,9 +262,7 @@ class TestVerificationStatusInference:
         cand = self._cand(ClaimType.MIGRATION_NUMBER, "0099")
         status, evidence = infer_verification_status(
             cand,
-            tool_call_history=[
-                "ls migrations/sql/ output: 0033_cowork_claims_calibration.sql"
-            ],
+            tool_call_history=["ls migrations/sql/ output: 0033_cowork_claims_calibration.sql"],
             pre_registered_claims=None,
         )
         # claim_value="0099" no aparece en history, pero ".sql" sí → post_mismatch
@@ -278,6 +282,7 @@ class TestVerificationStatusInference:
 # ============================================================================
 # TestClaimRecord (cobertura defensiva)
 # ============================================================================
+
 
 class TestClaimRecord:
     def test_to_db_row_shape(self) -> None:
@@ -307,6 +312,7 @@ class TestClaimRecord:
 # ============================================================================
 # TestCLIReport (cobertura defensiva sobre tools/cowork_calibration_report.py)
 # ============================================================================
+
 
 class TestCLIReport:
     def test_sandbox_fallback_empty(self, monkeypatch: pytest.MonkeyPatch) -> None:

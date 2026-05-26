@@ -35,6 +35,7 @@ class VerificationStatus(Enum):
 @dataclass
 class VerificationResult:
     """Result of verifying a single artifact."""
+
     artifact_path: str
     status: VerificationStatus
     message: str
@@ -44,6 +45,7 @@ class VerificationResult:
 @dataclass
 class SignatureChainEntry:
     """An entry in the signature chain."""
+
     artifact: str
     signature_file: str
     verified: bool
@@ -211,9 +213,13 @@ class SignatureVerifier:
         try:
             result = subprocess.run(
                 [
-                    "minisign", "-Vm", artifact_path,
-                    "-p", str(self._public_key_path),
-                    "-x", signature_path,
+                    "minisign",
+                    "-Vm",
+                    artifact_path,
+                    "-p",
+                    str(self._public_key_path),
+                    "-x",
+                    signature_path,
                 ],
                 capture_output=True,
                 text=True,

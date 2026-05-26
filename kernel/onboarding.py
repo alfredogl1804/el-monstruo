@@ -18,6 +18,7 @@ Soberanía:
 - Sabios LLM → respuestas predefinidas si no hay API key
 - Supabase → in-memory fallback si no hay SUPABASE_URL
 """
+
 from __future__ import annotations
 
 import uuid
@@ -25,12 +26,14 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
+
 import structlog
 
 logger = structlog.get_logger("monstruo.onboarding")
 
 
 # ── Excepciones con identidad ──────────────────────────────────────────────
+
 
 class OnboardingFaseInvalida(ValueError):
     """La fase de onboarding solicitada no es válida.
@@ -50,8 +53,10 @@ class OnboardingSesionNoEncontrada(KeyError):
 
 # ── Enums ──────────────────────────────────────────────────────────────────
 
+
 class OnboardingFase(int, Enum):
     """Fases del wizard de onboarding."""
+
     DESCUBRIMIENTO = 1
     SELECCION_VERTICAL = 2
     CONFIGURACION = 3
@@ -61,6 +66,7 @@ class OnboardingFase(int, Enum):
 
 class VerticalNegocio(str, Enum):
     """Verticales de negocio disponibles."""
+
     SAAS = "saas"
     ECOMMERCE = "ecommerce"
     MARKETPLACE = "marketplace"
@@ -73,6 +79,7 @@ class VerticalNegocio(str, Enum):
 
 
 # ── Dataclasses ────────────────────────────────────────────────────────────
+
 
 @dataclass
 class OnboardingSession:
@@ -88,6 +95,7 @@ class OnboardingSession:
         started_at: ISO 8601 UTC de inicio.
         completed: Si el onboarding fue completado.
     """
+
     id: str
     user_id: str
     fase_actual: OnboardingFase = OnboardingFase.DESCUBRIMIENTO
@@ -125,6 +133,7 @@ class OnboardingStep:
         campo: Nombre del campo donde guardar la respuesta.
         requerido: Si la respuesta es obligatoria.
     """
+
     fase: OnboardingFase
     pregunta: str
     tipo: str
@@ -145,6 +154,7 @@ class OnboardingStep:
 
 # ── Wizard ─────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class OnboardingWizard:
     """Wizard de onboarding conversacional.
@@ -160,6 +170,7 @@ class OnboardingWizard:
         Sin Sabios: respuestas predefinidas por vertical.
         Sin Supabase: sesiones en memoria.
     """
+
     _supabase: Optional[object] = field(default=None, repr=False)
     _sabios: Optional[object] = field(default=None, repr=False)
     _sessions: dict[str, OnboardingSession] = field(default_factory=dict)
@@ -168,67 +179,83 @@ class OnboardingWizard:
 
     # ── Definición del Wizard ──────────────────────────────────────────────
 
-    PASOS: list[OnboardingStep] = field(default_factory=lambda: [
-        # Fase 1: Descubrimiento
-        OnboardingStep(
-            fase=OnboardingFase.DESCUBRIMIENTO,
-            pregunta="¿Cuál es tu nombre y qué tipo de negocio quieres crear?",
-            tipo="text",
-            campo="descripcion_inicial",
-        ),
-        OnboardingStep(
-            fase=OnboardingFase.DESCUBRIMIENTO,
-            pregunta="¿Tienes experiencia previa con herramientas de IA o es tu primera vez?",
-            tipo="select",
-            campo="experiencia_ia",
-            opciones=["Primera vez", "Algo de experiencia", "Experiencia avanzada"],
-        ),
-        # Fase 2: Selección de Vertical
-        OnboardingStep(
-            fase=OnboardingFase.SELECCION_VERTICAL,
-            pregunta="¿En qué industria quieres crear tu empresa digital?",
-            tipo="select",
-            campo="vertical",
-            opciones=["SaaS", "E-commerce", "Marketplace", "Contenido", "Servicios", "Educación", "Salud", "Fintech", "Otro"],
-        ),
-        OnboardingStep(
-            fase=OnboardingFase.SELECCION_VERTICAL,
-            pregunta="¿Cuál es tu presupuesto mensual estimado para operar la empresa?",
-            tipo="select",
-            campo="presupuesto_mensual",
-            opciones=["< $100", "$100-$500", "$500-$2,000", "$2,000-$10,000", "> $10,000"],
-        ),
-        # Fase 3: Configuración
-        OnboardingStep(
-            fase=OnboardingFase.CONFIGURACION,
-            pregunta="¿En qué idiomas quieres que opere tu empresa?",
-            tipo="multiselect",
-            campo="idiomas",
-            opciones=["Español", "English", "Português", "Français", "Deutsch"],
-        ),
-        OnboardingStep(
-            fase=OnboardingFase.CONFIGURACION,
-            pregunta="¿Qué tan agresivo quieres que sea el modo autónomo de los Embriones?",
-            tipo="select",
-            campo="autonomia_nivel",
-            opciones=["Conservador (confirma todo)", "Balanceado (confirma decisiones importantes)", "Agresivo (opera solo)"],
-        ),
-        # Fase 4: Primera Empresa
-        OnboardingStep(
-            fase=OnboardingFase.PRIMERA_EMPRESA,
-            pregunta="Dame el nombre de tu primera empresa y una descripción en 1-2 oraciones.",
-            tipo="text",
-            campo="primera_empresa_descripcion",
-        ),
-        # Fase 5: Activación
-        OnboardingStep(
-            fase=OnboardingFase.ACTIVACION,
-            pregunta="¿Quieres activar todos los Embriones ahora o prefieres activarlos uno por uno?",
-            tipo="select",
-            campo="activacion_embriones",
-            opciones=["Activar todos ahora", "Activar uno por uno", "Solo quiero explorar primero"],
-        ),
-    ])
+    PASOS: list[OnboardingStep] = field(
+        default_factory=lambda: [
+            # Fase 1: Descubrimiento
+            OnboardingStep(
+                fase=OnboardingFase.DESCUBRIMIENTO,
+                pregunta="¿Cuál es tu nombre y qué tipo de negocio quieres crear?",
+                tipo="text",
+                campo="descripcion_inicial",
+            ),
+            OnboardingStep(
+                fase=OnboardingFase.DESCUBRIMIENTO,
+                pregunta="¿Tienes experiencia previa con herramientas de IA o es tu primera vez?",
+                tipo="select",
+                campo="experiencia_ia",
+                opciones=["Primera vez", "Algo de experiencia", "Experiencia avanzada"],
+            ),
+            # Fase 2: Selección de Vertical
+            OnboardingStep(
+                fase=OnboardingFase.SELECCION_VERTICAL,
+                pregunta="¿En qué industria quieres crear tu empresa digital?",
+                tipo="select",
+                campo="vertical",
+                opciones=[
+                    "SaaS",
+                    "E-commerce",
+                    "Marketplace",
+                    "Contenido",
+                    "Servicios",
+                    "Educación",
+                    "Salud",
+                    "Fintech",
+                    "Otro",
+                ],
+            ),
+            OnboardingStep(
+                fase=OnboardingFase.SELECCION_VERTICAL,
+                pregunta="¿Cuál es tu presupuesto mensual estimado para operar la empresa?",
+                tipo="select",
+                campo="presupuesto_mensual",
+                opciones=["< $100", "$100-$500", "$500-$2,000", "$2,000-$10,000", "> $10,000"],
+            ),
+            # Fase 3: Configuración
+            OnboardingStep(
+                fase=OnboardingFase.CONFIGURACION,
+                pregunta="¿En qué idiomas quieres que opere tu empresa?",
+                tipo="multiselect",
+                campo="idiomas",
+                opciones=["Español", "English", "Português", "Français", "Deutsch"],
+            ),
+            OnboardingStep(
+                fase=OnboardingFase.CONFIGURACION,
+                pregunta="¿Qué tan agresivo quieres que sea el modo autónomo de los Embriones?",
+                tipo="select",
+                campo="autonomia_nivel",
+                opciones=[
+                    "Conservador (confirma todo)",
+                    "Balanceado (confirma decisiones importantes)",
+                    "Agresivo (opera solo)",
+                ],
+            ),
+            # Fase 4: Primera Empresa
+            OnboardingStep(
+                fase=OnboardingFase.PRIMERA_EMPRESA,
+                pregunta="Dame el nombre de tu primera empresa y una descripción en 1-2 oraciones.",
+                tipo="text",
+                campo="primera_empresa_descripcion",
+            ),
+            # Fase 5: Activación
+            OnboardingStep(
+                fase=OnboardingFase.ACTIVACION,
+                pregunta="¿Quieres activar todos los Embriones ahora o prefieres activarlos uno por uno?",
+                tipo="select",
+                campo="activacion_embriones",
+                opciones=["Activar todos ahora", "Activar uno por uno", "Solo quiero explorar primero"],
+            ),
+        ]
+    )
 
     def __post_init__(self):
         """Inicializar la lista de pasos."""
@@ -238,11 +265,39 @@ class OnboardingWizard:
     def _default_pasos(self) -> list[OnboardingStep]:
         """Generar pasos por defecto."""
         return [
-            OnboardingStep(fase=OnboardingFase.DESCUBRIMIENTO, pregunta="¿Qué negocio quieres crear?", tipo="text", campo="descripcion_inicial"),
-            OnboardingStep(fase=OnboardingFase.SELECCION_VERTICAL, pregunta="¿En qué industria?", tipo="select", campo="vertical", opciones=["SaaS", "E-commerce", "Servicios"]),
-            OnboardingStep(fase=OnboardingFase.CONFIGURACION, pregunta="¿En qué idiomas?", tipo="multiselect", campo="idiomas", opciones=["Español", "English"]),
-            OnboardingStep(fase=OnboardingFase.PRIMERA_EMPRESA, pregunta="Nombre y descripción de tu primera empresa:", tipo="text", campo="primera_empresa_descripcion"),
-            OnboardingStep(fase=OnboardingFase.ACTIVACION, pregunta="¿Activar todos los Embriones?", tipo="select", campo="activacion_embriones", opciones=["Sí", "No"]),
+            OnboardingStep(
+                fase=OnboardingFase.DESCUBRIMIENTO,
+                pregunta="¿Qué negocio quieres crear?",
+                tipo="text",
+                campo="descripcion_inicial",
+            ),
+            OnboardingStep(
+                fase=OnboardingFase.SELECCION_VERTICAL,
+                pregunta="¿En qué industria?",
+                tipo="select",
+                campo="vertical",
+                opciones=["SaaS", "E-commerce", "Servicios"],
+            ),
+            OnboardingStep(
+                fase=OnboardingFase.CONFIGURACION,
+                pregunta="¿En qué idiomas?",
+                tipo="multiselect",
+                campo="idiomas",
+                opciones=["Español", "English"],
+            ),
+            OnboardingStep(
+                fase=OnboardingFase.PRIMERA_EMPRESA,
+                pregunta="Nombre y descripción de tu primera empresa:",
+                tipo="text",
+                campo="primera_empresa_descripcion",
+            ),
+            OnboardingStep(
+                fase=OnboardingFase.ACTIVACION,
+                pregunta="¿Activar todos los Embriones?",
+                tipo="select",
+                campo="activacion_embriones",
+                opciones=["Sí", "No"],
+            ),
         ]
 
     # ── Gestión de Sesiones ────────────────────────────────────────────────
@@ -264,9 +319,7 @@ class OnboardingWizard:
 
         if self._supabase:
             try:
-                self._supabase.table("onboarding_sessions").insert(
-                    session.to_dict()
-                ).execute()
+                self._supabase.table("onboarding_sessions").insert(session.to_dict()).execute()
             except Exception as e:
                 logger.warning("onboarding_session_persist_failed", error=str(e))
 
@@ -288,8 +341,7 @@ class OnboardingWizard:
         session = self._sessions.get(session_id)
         if not session:
             raise OnboardingSesionNoEncontrada(
-                f"Sesión '{session_id}' no encontrada. "
-                "Crear nueva sesión con create_session()."
+                f"Sesión '{session_id}' no encontrada. Crear nueva sesión con create_session()."
             )
 
         if session.completed:
@@ -302,8 +354,7 @@ class OnboardingWizard:
 
         return None
 
-    async def submit_answer(self, session_id: str, campo: str,
-                             respuesta: str) -> dict:
+    async def submit_answer(self, session_id: str, campo: str, respuesta: str) -> dict:
         """Guardar respuesta del usuario y avanzar el wizard.
 
         Args:
@@ -320,8 +371,7 @@ class OnboardingWizard:
         session = self._sessions.get(session_id)
         if not session:
             raise OnboardingSesionNoEncontrada(
-                f"Sesión '{session_id}' no encontrada. "
-                "Crear nueva sesión con create_session()."
+                f"Sesión '{session_id}' no encontrada. Crear nueva sesión con create_session()."
             )
 
         # Guardar respuesta
@@ -349,10 +399,12 @@ class OnboardingWizard:
             # Avanzar a la siguiente fase
             if session.fase_actual.value < 5:
                 session.fase_actual = OnboardingFase(session.fase_actual.value + 1)
-                logger.info("onboarding_fase_completada",
-                            session_id=session_id,
-                            fase_completada=session.fase_actual.value - 1,
-                            fase_siguiente=session.fase_actual.value)
+                logger.info(
+                    "onboarding_fase_completada",
+                    session_id=session_id,
+                    fase_completada=session.fase_actual.value - 1,
+                    fase_siguiente=session.fase_actual.value,
+                )
             else:
                 # Wizard completado
                 await self._complete_session(session)
@@ -385,22 +437,23 @@ class OnboardingWizard:
         # Actualizar estadísticas
         self._completed_count += 1
         self._avg_tiempo_minutos = (
-            (self._avg_tiempo_minutos * (self._completed_count - 1) + session.tiempo_minutos)
-            / self._completed_count
-        )
+            self._avg_tiempo_minutos * (self._completed_count - 1) + session.tiempo_minutos
+        ) / self._completed_count
 
         # Persistir en Supabase
         if self._supabase:
             try:
-                self._supabase.table("onboarding_sessions").upsert(
-                    session.to_dict()
-                ).execute()
+                self._supabase.table("onboarding_sessions").upsert(session.to_dict()).execute()
             except Exception as e:
                 logger.warning("onboarding_complete_persist_failed", error=str(e))
 
-        logger.info("onboarding_completado", session_id=session.id,
-                    user_id=session.user_id, tiempo_minutos=session.tiempo_minutos,
-                    vertical=session.vertical.value if session.vertical else None)
+        logger.info(
+            "onboarding_completado",
+            session_id=session.id,
+            user_id=session.user_id,
+            tiempo_minutos=session.tiempo_minutos,
+            vertical=session.vertical.value if session.vertical else None,
+        )
 
     @staticmethod
     def _generate_config(session: OnboardingSession) -> dict:
@@ -480,7 +533,5 @@ def init_onboarding_wizard(supabase=None, sabios=None) -> OnboardingWizard:
         _supabase=supabase,
         _sabios=sabios,
     )
-    logger.info("onboarding_wizard_inicializado",
-                con_supabase=supabase is not None,
-                con_sabios=sabios is not None)
+    logger.info("onboarding_wizard_inicializado", con_supabase=supabase is not None, con_sabios=sabios is not None)
     return _onboarding_wizard_instance

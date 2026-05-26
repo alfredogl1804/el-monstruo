@@ -2,6 +2,7 @@
 """
 Tests del verificador de contrato ejecutable (DSC-G-017).
 """
+
 from __future__ import annotations
 
 import sys
@@ -12,7 +13,6 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import tools.dsc_contract_check as dcc  # noqa: E402
-
 
 DSC_VALID_WITH_EXISTING_PATH = """\
 # DSC-X-001 — Mi DSC con contrato real
@@ -116,8 +116,8 @@ def test_invalid_paths_dont_exist():
 # hook dsc-contract-check via CLI (main()). Los 4 tests previos cubren la
 # funcion check_dsc() pura; estos cubren el contrato pre-commit real.
 # ───────────────────────────────────────────────────────────────────────
-import subprocess
 import os
+import subprocess
 
 
 def _run_cli(*paths: Path) -> tuple[int, str, str]:

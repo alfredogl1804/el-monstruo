@@ -16,39 +16,30 @@ Convenciones:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 2 · 2026-05-04
 """
-from __future__ import annotations
 
-import asyncio
-import os
-from typing import Any
+from __future__ import annotations
 
 import pytest
 
-from kernel.catastro.pipeline import CatastroPipeline, PipelineRunResult
+from kernel.catastro.pipeline import CatastroPipeline
 from kernel.catastro.quorum import (
     FieldType,
     FuenteVote,
     QuorumOutcome,
-    QuorumResult,
     QuorumValidator,
 )
 from kernel.catastro.sources import (
     ArtificialAnalysisFuente,
     BaseFuente,
     FuenteError,
-    FuenteRateLimitError,
-    FuenteTimeoutError,
-    FuenteUnauthorizedError,
-    FuenteUnavailableError,
     LMArenaFuente,
     OpenRouterFuente,
-    RawSnapshot,
 )
-
 
 # ============================================================================
 # QUORUM VALIDATOR
 # ============================================================================
+
 
 class TestQuorumValidator:
     """Tests del Quorum Validator (corazón del Bloque 2)."""
@@ -194,9 +185,7 @@ class TestQuorumValidator:
                 ],
             )
             results.append(r)
-        deltas = v.compute_trust_deltas(
-            results, per_source_floor=None, per_source_ceiling=None
-        )
+        deltas = v.compute_trust_deltas(results, per_source_floor=None, per_source_ceiling=None)
         # 10 disensos * -0.05 = -0.50, no capado
         assert deltas["lmarena"] == pytest.approx(-0.50)
 
@@ -205,8 +194,8 @@ class TestQuorumValidator:
 # SOURCES
 # ============================================================================
 
-class TestSources:
 
+class TestSources:
     @pytest.mark.asyncio
     async def test_artificial_analysis_dry_run(self):
         f = ArtificialAnalysisFuente(dry_run=True)
@@ -248,8 +237,8 @@ class TestSources:
 # PIPELINE
 # ============================================================================
 
-class TestPipeline:
 
+class TestPipeline:
     @pytest.mark.asyncio
     async def test_pipeline_dry_run_e2e(self):
         pipeline = CatastroPipeline(dry_run=True)
@@ -312,6 +301,7 @@ class TestPipeline:
     @pytest.mark.asyncio
     async def test_pipeline_summary_serializable(self):
         import json
+
         pipeline = CatastroPipeline(dry_run=True)
         result = await pipeline.run()
         summary = result.summary()
@@ -323,10 +313,11 @@ class TestPipeline:
 # CRON
 # ============================================================================
 
-class TestCron:
 
+class TestCron:
     def test_check_env_no_secrets(self, monkeypatch):
         from kernel.catastro.cron import _check_env
+
         monkeypatch.delenv("SUPABASE_URL", raising=False)
         monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
         monkeypatch.delenv("ARTIFICIAL_ANALYSIS_API_KEY", raising=False)
@@ -338,6 +329,7 @@ class TestCron:
 
     def test_check_env_with_secrets(self, monkeypatch):
         from kernel.catastro.cron import _check_env
+
         monkeypatch.setenv("SUPABASE_URL", "https://x.supabase.co")
         monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "eyJ...")
         monkeypatch.setenv("ARTIFICIAL_ANALYSIS_API_KEY", "sk-aa-...")
@@ -348,6 +340,7 @@ class TestCron:
 
     def test_cron_main_dry_run(self, monkeypatch, capsys):
         from kernel.catastro.cron import main
+
         monkeypatch.setenv("CATASTRO_DRY_RUN", "true")
         monkeypatch.setenv("CATASTRO_LOG_LEVEL", "WARNING")
 
@@ -362,11 +355,13 @@ class TestCron:
 # DISCIPLINA OS.ENVIRON
 # ============================================================================
 
+
 class TestDisciplinaOsEnviron:
     """Verifica que NO hay os.environ a nivel módulo."""
 
     def test_no_module_level_env_caching(self):
         import ast
+
         files_to_check = [
             "kernel/catastro/pipeline.py",
             "kernel/catastro/cron.py",
@@ -383,6 +378,5 @@ class TestDisciplinaOsEnviron:
                 if isinstance(node, (ast.Assign, ast.AnnAssign)):
                     code = ast.unparse(node) if hasattr(ast, "unparse") else ""
                     assert "os.environ" not in code, (
-                        f"DISCIPLINA VIOLADA en {path}: "
-                        f"os.environ a nivel módulo: {code[:120]}"
+                        f"DISCIPLINA VIOLADA en {path}: os.environ a nivel módulo: {code[:120]}"
                     )

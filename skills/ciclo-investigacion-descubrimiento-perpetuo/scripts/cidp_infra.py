@@ -7,8 +7,6 @@ and tracks infrastructure spending.
 """
 
 import json
-import os
-import time
 from datetime import datetime
 from pathlib import Path
 
@@ -58,11 +56,13 @@ class InfraManager:
             if instance.get("status") == "active":
                 instance["status"] = "torn_down"
                 instance["torn_down_at"] = datetime.now().isoformat()
-                results.append({
-                    "instance": instance.get("instance_id", "unknown"),
-                    "provider": instance.get("provider", "unknown"),
-                    "status": "torn_down",
-                })
+                results.append(
+                    {
+                        "instance": instance.get("instance_id", "unknown"),
+                        "provider": instance.get("provider", "unknown"),
+                        "status": "torn_down",
+                    }
+                )
         self._save_state()
         return results
 
@@ -82,9 +82,14 @@ class InfraManager:
         """Save current state to disk."""
         state_path = self.output_dir / "infra_state.json"
         with open(state_path, "w", encoding="utf-8") as f:
-            json.dump({
-                "active_instances": self.active_instances,
-                "cost_log": self.cost_log,
-                "total_cost": self.get_total_cost(),
-                "updated_at": datetime.now().isoformat(),
-            }, f, indent=2, ensure_ascii=False)
+            json.dump(
+                {
+                    "active_instances": self.active_instances,
+                    "cost_log": self.cost_log,
+                    "total_cost": self.get_total_cost(),
+                    "updated_at": datetime.now().isoformat(),
+                },
+                f,
+                indent=2,
+                ensure_ascii=False,
+            )

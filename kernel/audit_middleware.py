@@ -49,26 +49,30 @@ logger = structlog.get_logger("kernel.audit")
 # ============================================================================
 
 # Paths excluidos del audit (alta frecuencia, bajo valor forense)
-EXCLUDED_PATHS = frozenset({
-    "/",
-    "/health",
-    "/health/auth",
-    "/openapi.json",
-    "/docs",
-    "/redoc",
-    "/favicon.ico",
-})
+EXCLUDED_PATHS = frozenset(
+    {
+        "/",
+        "/health",
+        "/health/auth",
+        "/openapi.json",
+        "/docs",
+        "/redoc",
+        "/favicon.ico",
+    }
+)
 
 # Headers que SIEMPRE se redactan (case-insensitive)
-SENSITIVE_HEADERS = frozenset({
-    "authorization",
-    "x-api-key",
-    "x-telegram-bot-api-secret-token",
-    "cookie",
-    "set-cookie",
-    "x-supabase-auth",
-    "proxy-authorization",
-})
+SENSITIVE_HEADERS = frozenset(
+    {
+        "authorization",
+        "x-api-key",
+        "x-telegram-bot-api-secret-token",
+        "cookie",
+        "set-cookie",
+        "x-supabase-auth",
+        "proxy-authorization",
+    }
+)
 
 # Patrones regex para detectar secrets en valores de headers
 SECRET_PATTERNS = [
@@ -92,6 +96,7 @@ SECRET_PATTERNS = [
 # ============================================================================
 # Funciones helper
 # ============================================================================
+
 
 def redact_secrets(value: str) -> str:
     """Redacta secrets conocidos en un string usando regex patterns."""
@@ -160,6 +165,7 @@ def get_supabase_credentials() -> Optional[tuple[str, str]]:
 # Background insert task
 # ============================================================================
 
+
 async def _insert_audit_log(record: dict[str, Any]) -> None:
     """Inserta un audit log en Supabase de forma asíncrona.
 
@@ -200,6 +206,7 @@ async def _insert_audit_log(record: dict[str, Any]) -> None:
 # ============================================================================
 # Middleware
 # ============================================================================
+
 
 class AuditMiddleware(BaseHTTPMiddleware):
     """Middleware que registra TODA request HTTP en kernel_audit_log.

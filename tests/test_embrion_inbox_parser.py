@@ -13,11 +13,10 @@ from __future__ import annotations
 import pytest
 
 from kernel.embrion_inbox_parser import (
-    ParsedCommand,
-    parse_command,
-    KNOWN_COMMANDS,
     COMMANDS_WITH_REQUIRED_PAYLOAD,
     COMMANDS_WITHOUT_PAYLOAD,
+    KNOWN_COMMANDS,
+    parse_command,
 )
 
 
@@ -220,11 +219,12 @@ def test_determinism():
 # ─── 26) Cero imports prohibidos en el módulo (anti-LLM) ─────────────────
 def test_no_llm_imports_in_parser_module():
     """Inspección estática: el módulo NO debe importar openai/anthropic/llm_*."""
-    import kernel.embrion_inbox_parser as parser_mod
     import sys
+
+    import kernel.embrion_inbox_parser as parser_mod
+
     mod = sys.modules[parser_mod.__name__]
     # Verifica que el módulo solo importó re, dataclasses, typing, future
-    allowed_prefixes = ("re", "dataclasses", "typing", "__future__", "kernel")
     # Inspeccionar atributos del módulo que sean módulos importados
     for name in dir(mod):
         attr = getattr(mod, name)

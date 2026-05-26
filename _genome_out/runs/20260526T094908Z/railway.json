@@ -1,0 +1,762 @@
+{
+  "scanner": "railway",
+  "version": 1,
+  "started_at": "2026-05-26T09:57:04.260810+00:00",
+  "finished_at": "2026-05-26T09:57:05.801744+00:00",
+  "user": {
+    "id": "1ad0d22b-6552-465a-8ca8-6c832f7406cd",
+    "name": null,
+    "email": "alfredogl1@hotmail.com"
+  },
+  "workspaces_count": 1,
+  "projects_count": 7,
+  "total_services": 19,
+  "total_environments": 7,
+  "expected_total_services": 19,
+  "coverage_match": true,
+  "workspaces": [
+    {
+      "id": "2d1ee535-86bb-46ce-9063-cda01a90a15e",
+      "name": "alfredogl1804's Projects",
+      "projects": [
+        {
+          "id": "54e4275f-6aa8-4e66-af6e-a865a7921101",
+          "name": "forja-monstruo-direct-1777801048",
+          "description": null,
+          "created_at": "2026-05-03T09:37:28.308Z",
+          "updated_at": "2026-05-26T08:30:53.484Z",
+          "is_public": false,
+          "workspace_id": "2d1ee535-86bb-46ce-9063-cda01a90a15e",
+          "workspace_name": "alfredogl1804's Projects",
+          "environments": [
+            {
+              "id": "1671d756-eeac-42ab-a215-7e11a3355f7d",
+              "name": "production"
+            }
+          ],
+          "environments_count": 1,
+          "services": [
+            {
+              "id": "c40947eb-2e5b-410f-ba9f-2ed944d9f736",
+              "name": "API",
+              "created_at": "2026-05-03T09:37:29.734Z",
+              "updated_at": "2026-05-03T09:37:29.734Z",
+              "instances": [
+                {
+                  "id": "56b2532e-5458-405c-b8e7-73b1e694d947",
+                  "environment_id": "1671d756-eeac-42ab-a215-7e11a3355f7d",
+                  "deploy": {
+                    "id": "f6d37bed-4cce-4832-aa28-a8b87e81c5d9",
+                    "status": "SUCCESS",
+                    "created_at": "2026-05-03T09:37:30.125Z",
+                    "commit_hash": "dd46d53b61b29ce2bd0856dbcfd382aec44acc21",
+                    "commit_message": "Add Procfile for Railway deployment",
+                    "branch": "main",
+                    "repo": "alfredogl1804/forja-saludo-monstruo-1777800772"
+                  },
+                  "source": {
+                    "repo": "alfredogl1804/forja-saludo-monstruo-1777800772",
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [
+                      "api-production-f58f.up.railway.app"
+                    ],
+                    "custom": []
+                  }
+                }
+              ]
+            }
+          ],
+          "services_count": 1,
+          "plugins": [],
+          "plugins_count": 0
+        },
+        {
+          "id": "9bf79c63-19b6-477c-94b2-b119b7b16c5f",
+          "name": "forja-monstruo-direct-1777801110",
+          "description": null,
+          "created_at": "2026-05-03T09:38:38.000Z",
+          "updated_at": "2026-05-26T08:30:48.267Z",
+          "is_public": false,
+          "workspace_id": "2d1ee535-86bb-46ce-9063-cda01a90a15e",
+          "workspace_name": "alfredogl1804's Projects",
+          "environments": [
+            {
+              "id": "3b8c0418-8115-44fb-bea0-897c59bfd38b",
+              "name": "production"
+            }
+          ],
+          "environments_count": 1,
+          "services": [
+            {
+              "id": "57fd33a3-2b1a-46eb-b44f-6fb958229254",
+              "name": "API",
+              "created_at": "2026-05-03T09:38:50.663Z",
+              "updated_at": "2026-05-03T09:38:50.663Z",
+              "instances": [
+                {
+                  "id": "4e406acc-f689-4c0b-91d6-ab14c958fe28",
+                  "environment_id": "3b8c0418-8115-44fb-bea0-897c59bfd38b",
+                  "deploy": {
+                    "id": "7d198941-830f-4ad8-81f5-236186d10cd3",
+                    "status": "SUCCESS",
+                    "created_at": "2026-05-03T09:39:00.080Z",
+                    "commit_hash": "dd46d53b61b29ce2bd0856dbcfd382aec44acc21",
+                    "commit_message": "Add Procfile for Railway deployment",
+                    "branch": "main",
+                    "repo": "alfredogl1804/forja-saludo-monstruo-1777800772"
+                  },
+                  "source": {
+                    "repo": "alfredogl1804/forja-saludo-monstruo-1777800772",
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [
+                      "api-production-efe4.up.railway.app"
+                    ],
+                    "custom": []
+                  }
+                }
+              ]
+            }
+          ],
+          "services_count": 1,
+          "plugins": [],
+          "plugins_count": 0
+        },
+        {
+          "id": "160560d7-17bb-496b-a9ee-eb320fe6a067",
+          "name": "forja-saludo-v2",
+          "description": null,
+          "created_at": "2026-05-03T09:48:33.193Z",
+          "updated_at": "2026-05-26T08:30:43.150Z",
+          "is_public": false,
+          "workspace_id": "2d1ee535-86bb-46ce-9063-cda01a90a15e",
+          "workspace_name": "alfredogl1804's Projects",
+          "environments": [
+            {
+              "id": "b8942e8c-eb69-4da0-8def-52a377f6bff4",
+              "name": "production"
+            }
+          ],
+          "environments_count": 1,
+          "services": [
+            {
+              "id": "09ecd476-531b-4331-aeb6-050aea45479f",
+              "name": "API",
+              "created_at": "2026-05-03T09:48:34.527Z",
+              "updated_at": "2026-05-03T09:48:34.527Z",
+              "instances": [
+                {
+                  "id": "e008cfea-c606-4f1e-ae89-1c967c6983f7",
+                  "environment_id": "b8942e8c-eb69-4da0-8def-52a377f6bff4",
+                  "deploy": {
+                    "id": "750f5686-90ce-44ed-8e6f-cdc2ee45942c",
+                    "status": "SUCCESS",
+                    "created_at": "2026-05-03T09:48:35.137Z",
+                    "commit_hash": "c4f2f82d19c4bf3ffa53e4f64c348e2e8b925bdb",
+                    "commit_message": "chore: add Procfile",
+                    "branch": "main",
+                    "repo": "alfredogl1804/forja-saludo-monstruo-v2-1777801675"
+                  },
+                  "source": {
+                    "repo": "alfredogl1804/forja-saludo-monstruo-v2-1777801675",
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [
+                      "api-production-4b6d4.up.railway.app"
+                    ],
+                    "custom": []
+                  }
+                }
+              ]
+            }
+          ],
+          "services_count": 1,
+          "plugins": [],
+          "plugins_count": 0
+        },
+        {
+          "id": "6da843db-e082-4742-a0f3-6e03a434d3fc",
+          "name": "forja-marketplace-mate",
+          "description": null,
+          "created_at": "2026-05-03T09:51:21.455Z",
+          "updated_at": "2026-05-26T08:30:36.338Z",
+          "is_public": false,
+          "workspace_id": "2d1ee535-86bb-46ce-9063-cda01a90a15e",
+          "workspace_name": "alfredogl1804's Projects",
+          "environments": [
+            {
+              "id": "bbdf3eaf-44ed-4a72-a336-b0c5e1373f86",
+              "name": "production"
+            }
+          ],
+          "environments_count": 1,
+          "services": [
+            {
+              "id": "ff0d953e-6a19-4075-ba99-c745d2b3d39f",
+              "name": "API",
+              "created_at": "2026-05-03T09:51:22.811Z",
+              "updated_at": "2026-05-03T09:51:22.811Z",
+              "instances": [
+                {
+                  "id": "110b21ea-d8a6-4b70-bb45-6ffdb4e6a4f2",
+                  "environment_id": "bbdf3eaf-44ed-4a72-a336-b0c5e1373f86",
+                  "deploy": {
+                    "id": "2e95eacb-9467-4bcf-95c7-667210ce903b",
+                    "status": "SUCCESS",
+                    "created_at": "2026-05-03T09:51:23.694Z",
+                    "commit_hash": "c9c07adf8824d0ac536a6818f60fa545f8469086",
+                    "commit_message": "chore: Procfile",
+                    "branch": "main",
+                    "repo": "alfredogl1804/forja-marketplace-mate-1777801830"
+                  },
+                  "source": {
+                    "repo": "alfredogl1804/forja-marketplace-mate-1777801830",
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [
+                      "api-production-169b.up.railway.app"
+                    ],
+                    "custom": []
+                  }
+                }
+              ]
+            }
+          ],
+          "services_count": 1,
+          "plugins": [],
+          "plugins_count": 0
+        },
+        {
+          "id": "1dcb47ee-6c01-44bb-baff-d89812382fee",
+          "name": "celebrated-achievement",
+          "description": null,
+          "created_at": "2026-04-04T19:15:19.194Z",
+          "updated_at": "2026-05-21T14:09:18.565Z",
+          "is_public": false,
+          "workspace_id": "2d1ee535-86bb-46ce-9063-cda01a90a15e",
+          "workspace_name": "alfredogl1804's Projects",
+          "environments": [
+            {
+              "id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
+              "name": "production"
+            }
+          ],
+          "environments_count": 1,
+          "services": [
+            {
+              "id": "46b0f118-6f9b-407a-af53-a2545a955fa7",
+              "name": "el-monstruo-kernel",
+              "created_at": "2026-04-14T06:23:01.246Z",
+              "updated_at": "2026-04-14T06:23:01.246Z",
+              "instances": [
+                {
+                  "id": "059e3355-cdb0-4a0b-9539-11420a4c040b",
+                  "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
+                  "deploy": {
+                    "id": "75c8ecb1-f043-459d-ba93-d91318a71ffd",
+                    "status": "SUCCESS",
+                    "created_at": "2026-05-26T09:35:22.779Z",
+                    "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+                    "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
+                    "branch": "main",
+                    "repo": "alfredogl1804/el-monstruo"
+                  },
+                  "source": {
+                    "repo": "alfredogl1804/el-monstruo",
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [
+                      "el-monstruo-kernel-production.up.railway.app"
+                    ],
+                    "custom": []
+                  }
+                }
+              ]
+            },
+            {
+              "id": "46eda8a1-1885-4590-a68a-51a6e2765f45",
+              "name": "open-webui",
+              "created_at": "2026-04-16T21:44:12.480Z",
+              "updated_at": "2026-04-16T21:44:12.480Z",
+              "instances": [
+                {
+                  "id": "06795263-dd01-4cca-a451-3568b853f9ba",
+                  "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
+                  "deploy": {
+                    "id": "a772a833-3585-4967-b64b-2290a96fe791",
+                    "status": "SUCCESS",
+                    "created_at": "2026-04-17T03:08:08.120Z",
+                    "commit_hash": null,
+                    "commit_message": "",
+                    "branch": null,
+                    "repo": null
+                  },
+                  "source": {
+                    "repo": null,
+                    "image": "ghcr.io/open-webui/open-webui:0.8.12"
+                  },
+                  "domains": {
+                    "service": [
+                      "open-webui-production-b59a.up.railway.app"
+                    ],
+                    "custom": []
+                  }
+                }
+              ]
+            },
+            {
+              "id": "59dcc47b-ea62-4a96-b547-b1741b506573",
+              "name": "Redis",
+              "created_at": "2026-04-21T07:31:31.667Z",
+              "updated_at": "2026-04-21T07:31:31.667Z",
+              "instances": [
+                {
+                  "id": "9b79ae5f-db39-4cb0-98ee-a20dde92625f",
+                  "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
+                  "deploy": {
+                    "id": "3f03a1a8-a68d-495d-8a4d-6c7e732b9b6c",
+                    "status": "SUCCESS",
+                    "created_at": "2026-04-21T07:31:37.423Z",
+                    "commit_hash": null,
+                    "commit_message": "",
+                    "branch": null,
+                    "repo": null
+                  },
+                  "source": {
+                    "repo": null,
+                    "image": "redis:8.2.1"
+                  },
+                  "domains": {
+                    "service": [],
+                    "custom": []
+                  }
+                }
+              ]
+            },
+            {
+              "id": "68cd07f3-5518-4b62-a9da-5ca054dc2437",
+              "name": "el-monstruo",
+              "created_at": "2026-04-17T05:46:42.316Z",
+              "updated_at": "2026-04-17T05:46:42.316Z",
+              "instances": [
+                {
+                  "id": "4cfc7c0b-b068-4a4f-8d69-7838d7198ba4",
+                  "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
+                  "deploy": {
+                    "id": "b145d2e5-505c-4408-a713-a2a89cff4bba",
+                    "status": "SUCCESS",
+                    "created_at": "2026-05-26T09:35:23.226Z",
+                    "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+                    "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
+                    "branch": "main",
+                    "repo": "alfredogl1804/el-monstruo"
+                  },
+                  "source": {
+                    "repo": "alfredogl1804/el-monstruo",
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [
+                      "el-monstruo-production.up.railway.app"
+                    ],
+                    "custom": []
+                  }
+                }
+              ]
+            },
+            {
+              "id": "6fe5e75b-8f77-49e9-a521-9059d7ebe32f",
+              "name": "forja-mcp",
+              "created_at": "2026-05-14T09:18:29.383Z",
+              "updated_at": "2026-05-14T09:18:29.383Z",
+              "instances": [
+                {
+                  "id": "1b2c997a-7c5b-4408-b8f8-b40f563d81c4",
+                  "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
+                  "deploy": {
+                    "id": "cabb884f-f0ea-44de-803d-7a5c0a7cc421",
+                    "status": "SUCCESS",
+                    "created_at": "2026-05-14T09:57:09.733Z",
+                    "commit_hash": null,
+                    "commit_message": "",
+                    "branch": null,
+                    "repo": null
+                  },
+                  "source": {
+                    "repo": null,
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [
+                      "forja-mcp-production.up.railway.app"
+                    ],
+                    "custom": []
+                  }
+                }
+              ]
+            },
+            {
+              "id": "7becfa99-3e14-417b-8f27-f7fc68f58f1f",
+              "name": "proposal-worker",
+              "created_at": "2026-05-10T12:22:04.690Z",
+              "updated_at": "2026-05-10T12:22:04.690Z",
+              "instances": [
+                {
+                  "id": "76580666-badd-41a6-a161-ba383c2cd823",
+                  "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
+                  "deploy": {
+                    "id": "54842c11-2af2-4634-bda4-1e2e898ff778",
+                    "status": "SUCCESS",
+                    "created_at": "2026-05-10T12:23:26.827Z",
+                    "commit_hash": "a8040bf8ebd1536609c88b1e8329bc8dc288d4fc",
+                    "commit_message": "feat(embrion): EMBRION-NEEDS-002 Tarea 1 — proposal_processor cierra ciclo HITL (#75)\n\nResuelve el limbo aprobado: proposals approved via Telegram que quedaban sin\nejecutarse porque NADIE invocaba exp",
+                    "branch": "main",
+                    "repo": "alfredogl1804/el-monstruo"
+                  },
+                  "source": {
+                    "repo": "alfredogl1804/el-monstruo",
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [],
+                    "custom": []
+                  }
+                }
+              ]
+            },
+            {
+              "id": "8d7f4cc7-8f2b-4404-801a-106417275225",
+              "name": "command-center",
+              "created_at": "2026-04-19T05:09:12.271Z",
+              "updated_at": "2026-04-19T05:09:12.271Z",
+              "instances": [
+                {
+                  "id": "ab286bc7-71ed-42e9-90c3-bdabf9ee0d3b",
+                  "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
+                  "deploy": {
+                    "id": "4f255990-16bb-429c-8476-224c3910717a",
+                    "status": "SUCCESS",
+                    "created_at": "2026-05-02T04:31:45.847Z",
+                    "commit_hash": "814ddf3a673e54cd6f2e95e35dc8b6e8f6633fa7",
+                    "commit_message": "sprint18: PIN checkout@v6.0.2 SHA (IVD-confirmed de0fac2e)",
+                    "branch": "main",
+                    "repo": "alfredogl1804/el-monstruo-command-center"
+                  },
+                  "source": {
+                    "repo": "alfredogl1804/el-monstruo-command-center",
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [
+                      "command-center-production-d0e8.up.railway.app"
+                    ],
+                    "custom": []
+                  }
+                }
+              ]
+            },
+            {
+              "id": "bcdfddc2-dd04-4676-8de7-88b503b3de0b",
+              "name": "la-forja-api",
+              "created_at": "2026-05-18T07:25:34.375Z",
+              "updated_at": "2026-05-18T07:25:34.375Z",
+              "instances": [
+                {
+                  "id": "2ccc2f1d-6b9b-4cd9-8699-88f776631f8e",
+                  "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
+                  "deploy": {
+                    "id": "a4fbe0a9-67a6-4d5c-be03-f5922353365f",
+                    "status": "SUCCESS",
+                    "created_at": "2026-05-26T09:35:23.147Z",
+                    "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+                    "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
+                    "branch": "main",
+                    "repo": "alfredogl1804/el-monstruo"
+                  },
+                  "source": {
+                    "repo": "alfredogl1804/el-monstruo",
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [
+                      "la-forja-api-production.up.railway.app"
+                    ],
+                    "custom": []
+                  }
+                }
+              ]
+            },
+            {
+              "id": "c8b23424-49b9-46b9-b744-cf2886e356d1",
+              "name": "worker",
+              "created_at": "2026-04-04T19:15:22.040Z",
+              "updated_at": "2026-04-04T19:15:22.040Z",
+              "instances": [
+                {
+                  "id": "1e65d17a-4330-40d8-9006-36e83ab18197",
+                  "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
+                  "deploy": {
+                    "id": "16b87cd2-788a-469d-9b8a-6fdcbca8b031",
+                    "status": "SUCCESS",
+                    "created_at": "2026-05-02T04:33:49.807Z",
+                    "commit_hash": "2149129e4b6f7494a79289d0ad72514ba027974c",
+                    "commit_message": "feat(sprint-30): Embrión IA commands via kernel\n\n- New commands:\n  /embrion          — estado y memorias del Embrión\n  /embrion estado   — estado detallado\n  /embrion memorias — últimas memorias\n  /em",
+                    "branch": "master",
+                    "repo": "alfredogl1804/el-monstruo-bot"
+                  },
+                  "source": {
+                    "repo": "alfredogl1804/el-monstruo-bot",
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [],
+                    "custom": []
+                  }
+                }
+              ]
+            },
+            {
+              "id": "cd75e977-e7f8-41b9-a0ad-72116babed8a",
+              "name": "Postgres",
+              "created_at": "2026-04-21T07:26:07.635Z",
+              "updated_at": "2026-04-21T07:26:07.635Z",
+              "instances": [
+                {
+                  "id": "0b31b77f-ee93-4ecc-8220-4df24b0fd11f",
+                  "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
+                  "deploy": {
+                    "id": "13c6d527-bb44-413d-95d7-b3631ea181f2",
+                    "status": "SUCCESS",
+                    "created_at": "2026-04-21T07:26:22.175Z",
+                    "commit_hash": null,
+                    "commit_message": "",
+                    "branch": null,
+                    "repo": null
+                  },
+                  "source": {
+                    "repo": null,
+                    "image": "ghcr.io/railwayapp-templates/postgres-ssl:18"
+                  },
+                  "domains": {
+                    "service": [],
+                    "custom": []
+                  }
+                }
+              ]
+            },
+            {
+              "id": "e00abeef-b69b-445d-8659-88ecb201e55c",
+              "name": "sms-rem-cycle",
+              "created_at": "2026-05-21T13:10:25.293Z",
+              "updated_at": "2026-05-21T13:10:25.293Z",
+              "instances": [
+                {
+                  "id": "671726b5-181b-4da1-afe5-30bbab738ed8",
+                  "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
+                  "deploy": {
+                    "id": "b2f957ac-64a5-4a02-a306-08c254474866",
+                    "status": "SUCCESS",
+                    "created_at": "2026-05-26T09:35:23.075Z",
+                    "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+                    "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
+                    "branch": "main",
+                    "repo": "alfredogl1804/el-monstruo"
+                  },
+                  "source": {
+                    "repo": "alfredogl1804/el-monstruo",
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [],
+                    "custom": []
+                  }
+                }
+              ]
+            },
+            {
+              "id": "fa0a0162-a206-4ef5-bb8d-1f9c01bf4f33",
+              "name": "ag-ui-gateway",
+              "created_at": "2026-04-30T05:51:45.022Z",
+              "updated_at": "2026-04-30T05:51:45.022Z",
+              "instances": [
+                {
+                  "id": "8abd0870-60b6-4f80-b59d-0855a37d8a13",
+                  "environment_id": "ef0e5171-11ff-4b88-8b5b-f7283a6afc65",
+                  "deploy": {
+                    "id": "a7a812ab-4c1b-4fba-8d7d-df8fc40ed3dd",
+                    "status": "SUCCESS",
+                    "created_at": "2026-05-26T09:35:22.993Z",
+                    "commit_hash": "be00a3926f793b28a16f00457e14c95fd2752af2",
+                    "commit_message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
+                    "branch": "main",
+                    "repo": "alfredogl1804/el-monstruo"
+                  },
+                  "source": {
+                    "repo": "alfredogl1804/el-monstruo",
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [
+                      "ag-ui-gateway-production.up.railway.app"
+                    ],
+                    "custom": []
+                  }
+                }
+              ]
+            }
+          ],
+          "services_count": 12,
+          "plugins": [],
+          "plugins_count": 0
+        },
+        {
+          "id": "e9f5d5f6-61ac-4efb-92d2-5c63dc93f1f4",
+          "name": "truthful-freedom",
+          "description": null,
+          "created_at": "2026-04-12T01:54:51.123Z",
+          "updated_at": "2026-04-16T21:22:50.895Z",
+          "is_public": false,
+          "workspace_id": "2d1ee535-86bb-46ce-9063-cda01a90a15e",
+          "workspace_name": "alfredogl1804's Projects",
+          "environments": [
+            {
+              "id": "26d6f4be-2576-400f-ae03-46a60e90024e",
+              "name": "production"
+            }
+          ],
+          "environments_count": 1,
+          "services": [
+            {
+              "id": "0aabcefd-4de2-4e88-804e-73c5196dfb7e",
+              "name": "like-kukulkan-tickets",
+              "created_at": "2026-04-12T01:54:53.227Z",
+              "updated_at": "2026-04-12T01:54:53.227Z",
+              "instances": [
+                {
+                  "id": "42793857-c5c3-481b-b296-83aef78241a2",
+                  "environment_id": "26d6f4be-2576-400f-ae03-46a60e90024e",
+                  "deploy": {
+                    "id": "caaf750b-6326-45a5-8a2b-a9d9bac40bff",
+                    "status": "SUCCESS",
+                    "created_at": "2026-05-04T10:32:21.746Z",
+                    "commit_hash": "10e724932b1b87c7a859387f003024346d95ea05",
+                    "commit_message": "Merge: La Manada referral system",
+                    "branch": "main",
+                    "repo": "alfredogl1804/like-kukulkan-tickets"
+                  },
+                  "source": {
+                    "repo": "alfredogl1804/like-kukulkan-tickets",
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [
+                      "like-kukulkan-tickets-production.up.railway.app"
+                    ],
+                    "custom": [
+                      "www.ticketlike.mx",
+                      "ticketlike.mx"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "2398f2ea-b7c9-4fa4-8a0b-0407e258d0a5",
+              "name": "ticketlike-staging",
+              "created_at": "2026-04-16T05:04:00.461Z",
+              "updated_at": "2026-04-16T05:04:00.461Z",
+              "instances": [
+                {
+                  "id": "e322bc74-33fc-4ae0-9294-8c9711814d29",
+                  "environment_id": "26d6f4be-2576-400f-ae03-46a60e90024e",
+                  "deploy": {
+                    "id": "7f6c64ff-f253-48c7-a963-9b8f3a746e0b",
+                    "status": "SUCCESS",
+                    "created_at": "2026-04-17T02:26:02.986Z",
+                    "commit_hash": "c21b9e5881b89d587ee3245bb2e40038a5a25795",
+                    "commit_message": "feat: mobile bottom sheet replaces tooltip on seat tap\n\n- VenueMap: new onSeatTapMobile prop suppresses tooltip on mobile\n- VenueMap: new highlightedSeatId prop shows pulsing ring on previewed seat\n- ",
+                    "branch": "staging",
+                    "repo": "alfredogl1804/like-kukulkan-tickets"
+                  },
+                  "source": {
+                    "repo": "alfredogl1804/like-kukulkan-tickets",
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [
+                      "ticketlike-staging-production.up.railway.app"
+                    ],
+                    "custom": []
+                  }
+                }
+              ]
+            }
+          ],
+          "services_count": 2,
+          "plugins": [],
+          "plugins_count": 0
+        },
+        {
+          "id": "6e5c7f06-6a7e-4740-931d-92be3ccae07d",
+          "name": "simulador-universal",
+          "description": null,
+          "created_at": "2026-04-12T16:15:31.065Z",
+          "updated_at": "2026-04-12T16:16:18.833Z",
+          "is_public": false,
+          "workspace_id": "2d1ee535-86bb-46ce-9063-cda01a90a15e",
+          "workspace_name": "alfredogl1804's Projects",
+          "environments": [
+            {
+              "id": "d7674951-31e3-471e-8be0-12ebe34e1a93",
+              "name": "production"
+            }
+          ],
+          "environments_count": 1,
+          "services": [
+            {
+              "id": "201c0cd8-61d2-49ac-b7b7-e04c57a6c387",
+              "name": "simulador-api",
+              "created_at": "2026-04-12T16:15:34.454Z",
+              "updated_at": "2026-04-12T16:15:34.454Z",
+              "instances": [
+                {
+                  "id": "eda1a9c0-504c-4b2a-9773-ade97fbd3fd9",
+                  "environment_id": "d7674951-31e3-471e-8be0-12ebe34e1a93",
+                  "deploy": {
+                    "id": "291e89dc-9818-4b6a-8961-e7b42ffaae15",
+                    "status": "SUCCESS",
+                    "created_at": "2026-04-14T09:18:54.684Z",
+                    "commit_hash": "f2e73b9b8505344342159e41f45dfbfed251ac25",
+                    "commit_message": "feat: add Supabase electoral schema SQL (4 tables + views)",
+                    "branch": "main",
+                    "repo": "alfredogl1804/simulador-universal"
+                  },
+                  "source": {
+                    "repo": "alfredogl1804/simulador-universal",
+                    "image": null
+                  },
+                  "domains": {
+                    "service": [
+                      "simulador-api-production.up.railway.app"
+                    ],
+                    "custom": []
+                  }
+                }
+              ]
+            }
+          ],
+          "services_count": 1,
+          "plugins": [],
+          "plugins_count": 0
+        }
+      ],
+      "projects_count": 7
+    }
+  ]
+}

@@ -23,9 +23,9 @@ Branch: r1/opp-nb-023-anonymous-guard
 Status: R1 DRAFT — NOT CANON — NOT RUNTIME until T1 approval
 """
 
+import logging
 from enum import Enum
 from typing import Optional
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -39,28 +39,33 @@ UNRESOLVED_USER_CONTEXT = "UNRESOLVED_USER_CONTEXT"
 """Explicit marker for user_id values that have not been resolved to a
 real identity. Downstream code should treat this as 'no identity available'."""
 
-BLOCKED_USER_IDS = frozenset({
-    "anonymous",
-    "",
-    "null",
-    "undefined",
-    "none",
-    "default",
-})
+BLOCKED_USER_IDS = frozenset(
+    {
+        "anonymous",
+        "",
+        "null",
+        "undefined",
+        "none",
+        "default",
+    }
+)
 """Set of user_id values that are BLOCKED from being treated as valid
 runtime identities. These are drift artifacts, not real users."""
 
 
 # ─── Enums ────────────────────────────────────────────────────────────────────
 
+
 class UserIdStatus(str, Enum):
     """Classification of a user_id value."""
+
     RESOLVED = "RESOLVED"
     UNRESOLVED = "UNRESOLVED"
     BLOCKED = "BLOCKED"
 
 
 # ─── Core Functions ───────────────────────────────────────────────────────────
+
 
 def resolve_user_id(user_id: Optional[str]) -> tuple[str, UserIdStatus]:
     """
@@ -87,8 +92,7 @@ def resolve_user_id(user_id: Optional[str]) -> tuple[str, UserIdStatus]:
 
     if normalized in BLOCKED_USER_IDS:
         logger.warning(
-            "identity_guard: blocked user_id detected",
-            extra={"original_value": user_id, "normalized": normalized}
+            "identity_guard: blocked user_id detected", extra={"original_value": user_id, "normalized": normalized}
         )
         return UNRESOLVED_USER_CONTEXT, UserIdStatus.BLOCKED
 
@@ -139,6 +143,7 @@ def require_resolved_user(user_id: Optional[str], context: str = "") -> str:
 
 
 # ─── Annotation Helper ────────────────────────────────────────────────────────
+
 
 def annotate_user_id(user_id: Optional[str]) -> dict:
     """

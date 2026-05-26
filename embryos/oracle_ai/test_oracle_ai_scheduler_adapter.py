@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Tests for Oracle AI Scheduler Adapter."""
+
+import json
 import os
 import sys
-import json
 import tempfile
-import shutil
 
 ADAPTER_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ADAPTER_DIR)
@@ -30,7 +30,7 @@ def test(name, condition):
 # ============================================================
 def test_ks_active():
     original = adapter.KS_PATH
-    tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
     json.dump({"active": True}, tmp)
     tmp.close()
     adapter.KS_PATH = tmp.name
@@ -45,7 +45,7 @@ def test_ks_active():
 # ============================================================
 def test_ks_inactive():
     original = adapter.KS_PATH
-    tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
     json.dump({"active": False}, tmp)
     tmp.close()
     adapter.KS_PATH = tmp.name
@@ -90,7 +90,7 @@ def test_dispatcher_missing():
 # ============================================================
 def test_budget_ok():
     original = adapter.STATE_PATH
-    tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
     json.dump({"total_cost_usd": 0.001}, tmp)
     tmp.close()
     adapter.STATE_PATH = tmp.name
@@ -105,7 +105,7 @@ def test_budget_ok():
 # ============================================================
 def test_budget_exceeded():
     original = adapter.STATE_PATH
-    tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
     json.dump({"total_cost_usd": 0.02}, tmp)
     tmp.close()
     adapter.STATE_PATH = tmp.name
@@ -120,14 +120,17 @@ def test_budget_exceeded():
 # ============================================================
 def test_invoke_aborts_ks():
     original = adapter.KS_PATH
-    tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
     json.dump({"active": True}, tmp)
     tmp.close()
     adapter.KS_PATH = tmp.name
     result = adapter.invoke_embryo()
     adapter.KS_PATH = original
     os.unlink(tmp.name)
-    test("invoke_aborts_on_kill_switch", result["verdict"] == "ABORTED" and result["abort_reason"] == "kill_switch_active")
+    test(
+        "invoke_aborts_on_kill_switch",
+        result["verdict"] == "ABORTED" and result["abort_reason"] == "kill_switch_active",
+    )
 
 
 # ============================================================
@@ -137,7 +140,7 @@ def test_invoke_aborts_dispatcher():
     original_ks = adapter.KS_PATH
     original_contract = adapter.CONTRACT_PATH
     # KS inactive
-    tmp_ks = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+    tmp_ks = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
     json.dump({"active": False}, tmp_ks)
     tmp_ks.close()
     adapter.KS_PATH = tmp_ks.name
@@ -147,7 +150,10 @@ def test_invoke_aborts_dispatcher():
     adapter.KS_PATH = original_ks
     adapter.CONTRACT_PATH = original_contract
     os.unlink(tmp_ks.name)
-    test("invoke_aborts_on_dispatcher_unavailable", result["verdict"] == "ABORTED" and "dispatcher_unavailable" in result["abort_reason"])
+    test(
+        "invoke_aborts_on_dispatcher_unavailable",
+        result["verdict"] == "ABORTED" and "dispatcher_unavailable" in result["abort_reason"],
+    )
 
 
 # ============================================================
@@ -155,14 +161,17 @@ def test_invoke_aborts_dispatcher():
 # ============================================================
 def test_invoke_aborts_budget():
     original_state = adapter.STATE_PATH
-    tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
     json.dump({"total_cost_usd": 0.02}, tmp)
     tmp.close()
     adapter.STATE_PATH = tmp.name
     result = adapter.invoke_embryo()
     adapter.STATE_PATH = original_state
     os.unlink(tmp.name)
-    test("invoke_aborts_on_budget_exceeded", result["verdict"] == "ABORTED" and result["abort_reason"] == "budget_exceeded")
+    test(
+        "invoke_aborts_on_budget_exceeded",
+        result["verdict"] == "ABORTED" and result["abort_reason"] == "budget_exceeded",
+    )
 
 
 # ============================================================
@@ -195,7 +204,7 @@ if __name__ == "__main__":
     test_invoke_aborts_budget()
     test_adapter_id()
     test_budget_cap()
-    print(f"\n{'='*60}")
-    print(f"RESULT: {PASS}/{PASS+FAIL} PASS, {FAIL} FAIL")
-    print(f"{'='*60}")
+    print(f"\n{'=' * 60}")
+    print(f"RESULT: {PASS}/{PASS + FAIL} PASS, {FAIL} FAIL")
+    print(f"{'=' * 60}")
     sys.exit(0 if FAIL == 0 else 1)

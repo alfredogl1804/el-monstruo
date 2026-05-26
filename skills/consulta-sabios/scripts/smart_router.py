@@ -24,7 +24,6 @@ import os
 import re
 import sys
 from dataclasses import dataclass, field
-from typing import Optional
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -32,6 +31,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 @dataclass
 class RouteConfig:
     """Configuración de routing para una consulta."""
+
     tipo_consulta: str
     sabios_primarios: list  # Sabios que DEBEN responder
     sabios_secundarios: list  # Sabios opcionales (nice to have)
@@ -51,43 +51,167 @@ class RouteConfig:
 
 KEYWORDS = {
     "tecnica": [
-        "código", "code", "api", "sdk", "framework", "arquitectura", "deploy",
-        "docker", "kubernetes", "database", "sql", "python", "javascript",
-        "typescript", "react", "backend", "frontend", "microservicio", "infra",
-        "devops", "ci/cd", "git", "debug", "error", "bug", "performance",
-        "algoritmo", "estructura de datos", "sistema", "servidor",
+        "código",
+        "code",
+        "api",
+        "sdk",
+        "framework",
+        "arquitectura",
+        "deploy",
+        "docker",
+        "kubernetes",
+        "database",
+        "sql",
+        "python",
+        "javascript",
+        "typescript",
+        "react",
+        "backend",
+        "frontend",
+        "microservicio",
+        "infra",
+        "devops",
+        "ci/cd",
+        "git",
+        "debug",
+        "error",
+        "bug",
+        "performance",
+        "algoritmo",
+        "estructura de datos",
+        "sistema",
+        "servidor",
     ],
     "estrategica": [
-        "negocio", "business", "inversión", "investment", "plan", "estrategia",
-        "strategy", "mercado", "market", "competencia", "revenue", "modelo de negocio",
-        "business model", "pitch", "fundraising", "venture", "startup", "escalar",
-        "crecimiento", "growth", "monetización", "pricing", "go to market",
+        "negocio",
+        "business",
+        "inversión",
+        "investment",
+        "plan",
+        "estrategia",
+        "strategy",
+        "mercado",
+        "market",
+        "competencia",
+        "revenue",
+        "modelo de negocio",
+        "business model",
+        "pitch",
+        "fundraising",
+        "venture",
+        "startup",
+        "escalar",
+        "crecimiento",
+        "growth",
+        "monetización",
+        "pricing",
+        "go to market",
     ],
     "legal": [
-        "regulación", "regulation", "ley", "law", "legal", "compliance",
-        "licencia", "license", "contrato", "contract", "jurisdicción",
-        "fiscal", "tax", "impuesto", "constitución", "sociedad", "stichting",
-        "fundación", "foundation", "sec", "cnbv", "fintech", "kyc", "aml",
-        "gdpr", "privacidad", "privacy", "token", "security token",
+        "regulación",
+        "regulation",
+        "ley",
+        "law",
+        "legal",
+        "compliance",
+        "licencia",
+        "license",
+        "contrato",
+        "contract",
+        "jurisdicción",
+        "fiscal",
+        "tax",
+        "impuesto",
+        "constitución",
+        "sociedad",
+        "stichting",
+        "fundación",
+        "foundation",
+        "sec",
+        "cnbv",
+        "fintech",
+        "kyc",
+        "aml",
+        "gdpr",
+        "privacidad",
+        "privacy",
+        "token",
+        "security token",
     ],
     "creativa": [
-        "nombre", "naming", "marca", "brand", "branding", "logo", "diseño",
-        "design", "copy", "copywriting", "slogan", "tagline", "narrativa",
-        "storytelling", "contenido", "content", "video", "tiktok", "viral",
-        "creativo", "creative", "campaña", "campaign",
+        "nombre",
+        "naming",
+        "marca",
+        "brand",
+        "branding",
+        "logo",
+        "diseño",
+        "design",
+        "copy",
+        "copywriting",
+        "slogan",
+        "tagline",
+        "narrativa",
+        "storytelling",
+        "contenido",
+        "content",
+        "video",
+        "tiktok",
+        "viral",
+        "creativo",
+        "creative",
+        "campaña",
+        "campaign",
     ],
     "investigacion": [
-        "investigar", "research", "estado del arte", "state of the art",
-        "comparar", "compare", "benchmark", "análisis", "analysis",
-        "tendencia", "trend", "panorama", "landscape", "estudio",
-        "paper", "whitepaper", "reporte", "report", "datos", "data",
-        "estadística", "statistics", "encuesta", "survey",
+        "investigar",
+        "research",
+        "estado del arte",
+        "state of the art",
+        "comparar",
+        "compare",
+        "benchmark",
+        "análisis",
+        "analysis",
+        "tendencia",
+        "trend",
+        "panorama",
+        "landscape",
+        "estudio",
+        "paper",
+        "whitepaper",
+        "reporte",
+        "report",
+        "datos",
+        "data",
+        "estadística",
+        "statistics",
+        "encuesta",
+        "survey",
     ],
     "operativa": [
-        "proceso", "process", "sop", "flujo", "workflow", "operación",
-        "operation", "automatizar", "automate", "procedimiento", "procedure",
-        "checklist", "manual", "guía", "guide", "paso a paso", "step by step",
-        "implementar", "implement", "ejecutar", "execute", "sprint",
+        "proceso",
+        "process",
+        "sop",
+        "flujo",
+        "workflow",
+        "operación",
+        "operation",
+        "automatizar",
+        "automate",
+        "procedimiento",
+        "procedure",
+        "checklist",
+        "manual",
+        "guía",
+        "guide",
+        "paso a paso",
+        "step by step",
+        "implementar",
+        "implement",
+        "ejecutar",
+        "execute",
+        "sprint",
     ],
 }
 
@@ -207,13 +331,13 @@ ROUTE_CONFIGS = {
 def classify_query(prompt: str) -> str:
     """
     Clasifica una consulta en un tipo.
-    
+
     Returns:
         Tipo de consulta: tecnica, estrategica, legal, creativa, investigacion, operativa
     """
     prompt_lower = prompt.lower()
     scores = {}
-    
+
     for tipo, keywords in KEYWORDS.items():
         score = 0
         for kw in keywords:
@@ -222,27 +346,27 @@ def classify_query(prompt: str) -> str:
             if count > 0:
                 score += count * (2 if len(kw) > 8 else 1)  # Palabras largas pesan más
         scores[tipo] = score
-    
+
     if not scores or max(scores.values()) == 0:
         return "investigacion"  # Default: usar todos los sabios
-    
+
     return max(scores, key=scores.get)
 
 
 def route(prompt: str, force_type: str = None) -> RouteConfig:
     """
     Genera la configuración de routing para un prompt.
-    
+
     Args:
         prompt: El prompt de la consulta
         force_type: Forzar un tipo específico (override)
-    
+
     Returns:
         RouteConfig con la configuración óptima
     """
     tipo = force_type or classify_query(prompt)
     config = ROUTE_CONFIGS.get(tipo, ROUTE_CONFIGS["investigacion"])
-    
+
     return config
 
 
@@ -265,11 +389,11 @@ def describe_route(config: RouteConfig) -> str:
     ]
     if config.notas:
         lines.append(f"   ⚠️  {config.notas}")
-    
+
     lines.append("   Roles:")
     for sabio, rol in config.roles.items():
         lines.append(f"     • {sabio}: {rol}")
-    
+
     return "\n".join(lines)
 
 
@@ -286,11 +410,11 @@ if __name__ == "__main__":
         "Investiga el estado del arte de la tokenización inmobiliaria en 2026",
         "Diseña un SOP para el proceso de onboarding de nuevos inversionistas",
     ]
-    
+
     for test in tests:
         config = route(test)
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Prompt: {test[:80]}...")
         print(describe_route(config))
-    
+
     print(f"\n✅ Smart Router operativo — {len(ROUTE_CONFIGS)} tipos de consulta configurados")
