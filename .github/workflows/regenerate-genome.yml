@@ -1,0 +1,135 @@
+name: Regenerate MONSTRUO_GENOME (Sprint 91.8)
+
+# Mantiene MONSTRUO_GENOME.yaml siempre actualizado contra la realidad del repo.
+# Trigger:
+#   - Diario 07:00 UTC (=01:00 CDMX) — captura cambios externos (PRs nocturnas).
+#   - Push a main que toque kernel/**, embriones/**, apps/**, scripts/genome_generator.py.
+# Acción:
+#   - Corre scripts/genome_generator.py.
+#   - Si hay diff vs main, abre/actualiza una PR con el genoma regenerado.
+#   - Si no hay diff, termina silenciosamente (idempotente).
+#
+# El _genome_out/supabase.json se lee como fallback (Sprint 91.7.3) cuando MCP
+# no esté disponible. Para rehidratar ese JSON, correr scripts/genome_live/run_all.py.
+
+on:
+  schedule:
+    - cron: '0 7 * * *'  # 07:00 UTC diario
+  push:
+    branches: [main]
+    paths:
+      - 'kernel/**'
+      - 'embriones/**'
+      - 'apps/**'
+      - 'scripts/genome_generator.py'
+      - 'scripts/genome_live/**'
+      - 'migrations/sql/**'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Razón para regenerar manualmente'
+        required: false
+        default: 'manual_trigger'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: regenerate-genome
+  cancel-in-progress: false  # Nunca cancelar regeneración en curso.
+
+jobs:
+  regenerate:
+    name: Regenerar MONSTRUO_GENOME.yaml
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: Snapshot del genoma actual (para diff)
+        run: |
+          if [ -f MONSTRUO_GENOME.yaml ]; then
+            cp MONSTRUO_GENOME.yaml /tmp/genome_before.yaml
+          else
+            echo "(no genome existing)" > /tmp/genome_before.yaml
+          fi
+
+      - name: Regenerar MONSTRUO_GENOME.yaml
+        run: |
+          python3 scripts/genome_generator.py
+          echo "----- HEAD del genoma regenerado -----"
+          head -25 MONSTRUO_GENOME.yaml
+
+      - name: Verificar si hay diff
+        id: diff
+        run: |
+          if diff -q /tmp/genome_before.yaml MONSTRUO_GENOME.yaml > /dev/null; then
+            echo "has_diff=false" >> $GITHUB_OUTPUT
+            echo "El genoma no cambió — no hay PR que abrir."
+          else
+            echo "has_diff=true" >> $GITHUB_OUTPUT
+            echo "El genoma cambió. Diff resumido:"
+            diff /tmp/genome_before.yaml MONSTRUO_GENOME.yaml | head -50 || true
+          fi
+
+      - name: Abrir/actualizar PR si hay diff
+        if: steps.diff.outputs.has_diff == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: bot/regenerate-genome
+          base: main
+          commit-message: |
+            chore(genome): regenerar MONSTRUO_GENOME.yaml automático (Sprint 91.8)
+
+            Workflow regenerate-genome.yml detectó cambios en la realidad del repo
+            que no estaban reflejados en MONSTRUO_GENOME.yaml. Regenerado vía
+            scripts/genome_generator.py.
+          title: 'chore(genome): regenerar MONSTRUO_GENOME (auto)'
+          body: |
+            ## Sprint 91.8 — Auto-regeneración del genoma
+
+            El workflow `regenerate-genome.yml` detectó que el `MONSTRUO_GENOME.yaml`
+            estaba desincronizado con la realidad del repo. Regenerado automáticamente
+            por `scripts/genome_generator.py`.
+
+            **Trigger:** ${{ github.event_name }}
+            **Run:** ${{ github.run_id }}
+
+            ### Verificación rápida
+            - Revisar el diff antes de mergear.
+            - Si el diff incluye `mapa_vivo:` o counts de Supabase, validar contra
+              el endpoint `/v1/genome/now` que también esté actualizado.
+            - Auto-mergeable si el diff es trivial (kernel modules count, satellites pushed_at).
+
+            **No tocar a mano** — esta PR se sobrescribe en cada corrida del workflow.
+          delete-branch: false
+          add-paths: |
+            MONSTRUO_GENOME.yaml
+
+      - name: Summary
+        run: |
+          echo "### MONSTRUO_GENOME regeneration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Trigger: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Has diff: ${{ steps.diff.outputs.has_diff }}" >> $GITHUB_STEP_SUMMARY
+          if [ -f MONSTRUO_GENOME.yaml ]; then
+            echo "- Size: $(wc -c < MONSTRUO_GENOME.yaml) bytes" >> $GITHUB_STEP_SUMMARY
+            echo "- Lines: $(wc -l < MONSTRUO_GENOME.yaml)" >> $GITHUB_STEP_SUMMARY
+            echo "- generated_at: $(grep '^  generated_at:' MONSTRUO_GENOME.yaml | head -1)" >> $GITHUB_STEP_SUMMARY
+          fi
