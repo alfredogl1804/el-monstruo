@@ -35,7 +35,9 @@ OUTPUT_FILE = REPO_ROOT / "MONSTRUO_GENOME.yaml"
 KERNEL_DIR = REPO_ROOT / "kernel"
 MIGRATIONS_DIR = REPO_ROOT / "migrations" / "sql"
 SKILLS_DIR = Path("/home/ubuntu/skills")
+GENOME_OUT_DIR = REPO_ROOT / "_genome_out"  # Sprint 91.7.3 fallback
 RAILWAY_HEALTH_URL = "https://el-monstruo-kernel-production.up.railway.app/health"
+GENOME_NOW_URL = "https://el-monstruo-kernel-production.up.railway.app/v1/genome/now"
 GITHUB_OWNER = "alfredogl1804"
 
 # ─── Satellite Registry ────────────────────────────────────────────────────────
@@ -349,19 +351,53 @@ def query_supabase(sql):
         return []
 
 
+def _load_genome_out_supabase() -> dict | None:
+    """Sprint 91.7.3 fallback: lee _genome_out/supabase.json si existe.
+    El supabase_scanner.py de Sprint 91 produce este archivo con counts reales
+    cuando MCP no está disponible (entornos fuera de Manus sandbox)."""
+    p = GENOME_OUT_DIR / "supabase.json"
+    if not p.exists():
+        return None
+    try:
+        return json.loads(p.read_text())
+    except Exception:
+        return None
+
+
 def get_table_counts():
-    """Get row counts for key tables."""
+    """Get row counts for key tables. Sprint 91.7.3: fallback a _genome_out."""
     sql = """
     SELECT relname as table_name, n_live_tup as row_count
     FROM pg_stat_user_tables
     WHERE schemaname = 'public'
     ORDER BY n_live_tup DESC;
     """
-    return query_supabase(sql)
+    result = query_supabase(sql)
+    if result:
+        return result
+    # Sprint 91.7.3 fallback: _genome_out/supabase.json
+    sb = _load_genome_out_supabase()
+    if not sb:
+        return []
+    out = []
+    # Sprint 91.7.3 — incluir TODAS las tablas de los 17 schemas, no solo public.
+    # El supabase_scanner usa keys 'table_schema' y 'table_name', con row_estimate.
+    for t in sb.get("tables", []):
+        schema = t.get("table_schema") or t.get("schema")
+        name = t.get("table_name") or t.get("name") or ""
+        if not name:
+            continue
+        full = f"{schema}.{name}" if schema and schema != "public" else name
+        row_est = t.get("row_estimate")
+        if row_est is None or row_est < 0:
+            row_est = 0
+        out.append({"table_name": full, "row_count": row_est})
+    print(f"  [INFO] Supabase tables loaded from _genome_out: {len(out)}", file=sys.stderr)
+    return out
 
 
 def get_custom_rpcs():
-    """Get custom RPCs (excluding pgvector/trgm internals)."""
+    """Get custom RPCs (excluding pgvector/trgm internals). Sprint 91.7.3: fallback."""
     sql = """
     SELECT proname FROM pg_proc
     WHERE pronamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
@@ -380,7 +416,23 @@ def get_custom_rpcs():
                         'f_unaccent', 'subvector')
     ORDER BY proname;
     """
-    return query_supabase(sql)
+    result = query_supabase(sql)
+    if result:
+        return result
+    # Sprint 91.7.3 fallback: _genome_out/supabase.json
+    sb = _load_genome_out_supabase()
+    if not sb:
+        return []
+    out = []
+    for f in sb.get("functions", []) or sb.get("custom_functions", []) or []:
+        name = f.get("name") or f.get("proname")
+        schema = f.get("schema") or "public"
+        if not name:
+            continue
+        full = f"{schema}.{name}" if schema and schema != "public" else name
+        out.append({"proname": full})
+    print(f"  [INFO] Custom RPCs loaded from _genome_out: {len(out)}", file=sys.stderr)
+    return out
 
 
 # ─── Phase 3: Query Railway ───────────────────────────────────────────────────
@@ -659,6 +711,14 @@ def assemble_yaml(
     lines.append(f"  total_skills: {total_skills}")
     lines.append(f"  total_top_dirs: {len(top_dirs)}")
     lines.append(f"  total_satellites: {total_satellites}")
+    # Sprint 91.7.3: referencia al Mapa Vivo como fuente operativa de verdad
+    lines.append("  mapa_vivo:")
+    lines.append(f"    endpoint: {GENOME_NOW_URL}")
+    lines.append("    health: /v1/genome/now/health")
+    lines.append("    refresh_full: 'POST /v1/genome/now?refresh=full (header X-API-Key)'")
+    lines.append("    job_status: /v1/genome/now/job")
+    lines.append("    fuente_canonica_de: [github_repos, railway_services, supabase_tables_fns, live24h_activity]")
+    lines.append("    sprint_origen: 91 (Mapa Vivo 100 binario)")
     lines.append("")
 
     # ─── SATELLITES (NEW in v2.0) ──────────────────────────────────────────────

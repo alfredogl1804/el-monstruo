@@ -6,18 +6,25 @@
 # ╚══════════════════════════════════════════════════════════════════╝
 
 meta:
-  generated_at: 2026-05-26T07:46:03Z
+  generated_at: 2026-05-26T12:39:50Z
   generator: scripts/genome_generator.py
   version: 2.0.0
   repo: alfredogl1804/el-monstruo
-  total_kernel_modules: 113
+  total_kernel_modules: 116
   total_embriones: 10
-  total_supabase_tables: 0
-  total_custom_rpcs: 0
+  total_supabase_tables: 287
+  total_custom_rpcs: 328
   total_migrations: 62
   total_skills: 0
-  total_top_dirs: 34
+  total_top_dirs: 36
   total_satellites: 8
+  mapa_vivo:
+    endpoint: https://el-monstruo-kernel-production.up.railway.app/v1/genome/now
+    health: /v1/genome/now/health
+    refresh_full: 'POST /v1/genome/now?refresh=full (header X-API-Key)'
+    job_status: /v1/genome/now/job
+    fuente_canonica_de: [github_repos, railway_services, supabase_tables_fns, live24h_activity]
+    sprint_origen: 91 (Mapa Vivo 100 binario)
 
 # ─── ECOSYSTEM: Satellites ──────────────────────────────────────────
 # Satélites = repos que son productos, transportes o extensiones
@@ -81,7 +88,7 @@ satellites:
     status: active_with_drift
     relationship: subsystem
     description: App Flutter del Monstruo — drift binario detectado en brand_dna.dart vs DSC-MO-002 (G-002 del Atlas)
-    last_push: 2026-05-12T00:03:24-06:00
+    last_push: 2026-05-26T05:38:50-06:00
   - id: monstruo-quantum-realm
     repo: None
     type: interface_visualization
@@ -127,11 +134,11 @@ production:
   supabase:
     project_id: xsumzuhwmivjgftsneov
     status: active
-    tables: 0
-    custom_rpcs: 0
+    tables: 287
+    custom_rpcs: 328
 
 kernel:
-  total_python_files: 302
+  total_python_files: 303
   entry_point: kernel/main.py
   framework: FastAPI + LangGraph
   modules:
@@ -250,7 +257,7 @@ embriones:
     id: embrion_loop
     path: kernel/embrion_loop.py
     status: production
-    memory_table: embrion_memoria (? records)
+    memory_table: embrion_memoria (2772 records)
     connected_to_sms: false  # GAP: isolated from sovereign memory
   vigia:
     id: embrion_vigia
@@ -307,9 +314,9 @@ memory_plane:
     adapter: kernel/memory/sms_supabase_adapter.py
     tables:
       - name: sovereign_memories
-        records: 0
+        records: 1517
       - name: sovereign_axioms
-        records: 0
+        records: 57
       - name: sovereign_agent_registry
         records: 0
       - name: sovereign_conflict_log
@@ -321,16 +328,30 @@ memory_plane:
       - name: sovereign_causal_chains
         records: 0
       - name: memory_entities
-        records: 0
+        records: 188
       - name: memory_relations
         records: 0
       - name: memory_entity_links
-        records: 0
+        records: 188
       - name: memory_dependencies
         records: 0
       - name: memory_access_log
-        records: 0
+        records: 96
     rpcs:
+      - archive_low_importance_memories
+      - cascade_invalidation
+      - compute_importance_scores
+      - find_entity_by_name
+      - get_entity_neighborhood
+      - get_memories_for_entity
+      - get_pending_revalidations
+      - graph_enhanced_recall
+      - match_memories
+      - match_sovereign_axioms
+      - match_sovereign_memories
+      - match_sovereign_memories_temporal
+      - merge_similar_memories
+      - register_dependency
     features:
       - knowledge_graph: true (entities + relations + links)
       - belief_revision: true (cascade invalidation + dependencies)
@@ -339,6 +360,24 @@ memory_plane:
       - audn_conflict_resolution: true
       - vector_embeddings: pending_redeploy
   legacy_memory_systems:
+    - table: embrion_memoria
+      records: 2772
+      connected_to_sms: false
+    - table: monstruo_memory
+      records: 63
+      connected_to_sms: false
+    - table: error_memory
+      records: 33
+      connected_to_sms: false
+    - table: memory_events
+      records: 14859
+      connected_to_sms: false
+    - table: mempalace_episodes
+      records: 4094
+      connected_to_sms: false
+    - table: mem0
+      records: 2368
+      connected_to_sms: false
   anti_dory:
     path: kernel/anti_dory/
     tables:
@@ -348,8 +387,402 @@ memory_plane:
       - anti_dory_write_budget: 0 records
 
 data_plane:
+  catastro:
+    - catastro_agentes: 84
+    - catastro_agentes_2026: 0
+    - catastro_curadores: 0
+    - catastro_eventos: 148
+    - catastro_herramientas_ai: 0
+    - catastro_historial: 0
+    - catastro_modelos: 37
+    - catastro_modelos_llm: 0
+    - catastro_notas: 0
+    - catastro_repos: 0
+    # ... and 3 more tables
+  embrion:
+    - embrion_audit_log: 0
+    - embrion_budget_state: 10652
+    - embrion_homeostasis_log: 0
+    - embrion_inbox: 0
+    - embrion_knowledge: 0
+    - embrion_memoria: 2772
+    - embrion_messages: 0
+    - embrion_patron_emergencia: 0
+    - embrion_task_history: 0
+    - embrion_validation_log: 0
+    # ... and 1 more tables
+  forja:
+    - forja_actions: 0
+    - forja_budget: 0
+    - forja_messages: 0
+    - forja_profiles: 0
+    - forja_simulations: 0
+    - forja_sprints: 0
+    - forja_telemetry: 0
+    - forja_threads: 0
+    - forja_validations: 0
+  governance:
+    - cowork_claims_calibration: 0
+    - cowork_protocolo_invocaciones: 0
+    - cowork_sesiones: 0
+    - governance_log: 0
+    - guardian_audit_log: 0
+  lightrag:
+    - lightrag_doc_chunks: 163
+    - lightrag_doc_full: 108
+    - lightrag_doc_status: 162
+    - lightrag_entity_chunks: 1731
+    - lightrag_full_entities: 107
+    - lightrag_full_relations: 107
+    - lightrag_llm_cache: 6384
+    - lightrag_relation_chunks: 2114
+    - lightrag_vdb_chunks_gemini_embedding_001_1536d: 0
+    - lightrag_vdb_chunks_text_embedding_3_small_1536d: 144
+    # ... and 4 more tables
+  e2e:
+    - e2e_runs: 80
+    - e2e_step_log: 840
+    - e2e_traffic: 0
+  v5_intelligence:
+    - v5_accounts: 0
+    - v5_comments: 0
+    - v5_coordination_scores: 0
+    - v5_discovery_queue: 352
+    - v5_doc_links: 0
+    - v5_doc_similarity: 0
+    - v5_documents: 0
+    - v5_entities: 0
+    - v5_hashtags: 0
+    - v5_investigation_log: 0
+    # ... and 2 more tables
+  operational:
+    - a2a_agents: 0
+    - active_missions: 0
+    - agui_channel_audit: 0
+    - articulo_objetivos: 44092
+    - articulos: 39065
+    - auth.audit_log_entries: 0
+    - auth.custom_oauth_providers: 0
+    - auth.flow_state: 0
+    - auth.identities: 0
+    - auth.instances: 0
+    # ... and 185 more tables
 
 custom_rpcs:
+  - auth.email
+  - auth.jwt
+  - auth.role
+  - auth.uid
+  - crisis.add_timeline_event
+  - crisis.alert_on_severity_change
+  - crisis.approve_response
+  - crisis.calculate_crisis_score
+  - crisis.get_executive_briefing
+  - crisis.ingest_mention
+  - crisis.update_timestamp
+  - extensions.armor
+  - extensions.armor
+  - extensions.crypt
+  - extensions.dearmor
+  - extensions.decrypt
+  - extensions.decrypt_iv
+  - extensions.digest
+  - extensions.digest
+  - extensions.encrypt
+  - extensions.encrypt_iv
+  - extensions.gen_random_bytes
+  - extensions.gen_random_uuid
+  - extensions.gen_salt
+  - extensions.gen_salt
+  - extensions.grant_pg_cron_access
+  - extensions.grant_pg_graphql_access
+  - extensions.grant_pg_net_access
+  - extensions.hmac
+  - extensions.hmac
+  - extensions.pg_stat_statements
+  - extensions.pg_stat_statements_info
+  - extensions.pg_stat_statements_reset
+  - extensions.pgp_armor_headers
+  - extensions.pgp_key_id
+  - extensions.pgp_pub_decrypt
+  - extensions.pgp_pub_decrypt
+  - extensions.pgp_pub_decrypt
+  - extensions.pgp_pub_decrypt_bytea
+  - extensions.pgp_pub_decrypt_bytea
+  - extensions.pgp_pub_decrypt_bytea
+  - extensions.pgp_pub_encrypt
+  - extensions.pgp_pub_encrypt
+  - extensions.pgp_pub_encrypt_bytea
+  - extensions.pgp_pub_encrypt_bytea
+  - extensions.pgp_sym_decrypt
+  - extensions.pgp_sym_decrypt
+  - extensions.pgp_sym_decrypt_bytea
+  - extensions.pgp_sym_decrypt_bytea
+  - extensions.pgp_sym_encrypt
+  - extensions.pgp_sym_encrypt
+  - extensions.pgp_sym_encrypt_bytea
+  - extensions.pgp_sym_encrypt_bytea
+  - extensions.pgrst_ddl_watch
+  - extensions.pgrst_drop_watch
+  - extensions.set_graphql_placeholder
+  - extensions.uuid_generate_v1
+  - extensions.uuid_generate_v1mc
+  - extensions.uuid_generate_v3
+  - extensions.uuid_generate_v4
+  - extensions.uuid_generate_v5
+  - extensions.uuid_nil
+  - extensions.uuid_ns_dns
+  - extensions.uuid_ns_oid
+  - extensions.uuid_ns_url
+  - extensions.uuid_ns_x500
+  - graphql_public.graphql
+  - pgbouncer.get_auth
+  - aggregate_daily_usage
+  - anti_dory_runtime_flags_set_updated_at
+  - anti_dory_write_budget_set_updated_at
+  - array_to_halfvec
+  - array_to_halfvec
+  - array_to_halfvec
+  - array_to_halfvec
+  - array_to_sparsevec
+  - array_to_sparsevec
+  - array_to_sparsevec
+  - array_to_sparsevec
+  - array_to_vector
+  - array_to_vector
+  - array_to_vector
+  - array_to_vector
+  - avg
+  - avg
+  - bg_job_append_progress
+  - binary_quantize
+  - binary_quantize
+  - boot_sequence_thoughts
+  - bridge_embrion_to_sms
+  - calculate_job_success_rate
+  - canonical_jsonb
+  - catastro_apply_quorum_outcome
+  - catastro_recompute_trono
+  - catastro_recompute_trono_all
+  - cleanup_old_background_jobs
+  - cosine_distance
+  - cosine_distance
+  - cosine_distance
+  - cowork_sesiones_set_updated_at
+  - crystallize_pending_events
+  - embrion_write_proposals_set_updated_at
+  - emit_event
+  - f_unaccent
+  - fn_set_updated_at
+  - get_allowed_tools
+  - get_colmena_stats
+  - get_current_pricing
+  - get_due_jobs
+  - get_embrion_bridge_status
+  - get_event_stream_stats
+  - get_specialists_memory_stats
+  - gin_extract_query_trgm
+  - gin_extract_value_trgm
+  - gin_trgm_consistent
+  - gin_trgm_triconsistent
+  - gtrgm_compress
+  - gtrgm_consistent
+  - gtrgm_decompress
+  - gtrgm_distance
+  - gtrgm_in
+  - gtrgm_options
+  - gtrgm_out
+  - gtrgm_penalty
+  - gtrgm_picksplit
+  - gtrgm_same
+  - gtrgm_union
+  - halfvec
+  - halfvec_accum
+  - halfvec_add
+  - halfvec_avg
+  - halfvec_cmp
+  - halfvec_combine
+  - halfvec_concat
+  - halfvec_eq
+  - halfvec_ge
+  - halfvec_gt
+  - halfvec_in
+  - halfvec_l2_squared_distance
+  - halfvec_le
+  - halfvec_lt
+  - halfvec_mul
+  - halfvec_ne
+  - halfvec_negative_inner_product
+  - halfvec_out
+  - halfvec_recv
+  - halfvec_send
+  - halfvec_spherical_distance
+  - halfvec_sub
+  - halfvec_to_float4
+  - halfvec_to_sparsevec
+  - halfvec_to_vector
+  - halfvec_typmod_in
+  - hamming_distance
+  - hnsw_bit_support
+  - hnsw_halfvec_support
+  - hnsw_sparsevec_support
+  - hnswhandler
+  - hybrid_search_thoughts
+  - inner_product
+  - inner_product
+  - inner_product
+  - ivfflat_bit_support
+  - ivfflat_halfvec_support
+  - ivfflathandler
+  - jaccard_distance
+  - kal_prevent_modify
+  - kal_prevent_truncate
+  - l1_distance
+  - l1_distance
+  - l1_distance
+  - l2_distance
+  - l2_distance
+  - l2_distance
+  - l2_norm
+  - l2_norm
+  - l2_normalize
+  - l2_normalize
+  - l2_normalize
+  - log_specialist_task
+  - mark_embrion_noise_consumed
+  - match_catastro_modelos
+  - match_memory_events
+  - propagate_pattern_to_embriones
+  - query_event_stream
+  - recall_specialist_context
+  - record_tool_execution
+  - remember_specialist_knowledge
+  - rpc_accept_snapshot
+  - rpc_check_shadow_enabled
+  - rpc_get_context_head
+  - rpc_increment_write_budget
+  - rpc_recovery_scan
+  - rpc_write_runtime_event
+  - rpc_write_thread_snapshot
+  - search_chunks
+  - search_similar_errors
+  - search_thoughts_semantic
+  - set_limit
+  - set_updated_at
+  - set_updated_at_now
+  - show_limit
+  - show_trgm
+  - similarity
+  - similarity_dist
+  - similarity_op
+  - sparsevec
+  - sparsevec_cmp
+  - sparsevec_eq
+  - sparsevec_ge
+  - sparsevec_gt
+  - sparsevec_in
+  - sparsevec_l2_squared_distance
+  - sparsevec_le
+  - sparsevec_lt
+  - sparsevec_ne
+  - sparsevec_negative_inner_product
+  - sparsevec_out
+  - sparsevec_recv
+  - sparsevec_send
+  - sparsevec_to_halfvec
+  - sparsevec_to_vector
+  - sparsevec_typmod_in
+  - strict_word_similarity
+  - strict_word_similarity_commutator_op
+  - strict_word_similarity_dist_commutator_op
+  - strict_word_similarity_dist_op
+  - strict_word_similarity_op
+  - subvector
+  - subvector
+  - sum
+  - sum
+  - thoughts_tsv_update
+  - trg_catastro_agentes_updated_at
+  - trg_catastro_set_updated_at
+  - unaccent
+  - unaccent
+  - unaccent_init
+  - unaccent_lexize
+  - update_budget_on_plan_change
+  - update_dossier_timestamp
+  - update_error_pattern_validated
+  - update_memento_actualizado_en
+  - update_scheduled_jobs_updated_at
+  - update_updated_at_column
+  - validate_embrion_memoria
+  - vector
+  - vector_accum
+  - vector_add
+  - vector_avg
+  - vector_cmp
+  - vector_combine
+  - vector_concat
+  - vector_dims
+  - vector_dims
+  - vector_eq
+  - vector_ge
+  - vector_gt
+  - vector_in
+  - vector_l2_squared_distance
+  - vector_le
+  - vector_lt
+  - vector_mul
+  - vector_ne
+  - vector_negative_inner_product
+  - vector_norm
+  - vector_out
+  - vector_recv
+  - vector_send
+  - vector_spherical_distance
+  - vector_sub
+  - vector_to_float4
+  - vector_to_halfvec
+  - vector_to_sparsevec
+  - vector_typmod_in
+  - word_similarity
+  - word_similarity_commutator_op
+  - word_similarity_dist_commutator_op
+  - word_similarity_dist_op
+  - word_similarity_op
+  - realtime.apply_rls
+  - realtime.broadcast_changes
+  - realtime.build_prepared_statement_sql
+  - realtime.cast
+  - realtime.check_equality_op
+  - realtime.is_visible_through_filters
+  - realtime.list_changes
+  - realtime.quote_wal2json
+  - realtime.send
+  - realtime.subscription_check_filters
+  - realtime.to_regrole
+  - realtime.topic
+  - storage.allow_any_operation
+  - storage.allow_only_operation
+  - storage.can_insert_object
+  - storage.enforce_bucket_name_length
+  - storage.extension
+  - storage.filename
+  - storage.foldername
+  - storage.get_common_prefix
+  - storage.get_size_by_bucket
+  - storage.list_multipart_uploads_with_delimiter
+  - storage.list_objects_with_delimiter
+  - storage.operation
+  - storage.protect_delete
+  - storage.search
+  - storage.search_by_timestamp
+  - storage.search_v2
+  - storage.update_updated_at_column
+  - vault._crypto_aead_det_decrypt
+  - vault._crypto_aead_det_encrypt
+  - vault._crypto_aead_det_noncegen
+  - vault.create_secret
+  - vault.update_secret
 
 api_endpoints:
   - prefix: /v1/memento
@@ -358,6 +791,8 @@ api_endpoints:
     router: cowork_router
   - prefix: /v1/catastro
     router: _catastro_routes
+  - prefix: /v1/genome
+    router: genome_now_router
   - prefix: /
     router: autonomy_router
   - prefix: /
@@ -420,6 +855,8 @@ repo_structure:
   top_level_dirs:
     - __pycache__
     - _archive
+    - _genome_out
+    - _scratch
     - apps
     - arsenal-mcp
     - bot
