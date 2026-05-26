@@ -39,7 +39,16 @@
 - coverage_match: True
 - HALLAZGO CRÍTICO: el GENOME canonizado decía supabase_tables=0. La verdad binaria es 287. Confirma el bucle que se rompe con /v1/genome/now.
 
-### F4 — Scanner Live 24h ⏳ PENDIENTE
+### F4 — Scanner Live 24h ✅ CERRADO
+- Ejecutado: 2026-05-26 09:45 UTC
+- Output: `_genome_out/live24h.json` (14 KB)
+- github_commits_24h: 0
+- railway_deploys_24h: 5
+- supabase_migrations recientes: 1
+- drift > 7 días: 14 servicios ⚠️
+- kernel /health: healthy
+- coverage_match: True
+- HALLAZGO: 14 servicios Railway con drift > 7 días — base de evidencia para auditoría binaria futura.
 
 ### F5 — Aggregator + endpoint /v1/genome/now ⏳ PENDIENTE
 
