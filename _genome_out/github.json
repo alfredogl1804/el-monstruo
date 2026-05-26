@@ -1,8 +1,8 @@
 {
   "scanner": "github",
   "version": 1,
-  "started_at": "2026-05-26T09:58:03.899604+00:00",
-  "finished_at": "2026-05-26T10:05:52.703073+00:00",
+  "started_at": "2026-05-26T12:23:10.739272+00:00",
+  "finished_at": "2026-05-26T12:30:40.281377+00:00",
   "user": "alfredogl1804",
   "expected_total": 102,
   "got_total": 103,
@@ -16,10 +16,19 @@
       "archived": false,
       "fork": false,
       "private": false,
-      "pushed_at": "2026-05-26T09:48:13Z",
-      "updated_at": "2026-05-26T09:35:25Z",
+      "pushed_at": "2026-05-26T12:10:04Z",
+      "updated_at": "2026-05-26T12:10:08Z",
       "html_url": "https://github.com/alfredogl1804/el-monstruo",
       "branches": [
+        {
+          "name": "main",
+          "last_commit": {
+            "sha": "f7aa83de334a1e1b913a83b4716f48660dc13f7f",
+            "message": "Sprint 91.6: live24h_scanner itera branches[].last_commit\n\nHotfix bug de contrato. live24h_scanner ahora ve commits reales en las branches.",
+            "author": "alfredogl1804",
+            "date": "2026-05-26T12:10:04Z"
+          }
+        },
         {
           "name": "audit/h1-snapshot-and-s-embrion-009-spec",
           "last_commit": {
@@ -460,18 +469,9 @@
             "author": "Manus Auditor (Hilo Catastros)",
             "date": "2026-05-21T04:49:08Z"
           }
-        },
-        {
-          "name": "control-tower/2026-05-20-batch-003-b9-harness-prep",
-          "last_commit": {
-            "sha": "7ad67b1d16ad13297422e37bc8768a6b6fa9ddbc",
-            "message": "bridge(control_tower): B9-E3 Runtime Harness Prep",
-            "author": "Manus Auditor (Hilo Catastros)",
-            "date": "2026-05-21T04:51:40Z"
-          }
         }
       ],
-      "branches_count": 242,
+      "branches_count": 245,
       "open_prs": [
         {
           "number": 200,
@@ -579,7 +579,7 @@
           "head": "dependabot/pip/pyyaml-gte-6.0.3-and-lt-7.0.0",
           "base": "main",
           "draft": false,
-          "updated_at": "2026-05-10T12:17:41Z"
+          "updated_at": "2026-05-26T11:40:13Z"
         },
         {
           "number": 74,
@@ -829,84 +829,84 @@
       "open_issues_count": 1,
       "recent_workflow_runs": [
         {
-          "name": "Embrión · Cost History Dashboard",
+          "name": "pip in / for pyyaml - Update #1384771088",
           "status": "completed",
-          "conclusion": "success",
+          "conclusion": "failure",
           "head_branch": "main",
-          "head_sha": "be00a39",
-          "updated_at": "2026-05-26T09:58:23Z"
-        },
-        {
-          "name": "cowork-sessions-dashboard",
-          "status": "completed",
-          "conclusion": "success",
-          "head_branch": "main",
-          "head_sha": "83326d9",
-          "updated_at": "2026-05-26T09:35:24Z"
+          "head_sha": "f7aa83d",
+          "updated_at": "2026-05-26T12:22:47Z"
         },
         {
           "name": "Thread Immunity Watchdog",
           "status": "completed",
-          "conclusion": "success",
-          "head_branch": "main",
-          "head_sha": "83326d9",
-          "updated_at": "2026-05-26T08:44:22Z"
-        },
-        {
-          "name": "Secret Scan",
-          "status": "completed",
           "conclusion": "failure",
           "head_branch": "main",
-          "head_sha": "83326d9",
-          "updated_at": "2026-05-26T07:56:37Z"
+          "head_sha": "f7aa83d",
+          "updated_at": "2026-05-26T12:22:28Z"
         },
         {
-          "name": "CVE Scan",
+          "name": "e2e-evidence-required",
           "status": "completed",
           "conclusion": "success",
-          "head_branch": "main",
-          "head_sha": "83326d9",
-          "updated_at": "2026-05-26T07:55:55Z"
+          "head_branch": "feat/sprint-91-mapa-vivo-100",
+          "head_sha": "88c35e9",
+          "updated_at": "2026-05-26T10:37:55Z"
         },
         {
-          "name": "Secret Scan",
-          "status": "completed",
-          "conclusion": "failure",
-          "head_branch": "main",
-          "head_sha": "83326d9",
-          "updated_at": "2026-05-26T07:54:53Z"
-        },
-        {
-          "name": "SBOM Generation",
+          "name": "AI-Infra-Guard Scan",
           "status": "completed",
           "conclusion": "success",
-          "head_branch": "main",
-          "head_sha": "83326d9",
-          "updated_at": "2026-05-26T07:54:56Z"
-        },
-        {
-          "name": "SAST (Semgrep)",
-          "status": "completed",
-          "conclusion": "failure",
-          "head_branch": "main",
-          "head_sha": "83326d9",
-          "updated_at": "2026-05-26T07:55:57Z"
+          "head_branch": "feat/sprint-91-mapa-vivo-100",
+          "head_sha": "88c35e9",
+          "updated_at": "2026-05-26T10:48:11Z"
         },
         {
           "name": "CI — El Monstruo Kernel",
           "status": "completed",
           "conclusion": "failure",
-          "head_branch": "main",
-          "head_sha": "83326d9",
-          "updated_at": "2026-05-26T07:56:02Z"
+          "head_branch": "feat/sprint-91-mapa-vivo-100",
+          "head_sha": "88c35e9",
+          "updated_at": "2026-05-26T10:39:42Z"
         },
         {
-          "name": "CVE Scan",
+          "name": "Secret Scan",
           "status": "completed",
           "conclusion": "success",
-          "head_branch": "main",
-          "head_sha": "bb6d1c0",
-          "updated_at": "2026-05-26T07:48:33Z"
+          "head_branch": "feat/sprint-91-mapa-vivo-100",
+          "head_sha": "88c35e9",
+          "updated_at": "2026-05-26T10:38:04Z"
+        },
+        {
+          "name": "SAST (Semgrep)",
+          "status": "completed",
+          "conclusion": "failure",
+          "head_branch": "feat/sprint-91-mapa-vivo-100",
+          "head_sha": "88c35e9",
+          "updated_at": "2026-05-26T10:38:58Z"
+        },
+        {
+          "name": "eval-quality-gate",
+          "status": "completed",
+          "conclusion": "success",
+          "head_branch": "feat/sprint-91-mapa-vivo-100",
+          "head_sha": "88c35e9",
+          "updated_at": "2026-05-26T10:39:04Z"
+        },
+        {
+          "name": "cowork-runtime-tests",
+          "status": "completed",
+          "conclusion": "success",
+          "head_branch": "feat/sprint-91-mapa-vivo-100",
+          "head_sha": "88c35e9",
+          "updated_at": "2026-05-26T10:38:01Z"
+        },
+        {
+          "name": "Secret Scan",
+          "status": "completed",
+          "conclusion": "success",
+          "head_branch": "feat/sprint-91-mapa-vivo-100",
+          "head_sha": "2e2f204",
+          "updated_at": "2026-05-26T10:33:43Z"
         }
       ],
       "files_present": {
@@ -929,21 +929,21 @@
       "html_url": "https://github.com/alfredogl1804/tablero-campana",
       "branches": [
         {
-          "name": "design/forja-os-sovereign-agentic-fabric",
-          "last_commit": {
-            "sha": "ae1ae7f08e49bc4a779399c79b6323824b1ff74d",
-            "message": "feat(observatorio-v1.1): close Sprint Observatorio Vivo full execution\n\nHito B-lite: 49 real sprints from el-monstruo bridge ingested to TiDB\n- New: server/lib/sprintParser.ts + sprintIngestor.ts\n- Ne",
-            "author": "Alfredo  Gongora",
-            "date": "2026-05-26T07:23:52Z"
-          }
-        },
-        {
           "name": "main",
           "last_commit": {
             "sha": "6896bb69d78374b93418c9a0ded5315a872673ca",
             "message": "Checkpoint: Sprint v3.0 cerrado con las 7 transformaciones radicales entregadas: T1 Sincronización viva (62 nodos del genoma del Monstruo, refetch 60s) + T2 Cerebro narrativo (Omnibox con Gemini 3 Pro",
             "author": "Manus",
             "date": "2026-05-24T06:06:45Z"
+          }
+        },
+        {
+          "name": "design/forja-os-sovereign-agentic-fabric",
+          "last_commit": {
+            "sha": "ae1ae7f08e49bc4a779399c79b6323824b1ff74d",
+            "message": "feat(observatorio-v1.1): close Sprint Observatorio Vivo full execution\n\nHito B-lite: 49 real sprints from el-monstruo bridge ingested to TiDB\n- New: server/lib/sprintParser.ts + sprintIngestor.ts\n- Ne",
+            "author": "Alfredo  Gongora",
+            "date": "2026-05-26T07:23:52Z"
           }
         }
       ],
@@ -972,6 +972,15 @@
       "html_url": "https://github.com/alfredogl1804/biblia-github-motor",
       "branches": [
         {
+          "name": "master",
+          "last_commit": {
+            "sha": "783530df4b31dc4e3f6951bcf15ac009b8b5438a",
+            "message": "v3.0: Fichas Funcionales - prompt enriquecido con que_es, capacidades, resuelve_para_monstruo, integra_con, diferenciador\n\n- Prompt LLM ahora extrae 5 campos adicionales por repo\n- Reporte usa fichas ",
+            "author": "alfredogl1804",
+            "date": "2026-05-22T02:58:45Z"
+          }
+        },
+        {
           "name": "fix/radar-supabase-persistence",
           "last_commit": {
             "sha": "17d55e1aaa7ef00aa6b43f1ac976a2860833e0d7",
@@ -987,15 +996,6 @@
             "message": "fix(security): remove hardcoded JWT service_role default\n\nSECURITY-001 - Sprint Emergencia 2026-05-06.\n\nmotor/github_radar.py:34 - antipatron os.environ.get(\"SUPA_KEY\", \"<JWT>\")\ncon default value que ",
             "author": "Manus (Hilo Catastro)",
             "date": "2026-05-07T00:06:57Z"
-          }
-        },
-        {
-          "name": "master",
-          "last_commit": {
-            "sha": "783530df4b31dc4e3f6951bcf15ac009b8b5438a",
-            "message": "v3.0: Fichas Funcionales - prompt enriquecido con que_es, capacidades, resuelve_para_monstruo, integra_con, diferenciador\n\n- Prompt LLM ahora extrae 5 campos adicionales por repo\n- Reporte usa fichas ",
-            "author": "alfredogl1804",
-            "date": "2026-05-22T02:58:45Z"
           }
         }
       ],
@@ -3422,7 +3422,7 @@
       "html_url": "https://github.com/alfredogl1804/crisol-8",
       "branches": [
         {
-          "name": "fix/remove-hardcoded-secrets",
+          "name": "main",
           "last_commit": {
             "sha": "337d4707cd656aef583b7db0535c81be79c389b0",
             "message": "fix(security): remove hardcoded Supabase secrets\n\nSECURITY-001 - Sprint Emergencia 2026-05-06.\n\nTres secrets hardcoded del proyecto Supabase xsumzuhwmivjgftsneov:\n\n- config/settings.py:38 - SUPABASE_M",
@@ -3431,7 +3431,7 @@
           }
         },
         {
-          "name": "main",
+          "name": "fix/remove-hardcoded-secrets",
           "last_commit": {
             "sha": "337d4707cd656aef583b7db0535c81be79c389b0",
             "message": "fix(security): remove hardcoded Supabase secrets\n\nSECURITY-001 - Sprint Emergencia 2026-05-06.\n\nTres secrets hardcoded del proyecto Supabase xsumzuhwmivjgftsneov:\n\n- config/settings.py:38 - SUPABASE_M",
@@ -4735,6 +4735,15 @@
       "html_url": "https://github.com/alfredogl1804/like-kukulkan-tickets",
       "branches": [
         {
+          "name": "main",
+          "last_commit": {
+            "sha": "10e724932b1b87c7a859387f003024346d95ea05",
+            "message": "Merge: La Manada referral system",
+            "author": "Manus Agent",
+            "date": "2026-05-01T03:42:52Z"
+          }
+        },
+        {
           "name": "dev-redesign",
           "last_commit": {
             "sha": "af4b517f74ccdca2e3016ad576d9a8c047ddd337",
@@ -4759,15 +4768,6 @@
             "message": "feat: Apply patches 14+15 — wire Manada/memberships into webhook + register new routers + cron endpoints\n\nPatch 14 (stripeWebhook.ts):\n- Import manada, memberships, secondEventService\n- Add membership",
             "author": "Manus Agent",
             "date": "2026-05-04T05:42:55Z"
-          }
-        },
-        {
-          "name": "main",
-          "last_commit": {
-            "sha": "10e724932b1b87c7a859387f003024346d95ea05",
-            "message": "Merge: La Manada referral system",
-            "author": "Manus Agent",
-            "date": "2026-05-01T03:42:52Z"
           }
         },
         {
@@ -4805,21 +4805,21 @@
       "html_url": "https://github.com/alfredogl1804/el-monstruo-bot",
       "branches": [
         {
-          "name": "main",
-          "last_commit": {
-            "sha": "1ed48dde1b0e130dd57d3c79108c0dab4c3ad0a6",
-            "message": "Fix governance schema mismatch: column names, JSONB types, Prefer headers",
-            "author": "alfredogl1804",
-            "date": "2026-04-06T22:11:10Z"
-          }
-        },
-        {
           "name": "master",
           "last_commit": {
             "sha": "2149129e4b6f7494a79289d0ad72514ba027974c",
             "message": "feat(sprint-30): Embrión IA commands via kernel\n\n- New commands:\n  /embrion          — estado y memorias del Embrión\n  /embrion estado   — estado detallado\n  /embrion memorias — últimas memorias\n  /em",
             "author": "alfredogl1804",
             "date": "2026-04-26T13:29:21Z"
+          }
+        },
+        {
+          "name": "main",
+          "last_commit": {
+            "sha": "1ed48dde1b0e130dd57d3c79108c0dab4c3ad0a6",
+            "message": "Fix governance schema mismatch: column names, JSONB types, Prefer headers",
+            "author": "alfredogl1804",
+            "date": "2026-04-06T22:11:10Z"
           }
         },
         {
@@ -5275,7 +5275,12 @@
       "pushed_at": "2026-02-09T01:22:04Z",
       "updated_at": "2026-02-09T01:22:04Z",
       "html_url": "https://github.com/alfredogl1804/test-manus-github-cli",
-      "branches": [],
+      "branches": [
+        {
+          "name": "main",
+          "last_commit": null
+        }
+      ],
       "branches_count": 0,
       "open_prs": [],
       "open_prs_count": 0,
