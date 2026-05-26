@@ -3,19 +3,14 @@
 railway_scanner.py — Scanner exhaustivo de Railway para el Genome vivo.
 
 Enumera 100% binario via Railway Public GraphQL API:
-  - Proyectos del workspace
+  - Workspaces del usuario y todos sus proyectos
   - Environments por proyecto
-  - Servicios por environment
-  - Último deployment (status, commit, branch, repo, updatedAt)
-  - Variables (solo nombres, nunca valores)
-  - Domains públicos
+  - Servicios por proyecto
+  - Service instances con último deployment, source, domains
   - Plugins (Postgres, Redis, etc.)
 
 Verificación binaria:
-  - Suma total de servicios debe coincidir con conteo manual de Alfredo (hoy=19).
-
-Uso:
-  RAILWAY_API_TOKEN=<account_token> python3 railway_scanner.py
+  - Suma total de servicios debe ser >= expected_total_services (env var, default 19).
 
 Autor: Manus — Sprint 91
 """
@@ -40,7 +35,7 @@ if ENV_PATH.exists():
 
 TOKEN = os.environ.get("RAILWAY_API_TOKEN", "").strip()
 if not TOKEN:
-    sys.exit("ERROR: RAILWAY_API_TOKEN requerido (account token, no project token)")
+    sys.exit("ERROR: RAILWAY_API_TOKEN requerido")
 
 ENDPOINT = "https://backboard.railway.com/graphql/v2"
 HEADERS = {
@@ -75,59 +70,63 @@ def gql(query: str, variables: dict | None = None) -> dict:
     return {}
 
 
-# Query principal: me { projects { ... } } enumera todos los proyectos
-# del workspace al que pertenece el token.
-QUERY_ME_PROJECTS = """
-query MeProjects {
+# Query principal: me { workspaces { projects { ... } } }
+# Es el único path que devuelve los proyectos para account tokens.
+QUERY = """
+query MeWorkspacesProjects {
   me {
     id
-    name
     email
-    projects {
-      edges {
-        node {
-          id
-          name
-          description
-          createdAt
-          updatedAt
-          isPublic
-          environments {
-            edges {
-              node {
-                id
-                name
+    name
+    workspaces {
+      id
+      name
+      projects {
+        edges {
+          node {
+            id
+            name
+            description
+            createdAt
+            updatedAt
+            isPublic
+            environments {
+              edges {
+                node {
+                  id
+                  name
+                }
               }
             }
-          }
-          services {
-            edges {
-              node {
-                id
-                name
-                createdAt
-                updatedAt
-                serviceInstances {
-                  edges {
-                    node {
-                      id
-                      environmentId
-                      latestDeployment {
+            services {
+              edges {
+                node {
+                  id
+                  name
+                  createdAt
+                  updatedAt
+                  serviceInstances {
+                    edges {
+                      node {
                         id
-                        status
-                        createdAt
-                        meta
-                      }
-                      source {
-                        repo
-                        image
-                      }
-                      domains {
-                        serviceDomains {
-                          domain
+                        environmentId
+                        latestDeployment {
+                          id
+                          status
+                          createdAt
+                          meta
                         }
-                        customDomains {
-                          domain
+                        source {
+                          repo
+                          image
+                        }
+                        domains {
+                          serviceDomains {
+                            domain
+                          }
+                          customDomains {
+                            domain
+                          }
                         }
                       }
                     }
@@ -135,13 +134,13 @@ query MeProjects {
                 }
               }
             }
-          }
-          plugins {
-            edges {
-              node {
-                id
-                name
-                friendlyName
+            plugins {
+              edges {
+                node {
+                  id
+                  name
+                  friendlyName
+                }
               }
             }
           }
@@ -157,84 +156,104 @@ def scan() -> dict[str, Any]:
     started = datetime.now(timezone.utc).isoformat()
     print(f"[{started}] Iniciando scan Railway...", flush=True)
 
-    data = gql(QUERY_ME_PROJECTS)
+    data = gql(QUERY)
     me = data.get("me") or {}
-    projects_edges = (me.get("projects") or {}).get("edges") or []
+    workspaces_raw = me.get("workspaces") or []
 
-    projects: list[dict] = []
+    workspaces: list[dict] = []
     total_services = 0
     total_envs = 0
+    total_projects = 0
 
-    for pe in projects_edges:
-        p = pe.get("node") or {}
-        envs = [e.get("node", {}) for e in (p.get("environments") or {}).get("edges", [])]
-        services_raw = [s.get("node", {}) for s in (p.get("services") or {}).get("edges", [])]
-        plugins = [pl.get("node", {}) for pl in (p.get("plugins") or {}).get("edges", [])]
+    for ws in workspaces_raw:
+        ws_id = ws.get("id")
+        ws_name = ws.get("name")
+        projects_edges = (ws.get("projects") or {}).get("edges") or []
 
-        services_out = []
-        for s in services_raw:
-            instances = []
-            for inst_edge in (s.get("serviceInstances") or {}).get("edges", []):
-                inst = inst_edge.get("node") or {}
-                latest = inst.get("latestDeployment") or {}
-                meta = latest.get("meta") or {}
-                domains_block = inst.get("domains") or {}
-                source = inst.get("source") or {}
-                instances.append(
+        projects_out: list[dict] = []
+        for pe in projects_edges:
+            p = pe.get("node") or {}
+            envs = [e.get("node", {}) for e in (p.get("environments") or {}).get("edges", [])]
+            services_raw = [s.get("node", {}) for s in (p.get("services") or {}).get("edges", [])]
+            plugins = [pl.get("node", {}) for pl in (p.get("plugins") or {}).get("edges", [])]
+
+            services_out = []
+            for s in services_raw:
+                instances = []
+                for ie in (s.get("serviceInstances") or {}).get("edges", []):
+                    inst = ie.get("node") or {}
+                    latest = inst.get("latestDeployment") or {}
+                    meta = latest.get("meta") or {}
+                    domains_block = inst.get("domains") or {}
+                    source = inst.get("source") or {}
+                    instances.append(
+                        {
+                            "id": inst.get("id"),
+                            "environment_id": inst.get("environmentId"),
+                            "deploy": {
+                                "id": latest.get("id"),
+                                "status": latest.get("status"),
+                                "created_at": latest.get("createdAt"),
+                                "commit_hash": meta.get("commitHash"),
+                                "commit_message": (meta.get("commitMessage") or "")[:200],
+                                "branch": meta.get("branch"),
+                                "repo": meta.get("repo"),
+                            },
+                            "source": {
+                                "repo": source.get("repo"),
+                                "image": source.get("image"),
+                            },
+                            "domains": {
+                                "service": [d.get("domain") for d in domains_block.get("serviceDomains") or []],
+                                "custom": [d.get("domain") for d in domains_block.get("customDomains") or []],
+                            },
+                        }
+                    )
+
+                services_out.append(
                     {
-                        "id": inst.get("id"),
-                        "environment_id": inst.get("environmentId"),
-                        "deploy": {
-                            "id": latest.get("id"),
-                            "status": latest.get("status"),
-                            "created_at": latest.get("createdAt"),
-                            "commit_hash": meta.get("commitHash"),
-                            "commit_message": (meta.get("commitMessage") or "")[:200],
-                            "branch": meta.get("branch"),
-                            "repo": meta.get("repo"),
-                        },
-                        "source": {
-                            "repo": source.get("repo"),
-                            "image": source.get("image"),
-                        },
-                        "domains": {
-                            "service": [d.get("domain") for d in domains_block.get("serviceDomains") or []],
-                            "custom": [d.get("domain") for d in domains_block.get("customDomains") or []],
-                        },
+                        "id": s.get("id"),
+                        "name": s.get("name"),
+                        "created_at": s.get("createdAt"),
+                        "updated_at": s.get("updatedAt"),
+                        "instances": instances,
                     }
                 )
 
-            services_out.append(
+            projects_out.append(
                 {
-                    "id": s.get("id"),
-                    "name": s.get("name"),
-                    "created_at": s.get("createdAt"),
-                    "updated_at": s.get("updatedAt"),
-                    "instances": instances,
+                    "id": p.get("id"),
+                    "name": p.get("name"),
+                    "description": p.get("description"),
+                    "created_at": p.get("createdAt"),
+                    "updated_at": p.get("updatedAt"),
+                    "is_public": p.get("isPublic"),
+                    "workspace_id": ws_id,
+                    "workspace_name": ws_name,
+                    "environments": envs,
+                    "environments_count": len(envs),
+                    "services": services_out,
+                    "services_count": len(services_out),
+                    "plugins": plugins,
+                    "plugins_count": len(plugins),
                 }
             )
 
-        projects.append(
+            total_services += len(services_out)
+            total_envs += len(envs)
+            total_projects += 1
+            print(
+                f"  [{ws_name}] {p.get('name')} — {len(envs)} env(s), {len(services_out)} servicio(s), {len(plugins)} plugin(s)",
+                flush=True,
+            )
+
+        workspaces.append(
             {
-                "id": p.get("id"),
-                "name": p.get("name"),
-                "description": p.get("description"),
-                "created_at": p.get("createdAt"),
-                "updated_at": p.get("updatedAt"),
-                "is_public": p.get("isPublic"),
-                "environments": envs,
-                "environments_count": len(envs),
-                "services": services_out,
-                "services_count": len(services_out),
-                "plugins": plugins,
-                "plugins_count": len(plugins),
+                "id": ws_id,
+                "name": ws_name,
+                "projects": projects_out,
+                "projects_count": len(projects_out),
             }
-        )
-        total_services += len(services_out)
-        total_envs += len(envs)
-        print(
-            f"  proyecto: {p.get('name')} — {len(envs)} env(s), {len(services_out)} servicio(s), {len(plugins)} plugin(s)",
-            flush=True,
         )
 
     finished = datetime.now(timezone.utc).isoformat()
@@ -252,12 +271,13 @@ def scan() -> dict[str, Any]:
             "name": me.get("name"),
             "email": me.get("email"),
         },
-        "projects_count": len(projects),
+        "workspaces_count": len(workspaces),
+        "projects_count": total_projects,
         "total_services": total_services,
         "total_environments": total_envs,
         "expected_total_services": expected,
         "coverage_match": coverage_match,
-        "projects": projects,
+        "workspaces": workspaces,
     }
 
 
@@ -270,6 +290,7 @@ def main() -> int:
     out_file.write_text(json.dumps(result, indent=2, ensure_ascii=False))
 
     print(f"\nRAILWAY SCAN RESUMEN")
+    print(f"  workspaces         : {result['workspaces_count']}")
     print(f"  proyectos          : {result['projects_count']}")
     print(f"  total_services     : {result['total_services']}")
     print(f"  total_environments : {result['total_environments']}")
