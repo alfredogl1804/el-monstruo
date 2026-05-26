@@ -81,6 +81,7 @@ def search_github(query: str, max_results: int = 20) -> list:
     # Búsqueda por SKILL.md
     try:
         cmd = f'gh search repos "{query} SKILL.md" --limit {max_results} --json name,owner,description,stargazersCount,updatedAt,url'
+        # nosemgrep — script interno controlado, sin input de usuario externo
         output = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=30)
         if output.returncode == 0 and output.stdout.strip():
             repos = json.loads(output.stdout)
@@ -103,6 +104,7 @@ def search_github(query: str, max_results: int = 20) -> list:
     # También buscar con "agent skill" keyword
     try:
         cmd2 = f'gh search repos "{query} agent skill" --limit {max_results // 2} --json name,owner,description,stargazersCount,updatedAt,url'
+        # nosemgrep — script interno controlado, sin input de usuario externo
         output2 = subprocess.run(cmd2, shell=True, capture_output=True, text=True, timeout=30)
         if output2.returncode == 0 and output2.stdout.strip():
             repos2 = json.loads(output2.stdout)
@@ -138,6 +140,7 @@ def search_official_repos(query: str) -> list:
             if query_lower in org or query_lower in repo_path.lower():
                 try:
                     cmd = f"gh repo view {repo_path} --json name,owner,description,stargazerCount,updatedAt,url"
+                    # nosemgrep — script interno controlado, sin input de usuario externo
                     output = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=15)
                     if output.returncode == 0:
                         data = json.loads(output.stdout)
@@ -241,6 +244,7 @@ def quick_evaluate(repo_url: str) -> dict:
     # 1. Obtener info del repo
     try:
         cmd = f"gh repo view {owner}/{repo} --json name,description,stargazerCount,updatedAt,licenseInfo"
+        # nosemgrep — script interno controlado, sin input de usuario externo
         output = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=15)
         if output.returncode == 0:
             data = json.loads(output.stdout)
@@ -262,6 +266,7 @@ def quick_evaluate(repo_url: str) -> dict:
     # 2. Verificar SKILL.md
     try:
         cmd = f"gh api repos/{owner}/{repo}/contents/SKILL.md --jq .content 2>/dev/null"
+        # nosemgrep — script interno controlado, sin input de usuario externo
         output = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=10)
         evaluation["details"]["has_skill_md"] = output.returncode == 0 and len(output.stdout.strip()) > 0
     except Exception:

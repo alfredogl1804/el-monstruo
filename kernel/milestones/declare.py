@@ -58,7 +58,8 @@ def _check_command(gate: dict[str, Any]) -> GateResult:
     cmd = gate["command"]
     expected = gate.get("expected_exit", 0)
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, timeout=600)
+        # nosemgrep: subprocess-shell-true — cmd viene de gates.yaml controlado por equipo (DSC-G-017), no input externo
+        result = subprocess.run(cmd, shell=True, capture_output=True, timeout=600)  # noqa: S602
         passed = result.returncode == expected
         return GateResult(
             gate_id=gate["id"],

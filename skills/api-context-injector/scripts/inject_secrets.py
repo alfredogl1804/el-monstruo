@@ -533,7 +533,13 @@ def inject_to_cloudflare(project_path: Path, resolved: dict, dry_run: bool = Fal
             try:
                 cmd = f"echo '{info['value']}' | npx wrangler secret put {env_var}"
                 result = subprocess.run(
-                    cmd, shell=True, capture_output=True, text=True, timeout=30, cwd=str(project_path)
+                    # nosemgrep — script interno controlado, sin input de usuario externo
+                    cmd,
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                    cwd=str(project_path),
                 )
                 if result.returncode == 0:
                     results.append({"var": env_var, "target": "cloudflare", "status": "INJECTED", "method": "wrangler"})

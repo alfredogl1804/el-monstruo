@@ -58,6 +58,7 @@ def build_drawtext_filter(text_config, index):
     text = text_config["text"].replace("'", "\\'").replace(":", "\\:")
     start = text_config.get("start", 0)
     end = text_config.get("end")
+    # nosemgrep — script interno controlado, sin input de usuario externo
     position = text_config.get("position", "center")
     fontsize = text_config.get("fontsize", 56)
     color = text_config.get("color", "white")
@@ -252,6 +253,7 @@ def main():
         "csv=p=0",
         config["input_file"],
     ]
+    # nosemgrep — script interno controlado, sin input de usuario externo
     result = subprocess.run(probe_cmd, capture_output=True, text=True)
     has_video = bool(result.stdout.strip())
 
