@@ -532,10 +532,9 @@ def inject_to_cloudflare(project_path: Path, resolved: dict, dry_run: bool = Fal
             # Use wrangler CLI to set secret
             try:
                 cmd = f"echo '{info['value']}' | npx wrangler secret put {env_var}"
-                result = subprocess.run(
-                    # nosemgrep — script interno controlado, sin input de usuario externo
+                result = subprocess.run(  # noqa: S602
                     cmd,
-                    shell=True,
+                    shell=True,  # nosemgrep: subprocess-shell-true -- cmd interno controlado (api-context-injector)
                     capture_output=True,
                     text=True,
                     timeout=30,
