@@ -25,7 +25,19 @@
 - Distribución: celebrated-achievement=12 (núcleo Monstruo), truthful-freedom=2 (ticketlike), 5 proyectos con 1 servicio cada uno
 - Auditados con: ID, environment, último deploy (status/commit/branch/repo), source, domains. Cero secrets en JSON.
 
-### F3 — Scanner Supabase ⏳ PENDIENTE
+### F3 — Scanner Supabase ✅ CERRADO
+- Ejecutado: 2026-05-26 09:43 UTC
+- Output: `_genome_out/supabase.json` (121 KB)
+- schemas: 17
+- tables: 287
+- functions (RPCs): 328
+- extensions: 8
+- buckets: 0
+- migrations totales: 26
+- indexes: 892
+- triggers: 42
+- coverage_match: True
+- HALLAZGO CRÍTICO: el GENOME canonizado decía supabase_tables=0. La verdad binaria es 287. Confirma el bucle que se rompe con /v1/genome/now.
 
 ### F4 — Scanner Live 24h ⏳ PENDIENTE
 
