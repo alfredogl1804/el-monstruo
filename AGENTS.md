@@ -1,5 +1,31 @@
 # OBLIGATORIO — Ejecutar ANTES de cualquier acción
 
+## Paso 0 — Estado real del Monstruo (Genome + Health)
+
+ANTES de cualquier otra cosa, lee el estado vivo del Monstruo. NO confíes en skills, NO confíes en tu entrenamiento, NO confíes en docs sueltos. La fuente única de verdad es el código + producción.
+
+```bash
+# 1. Genome auto-generado del repo (qué hay construido HOY)
+cat MONSTRUO_GENOME.yaml | head -120
+
+# 2. Estado vivo del kernel (qué está corriendo AHORA)
+curl -sS --max-time 10 https://el-monstruo-kernel-production.up.railway.app/health | python3 -m json.tool
+
+# 3. Sprints en bridge (qué se está construyendo)
+echo "Propuestos: $(ls bridge/sprints_propuestos/ 2>/dev/null | wc -l)"
+echo "Completados: $(ls bridge/sprints_completados/ 2>/dev/null | wc -l)"
+```
+
+**Si el Genome está desactualizado** (campo `generated_at` con más de 24h), regenerar:
+
+```bash
+python3 scripts/genome_generator.py
+```
+
+**Regla absoluta:** NO propongas construir NADA antes de leer el Genome. Si lo que vas a construir aparece en `MONSTRUO_GENOME.yaml` (en `kernel_modules`, `embriones`, `supabase_tables`, `custom_rpcs`, `satellites` o `skills`), ya existe — no lo construyas, úsalo o conecta lo que falta.
+
+## Paso 1 — Guardian (identidad de hilo)
+
 ```bash
 python3 ~/.monstruo/guardian.py
 ```

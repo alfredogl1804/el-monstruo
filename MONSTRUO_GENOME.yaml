@@ -6,17 +6,17 @@
 # ╚══════════════════════════════════════════════════════════════════╝
 
 meta:
-  generated_at: 2026-05-23T07:30:31Z
+  generated_at: 2026-05-26T07:46:03Z
   generator: scripts/genome_generator.py
   version: 2.0.0
   repo: alfredogl1804/el-monstruo
   total_kernel_modules: 113
   total_embriones: 10
-  total_supabase_tables: 177
-  total_custom_rpcs: 71
-  total_migrations: 57
-  total_skills: 43
-  total_top_dirs: 31
+  total_supabase_tables: 0
+  total_custom_rpcs: 0
+  total_migrations: 62
+  total_skills: 0
+  total_top_dirs: 34
   total_satellites: 8
 
 # ─── ECOSYSTEM: Satellites ──────────────────────────────────────────
@@ -30,14 +30,12 @@ satellites:
     status: active
     relationship: satellite_active
     description: Boletería Leones de Yucatán — primer producto del Monstruo
-    last_push: 2026-05-04T05:42:56Z
   - id: el-monstruo-bot
     repo: alfredogl1804/el-monstruo-bot
     type: transport
     status: offline
     relationship: transport
     description: Telegram Bot — Transport T1 del Monstruo
-    last_push: 2026-04-26T13:29:29Z
     railway_url: https://el-monstruo-bot-production.up.railway.app
     railway_status: offline (404)
     supabase_project: xsumzuhwmivjgftsneov
@@ -47,21 +45,18 @@ satellites:
     status: in_development
     relationship: satellite_aspirant
     description: Proyecto adyacente — aspira a ser satélite del Monstruo
-    last_push: 2026-03-25T19:23:01Z
   - id: forja-mcp
     repo: alfredogl1804/forja-mcp
     type: infrastructure
     status: active
     relationship: infrastructure
     description: MCP Gateway — HTTP/SSE multiplexer para 7+ APIs
-    last_push: 2026-05-14T09:57:04Z
   - id: el-monstruo-command-center
     repo: alfredogl1804/el-monstruo-command-center
     type: interface
     status: active_unmapped
     relationship: interface_principal
     description: UI principal del Monstruo (Vercel, Next.js) — superficie operativa primaria
-    last_push: 2026-04-20T21:42:06Z
     supabase_project: xsumzuhwmivjgftsneov
   - id: apps_la_forja
     repo: None
@@ -70,7 +65,7 @@ satellites:
     status: active_development
     relationship: subsystem
     description: Backend Hono + Next.js. Contiene Bridge M2M Manus↔Manus en api/src/lib/manus_bridge.ts y 5 puertas canónicas en api/src/puertas/ (cowork_local, kernel_monstruo, manus_apple, manus_google, simulador)
-    last_push: 2026-05-18T05:39:56-06:00
+    last_push: 2026-05-23T02:16:10-06:00
     key_files:
       - apps/la-forja/api/src/lib/manus_bridge.ts
       - apps/la-forja/api/src/puertas/cowork_local.ts
@@ -117,7 +112,7 @@ production:
       - langfuse: active
       - opentelemetry: inactive
       - checkpointer: active (AsyncPostgresSaver)
-      - mempalace: active
+      - mempalace: inactive
       - lightrag: active
       - multi_agent: active
       - finops: active
@@ -132,8 +127,8 @@ production:
   supabase:
     project_id: xsumzuhwmivjgftsneov
     status: active
-    tables: 177
-    custom_rpcs: 71
+    tables: 0
+    custom_rpcs: 0
 
 kernel:
   total_python_files: 302
@@ -255,7 +250,7 @@ embriones:
     id: embrion_loop
     path: kernel/embrion_loop.py
     status: production
-    memory_table: embrion_memoria (2848 records)
+    memory_table: embrion_memoria (? records)
     connected_to_sms: false  # GAP: isolated from sovereign memory
   vigia:
     id: embrion_vigia
@@ -312,44 +307,30 @@ memory_plane:
     adapter: kernel/memory/sms_supabase_adapter.py
     tables:
       - name: sovereign_memories
-        records: 1517
+        records: 0
       - name: sovereign_axioms
-        records: 40
+        records: 0
       - name: sovereign_agent_registry
-        records: 14
+        records: 0
       - name: sovereign_conflict_log
-        records: 10
+        records: 0
       - name: sovereign_consolidation_log
-        records: 2
+        records: 0
       - name: sovereign_knowledge_gaps
-        records: 14
+        records: 0
       - name: sovereign_causal_chains
         records: 0
       - name: memory_entities
-        records: 199
+        records: 0
       - name: memory_relations
         records: 0
       - name: memory_entity_links
-        records: 199
+        records: 0
       - name: memory_dependencies
         records: 0
       - name: memory_access_log
-        records: 96
+        records: 0
     rpcs:
-      - archive_low_importance_memories
-      - cascade_invalidation
-      - compute_importance_scores
-      - find_entity_by_name
-      - get_entity_neighborhood
-      - get_memories_for_entity
-      - get_pending_revalidations
-      - graph_enhanced_recall
-      - match_memories
-      - match_sovereign_axioms
-      - match_sovereign_memories
-      - match_sovereign_memories_temporal
-      - merge_similar_memories
-      - register_dependency
     features:
       - knowledge_graph: true (entities + relations + links)
       - belief_revision: true (cascade invalidation + dependencies)
@@ -358,175 +339,17 @@ memory_plane:
       - audn_conflict_resolution: true
       - vector_embeddings: pending_redeploy
   legacy_memory_systems:
-    - table: embrion_memoria
-      records: 2848
-      connected_to_sms: false
-    - table: monstruo_memory
-      records: 68
-      connected_to_sms: false
-    - table: error_memory
-      records: 34
-      connected_to_sms: false
-    - table: memory_events
-      records: 8747
-      connected_to_sms: false
-    - table: mempalace_episodes
-      records: 4216
-      connected_to_sms: false
-    - table: mempalace_semantic
-      records: 1
-      connected_to_sms: false
-    - table: mem0
-      records: 2503
-      connected_to_sms: false
   anti_dory:
     path: kernel/anti_dory/
     tables:
       - anti_dory_anchor_store: 0 records
       - anti_dory_plan_ledger: 0 records
-      - anti_dory_runtime_flags: 1 records
+      - anti_dory_runtime_flags: 0 records
       - anti_dory_write_budget: 0 records
 
 data_plane:
-  catastro:
-    - catastro_agentes: 98
-    - catastro_curadores: 0
-    - catastro_eventos: 148
-    - catastro_historial: 0
-    - catastro_metricas_diarias: 0
-    - catastro_modelos: 41
-    - catastro_notas: 0
-    - catastro_repos: 0
-    - catastro_suppliers_humanos: 30
-    - catastro_tronos_agentes: 12
-    # ... and 2 more tables
-  embrion:
-    - embrion_audit_log: 0
-    - embrion_budget_state: 10998
-    - embrion_homeostasis_log: 0
-    - embrion_inbox: 0
-    - embrion_knowledge: 8
-    - embrion_memoria: 2848
-    - embrion_messages: 0
-    - embrion_patron_emergencia: 30
-    - embrion_task_history: 0
-    - embrion_validation_log: 0
-    # ... and 1 more tables
-  forja:
-    - forja_actions: 0
-    - forja_budget: 1
-    - forja_messages: 1
-    - forja_profiles: 1
-    - forja_simulations: 0
-    - forja_sprints: 0
-    - forja_telemetry: 7
-    - forja_threads: 1
-    - forja_validations: 0
-  governance:
-    - cowork_claims_calibration: 12
-    - cowork_protocolo_invocaciones: 0
-    - cowork_sesiones: 3
-    - governance_log: 0
-    - guardian_audit_log: 0
-  lightrag:
-    - lightrag_doc_chunks: 174
-    - lightrag_doc_full: 152
-    - lightrag_doc_status: 163
-    - lightrag_entity_chunks: 1748
-    - lightrag_full_entities: 151
-    - lightrag_full_relations: 148
-    - lightrag_llm_cache: 6698
-    - lightrag_relation_chunks: 2204
-    - lightrag_vdb_chunks_gemini_embedding_001_1536d: 0
-    - lightrag_vdb_chunks_text_embedding_3_small_1536d: 174
-    # ... and 4 more tables
-  e2e:
-    - e2e_runs: 80
-    - e2e_step_log: 927
-    - e2e_traffic: 1
-  v5_intelligence:
-    - v5_accounts: 0
-    - v5_comments: 0
-    - v5_coordination_scores: 0
-    - v5_discovery_queue: 352
-    - v5_doc_links: 0
-    - v5_doc_similarity: 0
-    - v5_documents: 0
-    - v5_entities: 1
-    - v5_hashtags: 0
-    - v5_investigation_log: 14
-    # ... and 2 more tables
-  operational:
-    - a2a_agents: 0
-    - active_missions: 4
-    - agui_channel_audit: 0
-    - articulo_objetivos: 44092
-    - articulos: 39065
-    - background_jobs: 0
-    - behavior_mutations: 3
-    - brand_compliance_log: 0
-    - budget_state: 584
-    - cadena_custodia: 125
-    # ... and 76 more tables
 
 custom_rpcs:
-  - aggregate_daily_usage
-  - anti_dory_runtime_flags_set_updated_at
-  - anti_dory_write_budget_set_updated_at
-  - bg_job_append_progress
-  - boot_sequence_thoughts
-  - bridge_embrion_to_sms
-  - calculate_job_success_rate
-  - catastro_apply_quorum_outcome
-  - catastro_recompute_trono
-  - catastro_recompute_trono_all
-  - cleanup_old_background_jobs
-  - cowork_sesiones_set_updated_at
-  - crystallize_pending_events
-  - embrion_write_proposals_set_updated_at
-  - emit_event
-  - fn_set_updated_at
-  - get_allowed_tools
-  - get_colmena_stats
-  - get_current_pricing
-  - get_due_jobs
-  - get_embrion_bridge_status
-  - get_event_stream_stats
-  - get_specialists_memory_stats
-  - hybrid_search_thoughts
-  - kal_prevent_modify
-  - kal_prevent_truncate
-  - log_specialist_task
-  - mark_embrion_noise_consumed
-  - match_catastro_modelos
-  - match_memory_events
-  - propagate_pattern_to_embriones
-  - query_event_stream
-  - recall_specialist_context
-  - record_tool_execution
-  - remember_specialist_knowledge
-  - rpc_accept_snapshot
-  - rpc_check_shadow_enabled
-  - rpc_get_context_head
-  - rpc_increment_write_budget
-  - rpc_recovery_scan
-  - rpc_write_runtime_event
-  - rpc_write_thread_snapshot
-  - search_chunks
-  - search_similar_errors
-  - search_thoughts_semantic
-  - set_updated_at
-  - set_updated_at_now
-  - thoughts_tsv_update
-  - trg_catastro_agentes_updated_at
-  - trg_catastro_set_updated_at
-  - update_budget_on_plan_change
-  - update_dossier_timestamp
-  - update_error_pattern_validated
-  - update_memento_actualizado_en
-  - update_scheduled_jobs_updated_at
-  - update_updated_at_column
-  - validate_embrion_memoria
 
 api_endpoints:
   - prefix: /v1/memento
@@ -579,67 +402,26 @@ api_endpoints:
     router: mount
 
 skills:
-  total: 43
+  total: 0
   directory: /home/ubuntu/skills/
   items:
-    - aliexpress-mx-validator
-    - anti-autoboicot
-    - api-context-injector
-    - auditar-antes-construir
-    - automation-and-scheduling
-    - ci-cascade-audit
-    - ciclo-investigacion-descubrimiento-perpetuo
-    - comercializacion-zona-like-313
-    - consulta-sabios
-    - creacion-cip
-    - detonadores-alfredo
-    - el-monstruo
-    - el-monstruo-armero
-    - el-monstruo-bot
-    - el-monstruo-core
-    - el-monstruo-estado
-    - el-monstruo-plan
-    - el-monstruo-toolkit
-    - formato-correcto-contexto
-    - gws-best-practices
-    - herramientas-planificacion
-    - interfaces-monstruo-doctrina
-    - manus-api
-    - manus-config
-    - manus-inter-cuenta
-    - manus-refund-auditor
-    - media-crisis-control
-    - music-prompter
-    - optimizador-creditos
-    - persistent-computing
-    - protocolo-operativo-core
-    - proyecto-renders
-    - simulador-escenarios-ia
-    - site-reality-reconstructor
-    - skill-creator
-    - skill-factory
-    - softrestaurant-ai-10x
-    - ticketlike-ops
-    - tiktok-trend-creator
-    - validacion-tiempo-real
-    - vicios-hilo-manus-evitar
-    - videoclip-musical-clase-mundial
-    - vocabulario-alfredo-manus
 
 migrations:
-  total: 57
+  total: 62
   directory: migrations/sql/
   latest:
-    - 0056_memory_decay_consolidation.sql
     - 0057_event_bus.sql
     - 0058_embrion_sms_bridge.sql
     - 0059_specialists_memory.sql
     - 0060_colmena_persistence.sql
+    - 0061_thread_immunity_events.sql
 
 repo_structure:
   top_level_dirs:
+    - __pycache__
     - _archive
     - apps
+    - arsenal-mcp
     - bot
     - bridge
     - cidp
@@ -651,6 +433,7 @@ repo_structure:
     - docs
     - embryos
     - evaluation
+    - forja-mcp
     - kernel
     - memory
     - migrations
