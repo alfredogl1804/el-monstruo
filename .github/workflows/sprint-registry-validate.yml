@@ -1,0 +1,33 @@
+name: Sprint Registry Validate
+
+on:
+  pull_request:
+    paths:
+      - 'sprints/registry.yaml'
+      - 'sprints/REGISTRY_SCHEMA.md'
+      - 'bridge/sprints_propuestos/**'
+      - 'bridge/sprints_completados/**'
+      - 'scripts/migrate_to_sprint_registry.py'
+      - '.github/workflows/sprint-registry-validate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'sprints/registry.yaml'
+      - 'bridge/sprints_propuestos/**'
+      - 'bridge/sprints_completados/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: pip install pyyaml
+
+      - name: Validate registry consistency
+        run: python3 scripts/validate_sprint_registry.py
