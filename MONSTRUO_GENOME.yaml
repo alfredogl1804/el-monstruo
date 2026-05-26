@@ -6,17 +6,17 @@
 # ╚══════════════════════════════════════════════════════════════════╝
 
 meta:
-  generated_at: 2026-05-26T12:39:50Z
+  generated_at: 2026-05-26T12:54:10Z
   generator: scripts/genome_generator.py
   version: 2.0.0
   repo: alfredogl1804/el-monstruo
-  total_kernel_modules: 116
+  total_kernel_modules: 115
   total_embriones: 10
   total_supabase_tables: 287
   total_custom_rpcs: 328
   total_migrations: 62
   total_skills: 0
-  total_top_dirs: 36
+  total_top_dirs: 33
   total_satellites: 8
   mapa_vivo:
     endpoint: https://el-monstruo-kernel-production.up.railway.app/v1/genome/now
@@ -138,7 +138,7 @@ production:
     custom_rpcs: 328
 
 kernel:
-  total_python_files: 303
+  total_python_files: 304
   entry_point: kernel/main.py
   framework: FastAPI + LangGraph
   modules:
@@ -853,12 +853,10 @@ migrations:
 
 repo_structure:
   top_level_dirs:
-    - __pycache__
     - _archive
     - _genome_out
     - _scratch
     - apps
-    - arsenal-mcp
     - bot
     - bridge
     - cidp
@@ -870,7 +868,6 @@ repo_structure:
     - docs
     - embryos
     - evaluation
-    - forja-mcp
     - kernel
     - memory
     - migrations
