@@ -117,8 +117,10 @@ def aggregate() -> dict[str, Any]:
     # Resúmenes ejecutivos
     summaries = {
         "github": {
-            "repos_total": gh.get("repos_count", 0),
-            "expected_total": gh.get("expected_total_count", 0),
+            # Sprint 91.5 hotfix — corregir contrato con github_scanner.py
+            # El scanner produce got_total/expected_total (no repos_count/expected_total_count).
+            "repos_total": gh.get("got_total", 0),
+            "expected_total": gh.get("expected_total", 0),
             "match": gh.get("coverage_match", False),
             "scanned_at": gh.get("finished_at"),
         },
